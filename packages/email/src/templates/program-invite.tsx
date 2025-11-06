@@ -14,57 +14,76 @@ import {
   Tailwind,
   Text,
 } from "@react-email/components";
-import { Fragment } from "react";
+import ReactMarkdown, { type Components } from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { Footer } from "../components/footer";
 
-type MarkdownSegment =
-  | { type: "text"; content: string }
-  | { type: "link"; content: string; href: string };
-
-function parseMarkdown(markdown: string): MarkdownSegment[][] {
-  if (!markdown) {
-    return [];
-  }
-
-  const paragraphs = markdown
-    .split(/\n\s*\n/)
-    .map((paragraph) => paragraph.replace(/\n/g, " "))
-    .map((paragraph) => paragraph.trim())
-    .filter(Boolean);
-
-  return paragraphs.map((paragraph) => {
-    const segments: MarkdownSegment[] = [];
-    const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
-    let lastIndex = 0;
-    let match: RegExpExecArray | null;
-
-    while ((match = linkRegex.exec(paragraph)) !== null) {
-      const [fullMatch, text, href] = match;
-      const startIndex = match.index;
-
-      if (startIndex > lastIndex) {
-        segments.push({
-          type: "text",
-          content: paragraph.slice(lastIndex, startIndex),
-        });
-      }
-
-      segments.push({ type: "link", content: text, href });
-      lastIndex = startIndex + fullMatch.length;
+const markdownComponents: Components = {
+  p({ children }) {
+    return (
+      <Text className="text-sm leading-6 text-neutral-600">{children}</Text>
+    );
+  },
+  a({ children, href }) {
+    return (
+      <Link
+        href={href || ""}
+        target="_blank"
+        className="font-semibold text-neutral-800 underline underline-offset-2"
+      >
+        {children}
+      </Link>
+    );
+  },
+  ul({ children }) {
+    return (
+      <ul className="mb-4 list-disc pl-5 text-sm leading-6 text-neutral-600">
+        {children}
+      </ul>
+    );
+  },
+  ol({ children }) {
+    return (
+      <ol className="mb-4 list-decimal pl-5 text-sm leading-6 text-neutral-600">
+        {children}
+      </ol>
+    );
+  },
+  li({ children }) {
+    return <li className="marker:text-neutral-400">{children}</li>;
+  },
+  strong({ children }) {
+    return <strong className="font-semibold text-neutral-800">{children}</strong>;
+  },
+  em({ children }) {
+    return <em className="italic">{children}</em>;
+  },
+  blockquote({ children }) {
+    return (
+      <blockquote className="my-4 border-l-2 border-neutral-200 pl-4 text-sm leading-6 text-neutral-600">
+        {children}
+      </blockquote>
+    );
+  },
+  code({ inline, className, children }) {
+    if (inline) {
+      return (
+        <code className="rounded-md bg-neutral-100 px-1 py-0.5 text-[12px] font-mono text-neutral-800">
+          {children}
+        </code>
+      );
     }
 
-    if (lastIndex < paragraph.length) {
-      segments.push({
-        type: "text",
-        content: paragraph.slice(lastIndex),
-      });
-    }
-
-    return segments.length > 0
-      ? segments
-      : [{ type: "text", content: paragraph }];
-  });
-}
+    return (
+      <pre className="my-4 overflow-x-auto rounded-md bg-neutral-900 px-3 py-3 text-[12px] leading-relaxed text-white">
+        <code className={className}>{children}</code>
+      </pre>
+    );
+  },
+  hr() {
+    return <hr className="my-6 border-neutral-200" />;
+  },
+};
 
 export default function ProgramInvite({
   email = "panic@thedis.co",
@@ -115,11 +134,6 @@ export default function ProgramInvite({
   const emailSubject =
     subject || `${program.name} invited you to join Dub Partners`;
 
-  // Default body content
-  const defaultBody = `${program.name} invited you to join their program on Dub Partners.\n\n${program.name} uses [Dub Partners](https://dub.co/partners) to power their partner program and wants to work with great people like you!`;
-  const emailBody = body || defaultBody;
-  const bodyParagraphs = parseMarkdown(emailBody);
-
   return (
     <Html>
       <Head />
@@ -140,31 +154,12 @@ export default function ProgramInvite({
             </Heading>
 
             {body ? (
-              <>
-                {bodyParagraphs.map((paragraph, paragraphIndex) => (
-                  <Text
-                    key={paragraphIndex}
-                    className="text-sm leading-6 text-neutral-600"
-                  >
-                    {paragraph.map((segment, segmentIndex) =>
-                      segment.type === "link" ? (
-                        <Link
-                          key={`${paragraphIndex}-${segmentIndex}`}
-                          href={segment.href}
-                          target="_blank"
-                          className="font-semibold text-neutral-800 underline underline-offset-2"
-                        >
-                          {segment.content}
-                        </Link>
-                      ) : (
-                        <Fragment key={`${paragraphIndex}-${segmentIndex}`}>
-                          {segment.content}
-                        </Fragment>
-                      ),
-                    )}
-                  </Text>
-                ))}
-              </>
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                components={markdownComponents}
+              >
+                {body}
+              </ReactMarkdown>
             ) : (
               <>
                 <Text className="text-sm leading-6 text-neutral-600">
