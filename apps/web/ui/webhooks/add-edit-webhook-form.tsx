@@ -6,6 +6,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { NewWebhook, WebhookProps } from "@/lib/types";
 import {
   LINK_LEVEL_WEBHOOK_TRIGGERS,
+  PROGRAM_LEVEL_WEBHOOK_TRIGGERS,
   WEBHOOK_TRIGGER_DESCRIPTIONS,
   WORKSPACE_LEVEL_WEBHOOK_TRIGGERS,
 } from "@/lib/webhook/constants";
@@ -35,17 +36,12 @@ export default function AddEditWebhookForm({
   const router = useRouter();
   const { program } = useProgram();
   const [saving, setSaving] = useState(false);
-  const { id: workspaceId, slug: workspaceSlug, role } = useWorkspace();
-
-  const availableWorkspaceTriggers = useMemo(() => {
-    return WORKSPACE_LEVEL_WEBHOOK_TRIGGERS.filter((trigger) => {
-      if (trigger === "payout.confirmed") {
-        return program?.payoutMode !== "internal"; // TODO: Maybe show this for all in the future?
-      }
-
-      return true;
-    });
-  }, [program]);
+  const {
+    id: workspaceId,
+    slug: workspaceSlug,
+    role,
+    defaultProgramId,
+  } = useWorkspace();
 
   const [data, setData] = useState<NewWebhook | WebhookProps>(
     webhook || {
@@ -123,6 +119,20 @@ export default function AddEditWebhookForm({
 
   const enableLinkSelection = LINK_LEVEL_WEBHOOK_TRIGGERS.some((trigger) =>
     triggers.includes(trigger),
+  );
+
+  const availableWebhookTriggers = useMemo(
+    () => [
+      ...WORKSPACE_LEVEL_WEBHOOK_TRIGGERS,
+      ...(defaultProgramId
+        ? PROGRAM_LEVEL_WEBHOOK_TRIGGERS.filter(
+            (trigger) =>
+              trigger !== "payout.confirmed" ||
+              program?.payoutMode !== "internal",
+          )
+        : []),
+    ],
+    [defaultProgramId, program?.payoutMode],
   );
 
   return (
@@ -203,7 +213,7 @@ export default function AddEditWebhookForm({
             </span>
           </label>
           <div className="mt-3 flex flex-col gap-2">
-            {availableWorkspaceTriggers.map((trigger) => (
+            {availableWebhookTriggers.map((trigger) => (
               <div key={trigger} className="group flex gap-2">
                 <Checkbox
                   value={trigger}

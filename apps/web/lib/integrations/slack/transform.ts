@@ -9,6 +9,7 @@ import {
   ClickEventWebhookPayload,
   CommissionEventWebhookPayload,
   LeadEventWebhookPayload,
+  PartnerApplicationWebhookPayload,
   PartnerEventWebhookPayload,
   PayoutEventWebhookPayload,
   SaleEventWebhookPayload,
@@ -251,6 +252,61 @@ const partnerEnrolledTemplate = ({
   };
 };
 
+const partnerApplicationSubmittedTemplate = ({
+  data,
+}: {
+  data: PartnerApplicationWebhookPayload;
+}) => {
+  const { id, partner } = data;
+  const linkToApplication = `${APP_DOMAIN}/program/partners/applications?partnerId=${partner.id}`;
+
+  return {
+    blocks: [
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: `*New partner application submitted* :incoming_envelope:`,
+        },
+      },
+      {
+        type: "section",
+        fields: [
+          {
+            type: "mrkdwn",
+            text: `*Name*\n${partner.name}`,
+          },
+          {
+            type: "mrkdwn",
+            text: `*Email*\n<mailto:${partner.email}|${partner.email}>`,
+          },
+          {
+            type: "mrkdwn",
+            text: `*Country*\n${partner.country}`,
+          },
+          ...(partner.companyName
+            ? [
+                {
+                  type: "mrkdwn",
+                  text: `*Company*\n${partner.companyName}`,
+                },
+              ]
+            : []),
+        ],
+      },
+      {
+        type: "context",
+        elements: [
+          {
+            type: "mrkdwn",
+            text: `Application ID: ${id} | <${linkToApplication}|View on Dub>`,
+          },
+        ],
+      },
+    ],
+  };
+};
+
 const commissionCreatedTemplate = ({
   data,
 }: {
@@ -485,6 +541,7 @@ const slackTemplates: Record<WebhookTrigger, any> = {
   "lead.created": leadCreatedTemplate,
   "sale.created": saleCreatedTemplate,
   "partner.enrolled": partnerEnrolledTemplate,
+  "partner.application_submitted": partnerApplicationSubmittedTemplate,
   "commission.created": commissionCreatedTemplate,
   "bounty.created": bountyTemplates,
   "bounty.updated": bountyTemplates,
