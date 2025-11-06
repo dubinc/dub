@@ -121,7 +121,9 @@ const markdownComponents: Components = {
     );
   },
   strong({ children }) {
-    return <strong className="font-semibold text-neutral-800">{children}</strong>;
+    return (
+      <strong className="font-semibold text-neutral-800">{children}</strong>
+    );
   },
   em({ children }) {
     return <em className="italic">{children}</em>;

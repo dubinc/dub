@@ -2,17 +2,19 @@
 
 /**
  * Sanitizes and validates markdown content for safe use in email templates.
- * 
+ *
  * This function:
  * - Trims whitespace
  * - Validates the content is valid text (not binary)
  * - Checks for suspicious patterns that could cause DoS issues
  * - Normalizes line endings
- * 
+ *
  * @param markdown - The markdown string to sanitize
  * @returns The sanitized markdown string, or null if invalid/binary content detected
  */
-export function sanitizeMarkdown(markdown: string | null | undefined): string | null {
+export function sanitizeMarkdown(
+  markdown: string | null | undefined,
+): string | null {
   if (!markdown || typeof markdown !== "string") {
     return null;
   }
@@ -47,4 +49,3 @@ export function sanitizeMarkdown(markdown: string | null | undefined): string | 
 
   return sanitized;
 }
-
