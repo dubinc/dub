@@ -1,12 +1,12 @@
-import { defineConfig } from "tsup";
+import { defineConfig } from "tsdown";
 
-export default defineConfig({
+export default defineConfig((options) => ({
   entry: {
     "embed/script": "src/embed.ts", // Standalone entry for embed.ts
     index: "src/index.ts", // Entry for all other files via index.ts
   },
   format: ["cjs"],
-  esbuildOptions(options) {
+  esbuildOptions(options: any) {
     options.banner = {
       js: '"use client"',
     };
@@ -15,4 +15,5 @@ export default defineConfig({
   minify: true,
   clean: true,
   splitting: false,
-});
+  ...options,
+}));

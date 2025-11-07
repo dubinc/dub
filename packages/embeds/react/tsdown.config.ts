@@ -1,14 +1,14 @@
-import { defineConfig } from "tsup";
+import { defineConfig } from "tsdown";
 
-export default defineConfig({
+export default defineConfig((options) => ({
   entry: ["src/index.ts"],
   format: ["esm", "cjs"],
-  esbuildOptions(options) {
+  esbuildOptions(options: any) {
     options.banner = {
       js: '"use client"',
     };
   },
-  outExtension({ format }) {
+  outExtension({ format }: any) {
     return {
       js: format === "esm" ? ".mjs" : ".js",
     };
@@ -19,4 +19,5 @@ export default defineConfig({
   noExternal: ["@dub/embed-core"],
   clean: true,
   splitting: false,
-});
+  ...options,
+}));

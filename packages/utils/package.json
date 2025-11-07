@@ -10,9 +10,9 @@
     "dist/**"
   ],
   "scripts": {
-    "build": "tsup",
+    "build": "tsdown",
     "lint": "eslint src/",
-    "dev": "tsup --watch",
+    "dev": "tsdown --watch",
     "check-types": "tsc --noEmit"
   },
   "peerDependencies": {
@@ -27,7 +27,7 @@
     "next": "15.5.4",
     "react": "^19.1.1",
     "tsconfig": "workspace:*",
-    "tsup": "^6.1.3",
+    "tsdown": "^0.16.1",
     "typescript": "^5.1.6"
   },
   "dependencies": {

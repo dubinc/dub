@@ -1,6 +1,6 @@
-import { defineConfig, Options } from "tsup";
+import { defineConfig } from "tsdown";
 
-export default defineConfig((options: Options) => ({
+export default defineConfig((options) => ({
   entry: ["src/**/*.ts"],
   format: ["esm"],
   dts: true,
