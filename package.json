@@ -29,6 +29,9 @@
     "tsconfig": "workspace:*",
     "turbo": "^1.12.5"
   },
+  "overrides": {
+    "rollup": "4.52.5"
+  },
   "resolutions": {
     "chrono-node": "2.7.5"
   },
