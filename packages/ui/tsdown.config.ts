@@ -8,11 +8,6 @@ export default defineConfig((options) => ({
   },
 
   format: ["esm"],
-  esbuildOptions(options: any) {
-    options.banner = {
-      js: '"use client"',
-    };
-  },
   dts: true,
   minify: true,
   external: ["react"],
