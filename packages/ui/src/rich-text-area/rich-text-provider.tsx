@@ -202,6 +202,7 @@ export const RichTextProvider = forwardRef<
         ...editorProps,
       },
       content: initialValue,
+      contentType: markdown ? "markdown" : undefined,
       onUpdate: ({ editor }) => onChange?.(editor),
       immediatelyRender: false,
     });

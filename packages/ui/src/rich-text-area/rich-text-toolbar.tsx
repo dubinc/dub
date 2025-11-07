@@ -16,9 +16,11 @@ import { useRichTextContext } from "./rich-text-provider";
 export function RichTextToolbar({
   toolsStart,
   toolsEnd,
+  className,
 }: {
   toolsStart?: ReactNode;
   toolsEnd?: ReactNode;
+  className?: string;
 }) {
   const { editor, features, handleImageUpload, isUploading } =
     useRichTextContext();
@@ -41,6 +43,7 @@ export function RichTextToolbar({
       className={cn(
         "flex gap-1",
         isUploading && "pointer-events-none opacity-50",
+        className,
       )}
     >
       {toolsStart}
