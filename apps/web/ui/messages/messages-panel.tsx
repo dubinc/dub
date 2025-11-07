@@ -179,14 +179,17 @@ export function MessagesPanel({
                           className={cn(
                             "max-w-[min(100%,512px)] rounded-xl px-4 py-2.5 text-sm",
                             isMySide
-                              ? "text-content-inverted rounded-br bg-neutral-700"
-                              : "text-content-default rounded-bl bg-neutral-100",
+                              ? "rounded-br bg-neutral-700"
+                              : "rounded-bl bg-neutral-100",
                           )}
                         >
                           <ReactMarkdown
                             className={cn(
-                              "prose prose-sm prose-invert prose-p:m-0 break-words text-white",
-                              "prose-a:font-medium prose-a:text-white prose-a:underline-offset-4 hover:prose-a:text-neutral-100",
+                              isMySide
+                                ? "text-content-inverted prose-invert prose-a:text-content-inverted"
+                                : "text-content-default prose-a:text-content-emphasis",
+                              "prose prose-sm prose-p:m-0 break-words",
+                              "prose-a:font-medium prose-a:underline-offset-4",
                             )}
                             allowedElements={[
                               "p",
