@@ -15,7 +15,7 @@ export function AccordionBlock({
   block: z.infer<typeof programLanderAccordionBlockSchema>;
 }) {
   return (
-    <div className="space-y-5">
+    <div className="space-y-5" dir={block.data.direction}>
       <BlockTitle title={block.data.title} />
       <div className="border-y border-slate-200">
         <Accordion type="multiple">

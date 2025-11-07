@@ -1,5 +1,6 @@
 "use client";
 
+import useProgram from "@/lib/swr/use-program";
 import { programLanderFilesBlockSchema } from "@/lib/zod/schemas/program-lander";
 import {
   Button,
@@ -14,6 +15,7 @@ import { FormProvider, useForm } from "react-hook-form";
 import { v4 as uuid } from "uuid";
 import { z } from "zod";
 import { EditList, ExpandableEditListItem } from "../../edit-list";
+import { RightToLeftToggle } from "../../right-to-left-toggle";
 
 type FilesBlockData = z.infer<typeof programLanderFilesBlockSchema>["data"];
 
@@ -43,6 +45,9 @@ function FilesBlockModalInner({
 }: FilesBlockModalProps) {
   const id = useId();
   const { isMobile } = useMediaQuery();
+
+  const { program } = useProgram();
+
   const form = useForm<FilesBlockData>({
     defaultValues: defaultValues ?? {
       title: "",
@@ -54,12 +59,14 @@ function FilesBlockModalInner({
           url: "",
         },
       ],
+      direction: program?.rtlContentEnabledAt ? "rtl" : undefined,
     },
   });
 
   const {
     handleSubmit,
     register,
+    control,
     watch,
     setValue,
     formState: { errors },
@@ -250,6 +257,11 @@ function FilesBlockModalInner({
               style={{ opacity: 1 - Math.pow(scrollProgress, 2) }}
             />
           </div>
+
+          {/* RTL */}
+          {program?.rtlContentEnabledAt && (
+            <RightToLeftToggle control={control} name="direction" />
+          )}
 
           <div className="flex items-center justify-end gap-2">
             <Button

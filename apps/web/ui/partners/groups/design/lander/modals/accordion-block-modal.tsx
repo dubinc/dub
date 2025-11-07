@@ -1,5 +1,6 @@
 "use client";
 
+import useProgram from "@/lib/swr/use-program";
 import { programLanderAccordionBlockSchema } from "@/lib/zod/schemas/program-lander";
 import {
   Button,
@@ -14,6 +15,7 @@ import { useForm } from "react-hook-form";
 import { v4 as uuid } from "uuid";
 import { z } from "zod";
 import { EditList, ExpandableEditListItem } from "../../edit-list";
+import { RightToLeftToggle } from "../../right-to-left-toggle";
 
 type AccordionBlockData = z.infer<
   typeof programLanderAccordionBlockSchema
@@ -45,9 +47,13 @@ function AccordionBlockModalInner({
 }: AccordionBlockModalProps) {
   const id = useId();
   const { isMobile } = useMediaQuery();
+
+  const { program } = useProgram();
+
   const {
     handleSubmit,
     register,
+    control,
     watch,
     setValue,
     formState: { errors },
@@ -61,6 +67,7 @@ function AccordionBlockModalInner({
           content: "",
         },
       ],
+      direction: program?.rtlContentEnabledAt ? "rtl" : undefined,
     },
   });
 
@@ -228,6 +235,11 @@ function AccordionBlockModalInner({
             style={{ opacity: 1 - Math.pow(scrollProgress, 2) }}
           />
         </div>
+
+        {/* RTL */}
+        {program?.rtlContentEnabledAt && (
+          <RightToLeftToggle control={control} name="direction" />
+        )}
 
         <div className="flex items-center justify-end gap-2">
           <Button
