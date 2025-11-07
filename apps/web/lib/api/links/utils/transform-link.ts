@@ -42,6 +42,7 @@ export const transformLink = (
     disabledAt,
     lastLeadAt,
     lastConversionAt,
+    programEnrollment,
     ...rest
   } = link;
 
