@@ -6,6 +6,7 @@ export type FormControlProps = {
   required?: boolean;
   helperText?: string;
   error?: string;
+  labelDir?: string;
 } & HTMLAttributes<HTMLLabelElement>;
 
 export const FormControlRequiredBadge = () => {
@@ -22,11 +23,12 @@ export const FormControl = ({
   children,
   error,
   helperText,
+  labelDir,
   ...rest
 }: FormControlProps) => {
   return (
     <label {...rest}>
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-1.5" dir={labelDir}>
         <span className="text-content-emphasis text-sm font-medium">
           {label}
         </span>
