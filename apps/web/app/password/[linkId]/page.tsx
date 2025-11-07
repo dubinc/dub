@@ -16,11 +16,9 @@ const description =
   "This link is password protected. Enter the password to view it.";
 const image = "https://assets.dub.co/misc/password-protected.png";
 
-export async function generateMetadata(
-  props: {
-    params: Promise<{ linkId: string }>;
-  }
-) {
+export async function generateMetadata(props: {
+  params: Promise<{ linkId: string }>;
+}) {
   const params = await props.params;
   const link = await prismaEdge.link.findUnique({
     where: {
@@ -57,11 +55,9 @@ export async function generateMetadata(
   });
 }
 
-export default async function PasswordProtectedLinkPage(
-  props: {
-    params: Promise<{ linkId: string }>;
-  }
-) {
+export default async function PasswordProtectedLinkPage(props: {
+  params: Promise<{ linkId: string }>;
+}) {
   const params = await props.params;
   const link = await prismaEdge.link.findUnique({
     where: {

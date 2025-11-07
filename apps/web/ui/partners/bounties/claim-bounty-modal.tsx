@@ -587,7 +587,10 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                         value={description}
                         onChange={(e) => {
                           const value = e.target.value;
-                          if (value.length <= MAX_BOUNTY_SUBMISSION_DESCRIPTION_LENGTH) {
+                          if (
+                            value.length <=
+                            MAX_BOUNTY_SUBMISSION_DESCRIPTION_LENGTH
+                          ) {
                             setDescription(value);
                           }
                         }}

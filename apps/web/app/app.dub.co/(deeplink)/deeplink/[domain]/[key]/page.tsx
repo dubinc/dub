@@ -8,11 +8,9 @@ import { redirect } from "next/navigation";
 import { DeepLinkActionButtons } from "./action-buttons";
 import { BrandLogoBadge } from "./brand-logo-badge";
 
-export default async function DeepLinkPreviewPage(
-  props: {
-    params: Promise<{ domain: string; key: string }>;
-  }
-) {
+export default async function DeepLinkPreviewPage(props: {
+  params: Promise<{ domain: string; key: string }>;
+}) {
   const params = await props.params;
   const domain = params.domain;
   const key = decodeURIComponent(params.key);

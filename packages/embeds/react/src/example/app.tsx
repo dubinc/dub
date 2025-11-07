@@ -1,6 +1,5 @@
-import { createRoot } from "react-dom/client";
 import { useCallback, useEffect, useState } from "react";
-import ReactDom from "react-dom";
+import { createRoot } from "react-dom/client";
 import { DubEmbed } from "../embed";
 
 const Embed = () => {
