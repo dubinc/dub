@@ -30,7 +30,9 @@ export function ApplicationFormHero({
       {/* <p className="font-mono text-xs font-medium uppercase text-[var(--brand)]">
         {label}
       </p> */}
-      <Heading className="text-4xl font-semibold">{title}</Heading>
+      <Heading className="text-4xl font-semibold" dir="auto">
+        {title}
+      </Heading>
       <BlockMarkdown>{description}</BlockMarkdown>
     </div>
   );
