@@ -10,6 +10,7 @@ export type ExpandedLink = Link & {
   webhooks?: { webhookId: string }[];
   dashboard?: Dashboard | null;
   partner?: Pick<PartnerProps, "id" | "name" | "image"> | null;
+  partnerGroupId?: string | null;
   discount?: Pick<
     DiscountProps,
     "id" | "amount" | "type" | "maxDuration" | "couponId" | "couponTestId"
