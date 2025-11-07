@@ -1,7 +1,7 @@
 import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import { createLink, getLinksForWorkspace, processLink } from "@/lib/api/links";
-import { validateLinksQueryFilters } from "@/lib/api/links/validate-links-query-filters";
 import { throwIfLinksUsageExceeded } from "@/lib/api/links/usage-checks";
+import { validateLinksQueryFilters } from "@/lib/api/links/validate-links-query-filters";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { ratelimit } from "@/lib/upstash";
@@ -50,10 +50,8 @@ export const POST = withWorkspace(
     }
 
     const body = await createLinkBodySchemaAsync.parseAsync(
-      await parseRequestBody(req),
+      await parseRequestBody(req.clone()),
     );
-
-    console.log(body);
 
     if (!session) {
       const ip = req.headers.get("x-forwarded-for") || LOCALHOST_IP;

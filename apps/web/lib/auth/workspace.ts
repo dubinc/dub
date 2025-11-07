@@ -12,7 +12,7 @@ import {
 import { throwIfNoAccess } from "../api/tokens/permissions";
 import { Scope, mapScopesToPermissions } from "../api/tokens/scopes";
 import { normalizeWorkspaceId } from "../api/workspaces/workspace-id";
-import { withAxiom } from "../axiom/server";
+import { withAxiomBodyLog } from "../axiom/server";
 import { getFeatureFlags } from "../edge-config";
 import { logConversionEvent } from "../tinybird/log-conversion-events";
 import { hashToken } from "./hash-token";
@@ -62,7 +62,7 @@ export const withWorkspace = (
     skipPermissionChecks?: boolean;
   } = {},
 ) => {
-  return withAxiom(
+  return withAxiomBodyLog(
     async (
       req,
       { params: initialParams }: { params: Promise<Record<string, string>> },
