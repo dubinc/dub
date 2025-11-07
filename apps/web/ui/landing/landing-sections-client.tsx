@@ -56,7 +56,7 @@ export const LandingSectionsClient: FC<
       {/* 1. New Builder */}
       <section
         id="qr-generation-block"
-        className="bg-primary-100 w-full px-3 py-6 lg:py-14 min-h-[100dvh] md:min-h-0 flex items-center justify-center"
+        className="bg-primary-100 w-full px-3 py-6 lg:py-14 min-h-[100svh] md:min-h-0 flex items-center justify-center"
       >
         <QRTabs
           sessionId={sessionId}
