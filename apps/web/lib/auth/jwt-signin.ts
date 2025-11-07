@@ -144,7 +144,7 @@ export async function createAutoLoginURL(
   try {
     const token = await createServerAuthJWT(userId);
     const baseUrl = process.env.NEXTAUTH_URL
-      || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+      || (APP_URL ? `https://${APP_URL}` : "http://localhost:3000");
 
     return `${baseUrl}/api/auth/auto-login?token=${encodeURIComponent(token)}&redirect=${encodeURIComponent(redirectUrl)}`;
   } catch (error) {

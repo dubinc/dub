@@ -2,7 +2,7 @@ export const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || "Dub.co";
 
 export const SHORT_DOMAIN = process.env.NEXT_PUBLIC_APP_SHORT_DOMAIN;
 
-export const APP_URL = process.env.NEXT_PUBLIC_APP_DOMAIN || process.env.VERCEL_URL;
+export const APP_URL = process.env.NEXT_PUBLIC_APP_DOMAIN || process.env.VERCEL_BRANCH_URL;
 
 export const HOME_DOMAIN = `https://${APP_URL}`;
 
