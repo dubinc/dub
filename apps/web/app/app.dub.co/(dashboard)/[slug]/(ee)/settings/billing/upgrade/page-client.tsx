@@ -95,8 +95,6 @@ export function WorkspaceBillingUpgradePageClient() {
     [recommendedPlan],
   );
 
-  console.log({ plans });
-
   return (
     <div>
       {partnersUpgradeModal}

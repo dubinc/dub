@@ -1,8 +1,14 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Button, Grid, Slider } from "@dub/ui";
-import { ENTERPRISE_PLAN, SELF_SERVE_PAID_PLANS, cn } from "@dub/utils";
+import {
+  ENTERPRISE_PLAN,
+  SELF_SERVE_PAID_PLANS,
+  cn,
+  getPlanDetails,
+} from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import { motion } from "motion/react";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 export function AdjustUsageRow({
@@ -79,7 +85,22 @@ function UsageSlider({
     [limitKey],
   );
 
+  const searchParams = useSearchParams();
+  const planParam = searchParams.get("plan");
+  const planTierParam = Number(searchParams.get("planTier")) || 1;
+
   const defaultValue = useMemo(() => {
+    // we're not including planParam in the dependency array
+    // to allow the slider to update when the plan changes
+    if (planParam) {
+      const planDetails = getPlanDetails({
+        plan: planParam,
+        planTier: planTierParam,
+      });
+      if (planDetails) {
+        return planDetails.limits[limitKey];
+      }
+    }
     const currentLimit = workspace[workspaceLimitKey];
     return usageSteps.reduce((prev, curr) =>
       Math.abs(curr - currentLimit) < Math.abs(prev - currentLimit)

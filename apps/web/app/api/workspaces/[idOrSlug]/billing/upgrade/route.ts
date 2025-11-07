@@ -23,9 +23,17 @@ export const POST = withWorkspace(async ({ req, workspace, session }) => {
     await req.json(),
   );
 
+  const lookupKey = tier > 1 ? `${plan}${tier}_${period}` : `${plan}_${period}`;
   const prices = await stripe.prices.list({
-    lookup_keys: [tier > 1 ? `${plan}${tier}_${period}` : `${plan}_${period}`],
+    lookup_keys: [lookupKey],
   });
+
+  if (prices.data.length === 0) {
+    throw new DubApiError({
+      code: "not_found",
+      message: `Price not found for lookup key: ${lookupKey}`,
+    });
+  }
 
   const activeSubscription = workspace.stripeId
     ? await stripe.subscriptions

@@ -88,11 +88,11 @@ export default function LinksLimitAlert({
                 >
                   upgrade to a higher plan
                 </Link>{" "}
-                add more links.
+                to add more links.
               </Text>
             ) : (
               <Text className="text-sm leading-6 text-black">
-                Once you hit your limit, you'll need to upgrade to the{" "}
+                Once you hit your limit, you'll need to{" "}
                 <Link
                   href={`${APP_DOMAIN}/${slug}/settings/billing`}
                   className="font-medium text-blue-600 no-underline"
