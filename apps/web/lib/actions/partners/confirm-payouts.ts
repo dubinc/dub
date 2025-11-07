@@ -2,6 +2,9 @@
 
 import { createId } from "@/lib/api/create-id";
 import { exceededLimitError } from "@/lib/api/errors";
+import { getEligiblePayouts } from "@/lib/api/payouts/get-eligible-payouts";
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { qstash } from "@/lib/cron";
 import {
   PAYMENT_METHOD_TYPES,
@@ -9,6 +12,7 @@ import {
 } from "@/lib/partners/constants";
 import { CUTOFF_PERIOD_ENUM } from "@/lib/partners/cutoff-period";
 import { stripe } from "@/lib/stripe";
+import { getWebhooks } from "@/lib/webhook/get-webhooks";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { z } from "zod";
@@ -42,9 +46,7 @@ export const confirmPayoutsAction = authActionClient
       total,
     } = parsedInput;
 
-    if (!workspace.defaultProgramId) {
-      throw new Error("Workspace does not have a default program.");
-    }
+    const programId = getDefaultProgramIdOrThrow(workspace);
 
     if (workspace.role !== "owner") {
       throw new Error("Only workspace owners can confirm payouts.");
@@ -76,6 +78,40 @@ export const confirmPayoutsAction = authActionClient
       throw new Error(
         "Your payout total is less than the minimum invoice amount of $10.",
       );
+    }
+
+    const program = await getProgramOrThrow({
+      workspaceId: workspace.id,
+      programId,
+    });
+
+    if (program.payoutMode !== "internal") {
+      const [eligiblePayouts, payoutWebhooks] = await Promise.all([
+        getEligiblePayouts({
+          program,
+          cutoffPeriod,
+          selectedPayoutId,
+          excludedPayoutIds,
+        }),
+
+        getWebhooks({
+          workspaceId: workspace.id,
+          triggers: ["payout.confirmed"],
+          disabled: false,
+          installationId: null,
+        }),
+      ]);
+
+      // Check if the invoice includes any external payouts
+      const hasExternalPayouts = eligiblePayouts.find(
+        (payout) => payout.mode === "external",
+      );
+
+      if (hasExternalPayouts && payoutWebhooks.length === 0) {
+        throw new Error(
+          `EXTERNAL_WEBHOOK_REQUIRED: This invoice includes at least one external payout, which requires an active webhook subscribed to the "payout.confirmed" event. Please set one up before proceeding.`,
+        );
+      }
     }
 
     const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodId);
@@ -112,7 +148,7 @@ export const confirmPayoutsAction = authActionClient
         data: {
           id: createId({ prefix: "inv_" }),
           number: invoiceNumber,
-          programId: workspace.defaultProgramId!,
+          programId,
           workspaceId: workspace.id,
           // these numbers will be updated later in the payouts/process cron job
           // but we're adding them now for the program/payouts/success screen
@@ -122,6 +158,7 @@ export const confirmPayoutsAction = authActionClient
           paymentMethod: fastSettlement
             ? "ach_fast"
             : STRIPE_PAYMENT_METHOD_NORMALIZATION[paymentMethod.type],
+          payoutMode: program.payoutMode,
         },
       });
     });
@@ -138,6 +175,7 @@ export const confirmPayoutsAction = authActionClient
         selectedPayoutId,
         excludedPayoutIds,
       },
+      deduplicationId: `process-payouts-${invoice.id}`,
     });
 
     if (qstashResponse.messageId) {

@@ -1,20 +1,21 @@
 "use client";
 
 import { Button } from "@dub/ui";
-import { useProgramPayoutSettingsModal } from "./program-payout-settings-modal";
+import { useProgramPayoutSettingsSheet } from "./program-payout-settings-sheet";
 
 export function ProgramPayoutSettingsButton() {
-  const { ProgramPayoutSettingsModal, setShowProgramPayoutSettingsModal } =
-    useProgramPayoutSettingsModal();
+  const { programPayoutSettingsSheet, setIsOpen } =
+    useProgramPayoutSettingsSheet();
 
   return (
     <>
-      <ProgramPayoutSettingsModal />
+      {programPayoutSettingsSheet}
       <Button
         type="button"
         text="Payout settings"
         variant="secondary"
-        onClick={() => setShowProgramPayoutSettingsModal(true)}
+        onClick={() => setIsOpen(true)}
+        className="h-9 px-3"
       />
     </>
   );

@@ -4,6 +4,7 @@ import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
 import { z } from "zod";
 import { logAndRespond } from "../../utils";
+import { queueExternalPayouts } from "./queue-external-payouts";
 import { queueStripePayouts } from "./queue-stripe-payouts";
 import { sendPaypalPayouts } from "./send-paypal-payouts";
 
@@ -13,6 +14,7 @@ export const maxDuration = 600; // This function can run for a maximum of 10 min
 const payloadSchema = z.object({
   invoiceId: z.string(),
 });
+
 // POST /api/cron/payouts/charge-succeeded
 // This route is used to process the charge-succeeded event from Stripe.
 // We're intentionally offloading this to a cron job so we can return a 200 to Stripe immediately.
@@ -51,10 +53,12 @@ export async function POST(req: Request) {
     }
 
     await Promise.allSettled([
+      // Queue Stripe payouts
       queueStripePayouts(invoice),
-      sendPaypalPayouts({
-        invoiceId,
-      }),
+      // Send PayPal payouts
+      sendPaypalPayouts(invoice),
+      // Queue external payouts
+      queueExternalPayouts(invoice),
     ]);
 
     return logAndRespond(

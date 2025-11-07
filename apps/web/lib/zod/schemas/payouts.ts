@@ -1,7 +1,8 @@
-import { PayoutStatus } from "@dub/prisma/client";
+import { CUTOFF_PERIOD_ENUM } from "@/lib/partners/cutoff-period";
+import { PayoutMode, PayoutStatus } from "@dub/prisma/client";
 import { z } from "zod";
 import { getPaginationQuerySchema } from "./misc";
-import { PartnerSchema } from "./partners";
+import { EnrolledPartnerSchema, PartnerSchema } from "./partners";
 import { ProgramSchema } from "./programs";
 
 export const createManualPayoutSchema = z.object({
@@ -61,11 +62,16 @@ export const PayoutSchema = z.object({
   createdAt: z.date(),
   paidAt: z.date().nullable(),
   failureReason: z.string().nullish(),
+  mode: z.nativeEnum(PayoutMode).nullable(),
 });
 
 export const PayoutResponseSchema = PayoutSchema.merge(
   z.object({
-    partner: PartnerSchema,
+    partner: PartnerSchema.merge(
+      z.object({
+        tenantId: z.string().nullable(),
+      }),
+    ),
     user: z
       .object({
         id: z.string(),
@@ -86,6 +92,26 @@ export const PartnerPayoutResponseSchema = PayoutResponseSchema.omit({
       slug: true,
       logo: true,
       minPayoutAmount: true,
+      payoutMode: true,
     }),
   }),
 );
+
+export const payoutWebhookEventSchema = PayoutSchema.omit({
+  failureReason: true,
+}).extend({
+  partner: EnrolledPartnerSchema.pick({
+    id: true,
+    name: true,
+    email: true,
+    image: true,
+    country: true,
+    tenantId: true,
+    status: true,
+  }),
+});
+
+export const eligiblePayoutsQuerySchema = z.object({
+  cutoffPeriod: CUTOFF_PERIOD_ENUM,
+  selectedPayoutId: z.string().optional(),
+});

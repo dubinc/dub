@@ -4,7 +4,6 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { isStored, storage } from "@/lib/storage";
-import { programLanderSchema } from "@/lib/zod/schemas/program-lander";
 import { prisma } from "@dub/prisma";
 import { nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -19,7 +18,6 @@ const schema = updateProgramSchema.partial().extend({
   logo: z.string().nullish(),
   wordmark: z.string().nullish(),
   brandColor: z.string().nullish(),
-  landerData: programLanderSchema.nullish(),
 });
 
 export const updateProgramAction = authActionClient
@@ -31,7 +29,6 @@ export const updateProgramAction = authActionClient
       logo,
       wordmark,
       brandColor,
-      landerData: landerDataInput,
       domain,
       url,
       supportEmail,
@@ -43,6 +40,7 @@ export const updateProgramAction = authActionClient
     } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
+
     const program = await getProgramOrThrow({
       workspaceId: workspace.id,
       programId,

@@ -1,9 +1,14 @@
 import { ProgramApplicationFormDataWithValues } from "@/lib/types";
 import { ProgramApplication } from "@prisma/client";
 
+export interface FormDataKeyValue {
+  title: string;
+  value: string;
+}
+
 export const formatApplicationFormData = (
   application: ProgramApplication,
-): { title: string; value: string }[] => {
+): FormDataKeyValue[] => {
   const formData =
     application?.formData as ProgramApplicationFormDataWithValues;
 
@@ -44,5 +49,24 @@ export const formatApplicationFormData = (
           return null;
       }
     })
-    .filter((v) => !!v) as { title: string; value: string }[];
+    .filter((v) => !!v) as FormDataKeyValue[];
+};
+
+export const formatWebsiteAndSocialsFields = (
+  application: ProgramApplication,
+) => {
+  const formData =
+    application?.formData as ProgramApplicationFormDataWithValues;
+
+  const result: Record<string, string | null> = {};
+
+  (formData?.fields ?? []).forEach((field) => {
+    if (field.type === "website-and-socials") {
+      field.data.forEach((item) => {
+        result[item.type] = item.value !== "" ? item.value : null;
+      });
+    }
+  });
+
+  return result;
 };

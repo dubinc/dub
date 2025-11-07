@@ -18,31 +18,38 @@ enum PartnerBannedReason {
   brand_abuse
 }
 
+enum ProgramPayoutMode {
+  internal // All payouts are handled by Dub
+  hybrid // Partners with payouts enabled are paid by Dub, others via external
+  external // All payouts are processed through external
+}
+
 model Program {
-  id                           String    @id @default(cuid())
+  id                           String            @id @default(cuid())
   workspaceId                  String
   defaultFolderId              String
   defaultGroupId               String
   name                         String
-  slug                         String    @unique
+  slug                         String            @unique
   logo                         String?
   wordmark                     String?
   brandColor                   String?
   domain                       String?
   url                          String?
-  primaryRewardEvent           EventType @default(sale)
-  holdingPeriodDays            Int       @default(0) // number of days to wait before earnings are added to a payout
-  minPayoutAmount              Int       @default(0) // Default minimum payout amount of $0
-  embedData                    Json?     @db.Json
-  resources                    Json?     @db.Json
-  termsUrl                     String?   @db.Text
-  helpUrl                      String?   @db.Text
+  primaryRewardEvent           EventType         @default(sale)
+  holdingPeriodDays            Int               @default(0) // number of days to wait before earnings are added to a payout
+  minPayoutAmount              Int               @default(0) // Default minimum payout amount of $0
+  embedData                    Json?             @db.Json
+  resources                    Json?             @db.Json
+  termsUrl                     String?           @db.Text
+  helpUrl                      String?           @db.Text
   supportEmail                 String?
   autoApprovePartnersEnabledAt DateTime?
   messagingEnabledAt           DateTime?
   partnerNetworkEnabledAt      DateTime?
-  createdAt                    DateTime  @default(now())
-  updatedAt                    DateTime  @updatedAt
+  payoutMode                   ProgramPayoutMode @default(internal)
+  createdAt                    DateTime          @default(now())
+  updatedAt                    DateTime          @updatedAt
   startedAt                    DateTime?
 
   workspace                Project                   @relation(fields: [workspaceId], references: [id])
