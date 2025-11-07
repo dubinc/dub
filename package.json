@@ -33,10 +33,6 @@
     "turbo": "^1.12.5"
   },
   "pnpm": {
-    "overrides": {
-      "@types/react": "19.1.14",
-      "@types/react-dom": "19.1.9"
-    },
     "onlyBuiltDependencies": [
       "@prisma/engines",
       "core-js",
