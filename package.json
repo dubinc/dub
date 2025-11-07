@@ -29,11 +29,13 @@
     "tsconfig": "workspace:*",
     "turbo": "^1.12.5"
   },
-  "overrides": {
-    "rollup": "4.52.5"
-  },
   "resolutions": {
     "chrono-node": "2.7.5"
+  },
+  "pnpm": {
+    "overrides": {
+      "rollup": "4.52.5"
+    }
   },
   "packageManager": "pnpm@8.6.10"
 }
