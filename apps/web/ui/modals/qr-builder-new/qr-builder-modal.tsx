@@ -67,13 +67,13 @@ export function QRBuilderModal({
   };
 
   const modalContent = (
-    <div className="flex h-full flex-col gap-2 overflow-y-auto bg-white md:h-fit">
+    <div className="flex h-full flex-col gap-2 bg-white md:h-fit md:overflow-y-auto">
       {isProcessing && (
         <div className="absolute inset-0 z-50 flex items-center justify-center rounded-lg bg-white/50 backdrop-blur-sm">
           <LoaderCircle className="text-secondary h-8 w-8 animate-spin" />
         </div>
       )}
-      <div className="flex w-full items-center justify-between gap-2 px-6 py-4">
+      <div className="flex w-full flex-shrink-0 items-center justify-between gap-2 px-6 py-4">
         <div className="flex items-center gap-2">
           <QRIcon className="text-primary h-5 w-5" />
           <h3 className="!mt-0 max-w-xs truncate text-lg font-medium">
@@ -113,8 +113,8 @@ export function QRBuilderModal({
       >
         <Drawer.Portal>
           <Drawer.Overlay className="fixed inset-0 z-40 bg-black/40" />
-          <Drawer.Content className="fixed bottom-0 left-0 right-0 z-50 flex !h-[100dvh] !max-h-[100dvh] !min-h-[100dvh] flex-col rounded-t-[10px] bg-white">
-            <div className="flex-1 overflow-y-auto">{modalContent}</div>
+          <Drawer.Content className="fixed bottom-0 left-0 right-0 z-50 flex !h-[100dvh] !max-h-[100dvh] flex-col rounded-t-[10px] bg-white">
+            <div className="flex h-full flex-col overflow-y-auto">{modalContent}</div>
           </Drawer.Content>
         </Drawer.Portal>
       </Drawer.Root>

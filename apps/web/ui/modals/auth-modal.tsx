@@ -5,6 +5,8 @@ import { ERegistrationStep } from "@/ui/auth/register/constants";
 import { SignUpContent } from "@/ui/auth/register/signup-content";
 import AuthLines from "@/ui/shared/icons/auth-lines";
 import { Logo } from "@/ui/shared/logo";
+import { useMediaQuery } from "@dub/ui";
+import { cn } from "@dub/utils";
 import * as Dialog from "@radix-ui/react-dialog";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
@@ -40,6 +42,8 @@ export function AuthModal({
   authType,
   setAuthType,
 }: AuthModalProps) {
+  const { isMobile } = useMediaQuery();
+  
   const handleClose = useCallback(() => {
     setShowAuthModal(false);
   }, [setShowAuthModal]);
@@ -112,37 +116,46 @@ export function AuthModal({
           onEscapeKeyDown={(e) => {
             e.preventDefault();
           }}
-          className="border-border-500 fixed left-[50%] top-[50%] z-[10001] flex w-[90%] max-w-[420px] -translate-x-[50%] -translate-y-[50%] flex-col overflow-hidden rounded-xl border bg-neutral-50 p-0 pt-4 shadow-xl focus:outline-none"
+          className={cn(
+            "border-border-500 fixed z-[10001] flex flex-col overflow-hidden border bg-neutral-50 shadow-xl focus:outline-none",
+            isMobile
+              ? "inset-0 h-dvh w-fullitems-center justify-center [&_input]:!text-[16px] [&_textarea]:!text-[16px]"
+              : "left-[50%] top-[50%] w-[90%] max-w-[420px] -translate-x-[50%] -translate-y-[50%] rounded-xl p-0 pt-4"
+          )}
         >
-          {/* Decorative gradient background */}
-          <div className="to-primary/10 pointer-events-none absolute top-0 h-52 w-full rounded-t-xl bg-gradient-to-t from-transparent" />
+          <div className={cn(
+            "flex flex-col",
+            isMobile ? "w-full max-w-[420px] relative overflow-hidden rounded-xl border-border-500 border bg-neutral-50 shadow-xl pt-4" : "w-full"
+          )}>
+            {/* Decorative gradient background */}
+            <div className="to-primary/10 pointer-events-none absolute top-0 h-52 w-full rounded-t-xl bg-gradient-to-t from-transparent" />
 
-          {/* Decorative lines */}
-          <AuthLines className="pointer-events-none absolute inset-x-0 -top-4" />
+            {/* Decorative lines */}
+            <AuthLines className="pointer-events-none absolute inset-x-0 -top-4" />
 
-          <VisuallyHidden.Root>
-            <Dialog.Title>
-              {authType === "login" ? "Log In" : "Create account"}
-            </Dialog.Title>
-          </VisuallyHidden.Root>
+            <VisuallyHidden.Root>
+              <Dialog.Title>
+                {authType === "login" ? "Log In" : "Create account"}
+              </Dialog.Title>
+            </VisuallyHidden.Root>
 
-          {/* Header with logo and close button */}
-          <div className="relative flex items-center justify-center px-8 pb-8">
-            <Logo className="justify-center gap-3" />
-            
-            <Dialog.Close asChild>
-              <button
-                type="button"
-                onClick={handleClose}
-                className="group absolute right-8 rounded-full p-2 text-neutral-500 transition-all duration-75 hover:bg-neutral-100 focus:outline-none active:bg-neutral-200"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </Dialog.Close>
-          </div>
+            {/* Header with logo and close button */}
+            <div className="relative flex items-center justify-center px-8 pb-8">
+              <Logo className="justify-center gap-3" />
+              
+              <Dialog.Close asChild>
+                <button
+                  type="button"
+                  onClick={handleClose}
+                  className="group absolute right-8 rounded-full p-2 text-neutral-500 transition-all duration-75 hover:bg-neutral-100 focus:outline-none active:bg-neutral-200"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </Dialog.Close>
+            </div>
 
-          {/* Title and subtitle */}
-          <div className="relative px-8 pb-8 text-center">
+            {/* Title and subtitle */}
+            <div className="relative px-8 pb-8 text-center">
             <motion.div
               key={authType}
               initial={{ opacity: 0, y: -10 }}
@@ -231,6 +244,7 @@ export function AuthModal({
                 <ConsentNotice key="consent-notice" />
               )}
           </AnimatePresence>
+          </div>
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
