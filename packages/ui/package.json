@@ -29,7 +29,7 @@
   "scripts": {
     "build": "tsup",
     "lint": "eslint src/",
-    "dev": "tsup --watch",
+    "dev": "tsup --watch --dts false",
     "check-types": "tsc --noEmit"
   },
   "peerDependencies": {

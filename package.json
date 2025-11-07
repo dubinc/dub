@@ -30,12 +30,14 @@
     "turbo": "^1.12.5"
   },
   "resolutions": {
-    "chrono-node": "2.7.5"
+    "chrono-node": "2.7.5",
+    "rollup": "4.52.5"
   },
+  "packageManager": "pnpm@8.6.10",
   "pnpm": {
     "overrides": {
-      "rollup": "4.52.5"
+      "@types/react": "19.1.14",
+      "@types/react-dom": "19.1.9"
     }
-  },
-  "packageManager": "pnpm@8.6.10"
+  }
 }
