@@ -27,7 +27,7 @@ export const QrTypeSelection: FC<QrTypeSelectionProps> = ({
   );
 
   return (
-    <div className="max-w-7xl w-full mx-auto max-w-7xl px-0 sm:px-6 lg:px-8 grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-6 lg:grid-cols-3">
+    <div className="w-full mx-auto max-w-7xl grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-6 lg:grid-cols-3">
       {filteredQrTypes.map((type, idx) => {
         const isSelected = selectedQRType === type.id;
 
@@ -36,7 +36,7 @@ export const QrTypeSelection: FC<QrTypeSelectionProps> = ({
             key={type.id}
             className={cn(
               "qr-type-card group relative cursor-pointer overflow-hidden rounded-xl transition-all duration-300 ease-in-out",
-              "border-secondary/20 hover:border-primary border-2 shadow",
+              "border-secondary/20 hover:border-secondary border-2 shadow w-full",
               // isSelected && "border-pr",
             )}
             onClick={() => onSelect(type.id)}
@@ -52,24 +52,37 @@ export const QrTypeSelection: FC<QrTypeSelectionProps> = ({
             {/* <div className="blob bg-secondary absolute left-0 top-0 z-[1] h-[150px] w-[150px] rounded-full opacity-0 blur-2xl transition-all duration-300 ease-in-out" /> */}
             {/* <div className="fake-blob absolute left-0 top-0 z-[1] h-40 w-40 rounded-full [display:hidden]" /> */}
 
-            <div className="relative z-10 flex flex-col items-start gap-2 p-3 md:gap-4 md:p-8">
-              {/* <div className={cn(
-                "flex size-14 items-center justify-center rounded-lg border transition-all duration-300",
-                isSelected ? "border-secondary bg-secondary/10" : "bg-muted/50"
-              )}> */}
+            {/* Mobile Layout */}
+            <div className="relative z-10 flex items-center gap-3 p-3 md:hidden">
               <QrTypeIcon
                 icon={type.icon}
                 idx={idx}
                 isActive={isSelected}
-                className="text-primary size-5 md:size-7"
+                className="text-primary size-8 shrink-0"
               />
-              {/* </div> */}
-              <h3 className="text-black text-sm font-semibold md:text-2xl">
+              <div className="flex min-w-0 flex-1 flex-col gap-1">
+                <h3 className="text-black text-base font-semibold">
+                  {type.label}
+                </h3>
+                <p className="text-muted-foreground text-xs leading-relaxed">{type.info}</p>
+              </div>
+              <ArrowRight className="text-secondary size-5 shrink-0 transition-all duration-300 group-hover:translate-x-1 group-hover:scale-[1.8]" />
+            </div>
+
+            {/* Desktop Layout */}
+            <div className="relative z-10 hidden flex-col items-start gap-4 p-8 md:flex">
+              <QrTypeIcon
+                icon={type.icon}
+                idx={idx}
+                isActive={isSelected}
+                className="text-primary size-7"
+              />
+              <h3 className="text-black text-2xl font-semibold">
                 {type.label}
               </h3>
-              <div className="flex w-full items-center justify-between gap-2 md:gap-3">
-                <p className="text-muted-foreground text-xs leading-relaxed md:text-sm">{type.info}</p>
-                <ArrowRight className="text-primary size-4 shrink-0 opacity-0 transition-all duration-300 group-hover:translate-x-1 group-hover:scale-[1.8] group-hover:opacity-100 md:size-7" />
+              <div className="flex w-full items-center justify-between gap-3">
+                <p className="text-muted-foreground text-sm leading-relaxed">{type.info}</p>
+                <ArrowRight className="text-primary group-hover:text-secondary size-7 shrink-0 transition-all duration-300 group-hover:translate-x-1 group-hover:scale-[1.8]" />
               </div>
             </div>
           </div>

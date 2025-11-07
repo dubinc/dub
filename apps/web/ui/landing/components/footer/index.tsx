@@ -89,7 +89,7 @@ export const Footer: FC<Readonly<IFooterProps>> = ({
   );
 
   return (
-    <footer>
+    <footer className="bg-white">
       <Separator />
       <div className="mx-auto flex max-w-7xl flex-col gap-8 px-4 py-8 sm:px-6 sm:py-10 md:py-12 lg:flex-row lg:justify-between lg:gap-12">
         <div className="flex flex-col items-start gap-4 lg:max-w-sm">
