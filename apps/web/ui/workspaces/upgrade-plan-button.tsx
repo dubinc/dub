@@ -60,7 +60,7 @@ export function UpgradePlanButton({
             tier,
             period,
             baseUrl: `${APP_DOMAIN}${pathname}${queryString.length > 0 ? `?${queryString}` : ""}`,
-            onboarding: searchParams.get("workspace"),
+            onboarding: searchParams.get("workspace") ? "true" : "false",
           }),
         })
           .then(async (res) => {

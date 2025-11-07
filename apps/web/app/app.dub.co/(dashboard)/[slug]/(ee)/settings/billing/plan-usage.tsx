@@ -278,7 +278,7 @@ function UsageTabCard({
   requiresUpgrade?: boolean;
 }) {
   const { queryParams } = useRouterStuff();
-  const { slug } = useWorkspace();
+  const { slug, plan } = useWorkspace();
 
   const { ManageUsageModal, setShowManageUsageModal } = useManageUsageModal({
     type: id,
@@ -401,7 +401,7 @@ function UsageTabCard({
           )}
         </div>
       </button>
-      {["links", "events"].includes(id) && (
+      {["links", "events"].includes(id) && plan !== "enterprise" && (
         <div className="absolute right-3 top-3">
           <Button
             onClick={() => setShowManageUsageModal(true)}

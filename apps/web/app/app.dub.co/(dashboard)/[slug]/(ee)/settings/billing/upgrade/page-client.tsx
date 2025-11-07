@@ -229,7 +229,7 @@ export function WorkspaceBillingUpgradePageClient() {
                       >
                         <ChevronLeft className="size-5 text-neutral-800" />
                       </button>
-                      {plan.name === "Enterprise" ? (
+                      {plan.name === "Enterprise" && !disableCurrentPlan ? (
                         <Link
                           href="https://dub.co/contact/sales"
                           target="_blank"
@@ -238,22 +238,24 @@ export function WorkspaceBillingUpgradePageClient() {
                             "border border-neutral-200 bg-white text-neutral-900 shadow-sm hover:bg-neutral-50",
                           )}
                         >
-                          {plan.name === "Enterprise"
-                            ? "Contact us"
-                            : "Get started"}
+                          Contact us
                         </Link>
                       ) : (
                         <UpgradePlanButton
                           plan={plan.name.toLowerCase()}
                           tier={planTier > 1 ? planTier : undefined}
                           period={period}
-                          disabled={disableCurrentPlan}
+                          disabled={
+                            disableCurrentPlan || currentPlan === "enterprise"
+                          }
                           text={
-                            disableCurrentPlan
-                              ? "Current plan"
-                              : isDowngrade
-                                ? "Downgrade"
-                                : "Upgrade"
+                            currentPlan === "enterprise"
+                              ? "Contact support"
+                              : disableCurrentPlan
+                                ? "Current plan"
+                                : isDowngrade
+                                  ? "Downgrade"
+                                  : "Upgrade"
                           }
                           variant={isDowngrade ? "secondary" : "primary"}
                           className="h-8 shadow-sm"

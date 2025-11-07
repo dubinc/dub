@@ -537,9 +537,11 @@ export const getPlanAndTierFromPriceId = ({
   if (!planDetails) return { plan: null, planTier: 1 };
 
   const planTier = planDetails.tiers
-    ? (Object.entries(planDetails.tiers).find(([_, { price }]) =>
-        price.ids.includes(priceId),
-      )?.[0] as unknown as number) ?? 1
+    ? Number(
+        Object.entries(planDetails.tiers).find(([_, { price }]) =>
+          price.ids.includes(priceId),
+        )?.[0],
+      ) || 1
     : 1;
 
   return {

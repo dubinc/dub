@@ -24,7 +24,7 @@ export const POST = withWorkspace(async ({ req, workspace, session }) => {
   );
 
   const prices = await stripe.prices.list({
-    lookup_keys: [tier ? `${plan}${tier}_${period}` : `${plan}_${period}`],
+    lookup_keys: [tier > 1 ? `${plan}${tier}_${period}` : `${plan}_${period}`],
   });
 
   const activeSubscription = workspace.stripeId
