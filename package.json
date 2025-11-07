@@ -32,5 +32,10 @@
   "resolutions": {
     "chrono-node": "2.7.5"
   },
+  "pnpm": {
+    "overrides": {
+      "rollup": "4.52.5"
+    }
+  },
   "packageManager": "pnpm@8.6.10"
 }
