@@ -10,11 +10,13 @@ export function ApplicationFormHero({
   program: Pick<Program, "name">;
   applicationFormData: Pick<
     ProgramApplicationFormData,
-    "label" | "title" | "description" | "direction"
+    "label" | "title" | "description"
   >;
   preview?: boolean;
 }) {
   const Heading = preview ? "div" : "h1";
+  const label =
+    applicationFormData.label || `${program.name} Affiliate Program`;
   const title = applicationFormData.title || `Apply to ${program.name}`;
   const description =
     applicationFormData.description ||
@@ -25,23 +27,11 @@ export function ApplicationFormHero({
       <span className="w-fit rounded-md bg-neutral-100 px-2 py-1 text-xs font-medium text-neutral-700">
         Step 1 of 2
       </span>
-      <Heading
-        className="text-4xl font-semibold"
-        dir={
-          applicationFormData.title ? applicationFormData.direction : undefined
-        }
-      >
-        {title}
-      </Heading>
-      <BlockMarkdown
-        dir={
-          applicationFormData.description
-            ? applicationFormData.direction
-            : undefined
-        }
-      >
-        {description}
-      </BlockMarkdown>
+      {/* <p className="font-mono text-xs font-medium uppercase text-[var(--brand)]">
+        {label}
+      </p> */}
+      <Heading className="text-4xl font-semibold">{title}</Heading>
+      <BlockMarkdown>{description}</BlockMarkdown>
     </div>
   );
 }

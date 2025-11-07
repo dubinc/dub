@@ -23,7 +23,6 @@ export function MultipleChoiceField({
   const keyPath = keyPathProp ? `${keyPathProp}.value` : "value";
   const state = getFieldState(keyPath);
   const options = field.data.options;
-  const direction = field.direction;
 
   let content: React.ReactNode;
 
@@ -140,7 +139,6 @@ export function MultipleChoiceField({
       required={field.required}
       helperText={field.data.multiple ? "Select all that apply" : undefined}
       error={state.error?.message}
-      dir={direction}
     >
       {content}
     </FormControl>

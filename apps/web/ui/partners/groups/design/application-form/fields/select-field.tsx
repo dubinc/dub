@@ -26,16 +26,11 @@ export function SelectField({
     value: option.value,
   }));
 
-  const direction = field.direction;
-
   return (
     <FormControl
       label={field.label}
       required={field.required}
       error={state.error?.message}
-      labelProps={{
-        dir: direction,
-      }}
     >
       <Controller
         control={control}
