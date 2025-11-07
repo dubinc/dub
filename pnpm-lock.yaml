@@ -6,7 +6,6 @@ settings:
 
 overrides:
   chrono-node: 2.7.5
-  rollup: 4.52.5
 
 importers:
 
@@ -4624,7 +4623,7 @@ packages:
     resolution: {integrity: sha512-5EdhGZtnu3V88ces7s53hhfK5KSASnJZv8Lulpc04cWO3REESroJXg73DFsOmgbU2BhwV0E20bu2IDZb3VKW4Q==}
     engines: {node: '>=14.0.0'}
     peerDependencies:
-      rollup: 4.52.5
+      rollup: ^1.20.0||^2.0.0||^3.0.0||^4.0.0
     peerDependenciesMeta:
       rollup:
         optional: true
