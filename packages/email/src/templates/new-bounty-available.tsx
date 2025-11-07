@@ -7,6 +7,7 @@ import {
   Html,
   Img,
   Link,
+  Markdown,
   Preview,
   Section,
   Tailwind,
@@ -21,7 +22,7 @@ export default function NewBountyAvailable({
     type: "performance",
     endsAt: new Date(),
     description:
-      "How does it work? get a group together of at least 15 other people interested in trying out Acme. Then, during the event, take a photo of the group using Acme. When submitting, provide any links to the event or photos. Once confirmed, we'll create a one-time commission for you.",
+      "How **does** it work?\n\nGet a group _together_ of at least 15 other people interested in trying out [Acme](https://dub.co). Then, during the event, take a photo of the group using Acme. When submitting, provide any links to the event or photos. Once confirmed, we'll create a one-time commission for you.",
   },
   program = {
     name: "Acme",
@@ -77,11 +78,12 @@ export default function NewBountyAvailable({
                   <Text className="m-0 p-0 text-sm font-semibold text-neutral-900">
                     Details
                   </Text>
-                  <Text
-                    className="m-0 mt-2 p-0 text-sm font-medium text-neutral-500"
-                    style={{ whiteSpace: "pre-wrap" }}
-                  >
-                    {bounty.description}
+                  <Text className="m-0 mt-2 p-0 text-sm font-medium text-neutral-500">
+                    <Markdown
+                      markdownCustomStyles={{ link: { color: "black" } }}
+                    >
+                      {bounty.description}
+                    </Markdown>
                   </Text>
                 </Section>
               )}

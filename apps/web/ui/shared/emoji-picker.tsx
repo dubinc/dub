@@ -1,15 +1,14 @@
-"use client";
-
 import { Button, Popover } from "@dub/ui";
 import { FaceSmile } from "@dub/ui/icons";
 import { EmojiPicker as EmojiPickerBase } from "frimousse";
-import { useState } from "react";
+import { PropsWithChildren, useState } from "react";
 
 export function EmojiPicker({
   onSelect,
-}: {
+  children,
+}: PropsWithChildren<{
   onSelect: (emoji: string) => void;
-}) {
+}>) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -65,12 +64,14 @@ export function EmojiPicker({
         </EmojiPickerBase.Root>
       }
     >
-      <Button
-        type="button"
-        variant="outline"
-        icon={<FaceSmile className="size-4" />}
-        className="size-8 p-0"
-      />
+      {children || (
+        <Button
+          type="button"
+          variant="outline"
+          icon={<FaceSmile className="size-4" />}
+          className="size-8 p-0"
+        />
+      )}
     </Popover>
   );
 }
