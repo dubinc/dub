@@ -37,8 +37,12 @@ export function FilesBlock({
                 </div>
               </div>
               <div className="flex flex-col overflow-hidden text-sm text-neutral-700">
-                <span className="truncate font-semibold">{file.name}</span>
-                <span className="truncate">{file.description}</span>
+                <span className="truncate font-semibold" dir="auto">
+                  {file.name}
+                </span>
+                <span className="truncate" dir="auto">
+                  {file.description}
+                </span>
               </div>
             </div>
             <div className="pr-3">

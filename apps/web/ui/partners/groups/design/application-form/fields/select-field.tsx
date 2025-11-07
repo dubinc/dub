@@ -31,6 +31,7 @@ export function SelectField({
       label={field.label}
       required={field.required}
       error={state.error?.message}
+      labelDir="auto"
     >
       <Controller
         control={control}
