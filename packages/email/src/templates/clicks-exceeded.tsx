@@ -70,7 +70,7 @@ export default function ClicksExceeded({
               All your existing links will continue to work, and we are still
               collecting data on them, but you'll need to{" "}
               <Link
-                href={`${APP_DOMAIN}/${slug}/settings/billing/upgrade`}
+                href={`${APP_DOMAIN}/${slug}/settings/billing`}
                 className="font-medium text-blue-600 no-underline"
               >
                 upgrade to a higher plan
@@ -80,7 +80,7 @@ export default function ClicksExceeded({
             <Section className="my-8">
               <Link
                 className="rounded-lg bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
-                href={`${APP_DOMAIN}/${slug}/settings/billing/upgrade`}
+                href={`${APP_DOMAIN}/${slug}/settings/billing`}
               >
                 Upgrade my plan
               </Link>

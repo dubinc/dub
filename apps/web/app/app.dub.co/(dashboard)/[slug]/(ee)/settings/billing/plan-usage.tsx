@@ -405,8 +405,8 @@ function UsageTabCard({
         <div className="absolute right-3 top-3">
           <Button
             onClick={() => setShowManageUsageModal(true)}
-            text="Manage"
-            variant="secondary"
+            text={warning ? "Upgrade" : "Manage"}
+            variant={warning ? "primary" : "secondary"}
             className="h-6 px-1.5 text-xs"
           />
         </div>
