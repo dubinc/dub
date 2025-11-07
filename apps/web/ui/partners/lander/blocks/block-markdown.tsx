@@ -9,7 +9,7 @@ export function BlockMarkdown({
   children: string;
 }) {
   return (
-    <Markdown
+    <div
       className={cn(
         "prose prose-neutral max-w-none",
         "prose-headings:leading-tight prose-bullet:text-red-500",
@@ -17,13 +17,17 @@ export function BlockMarkdown({
         "marker:prose-ul:text-neutral-700 prose-ul:pl-[1.5em] [&_ul>li]:pl-0",
         className,
       )}
-      components={{
-        a: ({ node, ...props }) => (
-          <a {...props} target="_blank" rel="noopener noreferrer" />
-        ),
-      }}
+      dir="auto"
     >
-      {children}
-    </Markdown>
+      <Markdown
+        components={{
+          a: ({ node, ...props }) => (
+            <a {...props} target="_blank" rel="noopener noreferrer" />
+          ),
+        }}
+      >
+        {children}
+      </Markdown>
+    </div>
   );
 }
