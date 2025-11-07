@@ -130,26 +130,19 @@ export const GetQRFeaturesCardsSection: FC<GetQRFeaturesCardsSectionProps> = ({
                           <div className="relative inline-flex flex-shrink-0">
                             <Avatar
                               className={cn(
-                                "h-20 w-20 rounded-2xl border-2 shadow",
-                                feature.avatarTextColor,
+                                "h-20 w-20 rounded-2xl border-2 border-primary/50",
+                                "text-primary",
                               )}
                             >
                               <AvatarFallback
                                 className={cn(
                                   "from-background to-muted rounded-2xl bg-gradient-to-br [&>svg]:size-10",
-                                  feature.avatarTextColor,
+                                  "text-primary",
                                 )}
                               >
                                 <Icon icon={feature.icon} />
                               </AvatarFallback>
                             </Avatar>
-                            {/* Enhanced glow effect */}
-                            <div
-                              className={cn(
-                                "absolute -inset-3 -z-10 rounded-2xl opacity-30 blur-2xl",
-                                feature.avatarTextColor,
-                              )}
-                            />
                           </div>
 
                           <div className="flex-1 space-y-3">
@@ -205,26 +198,19 @@ export const GetQRFeaturesCardsSection: FC<GetQRFeaturesCardsSectionProps> = ({
                           <div className="relative inline-flex flex-shrink-0">
                             <Avatar
                               className={cn(
-                                "h-20 w-20 rounded-2xl border-2 shadow sm:h-24 sm:w-24",
-                                feature.avatarTextColor,
+                                "h-20 w-20 rounded-2xl border-2 border-primary/50 sm:h-24 sm:w-24",
+                                "text-primary",
                               )}
                             >
                               <AvatarFallback
                                 className={cn(
                                   "from-background to-muted rounded-2xl bg-gradient-to-br [&>svg]:size-10 sm:[&>svg]:size-12",
-                                  feature.avatarTextColor,
+                                  "text-primary",
                                 )}
                               >
                                 <Icon icon={feature.icon} />
                               </AvatarFallback>
                             </Avatar>
-                            {/* Enhanced glow effect */}
-                            <div
-                              className={cn(
-                                "absolute -inset-3 -z-10 rounded-2xl opacity-30 blur-2xl",
-                                feature.avatarTextColor,
-                              )}
-                            />
                           </div>
 
                           <div className="flex-1 space-y-3">

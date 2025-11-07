@@ -69,9 +69,9 @@ export const QrTabsDetailed: FC<IQrTabsDetailedProps> = ({
                   >
                     <Icon
                       icon={type.icon}
-                      className="text-muted-foreground group-data-[state=active]:text-primary relative z-10 h-7 w-7 transition-colors duration-300 sm:h-8 sm:w-8"
+                      className="text-primary group-data-[state=active]:text-primary relative z-10 h-7 w-7 transition-colors duration-300 sm:h-8 sm:w-8"
                     />
-                    <span className="text-muted-foreground group-data-[state=active]:text-primary relative z-10 text-center text-xs font-medium transition-colors duration-300">
+                    <span className="text-foreground group-data-[state=active]:text-primary relative z-10 text-center text-xs font-medium transition-colors duration-300">
                       {type.label}
                     </span>
                   </TabsTrigger>

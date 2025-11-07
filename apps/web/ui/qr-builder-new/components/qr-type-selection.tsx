@@ -70,20 +70,20 @@ export const QrTypeSelection: FC<QrTypeSelectionProps> = ({
             </div>
 
             {/* Desktop Layout */}
-            <div className="relative z-10 hidden flex-col items-start gap-4 p-8 md:flex">
-              <QrTypeIcon
-                icon={type.icon}
-                idx={idx}
-                isActive={isSelected}
-                className="text-primary size-7"
-              />
-              <h3 className="text-black text-2xl font-semibold">
-                {type.label}
-              </h3>
-              <div className="flex w-full items-center justify-between gap-3">
+            <div className="relative z-10 hidden items-center gap-4 p-8 md:flex">
+              <div className="flex flex-1 flex-col items-start gap-4">
+                <QrTypeIcon
+                  icon={type.icon}
+                  idx={idx}
+                  isActive={isSelected}
+                  className="text-primary size-7"
+                />
+                <h3 className="text-black text-2xl font-semibold">
+                  {type.label}
+                </h3>
                 <p className="text-muted-foreground text-sm leading-relaxed">{type.info}</p>
-                <ArrowRight className="text-primary group-hover:text-secondary size-7 shrink-0 transition-all duration-300 group-hover:translate-x-1 group-hover:scale-[1.8]" />
               </div>
+              <ArrowRight className="text-secondary size-7 shrink-0 transition-all duration-300 group-hover:translate-x-1 group-hover:scale-[1.8]" />
             </div>
           </div>
         );

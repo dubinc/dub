@@ -138,7 +138,7 @@ export const InfoCard: FC<IGetInfoCardProps> = ({
   };
 
   return (
-    <Card className="hover:border-primary group transition-all duration-300">
+    <Card className="hover:border-primary border-2 group transition-all duration-300">
       <CardContent className="pt-6">
         <CursorProvider>
           <div className="from-primary/10 via-primary/5 to-secondary/10 relative flex h-52 w-full items-center justify-center rounded-lg bg-gradient-to-br p-6">

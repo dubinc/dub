@@ -51,7 +51,7 @@ export const LandingSectionsServer = ({
       <PricingSection handleScrollButtonClick={handleScrollButtonClick} />
 
       {/* 7.5. Scrolling Banner - Hidden on mobile using CSS */}
-      <div className="hidden md:block">
+      <div>
         <LogoScrollingBanner />
       </div>
 
