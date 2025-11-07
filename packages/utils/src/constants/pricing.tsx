@@ -296,18 +296,8 @@ export const PLANS: PlanDetails[] = [
         text: "10 users",
       },
       {
-        id: "events",
-        text: "Real-time events stream",
-        tooltip: {
-          title:
-            "Get more data on your link clicks and QR code scans with a detailed, real-time stream of events in your workspace",
-          cta: "Learn more.",
-          href: "https://dub.co/help/article/real-time-events-stream",
-        },
-      },
-      {
         id: "partners",
-        text: "Partner management",
+        text: "Dub Partners",
         tooltip: {
           title: "Use Dub Partners to manage and pay out your affiliates.",
           cta: "Learn more.",
@@ -315,17 +305,23 @@ export const PLANS: PlanDetails[] = [
         },
       },
       {
-        id: "tests",
-        text: "A/B testing",
-      },
-      {
-        id: "roles",
+        id: "customerinsights",
         text: "Customer insights",
         tooltip: {
           title:
             "Get real-time insights into your customers' behavior and preferences.",
           cta: "Learn more.",
           href: "https://dub.co/help/article/customer-insights",
+        },
+      },
+      {
+        id: "events",
+        text: "Real-time events stream",
+        tooltip: {
+          title:
+            "Get more data on your link clicks and QR code scans with a detailed, real-time stream of events in your workspace",
+          cta: "Learn more.",
+          href: "https://dub.co/help/article/real-time-events-stream",
         },
       },
       {
@@ -337,6 +333,10 @@ export const PLANS: PlanDetails[] = [
           cta: "Learn more.",
           href: "https://dub.co/docs/concepts/webhooks/introduction",
         },
+      },
+      {
+        id: "tests",
+        text: "A/B testing",
       },
     ] as PlanFeature[],
   },
@@ -442,13 +442,13 @@ export const PLANS: PlanDetails[] = [
         },
       },
       {
-        id: "api",
-        text: "Partners API",
+        id: "email",
+        text: "Email campaigns",
         tooltip: {
           title:
-            "Leverage our partners API to build a bespoke, white-labeled referral program that lives within your app.",
+            "Send marketing and transactional emails to your partners to increase engagement and drive conversions.",
           cta: "Learn more.",
-          href: "https://dub.co/docs/api-reference/endpoint/create-a-partner",
+          href: "https://dub.co/help/article/email-campaigns",
         },
       },
       {
@@ -494,20 +494,23 @@ export const SELF_SERVE_PAID_PLANS = PLANS.filter((p) =>
 
 export const FREE_WORKSPACES_LIMIT = 2;
 
-const enrichPlanWithTier = (
+const enrichPlanWithTierData = (
   planDetails: PlanDetails,
   planTier: number,
 ): PlanDetails => {
-  const tierLimits =
-    planDetails.tiers && planTier > 1
-      ? planDetails.tiers[planTier].limits
-      : planDetails.limits;
+  const tierData =
+    planDetails.tiers && planTier > 1 ? planDetails.tiers[planTier] : undefined;
+  const tierLimits = tierData?.limits ?? planDetails.limits;
 
   return {
     ...planDetails,
     limits: {
       ...planDetails.limits,
       ...tierLimits,
+    },
+    price: {
+      ...planDetails.price,
+      ...tierData?.price,
     },
     features: planDetails.features?.map((feature) => ({
       ...feature,
@@ -536,7 +539,7 @@ export const getPlanAndTierFromPriceId = ({
     : 1;
 
   return {
-    plan: enrichPlanWithTier(planDetails, planTier),
+    plan: enrichPlanWithTierData(planDetails, planTier),
     planTier,
   };
 };
@@ -552,7 +555,7 @@ export const getPlanDetails = ({
     (p) => p.name.toLowerCase() === plan.toLowerCase(),
   )!;
 
-  return enrichPlanWithTier(planDetails, planTier);
+  return enrichPlanWithTierData(planDetails, planTier);
 };
 
 export const getCurrentPlan = (plan: string) => {
@@ -610,29 +613,20 @@ export const getSuggestedPlan = ({
   for (const p of PLANS) {
     if (!suggestFree && p.price.monthly === 0) continue;
 
-    const matchingTier = [0, ...Object.keys(p.tiers ?? {}).map(Number)].find(
-      (tier) => {
-        const limits =
-          tier === 1 ? p.limits : p.tiers?.[tier]?.limits ?? p.limits;
-        return limits.clicks >= (events ?? 0) && limits.links >= (links ?? 0);
-      },
-    );
+    const matchingTier = [
+      1,
+      ...Object.keys(p.tiers ?? {})
+        .map(Number)
+        .filter((tier) => tier >= 2),
+    ].find((tier) => {
+      const limits =
+        tier === 1 ? p.limits : p.tiers?.[tier]?.limits ?? p.limits;
+      return limits.clicks >= (events ?? 0) && limits.links >= (links ?? 0);
+    });
 
     if (matchingTier !== undefined) {
-      const matchingTierData = p.tiers?.[matchingTier];
-
       match = {
-        plan: {
-          ...p,
-          limits: {
-            ...p.limits,
-            ...matchingTierData?.limits,
-          },
-          price: {
-            ...p.price,
-            ...matchingTierData?.price,
-          },
-        },
+        plan: enrichPlanWithTierData(p, matchingTier),
         planTier: matchingTier,
       };
 

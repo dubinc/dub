@@ -42,7 +42,7 @@ export async function updateWorkspacePlan({
   // update their usage limit in the database
   if (
     workspace.plan !== newPlanName ||
-    (workspace.planTier || 0) !== newPlanTier ||
+    workspace.planTier !== newPlanTier ||
     (workspace.payoutsLimit < newPlan.limits.payouts &&
       NEW_BUSINESS_PRICE_IDS.includes(priceId))
   ) {

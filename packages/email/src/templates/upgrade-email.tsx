@@ -18,7 +18,7 @@ export default function UpgradeEmail({
   name = "Brendon Urie",
   email = "panic@thedis.co",
   plan = "Business",
-  planTier = 2,
+  planTier = 1,
 }: {
   name: string | null;
   email: string;

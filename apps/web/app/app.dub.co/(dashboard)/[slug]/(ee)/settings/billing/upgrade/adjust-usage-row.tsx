@@ -99,8 +99,12 @@ function UsageSlider({
   return (
     <div className="flex flex-col">
       <span className="text-content-default text-sm font-medium">
-        {{ events: "Events tracked per month" }[type] ??
-          `New ${type} per month`}
+        {
+          {
+            events: "Events tracked per month",
+            links: "Links created per month",
+          }[type]
+        }
       </span>
       <span className="text-content-emphasis text-lg font-semibold">
         <NumberFlow value={selectedValue ?? defaultValue} />

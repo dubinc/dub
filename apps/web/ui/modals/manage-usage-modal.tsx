@@ -87,8 +87,12 @@ function ManageUsageModalContent({ type }: ManageUsageModalProps) {
 
       <div className="px-5 py-6">
         <p className="text-content-default text-sm font-medium">
-          {{ events: "Events tracked per month" }[type] ??
-            `New ${type} per month`}
+          {
+            {
+              events: "Events tracked per month",
+              links: "Links created per month",
+            }[type]
+          }
         </p>
         <NumberFlow
           value={selectedValue ?? defaultValue}
