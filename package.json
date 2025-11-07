@@ -23,11 +23,18 @@
   "devDependencies": {
     "@dub/tailwind-config": "workspace:*",
     "eslint": "^8.48.0",
+    "patch-package": "^8.0.0",
     "prettier": "^3.2.5",
     "prettier-plugin-organize-imports": "^3.2.4",
     "prettier-plugin-tailwindcss": "^0.6.0",
     "tsconfig": "workspace:*",
     "turbo": "^1.12.5"
+  },
+  "pnpm": {
+    "overrides": {
+      "@types/react": "19.1.14",
+      "@types/react-dom": "19.1.9"
+    }
   },
   "resolutions": {
     "chrono-node": "2.7.5"
