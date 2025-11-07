@@ -44,7 +44,10 @@ export const POST = withAdmin(async ({ req }) => {
               },
             }),
             recordLink(
-              { ...links, programEnrollment: { groupId } },
+              links.map((link) => ({
+                ...link,
+                programEnrollment: { groupId },
+              })),
               { deleted: true },
             ),
             prisma.customer.deleteMany({
