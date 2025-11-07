@@ -12,6 +12,10 @@ overrides:
 importers:
 
   .:
+    dependencies:
+      patch-package:
+        specifier: ^8.0.0
+        version: 8.0.1
     devDependencies:
       '@dub/tailwind-config':
         specifier: workspace:*
@@ -19,9 +23,6 @@ importers:
       eslint:
         specifier: ^8.48.0
         version: 8.48.0
-      patch-package:
-        specifier: ^8.0.0
-        version: 8.0.1
       prettier:
         specifier: ^3.2.5
         version: 3.2.5
