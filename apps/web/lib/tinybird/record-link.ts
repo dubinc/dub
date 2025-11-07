@@ -72,7 +72,7 @@ export const transformLinkTB = (link: ExpandedLink) => {
     tenant_id: link.tenantId ?? "",
     program_id: link.programId ?? "",
     partner_id: link.partnerId ?? "",
-    partner_group_id: link.partnerGroupId ?? "",
+    partner_group_id: link.programEnrollment?.groupId ?? "",
     workspace_id: link.projectId,
     created_at: link.createdAt,
   };
