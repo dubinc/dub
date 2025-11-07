@@ -18,6 +18,7 @@ import {
 } from "react";
 import { useForm } from "react-hook-form";
 import { BrandingFormData, useBrandingFormContext } from "../../branding-form";
+import { RightToLeftToggle } from "../../right-to-left-toggle";
 
 type EditApplicationHeroModalProps = {
   showEditApplicationHeroModal: boolean;
@@ -47,6 +48,7 @@ function EditApplicationHeroModalInner({
 
   const {
     register,
+    control,
     handleSubmit,
     formState: { isDirty },
   } = useForm<Pick<BrandingFormData, "applicationFormData">>({
@@ -149,6 +151,14 @@ function EditApplicationHeroModalInner({
               <span className="sr-only">MarkdownIcon</span> supported
             </a>
           </div>
+
+          {/* RTL */}
+          {program?.rtlContentEnabledAt && (
+            <RightToLeftToggle
+              control={control}
+              name="applicationFormData.direction"
+            />
+          )}
         </div>
 
         <div className="mt-4 flex items-center justify-end gap-2">

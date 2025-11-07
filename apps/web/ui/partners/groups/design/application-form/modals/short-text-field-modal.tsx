@@ -1,5 +1,6 @@
 "use client";
 
+import useProgram from "@/lib/swr/use-program";
 import { programApplicationFormShortTextFieldSchema } from "@/lib/zod/schemas/program-application-form";
 import { Button, Modal, Switch, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
@@ -8,6 +9,7 @@ import { Dispatch, SetStateAction, useId } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { v4 as uuid } from "uuid";
 import { z } from "zod";
+import { RightToLeftToggle } from "../../right-to-left-toggle";
 
 const MIN_LENGTH = 1;
 const MAX_LENGTH = 1000;
@@ -62,6 +64,9 @@ const formDataForShortTextFieldData = (
     type: shortTextFieldData?.type ?? "short-text",
     label: shortTextFieldData?.label ?? "",
     required: shortTextFieldData?.required ?? false,
+    ...(shortTextFieldData?.direction && {
+      direction: shortTextFieldData.direction,
+    }),
     data: {
       placeholder: shortTextFieldData?.data?.placeholder ?? "",
       maxLengthEnabled: hasMaxLength,
@@ -77,15 +82,20 @@ function ShortTextFieldModalInner({
 }: ShortTextFieldModalProps) {
   const id = useId();
   const { isMobile } = useMediaQuery();
+
+  const { program } = useProgram();
+
   const {
     control,
     handleSubmit,
     register,
-    unregister,
     formState: { errors },
     watch,
   } = useForm<FormData>({
-    defaultValues: formDataForShortTextFieldData(defaultValues),
+    defaultValues: {
+      direction: program?.rtlContentEnabledAt ? "rtl" : undefined,
+      ...formDataForShortTextFieldData(defaultValues),
+    },
   });
 
   const maxLengthEnabled = watch("data.maxLengthEnabled");
@@ -252,6 +262,11 @@ function ShortTextFieldModalInner({
               )}
             </motion.div>
           </div>
+
+          {/* RTL */}
+          {program?.rtlContentEnabledAt && (
+            <RightToLeftToggle control={control} name="direction" />
+          )}
 
           <div className="flex items-center justify-end gap-2">
             <Button

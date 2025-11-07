@@ -1,5 +1,6 @@
 "use client";
 
+import useProgram from "@/lib/swr/use-program";
 import { programApplicationFormMultipleChoiceFieldSchema } from "@/lib/zod/schemas/program-application-form";
 import { EditList, EditListItem } from "@/ui/partners/groups/design/edit-list";
 import {
@@ -14,6 +15,7 @@ import { Dispatch, SetStateAction, useId, useRef } from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { v4 as uuid } from "uuid";
 import { z } from "zod";
+import { RightToLeftToggle } from "../../right-to-left-toggle";
 
 type MultipleChoiceFieldData = z.infer<
   typeof programApplicationFormMultipleChoiceFieldSchema
@@ -42,6 +44,8 @@ function MultipleChoiceFieldModalInner({
   const id = useId();
   const { isMobile } = useMediaQuery();
 
+  const { program } = useProgram();
+
   const form = useForm<MultipleChoiceFieldData>({
     defaultValues: defaultValues ?? {
       id: uuid(),
@@ -57,6 +61,7 @@ function MultipleChoiceFieldModalInner({
           },
         ],
       },
+      direction: program?.rtlContentEnabledAt ? "rtl" : undefined,
     },
   });
 
@@ -267,6 +272,11 @@ function MultipleChoiceFieldModalInner({
               />
             </div>
           </div>
+
+          {/* RTL */}
+          {program?.rtlContentEnabledAt && (
+            <RightToLeftToggle control={control} name="direction" />
+          )}
 
           <div className="flex items-center justify-between gap-2">
             <div>

@@ -24,7 +24,11 @@ export function LongTextField({
   const error = !!state.error || exceedsMaxLength;
 
   return (
-    <FormControl label={field.label} required={field.required}>
+    <FormControl
+      label={field.label}
+      required={field.required}
+      dir={field.direction}
+    >
       <textarea
         className={cn(
           "mt-2 block w-full rounded-md text-sm focus:outline-none",
