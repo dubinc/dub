@@ -7,6 +7,15 @@ import {
 } from "next/navigation";
 import { useCallback } from "react";
 
+type QueryParamsOptions = {
+  set?: Record<string, string | string[]>;
+  del?: string | string[];
+  replace?: boolean;
+  scroll?: boolean;
+  getNewPath?: boolean;
+  arrayDelimiter?: string;
+};
+
 export function useRouterStuff() {
   const pathname = usePathname();
   const router = useRouter();
@@ -41,21 +50,15 @@ export function useRouterStuff() {
   };
 
   const queryParams = useCallback(
-    ({
-      set,
-      del,
-      replace,
-      scroll = true,
-      getNewPath,
-      arrayDelimiter = ",",
-    }: {
-      set?: Record<string, string | string[]>;
-      del?: string | string[];
-      replace?: boolean;
-      scroll?: boolean;
-      getNewPath?: boolean;
-      arrayDelimiter?: string;
-    }) => {
+    (options: QueryParamsOptions): string | void => {
+      const {
+        set,
+        del,
+        replace,
+        scroll = true,
+        getNewPath,
+        arrayDelimiter = ",",
+      } = options;
       const newParams = new URLSearchParams(searchParams);
       if (set) {
         Object.entries(set).forEach(([k, v]) =>
