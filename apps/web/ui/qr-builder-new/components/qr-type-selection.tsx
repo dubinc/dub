@@ -69,7 +69,7 @@ export const QrTypeSelection: FC<QrTypeSelectionProps> = ({
               </h3>
               <div className="flex w-full items-center justify-between gap-2 md:gap-3">
                 <p className="text-muted-foreground text-xs leading-relaxed md:text-sm">{type.info}</p>
-                <ArrowRight className="text-primary size-4 shrink-0 transition-all duration-300 group-hover:translate-x-1 group-hover:scale-[1.4] md:size-7" />
+                <ArrowRight className="text-primary size-4 shrink-0 opacity-0 transition-all duration-300 group-hover:translate-x-1 group-hover:scale-[1.8] group-hover:opacity-100 md:size-7" />
               </div>
             </div>
           </div>
