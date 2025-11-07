@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 const programLanderBlockTitleSchema = z.string().optional();
-const programLanderBlockDirectionSchema = z.enum(["ltr", "rtl"]).default("ltr");
+const programLanderBlockDirectionSchema = z.enum(["ltr", "rtl"]).optional();
 
 export const programLanderBlockCommonSchema = z.object({
   id: z.string(),
