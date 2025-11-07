@@ -174,7 +174,7 @@ export async function updateLink({
         partnerId: response.partnerId,
       });
 
-      Promise.allSettled([
+      await Promise.allSettled([
         // Record link in Redis
         linkCache.set({
           ...response,

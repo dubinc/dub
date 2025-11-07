@@ -145,7 +145,7 @@ export async function createLink(link: ProcessedLinkProps) {
         partnerId: response.partnerId,
       });
 
-      Promise.allSettled([
+      await Promise.allSettled([
         // Cache link in Redis
         linkCache.set({
           ...response,

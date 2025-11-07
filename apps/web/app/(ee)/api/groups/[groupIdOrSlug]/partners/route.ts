@@ -75,7 +75,7 @@ export const POST = withWorkspace(
             },
           });
 
-          Promise.allSettled([
+          await Promise.allSettled([
             qstash.publishJSON({
               url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/remap-default-links`,
               body: {

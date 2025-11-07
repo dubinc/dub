@@ -3,11 +3,14 @@ import { isDiscountEquivalent } from "@/lib/api/discounts/is-discount-equivalent
 import { queueDiscountCodeDeletion } from "@/lib/api/discounts/queue-discount-code-deletion";
 import { DubApiError } from "@/lib/api/errors";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
+import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
+import { includeTags } from "@/lib/api/links/include-tags";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
+import { recordLink } from "@/lib/tinybird";
 import { GroupWithProgramSchema } from "@/lib/zod/schemas/group-with-program";
 import {
   DEFAULT_PARTNER_GROUP,
@@ -334,42 +337,63 @@ export const DELETE = withWorkspace(
       return true;
     });
 
-    const partnerIds = group.partners.map(({ partnerId }) => partnerId);
-
     if (deletedGroup) {
       waitUntil(
-        Promise.allSettled([
-          partnerIds.length > 0 &&
-            qstash.publishJSON({
-              url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/remap-default-links`,
-              body: {
-                programId,
-                groupId: defaultGroup.id,
-                partnerIds,
-                userId: session.user.id,
-                isGroupDeleted: true,
+        (async () => {
+          const partnerIds = group.partners.map(({ partnerId }) => partnerId);
+
+          // TODO:
+          // This won't work for larger groups
+          // We should split this into multiple batches
+          const partnerLinks = await prisma.link.findMany({
+            where: {
+              programId,
+              partnerId: {
+                in: partnerIds,
               },
+              partnerGroupDefaultLinkId: null,
+            },
+            include: {
+              ...includeTags,
+              ...includeProgramEnrollment,
+            },
+          });
+
+          await Promise.allSettled([
+            partnerIds.length > 0 &&
+              qstash.publishJSON({
+                url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/remap-default-links`,
+                body: {
+                  programId,
+                  groupId: defaultGroup.id,
+                  partnerIds,
+                  userId: session.user.id,
+                  isGroupDeleted: true,
+                },
+              }),
+
+            ...discountCodesToDelete.map((discountCode) =>
+              queueDiscountCodeDeletion(discountCode.id),
+            ),
+
+            recordAuditLog({
+              workspaceId: workspace.id,
+              programId,
+              action: "group.deleted",
+              description: `Group ${group.name} (${group.id}) deleted`,
+              actor: session.user,
+              targets: [
+                {
+                  type: "group",
+                  id: group.id,
+                  metadata: group,
+                },
+              ],
             }),
 
-          ...discountCodesToDelete.map((discountCode) =>
-            queueDiscountCodeDeletion(discountCode.id),
-          ),
-
-          recordAuditLog({
-            workspaceId: workspace.id,
-            programId,
-            action: "group.deleted",
-            description: `Group ${group.name} (${group.id}) deleted`,
-            actor: session.user,
-            targets: [
-              {
-                type: "group",
-                id: group.id,
-                metadata: group,
-              },
-            ],
-          }),
-        ]),
+            recordLink(partnerLinks),
+          ]);
+        })(),
       );
     }
 
