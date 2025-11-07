@@ -4,12 +4,11 @@ import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { WorkspaceProps } from "@/lib/types";
 import { webhookCache } from "@/lib/webhook/cache";
 import { prisma } from "@dub/prisma";
-import { getPlanFromPriceId, getPlanLimits } from "@dub/utils";
+import { getPlanAndTierFromPriceId } from "@dub/utils";
 import { NEW_BUSINESS_PRICE_IDS } from "@dub/utils/src";
 
 export async function updateWorkspacePlan({
   workspace,
-  plan,
   priceId,
 }: {
   workspace: Pick<
@@ -26,15 +25,14 @@ export async function updateWorkspacePlan({
       hashedKey: string;
     }[];
   };
-  plan: ReturnType<typeof getPlanFromPriceId>;
   priceId: string;
 }) {
-  if (!plan) return;
+  const { plan: newPlan, planTier: newPlanTier } = getPlanAndTierFromPriceId({
+    priceId,
+  });
+  if (!newPlan) return;
 
-  const limits = getPlanLimits(plan);
-  if (!limits) return;
-
-  const newPlanName = plan.name.toLowerCase();
+  const newPlanName = newPlan.name.toLowerCase();
   const shouldDisableWebhooks = newPlanName === "free" || newPlanName === "pro";
   const shouldDeleteFolders =
     newPlanName === "free" && workspace.foldersUsage > 0;
@@ -44,8 +42,8 @@ export async function updateWorkspacePlan({
   // update their usage limit in the database
   if (
     workspace.plan !== newPlanName ||
-    (workspace.planTier || 0) !== plan.tier ||
-    (workspace.payoutsLimit < limits.payouts &&
+    (workspace.planTier || 0) !== newPlanTier ||
+    (workspace.payoutsLimit < newPlan.limits.payouts &&
       NEW_BUSINESS_PRICE_IDS.includes(priceId))
   ) {
     await Promise.allSettled([
@@ -55,17 +53,17 @@ export async function updateWorkspacePlan({
         },
         data: {
           plan: newPlanName,
-          planTier: plan.tier,
-          usageLimit: limits.clicks!,
-          linksLimit: limits.links!,
-          payoutsLimit: limits.payouts!,
-          domainsLimit: limits.domains!,
-          aiLimit: limits.ai!,
-          tagsLimit: limits.tags!,
-          foldersLimit: limits.folders!,
-          groupsLimit: limits.groups!,
-          networkInvitesLimit: limits.networkInvites!,
-          usersLimit: limits.users!,
+          planTier: newPlanTier,
+          usageLimit: newPlan.limits.clicks,
+          linksLimit: newPlan.limits.links,
+          payoutsLimit: newPlan.limits.payouts,
+          domainsLimit: newPlan.limits.domains,
+          aiLimit: newPlan.limits.ai,
+          tagsLimit: newPlan.limits.tags,
+          foldersLimit: newPlan.limits.folders,
+          groupsLimit: newPlan.limits.groups,
+          networkInvitesLimit: newPlan.limits.networkInvites,
+          usersLimit: newPlan.limits.users,
           paymentFailedAt: null,
           ...(shouldDeleteFolders && { foldersUsage: 0 }),
         },
@@ -76,7 +74,7 @@ export async function updateWorkspacePlan({
           projectId: workspace.id,
         },
         data: {
-          rateLimit: limits.api,
+          rateLimit: newPlan.limits.api,
         },
       }),
 

@@ -19,10 +19,9 @@ import {
   cn,
   getSuggestedPlan,
   isDowngradePlan,
-  Plan,
   PLAN_COMPARE_FEATURES,
+  PlanDetails,
   PLANS,
-  PlanWithTier,
 } from "@dub/utils";
 import { isLegacyBusinessPlan } from "@dub/utils/src/constants/pricing";
 import NumberFlow from "@number-flow/react";
@@ -49,7 +48,7 @@ export function WorkspaceBillingUpgradePageClient() {
   const {
     slug,
     plan: currentPlan,
-    planTier: currentPlanTier,
+    planTier: currentPlanTier = 1,
     stripeId,
     payoutsLimit,
   } = useWorkspace();
@@ -75,18 +74,28 @@ export function WorkspaceBillingUpgradePageClient() {
   const recommendedPlan = useMemo(() => {
     if (!eventsUsage || !linksUsage) return null;
 
-    return getSuggestedPlan({ events: eventsUsage, links: linksUsage });
+    return getSuggestedPlan({
+      events: eventsUsage,
+      links: linksUsage,
+    });
   }, [linksUsage, eventsUsage]);
 
-  const plans: (Plan | PlanWithTier)[] = useMemo(
+  const plans: { plan: PlanDetails; planTier: number }[] = useMemo(
     () =>
-      ["Pro", "Business", "Advanced", "Enterprise"].map((p) =>
-        p === recommendedPlan?.name
-          ? recommendedPlan
-          : PLANS.find(({ name }) => name === p)!,
-      ),
+      ["Pro", "Business", "Advanced", "Enterprise"].map((p) => {
+        const planDetails = PLANS.find(({ name }) => name === p)!;
+        if (
+          recommendedPlan &&
+          recommendedPlan.plan.name.toLowerCase() === p.toLowerCase()
+        ) {
+          return recommendedPlan;
+        }
+        return { plan: planDetails, planTier: 1 };
+      }),
     [recommendedPlan],
   );
+
+  console.log({ plans });
 
   return (
     <div>
@@ -111,7 +120,7 @@ export function WorkspaceBillingUpgradePageClient() {
             { label: "Yearly (2 months free)", value: "yearly" },
           ]}
           selected={period}
-          selectAction={(option) => setPeriod(option as "monthly" | "monthly")}
+          selectAction={(option) => setPeriod(option as "monthly" | "yearly")}
           className="rounded-lg border-neutral-300 bg-neutral-100 p-0.5"
           optionClassName="text-xs text-neutral-800 data-[selected=true]:text-neutral-800 px-3 sm:px-5 py-2 leading-none"
           indicatorClassName="bg-white border-neutral-200 rounded-md"
@@ -134,17 +143,16 @@ export function WorkspaceBillingUpgradePageClient() {
                 } as CSSProperties
               }
             >
-              {plans.map((plan, idx) => {
+              {plans.map(({ plan, planTier }, idx) => {
                 // disable upgrade button if user has a Stripe ID and is on the current plan
                 // (if there's no stripe id, they could be on a free trial so they should be able to upgrade)
                 // edge case:
                 //    if the user is on the business plan and has a payout limit of 0,
-                //    it means they're on the legacy business plan – prompt them to upgrade to the new business plan
+                //    it means they're on the legacy business plan – prompt them to upgrade to the new business plan
                 const disableCurrentPlan = Boolean(
                   stripeId &&
                     plan.name.toLowerCase() === currentPlan &&
-                    (("tier" in plan ? plan.tier : 0) ?? 0) ===
-                      (currentPlanTier ?? 0) &&
+                    planTier === currentPlanTier &&
                     !isLegacyBusinessPlan({
                       plan: currentPlan,
                       payoutsLimit,
@@ -156,9 +164,9 @@ export function WorkspaceBillingUpgradePageClient() {
                   stripeId &&
                     isDowngradePlan({
                       currentPlan: currentPlan || "free",
-                      currentTier: currentPlanTier ?? 0,
+                      currentTier: currentPlanTier,
                       newPlan: plan.name,
-                      newTier: "tier" in plan ? plan.tier : 0,
+                      newTier: planTier,
                     }),
                 );
 
@@ -177,7 +185,10 @@ export function WorkspaceBillingUpgradePageClient() {
                         <h3 className="py-1 text-base font-semibold leading-none text-neutral-800">
                           {plan.name}
                         </h3>
-                        {plan.name === recommendedPlan?.name &&
+                        {recommendedPlan &&
+                          !isDowngrade &&
+                          plan.name === recommendedPlan.plan.name &&
+                          planTier === recommendedPlan.planTier &&
                           !disableCurrentPlan && (
                             <div className="animate-fade-in flex h-6 min-w-0 items-center rounded-lg border border-blue-100 bg-blue-50 px-1.5 text-xs font-medium text-blue-600">
                               <span className="truncate">Recommended</span>
@@ -234,7 +245,7 @@ export function WorkspaceBillingUpgradePageClient() {
                       ) : (
                         <UpgradePlanButton
                           plan={plan.name.toLowerCase()}
-                          tier={"tier" in plan ? plan.tier : undefined}
+                          tier={planTier > 1 ? planTier : undefined}
                           period={period}
                           disabled={disableCurrentPlan}
                           text={
@@ -309,8 +320,8 @@ export function WorkspaceBillingUpgradePageClient() {
                 >
                   <thead className="sr-only">
                     <tr>
-                      {plans.map(({ name }) => (
-                        <th key={name}>{name}</th>
+                      {plans.map(({ plan }) => (
+                        <th key={plan.name}>{plan.name}</th>
                       ))}
                     </tr>
                   </thead>
@@ -320,7 +331,7 @@ export function WorkspaceBillingUpgradePageClient() {
 
                       return (
                         <tr key={idx} className="contents bg-white">
-                          {plans.map((plan) => {
+                          {plans.map(({ plan }) => {
                             const id = plan.name.toLowerCase();
                             const isChecked =
                               typeof check === "boolean"

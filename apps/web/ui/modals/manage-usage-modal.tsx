@@ -58,21 +58,23 @@ function ManageUsageModalContent({ type }: ManageUsageModalProps) {
   const [selectedValue, setSelectedValue] = useState<number | null>(null);
   const [period, setPeriod] = useState<"monthly" | "yearly">("monthly");
 
-  const suggestedPlan = getSuggestedPlan({
-    [type]: selectedValue ?? defaultValue,
-  });
+  const { plan: suggestedPlan, planTier: suggestedPlanTier } = getSuggestedPlan(
+    {
+      [type]: selectedValue ?? defaultValue,
+    },
+  );
 
   const isCurrentPlanSuggested =
     plan === suggestedPlan.name.toLowerCase() &&
-    suggestedPlan.tier === (planTier ?? 0);
+    suggestedPlanTier === (planTier ?? 1);
 
   const isDowngradeSuggested =
     plan &&
     isDowngradePlan({
       currentPlan: plan,
       newPlan: suggestedPlan.name,
-      currentTier: planTier ?? 0,
-      newTier: suggestedPlan.tier,
+      currentTier: planTier ?? 1,
+      newTier: suggestedPlanTier,
     });
 
   if (usageSteps.length < 2) return null;
@@ -162,7 +164,7 @@ function ManageUsageModalContent({ type }: ManageUsageModalProps) {
             ) : (
               <UpgradePlanButton
                 plan={suggestedPlan.name.toLowerCase()}
-                tier={suggestedPlan.tier}
+                tier={suggestedPlanTier}
                 period={period}
                 disabled={isCurrentPlanSuggested}
                 text={

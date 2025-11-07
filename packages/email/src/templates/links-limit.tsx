@@ -84,7 +84,7 @@ export default function LinksLimitAlert({
                 All your existing links will continue to work, and we are still
                 collecting data on them, but you'll need to upgrade the{" "}
                 <Link
-                  href={nextPlan.link}
+                  href="https://dub.co/pricing"
                   className="font-medium text-blue-600 no-underline"
                 >
                   {nextPlan.name} plan
@@ -95,7 +95,7 @@ export default function LinksLimitAlert({
               <Text className="text-sm leading-6 text-black">
                 Once you hit your limit, you'll need to upgrade to the{" "}
                 <Link
-                  href={nextPlan.link}
+                  href="https://dub.co/pricing"
                   className="font-medium text-blue-600 no-underline"
                 >
                   {nextPlan.name} plan

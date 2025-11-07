@@ -11,7 +11,7 @@ import { sendBatchEmail } from "@dub/email";
 import UpgradeEmail from "@dub/email/templates/upgrade-email";
 import { prisma } from "@dub/prisma";
 import { User } from "@dub/prisma/client";
-import { getPlanFromPriceId, getPlanLimits, log } from "@dub/utils";
+import { getPlanAndTierFromPriceId, log } from "@dub/utils";
 import Stripe from "stripe";
 
 export async function checkoutSessionCompleted(event: Stripe.Event) {
@@ -37,10 +37,9 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
   );
   const priceId = subscription.items.data[0].price.id;
 
-  const plan = getPlanFromPriceId(priceId);
-  const limits = getPlanLimits(plan);
+  const { plan, planTier } = getPlanAndTierFromPriceId({ priceId });
 
-  if (!plan || !limits) {
+  if (!plan) {
     console.log(
       `Invalid price ID in checkout.session.completed event: ${priceId}`,
     );
@@ -63,17 +62,17 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       stripeId,
       billingCycleStart: new Date().getDate(),
       plan: planName,
-      planTier: plan.tier,
-      usageLimit: limits.clicks!,
-      linksLimit: limits.links!,
-      payoutsLimit: limits.payouts!,
-      domainsLimit: limits.domains!,
-      aiLimit: limits.ai!,
-      tagsLimit: limits.tags!,
-      foldersLimit: limits.folders!,
-      groupsLimit: limits.groups!,
-      networkInvitesLimit: limits.networkInvites!,
-      usersLimit: limits.users!,
+      planTier: planTier,
+      usageLimit: plan.limits.clicks,
+      linksLimit: plan.limits.links,
+      payoutsLimit: plan.limits.payouts,
+      domainsLimit: plan.limits.domains,
+      aiLimit: plan.limits.ai,
+      tagsLimit: plan.limits.tags,
+      foldersLimit: plan.limits.folders,
+      groupsLimit: plan.limits.groups,
+      networkInvitesLimit: plan.limits.networkInvites,
+      usersLimit: plan.limits.users,
       paymentFailedAt: null,
     },
     select: {
@@ -120,6 +119,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
           name: user.name,
           email: user.email as string,
           plan: plan.name,
+          planTier: planTier,
         }),
         variant: "marketing",
       })),
@@ -130,7 +130,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
         projectId: workspaceId,
       },
       data: {
-        rateLimit: limits.api,
+        rateLimit: plan.limits.api,
       },
     }),
     // enable dub.link premium default domain for the workspace

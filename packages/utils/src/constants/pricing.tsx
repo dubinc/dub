@@ -1,3 +1,4 @@
+import { nFormatter } from "../functions";
 import { INFINITY_NUMBER } from "./misc";
 
 export type PlanFeature = {
@@ -10,9 +11,8 @@ export type PlanFeature = {
   };
 };
 
-export type Plan = {
+export type PlanDetails = {
   name: string;
-  link?: string;
   price: {
     monthly: number | null;
     yearly: number | null;
@@ -47,10 +47,6 @@ export type Plan = {
   };
   featureTitle?: string;
   features?: PlanFeature[];
-};
-
-export type PlanWithTier = Plan & {
-  tier: number;
 };
 
 const LEGACY_PRO_PRICE_IDS = [
@@ -127,7 +123,7 @@ const ADVANCED_PRICE_IDS = [
   ...Object.values(ADVANCED_TIER_PRICE_IDS).flat(),
 ];
 
-export const PLANS: Plan[] = [
+export const PLANS: PlanDetails[] = [
   {
     name: "Free",
     price: {
@@ -151,7 +147,6 @@ export const PLANS: Plan[] = [
   },
   {
     name: "Pro",
-    link: "https://dub.co/help/article/pro-plan",
     price: {
       monthly: 30,
       yearly: 25,
@@ -499,35 +494,65 @@ export const SELF_SERVE_PAID_PLANS = PLANS.filter((p) =>
 
 export const FREE_WORKSPACES_LIMIT = 2;
 
-export const getPlanFromPriceId = (priceId: string): PlanWithTier | null => {
-  const plan = PLANS.find((plan) => plan.price.ids?.includes(priceId)) || null;
-
-  if (!plan) return null;
-
-  const tier = plan.tiers
-    ? Object.entries(plan.tiers).find(([_, { price }]) =>
-        price.ids.includes(priceId),
-      )?.[0] ?? null
-    : null;
-
-  return { ...plan, tier: tier ? Number(tier) : 0 };
-};
-
-export const getPlanLimits = (plan: PlanWithTier | null) => {
-  if (!plan) return null;
-
+const enrichPlanWithTier = (
+  planDetails: PlanDetails,
+  planTier: number,
+): PlanDetails => {
   const tierLimits =
-    plan.tiers && plan.tier
-      ? plan.tiers[plan.tier as keyof typeof plan.tiers]?.limits
-      : {};
+    planDetails.tiers && planTier > 1
+      ? planDetails.tiers[planTier].limits
+      : planDetails.limits;
 
-  return { ...plan.limits, ...tierLimits };
+  return {
+    ...planDetails,
+    limits: {
+      ...planDetails.limits,
+      ...tierLimits,
+    },
+    features: planDetails.features?.map((feature) => ({
+      ...feature,
+      text:
+        feature.id === "clicks"
+          ? `${nFormatter(tierLimits.clicks)} tracked clicks/mo`
+          : feature.id === "links"
+            ? `${nFormatter(tierLimits.links)} new links/mo`
+            : feature.text,
+    })),
+  };
 };
 
-export const getPlanDetails = (plan: string) => {
-  return SELF_SERVE_PAID_PLANS.find(
+export const getPlanAndTierFromPriceId = ({
+  priceId,
+}: {
+  priceId: string;
+}): { plan: PlanDetails | null; planTier: number } => {
+  const planDetails = PLANS.find((plan) => plan.price.ids?.includes(priceId));
+  if (!planDetails) return { plan: null, planTier: 1 };
+
+  const planTier = planDetails.tiers
+    ? (Object.entries(planDetails.tiers).find(([_, { price }]) =>
+        price.ids.includes(priceId),
+      )?.[0] as unknown as number) ?? 1
+    : 1;
+
+  return {
+    plan: enrichPlanWithTier(planDetails, planTier),
+    planTier,
+  };
+};
+
+export const getPlanDetails = ({
+  plan,
+  planTier = 1,
+}: {
+  plan: string;
+  planTier?: number;
+}) => {
+  const planDetails = PLANS.find(
     (p) => p.name.toLowerCase() === plan.toLowerCase(),
   )!;
+
+  return enrichPlanWithTier(planDetails, planTier);
 };
 
 export const getCurrentPlan = (plan: string) => {
@@ -567,7 +592,7 @@ export const isDowngradePlan = ({
   );
   return (
     currentPlanIndex > newPlanIndex ||
-    (currentPlanIndex === newPlanIndex && (currentTier ?? 0) > (newTier ?? 0))
+    (currentPlanIndex === newPlanIndex && (currentTier ?? 1) > (newTier ?? 1))
   );
 };
 
@@ -579,8 +604,8 @@ export const getSuggestedPlan = ({
   events?: number;
   links?: number;
   suggestFree?: boolean;
-}): PlanWithTier => {
-  let match: PlanWithTier | null = null;
+}): { plan: PlanDetails; planTier: number } => {
+  let match: { plan: PlanDetails; planTier: number } | null = null;
 
   for (const p of PLANS) {
     if (!suggestFree && p.price.monthly === 0) continue;
@@ -588,34 +613,34 @@ export const getSuggestedPlan = ({
     const matchingTier = [0, ...Object.keys(p.tiers ?? {}).map(Number)].find(
       (tier) => {
         const limits =
-          tier == 0
-            ? p.limits
-            : p.tiers?.[tier as keyof typeof p.tiers]?.limits ?? p.limits;
+          tier === 1 ? p.limits : p.tiers?.[tier]?.limits ?? p.limits;
         return limits.clicks >= (events ?? 0) && limits.links >= (links ?? 0);
       },
     );
 
     if (matchingTier !== undefined) {
-      const matchingTierData = p.tiers?.[matchingTier as keyof typeof p.tiers];
+      const matchingTierData = p.tiers?.[matchingTier];
 
       match = {
-        ...p,
-        limits: {
-          ...p.limits,
-          ...matchingTierData?.limits,
+        plan: {
+          ...p,
+          limits: {
+            ...p.limits,
+            ...matchingTierData?.limits,
+          },
+          price: {
+            ...p.price,
+            ...matchingTierData?.price,
+          },
         },
-        price: {
-          ...p.price,
-          ...matchingTierData?.price,
-        },
-        tier: Number(matchingTier),
+        planTier: matchingTier,
       };
 
       break;
     }
   }
 
-  return match ?? { ...ENTERPRISE_PLAN, tier: 0 };
+  return match ?? { plan: ENTERPRISE_PLAN, planTier: 1 };
 };
 
 export const isLegacyBusinessPlan = ({
