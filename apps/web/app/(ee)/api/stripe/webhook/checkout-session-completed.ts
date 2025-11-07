@@ -11,7 +11,7 @@ import { sendBatchEmail } from "@dub/email";
 import UpgradeEmail from "@dub/email/templates/upgrade-email";
 import { prisma } from "@dub/prisma";
 import { User } from "@dub/prisma/client";
-import { getPlanFromPriceId, log } from "@dub/utils";
+import { getPlanAndTierFromPriceId, log } from "@dub/utils";
 import Stripe from "stripe";
 
 export async function checkoutSessionCompleted(event: Stripe.Event) {
@@ -37,7 +37,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
   );
   const priceId = subscription.items.data[0].price.id;
 
-  const plan = getPlanFromPriceId(priceId);
+  const { plan, planTier } = getPlanAndTierFromPriceId({ priceId });
 
   if (!plan) {
     console.log(
@@ -62,16 +62,17 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       stripeId,
       billingCycleStart: new Date().getDate(),
       plan: planName,
-      usageLimit: plan.limits.clicks!,
-      linksLimit: plan.limits.links!,
-      payoutsLimit: plan.limits.payouts!,
-      domainsLimit: plan.limits.domains!,
-      aiLimit: plan.limits.ai!,
-      tagsLimit: plan.limits.tags!,
-      foldersLimit: plan.limits.folders!,
-      groupsLimit: plan.limits.groups!,
-      networkInvitesLimit: plan.limits.networkInvites!,
-      usersLimit: plan.limits.users!,
+      planTier: planTier,
+      usageLimit: plan.limits.clicks,
+      linksLimit: plan.limits.links,
+      payoutsLimit: plan.limits.payouts,
+      domainsLimit: plan.limits.domains,
+      aiLimit: plan.limits.ai,
+      tagsLimit: plan.limits.tags,
+      foldersLimit: plan.limits.folders,
+      groupsLimit: plan.limits.groups,
+      networkInvitesLimit: plan.limits.networkInvites,
+      usersLimit: plan.limits.users,
       paymentFailedAt: null,
     },
     select: {
@@ -118,6 +119,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
           name: user.name,
           email: user.email as string,
           plan: plan.name,
+          planTier: planTier,
         }),
         variant: "marketing",
       })),

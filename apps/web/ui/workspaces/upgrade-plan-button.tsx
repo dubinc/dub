@@ -11,10 +11,12 @@ import { useState } from "react";
 
 export function UpgradePlanButton({
   plan,
+  tier,
   period,
   ...rest
 }: {
   plan: string;
+  tier?: number;
   period: "monthly" | "yearly";
 } & Partial<ButtonProps>) {
   const router = useRouter();
@@ -55,9 +57,10 @@ export function UpgradePlanButton({
           },
           body: JSON.stringify({
             plan,
+            tier,
             period,
             baseUrl: `${APP_DOMAIN}${pathname}${queryString.length > 0 ? `?${queryString}` : ""}`,
-            onboarding: searchParams.get("workspace"),
+            onboarding: searchParams.get("workspace") ? "true" : "false",
           }),
         })
           .then(async (res) => {
