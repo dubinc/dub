@@ -1,17 +1,15 @@
 import { cn } from "@dub/utils";
-import { HTMLProps } from "react";
 import Markdown from "react-markdown";
 
 export function BlockMarkdown({
   className,
   children,
-  ...rest
 }: {
   className?: string;
   children: string;
-} & HTMLProps<HTMLDivElement>) {
+}) {
   return (
-    <div
+    <Markdown
       className={cn(
         "prose prose-neutral max-w-none",
         "prose-headings:leading-tight prose-bullet:text-red-500",
@@ -19,17 +17,13 @@ export function BlockMarkdown({
         "marker:prose-ul:text-neutral-700 prose-ul:pl-[1.5em] [&_ul>li]:pl-0",
         className,
       )}
-      {...rest}
+      components={{
+        a: ({ node, ...props }) => (
+          <a {...props} target="_blank" rel="noopener noreferrer" />
+        ),
+      }}
     >
-      <Markdown
-        components={{
-          a: ({ node, ...props }) => (
-            <a {...props} target="_blank" rel="noopener noreferrer" />
-          ),
-        }}
-      >
-        {children}
-      </Markdown>
-    </div>
+      {children}
+    </Markdown>
   );
 }

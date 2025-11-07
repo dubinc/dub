@@ -12,7 +12,6 @@ import {
 } from "react";
 import { useForm } from "react-hook-form";
 import { BrandingFormData, useBrandingFormContext } from "../../branding-form";
-import { RightToLeftToggle } from "../../right-to-left-toggle";
 
 type EditHeroModalProps = {
   showEditHeroModal: boolean;
@@ -40,7 +39,6 @@ function EditHeroModalInner({ setShowEditHeroModal }: EditHeroModalProps) {
 
   const {
     register,
-    control,
     handleSubmit,
     formState: { isDirty },
   } = useForm<Pick<BrandingFormData, "landerData">>({
@@ -130,11 +128,6 @@ function EditHeroModalInner({ setShowEditHeroModal }: EditHeroModalProps) {
               />
             </div>
           </div>
-
-          {/* RTL */}
-          {program?.rtlContentEnabledAt && (
-            <RightToLeftToggle control={control} name="landerData.direction" />
-          )}
         </div>
 
         <div className="mt-4 flex items-center justify-end gap-2">

@@ -1,7 +1,6 @@
 import { z } from "zod";
 
 const programLanderBlockTitleSchema = z.string().optional();
-const programLanderBlockDirectionSchema = z.enum(["ltr", "rtl"]).default("ltr");
 
 export const programLanderBlockCommonSchema = z.object({
   id: z.string(),
@@ -24,7 +23,6 @@ export const programLanderTextBlockSchema =
     data: z.object({
       title: programLanderBlockTitleSchema,
       content: z.string(),
-      direction: programLanderBlockDirectionSchema,
     }),
   });
 
@@ -47,7 +45,6 @@ export const programLanderFilesBlockSchema =
     data: z.object({
       title: programLanderBlockTitleSchema,
       items: z.array(programLanderFileSchema),
-      direction: programLanderBlockDirectionSchema,
     }),
   });
 
@@ -63,7 +60,6 @@ export const programLanderAccordionBlockSchema =
     data: z.object({
       title: programLanderBlockTitleSchema,
       items: z.array(programLanderAccordionItemSchema),
-      direction: programLanderBlockDirectionSchema,
     }),
   });
 
@@ -94,7 +90,6 @@ export const programLanderSchema = z.object({
   label: z.string().optional(),
   title: z.string().optional(),
   description: z.string().optional(),
-  direction: programLanderBlockDirectionSchema,
   blocks: z.array(programLanderBlockSchema),
 });
 

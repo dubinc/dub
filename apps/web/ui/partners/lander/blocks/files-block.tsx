@@ -12,7 +12,7 @@ export function FilesBlock({
   program: ProgramProps;
 }) {
   return (
-    <div className="space-y-5" dir={block.data.direction}>
+    <div className="space-y-5">
       <BlockTitle title={block.data.title} />
       <div className="grid grid-cols-1 gap-3">
         {block.data.items.map((file, idx) => (
@@ -42,7 +42,7 @@ export function FilesBlock({
               </div>
             </div>
             <div className="pr-3">
-              <ArrowUpRight className="size-4 text-neutral-700 transition-transform duration-150 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 rtl:-scale-x-100" />
+              <ArrowUpRight className="size-4 text-neutral-700 transition-transform duration-150 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
             </div>
           </a>
         ))}

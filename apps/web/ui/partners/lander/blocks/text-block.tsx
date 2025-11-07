@@ -10,10 +10,8 @@ export function TextBlock({
 }) {
   return (
     <div className="space-y-5">
-      <BlockTitle title={block.data.title} dir={block.data.direction} />
-      <BlockMarkdown dir={block.data.direction}>
-        {block.data.content}
-      </BlockMarkdown>
+      <BlockTitle title={block.data.title} />
+      <BlockMarkdown>{block.data.content}</BlockMarkdown>
     </div>
   );
 }

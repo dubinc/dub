@@ -1,6 +1,5 @@
 "use client";
 
-import useProgram from "@/lib/swr/use-program";
 import { programLanderTextBlockSchema } from "@/lib/zod/schemas/program-lander";
 import {
   Button,
@@ -13,7 +12,6 @@ import { cn } from "@dub/utils";
 import { Dispatch, SetStateAction, useId } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { RightToLeftToggle } from "../../right-to-left-toggle";
 
 type TextBlockData = z.infer<typeof programLanderTextBlockSchema>["data"];
 
@@ -39,18 +37,12 @@ function TextBlockModalInner({
 }: TextBlockModalProps) {
   const id = useId();
   const { isMobile } = useMediaQuery();
-  const { program } = useProgram();
-
   const {
     handleSubmit,
     register,
-    control,
     formState: { errors },
   } = useForm<TextBlockData>({
-    defaultValues: {
-      direction: program?.rtlContentEnabledAt ? "rtl" : undefined,
-      ...defaultValues,
-    },
+    defaultValues,
   });
 
   const { handleKeyDown } = useEnterSubmit();
@@ -124,11 +116,6 @@ function TextBlockModalInner({
               <span className="sr-only">MarkdownIcon</span> supported
             </a>
           </div>
-
-          {/* RTL */}
-          {program?.rtlContentEnabledAt && (
-            <RightToLeftToggle control={control} name="direction" />
-          )}
 
           <div className="flex items-center justify-end gap-2">
             <Button

@@ -8,10 +8,7 @@ export function LanderHero({
   preview,
 }: {
   program: Pick<Program, "name">;
-  landerData: Pick<
-    ProgramLanderData,
-    "label" | "title" | "description" | "direction"
-  >;
+  landerData: Pick<ProgramLanderData, "label" | "title" | "description">;
   preview?: boolean;
 }) {
   const Heading = preview ? "div" : "h1";
@@ -23,7 +20,6 @@ export function LanderHero({
           "font-mono text-xs font-medium uppercase text-[var(--brand)]",
           "animate-slide-up-fade [--offset:5px] [animation-duration:1s] [animation-fill-mode:both]",
         )}
-        dir={landerData.label ? landerData.direction : "ltr"}
       >
         {landerData.label || "Affiliate Program"}
       </span>
@@ -32,7 +28,6 @@ export function LanderHero({
           "text-4xl font-semibold",
           "animate-slide-up-fade [--offset:5px] [animation-delay:100ms] [animation-duration:1s] [animation-fill-mode:both]",
         )}
-        dir={landerData.title ? landerData.direction : "ltr"}
       >
         {landerData.title || `Join the ${program.name} affiliate program`}
       </Heading>
@@ -41,7 +36,6 @@ export function LanderHero({
           "text-base text-neutral-700",
           "animate-slide-up-fade [--offset:5px] [animation-delay:200ms] [animation-duration:1s] [animation-fill-mode:both]",
         )}
-        dir={landerData.description ? landerData.direction : "ltr"}
       >
         {landerData.description ||
           `Share ${program.name} with your audience and for each subscription generated through your referral, you'll earn a share of the revenue on any plans they purchase.`}
