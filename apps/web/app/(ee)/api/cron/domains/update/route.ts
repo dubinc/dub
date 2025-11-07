@@ -1,6 +1,8 @@
 import { queueDomainUpdate } from "@/lib/api/domains/queue-domain-update";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
+import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
+import { includeTags } from "@/lib/api/links/include-tags";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { recordLink } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
@@ -67,11 +69,8 @@ export async function POST(req: Request) {
         },
       },
       include: {
-        tags: {
-          select: {
-            tag: true,
-          },
-        },
+        ...includeTags,
+        ...includeProgramEnrollment,
       },
     });
 

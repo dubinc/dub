@@ -1,5 +1,6 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
+import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
@@ -165,7 +166,10 @@ export async function POST(req: Request) {
           },
           partnerId: targetPartnerId,
         },
-        include: includeTags,
+        include: {
+          ...includeTags,
+          ...includeProgramEnrollment,
+        },
       });
 
       // Bounty submissions to transfer to the target partner

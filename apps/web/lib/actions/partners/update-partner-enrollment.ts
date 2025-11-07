@@ -46,6 +46,7 @@ export const updatePartnerEnrollmentAction = authActionClient
           tenantId,
         },
       });
+
       return await tx.programEnrollment.update({
         where: {
           partnerId_programId: where,
@@ -64,7 +65,7 @@ export const updatePartnerEnrollmentAction = authActionClient
 
     waitUntil(
       Promise.allSettled([
-        recordLink(programEnrollment.links),
+        recordLink(programEnrollment.links), // TODO: Not sure why we need to record the links update here
         recordAuditLog({
           workspaceId: workspace.id,
           programId,
