@@ -2,28 +2,26 @@ import { DubApiError } from "@/lib/api/errors";
 import { isDubAdmin, withWorkspace } from "@/lib/auth";
 import { getDubCustomer } from "@/lib/dub";
 import { stripe } from "@/lib/stripe";
+import { booleanQuerySchema } from "@/lib/zod/schemas/misc";
 import { APP_DOMAIN } from "@dub/utils";
 import { NextResponse } from "next/server";
+import { z } from "zod";
+
+const upgradePlanSchema = z.object({
+  plan: z.enum(["pro", "business", "advanced"]),
+  period: z.enum(["monthly", "yearly"]),
+  tier: z.number().min(1).max(3).optional().default(1),
+  baseUrl: z.string().refine((url) => url.startsWith(APP_DOMAIN), {
+    message: "Invalid baseUrl.",
+  }),
+  onboarding: booleanQuerySchema.nullish(),
+});
 
 // POST /api/workspaces/[idOrSlug]/billing/upgrade
 export const POST = withWorkspace(async ({ req, workspace, session }) => {
-  let { plan, period, tier, baseUrl, onboarding } = await req.json();
-
-  if (!baseUrl.startsWith(APP_DOMAIN)) {
-    throw new DubApiError({
-      code: "unprocessable_entity",
-      message: "Invalid baseUrl.",
-    });
-  }
-
-  if (!plan || !period) {
-    throw new DubApiError({
-      code: "unprocessable_entity",
-      message: "Invalid plan or period.",
-    });
-  }
-
-  plan = plan.replace(" ", "+");
+  let { plan, period, tier, baseUrl, onboarding } = upgradePlanSchema.parse(
+    await req.json(),
+  );
 
   const prices = await stripe.prices.list({
     lookup_keys: [tier ? `${plan}${tier}_${period}` : `${plan}_${period}`],
