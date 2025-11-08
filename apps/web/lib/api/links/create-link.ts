@@ -1,5 +1,5 @@
 import { qstash } from "@/lib/cron";
-import { getPartnerEnrollmentInfo } from "@/lib/planetscale/getPartnerEnrollmentInfo";
+import { getPartnerEnrollmentInfo } from "@/lib/planetscale/get-partner-enrollment-info";
 import { isNotHostedImage, storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import { ProcessedLinkProps } from "@/lib/types";
