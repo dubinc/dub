@@ -1,4 +1,4 @@
-import { DUB_WORDMARK, capitalize, getNextPlan, nFormatter } from "@dub/utils";
+import { APP_DOMAIN, DUB_WORDMARK, capitalize, nFormatter } from "@dub/utils";
 import {
   Body,
   Container,
@@ -37,7 +37,6 @@ export default function LinksLimitAlert({
     plan: string;
   };
   const percentage = Math.round((linksUsage / linksLimit) * 100);
-  const nextPlan = getNextPlan(plan as string);
 
   return (
     <Html>
@@ -82,23 +81,23 @@ export default function LinksLimitAlert({
             ) : percentage === 100 ? (
               <Text className="text-sm leading-6 text-black">
                 All your existing links will continue to work, and we are still
-                collecting data on them, but you'll need to upgrade the{" "}
+                collecting data on them, but you'll need to{" "}
                 <Link
-                  href={nextPlan.link}
+                  href={`${APP_DOMAIN}/${slug}/settings/billing`}
                   className="font-medium text-blue-600 no-underline"
                 >
-                  {nextPlan.name} plan
+                  upgrade to a higher plan
                 </Link>{" "}
-                add more links.
+                to add more links.
               </Text>
             ) : (
               <Text className="text-sm leading-6 text-black">
-                Once you hit your limit, you'll need to upgrade to the{" "}
+                Once you hit your limit, you'll need to{" "}
                 <Link
-                  href={nextPlan.link}
+                  href={`${APP_DOMAIN}/${slug}/settings/billing`}
                   className="font-medium text-blue-600 no-underline"
                 >
-                  {nextPlan.name} plan
+                  upgrade to a higher plan
                 </Link>{" "}
                 to add more links.
               </Text>
@@ -106,7 +105,7 @@ export default function LinksLimitAlert({
             <Section className="mb-8">
               <Link
                 className="rounded-lg bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
-                href={`https://app.dub.co/${slug}/upgrade`}
+                href={`${APP_DOMAIN}/${slug}/settings/billing`}
               >
                 Upgrade my plan
               </Link>

@@ -24,6 +24,9 @@ import {
   CardSelector,
   CardSelectorOption,
   NumberStepper,
+  RichTextArea,
+  RichTextProvider,
+  RichTextToolbar,
   Sheet,
   SmartDateTimePicker,
   Switch,
@@ -803,31 +806,45 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                     )}
 
                     <div>
-                      <label
-                        htmlFor="description"
-                        className="text-sm font-medium text-neutral-800"
-                      >
+                      <label className="text-sm font-medium text-neutral-800">
                         Details
                         <span className="ml-1 font-normal text-neutral-500">
                           (optional)
                         </span>
                       </label>
                       <div className="mt-2">
-                        <textarea
-                          id="description"
-                          rows={3}
-                          maxLength={BOUNTY_DESCRIPTION_MAX_LENGTH}
-                          className={cn(
-                            "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-                            errors.description &&
-                              "border-red-600 focus:border-red-500 focus:ring-red-600",
+                        <Controller
+                          control={control}
+                          name="description"
+                          render={({ field }) => (
+                            <RichTextProvider
+                              features={["bold", "italic", "links"]}
+                              markdown
+                              placeholder="Provide any bounty requirements to the partner"
+                              editorClassName="block max-h-24 overflow-hidden w-full resize-none border-none p-3 text-base sm:text-sm"
+                              initialValue={field.value}
+                              onChange={(editor) =>
+                                field.onChange(
+                                  (editor as any).getMarkdown() || null,
+                                )
+                              }
+                            >
+                              <div
+                                className={cn(
+                                  "border-border-subtle overflow-hidden rounded-md border border-neutral-300 focus-within:border-neutral-500 focus-within:ring-1 focus-within:ring-neutral-500",
+                                  errors.description &&
+                                    "border-red-600 focus-within:border-red-500 focus-within:ring-red-600",
+                                )}
+                              >
+                                <div className="flex flex-col">
+                                  <RichTextArea />
+                                  <RichTextToolbar className="px-1 pb-1" />
+                                </div>
+                              </div>
+                            </RichTextProvider>
                           )}
-                          placeholder="Provide any bounty requirements to the partner"
-                          {...register("description", {
-                            setValueAs: (value) =>
-                              value === "" ? null : value,
-                          })}
                         />
+
                         <div className="mt-1 text-left">
                           <span className="text-xs text-neutral-400">
                             {description?.length || 0} /{" "}

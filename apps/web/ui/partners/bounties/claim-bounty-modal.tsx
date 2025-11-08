@@ -12,6 +12,7 @@ import {
 } from "@/lib/zod/schemas/bounties";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { X } from "@/ui/shared/icons";
+import { Markdown } from "@/ui/shared/markdown";
 import {
   AnimatedSizeContainer,
   Button,
@@ -413,8 +414,8 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                     <span className="text-content-emphasis font-semibold">
                       Details
                     </span>
-                    <p className="text-content-subtle whitespace-pre-wrap font-medium">
-                      {bounty.description}
+                    <p className="text-content-subtle font-medium">
+                      <Markdown className="p-0">{bounty.description}</Markdown>
                     </p>
                   </div>
                 )}
@@ -587,7 +588,10 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                         value={description}
                         onChange={(e) => {
                           const value = e.target.value;
-                          if (value.length <= MAX_BOUNTY_SUBMISSION_DESCRIPTION_LENGTH) {
+                          if (
+                            value.length <=
+                            MAX_BOUNTY_SUBMISSION_DESCRIPTION_LENGTH
+                          ) {
                             setDescription(value);
                           }
                         }}

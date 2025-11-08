@@ -15,6 +15,8 @@ import {
   Lock,
   PaperPlane,
   RichTextArea,
+  RichTextProvider,
+  RichTextToolbar,
   SmartDateTimePicker,
   StatusBadge,
   Tooltip,
@@ -506,7 +508,7 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
               control={control}
               name="bodyJson"
               render={({ field }) => (
-                <RichTextArea
+                <RichTextProvider
                   ref={editorRef}
                   editorClassName="-m-2 min-h-[200px] p-2"
                   initialValue={field.value}
@@ -548,7 +550,12 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
 
                     return null;
                   }}
-                />
+                >
+                  <div className="flex flex-col gap-4">
+                    <RichTextToolbar />
+                    <RichTextArea />
+                  </div>
+                </RichTextProvider>
               )}
             />
           </div>
