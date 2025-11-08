@@ -5,7 +5,7 @@ import {
   transformRouteHandlerSuccessResult,
 } from "@axiomhq/nextjs";
 import { getSearchParams } from "@dub/utils";
-import { axiomClient } from ".";
+import { axiomClient } from "./axiom";
 
 export const logger = new Logger({
   transports: [
