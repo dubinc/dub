@@ -34,8 +34,9 @@ export default function useProgramEnrollment({
     programEnrollment,
     showDetailedAnalytics:
       programSlug !== "perplexity" ||
-      (programEnrollment?.totalCommissions ?? 0) >=
-        LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS,
+      (programEnrollment?.status === "approved" &&
+        (programEnrollment?.totalCommissions ?? 0) >=
+          LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS),
     error,
     loading: status === "loading" || isLoading,
   };
