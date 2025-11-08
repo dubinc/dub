@@ -283,8 +283,8 @@ export function Combobox({
             )}
             <ScrollContainer
               className={cn(
-                !onCreate && "max-h-[min(50vh,250px)]",
-                onCreate && "max-h-[calc(min(50vh,250px)-3.5rem)]",
+                "max-h-[min(50vh,250px)]",
+                onCreate && !multiple && "max-h-[calc(min(50vh,250px)-3.5rem)]",
               )}
             >
               <Command.List
