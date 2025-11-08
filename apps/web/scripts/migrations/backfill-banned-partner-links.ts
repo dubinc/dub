@@ -5,23 +5,16 @@ import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 
 const LINKS_PER_BATCH = 1000;
-const PR_MERGE_TIMESTAMP = new Date("2025-11-07T00:00:00Z");
 
 async function main() {
   let cursor: string | undefined = undefined;
 
   while (true) {
-    // Find the program links
+    // Find links for partners that were banned
     const links = await prisma.link.findMany({
       where: {
-        programId: {
-          not: null,
-        },
-        partnerId: {
-          not: null,
-        },
-        createdAt: {
-          lte: PR_MERGE_TIMESTAMP,
+        programEnrollment: {
+          status: "banned",
         },
       },
       include: {
@@ -48,7 +41,9 @@ async function main() {
 
     cursor = links[links.length - 1].id;
 
-    const { successful_rows, quarantined_rows } = await recordLink(links);
+    const { successful_rows, quarantined_rows } = await recordLink(links, {
+      deleted: true,
+    });
 
     if (successful_rows !== links.length) {
       console.log(`Failed to record ${links.length - successful_rows} links.`);

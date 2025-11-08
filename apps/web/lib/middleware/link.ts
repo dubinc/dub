@@ -31,7 +31,7 @@ import { isCaseSensitiveDomain } from "../api/links/case-sensitivity";
 import { recordClickCache } from "../api/links/record-click-cache";
 import { getLinkViaEdge } from "../planetscale";
 import { getDomainViaEdge } from "../planetscale/get-domain-via-edge";
-import { getPartnerEnrollmentInfo } from "../planetscale/getPartnerEnrollmentInfo";
+import { getPartnerEnrollmentInfo } from "../planetscale/get-partner-enrollment-info";
 import { cacheDeepLinkClickData } from "./utils/cache-deeplink-click-data";
 import { crawlBitly } from "./utils/crawl-bitly";
 import { isIosAppStoreUrl } from "./utils/is-ios-app-store-url";
