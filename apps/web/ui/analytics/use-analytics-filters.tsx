@@ -407,6 +407,23 @@ export function useAnalyticsFilters({
         : programPage
           ? [
               {
+                key: "groupId",
+                icon: Users6,
+                label: "Group",
+                getOptionIcon: (_value, props) => {
+                  const group = props.option?.data?.group;
+                  return group ? <GroupColorCircle group={group} /> : null;
+                },
+                options:
+                  groups?.map(({ group, ...rest }) => ({
+                    value: group.id,
+                    icon: <GroupColorCircle group={group} />,
+                    label: group.name,
+                    data: { group },
+                    right: getFilterOptionTotal(rest),
+                  })) ?? null,
+              },
+              {
                 key: "partnerId",
                 icon: Users,
                 label: "Partner",
@@ -459,25 +476,6 @@ export function useAnalyticsFilters({
                       ),
                       label: folder.name,
                       data: { folder },
-                      right: getFilterOptionTotal(rest),
-                    })) ?? null,
-                },
-                {
-                  key: "groupId",
-                  icon: Users6,
-                  label: "Group",
-                  getOptionIcon: (_value, props) => {
-                    const group = props.option?.data?.group;
-                    return group ? (
-                      <GroupColorCircle group={group} />
-                    ) : null;
-                  },
-                  options:
-                    groups?.map(({ group, ...rest }) => ({
-                      value: group.id,
-                      icon: <GroupColorCircle group={group} />,
-                      label: group.name,
-                      data: { group },
                       right: getFilterOptionTotal(rest),
                     })) ?? null,
                 },
