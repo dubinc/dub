@@ -30,6 +30,7 @@ export const dubLinksMetadataSchema = z.object({
     .string()
     .nullish()
     .transform((v) => (v ? v : "")),
+  partner_tag_ids: z.array(z.string()).default([]),
   workspace_id: z
     .string()
     .nullish()
