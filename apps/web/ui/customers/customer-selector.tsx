@@ -96,7 +96,7 @@ export function CustomerSelector({
         createLabel={(search) =>
           `Create ${search ? `"${search}"` : "new customer"}`
         }
-        onCreate={() => {
+        onCreate={async () => {
           setShowAddCustomerModal(true);
           return true;
         }}
