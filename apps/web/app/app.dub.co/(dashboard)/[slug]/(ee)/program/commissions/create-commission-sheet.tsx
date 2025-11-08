@@ -25,7 +25,13 @@ import {
   ToggleGroup,
   useTable,
 } from "@dub/ui";
-import { cn, currencyFormatter, fetcher, formatDateTime } from "@dub/utils";
+import {
+  cn,
+  currencyFormatter,
+  fetcher,
+  formatDateTime,
+  pluralize,
+} from "@dub/utils";
 import { CommissionType } from "@prisma/client";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
@@ -542,17 +548,11 @@ function CreateCommissionSheetContent({
                           options={[
                             {
                               value: "new",
-                              label:
-                                commissionType === "lead"
-                                  ? "Create new event"
-                                  : "Create new events",
+                              label: "Create new event",
                             },
                             {
                               value: "existing",
-                              label:
-                                commissionType === "lead"
-                                  ? "Use existing event"
-                                  : "Use existing events",
+                              label: `Use existing ${pluralize("event", filteredEvents.length)}`,
                             },
                           ]}
                           selected={useExistingEvents ? "existing" : "new"}
@@ -676,21 +676,6 @@ function CreateCommissionSheetContent({
                                     })}
                                     placeholder="Sign up"
                                   />
-                                  <p className="mt-2 text-xs text-neutral-500">
-                                    Changes only this lead event name your{" "}
-                                    <Link
-                                      href={
-                                        slug
-                                          ? `/${slug}/events?event=leads`
-                                          : "/events?event=leads"
-                                      }
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="inline-flex items-center gap-1 font-medium text-neutral-500 underline underline-offset-4 transition-colors hover:text-neutral-900"
-                                    >
-                                      event analytics ↗
-                                    </Link>
-                                  </p>
                                 </div>
                               )}
                             </div>
