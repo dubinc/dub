@@ -34,6 +34,7 @@ export type ComboboxOption<TMeta = any> = {
   meta?: TMeta;
   separatorAfter?: boolean;
   first?: boolean;
+  sticky?: boolean;
 };
 
 export type ComboboxProps<
@@ -258,19 +259,21 @@ export function Combobox({
               >
                 {sortedOptions !== undefined ? (
                   <>
-                    {sortedOptions.map((option) => (
-                      <Option
-                        key={`${option.label}, ${option.value}`}
-                        option={option}
-                        multiple={isMultiple}
-                        selected={selected.some(
-                          ({ value }) => value === option.value,
-                        )}
-                        onSelect={() => handleSelect(option)}
-                        right={optionRight?.(option)}
-                        className={optionClassName}
-                      />
-                    ))}
+                    {sortedOptions
+                      .filter((option) => !option.sticky)
+                      .map((option) => (
+                        <Option
+                          key={`${option.label}, ${option.value}`}
+                          option={option}
+                          multiple={isMultiple}
+                          selected={selected.some(
+                            ({ value }) => value === option.value,
+                          )}
+                          onSelect={() => handleSelect(option)}
+                          right={optionRight?.(option)}
+                          className={optionClassName}
+                        />
+                      ))}
                     {search.length > 0 && onCreate && (
                       <CommandItem
                         className={cn(
@@ -302,7 +305,7 @@ export function Combobox({
                       <Empty className="flex min-h-12 items-center justify-center text-sm text-neutral-500">
                         {emptyState ? emptyState : "No matches"}
                       </Empty>
-                    ) : sortedOptions.length === 0 ? (
+                    ) : sortedOptions.filter((option) => !option.sticky).length === 0 ? (
                       <div className="flex min-h-12 items-center justify-center text-sm text-neutral-500">
                         {emptyState ? emptyState : "No matches"}
                       </div>
@@ -318,6 +321,30 @@ export function Combobox({
                 )}
               </Command.List>
             </ScrollContainer>
+            {sortedOptions !== undefined &&
+              sortedOptions.filter((option) => option.sticky).length > 0 && (
+                <div className="border-t border-neutral-200 bg-white">
+                  <Command.List
+                    className={cn("flex w-full min-w-[100px] flex-col gap-1 p-1")}
+                  >
+                    {sortedOptions
+                      .filter((option) => option.sticky)
+                      .map((option) => (
+                        <Option
+                          key={`${option.label}, ${option.value}`}
+                          option={option}
+                          multiple={isMultiple}
+                          selected={selected.some(
+                            ({ value }) => value === option.value,
+                          )}
+                          onSelect={() => handleSelect(option)}
+                          right={optionRight?.(option)}
+                          className={optionClassName}
+                        />
+                      ))}
+                  </Command.List>
+                </div>
+              )}
           </Command>
         </AnimatedSizeContainer>
       }

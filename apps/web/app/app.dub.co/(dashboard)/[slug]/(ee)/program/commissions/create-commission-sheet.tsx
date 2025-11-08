@@ -536,14 +536,23 @@ function CreateCommissionSheetContent({
                           </h2>
                         </label>
                         <ToggleGroup
-                          className="mt-2 flex w-full items-center gap-1 rounded-md border border-neutral-200 bg-neutral-50 p-1"
+                          className="mt-2 flex w-full items-center gap-1 rounded-lg border border-neutral-200 bg-neutral-50 p-1"
                           optionClassName="h-8 flex items-center justify-center rounded-md flex-1 text-sm normal-case"
                           indicatorClassName="bg-white"
                           options={[
-                            { value: "new", label: "Create new events" },
+                            {
+                              value: "new",
+                              label:
+                                commissionType === "lead"
+                                  ? "Create new event"
+                                  : "Create new events",
+                            },
                             {
                               value: "existing",
-                              label: "Use existing events",
+                              label:
+                                commissionType === "lead"
+                                  ? "Use existing event"
+                                  : "Use existing events",
                             },
                           ]}
                           selected={useExistingEvents ? "existing" : "new"}
@@ -647,10 +656,17 @@ function CreateCommissionSheetContent({
 
                               {hasCustomLeadEventName && (
                                 <div className="p-px">
+                                  <label
+                                    htmlFor="leadEventName"
+                                    className="block text-sm font-medium text-neutral-900"
+                                  >
+                                    Lead event name
+                                  </label>
                                   <input
+                                    id="leadEventName"
                                     type="text"
                                     className={cn(
-                                      "block w-full rounded-md border-neutral-300 px-3 py-2 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                                      "mt-2 block w-full rounded-md border-neutral-300 px-3 py-2 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
                                       errors.leadEventName &&
                                         "border-red-600 focus:border-red-500 focus:ring-red-600",
                                     )}
@@ -658,8 +674,23 @@ function CreateCommissionSheetContent({
                                       setValueAs: (value) =>
                                         value === "" ? null : value,
                                     })}
-                                    placeholder="Enter lead event name"
+                                    placeholder="Sign up"
                                   />
+                                  <p className="mt-2 text-xs text-neutral-500">
+                                    Changes only this lead event name your{" "}
+                                    <Link
+                                      href={
+                                        slug
+                                          ? `/${slug}/events?event=leads`
+                                          : "/events?event=leads"
+                                      }
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="inline-flex items-center gap-1 font-medium text-neutral-500 underline underline-offset-4 transition-colors hover:text-neutral-900"
+                                    >
+                                      event analytics ↗
+                                    </Link>
+                                  </p>
                                 </div>
                               )}
                             </div>

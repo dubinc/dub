@@ -1,6 +1,6 @@
 import useCustomers from "@/lib/swr/use-customers";
 import { CUSTOMERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/customers";
-import { Button, Combobox } from "@dub/ui";
+import { Button, Combobox, Plus } from "@dub/ui";
 import { cn, OG_AVATAR_URL } from "@dub/utils";
 import { useEffect, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
@@ -43,18 +43,32 @@ export function CustomerSelector({
     },
   });
 
+  const CREATE_CUSTOMER_VALUE = "__create_customer__";
+
   const customerOptions = useMemo(() => {
-    return customers?.map((customer) => ({
-      value: customer.id,
-      label: customer.name || customer.email || customer.externalId,
-      icon: (
-        <img
-          src={customer.avatar || `${OG_AVATAR_URL}${customer.id}`}
-          className="size-4 rounded-full"
-        />
-      ),
-    }));
-  }, [customers]);
+    const options =
+      customers?.map((customer) => ({
+        value: customer.id,
+        label: customer.name || customer.email || customer.externalId,
+        icon: (
+          <img
+            src={customer.avatar || `${OG_AVATAR_URL}${customer.id}`}
+            className="size-4 rounded-full"
+          />
+        ),
+      })) || [];
+
+    // Always add "Create customer" option at the bottom
+    // The label includes the search term when present to ensure it matches filtering
+    options.push({
+      value: CREATE_CUSTOMER_VALUE,
+      label: search ? `Create "${search}"` : "Create new customer",
+      icon: <Plus className="size-4 shrink-0" />,
+      sticky: true,
+    });
+
+    return options;
+  }, [customers, search]);
 
   const selectedOption = useMemo(() => {
     if (!selectedCustomerId) return null;
@@ -83,13 +97,18 @@ export function CustomerSelector({
       <Combobox
         options={loading ? undefined : customerOptions}
         setSelected={(option) => {
+          if (option.value === CREATE_CUSTOMER_VALUE) {
+            setOpenPopover(false);
+            setShowAddCustomerModal(true, search || undefined);
+            return;
+          }
           setSelectedCustomerId(option.value);
         }}
         selected={selectedOption}
         icon={selectedCustomersLoading ? null : selectedOption?.icon}
         caret={true}
         placeholder={selectedCustomersLoading ? "" : "Select customer"}
-        searchPlaceholder="Search customer..."
+        searchPlaceholder="Search customers..."
         onSearchChange={setSearch}
         shouldFilter={!useAsync}
         matchTriggerWidth
@@ -105,15 +124,6 @@ export function CustomerSelector({
         emptyState={
           <div className="flex w-full flex-col items-center gap-2 py-4">
             No customers found
-            <Button
-              onClick={() => {
-                setOpenPopover(false);
-                setShowAddCustomerModal(true);
-              }}
-              variant="primary"
-              className="h-7 w-fit px-2"
-              text="Create customer"
-            />
           </div>
         }
       >

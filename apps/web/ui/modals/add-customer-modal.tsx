@@ -2,7 +2,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { CustomerProps } from "@/lib/types";
 import { createCustomerBodySchema } from "@/lib/zod/schemas/customers";
 import { Button, Modal, useMediaQuery } from "@dub/ui";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
@@ -12,6 +12,7 @@ interface AddCustomerModalProps {
   showModal: boolean;
   setShowModal: (showModal: boolean) => void;
   onSuccess?: (customer: CustomerProps) => void;
+  initialName?: string;
 }
 
 type FormData = z.infer<typeof createCustomerBodySchema>;
@@ -20,6 +21,7 @@ const AddCustomerModal = ({
   showModal,
   setShowModal,
   onSuccess,
+  initialName,
 }: AddCustomerModalProps) => {
   const { id: workspaceId } = useWorkspace();
   const { isMobile } = useMediaQuery();
@@ -28,6 +30,7 @@ const AddCustomerModal = ({
     register,
     handleSubmit,
     watch,
+    reset,
     formState: { isSubmitting },
   } = useForm<FormData>({
     defaultValues: {
@@ -37,6 +40,24 @@ const AddCustomerModal = ({
       stripeCustomerId: null,
     },
   });
+
+  useEffect(() => {
+    if (showModal && initialName) {
+      reset({
+        name: initialName,
+        email: null,
+        externalId: "",
+        stripeCustomerId: null,
+      });
+    } else if (showModal) {
+      reset({
+        name: null,
+        email: null,
+        externalId: "",
+        stripeCustomerId: null,
+      });
+    }
+  }, [showModal, initialName, reset]);
 
   const onSubmit = async (data: FormData) => {
     try {
@@ -183,22 +204,37 @@ export function useAddCustomerModal({
   onSuccess?: (customer: CustomerProps) => void;
 } = {}) {
   const [showAddCustomerModal, setShowAddCustomerModal] = useState(false);
+  const [initialName, setInitialName] = useState<string | undefined>();
 
   const AddCustomerModalCallback = useCallback(() => {
     return (
       <AddCustomerModal
         showModal={showAddCustomerModal}
-        setShowModal={setShowAddCustomerModal}
+        setShowModal={(show) => {
+          setShowAddCustomerModal(show);
+          if (!show) {
+            setInitialName(undefined);
+          }
+        }}
         onSuccess={onSuccess}
+        initialName={initialName}
       />
     );
-  }, [showAddCustomerModal, setShowAddCustomerModal]);
+  }, [showAddCustomerModal, initialName, onSuccess]);
+
+  const setShowAddCustomerModalWithName = useCallback(
+    (show: boolean, name?: string) => {
+      setShowAddCustomerModal(show);
+      setInitialName(name);
+    },
+    [],
+  );
 
   return useMemo(
     () => ({
-      setShowAddCustomerModal,
+      setShowAddCustomerModal: setShowAddCustomerModalWithName,
       AddCustomerModal: AddCustomerModalCallback,
     }),
-    [setShowAddCustomerModal, AddCustomerModalCallback],
+    [setShowAddCustomerModalWithName, AddCustomerModalCallback],
   );
 }
