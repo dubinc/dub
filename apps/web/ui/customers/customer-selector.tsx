@@ -96,7 +96,10 @@ export function CustomerSelector({
         createLabel={(search) =>
           `Create ${search ? `"${search}"` : "new customer"}`
         }
-        onCreate={() => setShowAddCustomerModal(true)}
+        onCreate={() => {
+          setShowAddCustomerModal(true);
+          return true;
+        }}
         shouldFilter={!useAsync}
         matchTriggerWidth
         open={openPopover}

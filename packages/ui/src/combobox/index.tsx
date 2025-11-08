@@ -7,7 +7,6 @@ import {
   isValidElement,
   PropsWithChildren,
   ReactNode,
-  SetStateAction,
   useCallback,
   useEffect,
   useState,
@@ -57,7 +56,7 @@ export type ComboboxProps<
   emptyState?: ReactNode;
   createLabel?: (search: string) => ReactNode;
   createIcon?: Icon;
-  onCreate?: (search: string) => Promise<boolean> | SetStateAction<boolean>;
+  onCreate?: (search: string) => Promise<boolean>;
   buttonProps?: ButtonProps;
   labelProps?: { className?: string };
   iconProps?: { className?: string };
