@@ -41,6 +41,18 @@ async function main() {
 
     cursor = links[links.length - 1].id;
 
+    const res = await prisma.link.updateMany({
+      where: {
+        id: {
+          in: links.map((link) => link.id),
+        },
+      },
+      data: {
+        disabledAt: new Date(),
+      },
+    });
+    console.log(`Updated ${res.count} links to be disabled.`);
+
     const { successful_rows, quarantined_rows } = await recordLink(links, {
       deleted: true,
     });
