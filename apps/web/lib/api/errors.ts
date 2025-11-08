@@ -127,6 +127,7 @@ export function handleApiError(error: any): ErrorResponse & { status: number } {
 
   // Send error to Axiom
   logger.error(error.message, error);
+  logger.flush();
 
   // Zod errors
   if (error instanceof ZodError) {
