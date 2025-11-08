@@ -67,6 +67,10 @@ export const withWorkspace = (
       req,
       { params: initialParams }: { params: Promise<Record<string, string>> },
     ) => {
+      // Clone the request early so handlers can read the body without cloning
+      // Keep the original for withAxiomBodyLog to read in onSuccess
+      const clonedReq = req.clone();
+
       const params = (await initialParams) || {};
       const searchParams = getSearchParams(req.url);
 
@@ -115,7 +119,7 @@ export const withWorkspace = (
           ) {
             // @ts-expect-error
             return await handler({
-              req,
+              req: clonedReq,
               params,
               searchParams,
               headers: responseHeaders,
@@ -403,7 +407,7 @@ export const withWorkspace = (
         }
 
         return await handler({
-          req,
+          req: clonedReq,
           params,
           searchParams,
           headers: responseHeaders,
