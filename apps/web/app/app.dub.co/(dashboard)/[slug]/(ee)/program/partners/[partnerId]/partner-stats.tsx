@@ -105,7 +105,7 @@ export function PartnerStats({
           return (
             <As
               key={label}
-              href={href ?? ""}
+              href={href ?? "#"}
               target="_blank"
               className="flex flex-col bg-white p-3 transition-colors duration-150 hover:bg-neutral-50"
             >
