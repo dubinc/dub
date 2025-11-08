@@ -35,10 +35,15 @@ export function Slider({
   ];
 
   return (
-    <div className={cn("relative z-0", className)}>
+    <div
+      className={cn(
+        "relative z-0 [--thumb-radius:13px] [--track-height:16px]",
+        className,
+      )}
+    >
       <div className="w-full">
         <RadixSlider.Root
-          className="relative flex h-8 w-full items-center [--thumb-radius:13px]"
+          className="relative flex h-8 w-full items-center"
           value={[value]}
           min={min}
           max={max}
@@ -47,12 +52,12 @@ export function Slider({
           disabled={disabled}
           aria-label="Slider"
         >
-          <RadixSlider.Track className="relative h-4 w-full overflow-visible rounded-full bg-neutral-200">
+          <RadixSlider.Track className="relative h-[var(--track-height)] w-full overflow-visible rounded-full bg-neutral-200">
             {/* Start of filled track (since actual filled track is inset by the thumb radius) */}
             <div className="absolute left-0 top-0 h-full w-[var(--thumb-radius)] rounded-l-full bg-black" />
 
             <div className="pointer-events-none absolute inset-x-[var(--thumb-radius)] inset-y-0">
-              <RadixSlider.Range className="absolute h-4 bg-black" />
+              <RadixSlider.Range className="absolute h-[var(--track-height)] bg-black" />
 
               {sliderMarks.map((mark) => {
                 const left = ((mark - min) / (max - min)) * 100;
@@ -69,7 +74,7 @@ export function Slider({
           </RadixSlider.Track>
 
           <RadixSlider.Thumb className="z-20 flex size-[calc(var(--thumb-radius)*2)] items-center justify-center rounded-full border-0 bg-white shadow-[0_2px_2px_rgba(0,0,0,0.10),0_3px_3px_rgba(0,0,0,0.09)]">
-            <span className="block size-4 rounded-full bg-[#171717]" />
+            <span className="block size-[calc(var(--thumb-radius)*1.23)] rounded-full bg-[#171717]" />
           </RadixSlider.Thumb>
         </RadixSlider.Root>
 

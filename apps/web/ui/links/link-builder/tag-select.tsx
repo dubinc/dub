@@ -202,6 +202,7 @@ export const TagSelect = memo(() => {
             selectedTags.length === 0 && "text-neutral-400",
           ),
         }}
+        createLabel={(search) => `Create ${search ? `"${search}"` : "new tag"}`}
         onCreate={(search) => createTag(search)}
         open={isOpen}
         onOpenChange={setIsOpen}

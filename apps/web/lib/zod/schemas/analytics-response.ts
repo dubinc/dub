@@ -1,7 +1,6 @@
 import { TRIGGER_TYPES } from "@/lib/analytics/constants";
 import z from "@/lib/zod";
 import { CONTINENT_CODES } from "@dub/utils";
-import { FolderAccessLevel } from "@prisma/client";
 import { LinkTagSchema } from "./tags";
 
 const analyticsTriggersResponse = z
@@ -473,9 +472,6 @@ export const analyticsResponse = {
       folder: z.object({
         id: z.string().describe("The ID of the folder"),
         name: z.string().describe("The name of the folder"),
-        accessLevel: z
-          .nativeEnum(FolderAccessLevel)
-          .describe("The access level of the folder"),
       }),
       clicks: z.number().describe("The total number of clicks").default(0),
       leads: z.number().describe("The total number of leads").default(0),

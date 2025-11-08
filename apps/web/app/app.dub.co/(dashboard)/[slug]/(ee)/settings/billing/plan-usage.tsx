@@ -6,8 +6,9 @@ import useTagsCount from "@/lib/swr/use-tags-count";
 import useUsage from "@/lib/swr/use-usage";
 import useWorkspace from "@/lib/swr/use-workspace";
 import useWorkspaceUsers from "@/lib/swr/use-workspace-users";
+import { useManageUsageModal } from "@/ui/modals/manage-usage-modal";
 import SubscriptionMenu from "@/ui/workspaces/subscription-menu";
-import { buttonVariants, Icon, Tooltip, useRouterStuff } from "@dub/ui";
+import { Button, buttonVariants, Icon, Tooltip, useRouterStuff } from "@dub/ui";
 import {
   CirclePercentage,
   CreditCard,
@@ -97,14 +98,14 @@ export default function PlanUsage() {
 
     const tabs = [
       {
-        id: "events",
+        id: "events" as const,
         icon: CursorRays,
         title: "Events tracked",
         usage: usage,
         limit: usageLimit,
       },
       {
-        id: "links",
+        id: "links" as const,
         icon: Hyperlink,
         title: "Links created",
         usage:
@@ -268,7 +269,7 @@ function UsageTabCard({
   unit,
   requiresUpgrade,
 }: {
-  id: string;
+  id: "links" | "events";
   icon: Icon;
   title: string;
   usage?: number;
@@ -277,7 +278,11 @@ function UsageTabCard({
   requiresUpgrade?: boolean;
 }) {
   const { queryParams } = useRouterStuff();
-  const { slug } = useWorkspace();
+  const { slug, plan } = useWorkspace();
+
+  const { ManageUsageModal, setShowManageUsageModal } = useManageUsageModal({
+    type: id,
+  });
 
   const { activeResource } = useUsage();
 
@@ -294,105 +299,119 @@ function UsageTabCard({
   const prefix = unit || "";
 
   return (
-    <button
-      className={cn(
-        "rounded-lg border border-neutral-300 bg-white px-4 py-3 text-left transition-colors duration-75",
-        "outline-none focus-visible:border-blue-600 focus-visible:ring-1 focus-visible:ring-blue-600",
-        activeResource === id && "border-neutral-900 ring-1 ring-neutral-900",
-        requiresUpgrade
-          ? "border-neutral-100 bg-neutral-100 hover:bg-neutral-100"
-          : "hover:bg-neutral-50 lg:px-5 lg:py-4",
-      )}
-      aria-selected={activeResource === id}
-      onClick={() => !requiresUpgrade && queryParams({ set: { tab: id } })}
-      disabled={requiresUpgrade}
-    >
-      <Icon className="size-4 text-neutral-600" />
-      <div className="mt-1.5 flex items-center gap-2 text-sm text-neutral-600">
-        {title}
-        {requiresUpgrade && (
-          <Tooltip
-            content={
-              <div className="max-w-xs px-4 py-2 text-center text-sm text-neutral-600">
-                Upgrade to Business to unlock conversion tracking.{" "}
-                <Link
-                  href={`/${slug}/upgrade`}
-                  className="underline underline-offset-2 hover:text-neutral-800"
-                >
-                  View pricing plans
-                </Link>
-              </div>
-            }
-          >
-            <span className="flex items-center gap-1 rounded-full border border-neutral-300 px-2 py-0.5 text-xs text-neutral-500">
-              <CrownSmall className="size-" />
-              Business
-            </span>
-          </Tooltip>
+    <div className="relative">
+      <ManageUsageModal />
+      <button
+        className={cn(
+          "w-full rounded-lg border border-neutral-300 bg-white px-4 py-3 text-left transition-colors duration-75",
+          "outline-none focus-visible:border-blue-600 focus-visible:ring-1 focus-visible:ring-blue-600",
+          activeResource === id && "border-neutral-900 ring-1 ring-neutral-900",
+          requiresUpgrade
+            ? "border-neutral-100 bg-neutral-100 hover:bg-neutral-100"
+            : "hover:bg-neutral-50 lg:px-5 lg:py-4",
         )}
-      </div>
-      <div className="mt-2">
-        {!loading ? (
-          <NumberFlow
-            value={usage}
-            className="text-xl leading-none text-neutral-900"
-            format={
-              unit === "$"
-                ? {
-                    style: "currency",
-                    currency: "USD",
-                    // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
-                    trailingZeroDisplay: "stripIfInteger",
-                  }
-                : {
-                    notation: usage < INFINITY_NUMBER ? "standard" : "compact",
-                  }
-            }
-          />
-        ) : (
-          <div className="h-5 w-16 animate-pulse rounded-md bg-neutral-200" />
-        )}
-      </div>
-      <div className="mt-5">
-        <div
-          className={cn(
-            "h-1 w-full overflow-hidden rounded-full bg-neutral-900/10 transition-colors",
-            loading && "bg-neutral-900/5",
-          )}
-        >
-          {!loading && !unlimited && (
-            <div
-              className="animate-slide-right-fade size-full"
-              style={{ "--offset": "-100%" } as CSSProperties}
+        aria-selected={activeResource === id}
+        onClick={() => !requiresUpgrade && queryParams({ set: { tab: id } })}
+        disabled={requiresUpgrade}
+      >
+        <Icon className="size-4 text-neutral-600" />
+        <div className="mt-1.5 flex items-center gap-2 text-sm text-neutral-600">
+          {title}
+          {requiresUpgrade && (
+            <Tooltip
+              content={
+                <div className="max-w-xs px-4 py-2 text-center text-sm text-neutral-600">
+                  Upgrade to Business to unlock conversion tracking.{" "}
+                  <Link
+                    href={`/${slug}/upgrade`}
+                    className="underline underline-offset-2 hover:text-neutral-800"
+                  >
+                    View pricing plans
+                  </Link>
+                </div>
+              }
             >
-              <div
-                className={cn(
-                  "size-full rounded-full",
-                  requiresUpgrade
-                    ? "bg-neutral-900/10"
-                    : "bg-gradient-to-r from-blue-500/80 to-blue-600",
-                  warning && "from-neutral-900/10 via-red-500 to-red-600",
-                )}
-                style={{
-                  transform: `translateX(-${100 - Math.max(Math.floor((usage / Math.max(0, usage, limit)) * 100), usage === 0 ? 0 : 1)}%)`,
-                }}
-              />
-            </div>
+              <span className="flex items-center gap-1 rounded-full border border-neutral-300 px-2 py-0.5 text-xs text-neutral-500">
+                <CrownSmall className="size-4" />
+                Business
+              </span>
+            </Tooltip>
           )}
         </div>
-      </div>
-      <div className="mt-2 leading-none">
-        {!loading ? (
-          <span className="text-xs leading-none text-neutral-600">
-            {unlimited
-              ? "Unlimited"
-              : `${prefix}${nFormatter(remaining, { full: true })} remaining of ${prefix}${nFormatter(limit, { full: limit < INFINITY_NUMBER })}`}
-          </span>
-        ) : (
-          <div className="h-4 w-20 animate-pulse rounded-md bg-neutral-200" />
-        )}
-      </div>
-    </button>
+        <div className="mt-2">
+          {!loading ? (
+            <NumberFlow
+              value={usage}
+              className="text-xl leading-none text-neutral-900"
+              format={
+                unit === "$"
+                  ? {
+                      style: "currency",
+                      currency: "USD",
+                      // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
+                      trailingZeroDisplay: "stripIfInteger",
+                    }
+                  : {
+                      notation:
+                        usage < INFINITY_NUMBER ? "standard" : "compact",
+                    }
+              }
+            />
+          ) : (
+            <div className="h-5 w-16 animate-pulse rounded-md bg-neutral-200" />
+          )}
+        </div>
+        <div className="mt-5">
+          <div
+            className={cn(
+              "h-1 w-full overflow-hidden rounded-full bg-neutral-900/10 transition-colors",
+              loading && "bg-neutral-900/5",
+            )}
+          >
+            {!loading && !unlimited && (
+              <div
+                className="animate-slide-right-fade size-full"
+                style={{ "--offset": "-100%" } as CSSProperties}
+              >
+                <div
+                  className={cn(
+                    "size-full rounded-full",
+                    requiresUpgrade
+                      ? "bg-neutral-900/10"
+                      : "bg-gradient-to-r from-blue-500/80 to-blue-600",
+                    warning && "from-neutral-900/10 via-red-500 to-red-600",
+                  )}
+                  style={{
+                    transform: `translateX(-${100 - Math.max(Math.floor((usage / Math.max(0, usage, limit)) * 100), usage === 0 ? 0 : 1)}%)`,
+                  }}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+        <div className="mt-2 leading-none">
+          {!loading ? (
+            <span className="text-xs leading-none text-neutral-600">
+              {unlimited
+                ? "Unlimited"
+                : `${prefix}${nFormatter(remaining, { full: true })} remaining of ${prefix}${nFormatter(limit, { full: limit < INFINITY_NUMBER })}`}
+            </span>
+          ) : (
+            <div className="h-4 w-20 animate-pulse rounded-md bg-neutral-200" />
+          )}
+        </div>
+      </button>
+      {["links", "events"].includes(id) && plan !== "enterprise" && (
+        <div className="absolute right-3 top-3">
+          <Button
+            onClick={() => setShowManageUsageModal(true)}
+            text={warning ? "Upgrade" : "Manage"}
+            variant={warning ? "primary" : "secondary"}
+            className="h-6 px-1.5 text-xs"
+          />
+        </div>
+      )}
+    </div>
   );
 }
 

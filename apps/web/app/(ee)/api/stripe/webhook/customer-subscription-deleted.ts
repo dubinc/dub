@@ -6,7 +6,7 @@ import { stripe } from "@/lib/stripe";
 import { recordLink } from "@/lib/tinybird";
 import { webhookCache } from "@/lib/webhook/cache";
 import { prisma } from "@dub/prisma";
-import { capitalize, FREE_PLAN, getPlanFromPriceId, log } from "@dub/utils";
+import { capitalize, FREE_PLAN, log } from "@dub/utils";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { sendCancellationFeedback } from "./utils/send-cancellation-feedback";
@@ -27,6 +27,7 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
       id: true,
       slug: true,
       plan: true,
+      planTier: true,
       foldersUsage: true,
       paymentFailedAt: true,
       payoutsLimit: true,
@@ -85,11 +86,9 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
   if (activeSubscriptions.length > 0) {
     const activeSubscription = activeSubscriptions[0];
     const priceId = activeSubscription.items.data[0].price.id;
-    const plan = getPlanFromPriceId(priceId);
 
     await updateWorkspacePlan({
       workspace,
-      plan,
       priceId,
     });
 
