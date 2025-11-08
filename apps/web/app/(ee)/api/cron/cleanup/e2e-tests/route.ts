@@ -1,6 +1,8 @@
 import { markDomainAsDeleted } from "@/lib/api/domains/mark-domain-deleted";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
+import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
+import { includeTags } from "@/lib/api/links/include-tags";
 import { bulkDeletePartners } from "@/lib/api/partners/bulk-delete-partners";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { prisma } from "@dub/prisma";
@@ -33,11 +35,8 @@ export async function GET(req: Request) {
           },
         },
         include: {
-          tags: {
-            select: {
-              tag: true,
-            },
-          },
+          ...includeTags,
+          ...includeProgramEnrollment,
         },
         take: 100,
       }),

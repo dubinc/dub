@@ -106,7 +106,7 @@ export const POST = withWorkspace(
           },
         });
 
-        Promise.allSettled([
+        await Promise.allSettled([
           toggleWebhooksForWorkspace({
             workspaceId: workspace.id,
           }),

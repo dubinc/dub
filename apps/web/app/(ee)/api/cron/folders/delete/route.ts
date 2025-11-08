@@ -1,5 +1,6 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { queueFolderDeletion } from "@/lib/api/folders/queue-folder-deletion";
+import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { recordLink } from "@/lib/tinybird";
@@ -31,7 +32,10 @@ export async function POST(req: Request) {
       orderBy: {
         createdAt: "desc", // TODO we need to add [folderId, createdAt] index on Link table
       },
-      include: includeTags,
+      include: {
+        ...includeTags,
+        ...includeProgramEnrollment,
+      },
     });
 
     if (linksToUpdate.length === 0) {

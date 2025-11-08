@@ -531,4 +531,24 @@ export const analyticsResponse = {
         .default(0),
     })
     .openapi({ ref: "AnalyticsTopPartners" }),
+  top_groups: z
+    .object({
+      groupId: z.string().describe("The ID of the group"),
+      group: z.object({
+        id: z.string().describe("The ID of the group"),
+        name: z.string().describe("The name of the group"),
+        slug: z.string().describe("The slug of the group"),
+        color: z.string().nullable().describe("The color of the group"),
+      }),
+      clicks: z.number().describe("The total number of clicks").default(0),
+      leads: z.number().describe("The total number of leads").default(0),
+      sales: z.number().describe("The total number of sales").default(0),
+      saleAmount: z
+        .number()
+        .describe(
+          "The total amount of sales from this group, in cents",
+        )
+        .default(0),
+    })
+    .openapi({ ref: "AnalyticsTopGroups" }),
 } as const;
