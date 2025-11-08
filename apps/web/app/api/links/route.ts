@@ -50,7 +50,7 @@ export const POST = withWorkspace(
     }
 
     const body = await createLinkBodySchemaAsync.parseAsync(
-      await parseRequestBody(req.clone()),
+      await parseRequestBody(req),
     );
 
     if (!session) {
