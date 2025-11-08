@@ -40,18 +40,31 @@ async function main() {
         : {}),
     });
 
-    console.log(`Found ${links.length} links to process.`);
-
     if (links.length === 0) {
+      console.log("No links found, skipping...");
       break;
     }
 
+    console.log(`Found ${links.length} links to process.`);
+
     cursor = links[links.length - 1].id;
 
-    const { successful_rows, quarantined_rows } = await recordLink(links);
+    const linksWithGroupIds = links.filter(
+      (link) => link.programEnrollment?.groupId,
+    );
 
-    if (successful_rows !== links.length) {
-      console.log(`Failed to record ${links.length - successful_rows} links.`);
+    if (linksWithGroupIds.length === 0) {
+      console.log("No links with group ids found, skipping...");
+      break;
+    }
+
+    const { successful_rows, quarantined_rows } =
+      await recordLink(linksWithGroupIds);
+
+    if (successful_rows !== linksWithGroupIds.length) {
+      console.log(
+        `Failed to record ${linksWithGroupIds.length - successful_rows} links.`,
+      );
     }
 
     if (quarantined_rows !== 0) {
