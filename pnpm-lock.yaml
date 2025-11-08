@@ -47,9 +47,6 @@ importers:
       '@axiomhq/nextjs':
         specifier: ^0.1.5
         version: 0.1.5(@axiomhq/logging@0.1.5(@axiomhq/js@1.3.1))(next@15.5.4(@opentelemetry/api@1.9.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))
-      '@axiomhq/react':
-        specifier: ^0.1.5
-        version: 0.1.5(@axiomhq/logging@0.1.5(@axiomhq/js@1.3.1))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       '@boxyhq/saml-jackson':
         specifier: 1.52.1
         version: 1.52.1(socks@2.8.4)(ts-node@10.9.2(@swc/core@1.3.101(@swc/helpers@0.5.15))(@types/node@18.11.9)(typescript@5.4.4))
@@ -1232,13 +1229,6 @@ packages:
     peerDependencies:
       '@axiomhq/logging': 0.1.5
       next: ^15 || ^14 || ^13
-
-  '@axiomhq/react@0.1.5':
-    resolution: {integrity: sha512-NGyqHavnrd6Nr86w8HpAzsfB5lUWJQH0DOdPo3yNrBFFQey5xedneqXy0ftJ7CuNjNvENtSEFGJguU9z6jAIvA==}
-    peerDependencies:
-      '@axiomhq/logging': 0.1.5
-      react: ^18 || ^19
-      react-dom: ^18 || ^19
 
   '@azure/abort-controller@1.1.0':
     resolution: {integrity: sha512-TrRLIoSQVzfAJX9H1JeFjzAoDGcoK1IYX1UImfceTZpsyYfWr09Ss1aHW1y5TrrR3iq6RZLBwJ3E24uwPhwahw==}
@@ -13236,11 +13226,6 @@ packages:
     peerDependencies:
       react: '>=16.8.0'
 
-  use-deep-compare@1.3.0:
-    resolution: {integrity: sha512-94iG+dEdEP/Sl3WWde+w9StIunlV8Dgj+vkt5wTwMoFQLaijiEZSXXy8KtcStpmEDtIptRJiNeD4ACTtVvnIKA==}
-    peerDependencies:
-      react: '>=16.8.0'
-
   use-isomorphic-layout-effect@1.1.2:
     resolution: {integrity: sha512-49L8yCO3iGT/ZF9QttjwLF/ZD9Iwto5LnH5LmEdk/6cFmXddqi2ulF0edxTwjj+7mqvpVVGQWvbXZdn32wRSHA==}
     peerDependencies:
@@ -13499,9 +13484,6 @@ packages:
 
   web-vitals@4.2.2:
     resolution: {integrity: sha512-nYfoOqb4EmElljyXU2qdeE76KsvoHdftQKY4DzA9Aw8DervCg2bG634pHLrJ/d6+B4mE3nWTSJv8Mo7B2mbZkw==}
-
-  web-vitals@4.2.4:
-    resolution: {integrity: sha512-r4DIlprAGwJ7YM11VZp4R884m0Vmgr6EAKe3P+kO0PPj3Unqyvv59rczf6UiGcb9Z8QxZVcqKNwv/g0WNdWwsw==}
 
   webidl-conversions@3.0.1:
     resolution: {integrity: sha512-2JAn3z8AR6rjK8Sm8orRC0h/bcl/DqL7tRPdGZ4I1CjdF+EaMLmYxBHyXuKL849eucPFhvBoxMsflfOb8kxaeQ==}
@@ -14398,14 +14380,6 @@ snapshots:
     dependencies:
       '@axiomhq/logging': 0.1.5(@axiomhq/js@1.3.1)
       next: 15.5.4(@opentelemetry/api@1.9.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
-
-  '@axiomhq/react@0.1.5(@axiomhq/logging@0.1.5(@axiomhq/js@1.3.1))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)':
-    dependencies:
-      '@axiomhq/logging': 0.1.5(@axiomhq/js@1.3.1)
-      react: 19.1.1
-      react-dom: 19.1.1(react@19.1.1)
-      use-deep-compare: 1.3.0(react@19.1.1)
-      web-vitals: 4.2.4
 
   '@azure/abort-controller@1.1.0':
     dependencies:
@@ -29425,11 +29399,6 @@ snapshots:
     dependencies:
       react: 19.1.1
 
-  use-deep-compare@1.3.0(react@19.1.1):
-    dependencies:
-      dequal: 2.0.3
-      react: 19.1.1
-
   use-isomorphic-layout-effect@1.1.2(@types/react@19.1.14)(react@19.1.1):
     dependencies:
       react: 19.1.1
@@ -29707,8 +29676,6 @@ snapshots:
   web-streams-polyfill@3.3.3: {}
 
   web-vitals@4.2.2: {}
-
-  web-vitals@4.2.4: {}
 
   webidl-conversions@3.0.1: {}
 
