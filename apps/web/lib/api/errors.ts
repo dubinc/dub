@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 import { generateErrorMessage } from "zod-error";
 import { ZodOpenApiResponseObject } from "zod-openapi";
+import { logger } from "../axiom/server";
 import { PlanProps } from "../types";
 
 export const ErrorCode = z.enum([
@@ -123,6 +124,9 @@ export function fromZodError(error: ZodError): ErrorResponse {
 
 export function handleApiError(error: any): ErrorResponse & { status: number } {
   console.error(error.message);
+
+  // Send error to Axiom
+  logger.error(error.message, error);
 
   // Zod errors
   if (error instanceof ZodError) {

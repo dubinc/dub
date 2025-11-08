@@ -1,4 +1,4 @@
-import { AxiomJSTransport, Logger } from "@axiomhq/logging";
+import { AxiomJSTransport, Logger, LogLevel } from "@axiomhq/logging";
 import {
   createAxiomRouteHandler,
   nextJsFormatters,
@@ -6,6 +6,18 @@ import {
 } from "@axiomhq/nextjs";
 import { getSearchParams } from "@dub/utils";
 import { axiomClient } from "./axiom";
+
+const getLogLevelFromStatusCode = (statusCode: number): LogLevel => {
+  if (statusCode >= 100 && statusCode < 400) {
+    return LogLevel.info;
+  } else if (statusCode >= 400 && statusCode < 500) {
+    return LogLevel.warn;
+  } else if (statusCode >= 500) {
+    return LogLevel.error;
+  }
+
+  return LogLevel.info;
+};
 
 export const logger = new Logger({
   transports: [
@@ -29,7 +41,7 @@ export const withAxiomBodyLog = createAxiomRouteHandler(logger, {
     // Add search params to report
     report.searchParams = getSearchParams(data.req.url);
 
-    logger.info(message, report);
+    logger.log(getLogLevelFromStatusCode(data.res.status), message, report);
     logger.flush();
   },
 });
