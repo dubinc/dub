@@ -131,6 +131,7 @@ export async function createLink(link: ProcessedLinkProps) {
       },
       include: {
         ...includeTags,
+        // no need to includeProgramEnrollment because we're doing getPartnerEnrollmentInfo below
         webhooks: webhookIds ? true : false,
       },
     }),

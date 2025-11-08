@@ -163,6 +163,7 @@ export async function updateLink({
     },
     include: {
       ...includeTags,
+      // no need to includeProgramEnrollment because we're doing getPartnerEnrollmentInfo below
       webhooks: webhookIds ? true : false,
     },
   });

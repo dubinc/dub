@@ -35,6 +35,8 @@ export const revokeProgramInviteAction = authActionClient
           links: {
             include: {
               ...includeTags,
+              // no need to includeProgramEnrollment because we're already fetching the programEnrollment
+              // so we can just polyfill below
             },
           },
         },
@@ -72,10 +74,12 @@ export const revokeProgramInviteAction = authActionClient
 
     console.log("Deleted program enrollment", res);
 
-    const partnerLinksToDelete: ExpandedLink[] = partnerLinks.map((link) => ({
-      ...link,
-      programEnrollment: { groupId: programEnrollment.groupId },
-    }));
+    const deletedPartnerLinksToRecord: ExpandedLink[] = partnerLinks.map(
+      (link) => ({
+        ...link,
+        programEnrollment: { groupId: programEnrollment.groupId },
+      }),
+    );
 
     waitUntil(
       Promise.all([
@@ -83,7 +87,7 @@ export const revokeProgramInviteAction = authActionClient
         linkCache.expireMany(partnerLinks),
 
         // Record the links deletion in Tinybird
-        recordLink(partnerLinksToDelete, { deleted: true }),
+        recordLink(deletedPartnerLinksToRecord, { deleted: true }),
 
         // Update totalLinks for the workspace
         prisma.project.update({

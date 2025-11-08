@@ -1,6 +1,7 @@
 "use server";
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
@@ -57,7 +58,7 @@ export const updatePartnerEnrollmentAction = authActionClient
         },
         include: {
           links: {
-            include: includeTags,
+            include: { ...includeTags, ...includeProgramEnrollment },
           },
         },
       });
@@ -65,7 +66,7 @@ export const updatePartnerEnrollmentAction = authActionClient
 
     waitUntil(
       Promise.allSettled([
-        recordLink(programEnrollment.links), // TODO: Not sure why we need to record the links update here
+        recordLink(programEnrollment.links),
         recordAuditLog({
           workspaceId: workspace.id,
           programId,
