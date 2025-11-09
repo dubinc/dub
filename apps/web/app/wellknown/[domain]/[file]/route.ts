@@ -10,7 +10,7 @@ export const runtime = "edge";
 
 export async function GET(
   _req: NextRequest,
-  props: { params: Promise<{ domain: string; file: SupportedWellKnownFiles }> }
+  props: { params: Promise<{ domain: string; file: SupportedWellKnownFiles }> },
 ) {
   const params = await props.params;
   const { domain, file } = params;

@@ -1,19 +1,9 @@
+import { getEligiblePayouts } from "@/lib/api/payouts/get-eligible-payouts";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { withWorkspace } from "@/lib/auth";
-import {
-  CUTOFF_PERIOD,
-  CUTOFF_PERIOD_ENUM,
-} from "@/lib/partners/cutoff-period";
-import { PayoutResponseSchema } from "@/lib/zod/schemas/payouts";
-import { prisma } from "@dub/prisma";
+import { eligiblePayoutsQuerySchema } from "@/lib/zod/schemas/payouts";
 import { NextResponse } from "next/server";
-import { z } from "zod";
-
-const eligiblePayoutsQuerySchema = z.object({
-  cutoffPeriod: CUTOFF_PERIOD_ENUM,
-  selectedPayoutId: z.string().optional(),
-});
 
 /*
  * GET /api/programs/[programId]/payouts/eligible - get list of eligible payouts
@@ -32,65 +22,16 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   const { cutoffPeriod, selectedPayoutId } =
     eligiblePayoutsQuerySchema.parse(searchParams);
 
-  const { minPayoutAmount } = await getProgramOrThrow({
+  const program = await getProgramOrThrow({
     workspaceId: workspace.id,
     programId,
   });
 
-  const cutoffPeriodValue = CUTOFF_PERIOD.find(
-    (c) => c.id === cutoffPeriod,
-  )?.value;
-
-  let payouts = await prisma.payout.findMany({
-    where: {
-      ...(selectedPayoutId && { id: selectedPayoutId }),
-      programId,
-      status: "pending",
-      amount: {
-        gte: minPayoutAmount,
-      },
-      partner: {
-        payoutsEnabledAt: {
-          not: null,
-        },
-      },
-    },
-    include: {
-      partner: true,
-      ...(cutoffPeriodValue && {
-        commissions: {
-          where: {
-            createdAt: {
-              lt: cutoffPeriodValue,
-            },
-          },
-        },
-      }),
-    },
-    orderBy: {
-      amount: "desc",
-    },
+  const eligiblePayouts = await getEligiblePayouts({
+    program,
+    cutoffPeriod,
+    selectedPayoutId,
   });
 
-  if (cutoffPeriodValue) {
-    payouts = payouts
-      .map((payout) => {
-        // custom payouts are included by default
-        if (!payout.periodStart && !payout.periodEnd) {
-          return payout;
-        }
-
-        const newPayoutAmount = payout.commissions.reduce((acc, commission) => {
-          return acc + commission.earnings;
-        }, 0);
-
-        return {
-          ...payout,
-          amount: newPayoutAmount,
-        };
-      })
-      .filter((payout) => payout.amount >= minPayoutAmount);
-  }
-
-  return NextResponse.json(z.array(PayoutResponseSchema).parse(payouts));
+  return NextResponse.json(eligiblePayouts);
 });

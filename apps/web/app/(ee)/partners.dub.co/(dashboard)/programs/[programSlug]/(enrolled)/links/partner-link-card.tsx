@@ -15,7 +15,6 @@ import {
   InvoiceDollar,
   LinkLogo,
   LoadingSpinner,
-  SimpleTooltipContent,
   StatusBadge,
   Tooltip,
   useInViewport,
@@ -66,7 +65,8 @@ const CHARTS = [
 ];
 
 export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
-  const { programEnrollment, showDetailedAnalytics } = useProgramEnrollment();
+  const { programEnrollment } = useProgramEnrollment();
+  const { displayOption } = usePartnerLinksContext();
 
   const partnerLink = constructPartnerLink({
     group: programEnrollment?.group,
@@ -188,11 +188,7 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
             {link.discountCode && (
               <Tooltip
                 content={
-                  <SimpleTooltipContent
-                    title="This program supports discount code tracking. Copy the code to use it in podcasts, videos, etc."
-                    cta="Learn more"
-                    href="https://dub.co/help/article/dual-sided-incentives"
-                  />
+                  "This program supports discount code tracking. Copy the code to use it in podcasts, videos, etc. [Learn more](https://dub.co/help/article/dual-sided-incentives)"
                 }
               >
                 <div className="flex items-center gap-1.5 rounded-xl border border-neutral-200 py-1 pl-2 pr-1">
@@ -203,19 +199,24 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
                 </div>
               </Tooltip>
             )}
-            {!showDetailedAnalytics && <StatsBadge link={link} />}
+            {displayOption === "cards" && <StatsBadge link={link} />}
             <Controls link={link} />
           </div>
         </div>
       </div>
-      {showDetailedAnalytics && <StatsCharts link={link} />}
+      {displayOption === "full" && <StatsCharts link={link} />}
     </CardList.Card>
   );
 }
 
 const StatsBadge = memo(({ link }: { link: PartnerProfileLinkProps }) => {
+  const { programEnrollment, showDetailedAnalytics } = useProgramEnrollment();
+  const As = showDetailedAnalytics ? Link : "div";
   return (
-    <div className="flex items-center gap-0.5 rounded-md border border-neutral-200 bg-neutral-50 p-0.5 text-sm text-neutral-600">
+    <As
+      href={`/programs/${programEnrollment?.program.slug}/analytics?domain=${link.domain}&key=${link.key}`}
+      className="flex items-center gap-0.5 rounded-md border border-neutral-200 bg-neutral-50 p-0.5 text-sm text-neutral-600"
+    >
       {[
         {
           id: "clicks",
@@ -258,7 +259,7 @@ const StatsBadge = memo(({ link }: { link: PartnerProfileLinkProps }) => {
           </span>
         </div>
       ))}
-    </div>
+    </As>
   );
 });
 

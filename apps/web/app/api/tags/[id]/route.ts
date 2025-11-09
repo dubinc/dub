@@ -1,4 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
+import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
+import { includeTags } from "@/lib/api/links/include-tags";
 import { withWorkspace } from "@/lib/auth";
 import { recordLink } from "@/lib/tinybird";
 import { LinkTagSchema, updateTagBodySchema } from "@/lib/zod/schemas/tags";
@@ -71,11 +73,8 @@ export const DELETE = withWorkspace(
             select: {
               link: {
                 include: {
-                  tags: {
-                    select: {
-                      tag: true,
-                    },
-                  },
+                  ...includeTags,
+                  ...includeProgramEnrollment,
                 },
               },
             },

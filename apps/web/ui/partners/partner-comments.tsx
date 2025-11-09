@@ -347,16 +347,7 @@ function CommentCard({
                         toast.error("Failed to update comment");
                       });
                   }}
-                  onMount={({ textarea }) => {
-                    if (!textarea) return;
-
-                    // Programmatically focus and move cursor to the end, since React's autoFocus is putting the cursor at the start
-                    textarea.focus();
-                    textarea.setSelectionRange(
-                      textarea.value.length,
-                      textarea.value.length,
-                    );
-                  }}
+                  autoFocus
                   className="animate-fade-in"
                   placeholder="Edit comment"
                   sendButtonText="Save"

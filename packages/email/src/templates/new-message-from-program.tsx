@@ -8,6 +8,7 @@ import {
   Html,
   Img,
   Link,
+  Markdown,
   Preview,
   Row,
   Section,
@@ -26,7 +27,7 @@ export default function NewMessageFromProgram({
   },
   messages = [
     {
-      text: "You are for sure eligible. We'll most likely make those changes within the next day or two. Stay tuned.",
+      text: "You are **for sure** eligible. We'll most likely make those changes within the next day or two. Stay tuned.",
       createdAt: new Date(Date.now() - 1000 * 60 * 5),
       user: {
         name: "Brendan Urie",
@@ -122,12 +123,19 @@ export default function NewMessageFromProgram({
                         minute: "numeric",
                       })}
                     </Text>
-                    <Text
-                      className="my-0 rounded-lg rounded-bl-none bg-neutral-100 px-4 py-2.5 text-sm leading-5 text-neutral-800"
-                      style={{ whiteSpace: "pre-wrap" }}
+                    <Markdown
+                      markdownCustomStyles={{ link: { color: "black" } }}
+                      markdownContainerStyles={{
+                        borderRadius: 8,
+                        background: "#f5f5f5",
+                        padding: "1px 16px",
+                        fontSize: 14,
+                        lineHeight: "20px",
+                        color: "#262626",
+                      }}
                     >
                       {message.text}
-                    </Text>
+                    </Markdown>
                   </Column>
                 </Row>
               ))}

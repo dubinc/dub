@@ -44,12 +44,13 @@ import { useDebounce } from "use-debounce";
 import { FreeDotLinkBanner } from "../domains/free-dot-link-banner";
 import { AlertCircleFill, Random } from "../shared/icons";
 import { UpgradeRequiredToast } from "../shared/upgrade-required-toast";
+import { DisabledLinkTooltip } from "./disabled-link-tooltip";
 import { useAvailableDomains } from "./use-available-domains";
 
 type ShortLinkInputProps = {
   domain?: string;
   _key?: string;
-  existingLinkProps?: Pick<LinkProps, "key">;
+  existingLinkProps?: Pick<LinkProps, "key" | "disabledAt">;
   error?: string;
   onChange: (data: { domain?: string; key?: string }) => void;
   data: Pick<LinkProps, "url" | "title" | "description">;
@@ -205,9 +206,10 @@ export const ShortLinkInput = forwardRef<HTMLInputElement, ShortLinkInputProps>(
         <div className="flex items-center justify-between">
           <label
             htmlFor={inputId}
-            className="block text-sm font-medium text-neutral-700"
+            className="flex items-center gap-2 text-sm font-medium text-neutral-700"
           >
             Short Link
+            {existingLinkProps?.disabledAt && <DisabledLinkTooltip />}
           </label>
           {lockKey ? (
             <button

@@ -9,8 +9,10 @@ import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { ConditionalLink } from "@/ui/shared/conditional-link";
 import { X } from "@/ui/shared/icons";
+import { PayoutStatus } from "@dub/prisma/client";
 import {
   Button,
+  CircleArrowRight,
   InvoiceDollar,
   LoadingSpinner,
   Sheet,
@@ -84,20 +86,33 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
         <div className="flex items-center gap-2">
           <strong>{currencyFormatter(payout.amount / 100)}</strong>
 
-          {INVOICE_AVAILABLE_PAYOUT_STATUSES.includes(payout.status) && (
-            <Tooltip content="View invoice">
-              <div className="flex h-5 w-5 items-center justify-center rounded-md transition-colors duration-150 hover:border hover:border-neutral-200 hover:bg-neutral-100">
-                <Link
-                  href={`/invoices/${payout.id}`}
-                  className="text-neutral-700"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <InvoiceDollar className="size-4" />
-                </Link>
-              </div>
+          {payout.mode === "external" && (
+            <Tooltip
+              content={
+                payout.status === PayoutStatus.pending
+                  ? `This payout will be made externally through your ${payout.program.name} account after approval.`
+                  : `This payout was made externally through your ${payout.program.name} account.`
+              }
+            >
+              <CircleArrowRight className="size-3.5 shrink-0 text-neutral-500" />
             </Tooltip>
           )}
+
+          {payout.mode === "internal" &&
+            INVOICE_AVAILABLE_PAYOUT_STATUSES.includes(payout.status) && (
+              <Tooltip content="View invoice">
+                <div className="flex h-5 w-5 items-center justify-center rounded-md transition-colors duration-150 hover:border hover:border-neutral-200 hover:bg-neutral-100">
+                  <Link
+                    href={`/invoices/${payout.id}`}
+                    className="text-neutral-700"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <InvoiceDollar className="size-4" />
+                  </Link>
+                </div>
+              </Tooltip>
+            )}
         </div>
       ),
 

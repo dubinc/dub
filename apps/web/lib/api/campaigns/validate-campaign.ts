@@ -34,6 +34,7 @@ export async function validateCampaign({
   if (
     input.name ||
     input.subject ||
+    input.preview ||
     input.bodyJson ||
     input.groupIds ||
     input.triggerCondition ||

@@ -214,6 +214,10 @@ export const analyticsQuerySchema = z
       .describe(
         "The folder ID to retrieve analytics for. If not provided, return analytics for unsorted links.",
       ),
+    groupId: z
+      .string()
+      .optional()
+      .describe("The group ID to retrieve analytics for."),
     root: booleanQuerySchema
       .optional()
       .describe(
@@ -306,6 +310,7 @@ export const analyticsFilterTB = z
       partnerId: true,
       tenantId: true,
       folderId: true,
+      groupId: true,
       sortBy: true,
     }),
   );

@@ -45,11 +45,10 @@ export function renderCampaignEmailMarkdown({
     },
   });
 
-
   markdown = markdown.replace(/^[\s\n]+|[\s\n]+$/g, "");
 
-  return interpolateEmailTemplate({ 
-    text: markdown, 
-    variables 
+  return interpolateEmailTemplate({
+    text: markdown,
+    variables,
   });
 }

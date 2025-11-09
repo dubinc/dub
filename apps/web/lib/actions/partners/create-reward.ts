@@ -3,9 +3,9 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createId } from "@/lib/api/create-id";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
+import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { validateReward } from "@/lib/api/rewards/validate-reward";
-import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import {
   createRewardSchema,

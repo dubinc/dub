@@ -1,6 +1,6 @@
 import useCustomers from "@/lib/swr/use-customers";
 import { CUSTOMERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/customers";
-import { Button, Combobox } from "@dub/ui";
+import { Combobox } from "@dub/ui";
 import { cn, OG_AVATAR_URL } from "@dub/utils";
 import { useEffect, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
@@ -44,16 +44,18 @@ export function CustomerSelector({
   });
 
   const customerOptions = useMemo(() => {
-    return customers?.map((customer) => ({
-      value: customer.id,
-      label: customer.name || customer.email || customer.externalId,
-      icon: (
-        <img
-          src={customer.avatar || `${OG_AVATAR_URL}${customer.id}`}
-          className="size-4 rounded-full"
-        />
-      ),
-    }));
+    return (
+      customers?.map((customer) => ({
+        value: customer.id,
+        label: customer.name || customer.email || customer.externalId,
+        icon: (
+          <img
+            src={customer.avatar || `${OG_AVATAR_URL}${customer.id}`}
+            className="size-4 rounded-full"
+          />
+        ),
+      })) || []
+    );
   }, [customers]);
 
   const selectedOption = useMemo(() => {
@@ -89,8 +91,15 @@ export function CustomerSelector({
         icon={selectedCustomersLoading ? null : selectedOption?.icon}
         caret={true}
         placeholder={selectedCustomersLoading ? "" : "Select customer"}
-        searchPlaceholder="Search customer..."
+        searchPlaceholder="Search or create customer..."
         onSearchChange={setSearch}
+        createLabel={(search) =>
+          `Create ${search ? `"${search}"` : "new customer"}`
+        }
+        onCreate={async () => {
+          setShowAddCustomerModal(true);
+          return true;
+        }}
         shouldFilter={!useAsync}
         matchTriggerWidth
         open={openPopover}
@@ -102,20 +111,6 @@ export function CustomerSelector({
             "focus:ring-1 focus:ring-neutral-500 focus:border-neutral-500 transition-none",
           ),
         }}
-        emptyState={
-          <div className="flex w-full flex-col items-center gap-2 py-4">
-            No customers found
-            <Button
-              onClick={() => {
-                setOpenPopover(false);
-                setShowAddCustomerModal(true);
-              }}
-              variant="primary"
-              className="h-7 w-fit px-2"
-              text="Create customer"
-            />
-          </div>
-        }
       >
         {selectedCustomersLoading ? (
           <div className="my-0.5 h-5 w-1/3 animate-pulse rounded bg-neutral-200" />

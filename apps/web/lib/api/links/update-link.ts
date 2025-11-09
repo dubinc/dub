@@ -1,4 +1,4 @@
-import { getPartnerAndDiscount } from "@/lib/planetscale/get-partner-discount";
+import { getPartnerEnrollmentInfo } from "@/lib/planetscale/get-partner-enrollment-info";
 import { isNotHostedImage, storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import { LinkProps, ProcessedLinkProps } from "@/lib/types";
@@ -163,56 +163,67 @@ export async function updateLink({
     },
     include: {
       ...includeTags,
+      // no need to includeProgramEnrollment because we're doing getPartnerEnrollmentInfo below
       webhooks: webhookIds ? true : false,
     },
   });
 
   waitUntil(
-    Promise.allSettled([
-      // record link in Redis
-      linkCache.set({
-        ...response,
-        ...(response.programId &&
-          (await getPartnerAndDiscount({
-            programId: response.programId,
-            partnerId: response.partnerId,
-          }))),
-      }),
+    (async () => {
+      const { partner, discount, group } = await getPartnerEnrollmentInfo({
+        programId: response.programId,
+        partnerId: response.partnerId,
+      });
 
-      // record link in Tinybird
-      recordLink(response),
-
-      // if key is changed: delete the old key in Redis
-      (changedDomain || changedKey) && linkCache.delete(oldLink),
-
-      // if proxy is true and image is not stored in R2, upload image to R2
-      proxy &&
-        image &&
-        isNotHostedImage(image) &&
-        storage.upload({
-          key: `images/${id}_${imageUrlNonce}`,
-          body: image,
-          opts: {
-            width: 1200,
-            height: 630,
-          },
-        }),
-      // if there's a valid old image and it starts with the same link ID but is different from the new image, delete it
-      oldLink.image &&
-        oldLink.image.startsWith(`${R2_URL}/images/${id}`) &&
-        oldLink.image !== image &&
-        storage.delete({ key: oldLink.image.replace(`${R2_URL}/`, "") }),
-
-      webhookIds != undefined &&
-        propagateWebhookTriggerChanges({
-          webhookIds,
+      await Promise.allSettled([
+        // Record link in Redis
+        linkCache.set({
+          ...response,
+          ...(partner && { partner }),
+          ...(discount && { discount }),
         }),
 
-      changedTestCompletedAt &&
-        testVariants &&
-        testCompletedAt &&
-        scheduleABTestCompletion(response),
-    ]),
+        // Record link in Tinybird
+        recordLink({
+          ...response,
+          ...(group && { programEnrollment: { groupId: group.id } }),
+        }),
+
+        // If key is changed: delete the old key in Redis
+        (changedDomain || changedKey) && linkCache.delete(oldLink),
+
+        // If proxy is true and image is not stored in R2, upload image to R2
+        proxy &&
+          image &&
+          isNotHostedImage(image) &&
+          storage.upload({
+            key: `images/${id}_${imageUrlNonce}`,
+            body: image,
+            opts: {
+              width: 1200,
+              height: 630,
+            },
+          }),
+
+        // If there's a valid old image and it starts with the same link ID but is different from the new image, delete it
+        oldLink.image &&
+          oldLink.image.startsWith(`${R2_URL}/images/${id}`) &&
+          oldLink.image !== image &&
+          storage.delete({ key: oldLink.image.replace(`${R2_URL}/`, "") }),
+
+        // Propagate webhook trigger changes
+        webhookIds != undefined &&
+          propagateWebhookTriggerChanges({
+            webhookIds,
+          }),
+
+        // Schedule AB test completion
+        changedTestCompletedAt &&
+          testVariants &&
+          testCompletedAt &&
+          scheduleABTestCompletion(response),
+      ]);
+    })(),
   );
 
   return transformLink(response);

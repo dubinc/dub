@@ -12,7 +12,6 @@ import {
   FileUpload,
   Modal,
   Popover,
-  SimpleTooltipContent,
   Tooltip,
 } from "@dub/ui";
 import { LoadingCircle, Magic, Unsplash } from "@dub/ui/icons";
@@ -222,15 +221,7 @@ function OGModalInner({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <h3 className="text-lg font-medium">Link Preview</h3>
-              <ProBadgeTooltip
-                content={
-                  <SimpleTooltipContent
-                    title="Customize how your links look when shared on social media to improve click-through rates. When enabled, the preview settings below will be shown publicly (instead of the URL's original metatags)."
-                    cta="Learn more."
-                    href="https://dub.co/help/article/custom-link-previews"
-                  />
-                }
-              />
+              <ProBadgeTooltip content="Customize how your links look when shared on social media to improve click-through rates. When enabled, the preview settings below will be shown publicly (instead of the URL's original metatags). [Learn more.](https://dub.co/help/article/custom-link-previews)" />
             </div>
             <div className="max-md:hidden">
               <Tooltip

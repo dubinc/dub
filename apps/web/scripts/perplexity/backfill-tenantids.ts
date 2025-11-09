@@ -84,7 +84,13 @@ async function main() {
           `Updated ${partner.partnerId} and their ${programEnrollment.links.length} links with tenantId ${partner.tenantId}`,
         );
 
-        const tbRes = await recordLink(programEnrollment.links);
+        const tbRes = await recordLink(
+          programEnrollment.links.map((l) => ({
+            ...l,
+            programEnrollment: { groupId: programEnrollment.groupId },
+          })),
+        );
+
         console.log("tbRes", tbRes);
       }
     },

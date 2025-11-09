@@ -3,6 +3,7 @@ import {
   Calendar6,
   ChartLine,
   CirclePercentage,
+  ConnectedDots4,
   CursorRays,
   Flask,
   Folder,
@@ -65,6 +66,6 @@ export const PLAN_FEATURE_ICONS = {
   flexiblerewards: Shuffle,
   ailandingpage: Sparkle3,
   customerinsights: UserFocus,
-  partners: Users2,
+  partners: ConnectedDots4,
   embeddedreferrals: SquareLayoutGrid5,
 };

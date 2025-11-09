@@ -43,10 +43,24 @@ const publishWebhookEventToQStash = async ({
   webhook: Pick<Webhook, "id" | "url" | "secret">;
   payload: z.infer<typeof webhookPayloadSchema>;
 }) => {
-  const callbackUrl = new URL(`${APP_DOMAIN_WITH_NGROK}/api/webhooks/callback`);
-  callbackUrl.searchParams.append("webhookId", webhook.id);
-  callbackUrl.searchParams.append("eventId", payload.id);
-  callbackUrl.searchParams.append("event", payload.event);
+  const searchParams = {
+    webhookId: webhook.id,
+    eventId: payload.id,
+    event: payload.event,
+  };
+
+  const callbackUrl = buildCallbackUrl(
+    `${APP_DOMAIN_WITH_NGROK}/api/webhooks/callback`,
+    searchParams,
+  );
+
+  const failureCallbackUrl = buildCallbackUrl(
+    `${APP_DOMAIN_WITH_NGROK}/api/webhooks/callback`,
+    {
+      ...searchParams,
+      failed: "true",
+    },
+  );
 
   const receiver = identifyWebhookReceiver(webhook.url);
   const finalPayload = transformPayload({ payload, receiver });
@@ -70,7 +84,7 @@ const publishWebhookEventToQStash = async ({
       }),
     },
     callback: callbackUrl.href,
-    failureCallback: callbackUrl.href,
+    failureCallback: failureCallbackUrl.href,
     ...(process.env.NODE_ENV === "test" && { delay: 5 }),
   });
 
@@ -78,7 +92,17 @@ const publishWebhookEventToQStash = async ({
     console.error("Failed to publish webhook event to QStash", response);
   }
 
-  return response;
+  if (process.env.NODE_ENV === "development") {
+    console.debug("Published webhook event to QStash", {
+      ...response,
+      payload: finalPayload,
+    });
+  }
+
+  return {
+    ...response,
+    webhookEventId: payload.id,
+  };
 };
 
 // Transform the payload based on the integration
@@ -98,3 +122,13 @@ const transformPayload = ({
       return payload;
   }
 };
+
+function buildCallbackUrl(base: string, params: Record<string, string>): URL {
+  const url = new URL(base);
+
+  Object.entries(params).forEach(([key, value]) => {
+    url.searchParams.append(key, value);
+  });
+
+  return url;
+}
