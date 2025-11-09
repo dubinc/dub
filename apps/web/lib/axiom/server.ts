@@ -7,9 +7,7 @@ import {
 import { getSearchParams } from "@dub/utils";
 import { axiomClient } from "./axiom";
 
-const getLogLevelFromStatusCode = (
-  statusCode: number
-): typeof LogLevel[keyof typeof LogLevel] => {
+const getLogLevelFromStatusCode = (statusCode: number) => {
   if (statusCode >= 100 && statusCode < 400) {
     return LogLevel.info;
   } else if (statusCode >= 400 && statusCode < 500) {
