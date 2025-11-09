@@ -150,9 +150,9 @@
     "tsx": "^4.19.2",
     "turbo": "^1.10.14",
     "typescript": "^5.4.4",
-    "vite": "5.2.9",
-    "vite-tsconfig-paths": "^4.3.2",
-    "vitest": "2.1.8"
+    "vite": "7.2.2",
+    "vite-tsconfig-paths": "5.1.4",
+    "vitest": "4.0.8"
   },
   "browser": {
     "crypto": false
