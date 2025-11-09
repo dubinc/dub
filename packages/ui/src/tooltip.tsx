@@ -33,7 +33,12 @@ const TooltipMarkdown = ({
       )}
       components={{
         a: ({ node, ...props }) => (
-          <a {...props} target="_blank" rel="noopener noreferrer" />
+          <a
+            {...props}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+          />
         ),
         code: ({ node, ...props }) => (
           <code {...props} className="rounded-md bg-neutral-100 px-1 py-0.5" />

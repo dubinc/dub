@@ -221,9 +221,6 @@ export function LineItem({
             <Tooltip
               content={`[${title}](${title})`}
               contentClassName="max-w-lg"
-              onClick={(e) => {
-                e.stopPropagation();
-              }}
             >
               {lineItem}
             </Tooltip>
