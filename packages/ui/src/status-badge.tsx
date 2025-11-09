@@ -22,6 +22,10 @@ const statusBadgeVariants = cva(
         warning: "bg-yellow-500/[.15] text-yellow-600",
         error: "bg-red-500/[.15] text-red-600",
       },
+      size: {
+        sm: "px-1.5 py-0.5",
+        md: "px-2 py-1",
+      },
     },
     defaultVariants: {
       variant: "neutral",
@@ -48,6 +52,7 @@ interface BadgeProps
 function StatusBadge({
   className,
   variant,
+  size,
   icon,
   tooltip,
   onClick,
@@ -61,7 +66,7 @@ function StatusBadge({
     <DynamicTooltipWrapper tooltipProps={{ content: tooltip }}>
       <span
         className={cn(
-          statusBadgeVariants({ variant }),
+          statusBadgeVariants({ variant, size }),
           tooltip && "cursor-help",
           onClick &&
             "cursor-pointer select-none transition-[filter] duration-150 hover:brightness-75 hover:saturate-[1.25]",

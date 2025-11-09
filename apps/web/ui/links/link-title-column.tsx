@@ -54,6 +54,7 @@ import {
 import { FolderIcon } from "../folders/folder-icon";
 import { useLinkBuilder } from "../modals/link-builder";
 import { CommentsBadge } from "./comments-badge";
+import { DisabledLinkTooltip } from "./disabled-link-tooltip";
 import { useLinkSelection } from "./link-selection-provider";
 import { ResponseLink } from "./links-container";
 import { LinksDisplayContext } from "./links-display-provider";
@@ -141,6 +142,7 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
                   </a>
                 </UnverifiedTooltip>
               )}
+              {link.disabledAt && <DisabledLinkTooltip />}
               <CopyButton
                 value={linkConstructor({
                   domain,
