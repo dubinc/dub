@@ -1,10 +1,7 @@
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { validDateRangeForPlan } from "@/lib/analytics/utils";
-import {
-  DubApiError,
-  exceededLimitError,
-  handleAndReturnErrorResponse,
-} from "@/lib/api/errors";
+import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import { PlanProps } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
 import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";

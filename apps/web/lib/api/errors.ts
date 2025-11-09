@@ -1,11 +1,9 @@
 import z from "@/lib/zod";
-import { capitalize, currencyFormatter } from "@dub/utils";
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 import { generateErrorMessage } from "zod-error";
 import { ZodOpenApiResponseObject } from "zod-openapi";
 import { logger } from "../axiom/server";
-import { PlanProps } from "../types";
 
 export const ErrorCode = z.enum([
   "bad_request",
@@ -226,31 +224,4 @@ export const errorSchemaFactory = (
       },
     },
   };
-};
-
-export const exceededLimitError = ({
-  plan,
-  limit,
-  type,
-}: {
-  plan: PlanProps;
-  limit: number;
-  type:
-    | "clicks"
-    | "links"
-    | "AI"
-    | "domains"
-    | "tags"
-    | "users"
-    | "folders"
-    | "payouts"
-    | "groups";
-}) => {
-  return `You've reached your ${
-    ["links", "AI", "payouts"].includes(type) ? "monthly" : ""
-  } limit of ${
-    type === "payouts"
-      ? currencyFormatter(limit / 100)
-      : `${limit} ${limit === 1 ? type.slice(0, -1) : type}`
-  } on the ${capitalize(plan)} plan. Please upgrade for higher limits.`;
 };
