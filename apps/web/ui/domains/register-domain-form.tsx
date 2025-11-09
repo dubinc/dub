@@ -364,12 +364,7 @@ function UpgradeTooltipContent() {
   const { slug } = useWorkspace();
   return (
     <TooltipContent
-      title={
-        <>
-          You can only claim a free <span className="font-semibold">.link</span>{" "}
-          domain on a Pro plan and above.
-        </>
-      }
+      title="You can only claim a free `.link` domain on a Pro plan and above."
       cta="Upgrade to Pro"
       onClick={() => window.open(`/${slug}/upgrade`)}
     />

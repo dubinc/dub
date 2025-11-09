@@ -435,21 +435,7 @@ function ConfirmPayoutsSheetContent() {
                     <CircleArrowRight className="size-3.5 text-neutral-500" />
                   </div>
                 ),
-              tooltipContent: (
-                <div className="max-w-xs px-4 py-2 text-center text-sm text-neutral-700">
-                  Payouts that are processed externally via the{" "}
-                  <code className="rounded-md bg-neutral-100 px-1 py-0.5 font-mono">
-                    payout.confirmed
-                  </code>{" "}
-                  webhook event.
-                  <a
-                    href="http://dub.co/docs/partners/external-payouts"
-                    target="_blank"
-                  >
-                    <Button text="Learn more" className="mt-2 h-7 px-3" />
-                  </a>
-                </div>
-              ),
+              tooltipContent: `Payouts that are processed externally via the \`payout.confirmed\` [webhook event](${`/${slug}/settings/webhooks`}). [Learn more about external payouts](http://dub.co/docs/partners/external-payouts).`,
             },
           ]
         : []),
