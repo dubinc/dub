@@ -42,6 +42,28 @@ function NetworkPartnerSheetContent({
 
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
 
+  // right arrow key onNext
+  useKeyboardShortcut(
+    "ArrowRight",
+    () => {
+      if (onNext) {
+        onNext();
+      }
+    },
+    { sheet: true },
+  );
+
+  // left arrow key onPrevious
+  useKeyboardShortcut(
+    "ArrowLeft",
+    () => {
+      if (onPrevious) {
+        onPrevious();
+      }
+    },
+    { sheet: true },
+  );
+
   return (
     <div className="flex size-full flex-col">
       <div className="flex h-16 shrink-0 items-center justify-between border-b border-neutral-200 px-6 py-4">

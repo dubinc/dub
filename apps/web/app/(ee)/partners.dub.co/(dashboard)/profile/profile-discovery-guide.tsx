@@ -67,8 +67,8 @@ export function ProfileDiscoveryGuide({ partner }: { partner: PartnerProps }) {
           <div>
             <h2 className="text-lg font-semibold">Get discovered</h2>
             <p className="text-content-inverted/60 text-base">
-              Finish these steps to show up in Partner Discovery and get invited
-              to more programs.
+              Finish these steps to show up in the Partner Network and get
+              invited to more programs.
             </p>
           </div>
         </div>

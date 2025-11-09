@@ -13,7 +13,6 @@ import {
 } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import {
-  ACME_PROGRAM_ID,
   APP_DOMAIN_WITH_NGROK,
   COUNTRIES,
   deepEqual,
@@ -180,19 +179,11 @@ export const updatePartnerProfileAction = authPartnerActionClient
                 getPartnerDiscoveryRequirements({
                   partner: {
                     ...updatedPartner,
-                    industryInterests: updatedPartner.industryInterests?.map(
-                      (interest) => interest.industryInterest,
-                    ),
                     salesChannels: updatedPartner.salesChannels?.map(
                       (channel) => channel.salesChannel,
                     ),
                   },
-                  totalCommissions: updatedPartner.programs
-                    .filter((program) => program.programId !== ACME_PROGRAM_ID)
-                    .reduce(
-                      (acc, program) => acc + program.totalCommissions,
-                      0,
-                    ),
+                  programEnrollments: updatedPartner.programs,
                 });
 
               if (

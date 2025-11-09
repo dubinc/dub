@@ -1,4 +1,5 @@
-import { PartnerProps } from "../types";
+import { ACME_PROGRAM_ID, currencyFormatter } from "@dub/utils";
+import { EnrolledPartnerProps, PartnerProps } from "../types";
 import {
   ONLINE_PRESENCE_FIELDS,
   PartnerOnlinePresenceFields,
@@ -8,16 +9,19 @@ export const PARTNER_DISCOVERY_MIN_COMMISSIONS = 100_00;
 
 export function getPartnerDiscoveryRequirements({
   partner,
-  totalCommissions,
+  programEnrollments,
 }: {
   partner: Pick<
     PartnerProps,
     | PartnerOnlinePresenceFields
     | "description"
-    | "industryInterests"
     | "salesChannels"
+    | "monthlyTraffic"
   >;
-  totalCommissions: number;
+  programEnrollments: Pick<
+    EnrolledPartnerProps,
+    "programId" | "status" | "totalCommissions"
+  >[];
 }) {
   return [
     {
@@ -37,9 +41,9 @@ export function getPartnerDiscoveryRequirements({
       completed: !!partner.description,
     },
     {
-      label: "Select your industry interests",
-      href: "#interests",
-      completed: Boolean(partner.industryInterests?.length),
+      label: "Specify your estimated monthly traffic",
+      href: "#traffic",
+      completed: !!partner.monthlyTraffic,
     },
     {
       label: "Choose your sales channels",
@@ -47,8 +51,14 @@ export function getPartnerDiscoveryRequirements({
       completed: Boolean(partner.salesChannels?.length),
     },
     {
-      label: "Earn $100 in commissions",
-      completed: totalCommissions >= PARTNER_DISCOVERY_MIN_COMMISSIONS,
+      label: `Earn ${currencyFormatter(PARTNER_DISCOVERY_MIN_COMMISSIONS / 100, { trailingZeroDisplay: "stripIfInteger" })} in commissions from at least 2 programs`,
+      completed:
+        programEnrollments.filter(
+          (pe) =>
+            pe.programId !== ACME_PROGRAM_ID &&
+            pe.status === "approved" &&
+            pe.totalCommissions >= PARTNER_DISCOVERY_MIN_COMMISSIONS,
+        ).length >= 2,
     },
   ];
 }
