@@ -88,23 +88,23 @@ export function PartnersUpgradeModal({
             },
           },
           {
-            id: "users",
+            id: "email",
+            text: "Email campaigns",
+            tooltip: {
+              title:
+                "Send marketing and transactional emails to your partners to increase engagement and drive conversions.",
+              cta: "Learn more.",
+              href: "https://dub.co/help/article/email-campaigns",
+            },
+          },
+          {
+            id: "partnergroups",
             text: `${plan.limits.groups} partner groups`,
             tooltip: {
               title:
                 "Learn how you can create partner groups to segment partners by rewards, discounts, performance, location, and more.",
               cta: "Learn more.",
               href: "https://dub.co/help/article/partner-groups",
-            },
-          },
-          {
-            id: "api",
-            text: "Partners API",
-            tooltip: {
-              title:
-                "Leverage our partners API to build a bespoke, white-labeled referral program that lives within your app.",
-              cta: "Learn more.",
-              href: "https://dub.co/docs/api-reference/endpoint/create-a-partner",
             },
           },
           {
