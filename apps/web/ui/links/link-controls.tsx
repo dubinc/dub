@@ -9,7 +9,6 @@ import {
   IconMenu,
   PenWriting,
   Popover,
-  SimpleTooltipContent,
   useCopyToClipboard,
   useKeyboardShortcut,
 } from "@dub/ui";
@@ -322,11 +321,7 @@ export function LinkControls({
                   className="h-9 px-2 font-medium"
                   disabledTooltip={
                     !isDubDomain(link.domain) ? (
-                      <SimpleTooltipContent
-                        title="Since this is a custom domain link, you can only transfer it to another workspace if you transfer the domain as well."
-                        cta="Learn more."
-                        href="https://dub.co/help/article/how-to-transfer-domains"
-                      />
+                      "Since this is a custom domain link, you can only transfer it to another workspace if you transfer the domain as well. [Learn more.](https://dub.co/help/article/how-to-transfer-domains)"
                     ) : !canManageLink ? (
                       "You don't have permission to transfer this link."
                     ) : undefined

@@ -12,7 +12,6 @@ import {
   Badge,
   Button,
   InfoTooltip,
-  SimpleTooltipContent,
   UTMBuilder,
 } from "@dub/ui";
 import { CircleCheckFill } from "@dub/ui/icons";
@@ -308,11 +307,9 @@ function SettingsRow({
           {titleInfo && (
             <InfoTooltip
               content={
-                <SimpleTooltipContent
-                  title={titleInfo?.title}
-                  cta="Learn more."
-                  href={titleInfo?.href}
-                />
+                titleInfo?.href
+                  ? `${titleInfo.title} [Learn more.](${titleInfo.href})`
+                  : titleInfo?.title
               }
             />
           )}

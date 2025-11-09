@@ -6,7 +6,7 @@ import { usePartnersModal } from "@/ui/modals/link-builder/partners-modal";
 import { usePasswordModal } from "@/ui/modals/link-builder/password-modal";
 import { useTargetingModal } from "@/ui/modals/link-builder/targeting-modal";
 import { ProBadgeTooltip } from "@/ui/shared/pro-badge-tooltip";
-import { Button, Popover, SimpleTooltipContent, useMediaQuery } from "@dub/ui";
+import { Button, Popover, useMediaQuery } from "@dub/ui";
 import { Dots } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { useMemo, useState } from "react";
@@ -142,13 +142,9 @@ export function MoreDropdown({
                         {option.description && (
                           <ProBadgeTooltip
                             content={
-                              <SimpleTooltipContent
-                                title={option.description}
-                                {...(option.learnMoreUrl && {
-                                  cta: "Learn more.",
-                                  href: option.learnMoreUrl,
-                                })}
-                              />
+                              option.learnMoreUrl
+                                ? `${option.description} [Learn more.](${option.learnMoreUrl})`
+                                : option.description
                             }
                           />
                         )}

@@ -5,7 +5,6 @@ import {
   Button,
   Combobox,
   Modal,
-  SimpleTooltipContent,
   Tooltip,
   UTM_PARAMETERS,
 } from "@dub/ui";
@@ -146,13 +145,7 @@ function TargetingModal({
                   Geo Targeting
                 </span>
                 <ProBadgeTooltip
-                  content={
-                    <SimpleTooltipContent
-                      title="Redirect your users to different links based on their location."
-                      cta="Learn more about geo targeting."
-                      href="https://dub.co/help/article/geo-targeting"
-                    />
-                  }
+                  content="Redirect your users to different links based on their location. [Learn more about geo targeting.](https://dub.co/help/article/geo-targeting)"
                 />
               </div>
               <div className="mt-2">
@@ -292,13 +285,7 @@ function TargetingModal({
                   iOS Targeting
                 </label>
                 <ProBadgeTooltip
-                  content={
-                    <SimpleTooltipContent
-                      title="Redirect your iOS users to a different link."
-                      cta="Learn more about device targeting."
-                      href="https://dub.co/help/article/device-targeting"
-                    />
-                  }
+                  content="Redirect your iOS users to a different link. [Learn more about device targeting.](https://dub.co/help/article/device-targeting)"
                 />
               </div>
               <div className="mt-2 rounded-md shadow-sm">
@@ -332,13 +319,7 @@ function TargetingModal({
                   Android Targeting
                 </label>
                 <ProBadgeTooltip
-                  content={
-                    <SimpleTooltipContent
-                      title="Redirect your Android users to a different link."
-                      cta="Learn more about device targeting."
-                      href="https://dub.co/help/article/device-targeting"
-                    />
-                  }
+                  content="Redirect your Android users to a different link. [Learn more about device targeting.](https://dub.co/help/article/device-targeting)"
                 />
               </div>
               <div className="mt-2 rounded-md shadow-sm">

@@ -11,7 +11,6 @@ import { PayoutStatus } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
   Filter,
-  SimpleTooltipContent,
   Table,
   Tooltip,
   usePagination,
@@ -231,12 +230,9 @@ function AmountRowItem({ payout }: { payout: PartnerPayoutResponse }) {
     return (
       <Tooltip
         content={
-          <SimpleTooltipContent
-            title={`This program's minimum payout amount is ${currencyFormatter(
-              payout.program.minPayoutAmount / 100,
-            )}. This payout will be accrued and processed during the next payout period.`}
-            cta="Learn more."
-            href="https://dub.co/help/article/receiving-payouts"
+          `This program's minimum payout amount is ${currencyFormatter(
+            payout.program.minPayoutAmount / 100,
+          )}. This payout will be accrued and processed during the next payout period. [Learn more.](https://dub.co/help/article/receiving-payouts)`
           />
         }
       >

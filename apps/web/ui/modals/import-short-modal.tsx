@@ -7,7 +7,6 @@ import {
   LoadingSpinner,
   Logo,
   Modal,
-  SimpleTooltipContent,
   Switch,
   buttonVariants,
   useMediaQuery,
@@ -255,11 +254,7 @@ function ImportShortModal({
                 </h2>
                 <InfoTooltip
                   content={
-                    <SimpleTooltipContent
-                      title={`Your Short.io API Key can be found in your Short.io account under "Integrations & API".`}
-                      cta="Read the guide."
-                      href="https://dub.co/help/article/migrating-from-short"
-                    />
+                    `Your Short.io API Key can be found in your Short.io account under "Integrations & API". [Read the guide.](https://dub.co/help/article/migrating-from-short)`
                   }
                 />
               </div>

@@ -15,7 +15,6 @@ import {
   Flask,
   InfoTooltip,
   Modal,
-  SimpleTooltipContent,
   Tooltip,
   TriangleWarning,
   useKeyboardShortcut,
@@ -288,13 +287,7 @@ function ABTestingEdit({
           <div className="flex items-center gap-2">
             <h3 className="text-lg font-medium">A/B Testing</h3>
             <BusinessBadgeTooltip
-              content={
-                <SimpleTooltipContent
-                  title="Test different URLs against each other to optimize your conversion rates."
-                  cta="Learn more."
-                  href="https://dub.co/help/article/ab-testing"
-                />
-              }
+              content="Test different URLs against each other to optimize your conversion rates. [Learn more.](https://dub.co/help/article/ab-testing)"
             />
           </div>
           <div className="max-md:hidden">
@@ -322,13 +315,7 @@ function ABTestingEdit({
               Testing URLs
             </label>
             <InfoTooltip
-              content={
-                <SimpleTooltipContent
-                  title="Add up to 3 additional destination URLs to test for this short link."
-                  cta="Learn more"
-                  href="https://dub.co/help/article/ab-testing" // TODO: Add article
-                />
-              }
+              content="Add up to 3 additional destination URLs to test for this short link. [Learn more](https://dub.co/help/article/ab-testing)"
             />
           </div>
           <div className="mt-2">
@@ -433,13 +420,7 @@ function ABTestingEdit({
               Completion Date
             </label>
             <InfoTooltip
-              content={
-                <SimpleTooltipContent
-                  title="Set when the A/B test should complete. After this date, all traffic will go to the best performing URL."
-                  cta="Learn more."
-                  href="https://dub.co/help/article/ab-testing"
-                />
-              }
+              content="Set when the A/B test should complete. After this date, all traffic will go to the best performing URL. [Learn more.](https://dub.co/help/article/ab-testing)"
             />
           </div>
           <div className="mt-2 flex w-full items-center justify-between rounded-md border border-neutral-300 bg-white shadow-sm transition-all focus-within:border-neutral-800 focus-within:outline-none focus-within:ring-1 focus-within:ring-neutral-500">

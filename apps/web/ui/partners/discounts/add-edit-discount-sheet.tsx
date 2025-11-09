@@ -22,7 +22,6 @@ import {
   Button,
   InfoTooltip,
   Sheet,
-  SimpleTooltipContent,
   Switch,
 } from "@dub/ui";
 import { CircleCheckFill, Tag } from "@dub/ui/icons";
@@ -344,9 +343,7 @@ function DiscountSheetContent({
                           </h3>
 
                           <InfoTooltip
-                            content={
-                              <SimpleTooltipContent title="Enabling this will allow you to test your coupon code before going live by entering your Stripe test coupon ID." />
-                            }
+                            content="Enabling this will allow you to test your coupon code before going live by entering your Stripe test coupon ID."
                           />
                         </div>
                       </div>

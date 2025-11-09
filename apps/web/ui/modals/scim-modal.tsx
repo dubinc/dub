@@ -8,7 +8,6 @@ import {
   Logo,
   Modal,
   Refresh2,
-  SimpleTooltipContent,
   Tick,
   useCopyToClipboard,
 } from "@dub/ui";
@@ -111,17 +110,11 @@ function SCIMModal({
                 Directory Provider
               </h2>
               <InfoTooltip
-                content={
-                  <SimpleTooltipContent
-                    title="Your directory provider is the IDP you use to manage your users."
-                    cta={selectedProvider ? "Read the guide." : "Learn more."}
-                    href={`https://dub.co/help/${
-                      currentProvider
-                        ? `article/${currentProvider.saml}-scim`
-                        : "category/saml-sso"
-                    }`}
-                  />
-                }
+                content={`Your directory provider is the IDP you use to manage your users. [${selectedProvider ? "Read the guide." : "Learn more."}](https://dub.co/help/${
+                  currentProvider
+                    ? `article/${currentProvider.saml}-scim`
+                    : "category/saml-sso"
+                })`}
               />
             </div>
             <select
@@ -167,13 +160,7 @@ function SCIMModal({
                     {currentProvider.scimModalCopy.url}
                   </h2>
                   <InfoTooltip
-                    content={
-                      <SimpleTooltipContent
-                        title="Your directory provider is the IDP you use to manage your users."
-                        cta="Read the guide."
-                        href={`https://dub.co/help/article/${currentProvider.saml}-scim`}
-                      />
-                    }
+                    content={`Your directory provider is the IDP you use to manage your users. [Read the guide.](https://dub.co/help/article/${currentProvider.saml}-scim)`}
                   />
                 </div>
                 <div className="mt-1 flex w-full items-center justify-between rounded-md border border-neutral-300 bg-white px-3 py-2 shadow-sm">
@@ -207,13 +194,7 @@ function SCIMModal({
                     {currentProvider.scimModalCopy.token}
                   </h2>
                   <InfoTooltip
-                    content={
-                      <SimpleTooltipContent
-                        title="Your directory provider is the IDP you use to manage your users."
-                        cta="Read the guide."
-                        href={`https://dub.co/help/article/${currentProvider.saml}-scim`}
-                      />
-                    }
+                    content={`Your directory provider is the IDP you use to manage your users. [Read the guide.](https://dub.co/help/article/${currentProvider.saml}-scim)`}
                   />
                 </div>
                 <div className="mt-1 flex w-full items-center justify-between rounded-md border border-neutral-300 bg-white px-3 py-2 shadow-sm">

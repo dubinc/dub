@@ -4,7 +4,6 @@ import {
   Button,
   InfoTooltip,
   Modal,
-  SimpleTooltipContent,
   Tooltip,
 } from "@dub/ui";
 import {
@@ -103,23 +102,11 @@ function AdvancedModal({
               >
                 External ID{" "}
                 <InfoTooltip
-                  content={
-                    <SimpleTooltipContent
-                      title="A unique identifier for this link in your database."
-                      cta="Learn more about external IDs."
-                      href="https://d.to/externalId"
-                    />
-                  }
+                  content="A unique identifier for this link in your database. [Learn more about external IDs.](https://d.to/externalId)"
                 />
               </label>
               <Tooltip
-                content={
-                  <SimpleTooltipContent
-                    title="A unique identifier for this link in your system."
-                    cta="Learn more about external IDs."
-                    href="https://d.to/externalId"
-                  />
-                }
+                content="A unique identifier for this link in your system. [Learn more about external IDs.](https://d.to/externalId)"
               />
             </div>
             <div className="mt-2 rounded-md shadow-sm">

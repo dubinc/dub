@@ -5,7 +5,6 @@ import {
   Button,
   InfoTooltip,
   Modal,
-  SimpleTooltipContent,
   SmartDateTimePicker,
   Tooltip,
   useMediaQuery,
@@ -93,13 +92,7 @@ function ExpirationModal({
           <div className="flex items-center gap-2">
             <h3 className="text-lg font-medium">Link Expiration</h3>
             <ProBadgeTooltip
-              content={
-                <SimpleTooltipContent
-                  title="Set an expiration date for your links – after which it won't be accessible."
-                  cta="Learn more."
-                  href="https://dub.co/help/article/link-expiration"
-                />
-              }
+              content="Set an expiration date for your links – after which it won't be accessible. [Learn more.](https://dub.co/help/article/link-expiration)"
             />
           </div>
           <div className="max-md:hidden">
@@ -142,13 +135,7 @@ function ExpirationModal({
               Expiration URL
             </label>
             <InfoTooltip
-              content={
-                <SimpleTooltipContent
-                  title="Redirect users to a specific URL when the link has expired."
-                  cta="Learn more."
-                  href="https://dub.co/help/article/link-expiration#setting-a-custom-expiration-url"
-                />
-              }
+              content="Redirect users to a specific URL when the link has expired. [Learn more.](https://dub.co/help/article/link-expiration#setting-a-custom-expiration-url)"
             />
           </div>
           <div className="mt-2 rounded-md shadow-sm">

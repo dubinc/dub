@@ -5,7 +5,6 @@ import {
   Button,
   ButtonTooltip,
   Modal,
-  SimpleTooltipContent,
   Tooltip,
   useMediaQuery,
 } from "@dub/ui";
@@ -95,11 +94,7 @@ function PasswordModalInner({
           <h3 className="text-lg font-medium">Link Password</h3>
           <ProBadgeTooltip
             content={
-              <SimpleTooltipContent
-                title="Restrict access to your short links by encrypting it with a password."
-                cta="Learn more."
-                href="https://dub.co/help/article/password-protected-links"
-              />
+              "Restrict access to your short links by encrypting it with a password. [Learn more.](https://dub.co/help/article/password-protected-links)"
             }
           />
         </div>

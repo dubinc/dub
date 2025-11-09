@@ -29,7 +29,6 @@ import {
   PaperPlane,
   Sheet,
   ShimmerDots,
-  SimpleTooltipContent,
   Table,
   TooltipContent,
   useRouterStuff,
@@ -448,11 +447,7 @@ function ConfirmPayoutsSheetContent() {
             <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
           ),
         tooltipContent: selectedPaymentMethod ? (
-          <SimpleTooltipContent
-            title={`${selectedPaymentMethod.fee * 100}% processing fee${(fastAchFee ?? 0) > 0 ? ` + ${currencyFormatter((fastAchFee ?? 0) / 100)} Fast ACH fee` : ""}. ${!DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(selectedPaymentMethod.type as Stripe.PaymentMethod.Type) ? " Switch to Direct Debit for a reduced fee." : ""}`}
-            cta="Learn more"
-            href="https://d.to/payouts"
-          />
+          `${selectedPaymentMethod.fee * 100}% processing fee${(fastAchFee ?? 0) > 0 ? ` + ${currencyFormatter((fastAchFee ?? 0) / 100)} Fast ACH fee` : ""}. ${!DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(selectedPaymentMethod.type as Stripe.PaymentMethod.Type) ? " Switch to Direct Debit for a reduced fee." : ""} [Learn more](https://d.to/payouts)`
         ) : undefined,
       },
       {

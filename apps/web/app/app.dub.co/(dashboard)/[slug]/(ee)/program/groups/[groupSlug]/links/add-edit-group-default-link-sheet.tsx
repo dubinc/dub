@@ -14,7 +14,6 @@ import {
   InfoTooltip,
   Input,
   Sheet,
-  SimpleTooltipContent,
 } from "@dub/ui";
 import { Eye, Hyperlink } from "@dub/ui/icons";
 import { normalizeUrl } from "@dub/utils";
@@ -127,11 +126,7 @@ function DefaultPartnerLinkSheetContent({
                   </label>
                   <InfoTooltip
                     content={
-                      <SimpleTooltipContent
-                        title="Where people will be redirected after clicking the referral links"
-                        cta="Learn more"
-                        href="https://dub.co/help/article/destination-urls"
-                      />
+                      "Where people will be redirected after clicking the referral links [Learn more](https://dub.co/help/article/destination-urls)"
                     }
                   />
                 </div>

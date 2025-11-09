@@ -5,7 +5,6 @@ import {
   Grid,
   Modal,
   PLAN_FEATURE_ICONS,
-  SimpleTooltipContent,
   Switch,
   Tooltip,
   useRouterStuff,
@@ -229,7 +228,13 @@ export function PartnersUpgradeModal({
                 >
                   <Icon className="size-3 shrink-0 [&_*]:stroke-2" />
                   {tooltip ? (
-                    <Tooltip content={<SimpleTooltipContent {...tooltip} />}>
+                    <Tooltip
+                      content={
+                        tooltip.href && tooltip.cta
+                          ? `${tooltip.title} [${tooltip.cta}](${tooltip.href})`
+                          : tooltip.title
+                      }
+                    >
                       <span className="cursor-help underline decoration-dotted underline-offset-2">
                         {text}
                       </span>

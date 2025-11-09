@@ -4,7 +4,6 @@ import {
   AnimatedSizeContainer,
   Button,
   buttonVariants,
-  SimpleTooltipContent,
   TooltipContent,
   useMediaQuery,
 } from "@dub/ui";
@@ -154,13 +153,7 @@ export function RegisterDomainForm({
 
             {workspace.plan === "free" && variant === "modal" && (
               <ProBadgeTooltip
-                content={
-                  <SimpleTooltipContent
-                    title="Search for a free .link domain to use for your short links."
-                    cta="Learn more."
-                    href="https://dub.co/help/article/free-dot-link-domain"
-                  />
-                }
+                content="Search for a free .link domain to use for your short links. [Learn more.](https://dub.co/help/article/free-dot-link-domain)"
               />
             )}
           </div>
