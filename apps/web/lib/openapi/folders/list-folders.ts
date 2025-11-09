@@ -9,6 +9,24 @@ import { ZodOpenApiOperationObject } from "zod-openapi";
 export const listFolders: ZodOpenApiOperationObject = {
   operationId: "listFolders",
   "x-speakeasy-name-override": "list",
+  "x-speakeasy-pagination": {
+    type: "offsetLimit",
+    inputs: [
+      {
+        name: "page",
+        in: "parameters",
+        type: "page",
+      },
+      {
+        name: "pageSize",
+        in: "parameters",
+        type: "limit",
+      },
+    ],
+    outputs: {
+      results: "$",
+    },
+  },
   summary: "Retrieve a list of folders",
   description: "Retrieve a list of folders for the authenticated workspace.",
   requestParams: {
