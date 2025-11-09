@@ -889,8 +889,9 @@ export const linkEventSchema = LinkSchema.extend({
   updatedAt: z.coerce.date(),
   lastClicked: z.coerce.date(),
   expiresAt: z.coerce.date(),
-  testCompletedAt: z.coerce.date().nullable(),
-  testStartedAt: z.coerce.date().nullable(),
+  disabledAt: z.coerce.date(),
+  testCompletedAt: z.coerce.date(),
+  testStartedAt: z.coerce.date(),
   // userId can be null
   userId: z.string().nullable(),
 });
