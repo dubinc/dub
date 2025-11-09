@@ -1,5 +1,6 @@
 import { prisma } from "@dub/prisma";
 import { createSafeActionClient } from "next-safe-action";
+import { after } from "next/server";
 import { normalizeWorkspaceId } from "../api/workspaces/workspace-id";
 import { getSession } from "../auth";
 import { logger } from "../axiom/server";
@@ -11,7 +12,7 @@ export const actionClient = createSafeActionClient({
 
     // Send error to Axiom
     logger.error(e.message, e);
-    await logger.flush();
+    after(logger.flush());
 
     if (e instanceof Error) {
       return e.message;
