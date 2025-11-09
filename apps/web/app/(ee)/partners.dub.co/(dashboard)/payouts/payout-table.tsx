@@ -229,12 +229,9 @@ function AmountRowItem({ payout }: { payout: PartnerPayoutResponse }) {
   ) {
     return (
       <Tooltip
-        content={
-          `This program's minimum payout amount is ${currencyFormatter(
-            payout.program.minPayoutAmount / 100,
-          )}. This payout will be accrued and processed during the next payout period. [Learn more.](https://dub.co/help/article/receiving-payouts)`
-          />
-        }
+        content={`This program's minimum payout amount is ${currencyFormatter(
+          payout.program.minPayoutAmount / 100,
+        )}. This payout will be accrued and processed during the next payout period. [Learn more.](https://dub.co/help/article/receiving-payouts)`}
       >
         <span className="cursor-help truncate text-neutral-400 underline decoration-dotted underline-offset-2">
           {display}
