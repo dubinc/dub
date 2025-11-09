@@ -9,7 +9,7 @@ import {
   PermissionAction,
   getPermissionsByRole,
 } from "../api/rbac/permissions";
-import { throwIfNoAccess } from "../api/tokens/permissions";
+import { throwIfNoAccess } from "../api/tokens/throw-if-no-access";
 import { Scope, mapScopesToPermissions } from "../api/tokens/scopes";
 import { normalizeWorkspaceId } from "../api/workspaces/workspace-id";
 import { withAxiomBodyLog } from "../axiom/server";
