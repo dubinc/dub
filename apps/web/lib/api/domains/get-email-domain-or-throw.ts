@@ -30,4 +30,3 @@ export const getEmailDomainOrThrow = async ({
 
   return emailDomain;
 };
-

@@ -13,7 +13,6 @@ import {
   Button,
   InfoTooltip,
   Sheet,
-  SimpleTooltipContent,
   useScrollProgress,
 } from "@dub/ui";
 import {
@@ -127,11 +126,7 @@ function PartnerPayoutSettingsSheetInner({
           Payout settings{" "}
           <InfoTooltip
             content={
-              <SimpleTooltipContent
-                title="Learn how to set up your payout account and receive payouts."
-                cta="Learn more."
-                href="https://dub.co/help/article/receiving-payouts"
-              />
+              "Learn how to set up your payout account and receive payouts. [Learn more.](https://dub.co/help/article/receiving-payouts)"
             }
           />
         </Sheet.Title>

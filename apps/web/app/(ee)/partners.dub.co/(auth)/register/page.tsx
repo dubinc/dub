@@ -4,16 +4,12 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import RegisterPageClient from "./page-client";
 
-export default async function RegisterPage(
-  props: {
-    params: Promise<{ programSlug?: string }>;
-  }
-) {
+export default async function RegisterPage(props: {
+  params: Promise<{ programSlug?: string }>;
+}) {
   const params = await props.params;
 
-  const {
-    programSlug
-  } = params;
+  const { programSlug } = params;
 
   if (programSlug === "framer") {
     redirect("/framer/login");

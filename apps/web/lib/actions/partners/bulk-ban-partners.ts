@@ -3,8 +3,10 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { queueDiscountCodeDeletion } from "@/lib/api/discounts/queue-discount-code-deletion";
 import { linkCache } from "@/lib/api/links/cache";
+import { includeTags } from "@/lib/api/links/include-tags";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { recordLink } from "@/lib/tinybird";
 import {
   BAN_PARTNER_REASONS,
   bulkBanPartnersSchema,
@@ -44,9 +46,8 @@ export const bulkBanPartnersAction = authActionClient
           },
         },
         links: {
-          select: {
-            domain: true,
-            key: true,
+          include: {
+            ...includeTags,
             discountCode: true,
           },
         },
@@ -147,15 +148,18 @@ export const bulkBanPartnersAction = authActionClient
 
         const links = programEnrollments.flatMap(({ links }) => links);
 
-        // Expire links from cache
-        await linkCache.expireMany(links);
-
-        // Queue discount code deletions
-        await queueDiscountCodeDeletion(
-          links
-            .map((link) => link.discountCode?.id)
-            .filter((id): id is string => id !== undefined),
-        );
+        await Promise.allSettled([
+          // Expire links from cache
+          linkCache.expireMany(links),
+          // Delete links from Tinybird links metadata
+          recordLink(links, { deleted: true }),
+          // Queue discount code deletions
+          queueDiscountCodeDeletion(
+            links
+              .map((link) => link.discountCode?.id)
+              .filter((id): id is string => id !== undefined),
+          ),
+        ]);
 
         // Record audit log for each partner
         await recordAuditLog(

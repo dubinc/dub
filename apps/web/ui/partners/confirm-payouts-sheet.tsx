@@ -29,7 +29,6 @@ import {
   PaperPlane,
   Sheet,
   ShimmerDots,
-  SimpleTooltipContent,
   Table,
   TooltipContent,
   useRouterStuff,
@@ -435,21 +434,7 @@ function ConfirmPayoutsSheetContent() {
                     <CircleArrowRight className="size-3.5 text-neutral-500" />
                   </div>
                 ),
-              tooltipContent: (
-                <div className="max-w-xs px-4 py-2 text-center text-sm text-neutral-700">
-                  Payouts that are processed externally via the{" "}
-                  <code className="rounded-md bg-neutral-100 px-1 py-0.5 font-mono">
-                    payout.confirmed
-                  </code>{" "}
-                  webhook event.
-                  <a
-                    href="http://dub.co/docs/partners/external-payouts"
-                    target="_blank"
-                  >
-                    <Button text="Learn more" className="mt-2 h-7 px-3" />
-                  </a>
-                </div>
-              ),
+              tooltipContent: `Payouts that are processed externally via the \`payout.confirmed\` [webhook event](${`/${slug}/settings/webhooks`}). [Learn more about external payouts](http://dub.co/docs/partners/external-payouts).`,
             },
           ]
         : []),
@@ -461,13 +446,9 @@ function ConfirmPayoutsSheetContent() {
           ) : (
             <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
           ),
-        tooltipContent: selectedPaymentMethod ? (
-          <SimpleTooltipContent
-            title={`${selectedPaymentMethod.fee * 100}% processing fee${(fastAchFee ?? 0) > 0 ? ` + ${currencyFormatter((fastAchFee ?? 0) / 100)} Fast ACH fee` : ""}. ${!DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(selectedPaymentMethod.type as Stripe.PaymentMethod.Type) ? " Switch to Direct Debit for a reduced fee." : ""}`}
-            cta="Learn more"
-            href="https://d.to/payouts"
-          />
-        ) : undefined,
+        tooltipContent: selectedPaymentMethod
+          ? `${selectedPaymentMethod.fee * 100}% processing fee${(fastAchFee ?? 0) > 0 ? ` + ${currencyFormatter((fastAchFee ?? 0) / 100)} Fast ACH fee` : ""}. ${!DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(selectedPaymentMethod.type as Stripe.PaymentMethod.Type) ? " Switch to Direct Debit for a reduced fee." : ""} [Learn more](https://d.to/payouts)`
+          : undefined,
       },
       {
         key: "Transfer Time",

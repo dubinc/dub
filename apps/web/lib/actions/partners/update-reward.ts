@@ -2,9 +2,9 @@
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getRewardOrThrow } from "@/lib/api/partners/get-reward-or-throw";
+import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { validateReward } from "@/lib/api/rewards/validate-reward";
-import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { updateRewardSchema } from "@/lib/zod/schemas/rewards";
 import { prisma } from "@dub/prisma";

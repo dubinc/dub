@@ -122,6 +122,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
             "top_link_tags",
             "top_domains",
             "top_partners",
+            "top_groups",
           ].includes(groupBy)
         ? "v3_group_by_link_metadata"
         : "v3_group_by",
@@ -291,6 +292,34 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
             folderId: item.groupByField,
             folder,
           });
+      })
+      .filter((d) => d !== null);
+  } else if (groupBy === "top_groups") {
+    const groups = await prisma.partnerGroup.findMany({
+      where: {
+        id: {
+          in: response.data.map((item) => item.groupByField),
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        color: true,
+      },
+    });
+
+    return response.data
+      .map((item) => {
+        const group = groups.find((g) => g.id === item.groupByField);
+
+        if (!group) return null;
+
+        return analyticsResponse[groupBy].parse({
+          ...item,
+          groupId: item.groupByField,
+          group,
+        });
       })
       .filter((d) => d !== null);
   }

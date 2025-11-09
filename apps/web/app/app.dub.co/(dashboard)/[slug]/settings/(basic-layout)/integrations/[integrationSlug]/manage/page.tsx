@@ -6,11 +6,9 @@ import { redirect } from "next/navigation";
 
 export const revalidate = 0;
 
-export default async function IntegrationManagePage(
-  props: {
-    params: Promise<{ slug: string; integrationSlug: string }>;
-  }
-) {
+export default async function IntegrationManagePage(props: {
+  params: Promise<{ slug: string; integrationSlug: string }>;
+}) {
   const params = await props.params;
   // this is only available for Dub workspace for now
   // we might open this up to other workspaces in the future

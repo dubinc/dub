@@ -5,12 +5,7 @@ import { NavButton } from "@/ui/layout/page-content/nav-button";
 import { MessagesContext, MessagesPanel } from "@/ui/messages/messages-context";
 import { MessagesList } from "@/ui/messages/messages-list";
 import { ProgramSelector } from "@/ui/partners/program-selector";
-import {
-  Button,
-  InfoTooltip,
-  SimpleTooltipContent,
-  useRouterStuff,
-} from "@dub/ui";
+import { Button, InfoTooltip, useRouterStuff } from "@dub/ui";
 import { Msgs, Pen2 } from "@dub/ui/icons";
 import { useParams, useRouter } from "next/navigation";
 import { CSSProperties, ReactNode, useEffect, useState } from "react";
@@ -55,11 +50,7 @@ export default function MessagesLayout({ children }: { children: ReactNode }) {
                   </h1>
                   <InfoTooltip
                     content={
-                      <SimpleTooltipContent
-                        title="Use the messaging center to communicate with the programs you partner with and stay up to date with their latest updates."
-                        cta="Learn more"
-                        href="https://dub.co/help/article/communicating-with-programs"
-                      />
+                      "Use the messaging center to communicate with the programs you partner with and stay up to date with their latest updates. [Learn more](https://dub.co/help/article/communicating-with-programs)"
                     }
                   />
                 </div>

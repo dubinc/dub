@@ -1,10 +1,13 @@
 import { triggerDraftBountySubmissionCreation } from "@/lib/api/bounties/trigger-draft-bounty-submissions";
 import { DubApiError } from "@/lib/api/errors";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
+import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
+import { includeTags } from "@/lib/api/links/include-tags";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
+import { recordLink } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -57,31 +60,49 @@ export const POST = withWorkspace(
 
     if (count > 0) {
       waitUntil(
-        Promise.allSettled([
-          qstash.publishJSON({
-            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/remap-default-links`,
-            body: {
+        (async () => {
+          const partnerLinks = await prisma.link.findMany({
+            where: {
               programId,
-              groupId: group.id,
-              partnerIds,
-              userId: session.user.id,
+              partnerId: {
+                in: partnerIds,
+              },
+              partnerGroupDefaultLinkId: null,
             },
-          }),
+            include: {
+              ...includeTags,
+              ...includeProgramEnrollment,
+            },
+          });
 
-          qstash.publishJSON({
-            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/remap-discount-codes`,
-            body: {
+          await Promise.allSettled([
+            qstash.publishJSON({
+              url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/remap-default-links`,
+              body: {
+                programId,
+                groupId: group.id,
+                partnerIds,
+                userId: session.user.id,
+              },
+            }),
+
+            qstash.publishJSON({
+              url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/remap-discount-codes`,
+              body: {
+                programId,
+                partnerIds,
+                groupId: group.id,
+              },
+            }),
+
+            triggerDraftBountySubmissionCreation({
               programId,
               partnerIds,
-              groupId: group.id,
-            },
-          }),
+            }),
 
-          triggerDraftBountySubmissionCreation({
-            programId,
-            partnerIds,
-          }),
-        ]),
+            recordLink(partnerLinks),
+          ]);
+        })(),
       );
     }
 

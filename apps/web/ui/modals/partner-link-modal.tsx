@@ -11,7 +11,6 @@ import {
   InfoTooltip,
   Modal,
   ShimmerDots,
-  SimpleTooltipContent,
   useCopyToClipboard,
   useEnterSubmit,
   useLocalStorage,
@@ -116,15 +115,7 @@ function QRCodePreview({
       <LinkQRModal />
       <div className="flex items-center gap-2">
         <h4 className="text-sm font-medium text-neutral-700">QR Code</h4>
-        <InfoTooltip
-          content={
-            <SimpleTooltipContent
-              title="Set a custom QR code design to improve click-through rates."
-              cta="Learn more."
-              href="https://dub.co/help/article/custom-qr-codes"
-            />
-          }
-        />
+        <InfoTooltip content="Set a custom QR code design to improve click-through rates. [Learn more.](https://dub.co/help/article/custom-qr-codes)" />
       </div>
       <div className="relative mt-2 h-24 overflow-hidden rounded-md border border-neutral-300">
         <Button
@@ -366,15 +357,7 @@ function PartnerLinkModalContent({
                 >
                   Short Link
                 </label>
-                <InfoTooltip
-                  content={
-                    <SimpleTooltipContent
-                      title="This is the short link that will redirect to your destination URL."
-                      cta="Learn more."
-                      href="https://dub.co/help/article/how-to-create-link"
-                    />
-                  }
-                />
+                <InfoTooltip content="This is the short link that will redirect to your destination URL. [Learn more.](https://dub.co/help/article/how-to-create-link)" />
               </div>
               {lockKey && (
                 <button
@@ -432,15 +415,7 @@ function PartnerLinkModalContent({
                 >
                   Destination URL
                 </label>
-                <InfoTooltip
-                  content={
-                    <SimpleTooltipContent
-                      title="The URL your users will get redirected to when they visit your short link."
-                      cta="Learn more."
-                      href="https://dub.co/help/article/how-to-create-link"
-                    />
-                  }
-                />
+                <InfoTooltip content="The URL your users will get redirected to when they visit your short link. [Learn more.](https://dub.co/help/article/how-to-create-link)" />
               </div>
               <div className="relative mt-1 flex rounded-md shadow-sm">
                 <div className="z-[1]">
@@ -494,15 +469,7 @@ function PartnerLinkModalContent({
               >
                 Comments
               </label>
-              <InfoTooltip
-                content={
-                  <SimpleTooltipContent
-                    title="Use comments to add context to your short links – for you and your team."
-                    cta="Learn more."
-                    href="https://dub.co/help/article/link-comments"
-                  />
-                }
-              />
+              <InfoTooltip content="Use comments to add context to your short links – for you and your team. [Learn more.](https://dub.co/help/article/link-comments)" />
             </div>
             <TextareaAutosize
               {...register("comments")}

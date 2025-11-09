@@ -81,6 +81,7 @@ export const VALID_ANALYTICS_ENDPOINTS = [
   "top_links",
   "top_urls",
   "top_partners",
+  "top_groups",
   "utm_sources",
   "utm_mediums",
   "utm_campaigns",
@@ -110,6 +111,7 @@ export const SINGULAR_ANALYTICS_ENDPOINTS = {
   top_domains: "domain",
   top_links: "link",
   top_urls: "url",
+  top_groups: "groupId",
   timeseries: "start",
 };
 
@@ -132,6 +134,7 @@ export const VALID_ANALYTICS_FILTERS = [
   "url",
   "partnerId",
   "folderId",
+  "groupId",
   "tagId",
   "tagIds",
   "customerId",
@@ -173,6 +176,7 @@ export const TRIGGER_TYPES = ["qr", "link", "pageview", "deeplink"] as const;
 export const EVENT_TYPES = ["clicks", "leads", "sales"] as const;
 
 export const ANALYTICS_VIEWS = ["timeseries", "funnel"] as const;
+
 export const ANALYTICS_SALE_UNIT = ["sales", "saleAmount"] as const;
 
 export const OLD_ANALYTICS_ENDPOINTS = [

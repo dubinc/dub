@@ -3,7 +3,10 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { linkCache } from "@/lib/api/links/cache";
+import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
+import { includeTags } from "@/lib/api/links/include-tags";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { recordLink } from "@/lib/tinybird";
 import { banPartnerSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
@@ -57,6 +60,7 @@ export const unbanPartnerAction = authActionClient
       prisma.link.updateMany({
         where,
         data: {
+          disabledAt: null,
           expiresAt: null,
         },
       }),
@@ -112,15 +116,18 @@ export const unbanPartnerAction = authActionClient
       (async () => {
         const links = await prisma.link.findMany({
           where,
-          select: {
-            domain: true,
-            key: true,
+          include: {
+            ...includeTags,
+            ...includeProgramEnrollment,
           },
         });
 
         await Promise.allSettled([
           // Expire links from cache
           linkCache.expireMany(links),
+
+          // Update Tinybird links metadata
+          recordLink(links),
 
           recordAuditLog({
             workspaceId: workspace.id,

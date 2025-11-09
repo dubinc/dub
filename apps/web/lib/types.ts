@@ -163,6 +163,7 @@ export interface RedisLinkProps {
   rewrite?: boolean;
   expiresAt?: Date;
   expiredUrl?: string;
+  disabledAt?: Date;
   ios?: string;
   android?: string;
   geo?: object;

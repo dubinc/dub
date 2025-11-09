@@ -30,10 +30,10 @@ import { linkCache } from "../api/links/cache";
 import { isCaseSensitiveDomain } from "../api/links/case-sensitivity";
 import { recordClickCache } from "../api/links/record-click-cache";
 import { getLinkViaEdge } from "../planetscale";
-import { getDomainViaEdge } from "../planetscale/get-domain-via-edge";
-import { getPartnerAndDiscount } from "../planetscale/get-partner-discount";
+import { getPartnerEnrollmentInfo } from "../planetscale/get-partner-enrollment-info";
 import { cacheDeepLinkClickData } from "./utils/cache-deeplink-click-data";
 import { crawlBitly } from "./utils/crawl-bitly";
+import { handleNotFoundLink } from "./utils/handle-not-found-link";
 import { isIosAppStoreUrl } from "./utils/is-ios-app-store-url";
 import { isSingularTrackingUrl } from "./utils/is-singular-tracking-url";
 import { resolveABTestURL } from "./utils/resolve-ab-test-url";
@@ -90,23 +90,7 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
         return await crawlBitly(req);
       }
 
-      // check if domain has notFoundUrl configured
-      const domainData = await getDomainViaEdge(domain);
-      if (domainData?.notFoundUrl) {
-        return NextResponse.redirect(domainData.notFoundUrl, {
-          headers: {
-            ...DUB_HEADERS,
-            "X-Robots-Tag": "googlebot: noindex",
-            // pass the Referer value to the not found URL
-            Referer: req.url,
-          },
-          status: 302,
-        });
-      } else {
-        return NextResponse.rewrite(new URL(`/${domain}/not-found`, req.url), {
-          headers: DUB_HEADERS,
-        });
-      }
+      return await handleNotFoundLink(req);
     }
 
     isPartnerLink = Boolean(linkData.programId && linkData.partnerId);
@@ -121,7 +105,7 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
           return;
         }
 
-        const { partner, discount } = await getPartnerAndDiscount({
+        const { partner, discount } = await getPartnerEnrollmentInfo({
           programId: linkData.programId,
           partnerId: linkData.partnerId,
         });
@@ -144,6 +128,7 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
     proxy,
     rewrite,
     expiresAt,
+    disabledAt,
     ios,
     android,
     expiredUrl,
@@ -218,6 +203,11 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
         ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
       },
     });
+  }
+
+  // handle disabled links
+  if (disabledAt) {
+    return await handleNotFoundLink(req);
   }
 
   // if the link has expired

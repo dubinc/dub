@@ -11,7 +11,6 @@ import {
   Modal,
   Popover,
   ShimmerDots,
-  SimpleTooltipContent,
   Switch,
   Tooltip,
   TooltipContent,
@@ -153,15 +152,7 @@ function LinkQRModalInner({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <h3 className="text-lg font-medium">QR Code</h3>
-          <ProBadgeTooltip
-            content={
-              <SimpleTooltipContent
-                title="Set a custom QR code design to improve click-through rates."
-                cta="Learn more."
-                href="https://dub.co/help/article/custom-qr-codes"
-              />
-            }
-          />
+          <ProBadgeTooltip content="Set a custom QR code design to improve click-through rates. [Learn more.](https://dub.co/help/article/custom-qr-codes)" />
         </div>
         <div className="max-md:hidden">
           <Tooltip
@@ -187,15 +178,7 @@ function LinkQRModalInner({
             <span className="text-sm font-medium text-neutral-700">
               QR Code Preview
             </span>
-            <InfoTooltip
-              content={
-                <SimpleTooltipContent
-                  title="Customize your QR code to fit your brand."
-                  cta="Learn more."
-                  href="https://dub.co/help/article/custom-qr-codes"
-                />
-              }
-            />
+            <InfoTooltip content="Customize your QR code to fit your brand. [Learn more.](https://dub.co/help/article/custom-qr-codes)" />
           </div>
           {url && qrData && (
             <div className="flex items-center gap-2">
@@ -260,15 +243,7 @@ function LinkQRModalInner({
           >
             Logo
           </label>
-          <InfoTooltip
-            content={
-              <SimpleTooltipContent
-                title="Display your logo in the center of the QR code."
-                cta="Learn more."
-                href="https://dub.co/help/article/custom-qr-codes"
-              />
-            }
-          />
+          <InfoTooltip content="Display your logo in the center of the QR code. [Learn more.](https://dub.co/help/article/custom-qr-codes)" />
         </div>
         <Switch
           id={`${id}-hide-logo`}

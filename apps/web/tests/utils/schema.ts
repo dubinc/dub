@@ -21,6 +21,7 @@ export const expectedLink: Partial<Link> & {
   trackConversion: false,
   archived: false,
   expiresAt: null,
+  disabledAt: null,
   password: null,
   proxy: false,
   title: null,

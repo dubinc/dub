@@ -1,5 +1,7 @@
 import { deleteWorkspaceFolders } from "@/lib/api/folders/delete-workspace-folders";
 import { linkCache } from "@/lib/api/links/cache";
+import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
+import { includeTags } from "@/lib/api/links/include-tags";
 import { tokenCache } from "@/lib/auth/token-cache";
 import { isBlacklistedEmail } from "@/lib/edge-config/is-blacklisted-email";
 import { stripe } from "@/lib/stripe";
@@ -37,11 +39,8 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
           key: "_root",
         },
         include: {
-          tags: {
-            select: {
-              tag: true,
-            },
-          },
+          ...includeTags,
+          ...includeProgramEnrollment,
         },
       },
       users: {
