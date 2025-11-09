@@ -6,7 +6,6 @@ import {
   Button,
   InfoTooltip,
   ShimmerDots,
-  SimpleTooltipContent,
   useInViewport,
   useLocalStorage,
   useMediaQuery,
@@ -79,11 +78,7 @@ export function QRCodePreview() {
           <h2 className="text-sm font-medium text-neutral-700">QR Code</h2>
           <InfoTooltip
             content={
-              <SimpleTooltipContent
-                title="Set a custom QR code design to improve click-through rates."
-                cta="Learn more."
-                href="https://dub.co/help/article/custom-qr-codes"
-              />
+              "Set a custom QR code design to improve click-through rates. [Learn more.](https://dub.co/help/article/custom-qr-codes)"
             }
           />
         </div>

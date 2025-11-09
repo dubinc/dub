@@ -21,11 +21,9 @@ const UTM_PARAMS = {
   utm_medium: "Link Not Found Page",
 };
 
-export default async function NotFoundLinkPage(
-  props: {
-    params: Promise<{ domain: string }>;
-  }
-) {
+export default async function NotFoundLinkPage(props: {
+  params: Promise<{ domain: string }>;
+}) {
   const params = await props.params;
   return (
     <main className="flex min-h-screen flex-col justify-between">

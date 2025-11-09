@@ -10,7 +10,6 @@ import {
   AnimatedSizeContainer,
   ChevronRight,
   MoneyBills2,
-  SimpleTooltipContent,
   Tooltip,
 } from "@dub/ui";
 import { currencyFormatter } from "@dub/utils";
@@ -44,13 +43,7 @@ export const PayoutStats = memo(() => {
             <div className="flex items-center gap-1">
               {partner && !partner.payoutsEnabledAt && (
                 <Tooltip
-                  content={
-                    <SimpleTooltipContent
-                      title="You need to connect your bank account to be able to receive payouts from the programs you are enrolled in."
-                      cta="Learn more"
-                      href="https://dub.co/help/article/receiving-payouts"
-                    />
-                  }
+                  content="You need to connect your bank account to be able to receive payouts from the programs you are enrolled in. [Learn more](https://dub.co/help/article/receiving-payouts)"
                   side="right"
                 >
                   <div>

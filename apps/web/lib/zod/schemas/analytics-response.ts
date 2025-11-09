@@ -545,9 +545,7 @@ export const analyticsResponse = {
       sales: z.number().describe("The total number of sales").default(0),
       saleAmount: z
         .number()
-        .describe(
-          "The total amount of sales from this group, in cents",
-        )
+        .describe("The total amount of sales from this group, in cents")
         .default(0),
     })
     .openapi({ ref: "AnalyticsTopGroups" }),

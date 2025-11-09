@@ -1,11 +1,11 @@
 "use client";
 
-import { cn, nFormatter, timeAgo } from "@dub/utils";
+import { cn } from "@dub/utils";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
-import Linkify from "linkify-react";
 import { HelpCircle } from "lucide-react";
 import Link from "next/link";
 import { ReactNode, useState } from "react";
+import ReactMarkdown from "react-markdown";
 import { Badge } from "./badge";
 import { Button, ButtonProps, buttonVariants } from "./button";
 
@@ -17,6 +17,38 @@ export function TooltipProvider({ children }: { children: ReactNode }) {
   );
 }
 
+const TooltipMarkdown = ({
+  className,
+  children,
+}: {
+  className?: string;
+  children: string;
+}) => {
+  return (
+    <ReactMarkdown
+      className={cn(
+        "prose prose-sm prose-neutral max-w-xs text-pretty px-4 py-2 text-center leading-snug transition-all",
+        "prose-a:cursor-alias prose-a:underline prose-a:decoration-dotted prose-a:underline-offset-2",
+        className,
+      )}
+      components={{
+        a: ({ node, ...props }) => (
+          <a
+            {...props}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+          />
+        ),
+        code: ({ node, ...props }) => (
+          <code {...props} className="rounded-md bg-neutral-100 px-1 py-0.5" />
+        ),
+      }}
+    >
+      {children}
+    </ReactMarkdown>
+  );
+};
 export interface TooltipProps
   extends Omit<TooltipPrimitive.TooltipContentProps, "content"> {
   content:
@@ -68,14 +100,9 @@ export function Tooltip({
           {...rest}
         >
           {typeof content === "string" ? (
-            <span
-              className={cn(
-                "block max-w-xs text-pretty px-4 py-2 text-center text-sm text-neutral-700",
-                contentClassName,
-              )}
-            >
+            <TooltipMarkdown className={contentClassName}>
               {content}
-            </span>
+            </TooltipMarkdown>
           ) : typeof content === "function" ? (
             content({ setOpen })
           ) : (
@@ -94,7 +121,7 @@ export function TooltipContent({
   target,
   onClick,
 }: {
-  title: ReactNode;
+  title: string;
   cta?: string;
   href?: string;
   target?: string;
@@ -102,7 +129,7 @@ export function TooltipContent({
 }) {
   return (
     <div className="flex max-w-xs flex-col items-center space-y-3 p-4 text-center">
-      <p className="text-sm text-neutral-700">{title}</p>
+      <TooltipMarkdown>{title}</TooltipMarkdown>
       {cta &&
         (href ? (
           <Link
@@ -127,113 +154,10 @@ export function TooltipContent({
   );
 }
 
-export function SimpleTooltipContent({
-  title,
-  cta,
-  href,
-}: {
-  title: string;
-  cta?: string;
-  href?: string;
-}) {
-  return (
-    <div className="max-w-xs px-4 py-2 text-center text-sm text-neutral-700">
-      {title}
-      {cta && href && (
-        <>
-          {" "}
-          <a
-            href={href}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={(e) => e.stopPropagation()}
-            className="inline-flex text-neutral-500 underline underline-offset-4 hover:text-neutral-800"
-          >
-            {cta}
-          </a>
-        </>
-      )}
-    </div>
-  );
-}
-
-export function LinkifyTooltipContent({
-  children,
-  className,
-  tooltipClassName,
-}: {
-  children: ReactNode;
-  className?: string;
-  tooltipClassName?: string;
-}) {
-  return (
-    <div
-      className={cn(
-        "block max-w-xs whitespace-pre-wrap text-balance px-4 py-2 text-center text-sm text-neutral-700",
-        tooltipClassName,
-      )}
-    >
-      <Linkify
-        as="p"
-        options={{
-          target: "_blank",
-          rel: "noopener noreferrer nofollow",
-          className: cn(
-            "underline underline-offset-4 text-neutral-400 hover:text-neutral-700",
-            className,
-          ),
-        }}
-      >
-        {children}
-      </Linkify>
-    </div>
-  );
-}
-
 export function InfoTooltip(props: Omit<TooltipProps, "children">) {
   return (
     <Tooltip {...props}>
       <HelpCircle className="h-4 w-4 text-neutral-500" />
-    </Tooltip>
-  );
-}
-
-export function NumberTooltip({
-  value,
-  unit = "total clicks",
-  prefix,
-  children,
-  lastClicked,
-}: {
-  value?: number | null;
-  unit?: string;
-  prefix?: string;
-  children: ReactNode;
-  lastClicked?: Date | null;
-}) {
-  if ((!value || value < 1000) && !lastClicked) {
-    return children;
-  }
-  return (
-    <Tooltip
-      content={
-        <div className="block max-w-xs px-4 py-2 text-center text-sm text-neutral-700">
-          <p className="text-sm font-semibold text-neutral-700">
-            {prefix}
-            {nFormatter(value || 0, { full: true })} {unit}
-          </p>
-          {lastClicked && (
-            <p
-              className="mt-1 text-xs text-neutral-500"
-              suppressHydrationWarning
-            >
-              Last clicked {timeAgo(lastClicked, { withAgo: true })}
-            </p>
-          )}
-        </div>
-      }
-    >
-      {children}
     </Tooltip>
   );
 }

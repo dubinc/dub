@@ -3,11 +3,9 @@ import { BackLink } from "@/ui/shared/back-link";
 import { MaxWidthWrapper } from "@dub/ui";
 import { redirect } from "next/navigation";
 
-export default async function NewIntegrationsPage(
-  props: {
-    params: Promise<{ slug: string }>;
-  }
-) {
+export default async function NewIntegrationsPage(props: {
+  params: Promise<{ slug: string }>;
+}) {
   const params = await props.params;
   // this is only available for Dub workspace for now
   // we might open this up to other workspaces in the future

@@ -10,7 +10,6 @@ import {
   Modal,
   Popover,
   ShimmerDots,
-  SimpleTooltipContent,
   Tooltip,
   useCopyToClipboard,
   useLocalStorage,
@@ -128,15 +127,7 @@ function PartnerLinkQRModalInner({
     >
       <div className="flex items-center gap-2">
         <h3 className="text-lg font-medium">QR Code</h3>
-        <InfoTooltip
-          content={
-            <SimpleTooltipContent
-              title="Set a custom QR code design to improve click-through rates."
-              cta="Learn more."
-              href="https://dub.co/help/article/custom-qr-codes"
-            />
-          }
-        />
+        <InfoTooltip content="Set a custom QR code design to improve click-through rates. [Learn more.](https://dub.co/help/article/custom-qr-codes)" />
       </div>
 
       <div>
@@ -145,15 +136,7 @@ function PartnerLinkQRModalInner({
             <span className="text-sm font-medium text-neutral-700">
               QR Code Preview
             </span>
-            <InfoTooltip
-              content={
-                <SimpleTooltipContent
-                  title="Customize your QR code to fit your brand."
-                  cta="Learn more."
-                  href="https://dub.co/help/article/custom-qr-codes"
-                />
-              }
-            />
+            <InfoTooltip content="Customize your QR code to fit your brand. [Learn more.](https://dub.co/help/article/custom-qr-codes)" />
           </div>
           {url && qrData && (
             <div className="flex items-center gap-2">

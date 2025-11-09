@@ -15,7 +15,6 @@ import {
   Modal,
   RadioGroup,
   RadioGroupItem,
-  SimpleTooltipContent,
   ToggleGroup,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
@@ -190,15 +189,7 @@ function AddEditTokenModal({
                     className="flex flex-1 cursor-pointer items-center justify-between space-x-1 p-3 pl-0"
                   >
                     <p className="text-neutral-600">You</p>
-                    <InfoTooltip
-                      content={
-                        <SimpleTooltipContent
-                          title="This API key will be tied to your user account – if you are removed from the workspace, it will be deleted."
-                          cta="Learn more"
-                          href="https://dub.co/docs/api-reference/tokens"
-                        />
-                      }
-                    />
+                    <InfoTooltip content="This API key will be tied to your user account – if you are removed from the workspace, it will be deleted. [Learn more](https://dub.co/docs/api-reference/tokens)" />
                   </Label>
                 </div>
                 <div
@@ -227,15 +218,9 @@ function AddEditTokenModal({
                     <p className="text-neutral-600">Machine</p>
                     <InfoTooltip
                       content={
-                        <SimpleTooltipContent
-                          title={
-                            isOwner
-                              ? "A new bot member will be added to your workspace, and the key will be associated with it. Since the key is not tied to your account, it will not be deleted even if you leave the workspace."
-                              : "Only the workspace owner can create machine users."
-                          }
-                          cta="Learn more"
-                          href="https://dub.co/docs/api-reference/tokens#machine-users"
-                        />
+                        isOwner
+                          ? "A new bot member will be added to your workspace, and the key will be associated with it. Since the key is not tied to your account, it will not be deleted even if you leave the workspace. [Learn more](https://dub.co/docs/api-reference/tokens#machine-users)"
+                          : "Only the workspace owner can create machine users."
                       }
                     />
                   </Label>

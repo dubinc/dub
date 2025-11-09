@@ -16,7 +16,6 @@ import {
   LinkLogo,
   NumberStepper,
   Popover,
-  SimpleTooltipContent,
   Switch,
 } from "@dub/ui";
 import { PenWriting, Trash } from "@dub/ui/icons";
@@ -44,11 +43,7 @@ export function GroupAdditionalLinks() {
           </h3>
           <InfoTooltip
             content={
-              <SimpleTooltipContent
-                title="Allow partners to create additional referral links."
-                cta="Learn more."
-                href="https://dub.co/help/article/partner-link-settings#additional-partner-links"
-              />
+              "Allow partners to create additional referral links. [Learn more.](https://dub.co/help/article/partner-link-settings#additional-partner-links)"
             }
           />
         </div>
