@@ -48,7 +48,7 @@ export async function calculatePartnerRanking({
   similarPrograms = [],
 }: PartnerRankingParams) {
   const conditions: Prisma.Sql[] = [
-    // Removed discoverableAt requirement to show all partners
+    Prisma.sql`p.discoverableAt IS NOT NULL`,
     Prisma.sql`(dp.ignoredAt IS NULL OR dp.id IS NULL)`,
     Prisma.sql`COALESCE(pe.conversionRate, 0) < 1`,
   ];
