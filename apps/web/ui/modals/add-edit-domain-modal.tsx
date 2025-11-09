@@ -1,4 +1,4 @@
-import { clientAccessCheck } from "@/lib/api/tokens/permissions";
+import { clientAccessCheck } from "@/lib/client-access-check";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { DomainProps } from "@/lib/types";
 import { AddEditDomainForm } from "@/ui/domains/add-edit-domain-form";

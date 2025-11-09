@@ -1,6 +1,6 @@
 "use client";
 
-import { clientAccessCheck } from "@/lib/api/tokens/permissions";
+import { clientAccessCheck } from "@/lib/client-access-check";
 import useDefaultDomains from "@/lib/swr/use-default-domains";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { DomainCardTitleColumn } from "@/ui/domains/domain-card-title-column";

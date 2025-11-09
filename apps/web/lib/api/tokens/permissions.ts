@@ -1,7 +1,6 @@
-import { WorkspaceRole } from "@dub/prisma/client";
-import { combineWords } from "@dub/utils";
+import "server-only";
 import { DubApiError } from "../errors";
-import { PermissionAction, ROLE_PERMISSIONS } from "../rbac/permissions";
+import { PermissionAction } from "../rbac/permissions";
 import { prefixWorkspaceId } from "../workspaces/workspace-id";
 
 // Check if the required scope is in the list of user scopes
@@ -36,30 +35,4 @@ export const throwIfNoAccess = ({
     code: "forbidden",
     message,
   });
-};
-
-export const clientAccessCheck = ({
-  action,
-  role,
-  customPermissionDescription,
-}: {
-  action: PermissionAction;
-  role: WorkspaceRole;
-  customPermissionDescription?: string;
-}) => {
-  const permission = ROLE_PERMISSIONS.find((p) => p.action === action)!;
-  const allowedWorkspaceRoles = permission.roles;
-  const allowed = allowedWorkspaceRoles.includes(role);
-
-  if (allowed) {
-    return {
-      allowed,
-      error: false,
-    };
-  }
-
-  return {
-    allowed,
-    error: `Only workspace ${combineWords(allowedWorkspaceRoles.map((r) => `${r}s`))} can ${customPermissionDescription || permission.description}.`,
-  };
 };
