@@ -26,6 +26,7 @@ import {
   UserCrown,
   UserFocus,
   Users2,
+  Users6,
   UsersSettings,
   Versions2,
   Webhook,
@@ -67,5 +68,6 @@ export const PLAN_FEATURE_ICONS = {
   ailandingpage: Sparkle3,
   customerinsights: UserFocus,
   partners: ConnectedDots4,
+  partnergroups: Users6,
   embeddedreferrals: SquareLayoutGrid5,
 };
