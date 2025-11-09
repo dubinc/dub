@@ -1,6 +1,6 @@
 "use client";
 
-import { DIRECT_DEBIT_PAYMENT_TYPES_INFO } from "@/lib/partners/constants";
+import { DIRECT_DEBIT_PAYMENT_TYPES_INFO } from "@/lib/constants/payouts";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { X } from "@/ui/shared/icons";
 import { AnimatedSizeContainer, GreekTemple, Modal } from "@dub/ui";

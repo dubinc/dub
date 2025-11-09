@@ -1,6 +1,6 @@
 "use client";
 
-import { CUSTOMER_PAGE_EVENTS_LIMIT } from "@/lib/partners/constants";
+import { CUSTOMER_PAGE_EVENTS_LIMIT } from "@/lib/constants/misc";
 import useCustomer from "@/lib/swr/use-customer";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {

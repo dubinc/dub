@@ -2,9 +2,9 @@
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { REJECT_BOUNTY_SUBMISSION_REASONS } from "@/lib/constants/bounties";
 import {
   BountySubmissionSchema,
-  REJECT_BOUNTY_SUBMISSION_REASONS,
   rejectBountySubmissionSchema,
 } from "@/lib/zod/schemas/bounties";
 import { sendEmail } from "@dub/email";

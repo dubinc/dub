@@ -2,7 +2,7 @@
 
 import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { updateProgramAction } from "@/lib/actions/partners/update-program";
-import { ALLOWED_MIN_PAYOUT_AMOUNTS } from "@/lib/partners/constants";
+import { ALLOWED_MIN_PAYOUT_AMOUNTS } from "@/lib/constants/payouts";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";

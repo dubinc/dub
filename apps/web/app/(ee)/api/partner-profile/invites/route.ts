@@ -5,7 +5,7 @@ import { withPartnerProfile } from "@/lib/auth/partner";
 import {
   MAX_INVITES_PER_REQUEST,
   MAX_PARTNER_USERS,
-} from "@/lib/partners/constants";
+} from "@/lib/constants/partner-profile";
 import {
   getPartnerUsersQuerySchema,
   invitePartnerUserSchema,
