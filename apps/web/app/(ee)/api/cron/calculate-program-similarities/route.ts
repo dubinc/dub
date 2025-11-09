@@ -1,8 +1,8 @@
 import { handleApiError } from "@/lib/api/errors";
+import { PROGRAM_SIMILARITY_SCORE_THRESHOLD } from "@/lib/constants/program";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
-import { PROGRAM_SIMILARITY_SCORE_THRESHOLD } from "@/lib/zod/schemas/programs";
 import { prisma } from "@dub/prisma";
 import { ProgramSimilarity } from "@dub/prisma/client";
 import { ACME_PROGRAM_ID, APP_DOMAIN_WITH_NGROK } from "@dub/utils";

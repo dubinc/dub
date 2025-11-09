@@ -3,11 +3,11 @@ import { DubApiError } from "@/lib/api/errors";
 import { calculatePartnerRanking } from "@/lib/api/network/partner-ranking";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
+import { PROGRAM_SIMILARITY_SCORE_THRESHOLD } from "@/lib/constants/program";
 import {
   NetworkPartnerSchema,
   getNetworkPartnersQuerySchema,
 } from "@/lib/zod/schemas/partner-network";
-import { PROGRAM_SIMILARITY_SCORE_THRESHOLD } from "@/lib/zod/schemas/programs";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import { z } from "zod";
