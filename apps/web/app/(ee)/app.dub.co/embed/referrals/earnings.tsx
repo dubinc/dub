@@ -1,4 +1,4 @@
-import { REFERRALS_EMBED_EARNINGS_LIMIT } from "@/lib/partners/constants";
+import { REFERRALS_EMBED_EARNINGS_LIMIT } from "@/lib/constants/misc";
 import { PartnerEarningsResponse } from "@/lib/types";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import {

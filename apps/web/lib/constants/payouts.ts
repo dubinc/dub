@@ -1,14 +1,7 @@
 import Stripe from "stripe";
 import { PaymentMethodOption } from "../types";
 
-export const PROGRAM_ONBOARDING_PARTNERS_LIMIT = 5;
 export const PAYOUTS_SHEET_ITEMS_LIMIT = 10;
-export const BOUNTY_DESCRIPTION_MAX_LENGTH = 5000;
-export const REFERRALS_EMBED_EARNINGS_LIMIT = 8;
-export const CUSTOMER_PAGE_EVENTS_LIMIT = 8;
-
-export const LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS = 500000; // $5000
-
 export const PAYOUT_FAILURE_FEE_CENTS = 1000; // 10 USD
 export const FAST_ACH_FEE_CENTS = 2500; // $25
 export const FOREX_MARKUP_RATE = 0.005; // 0.5%
@@ -16,9 +9,6 @@ export const FOREX_MARKUP_RATE = 0.005; // 0.5%
 export const ALLOWED_MIN_PAYOUT_AMOUNTS = [0, 1000, 2000, 5000, 10000];
 export const MIN_WITHDRAWAL_AMOUNT_CENTS = 1000; // $10
 export const BELOW_MIN_WITHDRAWAL_FEE_CENTS = 50; // $0.50
-
-export const MAX_INVITES_PER_REQUEST = 5;
-export const MAX_PARTNER_USERS = 10;
 
 // Direct debit payment types for Partner payout
 export const DIRECT_DEBIT_PAYMENT_TYPES_INFO: {
@@ -109,30 +99,3 @@ export const INVOICE_AVAILABLE_PAYOUT_STATUSES = [
   "sent",
   "completed",
 ];
-
-export const PROGRAM_IMPORT_SOURCES = [
-  {
-    id: "rewardful",
-    value: "Rewardful",
-    image: "https://assets.dub.co/misc/icons/rewardful.svg",
-    helpUrl: "https://dub.co/help/article/migrating-from-rewardful",
-  },
-  {
-    id: "tolt",
-    value: "Tolt",
-    image: "https://assets.dub.co/misc/icons/tolt.svg",
-    helpUrl: "https://dub.co/help/article/migrating-from-tolt",
-  },
-  {
-    id: "partnerstack",
-    value: "PartnerStack",
-    image: "https://assets.dub.co/misc/icons/partnerstack.svg",
-    helpUrl: "https://dub.co/help/article/migrating-from-partnerstack",
-  },
-  {
-    id: "firstpromoter",
-    value: "FirstPromoter",
-    image: "https://assets.dub.co/misc/icons/firstpromoter.svg",
-    helpUrl: "https://dub.co/help/article/migrating-from-firstpromoter",
-  },
-] as const;
