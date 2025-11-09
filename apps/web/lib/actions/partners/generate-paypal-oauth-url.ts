@@ -1,6 +1,6 @@
 "use server";
 
-import { throwIfNoPermission } from "@/lib/auth/partner-user-permissions";
+import { throwIfPartnerUserNoPermission } from "@/lib/auth/partner-users/partner-user-permissions";
 import { paypalOAuthProvider } from "@/lib/paypal/oauth";
 import { COUNTRIES, PAYPAL_SUPPORTED_COUNTRIES } from "@dub/utils";
 import { authPartnerActionClient } from "../safe-action";
@@ -9,7 +9,7 @@ export const generatePaypalOAuthUrl = authPartnerActionClient.action(
   async ({ ctx }) => {
     const { partner, user, partnerUser } = ctx;
 
-    throwIfNoPermission({
+    throwIfPartnerUserNoPermission({
       role: partnerUser.role,
       permission: "payout_settings.update",
     });

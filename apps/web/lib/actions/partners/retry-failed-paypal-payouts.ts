@@ -1,6 +1,6 @@
 "use server";
 
-import { throwIfNoPermission } from "@/lib/auth/partner-user-permissions";
+import { throwIfPartnerUserNoPermission } from "@/lib/auth/partner-users/partner-user-permissions";
 import { createPayPalBatchPayout } from "@/lib/paypal/create-batch-payout";
 import { ratelimit } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
@@ -19,7 +19,7 @@ export const retryFailedPaypalPayoutsAction = authPartnerActionClient
     const { partner, partnerUser } = ctx;
     const { payoutId } = parsedInput;
 
-    throwIfNoPermission({
+    throwIfPartnerUserNoPermission({
       role: partnerUser.role,
       permission: "payout_settings.update",
     });

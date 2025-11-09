@@ -1,7 +1,7 @@
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withPartnerProfile } from "@/lib/auth/partner";
-import { throwIfNoPermission } from "@/lib/auth/partner-user-permissions";
+import { throwIfPartnerUserNoPermission } from "@/lib/auth/partner-users/partner-user-permissions";
 import {
   getPartnerUsersQuerySchema,
   partnerUserSchema,
@@ -172,7 +172,7 @@ export const DELETE = withPartnerProfile(
       const isSelfRemoval = userToRemove.userId === partnerUser.userId;
 
       if (!isSelfRemoval) {
-        throwIfNoPermission({
+        throwIfPartnerUserNoPermission({
           role: partnerUser.role,
           permission: "users.delete",
         });

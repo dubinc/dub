@@ -1,6 +1,6 @@
 "use server";
 
-import { throwIfNoPermission } from "@/lib/auth/partner-user-permissions";
+import { throwIfPartnerUserNoPermission } from "@/lib/auth/partner-users/partner-user-permissions";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@prisma/client";
 import { partnerPayoutSettingsSchema } from "../../zod/schemas/partners";
@@ -13,7 +13,7 @@ export const updatePartnerPayoutSettingsAction = authPartnerActionClient
     const { partner, partnerUser } = ctx;
     const { companyName, address, taxId } = parsedInput;
 
-    throwIfNoPermission({
+    throwIfPartnerUserNoPermission({
       role: partnerUser.role,
       permission: "payout_settings.update",
     });

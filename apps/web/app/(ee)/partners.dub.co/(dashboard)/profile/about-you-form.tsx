@@ -1,5 +1,5 @@
 import { updatePartnerProfileAction } from "@/lib/actions/partners/update-partner-profile";
-import { hasPermission } from "@/lib/auth/partner-user-permissions";
+import { hasPermission } from "@/lib/auth/partner-users/partner-user-permissions";
 import {
   industryInterests,
   monthlyTrafficAmounts,

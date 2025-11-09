@@ -1,6 +1,6 @@
 "use server";
 
-import { throwIfNoPermission } from "@/lib/auth/partner-user-permissions";
+import { throwIfPartnerUserNoPermission } from "@/lib/auth/partner-users/partner-user-permissions";
 import { stripe } from "@/lib/stripe";
 import { createConnectedAccount } from "@/lib/stripe/create-connected-account";
 import { prisma } from "@dub/prisma";
@@ -15,7 +15,7 @@ export const generateStripeAccountLink = authPartnerActionClient.action(
   async ({ ctx }) => {
     const { partner, partnerUser } = ctx;
 
-    throwIfNoPermission({
+    throwIfPartnerUserNoPermission({
       role: partnerUser.role,
       permission: "payout_settings.update",
     });
