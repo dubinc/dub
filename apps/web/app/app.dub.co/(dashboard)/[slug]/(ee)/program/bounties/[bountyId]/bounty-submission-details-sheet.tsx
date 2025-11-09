@@ -323,9 +323,9 @@ function BountySubmissionDetailsSheetContent({
                       URLs
                     </h2>
                     <div className="mt-2 flex flex-col gap-2">
-                      {submission.urls?.map((url) => (
+                      {submission.urls?.map((url, idx) => (
                         <div className="relative" key={url}>
-                          <div className="border-border-subtle block w-full rounded-lg border px-3 py-2 pr-12">
+                          <div className="border-border-subtle block w-full rounded-lg border px-3 py-2 pl-10 pr-12">
                             <a
                               href={url}
                               target="_blank"
@@ -334,6 +334,11 @@ function BountySubmissionDetailsSheetContent({
                             >
                               {url}
                             </a>
+                          </div>
+                          <div className="absolute inset-y-0 left-0 flex items-center pl-2.5">
+                            <div className="flex size-6 items-center justify-center rounded-full bg-neutral-100 text-xs font-medium text-neutral-600">
+                              {idx + 1}
+                            </div>
                           </div>
                           <div className="absolute inset-y-0 right-0 flex items-center pr-2.5">
                             <CopyButton

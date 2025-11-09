@@ -514,12 +514,16 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                       <div>
                         <label
                           htmlFor="slug"
-                          className="flex items-center space-x-2"
+                          className="flex items-center justify-between"
                         >
                           <h2 className="text-sm font-medium text-neutral-900">
                             URLs
                             {urlRequired && " (at least 1 required)"}
                           </h2>
+                          <span className="text-xs font-medium text-neutral-500">
+                            {urls.filter((u) => u.url).length} /{" "}
+                            {BOUNTY_MAX_SUBMISSION_URLS}
+                          </span>
                         </label>
                         <div className={cn("mt-2 flex flex-col gap-2")}>
                           {urls.map(({ id, url }, idx) => (
