@@ -49,9 +49,7 @@ export function ProgramLinkConfiguration({
             Custom domain
           </label>
 
-          <InfoTooltip
-            content="A connected domain or sub-domain is required to create a program. [Learn more](https://dub.co/help/article/choosing-a-custom-domain)"
-          />
+          <InfoTooltip content="A connected domain or sub-domain is required to create a program. [Learn more](https://dub.co/help/article/choosing-a-custom-domain)" />
         </div>
 
         <DomainSelector

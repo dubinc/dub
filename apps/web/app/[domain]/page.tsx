@@ -3,7 +3,9 @@ import PlaceholderContent from "./placeholder";
 
 export const revalidate = false; // cache indefinitely
 
-export async function generateMetadata(props: { params: Promise<{ domain: string }> }) {
+export async function generateMetadata(props: {
+  params: Promise<{ domain: string }>;
+}) {
   const params = await props.params;
   const title = `${params.domain.toUpperCase()} - A ${
     process.env.NEXT_PUBLIC_APP_NAME

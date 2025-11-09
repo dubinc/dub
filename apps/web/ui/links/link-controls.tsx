@@ -320,11 +320,11 @@ export function LinkControls({
                   shortcut="T"
                   className="h-9 px-2 font-medium"
                   disabledTooltip={
-                    !isDubDomain(link.domain) ? (
-                      "Since this is a custom domain link, you can only transfer it to another workspace if you transfer the domain as well. [Learn more.](https://dub.co/help/article/how-to-transfer-domains)"
-                    ) : !canManageLink ? (
-                      "You don't have permission to transfer this link."
-                    ) : undefined
+                    !isDubDomain(link.domain)
+                      ? "Since this is a custom domain link, you can only transfer it to another workspace if you transfer the domain as well. [Learn more.](https://dub.co/help/article/how-to-transfer-domains)"
+                      : !canManageLink
+                        ? "You don't have permission to transfer this link."
+                        : undefined
                   }
                 />
               )}

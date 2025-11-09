@@ -1,11 +1,6 @@
 import { LinkFormData } from "@/ui/links/link-builder/link-builder-provider";
 import { useLinkBuilderKeyboardShortcut } from "@/ui/links/link-builder/use-link-builder-keyboard-shortcut";
-import {
-  Button,
-  InfoTooltip,
-  Modal,
-  Tooltip,
-} from "@dub/ui";
+import { Button, InfoTooltip, Modal, Tooltip } from "@dub/ui";
 import {
   Dispatch,
   SetStateAction,
@@ -101,13 +96,9 @@ function AdvancedModal({
                 className="flex items-center gap-2 text-sm font-medium text-neutral-700"
               >
                 External ID{" "}
-                <InfoTooltip
-                  content="A unique identifier for this link in your database. [Learn more about external IDs.](https://d.to/externalId)"
-                />
+                <InfoTooltip content="A unique identifier for this link in your database. [Learn more about external IDs.](https://d.to/externalId)" />
               </label>
-              <Tooltip
-                content="A unique identifier for this link in your system. [Learn more about external IDs.](https://d.to/externalId)"
-              />
+              <Tooltip content="A unique identifier for this link in your system. [Learn more about external IDs.](https://d.to/externalId)" />
             </div>
             <div className="mt-2 rounded-md shadow-sm">
               <input

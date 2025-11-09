@@ -152,9 +152,7 @@ export function RegisterDomainForm({
             </p>
 
             {workspace.plan === "free" && variant === "modal" && (
-              <ProBadgeTooltip
-                content="Search for a free .link domain to use for your short links. [Learn more.](https://dub.co/help/article/free-dot-link-domain)"
-              />
+              <ProBadgeTooltip content="Search for a free .link domain to use for your short links. [Learn more.](https://dub.co/help/article/free-dot-link-domain)" />
             )}
           </div>
 

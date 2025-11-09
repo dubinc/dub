@@ -1,12 +1,7 @@
 import useSAML from "@/lib/swr/use-saml";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { SAMLProviderProps } from "@/lib/types";
-import {
-  Button,
-  InfoTooltip,
-  Modal,
-  useMediaQuery,
-} from "@dub/ui";
+import { Button, InfoTooltip, Modal, useMediaQuery } from "@dub/ui";
 import { SAML_PROVIDERS } from "@dub/utils";
 import { Check, Lock, UploadCloud } from "lucide-react";
 import {

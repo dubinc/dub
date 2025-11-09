@@ -8,12 +8,7 @@ import { PartnerGroupDefaultLink } from "@/lib/types";
 import { MAX_DEFAULT_LINKS_PER_GROUP } from "@/lib/zod/schemas/groups";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { ThreeDots } from "@/ui/shared/icons";
-import {
-  Button,
-  Hyperlink,
-  InfoTooltip,
-  Popover,
-} from "@dub/ui";
+import { Button, Hyperlink, InfoTooltip, Popover } from "@dub/ui";
 import { PenWriting, Trash } from "@dub/ui/icons";
 import { cn, getPrettyUrl, getUrlWithoutUTMParams } from "@dub/utils";
 import { useState } from "react";

@@ -1,13 +1,7 @@
 import { LinkFormData } from "@/ui/links/link-builder/link-builder-provider";
 import { useLinkBuilderKeyboardShortcut } from "@/ui/links/link-builder/use-link-builder-keyboard-shortcut";
 import { ProBadgeTooltip } from "@/ui/shared/pro-badge-tooltip";
-import {
-  Button,
-  ButtonTooltip,
-  Modal,
-  Tooltip,
-  useMediaQuery,
-} from "@dub/ui";
+import { Button, ButtonTooltip, Modal, Tooltip, useMediaQuery } from "@dub/ui";
 import { Eye, EyeSlash, InputPassword, Shuffle } from "@dub/ui/icons";
 import { cn, nanoid } from "@dub/utils";
 import {

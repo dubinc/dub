@@ -189,9 +189,7 @@ function AddEditTokenModal({
                     className="flex flex-1 cursor-pointer items-center justify-between space-x-1 p-3 pl-0"
                   >
                     <p className="text-neutral-600">You</p>
-                    <InfoTooltip
-                      content="This API key will be tied to your user account – if you are removed from the workspace, it will be deleted. [Learn more](https://dub.co/docs/api-reference/tokens)"
-                    />
+                    <InfoTooltip content="This API key will be tied to your user account – if you are removed from the workspace, it will be deleted. [Learn more](https://dub.co/docs/api-reference/tokens)" />
                   </Label>
                 </div>
                 <div

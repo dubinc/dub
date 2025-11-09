@@ -18,12 +18,7 @@ import {
   InlineBadgePopoverMenu,
 } from "@/ui/shared/inline-badge-popover";
 import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
-import {
-  Button,
-  InfoTooltip,
-  Sheet,
-  Switch,
-} from "@dub/ui";
+import { Button, InfoTooltip, Sheet, Switch } from "@dub/ui";
 import { CircleCheckFill, Tag } from "@dub/ui/icons";
 import { capitalize, cn, pluralize } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
@@ -342,9 +337,7 @@ function DiscountSheetContent({
                             Use Stripe test coupon ID
                           </h3>
 
-                          <InfoTooltip
-                            content="Enabling this will allow you to test your coupon code before going live by entering your Stripe test coupon ID."
-                          />
+                          <InfoTooltip content="Enabling this will allow you to test your coupon code before going live by entering your Stripe test coupon ID." />
                         </div>
                       </div>
 

@@ -9,12 +9,7 @@ import { PartnerGroupDefaultLink } from "@/lib/types";
 import { createOrUpdateDefaultLinkSchema } from "@/lib/zod/schemas/groups";
 import { RewardIconSquare } from "@/ui/partners/rewards/reward-icon-square";
 import { X } from "@/ui/shared/icons";
-import {
-  Button,
-  InfoTooltip,
-  Input,
-  Sheet,
-} from "@dub/ui";
+import { Button, InfoTooltip, Input, Sheet } from "@dub/ui";
 import { Eye, Hyperlink } from "@dub/ui/icons";
 import { normalizeUrl } from "@dub/utils";
 import {
