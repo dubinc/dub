@@ -1,6 +1,6 @@
 "use client";
 
-import { INVOICE_AVAILABLE_PAYOUT_STATUSES } from "@/lib/partners/constants";
+import { INVOICE_AVAILABLE_PAYOUT_STATUSES } from "@/lib/constants/payouts";
 import usePartnerPayouts from "@/lib/swr/use-partner-payouts";
 import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import { PartnerPayoutResponse } from "@/lib/types";

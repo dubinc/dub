@@ -4,7 +4,7 @@ import { forceWithdrawalAction } from "@/lib/actions/partners/force-withdrawal";
 import {
   BELOW_MIN_WITHDRAWAL_FEE_CENTS,
   MIN_WITHDRAWAL_AMOUNT_CENTS,
-} from "@/lib/partners/constants";
+} from "@/lib/constants/payouts";
 import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PayoutsCount } from "@/lib/types";

@@ -5,11 +5,11 @@ import { exceededLimitError } from "@/lib/api/errors";
 import { getEligiblePayouts } from "@/lib/api/payouts/get-eligible-payouts";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
-import { qstash } from "@/lib/cron";
 import {
   PAYMENT_METHOD_TYPES,
   STRIPE_PAYMENT_METHOD_NORMALIZATION,
-} from "@/lib/partners/constants";
+} from "@/lib/constants/payouts";
+import { qstash } from "@/lib/cron";
 import { CUTOFF_PERIOD_ENUM } from "@/lib/partners/cutoff-period";
 import { stripe } from "@/lib/stripe";
 import { getWebhooks } from "@/lib/webhook/get-webhooks";

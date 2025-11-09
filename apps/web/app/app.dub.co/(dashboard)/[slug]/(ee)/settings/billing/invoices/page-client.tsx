@@ -1,6 +1,6 @@
 "use client";
 
-import { INVOICE_PAYMENT_METHODS } from "@/lib/partners/constants";
+import { INVOICE_PAYMENT_METHODS } from "@/lib/constants/payouts";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { InvoiceProps } from "@/lib/types";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";

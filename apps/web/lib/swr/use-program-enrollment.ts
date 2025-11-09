@@ -1,8 +1,8 @@
+import { LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS } from "@/lib/constants/program";
 import { fetcher } from "@dub/utils";
 import { useSession } from "next-auth/react";
 import { useParams } from "next/navigation";
 import useSWR, { SWRConfiguration } from "swr";
-import { LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS } from "../partners/constants";
 import { ProgramEnrollmentProps } from "../types";
 
 export default function useProgramEnrollment({

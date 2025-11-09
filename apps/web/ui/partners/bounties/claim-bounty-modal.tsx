@@ -1,15 +1,15 @@
 import { createBountySubmissionAction } from "@/lib/actions/partners/create-bounty-submission";
 import { uploadBountySubmissionFileAction } from "@/lib/actions/partners/upload-bounty-submission-file";
+import {
+  BOUNTY_MAX_SUBMISSION_DESCRIPTION_LENGTH,
+  BOUNTY_MAX_SUBMISSION_FILES,
+  BOUNTY_MAX_SUBMISSION_URLS,
+  REJECT_BOUNTY_SUBMISSION_REASONS,
+} from "@/lib/constants/bounties";
 import { getBountyRewardDescription } from "@/lib/partners/get-bounty-reward-description";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PartnerBountyProps } from "@/lib/types";
-import {
-  MAX_BOUNTY_SUBMISSION_DESCRIPTION_LENGTH,
-  MAX_SUBMISSION_FILES,
-  MAX_SUBMISSION_URLS,
-  REJECT_BOUNTY_SUBMISSION_REASONS,
-} from "@/lib/zod/schemas/bounties";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { X } from "@/ui/shared/icons";
 import { Markdown } from "@/ui/shared/markdown";
@@ -500,7 +500,9 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                             onChange={async ({ file }) =>
                               await handleUpload(file)
                             }
-                            disabled={files.length >= MAX_SUBMISSION_FILES}
+                            disabled={
+                              files.length >= BOUNTY_MAX_SUBMISSION_FILES
+                            }
                             maxFileSizeMB={5}
                           />
                         </div>
@@ -512,12 +514,16 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                       <div>
                         <label
                           htmlFor="slug"
-                          className="flex items-center space-x-2"
+                          className="flex items-center justify-between"
                         >
                           <h2 className="text-sm font-medium text-neutral-900">
                             URLs
                             {urlRequired && " (at least 1 required)"}
                           </h2>
+                          <span className="text-xs font-medium text-neutral-500">
+                            {urls.filter((u) => u.url).length} /{" "}
+                            {BOUNTY_MAX_SUBMISSION_URLS}
+                          </span>
                         </label>
                         <div className={cn("mt-2 flex flex-col gap-2")}>
                           {urls.map(({ id, url }, idx) => (
@@ -551,7 +557,7 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                               )}
                             </div>
                           ))}
-                          {urls.length < MAX_SUBMISSION_URLS && (
+                          {urls.length < BOUNTY_MAX_SUBMISSION_URLS && (
                             <Button
                               variant="secondary"
                               text="Add URL"
@@ -584,13 +590,13 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                           "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
                         )}
                         minRows={2}
-                        maxLength={MAX_BOUNTY_SUBMISSION_DESCRIPTION_LENGTH}
+                        maxLength={BOUNTY_MAX_SUBMISSION_DESCRIPTION_LENGTH}
                         value={description}
                         onChange={(e) => {
                           const value = e.target.value;
                           if (
                             value.length <=
-                            MAX_BOUNTY_SUBMISSION_DESCRIPTION_LENGTH
+                            BOUNTY_MAX_SUBMISSION_DESCRIPTION_LENGTH
                           ) {
                             setDescription(value);
                           }
@@ -598,9 +604,9 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                       />
                       <div className="mt-1 text-left">
                         <span className="text-xs text-neutral-500">
-                          {MAX_BOUNTY_SUBMISSION_DESCRIPTION_LENGTH -
+                          {BOUNTY_MAX_SUBMISSION_DESCRIPTION_LENGTH -
                             description.length}{" "}
-                          / {MAX_BOUNTY_SUBMISSION_DESCRIPTION_LENGTH}
+                          / {BOUNTY_MAX_SUBMISSION_DESCRIPTION_LENGTH}
                         </span>
                       </div>
                     </div>

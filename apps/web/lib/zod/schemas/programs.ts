@@ -2,7 +2,7 @@ import {
   DATE_RANGE_INTERVAL_PRESETS,
   DUB_PARTNERS_ANALYTICS_INTERVAL,
 } from "@/lib/analytics/constants";
-import { ALLOWED_MIN_PAYOUT_AMOUNTS } from "@/lib/partners/constants";
+import { ALLOWED_MIN_PAYOUT_AMOUNTS } from "@/lib/constants/payouts";
 import {
   EventType,
   PartnerBannedReason,

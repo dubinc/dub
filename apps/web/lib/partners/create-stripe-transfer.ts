@@ -1,11 +1,11 @@
+import {
+  BELOW_MIN_WITHDRAWAL_FEE_CENTS,
+  MIN_WITHDRAWAL_AMOUNT_CENTS,
+} from "@/lib/constants/payouts";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@dub/prisma";
 import { Partner, Payout } from "@dub/prisma/client";
 import { currencyFormatter, pluralize } from "@dub/utils";
-import {
-  BELOW_MIN_WITHDRAWAL_FEE_CENTS,
-  MIN_WITHDRAWAL_AMOUNT_CENTS,
-} from "./constants";
 
 type PayoutWithProgramName = Pick<Payout, "id" | "amount" | "invoiceId"> & {
   program: {

@@ -2,12 +2,12 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { exceededLimitError } from "@/lib/api/errors";
 import { getEffectivePayoutMode } from "@/lib/api/payouts/get-effective-payout-mode";
 import { getPayoutEligibilityFilter } from "@/lib/api/payouts/payout-eligibility-filter";
-import { queueBatchEmail } from "@/lib/email/queue-batch-email";
 import {
   DIRECT_DEBIT_PAYMENT_METHOD_TYPES,
   FAST_ACH_FEE_CENTS,
   FOREX_MARKUP_RATE,
-} from "@/lib/partners/constants";
+} from "@/lib/constants/payouts";
+import { queueBatchEmail } from "@/lib/email/queue-batch-email";
 import {
   CUTOFF_PERIOD,
   CUTOFF_PERIOD_TYPES,

@@ -1,4 +1,4 @@
-import { STRIPE_PAYMENT_METHOD_NORMALIZATION } from "@/lib/partners/constants";
+import { STRIPE_PAYMENT_METHOD_NORMALIZATION } from "@/lib/constants/payouts";
 import { prisma } from "@dub/prisma";
 import { Invoice } from "@dub/prisma/client";
 import "dotenv-flow/config";

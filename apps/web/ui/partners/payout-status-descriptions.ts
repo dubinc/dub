@@ -1,4 +1,4 @@
-import { MIN_WITHDRAWAL_AMOUNT_CENTS } from "@/lib/partners/constants";
+import { MIN_WITHDRAWAL_AMOUNT_CENTS } from "@/lib/constants/payouts";
 import { currencyFormatter } from "@dub/utils";
 
 export const PAYOUT_STATUS_DESCRIPTIONS = {

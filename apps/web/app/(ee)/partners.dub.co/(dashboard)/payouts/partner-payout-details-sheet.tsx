@@ -1,7 +1,7 @@
 import {
   INVOICE_AVAILABLE_PAYOUT_STATUSES,
   PAYOUTS_SHEET_ITEMS_LIMIT,
-} from "@/lib/partners/constants";
+} from "@/lib/constants/payouts";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PartnerEarningsResponse, PartnerPayoutResponse } from "@/lib/types";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
