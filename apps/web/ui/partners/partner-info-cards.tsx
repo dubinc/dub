@@ -13,7 +13,6 @@ import {
   CopyButton,
   Heart,
   OfficeBuilding,
-  StatusBadge,
   Tooltip,
   Trophy,
 } from "@dub/ui";
@@ -30,7 +29,7 @@ import useSWR from "swr";
 import { ConversionScoreIcon } from "./conversion-score-icon";
 import { PartnerInfoGroup } from "./partner-info-group";
 import { ConversionScoreTooltip } from "./partner-network/conversion-score-tooltip";
-import { PartnerStatusBadges } from "./partner-status-badges";
+import { PartnerStatusBadgeWithTooltip } from "./partner-status-badge-with-tooltip";
 import { ProgramRewardList } from "./program-reward-list";
 
 type PartnerInfoCardsProps = {
@@ -149,11 +148,6 @@ export function PartnerInfoCards({
         ]
       : [];
 
-  const badge =
-    isEnrolled && partner && !hideStatuses.includes(partner.status)
-      ? PartnerStatusBadges[partner.status]
-      : null;
-
   return (
     <div className="flex flex-col gap-4">
       <div className="border-border-subtle flex flex-col rounded-xl border p-4">
@@ -181,10 +175,8 @@ export function PartnerInfoCards({
             )}
           </div>
 
-          {badge && (
-            <StatusBadge icon={null} variant={badge.variant}>
-              {badge.label}
-            </StatusBadge>
+          {isEnrolled && partner && !hideStatuses.includes(partner.status) && (
+            <PartnerStatusBadgeWithTooltip partner={partner} />
           )}
         </div>
         <div className="mt-4">

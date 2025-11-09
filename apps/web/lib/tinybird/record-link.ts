@@ -44,20 +44,20 @@ export const dubLinksMetadataSchema = z.object({
     .transform((v) => (v ? 1 : 0)),
 });
 
-export const recordLinkTB = tb.buildIngestEndpoint({
+const recordLinkTB = tb.buildIngestEndpoint({
   datasource: "dub_links_metadata",
   event: dubLinksMetadataSchema,
   wait: true,
 });
 
 // TODO: Remove after Tinybird migration
-export const recordLinkTBOld = tbOld.buildIngestEndpoint({
+const recordLinkTBOld = tbOld.buildIngestEndpoint({
   datasource: "dub_links_metadata",
   event: dubLinksMetadataSchema,
   wait: true,
 });
 
-export const transformLinkTB = (link: ExpandedLink) => {
+const transformLinkTB = (link: ExpandedLink) => {
   const key = decodeKeyIfCaseSensitive({
     domain: link.domain,
     key: link.key,
@@ -68,12 +68,13 @@ export const transformLinkTB = (link: ExpandedLink) => {
     domain: link.domain,
     key,
     url: link.url,
-    tag_ids: link.tags?.map(({ tag }) => tag.id),
+    tag_ids: link.tags?.map(({ tag }) => tag.id) ?? [],
     folder_id: link.folderId ?? "",
     tenant_id: link.tenantId ?? "",
     program_id: link.programId ?? "",
     partner_id: link.partnerId ?? "",
     partner_group_id: link.programEnrollment?.groupId ?? "",
+    partner_tag_ids: [],
     workspace_id: link.projectId,
     created_at: link.createdAt,
   };

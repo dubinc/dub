@@ -39,7 +39,6 @@ export const transformLink = (
     dashboard,
     partnerGroupDefaultLinkId,
     // hide undocumented fields from the API response for now
-    disabledAt,
     lastLeadAt,
     lastConversionAt,
     programEnrollment,

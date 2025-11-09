@@ -643,6 +643,12 @@ export const LinkSchema = z
       .url()
       .nullable()
       .describe("The URL to redirect to when the short link has expired."),
+    disabledAt: z
+      .string()
+      .nullable()
+      .describe(
+        "The date and time when the short link was disabled. When a short link is disabled, it will redirect to its domain's not found URL, and its stats will be excluded from your overall stats.",
+      ),
     password: z
       .string()
       .nullable()
