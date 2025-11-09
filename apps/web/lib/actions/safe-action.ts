@@ -6,12 +6,12 @@ import { logger } from "../axiom/server";
 import { PlanProps } from "../types";
 
 export const actionClient = createSafeActionClient({
-  handleServerError: (e) => {
+  handleServerError: async (e) => {
     console.error("Server action error:", e);
 
     // Send error to Axiom
     logger.error(e.message, e);
-    logger.flush();
+    await logger.flush();
 
     if (e instanceof Error) {
       return e.message;

@@ -42,7 +42,7 @@ export const withAxiomBodyLog = createAxiomRouteHandler(logger, {
     report.searchParams = getSearchParams(data.req.url);
 
     logger.log(getLogLevelFromStatusCode(data.res.status), message, report);
-    logger.flush();
+    await logger.flush();
   },
 });
 
