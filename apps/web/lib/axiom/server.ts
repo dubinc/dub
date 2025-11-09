@@ -1,4 +1,9 @@
-import { AxiomJSTransport, Logger, LogLevel } from "@axiomhq/logging";
+import {
+  AxiomJSTransport,
+  ConsoleTransport,
+  Logger,
+  LogLevel,
+} from "@axiomhq/logging";
 import {
   createAxiomRouteHandler,
   nextJsFormatters,
@@ -6,6 +11,9 @@ import {
 } from "@axiomhq/nextjs";
 import { getSearchParams } from "@dub/utils";
 import { axiomClient } from "./axiom";
+
+const isAxiomEnabled =
+  process.env.NEXT_PUBLIC_AXIOM_DATASET && process.env.NEXT_PUBLIC_AXIOM_TOKEN;
 
 const getLogLevelFromStatusCode = (statusCode: number) => {
   if (statusCode >= 100 && statusCode < 400) {
@@ -20,12 +28,14 @@ const getLogLevelFromStatusCode = (statusCode: number) => {
 };
 
 export const logger = new Logger({
-  transports: [
-    new AxiomJSTransport({
-      axiom: axiomClient,
-      dataset: process.env.NEXT_PUBLIC_AXIOM_DATASET!,
-    }),
-  ],
+  transports: isAxiomEnabled
+    ? [
+        new AxiomJSTransport({
+          axiom: axiomClient,
+          dataset: process.env.NEXT_PUBLIC_AXIOM_DATASET!,
+        }),
+      ]
+    : [new ConsoleTransport()],
   formatters: nextJsFormatters,
 });
 
