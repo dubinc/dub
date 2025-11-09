@@ -11,10 +11,5 @@ export default defineConfig({
     testTimeout: 50000,
     env: loadEnv("", process.cwd(), ""),
     setupFiles: ["./tests/setupTests.ts"],
-    server: {
-      deps: {
-        external: ["@axiomhq/nextjs"],
-      },
-    },
   },
 });
