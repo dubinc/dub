@@ -4,7 +4,8 @@ import { PartnerProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { getSearchParams } from "@dub/utils";
 import { PartnerUser } from "@prisma/client";
-import { Permission, throwIfPartnerUserNoPermission } from "./partner-users/partner-user-permissions";
+import { Permission } from "./partner-users/partner-user-permissions";
+import { throwIfNoPermission } from "./partner-users/throw-if-no-permission";
 import { Session, getSession } from "./utils";
 
 interface WithPartnerProfileHandler {
@@ -88,7 +89,7 @@ export const withPartnerProfile = (
         }
 
         if (requiredPermission) {
-          throwIfPartnerUserNoPermission({
+          throwIfNoPermission({
             role: partnerUser.role,
             permission: requiredPermission,
           });

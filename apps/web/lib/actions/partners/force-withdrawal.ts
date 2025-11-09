@@ -1,6 +1,6 @@
 "use server";
 
-import { throwIfPartnerUserNoPermission } from "@/lib/auth/partner-users/partner-user-permissions";
+import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
 import { createStripeTransfer } from "@/lib/partners/create-stripe-transfer";
 import { ratelimit } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
@@ -11,7 +11,7 @@ export const forceWithdrawalAction = authPartnerActionClient.action(
   async ({ ctx }) => {
     const { partner, partnerUser } = ctx;
 
-    throwIfPartnerUserNoPermission({
+    throwIfNoPermission({
       role: partnerUser.role,
       permission: "payout_settings.update",
     });
