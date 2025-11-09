@@ -2,11 +2,16 @@ import { prisma } from "@dub/prisma";
 import { createSafeActionClient } from "next-safe-action";
 import { normalizeWorkspaceId } from "../api/workspaces/workspace-id";
 import { getSession } from "../auth";
+import { logger } from "../axiom/server";
 import { PlanProps } from "../types";
 
 export const actionClient = createSafeActionClient({
   handleServerError: (e) => {
     console.error("Server action error:", e);
+
+    // Send error to Axiom
+    logger.error(e.message, e);
+    logger.flush();
 
     if (e instanceof Error) {
       return e.message;
