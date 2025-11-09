@@ -1,5 +1,6 @@
 import z from "@/lib/zod";
 import { NextResponse } from "next/server";
+import "server-only";
 import { ZodError } from "zod";
 import { generateErrorMessage } from "zod-error";
 import { ZodOpenApiResponseObject } from "zod-openapi";
