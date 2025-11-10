@@ -25,6 +25,5 @@ export const GET = withWorkspace(
   },
   {
     requiredPlan: ["advanced", "enterprise"],
-    featureFlag: "emailCampaigns",
   },
 );
