@@ -5,9 +5,9 @@ import {
   PartnerOnlinePresenceFields,
 } from "./online-presence";
 
-export const PARTNER_DISCOVERY_MIN_COMMISSIONS = 100_00;
+const PARTNER_DISCOVERY_MIN_COMMISSIONS = 100_00;
 
-export function getPartnerDiscoveryRequirements({
+export function getDiscoverabilityRequirements({
   partner,
   programEnrollments,
 }: {
@@ -15,8 +15,9 @@ export function getPartnerDiscoveryRequirements({
     PartnerProps,
     | PartnerOnlinePresenceFields
     | "description"
-    | "salesChannels"
     | "monthlyTraffic"
+    | "preferredEarningStructures"
+    | "salesChannels"
   >;
   programEnrollments: Pick<
     EnrolledPartnerProps,
@@ -46,6 +47,11 @@ export function getPartnerDiscoveryRequirements({
       completed: !!partner.monthlyTraffic,
     },
     {
+      label: "Select your preferred earning structures",
+      href: "#earning-structures",
+      completed: Boolean(partner.preferredEarningStructures?.length),
+    },
+    {
       label: "Choose your sales channels",
       href: "#channels",
       completed: Boolean(partner.salesChannels?.length),
@@ -59,6 +65,10 @@ export function getPartnerDiscoveryRequirements({
             pe.status === "approved" &&
             pe.totalCommissions >= PARTNER_DISCOVERY_MIN_COMMISSIONS,
         ).length >= 2,
+    },
+    {
+      label: "Maintain a healthy partner profile",
+      completed: programEnrollments.every((pe) => pe.status !== "banned"),
     },
   ];
 }

@@ -3,7 +3,7 @@
 import { confirmEmailChange } from "@/lib/auth/confirm-email-change";
 import { throwIfNoPermission } from "@/lib/auth/partner-user-permissions";
 import { qstash } from "@/lib/cron";
-import { getPartnerDiscoveryRequirements } from "@/lib/partners/discoverability";
+import { getDiscoverabilityRequirements } from "@/lib/partners/get-discoverability-requirements";
 import { storage } from "@/lib/storage";
 import { stripe } from "@/lib/stripe";
 import { partnerProfileChangeHistoryLogSchema } from "@/lib/zod/schemas/partner-profile";
@@ -139,7 +139,7 @@ export const updatePartnerProfileAction = authPartnerActionClient
           }),
         },
         include: {
-          industryInterests: true,
+          preferredEarningStructures: true,
           salesChannels: true,
           programs: true,
         },
@@ -176,9 +176,13 @@ export const updatePartnerProfileAction = authPartnerActionClient
             // double check that the partner is still eligible for discovery
             if (updatedPartner.discoverableAt) {
               const partnerDiscoveryRequirements =
-                getPartnerDiscoveryRequirements({
+                getDiscoverabilityRequirements({
                   partner: {
                     ...updatedPartner,
+                    preferredEarningStructures:
+                      updatedPartner.preferredEarningStructures?.map(
+                        (structure) => structure.preferredEarningStructure,
+                      ),
                     salesChannels: updatedPartner.salesChannels?.map(
                       (channel) => channel.salesChannel,
                     ),
