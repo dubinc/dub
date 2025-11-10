@@ -1,4 +1,3 @@
-import { LARGE_PROGRAM_IDS } from "@/lib/constants/program";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { ACME_PROGRAM_ID } from "@dub/utils";
@@ -176,7 +175,6 @@ export async function calculatePartnerRanking({
       WHERE ${discoverablePartnersMultiProgramFilter}
     )
       AND pe_mult.programId != ${ACME_PROGRAM_ID}
-      AND pe_mult.programId NOT IN (${Prisma.join(LARGE_PROGRAM_IDS, ",")})
       AND pe_mult.status = 'approved'
     GROUP BY pe_mult.partnerId
     HAVING COUNT(DISTINCT CASE WHEN pe_mult.totalCommissions > 0 THEN pe_mult.programId END) >= 2
@@ -224,7 +222,6 @@ export async function calculatePartnerRanking({
       INNER JOIN Partner p_filter ON p_filter.id = pe2.partnerId 
         AND ${discoverablePartnersFilter}
       WHERE pe2.programId IN (${Prisma.join(similarPrograms.map((sp) => sp.programId))})
-        AND pe2.programId NOT IN (${Prisma.join(LARGE_PROGRAM_IDS, ",")})
         AND pe2.status = 'approved'
       GROUP BY pe2.partnerId
     ) similarProgramMetrics ON similarProgramMetrics.partnerId = p.id`
