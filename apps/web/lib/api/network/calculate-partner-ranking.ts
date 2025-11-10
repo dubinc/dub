@@ -21,10 +21,13 @@ export interface PartnerRankingParams extends PartnerRankingFilters {
  * Partner Ranking Algorithm for Discovery
  * Ranks partners based on performance in similar programs only.
  *
- * Scoring Breakdown (0-165+ points):
+ * Scoring Breakdown (0-265+ points):
  *
- * 1. Multi-Program Success Bonus (100 points): Top priority boost
- *    - Partners with success (conversions > 0) in 3+ similar programs get 100 bonus points
+ * 1. Multi-Program Success Bonus (exponential, 0-200+ points): Top priority boost
+ *    - Partners with success (commissions > 0) in 2+ programs (across ALL programs) get exponential bonus
+ *    - Only applies to partners with online presence (website, social media, etc.)
+ *    - Formula: (successfulPrograms - 1)^1.5 * 20 + 30, capped at 200
+ *    - Examples: 2 programs = 50, 3 = 87, 4 = 134, 5 = 190, 6+ = 200 (capped)
  *    - This ensures proven multi-program performers appear at the very top
  *
  * 2. Similarity Score (0-50 points): Performance in similar programs
@@ -37,7 +40,7 @@ export interface PartnerRankingParams extends PartnerRankingFilters {
  *    - Rewards partners enrolled in many similar programs
  *    - 2 points per similar program (capped at 15)
  *
- * Final Score = Multi-Program Bonus + Similarity + Match (0-165+ points)
+ * Final Score = Multi-Program Bonus + Similarity + Match (0-265+ points)
  *
  * Displayed Metrics:
  * - conversionRate: Average conversion rate across ALL programs the partner is enrolled in
@@ -139,6 +142,10 @@ export async function calculatePartnerRanking({
   const discoverablePartnersAllProgramsFilter =
     buildDiscoverablePartnersFilter("p_filter_all");
 
+  // Build filter for multi-program success bonus (uses different alias)
+  const discoverablePartnersMultiProgramFilter =
+    buildDiscoverablePartnersFilter("p_filter_mult");
+
   // Metrics across ALL programs (for display purposes)
   const allProgramMetricsJoin = Prisma.sql`LEFT JOIN (
     SELECT 
@@ -153,6 +160,39 @@ export async function calculatePartnerRanking({
       AND pe_all.totalConversions > 0
     GROUP BY pe_all.partnerId
   ) allProgramMetrics ON allProgramMetrics.partnerId = p.id`;
+
+  // Multi-program success bonus: Count successful programs across ALL programs
+  // Only applies to partners with online presence (excludes partners without profiles)
+  const multiProgramSuccessJoin = Prisma.sql`LEFT JOIN (
+    SELECT 
+      pe_mult.partnerId,
+      -- Multi-program success bonus: Exponential scaling based on successful programs
+      -- Only applies if partner has online presence (website or social media)
+      -- HAVING clause ensures we only include partners with 2+ successful programs (based on commissions)
+      CASE 
+        WHEN (
+          MAX(p_filter_mult.website) IS NOT NULL OR
+          MAX(p_filter_mult.youtube) IS NOT NULL OR
+          MAX(p_filter_mult.twitter) IS NOT NULL OR
+          MAX(p_filter_mult.linkedin) IS NOT NULL OR
+          MAX(p_filter_mult.instagram) IS NOT NULL OR
+          MAX(p_filter_mult.tiktok) IS NOT NULL
+        ) THEN
+          LEAST(200, 
+            POWER(COUNT(DISTINCT CASE WHEN pe_mult.totalCommissions > 0 THEN pe_mult.programId END) - 1, 1.5) * 20 + 30
+          )
+        ELSE 0
+      END as multiProgramSuccessBonus
+    FROM ProgramEnrollment pe_mult
+    -- OPTIMIZATION: Only process enrollments for discoverable partners
+    INNER JOIN Partner p_filter_mult ON p_filter_mult.id = pe_mult.partnerId 
+      AND ${discoverablePartnersMultiProgramFilter}
+    WHERE pe_mult.programId != ${ACME_PROGRAM_ID}
+      AND pe_mult.programId NOT IN (${Prisma.join(LARGE_PROGRAM_IDS, ",")})
+      AND pe_mult.status = 'approved'
+    GROUP BY pe_mult.partnerId
+    HAVING COUNT(DISTINCT CASE WHEN pe_mult.totalCommissions > 0 THEN pe_mult.programId END) >= 2
+  ) multiProgramSuccess ON multiProgramSuccess.partnerId = p.id`;
 
   const similarProgramMetricsJoin =
     similarPrograms.length > 0
@@ -190,12 +230,7 @@ export async function calculatePartnerRanking({
             ELSE 0 END) * 50 -- Weight by similarity, scale to 0-50 range
         )) as similarityScore,
         -- Program match score: Count of similar programs (0-15 points)
-        LEAST(15, COUNT(DISTINCT pe2.programId) * 2) as programMatchScore,
-        -- Multi-program success bonus: Count of successful programs (100 points for 3+)
-        CASE 
-          WHEN COUNT(DISTINCT CASE WHEN pe2.totalConversions > 0 THEN pe2.programId END) >= 3 THEN 100
-          ELSE 0
-        END as multiProgramSuccessBonus
+        LEAST(15, COUNT(DISTINCT pe2.programId) * 2) as programMatchScore
       FROM ProgramEnrollment pe2
       -- OPTIMIZATION: Only process enrollments for discoverable partners
       INNER JOIN Partner p_filter ON p_filter.id = pe2.partnerId 
@@ -209,8 +244,7 @@ export async function calculatePartnerRanking({
           SELECT 
             NULL as partnerId, 
             NULL as similarityScore, 
-            NULL as programMatchScore,
-            NULL as multiProgramSuccessBonus
+            NULL as programMatchScore
             WHERE FALSE
         ) similarProgramMetrics ON similarProgramMetrics.partnerId = p.id`;
 
@@ -235,10 +269,11 @@ export async function calculatePartnerRanking({
       preferredEarningStructuresData.preferredEarningStructures as preferredEarningStructures,
       salesChannelsData.salesChannels as salesChannels,
 
-      -- FINAL SCORE (0-165+ points): Similarity-based ranking for discovery
-      -- Multi-program success bonus (100 points) ensures partners with 3+ successful programs rank at the top
+      -- FINAL SCORE (0-265+ points): Similarity-based ranking for discovery
+      -- Multi-program success bonus (exponential, 0-200 points) ensures partners with 2+ successful programs (based on commissions, across ALL programs) rank at the top
+      -- Partners without online presence are excluded from the bonus and ranked lower
       (
-        COALESCE(similarProgramMetrics.multiProgramSuccessBonus, 0) +
+        COALESCE(multiProgramSuccess.multiProgramSuccessBonus, 0) +
         COALESCE(similarProgramMetrics.similarityScore, 0) +
         COALESCE(similarProgramMetrics.programMatchScore, 0)
       ) as finalScore
@@ -260,6 +295,8 @@ export async function calculatePartnerRanking({
     LEFT JOIN DiscoveredPartner dp ON dp.partnerId = p.id AND dp.programId = ${programId}
 
     ${allProgramMetricsJoin}
+
+    ${multiProgramSuccessJoin}
 
     ${similarProgramMetricsJoin}
 
