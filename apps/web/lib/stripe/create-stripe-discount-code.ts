@@ -38,6 +38,9 @@ export async function createStripeDiscountCode({
         {
           coupon: discount.couponId,
           code: currentCode.toUpperCase(),
+          restrictions: {
+            first_time_transaction: true,
+          },
         },
         {
           stripeAccount: stripeConnectId,

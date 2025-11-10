@@ -76,8 +76,8 @@ export default function ProgramNetworkInvite({
 
             <Text className="text-sm leading-6 text-neutral-600">
               {name && !name.includes("@") && <>Hi {name}, </>}
-              {program.name} found you on the Dub Network and invited you to
-              join their partner program.
+              {program.name} found you on the Dub Partner Network and invited
+              you to join their partner program.
             </Text>
 
             <Section className="my-8">

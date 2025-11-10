@@ -20,19 +20,30 @@ export interface PartnerRankingParams extends PartnerRankingFilters {
  * Partner Ranking Algorithm for Discovery
  * Ranks partners based on performance in similar programs only.
  *
- * Scoring Breakdown (0-65 points):
+ * Scoring Breakdown (0-265+ points):
  *
- * 1. Similarity Score (0-50 points): Performance in similar programs
+ * 1. Multi-Program Success Bonus (exponential, 0-200+ points): Top priority boost
+ *    - Partners with success (commissions > 0) in 2+ programs (across ALL programs) get exponential bonus
+ *    - Only applies to partners with online presence (website, social media, etc.)
+ *    - Formula: (successfulPrograms - 1)^1.5 * 20 + 30, capped at 200
+ *    - Examples: 2 programs = 50, 3 = 87, 4 = 134, 5 = 190, 6+ = 200 (capped)
+ *    - This ensures proven multi-program performers appear at the very top
+ *
+ * 2. Similarity Score (0-50 points): Performance in similar programs
  *    - Sums weighted performance across similar programs (similarityScore > 0.3)
  *    - Each program's performance weighted by its similarity score
  *    - Partners with more similar programs score higher (capped at 50)
  *    - Includes: consistency (20%), conversion rate (10%), LTV (15%), commissions (5%)
  *
- * 2. Program Match Score (0-15 points): Count of similar programs
+ * 3. Program Match Score (0-15 points): Count of similar programs
  *    - Rewards partners enrolled in many similar programs
  *    - 2 points per similar program (capped at 15)
  *
- * Final Score = Similarity + Match (0-65 points)
+ * Final Score = Multi-Program Bonus + Similarity + Match (0-265+ points)
+ *
+ * Displayed Metrics:
+ * - conversionRate: Average conversion rate across ALL programs the partner is enrolled in
+ * - lastConversionAt: Most recent conversion date across ALL programs the partner is enrolled in
  *
  * Note: Ranking is primarily used for the "discover" tab. For "invited" and "recruited"
  * tabs, partners are sorted by date (most recent first).
@@ -94,36 +105,80 @@ export async function calculatePartnerRanking({
   const orderByClause =
     status === "discover"
       ? starred === true
-        ? Prisma.sql`dp.starredAt DESC, ${hasProfileCheck} DESC, finalScore DESC, p.id ASC`
-        : Prisma.sql`${hasProfileCheck} DESC, finalScore DESC, p.id ASC`
+        ? Prisma.sql`dp.starredAt ASC`
+        : Prisma.sql`finalScore DESC, ${hasProfileCheck} DESC, p.id ASC`
       : status === "invited"
-        ? Prisma.sql`dp.invitedAt DESC, p.id ASC`
+        ? Prisma.sql`dp.invitedAt ASC`
         : Prisma.sql`enrolled.createdAt DESC, p.id ASC`;
 
   const offset = (page - 1) * pageSize;
 
+  // Helper function to build discoverable partners filter with any alias
+  const buildDiscoverablePartnersFilter = (alias: string) => {
+    const conditions: Prisma.Sql[] = [
+      Prisma.sql`${Prisma.raw(alias)}.discoverableAt IS NOT NULL`,
+    ];
+
+    if (partnerIds && partnerIds.length > 0) {
+      conditions.push(
+        Prisma.sql`${Prisma.raw(alias)}.id IN (${Prisma.join(partnerIds)})`,
+      );
+    }
+
+    if (country) {
+      conditions.push(Prisma.sql`${Prisma.raw(alias)}.country = ${country}`);
+    }
+
+    return Prisma.join(conditions, " AND ");
+  };
+
   // OPTIMIZATION: Build filter for discoverable partners to reuse in subqueries
   // This dramatically reduces the dataset from 1.5M to 5,000 before expensive joins
-  const discoverablePartnersConditions: Prisma.Sql[] = [
-    Prisma.sql`p_filter.discoverableAt IS NOT NULL`,
-  ];
+  const discoverablePartnersFilter =
+    buildDiscoverablePartnersFilter("p_filter");
 
-  if (partnerIds && partnerIds.length > 0) {
-    discoverablePartnersConditions.push(
-      Prisma.sql`p_filter.id IN (${Prisma.join(partnerIds)})`,
-    );
-  }
+  // Build filter for all-program metrics join (uses different alias)
+  const discoverablePartnersAllProgramsFilter =
+    buildDiscoverablePartnersFilter("p_filter_all");
 
-  if (country) {
-    discoverablePartnersConditions.push(
-      Prisma.sql`p_filter.country = ${country}`,
-    );
-  }
+  // Build filter for multi-program success bonus (uses different alias)
+  const discoverablePartnersMultiProgramFilter =
+    buildDiscoverablePartnersFilter("p_filter_mult");
 
-  const discoverablePartnersFilter = Prisma.join(
-    discoverablePartnersConditions,
-    " AND ",
-  );
+  // Metrics across ALL programs (for display purposes)
+  const allProgramMetricsJoin = Prisma.sql`LEFT JOIN (
+    SELECT 
+      pe_all.partnerId,
+      MAX(pe_all.lastConversionAt) as lastConversionAt,
+      AVG(COALESCE(pe_all.conversionRate, 0)) as avgConversionRate
+    FROM ProgramEnrollment pe_all
+    -- OPTIMIZATION: Only process enrollments for discoverable partners
+    INNER JOIN Partner p_filter_all ON p_filter_all.id = pe_all.partnerId 
+      AND ${discoverablePartnersAllProgramsFilter}
+    WHERE pe_all.programId != ${ACME_PROGRAM_ID}
+      AND pe_all.totalConversions > 0
+    GROUP BY pe_all.partnerId
+  ) allProgramMetrics ON allProgramMetrics.partnerId = p.id`;
+
+  // Multi-program success bonus: Count successful programs across ALL programs
+  // Profile check is done in main query to avoid expensive Partner join in subquery
+  const multiProgramSuccessJoin = Prisma.sql`LEFT JOIN (
+    SELECT 
+      pe_mult.partnerId,
+      -- Count of successful programs (based on commissions)
+      COUNT(DISTINCT CASE WHEN pe_mult.totalCommissions > 0 THEN pe_mult.programId END) as successfulProgramCount
+    FROM ProgramEnrollment pe_mult
+    -- OPTIMIZATION: Only process enrollments for discoverable partners (using subquery to avoid JOIN)
+    WHERE pe_mult.partnerId IN (
+      SELECT p_filter_mult.id
+      FROM Partner p_filter_mult
+      WHERE ${discoverablePartnersMultiProgramFilter}
+    )
+      AND pe_mult.programId != ${ACME_PROGRAM_ID}
+      AND pe_mult.status = 'approved'
+    GROUP BY pe_mult.partnerId
+    HAVING COUNT(DISTINCT CASE WHEN pe_mult.totalCommissions > 0 THEN pe_mult.programId END) >= 2
+  ) multiProgramSuccess ON multiProgramSuccess.partnerId = p.id`;
 
   const similarProgramMetricsJoin =
     similarPrograms.length > 0
@@ -161,102 +216,56 @@ export async function calculatePartnerRanking({
             ELSE 0 END) * 50 -- Weight by similarity, scale to 0-50 range
         )) as similarityScore,
         -- Program match score: Count of similar programs (0-15 points)
-        LEAST(15, COUNT(DISTINCT pe2.programId) * 2) as programMatchScore,
-        -- Aggregate metrics for display purposes
-        MAX(pe2.lastConversionAt) as lastConversionAt,
-        SUM(COALESCE(pe2.conversionRate, 0) * (CASE pe2.programId
-          ${Prisma.join(
-            similarPrograms.map(
-              (sp) =>
-                Prisma.sql`WHEN ${sp.programId} THEN ${sp.similarityScore}`,
-            ),
-            " ",
-          )}
-          ELSE 0 END)) / NULLIF(SUM(CASE pe2.programId
-          ${Prisma.join(
-            similarPrograms.map(
-              (sp) =>
-                Prisma.sql`WHEN ${sp.programId} THEN ${sp.similarityScore}`,
-            ),
-            " ",
-          )}
-          ELSE 0 END), 0) as avgConversionRate
+        LEAST(15, COUNT(DISTINCT pe2.programId) * 2) as programMatchScore
       FROM ProgramEnrollment pe2
       -- OPTIMIZATION: Only process enrollments for discoverable partners
       INNER JOIN Partner p_filter ON p_filter.id = pe2.partnerId 
         AND ${discoverablePartnersFilter}
       WHERE pe2.programId IN (${Prisma.join(similarPrograms.map((sp) => sp.programId))})
         AND pe2.status = 'approved'
-        AND pe2.programId != ${ACME_PROGRAM_ID}
       GROUP BY pe2.partnerId
     ) similarProgramMetrics ON similarProgramMetrics.partnerId = p.id`
       : Prisma.sql`LEFT JOIN (
           SELECT 
             NULL as partnerId, 
             NULL as similarityScore, 
-            NULL as programMatchScore, 
-            NULL as lastConversionAt, 
-            NULL as avgConversionRate 
+            NULL as programMatchScore
             WHERE FALSE
         ) similarProgramMetrics ON similarProgramMetrics.partnerId = p.id`;
 
   // Build discoverable partners subquery for main FROM clause
-  const discoverablePartnersSubqueryConditions: Prisma.Sql[] = [
-    Prisma.sql`p_sub.discoverableAt IS NOT NULL`,
-  ];
-
-  if (partnerIds && partnerIds.length > 0) {
-    discoverablePartnersSubqueryConditions.push(
-      Prisma.sql`p_sub.id IN (${Prisma.join(partnerIds)})`,
-    );
-  }
-
-  if (country) {
-    discoverablePartnersSubqueryConditions.push(
-      Prisma.sql`p_sub.country = ${country}`,
-    );
-  }
-
-  const discoverablePartnersSubqueryFilter = Prisma.join(
-    discoverablePartnersSubqueryConditions,
-    " AND ",
-  );
+  const discoverablePartnersSubqueryFilter =
+    buildDiscoverablePartnersFilter("p_sub");
 
   // Build discoverable partners filter for categories subquery
-  const discoverablePartnersCategoriesConditions: Prisma.Sql[] = [
-    Prisma.sql`p_cat.discoverableAt IS NOT NULL`,
-  ];
-
-  if (partnerIds && partnerIds.length > 0) {
-    discoverablePartnersCategoriesConditions.push(
-      Prisma.sql`p_cat.id IN (${Prisma.join(partnerIds)})`,
-    );
-  }
-
-  if (country) {
-    discoverablePartnersCategoriesConditions.push(
-      Prisma.sql`p_cat.country = ${country}`,
-    );
-  }
-
-  const discoverablePartnersCategoriesFilter = Prisma.join(
-    discoverablePartnersCategoriesConditions,
-    " AND ",
-  );
+  const discoverablePartnersCategoriesFilter =
+    buildDiscoverablePartnersFilter("p_cat");
 
   const partners = await prisma.$queryRaw<Array<any>>`
     SELECT 
       p.*,
-      COALESCE(pe.lastConversionAt, similarProgramMetrics.lastConversionAt) as lastConversionAt,
-      COALESCE(pe.conversionRate, similarProgramMetrics.avgConversionRate) as conversionRate,
+      COALESCE(pe.lastConversionAt, allProgramMetrics.lastConversionAt) as lastConversionAt,
+      COALESCE(pe.conversionRate, allProgramMetrics.avgConversionRate) as conversionRate,
       dp.starredAt,
       dp.ignoredAt,
       dp.invitedAt,
       partnerCategories.categories as categories,
       CASE WHEN enrolled.status = 'approved' THEN enrolled.createdAt ELSE NULL END as recruitedAt,
+      preferredEarningStructuresData.preferredEarningStructures as preferredEarningStructures,
+      salesChannelsData.salesChannels as salesChannels,
 
-      -- FINAL SCORE (0-65 points): Similarity-based ranking for discovery
+      -- FINAL SCORE (0-265+ points): Similarity-based ranking for discovery
+      -- Multi-program success bonus (exponential, 0-200 points) ensures partners with 2+ successful programs (based on commissions, across ALL programs) rank at the top
+      -- Partners without online presence are excluded from the bonus and ranked lower
       (
+        -- Multi-program success bonus: Only applies if partner has online presence
+        CASE 
+          WHEN ${hasProfileCheck} AND COALESCE(multiProgramSuccess.successfulProgramCount, 0) >= 2 THEN
+            LEAST(200, 
+              POWER(COALESCE(multiProgramSuccess.successfulProgramCount, 0) - 1, 1.5) * 20 + 30
+            )
+          ELSE 0
+        END +
         COALESCE(similarProgramMetrics.similarityScore, 0) +
         COALESCE(similarProgramMetrics.programMatchScore, 0)
       ) as finalScore
@@ -277,6 +286,10 @@ export async function calculatePartnerRanking({
     -- Discovered partner metadata
     LEFT JOIN DiscoveredPartner dp ON dp.partnerId = p.id AND dp.programId = ${programId}
 
+    ${allProgramMetricsJoin}
+
+    ${multiProgramSuccessJoin}
+
     ${similarProgramMetricsJoin}
 
     -- OPTIMIZATION: Only get categories for discoverable partners
@@ -290,6 +303,34 @@ export async function calculatePartnerRanking({
       WHERE pe5.status = 'approved'
       GROUP BY pe5.partnerId
     ) partnerCategories ON partnerCategories.partnerId = p.id
+
+    -- OPTIMIZATION: Only get preferred earning structures for discoverable partners
+    LEFT JOIN (
+      SELECT 
+        ppes.partnerId,
+        GROUP_CONCAT(DISTINCT ppes.preferredEarningStructure ORDER BY ppes.preferredEarningStructure SEPARATOR ',') as preferredEarningStructures
+      FROM PartnerPreferredEarningStructure ppes
+      WHERE ppes.partnerId IN (
+        SELECT p_filter.id
+        FROM Partner p_filter
+        WHERE ${buildDiscoverablePartnersFilter("p_filter")}
+      )
+      GROUP BY ppes.partnerId
+    ) preferredEarningStructuresData ON preferredEarningStructuresData.partnerId = p.id
+
+    -- OPTIMIZATION: Only get sales channels for discoverable partners
+    LEFT JOIN (
+      SELECT 
+        psc.partnerId,
+        GROUP_CONCAT(DISTINCT psc.salesChannel ORDER BY psc.salesChannel SEPARATOR ',') as salesChannels
+      FROM PartnerSalesChannel psc
+      WHERE psc.partnerId IN (
+        SELECT p_filter.id
+        FROM Partner p_filter
+        WHERE ${buildDiscoverablePartnersFilter("p_filter")}
+      )
+      GROUP BY psc.partnerId
+    ) salesChannelsData ON salesChannelsData.partnerId = p.id
 
     WHERE ${whereClause}
     ORDER BY ${orderByClause}
