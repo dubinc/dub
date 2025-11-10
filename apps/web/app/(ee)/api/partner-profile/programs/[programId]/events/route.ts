@@ -2,7 +2,10 @@ import { getEvents } from "@/lib/analytics/get-events";
 import { DubApiError } from "@/lib/api/errors";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
-import { LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS } from "@/lib/constants/program";
+import {
+  LARGE_PROGRAM_IDS,
+  LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS,
+} from "@/lib/constants/program";
 import { generateRandomName } from "@/lib/names";
 import {
   PartnerProfileLinkSchema,
@@ -25,7 +28,7 @@ export const GET = withPartnerProfile(
       });
 
     if (
-      program.id === "prog_1K0QHV7MP3PR05CJSCF5VN93X" &&
+      LARGE_PROGRAM_IDS.includes(program.id) &&
       totalCommissions < LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS
     ) {
       throw new DubApiError({

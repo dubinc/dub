@@ -2,7 +2,10 @@ import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { DubApiError } from "@/lib/api/errors";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
-import { LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS } from "@/lib/constants/program";
+import {
+  LARGE_PROGRAM_IDS,
+  LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS,
+} from "@/lib/constants/program";
 import { partnerProfileAnalyticsQuerySchema } from "@/lib/zod/schemas/partner-profile";
 import { NextResponse } from "next/server";
 
@@ -44,7 +47,7 @@ export const GET = withPartnerProfile(
     }
 
     const response = await getAnalytics({
-      ...(program.id === "prog_1K0QHV7MP3PR05CJSCF5VN93X" &&
+      ...(LARGE_PROGRAM_IDS.includes(program.id) &&
       totalCommissions < LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS
         ? { event: rest.event, groupBy: "count", interval: "all" }
         : rest),

@@ -1,11 +1,12 @@
-import { ACME_PROGRAM_ID, currencyFormatter } from "@dub/utils";
+import { currencyFormatter } from "@dub/utils";
+import { LARGE_PROGRAM_IDS } from "../constants/program";
 import { EnrolledPartnerProps, PartnerProps } from "../types";
 import {
   ONLINE_PRESENCE_FIELDS,
   PartnerOnlinePresenceFields,
 } from "./online-presence";
 
-const PARTNER_DISCOVERY_MIN_COMMISSIONS = 100_00;
+const PARTNER_DISCOVERY_MIN_COMMISSIONS = 10_00;
 
 export function getDiscoverabilityRequirements({
   partner,
@@ -57,14 +58,14 @@ export function getDiscoverabilityRequirements({
       completed: Boolean(partner.salesChannels?.length),
     },
     {
-      label: `Earn ${currencyFormatter(PARTNER_DISCOVERY_MIN_COMMISSIONS / 100, { trailingZeroDisplay: "stripIfInteger" })} in commissions from at least 2 programs`,
+      label: `Earn ${currencyFormatter(PARTNER_DISCOVERY_MIN_COMMISSIONS / 100, { trailingZeroDisplay: "stripIfInteger" })} in commissions`,
       completed:
         programEnrollments.filter(
           (pe) =>
-            pe.programId !== ACME_PROGRAM_ID &&
+            !LARGE_PROGRAM_IDS.includes(pe.programId) &&
             pe.status === "approved" &&
             pe.totalCommissions >= PARTNER_DISCOVERY_MIN_COMMISSIONS,
-        ).length >= 2,
+        ).length >= 1,
     },
     {
       label: "Maintain a healthy partner profile",
