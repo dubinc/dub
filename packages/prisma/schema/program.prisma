@@ -24,20 +24,6 @@ enum ProgramPayoutMode {
   external // All payouts are processed through external
 }
 
-enum Category {
-  Artificial_Intelligence
-  Development
-  Design
-  Productivity
-  Finance
-  Marketing
-  Ecommerce
-  Security
-  Education
-  Health
-  Consumer
-}
-
 model Program {
   id                           String            @id @default(cuid())
   workspaceId                  String
@@ -204,15 +190,6 @@ enum Category {
   Health
   Consumer
 }
-model ProgramCategory {
-  programId String
-  category  Category
-
-  program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
-
-  @@unique([programId, category])
-}
-
 model ProgramCategory {
   programId String
   category  Category
