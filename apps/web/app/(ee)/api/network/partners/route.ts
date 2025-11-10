@@ -1,6 +1,6 @@
 import { getConversionScore } from "@/lib/actions/partners/get-conversion-score";
 import { DubApiError } from "@/lib/api/errors";
-import { calculatePartnerRanking } from "@/lib/api/network/partner-ranking";
+import { calculatePartnerRanking } from "@/lib/api/network/calculate-partner-ranking";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { PROGRAM_SIMILARITY_SCORE_THRESHOLD } from "@/lib/constants/program";
