@@ -44,10 +44,20 @@ export function MessagesUpsell() {
           <span className="text-base font-medium text-neutral-900">
             Messaging Center
           </span>
-          <p className="mt-2 text-pretty text-sm text-neutral-500">
-            Messaging makes working with partners easier. Available on Advanced
-            plans and higher
-          </p>
+          <div className="text-content-subtle mt-2 text-sm">
+            <p>
+              Messaging makes working with partners easier. Available on
+              Advanced plans and higher.
+            </p>
+            <a
+              href="https://dub.co/help/article/messaging-partners"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-content-default hover:text-content-emphasis underline"
+            >
+              Learn more
+            </a>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <Button

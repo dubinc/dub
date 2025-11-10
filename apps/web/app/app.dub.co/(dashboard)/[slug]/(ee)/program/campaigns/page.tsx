@@ -1,26 +1,18 @@
-import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { CampaignStats } from "./campaign-stats";
+import { CampaignsPageContent } from "./campaigns-page-content";
 import { CampaignsTable } from "./campaigns-table";
 import { CreateCampaignButton } from "./create-campaign-button";
 
 export default function ProgramCampaignsPage() {
   return (
-    <PageContent
-      title="Email campaigns"
-      titleInfo={{
-        title:
-          "Send marketing and transactional emails to your partners to increase engagement and drive conversions.",
-        href: "https://dub.co/help/article/email-campaigns",
-      }}
-      controls={<CreateCampaignButton />}
-    >
+    <CampaignsPageContent controls={<CreateCampaignButton />}>
       <PageWidthWrapper>
         <div className="space-y-4">
           <CampaignStats />
           <CampaignsTable />
         </div>
       </PageWidthWrapper>
-    </PageContent>
+    </CampaignsPageContent>
   );
 }

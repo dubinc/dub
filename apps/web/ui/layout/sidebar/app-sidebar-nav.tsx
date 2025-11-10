@@ -16,7 +16,6 @@ import {
   ConnectedDots,
   CubeSettings,
   DiamondTurnRight,
-  Discount,
   Folder,
   Gauge6,
   Gear2,
@@ -69,7 +68,6 @@ type SidebarNavData = {
   unreadMessagesCount?: number;
   showConversionGuides?: boolean;
   partnerNetworkEnabled?: boolean;
-  emailCampaignsEnabled?: boolean;
 };
 
 const FIVE_YEARS_SECONDS = 60 * 60 * 24 * 365 * 5;
@@ -203,7 +201,6 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
     submittedBountiesCount,
     unreadMessagesCount,
     partnerNetworkEnabled,
-    emailCampaignsEnabled,
   }) => ({
     title: "Partner Program",
     showNews,
@@ -310,16 +307,12 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
                 : submittedBountiesCount
               : "",
           },
-          ...(emailCampaignsEnabled
-            ? [
-                {
-                  name: "Email Campaigns",
-                  icon: PaperPlane,
-                  href: `/${slug}/program/campaigns` as `/${string}`,
-                  badge: "New",
-                },
-              ]
-            : []),
+          {
+            name: "Email Campaigns",
+            icon: PaperPlane,
+            href: `/${slug}/program/campaigns` as `/${string}`,
+            badge: "New",
+          },
           {
             name: "Resources",
             icon: LifeRing,
@@ -337,17 +330,6 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             arrow: true,
             isActive: () => false,
           },
-          ...(!emailCampaignsEnabled
-            ? [
-                {
-                  name: "Discounts",
-                  icon: Discount,
-                  href: `/${slug}/program/groups/default/discounts` as `/${string}`,
-                  arrow: true,
-                  isActive: () => false,
-                },
-              ]
-            : []),
           {
             name: "Links",
             icon: Sliders,
@@ -488,7 +470,7 @@ export function AppSidebarNav({
   const pathname = usePathname();
   const { getQueryString } = useRouterStuff();
   const { data: session } = useSession();
-  const { plan, defaultProgramId, flags } = useWorkspace();
+  const { plan, defaultProgramId } = useWorkspace();
 
   const currentArea = useMemo(() => {
     return pathname.startsWith("/account/settings")
@@ -559,7 +541,6 @@ export function AppSidebarNav({
         showConversionGuides: canTrackConversions,
         partnerNetworkEnabled:
           program && program.partnerNetworkEnabledAt !== null,
-        emailCampaignsEnabled: flags?.emailCampaigns,
       }}
       toolContent={toolContent}
       newsContent={plan && (plan === "free" ? <SidebarUsage /> : newsContent)}
