@@ -1,5 +1,5 @@
+import { MAX_PROGRAM_CATEGORIES } from "@/lib/constants/program";
 import { categories, categoriesMap } from "@/lib/partners/categories";
-import { MAX_PROGRAM_CATEGORIES } from "@/lib/zod/schemas/programs";
 import { Combobox, ComboboxProps } from "@dub/ui";
 import { Category } from "@prisma/client";
 
