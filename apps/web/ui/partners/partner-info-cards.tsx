@@ -16,6 +16,7 @@ import {
   Tooltip,
   Trophy,
 } from "@dub/ui";
+import { PartnerStarButton } from "./partner-star-button";
 import {
   COUNTRIES,
   OG_AVATAR_URL,
@@ -177,6 +178,9 @@ export function PartnerInfoCards({
 
           {isEnrolled && partner && !hideStatuses.includes(partner.status) && (
             <PartnerStatusBadgeWithTooltip partner={partner} />
+          )}
+          {isNetwork && partner && (
+            <PartnerStarButton partner={partner} className="size-9" />
           )}
         </div>
         <div className="mt-4">

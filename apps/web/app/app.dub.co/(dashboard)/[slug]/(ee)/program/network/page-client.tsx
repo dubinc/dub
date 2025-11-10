@@ -9,10 +9,10 @@ import { PARTNER_NETWORK_MAX_PAGE_SIZE } from "@/lib/zod/schemas/partner-network
 import { ConversionScoreIcon } from "@/ui/partners/conversion-score-icon";
 import { ConversionScoreTooltip } from "@/ui/partners/partner-network/conversion-score-tooltip";
 import { NetworkPartnerSheet } from "@/ui/partners/partner-network/network-partner-sheet";
+import { PartnerStarButton } from "@/ui/partners/partner-star-button";
 import {
   AnimatedSizeContainer,
   BadgeCheck2Fill,
-  Button,
   ChartActivity2,
   Filter,
   PaginationControls,
@@ -24,7 +24,7 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import type { Icon } from "@dub/ui/icons";
-import { EnvelopeArrowRight, Star, StarFill } from "@dub/ui/icons";
+import { EnvelopeArrowRight } from "@dub/ui/icons";
 import {
   COUNTRIES,
   OG_AVATAR_URL,
@@ -437,17 +437,11 @@ function PartnerCard({
           </div>
 
           {partner && onToggleStarred && (
-            <Button
-              variant="outline"
-              onClick={() => onToggleStarred(partner.starredAt ? false : true)}
-              icon={
-                partner.starredAt ? (
-                  <StarFill className="size-3 text-amber-500" />
-                ) : (
-                  <Star className="text-content-subtle size-3" />
-                )
-              }
-              className="size-6 rounded-lg p-0"
+            <PartnerStarButton
+              partner={partner}
+              onToggleStarred={onToggleStarred}
+              className="size-6"
+              iconSize="size-3"
             />
           )}
         </div>
