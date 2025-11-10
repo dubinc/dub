@@ -11,7 +11,7 @@ import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
-const BATCH_SIZE = 10000;
+const BATCH_SIZE = 6000;
 
 const processPartnerActivityStreamBatch = () =>
   partnerActivityStream.processBatch<PartnerActivityEvent>(
