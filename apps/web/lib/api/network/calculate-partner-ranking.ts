@@ -81,11 +81,21 @@ export async function calculatePartnerRanking({
 
   const whereClause = Prisma.join(conditions, " AND ");
 
+  // Rank partners with no online presence lower
+  const hasProfileCheck = Prisma.sql`(
+    p.website IS NOT NULL OR
+    p.youtube IS NOT NULL OR
+    p.twitter IS NOT NULL OR
+    p.linkedin IS NOT NULL OR
+    p.instagram IS NOT NULL OR
+    p.tiktok IS NOT NULL
+  )`;
+
   const orderByClause =
     status === "discover"
       ? starred === true
-        ? Prisma.sql`dp.starredAt DESC, finalScore DESC, p.id ASC`
-        : Prisma.sql`finalScore DESC, p.id ASC`
+        ? Prisma.sql`dp.starredAt DESC, ${hasProfileCheck} DESC, finalScore DESC, p.id ASC`
+        : Prisma.sql`${hasProfileCheck} DESC, finalScore DESC, p.id ASC`
       : status === "invited"
         ? Prisma.sql`dp.invitedAt DESC, p.id ASC`
         : Prisma.sql`enrolled.createdAt DESC, p.id ASC`;
@@ -93,7 +103,7 @@ export async function calculatePartnerRanking({
   const offset = (page - 1) * pageSize;
 
   // OPTIMIZATION: Build filter for discoverable partners to reuse in subqueries
-  // This dramatically reduces the dataset from 1.5M to 4,000 before expensive joins
+  // This dramatically reduces the dataset from 1.5M to 5,000 before expensive joins
   const discoverablePartnersConditions: Prisma.Sql[] = [
     Prisma.sql`p_filter.discoverableAt IS NOT NULL`,
   ];
@@ -252,7 +262,7 @@ export async function calculatePartnerRanking({
       ) as finalScore
     FROM (
       -- OPTIMIZATION: Filter to discoverable partners FIRST using subquery
-      -- This dramatically reduces the dataset from 1.5M to 4,000 before expensive joins
+      -- This dramatically reduces the dataset from 1.5M to 5,000 before expensive joins
       SELECT p_sub.*
       FROM Partner p_sub
       WHERE ${discoverablePartnersSubqueryFilter}
