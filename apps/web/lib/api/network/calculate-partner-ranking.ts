@@ -105,10 +105,10 @@ export async function calculatePartnerRanking({
   const orderByClause =
     status === "discover"
       ? starred === true
-        ? Prisma.sql`dp.starredAt DESC, finalScore DESC, ${hasProfileCheck} DESC, p.id ASC`
+        ? Prisma.sql`dp.starredAt ASC`
         : Prisma.sql`finalScore DESC, ${hasProfileCheck} DESC, p.id ASC`
       : status === "invited"
-        ? Prisma.sql`dp.invitedAt DESC, p.id ASC`
+        ? Prisma.sql`dp.invitedAt ASC`
         : Prisma.sql`enrolled.createdAt DESC, p.id ASC`;
 
   const offset = (page - 1) * pageSize;
