@@ -46,6 +46,7 @@ type SidebarNavData = {
   programBountiesCount?: number;
   enrolledProgramsCount?: number;
   payoutsCount?: number;
+  showDetailedAnalytics?: boolean;
 };
 
 const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
@@ -169,6 +170,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
     isUnapproved,
     queryString,
     programBountiesCount,
+    showDetailedAnalytics,
   }) => ({
     title: (
       <div className="mb-3">
@@ -208,7 +210,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             href: `/programs/${programSlug}/earnings${queryString}`,
             locked: isUnapproved,
           },
-          ...(programSlug !== "perplexity"
+          ...(showDetailedAnalytics
             ? [
                 {
                   name: "Analytics",
@@ -293,7 +295,7 @@ export function PartnersSidebarNav({
     pathname.startsWith(`/programs/${programSlug}`) &&
     pathname !== `/programs/${programSlug}/apply`;
 
-  const { programEnrollment } = useProgramEnrollment({
+  const { programEnrollment, showDetailedAnalytics } = useProgramEnrollment({
     enabled: isEnrolledProgramPage,
   });
 
@@ -342,12 +344,16 @@ export function PartnersSidebarNav({
         queryString: getQueryString(),
         programSlug: programSlug || "",
         isUnapproved:
-          !!programEnrollment && programEnrollment.status !== "approved",
+          !!programEnrollment &&
+          !["approved", "deactivated", "archived"].includes(
+            programEnrollment.status,
+          ),
         invitationsCount,
         unreadMessagesCount,
         programBountiesCount: bountiesCount.active,
         enrolledProgramsCount,
         payoutsCount: payoutsCount,
+        showDetailedAnalytics,
       }}
       toolContent={toolContent}
       newsContent={newsContent}

@@ -1,6 +1,6 @@
 "use client";
 
-import { INVOICE_AVAILABLE_PAYOUT_STATUSES } from "@/lib/partners/constants";
+import { INVOICE_AVAILABLE_PAYOUT_STATUSES } from "@/lib/constants/payouts";
 import usePartnerPayouts from "@/lib/swr/use-partner-payouts";
 import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import { PartnerPayoutResponse } from "@/lib/types";
@@ -11,14 +11,13 @@ import { PayoutStatus } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
   Filter,
-  SimpleTooltipContent,
   Table,
   Tooltip,
   usePagination,
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { InvoiceDollar, MoneyBill2 } from "@dub/ui/icons";
+import { CircleArrowRight, InvoiceDollar, MoneyBill2 } from "@dub/ui/icons";
 import {
   OG_AVATAR_URL,
   currencyFormatter,
@@ -27,7 +26,7 @@ import {
 } from "@dub/utils";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { PayoutDetailsSheet } from "./payout-details-sheet";
+import { PayoutDetailsSheet } from "./partner-payout-details-sheet";
 import { usePayoutFilters } from "./use-payout-filters";
 
 export function PayoutTable() {
@@ -79,7 +78,7 @@ export function PayoutTable() {
                 `${OG_AVATAR_URL}${row.original.program.name}`
               }
               alt={row.original.program.name}
-              className="size-4 rounded-sm"
+              className="size-4 rounded-full"
             />
             <span>{row.original.program.name}</span>
           </div>
@@ -109,29 +108,26 @@ export function PayoutTable() {
         header: "Amount",
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
-            <AmountRowItem
-              amount={row.original.amount}
-              status={row.original.status}
-              minPayoutAmount={row.original.program.minPayoutAmount}
-            />
+            <AmountRowItem payout={row.original} />
 
-            {INVOICE_AVAILABLE_PAYOUT_STATUSES.includes(
-              row.original.status,
-            ) && (
-              <Tooltip content="View invoice">
-                <div className="flex h-5 w-5 items-center justify-center rounded-md transition-colors duration-150 hover:border hover:border-neutral-200 hover:bg-neutral-100">
-                  <Link
-                    href={`/invoices/${row.original.id}`}
-                    className="text-neutral-700"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <InvoiceDollar className="size-4" />
-                  </Link>
-                </div>
-              </Tooltip>
-            )}
+            {row.original.mode === "internal" &&
+              INVOICE_AVAILABLE_PAYOUT_STATUSES.includes(
+                row.original.status,
+              ) && (
+                <Tooltip content="View invoice">
+                  <div className="flex h-5 w-5 items-center justify-center rounded-md transition-colors duration-150 hover:border hover:border-neutral-200 hover:bg-neutral-100">
+                    <Link
+                      href={`/invoices/${row.original.id}`}
+                      className="text-neutral-700"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <InvoiceDollar className="size-4" />
+                    </Link>
+                  </div>
+                </Tooltip>
+              )}
           </div>
         ),
       },
@@ -224,29 +220,18 @@ export function PayoutTable() {
   );
 }
 
-function AmountRowItem({
-  amount,
-  status,
-  minPayoutAmount,
-}: {
-  amount: number;
-  status: PayoutStatus;
-  minPayoutAmount: number;
-}) {
-  const display = currencyFormatter(amount / 100);
+function AmountRowItem({ payout }: { payout: PartnerPayoutResponse }) {
+  const display = currencyFormatter(payout.amount / 100);
 
-  if (status === PayoutStatus.pending && amount < minPayoutAmount) {
+  if (
+    payout.status === PayoutStatus.pending &&
+    payout.amount < payout.program.minPayoutAmount
+  ) {
     return (
       <Tooltip
-        content={
-          <SimpleTooltipContent
-            title={`This program's minimum payout amount is ${currencyFormatter(
-              minPayoutAmount / 100,
-            )}. This payout will be accrued and processed during the next payout period.`}
-            cta="Learn more."
-            href="https://dub.co/help/article/receiving-payouts"
-          />
-        }
+        content={`This program's minimum payout amount is ${currencyFormatter(
+          payout.program.minPayoutAmount / 100,
+        )}. This payout will be accrued and processed during the next payout period. [Learn more.](https://dub.co/help/article/receiving-payouts)`}
       >
         <span className="cursor-help truncate text-neutral-400 underline decoration-dotted underline-offset-2">
           {display}
@@ -255,5 +240,20 @@ function AmountRowItem({
     );
   }
 
-  return display;
+  return (
+    <div className="flex items-center gap-1.5">
+      {display}
+      {payout.mode === "external" && (
+        <Tooltip
+          content={
+            payout.status === PayoutStatus.pending
+              ? `This payout will be made externally through your ${payout.program.name} account after approval.`
+              : `This payout was made externally through your ${payout.program.name} account.`
+          }
+        >
+          <CircleArrowRight className="size-3.5 shrink-0 text-neutral-500" />
+        </Tooltip>
+      )}
+    </div>
+  );
 }

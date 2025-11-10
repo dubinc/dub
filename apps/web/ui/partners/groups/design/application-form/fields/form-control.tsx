@@ -1,12 +1,13 @@
 import { cn } from "@dub/utils";
-import { PropsWithChildren } from "react";
+import { HTMLAttributes } from "react";
 
-export type FormControlProps = PropsWithChildren<{
+export type FormControlProps = {
   label: string;
   required?: boolean;
   helperText?: string;
   error?: string;
-}>;
+  labelDir?: string;
+} & HTMLAttributes<HTMLLabelElement>;
 
 export const FormControlRequiredBadge = () => {
   return (
@@ -22,10 +23,12 @@ export const FormControl = ({
   children,
   error,
   helperText,
+  labelDir,
+  ...rest
 }: FormControlProps) => {
   return (
-    <label>
-      <div className="flex items-center gap-1.5">
+    <label {...rest}>
+      <div className="flex items-center gap-1.5" dir={labelDir}>
         <span className="text-content-emphasis text-sm font-medium">
           {label}
         </span>

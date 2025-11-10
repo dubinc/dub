@@ -1,11 +1,13 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { exceededLimitError } from "@/lib/api/errors";
-import { queueBatchEmail } from "@/lib/email/queue-batch-email";
+import { getEffectivePayoutMode } from "@/lib/api/payouts/get-effective-payout-mode";
+import { getPayoutEligibilityFilter } from "@/lib/api/payouts/payout-eligibility-filter";
 import {
   DIRECT_DEBIT_PAYMENT_METHOD_TYPES,
   FAST_ACH_FEE_CENTS,
   FOREX_MARKUP_RATE,
-} from "@/lib/partners/constants";
+} from "@/lib/constants/payouts";
+import { queueBatchEmail } from "@/lib/email/queue-batch-email";
 import {
   CUTOFF_PERIOD,
   CUTOFF_PERIOD_TYPES,
@@ -17,12 +19,49 @@ import { PlanProps } from "@/lib/types";
 import type PartnerPayoutConfirmed from "@dub/email/templates/partner-payout-confirmed";
 import { prisma } from "@dub/prisma";
 import { currencyFormatter, log } from "@dub/utils";
-import { Program, Project } from "@prisma/client";
+import {
+  Partner,
+  Payout,
+  Program,
+  ProgramPayoutMode,
+  Project,
+} from "@prisma/client";
 
 const paymentMethodToCurrency = {
   sepa_debit: "eur",
   acss_debit: "cad",
 } as const;
+
+interface ProcessPayoutsProps {
+  workspace: Pick<
+    Project,
+    | "id"
+    | "stripeId"
+    | "plan"
+    | "invoicePrefix"
+    | "payoutsUsage"
+    | "payoutsLimit"
+    | "payoutFee"
+    | "webhookEnabled"
+  >;
+  program: Pick<
+    Program,
+    "id" | "name" | "logo" | "minPayoutAmount" | "supportEmail"
+  > & {
+    payoutMode: ProgramPayoutMode;
+  };
+  userId: string;
+  invoiceId: string;
+  paymentMethodId: string;
+  cutoffPeriod?: CUTOFF_PERIOD_TYPES;
+  selectedPayoutId?: string;
+  excludedPayoutIds?: string[];
+}
+
+interface ExtendedPayout
+  extends Pick<Payout, "id" | "amount" | "mode" | "periodStart" | "periodEnd"> {
+  partner: Pick<Partner, "email" | "payoutsEnabledAt">;
+}
 
 export async function processPayouts({
   workspace,
@@ -33,28 +72,7 @@ export async function processPayouts({
   cutoffPeriod,
   selectedPayoutId,
   excludedPayoutIds,
-}: {
-  workspace: Pick<
-    Project,
-    | "id"
-    | "stripeId"
-    | "plan"
-    | "invoicePrefix"
-    | "payoutsUsage"
-    | "payoutsLimit"
-    | "payoutFee"
-  >;
-  program: Pick<
-    Program,
-    "id" | "name" | "logo" | "minPayoutAmount" | "supportEmail"
-  >;
-  userId: string;
-  invoiceId: string;
-  paymentMethodId: string;
-  cutoffPeriod?: CUTOFF_PERIOD_TYPES;
-  selectedPayoutId?: string;
-  excludedPayoutIds?: string[];
-}) {
+}: ProcessPayoutsProps) {
   const cutoffPeriodValue = CUTOFF_PERIOD.find(
     (c) => c.id === cutoffPeriod,
   )?.value;
@@ -66,17 +84,7 @@ export async function processPayouts({
         : excludedPayoutIds && excludedPayoutIds.length > 0
           ? { id: { notIn: excludedPayoutIds } }
           : {}),
-      programId: program.id,
-      status: "pending",
-      invoiceId: null,
-      amount: {
-        gte: program.minPayoutAmount,
-      },
-      partner: {
-        payoutsEnabledAt: {
-          not: null,
-        },
-      },
+      ...getPayoutEligibilityFilter(program),
       ...(cutoffPeriodValue && {
         OR: [
           {
@@ -96,9 +104,11 @@ export async function processPayouts({
       amount: true,
       periodStart: true,
       periodEnd: true,
+      mode: true,
       partner: {
         select: {
           email: true,
+          payoutsEnabledAt: true,
         },
       },
     },
@@ -108,12 +118,62 @@ export async function processPayouts({
     return;
   }
 
-  const payoutAmount = payouts.reduce(
+  let invoice = await prisma.invoice.findUniqueOrThrow({
+    where: {
+      id: invoiceId,
+    },
+  });
+
+  let externalPayouts: ExtendedPayout[] = [];
+  let internalPayouts: ExtendedPayout[] = [];
+
+  if (invoice.payoutMode === "internal") {
+    internalPayouts = payouts;
+  } else if (invoice.payoutMode === "external") {
+    externalPayouts = payouts;
+  } else if (invoice.payoutMode === "hybrid") {
+    payouts.forEach((payout) => {
+      const payoutMode = getEffectivePayoutMode({
+        payoutMode: invoice.payoutMode,
+        payoutsEnabledAt: payout.partner.payoutsEnabledAt,
+      });
+
+      if (payoutMode === "external") {
+        externalPayouts.push(payout);
+      } else {
+        internalPayouts.push(payout);
+      }
+    });
+  }
+
+  // This is the total amount of payouts that will be processed (included external and internal payouts)
+  const totalPayoutAmount = payouts.reduce(
     (total, payout) => total + payout.amount,
     0,
   );
 
-  if (workspace.payoutsUsage + payoutAmount > workspace.payoutsLimit) {
+  const externalPayoutAmount = externalPayouts.reduce(
+    (total, payout) => total + payout.amount,
+    0,
+  );
+
+  console.log({
+    internalPayouts: internalPayouts.map((p) => {
+      return {
+        id: p.id,
+        amount: p.amount,
+      };
+    }),
+
+    externalPayouts: externalPayouts.map((p) => {
+      return {
+        id: p.id,
+        amount: p.amount,
+      };
+    }),
+  });
+
+  if (workspace.payoutsUsage + totalPayoutAmount > workspace.payoutsLimit) {
     throw new Error(
       exceededLimitError({
         plan: workspace.plan as PlanProps,
@@ -138,18 +198,12 @@ export async function processPayouts({
     `Using payout fee of ${payoutFee} for payment method ${paymentMethod.type}`,
   );
 
-  let invoice = await prisma.invoice.findUniqueOrThrow({
-    where: {
-      id: invoiceId,
-    },
-  });
-
   const fastAchFee =
     invoice.paymentMethod === "ach_fast" ? FAST_ACH_FEE_CENTS : 0;
   const currency = paymentMethodToCurrency[paymentMethod.type] || "usd";
-  const totalFee = Math.round(payoutAmount * payoutFee) + fastAchFee;
-  const total = payoutAmount + totalFee;
-  let convertedTotal = total;
+  const totalFee = Math.round(totalPayoutAmount * payoutFee) + fastAchFee;
+  const total = totalPayoutAmount + totalFee;
+  let totalToSend = total - externalPayoutAmount;
 
   // convert the amount to EUR/CAD if the payment method is sepa_debit or acss_debit
   if (["sepa_debit", "acss_debit"].includes(paymentMethod.type)) {
@@ -167,13 +221,15 @@ export async function processPayouts({
       );
     }
 
-    convertedTotal = Math.round(
-      (total / exchangeRate) * (1 + FOREX_MARKUP_RATE),
+    const convertedTotal = Math.round(
+      (totalToSend / exchangeRate) * (1 + FOREX_MARKUP_RATE),
     );
 
     console.log(
-      `Currency conversion: ${total} usd -> ${convertedTotal} ${currency} using exchange rate ${exchangeRate}.`,
+      `Currency conversion: ${totalToSend} usd -> ${convertedTotal} ${currency} using exchange rate ${exchangeRate}.`,
     );
+
+    totalToSend = convertedTotal;
   }
 
   // Update the invoice with the finalized payout amount, fee, and total
@@ -182,45 +238,72 @@ export async function processPayouts({
       id: invoiceId,
     },
     data: {
-      amount: payoutAmount,
+      amount: totalPayoutAmount,
+      externalAmount: externalPayoutAmount,
       fee: totalFee,
       total,
     },
   });
 
-  await stripe.paymentIntents.create({
-    amount: convertedTotal,
-    customer: workspace.stripeId!,
-    payment_method_types: [paymentMethod.type],
-    payment_method: paymentMethod.id,
-    ...(paymentMethod.type === "us_bank_account" && {
-      payment_method_options: {
-        us_bank_account: {
-          preferred_settlement_speed:
-            invoice.paymentMethod === "ach_fast" ? "fastest" : "standard",
+  await stripe.paymentIntents.create(
+    {
+      amount: totalToSend,
+      customer: workspace.stripeId!,
+      payment_method_types: [paymentMethod.type],
+      payment_method: paymentMethod.id,
+      ...(paymentMethod.type === "us_bank_account" && {
+        payment_method_options: {
+          us_bank_account: {
+            preferred_settlement_speed:
+              invoice.paymentMethod === "ach_fast" ? "fastest" : "standard",
+          },
+        },
+      }),
+      currency,
+      confirmation_method: "automatic",
+      confirm: true,
+      transfer_group: invoice.id,
+      statement_descriptor: "Dub Partners",
+      description: `Dub Partners payout invoice (${invoice.id})`,
+    },
+    {
+      idempotencyKey: `process-payout-invoice/${invoice.id}`,
+    },
+  );
+
+  // Mark internal payouts as processing
+  if (internalPayouts.length > 0) {
+    await prisma.payout.updateMany({
+      where: {
+        id: {
+          in: internalPayouts.map((p) => p.id),
         },
       },
-    }),
-    currency,
-    confirmation_method: "automatic",
-    confirm: true,
-    transfer_group: invoice.id,
-    statement_descriptor: "Dub Partners",
-    description: `Dub Partners payout invoice (${invoice.id})`,
-  });
-
-  await prisma.payout.updateMany({
-    where: {
-      id: {
-        in: payouts.map((p) => p.id),
+      data: {
+        invoiceId: invoice.id,
+        status: "processing",
+        userId,
+        mode: "internal",
       },
-    },
-    data: {
-      invoiceId: invoice.id,
-      status: "processing",
-      userId,
-    },
-  });
+    });
+  }
+
+  // Mark external payouts as processing
+  if (externalPayouts.length > 0) {
+    await prisma.payout.updateMany({
+      where: {
+        id: {
+          in: externalPayouts.map((p) => p.id),
+        },
+      },
+      data: {
+        invoiceId: invoice.id,
+        status: "processing",
+        userId,
+        mode: "external",
+      },
+    });
+  }
 
   await prisma.project.update({
     where: {
@@ -228,13 +311,13 @@ export async function processPayouts({
     },
     data: {
       payoutsUsage: {
-        increment: payoutAmount,
+        increment: totalPayoutAmount,
       },
     },
   });
 
   await log({
-    message: `*${program.name}* just sent a payout of *${currencyFormatter(payoutAmount / 100)}* :money_with_wings: \n\n Fees earned: *${currencyFormatter(totalFee / 100)} (${payoutFee * 100}%)* :money_mouth_face:`,
+    message: `*${program.name}* just sent a payout of *${currencyFormatter(totalPayoutAmount / 100)}* :money_with_wings: \n\n Fees earned: *${currencyFormatter(totalFee / 100)} (${payoutFee * 100}%)* :money_mouth_face:`,
     type: "payouts",
   });
 
@@ -247,6 +330,8 @@ export async function processPayouts({
       name: true,
     },
   });
+
+  const externalPayoutsMap = new Map(externalPayouts.map((p) => [p.id, p]));
 
   await recordAuditLog(
     payouts.map((payout) => ({
@@ -266,6 +351,7 @@ export async function processPayouts({
             ...payout,
             invoiceId: invoice.id,
             status: "processing",
+            mode: externalPayoutsMap.has(payout.id) ? "external" : "internal",
             userId,
           },
         },
@@ -277,10 +363,11 @@ export async function processPayouts({
   // This is because Direct Debit takes 4 business days to process, so we want to give partners a heads up
   if (
     invoice &&
+    internalPayouts.length > 0 &&
     DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(paymentMethod.type)
   ) {
     await queueBatchEmail<typeof PartnerPayoutConfirmed>(
-      payouts
+      internalPayouts
         .filter((payout) => payout.partner.email)
         .map((payout) => ({
           to: payout.partner.email!,
@@ -300,12 +387,13 @@ export async function processPayouts({
               amount: payout.amount,
               startDate: payout.periodStart,
               endDate: payout.periodEnd,
+              mode: "internal",
               paymentMethod: invoice.paymentMethod ?? "ach",
             },
           },
         })),
       {
-        deduplicationId: invoice.id,
+        idempotencyKey: `payout-confirmed-internal/${invoice.id}`,
       },
     );
   }

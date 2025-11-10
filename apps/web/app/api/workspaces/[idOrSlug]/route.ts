@@ -100,10 +100,10 @@ export const PATCH = withWorkspace(
       : undefined;
 
     const logoUploaded = logo
-      ? await storage.upload(
-          `workspaces/${prefixWorkspaceId(workspace.id)}/logo_${nanoid(7)}`,
-          logo,
-        )
+      ? await storage.upload({
+          key: `workspaces/${prefixWorkspaceId(workspace.id)}/logo_${nanoid(7)}`,
+          body: logo,
+        })
       : null;
 
     if (enforceSAML) {
@@ -174,7 +174,9 @@ export const PATCH = withWorkspace(
       waitUntil(
         (async () => {
           if (logoUploaded && workspace.logo) {
-            await storage.delete(workspace.logo.replace(`${R2_URL}/`, ""));
+            await storage.delete({
+              key: workspace.logo.replace(`${R2_URL}/`, ""),
+            });
           }
 
           // Sync the allowedHostnames cache for workspace domains

@@ -29,7 +29,9 @@ export function PartnerStats({
               : error
                 ? "-"
                 : undefined,
-            href: `/${slug}/events?event=clicks&partnerId=${partner?.id ?? ""}`,
+            href: partner?.id
+              ? `/${slug}/events?event=clicks&partnerId=${partner.id}&interval=1y`
+              : undefined,
           },
           {
             label: "Leads",
@@ -40,7 +42,9 @@ export function PartnerStats({
               : error
                 ? "-"
                 : undefined,
-            href: `/${slug}/events?event=leads&partnerId=${partner?.id ?? ""}`,
+            href: partner?.id
+              ? `/${slug}/events?event=leads&partnerId=${partner.id}&interval=1y`
+              : undefined,
           },
           {
             label: "Conversions",
@@ -51,7 +55,9 @@ export function PartnerStats({
               : error
                 ? "-"
                 : undefined,
-            href: `/${slug}/events?event=sales&partnerId=${partner?.id ?? ""}`,
+            href: partner?.id
+              ? `/${slug}/events?event=sales&partnerId=${partner.id}&interval=1y`
+              : undefined,
           },
           {
             label: "Revenue",
@@ -64,7 +70,9 @@ export function PartnerStats({
               : error
                 ? "-"
                 : undefined,
-            href: `/${slug}/events?event=sales&partnerId=${partner?.id ?? ""}`,
+            href: partner?.id
+              ? `/${slug}/events?event=sales&partnerId=${partner.id}&interval=1y`
+              : undefined,
           },
           {
             label: "Commissions",
@@ -75,7 +83,9 @@ export function PartnerStats({
               : error
                 ? "-"
                 : undefined,
-            href: `/${slug}/program/commissions?partnerId=${partner?.id ?? ""}`,
+            href: partner?.id
+              ? `/${slug}/program/commissions?partnerId=${partner.id}`
+              : undefined,
           },
           {
             label: "Net revenue",
@@ -86,13 +96,16 @@ export function PartnerStats({
               : error
                 ? "-"
                 : undefined,
-            href: `/${slug}/events?event=sales&partnerId=${partner?.id ?? ""}`,
+            href: partner?.id
+              ? `/${slug}/events?event=sales&partnerId=${partner.id}&interval=1y`
+              : undefined,
           },
         ].map(({ label, value, href }) => {
+          const As = href ? Link : "div";
           return (
-            <Link
+            <As
               key={label}
-              href={href}
+              href={href ?? "#"}
               target="_blank"
               className="flex flex-col bg-white p-3 transition-colors duration-150 hover:bg-neutral-50"
             >
@@ -104,7 +117,7 @@ export function PartnerStats({
                   {value}
                 </span>
               )}
-            </Link>
+            </As>
           );
         })}
       </div>

@@ -1,3 +1,4 @@
+import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
@@ -33,7 +34,10 @@ async function main() {
         in: linksToUpdate.map((link) => link.id),
       },
     },
-    include: includeTags,
+    include: {
+      ...includeTags,
+      ...includeProgramEnrollment,
+    },
   });
 
   const tbRes = await recordLink(updatedLinks);

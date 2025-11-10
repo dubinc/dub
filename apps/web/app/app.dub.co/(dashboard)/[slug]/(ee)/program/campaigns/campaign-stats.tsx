@@ -1,20 +1,21 @@
 "use client";
 
 import { useRouterStuff } from "@dub/ui";
-import { Icon, Users } from "@dub/ui/icons";
+import { Users } from "@dub/ui/icons";
 import { cn, nFormatter } from "@dub/utils";
 import { CampaignType } from "@prisma/client";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useMemo } from "react";
 import { CAMPAIGN_TYPE_BADGES } from "./campaign-type-badges";
+import { CampaignTypeIcon } from "./campaign-type-icon";
 import useCampaignsCount from "./use-campaigns-count";
 
 interface StatsFilterProps {
   label: string;
   href: string;
   count?: number;
-  icon: Icon;
+  icon: React.ReactNode;
   iconClassName?: string;
   error: boolean;
   active: boolean;
@@ -61,13 +62,13 @@ export function CampaignStats() {
         label="All"
         href={`/${slug}/program/campaigns`}
         count={totalCount}
-        icon={Users}
+        icon={<Users className="size-3.5" />}
         iconClassName="text-neutral-600 bg-neutral-100"
         error={!!error}
         active={searchParamsObj.type == undefined}
       />
       <StatsFilter
-        {...CAMPAIGN_TYPE_BADGES.marketing}
+        label={CAMPAIGN_TYPE_BADGES.marketing.label}
         href={
           queryParams({
             set: { type: "marketing" },
@@ -75,11 +76,12 @@ export function CampaignStats() {
           }) as string
         }
         count={marketingCount}
+        icon={<CampaignTypeIcon type="marketing" />}
         error={!!error}
         active={searchParamsObj.type === "marketing"}
       />
       <StatsFilter
-        {...CAMPAIGN_TYPE_BADGES.transactional}
+        label={CAMPAIGN_TYPE_BADGES.transactional.label}
         href={
           queryParams({
             set: { type: "transactional" },
@@ -87,6 +89,7 @@ export function CampaignStats() {
           }) as string
         }
         count={transactionalCount}
+        icon={<CampaignTypeIcon type="transactional" />}
         error={!!error}
         active={searchParamsObj.type === "transactional"}
       />
@@ -99,7 +102,7 @@ function StatsFilter({
   href,
   count,
   error,
-  icon: Icon,
+  icon,
   iconClassName,
   active,
 }: StatsFilterProps) {
@@ -112,14 +115,18 @@ function StatsFilter({
         )}
       >
         <div className="flex items-center gap-2">
-          <div
-            className={cn(
-              "flex size-6 items-center justify-center rounded-md",
-              iconClassName,
-            )}
-          >
-            <Icon className="size-3.5" />
-          </div>
+          {iconClassName ? (
+            <div
+              className={cn(
+                "flex size-6 items-center justify-center rounded-md",
+                iconClassName,
+              )}
+            >
+              {icon}
+            </div>
+          ) : (
+            icon
+          )}
           <div className="text-xs font-medium text-neutral-500">{label}</div>
         </div>
 

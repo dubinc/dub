@@ -1,5 +1,5 @@
 import { cn } from "@dub/utils";
-import { Command, CommandInput, CommandItem, useCommandState } from "cmdk";
+import { Command, useCommandState } from "cmdk";
 import { ChevronDown } from "lucide-react";
 import {
   forwardRef,
@@ -56,6 +56,7 @@ export type ComboboxProps<
   searchPlaceholder?: string;
   emptyState?: ReactNode;
   createLabel?: (search: string) => ReactNode;
+  createIcon?: Icon;
   onCreate?: (search: string) => Promise<boolean>;
   buttonProps?: ButtonProps;
   labelProps?: { className?: string };
@@ -96,6 +97,7 @@ export function Combobox({
   searchPlaceholder = "Search...",
   emptyState,
   createLabel,
+  createIcon: CreateIcon = Plus,
   onCreate,
   buttonProps,
   labelProps,
@@ -204,6 +206,35 @@ export function Combobox({
 
   useEffect(() => onSearchChange?.(search), [search]);
 
+  const createOptionItem = (
+    <Command.Item
+      className={cn(
+        "flex cursor-pointer items-center gap-3 whitespace-nowrap rounded-md px-3 py-2 text-left text-sm text-neutral-700",
+        "data-[selected=true]:bg-neutral-100",
+        optionClassName,
+      )}
+      onSelect={async () => {
+        setIsCreating(true);
+        const success = await onCreate?.(search);
+        if (success) {
+          setSearch("");
+          setIsOpen(false);
+        }
+        setIsCreating(false);
+      }}
+    >
+      {isCreating ? (
+        <LoadingSpinner className="size-4 shrink-0" />
+      ) : (
+        <CreateIcon className="size-4 shrink-0" />
+      )}
+      <div className="grow truncate">
+        {createLabel?.(search) ??
+          `Create ${search ? `"${search}"` : "new option..."}`}
+      </div>
+    </Command.Item>
+  );
+
   return (
     <Popover
       openPopover={isOpen}
@@ -229,7 +260,7 @@ export function Combobox({
           <Command loop shouldFilter={shouldFilter}>
             {!hideSearch && (
               <div className="flex items-center overflow-hidden rounded-t-lg border-b border-neutral-200">
-                <CommandInput
+                <Command.Input
                   placeholder={searchPlaceholder}
                   value={search}
                   onValueChange={setSearch}
@@ -256,7 +287,12 @@ export function Combobox({
                 )}
               </div>
             )}
-            <ScrollContainer className="max-h-[min(50vh,250px)]">
+            <ScrollContainer
+              className={cn(
+                "max-h-[min(50vh,250px)]",
+                onCreate && !multiple && "max-h-[calc(min(50vh,250px)-3.5rem)]",
+              )}
+            >
               <Command.List
                 className={cn("flex w-full min-w-[100px] flex-col gap-1 p-1")}
               >
@@ -283,33 +319,11 @@ export function Combobox({
                         />
                       );
                     })}
-                    {search.length > 0 && onCreate && (
-                      <CommandItem
-                        className={cn(
-                          "flex cursor-pointer items-center gap-3 whitespace-nowrap rounded-md px-3 py-2 text-left text-sm text-neutral-700",
-                          "data-[selected=true]:bg-neutral-100",
-                          optionClassName,
-                        )}
-                        onSelect={async () => {
-                          setIsCreating(true);
-                          const success = await onCreate?.(search);
-                          if (success) {
-                            setSearch("");
-                            setIsOpen(false);
-                          }
-                          setIsCreating(false);
-                        }}
-                      >
-                        {isCreating ? (
-                          <LoadingSpinner className="size-4 shrink-0" />
-                        ) : (
-                          <Plus className="size-4 shrink-0" />
-                        )}
-                        <div className="grow truncate">
-                          {createLabel?.(search) || `Create "${search}"`}
-                        </div>
-                      </CommandItem>
-                    )}
+                    {/* for multiple selection, the create option item is shown at the bottom of the list */}
+                    {onCreate &&
+                      multiple &&
+                      search.length > 0 &&
+                      createOptionItem}
                     {shouldFilter ? (
                       <Empty className="flex min-h-12 items-center justify-center text-sm text-neutral-500">
                         {emptyState ? emptyState : "No matches"}
@@ -330,6 +344,12 @@ export function Combobox({
                 )}
               </Command.List>
             </ScrollContainer>
+            {/* for single selection, the create option item is shown as a sticky item outside of the scroll container */}
+            {onCreate && !multiple && (
+              <div className="rounded-b-lg border-t border-neutral-200 bg-white p-1">
+                {createOptionItem}
+              </div>
+            )}
           </Command>
         </AnimatedSizeContainer>
       }

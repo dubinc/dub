@@ -1,6 +1,6 @@
+import { DIRECT_DEBIT_PAYMENT_METHOD_TYPES } from "@/lib/constants/payouts";
 import { CreditCard, GreekTemple } from "@dub/ui";
 import Stripe from "stripe";
-import { DIRECT_DEBIT_PAYMENT_METHOD_TYPES } from "../partners/constants";
 
 export const calculatePayoutFeeForMethod = ({
   paymentMethod,

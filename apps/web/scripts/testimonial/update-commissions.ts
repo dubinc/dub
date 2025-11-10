@@ -1,5 +1,5 @@
-import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
 import { serializeReward } from "@/lib/api/partners/serialize-reward";
+import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import "dotenv-flow/config";

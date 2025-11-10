@@ -11,11 +11,13 @@ import { usePartnerEarningsTimeseries } from "@/lib/swr/use-partner-earnings-tim
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { HeroBackground } from "@/ui/partners/hero-background";
+import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { ProgramRewardList } from "@/ui/partners/program-reward-list";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import {
   Button,
   buttonVariants,
+  StatusBadge,
   useCopyToClipboard,
   useRouterStuff,
 } from "@dub/ui";
@@ -26,10 +28,18 @@ import {
   TimeSeriesChart,
   XAxis,
 } from "@dub/ui/charts";
-import { Check, Copy, LoadingSpinner } from "@dub/ui/icons";
+import {
+  Check,
+  Copy,
+  CursorRays,
+  InvoiceDollar,
+  LoadingSpinner,
+  UserPlus,
+} from "@dub/ui/icons";
 import { cn, currencyFormatter, getPrettyUrl, nFormatter } from "@dub/utils";
 import NumberFlow, { NumberFlowGroup } from "@number-flow/react";
 import { LinearGradient } from "@visx/gradient";
+import { endOfDay, startOfDay } from "date-fns";
 import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -61,7 +71,7 @@ export default function ProgramPageClient() {
     false,
   );
 
-  const { programEnrollment } = useProgramEnrollment();
+  const { programEnrollment, showDetailedAnalytics } = useProgramEnrollment();
   const [copied, copyToClipboard] = useCopyToClipboard();
 
   const {
@@ -86,6 +96,8 @@ export default function ProgramPageClient() {
     link: defaultProgramLink,
   });
 
+  const isDeactivated = programEnrollment?.status === "deactivated";
+
   return (
     <PageWidthWrapper className="pb-10">
       {partnerLink && (
@@ -103,7 +115,12 @@ export default function ProgramPageClient() {
               }}
               className="overflow-hidden"
             >
-              <div className="relative z-0 mb-4 flex flex-col overflow-hidden rounded-lg border border-neutral-300 p-4 sm:mb-10 md:p-6">
+              <div
+                className={cn(
+                  "relative z-0 mb-4 flex flex-col overflow-hidden rounded-lg border border-neutral-300 p-4 sm:mb-10 md:p-6",
+                  isDeactivated && "opacity-80",
+                )}
+              >
                 {program && (
                   <HeroBackground
                     logo={program.logo}
@@ -120,40 +137,60 @@ export default function ProgramPageClient() {
                       type="text"
                       readOnly
                       value={getPrettyUrl(partnerLink)}
-                      className="border-border-default text-content-default focus:border-border-emphasis bg-bg-default h-10 min-w-0 shrink grow rounded-md border px-3 text-sm focus:outline-none focus:ring-neutral-500"
+                      disabled={isDeactivated}
+                      className={cn(
+                        "border-border-default text-content-default focus:border-border-emphasis bg-bg-default h-10 min-w-0 shrink grow rounded-md border px-3 text-sm focus:outline-none focus:ring-neutral-500",
+                        isDeactivated && "text-content-subtle cursor-default",
+                      )}
                     />
                   ) : (
                     <div className="h-10 w-16 animate-pulse rounded-md bg-neutral-200 lg:w-72" />
                   )}
-                  <Button
-                    icon={
-                      <div className="relative size-4">
-                        <div
-                          className={cn(
-                            "absolute inset-0 transition-[transform,opacity]",
-                            copied && "translate-y-1 opacity-0",
-                          )}
-                        >
-                          <Copy className="size-4" />
-                        </div>
-                        <div
-                          className={cn(
-                            "absolute inset-0 transition-[transform,opacity]",
-                            !copied && "translate-y-1 opacity-0",
-                          )}
-                        >
-                          <Check className="size-4" />
-                        </div>
-                      </div>
-                    }
-                    text={copied ? "Copied link" : "Copy link"}
-                    className="xs:w-fit"
-                    onClick={() => {
-                      if (partnerLink) {
-                        copyToClipboard(partnerLink);
-                      }
-                    }}
-                  />
+                  {isDeactivated
+                    ? (() => {
+                        const deactivatedBadge =
+                          PartnerStatusBadges.deactivated;
+                        return (
+                          <StatusBadge
+                            variant={deactivatedBadge.variant}
+                            icon={deactivatedBadge.icon}
+                            className="xs:w-fit absolute right-4 top-1/2 -translate-y-1/2 px-1.5 py-0.5"
+                          >
+                            {deactivatedBadge.label}
+                          </StatusBadge>
+                        );
+                      })()
+                    : !isDeactivated && (
+                        <Button
+                          icon={
+                            <div className="relative size-4">
+                              <div
+                                className={cn(
+                                  "absolute inset-0 transition-[transform,opacity]",
+                                  copied && "translate-y-1 opacity-0",
+                                )}
+                              >
+                                <Copy className="size-4" />
+                              </div>
+                              <div
+                                className={cn(
+                                  "absolute inset-0 transition-[transform,opacity]",
+                                  !copied && "translate-y-1 opacity-0",
+                                )}
+                              >
+                                <Check className="size-4" />
+                              </div>
+                            </div>
+                          }
+                          text={copied ? "Copied link" : "Copy link"}
+                          className="xs:w-fit"
+                          onClick={() => {
+                            if (partnerLink) {
+                              copyToClipboard(partnerLink);
+                            }
+                          }}
+                        />
+                      )}
                 </div>
 
                 {programEnrollment.group?.linkStructure === "query" && (
@@ -186,8 +223,8 @@ export default function ProgramPageClient() {
       )}
       <ProgramOverviewContext.Provider
         value={{
-          start: start ? new Date(start) : undefined,
-          end: end ? new Date(end) : undefined,
+          start: start ? startOfDay(new Date(start)) : undefined,
+          end: end ? endOfDay(new Date(end)) : undefined,
           interval,
           color: program?.brandColor ?? undefined,
         }}
@@ -200,17 +237,17 @@ export default function ProgramPageClient() {
 
             <PayoutsCard programId={program?.id} />
             <NumberFlowGroup>
-              {programSlug === "perplexity" ? (
-                <>
-                  <StatCardSimple title="Clicks" event="clicks" />
-                  <StatCardSimple title="Leads" event="leads" />
-                  <StatCardSimple title="Sales" event="sales" />
-                </>
-              ) : (
+              {showDetailedAnalytics ? (
                 <>
                   <StatCard title="Clicks" event="clicks" />
                   <StatCard title="Leads" event="leads" />
                   <StatCard title="Sales" event="sales" />
+                </>
+              ) : (
+                <>
+                  <StatCardSimple title="Clicks" event="clicks" />
+                  <StatCardSimple title="Leads" event="leads" />
+                  <StatCardSimple title="Sales" event="sales" />
                 </>
               )}
             </NumberFlowGroup>
@@ -409,27 +446,38 @@ function StatCardSimple({
     event: "composite",
   });
 
+  const iconMap = {
+    clicks: CursorRays,
+    leads: UserPlus,
+    sales: InvoiceDollar,
+  };
+
+  const Icon = iconMap[event];
+
   return (
-    <div className="group relative block rounded-lg border border-neutral-300 bg-white p-6">
-      <div className="flex flex-col items-center text-center">
-        <span className="mb-3 block text-sm font-medium text-neutral-600">
-          {title}
-        </span>
-        {total !== undefined ? (
-          <div className="flex items-center justify-center">
+    <div className="relative block rounded-lg border border-neutral-300 bg-white px-5 py-4">
+      <div className="flex items-center gap-4">
+        <div className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-neutral-100">
+          <Icon className="size-5 text-neutral-700" />
+        </div>
+        <div className="flex min-w-0 flex-1 flex-col">
+          <span className="block text-sm font-medium text-neutral-600">
+            {title}
+          </span>
+          {total !== undefined ? (
             <NumberFlow
-              className="text-3xl font-semibold text-neutral-900"
+              className="text-xl font-semibold text-neutral-900"
               value={total[event]}
               format={{
                 notation: total[event] > 999999 ? "compact" : "standard",
               }}
             />
-          </div>
-        ) : (
-          <div className="h-12 w-20 animate-pulse rounded-md bg-neutral-200" />
-        )}
+          ) : (
+            <div className="mt-0.5 h-7 w-12 animate-pulse rounded-md bg-neutral-200" />
+          )}
+        </div>
       </div>
-      <div className="absolute bottom-2 right-2 text-xs text-neutral-400">
+      <div className="absolute right-6 top-4 text-xs text-neutral-400">
         All-time data
       </div>
     </div>

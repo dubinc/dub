@@ -16,6 +16,8 @@ const sendPreviewEmailSchema = z
     campaignId: z.string(),
     workspaceId: z.string(),
     subject: z.string().min(1, "Email subject is required."),
+    preview: z.string().nullish(),
+    from: z.string().email().optional(),
     emailAddresses: z
       .array(z.string().email())
       .min(1)
@@ -31,7 +33,8 @@ export const sendCampaignPreviewEmail = authActionClient
   .schema(sendPreviewEmailSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const { campaignId, subject, bodyJson, emailAddresses } = parsedInput;
+    const { campaignId, subject, preview, from, bodyJson, emailAddresses } =
+      parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -47,10 +50,14 @@ export const sendCampaignPreviewEmail = authActionClient
       }),
     ]);
 
-    await sendBatchEmail(
+    const variant =
+      campaign.type === "marketing" ? "marketing" : "notifications";
+
+    const { error } = await sendBatchEmail(
       emailAddresses.map((email) => ({
-        variant: "notifications",
+        variant,
         to: email,
+        ...(from && { from: `${program.name} <${from}>` }),
         subject: `[TEST] ${subject}`,
         react: CampaignEmail({
           program: {
@@ -61,7 +68,7 @@ export const sendCampaignPreviewEmail = authActionClient
           },
           campaign: {
             type: campaign.type,
-            subject,
+            preview,
             body: renderCampaignEmailHTML({
               content: bodyJson as unknown as TiptapNode,
               variables: {
@@ -73,4 +80,8 @@ export const sendCampaignPreviewEmail = authActionClient
         }),
       })),
     );
+
+    if (error) {
+      throw new Error(error.message);
+    }
   });

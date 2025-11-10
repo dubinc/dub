@@ -1,4 +1,7 @@
-import { PROGRAM_ONBOARDING_PARTNERS_LIMIT } from "@/lib/partners/constants";
+import {
+  MAX_PROGRAM_CATEGORIES,
+  PROGRAM_ONBOARDING_PARTNERS_LIMIT,
+} from "@/lib/constants/program";
 import {
   Category,
   PartnerLinkStructure,
@@ -6,7 +9,7 @@ import {
 } from "@dub/prisma/client";
 import { z } from "zod";
 import { maxDurationSchema } from "./misc";
-import { MAX_PROGRAM_CATEGORIES, updateProgramSchema } from "./programs";
+import { updateProgramSchema } from "./programs";
 import {
   FLAT_REWARD_AMOUNT_SCHEMA,
   PERCENTAGE_REWARD_AMOUNT_SCHEMA,

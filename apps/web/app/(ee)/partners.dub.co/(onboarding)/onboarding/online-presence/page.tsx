@@ -83,12 +83,24 @@ async function OnlinePresenceFormRSC() {
       country={partner.country}
       partner={{
         ...partner,
-        ...(application?.website && !partner.website ? { website: application?.website } : {}),
-        ...(application?.tiktok && !partner.tiktok ? { tiktok: application?.tiktok } : {}),
-        ...(application?.youtube && !partner.youtube ? { youtube: application?.youtube } : {}),
-        ...(application?.twitter && !partner.twitter ? { twitter: application?.twitter } : {}),
-        ...(application?.linkedin && !partner.linkedin ? { linkedin: application?.linkedin } : {}),
-        ...(application?.instagram && !partner.instagram ? { instagram: application?.instagram } : {}),
+        ...(application?.website && !partner.website
+          ? { website: application?.website }
+          : {}),
+        ...(application?.tiktok && !partner.tiktok
+          ? { tiktok: application?.tiktok }
+          : {}),
+        ...(application?.youtube && !partner.youtube
+          ? { youtube: application?.youtube }
+          : {}),
+        ...(application?.twitter && !partner.twitter
+          ? { twitter: application?.twitter }
+          : {}),
+        ...(application?.linkedin && !partner.linkedin
+          ? { linkedin: application?.linkedin }
+          : {}),
+        ...(application?.instagram && !partner.instagram
+          ? { instagram: application?.instagram }
+          : {}),
       }}
     />
   );

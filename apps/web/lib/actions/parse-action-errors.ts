@@ -15,7 +15,8 @@ export const parseActionError = (
     if (error.validationErrors._errors) {
       return error.validationErrors._errors;
     }
-    console.log("error.validationErrors", error.validationErrors);
+
+    console.error("validationErrors", error.validationErrors);
 
     return Object.entries(error.validationErrors)
       .map(([_key, value]) => {

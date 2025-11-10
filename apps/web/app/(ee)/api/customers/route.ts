@@ -12,7 +12,7 @@ import {
   getCustomersQuerySchemaExtended,
 } from "@/lib/zod/schemas/customers";
 import { DiscountSchemaWithDeprecatedFields } from "@/lib/zod/schemas/discount";
-import { prisma } from "@dub/prisma";
+import { prisma, sanitizeFullTextSearch } from "@dub/prisma";
 import { nanoid, R2_URL } from "@dub/utils";
 import {
   Customer,
@@ -65,21 +65,20 @@ export const GET = withWorkspace(
           ? { email }
           : externalId
             ? { externalId }
-            : {
-                ...(search && {
-                  OR: [
-                    { email: { startsWith: search } },
-                    { externalId: { startsWith: search } },
-                    { name: { startsWith: search } },
-                  ],
-                }),
-                ...(country && {
-                  country,
-                }),
-                ...(linkId && {
-                  linkId,
-                }),
-              }),
+            : search
+              ? search.includes("@")
+                ? { email: search }
+                : {
+                    email: { search: sanitizeFullTextSearch(search) },
+                    name: { search: sanitizeFullTextSearch(search) },
+                  }
+              : {}),
+        ...(country && {
+          country,
+        }),
+        ...(linkId && {
+          linkId,
+        }),
       },
       orderBy: {
         [sortBy]: sortOrder,
@@ -166,14 +165,14 @@ export const POST = withWorkspace(
 
       if (avatar && !isStored(avatar) && finalCustomerAvatar) {
         waitUntil(
-          storage.upload(
-            finalCustomerAvatar.replace(`${R2_URL}/`, ""),
-            avatar,
-            {
+          storage.upload({
+            key: finalCustomerAvatar.replace(`${R2_URL}/`, ""),
+            body: avatar,
+            opts: {
               width: 128,
               height: 128,
             },
-          ),
+          }),
         );
       }
 

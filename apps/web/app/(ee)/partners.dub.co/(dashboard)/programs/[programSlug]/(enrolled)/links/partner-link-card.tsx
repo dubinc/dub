@@ -5,6 +5,7 @@ import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PartnerProfileLinkProps } from "@/lib/types";
 import { CommentsBadge } from "@/ui/links/comments-badge";
 import { DiscountCodeBadge } from "@/ui/partners/discounts/discount-code-badge";
+import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import {
   ArrowTurnRight2,
   Button,
@@ -14,7 +15,7 @@ import {
   InvoiceDollar,
   LinkLogo,
   LoadingSpinner,
-  SimpleTooltipContent,
+  StatusBadge,
   Tooltip,
   useInViewport,
   UserCheck,
@@ -30,7 +31,6 @@ import {
 } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
 import {
   ComponentProps,
   memo,
@@ -65,16 +65,20 @@ const CHARTS = [
 ];
 
 export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
-  const { programSlug } = useParams();
   const { programEnrollment } = useProgramEnrollment();
+  const { displayOption } = usePartnerLinksContext();
 
   const partnerLink = constructPartnerLink({
     group: programEnrollment?.group,
     link,
   });
 
+  const isDeactivated = programEnrollment?.status === "deactivated";
+
   return (
-    <CardList.Card innerClassName="px-0 py-0 group/card">
+    <CardList.Card
+      innerClassName={cn("px-0 py-0 group/card", isDeactivated && "opacity-80")}
+    >
       <div className="p-4">
         <div className="flex items-center justify-between gap-4">
           <div className="flex min-w-0 items-center gap-3">
@@ -93,59 +97,98 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
             <div className="flex min-w-0 flex-col">
               <div className="flex flex-col">
                 <div className="flex items-center gap-1">
-                  <div className="group/shortlink relative flex w-fit items-center gap-1 py-0 pl-1 pr-1.5 transition-colors duration-150 hover:rounded-lg hover:bg-neutral-100">
+                  <div
+                    className={cn(
+                      "group/shortlink relative flex w-fit items-center gap-1 py-0 pl-1 pr-1.5 transition-colors duration-150",
+                      !isDeactivated && "hover:rounded-lg hover:bg-neutral-100",
+                    )}
+                  >
                     <a
-                      href={partnerLink}
+                      href={isDeactivated ? undefined : partnerLink}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="truncate text-sm font-semibold leading-6 text-neutral-700 transition-colors hover:text-black"
+                      className={cn(
+                        "truncate text-sm font-semibold leading-6 transition-colors",
+                        isDeactivated
+                          ? "cursor-default text-neutral-400"
+                          : "text-neutral-700 hover:text-black",
+                      )}
+                      onClick={
+                        isDeactivated ? (e) => e.preventDefault() : undefined
+                      }
                     >
                       {getPrettyUrl(partnerLink)}
                     </a>
-                    <span className="flex items-center">
-                      <CopyButton
-                        value={partnerLink}
-                        variant="neutral"
-                        className="p-0.5 opacity-0 transition-opacity duration-150 group-hover/shortlink:opacity-100"
-                      />
-                    </span>
+                    {!isDeactivated && (
+                      <span className="flex items-center">
+                        <CopyButton
+                          value={partnerLink}
+                          variant="neutral"
+                          className="p-0.5 opacity-0 transition-opacity duration-150 group-hover/shortlink:opacity-100"
+                        />
+                      </span>
+                    )}
                   </div>
 
                   {link.comments && <CommentsBadge comments={link.comments} />}
                 </div>
 
                 {/* The max width implementation here is a bit hacky, we should improve in the future */}
-                <div className="group/desturl flex max-w-[100px] items-center gap-1 py-0 pl-1 pr-1.5 transition-colors duration-150 hover:rounded-lg hover:bg-neutral-100 sm:w-fit sm:max-w-[400px]">
+                <div
+                  className={cn(
+                    "group/desturl flex max-w-[100px] items-center gap-1 py-0 pl-1 pr-1.5 transition-colors duration-150 sm:w-fit sm:max-w-[400px]",
+                    !isDeactivated && "hover:rounded-lg hover:bg-neutral-100",
+                  )}
+                >
                   <ArrowTurnRight2 className="h-3 w-3 shrink-0 text-neutral-400" />
                   <a
-                    href={link.url}
+                    href={isDeactivated ? undefined : link.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="truncate text-sm text-neutral-500 transition-colors hover:text-neutral-700"
+                    className={cn(
+                      "truncate text-sm transition-colors",
+                      isDeactivated
+                        ? "cursor-default text-neutral-400"
+                        : "text-neutral-500 hover:text-neutral-700",
+                    )}
                     title={getPrettyUrl(link.url)}
+                    onClick={
+                      isDeactivated ? (e) => e.preventDefault() : undefined
+                    }
                   >
                     {getPrettyUrl(link.url)}
                   </a>
-                  <span className="flex items-center">
-                    <CopyButton
-                      value={link.url}
-                      variant="neutral"
-                      className="p-0.5 opacity-0 transition-opacity duration-150 group-hover/desturl:opacity-100"
-                    />
-                  </span>
+                  {!isDeactivated && (
+                    <span className="flex items-center">
+                      <CopyButton
+                        value={link.url}
+                        variant="neutral"
+                        className="p-0.5 opacity-0 transition-opacity duration-150 group-hover/desturl:opacity-100"
+                      />
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {isDeactivated &&
+              (() => {
+                const deactivatedBadge = PartnerStatusBadges.deactivated;
+                return (
+                  <StatusBadge
+                    variant={deactivatedBadge.variant}
+                    icon={deactivatedBadge.icon}
+                    className="px-1.5 py-0.5"
+                  >
+                    {deactivatedBadge.label}
+                  </StatusBadge>
+                );
+              })()}
             {link.discountCode && (
               <Tooltip
                 content={
-                  <SimpleTooltipContent
-                    title="This program supports discount code tracking. Copy the code to use it in podcasts, videos, etc."
-                    cta="Learn more"
-                    href="https://dub.co/help/article/dual-sided-incentives"
-                  />
+                  "This program supports discount code tracking. Copy the code to use it in podcasts, videos, etc. [Learn more](https://dub.co/help/article/dual-sided-incentives)"
                 }
               >
                 <div className="flex items-center gap-1.5 rounded-xl border border-neutral-200 py-1 pl-2 pr-1">
@@ -156,19 +199,24 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
                 </div>
               </Tooltip>
             )}
-            {programSlug == "perplexity" && <StatsBadge link={link} />}
+            {displayOption === "cards" && <StatsBadge link={link} />}
             <Controls link={link} />
           </div>
         </div>
       </div>
-      {programSlug !== "perplexity" && <StatsCharts link={link} />}
+      {displayOption === "full" && <StatsCharts link={link} />}
     </CardList.Card>
   );
 }
 
 const StatsBadge = memo(({ link }: { link: PartnerProfileLinkProps }) => {
+  const { programEnrollment, showDetailedAnalytics } = useProgramEnrollment();
+  const As = showDetailedAnalytics ? Link : "div";
   return (
-    <div className="flex items-center gap-0.5 rounded-md border border-neutral-200 bg-neutral-50 p-0.5 text-sm text-neutral-600">
+    <As
+      href={`/programs/${programEnrollment?.program.slug}/analytics?domain=${link.domain}&key=${link.key}`}
+      className="flex items-center gap-0.5 rounded-md border border-neutral-200 bg-neutral-50 p-0.5 text-sm text-neutral-600"
+    >
       {[
         {
           id: "clicks",
@@ -211,7 +259,7 @@ const StatsBadge = memo(({ link }: { link: PartnerProfileLinkProps }) => {
           </span>
         </div>
       ))}
-    </div>
+    </As>
   );
 });
 

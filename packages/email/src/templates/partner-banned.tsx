@@ -65,7 +65,7 @@ export default function PartnerBanned({
             </Text>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              If you wish to appeal this ban, please{" "}
+              If you have any questions, please{" "}
               <Link
                 href={`https://partners.dub.co/messages/${program.slug}`}
                 className="font-semibold text-neutral-700 underline underline-offset-2"

@@ -29,14 +29,14 @@ async function main() {
       const finalCustomerAvatar = `${R2_URL}/customers/${customer.id}/avatar_${nanoid(7)}`;
 
       try {
-        await storage.upload(
-          finalCustomerAvatar.replace(`${R2_URL}/`, ""),
-          customer.avatar,
-          {
+        await storage.upload({
+          key: finalCustomerAvatar.replace(`${R2_URL}/`, ""),
+          body: customer.avatar,
+          opts: {
             width: 128,
             height: 128,
           },
-        );
+        });
 
         const updatedCustomer = await prisma.customer.update({
           where: { id: customer.id },

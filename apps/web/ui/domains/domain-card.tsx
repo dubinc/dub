@@ -11,7 +11,6 @@ import {
   Button,
   CircleCheck,
   Copy,
-  NumberTooltip,
   Popover,
   Refresh2,
   StatusBadge,
@@ -36,6 +35,7 @@ import {
   fetcher,
   formatDate,
   nFormatter,
+  timeAgo,
 } from "@dub/utils";
 import { isPast } from "date-fns";
 import { Archive, ChevronDown, FolderInput, QrCode } from "lucide-react";
@@ -184,7 +184,22 @@ export default function DomainCard({ props }: { props: DomainProps }) {
 
             {/* Clicks */}
             <div className="hidden md:flex">
-              <NumberTooltip value={props.link?.clicks || 0}>
+              <Tooltip
+                content={
+                  <div className="block max-w-xs px-4 py-2 text-center text-sm text-neutral-700">
+                    <p className="text-sm font-semibold text-neutral-700">
+                      {nFormatter(props.link?.clicks || 0, { full: true })}{" "}
+                      clicks
+                    </p>
+                    {props.link?.lastClicked && (
+                      <p className="mt-1 text-xs text-neutral-500">
+                        Last clicked{" "}
+                        {timeAgo(props.link?.lastClicked, { withAgo: true })}
+                      </p>
+                    )}
+                  </div>
+                }
+              >
                 <Link
                   href={`/${slug}/analytics?domain=${domain}&key=_root`}
                   className="flex items-center space-x-1 whitespace-nowrap rounded-md border border-neutral-200 bg-neutral-50 px-3 py-1 transition-colors hover:bg-neutral-100"
@@ -195,7 +210,7 @@ export default function DomainCard({ props }: { props: DomainProps }) {
                     <span className="ml-1 hidden sm:inline-block">clicks</span>
                   </p>
                 </Link>
-              </NumberTooltip>
+              </Tooltip>
             </div>
 
             {/* Status */}

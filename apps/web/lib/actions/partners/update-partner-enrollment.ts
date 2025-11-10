@@ -1,6 +1,7 @@
 "use server";
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
@@ -46,6 +47,7 @@ export const updatePartnerEnrollmentAction = authActionClient
           tenantId,
         },
       });
+
       return await tx.programEnrollment.update({
         where: {
           partnerId_programId: where,
@@ -56,7 +58,7 @@ export const updatePartnerEnrollmentAction = authActionClient
         },
         include: {
           links: {
-            include: includeTags,
+            include: { ...includeTags, ...includeProgramEnrollment },
           },
         },
       });

@@ -81,6 +81,7 @@ export const GET = withWorkspace(
       interval,
       start,
       end,
+      timezone,
     });
 
     // Group by count

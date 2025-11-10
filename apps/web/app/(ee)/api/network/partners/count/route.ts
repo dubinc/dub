@@ -3,6 +3,7 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { withWorkspace } from "@/lib/auth";
 import { getNetworkPartnersCountQuerySchema } from "@/lib/zod/schemas/partner-network";
 import { prisma } from "@dub/prisma";
+import { Prisma } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 
 // GET /api/network/partners/count - get the number of available partners in the network
@@ -29,8 +30,8 @@ export const GET = withWorkspace(
     const { partnerIds, status, groupBy, country, starred } =
       getNetworkPartnersCountQuerySchema.parse(searchParams);
 
-    const commonWhere = {
-      // Removed discoverableAt filter to show all partners
+    const commonWhere: Prisma.PartnerWhereInput = {
+      discoverableAt: { not: null },
       ...(partnerIds && {
         id: { in: partnerIds },
       }),
@@ -43,17 +44,32 @@ export const GET = withWorkspace(
       discover: {
         programs: { none: { programId } },
         // Allow partners with no DiscoveredPartner record OR not ignored
-        OR: starred === true 
-          ? [{ discoveredByPrograms: { some: { programId, starredAt: { not: null } } } }]
-          : starred === false
-          ? [
-              { discoveredByPrograms: { none: { programId } } }, // No record yet
-              { discoveredByPrograms: { some: { programId, starredAt: null, ignoredAt: null } } }, // Not starred and not ignored
-            ]
-          : [
-              { discoveredByPrograms: { none: { programId } } }, // No record yet
-              { discoveredByPrograms: { some: { programId, ignoredAt: null } } }, // Has record but not ignored
-            ],
+        OR:
+          starred === true
+            ? [
+                {
+                  discoveredByPrograms: {
+                    some: { programId, starredAt: { not: null } },
+                  },
+                },
+              ]
+            : starred === false
+              ? [
+                  { discoveredByPrograms: { none: { programId } } }, // No record yet
+                  {
+                    discoveredByPrograms: {
+                      some: { programId, starredAt: null, ignoredAt: null },
+                    },
+                  }, // Not starred and not ignored
+                ]
+              : [
+                  { discoveredByPrograms: { none: { programId } } }, // No record yet
+                  {
+                    discoveredByPrograms: {
+                      some: { programId, ignoredAt: null },
+                    },
+                  }, // Has record but not ignored
+                ],
       },
       invited: {
         programs: { some: { programId, status: "invited" } },
@@ -120,6 +136,6 @@ export const GET = withWorkspace(
     throw new Error("Invalid groupBy");
   },
   {
-    requiredPlan: ["enterprise"],
+    requiredPlan: ["enterprise", "advanced"],
   },
 );

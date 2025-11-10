@@ -136,19 +136,25 @@ export const POST = withWorkspace(
       });
     }
 
-    const vercelResponse = await addDomainToVercel(slug);
+    // Add domain to Vercel if preview/production
+    if (process.env.VERCEL === "1") {
+      const vercelResponse = await addDomainToVercel(slug);
 
-    if (
-      vercelResponse.error &&
-      vercelResponse.error.code !== "domain_already_in_use" // ignore this error
-    ) {
-      return new Response(vercelResponse.error.message, { status: 422 });
+      if (
+        vercelResponse.error &&
+        vercelResponse.error.code !== "domain_already_in_use" // ignore this error
+      ) {
+        return new Response(vercelResponse.error.message, { status: 422 });
+      }
     }
 
     const domainId = createId({ prefix: "dom_" });
 
     const logoUploaded = logo
-      ? await storage.upload(`domains/${domainId}/logo_${nanoid(7)}`, logo)
+      ? await storage.upload({
+          key: `domains/${domainId}/logo_${nanoid(7)}`,
+          body: logo,
+        })
       : null;
 
     const domainRecord = await prisma.$transaction(

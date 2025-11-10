@@ -1,4 +1,4 @@
-import { FAST_ACH_FEE_CENTS } from "@/lib/partners/constants";
+import { FAST_ACH_FEE_CENTS } from "@/lib/constants/payouts";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@dub/prisma";
 import {

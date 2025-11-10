@@ -1,3 +1,5 @@
+import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
+import { includeTags } from "@/lib/api/links/include-tags";
 import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 import { recordLink } from "../lib/tinybird";
@@ -8,6 +10,10 @@ async function main() {
   const links = await prisma.link.findMany({
     where: {
       programId,
+    },
+    include: {
+      ...includeTags,
+      ...includeProgramEnrollment,
     },
   });
 

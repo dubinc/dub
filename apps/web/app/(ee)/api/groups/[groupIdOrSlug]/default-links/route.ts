@@ -8,7 +8,7 @@ import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import {
   createOrUpdateDefaultLinkSchema,
-  MAX_DEFAULT_PARTNER_LINKS,
+  MAX_DEFAULT_LINKS_PER_GROUP,
   PartnerGroupDefaultLinkSchema,
 } from "@/lib/zod/schemas/groups";
 import { prisma } from "@dub/prisma";
@@ -90,10 +90,10 @@ export const POST = withWorkspace(
           },
         });
 
-        if (count >= MAX_DEFAULT_PARTNER_LINKS) {
+        if (count >= MAX_DEFAULT_LINKS_PER_GROUP) {
           throw new DubApiError({
             code: "bad_request",
-            message: `You can't create more than ${MAX_DEFAULT_PARTNER_LINKS} default links for a group.`,
+            message: `You can't create more than ${MAX_DEFAULT_LINKS_PER_GROUP} default links for a group.`,
           });
         }
 

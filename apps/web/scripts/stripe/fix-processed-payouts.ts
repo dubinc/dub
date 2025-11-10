@@ -1,4 +1,4 @@
-import { MIN_WITHDRAWAL_AMOUNT_CENTS } from "@/lib/partners/constants";
+import { MIN_WITHDRAWAL_AMOUNT_CENTS } from "@/lib/constants/payouts";
 import { prisma } from "@dub/prisma";
 import { currencyFormatter } from "@dub/utils";
 import "dotenv-flow/config";

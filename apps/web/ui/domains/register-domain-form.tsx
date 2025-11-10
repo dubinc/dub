@@ -4,7 +4,6 @@ import {
   AnimatedSizeContainer,
   Button,
   buttonVariants,
-  SimpleTooltipContent,
   TooltipContent,
   useMediaQuery,
 } from "@dub/ui";
@@ -153,15 +152,7 @@ export function RegisterDomainForm({
             </p>
 
             {workspace.plan === "free" && variant === "modal" && (
-              <ProBadgeTooltip
-                content={
-                  <SimpleTooltipContent
-                    title="Search for a free .link domain to use for your short links."
-                    cta="Learn more."
-                    href="https://dub.co/help/article/free-dot-link-domain"
-                  />
-                }
-              />
+              <ProBadgeTooltip content="Search for a free .link domain to use for your short links. [Learn more.](https://dub.co/help/article/free-dot-link-domain)" />
             )}
           </div>
 
@@ -364,12 +355,7 @@ function UpgradeTooltipContent() {
   const { slug } = useWorkspace();
   return (
     <TooltipContent
-      title={
-        <>
-          You can only claim a free <span className="font-semibold">.link</span>{" "}
-          domain on a Pro plan and above.
-        </>
-      }
+      title="You can only claim a free `.link` domain on a Pro plan and above."
       cta="Upgrade to Pro"
       onClick={() => window.open(`/${slug}/upgrade`)}
     />

@@ -2,6 +2,7 @@ import { combineTagIds } from "@/lib/api/tags/combine-tag-ids";
 import { tb } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
 import { linkConstructor, punyEncode } from "@dub/utils";
+import { FolderAccessLevel } from "@prisma/client";
 import { decodeKeyIfCaseSensitive } from "../api/links/case-sensitivity";
 import { conn } from "../planetscale";
 import z from "../zod";
@@ -99,6 +100,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     start,
     end,
     dataAvailableFrom,
+    timezone,
   });
 
   if (qr) {
@@ -120,6 +122,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
             "top_link_tags",
             "top_domains",
             "top_partners",
+            "top_groups",
           ].includes(groupBy)
         ? "v3_group_by_link_metadata"
         : "v3_group_by",
@@ -278,10 +281,44 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
       .map((item) => {
         const folder = folders.find((f) => f.id === item.groupByField);
         if (!folder) return null;
+        return analyticsResponse.top_folders
+          .extend({
+            folder: analyticsResponse.top_folders.shape.folder.extend({
+              accessLevel: z.nativeEnum(FolderAccessLevel).nullish(),
+            }),
+          })
+          .parse({
+            ...item,
+            folderId: item.groupByField,
+            folder,
+          });
+      })
+      .filter((d) => d !== null);
+  } else if (groupBy === "top_groups") {
+    const groups = await prisma.partnerGroup.findMany({
+      where: {
+        id: {
+          in: response.data.map((item) => item.groupByField),
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        color: true,
+      },
+    });
+
+    return response.data
+      .map((item) => {
+        const group = groups.find((g) => g.id === item.groupByField);
+
+        if (!group) return null;
+
         return analyticsResponse[groupBy].parse({
           ...item,
-          folderId: item.groupByField,
-          folder,
+          groupId: item.groupByField,
+          group,
         });
       })
       .filter((d) => d !== null);

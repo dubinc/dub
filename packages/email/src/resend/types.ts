@@ -8,3 +8,5 @@ export interface ResendEmailOptions
 }
 
 export type ResendBulkEmailOptions = ResendEmailOptions[];
+
+export type { GetDomainResponseSuccess } from "resend";

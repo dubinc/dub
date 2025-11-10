@@ -1,14 +1,7 @@
 import { LinkFormData } from "@/ui/links/link-builder/link-builder-provider";
 import { useLinkBuilderKeyboardShortcut } from "@/ui/links/link-builder/use-link-builder-keyboard-shortcut";
 import { ProBadgeTooltip } from "@/ui/shared/pro-badge-tooltip";
-import {
-  Button,
-  Combobox,
-  Modal,
-  SimpleTooltipContent,
-  Tooltip,
-  UTM_PARAMETERS,
-} from "@dub/ui";
+import { Button, Combobox, Modal, Tooltip, UTM_PARAMETERS } from "@dub/ui";
 import { Crosshairs3, Trash } from "@dub/ui/icons";
 import {
   cn,
@@ -145,15 +138,7 @@ function TargetingModal({
                 <span className="block text-sm font-medium text-neutral-700">
                   Geo Targeting
                 </span>
-                <ProBadgeTooltip
-                  content={
-                    <SimpleTooltipContent
-                      title="Redirect your users to different links based on their location."
-                      cta="Learn more about geo targeting."
-                      href="https://dub.co/help/article/geo-targeting"
-                    />
-                  }
-                />
+                <ProBadgeTooltip content="Redirect your users to different links based on their location. [Learn more about geo targeting.](https://dub.co/help/article/geo-targeting)" />
               </div>
               <div className="mt-2">
                 {geo && (
@@ -291,15 +276,7 @@ function TargetingModal({
                 >
                   iOS Targeting
                 </label>
-                <ProBadgeTooltip
-                  content={
-                    <SimpleTooltipContent
-                      title="Redirect your iOS users to a different link."
-                      cta="Learn more about device targeting."
-                      href="https://dub.co/help/article/device-targeting"
-                    />
-                  }
-                />
+                <ProBadgeTooltip content="Redirect your iOS users to a different link. [Learn more about device targeting.](https://dub.co/help/article/device-targeting)" />
               </div>
               <div className="mt-2 rounded-md shadow-sm">
                 <input
@@ -331,15 +308,7 @@ function TargetingModal({
                 >
                   Android Targeting
                 </label>
-                <ProBadgeTooltip
-                  content={
-                    <SimpleTooltipContent
-                      title="Redirect your Android users to a different link."
-                      cta="Learn more about device targeting."
-                      href="https://dub.co/help/article/device-targeting"
-                    />
-                  }
-                />
+                <ProBadgeTooltip content="Redirect your Android users to a different link. [Learn more about device targeting.](https://dub.co/help/article/device-targeting)" />
               </div>
               <div className="mt-2 rounded-md shadow-sm">
                 <input

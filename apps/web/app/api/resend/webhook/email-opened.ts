@@ -1,7 +1,5 @@
 import { prisma } from "@dub/prisma";
 
-const NOTIFICATION_EMAIL_SUBJECT_KEYWORDS = ["bounty", "message"];
-
 export async function emailOpened({
   email_id: emailId,
   tags,
@@ -11,18 +9,7 @@ export async function emailOpened({
   tags?: Record<string, string>;
   subject?: string;
 }) {
-  // if none of the following conditions are met, ignore the email
-  // 1. the tags include "type" with the value "notification-email"
-  // 2. the subject contains one of the keywords (TODO remove this soon)
-  if (
-    !(
-      tags?.type === "notification-email" ||
-      (subject &&
-        NOTIFICATION_EMAIL_SUBJECT_KEYWORDS.some((keyword) =>
-          subject.includes(keyword),
-        ))
-    )
-  ) {
+  if (tags?.type !== "notification-email") {
     console.log(
       `Ignoring email.opened webhook for email ${emailId} because it's not a notification email...`,
     );
@@ -64,10 +51,14 @@ export async function emailOpened({
     });
 
     console.log(
-      `Updated notification email ${notificationEmail.id} with Resend email id ${emailId} to opened at ${new Date()}`,
+      `Updated notification email ${notificationEmail.id} with Resend email id ${emailId} to openedAt: ${notificationEmail.openedAt}`,
     );
 
-    if (!notificationEmail.programId || !notificationEmail.partnerId) {
+    if (
+      !notificationEmail.programId ||
+      !notificationEmail.partnerId ||
+      !notificationEmail.messageId
+    ) {
       return notificationEmail;
     }
 

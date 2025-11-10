@@ -7,6 +7,8 @@ import {
 } from "@/lib/api/links";
 import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
 import { bulkUpdateLinks } from "@/lib/api/links/bulk-update-links";
+import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
+import { includeTags } from "@/lib/api/links/include-tags";
 import { throwIfLinksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { checkIfLinksHaveFolders } from "@/lib/api/links/utils/check-if-links-have-folders";
 import { combineTagIds } from "@/lib/api/tags/combine-tag-ids";
@@ -445,7 +447,7 @@ export const PATCH = withWorkspace(
                 link.image.startsWith(`${R2_URL}/images/${link.id}`) &&
                 link.image !== data.image
               ) {
-                storage.delete(link.image.replace(`${R2_URL}/`, ""));
+                storage.delete({ key: link.image.replace(`${R2_URL}/`, "") });
               }
             }),
           );
@@ -507,11 +509,8 @@ export const DELETE = withWorkspace(
         ],
       },
       include: {
-        tags: {
-          select: {
-            tag: true,
-          },
-        },
+        ...includeTags,
+        ...includeProgramEnrollment,
       },
     });
 

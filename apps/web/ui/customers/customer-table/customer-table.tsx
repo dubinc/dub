@@ -294,8 +294,8 @@ export function CustomerTable() {
             onRemove={onRemove}
           />
           <SearchBoxPersisted
-            placeholder="Search by email, name, or external ID"
-            inputClassName="md:w-[21rem]"
+            placeholder="Search by email or name"
+            inputClassName="md:w-[16rem]"
           />
         </div>
         <AnimatedSizeContainer height>

@@ -2,12 +2,16 @@ import {
   DATE_RANGE_INTERVAL_PRESETS,
   DUB_PARTNERS_ANALYTICS_INTERVAL,
 } from "@/lib/analytics/constants";
-import { ALLOWED_MIN_PAYOUT_AMOUNTS } from "@/lib/partners/constants";
+import {
+  ALLOWED_MIN_PAYOUT_AMOUNTS,
+  PAYOUT_HOLDING_PERIOD_DAYS,
+} from "@/lib/constants/payouts";
 import {
   Category,
   EventType,
   PartnerBannedReason,
   ProgramEnrollmentStatus,
+  ProgramPayoutMode,
 } from "@dub/prisma/client";
 import { COUNTRY_CODES } from "@dub/utils";
 import { z } from "zod";
@@ -18,12 +22,6 @@ import { programApplicationFormDataWithValuesSchema } from "./program-applicatio
 import { RewardSchema } from "./rewards";
 import { UserSchema } from "./users";
 import { parseDateSchema } from "./utils";
-
-export const PROGRAM_SIMILARITY_SCORE_THRESHOLD = 0.3;
-
-export const HOLDING_PERIOD_DAYS = [0, 7, 14, 30, 60, 90];
-
-export const MAX_PROGRAM_CATEGORIES = 3;
 
 export const ProgramSchema = z.object({
   id: z.string(),
@@ -41,6 +39,7 @@ export const ProgramSchema = z.object({
   marketplaceEnabledAt: z.date().nullish(),
   messagingEnabledAt: z.date().nullish(),
   partnerNetworkEnabledAt: z.date().nullish(),
+  payoutMode: z.nativeEnum(ProgramPayoutMode).default("internal"),
   rewards: z.array(RewardSchema).nullish(),
   discounts: z.array(DiscountSchema).nullish(),
   categories: z.array(z.nativeEnum(Category)).nullish(),
@@ -61,8 +60,8 @@ export const updateProgramSchema = z.object({
   url: z.string().nullable(),
   holdingPeriodDays: z.coerce
     .number()
-    .refine((val) => HOLDING_PERIOD_DAYS.includes(val), {
-      message: `Holding period must be ${HOLDING_PERIOD_DAYS.join(", ")} days`,
+    .refine((val) => PAYOUT_HOLDING_PERIOD_DAYS.includes(val), {
+      message: `Holding period must be ${PAYOUT_HOLDING_PERIOD_DAYS.join(", ")} days`,
     }),
   minPayoutAmount: z.coerce
     .number()
@@ -90,7 +89,7 @@ export const ProgramPartnerLinkSchema = LinkSchema.pick({
 
 export const ProgramEnrollmentSchema = z.object({
   programId: z.string().describe("The program's unique ID on Dub."),
-  groupId: z.string().nullish().describe("The partner's group ID on Dub."), // TODO update to required after migration complete
+  groupId: z.string().nullish().describe("The partner's group ID on Dub."),
   partnerId: z.string().describe("The partner's unique ID on Dub."),
   tenantId: z
     .string()

@@ -1,6 +1,8 @@
 import { queueDomainDeletion } from "@/lib/api/domains/queue-domain-update";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
+import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
+import { includeTags } from "@/lib/api/links/include-tags";
 import { limiter } from "@/lib/cron/limiter";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { storage } from "@/lib/storage";
@@ -38,11 +40,8 @@ export async function POST(req: Request) {
         domain,
       },
       include: {
-        tags: {
-          select: {
-            tag: true,
-          },
-        },
+        ...includeTags,
+        ...includeProgramEnrollment,
       },
       take: 100,
       orderBy: {
@@ -68,7 +67,7 @@ export async function POST(req: Request) {
         .filter((link) => link.image?.startsWith(`${R2_URL}/images/${link.id}`))
         .map((link) =>
           limiter.schedule(() =>
-            storage.delete(link.image!.replace(`${R2_URL}/`, "")),
+            storage.delete({ key: link.image!.replace(`${R2_URL}/`, "") }),
           ),
         ),
 
@@ -128,7 +127,7 @@ export async function POST(req: Request) {
         },
       }),
       domainRecord.logo &&
-        storage.delete(domainRecord.logo.replace(`${R2_URL}/`, "")),
+        storage.delete({ key: domainRecord.logo.replace(`${R2_URL}/`, "") }),
     ]);
 
     return new Response(

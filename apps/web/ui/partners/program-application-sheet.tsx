@@ -4,10 +4,6 @@ import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { createProgramApplicationAction } from "@/lib/actions/partners/create-program-application";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { ProgramEnrollmentProps, ProgramProps } from "@/lib/types";
-import {
-  DEFAULT_PARTNER_GROUP,
-  PartnerProgramGroupSchema,
-} from "@/lib/zod/schemas/groups";
 import { createProgramApplicationSchema } from "@/lib/zod/schemas/programs";
 import { X } from "@/ui/shared/icons";
 import {
@@ -20,15 +16,16 @@ import {
   LoadingSpinner,
   Sheet,
 } from "@dub/ui";
-import { cn, fetcher, OG_AVATAR_URL } from "@dub/utils";
+import { cn, OG_AVATAR_URL } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { Dispatch, SetStateAction, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
-import useSWR, { mutate } from "swr";
+import { mutate } from "swr";
 import { z } from "zod";
 import { ProgramApplicationFormField } from "./groups/design/application-form/fields";
+import { formDataForApplicationFormData } from "./groups/design/application-form/form-data-for-application-form-data";
 
 interface ProgramApplicationSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
@@ -50,33 +47,16 @@ type FormData = Omit<
 
 function ProgramApplicationSheetContent({
   program,
-  programEnrollment,
-  backDestination = "programs",
   onSuccess,
 }: ProgramApplicationSheetProps) {
   const { partner } = usePartnerProfile();
-  const groupIdOrSlug =
-    programEnrollment?.groupId ||
-    program?.defaultGroupId ||
-    DEFAULT_PARTNER_GROUP.slug;
-
-  const {
-    data: group,
-    isLoading: isGroupLoading,
-    error: groupError,
-  } = useSWR<z.infer<typeof PartnerProgramGroupSchema>>(
-    groupIdOrSlug
-      ? `/api/partner-profile/programs/${program.id}/groups/${groupIdOrSlug}`
-      : null,
-    fetcher,
-    {
-      keepPreviousData: true,
-    },
-  );
 
   const form = useForm<FormData>({
     defaultValues: {
       termsAgreement: false,
+      formData: formDataForApplicationFormData(
+        program["group"].applicationFormData?.fields ?? [],
+      ),
     },
   });
 
@@ -95,7 +75,12 @@ function ProgramApplicationSheetContent({
   });
 
   const onSubmit = async (data: FormData) => {
-    if (!group || !program || !partner?.email || !partner.country) return;
+    if (!program || !partner?.email || !partner.country) {
+      toast.error(
+        "Submission failed due to missing partner email or country. Please contact support.",
+      );
+      return;
+    }
 
     const result = await executeAsync({
       // @ts-ignore
@@ -105,7 +90,6 @@ function ProgramApplicationSheetContent({
       name: partner.name,
       country: partner.country,
       programId: program.id,
-      groupId: group.id,
     });
 
     if (result?.serverError || result?.validationErrors) {
@@ -116,7 +100,7 @@ function ProgramApplicationSheetContent({
     }
   };
 
-  const fields = group?.applicationFormData?.fields || [];
+  const fields = program["group"].applicationFormData?.fields || [];
 
   return (
     <FormProvider {...form}>

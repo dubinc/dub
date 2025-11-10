@@ -1,10 +1,8 @@
 import { redirect } from "next/navigation";
 
-export default async function OldApplyPage(
-  props: {
-    params: Promise<{ programSlug: string; slug: string[] }>;
-  }
-) {
+export default async function OldApplyPage(props: {
+  params: Promise<{ programSlug: string; slug: string[] }>;
+}) {
   const params = await props.params;
   const { programSlug, slug } = params;
   if (slug && slug.includes("application")) {

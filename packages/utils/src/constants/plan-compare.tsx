@@ -323,7 +323,7 @@ export const PLAN_COMPARE_FEATURES: {
           advanced: true,
           enterprise: true,
         },
-        text: "Email campaigns (beta)",
+        text: "Email campaigns",
       },
       {
         check: {

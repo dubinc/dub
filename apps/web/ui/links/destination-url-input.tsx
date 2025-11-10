@@ -1,12 +1,7 @@
 "use client";
 
 import { DomainProps } from "@/lib/types";
-import {
-  InfoTooltip,
-  SimpleTooltipContent,
-  useMediaQuery,
-  UTM_PARAMETERS,
-} from "@dub/ui";
+import { InfoTooltip, useMediaQuery, UTM_PARAMETERS } from "@dub/ui";
 import { getParamsFromURL, getUrlFromString } from "@dub/utils";
 import { forwardRef, HTMLProps, ReactNode, useId } from "react";
 import { useFormContext } from "react-hook-form";
@@ -53,25 +48,9 @@ export const DestinationUrlInput = forwardRef<
               Destination URL
             </label>
             {key === "_root" ? (
-              <ProBadgeTooltip
-                content={
-                  <SimpleTooltipContent
-                    title="The URL your users will get redirected to when they visit your root domain link."
-                    cta="Learn more."
-                    href="https://dub.co/help/article/how-to-redirect-root-domain"
-                  />
-                }
-              />
+              <ProBadgeTooltip content="The URL your users will get redirected to when they visit your root domain link. [Learn more.](https://dub.co/help/article/how-to-redirect-root-domain)" />
             ) : (
-              <InfoTooltip
-                content={
-                  <SimpleTooltipContent
-                    title="The URL your users will get redirected to when they visit your short link."
-                    cta="Learn more."
-                    href="https://dub.co/help/article/how-to-create-link"
-                  />
-                }
-              />
+              <InfoTooltip content="The URL your users will get redirected to when they visit your short link. [Learn more.](https://dub.co/help/article/how-to-create-link)" />
             )}
           </div>
           {right}

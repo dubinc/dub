@@ -14,19 +14,13 @@ export const getProgramOrThrow = async ({
   const program = await prisma.program.findUnique({
     where: {
       id: programId,
-      workspaceId,
     },
-    ...(includeCategories && {
-      include: {
-        categories: true,
-      },
-    }),
   });
 
-  if (!program) {
+  if (!program || program.workspaceId !== workspaceId) {
     throw new DubApiError({
       code: "not_found",
-      message: "Program not found",
+      message: "Program not found.",
     });
   }
 

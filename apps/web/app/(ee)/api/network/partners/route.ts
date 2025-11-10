@@ -1,13 +1,13 @@
 import { getConversionScore } from "@/lib/actions/partners/get-conversion-score";
 import { DubApiError } from "@/lib/api/errors";
-import { calculatePartnerRanking } from "@/lib/api/network/partner-ranking";
+import { calculatePartnerRanking } from "@/lib/api/network/calculate-partner-ranking";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
+import { PROGRAM_SIMILARITY_SCORE_THRESHOLD } from "@/lib/constants/program";
 import {
   NetworkPartnerSchema,
   getNetworkPartnersQuerySchema,
 } from "@/lib/zod/schemas/partner-network";
-import { PROGRAM_SIMILARITY_SCORE_THRESHOLD } from "@/lib/zod/schemas/programs";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -28,7 +28,10 @@ export const GET = withWorkspace(
               gt: PROGRAM_SIMILARITY_SCORE_THRESHOLD,
             },
           },
-          take: 5,
+          orderBy: {
+            similarityScore: "desc",
+          },
+          take: 10,
         },
       },
     });
@@ -48,6 +51,7 @@ export const GET = withWorkspace(
       similarityScore: sp.similarityScore,
     }));
 
+    console.time("calculatePartnerRanking");
     const partners = await calculatePartnerRanking({
       programId,
       partnerIds,
@@ -58,6 +62,7 @@ export const GET = withWorkspace(
       starred: starred ?? undefined,
       similarPrograms,
     });
+    console.timeEnd("calculatePartnerRanking");
 
     return NextResponse.json(
       z.array(NetworkPartnerSchema).parse(
@@ -75,6 +80,6 @@ export const GET = withWorkspace(
     );
   },
   {
-    requiredPlan: ["enterprise"],
+    requiredPlan: ["enterprise", "advanced"],
   },
 );

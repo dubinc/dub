@@ -60,24 +60,22 @@ model Partner {
   invoiceSettings              Json?
   changeHistoryLog             Json?
 
-  programs           ProgramEnrollment[]
-  users              PartnerUser[]
-  invites            PartnerInvite[]
-  payouts            Payout[]
-  commissions        Commission[]
-  bountySubmissions  BountySubmission[]
-  messages           Message[]
-  sentMessages       Message[]           @relation("SenderPartner")
-  comments           PartnerComment[]
-  discountCodes      DiscountCode[]
-  notificationEmails NotificationEmail[]
-
+  programs                   ProgramEnrollment[]
+  users                      PartnerUser[]
+  invites                    PartnerInvite[]
+  payouts                    Payout[]
+  commissions                Commission[]
+  bountySubmissions          BountySubmission[]
+  messages                   Message[]
+  sentMessages               Message[]                          @relation("SenderPartner")
+  comments                   PartnerComment[]
+  discountCodes              DiscountCode[]
+  notificationEmails         NotificationEmail[]
   monthlyTraffic             MonthlyTraffic?
   industryInterests          PartnerIndustryInterest[]
   preferredEarningStructures PartnerPreferredEarningStructure[]
   salesChannels              PartnerSalesChannel[]
-
-  discoveredByPrograms DiscoveredPartner[]
+  discoveredByPrograms       DiscoveredPartner[]
 
   @@index(discoverableAt)
   @@index(country)

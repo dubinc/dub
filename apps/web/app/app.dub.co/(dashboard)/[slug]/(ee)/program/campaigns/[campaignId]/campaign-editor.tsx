@@ -1,5 +1,7 @@
 import { uploadEmailImageAction } from "@/lib/actions/partners/upload-email-image";
+import { CAMPAIGN_READONLY_STATUSES } from "@/lib/api/campaigns/constants";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
+import { useEmailDomains } from "@/lib/swr/use-email-domains";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Campaign, UpdateCampaignFormData } from "@/lib/types";
@@ -13,13 +15,25 @@ import {
   Lock,
   PaperPlane,
   RichTextArea,
+  RichTextProvider,
+  RichTextToolbar,
+  SmartDateTimePicker,
   StatusBadge,
   Tooltip,
+  TooltipContent,
   useKeyboardShortcut,
 } from "@dub/ui";
+import { capitalize, cn } from "@dub/utils";
+import { motion } from "motion/react";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
-import { useCallback, useEffect, useRef } from "react";
+import {
+  PropsWithChildren,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useDebouncedCallback } from "use-debounce";
@@ -33,7 +47,7 @@ import { TransactionalCampaignLogic } from "./transactional-campaign-logic";
 import { isValidTriggerCondition } from "./utils";
 
 const inputClassName =
-  "hover:border-border-subtle h-8 w-full rounded-md transition-colors duration-150 focus:border-black/75 border focus:ring-black/75 border-transparent px-1.5 py-0 text-sm text-content-default placeholder:text-content-muted hover:bg-neutral-100 hover:cursor-pointer";
+  "hover:border-border-subtle h-8 w-full rounded-md transition-colors duration-150 focus:border-black/75 border focus:ring-black/75 border-transparent px-1.5 py-0 sm:text-sm text-content-default placeholder:text-content-muted hover:bg-neutral-100 hover:cursor-pointer";
 
 const labelClassName = "text-sm font-medium text-content-subtle";
 
@@ -66,11 +80,22 @@ const DisabledInputWrapper = ({
   );
 };
 
+const statusMessages = {
+  sending: "Edits aren't allowed while sending.",
+  sent: "Edits aren't allowed after sending.",
+  canceled: "Edits aren't allowed after cancellation.",
+};
+
 export function CampaignEditor({ campaign }: { campaign: Campaign }) {
   const { program } = useProgram();
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
+  const { emailDomains } = useEmailDomains();
+  const firstVerifiedEmailDomain = emailDomains?.find(
+    (domain) => domain.status === "verified",
+  );
 
   const isActive = campaign.status === CampaignStatus.active;
+  const isReadOnly = CAMPAIGN_READONLY_STATUSES.includes(campaign.status);
 
   const { makeRequest, isSubmitting: isSavingCampaign } =
     useApiMutation<Campaign>();
@@ -79,9 +104,12 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
     defaultValues: {
       name: campaign.name,
       subject: campaign.subject,
+      preview: campaign.preview,
+      from: campaign.from ?? undefined,
       bodyJson: campaign.bodyJson,
       groupIds: campaign.groups.map(({ id }) => id),
       triggerCondition: campaign.triggerCondition,
+      scheduledAt: campaign.scheduledAt,
     },
   });
 
@@ -93,6 +121,26 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
     reset,
     formState: { dirtyFields },
   } = form;
+
+  const previewInputRef = useRef<HTMLInputElement>(null);
+
+  const [showPreviewText, setShowPreviewText] = useState(
+    Boolean(campaign.preview),
+  );
+
+  // Show preview text when preview is set
+  useEffect(() => {
+    const { unsubscribe } = watch(({ preview }) => {
+      if (preview) setShowPreviewText(true);
+    });
+    return () => unsubscribe();
+  }, [watch]);
+
+  // Focus preview input when opened
+  useEffect(() => {
+    if (showPreviewText && !getValues("preview"))
+      previewInputRef.current?.focus();
+  }, [showPreviewText, getValues]);
 
   const saveCampaign = useCallback(
     async ({ isDraft = false }: { isDraft?: boolean }) => {
@@ -137,10 +185,8 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
               toast.success("Campaign saved successfully!");
             }
           },
-          onError: () => {
-            toast.error(
-              `Failed to save the ${isDraft ? "draft " : ""}campaign.`,
-            );
+          onError: (error) => {
+            toast.error(error);
           },
         });
       }
@@ -199,6 +245,11 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
   const statusBadge = CAMPAIGN_STATUS_BADGES[campaign.status];
 
   const editorRef = useRef<{ setContent: (content: any) => void }>(null);
+  const previewInputProps = register("preview", {
+    onBlur: (e) => {
+      if (!e.target.value) setShowPreviewText(false);
+    },
+  });
 
   return (
     <FormProvider {...form}>
@@ -219,13 +270,14 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
               <span className="min-w-0 truncate text-lg font-semibold leading-7 text-neutral-900">
                 {campaign.status === CampaignStatus.draft ? (
                   <>
-                    New <span className="hidden sm:inline">transactional</span>{" "}
+                    New{" "}
+                    <span className="hidden sm:inline">{campaign.type}</span>{" "}
                     email
                   </>
                 ) : (
                   <>
                     <span className="hidden sm:inline">
-                      Transactional email
+                      {capitalize(campaign.type)} email
                     </span>
                     <span className="inline sm:hidden">Email</span>
                   </>
@@ -239,7 +291,7 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
         }
         controls={<CampaignControls campaign={campaign} />}
         sidePanel={
-          campaign.status !== CampaignStatus.draft
+          !["draft", "scheduled"].includes(campaign.status)
             ? {
                 title: "Metrics",
                 content: (
@@ -248,22 +300,86 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
                     <CampaignEvents />
                   </div>
                 ),
-                defaultOpen: campaign.status === CampaignStatus.active,
+                defaultOpen: ["active", "sending", "sent"].includes(
+                  campaign.status,
+                ),
               }
             : undefined
         }
         individualScrolling
         contentWrapperClassName="flex flex-col"
       >
-        <PageWidthWrapper className="mb-8 mt-6 max-w-[600px]">
-          <div className="grid grid-cols-[max-content_minmax(0,1fr)] items-center gap-x-6 gap-y-2">
-            <label className="contents">
-              <span className={labelClassName}>Name</span>
+        <PageWidthWrapper className="mb-8 max-w-[600px]">
+          <div className="grid grid-cols-[max-content_minmax(0,1fr)] items-center gap-x-6 [&>*:nth-child(n+2)]:mt-2">
+            <span className={labelClassName}>Name</span>
+            <DisabledInputWrapper
+              tooltip={isReadOnly ? statusMessages[campaign.status] : ""}
+              disabled={isReadOnly}
+              hideIcon={true}
+            >
               <input
                 type="text"
                 placeholder="Enter a name..."
                 className={inputClassName}
+                disabled={isReadOnly}
                 {...register("name")}
+              />
+            </DisabledInputWrapper>
+
+            <label className="contents">
+              <span className={labelClassName}>From</span>
+              <Controller
+                control={control}
+                name="from"
+                render={({ field }) => {
+                  const localPart = field.value?.split("@")[0] || "";
+                  const domainSuffix = firstVerifiedEmailDomain?.slug
+                    ? `@${firstVerifiedEmailDomain.slug}`
+                    : "";
+                  const isDisabled = isReadOnly || !firstVerifiedEmailDomain;
+
+                  return (
+                    <DisabledInputWrapper
+                      tooltip={
+                        isReadOnly ? (
+                          statusMessages[campaign.status]
+                        ) : !firstVerifiedEmailDomain ? (
+                          <TooltipContent
+                            title="You haven't configured an email domain yet. Please configure an email domain to enable campaign sending."
+                            cta="Configure email domain"
+                            href={`/${workspaceSlug}/settings/domains/email`}
+                            target="_blank"
+                          />
+                        ) : undefined
+                      }
+                      disabled={isDisabled}
+                      hideIcon={true}
+                    >
+                      <div
+                        className={`flex items-center gap-1 ${inputClassName} ${isDisabled ? "cursor-not-allowed opacity-80" : ""}`}
+                      >
+                        <input
+                          type="text"
+                          placeholder="Address"
+                          className="text-content-default placeholder:text-content-muted min-w-0 flex-1 border-0 bg-transparent p-0 focus:outline-none focus:ring-0 sm:text-sm"
+                          disabled={isDisabled}
+                          value={localPart}
+                          onChange={(e) => {
+                            const newLocalPart = e.target.value;
+                            if (firstVerifiedEmailDomain?.slug) {
+                              field.onChange(
+                                `${newLocalPart}@${firstVerifiedEmailDomain.slug}`,
+                              );
+                            }
+                          }}
+                        />
+                        <span className="text-content-muted shrink-0 text-sm">
+                          {domainSuffix}
+                        </span>
+                      </div>
+                    </DisabledInputWrapper>
+                  );
+                }}
               />
             </label>
 
@@ -273,8 +389,13 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
               name="groupIds"
               render={({ field }) => (
                 <DisabledInputWrapper
-                  tooltip="Cannot change recipients while campaign is active. Pause the campaign to make changes."
-                  disabled={isActive}
+                  tooltip={
+                    isReadOnly
+                      ? statusMessages[campaign.status]
+                      : "Cannot change recipients while campaign is active. Pause the campaign to make changes."
+                  }
+                  disabled={isActive || isReadOnly}
+                  hideIcon={isReadOnly}
                 >
                   <CampaignGroupsSelector
                     selectedGroupIds={field.value ?? null}
@@ -284,22 +405,97 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
               )}
             />
 
-            <label className="contents">
-              <span className={labelClassName}>Subject</span>
+            {campaign.type === "marketing" && (
+              <>
+                <span className={labelClassName}>When</span>
+                <Controller
+                  control={control}
+                  name="scheduledAt"
+                  render={({ field }) => (
+                    <DisabledInputWrapper
+                      tooltip={
+                        isReadOnly ? statusMessages[campaign.status] : undefined
+                      }
+                      disabled={isReadOnly}
+                      hideIcon={true}
+                    >
+                      <SmartDateTimePicker
+                        value={field.value}
+                        onChange={field.onChange}
+                        placeholder='E.g. "tomorrow at 5pm" or "in 2 hours"'
+                        className="[&>div]:hover:border-border-subtle [&>div]:mt-0 [&>div]:h-8 [&>div]:min-h-8 [&>div]:border-transparent [&>div]:shadow-none [&>div]:focus-within:border-black/75 [&>div]:focus-within:ring-black/75 [&>div]:hover:cursor-pointer [&>div]:hover:bg-neutral-100"
+                      />
+                    </DisabledInputWrapper>
+                  )}
+                />
+              </>
+            )}
+
+            <span className={labelClassName}>Subject</span>
+            <DisabledInputWrapper
+              tooltip={isReadOnly ? statusMessages[campaign.status] : ""}
+              disabled={isReadOnly}
+              hideIcon={true}
+            >
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Enter a subject..."
+                  className={cn(
+                    inputClassName,
+                    !isReadOnly && !showPreviewText && "pr-24",
+                  )}
+                  disabled={isReadOnly}
+                  {...register("subject")}
+                />
+                {!isReadOnly && (
+                  <div className="absolute right-0 top-1/2 -translate-y-1/2">
+                    <button
+                      type="button"
+                      onClick={() => setShowPreviewText(true)}
+                      className={cn(
+                        "text-content-subtle hover:text-content-default px-2 py-1 text-sm font-medium",
+                        "transition-[transform,opacity] duration-150 ease-out",
+                        showPreviewText && "translate-y-1 opacity-0",
+                      )}
+                      inert={showPreviewText}
+                    >
+                      Preview text
+                    </button>
+                  </div>
+                )}
+              </div>
+            </DisabledInputWrapper>
+
+            <ConditionalColumn show={showPreviewText}>
+              <span className={cn(labelClassName, "flex h-8 items-center")}>
+                Preview
+              </span>
+            </ConditionalColumn>
+            <ConditionalColumn show={showPreviewText}>
               <input
                 type="text"
-                placeholder="Enter a subject..."
+                placeholder="Enter preview text..."
                 className={inputClassName}
-                {...register("subject")}
+                disabled={isReadOnly}
+                {...previewInputProps}
+                ref={(e) => {
+                  previewInputProps.ref(e);
+                  previewInputRef.current = e;
+                }}
               />
-            </label>
+            </ConditionalColumn>
 
             {campaign.type === "transactional" && (
               <>
                 <span className={labelClassName}>Logic</span>
                 <DisabledInputWrapper
-                  tooltip="Cannot change trigger logic while campaign is active. Pause the campaign to make changes."
-                  disabled={isActive}
+                  tooltip={
+                    isReadOnly
+                      ? statusMessages[campaign.status]
+                      : "Cannot change trigger logic while campaign is active. Pause the campaign to make changes."
+                  }
+                  disabled={isActive || isReadOnly}
                 >
                   <TransactionalCampaignLogic />
                 </DisabledInputWrapper>
@@ -312,12 +508,15 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
               control={control}
               name="bodyJson"
               render={({ field }) => (
-                <RichTextArea
+                <RichTextProvider
                   ref={editorRef}
                   editorClassName="-m-2 min-h-[200px] p-2"
                   initialValue={field.value}
                   onChange={(editor) => field.onChange(editor.getJSON())}
                   variables={[...EMAIL_TEMPLATE_VARIABLES]}
+                  editable={
+                    campaign.type === "marketing" ? !isReadOnly : !isActive
+                  }
                   uploadImage={async (file) => {
                     try {
                       const result = await executeImageUpload({
@@ -351,7 +550,12 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
 
                     return null;
                   }}
-                />
+                >
+                  <div className="flex flex-col gap-4">
+                    <RichTextToolbar />
+                    <RichTextArea />
+                  </div>
+                </RichTextProvider>
               )}
             />
           </div>
@@ -391,3 +595,23 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
     </FormProvider>
   );
 }
+
+const ConditionalColumn = ({
+  show,
+  children,
+}: PropsWithChildren<{ show: boolean }>) => {
+  return (
+    <motion.div
+      initial={false}
+      animate={{ height: show ? "auto" : 0 }}
+      transition={{ duration: 0.15, ease: "easeOut" }}
+      className={cn(
+        "transition-[margin,opacity] duration-150",
+        !show && "!mt-0 opacity-0",
+      )}
+      inert={!show}
+    >
+      {children}
+    </motion.div>
+  );
+};

@@ -32,10 +32,6 @@ const states: Record<
     title: "Program unavailable",
     description: "You have been banned from this program.",
   }),
-  deactivated: () => ({
-    title: "Partnership deactivated",
-    description: "Your partnership has been deactivated.",
-  }),
   rejected: () => ({
     title: "Application rejected",
     description: "Your application has been rejected.",
@@ -90,9 +86,7 @@ export function UnapprovedProgramPage({
           </h2>
           <p className="text-content-subtle [&_strong]:text-content-default mt-2 max-w-sm text-balance text-sm font-medium [&_strong]:font-semibold">
             {description}{" "}
-            {["banned", "deactivated", "rejected"].includes(
-              programEnrollment.status,
-            ) && (
+            {["banned", "rejected"].includes(programEnrollment.status) && (
               <>
                 <Link
                   href={`/messages/${programEnrollment.program.slug}`}

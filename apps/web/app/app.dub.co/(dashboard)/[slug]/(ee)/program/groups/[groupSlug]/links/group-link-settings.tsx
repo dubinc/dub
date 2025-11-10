@@ -8,13 +8,7 @@ import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { GroupProps } from "@/lib/types";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
-import {
-  Badge,
-  Button,
-  InfoTooltip,
-  SimpleTooltipContent,
-  UTMBuilder,
-} from "@dub/ui";
+import { Badge, Button, InfoTooltip, UTMBuilder } from "@dub/ui";
 import { CircleCheckFill } from "@dub/ui/icons";
 import { cn, deepEqual } from "@dub/utils";
 import { PropsWithChildren, useState } from "react";
@@ -308,11 +302,9 @@ function SettingsRow({
           {titleInfo && (
             <InfoTooltip
               content={
-                <SimpleTooltipContent
-                  title={titleInfo?.title}
-                  cta="Learn more."
-                  href={titleInfo?.href}
-                />
+                titleInfo?.href
+                  ? `${titleInfo.title} [Learn more.](${titleInfo.href})`
+                  : titleInfo?.title
               }
             />
           )}

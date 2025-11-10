@@ -4,7 +4,6 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { isStored, storage } from "@/lib/storage";
-import { programLanderSchema } from "@/lib/zod/schemas/program-lander";
 import { prisma } from "@dub/prisma";
 import { nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -19,7 +18,6 @@ const schema = updateProgramSchema.partial().extend({
   logo: z.string().nullish(),
   wordmark: z.string().nullish(),
   brandColor: z.string().nullish(),
-  landerData: programLanderSchema.nullish(),
 });
 
 export const updateProgramAction = authActionClient
@@ -31,7 +29,6 @@ export const updateProgramAction = authActionClient
       logo,
       wordmark,
       brandColor,
-      landerData: landerDataInput,
       domain,
       url,
       supportEmail,
@@ -43,6 +40,7 @@ export const updateProgramAction = authActionClient
     } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
+
     const program = await getProgramOrThrow({
       workspaceId: workspace.id,
       programId,
@@ -51,12 +49,18 @@ export const updateProgramAction = authActionClient
     const [logoUrl, wordmarkUrl] = await Promise.all([
       logo && !isStored(logo)
         ? storage
-            .upload(`programs/${programId}/logo_${nanoid(7)}`, logo)
+            .upload({
+              key: `programs/${programId}/logo_${nanoid(7)}`,
+              body: logo,
+            })
             .then(({ url }) => url)
         : null,
       wordmark && !isStored(wordmark)
         ? storage
-            .upload(`programs/${programId}/wordmark_${nanoid(7)}`, wordmark)
+            .upload({
+              key: `programs/${programId}/wordmark_${nanoid(7)}`,
+              body: wordmark,
+            })
             .then(({ url }) => url)
         : null,
     ]);
@@ -86,10 +90,14 @@ export const updateProgramAction = authActionClient
       Promise.allSettled([
         // Delete old logo/wordmark if they were updated
         ...(logoUrl && program.logo
-          ? [storage.delete(program.logo.replace(`${R2_URL}/`, ""))]
+          ? [storage.delete({ key: program.logo.replace(`${R2_URL}/`, "") })]
           : []),
         ...(wordmarkUrl && program.wordmark
-          ? [storage.delete(program.wordmark.replace(`${R2_URL}/`, ""))]
+          ? [
+              storage.delete({
+                key: program.wordmark.replace(`${R2_URL}/`, ""),
+              }),
+            ]
           : []),
 
         /*

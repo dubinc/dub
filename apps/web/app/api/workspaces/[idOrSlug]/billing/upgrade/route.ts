@@ -2,32 +2,38 @@ import { DubApiError } from "@/lib/api/errors";
 import { isDubAdmin, withWorkspace } from "@/lib/auth";
 import { getDubCustomer } from "@/lib/dub";
 import { stripe } from "@/lib/stripe";
+import { booleanQuerySchema } from "@/lib/zod/schemas/misc";
 import { APP_DOMAIN } from "@dub/utils";
 import { NextResponse } from "next/server";
+import { z } from "zod";
+
+const upgradePlanSchema = z.object({
+  plan: z.enum(["pro", "business", "advanced"]),
+  period: z.enum(["monthly", "yearly"]),
+  tier: z.number().min(1).max(3).optional().default(1),
+  baseUrl: z.string().refine((url) => url.startsWith(APP_DOMAIN), {
+    message: "Invalid baseUrl.",
+  }),
+  onboarding: booleanQuerySchema.nullish(),
+});
 
 // POST /api/workspaces/[idOrSlug]/billing/upgrade
 export const POST = withWorkspace(async ({ req, workspace, session }) => {
-  let { plan, period, baseUrl, onboarding } = await req.json();
+  let { plan, period, tier, baseUrl, onboarding } = upgradePlanSchema.parse(
+    await req.json(),
+  );
 
-  if (!baseUrl.startsWith(APP_DOMAIN)) {
-    throw new DubApiError({
-      code: "unprocessable_entity",
-      message: "Invalid baseUrl.",
-    });
-  }
-
-  if (!plan || !period) {
-    throw new DubApiError({
-      code: "unprocessable_entity",
-      message: "Invalid plan or period.",
-    });
-  }
-
-  plan = plan.replace(" ", "+");
-
+  const lookupKey = tier > 1 ? `${plan}${tier}_${period}` : `${plan}_${period}`;
   const prices = await stripe.prices.list({
-    lookup_keys: [`${plan}_${period}`],
+    lookup_keys: [lookupKey],
   });
+
+  if (prices.data.length === 0) {
+    throw new DubApiError({
+      code: "not_found",
+      message: `Price not found for lookup key: ${lookupKey}`,
+    });
+  }
 
   const activeSubscription = workspace.stripeId
     ? await stripe.subscriptions

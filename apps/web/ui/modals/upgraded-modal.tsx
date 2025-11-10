@@ -39,7 +39,7 @@ function UpgradedModal({
 
   const handlePlanUpgrade = async () => {
     if (planId) {
-      const currentPlan = getPlanDetails(planId);
+      const currentPlan = getPlanDetails({ plan: planId });
       const period = searchParams.get("period");
       if (currentPlan && period) {
         plausible(`Upgraded to ${currentPlan.name}`);

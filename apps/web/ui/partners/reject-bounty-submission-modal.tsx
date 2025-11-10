@@ -1,12 +1,13 @@
 import { rejectBountySubmissionAction } from "@/lib/actions/partners/reject-bounty-submission";
+import {
+  BOUNTY_MAX_SUBMISSION_REJECTION_NOTE_LENGTH,
+  REJECT_BOUNTY_SUBMISSION_REASONS,
+} from "@/lib/constants/bounties";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useBounty from "@/lib/swr/use-bounty";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountySubmissionProps } from "@/lib/types";
-import {
-  REJECT_BOUNTY_SUBMISSION_REASONS,
-  rejectBountySubmissionSchema,
-} from "@/lib/zod/schemas/bounties";
+import { rejectBountySubmissionSchema } from "@/lib/zod/schemas/bounties";
 import { Button, Modal, useKeyboardShortcut } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
@@ -138,18 +139,19 @@ const RejectBountySubmissionModal = ({
                 </span>
               </label>
               <span className="text-xs text-neutral-400">
-                {watch("rejectionNote")?.length || 0}/5,000
+                {watch("rejectionNote")?.length || 0}/
+                {BOUNTY_MAX_SUBMISSION_REJECTION_NOTE_LENGTH}
               </span>
             </div>
             <div className="mt-2">
               <textarea
                 id="rejectionNote"
                 {...register("rejectionNote", {
-                  maxLength: 5000,
+                  maxLength: BOUNTY_MAX_SUBMISSION_REJECTION_NOTE_LENGTH,
                   setValueAs: (value) => (value === "" ? undefined : value),
                 })}
                 rows={3}
-                maxLength={5000}
+                maxLength={BOUNTY_MAX_SUBMISSION_REJECTION_NOTE_LENGTH}
                 className={cn(
                   "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
                   errors.rejectionNote &&

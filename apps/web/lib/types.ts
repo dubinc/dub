@@ -23,6 +23,7 @@ import {
 } from "@dub/prisma/client";
 import { z } from "zod";
 import { RESOURCE_COLORS } from "../ui/colors";
+import { BOUNTY_SUBMISSION_REQUIREMENTS } from "./constants/bounties";
 import {
   FOLDER_PERMISSIONS,
   FOLDER_WORKSPACE_ACCESS,
@@ -33,7 +34,6 @@ import {
   BountySchema,
   BountySubmissionExtendedSchema,
   getBountySubmissionsQuerySchema,
-  SUBMISSION_REQUIREMENTS,
 } from "./zod/schemas/bounties";
 import {
   CampaignListSchema,
@@ -54,6 +54,7 @@ import {
 } from "./zod/schemas/customers";
 import { dashboardSchema } from "./zod/schemas/dashboard";
 import { DiscountCodeSchema, DiscountSchema } from "./zod/schemas/discount";
+import { EmailDomainSchema } from "./zod/schemas/email-domains";
 import { FolderSchema } from "./zod/schemas/folders";
 import { GroupWithProgramSchema } from "./zod/schemas/group-with-program";
 import {
@@ -166,6 +167,7 @@ export interface RedisLinkProps {
   rewrite?: boolean;
   expiresAt?: Date;
   expiredUrl?: string;
+  disabledAt?: Date;
   ios?: string;
   android?: string;
   geo?: object;
@@ -446,7 +448,6 @@ export type PartnerProps = z.infer<typeof PartnerSchema> & {
 };
 
 export type PartnerUserProps = z.infer<typeof partnerUserSchema>;
-
 export type PartnerProfileCustomerProps = z.infer<
   typeof PartnerProfileCustomerSchema
 >;
@@ -490,7 +491,6 @@ export type ProgramApplicationFormDataWithValues = z.infer<
 export type ProgramApplicationFormFieldWithValues = z.infer<
   typeof programApplicationFormFieldWithValuesSchema
 >;
-
 export type ProgramEnrollmentProps = z.infer<typeof ProgramEnrollmentSchema>;
 
 export type PayoutsCount = {
@@ -601,7 +601,7 @@ export type BountySubmissionProps = z.infer<
 >;
 
 export type BountySubmissionRequirement =
-  (typeof SUBMISSION_REQUIREMENTS)[number];
+  (typeof BOUNTY_SUBMISSION_REQUIREMENTS)[number];
 
 export type WorkflowCondition = z.infer<typeof workflowConditionSchema>;
 
@@ -669,3 +669,5 @@ export interface CampaignWorkflowAttributeConfig {
 }
 
 export type WorkflowAttribute = (typeof WORKFLOW_ATTRIBUTES)[number];
+
+export type EmailDomainProps = z.infer<typeof EmailDomainSchema>;

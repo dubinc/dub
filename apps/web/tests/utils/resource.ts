@@ -115,7 +115,7 @@ export const E2E_LEAD_REWARD = {
       conditions: [
         {
           value: "US",
-          entity: "partner",
+          entity: "customer",
           operator: "equals_to",
           attribute: "country",
         },
@@ -129,13 +129,13 @@ export const E2E_LEAD_REWARD = {
       conditions: [
         {
           value: "US",
-          entity: "customer",
+          entity: "partner",
           operator: "equals_to",
           attribute: "country",
         },
       ],
-      maxDuration: null,
-      amountInCents: 400,
+      maxDuration: 0,
+      amountInCents: 300,
     },
   ],
 };

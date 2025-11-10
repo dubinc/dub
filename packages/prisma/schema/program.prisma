@@ -18,9 +18,10 @@ enum PartnerBannedReason {
   brand_abuse
 }
 
-enum PartnerUrlValidationMode {
-  domain // domain match (e.g. if URL is example.com/path, example.com and example.com/another-path are allowed)
-  exact // exact match (e.g. if URL is example.com/path, only example.com/path is allowed)
+enum ProgramPayoutMode {
+  internal // All payouts are handled by Dub
+  hybrid // Partners with payouts enabled are paid by Dub, others via external
+  external // All payouts are processed through external
 }
 
 enum Category {
@@ -38,30 +39,31 @@ enum Category {
 }
 
 model Program {
-  id                           String    @id @default(cuid())
+  id                           String            @id @default(cuid())
   workspaceId                  String
   defaultFolderId              String
   defaultGroupId               String
   name                         String
-  slug                         String    @unique
+  slug                         String            @unique
   logo                         String?
   wordmark                     String?
   brandColor                   String?
   domain                       String?
   url                          String?
-  primaryRewardEvent           EventType @default(sale)
-  holdingPeriodDays            Int       @default(0) // number of days to wait before earnings are added to a payout
-  minPayoutAmount              Int       @default(0) // Default minimum payout amount of $0
-  embedData                    Json?     @db.Json
-  resources                    Json?     @db.Json
-  termsUrl                     String?   @db.Text
-  helpUrl                      String?   @db.Text
+  primaryRewardEvent           EventType         @default(sale)
+  holdingPeriodDays            Int               @default(0) // number of days to wait before earnings are added to a payout
+  minPayoutAmount              Int               @default(0) // Default minimum payout amount of $0
+  embedData                    Json?             @db.Json
+  resources                    Json?             @db.Json
+  termsUrl                     String?           @db.Text
+  helpUrl                      String?           @db.Text
   supportEmail                 String?
   autoApprovePartnersEnabledAt DateTime?
   messagingEnabledAt           DateTime?
   partnerNetworkEnabledAt      DateTime?
-  createdAt                    DateTime  @default(now())
-  updatedAt                    DateTime  @updatedAt
+  payoutMode                   ProgramPayoutMode @default(internal)
+  createdAt                    DateTime          @default(now())
+  updatedAt                    DateTime          @updatedAt
   startedAt                    DateTime?
 
   marketplaceEnabledAt   DateTime?
@@ -77,6 +79,8 @@ model Program {
   commissions              Commission[]
   rewards                  Reward[]
   discounts                Discount[]                @relation("ProgramDiscounts")
+  discountCodes            DiscountCode[]
+  
   groups                   PartnerGroup[]
   partnerGroupDefaultLinks PartnerGroupDefaultLink[]
   bounties                 Bounty[]
@@ -84,10 +88,11 @@ model Program {
   workflows                Workflow[]
   messages                 Message[]
   comments                 PartnerComment[]
-  discountCodes            DiscountCode[]
+
   campaigns                Campaign[]
+  emailDomains             EmailDomain[]
+
   discoveredPartners       DiscoveredPartner[]
-  industryInterests        ProgramIndustryInterest[]
   similarPrograms          ProgramSimilarity[]
   similarToPrograms        ProgramSimilarity[] @relation("SimilarProgram")
   categories               ProgramCategory[]
@@ -186,13 +191,26 @@ model ProgramApplication {
   @@index(email)
 }
 
-model ProgramIndustryInterest {
-  programId        String
-  industryInterest IndustryInterest
+enum Category {
+  Artificial_Intelligence
+  Development
+  Design
+  Productivity
+  Finance
+  Marketing
+  Ecommerce
+  Security
+  Education
+  Health
+  Consumer
+}
+model ProgramCategory {
+  programId String
+  category  Category
 
   program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
 
-  @@unique([programId, industryInterest])
+  @@unique([programId, category])
 }
 
 model ProgramCategory {

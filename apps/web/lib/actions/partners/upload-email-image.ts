@@ -18,8 +18,9 @@ export const uploadEmailImageAction = authActionClient
 
     try {
       const key = `programs/${programId}/emails/image_${nanoid(7)}`;
-
-      const signedUrl = await storage.getSignedUrl(key);
+      const signedUrl = await storage.getSignedUploadUrl({
+        key,
+      });
 
       return {
         key,

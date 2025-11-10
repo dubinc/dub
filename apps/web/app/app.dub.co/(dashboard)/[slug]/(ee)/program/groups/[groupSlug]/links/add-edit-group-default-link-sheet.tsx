@@ -9,13 +9,7 @@ import { PartnerGroupDefaultLink } from "@/lib/types";
 import { createOrUpdateDefaultLinkSchema } from "@/lib/zod/schemas/groups";
 import { RewardIconSquare } from "@/ui/partners/rewards/reward-icon-square";
 import { X } from "@/ui/shared/icons";
-import {
-  Button,
-  InfoTooltip,
-  Input,
-  Sheet,
-  SimpleTooltipContent,
-} from "@dub/ui";
+import { Button, InfoTooltip, Input, Sheet } from "@dub/ui";
 import { Eye, Hyperlink } from "@dub/ui/icons";
 import { normalizeUrl } from "@dub/utils";
 import {
@@ -127,11 +121,7 @@ function DefaultPartnerLinkSheetContent({
                   </label>
                   <InfoTooltip
                     content={
-                      <SimpleTooltipContent
-                        title="Where people will be redirected after clicking the referral links"
-                        cta="Learn more"
-                        href="https://dub.co/help/article/destination-urls"
-                      />
+                      "Where people will be redirected after clicking the referral links [Learn more](https://dub.co/help/article/destination-urls)"
                     }
                   />
                 </div>

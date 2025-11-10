@@ -1,4 +1,4 @@
-import { MAX_INVITES_PER_REQUEST } from "@/lib/partners/constants";
+import { MAX_INVITES_PER_REQUEST } from "@/lib/constants/partner-profile";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { invitePartnerUserSchema } from "@/lib/zod/schemas/partner-profile";

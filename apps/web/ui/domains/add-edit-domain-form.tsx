@@ -16,7 +16,6 @@ import {
   LoadingSpinner,
   MobilePhone,
   ShimmerDots,
-  SimpleTooltipContent,
   Switch,
   useEnterSubmit,
   useMediaQuery,
@@ -292,11 +291,7 @@ export function AddEditDomainForm({
               </h2>
               <InfoTooltip
                 content={
-                  <SimpleTooltipContent
-                    title="Not sure which domain to use?"
-                    cta="Check out our guide"
-                    href="https://dub.co/help/article/choosing-a-custom-domain"
-                  />
+                  "Not sure which domain to use? [Check out our guide](https://dub.co/help/article/choosing-a-custom-domain)"
                 }
               />
             </label>
@@ -416,7 +411,7 @@ export function AddEditDomainForm({
                               [id]: checked,
                             }));
                             if (!checked) {
-                              setValue(id, "", {
+                              setValue(id, null, {
                                 shouldDirty: true,
                               });
                             }
@@ -543,7 +538,7 @@ export function AddEditDomainForm({
                                     });
                                   }
                                 } else {
-                                  setValue(id, "", {
+                                  setValue(id, null, {
                                     shouldDirty: true,
                                   });
                                 }
