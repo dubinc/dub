@@ -3,6 +3,7 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { withWorkspace } from "@/lib/auth";
 import { getNetworkPartnersCountQuerySchema } from "@/lib/zod/schemas/partner-network";
 import { prisma } from "@dub/prisma";
+import { Prisma } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 
 // GET /api/network/partners/count - get the number of available partners in the network
@@ -18,24 +19,18 @@ export const GET = withWorkspace(
         id: programId,
       },
     });
-    if (!partnerNetworkEnabledAt)
+
+    if (!partnerNetworkEnabledAt) {
       throw new DubApiError({
         code: "forbidden",
         message: "Partner network is not enabled for this program.",
       });
+    }
 
-    const {
-      partnerIds,
-      status,
-      groupBy,
-      country,
-      starred,
-      industryInterests,
-      salesChannels,
-      preferredEarningStructures,
-    } = getNetworkPartnersCountQuerySchema.parse(searchParams);
+    const { partnerIds, status, groupBy, country, starred } =
+      getNetworkPartnersCountQuerySchema.parse(searchParams);
 
-    const commonWhere = {
+    const commonWhere: Prisma.PartnerWhereInput = {
       discoverableAt: { not: null },
       ...(partnerIds && {
         id: { in: partnerIds },
@@ -43,32 +38,38 @@ export const GET = withWorkspace(
       ...(country && {
         country,
       }),
-      ...(industryInterests && {
-        industryInterests: {
-          some: { industryInterest: { in: industryInterests } },
-        },
-      }),
-      ...(salesChannels && {
-        salesChannels: { some: { salesChannel: { in: salesChannels } } },
-      }),
-      ...(preferredEarningStructures && {
-        preferredEarningStructures: {
-          some: {
-            preferredEarningStructure: { in: preferredEarningStructures },
-          },
-        },
-      }),
     };
 
     const statusWheres = {
       discover: {
         programs: { none: { programId } },
-        discoveredByPrograms: {
-          none: { programId, ignoredAt: { not: null } },
-          ...(starred === true && {
-            some: { programId, starredAt: { not: null } },
-          }),
-        },
+        // Allow partners with no DiscoveredPartner record OR not ignored
+        OR:
+          starred === true
+            ? [
+                {
+                  discoveredByPrograms: {
+                    some: { programId, starredAt: { not: null } },
+                  },
+                },
+              ]
+            : starred === false
+              ? [
+                  { discoveredByPrograms: { none: { programId } } }, // No record yet
+                  {
+                    discoveredByPrograms: {
+                      some: { programId, starredAt: null, ignoredAt: null },
+                    },
+                  }, // Not starred and not ignored
+                ]
+              : [
+                  { discoveredByPrograms: { none: { programId } } }, // No record yet
+                  {
+                    discoveredByPrograms: {
+                      some: { programId, ignoredAt: null },
+                    },
+                  }, // Has record but not ignored
+                ],
       },
       invited: {
         programs: { some: { programId, status: "invited" } },
@@ -135,6 +136,6 @@ export const GET = withWorkspace(
     throw new Error("Invalid groupBy");
   },
   {
-    requiredPlan: ["enterprise"],
+    requiredPlan: ["enterprise", "advanced"],
   },
 );

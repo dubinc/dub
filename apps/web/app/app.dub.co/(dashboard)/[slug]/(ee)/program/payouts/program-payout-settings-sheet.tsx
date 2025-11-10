@@ -2,12 +2,14 @@
 
 import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { updateProgramAction } from "@/lib/actions/partners/update-program";
-import { ALLOWED_MIN_PAYOUT_AMOUNTS } from "@/lib/constants/payouts";
+import {
+  ALLOWED_MIN_PAYOUT_AMOUNTS,
+  PAYOUT_HOLDING_PERIOD_DAYS,
+} from "@/lib/constants/payouts";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramProps } from "@/lib/types";
-import { HOLDING_PERIOD_DAYS } from "@/lib/zod/schemas/programs";
 import { X } from "@/ui/shared/icons";
 import { Button, Sheet, Slider } from "@dub/ui";
 import NumberFlow from "@number-flow/react";
@@ -105,7 +107,7 @@ function ProgramPayoutSettingsSheetContent({
                 className="block w-full rounded-md border border-neutral-300 bg-white py-2 pl-3 pr-10 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500"
                 {...register("holdingPeriodDays", { required: true })}
               >
-                {HOLDING_PERIOD_DAYS.map((v) => (
+                {PAYOUT_HOLDING_PERIOD_DAYS.map((v) => (
                   <option value={v} key={v}>
                     {v} days {v === 30 && " (recommended)"}
                   </option>

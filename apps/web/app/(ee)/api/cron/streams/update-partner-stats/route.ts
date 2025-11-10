@@ -6,6 +6,7 @@ import {
   partnerActivityStream,
 } from "@/lib/upstash/redis-streams";
 import { prisma } from "@dub/prisma";
+import { differenceInDays, format } from "date-fns";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -47,6 +48,12 @@ const processPartnerActivityStreamBatch = () =>
           totalSales?: number;
           totalSaleAmount?: number;
           totalCommissions?: number;
+          lastConversionAt?: Date | null;
+          conversionRate?: number | null;
+          averageLifetimeValue?: number | null;
+          leadConversionRate?: number | null;
+          daysSinceLastConversion?: number | null;
+          consistencyScore?: number | null;
         }
       > = {};
 
@@ -74,6 +81,9 @@ const processPartnerActivityStreamBatch = () =>
             sales: true,
             saleAmount: true,
           },
+          _max: {
+            lastConversionAt: true,
+          },
         });
 
         partnerLinkStats.map((p) => {
@@ -83,6 +93,7 @@ const processPartnerActivityStreamBatch = () =>
             totalConversions: p._sum.conversions ?? undefined,
             totalSales: p._sum.sales ?? undefined,
             totalSaleAmount: p._sum.saleAmount ?? undefined,
+            lastConversionAt: p._max.lastConversionAt ?? undefined,
           };
         });
       }
@@ -117,6 +128,63 @@ const processPartnerActivityStreamBatch = () =>
           };
         });
       }
+
+      // Calculate derived metrics for each enrollment
+      Object.keys(programEnrollmentsToUpdate).forEach((key) => {
+        const enrollment = programEnrollmentsToUpdate[key];
+        const {
+          totalClicks,
+          totalLeads,
+          totalConversions,
+          totalSaleAmount,
+          lastConversionAt,
+        } = enrollment;
+
+        // Calculate conversion rate (totalConversions / totalClicks)
+        if (totalClicks && totalClicks > 0 && totalConversions) {
+          enrollment.conversionRate = totalConversions / totalClicks;
+        }
+
+        // Calculate average lifetime value (totalSaleAmount / totalConversions)
+        if (totalConversions && totalConversions > 0 && totalSaleAmount) {
+          enrollment.averageLifetimeValue = totalSaleAmount / totalConversions;
+        }
+
+        // Calculate lead conversion rate (totalConversions / totalLeads)
+        if (totalLeads && totalLeads > 0 && totalConversions) {
+          enrollment.leadConversionRate = totalConversions / totalLeads;
+        }
+
+        // Calculate days since last conversion
+        if (lastConversionAt) {
+          enrollment.daysSinceLastConversion = differenceInDays(
+            new Date(),
+            new Date(lastConversionAt),
+          );
+        }
+
+        // Calculate consistency score based on days since last conversion
+        let consistencyScore = 50;
+        if (
+          lastConversionAt &&
+          enrollment.daysSinceLastConversion !== null &&
+          enrollment.daysSinceLastConversion !== undefined
+        ) {
+          if (enrollment.daysSinceLastConversion <= 7) {
+            consistencyScore = 100;
+          } else if (enrollment.daysSinceLastConversion <= 30) {
+            consistencyScore = 85;
+          } else if (enrollment.daysSinceLastConversion <= 90) {
+            consistencyScore = 70;
+          } else if (enrollment.daysSinceLastConversion <= 180) {
+            consistencyScore = 55;
+          } else {
+            consistencyScore = 40;
+          }
+        }
+
+        enrollment.consistencyScore = consistencyScore;
+      });
 
       const programEnrollmentsToUpdateArray = Object.entries(
         programEnrollmentsToUpdate,
@@ -176,7 +244,11 @@ const processPartnerActivityStreamBatch = () =>
                     .map(([key, _]) => `${key} = ?`)
                     .join(", ")} WHERE programId = ? AND partnerId = ?`,
                   [
-                    ...finalStatsToUpdate.map(([_, value]) => value),
+                    ...finalStatsToUpdate.map(([_, value]) =>
+                      value instanceof Date
+                        ? format(value, "yyyy-MM-dd HH:mm:ss")
+                        : value,
+                    ),
                     programId,
                     partnerId,
                   ],
@@ -227,13 +299,14 @@ const processPartnerActivityStreamBatch = () =>
 
 // This route is used to process partner activity events from Redis streams
 // It runs every 5 minutes with a batch size of 10,000 to consume high-frequency partner activity updates
+// GET /api/cron/streams/update-partner-stats
 export async function GET(req: Request) {
   try {
     await verifyVercelSignature(req);
 
     console.log("Processing partner activity events from Redis stream...");
 
-    const { updates, errors, totalProcessed, processedEntryIds } =
+    const { updates, errors, totalProcessed } =
       await processPartnerActivityStreamBatch();
 
     if (!updates.length) {

@@ -78,6 +78,7 @@ model Partner {
   discoveredByPrograms       DiscoveredPartner[]
 
   @@index(discoverableAt)
+  @@index(country)
   @@fulltext([email, name]) // For full-text search
 }
 

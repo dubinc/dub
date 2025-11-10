@@ -6,6 +6,7 @@ export const PAYOUT_FAILURE_FEE_CENTS = 1000; // 10 USD
 export const FAST_ACH_FEE_CENTS = 2500; // $25
 export const FOREX_MARKUP_RATE = 0.005; // 0.5%
 
+export const PAYOUT_HOLDING_PERIOD_DAYS = [0, 7, 14, 30, 60, 90];
 export const ALLOWED_MIN_PAYOUT_AMOUNTS = [0, 1000, 2000, 5000, 10000];
 export const MIN_WITHDRAWAL_AMOUNT_CENTS = 1000; // $10
 export const BELOW_MIN_WITHDRAWAL_FEE_CENTS = 50; // $0.50

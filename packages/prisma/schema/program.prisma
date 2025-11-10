@@ -61,6 +61,8 @@ model Program {
   commissions              Commission[]
   rewards                  Reward[]
   discounts                Discount[]                @relation("ProgramDiscounts")
+  discountCodes            DiscountCode[]
+  
   groups                   PartnerGroup[]
   partnerGroupDefaultLinks PartnerGroupDefaultLink[]
   bounties                 Bounty[]
@@ -68,11 +70,14 @@ model Program {
   workflows                Workflow[]
   messages                 Message[]
   comments                 PartnerComment[]
-  discountCodes            DiscountCode[]
+
   campaigns                Campaign[]
-  discoveredPartners       DiscoveredPartner[]
-  industryInterests        ProgramIndustryInterest[]
   emailDomains             EmailDomain[]
+
+  discoveredPartners       DiscoveredPartner[]
+  similarPrograms          ProgramSimilarity[]
+  similarToPrograms        ProgramSimilarity[] @relation("SimilarProgram")
+  categories               ProgramCategory[]
 
   @@index(workspaceId)
   @@index(domain)
@@ -98,6 +103,14 @@ model ProgramEnrollment {
   totalSales       Int @default(0) // total sales
   totalSaleAmount  Int @default(0) // total sale amount (in cents)
   totalCommissions Int @default(0) // total commissions earned by the partner (in cents)
+
+  // calculated stats
+  conversionRate          Float? // totalConversions / totalClicks
+  averageLifetimeValue    Float? // totalSaleAmount / totalConversions (in cents)
+  leadConversionRate      Float? // totalConversions / totalLeads
+  lastConversionAt        DateTime? // latest conversion from partner's links
+  daysSinceLastConversion Int? // days since lastConversionAt
+  consistencyScore        Int? // based on daysSinceLastConversion
 
   createdAt                    DateTime             @default(now())
   updatedAt                    DateTime             @updatedAt
@@ -160,11 +173,24 @@ model ProgramApplication {
   @@index(email)
 }
 
-model ProgramIndustryInterest {
-  programId        String
-  industryInterest IndustryInterest
+enum Category {
+  Artificial_Intelligence
+  Development
+  Design
+  Productivity
+  Finance
+  Marketing
+  Ecommerce
+  Security
+  Education
+  Health
+  Consumer
+}
+model ProgramCategory {
+  programId String
+  category  Category
 
   program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
 
-  @@unique([programId, industryInterest])
+  @@unique([programId, category])
 }

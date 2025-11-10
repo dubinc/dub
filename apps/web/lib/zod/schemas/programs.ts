@@ -2,7 +2,10 @@ import {
   DATE_RANGE_INTERVAL_PRESETS,
   DUB_PARTNERS_ANALYTICS_INTERVAL,
 } from "@/lib/analytics/constants";
-import { ALLOWED_MIN_PAYOUT_AMOUNTS } from "@/lib/constants/payouts";
+import {
+  ALLOWED_MIN_PAYOUT_AMOUNTS,
+  PAYOUT_HOLDING_PERIOD_DAYS,
+} from "@/lib/constants/payouts";
 import {
   EventType,
   PartnerBannedReason,
@@ -18,8 +21,6 @@ import { programApplicationFormDataWithValuesSchema } from "./program-applicatio
 import { RewardSchema } from "./rewards";
 import { UserSchema } from "./users";
 import { parseDateSchema } from "./utils";
-
-export const HOLDING_PERIOD_DAYS = [0, 7, 14, 30, 60, 90];
 
 export const ProgramSchema = z.object({
   id: z.string(),
@@ -56,8 +57,8 @@ export const updateProgramSchema = z.object({
   url: z.string().nullable(),
   holdingPeriodDays: z.coerce
     .number()
-    .refine((val) => HOLDING_PERIOD_DAYS.includes(val), {
-      message: `Holding period must be ${HOLDING_PERIOD_DAYS.join(", ")} days`,
+    .refine((val) => PAYOUT_HOLDING_PERIOD_DAYS.includes(val), {
+      message: `Holding period must be ${PAYOUT_HOLDING_PERIOD_DAYS.join(", ")} days`,
     }),
   minPayoutAmount: z.coerce
     .number()
