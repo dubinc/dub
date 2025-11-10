@@ -13,7 +13,6 @@ import {
   CircleCheckFill,
   Grid,
   Link4,
-  LoadingSpinner,
   Sheet,
 } from "@dub/ui";
 import { cn, OG_AVATAR_URL } from "@dub/utils";
@@ -47,6 +46,7 @@ type FormData = Omit<
 
 function ProgramApplicationSheetContent({
   program,
+  backDestination = "programs",
   onSuccess,
 }: ProgramApplicationSheetProps) {
   const { partner } = usePartnerProfile();
@@ -148,69 +148,62 @@ function ProgramApplicationSheetContent({
             </Sheet.Close>
           </div>
 
-          {isGroupLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <LoadingSpinner />
-            </div>
-          ) : (
-            <div className="flex flex-col gap-6 p-5 sm:p-8">
-              {fields?.length ? (
-                fields.map((field, index) => {
-                  return (
-                    <ProgramApplicationFormField
-                      key={field.id}
-                      field={field}
-                      keyPath={`formData.fields.${index}`}
-                    />
-                  );
-                })
-              ) : (
-                <p className="text-content-subtle flex items-center gap-1 text-sm">
-                  <CircleCheck className="inline-block size-4 text-green-500" />
-                  No additional information required to apply
-                </p>
-              )}
-
-              {program.termsUrl && (
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="termsAgreement"
-                    className={cn(
-                      "h-4 w-4 rounded border-neutral-300 text-[var(--brand)] focus:ring-[var(--brand)]",
-                      errors.termsAgreement &&
-                        "border-red-400 focus:ring-red-500",
-                    )}
-                    {...register("termsAgreement", {
-                      required: true,
-                      validate: (v) => v === true,
-                    })}
+          <div className="flex flex-col gap-6 p-5 sm:p-8">
+            {fields?.length ? (
+              fields.map((field, index) => {
+                return (
+                  <ProgramApplicationFormField
+                    key={field.id}
+                    field={field}
+                    keyPath={`formData.fields.${index}`}
                   />
-                  <label
-                    htmlFor="termsAgreement"
-                    className="text-sm text-neutral-800"
+                );
+              })
+            ) : (
+              <p className="text-content-subtle flex items-center gap-1 text-sm">
+                <CircleCheck className="inline-block size-4 text-green-500" />
+                No additional information required to apply
+              </p>
+            )}
+
+            {program.termsUrl && (
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="termsAgreement"
+                  className={cn(
+                    "h-4 w-4 rounded border-neutral-300 text-[var(--brand)] focus:ring-[var(--brand)]",
+                    errors.termsAgreement &&
+                      "border-red-400 focus:ring-red-500",
+                  )}
+                  {...register("termsAgreement", {
+                    required: true,
+                    validate: (v) => v === true,
+                  })}
+                />
+                <label
+                  htmlFor="termsAgreement"
+                  className="text-sm text-neutral-800"
+                >
+                  I agree to the{" "}
+                  <a
+                    href={program.termsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[var(--brand)] underline hover:opacity-80"
                   >
-                    I agree to the{" "}
-                    <a
-                      href={program.termsUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-[var(--brand)] underline hover:opacity-80"
-                    >
-                      {program.name} Affiliate Program Terms ↗
-                    </a>
-                  </label>
-                </div>
-              )}
-            </div>
-          )}
+                    {program.name} Affiliate Program Terms ↗
+                  </a>
+                </label>
+              </div>
+            )}
+          </div>
 
           <div className="flex grow flex-col justify-end p-5">
             <Button
               type="submit"
               variant="primary"
               text="Submit application"
-              disabled={isGroupLoading || groupError}
               loading={isSubmitting}
             />
           </div>
