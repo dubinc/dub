@@ -1,11 +1,11 @@
 "use client";
 
-import { PageContent } from "@/ui/layout/page-content";
 import { usePartnersUpgradeModal } from "@/ui/partners/partners-upgrade-modal";
 import { CampaignType } from "@dub/prisma/client";
 import { Button } from "@dub/ui";
 import { nFormatter } from "@dub/utils";
 import { CampaignTypeIcon } from "./campaign-type-icon";
+import { CampaignsPageContent } from "./campaigns-page-content";
 
 export function CampaignsUpsell() {
   const { partnersUpgradeModal, setShowPartnersUpgradeModal } =
@@ -14,7 +14,7 @@ export function CampaignsUpsell() {
     });
 
   return (
-    <PageContent title="Email campaigns">
+    <CampaignsPageContent>
       {partnersUpgradeModal}
       <div className="flex min-h-[calc(100vh-200px)] flex-col items-center justify-center gap-6 overflow-hidden px-4 py-10">
         <div
@@ -29,10 +29,22 @@ export function CampaignsUpsell() {
           <span className="text-base font-medium text-neutral-900">
             Email campaigns
           </span>
-          <p className="mt-2 text-pretty text-sm text-neutral-500">
-            Send marketing and transactional emails to your partners to increase
-            engagement and drive conversions.
-          </p>
+          <div className="text-content-subtle text-sm">
+            <p className="mt-2">
+              Send marketing and transactional emails to your partners to
+              increase engagement and drive conversions.
+            </p>
+            <p>
+              <a
+                href="https://dub.co/help/article/email-campaigns"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-content-default hover:text-content-emphasis underline"
+              >
+                Learn more
+              </a>
+            </p>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -42,7 +54,7 @@ export function CampaignsUpsell() {
           />
         </div>
       </div>
-    </PageContent>
+    </CampaignsPageContent>
   );
 }
 
