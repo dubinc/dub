@@ -9,6 +9,7 @@ import {
   getNetworkPartnersQuerySchema,
 } from "@/lib/zod/schemas/partner-network";
 import { prisma } from "@dub/prisma";
+import { PreferredEarningStructure, SalesChannel } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -74,6 +75,16 @@ export const GET = withWorkspace(
           invitedAt: partner.invitedAt ? new Date(partner.invitedAt) : null,
           categories: partner.categories
             ? partner.categories.split(",").map((c: string) => c.trim())
+            : [],
+          preferredEarningStructures: partner.preferredEarningStructures
+            ? partner.preferredEarningStructures
+                .split(",")
+                .map((e: string) => e.trim() as PreferredEarningStructure)
+            : [],
+          salesChannels: partner.salesChannels
+            ? partner.salesChannels
+                .split(",")
+                .map((s: string) => s.trim() as SalesChannel)
             : [],
         })),
       ),

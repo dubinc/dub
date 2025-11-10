@@ -1,6 +1,6 @@
+import { LARGE_PROGRAM_IDS } from "@/lib/constants/program";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
-import { ACME_PROGRAM_ID } from "@dub/utils";
 
 export interface PartnerRankingFilters {
   partnerIds?: string[];
@@ -102,28 +102,29 @@ export async function calculatePartnerRanking({
 
   const offset = (page - 1) * pageSize;
 
+  // Helper function to build discoverable partners filter with any alias
+  const buildDiscoverablePartnersFilter = (alias: string) => {
+    const conditions: Prisma.Sql[] = [
+      Prisma.sql`${Prisma.raw(alias)}.discoverableAt IS NOT NULL`,
+    ];
+
+    if (partnerIds && partnerIds.length > 0) {
+      conditions.push(
+        Prisma.sql`${Prisma.raw(alias)}.id IN (${Prisma.join(partnerIds)})`,
+      );
+    }
+
+    if (country) {
+      conditions.push(Prisma.sql`${Prisma.raw(alias)}.country = ${country}`);
+    }
+
+    return Prisma.join(conditions, " AND ");
+  };
+
   // OPTIMIZATION: Build filter for discoverable partners to reuse in subqueries
   // This dramatically reduces the dataset from 1.5M to 5,000 before expensive joins
-  const discoverablePartnersConditions: Prisma.Sql[] = [
-    Prisma.sql`p_filter.discoverableAt IS NOT NULL`,
-  ];
-
-  if (partnerIds && partnerIds.length > 0) {
-    discoverablePartnersConditions.push(
-      Prisma.sql`p_filter.id IN (${Prisma.join(partnerIds)})`,
-    );
-  }
-
-  if (country) {
-    discoverablePartnersConditions.push(
-      Prisma.sql`p_filter.country = ${country}`,
-    );
-  }
-
-  const discoverablePartnersFilter = Prisma.join(
-    discoverablePartnersConditions,
-    " AND ",
-  );
+  const discoverablePartnersFilter =
+    buildDiscoverablePartnersFilter("p_filter");
 
   const similarProgramMetricsJoin =
     similarPrograms.length > 0
@@ -186,8 +187,8 @@ export async function calculatePartnerRanking({
       INNER JOIN Partner p_filter ON p_filter.id = pe2.partnerId 
         AND ${discoverablePartnersFilter}
       WHERE pe2.programId IN (${Prisma.join(similarPrograms.map((sp) => sp.programId))})
+        AND pe2.programId NOT IN (${Prisma.join(LARGE_PROGRAM_IDS, ",")})
         AND pe2.status = 'approved'
-        AND pe2.programId != ${ACME_PROGRAM_ID}
       GROUP BY pe2.partnerId
     ) similarProgramMetrics ON similarProgramMetrics.partnerId = p.id`
       : Prisma.sql`LEFT JOIN (
@@ -201,48 +202,12 @@ export async function calculatePartnerRanking({
         ) similarProgramMetrics ON similarProgramMetrics.partnerId = p.id`;
 
   // Build discoverable partners subquery for main FROM clause
-  const discoverablePartnersSubqueryConditions: Prisma.Sql[] = [
-    Prisma.sql`p_sub.discoverableAt IS NOT NULL`,
-  ];
-
-  if (partnerIds && partnerIds.length > 0) {
-    discoverablePartnersSubqueryConditions.push(
-      Prisma.sql`p_sub.id IN (${Prisma.join(partnerIds)})`,
-    );
-  }
-
-  if (country) {
-    discoverablePartnersSubqueryConditions.push(
-      Prisma.sql`p_sub.country = ${country}`,
-    );
-  }
-
-  const discoverablePartnersSubqueryFilter = Prisma.join(
-    discoverablePartnersSubqueryConditions,
-    " AND ",
-  );
+  const discoverablePartnersSubqueryFilter =
+    buildDiscoverablePartnersFilter("p_sub");
 
   // Build discoverable partners filter for categories subquery
-  const discoverablePartnersCategoriesConditions: Prisma.Sql[] = [
-    Prisma.sql`p_cat.discoverableAt IS NOT NULL`,
-  ];
-
-  if (partnerIds && partnerIds.length > 0) {
-    discoverablePartnersCategoriesConditions.push(
-      Prisma.sql`p_cat.id IN (${Prisma.join(partnerIds)})`,
-    );
-  }
-
-  if (country) {
-    discoverablePartnersCategoriesConditions.push(
-      Prisma.sql`p_cat.country = ${country}`,
-    );
-  }
-
-  const discoverablePartnersCategoriesFilter = Prisma.join(
-    discoverablePartnersCategoriesConditions,
-    " AND ",
-  );
+  const discoverablePartnersCategoriesFilter =
+    buildDiscoverablePartnersFilter("p_cat");
 
   const partners = await prisma.$queryRaw<Array<any>>`
     SELECT 
@@ -254,6 +219,8 @@ export async function calculatePartnerRanking({
       dp.invitedAt,
       partnerCategories.categories as categories,
       CASE WHEN enrolled.status = 'approved' THEN enrolled.createdAt ELSE NULL END as recruitedAt,
+      preferredEarningStructuresData.preferredEarningStructures as preferredEarningStructures,
+      salesChannelsData.salesChannels as salesChannels,
 
       -- FINAL SCORE (0-65 points): Similarity-based ranking for discovery
       (
@@ -290,6 +257,34 @@ export async function calculatePartnerRanking({
       WHERE pe5.status = 'approved'
       GROUP BY pe5.partnerId
     ) partnerCategories ON partnerCategories.partnerId = p.id
+
+    -- OPTIMIZATION: Only get preferred earning structures for discoverable partners
+    LEFT JOIN (
+      SELECT 
+        ppes.partnerId,
+        GROUP_CONCAT(DISTINCT ppes.preferredEarningStructure ORDER BY ppes.preferredEarningStructure SEPARATOR ',') as preferredEarningStructures
+      FROM PartnerPreferredEarningStructure ppes
+      WHERE ppes.partnerId IN (
+        SELECT p_filter.id
+        FROM Partner p_filter
+        WHERE ${buildDiscoverablePartnersFilter("p_filter")}
+      )
+      GROUP BY ppes.partnerId
+    ) preferredEarningStructuresData ON preferredEarningStructuresData.partnerId = p.id
+
+    -- OPTIMIZATION: Only get sales channels for discoverable partners
+    LEFT JOIN (
+      SELECT 
+        psc.partnerId,
+        GROUP_CONCAT(DISTINCT psc.salesChannel ORDER BY psc.salesChannel SEPARATOR ',') as salesChannels
+      FROM PartnerSalesChannel psc
+      WHERE psc.partnerId IN (
+        SELECT p_filter.id
+        FROM Partner p_filter
+        WHERE ${buildDiscoverablePartnersFilter("p_filter")}
+      )
+      GROUP BY psc.partnerId
+    ) salesChannelsData ON salesChannelsData.partnerId = p.id
 
     WHERE ${whereClause}
     ORDER BY ${orderByClause}

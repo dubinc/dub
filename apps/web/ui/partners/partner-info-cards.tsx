@@ -68,7 +68,7 @@ export function PartnerInfoCards({
   );
 
   const { data: bounties, error: errorBounties } = useSWR<BountyListProps[]>(
-    workspaceId && partner
+    workspaceId && partner && isEnrolled
       ? `/api/bounties?workspaceId=${workspaceId}&partnerId=${partner.id}`
       : null,
     fetcher,
