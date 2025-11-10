@@ -21,19 +21,23 @@ export interface PartnerRankingParams extends PartnerRankingFilters {
  * Partner Ranking Algorithm for Discovery
  * Ranks partners based on performance in similar programs only.
  *
- * Scoring Breakdown (0-65 points):
+ * Scoring Breakdown (0-165+ points):
  *
- * 1. Similarity Score (0-50 points): Performance in similar programs
+ * 1. Multi-Program Success Bonus (100 points): Top priority boost
+ *    - Partners with success (conversions > 0) in 3+ similar programs get 100 bonus points
+ *    - This ensures proven multi-program performers appear at the very top
+ *
+ * 2. Similarity Score (0-50 points): Performance in similar programs
  *    - Sums weighted performance across similar programs (similarityScore > 0.3)
  *    - Each program's performance weighted by its similarity score
  *    - Partners with more similar programs score higher (capped at 50)
  *    - Includes: consistency (20%), conversion rate (10%), LTV (15%), commissions (5%)
  *
- * 2. Program Match Score (0-15 points): Count of similar programs
+ * 3. Program Match Score (0-15 points): Count of similar programs
  *    - Rewards partners enrolled in many similar programs
  *    - 2 points per similar program (capped at 15)
  *
- * Final Score = Similarity + Match (0-65 points)
+ * Final Score = Multi-Program Bonus + Similarity + Match (0-165+ points)
  *
  * Displayed Metrics:
  * - conversionRate: Average conversion rate across ALL programs the partner is enrolled in
@@ -99,8 +103,8 @@ export async function calculatePartnerRanking({
   const orderByClause =
     status === "discover"
       ? starred === true
-        ? Prisma.sql`dp.starredAt DESC, ${hasProfileCheck} DESC, finalScore DESC, p.id ASC`
-        : Prisma.sql`${hasProfileCheck} DESC, finalScore DESC, p.id ASC`
+        ? Prisma.sql`dp.starredAt DESC, finalScore DESC, ${hasProfileCheck} DESC, p.id ASC`
+        : Prisma.sql`finalScore DESC, ${hasProfileCheck} DESC, p.id ASC`
       : status === "invited"
         ? Prisma.sql`dp.invitedAt DESC, p.id ASC`
         : Prisma.sql`enrolled.createdAt DESC, p.id ASC`;
@@ -186,7 +190,12 @@ export async function calculatePartnerRanking({
             ELSE 0 END) * 50 -- Weight by similarity, scale to 0-50 range
         )) as similarityScore,
         -- Program match score: Count of similar programs (0-15 points)
-        LEAST(15, COUNT(DISTINCT pe2.programId) * 2) as programMatchScore
+        LEAST(15, COUNT(DISTINCT pe2.programId) * 2) as programMatchScore,
+        -- Multi-program success bonus: Count of successful programs (100 points for 3+)
+        CASE 
+          WHEN COUNT(DISTINCT CASE WHEN pe2.totalConversions > 0 THEN pe2.programId END) >= 3 THEN 100
+          ELSE 0
+        END as multiProgramSuccessBonus
       FROM ProgramEnrollment pe2
       -- OPTIMIZATION: Only process enrollments for discoverable partners
       INNER JOIN Partner p_filter ON p_filter.id = pe2.partnerId 
@@ -200,7 +209,8 @@ export async function calculatePartnerRanking({
           SELECT 
             NULL as partnerId, 
             NULL as similarityScore, 
-            NULL as programMatchScore
+            NULL as programMatchScore,
+            NULL as multiProgramSuccessBonus
             WHERE FALSE
         ) similarProgramMetrics ON similarProgramMetrics.partnerId = p.id`;
 
@@ -225,8 +235,10 @@ export async function calculatePartnerRanking({
       preferredEarningStructuresData.preferredEarningStructures as preferredEarningStructures,
       salesChannelsData.salesChannels as salesChannels,
 
-      -- FINAL SCORE (0-65 points): Similarity-based ranking for discovery
+      -- FINAL SCORE (0-165+ points): Similarity-based ranking for discovery
+      -- Multi-program success bonus (100 points) ensures partners with 3+ successful programs rank at the top
       (
+        COALESCE(similarProgramMetrics.multiProgramSuccessBonus, 0) +
         COALESCE(similarProgramMetrics.similarityScore, 0) +
         COALESCE(similarProgramMetrics.programMatchScore, 0)
       ) as finalScore
