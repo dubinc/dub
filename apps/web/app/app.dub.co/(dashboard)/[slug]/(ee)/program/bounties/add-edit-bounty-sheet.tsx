@@ -822,7 +822,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                               features={["bold", "italic", "links"]}
                               markdown
                               placeholder="Provide any bounty requirements to the partner"
-                              editorClassName="block max-h-24 overflow-hidden w-full resize-none border-none p-3 text-base sm:text-sm"
+                              editorClassName="block max-h-48 overflow-auto scrollbar-hide w-full resize-none border-none p-3 text-base sm:text-sm"
                               initialValue={field.value}
                               onChange={(editor) =>
                                 field.onChange(

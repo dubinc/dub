@@ -56,7 +56,7 @@ export function MessageInput({
         markdown
         autoFocus={autoFocus}
         placeholder={placeholder}
-        editorClassName="block max-h-24 w-full resize-none border-none p-3 text-base sm:text-sm"
+        editorClassName="block max-h-24 w-full resize-none border-none overflow-auto scrollbar-hide p-3 text-base sm:text-sm"
         onChange={(editor) => setTypedMessage((editor as any).getMarkdown())}
         editorProps={{
           handleDOMEvents: {
