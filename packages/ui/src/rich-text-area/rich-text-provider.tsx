@@ -112,7 +112,7 @@ export const RichTextProvider = forwardRef<
     );
 
     const editor = useEditor({
-      editable: editable,
+      editable: editable ?? true,
       autofocus: autoFocus ? "end" : false,
       extensions: [
         ...(markdown ? [Markdown] : []),
