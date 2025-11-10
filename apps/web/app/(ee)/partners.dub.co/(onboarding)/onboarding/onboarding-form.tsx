@@ -135,6 +135,7 @@ export function OnboardingForm({
           <Controller
             control={control}
             name="image"
+            rules={{ required: true }}
             render={({ field }) => (
               <FileUpload
                 accept="images"

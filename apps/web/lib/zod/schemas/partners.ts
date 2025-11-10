@@ -520,19 +520,23 @@ export const createPartnerSchema = z.object({
 
 // This is a temporary fix to allow arbitrary image URL
 // TODO: Fix this by using file-type
-const partnerImageSchema = z.union([
-  base64ImageSchema,
-  storedR2ImageUrlSchema,
-  publicHostedImageSchema,
-  z
-    .string()
-    .url()
-    .trim()
-    .refine((url) => url.startsWith(GOOGLE_FAVICON_URL), {
-      message: `Image URL must start with ${GOOGLE_FAVICON_URL}`,
-    }),
-  z.string().nullish(), // make image optional
-]);
+const partnerImageSchema = z
+  .union([
+    base64ImageSchema,
+    storedR2ImageUrlSchema,
+    publicHostedImageSchema,
+    z
+      .string()
+      .url()
+      .trim()
+      .refine((url) => url.startsWith(GOOGLE_FAVICON_URL), {
+        message: `Image URL must start with ${GOOGLE_FAVICON_URL}`,
+      }),
+  ])
+  .transform((v) => v || "")
+  .refine((v) => v !== "", {
+    message: "Image is required",
+  });
 
 export const onboardPartnerSchema = createPartnerSchema
   .omit({

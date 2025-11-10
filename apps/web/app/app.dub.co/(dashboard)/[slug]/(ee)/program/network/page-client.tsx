@@ -293,13 +293,13 @@ export function ProgramPartnerNetworkPageClient() {
                     }}
                   />
                 ))
-              : [...Array(8)].map((_, idx) => <PartnerCard key={idx} />)}
+              : [...Array(12)].map((_, idx) => <PartnerCard key={idx} />)}
           </div>
           <div className="sticky bottom-0 mt-4 rounded-b-[inherit] border-t border-neutral-200 bg-white px-3.5 py-2">
             <PaginationControls
               pagination={pagination}
               setPagination={setPagination}
-              totalCount={partnerCounts?.[status] || 0}
+              totalCount={partnerCounts?.[status]}
               unit={(p) => `partner${p ? "s" : ""}`}
             />
           </div>
@@ -379,13 +379,16 @@ function PartnerCard({
         ? partner.categories.map((category) => ({
             label: category.replace(/_/g, " "),
           }))
-        : null,
+        : undefined,
     [partner],
   );
 
   return (
     <div
-      className={cn(partner?.id && "cursor-pointer hover:drop-shadow-sm")}
+      className={cn(
+        partner?.id &&
+          "hover:drop-shadow-card-hover cursor-pointer transition-[filter]",
+      )}
       onClick={(e) => {
         if (!partner?.id || isClickOnInteractiveChild(e)) return;
 
@@ -532,9 +535,7 @@ function PartnerCard({
           </div>
 
           {/* Categories */}
-          {categoriesData && categoriesData.length > 0 && (
-            <ListRow items={categoriesData} />
-          )}
+          <ListRow items={categoriesData} />
         </div>
       </div>
     </div>
