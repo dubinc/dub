@@ -162,32 +162,20 @@ export async function calculatePartnerRanking({
   ) allProgramMetrics ON allProgramMetrics.partnerId = p.id`;
 
   // Multi-program success bonus: Count successful programs across ALL programs
-  // Only applies to partners with online presence (excludes partners without profiles)
+  // Profile check is done in main query to avoid expensive Partner join in subquery
   const multiProgramSuccessJoin = Prisma.sql`LEFT JOIN (
     SELECT 
       pe_mult.partnerId,
-      -- Multi-program success bonus: Exponential scaling based on successful programs
-      -- Only applies if partner has online presence (website or social media)
-      -- HAVING clause ensures we only include partners with 2+ successful programs (based on commissions)
-      CASE 
-        WHEN (
-          MAX(p_filter_mult.website) IS NOT NULL OR
-          MAX(p_filter_mult.youtube) IS NOT NULL OR
-          MAX(p_filter_mult.twitter) IS NOT NULL OR
-          MAX(p_filter_mult.linkedin) IS NOT NULL OR
-          MAX(p_filter_mult.instagram) IS NOT NULL OR
-          MAX(p_filter_mult.tiktok) IS NOT NULL
-        ) THEN
-          LEAST(200, 
-            POWER(COUNT(DISTINCT CASE WHEN pe_mult.totalCommissions > 0 THEN pe_mult.programId END) - 1, 1.5) * 20 + 30
-          )
-        ELSE 0
-      END as multiProgramSuccessBonus
+      -- Count of successful programs (based on commissions)
+      COUNT(DISTINCT CASE WHEN pe_mult.totalCommissions > 0 THEN pe_mult.programId END) as successfulProgramCount
     FROM ProgramEnrollment pe_mult
-    -- OPTIMIZATION: Only process enrollments for discoverable partners
-    INNER JOIN Partner p_filter_mult ON p_filter_mult.id = pe_mult.partnerId 
-      AND ${discoverablePartnersMultiProgramFilter}
-    WHERE pe_mult.programId != ${ACME_PROGRAM_ID}
+    -- OPTIMIZATION: Only process enrollments for discoverable partners (using subquery to avoid JOIN)
+    WHERE pe_mult.partnerId IN (
+      SELECT p_filter_mult.id
+      FROM Partner p_filter_mult
+      WHERE ${discoverablePartnersMultiProgramFilter}
+    )
+      AND pe_mult.programId != ${ACME_PROGRAM_ID}
       AND pe_mult.programId NOT IN (${Prisma.join(LARGE_PROGRAM_IDS, ",")})
       AND pe_mult.status = 'approved'
     GROUP BY pe_mult.partnerId
@@ -273,7 +261,14 @@ export async function calculatePartnerRanking({
       -- Multi-program success bonus (exponential, 0-200 points) ensures partners with 2+ successful programs (based on commissions, across ALL programs) rank at the top
       -- Partners without online presence are excluded from the bonus and ranked lower
       (
-        COALESCE(multiProgramSuccess.multiProgramSuccessBonus, 0) +
+        -- Multi-program success bonus: Only applies if partner has online presence
+        CASE 
+          WHEN ${hasProfileCheck} AND COALESCE(multiProgramSuccess.successfulProgramCount, 0) >= 2 THEN
+            LEAST(200, 
+              POWER(COALESCE(multiProgramSuccess.successfulProgramCount, 0) - 1, 1.5) * 20 + 30
+            )
+          ELSE 0
+        END +
         COALESCE(similarProgramMetrics.similarityScore, 0) +
         COALESCE(similarProgramMetrics.programMatchScore, 0)
       ) as finalScore
