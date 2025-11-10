@@ -36,7 +36,7 @@ export const ProgramSchema = z.object({
   minPayoutAmount: z.number(),
   landerPublishedAt: z.date().nullish(),
   autoApprovePartnersEnabledAt: z.date().nullish(),
-  marketplaceEnabledAt: z.date().nullish(),
+  addedToMarketplaceAt: z.date().nullish(),
   messagingEnabledAt: z.date().nullish(),
   partnerNetworkEnabledAt: z.date().nullish(),
   payoutMode: z.nativeEnum(ProgramPayoutMode).default("internal"),

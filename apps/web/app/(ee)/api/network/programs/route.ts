@@ -32,11 +32,11 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
 
   const programs = await prisma.program.findMany({
     where: {
-      marketplaceEnabledAt: {
+      addedToMarketplaceAt: {
         not: null,
       },
       ...(featured && {
-        marketplaceFeaturedAt: {
+        featuredOnMarketplaceAt: {
           not: null,
         },
       }),

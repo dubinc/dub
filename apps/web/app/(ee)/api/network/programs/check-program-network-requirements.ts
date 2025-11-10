@@ -1,8 +1,5 @@
+import { LARGE_PROGRAM_IDS } from "@/lib/constants/program";
 import { PartnerProps } from "@/lib/types";
-import {
-  PROGRAM_NETWORK_PARTNER_MIN_PAYOUTS,
-  PROGRAM_NETWORK_PARTNER_MIN_PROGRAMS,
-} from "@/lib/zod/schemas/program-network";
 import { prisma } from "@dub/prisma";
 
 export async function checkProgramNetworkRequirements({
@@ -10,22 +7,25 @@ export async function checkProgramNetworkRequirements({
 }: {
   partner: Pick<PartnerProps, "id">;
 }) {
-  const data = await prisma.partner.findUniqueOrThrow({
+  const data = await prisma.partner.findUnique({
     where: {
       id: partner.id,
-    },
-    select: {
-      _count: {
-        select: {
-          programs: { where: { status: "approved" } },
-          payouts: true,
+      programs: {
+        some: {
+          programId: {
+            notIn: LARGE_PROGRAM_IDS,
+          },
+          status: "approved",
+          totalCommissions: {
+            gte: 10_00,
+          },
+        },
+        none: {
+          status: "banned",
         },
       },
     },
   });
 
-  return (
-    data._count.programs >= PROGRAM_NETWORK_PARTNER_MIN_PROGRAMS &&
-    data._count.payouts >= PROGRAM_NETWORK_PARTNER_MIN_PAYOUTS
-  );
+  return data !== null;
 }

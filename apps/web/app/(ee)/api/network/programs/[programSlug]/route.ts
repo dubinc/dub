@@ -20,7 +20,7 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
   const program = await prisma.program.findUniqueOrThrow({
     where: {
       slug: programSlug,
-      marketplaceEnabledAt: {
+      addedToMarketplaceAt: {
         not: null,
       },
     },

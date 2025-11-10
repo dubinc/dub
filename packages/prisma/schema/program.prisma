@@ -52,8 +52,8 @@ model Program {
   updatedAt                    DateTime          @updatedAt
   startedAt                    DateTime?
 
-  marketplaceEnabledAt   DateTime?
-  marketplaceFeaturedAt  DateTime?
+  addedToMarketplaceAt   DateTime?
+  featuredOnMarketplaceAt  DateTime?
   marketplaceHeaderImage String?
 
   workspace                Project                   @relation(fields: [workspaceId], references: [id])

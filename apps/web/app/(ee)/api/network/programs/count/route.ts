@@ -27,7 +27,7 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
 
   const searchSql = search ? Prisma.sql`CONCAT('%', ${search}, '%')` : null;
   const commonWhereSql = Prisma.sql`
-    p.marketplaceEnabledAt IS NOT NULL
+    p.addedToMarketplaceAt IS NOT NULL
     ${
       category && groupBy !== "category"
         ? Prisma.sql`
@@ -64,7 +64,7 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
           )`
         : Prisma.sql``
     }
-    ${featured !== undefined ? Prisma.sql`AND p.marketplaceFeaturedAt IS ${featured ? Prisma.sql`NOT` : Prisma.sql``} NULL` : Prisma.sql``}
+    ${featured !== undefined ? Prisma.sql`AND p.featuredOnMarketplaceAt IS ${featured ? Prisma.sql`NOT` : Prisma.sql``} NULL` : Prisma.sql``}
     ${searchSql ? Prisma.sql`AND (p.name LIKE ${searchSql} OR p.slug LIKE ${searchSql} OR p.domain LIKE ${searchSql})` : Prisma.sql``}
   `;
 
@@ -107,7 +107,7 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
       SELECT pe.status, COUNT(p.id) AS _count
       FROM Program p
       LEFT JOIN ProgramEnrollment pe ON p.id = pe.programId AND pe.partnerId = ${partner.id}
-      WHERE p.marketplaceEnabledAt IS NOT NULL AND ${commonWhereSql}
+      WHERE p.addedToMarketplaceAt IS NOT NULL AND ${commonWhereSql}
       GROUP BY pe.status
       ORDER BY _count DESC
     `) as { status: string | null; _count: bigint }[];

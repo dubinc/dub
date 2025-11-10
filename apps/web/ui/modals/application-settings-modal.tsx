@@ -43,7 +43,7 @@ function ApplicationSettingsModal({
   } = useForm<FormData>({
     defaultValues: {
       autoApprovePartners: program?.autoApprovePartnersEnabledAt ? true : false,
-      marketplaceEnabled: program?.marketplaceEnabledAt ? true : false,
+      marketplaceEnabled: program?.addedToMarketplaceAt ? true : false,
       categories: program?.categories ?? [],
     },
   });

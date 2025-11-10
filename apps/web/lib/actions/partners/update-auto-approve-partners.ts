@@ -35,7 +35,7 @@ export const updateApplicationSettingsAction = authActionClient
           autoApprovePartnersEnabledAt: autoApprovePartners ? new Date() : null,
         }),
         ...(marketplaceEnabled !== undefined && {
-          marketplaceEnabledAt: marketplaceEnabled ? new Date() : null,
+          addedToMarketplaceAt: marketplaceEnabled ? new Date() : null,
         }),
         ...(categories && {
           categories: {
