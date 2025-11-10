@@ -121,10 +121,23 @@ const processPartnerActivityStreamBatch = () =>
             earnings: true,
           },
         });
-        partnerCommissionStats.map((p) => {
+        const finalPartnerCommissionStats =
+          programEnrollmentActivity.commissionStats.map((p) => {
+            const programId = p.split(":")[0];
+            const partnerId = p.split(":")[1];
+            return {
+              programId,
+              partnerId,
+              totalCommissions:
+                partnerCommissionStats.find(
+                  (c) => c.programId === programId && c.partnerId === partnerId,
+                )?._sum.earnings ?? 0,
+            };
+          });
+        finalPartnerCommissionStats.map((p) => {
           programEnrollmentsToUpdate[`${p.programId}:${p.partnerId}`] = {
             ...programEnrollmentsToUpdate[`${p.programId}:${p.partnerId}`], // need to keep the other stats
-            totalCommissions: p._sum.earnings ?? undefined,
+            totalCommissions: p.totalCommissions,
           };
         });
       }
