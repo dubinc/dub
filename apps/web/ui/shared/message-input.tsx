@@ -53,6 +53,7 @@ export function MessageInput({
       <RichTextProvider
         ref={richTextRef}
         features={["bold", "italic", "links"]}
+        style="condensed"
         markdown
         autoFocus={autoFocus}
         placeholder={placeholder}

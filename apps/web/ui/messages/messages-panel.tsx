@@ -4,6 +4,7 @@ import {
   Check2,
   Envelope,
   LoadingSpinner,
+  PROSE_STYLES,
   Tooltip,
   useMediaQuery,
 } from "@dub/ui";
@@ -188,7 +189,8 @@ export function MessagesPanel({
                               isMySide
                                 ? "text-content-inverted prose-invert prose-a:text-content-inverted"
                                 : "text-content-default prose-a:text-content-emphasis",
-                              "prose prose-sm prose-p:m-0 break-words",
+                              "prose prose-sm break-words",
+                              PROSE_STYLES.condensed,
                               "prose-a:font-medium prose-a:underline-offset-4",
                             )}
                             allowedElements={[
