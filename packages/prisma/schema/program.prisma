@@ -85,6 +85,7 @@ model Program {
 
   @@index(workspaceId)
   @@index(domain)
+  @@index(addedToMarketplaceAt)
 }
 
 model ProgramEnrollment {

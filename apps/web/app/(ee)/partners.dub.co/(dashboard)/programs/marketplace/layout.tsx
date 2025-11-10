@@ -6,9 +6,13 @@ import { redirect } from "next/navigation";
 import { PropsWithChildren } from "react";
 
 export default function MarketplaceLayout({ children }: PropsWithChildren) {
-  const { programEnrollments } = useProgramEnrollments();
+  const { programEnrollments, isLoading } = useProgramEnrollments();
 
-  if (!partnerCanViewMarketplace(programEnrollments || []))
+  if (
+    !isLoading &&
+    programEnrollments &&
+    !partnerCanViewMarketplace(programEnrollments)
+  )
     redirect("/programs");
 
   return children;

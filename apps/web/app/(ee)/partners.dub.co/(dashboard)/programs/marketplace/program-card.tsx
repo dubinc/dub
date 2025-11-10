@@ -50,7 +50,7 @@ export function ProgramCard({ program }: { program?: NetworkProgramProps }) {
     <div
       className={cn(
         program?.id &&
-          "border-border-subtle cursor-pointer rounded-xl border bg-white p-6 hover:drop-shadow-sm",
+          "border-border-subtle hover:drop-shadow-card-hover cursor-pointer rounded-xl border bg-white p-6 transition-[filter]",
       )}
       {...getClickHandlers(url, router)}
     >
@@ -82,18 +82,10 @@ export function ProgramCard({ program }: { program?: NetworkProgramProps }) {
           <div className="h-6 w-32 animate-pulse rounded bg-neutral-200" />
         )}
 
-        <div className="text-content-default mt-1 flex items-center gap-1">
-          <Link4 className="size-3.5" />
+        <div className="text-content-subtle mt-1 text-sm">
           {/* Domain */}
           {program ? (
-            <a
-              href={program.url || `https://${program.domain}`}
-              target="_blank"
-              rel="noreferrer noopener"
-              className="text-sm font-medium"
-            >
-              {getPrettyUrl(program.url) || program.domain}
-            </a>
+            `${program.name} is a program in the Dub Partner Network. Join the network to start partnering with them.`
           ) : (
             <div className="h-4 w-24 animate-pulse rounded bg-neutral-200" />
           )}

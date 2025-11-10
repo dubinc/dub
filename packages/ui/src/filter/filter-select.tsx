@@ -189,7 +189,7 @@ export function FilterSelect({
                     selectedFilterKey ? reset() : setIsOpen(false);
                   }
                 }}
-                emptySubmit={(e) => {
+                emptysubmit={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
                   if (askAI) {
@@ -326,7 +326,7 @@ function isEmptyStateObject(
 
 const CommandInput = (
   props: React.ComponentProps<typeof Command.Input> & {
-    emptySubmit?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+    emptysubmit?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   },
 ) => {
   const isEmpty = useCommandState((state) => state.filtered.count === 0);
@@ -339,7 +339,7 @@ const CommandInput = (
         props.onKeyDown?.(e);
 
         if (e.key === "Enter" && isEmpty) {
-          props.emptySubmit?.(e);
+          props.emptysubmit?.(e);
         }
       }}
       autoCapitalize="none"
