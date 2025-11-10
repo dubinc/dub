@@ -28,27 +28,28 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
   const searchSql = search ? Prisma.sql`CONCAT('%', ${search}, '%')` : null;
   const commonWhereSql = Prisma.sql`
     p.addedToMarketplaceAt IS NOT NULL
+    AND EXISTS (
+      SELECT 1 FROM PartnerGroup pg
+      WHERE
+        pg.programId = p.id 
+        AND pg.slug = ${DEFAULT_PARTNER_GROUP.slug}
+        AND pg.applicationFormPublishedAt IS NOT NULL
+        ${
+          rewardType && groupBy !== "rewardType"
+            ? Prisma.sql`
+              AND ${Prisma.join(
+                rewardType.map((type) => rewardTypeMap[type]),
+                " AND ",
+              )}`
+            : Prisma.sql``
+        }
+    )
     ${
       category && groupBy !== "category"
         ? Prisma.sql`
           AND EXISTS (
             SELECT 1 FROM ProgramCategory pc
             WHERE pc.programId = p.id AND pc.category = ${category}
-          )`
-        : Prisma.sql``
-    }
-    ${
-      rewardType && groupBy !== "rewardType"
-        ? Prisma.sql`
-          AND EXISTS (
-            SELECT 1 FROM PartnerGroup pg
-            WHERE
-              pg.programId = p.id 
-              AND pg.slug = ${DEFAULT_PARTNER_GROUP.slug}
-              AND ${Prisma.join(
-                rewardType.map((type) => rewardTypeMap[type]),
-                " AND ",
-              )}
           )`
         : Prisma.sql``
     }
