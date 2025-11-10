@@ -511,6 +511,7 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
                 <RichTextProvider
                   ref={editorRef}
                   editorClassName="-m-2 min-h-[200px] p-2"
+                  style="relaxed"
                   initialValue={field.value}
                   onChange={(editor) => field.onChange(editor.getJSON())}
                   variables={[...EMAIL_TEMPLATE_VARIABLES]}
