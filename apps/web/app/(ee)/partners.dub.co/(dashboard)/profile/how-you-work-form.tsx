@@ -77,6 +77,7 @@ export function HowYouWorkForm({ partner }: { partner?: PartnerProps }) {
         })}
       >
         <SettingsRow
+          id="earning-structures"
           heading="Preferred earning structure"
           description="Choose how you'd like to be rewarded. Select all that apply."
         >

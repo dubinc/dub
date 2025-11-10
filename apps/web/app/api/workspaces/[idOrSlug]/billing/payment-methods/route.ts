@@ -5,7 +5,7 @@ import {
   DIRECT_DEBIT_PAYMENT_METHOD_TYPES,
   DIRECT_DEBIT_PAYMENT_TYPES_INFO,
   PAYMENT_METHOD_TYPES,
-} from "@/lib/partners/constants";
+} from "@/lib/constants/payouts";
 import { stripe } from "@/lib/stripe";
 import { APP_DOMAIN } from "@dub/utils";
 import { NextResponse } from "next/server";

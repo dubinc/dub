@@ -2,10 +2,6 @@
 
 import { updateDiscoveredPartnerAction } from "@/lib/actions/partners/update-discovered-partner";
 import { ONLINE_PRESENCE_FIELDS } from "@/lib/partners/online-presence";
-import {
-  industryInterestsMap,
-  salesChannelsMap,
-} from "@/lib/partners/partner-profile";
 import useNetworkPartnersCount from "@/lib/swr/use-network-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { NetworkPartnerProps } from "@/lib/types";
@@ -13,10 +9,10 @@ import { PARTNER_NETWORK_MAX_PAGE_SIZE } from "@/lib/zod/schemas/partner-network
 import { ConversionScoreIcon } from "@/ui/partners/conversion-score-icon";
 import { ConversionScoreTooltip } from "@/ui/partners/partner-network/conversion-score-tooltip";
 import { NetworkPartnerSheet } from "@/ui/partners/partner-network/network-partner-sheet";
+import { PartnerStarButton } from "@/ui/partners/partner-star-button";
 import {
   AnimatedSizeContainer,
   BadgeCheck2Fill,
-  Button,
   ChartActivity2,
   Filter,
   PaginationControls,
@@ -28,7 +24,7 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import type { Icon } from "@dub/ui/icons";
-import { EnvelopeArrowRight, Star, StarFill } from "@dub/ui/icons";
+import { EnvelopeArrowRight } from "@dub/ui/icons";
 import {
   COUNTRIES,
   OG_AVATAR_URL,
@@ -297,13 +293,13 @@ export function ProgramPartnerNetworkPageClient() {
                     }}
                   />
                 ))
-              : [...Array(8)].map((_, idx) => <PartnerCard key={idx} />)}
+              : [...Array(12)].map((_, idx) => <PartnerCard key={idx} />)}
           </div>
           <div className="sticky bottom-0 mt-4 rounded-b-[inherit] border-t border-neutral-200 bg-white px-3.5 py-2">
             <PaginationControls
               pagination={pagination}
               setPagination={setPagination}
-              totalCount={partnerCounts?.[status] || 0}
+              totalCount={partnerCounts?.[status]}
               unit={(p) => `partner${p ? "s" : ""}`}
             />
           </div>
@@ -377,9 +373,22 @@ function PartnerCard({
     [partner],
   );
 
+  const categoriesData = useMemo(
+    () =>
+      partner
+        ? partner.categories.map((category) => ({
+            label: category.replace(/_/g, " "),
+          }))
+        : undefined,
+    [partner],
+  );
+
   return (
     <div
-      className={cn(partner?.id && "cursor-pointer hover:drop-shadow-sm")}
+      className={cn(
+        partner?.id &&
+          "hover:drop-shadow-card-hover cursor-pointer transition-[filter]",
+      )}
       onClick={(e) => {
         if (!partner?.id || isClickOnInteractiveChild(e)) return;
 
@@ -428,17 +437,11 @@ function PartnerCard({
           </div>
 
           {partner && onToggleStarred && (
-            <Button
-              variant="outline"
-              onClick={() => onToggleStarred(partner.starredAt ? false : true)}
-              icon={
-                partner.starredAt ? (
-                  <StarFill className="size-3 text-amber-500" />
-                ) : (
-                  <Star className="text-content-subtle size-3" />
-                )
-              }
-              className="size-6 rounded-lg p-0"
+            <PartnerStarButton
+              partner={partner}
+              onToggleStarred={onToggleStarred}
+              className="size-6"
+              iconSize="size-3"
             />
           )}
         </div>
@@ -524,48 +527,9 @@ function PartnerCard({
                   />
                 ))}
           </div>
-        </div>
 
-        {/* Partner profile selections */}
-        <div className="mt-5 flex flex-col gap-5">
-          {/* Industry interests */}
-          <div className="flex flex-col gap-2">
-            <h3 className="text-content-emphasis text-xs font-semibold">
-              Industry interests
-            </h3>
-            <ListRow
-              className={cn(!partner && "animate-pulse")}
-              items={
-                partner
-                  ? partner.industryInterests
-                      ?.map((interest) => industryInterestsMap[interest])
-                      .filter(
-                        (item): item is { icon: Icon; label: string } =>
-                          item !== undefined,
-                      ) ?? []
-                  : undefined
-              }
-            />
-          </div>
-
-          {/* Sales channels */}
-          <div className="flex flex-col gap-2">
-            <h3 className="text-content-emphasis text-xs font-semibold">
-              Sales channels
-            </h3>
-            <ListRow
-              className={cn(!partner && "animate-pulse")}
-              items={
-                partner
-                  ? partner.salesChannels
-                      ?.map((salesChannel) => salesChannelsMap[salesChannel])
-                      .filter(
-                        (item): item is { label: string } => item !== undefined,
-                      ) ?? []
-                  : undefined
-              }
-            />
-          </div>
+          {/* Categories */}
+          <ListRow items={categoriesData} />
         </div>
       </div>
     </div>

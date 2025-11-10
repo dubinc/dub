@@ -1,6 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withPartnerProfile } from "@/lib/auth/partner";
-import { INVOICE_AVAILABLE_PAYOUT_STATUSES } from "@/lib/partners/constants";
+import { INVOICE_AVAILABLE_PAYOUT_STATUSES } from "@/lib/constants/payouts";
 import { prisma } from "@dub/prisma";
 import {
   currencyFormatter,
@@ -252,7 +252,7 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     </Document>,
   );
 
-  return new Response(pdf, {
+  return new Response(new Uint8Array(pdf), {
     headers: {
       "Content-Type": "application/pdf",
       "Content-Disposition": `inline; filename="payout-invoice-${payout.id}.pdf"`,

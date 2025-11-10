@@ -4,7 +4,7 @@ import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import {
   DIRECT_DEBIT_PAYMENT_METHOD_TYPES,
   FAST_ACH_FEE_CENTS,
-} from "@/lib/partners/constants";
+} from "@/lib/constants/payouts";
 import {
   CUTOFF_PERIOD,
   CUTOFF_PERIOD_TYPES,

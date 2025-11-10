@@ -1,0 +1,2 @@
+export const REFERRALS_EMBED_EARNINGS_LIMIT = 8;
+export const CUSTOMER_PAGE_EVENTS_LIMIT = 8;

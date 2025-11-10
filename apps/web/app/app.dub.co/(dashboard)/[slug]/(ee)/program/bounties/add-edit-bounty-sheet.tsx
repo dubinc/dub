@@ -1,6 +1,6 @@
 import { generatePerformanceBountyName } from "@/lib/api/bounties/generate-performance-bounty-name";
 import { isCurrencyAttribute } from "@/lib/api/workflows/utils";
-import { BOUNTY_DESCRIPTION_MAX_LENGTH } from "@/lib/partners/constants";
+import { BOUNTY_DESCRIPTION_MAX_LENGTH } from "@/lib/constants/bounties";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useProgram from "@/lib/swr/use-program";

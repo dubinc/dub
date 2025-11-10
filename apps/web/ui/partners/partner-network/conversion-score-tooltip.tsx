@@ -49,8 +49,8 @@ export function ConversionScoreTooltip({
                     ))}
                   </div>
                   <p className="text-content-subtle mt-4 font-medium">
-                    This score is an average for all Dub programs the partner is
-                    enrolled in.
+                    This score is the average click → sale conversion rate
+                    across all programs the partner is enrolled in on Dub.
                   </p>
                 </div>
               ),

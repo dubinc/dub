@@ -174,6 +174,7 @@ export function AboutYouForm({ partner }: { partner?: PartnerProps }) {
         </SettingsRow>
 
         <SettingsRow
+          id="traffic"
           heading="Estimated monthly traffic"
           description="Including websites, newsletters, and social accounts."
         >

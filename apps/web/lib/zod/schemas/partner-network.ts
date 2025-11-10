@@ -1,8 +1,3 @@
-import {
-  IndustryInterest,
-  PreferredEarningStructure,
-  SalesChannel,
-} from "@dub/prisma/client";
 import { z } from "zod";
 import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
 import { PartnerSchema } from "./partners";
@@ -47,24 +42,6 @@ export const getNetworkPartnersQuerySchema = z
       .union([z.string(), z.array(z.string())])
       .transform((v) => (Array.isArray(v) ? v : v.split(",")))
       .optional(),
-    industryInterests: z
-      .preprocess(
-        (v) => (typeof v === "string" ? v.split(",") : v),
-        z.array(z.nativeEnum(IndustryInterest)),
-      )
-      .optional(),
-    salesChannels: z
-      .preprocess(
-        (v) => (typeof v === "string" ? v.split(",") : v),
-        z.array(z.nativeEnum(SalesChannel)),
-      )
-      .optional(),
-    preferredEarningStructures: z
-      .preprocess(
-        (v) => (typeof v === "string" ? v.split(",") : v),
-        z.array(z.nativeEnum(PreferredEarningStructure)),
-      )
-      .optional(),
   })
   .merge(
     getPaginationQuerySchema({
@@ -94,7 +71,6 @@ export const NetworkPartnerSchema = PartnerSchema.pick({
   createdAt: true,
 
   monthlyTraffic: true,
-  industryInterests: true,
   preferredEarningStructures: true,
   salesChannels: true,
 
@@ -120,6 +96,7 @@ export const NetworkPartnerSchema = PartnerSchema.pick({
     invitedAt: z.date().nullable(),
     ignoredAt: z.date().nullable(),
     recruitedAt: z.date().nullable(),
+    categories: z.array(z.string()),
   }),
 );
 

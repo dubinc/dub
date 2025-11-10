@@ -1,7 +1,6 @@
-import { getPartnerDiscoveryRequirements } from "@/lib/partners/discoverability";
+import { getDiscoverabilityRequirements } from "@/lib/partners/get-discoverability-requirements";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
-import { ACME_PROGRAM_ID } from "@dub/utils";
 import { useMemo } from "react";
 
 export function usePartnerDiscoveryRequirements() {
@@ -11,15 +10,9 @@ export function usePartnerDiscoveryRequirements() {
   return useMemo(
     () =>
       partner && programEnrollments
-        ? getPartnerDiscoveryRequirements({
+        ? getDiscoverabilityRequirements({
             partner,
-            totalCommissions: programEnrollments
-              .filter((pe) => pe.programId !== ACME_PROGRAM_ID)
-              .reduce(
-                (acc, programEnrollment) =>
-                  acc + programEnrollment.totalCommissions,
-                0,
-              ),
+            programEnrollments,
           })
         : undefined,
     [partner, programEnrollments],
