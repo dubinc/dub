@@ -1,6 +1,7 @@
 import { LARGE_PROGRAM_IDS } from "@/lib/constants/program";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
+import { ACME_PROGRAM_ID } from "@dub/utils";
 
 export interface PartnerRankingFilters {
   partnerIds?: string[];
@@ -33,6 +34,10 @@ export interface PartnerRankingParams extends PartnerRankingFilters {
  *    - 2 points per similar program (capped at 15)
  *
  * Final Score = Similarity + Match (0-65 points)
+ *
+ * Displayed Metrics:
+ * - conversionRate: Average conversion rate across ALL programs the partner is enrolled in
+ * - lastConversionAt: Most recent conversion date across ALL programs the partner is enrolled in
  *
  * Note: Ranking is primarily used for the "discover" tab. For "invited" and "recruited"
  * tabs, partners are sorted by date (most recent first).
@@ -126,6 +131,25 @@ export async function calculatePartnerRanking({
   const discoverablePartnersFilter =
     buildDiscoverablePartnersFilter("p_filter");
 
+  // Build filter for all-program metrics join (uses different alias)
+  const discoverablePartnersAllProgramsFilter =
+    buildDiscoverablePartnersFilter("p_filter_all");
+
+  // Metrics across ALL programs (for display purposes)
+  const allProgramMetricsJoin = Prisma.sql`LEFT JOIN (
+    SELECT 
+      pe_all.partnerId,
+      MAX(pe_all.lastConversionAt) as lastConversionAt,
+      AVG(COALESCE(pe_all.conversionRate, 0)) as avgConversionRate
+    FROM ProgramEnrollment pe_all
+    -- OPTIMIZATION: Only process enrollments for discoverable partners
+    INNER JOIN Partner p_filter_all ON p_filter_all.id = pe_all.partnerId 
+      AND ${discoverablePartnersAllProgramsFilter}
+    WHERE pe_all.programId != ${ACME_PROGRAM_ID}
+      AND pe_all.totalConversions > 0
+    GROUP BY pe_all.partnerId
+  ) allProgramMetrics ON allProgramMetrics.partnerId = p.id`;
+
   const similarProgramMetricsJoin =
     similarPrograms.length > 0
       ? Prisma.sql`LEFT JOIN (
@@ -162,26 +186,7 @@ export async function calculatePartnerRanking({
             ELSE 0 END) * 50 -- Weight by similarity, scale to 0-50 range
         )) as similarityScore,
         -- Program match score: Count of similar programs (0-15 points)
-        LEAST(15, COUNT(DISTINCT pe2.programId) * 2) as programMatchScore,
-        -- Aggregate metrics for display purposes
-        MAX(pe2.lastConversionAt) as lastConversionAt,
-        SUM(COALESCE(pe2.conversionRate, 0) * (CASE pe2.programId
-          ${Prisma.join(
-            similarPrograms.map(
-              (sp) =>
-                Prisma.sql`WHEN ${sp.programId} THEN ${sp.similarityScore}`,
-            ),
-            " ",
-          )}
-          ELSE 0 END)) / NULLIF(SUM(CASE pe2.programId
-          ${Prisma.join(
-            similarPrograms.map(
-              (sp) =>
-                Prisma.sql`WHEN ${sp.programId} THEN ${sp.similarityScore}`,
-            ),
-            " ",
-          )}
-          ELSE 0 END), 0) as avgConversionRate
+        LEAST(15, COUNT(DISTINCT pe2.programId) * 2) as programMatchScore
       FROM ProgramEnrollment pe2
       -- OPTIMIZATION: Only process enrollments for discoverable partners
       INNER JOIN Partner p_filter ON p_filter.id = pe2.partnerId 
@@ -195,9 +200,7 @@ export async function calculatePartnerRanking({
           SELECT 
             NULL as partnerId, 
             NULL as similarityScore, 
-            NULL as programMatchScore, 
-            NULL as lastConversionAt, 
-            NULL as avgConversionRate 
+            NULL as programMatchScore
             WHERE FALSE
         ) similarProgramMetrics ON similarProgramMetrics.partnerId = p.id`;
 
@@ -212,8 +215,8 @@ export async function calculatePartnerRanking({
   const partners = await prisma.$queryRaw<Array<any>>`
     SELECT 
       p.*,
-      COALESCE(pe.lastConversionAt, similarProgramMetrics.lastConversionAt) as lastConversionAt,
-      COALESCE(pe.conversionRate, similarProgramMetrics.avgConversionRate) as conversionRate,
+      COALESCE(pe.lastConversionAt, allProgramMetrics.lastConversionAt) as lastConversionAt,
+      COALESCE(pe.conversionRate, allProgramMetrics.avgConversionRate) as conversionRate,
       dp.starredAt,
       dp.ignoredAt,
       dp.invitedAt,
@@ -243,6 +246,8 @@ export async function calculatePartnerRanking({
    
     -- Discovered partner metadata
     LEFT JOIN DiscoveredPartner dp ON dp.partnerId = p.id AND dp.programId = ${programId}
+
+    ${allProgramMetricsJoin}
 
     ${similarProgramMetricsJoin}
 
