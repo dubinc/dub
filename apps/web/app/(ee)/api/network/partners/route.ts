@@ -28,7 +28,10 @@ export const GET = withWorkspace(
               gt: PROGRAM_SIMILARITY_SCORE_THRESHOLD,
             },
           },
-          take: 5,
+          orderBy: {
+            similarityScore: "desc",
+          },
+          take: 10,
         },
       },
     });
@@ -77,6 +80,6 @@ export const GET = withWorkspace(
     );
   },
   {
-    requiredPlan: ["enterprise"],
+    requiredPlan: ["enterprise", "advanced"],
   },
 );

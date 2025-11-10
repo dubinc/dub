@@ -136,6 +136,6 @@ export const GET = withWorkspace(
     throw new Error("Invalid groupBy");
   },
   {
-    requiredPlan: ["enterprise"],
+    requiredPlan: ["enterprise", "advanced"],
   },
 );
