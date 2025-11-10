@@ -112,7 +112,7 @@ export const RichTextProvider = forwardRef<
     );
 
     const editor = useEditor({
-      editable: editable ?? true,
+      editable: editable ?? true, // Explicitly pass `true` to make sure placeholder works
       autofocus: autoFocus ? "end" : false,
       extensions: [
         ...(markdown ? [Markdown] : []),

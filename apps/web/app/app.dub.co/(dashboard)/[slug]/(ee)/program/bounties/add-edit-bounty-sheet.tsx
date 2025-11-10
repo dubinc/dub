@@ -18,6 +18,7 @@ import {
 } from "@/ui/partners/program-sheet-accordion";
 import { AmountInput } from "@/ui/shared/amount-input";
 import { X } from "@/ui/shared/icons";
+import { MaxCharactersCounter } from "@/ui/shared/max-characters-counter";
 import {
   AnimatedSizeContainer,
   Button,
@@ -33,7 +34,7 @@ import {
   ToggleGroup,
   useRouterStuff,
 } from "@dub/ui";
-import { cn, formatDate, nFormatter } from "@dub/utils";
+import { cn, formatDate } from "@dub/utils";
 import { Dispatch, SetStateAction, useMemo, useState } from "react";
 import {
   Controller,
@@ -846,12 +847,13 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                         />
 
                         <div className="mt-1 text-left">
-                          <span className="text-xs text-neutral-400">
-                            {description?.length || 0} /{" "}
-                            {nFormatter(BOUNTY_DESCRIPTION_MAX_LENGTH, {
-                              full: true,
-                            })}
-                          </span>
+                          <MaxCharactersCounter
+                            name="description"
+                            control={control}
+                            maxLength={BOUNTY_DESCRIPTION_MAX_LENGTH}
+                            spaced
+                            className="text-content-muted"
+                          />
                         </div>
                       </div>
                     </div>
