@@ -158,7 +158,11 @@ export default function PlanUsage() {
         <div className="flex items-center gap-2">
           {plan !== "enterprise" && (
             <Link href={`/${slug}/settings/billing/upgrade`}>
-              <Button text="Manage plan" variant="primary" className="h-9" />
+              <Button
+                text={plan === "free" ? "Upgrade" : "Manage plan"}
+                variant="primary"
+                className="h-9"
+              />
             </Link>
           )}
           <Link href={`/${slug}/settings/billing/invoices`}>
