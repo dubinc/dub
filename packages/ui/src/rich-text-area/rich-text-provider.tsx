@@ -17,6 +17,12 @@ import {
 } from "react";
 import { suggestions } from "./variables";
 
+export const PROSE_STYLES = {
+  default: "prose-p:my-2 prose-ul:my-2 prose-ol:my-2",
+  condensed: "prose-p:my-0 prose-ul:my-2 prose-ol:my-2",
+  relaxed: "",
+} as const;
+
 const FEATURES = [
   "images",
   "variables",
@@ -31,6 +37,7 @@ type RichTextProviderProps = PropsWithChildren<{
   initialValue?: any;
   features?: (typeof FEATURES)[number][];
   markdown?: boolean;
+  style?: keyof typeof PROSE_STYLES;
   onChange?: (editor: Editor) => void;
   uploadImage?: (file: File) => Promise<string | null>;
   variables?: string[];
@@ -68,6 +75,7 @@ export const RichTextProvider = forwardRef<
       children,
       features = FEATURES as any,
       markdown = false,
+      style = "default",
       placeholder = "Start typing...",
       uploadImage,
       editable,
@@ -112,7 +120,7 @@ export const RichTextProvider = forwardRef<
     );
 
     const editor = useEditor({
-      editable: editable,
+      editable: editable ?? true, // Explicitly pass `true` to make sure placeholder works
       autofocus: autoFocus ? "end" : false,
       extensions: [
         ...(markdown ? [Markdown] : []),
@@ -194,7 +202,9 @@ export const RichTextProvider = forwardRef<
         attributes: {
           ...editorProps?.attributes,
           class: cn(
-            "prose prose-sm prose-neutral max-w-none focus:outline-none",
+            "max-w-none focus:outline-none",
+            "prose prose-sm prose-neutral",
+            PROSE_STYLES[style],
             "[&_.ProseMirror-selectednode]:outline [&_.ProseMirror-selectednode]:outline-2 [&_.ProseMirror-selectednode]:outline-blue-500 [&_.ProseMirror-selectednode]:outline-offset-2",
             editorClassName,
           ),

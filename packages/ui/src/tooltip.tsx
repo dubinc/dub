@@ -129,7 +129,7 @@ export function TooltipContent({
 }) {
   return (
     <div className="flex max-w-xs flex-col items-center space-y-3 p-4 text-center">
-      <TooltipMarkdown>{title}</TooltipMarkdown>
+      <TooltipMarkdown className="p-0">{title}</TooltipMarkdown>
       {cta &&
         (href ? (
           <Link

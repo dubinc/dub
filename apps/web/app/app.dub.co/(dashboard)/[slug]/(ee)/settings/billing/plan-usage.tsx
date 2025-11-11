@@ -8,7 +8,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import useWorkspaceUsers from "@/lib/swr/use-workspace-users";
 import { useManageUsageModal } from "@/ui/modals/manage-usage-modal";
 import SubscriptionMenu from "@/ui/workspaces/subscription-menu";
-import { Button, buttonVariants, Icon, Tooltip, useRouterStuff } from "@dub/ui";
+import { Button, Icon, Tooltip, useRouterStuff } from "@dub/ui";
 import {
   CirclePercentage,
   CreditCard,
@@ -157,24 +157,12 @@ export default function PlanUsage() {
         </div>
         <div className="flex items-center gap-2">
           {plan !== "enterprise" && (
-            <Link
-              href={`/${slug}/settings/billing/upgrade`}
-              className={cn(
-                buttonVariants({ variant: "primary" }),
-                "flex h-9 w-full items-center justify-center whitespace-nowrap rounded-md border px-4 text-sm",
-              )}
-            >
-              Upgrade
+            <Link href={`/${slug}/settings/billing/upgrade`}>
+              <Button text="Manage plan" variant="primary" className="h-9" />
             </Link>
           )}
-          <Link
-            href={`/${slug}/settings/billing/invoices`}
-            className={cn(
-              buttonVariants({ variant: "secondary" }),
-              "flex h-9 w-full items-center justify-center whitespace-nowrap rounded-md border px-4 text-sm",
-            )}
-          >
-            View invoices
+          <Link href={`/${slug}/settings/billing/invoices`}>
+            <Button text="View invoices" variant="secondary" className="h-9" />
           </Link>
           {stripeId && plan !== "free" && <SubscriptionMenu />}
         </div>

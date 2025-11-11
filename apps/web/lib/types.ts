@@ -200,10 +200,7 @@ export type UtmTemplateWithUserProps = UtmTemplateProps & {
 
 export type PlanProps = (typeof plans)[number];
 
-export type BetaFeatures =
-  | "noDubLink"
-  | "analyticsSettingsSiteVisitTracking"
-  | "emailCampaigns";
+export type BetaFeatures = "noDubLink" | "analyticsSettingsSiteVisitTracking";
 
 export interface WorkspaceProps extends Project {
   logo: string | null;

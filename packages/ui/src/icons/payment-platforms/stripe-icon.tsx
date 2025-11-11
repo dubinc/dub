@@ -1,7 +1,7 @@
 import { cn } from "@dub/utils";
 import { SVGProps } from "react";
 
-export function Stripe(props: SVGProps<SVGSVGElement>) {
+export function StripeIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg
       width="32"
