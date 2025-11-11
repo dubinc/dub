@@ -29,22 +29,18 @@ export function CampaignsUpsell() {
           <span className="text-base font-medium text-neutral-900">
             Email campaigns
           </span>
-          <div className="text-content-subtle text-sm">
-            <p className="mt-2">
-              Send marketing and transactional emails to your partners to
-              increase engagement and drive conversions.
-            </p>
-            <p>
-              <a
-                href="https://dub.co/help/article/email-campaigns"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-content-default hover:text-content-emphasis underline"
-              >
-                Learn more
-              </a>
-            </p>
-          </div>
+          <p className="text-content-subtle mt-2 text-sm">
+            Send{" "}
+            <a
+              href="https://dub.co/help/article/email-campaigns"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-content-default hover:text-content-emphasis cursor-alias underline decoration-dotted underline-offset-2"
+            >
+              marketing and transactional emails
+            </a>{" "}
+            to your partners to increase engagement and drive conversions.
+          </p>
         </div>
         <div className="flex items-center gap-2">
           <Button
