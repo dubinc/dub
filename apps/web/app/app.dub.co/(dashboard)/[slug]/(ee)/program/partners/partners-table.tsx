@@ -292,17 +292,17 @@ export function PartnersTable() {
           header: "Net Revenue",
           meta: {
             headerTooltip:
-              "Net revenue after commissions.  \n`Total Sale Amount - Total Commissions`",
+              "Net revenue after commissions.  \n`Total Revenue - Total Commissions`",
           },
           accessorFn: (d: EnrolledPartnerProps) =>
             currencyFormatter(d.netRevenue / 100),
         },
         {
           id: "earningsPerClick",
-          header: "Earnings/Click",
+          header: "EPC",
           meta: {
             headerTooltip:
-              "Average earnings per click.  \n`Total Sale Amount ÷ Total Clicks`",
+              "Average earnings per click.  \n`Total Revenue ÷ Total Clicks`",
           },
           accessorFn: (d: EnrolledPartnerProps) =>
             currencyFormatter(d.earningsPerClick / 100),
@@ -312,7 +312,7 @@ export function PartnersTable() {
           header: "Avg LTV",
           meta: {
             headerTooltip:
-              "Average lifetime value per conversion.  \n`Total Sale Amount ÷ Total Conversions`",
+              "Average lifetime value per conversion.  \n`Total Revenue ÷ Total Conversions`",
           },
           accessorFn: (d: EnrolledPartnerProps) =>
             d.averageLifetimeValue
@@ -360,7 +360,7 @@ export function PartnersTable() {
           header: "ROAS",
           meta: {
             headerTooltip:
-              "Return on ad spend ratio.  \n`Total Sale Amount ÷ Total Commissions`",
+              "Return on ad spend ratio.  \n`Total Revenue ÷ Total Commissions`",
           },
           accessorFn: (d: EnrolledPartnerProps) =>
             d.returnOnAdSpend
