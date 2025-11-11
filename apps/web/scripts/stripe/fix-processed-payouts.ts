@@ -34,7 +34,7 @@ async function main() {
     `Found ${partnersWithProcessedPayouts.length} partners with processed payouts`,
   );
   console.log(
-    `Total amount: ${currencyFormatter(partnersWithProcessedPayouts.reduce((acc, partner) => acc + (partner._sum.amount ?? 0), 0) / 100)}`,
+    `Total amount: ${currencyFormatter(partnersWithProcessedPayouts.reduce((acc, partner) => acc + (partner._sum.amount ?? 0), 0))}`,
   );
   console.table(partnersWithProcessedPayouts.slice(0, 10));
 
@@ -74,7 +74,7 @@ async function main() {
       continue;
     }
     console.log(
-      `Creating stripe transfer for partner ${previouslyProcessedPayouts[0].partner.email} with ${previouslyProcessedPayouts.length} payouts (total amount: ${currencyFormatter(previouslyProcessedPayouts.reduce((acc, p) => acc + p.amount, 0) / 100)})`,
+      `Creating stripe transfer for partner ${previouslyProcessedPayouts[0].partner.email} with ${previouslyProcessedPayouts.length} payouts (total amount: ${currencyFormatter(previouslyProcessedPayouts.reduce((acc, p) => acc + p.amount, 0))})`,
     );
     await createStripeTransfer({
       partner: previouslyProcessedPayouts[0].partner,

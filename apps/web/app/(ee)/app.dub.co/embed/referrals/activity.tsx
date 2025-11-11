@@ -73,7 +73,7 @@ export function ReferralsEmbedActivity({
                   {nFormatter(value, { full: true })}{" "}
                   {subValue || subValue === 0 ? (
                     <span className="text-content-subtle text-xs">
-                      ({currencyFormatter(subValue / 100)})
+                      ({currencyFormatter(subValue)})
                     </span>
                   ) : null}
                 </span>

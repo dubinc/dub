@@ -219,7 +219,7 @@ export async function POST(req: NextRequest) {
                 ...partnerProfile.programs.flatMap(
                   ({ program, createdAt, totalCommissions }) => [
                     plainUsageSection({
-                      usage: currencyFormatter(totalCommissions / 100),
+                      usage: currencyFormatter(totalCommissions),
                       label: program.name,
                       sublabel: `Partner since ${formatDate(createdAt)}`,
                       color: "GREEN",

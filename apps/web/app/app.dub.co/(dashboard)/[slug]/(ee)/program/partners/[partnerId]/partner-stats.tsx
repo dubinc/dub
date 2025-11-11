@@ -64,7 +64,7 @@ export function PartnerStats({
             value: partner
               ? Number.isNaN(partner.totalSaleAmount)
                 ? "-"
-                : currencyFormatter((partner.totalSaleAmount ?? 0) / 100, {
+                : currencyFormatter((partner.totalSaleAmount ?? 0), {
                     trailingZeroDisplay: "stripIfInteger",
                   })
               : error
@@ -79,7 +79,7 @@ export function PartnerStats({
             value: partner
               ? Number.isNaN(partner.totalCommissions)
                 ? "-"
-                : currencyFormatter((partner.totalCommissions ?? 0) / 100)
+                : currencyFormatter((partner.totalCommissions ?? 0))
               : error
                 ? "-"
                 : undefined,
@@ -92,7 +92,7 @@ export function PartnerStats({
             value: partner
               ? Number.isNaN(partner.netRevenue)
                 ? "-"
-                : currencyFormatter((partner.netRevenue ?? 0) / 100)
+                : currencyFormatter((partner.netRevenue ?? 0))
               : error
                 ? "-"
                 : undefined,
