@@ -6,12 +6,35 @@ import {
   partnerActivityStream,
 } from "@/lib/upstash/redis-streams";
 import { prisma } from "@dub/prisma";
+import { ProgramEnrollment } from "@dub/prisma/client";
 import { differenceInDays, format } from "date-fns";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
 const BATCH_SIZE = 6000;
+
+type ProgramEnrollmentStats = Partial<
+  Pick<
+    ProgramEnrollment,
+    | "totalClicks"
+    | "totalLeads"
+    | "totalConversions"
+    | "totalSales"
+    | "totalSaleAmount"
+    | "totalCommissions"
+    | "netRevenue"
+    | "earningsPerClick"
+    | "averageLifetimeValue"
+    | "clickToLeadRate"
+    | "clickToConversionRate"
+    | "leadToConversionRate"
+    | "returnOnAdSpend"
+    | "lastConversionAt"
+    | "daysSinceLastConversion"
+    | "consistencyScore"
+  >
+>;
 
 const processPartnerActivityStreamBatch = () =>
   partnerActivityStream.processBatch<PartnerActivityEvent>(
@@ -39,23 +62,8 @@ const processPartnerActivityStreamBatch = () =>
         { linkStats: [], commissionStats: [] } as Record<string, string[]>,
       );
 
-      const programEnrollmentsToUpdate: Record<
-        string,
-        {
-          totalClicks?: number;
-          totalLeads?: number;
-          totalConversions?: number;
-          totalSales?: number;
-          totalSaleAmount?: number;
-          totalCommissions?: number;
-          lastConversionAt?: Date | null;
-          conversionRate?: number | null;
-          averageLifetimeValue?: number | null;
-          leadConversionRate?: number | null;
-          daysSinceLastConversion?: number | null;
-          consistencyScore?: number | null;
-        }
-      > = {};
+      const programEnrollmentsToUpdate: Record<string, ProgramEnrollmentStats> =
+        {};
 
       if (programEnrollmentActivity.linkStats.length > 0) {
         const programIds = programEnrollmentActivity.linkStats.map(
@@ -64,6 +72,7 @@ const processPartnerActivityStreamBatch = () =>
         const partnerIds = programEnrollmentActivity.linkStats.map(
           (p) => p.split(":")[1],
         );
+
         const partnerLinkStats = await prisma.link.groupBy({
           by: ["programId", "partnerId"],
           where: {
@@ -105,6 +114,7 @@ const processPartnerActivityStreamBatch = () =>
         const partnerIds = programEnrollmentActivity.commissionStats.map(
           (p) => p.split(":")[1],
         );
+
         const partnerCommissionStats = await prisma.commission.groupBy({
           by: ["programId", "partnerId"],
           where: {
@@ -121,6 +131,7 @@ const processPartnerActivityStreamBatch = () =>
             earnings: true,
           },
         });
+
         const finalPartnerCommissionStats =
           programEnrollmentActivity.commissionStats.map((p) => {
             const programId = p.split(":")[0];
@@ -134,6 +145,7 @@ const processPartnerActivityStreamBatch = () =>
                 )?._sum.earnings ?? 0,
             };
           });
+
         finalPartnerCommissionStats.map((p) => {
           programEnrollmentsToUpdate[`${p.programId}:${p.partnerId}`] = {
             ...programEnrollmentsToUpdate[`${p.programId}:${p.partnerId}`], // need to keep the other stats
@@ -151,21 +163,42 @@ const processPartnerActivityStreamBatch = () =>
           totalConversions,
           totalSaleAmount,
           lastConversionAt,
+          totalCommissions,
         } = enrollment;
 
-        // Calculate conversion rate (totalConversions / totalClicks)
-        if (totalClicks && totalClicks > 0 && totalConversions) {
-          enrollment.conversionRate = totalConversions / totalClicks;
+        // Calculate netRevenue
+        if (totalSaleAmount && totalCommissions) {
+          enrollment.netRevenue = totalSaleAmount - totalCommissions;
+        }
+
+        // Calculate earningsPerClick
+        if (totalSaleAmount && totalClicks) {
+          enrollment.earningsPerClick = totalSaleAmount / totalClicks;
         }
 
         // Calculate average lifetime value (totalSaleAmount / totalConversions)
-        if (totalConversions && totalConversions > 0 && totalSaleAmount) {
+        if (totalConversions && totalSaleAmount) {
           enrollment.averageLifetimeValue = totalSaleAmount / totalConversions;
         }
 
-        // Calculate lead conversion rate (totalConversions / totalLeads)
-        if (totalLeads && totalLeads > 0 && totalConversions) {
-          enrollment.leadConversionRate = totalConversions / totalLeads;
+        // Calculate click to lead rate (totalLeads / totalClicks)
+        if (totalLeads && totalClicks) {
+          enrollment.clickToLeadRate = totalLeads / totalClicks;
+        }
+
+        // Calculate click to conversion rate (totalConversions / totalClicks)
+        if (totalConversions && totalClicks) {
+          enrollment.clickToConversionRate = totalConversions / totalClicks;
+        }
+
+        // Calculate lead to conversion rate (totalConversions / totalLeads)
+        if (totalConversions && totalLeads) {
+          enrollment.leadToConversionRate = totalConversions / totalLeads;
+        }
+
+        // Calculate return on AdSpend (totalSaleAmount / totalCommissions)
+        if (totalSaleAmount && totalCommissions) {
+          enrollment.returnOnAdSpend = totalSaleAmount / totalCommissions;
         }
 
         // Calculate days since last conversion
