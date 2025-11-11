@@ -10,6 +10,7 @@ import { ConversionScoreIcon } from "@/ui/partners/conversion-score-icon";
 import { ConversionScoreTooltip } from "@/ui/partners/partner-network/conversion-score-tooltip";
 import { NetworkPartnerSheet } from "@/ui/partners/partner-network/network-partner-sheet";
 import { PartnerStarButton } from "@/ui/partners/partner-star-button";
+import { TrustedPartnerBadge } from "@/ui/partners/trusted-partner-badge";
 import {
   AnimatedSizeContainer,
   BadgeCheck2Fill,
@@ -24,7 +25,7 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import type { Icon } from "@dub/ui/icons";
-import { EnvelopeArrowRight } from "@dub/ui/icons";
+import { EnvelopeArrowRight, Globe } from "@dub/ui/icons";
 import {
   COUNTRIES,
   OG_AVATAR_URL,
@@ -327,6 +328,19 @@ function PartnerCard({
   const basicFields = useMemo(
     () => [
       {
+        id: "country",
+        icon: partner?.country ? (
+          <img
+            alt={`Flag of ${COUNTRIES[partner.country]}`}
+            src={`https://flag.vercel.app/m/${partner.country}.svg`}
+            className="size-3.5 rounded-full"
+          />
+        ) : (
+          <Globe className="size-3.5 shrink-0" />
+        ),
+        text: partner?.country ? COUNTRIES[partner.country] : "Planet Earth",
+      },
+      {
         id: "joinedAt",
         icon: <UserPlus className="size-3.5 shrink-0" />,
         text: partner
@@ -418,22 +432,12 @@ function PartnerCard({
               <img
                 src={partner.image || `${OG_AVATAR_URL}${partner.name}`}
                 alt={partner.name}
-                className="size-16 rounded-full"
+                className="size-16 rounded-full border border-neutral-100"
               />
             ) : (
               <div className="size-16 animate-pulse rounded-full bg-neutral-200" />
             )}
-            {partner?.country && (
-              <Tooltip content={COUNTRIES[partner.country]}>
-                <div className="absolute -right-1 top-1 overflow-hidden rounded-full bg-white p-0.5 transition-transform duration-100 hover:scale-[1.15]">
-                  <img
-                    alt=""
-                    src={`https://flag.vercel.app/m/${partner.country}.svg`}
-                    className="size-3.5 rounded-full"
-                  />
-                </div>
-              </Tooltip>
-            )}
+            {partner?.trustedAt && <TrustedPartnerBadge />}
           </div>
 
           {partner && onToggleStarred && (
@@ -462,7 +466,7 @@ function PartnerCard({
               .filter(({ text }) => text !== null)
               .map(({ id, icon, text, wrapper: Wrapper = "div" }) => (
                 <Wrapper key={id}>
-                  <div className="text-content-subtle flex cursor-default items-center gap-1">
+                  <div className="text-content-subtle flex cursor-default items-center gap-2">
                     {text !== undefined ? (
                       <>
                         {icon}

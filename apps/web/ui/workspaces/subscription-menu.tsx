@@ -1,13 +1,19 @@
 "use client";
 
 import useWorkspace from "@/lib/swr/use-workspace";
-import { Button, Icon, LoadingSpinner, Popover, SquareXmark } from "@dub/ui";
+import {
+  Button,
+  Icon,
+  LoadingSpinner,
+  Popover,
+  SquareXmark,
+  StripeIcon,
+} from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Command } from "cmdk";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Stripe } from "../guides/icons/stripe";
 import { ThreeDots } from "../shared/icons";
 
 export default function SubscriptionMenu() {
@@ -45,7 +51,7 @@ export default function SubscriptionMenu() {
         <Command tabIndex={0} loop className="pointer-events-auto">
           <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[180px]">
             <MenuItem
-              icon={Stripe}
+              icon={StripeIcon}
               label="Open billing portal"
               onSelect={() => openBillingPortal(false)}
             />
