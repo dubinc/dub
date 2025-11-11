@@ -30,6 +30,8 @@ import {
   StatusBadge,
   Table,
   TimestampTooltip,
+  Tooltip,
+  TruncatedList,
   useColumnVisibility,
   usePagination,
   useRouterStuff,
@@ -70,6 +72,7 @@ const partnersColumns = {
     "partner",
     "group",
     "createdAt",
+    "tags",
     "status",
     "location",
     "totalClicks",
@@ -83,6 +86,7 @@ const partnersColumns = {
   defaultVisible: [
     "partner",
     "group",
+    "tags",
     "location",
     "totalClicks",
     "totalLeads",
@@ -211,6 +215,48 @@ export function PartnersTable() {
               </span>
             </TimestampTooltip>
           ),
+        },
+        {
+          id: "tags",
+          header: "Tag",
+          maxSize: 200,
+          cell: ({ row }) =>
+            row.original.tags?.length ? (
+              <TruncatedList
+                className="flex items-center gap-2"
+                overflowIndicator={({ visible, hidden }) => (
+                  <Tooltip
+                    content={
+                      <div className="flex max-w-sm flex-wrap gap-1 p-2">
+                        {row.original.tags.slice(visible).map((tag) => (
+                          <div
+                            key={tag.id}
+                            className="bg-bg-subtle text-content-default flex h-6 items-center rounded-md px-2 text-xs font-semibold"
+                          >
+                            {tag.name}
+                          </div>
+                        ))}
+                      </div>
+                    }
+                  >
+                    <div className="bg-bg-subtle text-content-default flex h-6 items-center rounded-md px-2 text-xs font-semibold">
+                      +{hidden}
+                    </div>
+                  </Tooltip>
+                )}
+              >
+                {row.original.tags.map((tag) => (
+                  <div
+                    key={tag.id}
+                    className="bg-bg-subtle text-content-default flex h-6 items-center rounded-md px-2 text-xs font-semibold"
+                  >
+                    {tag.name}
+                  </div>
+                ))}
+              </TruncatedList>
+            ) : (
+              "-"
+            ),
         },
         {
           id: "status",
