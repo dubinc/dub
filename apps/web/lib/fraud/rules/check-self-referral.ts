@@ -107,6 +107,7 @@ function checkEmailMatch(
     if (normalizedPartnerEmail === normalizedCustomerEmail) {
       metadata.checksPerformed.push("email_exact_match");
       metadata.emailMatch = true;
+
       return {
         triggered: true,
         reasonCode: "self_referral_email_exact_match",
@@ -119,7 +120,9 @@ function checkEmailMatch(
   const customerParts = extractEmailParts(normalizedCustomerEmail);
 
   if (!partnerParts || !customerParts) {
-    return { triggered: false };
+    return {
+      triggered: false,
+    };
   }
 
   // Check domain variations
@@ -143,6 +146,7 @@ function checkEmailMatch(
       if (usernameMatch) {
         metadata.emailMatch = true;
         metadata.usernameMatch = true;
+
         return {
           triggered: true,
           reasonCode: "self_referral_email_domain_variation",
@@ -163,6 +167,7 @@ function checkEmailMatch(
 
     if (emailSimilarity >= ruleConfig.similarityThreshold) {
       metadata.emailMatch = true;
+
       return {
         triggered: true,
         reasonCode: "self_referral_email_levenshtein",
@@ -170,7 +175,9 @@ function checkEmailMatch(
     }
   }
 
-  return { triggered: false };
+  return {
+    triggered: false,
+  };
 }
 
 // Check if partner name matches customer name
@@ -195,6 +202,7 @@ function checkNameMatch(
     if (normalizedPartnerName === normalizedCustomerName) {
       metadata.checksPerformed.push("name_exact_match");
       metadata.nameMatch = true;
+
       return {
         triggered: true,
         reasonCode: "self_referral_name_exact_match",
@@ -214,6 +222,7 @@ function checkNameMatch(
 
     if (nameSimilarity >= ruleConfig.similarityThreshold) {
       metadata.nameMatch = true;
+
       return {
         triggered: true,
         reasonCode: "self_referral_name_levenshtein",
@@ -221,7 +230,9 @@ function checkNameMatch(
     }
   }
 
-  return { triggered: false };
+  return {
+    triggered: false,
+  };
 }
 
 // Normalize email for comparison

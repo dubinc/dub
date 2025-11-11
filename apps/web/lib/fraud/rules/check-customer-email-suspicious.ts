@@ -3,11 +3,9 @@ import { z } from "zod";
 import { FraudRuleContext, FraudRuleEvaluationResult } from "../types";
 
 const contextSchema = z.object({
-  customerEmail: z.string().nullable().default(null),
-});
-
-const configSchema = z.object({
-  //
+  customer: z.object({
+    email: z.string().nullable().default(null),
+  }),
 });
 
 // Check if customer email domain is in the disposable email domains list
@@ -15,10 +13,10 @@ export async function checkCustomerEmailSuspicious(
   context: FraudRuleContext,
   config: unknown,
 ): Promise<FraudRuleEvaluationResult> {
-  const { customerEmail } = contextSchema.parse(context);
+  const { customer } = contextSchema.parse(context);
 
   // If no customer email provided, rule doesn't trigger
-  if (!customerEmail) {
+  if (!customer.email) {
     return {
       triggered: false,
       metadata: {
@@ -28,13 +26,13 @@ export async function checkCustomerEmailSuspicious(
   }
 
   // Extract domain from email
-  const emailParts = customerEmail.split("@");
+  const emailParts = customer.email.split("@");
   if (emailParts.length !== 2) {
     return {
       triggered: false,
       metadata: {
         reason: "invalid_email_format",
-        customerEmail,
+        customerEmail: customer.email,
       },
     };
   }
@@ -48,12 +46,16 @@ export async function checkCustomerEmailSuspicious(
       domain,
     );
 
+    console.log("isDisposable", isDisposable);
+    console.log("domain", domain);
+    console.log("customerEmail", customer.email);
+
     if (isDisposable === 1) {
       return {
         triggered: true,
         reasonCode: "customer_email_disposable_domain",
         metadata: {
-          customerEmail,
+          customerEmail: customer.email,
           domain,
         },
       };
@@ -62,7 +64,7 @@ export async function checkCustomerEmailSuspicious(
     return {
       triggered: false,
       metadata: {
-        customerEmail,
+        customerEmail: customer.email,
         domain,
         isDisposable: false,
       },
@@ -78,7 +80,7 @@ export async function checkCustomerEmailSuspicious(
       triggered: false,
       metadata: {
         reason: "redis_check_failed",
-        customerEmail,
+        customerEmail: customer.email,
         domain,
         error: error instanceof Error ? error.message : String(error),
       },

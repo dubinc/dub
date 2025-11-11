@@ -1,31 +1,34 @@
 import { prisma } from "@dub/prisma";
 import { EventType, FraudRiskLevel, FraudRuleType } from "@dub/prisma/client";
+import { z } from "zod";
 import { DEFAULT_FRAUD_RULES } from "./default-fraud-rules";
 import type { FraudReasonCode } from "./fraud-reason-codes";
 import { fraudRuleRegistry } from "./fraud-rules-registry";
-import type { FraudRuleContext } from "./types";
 
-export interface ConversionEventData {
-  programId: string;
-  partnerId: string;
-  customerId?: string;
-  linkId?: string;
-  eventId?: string;
-  eventType: EventType;
-  // Click event data
-  clickData: {
-    ip: string;
-    referer: string;
-    country: string;
-    timestamp: string;
-    // ... other click data fields
-  };
-  // Customer data
-  customerEmail?: string | null;
-  customerIP?: string | null;
-  // Partner data
-  partnerEmail?: string | null;
-}
+export const conversionEventSchema = z.object({
+  programId: z.string(),
+  partner: z.object({
+    id: z.string(),
+    email: z.string().nullable().default(null),
+    name: z.string().nullable().default(null),
+  }),
+  customer: z.object({
+    id: z.string(),
+    email: z.string().nullable().default(null),
+    name: z.string().nullable().default(null),
+  }),
+  event: z.object({
+    id: z.string(),
+    type: z.nativeEnum(EventType),
+    timestamp: z.string(),
+  }),
+  click: z.object({
+    ip: z.string().nullable().default(null),
+    referer: z.string().nullable().default(null),
+    country: z.string().nullable().default(null),
+    timestamp: z.string().nullable().default(null),
+  }),
+});
 
 export interface TriggeredRule {
   ruleId?: string; // Only present if it's a program override
@@ -60,12 +63,15 @@ const RISK_LEVEL_ORDER: Record<FraudRiskLevel, number> = {
 // Evaluate fraud risk for a conversion event
 // Executes all enabled rules and calculates risk score
 export async function detectFraudEvent(
-  eventData: ConversionEventData,
+  data: z.infer<typeof conversionEventSchema>,
 ): Promise<FraudEvaluationResult> {
+  const parsedConversionEvent = conversionEventSchema.parse(data);
+  const { programId, partner, event } = parsedConversionEvent;
+
   // Get program-specific rule overrides
   const programRules = await prisma.fraudRule.findMany({
     where: {
-      programId: eventData.programId,
+      programId,
     },
   });
 
@@ -99,29 +105,27 @@ export async function detectFraudEvent(
   let riskScore = 0;
   let highestRiskLevel: FraudRiskLevel | null = null;
   const triggeredRules: TriggeredRule[] = [];
+
   const aggregatedMetadata: Record<string, unknown> = {
     evaluatedAt: new Date().toISOString(),
-    programId: eventData.programId,
-    partnerId: eventData.partnerId,
-    eventType: eventData.eventType,
+    programId,
+    partnerId: partner.id,
+    eventType: event.type,
     rulesEvaluated: activeRules.length,
   };
 
   // Evaluate each rule
   for (const rule of activeRules) {
-    const evaluator = fraudRuleRegistry[rule.ruleType];
+    const ruleEvaluator = fraudRuleRegistry[rule.ruleType];
 
-    if (!evaluator) {
+    if (!ruleEvaluator) {
       console.warn(`No evaluator found for rule type ${rule.ruleType}`);
       continue;
     }
 
     try {
-      // Build context for this rule
-      const context = await buildRuleContext(rule.ruleType, eventData);
-
       // Evaluate rule
-      const result = await evaluator(context, rule.config);
+      const result = await ruleEvaluator(parsedConversionEvent, rule.config);
 
       // Rule triggered
       if (result.triggered) {
@@ -170,91 +174,4 @@ export async function detectFraudEvent(
     triggeredRules,
     metadata: aggregatedMetadata,
   };
-}
-
-/**
- * Build context object for a specific rule type
- */
-async function buildRuleContext(
-  ruleType: FraudRuleType,
-  eventData: ConversionEventData,
-): Promise<FraudRuleContext> {
-  switch (ruleType) {
-    case "customer_ip_suspicious":
-      return {
-        customerIP: eventData.customerIP || eventData.clickData.ip,
-        clickData: eventData.clickData,
-      };
-
-    case "self_referral": {
-      const [partner, customer] = await Promise.all([
-        eventData.partnerId
-          ? prisma.partner.findUnique({
-              where: { id: eventData.partnerId },
-              select: { name: true, email: true },
-            })
-          : null,
-        eventData.customerId
-          ? prisma.customer.findUnique({
-              where: { id: eventData.customerId },
-              select: { name: true, email: true },
-            })
-          : null,
-      ]);
-
-      return {
-        partner: {
-          name: partner?.name ?? "",
-          email: partner?.email ?? eventData.partnerEmail,
-        },
-        customer: {
-          name: customer?.name ?? "",
-          email: customer?.email ?? eventData.customerEmail,
-        },
-      };
-    }
-
-    // Add more cases as rules are implemented
-    case "customer_email_suspicious_domain":
-      return {
-        customerEmail: eventData.customerEmail,
-      };
-
-    case "customer_ip_country_mismatch":
-      return {
-        customerIP: eventData.customerIP || eventData.clickData.ip,
-        customerCountry: eventData.clickData.country,
-      };
-
-    case "banned_referral_domain":
-      return {
-        referer: eventData.clickData.referer,
-        programId: eventData.programId,
-      };
-
-    case "suspicious_activity_spike":
-      return {
-        partnerId: eventData.partnerId,
-        programId: eventData.programId,
-        eventType: eventData.eventType,
-        currentTimestamp: new Date(),
-      };
-
-    case "paid_ad_traffic_detected":
-      return {
-        referer: eventData.clickData.referer,
-        clickData: eventData.clickData,
-        programId: eventData.programId,
-      };
-
-    case "abnormally_fast_conversion":
-      return {
-        clickTimestamp: eventData.clickData.timestamp,
-        eventType: eventData.eventType,
-        currentTimestamp: new Date(),
-      };
-
-    default:
-      return {};
-  }
 }
