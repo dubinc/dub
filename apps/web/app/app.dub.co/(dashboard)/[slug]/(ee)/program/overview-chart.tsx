@@ -75,9 +75,9 @@ export function OverviewChart() {
       values: {
         amount:
           viewType === "commissions"
-            ? item.earnings / 100
+            ? item.earnings
             : viewType === "sales"
-              ? item.saleAmount / 100
+              ? item.saleAmount
               : item.leads,
       },
     }));
