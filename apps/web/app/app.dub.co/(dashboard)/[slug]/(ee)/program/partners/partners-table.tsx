@@ -219,7 +219,9 @@ export function PartnersTable() {
           id: "tags",
           header: "Tag",
           maxSize: 200,
-          cell: ({ row }) => <PartnerTagsList tags={row.original.tags} />,
+          cell: ({ row }) => (
+            <PartnerTagsList compact tags={row.original.tags} />
+          ),
         },
         {
           id: "status",

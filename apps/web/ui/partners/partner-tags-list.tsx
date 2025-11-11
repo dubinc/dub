@@ -8,9 +8,11 @@ const tagPillClassName =
 
 export function PartnerTagsList({
   tags,
+  compact,
   wrap,
 }: {
   tags?: PartnerTagProps[];
+  compact?: boolean;
   wrap?: boolean;
 }) {
   return tags?.length ? (
@@ -42,12 +44,24 @@ export function PartnerTagsList({
       onClick={() => toast.info("WIP")}
       className={cn(
         tagPillClassName,
-        "group/add-tag active:bg-bg-inverted/15 px-1.5 font-medium",
+        "group/add-tag active:bg-bg-inverted/15 w-fit px-1.5 font-medium",
       )}
     >
       <Tag className="size-3.5" />
-      <div className="grid grid-cols-[0fr] overflow-hidden transition-[grid-template-columns] group-hover/add-tag:grid-cols-[1fr]">
-        <div className="min-w-0 opacity-0 transition-opacity group-hover/add-tag:opacity-100">
+      <div
+        className={cn(
+          "overflow-hidden",
+          compact &&
+            "grid grid-cols-[0fr] transition-[grid-template-columns] group-hover/add-tag:grid-cols-[1fr]",
+        )}
+      >
+        <div
+          className={cn(
+            "min-w-0",
+            compact &&
+              "opacity-0 transition-opacity group-hover/add-tag:opacity-100",
+          )}
+        >
           <span className="pl-1 pr-0.5">Add tag</span>
         </div>
       </div>
