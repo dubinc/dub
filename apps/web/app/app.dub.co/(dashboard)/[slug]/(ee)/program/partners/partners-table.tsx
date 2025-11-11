@@ -17,6 +17,7 @@ import { useUnbanPartnerModal } from "@/ui/modals/unban-partner-modal";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
+import { PartnerTagsList } from "@/ui/partners/partner-tags-list";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import {
@@ -30,8 +31,6 @@ import {
   StatusBadge,
   Table,
   TimestampTooltip,
-  Tooltip,
-  TruncatedList,
   useColumnVisibility,
   usePagination,
   useRouterStuff,
@@ -220,43 +219,7 @@ export function PartnersTable() {
           id: "tags",
           header: "Tag",
           maxSize: 200,
-          cell: ({ row }) =>
-            row.original.tags?.length ? (
-              <TruncatedList
-                className="flex items-center gap-2"
-                overflowIndicator={({ visible, hidden }) => (
-                  <Tooltip
-                    content={
-                      <div className="flex max-w-sm flex-wrap gap-1 p-2">
-                        {row.original.tags.slice(visible).map((tag) => (
-                          <div
-                            key={tag.id}
-                            className="bg-bg-subtle text-content-default flex h-6 items-center rounded-md px-2 text-xs font-semibold"
-                          >
-                            {tag.name}
-                          </div>
-                        ))}
-                      </div>
-                    }
-                  >
-                    <div className="bg-bg-subtle text-content-default flex h-6 items-center rounded-md px-2 text-xs font-semibold">
-                      +{hidden}
-                    </div>
-                  </Tooltip>
-                )}
-              >
-                {row.original.tags.map((tag) => (
-                  <div
-                    key={tag.id}
-                    className="bg-bg-subtle text-content-default flex h-6 items-center rounded-md px-2 text-xs font-semibold"
-                  >
-                    {tag.name}
-                  </div>
-                ))}
-              </TruncatedList>
-            ) : (
-              "-"
-            ),
+          cell: ({ row }) => <PartnerTagsList tags={row.original.tags} />,
         },
         {
           id: "status",
