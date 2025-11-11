@@ -1,7 +1,7 @@
 import { FraudRuleType } from "@dub/prisma/client";
-import type { FraudRuleEvaluator } from "../types";
-import { checkCustomerIPSuspicious } from "./customer-ip-suspicious";
-import { checkSelfReferral } from "./self-referral";
+import { checkCustomerIPSuspicious } from "./rules/customer-ip-suspicious";
+import { checkSelfReferral } from "./rules/self-referral";
+import type { FraudRuleEvaluator } from "./types";
 
 export const fraudRuleRegistry: Record<
   FraudRuleType,

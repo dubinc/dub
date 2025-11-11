@@ -1,9 +1,9 @@
 import { prisma } from "@dub/prisma";
 import { EventType, FraudRiskLevel, FraudRuleType } from "@dub/prisma/client";
 import { DEFAULT_HIGH_RISK_RULES } from "./default-fraud-rules";
+import { fraudRuleRegistry } from "./fraud-rules-registry";
 import type { FraudReasonCode } from "./reason-codes";
 import { getFraudReasonMessage } from "./reason-codes";
-import { fraudRuleRegistry } from "./rules/fraud-rule-registry";
 import type { FraudRuleContext } from "./types";
 
 export interface ConversionEventData {
@@ -87,7 +87,8 @@ export async function detectFraudEvent(
         ruleType: override.ruleType,
         riskLevel: override.riskLevel,
         name: override.name,
-        config: (override.config as Record<string, unknown>) || globalRule.config,
+        config:
+          (override.config as Record<string, unknown>) || globalRule.config,
         isOverride: true,
       };
     }
