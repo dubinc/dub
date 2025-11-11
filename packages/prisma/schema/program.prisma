@@ -147,6 +147,13 @@ model ProgramEnrollment {
   @@index([programId, status, totalConversions])
   @@index([programId, status, totalSaleAmount])
   @@index([programId, status, totalCommissions])
+  @@index([programId, status, netRevenue])
+  @@index([programId, status, earningsPerClick])
+  @@index([programId, status, averageLifetimeValue])
+  @@index([programId, status, clickToLeadRate])
+  @@index([programId, status, clickToConversionRate])
+  @@index([programId, status, leadToConversionRate])
+  @@index([programId, status, returnOnAdSpend])
   // other indexes
   @@index([groupId, status])
   @@index(clickRewardId)
