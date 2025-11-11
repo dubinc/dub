@@ -44,12 +44,13 @@ export * from "./twitter";
 export * from "./unsplash";
 export * from "./youtube";
 
-// Card types
-export * from "./card-amex";
-export * from "./card-discover";
-export * from "./card-mastercard";
-export * from "./card-visa";
-export * from "./stripe-link";
+// Payment platforms
+export * from "./payment-platforms/card-amex";
+export * from "./payment-platforms/card-discover";
+export * from "./payment-platforms/card-mastercard";
+export * from "./payment-platforms/card-visa";
+export * from "./payment-platforms/paypal";
+export * from "./payment-platforms/stripe-link";
 
 // SDKs
 export * from "./go";
