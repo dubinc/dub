@@ -9,10 +9,13 @@ const contextSchema = z.object({
 });
 
 // Check if customer email domain is in the disposable email domains list
-export async function checkCustomerEmailSuspicious(
-  context: FraudRuleContext,
-  config: unknown,
-): Promise<FraudRuleEvaluationResult> {
+export async function checkCustomerEmailSuspicious({
+  context,
+  config,
+}: {
+  context: FraudRuleContext;
+  config: unknown;
+}): Promise<FraudRuleEvaluationResult> {
   const { customer } = contextSchema.parse(context);
 
   // If no customer email provided, rule doesn't trigger

@@ -1,12 +1,16 @@
 import { prisma } from "@dub/prisma";
 import { EventType, FraudRiskLevel, FraudRuleType } from "@dub/prisma/client";
 import { z } from "zod";
-import { DEFAULT_FRAUD_RULES } from "./default-fraud-rules";
+import {
+  DEFAULT_FRAUD_RULES,
+  RISK_LEVEL_ORDER,
+  RISK_LEVEL_WEIGHTS,
+} from "./constants";
 import type { FraudReasonCode } from "./fraud-reason-codes";
 import { fraudRuleRegistry } from "./fraud-rules-registry";
 
 interface TriggeredRule {
-  ruleId?: string; // Only present if it's a program override
+  ruleId?: string;
   ruleType: FraudRuleType;
   riskLevel: FraudRiskLevel;
   reasonCode?: FraudReasonCode;
@@ -43,20 +47,6 @@ export const conversionEventSchema = z.object({
     timestamp: z.string().nullable().default(null),
   }),
 });
-
-// Risk level weights for calculating risk score
-const RISK_LEVEL_WEIGHTS: Record<FraudRiskLevel, number> = {
-  high: 10,
-  medium: 5,
-  low: 1,
-};
-
-// Risk level order for determining overall risk level
-const RISK_LEVEL_ORDER: Record<FraudRiskLevel, number> = {
-  high: 3,
-  medium: 2,
-  low: 1,
-};
 
 // Evaluate fraud risk for a conversion event
 // Executes all enabled rules and calculates risk score
@@ -115,7 +105,10 @@ export async function detectFraudEvent(
 
     try {
       // Evaluate rule
-      const result = await ruleEvaluatorFn(parsedConversionEvent, rule.config);
+      const result = await ruleEvaluatorFn({
+        context: parsedConversionEvent,
+        config: rule.config,
+      });
 
       // Rule triggered
       if (result.triggered) {

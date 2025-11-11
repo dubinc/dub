@@ -11,12 +11,11 @@ export interface FraudRuleContext {
 }
 
 export interface FraudRuleEvaluator {
-  (
-    context: FraudRuleContext,
-    config: unknown,
-  ): Promise<FraudRuleEvaluationResult>;
-}
-
-export interface FraudRuleEvaluators {
-  [key: string]: FraudRuleEvaluator;
+  ({
+    context,
+    config,
+  }: {
+    context: FraudRuleContext;
+    config: unknown;
+  }): Promise<FraudRuleEvaluationResult>;
 }

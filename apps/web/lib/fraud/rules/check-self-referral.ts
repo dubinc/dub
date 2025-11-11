@@ -24,10 +24,13 @@ const configSchema = z.object({
 
 // Check if partner email or name matches or is similar to customer email or name
 // This detects potential self-referral fraud
-export async function checkSelfReferral(
-  context: FraudRuleContext,
-  config: unknown,
-): Promise<FraudRuleEvaluationResult> {
+export async function checkSelfReferral({
+  context,
+  config,
+}: {
+  context: FraudRuleContext;
+  config: unknown;
+}): Promise<FraudRuleEvaluationResult> {
   const { partner, customer } = contextSchema.parse(context);
 
   const metadata: Record<string, unknown> & {

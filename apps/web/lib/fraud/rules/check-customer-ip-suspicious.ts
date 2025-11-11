@@ -29,10 +29,13 @@ const configSchema = z.object({
 });
 
 // Check if customer IP is associated with suspicious activity
-export async function checkCustomerIPSuspicious(
-  context: FraudRuleContext,
-  config: unknown,
-): Promise<FraudRuleEvaluationResult> {
+export async function checkCustomerIPSuspicious({
+  context,
+  config,
+}: {
+  context: FraudRuleContext;
+  config: unknown;
+}): Promise<FraudRuleEvaluationResult> {
   // TODO:
   // Implement this rule
 
