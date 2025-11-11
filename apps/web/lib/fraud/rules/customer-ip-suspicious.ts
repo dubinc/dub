@@ -18,6 +18,16 @@ const contextSchema = z.object({
     .default(null),
 });
 
+const configSchema = z.object({
+  checkProxy: z.boolean().default(true),
+  checkVPN: z.boolean().default(true),
+  checkTor: z.boolean().default(true),
+  checkBlacklist: z.boolean().default(true),
+  blacklistSources: z
+    .array(z.enum(["internal", "abuseipdb", "virustotal"]))
+    .default(["internal"]),
+});
+
 // Check if customer IP is associated with suspicious activity
 export async function checkCustomerIPSuspicious(
   context: FraudRuleContext,
@@ -36,6 +46,5 @@ export async function checkCustomerIPSuspicious(
 
   return {
     triggered: false,
-    reason: "Not implemented",
   };
 }

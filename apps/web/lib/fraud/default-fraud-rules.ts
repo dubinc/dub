@@ -1,8 +1,4 @@
 import { FraudRiskLevel, FraudRuleType } from "@dub/prisma/client";
-import {
-  customerIPSuspiciousConfigSchema,
-  partnerEmailMatchesCustomerEmailConfigSchema,
-} from "./rules/schemas";
 
 interface FraudRule {
   name: string;
@@ -18,13 +14,13 @@ export const DEFAULT_HIGH_RISK_RULES: FraudRule[] = [
     riskLevel: "high",
     enabled: true,
     name: "Customer IP Associated with Suspicious Activity",
-    config: customerIPSuspiciousConfigSchema.parse({}),
+    config: {},
   },
   {
-    ruleType: "partner_email_matches_customer_email",
+    ruleType: "self_referral",
     riskLevel: "high",
     enabled: true,
-    name: "Partner Email Matches or Similar to Customer Email",
-    config: partnerEmailMatchesCustomerEmailConfigSchema.parse({}),
+    name: "Self-Referral Detected (Email or IP Match)",
+    config: {},
   },
 ];

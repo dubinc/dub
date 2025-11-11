@@ -14,11 +14,8 @@ enum FraudRiskLevel {
 // Flag disposible email
 
 enum FraudRuleType {
-  // High Risk Rules
   customer_ip_suspicious
-  partner_email_matches_customer_email
-
-  // Medium Risk Rules
+  self_referral
   customer_email_suspicious_domain
   customer_ip_country_mismatch
   banned_referral_domain
@@ -26,7 +23,6 @@ enum FraudRuleType {
   paid_ad_traffic_detected
   abnormally_fast_conversion
 }
-
 
 model FraudRule {
   id        String         @id @default(cuid())

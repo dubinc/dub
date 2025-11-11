@@ -1,6 +1,10 @@
 import { prisma } from "@dub/prisma";
 import { EventType, FraudRiskLevel, FraudRuleType } from "@dub/prisma/client";
 import { DEFAULT_HIGH_RISK_RULES } from "./default-fraud-rules";
+import type { FraudReasonCode } from "./reason-codes";
+import { getFraudReasonMessage } from "./reason-codes";
+import { fraudRuleRegistry } from "./rules/fraud-rule-registry";
+import type { FraudRuleContext } from "./types";
 
 export interface ConversionEventData {
   programId: string;
@@ -29,7 +33,8 @@ export interface TriggeredRule {
   ruleType: FraudRuleType;
   riskLevel: FraudRiskLevel;
   name: string;
-  reason: string;
+  reason: string; // Human-readable (for backward compatibility)
+  reasonCode?: FraudReasonCode; // Structured code (for querying)
   metadata?: Record<string, unknown>;
 }
 
@@ -82,7 +87,7 @@ export async function detectFraudEvent(
         ruleType: override.ruleType,
         riskLevel: override.riskLevel,
         name: override.name,
-        config: override.config || globalRule.config,
+        config: (override.config as Record<string, unknown>) || globalRule.config,
         isOverride: true,
       };
     }
@@ -111,7 +116,7 @@ export async function detectFraudEvent(
 
   // Evaluate each rule
   for (const rule of activeRules) {
-    const evaluator = getRuleEvaluator(rule.ruleType);
+    const evaluator = fraudRuleRegistry[rule.ruleType];
 
     if (!evaluator) {
       console.warn(`No evaluator found for rule type: ${rule.ruleType}`);
@@ -120,19 +125,27 @@ export async function detectFraudEvent(
 
     try {
       // Build context for this rule
-      const context = buildRuleContext(rule.ruleType, eventData);
+      const context = (await buildRuleContext(
+        rule.ruleType,
+        eventData,
+      )) as FraudRuleContext;
 
       // Evaluate rule
       const result = await evaluator(context, rule.config);
 
       if (result.triggered) {
         // Rule triggered - add to triggered rules
+        const reasonMessage = result.reasonCode
+          ? getFraudReasonMessage(result.reasonCode)
+          : `${rule.name} triggered`;
+
         triggeredRules.push({
           ruleId: rule.id,
           ruleType: rule.ruleType,
           riskLevel: rule.riskLevel,
           name: rule.name,
-          reason: result.reason || `${rule.name} triggered`,
+          reason: reasonMessage,
+          reasonCode: result.reasonCode,
           metadata: result.metadata,
         });
 
@@ -178,10 +191,10 @@ export async function detectFraudEvent(
 /**
  * Build context object for a specific rule type
  */
-function buildRuleContext(
+async function buildRuleContext(
   ruleType: FraudRuleType,
   eventData: ConversionEventData,
-): unknown {
+): Promise<unknown> {
   switch (ruleType) {
     case "customer_ip_suspicious":
       return {
@@ -189,13 +202,33 @@ function buildRuleContext(
         clickData: eventData.clickData,
       };
 
-    case "partner_email_matches_customer_email":
+    case "self_referral": {
+      const [partner, customer] = await Promise.all([
+        eventData.partnerId
+          ? prisma.partner.findUnique({
+              where: { id: eventData.partnerId },
+              select: { name: true, email: true },
+            })
+          : null,
+        eventData.customerId
+          ? prisma.customer.findUnique({
+              where: { id: eventData.customerId },
+              select: { name: true, email: true },
+            })
+          : null,
+      ]);
+
       return {
-        partnerEmail: eventData.partnerEmail,
-        customerEmail: eventData.customerEmail,
-        partnerId: eventData.partnerId,
-        customerId: eventData.customerId,
+        partner: {
+          name: partner?.name ?? "",
+          email: partner?.email ?? eventData.partnerEmail,
+        },
+        customer: {
+          name: customer?.name ?? "",
+          email: customer?.email ?? eventData.customerEmail,
+        },
       };
+    }
 
     // Add more cases as rules are implemented
     case "customer_email_suspicious_domain":
