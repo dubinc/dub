@@ -85,6 +85,7 @@ model Partner {
   preferredEarningStructures PartnerPreferredEarningStructure[]
   salesChannels              PartnerSalesChannel[]
   discoveredByPrograms       DiscoveredPartner[]
+  programPartnerTags         ProgramPartnerTag[]
 
   @@index(discoverableAt)
   @@index(trustedAt)

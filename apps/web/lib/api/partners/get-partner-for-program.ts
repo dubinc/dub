@@ -20,6 +20,14 @@ export async function getPartnerForProgram({
           industryInterests: true,
           preferredEarningStructures: true,
           salesChannels: true,
+          programPartnerTags: {
+            where: {
+              programId,
+            },
+            include: {
+              partnerTag: true,
+            },
+          },
         },
       },
       links: true,
@@ -39,6 +47,7 @@ export async function getPartnerForProgram({
       programEnrollment.totalSaleAmount - programEnrollment.totalCommissions,
     id: partner.id,
     createdAt: new Date(programEnrollment.createdAt),
+    tags: partner.programPartnerTags.map(({ partnerTag }) => partnerTag),
     links,
     lastLeadAt: links.reduce((acc, link) => {
       return link.lastLeadAt && link.lastLeadAt > (acc ?? new Date(0))

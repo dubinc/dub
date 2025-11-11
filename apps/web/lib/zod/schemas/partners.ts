@@ -333,6 +333,11 @@ export const PartnerSchema = z
 export const PartnerWithProfileSchema =
   PartnerSchema.merge(PartnerProfileSchema);
 
+export const PartnerTagSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+});
+
 // Used externally by GET+POST /api/partners and partner.enrolled webhook
 export const EnrolledPartnerSchema = PartnerSchema.pick({
   id: true,
@@ -356,6 +361,10 @@ export const EnrolledPartnerSchema = PartnerSchema.pick({
     }),
   )
   .extend({
+    tags: z
+      .array(PartnerTagSchema)
+      .optional()
+      .describe("The tags associated with the partner."),
     totalClicks: z
       .number()
       .default(0)
