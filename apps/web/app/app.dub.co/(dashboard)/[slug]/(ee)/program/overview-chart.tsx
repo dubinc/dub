@@ -110,7 +110,7 @@ export function OverviewChart() {
           />
           {total !== undefined ? (
             <NumberFlow
-              value={total}
+              value={viewType === "sales" ? total / 100 : total}
               className="text-content-emphasis block text-3xl font-medium"
               {...(viewType === "leads"
                 ? {}
