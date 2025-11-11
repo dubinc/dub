@@ -5,6 +5,20 @@ import { DEFAULT_FRAUD_RULES } from "./default-fraud-rules";
 import type { FraudReasonCode } from "./fraud-reason-codes";
 import { fraudRuleRegistry } from "./fraud-rules-registry";
 
+interface TriggeredRule {
+  ruleId?: string; // Only present if it's a program override
+  ruleType: FraudRuleType;
+  riskLevel: FraudRiskLevel;
+  reasonCode?: FraudReasonCode;
+  metadata?: Record<string, unknown>;
+}
+
+interface FraudEvaluationResult {
+  riskLevel: FraudRiskLevel | null;
+  riskScore: number;
+  triggeredRules: TriggeredRule[];
+}
+
 export const conversionEventSchema = z.object({
   programId: z.string(),
   partner: z.object({
@@ -30,22 +44,6 @@ export const conversionEventSchema = z.object({
   }),
 });
 
-export interface TriggeredRule {
-  ruleId?: string; // Only present if it's a program override
-  ruleType: FraudRuleType;
-  riskLevel: FraudRiskLevel;
-  name: string;
-  reasonCode?: FraudReasonCode;
-  metadata?: Record<string, unknown>;
-}
-
-export interface FraudEvaluationResult {
-  riskLevel: FraudRiskLevel | null;
-  riskScore: number;
-  triggeredRules: TriggeredRule[];
-  metadata: Record<string, unknown>;
-}
-
 // Risk level weights for calculating risk score
 const RISK_LEVEL_WEIGHTS: Record<FraudRiskLevel, number> = {
   high: 10,
@@ -66,7 +64,7 @@ export async function detectFraudEvent(
   data: z.infer<typeof conversionEventSchema>,
 ): Promise<FraudEvaluationResult> {
   const parsedConversionEvent = conversionEventSchema.parse(data);
-  const { programId, partner, event } = parsedConversionEvent;
+  const { programId } = parsedConversionEvent;
 
   // Get program-specific rule overrides
   const programRules = await prisma.fraudRule.findMany({
@@ -106,26 +104,18 @@ export async function detectFraudEvent(
   let highestRiskLevel: FraudRiskLevel | null = null;
   const triggeredRules: TriggeredRule[] = [];
 
-  const aggregatedMetadata: Record<string, unknown> = {
-    evaluatedAt: new Date().toISOString(),
-    programId,
-    partnerId: partner.id,
-    eventType: event.type,
-    rulesEvaluated: activeRules.length,
-  };
-
   // Evaluate each rule
   for (const rule of activeRules) {
-    const ruleEvaluator = fraudRuleRegistry[rule.ruleType];
+    const ruleEvaluatorFn = fraudRuleRegistry[rule.ruleType];
 
-    if (!ruleEvaluator) {
+    if (!ruleEvaluatorFn) {
       console.warn(`No evaluator found for rule type ${rule.ruleType}`);
       continue;
     }
 
     try {
       // Evaluate rule
-      const result = await ruleEvaluator(parsedConversionEvent, rule.config);
+      const result = await ruleEvaluatorFn(parsedConversionEvent, rule.config);
 
       // Rule triggered
       if (result.triggered) {
@@ -133,7 +123,6 @@ export async function detectFraudEvent(
           ruleId: rule.id,
           ruleType: rule.ruleType,
           riskLevel: rule.riskLevel,
-          name: rule.name,
           reasonCode: result.reasonCode,
           metadata: result.metadata,
         });
@@ -149,11 +138,6 @@ export async function detectFraudEvent(
         ) {
           highestRiskLevel = rule.riskLevel;
         }
-
-        // Aggregate metadata
-        if (result.metadata) {
-          aggregatedMetadata[rule.ruleType] = result.metadata;
-        }
       }
     } catch (error) {
       console.error(
@@ -163,15 +147,9 @@ export async function detectFraudEvent(
     }
   }
 
-  // Add summary metadata
-  aggregatedMetadata.triggeredRulesCount = triggeredRules.length;
-  aggregatedMetadata.riskScore = riskScore;
-  aggregatedMetadata.highestRiskLevel = highestRiskLevel;
-
   return {
     riskLevel: highestRiskLevel,
     riskScore,
     triggeredRules,
-    metadata: aggregatedMetadata,
   };
 }
