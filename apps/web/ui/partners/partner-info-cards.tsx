@@ -25,12 +25,14 @@ import {
   timeAgo,
 } from "@dub/utils";
 import Link from "next/link";
+import { toast } from "sonner";
 import useSWR from "swr";
 import { ConversionScoreIcon } from "./conversion-score-icon";
 import { PartnerInfoGroup } from "./partner-info-group";
 import { ConversionScoreTooltip } from "./partner-network/conversion-score-tooltip";
 import { PartnerStarButton } from "./partner-star-button";
 import { PartnerStatusBadgeWithTooltip } from "./partner-status-badge-with-tooltip";
+import { PartnerTagsList } from "./partner-tags-list";
 import { ProgramRewardList } from "./program-reward-list";
 import { TrustedPartnerBadge } from "./trusted-partner-badge";
 
@@ -167,74 +169,97 @@ export function PartnerInfoCards({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="border-border-subtle flex flex-col rounded-xl border p-4">
-        <div className="flex justify-between gap-2">
-          <div className="relative w-fit">
-            {partner ? (
-              <img
-                src={partner.image || `${OG_AVATAR_URL}${partner.name}`}
-                alt={partner.name}
-                className="size-20 rounded-full border border-neutral-100"
-              />
-            ) : (
-              <div className="size-20 animate-pulse rounded-full bg-neutral-200" />
-            )}
-            {partner?.trustedAt && <TrustedPartnerBadge />}
-          </div>
-
-          {isEnrolled && partner && !hideStatuses.includes(partner.status) && (
-            <PartnerStatusBadgeWithTooltip partner={partner} />
-          )}
-          {isNetwork && partner && (
-            <PartnerStarButton partner={partner} className="size-9" />
-          )}
-        </div>
-        <div className="mt-4">
-          {partner ? (
-            <span className="text-content-emphasis text-lg font-semibold">
-              {partner.name}
-            </span>
-          ) : (
-            <div className="h-7 w-24 animate-pulse rounded bg-neutral-200" />
-          )}
-        </div>
-        {isEnrolled &&
-          (partner ? (
-            partner.email && (
-              <div className="mt-0.5 flex items-center gap-1">
-                <span className="text-sm font-medium text-neutral-500">
-                  {partner.email}
-                </span>
-                <CopyButton
-                  value={partner.email}
-                  variant="neutral"
-                  className="p-1 [&>*]:h-3 [&>*]:w-3"
-                  successMessage="Copied email to clipboard!"
+      <div className="border-border-subtle flex flex-col rounded-xl border">
+        <div className="p-4">
+          <div className="flex justify-between gap-2">
+            <div className="relative w-fit">
+              {partner ? (
+                <img
+                  src={partner.image || `${OG_AVATAR_URL}${partner.name}`}
+                  alt={partner.name}
+                  className="size-20 rounded-full border border-neutral-100"
                 />
-              </div>
-            )
-          ) : (
-            <div className="mt-0.5 h-5 w-32 animate-pulse rounded bg-neutral-200" />
-          ))}
+              ) : (
+                <div className="size-20 animate-pulse rounded-full bg-neutral-200" />
+              )}
+              {partner?.trustedAt && <TrustedPartnerBadge />}
+            </div>
 
-        <div className="mt-3 flex flex-col gap-2">
-          {basicFields
-            .filter(({ text }) => text !== null)
-            .map(({ id, icon, text, wrapper: Wrapper = "div" }) => (
-              <Wrapper key={id}>
-                <div className="text-content-subtle flex items-center gap-1">
-                  {text !== undefined ? (
-                    <>
-                      {icon}
-                      <span className="text-xs font-medium">{text}</span>
-                    </>
-                  ) : (
-                    <div className="h-4 w-24 animate-pulse rounded bg-neutral-200" />
-                  )}
+            {isEnrolled &&
+              partner &&
+              !hideStatuses.includes(partner.status) && (
+                <PartnerStatusBadgeWithTooltip partner={partner} />
+              )}
+            {isNetwork && partner && (
+              <PartnerStarButton partner={partner} className="size-9" />
+            )}
+          </div>
+          <div className="mt-4">
+            {partner ? (
+              <span className="text-content-emphasis text-lg font-semibold">
+                {partner.name}
+              </span>
+            ) : (
+              <div className="h-7 w-24 animate-pulse rounded bg-neutral-200" />
+            )}
+          </div>
+          {isEnrolled &&
+            (partner ? (
+              partner.email && (
+                <div className="mt-0.5 flex items-center gap-1">
+                  <span className="text-sm font-medium text-neutral-500">
+                    {partner.email}
+                  </span>
+                  <CopyButton
+                    value={partner.email}
+                    variant="neutral"
+                    className="p-1 [&>*]:h-3 [&>*]:w-3"
+                    successMessage="Copied email to clipboard!"
+                  />
                 </div>
-              </Wrapper>
+              )
+            ) : (
+              <div className="mt-0.5 h-5 w-32 animate-pulse rounded bg-neutral-200" />
             ))}
+
+          <div className="mt-3 flex flex-col gap-2">
+            {basicFields
+              .filter(({ text }) => text !== null)
+              .map(({ id, icon, text, wrapper: Wrapper = "div" }) => (
+                <Wrapper key={id}>
+                  <div className="text-content-subtle flex items-center gap-1">
+                    {text !== undefined ? (
+                      <>
+                        {icon}
+                        <span className="text-xs font-medium">{text}</span>
+                      </>
+                    ) : (
+                      <div className="h-4 w-24 animate-pulse rounded bg-neutral-200" />
+                    )}
+                  </div>
+                </Wrapper>
+              ))}
+          </div>
         </div>
+
+        {isEnrolled && (
+          <div className="border-border-subtle flex flex-col border-t p-4">
+            <div className="mb-2 flex justify-between gap-2">
+              <span className="text-content-emphasis block text-xs font-semibold">
+                Tags
+              </span>
+
+              <button
+                type="button"
+                onClick={() => toast.info("WIP")}
+                className="text-content-subtle hover:text-content-default text-xs font-medium"
+              >
+                Manage
+              </button>
+            </div>
+            <PartnerTagsList tags={partner?.tags} wrap />
+          </div>
+        )}
       </div>
 
       <div className="border-border-subtle flex flex-col gap-4 rounded-xl border p-4">

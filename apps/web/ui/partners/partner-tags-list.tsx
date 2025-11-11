@@ -4,12 +4,18 @@ import { cn } from "@dub/utils";
 import { toast } from "sonner";
 
 const tagPillClassName =
-  "bg-bg-inverted/5 text-content-default select-none flex h-6 items-center rounded-md px-2 text-xs font-semibold hover:bg-bg-inverted/10";
+  "bg-bg-inverted/5 text-content-default whitespace-nowrap select-none flex h-6 items-center rounded-md px-2 text-xs font-semibold hover:bg-bg-inverted/10";
 
-export function PartnerTagsList({ tags }: { tags?: PartnerTagProps[] }) {
+export function PartnerTagsList({
+  tags,
+  wrap,
+}: {
+  tags?: PartnerTagProps[];
+  wrap?: boolean;
+}) {
   return tags?.length ? (
     <TruncatedList
-      className="flex items-center gap-2"
+      className={cn("flex items-center gap-2", wrap && "flex-wrap")}
       overflowIndicator={({ visible, hidden }) => (
         <Tooltip
           content={
