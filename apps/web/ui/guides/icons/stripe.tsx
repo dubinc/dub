@@ -1,3 +1,4 @@
+import { cn } from "@dub/utils";
 import { SVGProps } from "react";
 
 export function Stripe(props: SVGProps<SVGSVGElement>) {
@@ -9,10 +10,11 @@ export function Stripe(props: SVGProps<SVGSVGElement>) {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       {...props}
+      className={cn("text-[#543AFD]", props.className)}
     >
       <path
         d="M8 0.5H24C28.1421 0.5 31.5 3.85786 31.5 8V24C31.5 28.1421 28.1421 31.5 24 31.5H8C3.85786 31.5 0.5 28.1421 0.5 24V8C0.5 3.85786 3.85786 0.5 8 0.5Z"
-        fill="#543AFD"
+        fill="currentColor"
       />
       <path
         d="M8 0.5H24C28.1421 0.5 31.5 3.85786 31.5 8V24C31.5 28.1421 28.1421 31.5 24 31.5H8C3.85786 31.5 0.5 28.1421 0.5 24V8C0.5 3.85786 3.85786 0.5 8 0.5Z"

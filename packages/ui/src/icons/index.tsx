@@ -49,6 +49,7 @@ export * from "./card-amex";
 export * from "./card-discover";
 export * from "./card-mastercard";
 export * from "./card-visa";
+export * from "./stripe-link";
 
 // SDKs
 export * from "./go";
@@ -67,9 +68,6 @@ export * from "./default-domains/figma";
 export * from "./default-domains/github-enhanced";
 export * from "./default-domains/google-enhanced";
 export * from "./default-domains/spotify";
-
-// payout platforms
-export * from "./payout-platforms";
 
 // Nucleo icons
 export * from "./nucleo";
