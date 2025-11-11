@@ -15,10 +15,18 @@ export const dynamic = "force-dynamic";
 
 const schema = z.object({
   bountyId: z.string(),
-  page: z.number().optional().default(0),
+  startingAfter: z.string().optional(),
+  batchNumber: z
+    .number()
+    .optional()
+    .default(1)
+    .describe("Keep track of the batches sent."),
 });
 
-const MAX_PAGE_SIZE = 100;
+const EMAIL_BATCH_SIZE = 100; // Batch size
+const BATCH_DELAY_SECONDS = 2; // Delay between batches
+const EXTENDED_DELAY_SECONDS = 30; // Extended delay after 25 batches
+const EXTENDED_DELAY_INTERVAL = 25; // Number of batches after which to extend the delay
 
 // POST /api/cron/bounties/notify-partners
 // Send emails to eligible partners about new bounty that is published
@@ -31,7 +39,9 @@ export async function POST(req: Request) {
       rawBody,
     });
 
-    const { bountyId, page } = schema.parse(JSON.parse(rawBody));
+    let { bountyId, startingAfter, batchNumber } = schema.parse(
+      JSON.parse(rawBody),
+    );
 
     // Find bounty
     const bounty = await prisma.bounty.findUnique({
@@ -96,11 +106,16 @@ export async function POST(req: Request) {
           },
         },
       },
+      take: EMAIL_BATCH_SIZE,
+      skip: startingAfter ? 1 : 0,
+      ...(startingAfter && {
+        cursor: {
+          id: startingAfter,
+        },
+      }),
       orderBy: {
-        createdAt: "asc",
+        id: "asc",
       },
-      skip: page * MAX_PAGE_SIZE,
-      take: MAX_PAGE_SIZE,
     });
 
     if (programEnrollments.length === 0) {
@@ -134,7 +149,7 @@ export async function POST(req: Request) {
         tags: [{ name: "type", value: "notification-email" }],
       })),
       {
-        idempotencyKey: `bounty-notify/${bountyId}-page-${page}`,
+        idempotencyKey: `bounty-notify/${bountyId}-${startingAfter || "initial"}`,
       },
     );
 
@@ -152,17 +167,30 @@ export async function POST(req: Request) {
       });
     }
 
-    if (programEnrollments.length === MAX_PAGE_SIZE) {
-      const res = await qstash.publishJSON({
+    if (programEnrollments.length === EMAIL_BATCH_SIZE) {
+      startingAfter = programEnrollments[programEnrollments.length - 1].id;
+
+      // Add BATCH_DELAY_SECONDS pause between each batch, and a longer EXTENDED_DELAY_SECONDS cooldown after every EXTENDED_DELAY_INTERVAL batches.
+      let delay = 0;
+      if (batchNumber > 0 && batchNumber % EXTENDED_DELAY_INTERVAL === 0) {
+        delay = EXTENDED_DELAY_SECONDS;
+      } else {
+        delay = BATCH_DELAY_SECONDS;
+      }
+
+      await qstash.publishJSON({
         url: `${APP_DOMAIN_WITH_NGROK}/api/cron/bounties/notify-partners`,
+        method: "POST",
+        delay,
         body: {
           bountyId,
-          page: page + 1,
+          startingAfter,
+          batchNumber: batchNumber + 1,
         },
       });
 
       return logAndRespond(
-        `Enqueued next page (${page + 1}) for bounty ${bountyId}. ${JSON.stringify(res, null, 2)}`,
+        `Enqueued next batch (${startingAfter}) for bounty ${bountyId} to run after ${delay} seconds.`,
       );
     }
 
