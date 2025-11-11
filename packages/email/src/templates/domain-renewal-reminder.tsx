@@ -69,7 +69,7 @@ export default function DomainRenewalReminder({
                 {formatDate(domain.expiresAt)}
               </span>
               . We will attempt to charge your card on file{" "}
-              {currencyFormatter(domain.renewalFee / 100)} in{" "}
+              {currencyFormatter(domain.renewalFee)} in{" "}
               {domain.chargeAtInText} on {formatDate(domain.chargeAt)}.
             </Text>
 

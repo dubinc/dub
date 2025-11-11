@@ -158,7 +158,7 @@ const InvoiceCard = ({
             <div className="font-medium">Total</div>
             <div className="flex items-center gap-1.5 text-neutral-500">
               <span className="text-sm font-medium">
-                {currencyFormatter(invoice.total / 100)}
+                {currencyFormatter(invoice.total)}
               </span>
               {invoice.status &&
                 (() => {
@@ -217,7 +217,7 @@ const InvoiceCard = ({
           <div className="font-medium">Total</div>
           <div className="flex items-center gap-1.5 text-neutral-500">
             <span className="text-sm font-medium">
-              {currencyFormatter(invoice.total / 100)}
+              {currencyFormatter(invoice.total)}
             </span>
             {invoice.status &&
               (() => {

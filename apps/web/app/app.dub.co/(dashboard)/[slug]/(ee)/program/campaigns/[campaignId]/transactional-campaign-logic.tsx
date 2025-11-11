@@ -148,7 +148,7 @@ function ValueInput({
   return (
     <InlineBadgePopover
       text={
-        value ? (isCurrency ? currencyFormatter(value / 100) : value) : "amount"
+        value ? (isCurrency ? currencyFormatter(value) : value) : "amount"
       }
       invalid={!value}
     >

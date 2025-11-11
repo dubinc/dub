@@ -66,12 +66,12 @@ export default function NewSaleAlertProgramOwner({
   const salesLink = `https://app.dub.co/${workspace.slug}/program/commissions?partnerId=${partner.id}`;
   const notificationPreferencesLink = `https://app.dub.co/${workspace.slug}/settings/notifications`;
 
-  const saleAmountInDollars = currencyFormatter(commission.amount / 100);
+  const saleAmountInDollars = currencyFormatter(commission.amount);
 
-  const earningsInDollars = currencyFormatter(commission.earnings / 100);
+  const earningsInDollars = currencyFormatter(commission.earnings);
 
   const profitInDollars = currencyFormatter(
-    (commission.amount - commission.earnings) / 100,
+    (commission.amount - commission.earnings),
   );
 
   let formattedDueDate = "";

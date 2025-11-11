@@ -18,11 +18,11 @@ export function BountyPerformance({ bounty }: { bounty: PartnerBountyProps }) {
     value === undefined
       ? "-"
       : isCurrencyAttribute(attribute)
-        ? currencyFormatter(value / 100)
+        ? currencyFormatter(value)
         : nFormatter(value, { full: true });
 
   const formattedTarget = isCurrencyAttribute(attribute)
-    ? currencyFormatter(target / 100)
+    ? currencyFormatter(target)
     : nFormatter(target, { full: true });
 
   const metricLabel =

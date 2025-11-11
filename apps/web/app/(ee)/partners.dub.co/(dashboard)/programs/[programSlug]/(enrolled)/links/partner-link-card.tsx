@@ -252,7 +252,7 @@ const StatsBadge = memo(({ link }: { link: PartnerProfileLinkProps }) => {
           />
           <span>
             {tab === "sales"
-              ? currencyFormatter(value / 100, {
+              ? currencyFormatter(value, {
                   trailingZeroDisplay: "stripIfInteger",
                 })
               : nFormatter(value)}

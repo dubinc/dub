@@ -156,7 +156,7 @@ export default function PartnerProgramSummary({
     },
     {
       title: "Earnings",
-      value: currencyFormatter(currentMonth.earnings / 100),
+      value: currencyFormatter(currentMonth.earnings),
       percent: getPercentChange(currentMonth.earnings, previousMonth.earnings),
     },
   ];
@@ -176,7 +176,7 @@ export default function PartnerProgramSummary({
     },
     {
       title: "Earnings",
-      value: currencyFormatter(lifetime.earnings / 100),
+      value: currencyFormatter(lifetime.earnings),
     },
   ];
 

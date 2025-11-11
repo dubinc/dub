@@ -314,8 +314,8 @@ const commissionCreatedTemplate = ({
 }) => {
   const { id, amount, earnings, currency, partner, customer } = data;
 
-  const formattedAmount = currencyFormatter(amount / 100, { currency });
-  const formattedEarnings = currencyFormatter(earnings / 100, { currency });
+  const formattedAmount = currencyFormatter(amount, { currency });
+  const formattedEarnings = currencyFormatter(earnings, { currency });
   const linkToCommissions = `${APP_DOMAIN}/program/commissions`;
 
   return {
@@ -478,7 +478,7 @@ const payoutConfirmedTemplate = ({
   data: PayoutEventWebhookPayload;
 }) => {
   const { id, amount, currency, partner, invoiceId } = data;
-  const formattedAmount = currencyFormatter(amount / 100, { currency });
+  const formattedAmount = currencyFormatter(amount, { currency });
   const linkToPayout = `${APP_DOMAIN}/program/payouts?payoutId=${id}`;
 
   return {
