@@ -148,7 +148,13 @@ function ValueInput({
   return (
     <InlineBadgePopover
       text={
-        value ? (isCurrency ? currencyFormatter(value) : value) : "amount"
+        value
+          ? isCurrency
+            ? currencyFormatter(value, {
+                trailingZeroDisplay: "stripIfInteger",
+              })
+            : value
+          : "amount"
       }
       invalid={!value}
     >
