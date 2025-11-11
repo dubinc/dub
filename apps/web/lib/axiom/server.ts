@@ -12,8 +12,7 @@ import {
 import { getSearchParams } from "@dub/utils";
 import { axiomClient } from "./axiom";
 
-const isAxiomEnabled =
-  process.env.NEXT_PUBLIC_AXIOM_DATASET && process.env.NEXT_PUBLIC_AXIOM_TOKEN;
+const isAxiomEnabled = process.env.AXIOM_DATASET && process.env.AXIOM_TOKEN;
 
 const getLogLevelFromStatusCode = (statusCode: number) => {
   if (statusCode >= 100 && statusCode < 400) {
@@ -32,7 +31,7 @@ export const logger = new Logger({
     ? [
         new AxiomJSTransport({
           axiom: axiomClient,
-          dataset: process.env.NEXT_PUBLIC_AXIOM_DATASET!,
+          dataset: process.env.AXIOM_DATASET!,
         }),
       ]
     : [new ConsoleTransport()],
