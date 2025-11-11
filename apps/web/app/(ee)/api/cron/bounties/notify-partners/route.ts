@@ -50,7 +50,11 @@ export async function POST(req: Request) {
       },
       include: {
         groups: true,
-        program: true,
+        program: {
+          include: {
+            emailDomains: true,
+          },
+        },
       },
     });
 
@@ -127,9 +131,17 @@ export async function POST(req: Request) {
     console.log(
       `Sending emails to ${programEnrollments.length} partners: ${programEnrollments.map(({ partner }) => partner.email).join(", ")}`,
     );
+
+    const verifiedEmailDomain = bounty.program.emailDomains.find(
+      ({ status }) => status === "verified",
+    )?.slug;
+
     const { data } = await sendBatchEmail(
       programEnrollments.map(({ partner }) => ({
         variant: "notifications",
+        from: verifiedEmailDomain
+          ? `${bounty.program.name} <bounties@${verifiedEmailDomain}>`
+          : undefined,
         to: partner.email!, // coerce the type here because we've already filtered out partners with no email in the prisma query
         subject: `New bounty available for ${bounty.program.name}`,
         replyTo: bounty.program.supportEmail || "noreply",
