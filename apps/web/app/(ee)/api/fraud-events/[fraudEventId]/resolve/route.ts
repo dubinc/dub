@@ -4,8 +4,8 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import {
-  FraudEventSchema,
-  ResolveFraudEventSchema,
+  fraudEventSchema,
+  resolveFraudEventSchema,
 } from "@/lib/zod/schemas/fraud";
 import { prisma } from "@dub/prisma";
 import { FraudEventStatus } from "@dub/prisma/client";
@@ -29,7 +29,7 @@ export const PATCH = withWorkspace(
       });
     }
 
-    const { status, resolutionReason } = ResolveFraudEventSchema.parse(
+    const { status, resolutionReason } = resolveFraudEventSchema.parse(
       await parseRequestBody(req),
     );
 
@@ -45,7 +45,7 @@ export const PATCH = withWorkspace(
       },
     });
 
-    return NextResponse.json(FraudEventSchema.parse(updatedFraudEvent));
+    return NextResponse.json(fraudEventSchema.parse(updatedFraudEvent));
   },
   {
     requiredPlan: [

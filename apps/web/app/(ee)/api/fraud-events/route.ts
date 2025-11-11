@@ -2,8 +2,8 @@ import { getFraudEvents } from "@/lib/api/fraud/get-fraud-events";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import {
-  FraudEventListQuerySchema,
-  FraudEventSchema,
+  fraudEventListQuerySchema,
+  fraudEventSchema,
 } from "@/lib/zod/schemas/fraud";
 import { NextResponse } from "next/server";
 
@@ -11,7 +11,7 @@ import { NextResponse } from "next/server";
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
-    const parsedParams = FraudEventListQuerySchema.parse(searchParams);
+    const parsedParams = fraudEventListQuerySchema.parse(searchParams);
 
     const fraudEvents = await getFraudEvents({
       ...parsedParams,
@@ -19,7 +19,7 @@ export const GET = withWorkspace(
     });
 
     return NextResponse.json(
-      fraudEvents.map((event) => FraudEventSchema.parse(event)),
+      fraudEvents.map((event) => fraudEventSchema.parse(event)),
     );
   },
   {

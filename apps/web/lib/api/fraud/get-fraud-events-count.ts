@@ -1,9 +1,9 @@
-import { FraudEventCountQuerySchema } from "@/lib/zod/schemas/fraud";
+import { fraudEventCountQuerySchema } from "@/lib/zod/schemas/fraud";
 import { prisma } from "@dub/prisma";
 import { FraudEventStatus, FraudRiskLevel, Prisma } from "@dub/prisma/client";
 import { z } from "zod";
 
-type FraudEventCountFilters = z.infer<typeof FraudEventCountQuerySchema> & {
+type FraudEventCountFilters = z.infer<typeof fraudEventCountQuerySchema> & {
   programId: string;
 };
 

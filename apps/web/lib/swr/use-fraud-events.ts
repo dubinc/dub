@@ -2,10 +2,10 @@ import { fetcher } from "@dub/utils";
 import useSWR, { SWRConfiguration } from "swr";
 import { z } from "zod";
 import { FraudEventProps } from "../types";
-import { FraudEventListQuerySchema } from "../zod/schemas/fraud";
+import { fraudEventListQuerySchema } from "../zod/schemas/fraud";
 import useWorkspace from "./use-workspace";
 
-const partialQuerySchema = FraudEventListQuerySchema.partial();
+const partialQuerySchema = fraudEventListQuerySchema.partial();
 
 export function useFraudEvents(
   {

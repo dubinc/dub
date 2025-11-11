@@ -1,7 +1,7 @@
 import { getFraudEventOrThrow } from "@/lib/api/fraud/get-fraud-event-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
-import { FraudEventSchema } from "@/lib/zod/schemas/fraud";
+import { fraudEventSchema } from "@/lib/zod/schemas/fraud";
 import { NextResponse } from "next/server";
 
 // GET /api/fraud-events/:fraudEventId – Get a fraud event by ID
@@ -15,7 +15,7 @@ export const GET = withWorkspace(
       programId,
     });
 
-    return NextResponse.json(FraudEventSchema.parse(fraudEvent));
+    return NextResponse.json(fraudEventSchema.parse(fraudEvent));
   },
   {
     requiredPlan: [

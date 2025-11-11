@@ -56,7 +56,7 @@ import { dashboardSchema } from "./zod/schemas/dashboard";
 import { DiscountCodeSchema, DiscountSchema } from "./zod/schemas/discount";
 import { EmailDomainSchema } from "./zod/schemas/email-domains";
 import { FolderSchema } from "./zod/schemas/folders";
-import { FraudEventSchema } from "./zod/schemas/fraud";
+import { fraudEventSchema } from "./zod/schemas/fraud";
 import { GroupWithProgramSchema } from "./zod/schemas/group-with-program";
 import {
   additionalPartnerLinkSchemaOptionalPath,
@@ -660,4 +660,4 @@ export type WorkflowAttribute = (typeof WORKFLOW_ATTRIBUTES)[number];
 
 export type EmailDomainProps = z.infer<typeof EmailDomainSchema>;
 
-export type FraudEventProps = z.infer<typeof FraudEventSchema>;
+export type FraudEventProps = z.infer<typeof fraudEventSchema>;

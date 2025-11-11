@@ -1,12 +1,12 @@
 import useWorkspace from "@/lib/swr/use-workspace";
-import { FraudEventCountQuerySchema } from "@/lib/zod/schemas/fraud";
+import { fraudEventCountQuerySchema } from "@/lib/zod/schemas/fraud";
 import { useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import useSWR from "swr";
 import { z } from "zod";
 
 interface UseFraudEventsCountProps
-  extends z.infer<typeof FraudEventCountQuerySchema> {
+  extends z.infer<typeof fraudEventCountQuerySchema> {
   exclude?: string[];
 }
 

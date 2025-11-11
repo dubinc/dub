@@ -4,7 +4,7 @@ import { getPaginationQuerySchema } from "./misc";
 
 export const FRAUD_EVENTS_MAX_PAGE_SIZE = 100;
 
-export const FraudEventSchema = z.object({
+export const fraudEventSchema = z.object({
   id: z.string(),
   programId: z.string(),
   partnerId: z.string(),
@@ -46,7 +46,7 @@ export const FraudEventSchema = z.object({
     .optional(),
 });
 
-export const FraudEventListQuerySchema = z
+export const fraudEventListQuerySchema = z
   .object({
     status: z
       .nativeEnum(FraudEventStatus)
@@ -71,16 +71,18 @@ export const FraudEventListQuerySchema = z
   })
   .merge(getPaginationQuerySchema({ pageSize: FRAUD_EVENTS_MAX_PAGE_SIZE }));
 
-export const FraudEventCountQuerySchema = FraudEventListQuerySchema.omit({
-  page: true,
-  pageSize: true,
-  sortBy: true,
-  sortOrder: true,
-}).extend({
-  groupBy: z.enum(["status", "riskLevel"]).optional(),
-});
+export const fraudEventCountQuerySchema = fraudEventListQuerySchema
+  .omit({
+    page: true,
+    pageSize: true,
+    sortBy: true,
+    sortOrder: true,
+  })
+  .extend({
+    groupBy: z.enum(["status", "riskLevel"]).optional(),
+  });
 
-export const ResolveFraudEventSchema = z.object({
+export const resolveFraudEventSchema = z.object({
   status: z
     .enum(["safe", "banned"])
     .describe("The resolution status for the fraud event."),
@@ -89,4 +91,3 @@ export const ResolveFraudEventSchema = z.object({
     .optional()
     .describe("Optional notes explaining the resolution."),
 });
-
