@@ -1,24 +1,11 @@
 import z from "@/lib/zod";
-import { capitalize, currencyFormatter } from "@dub/utils";
 import { NextResponse } from "next/server";
+import "server-only";
 import { ZodError } from "zod";
 import { generateErrorMessage } from "zod-error";
 import { ZodOpenApiResponseObject } from "zod-openapi";
-import { PlanProps } from "../types";
-
-export const ErrorCode = z.enum([
-  "bad_request",
-  "not_found",
-  "internal_server_error",
-  "unauthorized",
-  "forbidden",
-  "rate_limit_exceeded",
-  "invite_expired",
-  "invite_pending",
-  "exceeded_limit",
-  "conflict",
-  "unprocessable_entity",
-]);
+import { logger } from "../axiom/server";
+import { ErrorCode } from "./error-codes";
 
 const errorCodeToHttpStatus: Record<z.infer<typeof ErrorCode>, number> = {
   bad_request: 400,
@@ -33,10 +20,6 @@ const errorCodeToHttpStatus: Record<z.infer<typeof ErrorCode>, number> = {
   rate_limit_exceeded: 429,
   internal_server_error: 500,
 };
-
-export const httpStatusToErrorCode = Object.fromEntries(
-  Object.entries(errorCodeToHttpStatus).map(([code, status]) => [status, code]),
-) as Record<number, z.infer<typeof ErrorCode>>;
 
 const speakeasyErrorOverrides: Record<z.infer<typeof ErrorCode>, string> = {
   bad_request: "BadRequest",
@@ -69,7 +52,7 @@ const ErrorSchema = z.object({
   }),
 });
 
-export type ErrorResponse = z.infer<typeof ErrorSchema>;
+type ErrorResponse = z.infer<typeof ErrorSchema>;
 export type ErrorCodes = z.infer<typeof ErrorCode>;
 
 export class DubApiError extends Error {
@@ -121,8 +104,12 @@ export function fromZodError(error: ZodError): ErrorResponse {
   };
 }
 
-export function handleApiError(error: any): ErrorResponse & { status: number } {
+function handleApiError(error: any): ErrorResponse & { status: number } {
   console.error(error.message);
+
+  // Send error to Axiom
+  logger.error(error.message, error);
+  logger.flush();
 
   // Zod errors
   if (error instanceof ZodError) {
@@ -221,31 +208,4 @@ export const errorSchemaFactory = (
       },
     },
   };
-};
-
-export const exceededLimitError = ({
-  plan,
-  limit,
-  type,
-}: {
-  plan: PlanProps;
-  limit: number;
-  type:
-    | "clicks"
-    | "links"
-    | "AI"
-    | "domains"
-    | "tags"
-    | "users"
-    | "folders"
-    | "payouts"
-    | "groups";
-}) => {
-  return `You've reached your ${
-    ["links", "AI", "payouts"].includes(type) ? "monthly" : ""
-  } limit of ${
-    type === "payouts"
-      ? currencyFormatter(limit / 100)
-      : `${limit} ${limit === 1 ? type.slice(0, -1) : type}`
-  } on the ${capitalize(plan)} plan. Please upgrade for higher limits.`;
 };

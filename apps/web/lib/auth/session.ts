@@ -3,8 +3,8 @@ import { ratelimit } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
 import { getSearchParams } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import { AxiomRequest, withAxiom } from "next-axiom";
 import { headers } from "next/headers";
+import { withAxiom } from "../axiom/server";
 import { hashToken } from "./hash-token";
 import { Session, getSession } from "./utils";
 
@@ -25,7 +25,7 @@ interface WithSessionHandler {
 export const withSession = (handler: WithSessionHandler) =>
   withAxiom(
     async (
-      req: AxiomRequest,
+      req,
       { params: initialParams }: { params: Promise<Record<string, string>> },
     ) => {
       const params = (await initialParams) || {};
@@ -130,7 +130,6 @@ export const withSession = (handler: WithSessionHandler) =>
         const searchParams = getSearchParams(req.url);
         return await handler({ req, params, searchParams, session });
       } catch (error) {
-        req.log.error(error);
         return handleAndReturnErrorResponse(error, responseHeaders);
       }
     },

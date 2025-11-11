@@ -1,6 +1,6 @@
 import { confirmPayoutsAction } from "@/lib/actions/partners/confirm-payouts";
-import { exceededLimitError } from "@/lib/api/errors";
-import { clientAccessCheck } from "@/lib/api/tokens/permissions";
+import { clientAccessCheck } from "@/lib/client-access-check";
+import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import {
   DIRECT_DEBIT_PAYMENT_METHOD_TYPES,
   FAST_ACH_FEE_CENTS,
@@ -215,7 +215,7 @@ function ConfirmPayoutsSheetContent() {
       label: method.title,
       icon: method.icon,
       ...(method.fastSettlement && {
-        meta: `+ ${currencyFormatter(FAST_ACH_FEE_CENTS / 100, { trailingZeroDisplay: "stripIfInteger" })}`,
+        meta: `+ ${currencyFormatter(FAST_ACH_FEE_CENTS, { trailingZeroDisplay: "stripIfInteger" })}`,
       }),
     }));
   }, [finalPaymentMethods]);
@@ -418,7 +418,7 @@ function ConfirmPayoutsSheetContent() {
           amount === undefined ? (
             <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
           ) : (
-            currencyFormatter(amount / 100)
+            currencyFormatter(amount)
           ),
       },
       ...(finalEligiblePayouts && finalEligiblePayouts.some(isExternalPayout)
@@ -430,7 +430,7 @@ function ConfirmPayoutsSheetContent() {
                   <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
                 ) : (
                   <div className="flex items-center gap-1.5">
-                    {currencyFormatter(externalAmount / 100)}
+                    {currencyFormatter(externalAmount)}
                     <CircleArrowRight className="size-3.5 text-neutral-500" />
                   </div>
                 ),
@@ -442,12 +442,12 @@ function ConfirmPayoutsSheetContent() {
         key: "Fee",
         value:
           selectedPaymentMethod && fee !== undefined ? (
-            currencyFormatter(fee / 100)
+            currencyFormatter(fee)
           ) : (
             <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
           ),
         tooltipContent: selectedPaymentMethod
-          ? `${selectedPaymentMethod.fee * 100}% processing fee${(fastAchFee ?? 0) > 0 ? ` + ${currencyFormatter((fastAchFee ?? 0) / 100)} Fast ACH fee` : ""}. ${!DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(selectedPaymentMethod.type as Stripe.PaymentMethod.Type) ? " Switch to Direct Debit for a reduced fee." : ""} [Learn more](https://d.to/payouts)`
+          ? `${selectedPaymentMethod.fee * 100}% processing fee${(fastAchFee ?? 0) > 0 ? ` + ${currencyFormatter(fastAchFee ?? 0)} Fast ACH fee` : ""}. ${!DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(selectedPaymentMethod.type as Stripe.PaymentMethod.Type) ? " Switch to Direct Debit for a reduced fee." : ""} [Learn more](https://d.to/payouts)`
           : undefined,
       },
       {
@@ -464,7 +464,7 @@ function ConfirmPayoutsSheetContent() {
           total === undefined ? (
             <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
           ) : (
-            currencyFormatter(total / 100)
+            currencyFormatter(total)
           ),
       },
     ];
@@ -511,7 +511,7 @@ function ConfirmPayoutsSheetContent() {
                   excludedPayoutIds.includes(row.original.id) && "line-through",
                 )}
               >
-                {currencyFormatter(row.original.amount / 100)}
+                {currencyFormatter(row.original.amount)}
               </span>
 
               {!selectedPayoutId && (
@@ -667,7 +667,7 @@ function ConfirmPayoutsSheetContent() {
           }}
           text={
             amount && amount > 0
-              ? `Hold to confirm ${currencyFormatter(amount / 100)} payout`
+              ? `Hold to confirm ${currencyFormatter(amount)} payout`
               : "Hold to confirm payout"
           }
           disabled={

@@ -1,5 +1,12 @@
 import { getDaysDifference } from "@dub/utils";
-import { DubApiError } from "../../api/errors";
+
+export type DateRangeValidationResult =
+  | { valid: true }
+  | {
+      valid: false;
+      code: "free-limit" | "pro-limit";
+      message: string;
+    };
 
 export const validDateRangeForPlan = ({
   plan,
@@ -7,15 +14,13 @@ export const validDateRangeForPlan = ({
   interval,
   start,
   end,
-  throwError,
 }: {
   plan?: string | null;
   dataAvailableFrom?: Date;
   interval?: string;
   start?: Date | null;
   end?: Date | null;
-  throwError?: boolean;
-}) => {
+}): DateRangeValidationResult => {
   const now = new Date(Date.now());
   if (interval === "all" && dataAvailableFrom && !start) {
     start = dataAvailableFrom;
@@ -29,15 +34,12 @@ export const validDateRangeForPlan = ({
       interval === "ytd" ||
       (start && getDaysDifference(new Date(start), end || now) > 31))
   ) {
-    if (throwError) {
-      throw new DubApiError({
-        code: "forbidden",
-        message:
-          "You can only get analytics for up to 30 days on a Free plan. Upgrade to Pro or Business to get analytics for longer periods.",
-      });
-    } else {
-      return false;
-    }
+    return {
+      valid: false,
+      code: "free-limit",
+      message:
+        "You can only get analytics for up to 30 days on a Free plan. Upgrade to Pro or Business to get analytics for longer periods.",
+    };
   }
 
   // Pro plan users can only get analytics for 1 year
@@ -46,16 +48,15 @@ export const validDateRangeForPlan = ({
     start &&
     getDaysDifference(new Date(start), end || now) > 366
   ) {
-    if (throwError) {
-      throw new DubApiError({
-        code: "forbidden",
-        message:
-          "You can only get analytics for up to 1 year on a Pro plan. Upgrade to Business to get analytics for longer periods.",
-      });
-    } else {
-      return false;
-    }
+    return {
+      valid: false,
+      code: "pro-limit",
+      message:
+        "You can only get analytics for up to 1 year on a Pro plan. Upgrade to Business to get analytics for longer periods.",
+    };
   }
 
-  return true;
+  return {
+    valid: true,
+  };
 };

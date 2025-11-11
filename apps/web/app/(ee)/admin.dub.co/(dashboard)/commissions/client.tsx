@@ -131,13 +131,13 @@ export default function CommissionsPageClient() {
         id: "commissions",
         header: "Commissions",
         accessorKey: "commissions",
-        cell: ({ row }) => currencyFormatter(row.original.commissions / 100),
+        cell: ({ row }) => currencyFormatter(row.original.commissions),
       },
       {
         id: "fees",
         header: "Fees",
         accessorKey: "fees",
-        cell: ({ row }) => currencyFormatter(row.original.fees / 100),
+        cell: ({ row }) => currencyFormatter(row.original.fees),
       },
     ],
     pagination,
@@ -244,7 +244,7 @@ export default function CommissionsPageClient() {
                             </p>
                           </div>
                           <p className="text-right font-medium text-neutral-900">
-                            {currencyFormatter(d.values[tab.id] / 100)}
+                            {currencyFormatter(d.values[tab.id])}
                           </p>
                         </Fragment>
                       </div>
@@ -265,7 +265,7 @@ export default function CommissionsPageClient() {
                   />
                   <YAxis
                     showGridLines
-                    tickFormat={(value) => currencyFormatter(value / 100)}
+                    tickFormat={(value) => currencyFormatter(value)}
                   />
                 </TimeSeriesChart>
               ) : (

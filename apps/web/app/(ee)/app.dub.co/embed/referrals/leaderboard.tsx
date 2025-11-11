@@ -83,7 +83,7 @@ export function ReferralsEmbedLeaderboard() {
         id: "totalCommissions",
         header: "Earnings",
         cell: ({ row }) => {
-          return currencyFormatter(row.original.totalCommissions / 100);
+          return currencyFormatter(row.original.totalCommissions);
         },
       },
     ],

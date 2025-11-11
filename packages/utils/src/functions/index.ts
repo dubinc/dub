@@ -6,6 +6,7 @@ export * from "./cn";
 export * from "./combine-words";
 export * from "./construct-metadata";
 export * from "./currency-formatter";
+export * from "./currency-zero-decimal";
 export * from "./datetime";
 export * from "./deep-equal";
 export * from "./domains";

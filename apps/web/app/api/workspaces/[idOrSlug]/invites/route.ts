@@ -1,6 +1,7 @@
-import { DubApiError, exceededLimitError } from "@/lib/api/errors";
+import { DubApiError } from "@/lib/api/errors";
 import { inviteUser } from "@/lib/api/users";
 import { withWorkspace } from "@/lib/auth";
+import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import { ratelimit, redis } from "@/lib/upstash";
 import { inviteTeammatesSchema } from "@/lib/zod/schemas/invites";
 import {

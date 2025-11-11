@@ -425,7 +425,7 @@ function ProgramInfoPanel({
                 </span>
                 {value !== undefined ? (
                   <span className="text-content-emphasis text-sm font-medium">
-                    {currencyFormatter(value / 100)}
+                    {currencyFormatter(value)}
                   </span>
                 ) : (
                   <div className="h-5 w-12 animate-pulse rounded-md bg-neutral-200" />

@@ -279,13 +279,13 @@ export function PartnersTable() {
           id: "totalSaleAmount",
           header: "Revenue",
           accessorFn: (d: EnrolledPartnerProps) =>
-            currencyFormatter(d.totalSaleAmount / 100),
+            currencyFormatter(d.totalSaleAmount),
         },
         {
           id: "totalCommissions",
           header: "Commissions",
           accessorFn: (d: EnrolledPartnerProps) =>
-            currencyFormatter(d.totalCommissions / 100),
+            currencyFormatter(d.totalCommissions),
         },
         {
           id: "netRevenue",
@@ -295,7 +295,7 @@ export function PartnersTable() {
               "Net revenue after commissions.  \n`Total Revenue - Total Commissions`",
           },
           accessorFn: (d: EnrolledPartnerProps) =>
-            currencyFormatter(d.netRevenue / 100),
+            currencyFormatter(d.netRevenue),
         },
         {
           id: "earningsPerClick",
@@ -305,7 +305,7 @@ export function PartnersTable() {
               "Average earnings per click.  \n`Total Revenue ÷ Total Clicks`",
           },
           accessorFn: (d: EnrolledPartnerProps) =>
-            currencyFormatter(d.earningsPerClick / 100),
+            currencyFormatter(d.earningsPerClick),
         },
         {
           id: "averageLifetimeValue",
@@ -316,7 +316,7 @@ export function PartnersTable() {
           },
           accessorFn: (d: EnrolledPartnerProps) =>
             d.averageLifetimeValue
-              ? currencyFormatter(d.averageLifetimeValue / 100)
+              ? currencyFormatter(d.averageLifetimeValue)
               : "-",
         },
         {

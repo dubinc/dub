@@ -84,7 +84,7 @@ export function PayoutsSuccessPageClient() {
   }
 
   // Convert total from cents to dollars
-  const amountPaid = currencyFormatter(invoice.amount / 100);
+  const amountPaid = currencyFormatter(invoice.amount);
 
   // this can be zero in the beginning, so maybe we can add a loading state for the partner count,
   // while we keep calling mutate() for the invoice SWR above?

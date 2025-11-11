@@ -1,7 +1,6 @@
 "use server";
 
 import { createId } from "@/lib/api/create-id";
-import { exceededLimitError } from "@/lib/api/errors";
 import { getEligiblePayouts } from "@/lib/api/payouts/get-eligible-payouts";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
@@ -10,6 +9,7 @@ import {
   STRIPE_PAYMENT_METHOD_NORMALIZATION,
 } from "@/lib/constants/payouts";
 import { qstash } from "@/lib/cron";
+import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import { CUTOFF_PERIOD_ENUM } from "@/lib/partners/cutoff-period";
 import { stripe } from "@/lib/stripe";
 import { getWebhooks } from "@/lib/webhook/get-webhooks";

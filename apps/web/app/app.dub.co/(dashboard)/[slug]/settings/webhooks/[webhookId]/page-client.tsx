@@ -1,6 +1,6 @@
 "use client";
 
-import { clientAccessCheck } from "@/lib/api/tokens/permissions";
+import { clientAccessCheck } from "@/lib/client-access-check";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { WebhookEventProps } from "@/lib/types";
 import { WebhookEventListSkeleton } from "@/ui/webhooks/loading-events-skelton";

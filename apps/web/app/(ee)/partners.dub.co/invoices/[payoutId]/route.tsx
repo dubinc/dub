@@ -116,7 +116,7 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
       label: "Payout amount",
       value: (
         <Text style={tw("text-neutral-800 w-2/3")}>
-          {currencyFormatter(payout.amount / 100)}
+          {currencyFormatter(payout.amount)}
         </Text>
       ),
     },

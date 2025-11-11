@@ -46,7 +46,7 @@ export default function PartnerPayoutConfirmed({
     mode: "internal" | "external" | null;
   };
 }) {
-  const saleAmountInDollars = currencyFormatter(payout.amount / 100);
+  const saleAmountInDollars = currencyFormatter(payout.amount);
 
   const startDate = payout.startDate
     ? formatDate(payout.startDate, {

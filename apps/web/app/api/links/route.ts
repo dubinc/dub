@@ -53,8 +53,6 @@ export const POST = withWorkspace(
       await parseRequestBody(req),
     );
 
-    console.log(body);
-
     if (!session) {
       const ip = req.headers.get("x-forwarded-for") || LOCALHOST_IP;
       const { success } = await ratelimit(10, "1 d").limit(ip);

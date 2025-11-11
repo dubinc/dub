@@ -83,7 +83,7 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
         </StatusBadge>
       ),
 
-      Total: currencyFormatter(payout.amount / 100),
+      Total: currencyFormatter(payout.amount),
 
       ...(payout.invoiceId && {
         Invoice: (
@@ -162,7 +162,7 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
         minSize: 100,
         size: 120,
         maxSize: 150,
-        cell: ({ row }) => currencyFormatter(row.original.earnings / 100),
+        cell: ({ row }) => currencyFormatter(row.original.earnings),
       },
       // Menu
       {

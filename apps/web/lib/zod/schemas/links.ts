@@ -1,4 +1,4 @@
-import { ErrorCode } from "@/lib/api/errors";
+import { ErrorCode } from "@/lib/api/error-codes";
 import z from "@/lib/zod";
 import { DUB_FOUNDING_DATE, formatDate, validDomainRegex } from "@dub/utils";
 import {

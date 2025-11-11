@@ -179,7 +179,7 @@ export function EarningsCompositeChart() {
                         })}
                       </p>
                       <p className="text-right leading-none text-neutral-500">
-                        {currencyFormatter((d.values.total || 0) / 100)}
+                        {currencyFormatter((d.values.total || 0))}
                       </p>
                     </div>
                     <div className="grid max-w-64 grid-cols-[minmax(0,1fr),min-content] gap-x-6 gap-y-2 px-4 py-3 text-xs">

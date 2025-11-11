@@ -1,5 +1,4 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
-import { exceededLimitError } from "@/lib/api/errors";
 import { getEffectivePayoutMode } from "@/lib/api/payouts/get-effective-payout-mode";
 import { getPayoutEligibilityFilter } from "@/lib/api/payouts/payout-eligibility-filter";
 import {
@@ -8,6 +7,7 @@ import {
   FOREX_MARKUP_RATE,
 } from "@/lib/constants/payouts";
 import { queueBatchEmail } from "@/lib/email/queue-batch-email";
+import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import {
   CUTOFF_PERIOD,
   CUTOFF_PERIOD_TYPES,
@@ -317,7 +317,7 @@ export async function processPayouts({
   });
 
   await log({
-    message: `*${program.name}* just sent a payout of *${currencyFormatter(totalPayoutAmount / 100)}* :money_with_wings: \n\n Fees earned: *${currencyFormatter(totalFee / 100)} (${payoutFee * 100}%)* :money_mouth_face:`,
+    message: `*${program.name}* just sent a payout of *${currencyFormatter(totalPayoutAmount)}* :money_with_wings: \n\n Fees earned: *${currencyFormatter(totalFee)} (${payoutFee * 100}%)* :money_mouth_face:`,
     type: "payouts",
   });
 
