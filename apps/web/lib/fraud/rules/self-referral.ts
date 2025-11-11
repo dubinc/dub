@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { FraudReasonCode } from "../reason-codes";
+import type { FraudReasonCode } from "../fraud-reason-codes";
 import { FraudRuleContext, FraudRuleEvaluationResult } from "../types";
 
 const contextSchema = z.object({
@@ -108,7 +108,7 @@ function checkEmailMatch(
       metadata.emailMatch = true;
       return {
         triggered: true,
-        reasonCode: "self_referral.email_exact_match",
+        reasonCode: "self_referral_email_exact_match",
       };
     }
   }
@@ -137,7 +137,7 @@ function checkEmailMatch(
         metadata.emailMatch = true;
         return {
           triggered: true,
-          reasonCode: "self_referral.email_domain_variation",
+          reasonCode: "self_referral_email_domain_variation",
         };
       }
     }
@@ -157,7 +157,7 @@ function checkEmailMatch(
       metadata.emailMatch = true;
       return {
         triggered: true,
-        reasonCode: "self_referral.email_levenshtein",
+        reasonCode: "self_referral_email_levenshtein",
       };
     }
   }
@@ -189,7 +189,7 @@ function checkNameMatch(
       metadata.nameMatch = true;
       return {
         triggered: true,
-        reasonCode: "self_referral.name_exact_match",
+        reasonCode: "self_referral_name_exact_match",
       };
     }
   }
@@ -208,7 +208,7 @@ function checkNameMatch(
       metadata.nameMatch = true;
       return {
         triggered: true,
-        reasonCode: "self_referral.name_levenshtein",
+        reasonCode: "self_referral_name_levenshtein",
       };
     }
   }

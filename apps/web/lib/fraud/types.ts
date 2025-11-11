@@ -1,4 +1,4 @@
-import type { FraudReasonCode } from "./reason-codes";
+import type { FraudReasonCode } from "./fraud-reason-codes";
 
 export interface FraudRuleEvaluationResult {
   triggered: boolean;

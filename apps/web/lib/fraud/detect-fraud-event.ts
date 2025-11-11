@@ -1,9 +1,8 @@
 import { prisma } from "@dub/prisma";
 import { EventType, FraudRiskLevel, FraudRuleType } from "@dub/prisma/client";
-import { DEFAULT_HIGH_RISK_RULES } from "./default-fraud-rules";
+import { DEFAULT_FRAUD_RULES } from "./default-fraud-rules";
+import type { FraudReasonCode } from "./fraud-reason-codes";
 import { fraudRuleRegistry } from "./fraud-rules-registry";
-import type { FraudReasonCode } from "./reason-codes";
-import { getFraudReasonMessage } from "./reason-codes";
 import type { FraudRuleContext } from "./types";
 
 export interface ConversionEventData {
@@ -33,8 +32,7 @@ export interface TriggeredRule {
   ruleType: FraudRuleType;
   riskLevel: FraudRiskLevel;
   name: string;
-  reason: string; // Human-readable (for backward compatibility)
-  reasonCode?: FraudReasonCode; // Structured code (for querying)
+  reasonCode?: FraudReasonCode;
   metadata?: Record<string, unknown>;
 }
 
@@ -64,9 +62,6 @@ const RISK_LEVEL_ORDER: Record<FraudRiskLevel, number> = {
 export async function detectFraudEvent(
   eventData: ConversionEventData,
 ): Promise<FraudEvaluationResult> {
-  // Get global default rules (hardcoded)
-  const globalRules = DEFAULT_HIGH_RISK_RULES.filter((rule) => rule.enabled);
-
   // Get program-specific rule overrides
   const programRules = await prisma.fraudRule.findMany({
     where: {
@@ -75,7 +70,7 @@ export async function detectFraudEvent(
   });
 
   // Merge global rules with program overrides
-  const activeRules = globalRules.map((globalRule) => {
+  const activeRules = DEFAULT_FRAUD_RULES.map((globalRule) => {
     const override = programRules.find(
       (o) => o.ruleType === globalRule.ruleType,
     );
@@ -87,9 +82,7 @@ export async function detectFraudEvent(
         ruleType: override.ruleType,
         riskLevel: override.riskLevel,
         name: override.name,
-        config:
-          (override.config as Record<string, unknown>) || globalRule.config,
-        isOverride: true,
+        config: override.config ?? globalRule.config,
       };
     }
 
@@ -100,7 +93,6 @@ export async function detectFraudEvent(
       riskLevel: globalRule.riskLevel,
       name: globalRule.name,
       config: globalRule.config,
-      isOverride: false,
     };
   });
 
@@ -120,32 +112,24 @@ export async function detectFraudEvent(
     const evaluator = fraudRuleRegistry[rule.ruleType];
 
     if (!evaluator) {
-      console.warn(`No evaluator found for rule type: ${rule.ruleType}`);
+      console.warn(`No evaluator found for rule type ${rule.ruleType}`);
       continue;
     }
 
     try {
       // Build context for this rule
-      const context = (await buildRuleContext(
-        rule.ruleType,
-        eventData,
-      )) as FraudRuleContext;
+      const context = await buildRuleContext(rule.ruleType, eventData);
 
       // Evaluate rule
       const result = await evaluator(context, rule.config);
 
+      // Rule triggered
       if (result.triggered) {
-        // Rule triggered - add to triggered rules
-        const reasonMessage = result.reasonCode
-          ? getFraudReasonMessage(result.reasonCode)
-          : `${rule.name} triggered`;
-
         triggeredRules.push({
           ruleId: rule.id,
           ruleType: rule.ruleType,
           riskLevel: rule.riskLevel,
           name: rule.name,
-          reason: reasonMessage,
           reasonCode: result.reasonCode,
           metadata: result.metadata,
         });
@@ -172,7 +156,6 @@ export async function detectFraudEvent(
         `Error evaluating rule ${rule.ruleType}:`,
         error instanceof Error ? error.message : String(error),
       );
-      // Continue with other rules even if one fails
     }
   }
 
@@ -195,7 +178,7 @@ export async function detectFraudEvent(
 async function buildRuleContext(
   ruleType: FraudRuleType,
   eventData: ConversionEventData,
-): Promise<unknown> {
+): Promise<FraudRuleContext> {
   switch (ruleType) {
     case "customer_ip_suspicious":
       return {
@@ -272,6 +255,6 @@ async function buildRuleContext(
       };
 
     default:
-      return eventData;
+      return {};
   }
 }
