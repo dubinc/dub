@@ -105,12 +105,19 @@ model ProgramEnrollment {
   totalCommissions Int @default(0) // total commissions earned by the partner (in cents)
 
   // calculated stats
-  conversionRate          Float? // totalConversions / totalClicks
+  netRevenue              Int @default(0) // totalSaleAmount - totalCommissions
+  earningsPerClick        Int @default(0) // totalSaleAmount / totalClicks
   averageLifetimeValue    Float? // totalSaleAmount / totalConversions (in cents)
-  leadConversionRate      Float? // totalConversions / totalLeads
+  clickToLeadRate         Float? // totalLeads / totalClicks
+  clickToConversionRate   Float? // totalConversions / totalClicks
+  leadToConversionRate    Float? // totalConversions / totalLeads
   lastConversionAt        DateTime? // latest conversion from partner's links
   daysSinceLastConversion Int? // days since lastConversionAt
   consistencyScore        Int? // based on daysSinceLastConversion
+
+  // deprecated stats
+  leadConversionRate      Float? // TODO: Remove after migration
+  conversionRate          Float? // TODO: Remove after migration
 
   createdAt                    DateTime             @default(now())
   updatedAt                    DateTime             @updatedAt
