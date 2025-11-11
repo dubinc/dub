@@ -50,7 +50,6 @@ model FraudEvent {
   riskLevel        FraudRiskLevel
   riskScore        Int              @default(0)
   triggeredRules   Json             @db.Json
-  metadata         Json?            @db.Json
   userId           String?
   resolutionReason String?
   resolvedAt       DateTime?
