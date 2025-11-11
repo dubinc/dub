@@ -103,7 +103,7 @@ export async function calculatePartnerRanking({
     status === "discover"
       ? starred === true
         ? Prisma.sql`dp.starredAt ASC`
-        : Prisma.sql`finalScore DESC, ${hasProfileCheck} DESC, p.id ASC`
+        : Prisma.sql`finalScore DESC, p.id ASC`
       : status === "invited"
         ? Prisma.sql`dp.invitedAt ASC`
         : Prisma.sql`enrolled.createdAt DESC, p.id ASC`;
@@ -232,10 +232,16 @@ export async function calculatePartnerRanking({
       CASE WHEN enrolled.status = 'approved' THEN enrolled.createdAt ELSE NULL END as recruitedAt,
       preferredEarningStructuresData.preferredEarningStructures as preferredEarningStructures,
       salesChannelsData.salesChannels as salesChannels,
+      
+      -- Pre-compute hasProfileCheck for faster sorting
+      ${hasProfileCheck} as hasProfile,
 
-      -- FINAL SCORE (0-265+ points): Similarity-based ranking for discovery
+      -- FINAL SCORE (0-765+ points): Similarity-based ranking for discovery
       -- Trusted partners (trustedAt IS NOT NULL) get 200 bonus points to rank at the top
+      -- Partners with profiles get 500 bonus points to ensure they rank above those without profiles
       (
+        -- Profile bonus: 500 points for partners with online presence (ensures they rank above those without)
+        CASE WHEN ${hasProfileCheck} THEN 500 ELSE 0 END +
         -- Trusted partner bonus: 200 points for partners with trustedAt set
         CASE WHEN p.trustedAt IS NOT NULL THEN 200 ELSE 0 END +
         COALESCE(similarProgramMetrics.similarityScore, 0) +

@@ -338,7 +338,11 @@ function PartnerCard({
         ) : (
           <Globe className="size-3.5 shrink-0" />
         ),
-        text: partner?.country ? COUNTRIES[partner.country] : "Planet Earth",
+        text: partner
+          ? partner.country
+            ? COUNTRIES[partner.country]
+            : "Planet Earth"
+          : undefined,
       },
       {
         id: "joinedAt",
