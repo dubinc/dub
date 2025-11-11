@@ -46,10 +46,6 @@ export async function checkCustomerEmailSuspicious(
       domain,
     );
 
-    console.log("isDisposable", isDisposable);
-    console.log("domain", domain);
-    console.log("customerEmail", customer.email);
-
     if (isDisposable === 1) {
       return {
         triggered: true,
