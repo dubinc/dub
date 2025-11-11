@@ -52,17 +52,17 @@ model Program {
   updatedAt                    DateTime          @updatedAt
   startedAt                    DateTime?
 
-  workspace                Project                   @relation(fields: [workspaceId], references: [id])
-  partners                 ProgramEnrollment[]
-  payouts                  Payout[]
-  invoices                 Invoice[]
-  applications             ProgramApplication[]
-  links                    Link[]
-  commissions              Commission[]
-  rewards                  Reward[]
-  discounts                Discount[]                @relation("ProgramDiscounts")
-  discountCodes            DiscountCode[]
-  
+  workspace     Project              @relation(fields: [workspaceId], references: [id])
+  partners      ProgramEnrollment[]
+  payouts       Payout[]
+  invoices      Invoice[]
+  applications  ProgramApplication[]
+  links         Link[]
+  commissions   Commission[]
+  rewards       Reward[]
+  discounts     Discount[]           @relation("ProgramDiscounts")
+  discountCodes DiscountCode[]
+
   groups                   PartnerGroup[]
   partnerGroupDefaultLinks PartnerGroupDefaultLink[]
   bounties                 Bounty[]
@@ -71,13 +71,15 @@ model Program {
   messages                 Message[]
   comments                 PartnerComment[]
 
-  campaigns                Campaign[]
-  emailDomains             EmailDomain[]
+  campaigns    Campaign[]
+  emailDomains EmailDomain[]
 
-  discoveredPartners       DiscoveredPartner[]
-  similarPrograms          ProgramSimilarity[]
-  similarToPrograms        ProgramSimilarity[] @relation("SimilarProgram")
-  categories               ProgramCategory[]
+  discoveredPartners DiscoveredPartner[]
+  similarPrograms    ProgramSimilarity[]
+  similarToPrograms  ProgramSimilarity[] @relation("SimilarProgram")
+  categories         ProgramCategory[]
+  fraudRules         FraudRule[]
+  fraudEvents        FraudEvent[]
 
   @@index(workspaceId)
   @@index(domain)
@@ -186,6 +188,7 @@ enum Category {
   Health
   Consumer
 }
+
 model ProgramCategory {
   programId String
   category  Category

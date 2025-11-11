@@ -1,0 +1,75 @@
+enum FraudEventStatus {
+  pending
+  safe
+  banned
+}
+
+enum FraudRiskLevel {
+  high
+  medium
+  low
+}
+
+// TODO
+// Flag disposible email
+
+enum FraudRuleType {
+  // High Risk Rules
+  customer_ip_suspicious
+  partner_email_matches_customer_email
+
+  // Medium Risk Rules
+  customer_email_suspicious_domain
+  customer_ip_country_mismatch
+  banned_referral_domain
+  suspicious_activity_spike
+  paid_ad_traffic_detected
+  abnormally_fast_conversion
+}
+
+
+model FraudRule {
+  id        String         @id @default(cuid())
+  programId String
+  ruleType  FraudRuleType
+  riskLevel FraudRiskLevel
+  name      String
+  config    Json?          @db.Json // Rule-specific configuration
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  program Program? @relation(fields: [programId], references: [id], onDelete: Cascade)
+
+  @@index(programId)
+}
+
+model FraudEvent {
+  id               String           @id @default(cuid())
+  programId        String
+  partnerId        String
+  linkId           String?
+  customerId       String?
+  eventId          String?
+  eventType        EventType?
+  riskLevel        FraudRiskLevel
+  riskScore        Int              @default(0)
+  triggeredRules   Json             @db.Json
+  metadata         Json?            @db.Json
+  userId           String?
+  resolutionReason String?
+  resolvedAt       DateTime?
+  status           FraudEventStatus @default(pending)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  program  Program   @relation(fields: [programId], references: [id], onDelete: Cascade)
+  partner  Partner   @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  customer Customer? @relation(fields: [customerId], references: [id])
+  link     Link?     @relation(fields: [linkId], references: [id])
+
+  @@index(eventId)
+  @@index(linkId)
+  @@index(programId)
+  @@index(partnerId)
+  @@index(customerId)
+}
