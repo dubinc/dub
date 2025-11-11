@@ -319,8 +319,12 @@ export const PartnerSchema = z
     discoverableAt: z
       .date()
       .nullable()
+      .describe("The date when the partner was added to the partner network."),
+    trustedAt: z
+      .date()
+      .nullable()
       .describe(
-        "The date when the partner became discoverable in the partner network.",
+        "The date when the partner received the trusted badge in the partner network.",
       ),
   })
   .merge(PartnerOnlinePresenceSchema)
@@ -341,6 +345,7 @@ export const EnrolledPartnerSchema = PartnerSchema.pick({
   paypalEmail: true,
   stripeConnectId: true,
   payoutsEnabledAt: true,
+  trustedAt: true,
 })
   .merge(
     ProgramEnrollmentSchema.omit({
