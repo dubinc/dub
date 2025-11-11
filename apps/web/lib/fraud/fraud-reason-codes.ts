@@ -1,6 +1,5 @@
 // Reason codes for fraud rule triggers
 export type FraudReasonCode =
-  // Self-referral reasons
   | "self_referral_email_match"
   | "self_referral_name_match"
   | "self_referral_email_exact_match"
@@ -8,13 +7,11 @@ export type FraudReasonCode =
   | "self_referral_email_levenshtein"
   | "self_referral_name_exact_match"
   | "self_referral_name_levenshtein"
-
-  // Generic fallback
+  | "customer_email_disposable_domain"
   | "rule_triggered";
 
 // Mapping from reason codes to human-readable messages
 export const FRAUD_REASON_MESSAGES: Record<FraudReasonCode, string> = {
-  // Self-referral reasons
   self_referral_email_match: "Self-referral detected: email match",
   self_referral_name_match: "Self-referral detected: name match",
   self_referral_email_exact_match: "Self-referral detected: exact email match",
@@ -24,8 +21,8 @@ export const FRAUD_REASON_MESSAGES: Record<FraudReasonCode, string> = {
     "Self-referral detected: similar email address",
   self_referral_name_exact_match: "Self-referral detected: exact name match",
   self_referral_name_levenshtein: "Self-referral detected: similar name",
-
-  // Generic fallback
+  customer_email_disposable_domain:
+    "Customer email from disposable email domain",
   rule_triggered: "Fraud rule triggered",
 };
 

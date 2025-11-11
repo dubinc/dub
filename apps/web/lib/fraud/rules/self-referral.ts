@@ -95,8 +95,9 @@ function checkEmailMatch(
     nameMatch: boolean;
   },
 ): { triggered: boolean; reasonCode?: FraudReasonCode } {
-  const normalizedPartnerEmail = partnerEmail.toLowerCase().trim();
-  const normalizedCustomerEmail = customerEmail.toLowerCase().trim();
+  // Normalize emails (handles Gmail-style dots and plus tags)
+  const normalizedPartnerEmail = normalizeEmail(partnerEmail);
+  const normalizedCustomerEmail = normalizeEmail(customerEmail);
 
   metadata.partnerEmail = normalizedPartnerEmail;
   metadata.customerEmail = normalizedCustomerEmail;
@@ -132,9 +133,16 @@ function checkEmailMatch(
       metadata.checksPerformed.push("email_domain_variation");
       metadata.domainSimilarity = domainSimilarity;
 
-      // If domains are similar and usernames are similar, it's suspicious
-      if (partnerParts.username === customerParts.username) {
+      // Check if usernames match exactly or are similar
+      const usernameMatch =
+        partnerParts.username === customerParts.username ||
+        (ruleConfig.checkLevenshtein &&
+          calculateSimilarity(partnerParts.username, customerParts.username) >=
+            ruleConfig.similarityThreshold);
+
+      if (usernameMatch) {
         metadata.emailMatch = true;
+        metadata.usernameMatch = true;
         return {
           triggered: true,
           reasonCode: "self_referral_email_domain_variation",
@@ -216,12 +224,77 @@ function checkNameMatch(
   return { triggered: false };
 }
 
-// Normalize name for comparison (lowercase, trim, remove extra spaces)
+// Normalize email for comparison
+function normalizeEmail(email: string): string {
+  const trimmed = email.toLowerCase().trim();
+  const parts = trimmed.split("@");
+
+  if (parts.length !== 2) {
+    return trimmed;
+  }
+
+  let [username, domain] = parts;
+
+  // Providers that support plus addressing (Gmail, Outlook, Yahoo, etc.)
+  const plusAddressingProviders = [
+    "gmail.com",
+    "googlemail.com",
+    "outlook.com",
+    "hotmail.com",
+    "live.com",
+    "msn.com",
+    "yahoo.com",
+  ];
+
+  // Strip plus tags for providers that support it
+  if (plusAddressingProviders.includes(domain)) {
+    const plusIndex = username.indexOf("+");
+    if (plusIndex !== -1) {
+      username = username.substring(0, plusIndex);
+    }
+  }
+
+  // Gmail and Google Mail treat dots as irrelevant
+  if (domain === "gmail.com" || domain === "googlemail.com") {
+    username = username.replace(/\./g, "");
+  }
+
+  return `${username}@${domain}`;
+}
+
+// Normalize name for comparison
+// Handles name order, initials, middle names, and hyphens
 function normalizeName(name: string): string {
-  return name
-    .toLowerCase()
-    .trim()
-    .replace(/\s+/g, " "); // Replace multiple spaces with single space
+  // Basic normalization: lowercase, trim, remove extra spaces
+  let normalized = name.toLowerCase().trim().replace(/\s+/g, " ");
+
+  // Remove common punctuation
+  normalized = normalized.replace(/[,;]/g, "");
+
+  // Normalize hyphens and dashes
+  normalized = normalized.replace(/[-–—]/g, " ");
+
+  // Split into name parts
+  const parts = normalized
+    .split(/\s+/)
+    .filter((part) => part.length > 0)
+    .map((part) => part.trim());
+
+  if (parts.length === 0) {
+    return "";
+  }
+
+  // Sort parts alphabetically to handle name order variations
+  // This helps catch "John Smith" vs "Smith John" and "John M. Smith" vs "Smith, John M."
+  // Separate initials (single characters) from full names
+  const initials = parts.filter((p) => p.length === 1);
+  const fullNames = parts.filter((p) => p.length > 1);
+
+  // Sort full names alphabetically, then append initials
+  const sortedFullNames = [...fullNames].sort();
+  const sortedInitials = [...initials].sort();
+
+  return [...sortedFullNames, ...sortedInitials].join(" ");
 }
 
 // Extract username and domain from email
@@ -238,7 +311,8 @@ function extractEmailParts(email: string) {
   };
 }
 
-// Check if two domains are similar (common typosquatting patterns)
+// Check if two domains are similar using Levenshtein distance
+// Removed hardcoded variations - relies on similarity algorithm
 function checkDomainSimilarity(domain1: string, domain2: string) {
   // Exact match
   if (domain1 === domain2) {
@@ -248,25 +322,8 @@ function checkDomainSimilarity(domain1: string, domain2: string) {
     };
   }
 
-  // Common domain variations
-  const variations: Record<string, string[]> = {
-    "gmail.com": ["gmial.com", "gmaill.com", "gmai.com"],
-    "yahoo.com": ["yhoo.com", "yahooo.com"],
-    "hotmail.com": ["hotmial.com", "hotmai.com"],
-    "outlook.com": ["outlok.com", "outllook.com"],
-  };
-
-  // Check if domains are known variations
-  for (const [baseDomain, variantList] of Object.entries(variations)) {
-    if (
-      (domain1 === baseDomain && variantList.includes(domain2)) ||
-      (domain2 === baseDomain && variantList.includes(domain1))
-    ) {
-      return { isSimilar: true, reason: "known_variation" };
-    }
-  }
-
   // Check Levenshtein distance for domains
+  // Threshold of 0.85 catches typosquatting patterns
   const domainSimilarity = calculateSimilarity(domain1, domain2);
   if (domainSimilarity > 0.85) {
     return {

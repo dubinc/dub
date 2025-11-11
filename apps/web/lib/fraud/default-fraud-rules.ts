@@ -16,4 +16,10 @@ export const DEFAULT_FRAUD_RULES: Pick<
     name: "Self-Referral Detected (Email or IP Match)",
     config: {},
   },
+  {
+    ruleType: "customer_email_suspicious_domain",
+    riskLevel: "medium",
+    name: "Customer Email from Disposable Domain",
+    config: {},
+  },
 ];
