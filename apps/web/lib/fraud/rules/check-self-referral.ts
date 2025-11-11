@@ -1,6 +1,6 @@
 import { z } from "zod";
+import { defineFraudRule } from "../define-fraud-rule";
 import type { FraudReasonCode } from "../fraud-reason-codes";
-import { FraudRuleContext, FraudRuleEvaluationResult } from "../types";
 
 const contextSchema = z.object({
   partner: z.object({
@@ -24,68 +24,72 @@ const configSchema = z.object({
 
 // Check if partner email or name matches or is similar to customer email or name
 // This detects potential self-referral fraud
-export async function checkSelfReferral({
-  context,
-  config,
-}: {
-  context: FraudRuleContext;
-  config: unknown;
-}): Promise<FraudRuleEvaluationResult> {
-  const { partner, customer } = contextSchema.parse(context);
+export const checkSelfReferralRule = defineFraudRule({
+  type: "self_referral",
+  contextSchema,
+  configSchema: z.object({
+    similarityThreshold: z.number().min(0).max(1).default(0.8),
+    checkLevenshtein: z.boolean().default(true),
+    checkDomainVariations: z.boolean().default(true),
+    checkExactMatch: z.boolean().default(true),
+    checkEmailMatch: z.boolean().default(true),
+    checkNameMatch: z.boolean().default(true),
+  }),
+  evaluate: async (context, config) => {
+    const { partner, customer } = context;
 
-  const metadata: Record<string, unknown> & {
-    checksPerformed: string[];
-    emailMatch: boolean;
-    nameMatch: boolean;
-  } = {
-    checksPerformed: [],
-    emailMatch: false,
-    nameMatch: false,
-  };
+    const metadata: Record<string, unknown> & {
+      checksPerformed: string[];
+      emailMatch: boolean;
+      nameMatch: boolean;
+    } = {
+      checksPerformed: [],
+      emailMatch: false,
+      nameMatch: false,
+    };
 
-  const ruleConfig = configSchema.parse(config || {});
-
-  // Check email match if enabled
-  if (ruleConfig.checkEmailMatch && partner.email && customer.email) {
-    const emailResult = checkEmailMatch(
-      partner.email,
-      customer.email,
-      ruleConfig,
-      metadata,
-    );
-
-    if (emailResult.triggered) {
-      return {
-        triggered: true,
-        reasonCode: emailResult.reasonCode,
+    // Check email match if enabled
+    if (config.checkEmailMatch && partner.email && customer.email) {
+      const emailResult = checkEmailMatch(
+        partner.email,
+        customer.email,
+        config,
         metadata,
-      };
+      );
+
+      if (emailResult.triggered) {
+        return {
+          triggered: true,
+          reasonCode: emailResult.reasonCode,
+          metadata,
+        };
+      }
     }
-  }
 
-  // Check name match if enabled
-  if (ruleConfig.checkNameMatch && partner.name && customer.name) {
-    const nameResult = checkNameMatch(
-      partner.name,
-      customer.name,
-      ruleConfig,
-      metadata,
-    );
-
-    if (nameResult.triggered) {
-      return {
-        triggered: true,
-        reasonCode: nameResult.reasonCode,
+    // Check name match if enabled
+    if (config.checkNameMatch && partner.name && customer.name) {
+      const nameResult = checkNameMatch(
+        partner.name,
+        customer.name,
+        config,
         metadata,
-      };
-    }
-  }
+      );
 
-  return {
-    triggered: false,
-    metadata,
-  };
-}
+      if (nameResult.triggered) {
+        return {
+          triggered: true,
+          reasonCode: nameResult.reasonCode,
+          metadata,
+        };
+      }
+    }
+
+    return {
+      triggered: false,
+      metadata,
+    };
+  },
+});
 
 // Check if partner email matches customer email
 function checkEmailMatch(

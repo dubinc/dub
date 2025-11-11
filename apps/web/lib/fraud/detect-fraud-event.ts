@@ -7,7 +7,7 @@ import {
   RISK_LEVEL_WEIGHTS,
 } from "./constants";
 import type { FraudReasonCode } from "./fraud-reason-codes";
-import { fraudRuleRegistry } from "./fraud-rules-registry";
+import { executeFraudRule } from "./execute-fraud-rule";
 
 interface TriggeredRule {
   ruleId?: string;
@@ -96,19 +96,19 @@ export async function detectFraudEvent(
 
   // Evaluate each rule
   for (const rule of activeRules) {
-    const ruleEvaluatorFn = fraudRuleRegistry[rule.ruleType];
-
-    if (!ruleEvaluatorFn) {
-      console.warn(`No evaluator found for rule type ${rule.ruleType}`);
-      continue;
-    }
-
     try {
+      // Map conversion event to rule-specific context
+      const context = mapConversionEventToRuleContext(
+        rule.ruleType,
+        parsedConversionEvent,
+      );
+
       // Evaluate rule
-      const result = await ruleEvaluatorFn({
-        context: parsedConversionEvent,
-        config: rule.config,
-      });
+      const result = await executeFraudRule(
+        rule.ruleType,
+        context,
+        rule.config,
+      );
 
       // Rule triggered
       if (result.triggered) {
@@ -145,4 +145,47 @@ export async function detectFraudEvent(
     riskScore,
     triggeredRules,
   };
+}
+
+// Map conversion event data to rule-specific context format
+function mapConversionEventToRuleContext(
+  ruleType: FraudRuleType,
+  event: z.infer<typeof conversionEventSchema>,
+): unknown {
+  switch (ruleType) {
+    case "self_referral":
+      return {
+        partner: {
+          email: event.partner.email,
+          name: event.partner.name,
+        },
+        customer: {
+          email: event.customer.email,
+          name: event.customer.name,
+        },
+      };
+
+    case "customer_email_suspicious_domain":
+      return {
+        customer: {
+          email: event.customer.email,
+        },
+      };
+
+    case "customer_ip_suspicious":
+      return {
+        customer: {
+          ip: event.click.ip,
+          country: event.click.country,
+        },
+        clickData: {
+          ip: event.click.ip,
+          country: event.click.country,
+        },
+      };
+
+    default:
+      // For unimplemented rules, return empty context
+      return {};
+  }
 }

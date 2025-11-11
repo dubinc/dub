@@ -1,15 +1,10 @@
-import { FraudRuleType } from "@dub/prisma/client";
 import { checkCustomerEmailSuspicious } from "./rules/check-customer-email-suspicious";
 import { checkCustomerIPSuspicious } from "./rules/check-customer-ip-suspicious";
-import { checkSelfReferral } from "./rules/check-self-referral";
-import type { FraudRuleEvaluator } from "./types";
+import { checkSelfReferralRule } from "./rules/check-self-referral";
 
-export const fraudRuleRegistry: Record<
-  FraudRuleType,
-  FraudRuleEvaluator | null
-> = {
+export const fraudRuleRegistry = {
+  self_referral: checkSelfReferralRule,
   customer_ip_suspicious: checkCustomerIPSuspicious,
-  self_referral: checkSelfReferral,
   customer_email_suspicious_domain: checkCustomerEmailSuspicious,
 
   // (to be implemented)
@@ -18,4 +13,4 @@ export const fraudRuleRegistry: Record<
   suspicious_activity_spike: null,
   paid_ad_traffic_detected: null,
   abnormally_fast_conversion: null,
-} as Record<FraudRuleType, FraudRuleEvaluator | null>;
+} as const;
