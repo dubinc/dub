@@ -79,6 +79,12 @@ const partnersColumns = {
     "totalSaleAmount",
     "totalCommissions",
     "netRevenue",
+    "earningsPerClick",
+    "averageLifetimeValue",
+    "clickToLeadRate",
+    "clickToConversionRate",
+    "leadToConversionRate",
+    "returnOnAdSpend",
   ],
   defaultVisible: [
     "partner",
@@ -251,37 +257,87 @@ export function PartnersTable() {
         {
           id: "totalClicks",
           header: "Clicks",
-          accessorFn: (d) => nFormatter(d.totalClicks),
+          accessorFn: (d: EnrolledPartnerProps) => nFormatter(d.totalClicks),
         },
         {
           id: "totalLeads",
           header: "Leads",
-          accessorFn: (d) => nFormatter(d.totalLeads),
+          accessorFn: (d: EnrolledPartnerProps) => nFormatter(d.totalLeads),
         },
         {
           id: "totalConversions",
           header: "Conversions",
-          accessorFn: (d) => nFormatter(d.totalConversions),
+          accessorFn: (d: EnrolledPartnerProps) =>
+            nFormatter(d.totalConversions),
         },
         {
           id: "totalSales",
           header: "Sales",
-          accessorFn: (d) => nFormatter(d.totalSales),
+          accessorFn: (d: EnrolledPartnerProps) => nFormatter(d.totalSales),
         },
         {
           id: "totalSaleAmount",
           header: "Revenue",
-          accessorFn: (d) => currencyFormatter(d.totalSaleAmount / 100),
+          accessorFn: (d: EnrolledPartnerProps) =>
+            currencyFormatter(d.totalSaleAmount / 100),
         },
         {
           id: "totalCommissions",
           header: "Commissions",
-          accessorFn: (d) => currencyFormatter(d.totalCommissions / 100),
+          accessorFn: (d: EnrolledPartnerProps) =>
+            currencyFormatter(d.totalCommissions / 100),
         },
         {
           id: "netRevenue",
           header: "Net Revenue",
-          accessorFn: (d) => currencyFormatter(d.netRevenue / 100),
+          accessorFn: (d: EnrolledPartnerProps) =>
+            currencyFormatter(d.netRevenue / 100),
+        },
+        {
+          id: "earningsPerClick",
+          header: "Earnings/Click",
+          accessorFn: (d: EnrolledPartnerProps) =>
+            currencyFormatter(d.earningsPerClick / 100),
+        },
+        {
+          id: "averageLifetimeValue",
+          header: "Avg LTV",
+          accessorFn: (d: EnrolledPartnerProps) =>
+            d.averageLifetimeValue
+              ? currencyFormatter(d.averageLifetimeValue / 100)
+              : "-",
+        },
+        {
+          id: "clickToLeadRate",
+          header: "Click → Lead",
+          accessorFn: (d: EnrolledPartnerProps) =>
+            d.clickToLeadRate
+              ? `${(d.clickToLeadRate * 100).toFixed(2)}%`
+              : "-",
+        },
+        {
+          id: "clickToConversionRate",
+          header: "Click → Conv",
+          accessorFn: (d: EnrolledPartnerProps) =>
+            d.clickToConversionRate
+              ? `${(d.clickToConversionRate * 100).toFixed(2)}%`
+              : "-",
+        },
+        {
+          id: "leadToConversionRate",
+          header: "Lead → Conv",
+          accessorFn: (d: EnrolledPartnerProps) =>
+            d.leadToConversionRate
+              ? `${(d.leadToConversionRate * 100).toFixed(2)}%`
+              : "-",
+        },
+        {
+          id: "returnOnAdSpend",
+          header: "ROAS",
+          accessorFn: (d: EnrolledPartnerProps) =>
+            d.returnOnAdSpend
+              ? `${(d.returnOnAdSpend * 100).toFixed(2)}%`
+              : "-",
         },
         // Menu
         {
@@ -334,6 +390,13 @@ export function PartnersTable() {
       "totalConversions",
       "totalSaleAmount",
       "totalCommissions",
+      "netRevenue",
+      "earningsPerClick",
+      "averageLifetimeValue",
+      "clickToLeadRate",
+      "clickToConversionRate",
+      "leadToConversionRate",
+      "returnOnAdSpend",
     ],
     sortBy,
     sortOrder,
