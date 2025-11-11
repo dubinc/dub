@@ -290,18 +290,30 @@ export function PartnersTable() {
         {
           id: "netRevenue",
           header: "Net Revenue",
+          meta: {
+            headerTooltip:
+              "Net revenue after commissions.  \n`Total Sale Amount - Total Commissions`",
+          },
           accessorFn: (d: EnrolledPartnerProps) =>
             currencyFormatter(d.netRevenue / 100),
         },
         {
           id: "earningsPerClick",
           header: "Earnings/Click",
+          meta: {
+            headerTooltip:
+              "Average earnings per click.  \n`Total Sale Amount ÷ Total Clicks`",
+          },
           accessorFn: (d: EnrolledPartnerProps) =>
             currencyFormatter(d.earningsPerClick / 100),
         },
         {
           id: "averageLifetimeValue",
           header: "Avg LTV",
+          meta: {
+            headerTooltip:
+              "Average lifetime value per conversion.  \n`Total Sale Amount ÷ Total Conversions`",
+          },
           accessorFn: (d: EnrolledPartnerProps) =>
             d.averageLifetimeValue
               ? currencyFormatter(d.averageLifetimeValue / 100)
@@ -310,6 +322,10 @@ export function PartnersTable() {
         {
           id: "clickToLeadRate",
           header: "Click → Lead",
+          meta: {
+            headerTooltip:
+              "Percentage of clicks that become leads.  \n`Total Leads ÷ Total Clicks`",
+          },
           accessorFn: (d: EnrolledPartnerProps) =>
             d.clickToLeadRate
               ? `${(d.clickToLeadRate * 100).toFixed(2)}%`
@@ -318,6 +334,10 @@ export function PartnersTable() {
         {
           id: "clickToConversionRate",
           header: "Click → Conv",
+          meta: {
+            headerTooltip:
+              "Percentage of clicks that convert.  \n`Total Conversions ÷ Total Clicks`",
+          },
           accessorFn: (d: EnrolledPartnerProps) =>
             d.clickToConversionRate
               ? `${(d.clickToConversionRate * 100).toFixed(2)}%`
@@ -326,6 +346,10 @@ export function PartnersTable() {
         {
           id: "leadToConversionRate",
           header: "Lead → Conv",
+          meta: {
+            headerTooltip:
+              "Percentage of leads that convert.  \n`Total Conversions ÷ Total Leads`",
+          },
           accessorFn: (d: EnrolledPartnerProps) =>
             d.leadToConversionRate
               ? `${(d.leadToConversionRate * 100).toFixed(2)}%`
@@ -334,6 +358,10 @@ export function PartnersTable() {
         {
           id: "returnOnAdSpend",
           header: "ROAS",
+          meta: {
+            headerTooltip:
+              "Return on ad spend ratio.  \n`Total Sale Amount ÷ Total Commissions`",
+          },
           accessorFn: (d: EnrolledPartnerProps) =>
             d.returnOnAdSpend
               ? `${(d.returnOnAdSpend * 100).toFixed(2)}%`
