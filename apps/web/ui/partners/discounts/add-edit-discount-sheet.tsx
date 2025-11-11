@@ -11,7 +11,6 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { DiscountProps } from "@/lib/types";
 import { createDiscountSchema } from "@/lib/zod/schemas/discount";
 import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
-import { Stripe } from "@/ui/guides/icons/stripe";
 import { X } from "@/ui/shared/icons";
 import {
   InlineBadgePopover,
@@ -19,7 +18,7 @@ import {
 } from "@/ui/shared/inline-badge-popover";
 import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
 import { Button, InfoTooltip, Sheet, Switch } from "@dub/ui";
-import { CircleCheckFill, Tag } from "@dub/ui/icons";
+import { CircleCheckFill, StripeIcon, Tag } from "@dub/ui/icons";
 import { capitalize, cn, pluralize } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import {
@@ -377,7 +376,7 @@ function DiscountSheetContent({
             )}
             title={
               <>
-                <Stripe className="size-7" />
+                <StripeIcon className="size-7" />
                 <span className="leading-relaxed">
                   Discount a{" "}
                   <InlineBadgePopover

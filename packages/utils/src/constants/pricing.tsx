@@ -267,7 +267,7 @@ export const PLANS: PlanDetails[] = [
         },
         limits: {
           links: 25_000,
-          clicks: 500_000,
+          clicks: 600_000,
         },
       },
     },

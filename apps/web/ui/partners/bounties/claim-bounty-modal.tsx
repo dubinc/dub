@@ -21,6 +21,7 @@ import {
   Gift,
   LoadingSpinner,
   Modal,
+  PROSE_STYLES,
   StatusBadge,
   Trash,
   buttonVariants,
@@ -415,7 +416,9 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                       Details
                     </span>
                     <p className="text-content-subtle font-medium">
-                      <Markdown className="p-0">{bounty.description}</Markdown>
+                      <Markdown className={cn("p-0", PROSE_STYLES.default)}>
+                        {bounty.description}
+                      </Markdown>
                     </p>
                   </div>
                 )}

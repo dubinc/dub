@@ -78,6 +78,5 @@ export const POST = withWorkspace(
   },
   {
     requiredPlan: ["advanced", "enterprise"],
-    featureFlag: "emailCampaigns",
   },
 );
