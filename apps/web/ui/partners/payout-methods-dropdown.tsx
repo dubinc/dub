@@ -4,13 +4,7 @@ import { generatePaypalOAuthUrl } from "@/lib/actions/partners/generate-paypal-o
 import { generateStripeAccountLink } from "@/lib/actions/partners/generate-stripe-account-link";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PartnerProps } from "@/lib/types";
-import {
-  Button,
-  MatrixLines,
-  Paypal,
-  Popover,
-  Stripe as StripeIcon,
-} from "@dub/ui";
+import { Button, MatrixLines, Paypal, Popover, StripeIcon } from "@dub/ui";
 import {
   cn,
   CONNECT_SUPPORTED_COUNTRIES,
@@ -168,7 +162,8 @@ export function PayoutMethodsDropdown() {
                         <div className="flex items-center gap-x-2">
                           <div
                             className={cn(
-                              "size-8 shrink-0 rounded-lg p-2",
+                              "size-8 shrink-0 rounded-lg",
+                              id === "paypal" && "p-2",
                               color,
                             )}
                           >
@@ -222,7 +217,8 @@ export function PayoutMethodsDropdown() {
               <div className="flex min-w-0 items-center gap-x-2.5 pr-2">
                 <div
                   className={cn(
-                    "size-8 shrink-0 rounded-lg p-2",
+                    "size-8 shrink-0 rounded-lg",
+                    selectedMethod?.id === "paypal" && "p-2",
                     selectedMethod?.color,
                   )}
                 >

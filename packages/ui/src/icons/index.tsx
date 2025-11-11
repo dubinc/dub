@@ -50,6 +50,7 @@ export * from "./payment-platforms/card-discover";
 export * from "./payment-platforms/card-mastercard";
 export * from "./payment-platforms/card-visa";
 export * from "./payment-platforms/paypal";
+export * from "./payment-platforms/stripe-icon";
 export * from "./payment-platforms/stripe-link";
 
 // SDKs
