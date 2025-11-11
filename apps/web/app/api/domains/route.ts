@@ -2,10 +2,11 @@ import { createId } from "@/lib/api/create-id";
 import { addDomainToVercel } from "@/lib/api/domains/add-domain-vercel";
 import { transformDomain } from "@/lib/api/domains/transform-domain";
 import { validateDomain } from "@/lib/api/domains/utils";
-import { DubApiError, exceededLimitError } from "@/lib/api/errors";
+import { DubApiError } from "@/lib/api/errors";
 import { createLink, transformLink } from "@/lib/api/links";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import { storage } from "@/lib/storage";
 import {
   createDomainBodySchemaExtended,

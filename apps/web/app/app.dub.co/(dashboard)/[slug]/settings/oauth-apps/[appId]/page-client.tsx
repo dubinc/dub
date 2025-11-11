@@ -1,7 +1,7 @@
 "use client";
 
 import { generateClientSecret } from "@/lib/actions/generate-client-secret";
-import { clientAccessCheck } from "@/lib/api/tokens/permissions";
+import { clientAccessCheck } from "@/lib/client-access-check";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { OAuthAppProps } from "@/lib/types";
 import { useRemoveOAuthAppModal } from "@/ui/modals/remove-oauth-app-modal";

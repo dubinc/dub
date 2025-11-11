@@ -1,10 +1,10 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { withAxiom } from "@/lib/axiom/server";
 import { PartnerGroupProps } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
 import { Link, Program, ProgramEnrollment } from "@dub/prisma/client";
 import { getSearchParams } from "@dub/utils";
-import { AxiomRequest, withAxiom } from "next-axiom";
 import { headers } from "next/headers";
 import { referralsEmbedToken } from "./token-class";
 
@@ -35,7 +35,7 @@ export const withReferralsEmbedToken = (
 ) => {
   return withAxiom(
     async (
-      req: AxiomRequest,
+      req,
       { params: initialParams }: { params: Promise<Record<string, string>> },
     ) => {
       const params = (await initialParams) || {};
@@ -127,7 +127,6 @@ export const withReferralsEmbedToken = (
           embedToken,
         });
       } catch (error) {
-        req.log.error(error);
         return handleAndReturnErrorResponse(error, responseHeaders);
       }
     },

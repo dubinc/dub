@@ -1,6 +1,6 @@
 import { confirmPayoutsAction } from "@/lib/actions/partners/confirm-payouts";
-import { exceededLimitError } from "@/lib/api/errors";
-import { clientAccessCheck } from "@/lib/api/tokens/permissions";
+import { clientAccessCheck } from "@/lib/client-access-check";
+import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import {
   DIRECT_DEBIT_PAYMENT_METHOD_TYPES,
   FAST_ACH_FEE_CENTS,

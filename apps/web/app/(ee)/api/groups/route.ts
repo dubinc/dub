@@ -1,10 +1,11 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createId } from "@/lib/api/create-id";
-import { DubApiError, exceededLimitError } from "@/lib/api/errors";
+import { DubApiError } from "@/lib/api/errors";
 import { getGroups } from "@/lib/api/groups/get-groups";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import {
   createGroupSchema,
   DEFAULT_PARTNER_GROUP,

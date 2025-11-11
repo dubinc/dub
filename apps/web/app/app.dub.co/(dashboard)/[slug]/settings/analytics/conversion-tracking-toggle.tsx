@@ -1,6 +1,6 @@
 "use client";
 
-import { clientAccessCheck } from "@/lib/api/tokens/permissions";
+import { clientAccessCheck } from "@/lib/client-access-check";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
