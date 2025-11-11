@@ -128,7 +128,7 @@ export function PayoutStats() {
                             {display}
                           </div>
                           <div className="text-sm text-neutral-500">
-                            {currencyFormatter(amount / 100, {})}
+                            {currencyFormatter(amount, {})}
                           </div>
                         </div>
                       ))}
@@ -190,7 +190,7 @@ export function PayoutStats() {
                             {display}
                           </div>
                           <div className="text-sm text-neutral-500">
-                            {currencyFormatter(amount / 100, {})}
+                            {currencyFormatter(amount, {})}
                           </div>
                         </div>
                       ))}
@@ -199,7 +199,7 @@ export function PayoutStats() {
                 }
               >
                 <span className="underline decoration-dotted underline-offset-2">
-                  {currencyFormatter(totalPaid / 100, {}) + " USD"}
+                  {currencyFormatter(totalPaid, {}) + " USD"}
                 </span>
               </Tooltip>
             )}

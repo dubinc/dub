@@ -117,7 +117,7 @@ const PartnerLinks = ({ partner }: { partner: EnrolledPartnerProps }) => {
       {
         header: "Revenue",
         accessorFn: (d) =>
-          currencyFormatter(d.saleAmount / 100, {
+          currencyFormatter(d.saleAmount, {
             trailingZeroDisplay: "stripIfInteger",
           }),
         size: 1,
@@ -128,7 +128,7 @@ const PartnerLinks = ({ partner }: { partner: EnrolledPartnerProps }) => {
             target="_blank"
             className="block w-full cursor-alias decoration-dotted hover:underline"
           >
-            {currencyFormatter(row.original.saleAmount / 100, {
+            {currencyFormatter(row.original.saleAmount, {
               trailingZeroDisplay: "stripIfInteger",
             })}
           </Link>

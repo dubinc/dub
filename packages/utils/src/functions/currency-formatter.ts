@@ -12,9 +12,9 @@ export const currencyFormatter = (
   return Intl.NumberFormat("en-US", {
     style: "currency",
     currency,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-    trailingZeroDisplay: "auto",
+    trailingZeroDisplay: isZeroDecimalCurrency(currency)
+      ? "stripIfInteger"
+      : "auto",
     ...options,
   } as CurrencyFormatterOptions).format(
     isZeroDecimalCurrency(currency) ? valueInCents : valueInCents / 100,

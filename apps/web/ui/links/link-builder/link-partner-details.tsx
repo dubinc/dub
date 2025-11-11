@@ -61,18 +61,18 @@ export function LinkPartnerDetails({
           [
             "Revenue",
             partner
-              ? currencyFormatter(partner.totalSaleAmount / 100)
+              ? currencyFormatter(partner.totalSaleAmount)
               : undefined,
           ],
           [
             "Commissions",
             partner
-              ? currencyFormatter(partner.totalCommissions / 100)
+              ? currencyFormatter(partner.totalCommissions)
               : undefined,
           ],
           [
             "Net revenue",
-            partner ? currencyFormatter(partner.netRevenue / 100) : undefined,
+            partner ? currencyFormatter(partner.netRevenue) : undefined,
           ],
         ].map(([label, value]) => (
           <div key={label} className="flex flex-col gap-1 px-4 py-3">

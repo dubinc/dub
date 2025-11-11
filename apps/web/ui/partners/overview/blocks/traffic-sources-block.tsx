@@ -99,7 +99,7 @@ export function TrafficSourcesBlock() {
               <span>
                 {program?.primaryRewardEvent === "lead"
                   ? nFormatter(leads, { full: true })
-                  : currencyFormatter(saleAmount / 100)}
+                  : currencyFormatter(saleAmount)}
               </span>
             </Link>
           ))

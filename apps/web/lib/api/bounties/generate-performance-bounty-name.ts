@@ -14,8 +14,8 @@ export const generatePerformanceBountyName = ({
   const attributeLabel =
     PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES[condition.attribute];
   const valueFormatted = isCurrency
-    ? `${currencyFormatter(condition.value / 100, { trailingZeroDisplay: "stripIfInteger" })} in`
+    ? `${currencyFormatter(condition.value, { trailingZeroDisplay: "stripIfInteger" })} in`
     : `${nFormatter(condition.value, { full: true })}`;
 
-  return `Earn ${currencyFormatter(rewardAmount / 100, { trailingZeroDisplay: "stripIfInteger" })} after generating ${valueFormatted} ${attributeLabel.toLowerCase()}`;
+  return `Earn ${currencyFormatter(rewardAmount, { trailingZeroDisplay: "stripIfInteger" })} after generating ${valueFormatted} ${attributeLabel.toLowerCase()}`;
 };

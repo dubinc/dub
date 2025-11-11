@@ -34,7 +34,7 @@ export const CommissionStatusBadges = {
     className: "text-blue-600 bg-blue-100",
     icon: CircleHalfDottedClock,
     tooltip: (data: CommissionTooltipDataProps) => {
-      const title = `This commission has been processed and ${data.variant === "partner" && data.program?.minPayoutAmount ? `will be paid out once your payout total reaches the program's minimum payout amount of ${currencyFormatter(data.program?.minPayoutAmount / 100)}` : "is now eligible for payout"}.`;
+      const title = `This commission has been processed and ${data.variant === "partner" && data.program?.minPayoutAmount ? `will be paid out once your payout total reaches the program's minimum payout amount of ${currencyFormatter(data.program?.minPayoutAmount)}` : "is now eligible for payout"}.`;
       const cta =
         data.variant === "partner" ? "Learn more." : "View pending payouts.";
       const href =

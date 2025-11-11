@@ -245,7 +245,7 @@ export const exceededLimitError = ({
     ["links", "AI", "payouts"].includes(type) ? "monthly" : ""
   } limit of ${
     type === "payouts"
-      ? currencyFormatter(limit / 100)
+      ? currencyFormatter(limit)
       : `${limit} ${limit === 1 ? type.slice(0, -1) : type}`
   } on the ${capitalize(plan)} plan. Please upgrade for higher limits.`;
 };
