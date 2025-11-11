@@ -71,6 +71,15 @@ export const FraudEventListQuerySchema = z
   })
   .merge(getPaginationQuerySchema({ pageSize: FRAUD_EVENTS_MAX_PAGE_SIZE }));
 
+export const FraudEventCountQuerySchema = FraudEventListQuerySchema.omit({
+  page: true,
+  pageSize: true,
+  sortBy: true,
+  sortOrder: true,
+}).extend({
+  groupBy: z.enum(["status", "riskLevel"]).optional(),
+});
+
 export const ResolveFraudEventSchema = z.object({
   status: z
     .enum(["safe", "banned"])

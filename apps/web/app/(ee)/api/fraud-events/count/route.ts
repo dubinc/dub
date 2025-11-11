@@ -1,0 +1,32 @@
+import { getFraudEventsCount } from "@/lib/api/fraud/get-fraud-events-count";
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { withWorkspace } from "@/lib/auth";
+import { FraudEventCountQuerySchema } from "@/lib/zod/schemas/fraud";
+import { NextResponse } from "next/server";
+
+// GET /api/fraud-events/count - get the count of fraud events for a program
+export const GET = withWorkspace(
+  async ({ workspace, searchParams }) => {
+    const programId = getDefaultProgramIdOrThrow(workspace);
+
+    const parsedParams = FraudEventCountQuerySchema.parse(searchParams);
+
+    const count = await getFraudEventsCount({
+      ...parsedParams,
+      programId,
+    });
+
+    return NextResponse.json(count);
+  },
+  {
+    requiredPlan: [
+      "business",
+      "business plus",
+      "business extra",
+      "business max",
+      "advanced",
+      "enterprise",
+    ],
+  },
+);
+

@@ -2,6 +2,7 @@
 
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useFraudEvents } from "@/lib/swr/use-fraud-events";
+import { useFraudEventsCount } from "@/lib/swr/use-fraud-events-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { FraudEventProps } from "@/lib/types";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
@@ -26,18 +27,13 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import {
-  CircleCheck,
-  CircleDotted,
-  CircleXmark,
-  Dots,
-  ShieldKeyhole,
-} from "@dub/ui/icons";
+import { CircleCheck, CircleXmark, Dots, ShieldKeyhole } from "@dub/ui/icons";
 import { formatDate } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
+import { useFraudEventsFilters } from "./use-fraud-events-filters";
 
 const fraudEventsColumns = {
   all: [
@@ -119,6 +115,28 @@ export function FraudEventsTable() {
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
   const {
+    filters,
+    activeFilters,
+    onSelect,
+    onRemove,
+    onRemoveAll,
+    isFiltered,
+  } = useFraudEventsFilters();
+
+  const { columnVisibility, setColumnVisibility } = useColumnVisibility(
+    "fraud-events-table-columns",
+    fraudEventsColumns,
+  );
+
+  const { pagination, setPagination } = usePagination();
+
+  const { fraudEventsCount, error: countError } = useFraudEventsCount<number>({
+    status,
+    ...(riskLevel && { riskLevel }),
+    exclude: ["page"],
+  });
+
+  const {
     fraudEvents,
     loading: isLoading,
     error,
@@ -128,15 +146,10 @@ export function FraudEventsTable() {
       ...(riskLevel && { riskLevel }),
       sortBy: sortBy as "createdAt" | "riskScore" | "riskLevel",
       sortOrder: sortOrder as "asc" | "desc",
+      page: pagination.pageIndex,
+      pageSize: pagination.pageSize,
     },
   });
-
-  const { columnVisibility, setColumnVisibility } = useColumnVisibility(
-    "fraud-events-table-columns",
-    fraudEventsColumns,
-  );
-
-  const { pagination, setPagination } = usePagination();
 
   const columns = useMemo(
     () =>
@@ -252,67 +265,6 @@ export function FraudEventsTable() {
     [],
   );
 
-  const filters = useMemo(
-    () => [
-      {
-        key: "status",
-        icon: CircleDotted,
-        label: "Status",
-        options: [
-          { label: "Pending", value: "pending" },
-          { label: "Safe", value: "safe" },
-          { label: "Banned", value: "banned" },
-        ],
-      },
-      {
-        key: "riskLevel",
-        icon: ShieldKeyhole,
-        label: "Risk Level",
-        options: [
-          { label: "High", value: "high" },
-          { label: "Medium", value: "medium" },
-          { label: "Low", value: "low" },
-        ],
-      },
-    ],
-    [],
-  );
-
-  const activeFilters = useMemo(
-    () =>
-      [
-        status && { key: "status", value: status },
-        riskLevel && { key: "riskLevel", value: riskLevel },
-      ].filter(Boolean) as Array<{ key: string; value: string }>,
-    [status, riskLevel],
-  );
-
-  const onSelect = (key: string, value: any) => {
-    queryParams({
-      set: {
-        [key]: value,
-      },
-      del: "page",
-      scroll: false,
-    });
-  };
-
-  const onRemove = (key: string) => {
-    queryParams({
-      del: [key, "page"],
-      scroll: false,
-    });
-  };
-
-  const onRemoveAll = () => {
-    queryParams({
-      del: ["status", "riskLevel", "page"],
-      scroll: false,
-    });
-  };
-
-  const isFiltered = activeFilters.length > 0;
-
   const { table, ...tableProps } = useTable({
     data: fraudEvents || [],
     columns,
@@ -336,9 +288,9 @@ export function FraudEventsTable() {
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: () => "fraud event",
-    rowCount: fraudEvents?.length || 0,
+    rowCount: fraudEventsCount ?? 0,
     loading: isLoading,
-    error: error ? "Failed to load fraud events" : undefined,
+    error: error || countError ? "Failed to load fraud events" : undefined,
   });
 
   return (
