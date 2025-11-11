@@ -43,7 +43,7 @@ export default function NewCommissionAlertPartner({
   };
   shortLink?: string | null;
 }) {
-  const earningsInDollars = currencyFormatter(commission.earnings / 100);
+  const earningsInDollars = currencyFormatter(commission.earnings);
   const linkToEarnings = `https://partners.dub.co/programs/${program.slug}/earnings`;
 
   return (
@@ -79,7 +79,7 @@ export default function NewCommissionAlertPartner({
                   <>
                     made a{" "}
                     <strong className="text-black">
-                      {currencyFormatter(commission.amount / 100)}
+                      {currencyFormatter(commission.amount)}
                     </strong>{" "}
                     purchase
                   </>

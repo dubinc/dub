@@ -151,19 +151,19 @@ export default function PayoutsPageClient() {
         id: "amount",
         header: "Amount",
         accessorKey: "amount",
-        cell: ({ row }) => currencyFormatter(row.original.amount / 100),
+        cell: ({ row }) => currencyFormatter(row.original.amount),
       },
       {
         id: "fee",
         header: "Fee",
         accessorKey: "fee",
-        cell: ({ row }) => currencyFormatter(row.original.fee / 100),
+        cell: ({ row }) => currencyFormatter(row.original.fee),
       },
       {
         id: "total",
         header: "Total",
         accessorKey: "total",
-        cell: ({ row }) => currencyFormatter(row.original.total / 100),
+        cell: ({ row }) => currencyFormatter(row.original.total),
       },
     ],
     pagination,
@@ -269,7 +269,7 @@ export default function PayoutsPageClient() {
                             </p>
                           </div>
                           <p className="text-right font-medium text-neutral-900">
-                            {currencyFormatter(d.values.value / 100)}
+                            {currencyFormatter(d.values.value)}
                           </p>
                         </Fragment>
                       </div>
@@ -280,7 +280,7 @@ export default function PayoutsPageClient() {
                   <XAxis maxTicks={5} tickFormat={dateFormatter} />
                   <YAxis
                     showGridLines
-                    tickFormat={(value) => currencyFormatter(value / 100)}
+                    tickFormat={(value) => currencyFormatter(value)}
                   />
                 </TimeSeriesChart>
               ) : (

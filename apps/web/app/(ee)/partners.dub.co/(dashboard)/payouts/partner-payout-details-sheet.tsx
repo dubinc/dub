@@ -84,7 +84,7 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
 
       Amount: (
         <div className="flex items-center gap-2">
-          <strong>{currencyFormatter(payout.amount / 100)}</strong>
+          <strong>{currencyFormatter(payout.amount)}</strong>
 
           {payout.mode === "external" && (
             <Tooltip
@@ -166,7 +166,7 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
       {
         id: "earnings",
         header: "Earnings",
-        cell: ({ row }) => currencyFormatter(row.original.earnings / 100),
+        cell: ({ row }) => currencyFormatter(row.original.earnings),
       },
       {
         id: "type",

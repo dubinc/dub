@@ -221,7 +221,7 @@ export function PayoutTable() {
 }
 
 function AmountRowItem({ payout }: { payout: PartnerPayoutResponse }) {
-  const display = currencyFormatter(payout.amount / 100);
+  const display = currencyFormatter(payout.amount);
 
   if (
     payout.status === PayoutStatus.pending &&
@@ -230,7 +230,7 @@ function AmountRowItem({ payout }: { payout: PartnerPayoutResponse }) {
     return (
       <Tooltip
         content={`This program's minimum payout amount is ${currencyFormatter(
-          payout.program.minPayoutAmount / 100,
+          payout.program.minPayoutAmount,
         )}. This payout will be accrued and processed during the next payout period. [Learn more.](https://dub.co/help/article/receiving-payouts)`}
       >
         <span className="cursor-help truncate text-neutral-400 underline decoration-dotted underline-offset-2">

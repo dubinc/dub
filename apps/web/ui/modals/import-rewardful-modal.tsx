@@ -16,7 +16,7 @@ import {
   useMediaQuery,
   useRouterStuff,
 } from "@dub/ui";
-import { cn, fetcher } from "@dub/utils";
+import { cn, currencyFormatter, fetcher } from "@dub/utils";
 import { Command } from "cmdk";
 import { ArrowRight, ServerOff, Users } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
@@ -328,7 +328,7 @@ function CampaignsStep({
   const formatCommission = useCallback((campaign: RewardfulCampaign) => {
     return campaign.reward_type === "percent"
       ? `${campaign.commission_percent}%`
-      : `$${(campaign.commission_amount_cents / 100).toFixed(2)}`;
+      : `${currencyFormatter(campaign.commission_amount_cents)}`;
   }, []);
 
   const sortCampaigns = useCallback(

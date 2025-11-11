@@ -271,17 +271,17 @@ export function PartnersTable() {
         {
           id: "totalSaleAmount",
           header: "Revenue",
-          accessorFn: (d) => currencyFormatter(d.totalSaleAmount / 100),
+          accessorFn: (d) => currencyFormatter(d.totalSaleAmount),
         },
         {
           id: "totalCommissions",
           header: "Commissions",
-          accessorFn: (d) => currencyFormatter(d.totalCommissions / 100),
+          accessorFn: (d) => currencyFormatter(d.totalCommissions),
         },
         {
           id: "netRevenue",
           header: "Net Revenue",
-          accessorFn: (d) => currencyFormatter(d.netRevenue / 100),
+          accessorFn: (d) => currencyFormatter(d.netRevenue),
         },
         // Menu
         {

@@ -67,7 +67,7 @@ export function CommissionsBlock() {
                   </StatusBadge>
 
                   <span className="min-w-12 text-right">
-                    {currencyFormatter(earnings / 100)}
+                    {currencyFormatter(earnings)}
                   </span>
                 </div>
               </div>

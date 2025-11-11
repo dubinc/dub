@@ -205,7 +205,7 @@ export default function EventsTable({
           cell: ({ getValue }) => (
             <div className="flex items-center gap-2">
               <span>
-                {currencyFormatter(getValue() / 100, {
+                {currencyFormatter(getValue(), {
                   trailingZeroDisplay: "stripIfInteger",
                 })}
               </span>

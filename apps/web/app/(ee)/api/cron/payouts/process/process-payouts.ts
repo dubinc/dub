@@ -317,7 +317,7 @@ export async function processPayouts({
   });
 
   await log({
-    message: `*${program.name}* just sent a payout of *${currencyFormatter(totalPayoutAmount / 100)}* :money_with_wings: \n\n Fees earned: *${currencyFormatter(totalFee / 100)} (${payoutFee * 100}%)* :money_mouth_face:`,
+    message: `*${program.name}* just sent a payout of *${currencyFormatter(totalPayoutAmount)}* :money_with_wings: \n\n Fees earned: *${currencyFormatter(totalFee)} (${payoutFee * 100}%)* :money_mouth_face:`,
     type: "payouts",
   });
 

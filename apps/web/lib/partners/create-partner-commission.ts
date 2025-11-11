@@ -264,7 +264,7 @@ export const createPartnerCommission = async ({
     });
 
     console.log(
-      `Created a ${event} commission ${commission.id} (${currencyFormatter(commission.earnings / 100, { currency: commission.currency })}) for ${partnerId}: ${JSON.stringify(commission)}`,
+      `Created a ${event} commission ${commission.id} (${currencyFormatter(commission.earnings, { currency: commission.currency })}) for ${partnerId}: ${JSON.stringify(commission)}`,
     );
 
     const webhookPartner = constructWebhookPartner(programEnrollment, {

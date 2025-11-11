@@ -46,7 +46,7 @@ export default function PartnerPayoutFailed({
   };
   email: string;
 }) {
-  const payoutAmount = currencyFormatter(payout.amount / 100);
+  const payoutAmount = currencyFormatter(payout.amount);
   const payoutMethod = payout.method.replace("_", " ");
 
   return (
@@ -91,7 +91,7 @@ export default function PartnerPayoutFailed({
               <Text className="text-sm leading-6 text-neutral-600">
                 To cover the cost of the failed payout, we've charged a{" "}
                 <span className="font-semibold text-neutral-800">
-                  ${payout.failureFee / 100} payment failure fee
+                  {currencyFormatter(payout.failureFee)} payment failure fee
                 </span>
                 {payout.cardLast4 && (
                   <>
