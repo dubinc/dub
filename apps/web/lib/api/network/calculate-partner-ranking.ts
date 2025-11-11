@@ -103,7 +103,7 @@ export async function calculatePartnerRanking({
     status === "discover"
       ? starred === true
         ? Prisma.sql`dp.starredAt ASC`
-        : Prisma.sql`finalScore DESC, ${hasProfileCheck} DESC, p.id ASC`
+        : Prisma.sql`finalScore DESC, p.id ASC`
       : status === "invited"
         ? Prisma.sql`dp.invitedAt ASC`
         : Prisma.sql`enrolled.createdAt DESC, p.id ASC`;
@@ -145,10 +145,13 @@ export async function calculatePartnerRanking({
       MAX(pe_all.lastConversionAt) as lastConversionAt,
       AVG(COALESCE(pe_all.conversionRate, 0)) as avgConversionRate
     FROM ProgramEnrollment pe_all
-    -- OPTIMIZATION: Only process enrollments for discoverable partners
-    INNER JOIN Partner p_filter_all ON p_filter_all.id = pe_all.partnerId 
-      AND ${discoverablePartnersAllProgramsFilter}
-    WHERE pe_all.programId != ${ACME_PROGRAM_ID}
+    -- OPTIMIZATION: Only process enrollments for discoverable partners (using subquery to avoid JOIN)
+    WHERE pe_all.partnerId IN (
+      SELECT p_filter_all.id
+      FROM Partner p_filter_all
+      WHERE ${discoverablePartnersAllProgramsFilter}
+    )
+      AND pe_all.programId != ${ACME_PROGRAM_ID}
       AND pe_all.totalConversions > 0
     GROUP BY pe_all.partnerId
   ) allProgramMetrics ON allProgramMetrics.partnerId = p.id`;
@@ -191,10 +194,13 @@ export async function calculatePartnerRanking({
         -- Program match score: Count of similar programs (0-15 points)
         LEAST(15, COUNT(DISTINCT pe2.programId) * 2) as programMatchScore
       FROM ProgramEnrollment pe2
-      -- OPTIMIZATION: Only process enrollments for discoverable partners
-      INNER JOIN Partner p_filter ON p_filter.id = pe2.partnerId 
-        AND ${discoverablePartnersFilter}
-      WHERE pe2.programId IN (${Prisma.join(similarPrograms.map((sp) => sp.programId))})
+      -- OPTIMIZATION: Only process enrollments for discoverable partners (using subquery to avoid JOIN)
+      WHERE pe2.partnerId IN (
+        SELECT p_filter.id
+        FROM Partner p_filter
+        WHERE ${discoverablePartnersFilter}
+      )
+        AND pe2.programId IN (${Prisma.join(similarPrograms.map((sp) => sp.programId))})
         AND pe2.status = 'approved'
       GROUP BY pe2.partnerId
     ) similarProgramMetrics ON similarProgramMetrics.partnerId = p.id`
@@ -226,10 +232,16 @@ export async function calculatePartnerRanking({
       CASE WHEN enrolled.status = 'approved' THEN enrolled.createdAt ELSE NULL END as recruitedAt,
       preferredEarningStructuresData.preferredEarningStructures as preferredEarningStructures,
       salesChannelsData.salesChannels as salesChannels,
+      
+      -- Pre-compute hasProfileCheck for faster sorting
+      ${hasProfileCheck} as hasProfile,
 
-      -- FINAL SCORE (0-265+ points): Similarity-based ranking for discovery
+      -- FINAL SCORE (0-765+ points): Similarity-based ranking for discovery
       -- Trusted partners (trustedAt IS NOT NULL) get 200 bonus points to rank at the top
+      -- Partners with profiles get 500 bonus points to ensure they rank above those without profiles
       (
+        -- Profile bonus: 500 points for partners with online presence (ensures they rank above those without)
+        CASE WHEN ${hasProfileCheck} THEN 500 ELSE 0 END +
         -- Trusted partner bonus: 200 points for partners with trustedAt set
         CASE WHEN p.trustedAt IS NOT NULL THEN 200 ELSE 0 END +
         COALESCE(similarProgramMetrics.similarityScore, 0) +
@@ -262,9 +274,13 @@ export async function calculatePartnerRanking({
         pe5.partnerId,
         GROUP_CONCAT(DISTINCT pc.category ORDER BY pc.category SEPARATOR ',') as categories
       FROM ProgramEnrollment pe5
-      INNER JOIN Partner p_cat ON p_cat.id = pe5.partnerId AND ${discoverablePartnersCategoriesFilter}
       JOIN ProgramCategory pc ON pc.programId = pe5.programId
-      WHERE pe5.status = 'approved'
+      WHERE pe5.partnerId IN (
+        SELECT p_cat.id
+        FROM Partner p_cat
+        WHERE ${discoverablePartnersCategoriesFilter}
+      )
+        AND pe5.status = 'approved'
       GROUP BY pe5.partnerId
     ) partnerCategories ON partnerCategories.partnerId = p.id
 
