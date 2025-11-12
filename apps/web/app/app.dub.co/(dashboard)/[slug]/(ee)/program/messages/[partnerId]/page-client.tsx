@@ -20,7 +20,7 @@ import { ChevronLeft, LoadingSpinner } from "@dub/ui/icons";
 import { OG_AVATAR_URL, cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { redirect, useParams } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { v4 as uuid } from "uuid";
@@ -71,6 +71,8 @@ export function ProgramMessagesPartnerPageClient() {
 
   const { setCurrentPanel } = useMessagesContext();
   const [isRightPanelOpen, setIsRightPanelOpen] = useState(!isMobile);
+
+  if (errorMessages) redirect(`/${workspaceSlug}/program/messages`);
 
   return (
     <div
