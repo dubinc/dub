@@ -10,20 +10,18 @@ const contextSchema = z.object({
 });
 
 const configSchema = z.object({
-  queryParams: z
-    .array(z.string())
-    .default(["gclid", "gad_source", "gad_campaignid"])
-    .describe("Ad-tracking query params."),
-  referrers: z
-    .array(z.string())
-    .default(["google.com"])
-    .describe("Referer domains."),
+  queryParams: z.array(z.string()).describe("Ad-tracking query params."),
+  referrers: z.array(z.string()).describe("Referer domains."),
 });
 
 export const checkPaidAdTrafficDetected = defineFraudRule({
   type: "paid_ad_traffic_detected",
   contextSchema,
   configSchema,
+  defaultConfig: {
+    queryParams: ["gclid", "gad_source", "gad_campaignid"],
+    referrers: ["google.com"],
+  },
   evaluate: async (context, config) => {
     const { click } = context;
 

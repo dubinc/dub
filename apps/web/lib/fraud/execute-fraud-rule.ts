@@ -15,7 +15,7 @@ export async function executeFraudRule<T extends FraudRuleType>(
   }
 
   const parsedContext = rule.contextSchema.parse(context);
-  const parsedConfig = rule.configSchema.parse(config);
+  const parsedConfig = rule.configSchema.parse(config ?? rule.defaultConfig);
 
   // Type assertion is safe because Zod validates types at runtime
   // TypeScript can't narrow the union type, but we know the types match after Zod validation

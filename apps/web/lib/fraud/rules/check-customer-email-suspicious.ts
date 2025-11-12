@@ -16,6 +16,7 @@ export const checkCustomerEmailSuspicious = defineFraudRule({
   type: "customer_email_suspicious_domain",
   contextSchema,
   configSchema,
+  defaultConfig: {},
   evaluate: async (context) => {
     const { customer } = context;
 

@@ -14,18 +14,26 @@ const contextSchema = z.object({
 });
 
 const configSchema = z.object({
-  similarityThreshold: z.number().min(0).max(1).default(0.8),
-  checkLevenshtein: z.boolean().default(true),
-  checkDomainVariations: z.boolean().default(true),
-  checkExactMatch: z.boolean().default(true),
-  checkEmailMatch: z.boolean().default(true),
-  checkNameMatch: z.boolean().default(true),
+  similarityThreshold: z.number().min(0).max(1),
+  checkLevenshtein: z.boolean(),
+  checkDomainVariations: z.boolean(),
+  checkExactMatch: z.boolean(),
+  checkEmailMatch: z.boolean(),
+  checkNameMatch: z.boolean(),
 });
 
 export const checkSelfReferralRule = defineFraudRule({
   type: "self_referral",
   contextSchema,
   configSchema,
+  defaultConfig: {
+    similarityThreshold: 0.8,
+    checkLevenshtein: true,
+    checkDomainVariations: true,
+    checkExactMatch: true,
+    checkEmailMatch: true,
+    checkNameMatch: true,
+  },
   evaluate: async (context, config) => {
     const { partner, customer } = context;
 

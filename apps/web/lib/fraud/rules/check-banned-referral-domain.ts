@@ -16,6 +16,7 @@ export const checkBannedReferralDomain = defineFraudRule({
   type: "banned_referral_domain",
   contextSchema,
   configSchema,
+  defaultConfig: {},
   evaluate: async (context) => {
     const { customer } = context;
 
