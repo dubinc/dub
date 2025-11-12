@@ -5,6 +5,7 @@ import { prisma } from "@dub/prisma";
 import { getSearchParams } from "@dub/utils";
 import { Project } from "@prisma/client";
 import { headers } from "next/headers";
+import { COMMON_CORS_HEADERS } from "../api/cors";
 
 interface WithPublishableKeyHandler {
   ({
@@ -42,7 +43,7 @@ export const withPublishableKey = (
     ) => {
       const params = (await initialParams) || {};
       let requestHeaders = await headers();
-      let responseHeaders = new Headers();
+      let responseHeaders = COMMON_CORS_HEADERS;
 
       try {
         const authorizationHeader = requestHeaders.get("Authorization");
