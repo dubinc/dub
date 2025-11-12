@@ -147,7 +147,9 @@ export function PartnerMessagesProgramPageClient() {
           ) : null}
         </div>
         {["banned", "rejected"].includes(programEnrollment?.status ?? "") ||
-        enrolledProgram?.messagingEnabledAt === null ? (
+        (program?.messagingEnabledAt === null &&
+          messages &&
+          !messages.length) ? (
           <div className="flex size-full flex-col items-center justify-center px-4">
             <MsgsDotted className="size-10 text-neutral-700" />
             <div className="mt-6 max-w-md text-center">
