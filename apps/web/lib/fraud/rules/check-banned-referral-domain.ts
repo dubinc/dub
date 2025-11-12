@@ -14,6 +14,8 @@ const configSchema = z.object({
 
 export const checkBannedReferralDomain = defineFraudRule({
   type: "banned_referral_domain",
+  name: "Banned Referral Domain",
+  riskLevel: "high",
   contextSchema,
   configSchema,
   defaultConfig: {},

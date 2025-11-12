@@ -24,6 +24,8 @@ const configSchema = z.object({
 
 export const checkSelfReferralRule = defineFraudRule({
   type: "self_referral",
+  name: "Self-Referral Detected (Email or IP Match)",
+  riskLevel: "high",
   contextSchema,
   configSchema,
   defaultConfig: {

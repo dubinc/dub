@@ -16,6 +16,8 @@ const configSchema = z.object({
 
 export const checkPaidAdTrafficDetected = defineFraudRule({
   type: "paid_ad_traffic_detected",
+  name: "Paid Ad Traffic Detected",
+  riskLevel: "medium",
   contextSchema,
   configSchema,
   defaultConfig: {

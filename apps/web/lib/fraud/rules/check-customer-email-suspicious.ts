@@ -14,6 +14,8 @@ const configSchema = z.object({
 
 export const checkCustomerEmailSuspicious = defineFraudRule({
   type: "customer_email_suspicious_domain",
+  name: "Customer Email from Disposable Domain",
+  riskLevel: "medium",
   contextSchema,
   configSchema,
   defaultConfig: {},

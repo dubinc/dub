@@ -1,13 +1,10 @@
 import { prisma } from "@dub/prisma";
 import { EventType, FraudRiskLevel, FraudRuleType } from "@dub/prisma/client";
 import { z } from "zod";
-import {
-  DEFAULT_FRAUD_RULES,
-  RISK_LEVEL_ORDER,
-  RISK_LEVEL_WEIGHTS,
-} from "./constants";
+import { RISK_LEVEL_ORDER, RISK_LEVEL_WEIGHTS } from "./constants";
 import { executeFraudRule } from "./execute-fraud-rule";
 import type { FraudReasonCode } from "./fraud-reason-codes";
+import { getFraudRules } from "./fraud-rules-registry";
 
 interface TriggeredRule {
   ruleId?: string;
@@ -63,7 +60,7 @@ export async function detectFraudEvent(
   });
 
   // Merge global rules with program overrides
-  const activeRules = DEFAULT_FRAUD_RULES.map((defaultRule) => {
+  const activeRules = getFraudRules().map((defaultRule) => {
     const override = programRules.find(
       (o) => o.ruleType === defaultRule.ruleType,
     );
