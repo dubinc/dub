@@ -54,13 +54,13 @@ export const PayoutStats = memo(() => {
               {payoutsCount ? (
                 <p className="text-content-default font-medium">
                   {currencyFormatter(
-                    (payoutsCount
+                    payoutsCount
                       ?.filter(
                         (payout) =>
                           payout.status === PayoutStatus.pending ||
                           payout.status === PayoutStatus.processing,
                       )
-                      ?.reduce((acc, p) => acc + p.amount, 0) || 0) / 100,
+                      ?.reduce((acc, p) => acc + p.amount, 0) || 0,
                   )}
                 </p>
               ) : (
@@ -73,14 +73,14 @@ export const PayoutStats = memo(() => {
             {payoutsCount ? (
               <p className="text-content-default font-medium">
                 {currencyFormatter(
-                  (payoutsCount
+                  payoutsCount
                     ?.filter(
                       (payout) =>
                         payout.status === PayoutStatus.processed ||
                         payout.status === PayoutStatus.sent ||
                         payout.status === PayoutStatus.completed,
                     )
-                    ?.reduce((acc, p) => acc + p.amount, 0) ?? 0) / 100,
+                    ?.reduce((acc, p) => acc + p.amount, 0) ?? 0,
                 )}
               </p>
             ) : (

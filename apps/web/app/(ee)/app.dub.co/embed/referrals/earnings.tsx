@@ -62,7 +62,7 @@ export function ReferralsEmbedEarnings({ salesCount }: { salesCount: number }) {
         id: "amount",
         header: "Amount",
         cell: ({ row }) => {
-          return currencyFormatter(row.original.amount / 100);
+          return currencyFormatter(row.original.amount);
         },
       },
       {
@@ -70,7 +70,7 @@ export function ReferralsEmbedEarnings({ salesCount }: { salesCount: number }) {
         header: "Earnings",
         accessorKey: "earnings",
         cell: ({ row }) => {
-          return currencyFormatter(row.original.earnings / 100);
+          return currencyFormatter(row.original.earnings);
         },
       },
       {

@@ -246,9 +246,7 @@ function BountySubmissionDetailsSheetContent({
                       {
                         label: "Reward",
                         value: submission.commission?.earnings
-                          ? currencyFormatter(
-                              submission.commission.earnings / 100,
-                            )
+                          ? currencyFormatter(submission.commission.earnings)
                           : "-",
                       },
                     ]),

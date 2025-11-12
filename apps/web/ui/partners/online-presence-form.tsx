@@ -2,7 +2,7 @@
 
 import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { updateOnlinePresenceAction } from "@/lib/actions/partners/update-online-presence";
-import { hasPermission } from "@/lib/auth/partner-user-permissions";
+import { hasPermission } from "@/lib/auth/partner-users/partner-user-permissions";
 import {
   sanitizeSocialHandle,
   sanitizeWebsite,

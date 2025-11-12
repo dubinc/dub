@@ -8,6 +8,7 @@ import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
 import { recordClickCache } from "@/lib/api/links/record-click-cache";
 import { parseRequestBody } from "@/lib/api/utils";
+import { withAxiom } from "@/lib/axiom/server";
 import { getIdentityHash } from "@/lib/middleware/utils/get-identity-hash";
 import { getWorkspaceViaEdge } from "@/lib/planetscale";
 import { getLinkWithPartner } from "@/lib/planetscale/get-link-with-partner";
@@ -18,7 +19,6 @@ import { DiscountSchema } from "@/lib/zod/schemas/discount";
 import { PartnerSchema } from "@/lib/zod/schemas/partners";
 import { isValidUrl, nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import { AxiomRequest, withAxiom } from "next-axiom";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -47,7 +47,7 @@ const trackClickResponseSchema = z.object({
 });
 
 // POST /api/track/click – Track a click event for a link
-export const POST = withAxiom(async (req: AxiomRequest) => {
+export const POST = withAxiom(async (req) => {
   try {
     const { domain, key, url, referrer } = trackClickSchema.parse(
       await parseRequestBody(req),

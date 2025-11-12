@@ -1,12 +1,13 @@
 import { VALID_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { getFolderIdsToFilter } from "@/lib/analytics/get-folder-ids-to-filter";
-import { validDateRangeForPlan } from "@/lib/analytics/utils";
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { DubApiError } from "@/lib/api/errors";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { throwIfClicksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
+import { assertValidDateRangeForPlan } from "@/lib/api/utils/assert-valid-date-range-for-plan";
 import { prefixWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { withWorkspace } from "@/lib/auth";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
@@ -14,7 +15,7 @@ import {
   analyticsPathParamsSchema,
   analyticsQuerySchema,
 } from "@/lib/zod/schemas/analytics";
-import { Folder, Link } from "@dub/prisma/client";
+import { Link } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 
 // GET /api/analytics – get analytics
@@ -52,6 +53,7 @@ export const GET = withWorkspace(
     event = oldEvent || event;
     groupBy = oldType || groupBy;
 
+    let programStartedAt: Date | null | undefined = null;
     if (programId) {
       const workspaceProgramId = getDefaultProgramIdOrThrow(workspace);
       if (programId !== workspaceProgramId) {
@@ -59,6 +61,13 @@ export const GET = withWorkspace(
           code: "forbidden",
           message: `Program ${programId} does not belong to workspace ${prefixWorkspaceId(workspace.id)}.`,
         });
+      }
+      if (groupBy === "timeseries") {
+        const program = await getProgramOrThrow({
+          workspaceId: workspace.id,
+          programId,
+        });
+        programStartedAt = program.startedAt;
       }
     }
 
@@ -78,9 +87,8 @@ export const GET = withWorkspace(
 
     const folderIdToVerify = link?.folderId || folderId;
 
-    let selectedFolder: Pick<Folder, "id" | "type"> | null = null;
     if (folderIdToVerify) {
-      selectedFolder = await verifyFolderAccess({
+      await verifyFolderAccess({
         workspace,
         userId: session.user.id,
         folderId: folderIdToVerify,
@@ -88,13 +96,12 @@ export const GET = withWorkspace(
       });
     }
 
-    validDateRangeForPlan({
+    assertValidDateRangeForPlan({
       plan: workspace.plan,
       dataAvailableFrom: workspace.createdAt,
       interval,
       start,
       end,
-      throwError: true,
     });
 
     // no need to get folder ids if we are filtering by a folder or program
@@ -124,7 +131,7 @@ export const GET = withWorkspace(
       isDeprecatedClicksEndpoint,
       // dataAvailableFrom is only relevant for timeseries groupBy
       ...(groupBy === "timeseries" && {
-        dataAvailableFrom: workspace.createdAt,
+        dataAvailableFrom: programStartedAt ?? workspace.createdAt,
       }),
     });
 

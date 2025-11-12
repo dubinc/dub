@@ -151,7 +151,7 @@ const CommissionTableInner = memo(
           header: "Amount",
           accessorFn: (d) =>
             d.type === "sale"
-              ? currencyFormatter(d.amount / 100)
+              ? currencyFormatter(d.amount)
               : nFormatter(d.quantity),
         },
         {
@@ -160,7 +160,7 @@ const CommissionTableInner = memo(
           cell: ({ row }) => {
             const commission = row.original;
 
-            const earnings = currencyFormatter(commission.earnings / 100);
+            const earnings = currencyFormatter(commission.earnings);
 
             if (commission.description) {
               const reason =

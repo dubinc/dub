@@ -1,4 +1,4 @@
-import { DubApiError, exceededLimitError } from "@/lib/api/errors";
+import { DubApiError } from "@/lib/api/errors";
 import {
   bulkCreateLinks,
   checkIfLinksHaveTags,
@@ -14,6 +14,7 @@ import { checkIfLinksHaveFolders } from "@/lib/api/links/utils/check-if-links-ha
 import { combineTagIds } from "@/lib/api/tags/combine-tag-ids";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import {
   checkFolderPermissions,
   verifyFolderAccess,

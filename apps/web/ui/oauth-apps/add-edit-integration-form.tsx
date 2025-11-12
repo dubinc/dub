@@ -1,8 +1,8 @@
 "use client";
 
 import { addEditIntegration } from "@/lib/actions/add-edit-integration";
-import { clientAccessCheck } from "@/lib/api/tokens/permissions";
 import { normalizeWorkspaceId } from "@/lib/api/workspaces/workspace-id";
+import { clientAccessCheck } from "@/lib/client-access-check";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { NewOrExistingIntegration } from "@/lib/types";
 import {

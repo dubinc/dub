@@ -75,7 +75,7 @@ function PartnerPayouts({ partner }: { partner: EnrolledPartnerProps }) {
         cell: ({ row }) => {
           return (
             <div className="flex items-center gap-1.5">
-              {currencyFormatter(row.original.amount / 100)}
+              {currencyFormatter(row.original.amount)}
               {row.original.mode === "external" && (
                 <CircleArrowRight className="size-3.5 shrink-0" />
               )}

@@ -1,10 +1,10 @@
 import { ResourceKey, RESOURCES } from "@/lib/api/rbac/resources";
-import { clientAccessCheck } from "@/lib/api/tokens/permissions";
 import {
   getScopesByResourceForRole,
   Scope,
   scopePresets,
 } from "@/lib/api/tokens/scopes";
+import { clientAccessCheck } from "@/lib/client-access-check";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   AnimatedSizeContainer,

@@ -40,7 +40,7 @@ export default function PartnerPaypalPayoutFailed({
   };
   email: string;
 }) {
-  const amountFormatted = currencyFormatter(payout.amount / 100);
+  const amountFormatted = currencyFormatter(payout.amount);
 
   return (
     <Html>

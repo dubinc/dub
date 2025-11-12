@@ -75,9 +75,9 @@ export function OverviewChart() {
       values: {
         amount:
           viewType === "commissions"
-            ? item.earnings / 100
+            ? item.earnings
             : viewType === "sales"
-              ? item.saleAmount / 100
+              ? item.saleAmount
               : item.leads,
       },
     }));
@@ -110,7 +110,7 @@ export function OverviewChart() {
           />
           {total !== undefined ? (
             <NumberFlow
-              value={total}
+              value={viewType === "leads" ? total : total / 100}
               className="text-content-emphasis block text-3xl font-medium"
               {...(viewType === "leads"
                 ? {}

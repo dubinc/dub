@@ -41,7 +41,7 @@ export default function PartnerPayoutProcessed({
   };
   variant: "stripe" | "paypal";
 }) {
-  const saleAmountInDollars = currencyFormatter(payout.amount / 100, {
+  const saleAmountInDollars = currencyFormatter(payout.amount, {
     trailingZeroDisplay: "stripIfInteger",
   });
 

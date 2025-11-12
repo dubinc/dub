@@ -49,10 +49,20 @@ export function CustomerSelector({
         value: customer.id,
         label: customer.name || customer.email || customer.externalId,
         icon: (
-          <img
-            src={customer.avatar || `${OG_AVATAR_URL}${customer.id}`}
-            className="size-4 rounded-full"
-          />
+          <span className="shrink-0 text-neutral-600">
+            <img
+              src={customer.avatar || `${OG_AVATAR_URL}${customer.id}`}
+              alt=""
+              className="size-4 rounded-full"
+              onError={(e) => {
+                // Fallback to OG avatar if image fails to load
+                const target = e.target as HTMLImageElement;
+                if (target.src !== `${OG_AVATAR_URL}${customer.id}`) {
+                  target.src = `${OG_AVATAR_URL}${customer.id}`;
+                }
+              }}
+            />
+          </span>
         ),
       })) || []
     );
@@ -71,10 +81,20 @@ export function CustomerSelector({
       value: customer.id,
       label: customer.name || customer.email || customer.externalId,
       icon: (
-        <img
-          src={customer.avatar || `${OG_AVATAR_URL}${customer.id}`}
-          className="size-4 rounded-full"
-        />
+        <span className="shrink-0 text-neutral-600">
+          <img
+            src={customer.avatar || `${OG_AVATAR_URL}${customer.id}`}
+            alt=""
+            className="size-4 rounded-full"
+            onError={(e) => {
+              // Fallback to OG avatar if image fails to load
+              const target = e.target as HTMLImageElement;
+              if (target.src !== `${OG_AVATAR_URL}${customer.id}`) {
+                target.src = `${OG_AVATAR_URL}${customer.id}`;
+              }
+            }}
+          />
+        </span>
       ),
     };
   }, [customers, selectedCustomers, selectedCustomerId]);
@@ -88,7 +108,7 @@ export function CustomerSelector({
           setSelectedCustomerId(option.value);
         }}
         selected={selectedOption}
-        icon={selectedCustomersLoading ? null : selectedOption?.icon}
+        icon={selectedCustomersLoading ? undefined : selectedOption?.icon}
         caret={true}
         placeholder={selectedCustomersLoading ? "" : "Select customer"}
         searchPlaceholder="Search or create customer..."

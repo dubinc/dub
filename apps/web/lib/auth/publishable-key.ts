@@ -1,10 +1,11 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { withAxiom } from "@/lib/axiom/server";
 import { ratelimit } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
 import { getSearchParams } from "@dub/utils";
 import { Project } from "@prisma/client";
-import { AxiomRequest, withAxiom } from "next-axiom";
 import { headers } from "next/headers";
+import { COMMON_CORS_HEADERS } from "../api/cors";
 
 interface WithPublishableKeyHandler {
   ({
@@ -37,12 +38,12 @@ export const withPublishableKey = (
 ) =>
   withAxiom(
     async (
-      req: AxiomRequest,
+      req,
       { params: initialParams }: { params: Promise<Record<string, string>> },
     ) => {
       const params = (await initialParams) || {};
       let requestHeaders = await headers();
-      let responseHeaders = new Headers();
+      let responseHeaders = COMMON_CORS_HEADERS;
 
       try {
         const authorizationHeader = requestHeaders.get("Authorization");
@@ -108,7 +109,6 @@ export const withPublishableKey = (
           });
         }
       } catch (error) {
-        req.log.error(error);
         return handleAndReturnErrorResponse(error, responseHeaders);
       }
     },

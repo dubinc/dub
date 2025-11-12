@@ -304,7 +304,7 @@ function AmountRowItem({
   const { program } = useProgram();
 
   const minPayoutAmount = program?.minPayoutAmount || 0;
-  const display = currencyFormatter(payout.amount / 100);
+  const display = currencyFormatter(payout.amount);
 
   if (payout.status === PayoutStatus.pending) {
     if (payout.amount < minPayoutAmount) {

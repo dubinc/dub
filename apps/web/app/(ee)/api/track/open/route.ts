@@ -3,6 +3,7 @@ import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
 import { recordClickCache } from "@/lib/api/links/record-click-cache";
 import { parseRequestBody } from "@/lib/api/utils";
+import { withAxiom } from "@/lib/axiom/server";
 import { getIdentityHash } from "@/lib/middleware/utils";
 import { DeepLinkClickData } from "@/lib/middleware/utils/cache-deeplink-click-data";
 import { getLinkViaEdge } from "@/lib/planetscale";
@@ -15,11 +16,10 @@ import {
 } from "@/lib/zod/schemas/opens";
 import { LOCALHOST_IP, nanoid } from "@dub/utils";
 import { ipAddress, waitUntil } from "@vercel/functions";
-import { AxiomRequest, withAxiom } from "next-axiom";
 import { NextResponse } from "next/server";
 
 // POST /api/track/open – Track an open event for deep link
-export const POST = withAxiom(async (req: AxiomRequest) => {
+export const POST = withAxiom(async (req) => {
   try {
     const { deepLink: deepLinkUrl, dubDomain } = trackOpenRequestSchema.parse(
       await parseRequestBody(req),

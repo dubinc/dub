@@ -140,7 +140,7 @@ export default function UserInfo({ data }: { data: UserInfoProps }) {
                     </span>
                     <span className="text-neutral-500">
                       {item.isCurrency
-                        ? currencyFormatter(program[item.id] / 100)
+                        ? currencyFormatter(program[item.id])
                         : nFormatter(program[item.id], { full: true })}
                     </span>
                   </div>

@@ -1,4 +1,5 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { withAxiom } from "@/lib/axiom/server";
 import { hubSpotOAuthProvider } from "@/lib/integrations/hubspot/oauth";
 import {
   hubSpotSettingsSchema,
@@ -8,13 +9,12 @@ import { trackHubSpotLeadEvent } from "@/lib/integrations/hubspot/track-lead";
 import { trackHubSpotSaleEvent } from "@/lib/integrations/hubspot/track-sale";
 import { prisma } from "@dub/prisma";
 import crypto from "crypto";
-import { AxiomRequest, withAxiom } from "next-axiom";
 import { NextResponse } from "next/server";
 
 const HUBSPOT_CLIENT_SECRET = process.env.HUBSPOT_CLIENT_SECRET || "";
 
 // POST /api/hubspot/webhook – listen to webhook events from Hubspot
-export const POST = withAxiom(async (req: AxiomRequest) => {
+export const POST = withAxiom(async (req) => {
   try {
     const rawPayload = await req.text();
     const signature = req.headers.get("X-HubSpot-Signature");

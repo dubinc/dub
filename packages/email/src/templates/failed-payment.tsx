@@ -1,4 +1,4 @@
-import { DUB_WORDMARK } from "@dub/utils";
+import { currencyFormatter, DUB_WORDMARK } from "@dub/utils";
 import {
   Body,
   Container,
@@ -49,8 +49,10 @@ export default function FailedPayment({
             </Text>
             <Text className="text-sm leading-6 text-black">
               Your payment of{" "}
-              <code className="text-purple-600">${amountDue / 100}</code> for
-              your Dub workspace{" "}
+              <code className="text-purple-600">
+                {currencyFormatter(amountDue)}
+              </code>{" "}
+              for your Dub workspace{" "}
               <code className="text-purple-600">{workspace.name}</code> has
               failed. Please{" "}
               <Link

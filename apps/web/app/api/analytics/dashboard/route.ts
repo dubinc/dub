@@ -1,10 +1,7 @@
 import { getAnalytics } from "@/lib/analytics/get-analytics";
-import { validDateRangeForPlan } from "@/lib/analytics/utils";
-import {
-  DubApiError,
-  exceededLimitError,
-  handleAndReturnErrorResponse,
-} from "@/lib/api/errors";
+import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { assertValidDateRangeForPlan } from "@/lib/api/utils/assert-valid-date-range-for-plan";
+import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import { PlanProps } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
 import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
@@ -71,13 +68,12 @@ export const GET = async (req: Request) => {
 
       const workspace = link.project;
 
-      validDateRangeForPlan({
+      assertValidDateRangeForPlan({
         plan: workspace?.plan || "free",
         dataAvailableFrom: workspace?.createdAt,
         interval,
         start,
         end,
-        throwError: true,
       });
 
       if (workspace && workspace.usage > workspace.usageLimit) {

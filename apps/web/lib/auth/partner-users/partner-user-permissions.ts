@@ -1,5 +1,4 @@
 import type { PartnerRole } from "@prisma/client";
-import { DubApiError } from "../api/errors";
 
 export type Permission = (typeof PERMISSIONS)[number];
 
@@ -30,23 +29,4 @@ export function hasPermission(role: PartnerRole, permission: Permission) {
   const allowed = ROLE_PERMISSIONS[role] ?? [];
 
   return allowed.includes(permission);
-}
-
-export function throwIfNoPermission({
-  role,
-  permission,
-  message = "You don't have the necessary permissions to complete this request.",
-}: {
-  role: PartnerRole;
-  permission: Permission;
-  message?: string;
-}) {
-  if (hasPermission(role, permission)) {
-    return;
-  }
-
-  throw new DubApiError({
-    code: "forbidden",
-    message,
-  });
 }
