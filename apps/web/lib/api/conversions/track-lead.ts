@@ -1,6 +1,7 @@
 import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
 import { includeTags } from "@/lib/api/links/include-tags";
+import { detectFraudEvent } from "@/lib/fraud/detect-fraud-event";
 import { generateRandomName } from "@/lib/names";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import { isStored, storage } from "@/lib/storage";
@@ -299,6 +300,7 @@ export const trackLead = async ({
                 },
               },
             });
+
             webhookPartner = createdCommission?.webhookPartner;
 
             await Promise.allSettled([
@@ -312,10 +314,29 @@ export const trackLead = async ({
                   },
                 },
               }),
+
               syncPartnerLinksStats({
                 partnerId: link.partnerId,
                 programId: link.programId,
                 eventType: "lead",
+              }),
+
+              detectFraudEvent({
+                programId: link.programId,
+                partner: {
+                  id: webhookPartner.id,
+                  email: webhookPartner.email,
+                  name: webhookPartner.name,
+                },
+                customer: {
+                  id: customer.id,
+                  email: customer.email,
+                  name: customer.name,
+                },
+                click: {
+                  url: clickData.url,
+                  referer: clickData.referer,
+                },
               }),
             ]);
           }

@@ -1,6 +1,5 @@
 import { prisma } from "@dub/prisma";
-import { EventType, FraudRiskLevel, FraudRuleType } from "@dub/prisma/client";
-import { z } from "zod";
+import { FraudRiskLevel, FraudRuleType } from "@dub/prisma/client";
 import { RISK_LEVEL_ORDER, RISK_LEVEL_WEIGHTS } from "./constants";
 import { executeFraudRule } from "./execute-fraud-rule";
 import type { FraudReasonCode } from "./fraud-reason-codes";
@@ -20,37 +19,30 @@ interface FraudEvaluationResult {
   triggeredRules: TriggeredRule[];
 }
 
-export const conversionEventSchema = z.object({
-  programId: z.string(),
-  partner: z.object({
-    id: z.string(),
-    email: z.string().nullable().default(null),
-    name: z.string().nullable().default(null),
-  }),
-  customer: z.object({
-    id: z.string(),
-    email: z.string().nullable().default(null),
-    name: z.string().nullable().default(null),
-  }),
-  event: z.object({
-    id: z.string(),
-    type: z.nativeEnum(EventType),
-    timestamp: z.string(),
-  }),
-  click: z.object({
-    ip: z.string().nullable().default(null),
-    referer: z.string().nullable().default(null),
-    country: z.string().nullable().default(null),
-    timestamp: z.string().nullable().default(null),
-  }),
-});
+interface DetectFraudEventProps {
+  programId: string;
+  partner: {
+    id: string;
+    email: string | null;
+    name: string | null;
+  };
+  customer: {
+    id: string;
+    email: string | null;
+    name: string | null;
+  };
+  click: {
+    url: string | null;
+    referer: string | null;
+  };
+}
 
 // Evaluate fraud risk for a conversion event
 // Executes all enabled rules and calculates risk score
 export async function detectFraudEvent(
-  data: z.infer<typeof conversionEventSchema>,
+  context: DetectFraudEventProps,
 ): Promise<FraudEvaluationResult> {
-  const context = conversionEventSchema.parse(data);
+  console.log("context", context);
 
   // Get program-specific rule overrides
   const programRules = await prisma.fraudRule.findMany({
@@ -129,6 +121,8 @@ export async function detectFraudEvent(
       );
     }
   }
+
+  console.log("triggeredRules", triggeredRules);
 
   return {
     riskLevel: highestRiskLevel,
