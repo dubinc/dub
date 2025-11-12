@@ -20,7 +20,7 @@ import { ChevronLeft, LoadingSpinner } from "@dub/ui/icons";
 import { OG_AVATAR_URL, cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
-import { redirect, useParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { v4 as uuid } from "uuid";
@@ -32,7 +32,7 @@ export function ProgramMessagesPartnerPageClient() {
   const { partnerId } = useParams() as { partnerId: string };
   const { user } = useUser();
   const { program } = useProgram();
-  const { partner, error: errorPartner } = usePartner({ partnerId });
+  const { partner: enrolledPartner } = usePartner({ partnerId });
 
   const {
     executeAsync: markPartnerMessagesRead,
@@ -63,14 +63,14 @@ export function ProgramMessagesPartnerPageClient() {
       },
     },
   });
+
+  const partner = partnerMessages?.[0]?.partner;
   const messages = partnerMessages?.[0]?.messages;
 
   const { executeAsync: sendMessage } = useAction(messagePartnerAction);
 
   const { setCurrentPanel } = useMessagesContext();
   const [isRightPanelOpen, setIsRightPanelOpen] = useState(!isMobile);
-
-  if (errorPartner) redirect(`/${workspaceSlug}/program/messages`);
 
   return (
     <div
@@ -234,12 +234,12 @@ export function ProgramMessagesPartnerPageClient() {
             </div>
           </div>
           <div className="bg-bg-muted scrollbar-hide flex grow flex-col gap-4 overflow-y-scroll p-6">
-            {partner ? (
+            {enrolledPartner ? (
               <>
-                <PartnerInfoSection partner={partner} />
-                <PartnerInfoGroup partner={partner} />
+                <PartnerInfoSection partner={enrolledPartner} />
+                <PartnerInfoGroup partner={enrolledPartner} />
                 <PartnerInfoStats
-                  partner={partner}
+                  partner={enrolledPartner}
                   className="xs:grid-cols-2"
                 />
               </>
