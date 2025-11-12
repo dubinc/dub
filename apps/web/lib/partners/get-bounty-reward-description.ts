@@ -5,7 +5,7 @@ export function getBountyRewardDescription(
   bounty: Pick<BountyProps, "rewardAmount" | "rewardDescription">,
 ) {
   if (bounty.rewardAmount) {
-    const formattedAmount = currencyFormatter(bounty.rewardAmount / 100, {
+    const formattedAmount = currencyFormatter(bounty.rewardAmount, {
       trailingZeroDisplay: "stripIfInteger",
     });
 

@@ -1,5 +1,6 @@
+import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import { WorkspaceWithUsers } from "@/lib/types";
-import { DubApiError, exceededLimitError } from "../errors";
+import { DubApiError } from "../errors";
 
 // Workspace clicks usage overage checks
 export const throwIfClicksUsageExceeded = (workspace: WorkspaceWithUsers) => {

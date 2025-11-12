@@ -73,7 +73,7 @@ export const createStripeTransfer = async ({
       }
 
       console.log(
-        `Total processed payouts (${currencyFormatter(totalTransferableAmount / 100)}) for partner ${partner.id} are below ${currencyFormatter(MIN_WITHDRAWAL_AMOUNT_CENTS / 100)}, skipping...`,
+        `Total processed payouts (${currencyFormatter(totalTransferableAmount)}) for partner ${partner.id} are below ${currencyFormatter(MIN_WITHDRAWAL_AMOUNT_CENTS)}, skipping...`,
       );
 
       // skip creating a transfer
@@ -89,7 +89,7 @@ export const createStripeTransfer = async ({
 
   if (finalTransferableAmount <= 0) {
     console.log(
-      `Final transferable amount after deducting withdrawal fee (${currencyFormatter(finalTransferableAmount / 100)}) is less than or equal to 0, skipping...`,
+      `Final transferable amount after deducting withdrawal fee (${currencyFormatter(finalTransferableAmount)}) is less than or equal to 0, skipping...`,
     );
 
     return;
@@ -122,7 +122,7 @@ export const createStripeTransfer = async ({
   );
 
   console.log(
-    `Transfer of ${currencyFormatter(finalTransferableAmount / 100)} (${transfer.id}) created for partner ${partner.id} for ${pluralize(
+    `Transfer of ${currencyFormatter(finalTransferableAmount)} (${transfer.id}) created for partner ${partner.id} for ${pluralize(
       "payout",
       allPayouts.length,
     )} ${allPayouts.map((p) => p.id).join(", ")}`,

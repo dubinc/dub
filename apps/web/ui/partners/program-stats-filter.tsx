@@ -73,7 +73,7 @@ export function ProgramStatsFilter({
                       {nFormatter(count, { full: true })}
                     </span>
                     <span className="text-xs font-medium text-neutral-500">
-                      {amount !== undefined && currencyFormatter(amount / 100)}
+                      {amount !== undefined && currencyFormatter(amount)}
                     </span>
                   </>
                 )

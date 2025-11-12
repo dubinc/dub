@@ -13,6 +13,7 @@
   "paypalEmail": null,
   "stripeConnectId": null,
   "payoutsEnabledAt": null,
+  "trustedAt": null,
   "createdAt": "2025-02-07T17:58:18.793Z",
   "clicks": 0,
   "leads": 0,

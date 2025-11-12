@@ -89,7 +89,7 @@ export default function AnalyticsAreaChart({
               clicks,
               leads,
               sales,
-              saleAmount: (saleAmount ?? 0) / 100,
+              saleAmount,
             },
           })) ?? null,
     [data, demo],

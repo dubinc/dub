@@ -240,7 +240,7 @@ function CreateCommissionSheetContent({
               cell: ({ row }) => (
                 <span className="text-sm text-neutral-700">
                   {row.original.sale?.amount
-                    ? currencyFormatter(row.original.sale.amount / 100)
+                    ? currencyFormatter(row.original.sale.amount)
                     : "-"}
                 </span>
               ),

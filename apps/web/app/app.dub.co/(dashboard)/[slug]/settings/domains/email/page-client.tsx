@@ -21,9 +21,9 @@ export function EmailDomains() {
     error: emailDomainsError,
   } = useEmailDomains();
 
-  const { canManageEmailDomains } = getPlanCapabilities(plan);
+  const { canSendEmailCampaigns } = getPlanCapabilities(plan);
 
-  if (!canManageEmailDomains) {
+  if (!canSendEmailCampaigns) {
     return (
       <div className="grid gap-5">
         <div className="animate-fade-in">

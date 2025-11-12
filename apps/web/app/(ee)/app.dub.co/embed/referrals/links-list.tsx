@@ -100,7 +100,7 @@ export function ReferralsEmbedLinksList({
         header: "Sales",
         minSize: 80,
         maxSize: 100,
-        cell: ({ row }) => currencyFormatter(row.original.saleAmount / 100),
+        cell: ({ row }) => currencyFormatter(row.original.saleAmount),
       },
       {
         id: "actions",

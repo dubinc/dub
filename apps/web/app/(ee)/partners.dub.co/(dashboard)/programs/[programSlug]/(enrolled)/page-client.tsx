@@ -297,7 +297,7 @@ function EarningsChart() {
     () =>
       timeseries?.map(({ start, earnings }) => ({
         date: new Date(start),
-        value: earnings / 100,
+        value: earnings,
       })),
     [timeseries],
   );

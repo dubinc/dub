@@ -243,13 +243,13 @@ export function BountySubmissionsTable() {
                 const target = performanceCondition.value;
 
                 const formattedValue = isCurrencyAttribute(attribute)
-                  ? currencyFormatter(value / 100, {
+                  ? currencyFormatter(value, {
                       trailingZeroDisplay: "stripIfInteger",
                     })
                   : nFormatter(value, { full: true });
 
                 const formattedTarget = isCurrencyAttribute(attribute)
-                  ? currencyFormatter(target / 100, {
+                  ? currencyFormatter(target, {
                       trailingZeroDisplay: "stripIfInteger",
                     })
                   : nFormatter(target, { full: true });

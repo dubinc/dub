@@ -1,12 +1,13 @@
+import { logger } from "@/lib/axiom/server";
 import {
   AdminMiddleware,
   ApiMiddleware,
   AppMiddleware,
-  AxiomMiddleware,
   CreateLinkMiddleware,
   LinkMiddleware,
 } from "@/lib/middleware";
 import { parse } from "@/lib/middleware/utils";
+import { transformMiddlewareRequest } from "@axiomhq/nextjs";
 import {
   ADMIN_HOSTNAMES,
   API_HOSTNAMES,
@@ -35,7 +36,9 @@ export const config = {
 export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
   const { domain, path, key, fullKey } = parse(req);
 
-  AxiomMiddleware(req, ev);
+  // Axiom logging
+  logger.info(...transformMiddlewareRequest(req));
+  ev.waitUntil(logger.flush());
 
   // for App
   if (APP_HOSTNAMES.has(domain)) {

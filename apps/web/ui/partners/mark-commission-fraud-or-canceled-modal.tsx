@@ -86,10 +86,10 @@ function ModalInner({
 
       Amount:
         commission.type === "sale"
-          ? currencyFormatter(commission.amount / 100)
+          ? currencyFormatter(commission.amount)
           : nFormatter(commission.quantity),
 
-      Commission: currencyFormatter(commission.earnings / 100),
+      Commission: currencyFormatter(commission.earnings),
 
       Status: (
         <StatusBadge icon={null} variant={badge.variant}>

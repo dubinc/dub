@@ -1,6 +1,6 @@
 "use client";
 
-import { hasPermission } from "@/lib/auth/partner-user-permissions";
+import { hasPermission } from "@/lib/auth/partner-users/partner-user-permissions";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { ConnectPayoutButton } from "@/ui/partners/connect-payout-button";
 import { Button } from "@dub/ui";

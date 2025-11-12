@@ -165,7 +165,7 @@ export function CustomerDetailsColumn({
         ) : (
           <span>
             {customerActivity?.ltv !== undefined
-              ? currencyFormatter(customerActivity.ltv / 100, {
+              ? currencyFormatter(customerActivity.ltv, {
                   trailingZeroDisplay: "stripIfInteger",
                 })
               : "-"}

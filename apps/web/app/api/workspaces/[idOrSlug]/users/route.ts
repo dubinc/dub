@@ -1,5 +1,5 @@
 import { DubApiError } from "@/lib/api/errors";
-import { throwIfNoAccess } from "@/lib/api/tokens/permissions";
+import { throwIfNoAccess } from "@/lib/api/tokens/throw-if-no-access";
 import { withWorkspace } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
 import {
