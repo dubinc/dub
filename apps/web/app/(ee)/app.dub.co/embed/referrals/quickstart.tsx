@@ -19,19 +19,24 @@ const BUTTON_CLASSNAME = "h-9 rounded-lg bg-bg-inverted hover:bg-neutral-800";
 
 export function ReferralsEmbedQuickstart({
   program,
-  link,
+  links,
+  earnings,
   hasResources,
   setSelectedTab,
 }: {
   program: Program;
-  link: ReferralsEmbedLink | undefined;
+  links: ReferralsEmbedLink[];
+  earnings: {
+    upcoming: number;
+    paid: number;
+  };
   hasResources: boolean;
   setSelectedTab: (tab: "Links" | "Resources") => void;
 }) {
   const [copied, copyToClipboard] = useCopyToClipboard();
   const { isMobile } = useMediaQuery();
 
-  const payoutsDisabled = !link || link.saleAmount === 0;
+  const payoutsDisabled = earnings.upcoming === 0 && earnings.paid === 0;
 
   const items = [
     {
@@ -42,15 +47,21 @@ export function ReferralsEmbedQuickstart({
         <Button
           className={BUTTON_CLASSNAME}
           onClick={() => {
-            if (link) {
-              copyToClipboard(link.shortLink);
+            if (links.length > 0) {
+              copyToClipboard(links[0].shortLink);
             } else {
               setSelectedTab("Links");
             }
           }}
-          text={link ? (copied ? "Copied link" : "Copy link") : "Create a link"}
+          text={
+            links.length > 0
+              ? copied
+                ? "Copied link"
+                : "Copy link"
+              : "Create a link"
+          }
           icon={
-            link ? (
+            links.length > 0 ? (
               <div className="relative size-4">
                 <div
                   className={cn(
