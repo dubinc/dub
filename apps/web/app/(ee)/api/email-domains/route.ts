@@ -90,7 +90,7 @@ export const POST = withWorkspace(
 
       waitUntil(
         (async () => {
-          // Moving the updates to Qstash because updating the domain immeadiately after creation can fail.
+          // Moving the updates to Qstash because updating the domain immediately after creation can fail.
           const response = await qstash.publishJSON({
             url: `${APP_DOMAIN_WITH_NGROK}/api/cron/email-domains/update`,
             method: "POST",
