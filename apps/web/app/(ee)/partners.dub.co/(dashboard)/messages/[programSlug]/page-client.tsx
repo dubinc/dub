@@ -92,7 +92,12 @@ export function PartnerMessagesProgramPageClient() {
   const { setCurrentPanel } = useMessagesContext();
   const [isRightPanelOpen, setIsRightPanelOpen] = useState(!isMobile);
 
-  if (errorMessages) redirect(`/messages`);
+  // Redirect if no messages and not enrolled, or messages error
+  if (
+    (programEnrollmentError && programMessages?.length === 0) ||
+    errorMessages
+  )
+    redirect(`/messages`);
 
   return (
     <div
