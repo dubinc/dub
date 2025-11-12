@@ -47,9 +47,12 @@ export function PartnerMessagesProgramPageClient() {
 
   const { user } = useUser();
   const { partner } = usePartnerProfile();
-  const { programEnrollment, error: errorProgramEnrollment } =
-    useProgramEnrollment();
-  const program = programEnrollment?.program;
+  const { programEnrollment } = useProgramEnrollment({
+    swrOpts: {
+      shouldRetryOnError: (err) => err.status !== 404,
+    },
+  });
+  const enrolledProgram = programEnrollment?.program;
 
   const {
     executeAsync: markProgramMessagesRead,
@@ -62,7 +65,6 @@ export function PartnerMessagesProgramPageClient() {
     mutate: mutateProgramMessages,
   } = useProgramMessages({
     query: { programSlug, sortOrder: "asc" },
-    enabled: Boolean(programEnrollment?.program?.messagingEnabledAt),
     swrOpts: {
       onSuccess: async (data) => {
         // Mark unread messages from the program as read
@@ -80,6 +82,8 @@ export function PartnerMessagesProgramPageClient() {
       },
     },
   });
+
+  const program = programMessages?.[0]?.program;
   const messages = programMessages?.[0]?.messages;
 
   const { executeAsync: sendMessage } = useAction(messageProgramAction);
@@ -87,7 +91,7 @@ export function PartnerMessagesProgramPageClient() {
   const { setCurrentPanel } = useMessagesContext();
   const [isRightPanelOpen, setIsRightPanelOpen] = useState(!isMobile);
 
-  if (errorProgramEnrollment) redirect(`/messages`);
+  if (errorMessages) redirect(`/messages`);
 
   return (
     <div
@@ -138,7 +142,7 @@ export function PartnerMessagesProgramPageClient() {
           />
         </div>
         {["banned", "rejected"].includes(programEnrollment?.status ?? "") ||
-        programEnrollment?.program?.messagingEnabledAt === null ? (
+        enrolledProgram?.messagingEnabledAt === null ? (
           <div className="flex size-full flex-col items-center justify-center px-4">
             <MsgsDotted className="size-10 text-neutral-700" />
             <div className="mt-6 max-w-md text-center">
@@ -149,8 +153,11 @@ export function PartnerMessagesProgramPageClient() {
                 You can contact them directly via email.
               </p>
             </div>
-            {program?.supportEmail && (
-              <Link href={`mailto:${program.supportEmail}`} target="_blank">
+            {enrolledProgram?.supportEmail && (
+              <Link
+                href={`mailto:${enrolledProgram.supportEmail}`}
+                target="_blank"
+              >
                 <Button
                   className="mt-4 h-9 rounded-lg px-3"
                   variant="secondary"
@@ -280,7 +287,7 @@ export function PartnerMessagesProgramPageClient() {
             </div>
           </div>
           <div className="bg-bg-muted scrollbar-hide flex grow flex-col overflow-y-scroll">
-            {programEnrollment && program ? (
+            {programEnrollment ? (
               <ProgramInfoPanel programEnrollment={programEnrollment} />
             ) : (
               <div className="flex size-full items-center justify-center">

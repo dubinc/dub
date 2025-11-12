@@ -32,7 +32,10 @@ export function ProgramMessagesPartnerPageClient() {
   const { partnerId } = useParams() as { partnerId: string };
   const { user } = useUser();
   const { program } = useProgram();
-  const { partner: enrolledPartner } = usePartner({ partnerId });
+  const { partner: enrolledPartner } = usePartner(
+    { partnerId },
+    { shouldRetryOnError: (err) => err.status !== 404 },
+  );
 
   const {
     executeAsync: markPartnerMessagesRead,
