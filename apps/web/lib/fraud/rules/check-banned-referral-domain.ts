@@ -1,4 +1,3 @@
-import { redis } from "@/lib/upstash/redis";
 import { z } from "zod";
 import { defineFraudRule } from "../define-fraud-rule";
 
@@ -9,7 +8,7 @@ const contextSchema = z.object({
 });
 
 const configSchema = z.object({
-  //
+  domains: z.array(z.string()).describe("List of banned referral domains."),
 });
 
 export const checkBannedReferralDomain = defineFraudRule({
@@ -18,76 +17,46 @@ export const checkBannedReferralDomain = defineFraudRule({
   riskLevel: "high",
   contextSchema,
   configSchema,
-  defaultConfig: {},
-  evaluate: async (context) => {
+  defaultConfig: {
+    domains: [],
+  },
+  evaluate: async (context, config) => {
     const { customer } = context;
 
-    // If no customer email provided, rule doesn't trigger
+    if (config.domains.length === 0) {
+      return {
+        triggered: false,
+      };
+    }
+
+    // Check if customer email is provided
     if (!customer.email) {
       return {
         triggered: false,
-        metadata: {
-          reason: "no_customer_email",
-        },
       };
     }
 
     // Extract domain from email
     const emailParts = customer.email.split("@");
-    if (emailParts.length !== 2) {
+
+    if (!emailParts || emailParts.length !== 2) {
       return {
         triggered: false,
-        metadata: {
-          reason: "invalid_email_format",
-          customerEmail: customer.email,
-        },
       };
     }
 
-    const domain = emailParts[1].toLowerCase().trim();
+    // Check if domain is banned
+    const emailDomain = emailParts[1].toLowerCase().trim();
 
-    // Check if domain exists in Redis set
-    try {
-      const isDisposable = await redis.sismember(
-        "disposableEmailDomains",
-        domain,
-      );
-
-      if (isDisposable === 1) {
-        return {
-          triggered: true,
-          reasonCode: "customer_email_disposable_domain",
-          metadata: {
-            customerEmail: customer.email,
-            domain,
-          },
-        };
-      }
-
+    if (config.domains.includes(emailDomain)) {
       return {
-        triggered: false,
-        metadata: {
-          customerEmail: customer.email,
-          domain,
-          isDisposable: false,
-        },
-      };
-    } catch (error) {
-      // If Redis check fails, log error but don't trigger fraud
-      console.error(
-        "Error checking disposable email domain:",
-        error instanceof Error ? error.message : String(error),
-      );
-
-      return {
-        triggered: false,
-        metadata: {
-          reason: "redis_check_failed",
-          customerEmail: customer.email,
-          domain,
-          error: error instanceof Error ? error.message : String(error),
-        },
+        triggered: true,
+        reasonCode: "banned_referral_domain",
       };
     }
+
+    return {
+      triggered: false,
+    };
   },
 });
