@@ -46,7 +46,7 @@ export const messageProgramAction = authPartnerActionClient
             },
           },
 
-          // Partner has received a direct message from the program
+          // Partner has received a direct message from the program before
           {
             messages: {
               some: {
