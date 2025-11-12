@@ -43,7 +43,7 @@ export const withPublishableKey = (
     ) => {
       const params = (await initialParams) || {};
       let requestHeaders = await headers();
-      let responseHeaders = new Headers(COMMON_CORS_HEADERS);
+      let responseHeaders = COMMON_CORS_HEADERS;
 
       try {
         const authorizationHeader = requestHeaders.get("Authorization");
