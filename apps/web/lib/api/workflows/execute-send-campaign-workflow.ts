@@ -17,7 +17,6 @@ import { createId } from "../create-id";
 import { evaluateWorkflowCondition } from "./execute-workflows";
 import { parseWorkflowConfig } from "./parse-workflow-config";
 import { renderCampaignEmailHTML } from "./render-campaign-email-html";
-import { renderCampaignEmailMarkdown } from "./render-campaign-email-markdown";
 
 export const executeSendCampaignWorkflow = async ({
   workflow,
@@ -150,29 +149,6 @@ export const executeSendCampaignWorkflow = async ({
             partner: undefined,
           },
         })),
-    );
-
-    // Create messages
-    const messages = await prisma.message.createMany({
-      data: programEnrollmentChunk.map((programEnrollment) => ({
-        id: createId({ prefix: "msg_" }),
-        programId: programEnrollment.programId,
-        partnerId: programEnrollment.partnerId,
-        senderUserId: campaign.userId,
-        type: "campaign",
-        subject: campaign.subject,
-        text: renderCampaignEmailMarkdown({
-          content: campaign.bodyJson as unknown as TiptapNode,
-          variables: {
-            PartnerName: programEnrollment.partner.name,
-            PartnerEmail: programEnrollment.partner.email,
-          },
-        }),
-      })),
-    });
-
-    console.log(
-      `Workflow ${workflow.id} created ${messages.count} messages for campaign ${campaignId}.`,
     );
 
     // Send emails
