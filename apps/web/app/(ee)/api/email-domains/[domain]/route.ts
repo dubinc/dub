@@ -1,3 +1,4 @@
+import { CAMPAIGN_ACTIVE_STATUSES } from "@/lib/api/campaigns/constants";
 import { getEmailDomainOrThrow } from "@/lib/api/domains/get-email-domain-or-throw";
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
@@ -31,6 +32,28 @@ export const PATCH = withWorkspace(
     });
 
     const domainChanged = slug && slug !== emailDomain.slug;
+
+    // Prevent updating verified domains that have active campaigns
+    if (domainChanged) {
+      const activeCampaignsCount = await prisma.campaign.count({
+        where: {
+          programId,
+          status: {
+            in: CAMPAIGN_ACTIVE_STATUSES,
+          },
+          from: {
+            endsWith: `@${emailDomain.slug}`,
+          },
+        },
+      });
+
+      if (activeCampaignsCount > 0) {
+        throw new DubApiError({
+          code: "bad_request",
+          message: `There are active campaigns using this email domain. You can not update it until all campaigns are completed or paused.`,
+        });
+      }
+    }
 
     let resendDomainId: string | undefined;
 
@@ -141,7 +164,7 @@ export const DELETE = withWorkspace(
       where: {
         programId,
         status: {
-          in: ["active", "scheduled", "sending"],
+          in: CAMPAIGN_ACTIVE_STATUSES,
         },
         from: {
           endsWith: `@${emailDomain.slug}`,
