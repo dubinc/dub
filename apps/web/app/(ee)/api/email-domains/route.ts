@@ -90,18 +90,6 @@ export const POST = withWorkspace(
 
       waitUntil(
         (async () => {
-          // Verify an existing domain
-          const { error: resendVerifyError } = await resend.domains.verify(
-            resendDomain.id,
-          );
-
-          if (resendVerifyError) {
-            console.error(
-              `Resend domain verify failed for domain ${resendDomain.name}`,
-              resendVerifyError,
-            );
-          }
-
           // Moving the updates to Qstash because updating the domain immeadiately after creation can fail.
           const response = await qstash.publishJSON({
             url: `${APP_DOMAIN_WITH_NGROK}/api/cron/email-domains/update`,
