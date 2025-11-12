@@ -32,7 +32,7 @@ export function ProgramMessagesPartnerPageClient() {
   const { partnerId } = useParams() as { partnerId: string };
   const { user } = useUser();
   const { program } = useProgram();
-  const { partner: enrolledPartner } = usePartner(
+  const { partner: enrolledPartner, error: enrolledPartnerError } = usePartner(
     { partnerId },
     { shouldRetryOnError: (err) => err.status !== 404 },
   );
@@ -118,10 +118,14 @@ export function ProgramMessagesPartnerPageClient() {
               )}
             </button>
           </div>
-          <ToggleSidePanelButton
-            isOpen={isRightPanelOpen}
-            onClick={() => setIsRightPanelOpen((o) => !o)}
-          />
+          {enrolledPartner ? (
+            <ToggleSidePanelButton
+              isOpen={isRightPanelOpen}
+              onClick={() => setIsRightPanelOpen((o) => !o)}
+            />
+          ) : enrolledPartnerError ? (
+            <ViewPartnerButton partnerId={partnerId} isEnrolled={false} />
+          ) : null}
         </div>
         <div className="min-h-0 grow">
           <MessagesPanel
@@ -209,70 +213,86 @@ export function ProgramMessagesPartnerPageClient() {
       </div>
 
       {/* Right panel - Profile */}
-      <div
-        className={cn(
-          "absolute right-0 top-0 h-full min-h-0 w-0 overflow-hidden bg-white shadow-lg transition-[width]",
-          "@[960px]/page:shadow-none @[960px]/page:relative",
-          isRightPanelOpen && "w-full sm:w-[340px]",
-        )}
-      >
-        <div className="border-border-subtle flex size-full min-h-0 w-full flex-col border-l sm:w-[340px]">
-          <div className="border-border-subtle flex h-12 shrink-0 items-center justify-between gap-4 border-b px-4 sm:h-16 sm:px-6">
-            <h2 className="text-content-emphasis text-lg font-semibold leading-7">
-              Profile
-            </h2>
-            <div className="flex items-center gap-2">
-              <Link
-                href={
-                  enrolledPartner
-                    ? `/${workspaceSlug}/program/partners/${partnerId}`
-                    : `/${workspaceSlug}/program/network/${partnerId}`
-                }
-                target="_blank"
-              >
-                <Button
-                  variant="secondary"
-                  text="View profile"
-                  className="h-8 rounded-lg px-3"
+      {enrolledPartner && (
+        <div
+          className={cn(
+            "absolute right-0 top-0 h-full min-h-0 w-0 overflow-hidden bg-white shadow-lg transition-[width]",
+            "@[960px]/page:shadow-none @[960px]/page:relative",
+            isRightPanelOpen && "w-full sm:w-[340px]",
+          )}
+        >
+          <div className="border-border-subtle flex size-full min-h-0 w-full flex-col border-l sm:w-[340px]">
+            <div className="border-border-subtle flex h-12 shrink-0 items-center justify-between gap-4 border-b px-4 sm:h-16 sm:px-6">
+              <h2 className="text-content-emphasis text-lg font-semibold leading-7">
+                Profile
+              </h2>
+              <div className="flex items-center gap-2">
+                <ViewPartnerButton partnerId={partnerId} isEnrolled={true} />
+                <button
+                  type="button"
+                  onClick={() => setIsRightPanelOpen(false)}
+                  className="@[960px]/page:hidden rounded-lg p-2 text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-900"
+                >
+                  <X className="size-4" />
+                </button>
+              </div>
+            </div>
+            <div className="bg-bg-muted scrollbar-hide flex grow flex-col gap-4 overflow-y-scroll p-6">
+              {enrolledPartner ? (
+                <>
+                  <PartnerInfoSection partner={enrolledPartner} />
+                  <PartnerInfoGroup partner={enrolledPartner} />
+                  <PartnerInfoStats
+                    partner={enrolledPartner}
+                    className="xs:grid-cols-2"
+                  />
+                </>
+              ) : partner ? (
+                <PartnerInfoSection
+                  partner={{
+                    ...partner,
+                    status: "pending",
+                    email: null,
+                    country: null,
+                  }}
+                  showPartnerStatus={Boolean(enrolledPartner)}
                 />
-              </Link>
-              <button
-                type="button"
-                onClick={() => setIsRightPanelOpen(false)}
-                className="@[960px]/page:hidden rounded-lg p-2 text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-900"
-              >
-                <X className="size-4" />
-              </button>
+              ) : (
+                <div className="flex size-full items-center justify-center">
+                  <LoadingSpinner />
+                </div>
+              )}
             </div>
           </div>
-          <div className="bg-bg-muted scrollbar-hide flex grow flex-col gap-4 overflow-y-scroll p-6">
-            {enrolledPartner ? (
-              <>
-                <PartnerInfoSection partner={enrolledPartner} />
-                <PartnerInfoGroup partner={enrolledPartner} />
-                <PartnerInfoStats
-                  partner={enrolledPartner}
-                  className="xs:grid-cols-2"
-                />
-              </>
-            ) : partner ? (
-              <PartnerInfoSection
-                partner={{
-                  ...partner,
-                  status: "pending",
-                  email: null,
-                  country: null,
-                }}
-                showPartnerStatus={Boolean(enrolledPartner)}
-              />
-            ) : (
-              <div className="flex size-full items-center justify-center">
-                <LoadingSpinner />
-              </div>
-            )}
-          </div>
         </div>
-      </div>
+      )}
     </div>
+  );
+}
+
+function ViewPartnerButton({
+  partnerId,
+  isEnrolled,
+}: {
+  partnerId: string;
+  isEnrolled: boolean;
+}) {
+  const { slug: workspaceSlug } = useWorkspace();
+
+  return (
+    <Link
+      href={
+        isEnrolled
+          ? `/${workspaceSlug}/program/partners/${partnerId}`
+          : `/${workspaceSlug}/program/network/${partnerId}`
+      }
+      target="_blank"
+    >
+      <Button
+        variant="secondary"
+        text={isEnrolled ? "View profile" : "View partner"}
+        className="h-8 rounded-lg px-3"
+      />
+    </Link>
   );
 }

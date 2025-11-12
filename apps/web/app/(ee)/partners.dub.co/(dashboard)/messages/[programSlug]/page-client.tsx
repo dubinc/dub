@@ -47,11 +47,12 @@ export function PartnerMessagesProgramPageClient() {
 
   const { user } = useUser();
   const { partner } = usePartnerProfile();
-  const { programEnrollment } = useProgramEnrollment({
-    swrOpts: {
-      shouldRetryOnError: (err) => err.status !== 404,
-    },
-  });
+  const { programEnrollment, error: programEnrollmentError } =
+    useProgramEnrollment({
+      swrOpts: {
+        shouldRetryOnError: (err) => err.status !== 404,
+      },
+    });
   const enrolledProgram = programEnrollment?.program;
 
   const {
@@ -136,10 +137,14 @@ export function PartnerMessagesProgramPageClient() {
               </button>
             </div>
           </div>
-          <ToggleSidePanelButton
-            isOpen={isRightPanelOpen}
-            onClick={() => setIsRightPanelOpen((o) => !o)}
-          />
+          {programEnrollment ? (
+            <ToggleSidePanelButton
+              isOpen={isRightPanelOpen}
+              onClick={() => setIsRightPanelOpen((o) => !o)}
+            />
+          ) : programEnrollmentError ? (
+            <ViewProgramButton programSlug={programSlug} />
+          ) : null}
         </div>
         {["banned", "rejected"].includes(programEnrollment?.status ?? "") ||
         enrolledProgram?.messagingEnabledAt === null ? (
@@ -257,46 +262,42 @@ export function PartnerMessagesProgramPageClient() {
       </div>
 
       {/* Right panel - Profile */}
-      <div
-        className={cn(
-          "absolute right-0 top-0 h-full min-h-0 w-0 overflow-hidden bg-white shadow-lg transition-[width]",
-          "@[1082px]/page:shadow-none @[1082px]/page:relative",
-          isRightPanelOpen && "w-full sm:w-[400px]",
-        )}
-      >
-        <div className="border-border-subtle flex size-full min-h-0 w-full flex-col border-l sm:w-[400px]">
-          <div className="border-border-subtle flex h-12 shrink-0 items-center justify-between gap-4 border-b px-4 sm:h-16 sm:px-6">
-            <h2 className="text-content-emphasis text-lg font-semibold leading-7">
-              Program
-            </h2>
-            <div className="flex items-center gap-2">
-              <Link href={`/programs/${programSlug}`} target="_blank">
-                <Button
-                  variant="secondary"
-                  text="View program"
-                  className="h-8 rounded-lg px-3"
-                />
-              </Link>
-              <button
-                type="button"
-                onClick={() => setIsRightPanelOpen(false)}
-                className="@[1082px]/page:hidden rounded-lg p-2 text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-900"
-              >
-                <X className="size-4" />
-              </button>
+      {enrolledProgram && (
+        <div
+          className={cn(
+            "absolute right-0 top-0 h-full min-h-0 w-0 overflow-hidden bg-white shadow-lg transition-[width]",
+            "@[1082px]/page:shadow-none @[1082px]/page:relative",
+            isRightPanelOpen && "w-full sm:w-[400px]",
+          )}
+        >
+          <div className="border-border-subtle flex size-full min-h-0 w-full flex-col border-l sm:w-[400px]">
+            <div className="border-border-subtle flex h-12 shrink-0 items-center justify-between gap-4 border-b px-4 sm:h-16 sm:px-6">
+              <h2 className="text-content-emphasis text-lg font-semibold leading-7">
+                Program
+              </h2>
+              <div className="flex items-center gap-2">
+                <ViewProgramButton programSlug={programSlug} />
+                <button
+                  type="button"
+                  onClick={() => setIsRightPanelOpen(false)}
+                  className="@[1082px]/page:hidden rounded-lg p-2 text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-900"
+                >
+                  <X className="size-4" />
+                </button>
+              </div>
+            </div>
+            <div className="bg-bg-muted scrollbar-hide flex grow flex-col overflow-y-scroll">
+              {programEnrollment ? (
+                <ProgramInfoPanel programEnrollment={programEnrollment} />
+              ) : (
+                <div className="flex size-full items-center justify-center">
+                  <LoadingSpinner />
+                </div>
+              )}
             </div>
           </div>
-          <div className="bg-bg-muted scrollbar-hide flex grow flex-col overflow-y-scroll">
-            {programEnrollment ? (
-              <ProgramInfoPanel programEnrollment={programEnrollment} />
-            ) : (
-              <div className="flex size-full items-center justify-center">
-                <LoadingSpinner />
-              </div>
-            )}
-          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
@@ -464,5 +465,17 @@ function ProgramInfoPanel({
         </div>
       </div>
     </>
+  );
+}
+
+function ViewProgramButton({ programSlug }: { programSlug: string }) {
+  return (
+    <Link href={`/programs/${programSlug}`} target="_blank">
+      <Button
+        variant="secondary"
+        text="View program"
+        className="h-8 rounded-lg px-3"
+      />
+    </Link>
   );
 }
