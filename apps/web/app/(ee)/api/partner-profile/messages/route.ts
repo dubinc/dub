@@ -17,55 +17,66 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
 
   const messagesLimit = messagesLimitArg ?? (programSlug ? undefined : 10);
 
-  const programEnrollments = await prisma.programEnrollment.findMany({
+  const programs = await prisma.program.findMany({
     where: {
-      partnerId: partner.id,
-      program: {
-        ...(programSlug
-          ? { slug: programSlug }
-          : {
-              messages: {
-                some: {
-                  partnerId: partner.id,
+      ...(programSlug
+        ? {
+            slug: programSlug,
+            OR: [
+              {
+                partners: {
+                  some: {
+                    partnerId: partner.id,
+                  },
                 },
               },
-            }),
-      },
+              {
+                messages: {
+                  some: {
+                    partnerId: partner.id,
+                  },
+                },
+              },
+            ],
+          }
+        : {
+            messages: {
+              some: {
+                partnerId: partner.id,
+              },
+            },
+          }),
     },
     include: {
-      program: {
-        include: {
-          messages: {
-            where: {
-              partnerId: partner.id,
-            },
-            include: {
-              senderPartner: true,
-              senderUser: true,
-            },
-            orderBy: {
-              [sortBy]: sortOrder,
-            },
-            take: messagesLimit,
-          },
+      messages: {
+        where: {
+          partnerId: partner.id,
         },
+        include: {
+          senderPartner: true,
+          senderUser: true,
+        },
+        orderBy: {
+          [sortBy]: sortOrder,
+        },
+        take: messagesLimit,
       },
     },
   });
 
   return NextResponse.json(
     ProgramMessagesSchema.parse(
-      programEnrollments
+      programs
         // Sort by most recent message
         .sort((a, b) =>
           sortOrder === "desc"
-            ? (b.program.messages?.[0]?.[sortBy]?.getTime() ?? 0) -
-              (a.program.messages?.[0]?.[sortBy]?.getTime() ?? 0)
-            : (a.program.messages?.[0]?.[sortBy]?.getTime() ?? 0) -
-              (b.program.messages?.[0]?.[sortBy]?.getTime() ?? 0),
+            ? (b.messages?.[0]?.[sortBy]?.getTime() ?? 0) -
+              (a.messages?.[0]?.[sortBy]?.getTime() ?? 0)
+            : (a.messages?.[0]?.[sortBy]?.getTime() ?? 0) -
+              (b.messages?.[0]?.[sortBy]?.getTime() ?? 0),
         )
         // Map to {program, messages}
-        .map(({ program: { messages, ...program } }) => ({
+        .map(({ messages, ...program }) => ({
           program,
           messages,
         })),
