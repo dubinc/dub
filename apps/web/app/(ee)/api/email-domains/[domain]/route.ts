@@ -1,14 +1,17 @@
+import { CAMPAIGN_ACTIVE_STATUSES } from "@/lib/api/campaigns/constants";
 import { getEmailDomainOrThrow } from "@/lib/api/domains/get-email-domain-or-throw";
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { qstash } from "@/lib/cron";
 import {
   EmailDomainSchema,
   updateEmailDomainBodySchema,
 } from "@/lib/zod/schemas/email-domains";
 import { resend } from "@dub/email/resend";
 import { prisma } from "@dub/prisma";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -29,6 +32,28 @@ export const PATCH = withWorkspace(
     });
 
     const domainChanged = slug && slug !== emailDomain.slug;
+
+    // Prevent updating verified domains that have active campaigns
+    if (domainChanged) {
+      const activeCampaignsCount = await prisma.campaign.count({
+        where: {
+          programId,
+          status: {
+            in: CAMPAIGN_ACTIVE_STATUSES,
+          },
+          from: {
+            endsWith: `@${emailDomain.slug}`,
+          },
+        },
+      });
+
+      if (activeCampaignsCount > 0) {
+        throw new DubApiError({
+          code: "bad_request",
+          message: `There are active campaigns using this email domain. You can not update it until all campaigns are completed or paused.`,
+        });
+      }
+    }
 
     let resendDomainId: string | undefined;
 
@@ -59,28 +84,25 @@ export const PATCH = withWorkspace(
 
       waitUntil(
         (async () => {
-          // Verify an existing domain
-          const { error: resendVerifyError } = await resend.domains.verify(
-            resendDomain.id,
-          );
-
-          if (resendVerifyError) {
-            console.error(
-              `Resend domain verify failed - ${resendVerifyError.message}`,
-            );
-          }
-
-          // Enable open tracking for the domain
-          const { error: resendUpdateError } = await resend.domains.update({
-            id: resendDomain.id,
-            openTracking: true,
-            clickTracking: false,
-            tls: "opportunistic",
+          // Moving the updates to Qstash because updating the domain immediately after creation can fail.
+          const response = await qstash.publishJSON({
+            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/email-domains/update`,
+            method: "POST",
+            delay: 1 * 60, // 1 minute delay
+            body: {
+              domainId: emailDomain.id,
+            },
           });
 
-          if (resendUpdateError) {
+          if (!response.messageId) {
             console.error(
-              `Resend domain update failed - ${resendUpdateError.message}`,
+              `Failed to queue email domain update for domain ${emailDomain.id}`,
+              response,
+            );
+          } else {
+            console.log(
+              `Queued email domain update for domain ${emailDomain.id}`,
+              response,
             );
           }
         })(),
@@ -142,7 +164,7 @@ export const DELETE = withWorkspace(
       where: {
         programId,
         status: {
-          in: ["active", "scheduled", "sending"],
+          in: CAMPAIGN_ACTIVE_STATUSES,
         },
         from: {
           endsWith: `@${emailDomain.slug}`,

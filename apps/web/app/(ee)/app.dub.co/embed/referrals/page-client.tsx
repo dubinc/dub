@@ -251,7 +251,8 @@ export function ReferralsEmbedPageClient({
               {selectedTab === "Quickstart" ? (
                 <ReferralsEmbedQuickstart
                   program={program}
-                  link={partnerLink ? links[0] : undefined}
+                  links={links}
+                  earnings={earnings}
                   hasResources={hasResources}
                   setSelectedTab={setSelectedTab}
                 />
@@ -259,8 +260,8 @@ export function ReferralsEmbedPageClient({
                 <ReferralsEmbedEarnings salesCount={stats.sales} />
               ) : selectedTab === "Links" ? (
                 <ReferralsEmbedLinks
-                  links={links}
                   program={program}
+                  links={links}
                   group={group}
                 />
               ) : selectedTab === "Leaderboard" &&

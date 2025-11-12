@@ -110,7 +110,8 @@ export async function calculatePartnerRanking({
 
   const offset = (page - 1) * pageSize;
 
-  // Helper function to build discoverable partners filter with any alias
+  // Helper function to build discoverable partners filter with any alias to reuse in subqueries
+  // This dramatically reduces the dataset from 1.5M to 5,000 before expensive joins
   const buildDiscoverablePartnersFilter = (alias: string) => {
     const conditions: Prisma.Sql[] = [
       Prisma.sql`${Prisma.raw(alias)}.discoverableAt IS NOT NULL`,
@@ -129,27 +130,18 @@ export async function calculatePartnerRanking({
     return Prisma.join(conditions, " AND ");
   };
 
-  // OPTIMIZATION: Build filter for discoverable partners to reuse in subqueries
-  // This dramatically reduces the dataset from 1.5M to 5,000 before expensive joins
-  const discoverablePartnersFilter =
-    buildDiscoverablePartnersFilter("p_filter");
-
-  // Build filter for all-program metrics join (uses different alias)
-  const discoverablePartnersAllProgramsFilter =
-    buildDiscoverablePartnersFilter("p_filter_all");
-
   // Metrics across ALL programs (for display purposes)
   const allProgramMetricsJoin = Prisma.sql`LEFT JOIN (
     SELECT 
       pe_all.partnerId,
       MAX(pe_all.lastConversionAt) as lastConversionAt,
       AVG(COALESCE(pe_all.clickToConversionRate, 0)) as avgConversionRate
-    FROM ProgramEnrollment pe_all
+    FROM ProgramEnrollment pe_all FORCE INDEX (ProgramEnrollment_partnerId_programId_key)
     -- OPTIMIZATION: Only process enrollments for discoverable partners (using subquery to avoid JOIN)
     WHERE pe_all.partnerId IN (
       SELECT p_filter_all.id
       FROM Partner p_filter_all
-      WHERE ${discoverablePartnersAllProgramsFilter}
+      WHERE ${buildDiscoverablePartnersFilter("p_filter_all")}
     )
       AND pe_all.programId != ${ACME_PROGRAM_ID}
       AND pe_all.totalConversions > 0
@@ -193,12 +185,12 @@ export async function calculatePartnerRanking({
         )) as similarityScore,
         -- Program match score: Count of similar programs (0-15 points)
         LEAST(15, COUNT(DISTINCT pe2.programId) * 2) as programMatchScore
-      FROM ProgramEnrollment pe2
+      FROM ProgramEnrollment pe2 FORCE INDEX (ProgramEnrollment_partnerId_programId_key)
       -- OPTIMIZATION: Only process enrollments for discoverable partners (using subquery to avoid JOIN)
       WHERE pe2.partnerId IN (
         SELECT p_filter.id
         FROM Partner p_filter
-        WHERE ${discoverablePartnersFilter}
+        WHERE ${buildDiscoverablePartnersFilter("p_filter")}
       )
         AND pe2.programId IN (${Prisma.join(similarPrograms.map((sp) => sp.programId))})
         AND pe2.status = 'approved'
@@ -211,14 +203,6 @@ export async function calculatePartnerRanking({
             NULL as programMatchScore
             WHERE FALSE
         ) similarProgramMetrics ON similarProgramMetrics.partnerId = p.id`;
-
-  // Build discoverable partners subquery for main FROM clause
-  const discoverablePartnersSubqueryFilter =
-    buildDiscoverablePartnersFilter("p_sub");
-
-  // Build discoverable partners filter for categories subquery
-  const discoverablePartnersCategoriesFilter =
-    buildDiscoverablePartnersFilter("p_cat");
 
   const partners = await prisma.$queryRaw<Array<any>>`
     SELECT 
@@ -252,7 +236,7 @@ export async function calculatePartnerRanking({
       -- This dramatically reduces the dataset from 1.5M to 5,000 before expensive joins
       SELECT p_sub.*
       FROM Partner p_sub
-      WHERE ${discoverablePartnersSubqueryFilter}
+      WHERE ${buildDiscoverablePartnersFilter("p_sub")}
     ) p
    
     -- Current program enrollment (for display metrics and filtering)
@@ -273,12 +257,12 @@ export async function calculatePartnerRanking({
       SELECT 
         pe5.partnerId,
         GROUP_CONCAT(DISTINCT pc.category ORDER BY pc.category SEPARATOR ',') as categories
-      FROM ProgramEnrollment pe5
+      FROM ProgramEnrollment pe5 FORCE INDEX (ProgramEnrollment_partnerId_programId_key)
       JOIN ProgramCategory pc ON pc.programId = pe5.programId
       WHERE pe5.partnerId IN (
         SELECT p_cat.id
         FROM Partner p_cat
-        WHERE ${discoverablePartnersCategoriesFilter}
+        WHERE ${buildDiscoverablePartnersFilter("p_cat")}
       )
         AND pe5.status = 'approved'
       GROUP BY pe5.partnerId
