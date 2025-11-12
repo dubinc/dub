@@ -10,18 +10,11 @@ enum FraudRiskLevel {
   low
 }
 
-// TODO
-// Flag disposible email
-
 enum FraudRuleType {
-  customer_ip_suspicious
   self_referral
-  customer_email_suspicious_domain
-  customer_ip_country_mismatch
   banned_referral_domain
-  suspicious_activity_spike
   paid_ad_traffic_detected
-  abnormally_fast_conversion
+  customer_email_suspicious_domain
 }
 
 model FraudRule {

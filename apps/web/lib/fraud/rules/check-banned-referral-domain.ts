@@ -12,8 +12,8 @@ const configSchema = z.object({
   //
 });
 
-export const checkCustomerEmailSuspicious = defineFraudRule({
-  type: "customer_email_suspicious_domain",
+export const checkBannedReferralDomain = defineFraudRule({
+  type: "banned_referral_domain",
   contextSchema,
   configSchema,
   evaluate: async (context) => {

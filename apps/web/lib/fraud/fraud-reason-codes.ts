@@ -8,6 +8,7 @@ export type FraudReasonCode =
   | "self_referral_name_exact_match"
   | "self_referral_name_levenshtein"
   | "customer_email_disposable_domain"
+  | "paid_ad_traffic_detected"
   | "rule_triggered";
 
 // Mapping from reason codes to human-readable messages
@@ -23,6 +24,7 @@ export const FRAUD_REASON_MESSAGES: Record<FraudReasonCode, string> = {
   self_referral_name_levenshtein: "Self-referral detected: similar name",
   customer_email_disposable_domain:
     "Customer email from disposable email domain",
+  paid_ad_traffic_detected: "Paid ad traffic detected",
   rule_triggered: "Fraud rule triggered",
 };
 

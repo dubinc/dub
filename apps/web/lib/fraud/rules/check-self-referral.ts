@@ -22,19 +22,10 @@ const configSchema = z.object({
   checkNameMatch: z.boolean().default(true),
 });
 
-// Check if partner email or name matches or is similar to customer email or name
-// This detects potential self-referral fraud
 export const checkSelfReferralRule = defineFraudRule({
   type: "self_referral",
   contextSchema,
-  configSchema: z.object({
-    similarityThreshold: z.number().min(0).max(1).default(0.8),
-    checkLevenshtein: z.boolean().default(true),
-    checkDomainVariations: z.boolean().default(true),
-    checkExactMatch: z.boolean().default(true),
-    checkEmailMatch: z.boolean().default(true),
-    checkNameMatch: z.boolean().default(true),
-  }),
+  configSchema,
   evaluate: async (context, config) => {
     const { partner, customer } = context;
 

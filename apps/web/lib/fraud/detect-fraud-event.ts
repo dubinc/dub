@@ -6,8 +6,8 @@ import {
   RISK_LEVEL_ORDER,
   RISK_LEVEL_WEIGHTS,
 } from "./constants";
-import type { FraudReasonCode } from "./fraud-reason-codes";
 import { executeFraudRule } from "./execute-fraud-rule";
+import type { FraudReasonCode } from "./fraud-reason-codes";
 
 interface TriggeredRule {
   ruleId?: string;
@@ -53,20 +53,19 @@ export const conversionEventSchema = z.object({
 export async function detectFraudEvent(
   data: z.infer<typeof conversionEventSchema>,
 ): Promise<FraudEvaluationResult> {
-  const parsedConversionEvent = conversionEventSchema.parse(data);
-  const { programId } = parsedConversionEvent;
+  const context = conversionEventSchema.parse(data);
 
   // Get program-specific rule overrides
   const programRules = await prisma.fraudRule.findMany({
     where: {
-      programId,
+      programId: context.programId,
     },
   });
 
   // Merge global rules with program overrides
-  const activeRules = DEFAULT_FRAUD_RULES.map((globalRule) => {
+  const activeRules = DEFAULT_FRAUD_RULES.map((defaultRule) => {
     const override = programRules.find(
-      (o) => o.ruleType === globalRule.ruleType,
+      (o) => o.ruleType === defaultRule.ruleType,
     );
 
     // Program override exists - use it
@@ -76,17 +75,17 @@ export async function detectFraudEvent(
         ruleType: override.ruleType,
         riskLevel: override.riskLevel,
         name: override.name,
-        config: override.config ?? globalRule.config,
+        config: override.config ?? defaultRule.config,
       };
     }
 
     // No override - use global default
     return {
       id: undefined,
-      ruleType: globalRule.ruleType,
-      riskLevel: globalRule.riskLevel,
-      name: globalRule.name,
-      config: globalRule.config,
+      ruleType: defaultRule.ruleType,
+      riskLevel: defaultRule.riskLevel,
+      name: defaultRule.name,
+      config: defaultRule.config,
     };
   });
 
@@ -97,12 +96,6 @@ export async function detectFraudEvent(
   // Evaluate each rule
   for (const rule of activeRules) {
     try {
-      // Map conversion event to rule-specific context
-      const context = mapConversionEventToRuleContext(
-        rule.ruleType,
-        parsedConversionEvent,
-      );
-
       // Evaluate rule
       const result = await executeFraudRule(
         rule.ruleType,
@@ -145,47 +138,4 @@ export async function detectFraudEvent(
     riskScore,
     triggeredRules,
   };
-}
-
-// Map conversion event data to rule-specific context format
-function mapConversionEventToRuleContext(
-  ruleType: FraudRuleType,
-  event: z.infer<typeof conversionEventSchema>,
-): unknown {
-  switch (ruleType) {
-    case "self_referral":
-      return {
-        partner: {
-          email: event.partner.email,
-          name: event.partner.name,
-        },
-        customer: {
-          email: event.customer.email,
-          name: event.customer.name,
-        },
-      };
-
-    case "customer_email_suspicious_domain":
-      return {
-        customer: {
-          email: event.customer.email,
-        },
-      };
-
-    case "customer_ip_suspicious":
-      return {
-        customer: {
-          ip: event.click.ip,
-          country: event.click.country,
-        },
-        clickData: {
-          ip: event.click.ip,
-          country: event.click.country,
-        },
-      };
-
-    default:
-      // For unimplemented rules, return empty context
-      return {};
-  }
 }

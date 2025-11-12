@@ -1,16 +1,11 @@
+import { checkBannedReferralDomain } from "./rules/check-banned-referral-domain";
 import { checkCustomerEmailSuspicious } from "./rules/check-customer-email-suspicious";
-import { checkCustomerIPSuspicious } from "./rules/check-customer-ip-suspicious";
+import { checkPaidAdTrafficDetected } from "./rules/check-paid-ad-traffic-detected";
 import { checkSelfReferralRule } from "./rules/check-self-referral";
 
 export const fraudRuleRegistry = {
   self_referral: checkSelfReferralRule,
-  customer_ip_suspicious: checkCustomerIPSuspicious,
+  banned_referral_domain: checkBannedReferralDomain,
+  paid_ad_traffic_detected: checkPaidAdTrafficDetected,
   customer_email_suspicious_domain: checkCustomerEmailSuspicious,
-
-  // (to be implemented)
-  customer_ip_country_mismatch: null,
-  banned_referral_domain: null,
-  suspicious_activity_spike: null,
-  paid_ad_traffic_detected: null,
-  abnormally_fast_conversion: null,
 } as const;

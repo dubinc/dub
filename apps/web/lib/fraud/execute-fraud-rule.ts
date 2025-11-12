@@ -2,6 +2,7 @@ import { FraudRuleType } from "@dub/prisma/client";
 import { fraudRuleRegistry } from "./fraud-rules-registry";
 import type { FraudRuleEvaluationResult } from "./types";
 
+// Execute a fraud rule with the given context and configuration
 export async function executeFraudRule<T extends FraudRuleType>(
   ruleType: T,
   context: unknown,
