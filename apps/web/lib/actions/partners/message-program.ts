@@ -1,7 +1,6 @@
 "use server";
 
 import { createId } from "@/lib/api/create-id";
-import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { qstash } from "@/lib/cron";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
@@ -19,16 +18,36 @@ export const messageProgramAction = authPartnerActionClient
     const { partner, user } = ctx;
     const { programSlug, text, createdAt } = parsedInput;
 
-    const enrollment = await getProgramEnrollmentOrThrow({
-      programId: programSlug,
-      partnerId: partner.id,
-      include: {},
+    // Make sure partner is enrolled in the program or already has a message with the program
+    const program = await prisma.program.findFirstOrThrow({
+      select: {
+        id: true,
+      },
+      where: {
+        slug: programSlug,
+        OR: [
+          {
+            partners: {
+              some: {
+                partnerId: partner.id,
+              },
+            },
+          },
+          {
+            messages: {
+              some: {
+                partnerId: partner.id,
+              },
+            },
+          },
+        ],
+      },
     });
 
     const message = await prisma.message.create({
       data: {
         id: createId({ prefix: "msg_" }),
-        programId: enrollment.programId,
+        programId: program.id,
         partnerId: partner.id,
         senderPartnerId: partner.id,
         senderUserId: user.id,
@@ -45,7 +64,7 @@ export const messageProgramAction = authPartnerActionClient
       qstash.publishJSON({
         url: `${APP_DOMAIN_WITH_NGROK}/api/cron/messages/notify-program`,
         body: {
-          programId: enrollment.programId,
+          programId: program.id,
           partnerId: partner.id,
           lastMessageId: message.id,
         },
