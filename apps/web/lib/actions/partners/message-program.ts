@@ -18,28 +18,41 @@ export const messageProgramAction = authPartnerActionClient
     const { partner, user } = ctx;
     const { programSlug, text, createdAt } = parsedInput;
 
-    // Make sure partner is enrolled in the program or already has a message with the program
     const program = await prisma.program.findFirstOrThrow({
       select: {
         id: true,
       },
       where: {
         slug: programSlug,
+
+        // Partner is not banned from the program
+        partners: {
+          none: {
+            partnerId: partner.id,
+            status: "banned",
+          },
+        },
+
         OR: [
+          // Program has messaging enabled and partner is enrolled
           {
+            messagingEnabledAt: {
+              not: null,
+            },
             partners: {
               some: {
                 partnerId: partner.id,
               },
             },
-            messagingEnabledAt: {
-              not: null,
-            },
           },
+
+          // Partner has received a direct message from the program
           {
             messages: {
               some: {
                 partnerId: partner.id,
+                senderPartnerId: null, // Sent by the program
+                type: "direct",
               },
             },
           },

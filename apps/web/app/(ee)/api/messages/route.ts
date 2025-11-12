@@ -25,13 +25,15 @@ export const GET = withWorkspace(
       where: partnerId
         ? {
             id: partnerId,
+            // Partner is either discoverable, enrolled in the program, or already has a message with the program
             OR: [
               { discoverableAt: { not: null } },
               { programs: { some: { programId } } },
-              { messages: { some: { programId } } },
+              { messages: { some: { programId, type: "direct" } } },
             ],
           }
         : {
+            // Partner has messages with the program
             messages: {
               some: {
                 programId,

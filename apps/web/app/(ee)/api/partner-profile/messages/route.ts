@@ -19,10 +19,20 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
 
   const programs = await prisma.program.findMany({
     where: {
+      // Partner is not banned from the program
+      partners: {
+        none: {
+          partnerId: partner.id,
+          status: "banned",
+        },
+      },
+
       ...(programSlug
         ? {
             slug: programSlug,
             OR: [
+              // Partner is enrolled in the program
+              // in this case, return messages regardless of messaging enabled status which is passed to the UI
               {
                 partners: {
                   some: {
@@ -31,20 +41,42 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
                 },
               },
               {
+                // Partner has received a direct message from the program
                 messages: {
                   some: {
                     partnerId: partner.id,
+                    senderPartnerId: null, // Sent by the program
+                    type: "direct",
                   },
                 },
               },
             ],
           }
         : {
-            messages: {
-              some: {
-                partnerId: partner.id,
+            OR: [
+              // Program has messaging enabled and partner has 1+ messages with the program
+              {
+                messagingEnabledAt: {
+                  not: null,
+                },
+                messages: {
+                  some: {
+                    partnerId: partner.id,
+                  },
+                },
               },
-            },
+
+              // Partner has received a direct message from the program
+              {
+                messages: {
+                  some: {
+                    partnerId: partner.id,
+                    senderPartnerId: null, // Sent by the program
+                    type: "direct",
+                  },
+                },
+              },
+            ],
           }),
     },
     include: {
