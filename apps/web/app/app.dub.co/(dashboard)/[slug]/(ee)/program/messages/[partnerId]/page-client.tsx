@@ -265,7 +265,7 @@ function ViewPartnerButton({
       href={
         isEnrolled
           ? `/${workspaceSlug}/program/partners/${partnerId}`
-          : `/${workspaceSlug}/program/network/${partnerId}`
+          : `/${workspaceSlug}/program/network?partnerId=${partnerId}`
       }
       target="_blank"
     >

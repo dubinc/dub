@@ -11,12 +11,14 @@ import {
   Button,
   ChevronLeft,
   ChevronRight,
+  Msgs,
   Sheet,
   useKeyboardShortcut,
   useRouterStuff,
 } from "@dub/ui";
 import { timeAgo } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
+import Link from "next/link";
 import { Dispatch, SetStateAction, useState } from "react";
 import { toast } from "sonner";
 import { PartnerAbout } from "../partner-about";
@@ -38,6 +40,8 @@ function NetworkPartnerSheetContent({
   onNext,
   setIsOpen,
 }: NetworkPartnerSheetProps) {
+  const { slug: workspaceSlug } = useWorkspace();
+
   const [currentTabId, setCurrentTabId] = useState<string>("about");
 
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
@@ -71,6 +75,17 @@ function NetworkPartnerSheetContent({
           Partner network
         </Sheet.Title>
         <div className="flex items-center gap-4">
+          <Link
+            href={`/${workspaceSlug}/program/messages/${partner.id}`}
+            target="_blank"
+          >
+            <Button
+              variant="secondary"
+              text="Message"
+              icon={<Msgs className="size-4 shrink-0" />}
+              className="hidden h-9 rounded-lg px-4 sm:flex"
+            />
+          </Link>
           <div className="flex items-center">
             <Button
               type="button"
