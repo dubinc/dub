@@ -16,13 +16,12 @@ import { ToggleSidePanelButton } from "@/ui/messages/toggle-side-panel-button";
 import { ProgramHelpLinks } from "@/ui/partners/program-help-links";
 import { ProgramRewardsPanel } from "@/ui/partners/program-rewards-panel";
 import { X } from "@/ui/shared/icons";
-import { Button, Grid, useCopyToClipboard, useMediaQuery } from "@dub/ui";
+import { Button, Grid, useCopyToClipboard } from "@dub/ui";
 import {
   Check,
   ChevronLeft,
   Copy,
   EnvelopeArrowRight,
-  LoadingSpinner,
   MsgsDotted,
 } from "@dub/ui/icons";
 import {
@@ -43,7 +42,6 @@ import { v4 as uuid } from "uuid";
 
 export function PartnerMessagesProgramPageClient() {
   const { programSlug } = useParams() as { programSlug: string };
-  const { isMobile } = useMediaQuery();
 
   const { user } = useUser();
   const { partner } = usePartnerProfile();
@@ -90,7 +88,7 @@ export function PartnerMessagesProgramPageClient() {
   const { executeAsync: sendMessage } = useAction(messageProgramAction);
 
   const { setCurrentPanel } = useMessagesContext();
-  const [isRightPanelOpen, setIsRightPanelOpen] = useState(!isMobile);
+  const [isRightPanelOpen, setIsRightPanelOpen] = useState(false);
 
   // Redirect if no messages and not enrolled, or messages error
   if (
@@ -294,13 +292,7 @@ export function PartnerMessagesProgramPageClient() {
               </div>
             </div>
             <div className="bg-bg-muted scrollbar-hide flex grow flex-col overflow-y-scroll">
-              {programEnrollment ? (
-                <ProgramInfoPanel programEnrollment={programEnrollment} />
-              ) : (
-                <div className="flex size-full items-center justify-center">
-                  <LoadingSpinner />
-                </div>
-              )}
+              <ProgramInfoPanel programEnrollment={programEnrollment} />
             </div>
           </div>
         </div>

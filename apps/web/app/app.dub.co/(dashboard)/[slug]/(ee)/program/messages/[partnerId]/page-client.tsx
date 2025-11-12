@@ -15,8 +15,8 @@ import { PartnerInfoGroup } from "@/ui/partners/partner-info-group";
 import { PartnerInfoSection } from "@/ui/partners/partner-info-section";
 import { PartnerInfoStats } from "@/ui/partners/partner-info-stats";
 import { X } from "@/ui/shared/icons";
-import { Button, useMediaQuery } from "@dub/ui";
-import { ChevronLeft, LoadingSpinner } from "@dub/ui/icons";
+import { Button } from "@dub/ui";
+import { ChevronLeft } from "@dub/ui/icons";
 import { OG_AVATAR_URL, cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
@@ -26,7 +26,6 @@ import { toast } from "sonner";
 import { v4 as uuid } from "uuid";
 
 export function ProgramMessagesPartnerPageClient() {
-  const { isMobile } = useMediaQuery();
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
 
   const { partnerId } = useParams() as { partnerId: string };
@@ -73,7 +72,7 @@ export function ProgramMessagesPartnerPageClient() {
   const { executeAsync: sendMessage } = useAction(messagePartnerAction);
 
   const { setCurrentPanel } = useMessagesContext();
-  const [isRightPanelOpen, setIsRightPanelOpen] = useState(!isMobile);
+  const [isRightPanelOpen, setIsRightPanelOpen] = useState(false);
 
   if (errorMessages) redirect(`/${workspaceSlug}/program/messages`);
 
@@ -238,30 +237,12 @@ export function ProgramMessagesPartnerPageClient() {
               </div>
             </div>
             <div className="bg-bg-muted scrollbar-hide flex grow flex-col gap-4 overflow-y-scroll p-6">
-              {enrolledPartner ? (
-                <>
-                  <PartnerInfoSection partner={enrolledPartner} />
-                  <PartnerInfoGroup partner={enrolledPartner} />
-                  <PartnerInfoStats
-                    partner={enrolledPartner}
-                    className="xs:grid-cols-2"
-                  />
-                </>
-              ) : partner ? (
-                <PartnerInfoSection
-                  partner={{
-                    ...partner,
-                    status: "pending",
-                    email: null,
-                    country: null,
-                  }}
-                  showPartnerStatus={Boolean(enrolledPartner)}
-                />
-              ) : (
-                <div className="flex size-full items-center justify-center">
-                  <LoadingSpinner />
-                </div>
-              )}
+              <PartnerInfoSection partner={enrolledPartner} />
+              <PartnerInfoGroup partner={enrolledPartner} />
+              <PartnerInfoStats
+                partner={enrolledPartner}
+                className="xs:grid-cols-2"
+              />
             </div>
           </div>
         </div>
