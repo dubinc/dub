@@ -106,7 +106,7 @@ model ProgramEnrollment {
 
   // calculated stats
   netRevenue              Int       @default(0) // totalSaleAmount - totalCommissions
-  earningsPerClick        Int       @default(0) // totalSaleAmount / totalClicks
+  earningsPerClick        Float     @default(0) // totalSaleAmount / totalClicks
   averageLifetimeValue    Float? // totalSaleAmount / totalConversions (in cents)
   clickToLeadRate         Float? // totalLeads / totalClicks
   clickToConversionRate   Float? // totalConversions / totalClicks
