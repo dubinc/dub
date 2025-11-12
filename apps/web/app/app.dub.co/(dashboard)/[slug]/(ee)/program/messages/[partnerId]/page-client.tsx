@@ -217,7 +217,14 @@ export function ProgramMessagesPartnerPageClient() {
               Profile
             </h2>
             <div className="flex items-center gap-2">
-              <Link href={`/program/partners/${partnerId}`} target="_blank">
+              <Link
+                href={
+                  enrolledPartner
+                    ? `/${workspaceSlug}/program/partners/${partnerId}`
+                    : `/${workspaceSlug}/program/network/${partnerId}`
+                }
+                target="_blank"
+              >
                 <Button
                   variant="secondary"
                   text="View profile"
@@ -243,6 +250,16 @@ export function ProgramMessagesPartnerPageClient() {
                   className="xs:grid-cols-2"
                 />
               </>
+            ) : partner ? (
+              <PartnerInfoSection
+                partner={{
+                  ...partner,
+                  status: "pending",
+                  email: null,
+                  country: null,
+                }}
+                showPartnerStatus={Boolean(enrolledPartner)}
+              />
             ) : (
               <div className="flex size-full items-center justify-center">
                 <LoadingSpinner />
