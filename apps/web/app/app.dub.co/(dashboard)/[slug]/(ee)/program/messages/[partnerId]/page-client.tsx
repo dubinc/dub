@@ -96,7 +96,8 @@ export function ProgramMessagesPartnerPageClient() {
             <button
               type="button"
               onClick={() => setIsRightPanelOpen((o) => !o)}
-              className="-mx-2 -my-1 flex items-center gap-2 rounded-lg px-2 py-1 transition-colors duration-100 hover:bg-black/5 active:bg-black/10"
+              disabled={!enrolledPartner}
+              className="-mx-2 -my-1 flex items-center gap-2 rounded-lg px-2 py-1 transition-colors duration-100 enabled:hover:bg-black/5 enabled:active:bg-black/10"
             >
               {!partner ? (
                 <>
