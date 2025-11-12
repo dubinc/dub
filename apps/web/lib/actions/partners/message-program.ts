@@ -32,6 +32,9 @@ export const messageProgramAction = authPartnerActionClient
                 partnerId: partner.id,
               },
             },
+            messagingEnabledAt: {
+              not: null,
+            },
           },
           {
             messages: {
