@@ -3,7 +3,6 @@
 import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { qstash } from "@/lib/cron";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@dub/prisma";
@@ -36,10 +35,32 @@ export const messagePartnerAction = authActionClient
       });
     }
 
-    await getProgramEnrollmentOrThrow({
-      programId,
-      partnerId,
-      include: {},
+    // Make sure partner is either discoverable, enrolled in the program, or already has a message with the program
+    await prisma.partner.findFirstOrThrow({
+      where: {
+        id: partnerId,
+        OR: [
+          {
+            discoverableAt: {
+              not: null,
+            },
+          },
+          {
+            programs: {
+              some: {
+                programId,
+              },
+            },
+          },
+          {
+            messages: {
+              some: {
+                programId,
+              },
+            },
+          },
+        ],
+      },
     });
 
     const message = await prisma.message.create({

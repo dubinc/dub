@@ -23,7 +23,14 @@ export const GET = withWorkspace(
 
     const partners = await prisma.partner.findMany({
       where: partnerId
-        ? { id: partnerId }
+        ? {
+            id: partnerId,
+            OR: [
+              { discoverableAt: { not: null } },
+              { programs: { some: { programId } } },
+              { messages: { some: { programId } } },
+            ],
+          }
         : {
             messages: {
               some: {
