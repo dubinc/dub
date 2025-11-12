@@ -1,10 +1,8 @@
 "use client";
 
-import { sendCampaignPreviewEmail } from "@/lib/actions/campaigns/send-campaign-preview-email";
+import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useUser from "@/lib/swr/use-user";
-import useWorkspace from "@/lib/swr/use-workspace";
 import { Button, Modal, useEnterSubmit, useMediaQuery } from "@dub/ui";
-import { useAction } from "next-safe-action/hooks";
 import { Dispatch, SetStateAction, useState } from "react";
 import { useWatch } from "react-hook-form";
 import { toast } from "sonner";
@@ -23,8 +21,9 @@ function SendEmailPreviewModal({
 }: SendEmailPreviewModalProps) {
   const { user } = useUser();
   const { isMobile } = useMediaQuery();
-  const { id: workspaceId } = useWorkspace();
+  const { handleKeyDown } = useEnterSubmit();
   const { control } = useCampaignFormContext();
+  const { isSubmitting, makeRequest } = useApiMutation();
   const [emailAddresses, setEmailAddresses] = useState(user?.email ?? "");
 
   const [subject, preview, bodyJson, from] = useWatch({
@@ -32,28 +31,8 @@ function SendEmailPreviewModal({
     name: ["subject", "preview", "bodyJson", "from"],
   });
 
-  const { executeAsync: sendEmailPreview, isPending } = useAction(
-    sendCampaignPreviewEmail,
-    {
-      onSuccess: () => {
-        toast.success("Preview email sent!");
-        setShowModal(false);
-        setEmailAddresses("");
-      },
-      onError: ({ error }) => {
-        toast.error(error.serverError || "Failed to send preview email.");
-      },
-    },
-  );
-
-  const { handleKeyDown } = useEnterSubmit();
-
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!workspaceId) {
-      return;
-    }
 
     if (!emailAddresses.trim()) {
       toast.error("Please enter at least one email address.");
@@ -77,14 +56,20 @@ function SendEmailPreviewModal({
       return;
     }
 
-    await sendEmailPreview({
-      workspaceId,
-      campaignId,
-      subject,
-      preview,
-      bodyJson,
-      from,
-      emailAddresses: emails,
+    await makeRequest(`/api/campaigns/${campaignId}/preview`, {
+      method: "POST",
+      body: {
+        subject,
+        preview,
+        bodyJson,
+        from,
+        emailAddresses: emails,
+      },
+      onSuccess: () => {
+        toast.success("Preview email sent!");
+        setShowModal(false);
+        setEmailAddresses("");
+      },
     });
   };
 
@@ -126,12 +111,12 @@ function SendEmailPreviewModal({
               text="Cancel"
               className="h-8 w-fit"
               onClick={() => setShowModal(false)}
-              disabled={isPending}
+              disabled={isSubmitting}
             />
             <Button
               type="submit"
               text="Send preview"
-              loading={isPending}
+              loading={isSubmitting}
               disabled={!emailAddresses.trim()}
               className="h-8 w-fit"
             />
