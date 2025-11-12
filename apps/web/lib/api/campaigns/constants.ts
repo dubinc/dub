@@ -34,3 +34,9 @@ export const CAMPAIGN_READONLY_STATUSES: CampaignStatus[] = [
   "sent",
   "canceled",
 ];
+
+export const CAMPAIGN_ACTIVE_STATUSES: CampaignStatus[] = [
+  "active",
+  "scheduled",
+  "sending",
+];

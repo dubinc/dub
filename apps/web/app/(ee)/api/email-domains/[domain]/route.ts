@@ -1,4 +1,4 @@
-import { hasActiveCampaignsForEmailDomain } from "@/lib/api/campaigns/has-active-campaigns-for-email-domain";
+import { CAMPAIGN_ACTIVE_STATUSES } from "@/lib/api/campaigns/constants";
 import { getEmailDomainOrThrow } from "@/lib/api/domains/get-email-domain-or-throw";
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
@@ -33,12 +33,19 @@ export const PATCH = withWorkspace(
 
     // Prevent updating verified domains that have active campaigns
     if (domainChanged) {
-      const hasActiveCampaigns = await hasActiveCampaignsForEmailDomain({
-        programId,
-        domainSlug: emailDomain.slug,
+      const activeCampaignsCount = await prisma.campaign.count({
+        where: {
+          programId,
+          status: {
+            in: CAMPAIGN_ACTIVE_STATUSES,
+          },
+          from: {
+            endsWith: `@${emailDomain.slug}`,
+          },
+        },
       });
 
-      if (hasActiveCampaigns) {
+      if (activeCampaignsCount > 0) {
         throw new DubApiError({
           code: "bad_request",
           message: `There are active campaigns using this email domain. You can not update it until all campaigns are completed or paused.`,
@@ -154,12 +161,19 @@ export const DELETE = withWorkspace(
     });
 
     // Check if any active campaigns use this domain
-    const hasActiveCampaigns = await hasActiveCampaignsForEmailDomain({
-      programId,
-      domainSlug: emailDomain.slug,
+    const activeCampaignsCount = await prisma.campaign.count({
+      where: {
+        programId,
+        status: {
+          in: CAMPAIGN_ACTIVE_STATUSES,
+        },
+        from: {
+          endsWith: `@${emailDomain.slug}`,
+        },
+      },
     });
 
-    if (hasActiveCampaigns) {
+    if (activeCampaignsCount > 0) {
       throw new DubApiError({
         code: "bad_request",
         message: `There are active campaigns using this email domain. You can not delete it until all campaigns are completed or paused.`,
