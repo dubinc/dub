@@ -7,7 +7,6 @@ import type { FraudReason } from "./fraud-reasons";
 import { getFraudRules } from "./fraud-rules-registry";
 
 interface TriggeredRule {
-  ruleId?: string;
   ruleType: FraudRuleType;
   riskLevel: FraudRiskLevel;
   reason?: FraudReason;
@@ -48,7 +47,7 @@ interface DetectFraudEventProps {
 export async function detectAndRecordFraudEvent(
   context: DetectFraudEventProps,
 ) {
-  console.log("[detectAndRecordFraudEvent] context", context);
+  console.debug("[detectAndRecordFraudEvent] context", context);
 
   // Get program-specific rule overrides
   const programRules = await prisma.fraudRule.findMany({
@@ -90,7 +89,7 @@ export async function detectAndRecordFraudEvent(
   let riskLevel: FraudRiskLevel = "low";
   const triggeredRules: TriggeredRule[] = [];
 
-  console.log("[detectAndRecordFraudEvent] active rules", activeRules);
+  console.debug("[detectAndRecordFraudEvent] active rules", activeRules);
 
   // Evaluate each rule
   for (const rule of activeRules) {
@@ -101,7 +100,6 @@ export async function detectAndRecordFraudEvent(
       // Rule triggered
       if (result.triggered) {
         triggeredRules.push({
-          ruleId: rule.id,
           ruleType: rule.type,
           riskLevel: rule.riskLevel,
           reason: result.reason,
@@ -128,7 +126,7 @@ export async function detectAndRecordFraudEvent(
     }
   }
 
-  console.log("[detectAndRecordFraudEvent] triggeredRules", triggeredRules);
+  console.debug("[detectAndRecordFraudEvent] triggeredRules", triggeredRules);
 
   try {
     const fraudEvent = await prisma.fraudEvent.create({
@@ -146,7 +144,7 @@ export async function detectAndRecordFraudEvent(
       },
     });
 
-    console.log("[detectAndRecordFraudEvent] fraudEvent", fraudEvent);
+    console.debug("[detectAndRecordFraudEvent] fraudEvent", fraudEvent);
 
     return fraudEvent;
   } catch (error) {

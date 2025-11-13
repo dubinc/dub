@@ -2,6 +2,7 @@ import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
+import { detectAndRecordFraudEvent } from "@/lib/fraud/detect-record-fraud-event";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import { recordSale } from "@/lib/tinybird";
 import { LeadEventTB, WebhookPartner } from "@/lib/types";
@@ -9,7 +10,7 @@ import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformSaleEventData } from "@/lib/webhook/transform";
 import { prisma } from "@dub/prisma";
-import { nanoid } from "@dub/utils";
+import { nanoid, pick } from "@dub/utils";
 import { WorkflowTrigger } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { orderSchema } from "./schema";
@@ -152,6 +153,7 @@ export async function createShopifySale({
         },
       },
     });
+
     webhookPartner = createdCommission?.webhookPartner;
 
     waitUntil(
@@ -167,10 +169,21 @@ export async function createShopifySale({
             },
           },
         }),
+
         syncPartnerLinksStats({
           partnerId: link.partnerId,
           programId: link.programId,
           eventType: "sale",
+        }),
+
+        detectAndRecordFraudEvent({
+          program: { id: link.programId },
+          partner: pick(webhookPartner, ["id", "email", "name"]),
+          customer: pick(customer, ["id", "email", "name"]),
+          commission: { id: createdCommission.commission?.id },
+          link: pick(link, ["id"]),
+          click: pick(saleData, ["url", "referer"]),
+          event: { id: saleData.event_id },
         }),
       ]),
     );
