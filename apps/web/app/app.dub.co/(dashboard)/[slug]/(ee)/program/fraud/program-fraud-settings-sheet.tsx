@@ -21,8 +21,8 @@ function ProgramFraudSettingsSheetContent({
   setIsOpen,
 }: ProgramFraudSettingsSheetProps) {
   const { id: workspaceId } = useWorkspace();
-  const [localRules, setLocalRules] = useState<Record<string, boolean>>({});
   const { isSubmitting, makeRequest } = useApiMutation();
+  const [localRules, setLocalRules] = useState<Record<string, boolean>>({});
 
   const { data: rules, isLoading } = useSWR<FraudRuleProps[]>(
     workspaceId ? `/api/fraud-rules?workspaceId=${workspaceId}` : null,
