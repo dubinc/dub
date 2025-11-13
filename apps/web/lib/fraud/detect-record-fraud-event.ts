@@ -1,5 +1,6 @@
 import { prisma } from "@dub/prisma";
 import { FraudRiskLevel, FraudRuleType } from "@dub/prisma/client";
+import { createId } from "../api/create-id";
 import { RISK_LEVEL_ORDER, RISK_LEVEL_WEIGHTS } from "./constants";
 import { executeFraudRule } from "./execute-fraud-rule";
 import type { FraudReasonCode } from "./fraud-reason-codes";
@@ -13,14 +14,10 @@ interface TriggeredRule {
   metadata?: Record<string, unknown>;
 }
 
-interface FraudEvaluationResult {
-  riskLevel: FraudRiskLevel | null;
-  riskScore: number;
-  triggeredRules: TriggeredRule[];
-}
-
 interface DetectFraudEventProps {
-  programId: string;
+  program: {
+    id: string;
+  };
   partner: {
     id: string;
     email: string | null;
@@ -31,9 +28,18 @@ interface DetectFraudEventProps {
     email: string | null;
     name: string | null;
   };
+  commission: {
+    id: string | null | undefined;
+  };
+  link: {
+    id: string | null | undefined;
+  };
   click: {
     url: string | null;
     referer: string | null;
+  };
+  event: {
+    id: string;
   };
 }
 
@@ -41,13 +47,13 @@ interface DetectFraudEventProps {
 // Executes all enabled rules and calculates risk score
 export async function detectAndRecordFraudEvent(
   context: DetectFraudEventProps,
-): Promise<FraudEvaluationResult> {
+) {
   console.log("context", context);
 
   // Get program-specific rule overrides
   const programRules = await prisma.fraudRule.findMany({
     where: {
-      programId: context.programId,
+      programId: context.program.id,
     },
   });
 
@@ -79,7 +85,7 @@ export async function detectAndRecordFraudEvent(
   });
 
   let riskScore = 0;
-  let highestRiskLevel: FraudRiskLevel | null = null;
+  let riskLevel: FraudRiskLevel = "low";
   const triggeredRules: TriggeredRule[] = [];
 
   // Evaluate each rule
@@ -108,10 +114,10 @@ export async function detectAndRecordFraudEvent(
 
         // Track highest risk level
         if (
-          !highestRiskLevel ||
-          RISK_LEVEL_ORDER[rule.riskLevel] > RISK_LEVEL_ORDER[highestRiskLevel]
+          !riskLevel ||
+          RISK_LEVEL_ORDER[rule.riskLevel] > RISK_LEVEL_ORDER[riskLevel]
         ) {
-          highestRiskLevel = rule.riskLevel;
+          riskLevel = rule.riskLevel;
         }
       }
     } catch (error) {
@@ -124,9 +130,27 @@ export async function detectAndRecordFraudEvent(
 
   console.log("triggeredRules", triggeredRules);
 
-  return {
-    riskLevel: highestRiskLevel,
-    riskScore,
-    triggeredRules,
-  };
+  try {
+    const fraudEvent = await prisma.fraudEvent.create({
+      data: {
+        id: createId({ prefix: "fraud_" }),
+        programId: context.program.id,
+        partnerId: context.partner.id,
+        linkId: context.link.id,
+        customerId: context.customer.id,
+        eventId: context.event.id,
+        commissionId: context.commission.id,
+        riskLevel,
+        riskScore,
+        triggeredRules: JSON.stringify(triggeredRules),
+      },
+    });
+
+    console.log(fraudEvent);
+
+    return fraudEvent;
+  } catch (error) {
+    console.error("Error recording fraud event", error);
+    return null;
+  }
 }

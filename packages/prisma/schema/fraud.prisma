@@ -38,8 +38,8 @@ model FraudEvent {
   partnerId        String
   linkId           String?
   customerId       String?
-  eventId          String?
-  eventType        EventType?
+  eventId          String?          @unique
+  commissionId     String?          @unique
   riskLevel        FraudRiskLevel
   riskScore        Int              @default(0)
   triggeredRules   Json             @db.Json
@@ -50,14 +50,16 @@ model FraudEvent {
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 
-  program  Program   @relation(fields: [programId], references: [id], onDelete: Cascade)
-  partner  Partner   @relation(fields: [partnerId], references: [id], onDelete: Cascade)
-  customer Customer? @relation(fields: [customerId], references: [id])
-  link     Link?     @relation(fields: [linkId], references: [id])
+  program    Program     @relation(fields: [programId], references: [id], onDelete: Cascade)
+  partner    Partner     @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  customer   Customer?   @relation(fields: [customerId], references: [id])
+  link       Link?       @relation(fields: [linkId], references: [id])
+  commission Commission? @relation(fields: [commissionId], references: [id])
 
-  @@index(eventId)
-  @@index(linkId)
   @@index(programId)
   @@index(partnerId)
   @@index(customerId)
+  @@index(linkId)
+  @@index(commissionId)
+  @@index(eventId)
 }
