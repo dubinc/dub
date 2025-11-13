@@ -51,66 +51,61 @@ function EditPartnerTagsModal({
         <h3 className="text-lg font-medium leading-none">Partner tags</h3>
       </div>
 
-      <div className="flex flex-col gap-6 bg-neutral-50 p-4 sm:p-6">
-        <div className="rounded-lg border border-neutral-200 bg-neutral-100 p-3">
+      <div className="flex flex-col gap-6 p-4 sm:p-6">
+        {/* TODO */}
+        <span className="text-content-muted text-sm">WIP</span>
+      </div>
+
+      <div className="border-border-subtle flex items-center justify-between gap-4 border-t px-4 py-4">
+        <div>
           {partners.length === 1 ? (
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
               <img
                 src={partners[0].image || `${OG_AVATAR_URL}${partners[0].name}`}
                 alt={partners[0].name}
-                className="size-10 rounded-full bg-white"
+                className="size-6 shrink-0 rounded-full bg-white"
               />
-              <div className="flex min-w-0 flex-col">
-                <h4 className="truncate text-sm font-medium text-neutral-900">
-                  {partners[0].name}
-                </h4>
-                {partners[0].email && (
-                  <p className="truncate text-xs text-neutral-500">
-                    {partners[0].email}
-                  </p>
-                )}
-              </div>
+              <h4 className="min-w-0 truncate text-sm font-medium text-neutral-900">
+                {partners[0].name}
+              </h4>
             </div>
           ) : (
-            <div className="flex items-center gap-3">
-              <div className="flex items-center">
+            <div className="flex items-center gap-2">
+              <div className="flex shrink-0 items-center">
                 {partners.slice(0, 3).map((partner, index) => (
                   <img
                     key={partner.id}
                     src={partner.image || `${OG_AVATAR_URL}${partner.name}`}
                     alt={partner.name}
                     className={cn(
-                      "inline-block size-7 rounded-full border-2 border-neutral-100 bg-white",
+                      "inline-block size-6 rounded-full border-2 border-white bg-white",
                       index > 0 && "-ml-2.5",
                     )}
                   />
                 ))}
               </div>
-              <span className="text-base font-semibold text-neutral-900">
+              <span className="text-content-default min-w-0 truncate text-sm font-medium">
                 {partners.length} partners selected
               </span>
             </div>
           )}
         </div>
-        {/* TODO */}
-        tags
-      </div>
-
-      <div className="flex items-center justify-end gap-2 bg-neutral-50 px-4 pb-5 sm:px-6">
-        <Button
-          onClick={() => setShowEditPartnerTagsModal(false)}
-          variant="secondary"
-          text="Cancel"
-          className="h-8 w-fit px-3"
-        />
-        <Button
-          onClick={() => handleEditPartnerTags()}
-          // disabled={!selectedGroupId}
-          autoFocus
-          loading={isSubmitting}
-          text="Change group"
-          className="h-8 w-fit px-3"
-        />
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={() => setShowEditPartnerTagsModal(false)}
+            variant="secondary"
+            text="Cancel"
+            className="h-8 w-fit px-3"
+          />
+          <Button
+            onClick={() => handleEditPartnerTags()}
+            // disabled={!selectedGroupId}
+            autoFocus
+            loading={isSubmitting}
+            text="Save"
+            className="h-8 w-fit px-3"
+          />
+        </div>
       </div>
     </Modal>
   );

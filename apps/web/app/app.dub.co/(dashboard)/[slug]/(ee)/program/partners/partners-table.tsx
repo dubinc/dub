@@ -231,7 +231,14 @@ export function PartnersTable() {
           header: "Tag",
           maxSize: 200,
           cell: ({ row }) => (
-            <PartnerTagsList compact tags={row.original.tags} />
+            <PartnerTagsList
+              compact
+              tags={row.original.tags}
+              onAddTag={() => {
+                setPendingEditTagsPartners([row.original]);
+                setShowEditPartnerTagsModal(true);
+              }}
+            />
           ),
         },
         {
@@ -656,7 +663,7 @@ function RowMenuButton({
                       icon={Tag}
                       label="Edit tags"
                       onSelect={() => {
-                        setShowChangeGroupModal(true);
+                        setShowEditPartnerTagsModal(true);
                         setIsOpen(false);
                       }}
                     />

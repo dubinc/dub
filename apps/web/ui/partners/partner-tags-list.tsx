@@ -1,7 +1,6 @@
 import { PartnerTagProps } from "@/lib/types";
 import { Tag, Tooltip, TruncatedList, useRouterStuff } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { toast } from "sonner";
 
 const tagPillClassName =
   "bg-bg-inverted/5 text-content-default whitespace-nowrap select-none flex h-6 items-center rounded-md px-2 text-xs font-semibold hover:bg-bg-inverted/10";
@@ -10,10 +9,12 @@ export function PartnerTagsList({
   tags,
   compact,
   wrap,
+  onAddTag,
 }: {
   tags?: PartnerTagProps[];
   compact?: boolean;
   wrap?: boolean;
+  onAddTag: () => void;
 }) {
   return tags?.length ? (
     <TruncatedList
@@ -41,7 +42,7 @@ export function PartnerTagsList({
   ) : (
     <button
       type="button"
-      onClick={() => toast.info("WIP")}
+      onClick={() => onAddTag()}
       className={cn(
         tagPillClassName,
         "group/add-tag active:bg-bg-inverted/15 w-fit px-1.5 font-medium",

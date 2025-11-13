@@ -28,6 +28,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 import useSWR from "swr";
 import { ConversionScoreIcon } from "./conversion-score-icon";
+import { useEditPartnerTagsModal } from "./edit-partner-tags-modal";
 import { PartnerInfoGroup } from "./partner-info-group";
 import { ConversionScoreTooltip } from "./partner-network/conversion-score-tooltip";
 import { PartnerStarButton } from "./partner-star-button";
@@ -264,7 +265,7 @@ export function PartnerInfoCards({
                 Manage
               </button>
             </div>
-            <PartnerTagsList tags={partner?.tags} wrap />
+            <TagsList partner={partner} />
           </div>
         )}
       </div>
@@ -365,5 +366,23 @@ export function PartnerInfoCards({
         )}
       </div>
     </div>
+  );
+}
+
+function TagsList({ partner }: { partner: EnrolledPartnerExtendedProps }) {
+  const { EditPartnerTagsModal, setShowEditPartnerTagsModal } =
+    useEditPartnerTagsModal({
+      partners: [partner],
+    });
+
+  return (
+    <>
+      <EditPartnerTagsModal />
+      <PartnerTagsList
+        tags={partner?.tags}
+        wrap
+        onAddTag={() => setShowEditPartnerTagsModal(true)}
+      />
+    </>
   );
 }
