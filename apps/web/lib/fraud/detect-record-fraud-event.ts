@@ -1,9 +1,9 @@
 import { prisma } from "@dub/prisma";
-import { FraudRiskLevel, FraudRuleType, Prisma } from "@dub/prisma/client";
+import { FraudRiskLevel, Prisma } from "@dub/prisma/client";
 import { createId } from "../api/create-id";
 import { RISK_LEVEL_ORDER, RISK_LEVEL_WEIGHTS } from "./constants";
 import { executeFraudRule } from "./execute-fraud-rule";
-import { getFraudRules } from "./fraud-rules-registry";
+import { mergeFraudRulesWithProgramOverrides } from "./merge-fraud-rules";
 import { FraudTriggeredRule } from "./types";
 
 interface DetectFraudEventProps {
@@ -50,33 +50,8 @@ export async function detectAndRecordFraudEvent(
   });
 
   // Merge global rules with program overrides
-  const fraudRules = getFraudRules().map((globalRule) => {
-    const programRule = programRules.find(
-      (programRule) => programRule.type === globalRule.type,
-    );
-
-    // Program override exists - use it
-    if (programRule) {
-      return {
-        id: programRule.id,
-        type: globalRule.type as FraudRuleType,
-        riskLevel: globalRule.riskLevel,
-        config: programRule.config ?? globalRule.config,
-        active: programRule.disabledAt === null,
-      };
-    }
-
-    // No override - use global default
-    return {
-      id: undefined,
-      type: globalRule.type as FraudRuleType,
-      riskLevel: globalRule.riskLevel,
-      config: globalRule.config,
-      active: true,
-    };
-  });
-
-  const activeRules = fraudRules.filter((rule) => rule.active);
+  const mergedRules = mergeFraudRulesWithProgramOverrides(programRules);
+  const activeRules = mergedRules.filter((rule) => rule.enabled);
 
   let riskScore = 0;
   let riskLevel: FraudRiskLevel = "low";
