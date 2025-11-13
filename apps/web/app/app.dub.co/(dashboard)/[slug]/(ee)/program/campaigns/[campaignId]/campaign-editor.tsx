@@ -2,7 +2,6 @@ import { uploadEmailImageAction } from "@/lib/actions/partners/upload-email-imag
 import { CAMPAIGN_READONLY_STATUSES } from "@/lib/api/campaigns/constants";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import { useEmailDomains } from "@/lib/swr/use-email-domains";
-import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Campaign, UpdateCampaignFormData } from "@/lib/types";
 import { EMAIL_TEMPLATE_VARIABLES } from "@/lib/zod/schemas/campaigns";
@@ -42,6 +41,7 @@ import { CampaignControls } from "./campaign-controls";
 import { CampaignEvents } from "./campaign-events";
 import { CampaignGroupsSelector } from "./campaign-groups-selector";
 import { CampaignMetrics } from "./campaign-metrics";
+import { DuplicateLogicWarning } from "./duplicate-logic-warning";
 import { TransactionalCampaignLogic } from "./transactional-campaign-logic";
 import { isValidTriggerCondition } from "./utils";
 
@@ -86,7 +86,6 @@ const statusMessages = {
 };
 
 export function CampaignEditor({ campaign }: { campaign: Campaign }) {
-  const { program } = useProgram();
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
   const { emailDomains } = useEmailDomains();
   const firstVerifiedEmailDomain = emailDomains?.find(
@@ -501,6 +500,8 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
               </>
             )}
           </div>
+
+          {!isReadOnly && <DuplicateLogicWarning />}
 
           <div className="mt-6">
             <Controller

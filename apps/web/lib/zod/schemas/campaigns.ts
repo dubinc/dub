@@ -106,6 +106,15 @@ export const getCampaignsQuerySchema = z
     type: z.nativeEnum(CampaignType).optional(),
     status: z.nativeEnum(CampaignStatus).optional(),
     search: z.string().optional(),
+    triggerCondition: z
+      .string()
+      .pipe(
+        z.preprocess((input: string) => {
+          console.log("!!! INPUT", input);
+          return JSON.parse(input);
+        }, workflowConditionSchema),
+      )
+      .optional(),
   })
   .merge(getPaginationQuerySchema({ pageSize: 100 }));
 
