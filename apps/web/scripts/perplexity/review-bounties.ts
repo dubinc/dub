@@ -1,8 +1,10 @@
 import { createId } from "@/lib/api/create-id";
+import BountyApproved from "@dub/email/templates/bounty-approved";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import "dotenv-flow/config";
 import { syncTotalCommissions } from "../../lib/api/partners/sync-total-commissions";
+import { queueBatchEmail } from "../../lib/email/queue-batch-email";
 
 const userId = "xxx";
 
@@ -19,7 +21,11 @@ async function main() {
       bountyId: bounty.id,
       status: "submitted",
     },
-    take: 1000,
+    take: 500,
+    include: {
+      partner: true,
+      program: true,
+    },
   });
 
   const validSubmissions = bountySubmissions.filter((submission) => {
@@ -90,6 +96,29 @@ async function main() {
       `Updated submission ${submission.id} to have commission ${commission.id} + synced total commissions`,
     );
   }
+  const qstashRes = await queueBatchEmail<typeof BountyApproved>(
+    validSubmissions
+      .filter((s) => s.partner.email)
+      .map((s) => ({
+        subject: "Bounty approved!",
+        to: s.partner.email!,
+        variant: "notifications",
+        replyTo: s.program.supportEmail || "noreply",
+        templateName: "BountyApproved",
+        templateProps: {
+          email: s.partner.email!,
+          program: {
+            name: s.program.name,
+            slug: s.program.slug,
+          },
+          bounty: {
+            name: bounty.name,
+            type: bounty.type,
+          },
+        },
+      })),
+  );
+  console.log("qstashRes", qstashRes);
 }
 
 main();
