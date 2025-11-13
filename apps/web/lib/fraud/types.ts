@@ -17,6 +17,13 @@ export interface FraudTriggeredRule {
   metadata?: Record<string, unknown>;
 }
 
+export interface FraudRuleInfo {
+  type: FraudRuleType;
+  name: string;
+  riskLevel: FraudRiskLevel;
+  description: string;
+}
+
 // Reason codes for fraud rule triggers
 export type FraudReason =
   | "selfReferralEmailMatch"

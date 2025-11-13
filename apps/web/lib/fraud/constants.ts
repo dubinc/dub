@@ -1,5 +1,5 @@
 import { FraudRiskLevel, FraudRuleType } from "@dub/prisma/client";
-import { FraudReason } from "./types";
+import { FraudReason, FraudRuleInfo } from "./types";
 
 // Risk level weights for calculating risk score
 export const RISK_LEVEL_WEIGHTS: Record<FraudRiskLevel, number> = {
@@ -65,3 +65,34 @@ export const FRAUD_REASON_LABELS: Record<FraudReason, string> = {
   paidAdTrafficDetected: "Paid ad traffic detected",
   bannedReferralDomain: "Banned referral domain",
 } as const;
+
+export const FRAUD_RULES: FraudRuleInfo[] = [
+  {
+    type: "selfReferral",
+    name: "Email matching or similar to customer",
+    riskLevel: "high",
+    description:
+      "Partner's email closely resembles a customer email. This detects when the partner and customer appear to be the same person.",
+  },
+  {
+    type: "bannedReferralDomain",
+    name: "Banned referral domain",
+    riskLevel: "high",
+    description:
+      "The customer email domain is in the banned domains list. This helps prevent fraudulent signups from known problematic domains.",
+  },
+  {
+    type: "paidAdTrafficDetected",
+    name: "Paid ad traffic detected",
+    riskLevel: "medium",
+    description:
+      "The transaction originated from paid advertising traffic. This helps identify conversions that may not be eligible for affiliate commissions.",
+  },
+  {
+    type: "customerEmailSuspiciousDomain",
+    name: "Customer email from suspicious domain",
+    riskLevel: "medium",
+    description:
+      "The customer email is from a disposable or suspicious email domain. This helps identify potentially fraudulent signups.",
+  },
+] as const;

@@ -1,4 +1,8 @@
-import { FraudEventStatus, FraudRiskLevel } from "@dub/prisma/client";
+import {
+  FraudEventStatus,
+  FraudRiskLevel,
+  FraudRuleType,
+} from "@dub/prisma/client";
 import { z } from "zod";
 import { CommissionSchema } from "./commissions";
 import { getPaginationQuerySchema } from "./misc";
@@ -79,4 +83,13 @@ export const resolveFraudEventSchema = z.object({
     .string()
     .optional()
     .describe("Optional notes explaining the resolution."),
+});
+
+export const updateFraudRulesSchema = z.object({
+  rules: z.array(
+    z.object({
+      type: z.nativeEnum(FraudRuleType),
+      enabled: z.boolean(),
+    }),
+  ),
 });
