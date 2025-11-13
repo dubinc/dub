@@ -2,11 +2,13 @@
 
 import { type FraudRuleProps } from "@/lib/fraud/types";
 import { mutatePrefix } from "@/lib/swr/mutate";
+import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { X } from "@/ui/shared/icons";
 import { FraudRiskLevel, FraudRuleType } from "@dub/prisma/client";
 import { Button, Sheet, Switch } from "@dub/ui";
 import { fetcher } from "@dub/utils";
+import { cn } from "@dub/utils/src";
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
@@ -18,9 +20,9 @@ type ProgramFraudSettingsSheetProps = {
 function ProgramFraudSettingsSheetContent({
   setIsOpen,
 }: ProgramFraudSettingsSheetProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const { id: workspaceId } = useWorkspace();
   const [localRules, setLocalRules] = useState<Record<string, boolean>>({});
+  const { isSubmitting, makeRequest } = useApiMutation();
 
   const { data: rules, isLoading } = useSWR<FraudRuleProps[]>(
     workspaceId ? `/api/fraud-rules?workspaceId=${workspaceId}` : null,
@@ -48,38 +50,20 @@ function ProgramFraudSettingsSheetContent({
   };
 
   const handleSubmit = async () => {
-    setIsSubmitting(true);
+    const rules = Object.entries(localRules).map(([type, enabled]) => ({
+      type,
+      enabled,
+    }));
 
-    try {
-      const rules = Object.entries(localRules).map(([type, enabled]) => ({
-        type,
-        enabled,
-      }));
-
-      const response = await fetch(
-        `/api/fraud-rules?workspaceId=${workspaceId}`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ rules }),
-        },
-      );
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message);
-      }
-
-      toast.success("Fraud settings updated successfully.");
-      setIsOpen(false);
-      mutatePrefix("/api/fraud-rules");
-    } catch (error) {
-      toast.error(error.message || "Failed to update fraud rules.");
-    } finally {
-      setIsSubmitting(false);
-    }
+    await makeRequest("/api/fraud-rules", {
+      method: "PATCH",
+      body: { rules },
+      onSuccess: () => {
+        toast.success("Fraud settings updated successfully.");
+        setIsOpen(false);
+        mutatePrefix("/api/fraud-rules");
+      },
+    });
   };
 
   const isDirty = useMemo(() => {
@@ -122,27 +106,27 @@ function ProgramFraudSettingsSheetContent({
         </div>
       </div>
 
-      <div className="h-full overflow-y-auto bg-neutral-50 p-4 sm:p-6">
+      <div className="h-full overflow-y-auto p-4 sm:p-6">
         {isLoading ? (
           <FraudRulesSkeleton />
         ) : (
-          <>
+          <div className="space-y-6">
             {(
               [
                 {
                   level: "high",
                   label: "High risk",
-                  dotColor: "bg-red-500",
+                  dotColor: "bg-red-600",
                 },
                 {
                   level: "medium",
                   label: "Medium risk",
-                  dotColor: "bg-orange-500",
+                  dotColor: "bg-amber-600",
                 },
                 {
                   level: "low",
                   label: "Low risk",
-                  dotColor: "bg-neutral-400",
+                  dotColor: "bg-neutral-500",
                 },
               ] as const
             ).map(({ level, label, dotColor }) => {
@@ -151,14 +135,14 @@ function ProgramFraudSettingsSheetContent({
               if (rules.length === 0) return null;
 
               return (
-                <div key={level} className="mb-8">
-                  <div className="mb-4 flex items-center gap-2">
-                    <div className={`size-2 rounded-full ${dotColor}`} />
-                    <h3 className="text-base font-semibold text-neutral-900">
+                <div key={level}>
+                  <div className="mb-6 flex items-center gap-2">
+                    <div className={cn("size-3 rounded-full", dotColor)} />
+                    <h3 className="text-content-emphasis text-base font-semibold leading-6">
                       {label}
                     </h3>
                   </div>
-                  <div className="space-y-4">
+                  <div className="space-y-6">
                     {rules.map((rule) => (
                       <FraudRuleCard
                         key={rule.type}
@@ -172,7 +156,7 @@ function ProgramFraudSettingsSheetContent({
                 </div>
               );
             })}
-          </>
+          </div>
         )}
       </div>
 
@@ -213,15 +197,20 @@ function FraudRuleCard({
   disabled,
 }: FraudRuleCardProps) {
   return (
-    <div className="rounded-lg border border-neutral-200 bg-white p-4">
-      <div className="flex items-start gap-4">
-        <Switch checked={checked} fn={onToggle} disabled={disabled} />
-        <div className="flex-1">
-          <h4 className="mb-1 text-sm font-semibold text-neutral-900">
-            {rule.name}
-          </h4>
-          <p className="text-sm text-neutral-500">{rule.description}</p>
-        </div>
+    <div className="flex items-start gap-3">
+      <Switch
+        checked={checked}
+        fn={onToggle}
+        disabled={disabled}
+        trackDimensions="radix-state-checked:bg-black focus-visible:ring-black/20"
+      />
+      <div className="flex-1 space-y-1">
+        <h4 className="text-sm font-medium leading-none text-neutral-800">
+          {rule.name}
+        </h4>
+        <p className="text-content-subtle text-xs font-normal tracking-normal">
+          {rule.description}
+        </p>
       </div>
     </div>
   );
@@ -229,33 +218,31 @@ function FraudRuleCard({
 
 function FraudRulesSkeleton() {
   return (
-    <>
+    <div className="space-y-6">
       {[...Array(3)].map((_, index) => (
-        <div key={index} className="mb-8">
-          <div className="mb-4 flex items-center gap-2">
-            <div className="size-2 animate-pulse rounded-full bg-neutral-200" />
-            <div className="h-5 w-20 animate-pulse rounded-md bg-neutral-200" />
+        <div key={index}>
+          <div className="mb-6 flex items-center gap-2">
+            <div className="size-3 animate-pulse rounded-full bg-neutral-200" />
+            <div className="h-6 w-24 animate-pulse rounded-md bg-neutral-200" />
           </div>
-          <div className="space-y-4">
+          <div className="space-y-6">
             {[...Array(2)].map((_, cardIndex) => (
               <FraudRuleCardSkeleton key={cardIndex} />
             ))}
           </div>
         </div>
       ))}
-    </>
+    </div>
   );
 }
 
 function FraudRuleCardSkeleton() {
   return (
-    <div className="rounded-lg border border-neutral-200 bg-white p-4">
-      <div className="flex items-start gap-4">
-        <div className="size-5 shrink-0 animate-pulse rounded-full bg-neutral-200" />
-        <div className="flex-1 space-y-2">
-          <div className="h-5 w-48 animate-pulse rounded-md bg-neutral-200" />
-          <div className="h-4 w-full animate-pulse rounded-md bg-neutral-200" />
-        </div>
+    <div className="flex items-start gap-3">
+      <div className="h-5 w-10 shrink-0 animate-pulse rounded-full bg-neutral-200" />
+      <div className="flex-1 space-y-1">
+        <div className="h-4 w-48 animate-pulse rounded-md bg-neutral-200" />
+        <div className="h-3 w-full animate-pulse rounded-md bg-neutral-200" />
       </div>
     </div>
   );

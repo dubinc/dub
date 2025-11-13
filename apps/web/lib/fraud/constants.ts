@@ -71,15 +71,14 @@ export const FRAUD_RULES: FraudRuleInfo[] = [
     type: "selfReferral",
     name: "Email matching or similar to customer",
     riskLevel: "high",
-    description:
-      "Partner's email closely resembles a customer email. This detects when the partner and customer appear to be the same person.",
+    description: "Partner's email closely resembles a customer email.",
   },
   {
     type: "bannedReferralDomain",
-    name: "Banned referral domain",
+    name: "Banned referral domain used",
     riskLevel: "high",
     description:
-      "The customer email domain is in the banned domains list. This helps prevent fraudulent signups from known problematic domains.",
+      "A conversion, event, or click was made on a banned referral domain. ",
   },
   {
     type: "paidAdTrafficDetected",
@@ -90,9 +89,9 @@ export const FRAUD_RULES: FraudRuleInfo[] = [
   },
   {
     type: "customerEmailSuspiciousDomain",
-    name: "Customer email from suspicious domain",
+    name: "Customer email has a suspicious domain name",
     riskLevel: "medium",
     description:
-      "The customer email is from a disposable or suspicious email domain. This helps identify potentially fraudulent signups.",
+      "Uses uncommon or newly registered email domains (e.g., .xyz, .online).",
   },
 ] as const;
