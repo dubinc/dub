@@ -19,6 +19,7 @@ import {
   publicHostedImageSchema,
   storedR2ImageUrlSchema,
 } from "./misc";
+import { PartnerTagSchema } from "./partner-tags";
 import { ProgramEnrollmentSchema } from "./programs";
 import { parseUrlSchema } from "./utils";
 
@@ -164,6 +165,10 @@ export const getPartnersQuerySchemaExtended = getPartnersQuerySchema.merge(
       .union([z.string(), z.array(z.string())])
       .transform((v) => (Array.isArray(v) ? v : v.split(",")))
       .optional(),
+    tagIds: z
+      .union([z.string(), z.array(z.string())])
+      .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+      .optional(),
     groupId: z.string().optional(),
   }),
 );
@@ -187,7 +192,7 @@ export const partnersCountQuerySchema = getPartnersQuerySchemaExtended
     pageSize: true,
   })
   .extend({
-    groupBy: z.enum(["status", "country", "groupId"]).optional(),
+    groupBy: z.enum(["status", "country", "groupId", "tagId"]).optional(),
   });
 
 export const PartnerOnlinePresenceSchema = z.object({
@@ -332,11 +337,6 @@ export const PartnerSchema = z
 
 export const PartnerWithProfileSchema =
   PartnerSchema.merge(PartnerProfileSchema);
-
-export const PartnerTagSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-});
 
 // Used externally by GET+POST /api/partners and partner.enrolled webhook
 export const EnrolledPartnerSchema = PartnerSchema.pick({
