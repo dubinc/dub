@@ -85,6 +85,16 @@ export const resolveFraudEventSchema = z.object({
     .describe("Optional notes explaining the resolution."),
 });
 
+export const fraudRuleSchema = z.object({
+  id: z.string().optional(),
+  name: z.string(),
+  type: z.nativeEnum(FraudRuleType),
+  riskLevel: z.nativeEnum(FraudRiskLevel),
+  description: z.string(),
+  enabled: z.boolean(),
+  config: z.unknown(),
+});
+
 export const updateFraudRulesSchema = z.object({
   rules: z.array(
     z.object({

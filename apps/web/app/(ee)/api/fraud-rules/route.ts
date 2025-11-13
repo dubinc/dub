@@ -1,11 +1,14 @@
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { FRAUD_RULES } from "@/lib/fraud/constants";
-import { mergeFraudRulesWithProgramOverrides } from "@/lib/fraud/merge-fraud-rules";
-import { updateFraudRulesSchema } from "@/lib/zod/schemas/fraud";
+import { getMergedFraudRules } from "@/lib/fraud/get-merged-fraud-rules";
+import {
+  fraudRuleSchema,
+  updateFraudRulesSchema,
+} from "@/lib/zod/schemas/fraud";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 // GET /api/fraud-rules - get all fraud rules for a program
 export const GET = withWorkspace(
@@ -18,24 +21,9 @@ export const GET = withWorkspace(
       },
     });
 
-    const mergedRules = mergeFraudRulesWithProgramOverrides(programRules);
+    const mergedRules = getMergedFraudRules(programRules);
 
-    // Add UI-specific fields (name, description) from FRAUD_RULES
-    const rulesWithInfo = mergedRules.map((mergedRule) => {
-      const ruleInfo = FRAUD_RULES.find((r) => r.type === mergedRule.type);
-
-      return {
-        id: mergedRule.id,
-        type: mergedRule.type,
-        name: ruleInfo?.name ?? mergedRule.type,
-        riskLevel: mergedRule.riskLevel,
-        description: ruleInfo?.description ?? "",
-        enabled: mergedRule.enabled,
-        config: mergedRule.config,
-      };
-    });
-
-    return NextResponse.json(rulesWithInfo);
+    return NextResponse.json(z.array(fraudRuleSchema).parse(mergedRules));
   },
   {
     requiredPlan: [

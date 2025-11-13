@@ -3,7 +3,7 @@ import { FraudRiskLevel, Prisma } from "@dub/prisma/client";
 import { createId } from "../api/create-id";
 import { RISK_LEVEL_ORDER, RISK_LEVEL_WEIGHTS } from "./constants";
 import { executeFraudRule } from "./execute-fraud-rule";
-import { mergeFraudRulesWithProgramOverrides } from "./merge-fraud-rules";
+import { getMergedFraudRules } from "./get-merged-fraud-rules";
 import { FraudTriggeredRule } from "./types";
 
 interface DetectFraudEventProps {
@@ -50,7 +50,7 @@ export async function detectAndRecordFraudEvent(
   });
 
   // Merge global rules with program overrides
-  const mergedRules = mergeFraudRulesWithProgramOverrides(programRules);
+  const mergedRules = getMergedFraudRules(programRules);
   const activeRules = mergedRules.filter((rule) => rule.enabled);
 
   let riskScore = 0;

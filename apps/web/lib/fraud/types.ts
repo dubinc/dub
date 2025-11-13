@@ -1,4 +1,6 @@
 import { FraudRiskLevel, FraudRuleType } from "@dub/prisma/client";
+import { z } from "zod";
+import { fraudRuleSchema } from "../zod/schemas/fraud";
 
 export interface FraudRuleEvaluationResult {
   triggered: boolean;
@@ -36,3 +38,5 @@ export type FraudReason =
   | "customerEmailDisposableDomain"
   | "paidAdTrafficDetected"
   | "bannedReferralDomain";
+
+export type FraudRuleProps = z.infer<typeof fraudRuleSchema>;

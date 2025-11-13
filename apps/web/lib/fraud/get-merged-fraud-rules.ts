@@ -1,42 +1,42 @@
-import { FraudRiskLevel, FraudRule, FraudRuleType } from "@dub/prisma/client";
-import { getFraudRules } from "./fraud-rules-registry";
-
-export interface MergedFraudRule {
-  id: string | undefined;
-  type: FraudRuleType;
-  riskLevel: FraudRiskLevel;
-  config: unknown;
-  enabled: boolean;
-}
+import { FraudRule, FraudRuleType } from "@dub/prisma/client";
+import { FRAUD_RULES } from "./constants";
+import { FraudRuleProps } from "./types";
 
 // Merges global fraud rules with program-specific overrides.
 // Returns an array of merged rules with the program override taking precedence when it exists.
-export function mergeFraudRulesWithProgramOverrides(
+export function getMergedFraudRules(
   programRules: FraudRule[],
-): MergedFraudRule[] {
-  const globalRules = getFraudRules();
+): FraudRuleProps[] {
+  const mergedRules: FraudRuleProps[] = [];
 
-  return globalRules.map((globalRule) => {
+  FRAUD_RULES.forEach((globalRule) => {
     const programRule = programRules.find((pr) => pr.type === globalRule.type);
 
     // Program override exists - use it
     if (programRule) {
-      return {
+      mergedRules.push({
         id: programRule.id,
         type: globalRule.type as FraudRuleType,
         riskLevel: globalRule.riskLevel,
-        config: programRule.config ?? globalRule.config,
+        config: programRule.config ?? undefined,
         enabled: programRule.disabledAt === null,
-      };
+        name: globalRule.name,
+        description: globalRule.description,
+      });
+      return;
     }
 
     // No override - use global default
-    return {
+    mergedRules.push({
       id: undefined,
       type: globalRule.type as FraudRuleType,
       riskLevel: globalRule.riskLevel,
-      config: globalRule.config,
+      config: undefined,
       enabled: true,
-    };
+      name: globalRule.name,
+      description: globalRule.description,
+    });
   });
+
+  return mergedRules;
 }

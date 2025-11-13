@@ -1,9 +1,10 @@
 "use client";
 
+import { type FraudRuleProps } from "@/lib/fraud/types";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { X } from "@/ui/shared/icons";
-import { FraudRiskLevel } from "@dub/prisma/client";
+import { FraudRiskLevel, FraudRuleType } from "@dub/prisma/client";
 import { Button, Sheet, Switch } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
@@ -14,25 +15,15 @@ type ProgramFraudSettingsSheetProps = {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
 };
 
-interface FraudRuleResponse {
-  id?: string;
-  type: string;
-  name: string;
-  riskLevel: FraudRiskLevel;
-  description: string;
-  enabled: boolean;
-  config: unknown;
-}
-
 function ProgramFraudSettingsSheetContent({
   setIsOpen,
 }: ProgramFraudSettingsSheetProps) {
-  const { defaultProgramId, id: workspaceId } = useWorkspace();
-  const [localRules, setLocalRules] = useState<Record<string, boolean>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { id: workspaceId } = useWorkspace();
+  const [localRules, setLocalRules] = useState<Record<string, boolean>>({});
 
-  const { data: rules, isLoading } = useSWR<FraudRuleResponse[]>(
-    defaultProgramId ? `/api/fraud-rules?workspaceId=${workspaceId}` : null,
+  const { data: rules, isLoading } = useSWR<FraudRuleProps[]>(
+    workspaceId ? `/api/fraud-rules?workspaceId=${workspaceId}` : null,
     fetcher,
   );
 
@@ -40,14 +31,16 @@ function ProgramFraudSettingsSheetContent({
   useEffect(() => {
     if (rules) {
       const initialState: Record<string, boolean> = {};
+
       rules.forEach((rule) => {
         initialState[rule.type] = rule.enabled;
       });
+
       setLocalRules(initialState);
     }
   }, [rules]);
 
-  const handleToggle = (ruleType: string, enabled: boolean) => {
+  const handleToggle = (ruleType: FraudRuleType, enabled: boolean) => {
     setLocalRules((prev) => ({
       ...prev,
       [ruleType]: enabled,
@@ -55,13 +48,10 @@ function ProgramFraudSettingsSheetContent({
   };
 
   const handleSubmit = async () => {
-    if (!defaultProgramId) {
-      return;
-    }
-
     setIsSubmitting(true);
+
     try {
-      const updates = Object.entries(localRules).map(([type, enabled]) => ({
+      const rules = Object.entries(localRules).map(([type, enabled]) => ({
         type,
         enabled,
       }));
@@ -73,24 +63,20 @@ function ProgramFraudSettingsSheetContent({
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ rules: updates }),
+          body: JSON.stringify({ rules }),
         },
       );
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || "Failed to update fraud rules");
+        throw new Error(error.message);
       }
 
       toast.success("Fraud settings updated successfully.");
       setIsOpen(false);
-      mutatePrefix(`/api/fraud-rules`);
+      mutatePrefix("/api/fraud-rules");
     } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Failed to update fraud settings.",
-      );
+      toast.error(error.message || "Failed to update fraud rules.");
     } finally {
       setIsSubmitting(false);
     }
@@ -98,6 +84,7 @@ function ProgramFraudSettingsSheetContent({
 
   const isDirty = useMemo(() => {
     if (!rules) return false;
+
     return rules.some((rule) => localRules[rule.type] !== rule.enabled);
   }, [rules, localRules]);
 
@@ -105,7 +92,7 @@ function ProgramFraudSettingsSheetContent({
   const rulesByRiskLevel = useMemo(() => {
     if (!rules) return { high: [], medium: [], low: [] };
 
-    const grouped: Record<FraudRiskLevel, FraudRuleResponse[]> = {
+    const grouped: Record<FraudRiskLevel, FraudRuleProps[]> = {
       high: [],
       medium: [],
       low: [],
@@ -137,124 +124,54 @@ function ProgramFraudSettingsSheetContent({
 
       <div className="h-full overflow-y-auto bg-neutral-50 p-4 sm:p-6">
         {isLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <p className="text-sm text-neutral-500">Loading rules...</p>
-          </div>
+          <FraudRulesSkeleton />
         ) : (
           <>
-            {/* High risk rules */}
-            {rulesByRiskLevel.high.length > 0 && (
-              <div className="mb-8">
-                <div className="mb-4 flex items-center gap-2">
-                  <div className="size-2 rounded-full bg-red-500" />
-                  <h3 className="text-base font-semibold text-neutral-900">
-                    High risk
-                  </h3>
-                </div>
-                <div className="space-y-4">
-                  {rulesByRiskLevel.high.map((rule) => (
-                    <div
-                      key={rule.type}
-                      className="rounded-lg border border-neutral-200 bg-white p-4"
-                    >
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1">
-                          <div className="mb-1 flex items-center gap-2">
-                            <h4 className="text-sm font-semibold text-neutral-900">
-                              {rule.name}
-                            </h4>
-                          </div>
-                          <p className="text-sm text-neutral-500">
-                            {rule.description}
-                          </p>
-                        </div>
-                        <Switch
-                          checked={localRules[rule.type] ?? rule.enabled}
-                          fn={(checked) => handleToggle(rule.type, checked)}
-                          disabled={isSubmitting}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+            {(
+              [
+                {
+                  level: "high",
+                  label: "High risk",
+                  dotColor: "bg-red-500",
+                },
+                {
+                  level: "medium",
+                  label: "Medium risk",
+                  dotColor: "bg-orange-500",
+                },
+                {
+                  level: "low",
+                  label: "Low risk",
+                  dotColor: "bg-neutral-400",
+                },
+              ] as const
+            ).map(({ level, label, dotColor }) => {
+              const rules = rulesByRiskLevel[level];
 
-            {/* Medium risk rules */}
-            {rulesByRiskLevel.medium.length > 0 && (
-              <div className="mb-8">
-                <div className="mb-4 flex items-center gap-2">
-                  <div className="size-2 rounded-full bg-orange-500" />
-                  <h3 className="text-base font-semibold text-neutral-900">
-                    Medium risk
-                  </h3>
-                </div>
-                <div className="space-y-4">
-                  {rulesByRiskLevel.medium.map((rule) => (
-                    <div
-                      key={rule.type}
-                      className="rounded-lg border border-neutral-200 bg-white p-4"
-                    >
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1">
-                          <div className="mb-1 flex items-center gap-2">
-                            <h4 className="text-sm font-semibold text-neutral-900">
-                              {rule.name}
-                            </h4>
-                          </div>
-                          <p className="text-sm text-neutral-500">
-                            {rule.description}
-                          </p>
-                        </div>
-                        <Switch
-                          checked={localRules[rule.type] ?? rule.enabled}
-                          fn={(checked) => handleToggle(rule.type, checked)}
-                          disabled={isSubmitting}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+              if (rules.length === 0) return null;
 
-            {/* Low risk rules */}
-            {rulesByRiskLevel.low.length > 0 && (
-              <div className="mb-8">
-                <div className="mb-4 flex items-center gap-2">
-                  <div className="size-2 rounded-full bg-neutral-400" />
-                  <h3 className="text-base font-semibold text-neutral-900">
-                    Low risk
-                  </h3>
+              return (
+                <div key={level} className="mb-8">
+                  <div className="mb-4 flex items-center gap-2">
+                    <div className={`size-2 rounded-full ${dotColor}`} />
+                    <h3 className="text-base font-semibold text-neutral-900">
+                      {label}
+                    </h3>
+                  </div>
+                  <div className="space-y-4">
+                    {rules.map((rule) => (
+                      <FraudRuleCard
+                        key={rule.type}
+                        rule={rule}
+                        checked={localRules[rule.type] ?? rule.enabled}
+                        onToggle={(checked) => handleToggle(rule.type, checked)}
+                        disabled={isSubmitting}
+                      />
+                    ))}
+                  </div>
                 </div>
-                <div className="space-y-4">
-                  {rulesByRiskLevel.low.map((rule) => (
-                    <div
-                      key={rule.type}
-                      className="rounded-lg border border-neutral-200 bg-white p-4"
-                    >
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1">
-                          <div className="mb-1 flex items-center gap-2">
-                            <h4 className="text-sm font-semibold text-neutral-900">
-                              {rule.name}
-                            </h4>
-                          </div>
-                          <p className="text-sm text-neutral-500">
-                            {rule.description}
-                          </p>
-                        </div>
-                        <Switch
-                          checked={localRules[rule.type] ?? rule.enabled}
-                          fn={(checked) => handleToggle(rule.type, checked)}
-                          disabled={isSubmitting}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+              );
+            })}
           </>
         )}
       </div>
@@ -282,7 +199,69 @@ function ProgramFraudSettingsSheetContent({
   );
 }
 
-export function ProgramFraudSettingsSheet({
+interface FraudRuleCardProps {
+  rule: FraudRuleProps;
+  checked: boolean;
+  onToggle: (checked: boolean) => void;
+  disabled?: boolean;
+}
+
+function FraudRuleCard({
+  rule,
+  checked,
+  onToggle,
+  disabled,
+}: FraudRuleCardProps) {
+  return (
+    <div className="rounded-lg border border-neutral-200 bg-white p-4">
+      <div className="flex items-start gap-4">
+        <Switch checked={checked} fn={onToggle} disabled={disabled} />
+        <div className="flex-1">
+          <h4 className="mb-1 text-sm font-semibold text-neutral-900">
+            {rule.name}
+          </h4>
+          <p className="text-sm text-neutral-500">{rule.description}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FraudRulesSkeleton() {
+  return (
+    <>
+      {[...Array(3)].map((_, index) => (
+        <div key={index} className="mb-8">
+          <div className="mb-4 flex items-center gap-2">
+            <div className="size-2 animate-pulse rounded-full bg-neutral-200" />
+            <div className="h-5 w-20 animate-pulse rounded-md bg-neutral-200" />
+          </div>
+          <div className="space-y-4">
+            {[...Array(2)].map((_, cardIndex) => (
+              <FraudRuleCardSkeleton key={cardIndex} />
+            ))}
+          </div>
+        </div>
+      ))}
+    </>
+  );
+}
+
+function FraudRuleCardSkeleton() {
+  return (
+    <div className="rounded-lg border border-neutral-200 bg-white p-4">
+      <div className="flex items-start gap-4">
+        <div className="size-5 shrink-0 animate-pulse rounded-full bg-neutral-200" />
+        <div className="flex-1 space-y-2">
+          <div className="h-5 w-48 animate-pulse rounded-md bg-neutral-200" />
+          <div className="h-4 w-full animate-pulse rounded-md bg-neutral-200" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ProgramFraudSettingsSheet({
   isOpen,
   ...rest
 }: ProgramFraudSettingsSheetProps & {

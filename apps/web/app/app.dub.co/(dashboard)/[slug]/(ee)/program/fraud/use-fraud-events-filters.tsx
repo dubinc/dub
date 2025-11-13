@@ -1,4 +1,3 @@
-import { FraudEventStatus, FraudRiskLevel } from "@dub/prisma/client";
 import { useRouterStuff } from "@dub/ui";
 import { CircleDotted, ShieldKeyhole } from "@dub/ui/icons";
 import { useMemo } from "react";
@@ -73,4 +72,3 @@ export function useFraudEventsFilters() {
     isFiltered,
   };
 }
-
