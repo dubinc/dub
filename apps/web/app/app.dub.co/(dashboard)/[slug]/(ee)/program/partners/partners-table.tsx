@@ -386,7 +386,7 @@ export function PartnersTable() {
           },
           accessorFn: (d: EnrolledPartnerProps) =>
             d.returnOnAdSpend
-              ? `${parseFloat((d.returnOnAdSpend * 100).toFixed(2))}%`
+              ? `${parseFloat(d.returnOnAdSpend.toFixed(2))}x`
               : "-",
         },
         // Menu
