@@ -5,7 +5,7 @@ import { ChevronUp, Copy, LoadingSpinner } from "@dub/ui";
 import { cn, fetcher } from "@dub/utils";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useWatch } from "react-hook-form";
 import useSWR from "swr";
 import { CampaignTypeIcon } from "../campaign-type-icon";
@@ -48,7 +48,9 @@ export function DuplicateLogicWarning() {
 
   const [isOpen, setIsOpen] = useState(false);
 
-  if (!hasDuplicates && isOpen) setIsOpen(false);
+  useEffect(() => {
+    if (!hasDuplicates && isOpen) setIsOpen(false);
+  }, [hasDuplicates, isOpen]);
 
   return (
     <div
