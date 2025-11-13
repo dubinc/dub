@@ -309,7 +309,7 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
         contentWrapperClassName="flex flex-col"
       >
         <PageWidthWrapper className="mb-8 max-w-[600px]">
-          <div className="grid grid-cols-[max-content_minmax(0,1fr)] items-center gap-x-6 [&>*:nth-child(n+2)]:mt-2">
+          <div className="grid grid-cols-[max-content_minmax(0,1fr)] items-center gap-x-6 [&>*:nth-child(n+3)]:mt-2">
             <span className={labelClassName}>Name</span>
             <DisabledInputWrapper
               tooltip={isReadOnly ? statusMessages[campaign.status] : ""}
@@ -325,7 +325,7 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
               />
             </DisabledInputWrapper>
 
-            <label className="contents">
+            <label className="contents [&>*]:mt-2">
               <span className={labelClassName}>From</span>
               <Controller
                 control={control}
