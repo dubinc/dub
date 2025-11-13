@@ -49,39 +49,37 @@ const processPartnerActivityStreamBatch = () =>
 
       console.log(`Aggregating ${entries.length} partner activity events`);
 
-      const programEnrollmentActivity = entries.reduce(
-        (acc, entry) => {
-          const { programId, partnerId, eventType } = entry.data;
-          const key =
-            eventType === "commission" ? "commissionStats" : "linkStats";
-          const eventTypesSet = new Set(acc[key]);
-          eventTypesSet.add(`${programId}:${partnerId}`);
-          acc[key] = Array.from(eventTypesSet);
-          return acc;
-        },
-        { linkStats: [], commissionStats: [] } as Record<string, string[]>,
-      );
+      // Collect all unique program:partner combinations from all events
+      const uniqueProgramPartners = new Set<string>();
+      entries.forEach((entry) => {
+        const { programId, partnerId } = entry.data;
+        uniqueProgramPartners.add(`${programId}:${partnerId}`);
+      });
 
-      const programEnrollmentsToUpdate: Record<string, ProgramEnrollmentStats> =
-        {};
+      const programPartnerPairs = Array.from(uniqueProgramPartners);
 
-      if (programEnrollmentActivity.linkStats.length > 0) {
-        const programIds = programEnrollmentActivity.linkStats.map(
-          (p) => p.split(":")[0],
-        );
-        const partnerIds = programEnrollmentActivity.linkStats.map(
-          (p) => p.split(":")[1],
-        );
+      if (programPartnerPairs.length === 0) {
+        return {
+          success: true,
+          updates: [],
+          processedEntryIds: entries.map((e) => e.id),
+        };
+      }
 
-        const partnerLinkStats = await prisma.link.groupBy({
+      const programIds = [
+        ...new Set(programPartnerPairs.map((p) => p.split(":")[0])),
+      ];
+      const partnerIds = [
+        ...new Set(programPartnerPairs.map((p) => p.split(":")[1])),
+      ];
+
+      // Query both link and commission stats in parallel for all program:partner pairs
+      const [partnerLinkStats, partnerCommissionStats] = await Promise.all([
+        prisma.link.groupBy({
           by: ["programId", "partnerId"],
           where: {
-            programId: {
-              in: programIds,
-            },
-            partnerId: {
-              in: partnerIds,
-            },
+            programId: { in: programIds },
+            partnerId: { in: partnerIds },
           },
           _sum: {
             clicks: true,
@@ -93,66 +91,52 @@ const processPartnerActivityStreamBatch = () =>
           _max: {
             lastConversionAt: true,
           },
-        });
-
-        partnerLinkStats.map((p) => {
-          programEnrollmentsToUpdate[`${p.programId}:${p.partnerId}`] = {
-            totalClicks: p._sum.clicks ?? undefined,
-            totalLeads: p._sum.leads ?? undefined,
-            totalConversions: p._sum.conversions ?? undefined,
-            totalSales: p._sum.sales ?? undefined,
-            totalSaleAmount: p._sum.saleAmount ?? undefined,
-            lastConversionAt: p._max.lastConversionAt ?? undefined,
-          };
-        });
-      }
-
-      if (programEnrollmentActivity.commissionStats.length > 0) {
-        const programIds = programEnrollmentActivity.commissionStats.map(
-          (p) => p.split(":")[0],
-        );
-        const partnerIds = programEnrollmentActivity.commissionStats.map(
-          (p) => p.split(":")[1],
-        );
-
-        const partnerCommissionStats = await prisma.commission.groupBy({
+        }),
+        prisma.commission.groupBy({
           by: ["programId", "partnerId"],
           where: {
             earnings: { not: 0 },
-            programId: {
-              in: programIds,
-            },
-            partnerId: {
-              in: partnerIds,
-            },
+            programId: { in: programIds },
+            partnerId: { in: partnerIds },
             status: { in: ["pending", "processed", "paid"] },
           },
           _sum: {
             earnings: true,
           },
-        });
+        }),
+      ]);
 
-        const finalPartnerCommissionStats =
-          programEnrollmentActivity.commissionStats.map((p) => {
-            const programId = p.split(":")[0];
-            const partnerId = p.split(":")[1];
-            return {
-              programId,
-              partnerId,
-              totalCommissions:
-                partnerCommissionStats.find(
-                  (c) => c.programId === programId && c.partnerId === partnerId,
-                )?._sum.earnings ?? 0,
-            };
-          });
+      // Merge link and commission stats into a single object
+      const programEnrollmentsToUpdate: Record<string, ProgramEnrollmentStats> =
+        {};
 
-        finalPartnerCommissionStats.map((p) => {
-          programEnrollmentsToUpdate[`${p.programId}:${p.partnerId}`] = {
-            ...programEnrollmentsToUpdate[`${p.programId}:${p.partnerId}`], // need to keep the other stats
-            totalCommissions: p.totalCommissions,
-          };
-        });
-      }
+      // Initialize all program:partner pairs
+      programPartnerPairs.forEach((pair) => {
+        programEnrollmentsToUpdate[pair] = {};
+      });
+
+      // Add link stats
+      partnerLinkStats.forEach((p) => {
+        const key = `${p.programId}:${p.partnerId}`;
+        programEnrollmentsToUpdate[key] = {
+          ...programEnrollmentsToUpdate[key],
+          totalClicks: p._sum.clicks ?? undefined,
+          totalLeads: p._sum.leads ?? undefined,
+          totalConversions: p._sum.conversions ?? undefined,
+          totalSales: p._sum.sales ?? undefined,
+          totalSaleAmount: p._sum.saleAmount ?? undefined,
+          lastConversionAt: p._max.lastConversionAt ?? undefined,
+        };
+      });
+
+      // Add commission stats
+      partnerCommissionStats.forEach((c) => {
+        const key = `${c.programId}:${c.partnerId}`;
+        programEnrollmentsToUpdate[key] = {
+          ...programEnrollmentsToUpdate[key],
+          totalCommissions: c._sum.earnings ?? 0,
+        };
+      });
 
       // Calculate derived metrics for each enrollment
       Object.keys(programEnrollmentsToUpdate).forEach((key) => {
@@ -344,7 +328,7 @@ const processPartnerActivityStreamBatch = () =>
   );
 
 // This route is used to process partner activity events from Redis streams
-// It runs every 5 minutes with a batch size of 10,000 to consume high-frequency partner activity updates
+// It runs every 5 minutes with a batch size of 6,000 to consume high-frequency partner activity updates
 // GET /api/cron/streams/update-partner-stats
 export async function GET(req: Request) {
   try {
