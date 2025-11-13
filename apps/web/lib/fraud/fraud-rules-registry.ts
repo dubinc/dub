@@ -14,11 +14,3 @@ export const fraudRuleRegistry: Record<
   paidAdTrafficDetected: checkPaidAdTrafficDetected,
   customerEmailSuspiciousDomain: checkCustomerEmailSuspicious,
 };
-
-export function getFraudRules() {
-  return Object.entries(fraudRuleRegistry).map(([type, ruleDefinition]) => ({
-    type,
-    riskLevel: ruleDefinition.riskLevel,
-    config: ruleDefinition.defaultConfig,
-  }));
-}

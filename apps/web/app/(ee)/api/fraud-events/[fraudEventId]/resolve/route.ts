@@ -29,7 +29,7 @@ export const PATCH = withWorkspace(
       });
     }
 
-    const { status, resolutionReason, markPartnerAsTrusted } =
+    const { status, resolutionReason, markPartnerAsSafe } =
       resolveFraudEventSchema.parse(await parseRequestBody(req));
 
     const { fraudEvent: updatedFraudEvent } = await prisma.$transaction(
@@ -55,7 +55,7 @@ export const PATCH = withWorkspace(
             }),
 
             // Mark partner as trusted (ignore all future fraud and risk alerts for this partner)
-            markPartnerAsTrusted
+            markPartnerAsSafe
               ? prisma.programEnrollment.update({
                   where: {
                     partnerId_programId: {
@@ -64,7 +64,7 @@ export const PATCH = withWorkspace(
                     },
                   },
                   data: {
-                    trustedAt: new Date(),
+                    safelistedAt: new Date(),
                   },
                 })
               : Promise.resolve(null),

@@ -17,7 +17,7 @@ import { toast } from "sonner";
 
 interface MarkFraudEventSafeFormData {
   resolutionReason: string;
-  markPartnerAsTrusted: boolean;
+  markPartnerAsSafe: boolean;
 }
 
 function MarkFraudEventSafeModal({
@@ -39,7 +39,7 @@ function MarkFraudEventSafeModal({
   } = useForm<MarkFraudEventSafeFormData>({
     defaultValues: {
       resolutionReason: "",
-      markPartnerAsTrusted: false,
+      markPartnerAsSafe: false,
     },
   });
 
@@ -54,7 +54,7 @@ function MarkFraudEventSafeModal({
         body: {
           status: "safe",
           resolutionReason: data.resolutionReason || undefined,
-          markPartnerAsTrusted: data.markPartnerAsTrusted,
+          markPartnerAsSafe: data.markPartnerAsSafe,
         },
         onSuccess: () => {
           toast.success("Fraud event marked as safe");
@@ -107,16 +107,16 @@ function MarkFraudEventSafeModal({
           <div>
             <Controller
               control={control}
-              name="markPartnerAsTrusted"
+              name="markPartnerAsSafe"
               render={({ field }) => (
                 <div className="flex gap-2">
                   <Checkbox
-                    id="markPartnerAsTrusted"
+                    id="markPartnerAsSafe"
                     checked={field.value}
                     onCheckedChange={field.onChange}
                   />
                   <label
-                    htmlFor="markPartnerAsTrusted"
+                    htmlFor="markPartnerAsSafe"
                     className="text-content-emphasis select-none text-sm font-normal leading-none"
                   >
                     Mark partner as trusted (ignore all future fraud and risk

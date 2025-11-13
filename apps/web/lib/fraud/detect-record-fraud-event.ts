@@ -14,6 +14,7 @@ interface DetectFraudEventProps {
     id: string;
     email: string | null;
     name: string | null;
+    safelistedAt: Date | null;
   };
   customer: {
     id: string;
@@ -40,7 +41,14 @@ interface DetectFraudEventProps {
 export async function detectAndRecordFraudEvent(
   context: DetectFraudEventProps,
 ) {
-  console.debug("[detectAndRecordFraudEvent] context", context);
+  console.log("[detectAndRecordFraudEvent] context", context);
+
+  if (context.partner.safelistedAt) {
+    console.log(
+      "[detectAndRecordFraudEvent] The partner is marked as trusted for this program. Skipping fraud risk evaluation.",
+    );
+    return null;
+  }
 
   // Get program-specific rule overrides
   const programRules = await prisma.fraudRule.findMany({
@@ -57,12 +65,11 @@ export async function detectAndRecordFraudEvent(
   let riskLevel: FraudRiskLevel = "low";
   const triggeredRules: FraudTriggeredRule[] = [];
 
-  console.debug("[detectAndRecordFraudEvent] active rules", activeRules);
+  console.log("[detectAndRecordFraudEvent] active rules", activeRules);
 
   // Evaluate each rule
   for (const rule of activeRules) {
     try {
-      // Evaluate rule
       const result = await executeFraudRule(rule.type, context, rule.config);
 
       // Rule triggered
@@ -94,10 +101,10 @@ export async function detectAndRecordFraudEvent(
     }
   }
 
-  console.debug("[detectAndRecordFraudEvent] triggeredRules", triggeredRules);
+  console.log("[detectAndRecordFraudEvent] triggeredRules", triggeredRules);
 
   try {
-    const fraudEvent = await prisma.fraudEvent.create({
+    return await prisma.fraudEvent.create({
       data: {
         id: createId({ prefix: "fraud_" }),
         programId: context.program.id,
@@ -111,10 +118,6 @@ export async function detectAndRecordFraudEvent(
         triggeredRules: triggeredRules as unknown as Prisma.InputJsonValue,
       },
     });
-
-    console.debug("[detectAndRecordFraudEvent] fraudEvent", fraudEvent);
-
-    return fraudEvent;
   } catch (error) {
     console.error("Error recording fraud event", error);
     return null;

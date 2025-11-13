@@ -258,7 +258,12 @@ export async function invoicePaid(event: Stripe.Event, mode: StripeMode) {
 
         detectAndRecordFraudEvent({
           program: { id: link.programId },
-          partner: pick(webhookPartner, ["id", "email", "name"]),
+          partner: pick(webhookPartner, [
+            "id",
+            "email",
+            "name",
+            "safelistedAt",
+          ]),
           customer: pick(customer, ["id", "email", "name"]),
           commission: { id: createdCommission.commission?.id },
           link: pick(link, ["id"]),

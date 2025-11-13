@@ -407,7 +407,9 @@ export type WebhookCacheProps = Pick<
   "id" | "url" | "secret" | "triggers" | "disabledAt"
 >;
 
-export type WebhookPartner = z.infer<typeof WebhookPartnerSchema>;
+export type WebhookPartner = z.infer<typeof WebhookPartnerSchema> & {
+  safelistedAt: Date | null;
+};
 
 export type TrackLeadResponse = z.infer<typeof trackLeadResponseSchema>;
 

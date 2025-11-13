@@ -378,7 +378,12 @@ const _trackLead = async ({
 
           detectAndRecordFraudEvent({
             program: { id: link.programId },
-            partner: pick(webhookPartner, ["id", "email", "name"]),
+            partner: pick(webhookPartner, [
+              "id",
+              "email",
+              "name",
+              "safelistedAt",
+            ]),
             customer: pick(customer, ["id", "email", "name"]),
             commission: { id: commission?.id },
             link: pick(link, ["id"]),
@@ -571,7 +576,12 @@ const _trackSale = async ({
 
           detectAndRecordFraudEvent({
             program: { id: link.programId },
-            partner: pick(webhookPartner, ["id", "email", "name"]),
+            partner: pick(webhookPartner, [
+              "id",
+              "email",
+              "name",
+              "safelistedAt",
+            ]),
             customer: pick(customer, ["id", "email", "name"]),
             commission: { id: createdCommission.commission?.id },
             link: pick(link, ["id"]),

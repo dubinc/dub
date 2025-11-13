@@ -162,7 +162,12 @@ export async function createNewCustomer(event: Stripe.Event) {
               commission &&
               detectAndRecordFraudEvent({
                 program: { id: link.programId },
-                partner: pick(webhookPartner, ["id", "email", "name"]),
+                partner: pick(webhookPartner, [
+                  "id",
+                  "email",
+                  "name",
+                  "safelistedAt",
+                ]),
                 customer: pick(customer, ["id", "email", "name"]),
                 commission: { id: commission?.id },
                 link: pick(link, ["id"]),
