@@ -11,25 +11,24 @@ enum FraudRiskLevel {
 }
 
 enum FraudRuleType {
-  self_referral
-  banned_referral_domain
-  paid_ad_traffic_detected
-  customer_email_suspicious_domain
+  selfReferral
+  bannedReferralDomain
+  paidAdTrafficDetected
+  customerEmailSuspiciousDomain
 }
 
 model FraudRule {
-  id        String         @id @default(cuid())
-  programId String
-  ruleType  FraudRuleType
-  riskLevel FraudRiskLevel
-  name      String
-  config    Json?          @db.Json // Rule-specific configuration
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
+  id         String        @id @default(cuid())
+  programId  String
+  type       FraudRuleType
+  config     Json?         @db.Json
+  disabledAt DateTime?
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
 
   program Program? @relation(fields: [programId], references: [id], onDelete: Cascade)
 
-  @@index(programId)
+  @@unique([programId, type])
 }
 
 model FraudEvent {

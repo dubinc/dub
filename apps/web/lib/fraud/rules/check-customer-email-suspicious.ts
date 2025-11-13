@@ -13,7 +13,7 @@ const configSchema = z.object({
 });
 
 export const checkCustomerEmailSuspicious = defineFraudRule({
-  type: "customer_email_suspicious_domain",
+  type: "customerEmailSuspiciousDomain",
   name: "Customer Email from Disposable Domain",
   riskLevel: "medium",
   contextSchema,
@@ -58,7 +58,7 @@ export const checkCustomerEmailSuspicious = defineFraudRule({
       if (isDisposable === 1) {
         return {
           triggered: true,
-          reasonCode: "customerEmailDisposableDomain",
+          reason: "customerEmailDisposableDomain",
           metadata: {
             customerEmail: customer.email,
             domain,

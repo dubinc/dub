@@ -12,7 +12,7 @@ const configSchema = z.object({
 });
 
 export const checkBannedReferralDomain = defineFraudRule({
-  type: "banned_referral_domain",
+  type: "bannedReferralDomain",
   name: "Banned Referral Domain",
   riskLevel: "high",
   contextSchema,
@@ -51,7 +51,7 @@ export const checkBannedReferralDomain = defineFraudRule({
     if (config.domains.includes(emailDomain)) {
       return {
         triggered: true,
-        reasonCode: "bannedReferralDomain",
+        reason: "bannedReferralDomain",
       };
     }
 

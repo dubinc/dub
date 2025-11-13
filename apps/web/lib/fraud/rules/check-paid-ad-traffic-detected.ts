@@ -15,7 +15,7 @@ const configSchema = z.object({
 });
 
 export const checkPaidAdTrafficDetected = defineFraudRule({
-  type: "paid_ad_traffic_detected",
+  type: "paidAdTrafficDetected",
   name: "Paid Ad Traffic Detected",
   riskLevel: "medium",
   contextSchema,
@@ -49,7 +49,7 @@ export const checkPaidAdTrafficDetected = defineFraudRule({
     if (filteredQueryParams.length > 0 && foundReferrer) {
       return {
         triggered: true,
-        reasonCode: "paidAdTrafficDetected",
+        reason: "paidAdTrafficDetected",
         metadata: {
           referrers: foundReferrer,
           queryParams: filteredQueryParams,

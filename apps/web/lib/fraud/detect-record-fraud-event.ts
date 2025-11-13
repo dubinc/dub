@@ -1,16 +1,16 @@
 import { prisma } from "@dub/prisma";
-import { FraudRiskLevel, FraudRuleType } from "@dub/prisma/client";
+import { FraudRiskLevel, FraudRuleType, Prisma } from "@dub/prisma/client";
 import { createId } from "../api/create-id";
 import { RISK_LEVEL_ORDER, RISK_LEVEL_WEIGHTS } from "./constants";
 import { executeFraudRule } from "./execute-fraud-rule";
-import type { FraudReasonCode } from "./fraud-reason-codes";
+import type { FraudReason } from "./fraud-reasons";
 import { getFraudRules } from "./fraud-rules-registry";
 
 interface TriggeredRule {
   ruleId?: string;
   ruleType: FraudRuleType;
   riskLevel: FraudRiskLevel;
-  reasonCode?: FraudReasonCode;
+  reason?: FraudReason;
   metadata?: Record<string, unknown>;
 }
 
@@ -48,7 +48,7 @@ interface DetectFraudEventProps {
 export async function detectAndRecordFraudEvent(
   context: DetectFraudEventProps,
 ) {
-  console.log("context", context);
+  console.log("[detectAndRecordFraudEvent] context", context);
 
   // Get program-specific rule overrides
   const programRules = await prisma.fraudRule.findMany({
@@ -58,53 +58,53 @@ export async function detectAndRecordFraudEvent(
   });
 
   // Merge global rules with program overrides
-  const activeRules = getFraudRules().map((defaultRule) => {
-    const override = programRules.find(
-      (o) => o.ruleType === defaultRule.ruleType,
+  const fraudRules = getFraudRules().map((globalRule) => {
+    const programRule = programRules.find(
+      (programRule) => programRule.type === globalRule.type,
     );
 
     // Program override exists - use it
-    if (override) {
+    if (programRule) {
       return {
-        id: override.id,
-        ruleType: override.ruleType,
-        riskLevel: override.riskLevel,
-        name: override.name,
-        config: override.config ?? defaultRule.config,
+        id: programRule.id,
+        type: globalRule.type as FraudRuleType,
+        riskLevel: globalRule.riskLevel,
+        config: programRule.config ?? globalRule.config,
+        active: programRule.disabledAt === null,
       };
     }
 
     // No override - use global default
     return {
       id: undefined,
-      ruleType: defaultRule.ruleType,
-      riskLevel: defaultRule.riskLevel,
-      name: defaultRule.name,
-      config: defaultRule.config,
+      type: globalRule.type as FraudRuleType,
+      riskLevel: globalRule.riskLevel,
+      config: globalRule.config,
+      active: true,
     };
   });
+
+  const activeRules = fraudRules.filter((rule) => rule.active);
 
   let riskScore = 0;
   let riskLevel: FraudRiskLevel = "low";
   const triggeredRules: TriggeredRule[] = [];
 
+  console.log("[detectAndRecordFraudEvent] active rules", activeRules);
+
   // Evaluate each rule
   for (const rule of activeRules) {
     try {
       // Evaluate rule
-      const result = await executeFraudRule(
-        rule.ruleType,
-        context,
-        rule.config,
-      );
+      const result = await executeFraudRule(rule.type, context, rule.config);
 
       // Rule triggered
       if (result.triggered) {
         triggeredRules.push({
           ruleId: rule.id,
-          ruleType: rule.ruleType,
+          ruleType: rule.type,
           riskLevel: rule.riskLevel,
-          reasonCode: result.reasonCode,
+          reason: result.reason,
           metadata: result.metadata,
         });
 
@@ -122,13 +122,13 @@ export async function detectAndRecordFraudEvent(
       }
     } catch (error) {
       console.error(
-        `Error evaluating rule ${rule.ruleType}:`,
+        `Error evaluating rule ${rule.type}:`,
         error instanceof Error ? error.message : String(error),
       );
     }
   }
 
-  console.log("triggeredRules", triggeredRules);
+  console.log("[detectAndRecordFraudEvent] triggeredRules", triggeredRules);
 
   try {
     const fraudEvent = await prisma.fraudEvent.create({
@@ -142,11 +142,11 @@ export async function detectAndRecordFraudEvent(
         commissionId: context.commission.id,
         riskLevel,
         riskScore,
-        triggeredRules: JSON.stringify(triggeredRules),
+        triggeredRules: triggeredRules as unknown as Prisma.InputJsonValue,
       },
     });
 
-    console.log(fraudEvent);
+    console.log("[detectAndRecordFraudEvent] fraudEvent", fraudEvent);
 
     return fraudEvent;
   } catch (error) {

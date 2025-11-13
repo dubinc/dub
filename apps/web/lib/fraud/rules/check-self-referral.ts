@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { defineFraudRule } from "../define-fraud-rule";
-import type { FraudReasonCode } from "../fraud-reason-codes";
+import type { FraudReason } from "../fraud-reasons";
 
 const contextSchema = z.object({
   partner: z.object({
@@ -23,7 +23,7 @@ const configSchema = z.object({
 });
 
 export const checkSelfReferralRule = defineFraudRule({
-  type: "self_referral",
+  type: "selfReferral",
   name: "Self-Referral Detected (Email or IP Match)",
   riskLevel: "high",
   contextSchema,
@@ -61,7 +61,7 @@ export const checkSelfReferralRule = defineFraudRule({
       if (emailResult.triggered) {
         return {
           triggered: true,
-          reasonCode: emailResult.reasonCode,
+          reason: emailResult.reason,
           metadata,
         };
       }
@@ -79,7 +79,7 @@ export const checkSelfReferralRule = defineFraudRule({
       if (nameResult.triggered) {
         return {
           triggered: true,
-          reasonCode: nameResult.reasonCode,
+          reason: nameResult.reason,
           metadata,
         };
       }
@@ -102,7 +102,7 @@ function checkEmailMatch(
     emailMatch: boolean;
     nameMatch: boolean;
   },
-): { triggered: boolean; reasonCode?: FraudReasonCode } {
+): { triggered: boolean; reason?: FraudReason } {
   // Normalize emails (handles Gmail-style dots and plus tags)
   const normalizedPartnerEmail = normalizeEmail(partnerEmail);
   const normalizedCustomerEmail = normalizeEmail(customerEmail);
@@ -118,7 +118,7 @@ function checkEmailMatch(
 
       return {
         triggered: true,
-        reasonCode: "selfReferralEmailExactMatch",
+        reason: "selfReferralEmailExactMatch",
       };
     }
   }
@@ -157,7 +157,7 @@ function checkEmailMatch(
 
         return {
           triggered: true,
-          reasonCode: "selfReferralEmailDomainVariation",
+          reason: "selfReferralEmailDomainVariation",
         };
       }
     }
@@ -178,7 +178,7 @@ function checkEmailMatch(
 
       return {
         triggered: true,
-        reasonCode: "selfReferralEmailLevenshtein",
+        reason: "selfReferralEmailLevenshtein",
       };
     }
   }
@@ -198,7 +198,7 @@ function checkNameMatch(
     emailMatch: boolean;
     nameMatch: boolean;
   },
-): { triggered: boolean; reasonCode?: FraudReasonCode } {
+): { triggered: boolean; reason?: FraudReason } {
   const normalizedPartnerName = normalizeName(partnerName);
   const normalizedCustomerName = normalizeName(customerName);
 
@@ -213,7 +213,7 @@ function checkNameMatch(
 
       return {
         triggered: true,
-        reasonCode: "selfReferralNameExactMatch",
+        reason: "selfReferralNameExactMatch",
       };
     }
   }
@@ -233,7 +233,7 @@ function checkNameMatch(
 
       return {
         triggered: true,
-        reasonCode: "selfReferralNameLevenshtein",
+        reason: "selfReferralNameLevenshtein",
       };
     }
   }

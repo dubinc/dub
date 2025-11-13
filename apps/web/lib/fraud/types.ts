@@ -1,8 +1,8 @@
-import type { FraudReasonCode } from "./fraud-reason-codes";
+import type { FraudReason } from "./fraud-reasons";
 
 export interface FraudRuleEvaluationResult {
   triggered: boolean;
-  reasonCode?: FraudReasonCode;
+  reason?: FraudReason;
   metadata?: Record<string, unknown>;
 }
 

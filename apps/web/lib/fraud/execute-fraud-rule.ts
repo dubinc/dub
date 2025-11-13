@@ -4,14 +4,14 @@ import type { FraudRuleEvaluationResult } from "./types";
 
 // Execute a fraud rule with the given context and configuration
 export async function executeFraudRule<T extends FraudRuleType>(
-  ruleType: T,
+  type: T,
   context: unknown,
   config?: unknown,
 ): Promise<FraudRuleEvaluationResult> {
-  const rule = fraudRuleRegistry[ruleType];
+  const rule = fraudRuleRegistry[type];
 
   if (!rule) {
-    throw new Error(`Unknown fraud rule: ${ruleType}`);
+    throw new Error(`Unknown fraud rule: ${type}`);
   }
 
   const parsedContext = rule.contextSchema.parse(context);
