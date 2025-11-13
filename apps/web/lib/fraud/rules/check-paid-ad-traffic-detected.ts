@@ -16,8 +16,6 @@ const configSchema = z.object({
 
 export const checkPaidAdTrafficDetected = defineFraudRule({
   type: "paidAdTrafficDetected",
-  name: "Paid Ad Traffic Detected",
-  riskLevel: "medium",
   contextSchema,
   configSchema,
   defaultConfig: {
@@ -25,6 +23,8 @@ export const checkPaidAdTrafficDetected = defineFraudRule({
     referrers: ["google.com"],
   },
   evaluate: async (context, config) => {
+    console.log("Evaluating checkPaidAdTrafficDetected...", context);
+
     const { click } = context;
 
     if (!click.url || !click.referer) {

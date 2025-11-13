@@ -41,8 +41,6 @@ interface DetectFraudEventProps {
 export async function detectAndRecordFraudEvent(
   context: DetectFraudEventProps,
 ) {
-  console.log("[detectAndRecordFraudEvent] context", context);
-
   if (context.partner.safelistedAt) {
     console.log(
       "[detectAndRecordFraudEvent] The partner is marked as trusted for this program. Skipping fraud risk evaluation.",
@@ -64,8 +62,6 @@ export async function detectAndRecordFraudEvent(
   let riskScore = 0;
   let riskLevel: FraudRiskLevel = "low";
   const triggeredRules: FraudTriggeredRule[] = [];
-
-  console.log("[detectAndRecordFraudEvent] active rules", activeRules);
 
   // Evaluate each rule
   for (const rule of activeRules) {

@@ -13,14 +13,14 @@ const configSchema = z.object({
 
 export const checkBannedReferralDomain = defineFraudRule({
   type: "bannedReferralDomain",
-  name: "Banned Referral Domain",
-  riskLevel: "high",
   contextSchema,
   configSchema,
   defaultConfig: {
     domains: [],
   },
   evaluate: async (context, config) => {
+    console.log("Evaluating checkBannedReferralDomain...", context, config);
+
     const { customer } = context;
 
     if (config.domains.length === 0) {

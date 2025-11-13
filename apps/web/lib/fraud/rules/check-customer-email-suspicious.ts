@@ -14,14 +14,14 @@ const configSchema = z.object({
 
 export const checkCustomerEmailSuspicious = defineFraudRule({
   type: "customerEmailSuspiciousDomain",
-  name: "Customer Email from Disposable Domain",
-  riskLevel: "medium",
   contextSchema,
   configSchema,
   defaultConfig: {
     checkDisposableEmail: true,
   },
   evaluate: async (context) => {
+    console.log("Evaluating checkCustomerEmailSuspicious...", context);
+
     const { customer } = context;
 
     // If no customer email provided, rule doesn't trigger

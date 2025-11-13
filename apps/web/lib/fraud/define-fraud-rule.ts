@@ -1,4 +1,4 @@
-import { FraudRiskLevel, FraudRuleType } from "@dub/prisma/client";
+import { FraudRuleType } from "@dub/prisma/client";
 import { z } from "zod";
 import { FraudRuleEvaluationResult } from "./types";
 
@@ -7,8 +7,6 @@ export function defineFraudRule<
   TCfg extends z.ZodType,
 >(rule: {
   type: FraudRuleType;
-  name: string;
-  riskLevel: FraudRiskLevel;
   contextSchema: TCtx;
   configSchema: TCfg;
   defaultConfig: z.infer<TCfg>;
