@@ -49,7 +49,7 @@ export const checkPaidAdTrafficDetected = defineFraudRule({
     if (filteredQueryParams.length > 0 && foundReferrer) {
       return {
         triggered: true,
-        reasonCode: "paid_ad_traffic_detected",
+        reasonCode: "paidAdTrafficDetected",
         metadata: {
           referrers: foundReferrer,
           queryParams: filteredQueryParams,

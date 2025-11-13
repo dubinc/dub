@@ -51,7 +51,7 @@ export const checkBannedReferralDomain = defineFraudRule({
     if (config.domains.includes(emailDomain)) {
       return {
         triggered: true,
-        reasonCode: "banned_referral_domain",
+        reasonCode: "bannedReferralDomain",
       };
     }
 

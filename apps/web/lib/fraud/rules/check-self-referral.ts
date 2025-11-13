@@ -118,7 +118,7 @@ function checkEmailMatch(
 
       return {
         triggered: true,
-        reasonCode: "self_referral_email_exact_match",
+        reasonCode: "selfReferralEmailExactMatch",
       };
     }
   }
@@ -157,7 +157,7 @@ function checkEmailMatch(
 
         return {
           triggered: true,
-          reasonCode: "self_referral_email_domain_variation",
+          reasonCode: "selfReferralEmailDomainVariation",
         };
       }
     }
@@ -178,7 +178,7 @@ function checkEmailMatch(
 
       return {
         triggered: true,
-        reasonCode: "self_referral_email_levenshtein",
+        reasonCode: "selfReferralEmailLevenshtein",
       };
     }
   }
@@ -213,7 +213,7 @@ function checkNameMatch(
 
       return {
         triggered: true,
-        reasonCode: "self_referral_name_exact_match",
+        reasonCode: "selfReferralNameExactMatch",
       };
     }
   }
@@ -233,7 +233,7 @@ function checkNameMatch(
 
       return {
         triggered: true,
-        reasonCode: "self_referral_name_levenshtein",
+        reasonCode: "selfReferralNameLevenshtein",
       };
     }
   }

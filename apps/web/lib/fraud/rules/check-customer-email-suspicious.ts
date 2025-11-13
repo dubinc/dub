@@ -58,7 +58,7 @@ export const checkCustomerEmailSuspicious = defineFraudRule({
       if (isDisposable === 1) {
         return {
           triggered: true,
-          reasonCode: "customer_email_disposable_domain",
+          reasonCode: "customerEmailDisposableDomain",
           metadata: {
             customerEmail: customer.email,
             domain,
