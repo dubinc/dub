@@ -33,54 +33,53 @@ export async function POST(req: Request) {
       JSON.parse(rawBody),
     );
 
-    const program = await prisma.program.findUniqueOrThrow({
-      where: {
-        id: programId,
-      },
-      include: {
-        partners: {
-          where: {
-            partnerId,
-          },
-          select: {
-            partner: true,
-          },
+    const [program, partner] = await Promise.all([
+      prisma.program.findUniqueOrThrow({
+        where: {
+          id: programId,
         },
-        messages: {
-          where: {
-            partnerId,
-            senderPartnerId: {
-              not: null, // Sent by the partner
-            },
-            createdAt: {
-              gt: subDays(new Date(), 3), // Sent in the last 3 days
-            },
-            readInApp: null, // Unread
-            readInEmail: null, // Unread
-          },
-          orderBy: {
-            createdAt: "desc",
-          },
-          include: {
-            senderPartner: true,
-          },
-        },
-        workspace: {
-          include: {
-            users: {
-              include: {
-                user: true,
+        include: {
+          messages: {
+            where: {
+              partnerId,
+              senderPartnerId: {
+                not: null, // Sent by the partner
               },
-              where: {
-                notificationPreference: {
-                  newMessageFromPartner: true,
+              createdAt: {
+                gt: subDays(new Date(), 3), // Sent in the last 3 days
+              },
+              readInApp: null, // Unread
+              readInEmail: null, // Unread
+            },
+            orderBy: {
+              createdAt: "desc",
+            },
+            include: {
+              senderPartner: true,
+            },
+          },
+          workspace: {
+            include: {
+              users: {
+                include: {
+                  user: true,
+                },
+                where: {
+                  notificationPreference: {
+                    newMessageFromPartner: true,
+                  },
                 },
               },
             },
           },
         },
-      },
-    });
+      }),
+      prisma.partner.findUniqueOrThrow({
+        where: {
+          id: partnerId,
+        },
+      }),
+    ]);
 
     const unreadMessages = program.messages;
 
@@ -104,8 +103,6 @@ export async function POST(req: Request) {
       return logAndRespond(
         `No program user emails to notify from partner ${partnerId}. Skipping...`,
       );
-
-    const partner = program.partners[0].partner;
 
     const { data, error } = await sendBatchEmail(
       usersToNotify.map(({ email }) => ({

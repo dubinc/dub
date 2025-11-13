@@ -33,48 +33,47 @@ export async function POST(req: Request) {
       JSON.parse(rawBody),
     );
 
-    const partner = await prisma.partner.findUniqueOrThrow({
-      where: {
-        id: partnerId,
-      },
-      include: {
-        programs: {
-          where: {
-            programId,
-          },
-          select: {
-            program: true,
-          },
+    const [partner, program] = await Promise.all([
+      prisma.partner.findUniqueOrThrow({
+        where: {
+          id: partnerId,
         },
-        messages: {
-          where: {
-            programId,
-            createdAt: {
-              gt: subDays(new Date(), 3), // sent in the last 3 days
+        include: {
+          messages: {
+            where: {
+              programId,
+              createdAt: {
+                gt: subDays(new Date(), 3), // sent in the last 3 days
+              },
+              senderPartnerId: null, // not sent by the partner
+              readInApp: null, // unread messages only
+              readInEmail: null, // unread messages only
             },
-            senderPartnerId: null, // not sent by the partner
-            readInApp: null, // unread messages only
-            readInEmail: null, // unread messages only
+            orderBy: {
+              createdAt: "desc",
+            },
+            include: {
+              senderUser: true,
+            },
           },
-          orderBy: {
-            createdAt: "desc",
-          },
-          include: {
-            senderUser: true,
-          },
-        },
-        users: {
-          include: {
-            user: true,
-          },
-          where: {
-            notificationPreferences: {
-              newMessageFromProgram: true,
+          users: {
+            include: {
+              user: true,
+            },
+            where: {
+              notificationPreferences: {
+                newMessageFromProgram: true,
+              },
             },
           },
         },
-      },
-    });
+      }),
+      prisma.program.findUniqueOrThrow({
+        where: {
+          id: programId,
+        },
+      }),
+    ]);
 
     // unread messages are already sorted by latest message first
     const unreadMessages = partner.messages;
@@ -98,8 +97,6 @@ export async function POST(req: Request) {
       return logAndRespond(
         `No partner emails to notify for partner ${partnerId}. Skipping...`,
       );
-
-    const program = partner.programs[0].program;
 
     const { data, error } = await sendBatchEmail(
       partnerUsersToNotify.map(({ email }) => ({
