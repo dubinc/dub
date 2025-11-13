@@ -1,7 +1,7 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CampaignList } from "@/lib/types";
 import { workflowConditionSchema } from "@/lib/zod/schemas/workflows";
-import { ChevronUp, Clone2, LoadingSpinner } from "@dub/ui";
+import { ChevronUp, Copy, LoadingSpinner } from "@dub/ui";
 import { cn, fetcher } from "@dub/utils";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -74,7 +74,7 @@ export function DuplicateLogicWarning() {
               {isLoading ? (
                 <LoadingSpinner className="size-3 shrink-0" />
               ) : (
-                <Clone2 className="text-content-emphasis size-3 shrink-0" />
+                <Copy className="text-content-emphasis size-3 shrink-0" />
               )}
               <span className="text-content-emphasis min-w-0 truncate text-xs font-semibold">
                 Duplicate campaigns detected

@@ -62,7 +62,6 @@ export * from "./circle-warning";
 export * from "./circle-xmark";
 export * from "./circles";
 export * from "./circles3";
-export * from "./clone2";
 export * from "./cloud";
 export * from "./cloud-upload";
 export * from "./code";
