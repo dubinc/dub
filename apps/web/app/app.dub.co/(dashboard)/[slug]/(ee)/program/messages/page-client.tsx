@@ -1,12 +1,17 @@
 "use client";
 
+import useProgram from "@/lib/swr/use-program";
 import { useMessagesContext } from "@/ui/messages/messages-context";
 import { ChevronLeft, Msgs } from "@dub/ui/icons";
+import { MessagesDisabled } from "./messages-disabled";
 
 export function ProgramMessagesPageClient() {
+  const { program } = useProgram();
   const { setCurrentPanel } = useMessagesContext();
 
-  return (
+  return program?.messagingEnabledAt === null ? (
+    <MessagesDisabled />
+  ) : (
     <div className="flex h-full flex-col">
       <div className="border-border-subtle flex h-12 items-center gap-2 border-b px-4 sm:h-16 sm:px-6">
         <button

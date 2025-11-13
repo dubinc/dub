@@ -1,6 +1,5 @@
 "use server";
 
-import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { prisma } from "@dub/prisma";
 import { z } from "zod";
 import { authPartnerActionClient } from "../safe-action";
@@ -16,16 +15,35 @@ export const markProgramMessagesReadAction = authPartnerActionClient
     const { partner } = ctx;
     const { programSlug } = parsedInput;
 
-    const { partnerId, programId } = await getProgramEnrollmentOrThrow({
-      programId: programSlug,
-      partnerId: partner.id,
-      include: {},
+    const program = await prisma.program.findFirstOrThrow({
+      select: {
+        id: true,
+      },
+      where: {
+        slug: programSlug,
+        OR: [
+          {
+            partners: {
+              some: {
+                partnerId: partner.id,
+              },
+            },
+          },
+          {
+            messages: {
+              some: {
+                partnerId: partner.id,
+              },
+            },
+          },
+        ],
+      },
     });
 
     await prisma.message.updateMany({
       where: {
-        partnerId,
-        programId,
+        partnerId: partner.id,
+        programId: program.id,
         readInApp: null,
         senderPartnerId: null,
       },
