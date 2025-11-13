@@ -45,8 +45,8 @@ importers:
         specifier: ^0.1.5
         version: 0.1.5(@axiomhq/js@1.3.1)
       '@axiomhq/nextjs':
-        specifier: ^0.1.5
-        version: 0.1.5(@axiomhq/logging@0.1.5(@axiomhq/js@1.3.1))(next@15.5.4(@opentelemetry/api@1.9.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))
+        specifier: ^0.1.6
+        version: 0.1.6(@axiomhq/logging@0.1.5(@axiomhq/js@1.3.1))(next@15.5.4(@opentelemetry/api@1.9.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))
       '@boxyhq/saml-jackson':
         specifier: 1.52.1
         version: 1.52.1(socks@2.8.4)(ts-node@10.9.2(@swc/core@1.3.101(@swc/helpers@0.5.15))(@types/node@18.11.9)(typescript@5.4.4))
@@ -1227,10 +1227,10 @@ packages:
       '@axiomhq/js':
         optional: true
 
-  '@axiomhq/nextjs@0.1.5':
-    resolution: {integrity: sha512-O4zz8pLzxa9H1btsyQ42c5I8ZJy+JafzCfKSxp5Cd2d3zLxlVv29Z9+kL+kLYrFEOZ4Jx9xMTgrvpEQR2PSF7g==}
+  '@axiomhq/nextjs@0.1.6':
+    resolution: {integrity: sha512-5l1Q/ktlL+OSLd7MPMXyj8Hxdb6GoJ0Z2iBsSLWy3lgTe4QC+iboYJCEhChtXSCiF9WnGJYETM+ONNHktBRcsQ==}
     peerDependencies:
-      '@axiomhq/logging': 0.1.5
+      '@axiomhq/logging': 0.1.6
       next: ^15 || ^14 || ^13
 
   '@azure/abort-controller@1.1.0':
@@ -14503,7 +14503,7 @@ snapshots:
     optionalDependencies:
       '@axiomhq/js': 1.3.1
 
-  '@axiomhq/nextjs@0.1.5(@axiomhq/logging@0.1.5(@axiomhq/js@1.3.1))(next@15.5.4(@opentelemetry/api@1.9.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))':
+  '@axiomhq/nextjs@0.1.6(@axiomhq/logging@0.1.5(@axiomhq/js@1.3.1))(next@15.5.4(@opentelemetry/api@1.9.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))':
     dependencies:
       '@axiomhq/logging': 0.1.5(@axiomhq/js@1.3.1)
       next: 15.5.4(@opentelemetry/api@1.9.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
