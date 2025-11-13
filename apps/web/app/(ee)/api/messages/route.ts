@@ -29,7 +29,7 @@ export const GET = withWorkspace(
             OR: [
               { discoverableAt: { not: null } },
               { programs: { some: { programId } } },
-              { messages: { some: { programId, type: "direct" } } },
+              { messages: { some: { programId } } },
             ],
           }
         : {

@@ -52,7 +52,6 @@ export const messageProgramAction = authPartnerActionClient
               some: {
                 partnerId: partner.id,
                 senderPartnerId: null, // Sent by the program
-                type: "direct",
               },
             },
           },

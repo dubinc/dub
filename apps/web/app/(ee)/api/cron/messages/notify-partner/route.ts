@@ -51,7 +51,6 @@ export async function POST(req: Request) {
                 createdAt: {
                   gt: subDays(new Date(), 3), // sent in the last 3 days
                 },
-                type: "direct", // only notify for direct messages
                 senderPartnerId: null, // not sent by the partner
                 readInApp: null, // unread messages only
                 readInEmail: null, // unread messages only

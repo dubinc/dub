@@ -46,7 +46,6 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
                   some: {
                     partnerId: partner.id,
                     senderPartnerId: null, // Sent by the program
-                    type: "direct",
                   },
                 },
               },
@@ -72,7 +71,6 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
                   some: {
                     partnerId: partner.id,
                     senderPartnerId: null, // Sent by the program
-                    type: "direct",
                   },
                 },
               },

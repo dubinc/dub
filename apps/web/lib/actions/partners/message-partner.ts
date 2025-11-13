@@ -2,6 +2,7 @@
 
 import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
+import { getNetworkInvitesUsage } from "@/lib/api/partners/get-network-invites-usage";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { qstash } from "@/lib/cron";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
@@ -36,7 +37,7 @@ export const messagePartnerAction = authActionClient
     }
 
     // Make sure partner is either discoverable, enrolled in the program, or already has a message with the program
-    await prisma.partner.findFirstOrThrow({
+    const { _count } = await prisma.partner.findFirstOrThrow({
       where: {
         id: partnerId,
         OR: [
@@ -61,7 +62,54 @@ export const messagePartnerAction = authActionClient
           },
         ],
       },
+      include: {
+        _count: {
+          select: {
+            programs: {
+              where: {
+                programId,
+              },
+            },
+            messages: {
+              where: {
+                programId,
+              },
+            },
+          },
+        },
+      },
     });
+
+    // if partner is not enrolled in the program and it's the first message
+    // it means the program is reaching out via the partner network
+    if (_count.programs === 0 && _count.messages === 0) {
+      const networkInvitesUsage = await getNetworkInvitesUsage(workspace);
+
+      if (networkInvitesUsage >= workspace.networkInvitesLimit) {
+        throw new DubApiError({
+          code: "forbidden",
+          message: "You have reached your partner network invitations limit.",
+        });
+      }
+
+      await prisma.discoveredPartner.upsert({
+        where: {
+          programId_partnerId: {
+            programId,
+            partnerId,
+          },
+        },
+        create: {
+          id: createId({ prefix: "dpn_" }),
+          programId,
+          partnerId,
+          messagedAt: new Date(),
+        },
+        update: {
+          messagedAt: new Date(),
+        },
+      });
+    }
 
     const message = await prisma.message.create({
       data: {
