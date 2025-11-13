@@ -33,44 +33,43 @@ export async function POST(req: Request) {
       JSON.parse(rawBody),
     );
 
-    const programEnrollment = await prisma.programEnrollment.findUniqueOrThrow({
+    const partner = await prisma.partner.findUniqueOrThrow({
       where: {
-        partnerId_programId: {
-          partnerId,
-          programId,
-        },
-        status: "approved",
+        id: partnerId,
       },
       include: {
-        program: true,
-        partner: {
-          include: {
-            messages: {
-              where: {
-                programId,
-                createdAt: {
-                  gt: subDays(new Date(), 3), // sent in the last 3 days
-                },
-                senderPartnerId: null, // not sent by the partner
-                readInApp: null, // unread messages only
-                readInEmail: null, // unread messages only
-              },
-              orderBy: {
-                createdAt: "desc",
-              },
-              include: {
-                senderUser: true,
-              },
+        programs: {
+          where: {
+            programId,
+          },
+          select: {
+            program: true,
+          },
+        },
+        messages: {
+          where: {
+            programId,
+            createdAt: {
+              gt: subDays(new Date(), 3), // sent in the last 3 days
             },
-            users: {
-              include: {
-                user: true,
-              },
-              where: {
-                notificationPreferences: {
-                  newMessageFromProgram: true,
-                },
-              },
+            senderPartnerId: null, // not sent by the partner
+            readInApp: null, // unread messages only
+            readInEmail: null, // unread messages only
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+          include: {
+            senderUser: true,
+          },
+        },
+        users: {
+          include: {
+            user: true,
+          },
+          where: {
+            notificationPreferences: {
+              newMessageFromProgram: true,
             },
           },
         },
@@ -78,7 +77,7 @@ export async function POST(req: Request) {
     });
 
     // unread messages are already sorted by latest message first
-    const unreadMessages = programEnrollment.partner.messages;
+    const unreadMessages = partner.messages;
 
     if (unreadMessages.length === 0)
       return logAndRespond(
@@ -91,7 +90,7 @@ export async function POST(req: Request) {
         `There is a more recent unread message than ${lastMessageId}. Skipping...`,
       );
 
-    const partnerUsersToNotify = programEnrollment.partner.users
+    const partnerUsersToNotify = partner.users
       .map(({ user }) => user)
       .filter(Boolean) as { email: string; id: string }[];
 
@@ -100,7 +99,7 @@ export async function POST(req: Request) {
         `No partner emails to notify for partner ${partnerId}. Skipping...`,
       );
 
-    const program = programEnrollment.program;
+    const program = partner.programs[0].program;
 
     const { data, error } = await sendBatchEmail(
       partnerUsersToNotify.map(({ email }) => ({
