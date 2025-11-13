@@ -109,10 +109,10 @@ export const getCampaignsQuerySchema = z
     triggerCondition: z
       .string()
       .pipe(
-        z.preprocess((input: string) => {
-          console.log("!!! INPUT", input);
-          return JSON.parse(input);
-        }, workflowConditionSchema),
+        z.preprocess(
+          (input: string) => JSON.parse(input),
+          workflowConditionSchema,
+        ),
       )
       .optional(),
   })
