@@ -25,7 +25,6 @@ import {
   timeAgo,
 } from "@dub/utils";
 import Link from "next/link";
-import { toast } from "sonner";
 import useSWR from "swr";
 import { ConversionScoreIcon } from "./conversion-score-icon";
 import { useEditPartnerTagsModal } from "./edit-partner-tags-modal";
@@ -250,24 +249,7 @@ export function PartnerInfoCards({
           </div>
         </div>
 
-        {isEnrolled && (
-          <div className="border-border-subtle flex flex-col border-t p-4">
-            <div className="mb-2 flex justify-between gap-2">
-              <span className="text-content-emphasis block text-xs font-semibold">
-                Tags
-              </span>
-
-              <button
-                type="button"
-                onClick={() => toast.info("WIP")}
-                className="text-content-subtle hover:text-content-default text-xs font-medium"
-              >
-                Manage
-              </button>
-            </div>
-            <TagsList partner={partner} />
-          </div>
-        )}
+        {isEnrolled && partner && <TagsList partner={partner} />}
       </div>
 
       <div className="border-border-subtle flex flex-col gap-4 rounded-xl border p-4">
@@ -376,13 +358,26 @@ function TagsList({ partner }: { partner: EnrolledPartnerExtendedProps }) {
     });
 
   return (
-    <>
+    <div className="border-border-subtle flex flex-col border-t p-4">
       <EditPartnerTagsModal />
+      <div className="mb-2 flex justify-between gap-2">
+        <span className="text-content-emphasis block text-xs font-semibold">
+          Tags
+        </span>
+
+        <button
+          type="button"
+          onClick={() => setShowEditPartnerTagsModal(true)}
+          className="text-content-subtle hover:text-content-default text-xs font-medium"
+        >
+          Manage
+        </button>
+      </div>
       <PartnerTagsList
         tags={partner?.tags}
         wrap
         onAddTag={() => setShowEditPartnerTagsModal(true)}
       />
-    </>
+    </div>
   );
 }
