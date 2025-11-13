@@ -1,7 +1,7 @@
 import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
 import { includeTags } from "@/lib/api/links/include-tags";
-import { detectFraudEvent } from "@/lib/fraud/detect-fraud-event";
+import { detectAndRecordFraudEvent } from "@/lib/fraud/detect-fraud-event";
 import { generateRandomName } from "@/lib/names";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import { isStored, storage } from "@/lib/storage";
@@ -321,7 +321,7 @@ export const trackLead = async ({
                 eventType: "lead",
               }),
 
-              detectFraudEvent({
+              detectAndRecordFraudEvent({
                 programId: link.programId,
                 partner: {
                   id: webhookPartner.id,

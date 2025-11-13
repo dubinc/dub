@@ -39,7 +39,7 @@ interface DetectFraudEventProps {
 
 // Evaluate fraud risk for a conversion event
 // Executes all enabled rules and calculates risk score
-export async function detectFraudEvent(
+export async function detectAndRecordFraudEvent(
   context: DetectFraudEventProps,
 ): Promise<FraudEvaluationResult> {
   console.log("context", context);
