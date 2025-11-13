@@ -81,8 +81,13 @@ export const resolveFraudEventSchema = z.object({
     .describe("The resolution status for the fraud event."),
   resolutionReason: z
     .string()
+    .max(1000, "Reason must be less than 1000 characters")
     .optional()
     .describe("Optional notes explaining the resolution."),
+  markPartnerAsTrusted: z
+    .boolean()
+    .optional()
+    .describe("Whether to mark the partner as trusted for this program."),
 });
 
 export const fraudRuleSchema = z.object({

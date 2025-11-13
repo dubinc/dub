@@ -34,6 +34,7 @@ import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
+import { useMarkFraudEventSafeModal } from "./mark-fraud-event-safe-modal";
 import { useFraudEventsFilters } from "./use-fraud-events-filters";
 
 const fraudEventsColumns = {
@@ -45,13 +46,13 @@ export function FraudEventsTable() {
   const { queryParams, searchParams } = useRouterStuff();
   const { pagination, setPagination } = usePagination();
 
+  const sortBy = searchParams.get("sortBy") || "createdAt";
+  const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
   const status = (searchParams.get("status") || "pending") as FraudEventStatus;
   const riskLevelParam = searchParams.get("riskLevel");
   const riskLevel = riskLevelParam
     ? (riskLevelParam as FraudRiskLevel)
     : undefined;
-  const sortBy = searchParams.get("sortBy") || "createdAt";
-  const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
   const {
     filters,
@@ -256,7 +257,15 @@ function RowMenuButton({ row }: { row: Row<FraudEventProps> }) {
   const event = row.original;
   const { id: workspaceId } = useWorkspace();
 
-  const handleResolve = async (status: "safe" | "banned") => {
+  const { setShowMarkFraudEventSafeModal, MarkFraudEventSafeModal } =
+    useMarkFraudEventSafeModal({
+      fraudEvent: {
+        id: event.id,
+        partner: event.partner,
+      },
+    });
+
+  const handleResolve = async (status: "banned") => {
     if (!workspaceId) {
       toast.error("Workspace ID is required");
       return;
@@ -278,9 +287,7 @@ function RowMenuButton({ row }: { row: Row<FraudEventProps> }) {
         throw new Error("Failed to resolve fraud event");
       }
 
-      toast.success(
-        `Fraud event marked as ${status === "safe" ? "safe" : "banned"}`,
-      );
+      toast.success("Fraud event marked as banned");
       mutatePrefix("/api/fraud-events");
       setIsOpen(false);
     } catch (error) {
@@ -293,37 +300,43 @@ function RowMenuButton({ row }: { row: Row<FraudEventProps> }) {
   }
 
   return (
-    <Popover
-      openPopover={isOpen}
-      setOpenPopover={setIsOpen}
-      content={
-        <Command tabIndex={0} loop className="focus:outline-none">
-          <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[180px]">
-            <Command.Group className="p-1.5">
-              <MenuItem
-                icon={CircleCheck}
-                label="Mark as Safe"
-                onSelect={() => handleResolve("safe")}
-              />
-              <MenuItem
-                icon={CircleXmark}
-                label="Mark as Banned"
-                onSelect={() => handleResolve("banned")}
-                danger
-              />
-            </Command.Group>
-          </Command.List>
-        </Command>
-      }
-      align="end"
-    >
-      <Button
-        type="button"
-        className="h-8 whitespace-nowrap px-2"
-        variant="outline"
-        icon={<Dots className="h-4 w-4 shrink-0" />}
-      />
-    </Popover>
+    <>
+      <MarkFraudEventSafeModal />
+      <Popover
+        openPopover={isOpen}
+        setOpenPopover={setIsOpen}
+        content={
+          <Command tabIndex={0} loop className="focus:outline-none">
+            <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[180px]">
+              <Command.Group className="p-1.5">
+                <MenuItem
+                  icon={CircleCheck}
+                  label="Mark as Safe"
+                  onSelect={() => {
+                    setShowMarkFraudEventSafeModal(true);
+                    setIsOpen(false);
+                  }}
+                />
+                <MenuItem
+                  icon={CircleXmark}
+                  label="Mark as Banned"
+                  onSelect={() => handleResolve("banned")}
+                  danger
+                />
+              </Command.Group>
+            </Command.List>
+          </Command>
+        }
+        align="end"
+      >
+        <Button
+          type="button"
+          className="h-8 whitespace-nowrap px-2"
+          variant="outline"
+          icon={<Dots className="h-4 w-4 shrink-0" />}
+        />
+      </Popover>
+    </>
   );
 }
 

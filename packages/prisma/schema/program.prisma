@@ -114,6 +114,7 @@ model ProgramEnrollment {
   daysSinceLastConversion Int? // days since lastConversionAt
   consistencyScore        Int? // based on daysSinceLastConversion
 
+  trustedAt                    DateTime?
   createdAt                    DateTime             @default(now())
   updatedAt                    DateTime             @updatedAt
   customerDataSharingEnabledAt DateTime?
