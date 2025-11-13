@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { defineFraudRule } from "../define-fraud-rule";
-import type { FraudReason } from "../fraud-reasons";
+import { FraudReason } from "../types";
 
 const contextSchema = z.object({
   partner: z.object({

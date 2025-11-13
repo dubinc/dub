@@ -1,5 +1,10 @@
 "use client";
 
+import {
+  FRAUD_RISK_LEVEL_BADGES,
+  FRAUD_RULE_TYPE_LABELS,
+} from "@/lib/fraud/constants";
+import { FraudTriggeredRule } from "@/lib/fraud/types";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useFraudEvents } from "@/lib/swr/use-fraud-events";
 import { useFraudEventsCount } from "@/lib/swr/use-fraud-events-count";
@@ -7,11 +12,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { FraudEventProps } from "@/lib/types";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
-import {
-  FraudEventStatus,
-  FraudRiskLevel,
-  FraudRuleType,
-} from "@dub/prisma/client";
+import { FraudEventStatus, FraudRiskLevel } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
   Button,
@@ -28,7 +29,7 @@ import {
   useTable,
 } from "@dub/ui";
 import { CircleCheck, CircleXmark, Dots, ShieldKeyhole } from "@dub/ui/icons";
-import { formatDate } from "@dub/utils";
+import { currencyFormatter, formatDateTimeSmart } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { useMemo, useState } from "react";
@@ -36,75 +37,13 @@ import { toast } from "sonner";
 import { useFraudEventsFilters } from "./use-fraud-events-filters";
 
 const fraudEventsColumns = {
-  all: [
-    "partner",
-    "flagged",
-    "reasons",
-    "riskLevel",
-    "status",
-    "riskScore",
-    "createdAt",
-  ],
-  defaultVisible: ["partner", "flagged", "reasons", "riskLevel", "status"],
+  all: ["partner", "createdAt", "reasons", "riskLevel", "amount"],
+  defaultVisible: ["partner", "createdAt", "reasons", "riskLevel", "amount"],
 };
-
-const FRAUD_RISK_LEVEL_BADGES = {
-  high: {
-    label: "High",
-    variant: "error" as const,
-  },
-  medium: {
-    label: "Medium",
-    variant: "warning" as const,
-  },
-  low: {
-    label: "Low",
-    variant: "pending" as const,
-  },
-};
-
-const FRAUD_EVENT_STATUS_BADGES = {
-  pending: {
-    label: "Pending",
-    variant: "pending" as const,
-  },
-  safe: {
-    label: "Safe",
-    variant: "success" as const,
-  },
-  banned: {
-    label: "Banned",
-    variant: "error" as const,
-  },
-};
-
-const FRAUD_RULE_TYPE_LABELS: Record<FraudRuleType, string> = {
-  customer_ip_suspicious: "Suspicious IP",
-  self_referral: "Self-Referral",
-  customer_email_suspicious_domain: "Suspicious Email Domain",
-  customer_ip_country_mismatch: "IP Country Mismatch",
-  banned_referral_domain: "Banned Referral Domain",
-  suspicious_activity_spike: "Activity Spike",
-  paid_ad_traffic_detected: "Paid Ad Traffic",
-  abnormally_fast_conversion: "Fast Conversion",
-};
-
-function formatTriggeredRules(triggeredRules: any): string {
-  if (!triggeredRules || !Array.isArray(triggeredRules)) {
-    return "-";
-  }
-
-  return triggeredRules
-    .map((rule: any) => {
-      const ruleType = rule.ruleType as FraudRuleType;
-      return FRAUD_RULE_TYPE_LABELS[ruleType] || ruleType;
-    })
-    .join(", ");
-}
 
 export function FraudEventsTable() {
   const { queryParams, searchParams } = useRouterStuff();
-  const { id: workspaceId } = useWorkspace();
+  const { pagination, setPagination } = usePagination();
 
   const status = (searchParams.get("status") || "pending") as FraudEventStatus;
   const riskLevelParam = searchParams.get("riskLevel");
@@ -127,8 +66,6 @@ export function FraudEventsTable() {
     "fraud-events-table-columns",
     fraudEventsColumns,
   );
-
-  const { pagination, setPagination } = usePagination();
 
   const { fraudEventsCount, error: countError } = useFraudEventsCount<number>({
     status,
@@ -168,25 +105,23 @@ export function FraudEventsTable() {
                   id: partner.id,
                   name: partner.name || "Unknown",
                 }}
-                showPermalink={false}
+                showPermalink={true}
               />
             );
           },
         },
         {
-          id: "flagged",
+          id: "createdAt",
           header: "Flagged",
           minSize: 150,
           cell: ({ row }: { row: Row<FraudEventProps> }) => (
             <TimestampTooltip
               timestamp={row.original.createdAt}
               side="right"
-              rows={["local"]}
+              rows={["local", "utc", "unix"]}
               delayDuration={150}
             >
-              <span>
-                {formatDate(row.original.createdAt, { month: "short" })}
-              </span>
+              <p>{formatDateTimeSmart(row.original.createdAt)}</p>
             </TimestampTooltip>
           ),
         },
@@ -201,7 +136,7 @@ export function FraudEventsTable() {
         },
         {
           id: "riskLevel",
-          header: "Risk Level",
+          header: "Risk level",
           minSize: 120,
           cell: ({ row }: { row: Row<FraudEventProps> }) => {
             const badge = FRAUD_RISK_LEVEL_BADGES[row.original.riskLevel];
@@ -213,40 +148,13 @@ export function FraudEventsTable() {
           },
         },
         {
-          id: "status",
-          header: "Status",
+          id: "amount",
+          header: "Hold amount",
           minSize: 120,
-          cell: ({ row }: { row: Row<FraudEventProps> }) => {
-            const badge = FRAUD_EVENT_STATUS_BADGES[row.original.status];
-            return (
-              <StatusBadge icon={null} variant={badge.variant}>
-                {badge.label}
-              </StatusBadge>
-            );
-          },
-        },
-        {
-          id: "riskScore",
-          header: "Risk Score",
-          minSize: 100,
-          accessorFn: (d: FraudEventProps) => d.riskScore.toString(),
-        },
-        {
-          id: "createdAt",
-          header: "Created",
-          minSize: 150,
-          cell: ({ row }: { row: Row<FraudEventProps> }) => (
-            <TimestampTooltip
-              timestamp={row.original.createdAt}
-              side="right"
-              rows={["local"]}
-              delayDuration={150}
-            >
-              <span>
-                {formatDate(row.original.createdAt, { month: "short" })}
-              </span>
-            </TimestampTooltip>
-          ),
+          accessorFn: (d: FraudEventProps) =>
+            d.commission?.earnings
+              ? currencyFormatter(d.commission.earnings)
+              : "-",
         },
         {
           id: "menu",
@@ -443,4 +351,14 @@ function MenuItem({
       {label}
     </Command.Item>
   );
+}
+
+function formatTriggeredRules(triggeredRules: FraudTriggeredRule[]) {
+  if (!triggeredRules || !Array.isArray(triggeredRules)) {
+    return "-";
+  }
+
+  return triggeredRules
+    .map((rule) => FRAUD_RULE_TYPE_LABELS[rule.ruleType])
+    .join(", ");
 }

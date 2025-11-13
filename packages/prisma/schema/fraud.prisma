@@ -54,11 +54,12 @@ model FraudEvent {
   customer   Customer?   @relation(fields: [customerId], references: [id])
   link       Link?       @relation(fields: [linkId], references: [id])
   commission Commission? @relation(fields: [commissionId], references: [id])
+  user       User?       @relation(fields: [userId], references: [id])
 
   @@index(programId)
   @@index(partnerId)
   @@index(customerId)
   @@index(linkId)
-  @@index(commissionId)
   @@index(eventId)
+  @@index(userId)
 }

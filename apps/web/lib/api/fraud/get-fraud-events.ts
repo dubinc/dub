@@ -33,18 +33,19 @@ export async function getFraudEvents(filters: FraudEventFilters) {
           email: true,
         },
       },
-      customer: {
+      user: {
         select: {
           id: true,
           name: true,
           email: true,
         },
       },
-      link: {
+      commission: {
         select: {
           id: true,
-          key: true,
-          domain: true,
+          earnings: true,
+          currency: true,
+          status: true,
         },
       },
     },
@@ -62,4 +63,3 @@ export async function getFraudEvents(filters: FraudEventFilters) {
     resolvedAt: event.resolvedAt ? new Date(event.resolvedAt) : null,
   }));
 }
-

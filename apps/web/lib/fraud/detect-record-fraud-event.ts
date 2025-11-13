@@ -3,15 +3,8 @@ import { FraudRiskLevel, FraudRuleType, Prisma } from "@dub/prisma/client";
 import { createId } from "../api/create-id";
 import { RISK_LEVEL_ORDER, RISK_LEVEL_WEIGHTS } from "./constants";
 import { executeFraudRule } from "./execute-fraud-rule";
-import type { FraudReason } from "./fraud-reasons";
 import { getFraudRules } from "./fraud-rules-registry";
-
-interface TriggeredRule {
-  ruleType: FraudRuleType;
-  riskLevel: FraudRiskLevel;
-  reason?: FraudReason;
-  metadata?: Record<string, unknown>;
-}
+import { FraudTriggeredRule } from "./types";
 
 interface DetectFraudEventProps {
   program: {
@@ -87,7 +80,7 @@ export async function detectAndRecordFraudEvent(
 
   let riskScore = 0;
   let riskLevel: FraudRiskLevel = "low";
-  const triggeredRules: TriggeredRule[] = [];
+  const triggeredRules: FraudTriggeredRule[] = [];
 
   console.debug("[detectAndRecordFraudEvent] active rules", activeRules);
 

@@ -1,49 +1,38 @@
 import { FraudEventStatus, FraudRiskLevel } from "@dub/prisma/client";
 import { z } from "zod";
+import { CommissionSchema } from "./commissions";
 import { getPaginationQuerySchema } from "./misc";
+import { PartnerSchema } from "./partners";
+import { UserSchema } from "./users";
 
 export const FRAUD_EVENTS_MAX_PAGE_SIZE = 100;
 
 export const fraudEventSchema = z.object({
   id: z.string(),
-  programId: z.string(),
-  partnerId: z.string(),
-  linkId: z.string().nullable(),
-  customerId: z.string().nullable(),
-  eventId: z.string().nullable(),
-  eventType: z.string().nullable(),
   riskLevel: z.nativeEnum(FraudRiskLevel),
   riskScore: z.number(),
   triggeredRules: z.any(), // JSON field
-  userId: z.string().nullable(),
   resolutionReason: z.string().nullable(),
   resolvedAt: z.date().nullable(),
   status: z.nativeEnum(FraudEventStatus),
   createdAt: z.date(),
   updatedAt: z.date(),
-  partner: z
-    .object({
-      id: z.string(),
-      name: z.string().nullable(),
-      email: z.string().nullable(),
-    })
-    .optional(),
-  customer: z
-    .object({
-      id: z.string(),
-      name: z.string().nullable(),
-      email: z.string().nullable(),
-    })
-    .nullable()
-    .optional(),
-  link: z
-    .object({
-      id: z.string(),
-      key: z.string(),
-      domain: z.string(),
-    })
-    .nullable()
-    .optional(),
+  user: UserSchema.pick({
+    id: true,
+    name: true,
+    email: true,
+  }).nullable(),
+  partner: PartnerSchema.pick({
+    id: true,
+    name: true,
+    email: true,
+  }).nullable(),
+  commission: CommissionSchema.pick({
+    id: true,
+    earnings: true,
+    currency: true,
+    status: true,
+  }).nullable(),
 });
 
 export const fraudEventListQuerySchema = z
