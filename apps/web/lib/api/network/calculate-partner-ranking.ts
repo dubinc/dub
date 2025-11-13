@@ -39,7 +39,7 @@ export interface PartnerRankingParams extends PartnerRankingFilters {
  * Final Score = Trusted Bonus + Similarity + Match (0-265+ points)
  *
  * Displayed Metrics:
- * - conversionRate: Average conversion rate across ALL programs the partner is enrolled in
+ * - clickToConversionRate: Average click-to-conversion rate across ALL programs the partner is enrolled in
  * - lastConversionAt: Most recent conversion date across ALL programs the partner is enrolled in
  *
  * Note: Ranking is primarily used for the "discover" tab. For "invited" and "recruited"
@@ -58,7 +58,7 @@ export async function calculatePartnerRanking({
   const conditions: Prisma.Sql[] = [
     Prisma.sql`p.discoverableAt IS NOT NULL`,
     Prisma.sql`(dp.ignoredAt IS NULL OR dp.id IS NULL)`,
-    Prisma.sql`COALESCE(pe.conversionRate, 0) < 1`,
+    Prisma.sql`COALESCE(pe.clickToConversionRate, 0) < 1`,
   ];
 
   if (partnerIds && partnerIds.length > 0) {
@@ -135,7 +135,7 @@ export async function calculatePartnerRanking({
     SELECT 
       pe_all.partnerId,
       MAX(pe_all.lastConversionAt) as lastConversionAt,
-      AVG(COALESCE(pe_all.conversionRate, 0)) as avgConversionRate
+      AVG(COALESCE(pe_all.clickToConversionRate, 0)) as avgConversionRate
     FROM ProgramEnrollment pe_all FORCE INDEX (ProgramEnrollment_partnerId_programId_key)
     -- OPTIMIZATION: Only process enrollments for discoverable partners (using subquery to avoid JOIN)
     WHERE pe_all.partnerId IN (
@@ -159,9 +159,9 @@ export async function calculatePartnerRanking({
             -- Individual program performance score (0-1 range per program)
             (COALESCE(pe2.consistencyScore, 50) / 100 * 0.20) +
             (CASE 
-              WHEN COALESCE(pe2.conversionRate, 0) <= 0 THEN 0
-              WHEN COALESCE(pe2.conversionRate, 0) >= 0.1 THEN 0.10
-              ELSE (SQRT(LOG10(COALESCE(pe2.conversionRate, 0) * 1000 + 1)) * 40 / 100) * 0.10
+              WHEN COALESCE(pe2.clickToConversionRate, 0) <= 0 THEN 0
+              WHEN COALESCE(pe2.clickToConversionRate, 0) >= 0.1 THEN 0.10
+              ELSE (SQRT(LOG10(COALESCE(pe2.clickToConversionRate, 0) * 1000 + 1)) * 40 / 100) * 0.10
             END) +
             (CASE 
               WHEN COALESCE(pe2.averageLifetimeValue, 0) <= 0 THEN 0
@@ -208,7 +208,7 @@ export async function calculatePartnerRanking({
     SELECT 
       p.*,
       COALESCE(pe.lastConversionAt, allProgramMetrics.lastConversionAt) as lastConversionAt,
-      COALESCE(pe.conversionRate, allProgramMetrics.avgConversionRate) as conversionRate,
+      COALESCE(pe.clickToConversionRate, allProgramMetrics.avgConversionRate) as conversionRate,
       dp.starredAt,
       dp.ignoredAt,
       dp.invitedAt,
