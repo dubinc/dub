@@ -327,7 +327,7 @@ export function PartnersTable() {
               "Earnings Per Click (EPC).  \n`Total Revenue ÷ Total Clicks`",
           },
           accessorFn: (d: EnrolledPartnerProps) =>
-            currencyFormatter(d.earningsPerClick),
+            d.earningsPerClick ? currencyFormatter(d.earningsPerClick) : "-",
         },
         {
           id: "averageLifetimeValue",
