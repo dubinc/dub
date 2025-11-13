@@ -33,6 +33,7 @@ model DiscoveredPartner {
   starredAt DateTime?
   ignoredAt DateTime?
   invitedAt DateTime?
+  messagedAt DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

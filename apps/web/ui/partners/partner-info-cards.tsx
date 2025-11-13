@@ -246,12 +246,16 @@ export function PartnerInfoCards({
 
       <div className="border-border-subtle flex flex-col gap-4 rounded-xl border p-4">
         <h2 className="text-content-emphasis text-sm font-semibold">
-          Organization
+          {isEnrolled ? "Organization" : "Invite group"}
         </h2>
 
         {/* Group */}
         <div className="flex flex-col gap-2">
-          <h3 className="text-content-emphasis text-xs font-semibold">Group</h3>
+          {isEnrolled && (
+            <h3 className="text-content-emphasis text-xs font-semibold">
+              Group
+            </h3>
+          )}
           {partner ? (
             <PartnerInfoGroup
               partner={partner}
