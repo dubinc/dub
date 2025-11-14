@@ -2,7 +2,7 @@
 
 import { generatePaypalOAuthUrl } from "@/lib/actions/partners/generate-paypal-oauth-url";
 import { generateStripeAccountLink } from "@/lib/actions/partners/generate-stripe-account-link";
-import { hasPermission } from "@/lib/auth/partner-user-permissions";
+import { hasPermission } from "@/lib/auth/partner-users/partner-user-permissions";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { Button, ButtonProps, TooltipContent } from "@dub/ui";
 import {

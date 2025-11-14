@@ -1,7 +1,7 @@
 "use server";
 
 import { confirmEmailChange } from "@/lib/auth/confirm-email-change";
-import { throwIfNoPermission } from "@/lib/auth/partner-user-permissions";
+import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
 import { qstash } from "@/lib/cron";
 import { getDiscoverabilityRequirements } from "@/lib/partners/get-discoverability-requirements";
 import { storage } from "@/lib/storage";

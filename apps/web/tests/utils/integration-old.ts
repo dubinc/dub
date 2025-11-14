@@ -1,5 +1,5 @@
 import { Project, User } from "@dub/prisma/client";
-import { type TaskContext } from "vitest";
+import { type TestContext } from "vitest";
 import { z } from "zod";
 import { env, integrationTestEnv } from "./env";
 import { HttpClient } from "./http";
@@ -12,13 +12,13 @@ interface Resources {
 }
 
 export class IntegrationHarnessOld {
-  private readonly ctx?: TaskContext;
+  private readonly ctx?: TestContext;
   private env: z.infer<typeof integrationTestEnv>;
   public resources: Resources;
   public baseUrl: string;
   public http: HttpClient;
 
-  constructor(ctx?: TaskContext) {
+  constructor(ctx?: TestContext) {
     this.env = env;
     this.ctx = ctx;
     this.baseUrl = this.env.E2E_BASE_URL;

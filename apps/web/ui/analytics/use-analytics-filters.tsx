@@ -313,7 +313,7 @@ export function useAnalyticsFilters({
   const getFilterOptionTotal = useCallback(
     ({ count, saleAmount }: { count?: number; saleAmount?: number }) => {
       return selectedTab === "sales" && saleUnit === "saleAmount" && saleAmount
-        ? currencyFormatter(saleAmount / 100)
+        ? currencyFormatter(saleAmount)
         : nFormatter(count, { full: true });
     },
     [selectedTab, saleUnit],

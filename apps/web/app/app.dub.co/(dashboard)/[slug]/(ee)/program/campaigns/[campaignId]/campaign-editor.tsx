@@ -2,7 +2,6 @@ import { uploadEmailImageAction } from "@/lib/actions/partners/upload-email-imag
 import { CAMPAIGN_READONLY_STATUSES } from "@/lib/api/campaigns/constants";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import { useEmailDomains } from "@/lib/swr/use-email-domains";
-import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Campaign, UpdateCampaignFormData } from "@/lib/types";
 import { EMAIL_TEMPLATE_VARIABLES } from "@/lib/zod/schemas/campaigns";
@@ -10,7 +9,6 @@ import { PageContentWithSidePanel } from "@/ui/layout/page-content/page-content-
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { CampaignStatus } from "@dub/prisma/client";
 import {
-  Button,
   ChevronRight,
   Lock,
   PaperPlane,
@@ -43,6 +41,7 @@ import { CampaignControls } from "./campaign-controls";
 import { CampaignEvents } from "./campaign-events";
 import { CampaignGroupsSelector } from "./campaign-groups-selector";
 import { CampaignMetrics } from "./campaign-metrics";
+import { DuplicateLogicWarning } from "./duplicate-logic-warning";
 import { TransactionalCampaignLogic } from "./transactional-campaign-logic";
 import { isValidTriggerCondition } from "./utils";
 
@@ -87,7 +86,6 @@ const statusMessages = {
 };
 
 export function CampaignEditor({ campaign }: { campaign: Campaign }) {
-  const { program } = useProgram();
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
   const { emailDomains } = useEmailDomains();
   const firstVerifiedEmailDomain = emailDomains?.find(
@@ -310,7 +308,7 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
         contentWrapperClassName="flex flex-col"
       >
         <PageWidthWrapper className="mb-8 max-w-[600px]">
-          <div className="grid grid-cols-[max-content_minmax(0,1fr)] items-center gap-x-6 [&>*:nth-child(n+2)]:mt-2">
+          <div className="grid grid-cols-[max-content_minmax(0,1fr)] items-center gap-x-6 [&>*:nth-child(n+3)]:mt-2">
             <span className={labelClassName}>Name</span>
             <DisabledInputWrapper
               tooltip={isReadOnly ? statusMessages[campaign.status] : ""}
@@ -326,7 +324,7 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
               />
             </DisabledInputWrapper>
 
-            <label className="contents">
+            <label className="contents [&>*]:mt-2">
               <span className={labelClassName}>From</span>
               <Controller
                 control={control}
@@ -503,6 +501,8 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
             )}
           </div>
 
+          {!isReadOnly && <DuplicateLogicWarning />}
+
           <div className="mt-6">
             <Controller
               control={control}
@@ -560,22 +560,6 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
               )}
             />
           </div>
-
-          {program?.messagingEnabledAt && campaign.type === "transactional" && (
-            <div className="mt-6 flex flex-col gap-3 rounded-xl border border-blue-200 bg-blue-50 p-4">
-              <div className="flex items-center justify-center gap-2 text-sm">
-                <Lock className="size-4 shrink-0 text-blue-500" />
-                <span className="text-sm font-medium text-blue-900">
-                  Allows the partner to respond in messages with any questions.
-                </span>
-              </div>
-              <Button
-                text="Respond in Dub"
-                className="pointer-events-none h-9 select-none rounded-lg"
-                aria-hidden
-              />
-            </div>
-          )}
 
           <div className="border-border-subtle mt-4 w-full border-t pt-4 text-center text-xs font-medium text-neutral-300">
             End of email

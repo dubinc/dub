@@ -252,7 +252,7 @@ const StatsBadge = memo(({ link }: { link: PartnerProfileLinkProps }) => {
           />
           <span>
             {tab === "sales"
-              ? currencyFormatter(value / 100, {
+              ? currencyFormatter(value, {
                   trailingZeroDisplay: "stripIfInteger",
                 })
               : nFormatter(value)}
@@ -312,7 +312,7 @@ const StatsCharts = memo(({ link }: { link: PartnerProfileLinkProps }) => {
   const chartData = useMemo(() => {
     return timeseries?.map(({ start, clicks, leads, saleAmount }) => ({
       date: new Date(start),
-      values: { clicks, leads, saleAmount: saleAmount / 100 },
+      values: { clicks, leads, saleAmount: saleAmount },
     }));
   }, [timeseries]);
 

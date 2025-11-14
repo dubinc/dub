@@ -88,7 +88,10 @@ export function BountyLogic({ className }: { className?: string }) {
               text={
                 value
                   ? isCurrencyAttribute(attribute)
-                    ? currencyFormatter(value)
+                    ? // value is in dollars, so we need to convert to cents
+                      currencyFormatter(value * 100, {
+                        trailingZeroDisplay: "stripIfInteger",
+                      })
                     : value
                   : "amount"
               }

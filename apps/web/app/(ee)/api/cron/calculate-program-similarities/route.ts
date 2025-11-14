@@ -1,4 +1,4 @@
-import { handleApiError } from "@/lib/api/errors";
+import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { PROGRAM_SIMILARITY_SCORE_THRESHOLD } from "@/lib/constants/program";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
@@ -32,8 +32,7 @@ export async function GET(req: Request) {
 
     return await calculateProgramSimilarity();
   } catch (err) {
-    const { error, status } = handleApiError(err);
-    return logAndRespond(error.message, { status });
+    return handleAndReturnErrorResponse(err);
   }
 }
 
@@ -56,8 +55,7 @@ export async function POST(req: Request) {
       comparisonBatchCursor,
     });
   } catch (err) {
-    const { error, status } = handleApiError(err);
-    return logAndRespond(error.message, { status });
+    return handleAndReturnErrorResponse(err);
   }
 }
 

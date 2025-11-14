@@ -58,7 +58,7 @@ export const createPaymentIntent = async ({
     );
 
     console.log(
-      `Payment intent ${paymentIntent.id} created ${invoiceId ? `for invoice ${invoiceId} ` : ""}with amount ${currencyFormatter(paymentIntent.amount / 100)}`,
+      `Payment intent ${paymentIntent.id} created ${invoiceId ? `for invoice ${invoiceId} ` : ""}with amount ${currencyFormatter(paymentIntent.amount)}`,
     );
 
     return { paymentIntent, paymentMethod };

@@ -1,6 +1,6 @@
 "use server";
 
-import { throwIfNoPermission } from "@/lib/auth/partner-user-permissions";
+import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
 import { createPayPalBatchPayout } from "@/lib/paypal/create-batch-payout";
 import { ratelimit } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";

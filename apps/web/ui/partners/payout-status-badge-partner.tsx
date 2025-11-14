@@ -31,7 +31,8 @@ export const PayoutStatusBadgePartner = ({
       payout.amount < program.minPayoutAmount
     ) {
       return `This program's minimum payout amount is ${currencyFormatter(
-        program.minPayoutAmount / 100,
+        program.minPayoutAmount,
+        { trailingZeroDisplay: "stripIfInteger" },
       )}. This payout will be accrued and processed during the next payout period.`;
     }
     return (

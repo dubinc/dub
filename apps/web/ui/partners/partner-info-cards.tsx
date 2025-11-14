@@ -76,94 +76,101 @@ export function PartnerInfoCards({
     fetcher,
   );
 
-  const basicFields = isEnrolled
-    ? [
-        ...(partner?.status === "approved"
-          ? [
-              {
-                id: "lastLeadAt",
-                icon: <ChartActivity2 className="size-3.5" />,
-                text: partner.lastLeadAt
-                  ? `Last lead event ${timeAgo(new Date(partner.lastLeadAt), { withAgo: true })}`
-                  : null,
-              },
-              {
-                id: "lastConversionAt",
-                icon: <ChartActivity2 className="size-3.5" />,
-                text: partner.lastConversionAt
-                  ? `Last conversion event ${timeAgo(new Date(partner.lastConversionAt), { withAgo: true })}`
-                  : null,
-              },
-            ]
-          : []),
-        {
-          id: "companyName",
-          icon: <OfficeBuilding className="size-3.5" />,
-          text: partner ? partner.companyName || null : undefined,
-        },
-        {
-          id: "createdAt",
-          icon: <CalendarIcon className="size-3.5" />,
-          text: partner
-            ? `${partner.status === "approved" ? "Partner since" : "Applied"} ${formatDate(partner.createdAt)}`
-            : undefined,
-        },
-      ]
-    : isNetwork
-      ? [
-          {
-            id: "country",
-            icon: partner?.country ? (
-              <img
-                alt={`Flag of ${COUNTRIES[partner.country]}`}
-                src={`https://flag.vercel.app/m/${partner.country}.svg`}
-                className="size-3.5 rounded-full"
-              />
-            ) : (
-              <Globe className="size-3.5 shrink-0" />
-            ),
-            text: partner?.country
-              ? COUNTRIES[partner.country]
-              : "Planet Earth",
-          },
-          {
-            id: "conversion",
-            icon: (
-              <ConversionScoreIcon
-                score={partner?.conversionScore || null}
-                className="size-3.5 shrink-0"
-              />
-            ),
-            text: partner
-              ? partner.conversionScore
-                ? `${capitalize(partner.conversionScore)} conversion`
-                : "Unknown conversion"
-              : undefined,
-            wrapper: ConversionScoreTooltip,
-          },
-          {
-            id: "lastConversionAt",
-            icon: <ChartActivity2 className="size-3.5" />,
-            text: partner
-              ? partner.lastConversionAt
-                ? `Last conversion ${timeAgo(partner.lastConversionAt, { withAgo: true })}`
-                : "No conversions yet"
-              : undefined,
-          },
-          {
-            id: "companyName",
-            icon: <OfficeBuilding className="size-3.5" />,
-            text: partner ? partner.companyName || null : undefined,
-          },
-          {
-            id: "joinedAt",
-            icon: <CalendarIcon className="size-3.5" />,
-            text: partner
-              ? `Joined ${formatDate(partner.createdAt!)}`
-              : undefined,
-          },
-        ]
-      : [];
+  type BasicField = {
+    id: string;
+    icon: React.ReactElement;
+    text: string | null | undefined;
+    wrapper?: React.ComponentType<{ children: React.ReactNode }> | string;
+  };
+
+  let basicFields: BasicField[] = [
+    {
+      id: "country",
+      icon: partner?.country ? (
+        <img
+          alt={`Flag of ${COUNTRIES[partner.country]}`}
+          src={`https://flag.vercel.app/m/${partner.country}.svg`}
+          className="size-3.5 rounded-full"
+        />
+      ) : (
+        <Globe className="size-3.5 shrink-0" />
+      ),
+      text: partner?.country ? COUNTRIES[partner.country] : "Planet Earth",
+    },
+  ];
+
+  if (isEnrolled) {
+    basicFields = basicFields.concat([
+      ...(partner?.status === "approved"
+        ? [
+            {
+              id: "lastLeadAt",
+              icon: <ChartActivity2 className="size-3.5" />,
+              text: partner.lastLeadAt
+                ? `Last lead event ${timeAgo(new Date(partner.lastLeadAt), { withAgo: true })}`
+                : null,
+            },
+            {
+              id: "lastConversionAt",
+              icon: <ChartActivity2 className="size-3.5" />,
+              text: partner.lastConversionAt
+                ? `Last conversion event ${timeAgo(new Date(partner.lastConversionAt), { withAgo: true })}`
+                : null,
+            },
+          ]
+        : []),
+      {
+        id: "companyName",
+        icon: <OfficeBuilding className="size-3.5" />,
+        text: partner ? partner.companyName || null : undefined,
+      },
+      {
+        id: "createdAt",
+        icon: <CalendarIcon className="size-3.5" />,
+        text: partner
+          ? `${partner.status === "approved" ? "Partner since" : "Applied"} ${formatDate(partner.createdAt)}`
+          : undefined,
+      },
+    ]);
+  }
+  if (isNetwork) {
+    basicFields = basicFields.concat([
+      {
+        id: "conversion",
+        icon: (
+          <ConversionScoreIcon
+            score={partner?.conversionScore || null}
+            className="size-3.5 shrink-0"
+          />
+        ),
+        text: partner
+          ? partner.conversionScore
+            ? `${capitalize(partner.conversionScore)} conversion`
+            : "Unknown conversion"
+          : undefined,
+        wrapper: ConversionScoreTooltip,
+      },
+      {
+        id: "lastConversionAt",
+        icon: <ChartActivity2 className="size-3.5" />,
+        text: partner
+          ? partner.lastConversionAt
+            ? `Last conversion ${timeAgo(partner.lastConversionAt, { withAgo: true })}`
+            : "No conversions yet"
+          : undefined,
+      },
+      {
+        id: "companyName",
+        icon: <OfficeBuilding className="size-3.5" />,
+        text: partner ? partner.companyName || null : undefined,
+      },
+      {
+        id: "joinedAt",
+        icon: <CalendarIcon className="size-3.5" />,
+        text: partner ? `Joined ${formatDate(partner.createdAt!)}` : undefined,
+      },
+    ]);
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -239,12 +246,16 @@ export function PartnerInfoCards({
 
       <div className="border-border-subtle flex flex-col gap-4 rounded-xl border p-4">
         <h2 className="text-content-emphasis text-sm font-semibold">
-          Organization
+          {isEnrolled ? "Organization" : "Invite group"}
         </h2>
 
         {/* Group */}
         <div className="flex flex-col gap-2">
-          <h3 className="text-content-emphasis text-xs font-semibold">Group</h3>
+          {isEnrolled && (
+            <h3 className="text-content-emphasis text-xs font-semibold">
+              Group
+            </h3>
+          )}
           {partner ? (
             <PartnerInfoGroup
               partner={partner}

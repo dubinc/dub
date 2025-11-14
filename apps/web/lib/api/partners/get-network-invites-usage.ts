@@ -11,9 +11,18 @@ export async function getNetworkInvitesUsage(
       program: {
         workspaceId: workspace.id,
       },
-      invitedAt: {
-        gt: getBillingStartDate(workspace.billingCycleStart),
-      },
+      OR: [
+        {
+          invitedAt: {
+            gt: getBillingStartDate(workspace.billingCycleStart),
+          },
+        },
+        {
+          messagedAt: {
+            gt: getBillingStartDate(workspace.billingCycleStart),
+          },
+        },
+      ],
     },
   });
 

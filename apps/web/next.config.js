@@ -1,5 +1,4 @@
 const { PrismaPlugin } = require("@prisma/nextjs-monorepo-workaround-plugin");
-const { withAxiom } = require("next-axiom");
 
 // Suppress specific external package warnings
 const originalConsoleWarn = console.warn;
@@ -19,7 +18,7 @@ console.warn = (...args) => {
 };
 
 /** @type {import('next').NextConfig} */
-module.exports = withAxiom({
+module.exports = {
   reactStrictMode: false,
   transpilePackages: [
     "shiki",
@@ -201,4 +200,4 @@ module.exports = withAxiom({
       },
     ];
   },
-});
+};
