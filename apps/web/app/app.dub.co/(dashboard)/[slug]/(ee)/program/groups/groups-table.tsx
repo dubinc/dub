@@ -158,6 +158,7 @@ export function GroupsTable() {
         cell: ({ row }) => <RowMenuButton row={row} />,
       },
     ],
+    columnPinning: { right: ["menu"] },
     onRowClick: (row, e) => {
       const url = getGroupUrl({
         workspaceSlug: slug!,
