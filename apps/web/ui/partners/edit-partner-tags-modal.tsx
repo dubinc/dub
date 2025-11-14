@@ -332,9 +332,9 @@ function TagOption({
       </div>
       <div className="flex items-center gap-2">
         {Boolean(partnerCount) && (
-          <div className="flex items-center gap-1">
+          <div className="text-content-default flex items-center gap-1">
             <Users className="size-3.5 shrink-0" />
-            <span className="text-content-default text-sm font-medium tabular-nums">
+            <span className="text-sm font-medium tabular-nums">
               {partnerCount}
             </span>
           </div>
