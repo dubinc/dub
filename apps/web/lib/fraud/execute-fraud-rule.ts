@@ -1,5 +1,5 @@
 import { FraudRuleType } from "@dub/prisma/client";
-import { fraudRuleRegistry } from "./fraud-rules-registry";
+import { fraudRulesRegistry } from "./fraud-rules-registry";
 import type { FraudRuleEvaluationResult } from "./types";
 
 // Execute a fraud rule with the given context and configuration
@@ -8,7 +8,7 @@ export async function executeFraudRule<T extends FraudRuleType>(
   context: unknown,
   config?: unknown,
 ): Promise<FraudRuleEvaluationResult> {
-  const rule = fraudRuleRegistry[type];
+  const rule = fraudRulesRegistry[type];
 
   if (!rule) {
     throw new Error(`Unknown fraud rule: ${type}`);

@@ -6,7 +6,7 @@ import { checkPaidTrafficDetected } from "./rules/check-paid-traffic-detected";
 import { checkProgramBanned } from "./rules/check-program-banned";
 import { checkReferralSourceBanned } from "./rules/check-referral-source-banned";
 
-export const fraudRuleRegistry: Record<
+export const fraudRulesRegistry: Record<
   FraudRuleType,
   ReturnType<typeof defineFraudRule>
 > = {
