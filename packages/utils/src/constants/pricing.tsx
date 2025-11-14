@@ -30,6 +30,7 @@ export type PlanDetails = {
     users: number;
     ai: number;
     api: number;
+    analyticsApi: number;
     retention: string;
   };
   tiers?: {
