@@ -46,7 +46,7 @@ export default function PartnerPayoutConfirmed({
     mode: "internal" | "external" | null;
   };
 }) {
-  const saleAmountInDollars = currencyFormatter(payout.amount);
+  const payoutAmountInDollars = currencyFormatter(payout.amount);
 
   const startDate = payout.startDate
     ? formatDate(payout.startDate, {
@@ -69,7 +69,10 @@ export default function PartnerPayoutConfirmed({
   return (
     <Html>
       <Head />
-      <Preview>Your payout is being processed</Preview>
+      <Preview>
+        {program.name} has initiated a payout of {payoutAmountInDollars} for
+        affiliate commissions made from {startDate} to {endDate}.
+      </Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[600px] rounded border border-solid border-neutral-200 px-10 py-5">
@@ -81,14 +84,14 @@ export default function PartnerPayoutConfirmed({
               />
             </Section>
 
-            <Heading className="mx-0 p-0 text-lg font-medium text-black">
-              Your payout is being processed!
+            <Heading className="mx-0 my-7 p-0 text-lg font-medium text-black">
+              Your payout is on the way!
             </Heading>
 
             <Text className="text-sm leading-6 text-neutral-600">
               <strong className="text-black">{program.name}</strong> has
               initiated a payout of{" "}
-              <strong className="text-black">{saleAmountInDollars}</strong>
+              <strong className="text-black">{payoutAmountInDollars}</strong>
               {startDate && endDate ? (
                 <>
                   {" "}
