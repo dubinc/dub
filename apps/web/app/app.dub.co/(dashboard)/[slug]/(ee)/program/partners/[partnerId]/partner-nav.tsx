@@ -6,6 +6,7 @@ import {
   ArrowUpRight2,
   Hyperlink,
   InvoiceDollar,
+  LinesY,
   MoneyBills2,
   Msg,
   User,
@@ -89,6 +90,24 @@ export function PartnerNav() {
     [commentsCount],
   );
 
+  const quicklinks = useMemo(
+    () => [
+      {
+        id: "analytics",
+        label: "Analytics",
+        icon: LinesY,
+        href: `/${workspaceSlug}/program/analytics?partnerId=${partnerId}`,
+      },
+      {
+        id: "commissions",
+        label: "Commissions",
+        icon: InvoiceDollar,
+        href: `/${workspaceSlug}/program/commissions?partnerId=${partnerId}`,
+      },
+    ],
+    [workspaceSlug, partnerId],
+  );
+
   return (
     <div className="relative z-0">
       <div
@@ -96,7 +115,7 @@ export function PartnerNav() {
         onScroll={updateScrollProgress}
         className="scrollbar-hide relative z-0 flex items-center justify-between gap-1 overflow-x-auto p-2"
       >
-        <LayoutGroup id={layoutGroupId}>
+        <LayoutGroup id={`${layoutGroupId}-tabs`}>
           <motion.div
             layout
             className={cn("relative z-0 inline-flex items-center gap-1")}
@@ -136,18 +155,27 @@ export function PartnerNav() {
             })}
           </motion.div>
         </LayoutGroup>
-        <Link
-          href={`/${workspaceSlug}/program/commissions?partnerId=${partnerId}`}
-          target="_blank"
-          className={cn(
-            "text-content-emphasis relative z-10 flex items-center px-2.5 py-1 text-sm font-medium",
-            "hover:text-content-subtle z-[11] transition-colors",
-          )}
-        >
-          <InvoiceDollar className="mr-2 size-4" />
-          <span>Commissions</span>
-          <ArrowUpRight2 className="text-content-subtle ml-1 size-3.5" />
-        </Link>
+        <LayoutGroup id={`${layoutGroupId}-quicklinks`}>
+          <motion.div layout className="relative z-10 flex items-center gap-1">
+            {quicklinks.map(({ id, label, icon: Icon, href }) => {
+              return (
+                <Link
+                  key={id}
+                  href={href}
+                  target="_blank"
+                  className={cn(
+                    "text-content-emphasis relative z-10 flex items-center gap-2 px-2.5 py-1 text-sm font-medium",
+                    "hover:text-content-subtle z-[11] transition-colors",
+                  )}
+                >
+                  <Icon className="size-4" />
+                  <span>{label}</span>
+                  <ArrowUpRight2 className="text-content-subtle size-3.5" />
+                </Link>
+              );
+            })}
+          </motion.div>
+        </LayoutGroup>
       </div>
       <div
         className="pointer-events-none absolute inset-y-0 -right-px w-16 bg-gradient-to-l from-neutral-100"

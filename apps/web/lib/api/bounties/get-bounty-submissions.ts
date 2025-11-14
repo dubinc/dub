@@ -19,7 +19,7 @@ export async function getBountySubmissions({
     where: {
       bountyId,
       status: status ?? {
-        in: ["submitted", "approved"],
+        in: ["draft", "submitted", "approved"],
       },
       ...(groupId && {
         programEnrollment: {

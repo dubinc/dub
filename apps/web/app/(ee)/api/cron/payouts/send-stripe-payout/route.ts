@@ -4,7 +4,7 @@ import { createStripeTransfer } from "@/lib/partners/create-stripe-transfer";
 import { sendEmail } from "@dub/email";
 import PartnerPayoutProcessed from "@dub/email/templates/partner-payout-processed";
 import { prisma } from "@dub/prisma";
-import { log } from "@dub/utils";
+import { currencyFormatter, log } from "@dub/utils";
 import { z } from "zod";
 import { logAndRespond } from "../../utils";
 
@@ -76,7 +76,7 @@ export async function POST(req: Request) {
       const emailRes = await sendEmail({
         variant: "notifications",
         to: payout.partner.email!,
-        subject: "You've been paid!",
+        subject: `You've received a ${currencyFormatter(payout.amount)} payout from ${payout.program.name}`,
         react: PartnerPayoutProcessed({
           email: payout.partner.email!,
           program: payout.program,

@@ -3,6 +3,7 @@ import { sendBatchEmail } from "@dub/email";
 import PartnerPayoutProcessed from "@dub/email/templates/partner-payout-processed";
 import { prisma } from "@dub/prisma";
 import { Invoice } from "@dub/prisma/client";
+import { currencyFormatter } from "@dub/utils";
 
 export async function sendPaypalPayouts(invoice: Pick<Invoice, "id">) {
   const payouts = await prisma.payout.findMany({
@@ -65,7 +66,7 @@ export async function sendPaypalPayouts(invoice: Pick<Invoice, "id">) {
       .map((payout) => ({
         variant: "notifications",
         to: payout.partner.email!,
-        subject: "You've been paid!",
+        subject: `You've received a ${currencyFormatter(payout.amount)} payout from ${payout.program.name}`,
         react: PartnerPayoutProcessed({
           email: payout.partner.email!,
           program: payout.program,

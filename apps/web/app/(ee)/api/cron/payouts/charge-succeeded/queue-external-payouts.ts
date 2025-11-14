@@ -4,6 +4,7 @@ import { payoutWebhookEventSchema } from "@/lib/zod/schemas/payouts";
 import type PartnerPayoutConfirmed from "@dub/email/templates/partner-payout-confirmed";
 import { prisma } from "@dub/prisma";
 import { Invoice } from "@dub/prisma/client";
+import { currencyFormatter } from "@dub/utils";
 
 export async function queueExternalPayouts(
   invoice: Pick<
@@ -120,7 +121,7 @@ export async function queueExternalPayouts(
       .filter((payout) => payout.partner.email)
       .map((payout) => ({
         to: payout.partner.email!,
-        subject: "You've got money coming your way!",
+        subject: `Your ${currencyFormatter(payout.amount)} payout for ${program.name} is on the way`,
         variant: "notifications",
         replyTo: program.supportEmail || "noreply",
         templateName: "PartnerPayoutConfirmed",
