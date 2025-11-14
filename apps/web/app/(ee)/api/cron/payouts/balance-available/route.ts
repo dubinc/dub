@@ -170,8 +170,6 @@ export async function POST(req: Request) {
       type: "errors",
     });
 
-    console.error(error);
-
     return handleAndReturnErrorResponse(error);
   }
 }
