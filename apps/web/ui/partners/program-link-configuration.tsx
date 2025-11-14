@@ -3,7 +3,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { DomainVerificationStatusProps } from "@/lib/types";
 import DomainConfiguration from "@/ui/domains/domain-configuration";
 import { DomainSelector } from "@/ui/domains/domain-selector";
-import { InfoTooltip, Input, LinkLogo, SimpleTooltipContent } from "@dub/ui";
+import { InfoTooltip, Input, LinkLogo } from "@dub/ui";
 import { ArrowTurnRight2 } from "@dub/ui/icons";
 import { fetcher, getApexDomain, getPrettyUrl } from "@dub/utils";
 import { AnimatePresence, motion } from "motion/react";
@@ -49,15 +49,7 @@ export function ProgramLinkConfiguration({
             Custom domain
           </label>
 
-          <InfoTooltip
-            content={
-              <SimpleTooltipContent
-                title="A connected domain or sub-domain is required to create a program."
-                cta="Learn more"
-                href="https://dub.co/help/article/choosing-a-custom-domain"
-              />
-            }
-          />
+          <InfoTooltip content="A connected domain or sub-domain is required to create a program. [Learn more](https://dub.co/help/article/choosing-a-custom-domain)" />
         </div>
 
         <DomainSelector

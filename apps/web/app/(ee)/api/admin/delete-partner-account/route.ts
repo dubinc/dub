@@ -18,6 +18,7 @@ export const POST = withAdmin(async ({ req }) => {
         select: {
           program: true,
           links: true,
+          groupId: true,
         },
       },
     },
@@ -32,7 +33,7 @@ export const POST = withAdmin(async ({ req }) => {
       "Partner has no commissions yet, deleting program links and customers...",
     );
     if (partner.programs.length > 0) {
-      for (const { program, links } of partner.programs) {
+      for (const { program, links, groupId } of partner.programs) {
         if (links.length > 0) {
           await Promise.allSettled([
             prisma.link.deleteMany({
@@ -42,7 +43,13 @@ export const POST = withAdmin(async ({ req }) => {
                 },
               },
             }),
-            recordLink(links, { deleted: true }),
+            recordLink(
+              links.map((link) => ({
+                ...link,
+                programEnrollment: { groupId },
+              })),
+              { deleted: true },
+            ),
             prisma.customer.deleteMany({
               where: {
                 linkId: {

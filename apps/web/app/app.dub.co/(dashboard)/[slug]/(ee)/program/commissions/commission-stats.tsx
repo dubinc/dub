@@ -41,7 +41,7 @@ export function CommissionStats() {
         icon={CommissionStatusBadges.pending.icon}
         iconClassName={CommissionStatusBadges.pending.className}
         variant="loose"
-        tooltip={`Commissions that are pending and will be eligible for payout after your program's ${program?.holdingPeriodDays}-day holding period.`}
+        tooltip={`Commissions that are pending and will be eligible for payout ${program?.holdingPeriodDays ? `after your program's ${program?.holdingPeriodDays}-day holding period` : "shortly"}.`}
         error={!!error}
       />
       <ProgramStatsFilter

@@ -2,7 +2,6 @@ import {
   AdvancedLinkFeaturesTooltip,
   Check,
   PLAN_FEATURE_ICONS,
-  SimpleTooltipContent,
   STAGGER_CHILD_VARIANTS,
   Tooltip,
 } from "@dub/ui";
@@ -64,8 +63,10 @@ export function PlanFeatures({
                     ) : (
                       tooltip
                     )
+                  ) : tooltip.href && tooltip.cta ? (
+                    `${tooltip.title} [${tooltip.cta}](${tooltip.href})`
                   ) : (
-                    <SimpleTooltipContent {...tooltip} />
+                    tooltip.title
                   )
                 }
               >

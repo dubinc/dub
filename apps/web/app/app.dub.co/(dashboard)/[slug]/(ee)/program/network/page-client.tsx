@@ -2,10 +2,6 @@
 
 import { updateDiscoveredPartnerAction } from "@/lib/actions/partners/update-discovered-partner";
 import { ONLINE_PRESENCE_FIELDS } from "@/lib/partners/online-presence";
-import {
-  industryInterestsMap,
-  salesChannelsMap,
-} from "@/lib/partners/partner-profile";
 import useNetworkPartnersCount from "@/lib/swr/use-network-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { NetworkPartnerProps } from "@/lib/types";
@@ -13,10 +9,11 @@ import { PARTNER_NETWORK_MAX_PAGE_SIZE } from "@/lib/zod/schemas/partner-network
 import { ConversionScoreIcon } from "@/ui/partners/conversion-score-icon";
 import { ConversionScoreTooltip } from "@/ui/partners/partner-network/conversion-score-tooltip";
 import { NetworkPartnerSheet } from "@/ui/partners/partner-network/network-partner-sheet";
+import { PartnerStarButton } from "@/ui/partners/partner-star-button";
+import { TrustedPartnerBadge } from "@/ui/partners/trusted-partner-badge";
 import {
   AnimatedSizeContainer,
   BadgeCheck2Fill,
-  Button,
   ChartActivity2,
   Filter,
   PaginationControls,
@@ -28,7 +25,7 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import type { Icon } from "@dub/ui/icons";
-import { EnvelopeArrowRight, Star, StarFill } from "@dub/ui/icons";
+import { EnvelopeArrowRight, Globe } from "@dub/ui/icons";
 import {
   COUNTRIES,
   OG_AVATAR_URL,
@@ -297,13 +294,13 @@ export function ProgramPartnerNetworkPageClient() {
                     }}
                   />
                 ))
-              : [...Array(8)].map((_, idx) => <PartnerCard key={idx} />)}
+              : [...Array(12)].map((_, idx) => <PartnerCard key={idx} />)}
           </div>
           <div className="sticky bottom-0 mt-4 rounded-b-[inherit] border-t border-neutral-200 bg-white px-3.5 py-2">
             <PaginationControls
               pagination={pagination}
               setPagination={setPagination}
-              totalCount={partnerCounts?.[status] || 0}
+              totalCount={partnerCounts?.[status]}
               unit={(p) => `partner${p ? "s" : ""}`}
             />
           </div>
@@ -326,10 +323,28 @@ function PartnerCard({
   partner?: NetworkPartnerProps;
   onToggleStarred?: (starred: boolean) => void;
 }) {
+  const { slug: workspaceSlug } = useWorkspace();
   const { queryParams } = useRouterStuff();
 
   const basicFields = useMemo(
     () => [
+      {
+        id: "country",
+        icon: partner?.country ? (
+          <img
+            alt={`Flag of ${COUNTRIES[partner.country]}`}
+            src={`https://flag.vercel.app/m/${partner.country}.svg`}
+            className="size-3.5 rounded-full"
+          />
+        ) : (
+          <Globe className="size-3.5 shrink-0" />
+        ),
+        text: partner
+          ? partner.country
+            ? COUNTRIES[partner.country]
+            : "Planet Earth"
+          : undefined,
+      },
       {
         id: "joinedAt",
         icon: <UserPlus className="size-3.5 shrink-0" />,
@@ -377,13 +392,32 @@ function PartnerCard({
     [partner],
   );
 
+  const categoriesData = useMemo(
+    () =>
+      partner
+        ? partner.categories.map((category) => ({
+            label: category.replace(/_/g, " "),
+          }))
+        : undefined,
+    [partner],
+  );
+
   return (
     <div
-      className={cn(partner?.id && "cursor-pointer hover:drop-shadow-sm")}
+      className={cn(
+        partner?.id &&
+          "hover:drop-shadow-card-hover cursor-pointer transition-[filter]",
+      )}
       onClick={(e) => {
         if (!partner?.id || isClickOnInteractiveChild(e)) return;
-
-        queryParams({ set: { partnerId: partner.id } });
+        if (partner.recruitedAt || partner.invitedAt) {
+          window.open(
+            `/${workspaceSlug}/program/partners/${partner.id}`,
+            "_blank",
+          );
+        } else {
+          queryParams({ set: { partnerId: partner.id } });
+        }
       }}
     >
       {(partner?.invitedAt || partner?.recruitedAt) && (
@@ -409,36 +443,20 @@ function PartnerCard({
               <img
                 src={partner.image || `${OG_AVATAR_URL}${partner.name}`}
                 alt={partner.name}
-                className="size-16 rounded-full"
+                className="size-16 rounded-full border border-neutral-100"
               />
             ) : (
               <div className="size-16 animate-pulse rounded-full bg-neutral-200" />
             )}
-            {partner?.country && (
-              <Tooltip content={COUNTRIES[partner.country]}>
-                <div className="absolute -right-1 top-1 overflow-hidden rounded-full bg-white p-0.5 transition-transform duration-100 hover:scale-[1.15]">
-                  <img
-                    alt=""
-                    src={`https://flag.vercel.app/m/${partner.country}.svg`}
-                    className="size-3.5 rounded-full"
-                  />
-                </div>
-              </Tooltip>
-            )}
+            {partner?.trustedAt && <TrustedPartnerBadge />}
           </div>
 
           {partner && onToggleStarred && (
-            <Button
-              variant="outline"
-              onClick={() => onToggleStarred(partner.starredAt ? false : true)}
-              icon={
-                partner.starredAt ? (
-                  <StarFill className="size-3 text-amber-500" />
-                ) : (
-                  <Star className="text-content-subtle size-3" />
-                )
-              }
-              className="size-6 rounded-lg p-0"
+            <PartnerStarButton
+              partner={partner}
+              onToggleStarred={onToggleStarred}
+              className="size-6"
+              iconSize="size-3"
             />
           )}
         </div>
@@ -459,7 +477,7 @@ function PartnerCard({
               .filter(({ text }) => text !== null)
               .map(({ id, icon, text, wrapper: Wrapper = "div" }) => (
                 <Wrapper key={id}>
-                  <div className="text-content-subtle flex cursor-default items-center gap-1">
+                  <div className="text-content-subtle flex cursor-default items-center gap-2">
                     {text !== undefined ? (
                       <>
                         {icon}
@@ -524,48 +542,9 @@ function PartnerCard({
                   />
                 ))}
           </div>
-        </div>
 
-        {/* Partner profile selections */}
-        <div className="mt-5 flex flex-col gap-5">
-          {/* Industry interests */}
-          <div className="flex flex-col gap-2">
-            <h3 className="text-content-emphasis text-xs font-semibold">
-              Industry interests
-            </h3>
-            <ListRow
-              className={cn(!partner && "animate-pulse")}
-              items={
-                partner
-                  ? partner.industryInterests
-                      ?.map((interest) => industryInterestsMap[interest])
-                      .filter(
-                        (item): item is { icon: Icon; label: string } =>
-                          item !== undefined,
-                      ) ?? []
-                  : undefined
-              }
-            />
-          </div>
-
-          {/* Sales channels */}
-          <div className="flex flex-col gap-2">
-            <h3 className="text-content-emphasis text-xs font-semibold">
-              Sales channels
-            </h3>
-            <ListRow
-              className={cn(!partner && "animate-pulse")}
-              items={
-                partner
-                  ? partner.salesChannels
-                      ?.map((salesChannel) => salesChannelsMap[salesChannel])
-                      .filter(
-                        (item): item is { label: string } => item !== undefined,
-                      ) ?? []
-                  : undefined
-              }
-            />
-          </div>
+          {/* Categories */}
+          <ListRow items={categoriesData} />
         </div>
       </div>
     </div>

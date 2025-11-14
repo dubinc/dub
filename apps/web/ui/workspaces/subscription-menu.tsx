@@ -3,11 +3,11 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   Button,
-  CalendarRefresh,
   Icon,
   LoadingSpinner,
   Popover,
   SquareXmark,
+  StripeIcon,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Command } from "cmdk";
@@ -51,13 +51,13 @@ export default function SubscriptionMenu() {
         <Command tabIndex={0} loop className="pointer-events-auto">
           <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[180px]">
             <MenuItem
-              icon={CalendarRefresh}
-              label="Manage Subscription"
+              icon={StripeIcon}
+              label="Open billing portal"
               onSelect={() => openBillingPortal(false)}
             />
             <MenuItem
               icon={SquareXmark}
-              label="Cancel Subscription"
+              label="Cancel subscription"
               onSelect={() => openBillingPortal(true)}
             />
           </Command.List>

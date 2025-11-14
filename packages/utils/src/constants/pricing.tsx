@@ -1,3 +1,4 @@
+import { nFormatter } from "../functions";
 import { INFINITY_NUMBER } from "./misc";
 
 export type PlanFeature = {
@@ -10,6 +11,44 @@ export type PlanFeature = {
   };
 };
 
+export type PlanDetails = {
+  name: string;
+  price: {
+    monthly: number | null;
+    yearly: number | null;
+    ids?: string[];
+  };
+  limits: {
+    links: number;
+    clicks: number;
+    payouts: number;
+    domains: number;
+    tags: number;
+    folders: number;
+    groups: number;
+    networkInvites: number;
+    users: number;
+    ai: number;
+    api: number;
+    retention: string;
+  };
+  tiers?: {
+    [key: number]: {
+      price: {
+        monthly: number | null;
+        yearly: number | null;
+        ids: string[];
+      };
+      limits: {
+        links: number;
+        clicks: number;
+      };
+    };
+  };
+  featureTitle?: string;
+  features?: PlanFeature[];
+};
+
 const LEGACY_PRO_PRICE_IDS = [
   "price_1LodNLAlJJEpqkPVQSrt33Lc", // old monthly
   "price_1LodNLAlJJEpqkPVRxUyCQgZ", // old yearly
@@ -19,12 +58,22 @@ const LEGACY_PRO_PRICE_IDS = [
   "price_1OYJeBAlJJEpqkPVnPGEZeb0", // new yearly (prod)
 ];
 
+const PRO_TIER_PRICE_IDS = {
+  2: [
+    "price_1SQtg3AlJJEpqkPVVhDSyd9u", // yearly (prod)
+    "price_1SQtg3AlJJEpqkPVNHYhTRy7", // monthly (prod)
+    "price_1SQ8hiAlJJEpqkPVIy8pfvAC", // yearly (test)
+    "price_1SQ8gwAlJJEpqkPVb78Oc9Yc", // monthly (test)
+  ],
+};
+
 // 2025 pricing
 const NEW_PRO_PRICE_IDS = [
   "price_1R8XtyAlJJEpqkPV5WZ4c0jF", //  yearly
   "price_1R8XtEAlJJEpqkPV4opVvVPq", // monthly
   "price_1R8XxZAlJJEpqkPVqGi0wOqD", // yearly (test),
   "price_1R7oeBAlJJEpqkPVh6q5q3h8", // monthly (test),
+  ...Object.values(PRO_TIER_PRICE_IDS).flat(),
 ];
 
 const LEGACY_BUSINESS_PRICE_IDS = [
@@ -37,15 +86,48 @@ const LEGACY_BUSINESS_PRICE_IDS = [
   "price_1OzOXMAlJJEpqkPV9ERrjjbw", // new yearly (prod)
 ];
 
+const BUSINESS_TIER_PRICE_IDS = {
+  2: [
+    "price_1SQtdxAlJJEpqkPV4kNkRHZr", // yearly (prod)
+    "price_1SQtdxAlJJEpqkPV7cvJTv4g", // monthly (prod)
+    "price_1SQ8iwAlJJEpqkPVEGmKd6Lg", // yearly (test)
+    "price_1SQ8iSAlJJEpqkPVQ5crmBtF", // monthly (test)
+  ],
+};
+
 // 2025 pricing
 export const NEW_BUSINESS_PRICE_IDS = [
   "price_1R3j01AlJJEpqkPVXuG1eNzm", //  yearly
   "price_1R6JedAlJJEpqkPVMUkfjch4", // monthly
   "price_1R8XypAlJJEpqkPVdjzOcYUC", // yearly (test),
   "price_1R7ofLAlJJEpqkPV3MlgDpyx", // monthly (test),
+  ...Object.values(BUSINESS_TIER_PRICE_IDS).flat(),
 ];
 
-export const PLANS = [
+const ADVANCED_TIER_PRICE_IDS = {
+  2: [
+    "price_1SQtg6AlJJEpqkPVAJdrStq7", // yearly (prod)
+    "price_1SQtg6AlJJEpqkPVaZNisQdm", // monthly (prod)
+    "price_1SQ8jlAlJJEpqkPV6EanvSXl", // yearly (test)
+    "price_1SQ8jJAlJJEpqkPVIwY9QZSP", // monthly (test)
+  ],
+  3: [
+    "price_1SQtg8AlJJEpqkPVvQVU7uQ3", // yearly (prod)
+    "price_1SQtg8AlJJEpqkPV4Nks8MkS", // monthly (prod)
+    "price_1SQ8lqAlJJEpqkPVzBaioV3I", // yearly (test)
+    "price_1SQ8lOAlJJEpqkPVz2R8SRss", // monthly (test)
+  ],
+};
+
+const ADVANCED_PRICE_IDS = [
+  "price_1R8Xw4AlJJEpqkPV6nwdink9", //  yearly
+  "price_1R3j0qAlJJEpqkPVkfGNXRwb", // monthly
+  "price_1R8XztAlJJEpqkPVnHmIU2tf", // yearly (test),
+  "price_1R7ofzAlJJEpqkPV0L2TwyJo", // monthly (test),
+  ...Object.values(ADVANCED_TIER_PRICE_IDS).flat(),
+];
+
+export const PLANS: PlanDetails[] = [
   {
     name: "Free",
     price: {
@@ -70,7 +152,6 @@ export const PLANS = [
   },
   {
     name: "Pro",
-    link: "https://dub.co/help/article/pro-plan",
     price: {
       monthly: 30,
       yearly: 25,
@@ -90,6 +171,19 @@ export const PLANS = [
       api: 600,
       analyticsApi: 2,
       retention: "1-year",
+    },
+    tiers: {
+      2: {
+        price: {
+          monthly: 60,
+          yearly: 50,
+          ids: PRO_TIER_PRICE_IDS[2],
+        },
+        limits: {
+          links: 5_000,
+          clicks: 150_000,
+        },
+      },
     },
     featureTitle: "Everything in Free, plus:",
     features: [
@@ -167,6 +261,19 @@ export const PLANS = [
       analyticsApi: 4,
       retention: "3-year",
     },
+    tiers: {
+      2: {
+        price: {
+          monthly: 180,
+          yearly: 150,
+          ids: BUSINESS_TIER_PRICE_IDS[2],
+        },
+        limits: {
+          links: 25_000,
+          clicks: 600_000,
+        },
+      },
+    },
     featureTitle: "Everything in Pro, plus:",
     features: [
       {
@@ -196,18 +303,8 @@ export const PLANS = [
         text: "10 users",
       },
       {
-        id: "events",
-        text: "Real-time events stream",
-        tooltip: {
-          title:
-            "Get more data on your link clicks and QR code scans with a detailed, real-time stream of events in your workspace",
-          cta: "Learn more.",
-          href: "https://dub.co/help/article/real-time-events-stream",
-        },
-      },
-      {
         id: "partners",
-        text: "Partner management",
+        text: "Dub Partners",
         tooltip: {
           title: "Use Dub Partners to manage and pay out your affiliates.",
           cta: "Learn more.",
@@ -215,17 +312,23 @@ export const PLANS = [
         },
       },
       {
-        id: "tests",
-        text: "A/B testing",
-      },
-      {
-        id: "roles",
+        id: "customerinsights",
         text: "Customer insights",
         tooltip: {
           title:
             "Get real-time insights into your customers' behavior and preferences.",
           cta: "Learn more.",
           href: "https://dub.co/help/article/customer-insights",
+        },
+      },
+      {
+        id: "events",
+        text: "Real-time events stream",
+        tooltip: {
+          title:
+            "Get more data on your link clicks and QR code scans with a detailed, real-time stream of events in your workspace",
+          cta: "Learn more.",
+          href: "https://dub.co/help/article/real-time-events-stream",
         },
       },
       {
@@ -238,6 +341,10 @@ export const PLANS = [
           href: "https://dub.co/docs/concepts/webhooks/introduction",
         },
       },
+      {
+        id: "tests",
+        text: "A/B testing",
+      },
     ] as PlanFeature[],
   },
   {
@@ -245,12 +352,7 @@ export const PLANS = [
     price: {
       monthly: 300,
       yearly: 250,
-      ids: [
-        "price_1R8Xw4AlJJEpqkPV6nwdink9", //  yearly
-        "price_1R3j0qAlJJEpqkPVkfGNXRwb", // monthly
-        "price_1R8XztAlJJEpqkPVnHmIU2tf", // yearly (test),
-        "price_1R7ofzAlJJEpqkPV0L2TwyJo", // monthly (test),
-      ],
+      ids: ADVANCED_PRICE_IDS,
     },
     limits: {
       links: 50_000,
@@ -266,6 +368,30 @@ export const PLANS = [
       api: 3_000,
       analyticsApi: 8,
       retention: "5-year",
+    },
+    tiers: {
+      2: {
+        price: {
+          monthly: 600,
+          yearly: 500,
+          ids: ADVANCED_TIER_PRICE_IDS[2],
+        },
+        limits: {
+          links: 150_000,
+          clicks: 2_000_000,
+        },
+      },
+      3: {
+        price: {
+          monthly: 900,
+          yearly: 750,
+          ids: ADVANCED_TIER_PRICE_IDS[3],
+        },
+        limits: {
+          links: 300_000,
+          clicks: 3_500_000,
+        },
+      },
     },
     featureTitle: "Everything in Business, plus:",
     features: [
@@ -324,13 +450,13 @@ export const PLANS = [
         },
       },
       {
-        id: "api",
-        text: "Partners API",
+        id: "email",
+        text: "Email campaigns",
         tooltip: {
           title:
-            "Leverage our partners API to build a bespoke, white-labeled referral program that lives within your app.",
+            "Send marketing and transactional emails to your partners to increase engagement and drive conversions.",
           cta: "Learn more.",
-          href: "https://dub.co/docs/api-reference/endpoint/create-a-partner",
+          href: "https://dub.co/help/article/email-campaigns",
         },
       },
       {
@@ -367,6 +493,9 @@ export const FREE_PLAN = PLANS.find((plan) => plan.name === "Free")!;
 export const PRO_PLAN = PLANS.find((plan) => plan.name === "Pro")!;
 export const BUSINESS_PLAN = PLANS.find((plan) => plan.name === "Business")!;
 export const ADVANCED_PLAN = PLANS.find((plan) => plan.name === "Advanced")!;
+export const ENTERPRISE_PLAN = PLANS.find(
+  (plan) => plan.name === "Enterprise",
+)!;
 
 export const SELF_SERVE_PAID_PLANS = PLANS.filter((p) =>
   ["Pro", "Business", "Advanced"].includes(p.name),
@@ -374,14 +503,70 @@ export const SELF_SERVE_PAID_PLANS = PLANS.filter((p) =>
 
 export const FREE_WORKSPACES_LIMIT = 2;
 
-export const getPlanFromPriceId = (priceId: string) => {
-  return PLANS.find((plan) => plan.price.ids?.includes(priceId)) || null;
+const enrichPlanWithTierData = (
+  planDetails: PlanDetails,
+  planTier: number,
+): PlanDetails => {
+  const tierData =
+    planDetails.tiers && planTier > 1 ? planDetails.tiers[planTier] : undefined;
+  const tierLimits = tierData?.limits ?? planDetails.limits;
+
+  return {
+    ...planDetails,
+    limits: {
+      ...planDetails.limits,
+      ...tierLimits,
+    },
+    price: {
+      ...planDetails.price,
+      ...tierData?.price,
+    },
+    features: planDetails.features?.map((feature) => ({
+      ...feature,
+      text:
+        feature.id === "clicks"
+          ? `${nFormatter(tierLimits.clicks)} tracked clicks/mo`
+          : feature.id === "links"
+            ? `${nFormatter(tierLimits.links)} new links/mo`
+            : feature.text,
+    })),
+  };
 };
 
-export const getPlanDetails = (plan: string) => {
-  return SELF_SERVE_PAID_PLANS.find(
+export const getPlanAndTierFromPriceId = ({
+  priceId,
+}: {
+  priceId: string;
+}): { plan: PlanDetails | null; planTier: number } => {
+  const planDetails = PLANS.find((plan) => plan.price.ids?.includes(priceId));
+  if (!planDetails) return { plan: null, planTier: 1 };
+
+  const planTier = planDetails.tiers
+    ? Number(
+        Object.entries(planDetails.tiers).find(([_, { price }]) =>
+          price.ids.includes(priceId),
+        )?.[0],
+      ) || 1
+    : 1;
+
+  return {
+    plan: enrichPlanWithTierData(planDetails, planTier),
+    planTier,
+  };
+};
+
+export const getPlanDetails = ({
+  plan,
+  planTier = 1,
+}: {
+  plan: string;
+  planTier?: number;
+}) => {
+  const planDetails = PLANS.find(
     (p) => p.name.toLowerCase() === plan.toLowerCase(),
   )!;
+
+  return enrichPlanWithTierData(planDetails, planTier);
 };
 
 export const getCurrentPlan = (plan: string) => {
@@ -402,14 +587,65 @@ export const getNextPlan = (plan?: string | null) => {
   ];
 };
 
-export const isDowngradePlan = (currentPlan: string, newPlan: string) => {
+export const isDowngradePlan = ({
+  currentPlan,
+  newPlan,
+  currentTier,
+  newTier,
+}: {
+  currentPlan: string;
+  newPlan: string;
+  currentTier?: number;
+  newTier?: number;
+}) => {
   const currentPlanIndex = PLANS.findIndex(
     (p) => p.name.toLowerCase() === currentPlan.toLowerCase(),
   );
   const newPlanIndex = PLANS.findIndex(
     (p) => p.name.toLowerCase() === newPlan.toLowerCase(),
   );
-  return currentPlanIndex > newPlanIndex;
+  return (
+    currentPlanIndex > newPlanIndex ||
+    (currentPlanIndex === newPlanIndex && (currentTier ?? 1) > (newTier ?? 1))
+  );
+};
+
+export const getSuggestedPlan = ({
+  events,
+  links,
+  suggestFree = false,
+}: {
+  events?: number;
+  links?: number;
+  suggestFree?: boolean;
+}): { plan: PlanDetails; planTier: number } => {
+  let match: { plan: PlanDetails; planTier: number } | null = null;
+
+  for (const p of PLANS) {
+    if (!suggestFree && p.price.monthly === 0) continue;
+
+    const matchingTier = [
+      1,
+      ...Object.keys(p.tiers ?? {})
+        .map(Number)
+        .filter((tier) => tier >= 2),
+    ].find((tier) => {
+      const limits =
+        tier === 1 ? p.limits : p.tiers?.[tier]?.limits ?? p.limits;
+      return limits.clicks >= (events ?? 0) && limits.links >= (links ?? 0);
+    });
+
+    if (matchingTier !== undefined) {
+      match = {
+        plan: enrichPlanWithTierData(p, matchingTier),
+        planTier: matchingTier,
+      };
+
+      break;
+    }
+  }
+
+  return match ?? { plan: ENTERPRISE_PLAN, planTier: 1 };
 };
 
 export const isLegacyBusinessPlan = ({

@@ -2,10 +2,11 @@ import { createId } from "@/lib/api/create-id";
 import { addDomainToVercel } from "@/lib/api/domains/add-domain-vercel";
 import { transformDomain } from "@/lib/api/domains/transform-domain";
 import { validateDomain } from "@/lib/api/domains/utils";
-import { DubApiError, exceededLimitError } from "@/lib/api/errors";
+import { DubApiError } from "@/lib/api/errors";
 import { createLink, transformLink } from "@/lib/api/links";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import { storage } from "@/lib/storage";
 import {
   createDomainBodySchemaExtended,
@@ -136,19 +137,25 @@ export const POST = withWorkspace(
       });
     }
 
-    const vercelResponse = await addDomainToVercel(slug);
+    // Add domain to Vercel if preview/production
+    if (process.env.VERCEL === "1") {
+      const vercelResponse = await addDomainToVercel(slug);
 
-    if (
-      vercelResponse.error &&
-      vercelResponse.error.code !== "domain_already_in_use" // ignore this error
-    ) {
-      return new Response(vercelResponse.error.message, { status: 422 });
+      if (
+        vercelResponse.error &&
+        vercelResponse.error.code !== "domain_already_in_use" // ignore this error
+      ) {
+        return new Response(vercelResponse.error.message, { status: 422 });
+      }
     }
 
     const domainId = createId({ prefix: "dom_" });
 
     const logoUploaded = logo
-      ? await storage.upload(`domains/${domainId}/logo_${nanoid(7)}`, logo)
+      ? await storage.upload({
+          key: `domains/${domainId}/logo_${nanoid(7)}`,
+          body: logo,
+        })
       : null;
 
     const domainRecord = await prisma.$transaction(

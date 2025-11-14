@@ -1,5 +1,3 @@
-import { DUB_FOUNDING_DATE } from "@dub/utils";
-
 export const DATE_RANGE_INTERVAL_PRESETS = [
   "24h",
   "7d",
@@ -63,55 +61,6 @@ export const INTERVAL_DISPLAYS = [
   },
 ];
 
-export const INTERVAL_DATA: Record<
-  string,
-  {
-    startDate: Date;
-    granularity: "minute" | "hour" | "day" | "month";
-  }
-> = {
-  "24h": {
-    startDate: new Date(Date.now() - 86400000),
-    granularity: "hour",
-  },
-  "7d": {
-    startDate: new Date(Date.now() - 604800000),
-    granularity: "day",
-  },
-  "30d": {
-    startDate: new Date(Date.now() - 2592000000),
-    granularity: "day",
-  },
-  "90d": {
-    startDate: new Date(Date.now() - 7776000000),
-    granularity: "day",
-  },
-  "1y": {
-    startDate: new Date(Date.now() - 31556952000),
-    granularity: "month",
-  },
-  mtd: {
-    startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
-    granularity: "day",
-  },
-  qtd: {
-    startDate: new Date(
-      new Date().getFullYear(),
-      Math.floor(new Date().getMonth() / 3) * 3,
-      1,
-    ),
-    granularity: "day",
-  },
-  ytd: {
-    startDate: new Date(new Date().getFullYear(), 0, 1),
-    granularity: "month",
-  },
-  all: {
-    startDate: DUB_FOUNDING_DATE,
-    granularity: "month",
-  },
-};
-
 export const VALID_ANALYTICS_ENDPOINTS = [
   "count",
   "timeseries",
@@ -126,9 +75,13 @@ export const VALID_ANALYTICS_ENDPOINTS = [
   "triggers",
   "referers",
   "referer_urls",
-  "top_partners",
+  "top_folders",
+  "top_link_tags",
+  "top_domains",
   "top_links",
   "top_urls",
+  "top_partners",
+  "top_groups",
   "utm_sources",
   "utm_mediums",
   "utm_campaigns",
@@ -153,8 +106,12 @@ export const SINGULAR_ANALYTICS_ENDPOINTS = {
   utm_terms: "utm_term",
   utm_contents: "utm_content",
   // extra fields
+  top_folders: "folderId",
+  top_link_tags: "tagIds",
+  top_domains: "domain",
   top_links: "link",
   top_urls: "url",
+  top_groups: "groupId",
   timeseries: "start",
 };
 
@@ -177,6 +134,7 @@ export const VALID_ANALYTICS_FILTERS = [
   "url",
   "partnerId",
   "folderId",
+  "groupId",
   "tagId",
   "tagIds",
   "customerId",
@@ -218,6 +176,7 @@ export const TRIGGER_TYPES = ["qr", "link", "pageview", "deeplink"] as const;
 export const EVENT_TYPES = ["clicks", "leads", "sales"] as const;
 
 export const ANALYTICS_VIEWS = ["timeseries", "funnel"] as const;
+
 export const ANALYTICS_SALE_UNIT = ["sales", "saleAmount"] as const;
 
 export const OLD_ANALYTICS_ENDPOINTS = [

@@ -8,6 +8,7 @@ import {
   Html,
   Img,
   Link,
+  Markdown,
   Preview,
   Row,
   Section,
@@ -27,7 +28,7 @@ export default function NewMessageFromPartner({
   },
   messages = [
     {
-      text: "Am I eligible for that one bounty?",
+      text: "Am I eligible for that one _bounty_?",
       createdAt: new Date(Date.now() - 1000 * 60 * 5),
     },
   ],
@@ -84,12 +85,19 @@ export default function NewMessageFromPartner({
                     />
                   </Column>
                   <Column className="w-full pl-2">
-                    <Text
-                      className="my-0 rounded-lg rounded-bl-none bg-neutral-100 px-4 py-2.5 text-sm leading-5 text-neutral-800"
-                      style={{ whiteSpace: "pre-wrap" }}
+                    <Markdown
+                      markdownCustomStyles={{ link: { color: "black" } }}
+                      markdownContainerStyles={{
+                        borderRadius: 8,
+                        background: "#f5f5f5",
+                        padding: "1px 16px",
+                        fontSize: 14,
+                        lineHeight: "20px",
+                        color: "#262626",
+                      }}
                     >
                       {message.text}
-                    </Text>
+                    </Markdown>
                   </Column>
                 </Row>
               ))}

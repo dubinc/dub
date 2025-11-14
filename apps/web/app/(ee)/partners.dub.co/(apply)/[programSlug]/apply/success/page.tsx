@@ -40,24 +40,17 @@ const FEATURES = [
   },
 ];
 
-export default async function SuccessPage(
-  props: {
-    params: Promise<{ programSlug: string }>;
-    searchParams: Promise<{ applicationId?: string; enrollmentId?: string }>;
-  }
-) {
+export default async function SuccessPage(props: {
+  params: Promise<{ programSlug: string }>;
+  searchParams: Promise<{ applicationId?: string; enrollmentId?: string }>;
+}) {
   const searchParams = await props.searchParams;
 
-  const {
-    applicationId,
-    enrollmentId
-  } = searchParams;
+  const { applicationId, enrollmentId } = searchParams;
 
   const params = await props.params;
 
-  const {
-    programSlug
-  } = params;
+  const { programSlug } = params;
 
   const program = await getProgram({ slug: programSlug });
 
@@ -90,10 +83,13 @@ export default async function SuccessPage(
         <ApplyHeader program={program} showLogin={false} showApply={false} />
         <div className="p-6">
           <div className="grid grid-cols-1 gap-5 sm:pt-20">
+            <span className="w-fit rounded-md bg-neutral-100 px-2 py-1 text-xs font-medium text-neutral-700">
+              Step 2 of 2
+            </span>
             <h1 className="text-4xl font-semibold">
               {hasPartnerProfile
                 ? "Application submitted"
-                : "Complete your setup"}
+                : "Finish your application"}
             </h1>
             <div className="flex flex-col gap-4 text-base text-neutral-700">
               {hasPartnerProfile && (

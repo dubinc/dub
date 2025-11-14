@@ -1,13 +1,7 @@
 import useSAML from "@/lib/swr/use-saml";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { SAMLProviderProps } from "@/lib/types";
-import {
-  Button,
-  InfoTooltip,
-  Modal,
-  SimpleTooltipContent,
-  useMediaQuery,
-} from "@dub/ui";
+import { Button, InfoTooltip, Modal, useMediaQuery } from "@dub/ui";
 import { SAML_PROVIDERS } from "@dub/utils";
 import { Check, Lock, UploadCloud } from "lucide-react";
 import {
@@ -144,13 +138,7 @@ function SAMLModal({
                     {currentProvider.samlModalCopy}
                   </h2>
                   <InfoTooltip
-                    content={
-                      <SimpleTooltipContent
-                        title={`Your ${currentProvider.samlModalCopy} is the URL to your SAML provider's metadata.`}
-                        cta="Learn more."
-                        href={`https://dub.co/help/article/${selectedProvider}-saml`}
-                      />
-                    }
+                    content={`Your ${currentProvider.samlModalCopy} is the URL to your SAML provider's metadata. [Learn more.](https://dub.co/help/article/${selectedProvider}-saml)`}
                   />
                 </div>
                 <label
@@ -201,13 +189,7 @@ function SAMLModal({
                     {currentProvider.samlModalCopy}
                   </h2>
                   <InfoTooltip
-                    content={
-                      <SimpleTooltipContent
-                        title={`Your ${currentProvider.samlModalCopy} is the URL to your SAML provider's metadata.`}
-                        cta="Learn more."
-                        href={`https://dub.co/help/article/${selectedProvider}-saml#step-4-copy-the-metadata-url`}
-                      />
-                    }
+                    content={`Your ${currentProvider.samlModalCopy} is the URL to your SAML provider's metadata. [Learn more.](https://dub.co/help/article/${selectedProvider}-saml#step-4-copy-the-metadata-url)`}
                   />
                 </div>
                 <input

@@ -28,6 +28,7 @@ export default function PartnerPayoutConfirmed({
     startDate: new Date("2024-11-01"),
     endDate: new Date("2024-11-30"),
     paymentMethod: "ach_fast",
+    mode: "internal",
   },
 }: {
   email: string;
@@ -42,9 +43,10 @@ export default function PartnerPayoutConfirmed({
     startDate?: Date | null;
     endDate?: Date | null;
     paymentMethod: string;
+    mode: "internal" | "external" | null;
   };
 }) {
-  const saleAmountInDollars = currencyFormatter(payout.amount / 100);
+  const saleAmountInDollars = currencyFormatter(payout.amount);
 
   const startDate = payout.startDate
     ? formatDate(payout.startDate, {
@@ -101,14 +103,25 @@ export default function PartnerPayoutConfirmed({
             </Text>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              The payout is currently being processed and is expected to be
-              credited to your account within
-              <strong>
-                {payout.paymentMethod === "ach_fast"
-                  ? " 2 business days"
-                  : " 5 business days"}
-              </strong>{" "}
-              (excluding weekends and public holidays).
+              {payout.mode === "external" ? (
+                <>
+                  The payout is currently being processed and is expected to be
+                  credited to your{" "}
+                  <strong className="text-black">{program.name}</strong> account{" "}
+                  <strong className="text-black">shortly</strong>.
+                </>
+              ) : (
+                <>
+                  The payout is currently being processed and is expected to be
+                  credited to your account within
+                  <strong>
+                    {payout.paymentMethod === "ach_fast"
+                      ? " 2 business days"
+                      : " 5 business days"}
+                  </strong>{" "}
+                  (excluding weekends and public holidays).
+                </>
+              )}
             </Text>
 
             <Section className="mb-12 mt-8">

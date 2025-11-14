@@ -1,4 +1,4 @@
-import { ErrorCode } from "@/lib/api/errors";
+import { ErrorCode } from "@/lib/api/error-codes";
 import z from "@/lib/zod";
 import { DUB_FOUNDING_DATE, formatDate, validDomainRegex } from "@dub/utils";
 import {
@@ -7,7 +7,7 @@ import {
   getPaginationQuerySchema,
   publicHostedImageSchema,
 } from "./misc";
-import { TagSchema } from "./tags";
+import { LinkTagSchema } from "./tags";
 import {
   DESTINATION_URL_MAX_LENGTH,
   parseDateSchema,
@@ -184,17 +184,75 @@ export const getLinksCountQuerySchema = LinksQuerySchema.merge(
 );
 
 export const exportLinksColumns = [
-  { id: "link", label: "Short link", default: true },
-  { id: "url", label: "Destination URL", default: true },
-  { id: "clicks", label: "Clicks", default: true, numeric: true },
-  { id: "leads", label: "Leads", default: false, numeric: true },
-  { id: "conversions", label: "Conversions", default: false, numeric: true },
-  { id: "saleAmount", label: "Revenue", default: false, numeric: true },
-  { id: "createdAt", label: "Created at", default: true },
-  { id: "id", label: "Link ID", default: false },
-  { id: "updatedAt", label: "Updated at", default: false },
-  { id: "tags", label: "Tags", default: false },
-  { id: "archived", label: "Archived", default: false },
+  {
+    id: "link",
+    label: "Short link",
+    default: true,
+    transform: (value: unknown) => String(value ?? ""),
+  },
+  {
+    id: "url",
+    label: "Destination URL",
+    default: true,
+    transform: (value: unknown) => String(value ?? ""),
+  },
+  {
+    id: "clicks",
+    label: "Clicks",
+    default: true,
+    transform: (value: unknown) => Number(value ?? 0),
+  },
+  {
+    id: "leads",
+    label: "Leads",
+    default: false,
+    transform: (value: unknown) => Number(value ?? 0),
+  },
+  {
+    id: "conversions",
+    label: "Conversions",
+    default: false,
+    transform: (value: unknown) => Number(value ?? 0),
+  },
+  {
+    id: "saleAmount",
+    label: "Revenue",
+    default: false,
+    transform: (value: unknown) => Number(value ?? 0),
+  },
+  {
+    id: "createdAt",
+    label: "Created at",
+    default: true,
+    transform: (value: unknown) =>
+      value instanceof Date ? value.toISOString() : "",
+  },
+  {
+    id: "id",
+    label: "Link ID",
+    default: false,
+    transform: (value: unknown) => String(value ?? ""),
+  },
+  {
+    id: "updatedAt",
+    label: "Updated at",
+    default: false,
+    transform: (value: unknown) =>
+      value instanceof Date ? value.toISOString() : "",
+  },
+  {
+    id: "tags",
+    label: "Tags",
+    default: false,
+    transform: (value: unknown) =>
+      Array.isArray(value) ? value.join(", ") : String(value ?? ""),
+  },
+  {
+    id: "archived",
+    label: "Archived",
+    default: false,
+    transform: (value: unknown) => (value === 1 ? "Yes" : "No"),
+  },
 ] as const;
 
 export type ExportLinksColumn = (typeof exportLinksColumns)[number];
@@ -585,6 +643,12 @@ export const LinkSchema = z
       .url()
       .nullable()
       .describe("The URL to redirect to when the short link has expired."),
+    disabledAt: z
+      .string()
+      .nullable()
+      .describe(
+        "The date and time when the short link was disabled. When a short link is disabled, it will redirect to its domain's not found URL, and its stats will be excluded from your overall stats.",
+      ),
     password: z
       .string()
       .nullable()
@@ -649,7 +713,7 @@ export const LinkSchema = z
       .boolean()
       .default(false)
       .describe("Whether the short link's stats are publicly accessible."),
-    tags: TagSchema.array()
+    tags: LinkTagSchema.array()
       .nullable()
       .describe("The tags assigned to the short link."),
     folderId: z
@@ -825,8 +889,9 @@ export const linkEventSchema = LinkSchema.extend({
   updatedAt: z.coerce.date(),
   lastClicked: z.coerce.date(),
   expiresAt: z.coerce.date(),
-  testCompletedAt: z.coerce.date().nullable(),
-  testStartedAt: z.coerce.date().nullable(),
+  disabledAt: z.coerce.date(),
+  testCompletedAt: z.coerce.date(),
+  testStartedAt: z.coerce.date(),
   // userId can be null
   userId: z.string().nullable(),
 });

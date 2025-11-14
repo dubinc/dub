@@ -8,6 +8,8 @@ interface imageOptions {
   headers?: Record<string, string>;
 }
 
+type BucketType = "public" | "private";
+
 class StorageClient {
   private client: AwsClient;
 
@@ -20,7 +22,17 @@ class StorageClient {
     });
   }
 
-  async upload(key: string, body: Blob | Buffer | string, opts?: imageOptions) {
+  async upload({
+    key,
+    body,
+    opts,
+    bucket = "public",
+  }: {
+    key: string;
+    body: Blob | Buffer | string;
+    opts?: imageOptions;
+    bucket?: BucketType;
+  }) {
     let uploadBody;
     if (typeof body === "string") {
       if (this.isBase64(body)) {
@@ -38,51 +50,115 @@ class StorageClient {
       "Content-Length": uploadBody.size.toString(),
       ...opts?.headers,
     };
-    if (opts?.contentType) headers["Content-Type"] = opts.contentType;
+
+    if (opts?.contentType) {
+      headers["Content-Type"] = opts.contentType;
+    }
 
     try {
-      await this.client.fetch(`${process.env.STORAGE_ENDPOINT}/${key}`, {
-        method: "PUT",
-        headers,
-        body: uploadBody,
-      });
+      const response = await this.client.fetch(
+        `${process.env.STORAGE_ENDPOINT}/${this._getBucketName(bucket)}/${key}`,
+        {
+          method: "PUT",
+          headers,
+          body: uploadBody,
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error(response.statusText);
+      }
 
       return {
         url: `${R2_URL}/${key}`,
       };
     } catch (error) {
-      console.error("Image upload failed", error);
-      throw new Error(`Failed to upload file: ${error.message}`);
+      console.error("storage.upload failed", error);
+      throw new Error("Failed to upload file. Please try again later.");
     }
   }
 
-  async fetch(key: string) {
-    return this.client.fetch(`${process.env.STORAGE_ENDPOINT}/${key}`);
+  async delete({
+    key,
+    bucket = "public",
+  }: {
+    key: string;
+    bucket?: BucketType;
+  }) {
+    try {
+      const response = await this.client.fetch(
+        `${process.env.STORAGE_ENDPOINT}/${this._getBucketName(bucket)}/${key}`,
+        {
+          method: "DELETE",
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error(response.statusText);
+      }
+    } catch (error) {
+      console.error("storage.delete failed", error);
+      throw new Error("Failed to delete file. Please try again later.");
+    }
   }
 
-  async delete(key: string) {
-    await this.client.fetch(`${process.env.STORAGE_ENDPOINT}/${key}`, {
-      method: "DELETE",
-    });
+  async getSignedUrl({
+    key,
+    method,
+    expiresIn,
+    bucket,
+  }: {
+    key: string;
+    method: "PUT" | "GET";
+    bucket: BucketType;
+    expiresIn: number;
+  }) {
+    const url = new URL(
+      `${process.env.STORAGE_ENDPOINT}/${this._getBucketName(bucket)}/${key}`,
+    );
 
-    return { success: true };
+    url.searchParams.set("X-Amz-Expires", String(expiresIn));
+
+    try {
+      const response = await this.client.sign(url, {
+        method,
+        aws: {
+          signQuery: true,
+          allHeaders: true,
+        },
+      });
+
+      return response.url;
+    } catch (error) {
+      console.error("storage.getSignedUrl failed", error);
+      throw new Error("Failed to generate signed url. Please try again later.");
+    }
   }
 
-  async getSignedUrl(key: string) {
-    const url = new URL(`${process.env.STORAGE_ENDPOINT}/${key}`);
-
-    // 10 minutes expiration
-    url.searchParams.set("X-Amz-Expires", "600");
-
-    const signed = await this.client.sign(url, {
+  async getSignedUploadUrl(opts: {
+    key: string;
+    bucket?: BucketType;
+    expiresIn?: number;
+  }) {
+    return await this.getSignedUrl({
+      key: opts.key,
       method: "PUT",
-      aws: {
-        signQuery: true,
-        allHeaders: true,
-      },
+      bucket: opts.bucket || "public",
+      expiresIn: opts.expiresIn || 600,
     });
+  }
 
-    return signed.url;
+  async getSignedDownloadUrl(opts: {
+    key: string;
+    bucket?: BucketType;
+    expiresIn?: number;
+  }) {
+    return await this.getSignedUrl({
+      key: opts.key,
+      method: "GET",
+      bucket: opts.bucket || "private",
+      expiresIn: opts.expiresIn || 600,
+    });
   }
 
   private base64ToArrayBuffer(base64: string, opts?: imageOptions) {
@@ -145,6 +221,30 @@ class StorageClient {
       return new Blob([blob], { type: opts.contentType });
     }
     return blob;
+  }
+
+  private _getBucketName(bucket: BucketType) {
+    if (bucket === "public") {
+      const bucketName = process.env.STORAGE_PUBLIC_BUCKET;
+
+      if (!bucketName) {
+        throw new Error("STORAGE_PUBLIC_BUCKET is not set");
+      }
+
+      return bucketName;
+    }
+
+    if (bucket === "private") {
+      const bucketName = process.env.STORAGE_PRIVATE_BUCKET;
+
+      if (!bucketName) {
+        throw new Error("STORAGE_PRIVATE_BUCKET is not set");
+      }
+
+      return bucketName;
+    }
+
+    throw new Error(`Invalid bucket type: ${bucket}`);
   }
 }
 

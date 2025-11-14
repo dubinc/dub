@@ -5,16 +5,10 @@ import useGroup from "@/lib/swr/use-group";
 import usePartnerGroupDefaultLinks from "@/lib/swr/use-partner-group-default-links";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PartnerGroupDefaultLink } from "@/lib/types";
-import { MAX_DEFAULT_PARTNER_LINKS } from "@/lib/zod/schemas/groups";
+import { MAX_DEFAULT_LINKS_PER_GROUP } from "@/lib/zod/schemas/groups";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { ThreeDots } from "@/ui/shared/icons";
-import {
-  Button,
-  Hyperlink,
-  InfoTooltip,
-  Popover,
-  SimpleTooltipContent,
-} from "@dub/ui";
+import { Button, Hyperlink, InfoTooltip, Popover } from "@dub/ui";
 import { PenWriting, Trash } from "@dub/ui/icons";
 import { cn, getPrettyUrl, getUrlWithoutUTMParams } from "@dub/utils";
 import { useState } from "react";
@@ -28,7 +22,7 @@ export function GroupDefaultLinks() {
     usePartnerGroupDefaultLinks();
 
   const hasReachedMaxLinks = defaultLinks
-    ? defaultLinks.length >= MAX_DEFAULT_PARTNER_LINKS
+    ? defaultLinks.length >= MAX_DEFAULT_LINKS_PER_GROUP
     : false;
 
   return (
@@ -41,11 +35,7 @@ export function GroupDefaultLinks() {
             </h3>
             <InfoTooltip
               content={
-                <SimpleTooltipContent
-                  title="Default links are links that are automatically created for each partner in this group."
-                  cta="Learn more."
-                  href="https://dub.co/help/article/partner-link-settings#default-referral-links"
-                />
+                "Default links are links that are automatically created for each partner in this group. [Learn more.](https://dub.co/help/article/partner-link-settings#default-referral-links)"
               }
             />
           </div>
@@ -97,7 +87,7 @@ function CreateDefaultLinkButton({
         disabled={hasReachedMaxLinks || isLoadingGroup}
         disabledTooltip={
           hasReachedMaxLinks
-            ? `You can only create up to ${MAX_DEFAULT_PARTNER_LINKS} default links.`
+            ? `You can only create up to ${MAX_DEFAULT_LINKS_PER_GROUP} default links.`
             : undefined
         }
       />

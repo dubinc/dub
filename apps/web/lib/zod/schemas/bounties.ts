@@ -1,4 +1,8 @@
-import { BOUNTY_DESCRIPTION_MAX_LENGTH } from "@/lib/partners/constants";
+import {
+  BOUNTY_DESCRIPTION_MAX_LENGTH,
+  BOUNTY_MAX_SUBMISSION_REJECTION_NOTE_LENGTH,
+  BOUNTY_SUBMISSION_REQUIREMENTS,
+} from "@/lib/constants/bounties";
 import {
   BountyPerformanceScope,
   BountySubmissionRejectionReason,
@@ -14,22 +18,8 @@ import { UserSchema } from "./users";
 import { parseDateSchema } from "./utils";
 import { workflowConditionSchema } from "./workflows";
 
-export const SUBMISSION_REQUIREMENTS = ["image", "url"] as const;
-
-export const MAX_SUBMISSION_FILES = 4;
-
-export const MAX_SUBMISSION_URLS = 20;
-
-export const REJECT_BOUNTY_SUBMISSION_REASONS = {
-  invalidProof: "Invalid proof",
-  duplicateSubmission: "Duplicate submission",
-  outOfTimeWindow: "Out of time window",
-  didNotMeetCriteria: "Did not meet criteria",
-  other: "Other",
-} as const;
-
 export const submissionRequirementsSchema = z
-  .array(z.enum(SUBMISSION_REQUIREMENTS))
+  .array(z.enum(BOUNTY_SUBMISSION_REQUIREMENTS))
   .min(0)
   .max(2);
 
@@ -161,7 +151,11 @@ export const rejectBountySubmissionSchema = z.object({
   workspaceId: z.string(),
   submissionId: z.string(),
   rejectionReason: z.nativeEnum(BountySubmissionRejectionReason),
-  rejectionNote: z.string().trim().max(500).optional(),
+  rejectionNote: z
+    .string()
+    .trim()
+    .max(BOUNTY_MAX_SUBMISSION_REJECTION_NOTE_LENGTH)
+    .optional(),
 });
 
 export const getBountySubmissionsQuerySchema = z

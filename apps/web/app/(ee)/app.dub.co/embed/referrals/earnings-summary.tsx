@@ -44,7 +44,7 @@ export function ReferralsEmbedEarningsSummary({
           <div key={label} className="flex justify-between text-sm">
             <span className="text-content-subtle font-medium">{label}</span>
             <span className="text-content-default font-semibold">
-              {currencyFormatter(value / 100)}
+              {currencyFormatter(value)}
             </span>
           </div>
         ))}

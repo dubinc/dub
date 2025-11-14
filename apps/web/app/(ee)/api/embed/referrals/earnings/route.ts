@@ -1,6 +1,6 @@
+import { REFERRALS_EMBED_EARNINGS_LIMIT } from "@/lib/constants/misc";
 import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
 import { generateRandomName } from "@/lib/names";
-import { REFERRALS_EMBED_EARNINGS_LIMIT } from "@/lib/partners/constants";
 import { PartnerEarningsSchema } from "@/lib/zod/schemas/partner-profile";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";

@@ -6,7 +6,7 @@ import {
   SubmissionsCountByStatus,
   useBountySubmissionsCount,
 } from "@/lib/swr/use-bounty-submissions-count";
-import { usePartnersCountBounty } from "@/lib/swr/use-partners-count-bounty";
+import { usePartnersCountByGroupIds } from "@/lib/swr/use-partners-count-by-groupids";
 import { BountyThumbnailImage } from "@/ui/partners/bounties/bounty-thumbnail-image";
 import { formatDate, nFormatter, pluralize } from "@dub/utils";
 import { CalendarDays, Gift, Users } from "lucide-react";
@@ -32,8 +32,10 @@ export function BountyInfo() {
     return submissionsCount?.find((s) => s.status === "submitted")?.count ?? 0;
   }, [submissionsCount]);
 
-  const { totalPartnersForBounty, loading: totalPartnersForBountyLoading } =
-    usePartnersCountBounty({ bounty });
+  const { totalPartners, loading: totalPartnersForBountyLoading } =
+    usePartnersCountByGroupIds({
+      groupIds: bounty?.groups.map((group) => group.id),
+    });
 
   if (loading) {
     return <BountyInfoSkeleton />;
@@ -75,7 +77,7 @@ export function BountyInfo() {
         <div className="flex items-center space-x-2">
           <Users className="size-4 shrink-0" />
           <div className="text-sm text-neutral-500">
-            {totalSubmissions === totalPartnersForBounty ? (
+            {totalSubmissions === totalPartners ? (
               <>All</>
             ) : (
               <>
@@ -92,11 +94,11 @@ export function BountyInfo() {
             ) : (
               <>
                 <span className="font-medium text-neutral-700">
-                  {nFormatter(totalPartnersForBounty, { full: true })}
+                  {nFormatter(totalPartners, { full: true })}
                 </span>
               </>
             )}{" "}
-            {pluralize("partner", totalSubmissions ?? totalPartnersForBounty)}{" "}
+            {pluralize("partner", totalSubmissions ?? totalPartners)}{" "}
             {bounty.type === "performance" ? "completed" : "submitted"}
             {readyForReviewSubmissions > 0 && (
               <>

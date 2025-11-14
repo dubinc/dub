@@ -42,7 +42,7 @@ type ColumnMeta = {
 
 export function EarningsTablePartner({ limit }: { limit?: number }) {
   const { programSlug } = useParams();
-  const { programEnrollment } = useProgramEnrollment();
+  const { programEnrollment, showDetailedAnalytics } = useProgramEnrollment();
   const { queryParams, searchParamsObj, getQueryString } = useRouterStuff();
 
   const { sortBy = "createdAt", sortOrder = "desc" } = searchParamsObj as {
@@ -139,9 +139,9 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
             <CustomerRowItem
               customer={row.original.customer}
               href={
-                programSlug === "perplexity"
-                  ? undefined
-                  : `/programs/${programSlug}/customers/${row.original.customer.id}`
+                showDetailedAnalytics
+                  ? `/programs/${programSlug}/customers/${row.original.customer.id}`
+                  : undefined
               }
               className="px-4 py-2.5"
             />
@@ -165,7 +165,7 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
               accessorKey: "amount",
               cell: ({ row }) =>
                 row.original.amount
-                  ? currencyFormatter(row.original.amount / 100)
+                  ? currencyFormatter(row.original.amount)
                   : "-",
             },
           ]
@@ -202,7 +202,7 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
         cell: ({ row }) => {
           const commission = row.original;
 
-          const earnings = currencyFormatter(commission.earnings / 100);
+          const earnings = currencyFormatter(commission.earnings);
 
           if (commission.description) {
             const reason =

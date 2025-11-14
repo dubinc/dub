@@ -58,4 +58,8 @@ export const RESERVED_SLUGS = [
   "commissions",
   "sales",
   "resources",
+  "campaigns",
+  "messages",
+  "network",
+  "marketplace",
 ];

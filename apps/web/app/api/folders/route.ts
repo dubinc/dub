@@ -1,7 +1,8 @@
 import { createId } from "@/lib/api/create-id";
-import { DubApiError, exceededLimitError } from "@/lib/api/errors";
+import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import { getFolders } from "@/lib/folder/get-folders";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import {

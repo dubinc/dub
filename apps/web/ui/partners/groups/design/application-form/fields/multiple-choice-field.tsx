@@ -52,6 +52,7 @@ export function MultipleChoiceField({
                 <label
                   key={option.id}
                   className="flex w-full items-center gap-2.5 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  dir="auto"
                 >
                   <Checkbox
                     id={option.id}
@@ -115,6 +116,7 @@ export function MultipleChoiceField({
               <label
                 key={option.id}
                 className="flex items-center gap-2.5 leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                dir="auto"
               >
                 <RadioGroupItem
                   value={option.value}
@@ -139,6 +141,7 @@ export function MultipleChoiceField({
       required={field.required}
       helperText={field.data.multiple ? "Select all that apply" : undefined}
       error={state.error?.message}
+      labelDir="auto"
     >
       {content}
     </FormControl>

@@ -1,4 +1,4 @@
-import { InfoTooltip, SimpleTooltipContent } from "@dub/ui";
+import { InfoTooltip } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
@@ -26,11 +26,9 @@ export function PageContentHeader({
     titleInfo && typeof titleInfo === "object" && "title" in titleInfo ? (
       <InfoTooltip
         content={
-          <SimpleTooltipContent
-            title={titleInfo.title}
-            href={titleInfo.href}
-            cta="Learn more"
-          />
+          titleInfo.href
+            ? `${titleInfo.title} [Learn more](${titleInfo.href})`
+            : titleInfo.title
         }
       />
     ) : (

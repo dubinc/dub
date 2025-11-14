@@ -32,7 +32,7 @@ export default function PartnerPayoutWithdrawalCompleted({
     traceId: string | null;
   };
 }) {
-  const amountInDollars = currencyFormatter(payout.amount / 100, {
+  const amountInDollars = currencyFormatter(payout.amount, {
     currency: payout.currency,
   });
 

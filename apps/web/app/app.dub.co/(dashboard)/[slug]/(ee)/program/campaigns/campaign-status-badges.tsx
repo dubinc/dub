@@ -1,4 +1,10 @@
-import { CircleHalfDottedClock, CirclePlay, PaperPlane, Pen2 } from "@dub/ui";
+import {
+  CircleHalfDottedClock,
+  CirclePlay,
+  CircleXmark,
+  PaperPlane,
+  Pen2,
+} from "@dub/ui";
 
 export const CAMPAIGN_STATUS_BADGES = {
   draft: {
@@ -19,16 +25,28 @@ export const CAMPAIGN_STATUS_BADGES = {
     icon: CircleHalfDottedClock,
     iconClassName: "text-yellow-600",
   },
+  scheduled: {
+    label: "Scheduled",
+    variant: "warning",
+    icon: CircleHalfDottedClock,
+    iconClassName: "text-neutral-600",
+  },
   sent: {
     label: "Sent",
-    variant: "neutral",
+    variant: "success",
     icon: PaperPlane,
     iconClassName: "text-neutral-600",
   },
-  scheduled: {
-    label: "Scheduled",
-    variant: "neutral",
+  sending: {
+    label: "Sending",
+    variant: "new",
     icon: CircleHalfDottedClock,
+    iconClassName: "text-neutral-600",
+  },
+  canceled: {
+    label: "Canceled",
+    variant: "error",
+    icon: CircleXmark,
     iconClassName: "text-neutral-600",
   },
 } as const;

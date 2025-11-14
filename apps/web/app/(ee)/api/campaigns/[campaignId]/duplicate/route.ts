@@ -58,6 +58,7 @@ export const POST = withWorkspace(
           workflowId,
           userId: session.user.id,
           status: CampaignStatus.draft,
+          from: campaign.from,
           name: `${campaign.name} (copy)`,
           subject: campaign.subject,
           bodyJson: campaign.bodyJson ?? DEFAULT_CAMPAIGN_BODY,
@@ -77,6 +78,5 @@ export const POST = withWorkspace(
   },
   {
     requiredPlan: ["advanced", "enterprise"],
-    featureFlag: "emailCampaigns",
   },
 );

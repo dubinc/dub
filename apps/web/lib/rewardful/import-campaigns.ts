@@ -1,12 +1,13 @@
 import { RESOURCE_COLORS } from "@/ui/colors";
 import { prisma } from "@dub/prisma";
 import { EventType, Prisma, RewardStructure } from "@dub/prisma/client";
-import { randomValue } from "@dub/utils";
+import { getDomainWithoutWWW, randomValue } from "@dub/utils";
 import { differenceInSeconds } from "date-fns";
 import { createId } from "../api/create-id";
 
 import { serializeReward } from "../api/partners/serialize-reward";
 import { getRewardAmount } from "../partners/get-reward-amount";
+import { DEFAULT_ADDITIONAL_PARTNER_LINKS } from "../zod/schemas/groups";
 import { RewardfulApi } from "./api";
 import { rewardfulImporter } from "./importer";
 import { RewardfulImportPayload } from "./types";
@@ -14,13 +15,22 @@ import { RewardfulImportPayload } from "./types";
 export async function importCampaigns(payload: RewardfulImportPayload) {
   const { programId, campaignIds } = payload;
 
-  const { workspaceId } = await prisma.program.findUniqueOrThrow({
+  const program = await prisma.program.findUniqueOrThrow({
     where: {
       id: programId,
     },
+    select: {
+      workspaceId: true,
+      domain: true,
+      url: true,
+    },
   });
 
-  const { token } = await rewardfulImporter.getCredentials(workspaceId);
+  if (!program.domain || !program.url) {
+    throw new Error("Program domain or URL is not set.");
+  }
+
+  const { token } = await rewardfulImporter.getCredentials(program.workspaceId);
 
   const rewardfulApi = new RewardfulApi({ token });
 
@@ -48,14 +58,29 @@ export async function importCampaigns(payload: RewardfulImportPayload) {
           slug: groupSlug,
         },
       },
-      update: {},
       create: {
         id: createId({ prefix: "grp_" }),
         programId,
         name: `(Rewardful) ${campaign.name}`,
         slug: groupSlug,
         color: randomValue(RESOURCE_COLORS),
+        additionalLinks: [
+          {
+            domain: getDomainWithoutWWW(program.url),
+            validationMode: "domain",
+          },
+        ],
+        maxPartnerLinks: DEFAULT_ADDITIONAL_PARTNER_LINKS,
+        partnerGroupDefaultLinks: {
+          create: {
+            id: createId({ prefix: "pgdl_" }),
+            programId,
+            domain: program.domain,
+            url: program.url,
+          },
+        },
       },
+      update: {},
     });
 
     console.log(

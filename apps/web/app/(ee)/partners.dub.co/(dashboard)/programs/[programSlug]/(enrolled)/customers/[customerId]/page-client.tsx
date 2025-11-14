@@ -1,6 +1,6 @@
 "use client";
 
-import { CUSTOMER_PAGE_EVENTS_LIMIT } from "@/lib/partners/constants";
+import { CUSTOMER_PAGE_EVENTS_LIMIT } from "@/lib/constants/misc";
 import usePartnerCustomer from "@/lib/swr/use-partner-customer";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PartnerEarningsResponse } from "@/lib/types";
@@ -17,7 +17,7 @@ import { memo } from "react";
 import useSWR from "swr";
 
 export function ProgramCustomerPageClient() {
-  const { programEnrollment } = useProgramEnrollment();
+  const { programEnrollment, showDetailedAnalytics } = useProgramEnrollment();
   const { programSlug, customerId } = useParams<{
     programSlug: string;
     customerId: string;
@@ -27,8 +27,9 @@ export function ProgramCustomerPageClient() {
     customerId,
   });
 
-  if ((!customer && !isLoading) || programSlug === "perplexity")
+  if ((!customer && !isLoading) || !showDetailedAnalytics) {
     redirect(`/programs/${programSlug}`);
+  }
 
   return (
     <div className="mb-10 mt-2">
@@ -46,11 +47,18 @@ export function ProgramCustomerPageClient() {
 
         <div className="flex flex-col gap-1">
           {customer ? (
-            customer.email && (
-              <span className="text-sm font-medium text-neutral-500">
-                {customer.email}
-              </span>
-            )
+            <>
+              {customer["name"] && (
+                <h1 className="text-base font-semibold leading-tight text-neutral-900">
+                  {customer["name"]}
+                </h1>
+              )}
+              {customer.email && (
+                <span className="text-sm font-medium text-neutral-500">
+                  {customer.email}
+                </span>
+              )}
+            </>
           ) : (
             <div className="h-5 w-24 animate-pulse rounded-md bg-neutral-200" />
           )}

@@ -65,8 +65,6 @@ export default function Toggle({
   const {
     filters,
     activeFilters,
-    setSearch,
-    setSelectedFilter,
     onSelect,
     onRemove,
     onRemoveAll,
@@ -80,8 +78,6 @@ export default function Toggle({
       className="w-full md:w-fit"
       filters={filters}
       activeFilters={activeFilters}
-      onSearchChange={setSearch}
-      onSelectedFilterChange={setSelectedFilter}
       onSelect={onSelect}
       onRemove={onRemove}
       onOpenFilter={onOpenFilter}
@@ -121,7 +117,7 @@ export default function Toggle({
         if (!range || !range.from || !range.to) return;
 
         queryParams({
-          del: "preset",
+          del: "interval",
           set: {
             start: range.from.toISOString(),
             end: range.to.toISOString(),
@@ -140,7 +136,7 @@ export default function Toggle({
                 interval: value,
                 start,
                 end,
-              });
+              }).valid;
 
         const { startDate, endDate } = getStartEndDates({
           interval: value,

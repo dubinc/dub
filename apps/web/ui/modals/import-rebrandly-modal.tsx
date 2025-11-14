@@ -8,7 +8,6 @@ import {
   LoadingSpinner,
   Logo,
   Modal,
-  SimpleTooltipContent,
   SmartDateTimePicker,
   Switch,
   useMediaQuery,
@@ -284,13 +283,7 @@ function ImportRebrandlyModal({
                   Rebrandly API Key
                 </h2>
                 <InfoTooltip
-                  content={
-                    <SimpleTooltipContent
-                      title={`Your Rebrandly API Key can be found in your Rebrandly account under`}
-                      cta="Account > API"
-                      href="https://app.rebrandly.com/account/api"
-                    />
-                  }
+                  content={`Your Rebrandly API Key can be found in your Rebrandly account under [Account > API](https://app.rebrandly.com/account/api)`}
                 />
               </div>
               <input

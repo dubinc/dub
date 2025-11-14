@@ -1,6 +1,6 @@
 import { cn } from "@dub/utils";
-import { useCurrentEditor, useEditorState } from "@tiptap/react";
-import { forwardRef, useRef } from "react";
+import { useEditorState } from "@tiptap/react";
+import { ReactNode, forwardRef, useRef } from "react";
 import {
   AtSign,
   Heading1,
@@ -11,13 +11,19 @@ import {
   TextBold,
   TextItalic,
 } from "../icons";
+import { useRichTextContext } from "./rich-text-provider";
 
 export function RichTextToolbar({
-  onImageUpload,
+  toolsStart,
+  toolsEnd,
+  className,
 }: {
-  onImageUpload?: (file: File) => void;
+  toolsStart?: ReactNode;
+  toolsEnd?: ReactNode;
+  className?: string;
 }) {
-  const { editor } = useCurrentEditor();
+  const { editor, features, handleImageUpload, isUploading } =
+    useRichTextContext();
 
   const editorState = useEditorState({
     editor,
@@ -33,51 +39,68 @@ export function RichTextToolbar({
   const inputImageRef = useRef<HTMLInputElement>(null);
 
   return (
-    <div className="flex gap-1">
-      <ToolbarButton
-        icon={TextBold}
-        label="Bold"
-        isActive={editorState?.isBold}
-        onClick={() => editor?.chain().focus().toggleBold().run()}
-      />
-      <ToolbarButton
-        icon={TextItalic}
-        label="Italic"
-        isActive={editorState?.isItalic}
-        onClick={() => editor?.chain().focus().toggleItalic().run()}
-      />
-      <ToolbarButton
-        icon={Heading1}
-        label="Heading 1"
-        isActive={editorState?.isHeading1}
-        onClick={() =>
-          editor?.chain().focus().toggleHeading({ level: 1 }).run()
-        }
-      />
-      <ToolbarButton
-        icon={Heading2}
-        label="Heading 2"
-        isActive={editorState?.isHeading2}
-        onClick={() =>
-          editor?.chain().focus().toggleHeading({ level: 2 }).run()
-        }
-      />
+    <div
+      className={cn(
+        "flex gap-1",
+        isUploading && "pointer-events-none opacity-50",
+        className,
+      )}
+    >
+      {toolsStart}
 
-      <LinkButton />
-      <ToolbarButton
-        icon={AtSign}
-        label="Variable"
-        isActive={false}
-        onClick={() => {
-          if (editor?.state.selection.$from.nodeBefore?.text?.endsWith("@")) {
-            editor?.commands.focus();
-            return;
-          }
-          editor?.chain().focus().insertContent("@").run();
-        }}
-      />
+      {features?.includes("bold") && (
+        <RichTextToolbarButton
+          icon={TextBold}
+          label="Bold"
+          isActive={editorState?.isBold}
+          onClick={() => editor?.chain().focus().toggleBold().run()}
+        />
+      )}
+      {features?.includes("italic") && (
+        <RichTextToolbarButton
+          icon={TextItalic}
+          label="Italic"
+          isActive={editorState?.isItalic}
+          onClick={() => editor?.chain().focus().toggleItalic().run()}
+        />
+      )}
+      {features?.includes("headings") && (
+        <>
+          <RichTextToolbarButton
+            icon={Heading1}
+            label="Heading 1"
+            isActive={editorState?.isHeading1}
+            onClick={() =>
+              editor?.chain().focus().toggleHeading({ level: 1 }).run()
+            }
+          />
+          <RichTextToolbarButton
+            icon={Heading2}
+            label="Heading 2"
+            isActive={editorState?.isHeading2}
+            onClick={() =>
+              editor?.chain().focus().toggleHeading({ level: 2 }).run()
+            }
+          />
+        </>
+      )}
+      {features?.includes("links") && <LinkButton />}
+      {features?.includes("variables") && (
+        <RichTextToolbarButton
+          icon={AtSign}
+          label="Variable"
+          isActive={false}
+          onClick={() => {
+            if (editor?.state.selection.$from.nodeBefore?.text?.endsWith("@")) {
+              editor?.commands.focus();
+              return;
+            }
+            editor?.chain().focus().insertContent("@").run();
+          }}
+        />
+      )}
 
-      {onImageUpload && (
+      {features?.includes("images") && handleImageUpload && editor && (
         <>
           <input
             ref={inputImageRef}
@@ -87,11 +110,11 @@ export function RichTextToolbar({
               const file = e.target.files?.[0];
               if (!file) return;
 
-              onImageUpload(file);
+              handleImageUpload(file, editor, editor.state.selection.anchor);
               e.target.value = "";
             }}
           />
-          <ToolbarButton
+          <RichTextToolbarButton
             icon={ImageIcon}
             label="Image"
             isActive={false}
@@ -99,12 +122,14 @@ export function RichTextToolbar({
           />
         </>
       )}
+
+      {toolsEnd}
     </div>
   );
 }
 
 function LinkButton() {
-  const { editor } = useCurrentEditor();
+  const { editor } = useRichTextContext();
 
   const editorState = useEditorState({
     editor,
@@ -114,7 +139,7 @@ function LinkButton() {
   });
 
   return (
-    <ToolbarButton
+    <RichTextToolbarButton
       icon={Hyperlink}
       label="Link"
       onClick={() => {
@@ -140,7 +165,7 @@ function LinkButton() {
   );
 }
 
-type ToolbarButtonProps = {
+type RichTextToolbarButtonProps = {
   icon: Icon;
   label?: string;
   isActive?: boolean;
@@ -148,9 +173,18 @@ type ToolbarButtonProps = {
   disabled?: boolean;
 };
 
-const ToolbarButton = forwardRef<HTMLButtonElement, ToolbarButtonProps>(
+export const RichTextToolbarButton = forwardRef<
+  HTMLButtonElement,
+  RichTextToolbarButtonProps
+>(
   (
-    { icon: Icon, label, isActive, onClick, disabled }: ToolbarButtonProps,
+    {
+      icon: Icon,
+      label,
+      isActive,
+      onClick,
+      disabled,
+    }: RichTextToolbarButtonProps,
     ref,
   ) => {
     return (

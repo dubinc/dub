@@ -176,6 +176,7 @@ export const trackSale = async ({
       select: {
         id: true,
         projectId: true,
+        disabledAt: true,
       },
     });
 
@@ -189,7 +190,14 @@ export const trackSale = async ({
     if (link.projectId !== workspace.id) {
       throw new DubApiError({
         code: "not_found",
-        message: `Link for clickId ${clickData.click_id} does not belong to the workspace`,
+        message: `Link ${link.id} for clickId ${clickData.click_id} does not belong to the workspace`,
+      });
+    }
+
+    if (link.disabledAt) {
+      throw new DubApiError({
+        code: "not_found",
+        message: `Link ${link.id} for clickId ${clickData.click_id} is disabled, sale not tracked`,
       });
     }
 
@@ -220,14 +228,14 @@ export const trackSale = async ({
     if (customerAvatar && !isStored(customerAvatar) && finalCustomerAvatar) {
       // persist customer avatar to R2 if it's not already stored
       waitUntil(
-        storage.upload(
-          finalCustomerAvatar.replace(`${R2_URL}/`, ""),
-          customerAvatar,
-          {
+        storage.upload({
+          key: finalCustomerAvatar.replace(`${R2_URL}/`, ""),
+          body: customerAvatar,
+          opts: {
             width: 128,
             height: 128,
           },
-        ),
+        }),
       );
     }
 

@@ -21,7 +21,7 @@ export default function useCustomersCount<T = number>({
       `/api/customers/count${getQueryString(
         { workspaceId, ...query },
         {
-          include: ["linkId", "country", "search"],
+          include: ["linkId", "country", "search", "externalId"],
         },
       )}`,
     fetcher,

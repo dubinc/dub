@@ -1,21 +1,22 @@
 import { getCampaignOrThrow } from "@/lib/api/campaigns/get-campaign-or-throw";
+import {
+  scheduleMarketingCampaign,
+  scheduleTransactionalCampaign,
+} from "@/lib/api/campaigns/schedule-campaigns";
+import { validateCampaign } from "@/lib/api/campaigns/validate-campaign";
 import { throwIfInvalidGroupIds } from "@/lib/api/groups/throw-if-invalid-group-ids";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { parseWorkflowConfig } from "@/lib/api/workflows/parse-workflow-config";
-import { isScheduledWorkflow } from "@/lib/api/workflows/utils";
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import {
   CampaignSchema,
   updateCampaignSchema,
 } from "@/lib/zod/schemas/campaigns";
-import {
-  WORKFLOW_ATTRIBUTE_TRIGGER,
-  WORKFLOW_SCHEDULES,
-} from "@/lib/zod/schemas/workflows";
+import { WORKFLOW_ATTRIBUTE_TRIGGER } from "@/lib/zod/schemas/workflows";
 import { prisma } from "@dub/prisma";
-import { APP_DOMAIN_WITH_NGROK, arrayEqual } from "@dub/utils";
+import { arrayEqual } from "@dub/utils";
 import { PartnerGroup } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -43,7 +44,6 @@ export const GET = withWorkspace(
   },
   {
     requiredPlan: ["advanced", "enterprise"],
-    featureFlag: "emailCampaigns",
   },
 );
 
@@ -53,14 +53,26 @@ export const PATCH = withWorkspace(
     const { campaignId } = params;
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const { name, subject, status, bodyJson, groupIds, triggerCondition } =
-      updateCampaignSchema.parse(await parseRequestBody(req));
-
     const campaign = await getCampaignOrThrow({
       programId,
       campaignId,
       includeWorkflow: true,
       includeGroups: true,
+    });
+
+    const {
+      name,
+      subject,
+      preview,
+      from,
+      status,
+      bodyJson,
+      groupIds,
+      triggerCondition,
+      scheduledAt,
+    } = await validateCampaign({
+      input: updateCampaignSchema.parse(await parseRequestBody(req)),
+      campaign,
     });
 
     // if groupIds is provided and is different from the current groupIds, update the groups
@@ -109,8 +121,11 @@ export const PATCH = withWorkspace(
         data: {
           ...(name && { name }),
           ...(subject && { subject }),
+          ...(preview !== undefined && { preview }),
+          ...(from && { from }),
           ...(status && { status }),
           ...(bodyJson && { bodyJson }),
+          ...(scheduledAt !== undefined && { scheduledAt }),
           ...(shouldUpdateGroups && {
             groups: {
               deleteMany: {},
@@ -132,38 +147,16 @@ export const PATCH = withWorkspace(
 
     waitUntil(
       (async () => {
-        if (
-          !updatedCampaign.workflow ||
-          !isScheduledWorkflow(updatedCampaign.workflow)
-        ) {
-          return;
-        }
-
-        // Decide whether to schedule the workflow or delete the schedule
-        const shouldSchedule =
-          (campaign.status === "draft" || campaign.status === "paused") &&
-          updatedCampaign.status === "active";
-
-        const shouldDeleteSchedule =
-          campaign.status === "active" && updatedCampaign.status === "paused";
-
-        const cronSchedule =
-          WORKFLOW_SCHEDULES[updatedCampaign.workflow.trigger];
-
-        if (!cronSchedule) {
-          throw new Error(
-            `Cron schedule not found for trigger ${updatedCampaign.workflow.trigger}`,
-          );
-        }
-
-        if (shouldSchedule) {
-          await qstash.schedules.create({
-            destination: `${APP_DOMAIN_WITH_NGROK}/api/cron/workflows/${updatedCampaign.workflow.id}`,
-            cron: cronSchedule,
-            scheduleId: updatedCampaign.workflow.id,
+        if (updatedCampaign.type === "marketing") {
+          await scheduleMarketingCampaign({
+            campaign,
+            updatedCampaign,
           });
-        } else if (shouldDeleteSchedule) {
-          await qstash.schedules.delete(updatedCampaign.workflow.id);
+        } else if (updatedCampaign.type === "transactional") {
+          await scheduleTransactionalCampaign({
+            campaign,
+            updatedCampaign,
+          });
         }
       })(),
     );
@@ -178,7 +171,6 @@ export const PATCH = withWorkspace(
   },
   {
     requiredPlan: ["advanced", "enterprise"],
-    featureFlag: "emailCampaigns",
   },
 );
 
@@ -212,17 +204,17 @@ export const DELETE = withWorkspace(
 
     waitUntil(
       (async () => {
-        if (!campaign.workflow) {
-          return;
+        if (campaign.type === "marketing" && campaign.qstashMessageId) {
+          await qstash.messages.delete(campaign.qstashMessageId);
+        } else if (campaign.type === "transactional" && campaign.workflow) {
+          const { condition } = parseWorkflowConfig(campaign.workflow);
+
+          if (condition.attribute === "partnerJoined") {
+            return;
+          }
+
+          await qstash.schedules.delete(campaign.workflow.id);
         }
-
-        const { condition } = parseWorkflowConfig(campaign.workflow);
-
-        if (condition.attribute === "partnerJoined") {
-          return;
-        }
-
-        await qstash.schedules.delete(campaign.workflow.id);
       })(),
     );
 
@@ -230,6 +222,5 @@ export const DELETE = withWorkspace(
   },
   {
     requiredPlan: ["advanced", "enterprise"],
-    featureFlag: "emailCampaigns",
   },
 );

@@ -161,7 +161,7 @@ export function CustomerTable() {
           cell: ({ getValue }) => (
             <div className="flex items-center gap-2">
               <span>
-                {currencyFormatter(getValue() / 100, {
+                {currencyFormatter(getValue(), {
                   trailingZeroDisplay: "stripIfInteger",
                 })}
               </span>
@@ -294,8 +294,8 @@ export function CustomerTable() {
             onRemove={onRemove}
           />
           <SearchBoxPersisted
-            placeholder="Search by email, name, or external ID"
-            inputClassName="md:w-[21rem]"
+            placeholder="Search by email or name"
+            inputClassName="md:w-[16rem]"
           />
         </div>
         <AnimatedSizeContainer height>

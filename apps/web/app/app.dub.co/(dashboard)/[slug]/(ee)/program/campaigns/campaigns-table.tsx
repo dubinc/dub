@@ -2,7 +2,6 @@
 
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
-import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Campaign, CampaignList } from "@/lib/types";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
@@ -11,20 +10,18 @@ import { CampaignStatus } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
   Button,
-  EditColumnsButton,
   Filter,
   MenuItem,
   Popover,
   StatusBadge,
   Table,
   TimestampTooltip,
-  Tooltip,
   usePagination,
   useRouterStuff,
   useTable,
 } from "@dub/ui";
 import { Dots, Duplicate, LoadingCircle, Trash } from "@dub/ui/icons";
-import { cn, fetcher, formatDateTimeSmart, nFormatter } from "@dub/utils";
+import { fetcher, formatDateTimeSmart } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { Mail, Pause, Play } from "lucide-react";
@@ -33,7 +30,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
 import { CAMPAIGN_STATUS_BADGES } from "./campaign-status-badges";
-import { CAMPAIGN_TYPE_BADGES } from "./campaign-type-badges";
+import { CampaignTypeIcon } from "./campaign-type-icon";
 import { CreateCampaignButton } from "./create-campaign-button";
 import { useDeleteCampaignModal } from "./delete-campaign-modal";
 import { useCampaignsFilters } from "./use-campaigns-filters";
@@ -47,13 +44,7 @@ export function CampaignsTable() {
   const router = useRouter();
   const { id: workspaceId, slug } = useWorkspace();
   const { pagination, setPagination } = usePagination();
-  const { queryParams, searchParams, getQueryString } = useRouterStuff();
-
-  const { partnersCount: groupCount } = usePartnersCount<
-    PartnersCountByGroup[] | undefined
-  >({
-    groupBy: "groupId",
-  });
+  const { getQueryString } = useRouterStuff();
 
   const {
     filters,
@@ -63,9 +54,6 @@ export function CampaignsTable() {
     onRemoveAll,
     isFiltered,
   } = useCampaignsFilters();
-
-  const sortBy = searchParams.get("sortBy") || "updatedAt";
-  const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
   const {
     data: campaigns,
@@ -88,26 +76,27 @@ export function CampaignsTable() {
       {
         id: "email",
         header: "Email",
-        enableHiding: false,
-        minSize: 200,
+        cell: ({ row }) => (
+          <div className="flex items-center gap-2">
+            <CampaignTypeIcon type={row.original.type} />
+            <span className="text-content-emphasis truncate text-sm font-medium">
+              {row.original.name}
+            </span>
+          </div>
+        ),
+      },
+      {
+        id: "status",
+        header: "Status",
         cell: ({ row }) => {
-          const { icon: Icon, iconClassName } =
-            CAMPAIGN_TYPE_BADGES[row.original.type];
+          const badge = CAMPAIGN_STATUS_BADGES[row.original.status];
 
-          return (
-            <div className="flex items-center gap-2">
-              <div
-                className={cn(
-                  "flex size-6 shrink-0 items-center justify-center rounded-md",
-                  iconClassName,
-                )}
-              >
-                <Icon className="size-3.5" />
-              </div>
-              <span className="text-content-emphasis truncate text-sm font-medium">
-                {row.original.name}
-              </span>
-            </div>
+          return badge ? (
+            <StatusBadge icon={null} variant={badge.variant}>
+              {badge.label}
+            </StatusBadge>
+          ) : (
+            "-"
           );
         },
       },
@@ -127,91 +116,10 @@ export function CampaignsTable() {
         ),
       },
       {
-        id: "status",
-        header: "Status",
-        cell: ({ row }) => {
-          const badge = CAMPAIGN_STATUS_BADGES[row.original.status];
-
-          return badge ? (
-            <StatusBadge icon={null} variant={badge.variant}>
-              {badge.label}
-            </StatusBadge>
-          ) : (
-            "-"
-          );
-        },
-      },
-      {
-        id: "partners",
-        header: "Partners",
-        cell: ({ row }) => {
-          const groupIds = row.original.groups.map((g) => g.id);
-
-          const partnersCount =
-            groupCount
-              ?.filter(
-                (g) => groupIds.length === 0 || groupIds.includes(g.groupId),
-              )
-              .reduce((acc, curr) => acc + curr._count, 0) || 0;
-
-          return nFormatter(partnersCount, { full: true });
-        },
-      },
-      {
-        id: "delivered",
-        header: "Delivered",
-        accessorFn: (d) => d.delivered,
-        cell: ({ row }) => {
-          const { sent, delivered } = row.original;
-
-          return (
-            <Tooltip content={`${nFormatter(delivered)} delivered`} side="top">
-              <span className="cursor-help">
-                {calculatePercentage(delivered, sent)}%
-              </span>
-            </Tooltip>
-          );
-        },
-      },
-      {
-        id: "bounced",
-        header: "Bounced",
-        accessorFn: (d) => d.bounced,
-        cell: ({ row }) => {
-          const { sent, bounced } = row.original;
-
-          return (
-            <Tooltip content={`${nFormatter(bounced)} bounced`} side="top">
-              <span className="cursor-help">
-                {calculatePercentage(bounced, sent)}%
-              </span>
-            </Tooltip>
-          );
-        },
-      },
-      {
-        id: "opened",
-        header: "Opened",
-        accessorFn: (d) => d.opened,
-        cell: ({ row }) => {
-          const { delivered, opened } = row.original;
-
-          return (
-            <Tooltip content={`${nFormatter(opened)} opened`} side="top">
-              <span className="cursor-help">
-                {calculatePercentage(opened, delivered)}%
-              </span>
-            </Tooltip>
-          );
-        },
-      },
-      {
         id: "menu",
-        enableHiding: false,
-        minSize: 43,
-        size: 43,
-        maxSize: 43,
-        header: () => <EditColumnsButton table={table} />,
+        minSize: 20,
+        size: 20,
+        maxSize: 20,
         cell: ({ row }) => <RowMenuButton row={row} />,
       },
     ],
@@ -230,18 +138,7 @@ export function CampaignsTable() {
     },
     pagination,
     onPaginationChange: setPagination,
-    sortableColumns: ["createdAt", "status", "delivered", "bounced", "opened"],
-    sortBy,
-    sortOrder,
-    onSortChange: ({ sortBy, sortOrder }) =>
-      queryParams({
-        set: {
-          ...(sortBy && { sortBy }),
-          ...(sortOrder && { sortOrder }),
-        },
-        del: "page",
-        scroll: false,
-      }),
+    columnPinning: { right: ["createdAt", "menu"] },
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (p) => `campaign${p ? "s" : ""}`,
@@ -375,7 +272,7 @@ function RowMenuButton({
                 Duplicate
               </MenuItem>
 
-              {!isDraft && (
+              {!isDraft && campaign.type === "transactional" && (
                 <MenuItem
                   icon={
                     isUpdatingCampaign ? LoadingCircle : isPaused ? Play : Pause
@@ -419,5 +316,5 @@ const calculatePercentage = (value: number, total: number) => {
     return 0;
   }
 
-  return Math.round((value / total) * 100);
+  return Number(((value / total) * 100).toFixed(2));
 };

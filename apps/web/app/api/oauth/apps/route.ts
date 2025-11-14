@@ -118,10 +118,10 @@ export const POST = withWorkspace(
       });
 
       if (logo) {
-        const { url } = await storage.upload(
-          `integrations/${integration.id}_${nanoid(7)}`,
-          logo,
-        );
+        const { url } = await storage.upload({
+          key: `integrations/${integration.id}_${nanoid(7)}`,
+          body: logo,
+        });
 
         await prisma.integration.update({
           where: {

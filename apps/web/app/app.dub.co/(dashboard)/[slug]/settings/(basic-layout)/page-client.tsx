@@ -1,10 +1,9 @@
 "use client";
 
-import { clientAccessCheck } from "@/lib/api/tokens/permissions";
+import { clientAccessCheck } from "@/lib/client-access-check";
 import useWorkspace from "@/lib/swr/use-workspace";
 import DeleteWorkspace from "@/ui/workspaces/delete-workspace";
 import UploadLogo from "@/ui/workspaces/upload-logo";
-import WorkspaceId from "@/ui/workspaces/workspace-id";
 import { Form } from "@dub/ui";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -92,7 +91,6 @@ export default function WorkspaceSettingsClient() {
         }
       />
       <UploadLogo />
-      <WorkspaceId />
       <DeleteWorkspace />
     </>
   );

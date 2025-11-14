@@ -1,6 +1,6 @@
 "use client";
 
-import { INVOICE_PAYMENT_METHODS } from "@/lib/partners/constants";
+import { INVOICE_PAYMENT_METHODS } from "@/lib/constants/payouts";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { InvoiceProps } from "@/lib/types";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
@@ -158,7 +158,7 @@ const InvoiceCard = ({
             <div className="font-medium">Total</div>
             <div className="flex items-center gap-1.5 text-neutral-500">
               <span className="text-sm font-medium">
-                {currencyFormatter(invoice.total / 100)}
+                {currencyFormatter(invoice.total)}
               </span>
               {invoice.status &&
                 (() => {
@@ -217,7 +217,7 @@ const InvoiceCard = ({
           <div className="font-medium">Total</div>
           <div className="flex items-center gap-1.5 text-neutral-500">
             <span className="text-sm font-medium">
-              {currencyFormatter(invoice.total / 100)}
+              {currencyFormatter(invoice.total)}
             </span>
             {invoice.status &&
               (() => {

@@ -2,6 +2,11 @@ import { getEvents } from "@/lib/analytics/get-events";
 import { DubApiError } from "@/lib/api/errors";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
+import { MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING } from "@/lib/constants/partner-profile";
+import {
+  LARGE_PROGRAM_IDS,
+  LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS,
+} from "@/lib/constants/program";
 import { generateRandomName } from "@/lib/names";
 import {
   PartnerProfileLinkSchema,
@@ -13,7 +18,7 @@ import { z } from "zod";
 // GET /api/partner-profile/programs/[programId]/events – get events for a program enrollment link
 export const GET = withPartnerProfile(
   async ({ partner, params, searchParams }) => {
-    const { program, links, customerDataSharingEnabledAt } =
+    const { program, links, totalCommissions, customerDataSharingEnabledAt } =
       await getProgramEnrollmentOrThrow({
         partnerId: partner.id,
         programId: params.programId,
@@ -23,7 +28,10 @@ export const GET = withPartnerProfile(
         },
       });
 
-    if (program.id === "prog_1K0QHV7MP3PR05CJSCF5VN93X") {
+    if (
+      LARGE_PROGRAM_IDS.includes(program.id) &&
+      totalCommissions < LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS
+    ) {
       throw new DubApiError({
         code: "forbidden",
         message: "This feature is not available for your program.",
@@ -60,7 +68,12 @@ export const GET = withPartnerProfile(
 
     const events = await getEvents({
       ...rest,
-      ...(linkId ? { linkId } : { linkIds: links.map((link) => link.id) }),
+      workspaceId: program.workspaceId,
+      ...(linkId
+        ? { linkId }
+        : links.length > MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING
+          ? { partnerId: partner.id }
+          : { linkIds: links.map((link) => link.id) }),
       dataAvailableFrom: program.startedAt ?? program.createdAt,
     });
 

@@ -4,15 +4,15 @@ import { ratelimit } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
 import { API_DOMAIN, getCurrentPlan, getSearchParams } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import { AxiomRequest, withAxiom } from "next-axiom";
 import { headers } from "next/headers";
 import {
   PermissionAction,
   getPermissionsByRole,
 } from "../api/rbac/permissions";
-import { throwIfNoAccess } from "../api/tokens/permissions";
+import { throwIfNoAccess } from "../api/tokens/throw-if-no-access";
 import { Scope, mapScopesToPermissions } from "../api/tokens/scopes";
 import { normalizeWorkspaceId } from "../api/workspaces/workspace-id";
+import { withAxiomBodyLog } from "../axiom/server";
 import { getFeatureFlags } from "../edge-config";
 import { logConversionEvent } from "../tinybird/log-conversion-events";
 import { hashToken } from "./hash-token";
@@ -74,11 +74,15 @@ export const withWorkspace = (
     skipPermissionChecks?: boolean;
   } = {},
 ) => {
-  return withAxiom(
+  return withAxiomBodyLog(
     async (
-      req: AxiomRequest,
+      req,
       { params: initialParams }: { params: Promise<Record<string, string>> },
     ) => {
+      // Clone the request early so handlers can read the body without cloning
+      // Keep the original for withAxiomBodyLog to read in onSuccess
+      const clonedReq = req.clone();
+
       const params = (await initialParams) || {};
       const searchParams = getSearchParams(req.url);
 
@@ -129,7 +133,7 @@ export const withWorkspace = (
           ) {
             // @ts-expect-error
             return await handler({
-              req,
+              req: clonedReq,
               params,
               searchParams,
               headers: responseHeaders,
@@ -455,7 +459,7 @@ export const withWorkspace = (
         }
 
         return await handler({
-          req,
+          req: clonedReq,
           params,
           searchParams,
           headers: responseHeaders,
@@ -464,8 +468,6 @@ export const withWorkspace = (
           permissions,
         });
       } catch (error) {
-        req.log.error(error);
-
         // Log the conversion events for debugging purposes
         waitUntil(
           (async () => {

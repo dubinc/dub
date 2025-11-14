@@ -1,7 +1,13 @@
 "use client";
 
 import useProgram from "@/lib/swr/use-program";
-import { Button, Modal, useEnterSubmit, useMediaQuery } from "@dub/ui";
+import {
+  Button,
+  MarkdownIcon,
+  Modal,
+  useEnterSubmit,
+  useMediaQuery,
+} from "@dub/ui";
 import {
   Dispatch,
   SetStateAction,
@@ -126,13 +132,22 @@ function EditApplicationHeroModalInner({
               <textarea
                 id={`${id}-description`}
                 rows={3}
-                maxLength={240}
+                maxLength={2000}
                 onKeyDown={handleKeyDown}
                 placeholder={`Submit your application to join the ${program?.name} affiliate program and start earning commissions for your referrals.`}
                 className="block max-h-32 min-h-16 w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
                 {...register("applicationFormData.description")}
               />
             </div>
+            <a
+              href="https://www.markdownguide.org/basic-syntax/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-content-subtle mt-1 flex items-center gap-1 text-xs"
+            >
+              <MarkdownIcon role="presentation" className="h-3 w-auto" />
+              <span className="sr-only">MarkdownIcon</span> supported
+            </a>
           </div>
         </div>
 

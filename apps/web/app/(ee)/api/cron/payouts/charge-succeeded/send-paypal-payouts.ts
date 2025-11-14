@@ -2,12 +2,14 @@ import { createPayPalBatchPayout } from "@/lib/paypal/create-batch-payout";
 import { sendBatchEmail } from "@dub/email";
 import PartnerPayoutProcessed from "@dub/email/templates/partner-payout-processed";
 import { prisma } from "@dub/prisma";
+import { Invoice } from "@dub/prisma/client";
 
-export async function sendPaypalPayouts({ invoiceId }: { invoiceId: string }) {
+export async function sendPaypalPayouts(invoice: Pick<Invoice, "id">) {
   const payouts = await prisma.payout.findMany({
     where: {
-      invoiceId,
+      invoiceId: invoice.id,
       status: "processing",
+      mode: "internal",
       partner: {
         payoutsEnabledAt: {
           not: null,
@@ -31,7 +33,6 @@ export async function sendPaypalPayouts({ invoiceId }: { invoiceId: string }) {
         },
       },
     },
-    take: 100,
   });
 
   if (payouts.length === 0) {
@@ -41,7 +42,7 @@ export async function sendPaypalPayouts({ invoiceId }: { invoiceId: string }) {
 
   const batchPayout = await createPayPalBatchPayout({
     payouts,
-    invoiceId,
+    invoiceId: invoice.id,
   });
 
   console.log("PayPal batch payout created", batchPayout);
@@ -74,5 +75,5 @@ export async function sendPaypalPayouts({ invoiceId }: { invoiceId: string }) {
       })),
   );
 
-  console.log("Resend batch emails sent", batchEmails);
+  console.log("Resend batch emails sent", JSON.stringify(batchEmails, null, 2));
 }

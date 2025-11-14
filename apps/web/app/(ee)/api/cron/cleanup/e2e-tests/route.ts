@@ -1,6 +1,8 @@
 import { markDomainAsDeleted } from "@/lib/api/domains/mark-domain-deleted";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
+import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
+import { includeTags } from "@/lib/api/links/include-tags";
 import { bulkDeletePartners } from "@/lib/api/partners/bulk-delete-partners";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { prisma } from "@dub/prisma";
@@ -21,7 +23,7 @@ export async function GET(req: Request) {
   try {
     await verifyVercelSignature(req);
 
-    const oneHourAgo = new Date(Date.now() - 1000 * 60 * 60);
+    const oneDayAgo = new Date(Date.now() - 1000 * 60 * 60 * 24);
 
     const [links, domains, tags, partners, users] = await Promise.all([
       prisma.link.findMany({
@@ -29,15 +31,12 @@ export async function GET(req: Request) {
           userId: E2E_USER_ID,
           projectId: E2E_WORKSPACE_ID,
           createdAt: {
-            lt: oneHourAgo,
+            lt: oneDayAgo,
           },
         },
         include: {
-          tags: {
-            select: {
-              tag: true,
-            },
-          },
+          ...includeTags,
+          ...includeProgramEnrollment,
         },
         take: 100,
       }),
@@ -49,7 +48,7 @@ export async function GET(req: Request) {
             endsWith: ".dub-internal-test.com",
           },
           createdAt: {
-            lt: oneHourAgo,
+            lt: oneDayAgo,
           },
         },
         select: {
@@ -64,7 +63,7 @@ export async function GET(req: Request) {
             startsWith: "e2e-",
           },
           createdAt: {
-            lt: oneHourAgo,
+            lt: oneDayAgo,
           },
         },
       }),
@@ -75,7 +74,7 @@ export async function GET(req: Request) {
             endsWith: "@dub-internal-test.com",
           },
           createdAt: {
-            lt: oneHourAgo,
+            lt: oneDayAgo,
           },
         },
         select: {
@@ -89,7 +88,7 @@ export async function GET(req: Request) {
             endsWith: "@dub-internal-test.com",
           },
           createdAt: {
-            lt: oneHourAgo,
+            lt: oneDayAgo,
           },
         },
       }),

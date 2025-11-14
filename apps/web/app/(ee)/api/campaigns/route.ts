@@ -1,11 +1,11 @@
 import { DEFAULT_CAMPAIGN_BODY } from "@/lib/api/campaigns/constants";
-import { getCampaigns } from "@/lib/api/campaigns/get-campaigns";
 import { createId } from "@/lib/api/create-id";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { WorkflowAction, WorkflowCondition } from "@/lib/types";
 import {
+  CampaignSchema,
   createCampaignSchema,
   getCampaignsQuerySchema,
 } from "@/lib/zod/schemas/campaigns";
@@ -22,16 +22,51 @@ export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const campaigns = await getCampaigns({
-      ...getCampaignsQuerySchema.parse(searchParams),
-      programId,
+    const { type, status, search, triggerCondition, page, pageSize } =
+      getCampaignsQuerySchema.parse(searchParams);
+
+    const campaigns = await prisma.campaign.findMany({
+      where: {
+        programId,
+        type,
+        status,
+        ...(search && {
+          OR: [
+            { name: { contains: search } },
+            { subject: { contains: search } },
+          ],
+        }),
+        ...(triggerCondition && {
+          workflow: {
+            triggerConditions: {
+              equals: [triggerCondition],
+            },
+          },
+        }),
+      },
+      include: {
+        groups: true,
+        workflow: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
     });
 
-    return NextResponse.json(campaigns);
+    return NextResponse.json(
+      campaigns.map((campaign) =>
+        CampaignSchema.parse({
+          ...campaign,
+          groups: campaign.groups.map(({ groupId }) => ({ id: groupId })),
+          triggerCondition: campaign.workflow?.triggerConditions?.[0],
+        }),
+      ),
+    );
   },
   {
     requiredPlan: ["advanced", "enterprise"],
-    featureFlag: "emailCampaigns",
   },
 );
 
@@ -91,12 +126,14 @@ export const POST = withWorkspace(
       return campaign;
     });
 
-    return NextResponse.json({
-      id: campaign.id,
-    });
+    return NextResponse.json(
+      {
+        id: campaign.id,
+      },
+      { status: 201 },
+    );
   },
   {
     requiredPlan: ["advanced", "enterprise"],
-    featureFlag: "emailCampaigns",
   },
 );

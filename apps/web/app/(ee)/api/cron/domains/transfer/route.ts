@@ -89,6 +89,10 @@ export async function POST(req: Request) {
           where: { linkId: { in: linkIds } },
         }),
 
+        // set the links with the old workspace ID to be deleted in Tinybird
+        recordLink(links, { deleted: true }),
+
+        // set the links with the new workspace ID to be created in Tinybird
         recordLink(
           links.map((link) => ({
             ...link,

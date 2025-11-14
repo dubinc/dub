@@ -4,7 +4,7 @@ import { generatePartnerLink } from "@/lib/api/partners/generate-partner-link";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { WorkspaceProps } from "@/lib/types";
-import { MAX_DEFAULT_PARTNER_LINKS } from "@/lib/zod/schemas/groups";
+import { MAX_DEFAULT_LINKS_PER_GROUP } from "@/lib/zod/schemas/groups";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, isFulfilled, log } from "@dub/utils";
 import { z } from "zod";
@@ -86,7 +86,7 @@ export async function POST(req: Request) {
             orderBy: {
               createdAt: "asc",
             },
-            take: MAX_DEFAULT_PARTNER_LINKS, // there can only be up to MAX_DEFAULT_PARTNER_LINKS default links per group
+            take: MAX_DEFAULT_LINKS_PER_GROUP, // there can only be up to MAX_DEFAULT_LINKS_PER_GROUP default links per group
           },
         },
       }),

@@ -165,7 +165,7 @@ const RewardItem = ({
                                 condition.attribute
                               ] === "currency"
                             ? // Currency value
-                              currencyFormatter(Number(condition.value) / 100)
+                              currencyFormatter(Number(condition.value))
                             : // Everything else
                               condition.value.toString())}
                 </span>

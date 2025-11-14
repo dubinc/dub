@@ -1,10 +1,16 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { stripe } from "@/lib/stripe";
 import { sendEmail } from "@dub/email";
 import PartnerPayoutWithdrawalInitiated from "@dub/email/templates/partner-payout-withdrawal-initiated";
 import { prisma } from "@dub/prisma";
-import { currencyFormatter, formatDate, log } from "@dub/utils";
+import {
+  APP_DOMAIN_WITH_NGROK,
+  currencyFormatter,
+  formatDate,
+  log,
+} from "@dub/utils";
 import { z } from "zod";
 import { logAndRespond } from "../../utils";
 export const dynamic = "force-dynamic";
@@ -44,43 +50,42 @@ export async function POST(req: Request) {
       stripeAccount,
     });
 
-    // Check if there's any available balance
-    if (balance.available.length === 0 || balance.available[0].amount === 0) {
+    if (balance.available.length === 0) {
+      // should never happen, but just in case
       return logAndRespond(
-        `No available balance found for partner ${partner.email} (${stripeAccount}). Skipping...`,
+        `Partner ${partner.email} (${stripeAccount}) has no available balance. Skipping...`,
+        {
+          logLevel: "error",
+        },
       );
     }
 
-    const { amount, currency } = balance.available[0];
+    let { amount: availableBalance, currency } = balance.available[0];
 
-    const { data: stripePayouts } = await stripe.payouts.list(
-      {
-        status: "pending",
-      },
-      {
-        stripeAccount,
-      },
-    );
+    // if available balance is 0, check if there's any pending balance
+    if (availableBalance === 0) {
+      const pendingBalance = balance.pending?.[0]?.amount ?? 0;
 
-    let availableBalance = amount;
+      // if there's a pending balance, schedule another check in 1 hour
+      if (pendingBalance > 0) {
+        const res = await qstash.publishJSON({
+          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/balance-available`,
+          delay: 60 * 60, // check again in 1 hour
+          body: {
+            stripeAccount,
+          },
+        });
+        console.log(
+          `Scheduled another check for partner ${partner.email} (${stripeAccount}) in 1 hour: ${res.messageId}`,
+        );
 
-    // Subtract the pending/in-transit payouts from the available balance
-    if (stripePayouts.length > 0) {
-      const pendingOrInTransitPayouts = stripePayouts.filter(
-        ({ status }) => status === "pending" || status === "in_transit",
-      );
+        return logAndRespond(
+          `Pending balance found for partner ${partner.email} (${stripeAccount}): ${currencyFormatter(pendingBalance, { currency })}. Scheduling another check in 1 hour...`,
+        );
+      }
 
-      const alreadyPaidOutAmount = pendingOrInTransitPayouts.reduce(
-        (acc, payout) => acc + payout.amount,
-        0,
-      );
-
-      availableBalance = availableBalance - alreadyPaidOutAmount;
-    }
-
-    if (availableBalance <= 0) {
       return logAndRespond(
-        `The available balance (${currencyFormatter(availableBalance / 100, { currency })}) for partner ${partner.email} (${stripeAccount}) is less than or equal to 0 after subtracting pending payouts. Skipping...`,
+        `Partner ${partner.email} (${stripeAccount})'s available balance is 0. Skipping...`,
       );
     }
 
@@ -104,7 +109,7 @@ export async function POST(req: Request) {
     );
 
     console.log(
-      `Stripe payout created for partner ${partner.email} (${stripeAccount}): ${stripePayout.id} (${currencyFormatter(stripePayout.amount / 100, { currency: stripePayout.currency })})`,
+      `Stripe payout created for partner ${partner.email} (${stripeAccount}): ${stripePayout.id} (${currencyFormatter(stripePayout.amount, { currency: stripePayout.currency })})`,
     );
 
     const transfers = await stripe.transfers.list({

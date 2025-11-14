@@ -45,42 +45,86 @@ export const E2E_SALE_REWARD = {
   amountInCents: 1000,
   modifiers: [
     {
-      operator: "AND",
       type: "flat",
-      amountInCents: 3000,
+      operator: "AND",
       conditions: [
         {
-          entity: "sale",
-          attribute: "productId",
-          operator: "equals_to",
           value: "premiumProductId",
+          entity: "sale",
+          operator: "equals_to",
+          attribute: "productId",
         },
       ],
+      maxDuration: null,
+      amountInCents: 3000,
     },
     {
-      operator: "AND",
       type: "flat",
-      amountInCents: 5000,
+      operator: "AND",
       conditions: [
         {
-          entity: "sale",
-          attribute: "amount",
-          operator: "greater_than",
           value: 15000,
+          entity: "sale",
+          operator: "greater_than",
+          attribute: "amount",
         },
       ],
+      maxDuration: null,
+      amountInCents: 5000,
+    },
+    {
+      type: "percentage",
+      operator: "AND",
+      conditions: [
+        {
+          value: "US",
+          entity: "customer",
+          operator: "equals_to",
+          attribute: "country",
+        },
+      ],
+      maxDuration: null,
+      amountInPercentage: 10,
+    },
+    {
+      type: "flat",
+      operator: "AND",
+      conditions: [
+        {
+          value: "CA",
+          entity: "customer",
+          operator: "equals_to",
+          attribute: "country",
+        },
+      ],
+      maxDuration: null,
+      amountInCents: 50,
     },
   ],
 };
+
 export const E2E_LEAD_REWARD = {
   id: "rw_1K82ESAT4YPY0STR20GKXZ7DR",
   event: "lead",
   type: "flat",
-  amountInCents: 1000,
+  amountInCents: 100,
   modifiers: [
     {
       type: "flat",
+      operator: "AND",
+      conditions: [
+        {
+          value: "US",
+          entity: "customer",
+          operator: "equals_to",
+          attribute: "country",
+        },
+      ],
+      maxDuration: null,
       amountInCents: 200,
+    },
+    {
+      type: "flat",
       operator: "AND",
       conditions: [
         {
@@ -90,7 +134,8 @@ export const E2E_LEAD_REWARD = {
           attribute: "country",
         },
       ],
-      maxDuration: null,
+      maxDuration: 0,
+      amountInCents: 300,
     },
   ],
 };
@@ -128,3 +173,35 @@ export const E2E_PARTNER_GROUP = {
   id: "grp_1K2E25381GVMG7HHM057TB92F",
   url: "https://acme.dub.sh/",
 };
+
+export const E2E_PARTNERS = [
+  {
+    id: "pn_NNG3YjwhLhA7nCZSaXeLIsWu",
+    country: "US",
+    shortLink: {
+      domain: "getacme.link",
+      key: "marvin",
+    },
+  },
+  {
+    id: "pn_1K8ND11BZ4XPEX39QX3YMBGY0",
+    country: "SG",
+    shortLink: {
+      domain: "getacme.link",
+      key: "kiran-e2e-1",
+    },
+  },
+] as const;
+
+export const E2E_CUSTOMERS = [
+  {
+    id: "cus_1K82FYFF7RANMCGRHRGMWDNEC",
+    externalId: "cus_LnZbkb8boLsOn1YGLPxZGZMU",
+    country: "SG",
+  },
+  {
+    id: "cus_1K86CG1DZFW8EMSSWXX4AVZFA",
+    externalId: "cus_vq3UgXINHS99MIon8vNvAO1n",
+    country: "CA",
+  },
+] as const;

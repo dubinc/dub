@@ -4,9 +4,12 @@ import { createId } from "@/lib/api/create-id";
 import { getWorkspaceUsers } from "@/lib/api/get-workspace-users";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import {
+  BOUNTY_MAX_SUBMISSION_DESCRIPTION_LENGTH,
+  BOUNTY_MAX_SUBMISSION_FILES,
+  BOUNTY_MAX_SUBMISSION_URLS,
+} from "@/lib/constants/bounties";
+import {
   BountySubmissionFileSchema,
-  MAX_SUBMISSION_FILES,
-  MAX_SUBMISSION_URLS,
   submissionRequirementsSchema,
 } from "@/lib/zod/schemas/bounties";
 import { sendBatchEmail, sendEmail } from "@dub/email";
@@ -24,10 +27,14 @@ const schema = z.object({
   bountyId: z.string(),
   files: z
     .array(BountySubmissionFileSchema)
-    .max(MAX_SUBMISSION_FILES)
+    .max(BOUNTY_MAX_SUBMISSION_FILES)
     .default([]),
-  urls: z.array(z.string().url()).max(MAX_SUBMISSION_URLS).default([]),
-  description: z.string().trim().max(1000).optional(),
+  urls: z.array(z.string().url()).max(BOUNTY_MAX_SUBMISSION_URLS).default([]),
+  description: z
+    .string()
+    .trim()
+    .max(BOUNTY_MAX_SUBMISSION_DESCRIPTION_LENGTH)
+    .optional(),
   isDraft: z
     .boolean()
     .default(false)

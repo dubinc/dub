@@ -1,6 +1,7 @@
 import { TRIGGER_TYPES } from "@/lib/analytics/constants";
 import z from "@/lib/zod";
 import { CONTINENT_CODES } from "@dub/utils";
+import { LinkTagSchema } from "./tags";
 
 const analyticsTriggersResponse = z
   .object({
@@ -465,6 +466,47 @@ export const analyticsResponse = {
         .default(0),
     })
     .openapi({ ref: "AnalyticsUTMContents" }),
+  top_folders: z
+    .object({
+      folderId: z.string().describe("The ID of the folder"),
+      folder: z.object({
+        id: z.string().describe("The ID of the folder"),
+        name: z.string().describe("The name of the folder"),
+      }),
+      clicks: z.number().describe("The total number of clicks").default(0),
+      leads: z.number().describe("The total number of leads").default(0),
+      sales: z.number().describe("The total number of sales").default(0),
+      saleAmount: z
+        .number()
+        .describe("The total amount of sales from this link folder, in cents")
+        .default(0),
+    })
+    .openapi({ ref: "AnalyticsTopFolders" }),
+  top_link_tags: z
+    .object({
+      tagId: z.string().describe("The ID of the tag"),
+      tag: LinkTagSchema,
+      clicks: z.number().describe("The total number of clicks").default(0),
+      leads: z.number().describe("The total number of leads").default(0),
+      sales: z.number().describe("The total number of sales").default(0),
+      saleAmount: z
+        .number()
+        .describe("The total amount of sales from this link tag, in cents")
+        .default(0),
+    })
+    .openapi({ ref: "AnalyticsTopLinkTags" }),
+  top_domains: z
+    .object({
+      domain: z.string().describe("The unique domain name"),
+      clicks: z.number().describe("The total number of clicks").default(0),
+      leads: z.number().describe("The total number of leads").default(0),
+      sales: z.number().describe("The total number of sales").default(0),
+      saleAmount: z
+        .number()
+        .describe("The total amount of sales from this domain, in cents")
+        .default(0),
+    })
+    .openapi({ ref: "AnalyticsTopDomains" }),
   top_partners: z
     .object({
       partnerId: z.string().describe("The ID of the partner"),
@@ -488,5 +530,23 @@ export const analyticsResponse = {
         )
         .default(0),
     })
-    .openapi({ ref: "AnalyticsPartners" }),
+    .openapi({ ref: "AnalyticsTopPartners" }),
+  top_groups: z
+    .object({
+      groupId: z.string().describe("The ID of the group"),
+      group: z.object({
+        id: z.string().describe("The ID of the group"),
+        name: z.string().describe("The name of the group"),
+        slug: z.string().describe("The slug of the group"),
+        color: z.string().nullable().describe("The color of the group"),
+      }),
+      clicks: z.number().describe("The total number of clicks").default(0),
+      leads: z.number().describe("The total number of leads").default(0),
+      sales: z.number().describe("The total number of sales").default(0),
+      saleAmount: z
+        .number()
+        .describe("The total amount of sales from this group, in cents")
+        .default(0),
+    })
+    .openapi({ ref: "AnalyticsTopGroups" }),
 } as const;

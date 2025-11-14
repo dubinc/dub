@@ -8,8 +8,7 @@ import { PlanProps, RewardProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
-import { resend } from "@dub/email/resend/client";
-import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
+import { sendBatchEmail } from "@dub/email";
 import PartnerApplicationApproved from "@dub/email/templates/partner-application-approved";
 import { prisma } from "@dub/prisma";
 import { serve } from "@upstash/workflow/nextjs";
@@ -216,16 +215,12 @@ export const { POST } = serve<Payload>(
         data: partnerUsers,
       });
 
-      if (!resend) {
-        return;
-      }
-
       // Resend batch email
-      const { data, error } = await resend.batch.send(
+      const { data, error } = await sendBatchEmail(
         partnerUsers.map(({ user }) => ({
-          subject: `Your application to join ${program.name} partner program has been approved!`,
-          from: VARIANT_TO_FROM_MAP.notifications,
+          variant: "notifications",
           to: user.email!,
+          subject: `Your application to join ${program.name} partner program has been approved!`,
           replyTo: program.supportEmail || "noreply",
           react: PartnerApplicationApproved({
             program: {
@@ -243,10 +238,10 @@ export const { POST } = serve<Payload>(
               showModifiersTooltip: false,
             }),
           }),
-          headers: {
-            "Idempotency-Key": `application-approved-${programEnrollment.id}`,
-          },
         })),
+        {
+          idempotencyKey: `application-approved/${programEnrollment.id}`,
+        },
       );
 
       if (data) {

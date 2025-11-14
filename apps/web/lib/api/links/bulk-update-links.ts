@@ -6,6 +6,8 @@ import { R2_URL, getParamsFromURL, nanoid, truncate } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
 import { combineTagIds } from "../tags/combine-tag-ids";
+import { includeProgramEnrollment } from "./include-program-enrollment";
+import { includeTags } from "./include-tags";
 import { propagateBulkLinkChanges } from "./propagate-bulk-link-changes";
 import { transformLink } from "./utils";
 
@@ -99,21 +101,8 @@ export async function bulkUpdateLinks(
           }),
         },
         include: {
-          tags: {
-            select: {
-              tagId: true,
-              tag: {
-                select: {
-                  id: true,
-                  name: true,
-                  color: true,
-                },
-              },
-            },
-            orderBy: {
-              createdAt: "asc",
-            },
-          },
+          ...includeTags,
+          ...includeProgramEnrollment,
           webhooks: webhookIds ? { select: { webhookId: true } } : false,
         },
       }),
@@ -130,9 +119,13 @@ export async function bulkUpdateLinks(
       proxy &&
         image &&
         isNotHostedImage(image) &&
-        storage.upload(`images/${linkIds[0]}_${imageUrlNonce}`, image, {
-          width: 1200,
-          height: 630,
+        storage.upload({
+          key: `images/${linkIds[0]}_${imageUrlNonce}`,
+          body: image,
+          opts: {
+            width: 1200,
+            height: 630,
+          },
         }),
     ]),
   );

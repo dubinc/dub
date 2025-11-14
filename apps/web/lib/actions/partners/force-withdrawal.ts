@@ -1,6 +1,6 @@
 "use server";
 
-import { throwIfNoPermission } from "@/lib/auth/partner-user-permissions";
+import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
 import { createStripeTransfer } from "@/lib/partners/create-stripe-transfer";
 import { ratelimit } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
@@ -16,7 +16,7 @@ export const forceWithdrawalAction = authPartnerActionClient.action(
       permission: "payout_settings.update",
     });
 
-    if (!partner.payoutsEnabledAt || !partner.stripeConnectId) {
+    if (!partner.payoutsEnabledAt) {
       throw new Error(
         "You haven't enabled payouts yet. Please enable payouts in your payout settings.",
       );

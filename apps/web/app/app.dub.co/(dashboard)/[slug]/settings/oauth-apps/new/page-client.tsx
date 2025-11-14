@@ -1,6 +1,6 @@
 "use client";
 
-import { clientAccessCheck } from "@/lib/api/tokens/permissions";
+import { clientAccessCheck } from "@/lib/client-access-check";
 import useWorkspace from "@/lib/swr/use-workspace";
 import AddOAuthAppForm from "@/ui/oauth-apps/add-edit-app-form";
 import { BackLink } from "@/ui/shared/back-link";

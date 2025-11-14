@@ -1,4 +1,4 @@
-import { REFERRALS_EMBED_EARNINGS_LIMIT } from "@/lib/partners/constants";
+import { REFERRALS_EMBED_EARNINGS_LIMIT } from "@/lib/constants/misc";
 import { PartnerEarningsResponse } from "@/lib/types";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import {
@@ -62,7 +62,7 @@ export function ReferralsEmbedEarnings({ salesCount }: { salesCount: number }) {
         id: "amount",
         header: "Amount",
         cell: ({ row }) => {
-          return currencyFormatter(row.original.amount / 100);
+          return currencyFormatter(row.original.amount);
         },
       },
       {
@@ -70,7 +70,7 @@ export function ReferralsEmbedEarnings({ salesCount }: { salesCount: number }) {
         header: "Earnings",
         accessorKey: "earnings",
         cell: ({ row }) => {
-          return currencyFormatter(row.original.earnings / 100);
+          return currencyFormatter(row.original.earnings);
         },
       },
       {

@@ -2,6 +2,7 @@ import { combineTagIds } from "@/lib/api/tags/combine-tag-ids";
 import { tb } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
 import { linkConstructor, punyEncode } from "@dub/utils";
+import { FolderAccessLevel } from "@prisma/client";
 import { decodeKeyIfCaseSensitive } from "../api/links/case-sensitivity";
 import { conn } from "../planetscale";
 import z from "../zod";
@@ -99,6 +100,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     start,
     end,
     dataAvailableFrom,
+    timezone,
   });
 
   if (qr) {
@@ -115,7 +117,13 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
   const pipe = tb.buildPipe({
     pipe: ["count", "timeseries"].includes(groupBy)
       ? `v3_${groupBy}`
-      : ["top_partners"].includes(groupBy)
+      : [
+            "top_folders",
+            "top_link_tags",
+            "top_domains",
+            "top_partners",
+            "top_groups",
+          ].includes(groupBy)
         ? "v3_group_by_link_metadata"
         : "v3_group_by",
     parameters: analyticsFilterTB,
@@ -232,6 +240,85 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
             ...partner,
             payoutsEnabledAt: partner.payoutsEnabledAt?.toISOString() || null,
           },
+        });
+      })
+      .filter((d) => d !== null);
+  } else if (groupBy === "top_link_tags") {
+    const tags = await prisma.tag.findMany({
+      where: {
+        id: {
+          in: response.data.map((item) => item.groupByField),
+        },
+      },
+    });
+
+    return response.data
+      .map((item) => {
+        const tag = tags.find((t) => t.id === item.groupByField);
+        if (!tag) return null;
+        return analyticsResponse[groupBy].parse({
+          ...item,
+          tagId: item.groupByField,
+          tag,
+        });
+      })
+      .filter((d) => d !== null);
+  } else if (groupBy === "top_folders") {
+    const folders = await prisma.folder.findMany({
+      where: {
+        id: {
+          in: response.data.map((item) => item.groupByField),
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        accessLevel: true,
+      },
+    });
+
+    return response.data
+      .map((item) => {
+        const folder = folders.find((f) => f.id === item.groupByField);
+        if (!folder) return null;
+        return analyticsResponse.top_folders
+          .extend({
+            folder: analyticsResponse.top_folders.shape.folder.extend({
+              accessLevel: z.nativeEnum(FolderAccessLevel).nullish(),
+            }),
+          })
+          .parse({
+            ...item,
+            folderId: item.groupByField,
+            folder,
+          });
+      })
+      .filter((d) => d !== null);
+  } else if (groupBy === "top_groups") {
+    const groups = await prisma.partnerGroup.findMany({
+      where: {
+        id: {
+          in: response.data.map((item) => item.groupByField),
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        color: true,
+      },
+    });
+
+    return response.data
+      .map((item) => {
+        const group = groups.find((g) => g.id === item.groupByField);
+
+        if (!group) return null;
+
+        return analyticsResponse[groupBy].parse({
+          ...item,
+          groupId: item.groupByField,
+          group,
         });
       })
       .filter((d) => d !== null);

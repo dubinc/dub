@@ -24,44 +24,44 @@ export function PartnerInfoStats({
           value: Number.isNaN(partner.totalClicks)
             ? "-"
             : nFormatter(partner.totalClicks, { full: true }),
-          href: `/${slug}/events?event=clicks&partnerId=${partner.id}`,
+          href: `/${slug}/events?event=clicks&partnerId=${partner.id}&interval=1y`,
         },
         {
           label: "Leads",
           value: Number.isNaN(partner.totalLeads)
             ? "-"
             : nFormatter(partner.totalLeads, { full: true }),
-          href: `/${slug}/events?event=leads&partnerId=${partner.id}`,
+          href: `/${slug}/events?event=leads&partnerId=${partner.id}&interval=1y`,
         },
         {
           label: "Conversions",
           value: Number.isNaN(partner.totalConversions)
             ? "-"
             : nFormatter(partner.totalConversions, { full: true }),
-          href: `/${slug}/events?event=sales&partnerId=${partner.id}`,
+          href: `/${slug}/events?event=sales&partnerId=${partner.id}&interval=1y`,
         },
         {
           label: "Revenue",
           value: Number.isNaN(partner.totalSaleAmount)
             ? "-"
-            : currencyFormatter(partner.totalSaleAmount / 100, {
+            : currencyFormatter(partner.totalSaleAmount, {
                 trailingZeroDisplay: "stripIfInteger",
               }),
-          href: `/${slug}/events?event=sales&partnerId=${partner.id}`,
+          href: `/${slug}/events?event=sales&partnerId=${partner.id}&interval=1y`,
         },
         {
           label: "Commissions",
           value: Number.isNaN(partner.totalCommissions)
             ? "-"
-            : currencyFormatter(partner.totalCommissions / 100),
+            : currencyFormatter(partner.totalCommissions),
           href: `/${slug}/program/commissions?partnerId=${partner.id}`,
         },
         {
           label: "Net revenue",
           value: Number.isNaN(partner.netRevenue)
             ? "-"
-            : currencyFormatter(partner.netRevenue / 100),
-          href: `/${slug}/events?event=sales&partnerId=${partner.id}`,
+            : currencyFormatter(partner.netRevenue),
+          href: `/${slug}/events?event=sales&partnerId=${partner.id}&interval=1y`,
         },
       ].map(({ label, value, href }) => (
         <Link

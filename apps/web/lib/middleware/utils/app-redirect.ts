@@ -6,6 +6,10 @@ const APP_REDIRECTS = {
   "/referrals": "/account/settings/referrals",
   "/onboarding": "/onboarding/welcome",
   "/welcome": "/onboarding/welcome",
+  "/campaigns": "/program/campaigns",
+  "/messages": "/program/messages",
+  "/network": "/program/network",
+  "/marketplace": "/program/network",
 };
 
 const PROGRAM_REDIRECTS = {

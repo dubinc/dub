@@ -7,7 +7,7 @@ import { Popover, Users6 } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useMemo, useState } from "react";
 
-const MAX_DISPLAYED_GROUPS = 4;
+const MAX_DISPLAYED_GROUPS = 1;
 
 interface CampaignGroupsSelectorProps {
   selectedGroupIds: string[] | null;
@@ -73,7 +73,7 @@ export function CampaignGroupsSelector({
             </span>
           </div>
         ) : selectedGroups && selectedGroups.length > 0 ? (
-          <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
+          <div className="flex min-w-0 flex-1 items-center gap-2">
             {selectedGroups.slice(0, MAX_DISPLAYED_GROUPS).map((group) => (
               <div
                 key={group.id}

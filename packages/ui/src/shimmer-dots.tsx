@@ -83,7 +83,7 @@ export function ShimmerDots({
     });
 
     if (gl === null) {
-      alert("Failed to initialize WebGL");
+      console.error("Failed to initialize WebGL");
       return;
     }
 

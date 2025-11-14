@@ -10,7 +10,6 @@ import {
   AnimatedSizeContainer,
   ChevronRight,
   MoneyBills2,
-  SimpleTooltipContent,
   Tooltip,
 } from "@dub/ui";
 import { currencyFormatter } from "@dub/utils";
@@ -44,13 +43,7 @@ export const PayoutStats = memo(() => {
             <div className="flex items-center gap-1">
               {partner && !partner.payoutsEnabledAt && (
                 <Tooltip
-                  content={
-                    <SimpleTooltipContent
-                      title="You need to connect your bank account to be able to receive payouts from the programs you are enrolled in."
-                      cta="Learn more"
-                      href="https://dub.co/help/article/receiving-payouts"
-                    />
-                  }
+                  content="You need to connect your bank account to be able to receive payouts from the programs you are enrolled in. [Learn more](https://dub.co/help/article/receiving-payouts)"
                   side="right"
                 >
                   <div>
@@ -61,13 +54,13 @@ export const PayoutStats = memo(() => {
               {payoutsCount ? (
                 <p className="text-content-default font-medium">
                   {currencyFormatter(
-                    (payoutsCount
+                    payoutsCount
                       ?.filter(
                         (payout) =>
                           payout.status === PayoutStatus.pending ||
                           payout.status === PayoutStatus.processing,
                       )
-                      ?.reduce((acc, p) => acc + p.amount, 0) || 0) / 100,
+                      ?.reduce((acc, p) => acc + p.amount, 0) || 0,
                   )}
                 </p>
               ) : (
@@ -80,14 +73,14 @@ export const PayoutStats = memo(() => {
             {payoutsCount ? (
               <p className="text-content-default font-medium">
                 {currencyFormatter(
-                  (payoutsCount
+                  payoutsCount
                     ?.filter(
                       (payout) =>
                         payout.status === PayoutStatus.processed ||
                         payout.status === PayoutStatus.sent ||
                         payout.status === PayoutStatus.completed,
                     )
-                    ?.reduce((acc, p) => acc + p.amount, 0) ?? 0) / 100,
+                    ?.reduce((acc, p) => acc + p.amount, 0) ?? 0,
                 )}
               </p>
             ) : (

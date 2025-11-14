@@ -28,7 +28,7 @@ export function ShortTextField({
   const error = !!state.error || exceedsMaxLength;
 
   return (
-    <FormControl label={field.label} required={field.required}>
+    <FormControl label={field.label} required={field.required} dir="auto">
       <input
         className={cn(
           "mt-2 block w-full rounded-md text-sm focus:outline-none",

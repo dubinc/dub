@@ -9,13 +9,11 @@ export async function POST(
   req: Request,
   props: {
     params: Promise<{ linkId: string }>;
-  }
+  },
 ) {
   const params = await props.params;
 
-  const {
-    linkId
-  } = params;
+  const { linkId } = params;
 
   try {
     const rawBody = await req.text();
