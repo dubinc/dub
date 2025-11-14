@@ -323,6 +323,7 @@ function PartnerCard({
   partner?: NetworkPartnerProps;
   onToggleStarred?: (starred: boolean) => void;
 }) {
+  const { slug: workspaceSlug } = useWorkspace();
   const { queryParams } = useRouterStuff();
 
   const basicFields = useMemo(
@@ -409,8 +410,14 @@ function PartnerCard({
       )}
       onClick={(e) => {
         if (!partner?.id || isClickOnInteractiveChild(e)) return;
-
-        queryParams({ set: { partnerId: partner.id } });
+        if (partner.recruitedAt || partner.invitedAt) {
+          window.open(
+            `/${workspaceSlug}/program/partners/${partner.id}`,
+            "_blank",
+          );
+        } else {
+          queryParams({ set: { partnerId: partner.id } });
+        }
       }}
     >
       {(partner?.invitedAt || partner?.recruitedAt) && (

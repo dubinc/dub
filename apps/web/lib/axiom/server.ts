@@ -44,7 +44,12 @@ export const withAxiomBodyLog = createAxiomRouteHandler(logger, {
 
     // Add body to report if the method is POST, PATCH, or PUT
     if (["POST", "PATCH", "PUT"].includes(data.req.method)) {
-      report.body = await data.req.json();
+      try {
+        report.body = await data.req.json();
+      } catch (error) {
+        // Body might be empty, invalid JSON
+        // Silently skip adding body to report
+      }
     }
 
     // Add search params to report

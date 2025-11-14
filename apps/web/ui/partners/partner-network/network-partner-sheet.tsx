@@ -16,7 +16,6 @@ import {
   useKeyboardShortcut,
   useRouterStuff,
 } from "@dub/ui";
-import { timeAgo } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { Dispatch, SetStateAction, useState } from "react";
@@ -231,13 +230,9 @@ function PartnerControls({
     },
   });
 
-  const alreadyInvited = Boolean(partner.invitedAt || partner.recruitedAt);
+  const { remaining: remainingInvites } = usePartnerNetworkInvitesUsage();
 
-  const { remaining } = usePartnerNetworkInvitesUsage({
-    enabled: !alreadyInvited,
-  });
-
-  const disabled = alreadyInvited || remaining === 0;
+  const disabled = remainingInvites === 0;
 
   useKeyboardShortcut("s", () => setShowConfirmModal(true), {
     sheet: true,
@@ -248,26 +243,16 @@ function PartnerControls({
     <>
       {confirmModal}
       <div className="flex items-center justify-end gap-2">
-        {!alreadyInvited && (
-          <div className="mr-2">
-            <InvitesUsage />
-          </div>
-        )}
-        {!alreadyInvited && (
-          <div className="flex-shrink-0">
-            <PartnerIgnoreButton partner={partner} setIsOpen={setIsOpen} />
-          </div>
-        )}
+        <div className="mr-2">
+          <InvitesUsage />
+        </div>
+        <div className="flex-shrink-0">
+          <PartnerIgnoreButton partner={partner} setIsOpen={setIsOpen} />
+        </div>
         <Button
           type="button"
           variant="primary"
-          text={
-            partner.recruitedAt
-              ? `Recruited ${timeAgo(partner.recruitedAt, { withAgo: true })}`
-              : partner.invitedAt
-                ? `Invited ${timeAgo(partner.invitedAt, { withAgo: true })}`
-                : "Send invite"
-          }
+          text="Send invite"
           disabled={disabled}
           shortcut={disabled ? undefined : "S"}
           loading={isPending}

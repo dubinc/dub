@@ -52,17 +52,16 @@ model Program {
   updatedAt                    DateTime          @updatedAt
   startedAt                    DateTime?
 
-  workspace     Project              @relation(fields: [workspaceId], references: [id])
-  partners      ProgramEnrollment[]
-  payouts       Payout[]
-  invoices      Invoice[]
-  applications  ProgramApplication[]
-  links         Link[]
-  commissions   Commission[]
-  rewards       Reward[]
-  discounts     Discount[]           @relation("ProgramDiscounts")
-  discountCodes DiscountCode[]
-
+  workspace                Project                   @relation(fields: [workspaceId], references: [id])
+  partners                 ProgramEnrollment[]
+  payouts                  Payout[]
+  invoices                 Invoice[]
+  applications             ProgramApplication[]
+  links                    Link[]
+  commissions              Commission[]
+  rewards                  Reward[]
+  discounts                Discount[]                @relation("ProgramDiscounts")
+  discountCodes            DiscountCode[]
   groups                   PartnerGroup[]
   partnerGroupDefaultLinks PartnerGroupDefaultLink[]
   bounties                 Bounty[]
@@ -70,16 +69,14 @@ model Program {
   workflows                Workflow[]
   messages                 Message[]
   comments                 PartnerComment[]
-
-  campaigns    Campaign[]
-  emailDomains EmailDomain[]
-
-  discoveredPartners DiscoveredPartner[]
-  similarPrograms    ProgramSimilarity[]
-  similarToPrograms  ProgramSimilarity[] @relation("SimilarProgram")
-  categories         ProgramCategory[]
-  fraudRules         FraudRule[]
-  fraudEvents        FraudEvent[]
+  campaigns                Campaign[]
+  emailDomains             EmailDomain[]
+  discoveredPartners       DiscoveredPartner[]
+  similarPrograms          ProgramSimilarity[]
+  similarToPrograms        ProgramSimilarity[]       @relation("SimilarProgram")
+  categories               ProgramCategory[]
+  fraudRules               FraudRule[]
+  fraudEvents              FraudEvent[]
 
   @@index(workspaceId)
   @@index(domain)
@@ -107,14 +104,25 @@ model ProgramEnrollment {
   totalCommissions Int @default(0) // total commissions earned by the partner (in cents)
 
   // calculated stats
-  conversionRate          Float? // totalConversions / totalClicks
+  netRevenue              Int       @default(0) // totalSaleAmount - totalCommissions
+  earningsPerClick        Float     @default(0) // totalSaleAmount / totalClicks
   averageLifetimeValue    Float? // totalSaleAmount / totalConversions (in cents)
-  leadConversionRate      Float? // totalConversions / totalLeads
+  clickToLeadRate         Float? // totalLeads / totalClicks
+  clickToConversionRate   Float? // totalConversions / totalClicks
+  leadToConversionRate    Float? // totalConversions / totalLeads
+  returnOnAdSpend         Float? // totalSaleAmount / totalCommissions
   lastConversionAt        DateTime? // latest conversion from partner's links
   daysSinceLastConversion Int? // days since lastConversionAt
   consistencyScore        Int? // based on daysSinceLastConversion
 
-  safelistedAt                 DateTime?
+  <<<<<<< HEAD
+  safelistedAt       DateTime?
+  =======
+  // deprecated stats
+  leadConversionRate Float? // TODO: Remove after migration
+  conversionRate     Float? // TODO: Remove after migration
+
+  >>>>>>> main
   createdAt                    DateTime             @default(now())
   updatedAt                    DateTime             @updatedAt
   customerDataSharingEnabledAt DateTime?
@@ -142,6 +150,13 @@ model ProgramEnrollment {
   @@index([programId, status, totalConversions])
   @@index([programId, status, totalSaleAmount])
   @@index([programId, status, totalCommissions])
+  @@index([programId, status, netRevenue])
+  @@index([programId, status, earningsPerClick])
+  @@index([programId, status, averageLifetimeValue])
+  @@index([programId, status, clickToLeadRate])
+  @@index([programId, status, clickToConversionRate])
+  @@index([programId, status, leadToConversionRate])
+  @@index([programId, status, returnOnAdSpend])
   // other indexes
   @@index([groupId, status])
   @@index(clickRewardId)
