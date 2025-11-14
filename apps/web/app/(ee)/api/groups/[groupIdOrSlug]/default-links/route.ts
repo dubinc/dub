@@ -1,4 +1,5 @@
 import { createId } from "@/lib/api/create-id";
+import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { DubApiError } from "@/lib/api/errors";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
@@ -62,16 +63,23 @@ export const POST = withWorkspace(
       await parseRequestBody(req),
     );
 
-    const group = await prisma.partnerGroup.findUniqueOrThrow({
-      where: {
-        id: params.groupIdOrSlug,
-        programId,
-      },
-      include: {
-        program: true,
-        utmTemplate: true,
-      },
-    });
+    const [group, domainRecord] = await Promise.all([
+      prisma.partnerGroup.findUniqueOrThrow({
+        where: {
+          id: params.groupIdOrSlug,
+          programId,
+        },
+        include: {
+          program: true,
+          utmTemplate: true,
+        },
+      }),
+
+      getDomainOrThrow({
+        workspace,
+        domain,
+      }),
+    ]);
 
     // shouldn't happen but just in case
     if (!group.program.domain) {
@@ -80,6 +88,23 @@ export const POST = withWorkspace(
         message:
           "This program needs a domain set before creating a default link.",
       });
+    }
+
+    if (!domainRecord.verified) {
+      throw new DubApiError({
+        code: "unprocessable_entity",
+        message:
+          "This domain is not verified. Please verify it before using it for partner links.",
+      });
+    }
+
+    // Domain change detected, we should do the following
+    // - Update the program's domain
+    // - Update all default links across groups to use the new domain
+    // - Update all partner links to use the new domain
+    if (domain !== group.program.domain) {
+      // TODO
+      // Do this via a cron job
     }
 
     try {
@@ -102,7 +127,7 @@ export const POST = withWorkspace(
             id: createId({ prefix: "pgdl_" }),
             programId: group.programId,
             groupId: group.id,
-            domain: group.program.domain!,
+            domain,
             url: group.utmTemplate
               ? constructURLFromUTMParams(
                   url,

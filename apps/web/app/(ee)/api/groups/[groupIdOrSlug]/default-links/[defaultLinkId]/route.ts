@@ -1,3 +1,4 @@
+import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
@@ -16,37 +17,49 @@ import { NextResponse } from "next/server";
 // PATCH /api/groups/[groupIdOrSlug]/default-links/[defaultLinkId] - update a default link for a group
 export const PATCH = withWorkspace(
   async ({ workspace, req, params }) => {
+    const { groupIdOrSlug } = params;
+
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const { url } = createOrUpdateDefaultLinkSchema.parse(
+    const { domain, url } = createOrUpdateDefaultLinkSchema.parse(
       await parseRequestBody(req),
     );
 
-    const { groupIdOrSlug } = params;
-
-    const group = await prisma.partnerGroup.findUniqueOrThrow({
-      where: {
-        ...(groupIdOrSlug.startsWith("grp_")
-          ? {
-              id: groupIdOrSlug,
-            }
-          : {
-              programId_slug: {
-                programId,
-                slug: groupIdOrSlug,
-              },
-            }),
-        programId,
-      },
-      include: {
-        utmTemplate: true,
-        partnerGroupDefaultLinks: {
-          where: {
-            id: params.defaultLinkId,
+    const [group, domainRecord] = await Promise.all([
+      prisma.partnerGroup.findUniqueOrThrow({
+        where: {
+          ...(groupIdOrSlug.startsWith("grp_")
+            ? {
+                id: groupIdOrSlug,
+              }
+            : {
+                programId_slug: {
+                  programId,
+                  slug: groupIdOrSlug,
+                },
+              }),
+          programId,
+        },
+        include: {
+          utmTemplate: true,
+          partnerGroupDefaultLinks: {
+            where: {
+              id: params.defaultLinkId,
+            },
+          },
+          program: {
+            select: {
+              domain: true,
+            },
           },
         },
-      },
-    });
+      }),
+
+      getDomainOrThrow({
+        workspace,
+        domain,
+      }),
+    ]);
 
     if (group.partnerGroupDefaultLinks.length === 0) {
       throw new DubApiError({
@@ -55,12 +68,30 @@ export const PATCH = withWorkspace(
       });
     }
 
+    if (!domainRecord.verified) {
+      throw new DubApiError({
+        code: "unprocessable_entity",
+        message:
+          "This domain is not verified. Please verify it before using it for partner links.",
+      });
+    }
+
+    // Domain change detected, we should do the following
+    // - Update the program's domain
+    // - Update all default links across groups to use the new domain
+    // - Update all partner links to use the new domain
+    if (domain !== group.program.domain) {
+      // TODO
+      // Do this via a cron job
+    }
+
     try {
       const updatedDefaultLink = await prisma.partnerGroupDefaultLink.update({
         where: {
           id: group.partnerGroupDefaultLinks[0].id,
         },
         data: {
+          domain,
           url: group.utmTemplate
             ? constructURLFromUTMParams(
                 url,
