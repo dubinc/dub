@@ -13,6 +13,7 @@ enum FraudRiskLevel {
 enum FraudRuleType {
   customerEmailMatch
   customerEmailSimilar
+  customerEmailSuspiciousDomain
   referralSourceBanned
   paidTrafficDetected
   programBanned

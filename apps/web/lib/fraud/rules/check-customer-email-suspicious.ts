@@ -1,4 +1,4 @@
-import { redis } from "@/lib/upstash/redis";
+import { redisWithTimeout } from "@/lib/upstash/redis";
 import { z } from "zod";
 import { defineFraudRule } from "../define-fraud-rule";
 
@@ -8,20 +8,9 @@ const contextSchema = z.object({
   }),
 });
 
-const configSchema = z.object({
-  //
-});
-
-// TODO:
-// Not used
-
 export const checkCustomerEmailSuspicious = defineFraudRule({
   type: "customerEmailSuspiciousDomain",
   contextSchema,
-  configSchema,
-  defaultConfig: {
-    checkDisposableEmail: true,
-  },
   evaluate: async (context) => {
     console.log("Evaluating checkCustomerEmailSuspicious...", context);
 
@@ -31,9 +20,6 @@ export const checkCustomerEmailSuspicious = defineFraudRule({
     if (!customer.email) {
       return {
         triggered: false,
-        metadata: {
-          reason: "no_customer_email",
-        },
       };
     }
 
@@ -42,40 +28,19 @@ export const checkCustomerEmailSuspicious = defineFraudRule({
     if (emailParts.length !== 2) {
       return {
         triggered: false,
-        metadata: {
-          reason: "invalid_email_format",
-          customerEmail: customer.email,
-        },
       };
     }
 
     const domain = emailParts[1].toLowerCase().trim();
 
-    // Check if domain exists in Redis set
     try {
-      const isDisposable = await redis.sismember(
+      const isDisposable = await redisWithTimeout.sismember(
         "disposableEmailDomains",
         domain,
       );
 
-      if (isDisposable === 1) {
-        return {
-          triggered: true,
-          reason: "customerEmailDisposableDomain",
-          metadata: {
-            customerEmail: customer.email,
-            domain,
-          },
-        };
-      }
-
       return {
-        triggered: false,
-        metadata: {
-          customerEmail: customer.email,
-          domain,
-          isDisposable: false,
-        },
+        triggered: isDisposable === 1,
       };
     } catch (error) {
       // If Redis check fails, log error but don't trigger fraud
@@ -86,12 +51,6 @@ export const checkCustomerEmailSuspicious = defineFraudRule({
 
       return {
         triggered: false,
-        metadata: {
-          reason: "redis_check_failed",
-          customerEmail: customer.email,
-          domain,
-          error: error instanceof Error ? error.message : String(error),
-        },
       };
     }
   },

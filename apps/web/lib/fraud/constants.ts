@@ -14,6 +14,12 @@ export const FRAUD_RULES: FraudRuleInfo[] = [
       "Partner's email closely resembles a customer email and could be a self referral.",
   },
   {
+    type: "customerEmailSuspiciousDomain",
+    name: "Suspicious customer email domain",
+    description:
+      "Customer's email uses a disposable or temporary domain which could be a fraud attempt.",
+  },
+  {
     type: "referralSourceBanned",
     name: "Banned referral source",
     description:
