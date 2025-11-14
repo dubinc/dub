@@ -58,7 +58,7 @@ export const POST = withWorkspace(
   async ({ workspace, req, params, session }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const { url } = createOrUpdateDefaultLinkSchema.parse(
+    const { domain, url } = createOrUpdateDefaultLinkSchema.parse(
       await parseRequestBody(req),
     );
 

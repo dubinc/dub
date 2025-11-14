@@ -7,6 +7,7 @@ import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PartnerGroupDefaultLink } from "@/lib/types";
 import { createOrUpdateDefaultLinkSchema } from "@/lib/zod/schemas/groups";
+import { DomainSelector } from "@/ui/domains/domain-selector";
 import { RewardIconSquare } from "@/ui/partners/rewards/reward-icon-square";
 import { X } from "@/ui/shared/icons";
 import { Button, InfoTooltip, Input, Sheet } from "@dub/ui";
@@ -45,11 +46,12 @@ function DefaultPartnerLinkSheetContent({
 
   const { handleSubmit, watch, setValue } = useForm<FormData>({
     defaultValues: {
+      domain: link?.domain || program?.domain || "",
       url: link?.url || "",
     },
   });
 
-  const [url] = watch(["url"]);
+  const [domain, url] = watch(["domain", "url"]);
 
   // Save the default link
   const onSubmit = async (data: FormData) => {
@@ -72,6 +74,7 @@ function DefaultPartnerLinkSheetContent({
       {
         method: link ? "PATCH" : "POST",
         body: {
+          domain: data.domain,
           url: data.url,
         },
         onSuccess: async () => {
@@ -115,6 +118,21 @@ function DefaultPartnerLinkSheetContent({
           content={
             <div className="space-y-6">
               <div className="space-y-2">
+                <label className="text-content-emphasis block text-sm font-medium">
+                  Domain
+                </label>
+                <DomainSelector
+                  selectedDomain={domain || ""}
+                  setSelectedDomain={(domain) =>
+                    setValue("domain", domain, { shouldDirty: true })
+                  }
+                />
+                <p className="text-xs font-normal text-neutral-500">
+                  Custom domain that will be used for this group's referral
+                  links
+                </p>
+              </div>
+              <div className="space-y-2">
                 <div className="flex items-center gap-x-2">
                   <label className="text-content-emphasis block text-sm font-medium">
                     Destination URL
@@ -153,7 +171,7 @@ function DefaultPartnerLinkSheetContent({
           content={
             <PartnerLinkPreview
               url={url}
-              domain={program?.domain || ""}
+              domain={domain || ""}
               linkStructure={group?.linkStructure || "query"}
             />
           }
