@@ -258,6 +258,7 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
   const { table, ...tableProps } = useTable<EnrolledPartnerProps>({
     data: partners || [],
     columns,
+    columnPinning: { right: ["menu"] },
     onRowClick: (row) => {
       queryParams({
         set: {
