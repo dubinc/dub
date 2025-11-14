@@ -115,14 +115,11 @@ model ProgramEnrollment {
   daysSinceLastConversion Int? // days since lastConversionAt
   consistencyScore        Int? // based on daysSinceLastConversion
 
-  <<<<<<< HEAD
-  safelistedAt       DateTime?
-  =======
   // deprecated stats
   leadConversionRate Float? // TODO: Remove after migration
   conversionRate     Float? // TODO: Remove after migration
 
-  >>>>>>> main
+  safelistedAt                 DateTime?
   createdAt                    DateTime             @default(now())
   updatedAt                    DateTime             @updatedAt
   customerDataSharingEnabledAt DateTime?

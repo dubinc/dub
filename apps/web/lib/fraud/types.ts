@@ -22,7 +22,6 @@ export interface FraudTriggeredRule {
 export interface FraudRuleInfo {
   type: FraudRuleType;
   name: string;
-  riskLevel: FraudRiskLevel;
   description: string;
 }
 

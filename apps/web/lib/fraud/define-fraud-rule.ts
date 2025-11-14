@@ -9,7 +9,7 @@ export function defineFraudRule<
   type: FraudRuleType;
   contextSchema: TCtx;
   configSchema: TCfg;
-  defaultConfig: z.infer<TCfg>;
+  defaultConfig?: z.infer<TCfg>;
   evaluate: (
     context: z.infer<TCtx>,
     config: z.infer<TCfg>,

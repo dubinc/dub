@@ -11,10 +11,11 @@ enum FraudRiskLevel {
 }
 
 enum FraudRuleType {
-  selfReferral
-  bannedReferralDomain
-  paidAdTrafficDetected
-  customerEmailSuspiciousDomain
+  customerEmailMatch
+  customerEmailSimilar
+  referralSourceBanned
+  paidTrafficDetected
+  programBanned
 }
 
 model FraudRule {
@@ -39,9 +40,7 @@ model FraudEvent {
   customerId       String?
   eventId          String?          @unique
   commissionId     String?          @unique
-  riskLevel        FraudRiskLevel
-  riskScore        Int              @default(0)
-  triggeredRules   Json             @db.Json
+  type             FraudRuleType
   userId           String?
   resolutionReason String?
   resolvedAt       DateTime?

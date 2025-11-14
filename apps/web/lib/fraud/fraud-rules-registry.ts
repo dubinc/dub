@@ -1,16 +1,18 @@
 import { FraudRuleType } from "@dub/prisma/client";
 import { defineFraudRule } from "./define-fraud-rule";
-import { checkBannedReferralDomain } from "./rules/check-banned-referral-domain";
-import { checkCustomerEmailSuspicious } from "./rules/check-customer-email-suspicious";
-import { checkPaidAdTrafficDetected } from "./rules/check-paid-ad-traffic-detected";
-import { checkSelfReferralRule } from "./rules/check-self-referral";
+import { checkCustomerEmailMatch } from "./rules/check-customer-email-match";
+import { checkCustomerEmailSimilar } from "./rules/check-customer-email-similar";
+import { checkPaidTrafficDetected } from "./rules/check-paid-traffic-detected";
+import { checkProgramBanned } from "./rules/check-program-banned";
+import { checkReferralSourceBanned } from "./rules/check-referral-source-banned";
 
 export const fraudRuleRegistry: Record<
   FraudRuleType,
   ReturnType<typeof defineFraudRule>
 > = {
-  selfReferral: checkSelfReferralRule,
-  bannedReferralDomain: checkBannedReferralDomain,
-  paidAdTrafficDetected: checkPaidAdTrafficDetected,
-  customerEmailSuspiciousDomain: checkCustomerEmailSuspicious,
+  customerEmailSimilar: checkCustomerEmailSimilar,
+  customerEmailMatch: checkCustomerEmailMatch,
+  referralSourceBanned: checkReferralSourceBanned,
+  paidTrafficDetected: checkPaidTrafficDetected,
+  programBanned: checkProgramBanned,
 };
