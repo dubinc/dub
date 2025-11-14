@@ -1,4 +1,6 @@
-import { useApiMutation } from "@/lib/swr/use-api-mutation";
+import { parseActionError } from "@/lib/actions/parse-action-errors";
+import { updatePartnerTagsAction } from "@/lib/actions/partners/tags/update-partner-tags";
+import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps, PartnerTagProps, TagProps } from "@/lib/types";
@@ -15,6 +17,7 @@ import {
 } from "@dub/ui";
 import { cn, fetcher, OG_AVATAR_URL } from "@dub/utils";
 import { Command } from "cmdk";
+import { useAction } from "next-safe-action/hooks";
 import {
   Dispatch,
   SetStateAction,
@@ -36,7 +39,6 @@ type EditPartnerTagsModalProps = {
 };
 
 function EditPartnerTagsModalContent({
-  showEditPartnerTagsModal,
   setShowEditPartnerTagsModal,
   partners,
 }: EditPartnerTagsModalProps) {
@@ -73,23 +75,6 @@ function EditPartnerTagsModalContent({
     ignoreParams: true,
     groupBy: "partnerTagId",
   });
-
-  const { makeRequest: changeGroup, isSubmitting } = useApiMutation();
-
-  const handleEditPartnerTags = useCallback(async () => {
-    // await changeGroup(`/api/groups/${selectedGroupId}/partners`, {
-    //   method: "POST",
-    //   body: {
-    //     workspaceId,
-    //     partnerIds: partners.map((p) => p.id),
-    //   },
-    //   onSuccess: () => {
-    //     mutatePrefix("/api/partners");
-    //     toast.success("Group changed successfully!");
-    //     setShowEditPartnerTagsModal(false);
-    //   },
-    // });
-  }, [changeGroup, partners]);
 
   const [selectionState, setSelectionState] = useState<{
     added: PartnerTagProps[];
@@ -138,6 +123,31 @@ function EditPartnerTagsModalContent({
       return { ...tag, checkedState };
     });
   }, [partners, availableTags, selectionState]);
+
+  const { executeAsync: updatePartnerTags, isPending } = useAction(
+    updatePartnerTagsAction,
+    {
+      onSuccess: () => {
+        toast.success("Partner tags updated successfully!");
+        setShowEditPartnerTagsModal(false);
+        mutatePrefix("/api/partners");
+      },
+      onError: ({ error }) => {
+        toast.error(parseActionError(error, "Failed to update partner tags"));
+      },
+    },
+  );
+
+  const handleSave = useCallback(async () => {
+    if (!workspaceId) return;
+
+    await updatePartnerTags({
+      workspaceId,
+      partnerIds: partners.map(({ id }) => id),
+      addTagIds: selectionState.added.map(({ id }) => id),
+      removeTagIds: selectionState.removed.map(({ id }) => id),
+    });
+  }, [workspaceId, partners, updatePartnerTags, selectionState]);
 
   const { isMobile } = useMediaQuery();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -220,39 +230,37 @@ function EditPartnerTagsModalContent({
       </div>
 
       <div className="border-border-subtle flex items-center justify-between gap-4 border-t px-4 py-4">
-        <div>
-          {partners.length === 1 ? (
-            <div className="flex items-center gap-2">
-              <img
-                src={partners[0].image || `${OG_AVATAR_URL}${partners[0].name}`}
-                alt={partners[0].name}
-                className="size-6 shrink-0 rounded-full bg-white"
-              />
-              <h4 className="min-w-0 truncate text-sm font-medium text-neutral-900">
-                {partners[0].name}
-              </h4>
+        {partners.length === 1 ? (
+          <div className="flex min-w-0 items-center gap-2">
+            <img
+              src={partners[0].image || `${OG_AVATAR_URL}${partners[0].name}`}
+              alt={partners[0].name}
+              className="size-6 shrink-0 rounded-full bg-white"
+            />
+            <h4 className="min-w-0 truncate text-sm font-medium text-neutral-900">
+              {partners[0].name}
+            </h4>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2">
+            <div className="flex shrink-0 items-center">
+              {partners.slice(0, 3).map((partner, index) => (
+                <img
+                  key={partner.id}
+                  src={partner.image || `${OG_AVATAR_URL}${partner.name}`}
+                  alt={partner.name}
+                  className={cn(
+                    "inline-block size-6 rounded-full border-2 border-white bg-white",
+                    index > 0 && "-ml-2.5",
+                  )}
+                />
+              ))}
             </div>
-          ) : (
-            <div className="flex items-center gap-2">
-              <div className="flex shrink-0 items-center">
-                {partners.slice(0, 3).map((partner, index) => (
-                  <img
-                    key={partner.id}
-                    src={partner.image || `${OG_AVATAR_URL}${partner.name}`}
-                    alt={partner.name}
-                    className={cn(
-                      "inline-block size-6 rounded-full border-2 border-white bg-white",
-                      index > 0 && "-ml-2.5",
-                    )}
-                  />
-                ))}
-              </div>
-              <span className="text-content-default min-w-0 truncate text-sm font-medium">
-                {partners.length} partners selected
-              </span>
-            </div>
-          )}
-        </div>
+            <span className="text-content-default min-w-0 truncate text-sm font-medium">
+              {partners.length} partners selected
+            </span>
+          </div>
+        )}
         <div className="flex items-center gap-2">
           <Button
             onClick={() => setShowEditPartnerTagsModal(false)}
@@ -261,9 +269,8 @@ function EditPartnerTagsModalContent({
             className="h-8 w-fit px-3"
           />
           <Button
-            onClick={() => handleEditPartnerTags()}
-            autoFocus
-            loading={isSubmitting}
+            onClick={handleSave}
+            loading={isPending}
             text="Save"
             className="h-8 w-fit px-3"
           />

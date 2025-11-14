@@ -31,3 +31,10 @@ export const PartnerTagSchema = z.object({
   id: z.string(),
   name: z.string(),
 });
+
+export const updatePartnerTagsSchema = z.object({
+  workspaceId: z.string(),
+  partnerIds: z.array(z.string()),
+  addTagIds: z.array(z.string()).optional(),
+  removeTagIds: z.array(z.string()).optional(),
+});
