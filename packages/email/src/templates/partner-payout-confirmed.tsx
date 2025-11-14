@@ -70,8 +70,11 @@ export default function PartnerPayoutConfirmed({
     <Html>
       <Head />
       <Preview>
-        {program.name} has initiated a payout of {payoutAmountInDollars} for
-        affiliate commissions made from {startDate} to {endDate}.
+        {program.name} has initiated a payout of {payoutAmountInDollars}
+        {startDate && endDate
+          ? ` for affiliate commissions made from ${startDate} to ${endDate}`
+          : ""}
+        .
       </Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
