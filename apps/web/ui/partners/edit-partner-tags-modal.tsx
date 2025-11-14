@@ -2,6 +2,7 @@ import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps, PartnerTagProps, TagProps } from "@/lib/types";
+import { TAGS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/tags";
 import {
   AnimatedSizeContainer,
   Button,
@@ -45,7 +46,7 @@ function EditPartnerTagsModalContent({
     `/api/partners/tags/count?workspaceId=${workspaceId}`,
     fetcher,
   );
-  const useAsync = true; //tagsCount && tagsCount > TAGS_MAX_PAGE_SIZE;
+  const useAsync = tagsCount && tagsCount > TAGS_MAX_PAGE_SIZE;
 
   const { data: availableTags, isLoading: isLoadingTags } = useSWR<TagProps[]>(
     `/api/partners/tags?workspaceId=${workspaceId}&${new URLSearchParams({
