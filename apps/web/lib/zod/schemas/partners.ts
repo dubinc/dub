@@ -199,7 +199,9 @@ export const partnersCountQuerySchema = getPartnersQuerySchemaExtended
     pageSize: true,
   })
   .extend({
-    groupBy: z.enum(["status", "country", "groupId", "tagId"]).optional(),
+    groupBy: z
+      .enum(["status", "country", "groupId", "partnerTagId"])
+      .optional(),
   });
 
 export const PartnerOnlinePresenceSchema = z.object({

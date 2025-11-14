@@ -136,7 +136,7 @@ export async function getPartnersCount<T>(
     return partners as T;
   }
 
-  if (groupBy === "tagId") {
+  if (groupBy === "partnerTagId") {
     const partners = await prisma.programPartnerTag.groupBy({
       by: ["partnerTagId"],
       where: {
