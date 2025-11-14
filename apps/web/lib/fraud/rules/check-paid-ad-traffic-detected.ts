@@ -14,6 +14,9 @@ const configSchema = z.object({
   referrers: z.array(z.string()).describe("Referer domains."),
 });
 
+// TODO
+// Remove
+
 export const checkPaidAdTrafficDetected = defineFraudRule({
   type: "paidAdTrafficDetected",
   contextSchema,

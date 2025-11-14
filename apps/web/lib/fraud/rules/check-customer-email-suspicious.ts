@@ -12,6 +12,9 @@ const configSchema = z.object({
   //
 });
 
+// TODO:
+// Not used
+
 export const checkCustomerEmailSuspicious = defineFraudRule({
   type: "customerEmailSuspiciousDomain",
   contextSchema,
