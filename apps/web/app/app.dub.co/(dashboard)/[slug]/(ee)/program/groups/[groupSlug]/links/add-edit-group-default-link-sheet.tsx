@@ -177,21 +177,23 @@ function DefaultPartnerLinkSheetContent({
             }
             content={
               <div className="space-y-6">
-                <div className="space-y-2">
-                  <label className="text-content-emphasis block text-sm font-medium">
-                    Domain
-                  </label>
-                  <DomainSelector
-                    selectedDomain={domain || ""}
-                    setSelectedDomain={(domain) =>
-                      setValue("domain", domain, { shouldDirty: true })
-                    }
-                  />
-                  <p className="text-xs font-normal text-neutral-500">
-                    Custom domain that will be used for this group's referral
-                    links
-                  </p>
-                </div>
+                {isEditing && (
+                  <div className="space-y-2">
+                    <label className="text-content-emphasis block text-sm font-medium">
+                      Domain
+                    </label>
+                    <DomainSelector
+                      selectedDomain={domain || ""}
+                      setSelectedDomain={(domain) =>
+                        setValue("domain", domain, { shouldDirty: true })
+                      }
+                    />
+                    <p className="text-xs font-normal text-neutral-500">
+                      Custom domain that will be used for this group's referral
+                      links
+                    </p>
+                  </div>
+                )}
                 <div className="space-y-2">
                   <div className="flex items-center gap-x-2">
                     <label className="text-content-emphasis block text-sm font-medium">

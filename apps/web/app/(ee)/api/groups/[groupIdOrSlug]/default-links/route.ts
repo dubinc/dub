@@ -1,6 +1,4 @@
 import { createId } from "@/lib/api/create-id";
-import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
-import { queueDomainUpdate } from "@/lib/api/domains/queue-domain-update";
 import { DubApiError } from "@/lib/api/errors";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
@@ -60,27 +58,20 @@ export const POST = withWorkspace(
   async ({ workspace, req, params, session }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const { domain, url } = createOrUpdateDefaultLinkSchema.parse(
+    const { url } = createOrUpdateDefaultLinkSchema.parse(
       await parseRequestBody(req),
     );
 
-    const [group, domainRecord] = await Promise.all([
-      prisma.partnerGroup.findUniqueOrThrow({
-        where: {
-          id: params.groupIdOrSlug,
-          programId,
-        },
-        include: {
-          program: true,
-          utmTemplate: true,
-        },
-      }),
-
-      getDomainOrThrow({
-        workspace,
-        domain,
-      }),
-    ]);
+    const group = await prisma.partnerGroup.findUniqueOrThrow({
+      where: {
+        id: params.groupIdOrSlug,
+        programId,
+      },
+      include: {
+        program: true,
+        utmTemplate: true,
+      },
+    });
 
     // shouldn't happen but just in case
     if (!group.program.domain) {
@@ -89,48 +80,6 @@ export const POST = withWorkspace(
         message:
           "This program needs a domain set before creating a default link.",
       });
-    }
-
-    if (!domainRecord.verified) {
-      throw new DubApiError({
-        code: "unprocessable_entity",
-        message:
-          "This domain is not verified. Please verify it before using it for partner links.",
-      });
-    }
-
-    // Domain change detected, we should do the following
-    // - Update the program's domain
-    // - Update all default links across groups to use the new domain
-    // - Update all partner links to use the new domain (via cron job)
-    if (domain !== group.program.domain) {
-      await prisma.$transaction([
-        prisma.program.update({
-          where: {
-            id: programId,
-          },
-          data: {
-            domain,
-          },
-        }),
-
-        prisma.partnerGroupDefaultLink.updateMany({
-          where: {
-            programId,
-          },
-          data: {
-            domain,
-          },
-        }),
-      ]);
-
-      // Queue domain update for all partner links
-      waitUntil(
-        queueDomainUpdate({
-          newDomain: domain,
-          oldDomain: group.program.domain,
-        }),
-      );
     }
 
     try {
@@ -153,7 +102,7 @@ export const POST = withWorkspace(
             id: createId({ prefix: "pgdl_" }),
             programId: group.programId,
             groupId: group.id,
-            domain,
+            domain: group.program.domain!,
             url: group.utmTemplate
               ? constructURLFromUTMParams(
                   url,
