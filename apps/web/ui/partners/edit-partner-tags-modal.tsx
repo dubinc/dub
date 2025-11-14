@@ -10,6 +10,7 @@ import {
   LoadingSpinner,
   Modal,
   useMediaQuery,
+  Users,
   useScrollProgress,
 } from "@dub/ui";
 import { cn, fetcher, OG_AVATAR_URL } from "@dub/utils";
@@ -23,8 +24,10 @@ import {
   useRef,
   useState,
 } from "react";
+import { toast } from "sonner";
 import useSWR from "swr";
 import { useDebounce } from "use-debounce";
+import { ThreeDots } from "../shared/icons";
 
 type EditPartnerTagsModalProps = {
   showEditPartnerTagsModal: boolean;
@@ -161,7 +164,7 @@ function EditPartnerTagsModalContent({
           transition={{ ease: "easeOut", duration: 0.1 }}
           className="pointer-events-auto -m-1 overflow-clip"
         >
-          <Command loop shouldFilter={!useAsync} className="p-1">
+          <Command loop shouldFilter={!useAsync} className="p-1 pb-2">
             <Command.Input
               ref={inputRef}
               placeholder="Search or add tags..."
@@ -297,26 +300,46 @@ function TagOption({
   return (
     <Command.Item
       key={tag.id}
-      className="group/button flex h-10 items-center gap-2 rounded-lg px-2.5 active:bg-black/5 data-[selected=true]:bg-black/[0.03]"
+      className="group/button flex h-10 items-center justify-between gap-2 rounded-lg px-2.5 active:bg-black/5 data-[selected=true]:bg-black/[0.03]"
       onSelect={() => checkboxRef.current?.click()}
       value={tag.name}
     >
-      <label className="pointer-events-none flex items-center gap-2">
-        <Checkbox
-          ref={checkboxRef}
-          checked={checked}
-          onCheckedChange={onCheckedChange}
-          className={cn(
-            "border-border-default size-4 rounded data-[state=checked]:bg-black data-[state=indeterminate]:bg-black",
-            "transition-transform duration-100 active:scale-95 group-active/button:scale-95",
-          )}
-          tabIndex={-1}
+      <div className="flex min-w-0 items-center gap-2">
+        <label className="pointer-events-none flex min-w-0 items-center gap-2">
+          <Checkbox
+            ref={checkboxRef}
+            checked={checked}
+            onCheckedChange={onCheckedChange}
+            className={cn(
+              "border-border-default size-4 shrink-0 rounded data-[state=checked]:bg-black data-[state=indeterminate]:bg-black",
+              "transition-transform duration-100 active:scale-95 group-active/button:scale-95",
+            )}
+            tabIndex={-1}
+          />
+          <div className="flex h-7 min-w-0 select-none items-center rounded-lg bg-black/5 px-2">
+            <span className="text-content-default min-w-0 truncate text-sm font-semibold">
+              {tag.name}
+            </span>
+          </div>
+        </label>
+      </div>
+      <div className="flex items-center gap-2">
+        {Boolean(partnerCount) && (
+          <div className="flex items-center gap-1">
+            <Users className="size-3.5 shrink-0" />
+            <span className="text-content-default text-sm font-medium tabular-nums">
+              {partnerCount}
+            </span>
+          </div>
+        )}
+
+        <Button
+          variant="outline"
+          icon={<ThreeDots className="size-4" />}
+          className="size-7 rounded-lg p-0"
+          onClick={() => toast.info("WIP")}
         />
-        <span className="text-content-default flex h-7 select-none items-center rounded-lg bg-black/5 px-2 text-sm font-semibold">
-          {tag.name}
-        </span>
-      </label>
-      <span className="text-content-muted text-xs">{partnerCount}</span>
+      </div>
     </Command.Item>
   );
 }
