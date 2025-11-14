@@ -39,7 +39,7 @@ import { isSingularTrackingUrl } from "./utils/is-singular-tracking-url";
 import { resolveABTestURL } from "./utils/resolve-ab-test-url";
 
 export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
-  let { domain, fullKey: originalKey } = parse(req);
+  let { domain, fullKey: originalKey, fullPath } = parse(req);
 
   if (!domain) {
     return NextResponse.next();
@@ -433,7 +433,7 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
       // @see: https://stackoverflow.com/a/78189982/10639526
       return createResponseWithCookies(
         NextResponse.redirect(
-          new URL(`/deeplink/${domain}/${encodeURIComponent(key)}`, APP_DOMAIN),
+          new URL(`/deeplink/${domain}${fullPath}`, APP_DOMAIN),
           {
             headers: {
               ...DUB_HEADERS,
