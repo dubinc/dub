@@ -2,6 +2,7 @@ import { createId } from "@/lib/api/create-id";
 import BountyApproved from "@dub/email/templates/bounty-approved";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
+import { chunk } from "@dub/utils";
 import "dotenv-flow/config";
 import { syncTotalCommissions } from "../../lib/api/partners/sync-total-commissions";
 import { queueBatchEmail } from "../../lib/email/queue-batch-email";
@@ -21,22 +22,16 @@ async function main() {
       bountyId: bounty.id,
       status: "submitted",
     },
-    take: 500,
+    take: 1000,
     include: {
       partner: true,
       program: true,
     },
   });
 
-  const validSubmissions = bountySubmissions.filter((submission) => {
-    return (submission.urls as string[]).some((url) =>
-      url.includes("linkedin.com"),
-    );
-  });
+  console.log(`Found ${bountySubmissions.length} bounty submissions`);
 
-  console.log(`Found ${validSubmissions.length} valid bounty submissions`);
-
-  const commissionsToCreate = validSubmissions.map((submission) => ({
+  const commissionsToCreate = bountySubmissions.map((submission) => ({
     id: createId({ prefix: "cm_" }),
     programId: submission.programId,
     partnerId: submission.partnerId,
@@ -59,7 +54,7 @@ async function main() {
   const submissionsUpdatedRes = await prisma.bountySubmission.updateMany({
     where: {
       id: {
-        in: validSubmissions.map((submission) => submission.id),
+        in: bountySubmissions.map((submission) => submission.id),
       },
     },
     data: {
@@ -71,33 +66,37 @@ async function main() {
 
   console.log(`Updated ${submissionsUpdatedRes.count} submissions`);
 
-  for (const submission of validSubmissions) {
-    const commission = commissionsToCreate.find(
-      (c) =>
-        c.programId === submission.programId &&
-        c.partnerId === submission.partnerId,
-    );
-    if (!commission) {
-      console.log(`Commission not found for submission ${submission.id}`);
-      continue;
-    }
-
-    await Promise.allSettled([
-      prisma.bountySubmission.update({
-        where: { id: submission.id },
-        data: { commissionId: commission.id },
+  const chunks = chunk(bountySubmissions, 50);
+  for (let i = 0; i < chunks.length; i++) {
+    const chunk = chunks[i];
+    await Promise.allSettled(
+      chunk.map(async (submission) => {
+        const commission = commissionsToCreate.find(
+          (c) =>
+            c.programId === submission.programId &&
+            c.partnerId === submission.partnerId,
+        );
+        if (!commission) {
+          console.log(`Commission not found for submission ${submission.id}`);
+          return;
+        }
+        await Promise.allSettled([
+          prisma.bountySubmission.update({
+            where: { id: submission.id },
+            data: { commissionId: commission.id },
+          }),
+          syncTotalCommissions({
+            partnerId: submission.partnerId,
+            programId: submission.programId,
+          }),
+        ]);
       }),
-      syncTotalCommissions({
-        partnerId: submission.partnerId,
-        programId: submission.programId,
-      }),
-    ]);
-    console.log(
-      `Updated submission ${submission.id} to have commission ${commission.id} + synced total commissions`,
     );
+    console.log(`Processed chunk ${i + 1} of ${chunks.length}`);
   }
+
   const qstashRes = await queueBatchEmail<typeof BountyApproved>(
-    validSubmissions
+    bountySubmissions
       .filter((s) => s.partner.email)
       .map((s) => ({
         subject: "Bounty approved!",
