@@ -12,7 +12,6 @@ const configSchema = z.object({
 export const checkCustomerEmailSimilar = defineFraudRule({
   type: "customerEmailSimilar",
   contextSchema,
-  configSchema,
   evaluate: async (context) => {
     console.log("Evaluating checkCustomerEmailSimilar...", context);
 

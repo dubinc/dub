@@ -8,7 +8,7 @@ export function defineFraudRule<
 >(rule: {
   type: FraudRuleType;
   contextSchema: TCtx;
-  configSchema: TCfg;
+  configSchema?: TCfg;
   defaultConfig?: z.infer<TCfg>;
   evaluate: (
     context: z.infer<TCtx>,
