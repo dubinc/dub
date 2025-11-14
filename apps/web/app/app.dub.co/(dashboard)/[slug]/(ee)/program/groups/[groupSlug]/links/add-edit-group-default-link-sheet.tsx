@@ -1,11 +1,11 @@
 "use client";
 
+import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useDomains from "@/lib/swr/use-domains";
 import useGroup from "@/lib/swr/use-group";
 import usePartnerGroupDefaultLinks from "@/lib/swr/use-partner-group-default-links";
 import useProgram from "@/lib/swr/use-program";
-import useWorkspace from "@/lib/swr/use-workspace";
 import { PartnerGroupDefaultLink } from "@/lib/types";
 import { createOrUpdateDefaultLinkSchema } from "@/lib/zod/schemas/groups";
 import { DomainSelector } from "@/ui/domains/domain-selector";
@@ -24,7 +24,6 @@ import {
 } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { mutate } from "swr";
 import { z } from "zod";
 import { PartnerLinkPreview } from "./partner-link-preview";
 
@@ -41,7 +40,6 @@ function DefaultPartnerLinkSheetContent({
 }: DefaultPartnerLinkSheetProps) {
   const { group } = useGroup();
   const { program } = useProgram();
-  const { id: workspaceId } = useWorkspace();
   const { defaultLinks } = usePartnerGroupDefaultLinks();
   const { allWorkspaceDomains } = useDomains();
   const { makeRequest, isSubmitting } = useApiMutation();
@@ -116,9 +114,7 @@ function DefaultPartnerLinkSheetContent({
           toast.success(
             link ? "Default link updated!" : "Default link created!",
           );
-          await mutate(
-            `/api/groups/${group.slug}/default-links?workspaceId=${workspaceId}`,
-          );
+          await mutatePrefix(["/api/groups", "/api/programs"]);
         },
       },
     );

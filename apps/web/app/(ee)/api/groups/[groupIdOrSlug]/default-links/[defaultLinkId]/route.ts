@@ -1,4 +1,5 @@
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
+import { queueDomainUpdate } from "@/lib/api/domains/queue-domain-update";
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
@@ -68,6 +69,8 @@ export const PATCH = withWorkspace(
       });
     }
 
+    const defaultLink = group.partnerGroupDefaultLinks[0];
+
     if (!domainRecord.verified) {
       throw new DubApiError({
         code: "unprocessable_entity",
@@ -79,16 +82,41 @@ export const PATCH = withWorkspace(
     // Domain change detected, we should do the following
     // - Update the program's domain
     // - Update all default links across groups to use the new domain
-    // - Update all partner links to use the new domain
+    // - Update all partner links to use the new domain (via cron job)
     if (domain !== group.program.domain) {
-      // TODO
-      // Do this via a cron job
+      await prisma.$transaction([
+        prisma.program.update({
+          where: {
+            id: programId,
+          },
+          data: {
+            domain,
+          },
+        }),
+
+        prisma.partnerGroupDefaultLink.updateMany({
+          where: {
+            programId,
+          },
+          data: {
+            domain,
+          },
+        }),
+      ]);
+
+      // Queue domain update for all partner links
+      waitUntil(
+        queueDomainUpdate({
+          newDomain: domain,
+          oldDomain: defaultLink.domain,
+        }),
+      );
     }
 
     try {
       const updatedDefaultLink = await prisma.partnerGroupDefaultLink.update({
         where: {
-          id: group.partnerGroupDefaultLinks[0].id,
+          id: defaultLink.id,
         },
         data: {
           domain,
@@ -101,12 +129,12 @@ export const PATCH = withWorkspace(
         },
       });
 
-      if (updatedDefaultLink.url !== group.partnerGroupDefaultLinks[0].url) {
+      if (updatedDefaultLink.url !== defaultLink.url) {
         waitUntil(
           qstash.publishJSON({
             url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/update-default-links`,
             body: {
-              defaultLinkId: group.partnerGroupDefaultLinks[0].id,
+              defaultLinkId: defaultLink.id,
             },
           }),
         );

@@ -5,10 +5,12 @@ export async function queueDomainUpdate({
   oldDomain,
   newDomain,
   delay,
+  startingAfter,
 }: {
   oldDomain: string;
   newDomain: string;
   delay?: number;
+  startingAfter?: string;
 }) {
   return await qstash.publishJSON({
     url: `${APP_DOMAIN_WITH_NGROK}/api/cron/domains/update`,
@@ -16,6 +18,7 @@ export async function queueDomainUpdate({
     body: {
       oldDomain,
       newDomain,
+      ...(startingAfter && { startingAfter }),
     },
   });
 }

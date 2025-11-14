@@ -1,5 +1,6 @@
 import { createId } from "@/lib/api/create-id";
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
+import { queueDomainUpdate } from "@/lib/api/domains/queue-domain-update";
 import { DubApiError } from "@/lib/api/errors";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
@@ -101,10 +102,35 @@ export const POST = withWorkspace(
     // Domain change detected, we should do the following
     // - Update the program's domain
     // - Update all default links across groups to use the new domain
-    // - Update all partner links to use the new domain
+    // - Update all partner links to use the new domain (via cron job)
     if (domain !== group.program.domain) {
-      // TODO
-      // Do this via a cron job
+      await prisma.$transaction([
+        prisma.program.update({
+          where: {
+            id: programId,
+          },
+          data: {
+            domain,
+          },
+        }),
+
+        prisma.partnerGroupDefaultLink.updateMany({
+          where: {
+            programId,
+          },
+          data: {
+            domain,
+          },
+        }),
+      ]);
+
+      // Queue domain update for all partner links
+      waitUntil(
+        queueDomainUpdate({
+          newDomain: domain,
+          oldDomain: group.program.domain,
+        }),
+      );
     }
 
     try {
