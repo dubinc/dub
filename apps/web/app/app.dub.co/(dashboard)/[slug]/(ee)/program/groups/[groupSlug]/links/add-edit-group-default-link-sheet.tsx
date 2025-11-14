@@ -12,7 +12,7 @@ import { DomainSelector } from "@/ui/domains/domain-selector";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { RewardIconSquare } from "@/ui/partners/rewards/reward-icon-square";
 import { X } from "@/ui/shared/icons";
-import { Button, InfoTooltip, Input, Sheet } from "@dub/ui";
+import { Button, Input, Sheet } from "@dub/ui";
 import { Eye, Hyperlink } from "@dub/ui/icons";
 import { normalizeUrl } from "@dub/utils";
 import {
@@ -44,7 +44,7 @@ function DefaultPartnerLinkSheetContent({
   const { allWorkspaceDomains } = useDomains();
   const { makeRequest, isSubmitting } = useApiMutation();
 
-  const { handleSubmit, watch, setValue } = useForm<FormData>({
+  const { handleSubmit, watch, setValue, formState } = useForm<FormData>({
     defaultValues: {
       domain: link?.domain || program?.domain || "",
       url: link?.url || "",
@@ -60,30 +60,24 @@ function DefaultPartnerLinkSheetContent({
         <p>
           You've selected <strong className="text-black">{domain}</strong>,
           which is different from your program's current domain{" "}
-          <strong className="text-black">{program?.domain}</strong>. Using this
-          domain will:
+          <strong className="text-black">{program?.domain}</strong>.
         </p>
+        <p>By making this change, you will:</p>
         <ul className="list-disc space-y-1.5 pl-5 text-sm">
           <li>
             Change the program's primary domain to{" "}
-            <strong className="text-black">{domain}</strong>
+            <strong className="text-black">{domain}</strong>.
           </li>
           <li>
-            Update all default links across groups to use{" "}
-            <strong className="text-black">{domain}</strong>
-          </li>
-          <li>
-            Break existing partner links that point to{" "}
-            <strong className="text-black">{program?.domain}</strong>
+            Update all default links across all partner groups to use the{" "}
+            <strong className="text-black">{domain}</strong> domain.
           </li>
           <li>
             Automatically update all partner links to use{" "}
-            <strong className="text-black">{domain}</strong>
+            <strong className="text-black">{domain}</strong>, potentially
+            breaking them.
           </li>
         </ul>
-        <p className="text-muted-foreground text-sm">
-          You can't use multiple shortlink domains within the same program.
-        </p>
         <p className="text-sm font-medium">
           Are you sure you want to continue?
         </p>
@@ -148,7 +142,6 @@ function DefaultPartnerLinkSheetContent({
   const selectedDomainData = allWorkspaceDomains?.find(
     (d) => d.slug === domain,
   );
-  const isDomainUnverified = selectedDomainData && !selectedDomainData.verified;
 
   return (
     <>
@@ -180,7 +173,7 @@ function DefaultPartnerLinkSheetContent({
                 {isEditing && (
                   <div className="space-y-2">
                     <label className="text-content-emphasis block text-sm font-medium">
-                      Domain
+                      Link domain
                     </label>
                     <DomainSelector
                       selectedDomain={domain || ""}
@@ -189,22 +182,23 @@ function DefaultPartnerLinkSheetContent({
                       }
                     />
                     <p className="text-xs font-normal text-neutral-500">
-                      Custom domain that will be used for this group's referral
-                      links
+                      Custom domain for your partner referral links (applies to
+                      all{" "}
+                      <a
+                        href="https://dub.co/help/article/partner-groups"
+                        target="_blank"
+                        className="cursor-help font-medium text-neutral-800 underline decoration-dotted underline-offset-2"
+                      >
+                        partner groups
+                      </a>
+                      )
                     </p>
                   </div>
                 )}
                 <div className="space-y-2">
-                  <div className="flex items-center gap-x-2">
-                    <label className="text-content-emphasis block text-sm font-medium">
-                      Destination URL
-                    </label>
-                    <InfoTooltip
-                      content={
-                        "Where people will be redirected after clicking the referral links [Learn more](https://dub.co/help/article/destination-urls)"
-                      }
-                    />
-                  </div>
+                  <label className="text-content-emphasis block text-sm font-medium">
+                    Destination URL
+                  </label>
                   <Input
                     value={url || ""}
                     onChange={(e) =>
@@ -215,8 +209,14 @@ function DefaultPartnerLinkSheetContent({
                     className="max-w-full"
                   />
                   <p className="text-xs font-normal text-neutral-500">
-                    Where people will be redirected after clicking the referral
-                    links
+                    Where your partner referral links will redirect to.{" "}
+                    <a
+                      href="https://dub.co/help/article/partner-link-settings"
+                      target="_blank"
+                      className="cursor-help font-medium text-neutral-800 underline decoration-dotted underline-offset-2"
+                    >
+                      Learn more ↗
+                    </a>
                   </p>
                 </div>
               </div>
@@ -257,12 +257,7 @@ function DefaultPartnerLinkSheetContent({
               text={isEditing ? "Update link" : "Create link"}
               className="w-fit"
               loading={isSubmitting}
-              disabled={!url || isDomainUnverified}
-              disabledTooltip={
-                isDomainUnverified
-                  ? "Please verify the domain before using it for partner links."
-                  : undefined
-              }
+              disabled={!url || (isEditing && !formState.isDirty)}
             />
           </div>
         </div>

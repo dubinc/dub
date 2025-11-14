@@ -71,14 +71,6 @@ export const PATCH = withWorkspace(
 
     const defaultLink = group.partnerGroupDefaultLinks[0];
 
-    if (!domainRecord.verified) {
-      throw new DubApiError({
-        code: "unprocessable_entity",
-        message:
-          "This domain is not verified. Please verify it before using it for partner links.",
-      });
-    }
-
     // Domain change detected, we should do the following
     // - Update the program's domain
     // - Update all default links across groups to use the new domain
