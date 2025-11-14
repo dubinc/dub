@@ -1,4 +1,7 @@
-import { queueDomainUpdate } from "@/lib/api/domains/queue-domain-update";
+import {
+  linkDomainUpdateSchema,
+  queueDomainUpdate,
+} from "@/lib/api/domains/queue-domain-update";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
 import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
@@ -8,16 +11,9 @@ import { recordLink } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
 import { Link } from "@dub/prisma/client";
 import { linkConstructorSimple } from "@dub/utils";
-import { z } from "zod";
 import { logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";
-
-const schema = z.object({
-  newDomain: z.string(),
-  oldDomain: z.string(),
-  startingAfter: z.string().optional(),
-});
 
 const LINK_BATCH_SIZE = 100;
 
@@ -31,9 +27,8 @@ export async function POST(req: Request) {
       rawBody,
     });
 
-    const { newDomain, oldDomain, startingAfter } = schema.parse(
-      JSON.parse(rawBody),
-    );
+    const payload = linkDomainUpdateSchema.parse(JSON.parse(rawBody));
+    const { newDomain, oldDomain, programId, startingAfter } = payload;
 
     const newDomainRecord = await prisma.domain.findUnique({
       where: {
@@ -48,6 +43,7 @@ export async function POST(req: Request) {
     const linksToUpdate = await prisma.link.findMany({
       where: {
         domain: oldDomain,
+        ...(programId && { programId }),
       },
       take: LINK_BATCH_SIZE,
       ...(startingAfter && {
@@ -106,8 +102,7 @@ export async function POST(req: Request) {
     ]);
 
     const response = await queueDomainUpdate({
-      newDomain,
-      oldDomain,
+      ...payload,
       startingAfter: linksToUpdate[linksToUpdate.length - 1].id,
       delay: 1,
     });

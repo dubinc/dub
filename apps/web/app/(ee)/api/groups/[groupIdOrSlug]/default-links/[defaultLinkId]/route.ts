@@ -109,6 +109,7 @@ export const PATCH = withWorkspace(
         queueDomainUpdate({
           newDomain: domain,
           oldDomain: defaultLink.domain,
+          programId,
         }),
       );
     }
