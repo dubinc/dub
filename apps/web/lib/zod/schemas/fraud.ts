@@ -87,14 +87,15 @@ export const resolveFraudEventSchema = z.object({
   markPartnerAsSafe: z
     .boolean()
     .optional()
-    .describe("Whether to mark the partner as safe for all future fraud events."),
+    .describe(
+      "Whether to mark the partner as safe for all future fraud events.",
+    ),
 });
 
 export const fraudRuleSchema = z.object({
   id: z.string().optional(),
-  name: z.string(),
   type: z.nativeEnum(FraudRuleType),
-  riskLevel: z.nativeEnum(FraudRiskLevel),
+  name: z.string(),
   description: z.string(),
   enabled: z.boolean(),
   config: z.unknown(),

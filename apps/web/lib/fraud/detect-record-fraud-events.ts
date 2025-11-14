@@ -1,10 +1,8 @@
 import { prisma } from "@dub/prisma";
-import { FraudRiskLevel, Prisma } from "@dub/prisma/client";
+import { FraudEvent, Prisma } from "@dub/prisma/client";
 import { createId } from "../api/create-id";
-import { RISK_LEVEL_ORDER, RISK_LEVEL_WEIGHTS } from "./constants";
 import { executeFraudRule } from "./execute-fraud-rule";
 import { getMergedFraudRules } from "./get-merged-fraud-rules";
-import { FraudTriggeredRule } from "./types";
 
 interface DetectFraudEventProps {
   program: {
@@ -38,12 +36,12 @@ interface DetectFraudEventProps {
 
 // Evaluate fraud risk for a conversion event
 // Executes all enabled rules and calculates risk score
-export async function detectAndRecordFraudEvent(
+export async function detectAndRecordFraudEvents(
   context: DetectFraudEventProps,
 ) {
   if (context.partner.safelistedAt) {
     console.log(
-      "[detectAndRecordFraudEvent] The partner is marked as trusted for this program. Skipping fraud risk evaluation.",
+      "[detectAndRecordFraudEvents] The partner is marked as trusted for this program. Skipping fraud risk evaluation.",
     );
     return null;
   }
@@ -59,49 +57,36 @@ export async function detectAndRecordFraudEvent(
   const mergedRules = getMergedFraudRules(programRules);
   const activeRules = mergedRules.filter((rule) => rule.enabled);
 
-  let riskScore = 0;
-  let riskLevel: FraudRiskLevel = "low";
-  const triggeredRules: FraudTriggeredRule[] = [];
+  const triggeredRules: Pick<FraudEvent, "type" | "metadata">[] = [];
 
   // Evaluate each rule
   for (const rule of activeRules) {
     try {
-      const result = await executeFraudRule(rule.type, context, rule.config);
+      const { triggered, metadata } = await executeFraudRule(
+        rule.type,
+        context,
+        rule.config,
+      );
 
-      // Rule triggered
-      if (result.triggered) {
+      if (triggered) {
         triggeredRules.push({
-          ruleType: rule.type,
-          riskLevel: rule.riskLevel,
-          reason: result.reason,
-          metadata: result.metadata,
+          type: rule.type,
+          metadata: metadata as unknown as Prisma.JsonValue,
         });
-
-        // Add to risk score
-        const ruleWeight = RISK_LEVEL_WEIGHTS[rule.riskLevel];
-        riskScore += ruleWeight;
-
-        // Track highest risk level
-        if (
-          !riskLevel ||
-          RISK_LEVEL_ORDER[rule.riskLevel] > RISK_LEVEL_ORDER[riskLevel]
-        ) {
-          riskLevel = rule.riskLevel;
-        }
       }
     } catch (error) {
       console.error(
-        `Error evaluating rule ${rule.type}:`,
+        `[detectAndRecordFraudEvents] Error evaluating rule ${rule.type}:`,
         error instanceof Error ? error.message : String(error),
       );
     }
   }
 
-  console.log("[detectAndRecordFraudEvent] triggeredRules", triggeredRules);
+  console.log("[detectAndRecordFraudEvents] triggeredRules", triggeredRules);
 
   try {
-    return await prisma.fraudEvent.create({
-      data: {
+    return await prisma.fraudEvent.createMany({
+      data: triggeredRules.map((rule) => ({
         id: createId({ prefix: "fraud_" }),
         programId: context.program.id,
         partnerId: context.partner.id,
@@ -109,13 +94,16 @@ export async function detectAndRecordFraudEvent(
         customerId: context.customer.id,
         eventId: context.event.id,
         commissionId: context.commission.id,
-        riskLevel,
-        riskScore,
-        triggeredRules: triggeredRules as unknown as Prisma.InputJsonValue,
-      },
+        type: rule.type,
+        metadata: rule.metadata as Prisma.InputJsonValue,
+      })),
+      skipDuplicates: true,
     });
   } catch (error) {
-    console.error("Error recording fraud event", error);
+    console.error(
+      "[detectAndRecordFraudEvents] Error recording fraud event",
+      error,
+    );
     return null;
   }
 }

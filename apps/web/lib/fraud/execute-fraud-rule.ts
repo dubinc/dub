@@ -1,13 +1,13 @@
 import { FraudRuleType } from "@dub/prisma/client";
 import { fraudRulesRegistry } from "./fraud-rules-registry";
-import type { FraudRuleEvaluationResult } from "./types";
+import { FraudTriggeredRule } from "./types";
 
 // Execute a fraud rule with the given context and configuration
 export async function executeFraudRule<T extends FraudRuleType>(
   type: T,
   context: unknown,
   config?: unknown,
-): Promise<FraudRuleEvaluationResult> {
+): Promise<FraudTriggeredRule> {
   const rule = fraudRulesRegistry[type];
 
   if (!rule) {
@@ -15,7 +15,7 @@ export async function executeFraudRule<T extends FraudRuleType>(
   }
 
   const parsedContext = rule.contextSchema.parse(context);
-  const parsedConfig = rule.configSchema.parse(config ?? rule.defaultConfig);
+  const parsedConfig = rule.configSchema?.parse(config ?? rule.defaultConfig);
 
   // Type assertion is safe because Zod validates types at runtime
   // TypeScript can't narrow the union type, but we know the types match after Zod validation

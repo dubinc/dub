@@ -41,6 +41,7 @@ model FraudEvent {
   eventId          String?          @unique
   commissionId     String?          @unique
   type             FraudRuleType
+  metadata         Json?            @db.Json
   userId           String?
   resolutionReason String?
   resolvedAt       DateTime?

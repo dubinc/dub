@@ -4,7 +4,7 @@ import { createId } from "@/lib/api/create-id";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
-import { detectAndRecordFraudEvent } from "@/lib/fraud/detect-record-fraud-event";
+import { detectAndRecordFraudEvents } from "@/lib/fraud/detect-record-fraud-events";
 import { generateRandomName } from "@/lib/names";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import {
@@ -480,7 +480,7 @@ export async function checkoutSessionCompleted(
             },
           }),
 
-        detectAndRecordFraudEvent({
+        detectAndRecordFraudEvents({
           program: { id: link.programId },
           partner: pick(webhookPartner, [
             "id",
