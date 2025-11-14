@@ -17,7 +17,7 @@ export function getMergedFraudRules(programRules: FraudRule[]) {
         name: globalRule.name,
         description: globalRule.description,
         type: globalRule.type as FraudRuleType,
-        config: programRule.config ?? undefined,
+        config: programRule.config ?? {},
         enabled: programRule.disabledAt === null,
       });
       return;
@@ -29,7 +29,7 @@ export function getMergedFraudRules(programRules: FraudRule[]) {
       name: globalRule.name,
       description: globalRule.description,
       type: globalRule.type as FraudRuleType,
-      config: undefined,
+      config: {},
       enabled: true,
     });
   });

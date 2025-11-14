@@ -1,6 +1,6 @@
 import { FraudRuleType } from "@dub/prisma/client";
 import { z } from "zod";
-import { FraudRuleEvaluationResult } from "./types";
+import { FraudTriggeredRule } from "./types";
 
 export function defineFraudRule<
   TCtx extends z.ZodType,
@@ -13,7 +13,7 @@ export function defineFraudRule<
   evaluate: (
     context: z.infer<TCtx>,
     config: z.infer<TCfg>,
-  ) => Promise<FraudRuleEvaluationResult>;
+  ) => Promise<FraudTriggeredRule>;
 }) {
   return rule;
 }

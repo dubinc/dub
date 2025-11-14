@@ -24,6 +24,8 @@ export const checkCustomerEmailSimilar = defineFraudRule({
   type: "customerEmailSimilar",
   contextSchema,
   evaluate: async (context) => {
+    console.log("Evaluating checkCustomerEmailSimilar...", context);
+
     const { partner, customer } = context;
 
     const metadata = {
@@ -33,6 +35,8 @@ export const checkCustomerEmailSimilar = defineFraudRule({
 
     // Return false if either email is missing
     if (!partner.email || !customer.email) {
+      console.log("[checkCustomerEmailSimilar] No customer or partner email.");
+
       return {
         triggered: false,
       };
@@ -49,6 +53,8 @@ export const checkCustomerEmailSimilar = defineFraudRule({
     );
 
     if (emailSimilarity >= SIMILARITY_THRESHOLD) {
+      console.log("[checkCustomerEmailSimilar] Email similarity found.");
+
       return {
         triggered: true,
         metadata,
@@ -60,6 +66,8 @@ export const checkCustomerEmailSimilar = defineFraudRule({
     const customerParts = extractEmailParts(normalizedCustomerEmail);
 
     if (!partnerParts || !customerParts) {
+      console.log("[checkCustomerEmailSimilar] No partner or customer parts.");
+
       return {
         triggered: false,
       };
@@ -70,9 +78,12 @@ export const checkCustomerEmailSimilar = defineFraudRule({
       customerParts.domain,
     );
 
-    if (!domainSimilarity.isSimilar) {
+    if (domainSimilarity.isSimilar) {
+      console.log("[checkCustomerEmailSimilar] Domain similarity found.");
+
       return {
-        triggered: false,
+        triggered: true,
+        metadata,
       };
     }
 
@@ -83,11 +94,15 @@ export const checkCustomerEmailSimilar = defineFraudRule({
         SIMILARITY_THRESHOLD;
 
     if (usernameMatch) {
+      console.log("[checkCustomerEmailSimilar] Username match found.");
+
       return {
         triggered: true,
         metadata,
       };
     }
+
+    console.log("[checkCustomerEmailSimilar] No match found.");
 
     return {
       triggered: false,

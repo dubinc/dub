@@ -38,8 +38,8 @@ model FraudEvent {
   partnerId        String
   linkId           String?
   customerId       String?
-  eventId          String?          @unique
-  commissionId     String?          @unique
+  eventId          String?
+  commissionId     String?
   type             FraudRuleType
   metadata         Json?            @db.Json
   userId           String?
@@ -62,4 +62,5 @@ model FraudEvent {
   @@index(linkId)
   @@index(eventId)
   @@index(userId)
+  @@index(commissionId)
 }

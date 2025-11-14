@@ -12,7 +12,11 @@ const contextSchema = z.object({
 const configSchema = z.object({
   bannedSources: z
     .array(z.string())
-    .describe("Banned referral sources (supports glob patterns like *.spam-domain.com)"),
+    .optional()
+    .default([])
+    .describe(
+      "Banned referral sources (supports glob patterns like *.spam-domain.com)",
+    ),
 });
 
 export const checkReferralSourceBanned = defineFraudRule({
@@ -32,7 +36,7 @@ export const checkReferralSourceBanned = defineFraudRule({
       };
     }
 
-    if(bannedSources.length === 0) {
+    if (bannedSources.length === 0) {
       return {
         triggered: false,
       };

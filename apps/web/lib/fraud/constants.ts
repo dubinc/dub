@@ -25,6 +25,11 @@ export const FRAUD_RULES: FraudRuleInfo[] = [
     description:
       "A conversion, event, or click was made from paid advertising traffic.",
   },
+  {
+    type: "programBanned",
+    name: "Program ban",
+    description: "This partner has been banned from other Dub programs.",
+  },
 ] as const;
 
 export const FRAUD_EVENT_STATUS_BADGES = {

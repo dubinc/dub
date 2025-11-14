@@ -17,6 +17,8 @@ export const checkCustomerEmailMatch = defineFraudRule({
   type: "customerEmailMatch",
   contextSchema,
   evaluate: async (context) => {
+    console.log("Evaluating checkCustomerEmailMatch...", context);
+
     const { partner, customer } = context;
 
     const metadata = {

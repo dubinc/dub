@@ -97,7 +97,6 @@ export async function detectAndRecordFraudEvents(
         type: rule.type,
         metadata: rule.metadata as Prisma.InputJsonValue,
       })),
-      skipDuplicates: true,
     });
   } catch (error) {
     console.error(

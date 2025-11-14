@@ -9,23 +9,10 @@ export function normalizeEmail(email: string): string {
 
   let [username, domain] = parts;
 
-  // Providers that support plus addressing (Gmail, Outlook, Yahoo, etc.)
-  const plusAddressingProviders = [
-    "gmail.com",
-    "googlemail.com",
-    "outlook.com",
-    "hotmail.com",
-    "live.com",
-    "msn.com",
-    "yahoo.com",
-  ];
-
-  // Strip plus tags for providers that support it
-  if (plusAddressingProviders.includes(domain)) {
-    const plusIndex = username.indexOf("+");
-    if (plusIndex !== -1) {
-      username = username.substring(0, plusIndex);
-    }
+  // Strip plus addressing for all domains
+  const plusIndex = username.indexOf("+");
+  if (plusIndex !== -1) {
+    username = username.substring(0, plusIndex);
   }
 
   // Gmail and Google Mail treat dots as irrelevant

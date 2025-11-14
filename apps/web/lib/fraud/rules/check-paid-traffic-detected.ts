@@ -11,6 +11,8 @@ const contextSchema = z.object({
 const configSchema = z.object({
   queryParams: z
     .array(z.string())
+    .optional()
+    .default([])
     .describe("Ad-tracking query params to detect."),
 });
 
@@ -51,9 +53,17 @@ export const checkPaidTrafficDetected = defineFraudRule({
     ],
   },
   evaluate: async (context, config) => {
+    console.log("Evaluating checkPaidTrafficDetected...", context, config);
+
     const { click } = context;
 
     if (!click.url) {
+      return {
+        triggered: false,
+      };
+    }
+
+    if (config.queryParams.length === 0) {
       return {
         triggered: false,
       };
