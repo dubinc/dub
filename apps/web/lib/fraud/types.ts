@@ -4,7 +4,6 @@ import { fraudRuleSchema } from "../zod/schemas/fraud";
 
 export interface FraudRuleEvaluationResult {
   triggered: boolean;
-  reason?: FraudReason;
   metadata?: Record<string, unknown>;
 }
 
