@@ -1,3 +1,4 @@
+import { programInviteEmailDataSchema } from "@/lib/zod/schemas/program-invite-email";
 import { ProgramSchema } from "@/lib/zod/schemas/programs";
 import { prisma } from "@dub/prisma";
 import { DubApiError } from "../errors";
@@ -22,5 +23,7 @@ export const getProgramOrThrow = async ({
     });
   }
 
-  return ProgramSchema.parse(program);
+  return ProgramSchema.extend({
+    inviteEmailData: programInviteEmailDataSchema,
+  }).parse(program);
 };

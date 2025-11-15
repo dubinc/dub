@@ -2,6 +2,7 @@ import { invitePartnerAction } from "@/lib/actions/partners/invite-partner";
 import { saveInviteEmailDataAction } from "@/lib/actions/partners/save-invite-email-data";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { ProgramInviteEmailData, ProgramProps } from "@/lib/types";
 import { invitePartnerSchema } from "@/lib/zod/schemas/partners";
 import { GroupSelector } from "@/ui/partners/groups/group-selector";
 import { X } from "@/ui/shared/icons";
@@ -42,7 +43,9 @@ type EmailContent = {
 };
 
 function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
-  const { program, mutate } = useProgram(undefined, {
+  const { program, mutate } = useProgram<
+    ProgramProps & { inviteEmailData: ProgramInviteEmailData }
+  >(undefined, {
     keepPreviousData: true, // so the mutate doesn't cause a full page refresh
   });
   const { isMobile } = useMediaQuery();
