@@ -1,6 +1,7 @@
 import { LinkProps, RedisLinkProps } from "@/lib/types";
 import { formatRedisLink, redis, redisWithTimeout } from "@/lib/upstash";
 import { decodeKey, isCaseSensitiveDomain } from "./case-sensitivity";
+import { lruCache } from "./lru-link-cache";
 import { ExpandedLink } from "./utils/transform-link";
 
 /*
@@ -51,19 +52,40 @@ class LinkCache {
   }
 
   async get({ domain, key }: Pick<LinkProps, "domain" | "key">) {
-    // we're using the special redisWithTimeout client in case Redis times out
     try {
+      const cacheKey = `linkcache:${domain}:${key}`;
+
+      let cachedLink = lruCache.get(cacheKey) || null;
+
+      if (cachedLink) {
+        console.log(`[LRU Cache HIT] ${cacheKey}`);
+        return cachedLink;
+      }
+
+      console.log(`[LRU Cache MISS] ${cacheKey} - Checking Redis...`);
+
+      // we're using the special redisWithTimeout client in case Redis times out
       // here we use linkcache:${domain}:${key} instead of this._createKey({ domain, key })
       // because the key can either be cached as case-sensitive or case-insensitive depending on the domain
       // so we should get the original key from the cache
-      return await redisWithTimeout.get<RedisLinkProps>(
+      cachedLink = await redisWithTimeout.get<RedisLinkProps>(
         `linkcache:${domain}:${key}`,
       );
+
+      if (cachedLink) {
+        console.log(`[Redis Cache HIT] ${cacheKey} - Populating LRU cache`);
+        lruCache.set(cacheKey, cachedLink);
+      } else {
+        console.log(`[Cache MISS] ${cacheKey} - Not found in LRU or Redis`);
+      }
+
+      return cachedLink;
     } catch (error) {
       console.error(
         "[LinkCache]: Timeout getting cached link from Redis:",
         error,
       );
+
       return null;
     }
   }
