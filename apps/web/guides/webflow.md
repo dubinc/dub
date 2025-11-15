@@ -12,4 +12,4 @@ Follow these steps to add Dub client-side script to your Webflow site:
 ></script>
 ```
 
-Read the [client-side click-tracking guide](https://dub.co/docs/sdks/client-side/features/client-side-click-tracking) for more information.
+Read the [client-side click-tracking guide](https://dub.co/docs/sdks/client-side/features/click-tracking) for more information.
