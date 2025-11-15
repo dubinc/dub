@@ -27,7 +27,6 @@ import {
 } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { mutate } from "swr";
 import { z } from "zod";
 
 interface InvitePartnerSheetProps {
@@ -43,9 +42,11 @@ type EmailContent = {
 };
 
 function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
-  const { program } = useProgram();
+  const { program, mutate } = useProgram(undefined, {
+    keepPreviousData: true, // so the mutate doesn't cause a full page refresh
+  });
   const { isMobile } = useMediaQuery();
-  const { id: workspaceId, defaultProgramId } = useWorkspace();
+  const { id: workspaceId } = useWorkspace();
 
   // Default email content
   const defaultEmailContent = useMemo<EmailContent>(() => {
@@ -77,25 +78,24 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
   const [draftEmailContent, setDraftEmailContent] = useState<EmailContent>(
     savedEmailContent || defaultEmailContent,
   );
-  const [emailContentChanged, setEmailContentChanged] = useState(false);
 
-  const { register, handleSubmit, watch, setValue, clearErrors } =
-    useForm<InvitePartnerFormData>({
-      defaultValues: {
-        groupId: program?.defaultGroupId || "",
-      },
-    });
+  const {
+    register,
+    handleSubmit,
+    formState: { isSubmitting, isSubmitSuccessful },
+    watch,
+    setValue,
+  } = useForm<InvitePartnerFormData>({
+    defaultValues: {
+      groupId: program?.defaultGroupId || "",
+    },
+  });
 
   const email = watch("email");
 
   const { executeAsync, isPending } = useAction(invitePartnerAction, {
     onSuccess: async () => {
-      // Only mutate if email content was changed/saved
-      if (emailContentChanged) {
-        await mutate(
-          `/api/programs/${defaultProgramId}?workspaceId=${workspaceId}`,
-        );
-      }
+      await mutate();
       toast.success("Invitation sent to partner!");
       setIsOpen(false);
     },
@@ -118,7 +118,6 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
         setEmailContent(updatedContent);
         setDraftEmailContent(updatedContent);
         setIsEditingEmail(false);
-        setEmailContentChanged(true);
       },
       onError({ error }) {
         toast.error(error.serverError);
@@ -318,7 +317,7 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
             variant="primary"
             text="Send invite"
             className="w-fit"
-            loading={isPending}
+            loading={isPending || isSubmitting || isSubmitSuccessful}
             disabled={
               isPending || !email || isEditingEmail || isSavingEmailData
             }
