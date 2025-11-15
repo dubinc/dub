@@ -98,8 +98,7 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
   const email = watch("email");
 
   const { executeAsync, isPending } = useAction(invitePartnerAction, {
-    onSuccess: async () => {
-      await mutate();
+    onSuccess: () => {
       toast.success("Invitation sent to partner!");
       setIsOpen(false);
     },
@@ -178,6 +177,7 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
       title: finalTitle,
       body: finalBody,
     });
+    await mutate();
   };
 
   const handleCancelEditing = () => {
