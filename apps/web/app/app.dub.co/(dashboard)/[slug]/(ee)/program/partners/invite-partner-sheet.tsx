@@ -9,17 +9,16 @@ import {
   BlurImage,
   Button,
   InfoTooltip,
-  MarkdownIcon,
+  RichTextArea,
+  RichTextProvider,
+  RichTextToolbar,
   Sheet,
-  useEnterSubmit,
   useMediaQuery,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
-import { Dispatch, SetStateAction, useMemo, useState } from "react";
+import { Dispatch, SetStateAction, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -290,7 +289,7 @@ function EmailPreview({
 }) {
   const { program } = useProgram();
   const { isMobile } = useMediaQuery();
-  const { handleKeyDown } = useEnterSubmit();
+  const richTextRef = useRef<{ setContent: (content: any) => void }>(null);
 
   const displayContent = isEditingEmail ? draftEmailContent : emailContent;
 
@@ -388,33 +387,46 @@ function EmailPreview({
                   Content
                 </label>
                 <div className="mt-1.5">
-                  <textarea
-                    id="email-body"
-                    rows={8}
-                    maxLength={3000}
-                    onKeyDown={handleKeyDown}
-                    value={draftEmailContent.body}
-                    onChange={(e) =>
+                  <RichTextProvider
+                    key={`edit-${draftEmailContent.body}`}
+                    ref={richTextRef}
+                    features={["bold", "italic", "links"]}
+                    markdown
+                    placeholder="Start typing..."
+                    initialValue={draftEmailContent.body}
+                    editorClassName="block max-h-48 overflow-auto scrollbar-hide w-full resize-none border-none p-3 text-base sm:text-sm"
+                    onChange={(editor) => {
+                      const markdown = (editor as any).getMarkdown() || null;
                       setDraftEmailContent({
                         ...draftEmailContent,
-                        body: e.target.value,
-                      })
-                    }
-                    placeholder="Start typing..."
-                    className={cn(
-                      "block max-h-64 min-h-16 w-full rounded-md border-neutral-300 text-sm text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500",
-                    )}
-                  />
+                        body: markdown || "",
+                      });
+                    }}
+                    editorProps={{
+                      handleDOMEvents: {
+                        keydown: (_, e) => {
+                          if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            onSave();
+                            return false;
+                          }
+                        },
+                      },
+                    }}
+                  >
+                    <div
+                      className={cn(
+                        "overflow-hidden rounded-md border border-neutral-300 focus-within:border-neutral-500 focus-within:ring-1 focus-within:ring-neutral-500",
+                      )}
+                    >
+                      <div className="flex flex-col">
+                        <RichTextArea />
+                        <RichTextToolbar className="px-1 pb-1" />
+                      </div>
+                    </div>
+                  </RichTextProvider>
                 </div>
-                <a
-                  href="https://www.markdownguide.org/basic-syntax/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-content-subtle mt-1 flex items-center gap-1 text-xs"
-                >
-                  <MarkdownIcon role="presentation" className="h-3 w-auto" />
-                  <span className="sr-only">MarkdownIcon</span> supported
-                </a>
               </div>
             </div>
           </div>
@@ -443,58 +455,19 @@ function EmailPreview({
               <h3 className="font-medium text-neutral-900">
                 {displayContent.title}
               </h3>
-              <ReactMarkdown
-                className="prose prose-sm prose-neutral max-w-none text-neutral-500"
-                remarkPlugins={[remarkGfm]}
-                components={{
-                  a: ({ node, className, ...props }) => (
-                    <a
-                      {...props}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={cn(
-                        "font-semibold text-neutral-800 underline underline-offset-2",
-                        className,
-                      )}
-                    />
-                  ),
-                  p: ({ node, className, ...props }) => (
-                    <p
-                      {...props}
-                      className={cn(
-                        "text-sm leading-6 text-neutral-500",
-                        className,
-                      )}
-                    />
-                  ),
-                  ul: ({ node, className, ...props }) => (
-                    <ul
-                      {...props}
-                      className={cn(
-                        "list-disc pl-4 text-sm leading-6 text-neutral-500",
-                        className,
-                      )}
-                    />
-                  ),
-                  ol: ({ node, className, ...props }) => (
-                    <ol
-                      {...props}
-                      className={cn(
-                        "list-decimal pl-4 text-sm leading-6 text-neutral-500",
-                        className,
-                      )}
-                    />
-                  ),
-                  li: ({ node, className, ...props }) => (
-                    <li
-                      {...props}
-                      className={cn("marker:text-neutral-400", className)}
-                    />
-                  ),
-                }}
-              >
-                {displayContent.body}
-              </ReactMarkdown>
+              <div className="prose prose-sm prose-neutral max-w-none text-neutral-500">
+                <RichTextProvider
+                  key={`preview-${displayContent.body}`}
+                  features={["bold", "italic", "links"]}
+                  style="condensed"
+                  markdown
+                  editable={false}
+                  initialValue={displayContent.body}
+                  editorClassName="text-sm leading-6 text-neutral-500 [&_a]:font-semibold [&_a]:text-neutral-800 [&_a]:underline [&_a]:underline-offset-2 [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_li]:marker:text-neutral-400"
+                >
+                  <RichTextArea />
+                </RichTextProvider>
+              </div>
               <Button
                 type="button"
                 text="Accept invite"
