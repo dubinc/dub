@@ -25,7 +25,7 @@ export function GuidesMarkdown({
         "prose-h3:text-lg prose-h3:font-semibold prose-h3:mt-4 prose-h3:mb-2",
         "prose-h4:text-base prose-h4:font-semibold prose-h4:mt-3 prose-h4:mb-1",
         "prose-p:text-gray-700 prose-p:leading-6 prose-p:mb-4",
-        "prose-a:text-neutral-600 prose-a:font-medium prose-a:underline prose-a:underline-offset-2 hover:prose-a:text-neutral-700",
+        "prose-a:text-neutral-600 prose-a:font-medium prose-a:underline prose-a:cursor-help prose-a:decoration-dotted prose-a:underline-offset-2 hover:prose-a:text-neutral-700",
         "prose-strong:text-gray-900 prose-strong:font-semibold",
         "prose-em:text-gray-700 prose-em:italic",
         "prose-code:text-gray-800 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-xs prose-code:font-mono",

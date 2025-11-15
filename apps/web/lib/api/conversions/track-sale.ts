@@ -432,6 +432,24 @@ const _trackSale = async ({
     });
   }
 
+  // Skip if amount is 0 or less
+  if (amount <= 0) {
+    waitUntil(
+      logConversionEvent({
+        workspace_id: workspace.id,
+        path: "/track/sale",
+        body: JSON.stringify(rawBody),
+        error: `Sale amount is ${amount}, skipping...`,
+      }),
+    );
+
+    return {
+      eventName,
+      customer: null,
+      sale: null,
+    };
+  }
+
   // if currency is not USD, convert it to USD based on the current FX rate
   // TODO: allow custom "defaultCurrency" on workspace table in the future
   if (currency !== "usd") {

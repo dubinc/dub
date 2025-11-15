@@ -371,7 +371,7 @@ export async function processPayouts({
         .filter((payout) => payout.partner.email)
         .map((payout) => ({
           to: payout.partner.email!,
-          subject: "You've got money coming your way!",
+          subject: `Your ${currencyFormatter(payout.amount)} payout for ${program.name} is on the way`,
           variant: "notifications",
           replyTo: program.supportEmail || "noreply",
           templateName: "PartnerPayoutConfirmed",

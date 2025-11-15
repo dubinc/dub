@@ -31,7 +31,7 @@ export function OutboundDomainTrackingSection() {
                 href="https://dub.co/docs/sdks/client-side/features/cross-domain-tracking#cross-domain-tracking"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="underline"
+                className="cursor-help text-neutral-800 underline decoration-dotted underline-offset-2"
               >
                 Learn more
               </a>
