@@ -8,8 +8,8 @@ import { authActionClient } from "../safe-action";
 
 const saveInviteEmailDataSchema = z.object({
   workspaceId: z.string(),
-  subject: z.string().trim().min(1),
-  title: z.string().trim().min(1),
+  subject: z.string().trim().min(1).max(140),
+  title: z.string().trim().min(1).max(280),
   body: z.string().trim().min(1).max(3000),
 });
 

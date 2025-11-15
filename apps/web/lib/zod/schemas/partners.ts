@@ -710,9 +710,6 @@ export const invitePartnerSchema = z.object({
   email: z.string().trim().email().min(1).max(100),
   username: z.string().max(100).optional(),
   groupId: z.string().nullish().default(null),
-  emailSubject: z.string().optional(),
-  emailTitle: z.string().optional(),
-  emailBody: z.string().max(3000).optional(),
 });
 
 export const approvePartnerSchema = z.object({

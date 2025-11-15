@@ -1,3 +1,4 @@
+import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { invitePartnerAction } from "@/lib/actions/partners/invite-partner";
 import { saveInviteEmailDataAction } from "@/lib/actions/partners/save-invite-email-data";
 import useProgram from "@/lib/swr/use-program";
@@ -123,7 +124,7 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
         setIsEditingEmail(false);
       },
       onError({ error }) {
-        toast.error(error.serverError);
+        toast.error(parseActionError(error, "Failed to save email template"));
       },
     });
 
