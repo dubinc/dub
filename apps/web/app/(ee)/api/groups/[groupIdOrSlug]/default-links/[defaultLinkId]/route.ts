@@ -1,3 +1,5 @@
+import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
+import { queueDomainUpdate } from "@/lib/api/domains/queue-domain-update";
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
@@ -16,37 +18,49 @@ import { NextResponse } from "next/server";
 // PATCH /api/groups/[groupIdOrSlug]/default-links/[defaultLinkId] - update a default link for a group
 export const PATCH = withWorkspace(
   async ({ workspace, req, params }) => {
+    const { groupIdOrSlug } = params;
+
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const { url } = createOrUpdateDefaultLinkSchema.parse(
+    const { domain, url } = createOrUpdateDefaultLinkSchema.parse(
       await parseRequestBody(req),
     );
 
-    const { groupIdOrSlug } = params;
-
-    const group = await prisma.partnerGroup.findUniqueOrThrow({
-      where: {
-        ...(groupIdOrSlug.startsWith("grp_")
-          ? {
-              id: groupIdOrSlug,
-            }
-          : {
-              programId_slug: {
-                programId,
-                slug: groupIdOrSlug,
-              },
-            }),
-        programId,
-      },
-      include: {
-        utmTemplate: true,
-        partnerGroupDefaultLinks: {
-          where: {
-            id: params.defaultLinkId,
+    const [group, domainRecord] = await Promise.all([
+      prisma.partnerGroup.findUniqueOrThrow({
+        where: {
+          ...(groupIdOrSlug.startsWith("grp_")
+            ? {
+                id: groupIdOrSlug,
+              }
+            : {
+                programId_slug: {
+                  programId,
+                  slug: groupIdOrSlug,
+                },
+              }),
+          programId,
+        },
+        include: {
+          utmTemplate: true,
+          partnerGroupDefaultLinks: {
+            where: {
+              id: params.defaultLinkId,
+            },
+          },
+          program: {
+            select: {
+              domain: true,
+            },
           },
         },
-      },
-    });
+      }),
+
+      getDomainOrThrow({
+        workspace,
+        domain,
+      }),
+    ]);
 
     if (group.partnerGroupDefaultLinks.length === 0) {
       throw new DubApiError({
@@ -55,12 +69,50 @@ export const PATCH = withWorkspace(
       });
     }
 
+    const defaultLink = group.partnerGroupDefaultLinks[0];
+
+    // Domain change detected, we should do the following
+    // - Update the program's domain
+    // - Update all default links across groups to use the new domain
+    // - Update all partner links to use the new domain (via cron job)
+    if (domain !== group.program.domain) {
+      await prisma.$transaction([
+        prisma.program.update({
+          where: {
+            id: programId,
+          },
+          data: {
+            domain,
+          },
+        }),
+
+        prisma.partnerGroupDefaultLink.updateMany({
+          where: {
+            programId,
+          },
+          data: {
+            domain,
+          },
+        }),
+      ]);
+
+      // Queue domain update for all partner links
+      waitUntil(
+        queueDomainUpdate({
+          newDomain: domain,
+          oldDomain: defaultLink.domain,
+          programId,
+        }),
+      );
+    }
+
     try {
       const updatedDefaultLink = await prisma.partnerGroupDefaultLink.update({
         where: {
-          id: group.partnerGroupDefaultLinks[0].id,
+          id: defaultLink.id,
         },
         data: {
+          domain,
           url: group.utmTemplate
             ? constructURLFromUTMParams(
                 url,
@@ -70,12 +122,12 @@ export const PATCH = withWorkspace(
         },
       });
 
-      if (updatedDefaultLink.url !== group.partnerGroupDefaultLinks[0].url) {
+      if (updatedDefaultLink.url !== defaultLink.url) {
         waitUntil(
           qstash.publishJSON({
             url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/update-default-links`,
             body: {
-              defaultLinkId: group.partnerGroupDefaultLinks[0].id,
+              defaultLinkId: defaultLink.id,
             },
           }),
         );
