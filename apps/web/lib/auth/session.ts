@@ -71,7 +71,7 @@ export const withSession = (handler: WithSessionHandler) =>
           }
 
           const { success, limit, reset, remaining } = await ratelimit(
-            600,
+            60,
             "1 m",
           ).limit(apiKey);
 
