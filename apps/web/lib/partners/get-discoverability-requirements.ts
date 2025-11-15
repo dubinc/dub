@@ -8,6 +8,40 @@ import {
 
 const PARTNER_DISCOVERY_MIN_COMMISSIONS = 10_00;
 
+const partnerHasEarnedCommissions = (
+  programEnrollments: Pick<
+    EnrolledPartnerProps,
+    "programId" | "status" | "totalCommissions"
+  >[],
+) => {
+  return (
+    programEnrollments.filter(
+      (pe) =>
+        !LARGE_PROGRAM_IDS.includes(pe.programId) &&
+        pe.status === "approved" &&
+        pe.totalCommissions >= PARTNER_DISCOVERY_MIN_COMMISSIONS,
+    ).length >= 1
+  );
+};
+
+const partnerIsNotBanned = (
+  programEnrollments: Pick<EnrolledPartnerProps, "programId" | "status">[],
+) => {
+  return programEnrollments.every((pe) => pe.status !== "banned");
+};
+
+export const partnerCanViewMarketplace = (
+  programEnrollments: Pick<
+    EnrolledPartnerProps,
+    "programId" | "status" | "totalCommissions"
+  >[],
+) => {
+  return (
+    partnerHasEarnedCommissions(programEnrollments) &&
+    partnerIsNotBanned(programEnrollments)
+  );
+};
+
 export function getDiscoverabilityRequirements({
   partner,
   programEnrollments,
@@ -58,18 +92,12 @@ export function getDiscoverabilityRequirements({
       completed: Boolean(partner.salesChannels?.length),
     },
     {
-      label: `Earn ${currencyFormatter(PARTNER_DISCOVERY_MIN_COMMISSIONS, { trailingZeroDisplay: "stripIfInteger" })} in commissions`,
-      completed:
-        programEnrollments.filter(
-          (pe) =>
-            !LARGE_PROGRAM_IDS.includes(pe.programId) &&
-            pe.status === "approved" &&
-            pe.totalCommissions >= PARTNER_DISCOVERY_MIN_COMMISSIONS,
-        ).length >= 1,
+      label: `Earn ${currencyFormatter(PARTNER_DISCOVERY_MIN_COMMISSIONS / 100, { trailingZeroDisplay: "stripIfInteger" })} in commissions`,
+      completed: partnerHasEarnedCommissions(programEnrollments),
     },
     {
       label: "Maintain a healthy partner profile",
-      completed: programEnrollments.every((pe) => pe.status !== "banned"),
+      completed: partnerIsNotBanned(programEnrollments),
     },
   ];
 }
