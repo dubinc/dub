@@ -33,10 +33,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       },
     });
 
-    return programs.map((program) => ({
-      url: `https://partners.dub.co/${program.slug}`,
-      lastModified: new Date(),
-    }));
+    return [
+      {
+        url: `https://partners.dub.co/browse`,
+        lastModified: new Date(),
+      },
+      ...programs.map((program) => ({
+        url: `https://partners.dub.co/${program.slug}`,
+        lastModified: new Date(),
+      })),
+    ];
   }
 
   return [
