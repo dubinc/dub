@@ -1,5 +1,5 @@
 import { invitePartnerAction } from "@/lib/actions/partners/invite-partner";
-import { mutatePrefix } from "@/lib/swr/mutate";
+import { saveInviteEmailDataAction } from "@/lib/actions/partners/save-invite-email-data";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { invitePartnerSchema } from "@/lib/zod/schemas/partners";
@@ -27,6 +27,7 @@ import {
 } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { mutate } from "swr";
 import { z } from "zod";
 
 interface InvitePartnerSheetProps {
@@ -44,7 +45,7 @@ type EmailContent = {
 function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
   const { program } = useProgram();
   const { isMobile } = useMediaQuery();
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, defaultProgramId } = useWorkspace();
 
   // Default email content
   const defaultEmailContent = useMemo<EmailContent>(() => {
@@ -56,11 +57,27 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
     };
   }, [program?.name]);
 
+  // Load saved email content from program
+  const savedEmailContent = useMemo<EmailContent | null>(() => {
+    if (program?.inviteEmailData) {
+      return {
+        subject: program.inviteEmailData.subject,
+        title: program.inviteEmailData.title,
+        body: program.inviteEmailData.body,
+      };
+    }
+    return null;
+  }, [program?.inviteEmailData]);
+
   // State for email editing
   const [isEditingEmail, setIsEditingEmail] = useState(false);
-  const [emailContent, setEmailContent] = useState<EmailContent | null>(null);
-  const [draftEmailContent, setDraftEmailContent] =
-    useState<EmailContent>(defaultEmailContent);
+  const [emailContent, setEmailContent] = useState<EmailContent | null>(
+    savedEmailContent,
+  );
+  const [draftEmailContent, setDraftEmailContent] = useState<EmailContent>(
+    savedEmailContent || defaultEmailContent,
+  );
+  const [emailContentChanged, setEmailContentChanged] = useState(false);
 
   const { register, handleSubmit, watch, setValue, clearErrors } =
     useForm<InvitePartnerFormData>({
@@ -73,17 +90,40 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
 
   const { executeAsync, isPending } = useAction(invitePartnerAction, {
     onSuccess: async () => {
+      // Only mutate if email content was changed/saved
+      if (emailContentChanged) {
+        await mutate(
+          `/api/programs/${defaultProgramId}?workspaceId=${workspaceId}`,
+        );
+      }
       toast.success("Invitation sent to partner!");
       setIsOpen(false);
-      program &&
-        mutatePrefix(
-          `/api/partners?workspaceId=${workspaceId}&programId=${program.id}`,
-        );
     },
     onError({ error }) {
       toast.error(error.serverError);
     },
   });
+
+  const { executeAsync: saveEmailDataAsync, isPending: isSavingEmailData } =
+    useAction(saveInviteEmailDataAction, {
+      onSuccess: async ({ input }) => {
+        toast.success("Email template saved!");
+
+        // Update local state with saved content
+        const updatedContent: EmailContent = {
+          subject: input.subject,
+          title: input.title,
+          body: input.body,
+        };
+        setEmailContent(updatedContent);
+        setDraftEmailContent(updatedContent);
+        setIsEditingEmail(false);
+        setEmailContentChanged(true);
+      },
+      onError({ error }) {
+        toast.error(error.serverError);
+      },
+    });
 
   const onSubmit = async (data: InvitePartnerFormData) => {
     if (!workspaceId || !program?.id) {
@@ -93,11 +133,6 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
     await executeAsync({
       ...data,
       workspaceId,
-      ...(emailContent && {
-        emailSubject: emailContent.subject,
-        emailTitle: emailContent.title,
-        emailBody: emailContent.body,
-      }),
     });
   };
 
@@ -106,7 +141,11 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
     setIsEditingEmail(true);
   };
 
-  const handleSaveEmail = () => {
+  const handleSaveEmail = async () => {
+    if (!workspaceId) {
+      return;
+    }
+
     const sanitizedSubject = draftEmailContent.subject.trim();
     const sanitizedTitle = draftEmailContent.title.trim();
     let sanitizedBody = draftEmailContent.body.trim();
@@ -123,9 +162,19 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
       body: sanitizedBody || defaultEmailContent.body,
     };
 
-    setEmailContent(updatedContent);
-    setDraftEmailContent(updatedContent);
-    setIsEditingEmail(false);
+    // Ensure all values are non-empty (schema requirement)
+    const finalSubject =
+      updatedContent.subject.trim() || defaultEmailContent.subject;
+    const finalTitle = updatedContent.title.trim() || defaultEmailContent.title;
+    const finalBody = updatedContent.body.trim() || defaultEmailContent.body;
+
+    // Save to server (state updates happen in onSuccess callback)
+    await saveEmailDataAsync({
+      workspaceId,
+      subject: finalSubject,
+      title: finalTitle,
+      body: finalBody,
+    });
   };
 
   const handleCancelEditing = () => {
@@ -249,6 +298,7 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
             onStartEditing={handleStartEditing}
             onSave={handleSaveEmail}
             onCancel={handleCancelEditing}
+            isSavingEmailData={isSavingEmailData}
           />
         </div>
       </div>
@@ -269,7 +319,9 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
             text="Send invite"
             className="w-fit"
             loading={isPending}
-            disabled={isPending || !email || isEditingEmail}
+            disabled={
+              isPending || !email || isEditingEmail || isSavingEmailData
+            }
           />
         </div>
       </div>
@@ -285,6 +337,7 @@ function EmailPreview({
   onStartEditing,
   onSave,
   onCancel,
+  isSavingEmailData,
 }: {
   isEditingEmail: boolean;
   emailContent: EmailContent;
@@ -293,6 +346,7 @@ function EmailPreview({
   onStartEditing: () => void;
   onSave: () => void;
   onCancel: () => void;
+  isSavingEmailData: boolean;
 }) {
   const { program } = useProgram();
   const { isMobile } = useMediaQuery();
@@ -330,6 +384,8 @@ function EmailPreview({
                 text="Save"
                 className="h-7 w-fit rounded-lg px-2.5 text-sm"
                 onClick={onSave}
+                loading={isSavingEmailData}
+                disabled={isSavingEmailData}
               />
             </>
           ) : (

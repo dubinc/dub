@@ -20,8 +20,8 @@ import { Footer } from "../components/footer";
 
 const markdownCustomStyles: Record<string, CSSProperties> = {
   p: {
-    color: "#262626",
-    fontSize: "16px",
+    color: "#525252",
+    fontSize: "14px",
     lineHeight: "20px",
     margin: "0 0 16px",
   },
@@ -130,7 +130,7 @@ export default function ProgramInvite({
   ],
   subject,
   title,
-  body = "hello world [link](https://dub.co)",
+  body,
 }: {
   email: string;
   name: string | null;

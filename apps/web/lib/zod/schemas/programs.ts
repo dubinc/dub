@@ -18,6 +18,7 @@ import { DiscountSchema } from "./discount";
 import { GroupSchema } from "./groups";
 import { LinkSchema } from "./links";
 import { programApplicationFormDataWithValuesSchema } from "./program-application-form";
+import { programInviteEmailDataSchema } from "./program-invite-email";
 import { RewardSchema } from "./rewards";
 import { UserSchema } from "./users";
 import { parseDateSchema } from "./utils";
@@ -46,6 +47,7 @@ export const ProgramSchema = z.object({
   supportEmail: z.string().nullish(),
   helpUrl: z.string().nullish(),
   termsUrl: z.string().nullish(),
+  inviteEmailData: programInviteEmailDataSchema,
   createdAt: z.date(),
   updatedAt: z.date(),
   startedAt: z.date().nullish(),

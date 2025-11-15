@@ -4,7 +4,6 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createAndEnrollPartner } from "@/lib/api/partners/create-and-enroll-partner";
 import { getPartnerInviteRewardsAndBounties } from "@/lib/api/partners/get-partner-invite-rewards-and-bounties";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { sanitizeMarkdown } from "@/lib/partners/sanitize-markdown";
 import { invitePartnerSchema } from "@/lib/zod/schemas/partners";
 import { sendEmail } from "@dub/email";
 import ProgramInvite from "@dub/email/templates/program-invite";
@@ -17,7 +16,7 @@ export const invitePartnerAction = authActionClient
   .schema(invitePartnerSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const { email, username, groupId, emailSubject, emailTitle, emailBody } = parsedInput;
+    const { email, username, groupId } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -70,14 +69,8 @@ export const invitePartnerAction = authActionClient
       status: "invited",
     });
 
-    // Sanitize emailBody before passing to template
-    const sanitizedEmailBody = emailBody ? sanitizeMarkdown(emailBody) : null;
-
-    if (emailBody && !sanitizedEmailBody) {
-      throw new Error(
-        "Custom email message contains invalid content. Please remove excessively long lines or unsupported characters.",
-      );
-    }
+    // Use saved invite email data from program if available
+    const inviteEmailData = program.inviteEmailData;
 
     const sendPartnerInvitePromise = (async () => {
       try {
@@ -88,7 +81,8 @@ export const invitePartnerAction = authActionClient
 
         await sendEmail({
           subject:
-            emailSubject || `${program.name} invited you to join Dub Partners`,
+            inviteEmailData?.subject ||
+            `${program.name} invited you to join Dub Partners`,
           variant: "notifications",
           to: email,
           replyTo: program.supportEmail || "noreply",
@@ -100,9 +94,11 @@ export const invitePartnerAction = authActionClient
               slug: program.slug,
               logo: program.logo,
             },
-            ...(emailSubject && { subject: emailSubject }),
-            ...(emailTitle && { title: emailTitle }),
-            ...(sanitizedEmailBody && { body: sanitizedEmailBody }),
+            ...(inviteEmailData?.subject && {
+              subject: inviteEmailData.subject,
+            }),
+            ...(inviteEmailData?.title && { title: inviteEmailData.title }),
+            ...(inviteEmailData?.body && { body: inviteEmailData.body }),
             ...rewardsAndBounties,
           }),
         });
