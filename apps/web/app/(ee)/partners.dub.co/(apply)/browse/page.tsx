@@ -9,7 +9,18 @@ export const metadata: Metadata = {
 };
 
 export default async function BrowsePage() {
-  const programs = await getPublicPrograms();
+  let programs: Awaited<ReturnType<typeof getPublicPrograms>> = [];
+  let hasError = false;
+
+  try {
+    programs = await getPublicPrograms();
+  } catch (error) {
+    // Log error server-side without exposing sensitive details
+    console.error("Failed to fetch public programs:", error instanceof Error ? error.message : "Unknown error");
+    hasError = true;
+    // Fallback to empty array to prevent SSR crash
+    programs = [];
+  }
 
   return (
     <div className="min-h-screen bg-white">
@@ -24,7 +35,13 @@ export default async function BrowsePage() {
           </p>
         </div>
 
-        {programs.length === 0 ? (
+        {hasError ? (
+          <div className="py-12 text-center">
+            <p className="text-gray-500">
+              Unable to load partner programs at this time. Please try again later.
+            </p>
+          </div>
+        ) : programs.length === 0 ? (
           <div className="py-12 text-center">
             <p className="text-gray-500">No partner programs available at this time.</p>
           </div>

@@ -4,10 +4,8 @@ import { Button, useScroll, Wordmark } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 
 export function BrowseHeader() {
-  const pathname = usePathname();
   const { data: session, status } = useSession();
 
   const scrolled = useScroll(0);

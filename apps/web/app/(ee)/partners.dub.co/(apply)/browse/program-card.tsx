@@ -19,6 +19,7 @@ export function ProgramCard({ program }: ProgramCardProps) {
             className="max-h-12 max-w-full object-contain"
             src={(program.wordmark ?? program.logo) as string}
             alt={program.name}
+            loading="lazy"
           />
         ) : (
           <div
