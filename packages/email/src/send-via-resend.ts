@@ -55,7 +55,7 @@ export const sendEmailViaResend = async (opts: ResendEmailOptions) => {
 };
 
 export const sendBatchEmailViaResend = async (
-  opts: ResendBulkEmailOptions,
+  emails: ResendBulkEmailOptions,
   options?: { idempotencyKey?: string },
 ) => {
   if (!resend) {
@@ -69,19 +69,39 @@ export const sendBatchEmailViaResend = async (
     };
   }
 
-  if (opts.length === 0) {
+  if (emails.length === 0) {
     return {
       data: null,
       error: null,
     };
   }
 
-  const payload = opts.map(resendEmailForOptions);
+  // Filter out emails without to address
+  // and format the emails for Resend
+  const filteredBatch = emails.reduce(
+    (acc, email) => {
+      if (!email?.to) {
+        return acc;
+      }
+
+      acc.push(resendEmailForOptions(email));
+
+      return acc;
+    },
+    [] as ReturnType<typeof resendEmailForOptions>[],
+  );
+
+  if (filteredBatch.length === 0) {
+    return {
+      data: null,
+      error: null,
+    };
+  }
 
   const idempotencyKey = options?.idempotencyKey || undefined;
 
   return await resend.batch.send(
-    payload,
+    filteredBatch,
     idempotencyKey ? { idempotencyKey } : undefined,
   );
 };
