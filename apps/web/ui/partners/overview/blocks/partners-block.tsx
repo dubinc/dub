@@ -78,7 +78,7 @@ export function PartnersBlock() {
               <span>
                 {program?.primaryRewardEvent === "lead"
                   ? nFormatter(partner.leads, { full: true })
-                  : currencyFormatter(partner.saleAmount / 100)}
+                  : currencyFormatter(partner.saleAmount)}
               </span>
             </Link>
           ))

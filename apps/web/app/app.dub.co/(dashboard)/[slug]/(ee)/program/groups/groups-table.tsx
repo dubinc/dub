@@ -21,7 +21,15 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { Copy, Dots, PenWriting, Tick, Trash, Users } from "@dub/ui/icons";
+import {
+  Copy,
+  Dots,
+  LinesY,
+  PenWriting,
+  Tick,
+  Trash,
+  Users,
+} from "@dub/ui/icons";
 import { cn, currencyFormatter, fetcher, nFormatter } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
@@ -128,17 +136,17 @@ export function GroupsTable() {
       {
         id: "totalSaleAmount",
         header: "Revenue",
-        accessorFn: (d) => currencyFormatter(d.totalSaleAmount / 100),
+        accessorFn: (d) => currencyFormatter(d.totalSaleAmount),
       },
       {
         id: "totalCommissions",
         header: "Commissions",
-        accessorFn: (d) => currencyFormatter(d.totalCommissions / 100),
+        accessorFn: (d) => currencyFormatter(d.totalCommissions),
       },
       {
         id: "netRevenue",
         header: "Net Revenue",
-        accessorFn: (d) => currencyFormatter(d.netRevenue / 100),
+        accessorFn: (d) => currencyFormatter(d.netRevenue),
       },
       {
         id: "menu",
@@ -150,6 +158,7 @@ export function GroupsTable() {
         cell: ({ row }) => <RowMenuButton row={row} />,
       },
     ],
+    columnPinning: { right: ["menu"] },
     onRowClick: (row, e) => {
       const url = getGroupUrl({
         workspaceSlug: slug!,
@@ -263,6 +272,17 @@ function RowMenuButton({ row }: { row: Row<GroupExtendedProps> }) {
                 onSelect={() =>
                   router.push(
                     `/${slug}/program/partners?groupId=${row.original.id}`,
+                  )
+                }
+              />
+
+              <MenuItem
+                icon={LinesY}
+                label="View analytics"
+                variant="default"
+                onSelect={() =>
+                  router.push(
+                    `/${slug}/program/analytics?groupId=${row.original.id}`,
                   )
                 }
               />

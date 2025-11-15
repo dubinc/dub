@@ -332,6 +332,7 @@ export function ProgramPartnersApplicationsPageClient() {
   const { table, ...tableProps } = useTable<EnrolledPartnerProps>({
     data: partners || [],
     columns,
+    columnPinning: { right: ["menu"] },
     onRowClick: (row) => {
       queryParams({
         set: {

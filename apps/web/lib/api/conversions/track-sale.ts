@@ -12,12 +12,7 @@ import {
   recordSale,
 } from "@/lib/tinybird";
 import { logConversionEvent } from "@/lib/tinybird/log-conversion-events";
-import {
-  ClickEventTB,
-  LeadEventTB,
-  WebhookPartner,
-  WorkspaceProps,
-} from "@/lib/types";
+import { LeadEventTB, WebhookPartner, WorkspaceProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {
@@ -59,7 +54,6 @@ export const trackSale = async ({
 }: TrackSaleParams) => {
   let existingCustomer: Customer | null = null;
   let newCustomer: Customer | null = null;
-  let clickData: ClickEventTB | null = null;
   let leadEventData: LeadEventTB | null = null;
 
   // Return idempotent response if invoiceId is already processed
@@ -176,6 +170,7 @@ export const trackSale = async ({
       select: {
         id: true,
         projectId: true,
+        disabledAt: true,
       },
     });
 
@@ -189,7 +184,14 @@ export const trackSale = async ({
     if (link.projectId !== workspace.id) {
       throw new DubApiError({
         code: "not_found",
-        message: `Link for clickId ${clickData.click_id} does not belong to the workspace`,
+        message: `Link ${link.id} for clickId ${clickData.click_id} does not belong to the workspace`,
+      });
+    }
+
+    if (link.disabledAt) {
+      throw new DubApiError({
+        code: "not_found",
+        message: `Link ${link.id} for clickId ${clickData.click_id} is disabled, sale not tracked`,
       });
     }
 
@@ -411,6 +413,24 @@ const _trackSale = async ({
       code: "not_found",
       message: `Lead event data not found for the customer ${customer.id}`,
     });
+  }
+
+  // Skip if amount is 0 or less
+  if (amount <= 0) {
+    waitUntil(
+      logConversionEvent({
+        workspace_id: workspace.id,
+        path: "/track/sale",
+        body: JSON.stringify(rawBody),
+        error: `Sale amount is ${amount}, skipping...`,
+      }),
+    );
+
+    return {
+      eventName,
+      customer: null,
+      sale: null,
+    };
   }
 
   // if currency is not USD, convert it to USD based on the current FX rate

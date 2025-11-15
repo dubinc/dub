@@ -96,7 +96,7 @@ export default function ConnectPayoutReminder({
                     </Row>
                   </Column>
                   <Column className="text-right text-sm">
-                    {currencyFormatter(program.amount / 100)}
+                    {currencyFormatter(program.amount)}
                   </Column>
                 </Row>
               ))}

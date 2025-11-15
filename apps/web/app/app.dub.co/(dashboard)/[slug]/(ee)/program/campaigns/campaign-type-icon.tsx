@@ -4,22 +4,24 @@ import { CAMPAIGN_TYPE_BADGES } from "./campaign-type-badges";
 export function CampaignTypeIcon({
   type,
   className,
+  iconClassName,
 }: {
   type: keyof typeof CAMPAIGN_TYPE_BADGES;
   className?: string;
+  iconClassName?: string;
 }) {
-  const { icon: Icon, iconClassName } = CAMPAIGN_TYPE_BADGES[type];
+  const { icon: Icon, iconClassName: typeIconClassName } =
+    CAMPAIGN_TYPE_BADGES[type];
 
   return (
     <div
       className={cn(
         "flex size-6 shrink-0 items-center justify-center rounded-md",
-        iconClassName,
+        typeIconClassName,
         className,
       )}
     >
-      <Icon className="size-3.5" />
+      <Icon className={cn("size-3.5", iconClassName)} />
     </div>
   );
 }
-

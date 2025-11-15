@@ -80,7 +80,7 @@ export async function POST(req: Request) {
         );
 
         return logAndRespond(
-          `Pending balance found for partner ${partner.email} (${stripeAccount}): ${currencyFormatter(pendingBalance / 100, { currency })}. Scheduling another check in 1 hour...`,
+          `Pending balance found for partner ${partner.email} (${stripeAccount}): ${currencyFormatter(pendingBalance, { currency })}. Scheduling another check in 1 hour...`,
         );
       }
 
@@ -109,7 +109,7 @@ export async function POST(req: Request) {
     );
 
     console.log(
-      `Stripe payout created for partner ${partner.email} (${stripeAccount}): ${stripePayout.id} (${currencyFormatter(stripePayout.amount / 100, { currency: stripePayout.currency })})`,
+      `Stripe payout created for partner ${partner.email} (${stripeAccount}): ${stripePayout.id} (${currencyFormatter(stripePayout.amount, { currency: stripePayout.currency })})`,
     );
 
     const transfers = await stripe.transfers.list({
@@ -169,8 +169,6 @@ export async function POST(req: Request) {
       message: `Error handling "balance.available" ${error.message}.`,
       type: "errors",
     });
-
-    console.error(error);
 
     return handleAndReturnErrorResponse(error);
   }

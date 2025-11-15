@@ -1,4 +1,5 @@
 import { EnrolledPartnerProps } from "@/lib/types";
+import { ArrowUpRight2 } from "@dub/ui";
 import { cn, currencyFormatter, nFormatter } from "@dub/utils";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -64,7 +65,7 @@ export function PartnerStats({
             value: partner
               ? Number.isNaN(partner.totalSaleAmount)
                 ? "-"
-                : currencyFormatter((partner.totalSaleAmount ?? 0) / 100, {
+                : currencyFormatter(partner.totalSaleAmount ?? 0, {
                     trailingZeroDisplay: "stripIfInteger",
                   })
               : error
@@ -79,7 +80,7 @@ export function PartnerStats({
             value: partner
               ? Number.isNaN(partner.totalCommissions)
                 ? "-"
-                : currencyFormatter((partner.totalCommissions ?? 0) / 100)
+                : currencyFormatter(partner.totalCommissions ?? 0)
               : error
                 ? "-"
                 : undefined,
@@ -92,7 +93,7 @@ export function PartnerStats({
             value: partner
               ? Number.isNaN(partner.netRevenue)
                 ? "-"
-                : currencyFormatter((partner.netRevenue ?? 0) / 100)
+                : currencyFormatter(partner.netRevenue ?? 0)
               : error
                 ? "-"
                 : undefined,
@@ -105,10 +106,11 @@ export function PartnerStats({
           return (
             <As
               key={label}
-              href={href ?? ""}
+              href={href ?? "#"}
               target="_blank"
-              className="flex flex-col bg-white p-3 transition-colors duration-150 hover:bg-neutral-50"
+              className="group relative flex flex-col bg-white p-3 transition-colors duration-150 hover:bg-neutral-50"
             >
+              <ArrowUpRight2 className="text-content-subtle absolute right-3 top-3 size-3.5 opacity-50 transition-opacity duration-150 group-hover:opacity-100" />
               <span className="text-xs text-neutral-500">{label}</span>
               {value === undefined ? (
                 <div className="h-5 w-16 animate-pulse rounded-md bg-neutral-200" />

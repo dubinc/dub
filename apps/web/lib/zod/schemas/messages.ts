@@ -77,6 +77,7 @@ export const ProgramMessagesSchema = z.array(
       slug: true,
       name: true,
       logo: true,
+      messagingEnabledAt: true,
     }),
     messages: z.array(MessageSchema),
   }),

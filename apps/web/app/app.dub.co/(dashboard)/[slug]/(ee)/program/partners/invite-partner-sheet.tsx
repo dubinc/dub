@@ -11,7 +11,6 @@ import {
   InfoTooltip,
   MarkdownIcon,
   Sheet,
-  SimpleTooltipContent,
   useEnterSubmit,
   useMediaQuery,
 } from "@dub/ui";
@@ -136,11 +135,7 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
             Invite partner{" "}
             <InfoTooltip
               content={
-                <SimpleTooltipContent
-                  title="Invite influencers, affiliates, and users to your program, or enroll them automatically."
-                  cta="Learn more."
-                  href="https://dub.co/help/article/inviting-partners"
-                />
+                "Invite influencers, affiliates, and users to your program, or enroll them automatically. [Learn more.](https://dub.co/help/article/inviting-partners)"
               }
             />
           </Sheet.Title>

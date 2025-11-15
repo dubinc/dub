@@ -9,23 +9,20 @@ import { NavButton } from "@/ui/layout/page-content/nav-button";
 import { MessagesContext, MessagesPanel } from "@/ui/messages/messages-context";
 import { MessagesList } from "@/ui/messages/messages-list";
 import { PartnerSelector } from "@/ui/partners/partner-selector";
-import { Button, InfoTooltip, SimpleTooltipContent } from "@dub/ui";
+import { Button, InfoTooltip } from "@dub/ui";
 import { Msgs, Pen2 } from "@dub/ui/icons";
 import { useParams, useRouter } from "next/navigation";
 import { CSSProperties, ReactNode, useState } from "react";
-import { MessagesDisabled } from "./messages-disabled";
 import { MessagesUpsell } from "./messages-upsell";
 
 export default function MessagesLayout({ children }: { children: ReactNode }) {
   const { plan } = useWorkspace();
-  const { program, loading } = useProgram();
+  const { loading } = useProgram();
 
   if (loading) return <LayoutLoader />;
 
   const { canMessagePartners } = getPlanCapabilities(plan);
   if (!canMessagePartners) return <MessagesUpsell />;
-
-  if (program?.messagingEnabledAt === null) return <MessagesDisabled />;
 
   return <CapableLayout>{children}</CapableLayout>;
 }
@@ -33,6 +30,7 @@ export default function MessagesLayout({ children }: { children: ReactNode }) {
 function CapableLayout({ children }: { children: ReactNode }) {
   const { slug: workspaceSlug } = useWorkspace();
   const { partnerId } = useParams() as { partnerId?: string };
+  const { program } = useProgram();
 
   const router = useRouter();
 
@@ -46,7 +44,7 @@ function CapableLayout({ children }: { children: ReactNode }) {
 
   return (
     <MessagesContext.Provider value={{ currentPanel, setCurrentPanel }}>
-      <div className="@container/page h-[calc(100dvh-var(--page-top-margin)-1px)] w-full overflow-hidden rounded-t-[inherit] bg-white">
+      <div className="@container/page h-[calc(100dvh-var(--page-top-margin)-var(--page-bottom-margin)-1px)] w-full overflow-hidden rounded-t-[inherit] bg-white">
         <div
           className="@[800px]/page:grid-cols-[min-content_minmax(340px,1fr)] @[800px]/page:translate-x-0 grid h-full translate-x-[calc(var(--current-panel)*-100%)] grid-cols-[100%_100%]"
           style={
@@ -66,11 +64,7 @@ function CapableLayout({ children }: { children: ReactNode }) {
                   </h1>
                   <InfoTooltip
                     content={
-                      <SimpleTooltipContent
-                        title="Chat with your partners in real time, with email notifications & read statuses built in."
-                        cta="Learn more"
-                        href="https://dub.co/help/article/messaging-partners"
-                      />
+                      "Chat with your partners in real time, with email notifications & read statuses built in. [Learn more](https://dub.co/help/article/messaging-partners)"
                     }
                   />
                 </div>

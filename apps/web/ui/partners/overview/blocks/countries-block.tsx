@@ -86,7 +86,7 @@ export function CountriesBlock() {
               <span>
                 {program?.primaryRewardEvent === "lead"
                   ? nFormatter(leads, { full: true })
-                  : currencyFormatter(saleAmount / 100)}
+                  : currencyFormatter(saleAmount)}
               </span>
             </Link>
           ))

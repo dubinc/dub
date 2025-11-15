@@ -1,6 +1,7 @@
 import { createId } from "@/lib/api/create-id";
-import { DubApiError, exceededLimitError } from "@/lib/api/errors";
+import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
+import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import {
   LinkTagSchema,
   createTagBodySchema,

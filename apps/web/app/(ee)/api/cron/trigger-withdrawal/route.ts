@@ -43,11 +43,11 @@ export async function GET(req: Request) {
       currentNetBalance - payoutsToBeSent - reservedBalance;
 
     console.log({
-      currentAvailableBalance: `${currencyFormatter(currentAvailableBalance / 100)}`,
-      currentPendingBalance: `${currencyFormatter(currentPendingBalance / 100)}`,
-      currentNetBalance: `${currencyFormatter(currentNetBalance / 100)}`,
-      payoutsToBeSent: `${currencyFormatter(payoutsToBeSent / 100)}`,
-      balanceToWithdraw: `${currencyFormatter(balanceToWithdraw / 100)}`,
+      currentAvailableBalance: `${currencyFormatter(currentAvailableBalance)}`,
+      currentPendingBalance: `${currencyFormatter(currentPendingBalance)}`,
+      currentNetBalance: `${currencyFormatter(currentNetBalance)}`,
+      payoutsToBeSent: `${currencyFormatter(payoutsToBeSent)}`,
+      balanceToWithdraw: `${currencyFormatter(balanceToWithdraw)}`,
     });
 
     if (balanceToWithdraw <= 0) {
@@ -62,7 +62,7 @@ export async function GET(req: Request) {
     });
 
     return logAndRespond(
-      `Created payout: ${createdPayout.id} (${currencyFormatter(createdPayout.amount / 100)})`,
+      `Created payout: ${createdPayout.id} (${currencyFormatter(createdPayout.amount)})`,
     );
   } catch (error) {
     return handleAndReturnErrorResponse(error);

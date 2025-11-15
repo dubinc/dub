@@ -4,7 +4,7 @@ import { forceWithdrawalAction } from "@/lib/actions/partners/force-withdrawal";
 import {
   BELOW_MIN_WITHDRAWAL_FEE_CENTS,
   MIN_WITHDRAWAL_AMOUNT_CENTS,
-} from "@/lib/partners/constants";
+} from "@/lib/constants/payouts";
 import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PayoutsCount } from "@/lib/types";
@@ -89,7 +89,7 @@ function PayoutStatsCard({
                 {error ? (
                   "-"
                 ) : (
-                  <>{amount > 0 ? currencyFormatter(amount / 100) : "$0.00"}</>
+                  <>{amount > 0 ? currencyFormatter(amount) : "$0.00"}</>
                 )}
               </span>
               {label === "Processed" && amount > 0 && (
@@ -203,7 +203,7 @@ export function PayoutStats() {
   );
 
   const processedPayoutAmountInUsd = currencyFormatter(
-    payoutStatusMap?.processed?.amount / 100,
+    payoutStatusMap?.processed?.amount,
     {
       trailingZeroDisplay: "stripIfInteger",
     },
@@ -220,20 +220,19 @@ export function PayoutStats() {
         <strong className="text-black">{processedPayoutAmountInUsd}</strong>)
         are below the minimum requirement of{" "}
         <strong className="text-black">
-          {currencyFormatter(MIN_WITHDRAWAL_AMOUNT_CENTS / 100, {
+          {currencyFormatter(MIN_WITHDRAWAL_AMOUNT_CENTS, {
             trailingZeroDisplay: "stripIfInteger",
           })}
         </strong>
         , you will be charged a fee of{" "}
         <strong className="text-black">
-          {currencyFormatter(BELOW_MIN_WITHDRAWAL_FEE_CENTS / 100)}
+          {currencyFormatter(BELOW_MIN_WITHDRAWAL_FEE_CENTS)}
         </strong>{" "}
         for this payout, which means you will receive{" "}
         <strong className="text-black">
           {currencyFormatter(
             (payoutStatusMap?.processed?.amount -
-              BELOW_MIN_WITHDRAWAL_FEE_CENTS) /
-              100,
+              BELOW_MIN_WITHDRAWAL_FEE_CENTS),
             { trailingZeroDisplay: "stripIfInteger" },
           )}
         </strong>

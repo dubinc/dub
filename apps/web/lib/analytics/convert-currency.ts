@@ -1,23 +1,5 @@
+import { isZeroDecimalCurrency } from "@dub/utils";
 import { redis } from "../upstash/redis";
-
-export const ZERO_DECIMAL_CURRENCIES = [
-  "BIF",
-  "CLP",
-  "DJF",
-  "GNF",
-  "JPY",
-  "KMF",
-  "KRW",
-  "MGA",
-  "PYG",
-  "RWF",
-  "UGX",
-  "VND",
-  "VUV",
-  "XAF",
-  "XOF",
-  "XPF",
-];
 
 export const convertCurrency = async ({
   currency,
@@ -27,8 +9,6 @@ export const convertCurrency = async ({
   amount: number;
 }) => {
   const currencyCode = currency.toUpperCase();
-  const isZeroDecimalCurrency = ZERO_DECIMAL_CURRENCIES.includes(currencyCode);
-
   const fxRate = await redis.hget("fxRates:usd", currencyCode); // e.g. for MYR it'll be around 4.4
 
   // if the FX rate is not found, we return the original amount
@@ -43,7 +23,7 @@ export const convertCurrency = async ({
   let convertedAmount = amount / Number(fxRate);
 
   // if the currency is a zero decimal currency, we need to multiply the converted amount by 100
-  if (isZeroDecimalCurrency) {
+  if (isZeroDecimalCurrency(currencyCode)) {
     convertedAmount = convertedAmount * 100;
   }
 
@@ -64,8 +44,6 @@ export const convertCurrencyWithFxRates = ({
   fxRates: Record<string, string>;
 }) => {
   const currencyCode = currency.toUpperCase();
-  const isZeroDecimalCurrency = ZERO_DECIMAL_CURRENCIES.includes(currencyCode);
-
   const fxRate = fxRates[currencyCode];
 
   // if the FX rate is not found, we return the original amount
@@ -80,7 +58,7 @@ export const convertCurrencyWithFxRates = ({
   let convertedAmount = amount / Number(fxRate);
 
   // if the currency is a zero decimal currency, we need to multiply the converted amount by 100
-  if (isZeroDecimalCurrency) {
+  if (isZeroDecimalCurrency(currencyCode)) {
     convertedAmount = convertedAmount * 100;
   }
 

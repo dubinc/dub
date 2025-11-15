@@ -41,7 +41,7 @@ export default function PartnerPayoutProcessed({
   };
   variant: "stripe" | "paypal";
 }) {
-  const saleAmountInDollars = currencyFormatter(payout.amount / 100, {
+  const payoutAmountInDollars = currencyFormatter(payout.amount, {
     trailingZeroDisplay: "stripIfInteger",
   });
 
@@ -66,12 +66,22 @@ export default function PartnerPayoutProcessed({
   return (
     <Html>
       <Head />
-      <Preview>You've been paid!</Preview>
+      <Preview>
+        {program.name} has sent you a {payoutAmountInDollars} payout
+        {startDate && endDate
+          ? ` for affiliate commissions made from ${startDate} to ${endDate}`
+          : ""}
+        .
+      </Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[600px] rounded border border-solid border-neutral-200 px-10 py-5">
             <Section className="mt-8">
-              <Img src={DUB_WORDMARK} height="32" alt="Dub" />
+              <Img
+                src={program.logo || "https://assets.dub.co/logo.png"}
+                height="32"
+                alt={program.name}
+              />
             </Section>
 
             <Heading className="mx-0 my-7 p-0 text-lg font-medium text-black">
@@ -81,7 +91,7 @@ export default function PartnerPayoutProcessed({
             <Text className="text-sm leading-6 text-neutral-600">
               Good news! <strong className="text-black">{program.name}</strong>{" "}
               has sent you{" "}
-              <strong className="text-black">{saleAmountInDollars}</strong>
+              <strong className="text-black">{payoutAmountInDollars}</strong>
               {startDate && endDate ? (
                 <>
                   {" "}

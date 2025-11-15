@@ -62,6 +62,7 @@ import {
 import { FolderIcon } from "../folders/folder-icon";
 import { LinkIcon } from "../links/link-icon";
 import TagBadge from "../links/tag-badge";
+import { GroupColorCircle } from "../partners/groups/group-color-circle";
 import {
   AnalyticsContext,
   AnalyticsDashboardProps,
@@ -215,6 +216,11 @@ export function useAnalyticsFilters({
     omitGroupByFilterKey: true,
     context,
   });
+  const { data: groups } = useAnalyticsFilterOption("top_groups", {
+    disabled: !isRequested("groupId"),
+    omitGroupByFilterKey: true,
+    context,
+  });
   const { data: countries } = useAnalyticsFilterOption("countries", {
     disabled: !isRequested("country"),
     omitGroupByFilterKey: true,
@@ -307,7 +313,7 @@ export function useAnalyticsFilters({
   const getFilterOptionTotal = useCallback(
     ({ count, saleAmount }: { count?: number; saleAmount?: number }) => {
       return selectedTab === "sales" && saleUnit === "saleAmount" && saleAmount
-        ? currencyFormatter(saleAmount / 100)
+        ? currencyFormatter(saleAmount)
         : nFormatter(count, { full: true });
     },
     [selectedTab, saleUnit],
@@ -400,6 +406,23 @@ export function useAnalyticsFilters({
         ? []
         : programPage
           ? [
+              {
+                key: "groupId",
+                icon: Users6,
+                label: "Group",
+                getOptionIcon: (_value, props) => {
+                  const group = props.option?.data?.group;
+                  return group ? <GroupColorCircle group={group} /> : null;
+                },
+                options:
+                  groups?.map(({ group, ...rest }) => ({
+                    value: group.id,
+                    icon: <GroupColorCircle group={group} />,
+                    label: group.name,
+                    data: { group },
+                    right: getFilterOptionTotal(rest),
+                  })) ?? null,
+              },
               {
                 key: "partnerId",
                 icon: Users,
@@ -778,6 +801,7 @@ export function useAnalyticsFilters({
       links,
       linkTags,
       folders,
+      groups,
       selectedTagIds,
       selectedCustomerId,
       countries,

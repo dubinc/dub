@@ -32,14 +32,21 @@ model Partner {
   description                  String?            @db.Text
   country                      String?
   status                       PartnerStatus      @default(default)
+
+  // payout fields
   paypalEmail                  String?            @unique
   stripeConnectId              String?            @unique
   payoutsEnabledAt             DateTime?
   payoutMethodHash             String?            @unique
   connectPayoutsLastRemindedAt DateTime?
+
+  // timestamp fields
   createdAt                    DateTime           @default(now())
   updatedAt                    DateTime           @updatedAt
   discoverableAt               DateTime?
+  trustedAt                    DateTime?
+
+  // online presence fields
   website                      String?
   websiteTxtRecord             String?
   websiteVerifiedAt            DateTime?
@@ -57,29 +64,31 @@ model Partner {
   instagramVerifiedAt          DateTime?
   tiktok                       String?
   tiktokVerifiedAt             DateTime?
+
+  // miscellaneous fields
   invoiceSettings              Json?
   changeHistoryLog             Json?
 
-  programs           ProgramEnrollment[]
-  users              PartnerUser[]
-  invites            PartnerInvite[]
-  payouts            Payout[]
-  commissions        Commission[]
-  bountySubmissions  BountySubmission[]
-  messages           Message[]
-  sentMessages       Message[]           @relation("SenderPartner")
-  comments           PartnerComment[]
-  discountCodes      DiscountCode[]
-  notificationEmails NotificationEmail[]
-
+  programs                   ProgramEnrollment[]
+  users                      PartnerUser[]
+  invites                    PartnerInvite[]
+  payouts                    Payout[]
+  commissions                Commission[]
+  bountySubmissions          BountySubmission[]
+  messages                   Message[]
+  sentMessages               Message[]                          @relation("SenderPartner")
+  comments                   PartnerComment[]
+  discountCodes              DiscountCode[]
+  notificationEmails         NotificationEmail[]
   monthlyTraffic             MonthlyTraffic?
   industryInterests          PartnerIndustryInterest[]
   preferredEarningStructures PartnerPreferredEarningStructure[]
   salesChannels              PartnerSalesChannel[]
-
-  discoveredByPrograms DiscoveredPartner[]
+  discoveredByPrograms       DiscoveredPartner[]
 
   @@index(discoverableAt)
+  @@index(trustedAt)
+  @@index(country)
   @@fulltext([email, name]) // For full-text search
 }
 

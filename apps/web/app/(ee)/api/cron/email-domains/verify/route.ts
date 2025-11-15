@@ -46,8 +46,6 @@ export async function GET(req: Request) {
 
     return NextResponse.json(results);
   } catch (error) {
-    console.error(error);
-
     await log({
       message:
         "Email domains verification cron failed. Error: " + error.message,

@@ -2,8 +2,12 @@ import { getEvents } from "@/lib/analytics/get-events";
 import { DubApiError } from "@/lib/api/errors";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
+import { MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING } from "@/lib/constants/partner-profile";
+import {
+  LARGE_PROGRAM_IDS,
+  LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS,
+} from "@/lib/constants/program";
 import { generateRandomName } from "@/lib/names";
-import { LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS } from "@/lib/partners/constants";
 import {
   PartnerProfileLinkSchema,
   partnerProfileEventsQuerySchema,
@@ -25,7 +29,7 @@ export const GET = withPartnerProfile(
       });
 
     if (
-      program.id === "prog_1K0QHV7MP3PR05CJSCF5VN93X" &&
+      LARGE_PROGRAM_IDS.includes(program.id) &&
       totalCommissions < LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS
     ) {
       throw new DubApiError({
@@ -65,7 +69,11 @@ export const GET = withPartnerProfile(
     const events = await getEvents({
       ...rest,
       workspaceId: program.workspaceId,
-      ...(linkId ? { linkId } : { linkIds: links.map((link) => link.id) }),
+      ...(linkId
+        ? { linkId }
+        : links.length > MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING
+          ? { partnerId: partner.id }
+          : { linkIds: links.map((link) => link.id) }),
       dataAvailableFrom: program.startedAt ?? program.createdAt,
     });
 

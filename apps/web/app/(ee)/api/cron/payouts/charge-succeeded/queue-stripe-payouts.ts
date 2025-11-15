@@ -9,8 +9,16 @@ const stripeChargeMetadataSchema = z.object({
 });
 
 export async function queueStripePayouts(
-  invoice: Pick<Invoice, "id" | "paymentMethod" | "stripeChargeMetadata">,
+  invoice: Pick<
+    Invoice,
+    "id" | "paymentMethod" | "stripeChargeMetadata" | "payoutMode"
+  >,
 ) {
+  // All payouts are processed externally, hence no need to queue Stripe payouts
+  if (invoice.payoutMode === "external") {
+    return;
+  }
+
   const { id: invoiceId, paymentMethod, stripeChargeMetadata } = invoice;
 
   // Find the id of the charge that was used to fund the transfer
@@ -36,6 +44,7 @@ export async function queueStripePayouts(
     where: {
       invoiceId,
       status: "processing",
+      mode: "internal",
     },
   });
 
@@ -58,6 +67,7 @@ export async function queueStripePayouts(
         ...(paymentMethod === "card" && { chargeId }),
       },
     });
+
     console.log(
       `Enqueued Stripe payout for invoice ${invoiceId} and partner ${partnerId}: ${response.messageId}`,
     );

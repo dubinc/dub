@@ -3,9 +3,11 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { queueDiscountCodeDeletion } from "@/lib/api/discounts/queue-discount-code-deletion";
 import { linkCache } from "@/lib/api/links/cache";
+import { includeTags } from "@/lib/api/links/include-tags";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
+import { recordLink } from "@/lib/tinybird";
 import {
   BAN_PARTNER_REASONS,
   banPartnerSchema,
@@ -32,7 +34,9 @@ export const banPartnerAction = authActionClient
       include: {
         program: true,
         partner: true,
-        links: true,
+        links: {
+          include: includeTags,
+        },
         discountCodes: true,
       },
     });
@@ -50,6 +54,7 @@ export const banPartnerAction = authActionClient
       prisma.link.updateMany({
         where,
         data: {
+          disabledAt: new Date(),
           expiresAt: new Date(),
         },
       }),
@@ -73,9 +78,7 @@ export const banPartnerAction = authActionClient
       prisma.commission.updateMany({
         where: {
           ...where,
-          status: {
-            not: "paid",
-          },
+          status: "pending",
         },
         data: {
           status: "canceled",
@@ -120,7 +123,11 @@ export const banPartnerAction = authActionClient
         const { program, partner, links, discountCodes } = programEnrollment;
 
         await Promise.allSettled([
+          // Expire links from cache
           linkCache.expireMany(links),
+
+          // Delete links from Tinybird links metadata
+          recordLink(links, { deleted: true }),
 
           queueDiscountCodeDeletion(discountCodes.map(({ id }) => id)),
 

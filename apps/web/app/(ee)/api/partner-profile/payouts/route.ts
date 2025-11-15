@@ -1,3 +1,4 @@
+import { getEffectivePayoutMode } from "@/lib/api/payouts/get-effective-payout-mode";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import {
   PartnerPayoutResponseSchema,
@@ -28,5 +29,21 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
     },
   });
 
-  return NextResponse.json(z.array(PartnerPayoutResponseSchema).parse(payouts));
+  const transformedPayouts = payouts.map((payout) => {
+    const mode =
+      payout.mode ??
+      getEffectivePayoutMode({
+        payoutMode: payout.program.payoutMode,
+        payoutsEnabledAt: partner.payoutsEnabledAt,
+      });
+
+    return {
+      ...payout,
+      mode,
+    };
+  });
+
+  return NextResponse.json(
+    z.array(PartnerPayoutResponseSchema).parse(transformedPayouts),
+  );
 });

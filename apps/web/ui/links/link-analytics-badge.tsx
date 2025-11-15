@@ -105,7 +105,7 @@ export function LinkAnalyticsBadge({
               <div key={tab} className="text-sm leading-none">
                 <span className="font-medium text-neutral-950">
                   {tab === "sales"
-                    ? currencyFormatter(value / 100, {
+                    ? currencyFormatter(value, {
                         trailingZeroDisplay: "stripIfInteger",
                       })
                     : nFormatter(value, { full: value < INFINITY_NUMBER })}
@@ -169,7 +169,7 @@ export function LinkAnalyticsBadge({
                   />
                   <span>
                     {tab === "sales"
-                      ? currencyFormatter(value / 100, {
+                      ? currencyFormatter(value, {
                           // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
                           trailingZeroDisplay: "stripIfInteger",
                         })

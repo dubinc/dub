@@ -6,6 +6,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import {
+  CircleArrowRight,
   LoadingSpinner,
   StatusBadge,
   Table,
@@ -71,7 +72,16 @@ function PartnerPayouts({ partner }: { partner: EnrolledPartnerProps }) {
       {
         id: "amount",
         header: "Amount",
-        accessorFn: (d) => currencyFormatter(d.amount / 100),
+        cell: ({ row }) => {
+          return (
+            <div className="flex items-center gap-1.5">
+              {currencyFormatter(row.original.amount)}
+              {row.original.mode === "external" && (
+                <CircleArrowRight className="size-3.5 shrink-0" />
+              )}
+            </div>
+          );
+        },
       },
     ],
     onRowClick: (row) => {

@@ -22,7 +22,7 @@
     },
     {
       "path": "/api/cron/streams/update-partner-stats",
-      "schedule": "*/5 * * * *"
+      "schedule": "*/2 * * * *"
     },
     {
       "path": "/api/cron/usage",
@@ -74,6 +74,10 @@
     },
     {
       "path": "/api/cron/cleanup/link-retention",
+      "schedule": "0 */12 * * *"
+    },
+    {
+      "path": "/api/cron/calculate-program-similarities",
       "schedule": "0 */12 * * *"
     }
   ],

@@ -15,8 +15,8 @@ import { PartnerInfoGroup } from "@/ui/partners/partner-info-group";
 import { PartnerInfoSection } from "@/ui/partners/partner-info-section";
 import { PartnerInfoStats } from "@/ui/partners/partner-info-stats";
 import { X } from "@/ui/shared/icons";
-import { Button, useMediaQuery } from "@dub/ui";
-import { ChevronLeft, LoadingSpinner } from "@dub/ui/icons";
+import { Button } from "@dub/ui";
+import { ChevronLeft } from "@dub/ui/icons";
 import { OG_AVATAR_URL, cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
@@ -26,13 +26,15 @@ import { toast } from "sonner";
 import { v4 as uuid } from "uuid";
 
 export function ProgramMessagesPartnerPageClient() {
-  const { isMobile } = useMediaQuery();
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
 
   const { partnerId } = useParams() as { partnerId: string };
   const { user } = useUser();
   const { program } = useProgram();
-  const { partner, error: errorPartner } = usePartner({ partnerId });
+  const { partner: enrolledPartner, error: enrolledPartnerError } = usePartner(
+    { partnerId },
+    { shouldRetryOnError: (err) => err.status !== 404 },
+  );
 
   const {
     executeAsync: markPartnerMessagesRead,
@@ -63,14 +65,16 @@ export function ProgramMessagesPartnerPageClient() {
       },
     },
   });
+
+  const partner = partnerMessages?.[0]?.partner;
   const messages = partnerMessages?.[0]?.messages;
 
   const { executeAsync: sendMessage } = useAction(messagePartnerAction);
 
   const { setCurrentPanel } = useMessagesContext();
-  const [isRightPanelOpen, setIsRightPanelOpen] = useState(!isMobile);
+  const [isRightPanelOpen, setIsRightPanelOpen] = useState(false);
 
-  if (errorPartner) redirect(`/${workspaceSlug}/program/messages`);
+  if (errorMessages) redirect(`/${workspaceSlug}/program/messages`);
 
   return (
     <div
@@ -92,7 +96,8 @@ export function ProgramMessagesPartnerPageClient() {
             <button
               type="button"
               onClick={() => setIsRightPanelOpen((o) => !o)}
-              className="-mx-2 -my-1 flex items-center gap-2 rounded-lg px-2 py-1 transition-colors duration-100 hover:bg-black/5 active:bg-black/10"
+              disabled={!enrolledPartner}
+              className="-mx-2 -my-1 flex items-center gap-2 rounded-lg px-2 py-1 transition-colors duration-100 enabled:hover:bg-black/5 enabled:active:bg-black/10"
             >
               {!partner ? (
                 <>
@@ -113,10 +118,14 @@ export function ProgramMessagesPartnerPageClient() {
               )}
             </button>
           </div>
-          <ToggleSidePanelButton
-            isOpen={isRightPanelOpen}
-            onClick={() => setIsRightPanelOpen((o) => !o)}
-          />
+          {enrolledPartner ? (
+            <ToggleSidePanelButton
+              isOpen={isRightPanelOpen}
+              onClick={() => setIsRightPanelOpen((o) => !o)}
+            />
+          ) : enrolledPartnerError ? (
+            <ViewPartnerButton partnerId={partnerId} isEnrolled={false} />
+          ) : null}
         </div>
         <div className="min-h-0 grow">
           <MessagesPanel
@@ -204,53 +213,68 @@ export function ProgramMessagesPartnerPageClient() {
       </div>
 
       {/* Right panel - Profile */}
-      <div
-        className={cn(
-          "absolute right-0 top-0 h-full min-h-0 w-0 overflow-hidden bg-white shadow-lg transition-[width]",
-          "@[960px]/page:shadow-none @[960px]/page:relative",
-          isRightPanelOpen && "w-full sm:w-[340px]",
-        )}
-      >
-        <div className="border-border-subtle flex size-full min-h-0 w-full flex-col border-l sm:w-[340px]">
-          <div className="border-border-subtle flex h-12 shrink-0 items-center justify-between gap-4 border-b px-4 sm:h-16 sm:px-6">
-            <h2 className="text-content-emphasis text-lg font-semibold leading-7">
-              Profile
-            </h2>
-            <div className="flex items-center gap-2">
-              <Link href={`/program/partners/${partnerId}`} target="_blank">
-                <Button
-                  variant="secondary"
-                  text="View profile"
-                  className="h-8 rounded-lg px-3"
-                />
-              </Link>
-              <button
-                type="button"
-                onClick={() => setIsRightPanelOpen(false)}
-                className="@[960px]/page:hidden rounded-lg p-2 text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-900"
-              >
-                <X className="size-4" />
-              </button>
+      {enrolledPartner && (
+        <div
+          className={cn(
+            "absolute right-0 top-0 h-full min-h-0 w-0 overflow-hidden bg-white shadow-lg transition-[width]",
+            "@[960px]/page:shadow-none @[960px]/page:relative",
+            isRightPanelOpen && "w-full sm:w-[340px]",
+          )}
+        >
+          <div className="border-border-subtle flex size-full min-h-0 w-full flex-col border-l sm:w-[340px]">
+            <div className="border-border-subtle flex h-12 shrink-0 items-center justify-between gap-4 border-b px-4 sm:h-16 sm:px-6">
+              <h2 className="text-content-emphasis text-lg font-semibold leading-7">
+                Profile
+              </h2>
+              <div className="flex items-center gap-2">
+                <ViewPartnerButton partnerId={partnerId} isEnrolled={true} />
+                <button
+                  type="button"
+                  onClick={() => setIsRightPanelOpen(false)}
+                  className="@[960px]/page:hidden rounded-lg p-2 text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-900"
+                >
+                  <X className="size-4" />
+                </button>
+              </div>
+            </div>
+            <div className="bg-bg-muted scrollbar-hide flex grow flex-col gap-4 overflow-y-scroll p-6">
+              <PartnerInfoSection partner={enrolledPartner} />
+              <PartnerInfoGroup partner={enrolledPartner} />
+              <PartnerInfoStats
+                partner={enrolledPartner}
+                className="xs:grid-cols-2"
+              />
             </div>
           </div>
-          <div className="bg-bg-muted scrollbar-hide flex grow flex-col gap-4 overflow-y-scroll p-6">
-            {partner ? (
-              <>
-                <PartnerInfoSection partner={partner} />
-                <PartnerInfoGroup partner={partner} />
-                <PartnerInfoStats
-                  partner={partner}
-                  className="xs:grid-cols-2"
-                />
-              </>
-            ) : (
-              <div className="flex size-full items-center justify-center">
-                <LoadingSpinner />
-              </div>
-            )}
-          </div>
         </div>
-      </div>
+      )}
     </div>
+  );
+}
+
+function ViewPartnerButton({
+  partnerId,
+  isEnrolled,
+}: {
+  partnerId: string;
+  isEnrolled: boolean;
+}) {
+  const { slug: workspaceSlug } = useWorkspace();
+
+  return (
+    <Link
+      href={
+        isEnrolled
+          ? `/${workspaceSlug}/program/partners/${partnerId}`
+          : `/${workspaceSlug}/program/network?partnerId=${partnerId}`
+      }
+      target="_blank"
+    >
+      <Button
+        variant="secondary"
+        text={isEnrolled ? "View profile" : "View partner"}
+        className="h-8 rounded-lg px-3"
+      />
+    </Link>
   );
 }

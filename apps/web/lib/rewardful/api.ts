@@ -1,9 +1,9 @@
 import { DubApiError } from "@/lib/api/errors";
 import {
   RewardfulAffiliate,
-  RewardfulCoupon,
   RewardfulCampaign,
   RewardfulCommission,
+  RewardfulCoupon,
   RewardfulReferral,
 } from "./types";
 

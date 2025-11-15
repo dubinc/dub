@@ -1,4 +1,5 @@
 import { createId } from "@/lib/api/create-id";
+import { getPayoutEligibilityFilter } from "@/lib/api/payouts/payout-eligibility-filter";
 import {
   CUTOFF_PERIOD,
   CUTOFF_PERIOD_TYPES,
@@ -13,7 +14,7 @@ export async function splitPayouts({
   selectedPayoutId,
   excludedPayoutIds,
 }: {
-  program: Pick<Program, "id" | "name" | "minPayoutAmount">;
+  program: Pick<Program, "id" | "name" | "minPayoutAmount" | "payoutMode">;
   cutoffPeriod: CUTOFF_PERIOD_TYPES;
   selectedPayoutId?: string;
   excludedPayoutIds?: string[];
@@ -25,20 +26,10 @@ export async function splitPayouts({
         : excludedPayoutIds && excludedPayoutIds.length > 0
           ? { id: { notIn: excludedPayoutIds } }
           : {}),
-      programId: program.id,
-      status: "pending",
-      invoiceId: null,
-      amount: {
-        gte: program.minPayoutAmount,
-      },
-      partner: {
-        payoutsEnabledAt: {
-          not: null,
-        },
-      },
       periodStart: {
         not: null, // exclude the manual payouts
       },
+      ...getPayoutEligibilityFilter(program),
     },
     include: {
       commissions: true,

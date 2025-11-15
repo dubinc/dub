@@ -31,7 +31,10 @@ function PartnerAdvancedSettingsModal({
 }: {
   showPartnerAdvancedSettingsModal: boolean;
   setShowPartnerAdvancedSettingsModal: Dispatch<SetStateAction<boolean>>;
-  partner: EnrolledPartnerExtendedProps;
+  partner: Pick<
+    EnrolledPartnerExtendedProps,
+    "id" | "tenantId" | "customerDataSharingEnabledAt"
+  >;
 }) {
   const { id: workspaceId } = useWorkspace();
 

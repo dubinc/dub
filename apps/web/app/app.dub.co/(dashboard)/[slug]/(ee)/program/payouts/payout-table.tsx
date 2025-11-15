@@ -4,6 +4,7 @@ import usePayoutsCount from "@/lib/swr/use-payouts-count";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PayoutResponse } from "@/lib/types";
+import { ExternalPayoutsIndicator } from "@/ui/partners/external-payouts-indicator";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
@@ -22,6 +23,7 @@ import {
 } from "@dub/ui";
 import { MoneyBill2 } from "@dub/ui/icons";
 import {
+  cn,
   currencyFormatter,
   formatDate,
   formatDateTime,
@@ -199,13 +201,7 @@ const PayoutTableInner = memo(
         {
           id: "amount",
           header: "Amount",
-          cell: ({ row }) => (
-            <AmountRowItem
-              amount={row.original.amount}
-              status={row.original.status}
-              payoutsEnabled={Boolean(row.original.partner.payoutsEnabledAt)}
-            />
-          ),
+          cell: ({ row }) => <AmountRowItem payout={row.original} />,
         },
       ],
       pagination,
@@ -300,22 +296,18 @@ const PayoutTableInner = memo(
 );
 
 function AmountRowItem({
-  amount,
-  status,
-  payoutsEnabled,
+  payout,
 }: {
-  amount: number;
-  status: PayoutStatus;
-  payoutsEnabled: boolean;
+  payout: Pick<PayoutResponse, "amount" | "status" | "mode" | "partner">;
 }) {
   const { slug } = useParams();
   const { program } = useProgram();
-  const display = currencyFormatter(amount / 100);
 
   const minPayoutAmount = program?.minPayoutAmount || 0;
+  const display = currencyFormatter(payout.amount);
 
-  if (status === PayoutStatus.pending) {
-    if (amount < minPayoutAmount) {
+  if (payout.status === PayoutStatus.pending) {
+    if (payout.amount < minPayoutAmount) {
       return (
         <Tooltip
           content={
@@ -324,7 +316,7 @@ function AmountRowItem({
                 minPayoutAmount / 100,
               )}. This payout will be accrued and processed during the next payout period.`}
               cta="Update minimum payout amount"
-              href={`/${slug}/program/settings/rewards`}
+              href={`/${slug}/program/payouts?status=pending&sortBy=amount`}
               target="_blank"
             />
           }
@@ -334,7 +326,40 @@ function AmountRowItem({
           </span>
         </Tooltip>
       );
-    } else if (!payoutsEnabled) {
+    }
+
+    if (payout.mode === "external") {
+      return (
+        <div className="flex items-center gap-1.5">
+          <DynamicTooltipWrapper
+            tooltipProps={{
+              content: payout.partner?.tenantId ? undefined : (
+                <TooltipContent
+                  title="This partner does not have a tenant ID configured, which is required to process external payouts."
+                  cta="Learn more"
+                  href="http://dub.co/docs/partners/external-payouts"
+                  target="_blank"
+                />
+              ),
+            }}
+          >
+            <span
+              className={cn(
+                "truncate",
+                payout.partner?.tenantId
+                  ? "text-neutral-700"
+                  : "text-neutral-400 underline decoration-dotted underline-offset-2",
+              )}
+            >
+              {display}
+            </span>
+          </DynamicTooltipWrapper>
+          {payout.partner?.tenantId && <ExternalPayoutsIndicator />}
+        </div>
+      );
+    }
+
+    if (payout.mode === "internal" && !payout.partner?.payoutsEnabledAt) {
       return (
         <Tooltip content="This partner does not have payouts enabled, which means they will not be able to receive any payouts from this program.">
           <span className="cursor-help truncate text-neutral-400 underline decoration-dotted underline-offset-2">

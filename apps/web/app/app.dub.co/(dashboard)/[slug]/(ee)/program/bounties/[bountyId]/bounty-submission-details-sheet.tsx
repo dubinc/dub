@@ -1,11 +1,11 @@
 "use client";
 
 import { approveBountySubmissionAction } from "@/lib/actions/partners/approve-bounty-submission";
+import { REJECT_BOUNTY_SUBMISSION_REASONS } from "@/lib/constants/bounties";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useBounty from "@/lib/swr/use-bounty";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountySubmissionProps } from "@/lib/types";
-import { REJECT_BOUNTY_SUBMISSION_REASONS } from "@/lib/zod/schemas/bounties";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { PartnerInfoSection } from "@/ui/partners/partner-info-section";
 import { useRejectBountySubmissionModal } from "@/ui/partners/reject-bounty-submission-modal";
@@ -246,9 +246,7 @@ function BountySubmissionDetailsSheetContent({
                       {
                         label: "Reward",
                         value: submission.commission?.earnings
-                          ? currencyFormatter(
-                              submission.commission.earnings / 100,
-                            )
+                          ? currencyFormatter(submission.commission.earnings)
                           : "-",
                       },
                     ]),
@@ -323,9 +321,9 @@ function BountySubmissionDetailsSheetContent({
                       URLs
                     </h2>
                     <div className="mt-2 flex flex-col gap-2">
-                      {submission.urls?.map((url) => (
+                      {submission.urls?.map((url, idx) => (
                         <div className="relative" key={url}>
-                          <div className="border-border-subtle block w-full rounded-lg border px-3 py-2 pr-12">
+                          <div className="border-border-subtle block w-full rounded-lg border px-3 py-2 pl-10 pr-12">
                             <a
                               href={url}
                               target="_blank"
@@ -334,6 +332,11 @@ function BountySubmissionDetailsSheetContent({
                             >
                               {url}
                             </a>
+                          </div>
+                          <div className="absolute inset-y-0 left-0 flex items-center pl-2.5">
+                            <div className="flex size-6 items-center justify-center rounded-full bg-neutral-100 text-xs font-medium text-neutral-600">
+                              {idx + 1}
+                            </div>
                           </div>
                           <div className="absolute inset-y-0 right-0 flex items-center pr-2.5">
                             <CopyButton

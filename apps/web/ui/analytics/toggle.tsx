@@ -136,7 +136,7 @@ export default function Toggle({
                 interval: value,
                 start,
                 end,
-              });
+              }).valid;
 
         const { startDate, endDate } = getStartEndDates({
           interval: value,

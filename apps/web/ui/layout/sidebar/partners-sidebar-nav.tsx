@@ -266,13 +266,16 @@ export function PartnersSidebarNav({
   const { programSlug } = useParams() as {
     programSlug?: string;
   };
-  const { programEnrollment, showDetailedAnalytics } = useProgramEnrollment();
   const pathname = usePathname();
   const { getQueryString } = useRouterStuff();
 
   const isEnrolledProgramPage =
     pathname.startsWith(`/programs/${programSlug}`) &&
     pathname !== `/programs/${programSlug}/apply`;
+
+  const { programEnrollment, showDetailedAnalytics } = useProgramEnrollment({
+    enabled: isEnrolledProgramPage,
+  });
 
   const currentArea = useMemo(() => {
     return pathname.startsWith("/account/settings")

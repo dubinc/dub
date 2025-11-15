@@ -1,5 +1,5 @@
 import { updatePartnerProfileAction } from "@/lib/actions/partners/update-partner-profile";
-import { hasPermission } from "@/lib/auth/partner-user-permissions";
+import { hasPermission } from "@/lib/auth/partner-users/partner-user-permissions";
 import {
   industryInterests,
   monthlyTrafficAmounts,
@@ -174,6 +174,7 @@ export function AboutYouForm({ partner }: { partner?: PartnerProps }) {
         </SettingsRow>
 
         <SettingsRow
+          id="traffic"
           heading="Estimated monthly traffic"
           description="Including websites, newsletters, and social accounts."
         >

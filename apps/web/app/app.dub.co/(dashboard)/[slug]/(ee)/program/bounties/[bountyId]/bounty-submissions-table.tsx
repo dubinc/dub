@@ -243,13 +243,13 @@ export function BountySubmissionsTable() {
                 const target = performanceCondition.value;
 
                 const formattedValue = isCurrencyAttribute(attribute)
-                  ? currencyFormatter(value / 100, {
+                  ? currencyFormatter(value, {
                       trailingZeroDisplay: "stripIfInteger",
                     })
                   : nFormatter(value, { full: true });
 
                 const formattedTarget = isCurrencyAttribute(attribute)
-                  ? currencyFormatter(target / 100, {
+                  ? currencyFormatter(target, {
                       trailingZeroDisplay: "stripIfInteger",
                     })
                   : nFormatter(target, { full: true });
@@ -347,13 +347,13 @@ export function BountySubmissionsTable() {
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (p) => `submission${p ? "s" : ""}`,
-    // if status is not set, we count submitted and approved submissions
+    // if status is not set, we count draft, submitted and approved submissions
     // else, we count the submissions for the status
     rowCount: searchParams.get("status")
       ? submissionsCount?.find((s) => s.status === searchParams.get("status"))
           ?.count || 0
       : submissionsCount
-          ?.filter((s) => s.status === "submitted" || s.status === "approved")
+          ?.filter((s) => ["draft", "submitted", "approved"].includes(s.status))
           .reduce((acc, curr) => acc + curr.count, 0) || 0,
     loading: isLoading || isBountyLoading,
     error: error ? "Failed to load bounty submissions" : undefined,

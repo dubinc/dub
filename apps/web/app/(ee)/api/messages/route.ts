@@ -21,56 +21,56 @@ export const GET = withWorkspace(
 
     const messagesLimit = messagesLimitArg ?? (partnerId ? undefined : 10);
 
-    const programEnrollments = await prisma.programEnrollment.findMany({
-      where: {
-        programId,
-        ...(partnerId
-          ? { partnerId }
-          : {
-              partner: {
-                messages: {
-                  some: {
-                    programId,
-                  },
-                },
-              },
-            }),
-      },
-      take: 1000, // TODO: add pagination later
-      include: {
-        partner: {
-          include: {
+    const partners = await prisma.partner.findMany({
+      where: partnerId
+        ? {
+            id: partnerId,
+            // Partner is either discoverable, enrolled in the program, or already has a message with the program
+            OR: [
+              { discoverableAt: { not: null } },
+              { programs: { some: { programId } } },
+              { messages: { some: { programId } } },
+            ],
+          }
+        : {
+            // Partner has messages with the program
             messages: {
-              where: {
+              some: {
                 programId,
               },
-              include: {
-                senderPartner: true,
-                senderUser: true,
-              },
-              orderBy: {
-                [sortBy]: sortOrder,
-              },
-              take: messagesLimit,
             },
           },
+      take: 1000, // TODO: add pagination later
+      include: {
+        messages: {
+          where: {
+            programId,
+          },
+          include: {
+            senderPartner: true,
+            senderUser: true,
+          },
+          orderBy: {
+            [sortBy]: sortOrder,
+          },
+          take: messagesLimit,
         },
       },
     });
 
     return NextResponse.json(
       PartnerMessagesSchema.parse(
-        programEnrollments
+        partners
           // Sort by most recent message
           .sort((a, b) =>
             sortOrder === "desc"
-              ? (b.partner.messages?.[0]?.[sortBy]?.getTime() ?? 0) -
-                (a.partner.messages?.[0]?.[sortBy]?.getTime() ?? 0)
-              : (a.partner.messages?.[0]?.[sortBy]?.getTime() ?? 0) -
-                (b.partner.messages?.[0]?.[sortBy]?.getTime() ?? 0),
+              ? (b.messages?.[0]?.[sortBy]?.getTime() ?? 0) -
+                (a.messages?.[0]?.[sortBy]?.getTime() ?? 0)
+              : (a.messages?.[0]?.[sortBy]?.getTime() ?? 0) -
+                (b.messages?.[0]?.[sortBy]?.getTime() ?? 0),
           )
           // Map to {partner, messages}
-          .map(({ partner: { messages, ...partner } }) => ({
+          .map(({ messages, ...partner }) => ({
             partner,
             messages,
           })),

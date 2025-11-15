@@ -1,4 +1,4 @@
-import { ErrorCode } from "@/lib/api/errors";
+import { ErrorCode } from "@/lib/api/error-codes";
 import z from "@/lib/zod";
 import { DUB_FOUNDING_DATE, formatDate, validDomainRegex } from "@dub/utils";
 import {
@@ -643,6 +643,12 @@ export const LinkSchema = z
       .url()
       .nullable()
       .describe("The URL to redirect to when the short link has expired."),
+    disabledAt: z
+      .string()
+      .nullable()
+      .describe(
+        "The date and time when the short link was disabled. When a short link is disabled, it will redirect to its domain's not found URL, and its stats will be excluded from your overall stats.",
+      ),
     password: z
       .string()
       .nullable()
@@ -883,8 +889,9 @@ export const linkEventSchema = LinkSchema.extend({
   updatedAt: z.coerce.date(),
   lastClicked: z.coerce.date(),
   expiresAt: z.coerce.date(),
-  testCompletedAt: z.coerce.date().nullable(),
-  testStartedAt: z.coerce.date().nullable(),
+  disabledAt: z.coerce.date(),
+  testCompletedAt: z.coerce.date(),
+  testStartedAt: z.coerce.date(),
   // userId can be null
   userId: z.string().nullable(),
 });

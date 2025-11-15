@@ -28,6 +28,10 @@ export const WorkspaceSchema = z
       .describe("The invite code of the workspace."),
 
     plan: planSchema,
+    planTier: z
+      .number()
+      .nullable()
+      .describe("The tier of the workspace's plan."),
     stripeId: z.string().nullable().describe("The Stripe ID of the workspace."),
     billingCycleStart: z
       .number()

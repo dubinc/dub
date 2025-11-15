@@ -16,13 +16,12 @@ import { ToggleSidePanelButton } from "@/ui/messages/toggle-side-panel-button";
 import { ProgramHelpLinks } from "@/ui/partners/program-help-links";
 import { ProgramRewardsPanel } from "@/ui/partners/program-rewards-panel";
 import { X } from "@/ui/shared/icons";
-import { Button, Grid, useCopyToClipboard, useMediaQuery } from "@dub/ui";
+import { Button, Grid, useCopyToClipboard } from "@dub/ui";
 import {
   Check,
   ChevronLeft,
   Copy,
   EnvelopeArrowRight,
-  LoadingSpinner,
   MsgsDotted,
 } from "@dub/ui/icons";
 import {
@@ -43,13 +42,16 @@ import { v4 as uuid } from "uuid";
 
 export function PartnerMessagesProgramPageClient() {
   const { programSlug } = useParams() as { programSlug: string };
-  const { isMobile } = useMediaQuery();
 
   const { user } = useUser();
   const { partner } = usePartnerProfile();
-  const { programEnrollment, error: errorProgramEnrollment } =
-    useProgramEnrollment();
-  const program = programEnrollment?.program;
+  const { programEnrollment, error: programEnrollmentError } =
+    useProgramEnrollment({
+      swrOpts: {
+        shouldRetryOnError: (err) => err.status !== 404,
+      },
+    });
+  const enrolledProgram = programEnrollment?.program;
 
   const {
     executeAsync: markProgramMessagesRead,
@@ -62,7 +64,6 @@ export function PartnerMessagesProgramPageClient() {
     mutate: mutateProgramMessages,
   } = useProgramMessages({
     query: { programSlug, sortOrder: "asc" },
-    enabled: Boolean(programEnrollment?.program?.messagingEnabledAt),
     swrOpts: {
       onSuccess: async (data) => {
         // Mark unread messages from the program as read
@@ -80,14 +81,21 @@ export function PartnerMessagesProgramPageClient() {
       },
     },
   });
+
+  const program = programMessages?.[0]?.program;
   const messages = programMessages?.[0]?.messages;
 
   const { executeAsync: sendMessage } = useAction(messageProgramAction);
 
   const { setCurrentPanel } = useMessagesContext();
-  const [isRightPanelOpen, setIsRightPanelOpen] = useState(!isMobile);
+  const [isRightPanelOpen, setIsRightPanelOpen] = useState(false);
 
-  if (errorProgramEnrollment) redirect(`/messages`);
+  // Redirect if no messages and not enrolled, or messages error
+  if (
+    (programEnrollmentError && programMessages?.length === 0) ||
+    errorMessages
+  )
+    redirect(`/messages`);
 
   return (
     <div
@@ -110,7 +118,8 @@ export function PartnerMessagesProgramPageClient() {
               <button
                 type="button"
                 onClick={() => setIsRightPanelOpen((o) => !o)}
-                className="-mx-2 -my-1 flex items-center gap-3 rounded-lg px-2 py-1 transition-colors duration-100 hover:bg-black/5 active:bg-black/10"
+                disabled={!programEnrollment}
+                className="-mx-2 -my-1 flex items-center gap-3 rounded-lg px-2 py-1 transition-colors duration-100 enabled:hover:bg-black/5 enabled:active:bg-black/10"
               >
                 {!program ? (
                   <>
@@ -132,13 +141,19 @@ export function PartnerMessagesProgramPageClient() {
               </button>
             </div>
           </div>
-          <ToggleSidePanelButton
-            isOpen={isRightPanelOpen}
-            onClick={() => setIsRightPanelOpen((o) => !o)}
-          />
+          {programEnrollment ? (
+            <ToggleSidePanelButton
+              isOpen={isRightPanelOpen}
+              onClick={() => setIsRightPanelOpen((o) => !o)}
+            />
+          ) : programEnrollmentError ? (
+            <ViewProgramButton programSlug={programSlug} />
+          ) : null}
         </div>
         {["banned", "rejected"].includes(programEnrollment?.status ?? "") ||
-        programEnrollment?.program?.messagingEnabledAt === null ? (
+        (program?.messagingEnabledAt === null &&
+          messages &&
+          !messages.length) ? (
           <div className="flex size-full flex-col items-center justify-center px-4">
             <MsgsDotted className="size-10 text-neutral-700" />
             <div className="mt-6 max-w-md text-center">
@@ -149,8 +164,11 @@ export function PartnerMessagesProgramPageClient() {
                 You can contact them directly via email.
               </p>
             </div>
-            {program?.supportEmail && (
-              <Link href={`mailto:${program.supportEmail}`} target="_blank">
+            {enrolledProgram?.supportEmail && (
+              <Link
+                href={`mailto:${enrolledProgram.supportEmail}`}
+                target="_blank"
+              >
                 <Button
                   className="mt-4 h-9 rounded-lg px-3"
                   variant="secondary"
@@ -250,46 +268,36 @@ export function PartnerMessagesProgramPageClient() {
       </div>
 
       {/* Right panel - Profile */}
-      <div
-        className={cn(
-          "absolute right-0 top-0 h-full min-h-0 w-0 overflow-hidden bg-white shadow-lg transition-[width]",
-          "@[1082px]/page:shadow-none @[1082px]/page:relative",
-          isRightPanelOpen && "w-full sm:w-[400px]",
-        )}
-      >
-        <div className="border-border-subtle flex size-full min-h-0 w-full flex-col border-l sm:w-[400px]">
-          <div className="border-border-subtle flex h-12 shrink-0 items-center justify-between gap-4 border-b px-4 sm:h-16 sm:px-6">
-            <h2 className="text-content-emphasis text-lg font-semibold leading-7">
-              Program
-            </h2>
-            <div className="flex items-center gap-2">
-              <Link href={`/programs/${programSlug}`} target="_blank">
-                <Button
-                  variant="secondary"
-                  text="View program"
-                  className="h-8 rounded-lg px-3"
-                />
-              </Link>
-              <button
-                type="button"
-                onClick={() => setIsRightPanelOpen(false)}
-                className="@[1082px]/page:hidden rounded-lg p-2 text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-900"
-              >
-                <X className="size-4" />
-              </button>
+      {enrolledProgram && (
+        <div
+          className={cn(
+            "absolute right-0 top-0 h-full min-h-0 w-0 overflow-hidden bg-white shadow-lg transition-[width]",
+            "@[1082px]/page:shadow-none @[1082px]/page:relative",
+            isRightPanelOpen && "w-full sm:w-[400px]",
+          )}
+        >
+          <div className="border-border-subtle flex size-full min-h-0 w-full flex-col border-l sm:w-[400px]">
+            <div className="border-border-subtle flex h-12 shrink-0 items-center justify-between gap-4 border-b px-4 sm:h-16 sm:px-6">
+              <h2 className="text-content-emphasis text-lg font-semibold leading-7">
+                Program
+              </h2>
+              <div className="flex items-center gap-2">
+                <ViewProgramButton programSlug={programSlug} />
+                <button
+                  type="button"
+                  onClick={() => setIsRightPanelOpen(false)}
+                  className="@[1082px]/page:hidden rounded-lg p-2 text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-900"
+                >
+                  <X className="size-4" />
+                </button>
+              </div>
+            </div>
+            <div className="bg-bg-muted scrollbar-hide flex grow flex-col overflow-y-scroll">
+              <ProgramInfoPanel programEnrollment={programEnrollment} />
             </div>
           </div>
-          <div className="bg-bg-muted scrollbar-hide flex grow flex-col overflow-y-scroll">
-            {programEnrollment && program ? (
-              <ProgramInfoPanel programEnrollment={programEnrollment} />
-            ) : (
-              <div className="flex size-full items-center justify-center">
-                <LoadingSpinner />
-              </div>
-            )}
-          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
@@ -425,7 +433,7 @@ function ProgramInfoPanel({
                 </span>
                 {value !== undefined ? (
                   <span className="text-content-emphasis text-sm font-medium">
-                    {currencyFormatter(value / 100)}
+                    {currencyFormatter(value)}
                   </span>
                 ) : (
                   <div className="h-5 w-12 animate-pulse rounded-md bg-neutral-200" />
@@ -457,5 +465,17 @@ function ProgramInfoPanel({
         </div>
       </div>
     </>
+  );
+}
+
+function ViewProgramButton({ programSlug }: { programSlug: string }) {
+  return (
+    <Link href={`/programs/${programSlug}`} target="_blank">
+      <Button
+        variant="secondary"
+        text="View program"
+        className="h-8 rounded-lg px-3"
+      />
+    </Link>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { clientAccessCheck } from "@/lib/api/tokens/permissions";
+import { clientAccessCheck } from "@/lib/client-access-check";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { Button, CopyButton, InfoTooltip, Key } from "@dub/ui";
@@ -95,7 +95,7 @@ export const PublishableKeyForm = ({ className }: { className?: string }) => {
           <h2 className="text-content-emphasis flex-1 text-sm font-semibold">
             Publishable key
           </h2>
-          <InfoTooltip content="Required for conversion tracking." />
+          <InfoTooltip content="For authenticating requests when tracking conversion events on the client-side. [Learn more.](https://dub.co/docs/api-reference/publishable-keys)" />
         </div>
 
         {!publishableKey && (

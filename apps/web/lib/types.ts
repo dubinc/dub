@@ -23,6 +23,7 @@ import {
 } from "@dub/prisma/client";
 import { z } from "zod";
 import { RESOURCE_COLORS } from "../ui/colors";
+import { BOUNTY_SUBMISSION_REQUIREMENTS } from "./constants/bounties";
 import {
   FOLDER_PERMISSIONS,
   FOLDER_WORKSPACE_ACCESS,
@@ -33,7 +34,6 @@ import {
   BountySchema,
   BountySubmissionExtendedSchema,
   getBountySubmissionsQuerySchema,
-  SUBMISSION_REQUIREMENTS,
 } from "./zod/schemas/bounties";
 import {
   CampaignListSchema,
@@ -163,6 +163,7 @@ export interface RedisLinkProps {
   rewrite?: boolean;
   expiresAt?: Date;
   expiredUrl?: string;
+  disabledAt?: Date;
   ios?: string;
   android?: string;
   geo?: object;
@@ -195,10 +196,7 @@ export type UtmTemplateWithUserProps = UtmTemplateProps & {
 
 export type PlanProps = (typeof plans)[number];
 
-export type BetaFeatures =
-  | "noDubLink"
-  | "analyticsSettingsSiteVisitTracking"
-  | "emailCampaigns";
+export type BetaFeatures = "noDubLink" | "analyticsSettingsSiteVisitTracking";
 
 export interface WorkspaceProps extends Project {
   logo: string | null;
@@ -590,7 +588,7 @@ export type BountySubmissionProps = z.infer<
 >;
 
 export type BountySubmissionRequirement =
-  (typeof SUBMISSION_REQUIREMENTS)[number];
+  (typeof BOUNTY_SUBMISSION_REQUIREMENTS)[number];
 
 export type WorkflowCondition = z.infer<typeof workflowConditionSchema>;
 

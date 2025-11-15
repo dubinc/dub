@@ -1,3 +1,4 @@
+import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
 import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 import { includeTags } from "../../lib/api/links/include-tags";
@@ -15,7 +16,10 @@ async function main() {
       programId: "prog_xxx",
       partnerId: "pn_xxx",
     },
-    include: includeTags,
+    include: {
+      ...includeTags,
+      ...includeProgramEnrollment,
+    },
   });
 
   const result = await recordLink(link);

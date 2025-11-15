@@ -1,5 +1,5 @@
 import { updatePartnerProfileAction } from "@/lib/actions/partners/update-partner-profile";
-import { hasPermission } from "@/lib/auth/partner-user-permissions";
+import { hasPermission } from "@/lib/auth/partner-users/partner-user-permissions";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { PartnerProps } from "@/lib/types";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";

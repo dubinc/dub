@@ -1,10 +1,10 @@
 import { confirmPayoutsAction } from "@/lib/actions/partners/confirm-payouts";
-import { exceededLimitError } from "@/lib/api/errors";
-import { clientAccessCheck } from "@/lib/api/tokens/permissions";
+import { clientAccessCheck } from "@/lib/client-access-check";
+import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import {
   DIRECT_DEBIT_PAYMENT_METHOD_TYPES,
   FAST_ACH_FEE_CENTS,
-} from "@/lib/partners/constants";
+} from "@/lib/constants/payouts";
 import {
   CUTOFF_PERIOD,
   CUTOFF_PERIOD_TYPES,
@@ -14,12 +14,14 @@ import {
   STRIPE_PAYMENT_METHODS,
 } from "@/lib/stripe/payment-methods";
 import usePaymentMethods from "@/lib/swr/use-payment-methods";
+import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PayoutResponse, PlanProps } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
 import {
   Button,
   buttonVariants,
+  CircleArrowRight,
   Combobox,
   ComboboxOption,
   DynamicTooltipWrapper,
@@ -27,7 +29,6 @@ import {
   PaperPlane,
   Sheet,
   ShimmerDots,
-  SimpleTooltipContent,
   Table,
   TooltipContent,
   useRouterStuff,
@@ -40,7 +41,6 @@ import {
   fetcher,
   formatDate,
   nFormatter,
-  OG_AVATAR_URL,
   truncate,
 } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
@@ -49,6 +49,9 @@ import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import Stripe from "stripe";
 import useSWR from "swr";
+import { UpgradeRequiredToast } from "../shared/upgrade-required-toast";
+import { ExternalPayoutsIndicator } from "./external-payouts-indicator";
+import { PartnerRowItem } from "./partner-row-item";
 
 type SelectPaymentMethod =
   (typeof STRIPE_PAYMENT_METHODS)[keyof typeof STRIPE_PAYMENT_METHODS] & {
@@ -59,6 +62,7 @@ type SelectPaymentMethod =
 
 function ConfirmPayoutsSheetContent() {
   const router = useRouter();
+  const { program } = useProgram();
   const {
     id: workspaceId,
     slug,
@@ -111,7 +115,36 @@ function ConfirmPayoutsSheetContent() {
   }, [eligiblePayouts, selectedPayoutId, excludedPayoutIds]);
 
   const { executeAsync: confirmPayouts } = useAction(confirmPayoutsAction, {
-    onError({ error }) {
+    onError: ({ error }) => {
+      const PAYOUT_ERROR_MAP = {
+        EXTERNAL_WEBHOOK_REQUIRED: {
+          title: "Webhook required",
+          ctaLabel: "Set up webhook",
+          ctaUrl: `/${slug}/settings/webhooks`,
+        },
+      };
+
+      if (error.serverError) {
+        const code = Object.keys(PAYOUT_ERROR_MAP).find((key) =>
+          error.serverError?.startsWith(key),
+        );
+
+        if (code) {
+          const { title, ctaLabel, ctaUrl } = PAYOUT_ERROR_MAP[code];
+          const message =
+            error.serverError.replace(`${code}: `, "") || "An error occurred.";
+
+          return toast.custom(() => (
+            <UpgradeRequiredToast
+              title={title}
+              message={message}
+              ctaLabel={ctaLabel}
+              ctaUrl={ctaUrl}
+            />
+          ));
+        }
+      }
+
       toast.error(error.serverError);
     },
   });
@@ -182,7 +215,7 @@ function ConfirmPayoutsSheetContent() {
       label: method.title,
       icon: method.icon,
       ...(method.fastSettlement && {
-        meta: `+ ${currencyFormatter(FAST_ACH_FEE_CENTS / 100, { trailingZeroDisplay: "stripIfInteger" })}`,
+        meta: `+ ${currencyFormatter(FAST_ACH_FEE_CENTS, { trailingZeroDisplay: "stripIfInteger" })}`,
       }),
     }));
   }, [finalPaymentMethods]);
@@ -221,19 +254,44 @@ function ConfirmPayoutsSheetContent() {
     }
   }, [finalPaymentMethods, selectedPaymentMethod]);
 
-  const { amount, fee, total, fastAchFee } = useMemo(() => {
+  const isExternalPayout = (payout: PayoutResponse) => {
+    switch (program?.payoutMode) {
+      case "internal":
+        return false;
+      case "external":
+        return true;
+      case "hybrid":
+        return payout.partner.payoutsEnabledAt === null;
+      default:
+        return false;
+    }
+  };
+
+  const { amount, fee, total, fastAchFee, externalAmount } = useMemo(() => {
     const amount = finalEligiblePayouts?.reduce((acc, payout) => {
       return acc + payout.amount;
     }, 0);
 
-    if (amount === undefined || selectedPaymentMethod === null) {
+    if (
+      amount === undefined ||
+      selectedPaymentMethod === null ||
+      program?.payoutMode === undefined
+    ) {
       return {
         amount: undefined,
+        externalAmount: undefined,
         fee: undefined,
         total: undefined,
         fastAchFee: undefined,
       };
     }
+
+    // Calculate the total external amount
+    const externalAmount = finalEligiblePayouts?.reduce(
+      (acc, payout) =>
+        isExternalPayout(payout) ? acc + payout.amount : acc + 0,
+      0,
+    );
 
     const fastAchFee = selectedPaymentMethod.fastSettlement
       ? FAST_ACH_FEE_CENTS
@@ -244,11 +302,12 @@ function ConfirmPayoutsSheetContent() {
 
     return {
       amount,
+      externalAmount,
       fee,
       total,
       fastAchFee,
     };
-  }, [finalEligiblePayouts, selectedPaymentMethod]);
+  }, [finalEligiblePayouts, selectedPaymentMethod, program?.payoutMode]);
 
   const invoiceData = useMemo(() => {
     return [
@@ -359,24 +418,37 @@ function ConfirmPayoutsSheetContent() {
           amount === undefined ? (
             <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
           ) : (
-            currencyFormatter(amount / 100)
+            currencyFormatter(amount)
           ),
       },
+      ...(finalEligiblePayouts && finalEligiblePayouts.some(isExternalPayout)
+        ? [
+            {
+              key: "External Amount",
+              value:
+                externalAmount === undefined ? (
+                  <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
+                ) : (
+                  <div className="flex items-center gap-1.5">
+                    {currencyFormatter(externalAmount)}
+                    <CircleArrowRight className="size-3.5 text-neutral-500" />
+                  </div>
+                ),
+              tooltipContent: `Payouts that are processed externally via the \`payout.confirmed\` [webhook event](${`/${slug}/settings/webhooks`}). [Learn more about external payouts](http://dub.co/docs/partners/external-payouts).`,
+            },
+          ]
+        : []),
       {
         key: "Fee",
         value:
           selectedPaymentMethod && fee !== undefined ? (
-            currencyFormatter(fee / 100)
+            currencyFormatter(fee)
           ) : (
             <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
           ),
-        tooltipContent: selectedPaymentMethod ? (
-          <SimpleTooltipContent
-            title={`${selectedPaymentMethod.fee * 100}% processing fee${(fastAchFee ?? 0) > 0 ? ` + ${currencyFormatter((fastAchFee ?? 0) / 100)} Fast ACH fee` : ""}. ${!DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(selectedPaymentMethod.type as Stripe.PaymentMethod.Type) ? " Switch to Direct Debit for a reduced fee." : ""}`}
-            cta="Learn more"
-            href="https://d.to/payouts"
-          />
-        ) : undefined,
+        tooltipContent: selectedPaymentMethod
+          ? `${selectedPaymentMethod.fee * 100}% processing fee${(fastAchFee ?? 0) > 0 ? ` + ${currencyFormatter(fastAchFee ?? 0)} Fast ACH fee` : ""}. ${!DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(selectedPaymentMethod.type as Stripe.PaymentMethod.Type) ? " Switch to Direct Debit for a reduced fee." : ""} [Learn more](https://d.to/payouts)`
+          : undefined,
       },
       {
         key: "Transfer Time",
@@ -392,12 +464,13 @@ function ConfirmPayoutsSheetContent() {
           total === undefined ? (
             <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
           ) : (
-            currencyFormatter(total / 100)
+            currencyFormatter(total)
           ),
       },
     ];
   }, [
     amount,
+    externalAmount,
     paymentMethods,
     selectedPaymentMethod,
     cutoffPeriod,
@@ -409,19 +482,14 @@ function ConfirmPayoutsSheetContent() {
     () => ({
       header: "Partner",
       cell: ({ row }) => (
-        <div className="flex items-center gap-2">
-          <img
-            src={
-              row.original.partner.image ||
-              `${OG_AVATAR_URL}${row.original.partner.name}`
-            }
-            alt={row.original.partner.name}
-            className="size-6 rounded-full"
-          />
-          <span className="text-sm text-neutral-700">
-            {row.original.partner.name}
-          </span>
-        </div>
+        <PartnerRowItem
+          partner={{
+            id: row.original.partner.id,
+            name: row.original.partner.name,
+            image: row.original.partner.image,
+          }}
+          showPermalink={false}
+        />
       ),
     }),
     [],
@@ -436,17 +504,18 @@ function ConfirmPayoutsSheetContent() {
         header: "Total",
         cell: ({ row }) => (
           <>
-            <div className="relative">
+            <div className="relative flex items-center justify-end gap-1.5">
               <span
                 className={cn(
                   !selectedPayoutId && "group-hover/row:opacity-0",
                   excludedPayoutIds.includes(row.original.id) && "line-through",
                 )}
               >
-                {currencyFormatter(row.original.amount / 100)}
+                {currencyFormatter(row.original.amount)}
               </span>
+
               {!selectedPayoutId && (
-                <div className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 opacity-0 group-hover/row:pointer-events-auto group-hover/row:opacity-100">
+                <div className="pointer-events-none absolute right-[calc(14px+0.375rem)] top-1/2 -translate-y-1/2 opacity-0 group-hover/row:pointer-events-auto group-hover/row:opacity-100">
                   <Button
                     variant="secondary"
                     text={
@@ -472,6 +541,10 @@ function ConfirmPayoutsSheetContent() {
                     }
                   />
                 </div>
+              )}
+
+              {isExternalPayout(row.original) && (
+                <ExternalPayoutsIndicator side="left" />
               )}
             </div>
           </>
@@ -509,7 +582,7 @@ function ConfirmPayoutsSheetContent() {
     <div className="flex h-full flex-col">
       <div className="flex h-16 items-center justify-between border-b border-neutral-200 px-6 py-4">
         <Sheet.Title className="text-lg font-semibold">
-          Payout invoice
+          Confirm payouts
         </Sheet.Title>
         <Sheet.Close asChild>
           <Button
@@ -594,7 +667,7 @@ function ConfirmPayoutsSheetContent() {
           }}
           text={
             amount && amount > 0
-              ? `Hold to confirm ${currencyFormatter(amount / 100)} payout`
+              ? `Hold to confirm ${currencyFormatter(amount)} payout`
               : "Hold to confirm payout"
           }
           disabled={

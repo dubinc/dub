@@ -8,11 +8,9 @@ import { getMetaTags } from "app/api/links/metatags/utils";
 export const runtime = "edge";
 export const fetchCache = "force-no-store";
 
-export async function generateMetadata(
-  props: {
-    params: Promise<{ url: string }>;
-  }
-) {
+export async function generateMetadata(props: {
+  params: Promise<{ url: string }>;
+}) {
   const params = await props.params;
   const url = decodeURIComponent(params.url); // key can potentially be encoded
 
@@ -29,7 +27,9 @@ export async function generateMetadata(
   });
 }
 
-export default async function CloakedPage(props: { params: Promise<{ url: string }> }) {
+export default async function CloakedPage(props: {
+  params: Promise<{ url: string }>;
+}) {
   const params = await props.params;
   const url = decodeURIComponent(params.url);
 

@@ -44,7 +44,6 @@ export const GET = withWorkspace(
   },
   {
     requiredPlan: ["advanced", "enterprise"],
-    featureFlag: "emailCampaigns",
   },
 );
 
@@ -172,7 +171,6 @@ export const PATCH = withWorkspace(
   },
   {
     requiredPlan: ["advanced", "enterprise"],
-    featureFlag: "emailCampaigns",
   },
 );
 
@@ -224,6 +222,5 @@ export const DELETE = withWorkspace(
   },
   {
     requiredPlan: ["advanced", "enterprise"],
-    featureFlag: "emailCampaigns",
   },
 );

@@ -1,11 +1,6 @@
-import {
-  industryInterests,
-  preferredEarningStructures,
-  salesChannels,
-} from "@/lib/partners/partner-profile";
 import useNetworkPartnersCount from "@/lib/swr/use-network-partners-count";
 import { useRouterStuff } from "@dub/ui";
-import { FlagWavy, Heart, InvoiceDollar, MoneyBills2 } from "@dub/ui/icons";
+import { FlagWavy } from "@dub/ui/icons";
 import { COUNTRIES, nFormatter } from "@dub/utils";
 import { useCallback, useMemo } from "react";
 
@@ -39,8 +34,8 @@ export function usePartnerNetworkFilters({
         getOptionIcon: (value) => (
           <img
             alt={value}
-            src={`https://flag.vercel.app/m/${value}.svg`}
-            className="h-2.5 w-4"
+            src={`https://hatscripts.github.io/circle-flags/flags/${value.toLowerCase()}.svg`}
+            className="size-3.5 rounded-full"
           />
         ),
         getOptionLabel: (value) => COUNTRIES[value],
@@ -53,57 +48,11 @@ export function usePartnerNetworkFilters({
               right: nFormatter(_count, { full: true }),
             })) ?? [],
       },
-      {
-        key: "industryInterests",
-        icon: Heart,
-        label: "Industry interest",
-        multiple: true,
-        options:
-          industryInterests?.map(({ id, icon: Icon, label }) => ({
-            value: id,
-            label,
-            icon: <Icon className="size-4" />,
-          })) ?? [],
-      },
-      {
-        key: "salesChannels",
-        icon: InvoiceDollar,
-        label: "Sales channel",
-        multiple: true,
-        options:
-          salesChannels?.map(({ id, label }) => ({
-            value: id,
-            label,
-          })) ?? [],
-      },
-      {
-        key: "preferredEarningStructures",
-        icon: MoneyBills2,
-        label: "Preferred earning structure",
-        multiple: true,
-        options:
-          preferredEarningStructures?.map(({ id, label }) => ({
-            value: id,
-            label,
-          })) ?? [],
-      },
     ],
     [countriesCount],
   );
 
-  const multiFilters = useMemo(
-    () => ({
-      industryInterests:
-        searchParamsObj.industryInterests?.split(",")?.filter(Boolean) ?? [],
-      salesChannels:
-        searchParamsObj.salesChannels?.split(",")?.filter(Boolean) ?? [],
-      preferredEarningStructures:
-        searchParamsObj.preferredEarningStructures
-          ?.split(",")
-          ?.filter(Boolean) ?? [],
-    }),
-    [searchParamsObj],
-  );
+  const multiFilters = useMemo(() => ({}), []) as Record<string, string[]>;
 
   const activeFilters = useMemo(() => {
     const { country } = searchParamsObj;
@@ -156,7 +105,7 @@ export function usePartnerNetworkFilters({
   const onRemoveAll = useCallback(
     () =>
       queryParams({
-        del: [...Object.keys(multiFilters), "country", "starred"],
+        del: ["country", "starred"],
       }),
     [queryParams],
   );

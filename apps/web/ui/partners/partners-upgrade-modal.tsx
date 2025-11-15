@@ -5,7 +5,6 @@ import {
   Grid,
   Modal,
   PLAN_FEATURE_ICONS,
-  SimpleTooltipContent,
   Switch,
   Tooltip,
   useRouterStuff,
@@ -89,23 +88,23 @@ export function PartnersUpgradeModal({
             },
           },
           {
-            id: "users",
+            id: "email",
+            text: "Email campaigns",
+            tooltip: {
+              title:
+                "Send marketing and transactional emails to your partners to increase engagement and drive conversions.",
+              cta: "Learn more.",
+              href: "https://dub.co/help/article/email-campaigns",
+            },
+          },
+          {
+            id: "partnergroups",
             text: `${plan.limits.groups} partner groups`,
             tooltip: {
               title:
                 "Learn how you can create partner groups to segment partners by rewards, discounts, performance, location, and more.",
               cta: "Learn more.",
               href: "https://dub.co/help/article/partner-groups",
-            },
-          },
-          {
-            id: "api",
-            text: "Partners API",
-            tooltip: {
-              title:
-                "Leverage our partners API to build a bespoke, white-labeled referral program that lives within your app.",
-              cta: "Learn more.",
-              href: "https://dub.co/docs/api-reference/endpoint/create-a-partner",
             },
           },
           {
@@ -229,7 +228,13 @@ export function PartnersUpgradeModal({
                 >
                   <Icon className="size-3 shrink-0 [&_*]:stroke-2" />
                   {tooltip ? (
-                    <Tooltip content={<SimpleTooltipContent {...tooltip} />}>
+                    <Tooltip
+                      content={
+                        tooltip.href && tooltip.cta
+                          ? `${tooltip.title} [${tooltip.cta}](${tooltip.href})`
+                          : tooltip.title
+                      }
+                    >
                       <span className="cursor-help underline decoration-dotted underline-offset-2">
                         {text}
                       </span>

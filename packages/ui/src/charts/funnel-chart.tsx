@@ -1,4 +1,4 @@
-import { cn, nFormatter } from "@dub/utils";
+import { cn, currencyFormatter, nFormatter } from "@dub/utils";
 import { curveBasis } from "@visx/curve";
 import { ParentSize } from "@visx/responsive";
 import { scaleLinear } from "@visx/scale";
@@ -211,7 +211,7 @@ function FunnelChartInner({
                 {tooltipStep.additionalValue !== undefined && (
                   <span className="text-neutral-500">
                     {" "}
-                    (${nFormatter(tooltipStep.additionalValue / 100)})
+                    ({currencyFormatter(tooltipStep.additionalValue)})
                   </span>
                 )}
               </p>

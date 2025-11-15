@@ -15,7 +15,6 @@ import {
   InvoiceDollar,
   LinkLogo,
   LoadingSpinner,
-  SimpleTooltipContent,
   StatusBadge,
   Tooltip,
   useInViewport,
@@ -189,11 +188,7 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
             {link.discountCode && (
               <Tooltip
                 content={
-                  <SimpleTooltipContent
-                    title="This program supports discount code tracking. Copy the code to use it in podcasts, videos, etc."
-                    cta="Learn more"
-                    href="https://dub.co/help/article/dual-sided-incentives"
-                  />
+                  "This program supports discount code tracking. Copy the code to use it in podcasts, videos, etc. [Learn more](https://dub.co/help/article/dual-sided-incentives)"
                 }
               >
                 <div className="flex items-center gap-1.5 rounded-xl border border-neutral-200 py-1 pl-2 pr-1">
@@ -257,7 +252,7 @@ const StatsBadge = memo(({ link }: { link: PartnerProfileLinkProps }) => {
           />
           <span>
             {tab === "sales"
-              ? currencyFormatter(value / 100, {
+              ? currencyFormatter(value, {
                   trailingZeroDisplay: "stripIfInteger",
                 })
               : nFormatter(value)}
@@ -317,7 +312,7 @@ const StatsCharts = memo(({ link }: { link: PartnerProfileLinkProps }) => {
   const chartData = useMemo(() => {
     return timeseries?.map(({ start, clicks, leads, saleAmount }) => ({
       date: new Date(start),
-      values: { clicks, leads, saleAmount: saleAmount / 100 },
+      values: { clicks, leads, saleAmount: saleAmount },
     }));
   }, [timeseries]);
 

@@ -7,6 +7,7 @@ model Project {
   defaultProgramId String? @unique // default affiliate program ID for the workspace
 
   plan              String    @default("free")
+  planTier          Int       @default(1)
   stripeId          String?   @unique // Stripe subscription ID
   billingCycleStart Int // day of the month when the billing cycle starts
   paymentFailedAt   DateTime?

@@ -22,7 +22,7 @@ export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const { type, status, search, page, pageSize } =
+    const { type, status, search, triggerCondition, page, pageSize } =
       getCampaignsQuerySchema.parse(searchParams);
 
     const campaigns = await prisma.campaign.findMany({
@@ -35,6 +35,13 @@ export const GET = withWorkspace(
             { name: { contains: search } },
             { subject: { contains: search } },
           ],
+        }),
+        ...(triggerCondition && {
+          workflow: {
+            triggerConditions: {
+              equals: [triggerCondition],
+            },
+          },
         }),
       },
       include: {
@@ -60,7 +67,6 @@ export const GET = withWorkspace(
   },
   {
     requiredPlan: ["advanced", "enterprise"],
-    featureFlag: "emailCampaigns",
   },
 );
 
@@ -129,6 +135,5 @@ export const POST = withWorkspace(
   },
   {
     requiredPlan: ["advanced", "enterprise"],
-    featureFlag: "emailCampaigns",
   },
 );

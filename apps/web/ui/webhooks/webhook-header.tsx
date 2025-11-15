@@ -1,7 +1,7 @@
 "use client";
 
 import { enableOrDisableWebhook } from "@/lib/actions/enable-disable-webhook";
-import { clientAccessCheck } from "@/lib/api/tokens/permissions";
+import { clientAccessCheck } from "@/lib/client-access-check";
 import useWebhook from "@/lib/swr/use-webhook";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ThreeDots } from "@/ui/shared/icons";
