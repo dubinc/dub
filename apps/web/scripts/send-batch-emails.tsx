@@ -1,5 +1,5 @@
 import { prisma } from "@dub/prisma";
-import { ACME_PROGRAM_ID } from "@dub/utils";
+import { ACME_PROGRAM_ID, currencyFormatter } from "@dub/utils";
 import "dotenv-flow/config";
 import { queueBatchEmail } from "../lib/email/queue-batch-email";
 
@@ -30,7 +30,7 @@ async function main() {
       },
     ].map((payout) => ({
       to: payout.partner.email!,
-      subject: "You've got money coming your way!",
+      subject: `Your ${currencyFormatter(payout.amount)} payout for ${program.name} is on the way`,
       variant: "notifications",
       replyTo: program.supportEmail || "noreply",
       templateName: "PartnerPayoutConfirmed",

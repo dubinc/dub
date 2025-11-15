@@ -33,7 +33,7 @@ export function ConversionTrackingSection() {
               htmlFor={`${id}-switch`}
               className="text-content-emphasis block text-sm font-semibold"
             >
-              Conversion Tracking
+              Conversion tracking
             </label>
             <p className="text-content-subtle text-sm font-medium">
               For client-side conversion tracking.{" "}
@@ -41,10 +41,11 @@ export function ConversionTrackingSection() {
                 href="https://dub.co/docs/conversions/quickstart"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="underline"
+                className="cursor-help text-neutral-800 underline decoration-dotted underline-offset-2"
               >
                 Learn more
               </a>
+              .
             </p>
           </div>
         </div>
