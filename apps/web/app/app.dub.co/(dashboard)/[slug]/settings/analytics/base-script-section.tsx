@@ -19,7 +19,16 @@ export function BaseScriptSection() {
               Base script
             </label>
             <p className="text-content-subtle text-sm font-medium">
-              For basic cookie-management and client-side click tracking.
+              For basic cookie-management and{" "}
+              <a
+                href="https://dub.co/docs/sdks/client-side/features/click-tracking"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="cursor-help text-neutral-800 underline decoration-dotted underline-offset-2"
+              >
+                client-side click tracking
+              </a>
+              .
             </p>
           </div>
         </div>

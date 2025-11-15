@@ -10,7 +10,7 @@ export default function ProgramAnalytics() {
       title="Analytics"
       titleInfo={{
         title:
-          "Learn how to use Dub Analytics to track and measure your program's performance.",
+          "Learn how to use Dub to track and measure your program's performance.",
         href: "https://dub.co/help/article/program-analytics",
       }}
     >

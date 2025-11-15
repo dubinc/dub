@@ -1,4 +1,4 @@
-This quick start guide will show you how to get started with Dub Analytics on your website.
+This quick start guide will show you how to get started with Dub on your React website.
 
 ### Step 1: Install package
 
@@ -14,7 +14,7 @@ If you are using a React framework, you can use the `<Analytics />` component to
 
 E.g. if you're using Next.js, you can add the `<Analytics />` component to your root layout component or any other pages where you want to track conversions.
 
-You will also need to set the [`domainsConfig.refer` property](https://dub.co/docs/sdks/client-side/installation-guides/react#param-domains-config) to the short link domain you're using on Dub to enable [client-side click-tracking](https://dub.co/docs/sdks/client-side/features/client-side-click-tracking).
+You will also need to set the [`domainsConfig.refer` property](https://dub.co/docs/sdks/client-side/installation-guides/react#param-domains-config) to the short link domain you're using on Dub to enable [client-side click-tracking](https://dub.co/docs/sdks/client-side/features/click-tracking).
 
 ```jsx
 import { Analytics as DubAnalytics } from '@dub/analytics/react';
@@ -35,4 +35,4 @@ export default function RootLayout({
 }
 ```
 
-Read the [client-side click-tracking guide](https://dub.co/docs/sdks/client-side/features/client-side-click-tracking) for more information.
+Read the [client-side click-tracking guide](https://dub.co/docs/sdks/client-side/features/click-tracking) for more information.

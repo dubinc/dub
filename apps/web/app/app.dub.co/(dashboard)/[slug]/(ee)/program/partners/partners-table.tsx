@@ -408,6 +408,7 @@ export function PartnersTable() {
   const { table, ...tableProps } = useTable({
     data: partners || [],
     columns,
+    columnPinning: { right: ["menu"] },
     onRowClick: (row, e) => {
       const url = getPartnerUrl({
         workspaceSlug: workspaceSlug!,

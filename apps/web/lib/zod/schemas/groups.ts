@@ -91,6 +91,7 @@ export const PartnerProgramGroupSchema = GroupWithFormDataSchema.pick({
 });
 
 export const createOrUpdateDefaultLinkSchema = z.object({
+  domain: z.string().toLowerCase(),
   url: parseUrlSchema,
 });
 
