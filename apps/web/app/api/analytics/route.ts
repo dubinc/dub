@@ -121,6 +121,7 @@ export const GET = withWorkspace(
     const isDeprecatedClicksEndpoint =
       oldEvent === "clicks" || oldType === "count";
 
+    console.time("getAnalytics");
     const response = await getAnalytics({
       ...parsedParams,
       event,
@@ -134,6 +135,7 @@ export const GET = withWorkspace(
         dataAvailableFrom: programStartedAt ?? workspace.createdAt,
       }),
     });
+    console.timeEnd("getAnalytics");
 
     return NextResponse.json(response);
   },
