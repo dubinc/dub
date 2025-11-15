@@ -2,9 +2,10 @@ import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { BetaFeatures, PlanProps, WorkspaceWithUsers } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
-import { API_DOMAIN, getCurrentPlan, getSearchParams } from "@dub/utils";
+import { API_DOMAIN, getSearchParams } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { headers } from "next/headers";
+import { getRatelimitForPlan } from "../api/get-ratelimit-for-plan";
 import {
   PermissionAction,
   getPermissionsByRole,
@@ -17,7 +18,7 @@ import { getFeatureFlags } from "../edge-config";
 import { logConversionEvent } from "../tinybird/log-conversion-events";
 import { hashToken } from "./hash-token";
 import { rateLimitRequest } from "./rate-limit-request";
-import { tokenCache } from "./token-cache";
+import { TokenCacheItem, tokenCache } from "./token-cache";
 import { Session, getSession } from "./utils";
 
 export const RATE_LIMIT_FOR_SESSIONS = {
@@ -110,7 +111,7 @@ export const withWorkspace = (
         let workspaceId: string | undefined;
         let workspaceSlug: string | undefined;
         let permissions: PermissionAction[] = [];
-        let token: any | null = null;
+        let token: TokenCacheItem | null = null;
         const isRestrictedToken = apiKey?.startsWith("dub_");
 
         const idOrSlug =
@@ -239,12 +240,8 @@ export const withWorkspace = (
             ? "1 s"
             : "1 m";
 
-          if (token.project?.plan) {
-            const planLimit = getCurrentPlan(token.project?.plan);
-            limit = planLimit.limits[isAnalytics ? "analyticsApi" : "api"];
-          } else {
-            limit = 60; // default rate limit for personal API keys
-          }
+          const planLimit = getRatelimitForPlan(token.project?.plan || "free");
+          limit = planLimit.limits[isAnalytics ? "analyticsApi" : "api"];
 
           const { success, headers } = await rateLimitRequest({
             identifier: `workspace:ratelimit:${hashedKey}`,
@@ -266,7 +263,7 @@ export const withWorkspace = (
           }
 
           // Find workspaceId if it's a restricted token
-          if (isRestrictedToken) {
+          if (isRestrictedToken && token?.projectId) {
             workspaceId = token.projectId;
           }
 
@@ -408,8 +405,8 @@ export const withWorkspace = (
         permissions = getPermissionsByRole(workspace.users[0].role);
 
         // Find the subset of permissions that the user has access to based on the token scopes
-        if (isRestrictedToken) {
-          const tokenScopes: Scope[] = token.scopes.split(" ") || [];
+        if (isRestrictedToken && token?.scopes) {
+          const tokenScopes = (token.scopes.split(" ") as Scope[]) || [];
           permissions = mapScopesToPermissions(tokenScopes).filter((p) =>
             permissions.includes(p),
           );

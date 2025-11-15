@@ -484,7 +484,7 @@ export const PLANS: PlanDetails[] = [
       users: 30,
       ai: 1_000,
       api: 3_000,
-      analyticsApi: 20,
+      analyticsApi: 16,
       retention: "Unlimited",
     },
   },
@@ -568,12 +568,6 @@ export const getPlanDetails = ({
   )!;
 
   return enrichPlanWithTierData(planDetails, planTier);
-};
-
-export const getCurrentPlan = (plan: string) => {
-  return (
-    PLANS.find((p) => p.name.toLowerCase() === plan.toLowerCase()) || FREE_PLAN
-  );
 };
 
 export const getNextPlan = (plan?: string | null) => {

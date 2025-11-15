@@ -2,7 +2,7 @@ import { redis } from "@/lib/upstash";
 import { z } from "zod";
 
 const CACHE_EXPIRATION = 60 * 60 * 24; // 24 hours
-const CACHE_KEY_PREFIX = "tokenCache";
+const CACHE_KEY_PREFIX = "dubTokenCache";
 
 const tokenCacheItemSchema = z.object({
   scopes: z.string().nullish(),
@@ -22,7 +22,7 @@ const tokenCacheItemSchema = z.object({
     .nullish(),
 });
 
-type TokenCacheItem = z.infer<typeof tokenCacheItemSchema>;
+export type TokenCacheItem = z.infer<typeof tokenCacheItemSchema>;
 
 // Cache for restricted tokens (and legacy personal tokens)
 class TokenCache {
