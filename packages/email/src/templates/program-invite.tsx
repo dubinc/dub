@@ -21,7 +21,7 @@ import { Footer } from "../components/footer";
 const markdownCustomStyles: Record<string, CSSProperties> = {
   p: {
     color: "#262626",
-    fontSize: "14px",
+    fontSize: "16px",
     lineHeight: "20px",
     margin: "0 0 16px",
   },
