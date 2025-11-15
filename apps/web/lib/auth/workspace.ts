@@ -21,7 +21,7 @@ import { rateLimitRequest } from "./rate-limit-request";
 import { TokenCacheItem, tokenCache } from "./token-cache";
 import { Session, getSession } from "./utils";
 
-export const RATE_LIMIT_FOR_SESSIONS = {
+const RATE_LIMIT_FOR_SESSIONS = {
   api: {
     limit: 100,
     interval: "1 m",

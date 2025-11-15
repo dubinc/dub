@@ -33,10 +33,10 @@ interface WithPartnerProfileOptions {
   requiredPermission?: Permission;
 }
 
-export const RATE_LIMIT = {
+const RATE_LIMIT_FOR_PARTNERS = {
   api: {
-    limit: 15,
-    interval: "1 s",
+    limit: 100,
+    interval: "1 m",
   },
   analyticsApi: {
     limit: 6,
@@ -82,7 +82,8 @@ export const withPartnerProfile = (
           url.pathname.includes("/analytics") ||
           url.pathname.includes("/events");
 
-        const rateLimit = RATE_LIMIT[isAnalytics ? "analyticsApi" : "api"];
+        const rateLimit =
+          RATE_LIMIT_FOR_PARTNERS[isAnalytics ? "analyticsApi" : "api"];
 
         const { success, headers } = await rateLimitRequest({
           requests: rateLimit.limit,
