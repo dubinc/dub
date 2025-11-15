@@ -5,40 +5,42 @@ import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
 export const GET = withSession(async ({ session }) => {
-  if (session.user.defaultPartnerId) {
-    // if user has a partner account and no paid workspaces
-    // check if they're eligible to view the program marketplace
-    const user = await prisma.user.findUniqueOrThrow({
-      where: {
-        id: session.user.id,
-      },
-      include: {
-        partners: {
-          include: {
-            partner: {
-              include: {
-                programs: true,
-              },
-            },
-          },
-        },
-        projects: {
-          where: {
-            project: {
-              plan: {
-                not: "free",
-              },
+  const user = await prisma.user.findUniqueOrThrow({
+    where: {
+      id: session.user.id,
+    },
+    include: {
+      partners: {
+        include: {
+          partner: {
+            include: {
+              programs: true,
             },
           },
         },
       },
-    });
+      projects: {
+        where: {
+          project: {
+            plan: {
+              not: "free",
+            },
+          },
+        },
+      },
+    },
+  });
+  const paidWorkspaces = user.projects.map((project) => project);
+  // for free users, need to do some extra checks
+  if (!paidWorkspaces || paidWorkspaces.length === 0) {
+    // if the free user has a partner account, they are only eligible if they can view the program marketplace
     const programEnrollments = user.partners[0]?.partner.programs;
-    const paidWorkspaces = user.projects.map((project) => project);
-    if (
-      (!programEnrollments || !partnerCanViewMarketplace(programEnrollments)) &&
-      (!paidWorkspaces || paidWorkspaces.length === 0)
-    ) {
+    if (programEnrollments && !partnerCanViewMarketplace(programEnrollments)) {
+      return NextResponse.json({ publicToken: null });
+    }
+
+    // for regular free users, only allow them to join our referral program after 30 days of account creation
+    if (user.createdAt < new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)) {
       return NextResponse.json({ publicToken: null });
     }
   }
