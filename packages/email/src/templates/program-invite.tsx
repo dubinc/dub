@@ -20,12 +20,12 @@ import { Footer } from "../components/footer";
 
 const markdownCustomStyles: Record<string, CSSProperties> = {
   p: {
-    color: "#525252",
+    color: "#262626",
     fontSize: "14px",
     lineHeight: "20px",
     margin: "0 0 16px",
   },
-  a: {
+  link: {
     fontWeight: "600",
     color: "#000000",
     textDecoration: "underline",

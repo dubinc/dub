@@ -17,7 +17,14 @@ import {
 } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
-import { Dispatch, SetStateAction, useMemo, useRef, useState } from "react";
+import {
+  Dispatch,
+  SetStateAction,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -293,6 +300,16 @@ function EmailPreview({
 
   const displayContent = isEditingEmail ? draftEmailContent : emailContent;
 
+  // Update editor content when switching to edit mode
+  const prevIsEditingEmail = useRef(isEditingEmail);
+  useEffect(() => {
+    if (isEditingEmail && !prevIsEditingEmail.current && richTextRef.current) {
+      richTextRef.current.setContent(draftEmailContent.body);
+    }
+    prevIsEditingEmail.current = isEditingEmail;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isEditingEmail]);
+
   return (
     <div className="mt-6 rounded-lg border border-neutral-200 bg-neutral-50">
       <div className="flex items-center justify-between px-4 py-2">
@@ -388,7 +405,7 @@ function EmailPreview({
                 </label>
                 <div className="mt-1.5">
                   <RichTextProvider
-                    key={`edit-${draftEmailContent.body}`}
+                    key="edit-email-body"
                     ref={richTextRef}
                     features={["bold", "italic", "links"]}
                     markdown
