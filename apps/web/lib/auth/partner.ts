@@ -39,7 +39,7 @@ export const RATE_LIMIT = {
     interval: "1 s",
   },
   analyticsApi: {
-    limit: 5,
+    limit: 6,
     interval: "1 s",
   },
 } as const;

@@ -9,8 +9,8 @@ import {
   PermissionAction,
   getPermissionsByRole,
 } from "../api/rbac/permissions";
-import { throwIfNoAccess } from "../api/tokens/throw-if-no-access";
 import { Scope, mapScopesToPermissions } from "../api/tokens/scopes";
+import { throwIfNoAccess } from "../api/tokens/throw-if-no-access";
 import { normalizeWorkspaceId } from "../api/workspaces/workspace-id";
 import { withAxiomBodyLog } from "../axiom/server";
 import { getFeatureFlags } from "../edge-config";
@@ -26,7 +26,7 @@ export const RATE_LIMIT_FOR_SESSIONS = {
     interval: "1 m",
   },
   analyticsApi: {
-    limit: 10,
+    limit: 8,
     interval: "1 s",
   },
 } as const;
@@ -235,14 +235,15 @@ export const withWorkspace = (
 
           // Rate limit checks for API keys
           let limit = 0;
-          let interval: `${number} s` | `${number} m` = "1 m";
+          let interval: `${number} s` | `${number} m` = isAnalytics
+            ? "1 s"
+            : "1 m";
 
           if (token.project?.plan) {
             const planLimit = getCurrentPlan(token.project?.plan);
             limit = planLimit.limits[isAnalytics ? "analyticsApi" : "api"];
-            interval = isAnalytics ? "1 s" : "1 m";
           } else {
-            limit = 600; // default rate limit for personal API keys
+            limit = 60; // default rate limit for personal API keys
           }
 
           const { success, headers } = await rateLimitRequest({
