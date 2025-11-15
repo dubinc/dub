@@ -22,6 +22,7 @@ model Customer {
   project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
   link        Link?        @relation(fields: [linkId], references: [id])
   commissions Commission[]
+  fraudEvents FraudEvent[]
 
   @@unique([projectId, externalId])
   @@unique([projectConnectId, externalId])

@@ -2,6 +2,7 @@ import { convertCurrency } from "@/lib/analytics/convert-currency";
 import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { DubApiError } from "@/lib/api/errors";
 import { includeTags } from "@/lib/api/links/include-tags";
+import { detectAndRecordFraudEvents } from "@/lib/fraud/detect-record-fraud-events";
 import { generateRandomName } from "@/lib/names";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import { isStored, storage } from "@/lib/storage";
@@ -25,7 +26,7 @@ import {
 } from "@/lib/zod/schemas/sales";
 import { prisma } from "@dub/prisma";
 import { Customer, WorkflowTrigger } from "@dub/prisma/client";
-import { nanoid, R2_URL } from "@dub/utils";
+import { nanoid, pick, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
 import { createId } from "../create-id";
@@ -342,7 +343,7 @@ const _trackLead = async ({
 
       // Create partner commission and execute workflows
       if (link.programId && link.partnerId && customer) {
-        await createPartnerCommission({
+        const { commission, webhookPartner } = await createPartnerCommission({
           event: "lead",
           programId: link.programId,
           partnerId: link.partnerId,
@@ -368,10 +369,26 @@ const _trackLead = async ({
               },
             },
           }),
+
           syncPartnerLinksStats({
             partnerId: link.partnerId,
             programId: link.programId,
             eventType: "lead",
+          }),
+
+          detectAndRecordFraudEvents({
+            program: { id: link.programId },
+            partner: pick(webhookPartner, [
+              "id",
+              "email",
+              "name",
+              "safelistedAt",
+            ]),
+            customer: pick(customer, ["id", "email", "name"]),
+            commission: { id: commission?.id },
+            link: pick(link, ["id"]),
+            click: pick(leadEventData, ["url", "referer"]),
+            event: { id: leadEventData.event_id },
           }),
         ]);
       }
@@ -568,10 +585,26 @@ const _trackSale = async ({
               },
             },
           }),
+
           syncPartnerLinksStats({
             partnerId: link.partnerId,
             programId: link.programId,
             eventType: "sale",
+          }),
+
+          detectAndRecordFraudEvents({
+            program: { id: link.programId },
+            partner: pick(webhookPartner, [
+              "id",
+              "email",
+              "name",
+              "safelistedAt",
+            ]),
+            customer: pick(customer, ["id", "email", "name"]),
+            commission: { id: createdCommission.commission?.id },
+            link: pick(link, ["id"]),
+            click: pick(saleData, ["url", "referer"]),
+            event: { id: saleData.event_id },
           }),
         ]);
       }
