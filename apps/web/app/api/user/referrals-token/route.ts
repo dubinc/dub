@@ -39,8 +39,8 @@ export const GET = withSession(async ({ session }) => {
       return NextResponse.json({ publicToken: null });
     }
 
-    // for regular free users, only allow them to join our referral program after 30 days of account creation
-    if (user.createdAt < new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)) {
+    // for regular free users, don't allow them to join the referral program if they've just joined (within the last 30 days)
+    if (user.createdAt > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)) {
       return NextResponse.json({ publicToken: null });
     }
   }
