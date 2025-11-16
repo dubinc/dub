@@ -1,8 +1,29 @@
 import { LinkProps, RedisLinkProps } from "@/lib/types";
 import { formatRedisLink, redis, redisWithTimeout } from "@/lib/upstash";
+import { LRUCache } from "lru-cache";
 import { decodeKey, isCaseSensitiveDomain } from "./case-sensitivity";
-import { lruCache } from "./lru-link-cache";
 import { ExpandedLink } from "./utils/transform-link";
+
+/*
+ * Link LRU cache to reduce Redis load during traffic spikes.
+ * Max 5000 entries with 3-second TTL.
+ *
+ * In development, we store the cache in globalThis to prevent HMR from resetting it.
+ */
+const globalForLinkLRUCache = globalThis as unknown as {
+  linkLRUCache: LRUCache<string, RedisLinkProps> | undefined;
+};
+
+const linkLRUCache =
+  globalForLinkLRUCache.linkLRUCache ??
+  new LRUCache<string, RedisLinkProps>({
+    max: 5000,
+    ttl: 3000, // 3 seconds
+  });
+
+if (process.env.NODE_ENV !== "production") {
+  globalForLinkLRUCache.linkLRUCache = linkLRUCache;
+}
 
 /*
  * Link cache expiration is set to 24 hours by default for all links.
@@ -43,9 +64,13 @@ class LinkCache {
   async set(link: ExpandedLink) {
     const redisLink = formatRedisLink(link);
     const hasWebhooks = redisLink.webhookIds && redisLink.webhookIds.length > 0;
+    const cacheKey = this._createKey({ domain: link.domain, key: link.key });
+
+    // Update LRU cache immediately to prevent stale reads
+    linkLRUCache.set(cacheKey, redisLink);
 
     return await redis.set(
-      this._createKey({ domain: link.domain, key: link.key }),
+      cacheKey,
       redisLink,
       hasWebhooks ? undefined : { ex: CACHE_EXPIRATION },
     );
@@ -55,7 +80,8 @@ class LinkCache {
     try {
       const cacheKey = `linkcache:${domain}:${key}`;
 
-      let cachedLink = lruCache.get(cacheKey) || null;
+      // Check LRU cache first before hitting Redis
+      let cachedLink = linkLRUCache.get(cacheKey) || null;
 
       if (cachedLink) {
         console.log(`[LRU Cache HIT] ${cacheKey}`);
@@ -74,7 +100,7 @@ class LinkCache {
 
       if (cachedLink) {
         console.log(`[Redis Cache HIT] ${cacheKey} - Populating LRU cache`);
-        lruCache.set(cacheKey, cachedLink);
+        linkLRUCache.set(cacheKey, cachedLink);
       } else {
         console.log(`[Cache MISS] ${cacheKey} - Not found in LRU or Redis`);
       }
