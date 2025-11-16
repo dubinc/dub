@@ -14,9 +14,11 @@ import { useChangeGroupModal } from "@/ui/modals/change-group-modal";
 import { useDeactivatePartnerModal } from "@/ui/modals/deactivate-partner-modal";
 import { useReactivatePartnerModal } from "@/ui/modals/reactivate-partner-modal";
 import { useUnbanPartnerModal } from "@/ui/modals/unban-partner-modal";
+import { useEditPartnerTagsModal } from "@/ui/partners/edit-partner-tags-modal";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
+import { PartnerTagsList } from "@/ui/partners/partner-tags-list";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import {
@@ -41,6 +43,7 @@ import {
   Dots,
   EnvelopeArrowRight,
   LoadingSpinner,
+  Tag,
   Trash,
   UserDelete,
   Users,
@@ -70,6 +73,7 @@ const partnersColumns = {
     "partner",
     "group",
     "createdAt",
+    "tags",
     "status",
     "location",
     "totalClicks",
@@ -89,6 +93,7 @@ const partnersColumns = {
   defaultVisible: [
     "partner",
     "group",
+    "tags",
     "location",
     "totalClicks",
     "totalLeads",
@@ -157,9 +162,18 @@ export function PartnersTable() {
     EnrolledPartnerProps[]
   >([]);
 
+  const [pendingEditTagsPartners, setPendingEditTagsPartners] = useState<
+    EnrolledPartnerProps[]
+  >([]);
+
   const { ChangeGroupModal, setShowChangeGroupModal } = useChangeGroupModal({
     partners: pendingChangeGroupPartners,
   });
+
+  const { EditPartnerTagsModal, setShowEditPartnerTagsModal } =
+    useEditPartnerTagsModal({
+      partners: pendingEditTagsPartners,
+    });
 
   const { columnVisibility, setColumnVisibility } = useColumnVisibility(
     "partners-table-columns-v2",
@@ -216,6 +230,21 @@ export function PartnersTable() {
                 {formatDate(row.original.createdAt, { month: "short" })}
               </span>
             </TimestampTooltip>
+          ),
+        },
+        {
+          id: "tags",
+          header: "Tag",
+          maxSize: 200,
+          cell: ({ row }) => (
+            <PartnerTagsList
+              compact
+              tags={row.original.tags}
+              onAddTag={() => {
+                setPendingEditTagsPartners([row.original]);
+                setShowEditPartnerTagsModal(true);
+              }}
+            />
           ),
         },
         {
@@ -479,6 +508,20 @@ export function PartnersTable() {
             setShowChangeGroupModal(true);
           }}
         />
+        <Button
+          variant="secondary"
+          text="Edit tags"
+          icon={<Tag className="size-3.5 shrink-0" />}
+          className="h-7 w-fit rounded-lg px-2.5"
+          onClick={() => {
+            const partners = table
+              .getSelectedRowModel()
+              .rows.map((row) => row.original);
+
+            setPendingEditTagsPartners(partners);
+            setShowEditPartnerTagsModal(true);
+          }}
+        />
         {/* <Button
           variant="secondary"
           text="Archive"
@@ -520,6 +563,7 @@ export function PartnersTable() {
   return (
     <div className="flex flex-col gap-6">
       <ChangeGroupModal />
+      <EditPartnerTagsModal />
       <div>
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <Filter.Select
@@ -587,6 +631,11 @@ function RowMenuButton({
     partners: [row.original],
   });
 
+  const { EditPartnerTagsModal, setShowEditPartnerTagsModal } =
+    useEditPartnerTagsModal({
+      partners: [row.original],
+    });
+
   const { ArchivePartnerModal, setShowArchivePartnerModal } =
     useArchivePartnerModal({
       partner: row.original,
@@ -638,6 +687,7 @@ function RowMenuButton({
   return (
     <>
       <ChangeGroupModal />
+      <EditPartnerTagsModal />
       <ArchivePartnerModal />
       <BanPartnerModal />
       <UnbanPartnerModal />
@@ -719,6 +769,15 @@ function RowMenuButton({
                       label="Change group"
                       onSelect={() => {
                         setShowChangeGroupModal(true);
+                        setIsOpen(false);
+                      }}
+                    />
+
+                    <MenuItem
+                      icon={Tag}
+                      label="Edit tags"
+                      onSelect={() => {
+                        setShowEditPartnerTagsModal(true);
                         setIsOpen(false);
                       }}
                     />
