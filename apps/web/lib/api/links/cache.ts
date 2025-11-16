@@ -7,23 +7,11 @@ import { ExpandedLink } from "./utils/transform-link";
 /*
  * Link LRU cache to reduce Redis load during traffic spikes.
  * Max 5000 entries with 3-second TTL.
- *
- * In development, we store the cache in globalThis to prevent HMR from resetting it.
  */
-const globalForLinkLRUCache = globalThis as unknown as {
-  linkLRUCache: LRUCache<string, RedisLinkProps> | undefined;
-};
-
-const linkLRUCache =
-  globalForLinkLRUCache.linkLRUCache ??
-  new LRUCache<string, RedisLinkProps>({
-    max: 5000,
-    ttl: 3000, // 3 seconds
-  });
-
-if (process.env.NODE_ENV !== "production") {
-  globalForLinkLRUCache.linkLRUCache = linkLRUCache;
-}
+const linkLRUCache = new LRUCache<string, RedisLinkProps>({
+  max: 5000, // max 5000 entries
+  ttl: 3000, // 3 seconds
+});
 
 /*
  * Link cache expiration is set to 24 hours by default for all links.
