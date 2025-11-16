@@ -6,9 +6,11 @@ import { DubApiError } from "../errors";
 export const getProgramOrThrow = async ({
   workspaceId,
   programId,
+  includeCategories = false,
 }: {
   workspaceId: string;
   programId: string;
+  includeCategories?: boolean;
 }) => {
   const program = await prisma.program.findUnique({
     where: {
@@ -25,5 +27,13 @@ export const getProgramOrThrow = async ({
 
   return ProgramSchema.extend({
     inviteEmailData: programInviteEmailDataSchema,
-  }).parse(program);
+  }).parse(
+    includeCategories
+      ? {
+          ...program,
+          // @ts-ignore conditionally including categories
+          categories: program.categories?.map(({ category }) => category) ?? [],
+        }
+      : program,
+  );
 };

@@ -48,6 +48,7 @@ export type ComboboxProps<
     ? (options: ComboboxOption<TMeta>[]) => void
     : (option: ComboboxOption<TMeta> | null) => void;
   onSelect?: (option: ComboboxOption<TMeta>) => void;
+  maxSelected?: number;
   options?: ComboboxOption<TMeta>[];
   trigger?: ReactNode;
   icon?: Icon | ReactNode;
@@ -88,6 +89,7 @@ export function Combobox({
   selected: selectedProp,
   setSelected,
   onSelect,
+  maxSelected,
   options,
   trigger,
   icon: Icon,
@@ -139,21 +141,25 @@ export function Combobox({
   const [isCreating, setIsCreating] = useState(false);
 
   const handleSelect = (option: ComboboxOption) => {
+    const isAlreadySelected = isMultiple
+      ? selected.some(({ value }) => value === option.value)
+      : selected.length && selected[0]?.value === option.value;
+
+    if (!isAlreadySelected && maxSelected && selected.length >= maxSelected)
+      return;
+
     onSelect?.(option);
 
-    if (!setSelected) return;
-
     if (isMultiple) {
-      const isAlreadySelected = selected.some(
-        ({ value }) => value === option.value,
-      );
+      if (!setSelected) return;
+
       setSelected(
         isAlreadySelected
           ? selected.filter(({ value }) => value !== option.value)
           : [...selected, option],
       );
     } else {
-      setSelected(
+      setSelected?.(
         selected.length && selected[0]?.value === option.value ? null : option,
       );
       setIsOpen(false);
@@ -188,7 +194,7 @@ export function Combobox({
   // Sort options when the options prop changes
   useEffect(() => {
     setShouldSortOptions(true);
-  }, [options]);
+  }, [JSON.stringify(options?.map((o) => o.value))]);
 
   // Reset search and sort options when the popover closes
   useEffect(() => {
@@ -292,19 +298,27 @@ export function Combobox({
               >
                 {sortedOptions !== undefined ? (
                   <>
-                    {sortedOptions.map((option) => (
-                      <Option
-                        key={`${option.label}, ${option.value}`}
-                        option={option}
-                        multiple={isMultiple}
-                        selected={selected.some(
-                          ({ value }) => value === option.value,
-                        )}
-                        onSelect={() => handleSelect(option)}
-                        right={optionRight?.(option)}
-                        className={optionClassName}
-                      />
-                    ))}
+                    {sortedOptions.map((option) => {
+                      const isSelected = selected.some(
+                        ({ value }) => value === option.value,
+                      );
+                      return (
+                        <Option
+                          key={`${option.label}, ${option.value}`}
+                          option={option}
+                          multiple={isMultiple}
+                          selected={isSelected}
+                          onSelect={() => handleSelect(option)}
+                          disabled={Boolean(
+                            !isSelected &&
+                              maxSelected &&
+                              selected.length >= maxSelected,
+                          )}
+                          right={optionRight?.(option)}
+                          className={optionClassName}
+                        />
+                      );
+                    })}
                     {/* for multiple selection, the create option item is shown at the bottom of the list */}
                     {onCreate &&
                       multiple &&
@@ -391,6 +405,7 @@ function Option({
   onSelect,
   multiple,
   selected,
+  disabled,
   right,
   className,
 }: {
@@ -398,6 +413,7 @@ function Option({
   onSelect: () => void;
   multiple: boolean;
   selected: boolean;
+  disabled?: boolean;
   right?: ReactNode;
   className?: string;
 }) {
@@ -408,10 +424,11 @@ function Option({
           className={cn(
             "flex cursor-pointer items-center gap-3 whitespace-nowrap rounded-md px-3 py-2 text-left text-sm",
             "data-[selected=true]:bg-neutral-100",
-            Boolean(option.disabledTooltip) && "cursor-not-allowed opacity-50",
+            Boolean(disabled || option.disabledTooltip) &&
+              "cursor-not-allowed opacity-50",
             className,
           )}
-          disabled={!!option.disabledTooltip}
+          disabled={disabled || !!option.disabledTooltip}
           onSelect={onSelect}
           value={option.label + option?.value}
         >

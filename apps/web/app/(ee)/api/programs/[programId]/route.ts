@@ -7,6 +7,7 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
   const program = await getProgramOrThrow({
     workspaceId: workspace.id,
     programId: params.programId,
+    includeCategories: true,
   });
 
   return NextResponse.json(program);

@@ -1,4 +1,5 @@
 export const PROGRAM_ONBOARDING_PARTNERS_LIMIT = 5;
+export const MAX_PROGRAM_CATEGORIES = 3;
 export const LARGE_PROGRAM_IDS = [
   "prog_CYCu7IMAapjkRpTnr8F1azjN",
   "prog_1K0QHV7MP3PR05CJSCF5VN93X",
