@@ -65,38 +65,37 @@ class LinkCache {
   }
 
   async get({ domain, key }: Pick<LinkProps, "domain" | "key">) {
+    // here we use linkcache:${domain}:${key} instead of this._createKey({ domain, key })
+    // because the key can either be cached as case-sensitive or case-insensitive depending on the domain
+    // so we should get the original key from the cache
+    const cacheKey = `linkcache:${domain}:${key}`;
+
+    // Check LRU cache first before hitting Redis
+    let cachedLink = linkLRUCache.get(cacheKey) || null;
+
+    if (cachedLink) {
+      console.log(`[LRU Cache HIT] ${cacheKey}`);
+      return cachedLink;
+    }
+
+    console.log(`[LRU Cache MISS] ${cacheKey} - Checking Redis...`);
     try {
-      const cacheKey = `linkcache:${domain}:${key}`;
-
-      // Check LRU cache first before hitting Redis
-      let cachedLink = linkLRUCache.get(cacheKey) || null;
-
-      if (cachedLink) {
-        console.log(`[LRU Cache HIT] ${cacheKey}`);
-        return cachedLink;
-      }
-
-      console.log(`[LRU Cache MISS] ${cacheKey} - Checking Redis...`);
-
       // we're using the special redisWithTimeout client in case Redis times out
-      // here we use linkcache:${domain}:${key} instead of this._createKey({ domain, key })
-      // because the key can either be cached as case-sensitive or case-insensitive depending on the domain
-      // so we should get the original key from the cache
-      cachedLink = await redisWithTimeout.get<RedisLinkProps>(
-        `linkcache:${domain}:${key}`,
-      );
+      cachedLink = await redisWithTimeout.get<RedisLinkProps>(cacheKey);
 
       if (cachedLink) {
-        console.log(`[Redis Cache HIT] ${cacheKey} - Populating LRU cache`);
+        console.log(`[Redis Cache HIT] ${cacheKey} - Populating LRU cache...`);
         linkLRUCache.set(cacheKey, cachedLink);
       } else {
-        console.log(`[Cache MISS] ${cacheKey} - Not found in LRU or Redis`);
+        console.log(
+          `[Redis Cache MISS] ${cacheKey} - Not found in LRU or Redis, falling back to MySQL...`,
+        );
       }
 
       return cachedLink;
     } catch (error) {
       console.error(
-        "[LinkCache]: Timeout getting cached link from Redis:",
+        "[LinkCache] – Timeout getting cached link from Redis, falling back to MySQL...",
         error,
       );
 
