@@ -2,11 +2,10 @@ import { redis } from "@/lib/upstash";
 import { z } from "zod";
 
 const CACHE_EXPIRATION = 60 * 60 * 24; // 24 hours
-const CACHE_KEY_PREFIX = "tokenCache";
+const CACHE_KEY_PREFIX = "dubTokenCache";
 
 const tokenCacheItemSchema = z.object({
   scopes: z.string().nullish(),
-  rateLimit: z.number().nullish(),
   projectId: z.string().nullish(),
   expires: z.date().nullish(),
   installationId: z.string().nullish(),
@@ -16,9 +15,14 @@ const tokenCacheItemSchema = z.object({
     email: z.string().nullable(),
     isMachine: z.boolean(),
   }),
+  project: z
+    .object({
+      plan: z.string().nullish(),
+    })
+    .nullish(),
 });
 
-type TokenCacheItem = z.infer<typeof tokenCacheItemSchema>;
+export type TokenCacheItem = z.infer<typeof tokenCacheItemSchema>;
 
 // Cache for restricted tokens (and legacy personal tokens)
 class TokenCache {

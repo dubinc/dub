@@ -30,6 +30,7 @@ export type PlanDetails = {
     users: number;
     ai: number;
     api: number;
+    analyticsApi: number;
     retention: string;
   };
   tiers?: {
@@ -146,6 +147,7 @@ export const PLANS: PlanDetails[] = [
       users: 1,
       ai: 10,
       api: 60,
+      analyticsApi: 1, // per second
       retention: "30-day",
     },
   },
@@ -168,6 +170,7 @@ export const PLANS: PlanDetails[] = [
       users: 3,
       ai: 1_000,
       api: 600,
+      analyticsApi: 2,
       retention: "1-year",
     },
     tiers: {
@@ -256,6 +259,7 @@ export const PLANS: PlanDetails[] = [
       users: 10,
       ai: 1_000,
       api: 1_200,
+      analyticsApi: 4,
       retention: "3-year",
     },
     tiers: {
@@ -363,6 +367,7 @@ export const PLANS: PlanDetails[] = [
       users: 20,
       ai: 1_000,
       api: 3_000,
+      analyticsApi: 8,
       retention: "5-year",
     },
     tiers: {
@@ -479,6 +484,7 @@ export const PLANS: PlanDetails[] = [
       users: 30,
       ai: 1_000,
       api: 3_000,
+      analyticsApi: 16,
       retention: "Unlimited",
     },
   },
@@ -562,12 +568,6 @@ export const getPlanDetails = ({
   )!;
 
   return enrichPlanWithTierData(planDetails, planTier);
-};
-
-export const getCurrentPlan = (plan: string) => {
-  return (
-    PLANS.find((p) => p.name.toLowerCase() === plan.toLowerCase()) || FREE_PLAN
-  );
 };
 
 export const getNextPlan = (plan?: string | null) => {
