@@ -236,12 +236,18 @@ export const withWorkspace = (
 
           // Rate limit checks for API keys
           let limit = 0;
-          let interval: `${number} s` | `${number} m` = isAnalytics
-            ? "1 s"
-            : "1 m";
+          let interval: `${number} s` | `${number} m` =
+            isAnalytics && token.projectId !== "cluh0o00y000211ly4lbh5zm4" // temporary exclusion
+              ? "1 s"
+              : "1 m";
 
           const planLimit = getRatelimitForPlan(token.project?.plan || "free");
-          limit = planLimit.limits[isAnalytics ? "analyticsApi" : "api"];
+          limit =
+            planLimit.limits[
+              isAnalytics && token.projectId !== "cluh0o00y000211ly4lbh5zm4" // temporary exclusion
+                ? "analyticsApi"
+                : "api"
+            ];
 
           const { success, headers } = await rateLimitRequest({
             identifier: `workspace:ratelimit:${hashedKey}`,
