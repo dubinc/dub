@@ -90,6 +90,7 @@
     "json-2-csv": "^5.5.0",
     "jszip": "^3.10.1",
     "linkify-react": "4.3.2",
+    "lru-cache": "^11.2.2",
     "lucide-react": "^0.462.0",
     "luxon": "^3.5.0",
     "motion": "^12.23.22",
