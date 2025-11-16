@@ -35,11 +35,11 @@ interface WithPartnerProfileOptions {
 
 const RATE_LIMIT_FOR_PARTNERS = {
   api: {
-    limit: 100,
+    limit: 600,
     interval: "1 m",
   },
   analyticsApi: {
-    limit: 6,
+    limit: 8,
     interval: "1 s",
   },
 } as const;

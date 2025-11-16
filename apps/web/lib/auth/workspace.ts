@@ -23,7 +23,7 @@ import { Session, getSession } from "./utils";
 
 const RATE_LIMIT_FOR_SESSIONS = {
   api: {
-    limit: 100,
+    limit: 600,
     interval: "1 m",
   },
   analyticsApi: {
