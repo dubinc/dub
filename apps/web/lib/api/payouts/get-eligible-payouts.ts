@@ -143,6 +143,24 @@ export async function getEligiblePayoutsCount({
   selectedPayoutId,
   excludedPayoutIds,
 }: Omit<GetEligiblePayoutsProps, "pageSize" | "page">) {
+  const cutoffPeriodValue = CUTOFF_PERIOD.find(
+    (c) => c.id === cutoffPeriod,
+  )?.value;
+
+  // Requires special re-computing and filtering of payouts, so we just have to fetch all of them
+  if (cutoffPeriodValue)
+    return (
+      await getEligiblePayouts({
+        program,
+        cutoffPeriod,
+        selectedPayoutId,
+        excludedPayoutIds,
+        pageSize: Infinity,
+        page: 1,
+      })
+    ).length;
+
+  // Simple count
   return await prisma.payout.count({
     where: getEligiblePayoutsWhere({
       program,
