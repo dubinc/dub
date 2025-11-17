@@ -8,11 +8,10 @@ import { useCallback, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 
 export function useFraudEventsFilters() {
-  const { searchParamsObj, queryParams } = useRouterStuff();
-
-  const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
+  const { searchParamsObj, queryParams } = useRouterStuff();
+  const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
 
   const { partners } = usePartnerFilterOptions(
     selectedFilter === "partnerId" ? debouncedSearch : "",
