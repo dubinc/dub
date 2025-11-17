@@ -18,7 +18,6 @@ model Payout {
   programId        String
   partnerId        String
   invoiceId        String?
-  userId           String? // user who made the payout
   amount           Int          @default(0)
   currency         String       @default("USD")
   status           PayoutStatus @default(pending)
@@ -33,6 +32,9 @@ model Payout {
   webhookEventId   String?      @unique // only for external payouts
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     @updatedAt
+  
+  userId           String? // user who made the payout
+  initiatedAt      DateTime?
   paidAt           DateTime?
 
   program     Program      @relation(fields: [programId], references: [id])
