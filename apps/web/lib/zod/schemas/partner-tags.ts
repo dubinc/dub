@@ -43,3 +43,8 @@ export const createPartnerTagSchema = z.object({
   workspaceId: z.string(),
   name: z.string(),
 });
+
+export const deletePartnerTagSchema = z.object({
+  workspaceId: z.string(),
+  partnerTagId: z.string(),
+});

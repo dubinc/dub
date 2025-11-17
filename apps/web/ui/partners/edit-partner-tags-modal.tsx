@@ -1,5 +1,6 @@
 import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { createPartnerTagAction } from "@/lib/actions/partners/tags/create-partner-tag";
+import { deletePartnerTagAction } from "@/lib/actions/partners/tags/delete-partner-tag";
 import { updatePartnerTagsAction } from "@/lib/actions/partners/tags/update-partner-tags";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnersCount from "@/lib/swr/use-partners-count";
@@ -11,9 +12,12 @@ import {
   Button,
   Checkbox,
   LoadingSpinner,
+  MenuItem,
   Modal,
   Plus2,
+  Popover,
   Tag,
+  Trash,
   useMediaQuery,
   Users,
   useScrollProgress,
@@ -36,7 +40,7 @@ import { useDebounce } from "use-debounce";
 import { ThreeDots } from "../shared/icons";
 
 const itemClassName =
-  "group/button flex h-10 cursor-pointer items-center justify-between gap-4 rounded-lg px-2.5 data-[selected=true]:active:bg-black/5 data-[selected=true]:bg-black/[0.03]";
+  "group/button flex h-10 cursor-pointer items-center justify-between gap-4 rounded-lg px-2.5 data-[selected=true]:bg-black/[0.03]";
 
 type EditPartnerTagsModalProps = {
   showEditPartnerTagsModal: boolean;
@@ -248,7 +252,7 @@ function EditPartnerTagsModalContent({
                         className={cn(
                           itemClassName,
                           "justify-start",
-                          isCreatingPartnerTag && "bg-black/5",
+                          isCreatingPartnerTag && "bg-black/[0.03]",
                         )}
                         onSelect={() =>
                           createPartnerTag({
@@ -370,7 +374,22 @@ function TagOption({
   checked: boolean | "indeterminate";
   onCheckedChange: (checked: boolean | "indeterminate") => void;
 }) {
+  const { id: workspaceId } = useWorkspace();
+
+  const { executeAsync: deletePartnerTag, isPending: isDeletingPartnerTag } =
+    useAction(deletePartnerTagAction, {
+      onSuccess: () => {
+        toast.success("Partner tag deleted successfully!");
+        mutatePrefix("/api/partners");
+      },
+      onError: ({ error }) => {
+        toast.error(parseActionError(error, "Failed to delete partner tag"));
+      },
+    });
+
   const checkboxRef = useRef<HTMLButtonElement>(null);
+
+  const [openPopover, setOpenPopover] = useState(false);
 
   return (
     <Command.Item
@@ -408,15 +427,46 @@ function TagOption({
           </div>
         )}
 
-        <Button
-          variant="outline"
-          icon={<ThreeDots className="size-4" />}
-          className="size-7 rounded-lg p-0 hover:bg-black/5 active:bg-black/10"
-          onClick={(e) => {
-            e.stopPropagation();
-            toast.info("WIP");
-          }}
-        />
+        <Popover
+          content={
+            <div className="flex min-w-32 flex-col gap-1 p-1">
+              <MenuItem
+                variant="danger"
+                onClick={(e) => {
+                  e.stopPropagation();
+
+                  if (
+                    !window.confirm(
+                      "Are you sure you want to delete this partner tag? This action cannot be undone.",
+                    )
+                  )
+                    return;
+
+                  deletePartnerTag({
+                    workspaceId: workspaceId!,
+                    partnerTagId: tag.id,
+                  });
+                }}
+                icon={<Trash className="size-4" />}
+              >
+                Delete
+              </MenuItem>
+            </div>
+          }
+          align="end"
+          openPopover={openPopover}
+          setOpenPopover={setOpenPopover}
+        >
+          <Button
+            variant="outline"
+            icon={<ThreeDots className="size-4" />}
+            className="size-7 rounded-lg p-0 hover:bg-black/5 active:bg-black/10 disabled:border-transparent"
+            loading={isDeletingPartnerTag}
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
+          />
+        </Popover>
       </div>
     </Command.Item>
   );
