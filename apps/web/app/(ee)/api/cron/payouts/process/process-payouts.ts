@@ -283,6 +283,7 @@ export async function processPayouts({
         invoiceId: invoice.id,
         status: "processing",
         userId,
+        initiatedAt: new Date(),
         mode: "internal",
       },
     });
@@ -300,6 +301,7 @@ export async function processPayouts({
         invoiceId: invoice.id,
         status: "processing",
         userId,
+        initiatedAt: new Date(),
         mode: "external",
       },
     });
@@ -351,8 +353,9 @@ export async function processPayouts({
             ...payout,
             invoiceId: invoice.id,
             status: "processing",
-            mode: externalPayoutsMap.has(payout.id) ? "external" : "internal",
             userId,
+            initiatedAt: new Date(),
+            mode: externalPayoutsMap.has(payout.id) ? "external" : "internal",
           },
         },
       ],
@@ -371,7 +374,7 @@ export async function processPayouts({
         .filter((payout) => payout.partner.email)
         .map((payout) => ({
           to: payout.partner.email!,
-          subject: "You've got money coming your way!",
+          subject: `Your ${currencyFormatter(payout.amount)} payout for ${program.name} is on the way`,
           variant: "notifications",
           replyTo: program.supportEmail || "noreply",
           templateName: "PartnerPayoutConfirmed",

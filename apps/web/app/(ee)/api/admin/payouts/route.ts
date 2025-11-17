@@ -1,10 +1,13 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { withAdmin } from "@/lib/auth";
 import { sqlGranularityMap } from "@/lib/planetscale/granularity";
+import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { prisma } from "@dub/prisma";
+import { InvoiceStatus, Prisma } from "@dub/prisma/client";
 import { ACME_PROGRAM_ID } from "@dub/utils";
 import { DateTime } from "luxon";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 interface TimeseriesPoint {
   payouts: number;
@@ -16,8 +19,21 @@ interface FormattedTimeseriesPoint extends TimeseriesPoint {
   date: Date;
 }
 
+const adminPayoutsQuerySchema = z
+  .object({
+    programId: z.string().optional(),
+    status: z.nativeEnum(InvoiceStatus).optional(),
+  })
+  .merge(analyticsQuerySchema.pick({ interval: true, start: true, end: true }));
+
 export const GET = withAdmin(async ({ searchParams }) => {
-  const { interval = "mtd", start, end } = searchParams;
+  const {
+    programId,
+    status,
+    interval = "mtd",
+    start,
+    end,
+  } = adminPayoutsQuerySchema.parse(searchParams);
 
   let { startDate, endDate, granularity } = getStartEndDates({
     interval,
@@ -42,19 +58,23 @@ export const GET = withAdmin(async ({ searchParams }) => {
   // Fetch invoices
   const invoices = await prisma.invoice.findMany({
     where: {
-      AND: [
-        {
-          programId: {
-            not: ACME_PROGRAM_ID,
-          },
-        },
-        {
-          program: {
-            isNot: null,
-          },
-        },
-      ],
-      status: {
+      ...(programId
+        ? { programId }
+        : {
+            AND: [
+              {
+                programId: {
+                  not: ACME_PROGRAM_ID,
+                },
+              },
+              {
+                program: {
+                  isNot: null,
+                },
+              },
+            ],
+          }),
+      status: status || {
         not: "failed",
       },
       createdAt: {
@@ -89,8 +109,8 @@ export const GET = withAdmin(async ({ searchParams }) => {
       SUM(total) as total
     FROM Invoice
     WHERE 
-      programId != ${ACME_PROGRAM_ID}
-      AND status != 'failed'
+      ${programId ? Prisma.sql`programId = ${programId}` : Prisma.sql`programId != ${ACME_PROGRAM_ID}`}
+      AND ${status ? Prisma.sql`status = ${status}` : Prisma.sql`status != 'failed'`}
       AND createdAt >= ${startDate}
       AND createdAt <= ${endDate}
     GROUP BY DATE_FORMAT(CONVERT_TZ(createdAt, "UTC", ${timezone}), ${dateFormat})
@@ -100,6 +120,7 @@ export const GET = withAdmin(async ({ searchParams }) => {
   const formattedInvoices = invoices.map((invoice) => ({
     date: invoice.createdAt,
     // we're coercing this cause we've filtered out invoices without a programId above
+    programId: invoice.programId!,
     programName: invoice.program!.name,
     programLogo: invoice.program!.logo,
     status: invoice.status,

@@ -1,4 +1,7 @@
-import { queueDomainUpdate } from "@/lib/api/domains/queue-domain-update";
+import {
+  linkDomainUpdateSchema,
+  queueDomainUpdate,
+} from "@/lib/api/domains/queue-domain-update";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
 import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
@@ -8,22 +11,24 @@ import { recordLink } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
 import { Link } from "@dub/prisma/client";
 import { linkConstructorSimple } from "@dub/utils";
-import { z } from "zod";
+import { logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";
 
-const schema = z.object({
-  newDomain: z.string(),
-  oldDomain: z.string(),
-});
+const LINK_BATCH_SIZE = 100;
 
 // POST /api/cron/domains/update
 export async function POST(req: Request) {
   try {
     const rawBody = await req.text();
-    await verifyQstashSignature({ req, rawBody });
 
-    const { newDomain, oldDomain } = schema.parse(JSON.parse(rawBody));
+    await verifyQstashSignature({
+      req,
+      rawBody,
+    });
+
+    const payload = linkDomainUpdateSchema.parse(JSON.parse(rawBody));
+    const { newDomain, oldDomain, programId, startingAfter } = payload;
 
     const newDomainRecord = await prisma.domain.findUnique({
       where: {
@@ -32,35 +37,48 @@ export async function POST(req: Request) {
     });
 
     if (!newDomainRecord) {
-      return new Response(`Domain ${newDomain} not found. Skipping update...`);
+      return logAndRespond(`Domain ${newDomain} not found. Skipping...`);
     }
 
     const linksToUpdate = await prisma.link.findMany({
       where: {
         domain: oldDomain,
+        ...(programId && { programId }),
       },
-      take: 100,
+      take: LINK_BATCH_SIZE,
+      ...(startingAfter && {
+        skip: 1,
+        cursor: {
+          id: startingAfter,
+        },
+      }),
       orderBy: {
-        createdAt: "desc",
+        id: "asc",
       },
     });
 
     if (linksToUpdate.length === 0) {
-      return new Response("No more links to update. Exiting...");
+      return logAndRespond(
+        `No more links to update for domain ${oldDomain}. Exiting...`,
+      );
     }
 
     const linkIdsToUpdate = linksToUpdate.map((link) => link.id);
 
-    await prisma.link.updateMany({
-      where: {
-        id: {
-          in: linkIdsToUpdate,
+    try {
+      await prisma.link.updateMany({
+        where: {
+          id: {
+            in: linkIdsToUpdate,
+          },
         },
-      },
-      data: {
-        domain: newDomain,
-      },
-    });
+        data: {
+          domain: newDomain,
+        },
+      });
+    } catch (error) {
+      console.error(error);
+    }
 
     const updatedLinks = await prisma.link.findMany({
       where: {
@@ -83,13 +101,17 @@ export async function POST(req: Request) {
       linkCache.expireMany(linksToUpdate),
     ]);
 
-    await queueDomainUpdate({
-      newDomain,
-      oldDomain,
+    const response = await queueDomainUpdate({
+      ...payload,
+      startingAfter: linksToUpdate[linksToUpdate.length - 1].id,
       delay: 1,
     });
 
-    return new Response("Domain's links updated.");
+    if (response.messageId) {
+      return logAndRespond(`Scheduled next batch ${response.messageId}.`);
+    } else {
+      return logAndRespond("Error scheduling next batch.");
+    }
   } catch (error) {
     return handleAndReturnErrorResponse(error);
   }

@@ -10,7 +10,7 @@ import { sendEmail } from "@dub/email";
 import APIKeyCreated from "@dub/email/templates/api-key-created";
 import { prisma } from "@dub/prisma";
 import { Prisma, User } from "@dub/prisma/client";
-import { getCurrentPlan, nanoid } from "@dub/utils";
+import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -150,7 +150,6 @@ export const POST = withWorkspace(
             partialKey,
             userId: isMachine ? machineUser?.id! : session.user.id,
             projectId: workspace.id,
-            rateLimit: getCurrentPlan(workspace.plan).limits.api,
             scopes:
               scopes && scopes.length > 0
                 ? [...new Set(scopes)].join(" ")

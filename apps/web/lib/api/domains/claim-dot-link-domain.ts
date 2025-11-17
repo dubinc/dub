@@ -3,7 +3,6 @@ import { createLink } from "@/lib/api/links";
 import { registerDomain } from "@/lib/dynadot/register-domain";
 import { WorkspaceWithUsers } from "@/lib/types";
 import { sendBatchEmail } from "@dub/email";
-import { ResendBulkEmailOptions } from "@dub/email/resend/types";
 import DomainClaimed from "@dub/email/templates/domain-claimed";
 import { prisma } from "@dub/prisma";
 import { DEFAULT_LINK_PROPS } from "@dub/utils";
@@ -175,9 +174,8 @@ export const sendDomainClaimedEmails = async ({
     },
   });
 
-  const emails: ResendBulkEmailOptions = workspaceWithOwner.users
-    .filter(({ user }) => user.email)
-    .map(({ user }) => ({
+  return await sendBatchEmail(
+    workspaceWithOwner.users.map(({ user }) => ({
       variant: "notifications",
       to: user.email!,
       subject: "Successfully claimed your .link domain!",
@@ -186,11 +184,6 @@ export const sendDomainClaimedEmails = async ({
         domain,
         workspaceSlug: workspace.slug,
       }),
-    }));
-
-  if (emails.length > 0) {
-    return await sendBatchEmail(emails);
-  }
-
-  return null;
+    })),
+  );
 };

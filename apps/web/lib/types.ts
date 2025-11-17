@@ -98,6 +98,7 @@ import {
   programApplicationFormFieldWithValuesSchema,
   programApplicationFormSchema,
 } from "./zod/schemas/program-application-form";
+import { programInviteEmailDataSchema } from "./zod/schemas/program-invite-email";
 import { programLanderSchema } from "./zod/schemas/program-lander";
 import { programDataSchema } from "./zod/schemas/program-onboarding";
 import {
@@ -467,6 +468,10 @@ export type DiscountProps = z.infer<typeof DiscountSchema>;
 export type DiscountCodeProps = z.infer<typeof DiscountCodeSchema>;
 
 export type ProgramProps = z.infer<typeof ProgramSchema>;
+
+export type ProgramInviteEmailData = z.infer<
+  typeof programInviteEmailDataSchema
+>;
 
 export type ProgramLanderData = z.infer<typeof programLanderSchema>;
 

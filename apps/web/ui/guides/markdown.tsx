@@ -1,4 +1,4 @@
-import { Copy } from "@dub/ui";
+import { Check, Copy, useCopyToClipboard } from "@dub/ui";
 import { cn } from "@dub/utils";
 import ReactMarkdown from "react-markdown";
 import "react-medium-image-zoom/dist/styles.css";
@@ -15,6 +15,9 @@ export function GuidesMarkdown({
   className?: string;
   components?: any;
 }) {
+  // Remove HTML comments from markdown before rendering
+  const filteredMarkdown = children.replace(/<!--[\s\S]*?-->/g, "");
+
   return (
     <ReactMarkdown
       className={cn(
@@ -25,7 +28,7 @@ export function GuidesMarkdown({
         "prose-h3:text-lg prose-h3:font-semibold prose-h3:mt-4 prose-h3:mb-2",
         "prose-h4:text-base prose-h4:font-semibold prose-h4:mt-3 prose-h4:mb-1",
         "prose-p:text-gray-700 prose-p:leading-6 prose-p:mb-4",
-        "prose-a:text-neutral-600 prose-a:font-medium prose-a:underline prose-a:underline-offset-2 hover:prose-a:text-neutral-700",
+        "prose-a:text-neutral-600 prose-a:font-medium prose-a:underline prose-a:cursor-help prose-a:decoration-dotted prose-a:underline-offset-2 hover:prose-a:text-neutral-700",
         "prose-strong:text-gray-900 prose-strong:font-semibold",
         "prose-em:text-gray-700 prose-em:italic",
         "prose-code:text-gray-800 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-xs prose-code:font-mono",
@@ -49,6 +52,7 @@ export function GuidesMarkdown({
         img: ({ node, ...props }) => <ZoomImage {...props} />,
         pre: ({ node, ...props }) => {
           const code = (node?.children?.[0] as any)?.children?.[0]?.value;
+          const [copied, copyToClipboard] = useCopyToClipboard();
           return code ? (
             <div className="relative">
               <pre {...props}>
@@ -56,7 +60,7 @@ export function GuidesMarkdown({
                   type="button"
                   onClick={async () => {
                     try {
-                      await navigator.clipboard.writeText(code);
+                      await copyToClipboard(code);
                       toast.success("Copied to clipboard");
                     } catch (error) {
                       console.error("Failed to copy: ", error);
@@ -65,7 +69,11 @@ export function GuidesMarkdown({
                   }}
                   className="border-border-subtle text-content-default absolute right-2 top-2 flex size-7 items-center justify-center rounded-lg border bg-white transition-transform duration-100 active:scale-95"
                 >
-                  <Copy />
+                  {copied ? (
+                    <Check className="size-3.5" />
+                  ) : (
+                    <Copy className="size-3.5" />
+                  )}
                 </button>
                 {props.children}
               </pre>
@@ -78,7 +86,7 @@ export function GuidesMarkdown({
       }}
       remarkPlugins={[remarkGfm] as any}
     >
-      {children}
+      {filteredMarkdown}
     </ReactMarkdown>
   );
 }

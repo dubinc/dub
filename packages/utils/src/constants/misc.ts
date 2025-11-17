@@ -28,7 +28,7 @@ export const GOOGLE_FAVICON_URL =
 
 export const OG_AVATAR_URL = "https://api.dub.co/og/avatar/";
 
-export const PAGINATION_LIMIT = 100;
+export const DEFAULT_PAGINATION_LIMIT = 100;
 
 export const TWO_WEEKS_IN_SECONDS = 60 * 60 * 24 * 14;
 

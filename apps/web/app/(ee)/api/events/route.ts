@@ -72,6 +72,7 @@ export const GET = withWorkspace(
           userId: session.user.id,
         });
 
+    console.time("getEvents");
     const response = await getEvents({
       ...parsedParams,
       event,
@@ -80,6 +81,7 @@ export const GET = withWorkspace(
       folderIds,
       folderId: folderId || "",
     });
+    console.timeEnd("getEvents");
 
     return NextResponse.json(response);
   },

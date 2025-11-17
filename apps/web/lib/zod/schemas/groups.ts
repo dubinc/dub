@@ -85,6 +85,7 @@ export const GroupSchemaExtended = GroupSchema.extend({
 });
 
 export const createOrUpdateDefaultLinkSchema = z.object({
+  domain: z.string().toLowerCase(),
   url: parseUrlSchema,
 });
 

@@ -2,9 +2,11 @@ import { prisma } from "@dub/prisma";
 import { ACME_PROGRAM_ID } from "@dub/utils";
 
 export async function getTopProgramsByCommissions({
+  programId,
   startDate,
   endDate,
 }: {
+  programId?: string;
   startDate: Date;
   endDate: Date;
 }) {
@@ -14,7 +16,7 @@ export async function getTopProgramsByCommissions({
       earnings: true,
     },
     where: {
-      programId: {
+      programId: programId || {
         not: ACME_PROGRAM_ID,
       },
       createdAt: {
