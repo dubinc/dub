@@ -1,4 +1,7 @@
-import { PAYOUTS_SHEET_ITEMS_LIMIT } from "@/lib/constants/payouts";
+import {
+  INVOICE_AVAILABLE_PAYOUT_STATUSES,
+  PAYOUTS_SHEET_ITEMS_LIMIT,
+} from "@/lib/constants/payouts";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CommissionResponse, PayoutResponse } from "@/lib/types";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
@@ -7,13 +10,18 @@ import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { ConditionalLink } from "@/ui/shared/conditional-link";
 import { X } from "@/ui/shared/icons";
+import { PayoutStatus } from "@dub/prisma/client";
 import {
   Button,
   buttonVariants,
+  CircleArrowRight,
+  InvoiceDollar,
   LoadingSpinner,
   Sheet,
   StatusBadge,
   Table,
+  TimestampTooltip,
+  Tooltip,
   useRouterStuff,
   useTable,
 } from "@dub/ui";
@@ -24,6 +32,7 @@ import {
   currencyFormatter,
   fetcher,
   formatDateTime,
+  formatDateTimeSmart,
   OG_AVATAR_URL,
   pluralize,
 } from "@dub/utils";
@@ -83,7 +92,67 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
         </StatusBadge>
       ),
 
-      Total: currencyFormatter(payout.amount),
+      Initiated: payout.initiatedAt ? (
+        <TimestampTooltip
+          timestamp={payout.initiatedAt}
+          side="right"
+          rows={["local", "utc"]}
+        >
+          <span className="hover:text-content-emphasis underline decoration-dotted underline-offset-2">
+            {formatDateTimeSmart(payout.initiatedAt)}
+          </span>
+        </TimestampTooltip>
+      ) : (
+        "-"
+      ),
+
+      Paid: payout.paidAt ? (
+        <TimestampTooltip
+          timestamp={payout.paidAt}
+          side="right"
+          rows={["local", "utc"]}
+        >
+          <span className="hover:text-content-emphasis underline decoration-dotted underline-offset-2">
+            {formatDateTimeSmart(payout.paidAt)}
+          </span>
+        </TimestampTooltip>
+      ) : (
+        "-"
+      ),
+
+      Amount: (
+        <div className="flex items-center gap-2">
+          <strong>{currencyFormatter(payout.amount)}</strong>
+
+          {payout.mode === "external" && (
+            <Tooltip
+              content={
+                payout.status === PayoutStatus.pending
+                  ? `This payout will be made externally through the partner's account after approval.`
+                  : `This payout was made externally through the partner's account.`
+              }
+            >
+              <CircleArrowRight className="size-3.5 shrink-0 text-neutral-500" />
+            </Tooltip>
+          )}
+
+          {payout.mode === "internal" &&
+            INVOICE_AVAILABLE_PAYOUT_STATUSES.includes(payout.status) && (
+              <Tooltip content="View invoice">
+                <div className="flex h-5 w-5 items-center justify-center rounded-md transition-colors duration-150 hover:border hover:border-neutral-200 hover:bg-neutral-100">
+                  <Link
+                    href={`${APP_DOMAIN}/invoices/${payout.invoiceId || payout.id}`}
+                    className="text-neutral-700"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <InvoiceDollar className="size-4" />
+                  </Link>
+                </div>
+              </Tooltip>
+            )}
+        </div>
+      ),
 
       ...(payout.invoiceId && {
         Invoice: (
@@ -98,7 +167,7 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
 
       Description: payout.description || "-",
     };
-  }, [payout]);
+  }, [payout, slug]);
 
   const commissionsTable = useTable({
     data:
@@ -200,19 +269,21 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-neutral-200 bg-white px-6 py-4">
-        <Sheet.Title className="text-lg font-semibold">
-          {capitalize(payout.status)} payout
-        </Sheet.Title>
-        <Sheet.Close asChild>
-          <Button
-            variant="outline"
-            icon={<X className="size-5" />}
-            className="h-auto w-fit p-1"
-          />
-        </Sheet.Close>
+      <div className="sticky top-0 z-10 border-b border-neutral-200 bg-white">
+        <div className="flex h-16 items-center justify-between px-6 py-4">
+          <Sheet.Title className="text-lg font-semibold">
+            {capitalize(payout.status)} payout
+          </Sheet.Title>
+          <Sheet.Close asChild>
+            <Button
+              variant="outline"
+              icon={<X className="size-5" />}
+              className="h-auto w-fit p-1"
+            />
+          </Sheet.Close>
+        </div>
       </div>
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex grow flex-col">
         <div className="flex flex-col gap-4 p-6">
           <div className="text-base font-medium text-neutral-900">
             Invoice details
@@ -246,26 +317,27 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
         ) : null}
       </div>
 
-      {/* Always render the sticky bottom section */}
-      <div className="sticky bottom-0 z-10 flex justify-end border-t border-neutral-200 bg-white px-6 py-4">
-        {payout.status === "pending" ? (
-          <Button
-            type="button"
-            text="Confirm payout"
-            onClick={() => {
-              queryParams({
-                set: {
-                  confirmPayouts: "true",
-                  selectedPayoutId: payout.id,
-                },
-                del: "payoutId",
-                scroll: false,
-              });
-            }}
-          />
-        ) : (
-          <ViewAllPayoutsLink />
-        )}
+      <div className="sticky bottom-0 z-10 border-t border-neutral-200 bg-white">
+        <div className="flex items-center justify-between gap-2 p-5">
+          {payout.status === "pending" ? (
+            <Button
+              type="button"
+              text="Confirm payout"
+              onClick={() => {
+                queryParams({
+                  set: {
+                    confirmPayouts: "true",
+                    selectedPayoutId: payout.id,
+                  },
+                  del: "payoutId",
+                  scroll: false,
+                });
+              }}
+            />
+          ) : (
+            <ViewAllPayoutsLink />
+          )}
+        </div>
       </div>
     </div>
   );

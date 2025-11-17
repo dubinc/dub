@@ -60,6 +60,7 @@ export const PayoutSchema = z.object({
   periodStart: z.date().nullable(),
   periodEnd: z.date().nullable(),
   createdAt: z.date(),
+  initiatedAt: z.date().nullable(),
   paidAt: z.date().nullable(),
   failureReason: z.string().nullish(),
   mode: z.nativeEnum(PayoutMode).nullable(),
