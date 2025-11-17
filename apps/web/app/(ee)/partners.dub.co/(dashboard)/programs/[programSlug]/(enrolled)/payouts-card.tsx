@@ -5,8 +5,8 @@ import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import { PartnerPayoutResponse } from "@/lib/types";
 import { PayoutStatusBadgePartner } from "@/ui/partners/payout-status-badge-partner";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
-import { CircleWarning, MoneyBills2 } from "@dub/ui";
-import { currencyFormatter, formatPeriod } from "@dub/utils";
+import { CircleWarning, MoneyBills2, TimestampTooltip } from "@dub/ui";
+import { currencyFormatter, formatDateSmart, formatPeriod } from "@dub/utils";
 import Link from "next/link";
 import { useState } from "react";
 import { PayoutDetailsSheet } from "../../../payouts/partner-payout-details-sheet";
@@ -67,7 +67,35 @@ export function PayoutsCard({ programId }: { programId?: string }) {
                         {currencyFormatter(payout.amount)}
                       </span>
                       <span className="text-[0.7rem] text-neutral-500">
-                        {formatPeriod(payout)}
+                        {payout.paidAt ? (
+                          <TimestampTooltip
+                            timestamp={payout.paidAt}
+                            side="right"
+                            rows={["local", "utc"]}
+                          >
+                            <span className="hover:text-content-emphasis underline decoration-dotted underline-offset-2">
+                              Paid at{" "}
+                              {formatDateSmart(payout.paidAt, {
+                                month: "short",
+                              })}
+                            </span>
+                          </TimestampTooltip>
+                        ) : payout.initiatedAt ? (
+                          <TimestampTooltip
+                            timestamp={payout.initiatedAt}
+                            side="right"
+                            rows={["local", "utc"]}
+                          >
+                            <span className="hover:text-content-emphasis underline decoration-dotted underline-offset-2">
+                              Initiated at{" "}
+                              {formatDateSmart(payout.initiatedAt, {
+                                month: "short",
+                              })}
+                            </span>
+                          </TimestampTooltip>
+                        ) : (
+                          formatPeriod(payout)
+                        )}
                       </span>
                     </div>
                     <PayoutStatusBadgePartner

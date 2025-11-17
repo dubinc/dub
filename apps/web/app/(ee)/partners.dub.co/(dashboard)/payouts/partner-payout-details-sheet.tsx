@@ -18,6 +18,7 @@ import {
   Sheet,
   StatusBadge,
   Table,
+  TimestampTooltip,
   Tooltip,
   useRouterStuff,
   useTable,
@@ -27,6 +28,7 @@ import {
   currencyFormatter,
   fetcher,
   formatDateTime,
+  formatDateTimeSmart,
   OG_AVATAR_URL,
   pluralize,
 } from "@dub/utils";
@@ -80,6 +82,34 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
         <StatusBadge variant={statusBadge.variant} icon={statusBadge.icon}>
           {statusBadge.label}
         </StatusBadge>
+      ),
+
+      Initiated: payout.initiatedAt ? (
+        <TimestampTooltip
+          timestamp={payout.initiatedAt}
+          side="right"
+          rows={["local", "utc"]}
+        >
+          <span className="hover:text-content-emphasis underline decoration-dotted underline-offset-2">
+            {formatDateTimeSmart(payout.initiatedAt)}
+          </span>
+        </TimestampTooltip>
+      ) : (
+        "-"
+      ),
+
+      Paid: payout.paidAt ? (
+        <TimestampTooltip
+          timestamp={payout.paidAt}
+          side="right"
+          rows={["local", "utc"]}
+        >
+          <span className="hover:text-content-emphasis underline decoration-dotted underline-offset-2">
+            {formatDateTimeSmart(payout.paidAt)}
+          </span>
+        </TimestampTooltip>
+      ) : (
+        "-"
       ),
 
       Amount: (
@@ -215,7 +245,21 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
             {Object.entries(invoiceData).map(([key, value]) => (
               <Fragment key={key}>
                 <div className="flex items-center font-medium text-neutral-500">
-                  {key}
+                  {key === "Initiated" ? (
+                    <Tooltip content="Date and time when the payout was initiated by the program. Payouts usually take up to 5 business days to be fully processed.">
+                      <span className="cursor-help underline decoration-dotted underline-offset-2">
+                        {key}
+                      </span>
+                    </Tooltip>
+                  ) : key === "Paid" ? (
+                    <Tooltip content="Date and time when the payout was fully processed by the program and paid to your account.">
+                      <span className="cursor-help underline decoration-dotted underline-offset-2">
+                        {key}
+                      </span>
+                    </Tooltip>
+                  ) : (
+                    key
+                  )}
                 </div>
                 <div className="text-neutral-800">{value}</div>
               </Fragment>
