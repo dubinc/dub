@@ -1,10 +1,8 @@
 "use client";
 
 import { FRAUD_RULE_MAP } from "@/lib/fraud/constants";
-import { mutatePrefix } from "@/lib/swr/mutate";
 import { useFraudEvents } from "@/lib/swr/use-fraud-events";
 import { useFraudEventsCount } from "@/lib/swr/use-fraud-events-count";
-import useWorkspace from "@/lib/swr/use-workspace";
 import { FraudEventProps } from "@/lib/types";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
@@ -28,7 +26,6 @@ import { cn, currencyFormatter, formatDateTimeSmart } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { useMemo, useState } from "react";
-import { toast } from "sonner";
 import { useResolveFraudEventModal } from "./resolve-fraud-event-modal";
 import { useFraudEventsFilters } from "./use-fraud-events-filters";
 
@@ -257,48 +254,15 @@ export function FraudEventsTable() {
 
 function RowMenuButton({ row }: { row: Row<FraudEventProps> }) {
   const [isOpen, setIsOpen] = useState(false);
-  const event = row.original;
-  const { id: workspaceId } = useWorkspace();
+
+  const fraudEvent = row.original;
 
   const { setShowResolveFraudEventModal, ResolveFraudEventModal } =
     useResolveFraudEventModal({
-      fraudEvent: {
-        id: event.id,
-        partner: event.partner,
-      },
+      fraudEvent,
     });
 
-  const handleResolve = async (status: "banned") => {
-    if (!workspaceId) {
-      toast.error("Workspace ID is required");
-      return;
-    }
-
-    try {
-      const response = await fetch(
-        `/api/fraud-events/${event.id}/resolve?workspaceId=${workspaceId}`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ status }),
-        },
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to resolve fraud event");
-      }
-
-      toast.success("Fraud event marked as banned");
-      mutatePrefix("/api/fraud-events");
-      setIsOpen(false);
-    } catch (error) {
-      toast.error("Failed to resolve fraud event");
-    }
-  };
-
-  if (event.status !== "pending") {
+  if (fraudEvent.status !== "pending") {
     return null;
   }
 
@@ -324,7 +288,7 @@ function RowMenuButton({ row }: { row: Row<FraudEventProps> }) {
                 <MenuItem
                   icon={CircleXmark}
                   label="Ban partner"
-                  onSelect={() => handleResolve("banned")}
+                  onSelect={() => {}}
                   variant="danger"
                 />
               </Command.Group>

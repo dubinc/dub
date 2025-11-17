@@ -1,10 +1,14 @@
 "use client";
 
+import { resolveFraudEventAction } from "@/lib/actions/fraud/resolve-fraud-events";
 import { mutatePrefix } from "@/lib/swr/mutate";
-import { useApiMutation } from "@/lib/swr/use-api-mutation";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { FraudEventProps } from "@/lib/types";
+import { MAX_RESOLUTION_REASON_LENGTH } from "@/lib/zod/schemas/fraud";
+import { MaxCharactersCounter } from "@/ui/shared/max-characters-counter";
 import { Button, Modal } from "@dub/ui";
-import { cn } from "@dub/utils";
+import { cn, OG_AVATAR_URL } from "@dub/utils";
+import { useAction } from "next-safe-action/hooks";
 import {
   Dispatch,
   SetStateAction,
@@ -26,13 +30,26 @@ function ResolveFraudEventModal({
 }: {
   showResolveFraudEventModal: boolean;
   setShowResolveFraudEventModal: Dispatch<SetStateAction<boolean>>;
-  fraudEvent: Pick<FraudEventProps, "id" | "partner">;
+  fraudEvent: Pick<FraudEventProps, "id" | "partner" | "type">;
 }) {
-  const { makeRequest: resolveFraudEvent, isSubmitting } = useApiMutation();
+  const { id: workspaceId } = useWorkspace();
+
+  const { executeAsync, isPending } = useAction(resolveFraudEventAction, {
+    onSuccess: () => {
+      toast.success("Fraud event resolved.");
+      setShowResolveFraudEventModal(false);
+      mutatePrefix("/api/fraud-events");
+    },
+    onError: ({ error }) => {
+      console.log(error)
+      toast.error(error.serverError);
+    },
+  });
 
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
   } = useForm<ResolveFraudEventFormData>({
     defaultValues: {
@@ -42,24 +59,18 @@ function ResolveFraudEventModal({
 
   const onSubmit = useCallback(
     async (data: ResolveFraudEventFormData) => {
-      if (!fraudEvent.id) {
+      if (!workspaceId || !fraudEvent.partner) {
         return;
       }
 
-      await resolveFraudEvent(`/api/fraud-events/${fraudEvent.id}/resolve`, {
-        method: "PATCH",
-        body: {
-          status: "resolved",
-          resolutionReason: data.resolutionReason || undefined,
-        },
-        onSuccess: () => {
-          toast.success("Fraud event resolved");
-          setShowResolveFraudEventModal(false);
-          mutatePrefix("/api/fraud-events");
-        },
+      await executeAsync({
+        workspaceId,
+        partnerId: fraudEvent.partner.id,
+        type: fraudEvent.type,
+        resolutionReason: data.resolutionReason,
       });
     },
-    [fraudEvent.id, resolveFraudEvent, setShowResolveFraudEventModal],
+    [fraudEvent, workspaceId, executeAsync],
   );
 
   return (
@@ -68,22 +79,47 @@ function ResolveFraudEventModal({
       setShowModal={setShowResolveFraudEventModal}
     >
       <div className="border-b border-neutral-200 p-4 sm:p-6">
-        <h3 className="text-lg font-medium leading-none">Resolve fraud event</h3>
+        <h3 className="text-lg font-medium leading-none">Resolve event</h3>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)}>
         <div className="flex flex-col gap-6 bg-neutral-50 p-4 sm:p-6">
-          <p className="text-sm font-medium text-neutral-800">
-            Confirm resolving the fraud event
-          </p>
+          {fraudEvent.partner && (
+            <div className="rounded-lg border border-neutral-200 bg-neutral-100 p-3">
+              <div className="flex items-center gap-4">
+                <img
+                  src={`${OG_AVATAR_URL}${fraudEvent.partner.name || "Unknown"}`}
+                  alt={fraudEvent.partner.name || "Unknown"}
+                  className="size-10 rounded-full bg-white"
+                />
+                <div className="flex min-w-0 flex-col">
+                  <h4 className="truncate text-sm font-medium text-neutral-900">
+                    {fraudEvent.partner.name || "Unknown"}
+                  </h4>
+                  {fraudEvent.partner.email && (
+                    <p className="truncate text-xs text-neutral-500">
+                      {fraudEvent.partner.email}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
 
           <div>
-            <label
-              htmlFor="resolutionReason"
-              className="text-content-emphasis block text-sm font-medium"
-            >
-              Notes <span className="text-neutral-500">(Optional)</span>
-            </label>
+            <div className="flex items-center justify-between">
+              <label
+                htmlFor="resolutionReason"
+                className="block text-sm font-medium text-neutral-900"
+              >
+                Internal notes (optional)
+              </label>
+              <MaxCharactersCounter
+                name="resolutionReason"
+                maxLength={MAX_RESOLUTION_REASON_LENGTH}
+                control={control}
+              />
+            </div>
             <div className="relative mt-1.5 rounded-md shadow-sm">
               <textarea
                 id="resolutionReason"
@@ -92,27 +128,28 @@ function ResolveFraudEventModal({
                   errors.resolutionReason && "border-red-600",
                 )}
                 placeholder="Add notes about why this event is resolved..."
-                rows={4}
+                rows={3}
+                maxLength={MAX_RESOLUTION_REASON_LENGTH}
                 {...register("resolutionReason")}
               />
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 bg-neutral-50 px-4 pb-5 sm:px-6">
+        <div className="flex items-center justify-end gap-2 bg-neutral-50 px-4 pb-5 sm:px-6">
           <Button
             onClick={() => setShowResolveFraudEventModal(false)}
             variant="secondary"
             text="Cancel"
-            className="h-8 px-3"
+            className="h-8 w-fit px-3"
           />
           <Button
             type="submit"
             variant="primary"
-            text="Resolve"
-            disabled={!fraudEvent.id}
-            loading={isSubmitting}
-            className="h-8 px-3"
+            text="Resolve event"
+            disabled={!fraudEvent.id || !fraudEvent.partner}
+            loading={isPending}
+            className="h-8 w-fit px-3"
           />
         </div>
       </form>
@@ -123,7 +160,7 @@ function ResolveFraudEventModal({
 export function useResolveFraudEventModal({
   fraudEvent,
 }: {
-  fraudEvent: Pick<FraudEventProps, "id" | "partner">;
+  fraudEvent: Pick<FraudEventProps, "id" | "partner" | "type">;
 }) {
   const [showResolveFraudEventModal, setShowResolveFraudEventModal] =
     useState(false);
@@ -146,4 +183,3 @@ export function useResolveFraudEventModal({
     [setShowResolveFraudEventModal, ResolveFraudEventModalCallback],
   );
 }
-

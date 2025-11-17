@@ -6,6 +6,8 @@ import { getPaginationQuerySchema } from "./misc";
 import { PartnerSchema } from "./partners";
 import { UserSchema } from "./users";
 
+export const MAX_RESOLUTION_REASON_LENGTH = 1000;
+
 export const fraudEventSchema = z.object({
   id: z.string(),
   type: z.nativeEnum(FraudRuleType),
@@ -19,7 +21,7 @@ export const fraudEventSchema = z.object({
     id: true,
     name: true,
     email: true,
-  }).nullable(),
+  }),
   customer: CustomerSchema.pick({
     id: true,
     name: true,
@@ -72,7 +74,10 @@ export const fraudEventCountQuerySchema = fraudEventsQuerySchema
 export const resolveFraudEventSchema = z.object({
   resolutionReason: z
     .string()
-    .max(1000, "Reason must be less than 1000 characters")
+    .max(
+      MAX_RESOLUTION_REASON_LENGTH,
+      `Reason must be less than ${MAX_RESOLUTION_REASON_LENGTH} characters`,
+    )
     .optional()
     .describe("Optional notes explaining the resolution."),
 });
