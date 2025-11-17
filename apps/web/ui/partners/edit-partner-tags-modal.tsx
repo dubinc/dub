@@ -1,6 +1,7 @@
 import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { createPartnerTagAction } from "@/lib/actions/partners/tags/create-partner-tag";
 import { deletePartnerTagAction } from "@/lib/actions/partners/tags/delete-partner-tag";
+import { updatePartnerTagAction } from "@/lib/actions/partners/tags/update-partner-tag";
 import { updatePartnerTagsAction } from "@/lib/actions/partners/tags/update-partner-tags";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnersCount from "@/lib/swr/use-partners-count";
@@ -14,6 +15,7 @@ import {
   LoadingSpinner,
   MenuItem,
   Modal,
+  PenWriting,
   Plus2,
   Popover,
   Tag,
@@ -284,7 +286,12 @@ function EditPartnerTagsModalContent({
                 </Command.Empty>
               </div>
               {isLoadingTags && (
-                <Command.Loading className="absolute inset-0 top-1 flex items-center justify-center bg-white py-4">
+                <Command.Loading
+                  className={cn(
+                    "absolute inset-0 top-1 flex items-center justify-center bg-white py-4",
+                    tagOptions?.length && "opacity-50",
+                  )}
+                >
                   <LoadingSpinner className="size-4" />
                 </Command.Loading>
               )}
@@ -357,6 +364,7 @@ function EditPartnerTagsModal(props: EditPartnerTagsModalProps) {
     <Modal
       showModal={props.showEditPartnerTagsModal}
       setShowModal={props.setShowEditPartnerTagsModal}
+      className="focus:outline-none"
     >
       <EditPartnerTagsModalContent {...props} />
     </Modal>
@@ -391,6 +399,32 @@ function TagOption({
 
   const [openPopover, setOpenPopover] = useState(false);
 
+  const [editedTagName, setEditedTagName] = useState(tag.name);
+  const [isEditing, setIsEditing] = useState(false);
+
+  const { executeAsync: updatePartnerTag, isPending: isUpdatingPartnerTag } =
+    useAction(updatePartnerTagAction, {
+      onSuccess: () => {
+        toast.success("Partner tag updated successfully!");
+        mutatePrefix("/api/partners");
+      },
+      onError: ({ error }) => {
+        toast.error(parseActionError(error, "Failed to update partner tag"));
+      },
+    });
+
+  const handleSave = () => {
+    setIsEditing(false);
+
+    if (!workspaceId || editedTagName === tag.name) return;
+
+    updatePartnerTag({
+      workspaceId,
+      partnerTagId: tag.id,
+      name: editedTagName,
+    });
+  };
+
   return (
     <Command.Item
       key={tag.id}
@@ -410,11 +444,25 @@ function TagOption({
             )}
             tabIndex={-1}
           />
-          <div className="flex h-7 min-w-0 select-none items-center rounded-lg bg-black/5 px-2">
-            <span className="text-content-default min-w-0 truncate text-sm font-semibold">
-              {tag.name}
-            </span>
-          </div>
+          {isEditing ? (
+            <input
+              value={editedTagName}
+              onChange={(e) => setEditedTagName(e.target.value)}
+              onBlur={() => handleSave()}
+              onKeyDown={(e) => {
+                e.stopPropagation();
+                if (e.key === "Enter") handleSave();
+              }}
+              autoFocus
+              className="border-border-subtle focus:border-border-subtle h-7 rounded-lg border px-2 focus:ring-0 sm:text-sm"
+            />
+          ) : (
+            <div className="flex h-7 min-w-0 select-none items-center rounded-lg bg-black/5 px-2">
+              <span className="text-content-default min-w-0 truncate text-sm font-semibold">
+                {editedTagName}
+              </span>
+            </div>
+          )}
         </label>
       </div>
       <div className="flex items-center gap-2">
@@ -431,6 +479,18 @@ function TagOption({
           content={
             <div className="flex min-w-32 flex-col gap-1 p-1">
               <MenuItem
+                onClick={(e) => {
+                  e.stopPropagation();
+
+                  setEditedTagName(tag.name);
+                  setIsEditing(true);
+                  setOpenPopover(false);
+                }}
+                icon={<PenWriting className="size-4" />}
+              >
+                Edit
+              </MenuItem>
+              <MenuItem
                 variant="danger"
                 onClick={(e) => {
                   e.stopPropagation();
@@ -446,6 +506,8 @@ function TagOption({
                     workspaceId: workspaceId!,
                     partnerTagId: tag.id,
                   });
+
+                  setOpenPopover(false);
                 }}
                 icon={<Trash className="size-4" />}
               >
@@ -460,8 +522,8 @@ function TagOption({
           <Button
             variant="outline"
             icon={<ThreeDots className="size-4" />}
-            className="size-7 rounded-lg p-0 hover:bg-black/5 active:bg-black/10 disabled:border-transparent"
-            loading={isDeletingPartnerTag}
+            className="size-7 rounded-lg p-0 hover:bg-black/5 active:bg-black/10 disabled:border-transparent disabled:bg-transparent"
+            loading={isUpdatingPartnerTag || isDeletingPartnerTag}
             onClick={(e) => {
               e.stopPropagation();
             }}
