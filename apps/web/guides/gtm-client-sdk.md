@@ -39,7 +39,7 @@ If you’re using [Dub Partners](https://dub.co/docs/partners/quickstart) for af
 </script>
 ```
 
-Read the [client-side click-tracking guide](/sdks/client-side/features/client-side-click-tracking) for more information.
+Read the [client-side click-tracking guide](https://dub.co/docs/sdks/client-side/features/client-side-click-tracking) for more information.
 
 ## Step 3: Configure the Trigger
 
