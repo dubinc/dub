@@ -24,6 +24,9 @@ interface QueryResult {
   customerId: string | null;
   customerEmail: string | null;
   customerName: string | null;
+  userId: string | null;
+  userName: string | null;
+  userImage: string | null;
 }
 
 export async function getFraudEvents({
@@ -69,7 +72,10 @@ export async function getFraudEvents({
       p.email AS partnerEmail,
       c.id AS customerId,
       c.email AS customerEmail,
-      c.name AS customerName
+      c.name AS customerName,
+      u.id AS userId,
+      u.name AS userName,
+      u.image AS userImage
     FROM (
       SELECT programId, partnerId, type, MAX(createdAt) AS latestCreatedAt, COUNT(*) AS eventCount
       FROM FraudEvent
@@ -85,6 +91,8 @@ export async function getFraudEvents({
       ON p.id = fe.partnerId
     LEFT JOIN Customer c
       ON c.id = fe.customerId
+    LEFT JOIN User u
+      ON u.id = fe.userId
     WHERE
       ${whereClause}
       ${orderByClause}
@@ -115,6 +123,12 @@ export async function getFraudEvents({
         }
       : null,
     commission: null,
-    user: null,
+    user: event.userId
+      ? {
+          id: event.userId,
+          name: event.userName,
+          image: event.userImage,
+        }
+      : null,
   }));
 }
