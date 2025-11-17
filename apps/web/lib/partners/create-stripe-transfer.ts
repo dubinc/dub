@@ -68,6 +68,7 @@ export const createStripeTransfer = async ({
           },
           data: {
             status: "processed",
+            paidAt: new Date(),
           },
         });
       }

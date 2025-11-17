@@ -39,6 +39,7 @@ model Program {
   primaryRewardEvent           EventType         @default(sale)
   holdingPeriodDays            Int               @default(0) // number of days to wait before earnings are added to a payout
   minPayoutAmount              Int               @default(0) // Default minimum payout amount of $0
+  inviteEmailData              Json?             @db.Json
   embedData                    Json?             @db.Json
   resources                    Json?             @db.Json
   termsUrl                     String?           @db.Text

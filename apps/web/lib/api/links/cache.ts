@@ -1,7 +1,17 @@
 import { LinkProps, RedisLinkProps } from "@/lib/types";
 import { formatRedisLink, redis, redisWithTimeout } from "@/lib/upstash";
+import { LRUCache } from "lru-cache";
 import { decodeKey, isCaseSensitiveDomain } from "./case-sensitivity";
 import { ExpandedLink } from "./utils/transform-link";
+
+/*
+ * Link LRU cache to reduce Redis load during traffic spikes.
+ * Max 5000 entries with 3-second TTL.
+ */
+const linkLRUCache = new LRUCache<string, RedisLinkProps>({
+  max: 5000, // max 5000 entries
+  ttl: 3000, // 3 seconds
+});
 
 /*
  * Link cache expiration is set to 24 hours by default for all links.
@@ -42,28 +52,53 @@ class LinkCache {
   async set(link: ExpandedLink) {
     const redisLink = formatRedisLink(link);
     const hasWebhooks = redisLink.webhookIds && redisLink.webhookIds.length > 0;
+    const cacheKey = this._createKey({ domain: link.domain, key: link.key });
+
+    // Update LRU cache immediately to prevent stale reads
+    linkLRUCache.set(cacheKey, redisLink);
 
     return await redis.set(
-      this._createKey({ domain: link.domain, key: link.key }),
+      cacheKey,
       redisLink,
       hasWebhooks ? undefined : { ex: CACHE_EXPIRATION },
     );
   }
 
   async get({ domain, key }: Pick<LinkProps, "domain" | "key">) {
-    // we're using the special redisWithTimeout client in case Redis times out
+    // here we use linkcache:${domain}:${key} instead of this._createKey({ domain, key })
+    // because the key can either be cached as case-sensitive or case-insensitive depending on the domain
+    // so we should get the original key from the cache
+    const cacheKey = `linkcache:${domain}:${key}`;
+
+    // Check LRU cache first before hitting Redis
+    let cachedLink = linkLRUCache.get(cacheKey) || null;
+
+    if (cachedLink) {
+      console.log(`[LRU Cache HIT] ${cacheKey}`);
+      return cachedLink;
+    }
+
+    console.log(`[LRU Cache MISS] ${cacheKey} - Checking Redis...`);
     try {
-      // here we use linkcache:${domain}:${key} instead of this._createKey({ domain, key })
-      // because the key can either be cached as case-sensitive or case-insensitive depending on the domain
-      // so we should get the original key from the cache
-      return await redisWithTimeout.get<RedisLinkProps>(
-        `linkcache:${domain}:${key}`,
-      );
+      // we're using the special redisWithTimeout client in case Redis times out
+      cachedLink = await redisWithTimeout.get<RedisLinkProps>(cacheKey);
+
+      if (cachedLink) {
+        console.log(`[Redis Cache HIT] ${cacheKey} - Populating LRU cache...`);
+        linkLRUCache.set(cacheKey, cachedLink);
+      } else {
+        console.log(
+          `[Redis Cache MISS] ${cacheKey} - Not found in LRU or Redis, falling back to MySQL...`,
+        );
+      }
+
+      return cachedLink;
     } catch (error) {
       console.error(
-        "[LinkCache]: Timeout getting cached link from Redis:",
+        "[LinkCache] – Timeout getting cached link from Redis, falling back to MySQL...",
         error,
       );
+
       return null;
     }
   }

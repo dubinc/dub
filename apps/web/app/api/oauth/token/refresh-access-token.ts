@@ -5,7 +5,6 @@ import { hashToken } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
 import { refreshTokenSchema } from "@/lib/zod/schemas/oauth";
 import { prisma } from "@dub/prisma";
-import { getCurrentPlan } from "@dub/utils";
 import { NextRequest } from "next/server";
 import { z } from "zod";
 
@@ -180,8 +179,6 @@ export const refreshAccessToken = async (
         partialKey: `${newAccessToken.slice(0, 3)}...${newAccessToken.slice(-4)}`,
         scopes: accessToken.scopes,
         expires: accessTokenExpires,
-        rateLimit: getCurrentPlan(authorizedApp.project.plan as string).limits
-          .api,
         userId: authorizedApp.userId,
         projectId: authorizedApp.projectId,
         installationId: authorizedApp.id,

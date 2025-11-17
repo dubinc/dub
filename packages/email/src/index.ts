@@ -29,11 +29,11 @@ export const sendEmail = async (opts: ResendEmailOptions) => {
 };
 
 export const sendBatchEmail = async (
-  payload: ResendBulkEmailOptions,
+  emails: ResendBulkEmailOptions,
   options?: { idempotencyKey?: string },
 ) => {
   if (resend) {
-    return await sendBatchEmailViaResend(payload, options);
+    return await sendBatchEmailViaResend(emails, options);
   }
 
   // Fallback to SMTP if Resend is not configured
@@ -43,7 +43,7 @@ export const sendBatchEmail = async (
 
   if (smtpConfigured) {
     await Promise.all(
-      payload.map((p) =>
+      emails.map((p) =>
         sendViaNodeMailer({
           to: p.to,
           subject: p.subject,

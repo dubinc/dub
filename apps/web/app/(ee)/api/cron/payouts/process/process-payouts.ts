@@ -283,6 +283,7 @@ export async function processPayouts({
         invoiceId: invoice.id,
         status: "processing",
         userId,
+        initiatedAt: new Date(),
         mode: "internal",
       },
     });
@@ -300,6 +301,7 @@ export async function processPayouts({
         invoiceId: invoice.id,
         status: "processing",
         userId,
+        initiatedAt: new Date(),
         mode: "external",
       },
     });
@@ -351,8 +353,9 @@ export async function processPayouts({
             ...payout,
             invoiceId: invoice.id,
             status: "processing",
-            mode: externalPayoutsMap.has(payout.id) ? "external" : "internal",
             userId,
+            initiatedAt: new Date(),
+            mode: externalPayoutsMap.has(payout.id) ? "external" : "internal",
           },
         },
       ],

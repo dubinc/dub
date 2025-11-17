@@ -6,7 +6,6 @@ import { installIntegration } from "@/lib/integrations/install";
 import { generateRandomName } from "@/lib/names";
 import { authCodeExchangeSchema } from "@/lib/zod/schemas/oauth";
 import { prisma } from "@dub/prisma";
-import { getCurrentPlan } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextRequest } from "next/server";
 import { z } from "zod";
@@ -205,6 +204,7 @@ export const exchangeAuthCodeForToken = async (
           code,
         },
       }),
+
       // Remove all existing tokens for this client
       prisma.restrictedToken.deleteMany({
         where: {
@@ -214,28 +214,6 @@ export const exchangeAuthCodeForToken = async (
           },
         },
       }),
-      // Update restricted token rate limit to the plan limit
-      prisma.project
-        .findUnique({
-          where: {
-            id: projectId,
-          },
-          select: {
-            plan: true,
-          },
-        })
-        .then(async (project) => {
-          if (!project?.plan) {
-            return;
-          }
-
-          await prisma.restrictedToken.update({
-            where: { id: restrictedToken.id },
-            data: {
-              rateLimit: getCurrentPlan(project.plan).limits.api,
-            },
-          });
-        }),
     ]),
   );
 

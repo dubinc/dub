@@ -142,8 +142,11 @@ const PayoutTableInner = memo(
         },
         {
           header: "Paid",
-          cell: ({ row }) =>
-            row.original.paidAt ? (
+          cell: ({ row }) => {
+            const ProcessingIcon = PayoutStatusBadges.processing.icon;
+            const CompletedIcon = PayoutStatusBadges.completed.icon;
+
+            return row.original.initiatedAt ? (
               <Tooltip
                 content={
                   <div className="flex flex-col gap-1 p-2.5">
@@ -162,18 +165,38 @@ const PayoutTableInner = memo(
                         </p>
                       </div>
                     )}
-                    <div className="text-xs text-neutral-500">
-                      Paid at{" "}
-                      <span className="font-medium text-neutral-700">
-                        {formatDateTime(row.original.paidAt, {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                          hour: "numeric",
-                          minute: "numeric",
-                        })}
+                    <div className="flex items-center gap-1.5 text-xs text-neutral-500">
+                      <ProcessingIcon className="size-3 shrink-0 text-blue-600" />
+                      <span>
+                        Payment initiated at{" "}
+                        <span className="font-medium text-neutral-700">
+                          {formatDateTime(row.original.initiatedAt, {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                            hour: "numeric",
+                            minute: "numeric",
+                          })}
+                        </span>
                       </span>
                     </div>
+                    {row.original.paidAt && (
+                      <div className="flex items-center gap-1.5 text-xs text-neutral-500">
+                        <CompletedIcon className="size-3 shrink-0 text-green-600" />
+                        <span>
+                          Payment completed at{" "}
+                          <span className="font-medium text-neutral-700">
+                            {formatDateTime(row.original.paidAt, {
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric",
+                              hour: "numeric",
+                              minute: "numeric",
+                            })}
+                          </span>
+                        </span>
+                      </div>
+                    )}
                   </div>
                 }
               >
@@ -188,7 +211,7 @@ const PayoutTableInner = memo(
                       className="size-5 shrink-0 rounded-full"
                     />
                   )}
-                  {formatDate(row.original.paidAt, {
+                  {formatDate(row.original.initiatedAt, {
                     month: "short",
                     year: undefined,
                   })}
@@ -196,7 +219,8 @@ const PayoutTableInner = memo(
               </Tooltip>
             ) : (
               "-"
-            ),
+            );
+          },
         },
         {
           id: "amount",

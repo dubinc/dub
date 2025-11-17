@@ -45,12 +45,15 @@ export function PartnerMessagesProgramPageClient() {
 
   const { user } = useUser();
   const { partner } = usePartnerProfile();
-  const { programEnrollment, error: programEnrollmentError } =
-    useProgramEnrollment({
-      swrOpts: {
-        shouldRetryOnError: (err) => err.status !== 404,
-      },
-    });
+  const {
+    programEnrollment,
+    error: programEnrollmentError,
+    loading: programEnrollmentLoading,
+  } = useProgramEnrollment({
+    swrOpts: {
+      shouldRetryOnError: (err) => err.status !== 404,
+    },
+  });
   const enrolledProgram = programEnrollment?.program;
 
   const {
@@ -88,7 +91,7 @@ export function PartnerMessagesProgramPageClient() {
   const { executeAsync: sendMessage } = useAction(messageProgramAction);
 
   const { setCurrentPanel } = useMessagesContext();
-  const [isRightPanelOpen, setIsRightPanelOpen] = useState(false);
+  const [isRightPanelOpen, setIsRightPanelOpen] = useState(true);
 
   // Redirect if no messages and not enrolled, or messages error
   if (
@@ -268,36 +271,38 @@ export function PartnerMessagesProgramPageClient() {
       </div>
 
       {/* Right panel - Profile */}
-      {enrolledProgram && (
-        <div
-          className={cn(
-            "absolute right-0 top-0 h-full min-h-0 w-0 overflow-hidden bg-white shadow-lg transition-[width]",
-            "@[1082px]/page:shadow-none @[1082px]/page:relative",
-            isRightPanelOpen && "w-full sm:w-[400px]",
-          )}
-        >
-          <div className="border-border-subtle flex size-full min-h-0 w-full flex-col border-l sm:w-[400px]">
-            <div className="border-border-subtle flex h-12 shrink-0 items-center justify-between gap-4 border-b px-4 sm:h-16 sm:px-6">
-              <h2 className="text-content-emphasis text-lg font-semibold leading-7">
-                Program
-              </h2>
-              <div className="flex items-center gap-2">
-                <ViewProgramButton programSlug={programSlug} />
-                <button
-                  type="button"
-                  onClick={() => setIsRightPanelOpen(false)}
-                  className="@[1082px]/page:hidden rounded-lg p-2 text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-900"
-                >
-                  <X className="size-4" />
-                </button>
-              </div>
-            </div>
-            <div className="bg-bg-muted scrollbar-hide flex grow flex-col overflow-y-scroll">
-              <ProgramInfoPanel programEnrollment={programEnrollment} />
+      <div
+        className={cn(
+          "absolute right-0 top-0 h-full min-h-0 w-0 overflow-hidden bg-white shadow-lg transition-[width]",
+          "@[1082px]/page:shadow-none @[1082px]/page:relative",
+          isRightPanelOpen && "w-full sm:w-[400px]",
+        )}
+      >
+        <div className="border-border-subtle flex size-full min-h-0 w-full flex-col border-l sm:w-[400px]">
+          <div className="border-border-subtle flex h-12 shrink-0 items-center justify-between gap-4 border-b px-4 sm:h-16 sm:px-6">
+            <h2 className="text-content-emphasis text-lg font-semibold leading-7">
+              Program
+            </h2>
+            <div className="flex items-center gap-2">
+              <ViewProgramButton programSlug={programSlug} />
+              <button
+                type="button"
+                onClick={() => setIsRightPanelOpen(false)}
+                className="@[1082px]/page:hidden rounded-lg p-2 text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-900"
+              >
+                <X className="size-4" />
+              </button>
             </div>
           </div>
+          <div className="bg-bg-muted scrollbar-hide flex grow flex-col overflow-y-scroll">
+            {programEnrollmentLoading ? (
+              <ProgramInfoPanelSkeleton />
+            ) : programEnrollment ? (
+              <ProgramInfoPanel programEnrollment={programEnrollment} />
+            ) : null}
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }
@@ -462,6 +467,76 @@ function ProgramInfoPanel({
         </h3>
         <div className="mt-1">
           <ProgramHelpLinks />
+        </div>
+      </div>
+    </>
+  );
+}
+
+function ProgramInfoPanelSkeleton() {
+  return (
+    <>
+      {/* Program info skeleton */}
+      <div className="border-border-subtle relative shrink-0 overflow-hidden border-b">
+        <div className="absolute inset-y-0 right-0 w-96 [mask-image:radial-gradient(100%_100%_at_100%_0%,black_30%,transparent)]">
+          <Grid cellSize={20} className="text-neutral-200" />
+        </div>
+        <div className="relative flex flex-col gap-4 p-6">
+          <div className="size-10 animate-pulse rounded-full bg-neutral-200" />
+          <div className="flex flex-col gap-2">
+            <div className="h-6 w-32 animate-pulse rounded-md bg-neutral-200" />
+            <div className="h-4 w-40 animate-pulse rounded-md bg-neutral-200" />
+          </div>
+        </div>
+      </div>
+
+      {/* Referral link skeleton */}
+      <div className="pl-6 pr-6 pt-7">
+        <div className="flex items-end justify-between">
+          <div className="h-5 w-24 animate-pulse rounded-md bg-neutral-200" />
+          <div className="h-4 w-16 animate-pulse rounded-md bg-neutral-200" />
+        </div>
+        <div className="relative mt-2">
+          <div className="h-11 w-full animate-pulse rounded-xl bg-neutral-200" />
+        </div>
+      </div>
+
+      {/* Stats skeleton */}
+      <div className="pl-6 pr-6 pt-7">
+        <div className="h-5 w-24 animate-pulse rounded-md bg-neutral-200" />
+        <div className="divide-border-subtle border-border-subtle mt-2 divide-y rounded-xl border">
+          <div className="divide-border-subtle grid grid-cols-3 divide-x">
+            {[...Array(3)].map((_, idx) => (
+              <div key={idx} className="flex flex-col px-3 py-2.5">
+                <div className="h-3 w-12 animate-pulse rounded-md bg-neutral-200" />
+                <div className="mt-1 h-5 w-16 animate-pulse rounded-md bg-neutral-200" />
+              </div>
+            ))}
+          </div>
+          <div className="divide-border-subtle grid grid-cols-2 divide-x">
+            {[...Array(2)].map((_, idx) => (
+              <div key={idx} className="flex flex-col px-3 py-2.5">
+                <div className="h-3 w-16 animate-pulse rounded-md bg-neutral-200" />
+                <div className="mt-1 h-5 w-20 animate-pulse rounded-md bg-neutral-200" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Rewards skeleton */}
+      <div className="pl-6 pr-6 pt-7">
+        <div className="h-5 w-16 animate-pulse rounded-md bg-neutral-200" />
+        <div className="mt-1">
+          <div className="h-20 w-full animate-pulse rounded-lg bg-neutral-200" />
+        </div>
+      </div>
+
+      {/* Help & support skeleton */}
+      <div className="border-border-subtle pl-6 pr-6 pt-7">
+        <div className="h-5 w-32 animate-pulse rounded-md bg-neutral-200" />
+        <div className="mt-1">
+          <div className="h-16 w-full animate-pulse rounded-lg bg-neutral-200" />
         </div>
       </div>
     </>

@@ -2,23 +2,32 @@
 
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { AnalyticsLoadingSpinner } from "@/ui/analytics/analytics-loading-spinner";
+import { FilterButtonTableRow } from "@/ui/shared/filter-button-table-row";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import {
   CrownSmall,
+  Filter,
   Table,
   usePagination,
   useRouterStuff,
   useTable,
 } from "@dub/ui";
 import { Areas, TimeSeriesChart, XAxis, YAxis } from "@dub/ui/charts";
-import { cn, currencyFormatter, DUB_FOUNDING_DATE, fetcher } from "@dub/utils";
+import { GridIcon } from "@dub/ui/icons";
+import {
+  cn,
+  currencyFormatter,
+  DUB_FOUNDING_DATE,
+  fetcher,
+  OG_AVATAR_URL,
+} from "@dub/utils";
 import NumberFlow from "@number-flow/react";
-import { Fragment, useMemo } from "react";
+import { Fragment, useCallback, useMemo, useState } from "react";
 import useSWR from "swr";
 
 export default function CommissionsPageClient() {
   const { queryParams, getQueryString, searchParamsObj } = useRouterStuff();
-  const { interval, start, end } = searchParamsObj;
+  const { interval, start, end, programId } = searchParamsObj;
 
   const { data: { programs, timeseries } = {}, isLoading } = useSWR<{
     programs: {
@@ -41,6 +50,64 @@ export default function CommissionsPageClient() {
       keepPreviousData: true,
     },
   );
+
+  // Filter configuration
+  const filters = useMemo(
+    () => [
+      {
+        key: "programId",
+        icon: GridIcon,
+        label: "Program",
+        options:
+          programs?.map((program) => ({
+            value: program.id,
+            label: program.name,
+            icon: (
+              <img
+                src={program.logo || `${OG_AVATAR_URL}${program.name}`}
+                alt={`${program.name} image`}
+                className="size-4 rounded-full"
+              />
+            ),
+          })) ?? null,
+      },
+    ],
+    [programs],
+  );
+
+  const activeFilters = useMemo(() => {
+    return [...(programId ? [{ key: "programId", value: programId }] : [])];
+  }, [programId]);
+
+  const onSelect = useCallback(
+    (key: string, value: any) =>
+      queryParams({
+        set: {
+          [key]: value,
+        },
+        del: "page",
+      }),
+    [queryParams],
+  );
+
+  const onRemove = useCallback(
+    (key: string) =>
+      queryParams({
+        del: [key, "page"],
+      }),
+    [queryParams],
+  );
+
+  const onRemoveAll = useCallback(
+    () =>
+      queryParams({
+        del: ["programId"],
+      }),
+    [queryParams],
+  );
+
+  const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
 
   const tabs: {
     id: string;
@@ -126,6 +193,11 @@ export default function CommissionsPageClient() {
             <span className="text-sm font-medium">{row.original.name}</span>
           </div>
         ),
+        meta: {
+          filterParams: ({ row }) => ({
+            programId: row.original.id,
+          }),
+        },
       },
       {
         id: "commissions",
@@ -145,11 +217,49 @@ export default function CommissionsPageClient() {
     resourceName: (plural) => `program${plural ? "s" : ""}`,
     rowCount: programs?.length ?? 0,
     loading: isLoading,
+    cellRight: (cell) => {
+      const meta = cell.column.columnDef.meta as
+        | {
+            filterParams?: any;
+          }
+        | undefined;
+
+      return (
+        meta?.filterParams && (
+          <FilterButtonTableRow set={meta.filterParams(cell)} />
+        )
+      );
+    },
   });
 
   return (
-    <div className="mx-auto flex w-full max-w-screen-xl flex-col space-y-6 p-6">
-      <SimpleDateRangePicker defaultInterval="mtd" className="w-fit" />
+    <div className="mx-auto flex w-full max-w-screen-xl flex-col gap-3 p-6">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center">
+        <Filter.Select
+          className="w-full md:w-fit"
+          filters={filters}
+          activeFilters={activeFilters}
+          onSelect={onSelect}
+          onRemove={onRemove}
+          onSearchChange={setSearch}
+          onSelectedFilterChange={setSelectedFilter}
+        />
+        <SimpleDateRangePicker
+          defaultInterval="mtd"
+          className="w-full sm:min-w-[200px] md:w-fit"
+        />
+      </div>
+      {activeFilters.length > 0 && (
+        <div>
+          <Filter.List
+            filters={filters}
+            activeFilters={activeFilters}
+            onSelect={onSelect}
+            onRemove={onRemove}
+            onRemoveAll={onRemoveAll}
+          />
+        </div>
+      )}
       <div className="flex flex-col divide-y divide-neutral-200 rounded-lg border border-neutral-200 bg-white">
         <div className="scrollbar-hide grid w-full grid-cols-2 divide-x overflow-y-hidden sm:grid-cols-3">
           {tabs.map(({ id, label, colorClassName, disabled }) => {
