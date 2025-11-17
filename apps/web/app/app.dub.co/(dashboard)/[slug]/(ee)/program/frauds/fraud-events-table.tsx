@@ -152,9 +152,9 @@ export function FraudEventsTable() {
       },
       {
         id: "menu",
-        minSize: 43,
-        size: 43,
-        maxSize: 43,
+        minSize: 30,
+        size: 30,
+        maxSize: 30,
         cell: ({ row }: { row: Row<FraudEventProps> }) => (
           <RowMenuButton row={row} />
         ),
