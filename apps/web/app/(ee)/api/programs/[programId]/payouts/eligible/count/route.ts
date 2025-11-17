@@ -8,7 +8,6 @@ import { NextResponse } from "next/server";
 /*
  * GET /api/programs/[programId]/payouts/eligible/count - get count of eligible payouts
  */
-
 export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   const programId = getDefaultProgramIdOrThrow(workspace);
 
