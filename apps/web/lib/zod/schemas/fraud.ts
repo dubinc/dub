@@ -66,7 +66,7 @@ export const fraudEventCountQuerySchema = fraudEventsQuerySchema
     sortOrder: true,
   })
   .extend({
-    groupBy: z.enum(["status", "type"]).optional(),
+    groupBy: z.enum(["partnerId", "type"]).optional(),
   });
 
 export const resolveFraudEventSchema = z.object({

@@ -1,6 +1,6 @@
 import { fraudEventCountQuerySchema } from "@/lib/zod/schemas/fraud";
 import { prisma } from "@dub/prisma";
-import { FraudEventStatus, FraudRuleType, Prisma } from "@dub/prisma/client";
+import { FraudRuleType, Prisma } from "@dub/prisma/client";
 import { z } from "zod";
 
 type FraudEventCountFilters = z.infer<typeof fraudEventCountQuerySchema> & {
@@ -21,30 +21,6 @@ export async function getFraudEventsCount({
     ...(partnerId && { partnerId }),
   };
 
-  // Group by status
-  if (groupBy === "status") {
-    const events = await prisma.fraudEvent.groupBy({
-      by: ["status"],
-      where: {
-        ...commonWhere,
-      },
-      _count: true,
-      orderBy: {
-        _count: {
-          status: "desc",
-        },
-      },
-    });
-
-    Object.values(FraudEventStatus).forEach((status) => {
-      if (!events.some((e) => e.status === status)) {
-        events.push({ status, _count: 0 });
-      }
-    });
-
-    return events;
-  }
-
   // Group by type
   if (groupBy === "type") {
     const events = await prisma.fraudEvent.groupBy({
@@ -64,6 +40,24 @@ export async function getFraudEventsCount({
       if (!events.some((e) => e.type === type)) {
         events.push({ type, _count: 0 });
       }
+    });
+
+    return events;
+  }
+
+  // Group by partnerId
+  if (groupBy === "partnerId") {
+    const events = await prisma.fraudEvent.groupBy({
+      by: ["partnerId"],
+      where: {
+        ...commonWhere,
+      },
+      _count: true,
+      orderBy: {
+        _count: {
+          partnerId: "desc",
+        },
+      },
     });
 
     return events;
