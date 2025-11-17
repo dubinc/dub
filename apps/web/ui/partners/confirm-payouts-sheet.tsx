@@ -113,7 +113,10 @@ function ConfirmPayoutsSheetContent() {
     error: eligiblePayoutsError,
     isLoading: eligiblePayoutsLoading,
   } = useSWR<PayoutResponse[]>(
-    `/api/programs/${defaultProgramId}/payouts/eligible?${new URLSearchParams({ ...commonQuery, page: pagination.pageIndex.toString() }).toString()}`,
+    `/api/programs/${defaultProgramId}/payouts/eligible?${new URLSearchParams({
+      ...commonQuery,
+      page: pagination.pageIndex.toString(),
+    }).toString()}`,
     fetcher,
   );
 
@@ -422,11 +425,12 @@ function ConfirmPayoutsSheetContent() {
       },
       {
         key: "Partners",
-        value: eligiblePayouts ? (
-          nFormatter(eligiblePayouts.length, { full: true })
-        ) : (
-          <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
-        ),
+        value:
+          eligiblePayoutsCount !== undefined ? (
+            nFormatter(eligiblePayoutsCount, { full: true })
+          ) : (
+            <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
+          ),
       },
       {
         key: "Amount",
