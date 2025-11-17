@@ -46,4 +46,16 @@ export const resolveFraudEventAction = authActionClient
         userId: user.id,
       },
     });
+
+    // Add a comment for the partner if resolutionReason is provided
+    if (resolutionReason) {
+      await prisma.partnerComment.create({
+        data: {
+          programId,
+          partnerId,
+          userId: user.id,
+          text: resolutionReason,
+        },
+      });
+    }
   });
