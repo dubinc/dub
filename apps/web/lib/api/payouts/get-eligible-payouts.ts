@@ -96,8 +96,10 @@ export async function getEligiblePayouts({
     orderBy: {
       amount: "desc",
     },
-    skip: (page - 1) * pageSize,
-    take: pageSize,
+    ...(isFinite(pageSize) && {
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    }),
   });
 
   if (cutoffPeriodValue) {

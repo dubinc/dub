@@ -92,6 +92,8 @@ export const confirmPayoutsAction = authActionClient
           cutoffPeriod,
           selectedPayoutId,
           excludedPayoutIds,
+          page: 1,
+          pageSize: Infinity,
         }),
 
         getWebhooks({
