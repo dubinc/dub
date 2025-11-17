@@ -59,13 +59,20 @@ export function useDynamicGuide(
 
     if (conversionTrackingEnabled && publishableKey) {
       result = result
+        // for manual installations
         ?.replaceAll(
           /^(\s+)(data-domains=.+)$/gm,
           `$1$2\n$1data-publishable-key="${publishableKey}"`,
         )
+        // for React applications
         ?.replaceAll(
           /^(\s+)(.+)(domainsConfig={{)/gm,
           `$1$2publishableKey="${publishableKey}" $3`,
+        )
+        // for GTM installations
+        ?.replaceAll(
+          /^(\s+)(script\.dataset\.domains\s*=\s*.+)$/gm,
+          `$1$2\n$1script.setAttribute("data-publishable-key", "${publishableKey}");`,
         );
     }
 

@@ -2,7 +2,7 @@ Configure Google Tag Manager for lead tracking
 
 The following steps assume that you've already installed the Dub Analytics script through GTM.
 
-## Step 1: Create a GTM Variable to Read the dub_id Cookie
+## Step 1: Create a GTM Variable to read the dub_id Cookie
 
 To read the `dub_id` cookie that Dub Analytics sets, you'll need to create a new **User-Defined Variable** in Google Tag Manager.
 

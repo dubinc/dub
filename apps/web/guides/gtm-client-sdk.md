@@ -14,8 +14,8 @@ First, navigate to your Google Tag Manager account and create a new tag:
 
 In the Custom HTML section, you’ll need to add the Dub client-side script. Copy and paste the following code into the **HTML** field:
 
+<!-- prettier-ignore -->
 ```js
-// prettier-ignore
 <script>
   var script = document.createElement("script");
   script.defer = true;
@@ -30,7 +30,6 @@ If you’re using [Dub Partners](https://dub.co/docs/partners/quickstart) for af
 
 ```js
 <script>
-  ...
   var script = document.createElement("script");
   script.defer = true;
   script.src = "https://www.dubcdn.com/analytics/script.js";

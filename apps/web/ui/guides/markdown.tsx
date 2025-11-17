@@ -15,6 +15,9 @@ export function GuidesMarkdown({
   className?: string;
   components?: any;
 }) {
+  // Remove HTML comments from markdown before rendering
+  const filteredMarkdown = children.replace(/<!--[\s\S]*?-->/g, "");
+
   return (
     <ReactMarkdown
       className={cn(
@@ -78,7 +81,7 @@ export function GuidesMarkdown({
       }}
       remarkPlugins={[remarkGfm] as any}
     >
-      {children}
+      {filteredMarkdown}
     </ReactMarkdown>
   );
 }
