@@ -32,6 +32,11 @@ export const FRAUD_RULES: FraudRuleInfo[] = [
   },
 ] as const;
 
+// Map of fraud rule type to fraud rule info
+export const FRAUD_RULE_MAP = Object.fromEntries(
+  FRAUD_RULES.map((rule) => [rule.type, rule]),
+) as Record<FraudRuleInfo["type"], FraudRuleInfo>;
+
 export const FRAUD_EVENT_STATUS_BADGES = {
   pending: {
     label: "Pending",

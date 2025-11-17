@@ -1,5 +1,6 @@
 "use client";
 
+import { FRAUD_RULE_MAP } from "@/lib/fraud/constants";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useFraudEvents } from "@/lib/swr/use-fraud-events";
 import { useFraudEventsCount } from "@/lib/swr/use-fraud-events-count";
@@ -8,21 +9,22 @@ import { FraudEventProps } from "@/lib/types";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { FilterButtonTableRow } from "@/ui/shared/filter-button-table-row";
-import { UserRowItem } from "@/ui/users/user-row-item";
 import {
   AnimatedSizeContainer,
+  Badge,
   Button,
   Filter,
   Icon,
   Popover,
   Table,
   TimestampTooltip,
+  Tooltip,
   usePagination,
   useRouterStuff,
   useTable,
 } from "@dub/ui";
 import { CircleCheck, CircleXmark, Dots, ShieldKeyhole } from "@dub/ui/icons";
-import { currencyFormatter, formatDateTimeSmart } from "@dub/utils";
+import { cn, currencyFormatter, formatDateTimeSmart } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { useMemo, useState } from "react";
@@ -105,11 +107,33 @@ export function FraudEventsTable() {
         header: "Reasons",
         size: 200,
         cell: ({ row }: { row: Row<FraudEventProps> }) => {
-          return (
-            <span className="text-sm text-neutral-600">
-              {row.original.type}
-            </span>
-          );
+          const reason = FRAUD_RULE_MAP[row.original.type];
+          const count = row.original.count ?? 1;
+
+          if (reason) {
+            return (
+              <div className="flex items-center gap-2">
+                <Tooltip content={reason.description}>
+                  <span
+                    className={cn(
+                      "cursor-help truncate underline decoration-dotted underline-offset-2",
+                    )}
+                  >
+                    {reason.name}
+                  </span>
+                </Tooltip>
+
+                {count > 1 && (
+                  <Badge
+                    variant="gray"
+                    className="shrink-0 rounded-md border-none px-1.5 py-0.5 text-xs font-semibold text-neutral-700"
+                  >
+                    +{Number(count) - 1}
+                  </Badge>
+                )}
+              </div>
+            );
+          }
         },
         meta: {
           filterParams: ({ row }) => ({
@@ -125,26 +149,6 @@ export function FraudEventsTable() {
           d.commission?.earnings
             ? currencyFormatter(d.commission.earnings)
             : "-",
-      },
-      {
-        id: "resolvedAt",
-        header: "Resolved",
-        size: 100,
-        cell: ({ row }: { row: Row<FraudEventProps> }) => {
-          return row.original.resolvedAt ? (
-            <UserRowItem
-              user={row.original.user!}
-              date={row.original.resolvedAt}
-              label={
-                row.original.status === "safe"
-                  ? "Marked as safe"
-                  : "Marked as banned"
-              }
-            />
-          ) : (
-            "-"
-          );
-        },
       },
       {
         id: "menu",

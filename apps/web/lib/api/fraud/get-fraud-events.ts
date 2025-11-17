@@ -1,10 +1,30 @@
 import { fraudEventsQuerySchema } from "@/lib/zod/schemas/fraud";
 import { prisma } from "@dub/prisma";
+import { FraudEventStatus, FraudRuleType, Prisma } from "@dub/prisma/client";
 import { z } from "zod";
 
 type FraudEventFilters = z.infer<typeof fraudEventsQuerySchema> & {
   programId: string;
 };
+
+interface QueryResult {
+  id: string;
+  programId: string;
+  type: FraudRuleType;
+  status: FraudEventStatus;
+  resolutionReason: string | null;
+  resolvedAt: Date | null;
+  metadata: unknown;
+  createdAt: Date;
+  updatedAt: Date;
+  eventCount: bigint | number;
+  partnerId: string | null;
+  partnerName: string | null;
+  partnerEmail: string | null;
+  customerId: string | null;
+  customerEmail: string | null;
+  customerName: string | null;
+}
 
 export async function getFraudEvents({
   programId,
@@ -16,55 +36,85 @@ export async function getFraudEvents({
   sortBy,
   sortOrder,
 }: FraudEventFilters) {
-  const fraudEvents = await prisma.fraudEvent.findMany({
-    where: {
-      programId,
-      ...(status && { status }),
-      ...(type && { type }),
-      ...(partnerId && { partnerId }),
-    },
-    include: {
-      partner: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-        },
-      },
-      customer: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-        },
-      },
-      commission: {
-        select: {
-          id: true,
-          earnings: true,
-          currency: true,
-          status: true,
-        },
-      },
-      user: {
-        select: {
-          id: true,
-          name: true,
-          image: true,
-        },
-      },
-    },
-    take: pageSize,
-    skip: (page - 1) * pageSize,
-    orderBy: {
-      [sortBy]: sortOrder,
-    },
-  });
+  // Build WHERE clause
+  const whereClause = Prisma.join(
+    [
+      Prisma.sql`dfe.programId = ${programId}`,
+      status && Prisma.sql`fe.status = ${status}`,
+      type && Prisma.sql`dfe.type = ${type}`,
+      partnerId && Prisma.sql`dfe.partnerId = ${partnerId}`,
+    ].filter(Boolean) as Prisma.Sql[],
+    " AND ",
+  );
 
-  return fraudEvents.map((event) => ({
-    ...event,
+  // Build ORDER BY clause
+  const orderByField =
+    sortBy === "type" ? Prisma.raw("fe.type") : Prisma.raw("fe.createdAt");
+  const orderByClause = Prisma.sql`ORDER BY ${orderByField} ${Prisma.raw(sortOrder.toUpperCase())}`;
+
+  const events = await prisma.$queryRaw<QueryResult[]>`
+    SELECT 
+      fe.id,
+      fe.programId,
+      fe.type,
+      fe.status,
+      fe.resolutionReason,
+      fe.resolvedAt,
+      fe.metadata,
+      fe.createdAt,
+      fe.updatedAt,
+      dfe.eventCount,
+      p.id AS partnerId,
+      p.name AS partnerName,
+      p.email AS partnerEmail,
+      c.id AS customerId,
+      c.email AS customerEmail,
+      c.name AS customerName
+    FROM (
+      SELECT programId, partnerId, type, MAX(createdAt) AS latestCreatedAt, COUNT(*) AS eventCount
+      FROM FraudEvent
+      WHERE programId = ${programId}
+      GROUP BY programId, partnerId, type
+    ) dfe
+    JOIN FraudEvent fe
+      ON fe.programId = dfe.programId
+      AND fe.partnerId = dfe.partnerId
+      AND fe.type = dfe.type
+      AND fe.createdAt = dfe.latestCreatedAt
+    LEFT JOIN Partner p
+      ON p.id = fe.partnerId
+    LEFT JOIN Customer c
+      ON c.id = fe.customerId
+    WHERE
+      ${whereClause}
+      ${orderByClause}
+    LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}
+  `;
+
+  return events.map((event) => ({
+    id: event.id,
+    type: event.type,
+    status: event.status,
+    resolutionReason: event.resolutionReason,
+    resolvedAt: event.resolvedAt ? new Date(event.resolvedAt) : null,
     createdAt: new Date(event.createdAt),
     updatedAt: new Date(event.updatedAt),
-    resolvedAt: event.resolvedAt ? new Date(event.resolvedAt) : null,
+    count: Number(event.eventCount),
+    partner: event.partnerId
+      ? {
+          id: event.partnerId,
+          name: event.partnerName,
+          email: event.partnerEmail,
+        }
+      : null,
+    customer: event.customerId
+      ? {
+          id: event.customerId,
+          name: event.customerName,
+          email: event.customerEmail,
+        }
+      : null,
+    commission: null,
+    user: null,
   }));
 }
