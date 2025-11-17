@@ -5,18 +5,20 @@ Follow these steps to add the Dub client-side script to your WordPress site:
 - Paste the Dub analytics script in the header area.
 - Click on the **Update File** button to save the changes.
 
+<!-- prettier-ignore -->
 ```html
-<script src="https://www.dubcdn.com/analytics/script.js" defer></script>
+<script
+  defer
+  src="https://www.dubcdn.com/analytics/script.js"
+></script>
 ```
 
 If you're using [Dub Partners](/partners/quickstart) for affiliate management, you will also need to set up the `data-domains` property to enable [client-side click-tracking](/sdks/client-side/features/client-side-click-tracking).
 
 ```html
 <script
-  src="https://www.dubcdn.com/analytics/script.js"
   defer
+  src="https://www.dubcdn.com/analytics/script.js"
   data-domains='{"refer":"yourcompany.link"}'
 ></script>
 ```
-
-Read the [client-side click-tracking guide](/sdks/client-side/features/client-side-click-tracking) for more information.
