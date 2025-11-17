@@ -1,4 +1,5 @@
 import { parseActionError } from "@/lib/actions/parse-action-errors";
+import { createPartnerTagAction } from "@/lib/actions/partners/tags/create-partner-tag";
 import { updatePartnerTagsAction } from "@/lib/actions/partners/tags/update-partner-tags";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnersCount from "@/lib/swr/use-partners-count";
@@ -35,7 +36,7 @@ import { useDebounce } from "use-debounce";
 import { ThreeDots } from "../shared/icons";
 
 const itemClassName =
-  "group/button flex h-10 cursor-pointer items-center justify-between gap-2 rounded-lg px-2.5 data-[selected=true]:active:bg-black/5 data-[selected=true]:bg-black/[0.03]";
+  "group/button flex h-10 cursor-pointer items-center justify-between gap-4 rounded-lg px-2.5 data-[selected=true]:active:bg-black/5 data-[selected=true]:bg-black/[0.03]";
 
 type EditPartnerTagsModalProps = {
   showEditPartnerTagsModal: boolean;
@@ -156,6 +157,23 @@ function EditPartnerTagsModalContent({
     });
   }, [workspaceId, partners, updatePartnerTags, selectionState]);
 
+  const { executeAsync: createPartnerTag, isPending: isCreatingPartnerTag } =
+    useAction(createPartnerTagAction, {
+      onSuccess: ({ data }) => {
+        toast.success("Partner tag created successfully!");
+        mutatePrefix("/api/partners/tags");
+
+        if (data?.partnerTag)
+          setSelectionState((state) => ({
+            ...state,
+            added: [...state.added, data.partnerTag],
+          }));
+      },
+      onError: ({ error }) => {
+        toast.error(parseActionError(error, "Failed to create partner tag"));
+      },
+    });
+
   const { isMobile } = useMediaQuery();
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -225,15 +243,27 @@ function EditPartnerTagsModalContent({
                   {Boolean(search?.length) &&
                     !tagOptions?.some((t) => t.name === search) && (
                       <Command.Item
-                        className={cn(itemClassName, "justify-start")}
-                        onSelect={() => {
-                          toast.info("WIP");
-                        }}
+                        className={cn(
+                          itemClassName,
+                          "justify-start",
+                          isCreatingPartnerTag && "bg-black/5",
+                        )}
+                        onSelect={() =>
+                          createPartnerTag({
+                            workspaceId: workspaceId!,
+                            name: search,
+                          })
+                        }
                         value={`create::${search}`}
+                        disabled={isCreatingPartnerTag}
                         forceMount
                       >
-                        <Plus2 className="size-3.5 shrink-0" />
-                        <span className="text-sm font-medium">
+                        {isCreatingPartnerTag ? (
+                          <LoadingSpinner className="size-3.5 shrink-0" />
+                        ) : (
+                          <Plus2 className="size-3.5 shrink-0" />
+                        )}
+                        <span className="min-w-0 truncate text-sm font-medium">
                           Create new tag "{search}"
                         </span>
                       </Command.Item>
@@ -248,7 +278,7 @@ function EditPartnerTagsModalContent({
                 </Command.Empty>
               </div>
               {isLoadingTags && (
-                <Command.Loading className="absolute inset-0 flex items-center justify-center bg-white py-4">
+                <Command.Loading className="absolute inset-0 top-1 flex items-center justify-center bg-white py-4">
                   <LoadingSpinner className="size-4" />
                 </Command.Loading>
               )}
@@ -305,6 +335,9 @@ function EditPartnerTagsModalContent({
             onClick={handleSave}
             loading={isPending}
             text="Save"
+            disabled={
+              !selectionState.added.length && !selectionState.removed.length
+            }
             className="h-8 w-fit px-3"
           />
         </div>
@@ -376,8 +409,11 @@ function TagOption({
         <Button
           variant="outline"
           icon={<ThreeDots className="size-4" />}
-          className="size-7 rounded-lg p-0"
-          onClick={() => toast.info("WIP")}
+          className="size-7 rounded-lg p-0 hover:bg-black/5 active:bg-black/10"
+          onClick={(e) => {
+            e.stopPropagation();
+            toast.info("WIP");
+          }}
         />
       </div>
     </Command.Item>

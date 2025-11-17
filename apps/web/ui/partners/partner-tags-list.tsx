@@ -3,7 +3,7 @@ import { Tag, Tooltip, TruncatedList, useRouterStuff } from "@dub/ui";
 import { cn } from "@dub/utils";
 
 const tagPillClassName =
-  "bg-bg-inverted/5 text-content-default whitespace-nowrap select-none flex h-6 items-center rounded-md px-2 text-xs font-semibold hover:bg-bg-inverted/10";
+  "bg-bg-inverted/5 text-content-default whitespace-nowrap min-w-0 select-none flex h-6 items-center rounded-md px-2 text-xs font-semibold hover:bg-bg-inverted/10";
 
 export function PartnerTagsList({
   tags,
@@ -85,7 +85,7 @@ function TagButton({ name, id }: PartnerTagProps) {
       }}
       className={cn(tagPillClassName, "active:bg-bg-inverted/15")}
     >
-      {name}
+      <span className="min-w-0 truncate">{name}</span>
     </button>
   );
 }
