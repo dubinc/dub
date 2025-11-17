@@ -8,12 +8,6 @@ export const FRAUD_RULES: FraudRuleInfo[] = [
       "Partner's email matches a customer's email and could be a self referral.",
   },
   {
-    type: "customerEmailSimilar",
-    name: "Similar customer email",
-    description:
-      "Partner's email closely resembles a customer email and could be a self referral.",
-  },
-  {
     type: "customerEmailSuspiciousDomain",
     name: "Suspicious customer email domain",
     description:
