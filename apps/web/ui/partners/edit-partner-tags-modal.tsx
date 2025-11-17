@@ -112,24 +112,26 @@ function EditPartnerTagsModalContent({
       (p) => p.tags?.map(({ id }) => id) ?? [],
     );
 
-    return tags.map((tag) => {
-      const existing = Boolean(partnerTagIds.includes(tag.id));
-      const allExisting = partners.every((p) =>
-        p.tags?.some((t) => t.id === tag.id),
-      );
-      const added = Boolean(addedTags.find((at) => at.id === tag.id));
-      const removed = Boolean(removedTags.find((rt) => rt.id === tag.id));
+    return tags
+      .sort((a, b) => partnerTagIds.indexOf(b.id) - partnerTagIds.indexOf(a.id))
+      .map((tag) => {
+        const existing = Boolean(partnerTagIds.includes(tag.id));
+        const allExisting = partners.every((p) =>
+          p.tags?.some((t) => t.id === tag.id),
+        );
+        const added = Boolean(addedTags.find((at) => at.id === tag.id));
+        const removed = Boolean(removedTags.find((rt) => rt.id === tag.id));
 
-      const checkedState: boolean | "indeterminate" = removed
-        ? false
-        : added || (allExisting && !removed)
-          ? true
-          : existing
-            ? "indeterminate"
-            : false;
+        const checkedState: boolean | "indeterminate" = removed
+          ? false
+          : added || (allExisting && !removed)
+            ? true
+            : existing
+              ? "indeterminate"
+              : false;
 
-      return { ...tag, checkedState };
-    });
+        return { ...tag, checkedState };
+      });
   }, [partners, availableTags, selectionState]);
 
   const { executeAsync: updatePartnerTags, isPending } = useAction(
