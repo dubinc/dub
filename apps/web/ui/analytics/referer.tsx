@@ -11,51 +11,75 @@ import { AnalyticsContext } from "./analytics-provider";
 import BarList from "./bar-list";
 import { useAnalyticsFilterOption } from "./utils";
 
+type TabId = "referers" | "utms";
+type RefererSubtab = "referers" | "referer_urls";
+type Subtab = UTM_TAGS_PLURAL | RefererSubtab;
+
+const TAB_CONFIG: Record<
+  TabId,
+  {
+    subtabs: Subtab[];
+    defaultSubtab: Subtab;
+    getSubtabLabel: (subtab: Subtab) => string;
+  }
+> = {
+  referers: {
+    subtabs: ["referers", "referer_urls"],
+    defaultSubtab: "referers",
+    getSubtabLabel: (subtab) => (subtab === "referers" ? "Domain" : "URL"),
+  },
+  utms: {
+    subtabs: [...UTM_TAGS_PLURAL_LIST] as Subtab[],
+    defaultSubtab: "utm_sources" as Subtab,
+    getSubtabLabel: (subtab) =>
+      SINGULAR_ANALYTICS_ENDPOINTS[subtab as UTM_TAGS_PLURAL].replace(
+        "utm_",
+        "",
+      ),
+  },
+};
+
 export default function Referer() {
   const { queryParams, searchParams } = useRouterStuff();
 
   const { selectedTab, saleUnit } = useContext(AnalyticsContext);
   const dataKey = selectedTab === "sales" ? saleUnit : "count";
 
-  const [tab, setTab] = useState<"referers" | "utms">("referers");
-  const [utmTag, setUtmTag] = useState<UTM_TAGS_PLURAL>("utm_sources");
-  const [refererType, setRefererType] = useState<"referers" | "referer_urls">(
-    "referers",
-  );
+  const [tab, setTab] = useState<TabId>("referers");
+  const [subtab, setSubtab] = useState<Subtab>(TAB_CONFIG[tab].defaultSubtab);
+
+  // Reset subtab when tab changes to ensure it's valid for the new tab
+  const handleTabChange = (newTab: TabId) => {
+    setTab(newTab);
+    setSubtab(TAB_CONFIG[newTab].defaultSubtab);
+  };
 
   const { data } = useAnalyticsFilterOption({
-    groupBy: tab === "utms" ? utmTag : refererType,
+    groupBy: subtab,
   });
 
-  const singularTabName =
-    SINGULAR_ANALYTICS_ENDPOINTS[tab === "utms" ? utmTag : refererType];
+  const singularTabName = SINGULAR_ANALYTICS_ENDPOINTS[subtab];
 
-  const { icon: UTMTagIcon } = UTM_PARAMETERS.find(
-    (p) => p.key === utmTag.slice(0, -1),
-  )!;
+  const UTMTagIcon = useMemo(() => {
+    if (tab === "utms") {
+      return UTM_PARAMETERS.find(
+        (p) => p.key === (subtab as UTM_TAGS_PLURAL).slice(0, -1),
+      )?.icon;
+    }
+    return null;
+  }, [tab, subtab]);
 
   const subTabProps = useMemo(() => {
-    return (
-      {
-        utms: {
-          subTabs: UTM_TAGS_PLURAL_LIST.map((u) => ({
-            id: u,
-            label: SINGULAR_ANALYTICS_ENDPOINTS[u].replace("utm_", ""),
-          })),
-          selectedSubTabId: utmTag,
-          onSelectSubTab: setUtmTag,
-        },
-        referers: {
-          subTabs: [
-            { id: "referers", label: "Domain" },
-            { id: "referer_urls", label: "URL" },
-          ],
-          selectedSubTabId: refererType,
-          onSelectSubTab: setRefererType,
-        },
-      }[tab] ?? {}
-    );
-  }, [tab, utmTag, refererType]);
+    const config = TAB_CONFIG[tab];
+    return {
+      subTabs: config.subtabs.map((s) => ({
+        id: s,
+        label: config.getSubtabLabel(s),
+      })),
+      selectedSubTabId: subtab,
+      onSelectSubTab: setSubtab,
+    };
+  }, [tab, subtab]);
 
   return (
     <AnalyticsCard
@@ -64,7 +88,7 @@ export default function Referer() {
         { id: "utms", label: "UTM Parameters", icon: Note },
       ]}
       selectedTabId={tab}
-      onSelectTab={setTab}
+      onSelectTab={handleTabChange}
       {...subTabProps}
       expandLimit={8}
       hasMore={(data?.length ?? 0) > 8}
@@ -77,38 +101,44 @@ export default function Referer() {
                 tab={tab === "referers" ? "Referrer" : "UTM Parameter"}
                 data={
                   data
-                    ?.map((d) => ({
-                      icon:
-                        tab === "utms" ? (
-                          <UTMTagIcon />
-                        ) : d[singularTabName] === "(direct)" ? (
-                          <Link2 className="h-4 w-4" />
-                        ) : (
-                          <BlurImage
-                            src={`${GOOGLE_FAVICON_URL}${
-                              tab === "referers"
-                                ? d[singularTabName]
-                                : getApexDomain(d[singularTabName])
-                            }`}
-                            alt={d[singularTabName]}
-                            width={20}
-                            height={20}
-                            className="h-4 w-4 rounded-full"
-                          />
-                        ),
-                      title: d[singularTabName],
-                      href: queryParams({
-                        ...(searchParams.has(singularTabName)
-                          ? { del: singularTabName }
-                          : {
-                              set: {
-                                [singularTabName]: d[singularTabName],
-                              },
-                            }),
-                        getNewPath: true,
-                      }) as string,
-                      value: d[dataKey] || 0,
-                    }))
+                    ?.map((d) => {
+                      const isUtmTab = tab === "utms";
+                      const isDirect = d[singularTabName] === "(direct)";
+                      const isRefererUrl = subtab === "referer_urls";
+
+                      return {
+                        icon:
+                          isUtmTab && UTMTagIcon ? (
+                            <UTMTagIcon />
+                          ) : isDirect ? (
+                            <Link2 className="h-4 w-4" />
+                          ) : (
+                            <BlurImage
+                              src={`${GOOGLE_FAVICON_URL}${
+                                isRefererUrl
+                                  ? getApexDomain(d[singularTabName])
+                                  : d[singularTabName]
+                              }`}
+                              alt={d[singularTabName]}
+                              width={20}
+                              height={20}
+                              className="h-4 w-4 rounded-full"
+                            />
+                          ),
+                        title: d[singularTabName],
+                        href: queryParams({
+                          ...(searchParams.has(singularTabName)
+                            ? { del: singularTabName }
+                            : {
+                                set: {
+                                  [singularTabName]: d[singularTabName],
+                                },
+                              }),
+                          getNewPath: true,
+                        }) as string,
+                        value: d[dataKey] || 0,
+                      };
+                    })
                     ?.sort((a, b) => b.value - a.value) || []
                 }
                 unit={selectedTab}
