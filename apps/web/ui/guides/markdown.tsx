@@ -1,4 +1,4 @@
-import { Copy } from "@dub/ui";
+import { Check, Copy, useCopyToClipboard } from "@dub/ui";
 import { cn } from "@dub/utils";
 import ReactMarkdown from "react-markdown";
 import "react-medium-image-zoom/dist/styles.css";
@@ -52,6 +52,7 @@ export function GuidesMarkdown({
         img: ({ node, ...props }) => <ZoomImage {...props} />,
         pre: ({ node, ...props }) => {
           const code = (node?.children?.[0] as any)?.children?.[0]?.value;
+          const [copied, copyToClipboard] = useCopyToClipboard();
           return code ? (
             <div className="relative">
               <pre {...props}>
@@ -59,7 +60,7 @@ export function GuidesMarkdown({
                   type="button"
                   onClick={async () => {
                     try {
-                      await navigator.clipboard.writeText(code);
+                      await copyToClipboard(code);
                       toast.success("Copied to clipboard");
                     } catch (error) {
                       console.error("Failed to copy: ", error);
@@ -68,7 +69,11 @@ export function GuidesMarkdown({
                   }}
                   className="border-border-subtle text-content-default absolute right-2 top-2 flex size-7 items-center justify-center rounded-lg border bg-white transition-transform duration-100 active:scale-95"
                 >
-                  <Copy />
+                  {copied ? (
+                    <Check className="size-3.5" />
+                  ) : (
+                    <Copy className="size-3.5" />
+                  )}
                 </button>
                 {props.children}
               </pre>

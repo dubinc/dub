@@ -26,7 +26,7 @@ In the Custom HTML section, you’ll need to add the Dub client-side script. Cop
 
 ![Dub GTM add script](https://mintlify.s3.us-west-1.amazonaws.com/dub/images/conversions/google-tag-manager/gtm-add-dub-script.png)
 
-If you’re using [Dub Partners](https://dub.co/docs/partners/quickstart) for affiliate management, you will also need to set up the `data-domains` property to enable [client-side click-tracking](https://dub.co/docs/sdks/client-side/features/click-tracking).
+If you’re using [Dub Partners](https://dub.co/docs/partners/quickstart) for your affiliate program, you will also need to set up the `data-domains` property to enable [client-side click-tracking](https://dub.co/docs/sdks/client-side/features/click-tracking).
 
 ```js
 <script>
@@ -37,8 +37,6 @@ If you’re using [Dub Partners](https://dub.co/docs/partners/quickstart) for af
   document.getElementsByTagName("head")[0].appendChild(script);
 </script>
 ```
-
-Read the [client-side click-tracking guide](https://dub.co/docs/sdks/client-side/features/client-side-click-tracking) for more information.
 
 ## Step 3: Configure the Trigger
 
