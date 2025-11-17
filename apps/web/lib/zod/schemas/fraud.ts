@@ -1,32 +1,25 @@
-import {
-  FraudEventStatus,
-  FraudRiskLevel,
-  FraudRuleType,
-} from "@dub/prisma/client";
+import { FraudEventStatus, FraudRuleType } from "@dub/prisma/client";
 import { z } from "zod";
 import { CommissionSchema } from "./commissions";
+import { CustomerSchema } from "./customers";
 import { getPaginationQuerySchema } from "./misc";
 import { PartnerSchema } from "./partners";
 import { UserSchema } from "./users";
 
-export const FRAUD_EVENTS_MAX_PAGE_SIZE = 100;
-
 export const fraudEventSchema = z.object({
   id: z.string(),
-  riskLevel: z.nativeEnum(FraudRiskLevel),
-  riskScore: z.number(),
-  triggeredRules: z.any(), // JSON field
+  type: z.nativeEnum(FraudRuleType),
+  status: z.nativeEnum(FraudEventStatus),
   resolutionReason: z.string().nullable(),
   resolvedAt: z.date().nullable(),
-  status: z.nativeEnum(FraudEventStatus),
   createdAt: z.date(),
   updatedAt: z.date(),
-  user: UserSchema.pick({
+  partner: PartnerSchema.pick({
     id: true,
     name: true,
     email: true,
   }).nullable(),
-  partner: PartnerSchema.pick({
+  customer: CustomerSchema.pick({
     id: true,
     name: true,
     email: true,
@@ -37,32 +30,22 @@ export const fraudEventSchema = z.object({
     currency: true,
     status: true,
   }).nullable(),
+  user: UserSchema.pick({
+    id: true,
+    name: true,
+    image: true,
+  }).nullable(),
 });
 
 export const fraudEventListQuerySchema = z
   .object({
-    status: z
-      .nativeEnum(FraudEventStatus)
-      .optional()
-      .describe("Filter fraud events by status."),
-    riskLevel: z
-      .nativeEnum(FraudRiskLevel)
-      .optional()
-      .describe("Filter fraud events by risk level."),
-    partnerId: z
-      .string()
-      .optional()
-      .describe("Filter fraud events by partner ID."),
-    sortBy: z
-      .enum(["createdAt", "riskScore", "riskLevel"])
-      .default("createdAt")
-      .describe("The field to sort the fraud events by."),
-    sortOrder: z
-      .enum(["asc", "desc"])
-      .default("desc")
-      .describe("The sort order."),
+    status: z.nativeEnum(FraudEventStatus).optional(),
+    type: z.nativeEnum(FraudRuleType).optional(),
+    partnerId: z.string().optional(),
+    sortBy: z.enum(["createdAt", "type"]).default("createdAt"),
+    sortOrder: z.enum(["asc", "desc"]).default("desc"),
   })
-  .merge(getPaginationQuerySchema({ pageSize: FRAUD_EVENTS_MAX_PAGE_SIZE }));
+  .merge(getPaginationQuerySchema({ pageSize: 100 }));
 
 export const fraudEventCountQuerySchema = fraudEventListQuerySchema
   .omit({
@@ -72,7 +55,7 @@ export const fraudEventCountQuerySchema = fraudEventListQuerySchema
     sortOrder: true,
   })
   .extend({
-    groupBy: z.enum(["status", "riskLevel"]).optional(),
+    groupBy: z.enum(["status", "type"]).optional(),
   });
 
 export const resolveFraudEventSchema = z.object({

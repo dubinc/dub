@@ -6,23 +6,21 @@ type FraudEventFilters = z.infer<typeof fraudEventListQuerySchema> & {
   programId: string;
 };
 
-export async function getFraudEvents(filters: FraudEventFilters) {
-  const {
-    status,
-    riskLevel,
-    partnerId,
-    page,
-    pageSize,
-    sortBy,
-    sortOrder,
-    programId,
-  } = filters;
-
+export async function getFraudEvents({
+  programId,
+  partnerId,
+  status,
+  type,
+  page,
+  pageSize,
+  sortBy,
+  sortOrder,
+}: FraudEventFilters) {
   const fraudEvents = await prisma.fraudEvent.findMany({
     where: {
       programId,
       ...(status && { status }),
-      ...(riskLevel && { riskLevel }),
+      ...(type && { type }),
       ...(partnerId && { partnerId }),
     },
     include: {
@@ -33,7 +31,7 @@ export async function getFraudEvents(filters: FraudEventFilters) {
           email: true,
         },
       },
-      user: {
+      customer: {
         select: {
           id: true,
           name: true,
@@ -46,6 +44,13 @@ export async function getFraudEvents(filters: FraudEventFilters) {
           earnings: true,
           currency: true,
           status: true,
+        },
+      },
+      user: {
+        select: {
+          id: true,
+          name: true,
+          image: true,
         },
       },
     },

@@ -6,6 +6,7 @@ import {
   fraudEventSchema,
 } from "@/lib/zod/schemas/fraud";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 // GET /api/fraud-events - get all fraud events for a program
 export const GET = withWorkspace(
@@ -18,18 +19,9 @@ export const GET = withWorkspace(
       programId,
     });
 
-    return NextResponse.json(
-      fraudEvents.map((event) => fraudEventSchema.parse(event)),
-    );
+    return NextResponse.json(z.array(fraudEventSchema).parse(fraudEvents));
   },
   {
-    requiredPlan: [
-      "business",
-      "business plus",
-      "business extra",
-      "business max",
-      "advanced",
-      "enterprise",
-    ],
+    requiredPlan: ["advanced", "enterprise"],
   },
 );

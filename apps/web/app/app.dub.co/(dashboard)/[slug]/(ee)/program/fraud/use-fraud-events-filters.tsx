@@ -1,65 +1,96 @@
+import { FRAUD_RULES } from "@/lib/fraud/constants";
+import usePartners from "@/lib/swr/use-partners";
+import { EnrolledPartnerProps } from "@/lib/types";
 import { useRouterStuff } from "@dub/ui";
-import { CircleDotted, ShieldKeyhole } from "@dub/ui/icons";
-import { useMemo } from "react";
+import { ShieldKeyhole, Users } from "@dub/ui/icons";
+import { OG_AVATAR_URL } from "@dub/utils";
+import { useCallback, useMemo, useState } from "react";
+import { useDebounce } from "use-debounce";
 
 export function useFraudEventsFilters() {
   const { searchParamsObj, queryParams } = useRouterStuff();
 
+  const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [debouncedSearch] = useDebounce(search, 500);
+
+  const { partners } = usePartnerFilterOptions(
+    selectedFilter === "partnerId" ? debouncedSearch : "",
+  );
+
   const filters = useMemo(
     () => [
       {
-        key: "status",
-        icon: CircleDotted,
-        label: "Status",
-        options: [
-          { label: "Pending", value: "pending" },
-          { label: "Safe", value: "safe" },
-          { label: "Banned", value: "banned" },
-        ],
+        key: "type",
+        icon: ShieldKeyhole,
+        label: "Reason",
+        options: FRAUD_RULES.map((rule) => ({
+          label: rule.name,
+          value: rule.type,
+        })),
       },
       {
-        key: "riskLevel",
-        icon: ShieldKeyhole,
-        label: "Risk Level",
-        options: [
-          { label: "High", value: "high" },
-          { label: "Medium", value: "medium" },
-          { label: "Low", value: "low" },
-        ],
+        key: "partnerId",
+        icon: Users,
+        label: "Partner",
+        shouldFilter: false,
+        options:
+          partners?.map(({ id, name, image }) => {
+            return {
+              value: id,
+              label: name,
+              icon: (
+                <img
+                  src={image || `${OG_AVATAR_URL}${name}`}
+                  alt={`${name} image`}
+                  className="size-4 rounded-full"
+                />
+              ),
+            };
+          }) ?? null,
       },
     ],
-    [],
+    [partners],
   );
 
   const activeFilters = useMemo(() => {
-    const { status, riskLevel } = searchParamsObj;
+    const { type, partnerId } = searchParamsObj;
 
     return [
-      ...(status ? [{ key: "status", value: status }] : []),
-      ...(riskLevel ? [{ key: "riskLevel", value: riskLevel }] : []),
+      ...(type ? [{ key: "type", value: type }] : []),
+      ...(partnerId ? [{ key: "partnerId", value: partnerId }] : []),
     ];
   }, [searchParamsObj]);
 
-  const onSelect = (key: string, value: any) =>
-    queryParams({
-      set: {
-        [key]: value,
-      },
-      del: "page",
-      scroll: false,
-    });
+  const onSelect = useCallback(
+    (key: string, value: any) =>
+      queryParams({
+        set: {
+          [key]: value,
+        },
+        del: "page",
+        scroll: false,
+      }),
+    [queryParams],
+  );
 
-  const onRemove = (key: string, _value?: any) =>
-    queryParams({
-      del: [key, "page"],
-      scroll: false,
-    });
+  const onRemove = useCallback(
+    (key: string, _value?: any) =>
+      queryParams({
+        del: [key, "page"],
+        scroll: false,
+      }),
+    [queryParams],
+  );
 
-  const onRemoveAll = () =>
-    queryParams({
-      del: ["status", "riskLevel", "page"],
-      scroll: false,
-    });
+  const onRemoveAll = useCallback(
+    () =>
+      queryParams({
+        del: ["type", "partnerId", "page"],
+        scroll: false,
+      }),
+    [queryParams],
+  );
 
   const isFiltered = activeFilters.length > 0;
 
@@ -70,5 +101,42 @@ export function useFraudEventsFilters() {
     onRemove,
     onRemoveAll,
     isFiltered,
+    setSearch,
+    setSelectedFilter,
   };
+}
+
+function usePartnerFilterOptions(search: string) {
+  const { searchParamsObj } = useRouterStuff();
+
+  const { partners, loading: partnersLoading } = usePartners({
+    query: { search },
+  });
+
+  const { partners: selectedPartners } = usePartners({
+    query: {
+      partnerIds: searchParamsObj.partnerId
+        ? [searchParamsObj.partnerId]
+        : undefined,
+    },
+  });
+
+  const result = useMemo(() => {
+    return partnersLoading ||
+      // Consider partners loading if we can't find the currently filtered partner
+      (searchParamsObj.partnerId &&
+        ![...(selectedPartners ?? []), ...(partners ?? [])].some(
+          (p) => p.id === searchParamsObj.partnerId,
+        ))
+      ? null
+      : ([
+          ...(partners ?? []),
+          // Add selected partner to list if not already in partners
+          ...(selectedPartners
+            ?.filter((st) => !partners?.some((t) => t.id === st.id))
+            ?.map((st) => ({ ...st, hideDuringSearch: true })) ?? []),
+        ] as (EnrolledPartnerProps & { hideDuringSearch?: boolean })[]);
+  }, [partnersLoading, partners, selectedPartners, searchParamsObj.partnerId]);
+
+  return { partners: result };
 }

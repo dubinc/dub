@@ -26,14 +26,7 @@ export const GET = withWorkspace(
     return NextResponse.json(z.array(fraudRuleSchema).parse(mergedRules));
   },
   {
-    requiredPlan: [
-      "business",
-      "business plus",
-      "business extra",
-      "business max",
-      "advanced",
-      "enterprise",
-    ],
+    requiredPlan: ["advanced", "enterprise"],
   },
 );
 
@@ -68,13 +61,6 @@ export const PATCH = withWorkspace(
     return NextResponse.json({ success: true });
   },
   {
-    requiredPlan: [
-      "business",
-      "business plus",
-      "business extra",
-      "business max",
-      "advanced",
-      "enterprise",
-    ],
+    requiredPlan: ["advanced", "enterprise"],
   },
 );

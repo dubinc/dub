@@ -1,39 +1,22 @@
+import { useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
-import useSWR, { SWRConfiguration } from "swr";
-import { z } from "zod";
+import useSWR from "swr";
 import { FraudEventProps } from "../types";
-import { fraudEventListQuerySchema } from "../zod/schemas/fraud";
 import useWorkspace from "./use-workspace";
 
-const partialQuerySchema = fraudEventListQuerySchema.partial();
+export function useFraudEvents() {
+  const { getQueryString } = useRouterStuff();
+  const { id: workspaceId, defaultProgramId } = useWorkspace();
 
-export function useFraudEvents(
-  {
-    query,
-    enabled = true,
-  }: {
-    query?: z.infer<typeof partialQuerySchema>;
-    enabled?: boolean;
-  } = {},
-  swrOptions: SWRConfiguration = {},
-) {
-  const { id: workspaceId } = useWorkspace();
+  const queryString = getQueryString({
+    workspaceId,
+  });
 
   const { data, isLoading, error } = useSWR<FraudEventProps[]>(
-    enabled && workspaceId
-      ? `/api/fraud-events?${new URLSearchParams(
-          Object.fromEntries(
-            Object.entries({
-              workspaceId: workspaceId,
-              ...query,
-            }).filter(([_, value]) => value !== undefined && value !== null),
-          ) as Record<string, string>,
-        ).toString()}`
-      : undefined,
+    defaultProgramId ? `/api/fraud-events${queryString}` : undefined,
     fetcher,
     {
       keepPreviousData: true,
-      ...swrOptions,
     },
   );
 

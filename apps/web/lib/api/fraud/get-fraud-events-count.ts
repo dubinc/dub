@@ -1,19 +1,23 @@
 import { fraudEventCountQuerySchema } from "@/lib/zod/schemas/fraud";
 import { prisma } from "@dub/prisma";
-import { FraudEventStatus, FraudRiskLevel, Prisma } from "@dub/prisma/client";
+import { FraudEventStatus, FraudRuleType, Prisma } from "@dub/prisma/client";
 import { z } from "zod";
 
 type FraudEventCountFilters = z.infer<typeof fraudEventCountQuerySchema> & {
   programId: string;
 };
 
-export async function getFraudEventsCount(filters: FraudEventCountFilters) {
-  const { status, riskLevel, partnerId, groupBy, programId } = filters;
-
+export async function getFraudEventsCount({
+  status,
+  type,
+  partnerId,
+  groupBy,
+  programId,
+}: FraudEventCountFilters) {
   const commonWhere: Prisma.FraudEventWhereInput = {
     programId,
     ...(status && { status }),
-    ...(riskLevel && { riskLevel }),
+    ...(type && { type }),
     ...(partnerId && { partnerId }),
   };
 
@@ -34,31 +38,31 @@ export async function getFraudEventsCount(filters: FraudEventCountFilters) {
 
     Object.values(FraudEventStatus).forEach((status) => {
       if (!events.some((e) => e.status === status)) {
-        events.push({ _count: 0, status });
+        events.push({ status, _count: 0 });
       }
     });
 
     return events;
   }
 
-  // Group by risk level
-  if (groupBy === "riskLevel") {
+  // Group by type
+  if (groupBy === "type") {
     const events = await prisma.fraudEvent.groupBy({
-      by: ["riskLevel"],
+      by: ["type"],
       where: {
         ...commonWhere,
       },
       _count: true,
       orderBy: {
         _count: {
-          riskLevel: "desc",
+          type: "desc",
         },
       },
     });
 
-    Object.values(FraudRiskLevel).forEach((riskLevel) => {
-      if (!events.some((e) => e.riskLevel === riskLevel)) {
-        events.push({ _count: 0, riskLevel });
+    Object.values(FraudRuleType).forEach((type) => {
+      if (!events.some((e) => e.type === type)) {
+        events.push({ type, _count: 0 });
       }
     });
 
@@ -74,4 +78,3 @@ export async function getFraudEventsCount(filters: FraudEventCountFilters) {
 
   return count;
 }
-

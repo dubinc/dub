@@ -1,10 +1,5 @@
 "use client";
 
-import {
-  FRAUD_RISK_LEVEL_BADGES,
-  FRAUD_RULE_TYPE_LABELS,
-} from "@/lib/fraud/constants";
-import { FraudTriggeredRule } from "@/lib/fraud/types";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useFraudEvents } from "@/lib/swr/use-fraud-events";
 import { useFraudEventsCount } from "@/lib/swr/use-fraud-events-count";
@@ -12,18 +7,16 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { FraudEventProps } from "@/lib/types";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
-import { FraudEventStatus, FraudRiskLevel } from "@dub/prisma/client";
+import { FilterButtonTableRow } from "@/ui/shared/filter-button-table-row";
+import { UserRowItem } from "@/ui/users/user-row-item";
 import {
   AnimatedSizeContainer,
   Button,
-  EditColumnsButton,
   Filter,
   Icon,
   Popover,
-  StatusBadge,
   Table,
   TimestampTooltip,
-  useColumnVisibility,
   usePagination,
   useRouterStuff,
   useTable,
@@ -37,22 +30,12 @@ import { toast } from "sonner";
 import { useMarkFraudEventSafeModal } from "./mark-fraud-event-safe-modal";
 import { useFraudEventsFilters } from "./use-fraud-events-filters";
 
-const fraudEventsColumns = {
-  all: ["partner", "createdAt", "reasons", "riskLevel", "amount"],
-  defaultVisible: ["partner", "createdAt", "reasons", "riskLevel", "amount"],
-};
-
 export function FraudEventsTable() {
   const { queryParams, searchParams } = useRouterStuff();
   const { pagination, setPagination } = usePagination();
 
   const sortBy = searchParams.get("sortBy") || "createdAt";
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
-  const status = (searchParams.get("status") || "pending") as FraudEventStatus;
-  const riskLevelParam = searchParams.get("riskLevel");
-  const riskLevel = riskLevelParam
-    ? (riskLevelParam as FraudRiskLevel)
-    : undefined;
 
   const {
     filters,
@@ -61,127 +44,136 @@ export function FraudEventsTable() {
     onRemove,
     onRemoveAll,
     isFiltered,
+    setSearch,
+    setSelectedFilter,
   } = useFraudEventsFilters();
 
-  const { columnVisibility, setColumnVisibility } = useColumnVisibility(
-    "fraud-events-table-columns",
-    fraudEventsColumns,
-  );
-
-  const { fraudEventsCount, error: countError } = useFraudEventsCount<number>({
-    status,
-    ...(riskLevel && { riskLevel }),
-    exclude: ["page"],
-  });
-
-  const {
-    fraudEvents,
-    loading: isLoading,
-    error,
-  } = useFraudEvents({
-    query: {
-      status,
-      ...(riskLevel && { riskLevel }),
-      sortBy: sortBy as "createdAt" | "riskScore" | "riskLevel",
-      sortOrder: sortOrder as "asc" | "desc",
-      page: pagination.pageIndex,
-      pageSize: pagination.pageSize,
-    },
-  });
+  const { fraudEvents, loading: isLoading, error } = useFraudEvents();
+  const { fraudEventsCount, error: countError } = useFraudEventsCount<number>();
 
   const columns = useMemo(
-    () =>
-      [
-        {
-          id: "partner",
-          header: "Partner",
-          enableHiding: false,
-          minSize: 250,
-          cell: ({ row }: { row: Row<FraudEventProps> }) => {
-            const partner = row.original.partner;
-            if (!partner) return "-";
-            return (
-              <PartnerRowItem
-                partner={{
-                  id: partner.id,
-                  name: partner.name || "Unknown",
-                }}
-                showPermalink={true}
-              />
-            );
-          },
+    () => [
+      {
+        id: "partner",
+        header: "Partner",
+        size: 150,
+        cell: ({ row }: { row: Row<FraudEventProps> }) => {
+          const partner = row.original.partner;
+          if (!partner) return "-";
+
+          return (
+            <PartnerRowItem
+              partner={{
+                id: partner.id,
+                name: partner.name || "Unknown",
+              }}
+              showPermalink={true}
+            />
+          );
         },
-        {
-          id: "createdAt",
-          header: "Flagged",
-          minSize: 150,
-          cell: ({ row }: { row: Row<FraudEventProps> }) => (
-            <TimestampTooltip
-              timestamp={row.original.createdAt}
-              side="right"
-              rows={["local", "utc", "unix"]}
-              delayDuration={150}
-            >
-              <p>{formatDateTimeSmart(row.original.createdAt)}</p>
-            </TimestampTooltip>
-          ),
+        meta: {
+          filterParams: ({ row }) =>
+            row.original.partner
+              ? {
+                  partnerId: row.original.partner.id,
+                }
+              : {},
         },
-        {
-          id: "reasons",
-          header: "Reasons",
-          minSize: 200,
-          cell: ({ row }: { row: Row<FraudEventProps> }) => {
-            const reasons = formatTriggeredRules(row.original.triggeredRules);
-            return <span className="text-sm text-neutral-600">{reasons}</span>;
-          },
+      },
+      {
+        id: "createdAt",
+        header: "Date",
+        size: 150,
+        cell: ({ row }: { row: Row<FraudEventProps> }) => (
+          <TimestampTooltip
+            timestamp={row.original.createdAt}
+            side="right"
+            rows={["local", "utc", "unix"]}
+            delayDuration={150}
+          >
+            <p>{formatDateTimeSmart(row.original.createdAt)}</p>
+          </TimestampTooltip>
+        ),
+      },
+      {
+        id: "type",
+        header: "Reasons",
+        size: 200,
+        cell: ({ row }: { row: Row<FraudEventProps> }) => {
+          return (
+            <span className="text-sm text-neutral-600">
+              {row.original.type}
+            </span>
+          );
         },
-        {
-          id: "riskLevel",
-          header: "Risk level",
-          minSize: 120,
-          cell: ({ row }: { row: Row<FraudEventProps> }) => {
-            const badge = FRAUD_RISK_LEVEL_BADGES[row.original.riskLevel];
-            return (
-              <StatusBadge icon={null} variant={badge.variant}>
-                {badge.label}
-              </StatusBadge>
-            );
-          },
+        meta: {
+          filterParams: ({ row }) => ({
+            type: row.original.type,
+          }),
         },
-        {
-          id: "amount",
-          header: "Hold amount",
-          minSize: 120,
-          accessorFn: (d: FraudEventProps) =>
-            d.commission?.earnings
-              ? currencyFormatter(d.commission.earnings)
-              : "-",
+      },
+      {
+        id: "amount",
+        header: "Hold amount",
+        size: 100,
+        accessorFn: (d: FraudEventProps) =>
+          d.commission?.earnings
+            ? currencyFormatter(d.commission.earnings)
+            : "-",
+      },
+      {
+        id: "resolvedAt",
+        header: "Resolved",
+        size: 100,
+        cell: ({ row }: { row: Row<FraudEventProps> }) => {
+          return row.original.resolvedAt ? (
+            <UserRowItem
+              user={row.original.user!}
+              date={row.original.resolvedAt}
+              label={
+                row.original.status === "safe"
+                  ? "Marked as safe"
+                  : "Marked as banned"
+              }
+            />
+          ) : (
+            "-"
+          );
         },
-        {
-          id: "menu",
-          enableHiding: false,
-          minSize: 43,
-          size: 43,
-          maxSize: 43,
-          header: ({ table }: { table: any }) => (
-            <EditColumnsButton table={table} />
-          ),
-          cell: ({ row }: { row: Row<FraudEventProps> }) => (
-            <RowMenuButton row={row} />
-          ),
-        },
-      ].filter((c) => c.id === "menu" || fraudEventsColumns.all.includes(c.id)),
+      },
+      {
+        id: "menu",
+        minSize: 43,
+        size: 43,
+        maxSize: 43,
+        cell: ({ row }: { row: Row<FraudEventProps> }) => (
+          <RowMenuButton row={row} />
+        ),
+      },
+    ],
     [],
   );
 
   const { table, ...tableProps } = useTable({
     data: fraudEvents || [],
     columns,
+    columnPinning: { right: ["menu"] },
+    cellRight: (cell) => {
+      const meta = cell.column.columnDef.meta as
+        | {
+            filterParams?: any;
+          }
+        | undefined;
+
+      return (
+        meta?.filterParams && (
+          <FilterButtonTableRow set={meta.filterParams(cell)} />
+        )
+      );
+    },
     pagination,
     onPaginationChange: setPagination,
-    columnVisibility,
-    onColumnVisibilityChange: setColumnVisibility,
-    sortableColumns: ["createdAt", "riskScore", "riskLevel"],
+    sortableColumns: ["createdAt", "type"],
     sortBy,
     sortOrder,
     onSortChange: ({ sortBy, sortOrder }) =>
@@ -212,6 +204,8 @@ export function FraudEventsTable() {
             activeFilters={activeFilters}
             onSelect={onSelect}
             onRemove={onRemove}
+            onSearchChange={setSearch}
+            onSelectedFilterChange={setSelectedFilter}
           />
         </div>
         <AnimatedSizeContainer height>
@@ -364,14 +358,4 @@ function MenuItem({
       {label}
     </Command.Item>
   );
-}
-
-function formatTriggeredRules(triggeredRules: FraudTriggeredRule[]) {
-  if (!triggeredRules || !Array.isArray(triggeredRules)) {
-    return "-";
-  }
-
-  return triggeredRules
-    .map((rule) => FRAUD_RULE_TYPE_LABELS[rule.ruleType])
-    .join(", ");
 }

@@ -1,7 +1,6 @@
 enum FraudEventStatus {
   pending
-  safe
-  banned
+  resolved
 }
 
 enum FraudRiskLevel {

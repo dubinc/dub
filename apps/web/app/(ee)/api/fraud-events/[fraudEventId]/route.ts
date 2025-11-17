@@ -18,13 +18,6 @@ export const GET = withWorkspace(
     return NextResponse.json(fraudEventSchema.parse(fraudEvent));
   },
   {
-    requiredPlan: [
-      "business",
-      "business plus",
-      "business extra",
-      "business max",
-      "advanced",
-      "enterprise",
-    ],
+    requiredPlan: ["advanced", "enterprise"],
   },
 );

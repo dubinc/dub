@@ -81,13 +81,6 @@ export const PATCH = withWorkspace(
     return NextResponse.json(fraudEventSchema.parse(updatedFraudEvent));
   },
   {
-    requiredPlan: [
-      "business",
-      "business plus",
-      "business extra",
-      "business max",
-      "advanced",
-      "enterprise",
-    ],
+    requiredPlan: ["advanced", "enterprise"],
   },
 );
