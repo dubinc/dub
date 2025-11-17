@@ -4,9 +4,10 @@ import { deletePartnerTagAction } from "@/lib/actions/partners/tags/delete-partn
 import { updatePartnerTagAction } from "@/lib/actions/partners/tags/update-partner-tag";
 import { updatePartnerTagsAction } from "@/lib/actions/partners/tags/update-partner-tags";
 import { mutatePrefix } from "@/lib/swr/mutate";
+import { usePartnerTags } from "@/lib/swr/use-partner-tags";
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { EnrolledPartnerProps, PartnerTagProps, TagProps } from "@/lib/types";
+import { EnrolledPartnerProps, PartnerTagProps } from "@/lib/types";
 import { TAGS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/tags";
 import {
   AnimatedSizeContainer,
@@ -65,17 +66,14 @@ function EditPartnerTagsModalContent({
   );
   const useAsync = tagsCount && tagsCount > TAGS_MAX_PAGE_SIZE;
 
-  const { data: availableTags, isLoading: isLoadingTags } = useSWR<TagProps[]>(
-    `/api/partners/tags?workspaceId=${workspaceId}&${new URLSearchParams({
-      sortBy: "createdAt",
-      sortOrder: "desc",
-      ...(useAsync ? { search: debouncedSearch } : {}),
-    }).toString()}`,
-    fetcher,
-    {
-      keepPreviousData: true,
-    },
-  );
+  const { partnerTags: availableTags, isLoading: isLoadingTags } =
+    usePartnerTags({
+      query: useAsync
+        ? {
+            search: debouncedSearch,
+          }
+        : undefined,
+    });
 
   const noTagsAdded = availableTags && availableTags.length === 0 && !search;
 
@@ -377,7 +375,7 @@ function TagOption({
   checked,
   onCheckedChange,
 }: {
-  tag: TagProps;
+  tag: PartnerTagProps;
   partnerCount: number;
   checked: boolean | "indeterminate";
   onCheckedChange: (checked: boolean | "indeterminate") => void;
