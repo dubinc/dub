@@ -15,38 +15,61 @@ interface GetEligiblePayoutsProps
   program: Pick<Program, "id" | "name" | "minPayoutAmount" | "payoutMode">;
 }
 
+const getEligiblePayoutsWhere = ({
+  program,
+  cutoffPeriod,
+  selectedPayoutId,
+  excludedPayoutIds,
+}: Pick<
+  GetEligiblePayoutsProps,
+  "program" | "cutoffPeriod" | "selectedPayoutId" | "excludedPayoutIds"
+>) => {
+  const cutoffPeriodValue = CUTOFF_PERIOD.find(
+    (c) => c.id === cutoffPeriod,
+  )?.value;
+
+  return {
+    ...(selectedPayoutId
+      ? { id: selectedPayoutId }
+      : excludedPayoutIds && excludedPayoutIds.length > 0
+        ? { id: { notIn: excludedPayoutIds } }
+        : {}),
+    ...getPayoutEligibilityFilter(program),
+    ...(cutoffPeriodValue && {
+      OR: [
+        {
+          periodStart: null,
+          periodEnd: null,
+        },
+        {
+          periodEnd: {
+            lte: cutoffPeriodValue,
+          },
+        },
+      ],
+    }),
+  };
+};
+
 export async function getEligiblePayouts({
   program,
   cutoffPeriod,
   selectedPayoutId,
   excludedPayoutIds,
+  pageSize,
+  page,
 }: GetEligiblePayoutsProps) {
   const cutoffPeriodValue = CUTOFF_PERIOD.find(
     (c) => c.id === cutoffPeriod,
   )?.value;
 
   let payouts = await prisma.payout.findMany({
-    where: {
-      ...(selectedPayoutId
-        ? { id: selectedPayoutId }
-        : excludedPayoutIds && excludedPayoutIds.length > 0
-          ? { id: { notIn: excludedPayoutIds } }
-          : {}),
-      ...getPayoutEligibilityFilter(program),
-      ...(cutoffPeriodValue && {
-        OR: [
-          {
-            periodStart: null,
-            periodEnd: null,
-          },
-          {
-            periodEnd: {
-              lte: cutoffPeriodValue,
-            },
-          },
-        ],
-      }),
-    },
+    where: getEligiblePayoutsWhere({
+      program,
+      cutoffPeriod,
+      selectedPayoutId,
+      excludedPayoutIds,
+    }),
     include: {
       partner: {
         include: {
@@ -73,6 +96,8 @@ export async function getEligiblePayouts({
     orderBy: {
       amount: "desc",
     },
+    skip: (page - 1) * pageSize,
+    take: pageSize,
   });
 
   if (cutoffPeriodValue) {
@@ -108,4 +133,20 @@ export async function getEligiblePayouts({
   }));
 
   return z.array(PayoutResponseSchema).parse(eligiblePayouts);
+}
+
+export async function getEligiblePayoutsCount({
+  program,
+  cutoffPeriod,
+  selectedPayoutId,
+  excludedPayoutIds,
+}: Omit<GetEligiblePayoutsProps, "pageSize" | "page">) {
+  return await prisma.payout.count({
+    where: getEligiblePayoutsWhere({
+      program,
+      cutoffPeriod,
+      selectedPayoutId,
+      excludedPayoutIds,
+    }),
+  });
 }

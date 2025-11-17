@@ -112,7 +112,18 @@ export const payoutWebhookEventSchema = PayoutSchema.omit({
   }),
 });
 
-export const eligiblePayoutsQuerySchema = z.object({
-  cutoffPeriod: CUTOFF_PERIOD_ENUM,
-  selectedPayoutId: z.string().optional(),
+export const ELIGIBLE_PAYOUTS_MAX_PAGE_SIZE = 500;
+
+export const eligiblePayoutsQuerySchema = z
+  .object({
+    cutoffPeriod: CUTOFF_PERIOD_ENUM,
+    selectedPayoutId: z.string().optional(),
+  })
+  .merge(
+    getPaginationQuerySchema({ pageSize: ELIGIBLE_PAYOUTS_MAX_PAGE_SIZE }),
+  );
+
+export const eligiblePayoutsCountQuerySchema = eligiblePayoutsQuerySchema.omit({
+  page: true,
+  pageSize: true,
 });

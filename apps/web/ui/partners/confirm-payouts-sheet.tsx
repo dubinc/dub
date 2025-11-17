@@ -1,10 +1,10 @@
 import { confirmPayoutsAction } from "@/lib/actions/partners/confirm-payouts";
 import { clientAccessCheck } from "@/lib/client-access-check";
-import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import {
   DIRECT_DEBIT_PAYMENT_METHOD_TYPES,
   FAST_ACH_FEE_CENTS,
 } from "@/lib/constants/payouts";
+import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import {
   CUTOFF_PERIOD,
   CUTOFF_PERIOD_TYPES,
@@ -17,6 +17,7 @@ import usePaymentMethods from "@/lib/swr/use-payment-methods";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PayoutResponse, PlanProps } from "@/lib/types";
+import { ELIGIBLE_PAYOUTS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/payouts";
 import { X } from "@/ui/shared/icons";
 import {
   Button,
@@ -33,6 +34,7 @@ import {
   TooltipContent,
   useRouterStuff,
   useTable,
+  useTablePagination,
 } from "@dub/ui";
 import {
   capitalize,
@@ -88,16 +90,30 @@ function ConfirmPayoutsSheetContent() {
 
   const selectedPayoutId = searchParamsObj.selectedPayoutId || undefined;
 
+  const commonQuery = {
+    workspaceId,
+    cutoffPeriod,
+    ...(selectedPayoutId && { selectedPayoutId }),
+  } as Record<string, any>;
+
+  const { data: eligiblePayoutsCount } = useSWR<number>(
+    `/api/programs/${defaultProgramId}/payouts/eligible/count?${new URLSearchParams(commonQuery).toString()}`,
+    fetcher,
+  );
+
+  const [page, setPage] = useState(1);
+  const { pagination, setPagination } = useTablePagination({
+    pageSize: ELIGIBLE_PAYOUTS_MAX_PAGE_SIZE,
+    page,
+    onPageChange: setPage,
+  });
+
   const {
     data: eligiblePayouts,
     error: eligiblePayoutsError,
     isLoading: eligiblePayoutsLoading,
   } = useSWR<PayoutResponse[]>(
-    `/api/programs/${defaultProgramId}/payouts/eligible?${new URLSearchParams({
-      workspaceId,
-      cutoffPeriod,
-      ...(selectedPayoutId && { selectedPayoutId }),
-    } as Record<string, any>).toString()}`,
+    `/api/programs/${defaultProgramId}/payouts/eligible?${new URLSearchParams({ ...commonQuery, page: pagination.pageIndex.toString() }).toString()}`,
     fetcher,
   );
 
@@ -566,6 +582,9 @@ function ConfirmPayoutsSheetContent() {
     className: "[&_tr:last-child>td]:border-b-transparent",
     scrollWrapperClassName: "min-h-[40px]",
     resourceName: (p) => `eligible payout${p ? "s" : ""}`,
+    pagination,
+    onPaginationChange: setPagination,
+    rowCount: eligiblePayoutsCount ?? 0,
     loading: eligiblePayoutsLoading,
     error: eligiblePayoutsError
       ? "Failed to load payouts for this invoice."
