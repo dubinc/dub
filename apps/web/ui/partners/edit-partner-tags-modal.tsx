@@ -70,6 +70,8 @@ function EditPartnerTagsModalContent({
     },
   );
 
+  const noTagsAdded = availableTags && availableTags.length === 0 && !search;
+
   const { partnersCount: partnerCounts } = usePartnersCount<
     | {
         partnerTagId: string;
@@ -182,7 +184,9 @@ function EditPartnerTagsModalContent({
           <Command loop shouldFilter={!useAsync} className="p-1 pb-2">
             <Command.Input
               ref={inputRef}
-              placeholder="Search or add tags..."
+              placeholder={
+                noTagsAdded ? "Add tags..." : "Search or add tags..."
+              }
               onValueChange={setSearch}
               className="border-border-default placeholder:text-content-muted w-full rounded-lg border px-2.5 py-2 focus:border-neutral-500 focus:outline-none focus:ring-1 focus:ring-neutral-500 sm:text-sm"
             />
@@ -238,7 +242,9 @@ function EditPartnerTagsModalContent({
 
                 <Command.Empty className="text-content-default flex select-none flex-col items-center justify-center gap-2 py-12">
                   <Tag className="size-4 shrink-0" />
-                  <span className="text-sm font-medium">No tags found</span>
+                  <span className="text-sm font-medium">
+                    No tags {noTagsAdded ? "added" : "found"}
+                  </span>
                 </Command.Empty>
               </div>
               {isLoadingTags && (
