@@ -8,7 +8,7 @@ export const getPartnerTagsQuerySchema = z
     sortBy: z
       .enum(["name", "createdAt"])
       .optional()
-      .default("name")
+      .default("createdAt")
       .describe("The field to sort the partner tags by."),
     sortOrder: z
       .enum(["asc", "desc"])
