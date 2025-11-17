@@ -48,7 +48,12 @@ export function FraudEventsTable() {
     setSelectedFilter,
   } = useFraudEventsFilters();
 
-  const { fraudEvents, loading: isLoading, error } = useFraudEvents();
+  const {
+    fraudEvents,
+    loading: isLoading,
+    error,
+  } = useFraudEvents({ status: "pending" });
+
   const { fraudEventsCount, error: countError } = useFraudEventsCount<number>();
 
   const columns = useMemo(

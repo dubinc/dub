@@ -37,7 +37,7 @@ export const fraudEventSchema = z.object({
   }).nullable(),
 });
 
-export const fraudEventListQuerySchema = z
+export const fraudEventsQuerySchema = z
   .object({
     status: z.nativeEnum(FraudEventStatus).optional(),
     type: z.nativeEnum(FraudRuleType).optional(),
@@ -47,7 +47,7 @@ export const fraudEventListQuerySchema = z
   })
   .merge(getPaginationQuerySchema({ pageSize: 100 }));
 
-export const fraudEventCountQuerySchema = fraudEventListQuerySchema
+export const fraudEventCountQuerySchema = fraudEventsQuerySchema
   .omit({
     page: true,
     pageSize: true,
