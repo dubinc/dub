@@ -3,7 +3,7 @@
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import { FraudEventProps } from "@/lib/types";
-import { Button, Checkbox, Modal } from "@dub/ui";
+import { Button, Modal } from "@dub/ui";
 import { cn } from "@dub/utils";
 import {
   Dispatch,
@@ -12,21 +12,20 @@ import {
   useMemo,
   useState,
 } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
-interface MarkFraudEventSafeFormData {
+interface ResolveFraudEventFormData {
   resolutionReason: string;
-  markPartnerAsSafe: boolean;
 }
 
-function MarkFraudEventSafeModal({
-  showMarkFraudEventSafeModal,
-  setShowMarkFraudEventSafeModal,
+function ResolveFraudEventModal({
+  showResolveFraudEventModal,
+  setShowResolveFraudEventModal,
   fraudEvent,
 }: {
-  showMarkFraudEventSafeModal: boolean;
-  setShowMarkFraudEventSafeModal: Dispatch<SetStateAction<boolean>>;
+  showResolveFraudEventModal: boolean;
+  setShowResolveFraudEventModal: Dispatch<SetStateAction<boolean>>;
   fraudEvent: Pick<FraudEventProps, "id" | "partner">;
 }) {
   const { makeRequest: resolveFraudEvent, isSubmitting } = useApiMutation();
@@ -34,17 +33,15 @@ function MarkFraudEventSafeModal({
   const {
     register,
     handleSubmit,
-    control,
     formState: { errors },
-  } = useForm<MarkFraudEventSafeFormData>({
+  } = useForm<ResolveFraudEventFormData>({
     defaultValues: {
       resolutionReason: "",
-      markPartnerAsSafe: false,
     },
   });
 
   const onSubmit = useCallback(
-    async (data: MarkFraudEventSafeFormData) => {
+    async (data: ResolveFraudEventFormData) => {
       if (!fraudEvent.id) {
         return;
       }
@@ -52,35 +49,32 @@ function MarkFraudEventSafeModal({
       await resolveFraudEvent(`/api/fraud-events/${fraudEvent.id}/resolve`, {
         method: "PATCH",
         body: {
-          status: "safe",
+          status: "resolved",
           resolutionReason: data.resolutionReason || undefined,
-          markPartnerAsSafe: data.markPartnerAsSafe,
         },
         onSuccess: () => {
-          toast.success("Fraud event marked as safe");
-          setShowMarkFraudEventSafeModal(false);
+          toast.success("Fraud event resolved");
+          setShowResolveFraudEventModal(false);
           mutatePrefix("/api/fraud-events");
         },
       });
     },
-    [fraudEvent.id, resolveFraudEvent, setShowMarkFraudEventSafeModal],
+    [fraudEvent.id, resolveFraudEvent, setShowResolveFraudEventModal],
   );
-
-  const partner = fraudEvent.partner;
 
   return (
     <Modal
-      showModal={showMarkFraudEventSafeModal}
-      setShowModal={setShowMarkFraudEventSafeModal}
+      showModal={showResolveFraudEventModal}
+      setShowModal={setShowResolveFraudEventModal}
     >
       <div className="border-b border-neutral-200 p-4 sm:p-6">
-        <h3 className="text-lg font-medium leading-none">Mark event as safe</h3>
+        <h3 className="text-lg font-medium leading-none">Resolve fraud event</h3>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)}>
         <div className="flex flex-col gap-6 bg-neutral-50 p-4 sm:p-6">
           <p className="text-sm font-medium text-neutral-800">
-            Confirm marking the event as safe
+            Confirm resolving the fraud event
           </p>
 
           <div>
@@ -97,40 +91,17 @@ function MarkFraudEventSafeModal({
                   "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
                   errors.resolutionReason && "border-red-600",
                 )}
-                placeholder="Add notes about why this event is safe..."
+                placeholder="Add notes about why this event is resolved..."
                 rows={4}
                 {...register("resolutionReason")}
               />
             </div>
           </div>
-
-          <div>
-            <Controller
-              control={control}
-              name="markPartnerAsSafe"
-              render={({ field }) => (
-                <div className="flex gap-2">
-                  <Checkbox
-                    id="markPartnerAsSafe"
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                  <label
-                    htmlFor="markPartnerAsSafe"
-                    className="text-content-emphasis select-none text-sm font-normal leading-none"
-                  >
-                    Mark partner as trusted (ignore all future fraud and risk
-                    alerts for this partner)
-                  </label>
-                </div>
-              )}
-            />
-          </div>
         </div>
 
-        <div className="flex items-center justify-end gap-2 bg-neutral-50 px-4 pb-5 sm:px-6">
+        <div className="flex items-center gap-2 bg-neutral-50 px-4 pb-5 sm:px-6">
           <Button
-            onClick={() => setShowMarkFraudEventSafeModal(false)}
+            onClick={() => setShowResolveFraudEventModal(false)}
             variant="secondary"
             text="Cancel"
             className="h-8 px-3"
@@ -138,7 +109,7 @@ function MarkFraudEventSafeModal({
           <Button
             type="submit"
             variant="primary"
-            text="Mark as safe"
+            text="Resolve"
             disabled={!fraudEvent.id}
             loading={isSubmitting}
             className="h-8 px-3"
@@ -149,29 +120,30 @@ function MarkFraudEventSafeModal({
   );
 }
 
-export function useMarkFraudEventSafeModal({
+export function useResolveFraudEventModal({
   fraudEvent,
 }: {
   fraudEvent: Pick<FraudEventProps, "id" | "partner">;
 }) {
-  const [showMarkFraudEventSafeModal, setShowMarkFraudEventSafeModal] =
+  const [showResolveFraudEventModal, setShowResolveFraudEventModal] =
     useState(false);
 
-  const MarkFraudEventSafeModalCallback = useCallback(() => {
+  const ResolveFraudEventModalCallback = useCallback(() => {
     return (
-      <MarkFraudEventSafeModal
-        showMarkFraudEventSafeModal={showMarkFraudEventSafeModal}
-        setShowMarkFraudEventSafeModal={setShowMarkFraudEventSafeModal}
+      <ResolveFraudEventModal
+        showResolveFraudEventModal={showResolveFraudEventModal}
+        setShowResolveFraudEventModal={setShowResolveFraudEventModal}
         fraudEvent={fraudEvent}
       />
     );
-  }, [showMarkFraudEventSafeModal, setShowMarkFraudEventSafeModal, fraudEvent]);
+  }, [showResolveFraudEventModal, setShowResolveFraudEventModal, fraudEvent]);
 
   return useMemo(
     () => ({
-      setShowMarkFraudEventSafeModal,
-      MarkFraudEventSafeModal: MarkFraudEventSafeModalCallback,
+      setShowResolveFraudEventModal,
+      ResolveFraudEventModal: ResolveFraudEventModalCallback,
     }),
-    [setShowMarkFraudEventSafeModal, MarkFraudEventSafeModalCallback],
+    [setShowResolveFraudEventModal, ResolveFraudEventModalCallback],
   );
 }
+

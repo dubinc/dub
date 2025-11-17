@@ -70,20 +70,11 @@ export const fraudEventCountQuerySchema = fraudEventsQuerySchema
   });
 
 export const resolveFraudEventSchema = z.object({
-  status: z
-    .enum(["safe", "banned"])
-    .describe("The resolution status for the fraud event."),
   resolutionReason: z
     .string()
     .max(1000, "Reason must be less than 1000 characters")
     .optional()
     .describe("Optional notes explaining the resolution."),
-  markPartnerAsSafe: z
-    .boolean()
-    .optional()
-    .describe(
-      "Whether to mark the partner as safe for all future fraud events.",
-    ),
 });
 
 export const fraudRuleSchema = z.object({

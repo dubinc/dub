@@ -29,54 +29,26 @@ export const PATCH = withWorkspace(
       });
     }
 
-    const { status, resolutionReason, markPartnerAsSafe } =
-      resolveFraudEventSchema.parse(await parseRequestBody(req));
-
-    const { fraudEvent: updatedFraudEvent } = await prisma.$transaction(
-      async (prisma) => {
-        const [updatedFraudEvent, updatedProgramEnrollment] = await Promise.all(
-          [
-            // Update fraud event
-            prisma.fraudEvent.update({
-              where: {
-                id: fraudEventId,
-              },
-              data: {
-                status,
-                resolutionReason: resolutionReason || null,
-                resolvedAt: new Date(),
-                userId: session.user.id,
-              },
-              include: {
-                user: true,
-                partner: true,
-                commission: true,
-              },
-            }),
-
-            // Mark partner as trusted (ignore all future fraud and risk alerts for this partner)
-            markPartnerAsSafe
-              ? prisma.programEnrollment.update({
-                  where: {
-                    partnerId_programId: {
-                      partnerId: fraudEvent.partnerId,
-                      programId: fraudEvent.programId,
-                    },
-                  },
-                  data: {
-                    safelistedAt: new Date(),
-                  },
-                })
-              : Promise.resolve(null),
-          ],
-        );
-
-        return {
-          fraudEvent: updatedFraudEvent,
-          programEnrollment: updatedProgramEnrollment,
-        };
-      },
+    const { resolutionReason } = resolveFraudEventSchema.parse(
+      await parseRequestBody(req),
     );
+
+    const updatedFraudEvent = await prisma.fraudEvent.update({
+      where: {
+        id: fraudEventId,
+      },
+      data: {
+        status: "resolved",
+        resolutionReason,
+        resolvedAt: new Date(),
+        userId: session.user.id,
+      },
+      include: {
+        user: true,
+        partner: true,
+        commission: true,
+      },
+    });
 
     return NextResponse.json(fraudEventSchema.parse(updatedFraudEvent));
   },

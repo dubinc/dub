@@ -6,7 +6,7 @@ import { z } from "zod";
 import { fraudEventCountQuerySchema } from "../zod/schemas/fraud";
 
 export function useFraudEventsCount<T>(
-  filters: Partial<z.infer<typeof fraudEventCountQuerySchema>>,
+  filters: Partial<z.infer<typeof fraudEventCountQuerySchema>> = {},
 ) {
   const { getQueryString } = useRouterStuff();
   const { id: workspaceId, defaultProgramId } = useWorkspace();

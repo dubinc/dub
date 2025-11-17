@@ -29,7 +29,7 @@ import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { useMarkFraudEventSafeModal } from "./mark-fraud-event-safe-modal";
+import { useResolveFraudEventModal } from "./resolve-fraud-event-modal";
 import { useFraudEventsFilters } from "./use-fraud-events-filters";
 
 export function FraudEventsTable() {
@@ -260,8 +260,8 @@ function RowMenuButton({ row }: { row: Row<FraudEventProps> }) {
   const event = row.original;
   const { id: workspaceId } = useWorkspace();
 
-  const { setShowMarkFraudEventSafeModal, MarkFraudEventSafeModal } =
-    useMarkFraudEventSafeModal({
+  const { setShowResolveFraudEventModal, ResolveFraudEventModal } =
+    useResolveFraudEventModal({
       fraudEvent: {
         id: event.id,
         partner: event.partner,
@@ -304,7 +304,7 @@ function RowMenuButton({ row }: { row: Row<FraudEventProps> }) {
 
   return (
     <>
-      <MarkFraudEventSafeModal />
+      <ResolveFraudEventModal />
       <Popover
         openPopover={isOpen}
         setOpenPopover={setIsOpen}
@@ -314,17 +314,18 @@ function RowMenuButton({ row }: { row: Row<FraudEventProps> }) {
               <Command.Group className="p-1.5">
                 <MenuItem
                   icon={CircleCheck}
-                  label="Mark as Safe"
+                  label="Resolve event"
                   onSelect={() => {
-                    setShowMarkFraudEventSafeModal(true);
+                    setShowResolveFraudEventModal(true);
                     setIsOpen(false);
                   }}
                 />
+
                 <MenuItem
                   icon={CircleXmark}
-                  label="Mark as Banned"
+                  label="Ban partner"
                   onSelect={() => handleResolve("banned")}
-                  danger
+                  variant="danger"
                 />
               </Command.Group>
             </Command.List>
@@ -347,23 +348,36 @@ function MenuItem({
   icon: IconComp,
   label,
   onSelect,
-  danger,
+  variant = "default",
 }: {
   icon: Icon;
   label: string;
   onSelect: () => void;
-  danger?: boolean;
+  variant?: "default" | "danger";
 }) {
+  const variantStyles = {
+    default: {
+      text: "text-neutral-600",
+      icon: "text-neutral-500",
+    },
+    danger: {
+      text: "text-red-600",
+      icon: "text-red-600",
+    },
+  };
+
+  const { text, icon } = variantStyles[variant];
+
   return (
     <Command.Item
+      className={cn(
+        "flex cursor-pointer select-none items-center gap-2 whitespace-nowrap rounded-md p-2 text-sm",
+        "data-[selected=true]:bg-neutral-100",
+        text,
+      )}
       onSelect={onSelect}
-      className={`flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors ${
-        danger
-          ? "text-red-600 hover:bg-red-50 focus:bg-red-50"
-          : "text-neutral-700 hover:bg-neutral-100 focus:bg-neutral-100"
-      } `}
     >
-      <IconComp className="h-4 w-4 shrink-0" />
+      <IconComp className={cn("size-4 shrink-0", icon)} />
       {label}
     </Command.Item>
   );
