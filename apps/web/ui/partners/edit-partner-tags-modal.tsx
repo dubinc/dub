@@ -11,6 +11,8 @@ import {
   Checkbox,
   LoadingSpinner,
   Modal,
+  Plus2,
+  Tag,
   useMediaQuery,
   Users,
   useScrollProgress,
@@ -31,6 +33,9 @@ import { toast } from "sonner";
 import useSWR from "swr";
 import { useDebounce } from "use-debounce";
 import { ThreeDots } from "../shared/icons";
+
+const itemClassName =
+  "group/button flex h-10 cursor-pointer items-center justify-between gap-2 rounded-lg px-2.5 data-[selected=true]:active:bg-black/5 data-[selected=true]:bg-black/[0.03]";
 
 type EditPartnerTagsModalProps = {
   showEditPartnerTagsModal: boolean;
@@ -212,7 +217,29 @@ function EditPartnerTagsModalContent({
                       }}
                     />
                   ))}
+
+                  {Boolean(search?.length) &&
+                    !tagOptions?.some((t) => t.name === search) && (
+                      <Command.Item
+                        className={cn(itemClassName, "justify-start")}
+                        onSelect={() => {
+                          toast.info("WIP");
+                        }}
+                        value={`create::${search}`}
+                        forceMount
+                      >
+                        <Plus2 className="size-3.5 shrink-0" />
+                        <span className="text-sm font-medium">
+                          Create new tag "{search}"
+                        </span>
+                      </Command.Item>
+                    )}
                 </Command.List>
+
+                <Command.Empty className="text-content-default flex select-none flex-col items-center justify-center gap-2 py-12">
+                  <Tag className="size-4 shrink-0" />
+                  <span className="text-sm font-medium">No tags found</span>
+                </Command.Empty>
               </div>
               {isLoadingTags && (
                 <Command.Loading className="absolute inset-0 flex items-center justify-center bg-white py-4">
@@ -307,7 +334,7 @@ function TagOption({
   return (
     <Command.Item
       key={tag.id}
-      className="group/button flex h-10 items-center justify-between gap-2 rounded-lg px-2.5 active:bg-black/5 data-[selected=true]:bg-black/[0.03]"
+      className={itemClassName}
       onSelect={() => checkboxRef.current?.click()}
       value={tag.name}
     >
