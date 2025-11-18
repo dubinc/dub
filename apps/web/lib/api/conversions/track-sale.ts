@@ -2,7 +2,7 @@ import { convertCurrency } from "@/lib/analytics/convert-currency";
 import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { DubApiError } from "@/lib/api/errors";
 import { includeTags } from "@/lib/api/links/include-tags";
-import { detectAndRecordFraudEvents } from "@/lib/fraud/detect-record-fraud-events";
+import { detectAndRecordEventFraud } from "@/lib/fraud/detect-record-event-fraud";
 import { generateRandomName } from "@/lib/names";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import { isStored, storage } from "@/lib/storage";
@@ -376,7 +376,7 @@ const _trackLead = async ({
             eventType: "lead",
           }),
 
-          detectAndRecordFraudEvents({
+          detectAndRecordEventFraud({
             program: { id: link.programId },
             partner: pick(webhookPartner, [
               "id",
@@ -591,7 +591,7 @@ const _trackSale = async ({
             eventType: "sale",
           }),
 
-          detectAndRecordFraudEvents({
+          detectAndRecordEventFraud({
             program: { id: link.programId },
             partner: pick(webhookPartner, [
               "id",

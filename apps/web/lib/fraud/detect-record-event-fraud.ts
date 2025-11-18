@@ -6,7 +6,7 @@ import { getMergedFraudRules } from "./get-merged-fraud-rules";
 import { fraudEventContext } from "./schemas";
 import { FraudEventContext } from "./types";
 
-export async function detectAndRecordFraudEvents(context: FraudEventContext) {
+export async function detectAndRecordEventFraud(context: FraudEventContext) {
   const result = fraudEventContext.safeParse(context);
 
   if (!result.success) {

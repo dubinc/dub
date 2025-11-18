@@ -2,7 +2,7 @@ import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
-import { detectAndRecordFraudEvents } from "@/lib/fraud/detect-record-fraud-events";
+import { detectAndRecordEventFraud } from "@/lib/fraud/detect-record-event-fraud";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import { recordSale } from "@/lib/tinybird";
 import { LeadEventTB, WebhookPartner } from "@/lib/types";
@@ -176,7 +176,7 @@ export async function createShopifySale({
           eventType: "sale",
         }),
 
-        detectAndRecordFraudEvents({
+        detectAndRecordEventFraud({
           program: { id: link.programId },
           partner: pick(webhookPartner, [
             "id",

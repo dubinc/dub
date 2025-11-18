@@ -2,7 +2,7 @@ import { createId } from "@/lib/api/create-id";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
-import { detectAndRecordFraudEvents } from "@/lib/fraud/detect-record-fraud-events";
+import { detectAndRecordEventFraud } from "@/lib/fraud/detect-record-event-fraud";
 import { generateRandomName } from "@/lib/names";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import { getClickEvent, recordLead } from "@/lib/tinybird";
@@ -160,7 +160,7 @@ export async function createNewCustomer(event: Stripe.Event) {
 
             webhookPartner &&
               commission &&
-              detectAndRecordFraudEvents({
+              detectAndRecordEventFraud({
                 program: { id: link.programId },
                 partner: pick(webhookPartner, [
                   "id",
