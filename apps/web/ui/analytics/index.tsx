@@ -13,12 +13,12 @@ import AnalyticsProvider, {
   AnalyticsContext,
   AnalyticsDashboardProps,
 } from "./analytics-provider";
-import Devices from "./devices";
-import Locations from "./locations";
-import Main from "./main";
-import Referer from "./referer";
-import Toggle from "./toggle";
-import TopLinks from "./top-links";
+import { ChartSection } from "./chart-section";
+import { DeviceSection } from "./device-section";
+import { LocationSection } from "./location-section";
+import { ReferrersUTMs } from "./referrers-utms";
+import { AnalyticsToggle } from "./toggle";
+import { TopLinks } from "./top-links";
 
 export default function Analytics({
   adminPage,
@@ -35,7 +35,7 @@ export default function Analytics({
             <div
               className={cn("pb-10", dashboardProps && "bg-neutral-50 pt-10")}
             >
-              <Toggle />
+              <AnalyticsToggle />
               <div
                 className={cn(
                   "mx-auto grid max-w-screen-xl gap-5 px-3 lg:px-10",
@@ -43,7 +43,7 @@ export default function Analytics({
                   !dashboardProps && !adminPage && "lg:px-6",
                 )}
               >
-                <Main />
+                <ChartSection />
                 <StatsGrid />
               </div>
             </div>
@@ -65,9 +65,9 @@ function StatsGrid() {
   return hide ? null : (
     <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
       {!dashboardProps && <TopLinks />}
-      <Referer />
-      <Locations />
-      <Devices />
+      <ReferrersUTMs />
+      <LocationSection />
+      <DeviceSection />
     </div>
   );
 }
