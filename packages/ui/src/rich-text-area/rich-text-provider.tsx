@@ -122,7 +122,7 @@ export const RichTextProvider = forwardRef<
     const editor = useEditor({
       editable: editable ?? true, // Explicitly pass `true` to make sure placeholder works
       autofocus: autoFocus ? "end" : false,
-      extensions: [
+      extensions: ([
         ...(markdown ? [Markdown] : []),
         StarterKit.configure({
           heading: features.includes("headings")
@@ -197,7 +197,7 @@ export const RichTextProvider = forwardRef<
               }),
             ]
           : []),
-      ],
+      ] as any),
       editorProps: {
         attributes: {
           ...editorProps?.attributes,

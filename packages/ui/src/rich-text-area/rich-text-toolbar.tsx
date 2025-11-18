@@ -53,7 +53,10 @@ export function RichTextToolbar({
           icon={TextBold}
           label="Bold"
           isActive={editorState?.isBold}
-          onClick={() => editor?.chain().focus().toggleBold().run()}
+          onClick={() => {
+            editor?.commands.focus();
+            // editor?.commands.toggleBold();
+          }}
         />
       )}
       {features?.includes("italic") && (
@@ -61,7 +64,10 @@ export function RichTextToolbar({
           icon={TextItalic}
           label="Italic"
           isActive={editorState?.isItalic}
-          onClick={() => editor?.chain().focus().toggleItalic().run()}
+          onClick={() => {
+            editor?.commands.focus();
+            // editor?.commands.toggleItalic();
+          }}
         />
       )}
       {features?.includes("headings") && (
@@ -70,17 +76,19 @@ export function RichTextToolbar({
             icon={Heading1}
             label="Heading 1"
             isActive={editorState?.isHeading1}
-            onClick={() =>
-              editor?.chain().focus().toggleHeading({ level: 1 }).run()
-            }
+            onClick={() => {
+              editor?.commands.focus();
+              // editor?.commands.toggleHeading({ level: 1 });
+            }}
           />
           <RichTextToolbarButton
             icon={Heading2}
             label="Heading 2"
             isActive={editorState?.isHeading2}
-            onClick={() =>
-              editor?.chain().focus().toggleHeading({ level: 2 }).run()
-            }
+            onClick={() => {
+              editor?.commands.focus();
+              // editor?.commands.toggleHeading({ level: 2 });
+            }}
           />
         </>
       )}
@@ -149,16 +157,15 @@ function LinkButton() {
         const url = window.prompt("Link URL", previousUrl);
 
         if (!url?.trim()) {
-          editor.chain().focus().extendMarkRange("link").unsetLink().run();
+          editor.commands.focus();
+          editor.commands.extendMarkRange("link");
+          // editor.commands.unsetLink();
           return;
         }
 
-        editor
-          .chain()
-          .focus()
-          .extendMarkRange("link")
-          .setLink({ href: url })
-          .run();
+        editor.commands.focus();
+        editor.commands.extendMarkRange("link");
+        // editor.commands.setLink({ href: url });
       }}
       disabled={!editorState?.isSelection}
     />
