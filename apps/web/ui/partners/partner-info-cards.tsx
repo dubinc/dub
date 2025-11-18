@@ -27,6 +27,7 @@ import {
 import Link from "next/link";
 import useSWR from "swr";
 import { ConversionScoreIcon } from "./conversion-score-icon";
+import { PartnerFraudFlag } from "./partner-fraud-flag";
 import { PartnerInfoGroup } from "./partner-info-group";
 import { ConversionScoreTooltip } from "./partner-network/conversion-score-tooltip";
 import { PartnerStarButton } from "./partner-star-button";
@@ -35,6 +36,8 @@ import { ProgramRewardList } from "./program-reward-list";
 import { TrustedPartnerBadge } from "./trusted-partner-badge";
 
 type PartnerInfoCardsProps = {
+  showFraudFlag?: boolean;
+
   /** Partner statuses to hide badges for */
   hideStatuses?: EnrolledPartnerExtendedProps["status"][];
 
@@ -46,12 +49,20 @@ type PartnerInfoCardsProps = {
   | { type: "network"; partner?: NetworkPartnerProps }
 );
 
+type BasicField = {
+  id: string;
+  icon: React.ReactElement;
+  text: string | null | undefined;
+  wrapper?: React.ComponentType<{ children: React.ReactNode }> | string;
+};
+
 export function PartnerInfoCards({
   type,
   partner,
   hideStatuses = [],
   selectedGroupId,
   setSelectedGroupId,
+  showFraudFlag = true,
 }: PartnerInfoCardsProps) {
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
 
@@ -75,13 +86,6 @@ export function PartnerInfoCards({
       : null,
     fetcher,
   );
-
-  type BasicField = {
-    id: string;
-    icon: React.ReactElement;
-    text: string | null | undefined;
-    wrapper?: React.ComponentType<{ children: React.ReactNode }> | string;
-  };
 
   let basicFields: BasicField[] = [
     {
@@ -133,6 +137,7 @@ export function PartnerInfoCards({
       },
     ]);
   }
+
   if (isNetwork) {
     basicFields = basicFields.concat([
       {
@@ -198,9 +203,12 @@ export function PartnerInfoCards({
         </div>
         <div className="mt-4">
           {partner ? (
-            <span className="text-content-emphasis text-lg font-semibold">
-              {partner.name}
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-content-emphasis text-lg font-semibold">
+                {partner.name}
+              </span>
+              {showFraudFlag && <PartnerFraudFlag partnerId={partner.id} />}
+            </div>
           ) : (
             <div className="h-7 w-24 animate-pulse rounded bg-neutral-200" />
           )}
