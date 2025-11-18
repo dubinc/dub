@@ -3,48 +3,17 @@ import { FraudEvent, Prisma } from "@dub/prisma/client";
 import { createId } from "../api/create-id";
 import { executeFraudRule } from "./execute-fraud-rule";
 import { getMergedFraudRules } from "./get-merged-fraud-rules";
+import { fraudEventContext } from "./schemas";
+import { FraudEventContext } from "./types";
 
-interface DetectFraudEventProps {
-  program: {
-    id: string;
-  };
-  partner: {
-    id: string;
-    email: string | null;
-    name: string | null;
-    safelistedAt: Date | null;
-  };
-  customer: {
-    id: string;
-    email: string | null;
-    name: string | null;
-  };
-  commission: {
-    id: string | null | undefined;
-  };
-  link: {
-    id: string | null | undefined;
-  };
-  click: {
-    url: string | null;
-    referer: string | null;
-  };
-  event: {
-    id: string;
-  };
-}
+export async function detectAndRecordFraudEvents(context: FraudEventContext) {
+  const result = fraudEventContext.safeParse(context);
 
-// Evaluate fraud risk for a conversion event
-// Executes all enabled rules and calculates risk score
-export async function detectAndRecordFraudEvents(
-  context: DetectFraudEventProps,
-) {
-  if (context.partner.safelistedAt) {
-    console.log(
-      "[detectAndRecordFraudEvents] The partner is marked as trusted for this program. Skipping fraud risk evaluation.",
-    );
-    return null;
+  if (!result.success) {
+    return;
   }
+
+  const validatedContext = result.data;
 
   // Get program-specific rule overrides
   const programRules = await prisma.fraudRule.findMany({
@@ -62,11 +31,11 @@ export async function detectAndRecordFraudEvents(
   // Evaluate each rule
   for (const rule of activeRules) {
     try {
-      const { triggered, metadata } = await executeFraudRule(
-        rule.type,
-        context,
-        rule.config,
-      );
+      const { triggered, metadata } = await executeFraudRule({
+        type: rule.type,
+        config: rule.config,
+        context: validatedContext,
+      });
 
       if (triggered) {
         triggeredRules.push({
@@ -88,12 +57,12 @@ export async function detectAndRecordFraudEvents(
     return await prisma.fraudEvent.createMany({
       data: triggeredRules.map((rule) => ({
         id: createId({ prefix: "fraud_" }),
-        programId: context.program.id,
-        partnerId: context.partner.id,
-        linkId: context.link.id,
-        customerId: context.customer.id,
-        eventId: context.event.id,
-        commissionId: context.commission.id,
+        programId: validatedContext.program.id,
+        partnerId: validatedContext.partner.id,
+        linkId: validatedContext.link.id,
+        customerId: validatedContext.customer.id,
+        eventId: validatedContext.event.id,
+        commissionId: validatedContext.commission.id,
         type: rule.type,
         metadata: rule.metadata as Prisma.InputJsonValue,
       })),

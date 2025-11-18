@@ -1,13 +1,7 @@
 import { minimatch } from "minimatch";
 import { z } from "zod";
 import { defineFraudRule } from "../define-fraud-rule";
-
-const contextSchema = z.object({
-  click: z.object({
-    referer: z.string().nullable().default(null),
-    referer_url: z.string().nullable().default(null),
-  }),
-});
+import { FraudEventContext } from "../types";
 
 const configSchema = z.object({
   bannedSources: z
@@ -21,9 +15,7 @@ const configSchema = z.object({
 
 export const checkReferralSourceBanned = defineFraudRule({
   type: "referralSourceBanned",
-  contextSchema,
-  configSchema,
-  evaluate: async (context, config) => {
+  evaluate: async (context: FraudEventContext, config) => {
     console.log("Evaluating checkReferralSourceBanned...", context, config);
 
     const { click } = context;

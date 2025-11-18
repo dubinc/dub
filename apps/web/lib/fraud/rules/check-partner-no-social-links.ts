@@ -1,21 +1,9 @@
-import { z } from "zod";
 import { defineFraudRule } from "../define-fraud-rule";
-
-const contextSchema = z.object({
-  partner: z.object({
-    website: z.string().nullable().default(null),
-    youtube: z.string().nullable().default(null),
-    twitter: z.string().nullable().default(null),
-    linkedin: z.string().nullable().default(null),
-    instagram: z.string().nullable().default(null),
-    tiktok: z.string().nullable().default(null),
-  }),
-});
+import { FraudPartnerContext } from "../types";
 
 export const checkPartnerNoSocialLinks = defineFraudRule({
   type: "partnerNoSocialLinks",
-  contextSchema,
-  evaluate: async (context) => {
+  evaluate: async (context: FraudPartnerContext) => {
     console.log("Evaluating checkPartnerNoSocialLinks...");
 
     const { partner } = context;

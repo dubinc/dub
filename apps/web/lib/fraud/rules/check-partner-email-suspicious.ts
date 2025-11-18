@@ -1,17 +1,10 @@
 import { redisWithTimeout } from "@/lib/upstash/redis";
-import { z } from "zod";
 import { defineFraudRule } from "../define-fraud-rule";
-
-const contextSchema = z.object({
-  partner: z.object({
-    email: z.string().nullable().default(null),
-  }),
-});
+import { FraudPartnerContext } from "../types";
 
 export const checkPartnerEmailSuspicious = defineFraudRule({
   type: "partnerEmailSuspiciousDomain",
-  contextSchema,
-  evaluate: async (context) => {
+  evaluate: async (context: FraudPartnerContext) => {
     console.log("Evaluating checkPartnerEmailSuspicious...");
 
     const { partner } = context;

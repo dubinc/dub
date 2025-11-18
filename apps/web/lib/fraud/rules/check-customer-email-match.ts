@@ -1,22 +1,10 @@
-import { z } from "zod";
 import { defineFraudRule } from "../define-fraud-rule";
+import { FraudEventContext } from "../types";
 import { normalizeEmail } from "../utils";
-
-const contextSchema = z.object({
-  partner: z.object({
-    id: z.string(),
-    email: z.string().nullable().default(null),
-  }),
-  customer: z.object({
-    id: z.string(),
-    email: z.string().nullable().default(null),
-  }),
-});
 
 export const checkCustomerEmailMatch = defineFraudRule({
   type: "customerEmailMatch",
-  contextSchema,
-  evaluate: async (context) => {
+  evaluate: async (context: FraudEventContext) => {
     console.log("Evaluating checkCustomerEmailMatch...", context);
 
     const { partner, customer } = context;

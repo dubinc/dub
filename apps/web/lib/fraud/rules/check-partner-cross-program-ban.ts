@@ -1,20 +1,10 @@
 import { prisma } from "@dub/prisma";
-import { z } from "zod";
 import { defineFraudRule } from "../define-fraud-rule";
-
-const contextSchema = z.object({
-  program: z.object({
-    id: z.string(),
-  }),
-  partner: z.object({
-    id: z.string(),
-  }),
-});
+import { FraudPartnerContext } from "../types";
 
 export const checkCrossProgramBan = defineFraudRule({
   type: "partnerCrossProgramBan",
-  contextSchema,
-  evaluate: async (context) => {
+  evaluate: async (context: FraudPartnerContext) => {
     console.log("Evaluating checkProgramBanned...");
 
     const { program, partner } = context;

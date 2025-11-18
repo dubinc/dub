@@ -1,12 +1,7 @@
 import { getSearchParams } from "@dub/utils";
 import { z } from "zod";
 import { defineFraudRule } from "../define-fraud-rule";
-
-const contextSchema = z.object({
-  click: z.object({
-    url: z.string().nullable().default(null),
-  }),
-});
+import { FraudEventContext } from "../types";
 
 const configSchema = z.object({
   queryParams: z
@@ -18,8 +13,6 @@ const configSchema = z.object({
 
 export const checkPaidTrafficDetected = defineFraudRule({
   type: "paidTrafficDetected",
-  contextSchema,
-  configSchema,
   defaultConfig: {
     queryParams: [
       // Google
@@ -27,32 +20,9 @@ export const checkPaidTrafficDetected = defineFraudRule({
       "gclsrc",
       "gbraid",
       "wbraid",
-      // Facebook
-      "fbclid",
-      // Bing
-      "msclkid",
-      // TikTok
-      "ttclid",
-      // X/Twitter
-      "twclid",
-      "tclid",
-      // LinkedIn
-      "li_fat_id",
-      "li_sponsored",
-      // Pinterest
-      "epik",
-      // Reddit
-      "rdt_cid",
-      "rdt_pid",
-      // Snapchat
-      "sc_click_id",
-      "sc_ua",
-      // Amazon
-      "amclid",
-      "asc_refurl",
     ],
   },
-  evaluate: async (context, config) => {
+  evaluate: async (context: FraudEventContext, config) => {
     console.log("Evaluating checkPaidTrafficDetected...", context, config);
 
     const { click } = context;

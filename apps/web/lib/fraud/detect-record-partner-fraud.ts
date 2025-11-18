@@ -1,59 +1,21 @@
 import { prisma } from "@dub/prisma";
 import { FraudEvent } from "@dub/prisma/client";
-import { z } from "zod";
 import { createId } from "../api/create-id";
-import { PartnerSchema } from "../zod/schemas/partners";
-import { ProgramSchema } from "../zod/schemas/programs";
 import { FRAUD_RULES_BY_SCOPE } from "./constants";
 import { executeFraudRule } from "./execute-fraud-rule";
-
-const contextSchema = z.object({
-  program: ProgramSchema.pick({ id: true }),
-  partner: PartnerSchema.pick({
-    id: true,
-    email: true,
-    website: true,
-    websiteVerifiedAt: true,
-    youtube: true,
-    youtubeVerifiedAt: true,
-    twitter: true,
-    twitterVerifiedAt: true,
-    linkedin: true,
-    linkedinVerifiedAt: true,
-    instagram: true,
-    instagramVerifiedAt: true,
-    tiktok: true,
-    tiktokVerifiedAt: true,
-  }),
-});
+import { fraudPartnerContext } from "./schemas";
+import { FraudPartnerContext } from "./types";
 
 export async function detectAndRecordPartnerFraud(
-  context: z.infer<typeof contextSchema>,
+  context: FraudPartnerContext,
 ) {
-  const result = contextSchema.safeParse(context);
+  const result = fraudPartnerContext.safeParse(context);
 
   if (!result.success) {
-    console.error(
-      "[detectAndRecordPartnerFraud] Invalid context:",
-      result.error.message,
-    );
     return;
   }
 
   const validatedContext = result.data;
-
-  console.log(
-    "[detectAndRecordPartnerFraud] context",
-    JSON.stringify(validatedContext, null, 2),
-  );
-
-  if (!validatedContext.partner.id || !validatedContext.program.id) {
-    console.log(
-      "[detectAndRecordFraudApplicant] The partner or program is not found.",
-    );
-    return;
-  }
-
   const fraudRules = FRAUD_RULES_BY_SCOPE["partner"];
 
   if (fraudRules.length === 0) {
@@ -68,7 +30,10 @@ export async function detectAndRecordPartnerFraud(
   // Evaluate each rule
   for (const rule of fraudRules) {
     try {
-      const { triggered } = await executeFraudRule(rule.type, validatedContext);
+      const { triggered } = await executeFraudRule({
+        type: rule.type,
+        context: validatedContext,
+      });
 
       if (triggered) {
         triggeredRules.push({

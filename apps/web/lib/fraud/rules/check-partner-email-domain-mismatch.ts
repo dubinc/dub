@@ -1,18 +1,10 @@
 import { prisma } from "@dub/prisma";
-import { z } from "zod";
 import { defineFraudRule } from "../define-fraud-rule";
-
-const contextSchema = z.object({
-  partner: z.object({
-    id: z.string(),
-    email: z.string().nullable().default(null),
-  }),
-});
+import { FraudPartnerContext } from "../types";
 
 export const checkPartnerEmailDomainMismatch = defineFraudRule({
   type: "partnerEmailDomainMismatch",
-  contextSchema,
-  evaluate: async (context) => {
+  evaluate: async (context: FraudPartnerContext) => {
     console.log("Evaluating checkPartnerEmailDomainMismatch...");
 
     const { partner } = context;
