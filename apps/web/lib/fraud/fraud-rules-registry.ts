@@ -3,7 +3,7 @@ import { defineFraudRule } from "./define-fraud-rule";
 import { checkCustomerEmailMatch } from "./rules/check-customer-email-match";
 import { checkCustomerEmailSuspicious } from "./rules/check-customer-email-suspicious";
 import { checkPaidTrafficDetected } from "./rules/check-paid-traffic-detected";
-import { checkCrossProgramBan } from "./rules/check-cross-program-ban";
+import { checkCrossProgramBan } from "./rules/check-partner-cross-program-ban";
 import { checkReferralSourceBanned } from "./rules/check-referral-source-banned";
 
 export const fraudRulesRegistry: Record<
@@ -14,6 +14,13 @@ export const fraudRulesRegistry: Record<
   customerEmailSuspiciousDomain: checkCustomerEmailSuspicious,
   referralSourceBanned: checkReferralSourceBanned,
   paidTrafficDetected: checkPaidTrafficDetected,
-  crossProgramBan: checkCrossProgramBan,
-  duplicatePayoutMethod: checkCrossProgramBan
+  partnerCrossProgramBan: checkCrossProgramBan,
+
+  // Not done yet
+  partnerEmailSuspiciousDomain: checkCrossProgramBan,
+  partnerEmailDomainMismatch: checkCrossProgramBan,
+  partnerEmailMasked: checkCrossProgramBan,
+  partnerDuplicatePayoutMethod: checkCrossProgramBan,
+  partnerNoSocialLinks: checkCrossProgramBan,
+  partnerNoVerifiedSocialLinks: checkCrossProgramBan,
 };

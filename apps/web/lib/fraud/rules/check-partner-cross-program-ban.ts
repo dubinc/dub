@@ -12,7 +12,7 @@ const contextSchema = z.object({
 });
 
 export const checkCrossProgramBan = defineFraudRule({
-  type: "crossProgramBan",
+  type: "partnerCrossProgramBan",
   contextSchema,
   evaluate: async (context) => {
     console.log("Evaluating checkProgramBanned...", context);
