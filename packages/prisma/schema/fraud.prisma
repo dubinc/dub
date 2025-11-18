@@ -14,7 +14,8 @@ enum FraudRuleType {
   customerEmailSuspiciousDomain
   referralSourceBanned
   paidTrafficDetected
-  programBanned
+  crossProgramBan
+  duplicatePayoutMethod
 }
 
 model FraudRule {
