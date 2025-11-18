@@ -21,6 +21,7 @@ interface QueryResult {
   partnerId: string | null;
   partnerName: string | null;
   partnerEmail: string | null;
+  partnerImage: string | null;
   customerId: string | null;
   customerEmail: string | null;
   customerName: string | null;
@@ -70,6 +71,7 @@ export async function getFraudEvents({
       p.id AS partnerId,
       p.name AS partnerName,
       p.email AS partnerEmail,
+      p.image AS partnerImage,
       c.id AS customerId,
       c.email AS customerEmail,
       c.name AS customerName,
@@ -113,6 +115,7 @@ export async function getFraudEvents({
           id: event.partnerId,
           name: event.partnerName,
           email: event.partnerEmail,
+          image: event.partnerImage,
         }
       : null,
     customer: event.customerId

@@ -4,6 +4,7 @@ import { FRAUD_RULES_BY_TYPE } from "@/lib/fraud/constants";
 import { useFraudEvents } from "@/lib/swr/use-fraud-events";
 import { useFraudEventsCount } from "@/lib/swr/use-fraud-events-count";
 import { FraudEventProps } from "@/lib/types";
+import { useBanPartnerModal } from "@/ui/modals/ban-partner-modal";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { FilterButtonTableRow } from "@/ui/shared/filter-button-table-row";
@@ -21,7 +22,7 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { CircleCheck, CircleXmark, Dots, ShieldKeyhole } from "@dub/ui/icons";
+import { CircleCheck, Dots, ShieldKeyhole, UserDelete } from "@dub/ui/icons";
 import { cn, currencyFormatter, formatDateTimeSmart } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
@@ -250,14 +251,18 @@ export function FraudEventsTable() {
 }
 
 function RowMenuButton({ row }: { row: Row<FraudEventProps> }) {
-  const [isOpen, setIsOpen] = useState(false);
-
   const fraudEvent = row.original;
+
+  const [isOpen, setIsOpen] = useState(false);
 
   const { setShowResolveFraudEventModal, ResolveFraudEventModal } =
     useResolveFraudEventModal({
       fraudEvent,
     });
+
+  const { BanPartnerModal, setShowBanPartnerModal } = useBanPartnerModal({
+    partner: fraudEvent.partner,
+  });
 
   if (fraudEvent.status !== "pending") {
     return null;
@@ -266,13 +271,14 @@ function RowMenuButton({ row }: { row: Row<FraudEventProps> }) {
   return (
     <>
       <ResolveFraudEventModal />
+      <BanPartnerModal />
       <Popover
         openPopover={isOpen}
         setOpenPopover={setIsOpen}
         content={
           <Command tabIndex={0} loop className="focus:outline-none">
-            <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[180px]">
-              <Command.Group className="p-1.5">
+            <Command.List className="w-screen text-sm focus-visible:outline-none sm:w-auto sm:min-w-[160px]">
+              <Command.Group className="grid gap-px p-1.5">
                 <MenuItem
                   icon={CircleCheck}
                   label="Resolve event"
@@ -283,10 +289,13 @@ function RowMenuButton({ row }: { row: Row<FraudEventProps> }) {
                 />
 
                 <MenuItem
-                  icon={CircleXmark}
+                  icon={UserDelete}
                   label="Ban partner"
-                  onSelect={() => {}}
                   variant="danger"
+                  onSelect={() => {
+                    setShowBanPartnerModal(true);
+                    setIsOpen(false);
+                  }}
                 />
               </Command.Group>
             </Command.List>
