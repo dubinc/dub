@@ -78,6 +78,7 @@ export async function POST(req: Request) {
     await log({
       message: `Error confirming payouts for program: ${error.message}`,
       type: "errors",
+      mention: true,
     });
 
     return handleAndReturnErrorResponse(error);

@@ -86,7 +86,7 @@ export async function processPayouts({
       }),
     },
     data: {
-      invoiceId,
+      invoiceId: invoice.id,
       status: "processing",
       userId,
       initiatedAt: new Date(),
@@ -98,13 +98,13 @@ export async function processPayouts({
 
   if (res.count === 0) {
     console.log(
-      `No payouts updated/found for invoice ${invoiceId}. Skipping...`,
+      `No payouts updated/found for invoice ${invoice.id}. Skipping...`,
     );
     return;
   }
 
   console.log(
-    `Updated ${res.count} payouts to invoice ${invoiceId} and "processing" status`,
+    `Updated ${res.count} payouts to invoice ${invoice.id} and "processing" status`,
   );
 
   // if hybrid mode, we need to update payouts for partners with payoutsEnabledAt = null to external mode
@@ -112,7 +112,7 @@ export async function processPayouts({
   if (program.payoutMode === "hybrid") {
     await prisma.payout.updateMany({
       where: {
-        invoiceId,
+        invoiceId: invoice.id,
         partner: {
           payoutsEnabledAt: null,
         },
@@ -126,7 +126,7 @@ export async function processPayouts({
   const payoutsByMode = await prisma.payout.groupBy({
     by: ["mode"],
     where: {
-      invoiceId,
+      invoiceId: invoice.id,
     },
     _sum: {
       amount: true,
@@ -160,9 +160,17 @@ export async function processPayouts({
   const invoiceFee = Math.round(totalPayoutAmount * payoutFee) + fastAchFee;
   const invoiceTotal = totalPayoutAmount + invoiceFee;
 
+  console.log({
+    totalInternalPayoutAmount,
+    totalExternalPayoutAmount,
+    totalPayoutAmount,
+    invoiceFee,
+    invoiceTotal,
+  });
+
   await prisma.invoice.update({
     where: {
-      id: invoiceId,
+      id: invoice.id,
     },
     data: {
       amount: totalPayoutAmount,
@@ -247,7 +255,7 @@ export async function processPayouts({
   const qstashResponse = await qstash.publishJSON({
     url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/process/updates`,
     body: {
-      invoiceId,
+      invoiceId: invoice.id,
     },
   });
 
