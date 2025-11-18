@@ -66,6 +66,7 @@ export const FRAUD_RULES: FraudRuleInfo[] = [
       "This partner is using a payout method that is already associated with another partner, which may indicate duplicate or fraudulent accounts.",
     scope: "partner",
     riskLevel: "high",
+    crossProgram: true,
   },
   {
     type: "partnerNoSocialLinks",

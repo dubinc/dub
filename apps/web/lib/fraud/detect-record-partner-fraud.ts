@@ -1,7 +1,7 @@
 import { prisma } from "@dub/prisma";
 import { FraudEvent } from "@dub/prisma/client";
 import { createId } from "../api/create-id";
-import { FRAUD_RULES_BY_SCOPE } from "./constants";
+import { FRAUD_RULES_BY_SCOPE, FRAUD_RULES_BY_TYPE } from "./constants";
 import { executeFraudRule } from "./execute-fraud-rule";
 import { fraudPartnerContext } from "./schemas";
 import { FraudPartnerContext } from "./types";
@@ -48,16 +48,75 @@ export async function detectAndRecordPartnerFraud(
     }
   }
 
+  if (triggeredRules.length === 0) {
+    console.log("[detectAndRecordPartnerFraud] No fraud rules were triggered.");
+    return;
+  }
+
   console.log("[detectAndRecordPartnerFraud] triggeredRules", triggeredRules);
 
-  try {
-    await prisma.fraudEvent.createMany({
-      data: triggeredRules.map((rule) => ({
+  const crossProgramRules = triggeredRules.filter(
+    (rule) => FRAUD_RULES_BY_TYPE[rule.type].crossProgram,
+  );
+
+  let programEnrollments: Array<{ programId: string }> = [];
+
+  // Fetch program enrollments only if we have cross-program rules
+  if (crossProgramRules.length > 0) {
+    programEnrollments = await prisma.programEnrollment.findMany({
+      where: {
+        partnerId: validatedContext.partner.id,
+      },
+      select: {
+        programId: true,
+      },
+    });
+  }
+
+  const fraudEvents: Pick<
+    FraudEvent,
+    "id" | "programId" | "partnerId" | "type"
+  >[] = [];
+
+  // TODO (Fraud):
+  // Skip duplicate fraud events for the same rule
+
+  // For each triggered fraud rule, create fraud events based on the rule's scope:
+  // - Cross-program rules: Create fraud events for all programs the partner is enrolled in (e.g., duplicate payout method).
+  // - Single-program rules: Create fraud event only for the current program context.
+  for (const triggeredRule of triggeredRules) {
+    const fraudRule = FRAUD_RULES_BY_TYPE[triggeredRule.type];
+
+    if (!fraudRule) {
+      continue;
+    }
+
+    if (fraudRule.crossProgram) {
+      for (const programEnrollment of programEnrollments) {
+        fraudEvents.push({
+          id: createId({ prefix: "fraud_" }),
+          programId: programEnrollment.programId,
+          partnerId: validatedContext.partner.id,
+          type: triggeredRule.type,
+        });
+      }
+    } else {
+      fraudEvents.push({
         id: createId({ prefix: "fraud_" }),
         programId: validatedContext.program.id,
         partnerId: validatedContext.partner.id,
-        type: rule.type,
-      })),
+        type: triggeredRule.type,
+      });
+    }
+  }
+
+  if (fraudEvents.length === 0) {
+    return;
+  }
+
+  try {
+    await prisma.fraudEvent.createMany({
+      data: fraudEvents,
     });
   } catch (error) {
     console.error(

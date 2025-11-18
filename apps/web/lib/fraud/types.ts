@@ -12,8 +12,9 @@ export interface FraudRuleInfo {
   type: FraudRuleType;
   name: string;
   description: string;
-  scope: "partner" | "conversionEvent";
+  scope: "partner" | "conversionEvent"; // The scope of the rule (partner or conversion event)
   riskLevel?: "low" | "medium" | "high";
+  crossProgram?: boolean; // If true, the rule is triggered for all programs
 }
 
 export type FraudRuleProps = z.infer<typeof fraudRuleSchema>;
