@@ -21,6 +21,9 @@ export async function queueBatchEmail<TTemplate extends (props: any) => any>(
     idempotencyKey?: string; // Used for both QStash deduplication AND Resend idempotency
   },
 ): Promise<string[]> {
+  // filter out emails without a `to` address
+  emails = emails.filter((email) => Boolean(email.to));
+
   if (emails.length === 0) {
     console.log("No emails to queue. Skipping...");
     return [];

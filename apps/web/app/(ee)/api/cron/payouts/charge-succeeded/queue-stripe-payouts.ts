@@ -1,6 +1,6 @@
 import { qstash } from "@/lib/cron";
 import { prisma } from "@dub/prisma";
-import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, chunk, log } from "@dub/utils";
 import { Invoice } from "@prisma/client";
 import { z } from "zod";
 
@@ -52,24 +52,30 @@ export async function queueStripePayouts(
     queueName: "send-stripe-payout",
   });
 
-  for (const { partnerId } of partnersInCurrentInvoice) {
-    const response = await queue.enqueueJSON({
-      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/send-stripe-payout`,
-      deduplicationId: `${invoiceId}-${partnerId}`,
-      method: "POST",
-      body: {
-        invoiceId,
-        partnerId,
-        // only pass chargeId if payment method is card
-        // this is because we're passing chargeId as source_transaction for card payouts since card payouts can take a short time to settle fully
-        // we omit chargeId/source_transaction for other payment methods (ACH, SEPA, etc.) since those settle via charge.succeeded webhook after ~4 days
-        // x-slack-ref: https://dub.slack.com/archives/C074P7LMV9C/p1758776038825219?thread_ts=1758769780.982089&cid=C074P7LMV9C
-        ...(paymentMethod === "card" && { chargeId }),
-      },
-    });
+  const chunkedPartners = chunk(partnersInCurrentInvoice, 100);
 
+  for (let i = 0; i < chunkedPartners.length; i++) {
+    const partnersInChunk = chunkedPartners[i];
+    await Promise.allSettled(
+      partnersInChunk.map(({ partnerId }) => {
+        return queue.enqueueJSON({
+          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/send-stripe-payout`,
+          deduplicationId: `${invoiceId}-${partnerId}`,
+          method: "POST",
+          body: {
+            invoiceId,
+            partnerId,
+            // only pass chargeId if payment method is card
+            // this is because we're passing chargeId as source_transaction for card payouts since card payouts can take a short time to settle fully
+            // we omit chargeId/source_transaction for other payment methods (ACH, SEPA, etc.) since those settle via charge.succeeded webhook after ~4 days
+            // x-slack-ref: https://dub.slack.com/archives/C074P7LMV9C/p1758776038825219?thread_ts=1758769780.982089&cid=C074P7LMV9C
+            ...(paymentMethod === "card" && { chargeId }),
+          },
+        });
+      }),
+    );
     console.log(
-      `Enqueued Stripe payout for invoice ${invoiceId} and partner ${partnerId}: ${response.messageId}`,
+      `Enqueued Stripe payout for ${partnersInChunk.length} partners in chunk ${i + 1} of ${chunkedPartners.length}`,
     );
   }
 }

@@ -40,12 +40,21 @@ export function useAnalyticsFilterOption(
       ? groupByOrParams
       : groupByOrParams?.groupBy;
 
+  // Extract additional params (like root) from the params object
+  const additionalParams =
+    typeof groupByOrParams === "object" && groupByOrParams !== null
+      ? Object.fromEntries(
+          Object.entries(groupByOrParams).filter(([key]) => key !== "groupBy"),
+        )
+      : {};
+
   const { data, isLoading } = useSWR<Record<string, any>[]>(
     !options?.disabled &&
       `${baseApiPath}?${editQueryString(
         queryString,
         {
           ...(groupBy && { groupBy }),
+          ...additionalParams,
         },
         // if theres no groupBy or we're not omitting the groupBy filter, skip
         // else, we need to remove the filter for that groupBy param
