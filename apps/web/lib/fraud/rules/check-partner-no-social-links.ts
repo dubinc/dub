@@ -3,10 +3,8 @@ import { FraudPartnerContext } from "../types";
 
 export const checkPartnerNoSocialLinks = defineFraudRule({
   type: "partnerNoSocialLinks",
-  evaluate: async (context: FraudPartnerContext) => {
+  evaluate: async ({ partner }: FraudPartnerContext) => {
     console.log("Evaluating checkPartnerNoSocialLinks...");
-
-    const { partner } = context;
 
     // Check if website is provided
     const hasWebsite = partner.website && partner.website.trim().length > 0;

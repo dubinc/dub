@@ -4,10 +4,8 @@ import { FraudEventContext } from "../types";
 
 export const checkCustomerEmailSuspicious = defineFraudRule({
   type: "customerEmailSuspiciousDomain",
-  evaluate: async (context: FraudEventContext) => {
-    console.log("Evaluating checkCustomerEmailSuspicious...", context);
-
-    const { customer } = context;
+  evaluate: async ({ customer }: FraudEventContext) => {
+    console.log("Evaluating checkCustomerEmailSuspicious...");
 
     // If no customer email provided, rule doesn't trigger
     if (!customer.email) {

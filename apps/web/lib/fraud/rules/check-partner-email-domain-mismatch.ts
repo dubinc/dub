@@ -1,33 +1,12 @@
-import { prisma } from "@dub/prisma";
 import { defineFraudRule } from "../define-fraud-rule";
 import { FraudPartnerContext } from "../types";
 
 export const checkPartnerEmailDomainMismatch = defineFraudRule({
   type: "partnerEmailDomainMismatch",
-  evaluate: async (context: FraudPartnerContext) => {
+  evaluate: async ({ partner }: FraudPartnerContext) => {
     console.log("Evaluating checkPartnerEmailDomainMismatch...");
 
-    const { partner } = context;
-
-    // Return false if email is missing
-    if (!partner.email) {
-      return {
-        triggered: false,
-      };
-    }
-
-    // Fetch partner's website from database
-    const partnerRecord = await prisma.partner.findUnique({
-      where: {
-        id: partner.id,
-      },
-      select: {
-        website: true,
-      },
-    });
-
-    // Return false if website is missing
-    if (!partnerRecord?.website) {
+    if (!partner.email || !partner.website) {
       return {
         triggered: false,
       };
@@ -40,19 +19,16 @@ export const checkPartnerEmailDomainMismatch = defineFraudRule({
         triggered: false,
       };
     }
+
     const emailDomain = emailParts[1].toLowerCase().trim();
 
     // Extract domain from website
     let websiteDomain: string;
+
     try {
-      const websiteUrl = new URL(partnerRecord.website);
+      const websiteUrl = new URL(partner.website);
       websiteDomain = websiteUrl.hostname.toLowerCase().trim();
     } catch (error) {
-      // If URL parsing fails, return false
-      console.error(
-        "Error parsing website URL:",
-        error instanceof Error ? error.message : String(error),
-      );
       return {
         triggered: false,
       };
@@ -61,15 +37,8 @@ export const checkPartnerEmailDomainMismatch = defineFraudRule({
     // Compare domains (case-insensitive)
     const domainsMatch = emailDomain === websiteDomain;
 
-    const metadata = {
-      partnerId: partner.id,
-      emailDomain,
-      websiteDomain,
-    };
-
     return {
       triggered: !domainsMatch,
-      metadata,
     };
   },
 });

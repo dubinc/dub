@@ -3,10 +3,8 @@ import { FraudPartnerContext } from "../types";
 
 export const checkPartnerEmailMasked = defineFraudRule({
   type: "partnerEmailMasked",
-  evaluate: async (context: FraudPartnerContext) => {
+  evaluate: async ({ partner }: FraudPartnerContext) => {
     console.log("Evaluating checkPartnerEmailMasked...");
-
-    const { partner } = context;
 
     // If no partner email provided, rule doesn't trigger
     if (!partner.email) {

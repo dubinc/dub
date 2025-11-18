@@ -4,10 +4,8 @@ import { normalizeEmail } from "../utils";
 
 export const checkCustomerEmailMatch = defineFraudRule({
   type: "customerEmailMatch",
-  evaluate: async (context: FraudEventContext) => {
-    console.log("Evaluating checkCustomerEmailMatch...", context);
-
-    const { partner, customer } = context;
+  evaluate: async ({ partner, customer }: FraudEventContext) => {
+    console.log("Evaluating checkCustomerEmailMatch...");
 
     const metadata = {
       partnerId: partner.id,

@@ -7,6 +7,7 @@ export const fraudPartnerContext = z.object({
   partner: PartnerSchema.pick({
     id: true,
     email: true,
+    payoutMethodHash: true,
     website: true,
     websiteVerifiedAt: true,
     youtube: true,
@@ -19,6 +20,8 @@ export const fraudPartnerContext = z.object({
     instagramVerifiedAt: true,
     tiktok: true,
     tiktokVerifiedAt: true,
+  }).extend({
+    payoutMethodHash: z.string().nullable(),
   }),
 });
 

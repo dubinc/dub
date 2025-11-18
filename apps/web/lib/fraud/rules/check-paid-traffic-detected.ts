@@ -22,10 +22,8 @@ export const checkPaidTrafficDetected = defineFraudRule({
       "wbraid",
     ],
   },
-  evaluate: async (context: FraudEventContext, config) => {
-    console.log("Evaluating checkPaidTrafficDetected...", context, config);
-
-    const { click } = context;
+  evaluate: async ({ click }: FraudEventContext, config) => {
+    console.log("Evaluating checkPaidTrafficDetected...");
 
     if (!click.url) {
       return {

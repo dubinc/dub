@@ -37,7 +37,7 @@ model Partner {
   paypalEmail                  String?   @unique
   stripeConnectId              String?   @unique
   payoutsEnabledAt             DateTime?
-  payoutMethodHash             String?   @unique
+  payoutMethodHash             String?
   connectPayoutsLastRemindedAt DateTime?
 
   // timestamp fields

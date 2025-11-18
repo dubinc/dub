@@ -4,6 +4,7 @@ import { checkCustomerEmailMatch } from "./rules/check-customer-email-match";
 import { checkCustomerEmailSuspicious } from "./rules/check-customer-email-suspicious";
 import { checkPaidTrafficDetected } from "./rules/check-paid-traffic-detected";
 import { checkCrossProgramBan } from "./rules/check-partner-cross-program-ban";
+import { checkPartnerDuplicatePayoutMethod } from "./rules/check-partner-duplicate-payout-method";
 import { checkPartnerEmailDomainMismatch } from "./rules/check-partner-email-domain-mismatch";
 import { checkPartnerEmailMasked } from "./rules/check-partner-email-masked";
 import { checkPartnerEmailSuspicious } from "./rules/check-partner-email-suspicious";
@@ -19,15 +20,11 @@ export const fraudRulesRegistry: Record<
   customerEmailSuspiciousDomain: checkCustomerEmailSuspicious,
   referralSourceBanned: checkReferralSourceBanned,
   paidTrafficDetected: checkPaidTrafficDetected,
-
-  // Partner specific
   partnerCrossProgramBan: checkCrossProgramBan,
   partnerEmailSuspiciousDomain: checkPartnerEmailSuspicious,
   partnerEmailDomainMismatch: checkPartnerEmailDomainMismatch,
   partnerEmailMasked: checkPartnerEmailMasked,
   partnerNoSocialLinks: checkPartnerNoSocialLinks,
   partnerNoVerifiedSocialLinks: checkPartnerNoVerifiedSocialLinks,
-
-  // Not done yet
-  partnerDuplicatePayoutMethod: checkCrossProgramBan,
+  partnerDuplicatePayoutMethod: checkPartnerDuplicatePayoutMethod,
 };

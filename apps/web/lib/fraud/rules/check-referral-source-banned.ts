@@ -15,11 +15,8 @@ const configSchema = z.object({
 
 export const checkReferralSourceBanned = defineFraudRule({
   type: "referralSourceBanned",
-  evaluate: async (context: FraudEventContext, config) => {
-    console.log("Evaluating checkReferralSourceBanned...", context, config);
-
-    const { click } = context;
-    const { bannedSources } = config;
+  evaluate: async ({ click }: FraudEventContext, { bannedSources }) => {
+    console.log("Evaluating checkReferralSourceBanned...");
 
     // Return early if both referer and referer_url are null/empty
     if (!click.referer && !click.referer_url) {

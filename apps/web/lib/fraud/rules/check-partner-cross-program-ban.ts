@@ -4,10 +4,8 @@ import { FraudPartnerContext } from "../types";
 
 export const checkCrossProgramBan = defineFraudRule({
   type: "partnerCrossProgramBan",
-  evaluate: async (context: FraudPartnerContext) => {
+  evaluate: async ({ program, partner }: FraudPartnerContext) => {
     console.log("Evaluating checkProgramBanned...");
-
-    const { program, partner } = context;
 
     const bannedProgramEnrollment = await prisma.programEnrollment.findFirst({
       where: {
