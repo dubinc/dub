@@ -289,8 +289,10 @@ async function createApplicationAndEnrollment({
 
         // Run partner fraud checks
         detectAndRecordPartnerFraud({
-          program,
-          partner,
+          context: {
+            program,
+            partner,
+          },
         }),
       ]);
     })(),

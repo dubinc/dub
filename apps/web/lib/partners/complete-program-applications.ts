@@ -215,8 +215,10 @@ export async function completeProgramApplications(userEmail: string) {
 
         // Run partner fraud checks
         detectAndRecordPartnerFraud({
-          program,
-          partner,
+          context: {
+            program,
+            partner,
+          },
         }),
       ]);
     }

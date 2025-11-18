@@ -7,6 +7,12 @@ export const checkCrossProgramBan = defineFraudRule({
   evaluate: async ({ program, partner }: FraudPartnerContext) => {
     console.log("Evaluating checkProgramBanned...");
 
+    if (!program) {
+      return {
+        triggered: false,
+      };
+    }
+
     const bannedProgramEnrollment = await prisma.programEnrollment.findFirst({
       where: {
         partnerId: partner.id,

@@ -1,6 +1,8 @@
+import { detectAndRecordPartnerFraud } from "@/lib/fraud/detect-record-partner-fraud";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import Stripe from "stripe";
 
 export async function accountUpdated(event: Stripe.Event) {
@@ -58,7 +60,7 @@ export async function accountUpdated(event: Stripe.Event) {
     return `Expected at least 1 external account for partner ${partner.email} (${partner.stripeConnectId}), none found`;
   }
 
-  await prisma.partner.update({
+  const updatedPartner = await prisma.partner.update({
     where: {
       stripeConnectId: account.id,
     },
@@ -70,6 +72,13 @@ export async function accountUpdated(event: Stripe.Event) {
       payoutMethodHash: defaultExternalAccount.fingerprint,
     },
   });
+
+  waitUntil(
+    detectAndRecordPartnerFraud({
+      context: { partner: updatedPartner },
+      ruleTypes: ["partnerDuplicatePayoutMethod"],
+    }),
+  );
 
   return `Updated partner ${partner.email} (${partner.stripeConnectId}) with country ${country}, payoutsEnabledAt set, payoutMethodHash ${defaultExternalAccount.fingerprint}`;
 }

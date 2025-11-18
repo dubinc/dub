@@ -1,14 +1,18 @@
 import { prisma } from "@dub/prisma";
-import { FraudEvent } from "@dub/prisma/client";
+import { FraudEvent, FraudRuleType } from "@dub/prisma/client";
 import { createId } from "../api/create-id";
 import { FRAUD_RULES_BY_SCOPE, FRAUD_RULES_BY_TYPE } from "./constants";
 import { executeFraudRule } from "./execute-fraud-rule";
 import { fraudPartnerContext } from "./schemas";
 import { FraudPartnerContext } from "./types";
 
-export async function detectAndRecordPartnerFraud(
-  context: FraudPartnerContext,
-) {
+export async function detectAndRecordPartnerFraud({
+  context,
+  ruleTypes,
+}: {
+  context: FraudPartnerContext;
+  ruleTypes?: FraudRuleType[]; // Optional array of rule types to filter by
+}) {
   const result = fraudPartnerContext.safeParse(context);
 
   if (!result.success) {
@@ -16,7 +20,11 @@ export async function detectAndRecordPartnerFraud(
   }
 
   const validatedContext = result.data;
-  const fraudRules = FRAUD_RULES_BY_SCOPE["partner"];
+
+  const allPartnerRules = FRAUD_RULES_BY_SCOPE["partner"];
+  const fraudRules = ruleTypes
+    ? allPartnerRules.filter((rule) => ruleTypes.includes(rule.type))
+    : allPartnerRules;
 
   if (fraudRules.length === 0) {
     console.log(
@@ -100,7 +108,7 @@ export async function detectAndRecordPartnerFraud(
           type: triggeredRule.type,
         });
       }
-    } else {
+    } else if (validatedContext?.program?.id) {
       fraudEvents.push({
         id: createId({ prefix: "fraud_" }),
         programId: validatedContext.program.id,
