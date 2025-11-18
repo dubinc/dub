@@ -3,6 +3,7 @@ import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { sendBatchEmail } from "@dub/email";
+import PartnerPayoutConfirmed from "@dub/email/templates/partner-payout-confirmed";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, currencyFormatter, log } from "@dub/utils";
 import { z } from "zod";
@@ -48,6 +49,9 @@ export async function POST(req: Request) {
           id: startingAfter,
         },
       }),
+      orderBy: {
+        id: "asc",
+      },
     });
 
     if (payouts.length === 0) {
@@ -92,8 +96,7 @@ export async function POST(req: Request) {
           subject: `Your ${currencyFormatter(payout.amount)} payout for ${payout.program.name} is on the way`,
           variant: "notifications",
           replyTo: payout.program.supportEmail || "noreply",
-          templateName: "PartnerPayoutConfirmed",
-          templateProps: {
+          react: PartnerPayoutConfirmed({
             email: payout.partner.email!,
             program: {
               id: payout.program.id,
@@ -106,9 +109,9 @@ export async function POST(req: Request) {
               startDate: payout.periodStart,
               endDate: payout.periodEnd,
               mode: payout.mode,
-              paymentMethod: payout.invoice?.paymentMethod ?? "ach",
+              paymentMethod: invoice.paymentMethod ?? "ach",
             },
-          },
+          }),
         })),
       );
       console.log({ batchEmailResponse });

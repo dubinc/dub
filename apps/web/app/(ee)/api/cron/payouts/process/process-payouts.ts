@@ -12,7 +12,7 @@ import { prisma } from "@dub/prisma";
 import { Program, ProgramPayoutMode, Project } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK, currencyFormatter, log } from "@dub/utils";
 
-const paymentMethodToCurrency = {
+const nonUsdPaymentMethodTypes = {
   sepa_debit: "eur",
   acss_debit: "cad",
 } as const;
@@ -91,13 +91,15 @@ export async function processPayouts({
       userId,
       initiatedAt: new Date(),
       // if the program is in external mode, set the mode to external
-      // otherwise set it to internal (we'll update to "external" later if it's hybrid mode)
+      // otherwise set it to internal (we'll update specific payouts to "external" later if it's hybrid mode)
       mode: program.payoutMode === "external" ? "external" : "internal",
     },
   });
 
   if (res.count === 0) {
-    console.log(`No payouts found for invoice ${invoiceId}. Skipping...`);
+    console.log(
+      `No payouts updated/found for invoice ${invoiceId}. Skipping...`,
+    );
     return;
   }
 
@@ -154,7 +156,6 @@ export async function processPayouts({
 
   const fastAchFee =
     invoice.paymentMethod === "ach_fast" ? FAST_ACH_FEE_CENTS : 0;
-  const currency = paymentMethodToCurrency[paymentMethod.type] || "usd";
   const invoiceFee = Math.round(totalPayoutAmount * payoutFee) + fastAchFee;
   const invoiceTotal = totalPayoutAmount + invoiceFee;
 
@@ -171,9 +172,10 @@ export async function processPayouts({
   });
 
   let totalToCharge = invoiceTotal - totalExternalPayoutAmount;
+  const currency = nonUsdPaymentMethodTypes[paymentMethod.type] || "usd";
 
   // convert the amount to EUR/CAD if the payment method is sepa_debit or acss_debit
-  if (["sepa_debit", "acss_debit"].includes(paymentMethod.type)) {
+  if (Object.keys(nonUsdPaymentMethodTypes).includes(paymentMethod.type)) {
     const fxQuote = await createFxQuote({
       fromCurrency: currency,
       toCurrency: "usd",
