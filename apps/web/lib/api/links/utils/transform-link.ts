@@ -1,6 +1,7 @@
 import {
   DiscountProps,
   PartnerProps,
+  PartnerTagProps,
   ProgramEnrollmentProps,
 } from "@/lib/types";
 import { Dashboard, Link, Tag } from "@dub/prisma/client";
@@ -18,7 +19,13 @@ export type ExpandedLink = Link & {
     DiscountProps,
     "id" | "amount" | "type" | "maxDuration" | "couponId" | "couponTestId"
   > | null;
-  programEnrollment?: Pick<ProgramEnrollmentProps, "groupId"> | null;
+  programEnrollment?:
+    | (Pick<ProgramEnrollmentProps, "groupId"> & {
+        programPartnerTags:
+          | { partnerTag: Pick<PartnerTagProps, "id"> }[]
+          | null;
+      })
+    | null;
 };
 
 // Transform link with additional properties

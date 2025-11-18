@@ -130,17 +130,18 @@ model ProgramEnrollment {
   bannedAt                     DateTime?
   bannedReason                 PartnerBannedReason?
 
-  partner           Partner             @relation(fields: [partnerId], references: [id], onUpdate: Cascade, onDelete: Cascade)
-  program           Program             @relation(fields: [programId], references: [id], onUpdate: Cascade, onDelete: Cascade)
-  links             Link[]
-  partnerGroup      PartnerGroup?       @relation(fields: [groupId], references: [id])
-  application       ProgramApplication? @relation(fields: [applicationId], references: [id])
-  clickReward       Reward?             @relation("ClickRewardEnrollments", fields: [clickRewardId], references: [id])
-  leadReward        Reward?             @relation("LeadRewardEnrollments", fields: [leadRewardId], references: [id])
-  saleReward        Reward?             @relation("SaleRewardEnrollments", fields: [saleRewardId], references: [id])
-  discount          Discount?           @relation(fields: [discountId], references: [id])
-  bountySubmissions BountySubmission[]
-  discountCodes     DiscountCode[]
+  partner            Partner             @relation(fields: [partnerId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  program            Program             @relation(fields: [programId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  links              Link[]
+  partnerGroup       PartnerGroup?       @relation(fields: [groupId], references: [id])
+  application        ProgramApplication? @relation(fields: [applicationId], references: [id])
+  clickReward        Reward?             @relation("ClickRewardEnrollments", fields: [clickRewardId], references: [id])
+  leadReward         Reward?             @relation("LeadRewardEnrollments", fields: [leadRewardId], references: [id])
+  saleReward         Reward?             @relation("SaleRewardEnrollments", fields: [saleRewardId], references: [id])
+  discount           Discount?           @relation(fields: [discountId], references: [id])
+  bountySubmissions  BountySubmission[]
+  discountCodes      DiscountCode[]
+  programPartnerTags ProgramPartnerTag[]
 
   // unique constraints
   @@unique([partnerId, programId])
@@ -235,9 +236,10 @@ model ProgramPartnerTag {
   partnerId    String
   partnerTagId String
 
-  program    Program    @relation(fields: [programId], references: [id], onDelete: Cascade)
-  partnerTag PartnerTag @relation(fields: [partnerTagId], references: [id], onDelete: Cascade)
-  partner    Partner    @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  program           Program           @relation(fields: [programId], references: [id], onDelete: Cascade)
+  programEnrollment ProgramEnrollment @relation(fields: [programId, partnerId], references: [programId, partnerId])
+  partnerTag        PartnerTag        @relation(fields: [partnerTagId], references: [id], onDelete: Cascade)
+  partner           Partner           @relation(fields: [partnerId], references: [id], onDelete: Cascade)
 
   @@unique([partnerTagId, partnerId])
   @@index(partnerId)

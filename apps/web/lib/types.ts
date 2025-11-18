@@ -81,12 +81,12 @@ import {
   NetworkPartnerSchema,
   PartnerConversionScoreSchema,
 } from "./zod/schemas/partner-network";
+import { PartnerTagSchema } from "./zod/schemas/partner-tags";
 import {
   createPartnerSchema,
   EnrolledPartnerSchema,
   EnrolledPartnerSchemaExtended,
   PartnerSchema,
-  PartnerTagSchema,
   WebhookPartnerSchema,
 } from "./zod/schemas/partners";
 import {

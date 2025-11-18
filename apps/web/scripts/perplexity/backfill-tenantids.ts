@@ -76,6 +76,11 @@ async function main() {
               links: {
                 include: includeTags,
               },
+              programPartnerTags: {
+                include: {
+                  partnerTag: true,
+                },
+              },
             },
           });
         });
@@ -87,7 +92,10 @@ async function main() {
         const tbRes = await recordLink(
           programEnrollment.links.map((l) => ({
             ...l,
-            programEnrollment: { groupId: programEnrollment.groupId },
+            programEnrollment: {
+              groupId: programEnrollment.groupId,
+              programPartnerTags: programEnrollment.programPartnerTags,
+            },
           })),
         );
 

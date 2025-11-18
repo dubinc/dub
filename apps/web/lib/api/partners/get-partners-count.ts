@@ -17,7 +17,7 @@ export async function getPartnersCount<T>(
     search,
     email,
     partnerIds,
-    tagIds,
+    partnerTagIds,
     groupId,
     programId,
   } = filters;
@@ -36,10 +36,10 @@ export async function getPartnersCount<T>(
     ...(partnerIds && {
       id: { in: partnerIds },
     }),
-    ...(tagIds && {
+    ...(partnerTagIds && {
       programPartnerTags: {
         some: {
-          partnerTagId: { in: tagIds },
+          partnerTagId: { in: partnerTagIds },
         },
       },
     }),
