@@ -126,7 +126,8 @@ export const eligiblePayoutsCountQuerySchema = eligiblePayoutsQuerySchema
   .extend({
     excludedPayoutIds: z
       .union([z.string(), z.array(z.string())])
-      .transform((v) => (Array.isArray(v) ? v : v.split(","))),
+      .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+      .optional(),
   })
   .omit({
     page: true,

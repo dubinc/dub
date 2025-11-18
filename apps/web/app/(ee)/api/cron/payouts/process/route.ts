@@ -5,6 +5,7 @@ import { CUTOFF_PERIOD_ENUM } from "@/lib/partners/cutoff-period";
 import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
 import { z } from "zod";
+import { logAndRespond } from "../../utils";
 import { processPayouts } from "./process-payouts";
 import { splitPayouts } from "./split-payouts";
 
@@ -72,7 +73,7 @@ export async function POST(req: Request) {
       excludedPayoutIds,
     });
 
-    return new Response(`Payouts confirmed for program ${program.name}.`);
+    return logAndRespond(`Processed payouts for program ${program.name}.`);
   } catch (error) {
     await log({
       message: `Error confirming payouts for program: ${error.message}`,

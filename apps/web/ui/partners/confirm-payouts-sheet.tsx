@@ -298,7 +298,7 @@ function ConfirmPayoutsSheetContent() {
   };
 
   const { amount, fee, total, fastAchFee, externalAmount } = useMemo(() => {
-    const amount = eligiblePayoutsCount?.amount ?? 0;
+    const amount = eligiblePayoutsCount?.amount;
 
     if (
       amount === undefined ||
