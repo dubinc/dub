@@ -83,6 +83,7 @@ export const VALID_ANALYTICS_ENDPOINTS = [
   "top_base_urls",
   "top_partners",
   "top_groups",
+  "top_partner_tags",
   "utm_sources",
   "utm_mediums",
   "utm_campaigns",
@@ -114,6 +115,7 @@ export const SINGULAR_ANALYTICS_ENDPOINTS = {
   top_urls: "url",
   top_base_urls: "url",
   top_groups: "groupId",
+  top_partner_tags: "partnerTagIds",
   timeseries: "start",
 };
 
@@ -137,6 +139,7 @@ export const VALID_ANALYTICS_FILTERS = [
   "partnerId",
   "folderId",
   "groupId",
+  "partnerTagIds",
   "tagId",
   "tagIds",
   "customerId",

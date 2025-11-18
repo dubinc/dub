@@ -102,6 +102,11 @@ export function useAnalyticsFilters({
     [searchParamsObj.tagIds],
   );
 
+  const selectedPartnerTagIds = useMemo(
+    () => searchParamsObj.partnerTagIds?.split(",")?.filter(Boolean) ?? [],
+    [searchParamsObj.partnerTagIds],
+  );
+
   const selectedCustomerId = searchParamsObj.customerId;
 
   const { data: selectedCustomerWorkspace } = useCustomer({
@@ -139,6 +144,10 @@ export function useAnalyticsFilters({
       ...(selectedTagIds.length > 0
         ? [{ key: "tagIds", value: selectedTagIds }]
         : []),
+      // Handle partnerTagIds special case
+      ...(selectedPartnerTagIds.length > 0
+        ? [{ key: "partnerTagIds", value: selectedPartnerTagIds }]
+        : []),
       // Handle root special case - convert string to boolean
       ...(root ? [{ key: "root", value: root === "true" }] : []),
       // Handle folderId special case
@@ -161,9 +170,15 @@ export function useAnalyticsFilters({
     VALID_ANALYTICS_FILTERS.forEach((filter) => {
       // Skip special cases we handled above
       if (
-        ["domain", "key", "tagId", "tagIds", "root", "customerId"].includes(
-          filter,
-        )
+        [
+          "domain",
+          "key",
+          "tagId",
+          "tagIds",
+          "partnerTagIds",
+          "root",
+          "customerId",
+        ].includes(filter)
       )
         return;
       // also skip date range filters and qr
@@ -179,6 +194,7 @@ export function useAnalyticsFilters({
   }, [
     searchParamsObj,
     selectedTagIds,
+    selectedPartnerTagIds,
     partnerPage,
     selectedCustomerId,
     selectedCustomer,
@@ -218,6 +234,11 @@ export function useAnalyticsFilters({
   });
   const { data: groups } = useAnalyticsFilterOption("top_groups", {
     disabled: !isRequested("groupId"),
+    omitGroupByFilterKey: true,
+    context,
+  });
+  const { data: partnerTags } = useAnalyticsFilterOption("top_partner_tags", {
+    disabled: !isRequested("partnerTagIds"),
     omitGroupByFilterKey: true,
     context,
   });
@@ -420,6 +441,17 @@ export function useAnalyticsFilters({
                     icon: <GroupColorCircle group={group} />,
                     label: group.name,
                     data: { group },
+                    right: getFilterOptionTotal(rest),
+                  })) ?? null,
+              },
+              {
+                key: "partnerTagIds",
+                icon: Tag,
+                label: "Tag",
+                options:
+                  partnerTags?.map(({ partnerTag, ...rest }) => ({
+                    value: partnerTag.id,
+                    label: partnerTag.name,
                     right: getFilterOptionTotal(rest),
                   })) ?? null,
               },
@@ -802,7 +834,9 @@ export function useAnalyticsFilters({
       linkTags,
       folders,
       groups,
+      partnerTags,
       selectedTagIds,
+      selectedPartnerTagIds,
       selectedCustomerId,
       countries,
       cities,
@@ -876,12 +910,25 @@ export function useAnalyticsFilters({
               },
               scroll: false,
             }
-          : {
-              del: key === "link" ? ["domain", "key", "url"] : key,
-              scroll: false,
-            },
+          : key === "partnerTagIds" &&
+              !(
+                selectedPartnerTagIds.length === 1 &&
+                selectedPartnerTagIds[0] === value
+              )
+            ? {
+                set: {
+                  partnerTagIds: selectedPartnerTagIds
+                    .filter((id) => id !== value)
+                    .join(","),
+                },
+                scroll: false,
+              }
+            : {
+                del: key === "link" ? ["domain", "key", "url"] : key,
+                scroll: false,
+              },
       ),
-    [queryParams, selectedTagIds],
+    [queryParams, selectedTagIds, selectedPartnerTagIds],
   );
 
   const onRemoveAll = useCallback(
