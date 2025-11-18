@@ -234,12 +234,9 @@ export function FraudEventsTable() {
         <Table {...tableProps} table={table} />
       ) : (
         <AnimatedEmptyState
-          title="No fraud events found"
-          description={
-            isFiltered
-              ? "No fraud events found for the selected filters."
-              : "No fraud events have been detected yet."
-          }
+          title="No events to review"
+          description="You'll see flagged fraud and risk events here when they happen."
+          learnMoreHref="#"
           cardContent={() => (
             <>
               <ShieldKeyhole className="size-4 text-neutral-700" />

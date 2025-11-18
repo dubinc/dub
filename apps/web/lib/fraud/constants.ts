@@ -53,9 +53,9 @@ export const FRAUD_RULES: FraudRuleInfo[] = [
   },
   {
     type: "partnerEmailMasked",
-    name: "Email address created with Apple's 'Hide My Email'",
+    name: "Masked email address",
     description:
-      "Uses an anonymize Apple address. Not harmful but harder to verify or contact directly.",
+      "Uses an anonymized email address. Not harmful but harder to verify or contact directly.",
     scope: "partner",
     riskLevel: "low",
   },

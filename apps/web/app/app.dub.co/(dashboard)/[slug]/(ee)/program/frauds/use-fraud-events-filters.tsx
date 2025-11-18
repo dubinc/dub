@@ -1,4 +1,4 @@
-import { FRAUD_RULES } from "@/lib/fraud/constants";
+import { FRAUD_RULES_BY_SCOPE } from "@/lib/fraud/constants";
 import usePartners from "@/lib/swr/use-partners";
 import { EnrolledPartnerProps } from "@/lib/types";
 import { useRouterStuff } from "@dub/ui";
@@ -23,7 +23,7 @@ export function useFraudEventsFilters() {
         key: "type",
         icon: ShieldKeyhole,
         label: "Reason",
-        options: FRAUD_RULES.map((rule) => ({
+        options: FRAUD_RULES_BY_SCOPE["conversionEvent"].map((rule) => ({
           label: rule.name,
           value: rule.type,
         })),
