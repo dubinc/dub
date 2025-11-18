@@ -1,19 +1,32 @@
 import useGroups from "@/lib/swr/use-groups";
+import { usePartnerTags } from "@/lib/swr/use-partner-tags";
+import { usePartnerTagsCount } from "@/lib/swr/use-partner-tags-count";
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { PartnerTagProps } from "@/lib/types";
+import { PARTNER_TAGS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/partner-tags";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { useRouterStuff } from "@dub/ui";
-import { CircleDotted, FlagWavy, Users6 } from "@dub/ui/icons";
+import { CircleDotted, FlagWavy, Tag, Users6 } from "@dub/ui/icons";
 import { cn, COUNTRIES, nFormatter } from "@dub/utils";
 import { ProgramEnrollmentStatus } from "@prisma/client";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { useDebounce } from "use-debounce";
 
 export function usePartnerFilters(extraSearchParams: Record<string, string>) {
   const { searchParamsObj, queryParams } = useRouterStuff();
   const { id: workspaceId, slug } = useWorkspace();
   const status = (searchParamsObj.status ||
     "approved") as ProgramEnrollmentStatus;
+
+  const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [debouncedSearch] = useDebounce(search, 500);
+
+  const { partnerTags, partnerTagsAsync } = usePartnerTagFilterOptions({
+    search: selectedFilter === "partnerTagIds" ? debouncedSearch : "",
+  });
 
   const { groups } = useGroups();
 
@@ -76,6 +89,20 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
             : null,
       },
       {
+        key: "partnerTagIds",
+        icon: Tag,
+        label: "Tag",
+        multiple: true,
+        shouldFilter: !partnerTagsAsync,
+        options:
+          partnerTags?.map(({ id, name, count, hideDuringSearch }) => ({
+            value: id,
+            label: name,
+            right: nFormatter(count, { full: true }),
+            hideDuringSearch,
+          })) ?? null,
+      },
+      {
         key: "status",
         icon: CircleDotted,
         label: "Status",
@@ -124,32 +151,61 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
     [groupsCount, groups, statusCount, countriesCount],
   );
 
+  const selectedTagIds = useMemo(
+    () => searchParamsObj["partnerTagIds"]?.split(",")?.filter(Boolean) ?? [],
+    [searchParamsObj],
+  );
+
   const activeFilters = useMemo(() => {
-    const { groupId, status, country } = searchParamsObj;
+    const { groupId, partnerTagIds, status, country } = searchParamsObj;
 
     return [
       ...(groupId ? [{ key: "groupId", value: groupId }] : []),
+      ...(partnerTagIds
+        ? [{ key: "partnerTagIds", value: selectedTagIds }]
+        : []),
       ...(status ? [{ key: "status", value: status }] : []),
       ...(country ? [{ key: "country", value: country }] : []),
     ];
   }, [searchParamsObj]);
 
   const onSelect = (key: string, value: any) =>
-    queryParams({
-      set: {
-        [key]: value,
-      },
-      del: "page",
-    });
+    queryParams(
+      key === "partnerTagIds"
+        ? {
+            set: {
+              partnerTagIds: selectedTagIds.concat(value).join(","),
+            },
+            del: "page",
+          }
+        : {
+            set: {
+              [key]: value,
+            },
+            del: "page",
+          },
+    );
 
   const onRemove = (key: string, value: any) =>
-    queryParams({
-      del: [key, "page"],
-    });
+    queryParams(
+      key === "partnerTagIds" &&
+        !(selectedTagIds.length === 1 && selectedTagIds[0] === value)
+        ? {
+            set: {
+              partnerTagIds: selectedTagIds
+                .filter((id) => id !== value)
+                .join(","),
+            },
+            del: "page",
+          }
+        : {
+            del: [key, "page"],
+          },
+    );
 
   const onRemoveAll = () =>
     queryParams({
-      del: ["status", "country", "groupId", "search"],
+      del: ["status", "country", "groupId", "partnerTagIds", "search"],
     });
 
   const searchQuery = useMemo(
@@ -176,4 +232,70 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
     searchQuery,
     isFiltered,
   };
+}
+
+function usePartnerTagFilterOptions({ search }: { search: string }) {
+  const { searchParamsObj } = useRouterStuff();
+
+  const tagIds = useMemo(
+    () => searchParamsObj.partnerTagIds?.split(",")?.filter(Boolean) ?? [],
+    [searchParamsObj.partnerTagIds],
+  );
+
+  const { partnerTagsCount } = usePartnerTagsCount();
+  const useAsync = Boolean(
+    partnerTagsCount && partnerTagsCount > PARTNER_TAGS_MAX_PAGE_SIZE,
+  );
+  const { partnerTags, isLoading: isLoadingPartnerTags } = usePartnerTags({
+    query: { search: useAsync ? search : "" },
+  });
+
+  const { partnerTags: selectedPartnerTags } = usePartnerTags({
+    query: { ids: tagIds },
+    enabled: useAsync,
+  });
+
+  const { partnersCount } = usePartnersCount<
+    {
+      partnerTagId: string;
+      _count: number;
+    }[]
+  >({ groupBy: "partnerTagId" });
+
+  const tagsResult = useMemo(() => {
+    return isLoadingPartnerTags ||
+      // Consider tags loading if we can't find the currently filtered tag
+      (tagIds?.length &&
+        tagIds.some(
+          (id) =>
+            ![...(selectedPartnerTags ?? []), ...(partnerTags ?? [])].some(
+              (t) => t.id === id,
+            ),
+        ))
+      ? null
+      : (
+          [
+            ...(partnerTags ?? []),
+            // Add selected tag to list if not already in tags
+            ...(selectedPartnerTags
+              ?.filter((st) => !partnerTags?.some((t) => t.id === st.id))
+              ?.map((st) => ({ ...st, hideDuringSearch: true })) ?? []),
+          ] as (PartnerTagProps & { hideDuringSearch?: boolean })[]
+        )
+          ?.map((tag) => ({
+            ...tag,
+            count:
+              partnersCount?.find(({ partnerTagId }) => partnerTagId === tag.id)
+                ?._count || 0,
+          }))
+          .sort((a, b) => b.count - a.count) ?? null;
+  }, [
+    isLoadingPartnerTags,
+    partnerTags,
+    selectedPartnerTags,
+    partnersCount,
+    tagIds,
+  ]);
+
+  return { partnerTags: tagsResult, partnerTagsAsync: useAsync };
 }

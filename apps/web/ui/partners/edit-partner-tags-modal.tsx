@@ -5,10 +5,11 @@ import { updatePartnerTagAction } from "@/lib/actions/partners/tags/update-partn
 import { updatePartnerTagsAction } from "@/lib/actions/partners/tags/update-partner-tags";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { usePartnerTags } from "@/lib/swr/use-partner-tags";
+import { usePartnerTagsCount } from "@/lib/swr/use-partner-tags-count";
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps, PartnerTagProps } from "@/lib/types";
-import { TAGS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/tags";
+import { PARTNER_TAGS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/partner-tags";
 import {
   AnimatedSizeContainer,
   Button,
@@ -25,7 +26,7 @@ import {
   Users,
   useScrollProgress,
 } from "@dub/ui";
-import { cn, fetcher, OG_AVATAR_URL } from "@dub/utils";
+import { cn, OG_AVATAR_URL } from "@dub/utils";
 import { Command } from "cmdk";
 import { useAction } from "next-safe-action/hooks";
 import {
@@ -38,7 +39,6 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-import useSWR from "swr";
 import { useDebounce } from "use-debounce";
 import { ThreeDots } from "../shared/icons";
 
@@ -60,11 +60,9 @@ function EditPartnerTagsModalContent({
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
 
-  const { data: tagsCount } = useSWR<number>(
-    `/api/partners/tags/count?workspaceId=${workspaceId}`,
-    fetcher,
-  );
-  const useAsync = tagsCount && tagsCount > TAGS_MAX_PAGE_SIZE;
+  const { partnerTagsCount } = usePartnerTagsCount();
+  const useAsync =
+    partnerTagsCount && partnerTagsCount > PARTNER_TAGS_MAX_PAGE_SIZE;
 
   const { partnerTags: availableTags, isLoading: isLoadingTags } =
     usePartnerTags({

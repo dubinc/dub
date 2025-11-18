@@ -27,6 +27,11 @@ export const getPartnerTagsQuerySchema = z
   })
   .merge(getPaginationQuerySchema({ pageSize: PARTNER_TAGS_MAX_PAGE_SIZE }));
 
+export const getPartnerTagsCountQuerySchema = getPartnerTagsQuerySchema.omit({
+  page: true,
+  pageSize: true,
+});
+
 export const PartnerTagSchema = z.object({
   id: z.string(),
   name: z.string(),
