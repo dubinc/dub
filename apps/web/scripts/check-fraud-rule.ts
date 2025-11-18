@@ -15,7 +15,7 @@ async function main() {
 
   const partner = await prisma.partner.findUniqueOrThrow({
     where: {
-      id: "pn_1K9BZE1K2WM4AY6SW0FW7R4PQ",
+      id: "pn_1K9BZE1K2MBW809JBVC746SWH",
     },
   });
 
@@ -26,8 +26,10 @@ async function main() {
   });
 
   await detectAndRecordPartnerFraud({
-    program,
-    partner,
+    context: {
+      program,
+      partner,
+    },
   });
 }
 

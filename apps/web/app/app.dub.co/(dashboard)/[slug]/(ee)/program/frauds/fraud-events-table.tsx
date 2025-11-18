@@ -71,7 +71,7 @@ export function FraudEventsTable() {
                 id: partner.id,
                 name: partner.name || "Unknown",
               }}
-              showPermalink={true}
+              showFraudFlag={false}
             />
           );
         },

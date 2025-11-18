@@ -124,7 +124,11 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
         minSize: 250,
         cell: ({ row }) => {
           return (
-            <PartnerRowItem partner={row.original} showPermalink={false} />
+            <PartnerRowItem
+              partner={row.original}
+              showPermalink={false}
+              showFraudFlag={false}
+            />
           );
         },
       },

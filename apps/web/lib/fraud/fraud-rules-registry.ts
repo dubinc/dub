@@ -13,13 +13,14 @@ import { checkPartnerNoVerifiedSocialLinks } from "./rules/check-partner-no-veri
 import { checkReferralSourceBanned } from "./rules/check-referral-source-banned";
 
 export const fraudRulesRegistry: Record<
-  FraudRuleType,
+  Partial<FraudRuleType>,
   ReturnType<typeof defineFraudRule>
 > = {
   customerEmailMatch: checkCustomerEmailMatch,
   customerEmailSuspiciousDomain: checkCustomerEmailSuspicious,
   referralSourceBanned: checkReferralSourceBanned,
   paidTrafficDetected: checkPaidTrafficDetected,
+
   partnerCrossProgramBan: checkCrossProgramBan,
   partnerEmailSuspiciousDomain: checkPartnerEmailSuspicious,
   partnerEmailDomainMismatch: checkPartnerEmailDomainMismatch,
