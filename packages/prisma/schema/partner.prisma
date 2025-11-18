@@ -37,7 +37,7 @@ model Partner {
   paypalEmail                  String?            @unique
   stripeConnectId              String?            @unique
   payoutsEnabledAt             DateTime?
-  payoutMethodHash             String?            @unique
+  payoutMethodHash             String?
   connectPayoutsLastRemindedAt DateTime?
 
   // timestamp fields
@@ -86,9 +86,10 @@ model Partner {
   salesChannels              PartnerSalesChannel[]
   discoveredByPrograms       DiscoveredPartner[]
 
+  @@index(country)
+  @@index(payoutMethodHash)
   @@index(discoverableAt)
   @@index(trustedAt)
-  @@index(country)
   @@fulltext([email, name]) // For full-text search
 }
 
