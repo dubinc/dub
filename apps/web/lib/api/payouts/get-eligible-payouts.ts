@@ -10,7 +10,10 @@ import { getEffectivePayoutMode } from "./get-effective-payout-mode";
 import { getPayoutEligibilityFilter } from "./payout-eligibility-filter";
 
 interface GetEligiblePayoutsProps
-  extends z.infer<typeof eligiblePayoutsQuerySchema> {
+  extends Omit<
+    z.infer<typeof eligiblePayoutsQuerySchema>,
+    "excludedPayoutIds"
+  > {
   excludedPayoutIds?: string[];
   program: Pick<Program, "id" | "name" | "minPayoutAmount" | "payoutMode">;
 }
@@ -20,6 +23,8 @@ export async function getEligiblePayouts({
   cutoffPeriod,
   selectedPayoutId,
   excludedPayoutIds,
+  pageSize,
+  page,
 }: GetEligiblePayoutsProps) {
   const cutoffPeriodValue = CUTOFF_PERIOD.find(
     (c) => c.id === cutoffPeriod,
@@ -73,6 +78,10 @@ export async function getEligiblePayouts({
     orderBy: {
       amount: "desc",
     },
+    ...(isFinite(pageSize) && {
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    }),
   });
 
   if (cutoffPeriodValue) {

@@ -117,31 +117,29 @@ export async function queueExternalPayouts(
   }
 
   await queueBatchEmail<typeof PartnerPayoutConfirmed>(
-    externalPayouts
-      .filter((payout) => payout.partner.email)
-      .map((payout) => ({
-        to: payout.partner.email!,
-        subject: `Your ${currencyFormatter(payout.amount)} payout for ${program.name} is on the way`,
-        variant: "notifications",
-        replyTo: program.supportEmail || "noreply",
-        templateName: "PartnerPayoutConfirmed",
-        templateProps: {
-          email: payout.partner.email!,
-          program: {
-            id: program.id,
-            name: program.name,
-            logo: program.logo,
-          },
-          payout: {
-            id: payout.id,
-            amount: payout.amount,
-            startDate: payout.periodStart,
-            endDate: payout.periodEnd,
-            mode: "external",
-            paymentMethod: invoice.paymentMethod ?? "ach",
-          },
+    externalPayouts.map((payout) => ({
+      to: payout.partner.email!,
+      subject: `Your ${currencyFormatter(payout.amount)} payout for ${program.name} is on the way`,
+      variant: "notifications",
+      replyTo: program.supportEmail || "noreply",
+      templateName: "PartnerPayoutConfirmed",
+      templateProps: {
+        email: payout.partner.email!,
+        program: {
+          id: program.id,
+          name: program.name,
+          logo: program.logo,
         },
-      })),
+        payout: {
+          id: payout.id,
+          amount: payout.amount,
+          startDate: payout.periodStart,
+          endDate: payout.periodEnd,
+          mode: "external",
+          paymentMethod: invoice.paymentMethod ?? "ach",
+        },
+      },
+    })),
     {
       idempotencyKey: `payout-confirmed-external/${invoice.id}`,
     },

@@ -337,7 +337,9 @@ export const analyticsResponse = {
 
   top_urls: z
     .object({
-      url: z.string().describe("The destination URL"),
+      url: z
+        .string()
+        .describe("The full destination URL (including query parameters)"),
       clicks: z
         .number()
         .describe("The number of clicks from this URL")
@@ -356,6 +358,30 @@ export const analyticsResponse = {
         .default(0),
     })
     .openapi({ ref: "AnalyticsTopUrls" }),
+
+  top_base_urls: z
+    .object({
+      url: z
+        .string()
+        .describe("The base URL (destination URL without query parameters)"),
+      clicks: z
+        .number()
+        .describe("The number of clicks from this base URL")
+        .default(0),
+      leads: z
+        .number()
+        .describe("The number of leads from this base URL")
+        .default(0),
+      sales: z
+        .number()
+        .describe("The number of sales from this base URL")
+        .default(0),
+      saleAmount: z
+        .number()
+        .describe("The total amount of sales from this base URL, in cents")
+        .default(0),
+    })
+    .openapi({ ref: "AnalyticsTopBaseUrls" }),
 
   utm_sources: z
     .object({
