@@ -15,7 +15,7 @@ export const checkCrossProgramBan = defineFraudRule({
   type: "partnerCrossProgramBan",
   contextSchema,
   evaluate: async (context) => {
-    console.log("Evaluating checkProgramBanned...", context);
+    console.log("Evaluating checkProgramBanned...");
 
     const { program, partner } = context;
 

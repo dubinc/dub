@@ -5,6 +5,7 @@ import { notifyPartnerApplication } from "@/lib/api/partners/notify-partner-appl
 import { getIP } from "@/lib/api/utils/get-ip";
 import { getSession } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
+import { detectAndRecordPartnerFraud } from "@/lib/fraud/detect-record-partner-fraud";
 import {
   formatApplicationFormData,
   formatWebsiteAndSocialsFields,
@@ -284,6 +285,12 @@ async function createApplicationAndEnrollment({
             },
             applicationFormData,
           }),
+        }),
+
+        // Run partner fraud checks
+        detectAndRecordPartnerFraud({
+          program,
+          partner,
         }),
       ]);
     })(),

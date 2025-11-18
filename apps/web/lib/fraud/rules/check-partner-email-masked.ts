@@ -11,7 +11,7 @@ export const checkPartnerEmailMasked = defineFraudRule({
   type: "partnerEmailMasked",
   contextSchema,
   evaluate: async (context) => {
-    console.log("Evaluating checkPartnerEmailMasked...", context);
+    console.log("Evaluating checkPartnerEmailMasked...");
 
     const { partner } = context;
 
@@ -40,4 +40,3 @@ export const checkPartnerEmailMasked = defineFraudRule({
     };
   },
 });
-

@@ -13,7 +13,7 @@ export const checkPartnerEmailDomainMismatch = defineFraudRule({
   type: "partnerEmailDomainMismatch",
   contextSchema,
   evaluate: async (context) => {
-    console.log("Evaluating checkPartnerEmailDomainMismatch...", context);
+    console.log("Evaluating checkPartnerEmailDomainMismatch...");
 
     const { partner } = context;
 

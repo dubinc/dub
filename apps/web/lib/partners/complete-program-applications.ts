@@ -4,6 +4,7 @@ import { Prisma } from "@prisma/client";
 import { createId } from "../api/create-id";
 import { notifyPartnerApplication } from "../api/partners/notify-partner-application";
 import { qstash } from "../cron";
+import { detectAndRecordPartnerFraud } from "../fraud/detect-record-partner-fraud";
 import { sendWorkspaceWebhook } from "../webhook/publish";
 import { partnerApplicationWebhookSchema } from "../zod/schemas/program-application";
 import {
@@ -211,6 +212,12 @@ export async function completeProgramApplications(userEmail: string) {
               applicationFormData,
             }),
           }),
+
+        // Run partner fraud checks
+        detectAndRecordPartnerFraud({
+          program,
+          partner,
+        }),
       ]);
     }
   } catch (error) {

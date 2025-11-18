@@ -12,7 +12,7 @@ export const checkPartnerEmailSuspicious = defineFraudRule({
   type: "partnerEmailSuspiciousDomain",
   contextSchema,
   evaluate: async (context) => {
-    console.log("Evaluating checkPartnerEmailSuspicious...", context);
+    console.log("Evaluating checkPartnerEmailSuspicious...");
 
     const { partner } = context;
 

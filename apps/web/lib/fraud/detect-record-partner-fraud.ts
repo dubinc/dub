@@ -29,6 +29,11 @@ interface PartnerFraudProps {
 }
 
 export async function detectAndRecordPartnerFraud(context: PartnerFraudProps) {
+  console.log(
+    "[detectAndRecordPartnerFraud] context",
+    JSON.stringify(context, null, 2),
+  );
+
   if (!context.partner.id || !context.program.id) {
     console.log(
       "[detectAndRecordFraudApplicant] The partner or program is not found.",

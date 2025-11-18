@@ -16,7 +16,7 @@ export const checkPartnerNoSocialLinks = defineFraudRule({
   type: "partnerNoSocialLinks",
   contextSchema,
   evaluate: async (context) => {
-    console.log("Evaluating checkPartnerNoSocialLinks...", context);
+    console.log("Evaluating checkPartnerNoSocialLinks...");
 
     const { partner } = context;
 
@@ -39,4 +39,3 @@ export const checkPartnerNoSocialLinks = defineFraudRule({
     };
   },
 });
-
