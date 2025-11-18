@@ -107,7 +107,8 @@ export async function processPayouts({
     `Updated ${res.count} payouts to invoice ${invoiceId} and "processing" status`,
   );
 
-  //
+  // if hybrid mode, we need to update payouts for partners with payoutsEnabledAt = null to external mode
+  // here we don't need to filter if they have tenantId cause getPayoutEligibilityFilter above already takes care of that
   if (program.payoutMode === "hybrid") {
     await prisma.payout.updateMany({
       where: {

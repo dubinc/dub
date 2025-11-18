@@ -88,6 +88,7 @@ export const confirmPayoutsAction = authActionClient
       programId,
     });
 
+    // TODO: Remove this once we can support cutoff periods for invoices with > 1,000 payouts
     if (cutoffPeriod) {
       const totalEligiblePayouts = await prisma.payout.aggregate({
         where: {

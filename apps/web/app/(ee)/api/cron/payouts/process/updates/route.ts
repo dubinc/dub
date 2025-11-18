@@ -61,25 +61,27 @@ export async function POST(req: Request) {
     }
 
     const auditLogResponse = await recordAuditLog(
-      payouts.map((payout) => ({
-        workspaceId: payout.program.workspaceId,
-        programId: payout.program.id,
-        action: "payout.confirmed",
-        description: `Payout ${payout.id} confirmed`,
-        actor: {
-          id: payout.userId!,
-        },
-        targets: [
-          {
-            type: "payout",
-            id: payout.id,
-            metadata: payout,
+      payouts.map((p) => {
+        const { program, partner, invoice, ...payout } = p;
+        return {
+          workspaceId: program.workspaceId,
+          programId: program.id,
+          action: "payout.confirmed",
+          description: `Payout ${payout.id} confirmed`,
+          actor: {
+            id: payout.userId ?? "system",
           },
-        ],
-      })),
+          targets: [
+            {
+              type: "payout",
+              id: payout.id,
+              metadata: payout,
+            },
+          ],
+        };
+      }),
     );
-
-    console.log({ auditLogResponse });
+    console.log(JSON.stringify({ auditLogResponse }, null, 2));
 
     const invoice = payouts[0].invoice;
     const internalPayouts = payouts.filter(
@@ -114,7 +116,7 @@ export async function POST(req: Request) {
           }),
         })),
       );
-      console.log({ batchEmailResponse });
+      console.log(JSON.stringify({ batchEmailResponse }, null, 2));
     }
 
     if (payouts.length === BATCH_SIZE) {
