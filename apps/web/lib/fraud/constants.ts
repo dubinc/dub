@@ -34,6 +34,7 @@ export const FRAUD_RULES: FraudRuleInfo[] = [
     name: "Program ban",
     description: "This partner has been banned from other Dub programs.",
     scope: "partner",
+    riskLevel: "high",
   },
   {
     type: "partnerEmailSuspiciousDomain",
@@ -41,12 +42,14 @@ export const FRAUD_RULES: FraudRuleInfo[] = [
     description:
       "Uses uncommon or newly registered email domains (e.g., .xyz, .online). Verify legitimacy.",
     scope: "partner",
+    riskLevel: "medium",
   },
   {
     type: "partnerEmailDomainMismatch",
     name: "Email domain mismatch with website",
     description: "The custom email domain doesn't match the website provided.",
     scope: "partner",
+    riskLevel: "low",
   },
   {
     type: "partnerEmailMasked",
@@ -54,6 +57,7 @@ export const FRAUD_RULES: FraudRuleInfo[] = [
     description:
       "Uses an anonymize Apple address. Not harmful but harder to verify or contact directly.",
     scope: "partner",
+    riskLevel: "low",
   },
   {
     type: "partnerDuplicatePayoutMethod",
@@ -61,6 +65,7 @@ export const FRAUD_RULES: FraudRuleInfo[] = [
     description:
       "This partner is using a payout method that is already associated with another partner, which may indicate duplicate or fraudulent accounts.",
     scope: "partner",
+    riskLevel: "high",
   },
   {
     type: "partnerNoSocialLinks",
@@ -68,6 +73,7 @@ export const FRAUD_RULES: FraudRuleInfo[] = [
     description:
       "This partner hasn't provided any social or web presence, making verification harder.",
     scope: "partner",
+    riskLevel: "medium",
   },
   {
     type: "partnerNoVerifiedSocialLinks",
@@ -75,6 +81,7 @@ export const FRAUD_RULES: FraudRuleInfo[] = [
     description:
       "Partner hasn't verified their website any social presence, making verification harder.",
     scope: "partner",
+    riskLevel: "low",
   },
 ] as const;
 

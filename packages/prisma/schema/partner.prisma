@@ -90,6 +90,7 @@ model Partner {
   @@index(country)
   @@index(discoverableAt)
   @@index(trustedAt)
+  @@index(payoutMethodHash)
   @@fulltext([email, name]) // For full-text search
 }
 

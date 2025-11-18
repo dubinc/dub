@@ -3,10 +3,6 @@ import { z } from "zod";
 import { fraudRuleSchema } from "../zod/schemas/fraud";
 import { fraudEventContext, fraudPartnerContext } from "./schemas";
 
-export interface FraudRuleContext {
-  [key: string]: unknown;
-}
-
 export interface FraudTriggeredRule {
   triggered: boolean;
   metadata?: Record<string, unknown>;
@@ -17,6 +13,7 @@ export interface FraudRuleInfo {
   name: string;
   description: string;
   scope: "partner" | "conversionEvent";
+  riskLevel?: "low" | "medium" | "high";
 }
 
 export type FraudRuleProps = z.infer<typeof fraudRuleSchema>;
