@@ -4,72 +4,68 @@ NODE mv
 SQL >
 
     SELECT
-        timestamp,
-        click_id,
-        toLowCardinality(
-            coalesce(nullIf(sale_event.workspace_id, ''), link_metadata.workspace_id)
-        ) AS workspace_id,
-        link_id,
-        coalesce(nullIf(sale_event.domain, ''), link_metadata.domain) AS domain,
-        coalesce(nullIf(sale_event.key, ''), link_metadata.key) AS key,
-        url,
-
+        se.timestamp,
+        se.click_id,
+        toLowCardinality(coalesce(nullIf(se.workspace_id, ''), lm.workspace_id)) AS workspace_id,
+        se.link_id as link_id,
+        coalesce(nullIf(se.domain, ''), lm.domain) AS domain,
+        coalesce(nullIf(se.key, ''), lm.key) AS key,
+        se.url,
         -- sale event fields
-        event_id,
-        event_name,
-        customer_id,
-        payment_processor,
-        invoice_id,
-        amount,
-        -- sale_type: "new" if this sale is the earliest one for (customer_id, link_id)
-        if(timestamp = first_sale_ts, 'new', 'recurring') AS sale_type,
-        metadata,
-
+        se.event_id,
+        se.event_name,
+        se.customer_id as customer_id,
+        se.payment_processor,
+        se.invoice_id,
+        se.amount,
+        -- correct sale_type classification using summary table
+        if(
+            dateDiff('millisecond', fs.first_sale_ts, se.timestamp) < 1, 'new', 'recurring'
+        ) AS sale_type,
+        se.metadata,
         -- geolocation fields
-        toLowCardinality(continent) AS continent,
-        toLowCardinality(country) AS country,
-        toLowCardinality(city) AS city,
-        toLowCardinality(region) AS region,
-        latitude,
-        longitude,
-
+        toLowCardinality(se.continent) AS continent,
+        toLowCardinality(se.country) AS country,
+        toLowCardinality(se.city) AS city,
+        toLowCardinality(se.region) AS region,
+        se.latitude,
+        se.longitude,
         -- additional fields
-        device,
-        browser,
-        os,
+        se.device,
+        se.browser,
+        se.os,
         CASE
-            WHEN trigger = '' THEN CASE WHEN qr = true THEN 'qr' ELSE 'link' END ELSE trigger
+            WHEN se.trigger = '' THEN CASE WHEN se.qr = true THEN 'qr' ELSE 'link' END ELSE se.trigger
         END AS trigger,
-        ua,
-        referer,
-        referer_url,
-        ip,
-
+        se.ua,
+        se.referer,
+        se.referer_url,
+        se.ip,
         -- other fields from raw DS
-        device_model,
-        device_vendor,
-        browser_version,
-        os_version,
-        engine,
-        engine_version,
-        cpu_architecture,
-        qr,
-        bot
-
-    FROM dub_sale_events AS sale_event
+        se.device_model,
+        se.device_vendor,
+        se.browser_version,
+        se.os_version,
+        se.engine,
+        se.engine_version,
+        se.cpu_architecture,
+        se.qr,
+        se.bot
+    FROM dub_sale_events AS se
+    -- join pre-aggregated first-sale timestamps
     LEFT JOIN
         (
-            -- find the first sale timestamp for each customer_id:link_id pair
-            SELECT customer_id, link_id, min(timestamp) AS first_sale_ts
-            FROM dub_sale_events
+            SELECT customer_id, link_id, minMerge(first_sale_state) AS first_sale_ts
+            FROM dub_first_sale_mv
             GROUP BY customer_id, link_id
-        ) AS first_sales USING (customer_id, link_id)
+        ) AS fs USING (customer_id, link_id)
+    -- join link metadata for workspace/domain/key enrichment
     LEFT JOIN
         (
             SELECT link_id, workspace_id, domain, key
             FROM dub_links_metadata_latest FINAL
             WHERE link_id IN (SELECT link_id FROM dub_sale_events)
-        ) AS link_metadata USING (link_id)
+        ) AS lm USING (link_id)
 
 TYPE materialized
 DATASOURCE dub_sale_events_mv

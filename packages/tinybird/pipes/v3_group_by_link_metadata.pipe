@@ -15,6 +15,8 @@ SQL >
                 domain,
                 {{ String(groupBy) }} = 'top_partners',
                 partner_id,
+               {{ String(groupBy) }} = 'top_groups',
+                partner_group_id,
                 partner_id
             )
         ) AS groupByField
@@ -39,10 +41,13 @@ SQL >
             length(tag_ids) > 0,
             {{ String(groupBy) }} = 'top_partners',
             partner_id != '',
+            {{ String(groupBy) }} = 'top_groups',
+            partner_group_id != '',
             partner_id != ''
         )
         {% if defined(programId) %} AND program_id = {{ programId }} {% end %}
         {% if defined(partnerId) %} AND partner_id = {{ partnerId }} {% end %}
+        {% if defined(groupId) %} AND partner_group_id = {{ groupId }} {% end %}
         {% if defined(tenantId) %} AND tenant_id = {{ tenantId }} {% end %}
         {% if defined(domain) %} AND domain IN {{ Array(domain, 'String') }} {% end %}
         {% if defined(folderIds) %} AND folder_id IN {{ Array(folderIds, 'String') }}
