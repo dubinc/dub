@@ -124,7 +124,7 @@ export const executeSendCampaignWorkflow = async ({
 
   const program = campaign.program;
 
-  // TODO: We should make the from address required. There are existing campaign without from adress
+  // TODO: We should make the from address required. There are existing campaign without from address
   if (campaign.from) {
     validateCampaignFromAddress({
       campaign,
