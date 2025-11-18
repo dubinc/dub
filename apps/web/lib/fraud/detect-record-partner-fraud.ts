@@ -1,40 +1,53 @@
 import { prisma } from "@dub/prisma";
 import { FraudEvent } from "@dub/prisma/client";
+import { z } from "zod";
 import { createId } from "../api/create-id";
-import { PartnerProps } from "../types";
+import { PartnerSchema } from "../zod/schemas/partners";
+import { ProgramSchema } from "../zod/schemas/programs";
 import { FRAUD_RULES_BY_SCOPE } from "./constants";
 import { executeFraudRule } from "./execute-fraud-rule";
 
-interface PartnerFraudProps {
-  program: {
-    id: string;
-  };
-  partner: Pick<
-    PartnerProps,
-    | "id"
-    | "email"
-    | "website"
-    | "websiteVerifiedAt"
-    | "youtube"
-    | "youtubeVerifiedAt"
-    | "twitter"
-    | "twitterVerifiedAt"
-    | "linkedin"
-    | "linkedinVerifiedAt"
-    | "instagram"
-    | "instagramVerifiedAt"
-    | "tiktok"
-    | "tiktokVerifiedAt"
-  >;
-}
+const contextSchema = z.object({
+  program: ProgramSchema.pick({ id: true }),
+  partner: PartnerSchema.pick({
+    id: true,
+    email: true,
+    website: true,
+    websiteVerifiedAt: true,
+    youtube: true,
+    youtubeVerifiedAt: true,
+    twitter: true,
+    twitterVerifiedAt: true,
+    linkedin: true,
+    linkedinVerifiedAt: true,
+    instagram: true,
+    instagramVerifiedAt: true,
+    tiktok: true,
+    tiktokVerifiedAt: true,
+  }),
+});
 
-export async function detectAndRecordPartnerFraud(context: PartnerFraudProps) {
+export async function detectAndRecordPartnerFraud(
+  context: z.infer<typeof contextSchema>,
+) {
+  const result = contextSchema.safeParse(context);
+
+  if (!result.success) {
+    console.error(
+      "[detectAndRecordPartnerFraud] Invalid context:",
+      result.error.message,
+    );
+    return;
+  }
+
+  const validatedContext = result.data;
+
   console.log(
     "[detectAndRecordPartnerFraud] context",
-    JSON.stringify(context, null, 2),
+    JSON.stringify(validatedContext, null, 2),
   );
 
-  if (!context.partner.id || !context.program.id) {
+  if (!validatedContext.partner.id || !validatedContext.program.id) {
     console.log(
       "[detectAndRecordFraudApplicant] The partner or program is not found.",
     );
@@ -55,7 +68,7 @@ export async function detectAndRecordPartnerFraud(context: PartnerFraudProps) {
   // Evaluate each rule
   for (const rule of fraudRules) {
     try {
-      const { triggered } = await executeFraudRule(rule.type, context);
+      const { triggered } = await executeFraudRule(rule.type, validatedContext);
 
       if (triggered) {
         triggeredRules.push({
@@ -76,8 +89,8 @@ export async function detectAndRecordPartnerFraud(context: PartnerFraudProps) {
     await prisma.fraudEvent.createMany({
       data: triggeredRules.map((rule) => ({
         id: createId({ prefix: "fraud_" }),
-        programId: context.program.id,
-        partnerId: context.partner.id,
+        programId: validatedContext.program.id,
+        partnerId: validatedContext.partner.id,
         type: rule.type,
       })),
     });
