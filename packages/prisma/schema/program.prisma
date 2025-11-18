@@ -120,7 +120,6 @@ model ProgramEnrollment {
   leadConversionRate Float? // TODO: Remove after migration
   conversionRate     Float? // TODO: Remove after migration
 
-  safelistedAt                 DateTime?
   createdAt                    DateTime             @default(now())
   updatedAt                    DateTime             @updatedAt
   customerDataSharingEnabledAt DateTime?

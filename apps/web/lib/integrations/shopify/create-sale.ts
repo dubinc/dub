@@ -182,7 +182,6 @@ export async function createShopifySale({
             "id",
             "email",
             "name",
-            "safelistedAt",
           ]),
           customer: pick(customer, ["id", "email", "name"]),
           commission: { id: createdCommission.commission?.id },

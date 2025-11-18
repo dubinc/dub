@@ -166,7 +166,6 @@ export async function createNewCustomer(event: Stripe.Event) {
                   "id",
                   "email",
                   "name",
-                  "safelistedAt",
                 ]),
                 customer: pick(customer, ["id", "email", "name"]),
                 commission: { id: commission?.id },

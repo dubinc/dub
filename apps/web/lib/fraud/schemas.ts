@@ -33,7 +33,6 @@ export const fraudEventContext = z.object({
     id: z.string(),
     email: z.string().nullable(),
     name: z.string().nullable(),
-    safelistedAt: z.date().nullable(),
   }),
   customer: z.object({
     id: z.string(),

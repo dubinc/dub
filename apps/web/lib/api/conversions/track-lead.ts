@@ -327,7 +327,6 @@ export const trackLead = async ({
                   "id",
                   "email",
                   "name",
-                  "safelistedAt",
                 ]),
                 customer: pick(customer, ["id", "email", "name"]),
                 commission: { id: createdCommission.commission?.id },

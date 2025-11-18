@@ -262,7 +262,6 @@ export async function invoicePaid(event: Stripe.Event, mode: StripeMode) {
             "id",
             "email",
             "name",
-            "safelistedAt",
           ]),
           customer: pick(customer, ["id", "email", "name"]),
           commission: { id: createdCommission.commission?.id },
