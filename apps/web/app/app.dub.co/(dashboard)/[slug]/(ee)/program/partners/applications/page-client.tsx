@@ -41,6 +41,7 @@ import { useAction } from "next-safe-action/hooks";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
+
 const applicationsColumns = {
   all: [
     "partner",
