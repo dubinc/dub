@@ -248,8 +248,6 @@ export function LineItem({
                 ? {
                     style: "currency",
                     currency: "USD",
-                    // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
-                    trailingZeroDisplay: "stripIfInteger",
                   }
                 : {
                     notation: value > 999999 ? "compact" : "standard",
