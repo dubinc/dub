@@ -57,7 +57,7 @@ export const recordAuditLog = async (data: AuditLogInput | AuditLogInput[]) => {
 
   try {
     waitUntil(recordAuditLogTBOld(auditLogs));
-    await recordAuditLogTB(auditLogs);
+    return await recordAuditLogTB(auditLogs);
   } catch (error) {
     console.error(
       "Failed to record audit log",

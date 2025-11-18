@@ -86,9 +86,9 @@ model Partner {
   salesChannels              PartnerSalesChannel[]
   discoveredByPrograms       DiscoveredPartner[]
 
+  @@index(country)
   @@index(discoverableAt)
   @@index(trustedAt)
-  @@index(country)
   @@fulltext([email, name]) // For full-text search
 }
 
