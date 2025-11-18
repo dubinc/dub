@@ -18,7 +18,7 @@ type Tab = {
   conversions: boolean;
 };
 
-export default function Main() {
+export function ChartSection() {
   const {
     totalEvents,
     requiresUpgrade,

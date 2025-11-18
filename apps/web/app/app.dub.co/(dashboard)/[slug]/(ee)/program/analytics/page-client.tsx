@@ -6,10 +6,10 @@ import { editQueryString } from "@/lib/analytics/utils";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
-import Devices from "@/ui/analytics/devices";
-import Locations from "@/ui/analytics/locations";
-import Referer from "@/ui/analytics/referer";
-import TopLinks from "@/ui/analytics/top-links";
+import { DeviceSection } from "@/ui/analytics/device-section";
+import { LocationSection } from "@/ui/analytics/location-section";
+import { PartnerSection } from "@/ui/analytics/partner-section";
+import { ReferrersUTMs } from "@/ui/analytics/referrers-utms";
 import { useAnalyticsFilters } from "@/ui/analytics/use-analytics-filters";
 import { useAnalyticsQuery } from "@/ui/analytics/use-analytics-query";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
@@ -152,10 +152,10 @@ export function ProgramAnalyticsPageClient() {
         </div>
 
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-          <TopLinks filterLinks={false} />
-          <Referer />
-          <Locations />
-          <Devices />
+          <PartnerSection />
+          <ReferrersUTMs />
+          <LocationSection />
+          <DeviceSection />
         </div>
       </AnalyticsContext.Provider>
     </div>

@@ -67,9 +67,9 @@ import {
   AnalyticsContext,
   AnalyticsDashboardProps,
 } from "./analytics-provider";
-import ContinentIcon from "./continent-icon";
-import DeviceIcon from "./device-icon";
-import RefererIcon from "./referer-icon";
+import { ContinentIcon } from "./continent-icon";
+import { DeviceIcon } from "./device-icon";
+import { ReferrerIcon } from "./referrer-icon";
 import { TRIGGER_DISPLAY } from "./trigger-display";
 import { useAnalyticsFilterOption } from "./utils";
 
@@ -682,7 +682,7 @@ export function useAnalyticsFilters({
         icon: ReferredVia,
         label: "Referer",
         getOptionIcon: (value, props) => (
-          <RefererIcon display={value} className="h-4 w-4" />
+          <ReferrerIcon display={value} className="h-4 w-4" />
         ),
         options:
           referers?.map(({ referer, ...rest }) => ({
@@ -699,7 +699,7 @@ export function useAnalyticsFilters({
               icon: ReferredVia,
               label: "Referrer URL",
               getOptionIcon: (value, props) => (
-                <RefererIcon display={value} className="h-4 w-4" />
+                <ReferrerIcon display={value} className="h-4 w-4" />
               ),
               options:
                 refererUrls?.map(({ refererUrl, ...rest }) => ({

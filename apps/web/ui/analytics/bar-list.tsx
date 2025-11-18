@@ -22,7 +22,7 @@ import { areEqual, FixedSizeList } from "react-window";
 import { AnalyticsContext } from "./analytics-provider";
 import LinkPreviewTooltip from "./link-preview";
 
-export default function BarList({
+export function BarList({
   tab,
   unit,
   data,
