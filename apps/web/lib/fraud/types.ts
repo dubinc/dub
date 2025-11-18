@@ -15,6 +15,7 @@ export interface FraudRuleInfo {
   type: FraudRuleType;
   name: string;
   description: string;
+  scope: "partner" | "conversionEvent";
 }
 
 export type FraudRuleProps = z.infer<typeof fraudRuleSchema>;

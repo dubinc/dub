@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { defineFraudRule } from "../define-fraud-rule";
-import { normalizeEmail } from "../utils/similarity";
+import { normalizeEmail } from "../utils";
 
 const contextSchema = z.object({
   partner: z.object({
