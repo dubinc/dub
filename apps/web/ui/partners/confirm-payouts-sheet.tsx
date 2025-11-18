@@ -1,9 +1,11 @@
 import { confirmPayoutsAction } from "@/lib/actions/partners/confirm-payouts";
 import { clientAccessCheck } from "@/lib/client-access-check";
 import {
+  CUTOFF_PERIOD_MAX_PAYOUTS,
   DIRECT_DEBIT_PAYMENT_METHOD_TYPES,
   ELIGIBLE_PAYOUTS_MAX_PAGE_SIZE,
   FAST_ACH_FEE_CENTS,
+  INVOICE_MIN_PAYOUT_AMOUNT_CENTS,
 } from "@/lib/constants/payouts";
 import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import {
@@ -405,7 +407,8 @@ function ConfirmPayoutsSheetContent() {
         ),
       },
       // only show cutoff period if there are less than 1,000 payouts
-      ...(eligiblePayoutsCount && eligiblePayoutsCount.count <= 1000
+      ...(eligiblePayoutsCount &&
+      eligiblePayoutsCount.count <= CUTOFF_PERIOD_MAX_PAYOUTS
         ? [
             {
               key: "Cutoff Period",
@@ -613,7 +616,7 @@ function ConfirmPayoutsSheetContent() {
       ),
     className: "[&_tr:last-child>td]:border-b-transparent",
     scrollWrapperClassName: "min-h-[40px]",
-    resourceName: (p) => `eligible payout${p ? "s" : ""}`,
+    resourceName: (p) => `payout${p ? "s" : ""}`,
     pagination,
     onPaginationChange: setPagination,
     rowCount: eligiblePayoutsCount?.count ?? 0,
@@ -738,7 +741,7 @@ function ConfirmPayoutsSheetContent() {
                 cta="Upgrade"
                 href={`/${slug}/settings/billing/upgrade`}
               />
-            ) : amount && amount < 1000 ? (
+            ) : amount && amount < INVOICE_MIN_PAYOUT_AMOUNT_CENTS ? (
               "Your payout total is less than the minimum invoice amount of $10."
             ) : (
               permissionsError || undefined

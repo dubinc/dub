@@ -9,13 +9,7 @@ import { stripe } from "@/lib/stripe";
 import { createFxQuote } from "@/lib/stripe/create-fx-quote";
 import { calculatePayoutFeeForMethod } from "@/lib/stripe/payment-methods";
 import { prisma } from "@dub/prisma";
-import {
-  Partner,
-  Payout,
-  Program,
-  ProgramPayoutMode,
-  Project,
-} from "@dub/prisma/client";
+import { Program, ProgramPayoutMode, Project } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK, currencyFormatter, log } from "@dub/utils";
 
 const paymentMethodToCurrency = {
@@ -47,11 +41,6 @@ interface ProcessPayoutsProps {
   cutoffPeriod?: CUTOFF_PERIOD_TYPES;
   selectedPayoutId?: string;
   excludedPayoutIds?: string[];
-}
-
-interface ExtendedPayout
-  extends Pick<Payout, "id" | "amount" | "mode" | "periodStart" | "periodEnd"> {
-  partner: Pick<Partner, "email" | "payoutsEnabledAt">;
 }
 
 export async function processPayouts({

@@ -2,9 +2,12 @@
 
 import { createId } from "@/lib/api/create-id";
 import { getEligiblePayouts } from "@/lib/api/payouts/get-eligible-payouts";
+import { getPayoutEligibilityFilter } from "@/lib/api/payouts/payout-eligibility-filter";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import {
+  CUTOFF_PERIOD_MAX_PAYOUTS,
+  INVOICE_MIN_PAYOUT_AMOUNT_CENTS,
   PAYMENT_METHOD_TYPES,
   STRIPE_PAYMENT_METHOD_NORMALIZATION,
 } from "@/lib/constants/payouts";
@@ -74,7 +77,7 @@ export const confirmPayoutsAction = authActionClient
       );
     }
 
-    if (amount < 1000) {
+    if (amount < INVOICE_MIN_PAYOUT_AMOUNT_CENTS) {
       throw new Error(
         "Your payout total is less than the minimum invoice amount of $10.",
       );
@@ -84,6 +87,25 @@ export const confirmPayoutsAction = authActionClient
       workspaceId: workspace.id,
       programId,
     });
+
+    if (cutoffPeriod) {
+      const totalEligiblePayouts = await prisma.payout.aggregate({
+        where: {
+          ...(selectedPayoutId
+            ? { id: selectedPayoutId }
+            : excludedPayoutIds && excludedPayoutIds.length > 0
+              ? { id: { notIn: excludedPayoutIds } }
+              : {}),
+          ...getPayoutEligibilityFilter(program),
+        },
+        _count: true,
+      });
+      if (totalEligiblePayouts._count > CUTOFF_PERIOD_MAX_PAYOUTS) {
+        throw new Error(
+          `You cannot specify a cutoff period when the number of eligible payouts is greater than ${CUTOFF_PERIOD_MAX_PAYOUTS}.`,
+        );
+      }
+    }
 
     if (program.payoutMode !== "internal") {
       const [eligiblePayouts, payoutWebhooks] = await Promise.all([
