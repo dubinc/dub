@@ -51,7 +51,7 @@ export function PartnerFraudFlag({ partnerId }: { partnerId: string }) {
         ),
       }}
     >
-      <Flag className="size-3.5 cursor-pointer text-red-600" />
+      <Flag className="size-3.5 cursor-pointer" />
     </DynamicTooltipWrapper>
   );
 }
