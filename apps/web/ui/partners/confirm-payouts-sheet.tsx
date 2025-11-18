@@ -2,6 +2,7 @@ import { confirmPayoutsAction } from "@/lib/actions/partners/confirm-payouts";
 import { clientAccessCheck } from "@/lib/client-access-check";
 import {
   DIRECT_DEBIT_PAYMENT_METHOD_TYPES,
+  ELIGIBLE_PAYOUTS_MAX_PAGE_SIZE,
   FAST_ACH_FEE_CENTS,
 } from "@/lib/constants/payouts";
 import { exceededLimitError } from "@/lib/exceeded-limit-error";
@@ -17,7 +18,6 @@ import usePaymentMethods from "@/lib/swr/use-payment-methods";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PayoutResponse, PlanProps } from "@/lib/types";
-import { ELIGIBLE_PAYOUTS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/payouts";
 import { X } from "@/ui/shared/icons";
 import {
   Button,
@@ -89,16 +89,27 @@ function ConfirmPayoutsSheetContent() {
   const { queryParams, searchParamsObj } = useRouterStuff();
 
   const selectedPayoutId = searchParamsObj.selectedPayoutId || undefined;
+  const excludedPayoutIds =
+    searchParamsObj.excludedPayoutIds?.split(",").filter(Boolean) || [];
 
   const commonQuery = {
     workspaceId,
     cutoffPeriod,
     ...(selectedPayoutId && { selectedPayoutId }),
+    ...(excludedPayoutIds.length > 0 && {
+      excludedPayoutIds: excludedPayoutIds.join(","),
+    }),
   } as Record<string, any>;
 
-  const { data: eligiblePayoutsCount } = useSWR<number>(
+  const { data: eligiblePayoutsCount } = useSWR<{
+    count: number;
+    amount: number;
+  }>(
     `/api/programs/${defaultProgramId}/payouts/eligible/count?${new URLSearchParams(commonQuery).toString()}`,
     fetcher,
+    {
+      keepPreviousData: true,
+    },
   );
 
   const [page, setPage] = useState(1);
@@ -118,10 +129,10 @@ function ConfirmPayoutsSheetContent() {
       page: pagination.pageIndex.toString(),
     }).toString()}`,
     fetcher,
+    {
+      keepPreviousData: true,
+    },
   );
-
-  const excludedPayoutIds =
-    searchParamsObj.excludedPayoutIds?.split(",").filter(Boolean) || [];
 
   const finalEligiblePayouts = useMemo(() => {
     // if there's a selected payout id, return the payout directly
@@ -287,9 +298,7 @@ function ConfirmPayoutsSheetContent() {
   };
 
   const { amount, fee, total, fastAchFee, externalAmount } = useMemo(() => {
-    const amount = finalEligiblePayouts?.reduce((acc, payout) => {
-      return acc + payout.amount;
-    }, 0);
+    const amount = eligiblePayoutsCount?.amount ?? 0;
 
     if (
       amount === undefined ||
@@ -395,39 +404,44 @@ function ConfirmPayoutsSheetContent() {
           </div>
         ),
       },
-      {
-        key: "Cutoff Period",
-        value: (
-          <div className="w-full">
-            <Combobox
-              options={cutoffPeriodOptions}
-              selected={selectedCutoffPeriodOption}
-              setSelected={(option: ComboboxOption) => {
-                if (!option) {
-                  return;
-                }
+      // only show cutoff period if there are less than 1,000 payouts
+      ...(eligiblePayoutsCount && eligiblePayoutsCount.count <= 1000
+        ? [
+            {
+              key: "Cutoff Period",
+              value: (
+                <div className="w-full">
+                  <Combobox
+                    options={cutoffPeriodOptions}
+                    selected={selectedCutoffPeriodOption}
+                    setSelected={(option: ComboboxOption) => {
+                      if (!option) {
+                        return;
+                      }
 
-                setCutoffPeriod(option.value as CUTOFF_PERIOD_TYPES);
-              }}
-              placeholder="Select cutoff period"
-              buttonProps={{
-                className:
-                  "h-auto border border-neutral-200 px-3 py-1.5 text-xs focus:border-neutral-600 focus:ring-neutral-600",
-              }}
-              matchTriggerWidth
-              hideSearch
-              caret
-            />
-          </div>
-        ),
-        tooltipContent:
-          "Cutoff period in UTC. If set, only commissions accrued up to the cutoff period will be included in the payout invoice.",
-      },
+                      setCutoffPeriod(option.value as CUTOFF_PERIOD_TYPES);
+                    }}
+                    placeholder="Select cutoff period"
+                    buttonProps={{
+                      className:
+                        "h-auto border border-neutral-200 px-3 py-1.5 text-xs focus:border-neutral-600 focus:ring-neutral-600",
+                    }}
+                    matchTriggerWidth
+                    hideSearch
+                    caret
+                  />
+                </div>
+              ),
+              tooltipContent:
+                "Cutoff period in UTC. If set, only commissions accrued up to the cutoff period will be included in the payout invoice.",
+            },
+          ]
+        : []),
       {
         key: "Partners",
         value:
           eligiblePayoutsCount !== undefined ? (
-            nFormatter(eligiblePayoutsCount, { full: true })
+            nFormatter(eligiblePayoutsCount.count, { full: true })
           ) : (
             <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
           ),
@@ -535,7 +549,13 @@ function ConfirmPayoutsSheetContent() {
               </span>
 
               {!selectedPayoutId && (
-                <div className="pointer-events-none absolute right-[calc(14px+0.375rem)] top-1/2 -translate-y-1/2 opacity-0 group-hover/row:pointer-events-auto group-hover/row:opacity-100">
+                <div
+                  className={cn(
+                    "pointer-events-none absolute top-1/2 -translate-y-1/2 opacity-0 group-hover/row:pointer-events-auto group-hover/row:opacity-100",
+                    isExternalPayout(row.original) &&
+                      "right-[calc(14px+0.375rem)]",
+                  )}
+                >
                   <Button
                     variant="secondary"
                     text={
@@ -544,21 +564,29 @@ function ConfirmPayoutsSheetContent() {
                         : "Exclude"
                     }
                     className="h-6 w-fit px-2"
-                    onClick={() =>
-                      // Toggle excluded
-                      queryParams({
-                        set: {
-                          excludedPayoutIds: excludedPayoutIds.includes(
-                            row.original.id,
+                    onClick={() => {
+                      const newExcludedPayoutIds = excludedPayoutIds.includes(
+                        row.original.id,
+                      )
+                        ? excludedPayoutIds.filter(
+                            (id) => id !== row.original.id,
                           )
-                            ? excludedPayoutIds.filter(
-                                (id) => id !== row.original.id,
-                              )
-                            : [...excludedPayoutIds, row.original.id],
-                        },
+                        : [...excludedPayoutIds, row.original.id];
+
+                      queryParams({
+                        ...(newExcludedPayoutIds.length > 0
+                          ? {
+                              set: {
+                                excludedPayoutIds:
+                                  newExcludedPayoutIds.join(","),
+                              },
+                            }
+                          : {
+                              del: "excludedPayoutIds",
+                            }),
                         replace: true,
-                      })
-                    }
+                      });
+                    }}
                   />
                 </div>
               )}
@@ -588,7 +616,7 @@ function ConfirmPayoutsSheetContent() {
     resourceName: (p) => `eligible payout${p ? "s" : ""}`,
     pagination,
     onPaginationChange: setPagination,
-    rowCount: eligiblePayoutsCount ?? 0,
+    rowCount: eligiblePayoutsCount?.count ?? 0,
     loading: eligiblePayoutsLoading,
     error: eligiblePayoutsError
       ? "Failed to load payouts for this invoice."

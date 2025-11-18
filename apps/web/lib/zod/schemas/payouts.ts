@@ -1,3 +1,4 @@
+import { ELIGIBLE_PAYOUTS_MAX_PAGE_SIZE } from "@/lib/constants/payouts";
 import { CUTOFF_PERIOD_ENUM } from "@/lib/partners/cutoff-period";
 import { PayoutMode, PayoutStatus } from "@dub/prisma/client";
 import { z } from "zod";
@@ -112,8 +113,6 @@ export const payoutWebhookEventSchema = PayoutSchema.omit({
   }),
 });
 
-export const ELIGIBLE_PAYOUTS_MAX_PAGE_SIZE = 500;
-
 export const eligiblePayoutsQuerySchema = z
   .object({
     cutoffPeriod: CUTOFF_PERIOD_ENUM,
@@ -123,7 +122,13 @@ export const eligiblePayoutsQuerySchema = z
     getPaginationQuerySchema({ pageSize: ELIGIBLE_PAYOUTS_MAX_PAGE_SIZE }),
   );
 
-export const eligiblePayoutsCountQuerySchema = eligiblePayoutsQuerySchema.omit({
-  page: true,
-  pageSize: true,
-});
+export const eligiblePayoutsCountQuerySchema = eligiblePayoutsQuerySchema
+  .extend({
+    excludedPayoutIds: z
+      .union([z.string(), z.array(z.string())])
+      .transform((v) => (Array.isArray(v) ? v : v.split(","))),
+  })
+  .omit({
+    page: true,
+    pageSize: true,
+  });

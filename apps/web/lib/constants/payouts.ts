@@ -11,6 +11,8 @@ export const ALLOWED_MIN_PAYOUT_AMOUNTS = [0, 1000, 2000, 5000, 10000];
 export const MIN_WITHDRAWAL_AMOUNT_CENTS = 1000; // $10
 export const BELOW_MIN_WITHDRAWAL_FEE_CENTS = 50; // $0.50
 
+export const ELIGIBLE_PAYOUTS_MAX_PAGE_SIZE = 500;
+
 // Direct debit payment types for Partner payout
 export const DIRECT_DEBIT_PAYMENT_TYPES_INFO: {
   type: Stripe.PaymentMethod.Type;
