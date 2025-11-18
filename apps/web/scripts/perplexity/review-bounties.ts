@@ -96,26 +96,24 @@ async function main() {
   }
 
   const qstashRes = await queueBatchEmail<typeof BountyApproved>(
-    bountySubmissions
-      .filter((s) => s.partner.email)
-      .map((s) => ({
-        subject: "Bounty approved!",
-        to: s.partner.email!,
-        variant: "notifications",
-        replyTo: s.program.supportEmail || "noreply",
-        templateName: "BountyApproved",
-        templateProps: {
-          email: s.partner.email!,
-          program: {
-            name: s.program.name,
-            slug: s.program.slug,
-          },
-          bounty: {
-            name: bounty.name,
-            type: bounty.type,
-          },
+    bountySubmissions.map((s) => ({
+      subject: "Bounty approved!",
+      to: s.partner.email!,
+      variant: "notifications",
+      replyTo: s.program.supportEmail || "noreply",
+      templateName: "BountyApproved",
+      templateProps: {
+        email: s.partner.email!,
+        program: {
+          name: s.program.name,
+          slug: s.program.slug,
         },
-      })),
+        bounty: {
+          name: bounty.name,
+          type: bounty.type,
+        },
+      },
+    })),
   );
   console.log("qstashRes", qstashRes);
 }

@@ -69,26 +69,24 @@ async function main() {
   console.log("redisRes", redisRes);
 
   const qstashRes = await queueBatchEmail<typeof PartnerDeactivated>(
-    partners
-      .filter((p) => p.partner.email)
-      .map((p) => ({
-        variant: "notifications",
-        subject: "Your partnership with Perplexity has been deactivated",
-        to: p.partner.email!,
-        replyTo: program.supportEmail || "noreply",
-        templateName: "PartnerDeactivated",
-        templateProps: {
-          partner: {
-            name: p.partner.name,
-            email: p.partner.email!,
-          },
-          program: {
-            name: program.name,
-            slug: program.slug,
-          },
-          deactivatedReason: "because...",
+    partners.map((p) => ({
+      variant: "notifications",
+      subject: "Your partnership with Perplexity has been deactivated",
+      to: p.partner.email!,
+      replyTo: program.supportEmail || "noreply",
+      templateName: "PartnerDeactivated",
+      templateProps: {
+        partner: {
+          name: p.partner.name,
+          email: p.partner.email!,
         },
-      })),
+        program: {
+          name: program.name,
+          slug: program.slug,
+        },
+        deactivatedReason: "because...",
+      },
+    })),
   );
   console.log("qstashRes", qstashRes);
 }
