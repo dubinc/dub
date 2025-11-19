@@ -146,7 +146,7 @@ export function ProgramAnalyticsPageClient() {
           totalEvents,
         }}
       >
-        <div className="border-border-subtle divide-border-subtle divide-y overflow-hidden border sm:rounded-2xl">
+        <div className="border-border-subtle divide-border-subtle divide-y overflow-hidden border rounded-xl sm:rounded-2xl">
           <AnalyticsChart />
           <AnalyticsPartnersTable />
         </div>
