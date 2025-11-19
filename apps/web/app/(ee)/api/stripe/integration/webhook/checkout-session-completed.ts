@@ -146,6 +146,7 @@ export async function checkoutSessionCompleted(
 
     if (!existingCustomer) {
       await recordLead(leadEvent);
+      waitUntil(incrementLinkLeads(clickEvent.link_id));
     }
 
     linkId = clickEvent.link_id;
@@ -600,17 +601,7 @@ async function attributeViaPromoCode({
   // record lead side effects (link stats, partner commissions, workflows, workspace webhook)
   waitUntil(
     (async () => {
-      const linkUpdated = await prisma.link.update({
-        where: {
-          id: link.id,
-        },
-        data: {
-          leads: {
-            increment: 1,
-          },
-          lastLeadAt: new Date(),
-        },
-      });
+      const linkUpdated = await incrementLinkLeads(link.id);
 
       let webhookPartner: WebhookPartner | undefined;
       if (link.programId && link.partnerId) {
@@ -670,4 +661,18 @@ async function attributeViaPromoCode({
     clickEvent,
     leadEvent,
   };
+}
+
+async function incrementLinkLeads(linkId: string) {
+  return await prisma.link.update({
+    where: {
+      id: linkId,
+    },
+    data: {
+      leads: {
+        increment: 1,
+      },
+      lastLeadAt: new Date(),
+    },
+  });
 }
