@@ -1,17 +1,17 @@
 "use client";
 
-import { APPLICATION_FRAUD_SEVERITY_CONFIG } from "@/lib/fraud/constants";
-import { ApplicationFraudSeverity } from "@/lib/fraud/types";
+import { FRAUD_SEVERITY_CONFIG } from "@/lib/api/fraud/constants";
+import { FraudSeverity } from "@/lib/types";
 import { cn } from "@dub/utils";
 
 export function PartnerApplicationFraudSeverityIndicator({
   severity,
   className,
 }: {
-  severity: ApplicationFraudSeverity | null;
+  severity: FraudSeverity | null;
   className?: string;
 }) {
-  const entries = Object.entries(APPLICATION_FRAUD_SEVERITY_CONFIG);
+  const entries = Object.entries(FRAUD_SEVERITY_CONFIG);
 
   return (
     <div className={cn("flex flex-col gap-2", className)}>

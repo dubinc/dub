@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { PartnerSchema } from "../zod/schemas/partners";
-import { ProgramSchema } from "../zod/schemas/programs";
+import { PartnerSchema } from "./partners";
+import { ProgramSchema } from "./programs";
 
 export const fraudPartnerContext = z.object({
   program: ProgramSchema.pick({ id: true }).optional(),

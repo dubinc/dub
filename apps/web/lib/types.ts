@@ -9,6 +9,7 @@ import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
 import {
   CommissionStatus,
   FolderUserRole,
+  FraudRuleType,
   Link,
   PartnerGroup,
   PartnerRole,
@@ -56,7 +57,7 @@ import { dashboardSchema } from "./zod/schemas/dashboard";
 import { DiscountCodeSchema, DiscountSchema } from "./zod/schemas/discount";
 import { EmailDomainSchema } from "./zod/schemas/email-domains";
 import { FolderSchema } from "./zod/schemas/folders";
-import { fraudEventSchema } from "./zod/schemas/fraud";
+import { fraudEventSchema, fraudRuleSchema } from "./zod/schemas/fraud";
 import { GroupWithProgramSchema } from "./zod/schemas/group-with-program";
 import {
   additionalPartnerLinkSchemaOptionalPath,
@@ -117,6 +118,7 @@ import {
   saleEventResponseSchema,
   trackSaleResponseSchema,
 } from "./zod/schemas/sales";
+import { fraudEventContext, fraudPartnerContext } from "./zod/schemas/schemas";
 import { tokenSchema } from "./zod/schemas/token";
 import { usageResponse } from "./zod/schemas/usage";
 import {
@@ -666,3 +668,32 @@ export type WorkflowAttribute = (typeof WORKFLOW_ATTRIBUTES)[number];
 export type EmailDomainProps = z.infer<typeof EmailDomainSchema>;
 
 export type FraudEventProps = z.infer<typeof fraudEventSchema>;
+
+export type ExtendedFraudRuleType =
+  | FraudRuleType
+  | "partnerEmailDomainMismatch"
+  | "partnerEmailMasked"
+  | "partnerNoSocialLinks"
+  | "partnerNoVerifiedSocialLinks";
+
+export type FraudSeverity = "low" | "medium" | "high";
+
+export interface FraudTriggeredRule {
+  triggered: boolean;
+  metadata?: Record<string, unknown>;
+}
+
+export interface FraudRuleInfo {
+  type: ExtendedFraudRuleType;
+  name: string;
+  description: string;
+  scope: "partner" | "conversionEvent";
+  severity?: FraudSeverity;
+  crossProgram?: boolean;
+}
+
+export type FraudRuleProps = z.infer<typeof fraudRuleSchema>;
+
+export type FraudPartnerContext = z.infer<typeof fraudPartnerContext>;
+
+export type FraudEventContext = z.infer<typeof fraudEventContext>;

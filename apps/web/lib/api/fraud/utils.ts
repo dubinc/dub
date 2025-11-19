@@ -1,3 +1,6 @@
+import { FRAUD_SEVERITY_CONFIG } from "@/lib/api/fraud/constants";
+import { FraudRuleInfo, FraudSeverity } from "@/lib/types";
+
 // Normalize email for comparison
 export function normalizeEmail(email: string): string {
   const trimmed = email.toLowerCase().trim();
@@ -21,4 +24,25 @@ export function normalizeEmail(email: string): string {
   }
 
   return `${username}@${domain}`;
+}
+
+// Returns the highest severity of the triggered rules
+export function getHighestSeverity(
+  triggeredRules: FraudRuleInfo[],
+): FraudSeverity {
+  let highest: FraudSeverity = "low";
+  let highestRank = FRAUD_SEVERITY_CONFIG.low.rank;
+
+  for (const { severity } of triggeredRules) {
+    if (!severity) continue;
+
+    const rank = FRAUD_SEVERITY_CONFIG[severity].rank;
+
+    if (rank > highestRank) {
+      highest = severity;
+      highestRank = rank;
+    }
+  }
+
+  return highest;
 }

@@ -7,7 +7,7 @@ export function defineFraudRule<TCfg extends z.ZodType = z.ZodTypeAny>(rule: {
   defaultConfig?: z.infer<TCfg>;
   evaluate: (
     context: unknown,
-    config: z.infer<TCfg>,
+    config?: z.infer<TCfg>,
   ) => Promise<FraudTriggeredRule>;
 }) {
   return rule;

@@ -1,9 +1,9 @@
 import { prisma } from "@dub/prisma";
 import { FraudEvent, FraudRuleType } from "@dub/prisma/client";
-import { createId } from "../api/create-id";
+import { fraudPartnerContext } from "../../zod/schemas/schemas";
+import { createId } from "../create-id";
 import { FRAUD_RULES_BY_SCOPE, FRAUD_RULES_BY_TYPE } from "./constants";
 import { executeFraudRule } from "./execute-fraud-rule";
-import { fraudPartnerContext } from "./schemas";
 import { FraudPartnerContext } from "./types";
 
 export async function detectAndRecordPartnerFraud({

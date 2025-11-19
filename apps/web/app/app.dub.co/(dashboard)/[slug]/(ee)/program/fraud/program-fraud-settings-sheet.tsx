@@ -1,9 +1,9 @@
 "use client";
 
-import { type FraudRuleProps } from "@/lib/fraud/types";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { FraudRuleProps } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
 import { FraudRiskLevel, FraudRuleType } from "@dub/prisma/client";
 import { Button, Sheet, Switch } from "@dub/ui";

@@ -1,33 +1,53 @@
 "use client";
 
-import { APPLICATION_FRAUD_SEVERITY_CONFIG } from "@/lib/fraud/constants";
-import { EnrolledPartnerExtendedProps } from "@/lib/types";
-import { Button } from "@dub/ui";
-import { cn } from "@dub/utils";
-import { useMemo } from "react";
+import { FRAUD_RULES, FRAUD_SEVERITY_CONFIG } from "@/lib/api/fraud/constants";
+import useWorkspace from "@/lib/swr/use-workspace";
 import {
-  assessPartnerApplicationRisk,
-  getHighestSeverity,
-} from "./partner-application-fraud-evaluator";
+  EnrolledPartnerExtendedProps,
+  ExtendedFraudRuleType,
+} from "@/lib/types";
+import { Button } from "@dub/ui";
+import { cn, fetcher } from "@dub/utils";
+import { useMemo } from "react";
+import useSWR from "swr";
+import { getHighestSeverity } from "./partner-application-fraud-evaluator";
 import { PartnerApplicationFraudSeverityIndicator } from "./partner-application-fraud-severity-indicator";
 
 interface PartnerApplicationRiskSummaryProps {
   partner: EnrolledPartnerExtendedProps;
 }
 
+type FraudRisksResponse = Partial<Record<ExtendedFraudRuleType, boolean>>;
+
 // Displays the risk analysis for a partner application
 export function PartnerApplicationRiskSummary({
   partner,
 }: PartnerApplicationRiskSummaryProps) {
-  const triggeredRules = useMemo(
-    () => assessPartnerApplicationRisk(partner),
-    [partner],
+  const { id: workspaceId } = useWorkspace();
+
+  const { data: risks, isLoading } = useSWR<FraudRisksResponse>(
+    partner?.id
+      ? `/api/partners/${partner.id}/fraud?workspaceId=${workspaceId}`
+      : null,
+    fetcher,
   );
+
+  const triggeredRules = useMemo(() => {
+    if (!risks) return [];
+
+    return FRAUD_RULES.filter((rule) => {
+      return risks[rule.type] === true;
+    });
+  }, [risks]);
 
   const overallRisk = useMemo(
     () => getHighestSeverity(triggeredRules),
     [triggeredRules],
   );
+
+  if (isLoading) {
+    return null;
+  }
 
   if (triggeredRules.length === 0) {
     return null;
@@ -53,12 +73,14 @@ export function PartnerApplicationRiskSummary({
 
       <ul className="space-y-2">
         {triggeredRules.map((rule) => {
+          if (!rule.severity) return null;
+
           return (
             <li key={rule.type} className="flex items-center gap-2">
               <div
                 className={cn(
                   "size-2 shrink-0 rounded-full",
-                  APPLICATION_FRAUD_SEVERITY_CONFIG[rule.severity].color,
+                  FRAUD_SEVERITY_CONFIG[rule.severity].color,
                 )}
               />
               <span className="text-xs font-medium leading-4 text-neutral-700">
