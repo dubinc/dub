@@ -400,6 +400,7 @@ const processMappedLinks = async ({
         workspace: {
           id: workspaceId,
           plan: workspace.plan as WorkspaceProps["plan"],
+          users: [{ role: "owner" }],
         },
         userId,
         bulk: true,

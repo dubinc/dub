@@ -2,8 +2,9 @@ import { isBlacklistedDomain } from "@/lib/edge-config";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
 import { checkIfUserExists, getRandomKey } from "@/lib/planetscale";
 import { isNotHostedImage } from "@/lib/storage";
-import { NewLinkProps, ProcessedLinkProps, WorkspaceProps } from "@/lib/types";
+import { NewLinkProps, ProcessedLinkProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
+import { Project, WorkspaceRole } from "@dub/prisma/client";
 import {
   DUB_DOMAINS,
   UTMTags,
@@ -31,7 +32,9 @@ export async function processLink<T extends Record<string, any>>({
   skipProgramChecks = false, // only skip for when program is already validated
 }: {
   payload: NewLinkProps & T;
-  workspace?: Pick<WorkspaceProps, "id" | "plan" | "users">;
+  workspace?: Pick<Project, "id" | "plan"> & {
+    users: { role: WorkspaceRole }[];
+  };
   userId?: string;
   bulk?: boolean;
   skipKeyChecks?: boolean;

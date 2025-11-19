@@ -107,6 +107,7 @@ export const POST = withReferralsEmbedToken(
       workspace: {
         id: program.workspaceId,
         plan: "business",
+        users: [{ role: "owner" }],
       },
       userId: workspaceOwner?.userId,
       skipFolderChecks: true, // can't be changed by the partner
