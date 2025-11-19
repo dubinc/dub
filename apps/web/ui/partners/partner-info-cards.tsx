@@ -1,4 +1,5 @@
 import useGroup from "@/lib/swr/use-group";
+import usePartnerApplicationRisks from "@/lib/swr/use-partner-application-risks";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   BountyListProps,
@@ -27,6 +28,7 @@ import {
 import Link from "next/link";
 import useSWR from "swr";
 import { ConversionScoreIcon } from "./conversion-score-icon";
+import { PartnerApplicationRiskBanner } from "./fraud-risks/partner-application-risk-banner";
 import { PartnerApplicationRiskSummary } from "./fraud-risks/partner-application-risk-summary";
 import { PartnerFraudFlag } from "./partner-fraud-flag";
 import { PartnerInfoGroup } from "./partner-info-group";
@@ -89,6 +91,18 @@ export function PartnerInfoCards({
       : null,
     fetcher,
   );
+
+  // Fetch risks to determine if banner should be shown (for border radius)
+  const { severity } = usePartnerApplicationRisks(
+    {
+      partnerId: partner?.id,
+      enabled: isEnrolled && showApplicationRiskAnalysis,
+    },
+    { keepPreviousData: false },
+  );
+
+  const showRiskBanner =
+    partner && isEnrolled && showApplicationRiskAnalysis && severity === "high";
 
   let basicFields: BasicField[] = [
     {
@@ -182,88 +196,94 @@ export function PartnerInfoCards({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="border-border-subtle flex flex-col divide-y divide-neutral-200 rounded-xl border">
-        <div className="p-4">
-          <div className="flex justify-between gap-2">
-            <div className="relative w-fit">
-              {partner ? (
-                <img
-                  src={partner.image || `${OG_AVATAR_URL}${partner.name}`}
-                  alt={partner.name}
-                  className="size-20 rounded-full border border-neutral-100"
-                />
-              ) : (
-                <div className="size-20 animate-pulse rounded-full bg-neutral-200" />
+      <div className="overflow-hidden rounded-xl bg-red-100">
+        {partner && isEnrolled && showApplicationRiskAnalysis && (
+          <PartnerApplicationRiskBanner partner={partner} />
+        )}
+
+        <div className="border-border-subtle flex flex-col divide-y divide-neutral-200 rounded-xl border bg-white">
+          <div className="p-4">
+            <div className="flex justify-between gap-2">
+              <div className="relative w-fit">
+                {partner ? (
+                  <img
+                    src={partner.image || `${OG_AVATAR_URL}${partner.name}`}
+                    alt={partner.name}
+                    className="size-20 rounded-full border border-neutral-100"
+                  />
+                ) : (
+                  <div className="size-20 animate-pulse rounded-full bg-neutral-200" />
+                )}
+                {partner?.trustedAt && <TrustedPartnerBadge />}
+              </div>
+
+              {isEnrolled &&
+                partner &&
+                !hideStatuses.includes(partner.status) && (
+                  <PartnerStatusBadgeWithTooltip partner={partner} />
+                )}
+
+              {isNetwork && partner && (
+                <PartnerStarButton partner={partner} className="size-9" />
               )}
-              {partner?.trustedAt && <TrustedPartnerBadge />}
+            </div>
+
+            <div className="mt-4">
+              {partner ? (
+                <div className="flex items-center gap-2">
+                  <span className="text-content-emphasis text-lg font-semibold">
+                    {partner.name}
+                  </span>
+                  {showFraudFlag && <PartnerFraudFlag partnerId={partner.id} />}
+                </div>
+              ) : (
+                <div className="h-7 w-24 animate-pulse rounded bg-neutral-200" />
+              )}
             </div>
 
             {isEnrolled &&
-              partner &&
-              !hideStatuses.includes(partner.status) && (
-                <PartnerStatusBadgeWithTooltip partner={partner} />
-              )}
-
-            {isNetwork && partner && (
-              <PartnerStarButton partner={partner} className="size-9" />
-            )}
+              (partner ? (
+                partner.email && (
+                  <div className="mt-0.5 flex items-center gap-1">
+                    <span className="text-sm font-medium text-neutral-500">
+                      {partner.email}
+                    </span>
+                    <CopyButton
+                      value={partner.email}
+                      variant="neutral"
+                      className="p-1 [&>*]:h-3 [&>*]:w-3"
+                      successMessage="Copied email to clipboard!"
+                    />
+                  </div>
+                )
+              ) : (
+                <div className="mt-0.5 h-5 w-32 animate-pulse rounded bg-neutral-200" />
+              ))}
           </div>
 
-          <div className="mt-4">
-            {partner ? (
-              <div className="flex items-center gap-2">
-                <span className="text-content-emphasis text-lg font-semibold">
-                  {partner.name}
-                </span>
-                {showFraudFlag && <PartnerFraudFlag partnerId={partner.id} />}
-              </div>
-            ) : (
-              <div className="h-7 w-24 animate-pulse rounded bg-neutral-200" />
-            )}
+          <div className="flex flex-col gap-2 p-4">
+            {basicFields
+              .filter(({ text }) => text !== null)
+              .map(({ id, icon, text, wrapper: Wrapper = "div" }) => (
+                <Wrapper key={id}>
+                  <div className="text-content-subtle flex items-center gap-1">
+                    {text !== undefined ? (
+                      <>
+                        {icon}
+                        <span className="text-xs font-medium">{text}</span>
+                      </>
+                    ) : (
+                      <div className="h-4 w-24 animate-pulse rounded bg-neutral-200" />
+                    )}
+                  </div>
+                </Wrapper>
+              ))}
           </div>
 
-          {isEnrolled &&
-            (partner ? (
-              partner.email && (
-                <div className="mt-0.5 flex items-center gap-1">
-                  <span className="text-sm font-medium text-neutral-500">
-                    {partner.email}
-                  </span>
-                  <CopyButton
-                    value={partner.email}
-                    variant="neutral"
-                    className="p-1 [&>*]:h-3 [&>*]:w-3"
-                    successMessage="Copied email to clipboard!"
-                  />
-                </div>
-              )
-            ) : (
-              <div className="mt-0.5 h-5 w-32 animate-pulse rounded bg-neutral-200" />
-            ))}
+          {partner && isEnrolled && showApplicationRiskAnalysis && (
+            <PartnerApplicationRiskSummary partner={partner} />
+          )}
         </div>
-
-        <div className="flex flex-col gap-2 p-4">
-          {basicFields
-            .filter(({ text }) => text !== null)
-            .map(({ id, icon, text, wrapper: Wrapper = "div" }) => (
-              <Wrapper key={id}>
-                <div className="text-content-subtle flex items-center gap-1">
-                  {text !== undefined ? (
-                    <>
-                      {icon}
-                      <span className="text-xs font-medium">{text}</span>
-                    </>
-                  ) : (
-                    <div className="h-4 w-24 animate-pulse rounded bg-neutral-200" />
-                  )}
-                </div>
-              </Wrapper>
-            ))}
-        </div>
-
-        {partner && isEnrolled && showApplicationRiskAnalysis && (
-          <PartnerApplicationRiskSummary partner={partner} />
-        )}
       </div>
 
       <div className="border-border-subtle flex flex-col gap-4 rounded-xl border p-4">
