@@ -1,7 +1,7 @@
 "use client";
 
 import { FRAUD_SEVERITY_CONFIG } from "@/lib/api/fraud/constants";
-import usePartnerApplicationRisks from "@/lib/swr/use-partner-application-risks";
+import { usePartnerApplicationRisks } from "@/lib/swr/use-partner-application-risks";
 import { EnrolledPartnerExtendedProps } from "@/lib/types";
 import { Button } from "@dub/ui";
 import { cn } from "@dub/utils";

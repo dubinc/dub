@@ -8,7 +8,7 @@ import useWorkspace from "./use-workspace";
 
 type FraudRisksResponse = Partial<Record<ExtendedFraudRuleType, boolean>>;
 
-export default function usePartnerApplicationRisks(
+export function usePartnerApplicationRisks(
   {
     partnerId,
     enabled = true,
@@ -20,7 +20,11 @@ export default function usePartnerApplicationRisks(
 ) {
   const { id: workspaceId } = useWorkspace();
 
-  const { data: risks, isLoading, error } = useSWR<FraudRisksResponse>(
+  const {
+    data: risks,
+    isLoading,
+    error,
+  } = useSWR<FraudRisksResponse>(
     enabled && partnerId && workspaceId
       ? `/api/partners/${partnerId}/risks?workspaceId=${workspaceId}`
       : null,
@@ -50,4 +54,3 @@ export default function usePartnerApplicationRisks(
     error,
   };
 }
-

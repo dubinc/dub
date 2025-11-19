@@ -1,6 +1,6 @@
 "use client";
 
-import usePartnerApplicationRisks from "@/lib/swr/use-partner-application-risks";
+import { usePartnerApplicationRisks } from "@/lib/swr/use-partner-application-risks";
 import { EnrolledPartnerExtendedProps } from "@/lib/types";
 import { ShieldKeyhole } from "@dub/ui";
 
