@@ -36,11 +36,13 @@ export const GET = withWorkspace(
       }),
 
       // Check duplicate payout method
-      prisma.partner.count({
-        where: {
-          payoutMethodHash: partner.payoutMethodHash,
-        },
-      }),
+      partner.payoutMethodHash
+        ? prisma.partner.count({
+            where: {
+              payoutMethodHash: partner.payoutMethodHash,
+            },
+          })
+        : Promise.resolve(0),
     ]);
 
     const risks: Partial<Record<ExtendedFraudRuleType, boolean>> = {

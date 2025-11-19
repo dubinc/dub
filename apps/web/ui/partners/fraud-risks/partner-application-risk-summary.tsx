@@ -1,16 +1,10 @@
 "use client";
 
-import { FRAUD_RULES, FRAUD_SEVERITY_CONFIG } from "@/lib/api/fraud/constants";
-import { getHighestSeverity } from "@/lib/api/fraud/utils";
-import useWorkspace from "@/lib/swr/use-workspace";
-import {
-  EnrolledPartnerExtendedProps,
-  ExtendedFraudRuleType,
-} from "@/lib/types";
+import { FRAUD_SEVERITY_CONFIG } from "@/lib/api/fraud/constants";
+import usePartnerApplicationRisks from "@/lib/swr/use-partner-application-risks";
+import { EnrolledPartnerExtendedProps } from "@/lib/types";
 import { Button } from "@dub/ui";
-import { cn, fetcher } from "@dub/utils";
-import { useMemo } from "react";
-import useSWR from "swr";
+import { cn } from "@dub/utils";
 import { PartnerApplicationFraudSeverityIndicator } from "./partner-application-fraud-severity-indicator";
 import { usePartnerApplicationRiskSummaryModal } from "./partner-application-risk-summary-modal";
 
@@ -18,38 +12,20 @@ interface PartnerApplicationRiskSummaryProps {
   partner: EnrolledPartnerExtendedProps;
 }
 
-type FraudRisksResponse = Partial<Record<ExtendedFraudRuleType, boolean>>;
-
 // Displays the risk analysis for a partner application
 export function PartnerApplicationRiskSummary({
   partner,
 }: PartnerApplicationRiskSummaryProps) {
-  const { id: workspaceId } = useWorkspace();
-
-  const { data: risks, isLoading } = useSWR<FraudRisksResponse>(
-    partner?.id
-      ? `/api/partners/${partner.id}/risks?workspaceId=${workspaceId}`
-      : null,
-    fetcher,
-  );
-
-  const triggeredFraudRules = useMemo(() => {
-    if (!risks) return [];
-
-    return FRAUD_RULES.filter((rule) => {
-      return risks[rule.type] === true;
+  const { triggeredFraudRules, severity, isLoading } =
+    usePartnerApplicationRisks({
+      partnerId: partner?.id,
+      enabled: true,
     });
-  }, [risks]);
-
-  const overallRisk = useMemo(
-    () => getHighestSeverity(triggeredFraudRules),
-    [triggeredFraudRules],
-  );
 
   const { setShowModal, PartnerApplicationRiskSummaryModal } =
     usePartnerApplicationRiskSummaryModal({
       triggeredRules: triggeredFraudRules,
-      overallRisk,
+      severity,
     });
 
   if (isLoading) {
@@ -77,7 +53,7 @@ export function PartnerApplicationRiskSummary({
           />
         </div>
 
-        <PartnerApplicationFraudSeverityIndicator severity={overallRisk} />
+        <PartnerApplicationFraudSeverityIndicator severity={severity} />
 
         <ul className="space-y-2">
           {triggeredFraudRules.map((rule) => {

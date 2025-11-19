@@ -18,14 +18,14 @@ interface PartnerApplicationRiskSummaryModalProps {
   showModal: boolean;
   setShowModal: Dispatch<SetStateAction<boolean>>;
   triggeredRules: FraudRuleInfo[];
-  overallRisk: FraudSeverity | null;
+  severity: FraudSeverity | null;
 }
 
 function PartnerApplicationRiskSummaryModal({
   showModal,
   setShowModal,
   triggeredRules,
-  overallRisk,
+  severity,
 }: PartnerApplicationRiskSummaryModalProps) {
   return (
     <Modal
@@ -47,7 +47,7 @@ function PartnerApplicationRiskSummaryModal({
       </div>
 
       <div className="flex flex-col gap-6 bg-white p-4 sm:p-6">
-        <PartnerApplicationFraudSeverityIndicator severity={overallRisk} />
+        <PartnerApplicationFraudSeverityIndicator severity={severity} />
 
         <ul className="space-y-4">
           {triggeredRules.map((rule) => {
@@ -79,10 +79,10 @@ function PartnerApplicationRiskSummaryModal({
 
 export function usePartnerApplicationRiskSummaryModal({
   triggeredRules,
-  overallRisk,
+  severity,
 }: {
   triggeredRules: FraudRuleInfo[];
-  overallRisk: FraudSeverity | null;
+  severity: FraudSeverity | null;
 }) {
   const [showModal, setShowModal] = useState(false);
 
@@ -92,10 +92,10 @@ export function usePartnerApplicationRiskSummaryModal({
         showModal={showModal}
         setShowModal={setShowModal}
         triggeredRules={triggeredRules}
-        overallRisk={overallRisk}
+        severity={severity}
       />
     );
-  }, [showModal, setShowModal, triggeredRules, overallRisk]);
+  }, [showModal, setShowModal, triggeredRules, severity]);
 
   return useMemo(
     () => ({
