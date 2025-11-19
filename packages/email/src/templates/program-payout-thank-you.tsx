@@ -67,7 +67,7 @@ export default function ProgramPayoutThankYou({
           <Container className="mx-auto my-0 max-w-[600px] py-0">
             <Section className="mb-8 mt-0 text-center">
               <Img
-                src="https://assets.dub.co/cms/payout-thankyou-header.png"
+                src="https://assets.dub.co/misc/payout-thank-you-header.jpg"
                 width="600"
                 alt="Thank you"
                 style={{
