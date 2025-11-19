@@ -115,11 +115,13 @@ export const findUserFolderRole = ({
 export const checkFolderPermissions = async ({
   workspaceId,
   userId,
+  workspaceRole,
   folderIds,
   requiredPermission,
 }: {
   workspaceId: string;
   userId: string;
+  workspaceRole?: WorkspaceRole;
   folderIds: string[];
   requiredPermission: FolderPermission;
 }) => {
@@ -144,6 +146,7 @@ export const checkFolderPermissions = async ({
     const folderUserRole = findUserFolderRole({
       folder,
       user: folder.users[0],
+      workspaceRole,
     });
 
     if (!folderUserRole) {

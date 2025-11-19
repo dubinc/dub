@@ -176,6 +176,7 @@ export const POST = withWorkspace(
       const folderPermissions = await checkFolderPermissions({
         workspaceId: workspace.id,
         userId: session.user.id,
+        workspaceRole: workspace.users[0]?.role,
         folderIds,
         requiredPermission: "folders.links.write",
       });
@@ -353,6 +354,7 @@ export const PATCH = withWorkspace(
       const folderPermissions = await checkFolderPermissions({
         workspaceId: workspace.id,
         userId: session.user.id,
+        workspaceRole: workspace.users[0]?.role,
         folderIds,
         requiredPermission: "folders.links.write",
       });
@@ -525,6 +527,7 @@ export const DELETE = withWorkspace(
       const folderPermissions = await checkFolderPermissions({
         workspaceId: workspace.id,
         userId: session.user.id,
+        workspaceRole: workspace.users[0]?.role,
         folderIds,
         requiredPermission: "folders.links.write",
       });
