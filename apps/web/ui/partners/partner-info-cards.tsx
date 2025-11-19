@@ -262,9 +262,7 @@ export function PartnerInfoCards({
         </div>
 
         {partner && isEnrolled && showApplicationRiskAnalysis && (
-          <div className="p-4">
-            <PartnerApplicationRiskSummary partner={partner} />
-          </div>
+          <PartnerApplicationRiskSummary partner={partner} />
         )}
       </div>
 

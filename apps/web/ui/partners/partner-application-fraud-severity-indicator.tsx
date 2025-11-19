@@ -11,10 +11,7 @@ export function PartnerApplicationFraudSeverityIndicator({
   severity: ApplicationFraudSeverity | null;
   className?: string;
 }) {
-  const entries = Object.entries(APPLICATION_FRAUD_SEVERITY_CONFIG) as [
-    ApplicationFraudSeverity,
-    { label: string; color: string; rank: number },
-  ][];
+  const entries = Object.entries(APPLICATION_FRAUD_SEVERITY_CONFIG);
 
   return (
     <div className={cn("flex flex-col gap-2", className)}>

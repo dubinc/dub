@@ -29,8 +29,12 @@ export function PartnerApplicationRiskSummary({
     [triggeredRules],
   );
 
+  if (triggeredRules.length === 0) {
+    return null;
+  }
+
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 p-4">
       <div className="flex items-center justify-between">
         <h3 className="text-content-emphasis text-sm font-semibold">
           Risk analysis
@@ -47,29 +51,23 @@ export function PartnerApplicationRiskSummary({
 
       <PartnerApplicationFraudSeverityIndicator severity={overallRisk} />
 
-      {triggeredRules.length > 0 && (
-        <ul className="space-y-2.5">
-          {triggeredRules.map((rule) => {
-            return (
-              <li key={rule.type} className="flex items-center gap-2">
-                <div
-                  className={cn(
-                    "size-2 shrink-0 rounded-full",
-                    APPLICATION_FRAUD_SEVERITY_CONFIG[rule.severity].color,
-                  )}
-                />
-                <span className="text-sm font-medium leading-4 text-neutral-700">
-                  {rule.name}
-                </span>
-              </li>
-            );
-          })}
-        </ul>
-      )}
-
-      {triggeredRules.length === 0 && (
-        <p className="text-sm text-neutral-500">No risk factors detected.</p>
-      )}
+      <ul className="space-y-2">
+        {triggeredRules.map((rule) => {
+          return (
+            <li key={rule.type} className="flex items-center gap-2">
+              <div
+                className={cn(
+                  "size-2 shrink-0 rounded-full",
+                  APPLICATION_FRAUD_SEVERITY_CONFIG[rule.severity].color,
+                )}
+              />
+              <span className="text-xs font-medium leading-4 text-neutral-700">
+                {rule.name}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 }

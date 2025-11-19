@@ -100,7 +100,7 @@ export const APPLICATION_FRAUD_SEVERITY_CONFIG: Record<
     rank: 0,
   },
   medium: {
-    color: "bg-orange-500",
+    color: "bg-orange-600", // TODO: this should be bg-orange-500
     label: "Medium",
     rank: 1,
   },
