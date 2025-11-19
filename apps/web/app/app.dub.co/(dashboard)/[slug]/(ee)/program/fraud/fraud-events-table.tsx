@@ -96,7 +96,7 @@ export function FraudEventsTable() {
             rows={["local", "utc", "unix"]}
             delayDuration={150}
           >
-            <p>{formatDateTimeSmart(row.original.createdAt)}</p>
+            <span>{formatDateTimeSmart(row.original.createdAt)}</span>
           </TimestampTooltip>
         ),
       },
@@ -193,9 +193,17 @@ export function FraudEventsTable() {
         scroll: false,
       }),
     getRowId: (row) => row.id,
+    onRowClick: (row) => {
+      queryParams({
+        set: {
+          fraudEventId: row.original.id,
+        },
+        scroll: false,
+      });
+    },
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
-    resourceName: () => "fraud event",
+    resourceName: (plural) => `event${plural ? "s" : ""}`,
     rowCount: fraudEventsCount ?? 0,
     loading: isLoading,
     error: error || countError ? "Failed to load fraud events" : undefined,
