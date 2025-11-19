@@ -5,14 +5,11 @@ import {
   APPLICATION_FRAUD_SEVERITY_CONFIG,
 } from "@/lib/fraud/constants";
 import { ApplicationFraudSeverity } from "@/lib/fraud/types";
-import {
-  EnrolledPartnerExtendedProps,
-  EnrolledPartnerProps,
-} from "@/lib/types";
+import { EnrolledPartnerExtendedProps } from "@/lib/types";
 
 const ruleChecks: Record<
   (typeof APPLICATION_FRAUD_RULES)[number]["type"],
-  (partner: EnrolledPartnerProps) => boolean
+  (partner: EnrolledPartnerExtendedProps) => boolean
 > = {
   partnerEmailDomainMismatch: checkPartnerEmailDomainMismatch,
   partnerEmailMasked: checkPartnerEmailMasked,
@@ -103,14 +100,14 @@ function checkPartnerNoSocialLinks(partner: EnrolledPartnerExtendedProps) {
 function checkPartnerNoVerifiedSocialLinks(
   partner: EnrolledPartnerExtendedProps,
 ) {
-  const hasVerifiedWebsite = partner.websiteVerifiedAt !== null;
+  const hasVerifiedWebsite = partner.websiteVerifiedAt != null;
 
   const hasVerifiedSocialLinks =
-    partner.youtubeVerifiedAt !== null ||
-    partner.twitterVerifiedAt !== null ||
-    partner.linkedinVerifiedAt !== null ||
-    partner.instagramVerifiedAt !== null ||
-    partner.tiktokVerifiedAt !== null;
+    partner.youtubeVerifiedAt != null ||
+    partner.twitterVerifiedAt != null ||
+    partner.linkedinVerifiedAt != null ||
+    partner.instagramVerifiedAt != null ||
+    partner.tiktokVerifiedAt != null;
 
   return !hasVerifiedWebsite && !hasVerifiedSocialLinks;
 }
