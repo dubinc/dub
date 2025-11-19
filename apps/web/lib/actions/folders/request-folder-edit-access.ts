@@ -21,7 +21,7 @@ export const requestFolderEditAccessAction = authActionClient
     const { workspace, user } = ctx;
     const { folderId } = parsedInput;
 
-    await verifyFolderAccess({
+    const folder = await verifyFolderAccess({
       workspace,
       userId: user.id,
       folderId,
@@ -43,18 +43,10 @@ export const requestFolderEditAccessAction = authActionClient
       );
     }
 
-    const { folder } = await prisma.folderAccessRequest.create({
+    await prisma.folderAccessRequest.create({
       data: {
         folderId,
         userId: user.id,
-      },
-      include: {
-        folder: {
-          select: {
-            name: true,
-            id: true,
-          },
-        },
       },
     });
 

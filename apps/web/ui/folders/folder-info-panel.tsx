@@ -4,7 +4,7 @@ import useFolder from "@/lib/swr/use-folder";
 import { useFolderUsers } from "@/lib/swr/use-folder-users";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { FolderUser } from "@/lib/types";
-import { Avatar, BlurImage, LoadingSpinner, Tooltip } from "@dub/ui";
+import { Avatar, BlurImage, LoadingSpinner } from "@dub/ui";
 import { PropsWithChildren } from "react";
 import { FolderActions } from "./folder-actions";
 
@@ -72,27 +72,21 @@ export function FolderInfoPanel() {
       {Boolean(isLoadingUsers || owners?.length) && (
         <div className="flex flex-col gap-2">
           <SectionHeader>Owner</SectionHeader>
-          <div className="flex flex-wrap items-center gap-3">
-            <UserList users={owners} />
-          </div>
+          <UserList users={owners} isLoading={isLoadingUsers} />
         </div>
       )}
 
       {Boolean(isLoadingUsers || editors?.length) && (
         <div className="flex flex-col gap-2">
           <SectionHeader>Editor</SectionHeader>
-          <div className="flex flex-wrap items-center gap-3">
-            <UserList users={editors} />
-          </div>
+          <UserList users={editors} isLoading={isLoadingUsers} />
         </div>
       )}
 
       {Boolean(isLoadingUsers || viewers?.length) && (
         <div className="flex flex-col gap-2">
           <SectionHeader>Viewer</SectionHeader>
-          <div className="flex flex-wrap items-center gap-3">
-            <UserList users={viewers} />
-          </div>
+          <UserList users={viewers} isLoading={isLoadingUsers} />
         </div>
       )}
     </div>
@@ -103,37 +97,36 @@ const SectionHeader = ({ children }: PropsWithChildren) => (
   <h3 className="text-content-default text-sm font-semibold">{children}</h3>
 );
 
-const UserList = ({ users }: { users?: FolderUser[] }) => (
-  <div className="flex flex-wrap items-center gap-3">
-    {users
-      ? users.map((user) => (
-          <Tooltip
-            key={user.id}
-            content={
-              <div className="w-full p-3">
-                <Avatar user={user} className="size-8" />
-                <div className="mt-2 flex items-center gap-1.5">
-                  <p className="text-sm font-semibold text-neutral-700">
-                    {user?.name || user?.email || "Anonymous User"}
-                  </p>
-                </div>
-                <div className="flex flex-col gap-1 text-xs text-neutral-500">
-                  {user?.name && user.email && <p>{user.email}</p>}
-                </div>
-              </div>
-            }
-            delayDuration={150}
-          >
-            <div>
-              <Avatar user={user} className="size-9 border-none" />
+const UserList = ({
+  users,
+  isLoading,
+}: {
+  users?: FolderUser[];
+  isLoading?: boolean;
+}) => (
+  <div className="flex flex-col gap-3">
+    {isLoading
+      ? [...Array(3)].map((_, index) => (
+          <div key={index} className="flex items-center gap-3">
+            <div className="size-8 animate-pulse rounded-full bg-neutral-200" />
+            <div className="flex flex-col">
+              <div className="h-4 w-24 animate-pulse rounded bg-neutral-200" />
+              <div className="mt-1 h-3 w-32 animate-pulse rounded bg-neutral-200" />
             </div>
-          </Tooltip>
+          </div>
         ))
-      : [...Array(3)].map((_, index) => (
-          <div
-            key={index}
-            className="size-9 shrink-0 animate-pulse overflow-hidden rounded-full bg-neutral-200"
-          />
+      : users?.map((user) => (
+          <div key={user.id} className="flex min-w-12 items-center gap-3">
+            <Avatar user={user} className="size-8" />
+            <div className="min-w-0">
+              <h3 className="truncate text-xs font-medium text-neutral-800">
+                {user?.name || user?.email || "Anonymous User"}
+              </h3>
+              <p className="truncate text-xs font-normal text-neutral-400">
+                {user.email}
+              </p>
+            </div>
+          </div>
         ))}
   </div>
 );
