@@ -5,6 +5,7 @@ import { useFraudEvents } from "@/lib/swr/use-fraud-events";
 import { useFraudEventsCount } from "@/lib/swr/use-fraud-events-count";
 import { FraudEventProps } from "@/lib/types";
 import { useBanPartnerModal } from "@/ui/modals/ban-partner-modal";
+import { FraudReviewSheet } from "@/ui/partners/fraud-risks/fraud-review-sheet";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { FilterButtonTableRow } from "@/ui/shared/filter-button-table-row";
@@ -26,7 +27,7 @@ import { CircleCheck, Dots, ShieldKeyhole, UserDelete } from "@dub/ui/icons";
 import { cn, currencyFormatter, formatDateTimeSmart } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useResolveFraudEventModal } from "./resolve-fraud-event-modal";
 import { useFraudEventsFilters } from "./use-fraud-events-filters";
 
@@ -52,7 +53,22 @@ export function FraudEventsTable() {
     fraudEvents,
     loading: isLoading,
     error,
-  } = useFraudEvents({ status: "pending" });
+  } = useFraudEvents({ query: { status: "pending" } });
+
+  const [detailsSheetState, setDetailsSheetState] = useState<
+    | { open: false; fraudEventId: string | null }
+    | { open: true; fraudEventId: string }
+  >({ open: false, fraudEventId: null });
+
+  useEffect(() => {
+    const fraudEventId = searchParams.get("fraudEventId");
+    if (fraudEventId) setDetailsSheetState({ open: true, fraudEventId });
+  }, [searchParams]);
+
+  const { currentFraudEvent } = useCurrentFraudEvent({
+    fraudEvents,
+    fraudEventId: detailsSheetState.fraudEventId,
+  });
 
   const { fraudEventsCount, error: countError } = useFraudEventsCount<number>();
 
@@ -209,8 +225,51 @@ export function FraudEventsTable() {
     error: error || countError ? "Failed to load fraud events" : undefined,
   });
 
+  const [previousFraudEventId, nextFraudEventId] = useMemo(() => {
+    if (!fraudEvents || !detailsSheetState.fraudEventId) return [null, null];
+
+    const currentIndex = fraudEvents.findIndex(
+      ({ id }) => id === detailsSheetState.fraudEventId,
+    );
+    if (currentIndex === -1) return [null, null];
+
+    return [
+      currentIndex > 0 ? fraudEvents[currentIndex - 1].id : null,
+      currentIndex < fraudEvents.length - 1
+        ? fraudEvents[currentIndex + 1].id
+        : null,
+    ];
+  }, [fraudEvents, detailsSheetState.fraudEventId]);
+
   return (
     <div className="flex flex-col gap-6">
+      {detailsSheetState.fraudEventId && currentFraudEvent && (
+        <FraudReviewSheet
+          isOpen={detailsSheetState.open}
+          setIsOpen={(open) =>
+            setDetailsSheetState((s) => ({ ...s, open }) as any)
+          }
+          fraudEvent={currentFraudEvent}
+          onPrevious={
+            previousFraudEventId
+              ? () =>
+                  queryParams({
+                    set: { fraudEventId: previousFraudEventId },
+                    scroll: false,
+                  })
+              : undefined
+          }
+          onNext={
+            nextFraudEventId
+              ? () =>
+                  queryParams({
+                    set: { fraudEventId: nextFraudEventId },
+                    scroll: false,
+                  })
+              : undefined
+          }
+        />
+      )}
       <div>
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <Filter.Select
@@ -359,4 +418,31 @@ function MenuItem({
       {label}
     </Command.Item>
   );
+}
+
+/** Gets the current fraud event from the loaded array if available, or a separate fetch if not */
+function useCurrentFraudEvent({
+  fraudEvents,
+  fraudEventId,
+}: {
+  fraudEvents?: FraudEventProps[];
+  fraudEventId: string | null;
+}) {
+  let currentFraudEvent = fraudEventId
+    ? fraudEvents?.find(({ id }) => id === fraudEventId)
+    : null;
+
+  const fetchFraudEventId =
+    fraudEvents && fraudEventId && !currentFraudEvent ? fraudEventId : null;
+
+  const { fraudEvents: fetchedFraudEvents, loading: isLoading } =
+    useFraudEvents({
+      enabled: Boolean(fraudEventId),
+      query: fraudEventId ? { fraudEventIds: [fraudEventId] } : undefined,
+    });
+
+  if (!currentFraudEvent && fetchedFraudEvents?.[0]?.id === fraudEventId)
+    currentFraudEvent = fetchedFraudEvents[0];
+
+  return { currentFraudEvent, isLoading };
 }
