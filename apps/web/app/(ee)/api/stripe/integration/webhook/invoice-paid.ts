@@ -1,9 +1,9 @@
 import { convertCurrency } from "@/lib/analytics/convert-currency";
 import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
+import { detectAndRecordEventFraud } from "@/lib/api/fraud/detect-record-event-fraud";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
-import { detectAndRecordEventFraud } from "@/lib/fraud/detect-record-event-fraud";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
 import { StripeMode, WebhookPartner } from "@/lib/types";
@@ -258,11 +258,7 @@ export async function invoicePaid(event: Stripe.Event, mode: StripeMode) {
 
         detectAndRecordEventFraud({
           program: { id: link.programId },
-          partner: pick(webhookPartner, [
-            "id",
-            "email",
-            "name",
-          ]),
+          partner: pick(webhookPartner, ["id", "email", "name"]),
           customer: pick(customer, ["id", "email", "name"]),
           commission: { id: createdCommission.commission?.id },
           link: pick(link, ["id"]),

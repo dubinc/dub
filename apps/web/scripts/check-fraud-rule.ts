@@ -1,6 +1,6 @@
+import { detectAndRecordPartnerFraud } from "@/lib/api/fraud/detect-record-partner-fraud";
 import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
-import { detectAndRecordPartnerFraud } from "../lib/fraud/detect-record-partner-fraud";
 
 async function main() {
   // await prisma.fraudEvent.create({

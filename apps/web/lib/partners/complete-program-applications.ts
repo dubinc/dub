@@ -2,9 +2,9 @@ import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { Prisma } from "@prisma/client";
 import { createId } from "../api/create-id";
+import { detectAndRecordPartnerFraud } from "../api/fraud/detect-record-partner-fraud";
 import { notifyPartnerApplication } from "../api/partners/notify-partner-application";
 import { qstash } from "../cron";
-import { detectAndRecordPartnerFraud } from "../fraud/detect-record-partner-fraud";
 import { sendWorkspaceWebhook } from "../webhook/publish";
 import { partnerApplicationWebhookSchema } from "../zod/schemas/program-application";
 import {
