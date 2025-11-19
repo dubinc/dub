@@ -59,7 +59,8 @@ export default function ProgramPayoutThankYou({
         `}</style>
       </Head>
       <Preview>
-        Thank you {program.name} for your payout to {payout.partnersCount}{" "}
+        Thank you {program.name} for your payout to{" "}
+        {payout.partnersCount.toString()}{" "}
         {pluralize("partner", payout.partnersCount)}!
       </Preview>
       <Tailwind>
@@ -82,7 +83,7 @@ export default function ProgramPayoutThankYou({
             <Heading className="heading-text mx-0 mb-6 p-0 text-center text-lg font-medium text-neutral-800">
               Thank you <strong>{program.name}</strong>
               <br />
-              for your payout to {payout.partnersCount}{" "}
+              for your payout to {payout.partnersCount.toString()}{" "}
               {pluralize("partner", payout.partnersCount)}!
             </Heading>
 
