@@ -4,7 +4,7 @@ import { APPLICATION_FRAUD_SEVERITY_CONFIG } from "@/lib/fraud/constants";
 import { ApplicationFraudSeverity } from "@/lib/fraud/types";
 import { cn } from "@dub/utils";
 
-export function ApplicationFraudSeverityIndicator({
+export function PartnerApplicationFraudSeverityIndicator({
   severity,
   className,
 }: {
@@ -18,7 +18,6 @@ export function ApplicationFraudSeverityIndicator({
 
   return (
     <div className={cn("flex flex-col gap-2", className)}>
-      {/* Bars */}
       <div className="flex w-full gap-2">
         {entries.map(([key, cfg]) => (
           <div
@@ -31,7 +30,6 @@ export function ApplicationFraudSeverityIndicator({
         ))}
       </div>
 
-      {/* Labels */}
       <div className="flex w-full gap-2">
         {entries.map(([key, cfg]) => (
           <div

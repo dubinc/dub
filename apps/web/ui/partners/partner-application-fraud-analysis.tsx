@@ -12,7 +12,7 @@ import {
 import { Button } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useMemo } from "react";
-import { ApplicationFraudSeverityIndicator } from "./application-fraud-severity-indicator";
+import { PartnerApplicationFraudSeverityIndicator } from "./partner-application-fraud-severity-indicator";
 
 const ruleChecks: Record<
   (typeof APPLICATION_FRAUD_RULES)[number]["type"],
@@ -60,7 +60,7 @@ export function PartnerApplicationRiskAnalysis({
         />
       </div>
 
-      <ApplicationFraudSeverityIndicator severity={overallRisk} />
+      <PartnerApplicationFraudSeverityIndicator severity={overallRisk} />
 
       {triggeredRules.length > 0 && (
         <ul className="space-y-2.5">
