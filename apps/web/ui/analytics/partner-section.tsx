@@ -1,7 +1,7 @@
 import { AnalyticsGroupByOptions } from "@/lib/analytics/types";
 import { useWorkspacePreferences } from "@/lib/swr/use-workspace-preferences";
 import { LinkLogo, useRouterStuff } from "@dub/ui";
-import { Globe, Hyperlink } from "@dub/ui/icons";
+import { Globe, Hyperlink, Users6 } from "@dub/ui/icons";
 import { getApexDomain } from "@dub/utils";
 import { useCallback, useContext, useMemo, useState } from "react";
 import TagBadge from "../links/tag-badge";
@@ -122,8 +122,8 @@ export function PartnerSection() {
   return (
     <AnalyticsCard
       tabs={[
-        { id: "segments", label: "Partner Segments", icon: Hyperlink },
-        { id: "links", label: "Partner Links", icon: Globe },
+        { id: "segments", label: "Partner Segments", icon: Users6 },
+        { id: "links", label: "Partner Links", icon: Hyperlink },
       ]}
       expandLimit={8}
       hasMore={(data?.length ?? 0) > 8}
