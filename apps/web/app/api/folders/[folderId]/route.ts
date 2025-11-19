@@ -2,6 +2,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { queueFolderDeletion } from "@/lib/api/folders/queue-folder-deletion";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { getFolderOrThrow } from "@/lib/folder/get-folder-or-throw";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { FolderSchema, updateFolderSchema } from "@/lib/zod/schemas/folders";
@@ -14,12 +15,20 @@ export const GET = withWorkspace(
   async ({ params, workspace, session }) => {
     const { folderId } = params;
 
-    const folder = await verifyFolderAccess({
-      workspace,
-      userId: session.user.id,
-      folderId,
-      requiredPermission: "folders.read",
-    });
+    const [folder] = await Promise.all([
+      // TODO: combine with verifyFolderAccess if possible
+      getFolderOrThrow({
+        workspaceId: workspace.id,
+        folderId,
+        userId: session.user.id,
+      }),
+      verifyFolderAccess({
+        workspace,
+        userId: session.user.id,
+        folderId,
+        requiredPermission: "folders.read",
+      }),
+    ]);
 
     return NextResponse.json(FolderSchema.parse(folder));
   },

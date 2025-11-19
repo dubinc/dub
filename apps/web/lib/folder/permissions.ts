@@ -2,11 +2,15 @@
 
 import { Folder, FolderPermission } from "@/lib/types";
 import { prisma } from "@dub/prisma";
-import { FolderUser, Project, WorkspaceRole } from "@dub/prisma/client";
+import {
+  FolderUser,
+  FolderUserRole,
+  Project,
+  WorkspaceRole,
+} from "@dub/prisma/client";
 import { DubApiError } from "../api/errors";
 import { getPlanCapabilities } from "../plan-capabilities";
 import {
-  FOLDER_USER_ROLE,
   FOLDER_USER_ROLE_TO_PERMISSIONS,
   FOLDER_WORKSPACE_ACCESS_TO_FOLDER_USER_ROLE,
 } from "./constants";
@@ -139,7 +143,7 @@ export const findFolderUserRole = ({
   workspaceRole: WorkspaceRole;
 }) => {
   if (workspaceRole === WorkspaceRole.owner) {
-    return FOLDER_USER_ROLE.owner;
+    return FolderUserRole.owner;
   }
 
   if (user) {
