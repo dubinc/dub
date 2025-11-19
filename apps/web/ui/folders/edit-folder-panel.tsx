@@ -281,7 +281,7 @@ const FolderUserRow = ({
               "cursor-pointer appearance-none rounded-md border border-neutral-200 bg-white pl-3 pr-8 text-sm text-neutral-900 focus:border-neutral-300 focus:ring-neutral-300",
               disableRoleUpdate && "cursor-not-allowed bg-neutral-100",
             )}
-            value={role === null ? "" : role}
+            value={isWorkspaceOwner ? "owner" : role === null ? "" : role}
             disabled={disableRoleUpdate}
             onChange={(e) => {
               if (!folder || !workspaceId) {

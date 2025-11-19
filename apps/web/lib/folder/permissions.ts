@@ -29,6 +29,12 @@ export const verifyFolderAccess = async ({
   folderId: string;
   requiredPermission: FolderPermission;
 }) => {
+  const folder = await getFolderOrThrow({
+    workspaceId: workspace.id,
+    folderId,
+    userId,
+  });
+
   // Workspace owners have full control over all folders
   if (workspace.users[0]?.role === WorkspaceRole.owner) {
     return true;
@@ -40,12 +46,6 @@ export const verifyFolderAccess = async ({
   if (!canManageFolderPermissions) {
     return true;
   }
-
-  const folder = await getFolderOrThrow({
-    workspaceId: workspace.id,
-    folderId,
-    userId,
-  });
 
   const folderUserRole = findFolderUserRole({
     folder,
