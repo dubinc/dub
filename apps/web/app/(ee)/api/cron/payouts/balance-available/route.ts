@@ -141,7 +141,7 @@ export async function POST(req: Request) {
     if (partner.email) {
       const sentEmail = await sendEmail({
         variant: "notifications",
-        subject: "Your funds are on their way to your bank",
+        subject: `Your ${currencyFormatter(stripePayout.amount, { currency: stripePayout.currency })} auto-withdrawal from Dub is on its way to your bank`,
         to: partner.email,
         react: PartnerPayoutWithdrawalInitiated({
           email: partner.email,
