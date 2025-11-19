@@ -376,9 +376,9 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             href: `/${slug}/settings/domains`,
           },
           {
-            name: "People",
+            name: "Members",
             icon: Users6,
-            href: `/${slug}/settings/people`,
+            href: `/${slug}/settings/members`,
           },
           {
             name: "Integrations",
