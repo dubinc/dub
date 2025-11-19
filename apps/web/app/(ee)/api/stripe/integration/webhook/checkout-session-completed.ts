@@ -664,7 +664,7 @@ async function attributeViaPromoCode({
 }
 
 async function incrementLinkLeads(linkId: string) {
-  return await prisma.link.update({
+  return prisma.link.update({
     where: {
       id: linkId,
     },
@@ -674,5 +674,6 @@ async function incrementLinkLeads(linkId: string) {
       },
       lastLeadAt: new Date(),
     },
+    include: includeTags,
   });
 }
