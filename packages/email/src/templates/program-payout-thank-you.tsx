@@ -46,7 +46,6 @@ export default function ProgramPayoutThankYou({
 
   return (
     <Html>
-    <Html>
       <Head>
         <style>{`
           @media only screen and (max-width: 600px) {
