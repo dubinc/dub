@@ -377,6 +377,7 @@ function TagsList({ partner }: { partner: EnrolledPartnerExtendedProps }) {
         tags={partner?.tags}
         wrap
         onAddTag={() => setShowEditPartnerTagsModal(true)}
+        mode="link"
       />
     </div>
   );

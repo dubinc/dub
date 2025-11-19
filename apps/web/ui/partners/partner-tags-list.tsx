@@ -1,6 +1,8 @@
+import useWorkspace from "@/lib/swr/use-workspace";
 import { PartnerTagProps } from "@/lib/types";
 import { Tag, Tooltip, TruncatedList, useRouterStuff } from "@dub/ui";
 import { cn } from "@dub/utils";
+import Link from "next/link";
 
 const tagPillClassName =
   "bg-bg-inverted/5 text-content-default whitespace-nowrap min-w-0 select-none flex h-6 items-center rounded-md px-2 text-xs font-semibold hover:bg-bg-inverted/10";
@@ -10,11 +12,13 @@ export function PartnerTagsList({
   compact,
   wrap,
   onAddTag,
+  mode = "filter",
 }: {
   tags?: PartnerTagProps[];
   compact?: boolean;
   wrap?: boolean;
   onAddTag: () => void;
+  mode?: "filter" | "link";
 }) {
   return tags?.length ? (
     <TruncatedList
@@ -24,7 +28,7 @@ export function PartnerTagsList({
           content={
             <div className="flex max-w-sm flex-wrap gap-1 p-2">
               {tags.slice(visible).map((tag) => (
-                <TagButton key={tag.id} {...tag} />
+                <TagButton key={tag.id} {...tag} mode={mode} />
               ))}
             </div>
           }
@@ -36,7 +40,7 @@ export function PartnerTagsList({
       )}
     >
       {tags.map((tag) => (
-        <TagButton key={tag.id} {...tag} />
+        <TagButton key={tag.id} {...tag} mode={mode} />
       ))}
     </TruncatedList>
   ) : (
@@ -70,16 +74,21 @@ export function PartnerTagsList({
   );
 }
 
-function TagButton({ name, id }: PartnerTagProps) {
+function TagButton({
+  name,
+  id,
+  mode,
+}: PartnerTagProps & { mode?: "filter" | "link" }) {
+  const { slug: workspaceSlug } = useWorkspace();
   const { queryParams } = useRouterStuff();
 
-  return (
+  return mode === "filter" ? (
     <button
       type="button"
       onClick={() => {
         queryParams({
           set: {
-            tagIds: id,
+            partnerTagIds: id,
           },
         });
       }}
@@ -87,5 +96,12 @@ function TagButton({ name, id }: PartnerTagProps) {
     >
       <span className="min-w-0 truncate">{name}</span>
     </button>
+  ) : (
+    <Link
+      href={`/${workspaceSlug}/program/partners?partnerTagIds=${id}`}
+      className={cn(tagPillClassName, "active:bg-bg-inverted/15")}
+    >
+      <span className="min-w-0 truncate">{name}</span>
+    </Link>
   );
 }
