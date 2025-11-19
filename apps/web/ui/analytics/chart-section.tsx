@@ -5,7 +5,7 @@ import { cn } from "@dub/utils";
 import { Play } from "lucide-react";
 import Link from "next/link";
 import { useContext, useMemo } from "react";
-import AnalyticsAreaChart from "./analytics-area-chart";
+import { AnalyticsAreaChart } from "./analytics-area-chart";
 import { AnalyticsFunnelChart } from "./analytics-funnel-chart";
 import { AnalyticsContext } from "./analytics-provider";
 import { AnalyticsTabs } from "./analytics-tabs";
@@ -18,7 +18,7 @@ type Tab = {
   conversions: boolean;
 };
 
-export default function Main() {
+export function ChartSection() {
   const {
     totalEvents,
     requiresUpgrade,

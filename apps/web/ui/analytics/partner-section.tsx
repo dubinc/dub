@@ -1,21 +1,21 @@
 import { AnalyticsGroupByOptions } from "@/lib/analytics/types";
 import { useWorkspacePreferences } from "@/lib/swr/use-workspace-preferences";
 import { LinkLogo, useRouterStuff } from "@dub/ui";
-import { Globe, Hyperlink } from "@dub/ui/icons";
+import { Globe, Hyperlink, Users6 } from "@dub/ui/icons";
 import { getApexDomain } from "@dub/utils";
 import { useCallback, useContext, useMemo, useState } from "react";
-import { FolderIcon } from "../folders/folder-icon";
 import TagBadge from "../links/tag-badge";
+import { GroupColorCircle } from "../partners/groups/group-color-circle";
 import { AnalyticsCard } from "./analytics-card";
 import { AnalyticsLoadingSpinner } from "./analytics-loading-spinner";
 import { AnalyticsContext } from "./analytics-provider";
 import { BarList } from "./bar-list";
 import { useAnalyticsFilterOption } from "./utils";
 
-type TabId = "links" | "urls";
-type LinksSubtab = "links" | "folders" | "tags";
-type UrlsSubtab = "full_urls" | "base_urls";
-type Subtab = LinksSubtab | UrlsSubtab;
+type TabId = "segments" | "links";
+type SegmentsSubtab = "groups" | "tags";
+type LinksSubtab = "short_links" | "destination_urls";
+type Subtab = SegmentsSubtab | LinksSubtab;
 
 const TAB_CONFIG: Record<
   TabId,
@@ -28,39 +28,40 @@ const TAB_CONFIG: Record<
     };
   }
 > = {
-  links: {
-    subtabs: ["links", "folders", "tags"],
-    defaultSubtab: "links",
+  segments: {
+    subtabs: ["groups", "tags"],
+    defaultSubtab: "groups",
     getSubtabLabel: (subtab) => {
-      if (subtab === "links") return "Links";
-      if (subtab === "folders") return "Folders";
+      if (subtab === "groups") return "Groups";
       return "Tags";
     },
-    getGroupBy: (subtab) => {
-      if (subtab === "links") return { groupBy: "top_links" };
-      if (subtab === "folders") return { groupBy: "top_folders" };
+    getGroupBy: (subtab): { groupBy: AnalyticsGroupByOptions } => {
+      if (subtab === "groups") return { groupBy: "top_groups" };
       return { groupBy: "top_link_tags" };
     },
   },
-  urls: {
-    subtabs: ["full_urls", "base_urls"],
-    defaultSubtab: "full_urls",
-    getSubtabLabel: (subtab) =>
-      subtab === "full_urls" ? "Full URLs" : "Base URLs",
-    getGroupBy: (subtab) => ({
-      groupBy: subtab === "full_urls" ? "top_urls" : "top_base_urls",
-    }),
+  links: {
+    subtabs: ["short_links", "destination_urls"],
+    defaultSubtab: "short_links",
+    getSubtabLabel: (subtab) => {
+      if (subtab === "short_links") return "Short Links";
+      return "Destination URLs";
+    },
+    getGroupBy: (subtab): { groupBy: AnalyticsGroupByOptions } => {
+      if (subtab === "short_links") return { groupBy: "top_links" };
+      return { groupBy: "top_urls" };
+    },
   },
 };
 
-export function TopLinks({ filterLinks = true }: { filterLinks?: boolean }) {
+export function PartnerSection() {
   const { queryParams, searchParams } = useRouterStuff();
 
   const { selectedTab, saleUnit, adminPage, partnerPage } =
     useContext(AnalyticsContext);
   const dataKey = selectedTab === "sales" ? saleUnit : "count";
 
-  const [tab, setTab] = useState<TabId>("links");
+  const [tab, setTab] = useState<TabId>("segments");
   const [subtab, setSubtab] = useState<Subtab>(TAB_CONFIG[tab].defaultSubtab);
 
   // Reset subtab when tab changes to ensure it's valid for the new tab
@@ -80,26 +81,27 @@ export function TopLinks({ filterLinks = true }: { filterLinks?: boolean }) {
 
   const getItemTitle = useCallback(
     (d: Record<string, any>) => {
-      if (tab === "urls") {
-        return d.url || "Unknown";
+      if (tab === "links") {
+        if (subtab === "destination_urls") {
+          return d.url || "Unknown";
+        }
+        // For short links
+        const displayProperties = persisted?.displayProperties;
+        if (displayProperties?.includes("title") && d.title) {
+          return d.title;
+        }
+        return d.shortLink || "Unknown";
       }
 
-      // For links tab with different subtabs
-      if (subtab === "folders") {
-        return d.folder?.name || "Unknown";
+      // For segments tab
+      if (subtab === "groups") {
+        return d.group?.name || "Unknown";
       }
       if (subtab === "tags") {
         return d.tag?.name || "Unknown";
       }
 
-      // For links subtab
-      const displayProperties = persisted?.displayProperties;
-
-      if (displayProperties?.includes("title") && d.title) {
-        return d.title;
-      }
-
-      return d.shortLink || "Unknown";
+      return "Unknown";
     },
     [persisted, tab, subtab],
   );
@@ -120,8 +122,8 @@ export function TopLinks({ filterLinks = true }: { filterLinks?: boolean }) {
   return (
     <AnalyticsCard
       tabs={[
-        { id: "links", label: "Short Links", icon: Hyperlink },
-        { id: "urls", label: "Destination URLs", icon: Globe },
+        { id: "segments", label: "Partner Segments", icon: Users6 },
+        { id: "links", label: "Partner Links", icon: Hyperlink },
       ]}
       expandLimit={8}
       hasMore={(data?.length ?? 0) > 8}
@@ -137,21 +139,20 @@ export function TopLinks({ filterLinks = true }: { filterLinks?: boolean }) {
               data={
                 data
                   ?.map((d) => {
+                    const isSegmentsTab = tab === "segments";
                     const isLinksTab = tab === "links";
-                    const isUrlsTab = tab === "urls";
-                    const isFoldersSubtab = isLinksTab && subtab === "folders";
-                    const isTagsSubtab = isLinksTab && subtab === "tags";
-                    const isLinksSubtab = isLinksTab && subtab === "links";
+                    const isGroupsSubtab = isSegmentsTab && subtab === "groups";
+                    const isTagsSubtab = isSegmentsTab && subtab === "tags";
+                    const isShortLinksSubtab =
+                      isLinksTab && subtab === "short_links";
+                    const isDestinationUrlsSubtab =
+                      isLinksTab && subtab === "destination_urls";
 
                     // Determine icon
                     let icon;
-                    if (isFoldersSubtab) {
-                      icon = d.folder ? (
-                        <FolderIcon
-                          folder={d.folder}
-                          shape="square"
-                          iconClassName="size-3"
-                        />
+                    if (isGroupsSubtab) {
+                      icon = d.group ? (
+                        <GroupColorCircle group={d.group} />
                       ) : null;
                     } else if (isTagsSubtab) {
                       icon = d.tag ? (
@@ -172,58 +173,56 @@ export function TopLinks({ filterLinks = true }: { filterLinks?: boolean }) {
 
                     // Determine href
                     let href: string | undefined;
-                    if (filterLinks) {
-                      if (isLinksSubtab) {
-                        const hasLinkFilter =
-                          searchParams.has("domain") && searchParams.has("key");
-                        href = queryParams({
-                          ...(hasLinkFilter
-                            ? { del: ["domain", "key"] }
-                            : {
-                                set: {
-                                  domain: d.domain,
-                                  key: d.key || "_root",
-                                },
-                              }),
-                          getNewPath: true,
-                        }) as string;
-                      } else if (isUrlsTab) {
-                        const hasUrlFilter = searchParams.has("url");
-                        href = queryParams({
-                          ...(hasUrlFilter
-                            ? { del: "url" }
-                            : {
-                                set: {
-                                  url: d.url,
-                                },
-                              }),
-                          getNewPath: true,
-                        }) as string;
-                      } else if (isFoldersSubtab) {
-                        const hasFolderFilter = searchParams.has("folderId");
-                        href = queryParams({
-                          ...(hasFolderFilter
-                            ? { del: "folderId" }
-                            : {
-                                set: {
-                                  folderId: d.folderId,
-                                },
-                              }),
-                          getNewPath: true,
-                        }) as string;
-                      } else if (isTagsSubtab) {
-                        const hasTagFilter = searchParams.has("tagIds");
-                        href = queryParams({
-                          ...(hasTagFilter
-                            ? { del: "tagIds" }
-                            : {
-                                set: {
-                                  tagIds: d.tagId,
-                                },
-                              }),
-                          getNewPath: true,
-                        }) as string;
-                      }
+                    if (isShortLinksSubtab) {
+                      const hasLinkFilter =
+                        searchParams.has("domain") && searchParams.has("key");
+                      href = queryParams({
+                        ...(hasLinkFilter
+                          ? { del: ["domain", "key"] }
+                          : {
+                              set: {
+                                domain: d.domain,
+                                key: d.key || "_root",
+                              },
+                            }),
+                        getNewPath: true,
+                      }) as string;
+                    } else if (isDestinationUrlsSubtab) {
+                      const hasUrlFilter = searchParams.has("url");
+                      href = queryParams({
+                        ...(hasUrlFilter
+                          ? { del: "url" }
+                          : {
+                              set: {
+                                url: d.url,
+                              },
+                            }),
+                        getNewPath: true,
+                      }) as string;
+                    } else if (isGroupsSubtab) {
+                      const hasGroupFilter = searchParams.has("groupId");
+                      href = queryParams({
+                        ...(hasGroupFilter
+                          ? { del: "groupId" }
+                          : {
+                              set: {
+                                groupId: d.groupId,
+                              },
+                            }),
+                        getNewPath: true,
+                      }) as string;
+                    } else if (isTagsSubtab) {
+                      const hasTagFilter = searchParams.has("tagIds");
+                      href = queryParams({
+                        ...(hasTagFilter
+                          ? { del: "tagIds" }
+                          : {
+                              set: {
+                                tagIds: d.tagId,
+                              },
+                            }),
+                        getNewPath: true,
+                      }) as string;
                     }
 
                     return {
@@ -231,7 +230,7 @@ export function TopLinks({ filterLinks = true }: { filterLinks?: boolean }) {
                       title: getItemTitle(d),
                       href,
                       value: d[dataKey] || 0,
-                      ...(isLinksSubtab && { linkData: d }),
+                      ...(isShortLinksSubtab && { linkData: d }),
                     };
                   })
                   ?.sort((a, b) => b.value - a.value) || []

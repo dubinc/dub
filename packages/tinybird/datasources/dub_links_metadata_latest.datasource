@@ -9,6 +9,7 @@ SCHEMA >
     `url` String,
     `program_id` LowCardinality(String),
     `partner_id` String,
+    `partner_group_id` String,
     `folder_id` String,
     `tag_ids` Array(String),
     `tenant_id` String,

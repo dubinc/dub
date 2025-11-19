@@ -2,7 +2,7 @@ import { LinkLogo } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Link2 } from "lucide-react";
 
-export default function RefererIcon({
+export function ReferrerIcon({
   display,
   className,
 }: {

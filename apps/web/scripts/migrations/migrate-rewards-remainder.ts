@@ -1,4 +1,4 @@
-// @ts-nocheck
+// @ts-nocheck – contains old schema code
 
 import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";

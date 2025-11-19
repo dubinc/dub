@@ -6,12 +6,12 @@ import { useContext, useState } from "react";
 import { AnalyticsCard } from "./analytics-card";
 import { AnalyticsLoadingSpinner } from "./analytics-loading-spinner";
 import { AnalyticsContext } from "./analytics-provider";
-import BarList from "./bar-list";
-import DeviceIcon from "./device-icon";
+import { BarList } from "./bar-list";
+import { DeviceIcon } from "./device-icon";
 import { TRIGGER_DISPLAY } from "./trigger-display";
 import { useAnalyticsFilterOption } from "./utils";
 
-export default function Devices() {
+export function DeviceSection() {
   const { queryParams, searchParams } = useRouterStuff();
 
   const { selectedTab, saleUnit } = useContext(AnalyticsContext);
