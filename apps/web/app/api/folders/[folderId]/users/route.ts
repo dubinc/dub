@@ -52,13 +52,14 @@ export const GET = withWorkspace(
       }),
     ]);
 
-    const users = workspaceUsers.map(({ user }) => {
+    const users = workspaceUsers.map(({ user, role: workspaceRole }) => {
       const folderUser =
         folderUsers.find((folderUser) => folderUser.userId === user.id) || null;
 
       const role = findUserFolderRole({
         folder,
         user: folderUser,
+        workspaceRole,
       });
 
       return {

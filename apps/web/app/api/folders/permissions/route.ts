@@ -30,13 +30,11 @@ export const GET = withWorkspace(
         folderUsers.find((folderUser) => folderUser.folderId === folder.id) ||
         null;
 
-      const role =
-        workspace.users[0]?.role === "owner"
-          ? "owner"
-          : findUserFolderRole({
-              folder,
-              user: folderUser,
-            });
+      const role = findUserFolderRole({
+        folder,
+        user: folderUser,
+        workspaceRole: workspace.users[0]?.role,
+      });
 
       return {
         id: folder.id,

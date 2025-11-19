@@ -2,7 +2,12 @@
 
 import { Folder, FolderPermission } from "@/lib/types";
 import { prisma } from "@dub/prisma";
-import { FolderUser, Project } from "@dub/prisma/client";
+import {
+  FolderUser,
+  FolderUserRole,
+  Project,
+  WorkspaceRole,
+} from "@dub/prisma/client";
 import { DubApiError } from "../api/errors";
 import { getPlanCapabilities } from "../plan-capabilities";
 import {
@@ -36,9 +41,22 @@ export const verifyFolderAccess = async ({
     return folder;
   }
 
+  const workspaceUser = await prisma.projectUsers.findUniqueOrThrow({
+    select: {
+      role: true,
+    },
+    where: {
+      userId_projectId: {
+        userId,
+        projectId: workspace.id,
+      },
+    },
+  });
+
   const folderUserRole = findUserFolderRole({
     folder,
     user: folder.user,
+    workspaceRole: workspaceUser.role,
   });
 
   if (!folderUserRole) {
@@ -74,10 +92,15 @@ export const getFolderPermissions = (
 export const findUserFolderRole = ({
   folder,
   user,
+  workspaceRole,
 }: {
   folder: Pick<Folder, "accessLevel">;
   user: Pick<FolderUser, "role"> | null;
+  workspaceRole?: WorkspaceRole;
 }) => {
+  // Workspace owners have full control over all folders
+  if (workspaceRole === WorkspaceRole.owner) return FolderUserRole.owner;
+
   if (user) {
     return user.role;
   }

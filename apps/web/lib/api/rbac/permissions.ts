@@ -18,7 +18,6 @@ export const PERMISSION_ACTIONS = [
   "integrations.write",
   "webhooks.read",
   "webhooks.write",
-  "folders.admin",
   "folders.read",
   "folders.write",
   "payouts.write",
@@ -118,11 +117,6 @@ export const ROLE_PERMISSIONS: {
   {
     action: "webhooks.write",
     description: "create, update, or delete webhooks",
-    roles: ["owner"],
-  },
-  {
-    action: "folders.admin",
-    description: "access, create, update, or delete any folder",
     roles: ["owner"],
   },
   {
