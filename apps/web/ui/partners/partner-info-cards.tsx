@@ -1,5 +1,4 @@
 import useGroup from "@/lib/swr/use-group";
-import usePartnerApplicationRisks from "@/lib/swr/use-partner-application-risks";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   BountyListProps,
@@ -91,18 +90,6 @@ export function PartnerInfoCards({
       : null,
     fetcher,
   );
-
-  // Fetch risks to determine if banner should be shown (for border radius)
-  const { severity } = usePartnerApplicationRisks(
-    {
-      partnerId: partner?.id,
-      enabled: isEnrolled && showApplicationRiskAnalysis,
-    },
-    { keepPreviousData: false },
-  );
-
-  const showRiskBanner =
-    partner && isEnrolled && showApplicationRiskAnalysis && severity === "high";
 
   let basicFields: BasicField[] = [
     {
