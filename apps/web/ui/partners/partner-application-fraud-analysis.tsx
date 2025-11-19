@@ -26,13 +26,11 @@ const ruleChecks: Record<
 
 interface PartnerApplicationRiskAnalysisProps {
   partner: EnrolledPartnerExtendedProps;
-  onViewClick?: () => void;
 }
 
 // Displays the risk analysis for a partner application
 export function PartnerApplicationRiskAnalysis({
   partner,
-  onViewClick,
 }: PartnerApplicationRiskAnalysisProps) {
   const triggeredRules = useMemo(
     () => assessPartnerApplicationRisk(partner),
@@ -55,7 +53,7 @@ export function PartnerApplicationRiskAnalysis({
           type="button"
           text="View"
           variant="secondary"
-          onClick={onViewClick}
+          onClick={() => {}} // TODO (Fraud)
           className="h-6 w-fit px-1.5 py-2"
         />
       </div>
@@ -66,14 +64,14 @@ export function PartnerApplicationRiskAnalysis({
         <ul className="space-y-2.5">
           {triggeredRules.map((rule) => {
             return (
-              <li key={rule.type} className="flex items-start gap-2.5">
+              <li key={rule.type} className="flex items-center gap-2">
                 <div
                   className={cn(
-                    "mt-1 size-2 shrink-0 rounded-full",
+                    "size-2 shrink-0 rounded-full",
                     APPLICATION_FRAUD_SEVERITY_CONFIG[rule.severity].color,
                   )}
                 />
-                <span className="text-sm leading-5 text-neutral-700">
+                <span className="text-sm font-medium leading-4 text-neutral-700">
                   {rule.name}
                 </span>
               </li>
