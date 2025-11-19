@@ -31,7 +31,7 @@ export async function processLink<T extends Record<string, any>>({
   skipProgramChecks = false, // only skip for when program is already validated
 }: {
   payload: NewLinkProps & T;
-  workspace?: Pick<WorkspaceProps, "id" | "plan">;
+  workspace?: Pick<WorkspaceProps, "id" | "plan" | "users">;
   userId?: string;
   bulk?: boolean;
   skipKeyChecks?: boolean;

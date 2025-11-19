@@ -6,6 +6,7 @@ import { getLinksForWorkspace } from "@/lib/api/links/get-links-for-workspace";
 import { throwIfClicksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { validateLinksQueryFilters } from "@/lib/api/links/validate-links-query-filters";
 import { withWorkspace } from "@/lib/auth";
+import { MEGA_WORKSPACE_LINKS_LIMIT } from "@/lib/constants/misc";
 import { qstash } from "@/lib/cron";
 import { linksExportQuerySchema } from "@/lib/zod/schemas/links";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
@@ -21,7 +22,7 @@ export const GET = withWorkspace(
 
     const { columns, ...filters } = linksExportQuerySchema.parse(searchParams);
 
-    const { selectedFolder, folderIds } = await validateLinksQueryFilters({
+    const { folderIds } = await validateLinksQueryFilters({
       ...filters,
       workspace,
       userId: session.user.id,
@@ -61,7 +62,8 @@ export const GET = withWorkspace(
         startDate,
         endDate,
       }),
-      searchMode: selectedFolder?.type === "mega" ? "exact" : "fuzzy",
+      searchMode:
+        workspace.totalLinks > MEGA_WORKSPACE_LINKS_LIMIT ? "exact" : "fuzzy",
       includeDashboard: false,
       includeUser: false,
       includeWebhooks: false,

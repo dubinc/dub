@@ -92,7 +92,7 @@ export const GET = withWorkspace(
 
     const zipData = await zip.generateAsync({ type: "nodebuffer" });
 
-    return new Response(zipData, {
+    return new Response(zipData as unknown as BodyInit, {
       headers: {
         "Content-Type": "application/zip",
         "Content-Disposition": "attachment; filename=analytics_export.zip",

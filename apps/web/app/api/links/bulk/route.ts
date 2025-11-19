@@ -370,7 +370,7 @@ export const PATCH = withWorkspace(
 
         if (!validFolder?.hasPermission) {
           errorLinks.push({
-            error: `You don't have permission to move this link to the folder: ${link.folderId}`,
+            error: `You don't have permission to update links in this folder: ${link.folderId}`,
             code: "forbidden",
             link,
           });

@@ -1,4 +1,5 @@
 export const E2E_USER_ID = "clxz1q7c7000hbqx5ckv4r82h";
+export const E2E_USER_ID_MEMBER = "user_1KAERYAJ10MDM56EB9XPX4ZZ8"; // for member user tests
 export const E2E_WORKSPACE_ID = "ws_clrei1gld0002vs9mzn93p8ik";
 
 export const E2E_LINK = {
@@ -32,9 +33,9 @@ export const E2E_WEBHOOK_ID = "wh_MHR7sZXXtZ7keBaNYZ30rQ0v";
 // Folders specific
 export const E2E_WRITE_ACCESS_FOLDER_ID = "fold_1JP8FMYP08RGJKJB3S4DNYH13"; // Folder with write access
 export const E2E_READ_ONLY_FOLDER_ID = "fold_1JP8FN462884CA6JJCVPAHAD4"; // Folder with read-only access
-export const E2E_NO_ACCESS_FOLDER_ID = "fold_1JP8FNC96CRGVKAVYAEV80A1M"; // Folder with no access
-export const E2E_READ_ONLY_FOLDER_LINK_ID = "link_1JP8FP63J6JSE85GRZVV2ZP1T"; // A link in read-only folder
-export const E2E_NO_ACCESS_FOLDER_LINK_ID = "link_1JP8FQE9VSVBG2G2Z6EBZWYF6"; // A link in no access folder
+export const E2E_NO_ACCESS_FOLDER_ID = "fold_1JRZXGNNYWDA5QTT8CVDB3M23"; // Folder with no access
+export const E2E_READ_ONLY_FOLDER_LINK_ID = "link_1KAESR5Z733716RTT4E1RSTW6"; // A link in read-only folder
+export const E2E_NO_ACCESS_FOLDER_LINK_ID = "link_1KAESQ2Z6Q35WDV5NGSEVPFB0"; // A link in no access folder
 
 // Rewards specific
 export const E2E_CUSTOMER_EXTERNAL_ID_2 = "cus_pqc8qRtofpu6ZqvutyNDGAU2";

@@ -2,12 +2,7 @@
 
 import { Folder, FolderPermission } from "@/lib/types";
 import { prisma } from "@dub/prisma";
-import {
-  FolderUser,
-  FolderUserRole,
-  Project,
-  WorkspaceRole,
-} from "@dub/prisma/client";
+import { FolderUser, Project, WorkspaceRole } from "@dub/prisma/client";
 import { DubApiError } from "../api/errors";
 import { getPlanCapabilities } from "../plan-capabilities";
 import {
@@ -23,40 +18,34 @@ export const verifyFolderAccess = async ({
   folderId,
   requiredPermission,
 }: {
-  workspace: Pick<Project, "id" | "plan">;
+  workspace: Pick<Project, "id" | "plan"> & {
+    users: { role: WorkspaceRole }[];
+  };
   userId: string;
   folderId: string;
   requiredPermission: FolderPermission;
 }) => {
+  // Workspace owners have full control over all folders
+  if (workspace.users[0]?.role === WorkspaceRole.owner) {
+    return true;
+  }
+
+  const { canManageFolderPermissions } = getPlanCapabilities(workspace.plan);
+
+  // If the plan doesn't support folder permissions, we can skip the check
+  if (!canManageFolderPermissions) {
+    return true;
+  }
+
   const folder = await getFolderOrThrow({
     workspaceId: workspace.id,
     folderId,
     userId,
   });
 
-  const { canManageFolderPermissions } = getPlanCapabilities(workspace.plan);
-
-  // If the plan doesn't support folder permissions, we can skip the check
-  if (!canManageFolderPermissions) {
-    return folder;
-  }
-
-  const workspaceUser = await prisma.projectUsers.findUniqueOrThrow({
-    select: {
-      role: true,
-    },
-    where: {
-      userId_projectId: {
-        userId,
-        projectId: workspace.id,
-      },
-    },
-  });
-
   const folderUserRole = findUserFolderRole({
     folder,
     user: folder.user,
-    workspaceRole: workspaceUser.role,
   });
 
   if (!folderUserRole) {
@@ -75,7 +64,7 @@ export const verifyFolderAccess = async ({
     });
   }
 
-  return folder;
+  return true;
 };
 
 // Get the permissions for a folder for a given user role
@@ -92,15 +81,10 @@ export const getFolderPermissions = (
 export const findUserFolderRole = ({
   folder,
   user,
-  workspaceRole,
 }: {
   folder: Pick<Folder, "accessLevel">;
   user: Pick<FolderUser, "role"> | null;
-  workspaceRole?: WorkspaceRole;
 }) => {
-  // Workspace owners have full control over all folders
-  if (workspaceRole === WorkspaceRole.owner) return FolderUserRole.owner;
-
   if (user) {
     return user.role;
   }
@@ -125,6 +109,14 @@ export const checkFolderPermissions = async ({
   folderIds: string[];
   requiredPermission: FolderPermission;
 }) => {
+  // Workspace owners have full control over all folders
+  if (workspaceRole === WorkspaceRole.owner) {
+    return folderIds.map((folderId) => ({
+      folderId,
+      hasPermission: true,
+    }));
+  }
+
   const folders = await prisma.folder.findMany({
     where: {
       projectId: workspaceId,
@@ -146,7 +138,6 @@ export const checkFolderPermissions = async ({
     const folderUserRole = findUserFolderRole({
       folder,
       user: folder.users[0],
-      workspaceRole,
     });
 
     if (!folderUserRole) {
