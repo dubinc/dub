@@ -11,11 +11,12 @@ import {
 import { useFolderUsers } from "@/lib/swr/use-folder-users";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Folder, FolderUser } from "@/lib/types";
-import { FolderUserRole } from "@dub/prisma/client";
+import { FolderUserRole, WorkspaceRole } from "@dub/prisma/client";
 import {
   Avatar,
   BlurImage,
   Button,
+  DynamicTooltipWrapper,
   Sheet,
   Tooltip,
   TooltipContent,
@@ -248,8 +249,10 @@ const FolderUserRow = ({
     },
   });
 
+  const isWorkspaceOwner = user.workspaceRole === WorkspaceRole.owner;
   const isCurrentUser = user.email === session?.user?.email;
-  const disableRoleUpdate = !canUpdateRole || isPending || isCurrentUser;
+  const disableRoleUpdate =
+    !canUpdateRole || isPending || isCurrentUser || isWorkspaceOwner;
 
   return (
     <div key={user.id} className="flex items-center justify-between gap-3">
@@ -266,40 +269,48 @@ const FolderUserRow = ({
       </div>
 
       <div className="flex items-center gap-3">
-        <select
-          className={cn(
-            "cursor-pointer appearance-none rounded-md border border-neutral-200 bg-white pl-3 pr-8 text-sm text-neutral-900 focus:border-neutral-300 focus:ring-neutral-300",
-            disableRoleUpdate && "cursor-not-allowed bg-neutral-100",
-          )}
-          value={role === null ? "" : role}
-          disabled={disableRoleUpdate}
-          onChange={(e) => {
-            if (!folder || !workspaceId) {
-              return;
-            }
-
-            const role = (e.target.value as FolderUserRole) || null;
-
-            executeAsync({
-              workspaceId,
-              folderId: folder.id,
-              userId: user.id,
-              role,
-            });
-
-            setRole(role);
-          }}
+        <DynamicTooltipWrapper
+          tooltipProps={
+            isWorkspaceOwner && !isCurrentUser
+              ? { content: "Workspace owners have full access to all folders." }
+              : undefined
+          }
         >
-          {Object.keys(FOLDER_USER_ROLE).map((role) => (
-            <option value={role} key={role}>
-              {FOLDER_USER_ROLE[role]}
-            </option>
-          ))}
+          <select
+            className={cn(
+              "cursor-pointer appearance-none rounded-md border border-neutral-200 bg-white pl-3 pr-8 text-sm text-neutral-900 focus:border-neutral-300 focus:ring-neutral-300",
+              disableRoleUpdate && "cursor-not-allowed bg-neutral-100",
+            )}
+            value={role === null ? "" : role}
+            disabled={disableRoleUpdate}
+            onChange={(e) => {
+              if (!folder || !workspaceId) {
+                return;
+              }
 
-          <option value="" key="no-access">
-            No access
-          </option>
-        </select>
+              const role = (e.target.value as FolderUserRole) || null;
+
+              executeAsync({
+                workspaceId,
+                folderId: folder.id,
+                userId: user.id,
+                role,
+              });
+
+              setRole(role);
+            }}
+          >
+            {Object.keys(FOLDER_USER_ROLE).map((role) => (
+              <option value={role} key={role}>
+                {FOLDER_USER_ROLE[role]}
+              </option>
+            ))}
+
+            <option value="" key="no-access">
+              No access
+            </option>
+          </select>
+        </DynamicTooltipWrapper>
       </div>
     </div>
   );

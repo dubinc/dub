@@ -68,6 +68,7 @@ export const GET = withWorkspace(
         email: user.email,
         image: user.image,
         role,
+        workspaceRole,
       };
     });
 
