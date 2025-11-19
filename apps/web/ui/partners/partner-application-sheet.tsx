@@ -127,6 +127,7 @@ function PartnerApplicationSheetContent({
               selectedGroupId,
               setSelectedGroupId,
             })}
+            showApplicationRiskAnalysis={true}
           />
         </div>
         <div className="@3xl/sheet:order-1">

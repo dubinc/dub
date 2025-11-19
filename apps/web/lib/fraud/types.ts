@@ -22,3 +22,5 @@ export type FraudRuleProps = z.infer<typeof fraudRuleSchema>;
 export type FraudPartnerContext = z.infer<typeof fraudPartnerContext>;
 
 export type FraudEventContext = z.infer<typeof fraudEventContext>;
+
+export type ApplicationFraudSeverity = "low" | "medium" | "high";

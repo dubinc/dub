@@ -27,6 +27,7 @@ import {
 import Link from "next/link";
 import useSWR from "swr";
 import { ConversionScoreIcon } from "./conversion-score-icon";
+import { PartnerApplicationRiskAnalysis } from "./partner-application-fraud-analysis";
 import { PartnerFraudFlag } from "./partner-fraud-flag";
 import { PartnerInfoGroup } from "./partner-info-group";
 import { ConversionScoreTooltip } from "./partner-network/conversion-score-tooltip";
@@ -37,6 +38,7 @@ import { TrustedPartnerBadge } from "./trusted-partner-badge";
 
 type PartnerInfoCardsProps = {
   showFraudFlag?: boolean;
+  showApplicationRiskAnalysis?: boolean;
 
   /** Partner statuses to hide badges for */
   hideStatuses?: EnrolledPartnerExtendedProps["status"][];
@@ -63,6 +65,7 @@ export function PartnerInfoCards({
   selectedGroupId,
   setSelectedGroupId,
   showFraudFlag = true,
+  showApplicationRiskAnalysis = false,
 }: PartnerInfoCardsProps) {
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
 
@@ -179,60 +182,67 @@ export function PartnerInfoCards({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="border-border-subtle flex flex-col rounded-xl border p-4">
-        <div className="flex justify-between gap-2">
-          <div className="relative w-fit">
-            {partner ? (
-              <img
-                src={partner.image || `${OG_AVATAR_URL}${partner.name}`}
-                alt={partner.name}
-                className="size-20 rounded-full border border-neutral-100"
-              />
-            ) : (
-              <div className="size-20 animate-pulse rounded-full bg-neutral-200" />
+      <div className="border-border-subtle flex flex-col divide-y divide-neutral-200 rounded-xl border">
+        <div className="p-4">
+          <div className="flex justify-between gap-2">
+            <div className="relative w-fit">
+              {partner ? (
+                <img
+                  src={partner.image || `${OG_AVATAR_URL}${partner.name}`}
+                  alt={partner.name}
+                  className="size-20 rounded-full border border-neutral-100"
+                />
+              ) : (
+                <div className="size-20 animate-pulse rounded-full bg-neutral-200" />
+              )}
+              {partner?.trustedAt && <TrustedPartnerBadge />}
+            </div>
+
+            {isEnrolled &&
+              partner &&
+              !hideStatuses.includes(partner.status) && (
+                <PartnerStatusBadgeWithTooltip partner={partner} />
+              )}
+
+            {isNetwork && partner && (
+              <PartnerStarButton partner={partner} className="size-9" />
             )}
-            {partner?.trustedAt && <TrustedPartnerBadge />}
           </div>
 
-          {isEnrolled && partner && !hideStatuses.includes(partner.status) && (
-            <PartnerStatusBadgeWithTooltip partner={partner} />
-          )}
-          {isNetwork && partner && (
-            <PartnerStarButton partner={partner} className="size-9" />
-          )}
-        </div>
-        <div className="mt-4">
-          {partner ? (
-            <div className="flex items-center gap-2">
-              <span className="text-content-emphasis text-lg font-semibold">
-                {partner.name}
-              </span>
-              {showFraudFlag && <PartnerFraudFlag partnerId={partner.id} />}
-            </div>
-          ) : (
-            <div className="h-7 w-24 animate-pulse rounded bg-neutral-200" />
-          )}
-        </div>
-        {isEnrolled &&
-          (partner ? (
-            partner.email && (
-              <div className="mt-0.5 flex items-center gap-1">
-                <span className="text-sm font-medium text-neutral-500">
-                  {partner.email}
+          <div className="mt-4">
+            {partner ? (
+              <div className="flex items-center gap-2">
+                <span className="text-content-emphasis text-lg font-semibold">
+                  {partner.name}
                 </span>
-                <CopyButton
-                  value={partner.email}
-                  variant="neutral"
-                  className="p-1 [&>*]:h-3 [&>*]:w-3"
-                  successMessage="Copied email to clipboard!"
-                />
+                {showFraudFlag && <PartnerFraudFlag partnerId={partner.id} />}
               </div>
-            )
-          ) : (
-            <div className="mt-0.5 h-5 w-32 animate-pulse rounded bg-neutral-200" />
-          ))}
+            ) : (
+              <div className="h-7 w-24 animate-pulse rounded bg-neutral-200" />
+            )}
+          </div>
 
-        <div className="mt-3 flex flex-col gap-2">
+          {isEnrolled &&
+            (partner ? (
+              partner.email && (
+                <div className="mt-0.5 flex items-center gap-1">
+                  <span className="text-sm font-medium text-neutral-500">
+                    {partner.email}
+                  </span>
+                  <CopyButton
+                    value={partner.email}
+                    variant="neutral"
+                    className="p-1 [&>*]:h-3 [&>*]:w-3"
+                    successMessage="Copied email to clipboard!"
+                  />
+                </div>
+              )
+            ) : (
+              <div className="mt-0.5 h-5 w-32 animate-pulse rounded bg-neutral-200" />
+            ))}
+        </div>
+
+        <div className="flex flex-col gap-2 p-4">
           {basicFields
             .filter(({ text }) => text !== null)
             .map(({ id, icon, text, wrapper: Wrapper = "div" }) => (
@@ -250,17 +260,23 @@ export function PartnerInfoCards({
               </Wrapper>
             ))}
         </div>
+
+        {partner && isEnrolled && showApplicationRiskAnalysis && (
+          <div className="p-4">
+            <PartnerApplicationRiskAnalysis partner={partner} />
+          </div>
+        )}
       </div>
 
       <div className="border-border-subtle flex flex-col gap-4 rounded-xl border p-4">
-        <h2 className="text-content-emphasis text-sm font-semibold">
+        {/* <h2 className="text-content-emphasis text-sm font-semibold">
           {isEnrolled ? "Organization" : "Invite group"}
-        </h2>
+        </h2> */}
 
         {/* Group */}
         <div className="flex flex-col gap-2">
           {isEnrolled && (
-            <h3 className="text-content-emphasis text-xs font-semibold">
+            <h3 className="text-content-emphasis text-sm font-semibold">
               Group
             </h3>
           )}
@@ -279,7 +295,7 @@ export function PartnerInfoCards({
 
         {/* Rewards */}
         <div className="flex flex-col gap-2">
-          <h3 className="text-content-emphasis text-xs font-semibold">
+          <h3 className="text-content-emphasis text-sm font-semibold">
             Rewards
           </h3>
           {group ? (
@@ -309,7 +325,7 @@ export function PartnerInfoCards({
         {/* Eligible bounties */}
         {isEnrolled && partner?.status === "approved" && (
           <div className="flex flex-col gap-2">
-            <h3 className="text-content-emphasis text-xs font-semibold">
+            <h3 className="text-content-emphasis text-sm font-semibold">
               Eligible Bounties
             </h3>
             {bounties ? (

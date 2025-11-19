@@ -14,21 +14,8 @@ enum FraudRuleType {
   customerEmailSuspiciousDomain
   referralSourceBanned
   paidTrafficDetected
-
-  // Emails
-  partnerEmailSuspiciousDomain
-  partnerEmailDomainMismatch
-  partnerEmailMasked
-
-  // Reputation
   partnerCrossProgramBan
-
-  // Payment
   partnerDuplicatePayoutMethod
-
-  // Social
-  partnerNoSocialLinks
-  partnerNoVerifiedSocialLinks
 }
 
 model FraudRule {
