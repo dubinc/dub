@@ -244,101 +244,109 @@ export function PartnerInfoCards({
         </div>
       </div>
 
-      <div className="border-border-subtle flex flex-col gap-4 rounded-xl border p-4">
-        <h2 className="text-content-emphasis text-sm font-semibold">
-          {isEnrolled ? "Organization" : "Invite group"}
-        </h2>
+      {partner &&
+      "status" in partner &&
+      ["banned", "deactivated"].includes(
+        partner.status,
+      ) ? //hide group info for banned/deactivated partners
+      null : (
+        <div className="border-border-subtle flex flex-col gap-4 rounded-xl border p-4">
+          <h2 className="text-content-emphasis text-sm font-semibold">
+            {isEnrolled ? "Organization" : "Invite group"}
+          </h2>
 
-        {/* Group */}
-        <div className="flex flex-col gap-2">
-          {isEnrolled && (
-            <h3 className="text-content-emphasis text-xs font-semibold">
-              Group
-            </h3>
-          )}
-          {partner ? (
-            <PartnerInfoGroup
-              partner={partner}
-              changeButtonText="Change"
-              className="rounded-lg bg-white shadow-sm"
-              selectedGroupId={selectedGroupId}
-              setSelectedGroupId={setSelectedGroupId}
-            />
-          ) : (
-            <div className="my-px h-11 w-full animate-pulse rounded-lg bg-neutral-200" />
-          )}
-        </div>
-
-        {/* Rewards */}
-        <div className="flex flex-col gap-2">
-          <h3 className="text-content-emphasis text-xs font-semibold">
-            Rewards
-          </h3>
-          {group ? (
-            group.clickReward ||
-            group.leadReward ||
-            group.saleReward ||
-            group.discount ? (
-              <ProgramRewardList
-                rewards={[
-                  group.clickReward,
-                  group.leadReward,
-                  group.saleReward,
-                ].filter((r): r is RewardProps => r !== null)}
-                discount={group.discount}
-                variant="plain"
-                className="text-content-subtle gap-2 text-xs leading-4"
-                iconClassName="size-3.5"
+          {/* Group */}
+          <div className="flex flex-col gap-2">
+            {isEnrolled && (
+              <h3 className="text-content-emphasis text-xs font-semibold">
+                Group
+              </h3>
+            )}
+            {partner ? (
+              <PartnerInfoGroup
+                partner={partner}
+                changeButtonText="Change"
+                className="rounded-lg bg-white shadow-sm"
+                selectedGroupId={selectedGroupId}
+                setSelectedGroupId={setSelectedGroupId}
               />
             ) : (
-              <span className="text-content-subtle text-xs">No rewards</span>
-            )
-          ) : (
-            <div className="h-4 w-32 animate-pulse rounded bg-neutral-200" />
-          )}
-        </div>
-
-        {/* Eligible bounties */}
-        {isEnrolled && partner?.status === "approved" && (
-          <div className="flex flex-col gap-2">
-            <h3 className="text-content-emphasis text-xs font-semibold">
-              Eligible Bounties
-            </h3>
-            {bounties ? (
-              bounties.length ? (
-                <div className="flex flex-col gap-2">
-                  {bounties.map((bounty) => {
-                    const Icon = bounty.type === "performance" ? Trophy : Heart;
-                    return (
-                      <Link
-                        key={bounty.id}
-                        target="_blank"
-                        href={`/${workspaceSlug}/program/bounties/${bounty.id}`}
-                        className="text-content-subtle flex cursor-alias items-center gap-2 decoration-dotted underline-offset-2 hover:underline"
-                      >
-                        <Icon className="size-3.5 shrink-0" />
-                        <span className="text-xs font-medium">
-                          {bounty.name}
-                        </span>
-                      </Link>
-                    );
-                  })}
-                </div>
-              ) : (
-                <p className="text-content-subtle text-xs">
-                  No eligible bounties
-                </p>
-              )
-            ) : errorBounties ? (
-              <p className="text-content-subtle text-xs">
-                Failed to load bounties
-              </p>
-            ) : (
-              <div className="h-4 w-24 animate-pulse rounded bg-neutral-200" />
+              <div className="my-px h-11 w-full animate-pulse rounded-lg bg-neutral-200" />
             )}
           </div>
-        )}
-      </div>
+
+          {/* Rewards */}
+          <div className="flex flex-col gap-2">
+            <h3 className="text-content-emphasis text-xs font-semibold">
+              Rewards
+            </h3>
+            {group ? (
+              group.clickReward ||
+              group.leadReward ||
+              group.saleReward ||
+              group.discount ? (
+                <ProgramRewardList
+                  rewards={[
+                    group.clickReward,
+                    group.leadReward,
+                    group.saleReward,
+                  ].filter((r): r is RewardProps => r !== null)}
+                  discount={group.discount}
+                  variant="plain"
+                  className="text-content-subtle gap-2 text-xs leading-4"
+                  iconClassName="size-3.5"
+                />
+              ) : (
+                <span className="text-content-subtle text-xs">No rewards</span>
+              )
+            ) : (
+              <div className="h-4 w-32 animate-pulse rounded bg-neutral-200" />
+            )}
+          </div>
+
+          {/* Eligible bounties */}
+          {isEnrolled && partner?.status === "approved" && (
+            <div className="flex flex-col gap-2">
+              <h3 className="text-content-emphasis text-xs font-semibold">
+                Eligible Bounties
+              </h3>
+              {bounties ? (
+                bounties.length ? (
+                  <div className="flex flex-col gap-2">
+                    {bounties.map((bounty) => {
+                      const Icon =
+                        bounty.type === "performance" ? Trophy : Heart;
+                      return (
+                        <Link
+                          key={bounty.id}
+                          target="_blank"
+                          href={`/${workspaceSlug}/program/bounties/${bounty.id}`}
+                          className="text-content-subtle flex cursor-alias items-center gap-2 decoration-dotted underline-offset-2 hover:underline"
+                        >
+                          <Icon className="size-3.5 shrink-0" />
+                          <span className="text-xs font-medium">
+                            {bounty.name}
+                          </span>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="text-content-subtle text-xs">
+                    No eligible bounties
+                  </p>
+                )
+              ) : errorBounties ? (
+                <p className="text-content-subtle text-xs">
+                  Failed to load bounties
+                </p>
+              ) : (
+                <div className="h-4 w-24 animate-pulse rounded bg-neutral-200" />
+              )}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

@@ -8,7 +8,7 @@ import {
   SouthAmerica,
 } from "@dub/ui/icons";
 
-export default function ContinentIcon({
+export function ContinentIcon({
   display,
   className,
 }: {

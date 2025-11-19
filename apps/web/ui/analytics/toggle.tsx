@@ -36,7 +36,7 @@ import { AnalyticsContext } from "./analytics-provider";
 import { ShareButton } from "./share-button";
 import { useAnalyticsFilters } from "./use-analytics-filters";
 
-export default function Toggle({
+export function AnalyticsToggle({
   page = "analytics",
 }: {
   page?: "analytics" | "events";

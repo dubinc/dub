@@ -8,7 +8,7 @@ import { useContext, useMemo, useState } from "react";
 import { AnalyticsCard } from "./analytics-card";
 import { AnalyticsLoadingSpinner } from "./analytics-loading-spinner";
 import { AnalyticsContext } from "./analytics-provider";
-import BarList from "./bar-list";
+import { BarList } from "./bar-list";
 import { useAnalyticsFilterOption } from "./utils";
 
 type TabId = "referers" | "utms";
@@ -39,7 +39,7 @@ const TAB_CONFIG: Record<
   },
 };
 
-export default function Referer() {
+export function ReferrersUTMs() {
   const { queryParams, searchParams } = useRouterStuff();
 
   const { selectedTab, saleUnit } = useContext(AnalyticsContext);

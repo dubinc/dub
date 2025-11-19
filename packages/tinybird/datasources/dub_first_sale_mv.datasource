@@ -1,0 +1,9 @@
+# Data Source created from Pipe 'dub_first_sale_pipe'
+
+SCHEMA >
+    `customer_id` String,
+    `link_id` String,
+    `first_sale_state` AggregateFunction(min, DateTime64(3))
+
+ENGINE "AggregatingMergeTree"
+ENGINE_SORTING_KEY "customer_id, link_id"

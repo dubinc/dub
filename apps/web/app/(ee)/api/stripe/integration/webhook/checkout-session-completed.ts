@@ -58,7 +58,6 @@ export async function checkoutSessionCompleted(
   let clickEvent: ClickEventTB | null = null;
   let leadEvent: LeadEventTB | undefined;
   let linkId: string | undefined;
-  let shouldSendLeadWebhook = true;
 
   /*
       for stripe checkout links:
@@ -147,6 +146,7 @@ export async function checkoutSessionCompleted(
 
     if (!existingCustomer) {
       await recordLead(leadEvent);
+      waitUntil(incrementLinkLeads(clickEvent.link_id));
     }
 
     linkId = clickEvent.link_id;
@@ -193,7 +193,6 @@ export async function checkoutSessionCompleted(
           });
           if (promoCodeResponse) {
             ({ linkId, customer, clickEvent, leadEvent } = promoCodeResponse);
-            shouldSendLeadWebhook = false;
           } else {
             return `Failed to attribute via promotion code ${promotionCodeId}, skipping...`;
           }
@@ -237,7 +236,6 @@ export async function checkoutSessionCompleted(
           });
           if (promoCodeResponse) {
             ({ linkId, customer, clickEvent, leadEvent } = promoCodeResponse);
-            shouldSendLeadWebhook = false;
           } else {
             return `Failed to attribute via promotion code ${promotionCodeId}, skipping...`;
           }
@@ -361,13 +359,6 @@ export async function checkoutSessionCompleted(
           id: link.id,
         },
         data: {
-          // if the clickEvent variable exists, it means that a new lead was created
-          ...(clickEvent && {
-            leads: {
-              increment: 1,
-            },
-            lastLeadAt: new Date(),
-          }),
           ...(firstConversionFlag && {
             conversions: {
               increment: 1,
@@ -384,19 +375,19 @@ export async function checkoutSessionCompleted(
         include: includeTags,
       }),
 
-    // update workspace sales usage
+    // update workspace usage
     prisma.project.update({
       where: {
         id: customer.projectId,
       },
       data: {
         usage: {
-          increment: clickEvent ? 2 : 1,
+          increment: 1,
         },
       },
     }),
 
-    // update customer sales count
+    // update customer stats
     prisma.customer.update({
       where: {
         id: customer.id,
@@ -462,44 +453,12 @@ export async function checkoutSessionCompleted(
           programId: link.programId,
           eventType: "sale",
         }),
-        // same logic as lead.created webhook below:
-        // if the clickEvent variable exists and there was no existing customer before,
-        // we need to trigger the leadRecorded workflow
-        clickEvent &&
-          !existingCustomer &&
-          executeWorkflows({
-            trigger: WorkflowTrigger.leadRecorded,
-            context: {
-              programId: link.programId,
-              partnerId: link.partnerId,
-              current: {
-                leads: 1,
-              },
-            },
-          }),
       ]),
     );
   }
 
   waitUntil(
     (async () => {
-      // if the clickEvent variable exists and there was no existing customer before,
-      // we send a lead.created webhook
-      if (clickEvent && !existingCustomer && shouldSendLeadWebhook) {
-        await sendWorkspaceWebhook({
-          trigger: "lead.created",
-          workspace,
-          data: transformLeadEventData({
-            ...clickEvent,
-            eventName: "Checkout session completed",
-            link: linkUpdated,
-            customer,
-            partner: webhookPartner,
-            metadata: null,
-          }),
-        });
-      }
-
       // send workspace webhook
       await sendWorkspaceWebhook({
         trigger: "sale.created",
@@ -553,6 +512,7 @@ async function attributeViaPromoCode({
       id: true,
       stripeConnectId: true,
       defaultProgramId: true,
+      webhookEnabled: true,
     },
   });
 
@@ -638,10 +598,82 @@ async function attributeViaPromoCode({
 
   await recordLead(leadEvent);
 
+  // record lead side effects (link stats, partner commissions, workflows, workspace webhook)
+  waitUntil(
+    (async () => {
+      const linkUpdated = await incrementLinkLeads(link.id);
+
+      let webhookPartner: WebhookPartner | undefined;
+      if (link.programId && link.partnerId) {
+        await Promise.allSettled([
+          createPartnerCommission({
+            event: "lead",
+            programId: link.programId,
+            partnerId: link.partnerId,
+            linkId: link.id,
+            eventId: leadEvent.event_id,
+            customerId: customer.id,
+            quantity: 1,
+            context: {
+              customer: {
+                country: customer.country,
+              },
+            },
+          }).then((res) => {
+            webhookPartner = res.webhookPartner;
+          }),
+
+          executeWorkflows({
+            trigger: WorkflowTrigger.leadRecorded,
+            context: {
+              programId: link.programId,
+              partnerId: link.partnerId,
+              current: {
+                leads: 1,
+              },
+            },
+          }),
+          syncPartnerLinksStats({
+            partnerId: link.partnerId,
+            programId: link.programId,
+            eventType: "lead",
+          }),
+        ]);
+      }
+      await sendWorkspaceWebhook({
+        trigger: "lead.created",
+        workspace,
+        data: transformLeadEventData({
+          ...leadEvent,
+          eventName: "Checkout session completed",
+          link: linkUpdated,
+          customer,
+          partner: webhookPartner,
+          metadata: null,
+        }),
+      });
+    })(),
+  );
+
   return {
     linkId,
     customer,
     clickEvent,
     leadEvent,
   };
+}
+
+async function incrementLinkLeads(linkId: string) {
+  return prisma.link.update({
+    where: {
+      id: linkId,
+    },
+    data: {
+      leads: {
+        increment: 1,
+      },
+      lastLeadAt: new Date(),
+    },
+    include: includeTags,
+  });
 }
