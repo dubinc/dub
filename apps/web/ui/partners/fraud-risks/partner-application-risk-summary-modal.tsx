@@ -53,12 +53,13 @@ function PartnerApplicationRiskSummaryModal({
           {triggeredRules.map((rule) => {
             if (!rule.severity) return null;
 
-            const severityColor = FRAUD_SEVERITY_CONFIG[rule.severity].color;
-
             return (
               <li key={rule.type} className="flex items-start gap-2">
                 <div
-                  className={cn("size-2 shrink-0 rounded-full", severityColor)}
+                  className={cn(
+                    "size-2 shrink-0 rounded-full",
+                    FRAUD_SEVERITY_CONFIG[rule.severity].bg,
+                  )}
                 />
                 <div className="flex flex-col gap-1">
                   <span className="-mt-0.5 text-xs font-medium leading-none text-neutral-700">

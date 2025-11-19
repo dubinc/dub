@@ -21,7 +21,7 @@ export function PartnerApplicationFraudSeverityIndicator({
             key={key}
             className={cn(
               "h-2 flex-1 rounded-lg transition-colors",
-              severity === key ? cfg.color : "bg-neutral-200",
+              severity === key ? cfg.bg : "bg-neutral-200",
             )}
           />
         ))}

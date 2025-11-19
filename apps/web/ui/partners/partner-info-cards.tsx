@@ -29,6 +29,7 @@ import useSWR from "swr";
 import { ConversionScoreIcon } from "./conversion-score-icon";
 import { PartnerApplicationRiskBanner } from "./fraud-risks/partner-application-risk-banner";
 import { PartnerApplicationRiskSummary } from "./fraud-risks/partner-application-risk-summary";
+import { PartnerApplicationFraudFlag } from "./partner-application-fraud-flag";
 import { PartnerFraudFlag } from "./partner-fraud-flag";
 import { PartnerInfoGroup } from "./partner-info-group";
 import { ConversionScoreTooltip } from "./partner-network/conversion-score-tooltip";
@@ -222,6 +223,9 @@ export function PartnerInfoCards({
                     {partner.name}
                   </span>
                   {showFraudFlag && <PartnerFraudFlag partnerId={partner.id} />}
+                  {showApplicationRiskAnalysis && (
+                    <PartnerApplicationFraudFlag partnerId={partner.id} />
+                  )}
                 </div>
               ) : (
                 <div className="h-7 w-24 animate-pulse rounded bg-neutral-200" />

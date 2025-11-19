@@ -59,12 +59,13 @@ export function PartnerApplicationRiskSummary({
           {triggeredFraudRules.map((rule) => {
             if (!rule.severity) return null;
 
-            const severityColor = FRAUD_SEVERITY_CONFIG[rule.severity].color;
-
             return (
               <li key={rule.type} className="flex items-center gap-2">
                 <div
-                  className={cn("size-2 shrink-0 rounded-full", severityColor)}
+                  className={cn(
+                    "size-2 shrink-0 rounded-full",
+                    FRAUD_SEVERITY_CONFIG[rule.severity].bg,
+                  )}
                 />
                 <span className="text-xs font-medium leading-4 text-neutral-700">
                   {rule.name}

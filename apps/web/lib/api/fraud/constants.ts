@@ -95,20 +95,28 @@ export const FRAUD_RULES_BY_SCOPE = FRAUD_RULES.reduce(
 
 export const FRAUD_SEVERITY_CONFIG: Record<
   FraudSeverity,
-  { color: string; label: string; rank: number }
+  {
+    bg: string; // background color (e.g., for dots, pills)
+    fg: string; // text/icon color
+    label: string;
+    rank: number;
+  }
 > = {
   low: {
-    color: "bg-neutral-400",
+    bg: "bg-neutral-400",
+    fg: "text-neutral-400",
     label: "Low",
     rank: 0,
   },
   medium: {
-    color: "bg-orange-600", // TODO: this should be bg-orange-500
+    bg: "bg-orange-500",
+    fg: "text-orange-500",
     label: "Medium",
     rank: 1,
   },
   high: {
-    color: "bg-red-600",
+    bg: "bg-red-600",
+    fg: "text-red-600",
     label: "High",
     rank: 2,
   },
