@@ -9,7 +9,7 @@ import { ExtendedFraudRuleType } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
-// GET /api/partners/:id/fraud – get partner fraud events
+// GET /api/partners/:id/risks
 export const GET = withWorkspace(
   async ({ workspace, params }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
