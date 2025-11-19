@@ -16,8 +16,8 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import {
-  checkFolderPermissions,
   verifyFolderAccess,
+  verifyFolderAccessBulk,
 } from "@/lib/folder/permissions";
 import { storage } from "@/lib/storage";
 import { NewLinkProps, ProcessedLinkProps } from "@/lib/types";
@@ -173,10 +173,9 @@ export const POST = withWorkspace(
         ),
       ];
 
-      const folderPermissions = await checkFolderPermissions({
-        workspaceId: workspace.id,
+      const folderPermissions = await verifyFolderAccessBulk({
+        workspace,
         userId: session.user.id,
-        workspaceRole: workspace.users[0]?.role,
         folderIds,
         requiredPermission: "folders.links.write",
       });
@@ -351,10 +350,9 @@ export const PATCH = withWorkspace(
         new Set(links.map((link) => link.folderId).filter(Boolean) as string[]),
       );
 
-      const folderPermissions = await checkFolderPermissions({
-        workspaceId: workspace.id,
+      const folderPermissions = await verifyFolderAccessBulk({
+        workspace,
         userId: session.user.id,
-        workspaceRole: workspace.users[0]?.role,
         folderIds,
         requiredPermission: "folders.links.write",
       });
@@ -524,10 +522,9 @@ export const DELETE = withWorkspace(
         ),
       ];
 
-      const folderPermissions = await checkFolderPermissions({
-        workspaceId: workspace.id,
+      const folderPermissions = await verifyFolderAccessBulk({
+        workspace,
         userId: session.user.id,
-        workspaceRole: workspace.users[0]?.role,
         folderIds,
         requiredPermission: "folders.links.write",
       });
