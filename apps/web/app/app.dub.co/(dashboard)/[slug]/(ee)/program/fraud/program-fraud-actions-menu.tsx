@@ -2,7 +2,7 @@
 
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ThreeDots } from "@/ui/shared/icons";
-import { Button, CircleCheck, IconMenu, Popover } from "@dub/ui";
+import { Button, IconMenu, Popover, Refresh2 } from "@dub/ui";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -25,7 +25,7 @@ export function ProgramFraudActionsMenu() {
             >
               <IconMenu
                 text="View resolved"
-                icon={<CircleCheck className="h-4 w-4" />}
+                icon={<Refresh2 className="h-4 w-4" />}
               />
             </button>
           </div>

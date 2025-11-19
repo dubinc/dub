@@ -1,6 +1,6 @@
 "use client";
 
-import { FRAUD_RULES_BY_TYPE } from "@/lib/fraud/constants";
+import { FRAUD_RULES_BY_TYPE } from "@/lib/api/fraud/constants";
 import { useFraudEvents } from "@/lib/swr/use-fraud-events";
 import { useFraudEventsCount } from "@/lib/swr/use-fraud-events-count";
 import { FraudEventProps } from "@/lib/types";

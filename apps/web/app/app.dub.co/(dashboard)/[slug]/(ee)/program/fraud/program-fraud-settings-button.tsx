@@ -12,7 +12,7 @@ export function ProgramFraudSettingsButton() {
       {programFraudSettingsSheet}
       <Button
         type="button"
-        text="Fraud and risk settings"
+        text="Fraud settings"
         variant="secondary"
         onClick={() => setIsOpen(true)}
         className="h-9 px-3"

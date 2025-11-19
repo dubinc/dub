@@ -1,6 +1,6 @@
 "use client";
 
-import { FRAUD_RULES_BY_TYPE } from "@/lib/fraud/constants";
+import { FRAUD_RULES_BY_TYPE } from "@/lib/api/fraud/constants";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { usePartnersUpgradeModal } from "@/ui/partners/partners-upgrade-modal";
