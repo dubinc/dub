@@ -18,7 +18,7 @@ export function ProgramFraudActionsMenu() {
           <div className="grid gap-px p-2">
             <button
               onClick={() => {
-                router.push(`/${slug}/program/frauds/resolved`);
+                router.push(`/${slug}/program/fraud/resolved`);
                 setOpenPopover(false);
               }}
               className="w-full rounded-md p-2 hover:bg-neutral-100 active:bg-neutral-200"

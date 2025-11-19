@@ -42,7 +42,7 @@ export function PartnerFraudFlag({ partnerId }: { partnerId: string }) {
             <ButtonLink
               variant="secondary"
               className="h-6 w-full items-center justify-center rounded-md px-1.5 py-2 text-sm font-medium"
-              href={`/${slug}/program/frauds?partnerId=${partnerId}`}
+              href={`/${slug}/program/fraud?partnerId=${partnerId}`}
               target="_blank"
             >
               Review events

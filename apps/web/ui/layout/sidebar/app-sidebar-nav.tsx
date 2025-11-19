@@ -291,7 +291,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
           {
             name: "Fraud & Risk",
             icon: ShieldKeyhole,
-            href: `/${slug}/program/frauds`,
+            href: `/${slug}/program/fraud`,
             badge: "New",
           },
         ],
