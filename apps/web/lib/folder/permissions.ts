@@ -37,14 +37,14 @@ export const verifyFolderAccess = async ({
 
   // Workspace owners have full control over all folders
   if (workspace.users[0]?.role === WorkspaceRole.owner) {
-    return true;
+    return folder;
   }
 
   const { canManageFolderPermissions } = getPlanCapabilities(workspace.plan);
 
   // If the plan doesn't support folder permissions, we can skip the check
   if (!canManageFolderPermissions) {
-    return true;
+    return folder;
   }
 
   const folderUserRole = findFolderUserRole({
@@ -69,7 +69,7 @@ export const verifyFolderAccess = async ({
     });
   }
 
-  return true;
+  return folder;
 };
 
 export const verifyFolderAccessBulk = async ({
