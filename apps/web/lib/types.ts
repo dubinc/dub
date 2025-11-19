@@ -24,6 +24,7 @@ import {
 } from "@dub/prisma/client";
 import { z } from "zod";
 import { RESOURCE_COLORS } from "../ui/colors";
+import { PAID_TRAFFIC_PLATFORMS } from "./api/fraud/constants";
 import { BOUNTY_SUBMISSION_REQUIREMENTS } from "./constants/bounties";
 import {
   FOLDER_PERMISSIONS,
@@ -57,7 +58,7 @@ import { dashboardSchema } from "./zod/schemas/dashboard";
 import { DiscountCodeSchema, DiscountSchema } from "./zod/schemas/discount";
 import { EmailDomainSchema } from "./zod/schemas/email-domains";
 import { FolderSchema } from "./zod/schemas/folders";
-import { fraudEventSchema, fraudRuleSchema } from "./zod/schemas/fraud";
+import { fraudEventSchema, fraudRuleSchema, updateFraudRuleSettingsSchema } from "./zod/schemas/fraud";
 import { GroupWithProgramSchema } from "./zod/schemas/group-with-program";
 import {
   additionalPartnerLinkSchemaOptionalPath,
@@ -697,3 +698,7 @@ export type FraudRuleProps = z.infer<typeof fraudRuleSchema>;
 export type FraudPartnerContext = z.infer<typeof fraudPartnerContext>;
 
 export type FraudEventContext = z.infer<typeof fraudEventContext>;
+
+export type PaidTrafficPlatform = (typeof PAID_TRAFFIC_PLATFORMS)[number];
+
+export type UpdateFraudRuleSettings = z.infer<typeof updateFraudRuleSettingsSchema>;

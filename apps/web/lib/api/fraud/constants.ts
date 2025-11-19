@@ -1,3 +1,4 @@
+import { PaidTrafficPlatform } from "@/lib/types";
 import { FraudRuleInfo, FraudSeverity } from "./types";
 
 export const FRAUD_RULES: FraudRuleInfo[] = [
@@ -79,12 +80,10 @@ export const FRAUD_RULES: FraudRuleInfo[] = [
   },
 ] as const;
 
-// type -> fraud rule info
 export const FRAUD_RULES_BY_TYPE = Object.fromEntries(
   FRAUD_RULES.map((rule) => [rule.type, rule]),
 ) as Record<FraudRuleInfo["type"], FraudRuleInfo>;
 
-// scope -> fraud rules[]
 export const FRAUD_RULES_BY_SCOPE = FRAUD_RULES.reduce(
   (acc, rule) => {
     (acc[rule.scope] ||= []).push(rule);
@@ -96,8 +95,8 @@ export const FRAUD_RULES_BY_SCOPE = FRAUD_RULES.reduce(
 export const FRAUD_SEVERITY_CONFIG: Record<
   FraudSeverity,
   {
-    bg: string; // background color (e.g., for dots, pills)
-    fg: string; // text/icon color
+    bg: string;
+    fg: string;
     label: string;
     rank: number;
   }
@@ -121,3 +120,55 @@ export const FRAUD_SEVERITY_CONFIG: Record<
     rank: 2,
   },
 } as const;
+
+export const PAID_TRAFFIC_PLATFORMS = [
+  "google",
+  "facebook",
+  "x",
+  "bing",
+  "linkedin",
+  "reddit",
+  "tiktok",
+] as const;
+
+export const PAID_TRAFFIC_PLATFORMS_CONFIG: {
+  id: PaidTrafficPlatform;
+  name: string;
+  queryParams: string[];
+}[] = [
+  {
+    id: "google",
+    name: "Google",
+    queryParams: ["gclid", "gclsrc", "gbraid", "wbraid"],
+  },
+  {
+    id: "facebook",
+    name: "Facebook",
+    queryParams: ["fbclid", "fb_action_ids"],
+  },
+  {
+    id: "x",
+    name: "X",
+    queryParams: ["twclid"],
+  },
+  {
+    id: "bing",
+    name: "Bing",
+    queryParams: ["msclkid"],
+  },
+  {
+    id: "linkedin",
+    name: "LinkedIn",
+    queryParams: ["li_fat_id"],
+  },
+  {
+    id: "reddit",
+    name: "Reddit",
+    queryParams: ["rdclid"],
+  },
+  {
+    id: "tiktok",
+    name: "TikTok",
+    queryParams: ["ttclid"],
+  },
+] as const;

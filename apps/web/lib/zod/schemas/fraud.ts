@@ -1,3 +1,4 @@
+import { PAID_TRAFFIC_PLATFORMS } from "@/lib/api/fraud/constants";
 import { FraudEventStatus, FraudRuleType } from "@dub/prisma/client";
 import { z } from "zod";
 import { CommissionSchema } from "./commissions";
@@ -92,11 +93,31 @@ export const fraudRuleSchema = z.object({
   config: z.unknown(),
 });
 
-export const updateFraudRulesSchema = z.object({
+export const referralSourceBannedRule = z.object({
+  type: z.literal("referralSourceBanned"),
+  enabled: z.boolean(),
+  config: z
+    .object({
+      domains: z.array(z.string()).optional(),
+    })
+    .optional(),
+});
+
+export const paidTrafficDetectedRule = z.object({
+  type: z.literal("paidTrafficDetected"),
+  enabled: z.boolean(),
+  config: z
+    .object({
+      platforms: z.array(z.enum(PAID_TRAFFIC_PLATFORMS)).optional(),
+    })
+    .optional(),
+});
+
+export const updateFraudRuleSettingsSchema = z.object({
   rules: z.array(
-    z.object({
-      type: z.nativeEnum(FraudRuleType),
-      enabled: z.boolean(),
-    }),
+    z.discriminatedUnion("type", [
+      referralSourceBannedRule,
+      paidTrafficDetectedRule,
+    ]),
   ),
 });
