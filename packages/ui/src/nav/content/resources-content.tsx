@@ -15,7 +15,7 @@ const mainLinks = [
     icon: LifeRingFill,
     title: "Help Center",
     description: "Answers to your questions",
-    thumbnail: "https://assets.dub.co/misc/help-thumbnail.jpg", // TODO: Update
+    thumbnail: "https://assets.dub.co/misc/help-thumbnail.jpg",
     href: "/help",
   },
   {

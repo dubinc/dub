@@ -11,7 +11,7 @@ export const GET = withWorkspace(
   async ({ params, workspace, session }) => {
     const { folderId } = params;
 
-    await verifyFolderAccess({
+    const folder = await verifyFolderAccess({
       workspace,
       userId: session.user.id,
       folderId,
@@ -48,7 +48,6 @@ export const GET = withWorkspace(
               image: true,
             },
           },
-          folder: true,
         },
       }),
     ]);
@@ -58,20 +57,9 @@ export const GET = withWorkspace(
         (folderUser) => folderUser.userId === user.id,
       );
 
-      if (folderUser == null) {
-        return {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          image: user.image,
-          role: null,
-          workspaceRole,
-        };
-      }
-
       const role = findFolderUserRole({
-        folder: folderUser.folder,
-        user: folderUser,
+        folder,
+        user: folderUser || null,
         workspaceRole,
       });
 

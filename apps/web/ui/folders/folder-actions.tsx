@@ -21,7 +21,7 @@ import { useDeleteFolderModal } from "../modals/delete-folder-modal";
 import { useRenameFolderModal } from "../modals/rename-folder-modal";
 import { useDefaultFolderModal } from "../modals/set-default-folder-modal";
 import { Delete, ThreeDots } from "../shared/icons";
-import { useEditFolderPanel } from "./edit-folder-panel";
+import { useEditFolderSheet } from "./edit-folder-sheet";
 import { isDefaultFolder } from "./utils";
 
 export const FolderActions = ({
@@ -51,9 +51,9 @@ export const FolderActions = ({
     });
 
   const {
-    editFolderPanel: folderPermissionsPanel,
-    setShowEditFolderPanel: setShowFolderPermissionsPanel,
-  } = useEditFolderPanel(folder);
+    EditFolderSheet: folderPermissionsPanel,
+    setShowEditFolderSheet: setShowFolderPermissionsPanel,
+  } = useEditFolderSheet(folder);
 
   const copyFolderId = () => {
     toast.promise(copyToClipboard(folder.id), {

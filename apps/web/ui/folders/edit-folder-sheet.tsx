@@ -32,17 +32,17 @@ import { AnimatedEmptyState } from "../shared/animated-empty-state";
 import { X } from "../shared/icons";
 import { EditFolderForm } from "./edit-folder-form";
 
-interface EditFolderPanelProps {
+interface EditFolderSheetProps {
   showPanel: boolean;
   setShowPanel: (showPanel: boolean) => void;
   folder: Pick<Folder, "id" | "name" | "description" | "accessLevel">;
   onSuccess?: () => void;
 }
 
-const EditFolderPanelContent = ({
+const EditFolderSheetContent = ({
   showPanel,
   folder,
-}: EditFolderPanelProps) => {
+}: EditFolderSheetProps) => {
   const { id: workspaceId, slug, logo, name, plan } = useWorkspace();
 
   const [isUpdating, setIsUpdating] = useState(false);
@@ -216,10 +216,10 @@ const EditFolderPanelContent = ({
   );
 };
 
-const EditFolderPanel = (props: EditFolderPanelProps) => {
+const EditFolderSheet = (props: EditFolderSheetProps) => {
   return (
     <Sheet open={props.showPanel} onOpenChange={props.setShowPanel}>
-      <EditFolderPanelContent {...props} />
+      <EditFolderSheetContent {...props} />
     </Sheet>
   );
 };
@@ -329,17 +329,17 @@ const FolderUserPlaceholder = () => (
   </div>
 );
 
-export function useEditFolderPanel(
+export function useEditFolderSheet(
   folder: Pick<Folder, "id" | "name" | "description" | "accessLevel">,
 ) {
-  const [showEditFolderPanel, setShowEditFolderPanel] = useState(false);
+  const [showEditFolderSheet, setShowEditFolderSheet] = useState(false);
 
   return {
-    setShowEditFolderPanel,
-    editFolderPanel: (
-      <EditFolderPanel
-        showPanel={showEditFolderPanel}
-        setShowPanel={setShowEditFolderPanel}
+    setShowEditFolderSheet,
+    EditFolderSheet: (
+      <EditFolderSheet
+        showPanel={showEditFolderSheet}
+        setShowPanel={setShowEditFolderSheet}
         folder={folder}
       />
     ),
