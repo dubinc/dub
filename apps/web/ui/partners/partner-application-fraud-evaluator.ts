@@ -9,10 +9,6 @@ import {
   EnrolledPartnerExtendedProps,
   EnrolledPartnerProps,
 } from "@/lib/types";
-import { Button } from "@dub/ui";
-import { cn } from "@dub/utils";
-import { useMemo } from "react";
-import { PartnerApplicationFraudSeverityIndicator } from "./partner-application-fraud-severity-indicator";
 
 const ruleChecks: Record<
   (typeof APPLICATION_FRAUD_RULES)[number]["type"],
@@ -24,69 +20,6 @@ const ruleChecks: Record<
   partnerNoVerifiedSocialLinks: checkPartnerNoVerifiedSocialLinks,
 };
 
-interface PartnerApplicationRiskAnalysisProps {
-  partner: EnrolledPartnerExtendedProps;
-}
-
-// Displays the risk analysis for a partner application
-export function PartnerApplicationRiskAnalysis({
-  partner,
-}: PartnerApplicationRiskAnalysisProps) {
-  const triggeredRules = useMemo(
-    () => assessPartnerApplicationRisk(partner),
-    [partner],
-  );
-
-  const overallRisk = useMemo(
-    () => getHighestSeverity(triggeredRules),
-    [triggeredRules],
-  );
-
-  return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-content-emphasis text-sm font-semibold">
-          Risk analysis
-        </h3>
-
-        <Button
-          type="button"
-          text="View"
-          variant="secondary"
-          onClick={() => {}} // TODO (Fraud)
-          className="h-6 w-fit px-1.5 py-2"
-        />
-      </div>
-
-      <PartnerApplicationFraudSeverityIndicator severity={overallRisk} />
-
-      {triggeredRules.length > 0 && (
-        <ul className="space-y-2.5">
-          {triggeredRules.map((rule) => {
-            return (
-              <li key={rule.type} className="flex items-center gap-2">
-                <div
-                  className={cn(
-                    "size-2 shrink-0 rounded-full",
-                    APPLICATION_FRAUD_SEVERITY_CONFIG[rule.severity].color,
-                  )}
-                />
-                <span className="text-sm font-medium leading-4 text-neutral-700">
-                  {rule.name}
-                </span>
-              </li>
-            );
-          })}
-        </ul>
-      )}
-
-      {triggeredRules.length === 0 && (
-        <p className="text-sm text-neutral-500">No risk factors detected.</p>
-      )}
-    </div>
-  );
-}
-
 /**
  * Analyzes partner application for fraud risk by checking:
  * 1. Email domain mismatch with website
@@ -94,7 +27,9 @@ export function PartnerApplicationRiskAnalysis({
  * 3. No social links provided
  * 4. No verified social links
  */
-function assessPartnerApplicationRisk(partner: EnrolledPartnerExtendedProps) {
+export function assessPartnerApplicationRisk(
+  partner: EnrolledPartnerExtendedProps,
+) {
   const triggeredRules: (typeof APPLICATION_FRAUD_RULES)[number][] = [];
 
   for (const rule of APPLICATION_FRAUD_RULES) {

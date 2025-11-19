@@ -27,7 +27,7 @@ import {
 import Link from "next/link";
 import useSWR from "swr";
 import { ConversionScoreIcon } from "./conversion-score-icon";
-import { PartnerApplicationRiskAnalysis } from "./partner-application-fraud-analysis";
+import { PartnerApplicationRiskSummary } from "./partner-application-risk-summary";
 import { PartnerFraudFlag } from "./partner-fraud-flag";
 import { PartnerInfoGroup } from "./partner-info-group";
 import { ConversionScoreTooltip } from "./partner-network/conversion-score-tooltip";
@@ -263,7 +263,7 @@ export function PartnerInfoCards({
 
         {partner && isEnrolled && showApplicationRiskAnalysis && (
           <div className="p-4">
-            <PartnerApplicationRiskAnalysis partner={partner} />
+            <PartnerApplicationRiskSummary partner={partner} />
           </div>
         )}
       </div>
