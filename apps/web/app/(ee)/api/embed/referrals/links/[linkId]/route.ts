@@ -3,9 +3,13 @@ import { processLink, updateLink } from "@/lib/api/links";
 import { validatePartnerLinkUrl } from "@/lib/api/links/validate-partner-link-url";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
+import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
+import { linkEventSchema } from "@/lib/zod/schemas/links";
 import { createPartnerLinkSchema } from "@/lib/zod/schemas/partners";
 import { ReferralsEmbedLinkSchema } from "@/lib/zod/schemas/referrals-embed";
+import { prisma } from "@dub/prisma";
 import { getPrettyUrl } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // PATCH /api/embed/referrals/links/[linkId] - update a link for a partner
@@ -95,6 +99,27 @@ export const PATCH = withReferralsEmbedToken(
       },
       updatedLink: processedLink,
     });
+
+    waitUntil(
+      (async () => {
+        const workspace = await prisma.project.findUnique({
+          where: {
+            id: program.workspaceId,
+          },
+          select: {
+            id: true,
+            webhookEnabled: true,
+          },
+        });
+        if (workspace) {
+          await sendWorkspaceWebhook({
+            trigger: "link.updated",
+            workspace,
+            data: linkEventSchema.parse(partnerLink),
+          });
+        }
+      })(),
+    );
 
     return NextResponse.json(ReferralsEmbedLinkSchema.parse(partnerLink));
   },

@@ -22,7 +22,7 @@ import { areEqual, FixedSizeList } from "react-window";
 import { AnalyticsContext } from "./analytics-provider";
 import LinkPreviewTooltip from "./link-preview";
 
-export default function BarList({
+export function BarList({
   tab,
   unit,
   data,
@@ -248,8 +248,6 @@ export function LineItem({
                 ? {
                     style: "currency",
                     currency: "USD",
-                    // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
-                    trailingZeroDisplay: "stripIfInteger",
                   }
                 : {
                     notation: value > 999999 ? "compact" : "standard",

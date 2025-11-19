@@ -2,20 +2,26 @@
 
 import { Button, IOSAppStore, useCopyToClipboard } from "@dub/ui";
 import { Link } from "@prisma/client";
+import { useSearchParams } from "next/navigation";
 
 export function DeepLinkActionButtons({
   link,
 }: {
   link: Pick<Link, "shortLink">;
 }) {
+  const searchParams = useSearchParams();
+  const searchParamsString = searchParams.toString();
+
   const [_copied, copyToClipboard] = useCopyToClipboard();
 
   const handleClick = async ({ withCopy }: { withCopy?: boolean } = {}) => {
     if (withCopy) {
-      await copyToClipboard(link.shortLink);
+      await copyToClipboard(
+        `${link.shortLink}${searchParamsString ? `?${searchParamsString}` : ""}`,
+      );
     }
 
-    window.location.href = `${link.shortLink}?skip_deeplink_preview=1`;
+    window.location.href = `${link.shortLink}?skip_deeplink_preview=1${searchParamsString ? `&${searchParamsString}` : ""}`;
   };
 
   return (

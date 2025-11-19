@@ -27,7 +27,7 @@ const DEMO_DATA = [
   }))
   .reverse();
 
-export default function AnalyticsAreaChart({
+export function AnalyticsAreaChart({
   resource,
   demo,
 }: {
