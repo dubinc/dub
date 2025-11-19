@@ -27,7 +27,7 @@ import {
 import Link from "next/link";
 import useSWR from "swr";
 import { ConversionScoreIcon } from "./conversion-score-icon";
-import { PartnerApplicationRiskSummary } from "./partner-application-risk-summary";
+import { PartnerApplicationRiskSummary } from "./fraud-risks/partner-application-risk-summary";
 import { PartnerFraudFlag } from "./partner-fraud-flag";
 import { PartnerInfoGroup } from "./partner-info-group";
 import { ConversionScoreTooltip } from "./partner-network/conversion-score-tooltip";
