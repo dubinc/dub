@@ -3,7 +3,7 @@ import { usePartnerApplicationRisks } from "@/lib/swr/use-partner-application-ri
 import { Flag } from "@dub/ui";
 import { cn } from "@dub/utils";
 
-export function PartnerApplicationFraudFlag({
+export function PartnerApplicationRiskFlag({
   partnerId,
 }: {
   partnerId: string;
@@ -17,11 +17,6 @@ export function PartnerApplicationFraudFlag({
   }
 
   return (
-    <Flag
-      className={cn(
-        "size-3.5 cursor-pointer",
-        FRAUD_SEVERITY_CONFIG[severity].fg,
-      )}
-    />
+    <Flag className={cn("size-3.5", FRAUD_SEVERITY_CONFIG[severity].fg)} />
   );
 }

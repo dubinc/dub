@@ -29,7 +29,7 @@ import useSWR from "swr";
 import { ConversionScoreIcon } from "./conversion-score-icon";
 import { PartnerApplicationRiskBanner } from "./fraud-risks/partner-application-risk-banner";
 import { PartnerApplicationRiskSummary } from "./fraud-risks/partner-application-risk-summary";
-import { PartnerApplicationFraudFlag } from "./partner-application-fraud-flag";
+import { PartnerApplicationRiskFlag } from "./partner-application-fraud-flag";
 import { PartnerFraudFlag } from "./partner-fraud-flag";
 import { PartnerInfoGroup } from "./partner-info-group";
 import { ConversionScoreTooltip } from "./partner-network/conversion-score-tooltip";
@@ -224,7 +224,7 @@ export function PartnerInfoCards({
                   </span>
                   {showFraudFlag && <PartnerFraudFlag partnerId={partner.id} />}
                   {showApplicationRiskAnalysis && (
-                    <PartnerApplicationFraudFlag partnerId={partner.id} />
+                    <PartnerApplicationRiskFlag partnerId={partner.id} />
                   )}
                 </div>
               ) : (
