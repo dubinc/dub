@@ -2,6 +2,7 @@
 
 import useWorkspace from "@/lib/swr/use-workspace";
 import { FraudEventProps } from "@/lib/types";
+import { useBanPartnerModal } from "@/ui/modals/ban-partner-modal";
 import { X } from "@/ui/shared/icons";
 import {
   Button,
@@ -14,6 +15,7 @@ import {
   useKeyboardShortcut,
 } from "@dub/ui";
 import { OG_AVATAR_URL, cn } from "@dub/utils";
+import { useResolveFraudEventModal } from "app/app.dub.co/(dashboard)/[slug]/(ee)/program/fraud/resolve-fraud-event-modal";
 import Link from "next/link";
 import { Dispatch, SetStateAction, useState } from "react";
 
@@ -33,12 +35,29 @@ function FraudReviewSheetContent({
 
   const { slug: workspaceSlug } = useWorkspace();
 
+  const { setShowResolveFraudEventModal, ResolveFraudEventModal } =
+    useResolveFraudEventModal({
+      fraudEvent,
+    });
+
+  const { BanPartnerModal, setShowBanPartnerModal } = useBanPartnerModal({
+    partner: fraudEvent.partner,
+  });
+
   // Left/right arrow keys for previous/next fraud event
   useKeyboardShortcut("ArrowRight", () => onNext?.(), { sheet: true });
   useKeyboardShortcut("ArrowLeft", () => onPrevious?.(), { sheet: true });
 
+  // Resolve/ban shortcuts
+  useKeyboardShortcut("r", () => setShowResolveFraudEventModal(true), {
+    sheet: true,
+  });
+  useKeyboardShortcut("b", () => setShowBanPartnerModal(true), { sheet: true });
+
   return (
     <div className="relative h-full">
+      <ResolveFraudEventModal />
+      <BanPartnerModal />
       <div
         className={cn("flex h-full flex-col transition-opacity duration-200")}
       >
@@ -124,7 +143,27 @@ function FraudReviewSheetContent({
           <div>WIP: {JSON.stringify(fraudEvent)}</div>
         </div>
 
-        <div className="flex grow flex-col justify-end p-5">controls</div>
+        <div className="flex grow flex-col justify-end">
+          <div className="border-border-subtle flex items-center justify-end gap-2 border-t px-5 py-4">
+            <Button
+              type="button"
+              variant="secondary"
+              text="Resolve event"
+              shortcut="R"
+              onClick={() => setShowResolveFraudEventModal(true)}
+              className="h-8 w-fit rounded-lg"
+            />
+
+            <Button
+              type="button"
+              text="Ban partner"
+              shortcut="B"
+              variant="danger"
+              onClick={() => setShowBanPartnerModal(true)}
+              className="h-8 w-fit rounded-lg"
+            />
+          </div>
+        </div>
       </div>
     </div>
   );
