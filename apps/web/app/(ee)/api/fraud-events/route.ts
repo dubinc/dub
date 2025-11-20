@@ -1,4 +1,4 @@
-import { getFraudEvents } from "@/lib/api/fraud/get-fraud-events";
+import { getGroupedFraudEvents } from "@/lib/api/fraud/get-grouped-fraud-events";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { fraudEventsQuerySchema } from "@/lib/zod/schemas/fraud";
@@ -10,7 +10,7 @@ export const GET = withWorkspace(
     const programId = getDefaultProgramIdOrThrow(workspace);
     const parsedParams = fraudEventsQuerySchema.parse(searchParams);
 
-    const fraudEvents = await getFraudEvents({
+    const fraudEvents = await getGroupedFraudEvents({
       ...parsedParams,
       programId,
     });

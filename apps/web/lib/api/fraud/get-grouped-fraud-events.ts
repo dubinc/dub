@@ -31,7 +31,7 @@ interface QueryResult {
 }
 
 // Get the fraud events for a program grouped by rule type
-export async function getFraudEvents({
+export async function getGroupedFraudEvents({
   programId,
   partnerId,
   status,
