@@ -9,6 +9,7 @@ import {
   ProgramLanderData,
   ProgramProps,
 } from "@/lib/types";
+import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import LayoutLoader from "@/ui/layout/layout-loader";
 import {
   Brush,
@@ -26,7 +27,6 @@ import { useAction } from "next-safe-action/hooks";
 import { useEffect, useMemo, useState } from "react";
 import { FormProvider, useForm, useFormContext } from "react-hook-form";
 import { toast } from "sonner";
-import { KeyedMutator } from "swr";
 import { v4 as uuid } from "uuid";
 import {
   BrandingContextProvider,
@@ -48,6 +48,10 @@ export function useBrandingFormContext() {
 type DraftData = BrandingFormData & { draftSavedAt: string | null };
 
 export function BrandingForm() {
+  const { group: defaultGroup, loading: loadingDefaultGroup } = useGroup({
+    groupIdOrSlug: DEFAULT_PARTNER_GROUP.slug,
+  });
+
   const { group, mutateGroup, loading } = useGroup<GroupWithProgramProps>(
     {
       query: { includeExpandedFields: true },
@@ -62,24 +66,23 @@ export function BrandingForm() {
     null,
   );
 
-  if (loading) {
+  if (loading || loadingDefaultGroup) {
     return <LayoutLoader />;
   }
 
-  if (!group) {
+  if (!group || !defaultGroup) {
     return (
       <div className="text-content-muted text-sm">Failed to load program</div>
     );
   }
 
   return (
-    <BrandingContextProvider>
-      <BrandingFormInner
-        group={group}
-        mutateGroup={mutateGroup}
-        draft={draft}
-        setDraft={setDraft}
-      />
+    <BrandingContextProvider
+      defaultGroup={defaultGroup}
+      group={group}
+      mutateGroup={mutateGroup}
+    >
+      <BrandingFormInner draft={draft} setDraft={setDraft} />
     </BrandingContextProvider>
   );
 }
@@ -160,13 +163,9 @@ const dateIsAfter = (
 };
 
 function BrandingFormInner({
-  group,
-  mutateGroup,
   draft,
   setDraft,
 }: {
-  group: GroupWithProgramProps;
-  mutateGroup: KeyedMutator<GroupWithProgramProps>;
   draft: DraftData | null;
   setDraft: (draft: DraftData | null) => void;
 }) {
@@ -176,13 +175,15 @@ function BrandingFormInner({
     PREVIEW_TABS.find(({ value }) => searchParams.get("tab") === value) ||
     PREVIEW_TABS[0];
 
+  const { group, mutateGroup } = useBrandingContext();
+
   const [isSidePanelOpen, setIsSidePanelOpen] = useState(true);
 
   const form = useForm<BrandingFormData>({
     defaultValues: {
-      logo: group.program?.logo ?? draft?.logo ?? null,
-      wordmark: group.program?.wordmark ?? draft?.wordmark ?? null,
-      brandColor: group.program?.brandColor ?? draft?.brandColor ?? null,
+      logo: group.logo ?? draft?.logo ?? null,
+      wordmark: group.wordmark ?? draft?.wordmark ?? null,
+      brandColor: group.brandColor ?? draft?.brandColor ?? null,
       applicationFormData:
         group.applicationFormData ?? defaultApplicationFormData(group.program),
       landerData: group.landerData ?? { blocks: [] },
@@ -196,8 +197,6 @@ function BrandingFormInner({
     formState: { isDirty, isSubmitting, isSubmitSuccessful },
     getValues,
     setValue,
-
-    resetField,
   } = form;
 
   useEffect(() => {

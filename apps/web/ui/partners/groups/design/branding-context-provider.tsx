@@ -1,5 +1,6 @@
 "use client";
 
+import { GroupProps, GroupWithProgramProps } from "@/lib/types";
 import {
   createContext,
   Dispatch,
@@ -8,22 +9,37 @@ import {
   useContext,
   useState,
 } from "react";
+import { KeyedMutator } from "swr";
 
-export const BrandingContext = createContext<{
-  isGeneratingLander: boolean;
-  setIsGeneratingLander: Dispatch<SetStateAction<boolean>>;
-  isGenerateBannerHidden: boolean;
-  setIsGenerateBannerHidden: Dispatch<SetStateAction<boolean>>;
-}>({
-  isGeneratingLander: false,
-  setIsGeneratingLander: () => {},
-  isGenerateBannerHidden: false,
-  setIsGenerateBannerHidden: () => {},
-});
+type BrandingContextProviderProps = {
+  defaultGroup: GroupProps;
+  group: GroupWithProgramProps;
+  mutateGroup: KeyedMutator<GroupWithProgramProps>;
+};
 
-export const useBrandingContext = () => useContext(BrandingContext);
+export const BrandingContext = createContext<
+  | ({
+      isGeneratingLander: boolean;
+      setIsGeneratingLander: Dispatch<SetStateAction<boolean>>;
+      isGenerateBannerHidden: boolean;
+      setIsGenerateBannerHidden: Dispatch<SetStateAction<boolean>>;
+    } & BrandingContextProviderProps)
+  | null
+>(null);
 
-export function BrandingContextProvider({ children }: PropsWithChildren) {
+export const useBrandingContext = () => {
+  const context = useContext(BrandingContext);
+  if (!context)
+    throw new Error(
+      "useBrandingContext must be used within a BrandingContextProvider",
+    );
+  return context;
+};
+
+export function BrandingContextProvider({
+  children,
+  ...rest
+}: PropsWithChildren<BrandingContextProviderProps>) {
   const [isGeneratingLander, setIsGeneratingLander] = useState(false);
   const [isGenerateBannerHidden, setIsGenerateBannerHidden] = useState(false);
 
@@ -34,6 +50,7 @@ export function BrandingContextProvider({ children }: PropsWithChildren) {
         setIsGeneratingLander,
         isGenerateBannerHidden,
         setIsGenerateBannerHidden,
+        ...rest,
       }}
     >
       {children}

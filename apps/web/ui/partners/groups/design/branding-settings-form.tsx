@@ -1,18 +1,21 @@
 "use client";
 
 import useWorkspace from "@/lib/swr/use-workspace";
+import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { ProgramColorPicker } from "@/ui/partners/program-color-picker";
 import { FileUpload, InfoTooltip } from "@dub/ui";
 import { Plus } from "@dub/ui/icons";
 import { cn } from "@dub/utils/src";
-import Link from "next/link";
 import { ReactNode, useId } from "react";
 import { Controller } from "react-hook-form";
+import { useBrandingContext } from "./branding-context-provider";
 import { useBrandingFormContext } from "./branding-form";
 
 export function BrandingSettingsForm() {
   const { slug } = useWorkspace();
   const { control } = useBrandingFormContext();
+
+  const { group, defaultGroup } = useBrandingContext();
 
   return (
     <div>
@@ -22,14 +25,15 @@ export function BrandingSettingsForm() {
             label="Brand elements"
             description={
               <>
-                Set the group style and content for{" "}
-                <Link
-                  className="font-semibold decoration-dotted underline-offset-2 hover:underline"
-                  href={`/${slug}/program/groups`}
-                >
-                  all partner groups
-                </Link>
-                . This will be how it appears to all your partners.
+                Set the style and content for{" "}
+                {group.slug === DEFAULT_PARTNER_GROUP.slug ? (
+                  "the default group and its dependents"
+                ) : (
+                  <strong className="text-content-emphasis font-semibold">
+                    this group only
+                  </strong>
+                )}
+                .
               </>
             }
           />
@@ -54,7 +58,7 @@ export function BrandingSettingsForm() {
                     previewClassName="object-contain"
                     icon={Plus}
                     variant="plain"
-                    imageSrc={field.value}
+                    imageSrc={field.value ?? defaultGroup.logo}
                     readFile
                     onChange={({ src }) => field.onChange(src)}
                     content={null}
@@ -83,7 +87,7 @@ export function BrandingSettingsForm() {
                     previewClassName="object-contain"
                     icon={Plus}
                     variant="plain"
-                    imageSrc={field.value}
+                    imageSrc={field.value ?? defaultGroup.wordmark}
                     readFile
                     onChange={({ src }) => field.onChange(src)}
                     content={null}
@@ -103,7 +107,7 @@ export function BrandingSettingsForm() {
                 name="brandColor"
                 render={({ field }) => (
                   <ProgramColorPicker
-                    color={field.value}
+                    color={field.value ?? defaultGroup.brandColor}
                     onChange={field.onChange}
                     id={id}
                   />

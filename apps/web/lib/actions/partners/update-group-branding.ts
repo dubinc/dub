@@ -16,7 +16,6 @@ import { isFulfilled, isRejected, nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { ProgramSchema } from "../../zod/schemas/programs";
 import { authActionClient } from "../safe-action";
 
 const schema = z.object({
@@ -51,27 +50,26 @@ export const updateGroupBrandingAction = authActionClient
 
     const { program } = group;
 
-    const logoUpdated = logo && !isStored(logo);
-    const wordmarkUpdated = wordmark && !isStored(wordmark);
-    const brandColorUpdated = brandColor !== program.brandColor;
+    const uploadLogo = logo && !isStored(logo);
+    const uploadWordmark = wordmark && !isStored(wordmark);
 
     const [logoUrl, wordmarkUrl] = await Promise.all([
-      logoUpdated
+      uploadLogo
         ? storage
             .upload({
               key: `programs/${programId}/logo_${nanoid(7)}`,
               body: logo,
             })
             .then(({ url }) => url)
-        : null,
-      wordmarkUpdated
+        : logo,
+      uploadWordmark
         ? storage
             .upload({
               key: `programs/${programId}/wordmark_${nanoid(7)}`,
               body: wordmark,
             })
             .then(({ url }) => url)
-        : null,
+        : wordmark,
     ]);
 
     const landerData = landerDataInput
@@ -91,16 +89,8 @@ export const updateGroupBrandingAction = authActionClient
           : undefined,
         landerData: landerData ? landerData : undefined,
         landerPublishedAt: landerData ? new Date() : undefined,
-      },
-    });
-
-    const updatedProgram = await prisma.program.update({
-      where: {
-        id: programId,
-      },
-      data: {
-        logo: logoUrl ?? undefined,
-        wordmark: wordmarkUrl ?? undefined,
+        logo: logoUrl,
+        wordmark: wordmarkUrl,
         brandColor,
       },
     });
@@ -109,13 +99,15 @@ export const updateGroupBrandingAction = authActionClient
       (async () => {
         const res = await Promise.allSettled([
           // Delete old logo/wordmark if they were updated
-          ...(logoUpdated && program.logo && isStored(program.logo)
-            ? [storage.delete({ key: program.logo.replace(`${R2_URL}/`, "") })]
+          ...(logo !== undefined && group.logo && isStored(group.logo)
+            ? [storage.delete({ key: group.logo.replace(`${R2_URL}/`, "") })]
             : []),
-          ...(wordmarkUpdated && program.wordmark && isStored(program.wordmark)
+          ...(wordmark !== undefined &&
+          group.wordmark &&
+          isStored(group.wordmark)
             ? [
                 storage.delete({
-                  key: program.wordmark.replace(`${R2_URL}/`, ""),
+                  key: group.wordmark.replace(`${R2_URL}/`, ""),
                 }),
               ]
             : []),
@@ -129,9 +121,9 @@ export const updateGroupBrandingAction = authActionClient
          - lander data
          - application form data
         */
-          ...(logoUpdated ||
-          wordmarkUpdated ||
-          brandColorUpdated ||
+          ...(logo !== undefined ||
+          wordmark !== undefined ||
+          brandColor !== undefined ||
           landerData ||
           applicationFormDataInput
             ? [
@@ -146,14 +138,14 @@ export const updateGroupBrandingAction = authActionClient
           recordAuditLog({
             workspaceId: workspace.id,
             programId: program.id,
-            action: "program.updated",
-            description: `Program ${program.name} updated`,
+            action: "group.updated",
+            description: `Group ${updatedGroup.name} (${group.id}) updated`,
             actor: user,
             targets: [
               {
-                type: "program",
-                id: program.id,
-                metadata: updatedProgram,
+                type: "group",
+                id: updatedGroup.id,
+                metadata: updatedGroup,
               },
             ],
           }),
@@ -209,7 +201,6 @@ export const updateGroupBrandingAction = authActionClient
         updatedGroup.applicationFormData,
       ),
       landerData: programLanderSchema.parse(updatedGroup.landerData),
-      program: ProgramSchema.parse(updatedProgram),
     };
   });
 

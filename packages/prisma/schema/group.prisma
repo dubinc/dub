@@ -21,6 +21,9 @@ model PartnerGroup {
   applicationFormPublishedAt DateTime?
   landerData                 Json?                @db.Json
   landerPublishedAt          DateTime?
+  logo                       String?
+  wordmark                   String?
+  brandColor                 String?
   utmTemplateId              String?              @unique
   createdAt                  DateTime             @default(now())
   updatedAt                  DateTime             @updatedAt
