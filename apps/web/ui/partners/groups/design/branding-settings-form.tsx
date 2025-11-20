@@ -29,7 +29,9 @@ export function BrandingSettingsForm() {
 
   const isDirty = FIELDS.some((field) => dirtyFields[field]);
 
-  const { executeAsync, isPending } = useAction(updateGroupBrandingAction, {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const { executeAsync } = useAction(updateGroupBrandingAction, {
     async onSuccess() {
       toast.success("Brand elements updated successfully.");
 
@@ -38,16 +40,19 @@ export function BrandingSettingsForm() {
       );
 
       await mutateGroup();
+      setIsLoading(false);
     },
     onError({ error }) {
       const message = error.serverError || "Failed to update brand elements.";
       toast.error(message);
+      setIsLoading(false);
     },
   });
 
   const handleSave = useCallback(() => {
     if (!workspaceId) return;
 
+    setIsLoading(true);
     executeAsync({
       workspaceId,
       groupId: group.id,
@@ -188,7 +193,7 @@ export function BrandingSettingsForm() {
             text="Save"
             className="h-8 rounded-lg"
             disabled={!isDirty}
-            loading={isPending}
+            loading={isLoading}
             onClick={handleSave}
           />
         </div>
