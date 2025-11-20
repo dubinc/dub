@@ -1,5 +1,5 @@
 import { FraudRule, FraudRuleType } from "@dub/prisma/client";
-import { FRAUD_RULES } from "./constants";
+import { FRAUD_RULES_BY_SCOPE } from "./constants";
 import { FraudRuleProps } from "./types";
 
 // Merges global fraud rules with program-specific overrides.
@@ -7,7 +7,7 @@ import { FraudRuleProps } from "./types";
 export function getMergedFraudRules(programRules: FraudRule[]) {
   const mergedRules: FraudRuleProps[] = [];
 
-  FRAUD_RULES.forEach((globalRule) => {
+  FRAUD_RULES_BY_SCOPE["conversionEvent"].forEach((globalRule) => {
     const programRule = programRules.find((pr) => pr.type === globalRule.type);
 
     // Program override exists - use it

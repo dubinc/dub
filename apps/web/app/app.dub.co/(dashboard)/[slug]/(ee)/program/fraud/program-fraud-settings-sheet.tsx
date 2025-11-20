@@ -28,13 +28,17 @@ function ProgramFraudSettingsSheetContent({
     fetcher,
   );
 
+  console.log(fraudRules)
+
+  const referralSourceBannedRule = fraudRules?.find(
+    (rule) => rule.type === "referralSourceBanned",
+  );
+
   const form = useForm<UpdateFraudRuleSettings>({
     defaultValues: {
       referralSourceBanned: {
-        enabled: false,
-        config: {
-          domains: [],
-        },
+        enabled: referralSourceBannedRule?.enabled ?? false,
+        config: referralSourceBannedRule?.config ?? { domains: [] },
       },
 
       paidTrafficDetected: {
@@ -108,24 +112,6 @@ function ProgramFraudSettingsSheetContent({
         </div>
       </form>
     </FormProvider>
-  );
-}
-
-function FraudRulesSkeleton() {
-  return (
-    <div className="space-y-6">
-      {[...Array(2)].map((_, index) => (
-        <div key={index} className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex-1 space-y-1">
-              <div className="h-5 w-32 animate-pulse rounded-md bg-neutral-200" />
-              <div className="h-4 w-48 animate-pulse rounded-md bg-neutral-200" />
-            </div>
-            <div className="h-5 w-10 animate-pulse rounded-full bg-neutral-200" />
-          </div>
-        </div>
-      ))}
-    </div>
   );
 }
 

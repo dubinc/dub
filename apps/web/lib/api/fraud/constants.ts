@@ -8,6 +8,7 @@ export const FRAUD_RULES: FraudRuleInfo[] = [
     description:
       "Partner's email matches a customer's email and could be a self referral.",
     scope: "conversionEvent",
+    configurable: false,
   },
   {
     type: "customerEmailSuspiciousDomain",
@@ -15,6 +16,7 @@ export const FRAUD_RULES: FraudRuleInfo[] = [
     description:
       "Customer's email uses a disposable or temporary domain which could be a fraud attempt.",
     scope: "conversionEvent",
+    configurable: false,
   },
   {
     type: "referralSourceBanned",
@@ -22,6 +24,7 @@ export const FRAUD_RULES: FraudRuleInfo[] = [
     description:
       "A conversion, event, or click was made on a banned referral domain.",
     scope: "conversionEvent",
+    configurable: true,
   },
   {
     type: "paidTrafficDetected",
@@ -29,6 +32,7 @@ export const FRAUD_RULES: FraudRuleInfo[] = [
     description:
       "A conversion, event, or click was made from paid advertising traffic.",
     scope: "conversionEvent",
+    configurable: true,
   },
   {
     type: "partnerCrossProgramBan",
@@ -37,6 +41,7 @@ export const FRAUD_RULES: FraudRuleInfo[] = [
     scope: "partner",
     severity: "high",
     crossProgram: true,
+    configurable: false,
   },
   {
     type: "partnerDuplicatePayoutMethod",
@@ -46,6 +51,7 @@ export const FRAUD_RULES: FraudRuleInfo[] = [
     scope: "partner",
     severity: "high",
     crossProgram: true,
+    configurable: false,
   },
   {
     type: "partnerEmailDomainMismatch",
@@ -53,6 +59,7 @@ export const FRAUD_RULES: FraudRuleInfo[] = [
     description: "The custom email domain doesn't match the website provided.",
     scope: "partner",
     severity: "low",
+    configurable: false,
   },
   {
     type: "partnerEmailMasked",
@@ -61,6 +68,7 @@ export const FRAUD_RULES: FraudRuleInfo[] = [
       "Uses an anonymized email address. Not harmful but harder to verify or contact directly.",
     scope: "partner",
     severity: "low",
+    configurable: false,
   },
   {
     type: "partnerNoSocialLinks",
@@ -69,6 +77,7 @@ export const FRAUD_RULES: FraudRuleInfo[] = [
       "This partner hasn't provided any social or web presence, making verification harder.",
     scope: "partner",
     severity: "medium",
+    configurable: false,
   },
   {
     type: "partnerNoVerifiedSocialLinks",
@@ -77,6 +86,7 @@ export const FRAUD_RULES: FraudRuleInfo[] = [
       "Partner hasn't verified their website any social presence, making verification harder.",
     scope: "partner",
     severity: "low",
+    configurable: false,
   },
 ] as const;
 
@@ -91,6 +101,10 @@ export const FRAUD_RULES_BY_SCOPE = FRAUD_RULES.reduce(
   },
   {} as Record<FraudRuleInfo["scope"], FraudRuleInfo[]>,
 );
+
+export const CONFIGURABLE_FRAUD_RULES = FRAUD_RULES.filter(
+  (rule) => rule.configurable,
+)
 
 export const FRAUD_SEVERITY_CONFIG: Record<
   FraudSeverity,

@@ -1,14 +1,11 @@
-import { getMergedFraudRules } from "@/lib/api/fraud/get-merged-fraud-rules";
+import { CONFIGURABLE_FRAUD_RULES } from "@/lib/api/fraud/constants";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import {
-  fraudRuleSchema,
-  updateFraudRuleSettingsSchema,
-} from "@/lib/zod/schemas/fraud";
+import { updateFraudRuleSettingsSchema } from "@/lib/zod/schemas/fraud";
 import { prisma } from "@dub/prisma";
+import { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
-import { z } from "zod";
 
 // GET /api/fraud-rules
 export const GET = withWorkspace(
@@ -21,9 +18,17 @@ export const GET = withWorkspace(
       },
     });
 
-    const mergedRules = getMergedFraudRules(fraudRules);
+    const mergedFraudRules = CONFIGURABLE_FRAUD_RULES.map(({ type }) => {
+      const fraudRule = fraudRules.find((f) => f.type === type);
 
-    return NextResponse.json(z.array(fraudRuleSchema).parse(mergedRules));
+      return {
+        type: fraudRule?.type,
+        enabled: fraudRule?.disabledAt === null,
+        config: fraudRule?.config ?? {},
+      };
+    });
+
+    return NextResponse.json(mergedFraudRules);
   },
   {
     requiredPlan: ["advanced", "enterprise"],
@@ -38,10 +43,25 @@ export const PATCH = withWorkspace(
     const { referralSourceBanned, paidTrafficDetected } =
       updateFraudRuleSettingsSchema.parse(await parseRequestBody(req));
 
-    console.log(referralSourceBanned);
-
-    // Update or create each rule
-    // TODO
+    if (referralSourceBanned) {
+      await prisma.fraudRule.upsert({
+        where: {
+          programId_type: {
+            programId,
+            type: "referralSourceBanned",
+          },
+        },
+        create: {
+          programId,
+          type: "referralSourceBanned",
+          config: referralSourceBanned.config ?? Prisma.DbNull,
+        },
+        update: {
+          config: referralSourceBanned.config ?? Prisma.DbNull,
+          disabledAt: referralSourceBanned.enabled ? null : new Date(),
+        },
+      });
+    }
 
     return NextResponse.json({ success: true });
   },

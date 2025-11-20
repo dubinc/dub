@@ -2,7 +2,8 @@
 
 import { updateFraudRuleSettingsSchema } from "@/lib/zod/schemas/fraud";
 import { X } from "@/ui/shared/icons";
-import { Button, Input, Switch } from "@dub/ui";
+import { Button, Switch } from "@dub/ui";
+import { cn } from "@dub/utils/src";
 import { useFormContext } from "react-hook-form";
 import { z } from "zod";
 
@@ -46,13 +47,18 @@ export function FraudReferralSourceSettings() {
   };
 
   return (
-    <div className="space-y-4 rounded-lg border border-neutral-200 p-3">
-      <div className="flex items-center justify-between">
+    <div
+      className={cn(
+        "rounded-xl border border-neutral-200",
+        enabled && "divide-y divide-neutral-200",
+      )}
+    >
+      <div className="flex items-center justify-between p-3">
         <div className="flex-1">
-          <h3 className="text-sm font-medium text-neutral-800">
+          <h3 className="text-sm font-semibold text-neutral-900">
             Referral source
           </h3>
-          <p className="text-content-subtle mt-1 text-xs font-normal tracking-normal">
+          <p className="text-content-subtle mt-0.5 text-xs font-normal tracking-normal">
             Flag specific domains for referral traffic
           </p>
         </div>
@@ -76,26 +82,28 @@ export function FraudReferralSourceSettings() {
       </div>
 
       {enabled && (
-        <div className="space-y-3 pl-1">
+        <div className="space-y-3 p-3">
           <div className="space-y-2">
             {domains.map((domain, index) => (
-              <div key={index} className="flex items-center gap-2">
-                <Input
+              <div key={index} className="group relative w-full">
+                <input
                   type="text"
                   placeholder="https://www.domain.com"
                   value={domain}
-                  className="flex-1"
                   disabled={isSubmitting}
                   onChange={(e) => updateDomain(index, e.target.value)}
+                  className={cn(
+                    "w-full rounded-lg border border-neutral-300 py-2 pl-3 pr-11 text-sm text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 disabled:bg-neutral-100 disabled:text-neutral-500",
+                  )}
                 />
                 <button
                   type="button"
                   onClick={() => removeDomain(index)}
                   disabled={isSubmitting}
-                  className="flex h-9 w-9 items-center justify-center rounded-md text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-500 focus-visible:ring-offset-2 disabled:opacity-50"
+                  className="absolute inset-y-0 right-0 my-1 mr-1 flex h-[calc(100%-0.5rem)] items-center justify-center rounded-md bg-neutral-100 px-3 py-2 text-neutral-500 opacity-0 transition-opacity hover:bg-neutral-200 hover:text-neutral-700 focus:outline-none focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-neutral-500 focus-visible:ring-offset-2 disabled:opacity-50 group-hover:opacity-100"
                   aria-label="Remove domain"
                 >
-                  <X className="h-4 w-4" />
+                  <X className="size-2.5 text-neutral-600" />
                 </button>
               </div>
             ))}
@@ -110,13 +118,17 @@ export function FraudReferralSourceSettings() {
             />
           </div>
 
-          <p className="text-content-subtle text-xs font-normal tracking-normal">
-            Use * to match any part of a domain.{" "}
+          <p className="text-content-subtle text-center text-xs font-normal tracking-normal">
+            Use{" "}
+            <span className="justify-center rounded-md bg-neutral-100 px-1 py-0.5">
+              *
+            </span>{" "}
+            to match any part of a domain.{" "}
             <a
-              href="https://dub.co/help"
+              href="#"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-neutral-600 underline hover:text-neutral-800"
+              className="leading-none underline underline-offset-2 hover:text-neutral-800"
             >
               Learn more
             </a>
