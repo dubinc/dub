@@ -64,7 +64,13 @@ export function ReferralsEmbedPageClient({
   };
   group: Pick<
     PartnerGroupProps,
-    "id" | "additionalLinks" | "maxPartnerLinks" | "linkStructure"
+    | "id"
+    | "logo"
+    | "wordmark"
+    | "brandColor"
+    | "additionalLinks"
+    | "maxPartnerLinks"
+    | "linkStructure"
   >;
   themeOptions: ThemeOptions;
   dynamicHeight: boolean;
@@ -122,11 +128,7 @@ export function ReferralsEmbedPageClient({
     >
       <div className="relative z-0 p-5">
         <div className="border-border-default relative flex flex-col overflow-hidden rounded-lg border p-4 md:p-6">
-          <HeroBackground
-            logo={program.logo}
-            color={program.brandColor}
-            embed
-          />
+          <HeroBackground logo={group.logo} color={group.brandColor} embed />
           <span className="text-content-emphasis text-base font-semibold">
             Referral link
           </span>

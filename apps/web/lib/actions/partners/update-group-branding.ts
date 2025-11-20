@@ -98,20 +98,6 @@ export const updateGroupBrandingAction = authActionClient
     waitUntil(
       (async () => {
         const res = await Promise.allSettled([
-          // Delete old logo/wordmark if they were updated
-          ...(logo !== undefined && group.logo && isStored(group.logo)
-            ? [storage.delete({ key: group.logo.replace(`${R2_URL}/`, "") })]
-            : []),
-          ...(wordmark !== undefined &&
-          group.wordmark &&
-          isStored(group.wordmark)
-            ? [
-                storage.delete({
-                  key: group.wordmark.replace(`${R2_URL}/`, ""),
-                }),
-              ]
-            : []),
-
           /*
          Revalidate public pages if the following fields were updated:
          - name

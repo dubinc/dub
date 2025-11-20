@@ -123,8 +123,8 @@ export default function ProgramPageClient() {
               >
                 {program && (
                   <HeroBackground
-                    logo={program.logo}
-                    color={program.brandColor}
+                    logo={programEnrollment.group?.logo}
+                    color={programEnrollment.group?.brandColor}
                   />
                 )}
 

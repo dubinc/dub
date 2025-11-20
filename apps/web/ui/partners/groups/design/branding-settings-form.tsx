@@ -2,9 +2,8 @@
 
 import { updateGroupBrandingAction } from "@/lib/actions/partners/update-group-branding";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { ProgramColorPicker } from "@/ui/partners/program-color-picker";
-import { Button, FileUpload, InfoTooltip, Switch } from "@dub/ui";
+import { Button, FileUpload, InfoTooltip } from "@dub/ui";
 import { Plus } from "@dub/ui/icons";
 import { cn } from "@dub/utils/src";
 import { useAction } from "next-safe-action/hooks";
@@ -68,45 +67,18 @@ export function BrandingSettingsForm() {
             label="Brand elements"
             description={
               <>
-                Set the style and content for{" "}
-                {group.slug === DEFAULT_PARTNER_GROUP.slug ? (
-                  "the default group and its dependents"
-                ) : (
-                  <strong className="text-content-emphasis font-semibold">
-                    this group only
-                  </strong>
-                )}
+                Set the style and content for this partner group.{" "}
+                <a
+                  className="cursor-help font-semibold underline decoration-dotted underline-offset-2"
+                  href="https://dub.co/help/article/program-landing-page"
+                  target="_blank"
+                >
+                  Learn more
+                </a>
                 .
               </>
             }
-          >
-            {group.slug === DEFAULT_PARTNER_GROUP.slug
-              ? undefined
-              : () => (
-                  <label className="bg-bg-emphasis flex cursor-pointer select-none items-center gap-3.5 rounded-lg py-2 pl-3.5 pr-2">
-                    <Switch
-                      checked={useDefaultGroup}
-                      trackDimensions="radix-state-checked:bg-black focus-visible:ring-black/20 w-7 h-4 radix-state-unchecked:bg-bg-inverted/10"
-                      thumbDimensions="size-3"
-                      thumbTranslate="translate-x-3"
-                      fn={(checked) => {
-                        if (
-                          checked &&
-                          getValues(FIELDS).some((value) => value !== null)
-                        ) {
-                          FIELDS.forEach((field) =>
-                            setValue(field, null, { shouldDirty: true }),
-                          );
-                        }
-                        setUseDefaultGroup(checked);
-                      }}
-                    />
-                    <span className="text-content-default text-xs">
-                      Use the default group brand elements
-                    </span>
-                  </label>
-                )}
-          </FormRow>
+          ></FormRow>
 
           <Divider />
 
