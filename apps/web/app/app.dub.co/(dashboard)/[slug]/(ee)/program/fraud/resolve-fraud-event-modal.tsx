@@ -1,6 +1,6 @@
 "use client";
 
-import { resolveFraudEventsAction } from "@/lib/actions/fraud/resolve-fraud-event";
+import { resolveFraudEventsAction } from "@/lib/actions/fraud/resolve-fraud-events";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { FraudEventProps } from "@/lib/types";
