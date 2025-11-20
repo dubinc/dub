@@ -147,7 +147,7 @@ export const PLANS: PlanDetails[] = [
       users: 1,
       ai: 10,
       api: 60,
-      analyticsApi: 1, // per second
+      analyticsApi: 0, // analytics API is not available on the Free plan
       retention: "30-day",
     },
   },
