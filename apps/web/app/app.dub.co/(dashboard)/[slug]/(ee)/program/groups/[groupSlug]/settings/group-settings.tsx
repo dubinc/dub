@@ -81,7 +81,7 @@ function GroupSettingsForm({ group }: { group: GroupProps }) {
         </div>
         <SettingsRow
           heading="Name"
-          description="For internal use only, never visible to partners"
+          description="For internal use only, never visible to partners."
         >
           <div className="relative">
             <input
@@ -209,44 +209,27 @@ function GroupSettingsForm({ group }: { group: GroupProps }) {
 function GroupSettingsFormSkeleton() {
   return (
     <div className="border-border-subtle rounded-lg border">
-      <div className="px-5 py-5">
-        <div className="mb-4 h-6 w-20 animate-pulse rounded bg-neutral-200" />
-        <div className="space-y-6 py-2">
-          {/* Name field skeleton */}
-          <div>
-            <div className="mb-2 h-4 w-10 animate-pulse rounded bg-neutral-200" />
-            <div className="relative">
-              <div className="h-10 w-full animate-pulse rounded-md bg-neutral-200" />
-              <div className="absolute inset-y-0 right-0 flex items-center pr-2.5">
-                <div className="h-6 w-6 animate-pulse rounded-full bg-neutral-300" />
-              </div>
-            </div>
-            <div className="mt-2 h-3 w-56 animate-pulse rounded bg-neutral-100" />
-          </div>
-
-          {/* Group slug field skeleton */}
-          <div>
-            <div className="mb-2 h-4 w-32 animate-pulse rounded bg-neutral-200" />
-            <div className="flex">
-              <div className="h-10 w-48 animate-pulse rounded-l-md bg-neutral-200" />
-              <div className="h-10 w-full animate-pulse rounded-r-md bg-neutral-200" />
-            </div>
-            <div className="mt-2 h-3 w-48 animate-pulse rounded bg-neutral-100" />
-          </div>
-
-          {/* Group ID field skeleton */}
-          <div>
-            <div className="mb-2 h-4 w-32 animate-pulse rounded bg-neutral-200" />
-            <div className="flex">
-              <div className="h-10 w-48 animate-pulse rounded-l-md bg-neutral-200" />
-              <div className="h-10 w-full animate-pulse rounded-r-md bg-neutral-200" />
-            </div>
-            <div className="mt-2 h-3 w-48 animate-pulse rounded bg-neutral-100" />
-          </div>
+      <div className="flex flex-col divide-y divide-neutral-200">
+        <div className="px-6 py-6">
+          <h3 className="text-content-emphasis text-lg font-semibold leading-7">
+            Group
+          </h3>
         </div>
+        {[...Array(3)].map((_, index) => (
+          <div
+            key={index}
+            className="grid grid-cols-1 gap-10 px-6 py-8 sm:grid-cols-2"
+          >
+            <div className="flex flex-col gap-1">
+              <div className="h-4 w-32 animate-pulse rounded bg-neutral-200" />
+              <div className="h-5 w-48 animate-pulse rounded bg-neutral-200" />
+            </div>
+            <div className="h-10 w-full animate-pulse rounded-md bg-neutral-200" />
+          </div>
+        ))}
       </div>
 
-      <div className="border-border-subtle flex items-center justify-end rounded-b-lg border-t bg-neutral-50 px-6 py-5">
+      <div className="border-border-subtle flex items-center justify-end rounded-b-lg border-t bg-neutral-50 px-6 py-4">
         <div className="h-8 w-28 animate-pulse rounded bg-neutral-200" />
       </div>
     </div>

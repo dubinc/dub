@@ -4,12 +4,14 @@ import { updateAutoApprovePartnersAction } from "@/lib/actions/partners/update-a
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { useExportApplicationsModal } from "@/ui/modals/export-applications-modal";
 import { ThreeDots } from "@/ui/shared/icons";
 import { Button, LoadingSpinner, Popover, UserCheck, UserXmark } from "@dub/ui";
 import { Download } from "@dub/ui/icons";
 import { useAction } from "next-safe-action/hooks";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -82,11 +84,8 @@ export function ApplicationsMenu() {
                 Application Settings
               </p>
               {program?.autoApprovePartnersEnabledAt ? (
-                <button
-                  onClick={() => {
-                    setShowConfirmDisableAutoApproveModal(true);
-                    setIsOpen(false);
-                  }}
+                <Link
+                  href={`/${workspaceSlug}/program/groups/${DEFAULT_PARTNER_GROUP.slug}/settings`}
                   className="w-full rounded-md p-2 hover:bg-neutral-100 active:bg-neutral-200"
                 >
                   <div className="flex items-center gap-2 text-left">
@@ -95,13 +94,10 @@ export function ApplicationsMenu() {
                       Disable auto-approve
                     </span>
                   </div>
-                </button>
+                </Link>
               ) : (
-                <button
-                  onClick={() => {
-                    setShowConfirmEnableAutoApproveModal(true);
-                    setIsOpen(false);
-                  }}
+                <Link
+                  href={`/${workspaceSlug}/program/groups/${DEFAULT_PARTNER_GROUP.slug}/settings`}
                   className="w-full rounded-md p-2 hover:bg-neutral-100 active:bg-neutral-200"
                 >
                   <div className="flex items-center gap-2 text-left">
@@ -110,7 +106,7 @@ export function ApplicationsMenu() {
                       Enable auto-approve
                     </span>
                   </div>
-                </button>
+                </Link>
               )}
               <button
                 onClick={() => {

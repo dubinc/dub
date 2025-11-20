@@ -70,6 +70,8 @@ export const PATCH = withWorkspace(
       applicationFormData,
       landerData,
       holdingPeriodDays,
+      autoApprovePartners,
+      updateAutoApprovePartnersForAllGroups,
     } = updateGroupSchema.parse(await parseRequestBody(req));
 
     // Only check slug uniqueness if slug is being updated
@@ -124,29 +126,54 @@ export const PATCH = withWorkspace(
         })
       : null;
 
-    const updatedGroup = await prisma.partnerGroup.update({
-      where: {
-        id: group.id,
-      },
-      data: {
-        name,
-        slug,
-        color,
-        additionalLinks,
-        maxPartnerLinks,
-        linkStructure,
-        utmTemplateId,
-        applicationFormData,
-        landerData,
-        holdingPeriodDays,
-      },
-      include: {
-        clickReward: true,
-        leadReward: true,
-        saleReward: true,
-        discount: true,
-      },
-    });
+    const [updatedGroup] = await Promise.all([
+      prisma.partnerGroup.update({
+        where: {
+          id: group.id,
+        },
+        data: {
+          name,
+          slug,
+          color,
+          additionalLinks,
+          maxPartnerLinks,
+          linkStructure,
+          utmTemplateId,
+          applicationFormData,
+          landerData,
+          holdingPeriodDays,
+          ...(autoApprovePartners !== undefined &&
+            !updateAutoApprovePartnersForAllGroups && {
+              autoApprovePartnersEnabledAt: autoApprovePartners
+                ? new Date()
+                : null,
+            }),
+        },
+        include: {
+          clickReward: true,
+          leadReward: true,
+          saleReward: true,
+          discount: true,
+        },
+      }),
+
+      // Update auto-approve for all groups if selected
+      ...(autoApprovePartners !== undefined &&
+      updateAutoApprovePartnersForAllGroups
+        ? [
+            prisma.partnerGroup.updateMany({
+              where: {
+                programId,
+              },
+              data: {
+                autoApprovePartnersEnabledAt: autoApprovePartners
+                  ? new Date()
+                  : null,
+              },
+            }),
+          ]
+        : []),
+    ]);
 
     waitUntil(
       (async () => {

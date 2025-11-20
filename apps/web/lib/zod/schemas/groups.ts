@@ -131,9 +131,15 @@ export const updateGroupSchema = createGroupSchema.partial().extend({
   landerData: programLanderSchema.optional(),
   holdingPeriodDays: z.coerce
     .number()
-    .refine((val) => PAYOUT_HOLDING_PERIOD_DAYS.includes(val), {
-      message: `Holding period must be ${PAYOUT_HOLDING_PERIOD_DAYS.join(", ")} days`,
-    }),
+    .refine(
+      (val) => val === undefined || PAYOUT_HOLDING_PERIOD_DAYS.includes(val),
+      {
+        message: `Holding period must be ${PAYOUT_HOLDING_PERIOD_DAYS.join(", ")} days`,
+      },
+    )
+    .optional(),
+  autoApprovePartners: z.coerce.boolean().optional(),
+  updateAutoApprovePartnersForAllGroups: z.coerce.boolean().optional(),
 });
 
 export const PartnerGroupDefaultLinkSchema = z.object({
