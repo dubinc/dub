@@ -98,34 +98,74 @@ export const fraudRuleSchema = z.object({
 });
 
 export const updateFraudRuleSettingsSchema = z.object({
-  referralSourceBanned: z.object({
-    enabled: z.boolean(),
-    config: z
-      .object({
-        domains: z
-          .array(z.string())
-          .optional()
-          .transform((domains) => {
-            if (!domains || domains.length === 0) return [];
+  // Referral source banned rule
+  referralSourceBanned: z
+    .object({
+      enabled: z.boolean(),
+      config: z
+        .object({
+          domains: z
+            .array(z.string())
+            .optional()
+            .transform((domains) => {
+              if (!domains || domains.length === 0) return [];
 
-            return Array.from(
-              new Set(
-                domains
-                  .map((d) => d.trim().toLowerCase())
-                  .filter((d) => d !== ""),
-              ),
-            );
-          }),
-      })
-      .optional(),
-  }),
+              return Array.from(
+                new Set(
+                  domains
+                    .map((d) => d.trim().toLowerCase())
+                    .filter((d) => d !== ""),
+                ),
+              );
+            }),
+        })
+        .optional(),
+    })
+    .transform((data) => {
+      // Remove the config if the rule is disabled
+      if (!data.enabled) {
+        return { ...data, config: undefined };
+      }
 
-  paidTrafficDetected: z.object({
-    enabled: z.boolean(),
-    config: z
-      .object({
-        platforms: z.array(z.enum(PAID_TRAFFIC_PLATFORMS)).optional(),
-      })
-      .optional(),
-  }),
+      // Disable the rule if enabled but has no config
+      if (
+        data.enabled &&
+        (!data.config ||
+          !data.config.domains ||
+          data.config.domains.length === 0)
+      ) {
+        return { ...data, enabled: false, config: undefined };
+      }
+
+      return data;
+    }),
+
+  // Paid traffic detected rule
+  paidTrafficDetected: z
+    .object({
+      enabled: z.boolean(),
+      config: z
+        .object({
+          platforms: z.array(z.enum(PAID_TRAFFIC_PLATFORMS)).optional(),
+        })
+        .optional(),
+    })
+    .transform((data) => {
+      // Remove the config if the rule is disabled
+      if (!data.enabled) {
+        return { ...data, config: undefined };
+      }
+
+      // Disable the rule if enabled but has no config
+      if (
+        data.enabled &&
+        (!data.config ||
+          !data.config.platforms ||
+          data.config.platforms.length === 0)
+      ) {
+        return { ...data, enabled: false, config: undefined };
+      }
+
+      return data;
+    }),
 });

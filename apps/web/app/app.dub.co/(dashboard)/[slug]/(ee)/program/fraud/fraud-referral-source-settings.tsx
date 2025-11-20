@@ -88,7 +88,7 @@ export function FraudReferralSourceSettings() {
               <div key={index} className="group relative w-full">
                 <input
                   type="text"
-                  placeholder="https://www.domain.com"
+                  placeholder="https://www.reddit.com"
                   value={domain}
                   disabled={isSubmitting}
                   onChange={(e) => updateDomain(index, e.target.value)}
@@ -114,7 +114,7 @@ export function FraudReferralSourceSettings() {
               text="Add domain"
               onClick={addDomain}
               disabled={isSubmitting}
-              className="h-9"
+              className="h-8"
             />
           </div>
 
