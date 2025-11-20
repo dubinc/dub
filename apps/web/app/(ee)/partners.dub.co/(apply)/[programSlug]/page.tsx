@@ -68,7 +68,7 @@ export default async function ApplyPage(props: {
           {landerData.blocks.map((block, idx) => {
             const Component = BLOCK_COMPONENTS[block.type];
             return Component ? (
-              <Component key={idx} block={block} program={program} />
+              <Component key={idx} block={block} group={program.group} />
             ) : null;
           })}
         </div>

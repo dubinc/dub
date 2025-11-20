@@ -1,7 +1,7 @@
 "use client";
 
 import { getRewardAmount } from "@/lib/partners/get-reward-amount";
-import { ProgramProps } from "@/lib/types";
+import { GroupProps } from "@/lib/types";
 import { programLanderEarningsCalculatorBlockSchema } from "@/lib/zod/schemas/program-lander";
 import { InvoiceDollar } from "@dub/ui";
 import NumberFlow from "@number-flow/react";
@@ -13,22 +13,19 @@ import { BlockTitle } from "./block-title";
 
 export function EarningsCalculatorBlock({
   block,
-  program,
+  group,
   showTitleAndDescription = true,
 }: {
   block: z.infer<typeof programLanderEarningsCalculatorBlockSchema>;
-  program: ProgramProps;
+  group: Pick<GroupProps, "saleReward" | "brandColor">;
   showTitleAndDescription?: boolean;
 }) {
   const id = useId();
   const [value, setValue] = useState(10);
 
-  if (!program.rewards?.length) return null;
+  if (!group?.saleReward) return null;
 
-  const reward = program.rewards.find((r) => r.event === "sale");
-  if (!reward) return null;
-
-  const rewardAmount = getRewardAmount(reward);
+  const rewardAmount = getRewardAmount(group.saleReward);
   const revenue = value * ((block.data.productPrice || 30_00) / 100);
 
   return (
@@ -36,9 +33,7 @@ export function EarningsCalculatorBlock({
       {showTitleAndDescription && (
         <div className="space-y-2">
           <BlockTitle title="Earnings calculator" />
-          <BlockDescription
-            description={`See how much you could earn by referring customers to ${program?.name || "our program"}.`}
-          />
+          <BlockDescription description="See how much you could earn by referring customers to our program." />
         </div>
       )}
 
@@ -64,25 +59,25 @@ export function EarningsCalculatorBlock({
             value={value}
             onChange={(e) => setValue(Number(e.target.value))}
             className="mt-4 w-full"
-            style={{ accentColor: program.brandColor || "black" }}
+            style={{ accentColor: group.brandColor || "black" }}
           />
           <div className="mt-2 flex items-center gap-1">
             <InvoiceDollar className="size-3.5 text-neutral-400" />
             <p className="text-xs text-neutral-500">
-              {formatRewardDescription(reward)}
+              {formatRewardDescription(group.saleReward)}
             </p>
           </div>
         </div>
         <div className="relative border-t border-neutral-200">
           <div
             className="absolute inset-0 opacity-5"
-            style={{ backgroundColor: program.brandColor || "black" }}
+            style={{ backgroundColor: group.brandColor || "black" }}
           />
           <div className="flex flex-col items-center justify-center p-4 font-semibold text-neutral-800/60 sm:p-6">
             <span>You can earn</span>
             <NumberFlow
               value={Math.floor(
-                reward.type === "flat"
+                group.saleReward.type === "flat"
                   ? (value * rewardAmount) / 100
                   : revenue * (rewardAmount / 100),
               )}
