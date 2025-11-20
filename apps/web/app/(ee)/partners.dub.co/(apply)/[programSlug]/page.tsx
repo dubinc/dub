@@ -42,12 +42,12 @@ export default async function ApplyPage(props: {
       className="relative"
       style={
         {
-          "--brand": program.brandColor || "#000000",
+          "--brand": program.group.brandColor || "#000000",
           "--brand-ring": "rgb(from var(--brand) r g b / 0.2)",
         } as CSSProperties
       }
     >
-      <ApplyHeader program={program} />
+      <ApplyHeader group={program.group} />
       <div className="p-6">
         <LanderHero program={program} landerData={landerData} />
 
