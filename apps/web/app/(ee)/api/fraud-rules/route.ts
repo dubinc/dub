@@ -22,7 +22,7 @@ export const GET = withWorkspace(
       const fraudRule = fraudRules.find((f) => f.type === type);
 
       return {
-        type: fraudRule?.type,
+        type,
         enabled: fraudRule?.disabledAt === null,
         config: fraudRule?.config ?? {},
       };

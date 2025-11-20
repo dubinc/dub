@@ -7,7 +7,7 @@ import { FraudRuleProps, UpdateFraudRuleSettings } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
 import { Button, Sheet } from "@dub/ui";
 import { fetcher } from "@dub/utils";
-import { Dispatch, SetStateAction, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import useSWR from "swr";
@@ -28,27 +28,41 @@ function ProgramFraudSettingsSheetContent({
     fetcher,
   );
 
-  console.log(fraudRules)
-
-  const referralSourceBannedRule = fraudRules?.find(
-    (rule) => rule.type === "referralSourceBanned",
-  );
-
   const form = useForm<UpdateFraudRuleSettings>({
     defaultValues: {
+      referralSourceBanned: {
+        enabled: false,
+        config: { domains: [] },
+      },
+      paidTrafficDetected: {
+        enabled: false,
+        config: { platforms: [] },
+      },
+    },
+  });
+
+  useEffect(() => {
+    if (!fraudRules) return;
+
+    const referralSourceBannedRule = fraudRules.find(
+      (rule) => rule.type === "referralSourceBanned",
+    );
+
+    const paidTrafficDetectedRule = fraudRules.find(
+      (rule) => rule.type === "paidTrafficDetected",
+    );
+
+    form.reset({
       referralSourceBanned: {
         enabled: referralSourceBannedRule?.enabled ?? false,
         config: referralSourceBannedRule?.config ?? { domains: [] },
       },
-
       paidTrafficDetected: {
-        enabled: false,
-        config: {
-          platforms: [],
-        },
+        enabled: paidTrafficDetectedRule?.enabled ?? false,
+        config: paidTrafficDetectedRule?.config ?? { platforms: [] },
       },
-    },
-  });
+    });
+  }, [fraudRules, form]);
 
   const {
     handleSubmit,
