@@ -254,11 +254,12 @@ async function createApplicationAndEnrollment({
         notifyPartnerApplication({
           partner,
           program,
+          group,
           application,
         }),
 
-        // Auto-approve the partner
-        program.autoApprovePartnersEnabledAt
+        // Auto-approve the partner if the group has auto-approval enabled
+        group.autoApprovePartnersEnabledAt
           ? qstash.publishJSON({
               url: `${APP_DOMAIN_WITH_NGROK}/api/cron/auto-approve-partner`,
               delay: 5 * 60,
