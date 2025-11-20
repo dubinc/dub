@@ -76,6 +76,7 @@ export const PATCH = withReferralsEmbedToken(
       workspace: {
         id: program.workspaceId,
         plan: "business",
+        users: [{ role: "owner" }],
       },
       userId: link.userId!,
       skipKeyChecks,

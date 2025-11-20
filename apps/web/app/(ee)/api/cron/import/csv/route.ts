@@ -4,7 +4,7 @@ import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { bulkCreateLinks, createLink, processLink } from "@/lib/api/links";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
-import { ProcessedLinkProps, WorkspaceProps } from "@/lib/types";
+import { ProcessedLinkProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { linkMappingSchema } from "@/lib/zod/schemas/import-csv";
 import { createLinkBodySchema } from "@/lib/zod/schemas/links";
@@ -384,6 +384,11 @@ const processMappedLinks = async ({
     select: {
       id: true,
       plan: true,
+      users: {
+        where: {
+          userId,
+        },
+      },
     },
   });
 
@@ -397,10 +402,7 @@ const processMappedLinks = async ({
             folderId,
           }),
         },
-        workspace: {
-          id: workspaceId,
-          plan: workspace.plan as WorkspaceProps["plan"],
-        },
+        workspace,
         userId,
         bulk: true,
       }),
