@@ -1,6 +1,6 @@
+import { FraudEventContext } from "@/lib/types";
 import { redisWithTimeout } from "@/lib/upstash/redis";
 import { defineFraudRule } from "../define-fraud-rule";
-import { FraudEventContext } from "../types";
 
 export const checkCustomerEmailSuspicious = defineFraudRule({
   type: "customerEmailSuspiciousDomain",

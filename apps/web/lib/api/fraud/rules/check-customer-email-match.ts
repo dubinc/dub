@@ -1,5 +1,5 @@
+import { FraudEventContext } from "@/lib/types";
 import { defineFraudRule } from "../define-fraud-rule";
-import { FraudEventContext } from "../types";
 import { normalizeEmail } from "../utils";
 
 export const checkCustomerEmailMatch = defineFraudRule({

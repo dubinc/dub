@@ -1,6 +1,6 @@
+import { FraudRuleProps } from "@/lib/types";
 import { FraudRule, FraudRuleType } from "@dub/prisma/client";
 import { FRAUD_RULES_BY_SCOPE } from "./constants";
-import { FraudRuleProps } from "./types";
 
 // Merges global fraud rules with program-specific overrides.
 // Returns an array of merged rules with the program override taking precedence when it exists.

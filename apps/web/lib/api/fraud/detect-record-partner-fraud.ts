@@ -23,7 +23,9 @@ export async function detectAndRecordPartnerFraud({
 
   const allPartnerRules = FRAUD_RULES_BY_SCOPE["partner"];
   const fraudRules = ruleTypes
-    ? allPartnerRules.filter((rule) => ruleTypes.includes(rule.type))
+    ? allPartnerRules.filter((rule) =>
+        ruleTypes.includes(rule.type as FraudRuleType),
+      )
     : allPartnerRules;
 
   if (fraudRules.length === 0) {
@@ -39,13 +41,13 @@ export async function detectAndRecordPartnerFraud({
   for (const rule of fraudRules) {
     try {
       const { triggered } = await executeFraudRule({
-        type: rule.type,
+        type: rule.type as FraudRuleType,
         context: validatedContext,
       });
 
       if (triggered) {
         triggeredRules.push({
-          type: rule.type,
+          type: rule.type as FraudRuleType,
         });
       }
     } catch (error) {

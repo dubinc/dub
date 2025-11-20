@@ -1,6 +1,6 @@
+import { FraudPartnerContext } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { defineFraudRule } from "../define-fraud-rule";
-import { FraudPartnerContext } from "../types";
 
 export const checkCrossProgramBan = defineFraudRule({
   type: "partnerCrossProgramBan",

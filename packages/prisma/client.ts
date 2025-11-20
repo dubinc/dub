@@ -14,7 +14,6 @@ export {
   FolderType,
   FolderUserRole,
   FraudEventStatus,
-  FraudRiskLevel,
   FraudRuleType,
   IndustryInterest,
   InvoiceStatus,

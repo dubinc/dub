@@ -1,7 +1,7 @@
+import { FraudEventContext } from "@/lib/types";
 import { getSearchParams } from "@dub/utils";
 import { z } from "zod";
 import { defineFraudRule } from "../define-fraud-rule";
-import { FraudEventContext } from "../types";
 
 const configSchema = z.object({
   queryParams: z

@@ -1,6 +1,6 @@
+import { FraudTriggeredRule } from "@/lib/types";
 import { FraudRuleType } from "@dub/prisma/client";
 import { fraudRulesRegistry } from "./fraud-rules-registry";
-import { FraudTriggeredRule } from "./types";
 
 // Execute a fraud rule with the given context and configuration
 export async function executeFraudRule<T extends FraudRuleType>({

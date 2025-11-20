@@ -1,23 +1,3 @@
-enum FraudEventStatus {
-  pending
-  resolved
-}
-
-enum FraudRiskLevel {
-  high
-  medium
-  low
-}
-
-enum FraudRuleType {
-  customerEmailMatch
-  customerEmailSuspiciousDomain
-  referralSourceBanned
-  paidTrafficDetected
-  partnerCrossProgramBan
-  partnerDuplicatePayoutMethod
-}
-
 model FraudRule {
   id         String        @id @default(cuid())
   programId  String
@@ -63,4 +43,18 @@ model FraudEvent {
   @@index(eventId)
   @@index(userId)
   @@index(commissionId)
+}
+
+enum FraudEventStatus {
+  pending
+  resolved
+}
+
+enum FraudRuleType {
+  customerEmailMatch
+  customerEmailSuspiciousDomain
+  referralSourceBanned
+  paidTrafficDetected
+  partnerCrossProgramBan
+  partnerDuplicatePayoutMethod
 }
