@@ -45,6 +45,14 @@ export async function queueStripePayouts(
       invoiceId,
       status: "processing",
       mode: "internal",
+      partner: {
+        stripeConnectId: {
+          not: null,
+        },
+        payoutsEnabledAt: {
+          not: null,
+        },
+      },
     },
   });
 
