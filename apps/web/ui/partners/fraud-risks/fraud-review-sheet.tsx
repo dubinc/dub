@@ -1,15 +1,20 @@
 "use client";
 
+import useWorkspace from "@/lib/swr/use-workspace";
 import { FraudEventProps } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
 import {
   Button,
   ChevronLeft,
   ChevronRight,
+  Msgs,
   Sheet,
+  User,
+  buttonVariants,
   useKeyboardShortcut,
 } from "@dub/ui";
-import { cn } from "@dub/utils";
+import { OG_AVATAR_URL, cn } from "@dub/utils";
+import Link from "next/link";
 import { Dispatch, SetStateAction, useState } from "react";
 
 interface FraudReviewSheetProps {
@@ -24,6 +29,10 @@ function FraudReviewSheetContent({
   onPrevious,
   onNext,
 }: FraudReviewSheetProps) {
+  const { partner } = fraudEvent;
+
+  const { slug: workspaceSlug } = useWorkspace();
+
   // Left/right arrow keys for previous/next fraud event
   useKeyboardShortcut("ArrowRight", () => onNext?.(), { sheet: true });
   useKeyboardShortcut("ArrowLeft", () => onPrevious?.(), { sheet: true });
@@ -66,7 +75,54 @@ function FraudReviewSheetContent({
           </div>
         </div>
 
-        <div className="p-6">WIP: {JSON.stringify(fraudEvent)}</div>
+        <div className="flex flex-col gap-6 p-6">
+          {/* Partner details */}
+          <div className="bg-bg-muted border-border-subtle flex items-center justify-between gap-3 rounded-xl border px-4 py-3">
+            <div className="flex min-w-0 items-center gap-3">
+              <img
+                src={partner.image || `${OG_AVATAR_URL}${partner.name}`}
+                alt={partner.name}
+                className="size-10 rounded-full"
+              />
+              <div className="flex min-w-0 flex-col">
+                <span className="text-content-emphasis truncate text-sm font-semibold">
+                  {partner.name}
+                </span>
+                <span className="text-content-subtle truncate text-xs font-medium">
+                  {partner.email}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Link
+                href={`/${workspaceSlug}/program/messages/${partner.id}`}
+                target="_blank"
+                className={cn(
+                  buttonVariants({ variant: "secondary" }),
+                  "flex h-8 items-center gap-2 whitespace-nowrap rounded-lg border px-3 text-sm font-medium",
+                )}
+              >
+                <Msgs className="size-4 shrink-0" />
+                <span className="hidden sm:inline">Message</span>
+              </Link>
+
+              <Link
+                href={`/${workspaceSlug}/program/partners/${partner.id}`}
+                target="_blank"
+                className={cn(
+                  buttonVariants({ variant: "secondary" }),
+                  "flex h-8 items-center gap-2 whitespace-nowrap rounded-lg border px-3 text-sm font-medium",
+                )}
+              >
+                <User className="size-4 shrink-0" />
+                <span className="hidden sm:inline">View profile</span>
+              </Link>
+            </div>
+          </div>
+
+          <div>WIP: {JSON.stringify(fraudEvent)}</div>
+        </div>
 
         <div className="flex grow flex-col justify-end p-5">controls</div>
       </div>
