@@ -531,7 +531,7 @@ export function PartnersTable() {
           />
           <SearchBoxPersisted
             placeholder="Search by name or email"
-            inputClassName="md:w-[19rem]"
+            inputClassName="md:w-72"
           />
         </div>
         <AnimatedSizeContainer height>

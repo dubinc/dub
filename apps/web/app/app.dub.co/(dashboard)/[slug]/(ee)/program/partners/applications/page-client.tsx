@@ -17,8 +17,10 @@ import { PartnerSocialColumn } from "@/ui/partners/partner-social-column";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import {
+  AnimatedSizeContainer,
   Button,
   EditColumnsButton,
+  Filter,
   MenuItem,
   Popover,
   Table,
@@ -41,6 +43,8 @@ import { useAction } from "next-safe-action/hooks";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
+import { usePartnerFilters } from "../use-partner-filters";
+
 const applicationsColumns = {
   all: [
     "partner",
@@ -68,8 +72,20 @@ export function ProgramPartnersApplicationsPageClient() {
   const { queryParams, searchParams, getQueryString } = useRouterStuff();
 
   const search = searchParams.get("search");
-  const sortBy = searchParams.get("sortBy") || "saleAmount";
+  const sortBy = searchParams.get("sortBy") || "createdAt";
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
+
+  const {
+    filters,
+    activeFilters,
+    onSelect,
+    onRemove,
+    onRemoveAll,
+    isFiltered,
+  } = usePartnerFilters({ sortBy, sortOrder, status: "pending" }, [
+    "groupId",
+    "country",
+  ]);
 
   const { partnersCount, error: countError } = usePartnersCount<number>({
     status: "pending",
@@ -84,7 +100,8 @@ export function ProgramPartnersApplicationsPageClient() {
       {
         workspaceId,
         status: "pending",
-        sortBy: "createdAt",
+        sortBy,
+        sortOrder,
       },
       { exclude: ["partnerId"] },
     )}`,
@@ -446,11 +463,35 @@ export function ProgramPartnersApplicationsPageClient() {
       <BulkApprovePartnersModal />
       {rejectModal}
 
-      <div className="w-min">
-        <SearchBoxPersisted
-          placeholder="Search by name or email"
-          inputClassName="md:w-72"
-        />
+      <div>
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <Filter.Select
+            className="w-full md:w-fit"
+            filters={filters}
+            activeFilters={activeFilters}
+            onSelect={onSelect}
+            onRemove={onRemove}
+          />
+          <SearchBoxPersisted
+            placeholder="Search by name or email"
+            inputClassName="md:w-72"
+          />
+        </div>
+        <AnimatedSizeContainer height>
+          <div>
+            {activeFilters.length > 0 && (
+              <div className="pt-3">
+                <Filter.List
+                  filters={filters}
+                  activeFilters={activeFilters}
+                  onSelect={onSelect}
+                  onRemove={onRemove}
+                  onRemoveAll={onRemoveAll}
+                />
+              </div>
+            )}
+          </div>
+        </AnimatedSizeContainer>
       </div>
       {partners?.length !== 0 ? (
         <Table {...tableProps} table={table} />
@@ -458,8 +499,8 @@ export function ProgramPartnersApplicationsPageClient() {
         <AnimatedEmptyState
           title="No applications found"
           description={
-            search
-              ? "No applications found for your search."
+            isFiltered || search
+              ? "No applications found for the selected filters."
               : "No applications have been submitted for this program."
           }
           cardContent={() => (
