@@ -1,21 +1,59 @@
 "use client";
 
+import { updateGroupBrandingAction } from "@/lib/actions/partners/update-group-branding";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { ProgramColorPicker } from "@/ui/partners/program-color-picker";
-import { FileUpload, InfoTooltip } from "@dub/ui";
+import { Button, FileUpload, InfoTooltip, Switch } from "@dub/ui";
 import { Plus } from "@dub/ui/icons";
 import { cn } from "@dub/utils/src";
-import { ReactNode, useId } from "react";
-import { Controller } from "react-hook-form";
+import { useAction } from "next-safe-action/hooks";
+import { ReactNode, useCallback, useId, useState } from "react";
+import { Controller, useFormState } from "react-hook-form";
+import { toast } from "sonner";
 import { useBrandingContext } from "./branding-context-provider";
 import { useBrandingFormContext } from "./branding-form";
 
-export function BrandingSettingsForm() {
-  const { slug } = useWorkspace();
-  const { control } = useBrandingFormContext();
+const FIELDS = ["logo", "wordmark", "brandColor"] as const;
 
-  const { group, defaultGroup } = useBrandingContext();
+export function BrandingSettingsForm() {
+  const { id: workspaceId } = useWorkspace();
+
+  const { defaultGroup, group, mutateGroup } = useBrandingContext();
+  const { control, getValues, setValue, resetField } = useBrandingFormContext();
+  const { dirtyFields } = useFormState({ control });
+
+  const [useDefaultGroup, setUseDefaultGroup] = useState(() =>
+    getValues(FIELDS).every((value) => value === null),
+  );
+
+  const isDirty = FIELDS.some((field) => dirtyFields[field]);
+
+  const { executeAsync, isPending } = useAction(updateGroupBrandingAction, {
+    async onSuccess() {
+      toast.success("Brand elements updated successfully.");
+
+      FIELDS.forEach((field) =>
+        resetField(field, { keepDirty: false, defaultValue: getValues(field) }),
+      );
+
+      await mutateGroup();
+    },
+    onError({ error }) {
+      const message = error.serverError || "Failed to update brand elements.";
+      toast.error(message);
+    },
+  });
+
+  const handleSave = useCallback(() => {
+    if (!workspaceId) return;
+
+    executeAsync({
+      workspaceId,
+      groupId: group.id,
+      ...Object.fromEntries(FIELDS.map((field) => [field, getValues(field)])),
+    });
+  }, [getValues, group.id, workspaceId]);
 
   return (
     <div>
@@ -36,7 +74,34 @@ export function BrandingSettingsForm() {
                 .
               </>
             }
-          />
+          >
+            {group.slug === DEFAULT_PARTNER_GROUP.slug
+              ? undefined
+              : () => (
+                  <label className="bg-bg-emphasis flex cursor-pointer select-none items-center gap-3.5 rounded-lg py-2 pl-3.5 pr-2">
+                    <Switch
+                      checked={useDefaultGroup}
+                      trackDimensions="radix-state-checked:bg-black focus-visible:ring-black/20 w-7 h-4 radix-state-unchecked:bg-bg-inverted/10"
+                      thumbDimensions="size-3"
+                      thumbTranslate="translate-x-3"
+                      fn={(checked) => {
+                        if (
+                          checked &&
+                          getValues(FIELDS).some((value) => value !== null)
+                        ) {
+                          FIELDS.forEach((field) =>
+                            setValue(field, null, { shouldDirty: true }),
+                          );
+                        }
+                        setUseDefaultGroup(checked);
+                      }}
+                    />
+                    <span className="text-content-default text-xs">
+                      Use the default group brand elements
+                    </span>
+                  </label>
+                )}
+          </FormRow>
 
           <Divider />
 
@@ -44,6 +109,7 @@ export function BrandingSettingsForm() {
             label="Logo"
             tooltip="A square 1:1 logo used in various parts of the partner portal."
             required
+            disabled={useDefaultGroup}
           >
             {(id) => (
               <Controller
@@ -72,6 +138,7 @@ export function BrandingSettingsForm() {
           <FormRow
             label="Wordmark"
             tooltip="Optional full-sized wordmark used in the navigation menu bar."
+            disabled={useDefaultGroup}
           >
             {(id) => (
               <Controller
@@ -100,7 +167,7 @@ export function BrandingSettingsForm() {
 
           <Divider />
 
-          <FormRow label="Brand color" inline>
+          <FormRow label="Brand color" inline disabled={useDefaultGroup}>
             {(id) => (
               <Controller
                 control={control}
@@ -115,6 +182,15 @@ export function BrandingSettingsForm() {
               />
             )}
           </FormRow>
+
+          <Button
+            type="button"
+            text="Save"
+            className="h-8 rounded-lg"
+            disabled={!isDirty}
+            loading={isPending}
+            onClick={handleSave}
+          />
         </div>
       </div>
     </div>
@@ -128,6 +204,7 @@ function FormRow({
   description,
   inline = false,
   required,
+  disabled = false,
   tooltip,
   children,
 }: {
@@ -136,6 +213,7 @@ function FormRow({
   inline?: boolean;
   children?: (id: string) => ReactNode;
   required?: boolean;
+  disabled?: boolean;
   tooltip?: string;
 }) {
   const id = useId();
@@ -143,8 +221,9 @@ function FormRow({
   return (
     <div
       className={cn(
-        "flex flex-col justify-between gap-5",
+        "flex flex-col justify-between gap-5 transition-opacity ease-out",
         inline && "flex-row items-center",
+        disabled && "pointer-events-none opacity-50",
       )}
     >
       <div className="flex flex-col gap-1">
