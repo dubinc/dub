@@ -80,6 +80,7 @@ export const VALID_ANALYTICS_ENDPOINTS = [
   "top_domains",
   "top_links",
   "top_urls",
+  "top_base_urls",
   "top_partners",
   "top_groups",
   "utm_sources",
@@ -111,6 +112,7 @@ export const SINGULAR_ANALYTICS_ENDPOINTS = {
   top_domains: "domain",
   top_links: "link",
   top_urls: "url",
+  top_base_urls: "url",
   top_groups: "groupId",
   timeseries: "start",
 };

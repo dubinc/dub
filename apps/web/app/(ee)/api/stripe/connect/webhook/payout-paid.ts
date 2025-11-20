@@ -1,6 +1,7 @@
 import { sendEmail } from "@dub/email";
 import PartnerPayoutWithdrawalCompleted from "@dub/email/templates/partner-payout-withdrawal-completed";
 import { prisma } from "@dub/prisma";
+import { currencyFormatter } from "@dub/utils";
 import Stripe from "stripe";
 
 export async function payoutPaid(event: Stripe.Event) {
@@ -35,7 +36,7 @@ export async function payoutPaid(event: Stripe.Event) {
   if (partner.email) {
     const sentEmail = await sendEmail({
       variant: "notifications",
-      subject: "Your funds have been transferred to your bank account",
+      subject: `Your ${currencyFormatter(stripePayout.amount, { currency: stripePayout.currency })} auto-withdrawal from Dub has been transferred to your bank`,
       to: partner.email,
       react: PartnerPayoutWithdrawalCompleted({
         email: partner.email,

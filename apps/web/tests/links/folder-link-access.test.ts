@@ -1,7 +1,7 @@
 import { Link } from "@dub/prisma/client";
+import { IntegrationHarnessMember } from "tests/utils/integration-member";
 import { expectedLink } from "tests/utils/schema";
 import { describe, expect, test } from "vitest";
-import { IntegrationHarness } from "../utils/integration";
 import {
   E2E_LINK,
   E2E_NO_ACCESS_FOLDER_ID,
@@ -14,7 +14,7 @@ import {
 const { domain, url } = E2E_LINK;
 
 describe.concurrent("Folder access permissions", async () => {
-  const h = new IntegrationHarness();
+  const h = new IntegrationHarnessMember();
   const { http } = await h.init();
 
   describe("create link in a folder", async () => {
@@ -305,12 +305,12 @@ describe.concurrent("Folder access permissions", async () => {
     expect(status).toEqual(200);
     expect(data).toEqual([
       {
-        error: `You don't have permission to move this link to the folder: ${E2E_READ_ONLY_FOLDER_ID}`,
+        error: `You don't have permission to update links in this folder: ${E2E_NO_ACCESS_FOLDER_ID}`,
         code: "forbidden",
         link: expect.any(Object),
       },
       {
-        error: `You don't have permission to move this link to the folder: ${E2E_NO_ACCESS_FOLDER_ID}`,
+        error: `You don't have permission to update links in this folder: ${E2E_READ_ONLY_FOLDER_ID}`,
         code: "forbidden",
         link: expect.any(Object),
       },

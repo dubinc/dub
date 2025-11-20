@@ -197,7 +197,9 @@ export function CampaignsTable() {
           )}
           addButton={!isFiltered ? <CreateCampaignButton /> : undefined}
           learnMoreHref={
-            !isFiltered ? "https://dub.co/docs/email-campaigns" : undefined
+            !isFiltered
+              ? "https://dub.co/help/article/email-campaigns"
+              : undefined
           }
         />
       )}

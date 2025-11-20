@@ -227,15 +227,10 @@ function PartnerLinkModalContent({
 
   // Auto-generate short link key for new links
   useEffect(() => {
-    const name = session?.user?.name;
-
-    if (!key && name && !keyInputFocused && !isLoading) {
-      const namePrefix = name.split(" ")[0];
-      const randomSuffix = nanoid(4).toLowerCase();
-      const generatedKey = `${namePrefix}-${randomSuffix}`;
-      setValue("key", generatedKey.toLowerCase(), { shouldDirty: false });
+    if (!key && !keyInputFocused && !isLoading) {
+      setValue("key", nanoid(7), { shouldDirty: false });
     }
-  }, [key, session, setValue, keyInputFocused, isLoading]);
+  }, [key, setValue, keyInputFocused, isLoading]);
 
   useEffect(() => {
     if (!selectedAdditionalLink || isEditingLink) {

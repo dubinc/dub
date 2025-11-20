@@ -14,7 +14,7 @@ import {
 } from "@dub/ui/icons";
 import { TRIGGER_DISPLAY } from "./trigger-display";
 
-export default function DeviceIcon({
+export function DeviceIcon({
   display,
   tab,
   className,

@@ -17,7 +17,6 @@ model Reward {
   type               RewardStructure @default(percentage)
   amountInCents      Int?
   amountInPercentage Decimal?        @db.Decimal(5, 2)
-  amount             Int             @default(0) // TODO: Remove after migration
   maxDuration        Int? // in months (0 -> not recurring, null -> infinite)
   modifiers          Json?           @db.Json
   createdAt          DateTime        @default(now())

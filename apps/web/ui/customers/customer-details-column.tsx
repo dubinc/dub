@@ -10,7 +10,7 @@ import {
 } from "@dub/utils";
 import { useParams } from "next/navigation";
 import { Fragment, HTMLProps, useMemo } from "react";
-import DeviceIcon from "../analytics/device-icon";
+import { DeviceIcon } from "../analytics/device-icon";
 import { ConditionalLink } from "../shared/conditional-link";
 
 export function CustomerDetailsColumn({

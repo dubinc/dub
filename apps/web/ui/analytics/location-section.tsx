@@ -11,11 +11,11 @@ import { useContext, useState } from "react";
 import { AnalyticsCard } from "./analytics-card";
 import { AnalyticsLoadingSpinner } from "./analytics-loading-spinner";
 import { AnalyticsContext } from "./analytics-provider";
-import BarList from "./bar-list";
-import ContinentIcon from "./continent-icon";
+import { BarList } from "./bar-list";
+import { ContinentIcon } from "./continent-icon";
 import { useAnalyticsFilterOption } from "./utils";
 
-export default function Locations() {
+export function LocationSection() {
   const { queryParams, searchParams } = useRouterStuff();
 
   const { selectedTab, saleUnit } = useContext(AnalyticsContext);

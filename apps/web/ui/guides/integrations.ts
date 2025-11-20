@@ -127,6 +127,13 @@ export const guides: IntegrationGuide[] = [
   },
   {
     type: "track-lead",
+    key: "gtm-track-lead",
+    title: "Google Tag Manager",
+    icon: GoogleTagManager,
+    url: "https://dub.co/docs/conversions/leads/google-tag-manager",
+  },
+  {
+    type: "track-lead",
     key: "clerk",
     title: "Clerk",
     icon: Clerk,
@@ -166,13 +173,6 @@ export const guides: IntegrationGuide[] = [
     title: "Appwrite",
     icon: Appwrite,
     url: "https://dub.co/docs/conversions/leads/appwrite",
-  },
-  {
-    type: "track-lead",
-    key: "gtm-track-lead",
-    title: "Google Tag Manager",
-    icon: GoogleTagManager,
-    url: "https://dub.co/docs/conversions/leads/google-tag-manager",
   },
 
   // Track Sales

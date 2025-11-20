@@ -192,25 +192,23 @@ export const bulkBanPartnersAction = authActionClient
         });
 
         await sendBatchEmail(
-          programEnrollments
-            .filter(({ partner }) => partner.email)
-            .map(({ partner }) => ({
-              to: partner.email!,
-              subject: `You've been banned from the ${program.name} Partner Program`,
-              variant: "notifications",
-              replyTo: program.supportEmail || "noreply",
-              react: PartnerBanned({
-                partner: {
-                  name: partner.name,
-                  email: partner.email!,
-                },
-                program: {
-                  name: program.name,
-                  slug: program.slug,
-                },
-                bannedReason: BAN_PARTNER_REASONS[parsedInput.reason],
-              }),
-            })),
+          programEnrollments.map(({ partner }) => ({
+            to: partner.email!,
+            subject: `You've been banned from the ${program.name} Partner Program`,
+            variant: "notifications",
+            replyTo: program.supportEmail || "noreply",
+            react: PartnerBanned({
+              partner: {
+                name: partner.name,
+                email: partner.email!,
+              },
+              program: {
+                name: program.name,
+                slug: program.slug,
+              },
+              bannedReason: BAN_PARTNER_REASONS[parsedInput.reason],
+            }),
+          })),
         );
       })(),
     );

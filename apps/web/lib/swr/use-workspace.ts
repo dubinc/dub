@@ -2,6 +2,7 @@ import { ExtendedWorkspaceProps } from "@/lib/types";
 import { PRO_PLAN, fetcher, getNextPlan } from "@dub/utils";
 import { useParams, useSearchParams } from "next/navigation";
 import useSWR, { SWRConfiguration } from "swr";
+import { MEGA_WORKSPACE_LINKS_LIMIT } from "../constants/misc";
 
 export default function useWorkspace({
   swrOpts,
@@ -37,7 +38,8 @@ export default function useWorkspace({
     exceededAI: workspace && workspace.aiUsage >= workspace.aiLimit,
     exceededDomains:
       workspace?.domains && workspace.domains.length >= workspace.domainsLimit,
-    isMegaWorkspace: workspace && workspace.totalLinks > 1_000_000,
+    isMegaWorkspace:
+      workspace && workspace.totalLinks > MEGA_WORKSPACE_LINKS_LIMIT,
     error,
     defaultFolderId: workspace?.users && workspace.users[0].defaultFolderId,
     mutate,

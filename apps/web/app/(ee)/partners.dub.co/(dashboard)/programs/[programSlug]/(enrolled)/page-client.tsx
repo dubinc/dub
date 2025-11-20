@@ -288,10 +288,28 @@ function EarningsChart() {
     end,
   });
 
+  const { data: analyticsData } = usePartnerAnalytics({
+    event: "composite",
+    groupBy: "count",
+    interval,
+    start,
+    end,
+  });
+
   const total = useMemo(
     () => timeseries?.reduce((acc, { earnings }) => acc + earnings, 0),
     [timeseries],
   );
+
+  const totalClicks = useMemo(
+    () => analyticsData?.clicks ?? 0,
+    [analyticsData],
+  );
+
+  const epc = useMemo(() => {
+    if (!total || !totalClicks || totalClicks === 0) return 0;
+    return total / totalClicks;
+  }, [total, totalClicks]);
 
   const data = useMemo(
     () =>
@@ -305,25 +323,42 @@ function EarningsChart() {
   return (
     <div>
       <div className="flex flex-col-reverse items-start justify-between gap-4 md:flex-row">
-        <div>
-          <span className="block text-base font-semibold leading-none text-neutral-800">
-            Earnings
-          </span>
-          <div className="mt-1">
-            {total !== undefined ? (
-              <NumberFlow
-                className="text-lg font-medium leading-none text-neutral-600"
-                value={total / 100}
-                format={{
-                  style: "currency",
-                  currency: "USD",
-                  // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
-                  trailingZeroDisplay: "stripIfInteger",
-                }}
-              />
-            ) : (
-              <div className="h-[27px] w-24 animate-pulse rounded-md bg-neutral-200" />
-            )}
+        <div className="flex items-center gap-6">
+          <div>
+            <span className="block text-base font-semibold leading-none text-neutral-800">
+              Earnings
+            </span>
+            <div className="mt-1 flex items-center gap-2">
+              {total !== undefined ? (
+                <>
+                  <NumberFlow
+                    className="text-lg font-medium leading-none text-neutral-600"
+                    value={total / 100}
+                    format={{
+                      style: "currency",
+                      currency: "USD",
+                      // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
+                      trailingZeroDisplay: "stripIfInteger",
+                    }}
+                  />
+                  {total > 0 && analyticsData && (
+                    <NumberFlow
+                      className="text-sm font-medium leading-none text-neutral-500/80"
+                      value={epc / 100}
+                      format={{
+                        style: "currency",
+                        currency: "USD",
+                        // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
+                        trailingZeroDisplay: "stripIfInteger",
+                      }}
+                      suffix=" EPC"
+                    />
+                  )}
+                </>
+              ) : (
+                <div className="h-[27px] w-24 animate-pulse rounded-md bg-neutral-200" />
+              )}
+            </div>
           </div>
         </div>
         <div className="flex w-full items-center gap-2 md:w-auto">

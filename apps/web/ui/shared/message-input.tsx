@@ -15,7 +15,7 @@ import { EmojiPicker } from "../shared/emoji-picker";
 
 export function MessageInput({
   onSendMessage,
-  defaultValue = "",
+  defaultValue,
   onCancel,
   autoFocus,
   placeholder = "Type a message...",
@@ -31,7 +31,7 @@ export function MessageInput({
   className?: string;
 }) {
   const richTextRef = useRef<{ setContent: (content: any) => void }>(null);
-  const [typedMessage, setTypedMessage] = useState(defaultValue);
+  const [typedMessage, setTypedMessage] = useState(defaultValue || "");
 
   const sendMessage = () => {
     const message = typedMessage.trim();
@@ -58,6 +58,7 @@ export function MessageInput({
         autoFocus={autoFocus}
         placeholder={placeholder}
         editorClassName="block max-h-24 w-full resize-none border-none overflow-auto scrollbar-hide p-3 text-base sm:text-sm"
+        initialValue={defaultValue}
         onChange={(editor) => setTypedMessage((editor as any).getMarkdown())}
         editorProps={{
           handleDOMEvents: {

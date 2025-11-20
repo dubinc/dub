@@ -78,13 +78,13 @@ export const getFinalUrl = (
 
   // for Google Play Store links
   if (isGooglePlayStoreUrl(url)) {
-    const { shortLink } = parse(req);
+    const { shortLink, searchParamsString } = parse(req);
     const existingReferrer = urlObj.searchParams.get("referrer");
 
     const referrerSearchParam = new URLSearchParams(
       existingReferrer ? decodeURIComponent(existingReferrer) : "",
     );
-    referrerSearchParam.set("deepLink", shortLink);
+    referrerSearchParam.set("deepLink", `${shortLink}${searchParamsString}`);
     urlObj.searchParams.set("referrer", referrerSearchParam.toString());
   }
 

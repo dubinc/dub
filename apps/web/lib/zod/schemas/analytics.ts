@@ -9,8 +9,8 @@ import {
 import z from "@/lib/zod";
 import {
   CONTINENT_CODES,
+  DEFAULT_PAGINATION_LIMIT,
   DUB_FOUNDING_DATE,
-  PAGINATION_LIMIT,
   capitalize,
   formatDate,
 } from "@dub/utils";
@@ -320,7 +320,7 @@ export const eventsFilterTB = analyticsFilterTB
   .and(
     z.object({
       offset: z.coerce.number().default(0),
-      limit: z.coerce.number().default(PAGINATION_LIMIT),
+      limit: z.coerce.number().default(DEFAULT_PAGINATION_LIMIT),
       order: z.enum(["asc", "desc"]).default("desc"),
       sortBy: z.enum(["timestamp"]).default("timestamp"),
     }),
@@ -342,7 +342,10 @@ export const eventsQuerySchema = analyticsQuerySchema
         "The type of event to retrieve analytics for. Defaults to 'clicks'.",
       ),
     page: z.coerce.number().default(1),
-    limit: z.coerce.number().default(PAGINATION_LIMIT),
+    limit: z.coerce
+      .number()
+      .max(1000, { message: "Max pagination limit is 1000 items per page." })
+      .default(DEFAULT_PAGINATION_LIMIT),
     sortOrder,
     sortBy: z
       .enum(["timestamp"])

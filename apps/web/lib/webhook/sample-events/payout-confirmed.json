@@ -8,6 +8,7 @@
   "periodStart": "2025-10-22T15:49:33.343Z",
   "periodEnd": "2025-10-31T18:29:59.999Z",
   "createdAt": "2025-10-22T15:50:13.661Z",
+  "initiatedAt": "2025-10-22T15:50:13.661Z",
   "paidAt": null,
   "mode": "external",
   "partner": {

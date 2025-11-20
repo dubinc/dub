@@ -51,6 +51,7 @@ export const POST = withWorkspace(
         variant: campaign.type === "marketing" ? "marketing" : "notifications",
         to: email,
         ...(from && { from: `${program.name} <${from}>` }),
+        ...(program.supportEmail ? { replyTo: program.supportEmail } : {}),
         subject: `[TEST] ${subject}`,
         react: CampaignEmail({
           program: {

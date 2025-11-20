@@ -12,6 +12,7 @@ import {
   AnimatedSizeContainer,
   Filter,
   Table,
+  TimestampTooltip,
   Tooltip,
   usePagination,
   useRouterStuff,
@@ -21,7 +22,7 @@ import { CircleArrowRight, InvoiceDollar, MoneyBill2 } from "@dub/ui/icons";
 import {
   OG_AVATAR_URL,
   currencyFormatter,
-  formatDate,
+  formatDateSmart,
   formatPeriod,
 } from "@dub/utils";
 import Link from "next/link";
@@ -94,14 +95,48 @@ export function PayoutTable() {
         ),
       },
       {
+        id: "initiatedAt",
+        header: "Initiated",
+        meta: {
+          headerTooltip:
+            "Date and time when the payout was initiated by the program. Payouts usually take up to 5 business days to be fully processed.",
+        },
+        cell: ({ row }) =>
+          row.original.initiatedAt ? (
+            <TimestampTooltip
+              timestamp={row.original.initiatedAt}
+              side="right"
+              rows={["local", "utc"]}
+            >
+              <span className="hover:text-content-emphasis underline decoration-dotted underline-offset-2">
+                {formatDateSmart(row.original.initiatedAt, { month: "short" })}
+              </span>
+            </TimestampTooltip>
+          ) : (
+            "-"
+          ),
+      },
+      {
         id: "paidAt",
         header: "Paid",
+        meta: {
+          headerTooltip:
+            "Date and time when the payout was fully processed by the program and paid to your account.",
+        },
         cell: ({ row }) =>
-          row.original.paidAt
-            ? formatDate(row.original.paidAt, {
-                month: "short",
-              })
-            : "-",
+          row.original.paidAt ? (
+            <TimestampTooltip
+              timestamp={row.original.paidAt}
+              side="right"
+              rows={["local", "utc"]}
+            >
+              <span className="hover:text-content-emphasis underline decoration-dotted underline-offset-2">
+                {formatDateSmart(row.original.paidAt, { month: "short" })}
+              </span>
+            </TimestampTooltip>
+          ) : (
+            "-"
+          ),
       },
       {
         id: "amount",

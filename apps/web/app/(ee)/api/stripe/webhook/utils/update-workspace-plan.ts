@@ -69,15 +69,6 @@ export async function updateWorkspacePlan({
         },
       }),
 
-      prisma.restrictedToken.updateMany({
-        where: {
-          projectId: workspace.id,
-        },
-        data: {
-          rateLimit: newPlan.limits.api,
-        },
-      }),
-
       // expire tokens cache
       tokenCache.expireMany({
         hashedKeys: workspace.restrictedTokens.map(

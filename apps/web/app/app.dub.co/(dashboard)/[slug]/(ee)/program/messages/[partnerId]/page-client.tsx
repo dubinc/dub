@@ -31,7 +31,11 @@ export function ProgramMessagesPartnerPageClient() {
   const { partnerId } = useParams() as { partnerId: string };
   const { user } = useUser();
   const { program } = useProgram();
-  const { partner: enrolledPartner, error: enrolledPartnerError } = usePartner(
+  const {
+    partner: enrolledPartner,
+    error: enrolledPartnerError,
+    loading: enrolledPartnerLoading,
+  } = usePartner(
     { partnerId },
     { shouldRetryOnError: (err) => err.status !== 404 },
   );
@@ -72,7 +76,7 @@ export function ProgramMessagesPartnerPageClient() {
   const { executeAsync: sendMessage } = useAction(messagePartnerAction);
 
   const { setCurrentPanel } = useMessagesContext();
-  const [isRightPanelOpen, setIsRightPanelOpen] = useState(false);
+  const [isRightPanelOpen, setIsRightPanelOpen] = useState(true);
 
   if (errorMessages) redirect(`/${workspaceSlug}/program/messages`);
 
@@ -213,41 +217,96 @@ export function ProgramMessagesPartnerPageClient() {
       </div>
 
       {/* Right panel - Profile */}
-      {enrolledPartner && (
-        <div
-          className={cn(
-            "absolute right-0 top-0 h-full min-h-0 w-0 overflow-hidden bg-white shadow-lg transition-[width]",
-            "@[960px]/page:shadow-none @[960px]/page:relative",
-            isRightPanelOpen && "w-full sm:w-[340px]",
-          )}
-        >
-          <div className="border-border-subtle flex size-full min-h-0 w-full flex-col border-l sm:w-[340px]">
-            <div className="border-border-subtle flex h-12 shrink-0 items-center justify-between gap-4 border-b px-4 sm:h-16 sm:px-6">
-              <h2 className="text-content-emphasis text-lg font-semibold leading-7">
-                Profile
-              </h2>
-              <div className="flex items-center gap-2">
-                <ViewPartnerButton partnerId={partnerId} isEnrolled={true} />
-                <button
-                  type="button"
-                  onClick={() => setIsRightPanelOpen(false)}
-                  className="@[960px]/page:hidden rounded-lg p-2 text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-900"
-                >
-                  <X className="size-4" />
-                </button>
-              </div>
-            </div>
-            <div className="bg-bg-muted scrollbar-hide flex grow flex-col gap-4 overflow-y-scroll p-6">
-              <PartnerInfoSection partner={enrolledPartner} />
-              <PartnerInfoGroup partner={enrolledPartner} />
-              <PartnerInfoStats
-                partner={enrolledPartner}
-                className="xs:grid-cols-2"
-              />
+      <div
+        className={cn(
+          "absolute right-0 top-0 h-full min-h-0 w-0 overflow-hidden bg-white shadow-lg transition-[width]",
+          "@[960px]/page:shadow-none @[960px]/page:relative",
+          isRightPanelOpen && "w-full sm:w-[340px]",
+        )}
+      >
+        <div className="border-border-subtle flex size-full min-h-0 w-full flex-col border-l sm:w-[340px]">
+          <div className="border-border-subtle flex h-12 shrink-0 items-center justify-between gap-4 border-b px-4 sm:h-16 sm:px-6">
+            <h2 className="text-content-emphasis text-lg font-semibold leading-7">
+              Profile
+            </h2>
+            <div className="flex items-center gap-2">
+              <ViewPartnerButton partnerId={partnerId} isEnrolled={true} />
+              <button
+                type="button"
+                onClick={() => setIsRightPanelOpen(false)}
+                className="@[960px]/page:hidden rounded-lg p-2 text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-900"
+              >
+                <X className="size-4" />
+              </button>
             </div>
           </div>
+          <div className="bg-bg-muted scrollbar-hide flex grow flex-col gap-4 overflow-y-scroll p-6">
+            {enrolledPartnerLoading ? (
+              <>
+                <PartnerInfoSectionSkeleton />
+                <PartnerInfoGroupSkeleton />
+                <PartnerInfoStatsSkeleton className="xs:grid-cols-2" />
+              </>
+            ) : enrolledPartner ? (
+              <>
+                <PartnerInfoSection partner={enrolledPartner} />
+                <PartnerInfoGroup partner={enrolledPartner} />
+                <PartnerInfoStats
+                  partner={enrolledPartner}
+                  className="xs:grid-cols-2"
+                />
+              </>
+            ) : null}
+          </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function PartnerInfoSectionSkeleton() {
+  return (
+    <div className="flex items-start justify-between gap-6">
+      <div>
+        <div className="size-12 animate-pulse rounded-full bg-neutral-200" />
+        <div className="mt-4 flex min-w-0 items-start gap-2">
+          <div className="h-6 w-32 animate-pulse rounded-md bg-neutral-200" />
+          <div className="h-5 w-16 animate-pulse rounded-md bg-neutral-200" />
+        </div>
+        <div className="mt-0.5 flex items-center gap-1">
+          <div className="h-4 w-40 animate-pulse rounded-md bg-neutral-200" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PartnerInfoGroupSkeleton() {
+  return (
+    <div className="flex items-center justify-between rounded-lg border border-neutral-200 bg-neutral-100 p-2 pl-3">
+      <div className="flex min-w-0 items-center gap-2">
+        <div className="size-3 shrink-0 animate-pulse rounded-full bg-neutral-200" />
+        <div className="h-5 w-16 animate-pulse rounded-md bg-neutral-200" />
+      </div>
+      <div className="h-7 w-24 animate-pulse rounded-lg bg-neutral-200" />
+    </div>
+  );
+}
+
+function PartnerInfoStatsSkeleton({ className }: { className?: string }) {
+  return (
+    <div
+      className={cn(
+        "xs:grid-cols-3 grid shrink-0 grid-cols-2 gap-px overflow-hidden rounded-lg border border-neutral-200 bg-neutral-200",
+        className,
       )}
+    >
+      {[...Array(6)].map((_, idx) => (
+        <div key={idx} className="flex flex-col bg-neutral-50 p-3">
+          <div className="h-3 w-16 animate-pulse rounded-md bg-neutral-200" />
+          <div className="mt-1 h-5 w-20 animate-pulse rounded-md bg-neutral-200" />
+        </div>
+      ))}
     </div>
   );
 }

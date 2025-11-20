@@ -4,6 +4,7 @@ import { throwIfLinksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { validateLinksQueryFilters } from "@/lib/api/links/validate-links-query-filters";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { MEGA_WORKSPACE_LINKS_LIMIT } from "@/lib/constants/misc";
 import { ratelimit } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {
@@ -20,7 +21,7 @@ export const GET = withWorkspace(
   async ({ headers, searchParams, workspace, session }) => {
     const filters = getLinksQuerySchemaExtended.parse(searchParams);
 
-    const { selectedFolder, folderIds } = await validateLinksQueryFilters({
+    const { folderIds } = await validateLinksQueryFilters({
       ...filters,
       workspace,
       userId: session.user.id,
@@ -30,7 +31,8 @@ export const GET = withWorkspace(
       ...filters,
       workspaceId: workspace.id,
       folderIds,
-      searchMode: selectedFolder?.type === "mega" ? "exact" : "fuzzy",
+      searchMode:
+        workspace.totalLinks > MEGA_WORKSPACE_LINKS_LIMIT ? "exact" : "fuzzy",
     });
 
     return NextResponse.json(response, {

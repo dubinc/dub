@@ -3,9 +3,11 @@
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { AnalyticsLoadingSpinner } from "@/ui/analytics/analytics-loading-spinner";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
+import { FilterButtonTableRow } from "@/ui/shared/filter-button-table-row";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import { InvoiceStatus } from "@dub/prisma/client";
 import {
+  Filter,
   StatusBadge,
   Table,
   usePagination,
@@ -13,9 +15,16 @@ import {
   useTable,
 } from "@dub/ui";
 import { Areas, TimeSeriesChart, XAxis, YAxis } from "@dub/ui/charts";
-import { cn, currencyFormatter, fetcher, formatDateTime } from "@dub/utils";
+import { CircleDotted, GridIcon } from "@dub/ui/icons";
+import {
+  cn,
+  currencyFormatter,
+  fetcher,
+  formatDateTime,
+  OG_AVATAR_URL,
+} from "@dub/utils";
 import NumberFlow from "@number-flow/react";
-import { Fragment, useMemo, useState } from "react";
+import { Fragment, useCallback, useMemo, useState } from "react";
 import useSWR from "swr";
 
 interface TimeseriesData {
@@ -27,6 +36,7 @@ interface TimeseriesData {
 
 interface InvoiceData {
   date: Date;
+  programId: string;
   programName: string;
   programLogo: string;
   status: InvoiceStatus;
@@ -43,7 +53,7 @@ type Tab = {
 
 export default function PayoutsPageClient() {
   const { queryParams, getQueryString, searchParamsObj } = useRouterStuff();
-  const { interval, start, end } = searchParamsObj;
+  const { interval, start, end, status, programId } = searchParamsObj;
 
   const { data: { invoices, timeseriesData } = {}, isLoading } = useSWR<{
     invoices: InvoiceData[];
@@ -51,6 +61,114 @@ export default function PayoutsPageClient() {
   }>(`/api/admin/payouts${getQueryString()}`, fetcher, {
     keepPreviousData: true,
   });
+
+  // Extract unique programs from invoices
+  const programs = useMemo(() => {
+    if (!invoices) return [];
+    const programMap = new Map<
+      string,
+      { id: string; name: string; logo: string }
+    >();
+    invoices.forEach((invoice) => {
+      if (!programMap.has(invoice.programId)) {
+        programMap.set(invoice.programId, {
+          id: invoice.programId,
+          name: invoice.programName,
+          logo: invoice.programLogo,
+        });
+      }
+    });
+    return Array.from(programMap.values()).sort((a, b) =>
+      a.name.localeCompare(b.name),
+    );
+  }, [invoices]);
+
+  // Filter configuration
+  const filters = useMemo(
+    () => [
+      {
+        key: "programId",
+        icon: GridIcon,
+        label: "Program",
+        options:
+          programs.map((program) => ({
+            value: program.id,
+            label: program.name,
+            icon: (
+              <img
+                src={program.logo || `${OG_AVATAR_URL}${program.name}`}
+                alt={`${program.name} image`}
+                className="size-4 rounded-full"
+              />
+            ),
+          })) ?? null,
+      },
+      {
+        key: "status",
+        icon: CircleDotted,
+        label: "Status",
+        options: Object.entries(PayoutStatusBadges)
+          .filter(([key]) =>
+            ["processing", "completed", "failed"].includes(key),
+          )
+          .map(([value, { label }]) => {
+            const Icon =
+              PayoutStatusBadges[value as keyof typeof PayoutStatusBadges].icon;
+            return {
+              value,
+              label,
+              icon: (
+                <Icon
+                  className={cn(
+                    PayoutStatusBadges[value as keyof typeof PayoutStatusBadges]
+                      .className,
+                    "size-4 bg-transparent",
+                  )}
+                />
+              ),
+            };
+          }),
+      },
+    ],
+    [programs],
+  );
+
+  const activeFilters = useMemo(() => {
+    return [
+      ...(programId ? [{ key: "programId", value: programId }] : []),
+      ...(status ? [{ key: "status", value: status }] : []),
+    ];
+  }, [programId, status]);
+
+  const onSelect = useCallback(
+    (key: string, value: any) =>
+      queryParams({
+        set: {
+          [key]: value,
+        },
+        del: "page",
+      }),
+    [queryParams],
+  );
+
+  const onRemove = useCallback(
+    (key: string) =>
+      queryParams({
+        del: [key, "page"],
+      }),
+    [queryParams],
+  );
+
+  const onRemoveAll = useCallback(
+    () =>
+      queryParams({
+        del: ["status", "programId"],
+      }),
+    [queryParams],
+  );
+
+  const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
 
   const tabs: Tab[] = [
     {
@@ -131,6 +249,11 @@ export default function PayoutsPageClient() {
             </span>
           </div>
         ),
+        meta: {
+          filterParams: ({ row }) => ({
+            programId: row.original.programId,
+          }),
+        },
       },
       {
         id: "status",
@@ -145,6 +268,11 @@ export default function PayoutsPageClient() {
           ) : (
             "-"
           );
+        },
+        meta: {
+          filterParams: ({ row }) => ({
+            status: row.original.status,
+          }),
         },
       },
       {
@@ -171,11 +299,49 @@ export default function PayoutsPageClient() {
     resourceName: (plural) => `invoice${plural ? "s" : ""}`,
     rowCount: invoices?.length ?? 0,
     loading: isLoading,
+    cellRight: (cell) => {
+      const meta = cell.column.columnDef.meta as
+        | {
+            filterParams?: any;
+          }
+        | undefined;
+
+      return (
+        meta?.filterParams && (
+          <FilterButtonTableRow set={meta.filterParams(cell)} />
+        )
+      );
+    },
   });
 
   return (
-    <div className="mx-auto flex w-full max-w-screen-xl flex-col space-y-6 p-6">
-      <SimpleDateRangePicker defaultInterval="mtd" className="w-fit" />
+    <div className="mx-auto flex w-full max-w-screen-xl flex-col gap-3 p-6">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center">
+        <Filter.Select
+          className="w-full md:w-fit"
+          filters={filters}
+          activeFilters={activeFilters}
+          onSelect={onSelect}
+          onRemove={onRemove}
+          onSearchChange={setSearch}
+          onSelectedFilterChange={setSelectedFilter}
+        />
+        <SimpleDateRangePicker
+          defaultInterval="mtd"
+          className="w-full sm:min-w-[200px] md:w-fit"
+        />
+      </div>
+      {activeFilters.length > 0 && (
+        <div>
+          <Filter.List
+            filters={filters}
+            activeFilters={activeFilters}
+            onSelect={onSelect}
+            onRemove={onRemove}
+            onRemoveAll={onRemoveAll}
+          />
+        </div>
+      )}
       <div className="flex flex-col divide-y divide-neutral-200 rounded-lg border border-neutral-200 bg-white">
         <div className="scrollbar-hide grid w-full grid-cols-3 divide-x overflow-y-hidden">
           {tabs.map(({ id, label, colorClassName }) => {

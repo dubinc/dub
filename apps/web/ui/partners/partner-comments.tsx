@@ -14,14 +14,16 @@ import {
   AnimatedSizeContainer,
   Button,
   LoadingSpinner,
+  PROSE_STYLES,
   PenWriting,
   Popover,
   Trash,
 } from "@dub/ui";
 import { OG_AVATAR_URL, cn, formatDate } from "@dub/utils";
-import Linkify from "linkify-react";
 import { useAction } from "next-safe-action/hooks";
 import { useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { toast } from "sonner";
 import { KeyedMutator } from "swr";
 import { v4 as uuid } from "uuid";
@@ -353,18 +355,36 @@ function CommentCard({
                   sendButtonText="Save"
                 />
               ) : (
-                <Linkify
-                  as="p"
-                  className="text-content-subtle whitespace-pre-wrap text-sm font-medium"
-                  options={{
-                    target: "_blank",
-                    rel: "noopener noreferrer nofollow",
-                    className:
-                      "underline underline-offset-4 hover:text-content-default",
+                <ReactMarkdown
+                  className={cn(
+                    "text-content-subtle font-medium",
+                    "prose prose-sm break-words",
+                    PROSE_STYLES.condensed,
+                    "prose-a:font-medium prose-a:underline-offset-4",
+                  )}
+                  allowedElements={[
+                    "p",
+                    "a",
+                    "code",
+                    "strong",
+                    "em",
+                    "ul",
+                    "ol",
+                    "li",
+                  ]}
+                  components={{
+                    a: ({ node, ...props }) => (
+                      <a
+                        {...props}
+                        target="_blank"
+                        rel="noopener noreferrer nofollow"
+                      />
+                    ),
                   }}
+                  remarkPlugins={[remarkGfm]}
                 >
                   {comment?.text}
-                </Linkify>
+                </ReactMarkdown>
               )}
             </div>
           </AnimatedSizeContainer>

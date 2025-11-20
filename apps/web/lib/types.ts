@@ -530,6 +530,7 @@ export type FolderPermission = (typeof FOLDER_PERMISSIONS)[number];
 
 export type FolderUser = Pick<User, "id" | "name" | "email" | "image"> & {
   role: FolderUserRole;
+  workspaceRole: WorkspaceRole;
 };
 
 export type FolderWithPermissions = {

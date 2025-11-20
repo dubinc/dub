@@ -175,26 +175,24 @@ async function main() {
         console.log("commissionsRes", commissionsRes);
 
         const qstashRes = await queueBatchEmail<typeof PartnerBanned>(
-          programEnrollments
-            .filter((p) => p.partner.email)
-            .map((p) => ({
-              to: p.partner.email!,
-              subject: `You've been banned from the ${program.name} Partner Program`,
-              variant: "notifications",
-              replyTo: program.supportEmail || "noreply",
-              templateName: "PartnerBanned",
-              templateProps: {
-                partner: {
-                  name: p.partner.name,
-                  email: p.partner.email!,
-                },
-                program: {
-                  name: program.name,
-                  slug: program.slug,
-                },
-                bannedReason: BAN_PARTNER_REASONS[bannedReason],
+          programEnrollments.map((p) => ({
+            to: p.partner.email!,
+            subject: `You've been banned from the ${program.name} Partner Program`,
+            variant: "notifications",
+            replyTo: program.supportEmail || "noreply",
+            templateName: "PartnerBanned",
+            templateProps: {
+              partner: {
+                name: p.partner.name,
+                email: p.partner.email!,
               },
-            })),
+              program: {
+                name: program.name,
+                slug: program.slug,
+              },
+              bannedReason: BAN_PARTNER_REASONS[bannedReason],
+            },
+          })),
         );
         console.log("qstashRes", qstashRes);
       }

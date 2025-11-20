@@ -18,6 +18,7 @@ SQL >
        url,
        toLowCardinality(program_id) program_id,
        partner_id,
+       partner_group_id,
        folder_id,
        tag_ids,
        tenant_id,

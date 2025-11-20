@@ -57,15 +57,57 @@ export function useDynamicGuide(
         );
     }
 
-    if (conversionTrackingEnabled && publishableKey) {
+    if (conversionTrackingEnabled && publishableKey && result) {
+      // Store original result for context checks
+      const originalResult = result;
+
       result = result
-        ?.replaceAll(
-          /^(\s+)(data-domains=.+)$/gm,
-          `$1$2\n$1data-publishable-key="${publishableKey}"`,
+        // for manual installations - add data-publishable-key after src attribute
+        .replaceAll(
+          /(<script[\s\S]*?)(src="https:\/\/www\.dubcdn\.com\/analytics\/script[^"]+")([\s\S]*?)(>)/g,
+          (match, beforeSrc, srcAttr, afterSrc, closingTag) => {
+            if (match.includes("data-publishable-key")) return match;
+
+            // Find src line in original to get indentation
+            const originalLines = originalResult.split("\n");
+            const srcLine =
+              originalLines.find((line) => line.includes(srcAttr)) || "";
+            const indent = srcLine.match(/^(\s*)/)?.[1] || "  ";
+
+            // Clean up other attributes
+            const otherAttrs = afterSrc.replace(/>$/, "").trim();
+
+            // Return: before src, src, publishable-key, other attrs, closing tag
+            return `${beforeSrc}${srcAttr}\n${indent}data-publishable-key="${publishableKey}"${otherAttrs ? `\n${indent}${otherAttrs}` : ""}\n${indent}${closingTag}`;
+          },
         )
-        ?.replaceAll(
-          /^(\s+)(.+)(domainsConfig={{)/gm,
-          `$1$2publishableKey="${publishableKey}" $3`,
+        // for React applications - add publishableKey prop after <DubAnalytics
+        .replaceAll(
+          /^(\s+)(<DubAnalytics)(\s*\/?>|\s+[^\n>]*\/?>|)$/gm,
+          (match, indent, tag, rest) => {
+            if (match.includes("publishableKey")) return match;
+            // Check context for multiline case
+            if (rest === "") {
+              const idx = originalResult.indexOf(match);
+              if (idx >= 0) {
+                const context = originalResult.substring(idx, idx + 300);
+                if (context.includes("publishableKey")) return match;
+              }
+            }
+            return `${indent}${tag}\n${indent}  publishableKey="${publishableKey}"${rest}`;
+          },
+        )
+        // for GTM installations - add data-publishable-key after script.src
+        .replaceAll(
+          /^(\s+)(script\.src\s*=\s*"https:\/\/www\.dubcdn\.com\/analytics\/script[^"]+";)$/gm,
+          (match, indent, srcLine) => {
+            const idx = originalResult.indexOf(match);
+            if (idx >= 0) {
+              const context = originalResult.substring(idx, idx + 200);
+              if (context.includes("data-publishable-key")) return match;
+            }
+            return `${indent}${srcLine}\n${indent}script.setAttribute("data-publishable-key", "${publishableKey}");`;
+          },
         );
     }
 

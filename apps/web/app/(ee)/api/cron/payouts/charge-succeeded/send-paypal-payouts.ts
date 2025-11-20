@@ -1,5 +1,5 @@
+import { queueBatchEmail } from "@/lib/email/queue-batch-email";
 import { createPayPalBatchPayout } from "@/lib/paypal/create-batch-payout";
-import { sendBatchEmail } from "@dub/email";
 import PartnerPayoutProcessed from "@dub/email/templates/partner-payout-processed";
 import { prisma } from "@dub/prisma";
 import { Invoice } from "@dub/prisma/client";
@@ -58,23 +58,21 @@ export async function sendPaypalPayouts(invoice: Pick<Invoice, "id">) {
       paidAt: new Date(),
     },
   });
+
   console.log(`Updated ${updatedPayouts.count} payouts to "sent" status`);
 
-  const batchEmails = await sendBatchEmail(
-    payouts
-      .filter((payout) => payout.partner.email)
-      .map((payout) => ({
-        variant: "notifications",
-        to: payout.partner.email!,
-        subject: `You've received a ${currencyFormatter(payout.amount)} payout from ${payout.program.name}`,
-        react: PartnerPayoutProcessed({
-          email: payout.partner.email!,
-          program: payout.program,
-          payout,
-          variant: "paypal",
-        }),
-      })),
+  await queueBatchEmail<typeof PartnerPayoutProcessed>(
+    payouts.map((payout) => ({
+      variant: "notifications",
+      to: payout.partner.email!,
+      subject: `You've received a ${currencyFormatter(payout.amount)} payout from ${payout.program.name}`,
+      templateName: "PartnerPayoutProcessed",
+      templateProps: {
+        email: payout.partner.email!,
+        program: payout.program,
+        payout,
+        variant: "paypal",
+      },
+    })),
   );
-
-  console.log("Resend batch emails sent", JSON.stringify(batchEmails, null, 2));
 }
