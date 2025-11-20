@@ -1,5 +1,6 @@
 "use client";
 
+import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { FraudRuleProps, UpdateFraudRuleSettings } from "@/lib/types";
@@ -8,8 +9,8 @@ import { Button, Sheet } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import { Dispatch, SetStateAction, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
+import { toast } from "sonner";
 import useSWR from "swr";
-// import { FraudPaidTrafficSection } from "./fraud-paid-traffic-settings";
 import { FraudReferralSourceSettings } from "./fraud-referral-source-settings";
 
 interface ProgramFraudSettingsSheetProps {
@@ -27,42 +28,48 @@ function ProgramFraudSettingsSheetContent({
     fetcher,
   );
 
-  const methods = useForm<UpdateFraudRuleSettings>({
+  const form = useForm<UpdateFraudRuleSettings>({
     defaultValues: {
-      rules: {
-        type: "referralSourceBanned",
+      referralSourceBanned: {
         enabled: false,
         config: {
           domains: [],
         },
       },
+
+      paidTrafficDetected: {
+        enabled: false,
+        config: {
+          platforms: [],
+        },
+      },
     },
   });
 
-  const onSubmit = async (data) => {
-    // await makeRequest("/api/fraud-rules", {
-    //   method: "PATCH",
-    //   body: { rules },
-    //   onSuccess: () => {
-    //     toast.success("Fraud settings updated successfully.");
-    //     setIsOpen(false);
-    //     mutatePrefix("/api/fraud-rules");
-    //   },
-    // });
+  const {
+    handleSubmit,
+    formState: { isDirty },
+  } = form;
+
+  const onSubmit = async (body: UpdateFraudRuleSettings) => {
+    await makeRequest("/api/fraud-rules", {
+      method: "PATCH",
+      body,
+      onSuccess: () => {
+        toast.success("Fraud settings updated successfully.");
+        setIsOpen(false);
+        mutatePrefix("/api/fraud-rules");
+      },
+    });
   };
 
-  const isDirty = methods.formState.isDirty;
-
   return (
-    <FormProvider {...methods}>
-      <form
-        onSubmit={methods.handleSubmit(onSubmit)}
-        className="flex h-full flex-col"
-      >
+    <FormProvider {...form}>
+      <form onSubmit={handleSubmit(onSubmit)} className="flex h-full flex-col">
         <div className="sticky top-0 z-10 border-b border-neutral-200 bg-white">
           <div className="flex h-16 items-center justify-between px-6 py-4">
             <Sheet.Title className="text-lg font-semibold">
-              Fraud and risks settings
+              Fraud settings
             </Sheet.Title>
             <Sheet.Close asChild>
               <Button
@@ -75,13 +82,9 @@ function ProgramFraudSettingsSheetContent({
         </div>
 
         <div className="h-full overflow-y-auto p-4 sm:p-6">
-          {isLoading ? (
-            <FraudRulesSkeleton />
-          ) : (
-            <div className="space-y-8">
-              <FraudReferralSourceSettings />
-            </div>
-          )}
+          <div className="space-y-8">
+            <FraudReferralSourceSettings />
+          </div>
         </div>
 
         <div className="sticky bottom-0 z-10 border-t border-neutral-200 bg-white">

@@ -34,9 +34,11 @@ export const GET = withWorkspace(
 export const PATCH = withWorkspace(
   async ({ workspace, req }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
-    const { rules } = updateFraudRuleSettingsSchema.parse(
-      await parseRequestBody(req),
-    );
+
+    const { referralSourceBanned, paidTrafficDetected } =
+      updateFraudRuleSettingsSchema.parse(await parseRequestBody(req));
+
+    console.log(referralSourceBanned);
 
     // Update or create each rule
     // TODO

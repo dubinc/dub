@@ -93,31 +93,35 @@ export const fraudRuleSchema = z.object({
   config: z.unknown(),
 });
 
-export const referralSourceBannedRule = z.object({
-  type: z.literal("referralSourceBanned"),
-  enabled: z.boolean(),
-  config: z
-    .object({
-      domains: z.array(z.string()).optional(),
-    })
-    .optional(),
-});
-
-export const paidTrafficDetectedRule = z.object({
-  type: z.literal("paidTrafficDetected"),
-  enabled: z.boolean(),
-  config: z
-    .object({
-      platforms: z.array(z.enum(PAID_TRAFFIC_PLATFORMS)).optional(),
-    })
-    .optional(),
-});
-
 export const updateFraudRuleSettingsSchema = z.object({
-  rules: z.array(
-    z.discriminatedUnion("type", [
-      referralSourceBannedRule,
-      paidTrafficDetectedRule,
-    ]),
-  ),
+  referralSourceBanned: z.object({
+    enabled: z.boolean(),
+    config: z
+      .object({
+        domains: z
+          .array(z.string())
+          .optional()
+          .transform((domains) => {
+            if (!domains || domains.length === 0) return [];
+
+            return Array.from(
+              new Set(
+                domains
+                  .map((d) => d.trim().toLowerCase())
+                  .filter((d) => d !== ""),
+              ),
+            );
+          }),
+      })
+      .optional(),
+  }),
+
+  paidTrafficDetected: z.object({
+    enabled: z.boolean(),
+    config: z
+      .object({
+        platforms: z.array(z.enum(PAID_TRAFFIC_PLATFORMS)).optional(),
+      })
+      .optional(),
+  }),
 });

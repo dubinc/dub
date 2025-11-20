@@ -1,48 +1,52 @@
 "use client";
 
-import { referralSourceBannedRule } from "@/lib/zod/schemas/fraud";
+import { updateFraudRuleSettingsSchema } from "@/lib/zod/schemas/fraud";
 import { X } from "@/ui/shared/icons";
 import { Button, Input, Switch } from "@dub/ui";
-import { useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { z } from "zod";
 
-type FormData = z.infer<typeof referralSourceBannedRule>;
+type FormData = z.infer<
+  typeof updateFraudRuleSettingsSchema.shape.referralSourceBanned
+>;
 
 export function FraudReferralSourceSettings() {
-  const [domainInput, setDomainInput] = useState("");
   const {
     watch,
     setValue,
     formState: { isSubmitting },
-  } = useFormContext<FormData>();
+  } = useFormContext<{ referralSourceBanned: FormData }>();
 
-  const domains = watch("config.domains") ?? [];
+  const domains = watch("referralSourceBanned.config.domains") ?? [];
+  const enabled = watch("referralSourceBanned.enabled");
 
-  // Add new domain to the list
+  // Add empty domain row to the list
   const addDomain = () => {
-    const domain = domainInput.trim();
-
-    if (!domain) return;
-
-    setValue("config.domains", [...(domains ?? []), domain], {
+    setValue("referralSourceBanned.config.domains", [...(domains ?? []), ""], {
       shouldDirty: true,
     });
+  };
 
-    setDomainInput("");
+  // Update domain at specific index
+  const updateDomain = (index: number, value: string) => {
+    const newDomains = [...domains];
+    newDomains[index] = value;
+    setValue("referralSourceBanned.config.domains", newDomains, {
+      shouldDirty: true,
+    });
   };
 
   // Remove domain from the list
   const removeDomain = (index: number) => {
     setValue(
-      "config.domains",
+      "referralSourceBanned.config.domains",
       domains.filter((_, i) => i !== index),
       { shouldDirty: true },
     );
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 rounded-lg border border-neutral-200 p-3">
       <div className="flex items-center justify-between">
         <div className="flex-1">
           <h3 className="text-sm font-medium text-neutral-800">
@@ -54,60 +58,54 @@ export function FraudReferralSourceSettings() {
         </div>
         <Switch
           trackDimensions="radix-state-checked:bg-black focus-visible:ring-black/20"
-          checked={watch("enabled")}
+          checked={enabled}
           disabled={isSubmitting}
           fn={(enabled: boolean) => {
-            setValue("enabled", enabled, {
+            setValue("referralSourceBanned.enabled", enabled, {
               shouldDirty: true,
             });
+
+            // Reset the domains if the rule is disabled
+            if (!enabled) {
+              setValue("referralSourceBanned.config.domains", [], {
+                shouldDirty: true,
+              });
+            }
           }}
         />
       </div>
 
-      {watch("enabled") && (
+      {enabled && (
         <div className="space-y-3 pl-1">
-          {domains.length > 0 && (
-            <div className="space-y-2">
-              {domains.map((domain, index) => (
-                <div
-                  key={index}
-                  className="flex items-center gap-2 rounded-md border border-neutral-200 bg-white px-3 py-2"
+          <div className="space-y-2">
+            {domains.map((domain, index) => (
+              <div key={index} className="flex items-center gap-2">
+                <Input
+                  type="text"
+                  placeholder="https://www.domain.com"
+                  value={domain}
+                  className="flex-1"
+                  disabled={isSubmitting}
+                  onChange={(e) => updateDomain(index, e.target.value)}
+                />
+                <button
+                  type="button"
+                  onClick={() => removeDomain(index)}
+                  disabled={isSubmitting}
+                  className="flex h-9 w-9 items-center justify-center rounded-md text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-500 focus-visible:ring-offset-2 disabled:opacity-50"
+                  aria-label="Remove domain"
                 >
-                  <span className="flex-1 text-sm text-neutral-800">
-                    {domain}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => removeDomain(index)}
-                    className="flex h-5 w-5 items-center justify-center rounded-md text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-600"
-                    disabled={isSubmitting}
-                  >
-                    <X className="size-4" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            ))}
+          </div>
 
           <div className="flex gap-2">
-            <Input
-              type="text"
-              placeholder="https://www.domain.com"
-              value={domainInput}
-              onChange={(e) => setDomainInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  addDomain();
-                }
-              }}
-              className="flex-1"
-              disabled={isSubmitting}
-            />
             <Button
               text="Add domain"
               onClick={addDomain}
-              disabled={isSubmitting || !domainInput.trim()}
+              disabled={isSubmitting}
               className="h-9"
             />
           </div>
