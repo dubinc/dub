@@ -11,6 +11,7 @@ import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import useSWR from "swr";
+import { FraudPaidTrafficSettings } from "./fraud-paid-traffic-settings";
 import { FraudReferralSourceSettings } from "./fraud-referral-source-settings";
 
 interface ProgramFraudSettingsSheetProps {
@@ -100,8 +101,9 @@ function ProgramFraudSettingsSheetContent({
         </div>
 
         <div className="h-full overflow-y-auto p-4 sm:p-6">
-          <div className="space-y-8">
+          <div className="space-y-4">
             <FraudReferralSourceSettings />
+            <FraudPaidTrafficSettings />
           </div>
         </div>
 

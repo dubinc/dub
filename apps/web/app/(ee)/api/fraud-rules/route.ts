@@ -4,7 +4,7 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { updateFraudRuleSettingsSchema } from "@/lib/zod/schemas/fraud";
 import { prisma } from "@dub/prisma";
-import { Prisma } from "@prisma/client";
+import { FraudRuleType, Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 // GET /api/fraud-rules
@@ -43,22 +43,35 @@ export const PATCH = withWorkspace(
     const { referralSourceBanned, paidTrafficDetected } =
       updateFraudRuleSettingsSchema.parse(await parseRequestBody(req));
 
-    if (referralSourceBanned) {
+    const rulesToUpdate = [
+      {
+        type: "referralSourceBanned" as FraudRuleType,
+        payload: referralSourceBanned,
+      },
+      {
+        type: "paidTrafficDetected" as FraudRuleType,
+        payload: paidTrafficDetected,
+      },
+    ].filter((r) => r.payload);
+
+    for (const { type, payload } of rulesToUpdate) {
+      if (!payload) continue;
+
       await prisma.fraudRule.upsert({
         where: {
           programId_type: {
             programId,
-            type: "referralSourceBanned",
+            type,
           },
         },
         create: {
           programId,
-          type: "referralSourceBanned",
-          config: referralSourceBanned.config ?? Prisma.DbNull,
+          type,
+          config: payload.config ?? Prisma.DbNull,
         },
         update: {
-          config: referralSourceBanned.config ?? Prisma.DbNull,
-          disabledAt: referralSourceBanned.enabled ? null : new Date(),
+          config: payload.config ?? Prisma.DbNull,
+          disabledAt: payload.enabled ? null : new Date(),
         },
       });
     }
