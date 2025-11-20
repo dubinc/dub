@@ -27,7 +27,7 @@ const RATE_LIMIT_FOR_SESSIONS = {
     interval: "1 m",
   },
   analyticsApi: {
-    limit: 8,
+    limit: 12,
     interval: "1 s",
   },
 } as const;
