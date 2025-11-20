@@ -1,6 +1,6 @@
 "use client";
 
-import { resolveFraudEventAction } from "@/lib/actions/fraud/resolve-fraud-events";
+import { resolveFraudEventsAction } from "@/lib/actions/fraud/resolve-fraud-event";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { FraudEventProps } from "@/lib/types";
@@ -34,14 +34,14 @@ function ResolveFraudEventModal({
 }) {
   const { id: workspaceId } = useWorkspace();
 
-  const { executeAsync, isPending } = useAction(resolveFraudEventAction, {
+  const { executeAsync, isPending } = useAction(resolveFraudEventsAction, {
     onSuccess: () => {
       toast.success("Fraud event resolved.");
       setShowResolveFraudEventModal(false);
       mutatePrefix("/api/fraud-events");
     },
     onError: ({ error }) => {
-      console.log(error)
+      console.log(error);
       toast.error(error.serverError);
     },
   });
@@ -59,14 +59,13 @@ function ResolveFraudEventModal({
 
   const onSubmit = useCallback(
     async (data: ResolveFraudEventFormData) => {
-      if (!workspaceId || !fraudEvent.partner) {
+      if (!workspaceId) {
         return;
       }
 
       await executeAsync({
         workspaceId,
-        partnerId: fraudEvent.partner.id,
-        type: fraudEvent.type,
+        fraudEventIds: [], // TODO: Add fraud event ids
         resolutionReason: data.resolutionReason,
       });
     },

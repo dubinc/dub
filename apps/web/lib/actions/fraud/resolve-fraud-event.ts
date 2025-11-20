@@ -1,62 +1,58 @@
 "use server";
 
-import { getFraudEventOrThrow } from "@/lib/api/fraud/get-fraud-event-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import {
-  fraudEventSchema,
-  resolveFraudEventSchema,
-} from "@/lib/zod/schemas/fraud";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { resolveFraudEventsSchema } from "@/lib/zod/schemas/fraud";
 import { prisma } from "@dub/prisma";
-import { FraudEventStatus } from "@dub/prisma/client";
-import z from "@/lib/zod";
+import { nanoid } from "@dub/utils";
 import { authActionClient } from "../safe-action";
 
-const resolveFraudEventActionSchema = z.object({
-  fraudEventId: z.string(),
-  workspaceId: z.string(),
-  resolutionReason: resolveFraudEventSchema.shape.resolutionReason,
-});
-
 // Resolve a fraud event
-export const resolveFraudEventAction = authActionClient
-  .schema(resolveFraudEventActionSchema)
+export const resolveFraudEventsAction = authActionClient
+  .schema(resolveFraudEventsSchema)
   .action(async ({ ctx, parsedInput }) => {
     const { workspace, user } = ctx;
-    const { fraudEventId, resolutionReason } = parsedInput;
+    let { fraudEventIds, resolutionReason } = parsedInput;
 
-    // Check plan requirements
-    if (!["advanced", "enterprise"].includes(workspace.plan)) {
-      throw new Error("Unauthorized: Need higher plan.");
+    const { canResolveFraudEvents } = getPlanCapabilities(workspace.plan);
+
+    if (!canResolveFraudEvents) {
+      throw new Error("Unauthorized.");
     }
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const fraudEvent = await getFraudEventOrThrow({
-      fraudEventId,
-      programId,
+    const fraudEvents = await prisma.fraudEvent.findMany({
+      where: {
+        id: {
+          in: fraudEventIds,
+        },
+        programId,
+        status: "pending",
+      },
+      select: {
+        id: true,
+      },
     });
 
-    if (fraudEvent.status !== FraudEventStatus.pending) {
-      throw new Error("This fraud event has already been resolved.");
+    if (fraudEvents.length === 0) {
+      throw new Error("No pending fraud events found to resolve.");
     }
 
-    const updatedFraudEvent = await prisma.fraudEvent.update({
+    fraudEventIds = fraudEvents.map(({ id }) => id);
+
+    await prisma.fraudEvent.updateMany({
       where: {
-        id: fraudEventId,
+        id: {
+          in: fraudEventIds,
+        },
       },
       data: {
         status: "resolved",
         resolutionReason,
         resolvedAt: new Date(),
         userId: user.id,
-      },
-      include: {
-        user: true,
-        partner: true,
-        commission: true,
+        resolutionBatchId: nanoid(16),
       },
     });
-
-    return fraudEventSchema.parse(updatedFraudEvent);
   });
-

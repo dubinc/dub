@@ -13,21 +13,22 @@ model FraudRule {
 }
 
 model FraudEvent {
-  id               String           @id @default(cuid())
-  programId        String
-  partnerId        String
-  linkId           String?
-  customerId       String?
-  eventId          String?
-  commissionId     String?
-  type             FraudRuleType
-  metadata         Json?            @db.Json
-  userId           String?
-  resolutionReason String?
-  resolvedAt       DateTime?
-  status           FraudEventStatus @default(pending)
-  createdAt        DateTime         @default(now())
-  updatedAt        DateTime         @updatedAt
+  id                String           @id @default(cuid())
+  programId         String
+  partnerId         String
+  linkId            String?
+  customerId        String?
+  eventId           String?
+  commissionId      String?
+  type              FraudRuleType
+  metadata          Json?            @db.Json
+  userId            String?
+  resolutionReason  String?
+  resolvedAt        DateTime?
+  resolutionBatchId String? // Generated when resolving multiple events together in a batch to keep resolved events grouped
+  status            FraudEventStatus @default(pending)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
 
   program    Program     @relation(fields: [programId], references: [id], onDelete: Cascade)
   partner    Partner     @relation(fields: [partnerId], references: [id], onDelete: Cascade)

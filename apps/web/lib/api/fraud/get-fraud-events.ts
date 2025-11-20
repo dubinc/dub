@@ -30,6 +30,7 @@ interface QueryResult {
   userImage: string | null;
 }
 
+// Get the fraud events for a program grouped by rule type
 export async function getFraudEvents({
   programId,
   partnerId,

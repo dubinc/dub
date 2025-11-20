@@ -77,7 +77,14 @@ export const fraudEventCountQuerySchema = fraudEventsQuerySchema
     groupBy: z.enum(["partnerId", "type"]).optional(),
   });
 
-export const resolveFraudEventSchema = z.object({
+export const fraudEventInstancesQuerySchema = z.object({
+  partnerId: z.string(),
+  type: z.nativeEnum(FraudRuleType),
+});
+
+export const resolveFraudEventsSchema = z.object({
+  workspaceId: z.string(),
+  fraudEventIds: z.array(z.string()).min(1),
   resolutionReason: z
     .string()
     .max(
