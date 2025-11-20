@@ -15,8 +15,7 @@ export const fraudEventSchema = z.object({
   status: z.nativeEnum(FraudEventStatus),
   resolutionReason: z.string().nullable(),
   resolvedAt: z.date().nullable(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
+  lastOccurenceAt: z.date(),
   count: z.number().optional(),
   partner: PartnerSchema.pick({
     id: true,
@@ -30,21 +29,8 @@ export const fraudEventSchema = z.object({
     email: true,
   }).nullable(),
   commission: CommissionSchema.pick({
-    id: true,
     earnings: true,
-    currency: true,
-    status: true,
   }).nullable(),
-  commissions: z
-    .array(
-      CommissionSchema.pick({
-        id: true,
-        earnings: true,
-        currency: true,
-        status: true,
-      }),
-    )
-    .optional(),
   user: UserSchema.pick({
     id: true,
     name: true,

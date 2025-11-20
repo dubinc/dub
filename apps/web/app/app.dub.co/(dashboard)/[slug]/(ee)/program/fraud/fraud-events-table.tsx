@@ -75,51 +75,9 @@ export function FraudEventsTable() {
   const columns = useMemo(
     () => [
       {
-        id: "partner",
-        header: "Partner",
-        size: 150,
-        cell: ({ row }: { row: Row<FraudEventProps> }) => {
-          const partner = row.original.partner;
-          if (!partner) return "-";
-
-          return (
-            <PartnerRowItem
-              partner={{
-                id: partner.id,
-                name: partner.name || "Unknown",
-              }}
-              showFraudFlag={false}
-            />
-          );
-        },
-        meta: {
-          filterParams: ({ row }) =>
-            row.original.partner
-              ? {
-                  partnerId: row.original.partner.id,
-                }
-              : {},
-        },
-      },
-      {
-        id: "createdAt",
-        header: "Date",
-        size: 150,
-        cell: ({ row }: { row: Row<FraudEventProps> }) => (
-          <TimestampTooltip
-            timestamp={row.original.createdAt}
-            side="right"
-            rows={["local", "utc", "unix"]}
-            delayDuration={150}
-          >
-            <span>{formatDateTimeSmart(row.original.createdAt)}</span>
-          </TimestampTooltip>
-        ),
-      },
-      {
         id: "type",
-        header: "Reasons",
-        size: 200,
+        header: "Event",
+        size: 150,
         cell: ({ row }: { row: Row<FraudEventProps> }) => {
           const reason = FRAUD_RULES_BY_TYPE[row.original.type];
           const count = row.original.count ?? 1;
@@ -156,9 +114,59 @@ export function FraudEventsTable() {
         },
       },
       {
+        id: "partner",
+        header: "Partner",
+        size: 150,
+        cell: ({ row }: { row: Row<FraudEventProps> }) => {
+          const partner = row.original.partner;
+          if (!partner) return "-";
+
+          return (
+            <PartnerRowItem
+              partner={{
+                id: partner.id,
+                name: partner.name || "Unknown",
+              }}
+              showFraudFlag={false}
+            />
+          );
+        },
+        meta: {
+          filterParams: ({ row }) =>
+            row.original.partner
+              ? {
+                  partnerId: row.original.partner.id,
+                }
+              : {},
+        },
+      },
+      {
+        id: "createdAt",
+        header: "Last Detected",
+        size: 150,
+        meta: {
+          headerTooltip:
+            "The date and time of the most recent occurrence of this fraud event.",
+        },
+        cell: ({ row }: { row: Row<FraudEventProps> }) => (
+          <TimestampTooltip
+            timestamp={row.original.lastOccurenceAt}
+            side="right"
+            rows={["local", "utc", "unix"]}
+            delayDuration={150}
+          >
+            <span>{formatDateTimeSmart(row.original.lastOccurenceAt)}</span>
+          </TimestampTooltip>
+        ),
+      },
+      {
         id: "amount",
-        header: "Hold amount",
+        header: "Hold Amount",
         size: 100,
+        meta: {
+          headerTooltip:
+            "The commissions accrued since the event and cannot be paid out until resolved.",
+        },
         accessorFn: (d: FraudEventProps) =>
           d.commission?.earnings
             ? currencyFormatter(d.commission.earnings)

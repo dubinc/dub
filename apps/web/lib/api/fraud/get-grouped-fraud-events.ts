@@ -1,4 +1,7 @@
-import { fraudEventsQuerySchema } from "@/lib/zod/schemas/fraud";
+import {
+  fraudEventSchema,
+  fraudEventsQuerySchema,
+} from "@/lib/zod/schemas/fraud";
 import { prisma } from "@dub/prisma";
 import { FraudEventStatus, FraudRuleType, Prisma } from "@dub/prisma/client";
 import { z } from "zod";
@@ -9,15 +12,14 @@ type FraudEventFilters = z.infer<typeof fraudEventsQuerySchema> & {
 
 interface QueryResult {
   id: string;
-  programId: string;
   type: FraudRuleType;
   status: FraudEventStatus;
   resolutionReason: string | null;
   resolvedAt: Date | null;
   metadata: unknown;
-  createdAt: Date;
-  updatedAt: Date;
+  lastOccurenceAt: Date;
   eventCount: bigint | number;
+  totalCommissions: bigint | number | null;
   partnerId: string | null;
   partnerName: string | null;
   partnerEmail: string | null;
@@ -41,75 +43,79 @@ export async function getGroupedFraudEvents({
   sortBy,
   sortOrder,
 }: FraudEventFilters) {
-  // Build WHERE clause
-  const whereClause = Prisma.join(
+  // Build WHERE clause for subquery
+  const subqueryWhereClause = Prisma.join(
     [
-      Prisma.sql`dfe.programId = ${programId}`,
-      status && Prisma.sql`fe.status = ${status}`,
-      type && Prisma.sql`dfe.type = ${type}`,
-      partnerId && Prisma.sql`dfe.partnerId = ${partnerId}`,
-    ].filter(Boolean) as Prisma.Sql[],
+      Prisma.sql`FraudEvent.programId = ${programId}`,
+      status && Prisma.sql`FraudEvent.status = ${status}`,
+      type && Prisma.sql`FraudEvent.type = ${type}`,
+      partnerId && Prisma.sql`FraudEvent.partnerId = ${partnerId}`,
+    ].filter(Boolean),
     " AND ",
   );
 
   // Build ORDER BY clause
   const orderByField =
-    sortBy === "type" ? Prisma.raw("fe.type") : Prisma.raw("fe.createdAt");
+    sortBy === "type"
+      ? Prisma.raw("fe.type")
+      : Prisma.raw("dfe.lastOccurenceAt");
   const orderByClause = Prisma.sql`ORDER BY ${orderByField} ${Prisma.raw(sortOrder.toUpperCase())}`;
 
   const events = await prisma.$queryRaw<QueryResult[]>`
     SELECT 
       fe.id,
-      fe.programId,
       fe.type,
       fe.status,
       fe.resolutionReason,
       fe.resolvedAt,
       fe.metadata,
-      fe.createdAt,
-      fe.updatedAt,
+      fe.commissionId,
+      fe.partnerId,
+      fe.customerId,
+      fe.userId,
+      dfe.lastOccurenceAt,
       dfe.eventCount,
-      p.id AS partnerId,
+      dfe.totalCommissions,
       p.name AS partnerName,
       p.email AS partnerEmail,
       p.image AS partnerImage,
-      c.id AS customerId,
       c.email AS customerEmail,
       c.name AS customerName,
-      u.id AS userId,
       u.name AS userName,
       u.image AS userImage
     FROM (
-      SELECT programId, partnerId, type, MAX(createdAt) AS latestCreatedAt, COUNT(*) AS eventCount
+      SELECT 
+        FraudEvent.programId, 
+        FraudEvent.partnerId, 
+        FraudEvent.type, 
+        MAX(FraudEvent.id) AS latestEventId,
+        MAX(FraudEvent.createdAt) AS lastOccurenceAt,
+        COUNT(*) AS eventCount,
+        COALESCE(SUM(comm.earnings), 0) AS totalCommissions
       FROM FraudEvent
-      WHERE programId = ${programId}
-      GROUP BY programId, partnerId, type
+      LEFT JOIN Commission comm ON comm.id = FraudEvent.commissionId
+      WHERE ${subqueryWhereClause}
+      GROUP BY FraudEvent.programId, FraudEvent.partnerId, FraudEvent.type
     ) dfe
     JOIN FraudEvent fe
-      ON fe.programId = dfe.programId
-      AND fe.partnerId = dfe.partnerId
-      AND fe.type = dfe.type
-      AND fe.createdAt = dfe.latestCreatedAt
+      ON fe.id = dfe.latestEventId
     LEFT JOIN Partner p
       ON p.id = fe.partnerId
     LEFT JOIN Customer c
       ON c.id = fe.customerId
     LEFT JOIN User u
       ON u.id = fe.userId
-    WHERE
-      ${whereClause}
-      ${orderByClause}
+    ${orderByClause}
     LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}
   `;
 
-  return events.map((event) => ({
+  const groupedEvents = events.map((event) => ({
     id: event.id,
     type: event.type,
     status: event.status,
     resolutionReason: event.resolutionReason,
     resolvedAt: event.resolvedAt ? new Date(event.resolvedAt) : null,
-    createdAt: new Date(event.createdAt),
-    updatedAt: new Date(event.updatedAt),
+    lastOccurenceAt: new Date(event.lastOccurenceAt),
     count: Number(event.eventCount),
     partner: event.partnerId
       ? {
@@ -126,7 +132,9 @@ export async function getGroupedFraudEvents({
           email: event.customerEmail,
         }
       : null,
-    commission: null,
+    commission: {
+      earnings: Number(event.totalCommissions || 0),
+    },
     user: event.userId
       ? {
           id: event.userId,
@@ -135,4 +143,6 @@ export async function getGroupedFraudEvents({
         }
       : null,
   }));
+
+  return z.array(fraudEventSchema).parse(groupedEvents);
 }
