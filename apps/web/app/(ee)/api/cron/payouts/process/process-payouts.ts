@@ -1,6 +1,7 @@
 import { getPayoutEligibilityFilter } from "@/lib/api/payouts/payout-eligibility-filter";
 import { FAST_ACH_FEE_CENTS, FOREX_MARKUP_RATE } from "@/lib/constants/payouts";
 import { qstash } from "@/lib/cron";
+import { queueBatchEmail } from "@/lib/email/queue-batch-email";
 import {
   CUTOFF_PERIOD,
   CUTOFF_PERIOD_TYPES,
@@ -8,6 +9,7 @@ import {
 import { stripe } from "@/lib/stripe";
 import { createFxQuote } from "@/lib/stripe/create-fx-quote";
 import { calculatePayoutFeeForMethod } from "@/lib/stripe/payment-methods";
+import ProgramPayoutThankYou from "@dub/email/templates/program-payout-thank-you";
 import { prisma } from "@dub/prisma";
 import { Program, ProgramPayoutMode, Project } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK, currencyFormatter, log } from "@dub/utils";
@@ -21,6 +23,7 @@ interface ProcessPayoutsProps {
   workspace: Pick<
     Project,
     | "id"
+    | "slug"
     | "stripeId"
     | "plan"
     | "invoicePrefix"
@@ -236,13 +239,24 @@ export async function processPayouts({
     },
   );
 
-  await prisma.project.update({
+  const { users } = await prisma.project.update({
     where: {
       id: workspace.id,
     },
     data: {
       payoutsUsage: {
         increment: totalPayoutAmount,
+      },
+    },
+    include: {
+      users: {
+        select: {
+          user: {
+            select: {
+              email: true,
+            },
+          },
+        },
       },
     },
   });
@@ -264,4 +278,23 @@ export async function processPayouts({
   } else {
     console.error("Error sending message to Qstash", qstashResponse);
   }
+
+  await queueBatchEmail<typeof ProgramPayoutThankYou>(
+    users.map(({ user }) => ({
+      to: user.email!,
+      subject: `Thank you for your ${currencyFormatter(totalPayoutAmount)} payout to ${res.count} partners`,
+      templateName: "ProgramPayoutThankYou",
+      templateProps: {
+        email: user.email!,
+        workspace,
+        program: {
+          name: program.name,
+        },
+        payout: {
+          amount: totalPayoutAmount,
+          partnersCount: res.count,
+        },
+      },
+    })),
+  );
 }

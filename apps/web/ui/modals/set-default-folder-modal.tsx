@@ -62,8 +62,7 @@ function SetDefaultFolderModal({
           This will make this folder the default folder for your links
           dashboard.{" "}
           <a
-            // TODO: Update help article when ready
-            href="https://dub.co/help"
+            href="https://dub.co/help/article/link-folders#setting-a-default-folder"
             className="underline"
             target="_blank"
             rel="noreferrer"

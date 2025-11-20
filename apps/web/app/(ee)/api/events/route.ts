@@ -7,7 +7,7 @@ import { assertValidDateRangeForPlan } from "@/lib/api/utils/assert-valid-date-r
 import { withWorkspace } from "@/lib/auth";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
 import { eventsQuerySchema } from "@/lib/zod/schemas/analytics";
-import { Folder, Link } from "@dub/prisma/client";
+import { Link } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 
 // GET /api/events
@@ -47,9 +47,8 @@ export const GET = withWorkspace(
 
     const folderIdToVerify = link?.folderId || folderId;
 
-    let selectedFolder: Pick<Folder, "id" | "type"> | null = null;
     if (folderIdToVerify) {
-      selectedFolder = await verifyFolderAccess({
+      await verifyFolderAccess({
         workspace,
         userId: session.user.id,
         folderId: folderIdToVerify,
