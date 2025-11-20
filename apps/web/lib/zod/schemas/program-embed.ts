@@ -9,5 +9,6 @@ export const programEmbedSchema = z
         mode: z.enum(["enabled", "disabled"]).default("enabled"),
       })
       .nullish(),
+    hidePoweredByBadge: z.boolean().default(false),
   })
   .nullish();
