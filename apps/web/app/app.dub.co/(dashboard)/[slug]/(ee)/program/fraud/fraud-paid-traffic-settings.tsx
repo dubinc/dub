@@ -35,7 +35,13 @@ const PAID_TRAFFIC_PLATFORM_ICONS: Record<
   tiktok: TikTok,
 };
 
-export function FraudPaidTrafficSettings() {
+interface FraudPaidTrafficSettingsProps {
+  isConfigLoading?: boolean;
+}
+
+export function FraudPaidTrafficSettings({
+  isConfigLoading = false,
+}: FraudPaidTrafficSettingsProps) {
   const {
     watch,
     setValue,
@@ -56,6 +62,8 @@ export function FraudPaidTrafficSettings() {
     });
   };
 
+  const isDisabled = isConfigLoading || isSubmitting;
+
   return (
     <div
       className={cn(
@@ -75,7 +83,7 @@ export function FraudPaidTrafficSettings() {
         <Switch
           trackDimensions="radix-state-checked:bg-black focus-visible:ring-black/20"
           checked={enabled}
-          disabled={isSubmitting}
+          disabled={isDisabled}
           fn={(enabled: boolean) => {
             setValue("paidTrafficDetected.enabled", enabled, {
               shouldDirty: true,
@@ -115,7 +123,7 @@ export function FraudPaidTrafficSettings() {
                 <Switch
                   trackDimensions="radix-state-checked:bg-black focus-visible:ring-black/20"
                   checked={isPlatformEnabled}
-                  disabled={isSubmitting}
+                  disabled={isDisabled}
                   fn={() => togglePlatform(platform.id)}
                 />
               </div>

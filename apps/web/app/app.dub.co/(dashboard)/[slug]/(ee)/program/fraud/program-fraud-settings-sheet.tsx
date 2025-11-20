@@ -102,8 +102,8 @@ function ProgramFraudSettingsSheetContent({
 
         <div className="h-full overflow-y-auto p-4 sm:p-6">
           <div className="space-y-4">
-            <FraudReferralSourceSettings />
-            <FraudPaidTrafficSettings />
+            <FraudReferralSourceSettings isConfigLoading={isLoading} />
+            <FraudPaidTrafficSettings isConfigLoading={isLoading} />
           </div>
         </div>
 

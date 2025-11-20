@@ -21,6 +21,15 @@ export const GET = withWorkspace(
     const mergedFraudRules = CONFIGURABLE_FRAUD_RULES.map(({ type }) => {
       const fraudRule = fraudRules.find((f) => f.type === type);
 
+      // Default paidTrafficDetected to enabled with Google platform
+      if (type === "paidTrafficDetected" && !fraudRule) {
+        return {
+          type,
+          enabled: true,
+          config: { platforms: ["google"] },
+        };
+      }
+
       return {
         type,
         enabled: fraudRule?.disabledAt === null,
