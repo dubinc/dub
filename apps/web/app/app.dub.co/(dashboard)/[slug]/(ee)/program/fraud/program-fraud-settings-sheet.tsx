@@ -4,8 +4,12 @@ import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { FraudRuleProps, UpdateFraudRuleSettings } from "@/lib/types";
+import {
+  getRulesBeingDisabled,
+  useDisableFraudRulesModal,
+} from "@/ui/modals/disable-fraud-rules-modal";
 import { X } from "@/ui/shared/icons";
-import { Button, Sheet } from "@dub/ui";
+import { Button, InfoTooltip, Sheet } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
@@ -29,6 +33,9 @@ function ProgramFraudSettingsSheetContent({
     fetcher,
   );
 
+  const { setShowDisableModal, DisableFraudRulesModal } =
+    useDisableFraudRulesModal({ setIsOpen });
+
   const form = useForm<UpdateFraudRuleSettings>({
     defaultValues: {
       referralSourceBanned: {
@@ -41,6 +48,11 @@ function ProgramFraudSettingsSheetContent({
       },
     },
   });
+
+  const {
+    handleSubmit,
+    formState: { isDirty },
+  } = form;
 
   useEffect(() => {
     if (!fraudRules) return;
@@ -65,12 +77,8 @@ function ProgramFraudSettingsSheetContent({
     });
   }, [fraudRules, form]);
 
-  const {
-    handleSubmit,
-    formState: { isDirty },
-  } = form;
-
-  const onSubmit = async (body: UpdateFraudRuleSettings) => {
+  // Submit form data to API
+  const submitForm = async (body: UpdateFraudRuleSettings) => {
     await makeRequest("/api/fraud-rules", {
       method: "PATCH",
       body,
@@ -82,52 +90,91 @@ function ProgramFraudSettingsSheetContent({
     });
   };
 
+  // Handle form submission
+  const onSubmit = async (body: UpdateFraudRuleSettings) => {
+    if (isLoading) {
+      return;
+    }
+
+    // First submit if no previous data exists
+    if (!fraudRules) {
+      await submitForm(body);
+      return;
+    }
+
+    // Detect rule disable transitions
+    const rulesBeingDisabled = getRulesBeingDisabled({
+      previousFraudRules: fraudRules,
+      nextFraudRules: body,
+    });
+
+    // If any rules are being disabled, show confirmation modal
+    if (rulesBeingDisabled.length > 0) {
+      setShowDisableModal(true);
+      return;
+    }
+
+    // Otherwise, submit directly
+    await submitForm(body);
+  };
+
   return (
-    <FormProvider {...form}>
-      <form onSubmit={handleSubmit(onSubmit)} className="flex h-full flex-col">
-        <div className="sticky top-0 z-10 border-b border-neutral-200 bg-white">
-          <div className="flex h-16 items-center justify-between px-6 py-4">
-            <Sheet.Title className="text-lg font-semibold">
-              Fraud settings
-            </Sheet.Title>
-            <Sheet.Close asChild>
+    <>
+      <FormProvider {...form}>
+        {DisableFraudRulesModal}
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="flex h-full flex-col"
+        >
+          <div className="sticky top-0 z-10 border-b border-neutral-200 bg-white">
+            <div className="flex h-16 items-center justify-between px-6 py-4">
+              <Sheet.Title className="flex items-center gap-2 text-lg font-semibold">
+                Fraud settings
+                <InfoTooltip
+                  content={
+                    "Learn more about our fraud and risk flags, including how to configure them. [Learn more.](https://dub.co/help/article/fraud-and-risk-flags)"
+                  }
+                />
+              </Sheet.Title>
+              <Sheet.Close asChild>
+                <Button
+                  variant="outline"
+                  icon={<X className="size-5" />}
+                  className="h-auto w-fit p-1"
+                />
+              </Sheet.Close>
+            </div>
+          </div>
+
+          <div className="h-full overflow-y-auto p-4 sm:p-6">
+            <div className="space-y-4">
+              <FraudReferralSourceSettings isConfigLoading={isLoading} />
+              <FraudPaidTrafficSettings isConfigLoading={isLoading} />
+            </div>
+          </div>
+
+          <div className="sticky bottom-0 z-10 border-t border-neutral-200 bg-white">
+            <div className="flex items-center justify-end gap-2 p-5">
               <Button
-                variant="outline"
-                icon={<X className="size-5" />}
-                className="h-auto w-fit p-1"
+                variant="secondary"
+                text="Cancel"
+                disabled={isSubmitting}
+                className="h-8 w-fit px-3"
+                onClick={() => setIsOpen(false)}
               />
-            </Sheet.Close>
-          </div>
-        </div>
 
-        <div className="h-full overflow-y-auto p-4 sm:p-6">
-          <div className="space-y-4">
-            <FraudReferralSourceSettings isConfigLoading={isLoading} />
-            <FraudPaidTrafficSettings isConfigLoading={isLoading} />
+              <Button
+                type="submit"
+                text="Save"
+                className="h-8 w-fit px-3"
+                loading={isSubmitting}
+                disabled={!isDirty || isLoading}
+              />
+            </div>
           </div>
-        </div>
-
-        <div className="sticky bottom-0 z-10 border-t border-neutral-200 bg-white">
-          <div className="flex items-center justify-end gap-2 p-5">
-            <Button
-              variant="secondary"
-              text="Cancel"
-              disabled={isSubmitting}
-              className="h-8 w-fit px-3"
-              onClick={() => setIsOpen(false)}
-            />
-
-            <Button
-              type="submit"
-              text="Save"
-              className="h-8 w-fit px-3"
-              loading={isSubmitting}
-              disabled={!isDirty || isLoading}
-            />
-          </div>
-        </div>
-      </form>
-    </FormProvider>
+        </form>
+      </FormProvider>
+    </>
   );
 }
 

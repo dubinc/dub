@@ -5,6 +5,7 @@ import { withWorkspace } from "@/lib/auth";
 import { updateFraudRuleSettingsSchema } from "@/lib/zod/schemas/fraud";
 import { prisma } from "@dub/prisma";
 import { FraudRuleType, Prisma } from "@prisma/client";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // GET /api/fraud-rules
@@ -46,7 +47,7 @@ export const GET = withWorkspace(
 
 // PATCH /api/fraud-rules - update fraud rules for a program
 export const PATCH = withWorkspace(
-  async ({ workspace, req }) => {
+  async ({ workspace, req, session }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
     const { referralSourceBanned, paidTrafficDetected } =
@@ -84,6 +85,32 @@ export const PATCH = withWorkspace(
         },
       });
     }
+
+    waitUntil(
+      (async () => {
+        const ruleTypesToResolve = rulesToUpdate
+          .filter((r) => r.payload?.enabled === true)
+          .map((r) => r.type);
+
+        if (ruleTypesToResolve.length > 0) {
+          await prisma.fraudEvent.updateMany({
+            where: {
+              programId,
+              type: {
+                in: ruleTypesToResolve,
+              },
+            },
+            data: {
+              status: "resolved",
+              userId: session.user.id,
+              resolvedAt: new Date(),
+              resolutionReason:
+                "Resolved automatically because the fraud rule was disabled.",
+            },
+          });
+        }
+      })(),
+    );
 
     return NextResponse.json({ success: true });
   },

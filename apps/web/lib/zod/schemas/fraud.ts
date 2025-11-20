@@ -101,6 +101,7 @@ export const updateFraudRuleSettingsSchema = z.object({
   // Referral source banned rule
   referralSourceBanned: z
     .object({
+      resolvePendingEvents: z.boolean().default(false),
       enabled: z.boolean(),
       config: z
         .object({
@@ -110,6 +111,7 @@ export const updateFraudRuleSettingsSchema = z.object({
             .transform((domains) => {
               if (!domains || domains.length === 0) return [];
 
+              // Remove duplicate domains
               return Array.from(
                 new Set(
                   domains
@@ -138,11 +140,13 @@ export const updateFraudRuleSettingsSchema = z.object({
       }
 
       return data;
-    }),
+    })
+    .optional(),
 
   // Paid traffic detected rule
   paidTrafficDetected: z
     .object({
+      resolvePendingEvents: z.boolean().default(false),
       enabled: z.boolean(),
       config: z
         .object({
@@ -167,5 +171,6 @@ export const updateFraudRuleSettingsSchema = z.object({
       }
 
       return data;
-    }),
+    })
+    .optional(),
 });
