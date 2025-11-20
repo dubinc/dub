@@ -201,18 +201,20 @@ export function ReferralsEmbedPageClient({
               <ProgramRewardList rewards={rewards} discount={discount} />
             </div>
           </div>
-          <div className="mt-4 flex justify-center md:absolute md:bottom-3 md:right-3 md:mt-0">
-            <a
-              href="https://dub.co/partners"
-              target="_blank"
-              className="hover:text-content-default text-content-subtle bg-bg-default border-border-subtle flex w-fit items-center gap-1.5 rounded-md border px-2 py-1 transition-colors duration-75"
-            >
-              <p className="whitespace-nowrap text-xs font-medium leading-none">
-                Powered by
-              </p>
-              <Wordmark className="text-content-emphasis h-3.5" />
-            </a>
-          </div>
+          {!programEmbedData?.hidePoweredByBadge && (
+            <div className="mt-4 flex justify-center md:absolute md:bottom-3 md:right-3 md:mt-0">
+              <a
+                href="https://dub.co/partners"
+                target="_blank"
+                className="hover:text-content-default text-content-subtle bg-bg-default border-border-subtle flex w-fit items-center gap-1.5 rounded-md border px-2 py-1 transition-colors duration-75"
+              >
+                <p className="whitespace-nowrap text-xs font-medium leading-none">
+                  Powered by
+                </p>
+                <Wordmark className="text-content-emphasis h-3.5" />
+              </a>
+            </div>
+          )}
         </div>
         <div className="mt-4 grid gap-2 sm:h-32 sm:grid-cols-3">
           <ReferralsEmbedActivity {...stats} />
