@@ -1,6 +1,5 @@
-import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
-import { tb, tbOld } from "./client";
+import { tb } from "./client";
 
 export const recordClickZodSchema = z.object({
   timestamp: z.string().default(""),
@@ -37,20 +36,8 @@ export const recordClickZodSchema = z.object({
   trigger: z.string().default("link"),
 });
 
-export const recordClickZodTB = tb.buildIngestEndpoint({
+export const recordClickZod = tb.buildIngestEndpoint({
   datasource: "dub_click_events",
   event: recordClickZodSchema,
   wait: true,
 });
-
-// TODO: Remove after Tinybird migration
-export const recordClickZodTBOld = tbOld.buildIngestEndpoint({
-  datasource: "dub_click_events",
-  event: recordClickZodSchema,
-  wait: true,
-});
-
-export const recordClickZod = async (payload: any) => {
-  waitUntil(recordClickZodTBOld(payload));
-  return await recordClickZodTB(payload);
-};
