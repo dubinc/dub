@@ -53,6 +53,8 @@ export async function getGroups(filters: GroupFilters) {
       pg.logo,
       pg.wordmark,
       pg.brandColor,
+      pg.holdingPeriodDays,
+      pg.autoApprovePartnersEnabledAt,
       pg.utmTemplateId,
       pg.createdAt,
       pg.updatedAt,
