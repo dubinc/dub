@@ -4,6 +4,7 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { isStored, storage } from "@/lib/storage";
+import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { prisma } from "@dub/prisma";
 import { nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -18,6 +19,7 @@ const schema = updateProgramSchema.partial().extend({
   logo: z.string().nullish(),
   wordmark: z.string().nullish(),
   brandColor: z.string().nullish(),
+  applyHoldingPeriodDaysToAllGroups: z.boolean().optional(),
 });
 
 export const updateProgramAction = authActionClient
@@ -37,6 +39,7 @@ export const updateProgramAction = authActionClient
       holdingPeriodDays,
       minPayoutAmount,
       messagingEnabledAt,
+      applyHoldingPeriodDaysToAllGroups,
     } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
@@ -64,27 +67,43 @@ export const updateProgramAction = authActionClient
             .then(({ url }) => url)
         : null,
     ]);
-    const updatedProgram = await prisma.program.update({
-      where: {
-        id: programId,
-      },
-      data: {
-        name,
-        logo: logoUrl ?? undefined,
-        wordmark: wordmarkUrl ?? undefined,
-        brandColor,
-        domain,
-        url,
-        supportEmail,
-        helpUrl,
-        termsUrl,
-        holdingPeriodDays,
-        minPayoutAmount,
-        ...(messagingEnabledAt !== undefined &&
-          (getPlanCapabilities(workspace.plan).canMessagePartners ||
-            messagingEnabledAt === null) && { messagingEnabledAt }),
-      },
-    });
+    const [updatedProgram] = await Promise.all([
+      prisma.program.update({
+        where: {
+          id: programId,
+        },
+        data: {
+          name,
+          logo: logoUrl ?? undefined,
+          wordmark: wordmarkUrl ?? undefined,
+          brandColor,
+          domain,
+          url,
+          supportEmail,
+          helpUrl,
+          termsUrl,
+          minPayoutAmount,
+          ...(messagingEnabledAt !== undefined &&
+            (getPlanCapabilities(workspace.plan).canMessagePartners ||
+              messagingEnabledAt === null) && { messagingEnabledAt }),
+        },
+      }),
+      holdingPeriodDays !== undefined
+        ? prisma.partnerGroup.updateMany({
+            where: {
+              programId,
+              ...(applyHoldingPeriodDaysToAllGroups
+                ? {}
+                : {
+                    slug: DEFAULT_PARTNER_GROUP.slug, // Only apply to default group
+                  }),
+            },
+            data: {
+              holdingPeriodDays,
+            },
+          })
+        : [],
+    ]);
 
     waitUntil(
       Promise.allSettled([

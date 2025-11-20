@@ -1,4 +1,5 @@
 import { isValidDomainFormat } from "@/lib/api/domains/is-valid-domain";
+import { PAYOUT_HOLDING_PERIOD_DAYS } from "@/lib/constants/payouts";
 import { RESOURCE_COLORS } from "@/ui/colors";
 import { PartnerLinkStructure } from "@dub/prisma/client";
 import { validSlugRegex } from "@dub/utils";
@@ -128,6 +129,11 @@ export const updateGroupSchema = createGroupSchema.partial().extend({
   linkStructure: z.nativeEnum(PartnerLinkStructure).optional(),
   applicationFormData: programApplicationFormSchema.optional(),
   landerData: programLanderSchema.optional(),
+  holdingPeriodDays: z.coerce
+    .number()
+    .refine((val) => PAYOUT_HOLDING_PERIOD_DAYS.includes(val), {
+      message: `Holding period must be ${PAYOUT_HOLDING_PERIOD_DAYS.join(", ")} days`,
+    }),
 });
 
 export const PartnerGroupDefaultLinkSchema = z.object({

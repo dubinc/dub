@@ -69,6 +69,7 @@ export const PATCH = withWorkspace(
       linkStructure,
       applicationFormData,
       landerData,
+      holdingPeriodDays,
     } = updateGroupSchema.parse(await parseRequestBody(req));
 
     // Only check slug uniqueness if slug is being updated
@@ -137,6 +138,7 @@ export const PATCH = withWorkspace(
         utmTemplateId,
         applicationFormData,
         landerData,
+        holdingPeriodDays,
       },
       include: {
         clickReward: true,

@@ -1,5 +1,6 @@
 "use client";
 
+import { PAYOUT_HOLDING_PERIOD_DAYS } from "@/lib/constants/payouts";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useGroup from "@/lib/swr/use-group";
@@ -139,6 +140,22 @@ function GroupSettingsForm({ group }: { group: GroupProps }) {
             />
           </SettingsRow>
         )}
+
+        <SettingsRow
+          heading="Payout holding period"
+          description="Set how long to hold funds before they are eligible for payout."
+        >
+          <select
+            className="block w-full rounded-md border border-neutral-300 bg-white py-2 pl-3 pr-10 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500"
+            {...register("holdingPeriodDays", { required: true })}
+          >
+            {PAYOUT_HOLDING_PERIOD_DAYS.map((v) => (
+              <option value={v} key={v}>
+                {v} days {v === 30 && " (recommended)"}
+              </option>
+            ))}
+          </select>
+        </SettingsRow>
 
         <SettingsRow
           heading="Group ID"

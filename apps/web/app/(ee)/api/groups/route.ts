@@ -115,6 +115,8 @@ export const POST = withWorkspace(
         partnerGroupDefaultLinks,
         applicationFormData,
         landerData,
+        holdingPeriodDays,
+        autoApprovePartnersEnabledAt,
       } = program.groups[0];
 
       return await tx.partnerGroup.create({
@@ -124,6 +126,8 @@ export const POST = withWorkspace(
           name,
           slug,
           color,
+          holdingPeriodDays,
+          autoApprovePartnersEnabledAt,
           ...(additionalLinks && { additionalLinks }),
           ...(maxPartnerLinks && { maxPartnerLinks }),
           ...(linkStructure && { linkStructure }),
