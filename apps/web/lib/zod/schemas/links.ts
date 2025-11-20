@@ -120,6 +120,7 @@ const LinksQuerySchema = z.object({
   folderId: z
     .string()
     .optional()
+    .transform((v) => (v === "unsorted" ? null : v))
     .describe("The folder ID to filter the links by."),
   search: z
     .string()

@@ -1,6 +1,6 @@
 import { getFolderIdsToFilter } from "@/lib/analytics/get-folder-ids-to-filter";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
-import { Folder, WorkspaceProps } from "@/lib/types";
+import { WorkspaceProps } from "@/lib/types";
 import { getLinksQuerySchemaExtended } from "@/lib/zod/schemas/links";
 import { z } from "zod";
 import { getDomainOrThrow } from "../domains/get-domain-or-throw";
@@ -8,7 +8,7 @@ import { getDomainOrThrow } from "../domains/get-domain-or-throw";
 interface LinksQueryFilters
   extends Partial<z.infer<typeof getLinksQuerySchemaExtended>> {
   userId: string;
-  workspace: Pick<WorkspaceProps, "id" | "plan" | "foldersUsage">;
+  workspace: Pick<WorkspaceProps, "id" | "plan" | "foldersUsage" | "users">;
 }
 
 export async function validateLinksQueryFilters({
@@ -23,7 +23,6 @@ export async function validateLinksQueryFilters({
   userId,
   workspace,
 }: LinksQueryFilters) {
-  let selectedFolder: Pick<Folder, "id" | "type"> | null = null;
   let folderIds: string[] | undefined = undefined;
 
   if (domain) {
@@ -34,7 +33,7 @@ export async function validateLinksQueryFilters({
   }
 
   if (folderId) {
-    selectedFolder = await verifyFolderAccess({
+    await verifyFolderAccess({
       workspace,
       userId,
       folderId,
@@ -64,7 +63,6 @@ export async function validateLinksQueryFilters({
   }
 
   return {
-    selectedFolder,
     folderIds,
   };
 }

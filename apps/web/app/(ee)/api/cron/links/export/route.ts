@@ -6,6 +6,7 @@ import { formatLinksForExport } from "@/lib/api/links/format-links-for-export";
 import { validateLinksQueryFilters } from "@/lib/api/links/validate-links-query-filters";
 import { generateExportFilename } from "@/lib/api/utils/generate-export-filename";
 import { generateRandomString } from "@/lib/api/utils/generate-random-string";
+import { MEGA_WORKSPACE_LINKS_LIMIT } from "@/lib/constants/misc";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { WorkspaceProps } from "@/lib/types";
 import { linksExportQuerySchema } from "@/lib/zod/schemas/links";
@@ -62,6 +63,7 @@ export async function POST(req: Request) {
         id: true,
         name: true,
         plan: true,
+        totalLinks: true,
       },
     });
 
@@ -71,7 +73,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const { selectedFolder, folderIds } = await validateLinksQueryFilters({
+    const { folderIds } = await validateLinksQueryFilters({
       ...filters,
       userId,
       workspace: workspace as WorkspaceProps,
@@ -87,8 +89,6 @@ export async function POST(req: Request) {
 
     // Fetch links in batches and build CSV
     const allLinks: Record<string, any>[] = [];
-    const searchMode: "fuzzy" | "exact" =
-      selectedFolder?.type === "mega" ? "exact" : "fuzzy";
 
     const linksFilters = {
       ...filters,
@@ -96,7 +96,9 @@ export async function POST(req: Request) {
         startDate,
         endDate,
       }),
-      searchMode,
+      searchMode: (workspace.totalLinks > MEGA_WORKSPACE_LINKS_LIMIT
+        ? "exact"
+        : "fuzzy") as "exact" | "fuzzy",
       includeDashboard: false,
       includeUser: false,
       includeWebhooks: false,
