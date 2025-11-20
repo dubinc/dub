@@ -7,6 +7,7 @@ import {
   PAYOUT_HOLDING_PERIOD_DAYS,
 } from "@/lib/constants/payouts";
 import {
+  Category,
   EventType,
   PartnerBannedReason,
   ProgramEnrollmentStatus,
@@ -35,11 +36,13 @@ export const ProgramSchema = z.object({
   minPayoutAmount: z.number(),
   landerPublishedAt: z.date().nullish(),
   autoApprovePartnersEnabledAt: z.date().nullish(),
+  addedToMarketplaceAt: z.date().nullish(),
   messagingEnabledAt: z.date().nullish(),
   partnerNetworkEnabledAt: z.date().nullish(),
   payoutMode: z.nativeEnum(ProgramPayoutMode).default("internal"),
   rewards: z.array(RewardSchema).nullish(),
   discounts: z.array(DiscountSchema).nullish(),
+  categories: z.array(z.nativeEnum(Category)).nullish(),
   defaultFolderId: z.string(),
   defaultGroupId: z.string(),
   wordmark: z.string().nullable(),
