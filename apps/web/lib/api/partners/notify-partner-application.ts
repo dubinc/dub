@@ -19,7 +19,7 @@ export async function notifyPartnerApplication({
 }: {
   partner: Partner;
   program: Program;
-  group: Pick<PartnerGroup, "autoApprovePartnersEnabledAt">;
+  group: Pick<PartnerGroup, "autoApprovePartnersEnabledAt"> | null;
   application: ProgramApplication;
 }) {
   const workspaceUsers = await prisma.projectUsers.findMany({
@@ -66,7 +66,7 @@ export async function notifyPartnerApplication({
         },
         program: {
           name: program.name,
-          autoApprovePartners: group.autoApprovePartnersEnabledAt
+          autoApprovePartners: group?.autoApprovePartnersEnabledAt
             ? true
             : false,
         },

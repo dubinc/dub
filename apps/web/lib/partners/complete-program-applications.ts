@@ -171,6 +171,7 @@ export async function completeProgramApplications(userEmail: string) {
         notifyPartnerApplication({
           partner,
           program,
+          group,
           application,
         }),
 
