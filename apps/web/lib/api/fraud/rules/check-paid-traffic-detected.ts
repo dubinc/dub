@@ -1,29 +1,45 @@
-import { FraudEventContext } from "@/lib/types";
+import { FraudEventContext, PaidTrafficPlatform } from "@/lib/types";
 import { getSearchParams } from "@dub/utils";
 import { z } from "zod";
+import {
+  PAID_TRAFFIC_PLATFORMS,
+  PAID_TRAFFIC_PLATFORMS_CONFIG,
+} from "../constants";
 import { defineFraudRule } from "../define-fraud-rule";
 
 const configSchema = z.object({
-  queryParams: z
-    .array(z.string())
-    .optional()
-    .default([])
-    .describe("Ad-tracking query params to detect."),
+  platforms: z.array(z.enum(PAID_TRAFFIC_PLATFORMS)).optional().default([]),
 });
+
+const defaultConfig: z.infer<typeof configSchema> = {
+  platforms: ["google"],
+};
 
 export const checkPaidTrafficDetected = defineFraudRule({
   type: "paidTrafficDetected",
-  defaultConfig: {
-    queryParams: [
-      // Google
-      "gclid",
-      "gclsrc",
-      "gbraid",
-      "wbraid",
-    ],
-  },
-  evaluate: async ({ click }: FraudEventContext, config) => {
+  evaluate: async ({ click }: FraudEventContext, rawConfig) => {
     console.log("Evaluating checkPaidTrafficDetected...");
+
+    const parsedConfig = configSchema.safeParse(rawConfig ?? defaultConfig);
+
+    if (!parsedConfig.success) {
+      console.error(
+        `[checkReferralSourceBanned] Invalid config:`,
+        parsedConfig.error,
+      );
+
+      return {
+        triggered: false,
+      };
+    }
+
+    const config = parsedConfig.data;
+
+    if (config.platforms.length === 0) {
+      return {
+        triggered: false,
+      };
+    }
 
     if (!click.url) {
       return {
@@ -31,25 +47,34 @@ export const checkPaidTrafficDetected = defineFraudRule({
       };
     }
 
-    if (config.queryParams.length === 0) {
-      return {
-        triggered: false,
-      };
-    }
-
+    // Find the query params from the final URL
     const queryParams = getSearchParams(click.url);
     const queryParamsKeys = Object.keys(queryParams);
 
-    // Check if any of the query params are in the config
-    const filteredQueryParams = queryParamsKeys.filter((param) =>
-      config.queryParams.includes(param),
-    );
+    let source: PaidTrafficPlatform | null = null;
 
-    if (filteredQueryParams.length > 0) {
+    for (const platform of config.platforms) {
+      const foundPlatform = PAID_TRAFFIC_PLATFORMS_CONFIG.find(
+        (p) => p.id === platform,
+      );
+
+      if (!foundPlatform || !foundPlatform.queryParams) {
+        continue;
+      }
+
+      for (const queryParamKey of queryParamsKeys) {
+        if (foundPlatform.queryParams.includes(queryParamKey)) {
+          source = foundPlatform.id;
+          break;
+        }
+      }
+    }
+
+    if (source) {
       return {
         triggered: true,
         metadata: {
-          queryParams: filteredQueryParams,
+          source,
         },
       };
     }

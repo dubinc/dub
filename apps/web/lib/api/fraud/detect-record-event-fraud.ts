@@ -22,7 +22,7 @@ export async function detectAndRecordEventFraud(context: FraudEventContext) {
     },
   });
 
-  // Merge global rules with program overrides
+  // Override global rules with program-specific overrides
   const mergedRules = getMergedFraudRules(programRules);
   const activeRules = mergedRules.filter((rule) => rule.enabled);
 
@@ -54,7 +54,7 @@ export async function detectAndRecordEventFraud(context: FraudEventContext) {
   console.log("[detectAndRecordFraudEvents] triggeredRules", triggeredRules);
 
   try {
-    return await prisma.fraudEvent.createMany({
+    await prisma.fraudEvent.createMany({
       data: triggeredRules.map((rule) => ({
         id: createId({ prefix: "fraud_" }),
         programId: validatedContext.program.id,
@@ -72,6 +72,5 @@ export async function detectAndRecordEventFraud(context: FraudEventContext) {
       "[detectAndRecordFraudEvents] Error recording fraud event",
       error,
     );
-    return null;
   }
 }
