@@ -49,9 +49,8 @@ export async function queueStripePayouts(
         stripeConnectId: {
           not: null,
         },
-        payoutsEnabledAt: {
-          not: null,
-        },
+        // here we're not checking for payoutsEnabledAt since we want visiblity
+        // if a stripe.transfers.create fails due to restricted Stripe account
       },
     },
   });
