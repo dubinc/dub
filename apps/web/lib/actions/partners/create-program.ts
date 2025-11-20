@@ -101,7 +101,6 @@ export const createProgram = async ({
         workspaceId: workspace.id,
         name,
         slug: workspace.slug,
-        ...(logoUrl && { logo: logoUrl }),
         domain,
         url,
         defaultFolderId: programFolder.id,
@@ -150,6 +149,7 @@ export const createProgram = async ({
         slug: DEFAULT_PARTNER_GROUP.slug,
         name: DEFAULT_PARTNER_GROUP.name,
         color: DEFAULT_PARTNER_GROUP.color,
+        ...(logoUrl && { logo: logoUrl }),
         ...(createdReward && {
           [REWARD_EVENT_COLUMN_MAPPING[createdReward.event]]: createdReward.id,
         }),
