@@ -57,6 +57,10 @@ export const fraudEventsQuerySchema = z
     status: z.nativeEnum(FraudEventStatus).optional(),
     type: z.nativeEnum(FraudRuleType).optional(),
     partnerId: z.string().optional(),
+    fraudEventIds: z
+      .union([z.string(), z.array(z.string())])
+      .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+      .optional(),
     sortBy: z.enum(["createdAt", "type"]).default("createdAt"),
     sortOrder: z.enum(["asc", "desc"]).default("desc"),
   })

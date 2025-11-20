@@ -49,7 +49,11 @@ export const generatePartnerLink = async ({
     const result = await processLink<{
       partnerGroupDefaultLinkId?: string | null;
     }>({
-      workspace,
+      workspace: {
+        id: workspace.id,
+        plan: workspace.plan,
+        users: [{ role: "owner" }], // TODO: apply folders RBAC to generatePartnerLink checks
+      },
       userId,
       payload: {
         ...link,

@@ -6,19 +6,23 @@ import { FraudEventProps } from "../types";
 import { fraudEventsQuerySchema } from "../zod/schemas/fraud";
 import useWorkspace from "./use-workspace";
 
-export function useFraudEvents(
-  filters: Partial<z.infer<typeof fraudEventsQuerySchema>>,
-) {
+export function useFraudEvents({
+  enabled = true,
+  query,
+}: {
+  enabled?: boolean;
+  query?: Partial<z.infer<typeof fraudEventsQuerySchema>>;
+} = {}) {
   const { getQueryString } = useRouterStuff();
   const { id: workspaceId, defaultProgramId } = useWorkspace();
 
   const queryString = getQueryString({
     workspaceId,
-    ...filters,
+    ...query,
   });
 
   const { data, isLoading, error } = useSWR<FraudEventProps[]>(
-    defaultProgramId ? `/api/fraud-events${queryString}` : undefined,
+    enabled && defaultProgramId ? `/api/fraud-events${queryString}` : undefined,
     fetcher,
     {
       keepPreviousData: true,

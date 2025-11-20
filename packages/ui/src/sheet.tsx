@@ -33,7 +33,8 @@ function SheetRoot({
             contentProps?.onPointerDownOutside?.(e);
           }}
           className={cn(
-            "@container/sheet fixed bottom-2 right-2 top-2 z-40 flex w-[calc(100%-16px)] outline-none md:w-[540px]",
+            "@container/sheet fixed bottom-2 right-2 top-2 z-40 flex outline-none",
+            "w-[min(var(--sheet-width),calc(100%-2*var(--sheet-margin)))] [--sheet-margin:8px] [--sheet-width:540px]",
             contentProps?.className,
           )}
           style={

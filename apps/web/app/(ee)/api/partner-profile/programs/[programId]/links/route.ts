@@ -119,6 +119,7 @@ export const POST = withPartnerProfile(
       workspace: {
         id: program.workspaceId,
         plan: "business",
+        users: [{ role: "owner" }],
       },
       userId: session.user.id, // TODO: Hm, this is the partner user, not the workspace user?
       skipFolderChecks: true, // can't be changed by the partner

@@ -459,7 +459,7 @@ function LinkEventsChart({
                 <p className="text-right text-neutral-500">
                   {currency ? (
                     <NumberFlow
-                      value={series.valueAccessor(d)}
+                      value={series.valueAccessor(d) / 100}
                       format={{ style: "currency", currency: "USD" }}
                     />
                   ) : (

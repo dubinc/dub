@@ -46,7 +46,7 @@ export const FolderDropdown = ({
 }: FolderDropdownProps) => {
   const router = useRouter();
   const { slug, plan, defaultFolderId } = useWorkspace();
-  const { searchParams, queryParams } = useRouterStuff();
+  const { queryParams } = useRouterStuff();
 
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);

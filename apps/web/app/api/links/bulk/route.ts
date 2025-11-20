@@ -16,8 +16,8 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import {
-  checkFolderPermissions,
   verifyFolderAccess,
+  verifyFolderAccessBulk,
 } from "@/lib/folder/permissions";
 import { storage } from "@/lib/storage";
 import { NewLinkProps, ProcessedLinkProps } from "@/lib/types";
@@ -173,8 +173,8 @@ export const POST = withWorkspace(
         ),
       ];
 
-      const folderPermissions = await checkFolderPermissions({
-        workspaceId: workspace.id,
+      const folderPermissions = await verifyFolderAccessBulk({
+        workspace,
         userId: session.user.id,
         folderIds,
         requiredPermission: "folders.links.write",
@@ -350,8 +350,8 @@ export const PATCH = withWorkspace(
         new Set(links.map((link) => link.folderId).filter(Boolean) as string[]),
       );
 
-      const folderPermissions = await checkFolderPermissions({
-        workspaceId: workspace.id,
+      const folderPermissions = await verifyFolderAccessBulk({
+        workspace,
         userId: session.user.id,
         folderIds,
         requiredPermission: "folders.links.write",
@@ -368,7 +368,7 @@ export const PATCH = withWorkspace(
 
         if (!validFolder?.hasPermission) {
           errorLinks.push({
-            error: `You don't have permission to move this link to the folder: ${link.folderId}`,
+            error: `You don't have permission to update links in this folder: ${link.folderId}`,
             code: "forbidden",
             link,
           });
@@ -522,8 +522,8 @@ export const DELETE = withWorkspace(
         ),
       ];
 
-      const folderPermissions = await checkFolderPermissions({
-        workspaceId: workspace.id,
+      const folderPermissions = await verifyFolderAccessBulk({
+        workspace,
         userId: session.user.id,
         folderIds,
         requiredPermission: "folders.links.write",

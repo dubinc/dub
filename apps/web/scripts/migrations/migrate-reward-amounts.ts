@@ -1,3 +1,5 @@
+// @ts-nocheck – contains old schema code
+
 import { RewardConditions } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@prisma/client";
