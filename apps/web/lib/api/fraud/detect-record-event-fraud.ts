@@ -27,8 +27,6 @@ export async function detectAndRecordEventFraud(context: FraudEventContext) {
   const mergedRules = getMergedFraudRules(programRules);
   const activeRules = mergedRules.filter((rule) => rule.enabled);
 
-  console.log("mergedRules", mergedRules)
-
   const triggeredRules: Pick<FraudEvent, "type" | "metadata">[] = [];
 
   // Evaluate each rule
@@ -59,7 +57,7 @@ export async function detectAndRecordEventFraud(context: FraudEventContext) {
   try {
     await prisma.fraudEvent.createMany({
       data: triggeredRules.map((rule) => ({
-        id: createId({ prefix: "fraud_" }),
+        id: createId({ prefix: "fre_" }),
         programId: validatedContext.program.id,
         partnerId: validatedContext.partner.id,
         linkId: validatedContext.link.id,

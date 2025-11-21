@@ -5,6 +5,7 @@ import { fraudPartnerContext } from "../../zod/schemas/schemas";
 import { createId } from "../create-id";
 import { FRAUD_RULES_BY_SCOPE, FRAUD_RULES_BY_TYPE } from "./constants";
 import { executeFraudRule } from "./execute-fraud-rule";
+import { createFraudEventGroupKey } from "./utils";
 
 export async function detectAndRecordPartnerFraud({
   context,
@@ -85,7 +86,7 @@ export async function detectAndRecordPartnerFraud({
 
   const fraudEvents: Pick<
     FraudEvent,
-    "id" | "programId" | "partnerId" | "type"
+    "id" | "programId" | "partnerId" | "type" | "groupKey"
   >[] = [];
 
   // TODO (Fraud):
@@ -104,18 +105,28 @@ export async function detectAndRecordPartnerFraud({
     if (fraudRule.crossProgram) {
       for (const programEnrollment of programEnrollments) {
         fraudEvents.push({
-          id: createId({ prefix: "fraud_" }),
+          id: createId({ prefix: "fre_" }),
           programId: programEnrollment.programId,
           partnerId: validatedContext.partner.id,
           type: triggeredRule.type,
+          groupKey: createFraudEventGroupKey({
+            programId: programEnrollment.programId,
+            partnerId: validatedContext.partner.id,
+            type: triggeredRule.type,
+          }),
         });
       }
     } else if (validatedContext?.program?.id) {
       fraudEvents.push({
-        id: createId({ prefix: "fraud_" }),
+        id: createId({ prefix: "fre_" }),
         programId: validatedContext.program.id,
         partnerId: validatedContext.partner.id,
         type: triggeredRule.type,
+        groupKey: createFraudEventGroupKey({
+          programId: validatedContext.program.id,
+          partnerId: validatedContext.partner.id,
+          type: triggeredRule.type,
+        }),
       });
     }
   }

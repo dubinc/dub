@@ -47,11 +47,9 @@ export function FraudEventsTable() {
     setSelectedFilter,
   } = useFraudEventsFilters();
 
-  const {
-    fraudEvents,
-    loading,
-    error,
-  } = useGroupedFraudEvents({ query: { status: "pending" } });
+  const { fraudEvents, loading, error } = useGroupedFraudEvents({
+    query: { status: "pending" },
+  });
 
   const [detailsSheetState, setDetailsSheetState] = useState<
     { open: false; groupKey: string | null } | { open: true; groupKey: string }
@@ -422,17 +420,20 @@ function useCurrentFraudEvent({
     ? fraudEvents?.find(({ groupKey: gk }) => gk === groupKey)
     : null;
 
-  const fetchGroupKey =
-    fraudEvents && groupKey && !currentFraudEvent ? groupKey : null;
+  // TODO:
+  // We need to update the query to support this
 
-  const { fraudEvents: fetchedFraudEvents, loading: isLoading } =
-    useGroupedFraudEvents({
-      enabled: Boolean(groupKey),
-      query: groupKey ? { groupKeys: [groupKey] } : undefined,
-    });
+  // const fetchGroupKey =
+  //   fraudEvents && groupKey && !currentFraudEvent ? groupKey : null;
 
-  if (!currentFraudEvent && fetchedFraudEvents?.[0]?.groupKey === groupKey)
-    currentFraudEvent = fetchedFraudEvents[0];
+  // const { fraudEvents: fetchedFraudEvents, loading: isLoading } =
+  //   useGroupedFraudEvents({
+  //     enabled: Boolean(groupKey),
+  //     query: groupKey ? { groupKeys: [groupKey] } : undefined,
+  //   });
 
-  return { currentFraudEvent, isLoading };
+  // if (!currentFraudEvent && fetchedFraudEvents?.[0]?.groupKey === groupKey)
+  //   currentFraudEvent = fetchedFraudEvents[0];
+
+  return { currentFraudEvent };
 }
