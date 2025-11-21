@@ -156,7 +156,6 @@ export const updateGroupBrandingAction = authActionClient
                   newValue !== undefined && oldValue !== newValue,
               )
               .map(async ({ item, oldValue, newValue }) => {
-                console.log({ item, oldValue, newValue });
                 console.log(
                   `Default group's ${item} updated, updating other groups (that have the same ${item})...`,
                 );
@@ -172,6 +171,16 @@ export const updateGroupBrandingAction = authActionClient
                 console.log(
                   `Updated ${updatedGroups.count} other groups based on default group's ${item}`,
                 );
+                if (item === "logo") {
+                  await prisma.program.update({
+                    where: {
+                      id: programId,
+                    },
+                    data: {
+                      logo: newValue,
+                    },
+                  });
+                }
               }),
           );
 
