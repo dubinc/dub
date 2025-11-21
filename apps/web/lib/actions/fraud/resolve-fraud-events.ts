@@ -6,7 +6,6 @@ import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { resolveFraudEventsSchema } from "@/lib/zod/schemas/fraud";
 import { authActionClient } from "../safe-action";
 
-// Resolve a fraud event
 export const resolveFraudEventsAction = authActionClient
   .schema(resolveFraudEventsSchema)
   .action(async ({ ctx, parsedInput }) => {
