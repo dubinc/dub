@@ -83,31 +83,17 @@ export function ApplicationsMenu() {
               <p className="mb-1.5 mt-1 flex items-center gap-2 px-1 text-xs font-medium text-neutral-500">
                 Application Settings
               </p>
-              {program?.autoApprovePartnersEnabledAt ? (
-                <Link
-                  href={`/${workspaceSlug}/program/groups/${DEFAULT_PARTNER_GROUP.slug}/settings`}
-                  className="w-full rounded-md p-2 hover:bg-neutral-100 active:bg-neutral-200"
-                >
-                  <div className="flex items-center gap-2 text-left">
-                    <UserCheck className="size-4 shrink-0 text-red-600" />
-                    <span className="text-sm font-medium">
-                      Disable auto-approve
-                    </span>
-                  </div>
-                </Link>
-              ) : (
-                <Link
-                  href={`/${workspaceSlug}/program/groups/${DEFAULT_PARTNER_GROUP.slug}/settings`}
-                  className="w-full rounded-md p-2 hover:bg-neutral-100 active:bg-neutral-200"
-                >
-                  <div className="flex items-center gap-2 text-left">
-                    <UserCheck className="size-4 shrink-0 text-green-600" />
-                    <span className="text-sm font-medium">
-                      Enable auto-approve
-                    </span>
-                  </div>
-                </Link>
-              )}
+              <Link
+                href={`/${workspaceSlug}/program/groups/${DEFAULT_PARTNER_GROUP.slug}/settings`}
+                className="w-full rounded-md p-2 hover:bg-neutral-100 active:bg-neutral-200"
+              >
+                <div className="flex items-center gap-2 text-left">
+                  <UserCheck className="size-4 shrink-0" />
+                  <span className="text-sm font-medium">
+                    Auto-approval settings
+                  </span>
+                </div>
+              </Link>
               <button
                 onClick={() => {
                   router.push(
