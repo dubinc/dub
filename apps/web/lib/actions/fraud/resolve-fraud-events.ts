@@ -4,6 +4,7 @@ import { resolveFraudEvents } from "@/lib/api/fraud/utils";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { resolveFraudEventsSchema } from "@/lib/zod/schemas/fraud";
+import { prisma } from "@dub/prisma";
 import { authActionClient } from "../safe-action";
 
 export const resolveFraudEventsAction = authActionClient
@@ -20,7 +21,7 @@ export const resolveFraudEventsAction = authActionClient
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    await resolveFraudEvents({
+    const resolvedFraudEvents = await resolveFraudEvents({
       where: {
         programId,
         groupKey,
@@ -28,4 +29,20 @@ export const resolveFraudEventsAction = authActionClient
       userId: user.id,
       resolutionReason,
     });
+
+    // Add the resolution reason as a comment to the partner
+    if (
+      resolutionReason &&
+      resolvedFraudEvents &&
+      resolvedFraudEvents.length > 0
+    ) {
+      await prisma.partnerComment.create({
+        data: {
+          programId,
+          partnerId: resolvedFraudEvents[0].partnerId,
+          userId: user.id,
+          text: resolutionReason,
+        },
+      });
+    }
   });

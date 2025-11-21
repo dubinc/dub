@@ -115,4 +115,6 @@ export async function resolveFraudEvents({
       },
     });
   }
+
+  return fraudEvents;
 }
