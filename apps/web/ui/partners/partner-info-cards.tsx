@@ -27,10 +27,13 @@ import {
 import Link from "next/link";
 import useSWR from "swr";
 import { ConversionScoreIcon } from "./conversion-score-icon";
-import { PartnerApplicationRiskBanner } from "./fraud-risks/partner-application-risk-banner";
 import { PartnerApplicationRiskSummary } from "./fraud-risks/partner-application-risk-summary";
+import {
+  PartnerApplicationFraudBanner,
+  PartnerFraudBanner,
+} from "./fraud-risks/partner-fraud-banner";
+import { PartnerFraudIndicator } from "./fraud-risks/partner-fraud-indicator";
 import { PartnerApplicationRiskFlag } from "./partner-application-risk-flag";
-import { PartnerFraudIndicator } from "./partner-fraud-indicator";
 import { PartnerInfoGroup } from "./partner-info-group";
 import { ConversionScoreTooltip } from "./partner-network/conversion-score-tooltip";
 import { PartnerStarButton } from "./partner-star-button";
@@ -185,9 +188,13 @@ export function PartnerInfoCards({
   return (
     <div className="flex flex-col gap-4">
       <div className="overflow-hidden rounded-xl bg-red-100">
-        {partner && isEnrolled && showApplicationRiskAnalysis && (
-          <PartnerApplicationRiskBanner partner={partner} />
-        )}
+        {partner &&
+          isEnrolled &&
+          (partner.status === "pending" ? (
+            <PartnerApplicationFraudBanner partner={partner} />
+          ) : (
+            <PartnerFraudBanner partner={partner} />
+          ))}
 
         <div className="border-border-subtle flex flex-col divide-y divide-neutral-200 rounded-xl border bg-white">
           <div className="p-4">
@@ -222,7 +229,9 @@ export function PartnerInfoCards({
                   <span className="text-content-emphasis text-lg font-semibold">
                     {partner.name}
                   </span>
-                  {showFraudIndicator && <PartnerFraudIndicator partnerId={partner.id} />}
+                  {showFraudIndicator && (
+                    <PartnerFraudIndicator partnerId={partner.id} />
+                  )}
                   {showApplicationRiskAnalysis && (
                     <PartnerApplicationRiskFlag partnerId={partner.id} />
                   )}

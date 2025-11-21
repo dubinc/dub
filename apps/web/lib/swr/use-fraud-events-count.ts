@@ -5,9 +5,13 @@ import useSWR from "swr";
 import { z } from "zod";
 import { fraudEventCountQuerySchema } from "../zod/schemas/fraud";
 
-export function useFraudEventsCount<T>(
-  filters: Partial<z.infer<typeof fraudEventCountQuerySchema>> = {},
-) {
+export function useFraudEventsCount<T>({
+  filters,
+  enabled = true,
+}: {
+  filters: Partial<z.infer<typeof fraudEventCountQuerySchema>>;
+  enabled?: boolean;
+}) {
   const { getQueryString } = useRouterStuff();
   const { id: workspaceId, defaultProgramId } = useWorkspace();
 
@@ -22,7 +26,9 @@ export function useFraudEventsCount<T>(
   );
 
   const { data: fraudEventsCount, error } = useSWR(
-    defaultProgramId ? `/api/fraud-events/count${queryString}` : undefined,
+    defaultProgramId && enabled
+      ? `/api/fraud-events/count${queryString}`
+      : null,
     fetcher,
     {
       keepPreviousData: true,

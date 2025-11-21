@@ -16,8 +16,8 @@ export function PartnerFraudIndicator({ partnerId }: { partnerId: string }) {
   const { fraudEventsCount, loading } = useFraudEventsCount<
     FraudEventGroupByPartner[]
   >({
-    groupBy: "partnerId",
-    status: "pending",
+    filters: { groupBy: "partnerId", status: "pending" },
+    enabled: partnerId !== null,
   });
 
   if (loading) {

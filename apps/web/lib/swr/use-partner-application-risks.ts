@@ -6,7 +6,7 @@ import {
 } from "@/lib/types";
 import { fetcher } from "@dub/utils";
 import { useMemo } from "react";
-import useSWR, { SWRConfiguration } from "swr";
+import useSWR from "swr";
 import useWorkspace from "./use-workspace";
 
 type FraudRisksResponse = Partial<Record<ExtendedFraudRuleType, boolean>>;
@@ -31,17 +31,15 @@ export function getHighestSeverity(
   return highest;
 }
 
-export function usePartnerApplicationRisks(
-  {
-    partnerId,
-    enabled = true,
-  }: {
-    partnerId: string | null | undefined;
-    enabled?: boolean;
-  },
-  swrOptions: SWRConfiguration = {},
-) {
+export function usePartnerApplicationRisks({
+  filters,
+  enabled = true,
+}: {
+  filters: { partnerId: string | null | undefined };
+  enabled?: boolean;
+}) {
   const { id: workspaceId } = useWorkspace();
+  const { partnerId } = filters;
 
   const {
     data: risks,
@@ -52,7 +50,6 @@ export function usePartnerApplicationRisks(
       ? `/api/partners/${partnerId}/risks?workspaceId=${workspaceId}`
       : null,
     fetcher,
-    swrOptions,
   );
 
   const triggeredFraudRules = useMemo(() => {

@@ -9,7 +9,7 @@ export function PartnerApplicationRiskFlag({
   partnerId: string;
 }) {
   const { severity, isLoading } = usePartnerApplicationRisks({
-    partnerId,
+    filters: { partnerId },
   });
 
   if (isLoading || !severity) {

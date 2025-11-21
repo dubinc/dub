@@ -5,7 +5,7 @@ import { OG_AVATAR_URL } from "@dub/utils/src/constants";
 import { CircleMinus } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { PartnerFraudIndicator } from "./partner-fraud-indicator";
+import { PartnerFraudIndicator } from "./fraud-risks/partner-fraud-indicator";
 
 interface PartnerRowItemProps {
   showPermalink?: boolean;

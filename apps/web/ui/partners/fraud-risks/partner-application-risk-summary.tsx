@@ -18,7 +18,7 @@ export function PartnerApplicationRiskSummary({
 }: PartnerApplicationRiskSummaryProps) {
   const { triggeredFraudRules, severity, isLoading } =
     usePartnerApplicationRisks({
-      partnerId: partner?.id,
+      filters: { partnerId: partner?.id },
       enabled: true,
     });
 
