@@ -25,7 +25,7 @@ async function handler(req: Request) {
       });
     }
 
-    const programsByHoldingPeriod = await prisma.program.groupBy({
+    const partnerGroupsByHoldingPeriod = await prisma.partnerGroup.groupBy({
       by: ["holdingPeriodDays"],
       _count: {
         id: true,
@@ -37,28 +37,39 @@ async function handler(req: Request) {
       },
     });
 
+    console.log(JSON.stringify(partnerGroupsByHoldingPeriod, null, 2));
+
     let holdingPeriodsWithMoreToProcess: number[] = [];
-    for (const { holdingPeriodDays } of programsByHoldingPeriod) {
-      const programs = await prisma.program.findMany({
+    for (const { holdingPeriodDays } of partnerGroupsByHoldingPeriod) {
+      const partnerGroups = await prisma.partnerGroup.findMany({
         where: {
           holdingPeriodDays,
         },
         select: {
           id: true,
-          name: true,
+          program: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
         },
       });
 
       console.log(
-        `Found ${programs.length} programs with holding period days: ${holdingPeriodDays}`,
+        `Found ${partnerGroups.length} partner groups with holding period days: ${holdingPeriodDays}`,
       );
 
       // Find all due commissions (limit by BATCH_SIZE)
       const dueCommissions = await prisma.commission.findMany({
         where: {
           status: "pending",
-          programId: {
-            in: programs.map((p) => p.id),
+          partner: {
+            programs: {
+              some: {
+                groupId: { in: partnerGroups.map((p) => p.id) },
+              },
+            },
           },
           // If holding period days is greater than 0:
           // we only process commissions that were created before the holding period
@@ -172,6 +183,9 @@ async function handler(req: Request) {
             );
 
             if (!payoutToUse) {
+              const programName = partnerGroups.find(
+                (p) => p.program.id === programId,
+              )?.program.name;
               payoutToUse = await prisma.payout.create({
                 data: {
                   id: createId({ prefix: "po_" }),
@@ -180,7 +194,7 @@ async function handler(req: Request) {
                   periodStart,
                   periodEnd,
                   amount: totalEarnings,
-                  description: `Dub Partners payout (${programs.find((p) => p.id === programId)?.name})`,
+                  description: `Dub Partners payout${programName ? ` (${programName})` : ""}`,
                 },
               });
             }

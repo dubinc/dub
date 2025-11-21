@@ -1,11 +1,13 @@
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { createGroupSchema } from "@/lib/zod/schemas/groups";
 import { RESOURCE_COLORS } from "@/ui/colors";
 import { GroupColorPicker } from "@/ui/partners/groups/group-color-picker";
 import { Button, Modal } from "@dub/ui";
 import { cn } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
+import { useRouter } from "next/router";
 import { Dispatch, SetStateAction, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -18,8 +20,9 @@ interface CreateGroupModalProps {
 type FormData = z.input<typeof createGroupSchema>;
 
 function CreateGroupModalContent({ setIsOpen }: CreateGroupModalProps) {
+  const router = useRouter();
+  const { slug } = useWorkspace();
   const { makeRequest: createGroup, isSubmitting } = useApiMutation();
-
   const {
     register,
     handleSubmit,
@@ -38,9 +41,10 @@ function CreateGroupModalContent({ setIsOpen }: CreateGroupModalProps) {
       method: "POST",
       body: data,
       onSuccess: async () => {
-        toast.success(`Group ${data.name} created successfully`);
-        setIsOpen(false);
         await mutatePrefix("/api/groups");
+        setIsOpen(false);
+        toast.success(`Group ${data.name} created successfully`);
+        router.push(`/${slug}/program/groups/${data.slug}`);
       },
     });
   };
