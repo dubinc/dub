@@ -49,7 +49,7 @@ export function FraudEventsTable() {
 
   const {
     fraudEvents,
-    loading: isLoading,
+    loading,
     error,
   } = useGroupedFraudEvents({ query: { status: "pending" } });
 
@@ -226,7 +226,7 @@ export function FraudEventsTable() {
     tdClassName: "border-l-0",
     resourceName: (plural) => `event${plural ? "s" : ""}`,
     rowCount: fraudEventsCount ?? 0,
-    loading: isLoading,
+    loading,
     error: error || countError ? "Failed to load fraud events" : undefined,
   });
 

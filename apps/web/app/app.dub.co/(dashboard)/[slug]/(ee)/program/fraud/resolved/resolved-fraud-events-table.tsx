@@ -1,8 +1,8 @@
 "use client";
 
 import { FRAUD_RULES_BY_TYPE } from "@/lib/api/fraud/constants";
-import { useGroupedFraudEvents } from "@/lib/swr/use-grouped-fraud-events";
 import { useFraudEventsCount } from "@/lib/swr/use-fraud-events-count";
+import { useGroupedFraudEvents } from "@/lib/swr/use-grouped-fraud-events";
 import { FraudEventProps } from "@/lib/types";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
@@ -42,11 +42,9 @@ export function ResolvedFraudEventsTable() {
     setSelectedFilter,
   } = useFraudEventsFilters();
 
-  const {
-    fraudEvents,
-    loading: isLoading,
-    error,
-  } = useGroupedFraudEvents({ query: { status: "resolved" } });
+  const { fraudEvents, loading, error } = useGroupedFraudEvents({
+    query: { status: "resolved" },
+  });
 
   const { fraudEventsCount, error: countError } = useFraudEventsCount<number>({
     status: "resolved",
@@ -54,6 +52,60 @@ export function ResolvedFraudEventsTable() {
 
   const columns = useMemo(
     () => [
+      {
+        id: "type",
+        header: "Event",
+        size: 150,
+        cell: ({ row }: { row: Row<FraudEventProps> }) => {
+          const reason = FRAUD_RULES_BY_TYPE[row.original.type];
+          const count = row.original.count ?? 1;
+
+          if (reason) {
+            return (
+              <div className="flex items-center gap-2">
+                <Tooltip content={reason.description}>
+                  <span
+                    className={cn(
+                      "cursor-help truncate underline decoration-dotted underline-offset-2",
+                    )}
+                  >
+                    {reason.name}
+                  </span>
+                </Tooltip>
+
+                {count > 1 && (
+                  <Badge
+                    variant="gray"
+                    className="shrink-0 rounded-md border-none px-1.5 py-1 text-xs font-semibold text-neutral-700"
+                  >
+                    +{Number(count) - 1}
+                  </Badge>
+                )}
+              </div>
+            );
+          }
+        },
+        meta: {
+          filterParams: ({ row }) => ({
+            type: row.original.type,
+          }),
+        },
+      },
+      {
+        id: "resolvedAt",
+        header: "Resolved on",
+        size: 150,
+        cell: ({ row }: { row: Row<FraudEventProps> }) => {
+          const user = row.original.user;
+          const resolvedAt = row.original.resolvedAt;
+
+          if (!resolvedAt || !user) return "-";
+
+          return (
+            <UserRowItem user={user} date={resolvedAt} label="Resolved at" />
+          );
+        },
+      },
       {
         id: "partner",
         header: "Partner",
@@ -79,62 +131,6 @@ export function ResolvedFraudEventsTable() {
                   partnerId: row.original.partner.id,
                 }
               : {},
-        },
-      },
-      {
-        id: "type",
-        header: "Reason",
-        size: 200,
-        cell: ({ row }: { row: Row<FraudEventProps> }) => {
-          const reason = FRAUD_RULES_BY_TYPE[row.original.type];
-          const count = row.original.count ?? 1;
-
-          if (reason) {
-            return (
-              <div className="flex items-center gap-2">
-                <Tooltip content={reason.description}>
-                  <span
-                    className={cn(
-                      "cursor-help truncate underline decoration-dotted underline-offset-2",
-                    )}
-                  >
-                    {reason.name}
-                  </span>
-                </Tooltip>
-
-                {count > 1 && (
-                  <Badge
-                    variant="gray"
-                    className="shrink-0 rounded-md border-none px-1.5 py-0.5 text-xs font-semibold text-neutral-700"
-                  >
-                    +{Number(count) - 1}
-                  </Badge>
-                )}
-              </div>
-            );
-          }
-        },
-        meta: {
-          filterParams: ({ row }) => ({
-            type: row.original.type,
-          }),
-        },
-      },
-      {
-        id: "resolvedAt",
-        header: "Resolved on",
-        size: 150,
-        cell: ({ row }: { row: Row<FraudEventProps> }) => {
-          const user = row.original.user;
-          const resolvedAt = row.original.resolvedAt;
-
-          if (!resolvedAt) return "-";
-
-          if (!user) return "-";
-
-          return (
-            <UserRowItem user={user} date={resolvedAt} label="Resolved at" />
-          );
         },
       },
     ],
@@ -174,9 +170,9 @@ export function ResolvedFraudEventsTable() {
     getRowId: (row) => row.id,
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
-    resourceName: () => "fraud event",
+    resourceName: () => "resolved fraud event",
     rowCount: fraudEventsCount ?? 0,
-    loading: isLoading,
+    loading,
     error: error || countError ? "Failed to load fraud events" : undefined,
   });
 
