@@ -1,9 +1,11 @@
 import { CONFIGURABLE_FRAUD_RULES } from "@/lib/api/fraud/constants";
+import { createFraudEventGroupKey } from "@/lib/api/fraud/utils";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { updateFraudRuleSettingsSchema } from "@/lib/zod/schemas/fraud";
 import { prisma } from "@dub/prisma";
+import { nanoid } from "@dub/utils";
 import { FraudRuleType, Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -93,21 +95,61 @@ export const PATCH = withWorkspace(
           .map((r) => r.type);
 
         if (ruleTypesToResolve.length > 0) {
-          await prisma.fraudEvent.updateMany({
+          // Fetch fraud events grouped by their existing groupKey
+          const fraudEvents = await prisma.fraudEvent.findMany({
             where: {
               programId,
+              status: "pending",
               type: {
                 in: ruleTypesToResolve,
               },
             },
-            data: {
-              status: "resolved",
-              userId: session.user.id,
-              resolvedAt: new Date(),
-              resolutionReason:
-                "Resolved automatically because the fraud rule was disabled.",
+            select: {
+              id: true,
+              groupKey: true,
+              partnerId: true,
+              type: true,
             },
           });
+
+          // Group events by their existing groupKey
+          const groupedEvents = new Map<string, typeof fraudEvents>();
+
+          for (const event of fraudEvents) {
+            if (!groupedEvents.has(event.groupKey)) {
+              groupedEvents.set(event.groupKey, []);
+            }
+
+            groupedEvents.get(event.groupKey)!.push(event);
+          }
+
+          // Update each group with a new groupKey
+          for (const [groupKey, events] of groupedEvents) {
+            if (events.length === 0) continue;
+
+            const firstEvent = events[0];
+            const newGroupKey = createFraudEventGroupKey({
+              programId,
+              partnerId: firstEvent.partnerId,
+              type: firstEvent.type,
+              batchId: nanoid(10),
+            });
+
+            await prisma.fraudEvent.updateMany({
+              where: {
+                groupKey,
+                status: "pending",
+              },
+              data: {
+                status: "resolved",
+                userId: session.user.id,
+                resolvedAt: new Date(),
+                resolutionReason:
+                  "Resolved automatically because the fraud rule was disabled.",
+                groupKey: newGroupKey,
+              },
+            });
+          }
         }
       })(),
     );
