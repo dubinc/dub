@@ -226,7 +226,7 @@ export default function ProgramPageClient() {
           start: start ? startOfDay(new Date(start)) : undefined,
           end: end ? endOfDay(new Date(end)) : undefined,
           interval,
-          color: program?.brandColor ?? undefined,
+          color: programEnrollment.group?.brandColor ?? undefined,
         }}
       >
         <ChartTooltipSync>
