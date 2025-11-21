@@ -1,27 +1,16 @@
 "use client";
 
+import { useFraudEventInstances } from "@/lib/swr/use-fraud-event-instances";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { FraudEventProps } from "@/lib/types";
+import { FraudEventProps, PartnerProps } from "@/lib/types";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
-import {
-  Button,
-  Table,
-  TimestampTooltip,
-  useRouterStuff,
-  useTable,
-} from "@dub/ui";
-import { fetcher, formatDateTimeSmart } from "@dub/utils";
+import { Button, Table, TimestampTooltip, useTable } from "@dub/ui";
+import { formatDateTimeSmart } from "@dub/utils";
 import Link from "next/link";
-import useSWR from "swr";
 
 interface EventDataProps {
-  partner: {
-    id: string;
-    name: string;
-    email: string;
-    image: string | null;
-    updatedAt: string;
-  };
+  partner: Pick<PartnerProps, "id" | "name" | "email" | "image">;
+  createdAt: string;
 }
 
 export function FraudDuplicatePayoutMethodTable({
@@ -31,19 +20,12 @@ export function FraudDuplicatePayoutMethodTable({
 }) {
   const { partner } = fraudEvent;
 
-  const { getQueryString } = useRouterStuff();
-  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
-
-  const { data: fraudEvents, isLoading } = useSWR<EventDataProps[]>(
-    workspaceId && partner.id && fraudEvent.type
-      ? `/api/fraud-events/instances${getQueryString({
-          workspaceId,
-          partnerId: partner.id,
-          type: fraudEvent.type,
-        })}`
-      : null,
-    fetcher,
-  );
+  const { slug: workspaceSlug } = useWorkspace();
+  const { fraudEvents, loading: isLoading } =
+    useFraudEventInstances<EventDataProps>({
+      partnerId: partner.id,
+      type: fraudEvent.type,
+    });
 
   const table = useTable({
     data: fraudEvents || [],
@@ -55,12 +37,12 @@ export function FraudDuplicatePayoutMethodTable({
         size: 160,
         cell: ({ row }) => (
           <TimestampTooltip
-            timestamp={row.original.partner.updatedAt}
+            timestamp={row.original.createdAt}
             side="right"
             rows={["local", "utc", "unix"]}
             delayDuration={150}
           >
-            <p>{formatDateTimeSmart(row.original.partner.updatedAt)}</p>
+            <p>{formatDateTimeSmart(row.original.createdAt)}</p>
           </TimestampTooltip>
         ),
       },

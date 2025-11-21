@@ -1,11 +1,10 @@
 "use client";
 
-import useWorkspace from "@/lib/swr/use-workspace";
+import { useFraudEventInstances } from "@/lib/swr/use-fraud-event-instances";
 import { FraudEventProps } from "@/lib/types";
 import { BAN_PARTNER_REASONS } from "@/lib/zod/schemas/partners";
-import { Table, TimestampTooltip, useRouterStuff, useTable } from "@dub/ui";
-import { fetcher, formatDateTimeSmart } from "@dub/utils";
-import useSWR from "swr";
+import { Table, TimestampTooltip, useTable } from "@dub/ui";
+import { formatDateTimeSmart } from "@dub/utils";
 
 interface EventDataProps {
   bannedAt: string;
@@ -19,19 +18,11 @@ export function FraudCrossProgramBanTable({
 }) {
   const { partner } = fraudEvent;
 
-  const { getQueryString } = useRouterStuff();
-  const { id: workspaceId } = useWorkspace();
-
-  const { data: fraudEvents, isLoading } = useSWR<EventDataProps[]>(
-    workspaceId && partner.id && fraudEvent.type
-      ? `/api/fraud-events/instances${getQueryString({
-          workspaceId,
-          partnerId: partner.id,
-          type: fraudEvent.type,
-        })}`
-      : null,
-    fetcher,
-  );
+  const { fraudEvents, loading: isLoading } =
+    useFraudEventInstances<EventDataProps>({
+      partnerId: partner.id,
+      type: fraudEvent.type,
+    });
 
   const table = useTable({
     data: fraudEvents || [],

@@ -1,18 +1,12 @@
 "use client";
 
+import { useFraudEventInstances } from "@/lib/swr/use-fraud-event-instances";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CustomerProps, FraudEventProps } from "@/lib/types";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
-import {
-  Button,
-  Table,
-  TimestampTooltip,
-  useRouterStuff,
-  useTable,
-} from "@dub/ui";
-import { fetcher, formatDateTimeSmart } from "@dub/utils";
+import { Button, Table, TimestampTooltip, useTable } from "@dub/ui";
+import { formatDateTimeSmart } from "@dub/utils";
 import Link from "next/link";
-import useSWR from "swr";
 
 interface EventDataProps {
   customer: Pick<CustomerProps, "id" | "name" | "email">;
@@ -26,19 +20,12 @@ export function FraudMatchingCustomerEmailTable({
 }) {
   const { partner } = fraudEvent;
 
-  const { getQueryString } = useRouterStuff();
-  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
-
-  const { data: fraudEvents, isLoading } = useSWR<EventDataProps[]>(
-    workspaceId && partner.id && fraudEvent.type
-      ? `/api/fraud-events/instances${getQueryString({
-          workspaceId,
-          partnerId: partner.id,
-          type: fraudEvent.type,
-        })}`
-      : null,
-    fetcher,
-  );
+  const { slug: workspaceSlug } = useWorkspace();
+  const { fraudEvents, loading: isLoading } =
+    useFraudEventInstances<EventDataProps>({
+      partnerId: partner.id,
+      type: fraudEvent.type,
+    });
 
   const table = useTable({
     data: fraudEvents || [],
