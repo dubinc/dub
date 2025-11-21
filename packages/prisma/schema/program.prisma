@@ -25,36 +25,36 @@ enum ProgramPayoutMode {
 }
 
 model Program {
-  id                           String            @id @default(cuid())
-  workspaceId                  String
-  defaultFolderId              String
-  defaultGroupId               String
-  name                         String
-  slug                         String            @unique
-  domain                       String?
-  url                          String?
-  primaryRewardEvent           EventType         @default(sale)
-  minPayoutAmount              Int               @default(0) // Default minimum payout amount of $0
-  payoutMode                   ProgramPayoutMode @default(internal)
+  id                 String            @id @default(cuid())
+  workspaceId        String
+  defaultFolderId    String
+  defaultGroupId     String
+  name               String
+  slug               String            @unique
+  domain             String?
+  url                String?
+  primaryRewardEvent EventType         @default(sale)
+  minPayoutAmount    Int               @default(0) // Default minimum payout amount of $0
+  payoutMode         ProgramPayoutMode @default(internal)
 
-  inviteEmailData              Json?             @db.Json
-  embedData                    Json?             @db.Json
-  resources                    Json?             @db.Json
-  termsUrl                     String?           @db.Text
-  helpUrl                      String?           @db.Text
-  supportEmail                 String?
-  
-  messagingEnabledAt           DateTime?
-  partnerNetworkEnabledAt      DateTime?
-  createdAt                    DateTime          @default(now())
-  updatedAt                    DateTime          @updatedAt
-  startedAt                    DateTime?
+  inviteEmailData Json?   @db.Json
+  embedData       Json?   @db.Json
+  resources       Json?   @db.Json
+  termsUrl        String? @db.Text
+  helpUrl         String? @db.Text
+  supportEmail    String?
+
+  messagingEnabledAt      DateTime?
+  partnerNetworkEnabledAt DateTime?
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+  startedAt               DateTime?
 
   // DEPRECATED FIELDS: TODO – remove after migration
   logo                         String?
   wordmark                     String?
   brandColor                   String?
-  holdingPeriodDays            Int               @default(0)
+  holdingPeriodDays            Int       @default(0)
   autoApprovePartnersEnabledAt DateTime?
 
   workspace     Project              @relation(fields: [workspaceId], references: [id])
@@ -138,6 +138,7 @@ model ProgramEnrollment {
   discount          Discount?           @relation(fields: [discountId], references: [id])
   bountySubmissions BountySubmission[]
   discountCodes     DiscountCode[]
+  Commission        Commission[]
 
   // unique constraints
   @@unique([partnerId, programId])

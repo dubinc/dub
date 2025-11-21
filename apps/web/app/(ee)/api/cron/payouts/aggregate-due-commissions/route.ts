@@ -64,11 +64,9 @@ async function handler(req: Request) {
       const dueCommissions = await prisma.commission.findMany({
         where: {
           status: "pending",
-          partner: {
-            programs: {
-              some: {
-                groupId: { in: partnerGroups.map((p) => p.id) },
-              },
+          programEnrollment: {
+            groupId: {
+              in: partnerGroups.map((p) => p.id),
             },
           },
           // If holding period days is greater than 0:
