@@ -21,9 +21,6 @@ export const updateProgramAction = authActionClient
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const {
-      name,
-      domain,
-      url,
       supportEmail,
       helpUrl,
       termsUrl,
@@ -46,9 +43,6 @@ export const updateProgramAction = authActionClient
           id: programId,
         },
         data: {
-          name,
-          domain,
-          url,
           supportEmail,
           helpUrl,
           termsUrl,

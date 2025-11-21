@@ -38,7 +38,7 @@ export const updateGroupBrandingAction = authActionClient
       wordmark,
       brandColor,
       applicationFormData: applicationFormDataInput,
-      landerData: landerDataInput,
+      landerData: landerDataInputRaw,
     } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
@@ -61,7 +61,7 @@ export const updateGroupBrandingAction = authActionClient
               body: logo,
             })
             .then(({ url }) => url)
-        : logo,
+        : undefined,
       uploadWordmark
         ? storage
             .upload({
@@ -69,29 +69,32 @@ export const updateGroupBrandingAction = authActionClient
               body: wordmark,
             })
             .then(({ url }) => url)
-        : wordmark,
+        : undefined,
     ]);
 
-    const landerData = landerDataInput
-      ? await uploadLanderDataImages({ landerData: landerDataInput, programId })
-      : landerDataInput;
+    const landerDataInput = landerDataInputRaw
+      ? await uploadLanderDataImages({
+          landerData: landerDataInputRaw,
+          programId,
+        })
+      : landerDataInputRaw;
 
     const updatedGroup = await prisma.partnerGroup.update({
       where: {
         id: groupId,
       },
       data: {
+        logo: logoUrl,
+        wordmark: wordmarkUrl,
+        brandColor,
         applicationFormData: applicationFormDataInput
           ? applicationFormDataInput
           : undefined,
         applicationFormPublishedAt: applicationFormDataInput
           ? new Date()
           : undefined,
-        landerData: landerData ? landerData : undefined,
-        landerPublishedAt: landerData ? new Date() : undefined,
-        logo: logoUrl,
-        wordmark: wordmarkUrl,
-        brandColor,
+        landerData: landerDataInput ? landerDataInput : undefined,
+        landerPublishedAt: landerDataInput ? new Date() : undefined,
       },
     });
 
@@ -100,18 +103,10 @@ export const updateGroupBrandingAction = authActionClient
         const res = await Promise.allSettled([
           /*
          Revalidate public pages if the following fields were updated:
-         - name
-         - logo
-         - wordmark
-         - brand color
          - lander data
          - application form data
         */
-          ...(logo !== undefined ||
-          wordmark !== undefined ||
-          brandColor !== undefined ||
-          landerData ||
-          applicationFormDataInput
+          ...(landerDataInput || applicationFormDataInput
             ? [
                 revalidatePath(`/partners.dub.co/${program.slug}`),
                 revalidatePath(`/partners.dub.co/${program.slug}/apply`),
@@ -141,42 +136,77 @@ export const updateGroupBrandingAction = authActionClient
           `Completed waitUntil steps for group branding update: ${JSON.stringify(res, null, 2)}`,
         );
 
-        if (updatedGroup.slug === DEFAULT_PARTNER_GROUP.slug) {
-          if (landerData) {
-            console.log(
-              "Default lander data updated, updating other groups (that don't have a custom data)...",
-            );
-            const updatedGroups = await prisma.partnerGroup.updateMany({
-              where: {
-                programId,
-                landerPublishedAt: null,
+        if (group.slug === DEFAULT_PARTNER_GROUP.slug) {
+          await Promise.all(
+            [
+              { item: "logo", oldValue: group.logo, newValue: logoUrl },
+              {
+                item: "wordmark",
+                oldValue: group.wordmark,
+                newValue: wordmarkUrl,
               },
-              data: {
-                landerData,
+              {
+                item: "brandColor",
+                oldValue: group.brandColor,
+                newValue: brandColor,
               },
-            });
-            console.log(
-              `Updated data for ${updatedGroups.count} other groups based on default group lander data...`,
-            );
-          }
+            ]
+              .filter(
+                ({ oldValue, newValue }) =>
+                  newValue !== undefined && oldValue !== newValue,
+              )
+              .map(async ({ item, oldValue, newValue }) => {
+                console.log({ item, oldValue, newValue });
+                console.log(
+                  `Default group's ${item} updated, updating other groups (that have the same ${item})...`,
+                );
+                const updatedGroups = await prisma.partnerGroup.updateMany({
+                  where: {
+                    programId,
+                    [item]: oldValue,
+                  },
+                  data: {
+                    [item]: newValue,
+                  },
+                });
+                console.log(
+                  `Updated ${updatedGroups.count} other groups based on default group's ${item}`,
+                );
+              }),
+          );
 
-          if (applicationFormDataInput) {
-            console.log(
-              "Default application form data updated, updating other groups (that don't have a custom data)...",
-            );
-            const updatedGroups = await prisma.partnerGroup.updateMany({
-              where: {
-                programId,
-                applicationFormPublishedAt: null,
+          await Promise.all(
+            [
+              {
+                item: "landerData",
+                data: landerDataInput,
+                conditionField: "landerPublishedAt",
               },
-              data: {
-                applicationFormData: applicationFormDataInput,
+              {
+                item: "applicationFormData",
+                data: applicationFormDataInput,
+                conditionField: "applicationFormPublishedAt",
               },
-            });
-            console.log(
-              `Updated data for ${updatedGroups.count} other groups based on default group application form`,
-            );
-          }
+            ]
+              .filter(({ data }) => data !== undefined)
+              .map(async ({ item, data, conditionField }) => {
+                console.log(
+                  `Default ${item} updated, updating other groups (that have a null ${conditionField})...`,
+                );
+                const updatedGroups = await prisma.partnerGroup.updateMany({
+                  where: {
+                    programId,
+                    [conditionField]: null,
+                  },
+                  data: {
+                    [item]: data,
+                  },
+                });
+                console.log(
+                  `Updated ${updatedGroups.count} other groups based on default group ${item}`,
+                );
+              }),
+          );
         }
       })(),
     );

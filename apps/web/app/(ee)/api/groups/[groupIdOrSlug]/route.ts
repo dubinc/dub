@@ -178,8 +178,7 @@ export const PATCH = withWorkspace(
           ]
         : []),
       // Update holding period for all groups if selected
-      ...(holdingPeriodDays !== undefined &&
-      updateHoldingPeriodDaysForAllGroups
+      ...(holdingPeriodDays !== undefined && updateHoldingPeriodDaysForAllGroups
         ? [
             prisma.partnerGroup.updateMany({
               where: {
