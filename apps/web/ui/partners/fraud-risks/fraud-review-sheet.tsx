@@ -1,5 +1,6 @@
 "use client";
 
+import { FRAUD_RULES_BY_TYPE } from "@/lib/api/fraud/constants";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { FraudEventProps } from "@/lib/types";
 import { useBanPartnerModal } from "@/ui/modals/ban-partner-modal";
@@ -13,11 +14,14 @@ import {
   User,
   buttonVariants,
   useKeyboardShortcut,
+  useRouterStuff,
 } from "@dub/ui";
-import { OG_AVATAR_URL, cn } from "@dub/utils";
+import { OG_AVATAR_URL, cn, fetcher } from "@dub/utils";
 import { useResolveFraudEventModal } from "app/app.dub.co/(dashboard)/[slug]/(ee)/program/fraud/resolve-fraud-event-modal";
 import Link from "next/link";
 import { Dispatch, SetStateAction, useState } from "react";
+import useSWR from "swr";
+import { FraudEventsTableWrapper } from "./fraud-events-tables";
 
 interface FraudReviewSheetProps {
   fraudEvent: FraudEventProps;
@@ -33,7 +37,8 @@ function FraudReviewSheetContent({
 }: FraudReviewSheetProps) {
   const { partner } = fraudEvent;
 
-  const { slug: workspaceSlug } = useWorkspace();
+  const { getQueryString } = useRouterStuff();
+  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
 
   const { setShowResolveFraudEventModal, ResolveFraudEventModal } =
     useResolveFraudEventModal({
@@ -41,8 +46,19 @@ function FraudReviewSheetContent({
     });
 
   const { BanPartnerModal, setShowBanPartnerModal } = useBanPartnerModal({
-    partner: fraudEvent.partner,
+    partner,
   });
+
+  const { data: fraudEvents, isLoading: fraudEventsLoading } = useSWR<any>(
+    workspaceId && partner.id && fraudEvent.type
+      ? `/api/fraud-events/instances${getQueryString({
+          workspaceId,
+          partnerId: partner.id,
+          type: fraudEvent.type,
+        })}`
+      : null,
+    fetcher,
+  );
 
   // Left/right arrow keys for previous/next fraud event
   useKeyboardShortcut("ArrowRight", () => onNext?.(), { sheet: true });
@@ -53,6 +69,8 @@ function FraudReviewSheetContent({
     sheet: true,
   });
   useKeyboardShortcut("b", () => setShowBanPartnerModal(true), { sheet: true });
+
+  const fraudRule = FRAUD_RULES_BY_TYPE[fraudEvent.type];
 
   return (
     <div className="relative h-full">
@@ -140,7 +158,18 @@ function FraudReviewSheetContent({
             </div>
           </div>
 
-          <div>WIP: {JSON.stringify(fraudEvent)}</div>
+          <div className="border-border-subtle flex flex-col gap-4 rounded-xl border p-4">
+            <div className="flex flex-col">
+              <span className="text-content-default text-sm font-semibold">
+                {fraudRule.name}
+              </span>
+              <span className="text-content-subtle text-xs font-normal">
+                {fraudRule.description}
+              </span>
+            </div>
+
+            <FraudEventsTableWrapper fraudEvent={fraudEvent} />
+          </div>
         </div>
 
         <div className="flex grow flex-col justify-end">

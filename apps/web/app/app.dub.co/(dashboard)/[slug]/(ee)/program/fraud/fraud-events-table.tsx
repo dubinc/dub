@@ -96,7 +96,7 @@ export function FraudEventsTable() {
                 {count > 1 && (
                   <Badge
                     variant="gray"
-                    className="shrink-0 rounded-md border-none px-1.5 py-0.5 text-xs font-semibold text-neutral-700"
+                    className="shrink-0 rounded-md border-none px-1.5 py-1 text-xs font-semibold text-neutral-700"
                   >
                     +{Number(count) - 1}
                   </Badge>
