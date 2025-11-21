@@ -55,7 +55,6 @@ function ProgramPayoutSettingsSheetContent({
 
   useEffect(() => {
     if (program && defaultGroup) {
-      console.log("defaultGroup", defaultGroup);
       setValue("holdingPeriodDays", defaultGroup.holdingPeriodDays);
       setValue("minPayoutAmount", program.minPayoutAmount);
     }
