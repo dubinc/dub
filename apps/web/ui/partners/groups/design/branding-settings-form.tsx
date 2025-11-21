@@ -22,10 +22,6 @@ export function BrandingSettingsForm() {
   const { control, getValues, setValue, resetField } = useBrandingFormContext();
   const { dirtyFields } = useFormState({ control });
 
-  const [useDefaultGroup, setUseDefaultGroup] = useState(() =>
-    getValues(FIELDS).every((value) => value === null),
-  );
-
   const isDirty = FIELDS.some((field) => dirtyFields[field]);
 
   const [isLoading, setIsLoading] = useState(false);
@@ -72,6 +68,7 @@ export function BrandingSettingsForm() {
                   className="cursor-help font-semibold underline decoration-dotted underline-offset-2"
                   href="https://dub.co/help/article/program-landing-page"
                   target="_blank"
+                  rel="noopener noreferrer"
                 >
                   Learn more
                 </a>
@@ -86,7 +83,6 @@ export function BrandingSettingsForm() {
             label="Logo"
             tooltip="A square 1:1 logo used in various parts of the partner portal."
             required
-            disabled={useDefaultGroup}
           >
             {(id) => (
               <Controller
@@ -115,7 +111,6 @@ export function BrandingSettingsForm() {
           <FormRow
             label="Wordmark"
             tooltip="Optional full-sized wordmark used in the navigation menu bar."
-            disabled={useDefaultGroup}
           >
             {(id) => (
               <Controller
@@ -144,7 +139,7 @@ export function BrandingSettingsForm() {
 
           <Divider />
 
-          <FormRow label="Brand color" inline disabled={useDefaultGroup}>
+          <FormRow label="Brand color" inline>
             {(id) => (
               <Controller
                 control={control}
@@ -181,7 +176,6 @@ function FormRow({
   description,
   inline = false,
   required,
-  disabled = false,
   tooltip,
   children,
 }: {
@@ -190,7 +184,6 @@ function FormRow({
   inline?: boolean;
   children?: (id: string) => ReactNode;
   required?: boolean;
-  disabled?: boolean;
   tooltip?: string;
 }) {
   const id = useId();
@@ -198,9 +191,8 @@ function FormRow({
   return (
     <div
       className={cn(
-        "flex flex-col justify-between gap-5 transition-opacity ease-out",
+        "flex flex-col justify-between gap-5",
         inline && "flex-row items-center",
-        disabled && "pointer-events-none opacity-50",
       )}
     >
       <div className="flex flex-col gap-1">
