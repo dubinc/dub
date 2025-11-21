@@ -97,9 +97,5 @@ export function FraudMatchingCustomerEmailTable() {
     error: undefined,
   });
 
-  if (!fraudEvents || fraudEvents.length === 0) {
-    return null;
-  }
-
   return <Table {...table} />;
 }

@@ -42,7 +42,11 @@ export function ResolvedFraudEventsTable() {
     setSelectedFilter,
   } = useFraudEventsFilters();
 
-  const { fraudEvents, loading, error } = useGroupedFraudEvents({
+  const {
+    fraudEvents: resolvedFraudEvents,
+    loading,
+    error,
+  } = useGroupedFraudEvents({
     query: { status: "resolved" },
   });
 
@@ -55,7 +59,7 @@ export function ResolvedFraudEventsTable() {
       {
         id: "type",
         header: "Event",
-        size: 150,
+        size: 250,
         cell: ({ row }: { row: Row<FraudEventProps> }) => {
           const reason = FRAUD_RULES_BY_TYPE[row.original.type];
           const count = row.original.count ?? 1;
@@ -94,7 +98,7 @@ export function ResolvedFraudEventsTable() {
       {
         id: "resolvedAt",
         header: "Resolved on",
-        size: 150,
+        size: 200,
         cell: ({ row }: { row: Row<FraudEventProps> }) => {
           const user = row.original.user;
           const resolvedAt = row.original.resolvedAt;
@@ -109,7 +113,7 @@ export function ResolvedFraudEventsTable() {
       {
         id: "partner",
         header: "Partner",
-        size: 150,
+        size: 250,
         cell: ({ row }: { row: Row<FraudEventProps> }) => {
           const partner = row.original.partner;
           if (!partner) return "-";
@@ -138,7 +142,7 @@ export function ResolvedFraudEventsTable() {
   );
 
   const { table, ...tableProps } = useTable({
-    data: fraudEvents || [],
+    data: resolvedFraudEvents || [],
     columns,
     cellRight: (cell) => {
       const meta = cell.column.columnDef.meta as
@@ -155,7 +159,6 @@ export function ResolvedFraudEventsTable() {
     },
     pagination,
     onPaginationChange: setPagination,
-    sortableColumns: ["resolvedAt", "type"],
     sortBy,
     sortOrder,
     onSortChange: ({ sortBy, sortOrder }) =>
@@ -173,7 +176,8 @@ export function ResolvedFraudEventsTable() {
     resourceName: () => "resolved fraud event",
     rowCount: fraudEventsCount ?? 0,
     loading,
-    error: error || countError ? "Failed to load fraud events" : undefined,
+    error:
+      error || countError ? "Failed to load resolved fraud events" : undefined,
   });
 
   return (
@@ -206,7 +210,8 @@ export function ResolvedFraudEventsTable() {
           </div>
         </AnimatedSizeContainer>
       </div>
-      {fraudEvents?.length !== 0 ? (
+
+      {resolvedFraudEvents?.length !== 0 ? (
         <Table {...tableProps} table={table} />
       ) : (
         <AnimatedEmptyState

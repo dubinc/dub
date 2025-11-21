@@ -144,6 +144,7 @@ function ResolveFraudEventsModal({
             variant="secondary"
             text="Cancel"
             className="h-8 w-fit px-3"
+            disabled={isPending}
           />
           <Button
             type="submit"
