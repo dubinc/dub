@@ -32,12 +32,17 @@ type ProgramRewardModifiersTooltipProps = {
 export function ProgramRewardModifiersTooltip({
   reward,
 }: ProgramRewardModifiersTooltipProps) {
-  if (!reward?.modifiers?.length) return null;
+  if (!reward?.modifiers?.length && !reward?.tooltipDescription) return null;
 
   return (
     <div className="inline-block align-text-top">
       <InfoTooltip
-        content={<ProgramRewardModifiersTooltipContent reward={reward} />}
+        content={
+          reward.tooltipDescription || (
+            <ProgramRewardModifiersTooltipContent reward={reward} />
+          )
+        }
+        contentClassName={reward.tooltipDescription ? "text-left" : undefined}
       />
     </div>
   );

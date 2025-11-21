@@ -67,12 +67,14 @@ export function ProgramRewardList({
                   </strong>
                 </>
               ) : null}
-              {showModifiersTooltip && !!reward.modifiers?.length && (
-                <>
-                  {" "}
-                  <ProgramRewardModifiersTooltip reward={reward} />
-                </>
-              )}
+              {showModifiersTooltip &&
+                (!!reward.modifiers?.length ||
+                  Boolean(reward.tooltipDescription)) && (
+                  <>
+                    {" "}
+                    <ProgramRewardModifiersTooltip reward={reward} />
+                  </>
+                )}
             </>
           )}
         </Item>

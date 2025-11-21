@@ -11,7 +11,17 @@ export function ProgramRewardDescription({
   periodClassName,
   showModifiersTooltip = true,
 }: {
-  reward?: Omit<RewardProps, "id"> | null;
+  reward?: Pick<
+    RewardProps,
+    | "description"
+    | "event"
+    | "maxDuration"
+    | "modifiers"
+    | "tooltipDescription"
+    | "type"
+    | "amountInCents"
+    | "amountInPercentage"
+  > | null;
   discount?: DiscountProps | null;
   amountClassName?: string;
   periodClassName?: string;
@@ -19,8 +29,9 @@ export function ProgramRewardDescription({
 }) {
   return (
     <>
-      {reward
-        ? reward.description || (
+      {reward ? (
+        <>
+          {reward.description || (
             <>
               Earn{" "}
               <strong
@@ -52,16 +63,20 @@ export function ProgramRewardDescription({
                   </strong>
                 </>
               ) : null}
-              {/* Modifiers */}
-              {showModifiersTooltip && !!reward.modifiers?.length && (
-                <>
-                  {" "}
-                  <ProgramRewardModifiersTooltip reward={reward} />
-                </>
-              )}
             </>
-          )
-        : null}
+          )}
+
+          {/* Modifiers */}
+          {showModifiersTooltip &&
+            (!!reward.modifiers?.length ||
+              Boolean(reward.tooltipDescription)) && (
+              <>
+                {" "}
+                <ProgramRewardModifiersTooltip reward={reward} />
+              </>
+            )}
+        </>
+      ) : null}
 
       {discount ? (
         <>
