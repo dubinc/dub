@@ -48,10 +48,6 @@ export const groupedFraudEventsQuerySchema = z
       .union([z.string(), z.array(z.string())])
       .transform((v) => (Array.isArray(v) ? v : v.split(",")))
       .optional(),
-    groupKeys: z
-      .union([z.string(), z.array(z.string())])
-      .transform((v) => (Array.isArray(v) ? v : v.split(",")))
-      .optional(),
     sortBy: z.enum(["createdAt", "type"]).default("createdAt"),
     sortOrder: z.enum(["asc", "desc"]).default("desc"),
   })

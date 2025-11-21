@@ -42,7 +42,6 @@ export async function getGroupedFraudEvents({
   partnerId,
   status,
   type,
-  groupKeys,
   page,
   pageSize,
   sortBy,
@@ -55,12 +54,6 @@ export async function getGroupedFraudEvents({
       status && Prisma.sql`FraudEvent.status = ${status}`,
       type && Prisma.sql`FraudEvent.type = ${type}`,
       partnerId && Prisma.sql`FraudEvent.partnerId = ${partnerId}`,
-      groupKeys &&
-        groupKeys.length > 0 &&
-        Prisma.sql`FraudEvent.groupKey IN (${Prisma.join(
-          groupKeys.map((gk) => Prisma.sql`${gk}`),
-          Prisma.sql`, `,
-        )})`,
     ].filter(Boolean),
     " AND ",
   );
