@@ -1,8 +1,8 @@
 "use client";
 
-import { useFraudEventInstances } from "@/lib/swr/use-fraud-event-instances";
+import { useRawFraudEvents } from "@/lib/swr/use-raw-fraud-events";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { FraudEventProps, PartnerProps } from "@/lib/types";
+import { PartnerProps } from "@/lib/types";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { Button, Table, TimestampTooltip, useTable } from "@dub/ui";
 import { formatDateTimeSmart } from "@dub/utils";
@@ -13,19 +13,11 @@ interface EventDataProps {
   createdAt: string;
 }
 
-export function FraudDuplicatePayoutMethodTable({
-  fraudEvent,
-}: {
-  fraudEvent: FraudEventProps;
-}) {
-  const { partner } = fraudEvent;
-
+export function FraudDuplicatePayoutMethodTable() {
   const { slug: workspaceSlug } = useWorkspace();
+
   const { fraudEvents, loading: isLoading } =
-    useFraudEventInstances<EventDataProps>({
-      partnerId: partner.id,
-      type: fraudEvent.type,
-    });
+    useRawFraudEvents<EventDataProps>();
 
   const table = useTable({
     data: fraudEvents || [],

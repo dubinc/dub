@@ -1,13 +1,9 @@
 "use client";
 
 import { PAID_TRAFFIC_PLATFORMS_CONFIG } from "@/lib/api/fraud/constants";
-import { useFraudEventInstances } from "@/lib/swr/use-fraud-event-instances";
+import { useRawFraudEvents } from "@/lib/swr/use-raw-fraud-events";
 import useWorkspace from "@/lib/swr/use-workspace";
-import {
-  CustomerProps,
-  FraudEventProps,
-  PaidTrafficPlatform,
-} from "@/lib/types";
+import { CustomerProps, PaidTrafficPlatform } from "@/lib/types";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
 import {
@@ -51,20 +47,11 @@ const PAID_TRAFFIC_PLATFORM_ICONS: Record<
   tiktok: TikTok,
 };
 
-export function FraudPaidTrafficDetectedTable({
-  fraudEvent,
-}: {
-  fraudEvent: FraudEventProps;
-}) {
-  const { partner } = fraudEvent;
-
+export function FraudPaidTrafficDetectedTable() {
   const { slug: workspaceSlug } = useWorkspace();
 
   const { fraudEvents, loading: isLoading } =
-    useFraudEventInstances<EventDataProps>({
-      partnerId: partner.id,
-      type: fraudEvent.type,
-    });
+    useRawFraudEvents<EventDataProps>();
 
   const table = useTable({
     data: fraudEvents || [],

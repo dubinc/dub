@@ -1,29 +1,20 @@
-import { FraudRuleType } from "@dub/prisma/client";
 import { useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import useSWR from "swr";
 import useWorkspace from "./use-workspace";
 
-export function useFraudEventInstances<T = unknown>({
-  partnerId,
-  type,
-}: {
-  partnerId: string;
-  type: FraudRuleType;
-}) {
-  const { getQueryString } = useRouterStuff();
+export function useRawFraudEvents<T = unknown>() {
   const { id: workspaceId } = useWorkspace();
+  const { getQueryString, searchParams } = useRouterStuff();
+
+  const groupKey = searchParams.get("groupKey");
 
   const queryString = getQueryString({
     workspaceId,
-    partnerId,
-    type,
   });
 
   const { data, error } = useSWR<T[]>(
-    workspaceId && partnerId && type
-      ? `/api/fraud-events/instances${queryString}`
-      : undefined,
+    workspaceId && groupKey ? `/api/fraud-events/raw${queryString}` : undefined,
     fetcher,
     {
       keepPreviousData: true,

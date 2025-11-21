@@ -1,21 +1,19 @@
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
-import { fraudEventInstancesQuerySchema } from "@/lib/zod/schemas/fraud";
+import { rawFraudEventsQuerySchema } from "@/lib/zod/schemas/fraud";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
-// GET /api/fraud-events/instances - Get individual fraud events filtered by partnerId and type
+// GET /api/fraud-events/raw - Get individual fraud events within a group
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
-    const { partnerId, type } =
-      fraudEventInstancesQuerySchema.parse(searchParams);
+    const { groupKey } = rawFraudEventsQuerySchema.parse(searchParams);
 
     const fraudEvents = await prisma.fraudEvent.findMany({
       where: {
         programId,
-        partnerId,
-        type,
+        groupKey,
       },
       include: {
         partner: true,
@@ -24,10 +22,16 @@ export const GET = withWorkspace(
       },
     });
 
-    if (fraudEvents.length > 0 && type === "partnerCrossProgramBan") {
+    if (fraudEvents.length === 0) {
+      return NextResponse.json([]);
+    }
+
+    const { type, partner } = fraudEvents[0];
+
+    if (type === "partnerCrossProgramBan") {
       const bannedProgramEnrollments = await prisma.programEnrollment.findMany({
         where: {
-          partnerId,
+          partnerId: partner.id,
           programId: {
             not: programId,
           },
@@ -42,12 +46,10 @@ export const GET = withWorkspace(
       return NextResponse.json(bannedProgramEnrollments);
     }
 
-    if (fraudEvents.length > 0 && type === "partnerDuplicatePayoutMethod") {
-      const partner = fraudEvents[0].partner;
-
+    if (type === "partnerDuplicatePayoutMethod") {
       const duplicatePartners = await prisma.programEnrollment.findMany({
         where: {
-          partnerId,
+          partnerId: partner.id,
           programId,
           partner: {
             payoutMethodHash: partner.payoutMethodHash,

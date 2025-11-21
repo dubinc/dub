@@ -1,8 +1,8 @@
 "use client";
 
-import { useFraudEventInstances } from "@/lib/swr/use-fraud-event-instances";
+import { useRawFraudEvents } from "@/lib/swr/use-raw-fraud-events";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { CustomerProps, FraudEventProps } from "@/lib/types";
+import { CustomerProps } from "@/lib/types";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
 import { Button, Table, TimestampTooltip, useTable } from "@dub/ui";
@@ -18,20 +18,11 @@ interface EventDataProps {
   createdAt: string;
 }
 
-export function FraudReferralSourceBannedTable({
-  fraudEvent,
-}: {
-  fraudEvent: FraudEventProps;
-}) {
-  const { partner } = fraudEvent;
-
+export function FraudReferralSourceBannedTable() {
   const { slug: workspaceSlug } = useWorkspace();
 
   const { fraudEvents, loading: isLoading } =
-    useFraudEventInstances<EventDataProps>({
-      partnerId: partner.id,
-      type: fraudEvent.type,
-    });
+    useRawFraudEvents<EventDataProps>();
 
   const table = useTable({
     data: fraudEvents || [],

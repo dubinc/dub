@@ -14,13 +14,11 @@ import {
   User,
   buttonVariants,
   useKeyboardShortcut,
-  useRouterStuff,
 } from "@dub/ui";
-import { OG_AVATAR_URL, cn, fetcher } from "@dub/utils";
+import { OG_AVATAR_URL, cn } from "@dub/utils";
 import { useResolveFraudEventModal } from "app/app.dub.co/(dashboard)/[slug]/(ee)/program/fraud/resolve-fraud-event-modal";
 import Link from "next/link";
 import { Dispatch, SetStateAction, useState } from "react";
-import useSWR from "swr";
 import { FraudEventsTableWrapper } from "./fraud-events-tables";
 
 interface FraudReviewSheetProps {
@@ -37,8 +35,7 @@ function FraudReviewSheetContent({
 }: FraudReviewSheetProps) {
   const { partner } = fraudEvent;
 
-  const { getQueryString } = useRouterStuff();
-  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
+  const { slug: workspaceSlug } = useWorkspace();
 
   const { setShowResolveFraudEventModal, ResolveFraudEventModal } =
     useResolveFraudEventModal({
@@ -48,17 +45,6 @@ function FraudReviewSheetContent({
   const { BanPartnerModal, setShowBanPartnerModal } = useBanPartnerModal({
     partner,
   });
-
-  const { data: fraudEvents, isLoading: fraudEventsLoading } = useSWR<any>(
-    workspaceId && partner.id && fraudEvent.type
-      ? `/api/fraud-events/instances${getQueryString({
-          workspaceId,
-          partnerId: partner.id,
-          type: fraudEvent.type,
-        })}`
-      : null,
-    fetcher,
-  );
 
   // Left/right arrow keys for previous/next fraud event
   useKeyboardShortcut("ArrowRight", () => onNext?.(), { sheet: true });

@@ -1,7 +1,7 @@
 "use client";
 
 import { FRAUD_RULES_BY_TYPE } from "@/lib/api/fraud/constants";
-import { useFraudEvents } from "@/lib/swr/use-fraud-events";
+import { useGroupedFraudEvents } from "@/lib/swr/use-grouped-fraud-events";
 import { useFraudEventsCount } from "@/lib/swr/use-fraud-events-count";
 import { FraudEventProps } from "@/lib/types";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
@@ -46,7 +46,7 @@ export function ResolvedFraudEventsTable() {
     fraudEvents,
     loading: isLoading,
     error,
-  } = useFraudEvents({ query: { status: "resolved" } });
+  } = useGroupedFraudEvents({ query: { status: "resolved" } });
 
   const { fraudEventsCount, error: countError } = useFraudEventsCount<number>({
     status: "resolved",

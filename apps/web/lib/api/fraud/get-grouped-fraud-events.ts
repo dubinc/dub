@@ -1,12 +1,12 @@
 import {
   fraudEventSchema,
-  fraudEventsQuerySchema,
+  groupedFraudEventsQuerySchema,
 } from "@/lib/zod/schemas/fraud";
 import { prisma } from "@dub/prisma";
 import { FraudEventStatus, FraudRuleType, Prisma } from "@dub/prisma/client";
 import { z } from "zod";
 
-type FraudEventFilters = z.infer<typeof fraudEventsQuerySchema> & {
+type FraudEventFilters = z.infer<typeof groupedFraudEventsQuerySchema> & {
   programId: string;
 };
 
@@ -17,6 +17,7 @@ interface QueryResult {
   resolutionReason: string | null;
   resolvedAt: Date | null;
   metadata: unknown;
+  groupKey: string;
   lastOccurenceAt: Date;
   eventCount: bigint | number;
   totalCommissions: bigint | number | null;
@@ -32,12 +33,16 @@ interface QueryResult {
   userImage: string | null;
 }
 
-// Get the fraud events for a program grouped by rule type
+// TODO
+// Improve this query to be more efficient
+
+// Get the fraud events for a program grouped by groupKey
 export async function getGroupedFraudEvents({
   programId,
   partnerId,
   status,
   type,
+  groupKeys,
   page,
   pageSize,
   sortBy,
@@ -50,6 +55,12 @@ export async function getGroupedFraudEvents({
       status && Prisma.sql`FraudEvent.status = ${status}`,
       type && Prisma.sql`FraudEvent.type = ${type}`,
       partnerId && Prisma.sql`FraudEvent.partnerId = ${partnerId}`,
+      groupKeys &&
+        groupKeys.length > 0 &&
+        Prisma.sql`FraudEvent.groupKey IN (${Prisma.join(
+          groupKeys.map((gk) => Prisma.sql`${gk}`),
+          Prisma.sql`, `,
+        )})`,
     ].filter(Boolean),
     " AND ",
   );
@@ -69,6 +80,7 @@ export async function getGroupedFraudEvents({
       fe.resolutionReason,
       fe.resolvedAt,
       fe.metadata,
+      fe.groupKey,
       fe.commissionId,
       fe.partnerId,
       fe.customerId,
@@ -85,9 +97,7 @@ export async function getGroupedFraudEvents({
       u.image AS userImage
     FROM (
       SELECT 
-        FraudEvent.programId, 
-        FraudEvent.partnerId, 
-        FraudEvent.type, 
+        FraudEvent.groupKey,
         MAX(FraudEvent.id) AS latestEventId,
         MAX(FraudEvent.createdAt) AS lastOccurenceAt,
         COUNT(*) AS eventCount,
@@ -95,7 +105,7 @@ export async function getGroupedFraudEvents({
       FROM FraudEvent
       LEFT JOIN Commission comm ON comm.id = FraudEvent.commissionId
       WHERE ${subqueryWhereClause}
-      GROUP BY FraudEvent.programId, FraudEvent.partnerId, FraudEvent.type
+      GROUP BY FraudEvent.groupKey
     ) dfe
     JOIN FraudEvent fe
       ON fe.id = dfe.latestEventId
@@ -117,6 +127,7 @@ export async function getGroupedFraudEvents({
     resolvedAt: event.resolvedAt ? new Date(event.resolvedAt) : null,
     lastOccurenceAt: new Date(event.lastOccurenceAt),
     count: Number(event.eventCount),
+    groupKey: event.groupKey,
     partner: event.partnerId
       ? {
           id: event.partnerId,

@@ -3,15 +3,15 @@ import { fetcher } from "@dub/utils";
 import useSWR from "swr";
 import { z } from "zod";
 import { FraudEventProps } from "../types";
-import { fraudEventsQuerySchema } from "../zod/schemas/fraud";
+import { groupedFraudEventsQuerySchema } from "../zod/schemas/fraud";
 import useWorkspace from "./use-workspace";
 
-export function useFraudEvents({
+export function useGroupedFraudEvents({
   enabled = true,
   query,
 }: {
   enabled?: boolean;
-  query?: Partial<z.infer<typeof fraudEventsQuerySchema>>;
+  query?: Partial<z.infer<typeof groupedFraudEventsQuerySchema>>;
 } = {}) {
   const { getQueryString } = useRouterStuff();
   const { id: workspaceId, defaultProgramId } = useWorkspace();

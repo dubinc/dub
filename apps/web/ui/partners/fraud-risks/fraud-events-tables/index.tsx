@@ -7,16 +7,15 @@ import { FraudMatchingCustomerEmailTable } from "./fraud-matching-customer-email
 import { FraudPaidTrafficDetectedTable } from "./fraud-paid-traffic-detected-table";
 import { FraudReferralSourceBannedTable } from "./fraud-referral-source-banned-table";
 
-const FRAUD_EVENTS_TABLES: Partial<
-  Record<FraudRuleType, React.ComponentType<{ fraudEvent: FraudEventProps }>>
-> = {
-  customerEmailMatch: FraudMatchingCustomerEmailTable,
-  customerEmailSuspiciousDomain: FraudMatchingCustomerEmailTable,
-  partnerCrossProgramBan: FraudCrossProgramBanTable,
-  partnerDuplicatePayoutMethod: FraudDuplicatePayoutMethodTable,
-  referralSourceBanned: FraudReferralSourceBannedTable,
-  paidTrafficDetected: FraudPaidTrafficDetectedTable,
-};
+const FRAUD_EVENTS_TABLES: Partial<Record<FraudRuleType, React.ComponentType>> =
+  {
+    customerEmailMatch: FraudMatchingCustomerEmailTable,
+    customerEmailSuspiciousDomain: FraudMatchingCustomerEmailTable,
+    partnerCrossProgramBan: FraudCrossProgramBanTable,
+    partnerDuplicatePayoutMethod: FraudDuplicatePayoutMethodTable,
+    referralSourceBanned: FraudReferralSourceBannedTable,
+    paidTrafficDetected: FraudPaidTrafficDetectedTable,
+  };
 
 export function FraudEventsTableWrapper({
   fraudEvent,
@@ -29,5 +28,5 @@ export function FraudEventsTableWrapper({
     return null;
   }
 
-  return <TableComponent fraudEvent={fraudEvent} />;
+  return <TableComponent />;
 }

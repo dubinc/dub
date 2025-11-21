@@ -1,8 +1,8 @@
 "use client";
 
 import { FRAUD_RULES_BY_TYPE } from "@/lib/api/fraud/constants";
-import { useFraudEvents } from "@/lib/swr/use-fraud-events";
 import { useFraudEventsCount } from "@/lib/swr/use-fraud-events-count";
+import { useGroupedFraudEvents } from "@/lib/swr/use-grouped-fraud-events";
 import { FraudEventProps } from "@/lib/types";
 import { useBanPartnerModal } from "@/ui/modals/ban-partner-modal";
 import { FraudReviewSheet } from "@/ui/partners/fraud-risks/fraud-review-sheet";
@@ -51,21 +51,20 @@ export function FraudEventsTable() {
     fraudEvents,
     loading: isLoading,
     error,
-  } = useFraudEvents({ query: { status: "pending" } });
+  } = useGroupedFraudEvents({ query: { status: "pending" } });
 
   const [detailsSheetState, setDetailsSheetState] = useState<
-    | { open: false; fraudEventId: string | null }
-    | { open: true; fraudEventId: string }
-  >({ open: false, fraudEventId: null });
+    { open: false; groupKey: string | null } | { open: true; groupKey: string }
+  >({ open: false, groupKey: null });
 
   useEffect(() => {
-    const fraudEventId = searchParams.get("fraudEventId");
-    if (fraudEventId) setDetailsSheetState({ open: true, fraudEventId });
+    const groupKey = searchParams.get("groupKey");
+    if (groupKey) setDetailsSheetState({ open: true, groupKey });
   }, [searchParams]);
 
   const { currentFraudEvent } = useCurrentFraudEvent({
     fraudEvents,
-    fraudEventId: detailsSheetState.fraudEventId,
+    groupKey: detailsSheetState.groupKey,
   });
 
   const { fraudEventsCount, error: countError } = useFraudEventsCount<number>();
@@ -218,7 +217,7 @@ export function FraudEventsTable() {
     onRowClick: (row) => {
       queryParams({
         set: {
-          fraudEventId: row.original.id,
+          groupKey: row.original.groupKey,
         },
         scroll: false,
       });
@@ -231,25 +230,25 @@ export function FraudEventsTable() {
     error: error || countError ? "Failed to load fraud events" : undefined,
   });
 
-  const [previousFraudEventId, nextFraudEventId] = useMemo(() => {
-    if (!fraudEvents || !detailsSheetState.fraudEventId) return [null, null];
+  const [previousGroupKey, nextGroupKey] = useMemo(() => {
+    if (!fraudEvents || !detailsSheetState.groupKey) return [null, null];
 
     const currentIndex = fraudEvents.findIndex(
-      ({ id }) => id === detailsSheetState.fraudEventId,
+      ({ groupKey }) => groupKey === detailsSheetState.groupKey,
     );
     if (currentIndex === -1) return [null, null];
 
     return [
-      currentIndex > 0 ? fraudEvents[currentIndex - 1].id : null,
+      currentIndex > 0 ? fraudEvents[currentIndex - 1].groupKey : null,
       currentIndex < fraudEvents.length - 1
-        ? fraudEvents[currentIndex + 1].id
+        ? fraudEvents[currentIndex + 1].groupKey
         : null,
     ];
-  }, [fraudEvents, detailsSheetState.fraudEventId]);
+  }, [fraudEvents, detailsSheetState.groupKey]);
 
   return (
     <div className="flex flex-col gap-6">
-      {detailsSheetState.fraudEventId && currentFraudEvent && (
+      {detailsSheetState.groupKey && currentFraudEvent && (
         <FraudReviewSheet
           isOpen={detailsSheetState.open}
           setIsOpen={(open) =>
@@ -257,19 +256,19 @@ export function FraudEventsTable() {
           }
           fraudEvent={currentFraudEvent}
           onPrevious={
-            previousFraudEventId
+            previousGroupKey
               ? () =>
                   queryParams({
-                    set: { fraudEventId: previousFraudEventId },
+                    set: { groupKey: previousGroupKey },
                     scroll: false,
                   })
               : undefined
           }
           onNext={
-            nextFraudEventId
+            nextGroupKey
               ? () =>
                   queryParams({
-                    set: { fraudEventId: nextFraudEventId },
+                    set: { groupKey: nextGroupKey },
                     scroll: false,
                   })
               : undefined
@@ -414,25 +413,25 @@ function MenuItem({
 /** Gets the current fraud event from the loaded array if available, or a separate fetch if not */
 function useCurrentFraudEvent({
   fraudEvents,
-  fraudEventId,
+  groupKey,
 }: {
   fraudEvents?: FraudEventProps[];
-  fraudEventId: string | null;
+  groupKey: string | null;
 }) {
-  let currentFraudEvent = fraudEventId
-    ? fraudEvents?.find(({ id }) => id === fraudEventId)
+  let currentFraudEvent = groupKey
+    ? fraudEvents?.find(({ groupKey: gk }) => gk === groupKey)
     : null;
 
-  const fetchFraudEventId =
-    fraudEvents && fraudEventId && !currentFraudEvent ? fraudEventId : null;
+  const fetchGroupKey =
+    fraudEvents && groupKey && !currentFraudEvent ? groupKey : null;
 
   const { fraudEvents: fetchedFraudEvents, loading: isLoading } =
-    useFraudEvents({
-      enabled: Boolean(fraudEventId),
-      query: fraudEventId ? { fraudEventIds: [fraudEventId] } : undefined,
+    useGroupedFraudEvents({
+      enabled: Boolean(groupKey),
+      query: groupKey ? { groupKeys: [groupKey] } : undefined,
     });
 
-  if (!currentFraudEvent && fetchedFraudEvents?.[0]?.id === fraudEventId)
+  if (!currentFraudEvent && fetchedFraudEvents?.[0]?.groupKey === groupKey)
     currentFraudEvent = fetchedFraudEvents[0];
 
   return { currentFraudEvent, isLoading };

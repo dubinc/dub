@@ -1,5 +1,6 @@
 "use server";
 
+import { createFraudEventGroupKey } from "@/lib/api/fraud/utils";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { resolveFraudEventsSchema } from "@/lib/zod/schemas/fraud";
@@ -12,7 +13,7 @@ export const resolveFraudEventsAction = authActionClient
   .schema(resolveFraudEventsSchema)
   .action(async ({ ctx, parsedInput }) => {
     const { workspace, user } = ctx;
-    let { fraudEventIds, resolutionReason } = parsedInput;
+    let { groupKey, resolutionReason } = parsedInput;
 
     const { canResolveFraudEvents } = getPlanCapabilities(workspace.plan);
 
@@ -24,14 +25,14 @@ export const resolveFraudEventsAction = authActionClient
 
     const fraudEvents = await prisma.fraudEvent.findMany({
       where: {
-        id: {
-          in: fraudEventIds,
-        },
         programId,
+        groupKey,
         status: "pending",
       },
       select: {
         id: true,
+        partnerId: true,
+        type: true,
       },
     });
 
@@ -39,12 +40,19 @@ export const resolveFraudEventsAction = authActionClient
       throw new Error("No pending fraud events found to resolve.");
     }
 
-    fraudEventIds = fraudEvents.map(({ id }) => id);
+    const firstFraudEvent = fraudEvents[0];
+
+    const newGroupKey = createFraudEventGroupKey({
+      programId,
+      partnerId: firstFraudEvent.partnerId,
+      type: firstFraudEvent.type,
+      batchId: nanoid(10),
+    });
 
     await prisma.fraudEvent.updateMany({
       where: {
         id: {
-          in: fraudEventIds,
+          in: fraudEvents.map(({ id }) => id),
         },
       },
       data: {
@@ -52,7 +60,7 @@ export const resolveFraudEventsAction = authActionClient
         resolutionReason,
         resolvedAt: new Date(),
         userId: user.id,
-        resolutionBatchId: nanoid(16),
+        groupKey: newGroupKey,
       },
     });
   });

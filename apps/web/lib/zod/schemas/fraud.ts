@@ -17,6 +17,7 @@ export const fraudEventSchema = z.object({
   resolvedAt: z.date().nullable(),
   lastOccurenceAt: z.date(),
   count: z.number().optional(),
+  groupKey: z.string(),
   partner: PartnerSchema.pick({
     id: true,
     name: true,
@@ -38,7 +39,7 @@ export const fraudEventSchema = z.object({
   }).nullable(),
 });
 
-export const fraudEventsQuerySchema = z
+export const groupedFraudEventsQuerySchema = z
   .object({
     status: z.nativeEnum(FraudEventStatus).optional(),
     type: z.nativeEnum(FraudRuleType).optional(),
@@ -47,12 +48,16 @@ export const fraudEventsQuerySchema = z
       .union([z.string(), z.array(z.string())])
       .transform((v) => (Array.isArray(v) ? v : v.split(",")))
       .optional(),
+    groupKeys: z
+      .union([z.string(), z.array(z.string())])
+      .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+      .optional(),
     sortBy: z.enum(["createdAt", "type"]).default("createdAt"),
     sortOrder: z.enum(["asc", "desc"]).default("desc"),
   })
   .merge(getPaginationQuerySchema({ pageSize: 100 }));
 
-export const fraudEventCountQuerySchema = fraudEventsQuerySchema
+export const fraudEventCountQuerySchema = groupedFraudEventsQuerySchema
   .omit({
     page: true,
     pageSize: true,
@@ -63,14 +68,13 @@ export const fraudEventCountQuerySchema = fraudEventsQuerySchema
     groupBy: z.enum(["partnerId", "type"]).optional(),
   });
 
-export const fraudEventInstancesQuerySchema = z.object({
-  partnerId: z.string(),
-  type: z.nativeEnum(FraudRuleType),
+export const rawFraudEventsQuerySchema = z.object({
+  groupKey: z.string(),
 });
 
 export const resolveFraudEventsSchema = z.object({
   workspaceId: z.string(),
-  fraudEventIds: z.array(z.string()).min(1),
+  groupKey: z.string(),
   resolutionReason: z
     .string()
     .max(

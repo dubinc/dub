@@ -1,5 +1,5 @@
-import { FRAUD_SEVERITY_CONFIG } from "@/lib/api/fraud/constants";
-import { FraudRuleInfo, FraudSeverity } from "@/lib/types";
+import { FraudRuleType } from "@dub/prisma/client";
+import { createHash } from "crypto";
 
 // Normalize email for comparison
 export function normalizeEmail(email: string): string {
@@ -26,23 +26,18 @@ export function normalizeEmail(email: string): string {
   return `${username}@${domain}`;
 }
 
-// Returns the highest severity of the triggered rules
-export function getHighestSeverity(
-  triggeredRules: FraudRuleInfo[],
-): FraudSeverity {
-  let highest: FraudSeverity = "low";
-  let highestRank = FRAUD_SEVERITY_CONFIG.low.rank;
+export function createFraudEventGroupKey({
+  programId,
+  partnerId,
+  type,
+  batchId,
+}: {
+  programId: string;
+  partnerId: string;
+  type: FraudRuleType;
+  batchId?: string; // Will be used to group fraud events together for batch resolution
+}): string {
+  const parts = [programId, partnerId, type, batchId].filter(Boolean);
 
-  for (const { severity } of triggeredRules) {
-    if (!severity) continue;
-
-    const rank = FRAUD_SEVERITY_CONFIG[severity].rank;
-
-    if (rank > highestRank) {
-      highest = severity;
-      highestRank = rank;
-    }
-  }
-
-  return highest;
+  return createHash("sha256").update(parts.join("|")).digest("hex");
 }

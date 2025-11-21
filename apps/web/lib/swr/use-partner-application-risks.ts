@@ -1,12 +1,35 @@
-import { FRAUD_RULES } from "@/lib/api/fraud/constants";
-import { getHighestSeverity } from "@/lib/api/fraud/utils";
-import { ExtendedFraudRuleType, FraudSeverity } from "@/lib/types";
+import { FRAUD_RULES, FRAUD_SEVERITY_CONFIG } from "@/lib/api/fraud/constants";
+import {
+  ExtendedFraudRuleType,
+  FraudRuleInfo,
+  FraudSeverity,
+} from "@/lib/types";
 import { fetcher } from "@dub/utils";
 import { useMemo } from "react";
 import useSWR, { SWRConfiguration } from "swr";
 import useWorkspace from "./use-workspace";
 
 type FraudRisksResponse = Partial<Record<ExtendedFraudRuleType, boolean>>;
+
+export function getHighestSeverity(
+  triggeredRules: FraudRuleInfo[],
+): FraudSeverity {
+  let highest: FraudSeverity = "low";
+  let highestRank = FRAUD_SEVERITY_CONFIG.low.rank;
+
+  for (const { severity } of triggeredRules) {
+    if (!severity) continue;
+
+    const rank = FRAUD_SEVERITY_CONFIG[severity].rank;
+
+    if (rank > highestRank) {
+      highest = severity;
+      highestRank = rank;
+    }
+  }
+
+  return highest;
+}
 
 export function usePartnerApplicationRisks(
   {
