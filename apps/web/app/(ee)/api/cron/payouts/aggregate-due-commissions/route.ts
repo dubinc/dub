@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 
 const BATCH_SIZE = 1000;
 
-// This cron job aggregates due commissions (pending commissions that are past the program holding period) into payouts.
+// This cron job aggregates due commissions (pending commissions that are past the partner group's holding period) into payouts.
 // Runs once every hour (0 * * * *) + calls itself recursively to look through all pending commissions available.
 async function handler(req: Request) {
   try {
@@ -104,7 +104,7 @@ async function handler(req: Request) {
 
       if (dueCommissions.length === 0) {
         console.log(
-          `No more due commissions found for programs with holding period days: ${holdingPeriodDays}, skipping...`,
+          `No more due commissions found for partner groups with holding period days: ${holdingPeriodDays}, skipping...`,
         );
         continue;
       }
@@ -114,7 +114,7 @@ async function handler(req: Request) {
       }
 
       console.log(
-        `Found ${dueCommissions.length} due commissions for programs with holding period days: ${holdingPeriodDays}`,
+        `Found ${dueCommissions.length} due commissions for partner groups with holding period days: ${holdingPeriodDays}`,
       );
 
       const partnerProgramCommissions = dueCommissions.reduce<
@@ -149,7 +149,7 @@ async function handler(req: Request) {
       });
 
       console.log(
-        `Processing ${partnerProgramCommissionsArray.length} partners with due commissions for programs with holding period days: ${holdingPeriodDays}`,
+        `Processing ${partnerProgramCommissionsArray.length} partners with due commissions for partner groups with holding period days: ${holdingPeriodDays}`,
       );
       let totalProcessed = 0;
 
@@ -232,7 +232,7 @@ async function handler(req: Request) {
       const successRate =
         (totalProcessed / partnerProgramCommissionsArray.length) * 100;
       console.log(
-        `Processed ${totalProcessed}/${partnerProgramCommissionsArray.length} partners with due commissions for programs with holding period days: ${holdingPeriodDays} (${successRate.toFixed(1)}% success rate)`,
+        `Processed ${totalProcessed}/${partnerProgramCommissionsArray.length} partners with due commissions for partner groups with holding period days: ${holdingPeriodDays} (${successRate.toFixed(1)}% success rate)`,
       );
     }
 
