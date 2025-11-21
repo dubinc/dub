@@ -85,6 +85,10 @@ export function FraudReferralSourceSettings({
                 shouldDirty: true,
               });
             }
+
+            if (enabled && domains.length === 0) {
+              addDomain();
+            }
           }}
         />
       </div>
