@@ -18,8 +18,8 @@ const FIELDS = ["logo", "wordmark", "brandColor"] as const;
 export function BrandingSettingsForm() {
   const { id: workspaceId } = useWorkspace();
 
-  const { defaultGroup, group, mutateGroup } = useBrandingContext();
-  const { control, getValues, setValue, resetField } = useBrandingFormContext();
+  const { group, mutateGroup } = useBrandingContext();
+  const { control, getValues, resetField } = useBrandingFormContext();
   const { dirtyFields } = useFormState({ control });
 
   const isDirty = FIELDS.some((field) => dirtyFields[field]);
@@ -97,7 +97,7 @@ export function BrandingSettingsForm() {
                     previewClassName="object-contain"
                     icon={Plus}
                     variant="plain"
-                    imageSrc={field.value ?? defaultGroup.logo}
+                    imageSrc={field.value}
                     readFile
                     onChange={({ src }) => field.onChange(src)}
                     content={null}
@@ -126,7 +126,7 @@ export function BrandingSettingsForm() {
                     previewClassName="object-contain"
                     icon={Plus}
                     variant="plain"
-                    imageSrc={field.value ?? defaultGroup.wordmark}
+                    imageSrc={field.value}
                     readFile
                     onChange={({ src }) => field.onChange(src)}
                     content={null}
@@ -146,7 +146,7 @@ export function BrandingSettingsForm() {
                 name="brandColor"
                 render={({ field }) => (
                   <ProgramColorPicker
-                    color={field.value ?? defaultGroup.brandColor}
+                    color={field.value}
                     onChange={field.onChange}
                     id={id}
                   />

@@ -9,7 +9,6 @@ import {
   ProgramLanderData,
   ProgramProps,
 } from "@/lib/types";
-import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import LayoutLoader from "@/ui/layout/layout-loader";
 import {
   Brush,
@@ -48,10 +47,6 @@ export function useBrandingFormContext() {
 type DraftData = BrandingFormData & { draftSavedAt: string | null };
 
 export function BrandingForm() {
-  const { group: defaultGroup, loading: loadingDefaultGroup } = useGroup({
-    groupIdOrSlug: DEFAULT_PARTNER_GROUP.slug,
-  });
-
   const { group, mutateGroup, loading } = useGroup<GroupWithProgramProps>(
     {
       query: { includeExpandedFields: true },
@@ -66,22 +61,18 @@ export function BrandingForm() {
     null,
   );
 
-  if (loading || loadingDefaultGroup) {
+  if (loading) {
     return <LayoutLoader />;
   }
 
-  if (!group || !defaultGroup) {
+  if (!group) {
     return (
       <div className="text-content-muted text-sm">Failed to load program</div>
     );
   }
 
   return (
-    <BrandingContextProvider
-      defaultGroup={defaultGroup}
-      group={group}
-      mutateGroup={mutateGroup}
-    >
+    <BrandingContextProvider group={group} mutateGroup={mutateGroup}>
       <BrandingFormInner draft={draft} setDraft={setDraft} />
     </BrandingContextProvider>
   );

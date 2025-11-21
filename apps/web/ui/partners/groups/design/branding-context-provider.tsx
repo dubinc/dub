@@ -1,6 +1,6 @@
 "use client";
 
-import { GroupProps, GroupWithProgramProps } from "@/lib/types";
+import { GroupWithProgramProps } from "@/lib/types";
 import {
   createContext,
   Dispatch,
@@ -12,7 +12,6 @@ import {
 import { KeyedMutator } from "swr";
 
 type BrandingContextProviderProps = {
-  defaultGroup: GroupProps;
   group: GroupWithProgramProps;
   mutateGroup: KeyedMutator<GroupWithProgramProps>;
 };
