@@ -19,6 +19,7 @@ import { OG_AVATAR_URL, cn } from "@dub/utils";
 import { useResolveFraudEventsModal } from "app/app.dub.co/(dashboard)/[slug]/(ee)/program/fraud/resolve-fraud-events-modal";
 import Link from "next/link";
 import { Dispatch, SetStateAction, useState } from "react";
+import { CommissionsOnHoldTable } from "./commissions-on-hold-table";
 import { FraudEventsTableWrapper } from "./fraud-events-tables";
 
 interface FraudReviewSheetProps {
@@ -98,7 +99,7 @@ function FraudReviewSheetContent({
           </div>
         </div>
 
-        <div className="flex flex-col gap-6 p-6">
+        <div className="flex min-h-0 grow flex-col gap-6 overflow-y-auto p-6">
           {/* Partner details */}
           <div className="bg-bg-muted border-border-subtle flex items-center justify-between gap-3 rounded-xl border px-4 py-3">
             <div className="flex min-w-0 items-center gap-3">
@@ -156,9 +157,16 @@ function FraudReviewSheetContent({
 
             <FraudEventsTableWrapper fraudEvent={fraudEvent} />
           </div>
+
+          <div>
+            <h3 className="text-content-emphasis mb-4 font-semibold">
+              Commissions on hold
+            </h3>
+            <CommissionsOnHoldTable fraudEvent={fraudEvent} />
+          </div>
         </div>
 
-        <div className="flex grow flex-col justify-end">
+        <div className="flex flex-col justify-end">
           <div className="border-border-subtle flex items-center justify-end gap-2 border-t px-5 py-4">
             <Button
               type="button"
