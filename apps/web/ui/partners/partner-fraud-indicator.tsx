@@ -1,6 +1,8 @@
+import { FRAUD_SEVERITY_CONFIG } from "@/lib/api/fraud/constants";
 import { useFraudEventsCount } from "@/lib/swr/use-fraud-events-count";
 import { ButtonLink } from "@/ui/placeholders/button-link";
 import { DynamicTooltipWrapper, Flag } from "@dub/ui";
+import { cn } from "@dub/utils";
 import { useParams } from "next/navigation";
 
 interface FraudEventGroupByPartner {
@@ -8,7 +10,7 @@ interface FraudEventGroupByPartner {
   _count: number;
 }
 
-export function PartnerFraudFlag({ partnerId }: { partnerId: string }) {
+export function PartnerFraudIndicator({ partnerId }: { partnerId: string }) {
   const { slug } = useParams();
 
   const { fraudEventsCount, loading } = useFraudEventsCount<
@@ -51,7 +53,12 @@ export function PartnerFraudFlag({ partnerId }: { partnerId: string }) {
         ),
       }}
     >
-      <Flag className="size-3.5 cursor-pointer" />
+      <Flag
+        className={cn(
+          "size-3.5 cursor-pointer",
+          FRAUD_SEVERITY_CONFIG["high"].fg,
+        )}
+      />
     </DynamicTooltipWrapper>
   );
 }

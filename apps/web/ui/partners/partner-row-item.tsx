@@ -5,7 +5,7 @@ import { OG_AVATAR_URL } from "@dub/utils/src/constants";
 import { CircleMinus } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { PartnerFraudFlag } from "./partner-fraud-flag";
+import { PartnerFraudIndicator } from "./partner-fraud-indicator";
 
 interface PartnerRowItemProps {
   showPermalink?: boolean;
@@ -172,7 +172,7 @@ export function PartnerRowItem({
         {partner.name}
       </As>
 
-      {showFraudFlag && <PartnerFraudFlag partnerId={partner.id} />}
+      {showFraudFlag && <PartnerFraudIndicator partnerId={partner.id} />}
     </div>
   );
 }

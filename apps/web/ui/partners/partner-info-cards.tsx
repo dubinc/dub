@@ -30,7 +30,7 @@ import { ConversionScoreIcon } from "./conversion-score-icon";
 import { PartnerApplicationRiskBanner } from "./fraud-risks/partner-application-risk-banner";
 import { PartnerApplicationRiskSummary } from "./fraud-risks/partner-application-risk-summary";
 import { PartnerApplicationRiskFlag } from "./partner-application-risk-flag";
-import { PartnerFraudFlag } from "./partner-fraud-flag";
+import { PartnerFraudIndicator } from "./partner-fraud-indicator";
 import { PartnerInfoGroup } from "./partner-info-group";
 import { ConversionScoreTooltip } from "./partner-network/conversion-score-tooltip";
 import { PartnerStarButton } from "./partner-star-button";
@@ -222,7 +222,7 @@ export function PartnerInfoCards({
                   <span className="text-content-emphasis text-lg font-semibold">
                     {partner.name}
                   </span>
-                  {showFraudFlag && <PartnerFraudFlag partnerId={partner.id} />}
+                  {showFraudFlag && <PartnerFraudIndicator partnerId={partner.id} />}
                   {showApplicationRiskAnalysis && (
                     <PartnerApplicationRiskFlag partnerId={partner.id} />
                   )}
