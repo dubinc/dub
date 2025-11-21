@@ -20,7 +20,7 @@ export function useFraudEventInstances<T = unknown>({
     type,
   });
 
-  const { data, isLoading, error } = useSWR<T[]>(
+  const { data, error } = useSWR<T[]>(
     workspaceId && partnerId && type
       ? `/api/fraud-events/instances${queryString}`
       : undefined,
@@ -32,7 +32,7 @@ export function useFraudEventInstances<T = unknown>({
 
   return {
     fraudEvents: data,
-    loading: isLoading,
+    loading: !data && !error,
     error,
   };
 }

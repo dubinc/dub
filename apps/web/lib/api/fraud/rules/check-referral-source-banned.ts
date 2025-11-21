@@ -45,18 +45,17 @@ export const checkReferralSourceBanned = defineFraudRule({
     }
 
     // Check both referer and referer_url against banned sources
-    const sourcesToCheck = [click.referer, click.referer_url].filter(
-      (source): source is string => !!source,
+    const referrerCandidates = [click.referer, click.referer_url].filter(
+      (value): value is string => Boolean(value),
     );
 
-    for (const source of sourcesToCheck) {
-      for (const pattern of config.domains) {
-        if (minimatch(source, pattern, { nocase: true })) {
+    for (const referrer of referrerCandidates) {
+      for (const source of config.domains) {
+        if (minimatch(referrer, source, { nocase: true })) {
           return {
             triggered: true,
             metadata: {
-              matchedSource: source,
-              matchedPattern: pattern,
+              source,
             },
           };
         }
