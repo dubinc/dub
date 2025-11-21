@@ -4,10 +4,13 @@ import { resolveFraudEventsAction } from "@/lib/actions/fraud/resolve-fraud-even
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { FraudEventProps } from "@/lib/types";
-import { MAX_RESOLUTION_REASON_LENGTH } from "@/lib/zod/schemas/fraud";
+import {
+  MAX_RESOLUTION_REASON_LENGTH,
+  resolveFraudEventsSchema,
+} from "@/lib/zod/schemas/fraud";
 import { MaxCharactersCounter } from "@/ui/shared/max-characters-counter";
 import { Button, Modal } from "@dub/ui";
-import { cn, OG_AVATAR_URL } from "@dub/utils";
+import { cn, OG_AVATAR_URL, pluralize } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import {
   Dispatch,
@@ -18,19 +21,18 @@ import {
 } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { z } from "zod";
 
-interface ResolveFraudEventFormData {
-  resolutionReason: string;
-}
+type FormData = z.infer<typeof resolveFraudEventsSchema>;
 
-function ResolveFraudEventModal({
+function ResolveFraudEventsModal({
   showResolveFraudEventModal,
   setShowResolveFraudEventModal,
   fraudEvent,
 }: {
   showResolveFraudEventModal: boolean;
   setShowResolveFraudEventModal: Dispatch<SetStateAction<boolean>>;
-  fraudEvent: Pick<FraudEventProps, "id" | "partner" | "type">;
+  fraudEvent: FraudEventProps;
 }) {
   const { id: workspaceId } = useWorkspace();
 
@@ -51,21 +53,22 @@ function ResolveFraudEventModal({
     handleSubmit,
     control,
     formState: { errors },
-  } = useForm<ResolveFraudEventFormData>({
+  } = useForm<FormData>({
     defaultValues: {
       resolutionReason: "",
+      groupKey: fraudEvent.groupKey,
     },
   });
 
   const onSubmit = useCallback(
-    async (data: ResolveFraudEventFormData) => {
-      if (!workspaceId) {
+    async (data: FormData) => {
+      if (!workspaceId || !fraudEvent.groupKey) {
         return;
       }
 
       await executeAsync({
         workspaceId,
-        fraudEventIds: [], // TODO: Add fraud event ids
+        groupKey: fraudEvent.groupKey,
         resolutionReason: data.resolutionReason,
       });
     },
@@ -78,7 +81,7 @@ function ResolveFraudEventModal({
       setShowModal={setShowResolveFraudEventModal}
     >
       <div className="border-b border-neutral-200 p-4 sm:p-6">
-        <h3 className="text-lg font-medium leading-none">Resolve event</h3>
+        <h3 className="text-lg font-medium leading-none">Resolve events</h3>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)}>
@@ -126,7 +129,7 @@ function ResolveFraudEventModal({
                   "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
                   errors.resolutionReason && "border-red-600",
                 )}
-                placeholder="Add notes about why this event is resolved..."
+                placeholder="Add notes about why events are resolved..."
                 rows={3}
                 maxLength={MAX_RESOLUTION_REASON_LENGTH}
                 {...register("resolutionReason")}
@@ -145,7 +148,7 @@ function ResolveFraudEventModal({
           <Button
             type="submit"
             variant="primary"
-            text="Resolve event"
+            text={`Resolve ${fraudEvent.count} ${pluralize("event", fraudEvent.count)}`}
             disabled={!fraudEvent.id || !fraudEvent.partner}
             loading={isPending}
             className="h-8 w-fit px-3"
@@ -156,17 +159,17 @@ function ResolveFraudEventModal({
   );
 }
 
-export function useResolveFraudEventModal({
+export function useResolveFraudEventsModal({
   fraudEvent,
 }: {
-  fraudEvent: Pick<FraudEventProps, "id" | "partner" | "type">;
+  fraudEvent: FraudEventProps;
 }) {
   const [showResolveFraudEventModal, setShowResolveFraudEventModal] =
     useState(false);
 
   const ResolveFraudEventModalCallback = useCallback(() => {
     return (
-      <ResolveFraudEventModal
+      <ResolveFraudEventsModal
         showResolveFraudEventModal={showResolveFraudEventModal}
         setShowResolveFraudEventModal={setShowResolveFraudEventModal}
         fraudEvent={fraudEvent}

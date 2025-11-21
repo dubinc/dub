@@ -58,4 +58,5 @@ model FraudEvent {
   @@index(eventId)
   @@index(userId)
   @@index(commissionId)
+  @@index(groupKey)
 }

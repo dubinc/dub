@@ -16,7 +16,7 @@ import {
   useKeyboardShortcut,
 } from "@dub/ui";
 import { OG_AVATAR_URL, cn } from "@dub/utils";
-import { useResolveFraudEventModal } from "app/app.dub.co/(dashboard)/[slug]/(ee)/program/fraud/resolve-fraud-event-modal";
+import { useResolveFraudEventsModal } from "app/app.dub.co/(dashboard)/[slug]/(ee)/program/fraud/resolve-fraud-events-modal";
 import Link from "next/link";
 import { Dispatch, SetStateAction, useState } from "react";
 import { FraudEventsTableWrapper } from "./fraud-events-tables";
@@ -38,7 +38,7 @@ function FraudReviewSheetContent({
   const { slug: workspaceSlug } = useWorkspace();
 
   const { setShowResolveFraudEventModal, ResolveFraudEventModal } =
-    useResolveFraudEventModal({
+    useResolveFraudEventsModal({
       fraudEvent,
     });
 

@@ -144,7 +144,7 @@ export const PAID_TRAFFIC_PLATFORMS_CONFIG: {
   {
     id: "google",
     name: "Google",
-    queryParams: ["gclid", "gclsrc", "gbraid", "wbraid"],
+    queryParams: ["gclid"],
   },
   {
     id: "facebook",

@@ -16,7 +16,7 @@ export const fraudEventSchema = z.object({
   resolutionReason: z.string().nullable(),
   resolvedAt: z.date().nullable(),
   lastOccurenceAt: z.date(),
-  count: z.number().optional(),
+  count: z.number(),
   groupKey: z.string(),
   partner: PartnerSchema.pick({
     id: true,

@@ -5,6 +5,7 @@ import { fraudEventContext } from "../../zod/schemas/schemas";
 import { createId } from "../create-id";
 import { executeFraudRule } from "./execute-fraud-rule";
 import { getMergedFraudRules } from "./get-merged-fraud-rules";
+import { createFraudEventGroupKey } from "./utils";
 
 export async function detectAndRecordEventFraud(context: FraudEventContext) {
   const result = fraudEventContext.safeParse(context);
@@ -25,6 +26,8 @@ export async function detectAndRecordEventFraud(context: FraudEventContext) {
   // Override global rules with program-specific overrides
   const mergedRules = getMergedFraudRules(programRules);
   const activeRules = mergedRules.filter((rule) => rule.enabled);
+
+  console.log("mergedRules", mergedRules)
 
   const triggeredRules: Pick<FraudEvent, "type" | "metadata">[] = [];
 
@@ -65,6 +68,11 @@ export async function detectAndRecordEventFraud(context: FraudEventContext) {
         commissionId: validatedContext.commission.id,
         type: rule.type,
         metadata: rule.metadata as Prisma.InputJsonValue,
+        groupKey: createFraudEventGroupKey({
+          programId: validatedContext.program.id,
+          partnerId: validatedContext.partner.id,
+          type: rule.type,
+        }),
       })),
     });
   } catch (error) {

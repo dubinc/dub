@@ -13,7 +13,7 @@ export const resolveFraudEventsAction = authActionClient
   .schema(resolveFraudEventsSchema)
   .action(async ({ ctx, parsedInput }) => {
     const { workspace, user } = ctx;
-    let { groupKey, resolutionReason } = parsedInput;
+    const { groupKey, resolutionReason } = parsedInput;
 
     const { canResolveFraudEvents } = getPlanCapabilities(workspace.plan);
 
@@ -40,12 +40,10 @@ export const resolveFraudEventsAction = authActionClient
       throw new Error("No pending fraud events found to resolve.");
     }
 
-    const firstFraudEvent = fraudEvents[0];
-
     const newGroupKey = createFraudEventGroupKey({
       programId,
-      partnerId: firstFraudEvent.partnerId,
-      type: firstFraudEvent.type,
+      partnerId: fraudEvents[0].partnerId,
+      type: fraudEvents[0].type,
       batchId: nanoid(10),
     });
 

@@ -35,9 +35,14 @@ export function createFraudEventGroupKey({
   programId: string;
   partnerId: string;
   type: FraudRuleType;
-  batchId?: string; // Will be used to group fraud events together for batch resolution
+  batchId?: string;
 }): string {
-  const parts = [programId, partnerId, type, batchId].filter(Boolean);
+  const parts = [programId, partnerId, type, batchId].map((part) =>
+    part?.toLowerCase(),
+  );
 
-  return createHash("sha256").update(parts.join("|")).digest("hex");
+  return createHash("sha256")
+    .update(parts.join("|"))
+    .digest("base64url")
+    .slice(0, 24);
 }
