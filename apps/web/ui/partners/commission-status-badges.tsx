@@ -1,4 +1,4 @@
-import { Program } from "@dub/prisma/client";
+import { PartnerGroup, Program } from "@dub/prisma/client";
 import {
   CircleCheck,
   CircleHalfDottedClock,
@@ -9,10 +9,8 @@ import {
 import { currencyFormatter, PARTNERS_DOMAIN } from "@dub/utils";
 
 interface CommissionTooltipDataProps {
-  program?: Pick<
-    Program,
-    "name" | "slug" | "holdingPeriodDays" | "minPayoutAmount"
-  >;
+  program?: Pick<Program, "name" | "slug" | "minPayoutAmount">;
+  group?: Pick<PartnerGroup, "holdingPeriodDays">;
   workspace?: {
     slug?: string;
   };
@@ -26,7 +24,9 @@ export const CommissionStatusBadges = {
     className: "text-orange-600 bg-orange-100",
     icon: CircleHalfDottedClock,
     tooltip: (data: CommissionTooltipDataProps) =>
-      `This commission is pending and will be eligible for payout ${data.program?.holdingPeriodDays ? `after ${data.variant === "partner" ? "the" : "your"} program's ${data.program?.holdingPeriodDays}-day holding period` : "shortly"}. [Learn more.](https://dub.co/help/article/commissions-payouts)`,
+      data.variant === "partner"
+        ? `This commission is pending and will be eligible for payout ${data.group?.holdingPeriodDays ? `after the program's ${data.group?.holdingPeriodDays}-day holding period` : "shortly"}. [Learn more.](https://dub.co/help/article/commissions-payouts#what-does-holding-period-mean)`
+        : "Commissions that are pending and will be eligible for payout after the [payout holding period](https://dub.co/help/article/partner-payouts#payout-holding-period) for the partner group.",
   },
   processed: {
     label: "Processed",

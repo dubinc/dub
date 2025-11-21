@@ -83,6 +83,7 @@ export const createPartnerCommission = async ({
     include: {
       links: true,
       partner: true,
+      partnerGroup: true,
       ...(event === "click" && { clickReward: true }),
       ...(event === "lead" && { leadReward: true }),
       ...(event === "sale" && { saleReward: true }),
@@ -320,6 +321,7 @@ export const createPartnerCommission = async ({
           !isClawback &&
             notifyPartnerCommission({
               program,
+              group: programEnrollment.partnerGroup ?? { holdingPeriodDays: 0 },
               workspace,
               commission,
             }),

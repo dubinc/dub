@@ -4,6 +4,7 @@ import { approvePartnerEnrollment } from "@/lib/partners/approve-partner-enrollm
 import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
 import { z } from "zod";
+import { logAndRespond } from "../utils";
 
 export const dynamic = "force-dynamic";
 
@@ -44,27 +45,37 @@ export async function POST(req: Request) {
           where: {
             partnerId,
           },
+          include: {
+            partnerGroup: true,
+          },
         },
       },
     });
 
-    if (!program.autoApprovePartnersEnabledAt) {
-      return new Response(
-        `Program ${programId} does not have auto-approval enabled. Skipping auto-approval.`,
-      );
-    }
-
-    if (program.partners.length === 0) {
-      return new Response(
+    const partner = program.partners[0];
+    if (!partner) {
+      return logAndRespond(
         `Partner ${partnerId} not found in program ${programId}. Skipping auto-approval.`,
       );
     }
 
-    const partner = program.partners[0];
+    const group = partner.partnerGroup;
+
+    if (!group) {
+      return logAndRespond(
+        `Group not found for partner ${partnerId} in program ${programId}. Skipping auto-approval.`,
+      );
+    }
+
+    if (!group.autoApprovePartnersEnabledAt) {
+      return logAndRespond(
+        `Group ${group.id} does not have auto-approval enabled. Skipping auto-approval.`,
+      );
+    }
 
     if (partner.status !== "pending") {
-      return new Response(
-        `${partnerId} is ${partner.status}. Skipping auto-approval.`,
+      return logAndRespond(
+        `${partnerId} is in ${partner.status} status. Skipping auto-approval.`,
       );
     }
 
@@ -75,7 +86,9 @@ export async function POST(req: Request) {
       groupId: partner.groupId,
     });
 
-    return new Response("Partner is auto-approved.");
+    return logAndRespond(
+      `Successfully auto-approved partner ${partnerId} in program ${programId}.`,
+    );
   } catch (error) {
     await log({
       message: `Error auto-approving partner: ${error.message}`,

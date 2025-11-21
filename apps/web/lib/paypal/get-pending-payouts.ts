@@ -7,9 +7,6 @@ export async function getPendingPaypalPayouts() {
       status: {
         in: ["pending", "processing"],
       },
-      amount: {
-        gte: 1000,
-      },
       partner: {
         paypalEmail: {
           not: null,

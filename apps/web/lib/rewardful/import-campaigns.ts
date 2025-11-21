@@ -1,13 +1,13 @@
 import { RESOURCE_COLORS } from "@/ui/colors";
 import { prisma } from "@dub/prisma";
 import { EventType, Prisma, RewardStructure } from "@dub/prisma/client";
-import { getDomainWithoutWWW, randomValue } from "@dub/utils";
+import { randomValue } from "@dub/utils";
 import { differenceInSeconds } from "date-fns";
 import { createId } from "../api/create-id";
 
 import { serializeReward } from "../api/partners/serialize-reward";
 import { getRewardAmount } from "../partners/get-reward-amount";
-import { DEFAULT_ADDITIONAL_PARTNER_LINKS } from "../zod/schemas/groups";
+import { DEFAULT_PARTNER_GROUP } from "../zod/schemas/groups";
 import { RewardfulApi } from "./api";
 import { rewardfulImporter } from "./importer";
 import { RewardfulImportPayload } from "./types";
@@ -19,16 +19,31 @@ export async function importCampaigns(payload: RewardfulImportPayload) {
     where: {
       id: programId,
     },
-    select: {
-      workspaceId: true,
-      domain: true,
-      url: true,
+    include: {
+      groups: {
+        where: {
+          slug: DEFAULT_PARTNER_GROUP.slug,
+        },
+      },
     },
   });
 
   if (!program.domain || !program.url) {
     throw new Error("Program domain or URL is not set.");
   }
+
+  const {
+    logo,
+    wordmark,
+    brandColor,
+    holdingPeriodDays,
+    autoApprovePartnersEnabledAt,
+    additionalLinks,
+    maxPartnerLinks,
+    linkStructure,
+    applicationFormData,
+    landerData,
+  } = program.groups[0] ?? {};
 
   const { token } = await rewardfulImporter.getCredentials(program.workspaceId);
 
@@ -64,13 +79,18 @@ export async function importCampaigns(payload: RewardfulImportPayload) {
         name: `(Rewardful) ${campaign.name}`,
         slug: groupSlug,
         color: randomValue(RESOURCE_COLORS),
-        additionalLinks: [
-          {
-            domain: getDomainWithoutWWW(program.url),
-            validationMode: "domain",
-          },
-        ],
-        maxPartnerLinks: DEFAULT_ADDITIONAL_PARTNER_LINKS,
+        // Use default group settings for new groups
+        logo,
+        wordmark,
+        brandColor,
+        holdingPeriodDays,
+        autoApprovePartnersEnabledAt,
+        ...(additionalLinks && { additionalLinks }),
+        ...(maxPartnerLinks && { maxPartnerLinks }),
+        ...(linkStructure && { linkStructure }),
+        ...(applicationFormData && { applicationFormData }),
+        ...(landerData && { landerData }),
+        // Create default link for the group
         partnerGroupDefaultLinks: {
           create: {
             id: createId({ prefix: "pgdl_" }),

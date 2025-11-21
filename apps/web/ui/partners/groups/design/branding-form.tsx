@@ -26,7 +26,6 @@ import { useAction } from "next-safe-action/hooks";
 import { useEffect, useMemo, useState } from "react";
 import { FormProvider, useForm, useFormContext } from "react-hook-form";
 import { toast } from "sonner";
-import { KeyedMutator } from "swr";
 import { v4 as uuid } from "uuid";
 import {
   BrandingContextProvider,
@@ -73,13 +72,8 @@ export function BrandingForm() {
   }
 
   return (
-    <BrandingContextProvider>
-      <BrandingFormInner
-        group={group}
-        mutateGroup={mutateGroup}
-        draft={draft}
-        setDraft={setDraft}
-      />
+    <BrandingContextProvider group={group} mutateGroup={mutateGroup}>
+      <BrandingFormInner draft={draft} setDraft={setDraft} />
     </BrandingContextProvider>
   );
 }
@@ -160,13 +154,9 @@ const dateIsAfter = (
 };
 
 function BrandingFormInner({
-  group,
-  mutateGroup,
   draft,
   setDraft,
 }: {
-  group: GroupWithProgramProps;
-  mutateGroup: KeyedMutator<GroupWithProgramProps>;
   draft: DraftData | null;
   setDraft: (draft: DraftData | null) => void;
 }) {
@@ -176,13 +166,15 @@ function BrandingFormInner({
     PREVIEW_TABS.find(({ value }) => searchParams.get("tab") === value) ||
     PREVIEW_TABS[0];
 
+  const { group, mutateGroup } = useBrandingContext();
+
   const [isSidePanelOpen, setIsSidePanelOpen] = useState(true);
 
   const form = useForm<BrandingFormData>({
     defaultValues: {
-      logo: group.program?.logo ?? draft?.logo ?? null,
-      wordmark: group.program?.wordmark ?? draft?.wordmark ?? null,
-      brandColor: group.program?.brandColor ?? draft?.brandColor ?? null,
+      logo: group.logo ?? draft?.logo ?? null,
+      wordmark: group.wordmark ?? draft?.wordmark ?? null,
+      brandColor: group.brandColor ?? draft?.brandColor ?? null,
       applicationFormData:
         group.applicationFormData ?? defaultApplicationFormData(group.program),
       landerData: group.landerData ?? { blocks: [] },
@@ -196,8 +188,6 @@ function BrandingFormInner({
     formState: { isDirty, isSubmitting, isSubmitSuccessful },
     getValues,
     setValue,
-
-    resetField,
   } = form;
 
   useEffect(() => {

@@ -1,9 +1,9 @@
 import { RESOURCE_COLORS } from "@/ui/colors";
 import { prisma } from "@dub/prisma";
-import { getDomainWithoutWWW, randomValue } from "@dub/utils";
+import { randomValue } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import { createId } from "../api/create-id";
-import { DEFAULT_ADDITIONAL_PARTNER_LINKS } from "../zod/schemas/groups";
+import { DEFAULT_PARTNER_GROUP } from "../zod/schemas/groups";
 import { FirstPromoterApi } from "./api";
 import { firstPromoterImporter, MAX_BATCHES } from "./importer";
 import { FirstPromoterImportPayload } from "./types";
@@ -30,6 +30,23 @@ export async function importCampaigns(payload: FirstPromoterImportPayload) {
 
   // Groups in the program
   const existingGroupNames = program.groups.map((group) => group.name);
+
+  const defaultGroup = program.groups.find(
+    (group) => group.slug === DEFAULT_PARTNER_GROUP.slug,
+  );
+
+  const {
+    logo,
+    wordmark,
+    brandColor,
+    holdingPeriodDays,
+    autoApprovePartnersEnabledAt,
+    additionalLinks,
+    maxPartnerLinks,
+    linkStructure,
+    applicationFormData,
+    landerData,
+  } = defaultGroup ?? {};
 
   const credentials = await firstPromoterImporter.getCredentials(
     program.workspaceId,
@@ -65,13 +82,17 @@ export async function importCampaigns(payload: FirstPromoterImportPayload) {
           slug: slugify(campaign.campaign.name),
           name: campaign.campaign.name,
           color: randomValue(RESOURCE_COLORS),
-          additionalLinks: [
-            {
-              domain: getDomainWithoutWWW(program.url!),
-              validationMode: "domain",
-            },
-          ],
-          maxPartnerLinks: DEFAULT_ADDITIONAL_PARTNER_LINKS,
+          // Use default group settings for new groups
+          logo,
+          wordmark,
+          brandColor,
+          holdingPeriodDays,
+          autoApprovePartnersEnabledAt,
+          ...(additionalLinks && { additionalLinks }),
+          ...(maxPartnerLinks && { maxPartnerLinks }),
+          ...(linkStructure && { linkStructure }),
+          ...(applicationFormData && { applicationFormData }),
+          ...(landerData && { landerData }),
         })),
         skipDuplicates: true,
       });

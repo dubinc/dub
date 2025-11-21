@@ -7,15 +7,17 @@ import {
   PAYOUT_HOLDING_PERIOD_DAYS,
 } from "@/lib/constants/payouts";
 import { mutatePrefix } from "@/lib/swr/mutate";
+import useGroup from "@/lib/swr/use-group";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramProps } from "@/lib/types";
+import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { X } from "@/ui/shared/icons";
-import { Button, Sheet, Slider } from "@dub/ui";
+import { Button, Checkbox, Sheet, Slider } from "@dub/ui";
 import NumberFlow from "@number-flow/react";
 import { useAction } from "next-safe-action/hooks";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { ProgramPayoutMethods } from "./program-payout-methods";
 import { ProgramPayoutModeSection } from "./program-payout-mode-section";
@@ -24,36 +26,45 @@ type ProgramPayoutSettingsSheetProps = {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
 };
 
-type FormData = Pick<ProgramProps, "holdingPeriodDays" | "minPayoutAmount">;
+type FormData = Pick<ProgramProps, "holdingPeriodDays" | "minPayoutAmount"> & {
+  applyHoldingPeriodDaysToAllGroups: boolean;
+};
 
 function ProgramPayoutSettingsSheetContent({
   setIsOpen,
 }: ProgramPayoutSettingsSheetProps) {
   const { id: workspaceId, defaultProgramId } = useWorkspace();
   const { program } = useProgram();
+  const { group: defaultGroup } = useGroup({
+    groupIdOrSlug: DEFAULT_PARTNER_GROUP.slug,
+  });
 
   const {
     register,
+    control,
     handleSubmit,
     watch,
     setValue,
     formState: { isDirty, isValid, isSubmitting },
   } = useForm<FormData>({
     mode: "onBlur",
+    defaultValues: {
+      applyHoldingPeriodDaysToAllGroups: false,
+    },
   });
 
   useEffect(() => {
-    if (program) {
-      setValue("holdingPeriodDays", program.holdingPeriodDays);
+    if (program && defaultGroup) {
+      setValue("holdingPeriodDays", defaultGroup.holdingPeriodDays);
       setValue("minPayoutAmount", program.minPayoutAmount);
     }
-  }, [program, setValue]);
+  }, [program, defaultGroup, setValue]);
 
   const { executeAsync } = useAction(updateProgramAction, {
     onSuccess: async () => {
       toast.success("Payout settings updated successfully.");
       setIsOpen(false);
-      mutatePrefix(`/api/programs/${defaultProgramId}`);
+      mutatePrefix([`/api/programs/${defaultProgramId}`, `/api/groups`]);
     },
     onError: ({ error }) => {
       toast.error(parseActionError(error, "Failed to update payout settings."));
@@ -114,6 +125,23 @@ function ProgramPayoutSettingsSheetContent({
                 ))}
               </select>
             </div>
+            <label className="mt-3 flex w-full items-center gap-2.5 text-sm font-medium leading-none">
+              <Controller
+                control={control}
+                name="applyHoldingPeriodDaysToAllGroups"
+                render={({ field }) => (
+                  <Checkbox
+                    checked={field.value}
+                    className="border-border-default size-4 rounded focus:border-[var(--brand)] focus:ring-[var(--brand)] focus-visible:border-[var(--brand)] focus-visible:ring-[var(--brand)] data-[state=checked]:bg-black data-[state=indeterminate]:bg-black"
+                    onCheckedChange={field.onChange}
+                  />
+                )}
+              />
+
+              <span className="text-content-emphasis text-sm">
+                Apply to all groups
+              </span>
+            </label>
           </div>
         </div>
 

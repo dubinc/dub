@@ -1,10 +1,11 @@
 import { getProgram } from "@/lib/fetchers/get-program";
+import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { prisma } from "@dub/prisma";
 import { Logo } from "@dub/ui";
 import { BoltFill, CursorRays, LinesY, MoneyBills2 } from "@dub/ui/icons";
 import { OG_AVATAR_URL } from "@dub/utils";
 import { Store } from "lucide-react";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { CSSProperties } from "react";
 import { ApplyHeader } from "../../header";
 import { CTAButtons } from "./cta-buttons";
@@ -41,7 +42,7 @@ const FEATURES = [
 ];
 
 export default async function SuccessPage(props: {
-  params: Promise<{ programSlug: string }>;
+  params: Promise<{ programSlug: string; groupSlug?: string }>;
   searchParams: Promise<{ applicationId?: string; enrollmentId?: string }>;
 }) {
   const searchParams = await props.searchParams;
@@ -50,12 +51,27 @@ export default async function SuccessPage(props: {
 
   const params = await props.params;
 
-  const { programSlug } = params;
+  const { programSlug, groupSlug } = params;
 
-  const program = await getProgram({ slug: programSlug });
+  const partnerGroupSlug = groupSlug ?? DEFAULT_PARTNER_GROUP.slug;
 
-  if (!program) {
-    notFound();
+  const program = await getProgram({
+    slug: programSlug,
+    groupSlug: partnerGroupSlug,
+  });
+
+  if (
+    !program ||
+    !program.group ||
+    !program.group.applicationFormData ||
+    !program.group.applicationFormPublishedAt
+  ) {
+    // throw 404 if it's the default group, else redirect to the default group page
+    if (partnerGroupSlug === DEFAULT_PARTNER_GROUP.slug) {
+      notFound();
+    } else {
+      redirect(`/${programSlug}/apply`);
+    }
   }
 
   const application = applicationId
@@ -75,12 +91,16 @@ export default async function SuccessPage(props: {
         className="relative"
         style={
           {
-            "--brand": program.brandColor || "#000000",
+            "--brand": program.group.brandColor || "#000000",
             "--brand-ring": "rgb(from var(--brand) r g b / 0.2)",
           } as CSSProperties
         }
       >
-        <ApplyHeader program={program} showLogin={false} showApply={false} />
+        <ApplyHeader
+          group={program.group}
+          showLogin={false}
+          showApply={false}
+        />
         <div className="p-6">
           <div className="grid grid-cols-1 gap-5 sm:pt-20">
             <span className="w-fit rounded-md bg-neutral-100 px-2 py-1 text-xs font-medium text-neutral-700">

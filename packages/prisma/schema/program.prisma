@@ -25,33 +25,37 @@ enum ProgramPayoutMode {
 }
 
 model Program {
-  id                           String            @id @default(cuid())
-  workspaceId                  String
-  defaultFolderId              String
-  defaultGroupId               String
-  name                         String
-  slug                         String            @unique
-  logo                         String?
+  id                 String            @id @default(cuid())
+  workspaceId        String
+  defaultFolderId    String
+  defaultGroupId     String
+  name               String
+  slug               String            @unique
+  domain             String?
+  url                String?
+  logo               String? // TODO: remove after we refactor all program.logo fields to use group.logo instead
+  primaryRewardEvent EventType         @default(sale)
+  minPayoutAmount    Int               @default(0) // Default minimum payout amount of $0
+  payoutMode         ProgramPayoutMode @default(internal)
+
+  inviteEmailData Json?   @db.Json
+  embedData       Json?   @db.Json
+  resources       Json?   @db.Json
+  termsUrl        String? @db.Text
+  helpUrl         String? @db.Text
+  supportEmail    String?
+
+  messagingEnabledAt      DateTime?
+  partnerNetworkEnabledAt DateTime?
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+  startedAt               DateTime?
+
+  // DEPRECATED FIELDS: TODO – remove after migration
   wordmark                     String?
   brandColor                   String?
-  domain                       String?
-  url                          String?
-  primaryRewardEvent           EventType         @default(sale)
-  holdingPeriodDays            Int               @default(0) // number of days to wait before earnings are added to a payout
-  minPayoutAmount              Int               @default(0) // Default minimum payout amount of $0
-  inviteEmailData              Json?             @db.Json
-  embedData                    Json?             @db.Json
-  resources                    Json?             @db.Json
-  termsUrl                     String?           @db.Text
-  helpUrl                      String?           @db.Text
-  supportEmail                 String?
+  holdingPeriodDays            Int       @default(0)
   autoApprovePartnersEnabledAt DateTime?
-  messagingEnabledAt           DateTime?
-  partnerNetworkEnabledAt      DateTime?
-  payoutMode                   ProgramPayoutMode @default(internal)
-  createdAt                    DateTime          @default(now())
-  updatedAt                    DateTime          @updatedAt
-  startedAt                    DateTime?
 
   workspace     Project              @relation(fields: [workspaceId], references: [id])
   partners      ProgramEnrollment[]
@@ -134,6 +138,7 @@ model ProgramEnrollment {
   discount          Discount?           @relation(fields: [discountId], references: [id])
   bountySubmissions BountySubmission[]
   discountCodes     DiscountCode[]
+  commissions       Commission[]
 
   // unique constraints
   @@unique([partnerId, programId])

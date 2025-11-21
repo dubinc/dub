@@ -41,7 +41,7 @@ export function CommissionStats() {
         icon={CommissionStatusBadges.pending.icon}
         iconClassName={CommissionStatusBadges.pending.className}
         variant="loose"
-        tooltip={`Commissions that are pending and will be eligible for payout ${program?.holdingPeriodDays ? `after your program's ${program?.holdingPeriodDays}-day holding period` : "shortly"}.`}
+        tooltip="Commissions that are pending and will be eligible for payout after the [payout holding period](https://dub.co/help/article/partner-payouts#payout-holding-period) for the partner group."
         error={!!error}
       />
       <ProgramStatsFilter
