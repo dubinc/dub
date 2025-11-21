@@ -6,6 +6,7 @@ import {
 } from "@/lib/types";
 import {
   DEFAULT_ADDITIONAL_PARTNER_LINKS,
+  DEFAULT_PARTNER_GROUP,
   GroupSchema,
 } from "@/lib/zod/schemas/groups";
 import { RESOURCE_COLORS } from "@/ui/colors";
@@ -40,6 +41,11 @@ describe.sequential("/groups/**", async () => {
   let group: GroupProps;
 
   test("POST /groups - create group", async () => {
+    // Fetch the default group to get its default values
+    const { data: defaultGroup } = await http.get<GroupWithProgramProps>({
+      path: `/groups/${DEFAULT_PARTNER_GROUP.slug}`,
+    });
+
     const groupName = generateRandomName();
 
     const newGroup = {
@@ -55,9 +61,18 @@ describe.sequential("/groups/**", async () => {
 
     expect(status).toEqual(201);
     expect(() => GroupSchema.parse(data)).not.toThrow();
+
     expect(data).toStrictEqual({
       ...expectedGroup,
       ...newGroup,
+      logo: defaultGroup.logo,
+      wordmark: defaultGroup.wordmark,
+      brandColor: defaultGroup.brandColor,
+      additionalLinks: defaultGroup.additionalLinks,
+      maxPartnerLinks: defaultGroup.maxPartnerLinks,
+      linkStructure: defaultGroup.linkStructure,
+      holdingPeriodDays: defaultGroup.holdingPeriodDays,
+      autoApprovePartnersEnabledAt: defaultGroup.autoApprovePartnersEnabledAt,
     });
 
     group = data;
@@ -90,6 +105,7 @@ describe.sequential("/groups/**", async () => {
       color: randomValue(RESOURCE_COLORS),
       maxPartnerLinks: 5,
       linkStructure: "query",
+      holdingPeriodDays: 30,
       additionalLinks: [
         {
           domain: "example.com",
@@ -106,13 +122,17 @@ describe.sequential("/groups/**", async () => {
 
     const { status, data: updatedGroup } = await http.patch<GroupProps>({
       path: `/groups/${group.id}`,
-      body: toUpdate,
+      body: {
+        ...toUpdate,
+        autoApprovePartners: true,
+      },
     });
 
     expect(status).toEqual(200);
     expect(updatedGroup).toStrictEqual({
       ...group,
       ...toUpdate,
+      autoApprovePartnersEnabledAt: expect.any(String),
     });
 
     group = updatedGroup;

@@ -61,7 +61,7 @@ export const GroupSchema = z.object({
   wordmark: z.string().nullable(),
   brandColor: z.string().nullable(),
   holdingPeriodDays: z.number(),
-  autoApprovePartnersEnabledAt: z.date().nullish(),
+  autoApprovePartnersEnabledAt: z.coerce.date().nullish(),
   clickReward: RewardSchema.nullish(),
   leadReward: RewardSchema.nullish(),
   saleReward: RewardSchema.nullish(),
