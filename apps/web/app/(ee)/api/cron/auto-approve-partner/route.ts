@@ -53,6 +53,12 @@ export async function POST(req: Request) {
     });
 
     const partner = program.partners[0];
+    if (!partner) {
+      return logAndRespond(
+        `Partner ${partnerId} not found in program ${programId}. Skipping auto-approval.`,
+      );
+    }
+
     const group = partner.partnerGroup;
 
     if (!group) {
