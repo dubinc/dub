@@ -121,7 +121,7 @@ function NetworkPartnerSheetContent({
             hideStatuses={["pending"]}
             selectedGroupId={selectedGroupId}
             setSelectedGroupId={setSelectedGroupId}
-            showFraudFlag={false}
+            showFraudIndicator={false}
           />
         </div>
         <div className="@3xl/sheet:order-1">

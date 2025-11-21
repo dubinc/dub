@@ -8,15 +8,14 @@ import { NextResponse } from "next/server";
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
-
     const parsedParams = fraudEventCountQuerySchema.parse(searchParams);
 
-    const count = await getFraudEventsCount({
+    const fraudEventsCount = await getFraudEventsCount({
       ...parsedParams,
       programId,
     });
 
-    return NextResponse.json(count);
+    return NextResponse.json(fraudEventsCount);
   },
   {
     requiredPlan: ["advanced", "enterprise"],

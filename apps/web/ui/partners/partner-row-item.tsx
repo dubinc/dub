@@ -9,7 +9,7 @@ import { PartnerFraudIndicator } from "./partner-fraud-indicator";
 
 interface PartnerRowItemProps {
   showPermalink?: boolean;
-  showFraudFlag?: boolean;
+  showFraudIndicator?: boolean;
   partner: {
     id: string;
     name: string;
@@ -129,7 +129,7 @@ function PartnerPayoutStatusTooltip({
 export function PartnerRowItem({
   partner,
   showPermalink = true,
-  showFraudFlag = true,
+  showFraudIndicator = true,
 }: PartnerRowItemProps) {
   const { slug } = useParams();
   const { statusKey, showPayoutsEnabled } = usePartnerPayoutStatus(partner);
@@ -172,7 +172,7 @@ export function PartnerRowItem({
         {partner.name}
       </As>
 
-      {showFraudFlag && <PartnerFraudIndicator partnerId={partner.id} />}
+      {showFraudIndicator && <PartnerFraudIndicator partnerId={partner.id} />}
     </div>
   );
 }

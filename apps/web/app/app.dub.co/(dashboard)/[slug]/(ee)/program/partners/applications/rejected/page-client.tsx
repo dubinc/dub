@@ -143,7 +143,7 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
             <PartnerRowItem
               partner={row.original}
               showPermalink={false}
-              showFraudFlag={false}
+              showFraudIndicator={false}
             />
           );
         },

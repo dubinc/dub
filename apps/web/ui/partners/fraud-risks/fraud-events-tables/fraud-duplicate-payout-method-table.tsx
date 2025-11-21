@@ -47,7 +47,7 @@ export function FraudDuplicatePayoutMethodTable() {
           row.original.partner ? (
             <PartnerRowItem
               partner={row.original.partner}
-              showFraudFlag={false}
+              showFraudIndicator={false}
             />
           ) : (
             "-"

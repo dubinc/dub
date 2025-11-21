@@ -124,7 +124,7 @@ export function FraudEventsTable() {
                 id: partner.id,
                 name: partner.name || "Unknown",
               }}
-              showFraudFlag={false}
+              showFraudIndicator={false}
             />
           );
         },

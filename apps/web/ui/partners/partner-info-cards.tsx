@@ -39,7 +39,7 @@ import { ProgramRewardList } from "./program-reward-list";
 import { TrustedPartnerBadge } from "./trusted-partner-badge";
 
 type PartnerInfoCardsProps = {
-  showFraudFlag?: boolean;
+  showFraudIndicator?: boolean;
   showApplicationRiskAnalysis?: boolean;
 
   /** Partner statuses to hide badges for */
@@ -66,7 +66,7 @@ export function PartnerInfoCards({
   hideStatuses = [],
   selectedGroupId,
   setSelectedGroupId,
-  showFraudFlag = true,
+  showFraudIndicator = true,
   showApplicationRiskAnalysis = false,
 }: PartnerInfoCardsProps) {
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
@@ -222,7 +222,7 @@ export function PartnerInfoCards({
                   <span className="text-content-emphasis text-lg font-semibold">
                     {partner.name}
                   </span>
-                  {showFraudFlag && <PartnerFraudIndicator partnerId={partner.id} />}
+                  {showFraudIndicator && <PartnerFraudIndicator partnerId={partner.id} />}
                   {showApplicationRiskAnalysis && (
                     <PartnerApplicationRiskFlag partnerId={partner.id} />
                   )}
