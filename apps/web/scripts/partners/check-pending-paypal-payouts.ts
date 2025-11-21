@@ -21,7 +21,7 @@ async function main() {
     partner: payout.partner.email,
     status: payout.status,
     country: payout.partner.country,
-    amount: payout.amount,
+    amount: payout.amount / 100,
   }));
 
   console.table(finalPayouts);
