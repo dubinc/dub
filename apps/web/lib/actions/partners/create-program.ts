@@ -103,6 +103,7 @@ export const createProgram = async ({
         slug: workspace.slug,
         domain,
         url,
+        logo: logoUrl, // TODO: remove after we refactor all program.logo fields to use group.logo instead
         defaultFolderId: programFolder.id,
         defaultGroupId,
         supportEmail,
