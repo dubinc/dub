@@ -23,12 +23,11 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { CircleCheck, Dots, ShieldKeyhole, UserDelete } from "@dub/ui/icons";
+import { Dots, ShieldKeyhole, UserDelete } from "@dub/ui/icons";
 import { cn, currencyFormatter, formatDateTimeSmart } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { useEffect, useMemo, useState } from "react";
-import { useResolveFraudEventModal } from "./resolve-fraud-event-modal";
 import { useFraudEventsFilters } from "./use-fraud-events-filters";
 
 export function FraudEventsTable() {
@@ -44,7 +43,6 @@ export function FraudEventsTable() {
     onSelect,
     onRemove,
     onRemoveAll,
-    isFiltered,
     setSearch,
     setSelectedFilter,
   } = useFraudEventsFilters();
@@ -330,11 +328,6 @@ function RowMenuButton({ row }: { row: Row<FraudEventProps> }) {
 
   const [isOpen, setIsOpen] = useState(false);
 
-  const { setShowResolveFraudEventModal, ResolveFraudEventModal } =
-    useResolveFraudEventModal({
-      fraudEvent,
-    });
-
   const { BanPartnerModal, setShowBanPartnerModal } = useBanPartnerModal({
     partner: fraudEvent.partner,
   });
@@ -345,7 +338,6 @@ function RowMenuButton({ row }: { row: Row<FraudEventProps> }) {
 
   return (
     <>
-      <ResolveFraudEventModal />
       <BanPartnerModal />
       <Popover
         openPopover={isOpen}
@@ -354,15 +346,6 @@ function RowMenuButton({ row }: { row: Row<FraudEventProps> }) {
           <Command tabIndex={0} loop className="focus:outline-none">
             <Command.List className="w-screen text-sm focus-visible:outline-none sm:w-auto sm:min-w-[160px]">
               <Command.Group className="grid gap-px p-1.5">
-                <MenuItem
-                  icon={CircleCheck}
-                  label="Resolve event"
-                  onSelect={() => {
-                    setShowResolveFraudEventModal(true);
-                    setIsOpen(false);
-                  }}
-                />
-
                 <MenuItem
                   icon={UserDelete}
                   label="Ban partner"
