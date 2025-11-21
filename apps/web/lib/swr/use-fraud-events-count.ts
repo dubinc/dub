@@ -9,9 +9,9 @@ export function useFraudEventsCount<T>({
   filters,
   enabled = true,
 }: {
-  filters: Partial<z.infer<typeof fraudEventCountQuerySchema>>;
+  filters?: Partial<z.infer<typeof fraudEventCountQuerySchema>>;
   enabled?: boolean;
-}) {
+} = {}) {
   const { getQueryString } = useRouterStuff();
   const { id: workspaceId, defaultProgramId } = useWorkspace();
 

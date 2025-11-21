@@ -51,7 +51,7 @@ export function ResolvedFraudEventsTable() {
   });
 
   const { fraudEventsCount, error: countError } = useFraudEventsCount<number>({
-    status: "resolved",
+    filters: { status: "resolved" },
   });
 
   const columns = useMemo(
