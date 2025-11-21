@@ -3,7 +3,6 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
-import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
@@ -24,10 +23,8 @@ export const updateProgramAction = authActionClient
       supportEmail,
       helpUrl,
       termsUrl,
-      holdingPeriodDays,
       minPayoutAmount,
       messagingEnabledAt,
-      applyHoldingPeriodDaysToAllGroups,
     } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
@@ -37,37 +34,20 @@ export const updateProgramAction = authActionClient
       programId,
     });
 
-    const [updatedProgram] = await Promise.all([
-      prisma.program.update({
-        where: {
-          id: programId,
-        },
-        data: {
-          supportEmail,
-          helpUrl,
-          termsUrl,
-          minPayoutAmount,
-          ...(messagingEnabledAt !== undefined &&
-            (getPlanCapabilities(workspace.plan).canMessagePartners ||
-              messagingEnabledAt === null) && { messagingEnabledAt }),
-        },
-      }),
-      holdingPeriodDays !== undefined
-        ? prisma.partnerGroup.updateMany({
-            where: {
-              programId,
-              ...(applyHoldingPeriodDaysToAllGroups
-                ? {}
-                : {
-                    slug: DEFAULT_PARTNER_GROUP.slug, // Only apply to default group
-                  }),
-            },
-            data: {
-              holdingPeriodDays,
-            },
-          })
-        : [],
-    ]);
+    const updatedProgram = await prisma.program.update({
+      where: {
+        id: programId,
+      },
+      data: {
+        supportEmail,
+        helpUrl,
+        termsUrl,
+        minPayoutAmount,
+        ...(messagingEnabledAt !== undefined &&
+          (getPlanCapabilities(workspace.plan).canMessagePartners ||
+            messagingEnabledAt === null) && { messagingEnabledAt }),
+      },
+    });
 
     waitUntil(
       recordAuditLog({
