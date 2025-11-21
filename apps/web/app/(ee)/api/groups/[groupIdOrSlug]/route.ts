@@ -72,6 +72,7 @@ export const PATCH = withWorkspace(
       holdingPeriodDays,
       autoApprovePartners,
       updateAutoApprovePartnersForAllGroups,
+      updateHoldingPeriodDaysForAllGroups,
     } = updateGroupSchema.parse(await parseRequestBody(req));
 
     // Only check slug uniqueness if slug is being updated
@@ -141,7 +142,10 @@ export const PATCH = withWorkspace(
           utmTemplateId,
           applicationFormData,
           landerData,
-          holdingPeriodDays,
+          ...(holdingPeriodDays !== undefined &&
+            !updateHoldingPeriodDaysForAllGroups && {
+              holdingPeriodDays,
+            }),
           ...(autoApprovePartners !== undefined &&
             !updateAutoApprovePartnersForAllGroups && {
               autoApprovePartnersEnabledAt: autoApprovePartners
@@ -169,6 +173,20 @@ export const PATCH = withWorkspace(
                 autoApprovePartnersEnabledAt: autoApprovePartners
                   ? new Date()
                   : null,
+              },
+            }),
+          ]
+        : []),
+      // Update holding period for all groups if selected
+      ...(holdingPeriodDays !== undefined &&
+      updateHoldingPeriodDaysForAllGroups
+        ? [
+            prisma.partnerGroup.updateMany({
+              where: {
+                programId,
+              },
+              data: {
+                holdingPeriodDays,
               },
             }),
           ]

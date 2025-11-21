@@ -140,6 +140,7 @@ export const updateGroupSchema = createGroupSchema.partial().extend({
     .optional(),
   autoApprovePartners: z.coerce.boolean().optional(),
   updateAutoApprovePartnersForAllGroups: z.coerce.boolean().optional(),
+  updateHoldingPeriodDaysForAllGroups: z.coerce.boolean().optional(),
 });
 
 export const PartnerGroupDefaultLinkSchema = z.object({
