@@ -28,6 +28,8 @@ export default function NewSaleAlertProgramOwner({
   program = {
     name: "Acme",
     logo: DUB_WORDMARK,
+  },
+  group = {
     holdingPeriodDays: 30,
   },
   partner = {
@@ -51,6 +53,8 @@ export default function NewSaleAlertProgramOwner({
   program: {
     name: string;
     logo: string | null;
+  };
+  group: {
     holdingPeriodDays: number;
   };
   partner: {
@@ -71,14 +75,14 @@ export default function NewSaleAlertProgramOwner({
   const earningsInDollars = currencyFormatter(commission.earnings);
 
   const profitInDollars = currencyFormatter(
-    (commission.amount - commission.earnings),
+    commission.amount - commission.earnings,
   );
 
   let formattedDueDate = "";
 
-  if (program.holdingPeriodDays > 0) {
+  if (group.holdingPeriodDays > 0) {
     const dueDate = new Date();
-    dueDate.setDate(dueDate.getDate() + program.holdingPeriodDays);
+    dueDate.setDate(dueDate.getDate() + group.holdingPeriodDays);
 
     formattedDueDate = dueDate.toLocaleDateString("en-US", {
       month: "long",
