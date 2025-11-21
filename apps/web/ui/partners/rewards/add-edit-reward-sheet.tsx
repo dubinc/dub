@@ -15,6 +15,8 @@ import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
 import {
   createOrUpdateRewardSchema,
   ENTITY_ATTRIBUTE_TYPES,
+  REWARD_DESCRIPTION_MAX_LENGTH,
+  REWARD_TOOLTIP_DESCRIPTION_MAX_LENGTH,
   rewardConditionsArraySchema,
   rewardConditionSchema,
   rewardConditionsSchema,
@@ -118,6 +120,7 @@ function RewardSheetContent({
           ? defaultValuesSource.amountInPercentage
           : undefined,
       description: defaultValuesSource?.description ?? null,
+      tooltipDescription: defaultValuesSource?.tooltipDescription ?? null,
       modifiers: defaultValuesSource?.modifiers?.map((m) => {
         const maxDuration =
           m.maxDuration === undefined
@@ -156,6 +159,7 @@ function RewardSheetContent({
     type,
     maxDuration,
     description,
+    tooltipDescription,
     modifiers,
   ] = watch([
     "event",
@@ -164,6 +168,7 @@ function RewardSheetContent({
     "type",
     "maxDuration",
     "description",
+    "tooltipDescription",
     "modifiers",
   ]);
 
@@ -484,7 +489,28 @@ function RewardSheetContent({
                               )
                             }
                             className="sm:w-80"
-                            maxLength={100}
+                            maxLength={REWARD_DESCRIPTION_MAX_LENGTH}
+                          />
+                        </InlineBadgePopover>
+                        with a tooltip{" "}
+                        <InlineBadgePopover
+                          text={tooltipDescription || "Reward tooltip"}
+                          invalid={!tooltipDescription}
+                          buttonClassName="line-clamp-1"
+                        >
+                          <InlineBadgePopoverInput
+                            value={tooltipDescription ?? ""}
+                            onChange={(e) =>
+                              setValue(
+                                "tooltipDescription",
+                                (e.target as HTMLInputElement).value,
+                                {
+                                  shouldDirty: true,
+                                },
+                              )
+                            }
+                            className="sm:w-80"
+                            maxLength={REWARD_TOOLTIP_DESCRIPTION_MAX_LENGTH}
                           />
                         </InlineBadgePopover>
                       </span>
