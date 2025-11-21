@@ -2,7 +2,7 @@
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { queueDiscountCodeDeletion } from "@/lib/api/discounts/queue-discount-code-deletion";
-import { createFraudEventGroupKey } from "@/lib/api/fraud/utils";
+import { resolveFraudEvents } from "@/lib/api/fraud/utils";
 import { linkCache } from "@/lib/api/links/cache";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
@@ -16,7 +16,6 @@ import {
 import { sendEmail } from "@dub/email";
 import PartnerBanned from "@dub/email/templates/partner-banned";
 import { prisma } from "@dub/prisma";
-import { nanoid } from "@dub/utils";
 import { ProgramEnrollmentStatus } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
@@ -125,58 +124,15 @@ export const banPartnerAction = authActionClient
         const { program, partner, links, discountCodes } = programEnrollment;
 
         // Resolve pending fraud events for this partner
-        const fraudEvents = await prisma.fraudEvent.findMany({
+        await resolveFraudEvents({
           where: {
             programId,
             partnerId,
-            status: "pending",
           },
-          select: {
-            id: true,
-            groupKey: true,
-            partnerId: true,
-            type: true,
-          },
+          userId: user.id,
+          resolutionReason:
+            "Resolved automatically because the partner was banned.",
         });
-
-        // Group events by their existing groupKey
-        const groupedEvents = new Map<string, typeof fraudEvents>();
-
-        for (const event of fraudEvents) {
-          if (!groupedEvents.has(event.groupKey)) {
-            groupedEvents.set(event.groupKey, []);
-          }
-
-          groupedEvents.get(event.groupKey)!.push(event);
-        }
-
-        // Update each group with a new groupKey and mark as resolved
-        for (const [groupKey, events] of groupedEvents) {
-          if (events.length === 0) continue;
-
-          const firstEvent = events[0];
-          const newGroupKey = createFraudEventGroupKey({
-            programId,
-            partnerId: firstEvent.partnerId,
-            type: firstEvent.type,
-            batchId: nanoid(10),
-          });
-
-          await prisma.fraudEvent.updateMany({
-            where: {
-              groupKey,
-              status: "pending",
-            },
-            data: {
-              status: "resolved",
-              userId: user.id,
-              resolvedAt: new Date(),
-              resolutionReason:
-                "Resolved automatically because the partner was banned.",
-              groupKey: newGroupKey,
-            },
-          });
-        }
 
         await Promise.allSettled([
           // Expire links from cache
