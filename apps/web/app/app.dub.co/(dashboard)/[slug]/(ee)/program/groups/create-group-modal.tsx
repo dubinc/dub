@@ -7,7 +7,7 @@ import { GroupColorPicker } from "@/ui/partners/groups/group-color-picker";
 import { Button, Modal } from "@dub/ui";
 import { cn } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { Dispatch, SetStateAction, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";

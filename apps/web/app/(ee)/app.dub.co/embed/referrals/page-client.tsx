@@ -255,6 +255,7 @@ export function ReferralsEmbedPageClient({
               {selectedTab === "Quickstart" ? (
                 <ReferralsEmbedQuickstart
                   program={program}
+                  group={group}
                   links={links}
                   earnings={earnings}
                   hasResources={hasResources}
