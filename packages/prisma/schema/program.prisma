@@ -138,7 +138,7 @@ model ProgramEnrollment {
   discount          Discount?           @relation(fields: [discountId], references: [id])
   bountySubmissions BountySubmission[]
   discountCodes     DiscountCode[]
-  Commission        Commission[]
+  commissions       Commission[]
 
   // unique constraints
   @@unique([partnerId, programId])
