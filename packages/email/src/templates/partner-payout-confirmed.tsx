@@ -74,6 +74,8 @@ export default function PartnerPayoutConfirmed({
       })
     : null;
 
+  const etaDays = payout.paymentMethod === "ach_fast" ? 2 : 5;
+
   return (
     <Html>
       <Head />
@@ -117,34 +119,23 @@ export default function PartnerPayoutConfirmed({
             </Text>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              {payout.mode === "external" ? (
-                <>
-                  The payout is currently being processed and is expected to be
-                  transferred to your{" "}
-                  <strong className="text-black">{program.name}</strong> account{" "}
-                  <strong className="text-black">shortly</strong>.
-                </>
-              ) : (
-                <>
-                  The payout is currently being processed and is expected to be
-                  transferred to your Stripe Express account in
-                  <strong className="text-black">
-                    {payout.paymentMethod === "ach_fast"
-                      ? " 2 business days"
-                      : " 5 business days"}
-                  </strong>{" "}
-                  (excluding weekends and public holidays).
-                </>
-              )}
+              The payout is currently being processed and is expected to be
+              transferred to your{" "}
+              <strong className="text-black">
+                {payout.mode === "external" ? program.name : "Stripe Express"}
+              </strong>{" "}
+              account in{" "}
+              <strong className="text-black">{etaDays} business days</strong>{" "}
+              (excluding weekends and public holidays).
             </Text>
 
             {payout.initiatedAt && (
               <Text className="text-sm leading-6 text-neutral-600">
                 <span className="text-sm text-neutral-500">
-                  Estimated date of arrival:{" "}
+                  Estimated arrival date:{" "}
                   <strong className="text-black">
                     {formatDateTimeSmart(
-                      addBusinessDays(payout.initiatedAt, 5),
+                      addBusinessDays(payout.initiatedAt, etaDays),
                     )}
                   </strong>
                   .
