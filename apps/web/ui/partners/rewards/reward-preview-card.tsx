@@ -28,7 +28,7 @@ export function RewardPreviewCard() {
   return (
     <div className="border-border-subtle bg-bg-muted rounded-xl border shadow-sm">
       <div className="px-4 py-2.5">
-        <span className="text-content-emphasis flex items-center gap-2.5 text-sm font-medium font-semibold">
+        <span className="text-content-emphasis flex items-center gap-2.5 text-sm font-semibold">
           Reward preview
         </span>
       </div>
