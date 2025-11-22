@@ -12,7 +12,12 @@ import { calculatePayoutFeeForMethod } from "@/lib/stripe/payment-methods";
 import ProgramPayoutThankYou from "@dub/email/templates/program-payout-thank-you";
 import { prisma } from "@dub/prisma";
 import { Program, ProgramPayoutMode, Project } from "@dub/prisma/client";
-import { APP_DOMAIN_WITH_NGROK, currencyFormatter, log } from "@dub/utils";
+import {
+  APP_DOMAIN_WITH_NGROK,
+  currencyFormatter,
+  log,
+  nFormatter,
+} from "@dub/utils";
 
 const nonUsdPaymentMethodTypes = {
   sepa_debit: "eur",
@@ -282,7 +287,7 @@ export async function processPayouts({
   await queueBatchEmail<typeof ProgramPayoutThankYou>(
     users.map(({ user }) => ({
       to: user.email!,
-      subject: `Thank you for your ${currencyFormatter(totalPayoutAmount)} payout to ${res.count} partners`,
+      subject: `Thank you for your ${currencyFormatter(totalPayoutAmount)} payout to ${nFormatter(res.count, { full: true })} partners`,
       templateName: "ProgramPayoutThankYou",
       templateProps: {
         email: user.email!,
