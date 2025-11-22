@@ -17,6 +17,7 @@ export async function getPartnersCount<T>(
     search,
     email,
     partnerIds,
+    partnerTagIds,
     groupId,
     programId,
   } = filters;
@@ -34,6 +35,13 @@ export async function getPartnersCount<T>(
         : {}),
     ...(partnerIds && {
       id: { in: partnerIds },
+    }),
+    ...(partnerTagIds && {
+      programPartnerTags: {
+        some: {
+          partnerTagId: { in: partnerTagIds },
+        },
+      },
     }),
   };
 
@@ -121,6 +129,23 @@ export async function getPartnersCount<T>(
       orderBy: {
         _count: {
           groupId: "desc",
+        },
+      },
+    });
+
+    return partners as T;
+  }
+
+  if (groupBy === "partnerTagId") {
+    const partners = await prisma.programPartnerTag.groupBy({
+      by: ["partnerTagId"],
+      where: {
+        programId,
+      },
+      _count: true,
+      orderBy: {
+        _count: {
+          partnerTagId: "desc",
         },
       },
     });

@@ -141,10 +141,11 @@ export async function createLink(link: ProcessedLinkProps) {
 
   waitUntil(
     (async () => {
-      const { partner, discount, group } = await getPartnerEnrollmentInfo({
-        programId: response.programId,
-        partnerId: response.partnerId,
-      });
+      const { partner, discount, group, partnerTagIds } =
+        await getPartnerEnrollmentInfo({
+          programId: response.programId,
+          partnerId: response.partnerId,
+        });
 
       await Promise.allSettled([
         // Cache link in Redis
@@ -157,7 +158,16 @@ export async function createLink(link: ProcessedLinkProps) {
         // Record link in Tinybird
         recordLink({
           ...response,
-          ...(group && { programEnrollment: { groupId: group.id } }),
+          ...(group && {
+            programEnrollment: {
+              groupId: group.id,
+              programPartnerTags: partnerTagIds
+                ? partnerTagIds.map((id) => ({
+                    partnerTag: { id },
+                  }))
+                : null,
+            },
+          }),
         }),
 
         // Upload image to R2 and update the link with the uploaded image URL when

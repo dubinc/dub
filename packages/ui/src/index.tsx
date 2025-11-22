@@ -42,6 +42,7 @@ export * from "./table";
 export * from "./timestamp-tooltip";
 export * from "./toggle-group";
 export * from "./tooltip";
+export * from "./truncated-list";
 export * from "./utm-builder";
 
 // hooks
