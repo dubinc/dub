@@ -287,7 +287,15 @@ export async function processPayouts({
     console.error("Error sending message to Qstash", qstashResponse);
   }
 
-  const userWhoInitiatedPayout = users[0]?.user;
+  // should never happen, but just in case
+  if (users.length === 0) {
+    console.error(
+      `No users found for workspace ${workspace.id}. Skipping email send...`,
+    );
+    return;
+  }
+
+  const userWhoInitiatedPayout = users[0].user;
   if (userWhoInitiatedPayout.email) {
     const emailRes = await sendEmail({
       to: userWhoInitiatedPayout.email,
