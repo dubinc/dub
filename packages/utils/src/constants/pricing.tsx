@@ -74,6 +74,7 @@ const NEW_PRO_PRICE_IDS = [
   "price_1R8XtEAlJJEpqkPV4opVvVPq", // monthly
   "price_1R8XxZAlJJEpqkPVqGi0wOqD", // yearly (test),
   "price_1R7oeBAlJJEpqkPVh6q5q3h8", // monthly (test),
+  "price_1SUHEaCHh3XhfaZrISMz1L8i", // pro monthly (sandbox/test)
   ...Object.values(PRO_TIER_PRICE_IDS).flat(),
 ];
 
