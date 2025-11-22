@@ -710,3 +710,13 @@ export type PaidTrafficPlatform = (typeof PAID_TRAFFIC_PLATFORMS)[number];
 export type UpdateFraudRuleSettings = z.infer<
   typeof updateFraudRuleSettingsSchema
 >;
+
+export interface FraudEventsCountByPartner {
+  partnerId: string;
+  _count: number;
+}
+
+export interface FraudEventsCountByType {
+  type: FraudRuleType;
+  _count: number;
+}

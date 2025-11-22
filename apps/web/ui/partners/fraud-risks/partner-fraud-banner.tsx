@@ -2,15 +2,13 @@
 
 import { useFraudEventsCount } from "@/lib/swr/use-fraud-events-count";
 import { usePartnerApplicationRisks } from "@/lib/swr/use-partner-application-risks";
-import { EnrolledPartnerExtendedProps } from "@/lib/types";
+import {
+  EnrolledPartnerExtendedProps,
+  FraudEventsCountByPartner,
+} from "@/lib/types";
 import { ButtonLink } from "@/ui/placeholders/button-link";
 import { ShieldKeyhole } from "@dub/ui";
 import { useParams } from "next/navigation";
-
-interface FraudEventGroupByPartner {
-  partnerId: string;
-  _count: number;
-}
 
 export function PartnerApplicationFraudBanner({
   partner,
@@ -47,7 +45,7 @@ export function PartnerFraudBanner({
   const { slug } = useParams();
 
   const { fraudEventsCount, loading } = useFraudEventsCount<
-    FraudEventGroupByPartner[]
+    FraudEventsCountByPartner[]
   >({
     filters: { groupBy: "partnerId", status: "pending" },
     enabled: partner.status !== "pending",

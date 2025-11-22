@@ -1,9 +1,10 @@
-import { FRAUD_RULES_BY_SCOPE } from "@/lib/api/fraud/constants";
+import { FRAUD_RULES_BY_TYPE } from "@/lib/api/fraud/constants";
+import { useFraudEventsCount } from "@/lib/swr/use-fraud-events-count";
 import usePartners from "@/lib/swr/use-partners";
-import { EnrolledPartnerProps } from "@/lib/types";
+import { EnrolledPartnerProps, FraudEventsCountByType } from "@/lib/types";
 import { useRouterStuff } from "@dub/ui";
 import { ShieldKeyhole, Users } from "@dub/ui/icons";
-import { OG_AVATAR_URL } from "@dub/utils";
+import { nFormatter, OG_AVATAR_URL } from "@dub/utils";
 import { useCallback, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 
@@ -17,16 +18,23 @@ export function useFraudEventsFilters() {
     selectedFilter === "partnerId" ? debouncedSearch : "",
   );
 
+  const { fraudEventsCount } = useFraudEventsCount<FraudEventsCountByType[]>({
+    filters: { status: "pending", groupBy: "type" },
+  });
+
   const filters = useMemo(
     () => [
       {
         key: "type",
         icon: ShieldKeyhole,
         label: "Reason",
-        options: FRAUD_RULES_BY_SCOPE["conversionEvent"].map((rule) => ({
-          label: rule.name,
-          value: rule.type,
-        })),
+        options: fraudEventsCount
+          ? fraudEventsCount.map(({ type, _count }) => ({
+              label: FRAUD_RULES_BY_TYPE[type].name,
+              value: type,
+              right: nFormatter(_count, { full: true }),
+            }))
+          : null,
       },
       {
         key: "partnerId",
