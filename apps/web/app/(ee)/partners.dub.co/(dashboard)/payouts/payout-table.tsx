@@ -33,7 +33,7 @@ import { usePayoutFilters } from "./use-payout-filters";
 export function PayoutTable() {
   const { queryParams, searchParams } = useRouterStuff();
 
-  const sortBy = searchParams.get("sortBy") || "periodEnd";
+  const sortBy = searchParams.get("sortBy") || "initiatedAt";
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
   const { payouts, error, loading } = usePartnerPayouts();
@@ -178,7 +178,7 @@ export function PayoutTable() {
     ],
     pagination,
     onPaginationChange: setPagination,
-    sortableColumns: ["periodEnd", "amount", "paidAt"],
+    sortableColumns: ["amount", "initiatedAt", "paidAt"],
     sortBy,
     sortOrder,
     onSortChange: ({ sortBy, sortOrder }) =>

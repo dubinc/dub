@@ -217,7 +217,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
           {
             name: "Payouts",
             icon: MoneyBills2,
-            href: `/${slug}/program/payouts?status=pending&sortBy=amount`,
+            href: `/${slug}/program/payouts?status=pending`,
             badge: pendingPayoutsCount
               ? pendingPayoutsCount > 99
                 ? "99+"

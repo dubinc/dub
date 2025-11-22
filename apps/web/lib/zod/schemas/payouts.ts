@@ -30,9 +30,7 @@ export const payoutsQuerySchema = z
     programId: z.string().optional(),
     invoiceId: z.string().optional(),
     eligibility: z.enum(["eligible", "ineligible"]).optional(),
-    sortBy: z
-      .enum(["createdAt", "periodEnd", "amount", "paidAt"])
-      .default("periodEnd"),
+    sortBy: z.enum(["amount", "initiatedAt", "paidAt"]).default("amount"),
     sortOrder: z.enum(["asc", "desc"]).default("desc"),
   })
   .merge(getPaginationQuerySchema({ pageSize: PAYOUTS_MAX_PAGE_SIZE }));

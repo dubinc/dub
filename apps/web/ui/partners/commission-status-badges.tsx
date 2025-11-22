@@ -47,7 +47,7 @@ export const CommissionStatusBadges = {
       const href =
         data.variant === "partner"
           ? "https://dub.co/help/article/commissions-payouts"
-          : `/${data.workspace?.slug}/program/payouts?status=pending&sortBy=amount`;
+          : `/${data.workspace?.slug}/program/payouts?status=pending`;
       return `${title} [${cta}](${href})`;
     },
   },

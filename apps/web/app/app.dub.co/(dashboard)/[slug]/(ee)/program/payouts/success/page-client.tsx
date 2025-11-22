@@ -76,7 +76,7 @@ export function PayoutsSuccessPageClient() {
           )}
           className="border-none"
           learnMoreText="Back to payouts"
-          learnMoreHref={`/${slug}/program/payouts?status=pending&sortBy=amount`}
+          learnMoreHref={`/${slug}/program/payouts?status=pending`}
           learnMoreTarget="_self"
         />
       </div>
@@ -95,7 +95,7 @@ export function PayoutsSuccessPageClient() {
     <div className="rounded-t-[inherit] bg-white">
       <div className="flex justify-end pr-2 pt-2">
         <Link
-          href={`/${slug}/program/payouts?status=pending&sortBy=amount`}
+          href={`/${slug}/program/payouts?status=pending`}
           className={cn(
             "flex size-8 items-center justify-center whitespace-nowrap rounded-lg border p-0 text-base",
             buttonVariants({ variant: "outline" }),
