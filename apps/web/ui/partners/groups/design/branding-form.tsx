@@ -6,6 +6,7 @@ import useGroup from "@/lib/swr/use-group";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   GroupWithProgramProps,
+  PartnerGroupProps,
   ProgramApplicationFormData,
   ProgramLanderData,
   ProgramProps,
@@ -39,7 +40,7 @@ import { LanderPreview } from "./previews/lander-preview";
 export type BrandingFormData = {
   applicationFormData: ProgramApplicationFormData;
   landerData: ProgramLanderData;
-} & Pick<ProgramProps, "logo" | "wordmark" | "brandColor">;
+} & Pick<PartnerGroupProps, "logo" | "wordmark" | "brandColor">;
 
 export function useBrandingFormContext() {
   return useFormContext<BrandingFormData>();

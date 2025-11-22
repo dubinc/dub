@@ -55,13 +55,8 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
         lte: endDate.toISOString(),
       },
       ...(groupId && {
-        partner: {
-          programs: {
-            some: {
-              programId,
-              groupId,
-            },
-          },
+        programEnrollment: {
+          groupId,
         },
       }),
     },

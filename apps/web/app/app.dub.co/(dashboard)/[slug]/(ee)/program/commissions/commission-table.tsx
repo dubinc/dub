@@ -1,6 +1,7 @@
 "use client";
 
 import useCommissionsCount from "@/lib/swr/use-commissions-count";
+import useGroups from "@/lib/swr/use-groups";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CommissionResponse } from "@/lib/types";
@@ -9,17 +10,20 @@ import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import { CommissionRowMenu } from "@/ui/partners/commission-row-menu";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
+import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { FilterButtonTableRow } from "@/ui/shared/filter-button-table-row";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import {
   AnimatedSizeContainer,
+  EditColumnsButton,
   Filter,
   StatusBadge,
   Table,
   TimestampTooltip,
   Tooltip,
+  useColumnVisibility,
   usePagination,
   useRouterStuff,
   useTable,
@@ -32,8 +36,31 @@ import {
   formatDateTimeSmart,
   nFormatter,
 } from "@dub/utils";
+import { useMemo } from "react";
 import useSWR from "swr";
 import { useCommissionFilters } from "./use-commission-filters";
+
+const commissionsColumns = {
+  all: [
+    "createdAt",
+    "customer",
+    "partner",
+    "group",
+    "type",
+    "amount",
+    "commission",
+    "status",
+  ],
+  defaultVisible: [
+    "createdAt",
+    "customer",
+    "partner",
+    "type",
+    "amount",
+    "commission",
+    "status",
+  ],
+};
 
 export function CommissionTable() {
   const {
@@ -50,6 +77,7 @@ export function CommissionTable() {
   const workspace = useWorkspace();
   const { id: workspaceId, slug } = workspace;
   const { program } = useProgram();
+  const { groups } = useGroups();
 
   const { pagination, setPagination } = usePagination();
   const { queryParams, getQueryString, searchParamsObj } = useRouterStuff();
@@ -76,146 +104,203 @@ export function CommissionTable() {
     exclude: ["page"],
   });
 
-  const table = useTable<CommissionResponse>({
-    data: commissions || [],
-    columns: [
-      {
-        id: "createdAt",
-        header: "Date",
-        cell: ({ row }) => (
-          <TimestampTooltip
-            timestamp={row.original.createdAt}
-            side="right"
-            rows={["local", "utc", "unix"]}
-            delayDuration={150}
-          >
-            <p>{formatDateTimeSmart(row.original.createdAt)}</p>
-          </TimestampTooltip>
-        ),
-      },
-      {
-        id: "customer",
-        header: "Customer",
-        cell: ({ row }) =>
-          row.original.customer ? (
-            <CustomerRowItem
-              customer={row.original.customer}
-              href={`/${slug}/customers/${row.original.customer.id}`}
-            />
-          ) : (
-            "-"
+  const defaultVisibleColumns = useMemo(() => {
+    const base = [...commissionsColumns.defaultVisible];
+
+    if (program?.primaryRewardEvent !== "sale") {
+      // Hide amount when primaryRewardEvent is not 'sale'
+      const amountIndex = base.indexOf("amount");
+      if (amountIndex > -1) {
+        base.splice(amountIndex, 1);
+      }
+    }
+
+    return base;
+  }, [program?.primaryRewardEvent]);
+
+  const { columnVisibility, setColumnVisibility } = useColumnVisibility(
+    "commissions-table-columns",
+    {
+      all: commissionsColumns.all,
+      defaultVisible: defaultVisibleColumns,
+    },
+  );
+
+  const columns = useMemo(
+    () =>
+      [
+        {
+          id: "createdAt",
+          header: "Date",
+          cell: ({ row }) => (
+            <TimestampTooltip
+              timestamp={row.original.createdAt}
+              side="right"
+              rows={["local", "utc", "unix"]}
+              delayDuration={150}
+            >
+              <p>{formatDateTimeSmart(row.original.createdAt)}</p>
+            </TimestampTooltip>
           ),
-        meta: {
-          filterParams: ({ row }) =>
-            row.original.customer
-              ? {
-                  customerId: row.original.customer.id,
-                }
-              : {},
         },
-      },
-      {
-        header: "Partner",
-        cell: ({ row }) => {
-          return <PartnerRowItem partner={row.original.partner} />;
+        {
+          id: "customer",
+          header: "Customer",
+          cell: ({ row }) =>
+            row.original.customer ? (
+              <CustomerRowItem
+                customer={row.original.customer}
+                href={`/${slug}/customers/${row.original.customer.id}`}
+              />
+            ) : (
+              "-"
+            ),
+          meta: {
+            filterParams: ({ row }) =>
+              row.original.customer
+                ? {
+                    customerId: row.original.customer.id,
+                  }
+                : {},
+          },
         },
-        size: 200,
-        meta: {
-          filterParams: ({ row }) => ({
-            partnerId: row.original.partner.id,
-          }),
+        {
+          id: "partner",
+          header: "Partner",
+          cell: ({ row }) => {
+            return <PartnerRowItem partner={row.original.partner} />;
+          },
+          size: 200,
+          meta: {
+            filterParams: ({ row }) => ({
+              partnerId: row.original.partner.id,
+            }),
+          },
         },
-      },
-      {
-        id: "type",
-        header: "Type",
-        accessorKey: "type",
-        cell: ({ row }) => (
-          <CommissionTypeBadge type={row.original.type ?? "sale"} />
-        ),
-        meta: {
-          filterParams: ({ row }) => ({
-            type: row.original.type,
-          }),
-        },
-      },
-      {
-        id: "amount",
-        header: "Amount",
-        accessorFn: (d) =>
-          d.type === "sale"
-            ? currencyFormatter(d.amount)
-            : nFormatter(d.quantity),
-      },
-      {
-        id: "commission",
-        header: "Commission",
-        cell: ({ row }) => {
-          const commission = row.original;
+        {
+          id: "group",
+          header: "Group",
+          cell: ({ row }) => {
+            if (!groups) return "-";
 
-          const earnings = currencyFormatter(commission.earnings);
+            const group = groups.find(
+              (g) => g.id === row.original.partner.groupId,
+            );
 
-          if (commission.description) {
-            const reason =
-              CLAWBACK_REASONS_MAP[commission.description]?.description ??
-              commission.description;
+            if (!group) return "-";
 
             return (
-              <Tooltip content={reason}>
-                <span
-                  className={cn(
-                    "cursor-help truncate underline decoration-dotted underline-offset-2",
-                    commission.earnings < 0 && "text-red-600",
-                  )}
-                >
-                  {earnings}
+              <div className="flex items-center gap-2">
+                <GroupColorCircle group={group} />
+                <span className="truncate text-sm font-medium">
+                  {group.name}
                 </span>
-              </Tooltip>
+              </div>
             );
-          }
-
-          return (
-            <span
-              className={cn(
-                commission.earnings < 0 && "text-red-600",
-                "truncate",
-              )}
-            >
-              {earnings}
-            </span>
-          );
+          },
         },
-      },
-      {
-        header: "Status",
-        cell: ({ row }) => {
-          const badge = CommissionStatusBadges[row.original.status];
-
-          return (
-            <StatusBadge
-              icon={null}
-              variant={badge.variant}
-              tooltip={badge.tooltip({
-                variant: "workspace",
-                program,
-                workspace,
-              })}
-            >
-              {badge.label}
-            </StatusBadge>
-          );
+        {
+          id: "type",
+          header: "Type",
+          accessorKey: "type",
+          cell: ({ row }) => (
+            <CommissionTypeBadge type={row.original.type ?? "sale"} />
+          ),
+          meta: {
+            filterParams: ({ row }) => ({
+              type: row.original.type,
+            }),
+          },
         },
-      },
-      // Menu
-      {
-        id: "menu",
-        enableHiding: false,
-        minSize: 43,
-        size: 43,
-        maxSize: 43,
-        cell: ({ row }) => <CommissionRowMenu row={row} />,
-      },
-    ],
+        {
+          id: "amount",
+          header: "Amount",
+          accessorFn: (d) =>
+            d.type === "sale"
+              ? currencyFormatter(d.amount)
+              : nFormatter(d.quantity),
+        },
+        {
+          id: "commission",
+          header: "Commission",
+          cell: ({ row }) => {
+            const commission = row.original;
+
+            const earnings = currencyFormatter(commission.earnings);
+
+            if (commission.description) {
+              const reason =
+                CLAWBACK_REASONS_MAP[commission.description]?.description ??
+                commission.description;
+
+              return (
+                <Tooltip content={reason}>
+                  <span
+                    className={cn(
+                      "cursor-help truncate underline decoration-dotted underline-offset-2",
+                      commission.earnings < 0 && "text-red-600",
+                    )}
+                  >
+                    {earnings}
+                  </span>
+                </Tooltip>
+              );
+            }
+
+            return (
+              <span
+                className={cn(
+                  commission.earnings < 0 && "text-red-600",
+                  "truncate",
+                )}
+              >
+                {earnings}
+              </span>
+            );
+          },
+        },
+        {
+          id: "status",
+          header: "Status",
+          cell: ({ row }) => {
+            const badge = CommissionStatusBadges[row.original.status];
+
+            return (
+              <StatusBadge
+                icon={null}
+                variant={badge.variant}
+                tooltip={badge.tooltip({
+                  variant: "workspace",
+                  program,
+                  workspace,
+                  group: row.original.partner.groupId
+                    ? groups?.find((g) => g.id === row.original.partner.groupId)
+                    : undefined,
+                  commission: row.original,
+                })}
+              >
+                {badge.label}
+              </StatusBadge>
+            );
+          },
+        },
+        // Menu
+        {
+          id: "menu",
+          enableHiding: false,
+          minSize: 43,
+          size: 43,
+          maxSize: 43,
+          header: ({ table }) => <EditColumnsButton table={table} />,
+          cell: ({ row }) => <CommissionRowMenu row={row} />,
+        },
+      ].filter((c) => c.id === "menu" || commissionsColumns.all.includes(c.id)),
+    [slug, groups, program, workspace],
+  );
+
+  const table = useTable<CommissionResponse>({
+    data: commissions || [],
+    columns,
     columnPinning: { right: ["menu"] },
     cellRight: (cell) => {
       const meta = cell.column.columnDef.meta as
@@ -232,6 +317,8 @@ export function CommissionTable() {
     },
     pagination,
     onPaginationChange: setPagination,
+    columnVisibility,
+    onColumnVisibilityChange: setColumnVisibility,
     sortableColumns: ["createdAt", "amount"],
     sortBy,
     sortOrder,

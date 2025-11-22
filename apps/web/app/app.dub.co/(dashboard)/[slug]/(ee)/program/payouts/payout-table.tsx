@@ -56,7 +56,7 @@ const PayoutTableInner = memo(
     const { id: workspaceId, defaultProgramId } = useWorkspace();
     const { queryParams, searchParams, getQueryString } = useRouterStuff();
 
-    const sortBy = searchParams.get("sortBy") || "periodEnd";
+    const sortBy = searchParams.get("sortBy") || "amount";
     const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
     const { payoutsCount, error: countError } = usePayoutsCount<number>();
@@ -230,7 +230,7 @@ const PayoutTableInner = memo(
       ],
       pagination,
       onPaginationChange: setPagination,
-      sortableColumns: ["periodEnd", "amount", "paidAt"],
+      sortableColumns: ["amount", "initiatedAt", "paidAt"],
       sortBy,
       sortOrder,
       onSortChange: ({ sortBy, sortOrder }) =>
@@ -340,7 +340,7 @@ function AmountRowItem({
                 minPayoutAmount,
               )}. This payout will be accrued and processed during the next payout period.`}
               cta="Update minimum payout amount"
-              href={`/${slug}/program/payouts?status=pending&sortBy=amount`}
+              href={`/${slug}/program/payouts?status=pending`}
               target="_blank"
             />
           }

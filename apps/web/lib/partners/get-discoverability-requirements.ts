@@ -92,7 +92,7 @@ export function getDiscoverabilityRequirements({
       completed: Boolean(partner.salesChannels?.length),
     },
     {
-      label: `Earn ${currencyFormatter(PARTNER_DISCOVERY_MIN_COMMISSIONS / 100, { trailingZeroDisplay: "stripIfInteger" })} in commissions`,
+      label: `Earn ${currencyFormatter(PARTNER_DISCOVERY_MIN_COMMISSIONS, { trailingZeroDisplay: "stripIfInteger" })} in commissions`,
       completed: partnerHasEarnedCommissions(programEnrollments),
     },
     {

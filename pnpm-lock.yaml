@@ -213,8 +213,8 @@ importers:
         specifier: ^8.0.1
         version: 8.0.1
       date-fns:
-        specifier: ^3.6.0
-        version: 3.6.0
+        specifier: ^4.1.0
+        version: 4.1.0
       dub:
         specifier: ^0.65.1
         version: 0.65.1
@@ -529,6 +529,9 @@ importers:
       '@react-email/markdown':
         specifier: ^0.0.17
         version: 0.0.17(react@18.3.1)
+      date-fns:
+        specifier: ^4.1.0
+        version: 4.1.0
       lucide-react:
         specifier: ^0.462.0
         version: 0.462.0(react@18.3.1)
@@ -836,8 +839,8 @@ importers:
         specifier: ^3.2.4
         version: 3.2.4
       date-fns:
-        specifier: ^3.6.0
-        version: 3.6.0
+        specifier: ^4.1.0
+        version: 4.1.0
       embla-carousel-autoplay:
         specifier: ^8.1.7
         version: 8.1.7(embla-carousel@8.1.7)
@@ -864,7 +867,7 @@ importers:
         version: 12.23.22(@emotion/is-prop-valid@1.2.2)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       react-day-picker:
         specifier: ^8.10.1
-        version: 8.10.1(date-fns@3.6.0)(react@19.1.1)
+        version: 8.10.1(date-fns@4.1.0)(react@19.1.1)
       react-dom:
         specifier: 19.1.1
         version: 19.1.1(react@19.1.1)
@@ -7661,8 +7664,8 @@ packages:
     resolution: {integrity: sha512-fnULvOpxnC5/Vg3NCiWelDsLiUc9bRwAPs/+LfTLNvetFCtCTN+yQz15C/fs4AwX1R9K5GLtLfn8QW+dWisaAw==}
     engines: {node: '>=0.11'}
 
-  date-fns@3.6.0:
-    resolution: {integrity: sha512-fRHTG8g/Gif+kSh50gaGEdToemgfj74aRX3swtiouboip5JDLAyDE9F11nHMIcvOaXeOC6D7SpNhi7uFyB7Uww==}
+  date-fns@4.1.0:
+    resolution: {integrity: sha512-Ukq0owbQXxa/U3EGtsdVBkR1w7KOQ5gIBqdH2hkvknzZPYvBxb/aa6E8L7tmjFtkwZBu3UXBbjIgPo/Ez4xaNg==}
 
   dayjs@1.11.13:
     resolution: {integrity: sha512-oaMBel6gjolK862uaPQOVTA7q3TZhuSvuMQAAglQDOWYO9A91IrAOUJEyKVlqJlHE0vq5p5UXxzdPfMH/x6xNg==}
@@ -22250,7 +22253,7 @@ snapshots:
     dependencies:
       '@babel/runtime': 7.23.9
 
-  date-fns@3.6.0: {}
+  date-fns@4.1.0: {}
 
   dayjs@1.11.13: {}
 
@@ -27077,9 +27080,9 @@ snapshots:
       react: 19.1.1
       react-dom: 19.1.1(react@19.1.1)
 
-  react-day-picker@8.10.1(date-fns@3.6.0)(react@19.1.1):
+  react-day-picker@8.10.1(date-fns@4.1.0)(react@19.1.1):
     dependencies:
-      date-fns: 3.6.0
+      date-fns: 4.1.0
       react: 19.1.1
 
   react-docgen-typescript@2.4.0(typescript@4.7.4):

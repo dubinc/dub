@@ -18,13 +18,20 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { CircleArrowRight, InvoiceDollar, MoneyBill2 } from "@dub/ui/icons";
+import {
+  CircleArrowRight,
+  CircleHalfDottedClock,
+  InvoiceDollar,
+  MoneyBill2,
+} from "@dub/ui/icons";
 import {
   OG_AVATAR_URL,
   currencyFormatter,
   formatDateSmart,
+  formatDateTimeSmart,
   formatPeriod,
 } from "@dub/utils";
+import { addBusinessDays } from "date-fns";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { PayoutDetailsSheet } from "./partner-payout-details-sheet";
@@ -33,7 +40,7 @@ import { usePayoutFilters } from "./use-payout-filters";
 export function PayoutTable() {
   const { queryParams, searchParams } = useRouterStuff();
 
-  const sortBy = searchParams.get("sortBy") || "periodEnd";
+  const sortBy = searchParams.get("sortBy") || "initiatedAt";
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
   const { payouts, error, loading } = usePartnerPayouts();
@@ -134,6 +141,17 @@ export function PayoutTable() {
                 {formatDateSmart(row.original.paidAt, { month: "short" })}
               </span>
             </TimestampTooltip>
+          ) : row.original.initiatedAt ? (
+            <Tooltip
+              content={`This payout is estimated to be processed on \`${formatDateTimeSmart(addBusinessDays(row.original.initiatedAt, 5), { month: "short" })}\` (after 5 business days)`}
+            >
+              <span className="hover:text-content-emphasis text-content-muted flex items-center gap-1 underline decoration-dotted underline-offset-2">
+                <CircleHalfDottedClock className="size-3.5 shrink-0" />{" "}
+                {formatDateSmart(addBusinessDays(row.original.initiatedAt, 5), {
+                  month: "short",
+                })}
+              </span>
+            </Tooltip>
           ) : (
             "-"
           ),
@@ -178,7 +196,7 @@ export function PayoutTable() {
     ],
     pagination,
     onPaginationChange: setPagination,
-    sortableColumns: ["periodEnd", "amount", "paidAt"],
+    sortableColumns: ["amount", "initiatedAt", "paidAt"],
     sortBy,
     sortOrder,
     onSortChange: ({ sortBy, sortOrder }) =>
