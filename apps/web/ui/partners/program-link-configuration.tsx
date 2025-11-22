@@ -4,8 +4,19 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { DomainVerificationStatusProps } from "@/lib/types";
 import DomainConfiguration from "@/ui/domains/domain-configuration";
 import { DomainSelector } from "@/ui/domains/domain-selector";
-import { AnimatedSizeContainer, InfoTooltip, Input, LinkLogo } from "@dub/ui";
-import { ArrowTurnRight2, ChevronRight, LoadingSpinner } from "@dub/ui/icons";
+import {
+  AnimatedSizeContainer,
+  Button,
+  InfoTooltip,
+  Input,
+  LinkLogo,
+} from "@dub/ui";
+import {
+  ArrowTurnRight2,
+  ChevronLeft,
+  ChevronRight,
+  LoadingSpinner,
+} from "@dub/ui/icons";
 import { cn, fetcher, getApexDomain, getPrettyUrl } from "@dub/utils";
 import { AnimatePresence, motion } from "motion/react";
 import { useMemo, useState } from "react";
@@ -269,6 +280,7 @@ function DomainOnboarding({ domain, onDomainChange }: DomainProps) {
                 <DomainOnboardingSelection
                   domain={domain}
                   onDomainChange={onDomainChange}
+                  onBack={() => setState("idle")}
                 />
               </motion.div>
             )}
@@ -279,7 +291,11 @@ function DomainOnboarding({ domain, onDomainChange }: DomainProps) {
   );
 }
 
-function DomainOnboardingSelection({ domain, onDomainChange }: DomainProps) {
+function DomainOnboardingSelection({
+  domain,
+  onDomainChange,
+  onBack,
+}: DomainProps & { onBack: () => void }) {
   const { id: workspaceId } = useWorkspace();
 
   const { data: verificationData } = useSWRImmutable<{
@@ -294,6 +310,15 @@ function DomainOnboardingSelection({ domain, onDomainChange }: DomainProps) {
 
   return (
     <div>
+      <Button
+        type="button"
+        onClick={onBack}
+        variant="secondary"
+        className="my-2 h-7 w-full text-xs"
+        icon={<ChevronLeft className="size-3" />}
+        text="Select a different option"
+      />
+
       <DomainSelector
         selectedDomain={domain || ""}
         setSelectedDomain={onDomainChange}
