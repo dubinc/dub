@@ -21,14 +21,15 @@ import useSWR from "swr";
 import { CommissionTypeBadge } from "../commission-type-badge";
 
 export function CommissionsOnHoldTable({
-  fraudEvent,
+  fraudEventGroup,
 }: {
-  fraudEvent: fraudEventGroupProps;
+  fraudEventGroup: fraudEventGroupProps;
 }) {
   const workspace = useWorkspace();
   const { id: workspaceId, slug } = workspace;
 
   const [page, setPage] = useState(1);
+
   const { pagination, setPagination } = useTablePagination({
     pageSize: COMMISSIONS_MAX_PAGE_SIZE,
     page,
@@ -38,7 +39,7 @@ export function CommissionsOnHoldTable({
   const query = {
     workspaceId: workspaceId!,
     status: "pending",
-    partnerId: fraudEvent.partner.id,
+    partnerId: fraudEventGroup.partner.id,
   };
 
   const {

@@ -14,6 +14,7 @@ import {
   User,
   buttonVariants,
   useKeyboardShortcut,
+  useRouterStuff,
 } from "@dub/ui";
 import { OG_AVATAR_URL, cn, formatDateTime } from "@dub/utils";
 import { useResolveFraudEventsModal } from "app/app.dub.co/(dashboard)/[slug]/(ee)/program/fraud/resolve-fraud-events-modal";
@@ -167,7 +168,7 @@ function FraudReviewSheetContent({
               <h3 className="text-content-emphasis mb-4 font-semibold">
                 Commissions on hold
               </h3>
-              <CommissionsOnHoldTable fraudEvent={fraudEventGroup} />
+              <CommissionsOnHoldTable fraudEventGroup={fraudEventGroup} />
             </div>
           )}
 
@@ -273,10 +274,13 @@ export function FraudReviewSheet({
   isOpen: boolean;
   nested?: boolean;
 }) {
+  const { queryParams } = useRouterStuff();
+
   return (
     <Sheet
       open={isOpen}
       onOpenChange={rest.setIsOpen}
+      onClose={() => queryParams({ del: "groupKey", scroll: false })}
       nested={nested}
       contentProps={{
         className: "[--sheet-width:940px]",
