@@ -1,4 +1,4 @@
-import { currencyFormatter, pluralize } from "@dub/utils";
+import { currencyFormatter, nFormatter, pluralize } from "@dub/utils";
 import {
   Body,
   Container,
@@ -24,7 +24,7 @@ export default function ProgramPayoutThankYou({
   },
   payout = {
     amount: 450000000,
-    partnersCount: 12,
+    partnersCount: 1234,
   },
 }: {
   email: string;
@@ -60,7 +60,7 @@ export default function ProgramPayoutThankYou({
       </Head>
       <Preview>
         Thank you {program.name} for your payout to{" "}
-        {payout.partnersCount.toString()}{" "}
+        {nFormatter(payout.partnersCount, { full: true })}{" "}
         {pluralize("partner", payout.partnersCount)}!
       </Preview>
       <Tailwind>
@@ -83,7 +83,8 @@ export default function ProgramPayoutThankYou({
             <Heading className="heading-text mx-0 mb-6 p-0 text-center text-lg font-medium text-neutral-800">
               Thank you <strong>{program.name}</strong>
               <br />
-              for your payout to {payout.partnersCount.toString()}{" "}
+              for your payout to{" "}
+              {nFormatter(payout.partnersCount, { full: true })}{" "}
               {pluralize("partner", payout.partnersCount)}!
             </Heading>
 
