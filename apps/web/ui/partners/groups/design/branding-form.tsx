@@ -227,7 +227,6 @@ function BrandingFormInner({
         "Failed to update application form.",
       );
       toast.error(message);
-      setError("root", { message });
     },
   });
 
