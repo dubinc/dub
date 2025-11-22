@@ -3,7 +3,7 @@
 import { resolveFraudEventsAction } from "@/lib/actions/fraud/resolve-fraud-events";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { FraudEventProps } from "@/lib/types";
+import { fraudEventGroupProps } from "@/lib/types";
 import {
   MAX_RESOLUTION_REASON_LENGTH,
   resolveFraudEventsSchema,
@@ -28,11 +28,11 @@ type FormData = z.infer<typeof resolveFraudEventsSchema>;
 function ResolveFraudEventsModal({
   showResolveFraudEventModal,
   setShowResolveFraudEventModal,
-  fraudEvent,
+  fraudEventGroup,
 }: {
   showResolveFraudEventModal: boolean;
   setShowResolveFraudEventModal: Dispatch<SetStateAction<boolean>>;
-  fraudEvent: FraudEventProps;
+  fraudEventGroup: fraudEventGroupProps;
 }) {
   const { id: workspaceId } = useWorkspace();
 
@@ -56,24 +56,26 @@ function ResolveFraudEventsModal({
   } = useForm<FormData>({
     defaultValues: {
       resolutionReason: "",
-      groupKey: fraudEvent.groupKey,
+      groupKey: fraudEventGroup.groupKey,
     },
   });
 
   const onSubmit = useCallback(
     async (data: FormData) => {
-      if (!workspaceId || !fraudEvent.groupKey) {
+      if (!workspaceId || !fraudEventGroup.groupKey) {
         return;
       }
 
       await executeAsync({
         workspaceId,
-        groupKey: fraudEvent.groupKey,
+        groupKey: fraudEventGroup.groupKey,
         resolutionReason: data.resolutionReason,
       });
     },
-    [fraudEvent, workspaceId, executeAsync],
+    [fraudEventGroup, workspaceId, executeAsync],
   );
+
+  const { partner } = fraudEventGroup;
 
   return (
     <Modal
@@ -86,21 +88,21 @@ function ResolveFraudEventsModal({
 
       <form onSubmit={handleSubmit(onSubmit)}>
         <div className="flex flex-col gap-6 bg-neutral-50 p-4 sm:p-6">
-          {fraudEvent.partner && (
+          {partner && (
             <div className="rounded-lg border border-neutral-200 bg-neutral-100 p-3">
               <div className="flex items-center gap-4">
                 <img
-                  src={`${OG_AVATAR_URL}${fraudEvent.partner.name || "Unknown"}`}
-                  alt={fraudEvent.partner.name || "Unknown"}
+                  src={`${OG_AVATAR_URL}${partner.name || "Unknown"}`}
+                  alt={partner.name || "Unknown"}
                   className="size-10 rounded-full bg-white"
                 />
                 <div className="flex min-w-0 flex-col">
                   <h4 className="truncate text-sm font-medium text-neutral-900">
-                    {fraudEvent.partner.name || "Unknown"}
+                    {partner.name || "Unknown"}
                   </h4>
-                  {fraudEvent.partner.email && (
+                  {partner.email && (
                     <p className="truncate text-xs text-neutral-500">
-                      {fraudEvent.partner.email}
+                      {partner.email}
                     </p>
                   )}
                 </div>
@@ -149,8 +151,8 @@ function ResolveFraudEventsModal({
           <Button
             type="submit"
             variant="primary"
-            text={`Resolve ${fraudEvent.count} ${pluralize("event", fraudEvent.count)}`}
-            disabled={!fraudEvent.id || !fraudEvent.partner}
+            text={`Resolve ${fraudEventGroup.count} ${pluralize("event", fraudEventGroup.count)}`}
+            disabled={!fraudEventGroup.id || !fraudEventGroup.partner}
             loading={isPending}
             className="h-8 w-fit px-3"
           />
@@ -161,9 +163,9 @@ function ResolveFraudEventsModal({
 }
 
 export function useResolveFraudEventsModal({
-  fraudEvent,
+  fraudEventGroup,
 }: {
-  fraudEvent: FraudEventProps;
+  fraudEventGroup: fraudEventGroupProps;
 }) {
   const [showResolveFraudEventModal, setShowResolveFraudEventModal] =
     useState(false);
@@ -173,10 +175,14 @@ export function useResolveFraudEventsModal({
       <ResolveFraudEventsModal
         showResolveFraudEventModal={showResolveFraudEventModal}
         setShowResolveFraudEventModal={setShowResolveFraudEventModal}
-        fraudEvent={fraudEvent}
+        fraudEventGroup={fraudEventGroup}
       />
     );
-  }, [showResolveFraudEventModal, setShowResolveFraudEventModal, fraudEvent]);
+  }, [
+    showResolveFraudEventModal,
+    setShowResolveFraudEventModal,
+    fraudEventGroup,
+  ]);
 
   return useMemo(
     () => ({

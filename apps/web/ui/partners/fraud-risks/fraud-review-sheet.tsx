@@ -1,8 +1,7 @@
 "use client";
 
 import { FRAUD_RULES_BY_TYPE } from "@/lib/api/fraud/constants";
-import useWorkspace from "@/lib/swr/use-workspace";
-import { FraudEventProps } from "@/lib/types";
+import { fraudEventGroupProps } from "@/lib/types";
 import { useBanPartnerModal } from "@/ui/modals/ban-partner-modal";
 import { X } from "@/ui/shared/icons";
 import {
@@ -11,36 +10,38 @@ import {
   ChevronRight,
   Msgs,
   Sheet,
+  Tooltip,
   User,
   buttonVariants,
   useKeyboardShortcut,
 } from "@dub/ui";
-import { OG_AVATAR_URL, cn } from "@dub/utils";
+import { OG_AVATAR_URL, cn, formatDateTime } from "@dub/utils";
 import { useResolveFraudEventsModal } from "app/app.dub.co/(dashboard)/[slug]/(ee)/program/fraud/resolve-fraud-events-modal";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import { Dispatch, SetStateAction, useState } from "react";
 import { CommissionsOnHoldTable } from "./commissions-on-hold-table";
 import { FraudEventsTableWrapper } from "./fraud-events-tables";
 
 interface FraudReviewSheetProps {
-  fraudEvent: FraudEventProps;
+  fraudEventGroup: fraudEventGroupProps;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
   onNext?: () => void;
   onPrevious?: () => void;
 }
 
 function FraudReviewSheetContent({
-  fraudEvent,
+  fraudEventGroup,
   onPrevious,
   onNext,
 }: FraudReviewSheetProps) {
-  const { partner } = fraudEvent;
+  const { partner, user } = fraudEventGroup;
 
-  const { slug: workspaceSlug } = useWorkspace();
+  const { slug } = useParams();
 
   const { setShowResolveFraudEventModal, ResolveFraudEventModal } =
     useResolveFraudEventsModal({
-      fraudEvent,
+      fraudEventGroup,
     });
 
   const { BanPartnerModal, setShowBanPartnerModal } = useBanPartnerModal({
@@ -57,7 +58,7 @@ function FraudReviewSheetContent({
   });
   useKeyboardShortcut("b", () => setShowBanPartnerModal(true), { sheet: true });
 
-  const fraudRule = FRAUD_RULES_BY_TYPE[fraudEvent.type];
+  const fraudRuleInfo = FRAUD_RULES_BY_TYPE[fraudEventGroup.type];
 
   return (
     <div className="relative h-full">
@@ -68,8 +69,11 @@ function FraudReviewSheetContent({
       >
         <div className="flex h-16 shrink-0 items-center justify-between border-b border-neutral-200 px-6 py-4">
           <Sheet.Title className="text-lg font-semibold">
-            Fraud review
+            {fraudEventGroup.status === "pending"
+              ? "Fraud review"
+              : "Resolved fraud and risk event"}
           </Sheet.Title>
+
           <div className="flex items-center gap-4">
             <div className="flex items-center">
               <Button
@@ -120,7 +124,7 @@ function FraudReviewSheetContent({
 
             <div className="flex items-center gap-2">
               <Link
-                href={`/${workspaceSlug}/program/messages/${partner.id}`}
+                href={`/${slug}/program/messages/${partner.id}`}
                 target="_blank"
                 className={cn(
                   buttonVariants({ variant: "secondary" }),
@@ -132,7 +136,7 @@ function FraudReviewSheetContent({
               </Link>
 
               <Link
-                href={`/${workspaceSlug}/program/partners/${partner.id}`}
+                href={`/${slug}/program/partners/${partner.id}`}
                 target="_blank"
                 className={cn(
                   buttonVariants({ variant: "secondary" }),
@@ -148,45 +152,114 @@ function FraudReviewSheetContent({
           <div className="border-border-subtle flex flex-col gap-4 rounded-xl border p-4">
             <div className="flex flex-col">
               <span className="text-content-default text-sm font-semibold">
-                {fraudRule.name}
+                {fraudRuleInfo.name}
               </span>
               <span className="text-content-subtle text-xs font-normal">
-                {fraudRule.description}
+                {fraudRuleInfo.description}
               </span>
             </div>
 
-            <FraudEventsTableWrapper fraudEvent={fraudEvent} />
+            <FraudEventsTableWrapper fraudEventGroup={fraudEventGroup} />
           </div>
 
-          <div>
-            <h3 className="text-content-emphasis mb-4 font-semibold">
-              Commissions on hold
-            </h3>
-            <CommissionsOnHoldTable fraudEvent={fraudEvent} />
-          </div>
+          {fraudEventGroup.status === "pending" && (
+            <div>
+              <h3 className="text-content-emphasis mb-4 font-semibold">
+                Commissions on hold
+              </h3>
+              <CommissionsOnHoldTable fraudEvent={fraudEventGroup} />
+            </div>
+          )}
+
+          {fraudEventGroup.status === "resolved" && (
+            <div>
+              <h3 className="text-content-emphasis mb-4 font-semibold">
+                Decision
+              </h3>
+
+              <div
+                className={cn(
+                  "flex gap-3",
+                  fraudEventGroup.resolutionReason
+                    ? "items-start"
+                    : "items-center",
+                )}
+              >
+                <Tooltip
+                  content={
+                    <div className="flex flex-col gap-1 p-2.5">
+                      {user && (
+                        <div className="flex flex-col gap-2">
+                          <img
+                            src={user.image || `${OG_AVATAR_URL}${user.name}`}
+                            alt={user.name || user.id}
+                            className="size-6 shrink-0 rounded-full"
+                          />
+                          <p className="text-sm font-medium">{user.name}</p>
+                        </div>
+                      )}
+
+                      <div className="text-xs text-neutral-500">
+                        Resolved by{" "}
+                        <span className="font-medium text-neutral-700">
+                          {formatDateTime(fraudEventGroup.resolvedAt!)}
+                        </span>
+                      </div>
+                    </div>
+                  }
+                >
+                  {user && (
+                    <img
+                      src={user.image || `${OG_AVATAR_URL}${user.name}`}
+                      alt={user.name || user.id}
+                      className="size-5 shrink-0 rounded-full"
+                    />
+                  )}
+                </Tooltip>
+
+                <div className="flex flex-col gap-1">
+                  {fraudEventGroup.resolvedAt && (
+                    <span className="text-sm font-medium text-neutral-600">
+                      {fraudEventGroup.resolvedAt
+                        ? formatDateTime(fraudEventGroup.resolvedAt)
+                        : "-"}
+                    </span>
+                  )}
+
+                  {fraudEventGroup.resolutionReason && (
+                    <span className="text-content-subtle text-sm font-medium">
+                      {fraudEventGroup.resolutionReason}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
-        <div className="flex flex-col justify-end">
-          <div className="border-border-subtle flex items-center justify-end gap-2 border-t px-5 py-4">
-            <Button
-              type="button"
-              variant="secondary"
-              text="Resolve event"
-              shortcut="R"
-              onClick={() => setShowResolveFraudEventModal(true)}
-              className="h-8 w-fit rounded-lg"
-            />
+        {fraudEventGroup.status === "pending" && (
+          <div className="flex flex-col justify-end">
+            <div className="border-border-subtle flex items-center justify-end gap-2 border-t px-5 py-4">
+              <Button
+                type="button"
+                variant="secondary"
+                text="Resolve event"
+                shortcut="R"
+                onClick={() => setShowResolveFraudEventModal(true)}
+                className="h-8 w-fit rounded-lg"
+              />
 
-            <Button
-              type="button"
-              text="Ban partner"
-              shortcut="B"
-              variant="danger"
-              onClick={() => setShowBanPartnerModal(true)}
-              className="h-8 w-fit rounded-lg"
-            />
+              <Button
+                type="button"
+                text="Ban partner"
+                shortcut="B"
+                variant="danger"
+                onClick={() => setShowBanPartnerModal(true)}
+                className="h-8 w-fit rounded-lg"
+              />
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

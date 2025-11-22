@@ -673,7 +673,7 @@ export type WorkflowAttribute = (typeof WORKFLOW_ATTRIBUTES)[number];
 
 export type EmailDomainProps = z.infer<typeof EmailDomainSchema>;
 
-export type FraudEventProps = z.infer<typeof fraudEventSchema>;
+export type fraudEventGroupProps = z.infer<typeof fraudEventSchema>;
 
 export type ExtendedFraudRuleType =
   | FraudRuleType

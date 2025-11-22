@@ -6,10 +6,10 @@ import { z } from "zod";
 import { fraudEventCountQuerySchema } from "../zod/schemas/fraud";
 
 export function useFraudEventsCount<T>({
-  filters,
+  query,
   enabled = true,
 }: {
-  filters?: Partial<z.infer<typeof fraudEventCountQuerySchema>>;
+  query?: Partial<z.infer<typeof fraudEventCountQuerySchema>>;
   enabled?: boolean;
 } = {}) {
   const { getQueryString } = useRouterStuff();
@@ -18,7 +18,7 @@ export function useFraudEventsCount<T>({
   const queryString = getQueryString(
     {
       workspaceId,
-      ...filters,
+      ...query,
     },
     {
       exclude: ["page", "pageSize", "sortBy", "sortOrder"],

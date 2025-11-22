@@ -47,7 +47,10 @@ export function PartnerFraudBanner({
   const { fraudEventsCount, loading } = useFraudEventsCount<
     FraudEventsCountByPartner[]
   >({
-    filters: { groupBy: "partnerId", status: "pending" },
+    query: {
+      groupBy: "partnerId",
+      status: "pending",
+    },
     enabled: partner.status !== "pending",
   });
 

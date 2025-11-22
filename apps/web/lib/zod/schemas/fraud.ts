@@ -77,8 +77,8 @@ export const resolveFraudEventsSchema = z.object({
       MAX_RESOLUTION_REASON_LENGTH,
       `Reason must be less than ${MAX_RESOLUTION_REASON_LENGTH} characters`,
     )
-    .optional()
-    .describe("Optional notes explaining the resolution."),
+    .nullable()
+    .default(null),
 });
 
 export const fraudRuleSchema = z.object({

@@ -2,11 +2,11 @@ import { useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import useSWR from "swr";
 import { z } from "zod";
-import { FraudEventProps } from "../types";
+import { fraudEventGroupProps } from "../types";
 import { groupedFraudEventsQuerySchema } from "../zod/schemas/fraud";
 import useWorkspace from "./use-workspace";
 
-export function useGroupedFraudEvents({
+export function useFraudEventGroups({
   enabled = true,
   query,
 }: {
@@ -21,7 +21,7 @@ export function useGroupedFraudEvents({
     ...query,
   });
 
-  const { data, isLoading, error } = useSWR<FraudEventProps[]>(
+  const { data, error } = useSWR<fraudEventGroupProps[]>(
     enabled && defaultProgramId ? `/api/fraud-events${queryString}` : undefined,
     fetcher,
     {
@@ -31,7 +31,7 @@ export function useGroupedFraudEvents({
 
   return {
     fraudEvents: data,
-    loading: isLoading,
+    loading: !data && !error,
     error,
   };
 }

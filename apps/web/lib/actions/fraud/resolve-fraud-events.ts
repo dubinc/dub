@@ -27,7 +27,7 @@ export const resolveFraudEventsAction = authActionClient
         groupKey,
       },
       userId: user.id,
-      resolutionReason,
+      ...(resolutionReason && { resolutionReason }),
     });
 
     // Add the resolution reason as a comment to the partner

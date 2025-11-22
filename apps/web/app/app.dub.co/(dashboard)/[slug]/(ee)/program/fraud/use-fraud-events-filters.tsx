@@ -2,13 +2,17 @@ import { FRAUD_RULES_BY_TYPE } from "@/lib/api/fraud/constants";
 import { useFraudEventsCount } from "@/lib/swr/use-fraud-events-count";
 import usePartners from "@/lib/swr/use-partners";
 import { EnrolledPartnerProps, FraudEventsCountByType } from "@/lib/types";
+import { fraudEventCountQuerySchema } from "@/lib/zod/schemas/fraud";
 import { useRouterStuff } from "@dub/ui";
 import { ShieldKeyhole, Users } from "@dub/ui/icons";
 import { nFormatter, OG_AVATAR_URL } from "@dub/utils";
 import { useCallback, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
+import { z } from "zod";
 
-export function useFraudEventsFilters() {
+export function useFraudEventsFilters({
+  status,
+}: z.infer<typeof fraudEventCountQuerySchema>) {
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
   const { searchParamsObj, queryParams } = useRouterStuff();
@@ -19,7 +23,10 @@ export function useFraudEventsFilters() {
   );
 
   const { fraudEventsCount } = useFraudEventsCount<FraudEventsCountByType[]>({
-    filters: { status: "pending", groupBy: "type" },
+    query: {
+      status,
+      groupBy: "type",
+    },
   });
 
   const filters = useMemo(

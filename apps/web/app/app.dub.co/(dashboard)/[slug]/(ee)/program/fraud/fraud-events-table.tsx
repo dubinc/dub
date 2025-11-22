@@ -2,8 +2,8 @@
 
 import { FRAUD_RULES_BY_TYPE } from "@/lib/api/fraud/constants";
 import { useFraudEventsCount } from "@/lib/swr/use-fraud-events-count";
-import { useGroupedFraudEvents } from "@/lib/swr/use-grouped-fraud-events";
-import { FraudEventProps } from "@/lib/types";
+import { useFraudEventGroups } from "@/lib/swr/use-fraud-event-groups";
+import { fraudEventGroupProps } from "@/lib/types";
 import { useBanPartnerModal } from "@/ui/modals/ban-partner-modal";
 import { FraudReviewSheet } from "@/ui/partners/fraud-risks/fraud-review-sheet";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
@@ -45,10 +45,14 @@ export function FraudEventsTable() {
     onRemoveAll,
     setSearch,
     setSelectedFilter,
-  } = useFraudEventsFilters();
+  } = useFraudEventsFilters({
+    status: "pending",
+  });
 
-  const { fraudEvents, loading, error } = useGroupedFraudEvents({
-    query: { status: "pending" },
+  const { fraudEvents, loading, error } = useFraudEventGroups({
+    query: {
+      status: "pending",
+    },
   });
 
   const [detailsSheetState, setDetailsSheetState] = useState<
@@ -65,7 +69,11 @@ export function FraudEventsTable() {
     groupKey: detailsSheetState.groupKey,
   });
 
-  const { fraudEventsCount, error: countError } = useFraudEventsCount<number>();
+  const { fraudEventsCount, error: countError } = useFraudEventsCount<number>({
+    query: {
+      status: "pending",
+    },
+  });
 
   const columns = useMemo(
     () => [
@@ -73,7 +81,7 @@ export function FraudEventsTable() {
         id: "type",
         header: "Event",
         size: 150,
-        cell: ({ row }: { row: Row<FraudEventProps> }) => {
+        cell: ({ row }: { row: Row<fraudEventGroupProps> }) => {
           const reason = FRAUD_RULES_BY_TYPE[row.original.type];
           const count = row.original.count ?? 1;
 
@@ -112,7 +120,7 @@ export function FraudEventsTable() {
         id: "partner",
         header: "Partner",
         size: 150,
-        cell: ({ row }: { row: Row<FraudEventProps> }) => {
+        cell: ({ row }: { row: Row<fraudEventGroupProps> }) => {
           const partner = row.original.partner;
           if (!partner) return "-";
 
@@ -143,7 +151,7 @@ export function FraudEventsTable() {
           headerTooltip:
             "The date and time of the most recent occurrence of this fraud event.",
         },
-        cell: ({ row }: { row: Row<FraudEventProps> }) => (
+        cell: ({ row }: { row: Row<fraudEventGroupProps> }) => (
           <TimestampTooltip
             timestamp={row.original.lastOccurenceAt}
             side="right"
@@ -162,7 +170,7 @@ export function FraudEventsTable() {
           headerTooltip:
             "The commissions accrued since the event and cannot be paid out until resolved.",
         },
-        accessorFn: (d: FraudEventProps) =>
+        accessorFn: (d: fraudEventGroupProps) =>
           d.commission?.earnings
             ? currencyFormatter(d.commission.earnings)
             : "-",
@@ -172,7 +180,7 @@ export function FraudEventsTable() {
         minSize: 30,
         size: 30,
         maxSize: 30,
-        cell: ({ row }: { row: Row<FraudEventProps> }) => (
+        cell: ({ row }: { row: Row<fraudEventGroupProps> }) => (
           <RowMenuButton row={row} />
         ),
       },
@@ -252,7 +260,7 @@ export function FraudEventsTable() {
           setIsOpen={(open) =>
             setDetailsSheetState((s) => ({ ...s, open }) as any)
           }
-          fraudEvent={currentFraudEvent}
+          fraudEventGroup={currentFraudEvent}
           onPrevious={
             previousGroupKey
               ? () =>
@@ -320,7 +328,7 @@ export function FraudEventsTable() {
   );
 }
 
-function RowMenuButton({ row }: { row: Row<FraudEventProps> }) {
+function RowMenuButton({ row }: { row: Row<fraudEventGroupProps> }) {
   const fraudEvent = row.original;
 
   const [isOpen, setIsOpen] = useState(false);
@@ -413,7 +421,7 @@ function useCurrentFraudEvent({
   fraudEvents,
   groupKey,
 }: {
-  fraudEvents?: FraudEventProps[];
+  fraudEvents?: fraudEventGroupProps[];
   groupKey: string | null;
 }) {
   let currentFraudEvent = groupKey

@@ -1,5 +1,5 @@
 import useWorkspace from "@/lib/swr/use-workspace";
-import { CommissionResponse, FraudEventProps } from "@/lib/types";
+import { CommissionResponse, fraudEventGroupProps } from "@/lib/types";
 import { COMMISSIONS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/commissions";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import {
@@ -23,7 +23,7 @@ import { CommissionTypeBadge } from "../commission-type-badge";
 export function CommissionsOnHoldTable({
   fraudEvent,
 }: {
-  fraudEvent: FraudEventProps;
+  fraudEvent: fraudEventGroupProps;
 }) {
   const workspace = useWorkspace();
   const { id: workspaceId, slug } = workspace;

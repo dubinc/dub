@@ -2,11 +2,11 @@
 
 import { FRAUD_RULES_BY_TYPE } from "@/lib/api/fraud/constants";
 import { useFraudEventsCount } from "@/lib/swr/use-fraud-events-count";
-import { useGroupedFraudEvents } from "@/lib/swr/use-grouped-fraud-events";
-import { FraudEventProps } from "@/lib/types";
+import { useFraudEventGroups } from "@/lib/swr/use-fraud-event-groups";
+import { fraudEventGroupProps } from "@/lib/types";
+import { FraudReviewSheet } from "@/ui/partners/fraud-risks/fraud-review-sheet";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
-import { FilterButtonTableRow } from "@/ui/shared/filter-button-table-row";
 import { UserRowItem } from "@/ui/users/user-row-item";
 import {
   AnimatedSizeContainer,
@@ -21,7 +21,7 @@ import {
 import { ShieldKeyhole } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useFraudEventsFilters } from "../use-fraud-events-filters";
 
 export function ResolvedFraudEventsTable() {
@@ -40,18 +40,34 @@ export function ResolvedFraudEventsTable() {
     isFiltered,
     setSearch,
     setSelectedFilter,
-  } = useFraudEventsFilters();
+  } = useFraudEventsFilters({
+    status: "resolved",
+  });
 
-  const {
-    fraudEvents: resolvedFraudEvents,
-    loading,
-    error,
-  } = useGroupedFraudEvents({
-    query: { status: "resolved" },
+  const { fraudEvents, loading, error } = useFraudEventGroups({
+    query: {
+      status: "resolved",
+    },
+  });
+
+  const [detailsSheetState, setDetailsSheetState] = useState<
+    { open: false; groupKey: string | null } | { open: true; groupKey: string }
+  >({ open: false, groupKey: null });
+
+  useEffect(() => {
+    const groupKey = searchParams.get("groupKey");
+    if (groupKey) setDetailsSheetState({ open: true, groupKey });
+  }, [searchParams]);
+
+  const { currentFraudEvent } = useCurrentFraudEvent({
+    fraudEvents,
+    groupKey: detailsSheetState.groupKey,
   });
 
   const { fraudEventsCount, error: countError } = useFraudEventsCount<number>({
-    filters: { status: "resolved" },
+    query: {
+      status: "resolved",
+    },
   });
 
   const columns = useMemo(
@@ -59,8 +75,9 @@ export function ResolvedFraudEventsTable() {
       {
         id: "type",
         header: "Event",
-        size: 250,
-        cell: ({ row }: { row: Row<FraudEventProps> }) => {
+        minSize: 100,
+        maxSize: 400,
+        cell: ({ row }: { row: Row<fraudEventGroupProps> }) => {
           const reason = FRAUD_RULES_BY_TYPE[row.original.type];
           const count = row.original.count ?? 1;
 
@@ -98,8 +115,7 @@ export function ResolvedFraudEventsTable() {
       {
         id: "resolvedAt",
         header: "Resolved on",
-        size: 200,
-        cell: ({ row }: { row: Row<FraudEventProps> }) => {
+        cell: ({ row }: { row: Row<fraudEventGroupProps> }) => {
           const user = row.original.user;
           const resolvedAt = row.original.resolvedAt;
 
@@ -113,8 +129,7 @@ export function ResolvedFraudEventsTable() {
       {
         id: "partner",
         header: "Partner",
-        size: 250,
-        cell: ({ row }: { row: Row<FraudEventProps> }) => {
+        cell: ({ row }: { row: Row<fraudEventGroupProps> }) => {
           const partner = row.original.partner;
           if (!partner) return "-";
 
@@ -129,7 +144,7 @@ export function ResolvedFraudEventsTable() {
           );
         },
         meta: {
-          filterParams: ({ row }: { row: Row<FraudEventProps> }) =>
+          filterParams: ({ row }: { row: Row<fraudEventGroupProps> }) =>
             row.original.partner
               ? {
                   partnerId: row.original.partner.id,
@@ -142,21 +157,8 @@ export function ResolvedFraudEventsTable() {
   );
 
   const { table, ...tableProps } = useTable({
-    data: resolvedFraudEvents || [],
+    data: fraudEvents || [],
     columns,
-    cellRight: (cell) => {
-      const meta = cell.column.columnDef.meta as
-        | {
-            filterParams?: any;
-          }
-        | undefined;
-
-      return (
-        meta?.filterParams && (
-          <FilterButtonTableRow set={meta.filterParams(cell)} />
-        )
-      );
-    },
     pagination,
     onPaginationChange: setPagination,
     sortBy,
@@ -171,6 +173,14 @@ export function ResolvedFraudEventsTable() {
         scroll: false,
       }),
     getRowId: (row) => row.id,
+    onRowClick: (row) => {
+      queryParams({
+        set: {
+          groupKey: row.original.groupKey,
+        },
+        scroll: false,
+      });
+    },
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: () => "resolved fraud event",
@@ -180,8 +190,51 @@ export function ResolvedFraudEventsTable() {
       error || countError ? "Failed to load resolved fraud events" : undefined,
   });
 
+  const [previousGroupKey, nextGroupKey] = useMemo(() => {
+    if (!fraudEvents || !detailsSheetState.groupKey) return [null, null];
+
+    const currentIndex = fraudEvents.findIndex(
+      ({ groupKey }) => groupKey === detailsSheetState.groupKey,
+    );
+    if (currentIndex === -1) return [null, null];
+
+    return [
+      currentIndex > 0 ? fraudEvents[currentIndex - 1].groupKey : null,
+      currentIndex < fraudEvents.length - 1
+        ? fraudEvents[currentIndex + 1].groupKey
+        : null,
+    ];
+  }, [fraudEvents, detailsSheetState.groupKey]);
+
   return (
     <div className="flex flex-col gap-6">
+      {detailsSheetState.groupKey && currentFraudEvent && (
+        <FraudReviewSheet
+          isOpen={detailsSheetState.open}
+          setIsOpen={(open) =>
+            setDetailsSheetState((s) => ({ ...s, open }) as any)
+          }
+          fraudEventGroup={currentFraudEvent}
+          onPrevious={
+            previousGroupKey
+              ? () =>
+                  queryParams({
+                    set: { groupKey: previousGroupKey },
+                    scroll: false,
+                  })
+              : undefined
+          }
+          onNext={
+            nextGroupKey
+              ? () =>
+                  queryParams({
+                    set: { groupKey: nextGroupKey },
+                    scroll: false,
+                  })
+              : undefined
+          }
+        />
+      )}
       <div>
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <Filter.Select
@@ -211,7 +264,7 @@ export function ResolvedFraudEventsTable() {
         </AnimatedSizeContainer>
       </div>
 
-      {resolvedFraudEvents?.length !== 0 ? (
+      {fraudEvents?.length !== 0 ? (
         <Table {...tableProps} table={table} />
       ) : (
         <AnimatedEmptyState
@@ -231,4 +284,34 @@ export function ResolvedFraudEventsTable() {
       )}
     </div>
   );
+}
+
+/** Gets the current fraud event from the loaded array if available, or a separate fetch if not */
+function useCurrentFraudEvent({
+  fraudEvents,
+  groupKey,
+}: {
+  fraudEvents?: fraudEventGroupProps[];
+  groupKey: string | null;
+}) {
+  let currentFraudEvent = groupKey
+    ? fraudEvents?.find(({ groupKey: gk }) => gk === groupKey)
+    : null;
+
+  // TODO:
+  // We need to update the query to support this
+
+  // const fetchGroupKey =
+  //   fraudEvents && groupKey && !currentFraudEvent ? groupKey : null;
+
+  // const { fraudEvents: fetchedFraudEvents, loading: isLoading } =
+  //   useGroupedFraudEvents({
+  //     enabled: Boolean(groupKey),
+  //     query: groupKey ? { groupKeys: [groupKey] } : undefined,
+  //   });
+
+  // if (!currentFraudEvent && fetchedFraudEvents?.[0]?.groupKey === groupKey)
+  //   currentFraudEvent = fetchedFraudEvents[0];
+
+  return { currentFraudEvent };
 }
