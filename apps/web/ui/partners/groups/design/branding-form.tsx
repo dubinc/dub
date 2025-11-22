@@ -1,5 +1,6 @@
 "use client";
 
+import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { updateGroupBrandingAction } from "@/lib/actions/partners/update-group-branding";
 import useGroup from "@/lib/swr/use-group";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -221,7 +222,10 @@ function BrandingFormInner({
       });
     },
     onError({ error }) {
-      const message = error.serverError || "Failed to update application form.";
+      const message = parseActionError(
+        error,
+        "Failed to update application form.",
+      );
       toast.error(message);
       setError("root", { message });
     },
