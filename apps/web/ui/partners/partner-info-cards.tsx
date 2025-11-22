@@ -229,9 +229,11 @@ export function PartnerInfoCards({
                   <span className="text-content-emphasis text-lg font-semibold">
                     {partner.name}
                   </span>
+
                   {showFraudIndicator && (
                     <PartnerFraudIndicator partnerId={partner.id} />
                   )}
+
                   {showApplicationRiskAnalysis && (
                     <PartnerApplicationRiskFlag partnerId={partner.id} />
                   )}

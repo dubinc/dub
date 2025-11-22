@@ -5,6 +5,7 @@ import {
   SubmissionsCountByStatus,
   useBountySubmissionsCount,
 } from "@/lib/swr/use-bounty-submissions-count";
+import { useFraudEventsCount } from "@/lib/swr/use-fraud-events-count";
 import { usePartnerMessagesCount } from "@/lib/swr/use-partner-messages-count";
 import usePayoutsCount from "@/lib/swr/use-payouts-count";
 import useProgram from "@/lib/swr/use-program";
@@ -67,6 +68,7 @@ type SidebarNavData = {
   applicationsCount?: number;
   submittedBountiesCount?: number;
   unreadMessagesCount?: number;
+  pendingFraudEventsCount?: number;
   showConversionGuides?: boolean;
   partnerNetworkEnabled?: boolean;
 };
@@ -201,6 +203,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
     applicationsCount,
     submittedBountiesCount,
     unreadMessagesCount,
+    pendingFraudEventsCount,
     partnerNetworkEnabled,
   }) => ({
     title: "Partner Program",
@@ -289,10 +292,14 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             href: `/${slug}/program/commissions`,
           },
           {
-            name: "Fraud & Risk",
+            name: "Fraud Detection",
             icon: ShieldKeyhole,
             href: `/${slug}/program/fraud`,
-            badge: "New",
+            badge: pendingFraudEventsCount
+              ? pendingFraudEventsCount > 99
+                ? "99+"
+                : pendingFraudEventsCount
+              : undefined,
           },
         ],
       },
@@ -520,6 +527,13 @@ export function AppSidebarNav({
     },
   });
 
+  const { fraudEventsCount: pendingFraudEventsCount } = useFraudEventsCount<
+    number | undefined
+  >({
+    query: { status: "pending" },
+    enabled: Boolean(currentArea === "program" && defaultProgramId),
+  });
+
   const { canTrackConversions } = getPlanCapabilities(plan);
 
   return (
@@ -540,6 +554,7 @@ export function AppSidebarNav({
         applicationsCount,
         submittedBountiesCount,
         unreadMessagesCount,
+        pendingFraudEventsCount,
         showConversionGuides: canTrackConversions,
         partnerNetworkEnabled:
           program && program.partnerNetworkEnabledAt !== null,

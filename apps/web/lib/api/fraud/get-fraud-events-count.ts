@@ -63,12 +63,13 @@ export async function getFraudEventsCount({
     return events;
   }
 
-  // Get the absolute count of fraud events
-  const count = await prisma.fraudEvent.count({
+  // Get the distinct group keys
+  const distinctGroupKeys = await prisma.fraudEvent.groupBy({
+    by: ["groupKey"],
     where: {
       ...commonWhere,
     },
   });
 
-  return count;
+  return distinctGroupKeys.length;
 }
