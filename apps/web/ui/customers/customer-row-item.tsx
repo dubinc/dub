@@ -39,7 +39,7 @@ export function CustomerRowItem({
           alt={display}
           src={customer.avatar || `${OG_AVATAR_URL}${customer.id}`}
           className={cn(
-            "size-4 shrink-0 rounded-full border border-neutral-200",
+            "size-5 shrink-0 rounded-full border border-neutral-200",
             avatarClassName,
           )}
         />

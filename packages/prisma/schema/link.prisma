@@ -87,9 +87,9 @@ model Link {
   partnerGroupDefaultLinkId String?
   partnerGroupDefaultLink   PartnerGroupDefaultLink? @relation(fields: [partnerGroupDefaultLinkId], references: [id])
   discountCode              DiscountCode?
-
-  customers   Customer[]
-  commissions Commission[]
+  customers                 Customer[]
+  commissions               Commission[]
+  fraudEvents               FraudEvent[]
 
   @@unique([domain, key]) // for getting a link by domain and key
   @@unique([projectId, externalId]) // for getting a link by externalId

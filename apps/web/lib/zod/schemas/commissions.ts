@@ -49,6 +49,8 @@ export const CommissionWebhookSchema = CommissionSchema.merge(
   }),
 );
 
+export const COMMISSIONS_MAX_PAGE_SIZE = 100;
+
 export const getCommissionsQuerySchema = z
   .object({
     type: z.nativeEnum(CommissionType).optional(),
@@ -112,7 +114,7 @@ export const getCommissionsQuerySchema = z
       .describe("The end date of the date range to filter the commissions by."),
     timezone: z.string().optional(),
   })
-  .merge(getPaginationQuerySchema({ pageSize: 100 }));
+  .merge(getPaginationQuerySchema({ pageSize: COMMISSIONS_MAX_PAGE_SIZE }));
 
 export const getCommissionsCountQuerySchema = getCommissionsQuerySchema.omit({
   page: true,

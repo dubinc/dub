@@ -2,6 +2,7 @@
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { queueDiscountCodeDeletion } from "@/lib/api/discounts/queue-discount-code-deletion";
+import { resolveFraudEvents } from "@/lib/api/fraud/utils";
 import { linkCache } from "@/lib/api/links/cache";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
@@ -121,6 +122,17 @@ export const banPartnerAction = authActionClient
         await syncTotalCommissions({ partnerId, programId });
 
         const { program, partner, links, discountCodes } = programEnrollment;
+
+        // Resolve pending fraud events for this partner
+        await resolveFraudEvents({
+          where: {
+            programId,
+            partnerId,
+          },
+          userId: user.id,
+          resolutionReason:
+            "Resolved automatically because the partner was banned.",
+        });
 
         await Promise.allSettled([
           // Expire links from cache

@@ -104,6 +104,7 @@ export * from "./file-content";
 export * from "./file-zip2";
 export * from "./filter-bars";
 export * from "./filter2";
+export * from "./flag";
 export * from "./flag-wavy";
 export * from "./flag2";
 export * from "./flag6";

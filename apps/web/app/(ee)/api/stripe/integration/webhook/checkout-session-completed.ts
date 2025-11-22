@@ -1,6 +1,7 @@
 import { convertCurrency } from "@/lib/analytics/convert-currency";
 import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { createId } from "@/lib/api/create-id";
+import { detectAndRecordEventFraud } from "@/lib/api/fraud/detect-record-event-fraud";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
@@ -27,7 +28,7 @@ import {
 } from "@/lib/webhook/transform";
 import { prisma } from "@dub/prisma";
 import { Customer, WorkflowTrigger } from "@dub/prisma/client";
-import { COUNTRIES_TO_CONTINENTS, nanoid } from "@dub/utils";
+import { COUNTRIES_TO_CONTINENTS, nanoid, pick } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
 import { getConnectedCustomer } from "./utils/get-connected-customer";
@@ -433,6 +434,7 @@ export async function checkoutSessionCompleted(
         },
       },
     });
+
     webhookPartner = createdCommission?.webhookPartner;
 
     waitUntil(
@@ -452,6 +454,16 @@ export async function checkoutSessionCompleted(
           partnerId: link.partnerId,
           programId: link.programId,
           eventType: "sale",
+        }),
+
+        detectAndRecordEventFraud({
+          program: { id: link.programId },
+          partner: pick(webhookPartner, ["id", "email", "name"]),
+          customer: pick(customer, ["id", "email", "name"]),
+          commission: { id: createdCommission.commission?.id },
+          link: pick(link, ["id"]),
+          click: pick(saleData, ["url", "referer"]),
+          event: { id: saleData.event_id },
         }),
       ]),
     );

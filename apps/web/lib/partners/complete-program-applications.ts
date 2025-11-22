@@ -2,6 +2,7 @@ import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { Prisma } from "@prisma/client";
 import { createId } from "../api/create-id";
+import { detectAndRecordPartnerFraud } from "../api/fraud/detect-record-partner-fraud";
 import { notifyPartnerApplication } from "../api/partners/notify-partner-application";
 import { qstash } from "../cron";
 import { sendWorkspaceWebhook } from "../webhook/publish";
@@ -213,6 +214,14 @@ export async function completeProgramApplications(userEmail: string) {
               applicationFormData,
             }),
           }),
+
+        // Run partner fraud checks
+        detectAndRecordPartnerFraud({
+          context: {
+            program,
+            partner,
+          },
+        }),
       ]);
     }
   } catch (error) {
