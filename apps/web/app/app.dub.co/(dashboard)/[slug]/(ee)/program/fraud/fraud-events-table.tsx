@@ -1,8 +1,8 @@
 "use client";
 
 import { FRAUD_RULES_BY_TYPE } from "@/lib/api/fraud/constants";
-import { useFraudEventsCount } from "@/lib/swr/use-fraud-events-count";
 import { useFraudEventGroups } from "@/lib/swr/use-fraud-event-groups";
+import { useFraudEventsCount } from "@/lib/swr/use-fraud-events-count";
 import { fraudEventGroupProps } from "@/lib/types";
 import { useBanPartnerModal } from "@/ui/modals/ban-partner-modal";
 import { FraudReviewSheet } from "@/ui/partners/fraud-risks/fraud-review-sheet";
@@ -75,13 +75,14 @@ export function FraudEventsTable() {
     },
   });
 
-  const columns = useMemo(
-    () => [
+  const { table, ...tableProps } = useTable<fraudEventGroupProps>({
+    data: fraudEvents || [],
+    columns: [
       {
         id: "type",
         header: "Event",
         size: 150,
-        cell: ({ row }: { row: Row<fraudEventGroupProps> }) => {
+        cell: ({ row }) => {
           const reason = FRAUD_RULES_BY_TYPE[row.original.type];
           const count = row.original.count ?? 1;
 
@@ -120,7 +121,7 @@ export function FraudEventsTable() {
         id: "partner",
         header: "Partner",
         size: 150,
-        cell: ({ row }: { row: Row<fraudEventGroupProps> }) => {
+        cell: ({ row }) => {
           const partner = row.original.partner;
           if (!partner) return "-";
 
@@ -151,7 +152,7 @@ export function FraudEventsTable() {
           headerTooltip:
             "The date and time of the most recent occurrence of this fraud event.",
         },
-        cell: ({ row }: { row: Row<fraudEventGroupProps> }) => (
+        cell: ({ row }) => (
           <TimestampTooltip
             timestamp={row.original.lastOccurenceAt}
             side="right"
@@ -170,7 +171,7 @@ export function FraudEventsTable() {
           headerTooltip:
             "The commissions accrued since the event and cannot be paid out until resolved.",
         },
-        accessorFn: (d: fraudEventGroupProps) =>
+        accessorFn: (d) =>
           d.commission?.earnings
             ? currencyFormatter(d.commission.earnings)
             : "-",
@@ -180,17 +181,9 @@ export function FraudEventsTable() {
         minSize: 30,
         size: 30,
         maxSize: 30,
-        cell: ({ row }: { row: Row<fraudEventGroupProps> }) => (
-          <RowMenuButton row={row} />
-        ),
+        cell: ({ row }) => <RowMenuButton row={row} />,
       },
     ],
-    [],
-  );
-
-  const { table, ...tableProps } = useTable({
-    data: fraudEvents || [],
-    columns,
     columnPinning: { right: ["menu"] },
     cellRight: (cell) => {
       const meta = cell.column.columnDef.meta as

@@ -50,4 +50,10 @@ export const PayoutStatusBadges = {
     icon: CircleXmark,
     className: "text-gray-600 bg-gray-100",
   },
+  hold: {
+    label: "On Hold",
+    variant: "error",
+    icon: CircleXmark,
+    className: "text-red-600 bg-red-100",
+  },
 };

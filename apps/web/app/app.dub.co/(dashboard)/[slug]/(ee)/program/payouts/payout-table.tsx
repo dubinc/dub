@@ -1,9 +1,10 @@
 "use client";
 
+import { useFraudEventsCount } from "@/lib/swr/use-fraud-events-count";
 import usePayoutsCount from "@/lib/swr/use-payouts-count";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { PayoutResponse } from "@/lib/types";
+import { FraudEventsCountByPartner, PayoutResponse } from "@/lib/types";
 import { ExternalPayoutsIndicator } from "@/ui/partners/external-payouts-indicator";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
@@ -99,6 +100,15 @@ const PayoutTableInner = memo(
 
     const { pagination, setPagination } = usePagination();
 
+    const { fraudEventsCount } = useFraudEventsCount<
+      FraudEventsCountByPartner[]
+    >({
+      query: {
+        groupBy: "partnerId",
+        status: "pending",
+      },
+    });
+
     const table = useTable({
       data: payouts || [],
       loading: isLoading,
@@ -118,7 +128,15 @@ const PayoutTableInner = memo(
         {
           header: "Status",
           cell: ({ row }) => {
-            const badge = PayoutStatusBadges[row.original.status];
+            const partnerHasPendingFraud = fraudEventsCount?.find(
+              ({ partnerId }) => partnerId === row.original.partner.id,
+            );
+
+            const status = partnerHasPendingFraud
+              ? "hold"
+              : row.original.status;
+
+            const badge = PayoutStatusBadges[status];
 
             return badge ? (
               <StatusBadge icon={badge.icon} variant={badge.variant}>

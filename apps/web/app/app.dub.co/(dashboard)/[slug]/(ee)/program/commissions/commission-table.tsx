@@ -1,9 +1,10 @@
 "use client";
 
 import useCommissionsCount from "@/lib/swr/use-commissions-count";
+import { useFraudEventsCount } from "@/lib/swr/use-fraud-events-count";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { CommissionResponse } from "@/lib/types";
+import { CommissionResponse, FraudEventsCountByPartner } from "@/lib/types";
 import { CLAWBACK_REASONS_MAP } from "@/lib/zod/schemas/commissions";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import { CommissionRowMenu } from "@/ui/partners/commission-row-menu";
@@ -81,6 +82,15 @@ const CommissionTableInner = memo(
 
     const { commissionsCount } = useCommissionsCount({
       exclude: ["status", "page"],
+    });
+
+    const { fraudEventsCount } = useFraudEventsCount<
+      FraudEventsCountByPartner[]
+    >({
+      query: {
+        groupBy: "partnerId",
+        status: "pending",
+      },
     });
 
     const table = useTable<CommissionResponse>({
@@ -196,7 +206,15 @@ const CommissionTableInner = memo(
         {
           header: "Status",
           cell: ({ row }) => {
-            const badge = CommissionStatusBadges[row.original.status];
+            const partnerHasPendingFraud = fraudEventsCount?.find(
+              ({ partnerId }) => partnerId === row.original.partner.id,
+            );
+
+            const status = partnerHasPendingFraud
+              ? "hold"
+              : row.original.status;
+
+            const badge = CommissionStatusBadges[status];
 
             return (
               <StatusBadge

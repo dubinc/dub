@@ -36,6 +36,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
       pageSize: Infinity,
       page: 1,
     });
+
     return NextResponse.json({
       count: eligiblePayouts.length ?? 0,
       amount: eligiblePayouts.reduce((acc, payout) => acc + payout.amount, 0),

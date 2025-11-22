@@ -21,6 +21,12 @@ export function getPayoutEligibilityFilter(
           payoutsEnabledAt: {
             not: null,
           },
+          // Filter out payouts from partners with pending fraud events
+          fraudEvents: {
+            every: {
+              status: "resolved",
+            },
+          },
         },
       };
 
@@ -37,6 +43,12 @@ export function getPayoutEligibilityFilter(
               },
             },
           },
+          // Filter out payouts from partners with pending fraud events
+          fraudEvents: {
+            every: {
+              status: "resolved",
+            },
+          },
         },
       };
 
@@ -50,6 +62,12 @@ export function getPayoutEligibilityFilter(
               payoutsEnabledAt: {
                 not: null,
               },
+              // Filter out payouts from partners with pending fraud events
+              fraudEvents: {
+                every: {
+                  status: "resolved",
+                },
+              },
             },
             {
               payoutsEnabledAt: null,
@@ -59,6 +77,12 @@ export function getPayoutEligibilityFilter(
                   tenantId: {
                     not: null,
                   },
+                },
+              },
+              // Filter out payouts from partners with pending fraud events
+              fraudEvents: {
+                every: {
+                  status: "resolved",
                 },
               },
             },
