@@ -21,8 +21,7 @@ interface EventDataProps {
 export function FraudReferralSourceBannedTable() {
   const { slug: workspaceSlug } = useWorkspace();
 
-  const { fraudEvents, loading: isLoading } =
-    useRawFraudEvents<EventDataProps>();
+  const { fraudEvents, loading, error } = useRawFraudEvents<EventDataProps>();
 
   const table = useTable({
     data: fraudEvents || [],
@@ -113,8 +112,8 @@ export function FraudReferralSourceBannedTable() {
     tdClassName: "border-l-0",
     className: "[&_tr:last-child>td]:border-b-transparent",
     scrollWrapperClassName: "min-h-[40px]",
-    loading: isLoading,
-    error: undefined,
+    loading,
+    error,
   });
 
   return <Table {...table} />;

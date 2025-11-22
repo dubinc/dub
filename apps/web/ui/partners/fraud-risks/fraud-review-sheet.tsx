@@ -149,7 +149,7 @@ function FraudReviewSheetContent({
             </div>
           </div>
 
-          <div className="border-border-subtle flex flex-col gap-4 rounded-xl border p-4">
+          <div className="border-border-subtle flex min-h-40 flex-col gap-4 rounded-xl border p-4">
             <div className="flex flex-col">
               <span className="text-content-default text-sm font-semibold">
                 {fraudRuleInfo.name}
