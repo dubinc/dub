@@ -1,4 +1,9 @@
-import { currencyFormatter, DUB_WORDMARK, formatDate } from "@dub/utils";
+import {
+  currencyFormatter,
+  DUB_WORDMARK,
+  formatDate,
+  formatDateTimeSmart,
+} from "@dub/utils";
 import {
   Body,
   Container,
@@ -12,6 +17,7 @@ import {
   Tailwind,
   Text,
 } from "@react-email/components";
+import { addBusinessDays } from "date-fns";
 import { Footer } from "../components/footer";
 
 // Send this email when the payout is confirmed when payment is send using ACH
@@ -25,9 +31,10 @@ export default function PartnerPayoutConfirmed({
   payout = {
     id: "po_8VuCr2i7WnG65d4TNgZO19fT",
     amount: 490,
+    initiatedAt: new Date("2024-11-22"),
     startDate: new Date("2024-11-01"),
     endDate: new Date("2024-11-30"),
-    paymentMethod: "ach_fast",
+    paymentMethod: "ach",
     mode: "internal",
   },
 }: {
@@ -40,6 +47,7 @@ export default function PartnerPayoutConfirmed({
   payout: {
     id: string;
     amount: number;
+    initiatedAt: Date | null;
     startDate?: Date | null;
     endDate?: Date | null;
     paymentMethod: string;
@@ -112,15 +120,15 @@ export default function PartnerPayoutConfirmed({
               {payout.mode === "external" ? (
                 <>
                   The payout is currently being processed and is expected to be
-                  credited to your{" "}
+                  transferred to your{" "}
                   <strong className="text-black">{program.name}</strong> account{" "}
                   <strong className="text-black">shortly</strong>.
                 </>
               ) : (
                 <>
                   The payout is currently being processed and is expected to be
-                  credited to your account within
-                  <strong>
+                  transferred to your Stripe Express account in
+                  <strong className="text-black">
                     {payout.paymentMethod === "ach_fast"
                       ? " 2 business days"
                       : " 5 business days"}
@@ -129,6 +137,20 @@ export default function PartnerPayoutConfirmed({
                 </>
               )}
             </Text>
+
+            {payout.initiatedAt && (
+              <Text className="text-sm leading-6 text-neutral-600">
+                <span className="text-sm text-neutral-500">
+                  Estimated date of arrival:{" "}
+                  <strong className="text-black">
+                    {formatDateTimeSmart(
+                      addBusinessDays(payout.initiatedAt, 5),
+                    )}
+                  </strong>
+                  .
+                </span>
+              </Text>
+            )}
 
             <Section className="mb-12 mt-8">
               <Link

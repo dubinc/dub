@@ -529,6 +529,9 @@ importers:
       '@react-email/markdown':
         specifier: ^0.0.17
         version: 0.0.17(react@18.3.1)
+      date-fns:
+        specifier: ^3.6.0
+        version: 3.6.0
       lucide-react:
         specifier: ^0.462.0
         version: 0.462.0(react@18.3.1)
