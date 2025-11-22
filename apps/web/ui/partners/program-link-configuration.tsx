@@ -4,19 +4,8 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { DomainVerificationStatusProps } from "@/lib/types";
 import DomainConfiguration from "@/ui/domains/domain-configuration";
 import { DomainSelector } from "@/ui/domains/domain-selector";
-import {
-  AnimatedSizeContainer,
-  Button,
-  InfoTooltip,
-  Input,
-  LinkLogo,
-} from "@dub/ui";
-import {
-  ArrowTurnRight2,
-  ChevronLeft,
-  ChevronRight,
-  LoadingSpinner,
-} from "@dub/ui/icons";
+import { AnimatedSizeContainer, InfoTooltip, Input, LinkLogo } from "@dub/ui";
+import { ArrowTurnRight2, ChevronRight, LoadingSpinner } from "@dub/ui/icons";
 import { cn, fetcher, getApexDomain, getPrettyUrl } from "@dub/utils";
 import { AnimatePresence, motion } from "motion/react";
 import { useMemo, useState } from "react";
@@ -49,16 +38,7 @@ export function ProgramLinkConfiguration({
 
   return (
     <div className="space-y-6">
-      <div>
-        <div className="mb-2 flex items-center gap-x-2">
-          <label className="block text-sm font-medium text-neutral-800">
-            Program domain
-          </label>
-
-          <InfoTooltip content="A connected domain or sub-domain is required to create a program. [Learn more](https://dub.co/help/article/choosing-a-custom-domain)" />
-        </div>
-        <DomainOnboarding domain={domain} onDomainChange={onDomainChange} />
-      </div>
+      <DomainOnboarding domain={domain} onDomainChange={onDomainChange} />
 
       <div className="space-y-2">
         <label className="block text-sm font-medium text-neutral-800">
@@ -198,95 +178,114 @@ function DomainOnboarding({ domain, onDomainChange }: DomainProps) {
     <>
       <RegisterDomainModal />
       <AddEditDomainModal />
-      <AnimatedSizeContainer
-        height
-        transition={{ ease: "easeOut", duration: 0.1 }}
-        className="-m-1"
-      >
-        <div className="p-1">
-          <AnimatePresence initial={false} mode="popLayout">
-            {state === "idle" && (
-              <motion.div
-                key="idle"
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.2 }}
-              >
-                <div className="flex flex-col gap-2">
-                  {idleOptions.map((option) => (
-                    <button
-                      key={option.title}
-                      type="button"
-                      className={cn(
-                        "bg-bg-default border-border-subtle group flex items-center justify-between gap-3 rounded-xl border p-1.5 pr-4",
-                        "hover:bg-bg-inverted/[0.03] active:bg-bg-inverted/5",
-                        "transition-opacity disabled:cursor-not-allowed disabled:opacity-60",
-                      )}
-                      onClick={() => option.onSelect()}
-                      disabled={option.loading}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="bg-bg-inverted/5 flex size-10 items-center justify-center rounded-lg">
-                          <img
-                            src={option.icon}
-                            alt=""
-                            className="size-7 object-contain transition-transform ease-out group-hover:scale-105"
-                          />
-                        </div>
-                        <div className="flex flex-col">
-                          <div className="flex items-center gap-1">
-                            <span className="text-content-emphasis text-xs font-semibold">
-                              {option.title}
-                            </span>
-                            <div
-                              className={cn(
-                                "rounded-md px-1 text-xs font-semibold",
-                                option.badgeClassName,
-                              )}
-                            >
-                              {option.badge}
-                            </div>
-                          </div>
-                          <p className="text-content-subtle text-xs">
-                            {option.description}
-                          </p>
-                        </div>
-                      </div>
-
-                      {option.loading ? (
-                        <LoadingSpinner className="size-3 shrink-0" />
-                      ) : (
-                        <ChevronRight className="text-content-muted size-3 shrink-0 transition-transform ease-out group-hover:translate-x-0.5" />
-                      )}
-                    </button>
-                  ))}
-                </div>
-
-                <p className="mt-2 text-xs font-normal text-neutral-500">
-                  This domain will be used for your program’s referral links
-                </p>
-              </motion.div>
-            )}
-
-            {state === "select" && (
-              <motion.div
-                key="select"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 10 }}
-                transition={{ duration: 0.2 }}
-              >
-                <DomainOnboardingSelection
-                  domain={domain}
-                  onDomainChange={onDomainChange}
-                  onBack={() => setState("idle")}
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
+      <div>
+        <div className="mb-2 flex items-center justify-between">
+          <div className="flex items-center gap-x-2">
+            <label className="block text-sm font-medium text-neutral-800">
+              Program domain
+            </label>
+            <InfoTooltip content="A connected domain or sub-domain is required to create a program. [Learn more](https://dub.co/help/article/choosing-a-custom-domain)" />
+          </div>
+          {state === "select" && (
+            <button
+              type="button"
+              onClick={() => setState("idle")}
+              className="text-xs font-normal text-neutral-500 underline underline-offset-2 transition-colors hover:text-neutral-700"
+            >
+              Select a different option
+            </button>
+          )}
         </div>
-      </AnimatedSizeContainer>
+        <AnimatedSizeContainer
+          height
+          transition={{ ease: "easeOut", duration: 0.1 }}
+          className="-m-1"
+        >
+          <div className="p-1">
+            <AnimatePresence initial={false} mode="popLayout">
+              {state === "idle" && (
+                <motion.div
+                  key="idle"
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <div className="flex flex-col gap-2">
+                    {idleOptions.map((option) => (
+                      <button
+                        key={option.title}
+                        type="button"
+                        className={cn(
+                          "bg-bg-default border-border-subtle group flex items-center justify-between gap-3 rounded-xl border p-1.5 pr-4",
+                          "hover:bg-bg-inverted/[0.03] active:bg-bg-inverted/5",
+                          "transition-opacity disabled:cursor-not-allowed disabled:opacity-60",
+                        )}
+                        onClick={() => option.onSelect()}
+                        disabled={option.loading}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="bg-bg-inverted/5 flex size-10 items-center justify-center rounded-lg">
+                            <img
+                              src={option.icon}
+                              alt=""
+                              className="size-7 object-contain transition-transform ease-out group-hover:scale-105"
+                            />
+                          </div>
+                          <div className="flex flex-col">
+                            <div className="flex items-center gap-1">
+                              <span className="text-content-emphasis text-xs font-semibold">
+                                {option.title}
+                              </span>
+                              <div
+                                className={cn(
+                                  "rounded-md px-1 text-xs font-semibold",
+                                  option.badgeClassName,
+                                )}
+                              >
+                                {option.badge}
+                              </div>
+                            </div>
+                            <p className="text-content-subtle text-xs">
+                              {option.description}
+                            </p>
+                          </div>
+                        </div>
+
+                        {option.loading ? (
+                          <LoadingSpinner className="size-3 shrink-0" />
+                        ) : (
+                          <ChevronRight className="text-content-muted size-3 shrink-0 transition-transform ease-out group-hover:translate-x-0.5" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+
+                  <p className="mt-2 text-xs font-normal text-neutral-500">
+                    This domain will be used for your program’s referral links
+                  </p>
+                </motion.div>
+              )}
+
+              {state === "select" && (
+                <motion.div
+                  key="select"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <DomainOnboardingSelection
+                    domain={domain}
+                    onDomainChange={onDomainChange}
+                    onBack={() => setState("idle")}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </AnimatedSizeContainer>
+      </div>
     </>
   );
 }
@@ -310,15 +309,6 @@ function DomainOnboardingSelection({
 
   return (
     <div>
-      <Button
-        type="button"
-        onClick={onBack}
-        variant="secondary"
-        className="my-2 h-7 w-full text-xs"
-        icon={<ChevronLeft className="size-3" />}
-        text="Select a different option"
-      />
-
       <DomainSelector
         selectedDomain={domain || ""}
         setSelectedDomain={onDomainChange}
