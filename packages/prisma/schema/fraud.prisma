@@ -38,7 +38,7 @@ model FraudEvent {
   groupKey         String
   metadata         Json?            @db.Json
   userId           String?
-  resolutionReason String?
+  resolutionReason String?          @db.Text
   resolvedAt       DateTime?
   status           FraudEventStatus @default(pending)
   createdAt        DateTime         @default(now())

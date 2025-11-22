@@ -7,7 +7,7 @@ import { ProgramFraudSettingsButton } from "./program-fraud-settings-button";
 export default function ProgramFraudRiskPage() {
   return (
     <PageContent
-      title="Fraud & Risk"
+      title="Fraud Detection"
       controls={
         <>
           <ProgramFraudSettingsButton />

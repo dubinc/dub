@@ -7,7 +7,7 @@ import { getPaginationQuerySchema } from "./misc";
 import { PartnerSchema } from "./partners";
 import { UserSchema } from "./users";
 
-export const MAX_RESOLUTION_REASON_LENGTH = 1000;
+export const MAX_RESOLUTION_REASON_LENGTH = 200;
 
 export const fraudEventSchema = z.object({
   id: z.string(),
