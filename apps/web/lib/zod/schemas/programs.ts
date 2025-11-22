@@ -129,6 +129,11 @@ export const ProgramEnrollmentSchema = z.object({
       "If the partner was banned from the program, this is the reason for the ban.",
     ),
   group: GroupSchema.pick({
+    id: true,
+    logo: true,
+    wordmark: true,
+    brandColor: true,
+    holdingPeriodDays: true,
     additionalLinks: true,
     maxPartnerLinks: true,
     linkStructure: true,

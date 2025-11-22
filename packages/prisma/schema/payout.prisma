@@ -32,10 +32,10 @@ model Payout {
   webhookEventId   String?      @unique // only for external payouts
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     @updatedAt
-  
-  userId           String? // user who made the payout
-  initiatedAt      DateTime?
-  paidAt           DateTime?
+
+  userId      String? // user who made the payout
+  initiatedAt DateTime?
+  paidAt      DateTime?
 
   program     Program      @relation(fields: [programId], references: [id])
   partner     Partner      @relation(fields: [partnerId], references: [id])

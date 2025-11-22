@@ -15,6 +15,8 @@ import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
 import {
   createOrUpdateRewardSchema,
   ENTITY_ATTRIBUTE_TYPES,
+  REWARD_DESCRIPTION_MAX_LENGTH,
+  REWARD_TOOLTIP_DESCRIPTION_MAX_LENGTH,
   rewardConditionsArraySchema,
   rewardConditionSchema,
   rewardConditionsSchema,
@@ -53,9 +55,11 @@ import {
   InlineBadgePopoverContext,
   InlineBadgePopoverInput,
   InlineBadgePopoverMenu,
+  InlineBadgePopoverRichTextArea,
 } from "../../shared/inline-badge-popover";
 import { RewardDiscountPartnersCard } from "../groups/reward-discount-partners-card";
 import { RewardIconSquare } from "./reward-icon-square";
+import { RewardPreviewCard } from "./reward-preview-card";
 import { REWARD_TYPES, RewardsLogic } from "./rewards-logic";
 
 interface RewardSheetProps {
@@ -79,6 +83,63 @@ const formSchema = createOrUpdateRewardSchema.extend({
 type FormData = z.infer<typeof formSchema>;
 
 export const useAddEditRewardForm = () => useFormContext<FormData>();
+
+export const getRewardPayload = ({ data }: { data: FormData }) => {
+  let modifiers: RewardConditionsArray | null = null;
+
+  if (data.modifiers?.length) {
+    modifiers = rewardConditionsArraySchema.parse(
+      data.modifiers.map((m) => {
+        const type = m.type === undefined ? data.type : m.type;
+        const maxDuration =
+          m.maxDuration === undefined ? data.maxDuration : m.maxDuration;
+
+        return {
+          ...m,
+          conditions: m.conditions.map((c) => ({
+            ...c,
+            value:
+              c.entity &&
+              c.attribute &&
+              ENTITY_ATTRIBUTE_TYPES[c.entity]?.[c.attribute] === "currency"
+                ? c.value === "" ||
+                  c.value == null ||
+                  Number.isNaN(Number(c.value))
+                  ? c.value
+                  : Math.round(Number(c.value) * 100)
+                : c.value,
+          })),
+          amountInCents:
+            type === "flat" && m.amountInCents !== undefined
+              ? Math.round(m.amountInCents * 100)
+              : undefined,
+          amountInPercentage:
+            type === "percentage" ? m.amountInPercentage : undefined,
+          maxDuration: maxDuration === Infinity ? null : maxDuration,
+        };
+      }),
+    );
+  }
+
+  const amount =
+    data.type === "flat"
+      ? {
+          amountInCents: Math.round((data.amountInCents ?? 0) * 100),
+          amountInPercentage: undefined,
+        }
+      : {
+          amountInCents: undefined,
+          amountInPercentage: data.amountInPercentage,
+        };
+
+  return {
+    ...data,
+    ...amount,
+    maxDuration:
+      Infinity === Number(data.maxDuration) ? null : data.maxDuration,
+    modifiers,
+  };
+};
 
 function RewardSheetContent({
   setIsOpen,
@@ -118,6 +179,7 @@ function RewardSheetContent({
           ? defaultValuesSource.amountInPercentage
           : undefined,
       description: defaultValuesSource?.description ?? null,
+      tooltipDescription: defaultValuesSource?.tooltipDescription ?? null,
       modifiers: defaultValuesSource?.modifiers?.map((m) => {
         const maxDuration =
           m.maxDuration === undefined
@@ -156,6 +218,7 @@ function RewardSheetContent({
     type,
     maxDuration,
     description,
+    tooltipDescription,
     modifiers,
   ] = watch([
     "event",
@@ -164,6 +227,7 @@ function RewardSheetContent({
     "type",
     "maxDuration",
     "description",
+    "tooltipDescription",
     "modifiers",
   ]);
 
@@ -233,70 +297,24 @@ function RewardSheetContent({
       return;
     }
 
-    let modifiers: RewardConditionsArray | null = null;
+    let payload: ReturnType<typeof getRewardPayload> | null = null;
 
-    if (data.modifiers?.length) {
-      try {
-        modifiers = rewardConditionsArraySchema.parse(
-          data.modifiers.map((m) => {
-            const type = m.type === undefined ? data.type : m.type;
-            const maxDuration =
-              m.maxDuration === undefined ? data.maxDuration : m.maxDuration;
+    try {
+      payload = {
+        ...getRewardPayload({
+          data,
+        }),
+        workspaceId,
+      };
+    } catch (error) {
+      console.log("parse error", error);
+      setError("root.logic", { message: "Invalid reward condition" });
+      toast.error(
+        "Invalid reward condition. Please fix the errors and try again.",
+      );
 
-            return {
-              ...m,
-              conditions: m.conditions.map((c) => ({
-                ...c,
-                value:
-                  c.entity &&
-                  c.attribute &&
-                  ENTITY_ATTRIBUTE_TYPES[c.entity]?.[c.attribute] === "currency"
-                    ? c.value === "" ||
-                      c.value == null ||
-                      Number.isNaN(Number(c.value))
-                      ? c.value
-                      : Math.round(Number(c.value) * 100)
-                    : c.value,
-              })),
-              amountInCents:
-                type === "flat" && m.amountInCents !== undefined
-                  ? Math.round(m.amountInCents * 100)
-                  : undefined,
-              amountInPercentage:
-                type === "percentage" ? m.amountInPercentage : undefined,
-              maxDuration: maxDuration === Infinity ? null : maxDuration,
-            };
-          }),
-        );
-      } catch (error) {
-        console.log("parse error", error);
-        setError("root.logic", { message: "Invalid reward condition" });
-        toast.error(
-          "Invalid reward condition. Please fix the errors and try again.",
-        );
-        return;
-      }
+      return;
     }
-
-    const amount =
-      type === "flat"
-        ? {
-            amountInCents: Math.round((data.amountInCents ?? 0) * 100),
-            amountInPercentage: undefined,
-          }
-        : {
-            amountInCents: undefined,
-            amountInPercentage: data.amountInPercentage,
-          };
-
-    const payload = {
-      ...data,
-      ...amount,
-      workspaceId,
-      maxDuration:
-        Infinity === Number(data.maxDuration) ? null : data.maxDuration,
-      modifiers,
-    };
 
     if (!reward) {
       await createReward({
@@ -466,7 +484,7 @@ function RewardSheetContent({
                   <div className="pt-2.5">
                     <div className="border-border-subtle flex min-w-0 items-center gap-2.5 border-t px-2.5 pt-2.5">
                       <RewardIconSquare icon={Gift} />
-                      <span className="grow leading-relaxed">
+                      <span className="min-w-0 grow leading-relaxed">
                         Shown as{" "}
                         <InlineBadgePopover
                           text={description || "Reward description"}
@@ -484,7 +502,25 @@ function RewardSheetContent({
                               )
                             }
                             className="sm:w-80"
-                            maxLength={100}
+                            maxLength={REWARD_DESCRIPTION_MAX_LENGTH}
+                          />
+                        </InlineBadgePopover>
+                        with the tooltip{" "}
+                        <InlineBadgePopover
+                          text={tooltipDescription || "Reward tooltip"}
+                          showOptional={!tooltipDescription}
+                          buttonClassName="min-w-0 max-w-full"
+                          contentClassName="truncate"
+                        >
+                          <InlineBadgePopoverRichTextArea
+                            value={tooltipDescription ?? ""}
+                            onChange={(value) =>
+                              setValue("tooltipDescription", value, {
+                                shouldDirty: true,
+                              })
+                            }
+                            className="sm:w-80"
+                            maxLength={REWARD_TOOLTIP_DESCRIPTION_MAX_LENGTH}
                           />
                         </InlineBadgePopover>
                       </span>
@@ -509,8 +545,14 @@ function RewardSheetContent({
           />
 
           <VerticalLine />
+          <RewardPreviewCard />
 
-          {group && <RewardDiscountPartnersCard groupId={group.id} />}
+          {group && (
+            <>
+              <VerticalLine />
+              <RewardDiscountPartnersCard groupId={group.id} />
+            </>
+          )}
         </div>
 
         <div className="flex items-center justify-between border-t border-neutral-200 p-5">

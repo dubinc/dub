@@ -13,6 +13,7 @@ model Reward {
   id                 String          @id @default(cuid())
   programId          String
   description        String?
+  tooltipDescription String?         @db.Text
   event              EventType
   type               RewardStructure @default(percentage)
   amountInCents      Int?

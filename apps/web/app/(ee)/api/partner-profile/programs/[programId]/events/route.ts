@@ -92,6 +92,7 @@ export const GET = withPartnerProfile(
             .object({
               id: z.string(),
               email: z.string(),
+              ...(customerDataSharingEnabledAt && { name: z.string() }),
             })
             .parse({
               ...customer,
@@ -100,6 +101,9 @@ export const GET = withPartnerProfile(
                   ? customer.email
                   : customer.email.replace(/(?<=^.).+(?=.@)/, "****")
                 : customer.name || generateRandomName(),
+              ...(customerDataSharingEnabledAt && {
+                name: customer.name || generateRandomName(),
+              }),
             }),
         }),
       };

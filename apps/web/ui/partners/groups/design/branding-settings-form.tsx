@@ -1,18 +1,59 @@
 "use client";
 
+import { updateGroupBrandingAction } from "@/lib/actions/partners/update-group-branding";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramColorPicker } from "@/ui/partners/program-color-picker";
-import { FileUpload, InfoTooltip } from "@dub/ui";
+import { Button, FileUpload, InfoTooltip } from "@dub/ui";
 import { Plus } from "@dub/ui/icons";
 import { cn } from "@dub/utils/src";
-import Link from "next/link";
-import { ReactNode, useId } from "react";
-import { Controller } from "react-hook-form";
+import { useAction } from "next-safe-action/hooks";
+import { ReactNode, useCallback, useId, useState } from "react";
+import { Controller, useFormState } from "react-hook-form";
+import { toast } from "sonner";
+import { useBrandingContext } from "./branding-context-provider";
 import { useBrandingFormContext } from "./branding-form";
 
+const FIELDS = ["logo", "wordmark", "brandColor"] as const;
+
 export function BrandingSettingsForm() {
-  const { slug } = useWorkspace();
-  const { control } = useBrandingFormContext();
+  const { id: workspaceId } = useWorkspace();
+
+  const { group, mutateGroup } = useBrandingContext();
+  const { control, getValues, resetField } = useBrandingFormContext();
+  const { dirtyFields } = useFormState({ control });
+
+  const isDirty = FIELDS.some((field) => dirtyFields[field]);
+
+  const [isLoading, setIsLoading] = useState(false);
+
+  const { executeAsync } = useAction(updateGroupBrandingAction, {
+    async onSuccess() {
+      toast.success("Brand elements updated successfully.");
+
+      FIELDS.forEach((field) =>
+        resetField(field, { keepDirty: false, defaultValue: getValues(field) }),
+      );
+
+      await mutateGroup();
+      setIsLoading(false);
+    },
+    onError({ error }) {
+      const message = error.serverError || "Failed to update brand elements.";
+      toast.error(message);
+      setIsLoading(false);
+    },
+  });
+
+  const handleSave = useCallback(() => {
+    if (!workspaceId) return;
+
+    setIsLoading(true);
+    executeAsync({
+      workspaceId,
+      groupId: group.id,
+      ...Object.fromEntries(FIELDS.map((field) => [field, getValues(field)])),
+    });
+  }, [getValues, group.id, workspaceId]);
 
   return (
     <div>
@@ -22,17 +63,19 @@ export function BrandingSettingsForm() {
             label="Brand elements"
             description={
               <>
-                Set the group style and content for{" "}
-                <Link
-                  className="font-semibold decoration-dotted underline-offset-2 hover:underline"
-                  href={`/${slug}/program/groups`}
+                Set the style and content for this partner group.{" "}
+                <a
+                  className="cursor-help font-semibold underline decoration-dotted underline-offset-2"
+                  href="https://dub.co/help/article/program-landing-page"
+                  target="_blank"
+                  rel="noopener noreferrer"
                 >
-                  all partner groups
-                </Link>
-                . This will be how it appears to all your partners.
+                  Learn more
+                </a>
+                .
               </>
             }
-          />
+          ></FormRow>
 
           <Divider />
 
@@ -111,6 +154,15 @@ export function BrandingSettingsForm() {
               />
             )}
           </FormRow>
+
+          <Button
+            type="button"
+            text="Save"
+            className="h-8 rounded-lg"
+            disabled={!isDirty}
+            loading={isLoading}
+            onClick={handleSave}
+          />
         </div>
       </div>
     </div>

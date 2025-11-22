@@ -14,7 +14,12 @@ import { cn, OG_AVATAR_URL } from "@dub/utils";
 import { Command } from "cmdk";
 import { ChevronsUpDown } from "lucide-react";
 import Link from "next/link";
-import { useParams, usePathname, useRouter } from "next/navigation";
+import {
+  useParams,
+  usePathname,
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
 
 export function PartnerProgramDropdown() {
@@ -142,11 +147,13 @@ function ProgramList({
 }) {
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const searchParamsString = searchParams.toString();
 
   const href = useCallback(
     (slug: string) =>
       selectedProgram
-        ? pathname?.replace(selectedProgram.slug, slug).split("?")[0] || "/"
+        ? `${pathname.replace(selectedProgram.slug, slug)}${searchParamsString.length > 0 ? `?${searchParamsString}` : ""}`
         : `/programs/${slug}`,
     [pathname, selectedProgram],
   );

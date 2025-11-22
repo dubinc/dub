@@ -167,12 +167,16 @@ export const RewardSchema = z.object({
   id: z.string(),
   event: z.nativeEnum(EventType),
   description: z.string().nullish(),
+  tooltipDescription: z.string().nullish(),
   type: z.nativeEnum(RewardStructure),
   amountInCents: z.number().int().nullable().optional(),
   amountInPercentage: decimalToNumber,
   maxDuration: z.number().nullish(),
   modifiers: z.any().nullish(), // TODO: Fix this
 });
+
+export const REWARD_DESCRIPTION_MAX_LENGTH = 100;
+export const REWARD_TOOLTIP_DESCRIPTION_MAX_LENGTH = 2000;
 
 export const createOrUpdateRewardSchema = z.object({
   workspaceId: z.string(),
@@ -182,7 +186,11 @@ export const createOrUpdateRewardSchema = z.object({
   amountInPercentage: PERCENTAGE_REWARD_AMOUNT_SCHEMA.optional(),
   maxDuration: maxDurationSchema,
   modifiers: rewardConditionsArraySchema.nullish(),
-  description: z.string().max(100).nullish(),
+  description: z.string().max(REWARD_DESCRIPTION_MAX_LENGTH).nullish(),
+  tooltipDescription: z
+    .string()
+    .max(REWARD_TOOLTIP_DESCRIPTION_MAX_LENGTH)
+    .nullish(),
   groupId: z.string(),
 });
 
