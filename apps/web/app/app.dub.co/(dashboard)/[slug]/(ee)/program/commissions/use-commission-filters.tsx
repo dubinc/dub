@@ -16,7 +16,7 @@ import { useDebounce } from "use-debounce";
 
 export function useCommissionFilters() {
   const { slug } = useWorkspace();
-  const { commissionsCount } = useCommissionsCount();
+  const { commissionsCount } = useCommissionsCount({ exclude: ["status"] });
   const { searchParamsObj, queryParams } = useRouterStuff();
 
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
@@ -117,9 +117,11 @@ export function useCommissionFilters() {
                   )}
                 />
               ),
-              right: nFormatter(commissionsCount?.[value]?.count || 0, {
-                full: true,
-              }),
+              right: commissionsCount?.[value]?.count
+                ? nFormatter(commissionsCount[value].count, {
+                    full: true,
+                  })
+                : undefined,
             };
           },
         ),

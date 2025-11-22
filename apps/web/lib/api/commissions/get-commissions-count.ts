@@ -40,7 +40,13 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
       },
       programId,
       partnerId,
-      status,
+      status: status ?? {
+        notIn: [
+          CommissionStatus.duplicate,
+          CommissionStatus.fraud,
+          CommissionStatus.canceled,
+        ],
+      },
       type,
       payoutId,
       customerId,
@@ -96,22 +102,14 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
     }
   });
 
-  // counts all statuses except duplicate, fraud, and canceled
-  const excludedStatuses: CommissionStatus[] = [
-    CommissionStatus.duplicate,
-    CommissionStatus.fraud,
-    CommissionStatus.canceled,
-  ];
-  counts.all = commissionsCount
-    .filter((p) => !excludedStatuses.includes(p.status))
-    .reduce(
-      (acc, p) => ({
-        count: acc.count + p._count,
-        amount: acc.amount + (p._sum.amount ?? 0),
-        earnings: acc.earnings + (p._sum.earnings ?? 0),
-      }),
-      { count: 0, amount: 0, earnings: 0 },
-    );
+  counts.all = commissionsCount.reduce(
+    (acc, p) => ({
+      count: acc.count + p._count,
+      amount: acc.amount + (p._sum.amount ?? 0),
+      earnings: acc.earnings + (p._sum.earnings ?? 0),
+    }),
+    { count: 0, amount: 0, earnings: 0 },
+  );
 
   return counts;
 }
