@@ -25,7 +25,7 @@ export const messagePartnerAction = authActionClient
   .schema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const { partnerId, text, createdAt } = parsedInput;
+    const { partnerId, text } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
     if (!getPlanCapabilities(workspace.plan).canMessagePartners) {
@@ -118,7 +118,6 @@ export const messagePartnerAction = authActionClient
         partnerId,
         senderUserId: user.id,
         text,
-        createdAt,
       },
       include: {
         senderUser: true,
