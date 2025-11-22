@@ -11,7 +11,7 @@ import {
   RichTextToolbar,
   useScrollProgress,
 } from "@dub/ui";
-import { cn } from "@dub/utils";
+import { cn, nFormatter } from "@dub/utils";
 import { Command } from "cmdk";
 import {
   createContext,
@@ -368,7 +368,8 @@ export const InlineBadgePopoverRichTextArea = ({
       <div className="mt-1 flex items-center justify-between px-1">
         {maxLength ? (
           <div className="text-content-subtle mt-1 text-xs">
-            {value?.toString().length || 0}/{maxLength} characters
+            {nFormatter(value?.toString().length || 0, { full: true })}/
+            {nFormatter(maxLength, { full: true })} characters
           </div>
         ) : (
           <div />
