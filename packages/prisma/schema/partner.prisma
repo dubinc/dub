@@ -1,9 +1,3 @@
-enum PartnerStatus {
-  default
-  verified
-  featured
-}
-
 enum PartnerRole {
   owner
   member
@@ -31,7 +25,6 @@ model Partner {
   image       String?
   description String?            @db.Text
   country     String?
-  status      PartnerStatus      @default(default)
 
   // payout fields
   paypalEmail                  String?   @unique

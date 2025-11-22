@@ -1,6 +1,7 @@
 "use client";
 
 import useCommissionsCount from "@/lib/swr/use-commissions-count";
+import useGroups from "@/lib/swr/use-groups";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CommissionResponse } from "@/lib/types";
@@ -50,6 +51,7 @@ export function CommissionTable() {
   const workspace = useWorkspace();
   const { id: workspaceId, slug } = workspace;
   const { program } = useProgram();
+  const { groups } = useGroups();
 
   const { pagination, setPagination } = usePagination();
   const { queryParams, getQueryString, searchParamsObj } = useRouterStuff();
@@ -199,6 +201,10 @@ export function CommissionTable() {
                 variant: "workspace",
                 program,
                 workspace,
+                group: row.original.partner.groupId
+                  ? groups?.find((g) => g.id === row.original.partner.groupId)
+                  : undefined,
+                commission: row.original,
               })}
             >
               {badge.label}

@@ -46,7 +46,6 @@ export const GET = withWorkspace(
       programId,
       page: 1,
       pageSize: MAX_COMMISSIONS_TO_EXPORT,
-      includeProgramEnrollment: true,
     });
 
     const formattedCommissions = formatCommissionsForExport(
