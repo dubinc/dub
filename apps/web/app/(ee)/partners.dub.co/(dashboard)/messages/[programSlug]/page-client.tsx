@@ -1,5 +1,6 @@
 "use client";
 
+import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { markProgramMessagesReadAction } from "@/lib/actions/partners/mark-program-messages-read";
 import { messageProgramAction } from "@/lib/actions/partners/message-program";
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
@@ -88,7 +89,11 @@ export function PartnerMessagesProgramPageClient() {
   const program = programMessages?.[0]?.program;
   const messages = programMessages?.[0]?.messages;
 
-  const { executeAsync: sendMessage } = useAction(messageProgramAction);
+  const { executeAsync: sendMessage } = useAction(messageProgramAction, {
+    onError({ error }) {
+      toast.error(parseActionError(error, "Failed to send message"));
+    },
+  });
 
   const { setCurrentPanel } = useMessagesContext();
   const [isRightPanelOpen, setIsRightPanelOpen] = useState(true);
@@ -201,22 +206,19 @@ export function PartnerMessagesProgramPageClient() {
                         createdAt,
                       });
 
-                      if (!result?.data?.message)
-                        throw new Error(
-                          result?.serverError || "Failed to send message",
-                        );
-
-                      return data
-                        ? [
-                            {
-                              ...data[0],
-                              messages: [
-                                ...data[0].messages,
-                                result.data.message,
-                              ],
-                            },
-                          ]
-                        : [];
+                      if (result?.data?.message) {
+                        return data
+                          ? [
+                              {
+                                ...data[0],
+                                messages: [
+                                  ...data[0].messages,
+                                  result.data.message,
+                                ],
+                              },
+                            ]
+                          : [];
+                      }
                     },
                     {
                       optimisticData: (data) =>
@@ -261,8 +263,8 @@ export function PartnerMessagesProgramPageClient() {
 
                   mutatePrefix("/api/partner-profile/messages");
                 } catch (e) {
-                  console.log("Failed to send message", e);
-                  toast.error("Failed to send message");
+                  console.log(`Failed to send message: ${e}`);
+                  toast.error(`Failed to send message: ${e}`);
                 }
               }}
             />

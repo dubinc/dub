@@ -337,7 +337,7 @@ function AmountRowItem({
           content={
             <TooltipContent
               title={`Your program's minimum payout amount is ${currencyFormatter(
-                minPayoutAmount / 100,
+                minPayoutAmount,
               )}. This payout will be accrued and processed during the next payout period.`}
               cta="Update minimum payout amount"
               href={`/${slug}/program/payouts?status=pending&sortBy=amount`}

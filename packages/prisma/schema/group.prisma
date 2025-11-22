@@ -5,25 +5,30 @@ enum PartnerLinkStructure {
 }
 
 model PartnerGroup {
-  id                         String               @id @default(cuid())
-  programId                  String
-  name                       String
-  slug                       String
-  color                      String?
-  clickRewardId              String?              @unique
-  leadRewardId               String?              @unique
-  saleRewardId               String?              @unique
-  discountId                 String?              @unique
-  linkStructure              PartnerLinkStructure @default(short)
-  additionalLinks            Json?                @db.Json
-  maxPartnerLinks            Int                  @default(0)
-  applicationFormData        Json?                @db.Json
-  applicationFormPublishedAt DateTime?
-  landerData                 Json?                @db.Json
-  landerPublishedAt          DateTime?
-  utmTemplateId              String?              @unique
-  createdAt                  DateTime             @default(now())
-  updatedAt                  DateTime             @updatedAt
+  id                           String               @id @default(cuid())
+  programId                    String
+  name                         String
+  slug                         String
+  color                        String?
+  clickRewardId                String?              @unique
+  leadRewardId                 String?              @unique
+  saleRewardId                 String?              @unique
+  discountId                   String?              @unique
+  linkStructure                PartnerLinkStructure @default(short)
+  additionalLinks              Json?                @db.Json
+  maxPartnerLinks              Int                  @default(0)
+  applicationFormData          Json?                @db.Json
+  applicationFormPublishedAt   DateTime?
+  landerData                   Json?                @db.Json
+  landerPublishedAt            DateTime?
+  logo                         String?
+  wordmark                     String?
+  brandColor                   String?
+  holdingPeriodDays            Int                  @default(0) // number of days to wait before earnings are added to a payout
+  autoApprovePartnersEnabledAt DateTime?
+  utmTemplateId                String?              @unique
+  createdAt                    DateTime             @default(now())
+  updatedAt                    DateTime             @updatedAt
 
   program                  Program                   @relation(fields: [programId], references: [id], onDelete: Cascade)
   clickReward              Reward?                   @relation("ClickReward", fields: [clickRewardId], references: [id])

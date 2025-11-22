@@ -3,11 +3,15 @@ import {
   AnimatedSizeContainer,
   Button,
   Check2,
+  MarkdownIcon,
   Plus,
   Popover,
+  RichTextArea,
+  RichTextProvider,
+  RichTextToolbar,
   useScrollProgress,
 } from "@dub/ui";
-import { cn } from "@dub/utils";
+import { cn, nFormatter } from "@dub/utils";
 import { Command } from "cmdk";
 import {
   createContext,
@@ -34,14 +38,18 @@ export const InlineBadgePopoverContext = createContext<{
 export function InlineBadgePopover({
   text,
   invalid,
+  showOptional,
   disabled,
   children,
   buttonClassName,
+  contentClassName,
 }: PropsWithChildren<{
   text: ReactNode;
   invalid?: boolean;
+  showOptional?: boolean;
   disabled?: boolean;
   buttonClassName?: string;
+  contentClassName?: string;
 }>) {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -69,11 +77,13 @@ export function InlineBadgePopover({
           "inline-block rounded px-1.5 text-left text-sm font-semibold transition-colors",
           invalid
             ? "bg-orange-50 text-orange-500 hover:bg-orange-100 data-[state=open]:bg-orange-100"
-            : "bg-blue-50 text-blue-700 hover:bg-blue-100 data-[state=open]:bg-blue-100",
+            : showOptional
+              ? "bg-neutral-100 text-neutral-500 hover:bg-neutral-200 data-[state=open]:bg-neutral-200"
+              : "bg-blue-50 text-blue-700 hover:bg-blue-100 data-[state=open]:bg-blue-100",
           buttonClassName,
         )}
       >
-        <span>{text}</span>
+        <span className={contentClassName}>{text}</span>
       </button>
     </Popover>
   );
@@ -299,6 +309,74 @@ export const InlineBadgePopoverInputs = ({
         icon={<Plus className="size-3" />}
         onClick={handleAppend}
       />
+    </div>
+  );
+};
+
+export const InlineBadgePopoverRichTextArea = ({
+  value,
+  onChange,
+  maxLength,
+  className,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  maxLength: number;
+  className?: string;
+}) => {
+  const { setIsOpen } = useContext(InlineBadgePopoverContext);
+
+  return (
+    <div>
+      <div
+        className={cn(
+          "w-full rounded-md border border-neutral-300 shadow-sm focus-within:border-neutral-500 focus-within:ring-1 focus-within:ring-neutral-500 sm:w-32",
+          className,
+        )}
+      >
+        <div>
+          <RichTextProvider
+            features={["bold", "italic", "links"]}
+            style="condensed"
+            markdown
+            placeholder="Reward tooltip"
+            editorClassName="block max-h-24 w-full resize-none border-none overflow-auto scrollbar-hide p-3 text-base sm:text-sm"
+            initialValue={value}
+            onChange={(editor) => onChange((editor as any).getMarkdown())}
+            autoFocus
+            editorProps={{
+              handleDOMEvents: {
+                keydown: (_, e) => {
+                  if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setIsOpen(false);
+                    return false;
+                  }
+                },
+              },
+            }}
+          >
+            <RichTextArea />
+
+            <div className="flex items-center justify-between gap-4 px-1 pb-1">
+              <RichTextToolbar />
+            </div>
+          </RichTextProvider>
+        </div>
+      </div>
+      <div className="mt-1 flex items-center justify-between px-1">
+        {maxLength ? (
+          <div className="text-content-subtle mt-1 text-xs">
+            {nFormatter(value?.toString().length || 0, { full: true })}/
+            {nFormatter(maxLength, { full: true })} characters
+          </div>
+        ) : (
+          <div />
+        )}
+
+        <MarkdownIcon className="text-content-default size-4" />
+      </div>
     </div>
   );
 };

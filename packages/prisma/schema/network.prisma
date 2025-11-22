@@ -30,9 +30,9 @@ model DiscoveredPartner {
   programId String
   partnerId String
 
-  starredAt DateTime?
-  ignoredAt DateTime?
-  invitedAt DateTime?
+  starredAt  DateTime?
+  ignoredAt  DateTime?
+  invitedAt  DateTime?
   messagedAt DateTime?
 
   createdAt DateTime @default(now())

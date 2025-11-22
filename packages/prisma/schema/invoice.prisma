@@ -18,24 +18,24 @@ enum PaymentMethod {
 }
 
 model Invoice {
-  id                   String             @id @default(cuid())
+  id                   String            @id @default(cuid())
   programId            String?
   workspaceId          String
-  number               String?            @unique // This starts with the customer's unique invoicePrefix
-  status               InvoiceStatus      @default(processing)
-  type                 InvoiceType        @default(partnerPayout)
-  payoutMode           ProgramPayoutMode  @default(internal)
+  number               String?           @unique // This starts with the customer's unique invoicePrefix
+  status               InvoiceStatus     @default(processing)
+  type                 InvoiceType       @default(partnerPayout)
+  payoutMode           ProgramPayoutMode @default(internal)
   paymentMethod        PaymentMethod?
-  amount               Int                @default(0) // amount in usd cents
-  fee                  Int                @default(0) // fee in usd cents
-  total                Int                @default(0) // amount + fee in usd cents
-  externalAmount       Int                @default(0) // amount in usd cents for external payouts
-  receiptUrl           String?            @db.Text
-  failedReason         String?            @db.Text
-  registeredDomains    Json?              @db.Json // Array of RegisteredDomain
-  stripeChargeMetadata Json?              @db.Json // Stripe charge metadata
-  failedAttempts       Int                @default(0) // number of failed attempts to charge the invoice
-  createdAt            DateTime           @default(now())
+  amount               Int               @default(0) // amount in usd cents
+  fee                  Int               @default(0) // fee in usd cents
+  total                Int               @default(0) // amount + fee in usd cents
+  externalAmount       Int               @default(0) // amount in usd cents for external payouts
+  receiptUrl           String?           @db.Text
+  failedReason         String?           @db.Text
+  registeredDomains    Json?             @db.Json // Array of RegisteredDomain
+  stripeChargeMetadata Json?             @db.Json // Stripe charge metadata
+  failedAttempts       Int               @default(0) // number of failed attempts to charge the invoice
+  createdAt            DateTime          @default(now())
   paidAt               DateTime?
 
   payouts   Payout[]

@@ -23,51 +23,51 @@ enum MonthlyTraffic {
 }
 
 model Partner {
-  id                           String             @id @default(cuid())
-  name                         String
-  companyName                  String?
-  profileType                  PartnerProfileType @default(individual)
-  email                        String?            @unique
-  image                        String?
-  description                  String?            @db.Text
-  country                      String?
-  status                       PartnerStatus      @default(default)
+  id          String             @id @default(cuid())
+  name        String
+  companyName String?
+  profileType PartnerProfileType @default(individual)
+  email       String?            @unique
+  image       String?
+  description String?            @db.Text
+  country     String?
+  status      PartnerStatus      @default(default)
 
   // payout fields
-  paypalEmail                  String?            @unique
-  stripeConnectId              String?            @unique
+  paypalEmail                  String?   @unique
+  stripeConnectId              String?   @unique
   payoutsEnabledAt             DateTime?
-  payoutMethodHash             String?            @unique
+  payoutMethodHash             String?   @unique
   connectPayoutsLastRemindedAt DateTime?
 
   // timestamp fields
-  createdAt                    DateTime           @default(now())
-  updatedAt                    DateTime           @updatedAt
-  discoverableAt               DateTime?
-  trustedAt                    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  discoverableAt DateTime?
+  trustedAt      DateTime?
 
   // online presence fields
-  website                      String?
-  websiteTxtRecord             String?
-  websiteVerifiedAt            DateTime?
-  youtube                      String?
-  youtubeChannelId             String?
-  youtubeVerifiedAt            DateTime?
-  youtubeSubscriberCount       Int                @default(0)
-  youtubeVideoCount            Int                @default(0)
-  youtubeViewCount             Int                @default(0)
-  twitter                      String?
-  twitterVerifiedAt            DateTime?
-  linkedin                     String?
-  linkedinVerifiedAt           DateTime?
-  instagram                    String?
-  instagramVerifiedAt          DateTime?
-  tiktok                       String?
-  tiktokVerifiedAt             DateTime?
+  website                String?
+  websiteTxtRecord       String?
+  websiteVerifiedAt      DateTime?
+  youtube                String?
+  youtubeChannelId       String?
+  youtubeVerifiedAt      DateTime?
+  youtubeSubscriberCount Int       @default(0)
+  youtubeVideoCount      Int       @default(0)
+  youtubeViewCount       Int       @default(0)
+  twitter                String?
+  twitterVerifiedAt      DateTime?
+  linkedin               String?
+  linkedinVerifiedAt     DateTime?
+  instagram              String?
+  instagramVerifiedAt    DateTime?
+  tiktok                 String?
+  tiktokVerifiedAt       DateTime?
 
   // miscellaneous fields
-  invoiceSettings              Json?
-  changeHistoryLog             Json?
+  invoiceSettings  Json?
+  changeHistoryLog Json?
 
   programs                   ProgramEnrollment[]
   users                      PartnerUser[]

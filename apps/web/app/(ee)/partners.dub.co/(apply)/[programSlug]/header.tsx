@@ -1,6 +1,6 @@
 "use client";
 
-import { Program } from "@dub/prisma/client";
+import { PartnerGroup } from "@dub/prisma/client";
 import { Button, useScroll, Wordmark } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useSession } from "next-auth/react";
@@ -8,11 +8,11 @@ import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 
 export function ApplyHeader({
-  program,
+  group,
   showLogin = true,
   showApply = true,
 }: {
-  program: Pick<Program, "slug" | "wordmark" | "logo">;
+  group: Pick<PartnerGroup, "logo" | "wordmark">;
   showLogin?: boolean;
   showApply?: boolean;
 }) {
@@ -21,7 +21,7 @@ export function ApplyHeader({
 
   const scrolled = useScroll(0);
 
-  const { groupSlug } = useParams();
+  const { programSlug, groupSlug } = useParams();
 
   const partnerGroupSlug = groupSlug ? `/${groupSlug}` : "";
 
@@ -40,13 +40,13 @@ export function ApplyHeader({
       />
 
       <Link
-        href={`/${program.slug}${partnerGroupSlug}`}
+        href={`/${programSlug}${partnerGroupSlug}`}
         className="animate-fade-in my-0.5 block"
       >
-        {program.wordmark || program.logo ? (
+        {group.wordmark || group.logo ? (
           <img
             className="max-h-7 max-w-32"
-            src={(program.wordmark ?? program.logo) as string}
+            src={(group.wordmark ?? group.logo) as string}
           />
         ) : (
           <Wordmark className="h-7" />
@@ -55,7 +55,7 @@ export function ApplyHeader({
 
       <div className="flex items-center gap-2">
         {showLogin && !session?.user && status !== "loading" && (
-          <Link href={`/${program.slug}/login?next=${pathname}`}>
+          <Link href={`/${programSlug}/login?next=${pathname}`}>
             <Button
               type="button"
               variant="secondary"
@@ -65,7 +65,7 @@ export function ApplyHeader({
           </Link>
         )}
         {showApply && (
-          <Link href={`/${program.slug}${partnerGroupSlug}/apply`}>
+          <Link href={`/${programSlug}${partnerGroupSlug}/apply`}>
             <Button
               type="button"
               text="Apply"

@@ -1,8 +1,6 @@
 "use client";
 
-import useDiscounts from "@/lib/swr/use-discounts";
-import useProgram from "@/lib/swr/use-program";
-import useRewards from "@/lib/swr/use-rewards";
+import useGroup from "@/lib/swr/use-group";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { programLanderEarningsCalculatorBlockSchema } from "@/lib/zod/schemas/program-lander";
 import { Button, Modal, useMediaQuery, useScrollProgress } from "@dub/ui";
@@ -176,7 +174,7 @@ function Preview({
 }) {
   const productPrice = useWatch({ control, name: "productPrice" });
 
-  const { program } = useProgram();
+  const { group } = useGroup();
   const { control: brandingFormControl } = useBrandingFormContext();
 
   const brandColor = useWatch({
@@ -184,10 +182,7 @@ function Preview({
     name: "brandColor",
   });
 
-  const { rewards } = useRewards();
-  const { discounts } = useDiscounts();
-
-  if (!program) return null;
+  if (!group) return null;
 
   return (
     <EarningsCalculatorBlock
@@ -199,7 +194,7 @@ function Preview({
             Math.min(Math.max(productPrice || 0, 0), MAX_PRODUCT_PRICE) * 100,
         },
       }}
-      program={{ ...program, brandColor, rewards, discounts }}
+      group={{ ...group, brandColor }}
       showTitleAndDescription={false}
     />
   );

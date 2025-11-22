@@ -123,8 +123,8 @@ export default function ProgramPageClient() {
               >
                 {program && (
                   <HeroBackground
-                    logo={program.logo}
-                    color={program.brandColor}
+                    logo={programEnrollment.group?.logo}
+                    color={programEnrollment.group?.brandColor}
                   />
                 )}
 
@@ -226,7 +226,7 @@ export default function ProgramPageClient() {
           start: start ? startOfDay(new Date(start)) : undefined,
           end: end ? endOfDay(new Date(end)) : undefined,
           interval,
-          color: program?.brandColor ?? undefined,
+          color: programEnrollment.group?.brandColor ?? undefined,
         }}
       >
         <ChartTooltipSync>

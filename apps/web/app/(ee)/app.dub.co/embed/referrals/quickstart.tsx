@@ -1,3 +1,4 @@
+import { PartnerGroupProps } from "@/lib/types";
 import { Program } from "@dub/prisma/client";
 import {
   Button,
@@ -19,12 +20,14 @@ const BUTTON_CLASSNAME = "h-9 rounded-lg bg-bg-inverted hover:bg-neutral-800";
 
 export function ReferralsEmbedQuickstart({
   program,
+  group,
   links,
   earnings,
   hasResources,
   setSelectedTab,
 }: {
   program: Program;
+  group: Pick<PartnerGroupProps, "logo">;
   links: ReferralsEmbedLink[];
   earnings: {
     upcoming: number;
@@ -89,7 +92,7 @@ export function ReferralsEmbedQuickstart({
       title: "Success kit",
       description:
         "Make sure you get setup for success with the official brand files and supportive content and documents.",
-      illustration: <SuccessKit logo={program.logo ?? DUB_LOGO} />,
+      illustration: <SuccessKit logo={group.logo ?? DUB_LOGO} />,
       cta: (
         <Button
           className="h-9 rounded-lg"
@@ -105,7 +108,7 @@ export function ReferralsEmbedQuickstart({
       title: "Receive earnings",
       description:
         "After your payouts are connected, you'll get paid out automatically for all your sales.",
-      illustration: <ConnectPayouts logo={program.logo ?? DUB_LOGO} />,
+      illustration: <ConnectPayouts logo={group.logo ?? DUB_LOGO} />,
       cta: (
         <Button
           className={payoutsDisabled ? "h-9 rounded-lg" : BUTTON_CLASSNAME}

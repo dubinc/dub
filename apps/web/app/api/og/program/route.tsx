@@ -55,10 +55,11 @@ export async function GET(req: NextRequest) {
     });
   }
 
-  const logo = program.wordmark || program.logo;
-  const brandColor = program.brandColor || "#000000";
-
   const group = program.groups[0];
+
+  const logo = group.wordmark || group.logo;
+  const brandColor = group.brandColor || "#000000";
+
   const rewards = [group.clickReward, group.leadReward, group.saleReward]
     .filter((r): r is Reward => r !== null)
     .map(serializeReward);

@@ -122,8 +122,9 @@ export async function completeProgramApplications(userEmail: string) {
 
     for (const programApplication of filteredProgramApplications) {
       const partner = user.partners[0].partner;
-      const program = programApplication.program;
       const application = programApplication;
+      const program = programApplication.program;
+      const group = programApplication.partnerGroup;
       const programEnrollment = partner.programs.find(
         (p) => p.programId === programApplication.programId,
       );
@@ -170,6 +171,7 @@ export async function completeProgramApplications(userEmail: string) {
         notifyPartnerApplication({
           partner,
           program,
+          group,
           application,
         }),
 
@@ -181,8 +183,8 @@ export async function completeProgramApplications(userEmail: string) {
             data: missingSocialFields,
           }),
 
-        // Auto-approve the partner
-        program.autoApprovePartnersEnabledAt
+        // Auto-approve the partner if the group has auto-approval enabled
+        group?.autoApprovePartnersEnabledAt
           ? qstash.publishJSON({
               url: `${APP_DOMAIN_WITH_NGROK}/api/cron/auto-approve-partner`,
               delay: 5 * 60,

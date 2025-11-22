@@ -45,12 +45,12 @@ export default async function ApplicationPage(props: {
       className="relative"
       style={
         {
-          "--brand": program.brandColor || "#000000",
+          "--brand": program.group.brandColor || "#000000",
           "--brand-ring": "rgb(from var(--brand) r g b / 0.2)",
         } as CSSProperties
       }
     >
-      <ApplyHeader program={program} showApply={false} />
+      <ApplyHeader group={program.group} showApply={false} />
       <div className="p-6">
         {/* Hero section */}
         <ApplicationFormHero

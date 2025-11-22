@@ -6,7 +6,7 @@ interface ApiRequestOptions<TBody, TResponse> {
   method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   body?: TBody;
   headers?: Record<string, string>;
-  onSuccess?: (data: TResponse) => void;
+  onSuccess?: (data: TResponse) => void | Promise<void>;
   onError?: (error: string) => void;
 }
 
@@ -77,7 +77,7 @@ export function useApiMutation<
 
         // Handle success
         const data = (await response.json()) as TResponse;
-        onSuccess?.(data);
+        await onSuccess?.(data);
 
         debug("Response received", data);
       } catch (error) {
