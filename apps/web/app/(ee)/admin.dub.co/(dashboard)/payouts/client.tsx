@@ -7,6 +7,7 @@ import { FilterButtonTableRow } from "@/ui/shared/filter-button-table-row";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import { InvoiceStatus } from "@dub/prisma/client";
 import {
+  Button,
   Filter,
   StatusBadge,
   Table,
@@ -15,7 +16,7 @@ import {
   useTable,
 } from "@dub/ui";
 import { Areas, TimeSeriesChart, XAxis, YAxis } from "@dub/ui/charts";
-import { CircleDotted, GridIcon } from "@dub/ui/icons";
+import { CircleDotted, GridIcon, Paypal } from "@dub/ui/icons";
 import {
   cn,
   currencyFormatter,
@@ -24,6 +25,7 @@ import {
   OG_AVATAR_URL,
 } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
+import Link from "next/link";
 import { Fragment, useCallback, useMemo, useState } from "react";
 import useSWR from "swr";
 
@@ -166,9 +168,6 @@ export default function PayoutsPageClient() {
       }),
     [queryParams],
   );
-
-  const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
-  const [search, setSearch] = useState("");
 
   const tabs: Tab[] = [
     {
@@ -323,13 +322,18 @@ export default function PayoutsPageClient() {
           activeFilters={activeFilters}
           onSelect={onSelect}
           onRemove={onRemove}
-          onSearchChange={setSearch}
-          onSelectedFilterChange={setSelectedFilter}
         />
         <SimpleDateRangePicker
           defaultInterval="mtd"
           className="w-full sm:min-w-[200px] md:w-fit"
         />
+        <Link href="/payouts/paypal">
+          <Button
+            variant="secondary"
+            text="Paypal payouts"
+            icon={<Paypal className="size-4" />}
+          />
+        </Link>
       </div>
       {activeFilters.length > 0 && (
         <div>
@@ -343,7 +347,7 @@ export default function PayoutsPageClient() {
         </div>
       )}
       <div className="flex flex-col divide-y divide-neutral-200 rounded-lg border border-neutral-200 bg-white">
-        <div className="scrollbar-hide grid w-full grid-cols-3 divide-x overflow-y-hidden">
+        <div className="scrollbar-hide grid w-full grid-cols-1 divide-y overflow-y-hidden sm:grid-cols-3 sm:divide-x sm:divide-y-0">
           {tabs.map(({ id, label, colorClassName }) => {
             return (
               <button
@@ -361,12 +365,9 @@ export default function PayoutsPageClient() {
                 )}
               >
                 {/* Active tab indicator */}
-                <div
-                  className={cn(
-                    "absolute bottom-0 left-0 h-0.5 w-full bg-black transition-transform duration-100",
-                    selectedTab !== id && "translate-y-[3px]",
-                  )}
-                />
+                {selectedTab === id && (
+                  <div className="absolute bottom-0 left-0 h-0.5 w-full bg-black" />
+                )}
                 <div className="flex items-center gap-2.5 text-sm text-neutral-600">
                   <div
                     className={cn(

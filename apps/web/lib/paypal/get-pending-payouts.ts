@@ -1,5 +1,28 @@
 import { prisma } from "@dub/prisma";
 import { PAYPAL_SUPPORTED_COUNTRIES } from "@dub/utils";
+import { PayoutStatus } from "@prisma/client";
+import { z } from "zod";
+import { PartnerSchema } from "../zod/schemas/partners";
+import { ProgramSchema } from "../zod/schemas/programs";
+
+const PaypalPayoutResponseSchema = z.object({
+  program: ProgramSchema.pick({
+    id: true,
+    name: true,
+    logo: true,
+  }),
+  partner: PartnerSchema.pick({
+    id: true,
+    name: true,
+    email: true,
+    image: true,
+    country: true,
+  }),
+  status: z.nativeEnum(PayoutStatus),
+  amount: z.number(),
+});
+
+export type PaypalPayoutResponse = z.infer<typeof PaypalPayoutResponseSchema>;
 
 export async function getPendingPaypalPayouts() {
   const payouts = await prisma.payout.findMany({
@@ -19,15 +42,20 @@ export async function getPendingPaypalPayouts() {
         },
       },
     },
+    orderBy: {
+      amount: "desc",
+    },
     include: {
       partner: true,
       program: true,
     },
   });
 
-  const eligiblePayouts = payouts.filter(
-    (payout) => payout.amount >= payout.program.minPayoutAmount,
-  );
-
-  return eligiblePayouts;
+  return z
+    .array(PaypalPayoutResponseSchema)
+    .parse(
+      payouts.filter(
+        (payout) => payout.amount >= payout.program.minPayoutAmount,
+      ),
+    );
 }
