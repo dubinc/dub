@@ -122,20 +122,6 @@ export const banPartnerAction = authActionClient
         // Sync total commissions
         await syncTotalCommissions({ partnerId, programId });
 
-        // Automatically resolve all pending fraud events for this partner in the current program
-        // since the ban action itself serves as the resolution
-        await resolveFraudEvents({
-          where: {
-            programId,
-            partnerId,
-          },
-          userId: user.id,
-          resolutionReason:
-            "Resolved automatically because the partner was banned.",
-        });
-
-        // Create partnerCrossProgramBan fraud events for other programs where this partner
-        // is enrolled and approved, to flag potential cross-program fraud risk
         const programEnrollments = await prisma.programEnrollment.findMany({
           where: {
             partnerId,
@@ -146,20 +132,34 @@ export const banPartnerAction = authActionClient
           },
         });
 
-        if (programEnrollments.length > 0) {
-          await prisma.fraudEvent.createMany({
-            data: programEnrollments.map(({ programId }) => ({
+        await Promise.allSettled([
+          // Automatically resolve all pending fraud events for this partner in the current program
+          resolveFraudEvents({
+            where: {
               programId,
               partnerId,
-              type: "partnerCrossProgramBan",
-              groupKey: createFraudEventGroupKey({
+            },
+            userId: user.id,
+            resolutionReason:
+              "Resolved automatically because the partner was banned.",
+          }),
+
+          // Create partnerCrossProgramBan fraud events for other programs where this partner
+          // is enrolled and approved, to flag potential cross-program fraud risk
+          programEnrollments.length > 0 &&
+            prisma.fraudEvent.createMany({
+              data: programEnrollments.map(({ programId }) => ({
                 programId,
                 partnerId,
                 type: "partnerCrossProgramBan",
-              }),
-            })),
-          });
-        }
+                groupKey: createFraudEventGroupKey({
+                  programId,
+                  partnerId,
+                  type: "partnerCrossProgramBan",
+                }),
+              })),
+            }),
+        ]);
 
         const { program, partner, links, discountCodes } = programEnrollment;
 

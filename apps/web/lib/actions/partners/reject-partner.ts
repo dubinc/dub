@@ -1,6 +1,7 @@
 "use server";
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { resolveFraudEvents } from "@/lib/api/fraud/resolve-fraud-events";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { rejectPartnerSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
@@ -48,19 +49,32 @@ export const rejectPartnerAction = authActionClient
     });
 
     waitUntil(
-      recordAuditLog({
-        workspaceId: workspace.id,
-        programId,
-        action: "partner_application.rejected",
-        description: `Partner application rejected for ${partnerId}`,
-        actor: user,
-        targets: [
-          {
-            type: "partner",
-            id: partnerId,
-            metadata: programEnrollment.partner,
+      Promise.allSettled([
+        recordAuditLog({
+          workspaceId: workspace.id,
+          programId,
+          action: "partner_application.rejected",
+          description: `Partner application rejected for ${partnerId}`,
+          actor: user,
+          targets: [
+            {
+              type: "partner",
+              id: partnerId,
+              metadata: programEnrollment.partner,
+            },
+          ],
+        }),
+
+        // Automatically resolve all pending fraud events for this partner in the current program
+        resolveFraudEvents({
+          where: {
+            programId,
+            partnerId,
           },
-        ],
-      }),
+          userId: user.id,
+          resolutionReason:
+            "Resolved automatically because the partner application was rejected.",
+        }),
+      ]),
     );
   });
