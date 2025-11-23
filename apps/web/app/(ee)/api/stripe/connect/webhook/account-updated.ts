@@ -1,4 +1,4 @@
-import { detectAndRecordPartnerFraud } from "@/lib/api/fraud/detect-record-partner-fraud";
+import { detectAndRecordPartnerFraud } from "@/lib/api/fraud/detect-record-fraud-partner";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
