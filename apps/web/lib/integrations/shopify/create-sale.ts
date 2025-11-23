@@ -1,5 +1,5 @@
 import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
-import { detectAndRecordFraudEvent } from "@/lib/api/fraud/detect-record-event-fraud";
+import { detectAndRecordFraudEvent } from "@/lib/api/fraud/detect-record-fraud-event";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
