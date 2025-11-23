@@ -1,7 +1,7 @@
 "use server";
 
 import { createId } from "@/lib/api/create-id";
-import { detectAndRecordPartnerFraud } from "@/lib/api/fraud/detect-record-fraud-partner";
+import { detectAndRecordFraudPartner } from "@/lib/api/fraud/detect-record-fraud-partner";
 import { notifyPartnerApplication } from "@/lib/api/partners/notify-partner-application";
 import { getIP } from "@/lib/api/utils/get-ip";
 import { getSession } from "@/lib/auth";
@@ -289,7 +289,7 @@ async function createApplicationAndEnrollment({
         }),
 
         // Run partner fraud checks
-        detectAndRecordPartnerFraud({
+        detectAndRecordFraudPartner({
           context: {
             program,
             partner,

@@ -1,4 +1,4 @@
-import { detectAndRecordPartnerFraud } from "@/lib/api/fraud/detect-record-fraud-partner";
+import { detectAndRecordFraudPartner } from "@/lib/api/fraud/detect-record-fraud-partner";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
@@ -74,7 +74,7 @@ export async function accountUpdated(event: Stripe.Event) {
   });
 
   waitUntil(
-    detectAndRecordPartnerFraud({
+    detectAndRecordFraudPartner({
       context: { partner: updatedPartner },
       ruleTypes: ["partnerDuplicatePayoutMethod"],
     }),

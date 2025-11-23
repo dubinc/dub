@@ -7,7 +7,7 @@ import { FRAUD_RULES_BY_SCOPE, FRAUD_RULES_BY_TYPE } from "./constants";
 import { executeFraudRule } from "./execute-fraud-rule";
 import { createFraudEventGroupKey } from "./utils";
 
-export async function detectAndRecordPartnerFraud({
+export async function detectAndRecordFraudPartner({
   context,
   ruleTypes,
 }: {
