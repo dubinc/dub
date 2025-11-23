@@ -43,7 +43,7 @@ export function ProgramCustomerPageClient() {
 
     // add the max duration to the first sale date
     return addMonths(customer.activity.firstSaleDate, saleReward.maxDuration);
-  }, [programEnrollment]);
+  }, [programEnrollment, customer]);
 
   if ((!customer && !isLoading) || !showDetailedAnalytics) {
     redirect(`/programs/${programSlug}`);
