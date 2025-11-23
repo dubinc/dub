@@ -128,7 +128,9 @@ export const banPartnerAction = authActionClient
             programId: {
               not: programId,
             },
-            status: "approved",
+            status: {
+              in: ["invited", "pending", "approved"],
+            },
           },
         });
 
