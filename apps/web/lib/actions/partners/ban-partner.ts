@@ -3,6 +3,7 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { queueDiscountCodeDeletion } from "@/lib/api/discounts/queue-discount-code-deletion";
 import { resolveFraudEvents } from "@/lib/api/fraud/resolve-fraud-events";
+import { createFraudEventGroupKey } from "@/lib/api/fraud/utils";
 import { linkCache } from "@/lib/api/links/cache";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
@@ -121,9 +122,8 @@ export const banPartnerAction = authActionClient
         // Sync total commissions
         await syncTotalCommissions({ partnerId, programId });
 
-        const { program, partner, links, discountCodes } = programEnrollment;
-
-        // Resolve pending fraud events for this partner
+        // Automatically resolve all pending fraud events for this partner in the current program
+        // since the ban action itself serves as the resolution
         await resolveFraudEvents({
           where: {
             programId,
@@ -133,6 +133,35 @@ export const banPartnerAction = authActionClient
           resolutionReason:
             "Resolved automatically because the partner was banned.",
         });
+
+        // Create partnerCrossProgramBan fraud events for other programs where this partner
+        // is enrolled and approved, to flag potential cross-program fraud risk
+        const programEnrollments = await prisma.programEnrollment.findMany({
+          where: {
+            partnerId,
+            programId: {
+              not: programId,
+            },
+            status: "approved",
+          },
+        });
+
+        if (programEnrollments.length > 0) {
+          await prisma.fraudEvent.createMany({
+            data: programEnrollments.map(({ programId }) => ({
+              programId,
+              partnerId,
+              type: "partnerCrossProgramBan",
+              groupKey: createFraudEventGroupKey({
+                programId,
+                partnerId,
+                type: "partnerCrossProgramBan",
+              }),
+            })),
+          });
+        }
+
+        const { program, partner, links, discountCodes } = programEnrollment;
 
         await Promise.allSettled([
           // Expire links from cache

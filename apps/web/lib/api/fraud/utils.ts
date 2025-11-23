@@ -26,6 +26,8 @@ export function normalizeEmail(email: string): string {
   return `${username}@${domain}`;
 }
 
+// Create a unique group key to identify and deduplicate fraud events of the same type
+// for the same partner-program combination
 export function createFraudEventGroupKey({
   programId,
   partnerId,

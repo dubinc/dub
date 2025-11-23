@@ -1,87 +1,67 @@
-import { FraudPartnerContext } from "@/lib/types";
+import { PartnerProps, ProgramProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
-import { FraudEvent, FraudRuleType } from "@dub/prisma/client";
-import { fraudPartnerContext } from "../../zod/schemas/schemas";
+import { FraudEvent } from "@dub/prisma/client";
 import { createId } from "../create-id";
-import { FRAUD_RULES_BY_SCOPE, FRAUD_RULES_BY_TYPE } from "./constants";
-import { executeFraudRule } from "./execute-fraud-rule";
+import { FRAUD_RULES_BY_SCOPE } from "./constants";
 import { createFraudEventGroupKey } from "./utils";
 
-export async function detectAndRecordFraudPartner({
+interface FraudApplicationContext {
+  program: Pick<ProgramProps, "id">;
+  partner: Pick<PartnerProps, "id"> & { payoutMethodHash: string | null };
+}
+
+// Detect and record fraud events for the partner when they apply to a program
+// Checks for cross-program bans and duplicate payout methods
+export async function detectAndRecordFraudApplication({
   context,
-  ruleTypes,
 }: {
-  context: FraudPartnerContext;
-  ruleTypes?: FraudRuleType[]; // Optional array of rule types to filter by
+  context: FraudApplicationContext;
 }) {
-  const result = fraudPartnerContext.safeParse(context);
-
-  if (!result.success) {
-    return;
-  }
-
-  const validatedContext = result.data;
-
-  const allPartnerRules = FRAUD_RULES_BY_SCOPE["partner"];
-  const fraudRules = ruleTypes
-    ? allPartnerRules.filter((rule) =>
-        ruleTypes.includes(rule.type as FraudRuleType),
-      )
-    : allPartnerRules;
+  const fraudRules = FRAUD_RULES_BY_SCOPE["partner"];
 
   if (fraudRules.length === 0) {
-    console.log(
-      "[detectAndRecordPartnerFraud] No fraud rules found with scope partner.",
-    );
     return;
   }
 
+  const { partner, program } = context;
   const triggeredRules: Pick<FraudEvent, "type">[] = [];
 
-  // Evaluate each rule
-  for (const rule of fraudRules) {
-    try {
-      const { triggered } = await executeFraudRule({
-        type: rule.type as FraudRuleType,
-        context: validatedContext,
-      });
+  // Check if partner has been banned in other programs
+  // indicates cross-program fraud risk
+  const bannedProgramEnrollments = await prisma.programEnrollment.count({
+    where: {
+      partnerId: partner.id,
+      programId: {
+        not: program.id,
+      },
+      status: "banned",
+    },
+  });
 
-      if (triggered) {
-        triggeredRules.push({
-          type: rule.type as FraudRuleType,
-        });
-      }
-    } catch (error) {
-      console.error(
-        `[detectAndRecordPartnerFraud] Error evaluating rule ${rule.type}:`,
-        error instanceof Error ? error.message : String(error),
-      );
+  if (bannedProgramEnrollments > 0) {
+    triggeredRules.push({
+      type: "partnerCrossProgramBan",
+    });
+  }
+
+  // Check if partner shares the same payout method hash with other partners
+  // indicates potential duplicate account fraud
+  if (partner.payoutMethodHash) {
+    const duplicatePartners = await prisma.partner.count({
+      where: {
+        payoutMethodHash: partner.payoutMethodHash,
+      },
+    });
+
+    if (duplicatePartners > 1) {
+      triggeredRules.push({
+        type: "partnerDuplicatePayoutMethod",
+      });
     }
   }
 
   if (triggeredRules.length === 0) {
-    console.log("[detectAndRecordPartnerFraud] No fraud rules were triggered.");
     return;
-  }
-
-  console.log("[detectAndRecordPartnerFraud] triggeredRules", triggeredRules);
-
-  const crossProgramRules = triggeredRules.filter(
-    (rule) => FRAUD_RULES_BY_TYPE[rule.type].crossProgram,
-  );
-
-  let programEnrollments: Array<{ programId: string }> = [];
-
-  // Fetch program enrollments only if we have cross-program rules
-  if (crossProgramRules.length > 0) {
-    programEnrollments = await prisma.programEnrollment.findMany({
-      where: {
-        partnerId: validatedContext.partner.id,
-      },
-      select: {
-        programId: true,
-      },
-    });
   }
 
   const fraudEvents: Pick<
@@ -89,50 +69,20 @@ export async function detectAndRecordFraudPartner({
     "id" | "programId" | "partnerId" | "type" | "groupKey"
   >[] = [];
 
-  // TODO (Fraud):
-  // Skip duplicate fraud events for the same rule
-
-  // For each triggered fraud rule, create fraud events based on the rule's scope:
-  // - Cross-program rules: Create fraud events for all programs the partner is enrolled in (e.g., duplicate payout method).
-  // - Single-program rules: Create fraud event only for the current program context.
   for (const triggeredRule of triggeredRules) {
-    const fraudRule = FRAUD_RULES_BY_TYPE[triggeredRule.type];
+    const groupKey = createFraudEventGroupKey({
+      programId: program.id,
+      partnerId: partner.id,
+      type: triggeredRule.type,
+    });
 
-    if (!fraudRule) {
-      continue;
-    }
-
-    if (fraudRule.crossProgram) {
-      for (const programEnrollment of programEnrollments) {
-        fraudEvents.push({
-          id: createId({ prefix: "fre_" }),
-          programId: programEnrollment.programId,
-          partnerId: validatedContext.partner.id,
-          type: triggeredRule.type,
-          groupKey: createFraudEventGroupKey({
-            programId: programEnrollment.programId,
-            partnerId: validatedContext.partner.id,
-            type: triggeredRule.type,
-          }),
-        });
-      }
-    } else if (validatedContext?.program?.id) {
-      fraudEvents.push({
-        id: createId({ prefix: "fre_" }),
-        programId: validatedContext.program.id,
-        partnerId: validatedContext.partner.id,
-        type: triggeredRule.type,
-        groupKey: createFraudEventGroupKey({
-          programId: validatedContext.program.id,
-          partnerId: validatedContext.partner.id,
-          type: triggeredRule.type,
-        }),
-      });
-    }
-  }
-
-  if (fraudEvents.length === 0) {
-    return;
+    fraudEvents.push({
+      id: createId({ prefix: "fre_" }),
+      programId: program.id,
+      partnerId: partner.id,
+      type: triggeredRule.type,
+      groupKey,
+    });
   }
 
   try {
@@ -141,7 +91,7 @@ export async function detectAndRecordFraudPartner({
     });
   } catch (error) {
     console.error(
-      "[detectAndRecordPartnerFraud] Error recording partner fraud events.",
+      "[detectAndRecordFraudApplication] Error recording partner fraud events.",
       error,
     );
   }

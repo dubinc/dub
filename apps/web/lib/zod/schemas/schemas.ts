@@ -1,29 +1,4 @@
 import { z } from "zod";
-import { PartnerSchema } from "./partners";
-import { ProgramSchema } from "./programs";
-
-export const fraudPartnerContext = z.object({
-  program: ProgramSchema.pick({ id: true }).optional(),
-  partner: PartnerSchema.pick({
-    id: true,
-    email: true,
-    payoutMethodHash: true,
-    website: true,
-    websiteVerifiedAt: true,
-    youtube: true,
-    youtubeVerifiedAt: true,
-    twitter: true,
-    twitterVerifiedAt: true,
-    linkedin: true,
-    linkedinVerifiedAt: true,
-    instagram: true,
-    instagramVerifiedAt: true,
-    tiktok: true,
-    tiktokVerifiedAt: true,
-  }).extend({
-    payoutMethodHash: z.string().nullable(),
-  }),
-});
 
 export const fraudEventContext = z.object({
   program: z.object({

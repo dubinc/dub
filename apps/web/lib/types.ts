@@ -123,7 +123,7 @@ import {
   saleEventResponseSchema,
   trackSaleResponseSchema,
 } from "./zod/schemas/sales";
-import { fraudEventContext, fraudPartnerContext } from "./zod/schemas/schemas";
+import { fraudEventContext } from "./zod/schemas/schemas";
 import { tokenSchema } from "./zod/schemas/token";
 import { usageResponse } from "./zod/schemas/usage";
 import {
@@ -693,15 +693,12 @@ export interface FraudRuleInfo {
   type: ExtendedFraudRuleType;
   name: string;
   description: string;
-  scope: "partner" | "conversionEvent";
   severity?: FraudSeverity;
-  crossProgram?: boolean;
-  configurable?: boolean;
+  configurable: boolean;
+  scope: "partner" | "conversionEvent";
 }
 
 export type FraudRuleProps = z.infer<typeof fraudRuleSchema>;
-
-export type FraudPartnerContext = z.infer<typeof fraudPartnerContext>;
 
 export type FraudEventContext = z.infer<typeof fraudEventContext>;
 

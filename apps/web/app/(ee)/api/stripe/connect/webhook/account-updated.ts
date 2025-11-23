@@ -1,8 +1,7 @@
-import { detectAndRecordFraudPartner } from "@/lib/api/fraud/detect-record-fraud-partner";
+import { createFraudEventGroupKey } from "@/lib/api/fraud/utils";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
-import { waitUntil } from "@vercel/functions";
 import Stripe from "stripe";
 
 export async function accountUpdated(event: Stripe.Event) {
@@ -60,7 +59,7 @@ export async function accountUpdated(event: Stripe.Event) {
     return `Expected at least 1 external account for partner ${partner.email} (${partner.stripeConnectId}), none found`;
   }
 
-  const updatedPartner = await prisma.partner.update({
+  const { payoutMethodHash } = await prisma.partner.update({
     where: {
       stripeConnectId: account.id,
     },
@@ -73,12 +72,47 @@ export async function accountUpdated(event: Stripe.Event) {
     },
   });
 
-  waitUntil(
-    detectAndRecordFraudPartner({
-      context: { partner: updatedPartner },
-      ruleTypes: ["partnerDuplicatePayoutMethod"],
-    }),
-  );
+  // Check for duplicate payout methods: if multiple partners share the same payout method hash,
+  // create fraud events for all their active program enrollments to flag potential fraud
+  if (payoutMethodHash) {
+    const duplicatePartners = await prisma.partner.findMany({
+      where: {
+        payoutMethodHash: partner.payoutMethodHash,
+      },
+      select: {
+        id: true,
+        programs: {
+          where: {
+            status: {
+              in: ["invited", "pending", "approved"],
+            },
+          },
+          select: {
+            programId: true,
+          },
+        },
+      },
+    });
+
+    if (duplicatePartners.length > 1) {
+      const programEnrollments = duplicatePartners.flatMap(
+        ({ programs }) => programs,
+      );
+
+      await prisma.fraudEvent.createMany({
+        data: programEnrollments.map(({ programId }) => ({
+          programId,
+          partnerId: partner.id,
+          type: "partnerDuplicatePayoutMethod",
+          groupKey: createFraudEventGroupKey({
+            programId,
+            partnerId: partner.id,
+            type: "partnerDuplicatePayoutMethod",
+          }),
+        })),
+      });
+    }
+  }
 
   return `Updated partner ${partner.email} (${partner.stripeConnectId}) with country ${country}, payoutsEnabledAt set, payoutMethodHash ${defaultExternalAccount.fingerprint}`;
 }
