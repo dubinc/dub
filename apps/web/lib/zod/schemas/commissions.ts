@@ -3,7 +3,7 @@ import { CommissionStatus, CommissionType } from "@dub/prisma/client";
 import { z } from "zod";
 import { CustomerSchema } from "./customers";
 import { getPaginationQuerySchema } from "./misc";
-import { PartnerSchema, WebhookPartnerSchema } from "./partners";
+import { EnrolledPartnerSchema, WebhookPartnerSchema } from "./partners";
 import { parseDateSchema } from "./utils";
 
 export const CommissionSchema = z.object({
@@ -29,13 +29,14 @@ export const CommissionSchema = z.object({
 // Represents the commission object used in webhook and API responses (/api/commissions/**)
 export const CommissionEnrichedSchema = CommissionSchema.merge(
   z.object({
-    partner: PartnerSchema.pick({
+    partner: EnrolledPartnerSchema.pick({
       id: true,
       name: true,
       email: true,
       image: true,
       payoutsEnabledAt: true,
       country: true,
+      groupId: true,
     }),
     customer: CustomerSchema.nullish(), // customer can be null for click-based / custom commissions
   }),

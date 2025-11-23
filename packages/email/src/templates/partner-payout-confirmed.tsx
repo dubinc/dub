@@ -1,4 +1,9 @@
-import { currencyFormatter, DUB_WORDMARK, formatDate } from "@dub/utils";
+import {
+  currencyFormatter,
+  DUB_WORDMARK,
+  formatDate,
+  formatDateTimeSmart,
+} from "@dub/utils";
 import {
   Body,
   Container,
@@ -12,6 +17,7 @@ import {
   Tailwind,
   Text,
 } from "@react-email/components";
+import { addBusinessDays } from "date-fns";
 import { Footer } from "../components/footer";
 
 // Send this email when the payout is confirmed when payment is send using ACH
@@ -25,9 +31,10 @@ export default function PartnerPayoutConfirmed({
   payout = {
     id: "po_8VuCr2i7WnG65d4TNgZO19fT",
     amount: 490,
+    initiatedAt: new Date("2024-11-22"),
     startDate: new Date("2024-11-01"),
     endDate: new Date("2024-11-30"),
-    paymentMethod: "ach_fast",
+    paymentMethod: "ach",
     mode: "internal",
   },
 }: {
@@ -40,6 +47,7 @@ export default function PartnerPayoutConfirmed({
   payout: {
     id: string;
     amount: number;
+    initiatedAt: Date | null;
     startDate?: Date | null;
     endDate?: Date | null;
     paymentMethod: string;
@@ -65,6 +73,8 @@ export default function PartnerPayoutConfirmed({
         timeZone: "UTC",
       })
     : null;
+
+  const etaDays = payout.paymentMethod === "ach_fast" ? 2 : 5;
 
   return (
     <Html>
@@ -109,26 +119,29 @@ export default function PartnerPayoutConfirmed({
             </Text>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              {payout.mode === "external" ? (
-                <>
-                  The payout is currently being processed and is expected to be
-                  credited to your{" "}
-                  <strong className="text-black">{program.name}</strong> account{" "}
-                  <strong className="text-black">shortly</strong>.
-                </>
-              ) : (
-                <>
-                  The payout is currently being processed and is expected to be
-                  credited to your account within
-                  <strong>
-                    {payout.paymentMethod === "ach_fast"
-                      ? " 2 business days"
-                      : " 5 business days"}
-                  </strong>{" "}
-                  (excluding weekends and public holidays).
-                </>
-              )}
+              The payout is currently being processed and is expected to be
+              transferred to your{" "}
+              <strong className="text-black">
+                {payout.mode === "external" ? program.name : "Stripe Express"}
+              </strong>{" "}
+              account in{" "}
+              <strong className="text-black">{etaDays} business days</strong>{" "}
+              (excluding weekends and public holidays).
             </Text>
+
+            {payout.initiatedAt && (
+              <Text className="text-sm leading-6 text-neutral-600">
+                <span className="text-sm text-neutral-500">
+                  Estimated arrival date:{" "}
+                  <strong className="text-black">
+                    {formatDateTimeSmart(
+                      addBusinessDays(payout.initiatedAt, etaDays),
+                    )}
+                  </strong>
+                  .
+                </span>
+              </Text>
+            )}
 
             <Section className="mb-12 mt-8">
               <Link

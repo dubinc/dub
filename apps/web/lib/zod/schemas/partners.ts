@@ -3,7 +3,6 @@ import {
   MonthlyTraffic,
   PartnerBannedReason,
   PartnerProfileType,
-  PartnerStatus,
   PreferredEarningStructure,
   ProgramEnrollmentStatus,
   SalesChannel,
@@ -294,9 +293,6 @@ export const PartnerSchema = z
       .string()
       .nullable()
       .describe("The partner's country (required for tax purposes)."),
-    status: z
-      .nativeEnum(PartnerStatus)
-      .describe("The partner's verification status on Dub."),
     stripeConnectId: z
       .string()
       .nullable()

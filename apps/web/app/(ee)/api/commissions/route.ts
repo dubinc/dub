@@ -52,6 +52,10 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
       commissions.map((c) => ({
         ...c,
         customer: transformCustomerForCommission(c.customer),
+        partner: {
+          ...c.partner,
+          groupId: c.programEnrollment.groupId,
+        },
       })),
     ),
   );

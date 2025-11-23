@@ -43,10 +43,6 @@ export const markCommissionDuplicateAction = authActionClient
       throw new Error("You cannot mark a paid commission as duplicate.");
     }
 
-    if (commission.type === "custom") {
-      throw new Error("You cannot mark a custom commission as duplicate.");
-    }
-
     // there is a payout associated with this sale
     // we need to update the payout amount if the sale is being marked as duplicate
     if (commission.payout) {

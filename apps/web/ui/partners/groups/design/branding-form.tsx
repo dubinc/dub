@@ -1,10 +1,12 @@
 "use client";
 
+import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { updateGroupBrandingAction } from "@/lib/actions/partners/update-group-branding";
 import useGroup from "@/lib/swr/use-group";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   GroupWithProgramProps,
+  PartnerGroupProps,
   ProgramApplicationFormData,
   ProgramLanderData,
   ProgramProps,
@@ -38,7 +40,7 @@ import { LanderPreview } from "./previews/lander-preview";
 export type BrandingFormData = {
   applicationFormData: ProgramApplicationFormData;
   landerData: ProgramLanderData;
-} & Pick<ProgramProps, "logo" | "wordmark" | "brandColor">;
+} & Pick<PartnerGroupProps, "logo" | "wordmark" | "brandColor">;
 
 export function useBrandingFormContext() {
   return useFormContext<BrandingFormData>();
@@ -221,9 +223,11 @@ function BrandingFormInner({
       });
     },
     onError({ error }) {
-      const message = error.serverError || "Failed to update application form.";
+      const message = parseActionError(
+        error,
+        "Failed to update application form.",
+      );
       toast.error(message);
-      setError("root", { message });
     },
   });
 

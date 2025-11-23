@@ -24,7 +24,6 @@ export {
   PartnerLinkStructure,
   PartnerProfileType,
   PartnerRole,
-  PartnerStatus,
   PayoutMode,
   PayoutStatus,
   PreferredEarningStructure,

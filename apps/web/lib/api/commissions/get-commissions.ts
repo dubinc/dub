@@ -5,7 +5,6 @@ import { z } from "zod";
 
 type CommissionsFilters = z.infer<typeof getCommissionsQuerySchema> & {
   programId: string;
-  includeProgramEnrollment?: boolean; // Decide if we want to fetch the program enrollment data for the partner
 };
 
 export async function getCommissions(filters: CommissionsFilters) {
@@ -26,7 +25,6 @@ export async function getCommissions(filters: CommissionsFilters) {
     pageSize,
     sortBy,
     sortOrder,
-    includeProgramEnrollment = false,
   } = filters;
 
   const { startDate, endDate } = getStartEndDates({
@@ -57,33 +55,15 @@ export async function getCommissions(filters: CommissionsFilters) {
             lte: endDate.toISOString(),
           },
           ...(groupId && {
-            partner: {
-              programs: {
-                some: {
-                  programId,
-                  groupId,
-                },
-              },
+            programEnrollment: {
+              groupId,
             },
           }),
         },
     include: {
       customer: true,
-      ...(!includeProgramEnrollment
-        ? {
-            partner: true,
-          }
-        : {
-            partner: {
-              include: {
-                programs: {
-                  where: {
-                    programId,
-                  },
-                },
-              },
-            },
-          }),
+      partner: true,
+      programEnrollment: true,
     },
     skip: (page - 1) * pageSize,
     take: pageSize,

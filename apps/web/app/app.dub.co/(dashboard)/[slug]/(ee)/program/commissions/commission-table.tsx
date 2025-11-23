@@ -2,6 +2,7 @@
 
 import useCommissionsCount from "@/lib/swr/use-commissions-count";
 import { useFraudEventsCount } from "@/lib/swr/use-fraud-events-count";
+import useGroups from "@/lib/swr/use-groups";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CommissionResponse, FraudEventsCountByPartner } from "@/lib/types";
@@ -10,17 +11,20 @@ import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import { CommissionRowMenu } from "@/ui/partners/commission-row-menu";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
+import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { FilterButtonTableRow } from "@/ui/shared/filter-button-table-row";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import {
   AnimatedSizeContainer,
+  EditColumnsButton,
   Filter,
   StatusBadge,
   Table,
   TimestampTooltip,
   Tooltip,
+  useColumnVisibility,
   usePagination,
   useRouterStuff,
   useTable,
@@ -33,19 +37,34 @@ import {
   formatDateTimeSmart,
   nFormatter,
 } from "@dub/utils";
-import { memo } from "react";
+import { useMemo } from "react";
 import useSWR from "swr";
 import { useCommissionFilters } from "./use-commission-filters";
 
-export function CommissionTable({ limit }: { limit?: number }) {
-  const filters = useCommissionFilters();
+const commissionsColumns = {
+  all: [
+    "createdAt",
+    "customer",
+    "partner",
+    "group",
+    "type",
+    "amount",
+    "commission",
+    "status",
+  ],
+  defaultVisible: [
+    "createdAt",
+    "customer",
+    "partner",
+    "type",
+    "amount",
+    "commission",
+    "status",
+  ],
+};
 
-  return <CommissionTableInner limit={limit} {...filters} />;
-}
-
-const CommissionTableInner = memo(
-  ({
-    limit,
+export function CommissionTable() {
+  const {
     filters,
     activeFilters,
     onSelect,
@@ -54,48 +73,72 @@ const CommissionTableInner = memo(
     isFiltered,
     setSearch,
     setSelectedFilter,
-  }: { limit?: number } & ReturnType<typeof useCommissionFilters>) => {
-    const workspace = useWorkspace();
-    const { id: workspaceId, slug } = workspace;
-    const { program } = useProgram();
+  } = useCommissionFilters();
 
-    const { pagination, setPagination } = usePagination(limit);
-    const { queryParams, getQueryString, searchParamsObj } = useRouterStuff();
-    const { sortBy, sortOrder } = searchParamsObj as {
-      sortBy: string;
-      sortOrder: "asc" | "desc";
-    };
+  const workspace = useWorkspace();
+  const { id: workspaceId, slug } = workspace;
+  const { program } = useProgram();
+  const { groups } = useGroups();
 
-    const {
-      data: commissions,
-      error,
-      isLoading,
-    } = useSWR<CommissionResponse[]>(
-      `/api/commissions${getQueryString({
-        workspaceId,
-      })}`,
-      fetcher,
-      {
-        keepPreviousData: true,
-      },
-    );
+  const { pagination, setPagination } = usePagination();
+  const { queryParams, getQueryString, searchParamsObj } = useRouterStuff();
+  const { sortBy, sortOrder } = searchParamsObj as {
+    sortBy: string;
+    sortOrder: "asc" | "desc";
+  };
 
-    const { commissionsCount } = useCommissionsCount({
-      exclude: ["status", "page"],
-    });
+  const {
+    data: commissions,
+    error,
+    isLoading,
+  } = useSWR<CommissionResponse[]>(
+    `/api/commissions${getQueryString({
+      workspaceId,
+    })}`,
+    fetcher,
+    {
+      keepPreviousData: true,
+    },
+  );
 
-    const { fraudEventsCount } = useFraudEventsCount<
-      FraudEventsCountByPartner[]
-    >({
+  const { commissionsCount } = useCommissionsCount({
+    exclude: ["page"],
+  });
+
+  const defaultVisibleColumns = useMemo(() => {
+    const base = [...commissionsColumns.defaultVisible];
+
+    if (program?.primaryRewardEvent !== "sale") {
+      // Hide amount when primaryRewardEvent is not 'sale'
+      const amountIndex = base.indexOf("amount");
+      if (amountIndex > -1) {
+        base.splice(amountIndex, 1);
+      }
+    }
+
+    return base;
+  }, [program?.primaryRewardEvent]);
+
+  const { columnVisibility, setColumnVisibility } = useColumnVisibility(
+    "commissions-table-columns",
+    {
+      all: commissionsColumns.all,
+      defaultVisible: defaultVisibleColumns,
+    },
+  );
+
+  const { fraudEventsCount } = useFraudEventsCount<FraudEventsCountByPartner[]>(
+    {
       query: {
         groupBy: "partnerId",
         status: "pending",
       },
-    });
+    },
+  );
 
-    const table = useTable<CommissionResponse>({
-      data: commissions?.slice(0, limit) || [],
-      columns: [
+  const columns = useMemo(
+    () =>
+      [
         {
           id: "createdAt",
           header: "Date",
@@ -132,6 +175,7 @@ const CommissionTableInner = memo(
           },
         },
         {
+          id: "partner",
           header: "Partner",
           cell: ({ row }) => {
             return <PartnerRowItem partner={row.original.partner} />;
@@ -141,6 +185,28 @@ const CommissionTableInner = memo(
             filterParams: ({ row }) => ({
               partnerId: row.original.partner.id,
             }),
+          },
+        },
+        {
+          id: "group",
+          header: "Group",
+          cell: ({ row }) => {
+            if (!groups) return "-";
+
+            const group = groups.find(
+              (g) => g.id === row.original.partner.groupId,
+            );
+
+            if (!group) return "-";
+
+            return (
+              <div className="flex items-center gap-2">
+                <GroupColorCircle group={group} />
+                <span className="truncate text-sm font-medium">
+                  {group.name}
+                </span>
+              </div>
+            );
           },
         },
         {
@@ -204,6 +270,7 @@ const CommissionTableInner = memo(
           },
         },
         {
+          id: "status",
           header: "Status",
           cell: ({ row }) => {
             const partnerHasPendingFraud = fraudEventsCount?.find(
@@ -224,6 +291,10 @@ const CommissionTableInner = memo(
                   variant: "workspace",
                   program,
                   workspace,
+                  group: row.original.partner.groupId
+                    ? groups?.find((g) => g.id === row.original.partner.groupId)
+                    : undefined,
+                  commission: row.original,
                 })}
               >
                 {badge.label}
@@ -238,111 +309,114 @@ const CommissionTableInner = memo(
           minSize: 43,
           size: 43,
           maxSize: 43,
+          header: ({ table }) => <EditColumnsButton table={table} />,
           cell: ({ row }) => <CommissionRowMenu row={row} />,
         },
-      ],
-      columnPinning: { right: ["menu"] },
-      cellRight: (cell) => {
-        const meta = cell.column.columnDef.meta as
-          | {
-              filterParams?: any;
-            }
-          | undefined;
+      ].filter((c) => c.id === "menu" || commissionsColumns.all.includes(c.id)),
+    [slug, groups, program, workspace],
+  );
 
-        return (
-          !limit &&
-          meta?.filterParams && (
-            <FilterButtonTableRow set={meta.filterParams(cell)} />
-          )
-        );
-      },
-      ...(!limit && {
-        pagination,
-        onPaginationChange: setPagination,
-        sortableColumns: ["createdAt", "amount"],
-        sortBy,
-        sortOrder,
-        onSortChange: ({ sortBy, sortOrder }) =>
-          queryParams({
-            set: {
-              ...(sortBy && { sortBy }),
-              ...(sortOrder && { sortOrder }),
-            },
-            del: "page",
-            scroll: false,
-          }),
+  const table = useTable<CommissionResponse>({
+    data: commissions || [],
+    columns,
+    columnPinning: { right: ["menu"] },
+    cellRight: (cell) => {
+      const meta = cell.column.columnDef.meta as
+        | {
+            filterParams?: any;
+          }
+        | undefined;
+
+      return (
+        meta?.filterParams && (
+          <FilterButtonTableRow set={meta.filterParams(cell)} />
+        )
+      );
+    },
+    pagination,
+    onPaginationChange: setPagination,
+    columnVisibility,
+    onColumnVisibilityChange: setColumnVisibility,
+    sortableColumns: ["createdAt", "amount"],
+    sortBy,
+    sortOrder,
+    onSortChange: ({ sortBy, sortOrder }) =>
+      queryParams({
+        set: {
+          ...(sortBy && { sortBy }),
+          ...(sortOrder && { sortOrder }),
+        },
+        del: "page",
+        scroll: false,
       }),
-      thClassName: "border-l-0",
-      tdClassName: "border-l-0",
-      resourceName: (p) => `commission${p ? "s" : ""}`,
-      rowCount: commissionsCount?.[searchParamsObj.status || "all"].count ?? 0,
-      loading: isLoading,
-      error: error ? "Failed to load commissions" : undefined,
-    });
+    thClassName: "border-l-0",
+    tdClassName: "border-l-0",
+    resourceName: (p) => `commission${p ? "s" : ""}`,
+    rowCount: commissionsCount?.[searchParamsObj.status || "all"].count ?? 0,
+    loading: isLoading,
+    error: error ? "Failed to load commissions" : undefined,
+  });
 
-    return (
-      <div className="flex flex-col gap-3">
-        {!limit && (
-          <div>
-            <div className="flex flex-col gap-3 md:flex-row md:items-center">
-              <Filter.Select
-                className="w-full md:w-fit"
-                filters={filters}
-                activeFilters={activeFilters}
-                onSelect={onSelect}
-                onRemove={onRemove}
-                onSearchChange={setSearch}
-                onSelectedFilterChange={setSelectedFilter}
-              />
-              <SimpleDateRangePicker
-                className="w-full sm:min-w-[200px] md:w-fit"
-                defaultInterval="all"
-              />
-            </div>
-            <AnimatedSizeContainer height>
-              <div>
-                {activeFilters.length > 0 && (
-                  <div className="pt-3">
-                    <Filter.List
-                      filters={[
-                        ...filters,
-                        {
-                          key: "payoutId",
-                          icon: MoneyBill2,
-                          label: "Payout",
-                          options: [],
-                        },
-                      ]}
-                      activeFilters={activeFilters}
-                      onSelect={onSelect}
-                      onRemove={onRemove}
-                      onRemoveAll={onRemoveAll}
-                    />
-                  </div>
-                )}
-              </div>
-            </AnimatedSizeContainer>
-          </div>
-        )}
-        {commissions?.length !== 0 || isLoading ? (
-          <Table {...table} />
-        ) : (
-          <AnimatedEmptyState
-            title="No commissions found"
-            description={
-              isFiltered
-                ? "No commissions found for the selected filters."
-                : "No commissions have been made for this program yet."
-            }
-            cardContent={() => (
-              <>
-                <MoneyBill2 className="size-4 text-neutral-700" />
-                <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
-              </>
-            )}
+  return (
+    <div className="flex flex-col gap-3">
+      <div>
+        <div className="flex flex-col gap-3 md:flex-row md:items-center">
+          <Filter.Select
+            className="w-full md:w-fit"
+            filters={filters}
+            activeFilters={activeFilters}
+            onSelect={onSelect}
+            onRemove={onRemove}
+            onSearchChange={setSearch}
+            onSelectedFilterChange={setSelectedFilter}
           />
-        )}
+          <SimpleDateRangePicker
+            className="w-full sm:min-w-[200px] md:w-fit"
+            defaultInterval="all"
+          />
+        </div>
+        <AnimatedSizeContainer height>
+          <div>
+            {activeFilters.length > 0 && (
+              <div className="pt-3">
+                <Filter.List
+                  filters={[
+                    ...filters,
+                    {
+                      key: "payoutId",
+                      icon: MoneyBill2,
+                      label: "Payout",
+                      options: [],
+                    },
+                  ]}
+                  activeFilters={activeFilters}
+                  onSelect={onSelect}
+                  onRemove={onRemove}
+                  onRemoveAll={onRemoveAll}
+                />
+              </div>
+            )}
+          </div>
+        </AnimatedSizeContainer>
       </div>
-    );
-  },
-);
+      {commissions?.length !== 0 || isLoading ? (
+        <Table {...table} />
+      ) : (
+        <AnimatedEmptyState
+          title="No commissions found"
+          description={
+            isFiltered
+              ? "No commissions found for the selected filters."
+              : "No commissions have been made for this program yet."
+          }
+          cardContent={() => (
+            <>
+              <MoneyBill2 className="size-4 text-neutral-700" />
+              <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
+            </>
+          )}
+        />
+      )}
+    </div>
+  );
+}
