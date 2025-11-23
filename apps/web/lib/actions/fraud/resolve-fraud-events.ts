@@ -1,6 +1,6 @@
 "use server";
 
-import { resolveFraudEvents } from "@/lib/api/fraud/utils";
+import { resolveFraudEvents } from "@/lib/api/fraud/resolve-fraud-events";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { resolveFraudEventsSchema } from "@/lib/zod/schemas/fraud";

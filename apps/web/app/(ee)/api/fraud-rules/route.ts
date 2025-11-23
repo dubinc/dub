@@ -1,5 +1,5 @@
 import { CONFIGURABLE_FRAUD_RULES } from "@/lib/api/fraud/constants";
-import { resolveFraudEvents } from "@/lib/api/fraud/utils";
+import { resolveFraudEvents } from "@/lib/api/fraud/resolve-fraud-events";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
