@@ -1,7 +1,7 @@
 import { convertCurrency } from "@/lib/analytics/convert-currency";
 import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { createId } from "@/lib/api/create-id";
-import { detectAndRecordEventFraud } from "@/lib/api/fraud/detect-record-event-fraud";
+import { detectAndRecordFraudEvent } from "@/lib/api/fraud/detect-record-event-fraud";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
@@ -456,7 +456,7 @@ export async function checkoutSessionCompleted(
           eventType: "sale",
         }),
 
-        detectAndRecordEventFraud({
+        detectAndRecordFraudEvent({
           program: { id: link.programId },
           partner: pick(webhookPartner, ["id", "email", "name"]),
           customer: pick(customer, ["id", "email", "name"]),

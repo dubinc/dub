@@ -1,7 +1,7 @@
 import { convertCurrency } from "@/lib/analytics/convert-currency";
 import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { DubApiError } from "@/lib/api/errors";
-import { detectAndRecordEventFraud } from "@/lib/api/fraud/detect-record-event-fraud";
+import { detectAndRecordFraudEvent } from "@/lib/api/fraud/detect-record-event-fraud";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { generateRandomName } from "@/lib/names";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
@@ -367,7 +367,7 @@ const _trackLead = async ({
             eventType: "lead",
           }),
 
-          detectAndRecordEventFraud({
+          detectAndRecordFraudEvent({
             program: { id: link.programId },
             partner: pick(webhookPartner, ["id", "email", "name"]),
             customer: pick(customer, ["id", "email", "name"]),
@@ -578,7 +578,7 @@ const _trackSale = async ({
             eventType: "sale",
           }),
 
-          detectAndRecordEventFraud({
+          detectAndRecordFraudEvent({
             program: { id: link.programId },
             partner: pick(webhookPartner, ["id", "email", "name"]),
             customer: pick(customer, ["id", "email", "name"]),

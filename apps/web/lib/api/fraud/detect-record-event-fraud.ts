@@ -7,7 +7,7 @@ import { executeFraudRule } from "./execute-fraud-rule";
 import { getMergedFraudRules } from "./get-merged-fraud-rules";
 import { createFraudEventGroupKey } from "./utils";
 
-export async function detectAndRecordEventFraud(context: FraudEventContext) {
+export async function detectAndRecordFraudEvent(context: FraudEventContext) {
   const result = fraudEventContext.safeParse(context);
 
   if (!result.success) {
