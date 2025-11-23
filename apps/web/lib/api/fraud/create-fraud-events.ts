@@ -33,7 +33,9 @@ export async function createFraudEvents(
     }),
   });
 
-  console.info(`Created fraud events ${createdFraudEvents}`);
+  console.info(
+    `Created fraud events ${JSON.stringify(createdFraudEvents, null, 2)}`,
+  );
 
   return createdFraudEvents;
 }

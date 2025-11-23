@@ -2,6 +2,7 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { withWorkspace } from "@/lib/auth";
 import {
   rawFraudEventSchema,
+  rawFraudEventSchemas,
   rawFraudEventsQuerySchema,
 } from "@/lib/zod/schemas/fraud";
 import { prisma } from "@dub/prisma";
@@ -48,34 +49,37 @@ export const GET = withWorkspace(
       });
 
       return NextResponse.json(
-        z.array(rawFraudEventSchema).parse(bannedProgramEnrollments),
+        z
+          .array(rawFraudEventSchemas["partnerCrossProgramBan"])
+          .parse(bannedProgramEnrollments),
       );
     }
 
     if (type === "partnerDuplicatePayoutMethod") {
       const duplicatePartners = await prisma.programEnrollment.findMany({
         where: {
-          partnerId: partner.id,
           programId,
           partner: {
             payoutMethodHash: partner.payoutMethodHash,
           },
         },
         select: {
+          createdAt: true,
           partner: {
             select: {
               id: true,
               name: true,
               email: true,
               image: true,
-              updatedAt: true,
             },
           },
         },
       });
 
       return NextResponse.json(
-        z.array(rawFraudEventSchema).parse(duplicatePartners),
+        z
+          .array(rawFraudEventSchemas["partnerDuplicatePayoutMethod"])
+          .parse(duplicatePartners),
       );
     }
 
