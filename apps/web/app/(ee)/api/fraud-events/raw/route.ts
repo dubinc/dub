@@ -1,8 +1,12 @@
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
-import { rawFraudEventsQuerySchema } from "@/lib/zod/schemas/fraud";
+import {
+  rawFraudEventSchema,
+  rawFraudEventsQuerySchema,
+} from "@/lib/zod/schemas/fraud";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 // GET /api/fraud-events/raw - Get individual fraud events within a group
 export const GET = withWorkspace(
@@ -43,7 +47,9 @@ export const GET = withWorkspace(
         },
       });
 
-      return NextResponse.json(bannedProgramEnrollments);
+      return NextResponse.json(
+        z.array(rawFraudEventSchema).parse(bannedProgramEnrollments),
+      );
     }
 
     if (type === "partnerDuplicatePayoutMethod") {
@@ -68,10 +74,12 @@ export const GET = withWorkspace(
         },
       });
 
-      return NextResponse.json(duplicatePartners);
+      return NextResponse.json(
+        z.array(rawFraudEventSchema).parse(duplicatePartners),
+      );
     }
 
-    return NextResponse.json(fraudEvents);
+    return NextResponse.json(z.array(rawFraudEventSchema).parse(fraudEvents));
   },
   {
     requiredPlan: ["advanced", "enterprise"],

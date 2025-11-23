@@ -1,14 +1,15 @@
 "use client";
 
 import { useRawFraudEvents } from "@/lib/swr/use-raw-fraud-events";
+import { rawFraudEventSchemas } from "@/lib/zod/schemas/fraud";
 import { BAN_PARTNER_REASONS } from "@/lib/zod/schemas/partners";
 import { Table, TimestampTooltip, useTable } from "@dub/ui";
 import { formatDateTimeSmart } from "@dub/utils";
+import { z } from "zod";
 
-interface EventDataProps {
-  bannedAt: string;
-  bannedReason: string | null;
-}
+type EventDataProps = z.infer<
+  (typeof rawFraudEventSchemas)["partnerCrossProgramBan"]
+>;
 
 export function FraudCrossProgramBanTable() {
   const { fraudEvents, loading, error } = useRawFraudEvents<EventDataProps>();
@@ -28,7 +29,7 @@ export function FraudCrossProgramBanTable() {
             rows={["local", "utc", "unix"]}
             delayDuration={150}
           >
-            <p>{formatDateTimeSmart(row.original.bannedAt)}</p>
+            <p>{formatDateTimeSmart(row.original.bannedAt || "")}</p>
           </TimestampTooltip>
         ),
       },

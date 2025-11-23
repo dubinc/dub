@@ -5,6 +5,7 @@ import { CommissionSchema } from "./commissions";
 import { CustomerSchema } from "./customers";
 import { getPaginationQuerySchema } from "./misc";
 import { PartnerSchema } from "./partners";
+import { ProgramEnrollmentSchema } from "./programs";
 import { UserSchema } from "./users";
 
 export const MAX_RESOLUTION_REASON_LENGTH = 200;
@@ -167,3 +168,73 @@ export const updateFraudRuleSettingsSchema = z.object({
     })
     .optional(),
 });
+
+export const rawFraudEventSchemas = {
+  customerEmailMatch: z.object({
+    createdAt: z.date(),
+    customer: CustomerSchema.pick({
+      id: true,
+      name: true,
+      email: true,
+    }),
+  }),
+
+  customerEmailSuspiciousDomain: z.object({
+    createdAt: z.date(),
+    customer: CustomerSchema.pick({
+      id: true,
+      name: true,
+      email: true,
+    }),
+  }),
+
+  partnerCrossProgramBan: ProgramEnrollmentSchema.pick({
+    bannedAt: true,
+    bannedReason: true,
+  }),
+
+  partnerDuplicatePayoutMethod: z.object({
+    createdAt: z.date(),
+    partner: PartnerSchema.pick({
+      id: true,
+      name: true,
+      email: true,
+      image: true,
+    }),
+  }),
+
+  referralSourceBanned: z.object({
+    createdAt: z.date(),
+    customer: CustomerSchema.pick({
+      id: true,
+      name: true,
+      email: true,
+    }),
+    metadata: z.object({
+      source: z.string(),
+      type: z.enum(["click", "lead", "sale"]),
+    }),
+  }),
+
+  paidTrafficDetected: z.object({
+    createdAt: z.date(),
+    customer: CustomerSchema.pick({
+      id: true,
+      name: true,
+      email: true,
+    }),
+    metadata: z.object({
+      source: z.string(),
+      type: z.enum(["click", "lead", "sale"]),
+    }),
+  }),
+};
+
+export const rawFraudEventSchema = z.union([
+  rawFraudEventSchemas["customerEmailMatch"],
+  rawFraudEventSchemas["customerEmailSuspiciousDomain"],
+  rawFraudEventSchemas["partnerCrossProgramBan"],
+  rawFraudEventSchemas["partnerDuplicatePayoutMethod"],
+  rawFraudEventSchemas["referralSourceBanned"],
+  rawFraudEventSchemas["paidTrafficDetected"],
+]);

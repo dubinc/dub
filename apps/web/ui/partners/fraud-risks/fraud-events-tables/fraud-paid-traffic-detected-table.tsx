@@ -3,7 +3,8 @@
 import { PAID_TRAFFIC_PLATFORMS_CONFIG } from "@/lib/api/fraud/constants";
 import { useRawFraudEvents } from "@/lib/swr/use-raw-fraud-events";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { CustomerProps, PaidTrafficPlatform } from "@/lib/types";
+import { PaidTrafficPlatform } from "@/lib/types";
+import { rawFraudEventSchemas } from "@/lib/zod/schemas/fraud";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
 import {
@@ -21,18 +22,11 @@ import {
 } from "@dub/ui";
 import { formatDateTimeSmart } from "@dub/utils";
 import Link from "next/link";
+import { z } from "zod";
 
-interface EventDataProps {
-  customer: Pick<CustomerProps, "id" | "name" | "email"> | null;
-  commission: {
-    type: "click" | "lead" | "sale" | "custom";
-  } | null;
-  metadata: {
-    type?: "click" | "lead" | "sale" | "custom";
-    source?: PaidTrafficPlatform;
-  } | null;
-  createdAt: string;
-}
+type EventDataProps = z.infer<
+  (typeof rawFraudEventSchemas)["paidTrafficDetected"]
+>;
 
 const PAID_TRAFFIC_PLATFORM_ICONS: Record<
   PaidTrafficPlatform,

@@ -2,16 +2,16 @@
 
 import { useRawFraudEvents } from "@/lib/swr/use-raw-fraud-events";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { PartnerProps } from "@/lib/types";
+import { rawFraudEventSchemas } from "@/lib/zod/schemas/fraud";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { Button, Table, TimestampTooltip, useTable } from "@dub/ui";
 import { formatDateTimeSmart } from "@dub/utils";
 import Link from "next/link";
+import { z } from "zod";
 
-interface EventDataProps {
-  partner: Pick<PartnerProps, "id" | "name" | "email" | "image">;
-  createdAt: string;
-}
+type EventDataProps = z.infer<
+  (typeof rawFraudEventSchemas)["partnerDuplicatePayoutMethod"]
+>;
 
 export function FraudDuplicatePayoutMethodTable() {
   const { slug: workspaceSlug } = useWorkspace();
