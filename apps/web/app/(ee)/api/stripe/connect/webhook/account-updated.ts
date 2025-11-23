@@ -1,4 +1,4 @@
-import { createFraudEventGroupKey } from "@/lib/api/fraud/utils";
+import { createFraudEvents } from "@/lib/api/fraud/create-fraud-events";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
@@ -99,18 +99,13 @@ export async function accountUpdated(event: Stripe.Event) {
         ({ programs }) => programs,
       );
 
-      await prisma.fraudEvent.createMany({
-        data: programEnrollments.map(({ programId }) => ({
+      await createFraudEvents(
+        programEnrollments.map(({ programId }) => ({
           programId,
           partnerId: partner.id,
           type: "partnerDuplicatePayoutMethod",
-          groupKey: createFraudEventGroupKey({
-            programId,
-            partnerId: partner.id,
-            type: "partnerDuplicatePayoutMethod",
-          }),
         })),
-      });
+      );
     }
   }
 

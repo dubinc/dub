@@ -1,7 +1,7 @@
 "use server";
 
 import { createId } from "@/lib/api/create-id";
-import { detectAndRecordFraudApplication } from "@/lib/api/fraud/detect-record-fraud-partner";
+import { detectAndRecordFraudApplication } from "@/lib/api/fraud/detect-record-fraud-application";
 import { notifyPartnerApplication } from "@/lib/api/partners/notify-partner-application";
 import { getIP } from "@/lib/api/utils/get-ip";
 import { getSession } from "@/lib/auth";

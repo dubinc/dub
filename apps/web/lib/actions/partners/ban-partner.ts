@@ -2,8 +2,8 @@
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { queueDiscountCodeDeletion } from "@/lib/api/discounts/queue-discount-code-deletion";
+import { createFraudEvents } from "@/lib/api/fraud/create-fraud-events";
 import { resolveFraudEvents } from "@/lib/api/fraud/resolve-fraud-events";
-import { createFraudEventGroupKey } from "@/lib/api/fraud/utils";
 import { linkCache } from "@/lib/api/links/cache";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
@@ -149,18 +149,13 @@ export const banPartnerAction = authActionClient
           // Create partnerCrossProgramBan fraud events for other programs where this partner
           // is enrolled and approved, to flag potential cross-program fraud risk
           programEnrollments.length > 0 &&
-            prisma.fraudEvent.createMany({
-              data: programEnrollments.map(({ programId }) => ({
+            createFraudEvents(
+              programEnrollments.map(({ programId }) => ({
                 programId,
                 partnerId,
                 type: "partnerCrossProgramBan",
-                groupKey: createFraudEventGroupKey({
-                  programId,
-                  partnerId,
-                  type: "partnerCrossProgramBan",
-                }),
               })),
-            }),
+            ),
         ]);
 
         const { program, partner, links, discountCodes } = programEnrollment;

@@ -1,9 +1,8 @@
 import { PartnerProps, ProgramProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { FraudEvent } from "@dub/prisma/client";
-import { createId } from "../create-id";
 import { FRAUD_RULES_BY_SCOPE } from "./constants";
-import { createFraudEventGroupKey } from "./utils";
+import { createFraudEvents } from "./create-fraud-events";
 
 interface FraudApplicationContext {
   program: Pick<ProgramProps, "id">;
@@ -64,35 +63,11 @@ export async function detectAndRecordFraudApplication({
     return;
   }
 
-  const fraudEvents: Pick<
-    FraudEvent,
-    "id" | "programId" | "partnerId" | "type" | "groupKey"
-  >[] = [];
-
-  for (const triggeredRule of triggeredRules) {
-    const groupKey = createFraudEventGroupKey({
+  await createFraudEvents(
+    triggeredRules.map((rule) => ({
       programId: program.id,
       partnerId: partner.id,
-      type: triggeredRule.type,
-    });
-
-    fraudEvents.push({
-      id: createId({ prefix: "fre_" }),
-      programId: program.id,
-      partnerId: partner.id,
-      type: triggeredRule.type,
-      groupKey,
-    });
-  }
-
-  try {
-    await prisma.fraudEvent.createMany({
-      data: fraudEvents,
-    });
-  } catch (error) {
-    console.error(
-      "[detectAndRecordFraudApplication] Error recording partner fraud events.",
-      error,
-    );
-  }
+      type: rule.type,
+    })),
+  );
 }
