@@ -21,7 +21,7 @@ export function useFraudEventsCount<T>({
       ...query,
     },
     {
-      exclude: ["page", "pageSize", "sortBy", "sortOrder"],
+      exclude: ["page", "pageSize", "sortBy", "sortOrder", "groupKey"],
     },
   );
 

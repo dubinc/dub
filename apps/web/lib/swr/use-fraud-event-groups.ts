@@ -8,18 +8,23 @@ import useWorkspace from "./use-workspace";
 
 export function useFraudEventGroups({
   enabled = true,
+  exclude = [],
   query,
 }: {
   enabled?: boolean;
+  exclude?: (keyof z.infer<typeof groupedFraudEventsQuerySchema>)[];
   query?: Partial<z.infer<typeof groupedFraudEventsQuerySchema>>;
 } = {}) {
   const { getQueryString } = useRouterStuff();
   const { id: workspaceId, defaultProgramId } = useWorkspace();
 
-  const queryString = getQueryString({
-    workspaceId,
-    ...query,
-  });
+  const queryString = getQueryString(
+    {
+      workspaceId,
+      ...query,
+    },
+    { exclude },
+  );
 
   const { data, error } = useSWR<fraudEventGroupProps[]>(
     enabled && defaultProgramId ? `/api/fraud-events${queryString}` : undefined,

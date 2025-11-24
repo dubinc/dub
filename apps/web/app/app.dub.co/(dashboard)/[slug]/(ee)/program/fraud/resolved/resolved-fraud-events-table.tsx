@@ -1,8 +1,8 @@
 "use client";
 
 import { FRAUD_RULES_BY_TYPE } from "@/lib/api/fraud/constants";
-import { useFraudEventsCount } from "@/lib/swr/use-fraud-events-count";
 import { useFraudEventGroups } from "@/lib/swr/use-fraud-event-groups";
+import { useFraudEventsCount } from "@/lib/swr/use-fraud-events-count";
 import { fraudEventGroupProps } from "@/lib/types";
 import { FraudReviewSheet } from "@/ui/partners/fraud-risks/fraud-review-sheet";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
@@ -48,6 +48,7 @@ export function ResolvedFraudEventsTable() {
     query: {
       status: "resolved",
     },
+    exclude: ["groupKey"],
   });
 
   const [detailsSheetState, setDetailsSheetState] = useState<
@@ -59,8 +60,8 @@ export function ResolvedFraudEventsTable() {
     if (groupKey) setDetailsSheetState({ open: true, groupKey });
   }, [searchParams]);
 
-  const { currentFraudEvent } = useCurrentFraudEvent({
-    fraudEvents,
+  const { currentFraudEventGroup } = useCurrentFraudEventGroup({
+    fraudEventGroups: fraudEvents,
     groupKey: detailsSheetState.groupKey,
   });
 
@@ -208,13 +209,13 @@ export function ResolvedFraudEventsTable() {
 
   return (
     <div className="flex flex-col gap-6">
-      {detailsSheetState.groupKey && currentFraudEvent && (
+      {detailsSheetState.groupKey && currentFraudEventGroup && (
         <FraudReviewSheet
           isOpen={detailsSheetState.open}
           setIsOpen={(open) =>
             setDetailsSheetState((s) => ({ ...s, open }) as any)
           }
-          fraudEventGroup={currentFraudEvent}
+          fraudEventGroup={currentFraudEventGroup}
           onPrevious={
             previousGroupKey
               ? () =>
@@ -286,32 +287,38 @@ export function ResolvedFraudEventsTable() {
   );
 }
 
-/** Gets the current fraud event from the loaded array if available, or a separate fetch if not */
-function useCurrentFraudEvent({
-  fraudEvents,
+// Gets the current fraud event from the loaded array if available, or a separate fetch if not
+function useCurrentFraudEventGroup({
+  fraudEventGroups,
   groupKey,
 }: {
-  fraudEvents?: fraudEventGroupProps[];
+  fraudEventGroups?: fraudEventGroupProps[];
   groupKey: string | null;
 }) {
-  let currentFraudEvent = groupKey
-    ? fraudEvents?.find(({ groupKey: gk }) => gk === groupKey)
+  let currentFraudEventGroup = groupKey
+    ? fraudEventGroups?.find(
+        (fraudEventGroup) => fraudEventGroup.groupKey === groupKey,
+      )
     : null;
 
-  // TODO:
-  // We need to update the query to support this
+  const shouldFetch =
+    fraudEventGroups && groupKey && !currentFraudEventGroup ? groupKey : null;
 
-  // const fetchGroupKey =
-  //   fraudEvents && groupKey && !currentFraudEvent ? groupKey : null;
+  const { fraudEvents: fetchedFraudEventGroups, loading: isLoading } =
+    useFraudEventGroups({
+      query: { groupKey: groupKey ?? undefined },
+      enabled: Boolean(shouldFetch),
+    });
 
-  // const { fraudEvents: fetchedFraudEvents, loading: isLoading } =
-  //   useGroupedFraudEvents({
-  //     enabled: Boolean(groupKey),
-  //     query: groupKey ? { groupKeys: [groupKey] } : undefined,
-  //   });
+  if (
+    !currentFraudEventGroup &&
+    fetchedFraudEventGroups?.[0]?.groupKey === groupKey
+  ) {
+    currentFraudEventGroup = fetchedFraudEventGroups[0];
+  }
 
-  // if (!currentFraudEvent && fetchedFraudEvents?.[0]?.groupKey === groupKey)
-  //   currentFraudEvent = fetchedFraudEvents[0];
-
-  return { currentFraudEvent };
+  return {
+    currentFraudEventGroup,
+    isLoading,
+  };
 }

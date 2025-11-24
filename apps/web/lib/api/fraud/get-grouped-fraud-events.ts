@@ -33,13 +33,11 @@ interface QueryResult {
   userImage: string | null;
 }
 
-// TODO
-// Improve this query to be more efficient
-
 // Get the fraud events for a program grouped by groupKey
 export async function getGroupedFraudEvents({
   programId,
   partnerId,
+  groupKey,
   status,
   type,
   page,
@@ -54,6 +52,7 @@ export async function getGroupedFraudEvents({
       status && Prisma.sql`FraudEvent.status = ${status}`,
       type && Prisma.sql`FraudEvent.type = ${type}`,
       partnerId && Prisma.sql`FraudEvent.partnerId = ${partnerId}`,
+      groupKey && Prisma.sql`FraudEvent.groupKey = ${groupKey}`,
     ].filter(Boolean),
     " AND ",
   );
