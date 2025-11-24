@@ -152,7 +152,7 @@ async function handler(req: Request) {
 
     console.table(commissionsToCreate);
 
-    // // Create commissions
+    // Create commissions
     await prisma.commission.createMany({
       data: commissionsToCreate,
     });
