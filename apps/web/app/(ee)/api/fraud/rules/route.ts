@@ -1,3 +1,4 @@
+import { createId } from "@/lib/api/create-id";
 import { CONFIGURABLE_FRAUD_RULES } from "@/lib/api/fraud/constants";
 import { resolveFraudEvents } from "@/lib/api/fraud/resolve-fraud-events";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
@@ -76,9 +77,11 @@ export const PATCH = withWorkspace(
           },
         },
         create: {
+          id: createId({ prefix: "fr_" }),
           programId,
           type,
           config: payload.config ?? Prisma.DbNull,
+          disabledAt: payload.enabled ? null : new Date(),
         },
         update: {
           config: payload.config ?? Prisma.DbNull,
