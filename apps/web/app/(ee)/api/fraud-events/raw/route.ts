@@ -1,3 +1,4 @@
+import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import {
@@ -31,6 +32,14 @@ export const GET = withWorkspace(
     }
 
     const { type, partner } = fraudEvents[0];
+
+    if (!partner) {
+      throw new DubApiError({
+        code: "not_found",
+        message: "Partner not found.",
+      });
+    }
+
     const zodSchema = rawFraudEventSchemas[type];
 
     if (type === "partnerCrossProgramBan") {
