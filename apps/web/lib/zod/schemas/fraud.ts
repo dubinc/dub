@@ -203,6 +203,16 @@ export const rawFraudEventSchemas = {
     }),
   }),
 
+  partnerFraudReport: z.object({
+    createdAt: z.date(),
+    partner: PartnerSchema.pick({
+      id: true,
+      name: true,
+      email: true,
+      image: true,
+    }),
+  }),
+
   referralSourceBanned: z.object({
     createdAt: z.date(),
     customer: CustomerSchema.pick({
@@ -233,8 +243,9 @@ export const rawFraudEventSchemas = {
 export const rawFraudEventSchema = z.union([
   rawFraudEventSchemas["customerEmailMatch"],
   rawFraudEventSchemas["customerEmailSuspiciousDomain"],
-  rawFraudEventSchemas["partnerCrossProgramBan"],
-  rawFraudEventSchemas["partnerDuplicatePayoutMethod"],
   rawFraudEventSchemas["referralSourceBanned"],
   rawFraudEventSchemas["paidTrafficDetected"],
+  rawFraudEventSchemas["partnerFraudReport"],
+  rawFraudEventSchemas["partnerCrossProgramBan"],
+  rawFraudEventSchemas["partnerDuplicatePayoutMethod"],
 ]);

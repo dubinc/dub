@@ -9,11 +9,13 @@ import { formatDateTimeSmart } from "@dub/utils";
 import Link from "next/link";
 import { z } from "zod";
 
+// Both partnerFraudReport and partnerDuplicatePayoutMethod have the same schema
+// We can use either one since they're identical
 type EventDataProps = z.infer<
-  (typeof rawFraudEventSchemas)["partnerDuplicatePayoutMethod"]
+  (typeof rawFraudEventSchemas)["partnerFraudReport"]
 >;
 
-export function FraudDuplicatePayoutMethodTable() {
+export function FraudPartnerInfoTable() {
   const { slug: workspaceSlug } = useWorkspace();
 
   const { fraudEvents, loading, error } = useRawFraudEvents<EventDataProps>();
@@ -67,7 +69,6 @@ export function FraudDuplicatePayoutMethodTable() {
       },
       {
         id: "view",
-        header: "",
         enableHiding: false,
         minSize: 80,
         size: 80,

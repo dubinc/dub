@@ -8,8 +8,9 @@ enum FraudRuleType {
   customerEmailSuspiciousDomain
   referralSourceBanned
   paidTrafficDetected
-  partnerCrossProgramBan
-  partnerDuplicatePayoutMethod
+  partnerCrossProgramBan // Cross-program ban from other programs
+  partnerDuplicatePayoutMethod // Duplicate payout method with other partners
+  partnerFraudReport // Fraud report from other programs
 }
 
 model FraudRule {

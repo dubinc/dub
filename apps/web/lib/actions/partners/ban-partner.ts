@@ -148,14 +148,13 @@ export const banPartnerAction = authActionClient
 
           // Create partnerCrossProgramBan fraud events for other programs where this partner
           // is enrolled and approved, to flag potential cross-program fraud risk
-          programEnrollments.length > 0 &&
-            createFraudEvents(
-              programEnrollments.map(({ programId }) => ({
-                programId,
-                partnerId,
-                type: "partnerCrossProgramBan",
-              })),
-            ),
+          createFraudEvents(
+            programEnrollments.map(({ programId }) => ({
+              programId,
+              partnerId,
+              type: "partnerCrossProgramBan",
+            })),
+          ),
         ]);
 
         const { program, partner, links, discountCodes } = programEnrollment;

@@ -59,10 +59,6 @@ export async function detectAndRecordFraudApplication({
     }
   }
 
-  if (triggeredRules.length === 0) {
-    return;
-  }
-
   await createFraudEvents(
     triggeredRules.map((rule) => ({
       programId: program.id,

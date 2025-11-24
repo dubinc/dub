@@ -727,6 +727,13 @@ export const bulkApprovePartnersSchema = z.object({
 export const rejectPartnerSchema = z.object({
   workspaceId: z.string(),
   partnerId: z.string(),
+  reportFraud: z
+    .boolean()
+    .optional()
+    .default(false)
+    .describe(
+      "Whether to report this partner for suspected fraud to help keep the network safe.",
+    ),
 });
 
 export const bulkRejectPartnersSchema = z.object({
