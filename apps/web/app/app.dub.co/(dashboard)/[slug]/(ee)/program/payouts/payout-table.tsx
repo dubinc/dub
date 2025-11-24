@@ -132,9 +132,10 @@ const PayoutTableInner = memo(
               ({ partnerId }) => partnerId === row.original.partner.id,
             );
 
-            const status = partnerHasPendingFraud
-              ? "hold"
-              : row.original.status;
+            const status =
+              partnerHasPendingFraud && row.original.status === "pending"
+                ? "hold"
+                : row.original.status;
 
             const badge = PayoutStatusBadges[status];
 

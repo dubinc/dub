@@ -277,9 +277,11 @@ export function CommissionTable() {
               ({ partnerId }) => partnerId === row.original.partner.id,
             );
 
-            const status = partnerHasPendingFraud
-              ? "hold"
-              : row.original.status;
+            const status =
+              partnerHasPendingFraud &&
+              ["pending", "processed"].includes(row.original.status)
+                ? "hold"
+                : row.original.status;
 
             const badge = CommissionStatusBadges[status];
 
