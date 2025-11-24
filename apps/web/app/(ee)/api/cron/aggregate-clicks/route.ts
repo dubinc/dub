@@ -124,13 +124,16 @@ async function handler(req: Request) {
     // creating a list of commissions to create
     const commissionsToCreate = linksWithClickRewards
       .map(({ id, programId, partnerId, programEnrollment }) => {
+        if (!programId || !partnerId || !programEnrollment?.clickReward) {
+          return null;
+        }
+
         const linkClicks = linkClicksMap.get(id) ?? 0;
-        if (
-          !programId ||
-          !partnerId ||
-          !programEnrollment?.clickReward ||
-          linkClicks === 0
-        ) {
+        const earnings =
+          getRewardAmount(serializeReward(programEnrollment.clickReward)) *
+          linkClicks;
+
+        if (linkClicks === 0 || earnings === 0) {
           return null;
         }
 
@@ -142,9 +145,7 @@ async function handler(req: Request) {
           quantity: linkClicks,
           type: CommissionType.click,
           amount: 0,
-          earnings:
-            getRewardAmount(serializeReward(programEnrollment.clickReward)) *
-            linkClicks,
+          earnings,
         };
       })
       .filter((c) => c !== null) satisfies Prisma.CommissionCreateManyInput[];
