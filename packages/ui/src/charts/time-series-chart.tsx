@@ -78,10 +78,14 @@ function TimeSeriesChartInner<T extends Datum>({
   }, [data]);
 
   const { minY, maxY } = useMemo(() => {
-    const values = series
-      .filter(({ isActive }) => isActive !== false)
-      .map(({ valueAccessor }) => data.map((d) => valueAccessor(d)))
-      .flat()
+    const activeSeries = series.filter(({ isActive }) => isActive !== false);
+    const values = data
+      .flatMap((d) =>
+        type === "bar"
+          ? // Sum values for stacked bars
+            activeSeries.reduce((sum, s) => sum + s.valueAccessor(d), 0)
+          : activeSeries.map((s) => s.valueAccessor(d)),
+      )
       .filter((v): v is number => v != null);
 
     return {
@@ -89,7 +93,7 @@ function TimeSeriesChartInner<T extends Datum>({
       minY: type === "area" ? Math.min(...values) : Math.min(0, ...values),
       maxY: Math.max(...values),
     };
-  }, [data, series]);
+  }, [data, series, type]);
 
   const { yScale, xScale } = useMemo(() => {
     const rangeY = maxY - minY;
@@ -112,7 +116,7 @@ function TimeSeriesChartInner<T extends Datum>({
           : scaleBand({
               domain: data.map(({ date }) => date),
               range: [0, width],
-              padding: Math.min(0.75, (width / data.length) * 0.02),
+              padding: 0.15,
               align: 0.5,
             }),
     };

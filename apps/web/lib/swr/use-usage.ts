@@ -1,4 +1,5 @@
 import { fetcher, getFirstAndLastDay } from "@dub/utils";
+import { endOfDay, startOfDay } from "date-fns";
 import { useSearchParams } from "next/navigation";
 import { useMemo } from "react";
 import useSWR from "swr";
@@ -36,6 +37,21 @@ export default function useUsage({
   const domain = searchParams.get("domain");
   const hasActiveFilters = folderId || domain ? true : false;
 
+  const { start, end, interval } = useMemo(() => {
+    if (searchParams.has("interval"))
+      return {
+        interval: searchParams.get("interval") || "30d",
+        start: undefined,
+        end: undefined,
+      };
+
+    return {
+      start: searchParams.get("start") || firstDay.toISOString(),
+      end: searchParams.get("end") || lastDay.toISOString(),
+      interval: undefined,
+    };
+  }, [searchParams, firstDay, lastDay]);
+
   const {
     data: usage,
     error,
@@ -45,12 +61,12 @@ export default function useUsage({
       (disabledWhenNoFilters ? hasActiveFilters : true) &&
       `/api/workspaces/${workspaceId}/billing/usage?${new URLSearchParams({
         resource: activeResource,
-        start: firstDay.toISOString().replace("T", " ").replace("Z", ""),
-        // get end of the day (11:59:59 PM)
-        end: new Date(lastDay.getTime() + 86399999)
-          .toISOString()
-          .replace("T", " ")
-          .replace("Z", ""),
+        ...(start &&
+          end && {
+            start: startOfDay(new Date(start)).toISOString(),
+            end: endOfDay(new Date(end)).toISOString(),
+          }),
+        ...(interval && { interval }),
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         ...(folderId && { folderId }),
         ...(domain && { domain }),
@@ -68,6 +84,9 @@ export default function useUsage({
     usage,
     activeResource,
     hasActiveFilters,
+    start,
+    end,
+    interval,
     loading: !usage && !error,
     isValidating,
   };

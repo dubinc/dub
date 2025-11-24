@@ -2,6 +2,7 @@ import useDomains from "@/lib/swr/use-domains";
 import useFolders from "@/lib/swr/use-folders";
 import useUsage from "@/lib/swr/use-usage";
 import { FolderIcon } from "@/ui/folders/folder-icon";
+import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import {
   AnimatedSizeContainer,
   BlurImage,
@@ -13,7 +14,6 @@ import {
 import { Bars, TimeSeriesChart, XAxis, YAxis } from "@dub/ui/charts";
 import { CursorRays, Folder, Globe2, Hyperlink } from "@dub/ui/icons";
 import { cn, formatDate, GOOGLE_FAVICON_URL, nFormatter } from "@dub/utils";
-import { LinearGradient } from "@visx/gradient";
 import { ComponentProps, Fragment, useEffect, useMemo } from "react";
 
 const RESOURCES = ["links", "events"] as const;
@@ -37,7 +37,42 @@ const resourceEmptyStates: Record<
 export function UsageChart() {
   const { queryParams, searchParamsObj } = useRouterStuff();
 
-  const { usage, loading, activeResource } = useUsage();
+  const {
+    usage: usageTmp,
+    loading,
+    activeResource,
+    start,
+    end,
+    interval,
+  } = useUsage();
+
+  // TODO: Remove this once the usage endpoint is updated and rename `usageTmp` back to `usage`
+  const usage = useMemo(
+    () =>
+      usageTmp?.map(({ date, value }) => ({
+        date: new Date(date),
+        value,
+        groupBy: "folderId",
+        groups: [
+          {
+            id: "unsorted",
+            name: "Unsorted",
+            usage: Math.floor(value / 2),
+          },
+          {
+            id: "fold_a4zhcvDsfZpU5qAcfGWZWVbO",
+            name: "Folder 1",
+            usage: Math.floor(Math.ceil(value / 2) / 2),
+          },
+          {
+            id: "fold_MC0mryfmC8Ld260XM9qRl4H8",
+            name: "Folder 2",
+            usage: Math.ceil(Math.ceil(value / 2) / 2),
+          },
+        ],
+      })),
+    [usageTmp],
+  );
 
   // Get filter values from URL params
   const folderId = searchParamsObj.folderId;
@@ -137,12 +172,17 @@ export function UsageChart() {
 
   const chartData = useMemo(
     () =>
-      usage?.map(({ date, value }) => ({
+      usage?.map(({ date, value, groups }) => ({
         date: new Date(date),
-        values: { usage: value },
+        values: {
+          usage: value,
+          ...Object.fromEntries(groups.map((group) => [group.id, group.usage])),
+        },
       })),
     [usage, activeResource],
   );
+
+  console.log(chartData);
 
   const allZeroes = useMemo(
     () => chartData?.every(({ values }) => values.usage === 0),
@@ -150,15 +190,9 @@ export function UsageChart() {
   );
 
   return (
-    <div
-      className={cn(
-        "space-y-4 pt-6 md:pt-8",
-        activeResource === "links" && "pt-4 md:pt-4",
-      )}
-    >
-      {/* Filters - only show when resource is "links" */}
-      {activeResource === "links" && (
-        <div className="flex flex-col gap-3">
+    <div className={cn("space-y-4 pt-8")}>
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center gap-2">
           <Filter.Select
             className="w-full md:w-fit"
             filters={filters}
@@ -166,19 +200,20 @@ export function UsageChart() {
             onSelect={onSelect}
             onRemove={onRemove}
           />
-          <AnimatedSizeContainer height>
-            {activeFilters.length > 0 && (
-              <Filter.List
-                filters={filters}
-                activeFilters={activeFilters}
-                onSelect={onSelect}
-                onRemove={onRemove}
-                onRemoveAll={onRemoveAll}
-              />
-            )}
-          </AnimatedSizeContainer>
+          <SimpleDateRangePicker values={{ start, end, interval }} />
         </div>
-      )}
+        <AnimatedSizeContainer height>
+          {activeFilters.length > 0 && (
+            <Filter.List
+              filters={filters}
+              activeFilters={activeFilters}
+              onSelect={onSelect}
+              onRemove={onRemove}
+              onRemoveAll={onRemoveAll}
+            />
+          )}
+        </AnimatedSizeContainer>
+      </div>
 
       {/* Chart */}
       <div className="h-64">
@@ -193,8 +228,14 @@ export function UsageChart() {
                   id: "usage",
                   valueAccessor: (d) => d.values.usage,
                   colorClassName: "text-violet-500",
-                  isActive: true,
+                  isActive: false,
                 },
+                ...(usage?.[0]?.groups?.map((group) => ({
+                  id: group.id,
+                  valueAccessor: (d) => d.values[group.id],
+                  colorClassName: "text-blue-500",
+                  isActive: true,
+                })) ?? []),
               ]}
               tooltipClassName="p-0"
               tooltipContent={(d) => {
@@ -220,19 +261,15 @@ export function UsageChart() {
                 );
               }}
             >
-              <LinearGradient id="usage-bar-gradient">
-                <stop stopColor="#2563eb" stopOpacity={1} offset="20%" />
-                <stop stopColor="#3b82f6" stopOpacity={0.9} offset="100%" />
-              </LinearGradient>
               <XAxis highlightLast={false} />
               <YAxis showGridLines tickFormat={nFormatter} />
               <Bars
-                seriesStyles={[
-                  {
-                    id: "usage",
-                    barFill: "url(#usage-bar-gradient)",
-                  },
-                ]}
+              // seriesStyles={[
+              //   {
+              //     id: "usage",
+              //     barFill: "#2563eb",
+              //   },
+              // ]}
               />
             </TimeSeriesChart>
           ) : (

@@ -2,23 +2,27 @@ import { INTERVAL_DISPLAYS } from "@/lib/analytics/constants";
 import { getIntervalData } from "@/lib/analytics/utils";
 import { DateRangePicker, useRouterStuff } from "@dub/ui";
 
+type Values = {
+  start?: string;
+  end?: string;
+  interval?: string;
+};
+
 export default function SimpleDateRangePicker({
   className,
   align = "center",
   defaultInterval = "30d",
+  values,
   disabled,
 }: {
   className?: string;
   align?: "start" | "center" | "end";
   defaultInterval?: string;
+  values?: Values;
   disabled?: boolean;
 }) {
   const { queryParams, searchParamsObj } = useRouterStuff();
-  const { start, end, interval } = searchParamsObj as {
-    start?: string;
-    end?: string;
-    interval?: string;
-  };
+  const { start, end, interval } = values ?? (searchParamsObj as Values);
 
   return (
     <DateRangePicker
