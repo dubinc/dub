@@ -27,7 +27,7 @@ export function useFraudEventsCount<T>({
 
   const { data: fraudEventsCount, error } = useSWR(
     defaultProgramId && enabled
-      ? `/api/fraud-events/count${queryString}`
+      ? `/api/fraud/events/count${queryString}`
       : null,
     fetcher,
     {

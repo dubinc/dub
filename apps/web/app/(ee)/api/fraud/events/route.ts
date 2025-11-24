@@ -4,7 +4,7 @@ import { withWorkspace } from "@/lib/auth";
 import { groupedFraudEventsQuerySchema } from "@/lib/zod/schemas/fraud";
 import { NextResponse } from "next/server";
 
-// GET /api/fraud-events - Get the fraud events for a program grouped by rule type
+// GET /api/fraud/events - Get the fraud events for a program grouped by rule type
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);

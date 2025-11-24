@@ -14,7 +14,7 @@ export function useRawFraudEvents<T = unknown>() {
   });
 
   const { data, error } = useSWR<T[]>(
-    workspaceId && groupKey ? `/api/fraud-events/raw${queryString}` : undefined,
+    workspaceId && groupKey ? `/api/fraud/events/raw${queryString}` : undefined,
     fetcher,
     {
       keepPreviousData: true,

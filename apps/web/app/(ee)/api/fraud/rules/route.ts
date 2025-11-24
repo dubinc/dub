@@ -9,7 +9,7 @@ import { FraudRuleType, Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
-// GET /api/fraud-rules
+// GET /api/fraud/rules
 export const GET = withWorkspace(
   async ({ workspace }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
@@ -46,7 +46,7 @@ export const GET = withWorkspace(
   },
 );
 
-// PATCH /api/fraud-rules - update fraud rules for a program
+// PATCH /api/fraud/rules - update fraud rules for a program
 export const PATCH = withWorkspace(
   async ({ workspace, req, session }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);

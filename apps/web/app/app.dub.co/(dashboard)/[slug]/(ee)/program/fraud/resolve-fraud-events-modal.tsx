@@ -42,7 +42,7 @@ function ResolveFraudEventsModal({
     onSuccess: () => {
       toast.success("Fraud event resolved.");
       setShowResolveFraudEventModal(false);
-      mutatePrefix("/api/fraud-events");
+      mutatePrefix("/api/fraud/events");
       onConfirm?.();
     },
     onError: ({ error }) => {

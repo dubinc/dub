@@ -47,7 +47,7 @@ function DisableFraudRulesModal({
   const { isSubmitting, makeRequest } = useApiMutation();
 
   const { data: fraudRules, isLoading } = useSWR<FraudRuleProps[]>(
-    workspaceId ? `/api/fraud-rules?workspaceId=${workspaceId}` : null,
+    workspaceId ? `/api/fraud/rules?workspaceId=${workspaceId}` : null,
     fetcher,
   );
 
@@ -65,13 +65,13 @@ function DisableFraudRulesModal({
     // Form values are already updated via setValue in checkbox onChange
     const body = getValues();
 
-    await makeRequest("/api/fraud-rules", {
+    await makeRequest("/api/fraud/rules", {
       method: "PATCH",
       body,
       onSuccess: () => {
         toast.success("Fraud settings updated successfully.");
         setIsOpen(false);
-        mutatePrefix("/api/fraud-rules");
+        mutatePrefix("/api/fraud/rules");
       },
     });
 

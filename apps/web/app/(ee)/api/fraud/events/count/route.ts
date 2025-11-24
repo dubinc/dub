@@ -4,7 +4,7 @@ import { withWorkspace } from "@/lib/auth";
 import { fraudEventCountQuerySchema } from "@/lib/zod/schemas/fraud";
 import { NextResponse } from "next/server";
 
-// GET /api/fraud-events/count - get the count of fraud events for a program
+// GET /api/fraud/events/count - get the count of fraud events for a program
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);

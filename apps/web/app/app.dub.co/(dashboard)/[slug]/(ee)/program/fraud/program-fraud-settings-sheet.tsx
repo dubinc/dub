@@ -29,7 +29,7 @@ function ProgramFraudSettingsSheetContent({
   const { isSubmitting, makeRequest } = useApiMutation();
 
   const { data: fraudRules, isLoading } = useSWR<FraudRuleProps[]>(
-    workspaceId ? `/api/fraud-rules?workspaceId=${workspaceId}` : null,
+    workspaceId ? `/api/fraud/rules?workspaceId=${workspaceId}` : null,
     fetcher,
   );
 
@@ -79,13 +79,13 @@ function ProgramFraudSettingsSheetContent({
 
   // Submit form data to API
   const submitForm = async (body: UpdateFraudRuleSettings) => {
-    await makeRequest("/api/fraud-rules", {
+    await makeRequest("/api/fraud/rules", {
       method: "PATCH",
       body,
       onSuccess: () => {
         toast.success("Fraud settings updated successfully.");
         setIsOpen(false);
-        mutatePrefix(["/api/fraud-rules", "/api/fraud-events"]);
+        mutatePrefix(["/api/fraud/rules", "/api/fraud/events"]);
       },
     });
   };

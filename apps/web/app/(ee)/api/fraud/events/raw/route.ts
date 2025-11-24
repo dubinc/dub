@@ -9,7 +9,7 @@ import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-// GET /api/fraud-events/raw - Get individual fraud events within a group
+// GET /api/fraud/events/raw - Get individual fraud events within a group
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);

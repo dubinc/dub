@@ -27,7 +27,7 @@ export function useFraudEventGroups({
   );
 
   const { data, error } = useSWR<fraudEventGroupProps[]>(
-    enabled && defaultProgramId ? `/api/fraud-events${queryString}` : undefined,
+    enabled && defaultProgramId ? `/api/fraud/events${queryString}` : undefined,
     fetcher,
     {
       keepPreviousData: true,
