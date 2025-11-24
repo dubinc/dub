@@ -10,6 +10,14 @@ export function getPayoutEligibilityFilter(
     amount: {
       gte: program.minPayoutAmount,
     },
+    // Filter out payouts from partners with pending fraud events
+    programEnrollment: {
+      fraudEvents: {
+        every: {
+          status: "resolved",
+        },
+      },
+    },
   };
 
   switch (program.payoutMode) {

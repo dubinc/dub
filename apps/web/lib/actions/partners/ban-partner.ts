@@ -2,6 +2,8 @@
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { queueDiscountCodeDeletion } from "@/lib/api/discounts/queue-discount-code-deletion";
+import { createFraudEvents } from "@/lib/api/fraud/create-fraud-events";
+import { resolveFraudEvents } from "@/lib/api/fraud/resolve-fraud-events";
 import { linkCache } from "@/lib/api/links/cache";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
@@ -119,6 +121,41 @@ export const banPartnerAction = authActionClient
       (async () => {
         // Sync total commissions
         await syncTotalCommissions({ partnerId, programId });
+
+        const programEnrollments = await prisma.programEnrollment.findMany({
+          where: {
+            partnerId,
+            programId: {
+              not: programId,
+            },
+            status: {
+              in: ["approved"],
+            },
+          },
+        });
+
+        await Promise.allSettled([
+          // Automatically resolve all pending fraud events for this partner in the current program
+          resolveFraudEvents({
+            where: {
+              programId,
+              partnerId,
+            },
+            userId: user.id,
+            resolutionReason:
+              "Resolved automatically because the partner was banned.",
+          }),
+
+          // Create partnerCrossProgramBan fraud events for other programs where this partner
+          // is enrolled and approved, to flag potential cross-program fraud risk
+          createFraudEvents(
+            programEnrollments.map(({ programId }) => ({
+              programId,
+              partnerId,
+              type: "partnerCrossProgramBan",
+            })),
+          ),
+        ]);
 
         const { program, partner, links, discountCodes } = programEnrollment;
 

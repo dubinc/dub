@@ -57,17 +57,16 @@ model Program {
   holdingPeriodDays            Int       @default(0)
   autoApprovePartnersEnabledAt DateTime?
 
-  workspace     Project              @relation(fields: [workspaceId], references: [id])
-  partners      ProgramEnrollment[]
-  payouts       Payout[]
-  invoices      Invoice[]
-  applications  ProgramApplication[]
-  links         Link[]
-  commissions   Commission[]
-  rewards       Reward[]
-  discounts     Discount[]           @relation("ProgramDiscounts")
-  discountCodes DiscountCode[]
-
+  workspace                Project                   @relation(fields: [workspaceId], references: [id])
+  partners                 ProgramEnrollment[]
+  payouts                  Payout[]
+  invoices                 Invoice[]
+  applications             ProgramApplication[]
+  links                    Link[]
+  commissions              Commission[]
+  rewards                  Reward[]
+  discounts                Discount[]                @relation("ProgramDiscounts")
+  discountCodes            DiscountCode[]
   groups                   PartnerGroup[]
   partnerGroupDefaultLinks PartnerGroupDefaultLink[]
   bounties                 Bounty[]
@@ -75,14 +74,14 @@ model Program {
   workflows                Workflow[]
   messages                 Message[]
   comments                 PartnerComment[]
-
-  campaigns    Campaign[]
-  emailDomains EmailDomain[]
-
-  discoveredPartners DiscoveredPartner[]
-  similarPrograms    ProgramSimilarity[]
-  similarToPrograms  ProgramSimilarity[] @relation("SimilarProgram")
-  categories         ProgramCategory[]
+  campaigns                Campaign[]
+  emailDomains             EmailDomain[]
+  discoveredPartners       DiscoveredPartner[]
+  similarPrograms          ProgramSimilarity[]
+  similarToPrograms        ProgramSimilarity[]       @relation("SimilarProgram")
+  categories               ProgramCategory[]
+  fraudRules               FraudRule[]
+  fraudEvents              FraudEvent[]
 
   @@index(workspaceId)
   @@index(domain)
@@ -139,6 +138,8 @@ model ProgramEnrollment {
   bountySubmissions BountySubmission[]
   discountCodes     DiscountCode[]
   commissions       Commission[]
+  payouts           Payout[]
+  fraudEvents       FraudEvent[]
 
   // unique constraints
   @@unique([partnerId, programId])

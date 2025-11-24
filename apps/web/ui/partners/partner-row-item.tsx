@@ -5,9 +5,11 @@ import { OG_AVATAR_URL } from "@dub/utils/src/constants";
 import { CircleMinus } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { PartnerFraudIndicator } from "./fraud-risks/partner-fraud-indicator";
 
 interface PartnerRowItemProps {
   showPermalink?: boolean;
+  showFraudIndicator?: boolean;
   partner: {
     id: string;
     name: string;
@@ -127,6 +129,7 @@ function PartnerPayoutStatusTooltip({
 export function PartnerRowItem({
   partner,
   showPermalink = true,
+  showFraudIndicator = true,
 }: PartnerRowItemProps) {
   const { slug } = useParams();
   const { statusKey, showPayoutsEnabled } = usePartnerPayoutStatus(partner);
@@ -156,6 +159,7 @@ export function PartnerRowItem({
           )}
         </div>
       </DynamicTooltipWrapper>
+
       <As
         href={`/${slug}/program/partners/${partner.id}`}
         {...(showPermalink && { target: "_blank" })}
@@ -167,6 +171,8 @@ export function PartnerRowItem({
       >
         {partner.name}
       </As>
+
+      {showFraudIndicator && <PartnerFraudIndicator partnerId={partner.id} />}
     </div>
   );
 }
