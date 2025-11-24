@@ -281,34 +281,36 @@ export function FraudEventGroupsTable() {
         />
       )}
 
-      <div>
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <Filter.Select
-            className="w-full md:w-fit"
-            filters={filters}
-            activeFilters={activeFilters}
-            onSelect={onSelect}
-            onRemove={onRemove}
-            onSearchChange={setSearch}
-            onSelectedFilterChange={setSelectedFilter}
-          />
-        </div>
-        <AnimatedSizeContainer height>
-          <div>
-            {activeFilters.length > 0 && (
-              <div className="pt-3">
-                <Filter.List
-                  filters={filters}
-                  activeFilters={activeFilters}
-                  onSelect={onSelect}
-                  onRemove={onRemove}
-                  onRemoveAll={onRemoveAll}
-                />
-              </div>
-            )}
+      {((fraudEvents?.length ?? 0) > 0 || (fraudEventsCount ?? 0) > 0) && (
+        <div>
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <Filter.Select
+              className="w-full md:w-fit"
+              filters={filters}
+              activeFilters={activeFilters}
+              onSelect={onSelect}
+              onRemove={onRemove}
+              onSearchChange={setSearch}
+              onSelectedFilterChange={setSelectedFilter}
+            />
           </div>
-        </AnimatedSizeContainer>
-      </div>
+          <AnimatedSizeContainer height>
+            <div>
+              {activeFilters.length > 0 && (
+                <div className="pt-3">
+                  <Filter.List
+                    filters={filters}
+                    activeFilters={activeFilters}
+                    onSelect={onSelect}
+                    onRemove={onRemove}
+                    onRemoveAll={onRemoveAll}
+                  />
+                </div>
+              )}
+            </div>
+          </AnimatedSizeContainer>
+        </div>
+      )}
       {fraudEvents?.length !== 0 ? (
         <Table {...tableProps} table={table} />
       ) : (
