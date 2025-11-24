@@ -93,7 +93,7 @@ async function handler(req: Request) {
       },
     });
 
-    const endMessage = `Finished aggregating clicks for ${batchNumber} batches (total ${nFormatter(batchNumber * BATCH_SIZE + linksWithClickRewards.length, { full: true })} links)`;
+    const endMessage = `Finished aggregating clicks for ${batchNumber} batches (total ${nFormatter(batchNumber * (BATCH_SIZE - 1) + linksWithClickRewards.length, { full: true })} links)`;
 
     if (linksWithClickRewards.length === 0) {
       return logAndRespond(endMessage);
