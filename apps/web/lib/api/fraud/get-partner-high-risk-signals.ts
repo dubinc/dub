@@ -2,8 +2,7 @@ import { prisma } from "@dub/prisma";
 import { Partner, Program } from "@dub/prisma/client";
 
 // Checks for high-risk signals for a partner including cross-program bans
-// and duplicate payout methods. Returns boolean flags indicating if any
-// high-risk conditions are detected.
+// and duplicate payout methods.
 export async function getPartnerHighRiskSignals({
   program,
   partner,
