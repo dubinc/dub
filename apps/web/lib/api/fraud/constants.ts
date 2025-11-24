@@ -93,7 +93,7 @@ export const FRAUD_RULES: FraudRuleInfo[] = [
     type: "partnerNoVerifiedSocialLinks",
     name: "No verified website or social links",
     description:
-      "Partner hasn't verified their website any social presence, making verification harder.",
+      "Partner hasn't verified their website or any social presence, making verification harder.",
     scope: "partner",
     severity: "low",
     configurable: false,

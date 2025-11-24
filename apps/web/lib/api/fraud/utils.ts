@@ -27,7 +27,10 @@ export function normalizeEmail(email: string): string {
 }
 
 // Create a unique group key to identify and deduplicate fraud events of the same type
-// for the same partner-program combination
+// for the same partner-program combination.
+// batchId is used when resolving fraud events to create a new unique group key,
+// breaking the grouping so resolved events are no longer grouped with
+// pending events that share the same programId, partnerId, and type
 export function createFraudEventGroupKey({
   programId,
   partnerId,

@@ -137,7 +137,7 @@ export function FraudReferralSourceSettings({
             </span>{" "}
             to match any part of a domain.{" "}
             <a
-              href="#"
+              href="https://dub.co/help"
               target="_blank"
               rel="noopener noreferrer"
               className="leading-none underline underline-offset-2 hover:text-neutral-800"

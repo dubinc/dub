@@ -192,9 +192,6 @@ export function getRulesBeingDisabled({
   previousFraudRules: FraudRuleProps[] | undefined;
   nextFraudRules: UpdateFraudRuleSettings;
 }): ConfigurableRuleType[] {
-  console.log("previousFraudRules", previousFraudRules);
-  console.log("nextFraudRules", nextFraudRules);
-
   // Build "previous" map from API
   const previous: Record<ConfigurableRuleType, boolean> = {
     referralSourceBanned:
@@ -210,8 +207,6 @@ export function getRulesBeingDisabled({
     referralSourceBanned: nextFraudRules.referralSourceBanned?.enabled ?? false,
     paidTrafficDetected: nextFraudRules.paidTrafficDetected?.enabled ?? false,
   };
-
-  console.log({ previous, next });
 
   // Detect rule disable transitions
   return CONFIGURABLE_RULE_TYPES.filter(

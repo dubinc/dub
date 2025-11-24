@@ -23,7 +23,7 @@ export function PartnerFraudIndicator({
       groupBy: "partnerId",
       status: "pending",
     },
-    enabled: partnerId !== null,
+    enabled: !!partnerId,
   });
 
   if (loading) {

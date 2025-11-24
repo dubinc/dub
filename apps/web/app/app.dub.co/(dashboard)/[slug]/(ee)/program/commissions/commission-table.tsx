@@ -313,7 +313,7 @@ export function CommissionTable() {
           cell: ({ row }) => <CommissionRowMenu row={row} />,
         },
       ].filter((c) => c.id === "menu" || commissionsColumns.all.includes(c.id)),
-    [slug, groups, program, workspace],
+    [slug, groups, program, workspace, fraudEventsCount],
   );
 
   const table = useTable<CommissionResponse>({

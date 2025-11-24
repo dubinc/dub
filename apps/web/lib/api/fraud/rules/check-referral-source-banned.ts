@@ -35,6 +35,12 @@ export const checkReferralSourceBanned = defineFraudRule({
       };
     }
 
+    if (!click) {
+      return {
+        triggered: false,
+      };
+    }
+
     // Return early if both referer and referer_url are null/empty
     if (!click.referer && !click.referer_url) {
       return {
