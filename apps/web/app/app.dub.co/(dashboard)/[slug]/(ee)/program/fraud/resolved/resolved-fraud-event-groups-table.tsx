@@ -24,7 +24,7 @@ import { Row } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
 import { useFraudEventsFilters } from "../use-fraud-events-filters";
 
-export function ResolvedFraudEventsTable() {
+export function ResolvedFraudEventGroupsTable() {
   const { queryParams, searchParams } = useRouterStuff();
   const { pagination, setPagination } = usePagination();
 
