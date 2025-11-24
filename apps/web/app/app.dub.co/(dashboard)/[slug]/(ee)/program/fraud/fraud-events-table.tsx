@@ -7,7 +7,6 @@ import { fraudEventGroupProps } from "@/lib/types";
 import { useBanPartnerModal } from "@/ui/modals/ban-partner-modal";
 import { FraudReviewSheet } from "@/ui/partners/fraud-risks/fraud-review-sheet";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
-import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { FilterButtonTableRow } from "@/ui/shared/filter-button-table-row";
 import {
   AnimatedSizeContainer,
@@ -23,11 +22,12 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { Dots, ShieldKeyhole, UserDelete } from "@dub/ui/icons";
+import { Dots, UserDelete } from "@dub/ui/icons";
 import { cn, currencyFormatter, formatDateTimeSmart } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { useEffect, useMemo, useState } from "react";
+import { FraudEventsEmptyState } from "./fraud-events-empty-state";
 import { useFraudEventsFilters } from "./use-fraud-events-filters";
 
 export function FraudEventsTable() {
@@ -274,6 +274,7 @@ export function FraudEventsTable() {
           }
         />
       )}
+
       <div>
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <Filter.Select
@@ -305,17 +306,7 @@ export function FraudEventsTable() {
       {fraudEvents?.length !== 0 ? (
         <Table {...tableProps} table={table} />
       ) : (
-        <AnimatedEmptyState
-          title="No events to review"
-          description="You'll see flagged fraud and risk events here when they happen."
-          learnMoreHref="#"
-          cardContent={() => (
-            <>
-              <ShieldKeyhole className="size-4 text-neutral-700" />
-              <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
-            </>
-          )}
-        />
+        <FraudEventsEmptyState />
       )}
     </div>
   );

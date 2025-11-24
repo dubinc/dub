@@ -13,7 +13,9 @@ export default function FraudRiskLayout({ children }: { children: ReactNode }) {
     return <LayoutLoader />;
   }
 
-  if (!getPlanCapabilities(plan).canResolveFraudEvents) {
+  const { canManageFraudEvents } = getPlanCapabilities(plan);
+
+  if (!canManageFraudEvents) {
     return <FraudUpsell />;
   }
 

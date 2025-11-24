@@ -13,9 +13,9 @@ export const resolveFraudEventsAction = authActionClient
     const { workspace, user } = ctx;
     const { groupKey, resolutionReason } = parsedInput;
 
-    const { canResolveFraudEvents } = getPlanCapabilities(workspace.plan);
+    const { canManageFraudEvents } = getPlanCapabilities(workspace.plan);
 
-    if (!canResolveFraudEvents) {
+    if (!canManageFraudEvents) {
       throw new Error("Unauthorized.");
     }
 
