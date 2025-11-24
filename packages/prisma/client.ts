@@ -13,6 +13,8 @@ export {
   EventType,
   FolderType,
   FolderUserRole,
+  FraudEventStatus,
+  FraudRuleType,
   IndustryInterest,
   InvoiceStatus,
   MessageType,

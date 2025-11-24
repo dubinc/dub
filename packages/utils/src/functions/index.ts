@@ -23,6 +23,7 @@ export * from "./log";
 export * from "./nanoid";
 export * from "./nformatter";
 export * from "./normalize-string";
+export * from "./pick";
 export * from "./pluralize";
 export * from "./promises";
 export * from "./punycode";

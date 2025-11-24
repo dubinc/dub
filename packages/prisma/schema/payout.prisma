@@ -37,11 +37,12 @@ model Payout {
   initiatedAt DateTime?
   paidAt      DateTime?
 
-  program     Program      @relation(fields: [programId], references: [id])
-  partner     Partner      @relation(fields: [partnerId], references: [id])
-  invoice     Invoice?     @relation(fields: [invoiceId], references: [id])
-  user        User?        @relation(fields: [userId], references: [id])
-  commissions Commission[]
+  program           Program           @relation(fields: [programId], references: [id])
+  partner           Partner           @relation(fields: [partnerId], references: [id])
+  programEnrollment ProgramEnrollment @relation(fields: [programId, partnerId], references: [programId, partnerId])
+  invoice           Invoice?          @relation(fields: [invoiceId], references: [id])
+  user              User?             @relation(fields: [userId], references: [id])
+  commissions       Commission[]
 
   @@index(programId)
   @@index(partnerId)

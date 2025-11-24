@@ -1,10 +1,11 @@
 "use client";
 
 import useCommissionsCount from "@/lib/swr/use-commissions-count";
+import { useFraudEventsCount } from "@/lib/swr/use-fraud-events-count";
 import useGroups from "@/lib/swr/use-groups";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { CommissionResponse } from "@/lib/types";
+import { CommissionResponse, FraudEventsCountByPartner } from "@/lib/types";
 import { CLAWBACK_REASONS_MAP } from "@/lib/zod/schemas/commissions";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import { CommissionRowMenu } from "@/ui/partners/commission-row-menu";
@@ -123,6 +124,15 @@ export function CommissionTable() {
     {
       all: commissionsColumns.all,
       defaultVisible: defaultVisibleColumns,
+    },
+  );
+
+  const { fraudEventsCount } = useFraudEventsCount<FraudEventsCountByPartner[]>(
+    {
+      query: {
+        groupBy: "partnerId",
+        status: "pending",
+      },
     },
   );
 
@@ -263,7 +273,15 @@ export function CommissionTable() {
           id: "status",
           header: "Status",
           cell: ({ row }) => {
-            const badge = CommissionStatusBadges[row.original.status];
+            const partnerHasPendingFraud = fraudEventsCount?.find(
+              ({ partnerId }) => partnerId === row.original.partner.id,
+            );
+
+            const status = partnerHasPendingFraud
+              ? "hold"
+              : row.original.status;
+
+            const badge = CommissionStatusBadges[status];
 
             return (
               <StatusBadge
@@ -295,7 +313,7 @@ export function CommissionTable() {
           cell: ({ row }) => <CommissionRowMenu row={row} />,
         },
       ].filter((c) => c.id === "menu" || commissionsColumns.all.includes(c.id)),
-    [slug, groups, program, workspace],
+    [slug, groups, program, workspace, fraudEventsCount],
   );
 
   const table = useTable<CommissionResponse>({

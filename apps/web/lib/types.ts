@@ -9,6 +9,7 @@ import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
 import {
   CommissionStatus,
   FolderUserRole,
+  FraudRuleType,
   Link,
   PartnerGroup,
   PartnerRole,
@@ -23,6 +24,7 @@ import {
 } from "@dub/prisma/client";
 import { z } from "zod";
 import { RESOURCE_COLORS } from "../ui/colors";
+import { PAID_TRAFFIC_PLATFORMS } from "./api/fraud/constants";
 import { BOUNTY_SUBMISSION_REQUIREMENTS } from "./constants/bounties";
 import {
   FOLDER_PERMISSIONS,
@@ -56,6 +58,11 @@ import { dashboardSchema } from "./zod/schemas/dashboard";
 import { DiscountCodeSchema, DiscountSchema } from "./zod/schemas/discount";
 import { EmailDomainSchema } from "./zod/schemas/email-domains";
 import { FolderSchema } from "./zod/schemas/folders";
+import {
+  fraudEventSchema,
+  fraudRuleSchema,
+  updateFraudRuleSettingsSchema,
+} from "./zod/schemas/fraud";
 import { GroupWithProgramSchema } from "./zod/schemas/group-with-program";
 import {
   additionalPartnerLinkSchemaOptionalPath,
@@ -116,6 +123,7 @@ import {
   saleEventResponseSchema,
   trackSaleResponseSchema,
 } from "./zod/schemas/sales";
+import { fraudEventContext } from "./zod/schemas/schemas";
 import { tokenSchema } from "./zod/schemas/token";
 import { usageResponse } from "./zod/schemas/usage";
 import {
@@ -664,3 +672,48 @@ export interface CampaignWorkflowAttributeConfig {
 export type WorkflowAttribute = (typeof WORKFLOW_ATTRIBUTES)[number];
 
 export type EmailDomainProps = z.infer<typeof EmailDomainSchema>;
+
+export type fraudEventGroupProps = z.infer<typeof fraudEventSchema>;
+
+export type ExtendedFraudRuleType =
+  | FraudRuleType
+  | "partnerEmailDomainMismatch"
+  | "partnerEmailMasked"
+  | "partnerNoSocialLinks"
+  | "partnerNoVerifiedSocialLinks";
+
+export type FraudSeverity = "low" | "medium" | "high";
+
+export interface FraudTriggeredRule {
+  triggered: boolean;
+  metadata?: Record<string, unknown>;
+}
+
+export interface FraudRuleInfo {
+  type: ExtendedFraudRuleType;
+  name: string;
+  description: string;
+  severity?: FraudSeverity;
+  configurable: boolean;
+  scope: "partner" | "conversionEvent";
+}
+
+export type FraudRuleProps = z.infer<typeof fraudRuleSchema>;
+
+export type FraudEventContext = z.infer<typeof fraudEventContext>;
+
+export type PaidTrafficPlatform = (typeof PAID_TRAFFIC_PLATFORMS)[number];
+
+export type UpdateFraudRuleSettings = z.infer<
+  typeof updateFraudRuleSettingsSchema
+>;
+
+export interface FraudEventsCountByPartner {
+  partnerId: string;
+  _count: number;
+}
+
+export interface FraudEventsCountByType {
+  type: FraudRuleType;
+  _count: number;
+}

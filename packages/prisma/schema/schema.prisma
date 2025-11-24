@@ -46,6 +46,7 @@ model User {
   bountySubmissions     BountySubmission[]
   sentMessages          Message[]
   partnerComments       PartnerComment[]
+  fraudEvents           FraudEvent[]
 
   @@index(source)
   @@index(defaultWorkspace)

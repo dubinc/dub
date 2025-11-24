@@ -126,4 +126,24 @@ export const CommissionStatusBadges = {
       return title;
     },
   },
+  hold: {
+    label: "On Hold",
+    variant: "error",
+    className: "text-red-600 bg-red-100",
+    icon: CircleXmark,
+    tooltip: (data: CommissionTooltipDataProps) => {
+      if (data.variant === "partner") {
+        const title =
+          "This commission is on hold due to pending fraud events and cannot be paid out until they are resolved.";
+
+        if (data.program?.name && data.program?.slug) {
+          return `${title} If you believe this is incorrect, [reach out to the ${data.program.name} team](${PARTNERS_DOMAIN}/messages/${data.program.slug}).`;
+        }
+
+        return title;
+      }
+
+      return `This partner's commissions are on hold due to [unresolved fraud events](/${data.workspace?.slug}/program/fraud). They cannot be paid out until resolved.`;
+    },
+  },
 };
