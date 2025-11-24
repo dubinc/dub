@@ -90,7 +90,11 @@ export const PATCH = withWorkspace(
     waitUntil(
       (async () => {
         const ruleTypesToResolve = rulesToUpdate
-          .filter((r) => r.payload?.enabled === false)
+          .filter(
+            (r) =>
+              r.payload?.enabled === false &&
+              r.payload?.resolvePendingEvents === true,
+          )
           .map((r) => r.type);
 
         if (ruleTypesToResolve.length > 0) {

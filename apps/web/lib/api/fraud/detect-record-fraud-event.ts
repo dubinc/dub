@@ -52,7 +52,13 @@ export async function detectAndRecordFraudEvent(context: FraudEventContext) {
     }
   }
 
-  console.log("[detectAndRecordFraudEvents] triggeredRules", triggeredRules);
+  if (triggeredRules.length === 0) {
+    return;
+  }
+
+  console.log(
+    `[detectAndRecordFraudEvents] triggeredRules ${JSON.stringify(triggeredRules, null, 2)}`,
+  );
 
   try {
     await prisma.fraudEvent.createMany({

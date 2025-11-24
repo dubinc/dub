@@ -24,7 +24,7 @@ export const checkPaidTrafficDetected = defineFraudRule({
 
     if (!parsedConfig.success) {
       console.error(
-        `[checkReferralSourceBanned] Invalid config:`,
+        `[checkPaidTrafficDetected] Invalid config:`,
         parsedConfig.error,
       );
 

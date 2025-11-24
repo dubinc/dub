@@ -9,7 +9,7 @@ export function checkPartnerEmailDomainMismatch(
   }
 
   const emailParts = partner.email.split("@");
-  if (emailParts.length !== 2) {
+  if (emailParts.length !== 2 || !emailParts[0] || !emailParts[1]) {
     return false;
   }
 
