@@ -66,6 +66,7 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
       ltv: customer.saleAmount,
       timeToLead,
       timeToSale,
+      firstSaleDate: firstSale ? new Date(firstSale.timestamp) : null,
       events,
       link,
     }),
