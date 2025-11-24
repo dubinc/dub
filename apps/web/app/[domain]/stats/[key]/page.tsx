@@ -1,14 +1,12 @@
-import { prismaEdge } from "@dub/prisma/edge";
+import { prisma } from "@dub/prisma";
 import { APP_DOMAIN } from "@dub/utils";
 import { redirect } from "next/navigation";
-
-export const runtime = "edge";
 
 export default async function OldStatsPage(props: {
   params: Promise<{ domain: string; key: string }>;
 }) {
   const params = await props.params;
-  const link = await prismaEdge.link.findUnique({
+  const link = await prisma.link.findUnique({
     where: {
       domain_key: {
         domain: params.domain,

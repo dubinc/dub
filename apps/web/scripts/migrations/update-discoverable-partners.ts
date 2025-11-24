@@ -1,5 +1,6 @@
 import { LARGE_PROGRAM_IDS } from "@/lib/constants/program";
 import { prisma } from "@dub/prisma";
+import { ACME_PROGRAM_ID } from "@dub/utils";
 import "dotenv-flow/config";
 
 async function main() {
@@ -8,7 +9,7 @@ async function main() {
       programs: {
         some: {
           programId: {
-            notIn: LARGE_PROGRAM_IDS,
+            notIn: [...LARGE_PROGRAM_IDS, ACME_PROGRAM_ID],
           },
           status: "approved",
           totalCommissions: {

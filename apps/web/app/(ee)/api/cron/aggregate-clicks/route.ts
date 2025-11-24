@@ -134,11 +134,6 @@ export async function GET(req: Request) {
       data: commissionsToCreate,
     });
 
-    // getting a list of click reward program enrollments
-    const clickEnrollments = clickRewardsWithEnrollments.flatMap(
-      ({ clickEnrollments }) => clickEnrollments,
-    );
-
     for (const { partnerId, programId } of commissionsToCreate) {
       // Sync total commissions for each partner that we created commissions for
       await syncTotalCommissions({
