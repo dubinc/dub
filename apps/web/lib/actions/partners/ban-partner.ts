@@ -129,7 +129,7 @@ export const banPartnerAction = authActionClient
               not: programId,
             },
             status: {
-              in: ["invited", "pending", "approved"],
+              in: ["approved"],
             },
           },
         });

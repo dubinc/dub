@@ -64,7 +64,7 @@ export function useFraudEventsFilters({
           }) ?? null,
       },
     ],
-    [partners],
+    [partners, fraudEventsCount],
   );
 
   const activeFilters = useMemo(() => {

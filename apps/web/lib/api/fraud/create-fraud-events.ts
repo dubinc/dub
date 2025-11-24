@@ -13,7 +13,7 @@ export async function createFraudEvents(
     return;
   }
 
-  const createdFraudEvents = await prisma.fraudEvent.createMany({
+  await prisma.fraudEvent.createMany({
     data: fraudEvents.map((evt) => {
       const { programId, partnerId, type } = evt;
 
@@ -34,6 +34,4 @@ export async function createFraudEvents(
   });
 
   console.info(`Created fraud events ${JSON.stringify(fraudEvents, null, 2)}`);
-
-  return createdFraudEvents;
 }
