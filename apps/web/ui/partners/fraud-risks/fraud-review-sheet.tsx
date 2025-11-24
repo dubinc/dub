@@ -43,10 +43,16 @@ function FraudReviewSheetContent({
   const { setShowResolveFraudEventModal, ResolveFraudEventModal } =
     useResolveFraudEventsModal({
       fraudEventGroup,
+      onConfirm: () => {
+        onNext?.();
+      },
     });
 
   const { BanPartnerModal, setShowBanPartnerModal } = useBanPartnerModal({
     partner,
+    onConfirm: () => {
+      onNext?.();
+    },
   });
 
   // Left/right arrow keys for previous/next fraud event

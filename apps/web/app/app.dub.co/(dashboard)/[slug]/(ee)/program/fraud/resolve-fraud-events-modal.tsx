@@ -29,10 +29,12 @@ function ResolveFraudEventsModal({
   showResolveFraudEventModal,
   setShowResolveFraudEventModal,
   fraudEventGroup,
+  onConfirm,
 }: {
   showResolveFraudEventModal: boolean;
   setShowResolveFraudEventModal: Dispatch<SetStateAction<boolean>>;
   fraudEventGroup: fraudEventGroupProps;
+  onConfirm?: () => void;
 }) {
   const { id: workspaceId } = useWorkspace();
 
@@ -41,6 +43,7 @@ function ResolveFraudEventsModal({
       toast.success("Fraud event resolved.");
       setShowResolveFraudEventModal(false);
       mutatePrefix("/api/fraud-events");
+      onConfirm?.();
     },
     onError: ({ error }) => {
       console.log(error);
@@ -164,8 +167,10 @@ function ResolveFraudEventsModal({
 
 export function useResolveFraudEventsModal({
   fraudEventGroup,
+  onConfirm,
 }: {
   fraudEventGroup: fraudEventGroupProps;
+  onConfirm?: () => void;
 }) {
   const [showResolveFraudEventModal, setShowResolveFraudEventModal] =
     useState(false);
@@ -176,12 +181,14 @@ export function useResolveFraudEventsModal({
         showResolveFraudEventModal={showResolveFraudEventModal}
         setShowResolveFraudEventModal={setShowResolveFraudEventModal}
         fraudEventGroup={fraudEventGroup}
+        onConfirm={onConfirm}
       />
     );
   }, [
     showResolveFraudEventModal,
     setShowResolveFraudEventModal,
     fraudEventGroup,
+    onConfirm,
   ]);
 
   return useMemo(
