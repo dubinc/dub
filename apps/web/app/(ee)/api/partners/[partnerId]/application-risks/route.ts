@@ -9,7 +9,7 @@ import { withWorkspace } from "@/lib/auth";
 import { ExtendedFraudRuleType } from "@/lib/types";
 import { NextResponse } from "next/server";
 
-// GET /api/partners/:partnerId/risks - get application risks for a partner
+// GET /api/partners/:partnerId/application-risks - get application risks for a partner
 export const GET = withWorkspace(
   async ({ workspace, params }) => {
     const { partnerId } = params;

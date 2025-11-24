@@ -47,7 +47,7 @@ export function usePartnerApplicationRisks({
     error,
   } = useSWR<FraudRisksResponse>(
     enabled && partnerId && workspaceId
-      ? `/api/partners/${partnerId}/risks?workspaceId=${workspaceId}`
+      ? `/api/partners/${partnerId}/application-risks?workspaceId=${workspaceId}`
       : null,
     fetcher,
   );
