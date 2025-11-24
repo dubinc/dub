@@ -62,7 +62,7 @@ export const rejectPartnerApplicationAction = authActionClient
                 not: programId,
               },
               status: {
-                in: ["invited", "pending", "approved"],
+                notIn: ["banned", "deactivated", "rejected"],
               },
             },
             select: {

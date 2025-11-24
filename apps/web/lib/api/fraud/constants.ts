@@ -40,7 +40,7 @@ export const FRAUD_RULES: FraudRuleInfo[] = [
     type: "partnerFraudReport",
     name: "Fraud report",
     description:
-      "This partner was reported for suspected fraud in another program to help keep the network safe.",
+      "This partner was reported for suspected fraud by another program.",
     scope: "partner",
     severity: "high",
     configurable: false,
