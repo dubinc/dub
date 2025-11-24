@@ -18,7 +18,7 @@ interface QueryResult {
   resolvedAt: Date | null;
   metadata: unknown;
   groupKey: string;
-  lastOccurenceAt: Date;
+  lastOccurrenceAt: Date;
   eventCount: bigint | number;
   totalCommissions: bigint | number | null;
   partnerId: string | null;
@@ -61,7 +61,7 @@ export async function getGroupedFraudEvents({
   const orderByField =
     sortBy === "type"
       ? Prisma.raw("fe.type")
-      : Prisma.raw("dfe.lastOccurenceAt");
+      : Prisma.raw("dfe.lastOccurrenceAt");
   const orderByClause = Prisma.sql`ORDER BY ${orderByField} ${Prisma.raw(sortOrder.toUpperCase())}`;
 
   const events = await prisma.$queryRaw<QueryResult[]>`
@@ -77,7 +77,7 @@ export async function getGroupedFraudEvents({
       fe.partnerId,
       fe.customerId,
       fe.userId,
-      dfe.lastOccurenceAt,
+      dfe.lastOccurrenceAt,
       dfe.eventCount,
       dfe.totalCommissions,
       p.name AS partnerName,
@@ -91,7 +91,7 @@ export async function getGroupedFraudEvents({
       SELECT 
         FraudEvent.groupKey,
         MAX(FraudEvent.id) AS latestEventId,
-        MAX(FraudEvent.createdAt) AS lastOccurenceAt,
+        MAX(FraudEvent.createdAt) AS lastOccurrenceAt,
         COUNT(*) AS eventCount,
         COALESCE(SUM(comm.earnings), 0) AS totalCommissions
       FROM FraudEvent
@@ -117,7 +117,7 @@ export async function getGroupedFraudEvents({
     status: event.status,
     resolutionReason: event.resolutionReason,
     resolvedAt: event.resolvedAt ? new Date(event.resolvedAt) : null,
-    lastOccurenceAt: new Date(event.lastOccurenceAt),
+    lastOccurrenceAt: new Date(event.lastOccurrenceAt),
     count: Number(event.eventCount),
     groupKey: event.groupKey,
     partner: event.partnerId

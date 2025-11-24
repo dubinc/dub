@@ -155,12 +155,12 @@ export function FraudEventsTable() {
         },
         cell: ({ row }) => (
           <TimestampTooltip
-            timestamp={row.original.lastOccurenceAt}
+            timestamp={row.original.lastOccurrenceAt}
             side="right"
             rows={["local", "utc", "unix"]}
             delayDuration={150}
           >
-            <span>{formatDateTimeSmart(row.original.lastOccurenceAt)}</span>
+            <span>{formatDateTimeSmart(row.original.lastOccurrenceAt)}</span>
           </TimestampTooltip>
         ),
       },

@@ -77,7 +77,7 @@ export async function accountUpdated(event: Stripe.Event) {
   if (payoutMethodHash) {
     const duplicatePartners = await prisma.partner.findMany({
       where: {
-        payoutMethodHash: partner.payoutMethodHash,
+        payoutMethodHash,
       },
       select: {
         id: true,
@@ -88,6 +88,7 @@ export async function accountUpdated(event: Stripe.Event) {
             },
           },
           select: {
+            partnerId: true,
             programId: true,
           },
         },
@@ -100,9 +101,9 @@ export async function accountUpdated(event: Stripe.Event) {
       );
 
       await createFraudEvents(
-        programEnrollments.map(({ programId }) => ({
+        programEnrollments.map(({ partnerId, programId }) => ({
           programId,
-          partnerId: partner.id,
+          partnerId,
           type: "partnerDuplicatePayoutMethod",
         })),
       );

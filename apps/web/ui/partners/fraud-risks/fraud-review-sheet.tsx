@@ -209,7 +209,9 @@ function FraudReviewSheetContent({
                       <div className="text-xs text-neutral-500">
                         Resolved by{" "}
                         <span className="font-medium text-neutral-700">
-                          {formatDateTime(fraudEventGroup.resolvedAt!)}
+                          {fraudEventGroup.resolvedAt
+                            ? formatDateTime(fraudEventGroup.resolvedAt)
+                            : "Unknown"}
                         </span>
                       </div>
                     </div>

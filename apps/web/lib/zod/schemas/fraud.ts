@@ -16,7 +16,7 @@ export const fraudEventSchema = z.object({
   status: z.nativeEnum(FraudEventStatus),
   resolutionReason: z.string().nullable(),
   resolvedAt: z.date().nullable(),
-  lastOccurenceAt: z.date(),
+  lastOccurrenceAt: z.date(),
   count: z.number(),
   groupKey: z.string(),
   partner: PartnerSchema.pick({
