@@ -1,6 +1,7 @@
 "use client";
 
 import { resolveFraudEventsAction } from "@/lib/actions/fraud/resolve-fraud-events";
+import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { fraudEventGroupProps } from "@/lib/types";
@@ -46,8 +47,7 @@ function ResolveFraudEventsModal({
       onConfirm?.();
     },
     onError: ({ error }) => {
-      console.log(error);
-      toast.error(error.serverError);
+      toast.error(parseActionError(error, "Failed to resolve fraud events"));
     },
   });
 
@@ -155,7 +155,7 @@ function ResolveFraudEventsModal({
             type="submit"
             variant="primary"
             text={`Resolve ${fraudEventGroup.count} ${pluralize("event", fraudEventGroup.count)}`}
-            disabled={!fraudEventGroup.id || !fraudEventGroup.partner}
+            disabled={!workspaceId || !fraudEventGroup.groupKey}
             loading={isPending}
             className="h-8 w-fit px-3"
           />

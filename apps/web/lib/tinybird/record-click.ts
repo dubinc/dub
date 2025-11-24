@@ -10,12 +10,7 @@ import { geolocation, ipAddress, waitUntil } from "@vercel/functions";
 import { userAgent } from "next/server";
 import { recordClickCache } from "../api/links/record-click-cache";
 import { ExpandedLink, transformLink } from "../api/links/utils/transform-link";
-import {
-  detectBot,
-  detectQr,
-  getFinalUrlForRecordClick,
-  getIdentityHash,
-} from "../middleware/utils";
+import { detectBot, detectQr, getIdentityHash } from "../middleware/utils";
 import { conn } from "../planetscale";
 import { WorkspaceProps } from "../types";
 import { redis } from "../upstash";
@@ -131,8 +126,6 @@ export async function recordClick({
 
   const referer = referrer || req.headers.get("referer");
 
-  const finalUrl = url ? getFinalUrlForRecordClick({ req, url }) : "";
-
   const clickData = {
     timestamp: timestamp || new Date(Date.now()).toISOString(),
     identity_hash: identityHash,
@@ -141,7 +134,7 @@ export async function recordClick({
     link_id: linkId,
     domain,
     key,
-    url: finalUrl,
+    url: url || "",
     ip:
       // only record IP if it's a valid IP and not from a EU country
       typeof ip === "string" && ip.trim().length > 0 && !isEuCountry ? ip : "",

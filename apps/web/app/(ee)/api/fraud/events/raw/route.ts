@@ -63,6 +63,10 @@ export const GET = withWorkspace(
     }
 
     if (type === "partnerDuplicatePayoutMethod") {
+      if (!partner.payoutMethodHash) {
+        return NextResponse.json([]);
+      }
+
       const duplicatePartners = await prisma.programEnrollment.findMany({
         where: {
           programId,

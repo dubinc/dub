@@ -31,13 +31,10 @@ export const rejectPartnerApplicationAction = authActionClient
       },
     });
 
-    if (programEnrollment.status !== "pending") {
-      throw new Error("Program enrollment is not pending.");
-    }
-
     await prisma.programEnrollment.update({
       where: {
         id: programEnrollment.id,
+        status: "pending",
       },
       data: {
         status: ProgramEnrollmentStatus.rejected,
