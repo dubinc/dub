@@ -62,7 +62,12 @@ export function FraudEventsTable() {
 
   useEffect(() => {
     const groupKey = searchParams.get("groupKey");
-    if (groupKey) setDetailsSheetState({ open: true, groupKey });
+
+    if (groupKey) {
+      setDetailsSheetState({ open: true, groupKey });
+    } else {
+      setDetailsSheetState({ open: false, groupKey: null });
+    }
   }, [searchParams]);
 
   const { currentFraudEventGroup } = useCurrentFraudEventGroup({
