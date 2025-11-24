@@ -387,7 +387,6 @@ export function ProgramPartnersApplicationsPageClient() {
           variant="primary"
           text="Approve"
           className="h-7 w-fit rounded-lg px-2.5"
-          // loading={isApprovingPartners}
           onClick={() => {
             const partners = table
               .getSelectedRowModel()

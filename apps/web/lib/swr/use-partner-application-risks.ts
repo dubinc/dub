@@ -11,10 +11,10 @@ import useWorkspace from "./use-workspace";
 
 type FraudRisksResponse = Partial<Record<ExtendedFraudRuleType, boolean>>;
 
-export function getHighestSeverity(
+function getHighestSeverity(
   triggeredRules: FraudRuleInfo[],
-): FraudSeverity {
-  let highest: FraudSeverity = "low";
+): FraudSeverity | null {
+  let highest: FraudSeverity | null = null;
   let highestRank = FRAUD_SEVERITY_CONFIG.low.rank;
 
   for (const { severity } of triggeredRules) {

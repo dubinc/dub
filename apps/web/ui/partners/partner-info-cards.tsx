@@ -33,7 +33,6 @@ import {
   PartnerFraudBanner,
 } from "./fraud-risks/partner-fraud-banner";
 import { PartnerFraudIndicator } from "./fraud-risks/partner-fraud-indicator";
-import { PartnerApplicationRiskFlag } from "./partner-application-risk-flag";
 import { PartnerInfoGroup } from "./partner-info-group";
 import { ConversionScoreTooltip } from "./partner-network/conversion-score-tooltip";
 import { PartnerStarButton } from "./partner-star-button";
@@ -232,10 +231,6 @@ export function PartnerInfoCards({
 
                   {showFraudIndicator && (
                     <PartnerFraudIndicator partnerId={partner.id} />
-                  )}
-
-                  {showApplicationRiskAnalysis && (
-                    <PartnerApplicationRiskFlag partnerId={partner.id} />
                   )}
                 </div>
               ) : (

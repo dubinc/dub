@@ -19,7 +19,7 @@ export function PartnerApplicationRiskSummary({
   const { triggeredFraudRules, severity, isLoading } =
     usePartnerApplicationRisks({
       filters: { partnerId: partner?.id },
-      enabled: true,
+      enabled: !!partner?.id,
     });
 
   const { setShowModal, PartnerApplicationRiskSummaryModal } =
