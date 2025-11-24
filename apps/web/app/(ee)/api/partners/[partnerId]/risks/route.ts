@@ -1,3 +1,4 @@
+import { getPartnerHighRiskSignals } from "@/lib/api/fraud/get-partner-high-risk-signals";
 import { checkPartnerEmailDomainMismatch } from "@/lib/api/fraud/rules/check-partner-email-domain-mismatch";
 import { checkPartnerEmailMasked } from "@/lib/api/fraud/rules/check-partner-email-masked";
 import { checkPartnerNoSocialLinks } from "@/lib/api/fraud/rules/check-partner-no-social-links";
@@ -6,14 +7,13 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { ExtendedFraudRuleType } from "@/lib/types";
-import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
 // GET /api/partners/:partnerId/risks - get application risks for a partner
 export const GET = withWorkspace(
   async ({ workspace, params }) => {
-    const programId = getDefaultProgramIdOrThrow(workspace);
     const { partnerId } = params;
+    const programId = getDefaultProgramIdOrThrow(workspace);
 
     const { partner } = await getProgramEnrollmentOrThrow({
       partnerId,
@@ -23,31 +23,15 @@ export const GET = withWorkspace(
       },
     });
 
-    const [crossProgramBan, duplicatePayoutMethod] = await Promise.all([
-      // Check cross program ban
-      prisma.programEnrollment.count({
-        where: {
-          partnerId: partner.id,
-          programId: {
-            not: programId,
-          },
-          status: "banned",
-        },
-      }),
-
-      // Check duplicate payout method
-      partner.payoutMethodHash
-        ? prisma.partner.count({
-            where: {
-              payoutMethodHash: partner.payoutMethodHash,
-            },
-          })
-        : Promise.resolve(0),
-    ]);
+    const { hasCrossProgramBan, hasDuplicatePayoutMethod } =
+      await getPartnerHighRiskSignals({
+        program: { id: programId },
+        partner,
+      });
 
     const risks: Partial<Record<ExtendedFraudRuleType, boolean>> = {
-      partnerCrossProgramBan: crossProgramBan > 0,
-      partnerDuplicatePayoutMethod: duplicatePayoutMethod > 0,
+      partnerCrossProgramBan: hasCrossProgramBan,
+      partnerDuplicatePayoutMethod: hasDuplicatePayoutMethod,
       partnerEmailDomainMismatch: checkPartnerEmailDomainMismatch(partner),
       partnerEmailMasked: checkPartnerEmailMasked(partner),
       partnerNoSocialLinks: checkPartnerNoSocialLinks(partner),
