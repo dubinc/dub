@@ -6,7 +6,6 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { PaidTrafficPlatform } from "@/lib/types";
 import { rawFraudEventSchemas } from "@/lib/zod/schemas/fraud";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
-import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
 import {
   Bing,
   Button,
@@ -64,19 +63,6 @@ export function FraudPaidTrafficDetectedTable() {
             <p>{formatDateTimeSmart(row.original.createdAt)}</p>
           </TimestampTooltip>
         ),
-      },
-      {
-        id: "type",
-        header: "Type",
-        minSize: 120,
-        size: 150,
-        cell: ({ row }) => {
-          return row.original.metadata?.type ? (
-            <CommissionTypeBadge type={row.original.metadata.type} />
-          ) : (
-            "-"
-          );
-        },
       },
       {
         id: "customer",

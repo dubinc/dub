@@ -4,7 +4,6 @@ import { useRawFraudEvents } from "@/lib/swr/use-raw-fraud-events";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { rawFraudEventSchemas } from "@/lib/zod/schemas/fraud";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
-import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
 import { Button, Table, TimestampTooltip, useTable } from "@dub/ui";
 import { formatDateTimeSmart } from "@dub/utils";
 import Link from "next/link";
@@ -37,19 +36,6 @@ export function FraudReferralSourceBannedTable() {
             <p>{formatDateTimeSmart(row.original.createdAt)}</p>
           </TimestampTooltip>
         ),
-      },
-      {
-        id: "type",
-        header: "Type",
-        minSize: 120,
-        size: 150,
-        cell: ({ row }) => {
-          return row.original.metadata?.type ? (
-            <CommissionTypeBadge type={row.original.metadata.type} />
-          ) : (
-            "-"
-          );
-        },
       },
       {
         id: "customer",

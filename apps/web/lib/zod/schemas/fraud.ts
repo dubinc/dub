@@ -167,6 +167,34 @@ export const updateFraudRuleSettingsSchema = z.object({
 });
 
 export const rawFraudEventSchemas = {
+  referralSourceBanned: z.object({
+    createdAt: z.date(),
+    customer: CustomerSchema.pick({
+      id: true,
+      name: true,
+      email: true,
+    }),
+    metadata: z
+      .object({
+        source: z.string(),
+      })
+      .nullable(),
+  }),
+
+  paidTrafficDetected: z.object({
+    createdAt: z.date(),
+    customer: CustomerSchema.pick({
+      id: true,
+      name: true,
+      email: true,
+    }),
+    metadata: z
+      .object({
+        source: z.string(),
+      })
+      .nullable(),
+  }),
+
   customerEmailMatch: z.object({
     createdAt: z.date(),
     customer: CustomerSchema.pick({
@@ -209,40 +237,4 @@ export const rawFraudEventSchemas = {
       image: true,
     }),
   }),
-
-  referralSourceBanned: z.object({
-    createdAt: z.date(),
-    customer: CustomerSchema.pick({
-      id: true,
-      name: true,
-      email: true,
-    }),
-    metadata: z.object({
-      source: z.string(),
-      type: z.enum(["click", "lead", "sale"]),
-    }),
-  }),
-
-  paidTrafficDetected: z.object({
-    createdAt: z.date(),
-    customer: CustomerSchema.pick({
-      id: true,
-      name: true,
-      email: true,
-    }),
-    metadata: z.object({
-      source: z.string(),
-      type: z.enum(["click", "lead", "sale"]),
-    }),
-  }),
 };
-
-export const rawFraudEventSchema = z.union([
-  rawFraudEventSchemas["customerEmailMatch"],
-  rawFraudEventSchemas["customerEmailSuspiciousDomain"],
-  rawFraudEventSchemas["referralSourceBanned"],
-  rawFraudEventSchemas["paidTrafficDetected"],
-  rawFraudEventSchemas["partnerFraudReport"],
-  rawFraudEventSchemas["partnerCrossProgramBan"],
-  rawFraudEventSchemas["partnerDuplicatePayoutMethod"],
-]);

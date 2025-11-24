@@ -1,7 +1,6 @@
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import {
-  rawFraudEventSchema,
   rawFraudEventSchemas,
   rawFraudEventsQuerySchema,
 } from "@/lib/zod/schemas/fraud";
@@ -32,6 +31,7 @@ export const GET = withWorkspace(
     }
 
     const { type, partner } = fraudEvents[0];
+    const zodSchema = rawFraudEventSchemas[type];
 
     if (type === "partnerCrossProgramBan") {
       const bannedProgramEnrollments = await prisma.programEnrollment.findMany({
@@ -49,9 +49,7 @@ export const GET = withWorkspace(
       });
 
       return NextResponse.json(
-        z
-          .array(rawFraudEventSchemas["partnerCrossProgramBan"])
-          .parse(bannedProgramEnrollments),
+        z.array(zodSchema).parse(bannedProgramEnrollments),
       );
     }
 
@@ -76,14 +74,10 @@ export const GET = withWorkspace(
         },
       });
 
-      return NextResponse.json(
-        z
-          .array(rawFraudEventSchemas["partnerDuplicatePayoutMethod"])
-          .parse(duplicatePartners),
-      );
+      return NextResponse.json(z.array(zodSchema).parse(duplicatePartners));
     }
 
-    return NextResponse.json(z.array(rawFraudEventSchema).parse(fraudEvents));
+    return NextResponse.json(z.array(zodSchema).parse(fraudEvents));
   },
   {
     requiredPlan: ["advanced", "enterprise"],

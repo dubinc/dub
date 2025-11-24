@@ -85,7 +85,7 @@ function ProgramFraudSettingsSheetContent({
       onSuccess: () => {
         toast.success("Fraud settings updated successfully.");
         setIsOpen(false);
-        mutatePrefix("/api/fraud-rules");
+        mutatePrefix(["/api/fraud-rules", "/api/fraud-events"]);
       },
     });
   };

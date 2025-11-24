@@ -1,4 +1,5 @@
 import { FraudEventContext } from "@/lib/types";
+import { getDomainWithoutWWW } from "@dub/utils";
 import { minimatch } from "minimatch";
 import { z } from "zod";
 import { defineFraudRule } from "../define-fraud-rule";
@@ -29,13 +30,12 @@ export const checkReferralSourceBanned = defineFraudRule({
 
     const config = parsedConfig.data;
 
-    if (config.domains.length === 0) {
-      return {
-        triggered: false,
-      };
-    }
+    // Normalize banned domains by extracting domains and removing www. prefix
+    const normalizedBannedDomains = config.domains
+      .map((domain) => getDomainWithoutWWW(domain))
+      .filter((domain): domain is string => Boolean(domain));
 
-    if (!click) {
+    if (normalizedBannedDomains.length === 0 || !click) {
       return {
         triggered: false,
       };
@@ -49,12 +49,14 @@ export const checkReferralSourceBanned = defineFraudRule({
     }
 
     // Check both referer and referer_url against banned sources
-    const referrerCandidates = [click.referer, click.referer_url].filter(
-      (value): value is string => Boolean(value),
-    );
+    // Normalize referrers by extracting domains and removing www. prefix
+    const referrerCandidates = [click.referer, click.referer_url]
+      .filter((value): value is string => Boolean(value))
+      .map((referrer) => getDomainWithoutWWW(referrer))
+      .filter((domain): domain is string => Boolean(domain));
 
     for (const referrer of referrerCandidates) {
-      for (const source of config.domains) {
+      for (const source of normalizedBannedDomains) {
         if (minimatch(referrer, source, { nocase: true })) {
           return {
             triggered: true,
