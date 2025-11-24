@@ -84,7 +84,7 @@ export async function accountUpdated(event: Stripe.Event) {
         programs: {
           where: {
             status: {
-              in: ["invited", "pending", "approved"],
+              notIn: ["banned", "deactivated", "rejected"],
             },
           },
           select: {

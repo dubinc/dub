@@ -138,6 +138,8 @@ model ProgramEnrollment {
   bountySubmissions BountySubmission[]
   discountCodes     DiscountCode[]
   commissions       Commission[]
+  payouts           Payout[]
+  fraudEvents       FraudEvent[]
 
   // unique constraints
   @@unique([partnerId, programId])
