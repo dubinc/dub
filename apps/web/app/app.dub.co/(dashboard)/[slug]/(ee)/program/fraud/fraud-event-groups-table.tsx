@@ -30,7 +30,7 @@ import { useEffect, useMemo, useState } from "react";
 import { FraudEventsEmptyState } from "./fraud-events-empty-state";
 import { useFraudEventsFilters } from "./use-fraud-events-filters";
 
-export function FraudEventsTable() {
+export function FraudEventGroupsTable() {
   const { queryParams, searchParams } = useRouterStuff();
   const { pagination, setPagination } = usePagination();
 
