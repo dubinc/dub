@@ -177,10 +177,12 @@ export function FraudEventGroupsTable() {
           headerTooltip:
             "The commissions accrued since the event and cannot be paid out until resolved.",
         },
-        accessorFn: (d) =>
-          d.commission?.earnings
-            ? currencyFormatter(d.commission.earnings)
-            : "-",
+        accessorFn: (d) => {
+          const earnings = d.commission?.earnings;
+          return earnings === null || earnings === undefined
+            ? "-"
+            : currencyFormatter(earnings);
+        },
       },
       {
         id: "menu",
