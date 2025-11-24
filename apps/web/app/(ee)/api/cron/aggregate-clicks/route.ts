@@ -122,33 +122,34 @@ async function handler(req: Request) {
     );
 
     // creating a list of commissions to create
-    const commissionsToCreate = linksWithClickRewards
-      .map(({ id, programId, partnerId, programEnrollment }) => {
-        if (!programId || !partnerId || !programEnrollment?.clickReward) {
-          return null;
-        }
+    const commissionsToCreate: Prisma.CommissionCreateManyInput[] =
+      linksWithClickRewards
+        .map(({ id, programId, partnerId, programEnrollment }) => {
+          if (!programId || !partnerId || !programEnrollment?.clickReward) {
+            return null;
+          }
 
-        const linkClicks = linkClicksMap.get(id) ?? 0;
-        const earnings =
-          getRewardAmount(serializeReward(programEnrollment.clickReward)) *
-          linkClicks;
+          const linkClicks = linkClicksMap.get(id) ?? 0;
+          const earnings =
+            getRewardAmount(serializeReward(programEnrollment.clickReward)) *
+            linkClicks;
 
-        if (linkClicks === 0 || earnings === 0) {
-          return null;
-        }
+          if (linkClicks === 0 || earnings === 0) {
+            return null;
+          }
 
-        return {
-          id: createId({ prefix: "cm_" }),
-          programId,
-          partnerId,
-          linkId: id,
-          quantity: linkClicks,
-          type: CommissionType.click,
-          amount: 0,
-          earnings,
-        };
-      })
-      .filter((c) => c !== null) satisfies Prisma.CommissionCreateManyInput[];
+          return {
+            id: createId({ prefix: "cm_" }),
+            programId,
+            partnerId,
+            linkId: id,
+            quantity: linkClicks,
+            type: CommissionType.click,
+            amount: 0,
+            earnings,
+          };
+        })
+        .filter((c) => c !== null);
 
     console.table(commissionsToCreate);
 
