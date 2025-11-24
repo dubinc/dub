@@ -14,8 +14,6 @@ const defaultConfig: z.infer<typeof configSchema> = {
 export const checkReferralSourceBanned = defineFraudRule({
   type: "referralSourceBanned",
   evaluate: async ({ click }: FraudEventContext, rawConfig) => {
-    console.log("Evaluating checkReferralSourceBanned...", rawConfig);
-
     const parsedConfig = configSchema.safeParse(rawConfig ?? defaultConfig);
 
     if (!parsedConfig.success) {

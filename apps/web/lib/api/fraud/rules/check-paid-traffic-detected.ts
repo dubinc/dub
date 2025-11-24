@@ -18,8 +18,6 @@ const defaultConfig: z.infer<typeof configSchema> = {
 export const checkPaidTrafficDetected = defineFraudRule({
   type: "paidTrafficDetected",
   evaluate: async ({ click }: FraudEventContext, rawConfig) => {
-    console.log("Evaluating checkPaidTrafficDetected...");
-
     const parsedConfig = configSchema.safeParse(rawConfig ?? defaultConfig);
 
     if (!parsedConfig.success) {

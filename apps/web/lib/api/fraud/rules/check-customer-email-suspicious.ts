@@ -5,8 +5,6 @@ import { defineFraudRule } from "../define-fraud-rule";
 export const checkCustomerEmailSuspicious = defineFraudRule({
   type: "customerEmailSuspiciousDomain",
   evaluate: async ({ customer }: FraudEventContext) => {
-    console.log("Evaluating checkCustomerEmailSuspicious...");
-
     // If no customer email provided, rule doesn't trigger
     if (!customer.email) {
       return {

@@ -6,8 +6,6 @@ import { normalizeEmail } from "../utils";
 export const checkCustomerEmailMatch = defineFraudRule({
   type: "customerEmailMatch",
   evaluate: async ({ partner, customer }: FraudEventContext) => {
-    console.log("Evaluating checkCustomerEmailMatch...");
-
     // Return false if either email is missing
     if (!partner.email || !customer.email) {
       return {

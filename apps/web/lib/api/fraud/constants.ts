@@ -163,7 +163,7 @@ export const PAID_TRAFFIC_PLATFORMS_CONFIG: {
   {
     id: "google",
     name: "Google",
-    queryParams: ["gclid"],
+    queryParams: ["gclid", "gad_source", "gad_campaignid"],
   },
   {
     id: "facebook",

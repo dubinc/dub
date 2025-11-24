@@ -16,6 +16,10 @@ export async function detectAndRecordFraudEvent(context: FraudEventContext) {
 
   const validatedContext = result.data;
 
+  console.info(
+    `Running detectAndRecordFraudEvent for context ${JSON.stringify(context, null, 2)}`,
+  );
+
   // Get program-specific rule overrides
   const programRules = await prisma.fraudRule.findMany({
     where: {

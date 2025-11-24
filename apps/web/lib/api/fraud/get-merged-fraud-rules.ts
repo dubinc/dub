@@ -8,7 +8,9 @@ export function getMergedFraudRules(programRules: FraudRule[]) {
   const mergedRules: FraudRuleProps[] = [];
 
   FRAUD_RULES_BY_SCOPE["conversionEvent"].forEach((globalRule) => {
-    const programRule = programRules.find((pr) => pr.type === globalRule.type);
+    const programRule = programRules.find(
+      (programRule) => programRule.type === globalRule.type,
+    );
 
     // Program override exists - use it
     if (programRule) {
@@ -17,7 +19,7 @@ export function getMergedFraudRules(programRules: FraudRule[]) {
         name: globalRule.name,
         description: globalRule.description,
         type: globalRule.type as FraudRuleType,
-        config: programRule.config ?? {},
+        config: programRule.config ?? undefined,
         enabled: programRule.disabledAt === null,
       });
       return;
@@ -29,7 +31,7 @@ export function getMergedFraudRules(programRules: FraudRule[]) {
       name: globalRule.name,
       description: globalRule.description,
       type: globalRule.type as FraudRuleType,
-      config: {},
+      config: undefined,
       enabled: true,
     });
   });
