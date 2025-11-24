@@ -30,6 +30,7 @@ const TooltipMarkdown = ({
       className={cn(
         "prose prose-sm prose-neutral max-w-xs text-pretty px-4 py-2 text-center leading-snug transition-all",
         "prose-a:cursor-alias prose-a:underline prose-a:decoration-dotted prose-a:underline-offset-2",
+        "prose-code:inline-block prose-code:leading-none",
         PROSE_STYLES.condensed,
         className,
       )}
