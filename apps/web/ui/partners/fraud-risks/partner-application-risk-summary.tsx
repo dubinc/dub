@@ -1,10 +1,14 @@
 "use client";
 
 import { FRAUD_SEVERITY_CONFIG } from "@/lib/api/fraud/constants";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { usePartnerApplicationRisks } from "@/lib/swr/use-partner-application-risks";
-import { EnrolledPartnerExtendedProps } from "@/lib/types";
-import { Button } from "@dub/ui";
+import useWorkspace from "@/lib/swr/use-workspace";
+import { EnrolledPartnerExtendedProps, FraudSeverity } from "@/lib/types";
+import { Button, ShieldKeyhole } from "@dub/ui";
 import { cn } from "@dub/utils";
+import Link from "next/link";
+import { usePartnersUpgradeModal } from "../partners-upgrade-modal";
 import { PartnerApplicationFraudSeverityIndicator } from "./partner-application-fraud-severity-indicator";
 import { usePartnerApplicationRiskSummaryModal } from "./partner-application-risk-summary-modal";
 
@@ -16,6 +20,8 @@ interface PartnerApplicationRiskSummaryProps {
 export function PartnerApplicationRiskSummary({
   partner,
 }: PartnerApplicationRiskSummaryProps) {
+  const { plan } = useWorkspace();
+
   const { triggeredFraudRules, severity, isLoading } =
     usePartnerApplicationRisks({
       filters: { partnerId: partner?.id },
@@ -28,11 +34,13 @@ export function PartnerApplicationRiskSummary({
       severity,
     });
 
-  if (isLoading) {
-    return null;
+  const { canManageFraudEvents } = getPlanCapabilities(plan);
+
+  if (!canManageFraudEvents && !isLoading) {
+    return <PartnerApplicationRiskSummaryUpsell severity={severity} />;
   }
 
-  if (triggeredFraudRules.length === 0) {
+  if (isLoading || triggeredFraudRules.length === 0) {
     return null;
   }
 
@@ -77,6 +85,92 @@ export function PartnerApplicationRiskSummary({
       </div>
 
       <PartnerApplicationRiskSummaryModal />
+    </>
+  );
+}
+
+const APPLICATION_RISK_CONFIG = {
+  high: {
+    bg: "bg-red-100",
+    border: "border-red-200",
+    icon: "text-red-600",
+  },
+  medium: {
+    bg: "bg-orange-100",
+    border: "border-orange-200",
+    icon: "text-orange-600",
+  },
+  low: {
+    bg: "bg-neutral-100",
+    border: "border-neutral-200",
+    icon: "text-neutral-600",
+  },
+};
+
+export function PartnerApplicationRiskSummaryUpsell({
+  severity,
+}: {
+  severity: FraudSeverity | null;
+}) {
+  const { partnersUpgradeModal, setShowPartnersUpgradeModal } =
+    usePartnersUpgradeModal({
+      plan: "Advanced",
+    });
+
+  const severityConfig = severity ? APPLICATION_RISK_CONFIG[severity] : null;
+
+  if (!severityConfig) {
+    return null;
+  }
+
+  return (
+    <>
+      {partnersUpgradeModal}
+      <div className="flex flex-col gap-4 p-4">
+        <div className="flex items-start gap-3">
+          <div className="flex flex-1 flex-col">
+            <h3 className="text-content-emphasis text-sm font-semibold">
+              Unlock risk analysis
+            </h3>
+
+            <div className="my-4 flex flex-col items-center gap-2.5">
+              <div
+                className={cn(
+                  "flex size-7 items-center justify-center rounded-lg border",
+                  severityConfig.border,
+                  severityConfig.bg,
+                )}
+              >
+                <ShieldKeyhole
+                  className={cn("border-1.5 size-4", severityConfig.icon)}
+                />
+              </div>
+
+              <p className="text-content-default max-w-72 text-center text-xs font-medium">
+                Application risk review and event detection are Business plan
+                features.{" "}
+                <Link
+                  href="https://dub.co/help"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline underline-offset-2 hover:text-neutral-800"
+                >
+                  Learn more
+                </Link>
+              </p>
+            </div>
+
+            <div>
+              <Button
+                text="Upgrade to Business"
+                variant="secondary"
+                className="h-7 w-full rounded-lg font-medium"
+                onClick={() => {}}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
     </>
   );
 }
