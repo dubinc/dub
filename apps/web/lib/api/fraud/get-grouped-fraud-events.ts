@@ -37,6 +37,7 @@ interface QueryResult {
 export async function getGroupedFraudEvents({
   programId,
   partnerId,
+  customerId,
   groupKey,
   status,
   type,
@@ -52,6 +53,7 @@ export async function getGroupedFraudEvents({
       status && Prisma.sql`FraudEvent.status = ${status}`,
       type && Prisma.sql`FraudEvent.type = ${type}`,
       partnerId && Prisma.sql`FraudEvent.partnerId = ${partnerId}`,
+      customerId && Prisma.sql`FraudEvent.customerId = ${customerId}`,
       groupKey && Prisma.sql`FraudEvent.groupKey = ${groupKey}`,
     ].filter(Boolean),
     " AND ",
