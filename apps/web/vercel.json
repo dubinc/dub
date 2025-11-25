@@ -79,10 +79,6 @@
     {
       "path": "/api/cron/calculate-program-similarities",
       "schedule": "0 */12 * * *"
-    },
-    {
-      "path": "/api/cron/fraud/summary",
-      "schedule": "0 12 * * *"
     }
   ],
   "functions": {
