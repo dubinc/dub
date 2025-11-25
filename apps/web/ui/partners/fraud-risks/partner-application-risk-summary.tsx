@@ -110,7 +110,7 @@ const APPLICATION_RISK_CONFIG = {
 export function PartnerApplicationRiskSummaryUpsell({
   severity,
 }: {
-  severity: FraudSeverity | null;
+  severity: FraudSeverity | null | undefined;
 }) {
   const { partnersUpgradeModal, setShowPartnersUpgradeModal } =
     usePartnersUpgradeModal({
@@ -123,51 +123,82 @@ export function PartnerApplicationRiskSummaryUpsell({
     return null;
   }
 
+  // Dummy risk items for blur effect
+  const dummyRisks: Array<{ severity: FraudSeverity; text: string }> = [
+    { severity: "high", text: "High risk reason to unlock" },
+    { severity: "medium", text: "Medium risk reason to unlock" },
+    { severity: "low", text: "Low risk reason to unlock" },
+  ];
+
   return (
     <>
       {partnersUpgradeModal}
-      <div className="flex flex-col gap-4 p-4">
-        <div className="flex items-start gap-3">
-          <div className="flex flex-1 flex-col">
+      <div className="relative flex flex-col gap-4 p-4">
+        {/* Blurred dummy risk list */}
+        <div className="pointer-events-none flex select-none flex-col gap-4 blur-[3px]">
+          <div className="flex items-center justify-between">
             <h3 className="text-content-emphasis text-sm font-semibold">
-              Unlock risk analysis
+              Risk analysis
             </h3>
+          </div>
 
-            <div className="my-4 flex flex-col items-center gap-2.5">
-              <div
-                className={cn(
-                  "flex size-7 items-center justify-center rounded-lg border",
-                  severityConfig.border,
-                  severityConfig.bg,
-                )}
-              >
-                <ShieldKeyhole
-                  className={cn("border-1.5 size-4", severityConfig.icon)}
+          <PartnerApplicationFraudSeverityIndicator severity={severity} />
+
+          <ul className="space-y-2">
+            {dummyRisks.map((risk) => (
+              <li key={risk.severity} className="flex items-center gap-2">
+                <div
+                  className={cn(
+                    "size-2 shrink-0 rounded-full",
+                    FRAUD_SEVERITY_CONFIG[risk.severity].bg,
+                  )}
                 />
-              </div>
+                <span className="text-xs font-medium leading-4 text-neutral-700">
+                  {risk.text}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
 
-              <p className="text-content-default max-w-72 text-center text-xs font-medium">
-                Application risk review and event detection are Business plan
-                features.{" "}
-                <Link
-                  href="https://dub.co/help"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="underline underline-offset-2 hover:text-neutral-800"
-                >
-                  Learn more
-                </Link>
-              </p>
-            </div>
+        {/* Upsell overlay */}
+        <div className="absolute inset-0 flex flex-col rounded-xl bg-white/60 p-4 backdrop-blur-[2px]">
+          <h3 className="text-content-emphasis mb-4 text-sm font-semibold">
+            Unlock risk analysis
+          </h3>
 
-            <div>
-              <Button
-                text="Upgrade to Business"
-                variant="secondary"
-                className="h-7 w-full rounded-lg font-medium"
-                onClick={() => {}}
+          <div className="flex flex-1 flex-col items-center justify-center gap-4">
+            <div
+              className={cn(
+                "flex size-7 items-center justify-center rounded-lg border",
+                severityConfig.border,
+                severityConfig.bg,
+              )}
+            >
+              <ShieldKeyhole
+                className={cn("border-1.5 size-4", severityConfig.icon)}
               />
             </div>
+
+            <p className="text-content-default max-w-72 text-center text-xs font-medium">
+              Application risk review and event detection are Business plan
+              features.{" "}
+              <Link
+                href="https://dub.co/help"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline underline-offset-2 hover:text-neutral-800"
+              >
+                Learn more
+              </Link>
+            </p>
+
+            <Button
+              text="Upgrade to Business"
+              variant="secondary"
+              className="h-7 w-full rounded-lg font-medium"
+              onClick={() => setShowPartnersUpgradeModal(true)}
+            />
           </div>
         </div>
       </div>

@@ -8,7 +8,7 @@ export function PartnerApplicationFraudSeverityIndicator({
   severity,
   className,
 }: {
-  severity: FraudSeverity | null;
+  severity: FraudSeverity | null | undefined;
   className?: string;
 }) {
   const entries = Object.entries(FRAUD_SEVERITY_CONFIG);
