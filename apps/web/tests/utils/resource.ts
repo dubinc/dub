@@ -225,3 +225,6 @@ export const E2E_FRAUD_PARTNER = {
     key: "kiran-e2e-1",
   },
 } as const;
+
+export const E2E_FRAUD_REFERRAL_SOURCE_BANNED_DOMAIN =
+  "test-hostname-for-referral-source-banned-do-not-delete.com";

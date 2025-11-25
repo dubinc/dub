@@ -20,7 +20,6 @@ interface QueryResult {
   groupKey: string;
   lastOccurrenceAt: Date;
   eventCount: bigint | number;
-  totalCommissions: bigint | number | null;
   partnerId: string | null;
   partnerName: string | null;
   partnerEmail: string | null;
@@ -81,7 +80,6 @@ export async function getGroupedFraudEvents({
       fe.userId,
       dfe.lastOccurrenceAt,
       dfe.eventCount,
-      dfe.totalCommissions,
       p.name AS partnerName,
       p.email AS partnerEmail,
       p.image AS partnerImage,
@@ -94,10 +92,8 @@ export async function getGroupedFraudEvents({
         FraudEvent.groupKey,
         MAX(FraudEvent.id) AS latestEventId,
         MAX(FraudEvent.createdAt) AS lastOccurrenceAt,
-        COUNT(*) AS eventCount,
-        COALESCE(SUM(comm.earnings), 0) AS totalCommissions
+        COUNT(*) AS eventCount
       FROM FraudEvent
-      LEFT JOIN Commission comm ON comm.id = FraudEvent.commissionId
       WHERE ${subqueryWhereClause}
       GROUP BY FraudEvent.groupKey
     ) dfe

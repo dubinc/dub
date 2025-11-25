@@ -5,6 +5,7 @@ import { HttpClient } from "tests/utils/http";
 import {
   DUB_TEST_IDENTITY_HEADER,
   E2E_FRAUD_PARTNER,
+  E2E_FRAUD_REFERRAL_SOURCE_BANNED_DOMAIN,
   E2E_TRACK_CLICK_HEADERS,
 } from "tests/utils/resource";
 import { describe, expect, test } from "vitest";
@@ -105,7 +106,7 @@ describe.concurrent("/fraud/**", async () => {
       path: "/track/click",
       headers: {
         ...E2E_TRACK_CLICK_HEADERS,
-        referer: "https://reddit.com",
+        referer: `https://${E2E_FRAUD_REFERRAL_SOURCE_BANNED_DOMAIN}`,
         [DUB_TEST_IDENTITY_HEADER]: randomId(10),
       },
       body: {
