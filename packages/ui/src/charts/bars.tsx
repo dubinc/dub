@@ -56,12 +56,9 @@ export function Bars({
               .sort((a, b) => b.valueAccessor(d) - a.valueAccessor(d));
 
             const bars = sortedSeries.reduce((acc, s) => {
-              const prev = acc?.[acc.length - 1];
-
+              const stackHeight = acc.reduce((sum, b) => sum + b.height, 0);
               const value = s.valueAccessor(d) ?? 0;
-              const barHeight = yScale(value);
-
-              console.log({ value, barHeight });
+              const y = yScale(value);
 
               return [
                 ...acc,
@@ -70,33 +67,30 @@ export function Bars({
                   value,
                   colorClassName: s.colorClassName,
                   styles: seriesStyles?.find(({ id }) => id === s.id),
-                  y: 0,
-                  height: barHeight,
+                  y: stackHeight, // y from x axis to bottom of bar
+                  height: height - y, // height from bottom to top of bar
                 },
               ];
             }, [] as any[]);
 
             return (
-              <g key={d.date.toString()}>
-                {bars.map((b) => {
+              <g key={d.date.toString() + "123"}>
+                {bars.map((b, idx) => {
                   return (
                     <BarRounded
                       key={b.id}
                       x={x}
-                      y={height - b.y - b.height}
+                      y={height - b.height - b.y}
                       width={barWidth}
                       height={b.height}
-                      radius={radius}
-                      top
                       className={cn(
-                        "opacity-50",
                         b.colorClassName ?? "text-blue-700",
                         b.styles?.barClassName,
                       )}
-                      stroke="red"
-                      fill={
-                        "transparent" || b.styles?.barFill || "currentColor"
-                      }
+                      fill={b.styles?.barFill || "currentColor"}
+                      {...(idx === bars.length - 1
+                        ? { top: true, radius: radius }
+                        : { radius: 0 })}
                     />
                   );
                 })}

@@ -16,6 +16,18 @@ import { CursorRays, Folder, Globe2, Hyperlink } from "@dub/ui/icons";
 import { cn, formatDate, GOOGLE_FAVICON_URL, nFormatter } from "@dub/utils";
 import { ComponentProps, Fragment, useEffect, useMemo } from "react";
 
+const BAR_COLORS = [
+  "text-blue-500",
+  "text-indigo-500",
+  "text-red-500",
+  "text-emerald-500",
+  "text-purple-500",
+  "text-sky-500",
+  "text-orange-500",
+  "text-lime-500",
+  "text-pink-500",
+];
+
 const RESOURCES = ["links", "events"] as const;
 const resourceEmptyStates: Record<
   (typeof RESOURCES)[number],
@@ -182,8 +194,6 @@ export function UsageChart() {
     [usage, activeResource],
   );
 
-  console.log(chartData);
-
   const allZeroes = useMemo(
     () => chartData?.every(({ values }) => values.usage === 0),
     [chartData],
@@ -230,10 +240,10 @@ export function UsageChart() {
                   colorClassName: "text-violet-500",
                   isActive: false,
                 },
-                ...(usage?.[0]?.groups?.map((group) => ({
+                ...(usage?.[0]?.groups?.map((group, idx) => ({
                   id: group.id,
                   valueAccessor: (d) => d.values[group.id],
-                  colorClassName: "text-blue-500",
+                  colorClassName: BAR_COLORS[idx % BAR_COLORS.length],
                   isActive: true,
                 })) ?? []),
               ]}
