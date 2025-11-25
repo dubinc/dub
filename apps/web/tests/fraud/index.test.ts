@@ -190,6 +190,9 @@ const verifyFraudEvent = async ({
   customer: Pick<Customer, "externalId" | "name" | "email">;
   ruleType: FraudRuleType;
 }) => {
+  // Wait for 8 seconds to reduce flakiness
+  await new Promise((resolve) => setTimeout(resolve, 8000));
+
   // Resolve customerId from customerExternalID
   const { data: customers } = await http.get<Customer[]>({
     path: "/customers",
@@ -199,9 +202,6 @@ const verifyFraudEvent = async ({
   expect(customers.length).toBeGreaterThan(0);
 
   const customerFound = customers[0];
-
-  // Wait for 5 seconds
-  await new Promise((resolve) => setTimeout(resolve, 5000));
 
   // Fetch fraud events for the current customer
   const { data: fraudEvents } = await http.get<fraudEventGroupProps[]>({
