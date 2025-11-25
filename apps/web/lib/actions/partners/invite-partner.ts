@@ -16,7 +16,7 @@ export const invitePartnerAction = authActionClient
   .schema(invitePartnerSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const { email, username, groupId } = parsedInput;
+    const { email, username, name, groupId } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -62,6 +62,7 @@ export const invitePartnerAction = authActionClient
       partner: {
         email,
         username,
+        name,
         ...(groupId && { groupId }),
       },
       userId: user.id,
