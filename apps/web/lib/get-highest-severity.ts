@@ -5,7 +5,7 @@ export function getHighestSeverity(
   triggeredRules: FraudRuleInfo[],
 ): FraudSeverity | null {
   let highest: FraudSeverity | null = null;
-  let highestRank = FRAUD_SEVERITY_CONFIG.low.rank;
+  let highestRank = -Infinity;
 
   for (const { severity } of triggeredRules) {
     if (!severity) continue;
