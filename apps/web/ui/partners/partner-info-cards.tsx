@@ -283,61 +283,64 @@ export function PartnerInfoCards({
         </div>
       </div>
 
-      {partner &&
-      "status" in partner &&
-      ["banned", "deactivated"].includes(partner.status) ? null : ( //hide group info for banned/deactivated partners
-        <div className="border-border-subtle flex flex-col gap-4 rounded-xl border p-4">
-          {/* Group */}
-          <div className="flex flex-col gap-2">
-            {isEnrolled && (
-              <h3 className="text-content-emphasis text-sm font-semibold">
-                Group
-              </h3>
-            )}
-            {partner ? (
-              <PartnerInfoGroup
-                partner={partner}
-                changeButtonText="Change"
-                className="rounded-lg bg-white shadow-sm"
-                selectedGroupId={selectedGroupId}
-                setSelectedGroupId={setSelectedGroupId}
-              />
-            ) : (
-              <div className="my-px h-11 w-full animate-pulse rounded-lg bg-neutral-200" />
-            )}
-          </div>
-
-          {/* Rewards */}
-          <div className="flex flex-col gap-2">
+      <div className="border-border-subtle flex flex-col gap-4 rounded-xl border p-4">
+        {/* Group */}
+        <div className="flex flex-col gap-2">
+          {isEnrolled && (
             <h3 className="text-content-emphasis text-sm font-semibold">
-              Rewards
+              Group
             </h3>
-            {group ? (
-              group.clickReward ||
-              group.leadReward ||
-              group.saleReward ||
-              group.discount ? (
-                <ProgramRewardList
-                  rewards={[
-                    group.clickReward,
-                    group.leadReward,
-                    group.saleReward,
-                  ].filter((r): r is RewardProps => r !== null)}
-                  discount={group.discount}
-                  variant="plain"
-                  className="text-content-subtle gap-2 text-xs leading-4"
-                  iconClassName="size-3.5"
-                />
-              ) : (
-                <span className="text-content-subtle text-xs">No rewards</span>
-              )
-            ) : (
-              <div className="h-4 w-32 animate-pulse rounded bg-neutral-200" />
-            )}
-          </div>
+          )}
+          {partner ? (
+            <PartnerInfoGroup
+              partner={partner}
+              changeButtonText="Change"
+              hideChangeButton={
+                "status" in partner &&
+                ["banned", "deactivated", "rejected"].includes(partner.status)
+              }
+              className="rounded-lg bg-white shadow-sm"
+              selectedGroupId={selectedGroupId}
+              setSelectedGroupId={setSelectedGroupId}
+            />
+          ) : (
+            <div className="my-px h-11 w-full animate-pulse rounded-lg bg-neutral-200" />
+          )}
+        </div>
 
-          {/* Eligible bounties */}
-          {isEnrolled && partner?.status === "approved" && (
+        {isEnrolled && partner?.status === "approved" && (
+          <>
+            {/* Rewards */}
+            <div className="flex flex-col gap-2">
+              <h3 className="text-content-emphasis text-sm font-semibold">
+                Rewards
+              </h3>
+              {group ? (
+                group.clickReward ||
+                group.leadReward ||
+                group.saleReward ||
+                group.discount ? (
+                  <ProgramRewardList
+                    rewards={[
+                      group.clickReward,
+                      group.leadReward,
+                      group.saleReward,
+                    ].filter((r): r is RewardProps => r !== null)}
+                    discount={group.discount}
+                    variant="plain"
+                    className="text-content-subtle gap-2 text-xs leading-4"
+                    iconClassName="size-3.5"
+                  />
+                ) : (
+                  <span className="text-content-subtle text-xs">
+                    No rewards
+                  </span>
+                )
+              ) : (
+                <div className="h-4 w-32 animate-pulse rounded bg-neutral-200" />
+              )}
+            </div>
+            {/* Eligible bounties */}
             <div className="flex flex-col gap-2">
               <h3 className="text-content-emphasis text-sm font-semibold">
                 Eligible Bounties
@@ -376,9 +379,9 @@ export function PartnerInfoCards({
                 <div className="h-4 w-24 animate-pulse rounded bg-neutral-200" />
               )}
             </div>
-          )}
-        </div>
-      )}
+          </>
+        )}
+      </div>
     </div>
   );
 }

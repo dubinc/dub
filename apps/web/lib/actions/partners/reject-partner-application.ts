@@ -38,7 +38,6 @@ export const rejectPartnerApplicationAction = authActionClient
       },
       data: {
         status: ProgramEnrollmentStatus.rejected,
-        groupId: null,
         clickRewardId: null,
         leadRewardId: null,
         saleRewardId: null,

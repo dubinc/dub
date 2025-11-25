@@ -135,9 +135,6 @@ export async function getGroupedFraudEvents({
           email: event.customerEmail,
         }
       : null,
-    commission: {
-      earnings: Number(event.totalCommissions || 0),
-    },
     user: event.userId
       ? {
           id: event.userId,
