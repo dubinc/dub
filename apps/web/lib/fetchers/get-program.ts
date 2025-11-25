@@ -63,16 +63,7 @@ export const getProgram = cache(
 
     return {
       ...program,
-      group: {
-        id: group.id,
-        name: group.name,
-        slug: group.slug,
-        color: group.color,
-        applicationFormData: group.applicationFormData,
-        applicationFormPublishedAt: group.applicationFormPublishedAt,
-        landerData: group.landerData,
-        landerPublishedAt: group.landerPublishedAt,
-      },
+      group,
       rewards: rewards as RewardProps[],
       discount: discount as DiscountProps | null,
     };

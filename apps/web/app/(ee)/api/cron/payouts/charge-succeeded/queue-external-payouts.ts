@@ -133,6 +133,7 @@ export async function queueExternalPayouts(
         payout: {
           id: payout.id,
           amount: payout.amount,
+          initiatedAt: payout.initiatedAt,
           startDate: payout.periodStart,
           endDate: payout.periodEnd,
           mode: "external",

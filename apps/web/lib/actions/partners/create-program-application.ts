@@ -1,6 +1,7 @@
 "use server";
 
 import { createId } from "@/lib/api/create-id";
+import { detectAndRecordFraudApplication } from "@/lib/api/fraud/detect-record-fraud-application";
 import { notifyPartnerApplication } from "@/lib/api/partners/notify-partner-application";
 import { getIP } from "@/lib/api/utils/get-ip";
 import { getSession } from "@/lib/auth";
@@ -254,11 +255,12 @@ async function createApplicationAndEnrollment({
         notifyPartnerApplication({
           partner,
           program,
+          group,
           application,
         }),
 
-        // Auto-approve the partner
-        program.autoApprovePartnersEnabledAt
+        // Auto-approve the partner if the group has auto-approval enabled
+        group.autoApprovePartnersEnabledAt
           ? qstash.publishJSON({
               url: `${APP_DOMAIN_WITH_NGROK}/api/cron/auto-approve-partner`,
               delay: 5 * 60,
@@ -284,6 +286,14 @@ async function createApplicationAndEnrollment({
             },
             applicationFormData,
           }),
+        }),
+
+        // Detect and record fraud events for the partner when they apply to a program
+        detectAndRecordFraudApplication({
+          context: {
+            program,
+            partner,
+          },
         }),
       ]);
     })(),

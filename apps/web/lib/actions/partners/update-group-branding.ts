@@ -16,7 +16,6 @@ import { isFulfilled, isRejected, nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { ProgramSchema } from "../../zod/schemas/programs";
 import { authActionClient } from "../safe-action";
 
 const schema = z.object({
@@ -39,7 +38,7 @@ export const updateGroupBrandingAction = authActionClient
       wordmark,
       brandColor,
       applicationFormData: applicationFormDataInput,
-      landerData: landerDataInput,
+      landerData: landerDataInputRaw,
     } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
@@ -51,89 +50,63 @@ export const updateGroupBrandingAction = authActionClient
 
     const { program } = group;
 
-    const logoUpdated = logo && !isStored(logo);
-    const wordmarkUpdated = wordmark && !isStored(wordmark);
-    const brandColorUpdated = brandColor !== program.brandColor;
+    const uploadLogo = logo && !isStored(logo);
+    const uploadWordmark = wordmark && !isStored(wordmark);
 
     const [logoUrl, wordmarkUrl] = await Promise.all([
-      logoUpdated
+      uploadLogo
         ? storage
             .upload({
               key: `programs/${programId}/logo_${nanoid(7)}`,
               body: logo,
             })
             .then(({ url }) => url)
-        : null,
-      wordmarkUpdated
+        : undefined,
+      uploadWordmark
         ? storage
             .upload({
               key: `programs/${programId}/wordmark_${nanoid(7)}`,
               body: wordmark,
             })
             .then(({ url }) => url)
-        : null,
+        : undefined,
     ]);
 
-    const landerData = landerDataInput
-      ? await uploadLanderDataImages({ landerData: landerDataInput, programId })
-      : landerDataInput;
+    const landerDataInput = landerDataInputRaw
+      ? await uploadLanderDataImages({
+          landerData: landerDataInputRaw,
+          programId,
+        })
+      : landerDataInputRaw;
 
     const updatedGroup = await prisma.partnerGroup.update({
       where: {
         id: groupId,
       },
       data: {
+        logo: logoUrl,
+        wordmark: wordmarkUrl,
+        brandColor,
         applicationFormData: applicationFormDataInput
           ? applicationFormDataInput
           : undefined,
         applicationFormPublishedAt: applicationFormDataInput
           ? new Date()
           : undefined,
-        landerData: landerData ? landerData : undefined,
-        landerPublishedAt: landerData ? new Date() : undefined,
-      },
-    });
-
-    const updatedProgram = await prisma.program.update({
-      where: {
-        id: programId,
-      },
-      data: {
-        logo: logoUrl ?? undefined,
-        wordmark: wordmarkUrl ?? undefined,
-        brandColor,
+        landerData: landerDataInput ? landerDataInput : undefined,
+        landerPublishedAt: landerDataInput ? new Date() : undefined,
       },
     });
 
     waitUntil(
       (async () => {
         const res = await Promise.allSettled([
-          // Delete old logo/wordmark if they were updated
-          ...(logoUpdated && program.logo && isStored(program.logo)
-            ? [storage.delete({ key: program.logo.replace(`${R2_URL}/`, "") })]
-            : []),
-          ...(wordmarkUpdated && program.wordmark && isStored(program.wordmark)
-            ? [
-                storage.delete({
-                  key: program.wordmark.replace(`${R2_URL}/`, ""),
-                }),
-              ]
-            : []),
-
           /*
          Revalidate public pages if the following fields were updated:
-         - name
-         - logo
-         - wordmark
-         - brand color
          - lander data
          - application form data
         */
-          ...(logoUpdated ||
-          wordmarkUpdated ||
-          brandColorUpdated ||
-          landerData ||
-          applicationFormDataInput
+          ...(landerDataInput || applicationFormDataInput
             ? [
                 revalidatePath(`/partners.dub.co/${program.slug}`),
                 revalidatePath(`/partners.dub.co/${program.slug}/apply`),
@@ -146,14 +119,14 @@ export const updateGroupBrandingAction = authActionClient
           recordAuditLog({
             workspaceId: workspace.id,
             programId: program.id,
-            action: "program.updated",
-            description: `Program ${program.name} updated`,
+            action: "group.updated",
+            description: `Group ${updatedGroup.name} (${group.id}) updated`,
             actor: user,
             targets: [
               {
-                type: "program",
-                id: program.id,
-                metadata: updatedProgram,
+                type: "group",
+                id: updatedGroup.id,
+                metadata: updatedGroup,
               },
             ],
           }),
@@ -163,42 +136,86 @@ export const updateGroupBrandingAction = authActionClient
           `Completed waitUntil steps for group branding update: ${JSON.stringify(res, null, 2)}`,
         );
 
-        if (updatedGroup.slug === DEFAULT_PARTNER_GROUP.slug) {
-          if (landerData) {
-            console.log(
-              "Default lander data updated, updating other groups (that don't have a custom data)...",
-            );
-            const updatedGroups = await prisma.partnerGroup.updateMany({
-              where: {
-                programId,
-                landerPublishedAt: null,
+        if (group.slug === DEFAULT_PARTNER_GROUP.slug) {
+          await Promise.all(
+            [
+              { item: "logo", oldValue: group.logo, newValue: logoUrl },
+              {
+                item: "wordmark",
+                oldValue: group.wordmark,
+                newValue: wordmarkUrl,
               },
-              data: {
-                landerData,
+              {
+                item: "brandColor",
+                oldValue: group.brandColor,
+                newValue: brandColor,
               },
-            });
-            console.log(
-              `Updated data for ${updatedGroups.count} other groups based on default group lander data...`,
-            );
-          }
+            ]
+              .filter(
+                ({ oldValue, newValue }) =>
+                  newValue !== undefined && oldValue !== newValue,
+              )
+              .map(async ({ item, oldValue, newValue }) => {
+                console.log(
+                  `Default group's ${item} updated, updating other groups (that have the same ${item})...`,
+                );
+                const updatedGroups = await prisma.partnerGroup.updateMany({
+                  where: {
+                    programId,
+                    [item]: oldValue,
+                  },
+                  data: {
+                    [item]: newValue,
+                  },
+                });
+                console.log(
+                  `Updated ${updatedGroups.count} other groups based on default group's ${item}`,
+                );
+                if (item === "logo") {
+                  await prisma.program.update({
+                    where: {
+                      id: programId,
+                    },
+                    data: {
+                      logo: newValue,
+                    },
+                  });
+                }
+              }),
+          );
 
-          if (applicationFormDataInput) {
-            console.log(
-              "Default application form data updated, updating other groups (that don't have a custom data)...",
-            );
-            const updatedGroups = await prisma.partnerGroup.updateMany({
-              where: {
-                programId,
-                applicationFormPublishedAt: null,
+          await Promise.all(
+            [
+              {
+                item: "landerData",
+                data: landerDataInput,
+                conditionField: "landerPublishedAt",
               },
-              data: {
-                applicationFormData: applicationFormDataInput,
+              {
+                item: "applicationFormData",
+                data: applicationFormDataInput,
+                conditionField: "applicationFormPublishedAt",
               },
-            });
-            console.log(
-              `Updated data for ${updatedGroups.count} other groups based on default group application form`,
-            );
-          }
+            ]
+              .filter(({ data }) => data !== undefined)
+              .map(async ({ item, data, conditionField }) => {
+                console.log(
+                  `Default ${item} updated, updating other groups (that have a null ${conditionField})...`,
+                );
+                const updatedGroups = await prisma.partnerGroup.updateMany({
+                  where: {
+                    programId,
+                    [conditionField]: null,
+                  },
+                  data: {
+                    [item]: data,
+                  },
+                });
+                console.log(
+                  `Updated ${updatedGroups.count} other groups based on default group ${item}`,
+                );
+              }),
+          );
         }
       })(),
     );
@@ -209,7 +226,6 @@ export const updateGroupBrandingAction = authActionClient
         updatedGroup.applicationFormData,
       ),
       landerData: programLanderSchema.parse(updatedGroup.landerData),
-      program: ProgramSchema.parse(updatedProgram),
     };
   });
 

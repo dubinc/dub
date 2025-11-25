@@ -1,4 +1,7 @@
-import { LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS } from "@/lib/constants/program";
+import {
+  LARGE_PROGRAM_IDS,
+  LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS,
+} from "@/lib/constants/program";
 import { fetcher } from "@dub/utils";
 import { useSession } from "next-auth/react";
 import { useParams } from "next/navigation";
@@ -35,10 +38,11 @@ export default function useProgramEnrollment({
   return {
     programEnrollment,
     showDetailedAnalytics:
-      programSlug !== "perplexity" ||
-      (programEnrollment?.status === "approved" &&
-        (programEnrollment?.totalCommissions ?? 0) >=
-          LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS),
+      programEnrollment &&
+      (!LARGE_PROGRAM_IDS.includes(programEnrollment.programId) ||
+        (programEnrollment.status === "approved" &&
+          programEnrollment.totalCommissions >=
+            LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS)),
     error,
     loading: status === "loading" || isLoading,
   };

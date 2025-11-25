@@ -25,37 +25,41 @@ enum ProgramPayoutMode {
 }
 
 model Program {
-  id                           String            @id @default(cuid())
-  workspaceId                  String
-  defaultFolderId              String
-  defaultGroupId               String
-  name                         String
-  slug                         String            @unique
-  logo                         String?
+  id                 String            @id @default(cuid())
+  workspaceId        String
+  defaultFolderId    String
+  defaultGroupId     String
+  name               String
+  slug               String            @unique
+  domain             String?
+  url                String?
+  logo               String? // TODO: remove after we refactor all program.logo fields to use group.logo instead
+  primaryRewardEvent EventType         @default(sale)
+  minPayoutAmount    Int               @default(0) // Default minimum payout amount of $0
+  payoutMode         ProgramPayoutMode @default(internal)
+
+  inviteEmailData Json?   @db.Json
+  embedData       Json?   @db.Json
+  resources       Json?   @db.Json
+  termsUrl        String? @db.Text
+  helpUrl         String? @db.Text
+  supportEmail    String?
+
+  messagingEnabledAt      DateTime?
+  partnerNetworkEnabledAt DateTime?
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+  startedAt               DateTime?
+
+  addedToMarketplaceAt    DateTime?
+  featuredOnMarketplaceAt DateTime?
+  marketplaceHeaderImage  String?
+
+  // DEPRECATED FIELDS: TODO – remove after migration
   wordmark                     String?
   brandColor                   String?
-  domain                       String?
-  url                          String?
-  primaryRewardEvent           EventType         @default(sale)
-  holdingPeriodDays            Int               @default(0) // number of days to wait before earnings are added to a payout
-  minPayoutAmount              Int               @default(0) // Default minimum payout amount of $0
-  inviteEmailData              Json?             @db.Json
-  embedData                    Json?             @db.Json
-  resources                    Json?             @db.Json
-  termsUrl                     String?           @db.Text
-  helpUrl                      String?           @db.Text
-  supportEmail                 String?
+  holdingPeriodDays            Int       @default(0)
   autoApprovePartnersEnabledAt DateTime?
-  messagingEnabledAt           DateTime?
-  partnerNetworkEnabledAt      DateTime?
-  payoutMode                   ProgramPayoutMode @default(internal)
-  createdAt                    DateTime          @default(now())
-  updatedAt                    DateTime          @updatedAt
-  startedAt                    DateTime?
-
-  addedToMarketplaceAt   DateTime?
-  featuredOnMarketplaceAt  DateTime?
-  marketplaceHeaderImage String?
 
   workspace                Project                   @relation(fields: [workspaceId], references: [id])
   partners                 ProgramEnrollment[]
@@ -67,7 +71,6 @@ model Program {
   rewards                  Reward[]
   discounts                Discount[]                @relation("ProgramDiscounts")
   discountCodes            DiscountCode[]
-  
   groups                   PartnerGroup[]
   partnerGroupDefaultLinks PartnerGroupDefaultLink[]
   bounties                 Bounty[]
@@ -75,14 +78,14 @@ model Program {
   workflows                Workflow[]
   messages                 Message[]
   comments                 PartnerComment[]
-
-  campaigns    Campaign[]
-  emailDomains EmailDomain[]
-
-  discoveredPartners DiscoveredPartner[]
-  similarPrograms    ProgramSimilarity[]
-  similarToPrograms  ProgramSimilarity[] @relation("SimilarProgram")
-  categories         ProgramCategory[]
+  campaigns                Campaign[]
+  emailDomains             EmailDomain[]
+  discoveredPartners       DiscoveredPartner[]
+  similarPrograms          ProgramSimilarity[]
+  similarToPrograms        ProgramSimilarity[]       @relation("SimilarProgram")
+  categories               ProgramCategory[]
+  fraudRules               FraudRule[]
+  fraudEvents              FraudEvent[]
 
   @@index(workspaceId)
   @@index(domain)
@@ -139,6 +142,9 @@ model ProgramEnrollment {
   discount          Discount?           @relation(fields: [discountId], references: [id])
   bountySubmissions BountySubmission[]
   discountCodes     DiscountCode[]
+  commissions       Commission[]
+  payouts           Payout[]
+  fraudEvents       FraudEvent[]
 
   // unique constraints
   @@unique([partnerId, programId])

@@ -38,6 +38,8 @@ const prefixes = [
   "msg_", // message
   "em_", // notification email,
   "cmp_", // campaign
+  "fr_", // fraud rule
+  "fre_", // fraud event
 ] as const;
 
 // ULID uses base32 encoding

@@ -41,6 +41,14 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     where: {
       id: customerId,
     },
+    include: {
+      commissions: {
+        take: 1,
+        orderBy: {
+          createdAt: "asc",
+        },
+      },
+    },
   });
 
   if (!customer || customer?.projectId !== program.workspaceId) {
@@ -107,6 +115,7 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
         ltv,
         timeToLead,
         timeToSale,
+        firstSaleDate: customer.commissions[0]?.createdAt ?? null,
         events,
         link,
       },

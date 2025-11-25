@@ -19,6 +19,7 @@ import {
 import { customerActivityResponseSchema } from "./customer-activity";
 import { CustomerEnrichedSchema } from "./customers";
 import { LinkSchema } from "./links";
+import { payoutsQuerySchema } from "./payouts";
 import { workflowConditionSchema } from "./workflows";
 
 export const PartnerEarningsSchema = CommissionSchema.omit({
@@ -193,3 +194,7 @@ export const partnerProfileChangeHistoryLogSchema = z.array(
     }),
   ]),
 );
+
+export const partnerProfilePayoutsQuerySchema = payoutsQuerySchema.extend({
+  sortBy: payoutsQuerySchema.shape.sortBy.default("initiatedAt"),
+});

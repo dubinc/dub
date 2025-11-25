@@ -190,7 +190,10 @@ export function OverviewChart() {
                 formatDateTooltip(date, { interval, start, end })
               }
             />
-            <YAxis showGridLines tickFormat={currencyFormatter} />
+            <YAxis
+              showGridLines
+              tickFormat={viewType === "leads" ? nFormatter : currencyFormatter}
+            />
             <Areas />
           </TimeSeriesChart>
         )}

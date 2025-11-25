@@ -2,19 +2,23 @@
 
 import { approvePartnerAction } from "@/lib/actions/partners/approve-partner";
 import { mutatePrefix } from "@/lib/swr/mutate";
+import useGroups from "@/lib/swr/use-groups";
 import usePartner from "@/lib/swr/use-partner";
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
+import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerApplicationSheet } from "@/ui/partners/partner-application-sheet";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PartnerSocialColumn } from "@/ui/partners/partner-social-column";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import {
+  AnimatedSizeContainer,
   Button,
   EditColumnsButton,
+  Filter,
   MenuItem,
   Popover,
   Table,
@@ -36,6 +40,7 @@ import { useAction } from "next-safe-action/hooks";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
+import { usePartnerFilters } from "../../use-partner-filters";
 
 const applicationsColumns = {
   all: [
@@ -67,6 +72,15 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
   const sortBy = searchParams.get("sortBy") || "createdAt";
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
+  const {
+    filters,
+    activeFilters,
+    onSelect,
+    onRemove,
+    onRemoveAll,
+    isFiltered,
+  } = usePartnerFilters({ sortBy, sortOrder, status: "rejected" }, ["country"]);
+
   const { partnersCount, error: countError } = usePartnersCount<number>({
     status: "rejected",
   });
@@ -91,6 +105,8 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
       revalidateOnFocus: false,
     },
   );
+
+  const { groups } = useGroups();
 
   const [detailsSheetState, setDetailsSheetState] = useState<
     | { open: false; partnerId: string | null }
@@ -124,7 +140,11 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
         minSize: 250,
         cell: ({ row }) => {
           return (
-            <PartnerRowItem partner={row.original} showPermalink={false} />
+            <PartnerRowItem
+              partner={row.original}
+              showPermalink={false}
+              showFraudIndicator={false}
+            />
           );
         },
       },
@@ -132,6 +152,34 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
         id: "createdAt",
         header: "Applied",
         accessorFn: (d) => formatDate(d.createdAt, { month: "short" }),
+      },
+      {
+        id: "group",
+        header: "Group",
+        enableHiding: false,
+        minSize: 150,
+        cell: ({ row }) => {
+          if (!groups || !row.original.groupId) {
+            return "-";
+          }
+
+          const partnerGroup = groups.find(
+            (g) => g.id === row.original.groupId,
+          );
+
+          if (!partnerGroup) {
+            return "-";
+          }
+
+          return (
+            <div className="flex items-center gap-2">
+              <GroupColorCircle group={partnerGroup} />
+              <span className="truncate text-sm font-medium">
+                {partnerGroup.name}
+              </span>
+            </div>
+          );
+        },
       },
       {
         id: "location",
@@ -252,7 +300,7 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
         ),
       },
     ],
-    [workspaceId],
+    [workspaceId, groups],
   );
 
   const { table, ...tableProps } = useTable<EnrolledPartnerProps>({
@@ -334,11 +382,35 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
           }
         />
       )}
-      <div className="w-min">
-        <SearchBoxPersisted
-          placeholder="Search by name or email"
-          inputClassName="md:w-72"
-        />
+      <div>
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <Filter.Select
+            className="w-full md:w-fit"
+            filters={filters}
+            activeFilters={activeFilters}
+            onSelect={onSelect}
+            onRemove={onRemove}
+          />
+          <SearchBoxPersisted
+            placeholder="Search by name or email"
+            inputClassName="md:w-72"
+          />
+        </div>
+        <AnimatedSizeContainer height>
+          <div>
+            {activeFilters.length > 0 && (
+              <div className="pt-3">
+                <Filter.List
+                  filters={filters}
+                  activeFilters={activeFilters}
+                  onSelect={onSelect}
+                  onRemove={onRemove}
+                  onRemoveAll={onRemoveAll}
+                />
+              </div>
+            )}
+          </div>
+        </AnimatedSizeContainer>
       </div>
       {partners?.length !== 0 ? (
         <Table {...tableProps} table={table} />
@@ -346,8 +418,8 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
         <AnimatedEmptyState
           title="No applications found"
           description={
-            search
-              ? "No applications found for your search."
+            isFiltered || search
+              ? "No applications found for the selected filters."
               : "No applications have been submitted for this program."
           }
           cardContent={() => (

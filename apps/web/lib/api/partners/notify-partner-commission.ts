@@ -6,19 +6,18 @@ import {
 import NewCommissionAlertPartner from "@dub/email/templates/new-commission-alert-partner";
 import NewSaleAlertProgramOwner from "@dub/email/templates/new-sale-alert-program-owner";
 import { prisma } from "@dub/prisma";
-import { Commission, Program, Project } from "@dub/prisma/client";
+import { Commission, PartnerGroup, Program, Project } from "@dub/prisma/client";
 import { chunk } from "@dub/utils";
 
 // Send email to partner and program owners when a commission is created
 export async function notifyPartnerCommission({
   program,
+  group,
   workspace,
   commission,
 }: {
-  program: Pick<
-    Program,
-    "name" | "slug" | "logo" | "holdingPeriodDays" | "supportEmail"
-  >;
+  program: Pick<Program, "name" | "slug" | "logo" | "supportEmail">;
+  group: Pick<PartnerGroup, "holdingPeriodDays">;
   workspace: Pick<Project, "id" | "slug" | "name">;
   commission: Pick<
     Commission,
@@ -93,7 +92,9 @@ export async function notifyPartnerCommission({
       name: program.name,
       slug: program.slug,
       logo: program.logo,
-      holdingPeriodDays: program.holdingPeriodDays,
+    },
+    group: {
+      holdingPeriodDays: group.holdingPeriodDays,
     },
     partner: {
       id: commission.partnerId,

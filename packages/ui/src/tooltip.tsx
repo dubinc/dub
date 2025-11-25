@@ -8,6 +8,7 @@ import { ReactNode, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { Badge } from "./badge";
 import { Button, ButtonProps, buttonVariants } from "./button";
+import { PROSE_STYLES } from "./rich-text-area";
 
 export function TooltipProvider({ children }: { children: ReactNode }) {
   return (
@@ -29,6 +30,8 @@ const TooltipMarkdown = ({
       className={cn(
         "prose prose-sm prose-neutral max-w-xs text-pretty px-4 py-2 text-center leading-snug transition-all",
         "prose-a:cursor-alias prose-a:underline prose-a:decoration-dotted prose-a:underline-offset-2",
+        "prose-code:inline-block prose-code:leading-none",
+        PROSE_STYLES.condensed,
         className,
       )}
       components={{

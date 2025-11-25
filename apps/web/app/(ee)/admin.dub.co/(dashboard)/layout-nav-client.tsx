@@ -8,6 +8,7 @@ import {
   useMediaQuery,
 } from "@dub/ui";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 
 const tabs = [
@@ -36,19 +37,26 @@ const tabs = [
 export function AdminNav() {
   const [openPopover, setOpenPopover] = useState(false);
   const { isMobile } = useMediaQuery();
+  const pathname = usePathname();
 
   const NavContent = () => (
     <div className="flex w-full flex-col gap-1 p-2">
-      {tabs.map((tab) => (
-        <Link
-          href={tab.href}
-          key={tab.href}
-          className="block w-full rounded-md px-4 py-2 text-left text-sm text-neutral-700 transition-colors hover:bg-neutral-100 active:bg-neutral-200"
-          onClick={() => setOpenPopover(false)}
-        >
-          {tab.label}
-        </Link>
-      ))}
+      {tabs.map((tab) => {
+        const isActive =
+          pathname === tab.href || pathname?.startsWith(`${tab.href}/`);
+        return (
+          <Link
+            href={tab.href}
+            key={tab.href}
+            className={`block w-full rounded-md px-4 py-2 text-left text-sm text-neutral-700 transition-colors hover:bg-neutral-100 active:bg-neutral-200 ${
+              isActive ? "bg-neutral-100" : ""
+            }`}
+            onClick={() => setOpenPopover(false)}
+          >
+            {tab.label}
+          </Link>
+        );
+      })}
     </div>
   );
 
@@ -87,16 +95,25 @@ export function AdminNav() {
                 </Popover>
               </div>
             ) : (
-              <div className="flex items-center gap-12">
-                {tabs.map((tab) => (
-                  <Link
-                    href={tab.href}
-                    key={tab.href}
-                    className="text-sm text-neutral-500"
-                  >
-                    {tab.label}
-                  </Link>
-                ))}
+              <div className="flex items-center gap-4">
+                {tabs.map((tab) => {
+                  const isActive =
+                    pathname === tab.href ||
+                    pathname?.startsWith(`${tab.href}/`);
+                  return (
+                    <Link
+                      href={tab.href}
+                      key={tab.href}
+                      className={`rounded-md px-3 py-1.5 text-sm transition-colors ${
+                        isActive
+                          ? "bg-neutral-100 text-neutral-900"
+                          : "text-neutral-500 hover:text-neutral-700"
+                      }`}
+                    >
+                      {tab.label}
+                    </Link>
+                  );
+                })}
               </div>
             )}
           </ClientOnly>

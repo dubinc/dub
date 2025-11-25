@@ -1,9 +1,10 @@
 "use client";
 
+import { useFraudEventsCount } from "@/lib/swr/use-fraud-events-count";
 import usePayoutsCount from "@/lib/swr/use-payouts-count";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { PayoutResponse } from "@/lib/types";
+import { FraudEventsCountByPartner, PayoutResponse } from "@/lib/types";
 import { ExternalPayoutsIndicator } from "@/ui/partners/external-payouts-indicator";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
@@ -56,7 +57,7 @@ const PayoutTableInner = memo(
     const { id: workspaceId, defaultProgramId } = useWorkspace();
     const { queryParams, searchParams, getQueryString } = useRouterStuff();
 
-    const sortBy = searchParams.get("sortBy") || "periodEnd";
+    const sortBy = searchParams.get("sortBy") || "amount";
     const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
     const { payoutsCount, error: countError } = usePayoutsCount<number>();
@@ -99,6 +100,15 @@ const PayoutTableInner = memo(
 
     const { pagination, setPagination } = usePagination();
 
+    const { fraudEventsCount } = useFraudEventsCount<
+      FraudEventsCountByPartner[]
+    >({
+      query: {
+        groupBy: "partnerId",
+        status: "pending",
+      },
+    });
+
     const table = useTable({
       data: payouts || [],
       loading: isLoading,
@@ -118,7 +128,16 @@ const PayoutTableInner = memo(
         {
           header: "Status",
           cell: ({ row }) => {
-            const badge = PayoutStatusBadges[row.original.status];
+            const partnerHasPendingFraud = fraudEventsCount?.find(
+              ({ partnerId }) => partnerId === row.original.partner.id,
+            );
+
+            const status =
+              partnerHasPendingFraud && row.original.status === "pending"
+                ? "hold"
+                : row.original.status;
+
+            const badge = PayoutStatusBadges[status];
 
             return badge ? (
               <StatusBadge icon={badge.icon} variant={badge.variant}>
@@ -230,7 +249,7 @@ const PayoutTableInner = memo(
       ],
       pagination,
       onPaginationChange: setPagination,
-      sortableColumns: ["periodEnd", "amount", "paidAt"],
+      sortableColumns: ["amount", "initiatedAt", "paidAt"],
       sortBy,
       sortOrder,
       onSortChange: ({ sortBy, sortOrder }) =>
@@ -337,10 +356,10 @@ function AmountRowItem({
           content={
             <TooltipContent
               title={`Your program's minimum payout amount is ${currencyFormatter(
-                minPayoutAmount / 100,
+                minPayoutAmount,
               )}. This payout will be accrued and processed during the next payout period.`}
               cta="Update minimum payout amount"
-              href={`/${slug}/program/payouts?status=pending&sortBy=amount`}
+              href={`/${slug}/program/payouts?status=pending`}
               target="_blank"
             />
           }

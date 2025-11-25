@@ -5,6 +5,7 @@ import {
   SubmissionsCountByStatus,
   useBountySubmissionsCount,
 } from "@/lib/swr/use-bounty-submissions-count";
+import { useFraudEventsCount } from "@/lib/swr/use-fraud-events-count";
 import { usePartnerMessagesCount } from "@/lib/swr/use-partner-messages-count";
 import usePayoutsCount from "@/lib/swr/use-payouts-count";
 import useProgram from "@/lib/swr/use-program";
@@ -30,6 +31,7 @@ import {
   PaperPlane,
   Receipt2,
   ShieldCheck,
+  ShieldKeyhole,
   Sliders,
   Tag,
   UserCheck,
@@ -66,6 +68,7 @@ type SidebarNavData = {
   applicationsCount?: number;
   submittedBountiesCount?: number;
   unreadMessagesCount?: number;
+  pendingFraudEventsCount?: number;
   showConversionGuides?: boolean;
   partnerNetworkEnabled?: boolean;
 };
@@ -200,6 +203,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
     applicationsCount,
     submittedBountiesCount,
     unreadMessagesCount,
+    pendingFraudEventsCount,
     partnerNetworkEnabled,
   }) => ({
     title: "Partner Program",
@@ -217,7 +221,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
           {
             name: "Payouts",
             icon: MoneyBills2,
-            href: `/${slug}/program/payouts?status=pending&sortBy=amount`,
+            href: `/${slug}/program/payouts?status=pending`,
             badge: pendingPayoutsCount
               ? pendingPayoutsCount > 99
                 ? "99+"
@@ -287,11 +291,16 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             icon: InvoiceDollar,
             href: `/${slug}/program/commissions`,
           },
-          // {
-          //   name: "Fraud & Risk",
-          //   icon: ShieldKeyhole,
-          //   href: `/${slug}/program/fraud`,
-          // },
+          {
+            name: "Fraud Detection",
+            icon: ShieldKeyhole,
+            href: `/${slug}/program/fraud`,
+            badge: pendingFraudEventsCount
+              ? pendingFraudEventsCount > 99
+                ? "99+"
+                : pendingFraudEventsCount
+              : undefined,
+          },
         ],
       },
       {
@@ -518,6 +527,13 @@ export function AppSidebarNav({
     },
   });
 
+  const { fraudEventsCount: pendingFraudEventsCount } = useFraudEventsCount<
+    number | undefined
+  >({
+    query: { status: "pending" },
+    enabled: Boolean(currentArea === "program" && defaultProgramId),
+  });
+
   const { canTrackConversions } = getPlanCapabilities(plan);
 
   return (
@@ -538,6 +554,7 @@ export function AppSidebarNav({
         applicationsCount,
         submittedBountiesCount,
         unreadMessagesCount,
+        pendingFraudEventsCount,
         showConversionGuides: canTrackConversions,
         partnerNetworkEnabled:
           program && program.partnerNetworkEnabledAt !== null,

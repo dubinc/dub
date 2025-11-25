@@ -1,7 +1,7 @@
 "use client";
 
 import { bulkRejectPartnersAction } from "@/lib/actions/partners/bulk-reject-partners";
-import { rejectPartnerAction } from "@/lib/actions/partners/reject-partner";
+import { rejectPartnerApplicationAction } from "@/lib/actions/partners/reject-partner-application";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useGroups from "@/lib/swr/use-groups";
 import usePartner from "@/lib/swr/use-partner";
@@ -17,8 +17,11 @@ import { PartnerSocialColumn } from "@/ui/partners/partner-social-column";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import {
+  AnimatedSizeContainer,
   Button,
+  Checkbox,
   EditColumnsButton,
+  Filter,
   MenuItem,
   Popover,
   Table,
@@ -41,6 +44,8 @@ import { useAction } from "next-safe-action/hooks";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
+import { usePartnerFilters } from "../use-partner-filters";
+
 const applicationsColumns = {
   all: [
     "partner",
@@ -68,8 +73,20 @@ export function ProgramPartnersApplicationsPageClient() {
   const { queryParams, searchParams, getQueryString } = useRouterStuff();
 
   const search = searchParams.get("search");
-  const sortBy = searchParams.get("sortBy") || "saleAmount";
+  const sortBy = searchParams.get("sortBy") || "createdAt";
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
+
+  const {
+    filters,
+    activeFilters,
+    onSelect,
+    onRemove,
+    onRemoveAll,
+    isFiltered,
+  } = usePartnerFilters({ sortBy, sortOrder, status: "pending" }, [
+    "groupId",
+    "country",
+  ]);
 
   const { partnersCount, error: countError } = usePartnersCount<number>({
     status: "pending",
@@ -84,7 +101,8 @@ export function ProgramPartnersApplicationsPageClient() {
       {
         workspaceId,
         status: "pending",
-        sortBy: "createdAt",
+        sortBy,
+        sortOrder,
       },
       { exclude: ["partnerId"] },
     )}`,
@@ -170,7 +188,11 @@ export function ProgramPartnersApplicationsPageClient() {
         minSize: 250,
         cell: ({ row }) => {
           return (
-            <PartnerRowItem partner={row.original} showPermalink={false} />
+            <PartnerRowItem
+              partner={row.original}
+              showPermalink={false}
+              showFraudIndicator={true}
+            />
           );
         },
       },
@@ -365,7 +387,6 @@ export function ProgramPartnersApplicationsPageClient() {
           variant="primary"
           text="Approve"
           className="h-7 w-fit rounded-lg px-2.5"
-          // loading={isApprovingPartners}
           onClick={() => {
             const partners = table
               .getSelectedRowModel()
@@ -446,11 +467,35 @@ export function ProgramPartnersApplicationsPageClient() {
       <BulkApprovePartnersModal />
       {rejectModal}
 
-      <div className="w-min">
-        <SearchBoxPersisted
-          placeholder="Search by name or email"
-          inputClassName="md:w-72"
-        />
+      <div>
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <Filter.Select
+            className="w-full md:w-fit"
+            filters={filters}
+            activeFilters={activeFilters}
+            onSelect={onSelect}
+            onRemove={onRemove}
+          />
+          <SearchBoxPersisted
+            placeholder="Search by name or email"
+            inputClassName="md:w-72"
+          />
+        </div>
+        <AnimatedSizeContainer height>
+          <div>
+            {activeFilters.length > 0 && (
+              <div className="pt-3">
+                <Filter.List
+                  filters={filters}
+                  activeFilters={activeFilters}
+                  onSelect={onSelect}
+                  onRemove={onRemove}
+                  onRemoveAll={onRemoveAll}
+                />
+              </div>
+            )}
+          </div>
+        </AnimatedSizeContainer>
       </div>
       {partners?.length !== 0 ? (
         <Table {...tableProps} table={table} />
@@ -458,8 +503,8 @@ export function ProgramPartnersApplicationsPageClient() {
         <AnimatedEmptyState
           title="No applications found"
           description={
-            search
-              ? "No applications found for your search."
+            isFiltered || search
+              ? "No applications found for the selected filters."
               : "No applications have been submitted for this program."
           }
           cardContent={() => (
@@ -482,28 +527,51 @@ function RowMenuButton({
   workspaceId: string;
 }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [reportFraud, setReportFraud] = useState(false);
 
-  const { executeAsync: rejectPartner, isPending: isRejectingPartner } =
-    useAction(rejectPartnerAction, {
-      onError: ({ error }) => {
-        toast.error(error.serverError);
-      },
-      onSuccess: () => {
-        toast.success(`Partner application rejected`);
-        mutatePrefix(["/api/partners", "/api/partners/count"]);
-      },
-    });
+  const {
+    executeAsync: rejectPartnerApplication,
+    isPending: isRejectingPartner,
+  } = useAction(rejectPartnerApplicationAction, {
+    onSuccess: () => {
+      toast.success("Partner application rejected.");
+      mutatePrefix(["/api/partners", "/api/partners/count"]);
+      setReportFraud(false);
+    },
+    onError: ({ error }) => {
+      toast.error(error.serverError);
+    },
+  });
 
   const { setShowConfirmModal: setShowRejectModal, confirmModal: rejectModal } =
     useConfirmModal({
       title: "Reject Application",
-      description: "Are you sure you want to reject this application?",
+      description: (
+        <div>
+          <p>Are you sure you want to reject this partner application?</p>
+          <label className="mt-5 flex items-start gap-2.5 text-sm font-medium">
+            <Checkbox
+              className="border-border-default mt-1 size-4 rounded focus:border-[var(--brand)] focus:ring-[var(--brand)] focus-visible:border-[var(--brand)] focus-visible:ring-[var(--brand)] data-[state=checked]:bg-black data-[state=indeterminate]:bg-black"
+              checked={reportFraud}
+              onCheckedChange={(checked) => setReportFraud(Boolean(checked))}
+            />
+            <span className="text-content-emphasis text-sm font-normal leading-5">
+              Select this if you believe the application shows signs of fraud.
+              This helps keep the network safe.
+            </span>
+          </label>
+        </div>
+      ),
       confirmText: "Reject",
       onConfirm: async () => {
-        await rejectPartner({
+        await rejectPartnerApplication({
           workspaceId: workspaceId!,
           partnerId: row.original.id,
+          reportFraud,
         });
+      },
+      onCancel: () => {
+        setReportFraud(false);
       },
     });
 

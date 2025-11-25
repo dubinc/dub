@@ -75,6 +75,8 @@ const eventColumns = {
       "link",
       "url",
       "customer",
+      "customerName",
+      "customerExternalId",
       "country",
       "city",
       "region",
@@ -96,6 +98,8 @@ const eventColumns = {
       "saleAmount",
       "event",
       "customer",
+      "customerName",
+      "customerExternalId",
       "link",
       "url",
       "invoiceId",
@@ -276,6 +280,47 @@ export default function EventsTable({
             }),
           },
         },
+        {
+          id: "customerName",
+          header: "Customer Name",
+          accessorKey: "customer.name",
+          minSize: 300,
+          size: 300,
+          maxSize: 300,
+          cell: ({ getValue }) =>
+            getValue() ? (
+              <span className="truncate" title={getValue()}>
+                {getValue()}
+              </span>
+            ) : (
+              <span className="text-neutral-400">-</span>
+            ),
+        },
+        ...(partnerPage
+          ? []
+          : [
+              {
+                id: "customerExternalId",
+                header: "Customer External ID",
+                accessorKey: "customer.externalId",
+                minSize: 300,
+                size: 300,
+                maxSize: 300,
+                cell: ({ getValue }) =>
+                  getValue() ? (
+                    <CopyText
+                      value={getValue()}
+                      successMessage="Copied customer external ID to clipboard!"
+                    >
+                      <span className="truncate font-mono" title={getValue()}>
+                        {getValue()}
+                      </span>
+                    </CopyText>
+                  ) : (
+                    <span className="text-neutral-400">-</span>
+                  ),
+              },
+            ]),
         {
           id: "link",
           header: "Link",

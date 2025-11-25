@@ -325,15 +325,7 @@ export function LanderPreview({ group }: { group: GroupWithProgramProps }) {
 
                     <div className="relative mx-auto max-w-screen-sm" inert>
                       <div className="px-6">
-                        <Component
-                          block={block}
-                          program={{
-                            ...program,
-                            rewards,
-                            discounts: discount,
-                            landerData,
-                          }}
-                        />
+                        <Component block={block} group={group} />
                       </div>
                     </div>
                   </div>

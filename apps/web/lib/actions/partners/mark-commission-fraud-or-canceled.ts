@@ -33,17 +33,13 @@ export const markCommissionFraudOrCanceledAction = authActionClient
       throw new Error("Commission not found.");
     }
 
-    if (commission.type === "custom") {
-      throw new Error(
-        "You cannot mark a custom commission as fraud or canceled.",
-      );
-    }
-
     const { partnerId, customerId } = commission;
 
-    // Find all historical commissions for this customer
+    // for custom commissions, only update this commission
+    // for all other commission types, update all historical commissions for the customer and partner combination
     const commissions = await prisma.commission.findMany({
       where: {
+        ...(commission.type === "custom" ? { id: commissionId } : {}),
         partnerId,
         customerId,
         status: {

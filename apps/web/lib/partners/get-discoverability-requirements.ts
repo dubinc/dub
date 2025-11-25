@@ -1,4 +1,4 @@
-import { currencyFormatter } from "@dub/utils";
+import { ACME_PROGRAM_ID, currencyFormatter } from "@dub/utils";
 import { LARGE_PROGRAM_IDS } from "../constants/program";
 import { EnrolledPartnerProps, PartnerProps } from "../types";
 import {
@@ -17,7 +17,7 @@ const partnerHasEarnedCommissions = (
   return (
     programEnrollments.filter(
       (pe) =>
-        !LARGE_PROGRAM_IDS.includes(pe.programId) &&
+        ![...LARGE_PROGRAM_IDS, ACME_PROGRAM_ID].includes(pe.programId) &&
         pe.status === "approved" &&
         pe.totalCommissions >= PARTNER_DISCOVERY_MIN_COMMISSIONS,
     ).length >= 1
@@ -92,7 +92,7 @@ export function getDiscoverabilityRequirements({
       completed: Boolean(partner.salesChannels?.length),
     },
     {
-      label: `Earn ${currencyFormatter(PARTNER_DISCOVERY_MIN_COMMISSIONS / 100, { trailingZeroDisplay: "stripIfInteger" })} in commissions`,
+      label: `Earn ${currencyFormatter(PARTNER_DISCOVERY_MIN_COMMISSIONS, { trailingZeroDisplay: "stripIfInteger" })} in commissions`,
       completed: partnerHasEarnedCommissions(programEnrollments),
     },
     {

@@ -16,7 +16,7 @@ export const messageProgramAction = authPartnerActionClient
   .schema(messageProgramSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { partner, user } = ctx;
-    const { programSlug, text, createdAt } = parsedInput;
+    const { programSlug, text } = parsedInput;
 
     const program = await prisma.program.findFirstOrThrow({
       select: {
@@ -67,7 +67,6 @@ export const messageProgramAction = authPartnerActionClient
         senderPartnerId: partner.id,
         senderUserId: user.id,
         text,
-        createdAt,
       },
       include: {
         senderUser: true,

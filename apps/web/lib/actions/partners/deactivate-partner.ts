@@ -56,7 +56,6 @@ export const deactivatePartnerAction = authActionClient
         },
         data: {
           status: ProgramEnrollmentStatus.deactivated,
-          groupId: null,
           clickRewardId: null,
           leadRewardId: null,
           saleRewardId: null,

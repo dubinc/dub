@@ -23,6 +23,7 @@ export const updateRewardAction = authActionClient
       amountInPercentage,
       maxDuration,
       description,
+      tooltipDescription,
       modifiers,
       rewardId,
     } = parsedInput;
@@ -55,6 +56,7 @@ export const updateRewardAction = authActionClient
         type,
         maxDuration,
         description: description || null,
+        tooltipDescription: tooltipDescription || null,
         modifiers: modifiers === null ? Prisma.DbNull : modifiers,
         ...(type === "flat"
           ? {

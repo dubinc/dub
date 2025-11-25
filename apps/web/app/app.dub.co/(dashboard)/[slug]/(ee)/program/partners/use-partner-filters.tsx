@@ -9,10 +9,18 @@ import { cn, COUNTRIES, nFormatter } from "@dub/utils";
 import { ProgramEnrollmentStatus } from "@prisma/client";
 import { useMemo } from "react";
 
-export function usePartnerFilters(extraSearchParams: Record<string, string>) {
+export function usePartnerFilters(
+  extraSearchParams: Record<string, string>,
+  enabledFilters: ("groupId" | "status" | "country")[] = [
+    "groupId",
+    "status",
+    "country",
+  ],
+) {
   const { searchParamsObj, queryParams } = useRouterStuff();
   const { id: workspaceId, slug } = useWorkspace();
   const status = (searchParamsObj.status ||
+    extraSearchParams.status ||
     "approved") as ProgramEnrollmentStatus;
 
   const { groups } = useGroups();
@@ -26,6 +34,7 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
   >({
     groupBy: "country",
     status,
+    enabled: enabledFilters.includes("country"),
   });
 
   const { partnersCount: statusCount } = usePartnersCount<
@@ -36,6 +45,7 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
     | undefined
   >({
     groupBy: "status", // here we include all statuses to get the groupBy count
+    enabled: enabledFilters.includes("status"),
   });
 
   const { partnersCount: groupsCount } = usePartnersCount<
@@ -47,79 +57,96 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
   >({
     groupBy: "groupId",
     status,
+    enabled: enabledFilters.includes("groupId"),
   });
 
   const filters = useMemo(
     () => [
-      {
-        key: "groupId",
-        icon: Users6,
-        label: "Group",
-        options:
-          groupsCount && groups
-            ? groupsCount
-                .filter(({ groupId }) =>
-                  groups.find(({ id }) => id === groupId),
-                )
-                .map(({ groupId, _count }) => {
-                  const groupData = groups.find(({ id }) => id === groupId)!; // coerce cause we already filtered above
+      ...(enabledFilters.includes("groupId")
+        ? [
+            {
+              key: "groupId",
+              icon: Users6,
+              label: "Group",
+              options:
+                groupsCount && groups
+                  ? groupsCount
+                      .filter(({ groupId }) =>
+                        groups.find(({ id }) => id === groupId),
+                      )
+                      .map(({ groupId, _count }) => {
+                        const groupData = groups.find(
+                          ({ id }) => id === groupId,
+                        )!; // coerce cause we already filtered above
 
-                  return {
-                    value: groupId,
-                    label: groupData.name,
-                    icon: <GroupColorCircle group={groupData} />,
-                    right: nFormatter(_count || 0, { full: true }),
-                    permalink: `/${slug}/program/groups/${groupData.slug}/rewards`,
-                  };
-                })
-                .filter((group) => group !== null)
-            : null,
-      },
-      {
-        key: "status",
-        icon: CircleDotted,
-        label: "Status",
-        options:
-          statusCount
-            ?.filter(({ status }) => !["pending", "rejected"].includes(status))
-            ?.map(({ status, _count }) => {
-              const Icon = PartnerStatusBadges[status].icon;
-              return {
-                value: status,
-                label: PartnerStatusBadges[status].label,
-                icon: (
-                  <Icon
-                    className={cn(
-                      PartnerStatusBadges[status].className,
-                      "size-4 bg-transparent",
-                    )}
-                  />
-                ),
-                right: nFormatter(_count || 0, { full: true }),
-              };
-            }) ?? [],
-      },
-      {
-        key: "country",
-        icon: FlagWavy,
-        label: "Location",
-        getOptionIcon: (value) => (
-          <img
-            alt={value}
-            src={`https://hatscripts.github.io/circle-flags/flags/${value.toLowerCase()}.svg`}
-            className="size-4 shrink-0"
-          />
-        ),
-        getOptionLabel: (value) => COUNTRIES[value],
-        options:
-          countriesCount
-            ?.filter(({ country }) => COUNTRIES[country])
-            .map(({ country, _count }) => ({
-              value: country,
-              label: COUNTRIES[country],
-              right: nFormatter(_count, { full: true }),
-            })) ?? [],
-      },
+                        return {
+                          value: groupId,
+                          label: groupData.name,
+                          icon: <GroupColorCircle group={groupData} />,
+                          right: nFormatter(_count || 0, { full: true }),
+                          permalink: `/${slug}/program/groups/${groupData.slug}/rewards`,
+                        };
+                      })
+                      .filter((group) => group !== null)
+                  : null,
+            },
+          ]
+        : []),
+      ...(enabledFilters.includes("status")
+        ? [
+            {
+              key: "status",
+              icon: CircleDotted,
+              label: "Status",
+              options:
+                statusCount
+                  ?.filter(
+                    ({ status }) => !["pending", "rejected"].includes(status),
+                  )
+                  ?.map(({ status, _count }) => {
+                    const Icon = PartnerStatusBadges[status].icon;
+                    return {
+                      value: status,
+                      label: PartnerStatusBadges[status].label,
+                      icon: (
+                        <Icon
+                          className={cn(
+                            PartnerStatusBadges[status].className,
+                            "size-4 bg-transparent",
+                          )}
+                        />
+                      ),
+                      right: nFormatter(_count || 0, { full: true }),
+                    };
+                  }) ?? [],
+            },
+          ]
+        : []),
+      ...(enabledFilters.includes("country")
+        ? [
+            {
+              key: "country",
+              icon: FlagWavy,
+              label: "Location",
+              getOptionIcon: (value) => (
+                <img
+                  alt={value}
+                  src={`https://hatscripts.github.io/circle-flags/flags/${value.toLowerCase()}.svg`}
+                  className="size-4 shrink-0"
+                />
+              ),
+              getOptionLabel: (value) => COUNTRIES[value],
+              options:
+                countriesCount
+                  ?.filter(({ country }) => COUNTRIES[country])
+                  .map(({ country, _count }) => ({
+                    value: country,
+                    label: COUNTRIES[country],
+                    right: nFormatter(_count, { full: true }),
+                  })) ?? [],
+            },
+          ]
+        : []),
     ],
     [groupsCount, groups, statusCount, countriesCount],
   );
@@ -128,9 +155,15 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
     const { groupId, status, country } = searchParamsObj;
 
     return [
-      ...(groupId ? [{ key: "groupId", value: groupId }] : []),
-      ...(status ? [{ key: "status", value: status }] : []),
-      ...(country ? [{ key: "country", value: country }] : []),
+      ...(enabledFilters.includes("groupId") && groupId
+        ? [{ key: "groupId", value: groupId }]
+        : []),
+      ...(enabledFilters.includes("status") && status
+        ? [{ key: "status", value: status }]
+        : []),
+      ...(enabledFilters.includes("country") && country
+        ? [{ key: "country", value: country }]
+        : []),
     ];
   }, [searchParamsObj]);
 
@@ -142,7 +175,7 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
       del: "page",
     });
 
-  const onRemove = (key: string, value: any) =>
+  const onRemove = (key: string) =>
     queryParams({
       del: [key, "page"],
     });

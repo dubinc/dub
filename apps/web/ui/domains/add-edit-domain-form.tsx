@@ -31,7 +31,7 @@ import {
 } from "lucide-react";
 import { motion } from "motion/react";
 import posthog from "posthog-js";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useDebouncedCallback } from "use-debounce";
@@ -276,7 +276,15 @@ export function AddEditDomainForm({
   const currentStatusProps = STATUS_CONFIG[domainStatus];
 
   return (
-    <form ref={formRef} onSubmit={handleSubmit(onSubmit)}>
+    <form
+      ref={formRef}
+      onSubmit={async (e: FormEvent<HTMLFormElement>) => {
+        // prevent the submission event from propagating to the parent form (in the link builder)
+        e.preventDefault();
+        e.stopPropagation();
+        handleSubmit(onSubmit)(e);
+      }}
+    >
       <div
         className={cn(
           "flex flex-col gap-y-6 text-left",

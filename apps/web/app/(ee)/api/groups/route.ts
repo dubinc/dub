@@ -106,15 +106,19 @@ export const POST = withWorkspace(
         });
       }
 
-      // copy over the default group's link settings + lander/application data
-      // when creating a new group
+      // copy over the default group's settings when creating a new group
       const {
+        logo,
+        wordmark,
+        brandColor,
         additionalLinks,
         maxPartnerLinks,
         linkStructure,
         partnerGroupDefaultLinks,
         applicationFormData,
         landerData,
+        holdingPeriodDays,
+        autoApprovePartnersEnabledAt,
       } = program.groups[0];
 
       return await tx.partnerGroup.create({
@@ -124,6 +128,11 @@ export const POST = withWorkspace(
           name,
           slug,
           color,
+          logo,
+          wordmark,
+          brandColor,
+          holdingPeriodDays,
+          autoApprovePartnersEnabledAt,
           ...(additionalLinks && { additionalLinks }),
           ...(maxPartnerLinks && { maxPartnerLinks }),
           ...(linkStructure && { linkStructure }),

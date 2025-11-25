@@ -43,7 +43,7 @@ export function ProgramHelpAndSupportContent({
 }: {
   program?: ProgramProps;
 }) {
-  const { id: workspaceId, slug: workspaceSlug, plan } = useWorkspace();
+  const { id: workspaceId, plan } = useWorkspace();
 
   const { partnersUpgradeModal, setShowPartnersUpgradeModal } =
     usePartnersUpgradeModal({

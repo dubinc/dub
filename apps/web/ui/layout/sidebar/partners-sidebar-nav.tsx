@@ -228,11 +228,10 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "Bounties",
             icon: Trophy,
             href: `/programs/${programSlug}/bounties` as `/${string}`,
-            badge: programBountiesCount
-              ? programBountiesCount > 99
+            badge:
+              programBountiesCount && programBountiesCount > 99
                 ? "99+"
-                : programBountiesCount
-              : "New",
+                : programBountiesCount || undefined,
             locked: isUnapproved,
           },
           {

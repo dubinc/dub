@@ -71,12 +71,16 @@ function ModalInner({
         minute: "2-digit",
       }),
 
-      Customer: (
-        <CustomerRowItem
-          customer={commission.customer!}
-          avatarClassName="size-5"
-        />
-      ),
+      ...(commission.customer
+        ? {
+            Customer: (
+              <CustomerRowItem
+                customer={commission.customer}
+                avatarClassName="size-5"
+              />
+            ),
+          }
+        : {}),
 
       Partner: (
         <PartnerRowItem partner={commission.partner!} showPermalink={false} />
@@ -110,21 +114,23 @@ function ModalInner({
       <div className="flex flex-col space-y-6 bg-neutral-50 p-6">
         <div className="rounded-lg border border-red-200 bg-red-50 p-4">
           <div className="text-sm text-red-900">
-            <span className="font-bold">Warning:</span> This will mark all
-            future and past commissions for this customer and partner
-            combination as {status}. This action cannot be undone – please
-            proceed with caution.
+            <span className="font-bold">Warning:</span> This will mark{" "}
+            {commission.type === "custom"
+              ? "this commission"
+              : "all future and past commissions for this customer and partner combination"}{" "}
+            as {status}. This action cannot be undone – please proceed with
+            caution.
           </div>
         </div>
 
         <div className="rounded-lg border border-neutral-200 bg-white p-4 sm:p-6">
-          <div className="grid grid-cols-2 gap-y-4">
+          <div className="grid grid-cols-3 gap-y-4">
             {Object.entries(commissionItem).map(([key, value]) => (
               <React.Fragment key={key}>
                 <div className="text-sm font-medium text-neutral-500">
                   {key}
                 </div>
-                <div className="text-sm font-medium text-neutral-800">
+                <div className="col-span-2 text-sm font-medium text-neutral-800">
                   {value}
                 </div>
               </React.Fragment>
