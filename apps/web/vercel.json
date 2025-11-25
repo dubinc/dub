@@ -81,7 +81,7 @@
       "schedule": "0 */12 * * *"
     },
     {
-      "path": "/api/cron/fraud-events/summary",
+      "path": "/api/cron/fraud/summary",
       "schedule": "0 12 * * *"
     }
   ],
