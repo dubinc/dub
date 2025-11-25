@@ -251,33 +251,57 @@ export function UsageChart() {
                   colorClassName: "text-violet-500",
                   isActive: false,
                 },
-                ...(usage?.[0]?.groups?.map((group, idx) => ({
+                ...(usage?.[0]?.groups?.map((group) => ({
                   id: group.id,
                   valueAccessor: (d) => d.values[group.id],
                   colorClassName: groupColors[group.id],
                   isActive: true,
                 })) ?? []),
               ]}
-              tooltipClassName="p-0"
+              tooltipClassName="p-0 overflow-hidden"
               tooltipContent={(d) => {
+                const topGroups = usage?.[0]?.groups
+                  ?.filter((group) => d.values[group.id] > 0)
+                  .sort((a, b) => b.usage - a.usage)
+                  .slice(0, 8);
+
                 return (
                   <>
-                    <p className="border-b border-neutral-200 px-4 py-3 text-sm text-neutral-900">
-                      {formatDate(d.date)}
-                    </p>
-                    <div className="grid grid-cols-2 gap-x-6 gap-y-2 px-4 py-3 text-sm">
-                      <Fragment key={activeResource}>
-                        <div className="flex items-center gap-2">
-                          <div className="h-2 w-2 rounded-sm bg-violet-500 shadow-[inset_0_0_0_1px_#0003]" />
-                          <p className="capitalize text-neutral-600">
-                            {activeResource}
-                          </p>
-                        </div>
-                        <p className="text-right font-medium text-neutral-900">
-                          {nFormatter(d.values.usage, { full: true })}
-                        </p>
-                      </Fragment>
+                    <div className="flex items-center justify-between gap-4 px-4 py-3 text-xs">
+                      <span className="text-content-emphasis font-semibold">
+                        {formatDate(d.date, { month: "short" })}
+                      </span>
+                      <span className="text-content-default font-medium">
+                        {nFormatter(d.values.usage, { full: true })}
+                      </span>
                     </div>
+                    {Boolean(topGroups?.length) && (
+                      <div className="border-border-subtle relative grid grid-cols-2 gap-x-6 gap-y-2 overflow-hidden border-t px-4 py-3 text-xs">
+                        {topGroups?.map((group) => {
+                          const value = d.values[group.id];
+                          if (!value) return null;
+
+                          return (
+                            <Fragment key={group.id}>
+                              <div className="flex items-center gap-2">
+                                <div
+                                  className={cn(
+                                    "size-2 rounded-sm bg-current shadow-[inset_0_0_0_1px_#0003]",
+                                    groupColors[group.id],
+                                  )}
+                                />
+                                <span className="text-neutral-600">
+                                  {group.name}
+                                </span>
+                              </div>
+                              <span className="text-right font-medium text-neutral-900">
+                                {nFormatter(value, { full: true })}
+                              </span>
+                            </Fragment>
+                          );
+                        })}
+                      </div>
+                    )}
                   </>
                 );
               }}
