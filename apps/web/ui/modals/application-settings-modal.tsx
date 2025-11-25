@@ -1,5 +1,5 @@
 import { parseActionError } from "@/lib/actions/parse-action-errors";
-import { updateApplicationSettingsAction } from "@/lib/actions/partners/update-auto-approve-partners";
+import { updateApplicationSettingsAction } from "@/lib/actions/partners/update-application-settings";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -19,7 +19,6 @@ import { toast } from "sonner";
 import { ProgramCategorySelect } from "../partners/program-category-select";
 
 type FormData = {
-  autoApprovePartners: boolean;
   marketplaceEnabled: boolean;
   categories: Category[];
 };
@@ -42,7 +41,6 @@ function ApplicationSettingsModal({
     formState: { errors, isSubmitting },
   } = useForm<FormData>({
     defaultValues: {
-      autoApprovePartners: program?.autoApprovePartnersEnabledAt ? true : false,
       marketplaceEnabled: program?.addedToMarketplaceAt ? true : false,
       categories: program?.categories ?? [],
     },
@@ -93,38 +91,6 @@ function ApplicationSettingsModal({
 
       <form onSubmit={onSubmit}>
         <div className="space-y-6 bg-neutral-50 p-4 sm:p-6">
-          <label className="flex gap-3">
-            <div>
-              <Controller
-                control={control}
-                name="autoApprovePartners"
-                render={({ field }) => (
-                  <Switch
-                    checked={field.value}
-                    fn={field.onChange}
-                    trackDimensions="radix-state-checked:bg-black focus-visible:ring-black/20"
-                  />
-                )}
-              />
-            </div>
-            <div className="flex select-none flex-col gap-0.5">
-              <span className="text-content-emphasis text-sm font-medium">
-                Auto-approve partners
-              </span>
-              <p className="text-content-subtle text-xs">
-                New applications will be automatically approved.{" "}
-                <a
-                  href="https://dub.co/help/article/program-applications#auto-approve"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-content-default underline"
-                >
-                  Learn more
-                </a>
-              </p>
-            </div>
-          </label>
-
           <div>
             <label className="flex gap-3">
               <div>
