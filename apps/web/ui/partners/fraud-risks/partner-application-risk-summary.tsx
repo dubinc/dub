@@ -194,7 +194,7 @@ export function PartnerApplicationRiskSummaryUpsell({
             </p>
 
             <Button
-              text="Upgrade to Business"
+              text="Upgrade to Advanced"
               variant="secondary"
               className="h-7 w-full rounded-lg font-medium"
               onClick={() => setShowPartnersUpgradeModal(true)}
