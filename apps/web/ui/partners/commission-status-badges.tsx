@@ -1,3 +1,4 @@
+import { PartnerProps } from "@/lib/types";
 import { Commission, PartnerGroup, Program } from "@dub/prisma/client";
 import {
   CircleCheck,
@@ -22,6 +23,7 @@ interface CommissionTooltipDataProps {
   };
   commission: Pick<Commission, "createdAt">;
   variant: "partner" | "workspace";
+  partner?: Pick<PartnerProps, "id">;
 }
 
 export const CommissionStatusBadges = {
@@ -143,7 +145,11 @@ export const CommissionStatusBadges = {
         return title;
       }
 
-      return `This partner's commissions are on hold due to [unresolved fraud events](/${data.workspace?.slug}/program/fraud). They cannot be paid out until resolved.`;
+      const linkToFraudEvents = data.partner?.id
+        ? `/${data.workspace?.slug}/program/fraud?partnerId=${data.partner.id}`
+        : `/${data.workspace?.slug}/program/fraud`;
+
+      return `This partner's commissions are on hold due to [unresolved fraud events](${linkToFraudEvents}). They cannot be paid out until resolved.`;
     },
   },
 };

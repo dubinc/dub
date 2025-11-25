@@ -34,7 +34,7 @@ import { formatPeriod } from "@dub/utils/src/functions/datetime";
 import { fetcher } from "@dub/utils/src/functions/fetcher";
 import { PayoutDetailsSheet } from "app/app.dub.co/(dashboard)/[slug]/(ee)/program/payouts/payout-details-sheet";
 import { useParams } from "next/navigation";
-import { memo, useEffect, useState } from "react";
+import { memo, useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 import { usePayoutFilters } from "./use-payout-filters";
 
@@ -109,6 +109,15 @@ const PayoutTableInner = memo(
       },
     });
 
+    // Memoized map of partner IDs with pending fraud events
+    const fraudEventsCountMap = useMemo(() => {
+      if (!fraudEventsCount) {
+        return new Set<string>();
+      }
+
+      return new Set(fraudEventsCount.map(({ partnerId }) => partnerId));
+    }, [fraudEventsCount]);
+
     const table = useTable({
       data: payouts || [],
       loading: isLoading,
@@ -128,12 +137,12 @@ const PayoutTableInner = memo(
         {
           header: "Status",
           cell: ({ row }) => {
-            const partnerHasPendingFraud = fraudEventsCount?.find(
-              ({ partnerId }) => partnerId === row.original.partner.id,
+            const hasFraudPending = fraudEventsCountMap.has(
+              row.original.partner.id,
             );
 
             const status =
-              partnerHasPendingFraud && row.original.status === "pending"
+              hasFraudPending && row.original.status === "pending"
                 ? "hold"
                 : row.original.status;
 
@@ -244,7 +253,12 @@ const PayoutTableInner = memo(
         {
           id: "amount",
           header: "Amount",
-          cell: ({ row }) => <AmountRowItem payout={row.original} />,
+          cell: ({ row }) => (
+            <AmountRowItem
+              payout={row.original}
+              hasFraudPending={fraudEventsCountMap.has(row.original.partner.id)}
+            />
+          ),
         },
       ],
       pagination,
@@ -340,8 +354,10 @@ const PayoutTableInner = memo(
 
 function AmountRowItem({
   payout,
+  hasFraudPending,
 }: {
   payout: Pick<PayoutResponse, "amount" | "status" | "mode" | "partner">;
+  hasFraudPending: boolean;
 }) {
   const { slug } = useParams();
   const { program } = useProgram();
@@ -405,6 +421,18 @@ function AmountRowItem({
     if (payout.mode === "internal" && !payout.partner?.payoutsEnabledAt) {
       return (
         <Tooltip content="This partner does not have payouts enabled, which means they will not be able to receive any payouts from this program.">
+          <span className="cursor-help truncate text-neutral-400 underline decoration-dotted underline-offset-2">
+            {display}
+          </span>
+        </Tooltip>
+      );
+    }
+
+    if (hasFraudPending) {
+      return (
+        <Tooltip
+          content={`This partner's payouts are on hold due to [unresolved fraud events](${`/${slug}/program/fraud?partnerId=${payout.partner.id}`}). They cannot be paid out until resolved.`}
+        >
           <span className="cursor-help truncate text-neutral-400 underline decoration-dotted underline-offset-2">
             {display}
           </span>

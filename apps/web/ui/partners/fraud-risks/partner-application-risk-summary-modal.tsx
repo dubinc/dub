@@ -18,7 +18,7 @@ interface PartnerApplicationRiskSummaryModalProps {
   showModal: boolean;
   setShowModal: Dispatch<SetStateAction<boolean>>;
   triggeredRules: FraudRuleInfo[];
-  severity: FraudSeverity | null;
+  severity: FraudSeverity | null | undefined;
 }
 
 function PartnerApplicationRiskSummaryModal({
@@ -83,7 +83,7 @@ export function usePartnerApplicationRiskSummaryModal({
   severity,
 }: {
   triggeredRules: FraudRuleInfo[];
-  severity: FraudSeverity | null;
+  severity: FraudSeverity | null | undefined;
 }) {
   const [showModal, setShowModal] = useState(false);
 

@@ -297,6 +297,7 @@ export function CommissionTable() {
                     ? groups?.find((g) => g.id === row.original.partner.groupId)
                     : undefined,
                   commission: row.original,
+                  partner: row.original.partner,
                 })}
               >
                 {badge.label}

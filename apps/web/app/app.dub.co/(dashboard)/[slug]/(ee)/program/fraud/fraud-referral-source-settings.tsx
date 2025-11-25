@@ -100,7 +100,7 @@ export function FraudReferralSourceSettings({
               <div key={index} className="group relative w-full">
                 <input
                   type="text"
-                  placeholder="https://www.reddit.com"
+                  placeholder="reddit.com"
                   value={domain}
                   disabled={isDisabled}
                   onChange={(e) => updateDomain(index, e.target.value)}

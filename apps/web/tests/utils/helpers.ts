@@ -4,14 +4,16 @@ import { OG_AVATAR_URL, nanoid, randomValue } from "@dub/utils";
 export const randomId = (length = 24) => nanoid(length);
 
 // Generate random customer data
-export const randomCustomer = () => {
+export const randomCustomer = ({
+  emailDomain = "example.com",
+}: { emailDomain?: string } = {}) => {
   const externalId = `cus_${randomId()}`;
   const customerName = generateRandomName();
 
   return {
     externalId,
     name: customerName,
-    email: `${customerName.split(" ").join(".").toLowerCase()}@example.com`,
+    email: `${customerName.split(" ").join(".").toLowerCase()}@${emailDomain}`,
     avatar: `${OG_AVATAR_URL}${externalId}`,
   };
 };
