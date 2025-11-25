@@ -1,4 +1,4 @@
-import { DUB_WORDMARK, formatDate, nFormatter, OG_AVATAR_URL } from "@dub/utils";
+import { DUB_WORDMARK, formatDate, OG_AVATAR_URL } from "@dub/utils";
 import {
   Body,
   Column,
@@ -32,7 +32,7 @@ export default function UnresolvedFraudEventsSummary({
       groupKey: "QwRUVRbcTfa8zzrhDjGwdN9L",
       partner: {
         name: "Lauren Anderson",
-        image: "https://assets.dub.co/logo.png",
+        image: `${OG_AVATAR_URL}/Lauren Anderson`,
       },
     },
     {
@@ -41,7 +41,7 @@ export default function UnresolvedFraudEventsSummary({
       groupKey: "3kkPeQ8vzIr1Zl5Zsn_A4l06",
       partner: {
         name: "Charlie Anderson",
-        image: "https://assets.dub.co/logo.png",
+        image: `${OG_AVATAR_URL}/Charlie Anderson`,
       },
     },
   ],
@@ -60,14 +60,11 @@ export default function UnresolvedFraudEventsSummary({
     partner: {
       name: string;
       image: string | null;
-    } | null;
+    };
   }[];
   email: string;
 }) {
-  const totalCount = fraudEvents.reduce((acc, event) => acc + event.count, 0);
-  const totalCountText = nFormatter(totalCount, { full: true });
-
-  const formattedDate = formatDate(new Date(), {
+  const todayDate = formatDate(new Date(), {
     month: "short",
     day: "numeric",
     year: "numeric",
@@ -93,86 +90,98 @@ export default function UnresolvedFraudEventsSummary({
 
             <Text className="text-sm text-neutral-600">
               Here are your detected fraud and risk events reported for{" "}
-              {formattedDate} for the program {program.name}.
+              <strong>{todayDate}</strong> for the{" "}
+              <strong>{program.name}</strong> program.
             </Text>
 
-            <Section className="my-6 rounded-lg border-2 border-dashed border-blue-200 bg-white p-0">
-              {/* Table Header */}
-              <Row className="border-b border-solid border-neutral-200">
-                <Column width="50%" className="px-4 py-3">
-                  <Text className="m-0 text-xs font-semibold uppercase tracking-wide text-neutral-500">
+            <Section className="my-6 rounded-xl border border-solid border-neutral-200 bg-white p-0">
+              <Row className="h-11 border-b border-solid border-neutral-200">
+                <Column width="50%" className="px-4">
+                  <Text className="m-0 text-sm font-semibold tracking-wide text-neutral-900">
                     Event
                   </Text>
                 </Column>
-                <Column width="50%" className="px-4 py-3">
-                  <Text className="m-0 text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                <Column width="40%" className="px-4">
+                  <Text className="m-0 text-sm font-semibold tracking-wide text-neutral-900">
                     Partner
                   </Text>
                 </Column>
+                <Column width="10%" className="px-4">
+                  <Text className="m-0 text-sm font-semibold tracking-wide text-neutral-900"></Text>
+                </Column>
               </Row>
 
-              {/* Table Rows */}
-              {displayedEvents.map((event, idx) => (
-                <Row key={event.groupKey}>
-                  <Column
-                    width="50%"
-                    className={`px-4 py-3 ${idx < displayedEvents.length - 1 ? "border-b border-solid border-neutral-200" : ""}`}
-                  >
-                    <Text className="m-0 text-sm text-neutral-900">
-                      {event.name}
-                      {event.count > 1 && (
-                        <span className="ml-2 rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-600">
-                          {event.count}
-                        </span>
-                      )}
-                    </Text>
+              {displayedEvents.map((event) => (
+                <Row
+                  key={event.groupKey}
+                  className="h-11 border-b border-solid border-neutral-200 last:border-b-0"
+                >
+                  <Column width="50%" className="w-1/2 px-4" valign="middle">
+                    <Row>
+                      <Column width="auto" className="flex">
+                        <Text className="m-0 text-sm font-medium text-neutral-600">
+                          {event.name}
+                        </Text>
+
+                        <div>
+                          {event.count > 1 && (
+                            <Text className="m-0 ml-2 rounded-md bg-neutral-100 px-1.5 py-0.5 text-xs font-semibold text-neutral-700">
+                              {event.count}
+                            </Text>
+                          )}
+                        </div>
+                      </Column>
+                    </Row>
                   </Column>
-                  <Column
-                    width="50%"
-                    className={`px-4 py-3 ${idx < displayedEvents.length - 1 ? "border-b border-solid border-neutral-200" : ""}`}
-                  >
-                    {event.partner ? (
-                      <Row>
-                        <Column width="auto">
-                          <Img
-                            src={
-                              event.partner.image ||
-                              `${OG_AVATAR_URL}${event.partner.name}`
-                            }
-                            width="32"
-                            height="32"
-                            alt={event.partner.name}
-                            className="rounded-full"
-                          />
-                        </Column>
-                        <Column className="pl-2">
-                          <Text className="m-0 text-sm text-neutral-900">
-                            {event.partner.name}
-                          </Text>
-                        </Column>
-                        <Column width="auto" className="align-top">
-                          <Link
-                            className="rounded-md border border-solid border-neutral-300 bg-white px-3 py-1.5 text-xs font-medium text-neutral-700 no-underline"
-                            href={`https://app.dub.co/${workspace.slug}/program/fraud?groupKey=${event.groupKey}`}
-                          >
-                            View
-                          </Link>
-                        </Column>
-                      </Row>
-                    ) : (
-                      <Text className="m-0 text-sm text-neutral-500">
-                        No partner
-                      </Text>
-                    )}
+
+                  <Column width="50%" className="w-1/2 px-4" valign="middle">
+                    <Row>
+                      <Column width="auto">
+                        <Img
+                          src={
+                            event.partner.image ||
+                            `${OG_AVATAR_URL}${event.partner.name}`
+                          }
+                          width={20}
+                          height={20}
+                          alt={event.partner.name}
+                          className="rounded-full"
+                        />
+                      </Column>
+
+                      <Column width="auto">
+                        <Text className="m-0 ml-1 text-sm font-medium text-neutral-600">
+                          {event.partner.name}
+                        </Text>
+                      </Column>
+
+                      <Column
+                        width="10%"
+                        className="px-4"
+                        align="right"
+                        valign="middle"
+                      >
+                        <Link
+                          className="rounded-lg border border-solid border-neutral-300 bg-white px-2.5 py-1.5 text-sm font-medium text-neutral-700 no-underline"
+                          href={`https://app.dub.co/${workspace.slug}/program/fraud?groupKey=${event.groupKey}`}
+                        >
+                          View
+                        </Link>
+                      </Column>
+                    </Row>
                   </Column>
                 </Row>
               ))}
 
-              {/* Footer with "Plus X more" */}
               {remainingCount > 0 && (
-                <Row>
-                  <Column width="100%" className="px-4 py-3 text-center">
-                    <Text className="m-0 text-sm text-neutral-500">
+                <Row className="h-11 rounded-b-xl border-t border-solid border-neutral-200 bg-neutral-50">
+                  <Column
+                    className="px-4"
+                    align="center"
+                    valign="middle"
+                    colSpan={2}
+                  >
+                    <Text className="m-0 text-sm font-medium text-neutral-600">
                       Plus {remainingCount} more
                     </Text>
                   </Column>
@@ -180,10 +189,10 @@ export default function UnresolvedFraudEventsSummary({
               )}
             </Section>
 
-            <Section className="mb-10 mt-6">
+            <Section className="mt-6 text-center">
               <Link
-                className="rounded-lg bg-neutral-900 px-6 py-3 text-[13px] font-medium text-white no-underline"
                 href={`https://app.dub.co/${workspace.slug}/program/fraud`}
+                className="box-border block w-full rounded-md bg-black px-4 py-3 text-center text-sm font-medium leading-none text-white no-underline"
               >
                 Review events
               </Link>

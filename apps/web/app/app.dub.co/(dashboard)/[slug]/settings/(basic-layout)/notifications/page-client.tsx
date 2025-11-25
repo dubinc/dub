@@ -5,7 +5,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { notificationTypes } from "@/lib/zod/schemas/workspaces";
 import { Switch, useOptimisticUpdate } from "@dub/ui";
 import { Globe, Hyperlink, Msgs, UserPlus } from "@dub/ui/icons";
-import { DollarSign, Trophy } from "lucide-react";
+import { DollarSign, ShieldAlert, Trophy } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { z } from "zod";
 
@@ -56,6 +56,13 @@ export default function NotificationsSettingsPageClient() {
       title: "New message from partner",
       description:
         "Alert when a new message is received from a partner in your partner program.",
+    },
+    {
+      type: "fraudEventsSummary",
+      icon: ShieldAlert,
+      title: "Daily Fraud events summary",
+      description:
+        "Daily summary email of unresolved fraud events detected in your partner program.",
     },
   ];
 

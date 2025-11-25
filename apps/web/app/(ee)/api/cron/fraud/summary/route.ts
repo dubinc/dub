@@ -2,26 +2,18 @@ import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { FRAUD_RULES_BY_TYPE } from "@/lib/api/fraud/constants";
 import { getGroupedFraudEvents } from "@/lib/api/fraud/get-grouped-fraud-events";
 import { getWorkspaceUsers } from "@/lib/api/get-workspace-users";
+import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
-import { fraudEventGroupProps, FraudRuleInfo, ProgramProps } from "@/lib/types";
+import { queueBatchEmail } from "@/lib/email/queue-batch-email";
+import type UnresolvedFraudEventsSummary from "@dub/email/templates/unresolved-fraud-events-summary";
 import { prisma } from "@dub/prisma";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { format, startOfDay } from "date-fns";
 import { z } from "zod";
 import { logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";
-
-type FraudEventPayload = Pick<
-  fraudEventGroupProps,
-  "count" | "groupKey" | "partner"
-> & {
-  typeInfo: Pick<FraudRuleInfo, "name">;
-};
-
-interface EmailPayload {
-  program: Pick<ProgramProps, "id" | "name" | "slug">;
-  fraudEvents: FraudEventPayload[];
-}
 
 const PROGRAMS_BATCH_SIZE = 5;
 
@@ -51,6 +43,10 @@ async function handler(req: Request) {
         fraudEvents: {
           some: {
             status: "pending",
+            // Only include programs with fraud events created today so daily summaries
+            createdAt: {
+              gte: startOfDay(new Date()),
+            },
           },
         },
       },
@@ -58,6 +54,11 @@ async function handler(req: Request) {
         id: true,
         name: true,
         slug: true,
+        workspace: {
+          select: {
+            slug: true,
+          },
+        },
       },
       take: PROGRAMS_BATCH_SIZE,
       ...(startingAfter && {
@@ -77,8 +78,7 @@ async function handler(req: Request) {
       );
     }
 
-    // Collect email payloads for this batch of programs
-    const emailPayloads: EmailPayload[] = [];
+    const batchDate = format(new Date(), "yyyy-MM-dd");
 
     for (const program of programs) {
       try {
@@ -95,17 +95,14 @@ async function handler(req: Request) {
           continue;
         }
 
-        emailPayloads.push({
-          program,
-          fraudEvents: fraudEvents.map(
-            ({ type, count, groupKey, partner }) => ({
-              count,
-              groupKey,
-              partner,
-              typeInfo: FRAUD_RULES_BY_TYPE[type],
-            }),
-          ),
-        });
+        const transformedFraudEvents = fraudEvents.map(
+          ({ type, count, groupKey, partner }) => ({
+            name: FRAUD_RULES_BY_TYPE[type].name,
+            count,
+            groupKey,
+            partner,
+          }),
+        );
 
         // Get workspace users to send the email to
         const { users } = await getWorkspaceUsers({
@@ -113,12 +110,50 @@ async function handler(req: Request) {
           programId: program.id,
           notificationPreference: "fraudEventsSummary",
         });
+
+        if (users.length === 0) {
+          continue;
+        }
+
+        await queueBatchEmail<typeof UnresolvedFraudEventsSummary>(
+          users.map((user) => ({
+            to: user.email,
+            subject: `Fraud events pending review for ${program.name}`,
+            variant: "notifications",
+            templateName: "UnresolvedFraudEventsSummary",
+            templateProps: {
+              email: user.email,
+              workspace: program.workspace,
+              program,
+              fraudEvents: transformedFraudEvents,
+            },
+          })),
+          {
+            idempotencyKey: `fraud-events-summary/${program.id}/${batchDate}`,
+          },
+        );
       } catch (error) {
         console.error(
           `Error collecting email payloads for program ${program.id}: ${error.message}`,
         );
         continue;
       }
+    }
+
+    if (programs.length === PROGRAMS_BATCH_SIZE) {
+      startingAfter = programs[programs.length - 1].id;
+
+      await qstash.publishJSON({
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/fraud/summary`,
+        method: "POST",
+        body: {
+          startingAfter,
+        },
+      });
+
+      return logAndRespond(
+        `Scheduled next batch for fraud events summary (startingAfter: ${startingAfter})`,
+      );
     }
 
     return logAndRespond("Finished sending fraud events summary.");
