@@ -1,7 +1,6 @@
 import { PAID_TRAFFIC_PLATFORMS } from "@/lib/api/fraud/constants";
 import { FraudEventStatus, FraudRuleType } from "@dub/prisma/client";
 import { z } from "zod";
-import { CommissionSchema } from "./commissions";
 import { CustomerSchema } from "./customers";
 import { getPaginationQuerySchema } from "./misc";
 import { PartnerSchema } from "./partners";
@@ -30,9 +29,7 @@ export const fraudEventSchema = z.object({
     name: true,
     email: true,
   }).nullable(),
-  commission: CommissionSchema.pick({
-    earnings: true,
-  }).nullable(),
+  commissionsOnHold: z.number().default(0),
   user: UserSchema.pick({
     id: true,
     name: true,

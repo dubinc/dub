@@ -136,7 +136,9 @@ export function FraudEventGroupsTable() {
               partner={{
                 id: partner.id,
                 name: partner.name || "Unknown",
+                image: partner.image,
               }}
+              showPermalink={false}
               showFraudIndicator={false}
             />
           );
@@ -178,7 +180,7 @@ export function FraudEventGroupsTable() {
             "The commissions accrued since the event and cannot be paid out until resolved.",
         },
         accessorFn: (d) => {
-          const earnings = d.commission?.earnings;
+          const earnings = d.commissionsOnHold;
           return earnings === null || earnings === undefined
             ? "-"
             : currencyFormatter(earnings);

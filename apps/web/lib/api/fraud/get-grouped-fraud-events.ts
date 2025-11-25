@@ -21,6 +21,7 @@ interface QueryResult {
   lastOccurrenceAt: Date;
   eventCount: bigint | number;
   totalCommissions: bigint | number | null;
+  commissionsOnHold: bigint | number | null;
   partnerId: string | null;
   partnerName: string | null;
   partnerEmail: string | null;
@@ -80,6 +81,7 @@ export async function getGroupedFraudEvents({
       dfe.lastOccurrenceAt,
       dfe.eventCount,
       dfe.totalCommissions,
+      poh.commissionsOnHold,
       p.name AS partnerName,
       p.email AS partnerEmail,
       p.image AS partnerImage,
@@ -107,6 +109,15 @@ export async function getGroupedFraudEvents({
       ON c.id = fe.customerId
     LEFT JOIN User u
       ON u.id = fe.userId
+    LEFT JOIN (
+      SELECT 
+        partnerId,
+        SUM(earnings) AS commissionsOnHold
+      FROM Commission
+      WHERE programId = ${programId}
+        AND status IN ('pending', 'processed')
+      GROUP BY partnerId
+    ) poh ON poh.partnerId = fe.partnerId
     ${orderByClause}
     LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}
   `;
@@ -135,9 +146,7 @@ export async function getGroupedFraudEvents({
           email: event.customerEmail,
         }
       : null,
-    commission: {
-      earnings: Number(event.totalCommissions || 0),
-    },
+    commissionsOnHold: Number(event.commissionsOnHold || 0),
     user: event.userId
       ? {
           id: event.userId,

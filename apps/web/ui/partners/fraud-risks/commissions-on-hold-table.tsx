@@ -40,6 +40,7 @@ export function CommissionsOnHoldTable({
     workspaceId: workspaceId!,
     status: "pending",
     partnerId: fraudEventGroup.partner.id,
+    page: page.toString(),
   };
 
   const {
