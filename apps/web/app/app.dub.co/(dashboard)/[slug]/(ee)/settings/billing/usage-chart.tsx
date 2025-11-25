@@ -194,6 +194,17 @@ export function UsageChart() {
     [usage, activeResource],
   );
 
+  const groupColors = useMemo(
+    () =>
+      Object.fromEntries(
+        usage?.[0]?.groups?.map((g, idx) => [
+          g.id,
+          BAR_COLORS[idx % BAR_COLORS.length],
+        ]) ?? [],
+      ),
+    [usage],
+  );
+
   const allZeroes = useMemo(
     () => chartData?.every(({ values }) => values.usage === 0),
     [chartData],
@@ -243,7 +254,7 @@ export function UsageChart() {
                 ...(usage?.[0]?.groups?.map((group, idx) => ({
                   id: group.id,
                   valueAccessor: (d) => d.values[group.id],
-                  colorClassName: BAR_COLORS[idx % BAR_COLORS.length],
+                  colorClassName: groupColors[group.id],
                   isActive: true,
                 })) ?? []),
               ]}
@@ -293,6 +304,8 @@ export function UsageChart() {
           </div>
         )}
       </div>
+
+      <div className="flex flex-col gap-2"></div>
     </div>
   );
 }
