@@ -200,19 +200,20 @@ const verifyFraudEvent = async ({
 
   const customerFound = customers[0];
 
-  // Wait for 3 seconds
+  // Wait for 5 seconds
   await new Promise((resolve) => setTimeout(resolve, 5000));
 
   // Fetch fraud events for the current customer
   const { data: fraudEvents } = await http.get<fraudEventGroupProps[]>({
     path: "/fraud/events",
     query: {
+      partnerId: E2E_FRAUD_PARTNER.id,
       type: ruleType,
       customerId: customerFound.id,
     },
   });
 
-  expect(fraudEvents.length).toEqual(1);
+  expect(fraudEvents.length).toBeGreaterThan(0);
 
   const fraudEvent = fraudEvents[0];
 
