@@ -29,7 +29,6 @@ export const fraudEventSchema = z.object({
     name: true,
     email: true,
   }).nullable(),
-  commissionsOnHold: z.number().default(0),
   user: UserSchema.pick({
     id: true,
     name: true,

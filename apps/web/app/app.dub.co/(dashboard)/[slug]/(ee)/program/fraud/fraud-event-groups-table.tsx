@@ -23,7 +23,7 @@ import {
   useTable,
 } from "@dub/ui";
 import { Dots, UserDelete } from "@dub/ui/icons";
-import { cn, currencyFormatter, formatDateTimeSmart } from "@dub/utils";
+import { cn, formatDateTimeSmart } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { useEffect, useMemo, useState } from "react";
@@ -170,21 +170,6 @@ export function FraudEventGroupsTable() {
             <span>{formatDateTimeSmart(row.original.lastOccurrenceAt)}</span>
           </TimestampTooltip>
         ),
-      },
-      {
-        id: "amount",
-        header: "Hold Amount",
-        size: 100,
-        meta: {
-          headerTooltip:
-            "The commissions accrued since the event and cannot be paid out until resolved.",
-        },
-        accessorFn: (d) => {
-          const earnings = d.commissionsOnHold;
-          return earnings === null || earnings === undefined
-            ? "-"
-            : currencyFormatter(earnings);
-        },
       },
       {
         id: "menu",

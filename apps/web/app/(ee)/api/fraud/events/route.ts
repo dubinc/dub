@@ -10,10 +10,12 @@ export const GET = withWorkspace(
     const programId = getDefaultProgramIdOrThrow(workspace);
     const parsedParams = groupedFraudEventsQuerySchema.parse(searchParams);
 
+    console.time("getGroupedFraudEvents");
     const fraudEvents = await getGroupedFraudEvents({
       ...parsedParams,
       programId,
     });
+    console.timeEnd("getGroupedFraudEvents");
 
     return NextResponse.json(fraudEvents);
   },
