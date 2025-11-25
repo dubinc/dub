@@ -176,7 +176,7 @@ export function PartnerApplicationRiskSummaryUpsell({
               )}
             >
               <ShieldKeyhole
-                className={cn("border-1.5 size-4", severityConfig.icon)}
+                className={cn("size-4 border", severityConfig.icon)}
               />
             </div>
 
