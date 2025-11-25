@@ -169,6 +169,7 @@ export const rawFraudEventSchemas = {
       id: true,
       name: true,
       email: true,
+      avatar: true,
     }),
     metadata: z
       .object({
@@ -183,6 +184,7 @@ export const rawFraudEventSchemas = {
       id: true,
       name: true,
       email: true,
+      avatar: true,
     }),
     metadata: z
       .object({
@@ -197,6 +199,7 @@ export const rawFraudEventSchemas = {
       id: true,
       name: true,
       email: true,
+      avatar: true,
     }),
   }),
 
@@ -206,6 +209,7 @@ export const rawFraudEventSchemas = {
       id: true,
       name: true,
       email: true,
+      avatar: true,
     }),
   }),
 
