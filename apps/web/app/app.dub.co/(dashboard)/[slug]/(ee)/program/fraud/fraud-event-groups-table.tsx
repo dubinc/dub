@@ -7,6 +7,7 @@ import { fraudEventGroupProps } from "@/lib/types";
 import { useBanPartnerModal } from "@/ui/modals/ban-partner-modal";
 import { FraudReviewSheet } from "@/ui/partners/fraud-risks/fraud-review-sheet";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
+import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { FilterButtonTableRow } from "@/ui/shared/filter-button-table-row";
 import {
   AnimatedSizeContainer,
@@ -22,12 +23,11 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { Dots, UserDelete } from "@dub/ui/icons";
+import { Dots, ShieldAlert, UserDelete } from "@dub/ui/icons";
 import { cn, formatDateTimeSmart } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { useEffect, useMemo, useState } from "react";
-import { FraudEventsEmptyState } from "./fraud-events-empty-state";
 import { useFraudEventsFilters } from "./use-fraud-events-filters";
 
 export function FraudEventGroupsTable() {
@@ -303,7 +303,19 @@ export function FraudEventGroupsTable() {
       {fraudEvents?.length !== 0 ? (
         <Table {...tableProps} table={table} />
       ) : (
-        <FraudEventsEmptyState />
+        <AnimatedEmptyState
+          title="No pending fraud to review"
+          description="There aren't any unresolved fraud events waiting for action right now."
+          cardContent={() => (
+            <>
+              <ShieldAlert className="size-4 text-neutral-700" />
+              <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
+            </>
+          )}
+          learnMoreHref="https://dub.co/help/article/fraud-detection"
+          learnMoreTarget="_blank"
+          learnMoreText="Learn more"
+        />
       )}
     </div>
   );
