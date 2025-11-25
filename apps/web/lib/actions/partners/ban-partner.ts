@@ -69,7 +69,6 @@ export const banPartnerAction = authActionClient
           status: ProgramEnrollmentStatus.banned,
           bannedAt: new Date(),
           bannedReason: parsedInput.reason,
-          groupId: null,
           clickRewardId: null,
           leadRewardId: null,
           saleRewardId: null,
