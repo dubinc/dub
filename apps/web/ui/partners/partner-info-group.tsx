@@ -11,16 +11,16 @@ import { GroupColorCircle } from "./groups/group-color-circle";
 export function PartnerInfoGroup({
   partner,
   changeButtonText = "Change group",
+  hideChangeButton = false,
   className,
-
   selectedGroupId,
   setSelectedGroupId,
 }: {
   partner: Pick<EnrolledPartnerProps, "id" | "groupId" | "name" | "image"> &
     Partial<Pick<EnrolledPartnerProps, "email">>;
   changeButtonText?: string;
+  hideChangeButton?: boolean;
   className?: string;
-
   // Only used for a controlled group selector that doesn't persist the selection itself
   selectedGroupId?: string | null;
   setSelectedGroupId?: (groupId: string) => void;
@@ -71,7 +71,7 @@ export function PartnerInfoGroup({
           <div className="h-5 w-16 animate-pulse rounded-md bg-neutral-200" />
         )}
       </div>
-      {group ? (
+      {hideChangeButton ? null : group ? (
         <Button
           variant="secondary"
           text={changeButtonText}

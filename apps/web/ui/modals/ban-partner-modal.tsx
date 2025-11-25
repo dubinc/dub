@@ -28,10 +28,12 @@ function BanPartnerModal({
   showBanPartnerModal,
   setShowBanPartnerModal,
   partner,
+  onConfirm,
 }: {
   showBanPartnerModal: boolean;
   setShowBanPartnerModal: Dispatch<SetStateAction<boolean>>;
   partner: Pick<PartnerProps, "id" | "name" | "email" | "image">;
+  onConfirm?: () => void;
 }) {
   const { id: workspaceId } = useWorkspace();
 
@@ -54,6 +56,7 @@ function BanPartnerModal({
       toast.success("Partner banned successfully!");
       setShowBanPartnerModal(false);
       mutatePrefix("/api/partners");
+      onConfirm?.();
     },
     onError({ error }) {
       toast.error(error.serverError);
@@ -184,8 +187,10 @@ function BanPartnerModal({
 
 export function useBanPartnerModal({
   partner,
+  onConfirm,
 }: {
   partner: Pick<PartnerProps, "id" | "name" | "email" | "image">;
+  onConfirm?: () => void;
 }) {
   const [showBanPartnerModal, setShowBanPartnerModal] = useState(false);
 
@@ -195,9 +200,10 @@ export function useBanPartnerModal({
         showBanPartnerModal={showBanPartnerModal}
         setShowBanPartnerModal={setShowBanPartnerModal}
         partner={partner}
+        onConfirm={onConfirm}
       />
     );
-  }, [showBanPartnerModal, setShowBanPartnerModal, partner]);
+  }, [showBanPartnerModal, setShowBanPartnerModal, partner, onConfirm]);
 
   return useMemo(
     () => ({

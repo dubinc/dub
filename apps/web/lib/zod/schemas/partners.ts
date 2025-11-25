@@ -3,7 +3,6 @@ import {
   MonthlyTraffic,
   PartnerBannedReason,
   PartnerProfileType,
-  PartnerStatus,
   PreferredEarningStructure,
   ProgramEnrollmentStatus,
   SalesChannel,
@@ -301,9 +300,6 @@ export const PartnerSchema = z
       .string()
       .nullable()
       .describe("The partner's country (required for tax purposes)."),
-    status: z
-      .nativeEnum(PartnerStatus)
-      .describe("The partner's verification status on Dub."),
     stripeConnectId: z
       .string()
       .nullable()
@@ -742,6 +738,13 @@ export const bulkApprovePartnersSchema = z.object({
 export const rejectPartnerSchema = z.object({
   workspaceId: z.string(),
   partnerId: z.string(),
+  reportFraud: z
+    .boolean()
+    .optional()
+    .default(false)
+    .describe(
+      "Whether to report this partner for suspected fraud to help keep the network safe.",
+    ),
 });
 
 export const bulkRejectPartnersSchema = z.object({

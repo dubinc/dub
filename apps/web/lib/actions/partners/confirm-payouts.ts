@@ -51,6 +51,11 @@ export const confirmPayoutsAction = authActionClient
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
+    const program = await getProgramOrThrow({
+      workspaceId: workspace.id,
+      programId,
+    });
+
     if (workspace.role !== "owner") {
       throw new Error("Only workspace owners can confirm payouts.");
     }
@@ -83,11 +88,6 @@ export const confirmPayoutsAction = authActionClient
       );
     }
 
-    const program = await getProgramOrThrow({
-      workspaceId: workspace.id,
-      programId,
-    });
-
     // TODO: Remove this once we can support cutoff periods for invoices with > 1,000 payouts
     if (cutoffPeriod) {
       const totalEligiblePayouts = await prisma.payout.aggregate({
@@ -101,6 +101,7 @@ export const confirmPayoutsAction = authActionClient
         },
         _count: true,
       });
+
       if (totalEligiblePayouts._count > CUTOFF_PERIOD_MAX_PAYOUTS) {
         throw new Error(
           `You cannot specify a cutoff period when the number of eligible payouts is greater than ${CUTOFF_PERIOD_MAX_PAYOUTS}.`,

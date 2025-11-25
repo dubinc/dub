@@ -1,0 +1,64 @@
+enum FraudEventStatus {
+  pending
+  resolved
+}
+
+enum FraudRuleType {
+  customerEmailMatch
+  customerEmailSuspiciousDomain
+  referralSourceBanned
+  paidTrafficDetected
+  partnerCrossProgramBan // Cross-program ban from other programs
+  partnerDuplicatePayoutMethod // Duplicate payout method with other partners
+  partnerFraudReport // Fraud report from other programs
+}
+
+model FraudRule {
+  id         String        @id @default(cuid())
+  programId  String
+  type       FraudRuleType
+  config     Json?         @db.Json
+  disabledAt DateTime?
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  program Program? @relation(fields: [programId], references: [id], onDelete: Cascade)
+
+  @@unique([programId, type])
+}
+
+model FraudEvent {
+  id               String           @id @default(cuid())
+  programId        String
+  partnerId        String
+  linkId           String?
+  customerId       String?
+  eventId          String?
+  commissionId     String?
+  type             FraudRuleType
+  groupKey         String
+  metadata         Json?            @db.Json
+  userId           String?
+  resolutionReason String?          @db.Text
+  resolvedAt       DateTime?
+  status           FraudEventStatus @default(pending)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  program           Program           @relation(fields: [programId], references: [id], onDelete: Cascade)
+  partner           Partner           @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  programEnrollment ProgramEnrollment @relation(fields: [programId, partnerId], references: [programId, partnerId], onDelete: Cascade)
+  customer          Customer?         @relation(fields: [customerId], references: [id])
+  link              Link?             @relation(fields: [linkId], references: [id])
+  commission        Commission?       @relation(fields: [commissionId], references: [id])
+  user              User?             @relation(fields: [userId], references: [id])
+
+  @@index(programId)
+  @@index(partnerId)
+  @@index(customerId)
+  @@index(linkId)
+  @@index(eventId)
+  @@index(userId)
+  @@index(commissionId)
+  @@index(groupKey)
+}

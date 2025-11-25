@@ -14,7 +14,7 @@ import { useAnalyticsFilterOption } from "./utils";
 
 type TabId = "links" | "urls";
 type LinksSubtab = "links" | "folders" | "tags";
-type UrlsSubtab = "full_urls" | "base_urls";
+type UrlsSubtab = "base_urls" | "full_urls";
 type Subtab = LinksSubtab | UrlsSubtab;
 
 const TAB_CONFIG: Record<
@@ -43,8 +43,8 @@ const TAB_CONFIG: Record<
     },
   },
   urls: {
-    subtabs: ["full_urls", "base_urls"],
-    defaultSubtab: "full_urls",
+    subtabs: ["base_urls", "full_urls"],
+    defaultSubtab: "base_urls",
     getSubtabLabel: (subtab) =>
       subtab === "full_urls" ? "Full URLs" : "Base URLs",
     getGroupBy: (subtab) => ({

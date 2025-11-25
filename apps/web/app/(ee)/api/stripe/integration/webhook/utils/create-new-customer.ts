@@ -1,4 +1,5 @@
 import { createId } from "@/lib/api/create-id";
+import { detectAndRecordFraudEvent } from "@/lib/api/fraud/detect-record-fraud-event";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
@@ -9,8 +10,8 @@ import { WebhookPartner } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformLeadEventData } from "@/lib/webhook/transform";
 import { prisma } from "@dub/prisma";
-import { WorkflowTrigger } from "@dub/prisma/client";
-import { nanoid } from "@dub/utils";
+import { Commission, WorkflowTrigger } from "@dub/prisma/client";
+import { nanoid, pick } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
 
@@ -102,6 +103,8 @@ export async function createNewCustomer(event: Stripe.Event) {
   ]);
 
   let webhookPartner: WebhookPartner | undefined;
+  let commission: Commission | undefined;
+
   if (link.programId && link.partnerId) {
     const createdCommission = await createPartnerCommission({
       event: "lead",
@@ -117,7 +120,9 @@ export async function createNewCustomer(event: Stripe.Event) {
         },
       },
     });
+
     webhookPartner = createdCommission?.webhookPartner;
+    commission = createdCommission?.commission ?? undefined;
   }
 
   waitUntil(
@@ -152,6 +157,18 @@ export async function createNewCustomer(event: Stripe.Event) {
               programId: link.programId,
               eventType: "lead",
             }),
+
+            webhookPartner &&
+              commission &&
+              detectAndRecordFraudEvent({
+                program: { id: link.programId },
+                partner: pick(webhookPartner, ["id", "email", "name"]),
+                customer: pick(customer, ["id", "email", "name"]),
+                commission: { id: commission?.id },
+                link: pick(link, ["id"]),
+                click: pick(leadData, ["url", "referer"]),
+                event: { id: leadData.event_id },
+              }),
           ]
         : []),
     ]),

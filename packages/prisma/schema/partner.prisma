@@ -1,9 +1,3 @@
-enum PartnerStatus {
-  default
-  verified
-  featured
-}
-
 enum PartnerRole {
   owner
   member
@@ -31,13 +25,12 @@ model Partner {
   image       String?
   description String?            @db.Text
   country     String?
-  status      PartnerStatus      @default(default)
 
   // payout fields
   paypalEmail                  String?   @unique
   stripeConnectId              String?   @unique
   payoutsEnabledAt             DateTime?
-  payoutMethodHash             String?   @unique
+  payoutMethodHash             String?
   connectPayoutsLastRemindedAt DateTime?
 
   // timestamp fields
@@ -86,10 +79,12 @@ model Partner {
   salesChannels              PartnerSalesChannel[]
   discoveredByPrograms       DiscoveredPartner[]
   programPartnerTags         ProgramPartnerTag[]
+  fraudEvents                FraudEvent[]
 
   @@index(country)
   @@index(discoverableAt)
   @@index(trustedAt)
+  @@index(payoutMethodHash)
   @@fulltext([email, name]) // For full-text search
 }
 

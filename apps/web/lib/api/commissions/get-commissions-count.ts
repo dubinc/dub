@@ -40,7 +40,13 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
       },
       programId,
       partnerId,
-      status,
+      status: status ?? {
+        notIn: [
+          CommissionStatus.duplicate,
+          CommissionStatus.fraud,
+          CommissionStatus.canceled,
+        ],
+      },
       type,
       payoutId,
       customerId,
@@ -49,13 +55,8 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
         lte: endDate.toISOString(),
       },
       ...(groupId && {
-        partner: {
-          programs: {
-            some: {
-              programId,
-              groupId,
-            },
-          },
+        programEnrollment: {
+          groupId,
         },
       }),
     },

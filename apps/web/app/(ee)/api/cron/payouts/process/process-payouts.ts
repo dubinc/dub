@@ -1,7 +1,6 @@
 import { getPayoutEligibilityFilter } from "@/lib/api/payouts/payout-eligibility-filter";
 import { FAST_ACH_FEE_CENTS, FOREX_MARKUP_RATE } from "@/lib/constants/payouts";
 import { qstash } from "@/lib/cron";
-import { queueBatchEmail } from "@/lib/email/queue-batch-email";
 import {
   CUTOFF_PERIOD,
   CUTOFF_PERIOD_TYPES,
@@ -9,10 +8,16 @@ import {
 import { stripe } from "@/lib/stripe";
 import { createFxQuote } from "@/lib/stripe/create-fx-quote";
 import { calculatePayoutFeeForMethod } from "@/lib/stripe/payment-methods";
+import { sendEmail } from "@dub/email";
 import ProgramPayoutThankYou from "@dub/email/templates/program-payout-thank-you";
 import { prisma } from "@dub/prisma";
 import { Program, ProgramPayoutMode, Project } from "@dub/prisma/client";
-import { APP_DOMAIN_WITH_NGROK, currencyFormatter, log } from "@dub/utils";
+import {
+  APP_DOMAIN_WITH_NGROK,
+  currencyFormatter,
+  log,
+  nFormatter,
+} from "@dub/utils";
 
 const nonUsdPaymentMethodTypes = {
   sepa_debit: "eur",
@@ -250,6 +255,9 @@ export async function processPayouts({
     },
     include: {
       users: {
+        where: {
+          userId,
+        },
         select: {
           user: {
             select: {
@@ -279,13 +287,21 @@ export async function processPayouts({
     console.error("Error sending message to Qstash", qstashResponse);
   }
 
-  await queueBatchEmail<typeof ProgramPayoutThankYou>(
-    users.map(({ user }) => ({
-      to: user.email!,
-      subject: `Thank you for your ${currencyFormatter(totalPayoutAmount)} payout to ${res.count} partners`,
-      templateName: "ProgramPayoutThankYou",
-      templateProps: {
-        email: user.email!,
+  // should never happen, but just in case
+  if (users.length === 0) {
+    console.error(
+      `No users found for workspace ${workspace.id}. Skipping email send...`,
+    );
+    return;
+  }
+
+  const userWhoInitiatedPayout = users[0].user;
+  if (userWhoInitiatedPayout.email) {
+    const emailRes = await sendEmail({
+      to: userWhoInitiatedPayout.email,
+      subject: `Thank you for your ${currencyFormatter(totalPayoutAmount)} payout to ${nFormatter(res.count, { full: true })} partners`,
+      react: ProgramPayoutThankYou({
+        email: userWhoInitiatedPayout.email,
         workspace,
         program: {
           name: program.name,
@@ -294,7 +310,10 @@ export async function processPayouts({
           amount: totalPayoutAmount,
           partnersCount: res.count,
         },
-      },
-    })),
-  );
+      }),
+    });
+    console.log(
+      `Sent email to user ${userWhoInitiatedPayout.email}: ${JSON.stringify(emailRes, null, 2)}`,
+    );
+  }
 }

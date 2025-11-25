@@ -8,7 +8,7 @@ You can add the Dub client-side script to your website same way you would add Go
 ></script>
 ```
 
-If you're using [Dub Partners](/partners/quickstart) for affiliate management, you will also need to set up the `data-domains` property to enable [client-side click-tracking](/sdks/client-side/features/client-side-click-tracking).
+If you're using [Dub Partners](https://dub.co/docs/partners/quickstart) for affiliate management, you will also need to set up the `data-domains` property to enable [client-side click-tracking](https://dub.co/docs/sdks/client-side/features/client-side-click-tracking).
 
 ```html
 <script

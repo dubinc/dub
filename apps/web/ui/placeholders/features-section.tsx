@@ -34,7 +34,7 @@ export function FeaturesSection({
         <div className="contents divide-neutral-200 max-sm:divide-y sm:divide-x">
           <FeatureCard
             title="Stand out with custom domains"
-            description="Create branded short links with your own domain and [improve click-through rates by 30%](/blog/custom-domains). Paid plans also include a [complimentary custom domain](/help/article/free-dot-link-domain)."
+            description="Create branded short links with your own domain and [improve click-through rates by 30%](https://dub.co/blog/custom-domains). Paid plans also include a [complimentary custom domain](https://dub.co/help/article/free-dot-link-domain)."
             linkText="Learn more"
             href={createHref("/help/article/how-to-add-custom-domain", domain, {
               utm_campaign: domain,
@@ -46,7 +46,7 @@ export function FeaturesSection({
           </FeatureCard>
           <FeatureCard
             title="Branded QR codes"
-            description="QR codes and short links are like peas in a pod. Dub offers free QR codes for every short link you create. Feeling artsy? [Customize them with your own logo](/help/article/custom-qr-codes)."
+            description="QR codes and short links are like peas in a pod. Dub offers free QR codes for every short link you create. Feeling artsy? [Customize them with your own logo](https://dub.co/help/article/custom-qr-codes)."
             linkText="Try the demo"
             href={createHref("/tools/qr-code", domain, {
               utm_campaign: domain,
@@ -89,7 +89,7 @@ export function FeaturesSection({
         <div className="contents divide-neutral-200 max-sm:divide-y sm:divide-x [&>*]:border-t [&>*]:border-neutral-200">
           <FeatureCard
             title="Advanced link features"
-            description="Supercharge your links with [custom link previews](/help/article/custom-link-previews), [device targeting](/help/article/device-targeting), [geo targeting](/help/article/geo-targeting), [link cloaking](/help/article/link-cloaking), [password protection](/help/article/password-protected-links), and more."
+            description="Supercharge your links with [custom link previews](https://dub.co/help/article/custom-link-previews), [device targeting](https://dub.co/help/article/device-targeting), [geo targeting](https://dub.co/help/article/geo-targeting), [link cloaking](https://dub.co/help/article/link-cloaking), [password protection](https://dub.co/help/article/password-protected-links), and more."
             linkText="Learn more"
             href={createHref("/help/article/how-to-create-link", domain, {
               utm_campaign: domain,
@@ -101,7 +101,7 @@ export function FeaturesSection({
           </FeatureCard>
           <FeatureCard
             title="Collaborate with your team"
-            description="Invite your teammates to collaborate on your links. For [enterprises](/enterprise), Dub offers [SAML SSO](/help/category/saml-sso) with Okta, Google, and Azure AD for higher security."
+            description="Invite your teammates to collaborate on your links. For [enterprises](https://dub.co/enterprise), Dub offers [SAML SSO](https://dub.co/help/category/saml-sso) with Okta, Google, and Azure AD for higher security."
             linkText="Learn more"
             href={createHref("/help/article/how-to-invite-teammates", domain, {
               utm_campaign: domain,

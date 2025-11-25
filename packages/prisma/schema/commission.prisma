@@ -44,6 +44,7 @@ model Commission {
   customer          Customer?         @relation(fields: [customerId], references: [id])
   reward            Reward?           @relation(fields: [rewardId], references: [id])
   bountySubmission  BountySubmission?
+  fraudEvents       FraudEvent[]
 
   @@unique([invoiceId, programId])
   @@index([earnings, programId, partnerId, status])

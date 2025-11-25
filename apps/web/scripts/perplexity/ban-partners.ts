@@ -115,7 +115,6 @@ async function main() {
               status: "banned",
               bannedAt: new Date(),
               bannedReason,
-              groupId: null,
               clickRewardId: null,
               leadRewardId: null,
               saleRewardId: null,

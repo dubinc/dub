@@ -1,5 +1,6 @@
 import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
+import { detectAndRecordFraudEvent } from "@/lib/api/fraud/detect-record-fraud-event";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { generateRandomName } from "@/lib/names";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
@@ -16,7 +17,7 @@ import {
 } from "@/lib/zod/schemas/leads";
 import { prisma } from "@dub/prisma";
 import { Link, WorkflowTrigger } from "@dub/prisma/client";
-import { nanoid, R2_URL } from "@dub/utils";
+import { nanoid, pick, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
 import { syncPartnerLinksStats } from "../partners/sync-partner-links-stats";
@@ -299,6 +300,7 @@ export const trackLead = async ({
                 },
               },
             });
+
             webhookPartner = createdCommission?.webhookPartner;
 
             await Promise.allSettled([
@@ -312,10 +314,21 @@ export const trackLead = async ({
                   },
                 },
               }),
+
               syncPartnerLinksStats({
                 partnerId: link.partnerId,
                 programId: link.programId,
                 eventType: "lead",
+              }),
+
+              detectAndRecordFraudEvent({
+                program: { id: link.programId },
+                partner: pick(webhookPartner, ["id", "email", "name"]),
+                customer: pick(customer, ["id", "email", "name"]),
+                commission: { id: createdCommission.commission?.id },
+                link: pick(link, ["id"]),
+                click: pick(clickData, ["url", "referer"]),
+                event: { id: leadEventId },
               }),
             ]);
           }

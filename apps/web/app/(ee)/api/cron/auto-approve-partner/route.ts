@@ -1,4 +1,5 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { getPartnerHighRiskSignals } from "@/lib/api/fraud/get-partner-high-risk-signals";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { approvePartnerEnrollment } from "@/lib/partners/approve-partner-enrollment";
 import { prisma } from "@dub/prisma";
@@ -45,21 +46,30 @@ export async function POST(req: Request) {
           where: {
             partnerId,
           },
-          include: {
+          select: {
             partnerGroup: true,
+            groupId: true,
+            status: true,
+            partner: {
+              select: {
+                id: true,
+                payoutMethodHash: true,
+              },
+            },
           },
         },
       },
     });
 
-    const partner = program.partners[0];
-    if (!partner) {
+    const programEnrollment = program.partners[0];
+
+    if (!programEnrollment) {
       return logAndRespond(
         `Partner ${partnerId} not found in program ${programId}. Skipping auto-approval.`,
       );
     }
 
-    const group = partner.partnerGroup;
+    const group = programEnrollment.partnerGroup;
 
     if (!group) {
       return logAndRespond(
@@ -73,9 +83,20 @@ export async function POST(req: Request) {
       );
     }
 
-    if (partner.status !== "pending") {
+    if (programEnrollment.status !== "pending") {
       return logAndRespond(
-        `${partnerId} is in ${partner.status} status. Skipping auto-approval.`,
+        `${partnerId} is in ${programEnrollment.status} status. Skipping auto-approval.`,
+      );
+    }
+
+    const { hasHighRisk } = await getPartnerHighRiskSignals({
+      program,
+      partner: programEnrollment.partner,
+    });
+
+    if (hasHighRisk) {
+      return logAndRespond(
+        `Partner ${partnerId} has high risk. Skipping auto-approval.`,
       );
     }
 
@@ -83,7 +104,7 @@ export async function POST(req: Request) {
       programId,
       partnerId,
       userId: program.workspace.users[0].userId,
-      groupId: partner.groupId,
+      groupId: programEnrollment.groupId,
     });
 
     return logAndRespond(

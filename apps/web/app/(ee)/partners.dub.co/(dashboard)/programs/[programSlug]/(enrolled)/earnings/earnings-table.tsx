@@ -247,6 +247,7 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
               tooltip={badge.tooltip({
                 program: programEnrollment?.program,
                 group: programEnrollment?.group ?? undefined,
+                commission: row.original,
                 variant: "partner",
               })}
             >

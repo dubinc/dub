@@ -398,7 +398,7 @@ export async function PartnerPayoutInvoice({
                   ))}
                 </View>
                 <Link
-                  href={`${APP_DOMAIN}/${workspace.slug}/program/payouts?invoiceId=${invoice.id}&sortBy=amount`}
+                  href={`${APP_DOMAIN}/${workspace.slug}/program/payouts?invoiceId=${invoice.id}`}
                   style={tw("text-blue-600")}
                 >
                   View +
