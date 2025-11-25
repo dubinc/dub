@@ -162,6 +162,7 @@ export const notificationTypes = z.enum([
   "newPartnerApplication",
   "newBountySubmitted",
   "newMessageFromPartner",
+  "fraudEventsSummary"
 ]);
 
 export const WorkspaceSchemaExtended = WorkspaceSchema.extend({
