@@ -1,6 +1,7 @@
 "use server";
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { qstash } from "@/lib/cron";
@@ -53,7 +54,10 @@ export const banPartner = async ({
   });
 
   if (programEnrollment.status === "banned") {
-    throw new Error("This partner is already banned from your program.");
+    throw new DubApiError({
+      code: "bad_request",
+      message: "This partner is already banned from your program.",
+    });
   }
 
   const programEnrollmentUpdated = await prisma.programEnrollment.update({
