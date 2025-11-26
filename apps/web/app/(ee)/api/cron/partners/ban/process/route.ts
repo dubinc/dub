@@ -220,7 +220,7 @@ export async function POST(req: Request) {
     );
   } catch (error) {
     await log({
-      message: `Error banning partner /api/cron/partners/ban: ${error.message}`,
+      message: `Error banning partner /api/cron/partners/ban/process: ${error instanceof Error ? error.message : String(error)}`,
       type: "cron",
     });
 
