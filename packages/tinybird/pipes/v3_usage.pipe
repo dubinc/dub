@@ -1,7 +1,3 @@
-DESCRIPTION >
-	Timeseries data
-
-
 NODE day_intervals
 SQL >
 
@@ -89,14 +85,12 @@ SQL >
 
 
 NODE usage_links_data
-DESCRIPTION >
-    undefined
-
 SQL >
 
     %
     SELECT
         toDateTime64(toStartOfDay(timestamp, {{ String(timezone, 'UTC') }}), 3) AS interval,
+        {% if defined(groupBy) %} {% if groupBy == 'folder_id' %} folder_id {% else %} domain {% end %}, {% end %}
         uniq(*) as links
     FROM dub_links_metadata_latest FINAL
     WHERE
@@ -114,7 +108,7 @@ SQL >
         {% if defined(folderId) %} AND folder_id = {{ folderId }}
         {% end %}
         {% if defined(domain) %} AND domain IN {{ Array(domain, 'String') }} {% end %}
-    GROUP BY interval
+    GROUP BY interval{% if defined(groupBy) %}, {% if groupBy == 'folder_id' %} folder_id {% else %} domain {% end %} {% end %}
     ORDER BY interval
 
 
@@ -123,7 +117,10 @@ NODE usage_links
 SQL >
 
     %
-        SELECT formatDateTime(interval, '%FT%T.000%z') as date, links as value
+        SELECT
+          formatDateTime(interval, '%FT%T.000%z') as date,
+          {% if defined(groupBy) %} {% if groupBy == 'folder_id' %} folder_id {% else %} domain {% end %}, {% end %}
+          links as value
         FROM day_intervals
         LEFT JOIN usage_links_data USING interval
 

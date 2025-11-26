@@ -7,8 +7,16 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 export const GET = withWorkspace(async ({ searchParams, workspace }) => {
-  const { resource, folderId, domain, interval, start, end, timezone } =
-    usageQuerySchema.parse(searchParams);
+  const {
+    resource,
+    folderId,
+    domain,
+    groupBy,
+    interval,
+    start,
+    end,
+    timezone,
+  } = usageQuerySchema.parse(searchParams);
 
   const pipe = tb.buildPipe({
     pipe: "v3_usage",
@@ -36,7 +44,22 @@ export const GET = withWorkspace(async ({ searchParams, workspace }) => {
     timezone,
     ...(folderId && { folderId }),
     ...(domain && { domain }),
+    ...(groupBy && { groupBy }),
   });
 
-  return NextResponse.json(response.data);
+  console.log("!!!", response.data);
+
+  let data = response.data;
+
+  if (groupBy) {
+    const dates = [...new Set(response.data.map((d) => d.date))];
+    const groupIds = [...new Set(response.data.map((d) => d[groupBy]))];
+
+    data = dates.map((date) => ({
+      date,
+      value: 0,
+    }));
+  }
+
+  return NextResponse.json(data);
 });

@@ -64,6 +64,7 @@ export default function PlanUsage() {
   const { partnersCount } = usePartnersCount<number>({
     programId: defaultProgramId ?? undefined,
     status: "approved",
+    ignoreParams: true,
   });
 
   const { groupsCount } = useGroupsCount();

@@ -75,7 +75,9 @@ export default function useUsage({
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         ...(folderId && { folderId }),
         ...(domain && { domain }),
-        ...(groupBy && { groupBy }),
+        ...(groupBy && {
+          groupBy: groupBy === "folderId" ? "folder_id" : "domain",
+        }),
         ...(disabledWhenNoFilters &&
           hasActiveFilters && { cacheKey: "disabledWhenNoFilters" }),
       }).toString()}`,
