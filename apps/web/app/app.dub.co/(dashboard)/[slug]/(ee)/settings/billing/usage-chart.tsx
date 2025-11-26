@@ -37,13 +37,12 @@ const resourceEmptyStates: Record<
   links: {
     icon: Hyperlink,
     title: "Links Created",
-    description:
-      "No short links have been created in the current billing cycle.",
+    description: "No short links have been created in the selected date range.",
   },
   events: {
     icon: CursorRays,
     title: "Events Tracked",
-    description: "No events have been tracked in the current billing cycle.",
+    description: "No events have been tracked in the selected date range.",
   },
 };
 
