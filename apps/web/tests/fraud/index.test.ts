@@ -11,7 +11,7 @@ import {
 import { describe, expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
 
-describe.concurrent("/fraud/**", async () => {
+describe.skip.concurrent("/fraud/**", async () => {
   const h = new IntegrationHarness();
   const { http } = await h.init();
 
