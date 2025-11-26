@@ -42,8 +42,9 @@ export const bulkBanPartnersAction = authActionClient
       },
     });
 
+    // Don't throw an error if no partners are found, just return
     if (programEnrollments.length === 0) {
-      throw new Error("You must provide at least one valid partner ID.");
+      return;
     }
 
     await prisma.programEnrollment.updateMany({
