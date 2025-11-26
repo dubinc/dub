@@ -11,6 +11,9 @@ export async function detectAndRecordFraudEvent(context: FraudEventContext) {
   const result = fraudEventContext.safeParse(context);
 
   if (!result.success) {
+    console.error(
+      `[detectAndRecordFraudEvent] Invalid context ${result.error}`,
+    );
     return;
   }
 
@@ -84,10 +87,6 @@ export async function detectAndRecordFraudEvent(context: FraudEventContext) {
     if (newEvents.length === 0) {
       return;
     }
-
-    console.log(
-      `[detectAndRecordFraudEvents] fraud events detected ${JSON.stringify(newEvents, null, 2)}`,
-    );
 
     await prisma.fraudEvent.createMany({
       data: newEvents.map((event) => ({

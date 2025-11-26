@@ -152,6 +152,7 @@ export async function createNewCustomer(event: Stripe.Event) {
                 },
               },
             }),
+
             syncPartnerLinksStats({
               partnerId: link.partnerId,
               programId: link.programId,
@@ -159,7 +160,6 @@ export async function createNewCustomer(event: Stripe.Event) {
             }),
 
             webhookPartner &&
-              commission &&
               detectAndRecordFraudEvent({
                 program: { id: link.programId },
                 partner: pick(webhookPartner, ["id", "email", "name"]),
