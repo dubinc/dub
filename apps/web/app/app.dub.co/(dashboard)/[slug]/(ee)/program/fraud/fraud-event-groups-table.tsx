@@ -5,6 +5,7 @@ import { useFraudEventGroups } from "@/lib/swr/use-fraud-event-groups";
 import { useFraudEventsCount } from "@/lib/swr/use-fraud-events-count";
 import { fraudEventGroupProps } from "@/lib/types";
 import { useBanPartnerModal } from "@/ui/modals/ban-partner-modal";
+import { useBulkBanPartnersModal } from "@/ui/modals/bulk-ban-partners-modal";
 import { FraudReviewSheet } from "@/ui/partners/fraud-risks/fraud-review-sheet";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
@@ -27,7 +28,7 @@ import { Dots, ShieldAlert, UserDelete } from "@dub/ui/icons";
 import { cn, formatDateTimeSmart } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useFraudEventsFilters } from "./use-fraud-events-filters";
 
 export function FraudEventGroupsTable() {
@@ -80,6 +81,22 @@ export function FraudEventGroupsTable() {
       status: "pending",
     },
   });
+
+  const [pendingBanPartners, setPendingBanPartners] = useState<
+    Array<NonNullable<fraudEventGroupProps["partner"]>>
+  >([]);
+
+  const tableRef = useRef<
+    ReturnType<typeof useTable<fraudEventGroupProps>>["table"] | null
+  >(null);
+
+  const { BulkBanPartnersModal, setShowBulkBanPartnersModal } =
+    useBulkBanPartnersModal({
+      partners: pendingBanPartners,
+      onConfirm: () => {
+        tableRef.current?.resetRowSelection();
+      },
+    });
 
   const { table, ...tableProps } = useTable<fraudEventGroupProps>({
     data: fraudEvents || [],
@@ -222,6 +239,34 @@ export function FraudEventGroupsTable() {
     rowCount: fraudEventsCount ?? 0,
     loading,
     error: error || countError ? "Failed to load fraud events" : undefined,
+    selectionControls: (tableInstance) => {
+      // Store table reference for resetting selection
+      tableRef.current = tableInstance;
+
+      const selectedRows = tableInstance.getSelectedRowModel().rows;
+      const partners = selectedRows.map((row) => row.original.partner);
+
+      // Remove duplicates by partner ID
+      const uniquePartners = Array.from(
+        new Map(partners.map((p) => [p.id, p])).values(),
+      );
+
+      if (uniquePartners.length === 0) return null;
+
+      return (
+        <Button
+          variant="danger"
+          text="Ban"
+          icon={<UserDelete className="size-3.5 shrink-0" />}
+          className="h-7 w-fit rounded-lg bg-red-600 px-2.5 text-white"
+          loading={false}
+          onClick={() => {
+            setPendingBanPartners(uniquePartners);
+            setShowBulkBanPartnersModal(true);
+          }}
+        />
+      );
+    },
   });
 
   const [previousGroupKey, nextGroupKey] = useMemo(() => {
@@ -242,6 +287,7 @@ export function FraudEventGroupsTable() {
 
   return (
     <div className="flex flex-col gap-6">
+      <BulkBanPartnersModal />
       {detailsSheetState.groupKey && currentFraudEventGroup && (
         <FraudReviewSheet
           isOpen={detailsSheetState.open}

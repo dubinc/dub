@@ -12,6 +12,7 @@ import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
 import { withWorkspace } from "@/lib/auth";
+import { throwIfNoPartnerIdOrTenantId } from "@/lib/partners/throw-if-no-partnerid-tenantid";
 import { NewLinkProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { linkEventSchema } from "@/lib/zod/schemas/links";
@@ -29,6 +30,8 @@ export const PUT = withWorkspace(
     const { partnerId, tenantId, url, key, linkProps } =
       upsertPartnerLinkSchema.parse(await parseRequestBody(req));
 
+    throwIfNoPartnerIdOrTenantId({ partnerId, tenantId });
+
     const program = await getProgramOrThrow({
       workspaceId: workspace.id,
       programId,
@@ -39,13 +42,6 @@ export const PUT = withWorkspace(
         code: "bad_request",
         message:
           "You need to set a domain and url for this program before creating a partner.",
-      });
-    }
-
-    if (!partnerId && !tenantId) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: "You must provide a partnerId or tenantId.",
       });
     }
 
