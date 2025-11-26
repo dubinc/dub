@@ -33,3 +33,26 @@ export const randomEmail = ({
 export const randomSaleAmount = () => {
   return randomValue([400, 900, 1900]);
 };
+
+export async function retry<T>(
+  fn: () => Promise<T>,
+  {
+    retries = 10,
+    interval = 300,
+  }: { retries?: number; interval?: number } = {},
+): Promise<T> {
+  let lastError;
+
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await fn();
+    } catch (err) {
+      lastError = err;
+      if (i < retries - 1) {
+        await new Promise((res) => setTimeout(res, interval));
+      }
+    }
+  }
+
+  throw lastError;
+}

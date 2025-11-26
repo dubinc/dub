@@ -80,7 +80,7 @@ export async function getGroupedFraudEvents({
       p.email AS partnerEmail,
       p.image AS partnerImage,
       u.name AS userName,
-      u.image AS userImage
+      u.image AS userImage,
       p.image AS partnerImage
     FROM (
       SELECT 
