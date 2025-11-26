@@ -250,10 +250,12 @@ export const trackLead = async ({
             .catch(async (error) => {
               console.error("Error persisting customer avatar to R2", error);
               // if the avatar fails to upload to R2, set the avatar to null in the database
-              await prisma.customer.update({
-                where: { id: finalCustomerId },
-                data: { avatar: null },
-              });
+              if (customer) {
+                await prisma.customer.update({
+                  where: { id: customer.id },
+                  data: { avatar: null },
+                });
+              }
             });
         }
 
