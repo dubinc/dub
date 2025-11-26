@@ -10,6 +10,8 @@ import { createFraudEventGroupKey } from "./utils";
 export async function detectAndRecordFraudEvent(context: FraudEventContext) {
   const result = fraudEventContext.safeParse(context);
 
+  console.debug("detectAndRecordFraudEvent", JSON.stringify(context, null, 2), result);
+
   if (!result.success) {
     return;
   }
