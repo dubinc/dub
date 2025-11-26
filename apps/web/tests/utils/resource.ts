@@ -8,6 +8,16 @@ export const E2E_LINK = {
   url: "https://github.com/dubinc",
 };
 
+/**
+ * Used exclusively in E2E tests to override the computed identity hash.
+ * When this header is present, `getIdentityHash()` will use its value
+ * as the hash input instead of relying on the real IP/User-Agent.
+ *
+ * This prevents deduplication during automated tests where multiple
+ * requests originate from the same IP and UA.
+ */
+export const DUB_TEST_IDENTITY_HEADER = "x-dub-test-identity";
+
 export const E2E_TRACK_CLICK_HEADERS = {
   referer: "https://dub.co",
   "User-Agent":
@@ -206,3 +216,15 @@ export const E2E_CUSTOMERS = [
     country: "CA",
   },
 ] as const;
+
+export const E2E_FRAUD_PARTNER = {
+  id: "pn_1K8ND11BZ4XPEX39QX3YMBGY0",
+  email: "kiran+e2e+1@dub.co",
+  link: {
+    domain: "getacme.link",
+    key: "kiran-e2e-1",
+  },
+} as const;
+
+export const E2E_FRAUD_REFERRAL_SOURCE_BANNED_DOMAIN =
+  "test-hostname-for-referral-source-banned-do-not-delete.com";

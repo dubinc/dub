@@ -214,14 +214,25 @@ export const trackSale = async ({
     if (customerAvatar && !isStored(customerAvatar) && finalCustomerAvatar) {
       // persist customer avatar to R2 if it's not already stored
       waitUntil(
-        storage.upload({
-          key: finalCustomerAvatar.replace(`${R2_URL}/`, ""),
-          body: customerAvatar,
-          opts: {
-            width: 128,
-            height: 128,
-          },
-        }),
+        storage
+          .upload({
+            key: finalCustomerAvatar.replace(`${R2_URL}/`, ""),
+            body: customerAvatar,
+            opts: {
+              width: 128,
+              height: 128,
+            },
+          })
+          .catch(async (error) => {
+            console.error("Error persisting customer avatar to R2", error);
+            // if the avatar fails to upload to R2, set the avatar to null in the database
+            if (newCustomer) {
+              await prisma.customer.update({
+                where: { id: newCustomer.id },
+                data: { avatar: null },
+              });
+            }
+          }),
       );
     }
 
