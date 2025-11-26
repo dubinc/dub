@@ -27,7 +27,7 @@ export default function useUsage({
   const activeResource = useMemo(() => {
     const tab = searchParams.get("tab");
     if (tab && ["links", "events"].includes(tab)) {
-      return tab;
+      return tab as "links" | "events";
     }
     return defaultActiveTab;
   }, [searchParams, defaultActiveTab]);

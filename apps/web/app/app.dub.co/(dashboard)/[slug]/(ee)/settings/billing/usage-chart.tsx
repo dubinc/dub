@@ -1,6 +1,7 @@
 import useDomains from "@/lib/swr/use-domains";
 import useFolders from "@/lib/swr/use-folders";
 import useUsage from "@/lib/swr/use-usage";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { FolderIcon } from "@/ui/folders/folder-icon";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import {
@@ -14,6 +15,7 @@ import {
 import { Bars, TimeSeriesChart, XAxis, YAxis } from "@dub/ui/charts";
 import { CursorRays, Folder, Globe2, Hyperlink } from "@dub/ui/icons";
 import { cn, formatDate, GOOGLE_FAVICON_URL, nFormatter } from "@dub/utils";
+import Link from "next/link";
 import { ComponentProps, Fragment, useEffect, useMemo } from "react";
 
 const BAR_COLORS = [
@@ -47,6 +49,7 @@ const resourceEmptyStates: Record<
 };
 
 export function UsageChart() {
+  const { slug: workspaceSlug } = useWorkspace();
   const { queryParams, searchParamsObj } = useRouterStuff();
 
   const {
@@ -57,6 +60,8 @@ export function UsageChart() {
     end,
     interval,
   } = useUsage();
+
+  const groupBy = "folder"; // Add toggle for folder/domain
 
   // TODO: Remove this once the usage endpoint is updated and rename `usageTmp` back to `usage`
   const usage = useMemo(
@@ -194,12 +199,20 @@ export function UsageChart() {
     [usage, activeResource],
   );
 
-  const groupColors = useMemo(
+  const groupsMeta = useMemo(
     () =>
       Object.fromEntries(
         usage?.[0]?.groups?.map((g, idx) => [
           g.id,
-          BAR_COLORS[idx % BAR_COLORS.length],
+          {
+            name: g.name,
+            colorClassName: BAR_COLORS[idx % BAR_COLORS.length],
+            total: usage.reduce(
+              (sum, { groups }) =>
+                sum + (groups.find(({ id }) => id === g.id)?.usage ?? 0),
+              0,
+            ),
+          },
         ]) ?? [],
       ),
     [usage],
@@ -254,7 +267,7 @@ export function UsageChart() {
                 ...(usage?.[0]?.groups?.map((group) => ({
                   id: group.id,
                   valueAccessor: (d) => d.values[group.id],
-                  colorClassName: groupColors[group.id],
+                  colorClassName: groupsMeta[group.id]?.colorClassName,
                   isActive: true,
                 })) ?? []),
               ]}
@@ -286,8 +299,8 @@ export function UsageChart() {
                               <div className="flex items-center gap-2">
                                 <div
                                   className={cn(
-                                    "size-2 rounded-sm bg-current shadow-[inset_0_0_0_1px_#0003]",
-                                    groupColors[group.id],
+                                    "size-2 rounded-full bg-current",
+                                    groupsMeta[group.id]?.colorClassName,
                                   )}
                                 />
                                 <span className="text-neutral-600">
@@ -329,7 +342,69 @@ export function UsageChart() {
         )}
       </div>
 
-      <div className="flex flex-col gap-2"></div>
+      <div className="flex flex-col">
+        {groupsMeta ? (
+          Object.entries(groupsMeta)
+            .sort((a, b) => b[1].total - a[1].total)
+            .map(([id, meta]) => (
+              <Link
+                key={id}
+                href={`/${workspaceSlug}/${activeResource}${groupBy === "folder" ? (id === "unsorted" ? "" : `?folderId=${id}`) : `?domain=${id}`}`}
+                target="_blank"
+                className="flex items-center justify-between gap-4 rounded-lg px-3 py-2 text-xs font-medium hover:bg-black/[0.03] active:bg-black/5"
+              >
+                <div className="flex items-center gap-2">
+                  <div
+                    className={cn(
+                      "size-2 rounded-full bg-current",
+                      meta.colorClassName,
+                    )}
+                  />
+                  <span className="text-content-emphasis">{meta.name}</span>
+                </div>
+                <div className="flex items-center gap-2 tabular-nums">
+                  <span className="text-content-default text-right font-medium">
+                    {nFormatter(meta.total, { full: true })}
+                  </span>
+                  {usage && (
+                    <span className="text-content-muted min-w-12 text-right font-medium">
+                      {Math.round(
+                        (meta.total /
+                          usage.reduce((sum, { value }) => sum + value, 0)) *
+                          100,
+                      )}
+                      %
+                    </span>
+                  )}
+                </div>
+              </Link>
+            ))
+        ) : (
+          <>
+            {loading ? (
+              [...Array(3)].map((_, idx) => (
+                <div
+                  key={idx}
+                  className="flex animate-pulse items-center justify-between gap-4 px-3 py-2 text-xs font-medium"
+                >
+                  <div className="flex items-center gap-2">
+                    <div className="size-2 rounded-full bg-neutral-200" />
+                    <div className="h-4 w-32 min-w-0 rounded-md bg-neutral-200" />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="h-4 w-8 rounded-md bg-neutral-200" />
+                    <div className="h-4 w-6 rounded-md bg-neutral-200" />
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-content-subtle flex size-full items-center justify-center py-5 text-sm">
+                Failed to load usage data
+              </p>
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 }
