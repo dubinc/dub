@@ -78,6 +78,9 @@ export async function getGroupedFraudEvents({
       dfe.eventCount,
       p.name AS partnerName,
       p.email AS partnerEmail,
+      p.image AS partnerImage,
+      u.name AS userName,
+      u.image AS userImage
       p.image AS partnerImage
     FROM (
       SELECT 
