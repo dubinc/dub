@@ -115,7 +115,7 @@ function ConfirmCreateBountyModal({
                     <TooltipContent
                       title="New bounty notifications are only available on Advanced plans and above."
                       cta="Upgrade to Advanced"
-                      href={`/${workspaceSlug}/upgrade?plan=advanced`}
+                      href={`/${workspaceSlug}/upgrade?showPartnersUpgradeModal=true`}
                       target="_blank"
                     />
                   ),

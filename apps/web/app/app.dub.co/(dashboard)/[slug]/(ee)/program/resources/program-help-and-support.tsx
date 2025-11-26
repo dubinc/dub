@@ -46,9 +46,7 @@ export function ProgramHelpAndSupportContent({
   const { id: workspaceId, plan } = useWorkspace();
 
   const { partnersUpgradeModal, setShowPartnersUpgradeModal } =
-    usePartnersUpgradeModal({
-      plan: "Advanced",
-    });
+    usePartnersUpgradeModal();
 
   const {
     control,
