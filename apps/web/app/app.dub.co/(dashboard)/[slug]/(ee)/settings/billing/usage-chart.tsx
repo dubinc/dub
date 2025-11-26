@@ -16,7 +16,16 @@ import { Bars, TimeSeriesChart, XAxis, YAxis } from "@dub/ui/charts";
 import { CursorRays, Folder, Globe2, Hyperlink } from "@dub/ui/icons";
 import { cn, formatDate, GOOGLE_FAVICON_URL, nFormatter } from "@dub/utils";
 import NumberFlow, { NumberFlowGroup } from "@number-flow/react";
-import { ComponentProps, Fragment, useMemo, useState } from "react";
+import {
+  ComponentProps,
+  Fragment,
+  useCallback,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 const BAR_COLORS = [
   "text-blue-500",
@@ -177,15 +186,43 @@ export function UsageChart() {
     [usage],
   );
 
+  // Map dates to indices for O(1) hover lookups
+  const usageIndexByDate = useMemo(() => {
+    if (!usage) return null;
+    const map = new Map<number, number>();
+    usage.forEach((u, index) => {
+      map.set(new Date(u.date).getTime(), index);
+    });
+    return map;
+  }, [usage]);
+
   const [hoveredDate, setHoveredDate] = useState<Date | null>(null);
 
-  const hoveredGroupsMeta = useMemo(() => {
-    if (!hoveredDate || !usage) return null;
+  // Throttle hover updates to animation frames to avoid excessive rerenders
+  const hoverRafRef = useRef<number | null>(null);
+  const handleHoverDateChange = useCallback((date: Date | null) => {
+    if (hoverRafRef.current !== null) return;
 
-    const index = usage.findIndex(
-      (u) => new Date(u.date).getTime() === hoveredDate.getTime(),
-    );
-    if (index === -1) return null;
+    hoverRafRef.current = window.requestAnimationFrame(() => {
+      hoverRafRef.current = null;
+      setHoveredDate(date);
+    });
+  }, []);
+
+  useEffect(
+    () => () => {
+      if (hoverRafRef.current !== null) {
+        window.cancelAnimationFrame(hoverRafRef.current);
+      }
+    },
+    [],
+  );
+
+  const hoveredGroupsMeta = useMemo(() => {
+    if (!hoveredDate || !usage || !usageIndexByDate) return null;
+
+    const index = usageIndexByDate.get(hoveredDate.getTime());
+    if (index == null) return null;
 
     const dayUsage = usage[index];
 
@@ -199,18 +236,20 @@ export function UsageChart() {
         },
       ]),
     );
-  }, [hoveredDate, usage]);
+  }, [hoveredDate, usage, usageIndexByDate]);
 
   const hoveredTotalUsage = useMemo(() => {
-    if (!hoveredDate || !usage) return null;
+    if (!hoveredDate || !usage || !usageIndexByDate) return null;
 
-    const index = usage.findIndex(
-      (u) => new Date(u.date).getTime() === hoveredDate.getTime(),
-    );
-    if (index === -1) return null;
+    const index = usageIndexByDate.get(hoveredDate.getTime());
+    if (index == null) return null;
 
     return usage[index].value;
-  }, [hoveredDate, usage]);
+  }, [hoveredDate, usage, usageIndexByDate]);
+
+  // Defer updates to the breakdown list below so tooltip + chart hover stay snappy
+  const deferredHoveredGroupsMeta = useDeferredValue(hoveredGroupsMeta);
+  const deferredHoveredTotalUsage = useDeferredValue(hoveredTotalUsage);
 
   const allZeroes = useMemo(
     () => chartData?.every(({ values }) => values.usage === 0),
@@ -293,11 +332,11 @@ export function UsageChart() {
                 })) ?? []),
               ]}
               tooltipClassName="p-0 overflow-hidden max-w-64"
-              onHoverDateChange={setHoveredDate}
+              onHoverDateChange={handleHoverDateChange}
               tooltipContent={(d) => {
                 const topGroups = usage?.[0]?.groups
-                  ?.filter((group) => d.values[group.id] > 0)
-                  .sort((a, b) => b.usage - a.usage)
+                  ?.filter((group) => (d.values[group.id] ?? 0) > 0)
+                  .sort((a, b) => (d.values[b.id] ?? 0) - (d.values[a.id] ?? 0))
                   .slice(0, 8);
 
                 return (
@@ -371,7 +410,7 @@ export function UsageChart() {
         <NumberFlowGroup>
           {sortedGroupEntries.length > 0 ? (
             sortedGroupEntries.map(([id, meta]) => {
-              const hoveredMeta = hoveredGroupsMeta?.[id];
+              const hoveredMeta = deferredHoveredGroupsMeta?.[id];
               const displayTotal = hoveredMeta?.total ?? meta.total;
 
               return (
@@ -408,7 +447,8 @@ export function UsageChart() {
                         <NumberFlow
                           value={
                             (displayTotal /
-                              ((hoveredTotalUsage ?? totalUsage) || 1)) *
+                              ((deferredHoveredTotalUsage ?? totalUsage) ||
+                                1)) *
                             100
                           }
                           format={{ maximumFractionDigits: 0 }}
