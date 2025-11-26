@@ -593,6 +593,10 @@ export const onboardPartnerSchema = createPartnerSchema
       country: z.enum(COUNTRY_CODES),
       profileType: z.nativeEnum(PartnerProfileType).default("individual"),
       companyName: z.string().nullish(),
+      visitorId: z
+        .string()
+        .optional()
+        .describe("The Fingerprint visitor ID of the partner."),
     }),
   )
   .refine(

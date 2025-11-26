@@ -64,6 +64,15 @@ export const FRAUD_RULES: FraudRuleInfo[] = [
     configurable: false,
   },
   {
+    type: "partnerDuplicateAccount",
+    name: "Duplicate partner account",
+    description:
+      "Multiple partner accounts originate from the same device, suggesting duplicate account creation or coordinated fraudulent behavior.",
+    scope: "partner",
+    severity: "high",
+    configurable: false,
+  },
+  {
     type: "partnerEmailDomainMismatch",
     name: "Email domain mismatch with website",
     description: "The custom email domain doesn't match the website provided.",

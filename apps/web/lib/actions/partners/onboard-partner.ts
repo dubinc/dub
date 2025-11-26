@@ -17,7 +17,8 @@ export const onboardPartnerAction = authUserActionClient
   .schema(onboardPartnerSchema)
   .action(async ({ ctx, parsedInput }) => {
     const { user } = ctx;
-    const { name, image, country, description, profileType } = parsedInput;
+    const { name, image, country, description, profileType, visitorId } =
+      parsedInput;
 
     const existingPartner = await prisma.partner.findUnique({
       where: {
@@ -37,6 +38,8 @@ export const onboardPartnerAction = authUserActionClient
       .then(({ url }) => url);
 
     // country, profileType, and companyName cannot be changed once set
+    const existingVisitorId = existingPartner?.fingerprintVisitorId;
+
     const payload: Prisma.PartnerCreateInput = {
       name: name || user.email,
       email: user.email,
@@ -44,6 +47,8 @@ export const onboardPartnerAction = authUserActionClient
       ...(existingPartner?.country ? {} : { country }),
       ...(existingPartner?.profileType ? {} : { profileType }),
       ...(description && { description }),
+      ...(visitorId &&
+        !existingVisitorId && { fingerprintVisitorId: visitorId }),
       image: imageUrl,
       users: {
         connectOrCreate: {

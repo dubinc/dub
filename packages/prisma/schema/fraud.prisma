@@ -10,6 +10,7 @@ enum FraudRuleType {
   paidTrafficDetected
   partnerCrossProgramBan // Cross-program ban from other programs
   partnerDuplicatePayoutMethod // Duplicate payout method with other partners
+  partnerDuplicateAccount // Duplicate account with other partners
   partnerFraudReport // Fraud report from other programs
 }
 

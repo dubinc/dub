@@ -16,6 +16,7 @@ import {
   useMediaQuery,
 } from "@dub/ui";
 import { cn } from "@dub/utils/src/functions";
+import { useVisitorData } from "@fingerprintjs/fingerprintjs-pro-react";
 import { AnimatePresence, LayoutGroup, motion } from "motion/react";
 import { useSession } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
@@ -48,6 +49,15 @@ export function OnboardingForm({
   const { isMobile } = useMediaQuery();
   const [accountCreated, setAccountCreated] = useState(false);
   const { data: session, update: refreshSession } = useSession();
+
+  const { data: visitorData } = useVisitorData(
+    {
+      extendedResult: false,
+    },
+    {
+      immediate: true,
+    },
+  );
 
   const {
     register,
@@ -83,6 +93,13 @@ export function OnboardingForm({
     }
   }, [session?.user, name, image, country, partnerData]);
 
+  // Set Fingerprint visitor ID when available
+  useEffect(() => {
+    if (visitorData?.visitorId) {
+      setValue("visitorId", visitorData.visitorId);
+    }
+  }, [visitorData?.visitorId, setValue]);
+
   // refresh the session after the Partner account is created
   useEffect(() => {
     if (accountCreated) {
@@ -107,7 +124,12 @@ export function OnboardingForm({
   return (
     <form
       ref={formRef}
-      onSubmit={handleSubmit(async (data) => await executeAsync(data))}
+      onSubmit={handleSubmit(async (data) => {
+        await executeAsync({
+          ...data,
+          visitorId: data.visitorId || visitorData?.visitorId,
+        });
+      })}
       className="flex w-full flex-col gap-6 text-left"
     >
       <label>
