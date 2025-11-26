@@ -10,12 +10,6 @@ import { createFraudEventGroupKey } from "./utils";
 export async function detectAndRecordFraudEvent(context: FraudEventContext) {
   const result = fraudEventContext.safeParse(context);
 
-  console.debug(
-    "detectAndRecordFraudEvent",
-    JSON.stringify(context, null, 2),
-    result,
-  );
-
   if (!result.success) {
     console.error(
       `[detectAndRecordFraudEvent] Invalid context ${result.error}`,
@@ -62,10 +56,6 @@ export async function detectAndRecordFraudEvent(context: FraudEventContext) {
   }
 
   if (triggeredRules.length === 0) {
-    console.debug(
-      `[detectAndRecordFraudEvents] No fraud events triggered for context`,
-    );
-
     return;
   }
 
@@ -95,16 +85,8 @@ export async function detectAndRecordFraudEvent(context: FraudEventContext) {
     );
 
     if (newEvents.length === 0) {
-      console.debug(
-        `[detectAndRecordFraudEvents] No new fraud events to record`,
-      );
-
       return;
     }
-
-    console.log(
-      `[detectAndRecordFraudEvents] fraud events detected ${JSON.stringify(newEvents, null, 2)}`,
-    );
 
     await prisma.fraudEvent.createMany({
       data: newEvents.map((event) => ({
