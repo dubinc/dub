@@ -7,12 +7,12 @@ import { DUB_TEST_IDENTITY_HEADER } from "tests/utils/resource";
  * Combine IP + UA to create a unique identifier for the user (for deduplication)
  */
 export async function getIdentityHash(req: Request) {
-  console.log("getIdentityHash", process.env.VERCEL_ENV)
+  console.log("getIdentityHash", process.env.VERCEL_ENV);
 
   // If provided, use this identity directly (for E2E)
   if (
-    process.env.NODE_ENV === "test" ||
-    process.env.NODE_ENV === "development"
+    process.env.NODE_ENV === "development" ||
+    process.env.VERCEL_ENV === "preview"
   ) {
     const testOverride = req.headers.get(DUB_TEST_IDENTITY_HEADER);
 
