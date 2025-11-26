@@ -1,6 +1,7 @@
 "use server";
 
 import { createId } from "@/lib/api/create-id";
+import { getVerifiedVisitorId } from "@/lib/api/fraud/fingerprint";
 import { completeProgramApplications } from "@/lib/partners/complete-program-applications";
 import { storage } from "@/lib/storage";
 import { onboardPartnerSchema } from "@/lib/zod/schemas/partners";
@@ -17,7 +18,7 @@ export const onboardPartnerAction = authUserActionClient
   .schema(onboardPartnerSchema)
   .action(async ({ ctx, parsedInput }) => {
     const { user } = ctx;
-    const { name, image, country, description, profileType, visitorId } =
+    const { name, image, country, description, profileType, requestId } =
       parsedInput;
 
     const existingPartner = await prisma.partner.findUnique({
@@ -37,9 +38,12 @@ export const onboardPartnerAction = authUserActionClient
       })
       .then(({ url }) => url);
 
-    // country, profileType, and companyName cannot be changed once set
-    const existingVisitorId = existingPartner?.fingerprintVisitorId;
+    const { visitorId, isValid } = await getVerifiedVisitorId(requestId);
 
+    // TODO:
+    // Handle cases where the requestId is invalid or not found
+
+    // country, profileType, and companyName cannot be changed once set
     const payload: Prisma.PartnerCreateInput = {
       name: name || user.email,
       email: user.email,
@@ -47,8 +51,7 @@ export const onboardPartnerAction = authUserActionClient
       ...(existingPartner?.country ? {} : { country }),
       ...(existingPartner?.profileType ? {} : { profileType }),
       ...(description && { description }),
-      ...(visitorId &&
-        !existingVisitorId && { fingerprintVisitorId: visitorId }),
+      ...(visitorId && { fingerprintVisitorId: visitorId }),
       image: imageUrl,
       users: {
         connectOrCreate: {

@@ -93,12 +93,11 @@ export function OnboardingForm({
     }
   }, [session?.user, name, image, country, partnerData]);
 
-  // Set Fingerprint visitor ID when available
   useEffect(() => {
-    if (visitorData?.visitorId) {
-      setValue("visitorId", visitorData.visitorId);
+    if (visitorData?.requestId) {
+      setValue("requestId", visitorData.requestId);
     }
-  }, [visitorData?.visitorId, setValue]);
+  }, [visitorData?.requestId, setValue]);
 
   // refresh the session after the Partner account is created
   useEffect(() => {
@@ -125,10 +124,7 @@ export function OnboardingForm({
     <form
       ref={formRef}
       onSubmit={handleSubmit(async (data) => {
-        await executeAsync({
-          ...data,
-          visitorId: data.visitorId || visitorData?.visitorId,
-        });
+        await executeAsync(data);
       })}
       className="flex w-full flex-col gap-6 text-left"
     >
