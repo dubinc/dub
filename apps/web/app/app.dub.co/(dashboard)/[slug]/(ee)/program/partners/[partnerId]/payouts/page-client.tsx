@@ -103,7 +103,7 @@ function PartnerPayouts({ partner }: { partner: EnrolledPartnerProps }) {
     ],
     onRowClick: (row) => {
       window.open(
-        `/${slug}/program/payouts?payoutId=${row.original.id}`,
+        `/${slug}/program/payouts?partnerId=${partner.id}&payoutId=${row.original.id}&sortBy=initiatedAt`,
         "_blank",
       );
     },

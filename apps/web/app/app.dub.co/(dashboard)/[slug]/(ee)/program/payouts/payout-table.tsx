@@ -164,6 +164,7 @@ const PayoutTableInner = memo(
           },
         },
         {
+          id: "initiatedAt",
           header: "Paid",
           cell: ({ row }) => (
             <PayoutPaidCell
@@ -186,7 +187,7 @@ const PayoutTableInner = memo(
       ],
       pagination,
       onPaginationChange: setPagination,
-      sortableColumns: ["amount", "initiatedAt", "paidAt"],
+      sortableColumns: ["amount", "initiatedAt"],
       sortBy,
       sortOrder,
       onSortChange: ({ sortBy, sortOrder }) =>
