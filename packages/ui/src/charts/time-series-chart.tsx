@@ -230,7 +230,11 @@ function TimeSeriesChartInner<T extends Datum>({
               key={tooltipData.date.toString()}
               left={(tooltipLeft ?? 0) + margin.left}
               top={(tooltipTop ?? 0) + margin.top}
-              offsetLeft={"bandwidth" in xScale ? xScale.bandwidth() + 8 : 8}
+              offsetLeft={
+                "bandwidth" in xScale
+                  ? xScale.bandwidth() * (1 + xScale.padding())
+                  : 8
+              }
               offsetTop={12}
               className="absolute"
               unstyled={true}
