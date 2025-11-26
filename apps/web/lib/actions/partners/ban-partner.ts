@@ -2,6 +2,7 @@
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { queueDiscountCodeDeletion } from "@/lib/api/discounts/queue-discount-code-deletion";
+import { DubApiError } from "@/lib/api/errors";
 import { createFraudEvents } from "@/lib/api/fraud/create-fraud-events";
 import { resolveFraudEvents } from "@/lib/api/fraud/resolve-fraud-events";
 import { linkCache } from "@/lib/api/links/cache";
@@ -64,7 +65,10 @@ export const banPartner = async ({
   });
 
   if (programEnrollment.status === "banned") {
-    throw new Error("This partner is already banned.");
+    throw new DubApiError({
+      code: "bad_request",
+      message: "This partner is already banned.",
+    });
   }
 
   const where = {
@@ -224,5 +228,5 @@ export const banPartner = async ({
     })(),
   );
 
-  return programEnrollment;
+  return { partnerId };
 };
