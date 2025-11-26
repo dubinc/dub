@@ -74,7 +74,7 @@ export function Bars({
             }, [] as any[]);
 
             return (
-              <g key={d.date.toString() + "123"}>
+              <g key={d.date.toString()}>
                 {bars.map((b, idx) => {
                   return (
                     <BarRounded
