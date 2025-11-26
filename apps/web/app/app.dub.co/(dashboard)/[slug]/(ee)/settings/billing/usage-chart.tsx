@@ -1,7 +1,6 @@
 import useDomains from "@/lib/swr/use-domains";
 import useFolders from "@/lib/swr/use-folders";
 import useUsage from "@/lib/swr/use-usage";
-import useWorkspace from "@/lib/swr/use-workspace";
 import { FolderIcon } from "@/ui/folders/folder-icon";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import {
@@ -16,7 +15,7 @@ import {
 import { Bars, TimeSeriesChart, XAxis, YAxis } from "@dub/ui/charts";
 import { CursorRays, Folder, Globe2, Hyperlink } from "@dub/ui/icons";
 import { cn, formatDate, GOOGLE_FAVICON_URL, nFormatter } from "@dub/utils";
-import { ComponentProps, Fragment, useEffect, useMemo } from "react";
+import { ComponentProps, Fragment, useMemo } from "react";
 
 const BAR_COLORS = [
   "text-blue-500",
@@ -49,25 +48,22 @@ const resourceEmptyStates: Record<
 };
 
 export function UsageChart() {
-  const { slug: workspaceSlug } = useWorkspace();
   const { queryParams, searchParamsObj } = useRouterStuff();
 
-  const { usage, loading, activeResource, start, end, interval, groupBy } =
-    useUsage();
+  const {
+    usage,
+    loading,
+    isValidating,
+    activeResource,
+    start,
+    end,
+    interval,
+    groupBy,
+  } = useUsage();
 
   // Get filter values from URL params
   const folderId = searchParamsObj.folderId;
   const domain = searchParamsObj.domain;
-
-  // Clear folder and domain filters when switching away from "links" tab
-  useEffect(() => {
-    if (activeResource !== "links" && (folderId || domain)) {
-      queryParams({
-        del: ["folderId", "domain"],
-        scroll: false,
-      });
-    }
-  }, [activeResource, folderId, domain, queryParams]);
 
   // Fetch folders and domains for filter options
   const { folders } = useFolders();
@@ -95,11 +91,8 @@ export function UsageChart() {
     });
   };
 
-  // Define filters (only show folder and domain filters when resource is "links")
-  const filters = useMemo(() => {
-    if (activeResource !== "links") return [];
-
-    return [
+  const filters = useMemo(
+    () => [
       {
         key: "folderId",
         icon: Folder,
@@ -136,18 +129,15 @@ export function UsageChart() {
             ),
           })) ?? [],
       },
-    ];
-  }, [activeResource, folders, domains]);
+    ],
+    [activeResource, folders, domains],
+  );
 
   // Active filters
   const activeFilters = useMemo(() => {
     const filters: { key: string; value: string }[] = [];
-    if (folderId) {
-      filters.push({ key: "folderId", value: folderId });
-    }
-    if (domain) {
-      filters.push({ key: "domain", value: domain });
-    }
+    if (folderId) filters.push({ key: "folderId", value: folderId });
+    if (domain) filters.push({ key: "domain", value: domain });
     return filters;
   }, [folderId, domain]);
 
@@ -231,7 +221,9 @@ export function UsageChart() {
       </div>
 
       {/* Chart */}
-      <div className="h-64">
+      <div
+        className={cn("h-64 transition-opacity", isValidating && "opacity-50")}
+      >
         {chartData && chartData.length > 0 ? (
           !allZeroes ? (
             <TimeSeriesChart
@@ -284,7 +276,12 @@ export function UsageChart() {
                                     groupsMeta[group.id]?.colorClassName,
                                   )}
                                 />
-                                <span className="min-w-0 truncate text-neutral-600">
+                                <span
+                                  className={cn(
+                                    "min-w-0 truncate text-neutral-600",
+                                    !group.name && "text-content-subtle",
+                                  )}
+                                >
                                   {group.name || "Unsorted"}
                                 </span>
                               </div>
@@ -302,14 +299,7 @@ export function UsageChart() {
             >
               <XAxis highlightLast={false} />
               <YAxis showGridLines tickFormat={nFormatter} />
-              <Bars
-              // seriesStyles={[
-              //   {
-              //     id: "usage",
-              //     barFill: "#2563eb",
-              //   },
-              // ]}
-              />
+              <Bars />
             </TimeSeriesChart>
           ) : (
             <div className="flex size-full items-center justify-center">
@@ -323,7 +313,12 @@ export function UsageChart() {
         )}
       </div>
 
-      <div className="flex flex-col">
+      <div
+        className={cn(
+          "flex flex-col transition-opacity",
+          isValidating && "opacity-50",
+        )}
+      >
         {groupsMeta ? (
           Object.entries(groupsMeta)
             .filter(([_, meta]) => meta.total)
@@ -343,7 +338,12 @@ export function UsageChart() {
                       meta.colorClassName,
                     )}
                   />
-                  <span className="text-content-emphasis">
+                  <span
+                    className={cn(
+                      "text-content-emphasis",
+                      !meta.name && "text-content-subtle",
+                    )}
+                  >
                     {meta.name || "Unsorted"}
                   </span>
                 </div>

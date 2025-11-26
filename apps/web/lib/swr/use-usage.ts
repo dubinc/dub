@@ -89,6 +89,7 @@ export default function useUsage({
     fetcher,
     {
       dedupingInterval: 60000,
+      revalidateOnFocus: false,
       keepPreviousData: true,
     },
   );
