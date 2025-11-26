@@ -1,5 +1,6 @@
 import { banPartner } from "@/lib/actions/partners/ban-partner";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { throwIfNoPartnerIdOrTenantId } from "@/lib/partners/throw-if-no-partnerid-tenantid";
 import { banPartnerApiSchema } from "@/lib/zod/schemas/partners";
@@ -10,7 +11,7 @@ import { NextResponse } from "next/server";
 export const POST = withWorkspace(
   async ({ workspace, req, session }) => {
     let { partnerId, tenantId, reason } = banPartnerApiSchema.parse(
-      await req.json(),
+      await parseRequestBody(req),
     );
 
     throwIfNoPartnerIdOrTenantId({ partnerId, tenantId });
