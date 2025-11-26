@@ -10,7 +10,7 @@ import {
   Datum,
   type ChartContext as ChartContextType,
 } from "./types";
-import { useTooltip } from "./useTooltip";
+import { useTooltip } from "./use-tooltip";
 
 type TimeSeriesChartProps<T extends Datum> = PropsWithChildren<ChartProps<T>>;
 
@@ -41,6 +41,7 @@ function TimeSeriesChartInner<T extends Datum>({
   tooltipContent = (d) => series[0].valueAccessor(d).toString(),
   tooltipClassName = "",
   defaultTooltipIndex = null,
+  onHoverDateChange,
   margin: marginProp = {
     top: 12,
     right: 5,
@@ -139,6 +140,7 @@ function TimeSeriesChartInner<T extends Datum>({
     tooltipContent,
     tooltipClassName,
     defaultTooltipIndex,
+    onHoverDateChange,
     leftAxisMargin,
     setLeftAxisMargin,
   };
@@ -146,6 +148,7 @@ function TimeSeriesChartInner<T extends Datum>({
   const tooltipContext = useTooltip({
     seriesId: series[0].id,
     chartContext,
+    onHoverDateChange,
     defaultIndex: defaultTooltipIndex ?? undefined,
   });
 

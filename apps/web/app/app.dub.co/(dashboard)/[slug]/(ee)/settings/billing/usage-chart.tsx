@@ -15,7 +15,8 @@ import {
 import { Bars, TimeSeriesChart, XAxis, YAxis } from "@dub/ui/charts";
 import { CursorRays, Folder, Globe2, Hyperlink } from "@dub/ui/icons";
 import { cn, formatDate, GOOGLE_FAVICON_URL, nFormatter } from "@dub/utils";
-import { ComponentProps, Fragment, useMemo } from "react";
+import NumberFlow, { NumberFlowGroup } from "@number-flow/react";
+import { ComponentProps, Fragment, useMemo, useState } from "react";
 
 const BAR_COLORS = [
   "text-blue-500",
@@ -171,9 +172,57 @@ export function UsageChart() {
     [usage],
   );
 
+  const totalUsage = useMemo(
+    () => usage?.reduce((sum, { value }) => sum + value, 0) ?? 0,
+    [usage],
+  );
+
+  const [hoveredDate, setHoveredDate] = useState<Date | null>(null);
+
+  const hoveredGroupsMeta = useMemo(() => {
+    if (!hoveredDate || !usage) return null;
+
+    const index = usage.findIndex(
+      (u) => new Date(u.date).getTime() === hoveredDate.getTime(),
+    );
+    if (index === -1) return null;
+
+    const dayUsage = usage[index];
+
+    return Object.fromEntries(
+      dayUsage.groups.map((g, idx) => [
+        g.id,
+        {
+          name: g.name,
+          colorClassName: BAR_COLORS[idx % BAR_COLORS.length],
+          total: g.usage,
+        },
+      ]),
+    );
+  }, [hoveredDate, usage]);
+
+  const hoveredTotalUsage = useMemo(() => {
+    if (!hoveredDate || !usage) return null;
+
+    const index = usage.findIndex(
+      (u) => new Date(u.date).getTime() === hoveredDate.getTime(),
+    );
+    if (index === -1) return null;
+
+    return usage[index].value;
+  }, [hoveredDate, usage]);
+
   const allZeroes = useMemo(
     () => chartData?.every(({ values }) => values.usage === 0),
     [chartData],
+  );
+
+  const sortedGroupEntries = useMemo(
+    () =>
+      groupsMeta
+        ? Object.entries(groupsMeta).sort((a, b) => b[1].total - a[1].total)
+        : [],
+    [groupsMeta],
   );
 
   return (
@@ -244,6 +293,7 @@ export function UsageChart() {
                 })) ?? []),
               ]}
               tooltipClassName="p-0 overflow-hidden max-w-64"
+              onHoverDateChange={setHoveredDate}
               tooltipContent={(d) => {
                 const topGroups = usage?.[0]?.groups
                   ?.filter((group) => d.values[group.id] > 0)
@@ -318,76 +368,84 @@ export function UsageChart() {
           isValidating && "opacity-50",
         )}
       >
-        {groupsMeta ? (
-          Object.entries(groupsMeta)
-            .filter(([_, meta]) => meta.total)
-            .sort((a, b) => b[1].total - a[1].total)
-            .map(([id, meta]) => (
-              <button
-                key={id}
-                type="button"
-                onClick={() => queryParams({ set: { [groupBy]: id } })}
-                disabled={!id}
-                className="flex items-center justify-between gap-4 rounded-lg px-3 py-2 text-xs font-medium enabled:hover:bg-black/[0.03] enabled:active:bg-black/5"
-              >
-                <div className="flex items-center gap-2">
-                  <div
-                    className={cn(
-                      "size-2 rounded-full bg-current",
-                      meta.colorClassName,
-                    )}
-                  />
-                  <span
-                    className={cn(
-                      "text-content-emphasis",
-                      !meta.name && "text-content-subtle",
-                    )}
-                  >
-                    {meta.name || "Unsorted"}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 tabular-nums">
-                  <span className="text-content-default text-right font-medium">
-                    {nFormatter(meta.total, { full: true })}
-                  </span>
-                  {usage && (
-                    <span className="text-content-muted min-w-12 text-right font-medium">
-                      {Math.round(
-                        (meta.total /
-                          usage.reduce((sum, { value }) => sum + value, 0)) *
-                          100,
-                      )}
-                      %
-                    </span>
-                  )}
-                </div>
-              </button>
-            ))
-        ) : (
-          <>
-            {loading ? (
-              [...Array(3)].map((_, idx) => (
-                <div
-                  key={idx}
-                  className="flex animate-pulse items-center justify-between gap-4 px-3 py-2 text-xs font-medium"
+        <NumberFlowGroup>
+          {sortedGroupEntries.length > 0 ? (
+            sortedGroupEntries.map(([id, meta]) => {
+              const hoveredMeta = hoveredGroupsMeta?.[id];
+              const displayTotal = hoveredMeta?.total ?? meta.total;
+
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => queryParams({ set: { [groupBy]: id } })}
+                  disabled={!id}
+                  className="flex items-center justify-between gap-4 rounded-lg px-3 py-2 text-xs font-medium enabled:hover:bg-black/[0.03] enabled:active:bg-black/5"
                 >
                   <div className="flex items-center gap-2">
-                    <div className="size-2 rounded-full bg-neutral-200" />
-                    <div className="h-4 w-32 min-w-0 rounded-md bg-neutral-200" />
+                    <div
+                      className={cn(
+                        "size-2 rounded-full bg-current",
+                        meta.colorClassName,
+                      )}
+                    />
+                    <span
+                      className={cn(
+                        "text-content-emphasis",
+                        !meta.name && "text-content-subtle",
+                      )}
+                    >
+                      {meta.name || "Unsorted"}
+                    </span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className="h-4 w-8 rounded-md bg-neutral-200" />
-                    <div className="h-4 w-6 rounded-md bg-neutral-200" />
+                  <div className="flex items-center gap-2 tabular-nums">
+                    <NumberFlow
+                      value={displayTotal}
+                      className="text-content-default text-right font-medium"
+                    />
+                    {usage && (
+                      <span className="text-content-muted min-w-12 text-right font-medium">
+                        <NumberFlow
+                          value={
+                            (displayTotal /
+                              ((hoveredTotalUsage ?? totalUsage) || 1)) *
+                            100
+                          }
+                          format={{ maximumFractionDigits: 0 }}
+                        />
+                        %
+                      </span>
+                    )}
                   </div>
-                </div>
-              ))
-            ) : (
-              <p className="text-content-subtle flex size-full items-center justify-center py-5 text-sm">
-                Failed to load usage data
-              </p>
-            )}
-          </>
-        )}
+                </button>
+              );
+            })
+          ) : (
+            <>
+              {loading ? (
+                [...Array(3)].map((_, idx) => (
+                  <div
+                    key={idx}
+                    className="flex animate-pulse items-center justify-between gap-4 px-3 py-2 text-xs font-medium"
+                  >
+                    <div className="flex items-center gap-2">
+                      <div className="size-2 rounded-full bg-neutral-200" />
+                      <div className="h-4 w-32 min-w-0 rounded-md bg-neutral-200" />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="h-4 w-8 rounded-md bg-neutral-200" />
+                      <div className="h-4 w-6 rounded-md bg-neutral-200" />
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-content-subtle flex size-full items-center justify-center py-5 text-sm">
+                  Failed to load usage data
+                </p>
+              )}
+            </>
+          )}
+        </NumberFlowGroup>
       </div>
     </div>
   );

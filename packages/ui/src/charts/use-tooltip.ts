@@ -24,6 +24,7 @@ export type TooltipOptions<T extends Datum> = {
   snapToX?: boolean;
   snapToY?: boolean;
   defaultIndex?: number;
+  onHoverDateChange?: (date: Date | null) => void;
 };
 
 export function useTooltip<T extends Datum>({
@@ -33,6 +34,7 @@ export function useTooltip<T extends Datum>({
   snapToY = false,
   snapToX = true,
   defaultIndex,
+  onHoverDateChange,
 }: TooltipOptions<T>): ChartTooltipContext {
   const { series, data, xScale, yScale, margin } = chartContext;
 
@@ -90,11 +92,13 @@ export function useTooltip<T extends Datum>({
           ? yScale(series.find((s) => s.id === seriesId)!.valueAccessor(d))
           : 0,
       });
+      onHoverDateChange?.(d.date);
     } else if (
       tooltipSyncContext.tooltipDate === null &&
       visxTooltip.tooltipData?.date
     ) {
       visxTooltip.hideTooltip();
+      onHoverDateChange?.(null);
     }
   }, [
     tooltipSyncContext.tooltipDate,
@@ -145,6 +149,7 @@ export function useTooltip<T extends Datum>({
       });
 
       tooltipSyncContext.setTooltipDate?.(d.date);
+      onHoverDateChange?.(d.date);
     },
     [
       seriesId,
@@ -173,6 +178,7 @@ export function useTooltip<T extends Datum>({
       defaultTooltipData
         ? visxTooltip.showTooltip(defaultTooltipData)
         : visxTooltip.hideTooltip();
+      onHoverDateChange?.(null);
     },
   };
 }
