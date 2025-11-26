@@ -10,6 +10,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
 import { useArchivePartnerModal } from "@/ui/modals/archive-partner-modal";
 import { useBanPartnerModal } from "@/ui/modals/ban-partner-modal";
+import { useBulkBanPartnersModal } from "@/ui/modals/bulk-ban-partners-modal";
 import { useChangeGroupModal } from "@/ui/modals/change-group-modal";
 import { useDeactivatePartnerModal } from "@/ui/modals/deactivate-partner-modal";
 import { useReactivatePartnerModal } from "@/ui/modals/reactivate-partner-modal";
@@ -160,6 +161,15 @@ export function PartnersTable() {
   const { ChangeGroupModal, setShowChangeGroupModal } = useChangeGroupModal({
     partners: pendingChangeGroupPartners,
   });
+
+  const [pendingBanPartners, setPendingBanPartners] = useState<
+    EnrolledPartnerProps[]
+  >([]);
+
+  const { BulkBanPartnersModal, setShowBulkBanPartnersModal } =
+    useBulkBanPartnersModal({
+      partners: pendingBanPartners,
+    });
 
   const { columnVisibility, setColumnVisibility } = useColumnVisibility(
     "partners-table-columns-v2",
@@ -479,34 +489,24 @@ export function PartnersTable() {
             setShowChangeGroupModal(true);
           }}
         />
-        {/* <Button
-          variant="secondary"
-          text="Archive"
-          icon={<BoxArchive className="size-3.5 shrink-0" />}
-          className="h-7 w-fit rounded-lg px-2.5"
-          loading={false}
-          onClick={() => {
-            const partnerIds = table
-              .getSelectedRowModel()
-              .rows.map((row) => row.original.id);
 
-            toast.info("WIP");
-          }}
-        />
-        <Button
-          variant="secondary"
-          text="Ban"
-          icon={<UserXmark className="size-3.5 shrink-0" />}
-          className="h-7 w-fit rounded-lg px-2.5 text-red-700"
-          loading={false}
-          onClick={() => {
-            const partnerIds = table
-              .getSelectedRowModel()
-              .rows.map((row) => row.original.id);
+        {status !== "banned" && (
+          <Button
+            variant="danger"
+            text="Ban"
+            icon={<UserDelete className="size-3.5 shrink-0" />}
+            className="h-7 w-fit rounded-lg bg-red-600 px-2.5 text-white"
+            loading={false}
+            onClick={() => {
+              const partners = table
+                .getSelectedRowModel()
+                .rows.map((row) => row.original);
 
-            toast.info("WIP");
-          }}
-        /> */}
+              setPendingBanPartners(partners);
+              setShowBulkBanPartnersModal(true);
+            }}
+          />
+        )}
       </>
     ),
     thClassName: "border-l-0",
@@ -520,6 +520,7 @@ export function PartnersTable() {
   return (
     <div className="flex flex-col gap-6">
       <ChangeGroupModal />
+      <BulkBanPartnersModal />
       <div>
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <Filter.Select
