@@ -10,6 +10,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
 import { useArchivePartnerModal } from "@/ui/modals/archive-partner-modal";
 import { useBanPartnerModal } from "@/ui/modals/ban-partner-modal";
+import { useBulkBanPartnersModal } from "@/ui/modals/bulk-ban-partners-modal";
 import { useChangeGroupModal } from "@/ui/modals/change-group-modal";
 import { useDeactivatePartnerModal } from "@/ui/modals/deactivate-partner-modal";
 import { useReactivatePartnerModal } from "@/ui/modals/reactivate-partner-modal";
@@ -18,6 +19,7 @@ import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
+import { ThreeDots } from "@/ui/shared/icons";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import {
   AnimatedSizeContainer,
@@ -55,7 +57,7 @@ import {
 } from "@dub/utils";
 import { nFormatter } from "@dub/utils/src/functions";
 import { ProgramEnrollmentStatus } from "@prisma/client";
-import { Row } from "@tanstack/react-table";
+import { Row, Table as TableType } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { LockOpen } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
@@ -160,6 +162,15 @@ export function PartnersTable() {
   const { ChangeGroupModal, setShowChangeGroupModal } = useChangeGroupModal({
     partners: pendingChangeGroupPartners,
   });
+
+  const [pendingBanPartners, setPendingBanPartners] = useState<
+    EnrolledPartnerProps[]
+  >([]);
+
+  const { BulkBanPartnersModal, setShowBulkBanPartnersModal } =
+    useBulkBanPartnersModal({
+      partners: pendingBanPartners,
+    });
 
   const { columnVisibility, setColumnVisibility } = useColumnVisibility(
     "partners-table-columns-v2",
@@ -479,34 +490,16 @@ export function PartnersTable() {
             setShowChangeGroupModal(true);
           }}
         />
-        {/* <Button
-          variant="secondary"
-          text="Archive"
-          icon={<BoxArchive className="size-3.5 shrink-0" />}
-          className="h-7 w-fit rounded-lg px-2.5"
-          loading={false}
-          onClick={() => {
-            const partnerIds = table
-              .getSelectedRowModel()
-              .rows.map((row) => row.original.id);
 
-            toast.info("WIP");
-          }}
-        />
-        <Button
-          variant="secondary"
-          text="Ban"
-          icon={<UserXmark className="size-3.5 shrink-0" />}
-          className="h-7 w-fit rounded-lg px-2.5 text-red-700"
-          loading={false}
-          onClick={() => {
-            const partnerIds = table
-              .getSelectedRowModel()
-              .rows.map((row) => row.original.id);
-
-            toast.info("WIP");
-          }}
-        /> */}
+        {status !== "banned" && (
+          <BulkActionsMenu
+            table={table}
+            onBanPartners={(partners) => {
+              setPendingBanPartners(partners);
+              setShowBulkBanPartnersModal(true);
+            }}
+          />
+        )}
       </>
     ),
     thClassName: "border-l-0",
@@ -520,6 +513,7 @@ export function PartnersTable() {
   return (
     <div className="flex flex-col gap-6">
       <ChangeGroupModal />
+      <BulkBanPartnersModal />
       <div>
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <Filter.Select
@@ -569,6 +563,51 @@ export function PartnersTable() {
         />
       )}
     </div>
+  );
+}
+
+function BulkActionsMenu({
+  table,
+  onBanPartners,
+}: {
+  table: TableType<EnrolledPartnerProps>;
+  onBanPartners: (partners: EnrolledPartnerProps[]) => void;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <Popover
+      openPopover={isOpen}
+      setOpenPopover={setIsOpen}
+      content={
+        <Command tabIndex={0} loop className="focus:outline-none">
+          <Command.List className="w-screen text-sm focus-visible:outline-none sm:w-auto sm:min-w-[200px]">
+            <Command.Group className="grid gap-px p-1.5">
+              <MenuItem
+                icon={UserDelete}
+                label="Ban partners"
+                variant="danger"
+                onSelect={() => {
+                  const partners = table
+                    .getSelectedRowModel()
+                    .rows.map((row) => row.original);
+                  onBanPartners(partners);
+                  setIsOpen(false);
+                }}
+              />
+            </Command.Group>
+          </Command.List>
+        </Command>
+      }
+      align="start"
+    >
+      <Button
+        type="button"
+        className="size-7 whitespace-nowrap rounded-lg p-2"
+        variant="secondary"
+        icon={<ThreeDots className="h-4 w-4 shrink-0" />}
+      />
+    </Popover>
   );
 }
 
