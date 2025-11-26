@@ -9,8 +9,8 @@ import { DUB_TEST_IDENTITY_HEADER } from "tests/utils/resource";
 export async function getIdentityHash(req: Request) {
   // If provided, use this identity directly (for E2E)
   if (
-    process.env.NODE_ENV === "test" ||
-    process.env.NODE_ENV === "development"
+    process.env.NODE_ENV === "development" ||
+    process.env.VERCEL_ENV === "preview"
   ) {
     const testOverride = req.headers.get(DUB_TEST_IDENTITY_HEADER);
 

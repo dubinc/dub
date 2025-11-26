@@ -49,7 +49,7 @@ export const POST = withWorkspace(
       user: session.user,
     });
 
-    return NextResponse.json({ partnerId: response.partnerId });
+    return NextResponse.json(response);
   },
   {
     requiredPlan: ["advanced", "enterprise"],

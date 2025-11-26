@@ -9,9 +9,7 @@ import { CampaignsPageContent } from "./campaigns-page-content";
 
 export function CampaignsUpsell() {
   const { partnersUpgradeModal, setShowPartnersUpgradeModal } =
-    usePartnersUpgradeModal({
-      plan: "Advanced",
-    });
+    usePartnersUpgradeModal();
 
   return (
     <CampaignsPageContent>

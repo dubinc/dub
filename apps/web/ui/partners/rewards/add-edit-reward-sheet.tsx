@@ -593,7 +593,7 @@ function RewardSheetContent({
                   <TooltipContent
                     title="Advanced reward structures are only available on the Advanced plan and above."
                     cta="Upgrade to Advanced"
-                    href={`/${workspaceSlug}/upgrade?plan=advanced`}
+                    href={`/${workspaceSlug}/upgrade?showPartnersUpgradeModal=true`}
                     target="_blank"
                   />
                 ) : undefined

@@ -113,9 +113,7 @@ export function PartnerApplicationRiskSummaryUpsell({
   severity: FraudSeverity | null | undefined;
 }) {
   const { partnersUpgradeModal, setShowPartnersUpgradeModal } =
-    usePartnersUpgradeModal({
-      plan: "Advanced",
-    });
+    usePartnersUpgradeModal();
 
   const severityConfig = severity ? APPLICATION_RISK_CONFIG[severity] : null;
 
