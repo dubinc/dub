@@ -52,6 +52,11 @@ export default function useUsage({
     };
   }, [searchParams, firstDay, lastDay]);
 
+  const groupBy: "folderId" | "domain" =
+    (["folderId", "domain"] as const).find(
+      (gb) => gb === searchParams.get("groupBy"),
+    ) ?? "folderId";
+
   const {
     data: usage,
     error,
@@ -70,6 +75,7 @@ export default function useUsage({
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         ...(folderId && { folderId }),
         ...(domain && { domain }),
+        ...(groupBy && { groupBy }),
         ...(disabledWhenNoFilters &&
           hasActiveFilters && { cacheKey: "disabledWhenNoFilters" }),
       }).toString()}`,
@@ -87,6 +93,7 @@ export default function useUsage({
     start,
     end,
     interval,
+    groupBy,
     loading: !usage && !error,
     isValidating,
   };

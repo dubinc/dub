@@ -10,6 +10,7 @@ import {
   EmptyState,
   Filter,
   LoadingSpinner,
+  ToggleGroup,
   useRouterStuff,
 } from "@dub/ui";
 import { Bars, TimeSeriesChart, XAxis, YAxis } from "@dub/ui/charts";
@@ -59,9 +60,8 @@ export function UsageChart() {
     start,
     end,
     interval,
+    groupBy,
   } = useUsage();
-
-  const groupBy = "folder"; // Add toggle for folder/domain
 
   // TODO: Remove this once the usage endpoint is updated and rename `usageTmp` back to `usage`
   const usage = useMemo(
@@ -226,15 +226,31 @@ export function UsageChart() {
   return (
     <div className={cn("space-y-4 pt-8")}>
       <div className="flex flex-col gap-3">
-        <div className="flex items-center gap-2">
-          <Filter.Select
-            className="w-full md:w-fit"
-            filters={filters}
-            activeFilters={activeFilters}
-            onSelect={onSelect}
-            onRemove={onRemove}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <Filter.Select
+              className="h-9 w-full md:w-fit"
+              filters={filters}
+              activeFilters={activeFilters}
+              onSelect={onSelect}
+              onRemove={onRemove}
+            />
+            <SimpleDateRangePicker
+              values={{ start, end, interval }}
+              className="h-9"
+            />
+          </div>
+          <ToggleGroup
+            options={[
+              { value: "folderId", label: "Folder" },
+              { value: "domain", label: "Domain" },
+            ]}
+            selected={groupBy}
+            selectAction={(id) => queryParams({ set: { groupBy: id } })}
+            className="rounded-lg border-transparent bg-neutral-100 p-0.5"
+            optionClassName="text-xs text-neutral-800 data-[selected=true]:text-neutral-800 px-3 sm:px-5 py-2 leading-none"
+            indicatorClassName="bg-white border-neutral-200 rounded-md"
           />
-          <SimpleDateRangePicker values={{ start, end, interval }} />
         </div>
         <AnimatedSizeContainer height>
           {activeFilters.length > 0 && (
@@ -349,7 +365,7 @@ export function UsageChart() {
             .map(([id, meta]) => (
               <Link
                 key={id}
-                href={`/${workspaceSlug}/${activeResource}${groupBy === "folder" ? (id === "unsorted" ? "" : `?folderId=${id}`) : `?domain=${id}`}`}
+                href={`/${workspaceSlug}/${activeResource}${groupBy === "folderId" ? (id === "unsorted" ? "" : `?folderId=${id}`) : `?domain=${id}`}`}
                 target="_blank"
                 className="flex items-center justify-between gap-4 rounded-lg px-3 py-2 text-xs font-medium hover:bg-black/[0.03] active:bg-black/5"
               >
