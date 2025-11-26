@@ -238,14 +238,23 @@ export const trackLead = async ({
           finalCustomerAvatar
         ) {
           // persist customer avatar to R2
-          await storage.upload({
-            key: finalCustomerAvatar.replace(`${R2_URL}/`, ""),
-            body: customerAvatar,
-            opts: {
-              width: 128,
-              height: 128,
-            },
-          });
+          await storage
+            .upload({
+              key: finalCustomerAvatar.replace(`${R2_URL}/`, ""),
+              body: customerAvatar,
+              opts: {
+                width: 128,
+                height: 128,
+              },
+            })
+            .catch(async (error) => {
+              console.error("Error persisting customer avatar to R2", error);
+              // if the avatar fails to upload to R2, set the avatar to null in the database
+              await prisma.customer.update({
+                where: { id: finalCustomerId },
+                data: { avatar: null },
+              });
+            });
         }
 
         // if not deferred mode, process the following right away:
