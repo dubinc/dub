@@ -56,7 +56,7 @@ export const banPartner = async ({
     throw new Error("This partner is already banned from your program.");
   }
 
-  await prisma.programEnrollment.update({
+  const programEnrollmentUpdated = await prisma.programEnrollment.update({
     where: {
       partnerId_programId: {
         partnerId,
@@ -102,4 +102,6 @@ export const banPartner = async ({
       }),
     ]),
   );
+
+  return programEnrollmentUpdated;
 };

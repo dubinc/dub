@@ -17,6 +17,7 @@ export const POST = withWorkspace(
 
     if (tenantId && !partnerId) {
       const programId = getDefaultProgramIdOrThrow(workspace);
+
       const partner = await prisma.programEnrollment.findUniqueOrThrow({
         where: {
           tenantId_programId: {
@@ -25,6 +26,7 @@ export const POST = withWorkspace(
           },
         },
       });
+
       partnerId = partner.partnerId;
     }
 
