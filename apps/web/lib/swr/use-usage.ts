@@ -3,7 +3,6 @@ import { endOfDay, startOfDay } from "date-fns";
 import { useSearchParams } from "next/navigation";
 import { useMemo } from "react";
 import useSWR from "swr";
-import { UsageResponse } from "../types";
 import useWorkspace from "./use-workspace";
 
 // here we're using disabledWhenNoFilters for the special case where we need to
@@ -61,7 +60,13 @@ export default function useUsage({
     data: usage,
     error,
     isValidating,
-  } = useSWR<UsageResponse[]>(
+  } = useSWR<
+    {
+      date: string;
+      value: number;
+      groups: { id: string; name: string; usage: number }[];
+    }[]
+  >(
     workspaceId &&
       (disabledWhenNoFilters ? hasActiveFilters : true) &&
       `/api/workspaces/${workspaceId}/billing/usage?${new URLSearchParams({

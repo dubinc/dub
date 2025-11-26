@@ -16,7 +16,6 @@ import {
 import { Bars, TimeSeriesChart, XAxis, YAxis } from "@dub/ui/charts";
 import { CursorRays, Folder, Globe2, Hyperlink } from "@dub/ui/icons";
 import { cn, formatDate, GOOGLE_FAVICON_URL, nFormatter } from "@dub/utils";
-import Link from "next/link";
 import { ComponentProps, Fragment, useEffect, useMemo } from "react";
 
 const BAR_COLORS = [
@@ -53,43 +52,8 @@ export function UsageChart() {
   const { slug: workspaceSlug } = useWorkspace();
   const { queryParams, searchParamsObj } = useRouterStuff();
 
-  const {
-    usage: usageTmp,
-    loading,
-    activeResource,
-    start,
-    end,
-    interval,
-    groupBy,
-  } = useUsage();
-
-  // TODO: Remove this once the usage endpoint is updated and rename `usageTmp` back to `usage`
-  const usage = useMemo(
-    () =>
-      usageTmp?.map(({ date, value }) => ({
-        date: new Date(date),
-        value,
-        groupBy: "folderId",
-        groups: [
-          {
-            id: "unsorted",
-            name: "Unsorted",
-            usage: Math.floor(value / 2),
-          },
-          {
-            id: "fold_a4zhcvDsfZpU5qAcfGWZWVbO",
-            name: "Folder 1",
-            usage: Math.floor(Math.ceil(value / 2) / 2),
-          },
-          {
-            id: "fold_MC0mryfmC8Ld260XM9qRl4H8",
-            name: "Folder 2",
-            usage: Math.ceil(Math.ceil(value / 2) / 2),
-          },
-        ],
-      })),
-    [usageTmp],
-  );
+  const { usage, loading, activeResource, start, end, interval, groupBy } =
+    useUsage();
 
   // Get filter values from URL params
   const folderId = searchParamsObj.folderId;
@@ -236,6 +200,7 @@ export function UsageChart() {
               onRemove={onRemove}
             />
             <SimpleDateRangePicker
+              presets={["7d", "30d", "90d", "1y", "mtd", "qtd", "ytd"]}
               values={{ start, end, interval }}
               className="h-9"
             />
@@ -287,7 +252,7 @@ export function UsageChart() {
                   isActive: true,
                 })) ?? []),
               ]}
-              tooltipClassName="p-0 overflow-hidden"
+              tooltipClassName="p-0 overflow-hidden max-w-64"
               tooltipContent={(d) => {
                 const topGroups = usage?.[0]?.groups
                   ?.filter((group) => d.values[group.id] > 0)
@@ -305,7 +270,7 @@ export function UsageChart() {
                       </span>
                     </div>
                     {Boolean(topGroups?.length) && (
-                      <div className="border-border-subtle relative grid grid-cols-2 gap-x-6 gap-y-2 overflow-hidden border-t px-4 py-3 text-xs">
+                      <div className="border-border-subtle relative grid grid-cols-[minmax(0,1fr),min-content] gap-x-6 gap-y-2 overflow-hidden border-t px-4 py-3 text-xs">
                         {topGroups?.map((group) => {
                           const value = d.values[group.id];
                           if (!value) return null;
@@ -315,12 +280,12 @@ export function UsageChart() {
                               <div className="flex items-center gap-2">
                                 <div
                                   className={cn(
-                                    "size-2 rounded-full bg-current",
+                                    "size-2 shrink-0 rounded-full bg-current",
                                     groupsMeta[group.id]?.colorClassName,
                                   )}
                                 />
-                                <span className="text-neutral-600">
-                                  {group.name}
+                                <span className="min-w-0 truncate text-neutral-600">
+                                  {group.name || "Unsorted"}
                                 </span>
                               </div>
                               <span className="text-right font-medium text-neutral-900">
@@ -361,13 +326,15 @@ export function UsageChart() {
       <div className="flex flex-col">
         {groupsMeta ? (
           Object.entries(groupsMeta)
+            .filter(([_, meta]) => meta.total)
             .sort((a, b) => b[1].total - a[1].total)
             .map(([id, meta]) => (
-              <Link
+              <button
                 key={id}
-                href={`/${workspaceSlug}/${activeResource}${groupBy === "folderId" ? (id === "unsorted" ? "" : `?folderId=${id}`) : `?domain=${id}`}`}
-                target="_blank"
-                className="flex items-center justify-between gap-4 rounded-lg px-3 py-2 text-xs font-medium hover:bg-black/[0.03] active:bg-black/5"
+                type="button"
+                onClick={() => queryParams({ set: { [groupBy]: id } })}
+                disabled={!id}
+                className="flex items-center justify-between gap-4 rounded-lg px-3 py-2 text-xs font-medium enabled:hover:bg-black/[0.03] enabled:active:bg-black/5"
               >
                 <div className="flex items-center gap-2">
                   <div
@@ -376,7 +343,9 @@ export function UsageChart() {
                       meta.colorClassName,
                     )}
                   />
-                  <span className="text-content-emphasis">{meta.name}</span>
+                  <span className="text-content-emphasis">
+                    {meta.name || "Unsorted"}
+                  </span>
                 </div>
                 <div className="flex items-center gap-2 tabular-nums">
                   <span className="text-content-default text-right font-medium">
@@ -393,7 +362,7 @@ export function UsageChart() {
                     </span>
                   )}
                 </div>
-              </Link>
+              </button>
             ))
         ) : (
           <>

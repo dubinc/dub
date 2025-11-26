@@ -2,6 +2,7 @@ import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { withWorkspace } from "@/lib/auth";
 import { tb } from "@/lib/tinybird";
 import { usageQuerySchema, usageResponse } from "@/lib/zod/schemas/usage";
+import { prisma } from "@dub/prisma";
 import { subYears } from "date-fns/subYears";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -47,19 +48,60 @@ export const GET = withWorkspace(async ({ searchParams, workspace }) => {
     ...(groupBy && { groupBy }),
   });
 
-  console.log("!!!", response.data);
-
   let data = response.data;
 
   if (groupBy) {
     const dates = [...new Set(response.data.map((d) => d.date))];
-    const groupIds = [...new Set(response.data.map((d) => d[groupBy]))];
+    const groupIds = [...new Set(response.data.map((d) => d[groupBy] ?? ""))];
 
-    data = dates.map((date) => ({
-      date,
-      value: 0,
-    }));
+    const where = {
+      projectId: workspace.id,
+      id: {
+        in: groupIds,
+      },
+    };
+
+    const groupMeta = await (groupBy === "folder_id"
+      ? prisma.folder.findMany({
+          select: {
+            id: true,
+            name: true,
+          },
+          where,
+        })
+      : prisma.domain.findMany({
+          select: {
+            id: true,
+            slug: true,
+          },
+          where,
+        }));
+
+    data = dates.map((date) => {
+      const groups = groupIds.map((groupId) => ({
+        id: groupId,
+        name:
+          groupMeta.find((g) => g.id === groupId)?.[
+            groupBy === "folder_id" ? "name" : "slug"
+          ] ?? groupId,
+        usage: sum(
+          response.data
+            .filter((d) => d.date === date && d[groupBy] === groupId)
+            .map((d) => d.value),
+        ),
+      }));
+
+      return {
+        date,
+        value: sum(groups.map((g) => g.usage)),
+        groups,
+      };
+    });
   }
+
+  console.log("!!!", response.data);
 
   return NextResponse.json(data);
 });
+
+const sum = (arr: number[]) => arr.reduce((acc, curr) => acc + curr, 0);
