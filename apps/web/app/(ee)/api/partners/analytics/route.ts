@@ -3,6 +3,7 @@ import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
+import { throwIfNoPartnerIdOrTenantId } from "@/lib/partners/throw-if-no-partnerid-tenantid";
 import { sqlGranularityMap } from "@/lib/planetscale/granularity";
 import {
   partnerAnalyticsQuerySchema,
@@ -28,12 +29,7 @@ export const GET = withWorkspace(
       query,
     } = partnerAnalyticsQuerySchema.parse(searchParams);
 
-    if (!partnerId && !tenantId) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: "You must provide a partnerId or tenantId.",
-      });
-    }
+    throwIfNoPartnerIdOrTenantId({ partnerId, tenantId });
 
     const programEnrollment = await prisma.programEnrollment.findUniqueOrThrow({
       where: partnerId

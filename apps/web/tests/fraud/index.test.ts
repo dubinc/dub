@@ -1,6 +1,6 @@
 import { Customer, fraudEventGroupProps, TrackLeadResponse } from "@/lib/types";
 import { FraudRuleType } from "@prisma/client";
-import { randomCustomer, randomId } from "tests/utils/helpers";
+import { randomCustomer, randomId, retry } from "tests/utils/helpers";
 import { HttpClient } from "tests/utils/http";
 import {
   DUB_TEST_IDENTITY_HEADER,
@@ -11,7 +11,7 @@ import {
 import { describe, expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
 
-describe.skip.concurrent("/fraud/**", async () => {
+describe.concurrent("/fraud/**", async () => {
   const h = new IntegrationHarness();
   const { http } = await h.init();
 
@@ -187,12 +187,9 @@ const verifyFraudEvent = async ({
   ruleType,
 }: {
   http: HttpClient;
-  customer: Pick<Customer, "externalId" | "name" | "email">;
+  customer: Pick<Customer, "externalId">;
   ruleType: FraudRuleType;
 }) => {
-  // Wait for 8 seconds to reduce flakiness
-  await new Promise((resolve) => setTimeout(resolve, 8000));
-
   // Resolve customerId from customerExternalID
   const { data: customers } = await http.get<Customer[]>({
     path: "/customers",
@@ -201,22 +198,15 @@ const verifyFraudEvent = async ({
 
   expect(customers.length).toBeGreaterThan(0);
 
-  const customerFound = customers[0];
-
-  // Fetch fraud events for the current customer
-  const { data: fraudEvents } = await http.get<fraudEventGroupProps[]>({
-    path: "/fraud/events",
-    query: {
-      partnerId: E2E_FRAUD_PARTNER.id,
-      type: ruleType,
-      customerId: customerFound.id,
-    },
+  // Wait until fraud event is available
+  const fraudEvent = await waitForFraudEvent({
+    http,
+    partnerId: E2E_FRAUD_PARTNER.id,
+    customerId: customers[0].id,
+    ruleType,
   });
 
-  expect(fraudEvents.length).toBeGreaterThan(0);
-
-  const fraudEvent = fraudEvents[0];
-
+  // Assert fraud event shape
   expect(fraudEvent).toStrictEqual({
     id: expect.any(String),
     type: ruleType,
@@ -232,11 +222,38 @@ const verifyFraudEvent = async ({
       email: expect.any(String),
       image: null,
     },
-    customer: {
-      id: customerFound.id,
-      name: expect.any(String),
-      email: expect.any(String),
-    },
     user: null,
   });
 };
+
+async function waitForFraudEvent({
+  http,
+  partnerId,
+  customerId,
+  ruleType,
+}: {
+  http: HttpClient;
+  partnerId: string;
+  customerId: string;
+  ruleType: FraudRuleType;
+}) {
+  return await retry(
+    async () => {
+      const { data } = await http.get<fraudEventGroupProps[]>({
+        path: "/fraud/events",
+        query: {
+          partnerId,
+          type: ruleType,
+          customerId,
+        },
+      });
+
+      if (!data.length) {
+        throw new Error("Fraud event not ready.");
+      }
+
+      return data[0];
+    },
+    { retries: 10, interval: 300 },
+  );
+}
