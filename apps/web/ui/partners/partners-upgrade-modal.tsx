@@ -149,7 +149,7 @@ export function PartnersUpgradeModal({
     <Modal
       showModal={showPartnersUpgradeModal}
       setShowModal={setShowPartnersUpgradeModal}
-      onClose={() => queryParams({ del: "plan" })}
+      onClose={() => queryParams({ del: "showPartnersUpgradeModal" })}
     >
       <div className="scrollbar-hide relative max-h-[calc(100dvh-50px)] overflow-y-auto p-4 sm:p-8">
         <div className="pointer-events-none absolute inset-y-0 left-1/2 hidden w-[640px] -translate-x-1/2 [mask-image:linear-gradient(black,transparent_280px)] sm:block">
@@ -273,7 +273,7 @@ export function PartnersUpgradeModal({
             variant="secondary"
             onClick={() => {
               setShowPartnersUpgradeModal(false);
-              queryParams({ del: "plan" });
+              queryParams({ del: "showPartnersUpgradeModal" });
             }}
           />
         </div>
@@ -283,7 +283,7 @@ export function PartnersUpgradeModal({
 }
 
 export function usePartnersUpgradeModal(
-  props: Omit<
+  props?: Omit<
     PartnersUpgradeModalProps,
     "showPartnersUpgradeModal" | "setShowPartnersUpgradeModal"
   >,

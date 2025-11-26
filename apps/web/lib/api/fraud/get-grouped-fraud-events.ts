@@ -1,5 +1,5 @@
 import {
-  fraudEventSchema,
+  groupedFraudEventSchema,
   groupedFraudEventsQuerySchema,
 } from "@/lib/zod/schemas/fraud";
 import { prisma } from "@dub/prisma";
@@ -24,9 +24,6 @@ interface QueryResult {
   partnerName: string | null;
   partnerEmail: string | null;
   partnerImage: string | null;
-  customerId: string | null;
-  customerEmail: string | null;
-  customerName: string | null;
   userId: string | null;
   userName: string | null;
   userImage: string | null;
@@ -76,15 +73,12 @@ export async function getGroupedFraudEvents({
       fe.groupKey,
       fe.commissionId,
       fe.partnerId,
-      fe.customerId,
       fe.userId,
       dfe.lastOccurrenceAt,
       dfe.eventCount,
       p.name AS partnerName,
       p.email AS partnerEmail,
       p.image AS partnerImage,
-      c.email AS customerEmail,
-      c.name AS customerName,
       u.name AS userName,
       u.image AS userImage
     FROM (
@@ -101,8 +95,6 @@ export async function getGroupedFraudEvents({
       ON fe.id = dfe.latestEventId
     LEFT JOIN Partner p
       ON p.id = fe.partnerId
-    LEFT JOIN Customer c
-      ON c.id = fe.customerId
     LEFT JOIN User u
       ON u.id = fe.userId
     ${orderByClause}
@@ -126,13 +118,6 @@ export async function getGroupedFraudEvents({
           image: event.partnerImage,
         }
       : null,
-    customer: event.customerId
-      ? {
-          id: event.customerId,
-          name: event.customerName,
-          email: event.customerEmail,
-        }
-      : null,
     user: event.userId
       ? {
           id: event.userId,
@@ -142,5 +127,5 @@ export async function getGroupedFraudEvents({
       : null,
   }));
 
-  return z.array(fraudEventSchema).parse(groupedEvents);
+  return z.array(groupedFraudEventSchema).parse(groupedEvents);
 }
