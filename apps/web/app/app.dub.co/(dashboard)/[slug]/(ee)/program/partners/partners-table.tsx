@@ -19,6 +19,7 @@ import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
+import { ThreeDots } from "@/ui/shared/icons";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import {
   AnimatedSizeContainer,
@@ -56,7 +57,7 @@ import {
 } from "@dub/utils";
 import { nFormatter } from "@dub/utils/src/functions";
 import { ProgramEnrollmentStatus } from "@prisma/client";
-import { Row } from "@tanstack/react-table";
+import { Row, Table as TableType } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { LockOpen } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
@@ -491,17 +492,9 @@ export function PartnersTable() {
         />
 
         {status !== "banned" && (
-          <Button
-            variant="danger"
-            text="Ban"
-            icon={<UserDelete className="size-3.5 shrink-0" />}
-            className="h-7 w-fit rounded-lg bg-red-600 px-2.5 text-white"
-            loading={false}
-            onClick={() => {
-              const partners = table
-                .getSelectedRowModel()
-                .rows.map((row) => row.original);
-
+          <BulkActionsMenu
+            table={table}
+            onBanPartners={(partners) => {
               setPendingBanPartners(partners);
               setShowBulkBanPartnersModal(true);
             }}
@@ -570,6 +563,51 @@ export function PartnersTable() {
         />
       )}
     </div>
+  );
+}
+
+function BulkActionsMenu({
+  table,
+  onBanPartners,
+}: {
+  table: TableType<EnrolledPartnerProps>;
+  onBanPartners: (partners: EnrolledPartnerProps[]) => void;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <Popover
+      openPopover={isOpen}
+      setOpenPopover={setIsOpen}
+      content={
+        <Command tabIndex={0} loop className="focus:outline-none">
+          <Command.List className="w-screen text-sm focus-visible:outline-none sm:w-auto sm:min-w-[200px]">
+            <Command.Group className="grid gap-px p-1.5">
+              <MenuItem
+                icon={UserDelete}
+                label="Ban partners"
+                variant="danger"
+                onSelect={() => {
+                  const partners = table
+                    .getSelectedRowModel()
+                    .rows.map((row) => row.original);
+                  onBanPartners(partners);
+                  setIsOpen(false);
+                }}
+              />
+            </Command.Group>
+          </Command.List>
+        </Command>
+      }
+      align="start"
+    >
+      <Button
+        type="button"
+        className="size-7 whitespace-nowrap rounded-lg p-2"
+        variant="secondary"
+        icon={<ThreeDots className="h-4 w-4 shrink-0" />}
+      />
+    </Popover>
   );
 }
 
