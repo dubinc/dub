@@ -62,6 +62,10 @@ export async function detectAndRecordFraudEvent(context: FraudEventContext) {
   }
 
   if (triggeredRules.length === 0) {
+    console.debug(
+      `[detectAndRecordFraudEvents] No fraud events triggered for context`,
+    );
+
     return;
   }
 
@@ -91,6 +95,10 @@ export async function detectAndRecordFraudEvent(context: FraudEventContext) {
     );
 
     if (newEvents.length === 0) {
+      console.debug(
+        `[detectAndRecordFraudEvents] No new fraud events to record`,
+      );
+
       return;
     }
 
