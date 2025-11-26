@@ -135,3 +135,4 @@ SQL >
     %
     SELECT * FROM {% if resource == 'events' %} usage_events {% else %} usage_links {% end %}
 
+
