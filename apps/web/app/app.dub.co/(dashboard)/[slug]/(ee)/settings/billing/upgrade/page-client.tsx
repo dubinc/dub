@@ -26,6 +26,7 @@ import {
 import { isLegacyBusinessPlan } from "@dub/utils/src/constants/pricing";
 import NumberFlow from "@number-flow/react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { motion } from "motion/react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { CSSProperties, useEffect, useMemo, useState } from "react";
@@ -57,13 +58,11 @@ export function WorkspaceBillingUpgradePageClient() {
   const [period, setPeriod] = useState<"monthly" | "yearly">("monthly");
 
   const { partnersUpgradeModal, setShowPartnersUpgradeModal } =
-    usePartnersUpgradeModal({
-      plan: "Advanced",
-    });
+    usePartnersUpgradeModal();
 
   const searchParams = useSearchParams();
   useEffect(() => {
-    if (searchParams.get("plan") === "advanced") {
+    if (searchParams.get("showPartnersUpgradeModal")) {
       setShowPartnersUpgradeModal(true);
     }
   }, [searchParams]);
@@ -283,103 +282,159 @@ export function WorkspaceBillingUpgradePageClient() {
             />
           </div>
 
-          <div className="h-8 bg-gradient-to-b from-white" />
+          <div className="h-4 bg-gradient-to-b from-white" />
         </div>
-        <div className="flex flex-col gap-8 pb-12">
-          {PLAN_COMPARE_FEATURES.map(({ category, href, features }) => {
-            const Icon = COMPARE_FEATURE_ICONS[category];
-
-            return (
-              <div
-                key={category}
-                className="w-full overflow-x-hidden [container-type:inline-size]"
-              >
-                <a
-                  href={href}
-                  target="_blank"
-                  className="flex items-center gap-2 border-b border-neutral-200 px-5 pb-4 pt-2"
-                >
-                  {Icon && <Icon className="size-4 text-neutral-600" />}
-                  <h3 className="text-base font-medium text-black">
-                    {category}
-                  </h3>
-                  <span className="text-xs text-neutral-500">↗</span>
-                </a>
-                <table
-                  className={cn(
-                    "grid grid-cols-4 overflow-hidden text-sm text-neutral-800 [&_strong]:font-medium",
-
-                    // Mobile
-                    "max-lg:w-[calc(400cqw+3*32px)] max-lg:translate-x-[calc(-1*var(--index)*(100cqw+32px))] max-lg:gap-x-8 max-lg:transition-transform",
-                  )}
-                  style={
-                    {
-                      "--index": mobilePlanIndex,
-                    } as CSSProperties
-                  }
-                >
-                  <thead className="sr-only">
-                    <tr>
-                      {plans.map(({ plan }) => (
-                        <th key={plan.name}>{plan.name}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody className="contents">
-                    {features.map(({ check, text, href }, idx) => {
-                      const As = href ? "a" : "span";
-
-                      return (
-                        <tr key={idx} className="contents bg-white">
-                          {plans.map(({ plan }) => {
-                            const id = plan.name.toLowerCase();
-                            const isChecked =
-                              typeof check === "boolean"
-                                ? check
-                                : check === undefined ||
-                                  (check[id] ?? check.default ?? false);
-
-                            return (
-                              <td
-                                key={id}
-                                className={cn(
-                                  "flex items-center gap-2 border-b border-neutral-200 bg-white px-5 py-4",
-                                  !isChecked && "text-neutral-300",
-                                )}
-                              >
-                                {isChecked ? (
-                                  <Check className="size-3 text-neutral-500" />
-                                ) : (
-                                  <span className="w-3">&bull;</span>
-                                )}
-                                <As
-                                  href={href}
-                                  target="_blank"
-                                  {...(href && {
-                                    className:
-                                      "underline decoration-dotted underline-offset-2 cursor-help",
-                                  })}
-                                >
-                                  {typeof text === "function"
-                                    ? (text({
-                                        id,
-                                        plan,
-                                      }) as React.ReactNode)
-                                    : text}
-                                </As>
-                              </td>
-                            );
-                          })}
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            );
-          })}
+        <div className="flex flex-col pb-12">
+          {PLAN_COMPARE_FEATURES.map((section) => (
+            <BillingCompareSection
+              key={section.category}
+              category={section.category}
+              href={section.href}
+              features={section.features}
+              mobilePlanIndex={mobilePlanIndex}
+              plans={plans}
+            />
+          ))}
         </div>
       </div>
+    </div>
+  );
+}
+
+function BillingCompareSection({
+  category,
+  href,
+  features,
+  mobilePlanIndex,
+  plans,
+}: (typeof PLAN_COMPARE_FEATURES)[number] & {
+  mobilePlanIndex: number;
+  plans: { plan: PlanDetails; planTier: number }[];
+}) {
+  const [isExpanded, setIsExpanded] = useState(true);
+  const { defaultProgramId } = useWorkspace();
+
+  useEffect(() => {
+    if (category === "Links") {
+      // If there's a default program, collapse Links. Otherwise expand.
+      setIsExpanded(!defaultProgramId);
+    } else if (category === "Partners") {
+      // If there's no default program, collapse Partners. Otherwise expand.
+      setIsExpanded(Boolean(defaultProgramId));
+    } else {
+      setIsExpanded(true);
+    }
+  }, [category, defaultProgramId]);
+
+  const Icon = COMPARE_FEATURE_ICONS[category];
+
+  return (
+    <div className="w-full overflow-x-hidden [container-type:inline-size]">
+      <div className="flex items-center justify-between border-b border-neutral-200">
+        <button
+          type="button"
+          className="group flex grow items-center gap-2 px-5 py-4 text-left"
+          onClick={() => setIsExpanded((e) => !e)}
+        >
+          <Icon className="size-4 text-neutral-600" />
+          <h3 className="text-base font-medium text-black">{category}</h3>
+          <ChevronRight
+            className={cn(
+              "size-4 text-neutral-400 transition-[transform,color] group-hover:text-neutral-500 [&_*]:stroke-2",
+              isExpanded && "rotate-90",
+            )}
+          />
+        </button>
+        {href && (
+          <Link
+            href={href}
+            target="_blank"
+            className="mr-5 cursor-alias text-xs font-medium text-neutral-500 underline decoration-dotted underline-offset-2"
+          >
+            Learn more ↗
+          </Link>
+        )}
+      </div>
+      <motion.div
+        initial={false}
+        animate={{ height: isExpanded ? "auto" : 0 }}
+        className={cn(
+          "overflow-clip transition-opacity",
+          !isExpanded && "opacity-0",
+        )}
+        inert={!isExpanded}
+      >
+        <table
+          className={cn(
+            "grid grid-cols-4 overflow-hidden text-sm text-neutral-800 [&_strong]:font-medium",
+
+            // Mobile
+            "max-lg:w-[calc(400cqw+3*32px)] max-lg:translate-x-[calc(-1*var(--index)*(100cqw+32px))] max-lg:gap-x-8 max-lg:transition-transform",
+          )}
+          style={
+            {
+              "--index": mobilePlanIndex,
+            } as CSSProperties
+          }
+        >
+          <thead className="sr-only">
+            <tr>
+              {plans.map(({ plan }) => (
+                <th key={plan.name}>{plan.name}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="contents">
+            {features.map(({ check, text, href }, idx) => {
+              const As = href ? "a" : "span";
+
+              return (
+                <tr key={idx} className="contents bg-white">
+                  {plans.map(({ plan }) => {
+                    const id = plan.name.toLowerCase();
+                    const isChecked =
+                      typeof check === "boolean"
+                        ? check
+                        : check === undefined ||
+                          (check[id] ?? check.default ?? false);
+
+                    return (
+                      <td
+                        key={id}
+                        className={cn(
+                          "flex items-center gap-2 border-b border-neutral-200 bg-white px-5 py-4",
+                          !isChecked && "text-neutral-300",
+                        )}
+                      >
+                        {isChecked ? (
+                          <Check className="size-3 text-neutral-500" />
+                        ) : (
+                          <span className="w-3">&bull;</span>
+                        )}
+                        <As
+                          href={href}
+                          target="_blank"
+                          {...(href && {
+                            className:
+                              "cursor-help underline decoration-dotted underline-offset-2",
+                          })}
+                        >
+                          {typeof text === "function"
+                            ? (text({
+                                id,
+                                plan,
+                              }) as React.ReactNode)
+                            : text}
+                        </As>
+                      </td>
+                    );
+                  })}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </motion.div>
     </div>
   );
 }

@@ -624,20 +624,23 @@ export const onboardPartnerSchema = createPartnerSchema
     companyName: data.profileType === "individual" ? null : data.companyName,
   }));
 
-export const createPartnerLinkSchema = z
-  .object({
-    partnerId: z
-      .string()
-      .nullish()
-      .describe(
-        "The ID of the partner to create a link for. Will take precedence over `tenantId` if provided.",
-      ),
-    tenantId: z
-      .string()
-      .nullish()
-      .describe(
-        "The ID of the partner in your system. If both `partnerId` and `tenantId` are not provided, an error will be thrown.",
-      ),
+export const partnerIdTenantIdSchema = z.object({
+  partnerId: z
+    .string()
+    .nullish()
+    .describe(
+      "The ID of the partner to create a link for. Will take precedence over `tenantId` if provided.",
+    ),
+  tenantId: z
+    .string()
+    .nullish()
+    .describe(
+      "The ID of the partner in your system. If both `partnerId` and `tenantId` are not provided, an error will be thrown.",
+    ),
+});
+
+export const createPartnerLinkSchema = partnerIdTenantIdSchema
+  .extend({
     url: parseUrlSchema
       .describe(
         "The URL to shorten (if not provided, the program's default URL will be used). Will throw an error if the domain doesn't match the program's default URL domain.",
@@ -677,6 +680,7 @@ export const partnerAnalyticsQuerySchema = analyticsQuerySchema
     timezone: true,
     query: true,
   })
+  .merge(partnerIdTenantIdSchema)
   .merge(
     z.object({
       groupBy: z
@@ -756,19 +760,7 @@ export const bulkRejectPartnersSchema = z.object({
     .transform((v) => [...new Set(v)]),
 });
 
-export const retrievePartnerLinksSchema = z
-  .object({
-    partnerId: z.string().optional(),
-    tenantId: z.string().optional(),
-  })
-  .refine(
-    (data) => data.partnerId !== undefined || data.tenantId !== undefined,
-    {
-      message:
-        "Either partnerId or tenantId must be provided to retrieve a partner.",
-      path: [],
-    },
-  );
+export const retrievePartnerLinksSchema = partnerIdTenantIdSchema;
 
 export const banPartnerSchema = z.object({
   workspaceId: z.string(),
@@ -780,6 +772,10 @@ export const banPartnerSchema = z.object({
     ],
   ),
 });
+
+export const banPartnerApiSchema = partnerIdTenantIdSchema.merge(
+  banPartnerSchema.pick({ reason: true }),
+);
 
 export const bulkBanPartnersSchema = z.object({
   workspaceId: z.string(),

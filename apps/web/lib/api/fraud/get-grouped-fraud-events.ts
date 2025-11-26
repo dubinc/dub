@@ -1,5 +1,5 @@
 import {
-  fraudEventSchema,
+  groupedFraudEventSchema,
   groupedFraudEventsQuerySchema,
 } from "@/lib/zod/schemas/fraud";
 import { prisma } from "@dub/prisma";
@@ -20,14 +20,10 @@ interface QueryResult {
   groupKey: string;
   lastOccurrenceAt: Date;
   eventCount: bigint | number;
-  totalCommissions: bigint | number | null;
   partnerId: string | null;
   partnerName: string | null;
   partnerEmail: string | null;
   partnerImage: string | null;
-  customerId: string | null;
-  customerEmail: string | null;
-  customerName: string | null;
   userId: string | null;
   userName: string | null;
   userImage: string | null;
@@ -37,6 +33,7 @@ interface QueryResult {
 export async function getGroupedFraudEvents({
   programId,
   partnerId,
+  customerId,
   groupKey,
   status,
   type,
@@ -52,6 +49,7 @@ export async function getGroupedFraudEvents({
       status && Prisma.sql`FraudEvent.status = ${status}`,
       type && Prisma.sql`FraudEvent.type = ${type}`,
       partnerId && Prisma.sql`FraudEvent.partnerId = ${partnerId}`,
+      customerId && Prisma.sql`FraudEvent.customerId = ${customerId}`,
       groupKey && Prisma.sql`FraudEvent.groupKey = ${groupKey}`,
     ].filter(Boolean),
     " AND ",
@@ -75,16 +73,12 @@ export async function getGroupedFraudEvents({
       fe.groupKey,
       fe.commissionId,
       fe.partnerId,
-      fe.customerId,
       fe.userId,
       dfe.lastOccurrenceAt,
       dfe.eventCount,
-      dfe.totalCommissions,
       p.name AS partnerName,
       p.email AS partnerEmail,
       p.image AS partnerImage,
-      c.email AS customerEmail,
-      c.name AS customerName,
       u.name AS userName,
       u.image AS userImage
     FROM (
@@ -92,10 +86,8 @@ export async function getGroupedFraudEvents({
         FraudEvent.groupKey,
         MAX(FraudEvent.id) AS latestEventId,
         MAX(FraudEvent.createdAt) AS lastOccurrenceAt,
-        COUNT(*) AS eventCount,
-        COALESCE(SUM(comm.earnings), 0) AS totalCommissions
+        COUNT(*) AS eventCount
       FROM FraudEvent
-      LEFT JOIN Commission comm ON comm.id = FraudEvent.commissionId
       WHERE ${subqueryWhereClause}
       GROUP BY FraudEvent.groupKey
     ) dfe
@@ -103,8 +95,6 @@ export async function getGroupedFraudEvents({
       ON fe.id = dfe.latestEventId
     LEFT JOIN Partner p
       ON p.id = fe.partnerId
-    LEFT JOIN Customer c
-      ON c.id = fe.customerId
     LEFT JOIN User u
       ON u.id = fe.userId
     ${orderByClause}
@@ -128,13 +118,6 @@ export async function getGroupedFraudEvents({
           image: event.partnerImage,
         }
       : null,
-    customer: event.customerId
-      ? {
-          id: event.customerId,
-          name: event.customerName,
-          email: event.customerEmail,
-        }
-      : null,
     user: event.userId
       ? {
           id: event.userId,
@@ -144,5 +127,5 @@ export async function getGroupedFraudEvents({
       : null,
   }));
 
-  return z.array(fraudEventSchema).parse(groupedEvents);
+  return z.array(groupedFraudEventSchema).parse(groupedEvents);
 }

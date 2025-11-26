@@ -13,7 +13,7 @@ const dub = new Dub({
 await dub.track.lead({
   clickId: "rLnWe1uz9t282v7g",
   eventName: "Sign up",
-  externalId: "cus_oFUYbZYqHFR0knk0MjsMC6b0",
+  customerExternalId: "cus_oFUYbZYqHFR0knk0MjsMC6b0",
   customerName: "John Doe",
   customerEmail: "john.doe@example.com",
   customerAvatar: "https://example.com/avatar.png",
@@ -32,7 +32,7 @@ const response = await fetch("https://api.dub.co/track/lead", {
   body: JSON.stringify({
     clickId: "rLnWe1uz9t282v7g",
     eventName: "Sign up",
-    externalId: "cus_oFUYbZYqHFR0knk0MjsMC6b0",
+    customerExternalId: "cus_oFUYbZYqHFR0knk0MjsMC6b0",
     customerName: "John Doe",
     customerEmail: "john.doe@example.com",
     customerAvatar: "https://example.com/avatar.png",

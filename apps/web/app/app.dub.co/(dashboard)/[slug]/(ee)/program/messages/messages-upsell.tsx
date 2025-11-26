@@ -7,9 +7,7 @@ import { cn } from "@dub/utils";
 
 export function MessagesUpsell() {
   const { partnersUpgradeModal, setShowPartnersUpgradeModal } =
-    usePartnersUpgradeModal({
-      plan: "Advanced",
-    });
+    usePartnersUpgradeModal();
 
   return (
     <PageContent

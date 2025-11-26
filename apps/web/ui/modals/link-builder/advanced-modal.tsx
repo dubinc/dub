@@ -12,10 +12,10 @@ import {
 import { useForm, useFormContext } from "react-hook-form";
 
 function AdvancedModal({
-  showAdvancedModal,
+  showPartnersUpgradeModal,
   setShowAdvancedModal,
 }: {
-  showAdvancedModal: boolean;
+  showPartnersUpgradeModal: boolean;
   setShowAdvancedModal: Dispatch<SetStateAction<boolean>>;
 }) {
   const id = useId();
@@ -48,7 +48,7 @@ function AdvancedModal({
 
   return (
     <Modal
-      showModal={showAdvancedModal}
+      showModal={showPartnersUpgradeModal}
       setShowModal={setShowAdvancedModal}
       className="sm:max-w-[500px]"
     >
@@ -173,16 +173,16 @@ function AdvancedModal({
 }
 
 export function useAdvancedModal() {
-  const [showAdvancedModal, setShowAdvancedModal] = useState(false);
+  const [showPartnersUpgradeModal, setShowAdvancedModal] = useState(false);
 
   const AdvancedModalCallback = useCallback(() => {
     return (
       <AdvancedModal
-        showAdvancedModal={showAdvancedModal}
+        showPartnersUpgradeModal={showPartnersUpgradeModal}
         setShowAdvancedModal={setShowAdvancedModal}
       />
     );
-  }, [showAdvancedModal, setShowAdvancedModal]);
+  }, [showPartnersUpgradeModal, setShowAdvancedModal]);
 
   return useMemo(
     () => ({

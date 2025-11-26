@@ -25,7 +25,7 @@ const afterCallback = async (req: Request, session: Session) => {
       await dub.track.lead({
         clickId,
         eventName: "Sign Up",
-        externalId: session.user.id,
+        customerExternalId: session.user.id,
         customerName: session.user.name,
         customerEmail: session.user.email,
         customerAvatar: session.user.image,

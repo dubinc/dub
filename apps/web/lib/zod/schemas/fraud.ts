@@ -9,7 +9,7 @@ import { UserSchema } from "./users";
 
 export const MAX_RESOLUTION_REASON_LENGTH = 200;
 
-export const fraudEventSchema = z.object({
+export const groupedFraudEventSchema = z.object({
   id: z.string(),
   type: z.nativeEnum(FraudRuleType),
   status: z.nativeEnum(FraudEventStatus),
@@ -24,11 +24,6 @@ export const fraudEventSchema = z.object({
     email: true,
     image: true,
   }),
-  customer: CustomerSchema.pick({
-    id: true,
-    name: true,
-    email: true,
-  }).nullable(),
   user: UserSchema.pick({
     id: true,
     name: true,
@@ -41,6 +36,7 @@ export const groupedFraudEventsQuerySchema = z
     status: z.nativeEnum(FraudEventStatus).optional(),
     type: z.nativeEnum(FraudRuleType).optional(),
     partnerId: z.string().optional(),
+    customerId: z.string().optional(),
     groupKey: z.string().optional(),
     sortBy: z.enum(["createdAt", "type"]).default("createdAt"),
     sortOrder: z.enum(["asc", "desc"]).default("desc"),
@@ -169,6 +165,7 @@ export const rawFraudEventSchemas = {
       id: true,
       name: true,
       email: true,
+      avatar: true,
     }),
     metadata: z
       .object({
@@ -183,6 +180,7 @@ export const rawFraudEventSchemas = {
       id: true,
       name: true,
       email: true,
+      avatar: true,
     }),
     metadata: z
       .object({
@@ -197,6 +195,7 @@ export const rawFraudEventSchemas = {
       id: true,
       name: true,
       email: true,
+      avatar: true,
     }),
   }),
 
@@ -206,6 +205,7 @@ export const rawFraudEventSchemas = {
       id: true,
       name: true,
       email: true,
+      avatar: true,
     }),
   }),
 

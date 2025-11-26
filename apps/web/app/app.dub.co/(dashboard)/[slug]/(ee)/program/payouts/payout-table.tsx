@@ -23,18 +23,13 @@ import {
   useTable,
 } from "@dub/ui";
 import { MoneyBill2 } from "@dub/ui/icons";
-import {
-  cn,
-  currencyFormatter,
-  formatDate,
-  formatDateTime,
-  OG_AVATAR_URL,
-} from "@dub/utils";
+import { cn, currencyFormatter } from "@dub/utils";
 import { formatPeriod } from "@dub/utils/src/functions/datetime";
 import { fetcher } from "@dub/utils/src/functions/fetcher";
 import { PayoutDetailsSheet } from "app/app.dub.co/(dashboard)/[slug]/(ee)/program/payouts/payout-details-sheet";
+import { PayoutPaidCell } from "app/app.dub.co/(dashboard)/[slug]/(ee)/program/payouts/payout-paid-cell";
 import { useParams } from "next/navigation";
-import { memo, useEffect, useState } from "react";
+import { memo, useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 import { usePayoutFilters } from "./use-payout-filters";
 
@@ -109,6 +104,15 @@ const PayoutTableInner = memo(
       },
     });
 
+    // Memoized map of partner IDs with pending fraud events
+    const fraudEventsCountMap = useMemo(() => {
+      if (!fraudEventsCount) {
+        return new Set<string>();
+      }
+
+      return new Set(fraudEventsCount.map(({ partnerId }) => partnerId));
+    }, [fraudEventsCount]);
+
     const table = useTable({
       data: payouts || [],
       loading: isLoading,
@@ -128,12 +132,12 @@ const PayoutTableInner = memo(
         {
           header: "Status",
           cell: ({ row }) => {
-            const partnerHasPendingFraud = fraudEventsCount?.find(
-              ({ partnerId }) => partnerId === row.original.partner.id,
+            const hasFraudPending = fraudEventsCountMap.has(
+              row.original.partner.id,
             );
 
             const status =
-              partnerHasPendingFraud && row.original.status === "pending"
+              hasFraudPending && row.original.status === "pending"
                 ? "hold"
                 : row.original.status;
 
@@ -160,96 +164,30 @@ const PayoutTableInner = memo(
           },
         },
         {
+          id: "initiatedAt",
           header: "Paid",
-          cell: ({ row }) => {
-            const ProcessingIcon = PayoutStatusBadges.processing.icon;
-            const CompletedIcon = PayoutStatusBadges.completed.icon;
-
-            return row.original.initiatedAt ? (
-              <Tooltip
-                content={
-                  <div className="flex flex-col gap-1 p-2.5">
-                    {row.original.user && (
-                      <div className="flex flex-col gap-2">
-                        <img
-                          src={
-                            row.original.user.image ||
-                            `${OG_AVATAR_URL}${row.original.user.name}`
-                          }
-                          alt={row.original.user.name ?? row.original.user.id}
-                          className="size-6 shrink-0 rounded-full"
-                        />
-                        <p className="text-sm font-medium">
-                          {row.original.user.name}
-                        </p>
-                      </div>
-                    )}
-                    <div className="flex items-center gap-1.5 text-xs text-neutral-500">
-                      <ProcessingIcon className="size-3 shrink-0 text-blue-600" />
-                      <span>
-                        Payment initiated at{" "}
-                        <span className="font-medium text-neutral-700">
-                          {formatDateTime(row.original.initiatedAt, {
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                            hour: "numeric",
-                            minute: "numeric",
-                          })}
-                        </span>
-                      </span>
-                    </div>
-                    {row.original.paidAt && (
-                      <div className="flex items-center gap-1.5 text-xs text-neutral-500">
-                        <CompletedIcon className="size-3 shrink-0 text-green-600" />
-                        <span>
-                          Payment completed at{" "}
-                          <span className="font-medium text-neutral-700">
-                            {formatDateTime(row.original.paidAt, {
-                              month: "short",
-                              day: "numeric",
-                              year: "numeric",
-                              hour: "numeric",
-                              minute: "numeric",
-                            })}
-                          </span>
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                }
-              >
-                <div className="flex items-center gap-2">
-                  {row.original.user && (
-                    <img
-                      src={
-                        row.original.user.image ||
-                        `${OG_AVATAR_URL}${row.original.user.name}`
-                      }
-                      alt={row.original.user.name ?? row.original.user.id}
-                      className="size-5 shrink-0 rounded-full"
-                    />
-                  )}
-                  {formatDate(row.original.initiatedAt, {
-                    month: "short",
-                    year: undefined,
-                  })}
-                </div>
-              </Tooltip>
-            ) : (
-              "-"
-            );
-          },
+          cell: ({ row }) => (
+            <PayoutPaidCell
+              initiatedAt={row.original.initiatedAt}
+              paidAt={row.original.paidAt}
+              user={row.original.user}
+            />
+          ),
         },
         {
           id: "amount",
           header: "Amount",
-          cell: ({ row }) => <AmountRowItem payout={row.original} />,
+          cell: ({ row }) => (
+            <AmountRowItem
+              payout={row.original}
+              hasFraudPending={fraudEventsCountMap.has(row.original.partner.id)}
+            />
+          ),
         },
       ],
       pagination,
       onPaginationChange: setPagination,
-      sortableColumns: ["amount", "initiatedAt", "paidAt"],
+      sortableColumns: ["amount", "initiatedAt"],
       sortBy,
       sortOrder,
       onSortChange: ({ sortBy, sortOrder }) =>
@@ -340,8 +278,10 @@ const PayoutTableInner = memo(
 
 function AmountRowItem({
   payout,
+  hasFraudPending,
 }: {
   payout: Pick<PayoutResponse, "amount" | "status" | "mode" | "partner">;
+  hasFraudPending: boolean;
 }) {
   const { slug } = useParams();
   const { program } = useProgram();
@@ -405,6 +345,18 @@ function AmountRowItem({
     if (payout.mode === "internal" && !payout.partner?.payoutsEnabledAt) {
       return (
         <Tooltip content="This partner does not have payouts enabled, which means they will not be able to receive any payouts from this program.">
+          <span className="cursor-help truncate text-neutral-400 underline decoration-dotted underline-offset-2">
+            {display}
+          </span>
+        </Tooltip>
+      );
+    }
+
+    if (hasFraudPending) {
+      return (
+        <Tooltip
+          content={`This partner's payouts are on hold due to [unresolved fraud events](${`/${slug}/program/fraud?partnerId=${payout.partner.id}`}). They cannot be paid out until resolved.`}
+        >
           <span className="cursor-help truncate text-neutral-400 underline decoration-dotted underline-offset-2">
             {display}
           </span>
