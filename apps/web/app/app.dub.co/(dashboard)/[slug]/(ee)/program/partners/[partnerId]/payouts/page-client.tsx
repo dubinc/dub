@@ -14,6 +14,7 @@ import {
   useTable,
 } from "@dub/ui";
 import { cn, currencyFormatter, formatPeriod } from "@dub/utils";
+import { PayoutPaidCell } from "app/app.dub.co/(dashboard)/[slug]/(ee)/program/payouts/payout-paid-cell";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 
@@ -44,7 +45,12 @@ function PartnerPayouts({ partner }: { partner: EnrolledPartnerProps }) {
     error: payoutsError,
     loading,
   } = usePayouts({
-    query: { partnerId: partner.id, pageSize: 10 },
+    query: {
+      partnerId: partner.id,
+      pageSize: 10,
+      sortBy: "initiatedAt",
+      sortOrder: "desc",
+    },
   });
 
   const table = useTable({
@@ -68,6 +74,17 @@ function PartnerPayouts({ partner }: { partner: EnrolledPartnerProps }) {
             "-"
           );
         },
+      },
+
+      {
+        header: "Paid",
+        cell: ({ row }) => (
+          <PayoutPaidCell
+            initiatedAt={row.original.initiatedAt}
+            paidAt={row.original.paidAt}
+            user={row.original.user}
+          />
+        ),
       },
       {
         id: "amount",
