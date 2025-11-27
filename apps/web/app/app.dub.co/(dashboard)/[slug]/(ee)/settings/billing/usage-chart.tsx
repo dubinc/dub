@@ -322,10 +322,10 @@ export function UsageChart() {
   );
 
   return (
-    <div className="space-y-4 pt-8">
+    <div className="space-y-4 pt-4 sm:pt-8">
       <div className="flex flex-col gap-3">
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
+        <div className="flex flex-col gap-2 px-4 md:flex-row md:items-center md:justify-between">
+          <div className="flex w-full flex-col gap-2 md:w-fit md:flex-row md:items-center">
             <Filter.Select
               className="h-9 w-full md:w-fit"
               filters={filters}
@@ -336,7 +336,7 @@ export function UsageChart() {
             <SimpleDateRangePicker
               presets={["7d", "30d", "90d", "1y", "mtd", "qtd", "ytd"]}
               values={{ start, end, interval }}
-              className="h-9"
+              className="h-9 w-full md:w-fit"
             />
           </div>
           <ToggleGroup
@@ -346,8 +346,8 @@ export function UsageChart() {
             ]}
             selected={groupBy}
             selectAction={(id) => queryParams({ set: { groupBy: id } })}
-            className="rounded-lg border-transparent bg-neutral-100 p-0.5"
-            optionClassName="text-xs text-neutral-800 data-[selected=true]:text-neutral-800 px-3 sm:px-5 py-2 leading-none"
+            className="w-full rounded-lg border-transparent bg-neutral-100 p-0.5 md:w-fit"
+            optionClassName="flex-1 justify-center text-xs text-neutral-800 data-[selected=true]:text-neutral-800 px-3 sm:px-5 py-2 leading-none"
             indicatorClassName="bg-white border-neutral-200 rounded-md"
           />
         </div>
