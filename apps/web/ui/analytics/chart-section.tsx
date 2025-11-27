@@ -1,6 +1,11 @@
 import { EventType } from "@/lib/analytics/types";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { BlurImage, buttonVariants, useRouterStuff } from "@dub/ui";
+import {
+  BlurImage,
+  buttonVariants,
+  ToggleGroup,
+  useRouterStuff,
+} from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Play } from "lucide-react";
 import Link from "next/link";
@@ -109,7 +114,32 @@ export function ChartSection() {
             </div>
           )}
         </div>
-        <ChartViewSwitcher className="absolute right-3 top-3" />
+        <div className="absolute right-3 top-3 flex items-center gap-2">
+          {showConversions && (
+            <ToggleGroup
+              className="flex w-fit shrink-0 items-center gap-1 border-neutral-100 bg-neutral-100 sm:hidden"
+              optionClassName="size-8 p-0 flex items-center justify-center"
+              indicatorClassName="border border-neutral-200 bg-white"
+              options={[
+                {
+                  label: <div className="text-base">$</div>,
+                  value: "saleAmount",
+                },
+                {
+                  label: <div className="text-[11px]">123</div>,
+                  value: "sales",
+                },
+              ]}
+              selected={saleUnit}
+              selectAction={(option) =>
+                queryParams({
+                  set: { saleUnit: option },
+                })
+              }
+            />
+          )}
+          <ChartViewSwitcher />
+        </div>
         {showPaywall && <ConversionTrackingPaywall />}
       </div>
     </div>
