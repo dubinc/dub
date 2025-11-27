@@ -35,13 +35,6 @@ interface CreateGroupKeyInput {
   programId: string;
 
   /**
-   * The batch ID used to group fraud events. This is used when resolving fraud events
-   * to break grouping so resolved events are no longer grouped with pending events
-   * that share the same programId, partnerId, and type.
-   */
-  batchId?: string;
-
-  /**
    * The artifact key used to group fraud events. It can be:
    * - partnerId: for partner-specific grouping
    * - Any other identifier relevant to the fraud rule type
@@ -52,7 +45,7 @@ interface CreateGroupKeyInput {
 // Create a unique group key to identify and deduplicate fraud events of the same type
 // based on programId and artifactKey (e.g., partnerId, payoutMethodHash, or other identifiers).
 export function createFraudEventGroupKey(input: CreateGroupKeyInput): string {
-  const parts = [input.programId, input.type, input.artifactKey, input.batchId]
+  const parts = [input.programId, input.type, input.artifactKey]
     .filter(Boolean)
     .map((p) => p!.toLowerCase());
 
