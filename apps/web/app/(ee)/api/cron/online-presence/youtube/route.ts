@@ -1,5 +1,5 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
+import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { prisma } from "@dub/prisma";
 import { chunk, deepEqual } from "@dub/utils";
 import { NextResponse } from "next/server";
@@ -10,9 +10,14 @@ export const dynamic = "force-dynamic";
     This route is used to update youtube stats for youtubeVerified partners
     Runs once a day at 06:00 AM UTC (cron expression: 0 6 * * *)
 */
-export async function GET(req: Request) {
+export async function POST(req: Request) {
   try {
-    await verifyVercelSignature(req);
+    const rawBody = await req.text();
+
+    await verifyQstashSignature({
+      req,
+      rawBody,
+    });
 
     if (!process.env.YOUTUBE_API_KEY) {
       throw new Error("YOUTUBE_API_KEY is not defined");

@@ -6,6 +6,7 @@ import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
 import { withWorkspace } from "@/lib/auth";
+import { throwIfNoPartnerIdOrTenantId } from "@/lib/partners/throw-if-no-partnerid-tenantid";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { linkEventSchema } from "@/lib/zod/schemas/links";
 import {
@@ -26,6 +27,8 @@ export const GET = withWorkspace(
 
     const { partnerId, tenantId } =
       retrievePartnerLinksSchema.parse(searchParams);
+
+    throwIfNoPartnerIdOrTenantId({ partnerId, tenantId });
 
     const programEnrollment = await prisma.programEnrollment.findUnique({
       where: partnerId
@@ -83,12 +86,7 @@ export const POST = withWorkspace(
       });
     }
 
-    if (!partnerId && !tenantId) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: "You must provide a partnerId or tenantId.",
-      });
-    }
+    throwIfNoPartnerIdOrTenantId({ partnerId, tenantId });
 
     const partner = await prisma.programEnrollment.findUnique({
       where: partnerId

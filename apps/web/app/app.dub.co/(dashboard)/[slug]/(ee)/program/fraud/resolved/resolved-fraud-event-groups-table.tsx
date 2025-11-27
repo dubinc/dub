@@ -189,7 +189,7 @@ export function ResolvedFraudEventGroupsTable() {
     },
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
-    resourceName: () => "resolved fraud event",
+    resourceName: (plural) => `resolved fraud event${plural ? "s" : ""}`,
     rowCount: fraudEventsCount ?? 0,
     loading,
     error:

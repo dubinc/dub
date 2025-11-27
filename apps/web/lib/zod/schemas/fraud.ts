@@ -9,7 +9,7 @@ import { UserSchema } from "./users";
 
 export const MAX_RESOLUTION_REASON_LENGTH = 200;
 
-export const fraudEventSchema = z.object({
+export const groupedFraudEventSchema = z.object({
   id: z.string(),
   type: z.nativeEnum(FraudRuleType),
   status: z.nativeEnum(FraudEventStatus),
@@ -24,11 +24,6 @@ export const fraudEventSchema = z.object({
     email: true,
     image: true,
   }),
-  customer: CustomerSchema.pick({
-    id: true,
-    name: true,
-    email: true,
-  }).nullable(),
   user: UserSchema.pick({
     id: true,
     name: true,

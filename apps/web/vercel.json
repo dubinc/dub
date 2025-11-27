@@ -29,19 +29,7 @@
       "schedule": "0 12 * * *"
     },
     {
-      "path": "/api/cron/disposable-emails",
-      "schedule": "0 12 * * 1"
-    },
-    {
-      "path": "/api/cron/fx-rates",
-      "schedule": "0 8 * * *"
-    },
-    {
       "path": "/api/cron/aggregate-clicks",
-      "schedule": "0 0 * * *"
-    },
-    {
-      "path": "/api/cron/trigger-withdrawal",
       "schedule": "0 0 * * *"
     },
     {
@@ -61,29 +49,13 @@
       "schedule": "0 13 25-31,1-5 * *"
     },
     {
-      "path": "/api/cron/online-presence/youtube",
-      "schedule": "0 6 * * *"
-    },
-    {
-      "path": "/api/cron/cleanup/e2e-tests",
-      "schedule": "0 */6 * * *"
-    },
-    {
-      "path": "/api/cron/cleanup/expired-tokens",
-      "schedule": "0 2 * * *"
-    },
-    {
-      "path": "/api/cron/cleanup/link-retention",
-      "schedule": "0 */12 * * *"
-    },
-    {
       "path": "/api/cron/calculate-program-similarities",
       "schedule": "0 */12 * * *"
     }
   ],
   "functions": {
     "app/(ee)/api/cron/**/*.ts": {
-      "maxDuration": 300
+      "maxDuration": 600
     }
   }
 }
