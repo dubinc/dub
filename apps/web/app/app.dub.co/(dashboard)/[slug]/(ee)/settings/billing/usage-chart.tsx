@@ -324,7 +324,7 @@ export function UsageChart() {
   return (
     <div className="space-y-4 pt-4 sm:pt-8">
       <div className="flex flex-col gap-3">
-        <div className="flex flex-col gap-2 px-4 md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-col gap-2 px-4 md:flex-row md:items-center md:justify-between md:px-0">
           <div className="flex w-full flex-col gap-2 md:w-fit md:flex-row md:items-center">
             <Filter.Select
               className="h-9 w-full md:w-fit"
