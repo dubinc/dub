@@ -7,7 +7,7 @@ interface CreateFraudEventsInput {
   programId: string;
   partnerId: string;
   type: FraudRuleType;
-  artifactKey?: string; // if not provided, partnerId will be used
+  groupingKey?: string; // if not provided, partnerId will be used
 }
 
 export async function createFraudEvents(fraudEvents: CreateFraudEventsInput[]) {
@@ -17,12 +17,12 @@ export async function createFraudEvents(fraudEvents: CreateFraudEventsInput[]) {
 
   await prisma.fraudEvent.createMany({
     data: fraudEvents.map((event) => {
-      const { programId, partnerId, type, artifactKey } = event;
+      const { programId, partnerId, type, groupingKey } = event;
 
       const groupKey = createFraudEventGroupKey({
         programId,
         type,
-        artifactKey: artifactKey ?? partnerId,
+        groupingKey: groupingKey ?? partnerId,
       });
 
       return {

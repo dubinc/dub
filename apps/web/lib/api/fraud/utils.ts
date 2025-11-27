@@ -35,17 +35,17 @@ interface CreateGroupKeyInput {
   programId: string;
 
   /**
-   * The artifact key used to group fraud events. It can be:
+   * The grouping key used to group fraud events. It can be:
    * - partnerId: for partner-specific grouping
    * - Any other identifier relevant to the fraud rule type
    */
-  artifactKey: string;
+  groupingKey: string;
 }
 
 // Create a unique group key to identify and deduplicate fraud events of the same type
-// based on programId and artifactKey
+// based on programId and groupingKey
 export function createFraudEventGroupKey(input: CreateGroupKeyInput): string {
-  const parts = [input.programId, input.type, input.artifactKey]
+  const parts = [input.programId, input.type, input.groupingKey]
     .filter(Boolean)
     .map((p) => p!.toLowerCase());
 

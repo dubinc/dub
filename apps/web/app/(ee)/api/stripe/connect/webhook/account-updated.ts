@@ -105,14 +105,14 @@ export async function accountUpdated(event: Stripe.Event) {
         ({ programs }) => programs,
       );
 
-      const artifactKey = nanoid(10);
+      const groupingKey = nanoid(10);
 
       await createFraudEvents(
         programEnrollments.map(({ partnerId, programId }) => ({
           programId,
           partnerId,
           type: "partnerDuplicatePayoutMethod",
-          artifactKey,
+          groupingKey,
         })),
       );
     }
