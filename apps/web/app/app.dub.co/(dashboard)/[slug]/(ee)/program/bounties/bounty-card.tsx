@@ -54,7 +54,7 @@ export function BountyCard({ bounty }: { bounty: BountyListProps }) {
         </div>
 
         <div className="flex flex-col gap-1.5 px-2 pb-1.5">
-          <h3 className="text-content-emphasis truncate text-sm font-semibold">
+          <h3 className="text-content-emphasis text-sm font-semibold md:truncate">
             {bounty.name}
           </h3>
 
