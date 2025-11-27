@@ -11,76 +11,11 @@ import { usePartnersCountByGroupIds } from "@/lib/swr/use-partners-count-by-grou
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountyThumbnailImage } from "@/ui/partners/bounties/bounty-thumbnail-image";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
-import { Tooltip } from "@dub/ui";
+import { ScrollableTooltipContent, Tooltip } from "@dub/ui";
 import { Calendar6, Gift, Users, Users6 } from "@dub/ui/icons";
 import { formatDate, nFormatter, pluralize } from "@dub/utils";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo } from "react";
 import { BountyActionButton } from "../bounty-action-button";
-
-function ScrollableTooltipContent({
-  groups,
-}: {
-  groups: Array<{ id: string; name: string; color: string | null }>;
-}) {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [showTopGradient, setShowTopGradient] = useState(false);
-  const [showBottomGradient, setShowBottomGradient] = useState(false);
-
-  const checkScroll = () => {
-    if (!scrollRef.current) return;
-
-    const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
-    const isAtTop = scrollTop === 0;
-    const isAtBottom = scrollTop + clientHeight >= scrollHeight - 1;
-
-    setShowTopGradient(!isAtTop);
-    setShowBottomGradient(!isAtBottom);
-  };
-
-  useEffect(() => {
-    const element = scrollRef.current;
-    if (!element) return;
-
-    // Check initial state
-    checkScroll();
-
-    // Add scroll listener
-    element.addEventListener("scroll", checkScroll);
-
-    // Use ResizeObserver to handle content changes
-    const resizeObserver = new ResizeObserver(checkScroll);
-    resizeObserver.observe(element);
-
-    return () => {
-      element.removeEventListener("scroll", checkScroll);
-      resizeObserver.disconnect();
-    };
-  }, [groups]);
-
-  return (
-    <div className="relative">
-      {showTopGradient && (
-        <div className="pointer-events-none absolute left-0 right-0 top-0 z-10 h-6 rounded-t-xl bg-gradient-to-b from-white to-transparent" />
-      )}
-      <div
-        ref={scrollRef}
-        className="flex max-h-[240px] flex-col gap-2 overflow-y-auto px-3 py-2"
-      >
-        {groups.map((group) => (
-          <div key={group.id} className="flex items-center gap-2">
-            <GroupColorCircle group={group} />
-            <span className="font-regular text-sm text-neutral-700">
-              {group.name}
-            </span>
-          </div>
-        ))}
-      </div>
-      {showBottomGradient && (
-        <div className="pointer-events-none absolute bottom-0 left-0 right-0 z-10 h-6 rounded-b-xl bg-gradient-to-t from-white to-transparent" />
-      )}
-    </div>
-  );
-}
 
 export function BountyInfo() {
   const { bounty, loading } = useBounty();
@@ -220,7 +155,18 @@ export function BountyInfo() {
               </div>
             ) : eligibleGroups.length > 1 ? (
               <Tooltip
-                content={<ScrollableTooltipContent groups={eligibleGroups} />}
+                content={
+                  <ScrollableTooltipContent>
+                    {eligibleGroups.map((group) => (
+                      <div key={group.id} className="flex items-center gap-2">
+                        <GroupColorCircle group={group} />
+                        <span className="font-regular text-sm text-neutral-700">
+                          {group.name}
+                        </span>
+                      </div>
+                    ))}
+                  </ScrollableTooltipContent>
+                }
               >
                 <div className="flex items-center gap-1.5">
                   <GroupColorCircle group={eligibleGroups[0]} />
