@@ -99,9 +99,13 @@ export async function checkoutSessionCompleted(
           {
             externalId: clickEvent.click_id,
           },
-          {
-            externalId: stripeCustomerEmail,
-          },
+          ...(stripeCustomerEmail
+            ? [
+                {
+                  externalId: stripeCustomerEmail,
+                },
+              ]
+            : []),
         ],
       },
     });
@@ -212,10 +216,14 @@ export async function checkoutSessionCompleted(
             {
               stripeCustomerId,
             },
-            {
-              projectId: workspace.id,
-              email: stripeCustomerEmail,
-            },
+            ...(stripeCustomerEmail
+              ? [
+                  {
+                    projectId: workspace.id,
+                    email: stripeCustomerEmail,
+                  },
+                ]
+              : []),
           ],
         },
       });
