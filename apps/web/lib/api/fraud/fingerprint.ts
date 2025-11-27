@@ -9,7 +9,16 @@ const eventResponseSchema = z.object({
   }),
 });
 
-export async function getVerifiedVisitorId(requestId: string | null) {
+type FingerprintVisitorResponse =
+  | { visitorId: string; status: "valid" }
+  | { visitorId: null; status: "not_found" }
+  | { visitorId: null; status: "error" };
+
+// Fetches visitor fingerprint data from the Fingerprint API.
+// If the Fingerprint API is unavailable, we return an error status but do not block the onboarding process.
+export async function fetchVisitorFingerprint(
+  requestId: string | null,
+): Promise<FingerprintVisitorResponse> {
   if (!FINGERPRINT_SECRET_KEY) {
     throw new Error("[Fingerprint] Secret API key not configured");
   }
@@ -17,7 +26,7 @@ export async function getVerifiedVisitorId(requestId: string | null) {
   if (!requestId) {
     return {
       visitorId: null,
-      isValid: false,
+      status: "not_found",
     };
   }
 
@@ -31,8 +40,6 @@ export async function getVerifiedVisitorId(requestId: string | null) {
 
     const eventData = await response.json();
 
-    console.log("eventData", eventData)
-
     if (!response.ok) {
       console.error("[Fingerprint]", {
         status: response.status,
@@ -41,9 +48,14 @@ export async function getVerifiedVisitorId(requestId: string | null) {
         error: eventData,
       });
 
+      if (response.status >= 500) {
+        throw new Error(response.statusText);
+      }
+
+      // Could be invalid request ID
       return {
         visitorId: null,
-        isValid: false,
+        status: "not_found",
       };
     }
 
@@ -51,14 +63,14 @@ export async function getVerifiedVisitorId(requestId: string | null) {
 
     return {
       visitorId: identification.visitor_id,
-      isValid: identification.visitor_found,
+      status: "valid",
     };
   } catch (error) {
     console.error("[Fingerprint] Error fetching visitor ID.", error);
 
     return {
       visitorId: null,
-      isValid: false,
+      status: "error",
     };
   }
 }

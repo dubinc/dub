@@ -1,7 +1,7 @@
 "use server";
 
 import { createId } from "@/lib/api/create-id";
-import { getVerifiedVisitorId } from "@/lib/api/fraud/fingerprint";
+import { fetchVisitorFingerprint } from "@/lib/api/fraud/fingerprint";
 import { completeProgramApplications } from "@/lib/partners/complete-program-applications";
 import { storage } from "@/lib/storage";
 import { onboardPartnerSchema } from "@/lib/zod/schemas/partners";
@@ -38,10 +38,15 @@ export const onboardPartnerAction = authUserActionClient
       })
       .then(({ url }) => url);
 
-    const { visitorId, isValid } = await getVerifiedVisitorId(requestId);
+    const result = await fetchVisitorFingerprint(requestId);
 
-    // TODO:
-    // Handle cases where the requestId is invalid or not found
+    if (result.status === "not_found") {
+      throw new Error(
+        "We're having trouble verifying your request. Please refresh the page and try again.",
+      );
+    }
+
+    const visitorId = result.visitorId;
 
     // country, profileType, and companyName cannot be changed once set
     const payload: Prisma.PartnerCreateInput = {
@@ -99,6 +104,15 @@ export const onboardPartnerAction = authUserActionClient
         }),
     ]);
 
-    // Complete any outstanding program application
-    waitUntil(completeProgramApplications(user.email));
+    waitUntil(
+      (async () => {
+        // Complete any outstanding program application
+        await completeProgramApplications(user.email);
+
+        if (visitorId) {
+          // TODO:
+          // Report fraud
+        }
+      })(),
+    );
   });

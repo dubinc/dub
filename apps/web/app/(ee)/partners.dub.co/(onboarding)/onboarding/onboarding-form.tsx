@@ -1,5 +1,6 @@
 "use client";
 
+import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { PartnerData } from "@/lib/actions/partners/create-program-application";
 import { onboardPartnerAction } from "@/lib/actions/partners/onboard-partner";
 import { onboardPartnerSchema } from "@/lib/zod/schemas/partners";
@@ -112,7 +113,7 @@ export function OnboardingForm({
       router.push("/onboarding/online-presence");
     },
     onError: ({ error, input }) => {
-      toast.error(error.serverError);
+      toast.error(parseActionError(error));
       reset(input);
     },
   });
