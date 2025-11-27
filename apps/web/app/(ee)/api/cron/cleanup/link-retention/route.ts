@@ -1,7 +1,6 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
-import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { recordLink } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
@@ -13,12 +12,23 @@ export const dynamic = "force-dynamic";
 
 // This route is used to delete old links for domains with linkRetentionDays set
 // Runs once every 12 hours (0 */12 * * *)
-// GET /api/cron/cleanup/link-retention
-async function handler(req: Request) {
+// POST /api/cron/cleanup/link-retention
+export async function POST(req: Request) {
   try {
-    if (req.method === "GET") {
-      await verifyVercelSignature(req);
+    const rawBody = await req.text();
 
+    await verifyQstashSignature({
+      req,
+      rawBody,
+    });
+
+    const { domain: passedDomain } = z
+      .object({
+        domain: z.string().optional(),
+      })
+      .parse(JSON.parse(rawBody));
+
+    if (!passedDomain) {
       const domains = await prisma.domain.findMany({
         where: {
           linkRetentionDays: {
@@ -26,22 +36,8 @@ async function handler(req: Request) {
           },
         },
       });
-
       await Promise.all(domains.map((domain) => deleteOldLinks(domain)));
-    } else if (req.method === "POST") {
-      const rawBody = await req.text();
-
-      await verifyQstashSignature({
-        req,
-        rawBody,
-      });
-
-      const { domain: passedDomain } = z
-        .object({
-          domain: z.string(),
-        })
-        .parse(JSON.parse(rawBody));
-
+    } else {
       const domain = await prisma.domain.findUniqueOrThrow({
         where: {
           slug: passedDomain,
@@ -149,5 +145,3 @@ async function deleteOldLinks(
     });
   }
 }
-
-export { handler as GET, handler as POST };

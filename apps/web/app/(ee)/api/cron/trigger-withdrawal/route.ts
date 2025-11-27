@@ -1,5 +1,5 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
+import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@dub/prisma";
 import { currencyFormatter } from "@dub/utils";
@@ -7,13 +7,16 @@ import { logAndRespond } from "../utils";
 
 export const dynamic = "force-dynamic";
 
-/*
-    This route is used to trigger withdrawal from Stripe (since we're using manual payouts)
-    Runs twice a day at midnight and noon UTC (0 0 * * * and 0 12 * * *)
-*/
-export async function GET(req: Request) {
+// This route is used to trigger withdrawal from Stripe (since we're using manual payouts)
+// Runs twice a day at midnight and noon UTC (0 0 * * * and 0 12 * * *)
+export async function POST(req: Request) {
   try {
-    await verifyVercelSignature(req);
+    const rawBody = await req.text();
+
+    await verifyQstashSignature({
+      req,
+      rawBody,
+    });
 
     const [stripeBalanceData, payoutsToBeSentData] = await Promise.all([
       stripe.balance.retrieve(),

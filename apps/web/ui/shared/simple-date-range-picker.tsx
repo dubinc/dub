@@ -1,24 +1,33 @@
-import { INTERVAL_DISPLAYS } from "@/lib/analytics/constants";
+import {
+  DATE_RANGE_INTERVAL_PRESETS,
+  INTERVAL_DISPLAYS,
+} from "@/lib/analytics/constants";
 import { getIntervalData } from "@/lib/analytics/utils";
 import { DateRangePicker, useRouterStuff } from "@dub/ui";
+
+type Values = {
+  start?: string;
+  end?: string;
+  interval?: string;
+};
 
 export default function SimpleDateRangePicker({
   className,
   align = "center",
   defaultInterval = "30d",
+  values,
   disabled,
+  presets,
 }: {
   className?: string;
   align?: "start" | "center" | "end";
   defaultInterval?: string;
+  values?: Values;
   disabled?: boolean;
+  presets?: (typeof DATE_RANGE_INTERVAL_PRESETS)[number][];
 }) {
   const { queryParams, searchParamsObj } = useRouterStuff();
-  const { start, end, interval } = searchParamsObj as {
-    start?: string;
-    end?: string;
-    interval?: string;
-  };
+  const { start, end, interval } = values ?? (searchParamsObj as Values);
 
   return (
     <DateRangePicker
@@ -58,7 +67,12 @@ export default function SimpleDateRangePicker({
           scroll: false,
         });
       }}
-      presets={INTERVAL_DISPLAYS.map(({ display, value, shortcut }) => {
+      presets={(presets
+        ? INTERVAL_DISPLAYS.filter(({ value }) =>
+            (presets as string[]).includes(value),
+          )
+        : INTERVAL_DISPLAYS
+      ).map(({ display, value, shortcut }) => {
         const start = getIntervalData(value).startDate;
         const end = new Date();
 

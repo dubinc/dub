@@ -4,7 +4,7 @@ import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
 import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { bulkDeletePartners } from "@/lib/api/partners/bulk-delete-partners";
-import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
+import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
 import { NextResponse } from "next/server";
@@ -14,14 +14,16 @@ export const dynamic = "force-dynamic";
 const E2E_USER_ID = "clxz1q7c7000hbqx5ckv4r82h";
 const E2E_WORKSPACE_ID = "clrei1gld0002vs9mzn93p8ik";
 
-/***
-    This route is used to remove links, domains and tags created during our E2E tests.
-    Runs every 6 hours (0 * / 6 * * *)
-*/
-// GET /api/cron/cleanup/e2e-tests
-export async function GET(req: Request) {
+// This route is used to remove links, domains and tags created during our E2E tests.
+// Runs every 6 hours (0 * / 6 * * *)
+export async function POST(req: Request) {
   try {
-    await verifyVercelSignature(req);
+    const rawBody = await req.text();
+
+    await verifyQstashSignature({
+      req,
+      rawBody,
+    });
 
     const oneDayAgo = new Date(Date.now() - 1000 * 60 * 60 * 24);
 
