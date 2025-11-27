@@ -49,13 +49,14 @@ function BanPartnerModal({
     },
   });
 
-  const [reason, confirm] = watch(["reason", "confirm"]);
+  const [confirm] = watch("confirm");
 
   const { executeAsync, isPending } = useAction(banPartnerAction, {
     onSuccess: async () => {
       toast.success("Partner banned successfully!");
       setShowBanPartnerModal(false);
       mutatePrefix("/api/partners");
+      mutatePrefix("/api/fraud/events");
       onConfirm?.();
     },
     onError({ error }) {

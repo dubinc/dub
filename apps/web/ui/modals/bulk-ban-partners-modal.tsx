@@ -60,6 +60,7 @@ function BulkBanPartnersModal({
       );
       setShowBulkBanPartnersModal(false);
       mutatePrefix("/api/partners");
+      mutatePrefix("/api/fraud/events");
       onConfirm?.();
     },
     onError({ error }) {
