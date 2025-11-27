@@ -89,7 +89,7 @@ export function AnalyticsCard<T extends string>({
       </Modal>
       <div
         className={cn(
-          "group relative z-0 h-[400px] overflow-hidden border border-neutral-200 bg-white rounded-lg sm:rounded-xl",
+          "group relative z-0 h-[400px] overflow-hidden rounded-lg border border-neutral-200 bg-white sm:rounded-xl",
           className,
         )}
       >

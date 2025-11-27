@@ -1,6 +1,7 @@
 import useDomains from "@/lib/swr/use-domains";
 import useFolders from "@/lib/swr/use-folders";
 import useUsage from "@/lib/swr/use-usage";
+import { BarList } from "@/ui/analytics/bar-list";
 import { FolderIcon } from "@/ui/folders/folder-icon";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import {
@@ -9,6 +10,7 @@ import {
   EmptyState,
   Filter,
   LoadingSpinner,
+  Modal,
   ToggleGroup,
   useRouterStuff,
 } from "@dub/ui";
@@ -264,8 +266,63 @@ export function UsageChart() {
     [groupsMeta],
   );
 
+  const [showGroupsModal, setShowGroupsModal] = useState(false);
+
+  const hasMoreGroups = sortedGroupEntries.length > 12;
+
+  const barListTabLabel =
+    groupBy === "folderId"
+      ? "Folder"
+      : groupBy === "domain"
+        ? "Domain"
+        : "Group";
+
+  const barListData = useMemo(
+    () =>
+      sortedGroupEntries.map(([id, meta]) => {
+        let href: string | undefined;
+
+        if (groupBy === "folderId" || groupBy === "domain") {
+          const hasFilter = searchParamsObj?.[groupBy] === id;
+          href = queryParams({
+            ...(hasFilter
+              ? { del: groupBy }
+              : {
+                  set: {
+                    [groupBy]: id,
+                  },
+                }),
+            getNewPath: true,
+          }) as string;
+        }
+
+        return {
+          icon: (
+            <div
+              className={cn(
+                "size-2 rounded-full bg-current",
+                meta.colorClassName,
+              )}
+            />
+          ),
+          title: meta.name || "Unsorted",
+          href,
+          value: meta.total,
+        };
+      }),
+    [sortedGroupEntries, groupBy, queryParams, searchParamsObj],
+  );
+
+  const maxGroupTotal = useMemo(
+    () =>
+      sortedGroupEntries.length > 0
+        ? Math.max(...sortedGroupEntries.map(([, meta]) => meta.total))
+        : 0,
+    [sortedGroupEntries],
+  );
+
   return (
-    <div className={cn("space-y-4 pt-8")}>
+    <div className="space-y-4 pt-8">
       <div className="flex flex-col gap-3">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
@@ -401,92 +458,132 @@ export function UsageChart() {
         )}
       </div>
 
-      <div
-        className={cn(
-          "flex flex-col transition-opacity",
-          isValidating && "opacity-50",
-        )}
-      >
-        <NumberFlowGroup>
-          {sortedGroupEntries.length > 0 ? (
-            sortedGroupEntries.map(([id, meta]) => {
-              const hoveredMeta = deferredHoveredGroupsMeta?.[id];
-              const displayTotal = hoveredMeta?.total ?? meta.total;
-
-              return (
-                <button
-                  key={id}
-                  type="button"
-                  onClick={() => queryParams({ set: { [groupBy]: id } })}
-                  disabled={!id}
-                  className="flex items-center justify-between gap-4 rounded-lg px-3 py-2 text-xs font-medium enabled:hover:bg-black/[0.03] enabled:active:bg-black/5"
-                >
-                  <div className="flex items-center gap-2">
-                    <div
-                      className={cn(
-                        "size-2 rounded-full bg-current",
-                        meta.colorClassName,
-                      )}
-                    />
-                    <span
-                      className={cn(
-                        "text-content-emphasis",
-                        !meta.name && "text-content-subtle",
-                      )}
-                    >
-                      {meta.name || "Unsorted"}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 tabular-nums">
-                    <NumberFlow
-                      value={displayTotal}
-                      className="text-content-default text-right font-medium"
-                    />
-                    {usage && (
-                      <span className="text-content-muted min-w-12 text-right font-medium">
-                        <NumberFlow
-                          value={
-                            (displayTotal /
-                              ((deferredHoveredTotalUsage ?? totalUsage) ||
-                                1)) *
-                            100
-                          }
-                          format={{ maximumFractionDigits: 0 }}
-                        />
-                        %
-                      </span>
-                    )}
-                  </div>
-                </button>
-              );
-            })
-          ) : (
-            <>
-              {loading ? (
-                [...Array(3)].map((_, idx) => (
-                  <div
-                    key={idx}
-                    className="flex animate-pulse items-center justify-between gap-4 px-3 py-2 text-xs font-medium"
-                  >
-                    <div className="flex items-center gap-2">
-                      <div className="size-2 rounded-full bg-neutral-200" />
-                      <div className="h-4 w-32 min-w-0 rounded-md bg-neutral-200" />
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="h-4 w-8 rounded-md bg-neutral-200" />
-                      <div className="h-4 w-6 rounded-md bg-neutral-200" />
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <p className="text-content-subtle flex size-full items-center justify-center py-5 text-sm">
-                  Failed to load usage data
-                </p>
-              )}
-            </>
+      <div className="relative">
+        <div
+          className={cn(
+            "flex flex-col transition-opacity",
+            isValidating && "opacity-50",
           )}
-        </NumberFlowGroup>
+        >
+          <NumberFlowGroup>
+            {sortedGroupEntries.length > 0 ? (
+              <>
+                {sortedGroupEntries.slice(0, 12).map(([id, meta]) => {
+                  const hoveredMeta = deferredHoveredGroupsMeta?.[id];
+                  const displayTotal = hoveredMeta?.total ?? meta.total;
+
+                  return (
+                    <button
+                      key={id}
+                      type="button"
+                      onClick={() => queryParams({ set: { [groupBy]: id } })}
+                      disabled={!id}
+                      className="flex items-center justify-between gap-4 rounded-lg px-3 py-2 text-xs font-medium enabled:hover:bg-black/[0.03] enabled:active:bg-black/5"
+                    >
+                      <div className="flex items-center gap-2">
+                        <div
+                          className={cn(
+                            "size-2 rounded-full bg-current",
+                            meta.colorClassName,
+                          )}
+                        />
+                        <span
+                          className={cn(
+                            "text-content-emphasis",
+                            !meta.name && "text-content-subtle",
+                          )}
+                        >
+                          {meta.name || "Unsorted"}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 tabular-nums">
+                        <NumberFlow
+                          value={displayTotal}
+                          className="text-content-default text-right font-medium"
+                        />
+                        {usage && (
+                          <span className="text-content-muted min-w-12 text-right font-medium">
+                            <NumberFlow
+                              value={
+                                (displayTotal /
+                                  ((deferredHoveredTotalUsage ?? totalUsage) ||
+                                    1)) *
+                                100
+                              }
+                              format={{ maximumFractionDigits: 0 }}
+                            />
+                            %
+                          </span>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </>
+            ) : (
+              <>
+                {loading ? (
+                  [...Array(3)].map((_, idx) => (
+                    <div
+                      key={idx}
+                      className="flex animate-pulse items-center justify-between gap-4 px-3 py-2 text-xs font-medium"
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className="size-2 rounded-full bg-neutral-200" />
+                        <div className="h-4 w-32 min-w-0 rounded-md bg-neutral-200" />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="h-4 w-8 rounded-md bg-neutral-200" />
+                        <div className="h-4 w-6 rounded-md bg-neutral-200" />
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-content-subtle flex size-full items-center justify-center py-5 text-sm">
+                    Failed to load usage data
+                  </p>
+                )}
+              </>
+            )}
+          </NumberFlowGroup>
+        </div>
+
+        {hasMoreGroups && (
+          <div className="absolute bottom-0 left-0 flex w-full items-end">
+            <div className="pointer-events-none absolute bottom-0 left-0 h-20 w-full bg-gradient-to-t from-white" />
+            <button
+              type="button"
+              onClick={() => setShowGroupsModal(true)}
+              className="z-10 mx-auto rounded-md border border-neutral-200 bg-white px-2.5 py-1 text-sm text-neutral-950 hover:bg-neutral-100 active:border-neutral-300"
+            >
+              View all
+            </button>
+          </div>
+        )}
       </div>
+
+      {hasMoreGroups && (
+        <Modal showModal={showGroupsModal} setShowModal={setShowGroupsModal}>
+          <div className="w-full max-w-md bg-white">
+            <div className="border-b border-neutral-200 px-5 py-4">
+              <h3 className="text-sm font-semibold text-neutral-900">
+                Usage breakdown by {barListTabLabel.toLowerCase()}
+              </h3>
+            </div>
+            <div className="max-h-[70vh] overflow-hidden">
+              <BarList
+                tab={barListTabLabel.toLowerCase()}
+                unit={activeResource}
+                data={barListData}
+                maxValue={maxGroupTotal}
+                barBackground="bg-violet-100"
+                hoverBackground="hover:bg-gradient-to-r hover:from-violet-50 hover:to-transparent hover:border-violet-500"
+                setShowModal={setShowGroupsModal}
+              />
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }
