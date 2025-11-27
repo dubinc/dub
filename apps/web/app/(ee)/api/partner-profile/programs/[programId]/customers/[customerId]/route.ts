@@ -42,7 +42,11 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
       id: customerId,
     },
     include: {
+      // find the first commission for this customer and partner
       commissions: {
+        where: {
+          partnerId: partner.id,
+        },
         take: 1,
         orderBy: {
           createdAt: "asc",
