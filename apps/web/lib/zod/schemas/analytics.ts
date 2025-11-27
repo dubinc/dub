@@ -311,12 +311,11 @@ export const analyticsFilterTB = z
       tenantId: true,
       folderId: true,
       groupId: true,
-      sortBy: true,
     }),
   );
 
 export const eventsFilterTB = analyticsFilterTB
-  .omit({ granularity: true, timezone: true, page: true, sortBy: true })
+  .omit({ granularity: true, timezone: true })
   .and(
     z.object({
       offset: z.coerce.number().default(0),
@@ -333,7 +332,7 @@ const sortOrder = z
   .describe("The sort order. The default is `desc`.");
 
 export const eventsQuerySchema = analyticsQuerySchema
-  .omit({ groupBy: true, sortBy: true })
+  .omit({ groupBy: true })
   .extend({
     event: z
       .enum(EVENT_TYPES)
