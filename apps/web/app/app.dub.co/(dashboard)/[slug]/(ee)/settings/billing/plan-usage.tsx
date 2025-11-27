@@ -64,6 +64,7 @@ export default function PlanUsage() {
   const { partnersCount } = usePartnersCount<number>({
     programId: defaultProgramId ?? undefined,
     status: "approved",
+    ignoreParams: true,
   });
 
   const { groupsCount } = useGroupsCount();
@@ -330,11 +331,11 @@ function UsageTabCard({
             </Tooltip>
           )}
         </div>
-        <div className="mt-2">
+        <div className="mt-1.5">
           {!loading ? (
             <NumberFlow
               value={usage}
-              className="text-xl leading-none text-neutral-900"
+              className="text-2xl font-medium leading-none text-neutral-900"
               format={
                 unit === "$"
                   ? {
@@ -353,7 +354,7 @@ function UsageTabCard({
             <div className="h-5 w-16 animate-pulse rounded-md bg-neutral-200" />
           )}
         </div>
-        <div className="mt-5">
+        <div className="mt-4">
           <div
             className={cn(
               "h-1 w-full overflow-hidden rounded-full bg-neutral-900/10 transition-colors",
@@ -368,9 +369,7 @@ function UsageTabCard({
                 <div
                   className={cn(
                     "size-full rounded-full",
-                    requiresUpgrade
-                      ? "bg-neutral-900/10"
-                      : "bg-gradient-to-r from-blue-500/80 to-blue-600",
+                    requiresUpgrade ? "bg-neutral-900/10" : "bg-neutral-800",
                     warning && "from-neutral-900/10 via-red-500 to-red-600",
                   )}
                   style={{
@@ -383,7 +382,7 @@ function UsageTabCard({
         </div>
         <div className="mt-2 leading-none">
           {!loading ? (
-            <span className="text-xs leading-none text-neutral-600">
+            <span className="text-xs font-medium leading-none text-neutral-600">
               {unlimited
                 ? "Unlimited"
                 : `${prefix}${nFormatter(remaining, { full: true })} remaining of ${prefix}${nFormatter(limit, { full: limit < INFINITY_NUMBER })}`}
