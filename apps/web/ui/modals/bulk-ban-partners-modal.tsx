@@ -43,7 +43,7 @@ function BulkBanPartnersModal({
     register,
     handleSubmit,
     watch,
-    formState: { errors },
+    formState: { errors, isSubmitting, isSubmitSuccessful },
   } = useForm<BulkBanPartnersFormData>({
     defaultValues: {
       reason: "tos_violation",
@@ -58,9 +58,11 @@ function BulkBanPartnersModal({
       toast.success(
         `${partnerWord.charAt(0).toUpperCase() + partnerWord.slice(1)} banned successfully!`,
       );
+      await Promise.all([
+        mutatePrefix("/api/partners"),
+        mutatePrefix("/api/fraud/events"),
+      ]);
       setShowBulkBanPartnersModal(false);
-      mutatePrefix("/api/partners");
-      mutatePrefix("/api/fraud/events");
       onConfirm?.();
     },
     onError({ error }) {
@@ -211,7 +213,7 @@ function BulkBanPartnersModal({
             variant="danger"
             text={`Ban ${partnerWord}`}
             disabled={isDisabled}
-            loading={isPending}
+            loading={isPending || isSubmitting || isSubmitSuccessful}
             className="h-8 w-fit px-3"
           />
         </div>

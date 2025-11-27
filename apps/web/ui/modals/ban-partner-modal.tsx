@@ -41,7 +41,7 @@ function BanPartnerModal({
     register,
     handleSubmit,
     watch,
-    formState: { errors },
+    formState: { errors, isSubmitting, isSubmitSuccessful },
   } = useForm<BanPartnerFormData>({
     defaultValues: {
       reason: "tos_violation",
@@ -54,9 +54,11 @@ function BanPartnerModal({
   const { executeAsync, isPending } = useAction(banPartnerAction, {
     onSuccess: async () => {
       toast.success("Partner banned successfully!");
+      await Promise.all([
+        mutatePrefix("/api/partners"),
+        mutatePrefix("/api/fraud/events"),
+      ]);
       setShowBanPartnerModal(false);
-      mutatePrefix("/api/partners");
-      mutatePrefix("/api/fraud/events");
       onConfirm?.();
     },
     onError({ error }) {
@@ -177,7 +179,7 @@ function BanPartnerModal({
             variant="danger"
             text="Ban partner"
             disabled={isDisabled}
-            loading={isPending}
+            loading={isPending || isSubmitting || isSubmitSuccessful}
             className="h-8 w-fit px-3"
           />
         </div>
