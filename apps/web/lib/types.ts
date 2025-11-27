@@ -59,8 +59,8 @@ import { DiscountCodeSchema, DiscountSchema } from "./zod/schemas/discount";
 import { EmailDomainSchema } from "./zod/schemas/email-domains";
 import { FolderSchema } from "./zod/schemas/folders";
 import {
-  groupedFraudEventSchema,
   fraudRuleSchema,
+  groupedFraudEventSchema,
   updateFraudRuleSettingsSchema,
 } from "./zod/schemas/fraud";
 import { GroupWithProgramSchema } from "./zod/schemas/group-with-program";
@@ -677,6 +677,7 @@ export type fraudEventGroupProps = z.infer<typeof groupedFraudEventSchema>;
 
 export type ExtendedFraudRuleType =
   | FraudRuleType
+  | "partnerDuplicateAccount"
   | "partnerEmailDomainMismatch"
   | "partnerEmailMasked"
   | "partnerNoSocialLinks"
