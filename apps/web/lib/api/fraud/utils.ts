@@ -44,7 +44,6 @@ interface CreateGroupKeyInput {
   /**
    * The artifact key used to group fraud events. It can be:
    * - partnerId: for partner-specific grouping
-   * - payoutMethodHash: for cross-partner grouping by payout method
    * - Any other identifier relevant to the fraud rule type
    */
   artifactKey: string;
