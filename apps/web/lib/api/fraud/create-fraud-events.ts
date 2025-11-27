@@ -1,26 +1,28 @@
 import { prisma } from "@dub/prisma";
-import { Prisma } from "@prisma/client";
+import { FraudRuleType } from "@prisma/client";
 import { createId } from "../create-id";
 import { createFraudEventGroupKey } from "./utils";
 
-export async function createFraudEvents(
-  fraudEvents: Pick<
-    Prisma.FraudEventCreateManyInput,
-    "programId" | "partnerId" | "type"
-  >[],
-) {
+interface CreateFraudEventsInput {
+  programId: string;
+  partnerId: string;
+  type: FraudRuleType;
+  artifactKey?: string; // if not provided, partnerId will be used
+}
+
+export async function createFraudEvents(fraudEvents: CreateFraudEventsInput[]) {
   if (fraudEvents.length === 0) {
     return;
   }
 
   await prisma.fraudEvent.createMany({
-    data: fraudEvents.map((evt) => {
-      const { programId, partnerId, type } = evt;
+    data: fraudEvents.map((event) => {
+      const { programId, partnerId, type, artifactKey } = event;
 
       const groupKey = createFraudEventGroupKey({
         programId,
-        partnerId,
         type,
+        artifactKey: artifactKey ?? partnerId,
       });
 
       return {
