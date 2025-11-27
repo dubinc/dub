@@ -359,6 +359,7 @@ export function UsageChart() {
               onSelect={onSelect}
               onRemove={onRemove}
               onRemoveAll={onRemoveAll}
+              className="px-4 md:px-0"
             />
           )}
         </AnimatedSizeContainer>
