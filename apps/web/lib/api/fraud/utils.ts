@@ -43,7 +43,7 @@ interface CreateGroupKeyInput {
 }
 
 // Create a unique group key to identify and deduplicate fraud events of the same type
-// based on programId and artifactKey (e.g., partnerId, payoutMethodHash, or other identifiers).
+// based on programId and artifactKey
 export function createFraudEventGroupKey(input: CreateGroupKeyInput): string {
   const parts = [input.programId, input.type, input.artifactKey]
     .filter(Boolean)
