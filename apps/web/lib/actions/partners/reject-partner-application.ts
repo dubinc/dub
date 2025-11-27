@@ -4,7 +4,10 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createFraudEvents } from "@/lib/api/fraud/create-fraud-events";
 import { resolveFraudEvents } from "@/lib/api/fraud/resolve-fraud-events";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { rejectPartnerSchema } from "@/lib/zod/schemas/partners";
+import {
+  INACTIVE_PROGRAM_ENROLLMENT_STATUSES,
+  rejectPartnerSchema,
+} from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { ProgramEnrollment, ProgramEnrollmentStatus } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
@@ -58,7 +61,7 @@ export const rejectPartnerApplicationAction = authActionClient
                 not: programId,
               },
               status: {
-                notIn: ["banned", "deactivated", "rejected"],
+                notIn: INACTIVE_PROGRAM_ENROLLMENT_STATUSES,
               },
             },
             select: {

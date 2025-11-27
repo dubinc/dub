@@ -1,5 +1,6 @@
 import { createFraudEvents } from "@/lib/api/fraud/create-fraud-events";
 import { stripe } from "@/lib/stripe";
+import { INACTIVE_PROGRAM_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
 import Stripe from "stripe";
@@ -84,7 +85,7 @@ export async function accountUpdated(event: Stripe.Event) {
         programs: {
           where: {
             status: {
-              notIn: ["banned", "deactivated", "rejected"],
+              notIn: INACTIVE_PROGRAM_ENROLLMENT_STATUSES,
             },
           },
           select: {

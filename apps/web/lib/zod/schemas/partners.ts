@@ -23,6 +23,12 @@ import { parseUrlSchema } from "./utils";
 
 export const PARTNERS_MAX_PAGE_SIZE = 100;
 
+export const INACTIVE_PROGRAM_ENROLLMENT_STATUSES: ProgramEnrollmentStatus[] = [
+  "banned",
+  "deactivated",
+  "rejected",
+];
+
 export const exportPartnerColumns = [
   { id: "id", label: "ID", default: true },
   { id: "name", label: "Name", default: true },
@@ -594,7 +600,7 @@ export const onboardPartnerSchema = createPartnerSchema
       profileType: z.nativeEnum(PartnerProfileType).default("individual"),
       companyName: z.string().nullish(),
       requestId: z
-        .string()
+        .string({ required_error: "Request ID is required" })
         .describe("The Fingerprint request ID of the partner."),
     }),
   )
