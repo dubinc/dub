@@ -235,7 +235,7 @@ export function FraudEventGroupsTable() {
     },
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
-    resourceName: (plural) => `event${plural ? "s" : ""}`,
+    resourceName: (plural) => `fraud event${plural ? "s" : ""}`,
     rowCount: fraudEventsCount ?? 0,
     loading,
     error: error || countError ? "Failed to load fraud events" : undefined,
