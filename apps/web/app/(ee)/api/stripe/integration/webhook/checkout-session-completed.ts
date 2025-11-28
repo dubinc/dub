@@ -94,7 +94,7 @@ export async function checkoutSessionCompleted(
     existingCustomer = await prisma.customer.findFirst({
       where: {
         projectId: workspace.id,
-        // check for existing customer with the same externalId (via clickId or email) or email or stripeCustomerId
+        // check for existing customer with the same externalId (via clickId or email)
         OR: [
           {
             externalId: clickEvent.click_id,
