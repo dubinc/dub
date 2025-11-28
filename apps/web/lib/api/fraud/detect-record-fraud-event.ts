@@ -101,7 +101,7 @@ export async function detectAndRecordFraudEvent(context: FraudEventContext) {
         metadata: event.metadata as Prisma.InputJsonValue,
         groupKey: createFraudEventGroupKey({
           programId: validatedContext.program.id,
-          partnerId: validatedContext.partner.id,
+          groupingKey: validatedContext.partner.id,
           type: event.type,
         }),
       })),

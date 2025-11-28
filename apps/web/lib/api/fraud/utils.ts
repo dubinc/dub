@@ -26,28 +26,28 @@ export function normalizeEmail(email: string): string {
   return `${username}@${domain}`;
 }
 
-// Create a unique group key to identify and deduplicate fraud events of the same type
-// for the same partner-program combination.
-// batchId is used when resolving fraud events to create a new unique group key,
-// breaking the grouping so resolved events are no longer grouped with
-// pending events that share the same programId, partnerId, and type
-export function createFraudEventGroupKey({
-  programId,
-  partnerId,
-  type,
-  batchId,
-}: {
-  programId: string;
-  partnerId: string;
+function createHashKey(value: string): string {
+  return createHash("sha256").update(value).digest("base64url").slice(0, 24);
+}
+
+interface CreateGroupKeyInput {
   type: FraudRuleType;
-  batchId?: string;
-}): string {
-  const parts = [programId, partnerId, type, batchId].map((part) =>
-    part?.toLowerCase(),
+  programId: string;
+
+  /**
+   * The grouping key used to group fraud events. It can be:
+   * - partnerId: for partner-specific grouping
+   * - Any other identifier relevant to the fraud rule type
+   */
+  groupingKey: string;
+}
+
+// Create a unique group key to identify and deduplicate fraud events of the same type
+// based on programId and groupingKey
+export function createFraudEventGroupKey(input: CreateGroupKeyInput): string {
+  const parts = [input.programId, input.type, input.groupingKey].map((p) =>
+    p!.toLowerCase(),
   );
 
-  return createHash("sha256")
-    .update(parts.join("|"))
-    .digest("base64url")
-    .slice(0, 24);
+  return createHashKey(parts.join("|"));
 }
