@@ -72,11 +72,9 @@ export const LoginFormContext = createContext<{
 export default function LoginForm({
   methods = [...authMethods],
   next,
-  requestId,
 }: {
   methods?: AuthMethod[];
   next?: string;
-  requestId?: string;
 }) {
   const searchParams = useSearchParams();
   const [showPasswordField, setShowPasswordField] = useState(false);
