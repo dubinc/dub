@@ -397,7 +397,6 @@ export const DELETE = withWorkspace(
               partnerId: {
                 in: partnerIds,
               },
-              partnerGroupDefaultLinkId: null,
             },
             include: {
               ...includeTags,
