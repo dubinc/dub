@@ -15,7 +15,7 @@ describe.concurrent("/fraud/**", async () => {
   const { http } = await h.init();
 
   test("FraudRuleType = customerEmailMatch", async () => {
-    const clickLink = E2E_FRAUD_PARTNER.link;
+    const clickLink = E2E_FRAUD_PARTNER.links[0];
 
     // Track a click
     const clickResponse = await http.post<{ clickId: string }>({
@@ -57,7 +57,7 @@ describe.concurrent("/fraud/**", async () => {
   });
 
   test("FraudRuleType = customerEmailSuspiciousDomain", async () => {
-    const clickLink = E2E_FRAUD_PARTNER.link;
+    const clickLink = E2E_FRAUD_PARTNER.links[1];
 
     // Track a click
     const clickResponse = await http.post<{ clickId: string }>({
@@ -96,7 +96,7 @@ describe.concurrent("/fraud/**", async () => {
   });
 
   test("FraudRuleType = referralSourceBanned", async () => {
-    const clickLink = E2E_FRAUD_PARTNER.link;
+    const clickLink = E2E_FRAUD_PARTNER.links[2];
 
     // Track a click
     const clickResponse = await http.post<{ clickId: string }>({
@@ -136,7 +136,7 @@ describe.concurrent("/fraud/**", async () => {
   });
 
   test("FraudRuleType = paidTrafficDetected", async () => {
-    const clickLink = E2E_FRAUD_PARTNER.link;
+    const clickLink = E2E_FRAUD_PARTNER.links[3];
 
     // Track a click
     const clickResponse = await http.post<{ clickId: string }>({
