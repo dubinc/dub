@@ -210,24 +210,24 @@ export const E2E_CUSTOMERS = [
 export const E2E_FRAUD_PARTNER = {
   id: "pn_1K8ND11BZ4XPEX39QX3YMBGY0",
   email: "kiran+e2e+1@dub.co",
-  links: [
-    {
+  links: {
+    customerEmailMatch: {
       domain: "getacme.link",
       key: "fraud-customer-match",
     },
-    {
+    customerEmailSuspiciousDomain: {
       domain: "getacme.link",
       key: "fraud-customer-suspicious",
     },
-    {
+    referralSourceBanned: {
       domain: "getacme.link",
       key: "fraud-referral-source-banned",
     },
-    {
+    paidTrafficDetected: {
       domain: "getacme.link",
       key: "fraud-paid-traffic",
     },
-  ],
+  },
 } as const;
 
 export const E2E_FRAUD_REFERRAL_SOURCE_BANNED_DOMAIN =
