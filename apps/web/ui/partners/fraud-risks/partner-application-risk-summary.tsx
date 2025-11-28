@@ -37,7 +37,7 @@ export function PartnerApplicationRiskSummary({
   const { canManageFraudEvents } = getPlanCapabilities(plan);
 
   if (!canManageFraudEvents && !isLoading) {
-    return <PartnerApplicationRiskSummaryUpsell severity={severity} />;
+    return <PartnerApplicationRiskSummaryUpsell />;
   }
 
   if (isLoading || triggeredFraudRules.length === 0) {
@@ -107,19 +107,9 @@ const APPLICATION_RISK_CONFIG = {
   },
 };
 
-export function PartnerApplicationRiskSummaryUpsell({
-  severity,
-}: {
-  severity: FraudSeverity | null | undefined;
-}) {
+export function PartnerApplicationRiskSummaryUpsell() {
   const { partnersUpgradeModal, setShowPartnersUpgradeModal } =
     usePartnersUpgradeModal();
-
-  const severityConfig = severity ? APPLICATION_RISK_CONFIG[severity] : null;
-
-  if (!severityConfig) {
-    return null;
-  }
 
   // Dummy risk items for blur effect
   const dummyRisks: Array<{ severity: FraudSeverity; text: string }> = [
@@ -127,6 +117,8 @@ export function PartnerApplicationRiskSummaryUpsell({
     { severity: "medium", text: "Medium risk reason to unlock" },
     { severity: "low", text: "Low risk reason to unlock" },
   ];
+
+  const severityConfig = APPLICATION_RISK_CONFIG["medium"];
 
   return (
     <>
@@ -140,7 +132,7 @@ export function PartnerApplicationRiskSummaryUpsell({
             </h3>
           </div>
 
-          <PartnerApplicationFraudSeverityIndicator severity={severity} />
+          <PartnerApplicationFraudSeverityIndicator severity="medium" />
 
           <ul className="space-y-2">
             {dummyRisks.map((risk) => (
@@ -160,10 +152,12 @@ export function PartnerApplicationRiskSummaryUpsell({
         </div>
 
         {/* Upsell overlay */}
-        <div className="absolute inset-0 flex flex-col rounded-xl bg-white/60 p-4 backdrop-blur-[2px]">
-          <h3 className="text-content-emphasis mb-4 text-sm font-semibold">
-            Unlock risk analysis
-          </h3>
+        <div className="absolute inset-0 flex flex-col rounded-xl bg-white/60 p-4">
+          <div className="relative isolate z-10 -mx-1 -mt-1 mb-4 rounded-t-lg bg-white px-1 pt-1">
+            <h3 className="text-content-emphasis text-sm font-semibold">
+              Unlock risk analysis
+            </h3>
+          </div>
 
           <div className="flex flex-1 flex-col items-center justify-center gap-4">
             <div

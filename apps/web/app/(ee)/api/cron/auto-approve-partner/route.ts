@@ -61,6 +61,12 @@ export async function POST(req: Request) {
     const group = programEnrollment.partnerGroup;
     const partner = programEnrollment.partner;
 
+    if (!partner) {
+      return logAndRespond(
+        `Partner ${partnerId} not found. Skipping auto-approval.`,
+      );
+    }
+
     if (!programEnrollment) {
       return logAndRespond(
         `Partner ${partnerId} not found in program ${programId}. Skipping auto-approval.`,
