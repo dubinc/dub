@@ -171,7 +171,7 @@ export function PartnerApplicationRiskSummaryUpsell() {
             </div>
 
             <p className="text-content-default max-w-72 text-center text-xs font-medium">
-              Application risk review and event detection are Advanced plan{" "}
+              Application risk review and event detection are available on the Advanced plan.{" "}
               <Link
                 href="https://dub.co/help"
                 target="_blank"
