@@ -1,5 +1,7 @@
 import { FRAUD_RULES } from "@/lib/api/fraud/constants";
 import { getPartnerHighRiskSignals } from "@/lib/api/fraud/get-partner-high-risk-signals";
+import { checkPartnerCountryMismatch } from "@/lib/api/fraud/rules/check-partner-country-mismatch";
+import { checkPartnerDuplicateAccount } from "@/lib/api/fraud/rules/check-partner-duplicate-account";
 import { checkPartnerEmailDomainMismatch } from "@/lib/api/fraud/rules/check-partner-email-domain-mismatch";
 import { checkPartnerEmailMasked } from "@/lib/api/fraud/rules/check-partner-email-masked";
 import { checkPartnerNoSocialLinks } from "@/lib/api/fraud/rules/check-partner-no-social-links";
@@ -38,6 +40,8 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
     partnerEmailMasked: checkPartnerEmailMasked(partner),
     partnerNoSocialLinks: checkPartnerNoSocialLinks(partner),
     partnerNoVerifiedSocialLinks: checkPartnerNoVerifiedSocialLinks(partner),
+    partnerCountryMismatch: checkPartnerCountryMismatch(partner),
+    partnerDuplicateAccount: await checkPartnerDuplicateAccount(partner),
   };
 
   const detectedRisksInfo = FRAUD_RULES.filter((rule) => {

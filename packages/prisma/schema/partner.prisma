@@ -59,9 +59,12 @@ model Partner {
   tiktokVerifiedAt       DateTime?
 
   // miscellaneous fields
-  invoiceSettings      Json?
-  changeHistoryLog     Json?
-  fingerprintVisitorId String?
+  invoiceSettings  Json?
+  changeHistoryLog Json?
+
+  // Fingerprint fields
+  visitorId      String?
+  visitorCountry String?
 
   programs                   ProgramEnrollment[]
   users                      PartnerUser[]
@@ -85,7 +88,7 @@ model Partner {
   @@index(discoverableAt)
   @@index(trustedAt)
   @@index(payoutMethodHash)
-  @@index(fingerprintVisitorId)
+  @@index(visitorId)
   @@fulltext([email, name]) // For full-text search
 }
 

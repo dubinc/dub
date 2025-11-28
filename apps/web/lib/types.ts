@@ -677,11 +677,12 @@ export type fraudEventGroupProps = z.infer<typeof groupedFraudEventSchema>;
 
 export type ExtendedFraudRuleType =
   | FraudRuleType
-  | "partnerDuplicateAccount"
   | "partnerEmailDomainMismatch"
   | "partnerEmailMasked"
   | "partnerNoSocialLinks"
-  | "partnerNoVerifiedSocialLinks";
+  | "partnerNoVerifiedSocialLinks"
+  | "partnerDuplicateAccount"
+  | "partnerCountryMismatch";
 
 export type FraudSeverity = "low" | "medium" | "high";
 

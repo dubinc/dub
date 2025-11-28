@@ -7,12 +7,19 @@ const eventResponseSchema = z.object({
     visitor_id: z.string(),
     visitor_found: z.boolean(),
   }),
+  ip_info: z.object({
+    v4: z.object({
+      geolocation: z.object({
+        country_code: z.string().nullable(),
+      }),
+    }),
+  }),
 });
 
 type FingerprintVisitorResponse =
-  | { visitorId: string; status: "valid" }
-  | { visitorId: null; status: "not_found" }
-  | { visitorId: null; status: "error" };
+  | { visitorId: string; visitorCountry: string | null; status: "valid" }
+  | { visitorId: null; visitorCountry?: never; status: "not_found" }
+  | { visitorId: null; visitorCountry?: never; status: "error" };
 
 // Fetches visitor fingerprint data from the Fingerprint API.
 // If the Fingerprint API is unavailable, we return an error status but do not block the onboarding process.
@@ -59,10 +66,12 @@ export async function fetchVisitorFingerprint(
       };
     }
 
-    const { identification } = eventResponseSchema.parse(eventData);
+    const { identification, ip_info: ipInfo } =
+      eventResponseSchema.parse(eventData);
 
     return {
       visitorId: identification.visitor_id,
+      visitorCountry: ipInfo.v4.geolocation.country_code,
       status: "valid",
     };
   } catch (error) {

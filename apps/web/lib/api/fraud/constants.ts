@@ -35,7 +35,7 @@ export const FRAUD_RULES: FraudRuleInfo[] = [
     configurable: true,
   },
 
-  // Partner rules
+  // Partner rules (sorted by severity)
   {
     type: "partnerFraudReport",
     name: "Fraud report",
@@ -67,9 +67,27 @@ export const FRAUD_RULES: FraudRuleInfo[] = [
     type: "partnerDuplicateAccount",
     name: "Duplicate partner account",
     description:
-      "Multiple partner accounts originate from the same device, suggesting duplicate account creation or coordinated fraudulent behavior.",
+      "Multiple partner accounts originate from the same device, suggesting duplicate account creation or fraudulent behavior.",
     scope: "partner",
     severity: "high",
+    configurable: false,
+  },
+  {
+    type: "partnerCountryMismatch",
+    name: "Geolocation mismatch",
+    description:
+      "This partner's physical location doesn't match their profile country, which may indicate a location mismatch.",
+    scope: "partner",
+    severity: "medium",
+    configurable: false,
+  },
+  {
+    type: "partnerNoSocialLinks",
+    name: "No website or social links added",
+    description:
+      "This partner hasn't provided any social or web presence, making verification harder.",
+    scope: "partner",
+    severity: "medium",
     configurable: false,
   },
   {
@@ -87,15 +105,6 @@ export const FRAUD_RULES: FraudRuleInfo[] = [
       "Uses an anonymized email address. Not harmful but harder to verify or contact directly.",
     scope: "partner",
     severity: "low",
-    configurable: false,
-  },
-  {
-    type: "partnerNoSocialLinks",
-    name: "No website or social links added",
-    description:
-      "This partner hasn't provided any social or web presence, making verification harder.",
-    scope: "partner",
-    severity: "medium",
     configurable: false,
   },
   {

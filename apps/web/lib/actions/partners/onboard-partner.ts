@@ -46,7 +46,7 @@ export const onboardPartnerAction = authUserActionClient
       );
     }
 
-    const visitorId = result.visitorId;
+    const { visitorId, visitorCountry } = result;
 
     // country, profileType, and companyName cannot be changed once set
     const payload: Prisma.PartnerCreateInput = {
@@ -56,7 +56,8 @@ export const onboardPartnerAction = authUserActionClient
       ...(existingPartner?.country ? {} : { country }),
       ...(existingPartner?.profileType ? {} : { profileType }),
       ...(description && { description }),
-      ...(visitorId && { fingerprintVisitorId: visitorId }),
+      ...(visitorId && { visitorId }),
+      ...(visitorCountry && { visitorCountry }),
       image: imageUrl,
       users: {
         connectOrCreate: {
@@ -105,14 +106,7 @@ export const onboardPartnerAction = authUserActionClient
     ]);
 
     waitUntil(
-      (async () => {
-        // Complete any outstanding program application
-        await completeProgramApplications(user.email);
-
-        if (visitorId) {
-          // TODO:
-          // Report fraud
-        }
-      })(),
+      // Complete any outstanding program application
+      completeProgramApplications(user.email),
     );
   });
