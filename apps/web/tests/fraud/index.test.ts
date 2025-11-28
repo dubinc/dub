@@ -1,9 +1,8 @@
 import { Customer, fraudEventGroupProps, TrackLeadResponse } from "@/lib/types";
 import { FraudRuleType } from "@prisma/client";
-import { randomCustomer, randomId, retry } from "tests/utils/helpers";
+import { randomCustomer, retry } from "tests/utils/helpers";
 import { HttpClient } from "tests/utils/http";
 import {
-  DUB_TEST_IDENTITY_HEADER,
   E2E_FRAUD_PARTNER,
   E2E_FRAUD_REFERRAL_SOURCE_BANNED_DOMAIN,
   E2E_TRACK_CLICK_HEADERS,
@@ -23,7 +22,6 @@ describe.concurrent("/fraud/**", async () => {
       path: "/track/click",
       headers: {
         ...E2E_TRACK_CLICK_HEADERS,
-        [DUB_TEST_IDENTITY_HEADER]: randomId(10),
       },
       body: {
         domain: clickLink.domain,
@@ -66,7 +64,6 @@ describe.concurrent("/fraud/**", async () => {
       path: "/track/click",
       headers: {
         ...E2E_TRACK_CLICK_HEADERS,
-        [DUB_TEST_IDENTITY_HEADER]: randomId(10),
       },
       body: {
         domain: clickLink.domain,
@@ -107,7 +104,6 @@ describe.concurrent("/fraud/**", async () => {
       headers: {
         ...E2E_TRACK_CLICK_HEADERS,
         referer: `https://${E2E_FRAUD_REFERRAL_SOURCE_BANNED_DOMAIN}`,
-        [DUB_TEST_IDENTITY_HEADER]: randomId(10),
       },
       body: {
         domain: clickLink.domain,
@@ -147,7 +143,6 @@ describe.concurrent("/fraud/**", async () => {
       path: "/track/click",
       headers: {
         ...E2E_TRACK_CLICK_HEADERS,
-        [DUB_TEST_IDENTITY_HEADER]: randomId(10),
       },
       body: {
         domain: clickLink.domain,
