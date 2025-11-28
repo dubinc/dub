@@ -551,8 +551,8 @@ importers:
         specifier: ^2.1.6
         version: 2.1.6(@opentelemetry/api@1.9.0)(@swc/helpers@0.5.15)(eslint@8.48.0)(ts-node@10.9.2(@swc/core@1.3.101(@swc/helpers@0.5.15))(@types/node@22.18.3)(typescript@5.6.2))
       resend:
-        specifier: ^6.1.2
-        version: 6.1.2(@react-email/render@2.0.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1))
+        specifier: 6.5.2-batch.0
+        version: 6.5.2-batch.0(@react-email/render@2.0.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1))
     devDependencies:
       '@types/nodemailer':
         specifier: ~6.4.17
@@ -11858,9 +11858,9 @@ packages:
   requires-port@1.0.0:
     resolution: {integrity: sha512-KigOCHcocU3XODJxsu8i/j8T9tzT4adHiecwORRQ0ZZFcp7ahwXuRU1m+yuO90C5ZUyGeGfocHDI14M3L3yDAQ==}
 
-  resend@6.1.2:
-    resolution: {integrity: sha512-C9Q+YkRe57P8MQlkHG3yatSR/B6sqBGA06Ri2DveJfkz9Vm16182FC/iHB0K6IAfmqZ4yRrFebFw1EPuktLtSg==}
-    engines: {node: '>=18'}
+  resend@6.5.2-batch.0:
+    resolution: {integrity: sha512-ruUHusyXvgqgNi94ulSbOzSfDYjFHmNQB0PiUNogCxVV9kvaXYkfAohl5MgxY8/a1gsyPKA2dCDTLQActanr0Q==}
+    engines: {node: '>=20'}
     peerDependencies:
       '@react-email/render': '*'
     peerDependenciesMeta:
@@ -27576,7 +27576,9 @@ snapshots:
 
   requires-port@1.0.0: {}
 
-  resend@6.1.2(@react-email/render@2.0.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)):
+  resend@6.5.2-batch.0(@react-email/render@2.0.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)):
+    dependencies:
+      svix: 1.76.1
     optionalDependencies:
       '@react-email/render': 2.0.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
 
