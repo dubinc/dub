@@ -1,7 +1,8 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { getPartnerHighRiskSignals } from "@/lib/api/fraud/get-partner-high-risk-signals";
+import { getApplicationRiskSignals } from "@/lib/api/fraud/get-application-risk-signals";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { approvePartnerEnrollment } from "@/lib/partners/approve-partner-enrollment";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
 import { z } from "zod";
@@ -50,26 +51,21 @@ export async function POST(req: Request) {
             partnerGroup: true,
             groupId: true,
             status: true,
-            partner: {
-              select: {
-                id: true,
-                payoutMethodHash: true,
-              },
-            },
+            partner: true,
           },
         },
       },
     });
 
     const programEnrollment = program.partners[0];
+    const group = programEnrollment.partnerGroup;
+    const partner = programEnrollment.partner;
 
     if (!programEnrollment) {
       return logAndRespond(
         `Partner ${partnerId} not found in program ${programId}. Skipping auto-approval.`,
       );
     }
-
-    const group = programEnrollment.partnerGroup;
 
     if (!group) {
       return logAndRespond(
@@ -89,15 +85,23 @@ export async function POST(req: Request) {
       );
     }
 
-    const { hasHighRisk } = await getPartnerHighRiskSignals({
-      program,
-      partner: programEnrollment.partner,
-    });
+    // Check if the workspace plan has fraud event management capabilities
+    // If enabled, we'll evaluate risk signals before auto-approving
+    const { canManageFraudEvents } = getPlanCapabilities(
+      program.workspace.plan,
+    );
 
-    if (hasHighRisk) {
-      return logAndRespond(
-        `Partner ${partnerId} has high risk. Skipping auto-approval.`,
-      );
+    if (canManageFraudEvents) {
+      const { severity } = await getApplicationRiskSignals({
+        program,
+        partner,
+      });
+
+      if (severity === "high") {
+        return logAndRespond(
+          `Partner ${partnerId} has high risk. Skipping auto-approval.`,
+        );
+      }
     }
 
     await approvePartnerEnrollment({
