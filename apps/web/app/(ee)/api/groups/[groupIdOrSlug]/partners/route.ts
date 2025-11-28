@@ -67,7 +67,6 @@ export const POST = withWorkspace(
               partnerId: {
                 in: partnerIds,
               },
-              partnerGroupDefaultLinkId: null,
             },
             include: {
               ...includeTags,
