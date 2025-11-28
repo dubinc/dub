@@ -20,8 +20,8 @@ const resendEmailForOptions = (
     tags,
   } = opts;
 
-  // Build base options without rendered outputs (react/html/text)
-  // CreateEmailOptions requires at least one of react, html, or text
+  // Build base options without rendered outputs (react/text)
+  // CreateEmailOptions requires at least one of react or text
   const baseOptions = {
     to,
     from: from || VARIANT_TO_FROM_MAP[variant],
@@ -42,15 +42,14 @@ const resendEmailForOptions = (
       : headers && { headers }),
   };
 
-  // Add render options (react, html, or text) - at least one must be present
-  // CreateEmailOptions requires at least one of react, html, or text
+  // Add render options (react or text) - at least one must be present
   if (react) {
     return { ...baseOptions, react };
   }
   if (text) {
     return { ...baseOptions, text };
   }
-  // If none of react, html, or text is provided, we need to ensure at least one is present
+  // If none of react or text is provided, we need to ensure at least one is present
   // This shouldn't happen in practice, but we'll default to an empty text
   return { ...baseOptions, text: "" };
 };
