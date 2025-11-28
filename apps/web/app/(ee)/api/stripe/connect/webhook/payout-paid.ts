@@ -27,6 +27,10 @@ export async function payoutPaid(event: Stripe.Event) {
     where: {
       status: "sent",
       stripePayoutId: stripePayout.id,
+      stripePayoutTraceId:
+        typeof stripePayout.trace_id === "string"
+          ? stripePayout.trace_id
+          : null,
     },
     data: {
       status: "completed",
