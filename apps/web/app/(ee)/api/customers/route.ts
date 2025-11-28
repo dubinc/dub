@@ -1,6 +1,7 @@
 import { createId } from "@/lib/api/create-id";
 import { transformCustomer } from "@/lib/api/customers/transform-customer";
 import { DubApiError } from "@/lib/api/errors";
+import { getPaginationOptions } from "@/lib/api/pagination";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
@@ -39,6 +40,8 @@ interface CustomerResponse extends Customer {
 // GET /api/customers – Get all customers
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
+    const filters = getCustomersQuerySchemaExtended.parse(searchParams);
+
     const {
       email,
       externalId,
@@ -46,12 +49,8 @@ export const GET = withWorkspace(
       country,
       linkId,
       includeExpandedFields,
-      page,
-      pageSize,
       customerIds,
-      sortBy,
-      sortOrder,
-    } = getCustomersQuerySchemaExtended.parse(searchParams);
+    } = filters;
 
     const customers = (await prisma.customer.findMany({
       where: {
@@ -80,11 +79,7 @@ export const GET = withWorkspace(
           linkId,
         }),
       },
-      orderBy: {
-        [sortBy]: sortOrder,
-      },
-      skip: (page - 1) * pageSize,
-      take: pageSize,
+      ...getPaginationOptions(filters),
       ...(includeExpandedFields
         ? {
             include: {
