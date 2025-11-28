@@ -54,6 +54,23 @@ export const getPaginationQuerySchema = ({ pageSize }: { pageSize: number }) =>
       }),
   });
 
+// Cursor-based pagination
+export const getCursorPaginationQuerySchema = () =>
+  z.object({
+    startingAfter: z
+      .string()
+      .optional()
+      .describe(
+        "An ID to paginate from. Returns items after this ID. Mutually exclusive with `endingBefore`.",
+      ),
+    endingBefore: z
+      .string()
+      .optional()
+      .describe(
+        "An ID to paginate from. Returns items before this ID. Mutually exclusive with `startingAfter`.",
+      ),
+  });
+
 export const maxDurationSchema = z.coerce
   .number()
   .refine((val) => RECURRING_MAX_DURATIONS.includes(val), {
