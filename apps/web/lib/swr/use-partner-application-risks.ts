@@ -25,6 +25,9 @@ export function usePartnerApplicationRisks({
       ? `/api/partners/${partnerId}/application-risks?workspaceId=${workspaceId}`
       : null,
     fetcher,
+    {
+      keepPreviousData: true,
+    },
   );
 
   const { risksDetected, riskSeverity } = data || {};
