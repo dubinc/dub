@@ -15,7 +15,7 @@
     "lucide-react": "^0.462.0",
     "nodemailer": "^6.9.3",
     "react-email": "^2.1.6",
-    "resend": "^6.1.2"
+    "resend": "6.5.2-batch.0"
   },
   "devDependencies": {
     "@types/nodemailer": "~6.4.17",

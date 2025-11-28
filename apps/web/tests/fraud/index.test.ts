@@ -254,6 +254,6 @@ async function waitForFraudEvent({
 
       return data[0];
     },
-    { retries: 10, interval: 300 },
+    { retries: 10, interval: 600 },
   );
 }

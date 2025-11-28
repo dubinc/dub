@@ -2,7 +2,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { CustomerProps } from "@/lib/types";
 import { createCustomerBodySchema } from "@/lib/zod/schemas/customers";
 import { Button, Modal, useMediaQuery } from "@dub/ui";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
@@ -17,7 +17,7 @@ interface AddCustomerModalProps {
 
 type FormData = z.infer<typeof createCustomerBodySchema>;
 
-const AddCustomerModal = ({
+export const AddCustomerModal = ({
   showModal,
   setShowModal,
   onSuccess,
@@ -41,22 +41,19 @@ const AddCustomerModal = ({
     },
   });
 
+  const prevShowModal = useRef(showModal);
+
   useEffect(() => {
-    if (showModal && initialName) {
+    // Only reset when the modal opens (transitions from false to true)
+    if (showModal && !prevShowModal.current) {
       reset({
-        name: initialName,
-        email: null,
-        externalId: "",
-        stripeCustomerId: null,
-      });
-    } else if (showModal) {
-      reset({
-        name: null,
+        name: initialName || null,
         email: null,
         externalId: "",
         stripeCustomerId: null,
       });
     }
+    prevShowModal.current = showModal;
   }, [showModal, initialName, reset]);
 
   const onSubmit = async (data: FormData) => {
