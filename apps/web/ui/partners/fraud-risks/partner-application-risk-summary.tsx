@@ -118,7 +118,8 @@ export function PartnerApplicationRiskSummaryUpsell() {
     { severity: "low", text: "Low risk reason to unlock" },
   ];
 
-  const severityConfig = APPLICATION_RISK_CONFIG["medium"];
+  const severity: FraudSeverity = "high";
+  const severityConfig = APPLICATION_RISK_CONFIG[severity];
 
   return (
     <>
@@ -132,7 +133,7 @@ export function PartnerApplicationRiskSummaryUpsell() {
             </h3>
           </div>
 
-          <PartnerApplicationFraudSeverityIndicator severity="medium" />
+          <PartnerApplicationFraudSeverityIndicator severity={severity} />
 
           <ul className="space-y-2">
             {dummyRisks.map((risk) => (
@@ -171,7 +172,8 @@ export function PartnerApplicationRiskSummaryUpsell() {
             </div>
 
             <p className="text-content-default max-w-72 text-center text-xs font-medium">
-              Application risk review and event detection are available on the Advanced plan.{" "}
+              Application risk review and event detection are available on the
+              Advanced plan.{" "}
               <Link
                 href="https://dub.co/help"
                 target="_blank"

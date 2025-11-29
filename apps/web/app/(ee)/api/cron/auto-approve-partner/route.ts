@@ -58,7 +58,13 @@ export async function POST(req: Request) {
     });
 
     const programEnrollment = program.partners[0];
-    const group = programEnrollment.partnerGroup;
+
+    if (!programEnrollment) {
+      return logAndRespond(
+        `Partner ${partnerId} not found in program ${programId}. Skipping auto-approval.`,
+      );
+    }
+
     const partner = programEnrollment.partner;
 
     if (!partner) {
@@ -67,11 +73,7 @@ export async function POST(req: Request) {
       );
     }
 
-    if (!programEnrollment) {
-      return logAndRespond(
-        `Partner ${partnerId} not found in program ${programId}. Skipping auto-approval.`,
-      );
-    }
+    const group = programEnrollment.partnerGroup;
 
     if (!group) {
       return logAndRespond(
