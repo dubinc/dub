@@ -4,16 +4,13 @@ import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
 import { payoutsItemSchema } from "./utils";
 
-const PAYPAL_TO_DUB_STATUS = {
-  "PAYMENT.PAYOUTS-ITEM.BLOCKED": "failed",
-  "PAYMENT.PAYOUTS-ITEM.CANCELED": "canceled",
-  "PAYMENT.PAYOUTS-ITEM.DENIED": "failed",
-  "PAYMENT.PAYOUTS-ITEM.FAILED": "failed",
-  "PAYMENT.PAYOUTS-ITEM.HELD": "processed",
-  "PAYMENT.PAYOUTS-ITEM.REFUNDED": "failed",
-  "PAYMENT.PAYOUTS-ITEM.RETURNED": "failed",
-  "PAYMENT.PAYOUTS-ITEM.UNCLAIMED": "processed",
-};
+const FAILED_STATUSES = [
+  "PAYMENT.PAYOUTS-ITEM.BLOCKED",
+  "PAYMENT.PAYOUTS-ITEM.DENIED",
+  "PAYMENT.PAYOUTS-ITEM.FAILED",
+  "PAYMENT.PAYOUTS-ITEM.REFUNDED",
+  "PAYMENT.PAYOUTS-ITEM.RETURNED",
+];
 
 export async function payoutsItemFailed(event: any) {
   const body = payoutsItemSchema.parse(event);
@@ -44,7 +41,7 @@ export async function payoutsItemFailed(event: any) {
     return;
   }
 
-  const payoutStatus = PAYPAL_TO_DUB_STATUS[body.event_type];
+  const payoutStatus = body.event_type;
   const failureReason = body.resource.errors?.message;
 
   await prisma.payout.update({
@@ -53,19 +50,16 @@ export async function payoutsItemFailed(event: any) {
     },
     data: {
       paypalTransferId: payoutItemId,
-      status: payoutStatus,
+      status: "failed",
       failureReason,
     },
   });
 
-  if (payoutStatus === "processed") {
-    await log({
-      message: `Paypal payout is stuck in processed for invoice ${invoiceId} and partner ${paypalEmail}. PayPal webhook status: ${body.event_type}.${
-        failureReason ? ` Failure reason: ${failureReason}` : ""
-      }`,
-      type: "errors",
-    });
-    return; // we only send emails for failed payouts
+  // We only send emails for failed payouts
+  const isFailed = FAILED_STATUSES.includes(payoutStatus);
+
+  if (!isFailed) {
+    return;
   }
 
   await Promise.all([
