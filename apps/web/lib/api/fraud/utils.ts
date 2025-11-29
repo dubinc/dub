@@ -26,7 +26,7 @@ export function normalizeEmail(email: string): string {
   return `${username}@${domain}`;
 }
 
-function createHashKey(value: string): string {
+export function createHashKey(value: string): string {
   return createHash("sha256").update(value).digest("base64url").slice(0, 24);
 }
 
@@ -50,4 +50,29 @@ export function createFraudEventGroupKey(input: CreateGroupKeyInput): string {
   );
 
   return createHashKey(parts.join("|"));
+}
+
+interface CreateFingerprintInput {
+  programId: string;
+  partnerId: string;
+  type: FraudRuleType;
+  metadata: Record<string, string>;
+}
+
+export function createFraudEventFingerprint(
+  input: CreateFingerprintInput,
+): string {
+  const { programId, partnerId, type, metadata } = input;
+
+  // Normalize metadata keys so fingerprint is deterministic
+  const normalizedMetadata = Object.keys(metadata)
+    .sort()
+    .map((key) => `${key}:${metadata[key]}`)
+    .join("|");
+
+  const raw = [programId, partnerId, type, normalizedMetadata]
+    .map((p) => p!.toLowerCase())
+    .join("|");
+
+  return createHashKey(raw);
 }

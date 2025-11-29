@@ -27,23 +27,44 @@ model FraudRule {
   @@unique([programId, type])
 }
 
-model FraudEvent {
+model FraudEventGroup {
   id               String           @id @default(cuid())
   programId        String
   partnerId        String
-  linkId           String?
-  customerId       String?
-  eventId          String?
-  commissionId     String?
   type             FraudRuleType
-  groupKey         String
-  metadata         Json?            @db.Json
+  lastEventAt      DateTime?
+  eventCount       Int              @default(0)
   userId           String?
   resolutionReason String?          @db.Text
   resolvedAt       DateTime?
   status           FraudEventStatus @default(pending)
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
+
+  // TODO:
+  // Add relationships
+}
+
+model FraudEvent {
+  id          String   @id @default(cuid())
+  linkId      String?
+  customerId  String?
+  eventId     String?
+  fingerprint String? //  TODO: Make it required after migration
+  metadata    Json?    @db.Json
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // DEPRECATED FIELDS: TODO – remove after migration
+  programId        String
+  partnerId        String
+  commissionId     String?
+  type             FraudRuleType
+  groupKey         String
+  userId           String?
+  resolutionReason String?          @db.Text
+  resolvedAt       DateTime?
+  status           FraudEventStatus @default(pending)
 
   program           Program           @relation(fields: [programId], references: [id], onDelete: Cascade)
   partner           Partner           @relation(fields: [partnerId], references: [id], onDelete: Cascade)
