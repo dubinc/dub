@@ -4,14 +4,6 @@ import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
 import { payoutsItemSchema } from "./utils";
 
-const FAILED_STATUSES = [
-  "PAYMENT.PAYOUTS-ITEM.BLOCKED",
-  "PAYMENT.PAYOUTS-ITEM.DENIED",
-  "PAYMENT.PAYOUTS-ITEM.FAILED",
-  "PAYMENT.PAYOUTS-ITEM.REFUNDED",
-  "PAYMENT.PAYOUTS-ITEM.RETURNED",
-];
-
 export async function payoutsItemFailed(event: any) {
   const body = payoutsItemSchema.parse(event);
 
@@ -41,7 +33,6 @@ export async function payoutsItemFailed(event: any) {
     return;
   }
 
-  const payoutStatus = body.event_type;
   const failureReason = body.resource.errors?.message;
 
   await prisma.payout.update({
@@ -54,13 +45,6 @@ export async function payoutsItemFailed(event: any) {
       failureReason,
     },
   });
-
-  // We only send emails for failed payouts
-  const isFailed = FAILED_STATUSES.includes(payoutStatus);
-
-  if (!isFailed) {
-    return;
-  }
 
   await Promise.all([
     payout.partner.email
