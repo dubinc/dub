@@ -1,8 +1,15 @@
 import { sendEmail } from "@dub/email";
 import PartnerPaypalPayoutFailed from "@dub/email/templates/partner-paypal-payout-failed";
 import { prisma } from "@dub/prisma";
-import { log } from "@dub/utils";
 import { payoutsItemSchema } from "./utils";
+
+const PAYPAL_TO_DUB_STATUS = {
+  "PAYMENT.PAYOUTS-ITEM.BLOCKED": "failed",
+  "PAYMENT.PAYOUTS-ITEM.DENIED": "failed",
+  "PAYMENT.PAYOUTS-ITEM.FAILED": "failed",
+  "PAYMENT.PAYOUTS-ITEM.REFUNDED": "failed",
+  "PAYMENT.PAYOUTS-ITEM.RETURNED": "failed",
+};
 
 export async function payoutsItemFailed(event: any) {
   const body = payoutsItemSchema.parse(event);
@@ -33,6 +40,8 @@ export async function payoutsItemFailed(event: any) {
     return;
   }
 
+  const payoutStatus: "failed" | undefined =
+    PAYPAL_TO_DUB_STATUS[body.event_type];
   const failureReason = body.resource.errors?.message;
 
   await prisma.payout.update({
@@ -46,31 +55,37 @@ export async function payoutsItemFailed(event: any) {
     },
   });
 
-  await Promise.all([
-    payout.partner.email
-      ? sendEmail({
-          subject: `Your recent partner payout from ${payout.program.name} failed`,
-          to: payout.partner.email,
-          react: PartnerPaypalPayoutFailed({
-            email: payout.partner.email,
-            program: {
-              name: payout.program.name,
-            },
-            payout: {
-              amount: payout.amount,
-              failureReason,
-            },
-            partner: {
-              paypalEmail: payout.partner.paypalEmail!,
-            },
-          }),
-          variant: "notifications",
-        })
-      : Promise.resolve(),
+  if (payoutStatus !== "failed") {
+    // we only send emails for failed payouts
+    console.log(
+      `Paypal payout status changed to ${body.event_type} for invoice ${invoiceId} and partner ${paypalEmail}. This is not a failure event, skipping email send...`,
+    );
+    return;
+  }
 
-    log({
-      message: `Paypal payout status changed to ${body.event_type} for invoice ${invoiceId} and partner ${paypalEmail}`,
-      type: "errors",
+  if (!payout.partner.email) {
+    console.log(
+      `Paypal payout partner email not found for invoice ${invoiceId} and partner ${paypalEmail}. Skipping email send...`,
+    );
+    return;
+  }
+
+  await sendEmail({
+    subject: `Your recent partner payout from ${payout.program.name} failed`,
+    to: payout.partner.email,
+    react: PartnerPaypalPayoutFailed({
+      email: payout.partner.email,
+      program: {
+        name: payout.program.name,
+      },
+      payout: {
+        amount: payout.amount,
+        failureReason,
+      },
+      partner: {
+        paypalEmail: payout.partner.paypalEmail!,
+      },
     }),
-  ]);
+    variant: "notifications",
+  });
 }
