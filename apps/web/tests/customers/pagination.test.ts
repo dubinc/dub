@@ -1,198 +1,277 @@
 import { Customer } from "@/lib/types";
-import { describe, expect, test } from "vitest";
+import { beforeAll, describe, expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
 
 describe.sequential("/customers/** - pagination", async () => {
   const h = new IntegrationHarness();
   const { http } = await h.init();
 
+  let baseline: Customer[];
   let baselineIds: string[];
-  let baselineDates: number[];
 
-  // Fetch baseline once for all tests
-  test("Setup - fetch baseline", async () => {
-    const { status: baselineStatus, data: allCustomers } = await http.get<
+  beforeAll(async () => {
+    const { status, data } = await http.get<Customer[]>({
+      path: "/customers",
+      query: { pageSize: "25" },
+    });
+
+    expect(status).toEqual(200);
+
+    baseline = data;
+    baselineIds = baseline.map((c) => c.id);
+
+    expectSortedByCreatedAt(baseline);
+  });
+
+  const commonQuery = {
+    pageSize: "5",
+    sortBy: "createdAt",
+    sortOrder: "desc",
+  };
+
+  test("Offset pagination works", async () => {
+    const page1 = await http.get<Customer[]>({
+      path: "/customers",
+      query: { ...commonQuery, page: "1" },
+    });
+    const page2 = await http.get<Customer[]>({
+      path: "/customers",
+      query: { ...commonQuery, page: "2" },
+    });
+
+    expect(page1.status).toEqual(200);
+    expect(page2.status).toEqual(200);
+
+    expect(page1.data.map((c) => c.id)).toEqual(baselineIds.slice(0, 5));
+    expect(page2.data.map((c) => c.id)).toEqual(baselineIds.slice(5, 10));
+
+    expectNoOverlap(page1.data, page2.data);
+  });
+
+  test("Cursor forward (startingAfter)", async () => {
+    const firstPage = baseline.slice(0, 5);
+    const lastId = firstPage[4].id;
+
+    const { status, data } = await http.get<Customer[]>({
+      path: "/customers",
+      query: { pageSize: "5", startingAfter: lastId },
+    });
+
+    expect(status).toEqual(200);
+    expectSortedByCreatedAt(data);
+
+    expect(data.map((c) => c.id)).toEqual(baselineIds.slice(5, 10));
+  });
+
+  test("Cursor backward (endingBefore)", async () => {
+    const beforeId = baseline[5].id;
+
+    const { status, data } = await http.get<Customer[]>({
+      path: "/customers",
+      query: { pageSize: "5", endingBefore: beforeId },
+    });
+
+    expect(status).toEqual(200);
+    expectSortedByCreatedAt(data);
+
+    expect(data.map((c) => c.id)).toEqual(baselineIds.slice(0, 5));
+  });
+
+  test("Rejects both startingAfter and endingBefore", async () => {
+    const { status, data: error } = await http.get({
+      path: "/customers",
+      query: { pageSize: "5", startingAfter: "id", endingBefore: "id" },
+    });
+
+    expect(status).toEqual(422);
+    expect(error).toStrictEqual({
+      error: {
+        code: "unprocessable_entity",
+        message:
+          "You cannot use both startingAfter and endingBefore at the same time.",
+        doc_url:
+          "https://dub.co/docs/api-reference/errors#unprocessable-entity",
+      },
+    });
+  });
+
+  test("Rejects page > MAX_PAGE_SIZE", async () => {
+    const { status, data: error } = await http.get({
+      path: "/customers",
+      query: { page: "101", pageSize: "10" },
+    });
+
+    expect(status).toEqual(422);
+    expect(error).toStrictEqual({
+      error: {
+        code: "unprocessable_entity",
+        message:
+          "Page is too big (cannot be more than 100), recommend using cursor-based pagination instead.",
+        doc_url:
+          "https://dub.co/docs/api-reference/errors#unprocessable-entity",
+      },
+    });
+  });
+
+  test("Invalid cursor ID (startingAfter) returns empty array", async () => {
+    const { status, data } = await http.get<Customer[]>({
+      path: "/customers",
+      query: { pageSize: "5", startingAfter: "cus_invalid_id_12345" },
+    });
+
+    expect(status).toEqual(200);
+    expect(data).toEqual([]);
+  });
+
+  test("Invalid cursor ID (endingBefore) returns empty array", async () => {
+    const { status, data } = await http.get<Customer[]>({
+      path: "/customers",
+      query: { pageSize: "5", endingBefore: "cus_invalid_id_12345" },
+    });
+
+    expect(status).toEqual(200);
+    expect(data).toEqual([]);
+  });
+
+  // When startingAfter is provided, page should be ignored and cursor pagination should be used
+  test("Mixing pagination methods - page with startingAfter ignores page", async () => {
+    const firstPage = baseline.slice(0, 5);
+    const lastId = firstPage[4].id;
+
+    const { status, data } = await http.get<Customer[]>({
+      path: "/customers",
+      query: { page: "2", pageSize: "5", startingAfter: lastId },
+    });
+
+    expect(status).toEqual(200);
+    expect(data.map((c) => c.id)).toEqual(baselineIds.slice(5, 10));
+  });
+
+  // When endingBefore is provided, page should be ignored and cursor pagination should be used
+  test("Mixing pagination methods - page with endingBefore ignores page", async () => {
+    const beforeId = baseline[5].id;
+
+    const { status, data } = await http.get<Customer[]>({
+      path: "/customers",
+      query: { page: "2", pageSize: "5", endingBefore: beforeId },
+    });
+
+    expect(status).toEqual(200);
+    expect(data.map((c) => c.id)).toEqual(baselineIds.slice(0, 5));
+  });
+
+  test("Sort order asc works correctly", async () => {
+    // Get baseline in ascending order
+    const { status: baselineStatus, data: ascBaseline } = await http.get<
+      Customer[]
+    >({
+      path: "/customers",
+      query: { pageSize: "25", sortBy: "createdAt", sortOrder: "asc" },
+    });
+
+    expect(baselineStatus).toEqual(200);
+    expectSortedByCreatedAtAsc(ascBaseline);
+
+    const ascBaselineIds = ascBaseline.map((c) => c.id);
+
+    // Test offset pagination with asc
+    const page1 = await http.get<Customer[]>({
+      path: "/customers",
+      query: {
+        page: "1",
+        pageSize: "5",
+        sortBy: "createdAt",
+        sortOrder: "asc",
+      },
+    });
+
+    const page2 = await http.get<Customer[]>({
+      path: "/customers",
+      query: {
+        page: "2",
+        pageSize: "5",
+        sortBy: "createdAt",
+        sortOrder: "asc",
+      },
+    });
+
+    expect(page1.status).toEqual(200);
+    expect(page2.status).toEqual(200);
+
+    expect(page1.data.map((c) => c.id)).toEqual(ascBaselineIds.slice(0, 5));
+    expect(page2.data.map((c) => c.id)).toEqual(ascBaselineIds.slice(5, 10));
+
+    expectSortedByCreatedAtAsc(page1.data);
+    expectSortedByCreatedAtAsc(page2.data);
+    expectNoOverlap(page1.data, page2.data);
+  });
+
+  test("Cursor pagination with sort order asc", async () => {
+    // Get baseline in ascending order
+    const { data: ascBaseline } = await http.get<Customer[]>({
+      path: "/customers",
+      query: { pageSize: "25", sortBy: "createdAt", sortOrder: "asc" },
+    });
+
+    const ascBaselineIds = ascBaseline.map((c) => c.id);
+    const firstPage = ascBaseline.slice(0, 5);
+    const lastId = firstPage[4].id;
+
+    // Test startingAfter with asc
+    const { status: statusAfter, data: dataAfter } = await http.get<Customer[]>(
+      {
+        path: "/customers",
+        query: {
+          pageSize: "5",
+          startingAfter: lastId,
+          sortBy: "createdAt",
+          sortOrder: "asc",
+        },
+      },
+    );
+
+    expect(statusAfter).toEqual(200);
+    expectSortedByCreatedAtAsc(dataAfter);
+    expect(dataAfter.map((c) => c.id)).toEqual(ascBaselineIds.slice(5, 10));
+
+    // Test endingBefore with asc
+    const beforeId = ascBaseline[5].id;
+
+    const { status: statusBefore, data: dataBefore } = await http.get<
       Customer[]
     >({
       path: "/customers",
       query: {
-        pageSize: "25",
-      },
-    });
-
-    expect(baselineStatus).toEqual(200);
-    baselineIds = allCustomers.map((c) => c.id);
-    baselineDates = allCustomers.map((c) => new Date(c.createdAt).getTime());
-
-    // Verify baseline is sorted correctly (descending by createdAt)
-    for (let i = 0; i < baselineDates.length - 1; i++) {
-      expect(baselineDates[i]).toBeGreaterThanOrEqual(baselineDates[i + 1]);
-    }
-  });
-
-  test("GET /customers - offset pagination", async () => {
-    const { status: status1, data: page1 } = await http.get<Customer[]>({
-      path: "/customers",
-      query: {
-        page: "1",
-        pageSize: "2",
+        pageSize: "5",
+        endingBefore: beforeId,
         sortBy: "createdAt",
-        sortOrder: "desc",
+        sortOrder: "asc",
       },
     });
 
-    expect(status1).toEqual(200);
-    expect(Array.isArray(page1)).toBe(true);
-    expect(page1.length).toBeLessThanOrEqual(2);
-
-    const page1Ids = page1.map((c) => c.id);
-
-    // Verify page1 IDs match the first 2 IDs from baseline
-    expect(page1Ids).toEqual(baselineIds.slice(0, page1.length));
-
-    // Verify page1 is in correct order
-    if (page1.length > 1) {
-      const page1Dates = page1.map((c) => new Date(c.createdAt).getTime());
-      expect(page1Dates[0]).toBeGreaterThanOrEqual(page1Dates[1]);
-    }
-
-    if (page1.length === 2 && baselineIds.length >= 4) {
-      // Fetch second page
-      const { status: status2, data: page2 } = await http.get<Customer[]>({
-        path: "/customers",
-        query: {
-          page: "2",
-          pageSize: "2",
-          sortBy: "createdAt",
-          sortOrder: "desc",
-        },
-      });
-
-      expect(status2).toEqual(200);
-      expect(Array.isArray(page2)).toBe(true);
-      expect(page2.length).toBeLessThanOrEqual(2);
-
-      const page2Ids = page2.map((c) => c.id);
-
-      // Verify page2 IDs match the next 2 IDs from baseline
-      expect(page2Ids).toEqual(baselineIds.slice(2, 4));
-
-      // Verify no overlap between pages
-      const overlap = page1Ids.filter((id) => page2Ids.includes(id));
-      expect(overlap.length).toBe(0);
-    }
-  });
-
-  test("GET /customers - cursor pagination with startingAfter", async () => {
-    const { status: status1, data: page1 } = await http.get<Customer[]>({
-      path: "/customers",
-      query: {
-        pageSize: "2",
-      },
-    });
-
-    expect(status1).toEqual(200);
-    expect(Array.isArray(page1)).toBe(true);
-    expect(page1.length).toBeLessThanOrEqual(2);
-
-    const page1Ids = page1.map((c) => c.id);
-
-    // Verify page1 IDs match the first 2 IDs from baseline
-    expect(page1Ids).toEqual(baselineIds.slice(0, page1.length));
-
-    const lastItemId = page1[page1.length - 1].id;
-
-    // Fetch next page using cursor
-    const { status: status2, data: page2 } = await http.get<Customer[]>({
-      path: "/customers",
-      query: {
-        pageSize: "2",
-        startingAfter: lastItemId,
-      },
-    });
-
-    expect(status2).toEqual(200);
-    expect(Array.isArray(page2)).toBe(true);
-    expect(page2.length).toBeLessThanOrEqual(2);
-
-    const page2Ids = page2.map((c) => c.id);
-
-    // Verify page2 IDs match the next 2 IDs from baseline
-    expect(page2Ids).toEqual(baselineIds.slice(2, 4));
-
-    // Verify no overlap between pages
-    const overlap = page1Ids.filter((id) => page2Ids.includes(id));
-    expect(overlap.length).toBe(0);
-
-    // Verify combined pages maintain order
-    const combinedIds = [...page1Ids, ...page2Ids];
-    const expectedCombined = baselineIds.slice(0, 4);
-    expect(combinedIds).toEqual(expectedCombined);
-  });
-
-  test("GET /customers - cursor pagination with endingBefore", async () => {
-    const { status: status1, data: page1 } = await http.get<Customer[]>({
-      path: "/customers",
-      query: {
-        pageSize: "3",
-      },
-    });
-
-    expect(status1).toEqual(200);
-    expect(Array.isArray(page1)).toBe(true);
-    expect(page1.length).toBeGreaterThan(0);
-
-    const page1Ids = page1.map((c) => c.id);
-
-    // Verify page1 matches baseline
-    expect(page1Ids).toEqual(baselineIds.slice(0, page1.length));
-
-    if (page1.length > 1) {
-      const firstItemId = page1[0].id;
-
-      // Fetch previous page using endingBefore
-      const { status: status2, data: page2 } = await http.get<Customer[]>({
-        path: "/customers",
-        query: {
-          pageSize: "2",
-          endingBefore: firstItemId,
-        },
-      });
-
-      expect(status2).toEqual(200);
-      expect(Array.isArray(page2)).toBe(true);
-      expect(page2.length).toBeLessThanOrEqual(2);
-
-      const page2Ids = page2.map((c) => c.id);
-
-      // Verify no overlap
-      const overlap = page1Ids.filter((id) => page2Ids.includes(id));
-      expect(overlap.length).toBe(0);
-
-      // Verify results are before the cursor (page2 should be empty or have items with later dates)
-      if (page2.length > 0) {
-        const firstPage1Date = new Date(page1[0].createdAt).getTime();
-        const lastPage2Date = new Date(
-          page2[page2.length - 1].createdAt,
-        ).getTime();
-        expect(lastPage2Date).toBeLessThanOrEqual(firstPage1Date);
-      }
-    }
-  });
-
-  test("GET /customers - error when both startingAfter and endingBefore provided", async () => {
-    const { status, data } = await http.get<{ error: { message: string } }>({
-      path: "/customers",
-      query: {
-        pageSize: "2",
-        startingAfter: "customerId",
-        endingBefore: "customerId",
-      },
-    });
-
-    expect(status).toEqual(422);
-    expect(data.error.message).toContain(
-      "You cannot use both startingAfter and endingBefore at the same time",
-    );
+    expect(statusBefore).toEqual(200);
+    expectSortedByCreatedAtAsc(dataBefore);
+    expect(dataBefore.map((c) => c.id)).toEqual(ascBaselineIds.slice(0, 5));
   });
 });
+
+function expectSortedByCreatedAt(customers: Customer[]) {
+  for (let i = 0; i < customers.length - 1; i++) {
+    const a = new Date(customers[i].createdAt).getTime();
+    const b = new Date(customers[i + 1].createdAt).getTime();
+    expect(a).toBeGreaterThanOrEqual(b);
+  }
+}
+
+function expectSortedByCreatedAtAsc(customers: Customer[]) {
+  for (let i = 0; i < customers.length - 1; i++) {
+    const a = new Date(customers[i].createdAt).getTime();
+    const b = new Date(customers[i + 1].createdAt).getTime();
+    expect(a).toBeLessThanOrEqual(b);
+  }
+}
+
+function expectNoOverlap(a: Customer[], b: Customer[]) {
+  const overlap = a.map((c) => c.id).filter((id) => b.some((x) => x.id === id));
+  expect(overlap).toHaveLength(0);
+}
