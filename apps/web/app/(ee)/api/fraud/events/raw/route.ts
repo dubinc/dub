@@ -2,7 +2,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import {
-  rawFraudEventSchemas,
+  fraudEventSchemas,
   rawFraudEventsQuerySchema,
 } from "@/lib/zod/schemas/fraud";
 import { prisma } from "@dub/prisma";
@@ -40,7 +40,7 @@ export const GET = withWorkspace(
       });
     }
 
-    const zodSchema = rawFraudEventSchemas[type];
+    const zodSchema = fraudEventSchemas[type];
 
     if (type === "partnerCrossProgramBan") {
       const bannedProgramEnrollments = await prisma.programEnrollment.findMany({

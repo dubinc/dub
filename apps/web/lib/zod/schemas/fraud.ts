@@ -30,7 +30,7 @@ export const fraudEventGroupSchema = z.object({
   }).nullable(),
 });
 
-export const fraudEventGroupsQuerySchema = z
+export const fraudEventGroupQuerySchema = z
   .object({
     status: z.nativeEnum(FraudEventStatus).optional().default("pending"),
     type: z.nativeEnum(FraudRuleType).optional(),
@@ -41,7 +41,7 @@ export const fraudEventGroupsQuerySchema = z
   })
   .merge(getPaginationQuerySchema({ pageSize: 100 }));
 
-export const fraudEventGroupCountQuerySchema = fraudEventGroupsQuerySchema
+export const fraudEventGroupCountQuerySchema = fraudEventGroupQuerySchema
   .omit({
     page: true,
     pageSize: true,
@@ -204,7 +204,7 @@ export const updateFraudRuleSettingsSchema = z.object({
     .optional(),
 });
 
-export const rawFraudEventSchemas = {
+export const fraudEventSchemas = {
   referralSourceBanned: z.object({
     createdAt: z.date(),
     customer: CustomerSchema.pick({

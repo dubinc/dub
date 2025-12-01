@@ -2,7 +2,7 @@
 
 import { useRawFraudEvents } from "@/lib/swr/use-raw-fraud-events";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { rawFraudEventSchemas } from "@/lib/zod/schemas/fraud";
+import { fraudEventSchemas } from "@/lib/zod/schemas/fraud";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import { Button, Table, TimestampTooltip, useTable } from "@dub/ui";
 import { formatDateTimeSmart } from "@dub/utils";
@@ -10,7 +10,7 @@ import Link from "next/link";
 import { z } from "zod";
 
 type EventDataProps = z.infer<
-  (typeof rawFraudEventSchemas)["customerEmailMatch"]
+  (typeof fraudEventSchemas)["customerEmailMatch"]
 >;
 
 export function FraudMatchingCustomerEmailTable() {

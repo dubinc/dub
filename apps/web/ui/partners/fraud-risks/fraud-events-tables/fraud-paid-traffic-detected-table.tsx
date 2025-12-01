@@ -4,7 +4,7 @@ import { PAID_TRAFFIC_PLATFORMS_CONFIG } from "@/lib/api/fraud/constants";
 import { useRawFraudEvents } from "@/lib/swr/use-raw-fraud-events";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PaidTrafficPlatform } from "@/lib/types";
-import { rawFraudEventSchemas } from "@/lib/zod/schemas/fraud";
+import { fraudEventSchemas } from "@/lib/zod/schemas/fraud";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import {
   Bing,
@@ -24,7 +24,7 @@ import Link from "next/link";
 import { z } from "zod";
 
 type EventDataProps = z.infer<
-  (typeof rawFraudEventSchemas)["paidTrafficDetected"]
+  (typeof fraudEventSchemas)["paidTrafficDetected"]
 >;
 
 const PAID_TRAFFIC_PLATFORM_ICONS: Record<

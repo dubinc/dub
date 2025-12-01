@@ -2,7 +2,7 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { withWorkspace } from "@/lib/auth";
 import {
   fraudEventGroupSchema,
-  fraudEventGroupsQuerySchema,
+  fraudEventGroupQuerySchema,
 } from "@/lib/zod/schemas/fraud";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
@@ -22,7 +22,7 @@ export const GET = withWorkspace(
       pageSize,
       sortBy,
       sortOrder,
-    } = fraudEventGroupsQuerySchema.parse(searchParams);
+    } = fraudEventGroupQuerySchema.parse(searchParams);
 
     const fraudEventGroups = await prisma.fraudEventGroup.findMany({
       where: {
