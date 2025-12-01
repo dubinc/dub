@@ -70,9 +70,9 @@ export const fraudEventQuerySchema = z.object({
   groupId: z.string(),
 });
 
-export const resolveFraudEventsSchema = z.object({
+export const resolveFraudEventGroupSchema = z.object({
   workspaceId: z.string(),
-  groupKey: z.string(),
+  groupId: z.string(),
   resolutionReason: z
     .string()
     .max(

@@ -2,7 +2,7 @@
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createFraudEvents } from "@/lib/api/fraud/create-fraud-events";
-import { resolveFraudEvents } from "@/lib/api/fraud/resolve-fraud-events";
+import { resolveFraudEventGroups } from "@/lib/api/fraud/resolve-fraud-event-groups";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { rejectPartnerSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
@@ -88,7 +88,7 @@ export const rejectPartnerApplicationAction = authActionClient
           }),
 
           // Automatically resolve all pending fraud events for this partner in the current program
-          resolveFraudEvents({
+          resolveFraudEventGroups({
             where: {
               programId,
               partnerId,

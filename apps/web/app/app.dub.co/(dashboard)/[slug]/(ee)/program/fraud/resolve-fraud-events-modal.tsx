@@ -1,13 +1,13 @@
 "use client";
 
-import { resolveFraudEventsAction } from "@/lib/actions/fraud/resolve-fraud-events";
+import { resolveFraudEventGroupAction } from "@/lib/actions/fraud/resolve-fraud-event-group";
 import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { fraudEventGroupProps } from "@/lib/types";
 import {
   MAX_RESOLUTION_REASON_LENGTH,
-  resolveFraudEventsSchema,
+  resolveFraudEventGroupSchema,
 } from "@/lib/zod/schemas/fraud";
 import { MaxCharactersCounter } from "@/ui/shared/max-characters-counter";
 import { Button, Modal } from "@dub/ui";
@@ -24,7 +24,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
-type FormData = z.infer<typeof resolveFraudEventsSchema>;
+type FormData = z.infer<typeof resolveFraudEventGroupSchema>;
 
 function ResolveFraudEventsModal({
   showResolveFraudEventModal,
@@ -39,15 +39,15 @@ function ResolveFraudEventsModal({
 }) {
   const { id: workspaceId } = useWorkspace();
 
-  const { executeAsync, isPending } = useAction(resolveFraudEventsAction, {
+  const { executeAsync, isPending } = useAction(resolveFraudEventGroupAction, {
     onSuccess: () => {
-      toast.success("Fraud event resolved.");
+      toast.success("Fraud events resolved.");
       setShowResolveFraudEventModal(false);
-      mutatePrefix("/api/fraud/events");
+      mutatePrefix("/api/fraud/groups");
       onConfirm?.();
     },
     onError: ({ error }) => {
-      toast.error(parseActionError(error, "Failed to resolve fraud events"));
+      toast.error(parseActionError(error, "Failed to resolve fraud events."));
     },
   });
 
@@ -59,19 +59,19 @@ function ResolveFraudEventsModal({
   } = useForm<FormData>({
     defaultValues: {
       resolutionReason: "",
-      groupKey: fraudEventGroup.groupKey,
+      groupId: fraudEventGroup.id,
     },
   });
 
   const onSubmit = useCallback(
     async (data: FormData) => {
-      if (!workspaceId || !fraudEventGroup.groupKey) {
+      if (!workspaceId || !fraudEventGroup.id) {
         return;
       }
 
       await executeAsync({
         workspaceId,
-        groupKey: fraudEventGroup.groupKey,
+        groupId: fraudEventGroup.id,
         resolutionReason: data.resolutionReason,
       });
     },
@@ -154,8 +154,8 @@ function ResolveFraudEventsModal({
           <Button
             type="submit"
             variant="primary"
-            text={`Resolve ${fraudEventGroup.count} ${pluralize("event", fraudEventGroup.count)}`}
-            disabled={!workspaceId || !fraudEventGroup.groupKey}
+            text={`Resolve ${fraudEventGroup.eventCount} ${pluralize("event", fraudEventGroup.eventCount)}`}
+            disabled={!workspaceId || !fraudEventGroup.id}
             loading={isPending}
             className="h-8 w-fit px-3"
           />
