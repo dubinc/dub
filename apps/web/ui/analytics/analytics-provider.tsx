@@ -33,13 +33,25 @@ import { defaultConfig } from "swr/_internal";
 import { UpgradeRequiredToast } from "../shared/upgrade-required-toast";
 import { useAnalyticsQuery } from "./use-analytics-query";
 
-export interface AnalyticsDashboardProps {
-  domain: string;
-  key: string;
-  url: string;
+export type AnalyticsDashboardProps = {
   showConversions?: boolean;
   workspacePlan?: PlanProps;
-}
+} & (
+  | {
+      domain: string;
+      key: string;
+      url: string;
+      folderId?: never;
+      folderName?: never;
+    }
+  | {
+      folderId: string;
+      folderName: string;
+      domain?: never;
+      key?: never;
+      url?: never;
+    }
+);
 
 export const AnalyticsContext = createContext<{
   basePath: string;
@@ -169,7 +181,7 @@ export default function AnalyticsProvider({
       return {
         basePath: `/share/${dashboardId}`,
         baseApiPath: "/api/analytics/dashboard",
-        domain: dashboardProps?.domain,
+        domain: dashboardProps?.domain ?? null,
       };
     } else {
       return {
@@ -187,14 +199,23 @@ export default function AnalyticsProvider({
     domainSlug,
   ]);
 
-  const { queryString, key, start, end, interval, tagIds, selectedTab } =
-    useAnalyticsQuery({
-      domain: domain ?? undefined,
-      defaultKey: dashboardProps?.key,
-      defaultInterval: partnerPage
-        ? DUB_PARTNERS_ANALYTICS_INTERVAL
-        : DUB_LINKS_ANALYTICS_INTERVAL,
-    });
+  const {
+    queryString,
+    key,
+    start,
+    end,
+    interval,
+    tagIds,
+    folderId,
+    selectedTab,
+  } = useAnalyticsQuery({
+    domain: domain ?? undefined,
+    defaultKey: dashboardProps?.key,
+    defaultFolderId: dashboardProps?.folderId,
+    defaultInterval: partnerPage
+      ? DUB_PARTNERS_ANALYTICS_INTERVAL
+      : DUB_LINKS_ANALYTICS_INTERVAL,
+  });
 
   // Reset requiresUpgrade when query changes
   useEffect(() => setRequiresUpgrade(false), [queryString]);

@@ -4,6 +4,7 @@ import Analytics from "@/ui/analytics";
 import { NewBackground } from "@/ui/shared/new-background";
 import { Footer, Logo, Nav, NavMobile } from "@dub/ui";
 import { APP_DOMAIN, constructMetadata } from "@dub/utils";
+import { Metadata } from "next";
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
@@ -11,18 +12,18 @@ import DashboardPasswordForm from "./form";
 
 export async function generateMetadata(props: {
   params: Promise<{ dashboardId: string }>;
-}) {
+}): Promise<Metadata> {
   const params = await props.params;
   const data = await getDashboard({ id: params.dashboardId });
 
-  // if the dashboard or link doesn't exist
-  if (!data?.link) {
-    return;
+  // if the dashboard, link, or folder doesn't exist
+  if (!data?.link && !data?.folder) {
+    return {};
   }
 
   return constructMetadata({
-    title: `Analytics for ${data.link.domain}/${data.link.key} – ${process.env.NEXT_PUBLIC_APP_NAME}`,
-    image: `${APP_DOMAIN}/api/og/analytics?domain=${data.link.domain}&key=${data.link.key}`,
+    title: `Analytics for ${data.link ? `${data.link.domain}/${data.link.key}` : data.folder!.name} – ${process.env.NEXT_PUBLIC_APP_NAME}`,
+    image: `${APP_DOMAIN}/api/og/analytics?${data.link ? `domain=${data.link.domain}&key=${data.link.key}` : `folderId=${data.folder!.id}`}`,
     noIndex: !data.doIndex,
   });
 }
@@ -33,8 +34,8 @@ export default async function DashboardPage(props: {
   const params = await props.params;
   const data = await getDashboard({ id: params.dashboardId });
 
-  // if the dashboard or link doesn't exist
-  if (!data?.link) {
+  // if the dashboard, link, or folder doesn't exist
+  if (!data?.link && !data?.folder) {
     notFound();
   }
 
@@ -68,9 +69,16 @@ export default async function DashboardPage(props: {
       <Suspense fallback={<div className="h-screen w-full bg-neutral-50" />}>
         <Analytics
           dashboardProps={{
-            domain: data.link.domain,
-            key: data.link.key,
-            url: data.link.url,
+            ...(data.link
+              ? {
+                  domain: data.link.domain,
+                  key: data.link.key,
+                  url: data.link.url,
+                }
+              : {
+                  folderId: data.folder!.id,
+                  folderName: data.folder!.name,
+                }),
             showConversions: data.showConversions,
             workspacePlan: data.project?.plan as PlanProps,
           }}

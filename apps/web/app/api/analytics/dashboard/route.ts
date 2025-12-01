@@ -18,31 +18,62 @@ export const GET = async (req: Request) => {
     const searchParams = getSearchParams(req.url);
     const parsedParams = analyticsQuerySchema.parse(searchParams);
 
-    const { groupBy, domain, key, interval, start, end } = parsedParams;
+    const { groupBy, domain, key, folderId, interval, start, end } =
+      parsedParams;
 
-    if (!domain || !key) {
+    if ((!domain || !key) && !folderId) {
       throw new DubApiError({
         code: "bad_request",
-        message: "Missing domain or key query parameter",
+        message: "Missing domain/key or folderId query parameters",
       });
     }
 
-    let link;
+    let demoLink, link, folder, workspace;
 
-    const demoLink = DUB_DEMO_LINKS.find(
-      (l) => l.domain === domain && l.key === key,
-    );
+    if (domain && key) {
+      demoLink = DUB_DEMO_LINKS.find(
+        (l) => l.domain === domain && l.key === key,
+      );
 
-    // if it's a demo link
-    if (demoLink) {
-      link = {
-        id: demoLink.id,
-        projectId: DUB_WORKSPACE_ID,
-      };
+      // if it's a demo link
+      if (demoLink) {
+        link = {
+          id: demoLink.id,
+          projectId: DUB_WORKSPACE_ID,
+        };
+      } else {
+        link = await prisma.link.findUnique({
+          where: {
+            domain_key: { domain, key },
+          },
+          select: {
+            id: true,
+            dashboard: true,
+            projectId: true,
+            project: {
+              select: {
+                plan: true,
+                usage: true,
+                usageLimit: true,
+              },
+            },
+          },
+        });
+
+        if (!link?.dashboard) {
+          throw new DubApiError({
+            code: "forbidden",
+            message: "This link does not have a public analytics dashboard",
+          });
+        }
+
+        workspace = link.project;
+      }
     } else {
-      link = await prisma.link.findUnique({
+      // Folder
+      folder = await prisma.folder.findUnique({
         where: {
-          domain_key: { domain, key },
+          id: folderId,
         },
         select: {
           id: true,
@@ -58,34 +89,33 @@ export const GET = async (req: Request) => {
         },
       });
 
-      // if the link is explicitly private (publicStats === false)
-      if (!link?.dashboard) {
+      if (!folder?.dashboard) {
         throw new DubApiError({
           code: "forbidden",
-          message: "This link does not have a public analytics dashboard",
+          message: "This folder does not have a public analytics dashboard",
         });
       }
 
-      const workspace = link.project;
+      workspace = folder.project;
+    }
 
-      assertValidDateRangeForPlan({
-        plan: workspace?.plan || "free",
-        dataAvailableFrom: workspace?.createdAt,
-        interval,
-        start,
-        end,
+    assertValidDateRangeForPlan({
+      plan: workspace?.plan || "free",
+      dataAvailableFrom: workspace?.createdAt,
+      interval,
+      start,
+      end,
+    });
+
+    if (workspace && workspace.usage > workspace.usageLimit) {
+      throw new DubApiError({
+        code: "forbidden",
+        message: exceededLimitError({
+          plan: workspace.plan as PlanProps,
+          limit: workspace.usageLimit,
+          type: "clicks",
+        }),
       });
-
-      if (workspace && workspace.usage > workspace.usageLimit) {
-        throw new DubApiError({
-          code: "forbidden",
-          message: exceededLimitError({
-            plan: workspace.plan as PlanProps,
-            limit: workspace.usageLimit,
-            type: "clicks",
-          }),
-        });
-      }
     }
 
     // Rate limit in production
@@ -111,8 +141,8 @@ export const GET = async (req: Request) => {
     const response = await getAnalytics({
       ...parsedParams,
       // workspaceId can be undefined (for public links that haven't been claimed/synced to a workspace)
-      ...(link.projectId && { workspaceId: link.projectId }),
-      linkId: link.id,
+      ...(workspace && { workspaceId: workspace.id }),
+      ...(link ? { linkId: link.id } : { folderId: folder.id }),
     });
 
     return NextResponse.json(response);

@@ -18,6 +18,12 @@ export const getDashboard = cache(async ({ id }: { id: string }) => {
           url: true,
         },
       },
+      folder: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
       project: {
         select: {
           plan: true,
