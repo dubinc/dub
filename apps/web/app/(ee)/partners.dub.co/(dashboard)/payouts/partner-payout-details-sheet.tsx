@@ -13,6 +13,7 @@ import { PayoutStatus } from "@dub/prisma/client";
 import {
   Button,
   CircleArrowRight,
+  CopyText,
   InvoiceDollar,
   LoadingSpinner,
   Sheet,
@@ -33,6 +34,7 @@ import {
   pluralize,
 } from "@dub/utils";
 import { formatPeriod } from "@dub/utils/src/functions/datetime";
+import { addBusinessDays } from "date-fns";
 import Link from "next/link";
 import { Dispatch, Fragment, SetStateAction, useMemo } from "react";
 import useSWR from "swr";
@@ -111,6 +113,17 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
       ) : (
         "-"
       ),
+
+      ...(payout.traceId && {
+        "Trace ID": (
+          <CopyText
+            value={payout.traceId}
+            className="font-mono text-sm text-neutral-500"
+          >
+            {payout.traceId}
+          </CopyText>
+        ),
+      }),
 
       Amount: (
         <div className="flex items-center gap-2">
@@ -253,6 +266,14 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
                     </Tooltip>
                   ) : key === "Paid" ? (
                     <Tooltip content="Date and time when the payout was fully processed by the program and paid to your account.">
+                      <span className="cursor-help underline decoration-dotted underline-offset-2">
+                        {key}
+                      </span>
+                    </Tooltip>
+                  ) : key === "Trace ID" ? (
+                    <Tooltip
+                      content={`Banks can take up to 5 business days to process payouts. If you haven't received your payout${payout.paidAt ? ` by \`${formatDateTimeSmart(addBusinessDays(payout.paidAt, 5))}\`` : ""}, you can contact your bank and provide the following trace ID as reference.`}
+                    >
                       <span className="cursor-help underline decoration-dotted underline-offset-2">
                         {key}
                       </span>

@@ -94,6 +94,7 @@ export const PartnerPayoutResponseSchema = PayoutResponseSchema.omit({
       minPayoutAmount: true,
       payoutMode: true,
     }),
+    traceId: z.string().nullish(),
   }),
 );
 

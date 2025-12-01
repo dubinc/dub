@@ -1,5 +1,4 @@
 import { bulkBanPartnersAction } from "@/lib/actions/partners/bulk-ban-partners";
-import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
 import {
@@ -27,8 +26,8 @@ type BulkBanPartnersFormData = z.infer<typeof bulkBanPartnersSchema> & {
 interface BulkBanPartnersProps {
   showBulkBanPartnersModal: boolean;
   setShowBulkBanPartnersModal: Dispatch<SetStateAction<boolean>>;
-  onConfirm?: () => void;
   partners: Pick<EnrolledPartnerProps, "id" | "name" | "image" | "email">[];
+  onConfirm?: () => Promise<void>;
 }
 
 function BulkBanPartnersModal({
@@ -55,15 +54,11 @@ function BulkBanPartnersModal({
 
   const { executeAsync, isPending } = useAction(bulkBanPartnersAction, {
     onSuccess: async () => {
+      await onConfirm?.();
       toast.success(
         `${partnerWord.charAt(0).toUpperCase() + partnerWord.slice(1)} banned successfully!`,
       );
-      await Promise.all([
-        mutatePrefix("/api/partners"),
-        mutatePrefix("/api/fraud/events"),
-      ]);
       setShowBulkBanPartnersModal(false);
-      onConfirm?.();
     },
     onError({ error }) {
       toast.error(error.serverError);
@@ -227,7 +222,7 @@ export function useBulkBanPartnersModal({
   onConfirm,
 }: {
   partners: Pick<EnrolledPartnerProps, "id" | "name" | "image" | "email">[];
-  onConfirm?: () => void;
+  onConfirm?: () => Promise<void>;
 }) {
   const [showBulkBanPartnersModal, setShowBulkBanPartnersModal] =
     useState(false);

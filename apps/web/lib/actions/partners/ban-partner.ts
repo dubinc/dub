@@ -2,6 +2,7 @@
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { DubApiError } from "@/lib/api/errors";
+import { resolveFraudEvents } from "@/lib/api/fraud/resolve-fraud-events";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { qstash } from "@/lib/cron";
@@ -60,12 +61,14 @@ export const banPartner = async ({
     });
   }
 
+  const commonWhere = {
+    partnerId,
+    programId,
+  };
+
   const programEnrollmentUpdated = await prisma.programEnrollment.update({
     where: {
-      partnerId_programId: {
-        partnerId,
-        programId,
-      },
+      partnerId_programId: commonWhere,
     },
     data: {
       status: ProgramEnrollmentStatus.banned,
@@ -76,6 +79,13 @@ export const banPartner = async ({
       saleRewardId: null,
       discountId: null,
     },
+  });
+
+  // Automatically resolve all pending fraud events for this partner in the current program
+  await resolveFraudEvents({
+    where: commonWhere,
+    userId: user.id,
+    resolutionReason: "Resolved automatically because the partner was banned.",
   });
 
   waitUntil(

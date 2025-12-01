@@ -1,9 +1,8 @@
 import { Customer, fraudEventGroupProps, TrackLeadResponse } from "@/lib/types";
 import { FraudRuleType } from "@prisma/client";
-import { randomCustomer, randomId, retry } from "tests/utils/helpers";
+import { randomCustomer, retry } from "tests/utils/helpers";
 import { HttpClient } from "tests/utils/http";
 import {
-  DUB_TEST_IDENTITY_HEADER,
   E2E_FRAUD_PARTNER,
   E2E_FRAUD_REFERRAL_SOURCE_BANNED_DOMAIN,
   E2E_TRACK_CLICK_HEADERS,
@@ -16,14 +15,13 @@ describe.concurrent("/fraud/**", async () => {
   const { http } = await h.init();
 
   test("FraudRuleType = customerEmailMatch", async () => {
-    const clickLink = E2E_FRAUD_PARTNER.link;
+    const clickLink = E2E_FRAUD_PARTNER.links.customerEmailMatch;
 
     // Track a click
     const clickResponse = await http.post<{ clickId: string }>({
       path: "/track/click",
       headers: {
         ...E2E_TRACK_CLICK_HEADERS,
-        [DUB_TEST_IDENTITY_HEADER]: randomId(10),
       },
       body: {
         domain: clickLink.domain,
@@ -59,14 +57,13 @@ describe.concurrent("/fraud/**", async () => {
   });
 
   test("FraudRuleType = customerEmailSuspiciousDomain", async () => {
-    const clickLink = E2E_FRAUD_PARTNER.link;
+    const clickLink = E2E_FRAUD_PARTNER.links.customerEmailSuspiciousDomain;
 
     // Track a click
     const clickResponse = await http.post<{ clickId: string }>({
       path: "/track/click",
       headers: {
         ...E2E_TRACK_CLICK_HEADERS,
-        [DUB_TEST_IDENTITY_HEADER]: randomId(10),
       },
       body: {
         domain: clickLink.domain,
@@ -99,7 +96,7 @@ describe.concurrent("/fraud/**", async () => {
   });
 
   test("FraudRuleType = referralSourceBanned", async () => {
-    const clickLink = E2E_FRAUD_PARTNER.link;
+    const clickLink = E2E_FRAUD_PARTNER.links.referralSourceBanned;
 
     // Track a click
     const clickResponse = await http.post<{ clickId: string }>({
@@ -107,7 +104,6 @@ describe.concurrent("/fraud/**", async () => {
       headers: {
         ...E2E_TRACK_CLICK_HEADERS,
         referer: `https://${E2E_FRAUD_REFERRAL_SOURCE_BANNED_DOMAIN}`,
-        [DUB_TEST_IDENTITY_HEADER]: randomId(10),
       },
       body: {
         domain: clickLink.domain,
@@ -140,14 +136,13 @@ describe.concurrent("/fraud/**", async () => {
   });
 
   test("FraudRuleType = paidTrafficDetected", async () => {
-    const clickLink = E2E_FRAUD_PARTNER.link;
+    const clickLink = E2E_FRAUD_PARTNER.links.paidTrafficDetected;
 
     // Track a click
     const clickResponse = await http.post<{ clickId: string }>({
       path: "/track/click",
       headers: {
         ...E2E_TRACK_CLICK_HEADERS,
-        [DUB_TEST_IDENTITY_HEADER]: randomId(10),
       },
       body: {
         domain: clickLink.domain,
