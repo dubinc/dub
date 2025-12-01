@@ -30,10 +30,10 @@ export const booleanQuerySchema = z
 
 // Pagination
 export const getPaginationQuerySchema = ({
-  pageSize,
+  pageSize = 100,
   deprecated = false,
 }: {
-  pageSize: number;
+  pageSize?: number;
   deprecated?: boolean;
 }) =>
   z.object({

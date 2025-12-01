@@ -119,13 +119,13 @@ export const getCommissionsQuerySchema = z
     timezone: z.string().optional(),
   })
   .merge(
+    getCursorPaginationQuerySchema({ example: "cm_1KAP4CGN2Z5TPYYQ1W4JEYD56" }),
+  )
+  .merge(
     getPaginationQuerySchema({
       pageSize: COMMISSIONS_MAX_PAGE_SIZE,
       deprecated: true,
     }),
-  )
-  .merge(
-    getCursorPaginationQuerySchema({ example: "cm_1KAP4CGN2Z5TPYYQ1W4JEYD56" }),
   );
 
 export const getCommissionsCountQuerySchema = getCommissionsQuerySchema.omit({
