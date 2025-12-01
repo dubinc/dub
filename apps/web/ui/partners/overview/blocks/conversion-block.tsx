@@ -5,10 +5,11 @@ import { LoadingSpinner, useRouterStuff } from "@dub/ui";
 import { FunnelChart } from "@dub/ui/charts";
 import { nFormatter } from "@dub/utils";
 import { useContext, useMemo } from "react";
+import { ExceededEventsLimit } from "../exceeded-events-limit";
 import { ProgramOverviewBlock } from "../program-overview-block";
 
 export function ConversionBlock() {
-  const { slug: workspaceSlug } = useWorkspace();
+  const { slug: workspaceSlug, exceededClicks } = useWorkspace();
   const { program } = useProgram();
 
   const { getQueryString } = useRouterStuff();
@@ -49,7 +50,10 @@ export function ConversionBlock() {
     <ProgramOverviewBlock
       title="Conversion rate"
       viewAllHref={`/${workspaceSlug}/program/analytics${getQueryString(
-        { saleType: "new", view: "funnel" },
+        {
+          // saleType: "new", // TODO: Add this back once we fix sales by type
+          view: "funnel",
+        },
         {
           include: ["interval", "start", "end"],
         },
@@ -58,7 +62,9 @@ export function ConversionBlock() {
       contentClassName="px-0 mt-1"
     >
       <div className="h-full min-h-48">
-        {totalEventsLoading ? (
+        {exceededClicks ? (
+          <ExceededEventsLimit />
+        ) : totalEventsLoading ? (
           <div className="flex size-full items-center justify-center py-4">
             <LoadingSpinner />
           </div>

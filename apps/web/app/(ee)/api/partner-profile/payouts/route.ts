@@ -38,6 +38,7 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
     return {
       ...payout,
       mode,
+      traceId: payout.stripePayoutTraceId,
     };
   });
 

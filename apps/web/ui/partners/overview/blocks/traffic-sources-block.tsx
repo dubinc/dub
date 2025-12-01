@@ -18,10 +18,11 @@ import {
 import Link from "next/link";
 import { useContext } from "react";
 import useSWR from "swr";
+import { ExceededEventsLimit } from "../exceeded-events-limit";
 import { ProgramOverviewBlock } from "../program-overview-block";
 
 export function TrafficSourcesBlock() {
-  const { slug: workspaceSlug } = useWorkspace();
+  const { slug: workspaceSlug, exceededClicks } = useWorkspace();
   const { program } = useProgram();
 
   const { getQueryString } = useRouterStuff();
@@ -35,10 +36,11 @@ export function TrafficSourcesBlock() {
       saleAmount: number;
     }[]
   >(
-    `/api/analytics?${editQueryString(queryString, {
-      groupBy: "referers",
-      event: program?.primaryRewardEvent === "lead" ? "leads" : "sales",
-    })}`,
+    !exceededClicks &&
+      `/api/analytics?${editQueryString(queryString, {
+        groupBy: "referers",
+        event: program?.primaryRewardEvent === "lead" ? "leads" : "sales",
+      })}`,
     fetcher,
   );
 
@@ -53,7 +55,9 @@ export function TrafficSourcesBlock() {
       )}`}
     >
       <div className="divide-border-subtle @2xl:h-60 flex h-auto flex-col divide-y">
-        {isLoading ? (
+        {exceededClicks ? (
+          <ExceededEventsLimit />
+        ) : isLoading ? (
           <div className="flex size-full items-center justify-center py-4">
             <LoadingSpinner />
           </div>

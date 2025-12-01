@@ -1,7 +1,6 @@
 import { queueDiscountCodeDeletion } from "@/lib/api/discounts/queue-discount-code-deletion";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { createFraudEvents } from "@/lib/api/fraud/create-fraud-events";
-import { resolveFraudEvents } from "@/lib/api/fraud/resolve-fraud-events";
 import { linkCache } from "@/lib/api/links/cache";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
@@ -156,27 +155,15 @@ export async function POST(req: Request) {
       },
     });
 
-    await Promise.all([
-      // Automatically resolve all pending fraud events for this partner in the current program
-      resolveFraudEvents({
-        where: {
-          ...commonWhere,
-        },
-        userId,
-        resolutionReason:
-          "Resolved automatically because the partner was banned.",
-      }),
-
-      // Create partnerCrossProgramBan fraud events for other programs where this partner
-      // is enrolled and approved, to flag potential cross-program fraud risk
-      createFraudEvents(
-        programEnrollments.map(({ programId }) => ({
-          programId,
-          partnerId,
-          type: "partnerCrossProgramBan",
-        })),
-      ),
-    ]);
+    // Create partnerCrossProgramBan fraud events for other programs where this partner
+    // is enrolled and approved, to flag potential cross-program fraud risk
+    await createFraudEvents(
+      programEnrollments.map(({ programId }) => ({
+        programId,
+        partnerId,
+        type: "partnerCrossProgramBan",
+      })),
+    );
 
     // Send email
     if (partner.email) {

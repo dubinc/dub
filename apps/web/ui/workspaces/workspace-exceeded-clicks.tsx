@@ -6,14 +6,14 @@ import { CursorRays } from "../layout/sidebar/icons/cursor-rays";
 import { AnimatedEmptyState } from "../shared/animated-empty-state";
 
 export default function WorkspaceExceededClicks() {
-  const { slug, nextPlan } = useWorkspace();
+  const { slug } = useWorkspace();
 
   return (
     <MaxWidthWrapper>
-      <div className="my-10 flex flex-col items-center justify-center rounded-md border border-neutral-200 bg-white py-12">
+      <div className="my-10 flex flex-col items-center justify-center py-12">
         <AnimatedEmptyState
           title="Stats Locked"
-          description="Your workspace has exceeded your monthly clicks limits. We're still collecting data on your links, but you need to upgrade to view them."
+          description="Your workspace has exceeded your monthly events limit. We're still collecting data on your links, but you need to upgrade to view them."
           cardContent={() => (
             <>
               <CursorRays className="size-4 text-neutral-700" />
@@ -21,12 +21,9 @@ export default function WorkspaceExceededClicks() {
             </>
           )}
           className="border-none"
-          learnMoreText={
-            nextPlan ? `Upgrade to ${nextPlan.name}` : "Contact support"
-          }
-          learnMoreHref={
-            nextPlan ? `/${slug}/upgrade` : "https://dub.co/contact/sales"
-          }
+          learnMoreText="Upgrade plan"
+          learnMoreHref={`/${slug}/settings/billing`}
+          learnMoreTarget="_self"
         />
       </div>
     </MaxWidthWrapper>

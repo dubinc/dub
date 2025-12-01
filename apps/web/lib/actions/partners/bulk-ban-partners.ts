@@ -1,6 +1,7 @@
 "use server";
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { resolveFraudEvents } from "@/lib/api/fraud/resolve-fraud-events";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { enqueueBatchJobs } from "@/lib/cron/enqueue-batch-jobs";
 import { bulkBanPartnersSchema } from "@/lib/zod/schemas/partners";
@@ -62,6 +63,19 @@ export const bulkBanPartnersAction = authActionClient
         saleRewardId: null,
         discountId: null,
       },
+    });
+
+    await resolveFraudEvents({
+      where: {
+        programEnrollment: {
+          id: {
+            in: programEnrollments.map(({ id }) => id),
+          },
+        },
+      },
+      userId: user.id,
+      resolutionReason:
+        "Resolved automatically because the partner was banned.",
     });
 
     waitUntil(

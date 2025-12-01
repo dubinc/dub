@@ -170,6 +170,9 @@ export function PartnersTable() {
   const { BulkBanPartnersModal, setShowBulkBanPartnersModal } =
     useBulkBanPartnersModal({
       partners: pendingBanPartners,
+      onConfirm: async () => {
+        await mutatePrefix("/api/partners");
+      },
     });
 
   const { columnVisibility, setColumnVisibility } = useColumnVisibility(
@@ -633,6 +636,9 @@ function RowMenuButton({
 
   const { BanPartnerModal, setShowBanPartnerModal } = useBanPartnerModal({
     partner: row.original,
+    onConfirm: async () => {
+      await mutatePrefix("/api/partners");
+    },
   });
 
   const { UnbanPartnerModal, setShowUnbanPartnerModal } = useUnbanPartnerModal({

@@ -28,11 +28,11 @@ const BLOCKS = [
   ConversionBlock,
   CountriesBlock,
   LinksBlock,
-  // SaleTypeBlock, // TODO: figure out how to best show sales by type
+  // SaleTypeBlock, // TODO: Add this back once we fix sales by type
 ];
 
 export default function ProgramOverviewPageClient() {
-  const { defaultProgramId, id: workspaceId } = useWorkspace();
+  const { defaultProgramId, id: workspaceId, exceededClicks } = useWorkspace();
 
   const { searchParamsObj } = useRouterStuff();
 
@@ -59,10 +59,11 @@ export default function ProgramOverviewPageClient() {
   const { data: totalEvents, isLoading: totalEventsLoading } = useSWR<{
     [key in AnalyticsResponseOptions]: number;
   }>(
-    `/api/analytics?${editQueryString(queryString, {
-      event: "composite",
-      saleType: "new",
-    })}`,
+    !exceededClicks &&
+      `/api/analytics?${editQueryString(queryString, {
+        event: "composite",
+        // saleType: "new", // TODO: Add this back once we fix sales by type
+      })}`,
     fetcher,
     {
       keepPreviousData: true,

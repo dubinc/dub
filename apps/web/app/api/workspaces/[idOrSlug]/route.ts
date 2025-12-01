@@ -77,7 +77,7 @@ export const GET = withWorkspace(
 
 // PATCH /api/workspaces/[idOrSlug] – update a specific workspace by id or slug
 export const PATCH = withWorkspace(
-  async ({ req, workspace, session }) => {
+  async ({ req, workspace }) => {
     const {
       name,
       slug,
@@ -235,6 +235,14 @@ export const PUT = PATCH;
 // DELETE /api/workspaces/[idOrSlug] – delete a specific project
 export const DELETE = withWorkspace(
   async ({ workspace }) => {
+    if (workspace.defaultProgramId) {
+      throw new DubApiError({
+        code: "bad_request",
+        message:
+          "You cannot delete a workspace with an active partner program.",
+      });
+    }
+
     await deleteWorkspace(workspace);
 
     return NextResponse.json(workspace);
