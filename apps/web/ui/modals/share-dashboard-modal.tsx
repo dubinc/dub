@@ -1,5 +1,7 @@
+import useFolder from "@/lib/swr/use-folder";
+import { useFolderLinkCount } from "@/lib/swr/use-folder-link-count";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { DashboardProps, LinkProps } from "@/lib/types";
+import { DashboardProps, Folder, LinkProps } from "@/lib/types";
 import { updateDashboardBodySchema } from "@/lib/zod/schemas/dashboard";
 import {
   AnimatedSizeContainer,
@@ -12,13 +14,15 @@ import {
   Tick,
   useCopyToClipboard,
 } from "@dub/ui";
-import { ArrowTurnRight2, Globe } from "@dub/ui/icons";
+import { ArrowTurnRight2, Folder as FolderIcon, Globe } from "@dub/ui/icons";
 import {
   APP_DOMAIN,
   fetcher,
   getApexDomain,
   getPrettyUrl,
   linkConstructor,
+  nFormatter,
+  pluralize,
 } from "@dub/utils";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -26,12 +30,22 @@ import { toast } from "sonner";
 import useSWR from "swr";
 import { z } from "zod";
 
-interface ShareDashboardModalProps {
+type ShareDashboardModalInnerProps =
+  | {
+      domain: string;
+      _key: string;
+      folderId?: never;
+    }
+  | {
+      folderId: string;
+      domain?: never;
+      _key?: never;
+    };
+
+type ShareDashboardModalProps = {
   showModal: boolean;
   setShowModal: (showModal: boolean) => void;
-  domain: string;
-  _key: string;
-}
+} & ShareDashboardModalInnerProps;
 
 function ShareDashboardModal(props: ShareDashboardModalProps) {
   return (
@@ -44,9 +58,12 @@ function ShareDashboardModal(props: ShareDashboardModalProps) {
 function ShareDashboardModalInner({
   domain,
   _key: key,
+  folderId,
 }: ShareDashboardModalProps) {
   const { id: workspaceId } = useWorkspace();
   const [isRemoving, setIsRemoving] = useState(false);
+
+  const { folder, error: folderError } = useFolder({ folderId });
 
   const { data: link, error: linkError } = useSWR<LinkProps>(
     workspaceId && domain && key
@@ -59,9 +76,11 @@ function ShareDashboardModalInner({
   );
 
   const { data: dashboard, mutate } = useSWR<DashboardProps>(
-    link?.id
-      ? `/api/links/${link.id}/dashboard?workspaceId=${workspaceId}`
-      : undefined,
+    folder?.id
+      ? `/api/folders/${folder.id}/dashboard?workspaceId=${workspaceId}`
+      : link?.id
+        ? `/api/links/${link.id}/dashboard?workspaceId=${workspaceId}`
+        : undefined,
     fetcher,
     {
       dedupingInterval: 60000,
@@ -95,7 +114,7 @@ function ShareDashboardModalInner({
     setIsCreating(true);
 
     const res = await fetch(
-      `/api/dashboards?${new URLSearchParams({ workspaceId, domain, key }).toString()}`,
+      `/api/dashboards?${new URLSearchParams({ workspaceId, ...(domain && key ? { domain, key } : { folderId: folderId! }) }).toString()}`,
       {
         method: "POST",
         headers: {
@@ -186,7 +205,11 @@ function ShareDashboardModalInner({
         Share dashboard
       </h3>
       <div className="bg-neutral-50 px-6 pb-6 pt-4">
-        <LinkCard link={link} isError={Boolean(linkError)} />
+        {folderId ? (
+          <FolderCard folder={folder} isError={Boolean(folderError)} />
+        ) : (
+          <LinkCard link={link} isError={Boolean(linkError)} />
+        )}
         <AnimatedSizeContainer
           height
           transition={{ duration: 0.2, ease: "easeInOut" }}
@@ -363,9 +386,64 @@ function LinkCard({
   );
 }
 
-export function useShareDashboardModal(
-  props: Pick<ShareDashboardModalProps, "domain" | "_key">,
-) {
+function FolderCard({
+  folder,
+  isError,
+}: {
+  folder: Folder | undefined;
+  isError: boolean;
+}) {
+  const { folderLinkCount } = useFolderLinkCount({
+    enabled: Boolean(folder?.id) && folder?.type !== "mega",
+    folderId: folder?.id ?? null,
+  });
+
+  return (
+    <div className="flex items-center gap-3 rounded-lg border border-neutral-300 bg-white p-3">
+      {isError ? (
+        <span className="text-sm text-neutral-400">Failed to load folder</span>
+      ) : folder === undefined ? (
+        <>
+          <div className="m-px size-9 animate-pulse rounded-full bg-neutral-200" />
+          <div className="flex flex-col gap-2">
+            <div className="h-5 w-24 max-w-full animate-pulse rounded-md bg-neutral-200" />
+            <div className="h-4 w-32 max-w-full animate-pulse rounded-md bg-neutral-200" />
+          </div>
+        </>
+      ) : (
+        <>
+          <div className="relative flex shrink-0 items-center justify-center rounded-full border border-blue-200">
+            {/* Background gradient + white border */}
+            <div className="absolute inset-0 rounded-full border border-white bg-blue-100" />
+            <div className="relative shrink-0 p-2.5">
+              <FolderIcon className="size-4 text-blue-800" />
+            </div>
+          </div>
+          <div className="flex min-w-0 flex-col text-sm">
+            {folder && (
+              <span className="truncate font-semibold leading-6 text-neutral-800">
+                {folder.name}
+              </span>
+            )}
+            <div className="flex items-center gap-1">
+              <Globe className="size-3 shrink-0 text-neutral-400" />
+              <span className="truncate text-neutral-500 transition-colors hover:text-neutral-700 hover:underline hover:underline-offset-2">
+                {folder.type === "mega"
+                  ? "10,000+ links"
+                  : `${nFormatter(folderLinkCount, { full: true })} ${pluralize(
+                      "link",
+                      folderLinkCount,
+                    )}`}
+              </span>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+export function useShareDashboardModal(props: ShareDashboardModalInnerProps) {
   const [showShareDashboardModal, setShowShareDashboardModal] = useState(false);
 
   const ShareDashboardModalCallback = useCallback(() => {

@@ -4,18 +4,31 @@ import { useShareDashboardModal } from "../modals/share-dashboard-modal";
 import { AnalyticsContext } from "./analytics-provider";
 
 export function ShareButton() {
-  const { domain, key, partnerPage } = useContext(AnalyticsContext);
+  const { domain, key, folderId, partnerPage } = useContext(AnalyticsContext);
 
-  return domain && key && !partnerPage ? (
+  if (partnerPage) return null;
+
+  return domain && key ? (
     <ShareButtonInner domain={domain} _key={key} />
+  ) : folderId ? (
+    <ShareButtonInner folderId={folderId} />
   ) : null;
 }
 
 const ShareButtonInner = memo(
-  ({ domain, _key }: { domain: string; _key: string }) => {
-    const { ShareDashboardModal, setShowShareDashboardModal } =
-      useShareDashboardModal({ domain, _key });
+  ({
+    domain,
+    _key,
+    folderId,
+  }:
+    | { domain: string; _key: string; folderId?: never }
+    | { folderId: string; domain?: never; _key?: never }) => {
     const { isMobile } = useMediaQuery();
+    const { ShareDashboardModal, setShowShareDashboardModal } =
+      useShareDashboardModal(
+        domain && _key ? { domain, _key } : { folderId: folderId! },
+      );
+
     return (
       <>
         <ShareDashboardModal />
