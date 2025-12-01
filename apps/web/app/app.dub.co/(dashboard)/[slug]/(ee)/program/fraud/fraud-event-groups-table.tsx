@@ -5,8 +5,10 @@ import { useFraudEventGroups } from "@/lib/swr/use-fraud-event-groups";
 import { useFraudEventsCount } from "@/lib/swr/use-fraud-events-count";
 import { fraudEventGroupProps } from "@/lib/types";
 import { useBanPartnerModal } from "@/ui/modals/ban-partner-modal";
+import { useBulkBanPartnersModal } from "@/ui/modals/bulk-ban-partners-modal";
 import { FraudReviewSheet } from "@/ui/partners/fraud-risks/fraud-review-sheet";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
+import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { FilterButtonTableRow } from "@/ui/shared/filter-button-table-row";
 import {
   AnimatedSizeContainer,
@@ -22,12 +24,11 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { Dots, UserDelete } from "@dub/ui/icons";
+import { Dots, ShieldAlert, UserDelete } from "@dub/ui/icons";
 import { cn, formatDateTimeSmart } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
-import { useEffect, useMemo, useState } from "react";
-import { FraudEventsEmptyState } from "./fraud-events-empty-state";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useFraudEventsFilters } from "./use-fraud-events-filters";
 
 export function FraudEventGroupsTable() {
@@ -80,6 +81,22 @@ export function FraudEventGroupsTable() {
       status: "pending",
     },
   });
+
+  const [pendingBanPartners, setPendingBanPartners] = useState<
+    Array<NonNullable<fraudEventGroupProps["partner"]>>
+  >([]);
+
+  const tableRef = useRef<
+    ReturnType<typeof useTable<fraudEventGroupProps>>["table"] | null
+  >(null);
+
+  const { BulkBanPartnersModal, setShowBulkBanPartnersModal } =
+    useBulkBanPartnersModal({
+      partners: pendingBanPartners,
+      onConfirm: () => {
+        tableRef.current?.resetRowSelection();
+      },
+    });
 
   const { table, ...tableProps } = useTable<fraudEventGroupProps>({
     data: fraudEvents || [],
@@ -218,10 +235,38 @@ export function FraudEventGroupsTable() {
     },
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
-    resourceName: (plural) => `event${plural ? "s" : ""}`,
+    resourceName: (plural) => `fraud event${plural ? "s" : ""}`,
     rowCount: fraudEventsCount ?? 0,
     loading,
     error: error || countError ? "Failed to load fraud events" : undefined,
+    selectionControls: (tableInstance) => {
+      // Store table reference for resetting selection
+      tableRef.current = tableInstance;
+
+      const selectedRows = tableInstance.getSelectedRowModel().rows;
+      const partners = selectedRows.map((row) => row.original.partner);
+
+      // Remove duplicates by partner ID
+      const uniquePartners = Array.from(
+        new Map(partners.map((p) => [p.id, p])).values(),
+      );
+
+      if (uniquePartners.length === 0) return null;
+
+      return (
+        <Button
+          variant="danger"
+          text="Ban"
+          icon={<UserDelete className="size-3.5 shrink-0" />}
+          className="h-7 w-fit rounded-lg bg-red-600 px-2.5 text-white"
+          loading={false}
+          onClick={() => {
+            setPendingBanPartners(uniquePartners);
+            setShowBulkBanPartnersModal(true);
+          }}
+        />
+      );
+    },
   });
 
   const [previousGroupKey, nextGroupKey] = useMemo(() => {
@@ -242,6 +287,7 @@ export function FraudEventGroupsTable() {
 
   return (
     <div className="flex flex-col gap-6">
+      <BulkBanPartnersModal />
       {detailsSheetState.groupKey && currentFraudEventGroup && (
         <FraudReviewSheet
           isOpen={detailsSheetState.open}
@@ -303,7 +349,19 @@ export function FraudEventGroupsTable() {
       {fraudEvents?.length !== 0 ? (
         <Table {...tableProps} table={table} />
       ) : (
-        <FraudEventsEmptyState />
+        <AnimatedEmptyState
+          title="No pending fraud to review"
+          description="There aren't any unresolved fraud events waiting for action right now."
+          cardContent={() => (
+            <>
+              <ShieldAlert className="size-4 text-neutral-700" />
+              <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
+            </>
+          )}
+          learnMoreHref="https://dub.co/help/article/fraud-detection"
+          learnMoreTarget="_blank"
+          learnMoreText="Learn more"
+        />
       )}
     </div>
   );

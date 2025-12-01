@@ -8,9 +8,7 @@ import { ExampleFraudEvents } from "./example-fraud-events";
 
 export function FraudUpsell() {
   const { partnersUpgradeModal, setShowPartnersUpgradeModal } =
-    usePartnersUpgradeModal({
-      plan: "Advanced",
-    });
+    usePartnersUpgradeModal();
 
   return (
     <>

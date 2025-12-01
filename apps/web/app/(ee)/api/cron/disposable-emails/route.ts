@@ -1,5 +1,5 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
+import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { redis } from "@/lib/upstash";
 import { log } from "@dub/utils";
 import { NextResponse } from "next/server";
@@ -8,9 +8,14 @@ export const dynamic = "force-dynamic";
 
 // Cron to update the disposable email domains list in Redis
 // Runs every Monday at noon UTC (0 12 * * 1)
-export async function GET(req: Request) {
+export async function POST(req: Request) {
   try {
-    await verifyVercelSignature(req);
+    const rawBody = await req.text();
+
+    await verifyQstashSignature({
+      req,
+      rawBody,
+    });
 
     const disposableEmails = await fetch(
       "https://raw.githubusercontent.com/disposable-email-domains/disposable-email-domains/master/disposable_email_blocklist.conf",

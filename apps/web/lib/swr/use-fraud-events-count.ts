@@ -8,9 +8,11 @@ import { fraudEventCountQuerySchema } from "../zod/schemas/fraud";
 export function useFraudEventsCount<T>({
   query,
   enabled = true,
+  ignoreParams = false,
 }: {
   query?: Partial<z.infer<typeof fraudEventCountQuerySchema>>;
   enabled?: boolean;
+  ignoreParams?: boolean;
 } = {}) {
   const { getQueryString } = useRouterStuff();
   const { id: workspaceId, defaultProgramId } = useWorkspace();
@@ -20,9 +22,11 @@ export function useFraudEventsCount<T>({
       workspaceId,
       ...query,
     },
-    {
-      exclude: ["page", "pageSize", "sortBy", "sortOrder", "groupKey"],
-    },
+    ignoreParams
+      ? { include: [] }
+      : {
+          exclude: ["page", "pageSize", "sortBy", "sortOrder", "groupKey"],
+        },
   );
 
   const { data: fraudEventsCount, error } = useSWR(

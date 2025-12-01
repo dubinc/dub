@@ -238,14 +238,25 @@ export const trackLead = async ({
           finalCustomerAvatar
         ) {
           // persist customer avatar to R2
-          await storage.upload({
-            key: finalCustomerAvatar.replace(`${R2_URL}/`, ""),
-            body: customerAvatar,
-            opts: {
-              width: 128,
-              height: 128,
-            },
-          });
+          await storage
+            .upload({
+              key: finalCustomerAvatar.replace(`${R2_URL}/`, ""),
+              body: customerAvatar,
+              opts: {
+                width: 128,
+                height: 128,
+              },
+            })
+            .catch(async (error) => {
+              console.error("Error persisting customer avatar to R2", error);
+              // if the avatar fails to upload to R2, set the avatar to null in the database
+              if (customer) {
+                await prisma.customer.update({
+                  where: { id: customer.id },
+                  data: { avatar: null },
+                });
+              }
+            });
         }
 
         // if not deferred mode, process the following right away:
@@ -321,15 +332,16 @@ export const trackLead = async ({
                 eventType: "lead",
               }),
 
-              detectAndRecordFraudEvent({
-                program: { id: link.programId },
-                partner: pick(webhookPartner, ["id", "email", "name"]),
-                customer: pick(customer, ["id", "email", "name"]),
-                commission: { id: createdCommission.commission?.id },
-                link: pick(link, ["id"]),
-                click: pick(clickData, ["url", "referer"]),
-                event: { id: leadEventId },
-              }),
+              webhookPartner &&
+                detectAndRecordFraudEvent({
+                  program: { id: link.programId },
+                  partner: pick(webhookPartner, ["id", "email", "name"]),
+                  customer: pick(customer, ["id", "email", "name"]),
+                  commission: { id: createdCommission.commission?.id },
+                  link: pick(link, ["id"]),
+                  click: pick(clickData, ["url", "referer"]),
+                  event: { id: leadEventId },
+                }),
             ]);
           }
 

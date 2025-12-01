@@ -222,10 +222,10 @@ export const updateGroupBrandingAction = authActionClient
 
     return {
       success: true,
-      applicationFormData: programApplicationFormSchema.parse(
-        updatedGroup.applicationFormData,
-      ),
-      landerData: programLanderSchema.parse(updatedGroup.landerData),
+      applicationFormData: programApplicationFormSchema
+        .nullable()
+        .parse(updatedGroup.applicationFormData),
+      landerData: programLanderSchema.nullable().parse(updatedGroup.landerData),
     };
   });
 

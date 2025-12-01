@@ -1,4 +1,3 @@
-import { getBountyRewardDescription } from "@/lib/partners/get-bounty-reward-description";
 import { PartnerBountyProps } from "@/lib/types";
 import { BountyPerformance } from "@/ui/partners/bounties/bounty-performance";
 import { BountyThumbnailImage } from "@/ui/partners/bounties/bounty-thumbnail-image";
@@ -9,7 +8,7 @@ import {
   TimestampTooltip,
   TooltipContent,
 } from "@dub/ui";
-import { Calendar6, Gift } from "@dub/ui/icons";
+import { Calendar6 } from "@dub/ui/icons";
 import { cn, formatDate, formatDateTimeSmart } from "@dub/utils";
 import { useParams } from "next/navigation";
 
@@ -45,13 +44,13 @@ export function PartnerBountyCard({ bounty }: { bounty: PartnerBountyProps }) {
           onClick={() => setShowClaimBountyModal(true)}
           disabled={expiredBounty}
           className={cn(
-            "border-border-subtle group relative flex w-full cursor-pointer flex-col gap-5 overflow-hidden rounded-xl border bg-white p-5 text-left",
+            "border-border-subtle group relative flex w-full cursor-pointer flex-col gap-2.5 overflow-hidden rounded-xl border bg-white p-3 text-left",
             expiredBounty
               ? "cursor-not-allowed"
               : "hover:border-border-default transition-all hover:shadow-lg",
           )}
         >
-          <div className="relative flex h-[132px] items-center justify-center rounded-lg bg-neutral-100 py-1.5">
+          <div className="relative flex h-[124px] items-center justify-center rounded-lg bg-neutral-100 py-3">
             <div className="relative size-full">
               <BountyThumbnailImage bounty={bounty} />
             </div>
@@ -65,8 +64,8 @@ export function PartnerBountyCard({ bounty }: { bounty: PartnerBountyProps }) {
             )}
           </div>
 
-          <div className="flex min-w-0 flex-col gap-1.5">
-            <h3 className="text-content-emphasis truncate text-sm font-semibold">
+          <div className="flex min-w-0 flex-col gap-1.5 px-2 pb-1.5">
+            <h3 className="text-content-emphasis text-sm font-semibold sm:truncate">
               {bounty.name}
             </h3>
 
@@ -91,16 +90,9 @@ export function PartnerBountyCard({ bounty }: { bounty: PartnerBountyProps }) {
                 )}
               </span>
             </div>
-
-            <div className="text-content-subtle flex items-center gap-2 text-sm font-medium">
-              <Gift className="size-3.5 shrink-0" />
-              <span className="truncate">
-                {getBountyRewardDescription(bounty)}
-              </span>
-            </div>
           </div>
 
-          <div className="flex grow flex-col justify-end">
+          <div className="flex grow flex-col justify-end px-2 pb-1">
             {renderSubmissionStatus({
               bounty,
               setShowClaimBountyModal,

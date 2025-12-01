@@ -532,6 +532,7 @@ export function AppSidebarNav({
   >({
     query: { status: "pending" },
     enabled: Boolean(currentArea === "program" && defaultProgramId),
+    ignoreParams: true,
   });
 
   const { canTrackConversions } = getPlanCapabilities(plan);

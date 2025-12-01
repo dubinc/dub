@@ -39,7 +39,7 @@ export async function GET(request: Request) {
           dub.track.lead({
             clickId: dub_id,
             eventName: "Sign Up",
-            externalId: user.id,
+            customerExternalId: user.id,
             customerName: user.user_metadata.name,
             customerEmail: user.email,
             customerAvatar: user.user_metadata.avatar_url,

@@ -49,9 +49,8 @@ export async function resolveFraudEvents({
     const firstEvent = events[0];
     const newGroupKey = createFraudEventGroupKey({
       programId: firstEvent.programId,
-      partnerId: firstEvent.partnerId,
       type: firstEvent.type,
-      batchId: nanoid(10),
+      groupingKey: nanoid(10),
     });
 
     await prisma.fraudEvent.updateMany({

@@ -42,8 +42,8 @@ function DeleteWorkspaceModal({
           resolve(null);
         } else {
           setDeleting(false);
-          const error = await res.text();
-          reject(error);
+          const { error } = await res.json();
+          reject(error.message);
         }
       });
     });

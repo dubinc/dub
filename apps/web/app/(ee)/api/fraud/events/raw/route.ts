@@ -62,34 +62,6 @@ export const GET = withWorkspace(
       );
     }
 
-    if (type === "partnerDuplicatePayoutMethod") {
-      if (!partner.payoutMethodHash) {
-        return NextResponse.json([]);
-      }
-
-      const duplicatePartners = await prisma.programEnrollment.findMany({
-        where: {
-          programId,
-          partner: {
-            payoutMethodHash: partner.payoutMethodHash,
-          },
-        },
-        select: {
-          createdAt: true,
-          partner: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-              image: true,
-            },
-          },
-        },
-      });
-
-      return NextResponse.json(z.array(zodSchema).parse(duplicatePartners));
-    }
-
     return NextResponse.json(z.array(zodSchema).parse(fraudEvents));
   },
   {

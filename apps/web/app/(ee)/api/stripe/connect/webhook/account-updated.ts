@@ -1,8 +1,13 @@
 import { createFraudEvents } from "@/lib/api/fraud/create-fraud-events";
+import { qstash } from "@/lib/cron";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@dub/prisma";
-import { log } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, log, nanoid } from "@dub/utils";
 import Stripe from "stripe";
+
+const queue = qstash.queue({
+  queueName: "withdraw-stripe-balance",
+});
 
 export async function accountUpdated(event: Stripe.Event) {
   const account = event.data.object as Stripe.Account;
@@ -100,14 +105,38 @@ export async function accountUpdated(event: Stripe.Event) {
         ({ programs }) => programs,
       );
 
+      const groupingKey = nanoid(10);
+
       await createFraudEvents(
         programEnrollments.map(({ partnerId, programId }) => ({
           programId,
           partnerId,
           type: "partnerDuplicatePayoutMethod",
+          groupingKey,
         })),
       );
     }
+  }
+
+  // Retry payouts that got stuck when the account was restricted (e.g: payout sent but paused
+  // due to verification requirements). Once payouts are re-enabled, queue them for processing.
+  const pendingPayouts = await prisma.payout.count({
+    where: {
+      partnerId: partner.id,
+      status: "sent",
+      mode: "internal",
+    },
+  });
+
+  if (pendingPayouts > 0) {
+    await queue.enqueueJSON({
+      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/balance-available`,
+      deduplicationId: event.id,
+      method: "POST",
+      body: {
+        stripeAccount: partner.stripeConnectId,
+      },
+    });
   }
 
   return `Updated partner ${partner.email} (${partner.stripeConnectId}) with country ${country}, payoutsEnabledAt set, payoutMethodHash ${defaultExternalAccount.fingerprint}`;
