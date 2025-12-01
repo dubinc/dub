@@ -124,7 +124,9 @@ export const getCommissionsQuerySchema = z
       deprecated: true,
     }),
   )
-  .merge(getCursorPaginationQuerySchema());
+  .merge(
+    getCursorPaginationQuerySchema({ example: "cm_1KAP4CGN2Z5TPYYQ1W4JEYD56" }),
+  );
 
 export const getCommissionsCountQuerySchema = getCommissionsQuerySchema.omit({
   page: true,

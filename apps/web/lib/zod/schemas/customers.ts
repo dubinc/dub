@@ -66,7 +66,11 @@ export const getCustomersQuerySchema = z
       deprecated: true,
     }),
   )
-  .merge(getCursorPaginationQuerySchema());
+  .merge(
+    getCursorPaginationQuerySchema({
+      example: "cus_1KAP4CDPBSVMMBMH9XX3YZZ0Z",
+    }),
+  );
 
 export const getCustomersQuerySchemaExtended = getCustomersQuerySchema.merge(
   z.object({

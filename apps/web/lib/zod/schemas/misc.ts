@@ -66,20 +66,30 @@ export const getPaginationQuerySchema = ({
   });
 
 // Cursor-based pagination
-export const getCursorPaginationQuerySchema = () =>
+export const getCursorPaginationQuerySchema = ({
+  example,
+}: {
+  example: string;
+}) =>
   z.object({
     endingBefore: z
       .string()
       .optional()
       .describe(
         "If specified, the query only searches for results before this cursor. Mutually exclusive with `startingAfter`.",
-      ),
+      )
+      .openapi({
+        example,
+      }),
     startingAfter: z
       .string()
       .optional()
       .describe(
         "If specified, the query only searches for results after this cursor. Mutually exclusive with `endingBefore`.",
-      ),
+      )
+      .openapi({
+        example,
+      }),
   });
 
 export const maxDurationSchema = z.coerce
