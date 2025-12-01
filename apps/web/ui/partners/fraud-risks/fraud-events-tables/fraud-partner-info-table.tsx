@@ -1,6 +1,6 @@
 "use client";
 
-import { useRawFraudEvents } from "@/lib/swr/use-raw-fraud-events";
+import { useFraudEvents } from "@/lib/swr/use-raw-fraud-events";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { fraudEventSchemas } from "@/lib/zod/schemas/fraud";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
@@ -18,7 +18,7 @@ type EventDataProps = z.infer<
 export function FraudPartnerInfoTable() {
   const { slug: workspaceSlug } = useWorkspace();
 
-  const { fraudEvents, loading, error } = useRawFraudEvents<EventDataProps>();
+  const { fraudEvents, loading, error } = useFraudEvents<EventDataProps>();
 
   const table = useTable({
     data: fraudEvents || [],

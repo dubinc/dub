@@ -1,6 +1,6 @@
 "use client";
 
-import { useRawFraudEvents } from "@/lib/swr/use-raw-fraud-events";
+import { useFraudEvents } from "@/lib/swr/use-raw-fraud-events";
 import { fraudEventSchemas } from "@/lib/zod/schemas/fraud";
 import { BAN_PARTNER_REASONS } from "@/lib/zod/schemas/partners";
 import { Table, TimestampTooltip, useTable } from "@dub/ui";
@@ -12,7 +12,7 @@ type EventDataProps = z.infer<
 >;
 
 export function FraudCrossProgramBanTable() {
-  const { fraudEvents, loading, error } = useRawFraudEvents<EventDataProps>();
+  const { fraudEvents, loading, error } = useFraudEvents<EventDataProps>();
 
   const table = useTable({
     data: fraudEvents || [],

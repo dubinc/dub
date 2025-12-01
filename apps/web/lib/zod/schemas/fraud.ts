@@ -66,42 +66,8 @@ export const fraudEventGroupCountSchema = z.union([
   z.number(),
 ]);
 
-export const groupedFraudEventSchema = z.object({
-  id: z.string(),
-  type: z.nativeEnum(FraudRuleType),
-  status: z.nativeEnum(FraudEventStatus),
-  resolutionReason: z.string().nullable(),
-  resolvedAt: z.date().nullable(),
-  lastOccurrenceAt: z.date(),
-  count: z.number(),
-  groupKey: z.string(),
-  partner: PartnerSchema.pick({
-    id: true,
-    name: true,
-    email: true,
-    image: true,
-  }),
-  user: UserSchema.pick({
-    id: true,
-    name: true,
-    image: true,
-  }).nullable(),
-});
-
-export const groupedFraudEventsQuerySchema = z
-  .object({
-    status: z.nativeEnum(FraudEventStatus).optional(),
-    type: z.nativeEnum(FraudRuleType).optional(),
-    partnerId: z.string().optional(),
-    customerId: z.string().optional(),
-    groupKey: z.string().optional(),
-    sortBy: z.enum(["createdAt", "type"]).default("createdAt"),
-    sortOrder: z.enum(["asc", "desc"]).default("desc"),
-  })
-  .merge(getPaginationQuerySchema({ pageSize: 100 }));
-
-export const rawFraudEventsQuerySchema = z.object({
-  groupKey: z.string(),
+export const fraudEventQuerySchema = z.object({
+  groupId: z.string(),
 });
 
 export const resolveFraudEventsSchema = z.object({
