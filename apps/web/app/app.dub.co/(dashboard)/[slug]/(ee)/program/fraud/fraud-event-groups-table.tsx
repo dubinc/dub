@@ -1,6 +1,7 @@
 "use client";
 
 import { FRAUD_RULES_BY_TYPE } from "@/lib/api/fraud/constants";
+import { mutatePrefix } from "@/lib/swr/mutate";
 import { useFraudEventGroups } from "@/lib/swr/use-fraud-event-groups";
 import { useFraudEventsCount } from "@/lib/swr/use-fraud-events-count";
 import { fraudEventGroupProps } from "@/lib/types";
@@ -93,8 +94,9 @@ export function FraudEventGroupsTable() {
   const { BulkBanPartnersModal, setShowBulkBanPartnersModal } =
     useBulkBanPartnersModal({
       partners: pendingBanPartners,
-      onConfirm: () => {
+      onConfirm: async () => {
         tableRef.current?.resetRowSelection();
+        await mutatePrefix("/api/fraud/events");
       },
     });
 
@@ -374,6 +376,9 @@ function RowMenuButton({ row }: { row: Row<fraudEventGroupProps> }) {
 
   const { BanPartnerModal, setShowBanPartnerModal } = useBanPartnerModal({
     partner: fraudEvent.partner,
+    onConfirm: async () => {
+      await mutatePrefix("/api/fraud/events");
+    },
   });
 
   if (fraudEvent.status !== "pending") {

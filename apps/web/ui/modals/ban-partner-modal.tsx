@@ -1,5 +1,4 @@
 import { banPartnerAction } from "@/lib/actions/partners/ban-partner";
-import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PartnerProps } from "@/lib/types";
 import {
@@ -33,7 +32,7 @@ function BanPartnerModal({
   showBanPartnerModal: boolean;
   setShowBanPartnerModal: Dispatch<SetStateAction<boolean>>;
   partner: Pick<PartnerProps, "id" | "name" | "email" | "image">;
-  onConfirm?: () => void;
+  onConfirm?: () => Promise<void>;
 }) {
   const { id: workspaceId } = useWorkspace();
 
@@ -53,13 +52,9 @@ function BanPartnerModal({
 
   const { executeAsync, isPending } = useAction(banPartnerAction, {
     onSuccess: async () => {
+      await onConfirm?.();
       toast.success("Partner banned successfully!");
-      await Promise.all([
-        mutatePrefix("/api/partners"),
-        mutatePrefix("/api/fraud/events"),
-      ]);
       setShowBanPartnerModal(false);
-      onConfirm?.();
     },
     onError({ error }) {
       toast.error(error.serverError);
@@ -193,7 +188,7 @@ export function useBanPartnerModal({
   onConfirm,
 }: {
   partner: Pick<PartnerProps, "id" | "name" | "email" | "image">;
-  onConfirm?: () => void;
+  onConfirm?: () => Promise<void>;
 }) {
   const [showBanPartnerModal, setShowBanPartnerModal] = useState(false);
 
