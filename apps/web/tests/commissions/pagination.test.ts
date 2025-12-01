@@ -297,9 +297,6 @@ function expectSortedByCreatedAtAsc(commissions: CommissionResponse[]) {
 }
 
 function expectNoOverlap(a: CommissionResponse[], b: CommissionResponse[]) {
-  const setA = new Set(a.map((c) => c.id));
-  const setB = new Set(b.map((c) => c.id));
-
-  const overlap = setA.intersection(setB);
-  expect(overlap.size).toBe(0);
+  const overlap = a.map((c) => c.id).filter((id) => b.some((x) => x.id === id));
+  expect(overlap).toHaveLength(0);
 }
