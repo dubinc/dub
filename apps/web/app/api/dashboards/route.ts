@@ -68,7 +68,7 @@ export const POST = withWorkspace(
     } else {
       const { folderId } = params;
 
-      const folder = await verifyFolderAccess({
+      await verifyFolderAccess({
         workspace,
         userId: session.user.id,
         folderId: folderId,
@@ -84,7 +84,6 @@ export const POST = withWorkspace(
         },
       });
 
-      // for backwards compatibility, we'll update the link to have publicStats = true
       waitUntil(
         prisma.link.updateMany({
           where: { folderId },
