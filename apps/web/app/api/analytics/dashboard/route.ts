@@ -30,7 +30,39 @@ export const GET = async (req: Request) => {
 
     let demoLink, link, folder, workspace;
 
-    if (domain && key) {
+    if (folderId) {
+      // Folder
+      folder = await prisma.folder.findUnique({
+        where: {
+          id: folderId,
+        },
+        select: {
+          id: true,
+          dashboard: true,
+          projectId: true,
+          project: {
+            select: {
+              plan: true,
+              usage: true,
+              usageLimit: true,
+            },
+          },
+          ...(domain && key ? { links: { select: { id: true } } } : {}),
+        },
+      });
+
+      if (!folder?.dashboard) {
+        throw new DubApiError({
+          code: "forbidden",
+          message: "This folder does not have a public analytics dashboard",
+        });
+      }
+
+      workspace = folder.project;
+
+      if ("links" in folder && folder.links.length) link = folder.links[0];
+    } else {
+      // Link
       demoLink = DUB_DEMO_LINKS.find(
         (l) => l.domain === domain && l.key === key,
       );
@@ -44,7 +76,7 @@ export const GET = async (req: Request) => {
       } else {
         link = await prisma.link.findUnique({
           where: {
-            domain_key: { domain, key },
+            domain_key: { domain: domain!, key: key! },
           },
           select: {
             id: true,
@@ -69,34 +101,6 @@ export const GET = async (req: Request) => {
 
         workspace = link.project;
       }
-    } else {
-      // Folder
-      folder = await prisma.folder.findUnique({
-        where: {
-          id: folderId,
-        },
-        select: {
-          id: true,
-          dashboard: true,
-          projectId: true,
-          project: {
-            select: {
-              plan: true,
-              usage: true,
-              usageLimit: true,
-            },
-          },
-        },
-      });
-
-      if (!folder?.dashboard) {
-        throw new DubApiError({
-          code: "forbidden",
-          message: "This folder does not have a public analytics dashboard",
-        });
-      }
-
-      workspace = folder.project;
     }
 
     assertValidDateRangeForPlan({
@@ -142,7 +146,8 @@ export const GET = async (req: Request) => {
       ...parsedParams,
       // workspaceId can be undefined (for public links that haven't been claimed/synced to a workspace)
       ...(workspace && { workspaceId: workspace.id }),
-      ...(link ? { linkId: link.id } : { folderId: folder.id }),
+      ...(folder && { folderId: folder.id }),
+      ...(link && { linkId: link.id }),
     });
 
     return NextResponse.json(response);
