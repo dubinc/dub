@@ -1,7 +1,9 @@
 "use client";
 
+import useWorkspace from "@/lib/swr/use-workspace";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
+import WorkspaceExceededClicks from "@/ui/workspaces/workspace-exceeded-clicks";
 import { ProgramAnalyticsPageClient } from "./page-client";
 
 export default function ProgramAnalytics() {
@@ -15,8 +17,18 @@ export default function ProgramAnalytics() {
       }}
     >
       <PageWidthWrapper>
-        <ProgramAnalyticsPageClient />
+        <ProgramAnalyticsPageWrapper />
       </PageWidthWrapper>
     </PageContent>
   );
+}
+
+function ProgramAnalyticsPageWrapper() {
+  const { exceededClicks } = useWorkspace();
+
+  if (exceededClicks) {
+    return <WorkspaceExceededClicks />;
+  }
+
+  return <ProgramAnalyticsPageClient />;
 }
