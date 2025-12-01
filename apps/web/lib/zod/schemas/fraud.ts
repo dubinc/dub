@@ -9,6 +9,63 @@ import { UserSchema } from "./users";
 
 export const MAX_RESOLUTION_REASON_LENGTH = 200;
 
+export const fraudEventGroupSchema = z.object({
+  id: z.string(),
+  type: z.nativeEnum(FraudRuleType),
+  status: z.nativeEnum(FraudEventStatus),
+  resolutionReason: z.string().nullable(),
+  resolvedAt: z.date().nullable(),
+  lastEventAt: z.date(),
+  eventCount: z.number(),
+  partner: PartnerSchema.pick({
+    id: true,
+    name: true,
+    email: true,
+    image: true,
+  }),
+  user: UserSchema.pick({
+    id: true,
+    name: true,
+    image: true,
+  }).nullable(),
+});
+
+export const fraudEventGroupsQuerySchema = z
+  .object({
+    status: z.nativeEnum(FraudEventStatus).optional().default("pending"),
+    type: z.nativeEnum(FraudRuleType).optional(),
+    partnerId: z.string().optional(),
+    sortBy: z.enum(["createdAt", "type"]).default("createdAt"),
+    sortOrder: z.enum(["asc", "desc"]).default("desc"),
+    groupId: z.string().optional(),
+  })
+  .merge(getPaginationQuerySchema({ pageSize: 100 }));
+
+export const fraudEventGroupCountQuerySchema = fraudEventGroupsQuerySchema
+  .omit({
+    page: true,
+    pageSize: true,
+    sortBy: true,
+    sortOrder: true,
+  })
+  .extend({
+    groupBy: z.enum(["partnerId", "type"]).optional(),
+  });
+
+export const fraudEventGroupCountSchema = z.union([
+  z.object({
+    type: z.nativeEnum(FraudRuleType),
+    _count: z.number(),
+  }),
+
+  z.object({
+    partnerId: z.string(),
+    _count: z.number(),
+  }),
+
+  z.number(),
+]);
+
 export const groupedFraudEventSchema = z.object({
   id: z.string(),
   type: z.nativeEnum(FraudRuleType),
@@ -42,17 +99,6 @@ export const groupedFraudEventsQuerySchema = z
     sortOrder: z.enum(["asc", "desc"]).default("desc"),
   })
   .merge(getPaginationQuerySchema({ pageSize: 100 }));
-
-export const fraudEventCountQuerySchema = groupedFraudEventsQuerySchema
-  .omit({
-    page: true,
-    pageSize: true,
-    sortBy: true,
-    sortOrder: true,
-  })
-  .extend({
-    groupBy: z.enum(["partnerId", "type"]).optional(),
-  });
 
 export const rawFraudEventsQuerySchema = z.object({
   groupKey: z.string(),

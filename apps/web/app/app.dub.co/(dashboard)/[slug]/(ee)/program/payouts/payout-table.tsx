@@ -1,10 +1,10 @@
 "use client";
 
-import { useFraudEventsCount } from "@/lib/swr/use-fraud-events-count";
+import { useFraudGroupCount } from "@/lib/swr/use-fraud-group-count";
 import usePayoutsCount from "@/lib/swr/use-payouts-count";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { FraudEventsCountByPartner, PayoutResponse } from "@/lib/types";
+import { FraudGroupCountByPartner, PayoutResponse } from "@/lib/types";
 import { ExternalPayoutsIndicator } from "@/ui/partners/external-payouts-indicator";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
@@ -95,8 +95,8 @@ const PayoutTableInner = memo(
 
     const { pagination, setPagination } = usePagination();
 
-    const { fraudEventsCount } = useFraudEventsCount<
-      FraudEventsCountByPartner[]
+    const { fraudGroupsCount } = useFraudGroupCount<
+      FraudGroupCountByPartner[]
     >({
       query: {
         groupBy: "partnerId",
@@ -106,12 +106,12 @@ const PayoutTableInner = memo(
 
     // Memoized map of partner IDs with pending fraud events
     const fraudEventsCountMap = useMemo(() => {
-      if (!fraudEventsCount) {
+      if (!fraudGroupsCount) {
         return new Set<string>();
       }
 
-      return new Set(fraudEventsCount.map(({ partnerId }) => partnerId));
-    }, [fraudEventsCount]);
+      return new Set(fraudGroupsCount.map(({ partnerId }) => partnerId));
+    }, [fraudGroupsCount]);
 
     const table = useTable({
       data: payouts || [],

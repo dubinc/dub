@@ -2,7 +2,7 @@
 
 import { FRAUD_RULES_BY_TYPE } from "@/lib/api/fraud/constants";
 import { useFraudEventGroups } from "@/lib/swr/use-fraud-event-groups";
-import { useFraudEventsCount } from "@/lib/swr/use-fraud-events-count";
+import { useFraudGroupCount } from "@/lib/swr/use-fraud-group-count";
 import { fraudEventGroupProps } from "@/lib/types";
 import { FraudReviewSheet } from "@/ui/partners/fraud-risks/fraud-review-sheet";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
@@ -22,7 +22,7 @@ import { ShieldKeyhole } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
-import { useFraudEventsFilters } from "../use-fraud-events-filters";
+import { useFraudGroupFilters } from "../use-fraud-group-filters";
 
 export function ResolvedFraudEventGroupsTable() {
   const { queryParams, searchParams } = useRouterStuff();
@@ -40,7 +40,7 @@ export function ResolvedFraudEventGroupsTable() {
     isFiltered,
     setSearch,
     setSelectedFilter,
-  } = useFraudEventsFilters({
+  } = useFraudGroupFilters({
     status: "resolved",
   });
 
@@ -70,7 +70,7 @@ export function ResolvedFraudEventGroupsTable() {
     groupKey: detailsSheetState.groupKey,
   });
 
-  const { fraudEventsCount, error: countError } = useFraudEventsCount<number>({
+  const { fraudGroupsCount, error: countError } = useFraudGroupCount<number>({
     query: {
       status: "resolved",
     },
@@ -190,7 +190,7 @@ export function ResolvedFraudEventGroupsTable() {
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (plural) => `resolved fraud event${plural ? "s" : ""}`,
-    rowCount: fraudEventsCount ?? 0,
+    rowCount: fraudGroupsCount ?? 0,
     loading,
     error:
       error || countError ? "Failed to load resolved fraud events" : undefined,

@@ -3,14 +3,14 @@ import { useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import useSWR from "swr";
 import { z } from "zod";
-import { fraudEventCountQuerySchema } from "../zod/schemas/fraud";
+import { fraudEventGroupCountQuerySchema } from "../zod/schemas/fraud";
 
-export function useFraudEventsCount<T>({
+export function useFraudGroupCount<T>({
   query,
   enabled = true,
   ignoreParams = false,
 }: {
-  query?: Partial<z.infer<typeof fraudEventCountQuerySchema>>;
+  query?: Partial<z.infer<typeof fraudEventGroupCountQuerySchema>>;
   enabled?: boolean;
   ignoreParams?: boolean;
 } = {}) {
@@ -25,13 +25,13 @@ export function useFraudEventsCount<T>({
     ignoreParams
       ? { include: [] }
       : {
-          exclude: ["page", "pageSize", "sortBy", "sortOrder", "groupKey"],
+          exclude: ["page", "pageSize", "sortBy", "sortOrder", "groupId"],
         },
   );
 
-  const { data: fraudEventsCount, error } = useSWR(
+  const { data: fraudGroupsCount, error } = useSWR(
     defaultProgramId && enabled
-      ? `/api/fraud/events/count${queryString}`
+      ? `/api/fraud/groups/count${queryString}`
       : null,
     fetcher,
     {
@@ -40,8 +40,8 @@ export function useFraudEventsCount<T>({
   );
 
   return {
-    fraudEventsCount: fraudEventsCount as T,
-    loading: !error && fraudEventsCount === undefined,
+    fraudGroupsCount: fraudGroupsCount as T,
+    loading: !error && fraudGroupsCount === undefined,
     error,
   };
 }
