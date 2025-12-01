@@ -60,7 +60,12 @@ export const getCustomersQuerySchema = z
       .default("desc")
       .describe("The sort order. The default is `desc`."),
   })
-  .merge(getPaginationQuerySchema({ pageSize: CUSTOMERS_MAX_PAGE_SIZE }))
+  .merge(
+    getPaginationQuerySchema({
+      pageSize: CUSTOMERS_MAX_PAGE_SIZE,
+      deprecated: true,
+    }),
+  )
   .merge(getCursorPaginationQuerySchema());
 
 export const getCustomersQuerySchemaExtended = getCustomersQuerySchema.merge(

@@ -10,14 +10,18 @@ interface Filters {
   sortOrder: Prisma.SortOrder;
 }
 
-interface Options {
+export interface PaginationOptions {
   cursor?: { id: string };
   skip: number;
-  orderBy: Record<string, Prisma.SortOrder>;
   take: number;
+  orderBy:
+    | Record<string, Prisma.SortOrder>
+    | Array<Record<string, Prisma.SortOrder>>;
 }
 
-export function getPaginationOptions(filters: Filters): Options {
+const MAX_PAGE_SIZE = 100;
+
+export function getPaginationOptions(filters: Filters): PaginationOptions {
   const { page, pageSize, startingAfter, endingBefore, sortBy, sortOrder } =
     filters;
 
@@ -31,33 +35,46 @@ export function getPaginationOptions(filters: Filters): Options {
     });
   }
 
-  const effectiveSortOrder = useCursorPagination ? "desc" : sortOrder;
-  const effectiveSortBy = useCursorPagination ? "createdAt" : sortBy;
+  if (page > MAX_PAGE_SIZE) {
+    throw new DubApiError({
+      code: "unprocessable_entity",
+      message: `Page is too big (cannot be more than ${MAX_PAGE_SIZE}), recommend using cursor-based pagination instead.`,
+    });
+  }
+
+  const effectiveSortOrder: Prisma.SortOrder = useCursorPagination
+    ? "desc"
+    : sortOrder;
+
   const effectiveTake = useCursorPagination
     ? endingBefore
       ? -pageSize // Before cursor
       : pageSize // After cursor
     : pageSize;
 
-  const commonPrismaOptions: Pick<Options, "orderBy" | "take"> = {
-    orderBy: {
-      [effectiveSortBy]: effectiveSortOrder,
-    },
-    take: effectiveTake,
-  };
-
   if (useCursorPagination) {
     return {
       cursor: {
         id: startingAfter || endingBefore!,
       },
+      orderBy: [
+        {
+          createdAt: "desc",
+        },
+        {
+          id: "desc",
+        },
+      ],
+      take: effectiveTake,
       skip: 1,
-      ...commonPrismaOptions,
     };
   }
 
   return {
+    orderBy: {
+      [sortBy]: effectiveSortOrder,
+    },
+    take: effectiveTake,
     skip: (page - 1) * pageSize,
-    ...commonPrismaOptions,
   };
 }

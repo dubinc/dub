@@ -118,7 +118,12 @@ export const getCommissionsQuerySchema = z
       .describe("The end date of the date range to filter the commissions by."),
     timezone: z.string().optional(),
   })
-  .merge(getPaginationQuerySchema({ pageSize: COMMISSIONS_MAX_PAGE_SIZE }))
+  .merge(
+    getPaginationQuerySchema({
+      pageSize: COMMISSIONS_MAX_PAGE_SIZE,
+      deprecated: true,
+    }),
+  )
   .merge(getCursorPaginationQuerySchema());
 
 export const getCommissionsCountQuerySchema = getCommissionsQuerySchema.omit({

@@ -29,16 +29,27 @@ export const booleanQuerySchema = z
   });
 
 // Pagination
-export const getPaginationQuerySchema = ({ pageSize }: { pageSize: number }) =>
+export const getPaginationQuerySchema = ({
+  pageSize,
+  deprecated = false,
+}: {
+  pageSize: number;
+  deprecated?: boolean;
+}) =>
   z.object({
     page: z.coerce
       .number({ invalid_type_error: "Page must be a number." })
       .positive({ message: "Page must be greater than 0." })
       .optional()
       .default(1)
-      .describe("The page number for pagination.")
+      .describe(
+        deprecated
+          ? "DEPRECATED. Use `startingAfter` instead."
+          : "The page number for pagination.",
+      )
       .openapi({
         example: 1,
+        deprecated,
       }),
     pageSize: z.coerce
       .number({ invalid_type_error: "Page size must be a number." })
