@@ -11,6 +11,7 @@ import { BAN_PARTNER_REASONS } from "@/lib/zod/schemas/partners";
 import { sendEmail } from "@dub/email";
 import PartnerBanned from "@dub/email/templates/partner-banned";
 import { prisma } from "@dub/prisma";
+import { FraudRuleType } from "@dub/prisma/client";
 import { log } from "@dub/utils";
 import { z } from "zod";
 import { logAndRespond } from "../../../utils";
@@ -161,7 +162,7 @@ export async function POST(req: Request) {
       programEnrollments.map(({ programId }) => ({
         programId,
         partnerId,
-        type: "partnerCrossProgramBan",
+        type: FraudRuleType.partnerCrossProgramBan,
       })),
     );
 

@@ -6,7 +6,11 @@ import { resolveFraudEvents } from "@/lib/api/fraud/resolve-fraud-events";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { rejectPartnerSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
-import { ProgramEnrollment, ProgramEnrollmentStatus } from "@prisma/client";
+import {
+  FraudRuleType,
+  ProgramEnrollment,
+  ProgramEnrollmentStatus,
+} from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 
@@ -100,7 +104,7 @@ export const rejectPartnerApplicationAction = authActionClient
             otherProgramEnrollments.map(({ programId }) => ({
               programId,
               partnerId,
-              type: "partnerFraudReport",
+              type: FraudRuleType.partnerFraudReport,
             })),
           ),
         ]);

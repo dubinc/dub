@@ -2,7 +2,8 @@ import { createFraudEvents } from "@/lib/api/fraud/create-fraud-events";
 import { qstash } from "@/lib/cron";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@dub/prisma";
-import { APP_DOMAIN_WITH_NGROK, log, nanoid } from "@dub/utils";
+import { FraudRuleType } from "@dub/prisma/client";
+import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
 import Stripe from "stripe";
 
 const queue = qstash.queue({
@@ -105,14 +106,11 @@ export async function accountUpdated(event: Stripe.Event) {
         ({ programs }) => programs,
       );
 
-      const groupingKey = nanoid(10);
-
       await createFraudEvents(
         programEnrollments.map(({ partnerId, programId }) => ({
           programId,
           partnerId,
-          type: "partnerDuplicatePayoutMethod",
-          groupingKey,
+          type: FraudRuleType.partnerDuplicatePayoutMethod,
         })),
       );
     }

@@ -45,6 +45,7 @@ model FraudEventGroup {
   partner           Partner           @relation(fields: [partnerId], references: [id], onDelete: Cascade)
   user              User?             @relation(fields: [userId], references: [id])
   programEnrollment ProgramEnrollment @relation(fields: [programId, partnerId], references: [programId, partnerId], onDelete: Cascade)
+  fraudEvents       FraudEvent[]
 
   @@index(programId)
   @@index(partnerId)
@@ -52,14 +53,15 @@ model FraudEventGroup {
 }
 
 model FraudEvent {
-  id          String   @id @default(cuid())
-  linkId      String?
-  customerId  String?
-  eventId     String?
-  fingerprint String? //  TODO: Make it required after migration
-  metadata    Json?    @db.Json
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id                String   @id @default(cuid())
+  fraudEventGroupId String
+  linkId            String?
+  customerId        String?
+  eventId           String?
+  fingerprint       String? //  TODO: Make it required after migration
+  metadata          Json?    @db.Json
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   // DEPRECATED FIELDS: TODO – remove after migration
   programId        String
@@ -72,8 +74,9 @@ model FraudEvent {
   resolvedAt       DateTime?
   status           FraudEventStatus @default(pending)
 
-  customer Customer? @relation(fields: [customerId], references: [id])
-  link     Link?     @relation(fields: [linkId], references: [id])
+  fraudEventGroup FraudEventGroup @relation(fields: [fraudEventGroupId], references: [id], onDelete: Cascade)
+  customer        Customer?       @relation(fields: [customerId], references: [id])
+  link            Link?           @relation(fields: [linkId], references: [id])
 
   @@index([programId, partnerId, customerId])
   @@index(partnerId)
@@ -83,4 +86,5 @@ model FraudEvent {
   @@index(userId)
   @@index(commissionId)
   @@index(groupKey)
+  @@index(fingerprint)
 }

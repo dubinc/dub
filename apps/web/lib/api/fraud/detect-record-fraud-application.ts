@@ -1,6 +1,6 @@
 import { PartnerProps, ProgramProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
-import { FraudEvent } from "@dub/prisma/client";
+import { FraudEvent, FraudRuleType } from "@dub/prisma/client";
 import { FRAUD_RULES_BY_SCOPE } from "./constants";
 import { createFraudEvents } from "./create-fraud-events";
 
@@ -39,7 +39,7 @@ export async function detectAndRecordFraudApplication({
 
   if (bannedProgramEnrollments > 0) {
     triggeredRules.push({
-      type: "partnerCrossProgramBan",
+      type: FraudRuleType.partnerCrossProgramBan,
     });
   }
 
@@ -54,7 +54,7 @@ export async function detectAndRecordFraudApplication({
 
     if (duplicatePartners > 1) {
       triggeredRules.push({
-        type: "partnerDuplicatePayoutMethod",
+        type: FraudRuleType.partnerDuplicatePayoutMethod,
       });
     }
   }
