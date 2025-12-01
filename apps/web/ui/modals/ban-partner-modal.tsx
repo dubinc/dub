@@ -48,7 +48,7 @@ function BanPartnerModal({
     },
   });
 
-  const [confirm] = watch("confirm");
+  const confirm = watch("confirm");
 
   const { executeAsync, isPending } = useAction(banPartnerAction, {
     onSuccess: async () => {
