@@ -68,17 +68,17 @@ export const getPaginationQuerySchema = ({
 // Cursor-based pagination
 export const getCursorPaginationQuerySchema = () =>
   z.object({
-    startingAfter: z
-      .string()
-      .optional()
-      .describe(
-        "An ID to paginate from. Returns items after this ID. Mutually exclusive with `endingBefore`.",
-      ),
     endingBefore: z
       .string()
       .optional()
       .describe(
-        "An ID to paginate from. Returns items before this ID. Mutually exclusive with `startingAfter`.",
+        "If specified, the query only searches for results before this cursor. Mutually exclusive with `startingAfter`.",
+      ),
+    startingAfter: z
+      .string()
+      .optional()
+      .describe(
+        "If specified, the query only searches for results after this cursor. Mutually exclusive with `endingBefore`.",
       ),
   });
 

@@ -57,9 +57,12 @@ export function getPaginationOptions(filters: Filters): PaginationOptions {
       cursor: {
         id: startingAfter || endingBefore!,
       },
+      // Use a two-field sort: primary sort by the requested field, then by id as a tiebreaker.
+      // This ensures deterministic ordering when multiple records have the same value for sortBy,
+      // which is critical for cursor-based pagination to work correctly and consistently.
       orderBy: [
         {
-          createdAt: "desc",
+          [sortBy]: effectiveSortOrder,
         },
         {
           id: "desc",
