@@ -95,9 +95,7 @@ const PayoutTableInner = memo(
 
     const { pagination, setPagination } = usePagination();
 
-    const { fraudGroupsCount } = useFraudGroupCount<
-      FraudGroupCountByPartner[]
-    >({
+    const { fraudGroupCount } = useFraudGroupCount<FraudGroupCountByPartner[]>({
       query: {
         groupBy: "partnerId",
         status: "pending",
@@ -106,12 +104,12 @@ const PayoutTableInner = memo(
 
     // Memoized map of partner IDs with pending fraud events
     const fraudEventsCountMap = useMemo(() => {
-      if (!fraudGroupsCount) {
+      if (!fraudGroupCount) {
         return new Set<string>();
       }
 
-      return new Set(fraudGroupsCount.map(({ partnerId }) => partnerId));
-    }, [fraudGroupsCount]);
+      return new Set(fraudGroupCount.map(({ partnerId }) => partnerId));
+    }, [fraudGroupCount]);
 
     const table = useTable({
       data: payouts || [],

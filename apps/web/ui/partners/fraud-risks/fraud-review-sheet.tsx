@@ -1,6 +1,7 @@
 "use client";
 
 import { FRAUD_RULES_BY_TYPE } from "@/lib/api/fraud/constants";
+import { mutatePrefix } from "@/lib/swr/mutate";
 import { fraudEventGroupProps } from "@/lib/types";
 import { useBanPartnerModal } from "@/ui/modals/ban-partner-modal";
 import { X } from "@/ui/shared/icons";
@@ -52,6 +53,7 @@ function FraudReviewSheetContent({
     partner,
     onConfirm: async () => {
       onNext?.();
+      mutatePrefix("/api/fraud/groups");
     },
   });
 
@@ -290,7 +292,7 @@ export function FraudReviewSheet({
     <Sheet
       open={isOpen}
       onOpenChange={rest.setIsOpen}
-      onClose={() => queryParams({ del: "groupKey", scroll: false })}
+      onClose={() => queryParams({ del: "groupId", scroll: false })}
       nested={nested}
       contentProps={{
         className: "[--sheet-width:940px]",

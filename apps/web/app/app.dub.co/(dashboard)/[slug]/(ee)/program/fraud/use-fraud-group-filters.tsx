@@ -23,7 +23,7 @@ export function useFraudGroupFilters({
     selectedFilter === "partnerId" ? debouncedSearch : "",
   );
 
-  const { fraudGroupsCount } = useFraudGroupCount<FraudGroupCountByType[]>({
+  const { fraudGroupCount } = useFraudGroupCount<FraudGroupCountByType[]>({
     query: {
       status,
       groupBy: "type",
@@ -36,8 +36,8 @@ export function useFraudGroupFilters({
         key: "type",
         icon: ShieldKeyhole,
         label: "Reason",
-        options: fraudGroupsCount
-          ? fraudGroupsCount.map(({ type, _count }) => ({
+        options: fraudGroupCount
+          ? fraudGroupCount.map(({ type, _count }) => ({
               label: FRAUD_RULES_BY_TYPE[type].name,
               value: type,
               right: nFormatter(_count, { full: true }),
@@ -65,7 +65,7 @@ export function useFraudGroupFilters({
           }) ?? null,
       },
     ],
-    [partners, fraudGroupsCount],
+    [partners, fraudGroupCount],
   );
 
   const activeFilters = useMemo(() => {

@@ -40,7 +40,7 @@ export function useFraudGroupCount<T>({
   );
 
   return {
-    fraudGroupsCount: data as T,
+    fraudGroupCount: data as T,
     loading: !error && data === undefined,
     error,
   };

@@ -527,7 +527,7 @@ export function AppSidebarNav({
     },
   });
 
-  const { fraudGroupsCount: pendingFraudEventsCount } = useFraudGroupCount<
+  const { fraudGroupCount: pendingFraudEventsCount } = useFraudGroupCount<
     number | undefined
   >({
     query: { status: "pending" },

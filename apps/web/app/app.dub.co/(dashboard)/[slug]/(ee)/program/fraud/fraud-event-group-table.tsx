@@ -77,7 +77,7 @@ export function FraudEventGroupTable() {
     groupId: detailsSheetState.groupId,
   });
 
-  const { fraudGroupsCount, error: countError } = useFraudGroupCount<number>({
+  const { fraudGroupCount, error: countError } = useFraudGroupCount<number>({
     query: {
       status: "pending",
     },
@@ -238,7 +238,7 @@ export function FraudEventGroupTable() {
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (plural) => `fraud event${plural ? "s" : ""}`,
-    rowCount: fraudGroupsCount ?? 0,
+    rowCount: fraudGroupCount ?? 0,
     loading,
     error: error || countError ? "Failed to load fraud events" : undefined,
     selectionControls: (tableInstance) => {
@@ -318,7 +318,7 @@ export function FraudEventGroupTable() {
         />
       )}
 
-      {((fraudEventGroups?.length ?? 0) > 0 || (fraudGroupsCount ?? 0) > 0) && (
+      {((fraudEventGroups?.length ?? 0) > 0 || (fraudGroupCount ?? 0) > 0) && (
         <div>
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <Filter.Select

@@ -44,7 +44,7 @@ export function PartnerFraudBanner({
 }) {
   const { slug } = useParams();
 
-  const { fraudGroupsCount, loading } = useFraudGroupCount<
+  const { fraudGroupCount, loading } = useFraudGroupCount<
     FraudGroupCountByPartner[]
   >({
     query: {
@@ -58,7 +58,7 @@ export function PartnerFraudBanner({
     return null;
   }
 
-  const partnerFraudEvents = fraudGroupsCount?.find(
+  const partnerFraudEvents = fraudGroupCount?.find(
     (event) => event.partnerId === partner.id,
   );
 

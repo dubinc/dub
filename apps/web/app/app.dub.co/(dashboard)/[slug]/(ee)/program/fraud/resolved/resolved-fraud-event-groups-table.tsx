@@ -2,7 +2,7 @@
 
 import { FRAUD_RULES_BY_TYPE } from "@/lib/api/fraud/constants";
 import { useFraudEventGroups } from "@/lib/swr/use-fraud-event-groups";
-import { useFraudGroupCount } from "@/lib/swr/use-fraud-group-count";
+import { useFraudGroupCount } from "@/lib/swr/use-fraud-groups-count";
 import { fraudEventGroupProps } from "@/lib/types";
 import { FraudReviewSheet } from "@/ui/partners/fraud-risks/fraud-review-sheet";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
@@ -70,7 +70,7 @@ export function ResolvedFraudEventGroupsTable() {
     groupId: detailsSheetState.groupId,
   });
 
-  const { fraudGroupsCount, error: countError } = useFraudGroupCount<number>({
+  const { fraudGroupCount, error: countError } = useFraudGroupCount<number>({
     query: {
       status: "resolved",
     },
@@ -190,7 +190,7 @@ export function ResolvedFraudEventGroupsTable() {
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (plural) => `resolved fraud event${plural ? "s" : ""}`,
-    rowCount: fraudGroupsCount ?? 0,
+    rowCount: fraudGroupCount ?? 0,
     loading,
     error:
       error || countError ? "Failed to load resolved fraud events" : undefined,
@@ -315,10 +315,7 @@ function useCurrentFraudEventGroup({
       enabled: Boolean(shouldFetch),
     });
 
-  if (
-    !currentFraudEventGroup &&
-    fetchedFraudEventGroups?.[0]?.id === groupId
-  ) {
+  if (!currentFraudEventGroup && fetchedFraudEventGroups?.[0]?.id === groupId) {
     currentFraudEventGroup = fetchedFraudEventGroups[0];
   }
 

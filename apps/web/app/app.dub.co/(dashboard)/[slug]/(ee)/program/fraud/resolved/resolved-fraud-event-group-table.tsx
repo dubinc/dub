@@ -70,7 +70,7 @@ export function ResolvedFraudEventGroupTable() {
     groupId: detailsSheetState.groupId,
   });
 
-  const { fraudGroupsCount, error: countError } = useFraudGroupCount<number>({
+  const { fraudGroupCount, error: countError } = useFraudGroupCount<number>({
     query: {
       status: "resolved",
     },
@@ -190,7 +190,7 @@ export function ResolvedFraudEventGroupTable() {
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (plural) => `resolved fraud event${plural ? "s" : ""}`,
-    rowCount: fraudGroupsCount ?? 0,
+    rowCount: fraudGroupCount ?? 0,
     loading,
     error:
       error || countError ? "Failed to load resolved fraud events" : undefined,

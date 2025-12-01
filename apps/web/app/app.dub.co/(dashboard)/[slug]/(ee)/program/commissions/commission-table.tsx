@@ -127,14 +127,12 @@ export function CommissionTable() {
     },
   );
 
-  const { fraudGroupsCount } = useFraudGroupCount<FraudGroupCountByPartner[]>(
-    {
-      query: {
-        groupBy: "partnerId",
-        status: "pending",
-      },
+  const { fraudGroupCount } = useFraudGroupCount<FraudGroupCountByPartner[]>({
+    query: {
+      groupBy: "partnerId",
+      status: "pending",
     },
-  );
+  });
 
   const columns = useMemo(
     () =>
@@ -273,7 +271,7 @@ export function CommissionTable() {
           id: "status",
           header: "Status",
           cell: ({ row }) => {
-            const partnerHasPendingFraud = fraudGroupsCount?.find(
+            const partnerHasPendingFraud = fraudGroupCount?.find(
               ({ partnerId }) => partnerId === row.original.partner.id,
             );
 
@@ -316,7 +314,7 @@ export function CommissionTable() {
           cell: ({ row }) => <CommissionRowMenu row={row} />,
         },
       ].filter((c) => c.id === "menu" || commissionsColumns.all.includes(c.id)),
-    [slug, groups, program, workspace, fraudGroupsCount],
+    [slug, groups, program, workspace, fraudGroupCount],
   );
 
   const table = useTable<CommissionResponse>({
