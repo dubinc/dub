@@ -1,7 +1,7 @@
 "use client";
 
 import useCommissionsCount from "@/lib/swr/use-commissions-count";
-import { useFraudGroupCount } from "@/lib/swr/use-fraud-group-count";
+import { useFraudGroupCount } from "@/lib/swr/use-fraud-groups-count";
 import useGroups from "@/lib/swr/use-groups";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";

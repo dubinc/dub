@@ -1,6 +1,6 @@
 "use client";
 
-import { useFraudGroupCount } from "@/lib/swr/use-fraud-group-count";
+import { useFraudGroupCount } from "@/lib/swr/use-fraud-groups-count";
 import { usePartnerApplicationRisks } from "@/lib/swr/use-partner-application-risks";
 import {
   EnrolledPartnerExtendedProps,

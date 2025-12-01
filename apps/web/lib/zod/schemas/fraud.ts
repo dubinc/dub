@@ -35,7 +35,7 @@ export const fraudEventGroupQuerySchema = z
     status: z.nativeEnum(FraudEventStatus).optional().default("pending"),
     type: z.nativeEnum(FraudRuleType).optional(),
     partnerId: z.string().optional(),
-    sortBy: z.enum(["createdAt", "type"]).default("createdAt"),
+    sortBy: z.enum(["createdAt", "type", "resolvedAt"]).default("createdAt"),
     sortOrder: z.enum(["asc", "desc"]).default("desc"),
     groupId: z.string().optional(),
   })

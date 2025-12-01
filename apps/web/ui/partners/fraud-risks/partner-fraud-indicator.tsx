@@ -1,5 +1,5 @@
 import { FRAUD_SEVERITY_CONFIG } from "@/lib/api/fraud/constants";
-import { useFraudGroupCount } from "@/lib/swr/use-fraud-group-count";
+import { useFraudGroupCount } from "@/lib/swr/use-fraud-groups-count";
 import { FraudGroupCountByPartner } from "@/lib/types";
 import { ButtonLink } from "@/ui/placeholders/button-link";
 import { DynamicTooltipWrapper, Flag } from "@dub/ui";

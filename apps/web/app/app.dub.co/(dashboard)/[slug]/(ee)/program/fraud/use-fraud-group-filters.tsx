@@ -1,5 +1,5 @@
 import { FRAUD_RULES_BY_TYPE } from "@/lib/api/fraud/constants";
-import { useFraudGroupCount } from "@/lib/swr/use-fraud-group-count";
+import { useFraudGroupCount } from "@/lib/swr/use-fraud-groups-count";
 import usePartners from "@/lib/swr/use-partners";
 import { EnrolledPartnerProps, FraudGroupCountByType } from "@/lib/types";
 

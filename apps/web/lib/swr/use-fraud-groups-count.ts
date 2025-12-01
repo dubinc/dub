@@ -29,7 +29,7 @@ export function useFraudGroupCount<T>({
         },
   );
 
-  const { data: fraudGroupsCount, error } = useSWR(
+  const { data, error } = useSWR(
     defaultProgramId && enabled
       ? `/api/fraud/groups/count${queryString}`
       : null,
@@ -40,8 +40,8 @@ export function useFraudGroupCount<T>({
   );
 
   return {
-    fraudGroupsCount: fraudGroupsCount as T,
-    loading: !error && fraudGroupsCount === undefined,
+    fraudGroupsCount: data as T,
+    loading: !error && data === undefined,
     error,
   };
 }
