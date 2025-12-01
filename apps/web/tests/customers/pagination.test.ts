@@ -2,17 +2,23 @@ import { Customer } from "@/lib/types";
 import { beforeAll, describe, expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
 
-describe.sequential("/customers/** - pagination", async () => {
+describe.concurrent("/customers/** - pagination", async () => {
   const h = new IntegrationHarness();
   const { http } = await h.init();
 
   let baseline: Customer[];
   let baselineIds: string[];
 
+  const commonQuery = {
+    pageSize: "5",
+    sortBy: "createdAt",
+    sortOrder: "desc",
+  };
+
   beforeAll(async () => {
     const { status, data } = await http.get<Customer[]>({
       path: "/customers",
-      query: { pageSize: "25" },
+      query: { ...commonQuery, pageSize: "25" },
     });
 
     expect(status).toEqual(200);
@@ -22,12 +28,6 @@ describe.sequential("/customers/** - pagination", async () => {
 
     expectSortedByCreatedAt(baseline);
   });
-
-  const commonQuery = {
-    pageSize: "5",
-    sortBy: "createdAt",
-    sortOrder: "desc",
-  };
 
   test("Offset pagination works", async () => {
     const page1 = await http.get<Customer[]>({
@@ -272,6 +272,9 @@ function expectSortedByCreatedAtAsc(customers: Customer[]) {
 }
 
 function expectNoOverlap(a: Customer[], b: Customer[]) {
-  const overlap = a.map((c) => c.id).filter((id) => b.some((x) => x.id === id));
-  expect(overlap).toHaveLength(0);
+  const setA = new Set(a.map((c) => c.id));
+  const setB = new Set(b.map((c) => c.id));
+
+  const overlap = setA.intersection(setB);
+  expect(overlap.size).toBe(0);
 }
