@@ -1,3 +1,4 @@
+import { useCheckFolderPermission } from "@/lib/swr/use-folder-permissions";
 import { Button, ReferredVia, useMediaQuery } from "@dub/ui";
 import { memo, useContext } from "react";
 import { useShareDashboardModal } from "../modals/share-dashboard-modal";
@@ -6,11 +7,16 @@ import { AnalyticsContext } from "./analytics-provider";
 export function ShareButton() {
   const { domain, key, folderId, partnerPage } = useContext(AnalyticsContext);
 
+  const canUpdateFolder = useCheckFolderPermission(
+    folderId ?? null,
+    "folders.write",
+  );
+
   if (partnerPage) return null;
 
   return domain && key ? (
     <ShareButtonInner domain={domain} _key={key} />
-  ) : folderId ? (
+  ) : folderId && canUpdateFolder ? (
     <ShareButtonInner folderId={folderId} />
   ) : null;
 }
