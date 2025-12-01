@@ -42,10 +42,6 @@ export function getPaginationOptions(filters: Filters): PaginationOptions {
     });
   }
 
-  const effectiveSortOrder: Prisma.SortOrder = useCursorPagination
-    ? "desc"
-    : sortOrder;
-
   const effectiveTake = useCursorPagination
     ? endingBefore
       ? -pageSize // Before cursor
@@ -62,10 +58,10 @@ export function getPaginationOptions(filters: Filters): PaginationOptions {
       // which is critical for cursor-based pagination to work correctly and consistently.
       orderBy: [
         {
-          [sortBy]: effectiveSortOrder,
+          [sortBy]: sortOrder,
         },
         {
-          id: "desc",
+          id: sortOrder,
         },
       ],
       take: effectiveTake,
@@ -75,7 +71,7 @@ export function getPaginationOptions(filters: Filters): PaginationOptions {
 
   return {
     orderBy: {
-      [sortBy]: effectiveSortOrder,
+      [sortBy]: sortOrder,
     },
     take: effectiveTake,
     skip: (page - 1) * pageSize,
