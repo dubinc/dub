@@ -41,8 +41,14 @@ model FraudEventGroup {
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 
-  // TODO:
-  // Add relationships
+  program           Program           @relation(fields: [programId], references: [id], onDelete: Cascade)
+  partner           Partner           @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  user              User?             @relation(fields: [userId], references: [id])
+  programEnrollment ProgramEnrollment @relation(fields: [programId, partnerId], references: [programId, partnerId], onDelete: Cascade)
+
+  @@index(programId)
+  @@index(partnerId)
+  @@index(userId)
 }
 
 model FraudEvent {
@@ -66,13 +72,8 @@ model FraudEvent {
   resolvedAt       DateTime?
   status           FraudEventStatus @default(pending)
 
-  program           Program           @relation(fields: [programId], references: [id], onDelete: Cascade)
-  partner           Partner           @relation(fields: [partnerId], references: [id], onDelete: Cascade)
-  programEnrollment ProgramEnrollment @relation(fields: [programId, partnerId], references: [programId, partnerId], onDelete: Cascade)
-  customer          Customer?         @relation(fields: [customerId], references: [id])
-  link              Link?             @relation(fields: [linkId], references: [id])
-  commission        Commission?       @relation(fields: [commissionId], references: [id])
-  user              User?             @relation(fields: [userId], references: [id])
+  customer Customer? @relation(fields: [customerId], references: [id])
+  link     Link?     @relation(fields: [linkId], references: [id])
 
   @@index([programId, partnerId, customerId])
   @@index(partnerId)

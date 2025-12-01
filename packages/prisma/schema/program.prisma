@@ -81,7 +81,7 @@ model Program {
   similarToPrograms        ProgramSimilarity[]       @relation("SimilarProgram")
   categories               ProgramCategory[]
   fraudRules               FraudRule[]
-  fraudEvents              FraudEvent[]
+  fraudEventGroups         FraudEventGroup[]
 
   @@index(workspaceId)
   @@index(domain)
@@ -139,7 +139,7 @@ model ProgramEnrollment {
   discountCodes     DiscountCode[]
   commissions       Commission[]
   payouts           Payout[]
-  fraudEvents       FraudEvent[]
+  fraudEventGroups  FraudEventGroup[]
 
   // unique constraints
   @@unique([partnerId, programId])
