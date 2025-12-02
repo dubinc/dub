@@ -87,7 +87,8 @@ export const FolderActions = ({
           }
           break;
         case `s`:
-          if (canUpdateFolder) setShowShareDashboardModal(true);
+          if (!unsortedLinks && canUpdateFolder)
+            setShowShareDashboardModal(true);
           break;
         case "m":
           if (!unsortedLinks) {
@@ -182,7 +183,7 @@ export const FolderActions = ({
                 />
               </Link>
 
-              {canUpdateFolder && (
+              {!unsortedLinks && canUpdateFolder && (
                 <Button
                   text="Share Analytics"
                   variant="outline"
