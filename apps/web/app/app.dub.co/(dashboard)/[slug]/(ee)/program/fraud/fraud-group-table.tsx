@@ -34,7 +34,7 @@ import { Command } from "cmdk";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useFraudGroupFilters } from "./use-fraud-group-filters";
 
-export function FraudEventGroupTable() {
+export function FraudGroupTable() {
   const { queryParams, searchParams } = useRouterStuff();
   const { pagination, setPagination } = usePagination();
 
