@@ -70,14 +70,9 @@ export function getPaginationOptions(filters: Filters): PaginationOptions {
   }
 
   return {
-    orderBy: [
-      {
-        [sortBy]: sortOrder,
-      },
-      {
-        id: sortOrder,
-      },
-    ],
+    orderBy: {
+      [sortBy]: sortOrder,
+    },
     take: effectiveTake,
     skip: (page - 1) * pageSize,
   };
