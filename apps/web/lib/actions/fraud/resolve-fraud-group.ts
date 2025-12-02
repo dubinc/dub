@@ -7,7 +7,7 @@ import { resolveFraudEventGroupSchema } from "@/lib/zod/schemas/fraud";
 import { prisma } from "@dub/prisma";
 import { authActionClient } from "../safe-action";
 
-export const resolveFraudEventGroupAction = authActionClient
+export const resolveFraudGroupAction = authActionClient
   .schema(resolveFraudEventGroupSchema)
   .action(async ({ ctx, parsedInput }) => {
     const { workspace, user } = ctx;

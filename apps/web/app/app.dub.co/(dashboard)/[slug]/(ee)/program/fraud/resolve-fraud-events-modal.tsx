@@ -1,6 +1,6 @@
 "use client";
 
-import { resolveFraudEventGroupAction } from "@/lib/actions/fraud/resolve-fraud-event-group";
+import { resolveFraudGroupAction } from "@/lib/actions/fraud/resolve-fraud-event-group";
 import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -39,7 +39,7 @@ function ResolveFraudEventsModal({
 }) {
   const { id: workspaceId } = useWorkspace();
 
-  const { executeAsync, isPending } = useAction(resolveFraudEventGroupAction, {
+  const { executeAsync, isPending } = useAction(resolveFraudGroupAction, {
     onSuccess: () => {
       toast.success("Fraud events resolved.");
       setShowResolveFraudEventModal(false);
