@@ -147,7 +147,7 @@ function getIdentityFieldsForRule({
 // This determines which events should be grouped together.
 // For partnerDuplicatePayoutMethod: groups by payoutMethodHash (multiple partners can share same group)
 // For other rules: groups by partnerId (one group per partner)
-export async function createFraudGroupHash({
+export function createFraudGroupHash({
   programId,
   partnerId,
   type,
