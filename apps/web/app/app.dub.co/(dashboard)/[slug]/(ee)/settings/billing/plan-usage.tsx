@@ -8,7 +8,13 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import useWorkspaceUsers from "@/lib/swr/use-workspace-users";
 import { useManageUsageModal } from "@/ui/modals/manage-usage-modal";
 import SubscriptionMenu from "@/ui/workspaces/subscription-menu";
-import { Button, Icon, Tooltip, useRouterStuff } from "@dub/ui";
+import {
+  AnimatedSizeContainer,
+  Button,
+  Icon,
+  Tooltip,
+  useRouterStuff,
+} from "@dub/ui";
 import {
   CirclePercentage,
   CreditCard,
@@ -30,6 +36,7 @@ import {
 } from "@dub/utils";
 import { isLegacyBusinessPlan } from "@dub/utils/src/constants/pricing";
 import NumberFlow from "@number-flow/react";
+import { isSameDay } from "date-fns";
 import Link from "next/link";
 import { CSSProperties, useMemo } from "react";
 import { UsageChart } from "./usage-chart";
@@ -87,9 +94,59 @@ export default function PlanUsage() {
     return [];
   }, [billingCycleStart]);
 
-  const { usage: usageTimeseries, hasActiveFilters } = useUsage({
-    disabledWhenNoFilters: true,
+  // Get usage data for the chart and date range info
+  const {
+    usage: usageTimeseries,
+    hasActiveFilters,
+    start,
+    end,
+    interval,
+    activeResource,
+  } = useUsage();
+
+  const { usage: usageEvents, loading: loadingEvents } = useUsage({
+    resource: "events",
   });
+  const { usage: usageLinks, loading: loadingLinks } = useUsage({
+    resource: "links",
+  });
+
+  // Calculate if we're viewing a custom date range (not the billing cycle)
+  const isCustomDateRange = useMemo(() => {
+    if (!billingCycleStart) return false;
+
+    // If an interval is set (like "30d"), it's a custom range
+    if (interval) return true;
+
+    // Compare selected start/end with billing cycle dates
+    const { firstDay, lastDay } = getFirstAndLastDay(billingCycleStart);
+    const selectedStart = start ? new Date(start) : null;
+    const selectedEnd = end ? new Date(end) : null;
+
+    if (!selectedStart || !selectedEnd) return false;
+
+    // Check if the selected range matches the billing cycle
+    return (
+      !isSameDay(selectedStart, firstDay) || !isSameDay(selectedEnd, lastDay)
+    );
+  }, [billingCycleStart, start, end, interval]);
+
+  // Calculate total usage for the selected date range
+  const customRangeTotals = useMemo(() => {
+    if (!isCustomDateRange) {
+      return { events: undefined, links: undefined };
+    }
+
+    // Only calculate if data is loaded
+    return {
+      events: usageEvents?.reduce((acc, curr) => acc + curr.value, 0),
+      links: usageLinks?.reduce((acc, curr) => acc + curr.value, 0),
+    };
+  }, [usageEvents, usageLinks, isCustomDateRange]);
+
+  // Check if custom range data is still loading
+  const customRangeLoading =
+    isCustomDateRange && (loadingEvents || loadingLinks);
 
   const usageTabs = useMemo(() => {
     const linksTabFilteredUsage = usageTimeseries?.reduce((acc, curr) => {
@@ -104,6 +161,7 @@ export default function PlanUsage() {
         title: "Events tracked",
         usage: usage,
         limit: usageLimit,
+        customRangeTotal: customRangeTotals.events,
       },
       {
         id: "links" as const,
@@ -114,6 +172,7 @@ export default function PlanUsage() {
             ? linksTabFilteredUsage
             : linksUsage,
         limit: linksLimit,
+        customRangeTotal: customRangeTotals.links,
       },
     ];
     if (totalLinks && totalLinks > 10_000) {
@@ -133,6 +192,7 @@ export default function PlanUsage() {
     totalLinks,
     usageTimeseries,
     hasActiveFilters,
+    customRangeTotals,
   ]);
 
   return (
@@ -176,7 +236,12 @@ export default function PlanUsage() {
         <div>
           <div className="grid gap-4 p-6 pb-0 sm:grid-cols-2 md:p-8 md:pb-0 lg:gap-6">
             {usageTabs.map((tab) => (
-              <UsageTabCard key={tab.id} {...tab} />
+              <UsageTabCard
+                key={tab.id}
+                {...tab}
+                isCustomDateRange={isCustomDateRange}
+                customRangeLoading={customRangeLoading}
+              />
             ))}
           </div>
           <div className="w-full px-2 pb-8 md:px-8">
@@ -261,6 +326,9 @@ function UsageTabCard({
   limit: limitProp,
   unit,
   requiresUpgrade,
+  isCustomDateRange,
+  customRangeTotal,
+  customRangeLoading,
 }: {
   id: "links" | "events";
   icon: Icon;
@@ -269,6 +337,9 @@ function UsageTabCard({
   limit?: number;
   unit?: string;
   requiresUpgrade?: boolean;
+  isCustomDateRange?: boolean;
+  customRangeTotal?: number;
+  customRangeLoading?: boolean;
 }) {
   const { queryParams } = useRouterStuff();
   const { slug, plan } = useWorkspace();
@@ -284,10 +355,19 @@ function UsageTabCard({
       ? [usageProp / 100, limitProp / 100]
       : [usageProp, limitProp];
 
-  const loading = usage === undefined || limit === undefined;
+  const loading =
+    usage === undefined ||
+    limit === undefined ||
+    (isCustomDateRange && customRangeLoading);
   const unlimited = limitProp !== undefined && limitProp >= INFINITY_NUMBER; // using limitProp here cause payouts is divided by 100
-  const warning = !loading && !unlimited && usage >= limit * 0.9;
+  const warning =
+    !loading && !unlimited && !isCustomDateRange && usage >= limit * 0.9;
   const remaining = !loading && !unlimited ? Math.max(0, limit - usage) : 0;
+
+  // Determine display value: show custom range total when viewing custom date range
+  const showCustomRangeTotal =
+    isCustomDateRange && customRangeTotal !== undefined;
+  const displayValue = showCustomRangeTotal ? customRangeTotal : usage;
 
   const prefix = unit || "";
 
@@ -334,7 +414,7 @@ function UsageTabCard({
         <div className="mt-1.5">
           {!loading ? (
             <NumberFlow
-              value={usage}
+              value={displayValue ?? 0}
               className="text-2xl font-medium leading-none text-neutral-900"
               format={
                 unit === "$"
@@ -346,7 +426,9 @@ function UsageTabCard({
                     }
                   : {
                       notation:
-                        usage < INFINITY_NUMBER ? "standard" : "compact",
+                        (displayValue ?? 0) < INFINITY_NUMBER
+                          ? "standard"
+                          : "compact",
                     }
               }
             />
@@ -354,43 +436,49 @@ function UsageTabCard({
             <div className="h-5 w-16 animate-pulse rounded-md bg-neutral-200" />
           )}
         </div>
-        <div className="mt-4">
-          <div
-            className={cn(
-              "h-1 w-full overflow-hidden rounded-full bg-neutral-900/10 transition-colors",
-              loading && "bg-neutral-900/5",
-            )}
-          >
-            {!loading && !unlimited && (
-              <div
-                className="animate-slide-right-fade size-full"
-                style={{ "--offset": "-100%" } as CSSProperties}
-              >
+        {!isCustomDateRange && (
+          <div className="mt-4">
+            <div
+              className={cn(
+                "h-1 w-full overflow-hidden rounded-full bg-neutral-900/10 transition-colors",
+                loading && "bg-neutral-900/5",
+              )}
+            >
+              {!loading && !unlimited && (
                 <div
-                  className={cn(
-                    "size-full rounded-full",
-                    requiresUpgrade ? "bg-neutral-900/10" : "bg-neutral-800",
-                    warning && "from-neutral-900/10 via-red-500 to-red-600",
-                  )}
-                  style={{
-                    transform: `translateX(-${100 - Math.max(Math.floor((usage / Math.max(0, usage, limit)) * 100), usage === 0 ? 0 : 1)}%)`,
-                  }}
-                />
-              </div>
-            )}
+                  className="animate-slide-right-fade size-full"
+                  style={{ "--offset": "-100%" } as CSSProperties}
+                >
+                  <div
+                    className={cn(
+                      "size-full rounded-full",
+                      requiresUpgrade ? "bg-neutral-900/10" : "bg-neutral-800",
+                      warning && "from-neutral-900/10 via-red-500 to-red-600",
+                    )}
+                    style={{
+                      transform: `translateX(-${100 - Math.max(Math.floor((usage / Math.max(0, usage, limit)) * 100), usage === 0 ? 0 : 1)}%)`,
+                    }}
+                  />
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-        <div className="mt-2 leading-none">
-          {!loading ? (
-            <span className="text-xs font-medium leading-none text-neutral-600">
-              {unlimited
-                ? "Unlimited"
-                : `${prefix}${nFormatter(remaining, { full: true })} remaining of ${prefix}${nFormatter(limit, { full: limit < INFINITY_NUMBER })}`}
-            </span>
-          ) : (
-            <div className="h-4 w-20 animate-pulse rounded-md bg-neutral-200" />
-          )}
-        </div>
+        )}
+        <AnimatedSizeContainer height transition={{ duration: 0.2 }}>
+          {loading || !showCustomRangeTotal ? (
+            <div className="pt-2 leading-none">
+              {loading ? (
+                <div className="h-4 w-20 animate-pulse rounded-md bg-neutral-200" />
+              ) : (
+                <span className="text-xs font-medium leading-none text-neutral-600">
+                  {unlimited
+                    ? "Unlimited"
+                    : `${prefix}${nFormatter(remaining, { full: true })} remaining of ${prefix}${nFormatter(limit, { full: limit < INFINITY_NUMBER })}`}
+                </span>
+              )}
+            </div>
+          ) : null}
+        </AnimatedSizeContainer>
       </button>
       {["links", "events"].includes(id) && plan !== "enterprise" && (
         <div className="absolute right-3 top-3">

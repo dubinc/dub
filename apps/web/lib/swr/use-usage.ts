@@ -11,7 +11,11 @@ import useWorkspace from "./use-workspace";
 // TODO: Improve this since it's a bit hacky right now
 export default function useUsage({
   disabledWhenNoFilters = false,
-}: { disabledWhenNoFilters?: boolean } = {}) {
+  resource,
+}: {
+  disabledWhenNoFilters?: boolean;
+  resource?: "links" | "events";
+} = {}) {
   const { id: workspaceId, billingCycleStart, totalLinks } = useWorkspace();
   const { firstDay, lastDay } = getFirstAndLastDay(billingCycleStart ?? 0);
   const searchParams = useSearchParams();
@@ -24,12 +28,13 @@ export default function useUsage({
   }, [totalLinks]);
 
   const activeResource = useMemo(() => {
+    if (resource) return resource;
     const tab = searchParams.get("tab");
     if (tab && ["links", "events"].includes(tab)) {
       return tab as "links" | "events";
     }
     return defaultActiveTab;
-  }, [searchParams, defaultActiveTab]);
+  }, [searchParams, defaultActiveTab, resource]);
 
   // Get filter parameters from URL
   const folderId = searchParams.get("folderId");
