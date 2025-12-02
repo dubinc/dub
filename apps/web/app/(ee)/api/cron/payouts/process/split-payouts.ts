@@ -26,9 +26,6 @@ export async function splitPayouts({
         : excludedPayoutIds && excludedPayoutIds.length > 0
           ? { id: { notIn: excludedPayoutIds } }
           : {}),
-      periodStart: {
-        not: null, // exclude the manual payouts
-      },
       ...getPayoutEligibilityFilter(program),
     },
     include: {

@@ -79,19 +79,6 @@ export async function processPayouts({
           ? { id: { notIn: excludedPayoutIds } }
           : {}),
       ...getPayoutEligibilityFilter(program),
-      ...(cutoffPeriodValue && {
-        OR: [
-          {
-            periodStart: null,
-            periodEnd: null,
-          },
-          {
-            periodEnd: {
-              lte: cutoffPeriodValue,
-            },
-          },
-        ],
-      }),
     },
     data: {
       invoiceId: invoice.id,
