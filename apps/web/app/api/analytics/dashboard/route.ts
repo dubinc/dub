@@ -42,9 +42,11 @@ export const GET = async (req: Request) => {
           projectId: true,
           project: {
             select: {
+              id: true,
               plan: true,
               usage: true,
               usageLimit: true,
+              createdAt: true,
             },
           },
           ...(domain && key ? { links: { select: { id: true } } } : {}),
@@ -84,9 +86,11 @@ export const GET = async (req: Request) => {
             projectId: true,
             project: {
               select: {
+                id: true,
                 plan: true,
                 usage: true,
                 usageLimit: true,
+                createdAt: true,
               },
             },
           },
