@@ -132,7 +132,7 @@ export const GET = async (req: Request) => {
       const { success } = await ratelimit(
         demoLink ? 15 : 10,
         !demoLink || groupBy === "count" ? "10 s" : "1 m",
-      ).limit(`analytics-dashboard:${link.id}:${ip}:${groupBy}`);
+      ).limit(`analytics-dashboard:${folder?.id || link?.id}:${ip}:${groupBy}`);
 
       if (!success) {
         throw new DubApiError({
