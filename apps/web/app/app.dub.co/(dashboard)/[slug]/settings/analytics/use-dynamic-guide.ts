@@ -11,7 +11,7 @@ export function useDynamicGuide(
 ) {
   const { guideMarkdown: guideMarkdownRaw, error } = useGuide(guide, swrOpts);
 
-  const { publishableKey } = useWorkspace();
+  const { publishableKey, defaultProgramId } = useWorkspace();
   const { program } = useProgram();
 
   const [siteVisitTrackingEnabled] = useWorkspaceStore<boolean>(
@@ -77,8 +77,21 @@ export function useDynamicGuide(
             // Clean up other attributes
             const otherAttrs = afterSrc.replace(/>$/, "").trim();
 
+            const domainsConfigParts = [
+              ...(program ? [`"refer": "${program.domain}"`] : []),
+              ...(domainTrackingEnabled
+                ? [`"outbound": ["example.com", "example.sh"]`]
+                : []),
+            ].join(`, `);
+            const parts = [
+              `data-publishable-key="${publishableKey}"`,
+              ...(domainsConfigParts
+                ? [`data-domains='{${domainsConfigParts}}'`]
+                : []),
+            ].join(`\n${indent}`);
+
             // Return: before src, src, publishable-key, other attrs, closing tag
-            return `${beforeSrc}${srcAttr}\n${indent}data-publishable-key="${publishableKey}"${otherAttrs ? `\n${indent}${otherAttrs}` : ""}\n${indent}${closingTag}`;
+            return `${beforeSrc}${srcAttr}\n${indent}${parts}${otherAttrs ? `\n${indent}${otherAttrs}` : ""}\n${closingTag}`;
           },
         )
         // for React applications - add publishableKey prop after <DubAnalytics
@@ -94,7 +107,23 @@ export function useDynamicGuide(
                 if (context.includes("publishableKey")) return match;
               }
             }
-            return `${indent}${tag}\n${indent}  publishableKey="${publishableKey}"${rest}`;
+
+            const domainsConfigParts = [
+              ...(program ? [`refer: "${program.domain}"`] : []),
+              ...(domainTrackingEnabled
+                ? [`outbound: ["example.com", "example.sh"]`]
+                : []),
+            ].join(`,\n${indent}    `);
+            const parts = [
+              `publishableKey="${publishableKey}"`,
+              ...(domainsConfigParts
+                ? [
+                    `domainsConfig={{\n${indent}    ${domainsConfigParts}\n${indent}  }}`,
+                  ]
+                : []),
+            ].join(`\n  ${indent}`);
+
+            return `${indent}${tag}\n${indent}  ${parts}${rest}`;
           },
         )
         // for GTM installations - add data-publishable-key after script.src
