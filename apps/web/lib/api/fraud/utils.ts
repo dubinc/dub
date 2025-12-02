@@ -1,4 +1,4 @@
-// import "server-only";
+import "server-only";
 
 import { CreateFraudEventInput } from "@/lib/types";
 import { FraudEventGroup, FraudRuleType } from "@dub/prisma/client";
