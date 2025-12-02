@@ -29,16 +29,27 @@ export const booleanQuerySchema = z
   });
 
 // Pagination
-export const getPaginationQuerySchema = ({ pageSize }: { pageSize: number }) =>
+export const getPaginationQuerySchema = ({
+  pageSize = 100,
+  deprecated = false,
+}: {
+  pageSize?: number;
+  deprecated?: boolean;
+}) =>
   z.object({
     page: z.coerce
       .number({ invalid_type_error: "Page must be a number." })
       .positive({ message: "Page must be greater than 0." })
       .optional()
       .default(1)
-      .describe("The page number for pagination.")
+      .describe(
+        deprecated
+          ? "DEPRECATED. Use `startingAfter` instead."
+          : "The page number for pagination.",
+      )
       .openapi({
         example: 1,
+        deprecated,
       }),
     pageSize: z.coerce
       .number({ invalid_type_error: "Page size must be a number." })
@@ -51,6 +62,33 @@ export const getPaginationQuerySchema = ({ pageSize }: { pageSize: number }) =>
       .describe("The number of items per page.")
       .openapi({
         example: 50,
+      }),
+  });
+
+// Cursor-based pagination
+export const getCursorPaginationQuerySchema = ({
+  example,
+}: {
+  example: string;
+}) =>
+  z.object({
+    endingBefore: z
+      .string()
+      .optional()
+      .describe(
+        "If specified, the query only searches for results before this cursor. Mutually exclusive with `startingAfter`.",
+      )
+      .openapi({
+        example,
+      }),
+    startingAfter: z
+      .string()
+      .optional()
+      .describe(
+        "If specified, the query only searches for results after this cursor. Mutually exclusive with `endingBefore`.",
+      )
+      .openapi({
+        example,
       }),
   });
 
