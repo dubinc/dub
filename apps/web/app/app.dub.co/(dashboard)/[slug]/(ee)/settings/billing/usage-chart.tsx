@@ -1,6 +1,6 @@
 import useDomains from "@/lib/swr/use-domains";
 import useFolders from "@/lib/swr/use-folders";
-import useUsage from "@/lib/swr/use-usage";
+import { useUsageTimeseries } from "@/lib/swr/use-usage-timeseries";
 import { BarList } from "@/ui/analytics/bar-list";
 import { FolderIcon } from "@/ui/folders/folder-icon";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
@@ -70,7 +70,7 @@ export function UsageChart() {
     end,
     interval,
     groupBy,
-  } = useUsage();
+  } = useUsageTimeseries();
 
   // Get filter values from URL params
   const folderId = searchParamsObj.folderId;
