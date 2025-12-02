@@ -23,10 +23,13 @@ export async function payoutPaid(event: Stripe.Event) {
 
   const stripePayout = event.data.object as Stripe.Payout;
 
+  const stripePayoutTraceId = stripePayout.trace_id?.value ?? null;
+
   const updatedPayouts = await prisma.payout.updateMany({
     where: {
       status: "sent",
       stripePayoutId: stripePayout.id,
+      stripePayoutTraceId,
     },
     data: {
       status: "completed",
@@ -44,10 +47,7 @@ export async function payoutPaid(event: Stripe.Event) {
           amount: stripePayout.amount,
           currency: stripePayout.currency,
           arrivalDate: stripePayout.arrival_date,
-          traceId:
-            typeof stripePayout.trace_id === "string"
-              ? stripePayout.trace_id
-              : null,
+          traceId: stripePayoutTraceId,
         },
       }),
     });

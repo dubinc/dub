@@ -1,5 +1,5 @@
-import { ACME_PROGRAM_ID, currencyFormatter } from "@dub/utils";
-import { LARGE_PROGRAM_IDS } from "../constants/program";
+import { currencyFormatter } from "@dub/utils";
+import { EXCLUDED_PROGRAM_IDS } from "../constants/partner-profile";
 import { EnrolledPartnerProps, PartnerProps } from "../types";
 import {
   ONLINE_PRESENCE_FIELDS,
@@ -8,7 +8,7 @@ import {
 
 const PARTNER_DISCOVERY_MIN_COMMISSIONS = 10_00;
 
-const partnerHasEarnedCommissions = (
+export const partnerHasEarnedCommissions = (
   programEnrollments: Pick<
     EnrolledPartnerProps,
     "programId" | "status" | "totalCommissions"
@@ -17,7 +17,7 @@ const partnerHasEarnedCommissions = (
   return (
     programEnrollments.filter(
       (pe) =>
-        ![...LARGE_PROGRAM_IDS, ACME_PROGRAM_ID].includes(pe.programId) &&
+        !EXCLUDED_PROGRAM_IDS.includes(pe.programId) &&
         pe.status === "approved" &&
         pe.totalCommissions >= PARTNER_DISCOVERY_MIN_COMMISSIONS,
     ).length >= 1
@@ -92,12 +92,12 @@ export function getDiscoverabilityRequirements({
       completed: Boolean(partner.salesChannels?.length),
     },
     {
-      label: `Earn ${currencyFormatter(PARTNER_DISCOVERY_MIN_COMMISSIONS, { trailingZeroDisplay: "stripIfInteger" })} in commissions`,
-      completed: partnerHasEarnedCommissions(programEnrollments),
-    },
-    {
       label: "Maintain a healthy partner profile",
       completed: partnerIsNotBanned(programEnrollments),
+    },
+    {
+      label: `Earn ${currencyFormatter(PARTNER_DISCOVERY_MIN_COMMISSIONS, { trailingZeroDisplay: "stripIfInteger" })} in commissions`,
+      completed: partnerHasEarnedCommissions(programEnrollments),
     },
   ];
 }

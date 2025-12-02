@@ -63,7 +63,7 @@ export function BountyInfo() {
 
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:gap-6">
-      <div className="relative flex h-[100px] w-full items-center justify-center rounded-lg bg-neutral-100 p-4 sm:h-[100px] sm:w-[100px] sm:shrink-0">
+      <div className="relative flex h-[100px] w-full items-center justify-center rounded-lg bg-neutral-100 p-4 sm:h-[128px] sm:w-[100px] sm:shrink-0">
         <BountyThumbnailImage bounty={bounty} />
         <div className="absolute right-2 top-2 sm:hidden">
           <BountyActionButton bounty={bounty} />
@@ -86,7 +86,7 @@ export function BountyInfo() {
           </span>
         </div>
 
-        {!isOwner && (
+        {getBountyRewardDescription(bounty) && (
           <div className="text-content-subtle font-regular flex items-center gap-2 text-sm">
             <Gift className="size-4 shrink-0" />
             <span className="text-ellipsis">
@@ -190,7 +190,7 @@ export function BountyInfo() {
 function BountyInfoSkeleton() {
   return (
     <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-start sm:gap-6">
-      <div className="relative flex h-[100px] w-[100px] shrink-0 items-center justify-center rounded-lg bg-neutral-100 p-3" />
+      <div className="relative flex h-[100px] w-[100px] shrink-0 items-center justify-center rounded-lg bg-neutral-100 p-3 sm:h-[128px]" />
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
         <div className="h-6 w-48 animate-pulse rounded-md bg-neutral-200" />
         <div className="flex items-center space-x-2">

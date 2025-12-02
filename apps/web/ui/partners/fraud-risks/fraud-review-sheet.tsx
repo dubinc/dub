@@ -50,7 +50,7 @@ function FraudReviewSheetContent({
 
   const { BanPartnerModal, setShowBanPartnerModal } = useBanPartnerModal({
     partner,
-    onConfirm: () => {
+    onConfirm: async () => {
       onNext?.();
     },
   });

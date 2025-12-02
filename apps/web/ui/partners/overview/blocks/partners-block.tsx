@@ -3,6 +3,7 @@ import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PartnerProps } from "@/lib/types";
 import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
+import { ExceededEventsLimit } from "@/ui/partners/overview/exceeded-events-limit";
 import { ArrowUpRight, LoadingSpinner } from "@dub/ui";
 import {
   currencyFormatter,
@@ -16,7 +17,7 @@ import useSWR from "swr";
 import { ProgramOverviewBlock } from "../program-overview-block";
 
 export function PartnersBlock() {
-  const { slug: workspaceSlug } = useWorkspace();
+  const { slug: workspaceSlug, exceededClicks } = useWorkspace();
   const { program } = useProgram();
 
   const { queryString } = useContext(AnalyticsContext);
@@ -29,10 +30,11 @@ export function PartnersBlock() {
       partner: Pick<PartnerProps, "name" | "image">;
     }[]
   >(
-    `/api/analytics?${editQueryString(queryString, {
-      groupBy: "top_partners",
-      event: program?.primaryRewardEvent === "lead" ? "leads" : "sales",
-    })}`,
+    !exceededClicks &&
+      `/api/analytics?${editQueryString(queryString, {
+        groupBy: "top_partners",
+        event: program?.primaryRewardEvent === "lead" ? "leads" : "sales",
+      })}`,
     fetcher,
   );
 
@@ -42,7 +44,9 @@ export function PartnersBlock() {
       viewAllHref={`/${workspaceSlug}/program/partners`}
     >
       <div className="divide-border-subtle @2xl:h-60 flex h-auto flex-col divide-y">
-        {isLoading ? (
+        {exceededClicks ? (
+          <ExceededEventsLimit />
+        ) : isLoading ? (
           <div className="flex size-full items-center justify-center py-4">
             <LoadingSpinner />
           </div>
