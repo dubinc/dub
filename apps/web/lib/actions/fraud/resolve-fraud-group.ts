@@ -1,6 +1,6 @@
 "use server";
 
-import { resolveFraudEventGroups } from "@/lib/api/fraud/resolve-fraud-event-groups";
+import { resolveFraudGroups } from "@/lib/api/fraud/resolve-fraud-groups";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { resolveFraudEventGroupSchema } from "@/lib/zod/schemas/fraud";
@@ -38,7 +38,7 @@ export const resolveFraudGroupAction = authActionClient
       );
     }
 
-    const count = await resolveFraudEventGroups({
+    const count = await resolveFraudGroups({
       where: {
         id: groupId,
       },

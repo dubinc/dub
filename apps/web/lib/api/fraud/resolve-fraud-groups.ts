@@ -1,7 +1,7 @@
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@prisma/client";
 
-export async function resolveFraudEventGroups({
+export async function resolveFraudGroups({
   where,
   userId,
   resolutionReason,

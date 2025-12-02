@@ -2,7 +2,7 @@
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { DubApiError } from "@/lib/api/errors";
-import { resolveFraudEventGroups } from "@/lib/api/fraud/resolve-fraud-event-groups";
+import { resolveFraudGroups } from "@/lib/api/fraud/resolve-fraud-groups";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { qstash } from "@/lib/cron";
@@ -82,7 +82,7 @@ export const banPartner = async ({
   });
 
   // Automatically resolve all pending fraud events for this partner in the current program
-  await resolveFraudEventGroups({
+  await resolveFraudGroups({
     where: commonWhere,
     userId: user.id,
     resolutionReason: "Resolved automatically because the partner was banned.",
