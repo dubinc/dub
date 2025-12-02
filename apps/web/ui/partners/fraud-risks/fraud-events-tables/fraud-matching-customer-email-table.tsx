@@ -9,9 +9,7 @@ import { formatDateTimeSmart } from "@dub/utils";
 import Link from "next/link";
 import { z } from "zod";
 
-type EventDataProps = z.infer<
-  (typeof fraudEventSchemas)["customerEmailMatch"]
->;
+type EventDataProps = z.infer<(typeof fraudEventSchemas)["customerEmailMatch"]>;
 
 export function FraudMatchingCustomerEmailTable() {
   const { slug: workspaceSlug } = useWorkspace();
@@ -66,9 +64,9 @@ export function FraudMatchingCustomerEmailTable() {
         id: "view",
         header: "",
         enableHiding: false,
-        minSize: 80,
-        size: 80,
-        maxSize: 80,
+        minSize: 100,
+        size: 100,
+        maxSize: 100,
         cell: ({ row }) => {
           if (!row.original.customer) return null;
 

@@ -16,7 +16,7 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-const MAX_DISPLAYED_EVENTS = 5;
+const MAX_DISPLAYED_GROUPS = 5;
 
 export default function UnresolvedFraudEventsSummary({
   workspace = {
@@ -25,20 +25,20 @@ export default function UnresolvedFraudEventsSummary({
   program = {
     name: "Acme",
   },
-  fraudEvents = [
+  fraudGroups = [
     {
+      id: "frg_1KBEY53HESGDK7RAPX960FEWA",
       name: "Customer email match",
       count: 2,
-      groupKey: "QwRUVRbcTfa8zzrhDjGwdN9L",
       partner: {
         name: "Lauren Anderson",
         image: `${OG_AVATAR_URL}/Lauren Anderson`,
       },
     },
     {
+      id: "frg_1KBEZRKC1GB716J5AKV62MK8H",
       name: "Referral source",
       count: 1,
-      groupKey: "3kkPeQ8vzIr1Zl5Zsn_A4l06",
       partner: {
         name: "Charlie Anderson",
         image: `${OG_AVATAR_URL}/Charlie Anderson`,
@@ -53,10 +53,10 @@ export default function UnresolvedFraudEventsSummary({
   program: {
     name: string;
   };
-  fraudEvents: {
+  fraudGroups: {
+    id: string;
     name: string;
     count: number;
-    groupKey: string;
     partner: {
       name: string;
       image: string | null;
@@ -70,8 +70,8 @@ export default function UnresolvedFraudEventsSummary({
     year: "numeric",
   });
 
-  const displayedEvents = fraudEvents.slice(0, MAX_DISPLAYED_EVENTS);
-  const remainingCount = fraudEvents.length - MAX_DISPLAYED_EVENTS;
+  const displayedGroups = fraudGroups.slice(0, MAX_DISPLAYED_GROUPS);
+  const remainingCount = fraudGroups.length - MAX_DISPLAYED_GROUPS;
 
   return (
     <Html>
@@ -111,22 +111,22 @@ export default function UnresolvedFraudEventsSummary({
                 </Column>
               </Row>
 
-              {displayedEvents.map((event) => (
+              {displayedGroups.map((group) => (
                 <Row
-                  key={event.groupKey}
+                  key={group.id}
                   className="h-11 border-b border-solid border-neutral-200 last:border-b-0"
                 >
                   <Column width="50%" className="w-1/2 px-4" valign="middle">
                     <Row>
                       <Column width="auto" className="flex">
                         <Text className="m-0 text-sm font-medium text-neutral-600">
-                          {event.name}
+                          {group.name}
                         </Text>
 
                         <div>
-                          {event.count > 1 && (
+                          {group.count > 1 && (
                             <Text className="m-0 ml-2 rounded-md bg-neutral-100 px-1.5 py-0.5 text-xs font-semibold text-neutral-700">
-                              {event.count}
+                              {group.count}
                             </Text>
                           )}
                         </div>
@@ -139,19 +139,19 @@ export default function UnresolvedFraudEventsSummary({
                       <Column width="auto">
                         <Img
                           src={
-                            event.partner.image ||
-                            `${OG_AVATAR_URL}${event.partner.name}`
+                            group.partner.image ||
+                            `${OG_AVATAR_URL}${group.partner.name}`
                           }
                           width={20}
                           height={20}
-                          alt={event.partner.name}
+                          alt={group.partner.name}
                           className="rounded-full"
                         />
                       </Column>
 
                       <Column width="auto">
                         <Text className="m-0 ml-1 text-sm font-medium text-neutral-600">
-                          {event.partner.name}
+                          {group.partner.name}
                         </Text>
                       </Column>
 
@@ -163,7 +163,7 @@ export default function UnresolvedFraudEventsSummary({
                       >
                         <Link
                           className="rounded-lg border border-solid border-neutral-300 bg-white px-2.5 py-1.5 text-sm font-medium text-neutral-700 no-underline"
-                          href={`https://app.dub.co/${workspace.slug}/program/fraud?groupKey=${event.groupKey}`}
+                          href={`https://app.dub.co/${workspace.slug}/program/fraud?groupId=${group.id}`}
                         >
                           View
                         </Link>

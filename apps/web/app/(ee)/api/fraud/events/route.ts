@@ -80,7 +80,7 @@ export const GET = withWorkspace(
         customer: true,
       },
       orderBy: {
-        createdAt: "asc",
+        id: "asc",
       },
     });
 

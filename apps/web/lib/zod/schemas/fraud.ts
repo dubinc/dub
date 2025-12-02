@@ -216,6 +216,7 @@ export const fraudEventSchemas = {
     metadata: z
       .object({
         source: z.string(),
+        url: z.string().nullable().default(null),
       })
       .nullable(),
   }),
