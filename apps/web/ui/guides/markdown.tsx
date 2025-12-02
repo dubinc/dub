@@ -74,7 +74,7 @@ function CodeBlock({ node, children, ...rest }: any) {
   const [highlighted, setHighlighted] = useState("");
 
   useEffect(() => {
-    codeToHtml(code.trimEnd(), {
+    codeToHtml(code?.trimEnd() || "", {
       lang: lang || "plaintext",
       theme: "min-light",
     }).then((html) => setHighlighted(html));
