@@ -83,6 +83,19 @@ export const resolveFraudEventGroupSchema = z.object({
     .default(null),
 });
 
+export const bulkResolveFraudGroupsSchema = z.object({
+  workspaceId: z.string(),
+  groupIds: z.array(z.string()).min(1),
+  resolutionReason: z
+    .string()
+    .max(
+      MAX_RESOLUTION_REASON_LENGTH,
+      `Reason must be less than ${MAX_RESOLUTION_REASON_LENGTH} characters`,
+    )
+    .nullable()
+    .default(null),
+});
+
 export const fraudRuleSchema = z.object({
   id: z.string().optional(),
   type: z.nativeEnum(FraudRuleType),

@@ -7,10 +7,12 @@ import { useFraudGroupCount } from "@/lib/swr/use-fraud-groups-count";
 import { fraudEventGroupProps } from "@/lib/types";
 import { useBanPartnerModal } from "@/ui/modals/ban-partner-modal";
 import { useBulkBanPartnersModal } from "@/ui/modals/bulk-ban-partners-modal";
+import { useBulkResolveFraudGroupsModal } from "@/ui/modals/bulk-resolve-fraud-groups-modal";
 import { FraudReviewSheet } from "@/ui/partners/fraud-risks/fraud-review-sheet";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { FilterButtonTableRow } from "@/ui/shared/filter-button-table-row";
+import { ThreeDots } from "@/ui/shared/icons";
 import {
   AnimatedSizeContainer,
   Badge,
@@ -27,7 +29,7 @@ import {
 } from "@dub/ui";
 import { Dots, ShieldAlert, UserDelete } from "@dub/ui/icons";
 import { cn, formatDateTimeSmart } from "@dub/utils";
-import { Row } from "@tanstack/react-table";
+import { Row, Table as TableType } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useFraudGroupFilters } from "./use-fraud-group-filters";
@@ -87,6 +89,10 @@ export function FraudEventGroupTable() {
     Array<NonNullable<fraudEventGroupProps["partner"]>>
   >([]);
 
+  const [pendingResolveFraudGroups, setPendingResolveFraudGroups] = useState<
+    fraudEventGroupProps[]
+  >([]);
+
   const tableRef = useRef<
     ReturnType<typeof useTable<fraudEventGroupProps>>["table"] | null
   >(null);
@@ -96,7 +102,16 @@ export function FraudEventGroupTable() {
       partners: pendingBanPartners,
       onConfirm: async () => {
         tableRef.current?.resetRowSelection();
-        await mutatePrefix("/api/fraud/events");
+        await mutatePrefix("/api/fraud/groups");
+      },
+    });
+
+  const { BulkResolveFraudGroupsModal, setShowBulkResolveFraudGroupsModal } =
+    useBulkResolveFraudGroupsModal({
+      fraudEventGroups: pendingResolveFraudGroups,
+      onConfirm: async () => {
+        tableRef.current?.resetRowSelection();
+        await mutatePrefix("/api/fraud/groups");
       },
     });
 
@@ -247,6 +262,7 @@ export function FraudEventGroupTable() {
 
       const selectedRows = tableInstance.getSelectedRowModel().rows;
       const partners = selectedRows.map((row) => row.original.partner);
+      const selectedFraudGroups = selectedRows.map((row) => row.original);
 
       // Remove duplicates by partner ID
       const uniquePartners = Array.from(
@@ -256,17 +272,27 @@ export function FraudEventGroupTable() {
       if (uniquePartners.length === 0) return null;
 
       return (
-        <Button
-          variant="danger"
-          text="Ban"
-          icon={<UserDelete className="size-3.5 shrink-0" />}
-          className="h-7 w-fit rounded-lg bg-red-600 px-2.5 text-white"
-          loading={false}
-          onClick={() => {
-            setPendingBanPartners(uniquePartners);
-            setShowBulkBanPartnersModal(true);
-          }}
-        />
+        <>
+          <Button
+            variant="primary"
+            text="Resolve events"
+            icon={<ShieldAlert className="size-3.5 shrink-0" />}
+            className="h-7 w-fit rounded-lg px-2.5"
+            loading={false}
+            onClick={() => {
+              setPendingResolveFraudGroups(selectedFraudGroups);
+              setShowBulkResolveFraudGroupsModal(true);
+            }}
+          />
+
+          <BulkActionsMenu
+            table={tableInstance}
+            onBanPartners={(partners) => {
+              setPendingBanPartners(partners);
+              setShowBulkBanPartnersModal(true);
+            }}
+          />
+        </>
       );
     },
   });
@@ -290,6 +316,7 @@ export function FraudEventGroupTable() {
   return (
     <div className="flex flex-col gap-6">
       <BulkBanPartnersModal />
+      <BulkResolveFraudGroupsModal />
       {detailsSheetState.groupId && currentFraudEventGroup && (
         <FraudReviewSheet
           isOpen={detailsSheetState.open}
@@ -366,6 +393,57 @@ export function FraudEventGroupTable() {
         />
       )}
     </div>
+  );
+}
+
+function BulkActionsMenu({
+  table,
+  onBanPartners,
+}: {
+  table: TableType<fraudEventGroupProps>;
+  onBanPartners: (
+    partners: Array<NonNullable<fraudEventGroupProps["partner"]>>,
+  ) => void;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <Popover
+      openPopover={isOpen}
+      setOpenPopover={setIsOpen}
+      content={
+        <Command tabIndex={0} loop className="focus:outline-none">
+          <Command.List className="w-screen text-sm focus-visible:outline-none sm:w-auto sm:min-w-[160px]">
+            <Command.Group className="grid gap-px p-1.5">
+              <MenuItem
+                icon={UserDelete}
+                label="Ban partner"
+                variant="danger"
+                onSelect={() => {
+                  const selectedRows = table.getSelectedRowModel().rows;
+                  const partners = selectedRows.map(
+                    (row) => row.original.partner,
+                  );
+                  const uniquePartners = Array.from(
+                    new Map(partners.map((p) => [p.id, p])).values(),
+                  );
+                  onBanPartners(uniquePartners);
+                  setIsOpen(false);
+                }}
+              />
+            </Command.Group>
+          </Command.List>
+        </Command>
+      }
+      align="start"
+    >
+      <Button
+        type="button"
+        className="size-7 whitespace-nowrap rounded-lg p-2"
+        variant="secondary"
+        icon={<ThreeDots className="h-4 w-4 shrink-0" />}
+      />
+    </Popover>
   );
 }
 
