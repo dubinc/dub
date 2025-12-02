@@ -9,6 +9,8 @@ import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
 import {
   CommissionStatus,
   FolderUserRole,
+  FraudEvent,
+  FraudEventGroup,
   FraudRuleType,
   Link,
   PartnerGroup,
@@ -717,3 +719,9 @@ export interface FraudGroupCountByType {
   type: FraudRuleType;
   _count: number;
 }
+
+export type CreateFraudEventInput = Pick<
+  FraudEventGroup,
+  "programId" | "partnerId" | "type"
+> &
+  Partial<Pick<FraudEvent, "linkId" | "eventId" | "customerId" | "metadata">>;

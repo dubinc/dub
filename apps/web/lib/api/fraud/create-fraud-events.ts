@@ -1,15 +1,14 @@
+import { CreateFraudEventInput } from "@/lib/types";
 import { prisma } from "@dub/prisma";
-import { FraudEvent, FraudEventGroup, Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { createId } from "../create-id";
-import { createFraudEventFingerprint, createFraudEventGroupKey } from "./utils";
+import {
+  createFraudEventFingerprint,
+  createFraudEventGroupKey,
+  getIdentityFieldsForRule,
+} from "./utils";
 
-type CreateFraudEventsInput = Pick<
-  FraudEventGroup,
-  "programId" | "partnerId" | "type"
-> &
-  Partial<Pick<FraudEvent, "linkId" | "eventId" | "customerId" | "metadata">>;
-
-export async function createFraudEvents(fraudEvents: CreateFraudEventsInput[]) {
+export async function createFraudEvents(fraudEvents: CreateFraudEventInput[]) {
   if (fraudEvents.length === 0) {
     return;
   }
@@ -19,12 +18,8 @@ export async function createFraudEvents(fraudEvents: CreateFraudEventsInput[]) {
       programId: fraudEvent.programId,
       partnerId: fraudEvent.partnerId,
       type: fraudEvent.type,
-      identityFields: {
-        ...(fraudEvent.customerId ? { customerId: fraudEvent.customerId } : {}),
-      },
+      identityFields: getIdentityFieldsForRule(fraudEvent),
     });
-
-    console.log("fingerprint", fingerprint);
 
     const existingFraudEvent = await prisma.fraudEvent.findFirst({
       where: {
@@ -38,10 +33,6 @@ export async function createFraudEvents(fraudEvents: CreateFraudEventsInput[]) {
     });
 
     if (existingFraudEvent) {
-      console.info(
-        `Skipping duplicate fraud event with fingerprint ${fingerprint}.`,
-      );
-
       continue;
     }
 
@@ -63,17 +54,9 @@ export async function createFraudEvents(fraudEvents: CreateFraudEventsInput[]) {
           programId: fraudEvent.programId,
           partnerId: fraudEvent.partnerId,
           type: fraudEvent.type,
-          // lastEventAt: new Date(),
-          // eventCount: 1,
         },
       });
     }
-
-    const groupKey = createFraudEventGroupKey({
-      programId: fraudEvent.programId,
-      type: fraudEvent.type,
-      groupingKey: fraudEvent.partnerId,
-    });
 
     const createdFraudEvent = await prisma.fraudEvent.create({
       data: {
@@ -89,7 +72,11 @@ export async function createFraudEvents(fraudEvents: CreateFraudEventsInput[]) {
         programId: fraudEvent.programId,
         partnerId: fraudEvent.partnerId,
         type: fraudEvent.type,
-        groupKey,
+        groupKey: createFraudEventGroupKey({
+          programId: fraudEvent.programId,
+          type: fraudEvent.type,
+          groupingKey: fraudEvent.partnerId,
+        }),
       },
     });
 

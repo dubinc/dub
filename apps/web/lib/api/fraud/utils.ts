@@ -1,7 +1,34 @@
-import "server-only";
+// import "server-only";
 
-import { FraudRuleType } from "@dub/prisma/client";
+import { FraudEventGroup, FraudRuleType } from "@dub/prisma/client";
 import { createHash } from "crypto";
+
+interface CreateGroupKeyInput {
+  type: FraudRuleType;
+  programId: string;
+
+  /**
+   * The grouping key used to group fraud events. It can be:
+   * - partnerId: for partner-specific grouping
+   * - Any other identifier relevant to the fraud rule type
+   */
+  groupingKey: string;
+}
+
+interface CreateFingerprintInput
+  extends Pick<FraudEventGroup, "programId" | "partnerId" | "type"> {
+  /**
+   * Fields that uniquely define the identity of a fraud event instance.
+   * Only include fields that directly impact event identity.
+   * Adding arbitrary metadata may cause unnecessary group splits.
+   */
+  identityFields: Record<string, string>;
+}
+
+interface GetIdentityFieldsForRuleInput
+  extends Pick<FraudEventGroup, "partnerId" | "type"> {
+  customerId?: string | null | undefined;
+}
 
 // Normalize email for comparison
 export function normalizeEmail(email: string): string {
@@ -32,18 +59,6 @@ export function createHashKey(value: string): string {
   return createHash("sha256").update(value).digest("base64url").slice(0, 24);
 }
 
-interface CreateGroupKeyInput {
-  type: FraudRuleType;
-  programId: string;
-
-  /**
-   * The grouping key used to group fraud events. It can be:
-   * - partnerId: for partner-specific grouping
-   * - Any other identifier relevant to the fraud rule type
-   */
-  groupingKey: string;
-}
-
 // Create a unique group key to identify and deduplicate fraud events of the same type
 // based on programId and groupingKey
 export function createFraudEventGroupKey(input: CreateGroupKeyInput): string {
@@ -52,19 +67,6 @@ export function createFraudEventGroupKey(input: CreateGroupKeyInput): string {
   );
 
   return createHashKey(parts.join("|"));
-}
-
-interface CreateFingerprintInput {
-  programId: string;
-  partnerId: string;
-  type: FraudRuleType;
-
-  /**
-   * Fields that uniquely define the identity of a fraud event instance.
-   * Only include fields that directly impact event identity.
-   * Adding arbitrary metadata may cause unnecessary group splits.
-   */
-  identityFields: Record<string, string>;
 }
 
 export function createFraudEventFingerprint(input: CreateFingerprintInput) {
@@ -84,5 +86,28 @@ export function createFraudEventFingerprint(input: CreateFingerprintInput) {
     return createHashKey(raw);
   } catch (error) {
     console.error("Error creating fingerprint:", error);
+  }
+}
+
+export function getIdentityFieldsForRule({
+  type,
+  partnerId,
+  customerId,
+}: GetIdentityFieldsForRuleInput): Record<string, string> {
+  switch (type) {
+    case "customerEmailMatch":
+    case "customerEmailSuspiciousDomain":
+    case "referralSourceBanned":
+    case "paidTrafficDetected":
+      if (!customerId) {
+        throw new Error(`customerId is required for ${type} fraud rule.`);
+      }
+
+      return { customerId };
+
+    case "partnerCrossProgramBan":
+    case "partnerDuplicatePayoutMethod":
+    case "partnerFraudReport":
+      return { partnerId };
   }
 }

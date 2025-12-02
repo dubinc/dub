@@ -54,8 +54,6 @@ export async function detectAndRecordFraudEvent(context: FraudEventContext) {
     }
   }
 
-  console.log(JSON.stringify(triggeredRules, null, 2));
-
   if (triggeredRules.length === 0) {
     return;
   }
@@ -64,10 +62,10 @@ export async function detectAndRecordFraudEvent(context: FraudEventContext) {
     triggeredRules.map((rule) => ({
       programId: validatedContext.program.id,
       partnerId: validatedContext.partner.id,
-      type: rule.type,
       linkId: validatedContext.link.id,
       customerId: validatedContext.customer.id,
       eventId: validatedContext.event.id,
+      type: rule.type,
       metadata: rule.metadata,
     })),
   );
