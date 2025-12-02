@@ -132,7 +132,7 @@ function TagButton({ tag, plus }: { tag: TagProps; plus?: number }) {
           set: {
             tagIds: newTagIds.join(","),
           },
-          del: [...(newTagIds.length ? [] : ["tagIds"])],
+          del: ["page", ...(newTagIds.length ? [] : ["tagIds"])],
         });
       }}
     >
