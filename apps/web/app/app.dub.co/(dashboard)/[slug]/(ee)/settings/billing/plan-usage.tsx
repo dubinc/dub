@@ -1,5 +1,6 @@
 "use client";
 
+import { MEGA_WORKSPACE_LINKS_LIMIT } from "@/lib/constants/misc";
 import useGroupsCount from "@/lib/swr/use-groups-count";
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import useTagsCount from "@/lib/swr/use-tags-count";
@@ -116,7 +117,7 @@ export default function PlanUsage() {
         limit: linksLimit,
       },
     ];
-    if (totalLinks && totalLinks > 10_000) {
+    if (totalLinks && totalLinks > MEGA_WORKSPACE_LINKS_LIMIT) {
       // Find the links tab and move it to the first position
       const linksTabIndex = tabs.findIndex((tab) => tab.id === "links");
       if (linksTabIndex !== -1) {
