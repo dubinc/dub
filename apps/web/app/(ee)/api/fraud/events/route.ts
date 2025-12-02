@@ -19,6 +19,7 @@ export const GET = withWorkspace(
     let where: Prisma.FraudEventWhereInput = {};
     let eventGroupType: FraudRuleType | undefined;
 
+    // Filter by group ID
     if ("groupId" in parsedQueryParams) {
       const { groupId } = parsedQueryParams;
 
@@ -28,6 +29,7 @@ export const GET = withWorkspace(
         },
         select: {
           programId: true,
+          partnerId: true,
           type: true,
         },
       });
@@ -51,8 +53,32 @@ export const GET = withWorkspace(
       };
 
       eventGroupType = fraudEventGroup.type;
+
+      if (eventGroupType === FraudRuleType.partnerCrossProgramBan) {
+        const bannedProgramEnrollments =
+          await prisma.programEnrollment.findMany({
+            where: {
+              partnerId: fraudEventGroup.partnerId,
+              programId: {
+                not: programId,
+              },
+              status: "banned",
+            },
+            select: {
+              bannedAt: true,
+              bannedReason: true,
+            },
+          });
+
+        return NextResponse.json(
+          z
+            .array(fraudEventSchemas["partnerCrossProgramBan"])
+            .parse(bannedProgramEnrollments),
+        );
+      }
     }
 
+    // Filter by customer ID and type
     if ("customerId" in parsedQueryParams && "type" in parsedQueryParams) {
       const { customerId, type } = parsedQueryParams;
 
@@ -73,6 +99,8 @@ export const GET = withWorkspace(
       });
     }
 
+    const zodSchema = fraudEventSchemas[eventGroupType];
+
     const fraudEvents = await prisma.fraudEvent.findMany({
       where,
       include: {
@@ -83,8 +111,6 @@ export const GET = withWorkspace(
         id: "asc",
       },
     });
-
-    const zodSchema = fraudEventSchemas[eventGroupType];
 
     return NextResponse.json(z.array(zodSchema).parse(fraudEvents));
   },

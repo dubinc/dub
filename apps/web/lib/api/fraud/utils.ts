@@ -59,12 +59,13 @@ export function normalizeEmail(email: string): string {
   return `${username}@${domain}`;
 }
 
-export function createHashKey(value: string): string {
+function createHashKey(value: string): string {
   return createHash("sha256").update(value).digest("base64url").slice(0, 24);
 }
 
 // Create a unique group key to identify and deduplicate fraud events of the same type
 // based on programId and groupingKey
+// Deprecated: Use createGroupHash instead (Should be removed)
 export function createFraudEventGroupKey(input: CreateGroupKeyInput): string {
   const parts = [input.programId, input.type, input.groupingKey].map((p) =>
     p!.toLowerCase(),
@@ -73,6 +74,9 @@ export function createFraudEventGroupKey(input: CreateGroupKeyInput): string {
   return createHashKey(parts.join("|"));
 }
 
+// Creates a unique fingerprint for a fraud event to enable deduplication.
+// The fingerprint is generated based on the programId, partnerId, fraud type,
+// and identity fields specific to that rule type (e.g., customerId, payoutMethodHash).
 export function createFraudEventFingerprint(
   fraudEvent: CreateFingerprintInput,
 ) {
@@ -84,7 +88,6 @@ export function createFraudEventFingerprint(
       metadata: fraudEvent.metadata as Record<string, string>,
     });
 
-    // Normalize identityFields keys so fingerprint is deterministic
     const normalizedIdentityFields = Object.keys(identityFields)
       .sort()
       .map((key) => `${key}:${identityFields[key]}`)
@@ -100,6 +103,8 @@ export function createFraudEventFingerprint(
   }
 }
 
+// Determines which identity fields should be used for fraud event fingerprinting based on the fraud rule type.
+// Different fraud rules use different combinations of fields to uniquely identify fraud events.
 function getIdentityFieldsForRule({
   type,
   partnerId,
@@ -133,18 +138,16 @@ function getIdentityFieldsForRule({
       return {
         partnerId,
         payoutMethodHash: metadata.payoutMethodHash,
+        duplicatePartnerId: metadata.duplicatePartnerId,
       };
   }
 }
 
-/**
- * Get the group hash for a fraud rule type.
- * This determines which events should be grouped together.
- *
- * For partnerDuplicatePayoutMethod: groups by payoutMethodHash (multiple partners can share same group)
- * For other rules: groups by partnerId (one group per partner)
- */
-export async function createGroupHash({
+// Get the group hash for a fraud rule type.
+// This determines which events should be grouped together.
+// For partnerDuplicatePayoutMethod: groups by payoutMethodHash (multiple partners can share same group)
+// For other rules: groups by partnerId (one group per partner)
+export async function createFraudGroupHash({
   programId,
   partnerId,
   type,
@@ -158,7 +161,7 @@ export async function createGroupHash({
       throw new Error(`payoutMethodHash is required for ${type} fraud rule.`);
     }
 
-    parts.push(metadataFields.payoutMethodHash);
+    parts.push(partnerId, metadataFields.payoutMethodHash);
   } else {
     parts.push(partnerId);
   }

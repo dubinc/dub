@@ -154,6 +154,9 @@ export async function POST(req: Request) {
           in: ["approved"],
         },
       },
+      select: {
+        programId: true,
+      },
     });
 
     // Create partnerCrossProgramBan fraud events for other programs where this partner

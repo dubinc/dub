@@ -1,11 +1,11 @@
 import { CreateFraudEventInput } from "@/lib/types";
 import { prisma } from "@dub/prisma";
-import { Prisma } from "@prisma/client";
+import { FraudRuleType, Prisma } from "@prisma/client";
 import { createId } from "../create-id";
 import {
   createFraudEventFingerprint,
   createFraudEventGroupKey,
-  createGroupHash,
+  createFraudGroupHash,
 } from "./utils";
 
 export async function createFraudEvents(fraudEvents: CreateFraudEventInput[]) {
@@ -20,9 +20,7 @@ export async function createFraudEvents(fraudEvents: CreateFraudEventInput[]) {
       where: {
         fingerprint,
         fraudEventGroup: {
-          is: {
-            status: "pending",
-          },
+          status: "pending",
         },
       },
     });
@@ -31,7 +29,7 @@ export async function createFraudEvents(fraudEvents: CreateFraudEventInput[]) {
       continue;
     }
 
-    const groupHash = await createGroupHash(fraudEvent);
+    const groupHash = await createFraudGroupHash(fraudEvent);
 
     let fraudEventGroup = await prisma.fraudEventGroup.findFirst({
       where: {
@@ -52,7 +50,7 @@ export async function createFraudEvents(fraudEvents: CreateFraudEventInput[]) {
       });
     }
 
-    const createdFraudEvent = await prisma.fraudEvent.create({
+    await prisma.fraudEvent.create({
       data: {
         id: createId({ prefix: "fre_" }),
         fraudEventGroupId: fraudEventGroup.id,
@@ -61,10 +59,13 @@ export async function createFraudEvents(fraudEvents: CreateFraudEventInput[]) {
         customerId: fraudEvent.customerId,
         metadata: fraudEvent.metadata as Prisma.InputJsonValue,
         fingerprint,
+        ...(fraudEvent.type === FraudRuleType.partnerDuplicatePayoutMethod && {
+          partnerId: (fraudEvent.metadata as Record<string, string>)
+            ?.duplicatePartnerId,
+        }),
 
         // DEPRECATED FIELDS: TODO – remove after migration
         programId: fraudEvent.programId,
-        partnerId: fraudEvent.partnerId,
         type: fraudEvent.type,
         groupKey: createFraudEventGroupKey({
           programId: fraudEvent.programId,
@@ -73,10 +74,6 @@ export async function createFraudEvents(fraudEvents: CreateFraudEventInput[]) {
         }),
       },
     });
-
-    console.info(
-      `Created fraud event ${JSON.stringify(createdFraudEvent, null, 2)}`,
-    );
 
     await prisma.fraudEventGroup.update({
       where: {

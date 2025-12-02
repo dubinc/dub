@@ -1,6 +1,7 @@
 import { createFraudEvents } from "@/lib/api/fraud/create-fraud-events";
 import { qstash } from "@/lib/cron";
 import { stripe } from "@/lib/stripe";
+import { CreateFraudEventInput } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { FraudRuleType } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
@@ -102,20 +103,51 @@ export async function accountUpdated(event: Stripe.Event) {
     });
 
     if (duplicatePartners.length > 1) {
-      const programEnrollments = duplicatePartners.flatMap(
-        ({ programs }) => programs,
-      );
+      const fraudEvents: CreateFraudEventInput[] = [];
+      const partnersByProgram = new Map<string, string[]>();
 
-      await createFraudEvents(
-        programEnrollments.map(({ partnerId, programId }) => ({
-          programId,
-          partnerId,
-          type: FraudRuleType.partnerDuplicatePayoutMethod,
-          metadata: {
-            payoutMethodHash,
-          },
-        })),
-      );
+      // Map program → partner list
+      for (const partner of duplicatePartners) {
+        for (const { programId } of partner.programs) {
+          const list = partnersByProgram.get(programId) ?? [];
+          list.push(partner.id);
+          partnersByProgram.set(programId, list);
+        }
+      }
+
+      for (const partner of duplicatePartners) {
+        for (const { programId } of partner.programs) {
+          const enrolledPartners = partnersByProgram.get(programId) ?? [];
+
+          // Always create self event
+          fraudEvents.push({
+            programId,
+            partnerId: partner.id,
+            type: FraudRuleType.partnerDuplicatePayoutMethod,
+            metadata: {
+              payoutMethodHash,
+              duplicatePartnerId: partner.id,
+            },
+          });
+
+          // Create events for other partners in this program
+          for (const duplicatePartnerId of enrolledPartners) {
+            if (duplicatePartnerId === partner.id) continue;
+
+            fraudEvents.push({
+              programId,
+              partnerId: partner.id,
+              type: FraudRuleType.partnerDuplicatePayoutMethod,
+              metadata: {
+                payoutMethodHash,
+                duplicatePartnerId,
+              },
+            });
+          }
+        }
+      }
+
+      await createFraudEvents(fraudEvents);
     }
   }
 
