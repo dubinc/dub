@@ -1,7 +1,6 @@
 import { getLinksQuerySchemaExtended } from "@/lib/zod/schemas/links";
 import { prisma } from "@dub/prisma";
 import { z } from "zod";
-import { getPaginationOptions } from "../pagination";
 import { combineTagIds } from "../tags/combine-tag-ids";
 import { encodeKeyIfCaseSensitive } from "./case-sensitivity";
 import { transformLink } from "./utils";
@@ -14,31 +13,39 @@ export interface GetLinksForWorkspaceProps
   endDate?: Date;
 }
 
-export async function getLinksForWorkspace(filters: GetLinksForWorkspaceProps) {
-  let {
-    workspaceId,
-    domain,
-    tagId,
-    tagIds,
-    tagNames,
-    search,
-    searchMode,
-    userId,
-    showArchived,
-    withTags,
-    folderId,
-    folderIds,
-    linkIds,
-    includeUser,
-    includeWebhooks,
-    includeDashboard,
-    tenantId,
-    partnerId,
-    startDate,
-    endDate,
-  } = filters;
-
+export async function getLinksForWorkspace({
+  workspaceId,
+  domain,
+  tagId,
+  tagIds,
+  tagNames,
+  search,
+  searchMode,
+  sort, // Deprecated
+  sortBy,
+  sortOrder,
+  page,
+  pageSize,
+  userId,
+  showArchived,
+  withTags,
+  folderId,
+  folderIds,
+  linkIds,
+  includeUser,
+  includeWebhooks,
+  includeDashboard,
+  tenantId,
+  partnerId,
+  startDate,
+  endDate,
+}: GetLinksForWorkspaceProps) {
   const combinedTagIds = combineTagIds({ tagId, tagIds });
+
+  // support legacy sort param
+  if (sort && sort !== "createdAt") {
+    sortBy = sort;
+  }
 
   if (searchMode === "exact" && search) {
     try {
@@ -153,7 +160,11 @@ export async function getLinksForWorkspace(filters: GetLinksForWorkspaceProps) {
       webhooks: includeWebhooks,
       dashboard: includeDashboard,
     },
-    ...getPaginationOptions(filters),
+    orderBy: {
+      [sortBy]: sortOrder,
+    },
+    take: pageSize,
+    skip: (page - 1) * pageSize,
   });
 
   return links.map((link) => transformLink(link));
