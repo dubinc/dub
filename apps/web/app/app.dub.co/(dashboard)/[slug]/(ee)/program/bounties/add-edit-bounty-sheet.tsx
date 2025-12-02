@@ -400,24 +400,23 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
 
   const { setShowConfirmCreateBountyModal, confirmCreateBountyModal } =
     useConfirmCreateBountyModal({
-      bounty:
-        !validationError && rewardAmount
-          ? {
-              type,
-              name:
-                type === "performance" && performanceCondition
-                  ? generatePerformanceBountyName({
-                      rewardAmount: rewardAmount ? rewardAmount * 100 : 0,
-                      condition: performanceCondition,
-                    })
-                  : name || "New bounty",
-              startsAt: startsAt || new Date(),
-              endsAt: endsAt || null,
-              rewardAmount: rewardAmount ? rewardAmount * 100 : null,
-              rewardDescription: rewardDescription || null,
-              groups: groupIds?.map((id) => ({ id })) || [],
-            }
-          : undefined,
+      bounty: !validationError
+        ? {
+            type,
+            name:
+              type === "performance" && performanceCondition
+                ? generatePerformanceBountyName({
+                    rewardAmount: rewardAmount ? rewardAmount * 100 : 0,
+                    condition: performanceCondition,
+                  })
+                : name || "New bounty",
+            startsAt: startsAt || new Date(),
+            endsAt: endsAt || null,
+            rewardAmount: rewardAmount ? rewardAmount * 100 : null,
+            rewardDescription: rewardDescription || null,
+            groups: groupIds?.map((id) => ({ id })) || [],
+          }
+        : undefined,
       onConfirm: async ({ sendNotificationEmails }) => {
         await performSubmit({ sendNotificationEmails });
       },

@@ -149,9 +149,7 @@ export async function POST(req: Request) {
         programId: {
           not: programId,
         },
-        status: {
-          in: ["approved"],
-        },
+        status: "approved",
       },
     });
 

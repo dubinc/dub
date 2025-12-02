@@ -223,6 +223,11 @@ export function ProfileMembersPageClient() {
       <InvitePartnerUserModal />
       <PageContent
         title="Members"
+        titleInfo={{
+          title:
+            "Learn how to invite team members, assign roles, and manage access to your partner profile.",
+          href: "https://dub.co/help/article/managing-partner-teams",
+        }}
         controls={
           isCurrentUserOwner && (
             <Button
