@@ -1,5 +1,6 @@
 import { COMMISSION_EXPORT_COLUMNS } from "@/lib/zod/schemas/commissions";
 import { z } from "zod";
+import { getCommissions } from "./get-commissions";
 
 const COLUMN_LOOKUP: Map<
   string,
@@ -32,7 +33,7 @@ const COLUMN_TYPE_SCHEMAS = {
 
 // Formats commissions for CSV export with proper column ordering and type coercion
 export function formatCommissionsForExport(
-  commissions: any[],
+  commissions: Awaited<ReturnType<typeof getCommissions>>,
   columns: string[],
 ): Record<string, any>[] {
   const formattedCommissions = commissions.map((commission) => ({
@@ -42,7 +43,7 @@ export function formatCommissionsForExport(
     customerExternalId: commission.customer?.externalId || "",
     partnerName: commission.partner?.name || "",
     partnerEmail: commission.partner?.email || "",
-    partnerTenantId: commission.partner?.programs[0]?.tenantId || "",
+    partnerTenantId: commission.programEnrollment?.tenantId || "",
   }));
 
   // Sort columns by their order
