@@ -72,7 +72,7 @@ export const GET = async (req: Request) => {
 
       workspace = folder.project;
 
-      if ("links" in folder && folder.links.length) link = folder.links[0];
+      if ("links" in folder && folder.links?.length) link = folder.links[0];
     } else {
       // Link
       demoLink = DUB_DEMO_LINKS.find(
