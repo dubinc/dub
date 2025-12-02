@@ -21,7 +21,7 @@ export const bulkResolveFraudGroupsAction = authActionClient
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const fraudEventGroups = await prisma.fraudEventGroup.findMany({
+    const fraudGroups = await prisma.fraudEventGroup.findMany({
       where: {
         id: {
           in: groupIds,
@@ -34,12 +34,12 @@ export const bulkResolveFraudGroupsAction = authActionClient
       },
     });
 
-    if (fraudEventGroups.length === 0) {
+    if (fraudGroups.length === 0) {
       return;
     }
 
     // Verify all groups belong to the program
-    const unauthorizedGroups = fraudEventGroups.filter(
+    const unauthorizedGroups = fraudGroups.filter(
       (group) => group.programId !== programId,
     );
 
@@ -52,7 +52,7 @@ export const bulkResolveFraudGroupsAction = authActionClient
     const count = await resolveFraudGroups({
       where: {
         id: {
-          in: fraudEventGroups.map(({ id }) => id),
+          in: fraudGroups.map(({ id }) => id),
         },
       },
       userId: user.id,
@@ -62,7 +62,7 @@ export const bulkResolveFraudGroupsAction = authActionClient
     // Add the resolution reason as a comment to each unique partner
     if (resolutionReason && count > 0) {
       const uniquePartnerIds = Array.from(
-        new Set(fraudEventGroups.map((group) => group.partnerId)),
+        new Set(fraudGroups.map((group) => group.partnerId)),
       );
 
       await prisma.partnerComment.createMany({

@@ -35,7 +35,7 @@ export function useFraudEventGroups({
   );
 
   return {
-    fraudEventGroups: data,
+    fraudGroups: data,
     loading: enabled && !data && !error,
     error,
   };

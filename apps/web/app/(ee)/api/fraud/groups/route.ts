@@ -1,8 +1,8 @@
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import {
-  fraudGroupSchema,
   fraudGroupQuerySchema,
+  fraudGroupSchema,
 } from "@/lib/zod/schemas/fraud";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
@@ -24,7 +24,7 @@ export const GET = withWorkspace(
       sortOrder,
     } = fraudGroupQuerySchema.parse(searchParams);
 
-    const fraudEventGroups = await prisma.fraudEventGroup.findMany({
+    const fraudGroups = await prisma.fraudEventGroup.findMany({
       where: {
         programId,
         ...(partnerId && { partnerId }),
@@ -43,9 +43,7 @@ export const GET = withWorkspace(
       },
     });
 
-    return NextResponse.json(
-      z.array(fraudGroupSchema).parse(fraudEventGroups),
-    );
+    return NextResponse.json(z.array(fraudGroupSchema).parse(fraudGroups));
   },
   {
     requiredPlan: ["advanced", "enterprise"],

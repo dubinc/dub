@@ -44,7 +44,7 @@ export function ResolvedFraudGroupTable() {
     status: "resolved",
   });
 
-  const { fraudEventGroups, loading, error } = useFraudEventGroups({
+  const { fraudGroups, loading, error } = useFraudEventGroups({
     query: {
       status: "resolved",
     },
@@ -66,7 +66,7 @@ export function ResolvedFraudGroupTable() {
   }, [searchParams]);
 
   const { currentFraudEventGroup } = useCurrentFraudEventGroup({
-    fraudEventGroups,
+    fraudGroups,
     groupId: detailsSheetState.groupId,
   });
 
@@ -163,7 +163,7 @@ export function ResolvedFraudGroupTable() {
   );
 
   const { table, ...tableProps } = useTable({
-    data: fraudEventGroups || [],
+    data: fraudGroups || [],
     columns,
     pagination,
     onPaginationChange: setPagination,
@@ -197,20 +197,20 @@ export function ResolvedFraudGroupTable() {
   });
 
   const [previousGroupId, nextGroupId] = useMemo(() => {
-    if (!fraudEventGroups || !detailsSheetState.groupId) return [null, null];
+    if (!fraudGroups || !detailsSheetState.groupId) return [null, null];
 
-    const currentIndex = fraudEventGroups.findIndex(
+    const currentIndex = fraudGroups.findIndex(
       ({ id }) => id === detailsSheetState.groupId,
     );
     if (currentIndex === -1) return [null, null];
 
     return [
-      currentIndex > 0 ? fraudEventGroups[currentIndex - 1].id : null,
-      currentIndex < fraudEventGroups.length - 1
-        ? fraudEventGroups[currentIndex + 1].id
+      currentIndex > 0 ? fraudGroups[currentIndex - 1].id : null,
+      currentIndex < fraudGroups.length - 1
+        ? fraudGroups[currentIndex + 1].id
         : null,
     ];
-  }, [fraudEventGroups, detailsSheetState.groupId]);
+  }, [fraudGroups, detailsSheetState.groupId]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -270,7 +270,7 @@ export function ResolvedFraudGroupTable() {
         </AnimatedSizeContainer>
       </div>
 
-      {fraudEventGroups?.length !== 0 ? (
+      {fraudGroups?.length !== 0 ? (
         <Table {...tableProps} table={table} />
       ) : (
         <AnimatedEmptyState
@@ -294,27 +294,27 @@ export function ResolvedFraudGroupTable() {
 
 // Gets the current fraud event from the loaded array if available, or a separate fetch if not
 function useCurrentFraudEventGroup({
-  fraudEventGroups,
+  fraudGroups,
   groupId,
 }: {
-  fraudEventGroups?: FraudGroupProps[];
+  fraudGroups?: FraudGroupProps[];
   groupId: string | null;
 }) {
   let currentFraudEventGroup = groupId
-    ? fraudEventGroups?.find((fraudGroup) => fraudGroup.id === groupId)
+    ? fraudGroups?.find((fraudGroup) => fraudGroup.id === groupId)
     : null;
 
   const shouldFetch =
-    fraudEventGroups && groupId && !currentFraudEventGroup ? groupId : null;
+    fraudGroups && groupId && !currentFraudEventGroup ? groupId : null;
 
-  const { fraudEventGroups: fetchedFraudEventGroups, loading: isLoading } =
+  const { fraudGroups: fetchedFraudGroups, loading: isLoading } =
     useFraudEventGroups({
       query: { groupId: groupId ?? undefined },
       enabled: Boolean(shouldFetch),
     });
 
-  if (!currentFraudEventGroup && fetchedFraudEventGroups?.[0]?.id === groupId) {
-    currentFraudEventGroup = fetchedFraudEventGroups[0];
+  if (!currentFraudEventGroup && fetchedFraudGroups?.[0]?.id === groupId) {
+    currentFraudEventGroup = fetchedFraudGroups[0];
   }
 
   return {

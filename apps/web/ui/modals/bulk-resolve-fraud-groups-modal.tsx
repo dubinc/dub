@@ -29,14 +29,14 @@ type BulkResolveFraudGroupsFormData = z.infer<
 interface BulkResolveFraudGroupsProps {
   showBulkResolveFraudGroupsModal: boolean;
   setShowBulkResolveFraudGroupsModal: Dispatch<SetStateAction<boolean>>;
-  fraudEventGroups: FraudGroupProps[];
+  fraudGroups: FraudGroupProps[];
   onConfirm?: () => Promise<void>;
 }
 
 function BulkResolveFraudGroupsModal({
   showBulkResolveFraudGroupsModal,
   setShowBulkResolveFraudGroupsModal,
-  fraudEventGroups,
+  fraudGroups,
   onConfirm,
 }: BulkResolveFraudGroupsProps) {
   const { id: workspaceId } = useWorkspace();
@@ -69,20 +69,20 @@ function BulkResolveFraudGroupsModal({
 
   const onSubmit = useCallback(
     async (data: BulkResolveFraudGroupsFormData) => {
-      if (!workspaceId || fraudEventGroups.length === 0) {
+      if (!workspaceId || fraudGroups.length === 0) {
         return;
       }
 
       await executeAsync({
         ...data,
         workspaceId,
-        groupIds: fraudEventGroups.map((g) => g.id),
+        groupIds: fraudGroups.map((g) => g.id),
       });
     },
-    [executeAsync, fraudEventGroups, workspaceId],
+    [executeAsync, fraudGroups, workspaceId],
   );
 
-  const totalEventCount = fraudEventGroups.reduce(
+  const totalEventCount = fraudGroups.reduce(
     (sum, group) => sum + (group.eventCount ?? 1),
     0,
   );
@@ -91,11 +91,9 @@ function BulkResolveFraudGroupsModal({
 
   const isDisabled = useMemo(() => {
     return (
-      !workspaceId ||
-      fraudEventGroups.length === 0 ||
-      confirm !== confirmationText
+      !workspaceId || fraudGroups.length === 0 || confirm !== confirmationText
     );
-  }, [workspaceId, fraudEventGroups.length, confirm, confirmationText]);
+  }, [workspaceId, fraudGroups.length, confirm, confirmationText]);
 
   return (
     <Modal
@@ -195,10 +193,10 @@ function BulkResolveFraudGroupsModal({
 }
 
 export function useBulkResolveFraudGroupsModal({
-  fraudEventGroups,
+  fraudGroups,
   onConfirm,
 }: {
-  fraudEventGroups: FraudGroupProps[];
+  fraudGroups: FraudGroupProps[];
   onConfirm?: () => Promise<void>;
 }) {
   const [showBulkResolveFraudGroupsModal, setShowBulkResolveFraudGroupsModal] =
@@ -209,14 +207,14 @@ export function useBulkResolveFraudGroupsModal({
       <BulkResolveFraudGroupsModal
         showBulkResolveFraudGroupsModal={showBulkResolveFraudGroupsModal}
         setShowBulkResolveFraudGroupsModal={setShowBulkResolveFraudGroupsModal}
-        fraudEventGroups={fraudEventGroups}
+        fraudGroups={fraudGroups}
         onConfirm={onConfirm}
       />
     );
   }, [
     showBulkResolveFraudGroupsModal,
     setShowBulkResolveFraudGroupsModal,
-    fraudEventGroups,
+    fraudGroups,
     onConfirm,
   ]);
 

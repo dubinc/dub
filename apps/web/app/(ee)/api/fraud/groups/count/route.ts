@@ -27,7 +27,7 @@ export const GET = withWorkspace(
 
     // Group by type
     if (groupBy === "type") {
-      const fraudEventGroups = await prisma.fraudEventGroup.groupBy({
+      const fraudGroups = await prisma.fraudEventGroup.groupBy({
         by: ["type"],
         where: {
           ...commonWhere,
@@ -41,19 +41,19 @@ export const GET = withWorkspace(
       });
 
       Object.values(FraudRuleType).forEach((type) => {
-        if (!fraudEventGroups.some((e) => e.type === type)) {
-          fraudEventGroups.push({ _count: 0, type });
+        if (!fraudGroups.some((e) => e.type === type)) {
+          fraudGroups.push({ _count: 0, type });
         }
       });
 
       return NextResponse.json(
-        z.array(fraudGroupCountSchema).parse(fraudEventGroups),
+        z.array(fraudGroupCountSchema).parse(fraudGroups),
       );
     }
 
     // Group by partnerId
     if (groupBy === "partnerId") {
-      const fraudEventGroups = await prisma.fraudEventGroup.groupBy({
+      const fraudGroups = await prisma.fraudEventGroup.groupBy({
         by: ["partnerId"],
         where: {
           ...commonWhere,
@@ -67,7 +67,7 @@ export const GET = withWorkspace(
       });
 
       return NextResponse.json(
-        z.array(fraudGroupCountSchema).parse(fraudEventGroups),
+        z.array(fraudGroupCountSchema).parse(fraudGroups),
       );
     }
 

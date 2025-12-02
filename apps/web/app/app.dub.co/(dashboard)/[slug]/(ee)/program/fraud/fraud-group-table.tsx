@@ -53,7 +53,7 @@ export function FraudGroupTable() {
     status: "pending",
   });
 
-  const { fraudEventGroups, loading, error } = useFraudEventGroups({
+  const { fraudGroups, loading, error } = useFraudEventGroups({
     query: {
       status: "pending",
     },
@@ -75,7 +75,7 @@ export function FraudGroupTable() {
   }, [searchParams]);
 
   const { currentFraudEventGroup } = useCurrentFraudEventGroup({
-    fraudEventGroups: fraudEventGroups,
+    fraudGroups,
     groupId: detailsSheetState.groupId,
   });
 
@@ -108,7 +108,7 @@ export function FraudGroupTable() {
 
   const { BulkResolveFraudGroupsModal, setShowBulkResolveFraudGroupsModal } =
     useBulkResolveFraudGroupsModal({
-      fraudEventGroups: pendingResolveFraudGroups,
+      fraudGroups: pendingResolveFraudGroups,
       onConfirm: async () => {
         tableRef.current?.resetRowSelection();
         await mutatePrefix("/api/fraud/groups");
@@ -116,7 +116,7 @@ export function FraudGroupTable() {
     });
 
   const { table, ...tableProps } = useTable<FraudGroupProps>({
-    data: fraudEventGroups || [],
+    data: fraudGroups || [],
     columns: [
       {
         id: "type",
@@ -298,20 +298,20 @@ export function FraudGroupTable() {
   });
 
   const [previousGroupId, nextGroupId] = useMemo(() => {
-    if (!fraudEventGroups || !detailsSheetState.groupId) return [null, null];
+    if (!fraudGroups || !detailsSheetState.groupId) return [null, null];
 
-    const currentIndex = fraudEventGroups.findIndex(
+    const currentIndex = fraudGroups.findIndex(
       ({ id }) => id === detailsSheetState.groupId,
     );
     if (currentIndex === -1) return [null, null];
 
     return [
-      currentIndex > 0 ? fraudEventGroups[currentIndex - 1].id : null,
-      currentIndex < fraudEventGroups.length - 1
-        ? fraudEventGroups[currentIndex + 1].id
+      currentIndex > 0 ? fraudGroups[currentIndex - 1].id : null,
+      currentIndex < fraudGroups.length - 1
+        ? fraudGroups[currentIndex + 1].id
         : null,
     ];
-  }, [fraudEventGroups, detailsSheetState.groupId]);
+  }, [fraudGroups, detailsSheetState.groupId]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -345,7 +345,7 @@ export function FraudGroupTable() {
         />
       )}
 
-      {((fraudEventGroups?.length ?? 0) > 0 || (fraudGroupCount ?? 0) > 0) && (
+      {((fraudGroups?.length ?? 0) > 0 || (fraudGroupCount ?? 0) > 0) && (
         <div>
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <Filter.Select
@@ -375,7 +375,7 @@ export function FraudGroupTable() {
           </AnimatedSizeContainer>
         </div>
       )}
-      {fraudEventGroups?.length !== 0 ? (
+      {fraudGroups?.length !== 0 ? (
         <Table {...tableProps} table={table} />
       ) : (
         <AnimatedEmptyState
@@ -540,20 +540,20 @@ function MenuItem({
 
 // Gets the current fraud event from the loaded array if available, or a separate fetch if not
 function useCurrentFraudEventGroup({
-  fraudEventGroups,
+  fraudGroups,
   groupId,
 }: {
-  fraudEventGroups?: FraudGroupProps[];
+  fraudGroups?: FraudGroupProps[];
   groupId: string | null;
 }) {
   let currentFraudEventGroup = groupId
-    ? fraudEventGroups?.find((fraudGroup) => fraudGroup.id === groupId)
+    ? fraudGroups?.find((fraudGroup) => fraudGroup.id === groupId)
     : null;
 
   const shouldFetch =
-    fraudEventGroups && groupId && !currentFraudEventGroup ? groupId : null;
+    fraudGroups && groupId && !currentFraudEventGroup ? groupId : null;
 
-  const { fraudEventGroups: fetchedFraudEventGroups, loading: isLoading } =
+  const { fraudGroups: fetchedFraudEventGroups, loading: isLoading } =
     useFraudEventGroups({
       query: { groupId: groupId ?? undefined },
       enabled: Boolean(shouldFetch),
