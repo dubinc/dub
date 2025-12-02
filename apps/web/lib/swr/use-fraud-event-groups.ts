@@ -3,7 +3,7 @@ import { fetcher } from "@dub/utils";
 import useSWR from "swr";
 import { z } from "zod";
 import { fraudEventGroupProps } from "../types";
-import { fraudEventGroupQuerySchema } from "../zod/schemas/fraud";
+import { fraudGroupQuerySchema } from "../zod/schemas/fraud";
 import useWorkspace from "./use-workspace";
 
 export function useFraudEventGroups({
@@ -12,8 +12,8 @@ export function useFraudEventGroups({
   query,
 }: {
   enabled?: boolean;
-  exclude?: (keyof z.infer<typeof fraudEventGroupQuerySchema>)[];
-  query?: Partial<z.infer<typeof fraudEventGroupQuerySchema>>;
+  exclude?: (keyof z.infer<typeof fraudGroupQuerySchema>)[];
+  query?: Partial<z.infer<typeof fraudGroupQuerySchema>>;
 } = {}) {
   const { getQueryString } = useRouterStuff();
   const { id: workspaceId, defaultProgramId } = useWorkspace();

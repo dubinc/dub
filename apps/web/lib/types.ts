@@ -61,7 +61,7 @@ import { DiscountCodeSchema, DiscountSchema } from "./zod/schemas/discount";
 import { EmailDomainSchema } from "./zod/schemas/email-domains";
 import { FolderSchema } from "./zod/schemas/folders";
 import {
-  fraudEventGroupSchema,
+  fraudGroupSchema,
   fraudRuleSchema,
   updateFraudRuleSettingsSchema,
 } from "./zod/schemas/fraud";
@@ -675,7 +675,7 @@ export type WorkflowAttribute = (typeof WORKFLOW_ATTRIBUTES)[number];
 
 export type EmailDomainProps = z.infer<typeof EmailDomainSchema>;
 
-export type fraudEventGroupProps = z.infer<typeof fraudEventGroupSchema>;
+export type fraudEventGroupProps = z.infer<typeof fraudGroupSchema>;
 
 export type ExtendedFraudRuleType =
   | FraudRuleType

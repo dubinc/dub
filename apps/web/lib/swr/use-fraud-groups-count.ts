@@ -3,14 +3,14 @@ import { useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import useSWR from "swr";
 import { z } from "zod";
-import { fraudEventGroupCountQuerySchema } from "../zod/schemas/fraud";
+import { fraudGroupCountQuerySchema } from "../zod/schemas/fraud";
 
 export function useFraudGroupCount<T>({
   query,
   enabled = true,
   ignoreParams = false,
 }: {
-  query?: Partial<z.infer<typeof fraudEventGroupCountQuerySchema>>;
+  query?: Partial<z.infer<typeof fraudGroupCountQuerySchema>>;
   enabled?: boolean;
   ignoreParams?: boolean;
 } = {}) {

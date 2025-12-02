@@ -7,7 +7,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { fraudEventGroupProps } from "@/lib/types";
 import {
   MAX_RESOLUTION_REASON_LENGTH,
-  resolveFraudEventGroupSchema,
+  resolveFraudGroupSchema,
 } from "@/lib/zod/schemas/fraud";
 import { MaxCharactersCounter } from "@/ui/shared/max-characters-counter";
 import { Button, Modal } from "@dub/ui";
@@ -24,7 +24,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
-type FormData = z.infer<typeof resolveFraudEventGroupSchema>;
+type FormData = z.infer<typeof resolveFraudGroupSchema>;
 
 function ResolveFraudEventsModal({
   showResolveFraudEventModal,

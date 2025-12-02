@@ -9,7 +9,7 @@ import { UserSchema } from "./users";
 
 export const MAX_RESOLUTION_REASON_LENGTH = 200;
 
-export const fraudEventGroupSchema = z.object({
+export const fraudGroupSchema = z.object({
   id: z.string(),
   type: z.nativeEnum(FraudRuleType),
   status: z.nativeEnum(FraudEventStatus),
@@ -30,7 +30,7 @@ export const fraudEventGroupSchema = z.object({
   }).nullable(),
 });
 
-export const fraudEventGroupQuerySchema = z
+export const fraudGroupQuerySchema = z
   .object({
     status: z.nativeEnum(FraudEventStatus).optional().default("pending"),
     type: z.nativeEnum(FraudRuleType).optional(),
@@ -41,7 +41,7 @@ export const fraudEventGroupQuerySchema = z
   })
   .merge(getPaginationQuerySchema({ pageSize: 100 }));
 
-export const fraudEventGroupCountQuerySchema = fraudEventGroupQuerySchema
+export const fraudGroupCountQuerySchema = fraudGroupQuerySchema
   .omit({
     page: true,
     pageSize: true,
@@ -52,7 +52,7 @@ export const fraudEventGroupCountQuerySchema = fraudEventGroupQuerySchema
     groupBy: z.enum(["partnerId", "type"]).optional(),
   });
 
-export const fraudEventGroupCountSchema = z.union([
+export const fraudGroupCountSchema = z.union([
   z.object({
     type: z.nativeEnum(FraudRuleType),
     _count: z.number(),
@@ -76,7 +76,7 @@ export const fraudEventQuerySchema = z.union([
   }),
 ]);
 
-export const resolveFraudEventGroupSchema = z.object({
+export const resolveFraudGroupSchema = z.object({
   workspaceId: z.string(),
   groupId: z.string(),
   resolutionReason: z

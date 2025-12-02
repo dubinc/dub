@@ -1,8 +1,8 @@
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import {
-  fraudEventGroupCountQuerySchema,
-  fraudEventGroupCountSchema,
+  fraudGroupCountQuerySchema,
+  fraudGroupCountSchema,
 } from "@/lib/zod/schemas/fraud";
 import { prisma } from "@dub/prisma";
 import { FraudRuleType, Prisma } from "@dub/prisma/client";
@@ -15,7 +15,7 @@ export const GET = withWorkspace(
     const programId = getDefaultProgramIdOrThrow(workspace);
 
     const { status, type, partnerId, groupId, groupBy } =
-      fraudEventGroupCountQuerySchema.parse(searchParams);
+      fraudGroupCountQuerySchema.parse(searchParams);
 
     const commonWhere: Prisma.FraudEventGroupWhereInput = {
       programId,
@@ -47,7 +47,7 @@ export const GET = withWorkspace(
       });
 
       return NextResponse.json(
-        z.array(fraudEventGroupCountSchema).parse(fraudEventGroups),
+        z.array(fraudGroupCountSchema).parse(fraudEventGroups),
       );
     }
 
@@ -67,7 +67,7 @@ export const GET = withWorkspace(
       });
 
       return NextResponse.json(
-        z.array(fraudEventGroupCountSchema).parse(fraudEventGroups),
+        z.array(fraudGroupCountSchema).parse(fraudEventGroups),
       );
     }
 
@@ -78,7 +78,7 @@ export const GET = withWorkspace(
       },
     });
 
-    return NextResponse.json(fraudEventGroupCountSchema.parse(count));
+    return NextResponse.json(fraudGroupCountSchema.parse(count));
   },
   {
     requiredPlan: ["advanced", "enterprise"],

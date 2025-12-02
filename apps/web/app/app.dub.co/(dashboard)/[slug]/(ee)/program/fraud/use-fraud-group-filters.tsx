@@ -3,7 +3,7 @@ import { useFraudGroupCount } from "@/lib/swr/use-fraud-groups-count";
 import usePartners from "@/lib/swr/use-partners";
 import { EnrolledPartnerProps, FraudGroupCountByType } from "@/lib/types";
 
-import { fraudEventGroupCountQuerySchema } from "@/lib/zod/schemas/fraud";
+import { fraudGroupCountQuerySchema } from "@/lib/zod/schemas/fraud";
 import { useRouterStuff } from "@dub/ui";
 import { ShieldKeyhole, Users } from "@dub/ui/icons";
 import { nFormatter, OG_AVATAR_URL } from "@dub/utils";
@@ -13,7 +13,7 @@ import { z } from "zod";
 
 export function useFraudGroupFilters({
   status,
-}: z.infer<typeof fraudEventGroupCountQuerySchema>) {
+}: z.infer<typeof fraudGroupCountQuerySchema>) {
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
   const { searchParamsObj, queryParams } = useRouterStuff();
