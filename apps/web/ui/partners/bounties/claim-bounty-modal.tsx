@@ -6,6 +6,7 @@ import {
   BOUNTY_MAX_SUBMISSION_URLS,
   REJECT_BOUNTY_SUBMISSION_REASONS,
 } from "@/lib/constants/bounties";
+import { getBountyRewardDescription } from "@/lib/partners/get-bounty-reward-description";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PartnerBountyProps } from "@/lib/types";
@@ -17,6 +18,7 @@ import {
   Button,
   Calendar6,
   FileUpload,
+  Gift,
   LoadingSpinner,
   Modal,
   PROSE_STYLES,
@@ -297,6 +299,13 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                       )}
                     </span>
                   </div>
+
+                  {getBountyRewardDescription(bounty) && (
+                    <div className="text-content-subtle flex items-center gap-2 text-sm font-medium">
+                      <Gift className="size-3.5" />
+                      <span>{getBountyRewardDescription(bounty)}</span>
+                    </div>
+                  )}
 
                   {submission ? (
                     <div className="mt-3 grid gap-2">
