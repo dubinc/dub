@@ -196,39 +196,38 @@ const verifyFraudEvent = async ({
   // Wait until fraud event is available
   const fraudEvent = await waitForFraudEvent({
     http,
-    partnerId: E2E_FRAUD_PARTNER.id,
     customerId: customers[0].id,
     ruleType,
   });
 
   // Assert fraud event shape
   expect(fraudEvent).toStrictEqual({
-    id: expect.any(String),
-    type: ruleType,
-    status: "pending",
-    resolutionReason: null,
-    resolvedAt: null,
-    lastOccurrenceAt: expect.any(String),
-    count: 1,
-    groupKey: expect.any(String),
-    partner: {
-      id: E2E_FRAUD_PARTNER.id,
-      name: expect.any(String),
-      email: expect.any(String),
-      image: null,
-    },
-    user: null,
+    createdAt: expect.any(String),
+    customer: expect.objectContaining({
+      id: customers[0].id,
+      name: customers[0].name,
+      email: customers[0].email,
+      avatar: customers[0].avatar,
+    }),
+    ...(ruleType === "paidTrafficDetected" && {
+      metadata: {
+        source: "google",
+      },
+    }),
+    ...(ruleType === "referralSourceBanned" && {
+      metadata: {
+        source: E2E_FRAUD_REFERRAL_SOURCE_BANNED_DOMAIN,
+      },
+    }),
   });
 };
 
 async function waitForFraudEvent({
   http,
-  partnerId,
   customerId,
   ruleType,
 }: {
   http: HttpClient;
-  partnerId: string;
   customerId: string;
   ruleType: FraudRuleType;
 }) {
@@ -237,9 +236,8 @@ async function waitForFraudEvent({
       const { data } = await http.get<fraudEventGroupProps[]>({
         path: "/fraud/events",
         query: {
-          partnerId,
-          type: ruleType,
           customerId,
+          type: ruleType,
         },
       });
 

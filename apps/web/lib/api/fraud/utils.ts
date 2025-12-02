@@ -73,17 +73,15 @@ export function createFraudEventGroupKey(input: CreateGroupKeyInput): string {
   return createHashKey(parts.join("|"));
 }
 
-export function createFraudEventFingerprint({
-  programId,
-  partnerId,
-  type,
-  metadata,
-}: CreateFingerprintInput) {
+export function createFraudEventFingerprint(
+  fraudEvent: CreateFingerprintInput,
+) {
   try {
+    const { programId, partnerId, type } = fraudEvent;
+
     const identityFields = getIdentityFieldsForRule({
-      type,
-      partnerId,
-      metadata: metadata as Record<string, string>,
+      ...fraudEvent,
+      metadata: fraudEvent.metadata as Record<string, string>,
     });
 
     // Normalize identityFields keys so fingerprint is deterministic
@@ -102,7 +100,7 @@ export function createFraudEventFingerprint({
   }
 }
 
-export function getIdentityFieldsForRule({
+function getIdentityFieldsForRule({
   type,
   partnerId,
   customerId,

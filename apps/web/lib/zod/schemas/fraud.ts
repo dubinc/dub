@@ -66,9 +66,15 @@ export const fraudEventGroupCountSchema = z.union([
   z.number(),
 ]);
 
-export const fraudEventQuerySchema = z.object({
-  groupId: z.string(),
-});
+export const fraudEventQuerySchema = z.union([
+  z.object({
+    groupId: z.string(),
+  }),
+  z.object({
+    customerId: z.string(),
+    type: z.nativeEnum(FraudRuleType),
+  }),
+]);
 
 export const resolveFraudEventGroupSchema = z.object({
   workspaceId: z.string(),

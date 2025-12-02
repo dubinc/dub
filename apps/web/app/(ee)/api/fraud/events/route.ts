@@ -6,6 +6,7 @@ import {
   fraudEventSchemas,
 } from "@/lib/zod/schemas/fraud";
 import { prisma } from "@dub/prisma";
+import { FraudRuleType, Prisma } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -13,32 +14,67 @@ import { z } from "zod";
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
-    const { groupId } = fraudEventQuerySchema.parse(searchParams);
+    const parsedQueryParams = fraudEventQuerySchema.parse(searchParams);
 
-    const fraudEventGroup = await prisma.fraudEventGroup.findUnique({
-      where: {
-        id: groupId,
-      },
-    });
+    let where: Prisma.FraudEventWhereInput = {};
+    let eventGroupType: FraudRuleType | undefined;
 
-    if (!fraudEventGroup) {
-      throw new DubApiError({
-        code: "not_found",
-        message: "Fraud event group not found.",
+    if ("groupId" in parsedQueryParams) {
+      const { groupId } = parsedQueryParams;
+
+      const fraudEventGroup = await prisma.fraudEventGroup.findUnique({
+        where: {
+          id: groupId,
+        },
+        select: {
+          programId: true,
+          type: true,
+        },
       });
+
+      if (!fraudEventGroup) {
+        throw new DubApiError({
+          code: "not_found",
+          message: "Fraud event group not found.",
+        });
+      }
+
+      if (fraudEventGroup.programId !== programId) {
+        throw new DubApiError({
+          code: "not_found",
+          message: "Fraud event group not found in this program.",
+        });
+      }
+
+      where = {
+        fraudEventGroupId: groupId,
+      };
+
+      eventGroupType = fraudEventGroup.type;
     }
 
-    if (fraudEventGroup.programId !== programId) {
+    if ("customerId" in parsedQueryParams && "type" in parsedQueryParams) {
+      const { customerId, type } = parsedQueryParams;
+
+      where = {
+        customerId,
+        fraudEventGroup: {
+          type,
+        },
+      };
+
+      eventGroupType = type;
+    }
+
+    if (!eventGroupType) {
       throw new DubApiError({
         code: "not_found",
-        message: "Fraud event group not found in this program.",
+        message: "Fraud event group type not found.",
       });
     }
 
     const fraudEvents = await prisma.fraudEvent.findMany({
-      where: {
-        fraudEventGroupId: groupId,
-      },
+      where,
       include: {
         partner: true,
         customer: true,
@@ -48,7 +84,7 @@ export const GET = withWorkspace(
       },
     });
 
-    const zodSchema = fraudEventSchemas[fraudEventGroup.type];
+    const zodSchema = fraudEventSchemas[eventGroupType];
 
     return NextResponse.json(z.array(zodSchema).parse(fraudEvents));
   },
