@@ -3,21 +3,18 @@ import { endOfDay, startOfDay } from "date-fns";
 import { useSearchParams } from "next/navigation";
 import { useMemo } from "react";
 import useSWR from "swr";
+import { MEGA_WORKSPACE_LINKS_LIMIT } from "../constants/misc";
 import useWorkspace from "./use-workspace";
 
-// here we're using disabledWhenNoFilters for the special case where we need to
-// fetch the total links usage conditionally only if there are active filters (folderId or domain)
-// if not we need to fallback to the workspace.linksUsage value
-// TODO: Improve this since it's a bit hacky right now
 export default function useUsage({
-  disabledWhenNoFilters = false,
-}: { disabledWhenNoFilters?: boolean } = {}) {
+  resource: definedResource,
+}: { resource?: "links" | "events" } = {}) {
   const { id: workspaceId, billingCycleStart, totalLinks } = useWorkspace();
   const { firstDay, lastDay } = getFirstAndLastDay(billingCycleStart ?? 0);
   const searchParams = useSearchParams();
 
   const defaultActiveTab = useMemo(() => {
-    if (totalLinks && totalLinks > 10_000) {
+    if (totalLinks && totalLinks > MEGA_WORKSPACE_LINKS_LIMIT) {
       return "links";
     }
     return "events";
@@ -34,7 +31,6 @@ export default function useUsage({
   // Get filter parameters from URL
   const folderId = searchParams.get("folderId");
   const domain = searchParams.get("domain");
-  const hasActiveFilters = folderId || domain ? true : false;
 
   const { start, end, interval } = useMemo(() => {
     if (searchParams.has("interval"))
@@ -68,9 +64,8 @@ export default function useUsage({
     }[]
   >(
     workspaceId &&
-      (disabledWhenNoFilters ? hasActiveFilters : true) &&
       `/api/workspaces/${workspaceId}/billing/usage?${new URLSearchParams({
-        resource: activeResource,
+        resource: definedResource || activeResource,
         ...(start &&
           end && {
             start: startOfDay(new Date(start)).toISOString(),
@@ -83,21 +78,17 @@ export default function useUsage({
         ...(groupBy && {
           groupBy: groupBy === "folderId" ? "folder_id" : "domain",
         }),
-        ...(disabledWhenNoFilters &&
-          hasActiveFilters && { cacheKey: "disabledWhenNoFilters" }),
       }).toString()}`,
     fetcher,
     {
       dedupingInterval: 60000,
       revalidateOnFocus: false,
-      keepPreviousData: true,
     },
   );
 
   return {
     usage,
     activeResource,
-    hasActiveFilters,
     start,
     end,
     interval,
