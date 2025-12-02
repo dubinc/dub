@@ -4,7 +4,7 @@ import { MEGA_WORKSPACE_LINKS_LIMIT } from "@/lib/constants/misc";
 import useGroupsCount from "@/lib/swr/use-groups-count";
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import useTagsCount from "@/lib/swr/use-tags-count";
-import useUsage from "@/lib/swr/use-usage";
+import { useUsageTimeseries } from "@/lib/swr/use-usage-timeseries";
 import useWorkspace from "@/lib/swr/use-workspace";
 import useWorkspaceUsers from "@/lib/swr/use-workspace-users";
 import { useManageUsageModal } from "@/ui/modals/manage-usage-modal";
@@ -275,7 +275,7 @@ function UsageTabCard({
     );
   }, [searchParamsObj]);
 
-  const { usage: usageTimeseries, activeResource } = useUsage({
+  const { usage: usageTimeseries, activeResource } = useUsageTimeseries({
     resource: hasActiveFilters ? resource : undefined,
   });
 

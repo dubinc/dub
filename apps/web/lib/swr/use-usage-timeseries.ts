@@ -6,7 +6,7 @@ import useSWR from "swr";
 import { MEGA_WORKSPACE_LINKS_LIMIT } from "../constants/misc";
 import useWorkspace from "./use-workspace";
 
-export default function useUsage({
+export function useUsageTimeseries({
   resource: definedResource,
 }: { resource?: "links" | "events" } = {}) {
   const { id: workspaceId, billingCycleStart, totalLinks } = useWorkspace();
