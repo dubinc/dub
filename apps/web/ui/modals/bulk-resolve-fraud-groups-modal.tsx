@@ -1,6 +1,6 @@
 import { bulkResolveFraudGroupsAction } from "@/lib/actions/fraud/bulk-resolve-fraud-groups";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { fraudEventGroupProps } from "@/lib/types";
+import { FraudGroupProps } from "@/lib/types";
 import {
   bulkResolveFraudGroupsSchema,
   MAX_RESOLUTION_REASON_LENGTH,
@@ -29,7 +29,7 @@ type BulkResolveFraudGroupsFormData = z.infer<
 interface BulkResolveFraudGroupsProps {
   showBulkResolveFraudGroupsModal: boolean;
   setShowBulkResolveFraudGroupsModal: Dispatch<SetStateAction<boolean>>;
-  fraudEventGroups: fraudEventGroupProps[];
+  fraudEventGroups: FraudGroupProps[];
   onConfirm?: () => Promise<void>;
 }
 
@@ -198,7 +198,7 @@ export function useBulkResolveFraudGroupsModal({
   fraudEventGroups,
   onConfirm,
 }: {
-  fraudEventGroups: fraudEventGroupProps[];
+  fraudEventGroups: FraudGroupProps[];
   onConfirm?: () => Promise<void>;
 }) {
   const [showBulkResolveFraudGroupsModal, setShowBulkResolveFraudGroupsModal] =

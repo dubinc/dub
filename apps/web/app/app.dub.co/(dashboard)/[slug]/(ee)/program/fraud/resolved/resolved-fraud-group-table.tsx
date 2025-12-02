@@ -3,7 +3,7 @@
 import { FRAUD_RULES_BY_TYPE } from "@/lib/api/fraud/constants";
 import { useFraudEventGroups } from "@/lib/swr/use-fraud-event-groups";
 import { useFraudGroupCount } from "@/lib/swr/use-fraud-groups-count";
-import { fraudEventGroupProps } from "@/lib/types";
+import { FraudGroupProps } from "@/lib/types";
 import { FraudReviewSheet } from "@/ui/partners/fraud-risks/fraud-review-sheet";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
@@ -83,7 +83,7 @@ export function ResolvedFraudGroupTable() {
         header: "Event",
         minSize: 100,
         maxSize: 400,
-        cell: ({ row }: { row: Row<fraudEventGroupProps> }) => {
+        cell: ({ row }: { row: Row<FraudGroupProps> }) => {
           const reason = FRAUD_RULES_BY_TYPE[row.original.type];
           const count = row.original.eventCount ?? 1;
 
@@ -121,7 +121,7 @@ export function ResolvedFraudGroupTable() {
       {
         id: "resolvedAt",
         header: "Resolved on",
-        cell: ({ row }: { row: Row<fraudEventGroupProps> }) => {
+        cell: ({ row }: { row: Row<FraudGroupProps> }) => {
           const user = row.original.user;
           const resolvedAt = row.original.resolvedAt;
 
@@ -135,7 +135,7 @@ export function ResolvedFraudGroupTable() {
       {
         id: "partner",
         header: "Partner",
-        cell: ({ row }: { row: Row<fraudEventGroupProps> }) => {
+        cell: ({ row }: { row: Row<FraudGroupProps> }) => {
           const partner = row.original.partner;
           if (!partner) return "-";
 
@@ -150,7 +150,7 @@ export function ResolvedFraudGroupTable() {
           );
         },
         meta: {
-          filterParams: ({ row }: { row: Row<fraudEventGroupProps> }) =>
+          filterParams: ({ row }: { row: Row<FraudGroupProps> }) =>
             row.original.partner
               ? {
                   partnerId: row.original.partner.id,
@@ -220,7 +220,7 @@ export function ResolvedFraudGroupTable() {
           setIsOpen={(open) =>
             setDetailsSheetState((s) => ({ ...s, open }) as any)
           }
-          fraudEventGroup={currentFraudEventGroup}
+          fraudGroup={currentFraudEventGroup}
           onPrevious={
             previousGroupId
               ? () =>
@@ -297,13 +297,11 @@ function useCurrentFraudEventGroup({
   fraudEventGroups,
   groupId,
 }: {
-  fraudEventGroups?: fraudEventGroupProps[];
+  fraudEventGroups?: FraudGroupProps[];
   groupId: string | null;
 }) {
   let currentFraudEventGroup = groupId
-    ? fraudEventGroups?.find(
-        (fraudEventGroup) => fraudEventGroup.id === groupId,
-      )
+    ? fraudEventGroups?.find((fraudGroup) => fraudGroup.id === groupId)
     : null;
 
   const shouldFetch =

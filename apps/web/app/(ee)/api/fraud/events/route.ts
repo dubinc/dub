@@ -23,7 +23,7 @@ export const GET = withWorkspace(
     if ("groupId" in parsedQueryParams) {
       const { groupId } = parsedQueryParams;
 
-      const fraudEventGroup = await prisma.fraudEventGroup.findUnique({
+      const fraudGroup = await prisma.fraudEventGroup.findUnique({
         where: {
           id: groupId,
         },
@@ -34,14 +34,14 @@ export const GET = withWorkspace(
         },
       });
 
-      if (!fraudEventGroup) {
+      if (!fraudGroup) {
         throw new DubApiError({
           code: "not_found",
           message: "Fraud event group not found.",
         });
       }
 
-      if (fraudEventGroup.programId !== programId) {
+      if (fraudGroup.programId !== programId) {
         throw new DubApiError({
           code: "not_found",
           message: "Fraud event group not found in this program.",
@@ -52,13 +52,13 @@ export const GET = withWorkspace(
         fraudEventGroupId: groupId,
       };
 
-      eventGroupType = fraudEventGroup.type;
+      eventGroupType = fraudGroup.type;
 
       if (eventGroupType === FraudRuleType.partnerCrossProgramBan) {
         const bannedProgramEnrollments =
           await prisma.programEnrollment.findMany({
             where: {
-              partnerId: fraudEventGroup.partnerId,
+              partnerId: fraudGroup.partnerId,
               programId: {
                 not: programId,
               },

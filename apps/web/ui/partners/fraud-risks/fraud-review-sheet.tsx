@@ -2,7 +2,7 @@
 
 import { FRAUD_RULES_BY_TYPE } from "@/lib/api/fraud/constants";
 import { mutatePrefix } from "@/lib/swr/mutate";
-import { fraudEventGroupProps } from "@/lib/types";
+import { FraudGroupProps } from "@/lib/types";
 import { useBanPartnerModal } from "@/ui/modals/ban-partner-modal";
 import { X } from "@/ui/shared/icons";
 import {
@@ -26,24 +26,24 @@ import { CommissionsOnHoldTable } from "./commissions-on-hold-table";
 import { FraudEventsTableWrapper } from "./fraud-events-tables";
 
 interface FraudReviewSheetProps {
-  fraudEventGroup: fraudEventGroupProps;
+  fraudGroup: FraudGroupProps;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
   onNext?: () => void;
   onPrevious?: () => void;
 }
 
 function FraudReviewSheetContent({
-  fraudEventGroup,
+  fraudGroup,
   onPrevious,
   onNext,
 }: FraudReviewSheetProps) {
-  const { partner, user } = fraudEventGroup;
+  const { partner, user } = fraudGroup;
 
   const { slug } = useParams();
 
   const { setShowResolveFraudEventModal, ResolveFraudEventModal } =
     useResolveFraudEventsModal({
-      fraudEventGroup,
+      fraudGroup,
       onConfirm: () => {
         onNext?.();
       },
@@ -67,7 +67,7 @@ function FraudReviewSheetContent({
   });
   useKeyboardShortcut("b", () => setShowBanPartnerModal(true), { sheet: true });
 
-  const fraudRuleInfo = FRAUD_RULES_BY_TYPE[fraudEventGroup.type];
+  const fraudRuleInfo = FRAUD_RULES_BY_TYPE[fraudGroup.type];
 
   return (
     <div className="relative h-full">
@@ -78,7 +78,7 @@ function FraudReviewSheetContent({
       >
         <div className="flex h-16 shrink-0 items-center justify-between border-b border-neutral-200 px-6 py-4">
           <Sheet.Title className="text-lg font-semibold">
-            {fraudEventGroup.status === "pending"
+            {fraudGroup.status === "pending"
               ? "Fraud review"
               : "Resolved fraud and risk event"}
           </Sheet.Title>
@@ -169,19 +169,19 @@ function FraudReviewSheetContent({
                 </span>
               </div>
 
-              <FraudEventsTableWrapper fraudEventGroup={fraudEventGroup} />
+              <FraudEventsTableWrapper fraudGroup={fraudGroup} />
             </div>
 
-            {fraudEventGroup.status === "pending" && (
+            {fraudGroup.status === "pending" && (
               <div>
                 <h3 className="text-content-emphasis mb-4 font-semibold">
                   Commissions on hold
                 </h3>
-                <CommissionsOnHoldTable fraudEventGroup={fraudEventGroup} />
+                <CommissionsOnHoldTable fraudGroup={fraudGroup} />
               </div>
             )}
 
-            {fraudEventGroup.status === "resolved" && (
+            {fraudGroup.status === "resolved" && (
               <div>
                 <h3 className="text-content-emphasis mb-4 font-semibold">
                   Decision
@@ -190,7 +190,7 @@ function FraudReviewSheetContent({
                 <div
                   className={cn(
                     "flex gap-3",
-                    fraudEventGroup.resolutionReason
+                    fraudGroup.resolutionReason
                       ? "items-start"
                       : "items-center",
                   )}
@@ -212,8 +212,8 @@ function FraudReviewSheetContent({
                         <div className="text-xs text-neutral-500">
                           Resolved by{" "}
                           <span className="font-medium text-neutral-700">
-                            {fraudEventGroup.resolvedAt
-                              ? formatDateTime(fraudEventGroup.resolvedAt)
+                            {fraudGroup.resolvedAt
+                              ? formatDateTime(fraudGroup.resolvedAt)
                               : "Unknown"}
                           </span>
                         </div>
@@ -230,17 +230,17 @@ function FraudReviewSheetContent({
                   </Tooltip>
 
                   <div className="flex flex-col gap-1">
-                    {fraudEventGroup.resolvedAt && (
+                    {fraudGroup.resolvedAt && (
                       <span className="text-sm font-medium text-neutral-600">
-                        {fraudEventGroup.resolvedAt
-                          ? formatDateTime(fraudEventGroup.resolvedAt)
+                        {fraudGroup.resolvedAt
+                          ? formatDateTime(fraudGroup.resolvedAt)
                           : "-"}
                       </span>
                     )}
 
-                    {fraudEventGroup.resolutionReason && (
+                    {fraudGroup.resolutionReason && (
                       <span className="text-content-subtle text-sm font-medium">
-                        {fraudEventGroup.resolutionReason}
+                        {fraudGroup.resolutionReason}
                       </span>
                     )}
                   </div>
@@ -250,7 +250,7 @@ function FraudReviewSheetContent({
           </div>
         </div>
 
-        {fraudEventGroup.status === "pending" && (
+        {fraudGroup.status === "pending" && (
           <div className="flex flex-col justify-end">
             <div className="border-border-subtle flex items-center justify-end gap-2 border-t px-5 py-4">
               <Button

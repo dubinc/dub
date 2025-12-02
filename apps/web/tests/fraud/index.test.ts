@@ -1,4 +1,4 @@
-import { Customer, fraudEventGroupProps, TrackLeadResponse } from "@/lib/types";
+import { Customer, FraudGroupProps, TrackLeadResponse } from "@/lib/types";
 import { FraudRuleType } from "@prisma/client";
 import { randomCustomer, retry } from "tests/utils/helpers";
 import { HttpClient } from "tests/utils/http";
@@ -234,7 +234,7 @@ async function waitForFraudEvent({
 }) {
   return await retry(
     async () => {
-      const { data } = await http.get<fraudEventGroupProps[]>({
+      const { data } = await http.get<FraudGroupProps[]>({
         path: "/fraud/events",
         query: {
           customerId,

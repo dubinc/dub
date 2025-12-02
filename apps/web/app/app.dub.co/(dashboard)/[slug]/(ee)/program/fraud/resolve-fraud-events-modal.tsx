@@ -4,7 +4,7 @@ import { resolveFraudGroupAction } from "@/lib/actions/fraud/resolve-fraud-group
 import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { fraudEventGroupProps } from "@/lib/types";
+import { FraudGroupProps } from "@/lib/types";
 import {
   MAX_RESOLUTION_REASON_LENGTH,
   resolveFraudGroupSchema,
@@ -29,12 +29,12 @@ type FormData = z.infer<typeof resolveFraudGroupSchema>;
 function ResolveFraudEventsModal({
   showResolveFraudEventModal,
   setShowResolveFraudEventModal,
-  fraudEventGroup,
+  fraudGroup,
   onConfirm,
 }: {
   showResolveFraudEventModal: boolean;
   setShowResolveFraudEventModal: Dispatch<SetStateAction<boolean>>;
-  fraudEventGroup: fraudEventGroupProps;
+  fraudGroup: FraudGroupProps;
   onConfirm?: () => void;
 }) {
   const { id: workspaceId } = useWorkspace();
@@ -59,26 +59,26 @@ function ResolveFraudEventsModal({
   } = useForm<FormData>({
     defaultValues: {
       resolutionReason: "",
-      groupId: fraudEventGroup.id,
+      groupId: fraudGroup.id,
     },
   });
 
   const onSubmit = useCallback(
     async (data: FormData) => {
-      if (!workspaceId || !fraudEventGroup.id) {
+      if (!workspaceId || !fraudGroup.id) {
         return;
       }
 
       await executeAsync({
         workspaceId,
-        groupId: fraudEventGroup.id,
+        groupId: fraudGroup.id,
         resolutionReason: data.resolutionReason,
       });
     },
-    [fraudEventGroup, workspaceId, executeAsync],
+    [fraudGroup, workspaceId, executeAsync],
   );
 
-  const { partner } = fraudEventGroup;
+  const { partner } = fraudGroup;
 
   return (
     <Modal
@@ -154,8 +154,8 @@ function ResolveFraudEventsModal({
           <Button
             type="submit"
             variant="primary"
-            text={`Resolve ${fraudEventGroup.eventCount} ${pluralize("event", fraudEventGroup.eventCount)}`}
-            disabled={!workspaceId || !fraudEventGroup.id}
+            text={`Resolve ${fraudGroup.eventCount} ${pluralize("event", fraudGroup.eventCount)}`}
+            disabled={!workspaceId || !fraudGroup.id}
             loading={isPending}
             className="h-8 w-fit px-3"
           />
@@ -166,10 +166,10 @@ function ResolveFraudEventsModal({
 }
 
 export function useResolveFraudEventsModal({
-  fraudEventGroup,
+  fraudGroup,
   onConfirm,
 }: {
-  fraudEventGroup: fraudEventGroupProps;
+  fraudGroup: FraudGroupProps;
   onConfirm?: () => void;
 }) {
   const [showResolveFraudEventModal, setShowResolveFraudEventModal] =
@@ -180,14 +180,14 @@ export function useResolveFraudEventsModal({
       <ResolveFraudEventsModal
         showResolveFraudEventModal={showResolveFraudEventModal}
         setShowResolveFraudEventModal={setShowResolveFraudEventModal}
-        fraudEventGroup={fraudEventGroup}
+        fraudGroup={fraudGroup}
         onConfirm={onConfirm}
       />
     );
   }, [
     showResolveFraudEventModal,
     setShowResolveFraudEventModal,
-    fraudEventGroup,
+    fraudGroup,
     onConfirm,
   ]);
 

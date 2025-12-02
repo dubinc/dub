@@ -4,7 +4,7 @@ import { FRAUD_RULES_BY_TYPE } from "@/lib/api/fraud/constants";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useFraudEventGroups } from "@/lib/swr/use-fraud-event-groups";
 import { useFraudGroupCount } from "@/lib/swr/use-fraud-groups-count";
-import { fraudEventGroupProps } from "@/lib/types";
+import { FraudGroupProps } from "@/lib/types";
 import { useBanPartnerModal } from "@/ui/modals/ban-partner-modal";
 import { useBulkBanPartnersModal } from "@/ui/modals/bulk-ban-partners-modal";
 import { useBulkResolveFraudGroupsModal } from "@/ui/modals/bulk-resolve-fraud-groups-modal";
@@ -86,15 +86,15 @@ export function FraudGroupTable() {
   });
 
   const [pendingBanPartners, setPendingBanPartners] = useState<
-    Array<NonNullable<fraudEventGroupProps["partner"]>>
+    Array<NonNullable<FraudGroupProps["partner"]>>
   >([]);
 
   const [pendingResolveFraudGroups, setPendingResolveFraudGroups] = useState<
-    fraudEventGroupProps[]
+    FraudGroupProps[]
   >([]);
 
   const tableRef = useRef<
-    ReturnType<typeof useTable<fraudEventGroupProps>>["table"] | null
+    ReturnType<typeof useTable<FraudGroupProps>>["table"] | null
   >(null);
 
   const { BulkBanPartnersModal, setShowBulkBanPartnersModal } =
@@ -115,7 +115,7 @@ export function FraudGroupTable() {
       },
     });
 
-  const { table, ...tableProps } = useTable<fraudEventGroupProps>({
+  const { table, ...tableProps } = useTable<FraudGroupProps>({
     data: fraudEventGroups || [],
     columns: [
       {
@@ -323,7 +323,7 @@ export function FraudGroupTable() {
           setIsOpen={(open) =>
             setDetailsSheetState((s) => ({ ...s, open }) as any)
           }
-          fraudEventGroup={currentFraudEventGroup}
+          fraudGroup={currentFraudEventGroup}
           onPrevious={
             previousGroupId
               ? () =>
@@ -400,9 +400,9 @@ function BulkActionsMenu({
   table,
   onBanPartners,
 }: {
-  table: TableType<fraudEventGroupProps>;
+  table: TableType<FraudGroupProps>;
   onBanPartners: (
-    partners: Array<NonNullable<fraudEventGroupProps["partner"]>>,
+    partners: Array<NonNullable<FraudGroupProps["partner"]>>,
   ) => void;
 }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -447,7 +447,7 @@ function BulkActionsMenu({
   );
 }
 
-function RowMenuButton({ row }: { row: Row<fraudEventGroupProps> }) {
+function RowMenuButton({ row }: { row: Row<FraudGroupProps> }) {
   const fraudEvent = row.original;
 
   const [isOpen, setIsOpen] = useState(false);
@@ -543,13 +543,11 @@ function useCurrentFraudEventGroup({
   fraudEventGroups,
   groupId,
 }: {
-  fraudEventGroups?: fraudEventGroupProps[];
+  fraudEventGroups?: FraudGroupProps[];
   groupId: string | null;
 }) {
   let currentFraudEventGroup = groupId
-    ? fraudEventGroups?.find(
-        (fraudEventGroup) => fraudEventGroup.id === groupId,
-      )
+    ? fraudEventGroups?.find((fraudGroup) => fraudGroup.id === groupId)
     : null;
 
   const shouldFetch =

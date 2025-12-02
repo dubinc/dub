@@ -21,7 +21,7 @@ export const resolveFraudGroupAction = authActionClient
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const fraudEventGroup = await prisma.fraudEventGroup.findUniqueOrThrow({
+    const fraudGroup = await prisma.fraudEventGroup.findUniqueOrThrow({
       where: {
         id: groupId,
       },
@@ -32,7 +32,7 @@ export const resolveFraudGroupAction = authActionClient
       },
     });
 
-    if (fraudEventGroup.programId !== programId) {
+    if (fraudGroup.programId !== programId) {
       throw new Error(
         "You are not authorized to resolve this fraud event group.",
       );
@@ -51,7 +51,7 @@ export const resolveFraudGroupAction = authActionClient
       await prisma.partnerComment.create({
         data: {
           programId,
-          partnerId: fraudEventGroup.partnerId,
+          partnerId: fraudGroup.partnerId,
           userId: user.id,
           text: resolutionReason,
         },

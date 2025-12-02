@@ -2,7 +2,7 @@ import { useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import useSWR from "swr";
 import { z } from "zod";
-import { fraudEventGroupProps } from "../types";
+import { FraudGroupProps } from "../types";
 import { fraudGroupQuerySchema } from "../zod/schemas/fraud";
 import useWorkspace from "./use-workspace";
 
@@ -26,7 +26,7 @@ export function useFraudEventGroups({
     { exclude },
   );
 
-  const { data, error } = useSWR<fraudEventGroupProps[]>(
+  const { data, error } = useSWR<FraudGroupProps[]>(
     enabled && defaultProgramId ? `/api/fraud/groups${queryString}` : undefined,
     fetcher,
     {
