@@ -8,6 +8,7 @@ export const dashboardSchema = z.object({
   projectId: z.string().nullable(),
   userId: z.string().nullable(),
   password: z.string().nullable(),
+  showConversions: z.boolean(),
   doIndex: z.boolean(),
   createdAt: z.date(),
   updatedAt: z.date(),
@@ -20,6 +21,7 @@ export const createDashboardQuerySchema = domainKeySchema.or(
 );
 
 export const updateDashboardBodySchema = dashboardSchema.pick({
+  showConversions: true,
   doIndex: true,
   password: true,
 });

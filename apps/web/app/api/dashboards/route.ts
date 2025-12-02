@@ -2,6 +2,7 @@ import { createId } from "@/lib/api/create-id";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import {
   createDashboardQuerySchema,
   dashboardSchema,
@@ -30,6 +31,8 @@ export const POST = withWorkspace(
   async ({ searchParams, workspace, session }) => {
     const params = createDashboardQuerySchema.parse(searchParams);
 
+    const { canTrackConversions } = getPlanCapabilities(workspace.plan);
+
     if ("key" in params) {
       const { domain, key } = params;
       const link = await getLinkOrThrow({
@@ -53,6 +56,7 @@ export const POST = withWorkspace(
           linkId: link.id,
           projectId: workspace.id,
           userId: link.userId,
+          showConversions: canTrackConversions,
         },
       });
 
@@ -81,6 +85,7 @@ export const POST = withWorkspace(
           folderId,
           projectId: workspace.id,
           userId: session.user.id,
+          showConversions: canTrackConversions,
         },
       });
 

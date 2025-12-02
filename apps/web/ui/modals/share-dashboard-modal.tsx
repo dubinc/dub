@@ -25,7 +25,7 @@ import {
   pluralize,
 } from "@dub/utils";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import useSWR from "swr";
 import { z } from "zod";
@@ -90,6 +90,7 @@ function ShareDashboardModalInner({
 
   const {
     register,
+    control,
     handleSubmit,
     watch,
     setValue,
@@ -98,6 +99,7 @@ function ShareDashboardModalInner({
 
   useEffect(() => {
     setChecked(Boolean(dashboard));
+    setValue("showConversions", dashboard?.showConversions ?? false);
     setValue("doIndex", dashboard?.doIndex ?? false);
     setValue("password", dashboard?.password ?? null);
   }, [dashboard]);
@@ -260,15 +262,32 @@ function ShareDashboardModalInner({
                       <p className="text-base font-medium">Settings</p>
                       <div className="flex items-center justify-between gap-2">
                         <p className="text-sm text-neutral-600">
+                          Conversion analytics
+                        </p>
+                        <Controller
+                          name="showConversions"
+                          control={control}
+                          render={({ field }) => (
+                            <Switch
+                              checked={field.value}
+                              fn={(checked) => field.onChange(checked)}
+                            />
+                          )}
+                        />
+                      </div>
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="text-sm text-neutral-600">
                           Search engine indexing
                         </p>
-                        <Switch
-                          checked={watch("doIndex")}
-                          fn={(checked) => {
-                            setValue("doIndex", checked, {
-                              shouldDirty: true,
-                            });
-                          }}
+                        <Controller
+                          name="doIndex"
+                          control={control}
+                          render={({ field }) => (
+                            <Switch
+                              checked={field.value}
+                              fn={(checked) => field.onChange(checked)}
+                            />
+                          )}
                         />
                       </div>
                       <div className="flex items-center justify-between gap-2">
