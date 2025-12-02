@@ -80,27 +80,23 @@ export function createFraudEventGroupKey(input: CreateGroupKeyInput): string {
 export function createFraudEventFingerprint(
   fraudEvent: CreateFingerprintInput,
 ) {
-  try {
-    const { programId, partnerId, type } = fraudEvent;
+  const { programId, partnerId, type } = fraudEvent;
 
-    const identityFields = getIdentityFieldsForRule({
-      ...fraudEvent,
-      metadata: fraudEvent.metadata as Record<string, string>,
-    });
+  const identityFields = getIdentityFieldsForRule({
+    ...fraudEvent,
+    metadata: fraudEvent.metadata as Record<string, string>,
+  });
 
-    const normalizedIdentityFields = Object.keys(identityFields)
-      .sort()
-      .map((key) => `${key}:${identityFields[key]}`)
-      .join("|");
+  const normalizedIdentityFields = Object.keys(identityFields)
+    .sort()
+    .map((key) => `${key}:${identityFields[key]}`)
+    .join("|");
 
-    const raw = [programId, partnerId, type, normalizedIdentityFields]
-      .map((p) => p!.toLowerCase())
-      .join("|");
+  const raw = [programId, partnerId, type, normalizedIdentityFields]
+    .map((p) => p!.toLowerCase())
+    .join("|");
 
-    return createHashKey(raw);
-  } catch (error) {
-    console.error("Error creating fingerprint:", error);
-  }
+  return createHashKey(raw);
 }
 
 // Determines which identity fields should be used for fraud event fingerprinting based on the fraud rule type.

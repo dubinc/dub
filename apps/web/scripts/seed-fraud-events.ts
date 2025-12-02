@@ -1,55 +1,80 @@
 import { createFraudEvents } from "@/lib/api/fraud/create-fraud-events";
-import { nanoid } from "@dub/utils";
+import { CreateFraudEventInput } from "@/lib/types";
+import { prisma } from "@dub/prisma";
+import { FraudRuleType } from "@dub/prisma/client";
 import "dotenv-flow/config";
 
 async function main() {
-  const programId = "prog_1K2J9DRWPPJ2F1RX53N92TSGA";
-  const type = "partnerDuplicatePayoutMethod";
+  const payoutMethodHash = "1";
 
-  const id1 = nanoid(10);
-  const id2 = nanoid(10);
+  const duplicatePartners = await prisma.partner.findMany({
+    where: {
+      payoutMethodHash,
+    },
+    select: {
+      id: true,
+      programs: {
+        where: {
+          status: {
+            notIn: ["banned", "deactivated", "rejected"],
+          },
+        },
+        select: {
+          partnerId: true,
+          programId: true,
+        },
+      },
+    },
+  });
 
-  await createFraudEvents([
-    {
-      programId,
-      partnerId: "pn_1KANAX74GSBZK1TEP52BFWT6R",
-      type,
-      metadata: {
-        payoutMethodHash: id1,
-      },
-    },
-    {
-      programId,
-      partnerId: "pn_1KANAX74GJXZSWXCCBP57P0GM",
-      type,
-      metadata: {
-        payoutMethodHash: id1,
-      },
-    },
-  ]);
+  if (duplicatePartners.length > 1) {
+    const fraudEvents: CreateFraudEventInput[] = [];
 
-  await createFraudEvents([
-    {
-      programId,
-      partnerId: "pn_1KANAX74GWAVTQ0GW8H2HEG6E",
-      type,
-      metadata: {
-        payoutMethodHash: id2,
-      },
-    },
-    {
-      programId,
-      partnerId: "pn_1KANAX74GSBZK1TEP52BFWT6R",
-      type,
-      metadata: {
-        payoutMethodHash: id2,
-      },
-    },
-  ]);
+    const partnersByProgram = new Map<string, string[]>();
+
+    // Map program → partner list
+    for (const partner of duplicatePartners) {
+      for (const { programId } of partner.programs) {
+        const list = partnersByProgram.get(programId) ?? [];
+        list.push(partner.id);
+        partnersByProgram.set(programId, list);
+      }
+    }
+
+    for (const partner of duplicatePartners) {
+      for (const { programId } of partner.programs) {
+        const enrolledPartners = partnersByProgram.get(programId) ?? [];
+
+        // Always create self event
+        fraudEvents.push({
+          programId,
+          partnerId: partner.id,
+          type: FraudRuleType.partnerDuplicatePayoutMethod,
+          metadata: {
+            payoutMethodHash,
+            duplicatePartnerId: partner.id,
+          },
+        });
+
+        // Create events for other partners in THIS program
+        for (const duplicatePartnerId of enrolledPartners) {
+          if (duplicatePartnerId === partner.id) continue;
+
+          fraudEvents.push({
+            programId,
+            partnerId: partner.id,
+            type: FraudRuleType.partnerDuplicatePayoutMethod,
+            metadata: {
+              payoutMethodHash,
+              duplicatePartnerId,
+            },
+          });
+        }
+      }
+    }
+
+    await createFraudEvents(fraudEvents);
+  }
 }
 
 main();
-
-// case "partnerCrossProgramBan":
-//   case "partnerDuplicatePayoutMethod":
-//   case "partnerFraudReport":
