@@ -49,7 +49,17 @@ export const GET = async (req: Request) => {
               createdAt: true,
             },
           },
-          ...(domain && key ? { links: { select: { id: true } } } : {}),
+          ...(domain && key
+            ? {
+                links: {
+                  select: { id: true },
+                  where: {
+                    domain,
+                    key,
+                  },
+                },
+              }
+            : {}),
         },
       });
 
