@@ -66,8 +66,7 @@ model FraudEvent {
   updatedAt         DateTime @updatedAt
 
   // DEPRECATED FIELDS: TODO – remove after migration
-  programId String
-
+  programId        String
   commissionId     String?
   type             FraudRuleType
   groupKey         String
