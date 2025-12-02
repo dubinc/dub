@@ -1,6 +1,6 @@
 "use client";
 
-import { resolveFraudGroupAction } from "@/lib/actions/fraud/resolve-fraud-event-group";
+import { resolveFraudGroupAction } from "@/lib/actions/fraud/resolve-fraud-group";
 import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
