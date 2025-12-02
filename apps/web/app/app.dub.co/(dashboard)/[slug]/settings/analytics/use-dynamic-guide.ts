@@ -122,7 +122,23 @@ export function useDynamicGuide(
               const context = originalResult.substring(idx, idx + 200);
               if (context.includes("data-publishable-key")) return match;
             }
-            return `${indent}${srcLine}\n${indent}script.setAttribute("data-publishable-key", "${publishableKey}");`;
+
+            const domainsConfigParts = [
+              ...(program ? [`"refer": "${program.domain}"`] : []),
+              ...(domainTrackingEnabled
+                ? [`"outbound": ["example.com", "example.sh"]`]
+                : []),
+            ].join(`, `);
+            const parts = [
+              `script.setAttribute("data-publishable-key", "${publishableKey}");`,
+              ...(domainsConfigParts
+                ? [
+                    `script.dataset.domains = JSON.stringify({${domainsConfigParts}});`,
+                  ]
+                : []),
+            ].join(`\n${indent}`);
+
+            return `${indent}${srcLine}\n${indent}${parts}`;
           },
         );
     }
