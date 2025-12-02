@@ -111,6 +111,9 @@ export async function accountUpdated(event: Stripe.Event) {
           programId,
           partnerId,
           type: FraudRuleType.partnerDuplicatePayoutMethod,
+          metadata: {
+            payoutMethodHash,
+          },
         })),
       );
     }

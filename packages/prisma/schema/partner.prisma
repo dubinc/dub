@@ -79,6 +79,7 @@ model Partner {
   salesChannels              PartnerSalesChannel[]
   discoveredByPrograms       DiscoveredPartner[]
   fraudEventGroups           FraudEventGroup[]
+  fraudEvents                FraudEvent[]
 
   @@index(country)
   @@index(discoverableAt)

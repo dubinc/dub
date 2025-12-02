@@ -40,6 +40,7 @@ export const GET = withWorkspace(
         fraudEventGroupId: groupId,
       },
       include: {
+        partner: true,
         customer: true,
       },
       orderBy: {
