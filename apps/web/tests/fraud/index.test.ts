@@ -212,6 +212,7 @@ const verifyFraudEvent = async ({
     ...(ruleType === "paidTrafficDetected" && {
       metadata: {
         source: "google",
+        url: "https://dub.co/paid-traffic?gclid=1234567890&gad_source=1",
       },
     }),
     ...(ruleType === "referralSourceBanned" && {
