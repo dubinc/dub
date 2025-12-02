@@ -55,4 +55,5 @@ model Commission {
   @@index(linkId)
   @@index(status)
   @@index(rewardId)
+  @@index([programId, createdAt, id])
 }

@@ -102,4 +102,5 @@ model Link {
   @@index(folderId) // used in /api/folders
   @@index(userId) // for relation to User table, used in /api/cron/cleanup/e2e-tests too
   @@index(partnerGroupDefaultLinkId)
+  @@index([projectId, createdAt, id])
 }
