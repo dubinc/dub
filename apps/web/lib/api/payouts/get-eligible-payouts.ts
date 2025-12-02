@@ -38,19 +38,6 @@ export async function getEligiblePayouts({
           ? { id: { notIn: excludedPayoutIds } }
           : {}),
       ...getPayoutEligibilityFilter(program),
-      ...(cutoffPeriodValue && {
-        OR: [
-          {
-            periodStart: null,
-            periodEnd: null,
-          },
-          {
-            periodEnd: {
-              lte: cutoffPeriodValue,
-            },
-          },
-        ],
-      }),
     },
     include: {
       partner: {
