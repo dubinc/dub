@@ -6,6 +6,9 @@ import "dotenv-flow/config";
 async function main() {
   const fraudGroups = await prisma.fraudEvent.groupBy({
     by: ["groupKey"],
+    where: {
+      fraudEventGroupId: null,
+    },
     _count: true,
   });
 
@@ -13,6 +16,7 @@ async function main() {
     const fraudEvents = await prisma.fraudEvent.findMany({
       where: {
         groupKey: fraudGroup.groupKey,
+        fraudEventGroupId: null,
       },
       orderBy: {
         createdAt: "desc",
@@ -52,6 +56,7 @@ async function main() {
     await prisma.fraudEvent.updateMany({
       where: {
         groupKey: fraudGroup.groupKey,
+        fraudEventGroupId: null,
       },
       data: {
         fraudEventGroupId: fraudEventGroup.id,

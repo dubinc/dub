@@ -97,7 +97,7 @@ export async function createFraudEvents(fraudEvents: CreateFraudEventInput[]) {
     const eventsToInsert: Prisma.FraudEventCreateManyInput[] =
       filteredEvents.map((e) => ({
         id: createId({ prefix: "fre_" }),
-        fraudEventGroupId: groupMap.get(e.groupHash)!,
+        fraudEventGroupId: groupMap.get(e.groupHash),
         eventId: e.eventId,
         linkId: e.linkId,
         customerId: e.customerId,

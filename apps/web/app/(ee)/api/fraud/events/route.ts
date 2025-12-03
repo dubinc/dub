@@ -86,6 +86,7 @@ export const GET = withWorkspace(
       where = {
         customerId,
         fraudEventGroup: {
+          programId,
           type,
         },
       };

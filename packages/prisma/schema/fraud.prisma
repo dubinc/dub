@@ -51,6 +51,7 @@ model FraudEventGroup {
   @@index(programId)
   @@index(partnerId)
   @@index(userId)
+  @@index(hash)
 }
 
 model FraudEvent {

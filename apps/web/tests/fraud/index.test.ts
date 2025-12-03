@@ -1,4 +1,5 @@
-import { Customer, FraudGroupProps, TrackLeadResponse } from "@/lib/types";
+import { Customer, TrackLeadResponse } from "@/lib/types";
+import { fraudEventSchemas } from "@/lib/zod/schemas/fraud";
 import { FraudRuleType } from "@prisma/client";
 import { randomCustomer, retry } from "tests/utils/helpers";
 import { HttpClient } from "tests/utils/http";
@@ -8,6 +9,7 @@ import {
   E2E_TRACK_CLICK_HEADERS,
 } from "tests/utils/resource";
 import { describe, expect, test } from "vitest";
+import { z } from "zod";
 import { IntegrationHarness } from "../utils/integration";
 
 describe.concurrent("/fraud/**", async () => {
@@ -234,7 +236,9 @@ async function waitForFraudEvent({
 }) {
   return await retry(
     async () => {
-      const { data } = await http.get<FraudGroupProps[]>({
+      const { data } = await http.get<
+        z.infer<(typeof fraudEventSchemas)[keyof typeof fraudEventSchemas]>[]
+      >({
         path: "/fraud/events",
         query: {
           customerId,

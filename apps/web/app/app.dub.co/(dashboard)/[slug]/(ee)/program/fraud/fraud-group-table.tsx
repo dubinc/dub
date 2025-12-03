@@ -426,12 +426,17 @@ function BulkActionsMenu({
                 variant="danger"
                 onSelect={() => {
                   const selectedRows = table.getSelectedRowModel().rows;
-                  const partners = selectedRows.map(
-                    (row) => row.original.partner,
-                  );
+                  const partners = selectedRows
+                    .map((row) => row.original.partner)
+                    .filter(
+                      (p): p is NonNullable<FraudGroupProps["partner"]> =>
+                        p !== null,
+                    );
+
                   const uniquePartners = Array.from(
                     new Map(partners.map((p) => [p.id, p])).values(),
                   );
+
                   onBanPartners(uniquePartners);
                   setIsOpen(false);
                 }}

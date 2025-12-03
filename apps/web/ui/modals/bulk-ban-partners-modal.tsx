@@ -90,32 +90,53 @@ function BulkBanPartnersModal({
       const approvedPartners = partners.filter((p) => p.status !== "pending");
 
       // Execute both actions in parallel
-      await Promise.all([
-        approvedPartners.length > 0 &&
-          executeBan({
-            workspaceId,
-            partnerIds: approvedPartners.map((p) => p.id),
-            reason: data.reason,
-          }),
+      const results = await Promise.all([
+        approvedPartners.length > 0
+          ? executeBan({
+              workspaceId,
+              partnerIds: approvedPartners.map((p) => p.id),
+              reason: data.reason,
+            })
+          : Promise.resolve(null),
 
-        pendingPartners.length > 0 &&
-          executeReject({
-            workspaceId,
-            partnerIds: pendingPartners.map((p) => p.id),
-            reportFraud: false,
-          }),
+        pendingPartners.length > 0
+          ? executeReject({
+              workspaceId,
+              partnerIds: pendingPartners.map((p) => p.id),
+              reportFraud: false,
+            })
+          : Promise.resolve(null),
       ]);
+
+      const hasError = results.some((r) => r?.serverError);
+
+      if (hasError) {
+        return;
+      }
+
+      // Create a success message
+      const approvedCount = approvedPartners.length;
+      const pendingCount = pendingPartners.length;
+
+      let message: string;
+
+      if (approvedCount > 0 && pendingCount > 0) {
+        message = `${approvedCount} ${pluralize("partner", approvedCount)} banned and ${pendingCount} ${pluralize("application", pendingCount)} rejected successfully!`;
+      } else if (approvedCount > 0) {
+        message = `${approvedCount} ${pluralize("partner", approvedCount)} banned successfully!`;
+      } else {
+        message = `${pendingCount} partner ${pluralize("application", pendingCount)} rejected successfully!`;
+      }
 
       setShowBulkBanPartnersModal(false);
       await onConfirm?.();
-      toast.success("Partners banned successfully!");
+      toast.success(message);
     },
     [
       executeBan,
       executeReject,
       partners,
       workspaceId,
-      partnerWord,
       setShowBulkBanPartnersModal,
       onConfirm,
     ],

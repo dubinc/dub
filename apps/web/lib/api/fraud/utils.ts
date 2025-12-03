@@ -132,6 +132,9 @@ function getIdentityFieldsForFraudEvent({
           duplicatePartnerId: metadata.duplicatePartnerId,
         }),
       };
+
+    default:
+      throw new Error(`Invalid fraud rule type: ${type}`);
   }
 }
 
