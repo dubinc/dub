@@ -74,11 +74,6 @@ export async function getEligiblePayouts({
   if (cutoffPeriodValue) {
     payouts = payouts
       .map((payout) => {
-        // custom payouts are included by default
-        if (!payout.periodStart && !payout.periodEnd) {
-          return payout;
-        }
-
         const newPayoutAmount = payout.commissions.reduce((acc, commission) => {
           return acc + commission.earnings;
         }, 0);
