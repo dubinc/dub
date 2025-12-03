@@ -78,6 +78,7 @@ function FraudReviewSheetContent({
   useKeyboardShortcut("r", () => setShowResolveFraudEventModal(true), {
     sheet: true,
   });
+
   useKeyboardShortcut(
     "b",
     () => {
@@ -94,9 +95,9 @@ function FraudReviewSheetContent({
 
   return (
     <div className="relative h-full">
-      <ResolveFraudEventModal />
-      <BanPartnerModal />
-      <RejectPartnerApplicationModal />
+      {ResolveFraudEventModal}
+      {BanPartnerModal}
+      {RejectPartnerApplicationModal}
       <div
         className={cn("flex h-full flex-col transition-opacity duration-200")}
       >
@@ -323,11 +324,22 @@ export function FraudReviewSheet({
 }) {
   const { queryParams } = useRouterStuff();
 
+  const handleOpenChange = (open: boolean) => {
+    // Only update if the value actually changed
+    if (open === isOpen) return;
+
+    rest.setIsOpen(open);
+
+    // Clear the groupId from URL when closing
+    if (!open) {
+      queryParams({ del: "groupId", scroll: false });
+    }
+  };
+
   return (
     <Sheet
       open={isOpen}
-      onOpenChange={rest.setIsOpen}
-      onClose={() => queryParams({ del: "groupId", scroll: false })}
+      onOpenChange={handleOpenChange}
       nested={nested}
       contentProps={{
         className: "[--sheet-width:940px]",

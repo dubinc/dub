@@ -512,7 +512,7 @@ function RowMenuButton({
 
   return (
     <>
-      <RejectPartnerApplicationModal />
+      {RejectPartnerApplicationModal}
       <Popover
         openPopover={isOpen}
         setOpenPopover={setIsOpen}

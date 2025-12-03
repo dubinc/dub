@@ -40,7 +40,6 @@ function ResolveFraudEventsModal({
 
   const { executeAsync, isPending } = useAction(resolveFraudGroupAction, {
     onSuccess: async () => {
-      
       toast.success("Fraud events resolved.");
       setShowResolveFraudEventModal(false);
       // await onConfirm?.();
@@ -174,27 +173,28 @@ export function useResolveFraudEventsModal({
   const [showResolveFraudEventModal, setShowResolveFraudEventModal] =
     useState(false);
 
-  const ResolveFraudEventModalCallback = useCallback(() => {
-    return (
+  const ResolveFraudEventModalComponent = useMemo(
+    () => (
       <ResolveFraudEventsModal
         showResolveFraudEventModal={showResolveFraudEventModal}
         setShowResolveFraudEventModal={setShowResolveFraudEventModal}
         fraudGroup={fraudGroup}
         onConfirm={onConfirm}
       />
-    );
-  }, [
-    showResolveFraudEventModal,
-    setShowResolveFraudEventModal,
-    fraudGroup,
-    onConfirm,
-  ]);
+    ),
+    [
+      showResolveFraudEventModal,
+      setShowResolveFraudEventModal,
+      fraudGroup,
+      onConfirm,
+    ],
+  );
 
   return useMemo(
     () => ({
       setShowResolveFraudEventModal,
-      ResolveFraudEventModal: ResolveFraudEventModalCallback,
+      ResolveFraudEventModal: ResolveFraudEventModalComponent,
     }),
-    [setShowResolveFraudEventModal, ResolveFraudEventModalCallback],
+    [setShowResolveFraudEventModal, ResolveFraudEventModalComponent],
   );
 }

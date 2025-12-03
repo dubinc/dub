@@ -492,8 +492,8 @@ function RowMenuButton({
 
   return (
     <>
-      <BanPartnerModal />
-      <RejectPartnerApplicationModal />
+      {BanPartnerModal}
+      {RejectPartnerApplicationModal}
       <Popover
         openPopover={isOpen}
         setOpenPopover={setIsOpen}

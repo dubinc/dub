@@ -159,8 +159,8 @@ export function useRejectPartnerApplicationModal({
     setShowRejectPartnerApplicationModal,
   ] = useState(false);
 
-  const RejectPartnerApplicationModalCallback = useCallback(() => {
-    return (
+  const RejectPartnerApplicationModalComponent = useMemo(
+    () => (
       <RejectPartnerApplicationModal
         showRejectPartnerApplicationModal={showRejectPartnerApplicationModal}
         setShowRejectPartnerApplicationModal={
@@ -170,23 +170,24 @@ export function useRejectPartnerApplicationModal({
         partner={partner}
         onConfirm={onConfirm}
       />
-    );
-  }, [
-    showRejectPartnerApplicationModal,
-    setShowRejectPartnerApplicationModal,
-    partner,
-    onConfirm,
-    confirmShortcutOptions,
-  ]);
+    ),
+    [
+      showRejectPartnerApplicationModal,
+      setShowRejectPartnerApplicationModal,
+      partner,
+      onConfirm,
+      confirmShortcutOptions,
+    ],
+  );
 
   return useMemo(
     () => ({
       setShowRejectPartnerApplicationModal,
-      RejectPartnerApplicationModal: RejectPartnerApplicationModalCallback,
+      RejectPartnerApplicationModal: RejectPartnerApplicationModalComponent,
     }),
     [
       setShowRejectPartnerApplicationModal,
-      RejectPartnerApplicationModalCallback,
+      RejectPartnerApplicationModalComponent,
     ],
   );
 }
