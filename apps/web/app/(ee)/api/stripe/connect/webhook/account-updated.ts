@@ -1,9 +1,7 @@
-import { createFraudEvents } from "@/lib/api/fraud/create-fraud-events";
+import { detectDuplicatePayoutMethodFraud } from "@/lib/api/fraud/detect-duplicate-payout-method-fraud";
 import { qstash } from "@/lib/cron";
 import { stripe } from "@/lib/stripe";
-import { CreateFraudEventInput } from "@/lib/types";
 import { prisma } from "@dub/prisma";
-import { FraudRuleType } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
 import Stripe from "stripe";
 
@@ -79,76 +77,8 @@ export async function accountUpdated(event: Stripe.Event) {
     },
   });
 
-  // Check for duplicate payout methods: if multiple partners share the same payout method hash,
-  // create fraud events for all their active program enrollments to flag potential fraud
   if (payoutMethodHash) {
-    const duplicatePartners = await prisma.partner.findMany({
-      where: {
-        payoutMethodHash,
-      },
-      select: {
-        id: true,
-        programs: {
-          where: {
-            status: {
-              notIn: ["banned", "deactivated", "rejected"],
-            },
-          },
-          select: {
-            partnerId: true,
-            programId: true,
-          },
-        },
-      },
-    });
-
-    if (duplicatePartners.length > 1) {
-      const fraudEvents: CreateFraudEventInput[] = [];
-      const partnersByProgram = new Map<string, string[]>();
-
-      // Map program → partner list
-      for (const partner of duplicatePartners) {
-        for (const { programId } of partner.programs) {
-          const list = partnersByProgram.get(programId) ?? [];
-          list.push(partner.id);
-          partnersByProgram.set(programId, list);
-        }
-      }
-
-      for (const partner of duplicatePartners) {
-        for (const { programId } of partner.programs) {
-          const enrolledPartners = partnersByProgram.get(programId) ?? [];
-
-          // Always create self event
-          fraudEvents.push({
-            programId,
-            partnerId: partner.id,
-            type: FraudRuleType.partnerDuplicatePayoutMethod,
-            metadata: {
-              payoutMethodHash,
-              duplicatePartnerId: partner.id,
-            },
-          });
-
-          // Create events for other partners in this program
-          for (const duplicatePartnerId of enrolledPartners) {
-            if (duplicatePartnerId === partner.id) continue;
-
-            fraudEvents.push({
-              programId,
-              partnerId: partner.id,
-              type: FraudRuleType.partnerDuplicatePayoutMethod,
-              metadata: {
-                payoutMethodHash,
-                duplicatePartnerId,
-              },
-            });
-          }
-        }
-      }
-
-      await createFraudEvents(fraudEvents);
-    }
+    await detectDuplicatePayoutMethodFraud(payoutMethodHash);
   }
 
   // Retry payouts that got stuck when the account was restricted (e.g: payout sent but paused

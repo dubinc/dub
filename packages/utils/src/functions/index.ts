@@ -25,6 +25,7 @@ export * from "./nformatter";
 export * from "./normalize-string";
 export * from "./pick";
 export * from "./pluralize";
+export * from "./pretty-print";
 export * from "./promises";
 export * from "./punycode";
 export * from "./random-value";

@@ -37,8 +37,12 @@ export async function createFraudEvents(fraudEvents: CreateFraudEventInput[]) {
     // 2. Fetch existing pending events with same fingerprint
     const existingEvents = await tx.fraudEvent.findMany({
       where: {
-        fingerprint: { in: uniqueFingerprints },
-        fraudEventGroup: { status: "pending" },
+        fingerprint: {
+          in: uniqueFingerprints,
+        },
+        fraudEventGroup: {
+          status: "pending",
+        },
       },
       select: {
         fingerprint: true,
@@ -64,7 +68,9 @@ export async function createFraudEvents(fraudEvents: CreateFraudEventInput[]) {
     // 4. Fetch existing pending groups
     const existingGroups = await tx.fraudEventGroup.findMany({
       where: {
-        hash: { in: uniqueGroupHashes },
+        hash: {
+          in: uniqueGroupHashes,
+        },
         status: "pending",
       },
     });
@@ -102,12 +108,12 @@ export async function createFraudEvents(fraudEvents: CreateFraudEventInput[]) {
         eventId: e.eventId,
         linkId: e.linkId,
         customerId: e.customerId,
-        metadata: sanitizeFraudEventMetadata(e.metadata),
         fingerprint: e.fingerprint,
         partnerId:
           e.type === "partnerDuplicatePayoutMethod"
             ? (e.metadata as Record<string, string>)?.duplicatePartnerId
             : e.partnerId,
+        metadata: sanitizeFraudEventMetadata(e.metadata),
 
         // DEPRECATED FIELDS: TODO – remove after migration
         programId: e.programId,
