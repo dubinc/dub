@@ -45,8 +45,9 @@ function FraudReviewSheetContent({
   const { setShowResolveFraudEventModal, ResolveFraudEventModal } =
     useResolveFraudEventsModal({
       fraudGroup,
-      onConfirm: () => {
+      onConfirm: async () => {
         onNext?.();
+        mutatePrefix("/api/fraud/groups");
       },
     });
 
