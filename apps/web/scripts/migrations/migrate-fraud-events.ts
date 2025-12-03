@@ -48,7 +48,6 @@ async function main() {
           programId: firstFraudEvent.programId,
           partnerId: firstFraudEvent.partnerId!,
           type: firstFraudEvent.type,
-          metadata: firstFraudEvent.metadata,
         }),
       },
     });
