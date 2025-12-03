@@ -42,7 +42,7 @@ function ResolveFraudEventsModal({
     onSuccess: async () => {
       toast.success("Fraud events resolved.");
       setShowResolveFraudEventModal(false);
-      // await onConfirm?.();
+      await onConfirm?.();
     },
     onError: ({ error }) => {
       toast.error(parseActionError(error, "Failed to resolve fraud events."));
