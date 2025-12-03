@@ -1,4 +1,5 @@
 import { bulkBanPartnersAction } from "@/lib/actions/partners/bulk-ban-partners";
+import { bulkRejectPartnerApplicationsAction } from "@/lib/actions/partners/bulk-reject-partner-applications";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
 import {
@@ -26,7 +27,10 @@ type BulkBanPartnersFormData = z.infer<typeof bulkBanPartnersSchema> & {
 interface BulkBanPartnersProps {
   showBulkBanPartnersModal: boolean;
   setShowBulkBanPartnersModal: Dispatch<SetStateAction<boolean>>;
-  partners: Pick<EnrolledPartnerProps, "id" | "name" | "image" | "email">[];
+  partners: Pick<
+    EnrolledPartnerProps,
+    "id" | "name" | "image" | "email" | "status"
+  >[];
   onConfirm?: () => Promise<void>;
 }
 
@@ -55,18 +59,25 @@ function BulkBanPartnersModal({
   const partnerWord = pluralize("partner", partners.length);
   const confirmationText = `confirm ban ${partnerWord}`;
 
-  const { executeAsync, isPending } = useAction(bulkBanPartnersAction, {
-    onSuccess: async () => {
-      setShowBulkBanPartnersModal(false);
-      await onConfirm?.();
-      toast.success(
-        `${partnerWord.charAt(0).toUpperCase() + partnerWord.slice(1)} banned successfully!`,
-      );
+  const { executeAsync: executeBan, isPending: isPendingBan } = useAction(
+    bulkBanPartnersAction,
+    {
+      onError({ error }) {
+        toast.error(error.serverError);
+      },
     },
-    onError({ error }) {
-      toast.error(error.serverError);
+  );
+
+  const { executeAsync: executeReject, isPending: isPendingReject } = useAction(
+    bulkRejectPartnerApplicationsAction,
+    {
+      onError({ error }) {
+        toast.error(error.serverError);
+      },
     },
-  });
+  );
+
+  const isPending = isPendingBan || isPendingReject;
 
   const onSubmit = useCallback(
     async (data: BulkBanPartnersFormData) => {
@@ -74,13 +85,40 @@ function BulkBanPartnersModal({
         return;
       }
 
-      await executeAsync({
-        ...data,
-        workspaceId,
-        partnerIds: partners.map((p) => p.id),
-      });
+      // Group partners by status
+      const pendingPartners = partners.filter((p) => p.status === "pending");
+      const approvedPartners = partners.filter((p) => p.status !== "pending");
+
+      // Execute both actions in parallel
+      await Promise.all([
+        approvedPartners.length > 0 &&
+          executeBan({
+            workspaceId,
+            partnerIds: approvedPartners.map((p) => p.id),
+            reason: data.reason,
+          }),
+
+        pendingPartners.length > 0 &&
+          executeReject({
+            workspaceId,
+            partnerIds: pendingPartners.map((p) => p.id),
+            reportFraud: false,
+          }),
+      ]);
+
+      setShowBulkBanPartnersModal(false);
+      await onConfirm?.();
+      toast.success("Partners banned successfully!");
     },
-    [executeAsync, partners, workspaceId],
+    [
+      executeBan,
+      executeReject,
+      partners,
+      workspaceId,
+      partnerWord,
+      setShowBulkBanPartnersModal,
+      onConfirm,
+    ],
   );
 
   const isDisabled = useMemo(() => {
@@ -221,7 +259,10 @@ export function useBulkBanPartnersModal({
   partners,
   onConfirm,
 }: {
-  partners: Pick<EnrolledPartnerProps, "id" | "name" | "image" | "email">[];
+  partners: Pick<
+    EnrolledPartnerProps,
+    "id" | "name" | "image" | "email" | "status"
+  >[];
   onConfirm?: () => Promise<void>;
 }) {
   const [showBulkBanPartnersModal, setShowBulkBanPartnersModal] =

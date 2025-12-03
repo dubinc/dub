@@ -34,7 +34,7 @@ export const bulkRejectPartnerApplicationsAction = authActionClient
     });
 
     if (programEnrollments.length === 0) {
-      throw new Error("No pending program enrollments found to reject.");
+      return;
     }
 
     await prisma.programEnrollment.updateMany({
@@ -50,6 +50,19 @@ export const bulkRejectPartnerApplicationsAction = authActionClient
         saleRewardId: null,
         discountId: null,
       },
+    });
+
+    await resolveFraudGroups({
+      where: {
+        programEnrollment: {
+          id: {
+            in: programEnrollments.map(({ id }) => id),
+          },
+        },
+      },
+      userId: user.id,
+      resolutionReason:
+        "Resolved automatically because the partner application was rejected.",
     });
 
     waitUntil(
@@ -91,20 +104,6 @@ export const bulkRejectPartnerApplicationsAction = authActionClient
               ],
             })),
           ),
-
-          // Automatically resolve all pending fraud events for the rejected partners in the current program
-          resolveFraudGroups({
-            where: {
-              programEnrollment: {
-                id: {
-                  in: programEnrollments.map(({ id }) => id),
-                },
-              },
-            },
-            userId: user.id,
-            resolutionReason:
-              "Resolved automatically because the partner application was rejected.",
-          }),
 
           // Create fraud report events in other programs where these partners are enrolled
           // to help keep the network safe by alerting other programs about suspected fraud
