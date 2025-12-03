@@ -87,9 +87,8 @@ export async function splitPayouts({
             programId: program.id,
             partnerId: payout.partnerId,
             periodStart: currentCommissions[0].createdAt,
-            periodEnd: endOfMonth(
+            periodEnd:
               currentCommissions[currentCommissions.length - 1].createdAt,
-            ),
             amount: currentCommissions.reduce(
               (total, commission) => total + commission.earnings,
               0,
