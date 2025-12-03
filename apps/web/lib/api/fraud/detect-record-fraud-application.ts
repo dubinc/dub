@@ -23,7 +23,7 @@ export async function detectAndRecordFraudApplication({
   }
 
   const { partner, program } = context;
-  const triggeredRules: Pick<FraudEvent, "type">[] = [];
+  const triggeredRules: Pick<FraudEvent, "type" | "metadata">[] = [];
 
   // Check if partner has been banned in other programs
   // indicates cross-program fraud risk
@@ -40,6 +40,7 @@ export async function detectAndRecordFraudApplication({
   if (bannedProgramEnrollments > 0) {
     triggeredRules.push({
       type: FraudRuleType.partnerCrossProgramBan,
+      metadata: null,
     });
   }
 
@@ -55,15 +56,19 @@ export async function detectAndRecordFraudApplication({
     if (duplicatePartners > 1) {
       triggeredRules.push({
         type: FraudRuleType.partnerDuplicatePayoutMethod,
+        metadata: {
+          payoutMethodHash: partner.payoutMethodHash,
+          duplicatePartnerId: partner.id,
+        },
       });
     }
   }
 
   await createFraudEvents(
     triggeredRules.map((rule) => ({
+      ...rule,
       programId: program.id,
       partnerId: partner.id,
-      type: rule.type,
     })),
   );
 }

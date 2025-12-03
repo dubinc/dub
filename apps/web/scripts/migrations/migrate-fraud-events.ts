@@ -38,14 +38,14 @@ async function main() {
         resolutionReason: firstFraudEvent.resolutionReason,
         resolvedAt: firstFraudEvent.resolvedAt,
         status: firstFraudEvent.status,
-        hash: await createFraudGroupHash({
+        createdAt: firstFraudEvent.createdAt,
+        updatedAt: lastFraudEvent.createdAt,
+        hash: createFraudGroupHash({
           programId: firstFraudEvent.programId,
           partnerId: firstFraudEvent.partnerId!,
           type: firstFraudEvent.type,
           metadata: firstFraudEvent.metadata,
         }),
-        createdAt: firstFraudEvent.createdAt,
-        updatedAt: lastFraudEvent.createdAt,
       },
     });
 

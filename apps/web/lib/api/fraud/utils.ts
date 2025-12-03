@@ -123,14 +123,14 @@ function getIdentityFieldsForFraudEvent({
       };
 
     case "partnerDuplicatePayoutMethod":
-      if (!metadata?.payoutMethodHash) {
-        throw new Error(`payoutMethodHash is required for ${type} fraud rule.`);
-      }
-
       return {
         partnerId,
-        payoutMethodHash: metadata.payoutMethodHash,
-        duplicatePartnerId: metadata.duplicatePartnerId,
+        ...(metadata?.payoutMethodHash && {
+          payoutMethodHash: metadata.payoutMethodHash,
+        }),
+        ...(metadata?.duplicatePartnerId && {
+          duplicatePartnerId: metadata.duplicatePartnerId,
+        }),
       };
   }
 }
@@ -146,11 +146,10 @@ export function createFraudGroupHash({
   const metadataFields = metadata as Record<string, string>;
   let parts = [programId, type, partnerId];
 
-  if (type === FraudRuleType.partnerDuplicatePayoutMethod) {
-    if (!metadataFields?.payoutMethodHash) {
-      throw new Error(`payoutMethodHash is required for ${type} fraud rule.`);
-    }
-
+  if (
+    type === FraudRuleType.partnerDuplicatePayoutMethod &&
+    metadataFields?.payoutMethodHash
+  ) {
     parts.push(metadataFields.payoutMethodHash);
   }
 

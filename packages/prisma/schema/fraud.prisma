@@ -56,7 +56,7 @@ model FraudEventGroup {
 model FraudEvent {
   id                String   @id @default(cuid())
   fraudEventGroupId String? // TODO: Make it required after migration
-  partnerId         String?
+  partnerId         String
   linkId            String?
   customerId        String?
   eventId           String?
