@@ -44,19 +44,6 @@ export function useDynamicGuide(
         `https://www.dubcdn.com/analytics/script.${scriptComponents}.js`,
       );
 
-    // Outbound domains
-    if (domainTrackingEnabled) {
-      result = result
-        ?.replaceAll(
-          /(data-domains='{[^}]+)(}')/g,
-          `$1, "outbound": ["example.com", "example.sh"]$2`,
-        )
-        ?.replaceAll(
-          /(domainsConfig={{\n)(\s+)([^\n]+)\n(\s+}})/gm,
-          `$1$2$3,\n$2outbound: ["example.com", "example.sh"]\n$4`,
-        );
-    }
-
     if (conversionTrackingEnabled && publishableKey && result) {
       // Store original result for context checks
       const originalResult = result;
@@ -77,8 +64,21 @@ export function useDynamicGuide(
             // Clean up other attributes
             const otherAttrs = afterSrc.replace(/>$/, "").trim();
 
+            const domainsConfigParts = [
+              ...(program ? [`"refer": "${program.domain}"`] : []),
+              ...(domainTrackingEnabled
+                ? [`"outbound": ["example.com", "example.sh"]`]
+                : []),
+            ].join(`, `);
+            const parts = [
+              `data-publishable-key="${publishableKey}"`,
+              ...(domainsConfigParts
+                ? [`data-domains='{${domainsConfigParts}}'`]
+                : []),
+            ].join(`\n${indent}`);
+
             // Return: before src, src, publishable-key, other attrs, closing tag
-            return `${beforeSrc}${srcAttr}\n${indent}data-publishable-key="${publishableKey}"${otherAttrs ? `\n${indent}${otherAttrs}` : ""}\n${indent}${closingTag}`;
+            return `${beforeSrc}${srcAttr}\n${indent}${parts}${otherAttrs ? `\n${indent}${otherAttrs}` : ""}\n${closingTag}`;
           },
         )
         // for React applications - add publishableKey prop after <DubAnalytics
@@ -94,7 +94,23 @@ export function useDynamicGuide(
                 if (context.includes("publishableKey")) return match;
               }
             }
-            return `${indent}${tag}\n${indent}  publishableKey="${publishableKey}"${rest}`;
+
+            const domainsConfigParts = [
+              ...(program ? [`refer: "${program.domain}"`] : []),
+              ...(domainTrackingEnabled
+                ? [`outbound: ["example.com", "example.sh"]`]
+                : []),
+            ].join(`,\n${indent}    `);
+            const parts = [
+              `publishableKey="${publishableKey}"`,
+              ...(domainsConfigParts
+                ? [
+                    `domainsConfig={{\n${indent}    ${domainsConfigParts}\n${indent}  }}`,
+                  ]
+                : []),
+            ].join(`\n  ${indent}`);
+
+            return `${indent}${tag}\n${indent}  ${parts}${rest}`;
           },
         )
         // for GTM installations - add data-publishable-key after script.src
@@ -106,7 +122,23 @@ export function useDynamicGuide(
               const context = originalResult.substring(idx, idx + 200);
               if (context.includes("data-publishable-key")) return match;
             }
-            return `${indent}${srcLine}\n${indent}script.setAttribute("data-publishable-key", "${publishableKey}");`;
+
+            const domainsConfigParts = [
+              ...(program ? [`"refer": "${program.domain}"`] : []),
+              ...(domainTrackingEnabled
+                ? [`"outbound": ["example.com", "example.sh"]`]
+                : []),
+            ].join(`, `);
+            const parts = [
+              `script.setAttribute("data-publishable-key", "${publishableKey}");`,
+              ...(domainsConfigParts
+                ? [
+                    `script.dataset.domains = JSON.stringify({${domainsConfigParts}});`,
+                  ]
+                : []),
+            ].join(`\n${indent}`);
+
+            return `${indent}${srcLine}\n${indent}${parts}`;
           },
         );
     }
