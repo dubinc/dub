@@ -10,7 +10,6 @@ import {
   Button,
   ChartLine,
   DateRangePicker,
-  ExpandingArrow,
   Filter,
   SquareLayoutGrid6,
   TooltipContent,
@@ -31,6 +30,7 @@ import {
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useContext } from "react";
+import { FolderIcon } from "../folders/folder-icon";
 import { AnalyticsOptions } from "./analytics-options";
 import { AnalyticsContext } from "./analytics-provider";
 import { ShareButton } from "./share-button";
@@ -190,34 +190,36 @@ export function AnalyticsToggle({
               },
             )}
           >
-            {dashboardProps && (
-              <a
-                className="group flex items-center text-lg font-semibold text-neutral-800"
-                href={linkConstructor({ domain, key })}
-                target="_blank"
-                rel="noreferrer"
-              >
-                <BlurImage
-                  alt={url || "Dub"}
-                  src={
-                    url
-                      ? `${GOOGLE_FAVICON_URL}${getApexDomain(url)}`
-                      : DUB_LOGO
-                  }
-                  className="mr-2 h-6 w-6 flex-shrink-0 overflow-hidden rounded-full"
-                  width={48}
-                  height={48}
-                />
-                <p className="max-w-[192px] truncate sm:max-w-[400px]">
-                  {linkConstructor({
-                    domain,
-                    key,
-                    pretty: true,
-                  })}
-                </p>
-                <ExpandingArrow className="h-5 w-5" />
-              </a>
-            )}
+            {dashboardProps &&
+              (dashboardProps.folderId ? (
+                <div className="flex items-center gap-2 text-lg font-semibold text-neutral-800">
+                  <FolderIcon shape="square" iconClassName="size-3" />
+                  <p className="max-w-[192px] truncate sm:max-w-[400px]">
+                    {dashboardProps.folderName}
+                  </p>
+                </div>
+              ) : (
+                <div className="flex items-center text-lg font-semibold text-neutral-800">
+                  <BlurImage
+                    alt={url || "Dub"}
+                    src={
+                      url
+                        ? `${GOOGLE_FAVICON_URL}${getApexDomain(url)}`
+                        : DUB_LOGO
+                    }
+                    className="mr-2 h-6 w-6 flex-shrink-0 overflow-hidden rounded-full"
+                    width={48}
+                    height={48}
+                  />
+                  <p className="max-w-[192px] truncate sm:max-w-[400px]">
+                    {linkConstructor({
+                      domain,
+                      key,
+                      pretty: true,
+                    })}
+                  </p>
+                </div>
+              ))}
             <div
               className={cn(
                 "flex w-full flex-col-reverse items-center gap-2 min-[550px]:flex-row",

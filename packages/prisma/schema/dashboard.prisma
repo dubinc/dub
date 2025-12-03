@@ -4,6 +4,9 @@ model Dashboard {
   link   Link?   @relation(fields: [linkId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   linkId String? @unique
 
+  folder   Folder? @relation(fields: [folderId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  folderId String? @unique
+
   // Project that the share link belongs to
   project   Project? @relation(fields: [projectId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   projectId String?
