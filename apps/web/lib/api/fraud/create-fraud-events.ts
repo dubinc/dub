@@ -139,8 +139,10 @@ export async function createFraudEvents(fraudEvents: CreateFraudEventInput[]) {
             id,
           },
           data: {
-            eventCount: { increment: count },
             lastEventAt: now,
+            eventCount: {
+              increment: count,
+            },
           },
         }),
       ),
