@@ -1,7 +1,8 @@
-import { isValidInternalRedirect, parse } from "@/lib/middleware/utils";
 import { NextRequest, NextResponse } from "next/server";
 import { getDefaultPartnerId } from "./utils/get-default-partner";
 import { getUserViaToken } from "./utils/get-user-via-token";
+import { isValidInternalRedirect } from "./utils/is-valid-internal-redirect";
+import { parse } from "./utils/parse";
 import { partnersRedirect } from "./utils/partners-redirect";
 
 const AUTHENTICATED_PATHS = [
@@ -16,7 +17,7 @@ const AUTHENTICATED_PATHS = [
   "/invite",
 ];
 
-export async function PartnersMiddleware(req: NextRequest) {
+export async function PartnersProxy(req: NextRequest) {
   const { path, fullPath, searchParamsObj, searchParamsString } = parse(req);
 
   const user = await getUserViaToken(req);

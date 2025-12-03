@@ -10,8 +10,10 @@ import { geolocation, ipAddress, waitUntil } from "@vercel/functions";
 import { userAgent } from "next/server";
 import { recordClickCache } from "../api/links/record-click-cache";
 import { ExpandedLink, transformLink } from "../api/links/utils/transform-link";
-import { detectBot, detectQr, getIdentityHash } from "../middleware/utils";
 import { conn } from "../planetscale";
+import { detectBot } from "../proxy/utils/detect-bot";
+import { detectQr } from "../proxy/utils/detect-qr";
+import { getIdentityHash } from "../proxy/utils/get-identity-hash";
 import { WorkspaceProps } from "../types";
 import { redis } from "../upstash";
 import {

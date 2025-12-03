@@ -1,22 +1,22 @@
-import { parse } from "@/lib/middleware/utils";
 import { NextRequest, NextResponse } from "next/server";
 import {
   ONBOARDING_WINDOW_SECONDS,
   onboardingStepCache,
 } from "../api/workspaces/onboarding-step-cache";
-import { EmbedMiddleware } from "./embed";
-import { NewLinkMiddleware } from "./new-link";
+import { EmbedProxy } from "./embed";
+import { NewLinkProxy } from "./new-link";
 import { appRedirect } from "./utils/app-redirect";
 import { getDefaultWorkspace } from "./utils/get-default-workspace";
 import { getUserViaToken } from "./utils/get-user-via-token";
 import { isTopLevelSettingsRedirect } from "./utils/is-top-level-settings-redirect";
-import { WorkspacesMiddleware } from "./workspaces";
+import { parse } from "./utils/parse";
+import { WorkspacesProxy } from "./workspaces";
 
-export async function AppMiddleware(req: NextRequest) {
+export async function AppProxy(req: NextRequest) {
   const { path, fullPath, searchParamsString } = parse(req);
 
   if (path.startsWith("/embed")) {
-    return EmbedMiddleware(req);
+    return EmbedProxy(req);
   }
 
   const user = await getUserViaToken(req);
@@ -45,7 +45,7 @@ export async function AppMiddleware(req: NextRequest) {
   } else if (user) {
     // /new is a special path that creates a new link (or workspace if the user doesn't have one yet)
     if (path === "/new") {
-      return NewLinkMiddleware(req, user);
+      return NewLinkProxy(req, user);
 
       /* Onboarding redirects
 
@@ -67,7 +67,7 @@ export async function AppMiddleware(req: NextRequest) {
       if (!step) {
         return NextResponse.redirect(new URL("/onboarding", req.url));
       } else if (step === "completed") {
-        return WorkspacesMiddleware(req, user);
+        return WorkspacesProxy(req, user);
       }
 
       const defaultWorkspace = await getDefaultWorkspace(user);
@@ -104,7 +104,7 @@ export async function AppMiddleware(req: NextRequest) {
       path.startsWith("/settings/") ||
       isTopLevelSettingsRedirect(path)
     ) {
-      return WorkspacesMiddleware(req, user);
+      return WorkspacesProxy(req, user);
     }
 
     const appRedirectPath = await appRedirect(path);

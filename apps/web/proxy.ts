@@ -1,12 +1,5 @@
 import { logger } from "@/lib/axiom/server";
-import {
-  AdminMiddleware,
-  ApiMiddleware,
-  AppMiddleware,
-  CreateLinkMiddleware,
-  LinkMiddleware,
-} from "@/lib/middleware";
-import { parse } from "@/lib/middleware/utils";
+import { parse } from "@/lib/proxy/utils/parse";
 import { transformMiddlewareRequest } from "@axiomhq/nextjs";
 import {
   ADMIN_HOSTNAMES,
@@ -17,7 +10,12 @@ import {
 } from "@dub/utils";
 import { PARTNERS_HOSTNAMES } from "@dub/utils/src/constants";
 import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
-import { PartnersMiddleware } from "./lib/middleware/partners";
+import { AdminProxy } from "./lib/proxy/admin";
+import { ApiProxy } from "./lib/proxy/api";
+import { AppProxy } from "./lib/proxy/app";
+import { CreateLinkProxy } from "./lib/proxy/create-link";
+import { LinkProxy } from "./lib/proxy/link";
+import { PartnersProxy } from "./lib/proxy/partners";
 import { supportedWellKnownFiles } from "./lib/well-known";
 
 export const config = {
@@ -42,12 +40,12 @@ export async function proxy(req: NextRequest, ev: NextFetchEvent) {
 
   // for App
   if (APP_HOSTNAMES.has(domain)) {
-    return AppMiddleware(req);
+    return AppProxy(req);
   }
 
   // for API
   if (API_HOSTNAMES.has(domain)) {
-    return ApiMiddleware(req);
+    return ApiProxy(req);
   }
 
   // for public stats pages (e.g. d.to/stats/try)
@@ -72,16 +70,16 @@ export async function proxy(req: NextRequest, ev: NextFetchEvent) {
 
   // for Admin
   if (ADMIN_HOSTNAMES.has(domain)) {
-    return AdminMiddleware(req);
+    return AdminProxy(req);
   }
 
   if (PARTNERS_HOSTNAMES.has(domain)) {
-    return PartnersMiddleware(req);
+    return PartnersProxy(req);
   }
 
   if (isValidUrl(fullKey)) {
-    return CreateLinkMiddleware(req);
+    return CreateLinkProxy(req);
   }
 
-  return LinkMiddleware(req, ev);
+  return LinkProxy(req, ev);
 }

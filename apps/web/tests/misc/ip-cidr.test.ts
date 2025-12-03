@@ -1,4 +1,4 @@
-import { isIpInRange } from "@/lib/middleware/utils/is-ip-in-range";
+import { isIpInRange } from "@/lib/proxy/utils/is-ip-in-range";
 import { describe, expect, it } from "vitest";
 
 describe("CIDR Range Checking", () => {
