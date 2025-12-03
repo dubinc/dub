@@ -54,6 +54,13 @@ export const banPartner = async ({
     },
   });
 
+  if (programEnrollment.status === "pending") {
+    throw new DubApiError({
+      code: "bad_request",
+      message: "This partner is not approved yet to be banned.",
+    });
+  }
+
   if (programEnrollment.status === "banned") {
     throw new DubApiError({
       code: "bad_request",

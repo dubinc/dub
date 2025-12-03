@@ -3,7 +3,7 @@ import { FraudEventStatus, FraudRuleType } from "@dub/prisma/client";
 import { z } from "zod";
 import { CustomerSchema } from "./customers";
 import { getPaginationQuerySchema } from "./misc";
-import { PartnerSchema } from "./partners";
+import { EnrolledPartnerSchema, PartnerSchema } from "./partners";
 import { ProgramEnrollmentSchema } from "./programs";
 import { UserSchema } from "./users";
 
@@ -17,11 +17,12 @@ export const fraudGroupSchema = z.object({
   resolvedAt: z.date().nullable(),
   lastEventAt: z.date(),
   eventCount: z.number(),
-  partner: PartnerSchema.pick({
+  partner: EnrolledPartnerSchema.pick({
     id: true,
     name: true,
     email: true,
     image: true,
+    status: true,
   }),
   user: UserSchema.pick({
     id: true,

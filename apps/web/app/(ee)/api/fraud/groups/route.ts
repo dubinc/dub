@@ -33,8 +33,26 @@ export const GET = withWorkspace(
         ...(groupId && { id: groupId }),
       },
       include: {
-        partner: true,
-        user: true,
+        partner: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            image: true,
+          },
+        },
+        programEnrollment: {
+          select: {
+            status: true,
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+          },
+        },
       },
       skip: (page - 1) * pageSize,
       take: pageSize,
@@ -43,7 +61,18 @@ export const GET = withWorkspace(
       },
     });
 
-    return NextResponse.json(z.array(fraudGroupSchema).parse(fraudGroups));
+    // Transform data to merge programEnrollment.status into partner object
+    const transformedGroups = fraudGroups.map((group) => ({
+      ...group,
+      partner: {
+        ...group.partner,
+        status: group.programEnrollment.status,
+      },
+    }));
+
+    return NextResponse.json(
+      z.array(fraudGroupSchema).parse(transformedGroups),
+    );
   },
   {
     requiredPlan: ["advanced", "enterprise"],

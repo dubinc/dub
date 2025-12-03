@@ -1,13 +1,16 @@
 "use client";
 
+import { rejectPartnerApplicationAction } from "@/lib/actions/partners/reject-partner-application";
 import { FRAUD_RULES_BY_TYPE } from "@/lib/api/fraud/constants";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useFraudEventGroups } from "@/lib/swr/use-fraud-event-groups";
 import { useFraudGroupCount } from "@/lib/swr/use-fraud-groups-count";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { FraudGroupProps } from "@/lib/types";
 import { useBanPartnerModal } from "@/ui/modals/ban-partner-modal";
 import { useBulkBanPartnersModal } from "@/ui/modals/bulk-ban-partners-modal";
 import { useBulkResolveFraudGroupsModal } from "@/ui/modals/bulk-resolve-fraud-groups-modal";
+import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { FraudReviewSheet } from "@/ui/partners/fraud-risks/fraud-review-sheet";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
@@ -17,6 +20,7 @@ import {
   AnimatedSizeContainer,
   Badge,
   Button,
+  Checkbox,
   Filter,
   Icon,
   Popover,
@@ -27,14 +31,17 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { Dots, ShieldAlert, UserDelete } from "@dub/ui/icons";
+import { Dots, ShieldAlert, UserDelete, UserXmark } from "@dub/ui/icons";
 import { cn, formatDateTimeSmart } from "@dub/utils";
 import { Row, Table as TableType } from "@tanstack/react-table";
 import { Command } from "cmdk";
+import { useAction } from "next-safe-action/hooks";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
 import { useFraudGroupFilters } from "./use-fraud-group-filters";
 
 export function FraudGroupTable() {
+  const { id: workspaceId } = useWorkspace();
   const { queryParams, searchParams } = useRouterStuff();
   const { pagination, setPagination } = usePagination();
 
@@ -210,7 +217,9 @@ export function FraudGroupTable() {
         minSize: 30,
         size: 30,
         maxSize: 30,
-        cell: ({ row }) => <RowMenuButton row={row} />,
+        cell: ({ row }) => (
+          <RowMenuButton row={row} workspaceId={workspaceId!} />
+        ),
       },
     ],
     columnPinning: { right: ["menu"] },
@@ -447,41 +456,108 @@ function BulkActionsMenu({
   );
 }
 
-function RowMenuButton({ row }: { row: Row<FraudGroupProps> }) {
+function RowMenuButton({
+  row,
+  workspaceId,
+}: {
+  row: Row<FraudGroupProps>;
+  workspaceId: string;
+}) {
   const fraudEvent = row.original;
+  const partner = fraudEvent.partner;
 
   const [isOpen, setIsOpen] = useState(false);
+  const [reportFraud, setReportFraud] = useState(false);
 
   const { BanPartnerModal, setShowBanPartnerModal } = useBanPartnerModal({
     partner: fraudEvent.partner,
     onConfirm: async () => {
-      await mutatePrefix("/api/fraud/events");
+      await mutatePrefix("/api/fraud/groups");
     },
   });
 
-  if (fraudEvent.status !== "pending") {
+  const {
+    executeAsync: rejectPartnerApplication,
+    isPending: isRejectingPartner,
+  } = useAction(rejectPartnerApplicationAction, {
+    onSuccess: () => {
+      toast.success("Partner application rejected.");
+      mutatePrefix("/api/fraud/groups");
+      setReportFraud(false);
+    },
+    onError: ({ error }) => {
+      toast.error(error.serverError);
+    },
+  });
+
+  const { setShowConfirmModal: setShowRejectModal, confirmModal: rejectModal } =
+    useConfirmModal({
+      title: "Reject Application",
+      description: (
+        <div>
+          <p>Are you sure you want to reject this partner application?</p>
+          <label className="mt-5 flex items-start gap-2.5 text-sm font-medium">
+            <Checkbox
+              className="border-border-default mt-1 size-4 rounded focus:border-[var(--brand)] focus:ring-[var(--brand)] focus-visible:border-[var(--brand)] focus-visible:ring-[var(--brand)] data-[state=checked]:bg-black data-[state=indeterminate]:bg-black"
+              checked={reportFraud}
+              onCheckedChange={(checked) => setReportFraud(Boolean(checked))}
+            />
+            <span className="text-content-emphasis text-sm font-normal leading-5">
+              Select this if you believe the application shows signs of fraud.
+              This helps keep the network safe.
+            </span>
+          </label>
+        </div>
+      ),
+      confirmText: "Reject",
+      onConfirm: async () => {
+        await rejectPartnerApplication({
+          workspaceId,
+          partnerId: partner!.id,
+          reportFraud,
+        });
+      },
+      onCancel: () => {
+        setReportFraud(false);
+      },
+    });
+
+  if (fraudEvent.status !== "pending" || !partner) {
     return null;
   }
 
   return (
     <>
       <BanPartnerModal />
+      {rejectModal}
       <Popover
         openPopover={isOpen}
         setOpenPopover={setIsOpen}
         content={
           <Command tabIndex={0} loop className="focus:outline-none">
-            <Command.List className="w-screen text-sm focus-visible:outline-none sm:w-auto sm:min-w-[160px]">
+            <Command.List className="w-screen text-sm focus-visible:outline-none sm:w-auto sm:min-w-[180px]">
               <Command.Group className="grid gap-px p-1.5">
-                <MenuItem
-                  icon={UserDelete}
-                  label="Ban partner"
-                  variant="danger"
-                  onSelect={() => {
-                    setShowBanPartnerModal(true);
-                    setIsOpen(false);
-                  }}
-                />
+                {partner.status === "pending" ? (
+                  <MenuItem
+                    icon={UserXmark}
+                    label="Reject application"
+                    variant="danger"
+                    onSelect={() => {
+                      setShowRejectModal(true);
+                      setIsOpen(false);
+                    }}
+                  />
+                ) : (
+                  <MenuItem
+                    icon={UserDelete}
+                    label="Ban partner"
+                    variant="danger"
+                    onSelect={() => {
+                      setShowBanPartnerModal(true);
+                      setIsOpen(false);
+                    }}
+                  />
+                )}
               </Command.Group>
             </Command.List>
           </Command>

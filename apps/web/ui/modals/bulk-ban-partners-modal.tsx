@@ -52,13 +52,16 @@ function BulkBanPartnersModal({
 
   const [confirm] = watch(["confirm"]);
 
+  const partnerWord = pluralize("partner", partners.length);
+  const confirmationText = `confirm ban ${partnerWord}`;
+
   const { executeAsync, isPending } = useAction(bulkBanPartnersAction, {
     onSuccess: async () => {
+      setShowBulkBanPartnersModal(false);
       await onConfirm?.();
       toast.success(
         `${partnerWord.charAt(0).toUpperCase() + partnerWord.slice(1)} banned successfully!`,
       );
-      setShowBulkBanPartnersModal(false);
     },
     onError({ error }) {
       toast.error(error.serverError);
@@ -79,9 +82,6 @@ function BulkBanPartnersModal({
     },
     [executeAsync, partners, workspaceId],
   );
-
-  const partnerWord = pluralize("partner", partners.length);
-  const confirmationText = `confirm ban ${partnerWord}`;
 
   const isDisabled = useMemo(() => {
     return (
