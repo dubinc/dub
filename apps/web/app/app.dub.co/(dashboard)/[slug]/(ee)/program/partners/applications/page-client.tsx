@@ -1,6 +1,5 @@
 "use client";
 
-import { bulkRejectPartnerApplicationsAction } from "@/lib/actions/partners/bulk-reject-partner-applications";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useGroups from "@/lib/swr/use-groups";
 import usePartner from "@/lib/swr/use-partner";
@@ -8,7 +7,7 @@ import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
 import { useBulkApprovePartnersModal } from "@/ui/modals/bulk-approve-partners-modal";
-import { useConfirmModal } from "@/ui/modals/confirm-modal";
+import { useBulkRejectPartnersModal } from "@/ui/modals/bulk-reject-partners-modal";
 import { useRejectPartnerApplicationModal } from "@/ui/modals/reject-partner-application-modal";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerApplicationSheet } from "@/ui/partners/partner-application-sheet";
@@ -35,13 +34,10 @@ import {
   fetcher,
   formatDate,
   getDomainWithoutWWW,
-  pluralize,
 } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
-import { useAction } from "next-safe-action/hooks";
 import { useEffect, useMemo, useState } from "react";
-import { toast } from "sonner";
 import useSWR from "swr";
 import { usePartnerFilters } from "../use-partner-filters";
 
@@ -130,45 +126,23 @@ export function ProgramPartnersApplicationsPageClient() {
       partnerId: detailsSheetState.partnerId,
     });
 
-  const { executeAsync: rejectPartners, isPending: isRejectingPartners } =
-    useAction(bulkRejectPartnerApplicationsAction, {
-      onError: ({ error }) => {
-        toast.error(error.serverError);
-      },
-      onSuccess: ({ input }) => {
-        toast.success(
-          `${pluralize("Partner", input.partnerIds.length)} rejected`,
-        );
-        mutatePrefix(["/api/partners", "/api/partners/count"]);
-      },
-    });
-
   // State for pending bulk actions
   const [pendingApprovePartners, setPendingApprovePartners] = useState<
     EnrolledPartnerProps[]
   >([]);
 
-  const [pendingRejectIds, setPendingRejectIds] = useState<string[]>([]);
+  const [pendingRejectPartners, setPendingRejectPartners] = useState<
+    EnrolledPartnerProps[]
+  >([]);
 
   const { setShowBulkApprovePartnersModal, BulkApprovePartnersModal } =
     useBulkApprovePartnersModal({
       partners: pendingApprovePartners,
     });
 
-  const { setShowConfirmModal: setShowRejectModal, confirmModal: rejectModal } =
-    useConfirmModal({
-      title: "Reject Applications",
-      description: "Are you sure you want to reject these applications?",
-      confirmText: "Reject",
-      onConfirm: async () => {
-        if (pendingRejectIds.length > 0) {
-          await rejectPartners({
-            workspaceId: workspaceId!,
-            partnerIds: pendingRejectIds,
-          });
-          setPendingRejectIds([]);
-        }
-      },
+  const { setShowBulkRejectPartnersModal, BulkRejectPartnersModal } =
+    useBulkRejectPartnersModal({
+      partners: pendingRejectPartners,
     });
 
   const { columnVisibility, setColumnVisibility } = useColumnVisibility(
@@ -399,14 +373,13 @@ export function ProgramPartnersApplicationsPageClient() {
           variant="secondary"
           text="Reject"
           className="h-7 w-fit rounded-lg px-2.5"
-          loading={isRejectingPartners}
           onClick={() => {
-            const partnerIds = table
+            const selectedPartners = table
               .getSelectedRowModel()
-              .rows.map((row) => row.original.id);
+              .rows.map((row) => row.original);
 
-            setPendingRejectIds(partnerIds);
-            setShowRejectModal(true);
+            setPendingRejectPartners(selectedPartners);
+            setShowBulkRejectPartnersModal(true);
           }}
         />
       </>
@@ -464,7 +437,7 @@ export function ProgramPartnersApplicationsPageClient() {
         />
       )}
       <BulkApprovePartnersModal />
-      {rejectModal}
+      <BulkRejectPartnersModal />
 
       <div>
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">

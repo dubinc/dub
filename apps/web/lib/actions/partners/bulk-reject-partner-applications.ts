@@ -1,11 +1,12 @@
 "use server";
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { createFraudEvents } from "@/lib/api/fraud/create-fraud-events";
 import { resolveFraudGroups } from "@/lib/api/fraud/resolve-fraud-groups";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { bulkRejectPartnersSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
-import { ProgramEnrollmentStatus } from "@prisma/client";
+import { FraudRuleType, ProgramEnrollmentStatus } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 
@@ -14,7 +15,7 @@ export const bulkRejectPartnerApplicationsAction = authActionClient
   .schema(bulkRejectPartnersSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const { partnerIds } = parsedInput;
+    const { partnerIds, reportFraud } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -52,37 +53,69 @@ export const bulkRejectPartnerApplicationsAction = authActionClient
     });
 
     waitUntil(
-      Promise.allSettled([
-        recordAuditLog(
-          programEnrollments.map(({ partner }) => ({
-            workspaceId: workspace.id,
-            programId,
-            action: "partner_application.rejected",
-            description: `Partner application rejected for ${partner.id}`,
-            actor: user,
-            targets: [
-              {
-                type: "partner",
-                id: partner.id,
-                metadata: partner,
+      (async () => {
+        const otherProgramEnrollments = reportFraud
+          ? await prisma.programEnrollment.findMany({
+              where: {
+                partnerId: {
+                  in: partnerIds,
+                },
+                programId: {
+                  not: programId,
+                },
+                status: {
+                  notIn: ["banned", "deactivated", "rejected"],
+                },
               },
-            ],
-          })),
-        ),
+              select: {
+                programId: true,
+                partnerId: true,
+              },
+            })
+          : [];
 
-        // Automatically resolve all pending fraud events for the rejected partners in the current program
-        resolveFraudGroups({
-          where: {
-            programEnrollment: {
-              id: {
-                in: programEnrollments.map(({ id }) => id),
+        await Promise.allSettled([
+          recordAuditLog(
+            programEnrollments.map(({ partner }) => ({
+              workspaceId: workspace.id,
+              programId,
+              action: "partner_application.rejected",
+              description: `Partner application rejected for ${partner.id}`,
+              actor: user,
+              targets: [
+                {
+                  type: "partner",
+                  id: partner.id,
+                  metadata: partner,
+                },
+              ],
+            })),
+          ),
+
+          // Automatically resolve all pending fraud events for the rejected partners in the current program
+          resolveFraudGroups({
+            where: {
+              programEnrollment: {
+                id: {
+                  in: programEnrollments.map(({ id }) => id),
+                },
               },
             },
-          },
-          userId: user.id,
-          resolutionReason:
-            "Resolved automatically because the partner application was rejected.",
-        }),
-      ]),
+            userId: user.id,
+            resolutionReason:
+              "Resolved automatically because the partner application was rejected.",
+          }),
+
+          // Create fraud report events in other programs where these partners are enrolled
+          // to help keep the network safe by alerting other programs about suspected fraud
+          createFraudEvents(
+            otherProgramEnrollments.map(({ programId, partnerId }) => ({
+              programId,
+              partnerId,
+              type: FraudRuleType.partnerFraudReport,
+            })),
+          ),
+        ]);
+      })(),
     );
   });
