@@ -6,7 +6,7 @@ import { FraudGroupProps } from "../types";
 import { fraudGroupQuerySchema } from "../zod/schemas/fraud";
 import useWorkspace from "./use-workspace";
 
-export function useFraudEventGroups({
+export function useFraudGroups({
   enabled = true,
   exclude = [],
   query,

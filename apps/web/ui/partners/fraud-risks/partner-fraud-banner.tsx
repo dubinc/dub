@@ -58,11 +58,11 @@ export function PartnerFraudBanner({
     return null;
   }
 
-  const partnerFraudEvents = fraudGroupCount?.find(
+  const partnerFraudGroup = fraudGroupCount?.find(
     (event) => event.partnerId === partner.id,
   );
 
-  if (!partnerFraudEvents || partnerFraudEvents._count === 0) {
+  if (!partnerFraudGroup || partnerFraudGroup._count === 0) {
     return null;
   }
 

@@ -103,7 +103,7 @@ const PayoutTableInner = memo(
     });
 
     // Memoized map of partner IDs with pending fraud events
-    const fraudEventsCountMap = useMemo(() => {
+    const fraudGroupCountMap = useMemo(() => {
       if (!fraudGroupCount) {
         return new Set<string>();
       }
@@ -130,7 +130,7 @@ const PayoutTableInner = memo(
         {
           header: "Status",
           cell: ({ row }) => {
-            const hasFraudPending = fraudEventsCountMap.has(
+            const hasFraudPending = fraudGroupCountMap.has(
               row.original.partner.id,
             );
 
@@ -178,7 +178,7 @@ const PayoutTableInner = memo(
           cell: ({ row }) => (
             <AmountRowItem
               payout={row.original}
-              hasFraudPending={fraudEventsCountMap.has(row.original.partner.id)}
+              hasFraudPending={fraudGroupCountMap.has(row.original.partner.id)}
             />
           ),
         },

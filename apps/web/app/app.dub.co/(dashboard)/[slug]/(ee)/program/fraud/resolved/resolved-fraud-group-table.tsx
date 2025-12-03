@@ -1,7 +1,7 @@
 "use client";
 
 import { FRAUD_RULES_BY_TYPE } from "@/lib/api/fraud/constants";
-import { useFraudEventGroups } from "@/lib/swr/use-fraud-event-groups";
+import { useFraudGroups } from "@/lib/swr/use-fraud-groups";
 import { useFraudGroupCount } from "@/lib/swr/use-fraud-groups-count";
 import { FraudGroupProps } from "@/lib/types";
 import { FraudReviewSheet } from "@/ui/partners/fraud-risks/fraud-review-sheet";
@@ -44,7 +44,7 @@ export function ResolvedFraudGroupTable() {
     status: "resolved",
   });
 
-  const { fraudGroups, loading, error } = useFraudEventGroups({
+  const { fraudGroups, loading, error } = useFraudGroups({
     query: {
       status: "resolved",
     },
@@ -308,7 +308,7 @@ function useCurrentFraudEventGroup({
     fraudGroups && groupId && !currentFraudEventGroup ? groupId : null;
 
   const { fraudGroups: fetchedFraudGroups, loading: isLoading } =
-    useFraudEventGroups({
+    useFraudGroups({
       query: { groupId: groupId ?? undefined },
       enabled: Boolean(shouldFetch),
     });

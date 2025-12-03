@@ -2,7 +2,7 @@
 
 import { FRAUD_RULES_BY_TYPE } from "@/lib/api/fraud/constants";
 import { mutatePrefix } from "@/lib/swr/mutate";
-import { useFraudEventGroups } from "@/lib/swr/use-fraud-event-groups";
+import { useFraudGroups } from "@/lib/swr/use-fraud-groups";
 import { useFraudGroupCount } from "@/lib/swr/use-fraud-groups-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { FraudGroupProps } from "@/lib/types";
@@ -56,7 +56,7 @@ export function FraudGroupTable() {
     status: "pending",
   });
 
-  const { fraudGroups, loading, error } = useFraudEventGroups({
+  const { fraudGroups, loading, error } = useFraudGroups({
     query: {
       status: "pending",
     },
@@ -594,7 +594,7 @@ function useCurrentFraudEventGroup({
     fraudGroups && groupId && !currentFraudEventGroup ? groupId : null;
 
   const { fraudGroups: fetchedFraudEventGroups, loading: isLoading } =
-    useFraudEventGroups({
+    useFraudGroups({
       query: { groupId: groupId ?? undefined },
       enabled: Boolean(shouldFetch),
     });

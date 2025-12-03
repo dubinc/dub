@@ -1,6 +1,6 @@
 "use client";
 
-import { useFraudEvents } from "@/lib/swr/use-raw-fraud-events";
+import { useFraudEvents } from "@/lib/swr/use-fraud-events";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { fraudEventSchemas } from "@/lib/zod/schemas/fraud";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";

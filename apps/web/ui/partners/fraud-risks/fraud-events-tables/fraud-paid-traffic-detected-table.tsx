@@ -1,7 +1,7 @@
 "use client";
 
 import { PAID_TRAFFIC_PLATFORMS_CONFIG } from "@/lib/api/fraud/constants";
-import { useFraudEvents } from "@/lib/swr/use-raw-fraud-events";
+import { useFraudEvents } from "@/lib/swr/use-fraud-events";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PaidTrafficPlatform } from "@/lib/types";
 import { fraudEventSchemas } from "@/lib/zod/schemas/fraud";
