@@ -58,7 +58,6 @@ export async function GET(req: NextRequest) {
         dashboard: true,
       },
     });
-    workspaceId = data.projectId;
     if (!data.dashboard) {
       return new Response("Folder does not have a public analytics dashboard", {
         status: 403,
