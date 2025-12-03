@@ -124,7 +124,7 @@ export default function PlanUsage() {
   }, [usage, usageLimit, linksUsage, linksLimit, totalLinks]);
 
   return (
-    <div className="rounded-lg border border-neutral-200 bg-white">
+    <div className="rounded-xl border border-neutral-200 bg-white">
       <div className="flex flex-col items-start justify-between gap-y-4 p-6 md:px-8 lg:flex-row">
         <div>
           <h2 className="text-xl font-medium">
@@ -206,7 +206,7 @@ export default function PlanUsage() {
             href={`/${slug}/settings/people`}
           />
         </div>
-        <div className="grid grid-cols-1 gap-[1px] overflow-hidden rounded-b-lg bg-neutral-200 md:grid-cols-4">
+        <div className="grid grid-cols-1 gap-[1px] overflow-hidden rounded-b-xl bg-neutral-200 md:grid-cols-4">
           <UsageCategory
             title="Partners"
             icon={Users}

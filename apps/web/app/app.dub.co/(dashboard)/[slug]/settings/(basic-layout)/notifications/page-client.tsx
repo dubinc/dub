@@ -5,8 +5,10 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { notificationTypes } from "@/lib/zod/schemas/workspaces";
 import { Switch, useOptimisticUpdate } from "@dub/ui";
 import { Globe, Hyperlink, Msgs, UserPlus } from "@dub/ui/icons";
-import { DollarSign, ShieldAlert, Trophy } from "lucide-react";
+import { isClickOnInteractiveChild } from "@dub/utils";
+import { DollarSign, Trophy } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
+import React from "react";
 import { z } from "zod";
 
 type PreferenceType = z.infer<typeof notificationTypes>;
@@ -16,7 +18,7 @@ export default function NotificationsSettingsPageClient() {
   const { id: workspaceId } = useWorkspace();
   const { executeAsync } = useAction(updateNotificationPreference);
 
-  const notifications = [
+  const workspaceNotifications = [
     {
       type: "domainConfigurationUpdates",
       icon: Globe,
@@ -30,6 +32,9 @@ export default function NotificationsSettingsPageClient() {
       description:
         "Monthly summary email of your top 5 links by usage & total links created.",
     },
+  ];
+
+  const partnerProgramNotifications = [
     {
       type: "newPartnerApplication",
       icon: UserPlus,
@@ -57,13 +62,13 @@ export default function NotificationsSettingsPageClient() {
       description:
         "Alert when a new message is received from a partner in your partner program.",
     },
-    {
-      type: "fraudEventsSummary",
-      icon: ShieldAlert,
-      title: "Daily Fraud events summary",
-      description:
-        "Daily summary email of unresolved fraud events detected in your partner program.",
-    },
+    // {
+    //   type: "fraudEventsSummary",
+    //   icon: ShieldAlert,
+    //   title: "Daily Fraud events summary",
+    //   description:
+    //     "Daily summary email of unresolved fraud events detected in your partner program.",
+    // },
   ];
 
   const {
@@ -100,64 +105,119 @@ export default function NotificationsSettingsPageClient() {
     };
   };
 
-  return (
-    <div>
-      <div className="max-w-screen-sm pb-8">
-        <h2 className="text-xl font-semibold tracking-tight text-black">
-          Workspace Notifications
-        </h2>
-        <p className="mt-3 text-sm text-neutral-500">
-          Adjust your personal notification preferences and choose which updates
-          you want to receive. These settings will only be applied to your
-          personal account.
-        </p>
-      </div>
-      <div className="mt-2 grid grid-cols-1 gap-3">
-        {notifications.map(({ type, icon: Icon, title, description }) => (
-          <div
-            key={type}
-            className="flex items-center justify-between gap-4 rounded-xl border border-neutral-200 bg-white p-5"
-          >
-            <div className="flex min-w-0 items-center gap-4">
-              <div className="hidden rounded-full border border-neutral-200 sm:block">
-                <div className="rounded-full border border-white bg-gradient-to-t from-neutral-100 p-1 md:p-3">
-                  <Icon className="size-5" />
-                </div>
+  const renderNotificationItem = ({
+    type,
+    icon: Icon,
+    title,
+    description,
+    isLast,
+  }: {
+    type: string;
+    icon: React.ComponentType<{ className?: string }>;
+    title: string;
+    description: string;
+    isLast?: boolean;
+  }) => {
+    const handleRowClick = (e: React.MouseEvent<HTMLDivElement>) => {
+      if (isClickOnInteractiveChild(e) || !preferences || isLoading) return;
+
+      const newValue = !preferences[type];
+      update(
+        () =>
+          handleUpdate({
+            type,
+            value: newValue,
+            currentPreferences: preferences,
+          }),
+        {
+          ...preferences,
+          [type]: newValue,
+        },
+      );
+    };
+
+    return (
+      <div key={type}>
+        <div
+          onClick={handleRowClick}
+          className="flex cursor-pointer items-start justify-between py-5 pr-2 sm:items-center"
+        >
+          <div className="flex min-w-0 items-start gap-4 sm:items-center">
+            <div className="flex shrink-0 items-center justify-center rounded-full border border-neutral-200 bg-gradient-to-t from-neutral-100 p-2.5">
+              <Icon className="size-5" />
+            </div>
+            <div className="min-w-0 flex-1 pr-4">
+              <div className="text-sm font-medium text-neutral-800">
+                {title}
               </div>
-              <div className="overflow-hidden">
-                <div className="flex items-center gap-1.5 sm:gap-2.5">
-                  <div className="truncate text-sm font-medium">{title}</div>
-                </div>
-                <div className="mt-1 flex items-center gap-1 text-xs">
-                  <span className="whitespace-pre-wrap text-neutral-500">
-                    {description}
-                  </span>
-                </div>
+              <div className="mt-0.5 text-xs text-neutral-500">
+                {description}
               </div>
             </div>
-            <Switch
-              checked={preferences?.[type] ?? false}
-              disabled={isLoading}
-              fn={(checked: boolean) => {
-                if (!preferences) return;
-
-                update(
-                  () =>
-                    handleUpdate({
-                      type,
-                      value: checked,
-                      currentPreferences: preferences,
-                    }),
-                  {
-                    ...preferences,
-                    [type]: checked,
-                  },
-                );
-              }}
-            />
           </div>
-        ))}
+          <Switch
+            checked={preferences?.[type] ?? false}
+            disabled={isLoading}
+            fn={(checked: boolean) => {
+              if (!preferences) return;
+
+              update(
+                () =>
+                  handleUpdate({
+                    type,
+                    value: checked,
+                    currentPreferences: preferences,
+                  }),
+                {
+                  ...preferences,
+                  [type]: checked,
+                },
+              );
+            }}
+          />
+        </div>
+        {!isLast && <div className="border-t border-neutral-200" />}
       </div>
+    );
+  };
+
+  const renderSection = ({
+    title,
+    notifications,
+  }: {
+    title: string;
+    notifications: Array<{
+      type: string;
+      icon: React.ComponentType<{ className?: string }>;
+      title: string;
+      description: string;
+    }>;
+  }) => (
+    <div className="rounded-xl border border-neutral-200 bg-white">
+      <div className="border-b border-neutral-200 p-5">
+        <h2 className="text-base font-semibold text-neutral-900">{title}</h2>
+      </div>
+      <div className="px-5">
+        {notifications.map((notification, index) =>
+          renderNotificationItem({
+            ...notification,
+            isLast: index === notifications.length - 1,
+          }),
+        )}
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="flex flex-col gap-6">
+      {renderSection({
+        title: "Workspace",
+        notifications: workspaceNotifications,
+      })}
+      {renderSection({
+        title: "Partner program",
+        notifications: partnerProgramNotifications,
+      })}
     </div>
   );
 }
