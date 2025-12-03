@@ -5,12 +5,6 @@ import { createHash } from "crypto";
 interface CreateGroupKeyInput {
   type: FraudRuleType;
   programId: string;
-
-  /**
-   * The grouping key used to group fraud events. It can be:
-   * - partnerId: for partner-specific grouping
-   * - Any other identifier relevant to the fraud rule type
-   */
   groupingKey: string;
 }
 
@@ -20,17 +14,13 @@ interface CreateFingerprintInput
     "type" | "programId" | "partnerId" | "customerId" | "metadata"
   > {}
 
-interface GetIdentityFieldsForRuleInput
+interface GetIdentityFieldsForFraudEventInput
   extends Pick<FraudEventGroup, "partnerId" | "type"> {
   customerId?: string | null | undefined;
-  metadata?: Record<string, string> | null | undefined;
 }
 
 interface CreateGroupHashInput
-  extends Pick<
-    CreateFraudEventInput,
-    "type" | "programId" | "partnerId" | "customerId" | "metadata"
-  > {}
+  extends Pick<CreateFraudEventInput, "type" | "programId" | "partnerId"> {}
 
 // Normalize email for comparison
 export function normalizeEmail(email: string): string {
@@ -76,19 +66,19 @@ export function createFraudEventGroupKey(input: CreateGroupKeyInput): string {
 export function createFraudEventFingerprint(
   fraudEvent: CreateFingerprintInput,
 ) {
-  const identityFields = getIdentityFieldsForFraudEvent({
-    ...fraudEvent,
-    metadata: fraudEvent.metadata as Record<string, string>,
-  });
+  const identityFields = getIdentityFieldsForFraudEvent(fraudEvent);
 
   const normalizedIdentityFields = Object.keys(identityFields)
     .sort()
     .map((key) => `${key}:${identityFields[key]}`)
     .join("|");
 
-  const { programId, partnerId, type } = fraudEvent;
-
-  const raw = [programId, partnerId, type, normalizedIdentityFields]
+  const raw = [
+    fraudEvent.programId,
+    fraudEvent.partnerId,
+    fraudEvent.type,
+    normalizedIdentityFields,
+  ]
     .map((p) => p!.toLowerCase())
     .join("|");
 
@@ -101,8 +91,7 @@ function getIdentityFieldsForFraudEvent({
   type,
   partnerId,
   customerId,
-  metadata,
-}: GetIdentityFieldsForRuleInput): Record<string, string> {
+}: GetIdentityFieldsForFraudEventInput): Record<string, string> {
   switch (type) {
     case "customerEmailMatch":
     case "customerEmailSuspiciousDomain":
@@ -118,23 +107,8 @@ function getIdentityFieldsForFraudEvent({
 
     case "partnerCrossProgramBan":
     case "partnerFraudReport":
-      return {
-        partnerId,
-      };
-
     case "partnerDuplicatePayoutMethod":
-      return {
-        partnerId,
-        ...(metadata?.payoutMethodHash && {
-          payoutMethodHash: metadata.payoutMethodHash,
-        }),
-        ...(metadata?.duplicatePartnerId && {
-          duplicatePartnerId: metadata.duplicatePartnerId,
-        }),
-      };
-
-    default:
-      throw new Error(`Invalid fraud rule type: ${type}`);
+      return {};
   }
 }
 
@@ -144,19 +118,8 @@ export function createFraudGroupHash({
   programId,
   partnerId,
   type,
-  metadata,
 }: CreateGroupHashInput) {
-  const metadataFields = metadata as Record<string, string>;
-  let parts = [programId, type, partnerId];
-
-  if (
-    type === FraudRuleType.partnerDuplicatePayoutMethod &&
-    metadataFields?.payoutMethodHash
-  ) {
-    parts.push(metadataFields.payoutMethodHash);
-  }
-
-  parts = parts.map((p) => p!.toLowerCase());
+  const parts = [programId, type, partnerId].map((p) => p!.toLowerCase());
 
   return createHashKey(parts.join("|"));
 }
