@@ -40,9 +40,10 @@ function ResolveFraudEventsModal({
 
   const { executeAsync, isPending } = useAction(resolveFraudGroupAction, {
     onSuccess: async () => {
+      
       toast.success("Fraud events resolved.");
       setShowResolveFraudEventModal(false);
-      await onConfirm?.();
+      // await onConfirm?.();
     },
     onError: ({ error }) => {
       toast.error(parseActionError(error, "Failed to resolve fraud events."));
@@ -61,17 +62,20 @@ function ResolveFraudEventsModal({
     },
   });
 
-  const onSubmit = async (data: FormData) => {
-    if (!workspaceId || !fraudGroup.id) {
-      return;
-    }
+  const onSubmit = useCallback(
+    async (data: FormData) => {
+      if (!workspaceId || !fraudGroup.id) {
+        return;
+      }
 
-    await executeAsync({
-      workspaceId,
-      groupId: fraudGroup.id,
-      resolutionReason: data.resolutionReason,
-    });
-  };
+      await executeAsync({
+        workspaceId,
+        groupId: fraudGroup.id,
+        resolutionReason: data.resolutionReason,
+      });
+    },
+    [executeAsync, fraudGroup.id, workspaceId],
+  );
 
   const { partner } = fraudGroup;
 

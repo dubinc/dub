@@ -19,7 +19,7 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { OG_AVATAR_URL, cn, formatDateTime } from "@dub/utils";
-import { useResolveFraudEventsModal } from "app/app.dub.co/(dashboard)/[slug]/(ee)/program/fraud/resolve-fraud-events-modal";
+import { useResolveFraudEventsModal } from "app/app.dub.co/(dashboard)/[slug]/(ee)/program/fraud/resolve-fraud-group-modal";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Dispatch, SetStateAction, useState } from "react";
@@ -96,7 +96,7 @@ function FraudReviewSheetContent({
     <div className="relative h-full">
       <ResolveFraudEventModal />
       <BanPartnerModal />
-      {RejectPartnerApplicationModal}
+      <RejectPartnerApplicationModal />
       <div
         className={cn("flex h-full flex-col transition-opacity duration-200")}
       >

@@ -23,10 +23,5 @@ export async function resolveFraudGroups({
     },
   });
 
-  console.info(
-    `Resolved ${count} fraud event groups.`,
-    JSON.stringify(where, null, 2),
-  );
-
   return count;
 }
