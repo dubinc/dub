@@ -464,13 +464,13 @@ function RowMenuButton({
   row: Row<FraudGroupProps>;
   workspaceId: string;
 }) {
-  const fraudEvent = row.original;
-  const partner = fraudEvent.partner;
+  const fraudGroup = row.original;
+  const partner = fraudGroup.partner;
 
   const [isOpen, setIsOpen] = useState(false);
 
   const { BanPartnerModal, setShowBanPartnerModal } = useBanPartnerModal({
-    partner: fraudEvent.partner,
+    partner: fraudGroup.partner,
     onConfirm: async () => {
       await mutatePrefix("/api/fraud/groups");
     },
@@ -486,7 +486,7 @@ function RowMenuButton({
     },
   });
 
-  if (fraudEvent.status !== "pending" || !partner) {
+  if (fraudGroup.status !== "pending" || !partner) {
     return null;
   }
 
