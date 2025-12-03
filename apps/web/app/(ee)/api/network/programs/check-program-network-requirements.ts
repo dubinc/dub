@@ -1,4 +1,4 @@
-import { LARGE_PROGRAM_IDS } from "@/lib/constants/program";
+import { LARGE_PROGRAM_IDS } from "@/lib/constants/partner-profile";
 import { PartnerProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 
