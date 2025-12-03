@@ -96,8 +96,8 @@ function FraudReviewSheetContent({
   return (
     <div className="relative h-full">
       {ResolveFraudEventModal}
-      {BanPartnerModal}
       {RejectPartnerApplicationModal}
+      <BanPartnerModal />
       <div
         className={cn("flex h-full flex-col transition-opacity duration-200")}
       >

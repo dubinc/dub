@@ -192,23 +192,22 @@ export function useBanPartnerModal({
 }) {
   const [showBanPartnerModal, setShowBanPartnerModal] = useState(false);
 
-  const BanPartnerModalComponent = useMemo(
-    () => (
+  const BanPartnerModalCallback = useCallback(() => {
+    return (
       <BanPartnerModal
         showBanPartnerModal={showBanPartnerModal}
         setShowBanPartnerModal={setShowBanPartnerModal}
         partner={partner}
         onConfirm={onConfirm}
       />
-    ),
-    [showBanPartnerModal, setShowBanPartnerModal, partner, onConfirm],
-  );
+    );
+  }, [showBanPartnerModal, setShowBanPartnerModal, partner, onConfirm]);
 
   return useMemo(
     () => ({
       setShowBanPartnerModal,
-      BanPartnerModal: BanPartnerModalComponent,
+      BanPartnerModal: BanPartnerModalCallback,
     }),
-    [setShowBanPartnerModal, BanPartnerModalComponent],
+    [setShowBanPartnerModal, BanPartnerModalCallback],
   );
 }
