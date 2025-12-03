@@ -1,4 +1,5 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
+import { Folder, Link } from "@dub/prisma/client";
 import { prismaEdge } from "@dub/prisma/edge";
 import {
   GOOGLE_FAVICON_URL,
@@ -16,31 +17,57 @@ export async function GET(req: NextRequest) {
     new URL("@/styles/Inter-Medium.ttf", import.meta.url),
   ).then((res) => res.arrayBuffer());
 
-  const domain = req.nextUrl.searchParams.get("domain") || "dub.sh";
-  const key = req.nextUrl.searchParams.get("key") || "github";
+  const linkId = req.nextUrl.searchParams.get("linkId");
+  const folderId = req.nextUrl.searchParams.get("folderId");
 
-  const link = await prismaEdge.link.findUnique({
-    where: {
-      domain_key: {
-        domain,
-        key,
-      },
-    },
-    include: {
-      dashboard: true,
-    },
-  });
-
-  if (!link) {
-    return new Response(`Link not found`, {
-      status: 404,
+  if (!linkId && !folderId) {
+    return new Response("Missing linkId or folderId", {
+      status: 400,
     });
   }
 
-  if (!link.dashboard) {
-    return new Response("Link does not have a public analytics dashboard", {
-      status: 403,
+  let workspaceId: string | null = null;
+  let link: Pick<Link, "domain" | "key" | "url"> | null = null;
+  let folder: Pick<Folder, "id" | "name"> | null = null;
+  if (linkId) {
+    const data = await prismaEdge.link.findUniqueOrThrow({
+      where: {
+        id: linkId,
+      },
+      include: {
+        dashboard: true,
+      },
     });
+    if (!data.dashboard) {
+      return new Response("Link does not have a public analytics dashboard", {
+        status: 403,
+      });
+    }
+    workspaceId = data.projectId;
+    link = {
+      domain: data.domain,
+      key: data.key,
+      url: data.url,
+    };
+  } else if (folderId) {
+    const data = await prismaEdge.folder.findUniqueOrThrow({
+      where: {
+        id: folderId,
+      },
+      include: {
+        dashboard: true,
+      },
+    });
+    if (!data.dashboard) {
+      return new Response("Folder does not have a public analytics dashboard", {
+        status: 403,
+      });
+    }
+    workspaceId = data.projectId;
+    folder = {
+      id: data.id,
+      name: data.name,
+    };
   }
 
   const { startDate, endDate, granularity } = getStartEndDates({
@@ -48,10 +75,12 @@ export async function GET(req: NextRequest) {
   });
 
   const timeseriesData = await fetch(
-    `https://api.us-east.tinybird.co/v0/pipes/v2_timeseries.json?${new URLSearchParams(
+    `https://api.us-east.tinybird.co/v0/pipes/v3_timeseries.json?${new URLSearchParams(
       {
         event: "clicks",
-        linkId: link.id,
+        ...(workspaceId ? { workspaceId } : {}),
+        ...(folderId ? { folderId } : {}),
+        ...(linkId ? { linkId } : {}),
         start: startDate.toISOString().replace("T", " ").replace("Z", ""),
         end: endDate.toISOString().replace("T", " ").replace("Z", ""),
         granularity,
@@ -78,28 +107,43 @@ export async function GET(req: NextRequest) {
   return new ImageResponse(
     (
       <div tw="flex flex-col bg-[#f9fafb] w-full h-full p-16">
-        <div tw="flex justify-between items-center">
+        <div tw="flex justify-between items-center mb-4">
           <div tw="flex items-center">
-            <img
-              tw="rounded-full w-10 h-10"
-              src={`${GOOGLE_FAVICON_URL}${getApexDomain(link.url || "dub.co")}`}
-              alt="favicon"
-            />
-            <h1 tw="text-4xl font-bold ml-4">
-              {linkConstructor({ domain, key, pretty: true })}
-            </h1>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="currentColor"
-              viewBox="0 0 16 16"
-              width="24"
-              height="24"
-            >
-              <path
-                fillRule="evenodd"
-                d="M6.22 3.22a.75.75 0 011.06 0l4.25 4.25a.75.75 0 010 1.06l-4.25 4.25a.75.75 0 01-1.06-1.06L9.94 8 6.22 4.28a.75.75 0 010-1.06z"
-              />
-            </svg>
+            {folder ? (
+              <>
+                <div tw="flex items-center justify-center rounded-md bg-blue-100 border border-blue-200 w-10 h-10">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#1E40AF"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    width="20"
+                    height="20"
+                  >
+                    <path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z" />
+                  </svg>
+                </div>
+                <h1 tw="text-4xl font-bold ml-4 my-0">{folder.name}</h1>
+              </>
+            ) : (
+              <>
+                <img
+                  tw="rounded-full w-10 h-10"
+                  src={`${GOOGLE_FAVICON_URL}${getApexDomain(link?.url || "dub.co")}`}
+                  alt="favicon"
+                />
+                <h1 tw="text-4xl font-bold ml-4 my-0">
+                  {linkConstructor({
+                    domain: link?.domain || "",
+                    key: link?.key || "",
+                    pretty: true,
+                  })}
+                </h1>
+              </>
+            )}
           </div>
 
           <div tw="flex items-center rounded-md border border-neutral-200 bg-white shadow-sm h-12 px-6">
@@ -119,7 +163,7 @@ export async function GET(req: NextRequest) {
               <rect width="18" height="18" x="3" y="4" rx="2" />
               <path d="M3 10h18" />
             </svg>
-            <p tw="text-neutral-700 ml-2 mt-4">Last 24 hours</p>
+            <p tw="text-neutral-700 ml-2 mt-4">Last 30 days</p>
           </div>
         </div>
         <div tw="flex flex-col h-full w-full rounded-lg border border-neutral-200 bg-white shadow-lg overflow-hidden">

@@ -13,9 +13,16 @@ export const getDashboard = cache(async ({ id }: { id: string }) => {
       showConversions: true,
       link: {
         select: {
+          id: true,
           domain: true,
           key: true,
           url: true,
+        },
+      },
+      folder: {
+        select: {
+          id: true,
+          name: true,
         },
       },
       project: {
