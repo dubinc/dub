@@ -2,7 +2,6 @@
 
 import { resolveFraudGroupAction } from "@/lib/actions/fraud/resolve-fraud-group";
 import { parseActionError } from "@/lib/actions/parse-action-errors";
-import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { FraudGroupProps } from "@/lib/types";
 import {
@@ -35,16 +34,15 @@ function ResolveFraudEventsModal({
   showResolveFraudEventModal: boolean;
   setShowResolveFraudEventModal: Dispatch<SetStateAction<boolean>>;
   fraudGroup: FraudGroupProps;
-  onConfirm?: () => void;
+  onConfirm?: () => Promise<void>;
 }) {
   const { id: workspaceId } = useWorkspace();
 
   const { executeAsync, isPending } = useAction(resolveFraudGroupAction, {
-    onSuccess: () => {
+    onSuccess: async () => {
       toast.success("Fraud events resolved.");
       setShowResolveFraudEventModal(false);
-      mutatePrefix("/api/fraud/groups");
-      onConfirm?.();
+      await onConfirm?.();
     },
     onError: ({ error }) => {
       toast.error(parseActionError(error, "Failed to resolve fraud events."));
@@ -63,20 +61,17 @@ function ResolveFraudEventsModal({
     },
   });
 
-  const onSubmit = useCallback(
-    async (data: FormData) => {
-      if (!workspaceId || !fraudGroup.id) {
-        return;
-      }
+  const onSubmit = async (data: FormData) => {
+    if (!workspaceId || !fraudGroup.id) {
+      return;
+    }
 
-      await executeAsync({
-        workspaceId,
-        groupId: fraudGroup.id,
-        resolutionReason: data.resolutionReason,
-      });
-    },
-    [fraudGroup, workspaceId, executeAsync],
-  );
+    await executeAsync({
+      workspaceId,
+      groupId: fraudGroup.id,
+      resolutionReason: data.resolutionReason,
+    });
+  };
 
   const { partner } = fraudGroup;
 
@@ -170,7 +165,7 @@ export function useResolveFraudEventsModal({
   onConfirm,
 }: {
   fraudGroup: FraudGroupProps;
-  onConfirm?: () => void;
+  onConfirm?: () => Promise<void>;
 }) {
   const [showResolveFraudEventModal, setShowResolveFraudEventModal] =
     useState(false);
