@@ -1,6 +1,6 @@
 import { CreateFraudEventInput } from "@/lib/types";
 import { prisma } from "@dub/prisma";
-import { FraudRuleType, Prisma } from "@dub/prisma/client";
+import { Prisma } from "@dub/prisma/client";
 import { createId } from "../create-id";
 import {
   createFraudEventFingerprint,
@@ -103,9 +103,10 @@ export async function createFraudEvents(fraudEvents: CreateFraudEventInput[]) {
         customerId: e.customerId,
         metadata: e.metadata as Prisma.InputJsonValue,
         fingerprint: e.fingerprint,
-        ...(e.type === FraudRuleType.partnerDuplicatePayoutMethod && {
-          partnerId: (e.metadata as Record<string, string>)?.duplicatePartnerId,
-        }),
+        partnerId:
+          e.type === "partnerDuplicatePayoutMethod"
+            ? (e.metadata as Record<string, string>)?.duplicatePartnerId
+            : e.partnerId,
 
         // DEPRECATED FIELDS: TODO – remove after migration
         programId: e.programId,

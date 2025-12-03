@@ -54,6 +54,7 @@ export const GET = withWorkspace(
 
       eventGroupType = fraudGroup.type;
 
+      // Special case for partnerCrossProgramBan rule type
       if (eventGroupType === FraudRuleType.partnerCrossProgramBan) {
         const bannedProgramEnrollments =
           await prisma.programEnrollment.findMany({

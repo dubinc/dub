@@ -1,5 +1,3 @@
-import "server-only";
-
 import { CreateFraudEventInput } from "@/lib/types";
 import { FraudEventGroup, FraudRuleType } from "@dub/prisma/client";
 import { createHash } from "crypto";
