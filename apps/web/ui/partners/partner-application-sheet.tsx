@@ -308,9 +308,6 @@ function PartnerRejectButton({
     partner,
     onConfirm: async () => {
       onNext ? onNext() : setIsOpen(false);
-      toast.success(
-        `Partner ${partner.email} has been rejected from your program.`,
-      );
       await mutatePrefix("/api/partners");
     },
     confirmShortcutOptions: { sheet: true, modal: true },

@@ -19,7 +19,7 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { OG_AVATAR_URL, cn, formatDateTime } from "@dub/utils";
-import { useResolveFraudEventsModal } from "app/app.dub.co/(dashboard)/[slug]/(ee)/program/fraud/resolve-fraud-group-modal";
+import { useResolveFraudGroupModal } from "app/app.dub.co/(dashboard)/[slug]/(ee)/program/fraud/resolve-fraud-group-modal";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Dispatch, SetStateAction } from "react";
@@ -42,8 +42,8 @@ function FraudReviewSheetContent({
 
   const { slug } = useParams();
 
-  const { setShowResolveFraudEventModal, ResolveFraudEventModal } =
-    useResolveFraudEventsModal({
+  const { setShowResolveFraudGroupModal, ResolveFraudGroupModal } =
+    useResolveFraudGroupModal({
       fraudGroup,
       onConfirm: async () => {
         onNext?.();
@@ -75,7 +75,7 @@ function FraudReviewSheetContent({
   useKeyboardShortcut("ArrowLeft", () => onPrevious?.(), { sheet: true });
 
   // Resolve/ban/reject shortcuts
-  useKeyboardShortcut("r", () => setShowResolveFraudEventModal(true), {
+  useKeyboardShortcut("r", () => setShowResolveFraudGroupModal(true), {
     sheet: true,
   });
 
@@ -95,7 +95,7 @@ function FraudReviewSheetContent({
 
   return (
     <div className="relative h-full">
-      {ResolveFraudEventModal}
+      {ResolveFraudGroupModal}
       {RejectPartnerApplicationModal}
       <BanPartnerModal />
       <div
@@ -283,7 +283,7 @@ function FraudReviewSheetContent({
                 variant="secondary"
                 text="Resolve event"
                 shortcut="R"
-                onClick={() => setShowResolveFraudEventModal(true)}
+                onClick={() => setShowResolveFraudGroupModal(true)}
                 className="h-8 w-fit rounded-lg"
               />
 

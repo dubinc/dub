@@ -25,14 +25,14 @@ import { z } from "zod";
 
 type FormData = z.infer<typeof resolveFraudGroupSchema>;
 
-function ResolveFraudEventsModal({
-  showResolveFraudEventModal,
-  setShowResolveFraudEventModal,
+function ResolveFraudGroupModal({
+  showResolveFraudGroupModal,
+  setShowResolveFraudGroupModal,
   fraudGroup,
   onConfirm,
 }: {
-  showResolveFraudEventModal: boolean;
-  setShowResolveFraudEventModal: Dispatch<SetStateAction<boolean>>;
+  showResolveFraudGroupModal: boolean;
+  setShowResolveFraudGroupModal: Dispatch<SetStateAction<boolean>>;
   fraudGroup: FraudGroupProps;
   onConfirm?: () => Promise<void>;
 }) {
@@ -41,7 +41,7 @@ function ResolveFraudEventsModal({
   const { executeAsync, isPending } = useAction(resolveFraudGroupAction, {
     onSuccess: async () => {
       toast.success("Fraud events resolved.");
-      setShowResolveFraudEventModal(false);
+      setShowResolveFraudGroupModal(false);
       await onConfirm?.();
     },
     onError: ({ error }) => {
@@ -80,8 +80,8 @@ function ResolveFraudEventsModal({
 
   return (
     <Modal
-      showModal={showResolveFraudEventModal}
-      setShowModal={setShowResolveFraudEventModal}
+      showModal={showResolveFraudGroupModal}
+      setShowModal={setShowResolveFraudGroupModal}
     >
       <div className="border-b border-neutral-200 p-4 sm:p-6">
         <h3 className="text-lg font-medium leading-none">Resolve events</h3>
@@ -143,7 +143,7 @@ function ResolveFraudEventsModal({
 
         <div className="flex items-center justify-end gap-2 bg-neutral-50 px-4 pb-5 sm:px-6">
           <Button
-            onClick={() => setShowResolveFraudEventModal(false)}
+            onClick={() => setShowResolveFraudGroupModal(false)}
             variant="secondary"
             text="Cancel"
             className="h-8 w-fit px-3"
@@ -163,28 +163,28 @@ function ResolveFraudEventsModal({
   );
 }
 
-export function useResolveFraudEventsModal({
+export function useResolveFraudGroupModal({
   fraudGroup,
   onConfirm,
 }: {
   fraudGroup: FraudGroupProps;
   onConfirm?: () => Promise<void>;
 }) {
-  const [showResolveFraudEventModal, setShowResolveFraudEventModal] =
+  const [showResolveFraudGroupModal, setShowResolveFraudGroupModal] =
     useState(false);
 
-  const ResolveFraudEventModalComponent = useMemo(
+  const ResolveFraudGroupModalComponent = useMemo(
     () => (
-      <ResolveFraudEventsModal
-        showResolveFraudEventModal={showResolveFraudEventModal}
-        setShowResolveFraudEventModal={setShowResolveFraudEventModal}
+      <ResolveFraudGroupModal
+        showResolveFraudGroupModal={showResolveFraudGroupModal}
+        setShowResolveFraudGroupModal={setShowResolveFraudGroupModal}
         fraudGroup={fraudGroup}
         onConfirm={onConfirm}
       />
     ),
     [
-      showResolveFraudEventModal,
-      setShowResolveFraudEventModal,
+      showResolveFraudGroupModal,
+      setShowResolveFraudGroupModal,
       fraudGroup,
       onConfirm,
     ],
@@ -192,9 +192,9 @@ export function useResolveFraudEventsModal({
 
   return useMemo(
     () => ({
-      setShowResolveFraudEventModal,
-      ResolveFraudEventModal: ResolveFraudEventModalComponent,
+      setShowResolveFraudGroupModal,
+      ResolveFraudGroupModal: ResolveFraudGroupModalComponent,
     }),
-    [setShowResolveFraudEventModal, ResolveFraudEventModalComponent],
+    [setShowResolveFraudGroupModal, ResolveFraudGroupModalComponent],
   );
 }
