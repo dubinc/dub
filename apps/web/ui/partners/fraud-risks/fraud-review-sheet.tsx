@@ -4,6 +4,7 @@ import { FRAUD_RULES_BY_TYPE } from "@/lib/api/fraud/constants";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { FraudGroupProps } from "@/lib/types";
 import { useBanPartnerModal } from "@/ui/modals/ban-partner-modal";
+import { useRejectPartnerApplicationModal } from "@/ui/modals/reject-partner-application-modal";
 import { X } from "@/ui/shared/icons";
 import {
   Button,
@@ -57,15 +58,36 @@ function FraudReviewSheetContent({
     },
   });
 
+  const {
+    RejectPartnerApplicationModal,
+    setShowRejectPartnerApplicationModal,
+  } = useRejectPartnerApplicationModal({
+    partner,
+    onConfirm: async () => {
+      onNext?.();
+      mutatePrefix("/api/fraud/groups");
+    },
+  });
+
   // Left/right arrow keys for previous/next fraud event
   useKeyboardShortcut("ArrowRight", () => onNext?.(), { sheet: true });
   useKeyboardShortcut("ArrowLeft", () => onPrevious?.(), { sheet: true });
 
-  // Resolve/ban shortcuts
+  // Resolve/ban/reject shortcuts
   useKeyboardShortcut("r", () => setShowResolveFraudEventModal(true), {
     sheet: true,
   });
-  useKeyboardShortcut("b", () => setShowBanPartnerModal(true), { sheet: true });
+  useKeyboardShortcut(
+    "b",
+    () => {
+      if (partner.status === "pending") {
+        setShowRejectPartnerApplicationModal(true);
+      } else {
+        setShowBanPartnerModal(true);
+      }
+    },
+    { sheet: true },
+  );
 
   const fraudRuleInfo = FRAUD_RULES_BY_TYPE[fraudGroup.type];
 
@@ -73,6 +95,7 @@ function FraudReviewSheetContent({
     <div className="relative h-full">
       <ResolveFraudEventModal />
       <BanPartnerModal />
+      {RejectPartnerApplicationModal}
       <div
         className={cn("flex h-full flex-col transition-opacity duration-200")}
       >
@@ -262,14 +285,25 @@ function FraudReviewSheetContent({
                 className="h-8 w-fit rounded-lg"
               />
 
-              <Button
-                type="button"
-                text="Ban partner"
-                shortcut="B"
-                variant="danger"
-                onClick={() => setShowBanPartnerModal(true)}
-                className="h-8 w-fit rounded-lg"
-              />
+              {partner.status === "pending" ? (
+                <Button
+                  type="button"
+                  text="Reject application"
+                  shortcut="B"
+                  variant="danger"
+                  onClick={() => setShowRejectPartnerApplicationModal(true)}
+                  className="h-8 w-fit rounded-lg"
+                />
+              ) : (
+                <Button
+                  type="button"
+                  text="Ban partner"
+                  shortcut="B"
+                  variant="danger"
+                  onClick={() => setShowBanPartnerModal(true)}
+                  className="h-8 w-fit rounded-lg"
+                />
+              )}
             </div>
           </div>
         )}
