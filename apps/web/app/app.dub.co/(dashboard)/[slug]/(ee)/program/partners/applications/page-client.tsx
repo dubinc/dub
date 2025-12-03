@@ -1,7 +1,6 @@
 "use client";
 
-import { bulkRejectPartnersAction } from "@/lib/actions/partners/bulk-reject-partners";
-import { rejectPartnerApplicationAction } from "@/lib/actions/partners/reject-partner-application";
+import { bulkRejectPartnerApplicationsAction } from "@/lib/actions/partners/bulk-reject-partner-applications";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useGroups from "@/lib/swr/use-groups";
 import usePartner from "@/lib/swr/use-partner";
@@ -10,6 +9,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
 import { useBulkApprovePartnersModal } from "@/ui/modals/bulk-approve-partners-modal";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
+import { useRejectPartnerApplicationModal } from "@/ui/modals/reject-partner-application-modal";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerApplicationSheet } from "@/ui/partners/partner-application-sheet";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
@@ -19,7 +19,6 @@ import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import {
   AnimatedSizeContainer,
   Button,
-  Checkbox,
   EditColumnsButton,
   Filter,
   MenuItem,
@@ -30,7 +29,7 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { Dots, LoadingSpinner, Users, UserXmark } from "@dub/ui/icons";
+import { Dots, Users, UserXmark } from "@dub/ui/icons";
 import {
   COUNTRIES,
   fetcher,
@@ -132,7 +131,7 @@ export function ProgramPartnersApplicationsPageClient() {
     });
 
   const { executeAsync: rejectPartners, isPending: isRejectingPartners } =
-    useAction(bulkRejectPartnersAction, {
+    useAction(bulkRejectPartnerApplicationsAction, {
       onError: ({ error }) => {
         toast.error(error.serverError);
       },
@@ -527,57 +526,20 @@ function RowMenuButton({
   workspaceId: string;
 }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [reportFraud, setReportFraud] = useState(false);
 
   const {
-    executeAsync: rejectPartnerApplication,
-    isPending: isRejectingPartner,
-  } = useAction(rejectPartnerApplicationAction, {
-    onSuccess: () => {
-      toast.success("Partner application rejected.");
-      mutatePrefix(["/api/partners", "/api/partners/count"]);
-      setReportFraud(false);
-    },
-    onError: ({ error }) => {
-      toast.error(error.serverError);
+    RejectPartnerApplicationModal,
+    setShowRejectPartnerApplicationModal,
+  } = useRejectPartnerApplicationModal({
+    partner: row.original,
+    onConfirm: async () => {
+      await mutatePrefix(["/api/partners", "/api/partners/count"]);
     },
   });
 
-  const { setShowConfirmModal: setShowRejectModal, confirmModal: rejectModal } =
-    useConfirmModal({
-      title: "Reject Application",
-      description: (
-        <div>
-          <p>Are you sure you want to reject this partner application?</p>
-          <label className="mt-5 flex items-start gap-2.5 text-sm font-medium">
-            <Checkbox
-              className="border-border-default mt-1 size-4 rounded focus:border-[var(--brand)] focus:ring-[var(--brand)] focus-visible:border-[var(--brand)] focus-visible:ring-[var(--brand)] data-[state=checked]:bg-black data-[state=indeterminate]:bg-black"
-              checked={reportFraud}
-              onCheckedChange={(checked) => setReportFraud(Boolean(checked))}
-            />
-            <span className="text-content-emphasis text-sm font-normal leading-5">
-              Select this if you believe the application shows signs of fraud.
-              This helps keep the network safe.
-            </span>
-          </label>
-        </div>
-      ),
-      confirmText: "Reject",
-      onConfirm: async () => {
-        await rejectPartnerApplication({
-          workspaceId: workspaceId!,
-          partnerId: row.original.id,
-          reportFraud,
-        });
-      },
-      onCancel: () => {
-        setReportFraud(false);
-      },
-    });
-
   return (
     <>
-      {rejectModal}
+      {RejectPartnerApplicationModal}
       <Popover
         openPopover={isOpen}
         setOpenPopover={setIsOpen}
@@ -590,7 +552,7 @@ function RowMenuButton({
                 variant="danger"
                 onSelect={() => {
                   setIsOpen(false);
-                  setShowRejectModal(true);
+                  setShowRejectPartnerApplicationModal(true);
                 }}
               >
                 Reject application
@@ -604,13 +566,7 @@ function RowMenuButton({
           type="button"
           className="h-8 whitespace-nowrap px-2"
           variant="outline"
-          icon={
-            isRejectingPartner ? (
-              <LoadingSpinner className="size-4 shrink-0" />
-            ) : (
-              <Dots className="size-4 shrink-0" />
-            )
-          }
+          icon={<Dots className="size-4 shrink-0" />}
         />
       </Popover>
     </>
