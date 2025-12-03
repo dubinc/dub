@@ -234,7 +234,7 @@ export const FolderActions = ({
             </div>
           </div>
         }
-        align="start"
+        align="end"
         openPopover={openPopover}
         setOpenPopover={setOpenPopover}
       >

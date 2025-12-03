@@ -1,7 +1,6 @@
 "use client";
 
 import useCurrentFolderId from "@/lib/swr/use-current-folder-id";
-import useFolder from "@/lib/swr/use-folder";
 import {
   useCheckFolderPermission,
   useFolderPermissions,
@@ -25,7 +24,6 @@ import { useAddEditTagModal } from "@/ui/modals/add-edit-tag-modal";
 import { useDotLinkOfferModal } from "@/ui/modals/dot-link-offer-modal";
 import { useExportLinksModal } from "@/ui/modals/export-links-modal";
 import { useLinkBuilder } from "@/ui/modals/link-builder";
-import { useShareDashboardModal } from "@/ui/modals/share-dashboard-modal";
 import { ThreeDots } from "@/ui/shared/icons";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import {
@@ -35,10 +33,9 @@ import {
   Popover,
   Tooltip,
   TooltipContent,
-  useMediaQuery,
   useRouterStuff,
 } from "@dub/ui";
-import { Download, Globe, ReferredVia, TableIcon, Tag } from "@dub/ui/icons";
+import { Download, Globe, TableIcon, Tag } from "@dub/ui/icons";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import posthog from "posthog-js";
@@ -85,36 +82,12 @@ export default function WorkspaceLinksClient() {
 export function WorkspaceLinksPageControls() {
   const { LinkBuilder, CreateLinkButton } = useLinkBuilder();
 
-  const { folderId } = useCurrentFolderId();
-  const { folder } = useFolder({ folderId });
-
   return (
     <>
       <LinkBuilder />
-      {folderId && folder && <ShareDashboardButton folderId={folderId} />}
       <div className="hidden sm:block">
         <CreateLinkButton className="h-9" />
       </div>
-    </>
-  );
-}
-
-function ShareDashboardButton({ folderId }: { folderId: string }) {
-  const { isMobile } = useMediaQuery();
-
-  const { ShareDashboardModal, setShowShareDashboardModal } =
-    useShareDashboardModal({ folderId });
-
-  return (
-    <>
-      <ShareDashboardModal />
-      <Button
-        variant="secondary"
-        onClick={() => setShowShareDashboardModal(true)}
-        icon={<ReferredVia className="size-4" />}
-        text={isMobile ? undefined : "Share"}
-        className="animate-fade-in h-9 w-fit max-sm:px-3"
-      />
     </>
   );
 }
