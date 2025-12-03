@@ -75,14 +75,10 @@ export function createFraudEventGroupKey(input: CreateGroupKeyInput): string {
 }
 
 // Creates a unique fingerprint for a fraud event to enable deduplication.
-// The fingerprint is generated based on the programId, partnerId, fraud type,
-// and identity fields specific to that rule type (e.g., customerId, payoutMethodHash).
 export function createFraudEventFingerprint(
   fraudEvent: CreateFingerprintInput,
 ) {
-  const { programId, partnerId, type } = fraudEvent;
-
-  const identityFields = getIdentityFieldsForRule({
+  const identityFields = getIdentityFieldsForFraudEvent({
     ...fraudEvent,
     metadata: fraudEvent.metadata as Record<string, string>,
   });
@@ -91,6 +87,8 @@ export function createFraudEventFingerprint(
     .sort()
     .map((key) => `${key}:${identityFields[key]}`)
     .join("|");
+
+  const { programId, partnerId, type } = fraudEvent;
 
   const raw = [programId, partnerId, type, normalizedIdentityFields]
     .map((p) => p!.toLowerCase())
@@ -101,7 +99,7 @@ export function createFraudEventFingerprint(
 
 // Determines which identity fields should be used for fraud event fingerprinting based on the fraud rule type.
 // Different fraud rules use different combinations of fields to uniquely identify fraud events.
-function getIdentityFieldsForRule({
+function getIdentityFieldsForFraudEvent({
   type,
   partnerId,
   customerId,
@@ -141,8 +139,6 @@ function getIdentityFieldsForRule({
 
 // Get the group hash for a fraud rule type.
 // This determines which events should be grouped together.
-// For partnerDuplicatePayoutMethod: groups by payoutMethodHash (multiple partners can share same group)
-// For other rules: groups by partnerId (one group per partner)
 export function createFraudGroupHash({
   programId,
   partnerId,
@@ -150,16 +146,14 @@ export function createFraudGroupHash({
   metadata,
 }: CreateGroupHashInput) {
   const metadataFields = metadata as Record<string, string>;
-  let parts = [programId, type];
+  let parts = [programId, type, partnerId];
 
   if (type === FraudRuleType.partnerDuplicatePayoutMethod) {
     if (!metadataFields?.payoutMethodHash) {
       throw new Error(`payoutMethodHash is required for ${type} fraud rule.`);
     }
 
-    parts.push(partnerId, metadataFields.payoutMethodHash);
-  } else {
-    parts.push(partnerId);
+    parts.push(metadataFields.payoutMethodHash);
   }
 
   parts = parts.map((p) => p!.toLowerCase());
