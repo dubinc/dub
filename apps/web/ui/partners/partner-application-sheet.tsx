@@ -322,7 +322,7 @@ function PartnerRejectButton({
 
   return (
     <>
-      {RejectPartnerApplicationModal}
+      <RejectPartnerApplicationModal />
       <Button
         type="button"
         variant="secondary"
