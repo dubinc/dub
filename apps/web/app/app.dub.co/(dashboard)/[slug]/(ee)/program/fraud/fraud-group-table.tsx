@@ -77,7 +77,7 @@ export function FraudGroupTable() {
     }
   }, [searchParams]);
 
-  const { currentFraudEventGroup } = useCurrentFraudEventGroup({
+  const { currentFraudGroup } = useCurrentFraudGroup({
     fraudGroups,
     groupId: detailsSheetState.groupId,
   });
@@ -322,13 +322,13 @@ export function FraudGroupTable() {
     <div className="flex flex-col gap-6">
       <BulkBanPartnersModal />
       <BulkResolveFraudGroupsModal />
-      {detailsSheetState.groupId && currentFraudEventGroup && (
+      {detailsSheetState.groupId && currentFraudGroup && (
         <FraudReviewSheet
           isOpen={detailsSheetState.open}
           setIsOpen={(open) =>
             setDetailsSheetState((s) => ({ ...s, open }) as any)
           }
-          fraudGroup={currentFraudEventGroup}
+          fraudGroup={currentFraudGroup}
           onPrevious={
             previousGroupId
               ? () =>
@@ -579,19 +579,19 @@ function MenuItem({
 }
 
 // Gets the current fraud event from the loaded array if available, or a separate fetch if not
-function useCurrentFraudEventGroup({
+function useCurrentFraudGroup({
   fraudGroups,
   groupId,
 }: {
   fraudGroups?: FraudGroupProps[];
   groupId: string | null;
 }) {
-  let currentFraudEventGroup = groupId
+  let currentFraudGroup = groupId
     ? fraudGroups?.find((fraudGroup) => fraudGroup.id === groupId)
     : null;
 
   const shouldFetch =
-    fraudGroups && groupId && !currentFraudEventGroup ? groupId : null;
+    fraudGroups && groupId && !currentFraudGroup ? groupId : null;
 
   const { fraudGroups: fetchedFraudEventGroups, loading: isLoading } =
     useFraudGroups({
@@ -599,12 +599,12 @@ function useCurrentFraudEventGroup({
       enabled: Boolean(shouldFetch),
     });
 
-  if (!currentFraudEventGroup && fetchedFraudEventGroups?.[0]?.id === groupId) {
-    currentFraudEventGroup = fetchedFraudEventGroups[0];
+  if (!currentFraudGroup && fetchedFraudEventGroups?.[0]?.id === groupId) {
+    currentFraudGroup = fetchedFraudEventGroups[0];
   }
 
   return {
-    currentFraudEventGroup,
+    currentFraudGroup,
     isLoading,
   };
 }
