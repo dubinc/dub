@@ -1,5 +1,5 @@
 import { CreateFraudEventInput } from "@/lib/types";
-import { FraudEventGroup, FraudRuleType } from "@dub/prisma/client";
+import { FraudEventGroup, FraudRuleType, Prisma } from "@dub/prisma/client";
 import { createHash } from "crypto";
 
 interface CreateGroupKeyInput {
@@ -159,4 +159,19 @@ export function createFraudGroupHash({
   parts = parts.map((p) => p!.toLowerCase());
 
   return createHashKey(parts.join("|"));
+}
+
+// Sanitize metadata by removing fields that are stored separately or shouldn't be persisted
+export function sanitizeFraudEventMetadata(
+  metadata: Prisma.JsonValue | undefined,
+) {
+  if (!metadata) {
+    return undefined;
+  }
+
+  const sanitized = metadata as Record<string, any>;
+
+  delete sanitized.duplicatePartnerId;
+
+  return Object.keys(sanitized).length > 0 ? sanitized : undefined;
 }

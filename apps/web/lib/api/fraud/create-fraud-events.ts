@@ -6,6 +6,7 @@ import {
   createFraudEventFingerprint,
   createFraudEventGroupKey,
   createFraudGroupHash,
+  sanitizeFraudEventMetadata,
 } from "./utils";
 
 export async function createFraudEvents(fraudEvents: CreateFraudEventInput[]) {
@@ -101,7 +102,7 @@ export async function createFraudEvents(fraudEvents: CreateFraudEventInput[]) {
         eventId: e.eventId,
         linkId: e.linkId,
         customerId: e.customerId,
-        metadata: e.metadata as Prisma.InputJsonValue,
+        metadata: sanitizeFraudEventMetadata(e.metadata),
         fingerprint: e.fingerprint,
         partnerId:
           e.type === "partnerDuplicatePayoutMethod"
