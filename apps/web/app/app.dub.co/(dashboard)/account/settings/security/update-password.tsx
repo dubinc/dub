@@ -9,13 +9,7 @@ import { z } from "zod";
 
 // Allow the user to update their existing password
 export const UpdatePassword = () => {
-import { zodResolver } from "@hookform/resolvers/zod";
-
-// Allow the user to update their existing password
-export const UpdatePassword = () => {
-  const form = useForm<z.infer<typeof updatePasswordSchema>>({
-    resolver: zodResolver(updatePasswordSchema),
-  });
+  const form = useForm<z.infer<typeof updatePasswordSchema>>();
   const {
     register,
     handleSubmit,
