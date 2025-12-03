@@ -369,6 +369,27 @@ export function useAnalyticsFilters({
       ) ?? null,
   };
 
+  const DomainFilterItem = {
+    key: "domain",
+    icon: Globe2,
+    label: "Domain",
+    getOptionIcon: (value) => (
+      <BlurImage
+        src={`${GOOGLE_FAVICON_URL}${value}`}
+        alt={value}
+        className="h-4 w-4 rounded-full"
+        width={16}
+        height={16}
+      />
+    ),
+    options:
+      domains?.map(({ domain, ...rest }) => ({
+        value: domain,
+        label: domain,
+        right: getFilterOptionTotal(rest),
+      })) ?? null,
+  };
+
   const SaleTypeFilterItem = {
     key: "saleType",
     icon: Receipt2,
@@ -403,7 +424,9 @@ export function useAnalyticsFilters({
           })) ?? null,
       },
       ...(dashboardProps
-        ? []
+        ? dashboardProps.key
+          ? []
+          : [DomainFilterItem, LinkFilterItem]
         : programPage
           ? [
               {
@@ -501,26 +524,7 @@ export function useAnalyticsFilters({
                       right: getFilterOptionTotal(rest),
                     })) ?? null,
                 },
-                {
-                  key: "domain",
-                  icon: Globe2,
-                  label: "Domain",
-                  getOptionIcon: (value) => (
-                    <BlurImage
-                      src={`${GOOGLE_FAVICON_URL}${value}`}
-                      alt={value}
-                      className="h-4 w-4 rounded-full"
-                      width={16}
-                      height={16}
-                    />
-                  ),
-                  options:
-                    domains?.map(({ domain, ...rest }) => ({
-                      value: domain,
-                      label: domain,
-                      right: getFilterOptionTotal(rest),
-                    })) ?? null,
-                },
+                DomainFilterItem,
                 LinkFilterItem,
                 {
                   key: "root",

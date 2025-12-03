@@ -1,14 +1,21 @@
 "use client";
 
+import { MEGA_WORKSPACE_LINKS_LIMIT } from "@/lib/constants/misc";
 import useGroupsCount from "@/lib/swr/use-groups-count";
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import useTagsCount from "@/lib/swr/use-tags-count";
-import useUsage from "@/lib/swr/use-usage";
+import { useUsageTimeseries } from "@/lib/swr/use-usage-timeseries";
 import useWorkspace from "@/lib/swr/use-workspace";
 import useWorkspaceUsers from "@/lib/swr/use-workspace-users";
 import { useManageUsageModal } from "@/ui/modals/manage-usage-modal";
 import SubscriptionMenu from "@/ui/workspaces/subscription-menu";
-import { Button, Icon, Tooltip, useRouterStuff } from "@dub/ui";
+import {
+  AnimatedSizeContainer,
+  Button,
+  Icon,
+  Tooltip,
+  useRouterStuff,
+} from "@dub/ui";
 import {
   CirclePercentage,
   CreditCard,
@@ -60,6 +67,7 @@ export default function PlanUsage() {
 
   const { data: tags } = useTagsCount();
   const { users } = useWorkspaceUsers();
+  const { searchParamsObj } = useRouterStuff();
 
   const { partnersCount } = usePartnersCount<number>({
     programId: defaultProgramId ?? undefined,
@@ -87,53 +95,33 @@ export default function PlanUsage() {
     return [];
   }, [billingCycleStart]);
 
-  const { usage: usageTimeseries, hasActiveFilters } = useUsage({
-    disabledWhenNoFilters: true,
-  });
-
   const usageTabs = useMemo(() => {
-    const linksTabFilteredUsage = usageTimeseries?.reduce((acc, curr) => {
-      acc += curr.value;
-      return acc;
-    }, 0);
-
     const tabs = [
       {
-        id: "events" as const,
+        resource: "events" as const,
         icon: CursorRays,
         title: "Events tracked",
         usage: usage,
         limit: usageLimit,
       },
       {
-        id: "links" as const,
+        resource: "links" as const,
         icon: Hyperlink,
         title: "Links created",
-        usage:
-          linksTabFilteredUsage !== undefined && hasActiveFilters
-            ? linksTabFilteredUsage
-            : linksUsage,
+        usage: linksUsage,
         limit: linksLimit,
       },
     ];
-    if (totalLinks && totalLinks > 10_000) {
+    if (totalLinks && totalLinks > MEGA_WORKSPACE_LINKS_LIMIT) {
       // Find the links tab and move it to the first position
-      const linksTabIndex = tabs.findIndex((tab) => tab.id === "links");
+      const linksTabIndex = tabs.findIndex((tab) => tab.resource === "links");
       if (linksTabIndex !== -1) {
         const linksTab = tabs.splice(linksTabIndex, 1)[0];
         tabs.unshift(linksTab);
       }
     }
     return tabs;
-  }, [
-    usage,
-    usageLimit,
-    linksUsage,
-    linksLimit,
-    totalLinks,
-    usageTimeseries,
-    hasActiveFilters,
-  ]);
+  }, [usage, usageLimit, linksUsage, linksLimit, totalLinks]);
 
   return (
     <div className="rounded-lg border border-neutral-200 bg-white">
@@ -176,7 +164,7 @@ export default function PlanUsage() {
         <div>
           <div className="grid gap-4 p-6 pb-0 sm:grid-cols-2 md:p-8 md:pb-0 lg:gap-6">
             {usageTabs.map((tab) => (
-              <UsageTabCard key={tab.id} {...tab} />
+              <UsageTabCard key={tab.resource} {...tab} />
             ))}
           </div>
           <div className="w-full px-2 pb-8 md:px-8">
@@ -254,7 +242,7 @@ export default function PlanUsage() {
 }
 
 function UsageTabCard({
-  id,
+  resource,
   icon: Icon,
   title,
   usage: usageProp,
@@ -262,7 +250,7 @@ function UsageTabCard({
   unit,
   requiresUpgrade,
 }: {
-  id: "links" | "events";
+  resource: "links" | "events";
   icon: Icon;
   title: string;
   usage?: number;
@@ -270,22 +258,53 @@ function UsageTabCard({
   unit?: string;
   requiresUpgrade?: boolean;
 }) {
-  const { queryParams } = useRouterStuff();
+  const { queryParams, searchParamsObj } = useRouterStuff();
   const { slug, plan } = useWorkspace();
 
   const { ManageUsageModal, setShowManageUsageModal } = useManageUsageModal({
-    type: id,
+    type: resource,
   });
 
-  const { activeResource } = useUsage();
+  const hasActiveFilters = useMemo(() => {
+    return !!(
+      searchParamsObj.folderId ||
+      searchParamsObj.domain ||
+      searchParamsObj.interval ||
+      searchParamsObj.start ||
+      searchParamsObj.end
+    );
+  }, [searchParamsObj]);
+
+  const { usage: usageTimeseries, activeResource } = useUsageTimeseries({
+    resource: hasActiveFilters ? resource : undefined,
+  });
+
+  const filteredUsage = usageTimeseries?.reduce((acc, curr) => {
+    acc += curr.value;
+    return acc;
+  }, 0);
+
+  if (resource === "links") {
+    console.log({ filteredUsage, usageProp, hasActiveFilters });
+  }
 
   const [usage, limit] =
     unit === "$" && usageProp !== undefined && limitProp !== undefined
-      ? [usageProp / 100, limitProp / 100]
-      : [usageProp, limitProp];
+      ? [
+          (hasActiveFilters && filteredUsage !== undefined
+            ? filteredUsage
+            : usageProp) / 100,
+          limitProp / 100,
+        ]
+      : [
+          hasActiveFilters && filteredUsage !== undefined
+            ? filteredUsage
+            : usageProp,
+          limitProp,
+        ];
 
   const loading = usage === undefined || limit === undefined;
-  const unlimited = limitProp !== undefined && limitProp >= INFINITY_NUMBER; // using limitProp here cause payouts is divided by 100
+  const unlimited = limitProp !== undefined && limitProp >= INFINITY_NUMBER;
   const warning = !loading && !unlimited && usage >= limit * 0.9;
   const remaining = !loading && !unlimited ? Math.max(0, limit - usage) : 0;
 
@@ -298,13 +317,16 @@ function UsageTabCard({
         className={cn(
           "w-full rounded-lg border border-neutral-300 bg-white px-4 py-3 text-left transition-colors duration-75",
           "outline-none focus-visible:border-blue-600 focus-visible:ring-1 focus-visible:ring-blue-600",
-          activeResource === id && "border-neutral-900 ring-1 ring-neutral-900",
+          activeResource === resource &&
+            "border-neutral-900 ring-1 ring-neutral-900",
           requiresUpgrade
             ? "border-neutral-100 bg-neutral-100 hover:bg-neutral-100"
             : "hover:bg-neutral-50 lg:px-5 lg:py-4",
         )}
-        aria-selected={activeResource === id}
-        onClick={() => !requiresUpgrade && queryParams({ set: { tab: id } })}
+        aria-selected={activeResource === resource}
+        onClick={() =>
+          !requiresUpgrade && queryParams({ set: { tab: resource } })
+        }
         disabled={requiresUpgrade}
       >
         <Icon className="size-4 text-neutral-600" />
@@ -354,45 +376,54 @@ function UsageTabCard({
             <div className="h-5 w-16 animate-pulse rounded-md bg-neutral-200" />
           )}
         </div>
-        <div className="mt-4">
-          <div
-            className={cn(
-              "h-1 w-full overflow-hidden rounded-full bg-neutral-900/10 transition-colors",
-              loading && "bg-neutral-900/5",
-            )}
-          >
-            {!loading && !unlimited && (
-              <div
-                className="animate-slide-right-fade size-full"
-                style={{ "--offset": "-100%" } as CSSProperties}
-              >
+        <AnimatedSizeContainer height>
+          {!hasActiveFilters && (
+            <div className="h-12">
+              <div className="mt-4">
                 <div
                   className={cn(
-                    "size-full rounded-full",
-                    requiresUpgrade ? "bg-neutral-900/10" : "bg-neutral-800",
-                    warning && "from-neutral-900/10 via-red-500 to-red-600",
+                    "h-1 w-full overflow-hidden rounded-full bg-neutral-900/10 transition-colors",
+                    loading && "bg-neutral-900/5",
                   )}
-                  style={{
-                    transform: `translateX(-${100 - Math.max(Math.floor((usage / Math.max(0, usage, limit)) * 100), usage === 0 ? 0 : 1)}%)`,
-                  }}
-                />
+                >
+                  {!loading && !unlimited && (
+                    <div
+                      className="animate-slide-right-fade size-full"
+                      style={{ "--offset": "-100%" } as CSSProperties}
+                    >
+                      <div
+                        className={cn(
+                          "size-full rounded-full",
+                          requiresUpgrade
+                            ? "bg-neutral-900/10"
+                            : "bg-neutral-800",
+                          warning &&
+                            "from-neutral-900/10 via-red-500 to-red-600",
+                        )}
+                        style={{
+                          transform: `translateX(-${100 - Math.max(Math.floor((usage / Math.max(0, usage, limit)) * 100), usage === 0 ? 0 : 1)}%)`,
+                        }}
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
-            )}
-          </div>
-        </div>
-        <div className="mt-2 leading-none">
-          {!loading ? (
-            <span className="text-xs font-medium leading-none text-neutral-600">
-              {unlimited
-                ? "Unlimited"
-                : `${prefix}${nFormatter(remaining, { full: true })} remaining of ${prefix}${nFormatter(limit, { full: limit < INFINITY_NUMBER })}`}
-            </span>
-          ) : (
-            <div className="h-4 w-20 animate-pulse rounded-md bg-neutral-200" />
+              <div className="mt-2 leading-none">
+                {!loading ? (
+                  <span className="text-xs font-medium leading-none text-neutral-600">
+                    {unlimited
+                      ? "Unlimited"
+                      : `${prefix}${nFormatter(remaining, { full: true })} remaining of ${prefix}${nFormatter(limit, { full: limit < INFINITY_NUMBER })}`}
+                  </span>
+                ) : (
+                  <div className="h-4 w-20 animate-pulse rounded-md bg-neutral-200" />
+                )}
+              </div>
+            </div>
           )}
-        </div>
+        </AnimatedSizeContainer>
       </button>
-      {["links", "events"].includes(id) && plan !== "enterprise" && (
+      {["links", "events"].includes(resource) && plan !== "enterprise" && (
         <div className="absolute right-3 top-3">
           <Button
             onClick={() => setShowManageUsageModal(true)}

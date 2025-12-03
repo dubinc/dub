@@ -50,7 +50,7 @@ export async function payoutsItemFailed(event: any) {
     },
     data: {
       paypalTransferId: payoutItemId,
-      status: "failed",
+      status: payoutStatus,
       failureReason,
     },
   });

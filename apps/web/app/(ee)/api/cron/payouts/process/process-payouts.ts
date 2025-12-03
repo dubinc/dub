@@ -80,17 +80,9 @@ export async function processPayouts({
           : {}),
       ...getPayoutEligibilityFilter(program),
       ...(cutoffPeriodValue && {
-        OR: [
-          {
-            periodStart: null,
-            periodEnd: null,
-          },
-          {
-            periodEnd: {
-              lte: cutoffPeriodValue,
-            },
-          },
-        ],
+        periodEnd: {
+          lte: cutoffPeriodValue,
+        },
       }),
     },
     data: {

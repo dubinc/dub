@@ -42,16 +42,15 @@ SQL >
                 toDateTime64({{ DateTime64(end, '2024-05-23 00:00:00.000') }}, 3),
                 {{ String(timezone, 'UTC') }}
             ) AS
-        end
+        end,
+        dateDiff('day', start, end) + 1 AS days_diff
         SELECT
             arrayJoin(
                 arrayMap(
-                    x -> toDateTime64(toStartOfDay(toDateTime64(x, 3), {{ String(timezone, 'UTC') }}), 3),
-                    range(toUInt32(start), toUInt32(end + 86400),
-                    86400
+                    x -> toDateTime64(start + toIntervalDay(x), 3, {{ String(timezone, 'UTC') }}),
+                    range(0, days_diff)
                 )
-            )
-        ) as interval
+            ) as interval
 
 
 

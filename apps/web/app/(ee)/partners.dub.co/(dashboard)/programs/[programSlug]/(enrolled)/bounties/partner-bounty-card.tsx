@@ -1,9 +1,11 @@
+import { getBountyRewardDescription } from "@/lib/partners/get-bounty-reward-description";
 import { PartnerBountyProps } from "@/lib/types";
 import { BountyPerformance } from "@/ui/partners/bounties/bounty-performance";
 import { BountyThumbnailImage } from "@/ui/partners/bounties/bounty-thumbnail-image";
 import { useClaimBountyModal } from "@/ui/partners/bounties/claim-bounty-modal";
 import {
   DynamicTooltipWrapper,
+  Gift,
   StatusBadge,
   TimestampTooltip,
   TooltipContent,
@@ -90,6 +92,13 @@ export function PartnerBountyCard({ bounty }: { bounty: PartnerBountyProps }) {
                 )}
               </span>
             </div>
+
+            {getBountyRewardDescription(bounty) && (
+              <div className="text-content-subtle flex items-center gap-2 text-sm font-medium">
+                <Gift className="size-3.5" />
+                <span>{getBountyRewardDescription(bounty)}</span>
+              </div>
+            )}
           </div>
 
           <div className="flex grow flex-col justify-end px-2 pb-1">

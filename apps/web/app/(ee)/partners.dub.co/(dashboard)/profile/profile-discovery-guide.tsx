@@ -1,4 +1,3 @@
-import { PartnerProps } from "@/lib/types";
 import {
   Button,
   ChevronUp,
@@ -13,9 +12,7 @@ import Link from "next/link";
 import { HTMLProps, useState } from "react";
 import { usePartnerDiscoveryRequirements } from "./use-partner-discovery-requirements";
 
-export function ProfileDiscoveryGuide({ partner }: { partner: PartnerProps }) {
-  if (partner.discoverableAt) return null;
-
+export function ProfileDiscoveryGuide() {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const tasks = usePartnerDiscoveryRequirements();

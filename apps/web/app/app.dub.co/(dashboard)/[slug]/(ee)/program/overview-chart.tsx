@@ -12,6 +12,7 @@ import { currencyFormatter, fetcher, nFormatter } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import { useContext, useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
+import { ExceededEventsLimit } from "../../../../../../ui/partners/overview/exceeded-events-limit";
 
 type ViewType = "sales" | "leads" | "commissions";
 
@@ -31,7 +32,7 @@ export function OverviewChart() {
   const { queryString, start, end, interval } = useContext(AnalyticsContext);
   const [viewType, setViewType] = useState<ViewType>("sales");
 
-  const { slug } = useWorkspace();
+  const { slug, exceededClicks } = useWorkspace();
   const { program } = useProgram();
   useEffect(() => {
     if (program?.primaryRewardEvent === "lead") {
@@ -48,12 +49,12 @@ export function OverviewChart() {
       saleAmount: number;
     }[]
   >(
-    viewType === "sales" || viewType === "leads"
-      ? `/api/analytics?${editQueryString(queryString, {
-          event: viewType,
-          groupBy: "timeseries",
-        })}`
-      : null,
+    !exceededClicks &&
+      (viewType === "sales" || viewType === "leads") &&
+      `/api/analytics?${editQueryString(queryString, {
+        event: viewType,
+        groupBy: "timeseries",
+      })}`,
     fetcher,
   );
 
@@ -92,56 +93,60 @@ export function OverviewChart() {
 
   return (
     <div className="flex size-full flex-col gap-6">
-      <div className="flex items-start justify-between">
-        <div className="flex flex-col">
-          <Combobox
-            selected={
-              chartOptions.find((opt) => opt.value === viewType) || null
-            }
-            setSelected={(option) => option && setViewType(option.value)}
-            options={chartOptions}
-            optionClassName="w-36"
-            caret={true}
-            hideSearch={true}
-            buttonProps={{
-              variant: "outline",
-              className: "h-7 w-fit px-2 -ml-2 -mt-1.5",
-            }}
-          />
-          {total !== undefined ? (
-            <NumberFlow
-              value={viewType === "leads" ? total : total / 100}
-              className="text-content-emphasis block text-3xl font-medium"
-              {...(viewType === "leads"
-                ? {}
-                : {
-                    format: {
-                      style: "currency",
-                      currency: "USD",
-                    },
-                  })}
+      {!exceededClicks && (
+        <div className="flex items-start justify-between">
+          <div className="flex flex-col">
+            <Combobox
+              selected={
+                chartOptions.find((opt) => opt.value === viewType) || null
+              }
+              setSelected={(option) => option && setViewType(option.value)}
+              options={chartOptions}
+              optionClassName="w-36"
+              caret={true}
+              hideSearch={true}
+              buttonProps={{
+                variant: "outline",
+                className: "h-7 w-fit px-2 -ml-2 -mt-1.5",
+              }}
             />
-          ) : (
-            <div className="mb-1 mt-px h-10 w-24 animate-pulse rounded-md bg-neutral-200" />
-          )}
-        </div>
+            {total !== undefined ? (
+              <NumberFlow
+                value={viewType === "leads" ? total : total / 100}
+                className="text-content-emphasis block text-3xl font-medium"
+                {...(viewType === "leads"
+                  ? {}
+                  : {
+                      format: {
+                        style: "currency",
+                        currency: "USD",
+                      },
+                    })}
+              />
+            ) : (
+              <div className="mb-1 mt-px h-10 w-24 animate-pulse rounded-md bg-neutral-200" />
+            )}
+          </div>
 
-        <ButtonLink
-          href={`/${slug}/program/${viewType === "commissions" ? "commissions" : "analytics"}${getQueryString(
-            undefined,
-            {
-              include: ["interval", "start", "end"],
-            },
-          )}`}
-          variant="secondary"
-          className="h-8 px-3 text-sm"
-        >
-          View all
-        </ButtonLink>
-      </div>
+          <ButtonLink
+            href={`/${slug}/program/${viewType === "commissions" ? "commissions" : "analytics"}${getQueryString(
+              undefined,
+              {
+                include: ["interval", "start", "end"],
+              },
+            )}`}
+            variant="secondary"
+            className="h-8 px-3 text-sm"
+          >
+            View all
+          </ButtonLink>
+        </div>
+      )}
 
       <div className="relative min-h-0 grow">
-        {isLoading ? (
+        {exceededClicks ? (
+          <ExceededEventsLimit />
+        ) : isLoading ? (
           <div className="flex size-full items-center justify-center">
             <LoadingSpinner />
           </div>

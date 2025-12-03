@@ -53,7 +53,7 @@ export async function resolveFraudEvents({
       groupingKey: nanoid(10),
     });
 
-    await prisma.fraudEvent.updateMany({
+    const { count } = await prisma.fraudEvent.updateMany({
       where: {
         groupKey,
         status: "pending",
@@ -66,6 +66,9 @@ export async function resolveFraudEvents({
         groupKey: newGroupKey,
       },
     });
+    console.info(
+      `Resolved ${count} fraud events for partner ${firstEvent.partnerId} in program ${firstEvent.programId}`,
+    );
   }
 
   return fraudEvents;

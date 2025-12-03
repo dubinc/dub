@@ -51,7 +51,7 @@ export function UpgradeBanner() {
             </Link>
             <span className="xs:inline hidden">&nbsp;on your current plan</span>
             <span className="hidden md:inline">
-              . Upgrade to keep creating.
+              . Upgrade to keep using Dub.
             </span>
           </>
         ) : (
