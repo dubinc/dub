@@ -73,7 +73,7 @@ export const FolderActions = ({
   const unsortedLinks = folder.id === "unsorted";
 
   useKeyboardShortcut(
-    ["r", "m", "i", "x", "a", "s", "d"],
+    ["r", "e", "i", "x", "a", "s", "d"],
     (e) => {
       setOpenPopover(false);
       switch (e.key) {
@@ -90,7 +90,7 @@ export const FolderActions = ({
           if (!unsortedLinks && canUpdateFolder)
             setShowShareDashboardModal(true);
           break;
-        case "m":
+        case "e":
           if (!unsortedLinks) {
             setShowFolderPermissionsPanel(true);
           }
@@ -119,6 +119,7 @@ export const FolderActions = ({
     },
     {
       enabled: openPopover,
+      priority: 1,
     },
   );
 
@@ -142,7 +143,7 @@ export const FolderActions = ({
                     setShowFolderPermissionsPanel(true);
                   }}
                   icon={<PenWriting className="h-4 w-4" />}
-                  shortcut="M"
+                  shortcut="E"
                   className="h-9 px-2 font-medium"
                 />
                 <Button
