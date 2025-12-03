@@ -22,7 +22,7 @@ import { OG_AVATAR_URL, cn, formatDateTime } from "@dub/utils";
 import { useResolveFraudEventsModal } from "app/app.dub.co/(dashboard)/[slug]/(ee)/program/fraud/resolve-fraud-group-modal";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { Dispatch, SetStateAction, useState } from "react";
+import { Dispatch, SetStateAction } from "react";
 import { CommissionsOnHoldTable } from "./commissions-on-hold-table";
 import { FraudEventsTableWrapper } from "./fraud-events-tables";
 
@@ -51,7 +51,7 @@ function FraudReviewSheetContent({
       },
     });
 
-  const { BanPartnerModal, setShowBanPartnerModal } = useBanPartnerModal({
+  const { setShowBanPartnerModal, BanPartnerModal } = useBanPartnerModal({
     partner,
     onConfirm: async () => {
       onNext?.();
@@ -336,17 +336,4 @@ export function FraudReviewSheet({
       <FraudReviewSheetContent {...rest} />
     </Sheet>
   );
-}
-
-export function useFraudReviewSheet(
-  props: Omit<FraudReviewSheetProps, "setIsOpen">,
-) {
-  const [isOpen, setIsOpen] = useState(false);
-
-  return {
-    fraudReviewSheet: (
-      <FraudReviewSheet setIsOpen={setIsOpen} isOpen={isOpen} {...props} />
-    ),
-    setIsOpen,
-  };
 }
