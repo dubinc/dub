@@ -37,7 +37,7 @@
     "ms": "^2.1.3",
     "nanoid": "^5.0.1",
     "punycode": "^2.3.0",
-    "react-dom": "^19.1.1",
+    "react-dom": "^19.1.2",
     "tailwind-merge": "^2.4.0"
   },
   "author": "Steven Tey <stevensteel97@gmail.com>",
