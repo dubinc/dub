@@ -15,7 +15,7 @@ First, navigate to your Google Tag Manager account and create a new tag:
 In the Custom HTML section, you’ll need to add the Dub client-side script. Copy and paste the following code into the **HTML** field:
 
 <!-- prettier-ignore -->
-```js
+```html
 <script>
   var script = document.createElement("script");
   script.defer = true;
@@ -25,18 +25,6 @@ In the Custom HTML section, you’ll need to add the Dub client-side script. Cop
 ```
 
 ![Dub GTM add script](https://mintlify.s3.us-west-1.amazonaws.com/dub/images/conversions/google-tag-manager/gtm-add-dub-script.png)
-
-If you’re using [Dub Partners](https://dub.co/docs/partners/quickstart) for your affiliate program, you will also need to set up the `data-domains` property to enable [client-side click-tracking](https://dub.co/docs/sdks/client-side/features/click-tracking).
-
-```js
-<script>
-  var script = document.createElement("script");
-  script.defer = true;
-  script.src = "https://www.dubcdn.com/analytics/script.js";
-  script.dataset.domains = JSON.stringify({ refer: "yourcompany.link" });
-  document.getElementsByTagName("head")[0].appendChild(script);
-</script>
-```
 
 ## Step 3: Configure the Trigger
 
