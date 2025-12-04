@@ -4,7 +4,7 @@ import { resolveFraudEventsAction } from "@/lib/actions/fraud/resolve-fraud-even
 import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { fraudEventGroupProps } from "@/lib/types";
+import { FraudEventGroupProps } from "@/lib/types";
 import {
   MAX_RESOLUTION_REASON_LENGTH,
   resolveFraudEventsSchema,
@@ -34,7 +34,7 @@ function ResolveFraudEventsModal({
 }: {
   showResolveFraudEventModal: boolean;
   setShowResolveFraudEventModal: Dispatch<SetStateAction<boolean>>;
-  fraudEventGroup: fraudEventGroupProps;
+  fraudEventGroup: FraudEventGroupProps;
   onConfirm?: () => void;
 }) {
   const { id: workspaceId } = useWorkspace();
@@ -169,7 +169,7 @@ export function useResolveFraudEventsModal({
   fraudEventGroup,
   onConfirm,
 }: {
-  fraudEventGroup: fraudEventGroupProps;
+  fraudEventGroup: FraudEventGroupProps;
   onConfirm?: () => void;
 }) {
   const [showResolveFraudEventModal, setShowResolveFraudEventModal] =
