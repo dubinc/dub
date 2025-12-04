@@ -1,4 +1,4 @@
-import { fraudEventGroupProps } from "@/lib/types";
+import { FraudEventGroupProps } from "@/lib/types";
 import { FraudRuleType } from "@dub/prisma/client";
 import React from "react";
 import { FraudCrossProgramBanTable } from "./fraud-cross-program-ban-table";
@@ -21,7 +21,7 @@ const FRAUD_EVENTS_TABLES: Partial<Record<FraudRuleType, React.ComponentType>> =
 export function FraudEventsTableWrapper({
   fraudEventGroup,
 }: {
-  fraudEventGroup: fraudEventGroupProps;
+  fraudEventGroup: FraudEventGroupProps;
 }) {
   const TableComponent = FRAUD_EVENTS_TABLES[fraudEventGroup.type];
 

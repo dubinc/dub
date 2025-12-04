@@ -4,7 +4,7 @@ import { FRAUD_RULES_BY_TYPE } from "@/lib/api/fraud/constants";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useFraudEventGroups } from "@/lib/swr/use-fraud-event-groups";
 import { useFraudEventsCount } from "@/lib/swr/use-fraud-events-count";
-import { fraudEventGroupProps } from "@/lib/types";
+import { FraudEventGroupProps } from "@/lib/types";
 import { useBanPartnerModal } from "@/ui/modals/ban-partner-modal";
 import { useBulkBanPartnersModal } from "@/ui/modals/bulk-ban-partners-modal";
 import { FraudReviewSheet } from "@/ui/partners/fraud-risks/fraud-review-sheet";
@@ -84,11 +84,11 @@ export function FraudEventGroupsTable() {
   });
 
   const [pendingBanPartners, setPendingBanPartners] = useState<
-    Array<NonNullable<fraudEventGroupProps["partner"]>>
+    Array<NonNullable<FraudEventGroupProps["partner"]>>
   >([]);
 
   const tableRef = useRef<
-    ReturnType<typeof useTable<fraudEventGroupProps>>["table"] | null
+    ReturnType<typeof useTable<FraudEventGroupProps>>["table"] | null
   >(null);
 
   const { BulkBanPartnersModal, setShowBulkBanPartnersModal } =
@@ -100,7 +100,7 @@ export function FraudEventGroupsTable() {
       },
     });
 
-  const { table, ...tableProps } = useTable<fraudEventGroupProps>({
+  const { table, ...tableProps } = useTable<FraudEventGroupProps>({
     data: fraudEvents || [],
     columns: [
       {
@@ -369,7 +369,7 @@ export function FraudEventGroupsTable() {
   );
 }
 
-function RowMenuButton({ row }: { row: Row<fraudEventGroupProps> }) {
+function RowMenuButton({ row }: { row: Row<FraudEventGroupProps> }) {
   const fraudEvent = row.original;
 
   const [isOpen, setIsOpen] = useState(false);
@@ -465,7 +465,7 @@ function useCurrentFraudEventGroup({
   fraudEventGroups,
   groupKey,
 }: {
-  fraudEventGroups?: fraudEventGroupProps[];
+  fraudEventGroups?: FraudEventGroupProps[];
   groupKey: string | null;
 }) {
   let currentFraudEventGroup = groupKey

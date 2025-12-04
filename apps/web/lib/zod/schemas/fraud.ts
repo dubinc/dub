@@ -24,11 +24,7 @@ export const groupedFraudEventSchema = z.object({
     email: true,
     image: true,
   }),
-  user: UserSchema.pick({
-    id: true,
-    name: true,
-    image: true,
-  }).nullable(),
+  user: UserSchema.nullable(),
 });
 
 export const groupedFraudEventsQuerySchema = z

@@ -1,7 +1,7 @@
 "use client";
 
 import { FRAUD_RULES_BY_TYPE } from "@/lib/api/fraud/constants";
-import { fraudEventGroupProps } from "@/lib/types";
+import { FraudEventGroupProps } from "@/lib/types";
 import { useBanPartnerModal } from "@/ui/modals/ban-partner-modal";
 import { X } from "@/ui/shared/icons";
 import {
@@ -25,7 +25,7 @@ import { CommissionsOnHoldTable } from "./commissions-on-hold-table";
 import { FraudEventsTableWrapper } from "./fraud-events-tables";
 
 interface FraudReviewSheetProps {
-  fraudEventGroup: fraudEventGroupProps;
+  fraudEventGroup: FraudEventGroupProps;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
   onNext?: () => void;
   onPrevious?: () => void;
@@ -199,8 +199,8 @@ function FraudReviewSheetContent({
                         {user && (
                           <div className="flex flex-col gap-2">
                             <img
-                              src={user.image || `${OG_AVATAR_URL}${user.name}`}
-                              alt={user.name || user.id}
+                              src={user.image || `${OG_AVATAR_URL}${user.id}`}
+                              alt={user.name ?? user.email ?? user.id}
                               className="size-6 shrink-0 rounded-full"
                             />
                             <p className="text-sm font-medium">{user.name}</p>
@@ -220,8 +220,8 @@ function FraudReviewSheetContent({
                   >
                     {user && (
                       <img
-                        src={user.image || `${OG_AVATAR_URL}${user.name}`}
-                        alt={user.name || user.id}
+                        src={user.image || `${OG_AVATAR_URL}${user.id}`}
+                        alt={user.name ?? user.email ?? user.id}
                         className="size-5 shrink-0 rounded-full"
                       />
                     )}
