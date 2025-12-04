@@ -226,8 +226,8 @@ function FraudReviewSheetContent({
                         {user && (
                           <div className="flex flex-col gap-2">
                             <img
-                              src={user.image || `${OG_AVATAR_URL}${user.name}`}
-                              alt={user.name || user.id}
+                              src={user.image || `${OG_AVATAR_URL}${user.id}`}
+                              alt={user.name ?? user.email ?? user.id}
                               className="size-6 shrink-0 rounded-full"
                             />
                             <p className="text-sm font-medium">{user.name}</p>
@@ -247,8 +247,8 @@ function FraudReviewSheetContent({
                   >
                     {user && (
                       <img
-                        src={user.image || `${OG_AVATAR_URL}${user.name}`}
-                        alt={user.name || user.id}
+                        src={user.image || `${OG_AVATAR_URL}${user.id}`}
+                        alt={user.name ?? user.email ?? user.id}
                         className="size-5 shrink-0 rounded-full"
                       />
                     )}
