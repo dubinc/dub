@@ -8,7 +8,7 @@ import { useAddEditEmailDomainModal } from "@/ui/modals/add-edit-email-domain-mo
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { ArrowTurnRight2, Button, buttonVariants } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { EmailDomainCard } from "app/app.dub.co/(dashboard)/[slug]/settings/domains/email/email-domain-card";
+import { EmailDomainCard } from "app/app.dub.co/(dashboard)/[slug]/(ee)/settings/domains/email/email-domain-card";
 import { Mail } from "lucide-react";
 import Link from "next/link";
 

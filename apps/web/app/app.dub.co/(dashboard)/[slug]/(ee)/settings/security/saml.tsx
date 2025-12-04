@@ -110,19 +110,21 @@ export function SAML() {
   return (
     <>
       {configured ? <RemoveSAMLModal /> : <SAMLModal />}
-      <div className="rounded-lg border border-neutral-200 bg-white">
-        <div className="relative p-5 sm:p-10">
-          <div className="flex flex-col space-y-3">
-            <h2 className="text-xl font-medium">SAML Single Sign-On</h2>
+      <div className="rounded-xl border border-neutral-200 bg-white">
+        <div className="relative flex flex-col gap-5 p-5">
+          <div className="flex flex-col gap-1">
+            <h2 className="text-base font-medium text-neutral-900">
+              SAML Single Sign-On
+            </h2>
             <p className="text-sm text-neutral-500">
               Set up SAML Single Sign-On (SSO) to allow your team to sign in to{" "}
               {process.env.NEXT_PUBLIC_APP_NAME} with your identity provider.
             </p>
           </div>
 
-          <div className="mt-8 rounded-t-md border border-neutral-200 px-4 py-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
+          <div className="rounded-xl border border-neutral-200 bg-white">
+            <div className="flex flex-col items-start justify-between space-y-4 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
+              <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
                 {data.logo || (
                   <div className="h-8 w-8 animate-pulse rounded-full bg-neutral-100" />
                 )}
@@ -197,40 +199,40 @@ export function SAML() {
                 )}
               </div>
             </div>
-          </div>
 
-          <div className="flex items-center justify-between rounded-b-md border border-t-0 border-neutral-200 bg-neutral-50 px-4 py-3">
-            <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-neutral-700">
-                Require workspace members to login with SAML to access this
-                workspace
-              </label>
-              {workspaceData?.ssoEnforcedAt && (
-                <Badge
-                  variant="blueGradient"
-                  className="flex items-center gap-1"
-                >
-                  <Globe2 className="size-3" />
-                  {ssoEmailDomain}
-                </Badge>
-              )}
+            <div className="flex items-center justify-between rounded-b-xl border-t border-neutral-200 bg-neutral-50 px-4 py-3">
+              <div className="flex items-center gap-2">
+                <label className="text-sm font-medium text-neutral-800">
+                  Require workspace members to login with SAML to access this
+                  workspace
+                </label>
+                {workspaceData?.ssoEnforcedAt && (
+                  <Badge
+                    variant="blueGradient"
+                    className="flex items-center gap-1"
+                  >
+                    <Globe2 className="size-3" />
+                    {ssoEmailDomain}
+                  </Badge>
+                )}
+              </div>
+              <Switch
+                checked={workspaceData?.ssoEnforcedAt !== null}
+                loading={isLoading}
+                disabled={plan !== "enterprise"}
+                fn={handleSSOEnforcementChange}
+              />
             </div>
-            <Switch
-              checked={workspaceData?.ssoEnforcedAt !== null}
-              loading={isLoading}
-              disabled={plan !== "enterprise"}
-              fn={handleSSOEnforcementChange}
-            />
           </div>
         </div>
 
-        <div className="rounded-b-lg border-t border-neutral-200 bg-neutral-50 px-3 py-5 sm:px-10">
+        <div className="rounded-b-xl border-t border-neutral-200 bg-neutral-50 px-5 pb-4 pt-3">
           <a
             href="https://dub.co/help/category/saml-sso"
             target="_blank"
             className="text-sm text-neutral-400 underline underline-offset-4 transition-colors hover:text-neutral-700"
           >
-            Learn more about SAML SSO.
+            Learn more about SAML SSO
           </a>
         </div>
       </div>

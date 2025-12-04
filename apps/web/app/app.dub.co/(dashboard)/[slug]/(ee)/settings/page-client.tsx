@@ -22,7 +22,7 @@ export default function WorkspaceSettingsClient() {
   const { update } = useSession();
 
   return (
-    <>
+    <div className="mb-6 space-y-6">
       <Form
         title="Workspace Name"
         description={`This is the name of your workspace on ${process.env.NEXT_PUBLIC_APP_NAME}.`}
@@ -92,6 +92,6 @@ export default function WorkspaceSettingsClient() {
       />
       <UploadLogo />
       <DeleteWorkspace />
-    </>
+    </div>
   );
 }
