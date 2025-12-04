@@ -38,22 +38,22 @@ async function main() {
 
   for (const [groupKey, events] of Object.entries(fraudEventsByGroupKey)) {
     const groupId = createId({ prefix: "frg_" });
-    const firstEvent = events[0];
-    const lastEvent = events[events.length - 1];
+    const latestEvent = events[0]; // Newest (desc order)
+    const earliestEvent = events[events.length - 1]; // Oldest
 
     groupsToCreate.push({
       id: groupId,
-      programId: firstEvent.programId,
-      partnerId: firstEvent.partnerId,
-      type: firstEvent.type,
-      lastEventAt: lastEvent.createdAt,
+      programId: latestEvent.programId,
+      partnerId: latestEvent.partnerId,
+      type: latestEvent.type,
+      lastEventAt: latestEvent.createdAt,
       eventCount: events.length,
-      userId: firstEvent.userId,
-      resolutionReason: firstEvent.resolutionReason,
-      resolvedAt: firstEvent.resolvedAt,
-      status: firstEvent.status,
-      createdAt: firstEvent.createdAt,
-      updatedAt: lastEvent.createdAt,
+      userId: latestEvent.userId,
+      resolutionReason: latestEvent.resolutionReason,
+      resolvedAt: latestEvent.resolvedAt,
+      status: latestEvent.status,
+      createdAt: earliestEvent.createdAt,
+      updatedAt: latestEvent.createdAt,
     });
 
     groupKeyToGroupId.set(groupKey, groupId);
