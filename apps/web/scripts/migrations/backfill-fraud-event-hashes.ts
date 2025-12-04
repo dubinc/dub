@@ -3,8 +3,12 @@ import { prisma } from "@dub/prisma";
 import { chunk } from "@dub/utils";
 import "dotenv-flow/config";
 
+/**
+ * Backfill hashes for existing fraud events.
+ * Generates and updates hash values for fraud events that are missing them.
+ * Hashes are used for deduplication to prevent creating duplicate fraud events.
+ */
 async function main() {
-  // Fetch all fraud events without a hash
   const fraudEvents = await prisma.fraudEvent.findMany({
     where: {
       hash: null,
@@ -17,21 +21,16 @@ async function main() {
 
   for (const batch of chunks) {
     await Promise.all(
-      batch.map(async (event) => {
-        try {
-          await prisma.fraudEvent.update({
-            where: { id: event.id },
-            data: {
-              hash: createFraudEventHash(event),
-            },
-          });
-        } catch (error) {
-          console.error(
-            `Failed to backfill hash for event ${event.id}:`,
-            error instanceof Error ? error.message : String(error),
-          );
-        }
-      }),
+      batch.map((event) =>
+        prisma.fraudEvent.update({
+          where: {
+            id: event.id,
+          },
+          data: {
+            hash: createFraudEventHash(event),
+          },
+        }),
+      ),
     );
   }
 
@@ -39,4 +38,3 @@ async function main() {
 }
 
 main();
-
