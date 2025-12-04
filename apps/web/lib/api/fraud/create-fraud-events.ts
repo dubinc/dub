@@ -2,7 +2,7 @@ import { CreateFraudEventInput } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { createId } from "../create-id";
-import { createFraudEventFingerprint, createFraudEventGroupKey } from "./utils";
+import { createFraudEventHash, createFraudEventGroupKey } from "./utils";
 
 export async function createFraudEvents(fraudEvents: CreateFraudEventInput[]) {
   if (fraudEvents.length === 0) {
@@ -11,12 +11,12 @@ export async function createFraudEvents(fraudEvents: CreateFraudEventInput[]) {
 
   const eventsWithHash = fraudEvents.map((e) => ({
     ...e,
-    fingerprint: createFraudEventFingerprint(e),
+    hash: createFraudEventHash(e),
   }));
 
-  // Deduplicate by fingerprint in-memory first
+  // Deduplicate by hash in-memory first
   const uniqueEvents = Array.from(
-    new Map(eventsWithHash.map((e) => [e.fingerprint, e])).values(),
+    new Map(eventsWithHash.map((e) => [e.hash, e])).values(),
   );
 
   // Find existing groups to avoid creating duplicates and maintain group continuity
@@ -76,11 +76,11 @@ export async function createFraudEvents(fraudEvents: CreateFraudEventInput[]) {
   );
 
   // Fetch existing events to prevent duplicate fraud event records
-  // A fraud event with the same fingerprint in a pending group is considered a duplicate
+  // A fraud event with the same hash in a pending group is considered a duplicate
   const existingEvents = await prisma.fraudEvent.findMany({
     where: {
-      fingerprint: {
-        in: uniqueEvents.map((e) => e.fingerprint),
+      hash: {
+        in: uniqueEvents.map((e) => e.hash),
       },
       fraudEventGroup: {
         status: "pending",
@@ -89,15 +89,15 @@ export async function createFraudEvents(fraudEvents: CreateFraudEventInput[]) {
     select: {
       id: true,
       fraudEventGroupId: true,
-      fingerprint: true,
+      hash: true,
     },
   });
 
-  // Deduplicate events by fingerprint
+  // Deduplicate events by hash
   const newEvents = uniqueEvents.filter(
     (e) =>
       !existingEvents.some(
-        (existingEvent) => existingEvent.fingerprint === e.fingerprint,
+        (existingEvent) => existingEvent.hash === e.hash,
       ),
   );
 
@@ -109,7 +109,7 @@ export async function createFraudEvents(fraudEvents: CreateFraudEventInput[]) {
       linkId: e.linkId,
       customerId: e.customerId,
       eventId: e.eventId,
-      fingerprint: e.fingerprint,
+      hash: e.hash,
       metadata: e.metadata ?? undefined,
 
       // DEPRECATED FIELDS: TODO – remove after migration

@@ -59,7 +59,7 @@ model FraudEvent {
   linkId            String?
   customerId        String?
   eventId           String?
-  fingerprint       String? //  TODO: Make it required after migration
+  hash              String? //  TODO: Make it required after migration
   metadata          Json?    @db.Json
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
@@ -87,5 +87,5 @@ model FraudEvent {
   @@index(userId)
   @@index(commissionId)
   @@index(groupKey)
-  @@index(fingerprint)
+  @@index(hash)
 }

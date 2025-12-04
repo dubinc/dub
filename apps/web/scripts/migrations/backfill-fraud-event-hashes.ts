@@ -1,17 +1,17 @@
-import { createFraudEventFingerprint } from "@/lib/api/fraud/utils";
+import { createFraudEventHash } from "@/lib/api/fraud/utils";
 import { prisma } from "@dub/prisma";
 import { chunk } from "@dub/utils";
 import "dotenv-flow/config";
 
 async function main() {
-  // Fetch all fraud events without a fingerprint
+  // Fetch all fraud events without a hash
   const fraudEvents = await prisma.fraudEvent.findMany({
     where: {
-      fingerprint: null,
+      hash: null,
     },
   });
 
-  console.log(`Found ${fraudEvents.length} fraud events without fingerprints.`);
+  console.log(`Found ${fraudEvents.length} fraud events without hashes.`);
 
   const chunks = chunk(fraudEvents, 100);
 
@@ -22,12 +22,12 @@ async function main() {
           await prisma.fraudEvent.update({
             where: { id: event.id },
             data: {
-              fingerprint: createFraudEventFingerprint(event),
+              hash: createFraudEventHash(event),
             },
           });
         } catch (error) {
           console.error(
-            `Failed to backfill fingerprint for event ${event.id}:`,
+            `Failed to backfill hash for event ${event.id}:`,
             error instanceof Error ? error.message : String(error),
           );
         }
@@ -35,7 +35,8 @@ async function main() {
     );
   }
 
-  console.log("Fingerprint backfill completed.");
+  console.log("Hash backfill completed.");
 }
 
 main();
+

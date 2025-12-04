@@ -96,7 +96,7 @@ async function main() {
           linkId: event.linkId,
           customerId: event.customerId,
           eventId: event.eventId,
-          fingerprint: event.fingerprint,
+          hash: event.hash,
           metadata: event.metadata ?? undefined,
           createdAt: event.createdAt,
           updatedAt: event.updatedAt,

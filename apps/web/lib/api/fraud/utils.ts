@@ -8,7 +8,7 @@ interface CreateGroupKeyInput {
   groupingKey: string;
 }
 
-interface CreateFingerprintInput
+interface CreateHashInput
   extends Pick<
     CreateFraudEventInput,
     "type" | "programId" | "partnerId" | "customerId" | "metadata"
@@ -60,9 +60,9 @@ export function createFraudEventGroupKey(input: CreateGroupKeyInput): string {
   return createHashKey(parts.join("|"));
 }
 
-// Creates a unique fingerprint for a fraud event to enable deduplication.
-export function createFraudEventFingerprint(
-  fraudEvent: CreateFingerprintInput,
+// Creates a unique hash for a fraud event to enable deduplication.
+export function createFraudEventHash(
+  fraudEvent: CreateHashInput,
 ) {
   const identityFields = getIdentityFieldsForFraudEvent(fraudEvent);
 
@@ -83,7 +83,7 @@ export function createFraudEventFingerprint(
   return createHashKey(raw);
 }
 
-// Determines which identity fields should be used for fraud event fingerprinting based on the fraud rule type.
+// Determines which identity fields should be used for fraud event hashing based on the fraud rule type.
 // Different fraud rules use different combinations of fields to uniquely identify fraud events.
 function getIdentityFieldsForFraudEvent({
   type,
