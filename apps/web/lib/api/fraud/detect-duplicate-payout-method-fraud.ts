@@ -9,7 +9,12 @@ import { createFraudEvents } from "./create-fraud-events";
 export async function detectDuplicatePayoutMethodFraud(
   payoutMethodHash: string,
 ) {
-  if (!payoutMethodHash) return;
+  if (!payoutMethodHash) {
+    return {
+      isPayoutMethodDuplicate: false,
+      duplicatePartners: [],
+    };
+  }
 
   //  Find all partners using this payout method with their program enrollments
   const duplicatePartners = await prisma.partner.findMany({
@@ -18,6 +23,8 @@ export async function detectDuplicatePayoutMethodFraud(
     },
     select: {
       id: true,
+      email: true,
+      stripeConnectId: true,
       programs: {
         select: {
           programId: true,
@@ -26,7 +33,12 @@ export async function detectDuplicatePayoutMethodFraud(
     },
   });
 
-  if (duplicatePartners.length <= 1) return;
+  if (duplicatePartners.length <= 1) {
+    return {
+      isPayoutMethodDuplicate: false,
+      duplicatePartners: [],
+    };
+  }
 
   console.info(
     `Found ${duplicatePartners.length} partners with same payout method hash ${prettyPrint(duplicatePartners)}`,
@@ -69,4 +81,12 @@ export async function detectDuplicatePayoutMethodFraud(
   }
 
   await createFraudEvents(fraudEvents);
+
+  return {
+    isPayoutMethodDuplicate: true,
+    duplicatePartners: duplicatePartners.map(({ id, email }) => ({
+      id,
+      email,
+    })),
+  };
 }
