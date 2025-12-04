@@ -2,7 +2,12 @@ import { CreateFraudEventInput } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { createId } from "../create-id";
-import { createFraudEventGroupKey, createFraudEventHash } from "./utils";
+import {
+  createFraudEventGroupKey,
+  createFraudEventHash,
+  createGroupCompositeKey,
+  getPartnerIdForFraudEvent,
+} from "./utils";
 
 export async function createFraudEvents(fraudEvents: CreateFraudEventInput[]) {
   if (fraudEvents.length === 0) {
@@ -146,25 +151,4 @@ export async function createFraudEvents(fraudEvents: CreateFraudEventInput[]) {
       }),
     ),
   );
-}
-
-// Creates a composite key to uniquely identify fraud event groups
-function createGroupCompositeKey(
-  event: Pick<CreateFraudEventInput, "programId" | "partnerId" | "type">,
-) {
-  return `${event.programId}:${event.partnerId}:${event.type}`;
-}
-
-// Determine the correct partnerId for a fraud event.
-// For duplicate payout method events, uses the duplicatePartnerId from metadata.
-function getPartnerIdForFraudEvent(
-  event: Pick<CreateFraudEventInput, "partnerId" | "type" | "metadata">,
-) {
-  const metadata = event.metadata as Record<string, string> | undefined;
-
-  if (event.type === "partnerDuplicatePayoutMethod") {
-    return metadata?.duplicatePartnerId ?? event.partnerId;
-  }
-
-  return event.partnerId;
 }

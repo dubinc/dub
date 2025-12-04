@@ -125,6 +125,28 @@ export function sanitizeFraudEventMetadata(
   const sanitized = metadata as Record<string, any>;
 
   delete sanitized.duplicatePartnerId;
+  delete sanitized.payoutMethodHash;
 
   return Object.keys(sanitized).length > 0 ? sanitized : undefined;
+}
+
+// Creates a composite key to uniquely identify fraud event groups
+export function createGroupCompositeKey(
+  event: Pick<CreateFraudEventInput, "programId" | "partnerId" | "type">,
+) {
+  return `${event.programId}:${event.partnerId}:${event.type}`;
+}
+
+// Determine the correct partnerId for a fraud event.
+// For duplicate payout method events, uses the duplicatePartnerId from metadata.
+export function getPartnerIdForFraudEvent(
+  event: Pick<CreateFraudEventInput, "partnerId" | "type" | "metadata">,
+) {
+  const metadata = event.metadata as Record<string, string> | undefined;
+
+  if (event.type === "partnerDuplicatePayoutMethod") {
+    return metadata?.duplicatePartnerId ?? event.partnerId;
+  }
+
+  return event.partnerId;
 }
