@@ -7,7 +7,7 @@ export async function resolveFraudGroups({
   resolutionReason,
 }: {
   where: Prisma.FraudEventGroupWhereInput;
-  userId: string;
+  userId?: string;
   resolutionReason?: string;
 }) {
   const { count } = await prisma.fraudEventGroup.updateMany({

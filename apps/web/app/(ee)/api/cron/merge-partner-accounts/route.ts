@@ -1,4 +1,5 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { resolveFraudGroups } from "@/lib/api/fraud/resolve-fraud-groups";
 import { linkCache } from "@/lib/api/links/cache";
 import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
 import { includeTags } from "@/lib/api/links/include-tags";
@@ -59,6 +60,7 @@ export async function POST(req: Request) {
       select: {
         id: true,
         email: true,
+        payoutMethodHash: true,
         programs: {
           select: {
             programId: true,
@@ -267,6 +269,25 @@ export async function POST(req: Request) {
       console.error(
         `Error deleting partner ${sourcePartnerId}: ${error.message}`,
       );
+    }
+
+    if (targetAccount.payoutMethodHash) {
+      const duplicatePartners = await prisma.partner.count({
+        where: {
+          payoutMethodHash: targetAccount.payoutMethodHash,
+        },
+      });
+
+      if (duplicatePartners === 0) {
+        await resolveFraudGroups({
+          where: {
+            partnerId: targetPartnerId,
+            type: "partnerDuplicatePayoutMethod",
+          },
+          resolutionReason:
+            "Automatically resolved because partners with duplicate payout methods were merged. No other partners share this payout method.",
+        });
+      }
     }
 
     // Make sure the cache is cleared
