@@ -89,7 +89,6 @@ export function createFraudEventFingerprint(
 // Different fraud rules use different combinations of fields to uniquely identify fraud events.
 function getIdentityFieldsForFraudEvent({
   type,
-  partnerId,
   customerId,
 }: GetIdentityFieldsForFraudEventInput): Record<string, string> {
   switch (type) {
