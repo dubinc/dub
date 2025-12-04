@@ -1,9 +1,20 @@
 import { createId } from "@/lib/api/create-id";
 import { prisma } from "@dub/prisma";
+import { Prisma } from "@prisma/client";
 import "dotenv-flow/config";
 
-// Migrate partnerDuplicatePayoutMethod events
-// These require special handling because one groupKey can contain events from multiple partners
+/**
+ * Migrate partnerDuplicatePayoutMethod fraud events to the new FraudEventGroup structure.
+ *
+ * These events require special handling because a single groupKey (payout method hash)
+ * can contain events from multiple partners who share the same payout method.
+ *
+ * Migration strategy:
+ * 1. For each groupKey, identify all unique partners
+ * 2. Create a separate FraudEventGroup for each partner
+ * 3. For the first partner, update existing events in place
+ * 4. For additional partners, duplicate the events and link to their respective groups
+ */
 async function main() {
   const duplicatePayoutGroups = await prisma.fraudEvent.groupBy({
     by: ["groupKey"],
@@ -19,6 +30,7 @@ async function main() {
   );
 
   for (const fraudGroup of duplicatePayoutGroups) {
+    // Get all fraud events for this groupKey (payout method hash)
     const fraudEvents = await prisma.fraudEvent.findMany({
       where: {
         groupKey: fraudGroup.groupKey,
@@ -34,41 +46,42 @@ async function main() {
       continue;
     }
 
-    // Extract unique partner IDs from the fraud events
+    // Extract unique partner IDs that share this payout method
     const uniquePartnerIds = Array.from(
       new Set(fraudEvents.map((e) => e.partnerId)),
     ).filter((id): id is string => id !== null);
 
-    // two case
-    // uniquePartnerIds -> eq 1
-    // uniquePartnerIds > gt 1
+    // Create a FraudEventGroup for each unique partner
+    const fraudEventGroups: Prisma.FraudEventGroupCreateManyInput[] = [];
 
-    // Create a separate group for each partner and duplicate all events
     for (const partnerId of uniquePartnerIds) {
       const firstFraudEvent = fraudEvents[0];
       const lastFraudEvent = fraudEvents[fraudEvents.length - 1];
 
-      // Create fraud event group for this partner
-      const fraudEventGroup = await prisma.fraudEventGroup.create({
-        data: {
-          id: createId({ prefix: "frg_" }),
-          programId: firstFraudEvent.programId,
-          partnerId: partnerId,
-          type: "partnerDuplicatePayoutMethod",
-          lastEventAt: lastFraudEvent.createdAt,
-          eventCount: fraudEvents.length,
-          userId: firstFraudEvent.userId,
-          resolutionReason: firstFraudEvent.resolutionReason,
-          resolvedAt: firstFraudEvent.resolvedAt,
-          status: firstFraudEvent.status,
-          createdAt: firstFraudEvent.createdAt,
-          updatedAt: lastFraudEvent.createdAt,
-        },
+      fraudEventGroups.push({
+        id: createId({ prefix: "frg_" }),
+        programId: firstFraudEvent.programId,
+        partnerId: partnerId,
+        type: "partnerDuplicatePayoutMethod",
+        lastEventAt: lastFraudEvent.createdAt,
+        eventCount: fraudEvents.length,
+        userId: firstFraudEvent.userId,
+        resolutionReason: firstFraudEvent.resolutionReason,
+        resolvedAt: firstFraudEvent.resolvedAt,
+        status: firstFraudEvent.status,
+        createdAt: firstFraudEvent.createdAt,
+        updatedAt: lastFraudEvent.createdAt,
       });
+    }
 
-      // if there is only one partner, we don't need to duplicate the events
-      // Instead, we will link the events to the fraud event group
-      if (uniquePartnerIds.length === 1) {
+    await prisma.fraudEventGroup.createMany({
+      data: fraudEventGroups,
+    });
+
+    // Link fraud events to their respective FraudEventGroups
+    for (const partnerId of uniquePartnerIds) {
+      if (partnerId === uniquePartnerIds[0]) {
+        // For the first partner, update existing events in place to link them to the new group
         await prisma.fraudEvent.updateMany({
           where: {
             groupKey: fraudGroup.groupKey,
@@ -76,46 +89,28 @@ async function main() {
             type: "partnerDuplicatePayoutMethod",
           },
           data: {
-            fraudEventGroupId: fraudEventGroup.id,
+            fraudEventGroupId: fraudEventGroups.find(
+              (group) => group.partnerId === partnerId,
+            )?.id,
           },
         });
-
-        console.log(
-          `Linked ${fraudEvents.length} events to group ${fraudEventGroup.id} for partner ${partnerId}`,
-        );
 
         continue;
       }
 
-      // if there are multiple partners, we need to duplicate the events for each partner
+      // For additional partners, duplicate the events and link to their respective groups
+      // This is necessary because the old model had all partners' events under one groupKey,
+      // but the new model requires separate FraudEventGroups per partner
       await prisma.fraudEvent.createMany({
         data: fraudEvents.map((event) => ({
+          ...event,
           id: createId({ prefix: "fre_" }),
-          fraudEventGroupId: fraudEventGroup.id,
-          partnerId: event.partnerId,
-          linkId: event.linkId,
-          customerId: event.customerId,
-          eventId: event.eventId,
-          hash: event.hash,
           metadata: event.metadata ?? undefined,
-          createdAt: event.createdAt,
-          updatedAt: event.updatedAt,
-
-          // Deprecated fields (TODO: remove after migration)
-          programId: event.programId,
-          commissionId: event.commissionId,
-          type: event.type,
-          groupKey: event.groupKey,
-          userId: event.userId,
-          resolutionReason: event.resolutionReason,
-          resolvedAt: event.resolvedAt,
-          status: event.status,
+          fraudEventGroupId: fraudEventGroups.find(
+            (group) => group.partnerId === partnerId,
+          )?.id,
         })),
       });
-
-      console.log(
-        `Created group ${fraudEventGroup.id} for partner ${partnerId} with ${fraudEvents.length} duplicated events`,
-      );
     }
   }
 
