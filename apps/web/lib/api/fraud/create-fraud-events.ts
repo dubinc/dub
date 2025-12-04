@@ -2,7 +2,7 @@ import { CreateFraudEventInput } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { createId } from "../create-id";
-import { createFraudEventHash, createFraudEventGroupKey } from "./utils";
+import { createFraudEventGroupKey, createFraudEventHash } from "./utils";
 
 export async function createFraudEvents(fraudEvents: CreateFraudEventInput[]) {
   if (fraudEvents.length === 0) {
@@ -96,9 +96,7 @@ export async function createFraudEvents(fraudEvents: CreateFraudEventInput[]) {
   // Deduplicate events by hash
   const newEvents = uniqueEvents.filter(
     (e) =>
-      !existingEvents.some(
-        (existingEvent) => existingEvent.hash === e.hash,
-      ),
+      !existingEvents.some((existingEvent) => existingEvent.hash === e.hash),
   );
 
   const newEventsWithGroup: Prisma.FraudEventCreateManyInput[] = newEvents.map(
