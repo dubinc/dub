@@ -16,7 +16,9 @@ export default function IntegrationsLayout({
         href: "https://d.to/integrations",
       }}
     >
-      <PageWidthWrapper>{children}</PageWidthWrapper>
+      <PageWidthWrapper className="max-w-[800px] pb-20">
+        {children}
+      </PageWidthWrapper>
     </PageContent>
   );
 }
