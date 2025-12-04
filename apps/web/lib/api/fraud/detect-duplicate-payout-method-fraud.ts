@@ -1,7 +1,6 @@
 import { CreateFraudEventInput } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { FraudRuleType } from "@dub/prisma/client";
-import { prettyPrint } from "@dub/utils";
 import { createFraudEvents } from "./create-fraud-events";
 
 // Check for duplicate payout methods: if multiple partners share the same payout method hash,
@@ -39,10 +38,6 @@ export async function detectDuplicatePayoutMethodFraud(
       duplicatePartners: [],
     };
   }
-
-  console.info(
-    `Found ${duplicatePartners.length} partners with same payout method hash ${prettyPrint(duplicatePartners)}`,
-  );
 
   //  Group program enrollments by programId
   const partnersByProgram = new Map<string, string[]>();

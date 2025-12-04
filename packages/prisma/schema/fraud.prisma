@@ -38,7 +38,6 @@ model FraudEventGroup {
   resolutionReason String?          @db.Text
   resolvedAt       DateTime?
   status           FraudEventStatus @default(pending)
-  hash             String
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 
@@ -48,10 +47,9 @@ model FraudEventGroup {
   programEnrollment ProgramEnrollment @relation(fields: [programId, partnerId], references: [programId, partnerId], onDelete: Cascade)
   fraudEvents       FraudEvent[]
 
-  @@index(programId)
+  @@index([programId, partnerId, type, status])
   @@index(partnerId)
   @@index(userId)
-  @@index(hash)
 }
 
 model FraudEvent {

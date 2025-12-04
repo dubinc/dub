@@ -1,5 +1,4 @@
 import { createId } from "@/lib/api/create-id";
-import { createFraudGroupHash } from "@/lib/api/fraud/utils";
 import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 
@@ -64,11 +63,6 @@ async function main() {
           status: firstFraudEvent.status,
           createdAt: firstFraudEvent.createdAt,
           updatedAt: lastFraudEvent.createdAt,
-          hash: createFraudGroupHash({
-            programId: firstFraudEvent.programId,
-            partnerId: partnerId,
-            type: "partnerDuplicatePayoutMethod",
-          }),
         },
       });
 

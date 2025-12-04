@@ -17,10 +17,8 @@ interface CreateFingerprintInput
 interface GetIdentityFieldsForFraudEventInput
   extends Pick<FraudEventGroup, "partnerId" | "type"> {
   customerId?: string | null | undefined;
+  metadata?: Prisma.JsonValue | undefined;
 }
-
-interface CreateGroupHashInput
-  extends Pick<CreateFraudEventInput, "type" | "programId" | "partnerId"> {}
 
 // Normalize email for comparison
 export function normalizeEmail(email: string): string {
@@ -90,7 +88,10 @@ export function createFraudEventFingerprint(
 function getIdentityFieldsForFraudEvent({
   type,
   customerId,
+  metadata,
 }: GetIdentityFieldsForFraudEventInput): Record<string, string> {
+  const eventMetadata = metadata as Record<string, string>;
+
   switch (type) {
     case "customerEmailMatch":
     case "customerEmailSuspiciousDomain":
@@ -104,23 +105,15 @@ function getIdentityFieldsForFraudEvent({
         customerId,
       };
 
+    case "partnerDuplicatePayoutMethod":
+      return {
+        duplicatePartnerId: eventMetadata?.duplicatePartnerId,
+      };
+
     case "partnerCrossProgramBan":
     case "partnerFraudReport":
-    case "partnerDuplicatePayoutMethod":
       return {};
   }
-}
-
-// Get the group hash for a fraud rule type.
-// This determines which events should be grouped together.
-export function createFraudGroupHash({
-  programId,
-  partnerId,
-  type,
-}: CreateGroupHashInput) {
-  const parts = [programId, type, partnerId].map((p) => p!.toLowerCase());
-
-  return createHashKey(parts.join("|"));
 }
 
 // Sanitize metadata by removing fields that are stored separately or shouldn't be persisted

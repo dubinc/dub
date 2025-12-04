@@ -2,161 +2,171 @@ import { CreateFraudEventInput } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { createId } from "../create-id";
-import {
-  createFraudEventFingerprint,
-  createFraudEventGroupKey,
-  createFraudGroupHash,
-  sanitizeFraudEventMetadata,
-} from "./utils";
+import { createFraudEventFingerprint, createFraudEventGroupKey } from "./utils";
 
 export async function createFraudEvents(fraudEvents: CreateFraudEventInput[]) {
   if (fraudEvents.length === 0) {
-    return {
-      createdEvents: 0,
-      createdGroups: 0,
-    };
+    return;
   }
 
-  // 1. Compute fingerprint + groupHash once
-  const eventsWithComputed = fraudEvents.map((e) => ({
+  const eventsWithHash = fraudEvents.map((e) => ({
     ...e,
     fingerprint: createFraudEventFingerprint(e),
-    groupHash: createFraudGroupHash(e),
   }));
 
-  // Unique fingerprints & group hashes
-  const uniqueFingerprints = Array.from(
-    new Set(eventsWithComputed.map((e) => e.fingerprint)),
+  // Deduplicate by fingerprint in-memory first
+  const uniqueEvents = Array.from(
+    new Map(eventsWithHash.map((e) => [e.fingerprint, e])).values(),
   );
 
-  const uniqueGroupHashes = Array.from(
-    new Set(eventsWithComputed.map((e) => e.groupHash)),
+  // Find existing groups to avoid creating duplicates and maintain group continuity
+  // Events with the same programId/partnerId/type should be grouped together
+  const existingGroups = await prisma.fraudEventGroup.findMany({
+    where: {
+      OR: uniqueEvents.map((e) => ({
+        programId: e.programId,
+        partnerId: e.partnerId,
+        type: e.type,
+        status: "pending",
+      })),
+    },
+    select: {
+      id: true,
+      programId: true,
+      partnerId: true,
+      type: true,
+    },
+  });
+
+  // Identify events that need new groups created because they represent
+  const groupsToCreate = uniqueEvents.filter(
+    (e) =>
+      !existingGroups.some(
+        (g) =>
+          g.programId === e.programId &&
+          g.partnerId === e.partnerId &&
+          g.type === e.type,
+      ),
   );
 
-  return await prisma.$transaction(async (tx) => {
-    // 2. Fetch existing pending events with same fingerprint
-    const existingEvents = await tx.fraudEvent.findMany({
-      where: {
-        fingerprint: {
-          in: uniqueFingerprints,
-        },
-        fraudEventGroup: {
-          status: "pending",
-        },
-      },
-      select: {
-        fingerprint: true,
-      },
+  // Deduplicate groups to create since multiple events may require the same group
+  const newGroups = Array.from(
+    new Map(
+      groupsToCreate.map((e) => [`${e.programId}:${e.partnerId}:${e.type}`, e]),
+    ).values(),
+  ).map((e) => ({
+    id: createId({ prefix: "frg_" }),
+    programId: e.programId,
+    partnerId: e.partnerId,
+    type: e.type,
+  }));
+
+  // Create new groups
+  if (newGroups.length > 0) {
+    await prisma.fraudEventGroup.createMany({
+      data: newGroups,
     });
+  }
 
-    const existingFingerprintSet = new Set(
-      existingEvents.map((e) => e.fingerprint),
-    );
+  // Final list of groups to use
+  const finalGroups = [...existingGroups, ...newGroups];
 
-    // 3. Filter out events that already exist
-    const filteredEvents = eventsWithComputed.filter(
-      (e) => !existingFingerprintSet.has(e.fingerprint),
-    );
+  const finalGroupLookup = new Map(
+    finalGroups.map((g) => [createGroupCompositeKey(g), g.id]),
+  );
 
-    if (filteredEvents.length === 0) {
-      return {
-        createdEvents: 0,
-        createdGroups: 0,
-      };
-    }
-
-    // 4. Fetch existing pending groups
-    const existingGroups = await tx.fraudEventGroup.findMany({
-      where: {
-        hash: {
-          in: uniqueGroupHashes,
-        },
+  // Fetch existing events to prevent duplicate fraud event records
+  // A fraud event with the same fingerprint in a pending group is considered a duplicate
+  const existingEvents = await prisma.fraudEvent.findMany({
+    where: {
+      fingerprint: {
+        in: uniqueEvents.map((e) => e.fingerprint),
+      },
+      fraudEventGroup: {
         status: "pending",
       },
-    });
+    },
+    select: {
+      id: true,
+      fraudEventGroupId: true,
+      fingerprint: true,
+    },
+  });
 
-    const groupMap = new Map(existingGroups.map((g) => [g.hash, g.id]));
+  // Deduplicate events by fingerprint
+  const newEvents = uniqueEvents.filter(
+    (e) =>
+      !existingEvents.some(
+        (existingEvent) => existingEvent.fingerprint === e.fingerprint,
+      ),
+  );
 
-    // 5. Create missing groups bulk
-    const groupsToCreate = uniqueGroupHashes
-      .filter((hash) => !groupMap.has(hash))
-      .map((hash) => {
-        const anyEvent = filteredEvents.find((e) => e.groupHash === hash)!;
-        const id = createId({ prefix: "frg_" });
-        groupMap.set(hash, id);
+  const newEventsWithGroup: Prisma.FraudEventCreateManyInput[] = newEvents.map(
+    (e) => ({
+      id: createId({ prefix: "fre_" }),
+      fraudEventGroupId: finalGroupLookup.get(createGroupCompositeKey(e)),
+      partnerId: getPartnerIdForFraudEvent(e),
+      linkId: e.linkId,
+      customerId: e.customerId,
+      eventId: e.eventId,
+      fingerprint: e.fingerprint,
+      metadata: e.metadata ?? undefined,
 
-        return {
-          id,
-          programId: anyEvent.programId,
-          partnerId: anyEvent.partnerId,
-          type: anyEvent.type,
-          hash,
-        };
-      });
-
-    if (groupsToCreate.length > 0) {
-      await tx.fraudEventGroup.createMany({
-        data: groupsToCreate,
-      });
-    }
-
-    // 4) Bulk insert FraudEvents
-    const eventsToInsert: Prisma.FraudEventCreateManyInput[] =
-      filteredEvents.map((e) => ({
-        id: createId({ prefix: "fre_" }),
-        fraudEventGroupId: groupMap.get(e.groupHash),
-        eventId: e.eventId,
-        linkId: e.linkId,
-        customerId: e.customerId,
-        fingerprint: e.fingerprint,
-        partnerId:
-          e.type === "partnerDuplicatePayoutMethod"
-            ? (e.metadata as Record<string, string>)?.duplicatePartnerId
-            : e.partnerId,
-        metadata: sanitizeFraudEventMetadata(e.metadata),
-
-        // DEPRECATED FIELDS: TODO – remove after migration
+      // DEPRECATED FIELDS: TODO – remove after migration
+      programId: e.programId,
+      type: e.type,
+      groupKey: createFraudEventGroupKey({
         programId: e.programId,
         type: e.type,
-        groupKey: createFraudEventGroupKey({
-          programId: e.programId,
-          type: e.type,
-          groupingKey: e.partnerId,
-        }),
-      }));
+        groupingKey: e.partnerId,
+      }),
+    }),
+  );
 
-    await tx.fraudEvent.createMany({
-      data: eventsToInsert,
-    });
+  if (newEventsWithGroup.length === 0) {
+    return;
+  }
 
-    // 5) Bulk update eventCount + lastEventAt
-    const countsPerGroup = filteredEvents.reduce((map, e) => {
-      const id = groupMap.get(e.groupHash)!;
-      map.set(id, (map.get(id) || 0) + 1);
-      return map;
-    }, new Map<string, number>());
-
-    const now = new Date();
-
-    await Promise.all(
-      Array.from(countsPerGroup.entries()).map(([id, count]) =>
-        tx.fraudEventGroup.update({
-          where: {
-            id,
-          },
-          data: {
-            lastEventAt: now,
-            eventCount: {
-              increment: count,
-            },
-          },
-        }),
-      ),
-    );
-
-    return {
-      createdGroups: groupsToCreate.length,
-      createdEvents: eventsToInsert.length,
-    };
+  await prisma.fraudEvent.createMany({
+    data: newEventsWithGroup,
   });
+
+  await Promise.allSettled(
+    finalGroups.map((group) =>
+      prisma.fraudEventGroup.update({
+        where: {
+          id: group.id,
+        },
+        data: {
+          lastEventAt: new Date(),
+          eventCount: {
+            increment: newEventsWithGroup.filter(
+              (e) => e.fraudEventGroupId === group.id,
+            ).length,
+          },
+        },
+      }),
+    ),
+  );
+}
+
+// Creates a composite key to uniquely identify fraud event groups
+function createGroupCompositeKey(
+  event: Pick<CreateFraudEventInput, "programId" | "partnerId" | "type">,
+) {
+  return `${event.programId}:${event.partnerId}:${event.type}`;
+}
+
+// Determine the correct partnerId for a fraud event.
+// For duplicate payout method events, uses the duplicatePartnerId from metadata.
+function getPartnerIdForFraudEvent(
+  event: Pick<CreateFraudEventInput, "partnerId" | "type" | "metadata">,
+) {
+  const metadata = event.metadata as Record<string, string> | undefined;
+
+  if (event.type === "partnerDuplicatePayoutMethod") {
+    return metadata?.duplicatePartnerId ?? event.partnerId;
+  }
+
+  return event.partnerId;
 }
