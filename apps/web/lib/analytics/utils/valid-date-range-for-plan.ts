@@ -1,4 +1,4 @@
-import { differenceInDays } from "date-fns";
+import { getDaysDifference } from "@dub/utils";
 
 export type DateRangeValidationResult =
   | { valid: true }
@@ -32,7 +32,7 @@ export const validDateRangeForPlan = ({
     (interval === "90d" ||
       interval === "1y" ||
       interval === "ytd" ||
-      (start && differenceInDays(start, end || now) > 31))
+      (start && getDaysDifference(start, end || now) > 31))
   ) {
     return {
       valid: false,
@@ -43,7 +43,7 @@ export const validDateRangeForPlan = ({
   }
 
   // Pro plan users can only get analytics for 1 year
-  if (plan === "pro" && start && differenceInDays(start, end || now) > 366) {
+  if (plan === "pro" && start && getDaysDifference(start, end || now) > 366) {
     return {
       valid: false,
       code: "pro-limit",

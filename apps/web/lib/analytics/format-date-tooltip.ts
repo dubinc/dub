@@ -1,4 +1,4 @@
-import { differenceInDays } from "date-fns";
+import { getDaysDifference } from "@dub/utils";
 
 export const formatDateTooltip = (
   date: Date,
@@ -27,7 +27,7 @@ export const formatDateTooltip = (
   }
 
   if (start && end) {
-    const daysDifference = differenceInDays(
+    const daysDifference = getDaysDifference(
       typeof start === "string" ? new Date(start) : start,
       typeof end === "string" ? new Date(end) : end,
     );
