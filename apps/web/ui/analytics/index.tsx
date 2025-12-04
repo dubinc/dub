@@ -64,7 +64,7 @@ function StatsGrid() {
 
   return hide ? null : (
     <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-      {!dashboardProps && <TopLinks />}
+      {!dashboardProps?.key && <TopLinks />}
       <ReferrersUTMs />
       <LocationSection />
       <DeviceSection />
