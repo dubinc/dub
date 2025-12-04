@@ -8,7 +8,7 @@ interface CreateGroupKeyInput {
   groupingKey: string;
 }
 
-interface CreateHashInput
+interface CreateEventHashInput
   extends Pick<
     CreateFraudEventInput,
     "type" | "programId" | "partnerId" | "customerId" | "metadata"
@@ -61,9 +61,7 @@ export function createFraudEventGroupKey(input: CreateGroupKeyInput): string {
 }
 
 // Creates a unique hash for a fraud event to enable deduplication.
-export function createFraudEventHash(
-  fraudEvent: CreateHashInput,
-) {
+export function createFraudEventHash(fraudEvent: CreateEventHashInput) {
   const identityFields = getIdentityFieldsForFraudEvent(fraudEvent);
 
   const normalizedIdentityFields = Object.keys(identityFields)
