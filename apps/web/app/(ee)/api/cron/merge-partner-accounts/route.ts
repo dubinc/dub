@@ -271,6 +271,9 @@ export async function POST(req: Request) {
       );
     }
 
+    // After merging, check if the fraud condition has been resolved.
+    // If no other partners share the same payout method hash, we can
+    // automatically resolve any pending fraud groups for this partner.
     if (targetAccount.payoutMethodHash) {
       const duplicatePartners = await prisma.partner.count({
         where: {
@@ -278,7 +281,7 @@ export async function POST(req: Request) {
         },
       });
 
-      if (duplicatePartners === 0) {
+      if (duplicatePartners <= 1) {
         await resolveFraudGroups({
           where: {
             partnerId: targetPartnerId,
