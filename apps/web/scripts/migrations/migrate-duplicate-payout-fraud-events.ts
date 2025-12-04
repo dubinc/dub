@@ -30,6 +30,8 @@ async function main() {
   );
 
   for (const fraudGroup of duplicatePayoutGroups) {
+    console.log(`Migrating fraud group ${fraudGroup.groupKey}...`);
+
     // Get all fraud events for this groupKey (payout method hash)
     const fraudEvents = await prisma.fraudEvent.findMany({
       where: {
