@@ -35,11 +35,11 @@ export function Form({
         });
         setSaving(false);
       }}
-      className="rounded-lg border border-neutral-200 bg-white"
+      className="rounded-xl border border-neutral-200 bg-white"
     >
-      <div className="relative flex flex-col space-y-6 p-5 sm:p-10">
-        <div className="flex flex-col space-y-3">
-          <h2 className="text-xl font-medium">{title}</h2>
+      <div className="relative flex flex-col space-y-6 p-6">
+        <div className="flex flex-col space-y-1">
+          <h2 className="text-base font-semibold">{title}</h2>
           <p className="text-sm text-neutral-500">{description}</p>
         </div>
         {typeof inputAttrs.defaultValue === "string" ? (
@@ -62,7 +62,7 @@ export function Form({
         )}
       </div>
 
-      <div className="flex items-center justify-between space-x-4 rounded-b-lg border-t border-neutral-200 bg-neutral-50 p-3 sm:px-10">
+      <div className="flex flex-col items-start justify-between gap-4 rounded-b-xl border-t border-neutral-200 bg-neutral-50 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0 sm:py-3">
         {typeof helpText === "string" ? (
           <p
             className="prose-sm prose-a:underline prose-a:underline-offset-4 hover:prose-a:text-neutral-700 text-neutral-500 transition-colors"
@@ -71,7 +71,7 @@ export function Form({
         ) : (
           helpText
         )}
-        <div className="shrink-0">
+        <div className="w-fit shrink-0">
           <Button
             text={buttonText}
             loading={saving}

@@ -1,20 +1,22 @@
 "use client";
 
 import { updatePasswordSchema } from "@/lib/zod/schemas/auth";
-import { Button, Input, Label, Tooltip } from "@dub/ui";
-import { useForm } from "react-hook-form";
+import { PasswordRequirements } from "@/ui/shared/password-requirements";
+import { Button, Input, Label } from "@dub/ui";
+import { FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
 // Allow the user to update their existing password
 export const UpdatePassword = () => {
+  const form = useForm<z.infer<typeof updatePasswordSchema>>();
   const {
     register,
     handleSubmit,
     setError,
     formState: { isSubmitting, isDirty, errors },
     reset,
-  } = useForm<z.infer<typeof updatePasswordSchema>>();
+  } = form;
 
   const onSubmit = handleSubmit(async (data) => {
     try {
@@ -41,17 +43,18 @@ export const UpdatePassword = () => {
 
   return (
     <form
-      className="rounded-lg border border-neutral-200 bg-white"
+      className="rounded-xl border border-neutral-200 bg-white"
       onSubmit={onSubmit}
     >
-      <div>
-        <div className="flex flex-col gap-3 border-b border-neutral-200 p-5 sm:p-10">
-          <h2 className="text-xl font-medium">Password</h2>
-          <p className="pb-2 text-sm text-neutral-500">
-            Manage your account password on {process.env.NEXT_PUBLIC_APP_NAME}.
-          </p>
-        </div>
-        <div className="flex flex-wrap justify-between gap-4 p-5 sm:p-10">
+      <div className="border-neutral-200">
+        <div className="flex flex-col gap-6 p-6">
+          <div className="flex flex-col space-y-1">
+            <h2 className="text-xl font-medium">Password</h2>
+            <p className="pb-2 text-sm text-neutral-500">
+              Manage your account password on {process.env.NEXT_PUBLIC_APP_NAME}
+              .
+            </p>
+          </div>
           <div className="grid w-full max-w-sm items-center gap-2">
             <Label htmlFor="currentPassword">Current Password</Label>
             <Input
@@ -73,30 +76,21 @@ export const UpdatePassword = () => {
               type="password"
               {...register("newPassword", { required: true })}
             />
-            <span
-              className="block text-sm text-red-500"
-              role="alert"
-              aria-live="assertive"
-            >
-              {errors.newPassword?.message}
-            </span>
+            <FormProvider {...form}>
+              <PasswordRequirements field="newPassword" className="mt-0" />
+            </FormProvider>
           </div>
         </div>
-      </div>
 
-      <div className="flex items-center justify-between space-x-4 rounded-b-lg border-t border-neutral-200 bg-neutral-50 p-3 sm:px-10">
-        <Tooltip content="Passwords must be at least 8 characters long containing at least one number, one uppercase, and one lowercase letter.">
-          <p className="text-sm text-neutral-500 underline decoration-dotted underline-offset-2 hover:text-neutral-700">
-            Password requirements
-          </p>
-        </Tooltip>
-        <div className="shrink-0">
-          <Button
-            text="Update Password"
-            loading={isSubmitting}
-            disabled={!isDirty}
-            type="submit"
-          />
+        <div className="flex flex-col items-start justify-between gap-4 rounded-b-xl border-t border-neutral-200 bg-neutral-50 px-5 py-4 sm:flex-row sm:items-center sm:justify-end sm:space-y-0 sm:py-3">
+          <div className="shrink-0">
+            <Button
+              text="Update Password"
+              loading={isSubmitting}
+              disabled={!isDirty}
+              type="submit"
+            />
+          </div>
         </div>
       </div>
     </form>
