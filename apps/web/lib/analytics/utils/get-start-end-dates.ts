@@ -1,4 +1,4 @@
-import { getDaysDifference } from "@dub/utils";
+import { differenceInDays, endOfDay } from "date-fns";
 import { getIntervalData } from "./get-interval-data";
 
 export const getStartEndDates = ({
@@ -20,9 +20,9 @@ export const getStartEndDates = ({
 
   if (start || (interval === "all" && dataAvailableFrom)) {
     startDate = new Date(start ?? dataAvailableFrom ?? Date.now());
-    endDate = new Date(end ?? Date.now());
+    endDate = new Date(endOfDay(end ?? Date.now()));
 
-    const daysDifference = getDaysDifference(startDate, endDate);
+    const daysDifference = differenceInDays(startDate, endDate);
 
     if (daysDifference <= 2) {
       granularity = "hour";

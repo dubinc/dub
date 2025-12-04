@@ -1,6 +1,7 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { getCommissionsQuerySchema } from "@/lib/zod/schemas/commissions";
 import { prisma } from "@dub/prisma";
+import { CommissionStatus } from "@prisma/client";
 import { z } from "zod";
 
 type CommissionsFilters = z.infer<typeof getCommissionsQuerySchema> & {
@@ -46,13 +47,19 @@ export async function getCommissions(filters: CommissionsFilters) {
           },
           programId,
           partnerId,
-          status,
+          status: status ?? {
+            notIn: [
+              CommissionStatus.duplicate,
+              CommissionStatus.fraud,
+              CommissionStatus.canceled,
+            ],
+          },
           type,
           customerId,
           payoutId,
           createdAt: {
-            gte: startDate.toISOString(),
-            lte: endDate.toISOString(),
+            gte: startDate,
+            lte: endDate,
           },
           ...(groupId && {
             programEnrollment: {
