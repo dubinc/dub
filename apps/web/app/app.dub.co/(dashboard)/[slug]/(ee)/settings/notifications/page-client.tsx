@@ -211,7 +211,7 @@ export default function NotificationsSettingsPageClient() {
   return (
     <div className="flex flex-col gap-6">
       {renderSection({
-        title: "Workspace",
+        title: "Short links",
         notifications: workspaceNotifications,
       })}
       {renderSection({
