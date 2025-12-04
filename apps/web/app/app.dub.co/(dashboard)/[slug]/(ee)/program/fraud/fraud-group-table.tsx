@@ -4,7 +4,6 @@ import { FRAUD_RULES_BY_TYPE } from "@/lib/api/fraud/constants";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useFraudGroups } from "@/lib/swr/use-fraud-groups";
 import { useFraudGroupCount } from "@/lib/swr/use-fraud-groups-count";
-import useWorkspace from "@/lib/swr/use-workspace";
 import { FraudGroupProps } from "@/lib/types";
 import { useBanPartnerModal } from "@/ui/modals/ban-partner-modal";
 import { useBulkBanPartnersModal } from "@/ui/modals/bulk-ban-partners-modal";
@@ -37,7 +36,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useFraudGroupFilters } from "./use-fraud-group-filters";
 
 export function FraudGroupTable() {
-  const { id: workspaceId } = useWorkspace();
   const { queryParams, searchParams } = useRouterStuff();
   const { pagination, setPagination } = usePagination();
 
@@ -105,7 +103,7 @@ export function FraudGroupTable() {
       partners: pendingBanPartners,
       onConfirm: async () => {
         tableRef.current?.resetRowSelection();
-        await mutatePrefix("/api/fraud/groups");
+        mutatePrefix("/api/fraud/groups");
       },
     });
 
@@ -114,7 +112,7 @@ export function FraudGroupTable() {
       fraudGroups: pendingResolveFraudGroups,
       onConfirm: async () => {
         tableRef.current?.resetRowSelection();
-        await mutatePrefix("/api/fraud/groups");
+        mutatePrefix("/api/fraud/groups");
       },
     });
 
@@ -213,9 +211,7 @@ export function FraudGroupTable() {
         minSize: 30,
         size: 30,
         maxSize: 30,
-        cell: ({ row }) => (
-          <RowMenuButton row={row} workspaceId={workspaceId!} />
-        ),
+        cell: ({ row }) => <RowMenuButton row={row} />,
       },
     ],
     columnPinning: { right: ["menu"] },
@@ -457,13 +453,7 @@ function BulkActionsMenu({
   );
 }
 
-function RowMenuButton({
-  row,
-  workspaceId,
-}: {
-  row: Row<FraudGroupProps>;
-  workspaceId: string;
-}) {
+function RowMenuButton({ row }: { row: Row<FraudGroupProps> }) {
   const fraudGroup = row.original;
   const partner = fraudGroup.partner;
 
