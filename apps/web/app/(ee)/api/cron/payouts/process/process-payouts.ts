@@ -17,6 +17,7 @@ import {
   currencyFormatter,
   log,
   nFormatter,
+  pluralize,
 } from "@dub/utils";
 
 const nonUsdPaymentMethodTypes = {
@@ -291,7 +292,7 @@ export async function processPayouts({
   if (userWhoInitiatedPayout.email) {
     const emailRes = await sendEmail({
       to: userWhoInitiatedPayout.email,
-      subject: `Thank you for your ${currencyFormatter(totalPayoutAmount)} payout to ${nFormatter(res.count, { full: true })} partners`,
+      subject: `Thank you for your ${currencyFormatter(totalPayoutAmount)} payout to ${nFormatter(res.count, { full: true })} ${pluralize("partner", res.count)}`,
       react: ProgramPayoutThankYou({
         email: userWhoInitiatedPayout.email,
         workspace,

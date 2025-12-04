@@ -51,8 +51,8 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
       payoutId,
       customerId,
       createdAt: {
-        gte: startDate.toISOString(),
-        lte: endDate.toISOString(),
+        gte: startDate,
+        lte: endDate,
       },
       ...(groupId && {
         programEnrollment: {
