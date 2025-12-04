@@ -47,19 +47,35 @@ export async function detectAndRecordFraudApplication({
   // Check if partner shares the same payout method hash with other partners
   // indicates potential duplicate account fraud
   if (partner.payoutMethodHash) {
-    const duplicatePartners = await prisma.partner.count({
+    const duplicatePartners = await prisma.partner.findMany({
       where: {
         payoutMethodHash: partner.payoutMethodHash,
+        programs: {
+          some: {
+            programId: program.id,
+          },
+        },
+      },
+      select: {
+        id: true,
+        payoutMethodHash: true,
       },
     });
 
-    if (duplicatePartners > 1) {
-      triggeredRules.push({
-        type: FraudRuleType.partnerDuplicatePayoutMethod,
-        metadata: {
-          payoutMethodHash: partner.payoutMethodHash,
-          duplicatePartnerId: partner.id,
-        },
+    if (duplicatePartners.length >= 1) {
+      const duplicatePartnerIds = [
+        ...duplicatePartners.map((partner) => partner.id),
+        partner.id,
+      ];
+
+      duplicatePartnerIds.forEach((duplicatePartnerId) => {
+        triggeredRules.push({
+          type: FraudRuleType.partnerDuplicatePayoutMethod,
+          metadata: {
+            payoutMethodHash: partner.payoutMethodHash,
+            duplicatePartnerId,
+          },
+        });
       });
     }
   }
