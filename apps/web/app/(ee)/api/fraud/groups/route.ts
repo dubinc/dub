@@ -50,6 +50,7 @@ export const GET = withWorkspace(
           select: {
             id: true,
             name: true,
+            email: true,
             image: true,
           },
         },

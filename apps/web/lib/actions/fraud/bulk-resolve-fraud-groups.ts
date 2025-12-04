@@ -26,6 +26,7 @@ export const bulkResolveFraudGroupsAction = authActionClient
         id: {
           in: groupIds,
         },
+        status: "pending",
       },
       select: {
         id: true,

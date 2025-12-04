@@ -24,11 +24,7 @@ export const fraudGroupSchema = z.object({
     image: true,
     status: true,
   }),
-  user: UserSchema.pick({
-    id: true,
-    name: true,
-    image: true,
-  }).nullable(),
+  user: UserSchema.nullable(),
 });
 
 export const fraudGroupQuerySchema = z
@@ -92,7 +88,10 @@ export const resolveFraudGroupSchema = z.object({
 
 export const bulkResolveFraudGroupsSchema = z.object({
   workspaceId: z.string(),
-  groupIds: z.array(z.string()).min(1),
+  groupIds: z
+    .array(z.string())
+    .min(1)
+    .max(100, "You can only resolve up to 100 fraud event groups at a time."),
   resolutionReason: z
     .string()
     .max(

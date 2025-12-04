@@ -8,15 +8,25 @@ async function main() {
     by: ["groupKey"],
     where: {
       fraudEventGroupId: null,
+      type: {
+        not: "partnerDuplicatePayoutMethod",
+      },
     },
     _count: true,
   });
+
+  console.log(
+    `Migrating ${fraudGroups.length} fraud event groups (excluding partnerDuplicatePayoutMethod)...`,
+  );
 
   for (const fraudGroup of fraudGroups) {
     const fraudEvents = await prisma.fraudEvent.findMany({
       where: {
         groupKey: fraudGroup.groupKey,
         fraudEventGroupId: null,
+        type: {
+          not: "partnerDuplicatePayoutMethod",
+        },
       },
       orderBy: {
         createdAt: "desc",
@@ -62,6 +72,8 @@ async function main() {
       },
     });
   }
+
+  console.log("Fraud event migration completed.");
 }
 
 main();
