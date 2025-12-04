@@ -114,11 +114,16 @@ export function FraudPaidTrafficDetectedTable() {
             >
               <div className="flex items-center gap-2">
                 {Icon && <Icon className="size-4 shrink-0" />}
-                <span className="truncate text-sm text-neutral-600">
-                  {metadata.url
-                    ? getPrettyUrl(metadata.url)
-                    : capitalize(metadata.source || platform?.name)}
-                </span>
+
+                {metadata.url ? (
+                  <span className="truncate text-sm text-neutral-600 underline decoration-dotted underline-offset-2">
+                    {getPrettyUrl(metadata.url)}
+                  </span>
+                ) : (
+                  <span className="truncate text-sm text-neutral-600">
+                    {capitalize(metadata.source || platform?.name)}
+                  </span>
+                )}
               </div>
             </DynamicTooltipWrapper>
           );
