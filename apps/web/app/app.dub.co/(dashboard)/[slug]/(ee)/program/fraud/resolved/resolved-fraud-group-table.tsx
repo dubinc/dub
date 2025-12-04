@@ -119,20 +119,6 @@ export function ResolvedFraudGroupTable() {
         },
       },
       {
-        id: "resolvedAt",
-        header: "Resolved on",
-        cell: ({ row }: { row: Row<FraudGroupProps> }) => {
-          const user = row.original.user;
-          const resolvedAt = row.original.resolvedAt;
-
-          if (!resolvedAt || !user) return "-";
-
-          return (
-            <UserRowItem user={user} date={resolvedAt} label="Resolved at" />
-          );
-        },
-      },
-      {
         id: "partner",
         header: "Partner",
         cell: ({ row }: { row: Row<FraudGroupProps> }) => {
@@ -156,6 +142,37 @@ export function ResolvedFraudGroupTable() {
                   partnerId: row.original.partner.id,
                 }
               : {},
+        },
+      },
+      {
+        id: "resolvedAt",
+        header: "Resolved on",
+        cell: ({ row }: { row: Row<FraudGroupProps> }) => {
+          const user = row.original.user;
+          const resolvedAt = row.original.resolvedAt;
+
+          if (!resolvedAt || !user) return "-";
+
+          return (
+            <UserRowItem user={user} date={resolvedAt} label="Resolved at" />
+          );
+        },
+      },
+      {
+        id: "resolutionReason",
+        header: "Note",
+        cell: ({ row }: { row: Row<FraudGroupProps> }) => {
+          const resolutionReason = row.original.resolutionReason;
+
+          if (!resolutionReason) return "-";
+
+          return (
+            <Tooltip content={resolutionReason}>
+              <span className="line-clamp-1 cursor-help truncate">
+                {resolutionReason}
+              </span>
+            </Tooltip>
+          );
         },
       },
     ],
