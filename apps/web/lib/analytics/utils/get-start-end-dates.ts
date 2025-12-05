@@ -26,7 +26,7 @@ export const getStartEndDates = ({
     endDate = endOfDay(new TZDate(new Date(end ?? Date.now()), timezone));
 
     const daysDifference = differenceInDays(endDate, startDate, {
-      in: tz(timezone ?? "UTC"),
+      in: timezone ? tz(timezone) : undefined,
     });
 
     if (daysDifference <= 2) {

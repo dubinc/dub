@@ -25,44 +25,44 @@ const INTERVAL_DATA: Record<
   }),
   "7d": ({ timezone }) => ({
     startDate: subDays(new TZDate(Date.now(), timezone), 7),
-    endDate: endOfToday({ in: tz(timezone ?? "UTC") }),
+    endDate: endOfToday({ in: timezone ? tz(timezone) : undefined }),
     granularity: "day",
   }),
   "30d": ({ timezone }) => ({
     startDate: subDays(new TZDate(Date.now(), timezone), 30),
-    endDate: endOfToday({ in: tz(timezone ?? "UTC") }),
+    endDate: endOfToday({ in: timezone ? tz(timezone) : undefined }),
     granularity: "day",
   }),
   "90d": ({ timezone }) => ({
     startDate: subDays(new TZDate(Date.now(), timezone), 90),
-    endDate: endOfToday({ in: tz(timezone ?? "UTC") }),
+    endDate: endOfToday({ in: timezone ? tz(timezone) : undefined }),
     granularity: "day",
   }),
   "1y": ({ timezone }) => ({
     startDate: subMonths(new TZDate(Date.now(), timezone), 12),
-    endDate: endOfToday({ in: tz(timezone ?? "UTC") }),
+    endDate: endOfToday({ in: timezone ? tz(timezone) : undefined }),
     granularity: "month",
   }),
   mtd: ({ timezone }) => {
     return {
       startDate: startOfMonth(new TZDate(Date.now(), timezone)),
-      endDate: endOfToday({ in: tz(timezone ?? "UTC") }),
+      endDate: endOfToday({ in: timezone ? tz(timezone) : undefined }),
       granularity: "day",
     };
   },
   qtd: ({ timezone }) => ({
     startDate: startOfQuarter(new TZDate(Date.now(), timezone)),
-    endDate: endOfToday({ in: tz(timezone ?? "UTC") }),
+    endDate: endOfToday({ in: timezone ? tz(timezone) : undefined }),
     granularity: "day",
   }),
   ytd: ({ timezone }) => ({
     startDate: startOfYear(new TZDate(Date.now(), timezone)),
-    endDate: endOfToday({ in: tz(timezone ?? "UTC") }),
+    endDate: endOfToday({ in: timezone ? tz(timezone) : undefined }),
     granularity: "month",
   }),
   all: ({ timezone }) => ({
     startDate: new TZDate(DUB_FOUNDING_DATE, timezone),
-    endDate: endOfToday({ in: tz(timezone ?? "UTC") }),
+    endDate: endOfToday({ in: timezone ? tz(timezone) : undefined }),
     granularity: "month",
   }),
 };
