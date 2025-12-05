@@ -107,6 +107,7 @@ export async function createFraudEvents(fraudEvents: CreateFraudEventInput[]) {
   const newEventsWithGroup: Prisma.FraudEventCreateManyInput[] = newEvents.map(
     (e) => ({
       id: createId({ prefix: "fre_" }),
+      programId: e.programId,
       fraudEventGroupId: finalGroupLookup.get(createGroupCompositeKey(e)),
       partnerId: getPartnerIdForFraudEvent(e),
       linkId: e.linkId,
@@ -116,7 +117,6 @@ export async function createFraudEvents(fraudEvents: CreateFraudEventInput[]) {
       metadata: e.metadata ?? undefined,
 
       // DEPRECATED FIELDS: TODO – remove after migration
-      programId: e.programId,
       type: e.type,
       groupKey: createFraudEventGroupKey({
         programId: e.programId,
