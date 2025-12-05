@@ -8,6 +8,7 @@ import {
   createFraudEventHash,
   createGroupCompositeKey,
   getPartnerIdForFraudEvent,
+  sanitizeFraudEventMetadata,
 } from "./utils";
 
 export async function createFraudEvents(fraudEvents: CreateFraudEventInput[]) {
@@ -117,7 +118,7 @@ export async function createFraudEvents(fraudEvents: CreateFraudEventInput[]) {
       customerId: e.customerId,
       eventId: e.eventId,
       hash: e.hash,
-      metadata: e.metadata ?? undefined,
+      metadata: e.metadata ? sanitizeFraudEventMetadata(e.metadata) : undefined,
 
       // DEPRECATED FIELDS: TODO – remove after migration
       type: e.type,
