@@ -84,9 +84,18 @@ export function FraudReferralSourceBannedTable() {
         cell: ({ row: { original: fraudEvent } }) => {
           if (!fraudEvent.customer) return null;
 
+          const referer = fraudEvent.metadata?.source || undefined;
+
           return (
             <Link
-              href={`/${workspaceSlug}/events?interval=all&customerId=${fraudEvent.customer.id}&referer=${fraudEvent.metadata?.source}`}
+              href={{
+                pathname: `/${workspaceSlug}/events`,
+                query: {
+                  interval: "all",
+                  customerId: fraudEvent.customer.id,
+                  ...(referer && { referer }),
+                },
+              }}
               target="_blank"
             >
               <Button

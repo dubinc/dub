@@ -138,10 +138,12 @@ export async function createFraudEvents(fraudEvents: CreateFraudEventInput[]) {
     data: newEventsWithGroup,
   });
 
-  if (createdEvents.count) {
-    console.info(
-      `Created ${createdEvents.count} fraud events ${prettyPrint(newEventsWithGroup)}`,
-    );
+  if (process.env.NODE_ENV === "development") {
+    if (createdEvents.count) {
+      console.info(
+        `Created ${createdEvents.count} fraud events ${prettyPrint(newEventsWithGroup)}`,
+      );
+    }
   }
 
   await Promise.allSettled(
