@@ -22,6 +22,7 @@ import { Session } from "../auth";
 import { RewardContext, RewardProps } from "../types";
 import { sendWorkspaceWebhook } from "../webhook/publish";
 import { CommissionWebhookSchema } from "../zod/schemas/commissions";
+import { DEFAULT_PARTNER_GROUP } from "../zod/schemas/groups";
 import { aggregatePartnerLinksStats } from "./aggregate-partner-links-stats";
 import { determinePartnerReward } from "./determine-partner-reward";
 import { getRewardAmount } from "./get-reward-amount";
@@ -285,7 +286,6 @@ export const createPartnerCommission = async ({
             name: true,
             slug: true,
             logo: true,
-            holdingPeriodDays: true,
             supportEmail: true,
             workspace: {
               select: {
@@ -295,6 +295,17 @@ export const createPartnerCommission = async ({
                 webhookEnabled: true,
               },
             },
+            // if no partner group is found, need to fetch default group to fallback to
+            ...(!programEnrollment.partnerGroup && {
+              groups: {
+                select: {
+                  holdingPeriodDays: true,
+                },
+                where: {
+                  slug: DEFAULT_PARTNER_GROUP.slug,
+                },
+              },
+            }),
           },
         });
 
@@ -321,7 +332,8 @@ export const createPartnerCommission = async ({
           !isClawback &&
             notifyPartnerCommission({
               program,
-              group: programEnrollment.partnerGroup ?? { holdingPeriodDays: 0 },
+              // fallback to default group if no partner group is found
+              group: programEnrollment.partnerGroup ?? program.groups[0],
               workspace,
               commission,
             }),

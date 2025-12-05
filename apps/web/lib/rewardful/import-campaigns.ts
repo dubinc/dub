@@ -155,7 +155,6 @@ export async function importCampaigns(payload: RewardfulImportPayload) {
         },
         data: {
           minPayoutAmount: minimum_payout_cents,
-          holdingPeriodDays: days_until_commissions_are_due,
         },
       });
       console.log(

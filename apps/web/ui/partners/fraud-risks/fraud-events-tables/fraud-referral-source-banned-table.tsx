@@ -1,6 +1,6 @@
 "use client";
 
-import { useFraudEvents } from "@/lib/swr/use-fraud-events";
+import { useFraudEventsPaginated } from "@/lib/swr/use-fraud-events-paginated";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { fraudEventSchemas } from "@/lib/zod/schemas/fraud";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
@@ -16,10 +16,20 @@ type EventDataProps = z.infer<
 export function FraudReferralSourceBannedTable() {
   const { slug: workspaceSlug } = useWorkspace();
 
-  const { fraudEvents, loading, error } = useFraudEvents<EventDataProps>();
+  const {
+    fraudEvents,
+    loading,
+    error,
+    pagination,
+    setPagination,
+    fraudEventsCount,
+  } = useFraudEventsPaginated<EventDataProps>();
 
   const table = useTable({
     data: fraudEvents || [],
+    pagination,
+    onPaginationChange: setPagination,
+    rowCount: fraudEventsCount ?? 0,
     columns: [
       {
         id: "date",
@@ -71,12 +81,21 @@ export function FraudReferralSourceBannedTable() {
         minSize: 100,
         size: 100,
         maxSize: 100,
-        cell: ({ row }) => {
-          if (!row.original.customer) return null;
+        cell: ({ row: { original: fraudEvent } }) => {
+          if (!fraudEvent.customer) return null;
+
+          const referer = fraudEvent.metadata?.source || undefined;
 
           return (
             <Link
-              href={`/${workspaceSlug}/events?interval=all&customerId=${row.original.customer.id}`}
+              href={{
+                pathname: `/${workspaceSlug}/events`,
+                query: {
+                  interval: "all",
+                  customerId: fraudEvent.customer.id,
+                  ...(referer && { referer }),
+                },
+              }}
               target="_blank"
             >
               <Button

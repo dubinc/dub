@@ -1,4 +1,5 @@
 import { prisma } from "@dub/prisma";
+import { prettyPrint } from "@dub/utils";
 import { Prisma } from "@prisma/client";
 
 export async function resolveFraudGroups({
@@ -22,6 +23,8 @@ export async function resolveFraudGroups({
       status: "resolved",
     },
   });
+
+  console.info(`Resolved ${count} fraud event groups ${prettyPrint(where)}`);
 
   return count;
 }

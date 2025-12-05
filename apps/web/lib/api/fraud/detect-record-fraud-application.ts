@@ -1,6 +1,6 @@
-import { PartnerProps, ProgramProps } from "@/lib/types";
+import { CreateFraudEventInput, PartnerProps, ProgramProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
-import { FraudEvent, FraudRuleType } from "@dub/prisma/client";
+import { FraudRuleType } from "@dub/prisma/client";
 import { FRAUD_RULES_BY_SCOPE } from "./constants";
 import { createFraudEvents } from "./create-fraud-events";
 
@@ -23,7 +23,7 @@ export async function detectAndRecordFraudApplication({
   }
 
   const { partner, program } = context;
-  const triggeredRules: Pick<FraudEvent, "type" | "metadata">[] = [];
+  const fraudEvents: CreateFraudEventInput[] = [];
 
   // Check if partner has been banned in other programs
   // indicates cross-program fraud risk
@@ -38,7 +38,9 @@ export async function detectAndRecordFraudApplication({
   });
 
   if (bannedProgramEnrollments > 0) {
-    triggeredRules.push({
+    fraudEvents.push({
+      programId: program.id,
+      partnerId: partner.id,
       type: FraudRuleType.partnerCrossProgramBan,
       metadata: null,
     });
@@ -62,29 +64,23 @@ export async function detectAndRecordFraudApplication({
       },
     });
 
-    if (duplicatePartners.length >= 1) {
-      const duplicatePartnerIds = [
-        ...duplicatePartners.map((partner) => partner.id),
-        partner.id,
-      ];
-
-      duplicatePartnerIds.forEach((duplicatePartnerId) => {
-        triggeredRules.push({
-          type: FraudRuleType.partnerDuplicatePayoutMethod,
-          metadata: {
-            payoutMethodHash: partner.payoutMethodHash,
-            duplicatePartnerId,
-          },
-        });
-      });
+    if (duplicatePartners.length > 1) {
+      // For each partner, create fraud events pointing to all duplicates
+      for (const sourcePartner of duplicatePartners) {
+        for (const conflictingPartner of duplicatePartners) {
+          fraudEvents.push({
+            programId: program.id,
+            partnerId: sourcePartner.id,
+            type: FraudRuleType.partnerDuplicatePayoutMethod,
+            metadata: {
+              payoutMethodHash: partner.payoutMethodHash,
+              duplicatePartnerId: conflictingPartner.id,
+            },
+          });
+        }
+      }
     }
   }
 
-  await createFraudEvents(
-    triggeredRules.map((rule) => ({
-      ...rule,
-      programId: program.id,
-      partnerId: partner.id,
-    })),
-  );
+  await createFraudEvents(fraudEvents);
 }
