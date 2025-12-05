@@ -471,36 +471,42 @@ export const createLinkBodySchema = z.object({
     ),
   utm_source: z
     .string()
+    .transform((v) => (v === "" ? null : v))
     .nullish()
     .describe(
       "The UTM source of the short link. If set, this will populate or override the UTM source in the destination URL.",
     ),
   utm_medium: z
     .string()
+    .transform((v) => (v === "" ? null : v))
     .nullish()
     .describe(
       "The UTM medium of the short link. If set, this will populate or override the UTM medium in the destination URL.",
     ),
   utm_campaign: z
     .string()
+    .transform((v) => (v === "" ? null : v))
     .nullish()
     .describe(
       "The UTM campaign of the short link. If set, this will populate or override the UTM campaign in the destination URL.",
     ),
   utm_term: z
     .string()
+    .transform((v) => (v === "" ? null : v))
     .nullish()
     .describe(
       "The UTM term of the short link. If set, this will populate or override the UTM term in the destination URL.",
     ),
   utm_content: z
     .string()
+    .transform((v) => (v === "" ? null : v))
     .nullish()
     .describe(
       "The UTM content of the short link. If set, this will populate or override the UTM content in the destination URL.",
     ),
   ref: z
     .string()
+    .transform((v) => (v === "" ? null : v))
     .nullish()
     .describe(
       "The referral tag of the short link. If set, this will populate or override the `ref` query parameter in the destination URL.",

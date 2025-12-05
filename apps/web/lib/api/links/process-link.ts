@@ -91,9 +91,11 @@ export async function processLink<T extends Record<string, any>>({
         code: "unprocessable_entity",
       };
     }
-    if (UTMTags.some((tag) => payload[tag])) {
+
+    // Process UTM params only if the key exists, allowing null/empty to clear them.
+    if (UTMTags.some((tag) => tag in payload)) {
       const utmParams = UTMTags.reduce((acc, tag) => {
-        if (payload[tag]) {
+        if (tag in payload) {
           acc[tag] = payload[tag];
         }
         return acc;
