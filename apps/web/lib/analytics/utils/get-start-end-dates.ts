@@ -1,5 +1,5 @@
-import { tz } from "@date-fns/tz";
-import { differenceInDays, endOfDay } from "date-fns";
+import { tz, TZDate } from "@date-fns/tz";
+import { differenceInDays, endOfDay, startOfDay } from "date-fns";
 import { getIntervalData } from "./get-interval-data";
 
 export const getStartEndDates = ({
@@ -15,15 +15,16 @@ export const getStartEndDates = ({
   dataAvailableFrom?: Date;
   timezone?: string;
 }) => {
-  let startDate: Date;
-  let endDate: Date;
+  let startDate: TZDate;
+  let endDate: TZDate;
   let granularity: "minute" | "hour" | "day" | "month" = "day";
 
   if (start || (interval === "all" && dataAvailableFrom)) {
-    startDate = new Date(start ?? dataAvailableFrom ?? Date.now());
-    endDate = new Date(
-      endOfDay(end ?? Date.now(), timezone ? { in: tz(timezone) } : undefined),
+    startDate = new TZDate(
+      startOfDay(start ?? dataAvailableFrom ?? Date.now()),
+      timezone,
     );
+    endDate = new TZDate(endOfDay(end ?? Date.now()), timezone);
 
     const daysDifference = differenceInDays(
       endDate,
@@ -46,7 +47,7 @@ export const getStartEndDates = ({
     const intervalData = getIntervalData(interval, { timezone });
     startDate = intervalData.startDate;
     granularity = intervalData.granularity;
-    endDate = new Date(Date.now());
+    endDate = new TZDate(endOfDay(Date.now()), timezone);
   }
 
   return { startDate, endDate, granularity };

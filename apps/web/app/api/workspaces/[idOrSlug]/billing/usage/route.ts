@@ -1,3 +1,4 @@
+import { formatUTCDateTimeClickhouse } from "@/lib/analytics/utils/format-utc-datetime-clickhouse";
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { withWorkspace } from "@/lib/auth";
 import { tb } from "@/lib/tinybird";
@@ -40,8 +41,8 @@ export const GET = withWorkspace(async ({ searchParams, workspace }) => {
   const response = await pipe({
     resource,
     workspaceId: workspace.id,
-    start: startDate.toISOString().replace("T", " ").replace("Z", ""),
-    end: endDate.toISOString().replace("T", " ").replace("Z", ""),
+    start: formatUTCDateTimeClickhouse(startDate),
+    end: formatUTCDateTimeClickhouse(endDate),
     timezone,
     ...(folderId && { folderId }),
     ...(domain && { domain }),
