@@ -1,6 +1,7 @@
 import { CreateFraudEventInput } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
+import { prettyPrint } from "@dub/utils";
 import { createId } from "../create-id";
 import {
   createFraudEventGroupKey,
@@ -10,6 +11,8 @@ import {
 } from "./utils";
 
 export async function createFraudEvents(fraudEvents: CreateFraudEventInput[]) {
+  const startTime = performance.now();
+
   if (fraudEvents.length === 0) {
     return;
   }
@@ -130,9 +133,15 @@ export async function createFraudEvents(fraudEvents: CreateFraudEventInput[]) {
     return;
   }
 
-  await prisma.fraudEvent.createMany({
+  const createdEvents = await prisma.fraudEvent.createMany({
     data: newEventsWithGroup,
   });
+
+  if (createdEvents.count) {
+    console.info(
+      `Created ${createdEvents.count} fraud events ${prettyPrint(newEventsWithGroup)}`,
+    );
+  }
 
   await Promise.allSettled(
     finalGroups.map((group) =>
@@ -150,5 +159,10 @@ export async function createFraudEvents(fraudEvents: CreateFraudEventInput[]) {
         },
       }),
     ),
+  );
+
+  const endTime = performance.now();
+  console.info(
+    `createFraudEvents completed in ${(endTime - startTime).toFixed(2)}ms`,
   );
 }
