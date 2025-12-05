@@ -13,7 +13,6 @@ import { FraudReviewSheet } from "@/ui/partners/fraud-risks/fraud-review-sheet";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { FilterButtonTableRow } from "@/ui/shared/filter-button-table-row";
-import { ThreeDots } from "@/ui/shared/icons";
 import {
   AnimatedSizeContainer,
   Badge,
@@ -30,7 +29,7 @@ import {
 } from "@dub/ui";
 import { Dots, ShieldAlert, UserDelete, UserXmark } from "@dub/ui/icons";
 import { cn, formatDateTimeSmart } from "@dub/utils";
-import { Row, Table as TableType } from "@tanstack/react-table";
+import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useFraudGroupFilters } from "./use-fraud-group-filters";
@@ -285,11 +284,26 @@ export function FraudGroupTable() {
               setShowBulkResolveFraudGroupsModal(true);
             }}
           />
+          <Button
+            variant="danger"
+            text="Ban partners"
+            icon={<UserDelete className="size-3.5 shrink-0" />}
+            className="h-7 w-fit rounded-lg px-2.5"
+            loading={false}
+            onClick={() => {
+              const selectedRows = table.getSelectedRowModel().rows;
+              const partners = selectedRows
+                .map((row) => row.original.partner)
+                .filter(
+                  (p): p is NonNullable<FraudGroupProps["partner"]> =>
+                    p !== null,
+                );
 
-          <BulkActionsMenu
-            table={tableInstance}
-            onBanPartners={(partners) => {
-              setPendingBanPartners(partners);
+              const uniquePartners = Array.from(
+                new Map(partners.map((p) => [p.id, p])).values(),
+              );
+
+              setPendingBanPartners(uniquePartners);
               setShowBulkBanPartnersModal(true);
             }}
           />
@@ -394,62 +408,6 @@ export function FraudGroupTable() {
         />
       )}
     </div>
-  );
-}
-
-function BulkActionsMenu({
-  table,
-  onBanPartners,
-}: {
-  table: TableType<FraudGroupProps>;
-  onBanPartners: (
-    partners: Array<NonNullable<FraudGroupProps["partner"]>>,
-  ) => void;
-}) {
-  const [isOpen, setIsOpen] = useState(false);
-
-  return (
-    <Popover
-      openPopover={isOpen}
-      setOpenPopover={setIsOpen}
-      content={
-        <Command tabIndex={0} loop className="focus:outline-none">
-          <Command.List className="w-screen text-sm focus-visible:outline-none sm:w-auto sm:min-w-[160px]">
-            <Command.Group className="grid gap-px p-1.5">
-              <MenuItem
-                icon={UserDelete}
-                label="Ban partner"
-                variant="danger"
-                onSelect={() => {
-                  const selectedRows = table.getSelectedRowModel().rows;
-                  const partners = selectedRows
-                    .map((row) => row.original.partner)
-                    .filter(
-                      (p): p is NonNullable<FraudGroupProps["partner"]> =>
-                        p !== null,
-                    );
-
-                  const uniquePartners = Array.from(
-                    new Map(partners.map((p) => [p.id, p])).values(),
-                  );
-
-                  onBanPartners(uniquePartners);
-                  setIsOpen(false);
-                }}
-              />
-            </Command.Group>
-          </Command.List>
-        </Command>
-      }
-      align="start"
-    >
-      <Button
-        type="button"
-        className="size-7 whitespace-nowrap rounded-lg p-2"
-        variant="secondary"
-        icon={<ThreeDots className="h-4 w-4 shrink-0" />}
-      />
-    </Popover>
   );
 }
 
