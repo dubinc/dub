@@ -26,6 +26,7 @@ interface QueryResult {
   partnerImage: string | null;
   userId: string | null;
   userName: string | null;
+  userEmail: string | null;
   userImage: string | null;
 }
 
@@ -80,6 +81,7 @@ export async function getGroupedFraudEvents({
       p.email AS partnerEmail,
       p.image AS partnerImage,
       u.name AS userName,
+      u.email AS userEmail,
       u.image AS userImage
     FROM (
       SELECT 
@@ -122,6 +124,7 @@ export async function getGroupedFraudEvents({
       ? {
           id: event.userId,
           name: event.userName,
+          email: event.userEmail,
           image: event.userImage,
         }
       : null,

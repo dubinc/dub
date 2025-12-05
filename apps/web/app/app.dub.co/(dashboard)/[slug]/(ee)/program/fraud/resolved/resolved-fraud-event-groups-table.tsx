@@ -3,7 +3,7 @@
 import { FRAUD_RULES_BY_TYPE } from "@/lib/api/fraud/constants";
 import { useFraudEventGroups } from "@/lib/swr/use-fraud-event-groups";
 import { useFraudEventsCount } from "@/lib/swr/use-fraud-events-count";
-import { fraudEventGroupProps } from "@/lib/types";
+import { FraudEventGroupProps } from "@/lib/types";
 import { FraudReviewSheet } from "@/ui/partners/fraud-risks/fraud-review-sheet";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
@@ -83,7 +83,7 @@ export function ResolvedFraudEventGroupsTable() {
         header: "Event",
         minSize: 100,
         maxSize: 400,
-        cell: ({ row }: { row: Row<fraudEventGroupProps> }) => {
+        cell: ({ row }: { row: Row<FraudEventGroupProps> }) => {
           const reason = FRAUD_RULES_BY_TYPE[row.original.type];
           const count = row.original.count ?? 1;
 
@@ -121,7 +121,7 @@ export function ResolvedFraudEventGroupsTable() {
       {
         id: "resolvedAt",
         header: "Resolved on",
-        cell: ({ row }: { row: Row<fraudEventGroupProps> }) => {
+        cell: ({ row }: { row: Row<FraudEventGroupProps> }) => {
           const user = row.original.user;
           const resolvedAt = row.original.resolvedAt;
 
@@ -135,7 +135,7 @@ export function ResolvedFraudEventGroupsTable() {
       {
         id: "partner",
         header: "Partner",
-        cell: ({ row }: { row: Row<fraudEventGroupProps> }) => {
+        cell: ({ row }: { row: Row<FraudEventGroupProps> }) => {
           const partner = row.original.partner;
           if (!partner) return "-";
 
@@ -150,7 +150,7 @@ export function ResolvedFraudEventGroupsTable() {
           );
         },
         meta: {
-          filterParams: ({ row }: { row: Row<fraudEventGroupProps> }) =>
+          filterParams: ({ row }: { row: Row<FraudEventGroupProps> }) =>
             row.original.partner
               ? {
                   partnerId: row.original.partner.id,
@@ -297,7 +297,7 @@ function useCurrentFraudEventGroup({
   fraudEventGroups,
   groupKey,
 }: {
-  fraudEventGroups?: fraudEventGroupProps[];
+  fraudEventGroups?: FraudEventGroupProps[];
   groupKey: string | null;
 }) {
   let currentFraudEventGroup = groupKey

@@ -10,6 +10,7 @@ import { usePartnerMessagesCount } from "@/lib/swr/use-partner-messages-count";
 import usePayoutsCount from "@/lib/swr/use-payouts-count";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
+import useWorkspaces from "@/lib/swr/use-workspaces";
 import { useRouterStuff } from "@dub/ui";
 import {
   Bell,
@@ -44,7 +45,7 @@ import { Trophy } from "lucide-react";
 import { Session } from "next-auth";
 import { useSession } from "next-auth/react";
 import { useParams, usePathname } from "next/navigation";
-import { ReactNode, useMemo } from "react";
+import { ReactNode, useEffect, useMemo } from "react";
 import { DubPartnersPopup } from "./dub-partners-popup";
 import { Compass } from "./icons/compass";
 import { ConnectedDots4 } from "./icons/connected-dots4";
@@ -462,6 +463,12 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             icon: Gift,
             href: "/account/settings/referrals",
           },
+          {
+            name: "Notifications",
+            icon: Bell,
+            href: `/${slug}/settings/notifications`,
+            arrow: true,
+          },
         ],
       },
     ],
@@ -475,11 +482,55 @@ export function AppSidebarNav({
   toolContent?: ReactNode;
   newsContent?: ReactNode;
 }) {
-  const { slug } = useParams() as { slug?: string };
+  const { slug: paramsSlug } = useParams() as { slug?: string };
   const pathname = usePathname();
   const { getQueryString } = useRouterStuff();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const { plan, defaultProgramId } = useWorkspace();
+  const { workspaces } = useWorkspaces();
+
+  // Store the current workspace slug in sessionStorage so we can remember it on account settings pages
+  useEffect(() => {
+    if (paramsSlug) {
+      sessionStorage.setItem("dub_last_workspace", paramsSlug);
+    }
+  }, [paramsSlug]);
+
+  // Validate and clear sessionStorage if user doesn't have access to the stored workspace
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      // Clear sessionStorage on logout
+      sessionStorage.removeItem("dub_last_workspace");
+      return;
+    }
+
+    if (workspaces && typeof window !== "undefined") {
+      const storedSlug = sessionStorage.getItem("dub_last_workspace");
+      if (storedSlug && !paramsSlug) {
+        // Only validate if we're not currently on a workspace page (to avoid clearing during navigation)
+        const hasAccess = workspaces.some((w) => w.slug === storedSlug);
+        if (!hasAccess) {
+          // User doesn't have access to the stored workspace, clear it
+          sessionStorage.removeItem("dub_last_workspace");
+        }
+      }
+    }
+  }, [workspaces, status, paramsSlug]);
+
+  // Use params slug when available, otherwise try sessionStorage (last visited workspace), then fall back to default workspace
+  const slug =
+    paramsSlug ||
+    (typeof window !== "undefined" && workspaces
+      ? (() => {
+          const storedSlug = sessionStorage.getItem("dub_last_workspace");
+          // Validate that the stored slug is accessible by the current user
+          if (storedSlug && workspaces.some((w) => w.slug === storedSlug)) {
+            return storedSlug;
+          }
+          return null;
+        })()
+      : null) ||
+    session?.user?.["defaultWorkspace"];
 
   const currentArea = useMemo(() => {
     return pathname.startsWith("/account/settings")

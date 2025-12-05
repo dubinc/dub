@@ -1,4 +1,3 @@
-import { parse } from "@/lib/middleware/utils";
 import { NextRequest, NextResponse } from "next/server";
 import {
   ONBOARDING_WINDOW_SECONDS,
@@ -10,6 +9,7 @@ import { appRedirect } from "./utils/app-redirect";
 import { getDefaultWorkspace } from "./utils/get-default-workspace";
 import { getUserViaToken } from "./utils/get-user-via-token";
 import { isTopLevelSettingsRedirect } from "./utils/is-top-level-settings-redirect";
+import { parse } from "./utils/parse";
 import { WorkspacesMiddleware } from "./workspaces";
 
 export async function AppMiddleware(req: NextRequest) {

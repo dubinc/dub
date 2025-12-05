@@ -14,11 +14,13 @@ export function useAnalyticsQuery({
   defaultEvent = "clicks",
   domain: domainParam,
   defaultKey,
+  defaultFolderId,
   defaultInterval = DUB_LINKS_ANALYTICS_INTERVAL,
 }: {
   defaultEvent?: EventType;
   domain?: string;
   defaultKey?: string;
+  defaultFolderId?: string;
   defaultInterval?: string;
 } = {}) {
   const searchParams = useSearchParams();
@@ -33,7 +35,8 @@ export function useAnalyticsQuery({
     tagIds: searchParams?.get("tagIds")?.split(","),
   })?.join(",");
 
-  const folderId = searchParams?.get("folderId") ?? undefined;
+  const folderId =
+    searchParams?.get("folderId") ?? defaultFolderId ?? undefined;
 
   const customerId = searchParams?.get("customerId") ?? undefined;
 

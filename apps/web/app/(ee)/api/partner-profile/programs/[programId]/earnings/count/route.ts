@@ -46,8 +46,8 @@ export const GET = withPartnerProfile(
       partnerId: partner.id,
       ...(payoutId && { payoutId }),
       createdAt: {
-        gte: startDate.toISOString(),
-        lte: endDate.toISOString(),
+        gte: startDate,
+        lte: endDate,
       },
     };
 

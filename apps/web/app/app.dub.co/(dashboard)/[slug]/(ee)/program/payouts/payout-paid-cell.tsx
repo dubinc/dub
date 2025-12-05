@@ -5,6 +5,7 @@ import { formatDate, formatDateTime, OG_AVATAR_URL } from "@dub/utils";
 type PayoutPaidCellUser = {
   id?: string;
   name?: string | null;
+  email?: string | null;
   image?: string | null;
 } | null;
 
@@ -33,11 +34,13 @@ export function PayoutPaidCell({
           {user && (
             <div className="flex flex-col gap-2">
               <img
-                src={user.image || `${OG_AVATAR_URL}${user.name}`}
-                alt={user.name ?? user.id}
+                src={user.image || `${OG_AVATAR_URL}${user.id}`}
+                alt={user.name ?? user.email ?? user.id}
                 className="size-6 shrink-0 rounded-full"
               />
-              <p className="text-sm font-medium">{user.name}</p>
+              <p className="text-sm font-medium">
+                {user.name ?? user.email ?? user.id}
+              </p>
             </div>
           )}
           <div className="flex items-center gap-1.5 text-xs text-neutral-500">
@@ -78,8 +81,8 @@ export function PayoutPaidCell({
       <div className="flex items-center gap-2">
         {user && (
           <img
-            src={user.image || `${OG_AVATAR_URL}${user.name}`}
-            alt={user.name ?? user.id}
+            src={user.image || `${OG_AVATAR_URL}${user.id}`}
+            alt={user.name ?? user.email ?? user.id}
             className="size-5 shrink-0 rounded-full"
           />
         )}

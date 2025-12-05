@@ -1,9 +1,10 @@
 import { UserProps } from "@/lib/types";
 import { NextRequest, NextResponse } from "next/server";
-import { isValidInternalRedirect, parse } from "./utils";
 import { getDefaultWorkspace } from "./utils/get-default-workspace";
 import { getWorkspaceProduct } from "./utils/get-workspace-product";
 import { isTopLevelSettingsRedirect } from "./utils/is-top-level-settings-redirect";
+import { isValidInternalRedirect } from "./utils/is-valid-internal-redirect";
+import { parse } from "./utils/parse";
 
 export async function WorkspacesMiddleware(req: NextRequest, user: UserProps) {
   const { path, searchParamsObj, searchParamsString } = parse(req);

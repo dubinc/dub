@@ -1,5 +1,5 @@
-import { parse } from "@/lib/middleware/utils";
 import { NextRequest, NextResponse } from "next/server";
+import { parse } from "./utils/parse";
 
 export function ApiMiddleware(req: NextRequest) {
   const { fullPath } = parse(req);

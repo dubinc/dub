@@ -47,11 +47,7 @@ export default function ProgramOverviewPageClient() {
   const queryString = new URLSearchParams({
     programId: defaultProgramId ?? "",
     workspaceId: workspaceId ?? "",
-    ...(start &&
-      end && {
-        start: new Date(start).toISOString(),
-        end: new Date(end).toISOString(),
-      }),
+    ...(start && end && { start, end }),
     ...(interval && { interval: interval.toString() }),
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
   }).toString();

@@ -203,7 +203,6 @@ export function PartnerMessagesProgramPageClient() {
                       const result = await sendMessage({
                         programSlug,
                         text: message,
-                        createdAt,
                       });
 
                       if (result?.data?.message) {
