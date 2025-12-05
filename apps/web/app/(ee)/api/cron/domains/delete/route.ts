@@ -24,12 +24,6 @@ export async function POST(req: Request) {
     await verifyQstashSignature({ req, rawBody });
 
     const { domain } = schema.parse(JSON.parse(rawBody));
-    if (domain === "poly.market") {
-      // temp skip
-      return new Response(
-        `Domain ${domain} is not allowed to be deleted. Skipping...`,
-      );
-    }
 
     const domainRecord = await prisma.domain.findUnique({
       where: {
@@ -66,7 +60,7 @@ export async function POST(req: Request) {
       linkCache.deleteMany(links),
 
       // Record link in Tinybird
-      recordLink(links),
+      recordLink(links, { deleted: true }),
 
       // Remove image from R2 storage if it exists
       links
