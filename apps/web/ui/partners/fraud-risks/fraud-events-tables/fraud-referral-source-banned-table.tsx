@@ -81,12 +81,12 @@ export function FraudReferralSourceBannedTable() {
         minSize: 100,
         size: 100,
         maxSize: 100,
-        cell: ({ row }) => {
-          if (!row.original.customer) return null;
+        cell: ({ row: { original: fraudEvent } }) => {
+          if (!fraudEvent.customer) return null;
 
           return (
             <Link
-              href={`/${workspaceSlug}/events?interval=all&customerId=${row.original.customer.id}`}
+              href={`/${workspaceSlug}/events?interval=all&customerId=${fraudEvent.customer.id}&referer=${fraudEvent.metadata?.source}`}
               target="_blank"
             >
               <Button
