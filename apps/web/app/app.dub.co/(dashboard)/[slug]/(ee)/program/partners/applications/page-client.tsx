@@ -1,7 +1,5 @@
 "use client";
 
-import { bulkRejectPartnersAction } from "@/lib/actions/partners/bulk-reject-partners";
-import { rejectPartnerApplicationAction } from "@/lib/actions/partners/reject-partner-application";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useGroups from "@/lib/swr/use-groups";
 import usePartner from "@/lib/swr/use-partner";
@@ -9,7 +7,8 @@ import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
 import { useBulkApprovePartnersModal } from "@/ui/modals/bulk-approve-partners-modal";
-import { useConfirmModal } from "@/ui/modals/confirm-modal";
+import { useBulkRejectPartnersModal } from "@/ui/modals/bulk-reject-partners-modal";
+import { useRejectPartnerApplicationModal } from "@/ui/modals/reject-partner-application-modal";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerApplicationSheet } from "@/ui/partners/partner-application-sheet";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
@@ -19,7 +18,6 @@ import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import {
   AnimatedSizeContainer,
   Button,
-  Checkbox,
   EditColumnsButton,
   Filter,
   MenuItem,
@@ -30,19 +28,16 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { Dots, LoadingSpinner, Users, UserXmark } from "@dub/ui/icons";
+import { Dots, Users, UserXmark } from "@dub/ui/icons";
 import {
   COUNTRIES,
   fetcher,
   formatDate,
   getDomainWithoutWWW,
-  pluralize,
 } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
-import { useAction } from "next-safe-action/hooks";
 import { useEffect, useMemo, useState } from "react";
-import { toast } from "sonner";
 import useSWR from "swr";
 import { usePartnerFilters } from "../use-partner-filters";
 
@@ -131,45 +126,23 @@ export function ProgramPartnersApplicationsPageClient() {
       partnerId: detailsSheetState.partnerId,
     });
 
-  const { executeAsync: rejectPartners, isPending: isRejectingPartners } =
-    useAction(bulkRejectPartnersAction, {
-      onError: ({ error }) => {
-        toast.error(error.serverError);
-      },
-      onSuccess: ({ input }) => {
-        toast.success(
-          `${pluralize("Partner", input.partnerIds.length)} rejected`,
-        );
-        mutatePrefix(["/api/partners", "/api/partners/count"]);
-      },
-    });
-
   // State for pending bulk actions
   const [pendingApprovePartners, setPendingApprovePartners] = useState<
     EnrolledPartnerProps[]
   >([]);
 
-  const [pendingRejectIds, setPendingRejectIds] = useState<string[]>([]);
+  const [pendingRejectPartners, setPendingRejectPartners] = useState<
+    EnrolledPartnerProps[]
+  >([]);
 
   const { setShowBulkApprovePartnersModal, BulkApprovePartnersModal } =
     useBulkApprovePartnersModal({
       partners: pendingApprovePartners,
     });
 
-  const { setShowConfirmModal: setShowRejectModal, confirmModal: rejectModal } =
-    useConfirmModal({
-      title: "Reject Applications",
-      description: "Are you sure you want to reject these applications?",
-      confirmText: "Reject",
-      onConfirm: async () => {
-        if (pendingRejectIds.length > 0) {
-          await rejectPartners({
-            workspaceId: workspaceId!,
-            partnerIds: pendingRejectIds,
-          });
-          setPendingRejectIds([]);
-        }
-      },
+  const { setShowBulkRejectPartnersModal, BulkRejectPartnersModal } =
+    useBulkRejectPartnersModal({
+      partners: pendingRejectPartners,
     });
 
   const { columnVisibility, setColumnVisibility } = useColumnVisibility(
@@ -400,14 +373,13 @@ export function ProgramPartnersApplicationsPageClient() {
           variant="secondary"
           text="Reject"
           className="h-7 w-fit rounded-lg px-2.5"
-          loading={isRejectingPartners}
           onClick={() => {
-            const partnerIds = table
+            const selectedPartners = table
               .getSelectedRowModel()
-              .rows.map((row) => row.original.id);
+              .rows.map((row) => row.original);
 
-            setPendingRejectIds(partnerIds);
-            setShowRejectModal(true);
+            setPendingRejectPartners(selectedPartners);
+            setShowBulkRejectPartnersModal(true);
           }}
         />
       </>
@@ -465,7 +437,7 @@ export function ProgramPartnersApplicationsPageClient() {
         />
       )}
       <BulkApprovePartnersModal />
-      {rejectModal}
+      <BulkRejectPartnersModal />
 
       <div>
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -527,57 +499,20 @@ function RowMenuButton({
   workspaceId: string;
 }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [reportFraud, setReportFraud] = useState(false);
 
   const {
-    executeAsync: rejectPartnerApplication,
-    isPending: isRejectingPartner,
-  } = useAction(rejectPartnerApplicationAction, {
-    onSuccess: () => {
-      toast.success("Partner application rejected.");
-      mutatePrefix(["/api/partners", "/api/partners/count"]);
-      setReportFraud(false);
-    },
-    onError: ({ error }) => {
-      toast.error(error.serverError);
+    RejectPartnerApplicationModal,
+    setShowRejectPartnerApplicationModal,
+  } = useRejectPartnerApplicationModal({
+    partner: row.original,
+    onConfirm: async () => {
+      await mutatePrefix(["/api/partners", "/api/partners/count"]);
     },
   });
 
-  const { setShowConfirmModal: setShowRejectModal, confirmModal: rejectModal } =
-    useConfirmModal({
-      title: "Reject Application",
-      description: (
-        <div>
-          <p>Are you sure you want to reject this partner application?</p>
-          <label className="mt-5 flex items-start gap-2.5 text-sm font-medium">
-            <Checkbox
-              className="border-border-default mt-1 size-4 rounded focus:border-[var(--brand)] focus:ring-[var(--brand)] focus-visible:border-[var(--brand)] focus-visible:ring-[var(--brand)] data-[state=checked]:bg-black data-[state=indeterminate]:bg-black"
-              checked={reportFraud}
-              onCheckedChange={(checked) => setReportFraud(Boolean(checked))}
-            />
-            <span className="text-content-emphasis text-sm font-normal leading-5">
-              Select this if you believe the application shows signs of fraud.
-              This helps keep the network safe.
-            </span>
-          </label>
-        </div>
-      ),
-      confirmText: "Reject",
-      onConfirm: async () => {
-        await rejectPartnerApplication({
-          workspaceId: workspaceId!,
-          partnerId: row.original.id,
-          reportFraud,
-        });
-      },
-      onCancel: () => {
-        setReportFraud(false);
-      },
-    });
-
   return (
     <>
-      {rejectModal}
+      {RejectPartnerApplicationModal}
       <Popover
         openPopover={isOpen}
         setOpenPopover={setIsOpen}
@@ -590,7 +525,7 @@ function RowMenuButton({
                 variant="danger"
                 onSelect={() => {
                   setIsOpen(false);
-                  setShowRejectModal(true);
+                  setShowRejectPartnerApplicationModal(true);
                 }}
               >
                 Reject application
@@ -604,13 +539,7 @@ function RowMenuButton({
           type="button"
           className="h-8 whitespace-nowrap px-2"
           variant="outline"
-          icon={
-            isRejectingPartner ? (
-              <LoadingSpinner className="size-4 shrink-0" />
-            ) : (
-              <Dots className="size-4 shrink-0" />
-            )
-          }
+          icon={<Dots className="size-4 shrink-0" />}
         />
       </Popover>
     </>

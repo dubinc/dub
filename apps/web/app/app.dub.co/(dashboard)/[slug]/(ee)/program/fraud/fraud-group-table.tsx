@@ -2,11 +2,13 @@
 
 import { FRAUD_RULES_BY_TYPE } from "@/lib/api/fraud/constants";
 import { mutatePrefix } from "@/lib/swr/mutate";
-import { useFraudEventGroups } from "@/lib/swr/use-fraud-event-groups";
-import { useFraudEventsCount } from "@/lib/swr/use-fraud-events-count";
-import { FraudEventGroupProps } from "@/lib/types";
+import { useFraudGroups } from "@/lib/swr/use-fraud-groups";
+import { useFraudGroupCount } from "@/lib/swr/use-fraud-groups-count";
+import { FraudGroupProps } from "@/lib/types";
 import { useBanPartnerModal } from "@/ui/modals/ban-partner-modal";
 import { useBulkBanPartnersModal } from "@/ui/modals/bulk-ban-partners-modal";
+import { useBulkResolveFraudGroupsModal } from "@/ui/modals/bulk-resolve-fraud-groups-modal";
+import { useRejectPartnerApplicationModal } from "@/ui/modals/reject-partner-application-modal";
 import { FraudReviewSheet } from "@/ui/partners/fraud-risks/fraud-review-sheet";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
@@ -25,14 +27,14 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { Dots, ShieldAlert, UserDelete } from "@dub/ui/icons";
+import { Dots, ShieldAlert, UserDelete, UserXmark } from "@dub/ui/icons";
 import { cn, formatDateTimeSmart } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useFraudEventsFilters } from "./use-fraud-events-filters";
+import { useFraudGroupFilters } from "./use-fraud-group-filters";
 
-export function FraudEventGroupsTable() {
+export function FraudGroupTable() {
   const { queryParams, searchParams } = useRouterStuff();
   const { pagination, setPagination } = usePagination();
 
@@ -47,48 +49,52 @@ export function FraudEventGroupsTable() {
     onRemoveAll,
     setSearch,
     setSelectedFilter,
-  } = useFraudEventsFilters({
+  } = useFraudGroupFilters({
     status: "pending",
   });
 
-  const { fraudEvents, loading, error } = useFraudEventGroups({
+  const { fraudGroups, loading, error } = useFraudGroups({
     query: {
       status: "pending",
     },
-    exclude: ["groupKey"],
+    exclude: ["groupId"],
   });
 
   const [detailsSheetState, setDetailsSheetState] = useState<
-    { open: false; groupKey: string | null } | { open: true; groupKey: string }
-  >({ open: false, groupKey: null });
+    { open: false; groupId: string | null } | { open: true; groupId: string }
+  >({ open: false, groupId: null });
 
   useEffect(() => {
-    const groupKey = searchParams.get("groupKey");
+    const groupId = searchParams.get("groupId");
 
-    if (groupKey) {
-      setDetailsSheetState({ open: true, groupKey });
+    if (groupId) {
+      setDetailsSheetState({ open: true, groupId });
     } else {
-      setDetailsSheetState({ open: false, groupKey: null });
+      setDetailsSheetState({ open: false, groupId: null });
     }
   }, [searchParams]);
 
-  const { currentFraudEventGroup } = useCurrentFraudEventGroup({
-    fraudEventGroups: fraudEvents,
-    groupKey: detailsSheetState.groupKey,
+  const { currentFraudGroup } = useCurrentFraudGroup({
+    fraudGroups,
+    groupId: detailsSheetState.groupId,
   });
 
-  const { fraudEventsCount, error: countError } = useFraudEventsCount<number>({
+  const { fraudGroupCount, error: countError } = useFraudGroupCount<number>({
     query: {
       status: "pending",
     },
   });
 
   const [pendingBanPartners, setPendingBanPartners] = useState<
-    Array<NonNullable<FraudEventGroupProps["partner"]>>
+    Array<NonNullable<FraudGroupProps["partner"]>>
+  >([]);
+
+  const [pendingResolveFraudGroups, setPendingResolveFraudGroups] = useState<
+    FraudGroupProps[]
   >([]);
 
   const tableRef = useRef<
-    ReturnType<typeof useTable<FraudEventGroupProps>>["table"] | null
+    ReturnType<typeof useTable<FraudGroupProps>>["table"] | null
   >(null);
 
   const { BulkBanPartnersModal, setShowBulkBanPartnersModal } =
@@ -96,12 +102,21 @@ export function FraudEventGroupsTable() {
       partners: pendingBanPartners,
       onConfirm: async () => {
         tableRef.current?.resetRowSelection();
-        await mutatePrefix("/api/fraud/events");
+        mutatePrefix("/api/fraud/groups");
       },
     });
 
-  const { table, ...tableProps } = useTable<FraudEventGroupProps>({
-    data: fraudEvents || [],
+  const { BulkResolveFraudGroupsModal, setShowBulkResolveFraudGroupsModal } =
+    useBulkResolveFraudGroupsModal({
+      fraudGroups: pendingResolveFraudGroups,
+      onConfirm: async () => {
+        tableRef.current?.resetRowSelection();
+        mutatePrefix("/api/fraud/groups");
+      },
+    });
+
+  const { table, ...tableProps } = useTable<FraudGroupProps>({
+    data: fraudGroups || [],
     columns: [
       {
         id: "type",
@@ -109,7 +124,7 @@ export function FraudEventGroupsTable() {
         size: 150,
         cell: ({ row }) => {
           const reason = FRAUD_RULES_BY_TYPE[row.original.type];
-          const count = row.original.count ?? 1;
+          const count = row.original.eventCount ?? 1;
 
           if (reason) {
             return (
@@ -181,12 +196,12 @@ export function FraudEventGroupsTable() {
         },
         cell: ({ row }) => (
           <TimestampTooltip
-            timestamp={row.original.lastOccurrenceAt}
+            timestamp={row.original.lastEventAt}
             side="right"
             rows={["local", "utc", "unix"]}
             delayDuration={150}
           >
-            <span>{formatDateTimeSmart(row.original.lastOccurrenceAt)}</span>
+            <span>{formatDateTimeSmart(row.original.lastEventAt)}</span>
           </TimestampTooltip>
         ),
       },
@@ -230,7 +245,7 @@ export function FraudEventGroupsTable() {
     onRowClick: (row) => {
       queryParams({
         set: {
-          groupKey: row.original.groupKey,
+          groupId: row.original.id,
         },
         scroll: false,
       });
@@ -238,7 +253,7 @@ export function FraudEventGroupsTable() {
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (plural) => `fraud event${plural ? "s" : ""}`,
-    rowCount: fraudEventsCount ?? 0,
+    rowCount: fraudGroupCount ?? 0,
     loading,
     error: error || countError ? "Failed to load fraud events" : undefined,
     selectionControls: (tableInstance) => {
@@ -247,6 +262,7 @@ export function FraudEventGroupsTable() {
 
       const selectedRows = tableInstance.getSelectedRowModel().rows;
       const partners = selectedRows.map((row) => row.original.partner);
+      const selectedFraudGroups = selectedRows.map((row) => row.original);
 
       // Remove duplicates by partner ID
       const uniquePartners = Array.from(
@@ -256,61 +272,87 @@ export function FraudEventGroupsTable() {
       if (uniquePartners.length === 0) return null;
 
       return (
-        <Button
-          variant="danger"
-          text="Ban"
-          icon={<UserDelete className="size-3.5 shrink-0" />}
-          className="h-7 w-fit rounded-lg bg-red-600 px-2.5 text-white"
-          loading={false}
-          onClick={() => {
-            setPendingBanPartners(uniquePartners);
-            setShowBulkBanPartnersModal(true);
-          }}
-        />
+        <>
+          <Button
+            variant="primary"
+            text="Resolve events"
+            icon={<ShieldAlert className="size-3.5 shrink-0" />}
+            className="h-7 w-fit rounded-lg px-2.5"
+            loading={false}
+            onClick={() => {
+              setPendingResolveFraudGroups(selectedFraudGroups);
+              setShowBulkResolveFraudGroupsModal(true);
+            }}
+          />
+          <Button
+            variant="danger"
+            text="Ban partners"
+            icon={<UserDelete className="size-3.5 shrink-0" />}
+            className="h-7 w-fit rounded-lg px-2.5"
+            loading={false}
+            onClick={() => {
+              const selectedRows = table.getSelectedRowModel().rows;
+              const partners = selectedRows
+                .map((row) => row.original.partner)
+                .filter(
+                  (p): p is NonNullable<FraudGroupProps["partner"]> =>
+                    p !== null,
+                );
+
+              const uniquePartners = Array.from(
+                new Map(partners.map((p) => [p.id, p])).values(),
+              );
+
+              setPendingBanPartners(uniquePartners);
+              setShowBulkBanPartnersModal(true);
+            }}
+          />
+        </>
       );
     },
   });
 
-  const [previousGroupKey, nextGroupKey] = useMemo(() => {
-    if (!fraudEvents || !detailsSheetState.groupKey) return [null, null];
+  const [previousGroupId, nextGroupId] = useMemo(() => {
+    if (!fraudGroups || !detailsSheetState.groupId) return [null, null];
 
-    const currentIndex = fraudEvents.findIndex(
-      ({ groupKey }) => groupKey === detailsSheetState.groupKey,
+    const currentIndex = fraudGroups.findIndex(
+      ({ id }) => id === detailsSheetState.groupId,
     );
     if (currentIndex === -1) return [null, null];
 
     return [
-      currentIndex > 0 ? fraudEvents[currentIndex - 1].groupKey : null,
-      currentIndex < fraudEvents.length - 1
-        ? fraudEvents[currentIndex + 1].groupKey
+      currentIndex > 0 ? fraudGroups[currentIndex - 1].id : null,
+      currentIndex < fraudGroups.length - 1
+        ? fraudGroups[currentIndex + 1].id
         : null,
     ];
-  }, [fraudEvents, detailsSheetState.groupKey]);
+  }, [fraudGroups, detailsSheetState.groupId]);
 
   return (
     <div className="flex flex-col gap-6">
       <BulkBanPartnersModal />
-      {detailsSheetState.groupKey && currentFraudEventGroup && (
+      <BulkResolveFraudGroupsModal />
+      {detailsSheetState.groupId && currentFraudGroup && (
         <FraudReviewSheet
           isOpen={detailsSheetState.open}
           setIsOpen={(open) =>
             setDetailsSheetState((s) => ({ ...s, open }) as any)
           }
-          fraudEventGroup={currentFraudEventGroup}
+          fraudGroup={currentFraudGroup}
           onPrevious={
-            previousGroupKey
+            previousGroupId
               ? () =>
                   queryParams({
-                    set: { groupKey: previousGroupKey },
+                    set: { groupId: previousGroupId },
                     scroll: false,
                   })
               : undefined
           }
           onNext={
-            nextGroupKey
+            nextGroupId
               ? () =>
                   queryParams({
-                    set: { groupKey: nextGroupKey },
+                    set: { groupId: nextGroupId },
                     scroll: false,
                   })
               : undefined
@@ -318,7 +360,7 @@ export function FraudEventGroupsTable() {
         />
       )}
 
-      {((fraudEvents?.length ?? 0) > 0 || (fraudEventsCount ?? 0) > 0) && (
+      {((fraudGroups?.length ?? 0) > 0 || (fraudGroupCount ?? 0) > 0) && (
         <div>
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <Filter.Select
@@ -348,7 +390,7 @@ export function FraudEventGroupsTable() {
           </AnimatedSizeContainer>
         </div>
       )}
-      {fraudEvents?.length !== 0 ? (
+      {fraudGroups?.length !== 0 ? (
         <Table {...tableProps} table={table} />
       ) : (
         <AnimatedEmptyState
@@ -369,41 +411,65 @@ export function FraudEventGroupsTable() {
   );
 }
 
-function RowMenuButton({ row }: { row: Row<FraudEventGroupProps> }) {
-  const fraudEvent = row.original;
+function RowMenuButton({ row }: { row: Row<FraudGroupProps> }) {
+  const fraudGroup = row.original;
+  const partner = fraudGroup.partner;
 
   const [isOpen, setIsOpen] = useState(false);
 
   const { BanPartnerModal, setShowBanPartnerModal } = useBanPartnerModal({
-    partner: fraudEvent.partner,
+    partner: fraudGroup.partner,
     onConfirm: async () => {
-      await mutatePrefix("/api/fraud/events");
+      await mutatePrefix("/api/fraud/groups");
     },
   });
 
-  if (fraudEvent.status !== "pending") {
+  const {
+    RejectPartnerApplicationModal,
+    setShowRejectPartnerApplicationModal,
+  } = useRejectPartnerApplicationModal({
+    partner,
+    onConfirm: async () => {
+      await mutatePrefix("/api/fraud/groups");
+    },
+  });
+
+  if (fraudGroup.status !== "pending" || !partner) {
     return null;
   }
 
   return (
     <>
       <BanPartnerModal />
+      {RejectPartnerApplicationModal}
       <Popover
         openPopover={isOpen}
         setOpenPopover={setIsOpen}
         content={
           <Command tabIndex={0} loop className="focus:outline-none">
-            <Command.List className="w-screen text-sm focus-visible:outline-none sm:w-auto sm:min-w-[160px]">
+            <Command.List className="w-screen text-sm focus-visible:outline-none sm:w-auto sm:min-w-[180px]">
               <Command.Group className="grid gap-px p-1.5">
-                <MenuItem
-                  icon={UserDelete}
-                  label="Ban partner"
-                  variant="danger"
-                  onSelect={() => {
-                    setShowBanPartnerModal(true);
-                    setIsOpen(false);
-                  }}
-                />
+                {partner.status === "pending" ? (
+                  <MenuItem
+                    icon={UserXmark}
+                    label="Reject application"
+                    variant="danger"
+                    onSelect={() => {
+                      setShowRejectPartnerApplicationModal(true);
+                      setIsOpen(false);
+                    }}
+                  />
+                ) : (
+                  <MenuItem
+                    icon={UserDelete}
+                    label="Ban partner"
+                    variant="danger"
+                    onSelect={() => {
+                      setShowBanPartnerModal(true);
+                      setIsOpen(false);
+                    }}
+                  />
+                )}
               </Command.Group>
             </Command.List>
           </Command>
@@ -461,37 +527,32 @@ function MenuItem({
 }
 
 // Gets the current fraud event from the loaded array if available, or a separate fetch if not
-function useCurrentFraudEventGroup({
-  fraudEventGroups,
-  groupKey,
+function useCurrentFraudGroup({
+  fraudGroups,
+  groupId,
 }: {
-  fraudEventGroups?: FraudEventGroupProps[];
-  groupKey: string | null;
+  fraudGroups?: FraudGroupProps[];
+  groupId: string | null;
 }) {
-  let currentFraudEventGroup = groupKey
-    ? fraudEventGroups?.find(
-        (fraudEventGroup) => fraudEventGroup.groupKey === groupKey,
-      )
+  let currentFraudGroup = groupId
+    ? fraudGroups?.find((fraudGroup) => fraudGroup.id === groupId)
     : null;
 
   const shouldFetch =
-    fraudEventGroups && groupKey && !currentFraudEventGroup ? groupKey : null;
+    fraudGroups && groupId && !currentFraudGroup ? groupId : null;
 
-  const { fraudEvents: fetchedFraudEventGroups, loading: isLoading } =
-    useFraudEventGroups({
-      query: { groupKey: groupKey ?? undefined },
+  const { fraudGroups: fetchedFraudEventGroups, loading: isLoading } =
+    useFraudGroups({
+      query: { groupId: groupId ?? undefined },
       enabled: Boolean(shouldFetch),
     });
 
-  if (
-    !currentFraudEventGroup &&
-    fetchedFraudEventGroups?.[0]?.groupKey === groupKey
-  ) {
-    currentFraudEventGroup = fetchedFraudEventGroups[0];
+  if (!currentFraudGroup && fetchedFraudEventGroups?.[0]?.id === groupId) {
+    currentFraudGroup = fetchedFraudEventGroups[0];
   }
 
   return {
-    currentFraudEventGroup,
+    currentFraudGroup,
     isLoading,
   };
 }

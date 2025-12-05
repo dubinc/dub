@@ -1,6 +1,6 @@
 import { createId } from "@/lib/api/create-id";
 import { CONFIGURABLE_FRAUD_RULES } from "@/lib/api/fraud/constants";
-import { resolveFraudEvents } from "@/lib/api/fraud/resolve-fraud-events";
+import { resolveFraudGroups } from "@/lib/api/fraud/resolve-fraud-groups";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
@@ -101,7 +101,7 @@ export const PATCH = withWorkspace(
           .map((r) => r.type);
 
         if (ruleTypesToResolve.length > 0) {
-          await resolveFraudEvents({
+          await resolveFraudGroups({
             where: {
               programId,
               type: {

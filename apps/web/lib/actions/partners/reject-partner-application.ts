@@ -2,11 +2,15 @@
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createFraudEvents } from "@/lib/api/fraud/create-fraud-events";
-import { resolveFraudEvents } from "@/lib/api/fraud/resolve-fraud-events";
+import { resolveFraudGroups } from "@/lib/api/fraud/resolve-fraud-groups";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { rejectPartnerSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
-import { ProgramEnrollment, ProgramEnrollmentStatus } from "@prisma/client";
+import {
+  FraudRuleType,
+  ProgramEnrollment,
+  ProgramEnrollmentStatus,
+} from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 
@@ -84,7 +88,7 @@ export const rejectPartnerApplicationAction = authActionClient
           }),
 
           // Automatically resolve all pending fraud events for this partner in the current program
-          resolveFraudEvents({
+          resolveFraudGroups({
             where: {
               programId,
               partnerId,
@@ -100,7 +104,7 @@ export const rejectPartnerApplicationAction = authActionClient
             otherProgramEnrollments.map(({ programId }) => ({
               programId,
               partnerId,
-              type: "partnerFraudReport",
+              type: FraudRuleType.partnerFraudReport,
             })),
           ),
         ]);

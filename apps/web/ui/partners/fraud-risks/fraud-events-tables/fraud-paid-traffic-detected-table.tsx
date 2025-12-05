@@ -1,14 +1,15 @@
 "use client";
 
 import { PAID_TRAFFIC_PLATFORMS_CONFIG } from "@/lib/api/fraud/constants";
-import { useRawFraudEvents } from "@/lib/swr/use-raw-fraud-events";
+import { useFraudEvents } from "@/lib/swr/use-fraud-events";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PaidTrafficPlatform } from "@/lib/types";
-import { rawFraudEventSchemas } from "@/lib/zod/schemas/fraud";
+import { fraudEventSchemas } from "@/lib/zod/schemas/fraud";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import {
   Bing,
   Button,
+  DynamicTooltipWrapper,
   Facebook,
   Google,
   LinkedIn,
@@ -19,12 +20,12 @@ import {
   Twitter,
   useTable,
 } from "@dub/ui";
-import { formatDateTimeSmart } from "@dub/utils";
+import { capitalize, formatDateTimeSmart, getPrettyUrl } from "@dub/utils";
 import Link from "next/link";
 import { z } from "zod";
 
 type EventDataProps = z.infer<
-  (typeof rawFraudEventSchemas)["paidTrafficDetected"]
+  (typeof fraudEventSchemas)["paidTrafficDetected"]
 >;
 
 const PAID_TRAFFIC_PLATFORM_ICONS: Record<
@@ -43,7 +44,7 @@ const PAID_TRAFFIC_PLATFORM_ICONS: Record<
 export function FraudPaidTrafficDetectedTable() {
   const { slug: workspaceSlug } = useWorkspace();
 
-  const { fraudEvents, loading, error } = useRawFraudEvents<EventDataProps>();
+  const { fraudEvents, loading, error } = useFraudEvents<EventDataProps>();
 
   const table = useTable({
     data: fraudEvents || [],
@@ -82,22 +83,49 @@ export function FraudPaidTrafficDetectedTable() {
         minSize: 180,
         size: 220,
         cell: ({ row }) => {
-          const source = row.original.metadata?.source;
-          if (!source) return "-";
+          const metadata = row.original.metadata as EventDataProps["metadata"];
+
+          if (!metadata || !metadata.source) {
+            return "-";
+          }
 
           const platform = PAID_TRAFFIC_PLATFORMS_CONFIG.find(
-            (p) => p.id === source,
+            (p) => p.id === metadata.source,
           );
 
-          const Icon = source ? PAID_TRAFFIC_PLATFORM_ICONS[source] : null;
+          const Icon = PAID_TRAFFIC_PLATFORM_ICONS[metadata.source];
 
           return (
-            <div className="flex items-center gap-2">
-              {Icon && <Icon className="size-4" />}
-              <span className="text-sm text-neutral-600">
-                {platform?.name || source}
-              </span>
-            </div>
+            <DynamicTooltipWrapper
+              tooltipProps={
+                metadata.url
+                  ? {
+                      content: (
+                        <div className="max-w-xs px-4 py-2 text-center text-sm text-neutral-600">
+                          <HighlightedUrl
+                            url={metadata.url}
+                            queryParams={platform?.queryParams}
+                          />
+                        </div>
+                      ),
+                    }
+                  : undefined
+              }
+            >
+              <div className="flex items-center gap-2">
+                {Icon && <Icon className="size-4 shrink-0" />}
+
+                {metadata.url ? (
+                  <span className="truncate text-sm text-neutral-600 underline decoration-dotted underline-offset-2">
+                    {getPrettyUrl(metadata.url)}
+                  </span>
+                ) : (
+                  <span className="truncate text-sm text-neutral-600">
+                    {capitalize(metadata.source || platform?.name)}
+                  </span>
+                )}
+              </div>
+            </DynamicTooltipWrapper>
           );
         },
       },
@@ -136,4 +164,49 @@ export function FraudPaidTrafficDetectedTable() {
   });
 
   return <Table {...table} />;
+}
+
+// Highlight query parameters in the URL based on PAID_TRAFFIC_PLATFORMS_CONFIG.queryParams
+function HighlightedUrl({
+  url,
+  queryParams,
+}: {
+  url: string;
+  queryParams?: string[];
+}) {
+  if (!queryParams || queryParams.length === 0) {
+    return <span className="break-all">{url}</span>;
+  }
+
+  try {
+    const urlObj = new URL(url);
+    const baseUrl = `${urlObj.origin}${urlObj.pathname}`;
+    const searchParams = Array.from(urlObj.searchParams.entries());
+
+    if (searchParams.length === 0) {
+      return <span className="break-all">{url}</span>;
+    }
+
+    return (
+      <span className="break-all">
+        {baseUrl}
+        {urlObj.search && "?"}
+        {searchParams.map(([key, value], index) => {
+          const isHighlighted = queryParams.includes(key);
+
+          return (
+            <span key={index}>
+              <span className={isHighlighted ? "text-amber-600" : ""}>
+                {key}={value}
+              </span>
+              {index < searchParams.length - 1 && "&"}
+            </span>
+          );
+        })}
+        {urlObj.hash}
+      </span>
+    );
+  } catch {
+    return <span className="break-all">{url}</span>;
+  }
 }

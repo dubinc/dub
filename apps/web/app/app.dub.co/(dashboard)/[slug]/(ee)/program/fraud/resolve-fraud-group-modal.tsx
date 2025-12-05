@@ -1,13 +1,12 @@
 "use client";
 
-import { resolveFraudEventsAction } from "@/lib/actions/fraud/resolve-fraud-events";
+import { resolveFraudGroupAction } from "@/lib/actions/fraud/resolve-fraud-group";
 import { parseActionError } from "@/lib/actions/parse-action-errors";
-import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { FraudEventGroupProps } from "@/lib/types";
+import { FraudGroupProps } from "@/lib/types";
 import {
   MAX_RESOLUTION_REASON_LENGTH,
-  resolveFraudEventsSchema,
+  resolveFraudGroupSchema,
 } from "@/lib/zod/schemas/fraud";
 import { MaxCharactersCounter } from "@/ui/shared/max-characters-counter";
 import { Button, Modal } from "@dub/ui";
@@ -24,30 +23,29 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
-type FormData = z.infer<typeof resolveFraudEventsSchema>;
+type FormData = z.infer<typeof resolveFraudGroupSchema>;
 
-function ResolveFraudEventsModal({
-  showResolveFraudEventModal,
-  setShowResolveFraudEventModal,
-  fraudEventGroup,
+function ResolveFraudGroupModal({
+  showResolveFraudGroupModal,
+  setShowResolveFraudGroupModal,
+  fraudGroup,
   onConfirm,
 }: {
-  showResolveFraudEventModal: boolean;
-  setShowResolveFraudEventModal: Dispatch<SetStateAction<boolean>>;
-  fraudEventGroup: FraudEventGroupProps;
-  onConfirm?: () => void;
+  showResolveFraudGroupModal: boolean;
+  setShowResolveFraudGroupModal: Dispatch<SetStateAction<boolean>>;
+  fraudGroup: FraudGroupProps;
+  onConfirm?: () => Promise<void>;
 }) {
   const { id: workspaceId } = useWorkspace();
 
-  const { executeAsync, isPending } = useAction(resolveFraudEventsAction, {
-    onSuccess: () => {
-      toast.success("Fraud event resolved.");
-      setShowResolveFraudEventModal(false);
-      mutatePrefix("/api/fraud/events");
-      onConfirm?.();
+  const { executeAsync, isPending } = useAction(resolveFraudGroupAction, {
+    onSuccess: async () => {
+      toast.success("Fraud events resolved.");
+      setShowResolveFraudGroupModal(false);
+      await onConfirm?.();
     },
     onError: ({ error }) => {
-      toast.error(parseActionError(error, "Failed to resolve fraud events"));
+      toast.error(parseActionError(error, "Failed to resolve fraud events."));
     },
   });
 
@@ -59,31 +57,31 @@ function ResolveFraudEventsModal({
   } = useForm<FormData>({
     defaultValues: {
       resolutionReason: "",
-      groupKey: fraudEventGroup.groupKey,
+      groupId: fraudGroup.id,
     },
   });
 
   const onSubmit = useCallback(
     async (data: FormData) => {
-      if (!workspaceId || !fraudEventGroup.groupKey) {
+      if (!workspaceId || !fraudGroup.id) {
         return;
       }
 
       await executeAsync({
         workspaceId,
-        groupKey: fraudEventGroup.groupKey,
+        groupId: fraudGroup.id,
         resolutionReason: data.resolutionReason,
       });
     },
-    [fraudEventGroup, workspaceId, executeAsync],
+    [executeAsync, fraudGroup.id, workspaceId],
   );
 
-  const { partner } = fraudEventGroup;
+  const { partner } = fraudGroup;
 
   return (
     <Modal
-      showModal={showResolveFraudEventModal}
-      setShowModal={setShowResolveFraudEventModal}
+      showModal={showResolveFraudGroupModal}
+      setShowModal={setShowResolveFraudGroupModal}
     >
       <div className="border-b border-neutral-200 p-4 sm:p-6">
         <h3 className="text-lg font-medium leading-none">Resolve events</h3>
@@ -145,7 +143,7 @@ function ResolveFraudEventsModal({
 
         <div className="flex items-center justify-end gap-2 bg-neutral-50 px-4 pb-5 sm:px-6">
           <Button
-            onClick={() => setShowResolveFraudEventModal(false)}
+            onClick={() => setShowResolveFraudGroupModal(false)}
             variant="secondary"
             text="Cancel"
             className="h-8 w-fit px-3"
@@ -154,8 +152,8 @@ function ResolveFraudEventsModal({
           <Button
             type="submit"
             variant="primary"
-            text={`Resolve ${fraudEventGroup.count} ${pluralize("event", fraudEventGroup.count)}`}
-            disabled={!workspaceId || !fraudEventGroup.groupKey}
+            text={`Resolve ${fraudGroup.eventCount} ${pluralize("event", fraudGroup.eventCount)}`}
+            disabled={!workspaceId || !fraudGroup.id}
             loading={isPending}
             className="h-8 w-fit px-3"
           />
@@ -165,37 +163,38 @@ function ResolveFraudEventsModal({
   );
 }
 
-export function useResolveFraudEventsModal({
-  fraudEventGroup,
+export function useResolveFraudGroupModal({
+  fraudGroup,
   onConfirm,
 }: {
-  fraudEventGroup: FraudEventGroupProps;
-  onConfirm?: () => void;
+  fraudGroup: FraudGroupProps;
+  onConfirm?: () => Promise<void>;
 }) {
-  const [showResolveFraudEventModal, setShowResolveFraudEventModal] =
+  const [showResolveFraudGroupModal, setShowResolveFraudGroupModal] =
     useState(false);
 
-  const ResolveFraudEventModalCallback = useCallback(() => {
-    return (
-      <ResolveFraudEventsModal
-        showResolveFraudEventModal={showResolveFraudEventModal}
-        setShowResolveFraudEventModal={setShowResolveFraudEventModal}
-        fraudEventGroup={fraudEventGroup}
+  const ResolveFraudGroupModalComponent = useMemo(
+    () => (
+      <ResolveFraudGroupModal
+        showResolveFraudGroupModal={showResolveFraudGroupModal}
+        setShowResolveFraudGroupModal={setShowResolveFraudGroupModal}
+        fraudGroup={fraudGroup}
         onConfirm={onConfirm}
       />
-    );
-  }, [
-    showResolveFraudEventModal,
-    setShowResolveFraudEventModal,
-    fraudEventGroup,
-    onConfirm,
-  ]);
+    ),
+    [
+      showResolveFraudGroupModal,
+      setShowResolveFraudGroupModal,
+      fraudGroup,
+      onConfirm,
+    ],
+  );
 
   return useMemo(
     () => ({
-      setShowResolveFraudEventModal,
-      ResolveFraudEventModal: ResolveFraudEventModalCallback,
+      setShowResolveFraudGroupModal,
+      ResolveFraudGroupModal: ResolveFraudGroupModalComponent,
     }),
-    [setShowResolveFraudEventModal, ResolveFraudEventModalCallback],
+    [setShowResolveFraudGroupModal, ResolveFraudGroupModalComponent],
   );
 }

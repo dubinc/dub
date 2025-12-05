@@ -9,6 +9,8 @@ import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
 import {
   CommissionStatus,
   FolderUserRole,
+  FraudEvent,
+  FraudEventGroup,
   FraudRuleType,
   Link,
   PartnerGroup,
@@ -59,8 +61,8 @@ import { DiscountCodeSchema, DiscountSchema } from "./zod/schemas/discount";
 import { EmailDomainSchema } from "./zod/schemas/email-domains";
 import { FolderSchema } from "./zod/schemas/folders";
 import {
+  fraudGroupSchema,
   fraudRuleSchema,
-  groupedFraudEventSchema,
   updateFraudRuleSettingsSchema,
 } from "./zod/schemas/fraud";
 import { GroupWithProgramSchema } from "./zod/schemas/group-with-program";
@@ -673,7 +675,7 @@ export type WorkflowAttribute = (typeof WORKFLOW_ATTRIBUTES)[number];
 
 export type EmailDomainProps = z.infer<typeof EmailDomainSchema>;
 
-export type FraudEventGroupProps = z.infer<typeof groupedFraudEventSchema>;
+export type FraudGroupProps = z.infer<typeof fraudGroupSchema>;
 
 export type ExtendedFraudRuleType =
   | FraudRuleType
@@ -708,12 +710,18 @@ export type UpdateFraudRuleSettings = z.infer<
   typeof updateFraudRuleSettingsSchema
 >;
 
-export interface FraudEventsCountByPartner {
+export interface FraudGroupCountByPartner {
   partnerId: string;
   _count: number;
 }
 
-export interface FraudEventsCountByType {
+export interface FraudGroupCountByType {
   type: FraudRuleType;
   _count: number;
 }
+
+export type CreateFraudEventInput = Pick<
+  FraudEventGroup,
+  "programId" | "partnerId" | "type"
+> &
+  Partial<Pick<FraudEvent, "linkId" | "eventId" | "customerId" | "metadata">>;

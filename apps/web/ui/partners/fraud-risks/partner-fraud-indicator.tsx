@@ -1,6 +1,6 @@
 import { FRAUD_SEVERITY_CONFIG } from "@/lib/api/fraud/constants";
-import { useFraudEventsCount } from "@/lib/swr/use-fraud-events-count";
-import { FraudEventsCountByPartner } from "@/lib/types";
+import { useFraudGroupCount } from "@/lib/swr/use-fraud-groups-count";
+import { FraudGroupCountByPartner } from "@/lib/types";
 import { ButtonLink } from "@/ui/placeholders/button-link";
 import { DynamicTooltipWrapper, Flag } from "@dub/ui";
 import { cn } from "@dub/utils";
@@ -16,8 +16,8 @@ export function PartnerFraudIndicator({
   const { slug } = useParams();
   const pathname = usePathname();
 
-  const { fraudEventsCount, loading } = useFraudEventsCount<
-    FraudEventsCountByPartner[]
+  const { fraudGroupCount, loading } = useFraudGroupCount<
+    FraudGroupCountByPartner[]
   >({
     query: {
       groupBy: "partnerId",
@@ -30,7 +30,7 @@ export function PartnerFraudIndicator({
     return null;
   }
 
-  const currentPartnerFraudEvents = fraudEventsCount?.find(
+  const currentPartnerFraudEvents = fraudGroupCount?.find(
     (event) => event.partnerId === partnerId,
   );
 
