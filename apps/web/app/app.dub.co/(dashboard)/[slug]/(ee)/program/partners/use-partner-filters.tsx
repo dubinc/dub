@@ -1,18 +1,24 @@
 import useGroups from "@/lib/swr/use-groups";
+import { usePartnerTags } from "@/lib/swr/use-partner-tags";
+import { usePartnerTagsCount } from "@/lib/swr/use-partner-tags-count";
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { PartnerTagProps } from "@/lib/types";
+import { PARTNER_TAGS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/partner-tags";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { useRouterStuff } from "@dub/ui";
-import { CircleDotted, FlagWavy, Users6 } from "@dub/ui/icons";
+import { CircleDotted, FlagWavy, Tag, Users6 } from "@dub/ui/icons";
 import { cn, COUNTRIES, nFormatter } from "@dub/utils";
 import { ProgramEnrollmentStatus } from "@prisma/client";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { useDebounce } from "use-debounce";
 
 export function usePartnerFilters(
   extraSearchParams: Record<string, string>,
-  enabledFilters: ("groupId" | "status" | "country")[] = [
+  enabledFilters: ("groupId" | "partnerTagIds" | "status" | "country")[] = [
     "groupId",
+    "partnerTagIds",
     "status",
     "country",
   ],
@@ -22,6 +28,15 @@ export function usePartnerFilters(
   const status = (searchParamsObj.status ||
     extraSearchParams.status ||
     "approved") as ProgramEnrollmentStatus;
+
+  const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [debouncedSearch] = useDebounce(search, 500);
+
+  const { partnerTags, partnerTagsAsync } = usePartnerTagFilterOptions({
+    search: selectedFilter === "partnerTagIds" ? debouncedSearch : "",
+    enabled: enabledFilters.includes("partnerTagIds"),
+  });
 
   const { groups } = useGroups();
 
@@ -92,6 +107,24 @@ export function usePartnerFilters(
             },
           ]
         : []),
+      ...(enabledFilters.includes("partnerTagIds")
+        ? [
+            {
+              key: "partnerTagIds",
+              icon: Tag,
+              label: "Tag",
+              multiple: true,
+              shouldFilter: !partnerTagsAsync,
+              options:
+                partnerTags?.map(({ id, name, count, hideDuringSearch }) => ({
+                  value: id,
+                  label: name,
+                  right: nFormatter(count, { full: true }),
+                  hideDuringSearch,
+                })) ?? null,
+            },
+          ]
+        : []),
       ...(enabledFilters.includes("status")
         ? [
             {
@@ -148,15 +181,32 @@ export function usePartnerFilters(
           ]
         : []),
     ],
-    [groupsCount, groups, statusCount, countriesCount],
+    [
+      enabledFilters,
+      groupsCount,
+      groups,
+      slug,
+      partnerTags,
+      partnerTagsAsync,
+      statusCount,
+      countriesCount,
+    ],
+  );
+
+  const selectedTagIds = useMemo(
+    () => searchParamsObj["partnerTagIds"]?.split(",")?.filter(Boolean) ?? [],
+    [searchParamsObj],
   );
 
   const activeFilters = useMemo(() => {
-    const { groupId, status, country } = searchParamsObj;
+    const { groupId, partnerTagIds, status, country } = searchParamsObj;
 
     return [
       ...(enabledFilters.includes("groupId") && groupId
         ? [{ key: "groupId", value: groupId }]
+        : []),
+      ...(enabledFilters.includes("partnerTagIds") && partnerTagIds
+        ? [{ key: "partnerTagIds", value: selectedTagIds }]
         : []),
       ...(enabledFilters.includes("status") && status
         ? [{ key: "status", value: status }]
@@ -165,24 +215,46 @@ export function usePartnerFilters(
         ? [{ key: "country", value: country }]
         : []),
     ];
-  }, [searchParamsObj]);
+  }, [searchParamsObj, enabledFilters, selectedTagIds]);
 
   const onSelect = (key: string, value: any) =>
-    queryParams({
-      set: {
-        [key]: value,
-      },
-      del: "page",
-    });
+    queryParams(
+      key === "partnerTagIds"
+        ? {
+            set: {
+              partnerTagIds: selectedTagIds.concat(value).join(","),
+            },
+            del: "page",
+          }
+        : {
+            set: {
+              [key]: value,
+            },
+            del: "page",
+          },
+    );
 
-  const onRemove = (key: string) =>
-    queryParams({
-      del: [key, "page"],
-    });
+  const onRemove = (key: string, value?: any) =>
+    queryParams(
+      key === "partnerTagIds" &&
+        value &&
+        !(selectedTagIds.length === 1 && selectedTagIds[0] === value)
+        ? {
+            set: {
+              partnerTagIds: selectedTagIds
+                .filter((id) => id !== value)
+                .join(","),
+            },
+            del: "page",
+          }
+        : {
+            del: [key, "page"],
+          },
+    );
 
   const onRemoveAll = () =>
     queryParams({
-      del: ["status", "country", "groupId", "search"],
+      del: ["status", "country", "groupId", "partnerTagIds", "search"],
     });
 
   const searchQuery = useMemo(
@@ -206,7 +278,84 @@ export function usePartnerFilters(
     onSelect,
     onRemove,
     onRemoveAll,
+    setSelectedFilter,
+    setSearch,
     searchQuery,
     isFiltered,
   };
+}
+
+function usePartnerTagFilterOptions({
+  search,
+  enabled = true,
+}: {
+  search: string;
+  enabled?: boolean;
+}) {
+  const { searchParamsObj } = useRouterStuff();
+
+  const tagIds = useMemo(
+    () => searchParamsObj.partnerTagIds?.split(",")?.filter(Boolean) ?? [],
+    [searchParamsObj.partnerTagIds],
+  );
+
+  const { partnerTagsCount } = usePartnerTagsCount({ enabled });
+  const useAsync = Boolean(
+    enabled &&
+      partnerTagsCount &&
+      partnerTagsCount > PARTNER_TAGS_MAX_PAGE_SIZE,
+  );
+  const { partnerTags, isLoading: isLoadingPartnerTags } = usePartnerTags({
+    query: { search: useAsync ? search : "" },
+    enabled,
+  });
+
+  const { partnerTags: selectedPartnerTags } = usePartnerTags({
+    query: { ids: tagIds },
+    enabled: enabled && useAsync,
+  });
+
+  const { partnersCount } = usePartnersCount<
+    {
+      partnerTagId: string;
+      _count: number;
+    }[]
+  >({ groupBy: "partnerTagId", enabled });
+
+  const tagsResult = useMemo(() => {
+    return isLoadingPartnerTags ||
+      // Consider tags loading if we can't find the currently filtered tag
+      (tagIds?.length &&
+        tagIds.some(
+          (id) =>
+            ![...(selectedPartnerTags ?? []), ...(partnerTags ?? [])].some(
+              (t) => t.id === id,
+            ),
+        ))
+      ? null
+      : (
+          [
+            ...(partnerTags ?? []),
+            // Add selected tag to list if not already in tags
+            ...(selectedPartnerTags
+              ?.filter((st) => !partnerTags?.some((t) => t.id === st.id))
+              ?.map((st) => ({ ...st, hideDuringSearch: true })) ?? []),
+          ] as (PartnerTagProps & { hideDuringSearch?: boolean })[]
+        )
+          ?.map((tag) => ({
+            ...tag,
+            count:
+              partnersCount?.find(({ partnerTagId }) => partnerTagId === tag.id)
+                ?._count || 0,
+          }))
+          .sort((a, b) => b.count - a.count) ?? null;
+  }, [
+    isLoadingPartnerTags,
+    partnerTags,
+    selectedPartnerTags,
+    partnersCount,
+    tagIds,
+  ]);
+
+  return { partnerTags: tagsResult, partnerTagsAsync: useAsync };
 }

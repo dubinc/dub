@@ -78,6 +78,7 @@ model Partner {
   preferredEarningStructures PartnerPreferredEarningStructure[]
   salesChannels              PartnerSalesChannel[]
   discoveredByPrograms       DiscoveredPartner[]
+  programPartnerTags         ProgramPartnerTag[]
   fraudEvents                FraudEvent[]
 
   @@index(country)
