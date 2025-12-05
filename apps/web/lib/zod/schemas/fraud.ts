@@ -14,8 +14,8 @@ export const fraudGroupSchema = z.object({
   type: z.nativeEnum(FraudRuleType),
   status: z.nativeEnum(FraudEventStatus),
   resolutionReason: z.string().nullable(),
-  resolvedAt: z.date().nullable(),
-  lastEventAt: z.date(),
+  resolvedAt: z.coerce.date().nullable(),
+  lastEventAt: z.coerce.date(),
   eventCount: z.number(),
   partner: EnrolledPartnerSchema.pick({
     id: true,
