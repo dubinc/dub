@@ -3,47 +3,42 @@ import { FraudEventStatus, FraudRuleType } from "@dub/prisma/client";
 import { z } from "zod";
 import { CustomerSchema } from "./customers";
 import { getPaginationQuerySchema } from "./misc";
-import { PartnerSchema } from "./partners";
+import { EnrolledPartnerSchema, PartnerSchema } from "./partners";
 import { ProgramEnrollmentSchema } from "./programs";
 import { UserSchema } from "./users";
 
 export const MAX_RESOLUTION_REASON_LENGTH = 200;
 
-export const groupedFraudEventSchema = z.object({
+export const fraudGroupSchema = z.object({
   id: z.string(),
   type: z.nativeEnum(FraudRuleType),
   status: z.nativeEnum(FraudEventStatus),
   resolutionReason: z.string().nullable(),
   resolvedAt: z.date().nullable(),
-  lastOccurrenceAt: z.date(),
-  count: z.number(),
-  groupKey: z.string(),
-  partner: PartnerSchema.pick({
+  lastEventAt: z.date(),
+  eventCount: z.number(),
+  partner: EnrolledPartnerSchema.pick({
     id: true,
     name: true,
     email: true,
     image: true,
+    status: true,
   }),
-  user: UserSchema.pick({
-    id: true,
-    name: true,
-    image: true,
-  }).nullable(),
+  user: UserSchema.nullable(),
 });
 
-export const groupedFraudEventsQuerySchema = z
+export const fraudGroupQuerySchema = z
   .object({
-    status: z.nativeEnum(FraudEventStatus).optional(),
+    status: z.nativeEnum(FraudEventStatus).optional().default("pending"),
     type: z.nativeEnum(FraudRuleType).optional(),
     partnerId: z.string().optional(),
-    customerId: z.string().optional(),
-    groupKey: z.string().optional(),
-    sortBy: z.enum(["createdAt", "type"]).default("createdAt"),
+    sortBy: z.enum(["createdAt", "type", "resolvedAt"]).default("createdAt"),
     sortOrder: z.enum(["asc", "desc"]).default("desc"),
+    groupId: z.string().optional(),
   })
   .merge(getPaginationQuerySchema({ pageSize: 100 }));
 
-export const fraudEventCountQuerySchema = groupedFraudEventsQuerySchema
+export const fraudGroupCountQuerySchema = fraudGroupQuerySchema
   .omit({
     page: true,
     pageSize: true,
@@ -54,13 +49,49 @@ export const fraudEventCountQuerySchema = groupedFraudEventsQuerySchema
     groupBy: z.enum(["partnerId", "type"]).optional(),
   });
 
-export const rawFraudEventsQuerySchema = z.object({
-  groupKey: z.string(),
+export const fraudGroupCountSchema = z.union([
+  z.object({
+    type: z.nativeEnum(FraudRuleType),
+    _count: z.number(),
+  }),
+
+  z.object({
+    partnerId: z.string(),
+    _count: z.number(),
+  }),
+
+  z.number(),
+]);
+
+export const fraudEventQuerySchema = z.union([
+  z.object({
+    groupId: z.string(),
+  }),
+  z.object({
+    customerId: z.string(),
+    type: z.nativeEnum(FraudRuleType),
+  }),
+]);
+
+export const resolveFraudGroupSchema = z.object({
+  workspaceId: z.string(),
+  groupId: z.string(),
+  resolutionReason: z
+    .string()
+    .max(
+      MAX_RESOLUTION_REASON_LENGTH,
+      `Reason must be less than ${MAX_RESOLUTION_REASON_LENGTH} characters`,
+    )
+    .nullable()
+    .default(null),
 });
 
-export const resolveFraudEventsSchema = z.object({
+export const bulkResolveFraudGroupsSchema = z.object({
   workspaceId: z.string(),
-  groupKey: z.string(),
+  groupIds: z
+    .array(z.string())
+    .min(1)
+    .max(100, "You can only resolve up to 100 fraud event groups at a time."),
   resolutionReason: z
     .string()
     .max(
@@ -158,7 +189,7 @@ export const updateFraudRuleSettingsSchema = z.object({
     .optional(),
 });
 
-export const rawFraudEventSchemas = {
+export const fraudEventSchemas = {
   referralSourceBanned: z.object({
     createdAt: z.date(),
     customer: CustomerSchema.pick({
@@ -185,6 +216,7 @@ export const rawFraudEventSchemas = {
     metadata: z
       .object({
         source: z.string(),
+        url: z.string().nullable().default(null),
       })
       .nullable(),
   }),

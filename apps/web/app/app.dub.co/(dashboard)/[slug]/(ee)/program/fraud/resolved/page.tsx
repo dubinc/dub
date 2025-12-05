@@ -1,8 +1,8 @@
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
-import { ResolvedFraudEventGroupsTable } from "./resolved-fraud-event-groups-table";
+import { ResolvedFraudGroupTable } from "./resolved-fraud-group-table";
 
-export default async function ResolvedFraudEventsPage(props: {
+export default async function ResolvedFraudGroupsPage(props: {
   params: Promise<{ slug: string }>;
 }) {
   const params = await props.params;
@@ -13,7 +13,7 @@ export default async function ResolvedFraudEventsPage(props: {
       titleBackHref={`/${params.slug}/program/fraud`}
     >
       <PageWidthWrapper>
-        <ResolvedFraudEventGroupsTable />
+        <ResolvedFraudGroupTable />
       </PageWidthWrapper>
     </PageContent>
   );

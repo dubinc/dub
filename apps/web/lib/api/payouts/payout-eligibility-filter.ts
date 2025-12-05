@@ -12,7 +12,7 @@ export function getPayoutEligibilityFilter(
     },
     // Filter out payouts from partners with pending fraud events
     programEnrollment: {
-      fraudEvents: {
+      fraudEventGroups: {
         every: {
           status: "resolved",
         },

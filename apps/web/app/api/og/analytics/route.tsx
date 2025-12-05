@@ -1,3 +1,4 @@
+import { formatUTCDateTimeClickhouse } from "@/lib/analytics/utils/format-utc-datetime-clickhouse";
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { Folder, Link } from "@dub/prisma/client";
 import { prismaEdge } from "@dub/prisma/edge";
@@ -81,8 +82,8 @@ export async function GET(req: NextRequest) {
         ...(workspaceId ? { workspaceId } : {}),
         ...(folderId ? { folderId } : {}),
         ...(linkId ? { linkId } : {}),
-        start: startDate.toISOString().replace("T", " ").replace("Z", ""),
-        end: endDate.toISOString().replace("T", " ").replace("Z", ""),
+        start: formatUTCDateTimeClickhouse(startDate),
+        end: formatUTCDateTimeClickhouse(endDate),
         granularity,
       },
     )}`,

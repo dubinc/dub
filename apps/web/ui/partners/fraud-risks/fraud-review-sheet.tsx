@@ -1,8 +1,10 @@
 "use client";
 
 import { FRAUD_RULES_BY_TYPE } from "@/lib/api/fraud/constants";
-import { fraudEventGroupProps } from "@/lib/types";
+import { mutatePrefix } from "@/lib/swr/mutate";
+import { FraudGroupProps } from "@/lib/types";
 import { useBanPartnerModal } from "@/ui/modals/ban-partner-modal";
+import { useRejectPartnerApplicationModal } from "@/ui/modals/reject-partner-application-modal";
 import { X } from "@/ui/shared/icons";
 import {
   Button,
@@ -17,41 +19,54 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { OG_AVATAR_URL, cn, formatDateTime } from "@dub/utils";
-import { useResolveFraudEventsModal } from "app/app.dub.co/(dashboard)/[slug]/(ee)/program/fraud/resolve-fraud-events-modal";
+import { useResolveFraudGroupModal } from "app/app.dub.co/(dashboard)/[slug]/(ee)/program/fraud/resolve-fraud-group-modal";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { Dispatch, SetStateAction, useState } from "react";
+import { Dispatch, SetStateAction } from "react";
 import { CommissionsOnHoldTable } from "./commissions-on-hold-table";
 import { FraudEventsTableWrapper } from "./fraud-events-tables";
 
 interface FraudReviewSheetProps {
-  fraudEventGroup: fraudEventGroupProps;
+  fraudGroup: FraudGroupProps;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
   onNext?: () => void;
   onPrevious?: () => void;
 }
 
 function FraudReviewSheetContent({
-  fraudEventGroup,
+  fraudGroup,
   onPrevious,
   onNext,
 }: FraudReviewSheetProps) {
-  const { partner, user } = fraudEventGroup;
+  const { partner, user } = fraudGroup;
 
   const { slug } = useParams();
 
-  const { setShowResolveFraudEventModal, ResolveFraudEventModal } =
-    useResolveFraudEventsModal({
-      fraudEventGroup,
-      onConfirm: () => {
+  const { setShowResolveFraudGroupModal, ResolveFraudGroupModal } =
+    useResolveFraudGroupModal({
+      fraudGroup,
+      onConfirm: async () => {
         onNext?.();
+        mutatePrefix("/api/fraud/groups");
       },
     });
 
-  const { BanPartnerModal, setShowBanPartnerModal } = useBanPartnerModal({
+  const { setShowBanPartnerModal, BanPartnerModal } = useBanPartnerModal({
     partner,
     onConfirm: async () => {
       onNext?.();
+      mutatePrefix("/api/fraud/groups");
+    },
+  });
+
+  const {
+    RejectPartnerApplicationModal,
+    setShowRejectPartnerApplicationModal,
+  } = useRejectPartnerApplicationModal({
+    partner,
+    onConfirm: async () => {
+      onNext?.();
+      mutatePrefix("/api/fraud/groups");
     },
   });
 
@@ -59,24 +74,36 @@ function FraudReviewSheetContent({
   useKeyboardShortcut("ArrowRight", () => onNext?.(), { sheet: true });
   useKeyboardShortcut("ArrowLeft", () => onPrevious?.(), { sheet: true });
 
-  // Resolve/ban shortcuts
-  useKeyboardShortcut("r", () => setShowResolveFraudEventModal(true), {
+  // Resolve/ban/reject shortcuts
+  useKeyboardShortcut("r", () => setShowResolveFraudGroupModal(true), {
     sheet: true,
   });
-  useKeyboardShortcut("b", () => setShowBanPartnerModal(true), { sheet: true });
 
-  const fraudRuleInfo = FRAUD_RULES_BY_TYPE[fraudEventGroup.type];
+  useKeyboardShortcut(
+    "b",
+    () => {
+      if (partner.status === "pending") {
+        setShowRejectPartnerApplicationModal(true);
+      } else {
+        setShowBanPartnerModal(true);
+      }
+    },
+    { sheet: true },
+  );
+
+  const fraudRuleInfo = FRAUD_RULES_BY_TYPE[fraudGroup.type];
 
   return (
     <div className="relative h-full">
-      <ResolveFraudEventModal />
+      {ResolveFraudGroupModal}
+      {RejectPartnerApplicationModal}
       <BanPartnerModal />
       <div
         className={cn("flex h-full flex-col transition-opacity duration-200")}
       >
         <div className="flex h-16 shrink-0 items-center justify-between border-b border-neutral-200 px-6 py-4">
           <Sheet.Title className="text-lg font-semibold">
-            {fraudEventGroup.status === "pending"
+            {fraudGroup.status === "pending"
               ? "Fraud review"
               : "Resolved fraud and risk event"}
           </Sheet.Title>
@@ -167,19 +194,19 @@ function FraudReviewSheetContent({
                 </span>
               </div>
 
-              <FraudEventsTableWrapper fraudEventGroup={fraudEventGroup} />
+              <FraudEventsTableWrapper fraudGroup={fraudGroup} />
             </div>
 
-            {fraudEventGroup.status === "pending" && (
+            {fraudGroup.status === "pending" && (
               <div>
                 <h3 className="text-content-emphasis mb-4 font-semibold">
                   Commissions on hold
                 </h3>
-                <CommissionsOnHoldTable fraudEventGroup={fraudEventGroup} />
+                <CommissionsOnHoldTable fraudGroup={fraudGroup} />
               </div>
             )}
 
-            {fraudEventGroup.status === "resolved" && (
+            {fraudGroup.status === "resolved" && (
               <div>
                 <h3 className="text-content-emphasis mb-4 font-semibold">
                   Decision
@@ -188,7 +215,7 @@ function FraudReviewSheetContent({
                 <div
                   className={cn(
                     "flex gap-3",
-                    fraudEventGroup.resolutionReason
+                    fraudGroup.resolutionReason
                       ? "items-start"
                       : "items-center",
                   )}
@@ -199,8 +226,8 @@ function FraudReviewSheetContent({
                         {user && (
                           <div className="flex flex-col gap-2">
                             <img
-                              src={user.image || `${OG_AVATAR_URL}${user.name}`}
-                              alt={user.name || user.id}
+                              src={user.image || `${OG_AVATAR_URL}${user.id}`}
+                              alt={user.name ?? user.email ?? user.id}
                               className="size-6 shrink-0 rounded-full"
                             />
                             <p className="text-sm font-medium">{user.name}</p>
@@ -210,8 +237,8 @@ function FraudReviewSheetContent({
                         <div className="text-xs text-neutral-500">
                           Resolved by{" "}
                           <span className="font-medium text-neutral-700">
-                            {fraudEventGroup.resolvedAt
-                              ? formatDateTime(fraudEventGroup.resolvedAt)
+                            {fraudGroup.resolvedAt
+                              ? formatDateTime(fraudGroup.resolvedAt)
                               : "Unknown"}
                           </span>
                         </div>
@@ -220,25 +247,25 @@ function FraudReviewSheetContent({
                   >
                     {user && (
                       <img
-                        src={user.image || `${OG_AVATAR_URL}${user.name}`}
-                        alt={user.name || user.id}
+                        src={user.image || `${OG_AVATAR_URL}${user.id}`}
+                        alt={user.name ?? user.email ?? user.id}
                         className="size-5 shrink-0 rounded-full"
                       />
                     )}
                   </Tooltip>
 
                   <div className="flex flex-col gap-1">
-                    {fraudEventGroup.resolvedAt && (
+                    {fraudGroup.resolvedAt && (
                       <span className="text-sm font-medium text-neutral-600">
-                        {fraudEventGroup.resolvedAt
-                          ? formatDateTime(fraudEventGroup.resolvedAt)
+                        {fraudGroup.resolvedAt
+                          ? formatDateTime(fraudGroup.resolvedAt)
                           : "-"}
                       </span>
                     )}
 
-                    {fraudEventGroup.resolutionReason && (
+                    {fraudGroup.resolutionReason && (
                       <span className="text-content-subtle text-sm font-medium">
-                        {fraudEventGroup.resolutionReason}
+                        {fraudGroup.resolutionReason}
                       </span>
                     )}
                   </div>
@@ -248,7 +275,7 @@ function FraudReviewSheetContent({
           </div>
         </div>
 
-        {fraudEventGroup.status === "pending" && (
+        {fraudGroup.status === "pending" && (
           <div className="flex flex-col justify-end">
             <div className="border-border-subtle flex items-center justify-end gap-2 border-t px-5 py-4">
               <Button
@@ -256,18 +283,29 @@ function FraudReviewSheetContent({
                 variant="secondary"
                 text="Resolve event"
                 shortcut="R"
-                onClick={() => setShowResolveFraudEventModal(true)}
+                onClick={() => setShowResolveFraudGroupModal(true)}
                 className="h-8 w-fit rounded-lg"
               />
 
-              <Button
-                type="button"
-                text="Ban partner"
-                shortcut="B"
-                variant="danger"
-                onClick={() => setShowBanPartnerModal(true)}
-                className="h-8 w-fit rounded-lg"
-              />
+              {partner.status === "pending" ? (
+                <Button
+                  type="button"
+                  text="Reject application"
+                  shortcut="B"
+                  variant="danger"
+                  onClick={() => setShowRejectPartnerApplicationModal(true)}
+                  className="h-8 w-fit rounded-lg"
+                />
+              ) : (
+                <Button
+                  type="button"
+                  text="Ban partner"
+                  shortcut="B"
+                  variant="danger"
+                  onClick={() => setShowBanPartnerModal(true)}
+                  className="h-8 w-fit rounded-lg"
+                />
+              )}
             </div>
           </div>
         )}
@@ -286,11 +324,22 @@ export function FraudReviewSheet({
 }) {
   const { queryParams } = useRouterStuff();
 
+  const handleOpenChange = (open: boolean) => {
+    // Only update if the value actually changed
+    if (open === isOpen) return;
+
+    rest.setIsOpen(open);
+
+    // Clear the groupId from URL when closing
+    if (!open) {
+      queryParams({ del: "groupId", scroll: false });
+    }
+  };
+
   return (
     <Sheet
       open={isOpen}
-      onOpenChange={rest.setIsOpen}
-      onClose={() => queryParams({ del: "groupKey", scroll: false })}
+      onOpenChange={handleOpenChange}
       nested={nested}
       contentProps={{
         className: "[--sheet-width:940px]",
@@ -299,17 +348,4 @@ export function FraudReviewSheet({
       <FraudReviewSheetContent {...rest} />
     </Sheet>
   );
-}
-
-export function useFraudReviewSheet(
-  props: Omit<FraudReviewSheetProps, "setIsOpen">,
-) {
-  const [isOpen, setIsOpen] = useState(false);
-
-  return {
-    fraudReviewSheet: (
-      <FraudReviewSheet setIsOpen={setIsOpen} isOpen={isOpen} {...props} />
-    ),
-    setIsOpen,
-  };
 }

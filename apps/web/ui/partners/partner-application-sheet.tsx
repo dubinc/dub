@@ -1,14 +1,13 @@
 import { approvePartnerAction } from "@/lib/actions/partners/approve-partner";
-import { rejectPartnerApplicationAction } from "@/lib/actions/partners/reject-partner-application";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
+import { useRejectPartnerApplicationModal } from "@/ui/modals/reject-partner-application-modal";
 import { X } from "@/ui/shared/icons";
 import {
   Button,
-  Checkbox,
   ChevronLeft,
   ChevronRight,
   Msgs,
@@ -302,72 +301,32 @@ function PartnerRejectButton({
   setIsOpen: Dispatch<SetStateAction<boolean>>;
   onNext?: () => void;
 }) {
-  const { id: workspaceId } = useWorkspace();
-  const [reportFraud, setReportFraud] = useState(false);
-
-  const { executeAsync: rejectPartnerApplication, isPending } = useAction(
-    rejectPartnerApplicationAction,
-    {
-      onSuccess: () => {
-        onNext ? onNext() : setIsOpen(false);
-        toast.success(
-          `Partner ${partner.email} has been rejected from your program.`,
-        );
-        mutatePrefix("/api/partners");
-        setReportFraud(false);
-      },
-      onError({ error }) {
-        toast.error(error.serverError || "Failed to reject partner.");
-      },
-    },
-  );
-
-  const { setShowConfirmModal, confirmModal } = useConfirmModal({
-    title: "Reject Application",
-    description: (
-      <div>
-        <p>Are you sure you want to reject this partner application?</p>
-        <label className="mt-5 flex items-start gap-2.5 text-sm font-medium">
-          <Checkbox
-            className="border-border-default mt-1 size-4 rounded focus:border-[var(--brand)] focus:ring-[var(--brand)] focus-visible:border-[var(--brand)] focus-visible:ring-[var(--brand)] data-[state=checked]:bg-black data-[state=indeterminate]:bg-black"
-            checked={reportFraud}
-            onCheckedChange={(checked) => setReportFraud(Boolean(checked))}
-          />
-          <span className="text-content-emphasis text-sm font-normal leading-5">
-            Select this if you believe the application shows signs of fraud.
-            This helps keep the network safe.
-          </span>
-        </label>
-      </div>
-    ),
-    confirmText: "Reject",
-    confirmShortcut: "r",
-    confirmShortcutOptions: { sheet: true, modal: true },
+  const {
+    RejectPartnerApplicationModal,
+    setShowRejectPartnerApplicationModal,
+  } = useRejectPartnerApplicationModal({
+    partner,
     onConfirm: async () => {
-      await rejectPartnerApplication({
-        workspaceId: workspaceId!,
-        partnerId: partner.id,
-        reportFraud,
-      });
+      onNext ? onNext() : setIsOpen(false);
+      await mutatePrefix("/api/partners");
     },
-    onCancel: () => {
-      setReportFraud(false);
-    },
+    confirmShortcutOptions: { sheet: true, modal: true },
   });
 
-  useKeyboardShortcut("r", () => setShowConfirmModal(true), { sheet: true });
+  useKeyboardShortcut("r", () => setShowRejectPartnerApplicationModal(true), {
+    sheet: true,
+  });
 
   return (
     <>
-      {confirmModal}
+      {RejectPartnerApplicationModal}
       <Button
         type="button"
         variant="secondary"
-        text={isPending ? "" : "Reject"}
-        loading={isPending}
+        text="Reject"
         shortcut="R"
         onClick={() => {
-          setShowConfirmModal(true);
+          setShowRejectPartnerApplicationModal(true);
         }}
         className="px-4"
       />

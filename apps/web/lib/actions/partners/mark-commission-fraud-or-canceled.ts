@@ -82,31 +82,27 @@ export const markCommissionFraudOrCanceledAction = authActionClient
       >,
     );
 
-    await prisma.$transaction(
-      Object.values(payoutUpdates).map(
-        ({ payoutId, currentAmount, earningsToDeduct }) =>
-          prisma.payout.update({
-            where: {
-              id: payoutId,
-            },
-            data: {
-              amount: currentAmount - earningsToDeduct,
-            },
-          }),
-      ),
-    );
-
-    await prisma.commission.updateMany({
-      where: {
-        id: {
-          in: commissions.map((commission) => commission.id),
+    await prisma.$transaction([
+      ...Object.values(payoutUpdates).map(
+        ({ payoutId, currentAmount, earningsToDeduct }) => {
+          if (currentAmount - earningsToDeduct === 0) {
+            return prisma.payout.delete({ where: { id: payoutId } });
+          }
+          return prisma.payout.update({
+            where: { id: payoutId },
+            data: { amount: currentAmount - earningsToDeduct },
+          });
         },
-      },
-      data: {
-        status,
-        payoutId: null,
-      },
-    });
+      ),
+      prisma.commission.updateMany({
+        where: {
+          id: {
+            in: commissions.map((commission) => commission.id),
+          },
+        },
+        data: { status, payoutId: null },
+      }),
+    ]);
 
     waitUntil(
       (async () => {

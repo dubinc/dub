@@ -1,8 +1,9 @@
 import { sqlGranularityMap } from "@/lib/planetscale/granularity";
+import { TZDate } from "@date-fns/tz";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { ACME_PROGRAM_ID } from "@dub/utils";
-import { DateTime } from "luxon";
+import { format } from "date-fns";
 
 interface Commission {
   start: string;
@@ -38,9 +39,11 @@ export async function getCommissionsTimeseries({
         GROUP BY start
         ORDER BY start ASC;`;
 
-  let currentDate = startFunction(
-    DateTime.fromJSDate(startDate).setZone(timezone || "UTC"),
-  );
+  // Convert dates to TZDate with the specified timezone
+  const tzStartDate = new TZDate(startDate, timezone || "UTC");
+  const tzEndDate = new TZDate(endDate, timezone || "UTC");
+
+  let currentDate = startFunction(tzStartDate);
 
   const commissionsLookup = Object.fromEntries(
     commissions.map((item) => [
@@ -53,11 +56,11 @@ export async function getCommissionsTimeseries({
 
   const timeseries: Commission[] = [];
 
-  while (currentDate.toJSDate() < endDate) {
-    const periodKey = currentDate.toFormat(formatString);
+  while (currentDate < tzEndDate) {
+    const periodKey = format(currentDate, formatString);
 
     timeseries.push({
-      start: currentDate.toISO()!,
+      start: currentDate.toISOString(),
       ...(commissionsLookup[periodKey] || {
         commissions: 0,
       }),

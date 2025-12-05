@@ -19,13 +19,13 @@ export default function DeleteWorkspace() {
 
   return (
     <div
-      className={cn("rounded-lg border border-red-600 bg-white", {
+      className={cn("rounded-xl border border-red-200 bg-white", {
         "border-neutral-200": permissionsError,
       })}
     >
       <DeleteWorkspaceModal />
-      <div className="flex flex-col space-y-3 p-5 sm:p-10">
-        <h2 className="text-xl font-medium">Delete Workspace</h2>
+      <div className="flex flex-col space-y-1 p-6">
+        <h2 className="text-base font-semibold">Delete Workspace</h2>
         <p className="text-sm text-neutral-500">
           Permanently delete your workspace, custom domain, and all associated
           links + their stats. This action cannot be undone - please proceed
@@ -33,12 +33,12 @@ export default function DeleteWorkspace() {
         </p>
       </div>
       <div
-        className={cn("border-b border-red-600", {
+        className={cn("border-b border-red-200", {
           "border-neutral-200": permissionsError,
         })}
       />
 
-      <div className="flex items-center justify-end px-5 py-4 sm:px-10">
+      <div className="flex items-center justify-start bg-red-50 p-3 sm:justify-end">
         <div>
           <Button
             text="Delete Workspace"

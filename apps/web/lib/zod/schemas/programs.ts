@@ -197,16 +197,6 @@ export const createPartnerCommentSchema = z.object({
   workspaceId: z.string(),
   partnerId: z.string(),
   text: z.string().min(1).max(MAX_PROGRAM_PARTNER_COMMENT_LENGTH),
-  createdAt: z.coerce
-    .date()
-    .refine(
-      (date) =>
-        date.getTime() <= Date.now() &&
-        date.getTime() >= Date.now() - 1000 * 60,
-      {
-        message: "Comment timestamp must be within the last 60 seconds",
-      },
-    ),
 });
 
 export const updatePartnerCommentSchema = z.object({

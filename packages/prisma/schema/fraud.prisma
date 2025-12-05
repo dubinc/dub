@@ -27,17 +27,13 @@ model FraudRule {
   @@unique([programId, type])
 }
 
-model FraudEvent {
+model FraudEventGroup {
   id               String           @id @default(cuid())
   programId        String
   partnerId        String
-  linkId           String?
-  customerId       String?
-  eventId          String?
-  commissionId     String?
   type             FraudRuleType
-  groupKey         String
-  metadata         Json?            @db.Json
+  lastEventAt      DateTime?
+  eventCount       Int              @default(0)
   userId           String?
   resolutionReason String?          @db.Text
   resolvedAt       DateTime?
@@ -47,11 +43,41 @@ model FraudEvent {
 
   program           Program           @relation(fields: [programId], references: [id], onDelete: Cascade)
   partner           Partner           @relation(fields: [partnerId], references: [id], onDelete: Cascade)
-  programEnrollment ProgramEnrollment @relation(fields: [programId, partnerId], references: [programId, partnerId], onDelete: Cascade)
-  customer          Customer?         @relation(fields: [customerId], references: [id])
-  link              Link?             @relation(fields: [linkId], references: [id])
-  commission        Commission?       @relation(fields: [commissionId], references: [id])
   user              User?             @relation(fields: [userId], references: [id])
+  programEnrollment ProgramEnrollment @relation(fields: [programId, partnerId], references: [programId, partnerId], onDelete: Cascade)
+  fraudEvents       FraudEvent[]
+
+  @@index([programId, partnerId, type, status])
+  @@index(partnerId)
+  @@index(userId)
+}
+
+model FraudEvent {
+  id                String   @id @default(cuid())
+  fraudEventGroupId String? // TODO: Make it required after migration
+  partnerId         String
+  linkId            String?
+  customerId        String?
+  eventId           String?
+  hash              String? //  TODO: Make it required after migration
+  metadata          Json?    @db.Json
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // DEPRECATED FIELDS: TODO – remove after migration
+  programId        String
+  commissionId     String?
+  type             FraudRuleType
+  groupKey         String
+  userId           String?
+  resolutionReason String?          @db.Text
+  resolvedAt       DateTime?
+  status           FraudEventStatus @default(pending)
+
+  fraudEventGroup FraudEventGroup? @relation(fields: [fraudEventGroupId], references: [id], onDelete: Cascade)
+  customer        Customer?        @relation(fields: [customerId], references: [id])
+  link            Link?            @relation(fields: [linkId], references: [id])
+  partner         Partner?         @relation(fields: [partnerId], references: [id])
 
   @@index([programId, partnerId, customerId])
   @@index(partnerId)
@@ -61,4 +87,5 @@ model FraudEvent {
   @@index(userId)
   @@index(commissionId)
   @@index(groupKey)
+  @@index(hash)
 }

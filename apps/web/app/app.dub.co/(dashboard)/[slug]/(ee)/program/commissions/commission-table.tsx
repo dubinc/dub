@@ -1,11 +1,11 @@
 "use client";
 
 import useCommissionsCount from "@/lib/swr/use-commissions-count";
-import { useFraudEventsCount } from "@/lib/swr/use-fraud-events-count";
+import { useFraudGroupCount } from "@/lib/swr/use-fraud-groups-count";
 import useGroups from "@/lib/swr/use-groups";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { CommissionResponse, FraudEventsCountByPartner } from "@/lib/types";
+import { CommissionResponse, FraudGroupCountByPartner } from "@/lib/types";
 import { CLAWBACK_REASONS_MAP } from "@/lib/zod/schemas/commissions";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import { CommissionRowMenu } from "@/ui/partners/commission-row-menu";
@@ -94,6 +94,7 @@ export function CommissionTable() {
   } = useSWR<CommissionResponse[]>(
     `/api/commissions${getQueryString({
       workspaceId,
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     })}`,
     fetcher,
     {
@@ -127,14 +128,12 @@ export function CommissionTable() {
     },
   );
 
-  const { fraudEventsCount } = useFraudEventsCount<FraudEventsCountByPartner[]>(
-    {
-      query: {
-        groupBy: "partnerId",
-        status: "pending",
-      },
+  const { fraudGroupCount } = useFraudGroupCount<FraudGroupCountByPartner[]>({
+    query: {
+      groupBy: "partnerId",
+      status: "pending",
     },
-  );
+  });
 
   const columns = useMemo(
     () =>
@@ -273,7 +272,7 @@ export function CommissionTable() {
           id: "status",
           header: "Status",
           cell: ({ row }) => {
-            const partnerHasPendingFraud = fraudEventsCount?.find(
+            const partnerHasPendingFraud = fraudGroupCount?.find(
               ({ partnerId }) => partnerId === row.original.partner.id,
             );
 
@@ -316,7 +315,7 @@ export function CommissionTable() {
           cell: ({ row }) => <CommissionRowMenu row={row} />,
         },
       ].filter((c) => c.id === "menu" || commissionsColumns.all.includes(c.id)),
-    [slug, groups, program, workspace, fraudEventsCount],
+    [slug, groups, program, workspace, fraudGroupCount],
   );
 
   const table = useTable<CommissionResponse>({

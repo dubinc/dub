@@ -171,7 +171,7 @@ function ExportLinksModal({
                       label: display,
                       dateRange: {
                         from: getIntervalData(value).startDate,
-                        to: new Date(),
+                        to: getIntervalData(value).endDate,
                       },
                     }))}
                   />

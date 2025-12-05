@@ -1,5 +1,5 @@
 import useWorkspace from "@/lib/swr/use-workspace";
-import { CommissionResponse, fraudEventGroupProps } from "@/lib/types";
+import { CommissionResponse, FraudGroupProps } from "@/lib/types";
 import { COMMISSIONS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/commissions";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import {
@@ -21,9 +21,9 @@ import useSWR from "swr";
 import { CommissionTypeBadge } from "../commission-type-badge";
 
 export function CommissionsOnHoldTable({
-  fraudEventGroup,
+  fraudGroup,
 }: {
-  fraudEventGroup: fraudEventGroupProps;
+  fraudGroup: FraudGroupProps;
 }) {
   const workspace = useWorkspace();
   const { id: workspaceId, slug } = workspace;
@@ -39,7 +39,7 @@ export function CommissionsOnHoldTable({
   const query = {
     workspaceId: workspaceId!,
     status: "pending",
-    partnerId: fraudEventGroup.partner.id,
+    partnerId: fraudGroup.partner.id,
     page: page.toString(),
   };
 

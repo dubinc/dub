@@ -40,6 +40,7 @@ const prefixes = [
   "cmp_", // campaign
   "fr_", // fraud rule
   "fre_", // fraud event
+  "frg_", // fraud event group
 ] as const;
 
 // ULID uses base32 encoding

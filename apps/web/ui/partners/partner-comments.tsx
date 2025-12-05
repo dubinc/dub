@@ -72,7 +72,6 @@ export function PartnerComments({ partnerId }: { partnerId: string }) {
                 workspaceId: workspaceId!,
                 partnerId,
                 text,
-                createdAt,
               });
 
               if (!result?.data?.comment)
