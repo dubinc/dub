@@ -5,7 +5,7 @@ import { sqlGranularityMap } from "@/lib/planetscale/granularity";
 import { getPartnerEarningsTimeseriesSchema } from "@/lib/zod/schemas/partner-profile";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@prisma/client";
-import { DateTime } from "luxon";
+import { format } from "date-fns";
 import { NextResponse } from "next/server";
 
 // GET /api/partner-profile/programs/[programId]/earnings/timeseries - get timeseries chart for a partner's earnings
@@ -76,9 +76,7 @@ export const GET = withPartnerProfile(
       groupBy?: string;
       data?: Record<string, number>;
     }[] = [];
-    let currentDate = startFunction(
-      DateTime.fromJSDate(startDate).setZone(timezone || "UTC"),
-    );
+    let currentDate = startFunction(startDate);
 
     const commissionLookup = earnings.reduce((acc, item) => {
       if (!(item.start in acc)) acc[item.start] = { earnings: 0 };
@@ -89,12 +87,12 @@ export const GET = withPartnerProfile(
       return acc;
     }, {});
 
-    while (currentDate.toJSDate() < endDate) {
-      const periodKey = currentDate.toFormat(formatString);
+    while (currentDate < endDate) {
+      const periodKey = format(currentDate, formatString);
       const { earnings, ...rest } = commissionLookup[periodKey] || {};
 
       timeseries.push({
-        start: currentDate.toISO()!,
+        start: currentDate.toISOString(),
         earnings: earnings || 0,
         groupBy: groupBy || undefined,
         data: groupBy

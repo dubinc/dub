@@ -94,6 +94,7 @@ export function CommissionTable() {
   } = useSWR<CommissionResponse[]>(
     `/api/commissions${getQueryString({
       workspaceId,
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     })}`,
     fetcher,
     {

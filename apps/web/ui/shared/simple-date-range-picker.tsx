@@ -73,15 +73,16 @@ export default function SimpleDateRangePicker({
           )
         : INTERVAL_DISPLAYS
       ).map(({ display, value, shortcut }) => {
-        const start = getIntervalData(value).startDate;
-        const end = new Date();
+        const { startDate, endDate } = getIntervalData(value, {
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        });
 
         return {
           id: value,
           label: display,
           dateRange: {
-            from: start,
-            to: end,
+            from: startDate,
+            to: endDate,
           },
           shortcut,
         };
