@@ -28,8 +28,17 @@ async function cleanupSingleEventGroups() {
   const groupIds = fraudGroups.map(({ id }) => id);
 
   await prisma.$transaction(async (tx) => {
+    // Delete the raw events
+    const deletedEvents = await tx.fraudEvent.deleteMany({
+      where: {
+        fraudEventGroupId: {
+          in: groupIds,
+        },
+      },
+    });
+
     // Delete the group
-    await tx.fraudEventGroup.deleteMany({
+    const deletedGroups = await tx.fraudEventGroup.deleteMany({
       where: {
         id: {
           in: groupIds,
@@ -37,14 +46,8 @@ async function cleanupSingleEventGroups() {
       },
     });
 
-    // Delete the raw events
-    await tx.fraudEvent.deleteMany({
-      where: {
-        fraudEventGroupId: {
-          in: groupIds,
-        },
-      },
-    });
+    console.log(`Deleted ${deletedEvents.count} fraud events`);
+    console.log(`Deleted ${deletedGroups.count} fraud event groups`);
   });
 }
 
