@@ -1,6 +1,6 @@
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
-import { FraudEventGroupsTable } from "./fraud-event-groups-table";
+import { FraudGroupTable } from "./fraud-group-table";
 import { ProgramFraudActionsMenu } from "./program-fraud-actions-menu";
 import { ProgramFraudSettingsButton } from "./program-fraud-settings-button";
 
@@ -16,7 +16,7 @@ export default function ProgramFraudRiskPage() {
       }
     >
       <PageWidthWrapper>
-        <FraudEventGroupsTable />
+        <FraudGroupTable />
       </PageWidthWrapper>
     </PageContent>
   );

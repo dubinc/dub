@@ -1,8 +1,9 @@
 import { FRAUD_RULES_BY_TYPE } from "@/lib/api/fraud/constants";
-import { useFraudEventsCount } from "@/lib/swr/use-fraud-events-count";
+import { useFraudGroupCount } from "@/lib/swr/use-fraud-groups-count";
 import usePartners from "@/lib/swr/use-partners";
-import { EnrolledPartnerProps, FraudEventsCountByType } from "@/lib/types";
-import { fraudEventCountQuerySchema } from "@/lib/zod/schemas/fraud";
+import { EnrolledPartnerProps, FraudGroupCountByType } from "@/lib/types";
+
+import { fraudGroupCountQuerySchema } from "@/lib/zod/schemas/fraud";
 import { useRouterStuff } from "@dub/ui";
 import { ShieldKeyhole, Users } from "@dub/ui/icons";
 import { nFormatter, OG_AVATAR_URL } from "@dub/utils";
@@ -10,9 +11,9 @@ import { useCallback, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 import { z } from "zod";
 
-export function useFraudEventsFilters({
+export function useFraudGroupFilters({
   status,
-}: z.infer<typeof fraudEventCountQuerySchema>) {
+}: z.infer<typeof fraudGroupCountQuerySchema>) {
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
   const { searchParamsObj, queryParams } = useRouterStuff();
@@ -22,7 +23,7 @@ export function useFraudEventsFilters({
     selectedFilter === "partnerId" ? debouncedSearch : "",
   );
 
-  const { fraudEventsCount } = useFraudEventsCount<FraudEventsCountByType[]>({
+  const { fraudGroupCount } = useFraudGroupCount<FraudGroupCountByType[]>({
     query: {
       status,
       groupBy: "type",
@@ -35,8 +36,8 @@ export function useFraudEventsFilters({
         key: "type",
         icon: ShieldKeyhole,
         label: "Reason",
-        options: fraudEventsCount
-          ? fraudEventsCount.map(({ type, _count }) => ({
+        options: fraudGroupCount
+          ? fraudGroupCount.map(({ type, _count }) => ({
               label: FRAUD_RULES_BY_TYPE[type].name,
               value: type,
               right: nFormatter(_count, { full: true }),
@@ -64,7 +65,7 @@ export function useFraudEventsFilters({
           }) ?? null,
       },
     ],
-    [partners, fraudEventsCount],
+    [partners, fraudGroupCount],
   );
 
   const activeFilters = useMemo(() => {

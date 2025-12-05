@@ -3,18 +3,18 @@ import { fetcher } from "@dub/utils";
 import useSWR from "swr";
 import useWorkspace from "./use-workspace";
 
-export function useRawFraudEvents<T = unknown>() {
+export function useFraudEvents<T = unknown>() {
   const { id: workspaceId } = useWorkspace();
   const { getQueryString, searchParams } = useRouterStuff();
 
-  const groupKey = searchParams.get("groupKey");
+  const groupId = searchParams.get("groupId");
 
   const queryString = getQueryString({
     workspaceId,
   });
 
   const { data, error } = useSWR<T[]>(
-    workspaceId && groupKey ? `/api/fraud/events/raw${queryString}` : undefined,
+    workspaceId && groupId ? `/api/fraud/events${queryString}` : undefined,
     fetcher,
     {
       keepPreviousData: true,

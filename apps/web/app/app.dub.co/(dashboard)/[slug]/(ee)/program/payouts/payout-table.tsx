@@ -1,10 +1,10 @@
 "use client";
 
-import { useFraudEventsCount } from "@/lib/swr/use-fraud-events-count";
+import { useFraudGroupCount } from "@/lib/swr/use-fraud-groups-count";
 import usePayoutsCount from "@/lib/swr/use-payouts-count";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { FraudEventsCountByPartner, PayoutResponse } from "@/lib/types";
+import { FraudGroupCountByPartner, PayoutResponse } from "@/lib/types";
 import { ExternalPayoutsIndicator } from "@/ui/partners/external-payouts-indicator";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
@@ -95,9 +95,7 @@ const PayoutTableInner = memo(
 
     const { pagination, setPagination } = usePagination();
 
-    const { fraudEventsCount } = useFraudEventsCount<
-      FraudEventsCountByPartner[]
-    >({
+    const { fraudGroupCount } = useFraudGroupCount<FraudGroupCountByPartner[]>({
       query: {
         groupBy: "partnerId",
         status: "pending",
@@ -105,13 +103,13 @@ const PayoutTableInner = memo(
     });
 
     // Memoized map of partner IDs with pending fraud events
-    const fraudEventsCountMap = useMemo(() => {
-      if (!fraudEventsCount) {
+    const fraudGroupCountMap = useMemo(() => {
+      if (!fraudGroupCount) {
         return new Set<string>();
       }
 
-      return new Set(fraudEventsCount.map(({ partnerId }) => partnerId));
-    }, [fraudEventsCount]);
+      return new Set(fraudGroupCount.map(({ partnerId }) => partnerId));
+    }, [fraudGroupCount]);
 
     const table = useTable({
       data: payouts || [],
@@ -132,7 +130,7 @@ const PayoutTableInner = memo(
         {
           header: "Status",
           cell: ({ row }) => {
-            const hasFraudPending = fraudEventsCountMap.has(
+            const hasFraudPending = fraudGroupCountMap.has(
               row.original.partner.id,
             );
 
@@ -180,7 +178,7 @@ const PayoutTableInner = memo(
           cell: ({ row }) => (
             <AmountRowItem
               payout={row.original}
-              hasFraudPending={fraudEventsCountMap.has(row.original.partner.id)}
+              hasFraudPending={fraudGroupCountMap.has(row.original.partner.id)}
             />
           ),
         },

@@ -2,10 +2,9 @@ import { FraudEventContext } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { FraudEvent, Prisma } from "@dub/prisma/client";
 import { fraudEventContext } from "../../zod/schemas/schemas";
-import { createId } from "../create-id";
+import { createFraudEvents } from "./create-fraud-events";
 import { executeFraudRule } from "./execute-fraud-rule";
 import { getMergedFraudRules } from "./get-merged-fraud-rules";
-import { createFraudEventGroupKey } from "./utils";
 
 export async function detectAndRecordFraudEvent(context: FraudEventContext) {
   const result = fraudEventContext.safeParse(context);
@@ -59,57 +58,15 @@ export async function detectAndRecordFraudEvent(context: FraudEventContext) {
     return;
   }
 
-  try {
-    // Deduplicate events: prevent duplicate fraud events for the same
-    // program + partner + customer + type + status combination by filtering out
-    // triggered rules that already have a corresponding pending event.
-    const previousEvents = await prisma.fraudEvent.findMany({
-      where: {
-        programId: validatedContext.program.id,
-        partnerId: validatedContext.partner.id,
-        customerId: validatedContext.customer.id,
-        status: "pending",
-        type: {
-          in: triggeredRules.map((rule) => rule.type),
-        },
-      },
-    });
-
-    const existingEventTypes =
-      previousEvents.length > 0
-        ? new Set(previousEvents.map((e) => e.type))
-        : new Set<string>();
-
-    const newEvents = triggeredRules.filter(
-      (rule) => !existingEventTypes.has(rule.type),
-    );
-
-    if (newEvents.length === 0) {
-      return;
-    }
-
-    await prisma.fraudEvent.createMany({
-      data: newEvents.map((event) => ({
-        id: createId({ prefix: "fre_" }),
-        programId: validatedContext.program.id,
-        partnerId: validatedContext.partner.id,
-        linkId: validatedContext.link.id,
-        customerId: validatedContext.customer.id,
-        eventId: validatedContext.event.id,
-        commissionId: validatedContext.commission.id,
-        type: event.type,
-        metadata: event.metadata as Prisma.InputJsonValue,
-        groupKey: createFraudEventGroupKey({
-          programId: validatedContext.program.id,
-          groupingKey: validatedContext.partner.id,
-          type: event.type,
-        }),
-      })),
-    });
-  } catch (error) {
-    console.error(
-      "[detectAndRecordFraudEvents] Error recording fraud event",
-      error,
-    );
-  }
+  await createFraudEvents(
+    triggeredRules.map((rule) => ({
+      programId: validatedContext.program.id,
+      partnerId: validatedContext.partner.id,
+      linkId: validatedContext.link.id,
+      customerId: validatedContext.customer.id,
+      eventId: validatedContext.event.id,
+      type: rule.type,
+      metadata: rule.metadata,
+    })),
+  );
 }
