@@ -14,6 +14,7 @@ import {
 } from "./constants";
 import { queryParser } from "./query-parser";
 import { AnalyticsFilters } from "./types";
+import { formatUTCDateTimeClickhouse } from "./utils/format-utc-datetime-clickhouse";
 import { getStartEndDates } from "./utils/get-start-end-dates";
 
 // Fetch data for /api/analytics
@@ -148,8 +149,8 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     workspaceId,
     tagIds,
     trigger,
-    start: startDate.toISOString().replace("T", " ").replace("Z", ""),
-    end: endDate.toISOString().replace("T", " ").replace("Z", ""),
+    start: formatUTCDateTimeClickhouse(startDate),
+    end: formatUTCDateTimeClickhouse(endDate),
     granularity,
     timezone,
     country,
