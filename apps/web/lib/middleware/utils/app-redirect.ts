@@ -10,6 +10,7 @@ const APP_REDIRECTS = {
   "/messages": "/program/messages",
   "/network": "/program/network",
   "/marketplace": "/program/network",
+  "/fraud": "/program/fraud",
 };
 
 const PROGRAM_REDIRECTS = {
