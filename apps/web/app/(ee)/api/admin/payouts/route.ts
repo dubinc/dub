@@ -5,7 +5,7 @@ import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { prisma } from "@dub/prisma";
 import { InvoiceStatus, Prisma } from "@dub/prisma/client";
 import { ACME_PROGRAM_ID } from "@dub/utils";
-import { endOfDay, format, startOfDay } from "date-fns";
+import { format } from "date-fns";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -36,16 +36,12 @@ export const GET = withAdmin(async ({ searchParams }) => {
   } = adminPayoutsQuerySchema.parse(searchParams);
 
   const timezone = "UTC";
-  let { startDate, endDate, granularity } = getStartEndDates({
+  const { startDate, endDate, granularity } = getStartEndDates({
     interval,
     start,
     end,
     timezone,
   });
-
-  // Ensure start/end of day in UTC
-  startDate = startOfDay(startDate);
-  endDate = endOfDay(endDate);
 
   // Fetch invoices
   const invoices = await prisma.invoice.findMany({
