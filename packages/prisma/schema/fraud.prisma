@@ -55,6 +55,7 @@ model FraudEventGroup {
 model FraudEvent {
   id                String   @id @default(cuid())
   fraudEventGroupId String? // TODO: Make it required after migration
+  programId         String
   partnerId         String
   linkId            String?
   customerId        String?
@@ -65,7 +66,6 @@ model FraudEvent {
   updatedAt         DateTime @updatedAt
 
   // DEPRECATED FIELDS: TODO – remove after migration
-  programId        String
   commissionId     String?
   type             FraudRuleType
   groupKey         String
@@ -77,7 +77,7 @@ model FraudEvent {
   fraudEventGroup FraudEventGroup? @relation(fields: [fraudEventGroupId], references: [id], onDelete: Cascade)
   customer        Customer?        @relation(fields: [customerId], references: [id])
   link            Link?            @relation(fields: [linkId], references: [id])
-  partner         Partner?         @relation(fields: [partnerId], references: [id])
+  partner         Partner          @relation(fields: [partnerId], references: [id])
 
   @@index([programId, partnerId, customerId])
   @@index(partnerId)

@@ -55,12 +55,6 @@ model Program {
   featuredOnMarketplaceAt DateTime?
   marketplaceHeaderImage  String?
 
-  // DEPRECATED FIELDS: TODO – remove after migration
-  wordmark                     String?
-  brandColor                   String?
-  holdingPeriodDays            Int       @default(0)
-  autoApprovePartnersEnabledAt DateTime?
-
   workspace                Project                   @relation(fields: [workspaceId], references: [id])
   partners                 ProgramEnrollment[]
   payouts                  Payout[]

@@ -3,7 +3,13 @@ import { fetcher } from "@dub/utils";
 import useSWR from "swr";
 import useWorkspace from "./use-workspace";
 
-export function useFraudEvents<T = unknown>() {
+export function useFraudEvents<T = unknown>({
+  page,
+  pageSize,
+}: {
+  page?: number;
+  pageSize?: number;
+} = {}) {
   const { id: workspaceId } = useWorkspace();
   const { getQueryString, searchParams } = useRouterStuff();
 
@@ -11,9 +17,11 @@ export function useFraudEvents<T = unknown>() {
 
   const queryString = getQueryString({
     workspaceId,
+    ...(page && { page }),
+    ...(pageSize && { pageSize }),
   });
 
-  const { data, error } = useSWR<T[]>(
+  const { data, error, isValidating } = useSWR<T[]>(
     workspaceId && groupId ? `/api/fraud/events${queryString}` : undefined,
     fetcher,
     {
@@ -24,6 +32,7 @@ export function useFraudEvents<T = unknown>() {
   return {
     fraudEvents: data,
     loading: !data && !error,
+    isValidating,
     error,
   };
 }
