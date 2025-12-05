@@ -21,6 +21,7 @@ model Domain {
   project          Project?          @relation(fields: [projectId], references: [id], onDelete: Cascade)
   links            Link[]
   registeredDomain RegisteredDomain?
+  partnerProgram   Program?
 
   @@index(projectId)
   @@index(lastChecked(sort: Asc))
