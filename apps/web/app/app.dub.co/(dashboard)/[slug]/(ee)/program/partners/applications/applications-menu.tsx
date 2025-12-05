@@ -1,20 +1,15 @@
 "use client";
 
-import { updateAutoApprovePartnersAction } from "@/lib/actions/partners/update-auto-approve-partners";
-import { mutatePrefix } from "@/lib/swr/mutate";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
-import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { useExportApplicationsModal } from "@/ui/modals/export-applications-modal";
 import { ThreeDots } from "@/ui/shared/icons";
-import { Button, LoadingSpinner, Popover, UserCheck, UserXmark } from "@dub/ui";
+import { Button, Popover, UserCheck, UserXmark } from "@dub/ui";
 import { Download } from "@dub/ui/icons";
-import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { toast } from "sonner";
 
 export function ApplicationsMenu() {
   const router = useRouter();
@@ -24,55 +19,11 @@ export function ApplicationsMenu() {
 
   const [isOpen, setIsOpen] = useState(false);
 
-  const { executeAsync: updateAutoApprove, isPending: isUpdatingAutoApprove } =
-    useAction(updateAutoApprovePartnersAction, {
-      onError: ({ error }) => {
-        toast.error(error.serverError);
-      },
-      onSuccess: ({ input }) => {
-        toast.success(
-          `Auto-approve ${input.autoApprovePartners ? "enabled" : "disabled"}`,
-        );
-        mutatePrefix(["/api/partners", "/api/programs"]);
-      },
-    });
-
-  const {
-    confirmModal: confirmEnableAutoApproveModal,
-    setShowConfirmModal: setShowConfirmEnableAutoApproveModal,
-  } = useConfirmModal({
-    title: "Confirm auto-approve",
-    description: "New applications will be automatically approved.",
-    onConfirm: async () => {
-      await updateAutoApprove({
-        workspaceId: workspaceId!,
-        autoApprovePartners: true,
-      });
-    },
-  });
-
-  const {
-    confirmModal: confirmDisableAutoApproveModal,
-    setShowConfirmModal: setShowConfirmDisableAutoApproveModal,
-  } = useConfirmModal({
-    title: "Disable auto-approve",
-    description:
-      "Future applications will no longer be automatically approved.",
-    onConfirm: async () => {
-      await updateAutoApprove({
-        workspaceId: workspaceId!,
-        autoApprovePartners: false,
-      });
-    },
-  });
-
   const { setShowExportApplicationsModal, ExportApplicationsModal } =
     useExportApplicationsModal();
 
   return (
     <>
-      {confirmEnableAutoApproveModal}
-      {confirmDisableAutoApproveModal}
       <ExportApplicationsModal />
       <Popover
         openPopover={isOpen}
@@ -139,14 +90,8 @@ export function ApplicationsMenu() {
           type="button"
           className="h-8 whitespace-nowrap px-2"
           variant="secondary"
-          disabled={isUpdatingAutoApprove || !program}
-          icon={
-            isUpdatingAutoApprove ? (
-              <LoadingSpinner className="size-4 shrink-0" />
-            ) : (
-              <ThreeDots className="size-4 shrink-0" />
-            )
-          }
+          disabled={!program}
+          icon={<ThreeDots className="size-4 shrink-0" />}
         />
       </Popover>
     </>

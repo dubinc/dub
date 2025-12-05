@@ -14,8 +14,8 @@ export const fraudGroupSchema = z.object({
   type: z.nativeEnum(FraudRuleType),
   status: z.nativeEnum(FraudEventStatus),
   resolutionReason: z.string().nullable(),
-  resolvedAt: z.date().nullable(),
-  lastEventAt: z.date(),
+  resolvedAt: z.coerce.date().nullable(),
+  lastEventAt: z.coerce.date(),
   eventCount: z.number(),
   partner: EnrolledPartnerSchema.pick({
     id: true,
@@ -64,14 +64,23 @@ export const fraudGroupCountSchema = z.union([
 ]);
 
 export const fraudEventQuerySchema = z.union([
-  z.object({
-    groupId: z.string(),
-  }),
-  z.object({
-    customerId: z.string(),
-    type: z.nativeEnum(FraudRuleType),
-  }),
+  z
+    .object({
+      groupId: z.string(),
+    })
+    .merge(getPaginationQuerySchema({ pageSize: 25 })),
+
+  z
+    .object({
+      customerId: z.string(),
+      type: z.nativeEnum(FraudRuleType),
+    })
+    .merge(getPaginationQuerySchema({ pageSize: 25 })),
 ]);
+
+export const fraudEventCountQuerySchema = z.object({
+  groupId: z.string(),
+});
 
 export const resolveFraudGroupSchema = z.object({
   workspaceId: z.string(),

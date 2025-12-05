@@ -1,7 +1,7 @@
 "use client";
 
 import { PAID_TRAFFIC_PLATFORMS_CONFIG } from "@/lib/api/fraud/constants";
-import { useFraudEvents } from "@/lib/swr/use-fraud-events";
+import { useFraudEventsPaginated } from "@/lib/swr/use-fraud-events-paginated";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PaidTrafficPlatform } from "@/lib/types";
 import { fraudEventSchemas } from "@/lib/zod/schemas/fraud";
@@ -44,10 +44,20 @@ const PAID_TRAFFIC_PLATFORM_ICONS: Record<
 export function FraudPaidTrafficDetectedTable() {
   const { slug: workspaceSlug } = useWorkspace();
 
-  const { fraudEvents, loading, error } = useFraudEvents<EventDataProps>();
+  const {
+    fraudEvents,
+    loading,
+    error,
+    pagination,
+    setPagination,
+    fraudEventsCount,
+  } = useFraudEventsPaginated<EventDataProps>();
 
   const table = useTable({
     data: fraudEvents || [],
+    pagination,
+    onPaginationChange: setPagination,
+    rowCount: fraudEventsCount ?? 0,
     columns: [
       {
         id: "date",
