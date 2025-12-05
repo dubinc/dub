@@ -14,14 +14,15 @@ import { z } from "zod";
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
-    const parsedQueryParams = fraudEventQuerySchema.parse(searchParams);
+    const { page, pageSize, ...queryParams } =
+      fraudEventQuerySchema.parse(searchParams);
 
     let where: Prisma.FraudEventWhereInput = {};
     let eventGroupType: FraudRuleType | undefined;
 
     // Filter by group ID
-    if ("groupId" in parsedQueryParams) {
-      const { groupId } = parsedQueryParams;
+    if ("groupId" in queryParams) {
+      const { groupId } = queryParams;
 
       const fraudGroup = await prisma.fraudEventGroup.findUnique({
         where: {
@@ -80,8 +81,9 @@ export const GET = withWorkspace(
     }
 
     // Filter by customer ID and type
-    if ("customerId" in parsedQueryParams && "type" in parsedQueryParams) {
-      const { customerId, type } = parsedQueryParams;
+    // Currently this is only used in E2E tests to fetch raw fraud events for a given customer + type
+    if ("customerId" in queryParams && "type" in queryParams) {
+      const { customerId, type } = queryParams;
 
       where = {
         customerId,
@@ -112,6 +114,8 @@ export const GET = withWorkspace(
       orderBy: {
         id: "desc",
       },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
     });
 
     return NextResponse.json(z.array(zodSchema).parse(fraudEvents));

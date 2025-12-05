@@ -1,6 +1,6 @@
 "use client";
 
-import { useFraudEvents } from "@/lib/swr/use-fraud-events";
+import { useFraudEventsPaginated } from "@/lib/swr/use-fraud-events-paginated";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { fraudEventSchemas } from "@/lib/zod/schemas/fraud";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
@@ -16,10 +16,20 @@ type EventDataProps = z.infer<
 export function FraudReferralSourceBannedTable() {
   const { slug: workspaceSlug } = useWorkspace();
 
-  const { fraudEvents, loading, error } = useFraudEvents<EventDataProps>();
+  const {
+    fraudEvents,
+    loading,
+    error,
+    pagination,
+    setPagination,
+    fraudEventsCount,
+  } = useFraudEventsPaginated<EventDataProps>();
 
   const table = useTable({
     data: fraudEvents || [],
+    pagination,
+    onPaginationChange: setPagination,
+    rowCount: fraudEventsCount ?? 0,
     columns: [
       {
         id: "date",
