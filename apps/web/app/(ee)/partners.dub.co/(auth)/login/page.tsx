@@ -1,11 +1,12 @@
 import { getProgram } from "@/lib/fetchers/get-program";
 import { AuthAlternativeBanner } from "@/ui/auth/auth-alternative-banner";
 import { FramerButton } from "@/ui/auth/login/framer-button";
-import LoginForm from "@/ui/auth/login/login-form";
 import { AuthLayout } from "@/ui/layout/auth-layout";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { FingerprintProvider } from "../../fingerprint-provider";
 import { PartnerBanner } from "../partner-banner";
+import { PartnerLoginForm } from "./partner-login-form";
 
 export default async function LoginPage(props: {
   params: Promise<{ programSlug?: string }>;
@@ -62,10 +63,11 @@ export default async function LoginPage(props: {
             Log in to your Dub Partner account
           </h1>
           <div className="mt-8">
-            <LoginForm
-              methods={["email", "password", "google"]}
-              next={programSlug ? `/programs/${programSlug}` : "/"}
-            />
+            <FingerprintProvider>
+              <PartnerLoginForm
+                next={programSlug ? `/programs/${programSlug}` : "/"}
+              />
+            </FingerprintProvider>
           </div>
           <p className="mt-6 text-center text-sm font-medium text-neutral-500">
             Don't have a partner account?&nbsp;

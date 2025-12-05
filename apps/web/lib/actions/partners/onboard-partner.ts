@@ -1,6 +1,7 @@
 "use server";
 
 import { createId } from "@/lib/api/create-id";
+import { fetchVisitorFingerprint } from "@/lib/api/fraud/fingerprint";
 import { completeProgramApplications } from "@/lib/partners/complete-program-applications";
 import { storage } from "@/lib/storage";
 import { onboardPartnerSchema } from "@/lib/zod/schemas/partners";
@@ -17,7 +18,8 @@ export const onboardPartnerAction = authUserActionClient
   .schema(onboardPartnerSchema)
   .action(async ({ ctx, parsedInput }) => {
     const { user } = ctx;
-    const { name, image, country, description, profileType } = parsedInput;
+    const { name, image, country, description, profileType, requestId } =
+      parsedInput;
 
     const existingPartner = await prisma.partner.findUnique({
       where: {
@@ -36,6 +38,16 @@ export const onboardPartnerAction = authUserActionClient
       })
       .then(({ url }) => url);
 
+    const result = await fetchVisitorFingerprint(requestId);
+
+    if (result.status === "not_found") {
+      throw new Error(
+        "We're having trouble verifying your request. Please refresh the page and try again.",
+      );
+    }
+
+    const { visitorId, visitorCountry } = result;
+
     // country, profileType, and companyName cannot be changed once set
     const payload: Prisma.PartnerCreateInput = {
       name: name || user.email,
@@ -44,6 +56,8 @@ export const onboardPartnerAction = authUserActionClient
       ...(existingPartner?.country ? {} : { country }),
       ...(existingPartner?.profileType ? {} : { profileType }),
       ...(description && { description }),
+      ...(visitorId && { visitorId }),
+      ...(visitorCountry && { visitorCountry }),
       image: imageUrl,
       users: {
         connectOrCreate: {
@@ -91,6 +105,8 @@ export const onboardPartnerAction = authUserActionClient
         }),
     ]);
 
-    // Complete any outstanding program application
-    waitUntil(completeProgramApplications(user.email));
+    waitUntil(
+      // Complete any outstanding program application
+      completeProgramApplications(user.email),
+    );
   });

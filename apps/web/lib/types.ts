@@ -680,7 +680,9 @@ export type ExtendedFraudRuleType =
   | "partnerEmailDomainMismatch"
   | "partnerEmailMasked"
   | "partnerNoSocialLinks"
-  | "partnerNoVerifiedSocialLinks";
+  | "partnerNoVerifiedSocialLinks"
+  | "partnerDuplicateAccount"
+  | "partnerCountryMismatch";
 
 export type FraudSeverity = "low" | "medium" | "high";
 

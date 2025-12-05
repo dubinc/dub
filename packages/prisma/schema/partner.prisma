@@ -62,6 +62,10 @@ model Partner {
   invoiceSettings  Json?
   changeHistoryLog Json?
 
+  // Fingerprint fields
+  visitorId      String?
+  visitorCountry String?
+
   programs                   ProgramEnrollment[]
   users                      PartnerUser[]
   invites                    PartnerInvite[]
@@ -84,6 +88,7 @@ model Partner {
   @@index(discoverableAt)
   @@index(trustedAt)
   @@index(payoutMethodHash)
+  @@index(visitorId)
   @@fulltext([email, name]) // For full-text search
 }
 

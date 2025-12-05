@@ -77,6 +77,9 @@ importers:
       '@dub/utils':
         specifier: workspace:*
         version: link:../../packages/utils
+      '@fingerprintjs/fingerprintjs-pro-react':
+        specifier: ^2.7.1
+        version: 2.7.1
       '@floating-ui/react':
         specifier: ^0.26.20
         version: 0.26.20(react-dom@19.1.2(react@19.1.2))(react@19.1.2)
@@ -2514,6 +2517,15 @@ packages:
   '@eslint/js@8.48.0':
     resolution: {integrity: sha512-ZSjtmelB7IJfWD2Fvb7+Z+ChTIKWq6kjda95fLcQKNS5aheVHn4IkfgRQE3sIIzTcSLwLcLZUD9UBt+V7+h+Pw==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
+
+  '@fingerprintjs/fingerprintjs-pro-react@2.7.1':
+    resolution: {integrity: sha512-/vQtjd+P8C9OFU8Wvd4AScoNRP6RKDIvYQwwaY/b31PcRBNDqVV9xm7DDBg9uTdDv4KZM3ubEY4JyyVWkXs4EA==}
+
+  '@fingerprintjs/fingerprintjs-pro-spa@1.3.3':
+    resolution: {integrity: sha512-jM5k30S9RT/WW6gnmNWACc7UHeK1md9NbZg8kUsdxvPtDeW8xKnA6tb58Rqfkg6kvqHTq5aHFzw9hgsTH3DbNQ==}
+
+  '@fingerprintjs/fingerprintjs-pro@3.12.4':
+    resolution: {integrity: sha512-BxqS2QZ5TGI/qimKiEwnDukeuPKJ6Ej+e94SFpeeMptHIM6xkgJSoJ6rSUkZ54fBQro3wzeKXQHSTTqfx0++3g==}
 
   '@floating-ui/core@1.6.5':
     resolution: {integrity: sha512-8GrTWmoFhm5BsMZOTHeGD2/0FLKLQQHvO/ZmQga4tKempYRLz8aqJGqXVuQgisnMObq2YZ2SgkwctN1LOOxcqA==}
@@ -15592,6 +15604,18 @@ snapshots:
       - supports-color
 
   '@eslint/js@8.48.0': {}
+
+  '@fingerprintjs/fingerprintjs-pro-react@2.7.1':
+    dependencies:
+      '@fingerprintjs/fingerprintjs-pro-spa': 1.3.3
+      fast-deep-equal: 3.1.3
+
+  '@fingerprintjs/fingerprintjs-pro-spa@1.3.3':
+    dependencies:
+      '@fingerprintjs/fingerprintjs-pro': 3.12.4
+      tslib: 2.8.1
+
+  '@fingerprintjs/fingerprintjs-pro@3.12.4': {}
 
   '@floating-ui/core@1.6.5':
     dependencies:

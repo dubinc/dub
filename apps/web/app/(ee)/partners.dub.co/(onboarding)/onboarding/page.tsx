@@ -1,6 +1,7 @@
 import { getSession } from "@/lib/auth";
 import { prisma } from "@dub/prisma";
 import { Suspense } from "react";
+import { FingerprintProvider } from "../../fingerprint-provider";
 import { OnboardingForm } from "./onboarding-form";
 
 export default function PartnerOnboarding() {
@@ -27,5 +28,9 @@ async function OnboardingFormRSC() {
     },
   });
 
-  return <OnboardingForm partner={partner} />;
+  return (
+    <FingerprintProvider>
+      <OnboardingForm partner={partner} />
+    </FingerprintProvider>
+  );
 }

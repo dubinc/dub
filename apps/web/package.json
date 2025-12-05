@@ -30,6 +30,7 @@
     "@dub/tailwind-config": "workspace:*",
     "@dub/ui": "workspace:*",
     "@dub/utils": "workspace:*",
+    "@fingerprintjs/fingerprintjs-pro-react": "^2.7.1",
     "@floating-ui/react": "^0.26.20",
     "@mendable/firecrawl-js": "^1.29.1",
     "@next-auth/prisma-adapter": "^1.0.5",

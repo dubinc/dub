@@ -1,5 +1,6 @@
 "use client";
 
+import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { PartnerData } from "@/lib/actions/partners/create-program-application";
 import { onboardPartnerAction } from "@/lib/actions/partners/onboard-partner";
 import { onboardPartnerSchema } from "@/lib/zod/schemas/partners";
@@ -16,6 +17,7 @@ import {
   useMediaQuery,
 } from "@dub/ui";
 import { cn } from "@dub/utils/src/functions";
+import { useVisitorData } from "@fingerprintjs/fingerprintjs-pro-react";
 import { AnimatePresence, LayoutGroup, motion } from "motion/react";
 import { useSession } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
@@ -48,6 +50,15 @@ export function OnboardingForm({
   const { isMobile } = useMediaQuery();
   const [accountCreated, setAccountCreated] = useState(false);
   const { data: session, update: refreshSession } = useSession();
+
+  const { data: visitorData } = useVisitorData(
+    {
+      extendedResult: false,
+    },
+    {
+      immediate: true,
+    },
+  );
 
   const {
     register,
@@ -83,6 +94,12 @@ export function OnboardingForm({
     }
   }, [session?.user, name, image, country, partnerData]);
 
+  useEffect(() => {
+    if (visitorData?.requestId) {
+      setValue("requestId", visitorData.requestId);
+    }
+  }, [visitorData?.requestId, setValue]);
+
   // refresh the session after the Partner account is created
   useEffect(() => {
     if (accountCreated) {
@@ -96,7 +113,7 @@ export function OnboardingForm({
       router.push("/onboarding/online-presence");
     },
     onError: ({ error, input }) => {
-      toast.error(error.serverError);
+      toast.error(parseActionError(error));
       reset(input);
     },
   });
@@ -107,7 +124,9 @@ export function OnboardingForm({
   return (
     <form
       ref={formRef}
-      onSubmit={handleSubmit(async (data) => await executeAsync(data))}
+      onSubmit={handleSubmit(async (data) => {
+        await executeAsync(data);
+      })}
       className="flex w-full flex-col gap-6 text-left"
     >
       <label>
