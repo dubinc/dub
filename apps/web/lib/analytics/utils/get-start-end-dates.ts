@@ -20,17 +20,14 @@ export const getStartEndDates = ({
   let granularity: "minute" | "hour" | "day" | "month" = "day";
 
   if (start || (interval === "all" && dataAvailableFrom)) {
-    startDate = new TZDate(
-      startOfDay(start ?? dataAvailableFrom ?? Date.now()),
-      timezone,
+    startDate = startOfDay(
+      new TZDate(new Date(start ?? dataAvailableFrom ?? Date.now()), timezone),
     );
-    endDate = new TZDate(endOfDay(end ?? Date.now()), timezone);
+    endDate = endOfDay(new TZDate(new Date(end ?? Date.now()), timezone));
 
-    const daysDifference = differenceInDays(
-      endDate,
-      startDate,
-      timezone ? { in: tz(timezone) } : undefined,
-    );
+    const daysDifference = differenceInDays(endDate, startDate, {
+      in: tz(timezone ?? "UTC"),
+    });
 
     if (daysDifference <= 2) {
       granularity = "hour";
@@ -46,8 +43,8 @@ export const getStartEndDates = ({
     interval = interval ?? "30d";
     const intervalData = getIntervalData(interval, { timezone });
     startDate = intervalData.startDate;
+    endDate = intervalData.endDate;
     granularity = intervalData.granularity;
-    endDate = new TZDate(endOfDay(Date.now()), timezone);
   }
 
   return { startDate, endDate, granularity };
