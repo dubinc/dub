@@ -23,6 +23,7 @@ export default function NewBountySubmission({
     name: "Promote Acme at your campus and earn $500 ",
   },
   partner = {
+    id: "pn_1K38JQ6DAGD1HHP30T4SX9HKG",
     name: "John Doe",
     image:
       "https://dubassets.com/partners/pn_H4TB2V5hDIjpqB7PwrxESoY3/image_wCBZlIJ",
@@ -41,6 +42,7 @@ export default function NewBountySubmission({
     name: string;
   };
   partner: {
+    id: string;
     name: string;
     image: string | null;
     email: string;

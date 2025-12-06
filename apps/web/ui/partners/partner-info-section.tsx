@@ -12,6 +12,7 @@ export function PartnerInfoSection({
   showPartnerStatus?: boolean;
   partner: Pick<
     EnrolledPartnerProps,
+    | "id"
     | "name"
     | "image"
     | "email"
