@@ -1,7 +1,7 @@
 {
   "name": "@dub/ui",
   "description": "UI components for Dub",
-  "version": "0.2.67",
+  "version": "0.2.68",
   "sideEffects": false,
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -33,9 +33,9 @@
     "check-types": "tsc --noEmit"
   },
   "peerDependencies": {
-    "next": "15.5.4",
-    "react": "19.1.1",
-    "react-dom": "19.1.1"
+    "next": "15.5.7",
+    "react": "19.1.2",
+    "react-dom": "19.1.2"
   },
   "devDependencies": {
     "@dub/tailwind-config": "workspace:*",
