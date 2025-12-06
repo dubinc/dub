@@ -1,5 +1,12 @@
-import { PROGRAM_ONBOARDING_PARTNERS_LIMIT } from "@/lib/constants/program";
-import { PartnerLinkStructure, RewardStructure } from "@dub/prisma/client";
+import {
+  MAX_PROGRAM_CATEGORIES,
+  PROGRAM_ONBOARDING_PARTNERS_LIMIT,
+} from "@/lib/constants/program";
+import {
+  Category,
+  PartnerLinkStructure,
+  RewardStructure,
+} from "@dub/prisma/client";
 import { z } from "zod";
 import { maxDurationSchema } from "./misc";
 import { updateProgramSchema } from "./programs";
@@ -13,6 +20,10 @@ import { parseUrlSchema } from "./utils";
 export const programInfoSchema = z.object({
   name: z.string().max(100),
   logo: z.string(),
+  categories: z
+    .array(z.nativeEnum(Category))
+    .min(1)
+    .max(MAX_PROGRAM_CATEGORIES),
   domain: z.string(),
   url: parseUrlSchema.nullable(),
   linkStructure: z.nativeEnum(PartnerLinkStructure).default("short"),

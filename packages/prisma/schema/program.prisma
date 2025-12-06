@@ -51,6 +51,10 @@ model Program {
   updatedAt               DateTime  @updatedAt
   startedAt               DateTime?
 
+  addedToMarketplaceAt    DateTime?
+  featuredOnMarketplaceAt DateTime?
+  marketplaceHeaderImage  String?
+
   workspace                Project                   @relation(fields: [workspaceId], references: [id])
   customDomain             Domain?                   @relation(fields: [domain], references: [slug])
   partners                 ProgramEnrollment[]
@@ -80,6 +84,7 @@ model Program {
 
   @@index(workspaceId)
   @@index(domain)
+  @@index(addedToMarketplaceAt)
 }
 
 model ProgramEnrollment {
