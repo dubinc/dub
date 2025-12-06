@@ -117,7 +117,7 @@ export function useDynamicGuide(
         )
         // for GTM installations - add data-publishable-key after script.src
         .replaceAll(
-          /^(\s+)(script\.src\s*=\s*"https:\/\/www\.dubcdn\.com\/analytics\/script[^"]+";)$/gm,
+          /^(\s+)(s\.src\s*=\s*"https:\/\/www\.dubcdn\.com\/analytics\/script[^"]+";)$/gm,
           (match, indent, srcLine) => {
             const idx = originalResult.indexOf(match);
             if (idx >= 0) {
@@ -134,12 +134,12 @@ export function useDynamicGuide(
             const parts = [
               ...(publishableKey
                 ? [
-                    `script.setAttribute("data-publishable-key", "${publishableKey}");`,
+                    `s.setAttribute("data-publishable-key", "${publishableKey}");`,
                   ]
                 : []),
               ...(domainsConfigParts
                 ? [
-                    `script.dataset.domains = JSON.stringify({${domainsConfigParts}});`,
+                    `s.dataset.domains = JSON.stringify({${domainsConfigParts}});`,
                   ]
                 : []),
             ].join(`\n${indent}`);
