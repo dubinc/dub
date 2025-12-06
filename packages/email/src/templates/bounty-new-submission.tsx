@@ -74,10 +74,10 @@ export default function NewBountySubmission({
               <div className="flex h-10 items-center">
                 <div className="relative w-fit">
                   <Img
-                    src={partner.image || `${OG_AVATAR_URL}${partner.name}`}
+                    src={partner.image || `${OG_AVATAR_URL}${partner.id}`}
                     width="32"
                     height="32"
-                    alt={partner.name}
+                    alt={partner.id}
                     className="rounded-full border border-solid border-neutral-100"
                   />
                 </div>

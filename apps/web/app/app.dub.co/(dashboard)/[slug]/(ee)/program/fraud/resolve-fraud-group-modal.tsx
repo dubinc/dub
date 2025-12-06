@@ -93,8 +93,8 @@ function ResolveFraudGroupModal({
             <div className="rounded-lg border border-neutral-200 bg-neutral-100 p-3">
               <div className="flex items-center gap-4">
                 <img
-                  src={`${OG_AVATAR_URL}${partner.name || "Unknown"}`}
-                  alt={partner.name || "Unknown"}
+                  src={partner.image || `${OG_AVATAR_URL}${partner.id}`}
+                  alt={partner.id}
                   className="size-10 rounded-full bg-white"
                 />
                 <div className="flex min-w-0 flex-col">

@@ -143,8 +143,8 @@ function FraudReviewSheetContent({
             <div className="bg-bg-muted border-border-subtle flex items-center justify-between gap-3 rounded-xl border px-4 py-3">
               <div className="flex min-w-0 items-center gap-3">
                 <img
-                  src={partner.image || `${OG_AVATAR_URL}${partner.name}`}
-                  alt={partner.name}
+                  src={partner.image || `${OG_AVATAR_URL}${partner.id}`}
+                  alt={partner.id}
                   className="size-10 rounded-full"
                 />
                 <div className="flex min-w-0 flex-col">

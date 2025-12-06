@@ -77,10 +77,10 @@ export default function NewMessageFromPartner({
                 <Row className={idx > 0 ? "pt-3" : ""}>
                   <Column className="align-bottom">
                     <Img
-                      src={partner.image || `${OG_AVATAR_URL}${partner.name}`}
+                      src={partner.image || `${OG_AVATAR_URL}${partner.id}`}
                       width="32"
                       height="32"
-                      alt={partner.name}
+                      alt={partner.id}
                       className="rounded-full"
                     />
                   </Column>

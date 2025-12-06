@@ -441,8 +441,8 @@ function PartnerCard({
           <div className="relative w-fit">
             {partner ? (
               <img
-                src={partner.image || `${OG_AVATAR_URL}${partner.name}`}
-                alt={partner.name}
+                src={partner.image || `${OG_AVATAR_URL}${partner.id}`}
+                alt={partner.id}
                 className="size-16 rounded-full border border-neutral-100"
               />
             ) : (
