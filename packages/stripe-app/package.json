@@ -6,8 +6,8 @@
   "license": "~~proprietary~~",
   "dependencies": {
     "@stripe/ui-extension-sdk": "^8.8.1",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
+    "react": "19.1.2",
+    "react-dom": "19.1.2",
     "stripe": "^13.11.0"
   },
   "engines": {
@@ -27,7 +27,7 @@
   },
   "devDependencies": {
     "@stripe/ui-extension-tools": "^0.0.1",
-    "@types/react": "^19.0.2",
-    "@types/react-dom": "^19.0.2"
+    "@types/react": "19.1.2",
+    "@types/react-dom": "19.1.2"
   }
 }
