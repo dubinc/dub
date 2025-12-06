@@ -31,7 +31,7 @@ model Program {
   defaultGroupId     String
   name               String
   slug               String            @unique
-  domain             String?
+  domain             String?           @unique
   url                String?
   logo               String? // TODO: remove after we refactor all program.logo fields to use group.logo instead
   primaryRewardEvent EventType         @default(sale)
@@ -56,6 +56,7 @@ model Program {
   marketplaceHeaderImage  String?
 
   workspace                Project                   @relation(fields: [workspaceId], references: [id])
+  customDomain             Domain?                   @relation(fields: [domain], references: [slug])
   partners                 ProgramEnrollment[]
   payouts                  Payout[]
   invoices                 Invoice[]

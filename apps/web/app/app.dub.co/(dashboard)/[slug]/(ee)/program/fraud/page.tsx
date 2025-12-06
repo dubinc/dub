@@ -8,6 +8,11 @@ export default function ProgramFraudRiskPage() {
   return (
     <PageContent
       title="Fraud Detection"
+      titleInfo={{
+        title:
+          "Safeguard your partner program by automatically flagging, reviewing, and resolving suspicious activity with Fraud Detection.",
+        href: "https://dub.co/help/article/fraud-detection",
+      }}
       controls={
         <>
           <ProgramFraudSettingsButton />

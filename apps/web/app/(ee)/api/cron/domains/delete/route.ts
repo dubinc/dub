@@ -60,7 +60,7 @@ export async function POST(req: Request) {
       linkCache.deleteMany(links),
 
       // Record link in Tinybird
-      recordLink(links),
+      recordLink(links, { deleted: true }),
 
       // Remove image from R2 storage if it exists
       links
