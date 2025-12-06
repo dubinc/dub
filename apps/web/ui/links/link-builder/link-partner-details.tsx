@@ -24,8 +24,8 @@ export function LinkPartnerDetails({
         <div className="flex min-w-0 items-center gap-3">
           {partner ? (
             <img
-              src={partner.image || `${OG_AVATAR_URL}${partner.name}`}
-              alt={partner.name}
+              src={partner.image || `${OG_AVATAR_URL}${partner.id}`}
+              alt={partner.id}
               className="size-8 rounded-full"
             />
           ) : (
@@ -60,15 +60,11 @@ export function LinkPartnerDetails({
         {[
           [
             "Revenue",
-            partner
-              ? currencyFormatter(partner.totalSaleAmount)
-              : undefined,
+            partner ? currencyFormatter(partner.totalSaleAmount) : undefined,
           ],
           [
             "Commissions",
-            partner
-              ? currencyFormatter(partner.totalCommissions)
-              : undefined,
+            partner ? currencyFormatter(partner.totalCommissions) : undefined,
           ],
           [
             "Net revenue",

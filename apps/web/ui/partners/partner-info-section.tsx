@@ -26,8 +26,8 @@ export function PartnerInfoSection({
       <div>
         <div className="relative w-fit">
           <img
-            src={partner.image || `${OG_AVATAR_URL}${partner.name}`}
-            alt={partner.name}
+            src={partner.image || `${OG_AVATAR_URL}${partner.id}`}
+            alt={partner.id}
             className="size-12 rounded-full"
           />
           {partner.country && (
