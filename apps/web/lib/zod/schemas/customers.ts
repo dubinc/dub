@@ -1,7 +1,11 @@
 import z from "@/lib/zod";
 import { DiscountSchema } from "./discount";
 import { LinkSchema } from "./links";
-import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
+import {
+  booleanQuerySchema,
+  getCursorPaginationQuerySchema,
+  getPaginationQuerySchema,
+} from "./misc";
 import { PartnerSchema } from "./partners";
 
 export const CUSTOMERS_MAX_PAGE_SIZE = 100;
@@ -56,7 +60,17 @@ export const getCustomersQuerySchema = z
       .default("desc")
       .describe("The sort order. The default is `desc`."),
   })
-  .merge(getPaginationQuerySchema({ pageSize: CUSTOMERS_MAX_PAGE_SIZE }));
+  .merge(
+    getCursorPaginationQuerySchema({
+      example: "cus_1KAP4CDPBSVMMBMH9XX3YZZ0Z",
+    }),
+  )
+  .merge(
+    getPaginationQuerySchema({
+      pageSize: CUSTOMERS_MAX_PAGE_SIZE,
+      deprecated: true,
+    }),
+  );
 
 export const getCustomersQuerySchemaExtended = getCustomersQuerySchema.merge(
   z.object({
