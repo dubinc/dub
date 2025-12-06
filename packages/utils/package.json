@@ -17,8 +17,8 @@
   },
   "peerDependencies": {
     "next": "15.5.7",
-    "react": "^19.1.2",
-    "react-dom": "^19.1.2"
+    "react": "19.1.2",
+    "react-dom": "19.1.2"
   },
   "devDependencies": {
     "@types/ms": "^0.7.31",
