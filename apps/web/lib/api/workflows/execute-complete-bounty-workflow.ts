@@ -220,6 +220,7 @@ export const executeCompleteBountyWorkflow = async ({
               name: bounty.name,
             },
             partner: {
+              id: partner.id,
               name: partner.name,
               image: partner.image,
               email: partner.email!,
