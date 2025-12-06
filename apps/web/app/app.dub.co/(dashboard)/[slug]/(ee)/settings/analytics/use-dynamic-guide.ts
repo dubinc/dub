@@ -44,7 +44,7 @@ export function useDynamicGuide(
         `https://www.dubcdn.com/analytics/script.${scriptComponents}.js`,
       );
 
-    if (conversionTrackingEnabled && publishableKey && result) {
+    if (result) {
       // Store original result for context checks
       const originalResult = result;
 
@@ -71,14 +71,16 @@ export function useDynamicGuide(
                 : []),
             ].join(`, `);
             const parts = [
-              `data-publishable-key="${publishableKey}"`,
+              ...(publishableKey
+                ? [`data-publishable-key="${publishableKey}"`]
+                : []),
               ...(domainsConfigParts
                 ? [`data-domains='{${domainsConfigParts}}'`]
                 : []),
             ].join(`\n${indent}`);
 
             // Return: before src, src, publishable-key, other attrs, closing tag
-            return `${beforeSrc}${srcAttr}\n${indent}${parts}${otherAttrs ? `\n${indent}${otherAttrs}` : ""}\n${closingTag}`;
+            return `${beforeSrc}${srcAttr}${parts ? `\n${indent}${parts}` : ""}${otherAttrs ? `\n${indent}${otherAttrs}` : ""}\n${closingTag}`;
           },
         )
         // for React applications - add publishableKey prop after <DubAnalytics
@@ -102,7 +104,7 @@ export function useDynamicGuide(
                 : []),
             ].join(`,\n${indent}    `);
             const parts = [
-              `publishableKey="${publishableKey}"`,
+              ...(publishableKey ? [`publishableKey="${publishableKey}"`] : []),
               ...(domainsConfigParts
                 ? [
                     `domainsConfig={{\n${indent}    ${domainsConfigParts}\n${indent}  }}`,
@@ -110,7 +112,7 @@ export function useDynamicGuide(
                 : []),
             ].join(`\n  ${indent}`);
 
-            return `${indent}${tag}\n${indent}  ${parts}${rest}`;
+            return `${indent}${tag}${parts ? `\n${indent}  ${parts}` : ""}${rest}`;
           },
         )
         // for GTM installations - add data-publishable-key after script.src
@@ -130,7 +132,11 @@ export function useDynamicGuide(
                 : []),
             ].join(`, `);
             const parts = [
-              `script.setAttribute("data-publishable-key", "${publishableKey}");`,
+              ...(publishableKey
+                ? [
+                    `script.setAttribute("data-publishable-key", "${publishableKey}");`,
+                  ]
+                : []),
               ...(domainsConfigParts
                 ? [
                     `script.dataset.domains = JSON.stringify({${domainsConfigParts}});`,
@@ -138,7 +144,7 @@ export function useDynamicGuide(
                 : []),
             ].join(`\n${indent}`);
 
-            return `${indent}${srcLine}\n${indent}${parts}`;
+            return `${indent}${srcLine}${parts ? `\n${indent}${parts}` : ""}`;
           },
         );
     }
@@ -146,7 +152,7 @@ export function useDynamicGuide(
     return result;
   }, [
     guideMarkdownRaw,
-    program?.domain,
+    program,
     siteVisitTrackingEnabled,
     domainTrackingEnabled,
     conversionTrackingEnabled,
