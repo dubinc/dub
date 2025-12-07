@@ -5,13 +5,8 @@ import { formatRewardDescription } from "@/ui/partners/format-reward-description
 import { ProgramNetworkStatusBadges } from "@/ui/partners/partner-status-badges";
 import { ProgramCategory } from "@/ui/partners/program-network/program-category";
 import { ProgramRewardIcon } from "@/ui/partners/program-network/program-reward-icon";
-import { Gift, Link4, StatusBadge, Tooltip, useRouterStuff } from "@dub/ui";
-import {
-  OG_AVATAR_URL,
-  cn,
-  getPrettyUrl,
-  isClickOnInteractiveChild,
-} from "@dub/utils";
+import { Gift, StatusBadge, Tooltip, useRouterStuff } from "@dub/ui";
+import { OG_AVATAR_URL, cn, isClickOnInteractiveChild } from "@dub/utils";
 import { useRouter } from "next/navigation";
 
 const getClickHandlers = (
@@ -137,7 +132,7 @@ export function ProgramCard({ program }: { program?: NetworkProgramProps }) {
               {Boolean(program?.categories?.length) && (
                 <div className="min-w-0">
                   <span className="text-content-muted block text-xs font-medium">
-                    Industry
+                    Category
                   </span>
                   <div className="mt-1 flex items-center gap-1.5">
                     {program.categories.slice(0, 1)?.map((category) => (
@@ -208,6 +203,7 @@ export function FeaturedProgramCard({
     ? ProgramNetworkStatusBadges[program.status]
     : null;
   const url = program ? `/programs/marketplace/${program.slug}` : undefined;
+  const darkImage = program?.marketplaceHeaderImage?.includes("-dark");
 
   return (
     <div
@@ -219,7 +215,7 @@ export function FeaturedProgramCard({
           <img
             src={program.marketplaceHeaderImage}
             alt={program.name}
-            className="absolute inset-0 size-full object-cover opacity-80"
+            className="absolute inset-0 size-full object-cover"
           />
           <div className="absolute inset-0" />
         </>
@@ -247,27 +243,27 @@ export function FeaturedProgramCard({
         <div className="mt-10 flex flex-col">
           {/* Name */}
           {program ? (
-            <span className="text-content-inverted text-3xl font-semibold">
+            <span
+              className={cn(
+                "text-3xl font-semibold",
+                darkImage && "text-content-inverted",
+              )}
+            >
               {program.name}
             </span>
           ) : (
             <div className="h-9 w-40 animate-pulse rounded bg-neutral-200" />
           )}
 
-          <div className="text-content-inverted mt-1 flex items-center gap-1">
-            {/* URL/domain */}
+          <div
+            className={cn(
+              "mt-1 max-w-md text-sm",
+              darkImage && "text-content-inverted",
+            )}
+          >
+            {/* Description */}
             {program ? (
-              <>
-                <Link4 className="size-3.5" />
-                <a
-                  href={program.url || `https://${program.domain}`}
-                  target="_blank"
-                  rel="noreferrer noopener"
-                  className="text-sm font-medium"
-                >
-                  {getPrettyUrl(program.url) || program.domain}
-                </a>
-              </>
+              `${program.name} is a program in the Dub Partner Network. Join the network to start partnering with them.`
             ) : (
               <div className="h-5 w-24 animate-pulse rounded bg-neutral-200" />
             )}
@@ -278,7 +274,12 @@ export function FeaturedProgramCard({
               <>
                 {Boolean(program?.rewards?.length || program?.discount) && (
                   <div>
-                    <span className="text-content-muted block text-xs font-medium">
+                    <span
+                      className={cn(
+                        "text-content-subtle block text-xs font-medium",
+                        darkImage && "text-content-inverted",
+                      )}
+                    >
                       Rewards
                     </span>
                     <div className="mt-2 flex items-center gap-1.5">
@@ -295,7 +296,10 @@ export function FeaturedProgramCard({
                               del: "page",
                             })
                           }
-                          className="text-content-inverted hover:bg-bg-default/10 active:bg-bg-default/20"
+                          className={cn(
+                            "hover:bg-bg-default/10 active:bg-bg-default/20",
+                            darkImage && "text-content-inverted",
+                          )}
                         />
                       ))}
                       {program.discount && (
@@ -312,7 +316,10 @@ export function FeaturedProgramCard({
                               del: "page",
                             })
                           }
-                          className="text-content-inverted hover:bg-bg-default/10 active:bg-bg-default/20"
+                          className={cn(
+                            "hover:bg-bg-default/10 active:bg-bg-default/20",
+                            darkImage && "text-content-inverted",
+                          )}
                         />
                       )}
                     </div>
@@ -320,8 +327,13 @@ export function FeaturedProgramCard({
                 )}
                 {Boolean(program?.categories?.length) && (
                   <div className="min-w-0">
-                    <span className="text-content-muted block text-xs font-medium">
-                      Industry
+                    <span
+                      className={cn(
+                        "text-content-subtle block text-xs font-medium",
+                        darkImage && "text-content-muted",
+                      )}
+                    >
+                      Category
                     </span>
                     <div className="mt-2 flex items-center gap-1.5">
                       {program.categories.slice(0, 1)?.map((category) => (
@@ -336,7 +348,10 @@ export function FeaturedProgramCard({
                               del: "page",
                             })
                           }
-                          className="text-content-inverted hover:bg-bg-default/10 active:bg-bg-default/20"
+                          className={cn(
+                            "hover:bg-bg-default/10 active:bg-bg-default/20",
+                            darkImage && "text-content-inverted",
+                          )}
                         />
                       ))}
                       {program.categories.length > 1 && (
@@ -360,7 +375,12 @@ export function FeaturedProgramCard({
                             </div>
                           }
                         >
-                          <div className="text-content-inverted/70 -ml-1.5 flex size-6 items-center justify-center rounded-md text-xs font-medium">
+                          <div
+                            className={cn(
+                              "-ml-1.5 flex size-6 items-center justify-center rounded-md text-xs font-medium",
+                              darkImage && "text-content-inverted/70",
+                            )}
+                          >
                             +{program.categories.length - 1}
                           </div>
                         </Tooltip>

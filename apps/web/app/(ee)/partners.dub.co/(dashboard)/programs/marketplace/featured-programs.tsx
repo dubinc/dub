@@ -7,7 +7,7 @@ import {
   CarouselItem,
   CarouselNavBar,
 } from "@dub/ui";
-import { cn, fetcher } from "@dub/utils";
+import { fetcher } from "@dub/utils";
 import { ComponentProps } from "react";
 import useSWR from "swr";
 import { FeaturedProgramCard } from "./program-card";
@@ -38,12 +38,7 @@ export function FeaturedPrograms() {
               </>
             )}
           </CarouselContent>
-          <div
-            className={cn(
-              "mt-2",
-              (!programs || programs.length <= 2) && "@2xl/page:hidden",
-            )}
-          >
+          <div className="mt-2">
             <CarouselNavBar />
           </div>
         </Carousel>
@@ -54,7 +49,7 @@ export function FeaturedPrograms() {
 
 const CarouselCard = (props: ComponentProps<typeof FeaturedProgramCard>) => {
   return (
-    <CarouselItem className="@2xl/page:basis-1/2 basis-full">
+    <CarouselItem className="basis-full">
       <FeaturedProgramCard {...props} />
     </CarouselItem>
   );
