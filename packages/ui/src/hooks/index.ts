@@ -1,3 +1,4 @@
+export * from "./use-click-handlers";
 export * from "./use-column-visibility";
 export * from "./use-cookies";
 export * from "./use-copy-to-clipboard";

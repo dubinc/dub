@@ -10,7 +10,7 @@ import {
 import { fetcher } from "@dub/utils";
 import { ComponentProps } from "react";
 import useSWR from "swr";
-import { FeaturedProgramCard } from "./program-card";
+import { FeaturedProgramCard } from "./featured-program-card";
 
 export function FeaturedPrograms() {
   const { data: programs, error } = useSWR<NetworkProgramProps[]>(
