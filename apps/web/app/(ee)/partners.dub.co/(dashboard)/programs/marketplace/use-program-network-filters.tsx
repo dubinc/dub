@@ -1,11 +1,11 @@
 import { PROGRAM_CATEGORIES_MAP } from "@/lib/network/program-categories";
 import useNetworkProgramsCount from "@/lib/swr/use-network-programs-count";
 import { REWARD_EVENTS } from "@/ui/partners/constants";
-import { ProgramNetworkStatusBadges } from "@/ui/partners/partner-status-badges";
 import { useRouterStuff } from "@dub/ui";
 import { CircleDotted, Gift, Suitcase } from "@dub/ui/icons";
 import { capitalize, cn, nFormatter } from "@dub/utils";
 import { useCallback, useMemo } from "react";
+import { ProgramNetworkStatusBadges } from "./program-status-badge";
 
 const REWARD_TYPES = {
   sale: {
@@ -117,7 +117,7 @@ export function useProgramNetworkFilters() {
             } = status
               ? ProgramNetworkStatusBadges[status]
               : {
-                  label: "No status",
+                  label: "Not applied",
                   icon: CircleDotted,
                   className: "text-neutral-500",
                 };

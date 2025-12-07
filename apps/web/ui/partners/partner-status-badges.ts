@@ -58,15 +58,3 @@ export const PartnerStatusBadges = {
     icon: BoxArchive,
   },
 };
-
-export const ProgramNetworkStatusBadges = {
-  ...PartnerStatusBadges,
-  approved: {
-    ...PartnerStatusBadges.approved,
-    label: "Enrolled",
-  },
-  pending: {
-    ...PartnerStatusBadges.pending,
-    label: "Applied",
-  },
-};

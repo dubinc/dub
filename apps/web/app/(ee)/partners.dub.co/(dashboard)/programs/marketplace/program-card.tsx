@@ -1,23 +1,14 @@
 import { NetworkProgramProps } from "@/lib/types";
-import { ProgramNetworkStatusBadges } from "@/ui/partners/partner-status-badges";
 import { ProgramCategory } from "@/ui/partners/program-network/program-category";
 import { ProgramRewardsDisplay } from "@/ui/partners/program-network/program-rewards-display";
-import {
-  StatusBadge,
-  Tooltip,
-  useClickHandlers,
-  useRouterStuff,
-} from "@dub/ui";
+import { Tooltip, useClickHandlers, useRouterStuff } from "@dub/ui";
 import { OG_AVATAR_URL, cn } from "@dub/utils";
 import { useRouter } from "next/navigation";
+import { ProgramStatusBadge } from "./program-status-badge";
 
 export function ProgramCard({ program }: { program: NetworkProgramProps }) {
   const { queryParams } = useRouterStuff();
   const router = useRouter();
-
-  const statusBadge = program?.status
-    ? ProgramNetworkStatusBadges[program.status]
-    : null;
 
   return (
     <div
@@ -33,11 +24,7 @@ export function ProgramCard({ program }: { program: NetworkProgramProps }) {
           className="size-12 rounded-full"
         />
 
-        {statusBadge && (
-          <StatusBadge {...statusBadge} className="px-1.5 py-0.5">
-            {statusBadge.label}
-          </StatusBadge>
-        )}
+        <ProgramStatusBadge program={program} />
       </div>
 
       <div className="mt-4 flex flex-col">

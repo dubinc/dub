@@ -17,7 +17,6 @@ export const NetworkProgramSchema = ProgramSchema.pick({
   termsUrl: true,
 }).extend({
   discount: DiscountSchema.nullish(),
-  status: z.nativeEnum(ProgramEnrollmentStatus).nullable(),
   categories: z.array(z.nativeEnum(Category)),
   featuredOnMarketplaceAt: z.date().nullable(),
   marketplaceHeaderImage: z.string().nullable(),

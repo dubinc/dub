@@ -1,15 +1,10 @@
 import { NetworkProgramProps } from "@/lib/types";
-import { ProgramNetworkStatusBadges } from "@/ui/partners/partner-status-badges";
 import { ProgramCategory } from "@/ui/partners/program-network/program-category";
 import { ProgramRewardsDisplay } from "@/ui/partners/program-network/program-rewards-display";
-import {
-  StatusBadge,
-  Tooltip,
-  useClickHandlers,
-  useRouterStuff,
-} from "@dub/ui";
+import { Tooltip, useClickHandlers, useRouterStuff } from "@dub/ui";
 import { OG_AVATAR_URL, cn } from "@dub/utils";
 import { useRouter } from "next/navigation";
+import { ProgramStatusBadge } from "./program-status-badge";
 
 export function FeaturedProgramCard({
   program,
@@ -19,17 +14,14 @@ export function FeaturedProgramCard({
   const { queryParams } = useRouterStuff();
   const router = useRouter();
 
-  const statusBadge = program?.status
-    ? ProgramNetworkStatusBadges[program.status]
-    : null;
-  const darkImage = program?.marketplaceHeaderImage?.includes("-dark");
+  const darkImage = program.marketplaceHeaderImage?.includes("-dark");
 
   return (
     <div
       className="border-border-subtle relative h-full cursor-pointer overflow-hidden rounded-xl border p-6"
       {...useClickHandlers(`/programs/marketplace/${program.slug}`, router)}
     >
-      {program?.marketplaceHeaderImage && (
+      {program.marketplaceHeaderImage && (
         <>
           <img
             src={program.marketplaceHeaderImage}
@@ -48,11 +40,7 @@ export function FeaturedProgramCard({
             className="size-12 rounded-full border border-white/20"
           />
 
-          {statusBadge && (
-            <StatusBadge {...statusBadge} className="px-1.5 py-0.5">
-              {statusBadge.label}
-            </StatusBadge>
-          )}
+          <ProgramStatusBadge program={program} />
         </div>
 
         <div className="mt-10 flex flex-col">
@@ -77,7 +65,7 @@ export function FeaturedProgramCard({
           </div>
 
           <div className="mt-5 flex gap-8">
-            {Boolean(program?.rewards?.length || program?.discount) && (
+            {Boolean(program.rewards?.length || program.discount) && (
               <div>
                 <span
                   className={cn(
