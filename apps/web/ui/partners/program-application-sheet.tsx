@@ -11,12 +11,12 @@ import {
 import { createProgramApplicationSchema } from "@/lib/zod/schemas/programs";
 import { X } from "@/ui/shared/icons";
 import {
+  ArrowTurnRight2,
   Button,
   buttonVariants,
   CircleCheck,
   CircleCheckFill,
   Grid,
-  Link4,
   LoadingSpinner,
   Sheet,
 } from "@dub/ui";
@@ -95,7 +95,6 @@ function ProgramApplicationSheetContent({
 
 function ProgramApplicationSheetForm({
   program,
-  programEnrollment,
   backDestination = "programs",
   onSuccess,
   group,
@@ -177,10 +176,15 @@ function ProgramApplicationSheetForm({
                     </span>
 
                     <div className="flex items-center gap-1 text-neutral-500">
-                      <Link4 className="size-3 shrink-0" />
-                      <span className="min-w-0 truncate text-sm font-medium">
+                      <ArrowTurnRight2 className="size-3.5 shrink-0" />
+                      <a
+                        href={`https://${program.domain}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="min-w-0 cursor-alias truncate text-sm font-medium underline decoration-dotted underline-offset-2 hover:text-neutral-700"
+                      >
                         {program.domain}
-                      </span>
+                      </a>
                     </div>
                   </div>
                 </div>

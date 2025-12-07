@@ -15,7 +15,7 @@ import { cn, fetcher } from "@dub/utils";
 import useSWR from "swr";
 import { FeaturedPrograms } from "./featured-programs";
 import { MarketplaceEmptyState } from "./marketplace-empty-state";
-import { ProgramCard } from "./program-card";
+import { ProgramCard, ProgramCardSkeleton } from "./program-card";
 import ProgramSort from "./program-sort";
 import { useProgramNetworkFilters } from "./use-program-network-filters";
 
@@ -96,10 +96,12 @@ export function ProgramMarketplacePageClient() {
               )}
             >
               {programs
-                ? programs?.map((program) => (
+                ? programs.map((program) => (
                     <ProgramCard key={program.id} program={program} />
                   ))
-                : [...Array(5)].map((_, idx) => <ProgramCard key={idx} />)}
+                : [...Array(5)].map((_, idx) => (
+                    <ProgramCardSkeleton key={idx} />
+                  ))}
             </div>
           </div>
           <div className="sticky bottom-0 mt-4 rounded-b-[inherit] border-t border-neutral-200 bg-white px-3.5 py-2">

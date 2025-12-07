@@ -176,7 +176,7 @@ export function MarketplaceProgramPageClient() {
                 className="border-border-subtle absolute inset-0 size-full overflow-hidden rounded-xl border object-cover"
               />
             )}
-          <div className="relative mx-auto max-w-screen-md p-8">
+          <div className="relative mx-auto max-w-screen-md py-8">
             <div className="flex items-start justify-between gap-4">
               {program ? (
                 <img

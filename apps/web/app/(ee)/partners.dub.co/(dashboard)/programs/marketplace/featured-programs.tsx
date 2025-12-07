@@ -10,7 +10,10 @@ import {
 import { fetcher } from "@dub/utils";
 import { ComponentProps } from "react";
 import useSWR from "swr";
-import { FeaturedProgramCard } from "./featured-program-card";
+import {
+  FeaturedProgramCard,
+  FeaturedProgramCardSkeleton,
+} from "./featured-program-card";
 
 export function FeaturedPrograms() {
   const { data: programs, error } = useSWR<NetworkProgramProps[]>(
@@ -33,8 +36,12 @@ export function FeaturedPrograms() {
               ))
             ) : (
               <>
-                <CarouselCard />
-                <CarouselCard />
+                <CarouselItem className="basis-full">
+                  <FeaturedProgramCardSkeleton />
+                </CarouselItem>
+                <CarouselItem className="basis-full">
+                  <FeaturedProgramCardSkeleton />
+                </CarouselItem>
               </>
             )}
           </CarouselContent>
