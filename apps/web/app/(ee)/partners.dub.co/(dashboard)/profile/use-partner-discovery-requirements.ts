@@ -2,7 +2,7 @@ import { EXCLUDED_PROGRAM_IDS } from "@/lib/constants/partner-profile";
 import {
   getDiscoverabilityRequirements,
   partnerHasEarnedCommissions,
-} from "@/lib/partners/get-discoverability-requirements";
+} from "@/lib/network/get-discoverability-requirements";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
 import { useMemo } from "react";

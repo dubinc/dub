@@ -1,19 +1,14 @@
-import { DubApiError } from "@/lib/api/errors";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { programLanderSchema } from "@/lib/zod/schemas/program-lander";
 import { NetworkProgramExtendedSchema } from "@/lib/zod/schemas/program-network";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
-import { checkProgramNetworkRequirements } from "../check-program-network-requirements";
+import { throwIfPartnerCannotViewMarketplace } from "../../../../../../lib/network/throw-if-partner-cannot-view-marketplace";
 
 // GET /api/network/programs/[programSlug] - get a program in the network by slug
 export const GET = withPartnerProfile(async ({ partner, params }) => {
-  if (!(await checkProgramNetworkRequirements({ partner })))
-    throw new DubApiError({
-      code: "forbidden",
-      message: "Program network is not available for this partner.",
-    });
+  await throwIfPartnerCannotViewMarketplace({ partner });
 
   const { programSlug } = params;
 

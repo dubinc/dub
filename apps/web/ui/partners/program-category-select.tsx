@@ -1,5 +1,8 @@
 import { MAX_PROGRAM_CATEGORIES } from "@/lib/constants/program";
-import { categories, categoriesMap } from "@/lib/partners/categories";
+import {
+  PROGRAM_CATEGORIES,
+  PROGRAM_CATEGORIES_MAP,
+} from "@/lib/network/program-categories";
 import { Combobox, ComboboxProps } from "@dub/ui";
 import { Category } from "@prisma/client";
 
@@ -15,13 +18,13 @@ export function ProgramCategorySelect({
     <Combobox
       multiple
       maxSelected={MAX_PROGRAM_CATEGORIES}
-      options={categories.map(({ id, label, icon }) => ({
+      options={PROGRAM_CATEGORIES.map(({ id, label, icon }) => ({
         value: id,
         label,
         icon,
       }))}
       selected={selected.map((category) => {
-        const { label, icon } = categoriesMap[category] ?? {
+        const { label, icon } = PROGRAM_CATEGORIES_MAP[category] ?? {
           label: category.replaceAll("_", " "),
           icon: undefined,
         };

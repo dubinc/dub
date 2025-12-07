@@ -1,6 +1,6 @@
 "use client";
 
-import { partnerCanViewMarketplace } from "@/lib/partners/get-discoverability-requirements";
+import { partnerCanViewMarketplace } from "@/lib/network/get-discoverability-requirements";
 import usePartnerProgramBounties from "@/lib/swr/use-partner-program-bounties";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import useProgramEnrollments from "@/lib/swr/use-program-enrollments";

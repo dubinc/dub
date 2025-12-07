@@ -14,7 +14,7 @@ import {
   User,
 } from "@dub/ui/icons";
 
-export const categories: {
+export const PROGRAM_CATEGORIES: {
   id: Category;
   icon: Icon;
   label: string;
@@ -76,6 +76,8 @@ export const categories: {
   },
 ];
 
-export const categoriesMap: Partial<
+export const PROGRAM_CATEGORIES_MAP: Partial<
   Record<Category, { icon: Icon; label: string }>
-> = Object.fromEntries(categories.map((category) => [category.id, category]));
+> = Object.fromEntries(
+  PROGRAM_CATEGORIES.map((category) => [category.id, category]),
+);

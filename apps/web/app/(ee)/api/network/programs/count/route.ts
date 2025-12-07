@@ -1,11 +1,10 @@
-import { DubApiError } from "@/lib/api/errors";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { getNetworkProgramsCountQuerySchema } from "@/lib/zod/schemas/program-network";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
-import { checkProgramNetworkRequirements } from "../check-program-network-requirements";
+import { throwIfPartnerCannotViewMarketplace } from "../../../../../../lib/network/throw-if-partner-cannot-view-marketplace";
 
 const rewardTypeMap = {
   sale: Prisma.sql`pg.saleRewardId IS NOT NULL`,
@@ -16,11 +15,7 @@ const rewardTypeMap = {
 
 // GET /api/network/programs/count - get the number of available programs in the network
 export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
-  if (!(await checkProgramNetworkRequirements({ partner })))
-    throw new DubApiError({
-      code: "forbidden",
-      message: "Program network is not available for this partner.",
-    });
+  await throwIfPartnerCannotViewMarketplace({ partner });
 
   const { groupBy, category, rewardType, status, featured, search } =
     getNetworkProgramsCountQuerySchema.parse(searchParams);

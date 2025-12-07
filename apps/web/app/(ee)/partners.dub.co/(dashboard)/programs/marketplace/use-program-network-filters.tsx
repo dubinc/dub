@@ -1,4 +1,4 @@
-import { categoriesMap } from "@/lib/partners/categories";
+import { PROGRAM_CATEGORIES_MAP } from "@/lib/network/program-categories";
 import useNetworkProgramsCount from "@/lib/swr/use-network-programs-count";
 import { REWARD_EVENTS } from "@/ui/partners/constants";
 import { ProgramNetworkStatusBadges } from "@/ui/partners/partner-status-badges";
@@ -73,13 +73,13 @@ export function useProgramNetworkFilters() {
       {
         key: "category",
         icon: Suitcase,
-        label: "Industry",
+        label: "Category",
         getOptionIcon: (value) => {
-          const Icon = categoriesMap[value]?.icon || Suitcase;
+          const Icon = PROGRAM_CATEGORIES_MAP[value]?.icon || Suitcase;
           return <Icon className="size-4" />;
         },
         getOptionLabel: (value) =>
-          categoriesMap[value]?.label || value.replace("_", " "),
+          PROGRAM_CATEGORIES_MAP[value]?.label || value.replace("_", " "),
         options:
           categoriesCount?.map(({ category, _count }) => ({
             value: category,

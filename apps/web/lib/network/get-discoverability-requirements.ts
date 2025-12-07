@@ -1,12 +1,13 @@
 import { currencyFormatter } from "@dub/utils";
-import { EXCLUDED_PROGRAM_IDS } from "../constants/partner-profile";
-import { EnrolledPartnerProps, PartnerProps } from "../types";
+import {
+  EXCLUDED_PROGRAM_IDS,
+  PARTNER_NETWORK_MIN_COMMISSIONS_CENTS,
+} from "../constants/partner-profile";
 import {
   ONLINE_PRESENCE_FIELDS,
   PartnerOnlinePresenceFields,
-} from "./online-presence";
-
-const PARTNER_DISCOVERY_MIN_COMMISSIONS = 10_00;
+} from "../partners/online-presence";
+import { EnrolledPartnerProps, PartnerProps } from "../types";
 
 export const partnerHasEarnedCommissions = (
   programEnrollments: Pick<
@@ -19,7 +20,7 @@ export const partnerHasEarnedCommissions = (
       (pe) =>
         !EXCLUDED_PROGRAM_IDS.includes(pe.programId) &&
         pe.status === "approved" &&
-        pe.totalCommissions >= PARTNER_DISCOVERY_MIN_COMMISSIONS,
+        pe.totalCommissions >= PARTNER_NETWORK_MIN_COMMISSIONS_CENTS,
     ).length >= 1
   );
 };
@@ -96,7 +97,7 @@ export function getDiscoverabilityRequirements({
       completed: partnerIsNotBanned(programEnrollments),
     },
     {
-      label: `Earn ${currencyFormatter(PARTNER_DISCOVERY_MIN_COMMISSIONS, { trailingZeroDisplay: "stripIfInteger" })} in commissions`,
+      label: `Earn ${currencyFormatter(PARTNER_NETWORK_MIN_COMMISSIONS_CENTS, { trailingZeroDisplay: "stripIfInteger" })} in commissions`,
       completed: partnerHasEarnedCommissions(programEnrollments),
     },
   ];

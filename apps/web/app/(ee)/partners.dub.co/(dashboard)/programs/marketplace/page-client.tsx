@@ -22,9 +22,7 @@ import { useProgramNetworkFilters } from "./use-program-network-filters";
 export function ProgramMarketplacePageClient() {
   const { getQueryString } = useRouterStuff();
 
-  const { data: programsCount, error: countError } = useNetworkProgramsCount(
-    {},
-  );
+  const { data: programsCount, error: countError } = useNetworkProgramsCount();
 
   const {
     data: programs,

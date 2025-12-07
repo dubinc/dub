@@ -77,7 +77,7 @@ export function ProgramCard({ program }: { program?: NetworkProgramProps }) {
           <div className="h-6 w-32 animate-pulse rounded bg-neutral-200" />
         )}
 
-        <div className="text-content-subtle mt-1 text-sm">
+        <div className="text-content-subtle mt-1 line-clamp-2 text-sm">
           {/* Domain */}
           {program ? (
             `${program.name} is a program in the Dub Partner Network. Join the network to start partnering with them.`

@@ -1,4 +1,4 @@
-import { categoriesMap } from "@/lib/partners/categories";
+import { PROGRAM_CATEGORIES_MAP } from "@/lib/network/program-categories";
 import { Category } from "@dub/prisma/client";
 import { CircleInfo } from "@dub/ui";
 import { cn } from "@dub/utils";
@@ -12,7 +12,7 @@ export const ProgramCategory = ({
   onClick?: () => void;
   className?: string;
 }) => {
-  const categoryData = categoriesMap[category];
+  const categoryData = PROGRAM_CATEGORIES_MAP[category];
   const { icon: Icon, label } = categoryData ?? {
     icon: CircleInfo,
     label: category.replace("_", " "),

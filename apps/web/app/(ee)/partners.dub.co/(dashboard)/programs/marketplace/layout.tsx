@@ -1,6 +1,6 @@
 "use client";
 
-import { partnerCanViewMarketplace } from "@/lib/partners/get-discoverability-requirements";
+import { partnerCanViewMarketplace } from "@/lib/network/get-discoverability-requirements";
 import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
 import { redirect } from "next/navigation";
 import { PropsWithChildren } from "react";

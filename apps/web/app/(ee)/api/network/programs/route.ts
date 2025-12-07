@@ -1,5 +1,5 @@
-import { DubApiError } from "@/lib/api/errors";
 import { withPartnerProfile } from "@/lib/auth/partner";
+import { throwIfPartnerCannotViewMarketplace } from "@/lib/network/throw-if-partner-cannot-view-marketplace";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import {
   NetworkProgramSchema,
@@ -8,15 +8,10 @@ import {
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { checkProgramNetworkRequirements } from "./check-program-network-requirements";
 
 // GET /api/network/programs - get all available programs in the network
 export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
-  if (!(await checkProgramNetworkRequirements({ partner })))
-    throw new DubApiError({
-      code: "forbidden",
-      message: "Program network is not available for this partner.",
-    });
+  await throwIfPartnerCannotViewMarketplace({ partner });
 
   const {
     search,
@@ -55,6 +50,8 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
           { name: { contains: search } },
           { slug: { contains: search } },
           { domain: { contains: search } },
+          { url: { contains: search } },
+          // { description: { contains: search } },
         ],
       }),
       ...(category && {
