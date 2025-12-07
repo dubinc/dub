@@ -81,7 +81,7 @@ export function FeaturedProgramCard({
 
           <div
             className={cn(
-              "mt-1 max-w-md text-sm",
+              "mt-1 max-w-sm text-sm",
               darkImage && "text-content-inverted",
             )}
           >
