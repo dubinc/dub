@@ -101,7 +101,7 @@ export function FeaturedProgramCard({
                     <span
                       className={cn(
                         "text-content-subtle block text-xs font-medium",
-                        darkImage && "text-content-inverted",
+                        darkImage && "text-content-inverted/80",
                       )}
                     >
                       Rewards
@@ -154,7 +154,7 @@ export function FeaturedProgramCard({
                     <span
                       className={cn(
                         "text-content-subtle block text-xs font-medium",
-                        darkImage && "text-content-muted",
+                        darkImage && "text-content-inverted/80",
                       )}
                     >
                       Category
@@ -202,7 +202,7 @@ export function FeaturedProgramCard({
                           <div
                             className={cn(
                               "-ml-1.5 flex size-6 items-center justify-center rounded-md text-xs font-medium",
-                              darkImage && "text-content-inverted/70",
+                              darkImage && "text-content-inverted/80",
                             )}
                           >
                             +{program.categories.length - 1}
