@@ -1,12 +1,8 @@
 import { NetworkProgramProps } from "@/lib/types";
-import { REWARD_EVENTS } from "@/ui/partners/constants";
-import { formatDiscountDescription } from "@/ui/partners/format-discount-description";
-import { formatRewardDescription } from "@/ui/partners/format-reward-description";
 import { ProgramNetworkStatusBadges } from "@/ui/partners/partner-status-badges";
 import { ProgramCategory } from "@/ui/partners/program-network/program-category";
-import { ProgramRewardIcon } from "@/ui/partners/program-network/program-reward-icon";
+import { ProgramRewardsDisplay } from "@/ui/partners/program-network/program-rewards-display";
 import {
-  Gift,
   StatusBadge,
   Tooltip,
   useClickHandlers,
@@ -69,50 +65,38 @@ export function ProgramCard({ program }: { program?: NetworkProgramProps }) {
           )}
         </div>
 
-        <div className="mt-4 flex gap-8">
+        <div className="mt-4 flex gap-4">
           {program ? (
             <>
-              {Boolean(program?.rewards?.length || program?.discount) && (
+              {Boolean(program.rewards?.length || program.discount) && (
                 <div>
                   <span className="text-content-muted block text-xs font-medium">
                     Rewards
                   </span>
-                  <div className="mt-1 flex items-center gap-1.5">
-                    {program.rewards?.map((reward) => (
-                      <ProgramRewardIcon
-                        key={reward.id}
-                        icon={REWARD_EVENTS[reward.event].icon}
-                        description={formatRewardDescription(reward)}
-                        onClick={() =>
-                          queryParams({
-                            set: {
-                              rewardType: reward.event,
-                            },
-                            del: "page",
-                          })
-                        }
-                      />
-                    ))}
-                    {program.discount && (
-                      <ProgramRewardIcon
-                        icon={Gift}
-                        description={formatDiscountDescription(
-                          program.discount,
-                        )}
-                        onClick={() =>
-                          queryParams({
-                            set: {
-                              rewardType: "discount",
-                            },
-                            del: "page",
-                          })
-                        }
-                      />
-                    )}
-                  </div>
+                  <ProgramRewardsDisplay
+                    rewards={program.rewards}
+                    discount={program.discount}
+                    onRewardClick={(reward) =>
+                      queryParams({
+                        set: {
+                          rewardType: reward.event,
+                        },
+                        del: "page",
+                      })
+                    }
+                    onDiscountClick={() =>
+                      queryParams({
+                        set: {
+                          rewardType: "discount",
+                        },
+                        del: "page",
+                      })
+                    }
+                    className="mt-1"
+                  />
                 </div>
               )}
-              {Boolean(program?.categories?.length) && (
+              {Boolean(program.categories.length) && (
                 <div className="min-w-0">
                   <span className="text-content-muted block text-xs font-medium">
                     Category

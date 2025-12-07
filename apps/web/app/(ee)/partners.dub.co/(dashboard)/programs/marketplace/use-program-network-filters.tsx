@@ -10,19 +10,19 @@ import { useCallback, useMemo } from "react";
 const REWARD_TYPES = {
   sale: {
     icon: REWARD_EVENTS.sale.icon,
-    label: "Sales (CPS)",
+    label: "Sale reward (CPS)",
   },
   lead: {
     icon: REWARD_EVENTS.lead.icon,
-    label: "Leads (CPL)",
+    label: "Lead reward (CPL)",
   },
   click: {
     icon: REWARD_EVENTS.click.icon,
-    label: "Clicks (CPC)",
+    label: "Click reward (CPC)",
   },
   discount: {
     icon: Gift,
-    label: "Discount",
+    label: "Dual-sided incentives",
   },
 };
 

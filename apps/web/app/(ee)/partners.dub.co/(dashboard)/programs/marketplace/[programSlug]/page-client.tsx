@@ -5,20 +5,16 @@ import { mutatePrefix } from "@/lib/swr/mutate";
 import { NetworkProgramExtendedProps, NetworkProgramProps } from "@/lib/types";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
-import { REWARD_EVENTS } from "@/ui/partners/constants";
-import { formatDiscountDescription } from "@/ui/partners/format-discount-description";
-import { formatRewardDescription } from "@/ui/partners/format-reward-description";
 import { BLOCK_COMPONENTS } from "@/ui/partners/lander/blocks";
 import { LanderHero } from "@/ui/partners/lander/lander-hero";
 import { LanderRewards } from "@/ui/partners/lander/lander-rewards";
 import { ProgramNetworkStatusBadges } from "@/ui/partners/partner-status-badges";
 import { useProgramApplicationSheet } from "@/ui/partners/program-application-sheet";
 import { ProgramCategory } from "@/ui/partners/program-network/program-category";
-import { ProgramRewardIcon } from "@/ui/partners/program-network/program-reward-icon";
+import { ProgramRewardsDisplay } from "@/ui/partners/program-network/program-rewards-display";
 import {
   Button,
   ChevronRight,
-  Gift,
   Shop,
   StatusBadge,
   Tooltip,
@@ -186,7 +182,7 @@ export function MarketplaceProgramPageClient() {
                 <img
                   src={program.logo || `${OG_AVATAR_URL}${program.name}`}
                   alt={program.name}
-                  className="size-16 rounded-full border-2 border-white/20"
+                  className="size-16 rounded-full border border-white/20"
                 />
               ) : (
                 <div className="size-16 animate-pulse rounded-full bg-neutral-200" />
@@ -225,25 +221,13 @@ export function MarketplaceProgramPageClient() {
                   >
                     Rewards
                   </span>
-                  <div className="mt-1 flex items-center gap-1.5">
-                    {program.rewards?.map((reward) => (
-                      <ProgramRewardIcon
-                        key={reward.id}
-                        icon={REWARD_EVENTS[reward.event].icon}
-                        description={formatRewardDescription(reward)}
-                        className={cn(isDarkImage && "text-content-inverted")}
-                      />
-                    ))}
-                    {program.discount && (
-                      <ProgramRewardIcon
-                        icon={Gift}
-                        description={formatDiscountDescription(
-                          program.discount,
-                        )}
-                        className={cn(isDarkImage && "text-content-inverted")}
-                      />
-                    )}
-                  </div>
+                  <ProgramRewardsDisplay
+                    rewards={program.rewards}
+                    discount={program.discount}
+                    isDarkImage={isDarkImage}
+                    className="mt-1"
+                    descriptionClassName="max-w-[240px]"
+                  />
                 </div>
               )}
               {Boolean(program.categories?.length) && (
