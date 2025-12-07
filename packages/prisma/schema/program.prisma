@@ -190,26 +190,3 @@ model ProgramApplication {
   @@index(groupId)
   @@index(email)
 }
-
-enum Category {
-  Artificial_Intelligence
-  Development
-  Design
-  Productivity
-  Finance
-  Marketing
-  Ecommerce
-  Security
-  Education
-  Health
-  Consumer
-}
-
-model ProgramCategory {
-  programId String
-  category  Category
-
-  program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
-
-  @@unique([programId, category])
-}

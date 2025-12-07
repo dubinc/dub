@@ -211,21 +211,17 @@ export function FeaturedProgramCard({
 
   return (
     <div
-      className={cn(
-        "border-border-subtle relative h-full overflow-hidden rounded-xl border p-6",
-        program?.id &&
-          "cursor-pointer border-transparent bg-black hover:drop-shadow-sm",
-      )}
+      className="border-border-subtle relative h-full cursor-pointer overflow-hidden rounded-xl border p-6"
       {...getClickHandlers(url, router)}
     >
       {program?.marketplaceHeaderImage && (
         <>
           <img
             src={program.marketplaceHeaderImage}
-            alt=""
+            alt={program.name}
             className="absolute inset-0 size-full object-cover opacity-80"
           />
-          <div className="absolute inset-0 backdrop-blur-sm [mask-image:linear-gradient(transparent_10%,black)]" />
+          <div className="absolute inset-0" />
         </>
       )}
 

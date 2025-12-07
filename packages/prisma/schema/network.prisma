@@ -1,3 +1,65 @@
+enum Category {
+  Artificial_Intelligence
+  Development
+  Design
+  Productivity
+  Finance
+  Marketing
+  Ecommerce
+  Security
+  Education
+  Health
+  Consumer
+  // Prediction_Markets
+}
+
+model ProgramCategory {
+  programId String
+  category  Category
+
+  program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
+
+  @@unique([programId, category])
+}
+
+model ProgramSimilarity {
+  id                         String @id @default(cuid())
+  programId                  String
+  similarProgramId           String
+  similarityScore            Float
+  categorySimilarityScore    Float
+  partnerSimilarityScore     Float
+  performanceSimilarityScore Float
+
+  program        Program @relation(fields: [programId], references: [id], onDelete: Cascade)
+  similarProgram Program @relation("SimilarProgram", fields: [similarProgramId], references: [id], onDelete: Cascade)
+
+  @@unique([programId, similarProgramId])
+  @@index([programId, similarityScore])
+  @@index(similarProgramId)
+}
+
+model DiscoveredPartner {
+  id        String @id @default(cuid())
+  programId String
+  partnerId String
+
+  starredAt  DateTime?
+  ignoredAt  DateTime?
+  invitedAt  DateTime?
+  messagedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
+  partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+
+  @@unique([programId, partnerId])
+  @@index(partnerId)
+}
+
+// TODO: remove after we refactor all partner.industryInterests to use programCategory instead
 enum IndustryInterest {
   SaaS
   DevTool
@@ -23,41 +85,4 @@ enum IndustryInterest {
   Entertainment_And_Media
   Sports
   Science_And_Engineering
-}
-
-model DiscoveredPartner {
-  id        String @id @default(cuid())
-  programId String
-  partnerId String
-
-  starredAt  DateTime?
-  ignoredAt  DateTime?
-  invitedAt  DateTime?
-  messagedAt DateTime?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
-  partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
-
-  @@unique([programId, partnerId])
-  @@index(partnerId)
-}
-
-model ProgramSimilarity {
-  id                         String @id @default(cuid())
-  programId                  String
-  similarProgramId           String
-  similarityScore            Float
-  categorySimilarityScore    Float
-  partnerSimilarityScore     Float
-  performanceSimilarityScore Float
-
-  program        Program @relation(fields: [programId], references: [id], onDelete: Cascade)
-  similarProgram Program @relation("SimilarProgram", fields: [similarProgramId], references: [id], onDelete: Cascade)
-
-  @@unique([programId, similarProgramId])
-  @@index([programId, similarityScore])
-  @@index(similarProgramId)
 }
