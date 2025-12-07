@@ -19,14 +19,13 @@ import {
   Button,
   ChevronRight,
   Gift,
-  Link4,
   Shop,
   StatusBadge,
   Tooltip,
   buttonVariants,
   useKeyboardShortcut,
 } from "@dub/ui";
-import { OG_AVATAR_URL, cn, fetcher, getPrettyUrl } from "@dub/utils";
+import { OG_AVATAR_URL, cn, fetcher } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -36,7 +35,7 @@ import useSWR from "swr";
 export function MarketplaceProgramPageClient() {
   const { programSlug } = useParams();
 
-  const { data: program, error } = useSWR<NetworkProgramExtendedProps>(
+  const { data: program } = useSWR<NetworkProgramExtendedProps>(
     programSlug ? `/api/network/programs/${programSlug}` : null,
     fetcher,
     {
@@ -47,6 +46,22 @@ export function MarketplaceProgramPageClient() {
   const statusBadge = program?.status
     ? ProgramNetworkStatusBadges[program.status]
     : null;
+
+  if (!program)
+    return (
+      <PageContent>
+        <PageWidthWrapper className="mb-10">
+          <div className="mx-auto mt-10 w-full max-w-screen-sm">
+            <div className="h-9 w-48 animate-pulse rounded bg-neutral-200" />
+            <div className="mt-1 h-6 w-24 animate-pulse rounded bg-neutral-200" />
+            <div className="mt-4 h-6 w-24 animate-pulse rounded bg-neutral-200" />
+            <div className="mt-4 h-6 w-24 animate-pulse rounded bg-neutral-200" />
+          </div>
+        </PageWidthWrapper>
+      </PageContent>
+    );
+
+  const isDarkImage = program.marketplaceHeaderImage?.includes("dark");
 
   return (
     <PageContent
@@ -96,137 +111,163 @@ export function MarketplaceProgramPageClient() {
         )
       }
     >
-      <PageWidthWrapper className="mb-10">
-        <div className="mx-auto mt-10 w-full max-w-screen-sm">
-          {program ? (
-            <img
-              src={program.logo || `${OG_AVATAR_URL}${program.name}`}
-              alt={program.name}
-              className="size-20 rounded-full"
-            />
-          ) : (
-            <div className="size-20 animate-pulse rounded-full bg-neutral-200" />
-          )}
+      <PageWidthWrapper>
+        <div className="relative">
+          {program.featuredOnMarketplaceAt &&
+            program.marketplaceHeaderImage && (
+              <img
+                src={program.marketplaceHeaderImage}
+                alt={program.name}
+                className="border-border-subtle absolute inset-0 size-full overflow-hidden rounded-xl border object-cover"
+              />
+            )}
+          <div className="relative mx-auto max-w-screen-md p-8">
+            <div className="flex items-start justify-between gap-4">
+              {program ? (
+                <img
+                  src={program.logo || `${OG_AVATAR_URL}${program.name}`}
+                  alt={program.name}
+                  className="size-16 rounded-full border-2 border-white/20"
+                />
+              ) : (
+                <div className="size-16 animate-pulse rounded-full bg-neutral-200" />
+              )}
+            </div>
 
-          <div className="mt-6 flex flex-col">
-            {program ? (
-              <span className="text-content-emphasis text-3xl font-semibold">
+            <div className="mt-6 flex flex-col">
+              <span
+                className={cn(
+                  "text-3xl font-semibold",
+                  isDarkImage && "text-content-inverted",
+                )}
+              >
                 {program.name}
               </span>
-            ) : (
-              <div className="h-9 w-48 animate-pulse rounded bg-neutral-200" />
-            )}
 
-            <div className="text-content-default mt-1 flex items-center gap-1">
-              <Link4 className="size-3.5" />
-              {program ? (
-                <a
-                  href={program.url || `https://${program.domain}`}
-                  target="_blank"
-                  rel="noreferrer noopener"
-                  className="text-sm font-medium"
-                >
-                  {getPrettyUrl(program.url) || program.domain}
-                </a>
-              ) : (
-                <div className="h-4 w-24 animate-pulse rounded bg-neutral-200" />
+              <div
+                className={cn(
+                  "mt-2 flex max-w-md items-center gap-1",
+                  isDarkImage && "text-content-inverted/90",
+                )}
+              >
+                {program.name} is a program in the Dub Partner Network. Join the
+                network to start partnering with them.
+              </div>
+            </div>
+
+            <div className="mt-6 flex gap-8">
+              {Boolean(program.rewards?.length || program.discount) && (
+                <div>
+                  <span
+                    className={cn(
+                      "block text-xs font-medium",
+                      isDarkImage && "text-content-inverted/70",
+                    )}
+                  >
+                    Rewards
+                  </span>
+                  <div className="mt-1 flex items-center gap-1.5">
+                    {program.rewards?.map((reward) => (
+                      <ProgramRewardIcon
+                        key={reward.id}
+                        icon={REWARD_EVENTS[reward.event].icon}
+                        description={formatRewardDescription(reward)}
+                        className={cn(isDarkImage && "text-content-inverted")}
+                      />
+                    ))}
+                    {program.discount && (
+                      <ProgramRewardIcon
+                        icon={Gift}
+                        description={formatDiscountDescription(
+                          program.discount,
+                        )}
+                        className={cn(isDarkImage && "text-content-inverted")}
+                      />
+                    )}
+                  </div>
+                </div>
+              )}
+              {Boolean(program.categories?.length) && (
+                <div className="min-w-0">
+                  <span
+                    className={cn(
+                      "block text-xs font-medium",
+                      isDarkImage && "text-content-inverted/70",
+                    )}
+                  >
+                    Category
+                  </span>
+                  <div className="mt-1 flex items-center gap-1.5">
+                    {program.categories
+                      .slice(0, 1)
+                      ?.map((category) => (
+                        <ProgramCategory
+                          key={category}
+                          category={category}
+                          className={cn(isDarkImage && "text-content-inverted")}
+                        />
+                      ))}
+                    {program.categories.length > 1 && (
+                      <Tooltip
+                        content={
+                          <div className="flex flex-col gap-0.5 p-2">
+                            {program.categories.slice(1).map((category) => (
+                              <ProgramCategory
+                                key={category}
+                                category={category}
+                                className={cn(
+                                  isDarkImage && "text-content-inverted",
+                                )}
+                              />
+                            ))}
+                          </div>
+                        }
+                      >
+                        <div
+                          className={cn(
+                            "-ml-1.5 flex size-6 items-center justify-center rounded-md text-xs font-medium",
+                            isDarkImage && "text-content-inverted/70",
+                          )}
+                        >
+                          +{program.categories.length - 1}
+                        </div>
+                      </Tooltip>
+                    )}
+                  </div>
+                </div>
               )}
             </div>
           </div>
+        </div>
 
-          <div className="mt-6 flex gap-8">
-            {program ? (
-              <>
-                {Boolean(program?.rewards?.length || program?.discount) && (
-                  <div>
-                    <span className="text-content-muted block text-xs font-medium">
-                      Rewards
-                    </span>
-                    <div className="mt-1 flex items-center gap-1.5">
-                      {program.rewards?.map((reward) => (
-                        <ProgramRewardIcon
-                          key={reward.id}
-                          icon={REWARD_EVENTS[reward.event].icon}
-                          description={formatRewardDescription(reward)}
-                        />
-                      ))}
-                      {program.discount && (
-                        <ProgramRewardIcon
-                          icon={Gift}
-                          description={formatDiscountDescription(
-                            program.discount,
-                          )}
-                        />
-                      )}
-                    </div>
-                  </div>
-                )}
-                {Boolean(program?.categories?.length) && (
-                  <div className="min-w-0">
-                    <span className="text-content-muted block text-xs font-medium">
-                      Industry
-                    </span>
-                    <div className="mt-1 flex items-center gap-1.5">
-                      {program.categories
-                        .slice(0, 1)
-                        ?.map((category) => (
-                          <ProgramCategory key={category} category={category} />
-                        ))}
-                      {program.categories.length > 1 && (
-                        <Tooltip
-                          content={
-                            <div className="flex flex-col gap-0.5 p-2">
-                              {program.categories.slice(1).map((category) => (
-                                <ProgramCategory
-                                  key={category}
-                                  category={category}
-                                />
-                              ))}
-                            </div>
-                          }
-                        >
-                          <div className="text-content-subtle -ml-1.5 flex size-6 items-center justify-center rounded-md text-xs font-medium">
-                            +{program.categories.length - 1}
-                          </div>
-                        </Tooltip>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </>
-            ) : (
-              <div>
-                <div className="h-3.5 w-12 animate-pulse rounded bg-neutral-200" />
-                <div className="mt-1 h-6 w-24 animate-pulse rounded bg-neutral-200" />
-              </div>
-            )}
-          </div>
+        <div className="mx-auto max-w-screen-md">
+          <LanderHero
+            program={program}
+            landerData={program.landerData || {}}
+            showLabel={false}
+            className="mt-8 sm:mt-8"
+            heading="h2"
+            titleClassName="text-2xl"
+          />
 
-          {program && (
-            <div>
-              <LanderHero
-                program={program}
-                landerData={program.landerData || {}}
-                showLabel={false}
-                className="mt-8 sm:mt-8"
-              />
+          <LanderRewards
+            className="mt-4"
+            rewards={program.rewards || []}
+            discount={program.discount || null}
+          />
 
-              <LanderRewards
-                className="mt-4"
-                rewards={program.rewards || []}
-                discount={program.discount || null}
-              />
-
-              {program.landerData && (
-                <div className="mt-16 grid grid-cols-1 gap-10">
-                  {program.landerData.blocks.map((block, idx) => {
-                    const Component = BLOCK_COMPONENTS[block.type];
-                    return Component ? (
-                      <Component key={idx} block={block} program={program} />
-                    ) : null;
-                  })}
-                </div>
-              )}
+          {program.landerData && (
+            <div className="mt-16 grid grid-cols-1 gap-10">
+              {program.landerData.blocks.map((block, idx) => {
+                const Component = BLOCK_COMPONENTS[block.type];
+                return Component ? (
+                  <Component
+                    key={idx}
+                    block={block}
+                    group={{ logo: program.logo }}
+                  />
+                ) : null;
+              })}
             </div>
           )}
         </div>
