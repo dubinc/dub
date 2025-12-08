@@ -17,14 +17,29 @@ In the Custom HTML section, you’ll need to add the Dub client-side script. Cop
 <!-- prettier-ignore -->
 ```html
 <script>
-  var script = document.createElement("script");
-  script.defer = true;
-  script.src = "https://www.dubcdn.com/analytics/script.js";
-  document.getElementsByTagName("head")[0].appendChild(script);
+  (function (c, n) {
+    c[n] =
+      c[n] ||
+      function () {
+        (c[n].q = c[n].q || []).push(arguments);
+      };
+    var methods = ["trackClick", "trackLead", "trackSale"];
+    for (var i = 0; i < methods.length; i++) {
+      (function (method) {
+        c[n][method] = function () {
+          var args = Array.prototype.slice.call(arguments);
+          args.unshift(method);
+          c[n].apply(null, args);
+        };
+      })(methods[i]);
+    }
+    var s = document.createElement("script");
+    s.defer = 1;
+    s.src = "https://www.dubcdn.com/analytics/script.js";
+    document.head.appendChild(s);
+  })(window, "dubAnalytics");
 </script>
 ```
-
-![Dub GTM add script](https://mintlify.s3.us-west-1.amazonaws.com/dub/images/conversions/google-tag-manager/gtm-add-dub-script.png)
 
 ## Step 3: Configure the Trigger
 

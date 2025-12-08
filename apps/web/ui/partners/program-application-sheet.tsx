@@ -177,7 +177,7 @@ function ProgramApplicationSheetContent({
                     rel="noopener noreferrer"
                     className="text-[var(--brand)] underline hover:opacity-80"
                   >
-                    {program.name} Affiliate Program Terms ↗
+                    {program.name} Program Terms ↗
                   </a>
                 </label>
               </div>
