@@ -85,6 +85,9 @@ export async function accountUpdated(event: Stripe.Event) {
       prisma.partner.count({
         where: {
           payoutMethodHash,
+          id: {
+            not: partner.id,
+          },
         },
       }),
 
