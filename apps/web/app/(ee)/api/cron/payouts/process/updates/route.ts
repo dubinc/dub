@@ -21,18 +21,24 @@ const BATCH_SIZE = 100;
 // POST /api/cron/payouts/process/updates
 // Recursive cron job to handle side effects of the `cron/payouts/process` job (recordAuditLog, sendBatchEmails)
 export async function POST(req: Request) {
+  const startTime = performance.now();
+  const timings: Record<string, number> = {};
+
   try {
     const rawBody = await req.text();
 
+    const t0 = performance.now();
     await verifyQstashSignature({
       req,
       rawBody,
     });
+    timings.qstashVerification = performance.now() - t0;
 
     const { invoiceId, startingAfter } = payloadSchema.parse(
       JSON.parse(rawBody),
     );
 
+    const t1 = performance.now();
     const payouts = await prisma.payout.findMany({
       where: {
         invoiceId,
@@ -53,6 +59,7 @@ export async function POST(req: Request) {
         id: "asc",
       },
     });
+    timings.prismaQuery = performance.now() - t1;
 
     if (payouts.length === 0) {
       return logAndRespond(
@@ -60,6 +67,7 @@ export async function POST(req: Request) {
       );
     }
 
+    const t2 = performance.now();
     const auditLogResponse = await recordAuditLog(
       payouts.map((p) => {
         const { program, partner, invoice, ...payout } = p;
@@ -81,6 +89,7 @@ export async function POST(req: Request) {
         };
       }),
     );
+    timings.auditLog = performance.now() - t2;
     console.log(JSON.stringify({ auditLogResponse }, null, 2));
 
     const invoice = payouts[0].invoice;
@@ -92,6 +101,7 @@ export async function POST(req: Request) {
       invoice.paymentMethod !== "card" &&
       internalPayouts.length > 0
     ) {
+      const t3 = performance.now();
       const batchEmailResponse = await sendBatchEmail(
         internalPayouts.map((payout) => ({
           to: payout.partner.email!,
@@ -117,8 +127,27 @@ export async function POST(req: Request) {
           }),
         })),
       );
+      timings.resendBatchApi = performance.now() - t3;
       console.log(JSON.stringify({ batchEmailResponse }, null, 2));
     }
+
+    console.log(
+      JSON.stringify(
+        {
+          timings: {
+            totalMs: Math.round((performance.now() - startTime) * 100) / 100,
+            qstashVerificationMs:
+              Math.round(timings.qstashVerification * 100) / 100,
+            auditLogMs: Math.round(timings.auditLog * 100) / 100,
+            resendBatchApiMs: timings.resendBatchApi
+              ? Math.round(timings.resendBatchApi * 100) / 100
+              : null,
+          },
+        },
+        null,
+        2,
+      ),
+    );
 
     if (payouts.length === BATCH_SIZE) {
       const nextStartingAfter = payouts[payouts.length - 1].id;
