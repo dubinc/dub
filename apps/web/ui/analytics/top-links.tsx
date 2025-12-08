@@ -53,7 +53,7 @@ const TAB_CONFIG: Record<
   },
 };
 
-export function TopLinks({ filterLinks = true }: { filterLinks?: boolean }) {
+export function TopLinks() {
   const { queryParams, searchParams } = useRouterStuff();
 
   const { selectedTab, saleUnit, adminPage, partnerPage, dashboardProps } =
@@ -172,58 +172,56 @@ export function TopLinks({ filterLinks = true }: { filterLinks?: boolean }) {
 
                     // Determine href
                     let href: string | undefined;
-                    if (filterLinks) {
-                      if (isLinksSubtab) {
-                        const hasLinkFilter =
-                          searchParams.has("domain") && searchParams.has("key");
-                        href = queryParams({
-                          ...(hasLinkFilter
-                            ? { del: ["domain", "key"] }
-                            : {
-                                set: {
-                                  domain: d.domain,
-                                  key: d.key || "_root",
-                                },
-                              }),
-                          getNewPath: true,
-                        }) as string;
-                      } else if (isUrlsTab) {
-                        const hasUrlFilter = searchParams.has("url");
-                        href = queryParams({
-                          ...(hasUrlFilter
-                            ? { del: "url" }
-                            : {
-                                set: {
-                                  url: d.url,
-                                },
-                              }),
-                          getNewPath: true,
-                        }) as string;
-                      } else if (isFoldersSubtab) {
-                        const hasFolderFilter = searchParams.has("folderId");
-                        href = queryParams({
-                          ...(hasFolderFilter
-                            ? { del: "folderId" }
-                            : {
-                                set: {
-                                  folderId: d.folderId,
-                                },
-                              }),
-                          getNewPath: true,
-                        }) as string;
-                      } else if (isTagsSubtab) {
-                        const hasTagFilter = searchParams.has("tagIds");
-                        href = queryParams({
-                          ...(hasTagFilter
-                            ? { del: "tagIds" }
-                            : {
-                                set: {
-                                  tagIds: d.tagId,
-                                },
-                              }),
-                          getNewPath: true,
-                        }) as string;
-                      }
+                    if (isLinksSubtab) {
+                      const hasLinkFilter =
+                        searchParams.has("domain") && searchParams.has("key");
+                      href = queryParams({
+                        ...(hasLinkFilter
+                          ? { del: ["domain", "key"] }
+                          : {
+                              set: {
+                                domain: d.domain,
+                                key: d.key || "_root",
+                              },
+                            }),
+                        getNewPath: true,
+                      }) as string;
+                    } else if (isUrlsTab && subtab === "base_urls") {
+                      const hasUrlFilter = searchParams.has("url");
+                      href = queryParams({
+                        ...(hasUrlFilter
+                          ? { del: "url" }
+                          : {
+                              set: {
+                                url: d.url,
+                              },
+                            }),
+                        getNewPath: true,
+                      }) as string;
+                    } else if (isFoldersSubtab) {
+                      const hasFolderFilter = searchParams.has("folderId");
+                      href = queryParams({
+                        ...(hasFolderFilter
+                          ? { del: "folderId" }
+                          : {
+                              set: {
+                                folderId: d.folderId,
+                              },
+                            }),
+                        getNewPath: true,
+                      }) as string;
+                    } else if (isTagsSubtab) {
+                      const hasTagFilter = searchParams.has("tagIds");
+                      href = queryParams({
+                        ...(hasTagFilter
+                          ? { del: "tagIds" }
+                          : {
+                              set: {
+                                tagIds: d.tagId,
+                              },
+                            }),
+                        getNewPath: true,
+                      }) as string;
                     }
 
                     return {

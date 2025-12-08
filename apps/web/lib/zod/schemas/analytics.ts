@@ -195,7 +195,7 @@ export const analyticsQuerySchema = z
     referer: z
       .string()
       .optional()
-      .describe("The referer to retrieve analytics for.")
+      .describe("The referer hostname to retrieve analytics for.")
       .openapi({ example: "google.com" }),
     refererUrl: z
       .string()

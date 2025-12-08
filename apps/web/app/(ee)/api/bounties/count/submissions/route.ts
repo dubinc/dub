@@ -7,6 +7,8 @@ import { z } from "zod";
 
 const bountiesSubmissionsCountQuerySchema = z.object({
   bountyId: z.string().optional(),
+  groupId: z.string().optional(),
+  partnerId: z.string().optional(),
 });
 
 const statuses = Object.values(BountySubmissionStatus);
@@ -15,7 +17,7 @@ const statuses = Object.values(BountySubmissionStatus);
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
-    const { bountyId } =
+    const { bountyId, groupId, partnerId } =
       bountiesSubmissionsCountQuerySchema.parse(searchParams);
 
     const count = await prisma.bountySubmission.groupBy({
@@ -23,6 +25,14 @@ export const GET = withWorkspace(
       where: {
         programId,
         bountyId,
+        ...(groupId && {
+          programEnrollment: {
+            groupId,
+          },
+        }),
+        ...(partnerId && {
+          partnerId,
+        }),
       },
       _count: true,
     });

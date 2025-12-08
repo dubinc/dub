@@ -1,74 +1,71 @@
 import { CreateFraudEventInput } from "@/lib/types";
+import { INACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
-import { FraudRuleType } from "@dub/prisma/client";
+import { FraudRuleType, ProgramEnrollment } from "@dub/prisma/client";
 import { createFraudEvents } from "./create-fraud-events";
 
 // Check for duplicate payout methods: if multiple partners share the same payout method hash,
 // create fraud events for all their active program enrollments to flag potential fraud
 export async function detectDuplicatePayoutMethodFraud(
   payoutMethodHash: string,
-) {
+): Promise<void> {
   if (!payoutMethodHash) {
-    return {
-      isPayoutMethodDuplicate: false,
-      duplicatePartners: [],
-    };
+    return;
   }
 
-  //  Find all partners using this payout method with their program enrollments
-  const duplicatePartners = await prisma.partner.findMany({
+  const programEnrollments = await prisma.programEnrollment.findMany({
     where: {
-      payoutMethodHash,
+      partner: {
+        payoutMethodHash,
+      },
     },
     select: {
-      id: true,
-      email: true,
-      stripeConnectId: true,
-      programs: {
-        select: {
-          programId: true,
-        },
-      },
+      programId: true,
+      partnerId: true,
+      status: true,
     },
   });
 
-  if (duplicatePartners.length <= 1) {
-    return {
-      isPayoutMethodDuplicate: false,
-      duplicatePartners: [],
-    };
+  if (programEnrollments.length === 0) {
+    return;
   }
 
-  //  Group program enrollments by programId
-  const partnersByProgram = new Map<string, string[]>();
-
-  for (const partner of duplicatePartners) {
-    for (const { programId } of partner.programs) {
-      const list = partnersByProgram.get(programId) ?? [];
-      list.push(partner.id);
-      partnersByProgram.set(programId, list);
+  // Group partners by program enrollment
+  let partnersByProgram = programEnrollments.reduce((map, e) => {
+    if (!map.has(e.programId)) {
+      map.set(e.programId, []);
     }
+    map.get(e.programId)!.push({ partnerId: e.partnerId, status: e.status });
+    return map;
+  }, new Map<string, Pick<ProgramEnrollment, "partnerId" | "status">[]>());
+
+  // Filter out programs with only one partner
+  partnersByProgram = new Map(
+    Array.from(partnersByProgram.entries()).filter(
+      ([_, partners]) => partners.length > 1,
+    ),
+  );
+
+  if (partnersByProgram.size === 0) {
+    return;
   }
 
-  // Generate fraud events (only when both accounts are enrolled in the same program)
   const fraudEvents: CreateFraudEventInput[] = [];
 
-  for (const partner of duplicatePartners) {
-    for (const { programId } of partner.programs) {
-      const enrolledPartners = partnersByProgram.get(programId) ?? [];
+  for (const [programId, partners] of partnersByProgram.entries()) {
+    for (const sourcePartner of partners) {
+      if (INACTIVE_ENROLLMENT_STATUSES.includes(sourcePartner.status)) {
+        continue;
+      }
 
-      // Only create events if there are multiple partners with same payout method in this program
-      if (enrolledPartners.length <= 1) continue;
-
-      // Create events for each enrolled partner (including self)
-      for (const enrolledPartner of enrolledPartners) {
+      for (const enrolledPartner of partners) {
         fraudEvents.push({
           programId,
-          partnerId: partner.id,
+          partnerId: sourcePartner.partnerId,
           type: FraudRuleType.partnerDuplicatePayoutMethod,
           metadata: {
             payoutMethodHash,
-            duplicatePartnerId: enrolledPartner,
+            duplicatePartnerId: enrolledPartner.partnerId,
           },
         });
       }
@@ -76,12 +73,4 @@ export async function detectDuplicatePayoutMethodFraud(
   }
 
   await createFraudEvents(fraudEvents);
-
-  return {
-    isPayoutMethodDuplicate: true,
-    duplicatePartners: duplicatePartners.map(({ id, email }) => ({
-      id,
-      email,
-    })),
-  };
 }

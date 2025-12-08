@@ -1,7 +1,7 @@
 import { detectDuplicatePayoutMethodFraud } from "@/lib/api/fraud/detect-duplicate-payout-method-fraud";
 import { qstash } from "@/lib/cron";
 import { stripe } from "@/lib/stripe";
-import { sendBatchEmail, sendEmail } from "@dub/email";
+import { sendEmail } from "@dub/email";
 import ConnectedPayoutMethod from "@dub/email/templates/connected-payout-method";
 import DuplicatePayoutMethod from "@dub/email/templates/duplicate-payout-method";
 import { prisma } from "@dub/prisma";
@@ -81,14 +81,24 @@ export async function accountUpdated(event: Stripe.Event) {
   });
 
   if (payoutMethodHash) {
-    const { isPayoutMethodDuplicate, duplicatePartners } =
-      await detectDuplicatePayoutMethodFraud(payoutMethodHash);
+    const [duplicatePartnersCount, _] = await Promise.all([
+      prisma.partner.count({
+        where: {
+          payoutMethodHash,
+          id: {
+            not: partner.id,
+          },
+        },
+      }),
 
-    // Send confirmation email only if this is the first time connecting a bank account and no fraud detected
+      detectDuplicatePayoutMethodFraud(payoutMethodHash),
+    ]);
+
+    // Send confirmation email only if this is the first time connecting a bank account
     if (
+      duplicatePartnersCount === 0 &&
       partner.email &&
       !partner.payoutsEnabledAt &&
-      !isPayoutMethodDuplicate &&
       defaultExternalAccount.object === "bank_account"
     ) {
       await sendEmail({
@@ -107,28 +117,26 @@ export async function accountUpdated(event: Stripe.Event) {
       });
     }
 
-    // Notify all partners using the same bank account about duplicate payout method
+    // Notify the partner about duplicate payout method
     if (
-      isPayoutMethodDuplicate &&
-      duplicatePartners.length > 0 &&
+      duplicatePartnersCount > 0 &&
+      partner.email &&
       defaultExternalAccount.object === "bank_account"
     ) {
-      await sendBatchEmail(
-        duplicatePartners.map((partner) => ({
-          variant: "notifications",
-          subject: "Duplicate payout method detected",
-          to: partner.email!,
-          react: DuplicatePayoutMethod({
-            email: partner.email!,
-            payoutMethod: {
-              account_holder_name: defaultExternalAccount.account_holder_name,
-              bank_name: defaultExternalAccount.bank_name,
-              last4: defaultExternalAccount.last4,
-              routing_number: defaultExternalAccount.routing_number,
-            },
-          }),
-        })),
-      );
+      await sendEmail({
+        variant: "notifications",
+        subject: "Duplicate payout method detected",
+        to: partner.email,
+        react: DuplicatePayoutMethod({
+          email: partner.email,
+          payoutMethod: {
+            account_holder_name: defaultExternalAccount.account_holder_name,
+            bank_name: defaultExternalAccount.bank_name,
+            last4: defaultExternalAccount.last4,
+            routing_number: defaultExternalAccount.routing_number,
+          },
+        }),
+      });
     }
   }
 

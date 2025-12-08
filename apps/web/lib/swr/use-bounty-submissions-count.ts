@@ -11,8 +11,10 @@ export interface SubmissionsCountByStatus {
 }
 
 export function useBountySubmissionsCount<T>({
+  ignoreParams,
   enabled = true,
 }: {
+  ignoreParams?: boolean;
   enabled?: boolean;
 } = {}) {
   const { bountyId } = useParams();
@@ -22,10 +24,13 @@ export function useBountySubmissionsCount<T>({
   const { data: submissionsCount, error } = useSWR<T>(
     enabled &&
       workspaceId &&
-      `/api/bounties/count/submissions${getQueryString({
-        workspaceId,
-        ...(bountyId ? { bountyId } : {}),
-      })}`,
+      `/api/bounties/count/submissions${getQueryString(
+        {
+          workspaceId,
+          ...(bountyId ? { bountyId } : {}),
+        },
+        ignoreParams ? { include: [] } : undefined,
+      )}`,
     fetcher,
     {
       keepPreviousData: true,

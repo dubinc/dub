@@ -160,9 +160,10 @@ export const rejectBountySubmissionSchema = z.object({
 
 export const getBountySubmissionsQuerySchema = z
   .object({
-    sortBy: z.enum(["completedAt", "performanceCount"]).default("completedAt"),
-    sortOrder: z.enum(["asc", "desc"]).default("asc"),
     status: z.nativeEnum(BountySubmissionStatus).optional(),
     groupId: z.string().optional(),
+    partnerId: z.string().optional(),
+    sortBy: z.enum(["completedAt", "performanceCount"]).default("completedAt"),
+    sortOrder: z.enum(["asc", "desc"]).default("asc"),
   })
   .merge(getPaginationQuerySchema({ pageSize: 100 }));

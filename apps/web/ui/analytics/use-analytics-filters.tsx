@@ -271,7 +271,7 @@ export function useAnalyticsFilters({
     omitGroupByFilterKey: true,
     context,
   });
-  const { data: urls } = useAnalyticsFilterOption("top_urls", {
+  const { data: baseUrls } = useAnalyticsFilterOption("top_base_urls", {
     disabled: !isRequested("url"),
     omitGroupByFilterKey: true,
     context,
@@ -721,7 +721,7 @@ export function useAnalyticsFilters({
                 />
               ),
               options:
-                urls?.map(({ url, ...rest }) => ({
+                baseUrls?.map(({ url, ...rest }) => ({
                   value: url,
                   label: url.replace(/^https?:\/\//, "").replace(/\/$/, ""),
                   right: getFilterOptionTotal(rest),
@@ -813,7 +813,7 @@ export function useAnalyticsFilters({
       os,
       referers,
       refererUrls,
-      urls,
+      baseUrls,
       utmData,
       searchParamsObj.tagIds,
       searchParamsObj.domain,
