@@ -4,8 +4,7 @@ import { IntegrationHarness } from "../utils/integration";
 
 describe.concurrent("/commissions/** - pagination", async () => {
   const h = new IntegrationHarness();
-  const { http } = await h.init();
-
+  let http: IntegrationHarness["http"];
   let baseline: CommissionResponse[];
   let baselineIds: string[];
 
@@ -16,6 +15,8 @@ describe.concurrent("/commissions/** - pagination", async () => {
   };
 
   beforeAll(async () => {
+    ({ http } = await h.init());
+
     const { status, data } = await http.get<CommissionResponse[]>({
       path: "/commissions",
       query: { ...commonQuery, pageSize: "25" },

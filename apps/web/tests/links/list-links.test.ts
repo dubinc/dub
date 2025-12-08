@@ -43,8 +43,7 @@ test("GET /links", async (ctx) => {
 
 describe.concurrent("/links/** - pagination", async () => {
   const h = new IntegrationHarness();
-  const { http } = await h.init();
-
+  let http: IntegrationHarness["http"];
   let baseline: Link[];
   let baselineIds: string[];
 
@@ -55,6 +54,8 @@ describe.concurrent("/links/** - pagination", async () => {
   };
 
   beforeAll(async () => {
+    ({ http } = await h.init());
+
     const { status, data } = await http.get<Link[]>({
       path: "/links",
       query: { ...commonQuery, pageSize: "25" },
