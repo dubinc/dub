@@ -184,9 +184,7 @@ export function BountyCardSkeleton() {
   return (
     <div className="border-border-subtle rounded-xl border bg-white p-2">
       <div className="flex flex-col gap-3.5">
-        <div className="relative flex h-[124px] items-center justify-center rounded-lg bg-neutral-100 py-3">
-          <div className="h-full w-full animate-pulse rounded bg-neutral-200" />
-        </div>
+        <div className="relative flex h-[124px] animate-pulse items-center justify-center rounded-lg bg-neutral-200" />
         <div className="flex flex-col gap-1.5 px-2 pb-1.5">
           <div className="h-5 w-48 animate-pulse rounded bg-neutral-200" />
           <div className="flex h-5 items-center gap-2">
