@@ -187,7 +187,7 @@ export function FraudGroupTable() {
         },
       },
       {
-        id: "createdAt",
+        id: "lastEventAt",
         header: "Last Detected",
         size: 150,
         meta: {
