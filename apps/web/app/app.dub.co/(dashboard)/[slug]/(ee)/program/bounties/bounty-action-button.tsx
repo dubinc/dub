@@ -34,6 +34,7 @@ export function BountyActionButton({
   const { submissionsCount } = useBountySubmissionsCount<
     SubmissionsCountByStatus[]
   >({
+    ignoreParams: true,
     enabled: Boolean(bounty),
   });
   const totalSubmissions = useMemo(() => {

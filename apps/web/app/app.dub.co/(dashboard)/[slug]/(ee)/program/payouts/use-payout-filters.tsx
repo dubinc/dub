@@ -39,7 +39,7 @@ export function usePayoutFilters() {
               label: name,
               icon: (
                 <img
-                  src={image || `${OG_AVATAR_URL}${name}`}
+                  src={image || `${OG_AVATAR_URL}${id}`}
                   alt={`${name} image`}
                   className="size-4 rounded-full"
                 />

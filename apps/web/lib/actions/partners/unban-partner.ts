@@ -44,16 +44,10 @@ export const unbanPartnerAction = authActionClient
       throw new Error("This partner is not banned.");
     }
 
-    if (!programEnrollment.program.defaultGroupId) {
-      // this should never happen
-      throw new Error(
-        "Program does not have a default group ID. Please contact support.",
-      );
-    }
-
-    const defaultGroup = await getGroupOrThrow({
+    const partnerGroup = await getGroupOrThrow({
       programId,
-      groupId: programEnrollment.program.defaultGroupId,
+      groupId:
+        programEnrollment.groupId || programEnrollment.program.defaultGroupId,
     });
 
     await prisma.$transaction([
@@ -73,11 +67,10 @@ export const unbanPartnerAction = authActionClient
           status: "approved",
           bannedAt: null,
           bannedReason: null,
-          groupId: defaultGroup.id,
-          clickRewardId: defaultGroup.clickRewardId,
-          leadRewardId: defaultGroup.leadRewardId,
-          saleRewardId: defaultGroup.saleRewardId,
-          discountId: defaultGroup.discountId,
+          clickRewardId: partnerGroup.clickRewardId,
+          leadRewardId: partnerGroup.leadRewardId,
+          saleRewardId: partnerGroup.saleRewardId,
+          discountId: partnerGroup.discountId,
         },
       }),
 
