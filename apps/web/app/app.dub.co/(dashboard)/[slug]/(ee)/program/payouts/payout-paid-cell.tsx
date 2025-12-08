@@ -1,6 +1,8 @@
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
-import { Tooltip } from "@dub/ui";
-import { formatDate, formatDateTime, OG_AVATAR_URL } from "@dub/utils";
+import { CopyText, Tooltip } from "@dub/ui";
+import { CircleHalfDottedClock } from "@dub/ui/icons";
+import { formatDateSmart, formatDateTime, OG_AVATAR_URL } from "@dub/utils";
+import { addBusinessDays } from "date-fns";
 
 type PayoutPaidCellUser = {
   id?: string;
@@ -47,7 +49,12 @@ export function PayoutPaidCell({
             <ProcessingIcon className="size-3 shrink-0 text-blue-600" />
             <span>
               Payment initiated at{" "}
-              <span className="font-medium text-neutral-700">
+              <CopyText
+                value={formatDateTime(initiatedAt, {
+                  month: "short",
+                })}
+                className="text-xs font-medium text-neutral-700"
+              >
                 {formatDateTime(initiatedAt, {
                   month: "short",
                   day: "numeric",
@@ -55,23 +62,41 @@ export function PayoutPaidCell({
                   hour: "numeric",
                   minute: "numeric",
                 })}
-              </span>
+              </CopyText>
             </span>
           </div>
-          {paidAt && (
+          {paidAt ? (
             <div className="flex items-center gap-1.5 text-xs text-neutral-500">
               <CompletedIcon className="size-3 shrink-0 text-green-600" />
               <span>
                 Payment completed at{" "}
-                <span className="font-medium text-neutral-700">
+                <CopyText
+                  value={formatDateTime(paidAt, {
+                    month: "short",
+                  })}
+                  className="text-xs font-medium text-neutral-700"
+                >
                   {formatDateTime(paidAt, {
                     month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                    hour: "numeric",
-                    minute: "numeric",
                   })}
-                </span>
+                </CopyText>
+              </span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1.5 text-xs text-neutral-500">
+              <CircleHalfDottedClock className="size-3 shrink-0 text-amber-600" />
+              <span>
+                Expected to settle at{" "}
+                <CopyText
+                  value={formatDateTime(addBusinessDays(initiatedAt, 5), {
+                    month: "short",
+                  })}
+                  className="text-xs font-medium text-neutral-700"
+                >
+                  {formatDateTime(addBusinessDays(initiatedAt, 5), {
+                    month: "short",
+                  })}
+                </CopyText>
               </span>
             </div>
           )}
@@ -86,10 +111,20 @@ export function PayoutPaidCell({
             className="size-5 shrink-0 rounded-full"
           />
         )}
-        {formatDate(initiatedAt, {
-          month: "short",
-          year: undefined,
-        })}
+        {paidAt ? (
+          <span className="hover:text-content-emphasis underline decoration-dotted underline-offset-2">
+            {formatDateSmart(paidAt, {
+              month: "short",
+            })}
+          </span>
+        ) : (
+          <span className="hover:text-content-emphasis text-content-muted flex items-center gap-1 underline decoration-dotted underline-offset-2">
+            <CircleHalfDottedClock className="size-3.5 shrink-0" />{" "}
+            {formatDateSmart(initiatedAt, {
+              month: "short",
+            })}
+          </span>
+        )}
       </div>
     </Tooltip>
   );
