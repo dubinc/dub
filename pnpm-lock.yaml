@@ -598,18 +598,18 @@ importers:
         specifier: ^0.7.0
         version: 0.7.0
       react-dom:
-        specifier: ^18.2.0
-        version: 18.2.0(react@18.2.0)
+        specifier: 19.1.2
+        version: 19.1.2(react@19.1.2)
       vite:
         specifier: 5.2.9
         version: 5.2.9(@types/node@22.18.3)(terser@5.27.0)
     devDependencies:
       '@types/react':
-        specifier: ^18.2.47
-        version: 18.2.47
+        specifier: 19.1.2
+        version: 19.1.2
       '@types/react-dom':
-        specifier: ^18.2.14
-        version: 18.2.14
+        specifier: 19.1.2
+        version: 19.1.2(@types/react@19.1.2)
       autoprefixer:
         specifier: ^10.4.16
         version: 10.4.16(postcss@8.4.31)
@@ -617,8 +617,8 @@ importers:
         specifier: ^8.4.31
         version: 8.4.31
       react:
-        specifier: ^18.2.0
-        version: 18.2.0
+        specifier: 19.1.2
+        version: 19.1.2
       tsconfig:
         specifier: workspace:*
         version: link:../../tsconfig
@@ -679,11 +679,11 @@ importers:
         specifier: ^8.8.1
         version: 8.8.1(@remote-ui/rpc@1.4.5)(stripe@13.11.0)
       react:
-        specifier: ^19.0.0
-        version: 19.0.0
+        specifier: 19.1.2
+        version: 19.1.2
       react-dom:
-        specifier: ^19.0.0
-        version: 19.0.0(react@19.0.0)
+        specifier: 19.1.2
+        version: 19.1.2(react@19.1.2)
       stripe:
         specifier: ^13.11.0
         version: 13.11.0
@@ -692,11 +692,11 @@ importers:
         specifier: ^0.0.1
         version: 0.0.1(@babel/core@7.24.5)(babel-jest@27.5.1(@babel/core@7.24.5))(ts-node@10.9.2(@swc/core@1.3.101(@swc/helpers@0.5.15))(@types/node@22.18.3)(typescript@4.9.5))
       '@types/react':
-        specifier: ^19.0.2
-        version: 19.0.2
+        specifier: 19.1.2
+        version: 19.1.2
       '@types/react-dom':
-        specifier: ^19.0.2
-        version: 19.0.2(@types/react@19.0.2)
+        specifier: 19.1.2
+        version: 19.1.2(@types/react@19.1.2)
 
   packages/tailwind-config:
     dependencies:
@@ -957,7 +957,7 @@ importers:
         specifier: ^2.3.0
         version: 2.3.0
       react-dom:
-        specifier: ^19.1.2
+        specifier: 19.1.2
         version: 19.1.2(react@19.1.2)
       tailwind-merge:
         specifier: ^2.4.0
@@ -6100,8 +6100,8 @@ packages:
   '@types/react-dom@18.2.14':
     resolution: {integrity: sha512-V835xgdSVmyQmI1KLV2BEIUgqEuinxp9O4G6g3FqO/SqLac049E53aysv0oEFD2kHfejeKU+ZqL2bcFWj9gLAQ==}
 
-  '@types/react-dom@19.0.2':
-    resolution: {integrity: sha512-c1s+7TKFaDRRxr1TxccIX2u7sfCnc3RxkVyBIUA2lCpyqCF+QoAwQ/CBg7bsMdVwP120HEH143VQezKtef5nCg==}
+  '@types/react-dom@19.1.2':
+    resolution: {integrity: sha512-XGJkWF41Qq305SKWEILa1O8vzhb3aOo3ogBlSmiqNko/WmRb6QIaweuZCXjKygVDXpzXb5wyxKTSOsmkuqj+Qw==}
     peerDependencies:
       '@types/react': ^19.0.0
 
@@ -6125,14 +6125,14 @@ packages:
   '@types/react@18.2.48':
     resolution: {integrity: sha512-qboRCl6Ie70DQQG9hhNREz81jqC1cs9EVNcjQ1AU+jH6NFfSAhVVbrrY/+nSF+Bsk4AOwm9Qa61InvMCyV+H3w==}
 
-  '@types/react@19.0.2':
-    resolution: {integrity: sha512-USU8ZI/xyKJwFTpjSVIrSeHBVAGagkHQKPNbxeWwql/vDmnTIBgx+TJnhFnj1NXgz8XfprU0egV2dROLGpsBEg==}
-
   '@types/react@19.1.14':
     resolution: {integrity: sha512-ukd93VGzaNPMAUPy0gRDSC57UuQbnH9Kussp7HBjM06YFi9uZTFhOvMSO2OKqXm1rSgzOE+pVx1k1PYHGwlc8Q==}
 
   '@types/react@19.1.15':
     resolution: {integrity: sha512-+kLxJpaJzXybyDyFXYADyP1cznTO8HSuBpenGlnKOAkH4hyNINiywvXS/tGJhsrGGP/gM185RA3xpjY0Yg4erA==}
+
+  '@types/react@19.1.2':
+    resolution: {integrity: sha512-oxLPMytKchWGbnQM9O7D67uPa9paTNxO7jVoNMXgkkErULBPhPARCfkKL9ytcIJJRGjbsVwW4ugJzyFFvm/Tiw==}
 
   '@types/readable-stream@4.0.18':
     resolution: {integrity: sha512-21jK/1j+Wg+7jVw1xnSwy/2Q1VgVjWuFssbYGTREPUBeZ+rqVFl2udq0IkxzPC0ZhOzVceUbyIACFZKLqKEBlA==}
@@ -11581,20 +11581,10 @@ packages:
     resolution: {integrity: sha512-hlSJDQ2synMPKFZOsKo9Hi8WWZTC7POR8EmWvTSjow+VDgKzkmjQvFm2fk0tmRw+f0vTOIYKlarR0iL4996pdg==}
     engines: {node: '>=16.14.0'}
 
-  react-dom@18.2.0:
-    resolution: {integrity: sha512-6IMTriUmvsjHUjNtEDudZfuDQUoWXVxKHhlEGSk81n4YFS+r/Kl99wXiwlVXtPBtJenozv2P+hxDsw9eA7Xo6g==}
-    peerDependencies:
-      react: ^18.2.0
-
   react-dom@18.3.1:
     resolution: {integrity: sha512-5m4nQKp+rZRb09LNH59GM4BxTh9251/ylbKIbpe7TpGxfJ+9kv6BLkLBXIjjspbgbnIBNqlI23tRnTWT0snUIw==}
     peerDependencies:
       react: ^18.3.1
-
-  react-dom@19.0.0:
-    resolution: {integrity: sha512-4GV5sHFG0e/0AD4X+ySy6UJd3jVl1iNsNHdpad0qhABJ11twS3TTBnseqsKurKcsNqCEFeGL3uLpVChpIO3QfQ==}
-    peerDependencies:
-      react: ^19.0.0
 
   react-dom@19.1.2:
     resolution: {integrity: sha512-dEoydsCp50i7kS1xHOmPXq4zQYoGWedUsvqv9H6zdif2r7yLHygyfP9qou71TulRN0d6ng9EbRVsQhSqfUc19g==}
@@ -11749,16 +11739,8 @@ packages:
     resolution: {integrity: sha512-gnhPt75i/dq/z3/6q/0asP78D0u592D5L1pd7M8P+dck6Fu/jJeL6iVVK23fptSUZj8Vjf++7wXA8UNclGQcbA==}
     engines: {node: '>=0.10.0'}
 
-  react@18.2.0:
-    resolution: {integrity: sha512-/3IjMdb2L9QbBdWiW5e3P2/npwMBaU9mHCSCUzNln0ZCYbcfTsGbTJrU/kGemdH2IWmB2ioZ+zkxtmq6g09fGQ==}
-    engines: {node: '>=0.10.0'}
-
   react@18.3.1:
     resolution: {integrity: sha512-wS+hAgJShR0KhEvPJArfuPVN1+Hz1t0Y6n5jLrGQbkb4urgPE/0Rve+1kMB1v/oWgHgm4WIcV+i7F2pTVj+2iQ==}
-    engines: {node: '>=0.10.0'}
-
-  react@19.0.0:
-    resolution: {integrity: sha512-V8AVnmPIICiWpGfm6GLzCR/W5FXLchHop40W4nXBmdlEceh16rCN8O8LNWm5bh5XUX91fh7KpA+W0TgMKmgTpQ==}
     engines: {node: '>=0.10.0'}
 
   react@19.1.2:
@@ -12050,14 +12032,8 @@ packages:
   scheduler@0.20.2:
     resolution: {integrity: sha512-2eWfGgAqqWFGqtdMmcL5zCMK1U8KlXv8SQFGglL3CEtd0aDVDWgeF/YoCmvln55m5zSk3J/20hTaSBeSObsQDQ==}
 
-  scheduler@0.23.0:
-    resolution: {integrity: sha512-CtuThmgHNg7zIZWAXi3AsyIzA3n4xx7aNyjwC2VJldO2LMVDhFK+63xGqq6CsJH4rTAt6/M+N4GhZiDYPx9eUw==}
-
   scheduler@0.23.2:
     resolution: {integrity: sha512-UOShsPwz7NrMUqhR6t0hWjFduvOzbtv7toDH1/hIrfRNIDBnnBWd0CwJTGvTpngVlmwGCdP9/Zl/tVrDqcuYzQ==}
-
-  scheduler@0.25.0:
-    resolution: {integrity: sha512-xFVuu11jh+xcO7JOAGJNOXld8/TcEHK/4CituBUeUb5hqxJLj9YuemAEuvm9gQ/+pgXYfbQuqAkiYu+u7YEsNA==}
 
   scheduler@0.25.0-rc-603e6108-20241029:
     resolution: {integrity: sha512-pFwF6H1XrSdYYNLfOcGlM28/j8CGLu8IvdrxqhjWULe2bPcKiKW4CV+OWqR/9fT52mywx65l7ysNkjLKBda7eA==}
@@ -20347,13 +20323,9 @@ snapshots:
     dependencies:
       '@types/react': 18.2.48
 
-  '@types/react-dom@19.0.2(@types/react@19.0.2)':
+  '@types/react-dom@19.1.2(@types/react@19.1.2)':
     dependencies:
-      '@types/react': 19.0.2
-
-  '@types/react-dom@19.1.9(@types/react@18.2.48)':
-    dependencies:
-      '@types/react': 18.2.48
+      '@types/react': 19.1.2
 
   '@types/react-dom@19.1.9(@types/react@19.1.14)':
     dependencies:
@@ -20362,7 +20334,6 @@ snapshots:
   '@types/react-dom@19.1.9(@types/react@19.1.15)':
     dependencies:
       '@types/react': 19.1.15
-    optional: true
 
   '@types/react-highlight-words@0.16.4':
     dependencies:
@@ -20370,7 +20341,7 @@ snapshots:
 
   '@types/react-reconciler@0.26.7':
     dependencies:
-      '@types/react': 18.2.48
+      '@types/react': 19.1.15
 
   '@types/react@17.0.80':
     dependencies:
@@ -20390,15 +20361,15 @@ snapshots:
       '@types/scheduler': 0.16.4
       csstype: 3.1.3
 
-  '@types/react@19.0.2':
-    dependencies:
-      csstype: 3.1.3
-
   '@types/react@19.1.14':
     dependencies:
       csstype: 3.1.3
 
   '@types/react@19.1.15':
+    dependencies:
+      csstype: 3.1.3
+
+  '@types/react@19.1.2':
     dependencies:
       csstype: 3.1.3
 
@@ -20610,7 +20581,7 @@ snapshots:
 
   '@visx/axis@2.14.0(react@19.1.2)':
     dependencies:
-      '@types/react': 18.2.48
+      '@types/react': 19.1.15
       '@visx/group': 2.10.0(react@19.1.2)
       '@visx/point': 2.6.0
       '@visx/scale': 2.2.2
@@ -20622,15 +20593,15 @@ snapshots:
 
   '@visx/bounds@2.16.0(react-dom@19.1.2(react@19.1.2))(react@19.1.2)':
     dependencies:
-      '@types/react': 18.2.48
-      '@types/react-dom': 19.1.9(@types/react@18.2.48)
+      '@types/react': 19.1.15
+      '@types/react-dom': 19.1.9(@types/react@19.1.15)
       prop-types: 15.8.1
       react: 19.1.2
       react-dom: 19.1.2(react@19.1.2)
 
   '@visx/clip-path@3.3.0(react@19.1.2)':
     dependencies:
-      '@types/react': 18.2.48
+      '@types/react': 19.1.15
       prop-types: 15.8.1
       react: 19.1.2
 
@@ -20646,7 +20617,7 @@ snapshots:
 
   '@visx/event@2.6.0':
     dependencies:
-      '@types/react': 18.2.48
+      '@types/react': 19.1.15
       '@visx/point': 2.6.0
 
   '@visx/geo@2.10.0(react@19.1.2)':
@@ -20680,7 +20651,7 @@ snapshots:
 
   '@visx/group@2.10.0(react@19.1.2)':
     dependencies:
-      '@types/react': 18.2.48
+      '@types/react': 19.1.15
       classnames: 2.3.2
       prop-types: 15.8.1
       react: 19.1.2
@@ -20735,7 +20706,7 @@ snapshots:
   '@visx/text@2.12.2(react@19.1.2)':
     dependencies:
       '@types/lodash': 4.14.199
-      '@types/react': 18.2.48
+      '@types/react': 19.1.15
       classnames: 2.3.2
       lodash: 4.17.21
       prop-types: 15.8.1
@@ -20754,7 +20725,7 @@ snapshots:
 
   '@visx/tooltip@2.16.0(react-dom@19.1.2(react@19.1.2))(react@19.1.2)':
     dependencies:
-      '@types/react': 18.2.48
+      '@types/react': 19.1.15
       '@visx/bounds': 2.16.0(react-dom@19.1.2(react@19.1.2))(react@19.1.2)
       classnames: 2.3.2
       prop-types: 15.8.1
@@ -27157,22 +27128,11 @@ snapshots:
       - supports-color
     optional: true
 
-  react-dom@18.2.0(react@18.2.0):
-    dependencies:
-      loose-envify: 1.4.0
-      react: 18.2.0
-      scheduler: 0.23.0
-
   react-dom@18.3.1(react@18.3.1):
     dependencies:
       loose-envify: 1.4.0
       react: 18.3.1
       scheduler: 0.23.2
-
-  react-dom@19.0.0(react@19.0.0):
-    dependencies:
-      react: 19.0.0
-      scheduler: 0.25.0
 
   react-dom@19.1.2(react@19.1.2):
     dependencies:
@@ -27419,15 +27379,9 @@ snapshots:
       loose-envify: 1.4.0
       object-assign: 4.1.1
 
-  react@18.2.0:
-    dependencies:
-      loose-envify: 1.4.0
-
   react@18.3.1:
     dependencies:
       loose-envify: 1.4.0
-
-  react@19.0.0: {}
 
   react@19.1.2: {}
 
@@ -27838,15 +27792,9 @@ snapshots:
       loose-envify: 1.4.0
       object-assign: 4.1.1
 
-  scheduler@0.23.0:
-    dependencies:
-      loose-envify: 1.4.0
-
   scheduler@0.23.2:
     dependencies:
       loose-envify: 1.4.0
-
-  scheduler@0.25.0: {}
 
   scheduler@0.25.0-rc-603e6108-20241029: {}
 
