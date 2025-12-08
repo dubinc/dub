@@ -1,7 +1,7 @@
-import { getLeadEvents } from "@/lib/tinybird/get-lead-events";
 import { prisma } from "@dub/prisma";
 import { chunk } from "@dub/utils";
 import "dotenv-flow/config";
+import { getLeadEvents } from "../../lib/tinybird/get-lead-events";
 
 async function main() {
   const fraudEvents = await prisma.fraudEvent.findMany({
@@ -51,6 +51,9 @@ async function main() {
     const { data: events } = await getLeadEvents({
       customerIds: batch,
     });
+    console.log(
+      `Found ${events.length} lead events from Tinybird for customerIds ${batch.join(", ")}`,
+    );
 
     events.forEach((event) => {
       customerIdToUrl.set(event.customer_id, event.url);
@@ -73,6 +76,7 @@ async function main() {
           return Promise.resolve(null);
         }
 
+        console.log(`Updating fraud event ${event.id} with URL ${url}`);
         return prisma.fraudEvent.update({
           where: {
             id: event.id,
