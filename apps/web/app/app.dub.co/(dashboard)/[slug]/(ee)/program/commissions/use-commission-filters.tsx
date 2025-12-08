@@ -103,8 +103,9 @@ export function useCommissionFilters() {
         key: "status",
         icon: CircleDotted,
         label: "Status",
-        options: Object.entries(CommissionStatusBadges).map(
-          ([value, { label }]) => {
+        options: Object.entries(CommissionStatusBadges)
+          .filter(([key]) => key !== "hold")
+          .map(([value, { label }]) => {
             const Icon = CommissionStatusBadges[value].icon;
             return {
               value,
@@ -123,8 +124,7 @@ export function useCommissionFilters() {
                   })
                 : undefined,
             };
-          },
-        ),
+          }),
       },
     ],
     [commissionsCount, partners, customers, groups],
