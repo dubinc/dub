@@ -6,7 +6,10 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { PartnerProfileLinkSchema } from "@/lib/zod/schemas/partner-profile";
-import { createPartnerLinkSchema } from "@/lib/zod/schemas/partners";
+import {
+  createPartnerLinkSchema,
+  NON_ACTIVE_ENROLLMENT_STATUSES,
+} from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -62,7 +65,7 @@ export const POST = withPartnerProfile(
       },
     });
 
-    if (["banned", "deactivated", "rejected"].includes(status)) {
+    if (NON_ACTIVE_ENROLLMENT_STATUSES.includes(status)) {
       throw new DubApiError({
         code: "forbidden",
         message: `You cannot create links in this program because you have been ${status}`,

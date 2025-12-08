@@ -4,7 +4,10 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createFraudEvents } from "@/lib/api/fraud/create-fraud-events";
 import { resolveFraudGroups } from "@/lib/api/fraud/resolve-fraud-groups";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { rejectPartnerSchema } from "@/lib/zod/schemas/partners";
+import {
+  NON_ACTIVE_ENROLLMENT_STATUSES,
+  rejectPartnerSchema,
+} from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import {
   FraudRuleType,
@@ -62,7 +65,7 @@ export const rejectPartnerApplicationAction = authActionClient
                 not: programId,
               },
               status: {
-                notIn: ["banned", "deactivated", "rejected"],
+                notIn: NON_ACTIVE_ENROLLMENT_STATUSES,
               },
             },
             select: {

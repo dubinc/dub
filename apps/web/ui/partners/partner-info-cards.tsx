@@ -7,6 +7,7 @@ import {
   RewardProps,
 } from "@/lib/types";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
+import { NON_ACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import {
   CalendarIcon,
   ChartActivity2,
@@ -297,7 +298,7 @@ export function PartnerInfoCards({
               changeButtonText="Change"
               hideChangeButton={
                 "status" in partner &&
-                ["banned", "deactivated", "rejected"].includes(partner.status)
+                NON_ACTIVE_ENROLLMENT_STATUSES.includes(partner.status)
               }
               className="rounded-lg bg-white shadow-sm"
               selectedGroupId={selectedGroupId}
