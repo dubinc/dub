@@ -18,7 +18,7 @@ export async function completeABTests(link: Link) {
 
   const analytics: { url: string; leads: number }[] = await getAnalytics({
     event: "leads",
-    groupBy: "top_urls",
+    groupBy: "top_base_urls",
     linkId: link.id,
     workspaceId: link.projectId,
     start: link.testStartedAt ? new Date(link.testStartedAt) : undefined,

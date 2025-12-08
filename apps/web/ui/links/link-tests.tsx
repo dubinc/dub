@@ -41,7 +41,7 @@ export const LinkTests = memo(({ link }: { link: ResponseLink }) => {
       showTests &&
       `/api/analytics?${new URLSearchParams({
         event: "composite",
-        groupBy: "top_urls",
+        groupBy: "top_base_urls",
         linkId: link.id,
         workspaceId: workspaceId!,
         ...(link.testStartedAt && {

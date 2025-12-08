@@ -138,7 +138,7 @@ SQL >
         {% if defined(utm_content) %}
             AND url LIKE concat('%utm_content=', encodeURLFormComponent({{ String(utm_content) }}), '%')
         {% end %}
-        {% if defined(url) %} AND url = {{ url }} {% end %}
+        {% if defined(url) %} AND splitByString('?', url)[1] = {{ url }} {% end %}
         {% if defined(start) %} AND timestamp >= {{ DateTime64(start) }} {% end %}
         {% if defined(end) %} AND timestamp <= {{ DateTime64(end) }} {% end %}
     GROUP BY
@@ -241,7 +241,7 @@ SQL >
         {% if defined(utm_content) %}
             AND url LIKE concat('%utm_content=', encodeURLFormComponent({{ String(utm_content) }}), '%')
         {% end %}
-        {% if defined(url) %} AND url = {{ url }} {% end %}
+        {% if defined(url) %} AND splitByString('?', url)[1] = {{ url }} {% end %}
         {% if defined(start) %} AND timestamp >= {{ DateTime(start) }} {% end %}
         {% if defined(end) %} AND timestamp <= {{ DateTime(end) }} {% end %}
         {% if defined(filters) %}
@@ -368,7 +368,7 @@ SQL >
         {% if defined(utm_content) %}
             AND url LIKE concat('%utm_content=', encodeURLFormComponent({{ String(utm_content) }}), '%')
         {% end %}
-        {% if defined(url) %} AND url = {{ url }} {% end %}
+        {% if defined(url) %} AND splitByString('?', url)[1] = {{ url }} {% end %}
         {% if defined(start) %} AND timestamp >= {{ DateTime(start) }} {% end %}
         {% if defined(end) %} AND timestamp <= {{ DateTime(end) }} {% end %}
         {% if defined(filters) %}
