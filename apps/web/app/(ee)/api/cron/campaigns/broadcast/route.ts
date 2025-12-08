@@ -226,39 +226,35 @@ export async function POST(req: Request) {
         const idempotencyKey = `campaign-broadcast/${campaign.id}-${batchIdentifier}-${chunkIndex}`;
 
         const { data, error } = await sendBatchEmail(
-          partnerUsersChunk.map(
-            (partnerUser) => ({
-              variant: "marketing",
-              from: `${program.name} <${campaign.from}>`,
-              to: partnerUser.email!,
-              subject: campaign.subject,
-              ...(program.supportEmail
-                ? { replyTo: program.supportEmail }
-                : {}),
-              react: CampaignEmail({
-                program: {
-                  name: program.name,
-                  slug: program.slug,
-                  logo: program.logo,
-                },
-                campaign: {
-                  type: campaign.type,
-                  preview: campaign.preview,
-                  body: renderCampaignEmailHTML({
-                    content: campaign.bodyJson as unknown as TiptapNode,
-                    variables: {
-                      PartnerName: partnerUser.partner.name,
-                      PartnerEmail: partnerUser.partner.email,
-                    },
-                  }),
-                },
-              }),
-              tags: [{ name: "type", value: "notification-email" }],
+          partnerUsersChunk.map((partnerUser) => ({
+            variant: "marketing",
+            from: `${program.name} <${campaign.from}>`,
+            to: partnerUser.email!,
+            subject: campaign.subject,
+            ...(program.supportEmail ? { replyTo: program.supportEmail } : {}),
+            react: CampaignEmail({
+              program: {
+                name: program.name,
+                slug: program.slug,
+                logo: program.logo,
+              },
+              campaign: {
+                type: campaign.type,
+                preview: campaign.preview,
+                body: renderCampaignEmailHTML({
+                  content: campaign.bodyJson as unknown as TiptapNode,
+                  variables: {
+                    PartnerName: partnerUser.partner.name,
+                    PartnerEmail: partnerUser.partner.email,
+                  },
+                }),
+              },
             }),
-            {
-              idempotencyKey,
-            },
-          ),
+            tags: [{ name: "type", value: "notification-email" }],
+          })),
+          {
+            idempotencyKey,
+          },
         );
 
         if (error) {
