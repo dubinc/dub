@@ -221,7 +221,9 @@ export async function POST(req: Request) {
         chunkIndex < partnerUsersChunks.length;
         chunkIndex++
       ) {
-        const partnerUsersChunk = partnerUsersChunks[chunkIndex];
+        const partnerUsersChunk = partnerUsersChunks[chunkIndex].filter(
+          (partnerUser) => partnerUser.email,
+        );
         const batchIdentifier = startingAfter || "initial";
         const idempotencyKey = `campaign-broadcast/${campaign.id}-${batchIdentifier}-${chunkIndex}`;
 
