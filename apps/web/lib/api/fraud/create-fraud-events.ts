@@ -4,7 +4,6 @@ import { Prisma } from "@dub/prisma/client";
 import { prettyPrint } from "@dub/utils";
 import { createId } from "../create-id";
 import {
-  createFraudEventGroupKey,
   createFraudEventHash,
   createGroupCompositeKey,
   getPartnerIdForFraudEvent,
@@ -117,21 +116,13 @@ export async function createFraudEvents(fraudEvents: CreateFraudEventInput[]) {
     (e) => ({
       id: createId({ prefix: "fre_" }),
       programId: e.programId,
-      fraudEventGroupId: finalGroupLookup.get(createGroupCompositeKey(e)),
+      fraudEventGroupId: finalGroupLookup.get(createGroupCompositeKey(e))!,
       partnerId: getPartnerIdForFraudEvent(e),
       linkId: e.linkId,
       customerId: e.customerId,
       eventId: e.eventId,
       hash: e.hash,
       metadata: e.metadata ? sanitizeFraudEventMetadata(e.metadata) : undefined,
-
-      // DEPRECATED FIELDS: TODO – remove after migration
-      type: e.type,
-      groupKey: createFraudEventGroupKey({
-        programId: e.programId,
-        type: e.type,
-        groupingKey: e.partnerId,
-      }),
     }),
   );
 

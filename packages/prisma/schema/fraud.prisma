@@ -54,25 +54,16 @@ model FraudEventGroup {
 
 model FraudEvent {
   id                String   @id @default(cuid())
-  fraudEventGroupId String? // TODO: Make it required after migration
+  fraudEventGroupId String
   programId         String
   partnerId         String
   linkId            String?
   customerId        String?
   eventId           String?
-  hash              String? //  TODO: Make it required after migration
+  hash              String
   metadata          Json?    @db.Json
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
-
-  // DEPRECATED FIELDS: TODO – remove after migration
-  commissionId     String?
-  type             FraudRuleType
-  groupKey         String
-  userId           String?
-  resolutionReason String?          @db.Text
-  resolvedAt       DateTime?
-  status           FraudEventStatus @default(pending)
 
   fraudEventGroup FraudEventGroup? @relation(fields: [fraudEventGroupId], references: [id], onDelete: Cascade)
   customer        Customer?        @relation(fields: [customerId], references: [id])
@@ -84,8 +75,5 @@ model FraudEvent {
   @@index(customerId)
   @@index(linkId)
   @@index(eventId)
-  @@index(userId)
-  @@index(commissionId)
-  @@index(groupKey)
   @@index(hash)
 }
