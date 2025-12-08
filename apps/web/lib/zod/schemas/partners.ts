@@ -23,7 +23,7 @@ import { parseUrlSchema } from "./utils";
 
 export const PARTNERS_MAX_PAGE_SIZE = 100;
 
-export const NON_ACTIVE_ENROLLMENT_STATUSES: ProgramEnrollmentStatus[] = [
+export const INACTIVE_ENROLLMENT_STATUSES: ProgramEnrollmentStatus[] = [
   "banned",
   "deactivated",
   "rejected",

@@ -1,5 +1,5 @@
 import { CreateFraudEventInput } from "@/lib/types";
-import { NON_ACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
+import { INACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { FraudRuleType, ProgramEnrollment } from "@dub/prisma/client";
 import { createFraudEvents } from "./create-fraud-events";
@@ -54,7 +54,7 @@ export async function detectDuplicatePayoutMethodFraud(
 
   for (const [programId, partners] of partnersByProgram.entries()) {
     for (const sourcePartner of partners) {
-      if (NON_ACTIVE_ENROLLMENT_STATUSES.includes(sourcePartner.status)) {
+      if (INACTIVE_ENROLLMENT_STATUSES.includes(sourcePartner.status)) {
         continue;
       }
 
