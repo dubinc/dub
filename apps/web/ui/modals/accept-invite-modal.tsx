@@ -20,11 +20,74 @@ function AcceptInviteModal({
   showAcceptInviteModal: boolean;
   setShowAcceptInviteModal: Dispatch<SetStateAction<boolean>>;
 }) {
-  const { slug } = useParams() as { slug: string };
-  const [accepting, setAccepting] = useState(false);
+  const { slug } = useParams<{ slug: string }>();
   const { error } = useWorkspace();
   const { data: session } = useSession();
   const router = useRouter();
+
+  const [accepting, setAccepting] = useState(false);
+  const [declining, setDeclining] = useState(false);
+
+  const acceptInvite = async () => {
+    setAccepting(true);
+
+    try {
+      const response = await fetch(`/api/workspaces/${slug}/invites/accept`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (session?.user) {
+        posthog.identify(session.user["id"], {
+          email: session.user.email,
+          name: session.user.name,
+        });
+      }
+
+      if (!response.ok) {
+        const error = await response.json();
+        toast.error(error.message || "Failed to accept invite.");
+        return;
+      }
+
+      posthog.capture("accepted_workspace_invite", {
+        workspace: slug,
+      });
+
+      router.replace(`/${slug}`);
+      setShowAcceptInviteModal(false);
+      toast.success("You now are a part of this workspace!");
+      mutatePrefix("/api/workspaces");
+    } finally {
+      setAccepting(false);
+    }
+  };
+
+  const declineInvite = async () => {
+    setDeclining(true);
+
+    try {
+      const response = await fetch(`/api/workspaces/${slug}/invites/decline`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        toast.error(error.message || "Failed to decline invite.");
+        return;
+      }
+
+      setShowAcceptInviteModal(false);
+      toast.success("You have declined the invite.");
+      mutatePrefix("/api/workspaces");
+      // Use window.location for a full page reload to clear any invite query params
+      window.location.href = "/";
+    } finally {
+      setDeclining(false);
+    }
+  };
+
   return (
     <Modal
       showModal={showAcceptInviteModal}
@@ -44,31 +107,21 @@ function AcceptInviteModal({
               workspace on {process.env.NEXT_PUBLIC_APP_NAME}
             </p>
           </div>
-          <div className="flex flex-col space-y-6 bg-neutral-50 px-4 py-8 text-left sm:px-16">
+          <div className="flex gap-2 bg-neutral-50 px-4 py-8 text-left sm:px-16">
             <Button
-              onClick={() => {
-                setAccepting(true);
-                fetch(`/api/workspaces/${slug}/invites/accept`, {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                }).then(() => {
-                  if (session?.user) {
-                    posthog.identify(session.user["id"], {
-                      email: session.user.email,
-                      name: session.user.name,
-                    });
-                  }
-                  posthog.capture("accepted_workspace_invite", {
-                    workspace: slug,
-                  });
-                  router.replace(`/${slug}`);
-                  setShowAcceptInviteModal(false);
-                  toast.success("You now are a part of this workspace!");
-                  mutatePrefix("/api/workspaces");
-                });
-              }}
+              variant="secondary"
+              onClick={declineInvite}
+              loading={declining}
+              text="Decline invite"
+              disabled={accepting}
+              className="w-fit"
+            />
+
+            <Button
+              onClick={acceptInvite}
               loading={accepting}
               text="Accept invite"
+              disabled={declining}
             />
           </div>
         </>
