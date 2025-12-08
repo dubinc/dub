@@ -101,31 +101,32 @@ export async function POST(req: Request) {
       invoice.paymentMethod !== "card" &&
       internalPayouts.length > 0
     ) {
-      const emailsToSend = internalPayouts.map((payout) => ({
-        to: payout.partner.email!,
-        subject: `Your ${currencyFormatter(payout.amount)} payout for ${payout.program.name} is on the way`,
-        variant: "notifications",
-        replyTo: payout.program.supportEmail || "noreply",
-        react: PartnerPayoutConfirmed({
-          email: payout.partner.email!,
-          program: {
-            id: payout.program.id,
-            name: payout.program.name,
-            logo: payout.program.logo,
-          },
-          payout: {
-            id: payout.id,
-            amount: payout.amount,
-            initiatedAt: payout.initiatedAt,
-            startDate: payout.periodStart,
-            endDate: payout.periodEnd,
-            mode: payout.mode,
-            paymentMethod: invoice.paymentMethod ?? "ach",
-          },
-        }),
-      }));
       const t3 = performance.now();
-      const batchEmailResponse = await sendBatchEmail(emailsToSend);
+      const batchEmailResponse = await sendBatchEmail(
+        internalPayouts.map((payout) => ({
+          to: payout.partner.email!,
+          subject: `Your ${currencyFormatter(payout.amount)} payout for ${payout.program.name} is on the way`,
+          variant: "notifications",
+          replyTo: payout.program.supportEmail || "noreply",
+          react: PartnerPayoutConfirmed({
+            email: payout.partner.email!,
+            program: {
+              id: payout.program.id,
+              name: payout.program.name,
+              logo: payout.program.logo,
+            },
+            payout: {
+              id: payout.id,
+              amount: payout.amount,
+              initiatedAt: payout.initiatedAt,
+              startDate: payout.periodStart,
+              endDate: payout.periodEnd,
+              mode: payout.mode,
+              paymentMethod: invoice.paymentMethod ?? "ach",
+            },
+          }),
+        })),
+      );
       timings.resendBatchApi = performance.now() - t3;
       console.log(JSON.stringify({ batchEmailResponse }, null, 2));
     }
@@ -137,7 +138,6 @@ export async function POST(req: Request) {
             totalMs: Math.round((performance.now() - startTime) * 100) / 100,
             qstashVerificationMs:
               Math.round(timings.qstashVerification * 100) / 100,
-            prismaQueryMs: Math.round(timings.prismaQuery * 100) / 100,
             auditLogMs: Math.round(timings.auditLog * 100) / 100,
             resendBatchApiMs: timings.resendBatchApi
               ? Math.round(timings.resendBatchApi * 100) / 100
