@@ -121,7 +121,7 @@ export function CustomerTable() {
               <CustomerRowItem
                 customer={row.original}
                 href={`/${workspaceSlug}/customers/${row.original.id}`}
-                hideChartActivityOnHover={false}
+                chartActivityIconMode="visible"
               />
             );
           },
