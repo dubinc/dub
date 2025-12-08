@@ -637,7 +637,7 @@ function RowMenuButton({
   const { BanPartnerModal, setShowBanPartnerModal } = useBanPartnerModal({
     partner: row.original,
     onConfirm: async () => {
-      await mutatePrefix("/api/partners");
+      mutatePrefix("/api/partners");
     },
   });
 

@@ -1,8 +1,11 @@
-import { createFraudEvents } from "@/lib/api/fraud/create-fraud-events";
+import { detectDuplicatePayoutMethodFraud } from "@/lib/api/fraud/detect-duplicate-payout-method-fraud";
 import { qstash } from "@/lib/cron";
 import { stripe } from "@/lib/stripe";
+import { sendBatchEmail, sendEmail } from "@dub/email";
+import ConnectedPayoutMethod from "@dub/email/templates/connected-payout-method";
+import DuplicatePayoutMethod from "@dub/email/templates/duplicate-payout-method";
 import { prisma } from "@dub/prisma";
-import { APP_DOMAIN_WITH_NGROK, log, nanoid } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
 import Stripe from "stripe";
 
 const queue = qstash.queue({
@@ -77,42 +80,53 @@ export async function accountUpdated(event: Stripe.Event) {
     },
   });
 
-  // Check for duplicate payout methods: if multiple partners share the same payout method hash,
-  // create fraud events for all their active program enrollments to flag potential fraud
   if (payoutMethodHash) {
-    const duplicatePartners = await prisma.partner.findMany({
-      where: {
-        payoutMethodHash,
-      },
-      select: {
-        id: true,
-        programs: {
-          where: {
-            status: {
-              notIn: ["banned", "deactivated", "rejected"],
+    const { isPayoutMethodDuplicate, duplicatePartners } =
+      await detectDuplicatePayoutMethodFraud(payoutMethodHash);
+
+    // Send confirmation email only if this is the first time connecting a bank account and no fraud detected
+    if (
+      partner.email &&
+      !partner.payoutsEnabledAt &&
+      !isPayoutMethodDuplicate &&
+      defaultExternalAccount.object === "bank_account"
+    ) {
+      await sendEmail({
+        variant: "notifications",
+        subject: "Successfully connected payout method",
+        to: partner.email,
+        react: ConnectedPayoutMethod({
+          email: partner.email,
+          payoutMethod: {
+            account_holder_name: defaultExternalAccount.account_holder_name,
+            bank_name: defaultExternalAccount.bank_name,
+            last4: defaultExternalAccount.last4,
+            routing_number: defaultExternalAccount.routing_number,
+          },
+        }),
+      });
+    }
+
+    // Notify all partners using the same bank account about duplicate payout method
+    if (
+      isPayoutMethodDuplicate &&
+      duplicatePartners.length > 0 &&
+      defaultExternalAccount.object === "bank_account"
+    ) {
+      await sendBatchEmail(
+        duplicatePartners.map((partner) => ({
+          variant: "notifications",
+          subject: "Duplicate payout method detected",
+          to: partner.email!,
+          react: DuplicatePayoutMethod({
+            email: partner.email!,
+            payoutMethod: {
+              account_holder_name: defaultExternalAccount.account_holder_name,
+              bank_name: defaultExternalAccount.bank_name,
+              last4: defaultExternalAccount.last4,
+              routing_number: defaultExternalAccount.routing_number,
             },
-          },
-          select: {
-            partnerId: true,
-            programId: true,
-          },
-        },
-      },
-    });
-
-    if (duplicatePartners.length > 1) {
-      const programEnrollments = duplicatePartners.flatMap(
-        ({ programs }) => programs,
-      );
-
-      const groupingKey = nanoid(10);
-
-      await createFraudEvents(
-        programEnrollments.map(({ partnerId, programId }) => ({
-          programId,
-          partnerId,
-          type: "partnerDuplicatePayoutMethod",
-          groupingKey,
+          }),
         })),
       );
     }

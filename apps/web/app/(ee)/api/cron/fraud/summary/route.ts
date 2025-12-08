@@ -1,6 +1,5 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { FRAUD_RULES_BY_TYPE } from "@/lib/api/fraud/constants";
-import { getGroupedFraudEvents } from "@/lib/api/fraud/get-grouped-fraud-events";
 import { getWorkspaceUsers } from "@/lib/api/get-workspace-users";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
@@ -40,11 +39,10 @@ async function handler(req: Request) {
     // Get batch of programs with unresolved fraud events
     const programs = await prisma.program.findMany({
       where: {
-        fraudEvents: {
+        fraudEventGroups: {
           some: {
             status: "pending",
-            // Only include programs with fraud events created today so daily summaries
-            createdAt: {
+            lastEventAt: {
               gte: startOfDay(new Date()),
             },
           },
@@ -82,27 +80,35 @@ async function handler(req: Request) {
 
     for (const program of programs) {
       try {
-        const fraudEvents = await getGroupedFraudEvents({
-          programId: program.id,
-          status: "pending",
-          page: 1,
-          pageSize: 6,
-          sortBy: "createdAt",
-          sortOrder: "asc",
+        const fraudGroups = await prisma.fraudEventGroup.findMany({
+          where: {
+            programId: program.id,
+            status: "pending",
+            lastEventAt: {
+              gte: startOfDay(new Date()),
+            },
+          },
+          select: {
+            id: true,
+            type: true,
+            eventCount: true,
+            partner: {
+              select: {
+                id: true,
+                name: true,
+                image: true,
+              },
+            },
+          },
+          orderBy: {
+            lastEventAt: "desc",
+          },
+          take: 6,
         });
 
-        if (fraudEvents.length === 0) {
+        if (fraudGroups.length === 0) {
           continue;
         }
-
-        const transformedFraudEvents = fraudEvents.map(
-          ({ type, count, groupKey, partner }) => ({
-            name: FRAUD_RULES_BY_TYPE[type].name,
-            count,
-            groupKey,
-            partner,
-          }),
-        );
 
         // Get workspace users to send the email to
         const { users } = await getWorkspaceUsers({
@@ -115,6 +121,15 @@ async function handler(req: Request) {
           continue;
         }
 
+        const transformedFraudGroups = fraudGroups.map(
+          ({ id, type, eventCount, partner }) => ({
+            id,
+            name: FRAUD_RULES_BY_TYPE[type].name,
+            count: eventCount,
+            partner,
+          }),
+        );
+
         await queueBatchEmail<typeof UnresolvedFraudEventsSummary>(
           users.map((user) => ({
             to: user.email,
@@ -125,7 +140,7 @@ async function handler(req: Request) {
               email: user.email,
               workspace: program.workspace,
               program,
-              fraudEvents: transformedFraudEvents,
+              fraudGroups: transformedFraudGroups,
             },
           })),
           {

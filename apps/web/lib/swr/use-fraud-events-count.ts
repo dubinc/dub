@@ -2,35 +2,21 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import useSWR from "swr";
-import { z } from "zod";
-import { fraudEventCountQuerySchema } from "../zod/schemas/fraud";
 
-export function useFraudEventsCount<T>({
-  query,
+export function useFraudEventsCount({
   enabled = true,
-  ignoreParams = false,
-}: {
-  query?: Partial<z.infer<typeof fraudEventCountQuerySchema>>;
-  enabled?: boolean;
-  ignoreParams?: boolean;
-} = {}) {
-  const { getQueryString } = useRouterStuff();
-  const { id: workspaceId, defaultProgramId } = useWorkspace();
+}: { enabled?: boolean } = {}) {
+  const { id: workspaceId } = useWorkspace();
+  const { getQueryString, searchParams } = useRouterStuff();
 
-  const queryString = getQueryString(
-    {
-      workspaceId,
-      ...query,
-    },
-    ignoreParams
-      ? { include: [] }
-      : {
-          exclude: ["page", "pageSize", "sortBy", "sortOrder", "groupKey"],
-        },
-  );
+  const groupId = searchParams.get("groupId");
 
-  const { data: fraudEventsCount, error } = useSWR(
-    defaultProgramId && enabled
+  const queryString = getQueryString({
+    workspaceId,
+  });
+
+  const { data, error } = useSWR<number>(
+    workspaceId && groupId && enabled
       ? `/api/fraud/events/count${queryString}`
       : null,
     fetcher,
@@ -40,8 +26,8 @@ export function useFraudEventsCount<T>({
   );
 
   return {
-    fraudEventsCount: fraudEventsCount as T,
-    loading: !error && fraudEventsCount === undefined,
+    fraudEventsCount: data,
+    loading: !error && data === undefined,
     error,
   };
 }

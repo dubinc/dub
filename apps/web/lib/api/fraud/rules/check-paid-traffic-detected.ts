@@ -73,6 +73,7 @@ export const checkPaidTrafficDetected = defineFraudRule({
         triggered: true,
         metadata: {
           source,
+          url: click.url,
         },
       };
     }

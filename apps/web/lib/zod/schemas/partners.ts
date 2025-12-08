@@ -747,6 +747,13 @@ export const bulkRejectPartnersSchema = z.object({
     .max(100)
     .min(1)
     .transform((v) => [...new Set(v)]),
+  reportFraud: z
+    .boolean()
+    .optional()
+    .default(false)
+    .describe(
+      "Whether to report these partners for suspected fraud to help keep the network safe.",
+    ),
 });
 
 export const retrievePartnerLinksSchema = partnerIdTenantIdSchema;

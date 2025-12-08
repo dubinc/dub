@@ -1,7 +1,7 @@
 {
   "name": "@dub/embed-react",
   "description": "Embed React components for Dub.",
-  "version": "0.0.16",
+  "version": "0.0.17",
   "sideEffects": false,
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -18,15 +18,15 @@
     "prepublishOnly": "node ./prepublish.js"
   },
   "peerDependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react": "19.1.2",
+    "react-dom": "19.1.2"
   },
   "devDependencies": {
-    "@types/react": "^18.2.47",
-    "@types/react-dom": "^18.2.14",
+    "@types/react": "19.1.2",
+    "@types/react-dom": "19.1.2",
     "autoprefixer": "^10.4.16",
     "postcss": "^8.4.31",
-    "react": "^18.2.0",
+    "react": "19.1.2",
     "tsconfig": "workspace:*",
     "tsup": "^6.1.3",
     "typescript": "^5.1.6"

@@ -1,7 +1,7 @@
 {
   "name": "@dub/utils",
   "description": "Utility functions and constants for Dub",
-  "version": "0.1.46",
+  "version": "0.1.47",
   "sideEffects": false,
   "main": "./dist/index.mjs",
   "module": "./dist/index.mjs",
@@ -17,8 +17,8 @@
   },
   "peerDependencies": {
     "next": "15.5.7",
-    "react": "^19.1.2",
-    "react-dom": "^19.1.2"
+    "react": "19.1.2",
+    "react-dom": "19.1.2"
   },
   "devDependencies": {
     "@types/ms": "^0.7.31",

@@ -23,6 +23,7 @@ export default function NewBountySubmission({
     name: "Promote Acme at your campus and earn $500 ",
   },
   partner = {
+    id: "pn_1K38JQ6DAGD1HHP30T4SX9HKG",
     name: "John Doe",
     image:
       "https://dubassets.com/partners/pn_H4TB2V5hDIjpqB7PwrxESoY3/image_wCBZlIJ",
@@ -41,6 +42,7 @@ export default function NewBountySubmission({
     name: string;
   };
   partner: {
+    id: string;
     name: string;
     image: string | null;
     email: string;
@@ -74,10 +76,10 @@ export default function NewBountySubmission({
               <div className="flex h-10 items-center">
                 <div className="relative w-fit">
                   <Img
-                    src={partner.image || `${OG_AVATAR_URL}${partner.name}`}
+                    src={partner.image || `${OG_AVATAR_URL}${partner.id}`}
                     width="32"
                     height="32"
-                    alt={partner.name}
+                    alt={partner.id}
                     className="rounded-full border border-solid border-neutral-100"
                   />
                 </div>

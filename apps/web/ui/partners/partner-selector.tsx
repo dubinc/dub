@@ -50,7 +50,7 @@ export function PartnerSelector({
       label: partner.name,
       icon: (
         <img
-          src={partner.image || `${OG_AVATAR_URL}${partner.name}`}
+          src={partner.image || `${OG_AVATAR_URL}${partner.id}`}
           className="size-4 rounded-full"
         />
       ),
@@ -71,7 +71,7 @@ export function PartnerSelector({
       label: partner.name,
       icon: (
         <img
-          src={partner.image || `${OG_AVATAR_URL}${partner.name}`}
+          src={partner.image || `${OG_AVATAR_URL}${partner.id}`}
           className="size-4 rounded-full"
         />
       ),

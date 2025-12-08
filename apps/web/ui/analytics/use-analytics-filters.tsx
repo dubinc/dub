@@ -457,10 +457,8 @@ export function useAnalyticsFilters({
                       label: partner.name,
                       icon: (
                         <img
-                          src={
-                            partner.image || `${OG_AVATAR_URL}${partner.name}`
-                          }
-                          alt={`${partner.name} image`}
+                          src={partner.image || `${OG_AVATAR_URL}${partner.id}`}
+                          alt={partner.id}
                           className="size-4 rounded-full"
                         />
                       ),

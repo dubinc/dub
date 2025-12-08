@@ -1,10 +1,10 @@
 "use client";
 
-import { useFraudEventsCount } from "@/lib/swr/use-fraud-events-count";
+import { useFraudGroupCount } from "@/lib/swr/use-fraud-groups-count";
 import { usePartnerApplicationRisks } from "@/lib/swr/use-partner-application-risks";
 import {
   EnrolledPartnerExtendedProps,
-  FraudEventsCountByPartner,
+  FraudGroupCountByPartner,
 } from "@/lib/types";
 import { ButtonLink } from "@/ui/placeholders/button-link";
 import { ShieldKeyhole } from "@dub/ui";
@@ -44,8 +44,8 @@ export function PartnerFraudBanner({
 }) {
   const { slug } = useParams();
 
-  const { fraudEventsCount, loading } = useFraudEventsCount<
-    FraudEventsCountByPartner[]
+  const { fraudGroupCount, loading } = useFraudGroupCount<
+    FraudGroupCountByPartner[]
   >({
     query: {
       groupBy: "partnerId",
@@ -58,11 +58,11 @@ export function PartnerFraudBanner({
     return null;
   }
 
-  const partnerFraudEvents = fraudEventsCount?.find(
+  const partnerFraudGroup = fraudGroupCount?.find(
     (event) => event.partnerId === partner.id,
   );
 
-  if (!partnerFraudEvents || partnerFraudEvents._count === 0) {
+  if (!partnerFraudGroup || partnerFraudGroup._count === 0) {
     return null;
   }
 

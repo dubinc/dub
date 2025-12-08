@@ -145,8 +145,8 @@ export function PartnerRowItem({
       >
         <div className="relative shrink-0">
           <img
-            src={partner.image || `${OG_AVATAR_URL}${partner.name}`}
-            alt={partner.name}
+            src={partner.image || `${OG_AVATAR_URL}${partner.id}`}
+            alt={partner.id}
             className="size-5 shrink-0 rounded-full"
           />
           {showPayoutsEnabled && statusKey && (

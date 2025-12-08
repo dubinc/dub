@@ -31,7 +31,7 @@ model Program {
   defaultGroupId     String
   name               String
   slug               String            @unique
-  domain             String?
+  domain             String?           @unique
   url                String?
   logo               String? // TODO: remove after we refactor all program.logo fields to use group.logo instead
   primaryRewardEvent EventType         @default(sale)
@@ -51,13 +51,8 @@ model Program {
   updatedAt               DateTime  @updatedAt
   startedAt               DateTime?
 
-  // DEPRECATED FIELDS: TODO – remove after migration
-  wordmark                     String?
-  brandColor                   String?
-  holdingPeriodDays            Int       @default(0)
-  autoApprovePartnersEnabledAt DateTime?
-
   workspace                Project                   @relation(fields: [workspaceId], references: [id])
+  customDomain             Domain?                   @relation(fields: [domain], references: [slug])
   partners                 ProgramEnrollment[]
   payouts                  Payout[]
   invoices                 Invoice[]
@@ -81,7 +76,7 @@ model Program {
   similarToPrograms        ProgramSimilarity[]       @relation("SimilarProgram")
   categories               ProgramCategory[]
   fraudRules               FraudRule[]
-  fraudEvents              FraudEvent[]
+  fraudEventGroups         FraudEventGroup[]
 
   @@index(workspaceId)
   @@index(domain)
@@ -139,7 +134,7 @@ model ProgramEnrollment {
   discountCodes     DiscountCode[]
   commissions       Commission[]
   payouts           Payout[]
-  fraudEvents       FraudEvent[]
+  fraudEventGroups  FraudEventGroup[]
 
   // unique constraints
   @@unique([partnerId, programId])

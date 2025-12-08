@@ -37,7 +37,7 @@ export function PartnerApplicationRiskSummary({
   const { canManageFraudEvents } = getPlanCapabilities(plan);
 
   if (!canManageFraudEvents && !isLoading) {
-    return <PartnerApplicationRiskSummaryUpsell severity={severity} />;
+    return <PartnerApplicationRiskSummaryUpsell />;
   }
 
   if (isLoading || triggeredFraudRules.length === 0) {
@@ -107,19 +107,9 @@ const APPLICATION_RISK_CONFIG = {
   },
 };
 
-export function PartnerApplicationRiskSummaryUpsell({
-  severity,
-}: {
-  severity: FraudSeverity | null | undefined;
-}) {
+export function PartnerApplicationRiskSummaryUpsell() {
   const { partnersUpgradeModal, setShowPartnersUpgradeModal } =
     usePartnersUpgradeModal();
-
-  const severityConfig = severity ? APPLICATION_RISK_CONFIG[severity] : null;
-
-  if (!severityConfig) {
-    return null;
-  }
 
   // Dummy risk items for blur effect
   const dummyRisks: Array<{ severity: FraudSeverity; text: string }> = [
@@ -127,6 +117,9 @@ export function PartnerApplicationRiskSummaryUpsell({
     { severity: "medium", text: "Medium risk reason to unlock" },
     { severity: "low", text: "Low risk reason to unlock" },
   ];
+
+  const severity: FraudSeverity = "high";
+  const severityConfig = APPLICATION_RISK_CONFIG[severity];
 
   return (
     <>
@@ -177,7 +170,8 @@ export function PartnerApplicationRiskSummaryUpsell({
             </div>
 
             <p className="text-content-default max-w-72 text-center text-xs font-medium">
-              Application risk review and event detection are Advanced plan{" "}
+              Application risk review and event detection are available on the
+              Advanced plan{" "}
               <Link
                 href="https://dub.co/help"
                 target="_blank"
