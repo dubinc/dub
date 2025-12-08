@@ -1,6 +1,6 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ABTestVariantsSchema } from "@/lib/zod/schemas/links";
-import { fetcher } from "@dub/utils";
+import { fetcher, getPrettyUrl } from "@dub/utils";
 import { motion } from "motion/react";
 import { memo, useMemo } from "react";
 import useSWR from "swr";
@@ -82,7 +82,7 @@ export const LinkTests = memo(({ link }: { link: ResponseLink }) => {
 
                 {/* Test name */}
                 <span className="truncate text-sm font-medium text-neutral-800">
-                  {test.url}
+                  {getPrettyUrl(test.url)}
                 </span>
               </div>
 
