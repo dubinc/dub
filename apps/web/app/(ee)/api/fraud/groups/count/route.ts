@@ -31,6 +31,7 @@ export const GET = withWorkspace(
         by: ["type"],
         where: {
           ...commonWhere,
+          type: undefined,
         },
         _count: true,
         orderBy: {
