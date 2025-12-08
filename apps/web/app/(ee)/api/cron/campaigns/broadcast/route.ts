@@ -9,7 +9,7 @@ import { sendBatchEmail } from "@dub/email";
 import CampaignEmail from "@dub/email/templates/campaign-email";
 import { prisma } from "@dub/prisma";
 import { NotificationEmailType } from "@dub/prisma/client";
-import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, chunk, log } from "@dub/utils";
 import { differenceInMinutes } from "date-fns";
 import { headers } from "next/headers";
 import { z } from "zod";
@@ -211,55 +211,72 @@ export async function POST(req: Request) {
     );
 
     if (partnerUsers.length > 0) {
-      const { data, error } = await sendBatchEmail(
-        partnerUsers.map((partnerUser) => ({
-          variant: "marketing",
-          from: `${program.name} <${campaign.from}>`,
-          to: partnerUser.email!,
-          subject: campaign.subject,
-          ...(program.supportEmail ? { replyTo: program.supportEmail } : {}),
-          react: CampaignEmail({
-            program: {
-              name: program.name,
-              slug: program.slug,
-              logo: program.logo,
-            },
-            campaign: {
-              type: campaign.type,
-              preview: campaign.preview,
-              body: renderCampaignEmailHTML({
-                content: campaign.bodyJson as unknown as TiptapNode,
-                variables: {
-                  PartnerName: partnerUser.partner.name,
-                  PartnerEmail: partnerUser.partner.email,
-                },
-              }),
-            },
-          }),
-          tags: [{ name: "type", value: "notification-email" }],
-          headers: {
-            "Idempotency-Key": `${campaign.id}-${startingAfter}`,
-          },
-        })),
-      );
+      // Chunk partnerUsers even though the DB query limits enrollments to EMAIL_BATCH_SIZE.
+      // Each enrollment can have multiple users (via partner.users), so the flattened
+      // partnerUsers array can exceed EMAIL_BATCH_SIZE.
+      const partnerUsersChunks = chunk(partnerUsers, EMAIL_BATCH_SIZE);
 
-      if (error) {
-        console.error(error);
-      }
+      for (
+        let chunkIndex = 0;
+        chunkIndex < partnerUsersChunks.length;
+        chunkIndex++
+      ) {
+        const partnerUsersChunk = partnerUsersChunks[chunkIndex].filter(
+          (partnerUser) => partnerUser.email,
+        );
+        const batchIdentifier = startingAfter || "initial";
+        const idempotencyKey = `campaign-broadcast/${campaign.id}-${batchIdentifier}-${chunkIndex}`;
 
-      if (data) {
-        await prisma.notificationEmail.createMany({
-          data: partnerUsers.map((partnerUser, idx) => ({
-            id: createId({ prefix: "em_" }),
-            type: NotificationEmailType.Campaign,
-            emailId: data.data[idx].id,
-            campaignId: campaign.id,
-            programId: campaign.programId,
-            partnerId: partnerUser.partner.id,
-            recipientUserId: partnerUser.id,
+        const { data, error } = await sendBatchEmail(
+          partnerUsersChunk.map((partnerUser) => ({
+            variant: "marketing",
+            from: `${program.name} <${campaign.from}>`,
+            to: partnerUser.email!,
+            subject: campaign.subject,
+            ...(program.supportEmail ? { replyTo: program.supportEmail } : {}),
+            react: CampaignEmail({
+              program: {
+                name: program.name,
+                slug: program.slug,
+                logo: program.logo,
+              },
+              campaign: {
+                type: campaign.type,
+                preview: campaign.preview,
+                body: renderCampaignEmailHTML({
+                  content: campaign.bodyJson as unknown as TiptapNode,
+                  variables: {
+                    PartnerName: partnerUser.partner.name,
+                    PartnerEmail: partnerUser.partner.email,
+                  },
+                }),
+              },
+            }),
+            tags: [{ name: "type", value: "notification-email" }],
           })),
-          skipDuplicates: true,
-        });
+          {
+            idempotencyKey,
+          },
+        );
+
+        if (error) {
+          console.error(error);
+        }
+
+        if (data) {
+          await prisma.notificationEmail.createMany({
+            data: partnerUsersChunk.map((partnerUser, idx) => ({
+              id: createId({ prefix: "em_" }),
+              type: NotificationEmailType.Campaign,
+              emailId: data.data[idx].id,
+              campaignId: campaign.id,
+              programId: campaign.programId,
+              partnerId: partnerUser.partner.id,
+              recipientUserId: partnerUser.id,
+            })),
+            skipDuplicates: true,
+          });
+        }
       }
     }
 
