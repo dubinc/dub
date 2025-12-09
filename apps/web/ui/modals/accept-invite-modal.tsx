@@ -54,10 +54,10 @@ function AcceptInviteModal({
         workspace: slug,
       });
 
-      router.replace(`/${slug}`);
+      await mutatePrefix(["/api/workspaces", "/api/programs"]);
+      router.refresh();
       setShowAcceptInviteModal(false);
       toast.success("You now are a part of this workspace!");
-      mutatePrefix("/api/workspaces");
     } finally {
       setAccepting(false);
     }
@@ -78,11 +78,10 @@ function AcceptInviteModal({
         return;
       }
 
+      await mutatePrefix("/api/workspaces");
+      router.refresh();
       setShowAcceptInviteModal(false);
       toast.success("You have declined the invite.");
-      mutatePrefix("/api/workspaces");
-      // Use window.location for a full page reload to clear any invite query params
-      window.location.href = "/";
     } finally {
       setDeclining(false);
     }
