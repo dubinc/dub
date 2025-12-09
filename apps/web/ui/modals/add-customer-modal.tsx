@@ -176,7 +176,7 @@ export const AddCustomerModal = ({
 
             <div>
               <label className="text-sm font-normal text-neutral-500">
-                Country <span className="text-red-500">*</span>
+                Country (Required)
               </label>
               <CountryCombobox
                 value={country || "US"}
