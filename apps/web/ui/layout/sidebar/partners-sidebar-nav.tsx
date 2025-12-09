@@ -1,6 +1,7 @@
 "use client";
 
 import { partnerCanViewMarketplace } from "@/lib/network/get-discoverability-requirements";
+import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import usePartnerProgramBounties from "@/lib/swr/use-partner-program-bounties";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
@@ -284,6 +285,8 @@ export function PartnersSidebarNav({
   const pathname = usePathname();
   const { getQueryString } = useRouterStuff();
 
+  const { partner } = usePartnerProfile();
+
   const isEnrolledProgramPage =
     pathname.startsWith(`/programs/${programSlug}`) &&
     pathname !== `/programs/${programSlug}/apply`;
@@ -338,7 +341,10 @@ export function PartnersSidebarNav({
         unreadMessagesCount,
         programBountiesCount: bountiesCount.active,
         showDetailedAnalytics,
-        showMarketplace: partnerCanViewMarketplace(programEnrollments || []),
+        showMarketplace: partnerCanViewMarketplace({
+          partner,
+          programEnrollments: programEnrollments || [],
+        }),
       }}
       toolContent={toolContent}
       newsContent={newsContent}
