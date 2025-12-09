@@ -1,6 +1,7 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CustomerProps } from "@/lib/types";
 import { createCustomerBodySchema } from "@/lib/zod/schemas/customers";
+import { CountryCombobox } from "@/ui/partners/country-combobox";
 import { Button, Modal, useMediaQuery } from "@dub/ui";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -31,13 +32,15 @@ export const AddCustomerModal = ({
     handleSubmit,
     watch,
     reset,
-    formState: { isSubmitting },
+    setValue,
+    formState: { isSubmitting, errors },
   } = useForm<FormData>({
     defaultValues: {
       name: null,
       email: null,
       externalId: "",
       stripeCustomerId: null,
+      country: "US",
     },
   });
 
@@ -51,6 +54,7 @@ export const AddCustomerModal = ({
         email: null,
         externalId: "",
         stripeCustomerId: null,
+        country: "US",
       });
     }
     prevShowModal.current = showModal;
@@ -87,6 +91,7 @@ export const AddCustomerModal = ({
   };
 
   const externalId = watch("externalId");
+  const country = watch("country");
 
   return (
     <Modal showModal={showModal} setShowModal={setShowModal}>
@@ -168,6 +173,24 @@ export const AddCustomerModal = ({
                 The customer's Stripe customer ID (optional)
               </p>
             </div>
+
+            <div>
+              <label className="text-sm font-normal text-neutral-500">
+                Country <span className="text-red-500">*</span>
+              </label>
+              <CountryCombobox
+                value={country || "US"}
+                onChange={(value) =>
+                  setValue("country", value, { shouldValidate: true })
+                }
+                error={!!errors.country}
+                className="mt-2"
+              />
+              <input
+                type="hidden"
+                {...register("country", { required: true })}
+              />
+            </div>
           </div>
 
           <div className="flex items-center justify-end border-t border-neutral-200 px-4 py-4 sm:px-6">
@@ -185,7 +208,7 @@ export const AddCustomerModal = ({
                 text="Create customer"
                 className="h-9 w-fit"
                 loading={isSubmitting}
-                disabled={!externalId}
+                disabled={!externalId || !country}
               />
             </div>
           </div>
