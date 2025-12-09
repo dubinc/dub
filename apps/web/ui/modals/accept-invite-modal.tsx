@@ -37,17 +37,17 @@ function AcceptInviteModal({
         headers: { "Content-Type": "application/json" },
       });
 
+      if (!response.ok) {
+        const error = await response.json();
+        toast.error(error.message || "Failed to accept invite.");
+        return;
+      }
+
       if (session?.user) {
         posthog.identify(session.user["id"], {
           email: session.user.email,
           name: session.user.name,
         });
-      }
-
-      if (!response.ok) {
-        const error = await response.json();
-        toast.error(error.message || "Failed to accept invite.");
-        return;
       }
 
       posthog.capture("accepted_workspace_invite", {
