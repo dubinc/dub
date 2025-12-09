@@ -504,7 +504,7 @@ function RewardSheetContent({
                             className="sm:w-80"
                             maxLength={REWARD_DESCRIPTION_MAX_LENGTH}
                           />
-                        </InlineBadgePopover>
+                        </InlineBadgePopover>{" "}
                         with the tooltip{" "}
                         <InlineBadgePopover
                           text={tooltipDescription || "Reward tooltip"}
