@@ -105,7 +105,6 @@ export const bulkBanPartnersAction = authActionClient
             body: {
               programId,
               partnerId,
-              userId: user.id,
             },
           })),
         ),

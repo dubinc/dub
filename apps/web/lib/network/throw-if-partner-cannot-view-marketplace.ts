@@ -15,20 +15,29 @@ export async function throwIfPartnerCannotViewMarketplace({
   const data = await prisma.partner.findUnique({
     where: {
       id: partner.id,
-      programs: {
-        some: {
-          programId: {
-            notIn: EXCLUDED_PROGRAM_IDS,
-          },
-          status: "approved",
-          totalCommissions: {
-            gte: PARTNER_NETWORK_MIN_COMMISSIONS_CENTS,
+      OR: [
+        {
+          email: {
+            endsWith: "@dub.co",
           },
         },
-        none: {
-          status: "banned",
+        {
+          programs: {
+            some: {
+              programId: {
+                notIn: EXCLUDED_PROGRAM_IDS,
+              },
+              status: "approved",
+              totalCommissions: {
+                gte: PARTNER_NETWORK_MIN_COMMISSIONS_CENTS,
+              },
+            },
+            none: {
+              status: "banned",
+            },
+          },
         },
-      },
+      ],
     },
   });
 

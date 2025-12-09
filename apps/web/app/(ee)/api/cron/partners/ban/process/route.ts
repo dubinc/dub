@@ -20,7 +20,6 @@ import { cancelCommissions } from "./cancel-commissions";
 const schema = z.object({
   programId: z.string(),
   partnerId: z.string(),
-  userId: z.string(),
 });
 
 // POST /api/cron/partners/ban/process - do the post-ban processing
@@ -33,7 +32,7 @@ export async function POST(req: Request) {
       rawBody,
     });
 
-    const { programId, partnerId, userId } = schema.parse(JSON.parse(rawBody));
+    const { programId, partnerId } = schema.parse(JSON.parse(rawBody));
 
     console.info(`Banning partner ${partnerId} from program ${programId}...`);
 

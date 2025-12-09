@@ -114,10 +114,12 @@ export const DELETE = withWorkspace(
           user: {
             select: {
               isMachine: true,
+              defaultWorkspace: true,
             },
           },
         },
       }),
+
       prisma.projectUsers.count({
         where: {
           projectId: workspace.id,
@@ -129,7 +131,7 @@ export const DELETE = withWorkspace(
     if (!projectUser) {
       throw new DubApiError({
         code: "not_found",
-        message: "User not found",
+        message: "User not found.",
       });
     }
 
@@ -164,6 +166,17 @@ export const DELETE = withWorkspace(
           userId,
         },
       }),
+
+      // Remove the default workspace for the user if they are leaving the workspace
+      workspace.slug === projectUser.user.defaultWorkspace &&
+        prisma.user.update({
+          where: {
+            id: userId,
+          },
+          data: {
+            defaultWorkspace: null,
+          },
+        }),
     ]);
 
     // delete the user if it's a machine user

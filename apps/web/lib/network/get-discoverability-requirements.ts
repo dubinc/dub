@@ -31,12 +31,19 @@ const partnerIsNotBanned = (
   return programEnrollments.every((pe) => pe.status !== "banned");
 };
 
-export const partnerCanViewMarketplace = (
+export const partnerCanViewMarketplace = ({
+  partner,
+  programEnrollments,
+}: {
+  partner?: Pick<PartnerProps, "email">;
   programEnrollments: Pick<
     EnrolledPartnerProps,
     "programId" | "status" | "totalCommissions"
-  >[],
-) => {
+  >[];
+}) => {
+  if (partner?.email?.endsWith("@dub.co")) {
+    return true;
+  }
   return (
     partnerHasEarnedCommissions(programEnrollments) &&
     partnerIsNotBanned(programEnrollments)

@@ -35,7 +35,13 @@ export const GET = withSession(async ({ session }) => {
   if (!paidWorkspaces || paidWorkspaces.length === 0) {
     // if the free user has a partner account, they are only eligible if they can view the program marketplace
     const programEnrollments = user.partners[0]?.partner.programs;
-    if (programEnrollments && !partnerCanViewMarketplace(programEnrollments)) {
+    if (
+      programEnrollments &&
+      !partnerCanViewMarketplace({
+        partner: user.partners[0]?.partner,
+        programEnrollments,
+      })
+    ) {
       return NextResponse.json({ publicToken: null });
     }
 
