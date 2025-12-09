@@ -51,7 +51,6 @@ async function main() {
       },
     },
   });
-  console.table(programToAdd, ["id", "name", "slug", "url"]);
 
   if (!programToAdd.url) {
     throw new Error("Program URL is not set");

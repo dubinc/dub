@@ -56,7 +56,13 @@ export default async function MarketplaceProgramPage(props: {
       controls={<MarketplaceProgramHeaderControls program={program} />}
     >
       <PageWidthWrapper className="pb-20">
-        <div className="border-border-subtle relative overflow-hidden rounded-xl border">
+        <div
+          className={cn(
+            "relative",
+            program.featuredOnMarketplaceAt &&
+              "border-border-subtle overflow-hidden rounded-xl border",
+          )}
+        >
           {program.featuredOnMarketplaceAt &&
             program.marketplaceHeaderImage && (
               <>

@@ -71,23 +71,6 @@ export function useProgramNetworkFilters() {
   const filters = useMemo(
     () => [
       {
-        key: "category",
-        icon: Suitcase,
-        label: "Category",
-        getOptionIcon: (value) => {
-          const Icon = PROGRAM_CATEGORIES_MAP[value]?.icon || Suitcase;
-          return <Icon className="size-4" />;
-        },
-        getOptionLabel: (value) =>
-          PROGRAM_CATEGORIES_MAP[value]?.label || value.replace("_", " "),
-        options:
-          categoriesCount?.map(({ category, _count }) => ({
-            value: category,
-            label: category,
-            right: nFormatter(_count, { full: true }),
-          })) ?? [],
-      },
-      {
         key: "rewardType",
         multiple: true,
         icon: Gift,
@@ -103,6 +86,23 @@ export function useProgramNetworkFilters() {
             ),
           }),
         ),
+      },
+      {
+        key: "category",
+        icon: Suitcase,
+        label: "Category",
+        getOptionIcon: (value) => {
+          const Icon = PROGRAM_CATEGORIES_MAP[value]?.icon || Suitcase;
+          return <Icon className="size-4" />;
+        },
+        getOptionLabel: (value) =>
+          PROGRAM_CATEGORIES_MAP[value]?.label || value.replace("_", " "),
+        options:
+          categoriesCount?.map(({ category, _count }) => ({
+            value: category,
+            label: category,
+            right: nFormatter(_count, { full: true }),
+          })) ?? [],
       },
       {
         key: "status",

@@ -14,7 +14,7 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-export default function PartnerMarketplaceAnnouncement({
+export default function ProgramMarketplaceAnnouncement({
   email = "panic@thedis.co",
 }: {
   email: string;
