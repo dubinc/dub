@@ -81,7 +81,14 @@ export function ProgramRewardsDisplay({
         </HoverCard.Portal>
         <HoverCard.Trigger>
           <As
-            {...(item.onClick && { type: "button", onClick: item.onClick })}
+            {...(item.onClick && {
+              type: "button",
+              onClick: (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                item.onClick?.();
+              },
+            })}
             className={cn(
               "-ml-1 flex items-center gap-1 pr-1",
               item.onClick &&

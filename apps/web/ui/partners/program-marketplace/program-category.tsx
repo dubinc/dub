@@ -22,7 +22,14 @@ export const ProgramCategory = ({
 
   return (
     <As
-      {...(onClick && { type: "button", onClick })}
+      {...(onClick && {
+        type: "button",
+        onClick: (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onClick?.();
+        },
+      })}
       className={cn(
         "text-content-default -ml-1 flex h-6 min-w-0 items-center gap-1 rounded-md px-1",
         onClick && "hover:bg-bg-subtle active:bg-bg-emphasis",
