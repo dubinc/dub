@@ -21,6 +21,7 @@ const queue = qstash.queue({
 const schema = z.object({
   programId: z.string(),
   startingAfter: z.string().nullish(),
+  batchNumber: z.number().nullish(),
 });
 
 interface AnalyticsResponse {
@@ -35,7 +36,7 @@ interface AnalyticsResponse {
 export const POST = withCron(async ({ rawBody }) => {
   const result = schema.parse(JSON.parse(rawBody));
 
-  let { programId, startingAfter } = result;
+  let { programId, startingAfter, batchNumber } = result;
 
   const previousMonth = startOfMonth(subMonths(new Date(), 2));
   const currentMonth = startOfMonth(subMonths(new Date(), 1));
@@ -283,6 +284,7 @@ export const POST = withCron(async ({ rawBody }) => {
   );
 
   const reportingMonth = format(currentMonth, "MMM yyyy");
+  batchNumber = batchNumber || 1;
 
   await sendBatchEmail(
     summary.map(({ partner, ...rest }) => ({
@@ -302,13 +304,14 @@ export const POST = withCron(async ({ rawBody }) => {
       }),
     })),
     {
-      idempotencyKey: `partner-program-summary-${reportingMonth}-${program.id}`,
+      idempotencyKey: `partner-program-summary-${reportingMonth}-${program.id}-${batchNumber}`,
     },
   );
 
   // Schedule the next batch if there are more partners to process
   if (programEnrollments.length === PARTNER_BATCH_SIZE) {
     startingAfter = programEnrollments[programEnrollments.length - 1].id;
+    batchNumber++;
 
     const response = await queue.enqueueJSON({
       url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partner-program-summary/process`,
@@ -316,6 +319,7 @@ export const POST = withCron(async ({ rawBody }) => {
       body: {
         ...result,
         startingAfter,
+        batchNumber,
       },
     });
 

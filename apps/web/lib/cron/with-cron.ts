@@ -44,6 +44,8 @@ export const withCron = (handler: WithCronHandler) => {
         else if (req.method === "POST") {
           rawBody = await req.text();
           await verifyQstashSignature({ req, rawBody });
+        } else {
+          throw new Error(`Unsupported HTTP method: ${req.method}`);
         }
 
         return await handler({
@@ -55,12 +57,15 @@ export const withCron = (handler: WithCronHandler) => {
       } catch (error) {
         console.error(error);
 
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
+
         await log({
-          message: `Cron job ${url.pathname} failed ${error.message}`,
+          message: `Cron job ${url.pathname} failed: ${errorMessage}`,
           type: "cron",
         });
 
-        return logAndRespond(error.message);
+        return logAndRespond(errorMessage);
       }
     },
   );

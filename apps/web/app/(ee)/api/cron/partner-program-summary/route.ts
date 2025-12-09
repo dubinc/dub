@@ -14,8 +14,6 @@ export const GET = withCron(async () => {
   const currentMonth = startOfMonth(subMonths(new Date(), 1));
   const yearMonth = format(currentMonth, "yyyy-MM");
 
-  console.log(yearMonth, currentMonth);
-
   let page = 0;
 
   while (true) {
