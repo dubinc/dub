@@ -37,8 +37,7 @@ export function ProgramMarketplaceLogos({ className }: { className?: string }) {
         className,
       )}
     >
-      {[...Array(LOGO_COUNT)].map((_, index) => {
-        const { x, y, r, s, z } = LOGOS[index];
+      {LOGOS.map(({ x, y, r, s, z }, index) => {
         return (
           <div
             key={index}
