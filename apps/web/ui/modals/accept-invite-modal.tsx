@@ -55,7 +55,7 @@ function AcceptInviteModal({
       });
 
       await mutatePrefix(["/api/workspaces", "/api/programs"]);
-      router.refresh();
+      router.replace(`/${slug}`);
       setShowAcceptInviteModal(false);
       toast.success("You now are a part of this workspace!");
     } finally {
