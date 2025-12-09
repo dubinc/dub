@@ -33,7 +33,8 @@ model Program {
   slug               String            @unique
   domain             String?           @unique
   url                String?
-  logo               String? // TODO: remove after we refactor all program.logo fields to use group.logo instead
+  logo               String?
+  description        String?           @db.Text
   primaryRewardEvent EventType         @default(sale)
   minPayoutAmount    Int               @default(0) // Default minimum payout amount of $0
   payoutMode         ProgramPayoutMode @default(internal)

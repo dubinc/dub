@@ -44,7 +44,6 @@ export function FeaturedProgramCard({
         </div>
 
         <div className="mt-10 flex flex-col">
-          {/* Name */}
           <span
             className={cn(
               "text-3xl font-semibold",
@@ -60,8 +59,8 @@ export function FeaturedProgramCard({
               darkImage && "text-content-inverted",
             )}
           >
-            {/* Description */}
-            {`${program.name} is a program in the Dub Partner Network. Join the network to start partnering with them.`}
+            {program.description ||
+              `${program.name} is a program in the Dub Partner Network. Join the network to start partnering with them.`}
           </div>
 
           <div className="mt-5 flex gap-8">

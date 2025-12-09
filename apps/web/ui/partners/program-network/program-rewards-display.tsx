@@ -99,7 +99,7 @@ export function ProgramRewardsDisplay({
             </div>
             <span
               className={cn(
-                "max-w-[160px] truncate text-sm font-medium",
+                "text-content-subtle max-w-[160px] truncate text-sm font-medium",
                 isDarkImage && "text-content-inverted",
                 descriptionClassName,
               )}

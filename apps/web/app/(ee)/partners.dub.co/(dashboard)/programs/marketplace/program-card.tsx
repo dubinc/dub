@@ -28,14 +28,13 @@ export function ProgramCard({ program }: { program: NetworkProgramProps }) {
       </div>
 
       <div className="mt-4 flex flex-col">
-        {/* Name */}
         <span className="text-content-emphasis text-base font-semibold">
           {program.name}
         </span>
 
         <div className="text-content-subtle mt-1 line-clamp-2 text-sm">
-          {/* Domain */}
-          {`${program.name} is a program in the Dub Partner Network. Join the network to start partnering with them.`}
+          {program.description ||
+            `${program.name} is a program in the Dub Partner Network. Join the network to start partnering with them.`}
         </div>
 
         <div className="mt-4 flex gap-4">
