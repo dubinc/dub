@@ -25,6 +25,7 @@ import {
 } from "@dub/ui/icons";
 import { useParams, usePathname } from "next/navigation";
 import { ReactNode, useMemo } from "react";
+import { ProgramMarketplaceCard } from "../../partners/program-marketplace/program-marketplace-card";
 import { CursorRays } from "./icons/cursor-rays";
 import { Hyperlink } from "./icons/hyperlink";
 import { LinesY } from "./icons/lines-y";
@@ -342,7 +343,16 @@ export function PartnersSidebarNav({
       }}
       toolContent={toolContent}
       newsContent={newsContent}
-      bottom={isEnrolledProgramPage ? <ProgramHelpSupport /> : <PayoutStats />}
+      bottom={
+        isEnrolledProgramPage ? (
+          <ProgramHelpSupport />
+        ) : (
+          <>
+            <ProgramMarketplaceCard />
+            <PayoutStats />
+          </>
+        )
+      }
     />
   );
 }
