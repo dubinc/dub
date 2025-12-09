@@ -38,7 +38,7 @@ export const GET = withCron(async () => {
       programs.map((program) => ({
         queueName: "partner-program-summary",
         url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partner-program-summary/process`,
-        deduplicationId: `partner-program-summary-${yearMonth}-${program.id}-4`,
+        deduplicationId: `partner-program-summary-${yearMonth}-${program.id}`,
         body: {
           programId: program.id,
         },
