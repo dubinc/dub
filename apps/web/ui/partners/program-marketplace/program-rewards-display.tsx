@@ -83,7 +83,7 @@ export function ProgramRewardsDisplay({
           <As
             {...(item.onClick && { type: "button", onClick: item.onClick })}
             className={cn(
-              "-ml-1 flex items-center gap-1",
+              "-ml-1 flex items-center gap-1 pr-1",
               item.onClick &&
                 "hover:bg-bg-subtle active:bg-bg-emphasis rounded-md transition-colors",
               className,
@@ -99,7 +99,7 @@ export function ProgramRewardsDisplay({
             </div>
             <span
               className={cn(
-                "text-content-subtle max-w-[160px] truncate text-sm font-medium",
+                "text-content-default max-w-[160px] truncate text-sm font-medium",
                 isDarkImage && "text-content-inverted",
                 descriptionClassName,
               )}

@@ -1,6 +1,6 @@
 import { NetworkProgramProps } from "@/lib/types";
-import { ProgramCategory } from "@/ui/partners/program-network/program-category";
-import { ProgramRewardsDisplay } from "@/ui/partners/program-network/program-rewards-display";
+import { ProgramCategory } from "@/ui/partners/program-marketplace/program-category";
+import { ProgramRewardsDisplay } from "@/ui/partners/program-marketplace/program-rewards-display";
 import { Tooltip, useClickHandlers, useRouterStuff } from "@dub/ui";
 import { OG_AVATAR_URL, cn } from "@dub/utils";
 import { useRouter } from "next/navigation";

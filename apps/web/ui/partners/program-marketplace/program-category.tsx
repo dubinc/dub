@@ -30,9 +30,7 @@ export const ProgramCategory = ({
       )}
     >
       <Icon className="size-4" />
-      <span className="text-content-subtle min-w-0 truncate text-sm font-medium">
-        {label}
-      </span>
+      <span className="min-w-0 truncate text-sm font-medium">{label}</span>
     </As>
   );
 };
