@@ -1,6 +1,7 @@
 "use client";
 
 import { partnerCanViewMarketplace } from "@/lib/network/get-discoverability-requirements";
+import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
 import { useProgramMarketplacePromo } from "@/ui/partners/program-marketplace/use-program-marketplace-promo";
 import { X } from "@/ui/shared/icons";
@@ -11,13 +12,15 @@ import Link from "next/link";
 import { ProgramMarketplaceLogos } from "./program-marketplace-logos";
 
 export function ProgramMarketplaceBanner() {
+  const { partner } = usePartnerProfile();
   const { programEnrollments } = useProgramEnrollments();
   const { status, setStatus } = useProgramMarketplacePromo();
 
   return (
     <AnimatePresence>
-      {programEnrollments &&
-        partnerCanViewMarketplace(programEnrollments) &&
+      {partner &&
+        programEnrollments &&
+        partnerCanViewMarketplace({ partner, programEnrollments }) &&
         status === "banner" && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
