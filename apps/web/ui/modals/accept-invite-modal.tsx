@@ -79,7 +79,7 @@ function AcceptInviteModal({
       }
 
       await mutatePrefix("/api/workspaces");
-      router.refresh();
+      router.replace("/workspaces");
       setShowAcceptInviteModal(false);
       toast.success("You have declined the invite.");
     } finally {
