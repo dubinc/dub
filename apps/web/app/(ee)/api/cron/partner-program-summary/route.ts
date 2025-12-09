@@ -9,6 +9,8 @@ export const dynamic = "force-dynamic";
 
 const PROGRAM_BATCH_SIZE = 50;
 
+// This route handles the monthly partner program summary emails for partners.
+// Scheduled to run at 1 PM UTC on the 1st day of every month to send the previous month's summary.
 // GET /api/cron/partner-program-summary
 export const GET = withCron(async () => {
   const currentMonth = startOfMonth(subMonths(new Date(), 1));
@@ -36,7 +38,7 @@ export const GET = withCron(async () => {
       programs.map((program) => ({
         queueName: "partner-program-summary",
         url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partner-program-summary/process`,
-        deduplicationId: `partner-program-summary-${yearMonth}-${program.id}`,
+        deduplicationId: `partner-program-summary-${yearMonth}-${program.id}-4`,
         body: {
           programId: program.id,
         },

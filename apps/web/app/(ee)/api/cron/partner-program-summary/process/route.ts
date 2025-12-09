@@ -32,6 +32,8 @@ interface AnalyticsResponse {
   saleAmount: number;
 }
 
+// This route processes partner program summary emails for a specific program.
+// Called by the main route after enqueuing jobs for each program.
 // POST /api/cron/partner-program-summary/process
 export const POST = withCron(async ({ rawBody }) => {
   const result = schema.parse(JSON.parse(rawBody));
