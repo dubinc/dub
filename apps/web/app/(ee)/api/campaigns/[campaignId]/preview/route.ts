@@ -46,7 +46,7 @@ export const POST = withWorkspace(
       }),
     ]);
 
-    const { error } = await sendBatchEmail(
+    const { data, error } = await sendBatchEmail(
       emailAddresses.map((email) => ({
         variant: campaign.type === "marketing" ? "marketing" : "notifications",
         to: email,
@@ -74,6 +74,7 @@ export const POST = withWorkspace(
         }),
       })),
     );
+    console.log("Resend response:", data);
 
     if (error) {
       throw new DubApiError({
