@@ -15,7 +15,7 @@ export const ProgramCategory = ({
   const categoryData = PROGRAM_CATEGORIES_MAP[category];
   const { icon: Icon, label } = categoryData ?? {
     icon: CircleInfo,
-    label: category.replace("_", " "),
+    label: category.replaceAll("_", " "),
   };
 
   const As = onClick ? "button" : "div";
