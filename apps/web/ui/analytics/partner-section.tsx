@@ -49,7 +49,7 @@ const TAB_CONFIG: Record<
     },
     getGroupBy: (subtab): { groupBy: AnalyticsGroupByOptions } => {
       if (subtab === "short_links") return { groupBy: "top_links" };
-      return { groupBy: "top_urls" };
+      return { groupBy: "top_base_urls" };
     },
   },
 };

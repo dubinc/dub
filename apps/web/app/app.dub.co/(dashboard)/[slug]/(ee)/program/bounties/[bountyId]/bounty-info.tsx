@@ -24,6 +24,7 @@ export function BountyInfo() {
   const { submissionsCount } = useBountySubmissionsCount<
     SubmissionsCountByStatus[]
   >({
+    ignoreParams: true,
     enabled: Boolean(bounty),
   });
 

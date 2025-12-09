@@ -82,7 +82,11 @@ export function FraudPaidTrafficDetectedTable() {
         size: 220,
         cell: ({ row }) =>
           row.original.customer ? (
-            <CustomerRowItem customer={row.original.customer} />
+            <CustomerRowItem
+              customer={row.original.customer}
+              href={`/${workspaceSlug}/customers/${row.original.customer.id}`}
+              chartActivityIconMode="hidden"
+            />
           ) : (
             "-"
           ),
@@ -151,7 +155,7 @@ export function FraudPaidTrafficDetectedTable() {
 
           return (
             <Link
-              href={`/${workspaceSlug}/events?interval=all&customerId=${row.original.customer.id}`}
+              href={`/${workspaceSlug}/events?event=leads&interval=all&customerId=${row.original.customer.id}`}
               target="_blank"
             >
               <Button
