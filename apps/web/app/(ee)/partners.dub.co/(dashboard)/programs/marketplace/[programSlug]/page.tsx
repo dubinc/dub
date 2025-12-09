@@ -55,28 +55,27 @@ export default async function MarketplaceProgramPage(props: {
       }
       controls={<MarketplaceProgramHeaderControls program={program} />}
     >
-      <PageWidthWrapper>
-        <div className="relative">
+      <PageWidthWrapper className="pb-20">
+        <div className="border-border-subtle relative overflow-hidden rounded-xl border">
           {program.featuredOnMarketplaceAt &&
             program.marketplaceHeaderImage && (
-              <img
-                src={program.marketplaceHeaderImage}
-                alt={program.name}
-                className="border-border-subtle absolute inset-0 size-full overflow-hidden rounded-xl border object-cover"
-              />
-            )}
-          <div className="relative mx-auto max-w-screen-md py-8">
-            <div className="flex items-start justify-between gap-4">
-              {program ? (
+              <>
                 <img
-                  src={program.logo || `${OG_AVATAR_URL}${program.name}`}
+                  src={program.marketplaceHeaderImage}
                   alt={program.name}
-                  className="size-16 rounded-full border border-white/20"
+                  className="absolute inset-0 size-full object-cover"
                 />
-              ) : (
-                <div className="size-16 animate-pulse rounded-full bg-neutral-200" />
-              )}
-            </div>
+                {!isDarkImage && (
+                  <div className="absolute inset-0 size-full bg-gradient-to-t from-white via-white/75 to-transparent" />
+                )}
+              </>
+            )}
+          <div className="relative mx-auto max-w-screen-md px-4 py-8 sm:px-0">
+            <img
+              src={program.logo || `${OG_AVATAR_URL}${program.name}`}
+              alt={program.name}
+              className="size-16 rounded-full border border-white/20"
+            />
 
             <div className="mt-6 flex flex-col">
               <span

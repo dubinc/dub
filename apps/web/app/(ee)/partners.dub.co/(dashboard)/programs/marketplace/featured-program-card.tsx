@@ -14,7 +14,7 @@ export function FeaturedProgramCard({
   const { queryParams } = useRouterStuff();
   const router = useRouter();
 
-  const darkImage = program.marketplaceHeaderImage?.includes("-dark");
+  const isDarkImage = program.marketplaceHeaderImage?.includes("-dark");
 
   return (
     <div
@@ -28,7 +28,9 @@ export function FeaturedProgramCard({
             alt={program.name}
             className="absolute inset-0 size-full object-cover"
           />
-          <div className="absolute inset-0" />
+          {!isDarkImage && (
+            <div className="absolute inset-0 size-full bg-gradient-to-t from-white via-white/75 to-transparent xl:hidden" />
+          )}
         </>
       )}
 
@@ -47,7 +49,7 @@ export function FeaturedProgramCard({
           <span
             className={cn(
               "text-3xl font-semibold",
-              darkImage && "text-content-inverted",
+              isDarkImage && "text-content-inverted",
             )}
           >
             {program.name}
@@ -55,8 +57,8 @@ export function FeaturedProgramCard({
 
           <div
             className={cn(
-              "mt-1 max-w-sm text-sm",
-              darkImage && "text-content-inverted",
+              "mt-1 line-clamp-2 max-w-sm text-sm",
+              isDarkImage && "text-content-inverted",
             )}
           >
             {program.description ||
@@ -69,7 +71,7 @@ export function FeaturedProgramCard({
                 <span
                   className={cn(
                     "text-content-subtle block text-xs font-medium",
-                    darkImage && "text-content-inverted/80",
+                    isDarkImage && "text-content-inverted/80",
                   )}
                 >
                   Rewards
@@ -77,7 +79,7 @@ export function FeaturedProgramCard({
                 <ProgramRewardsDisplay
                   rewards={program.rewards}
                   discount={program.discount}
-                  isDarkImage={darkImage}
+                  isDarkImage={isDarkImage}
                   onRewardClick={(reward) =>
                     queryParams({
                       set: {
@@ -105,7 +107,7 @@ export function FeaturedProgramCard({
                 <span
                   className={cn(
                     "text-content-subtle block text-xs font-medium",
-                    darkImage && "text-content-inverted/80",
+                    isDarkImage && "text-content-inverted/80",
                   )}
                 >
                   Category
@@ -125,7 +127,7 @@ export function FeaturedProgramCard({
                       }
                       className={cn(
                         "hover:bg-bg-default/10 active:bg-bg-default/20",
-                        darkImage && "text-content-inverted",
+                        isDarkImage && "text-content-inverted",
                       )}
                     />
                   ))}
@@ -153,7 +155,7 @@ export function FeaturedProgramCard({
                       <div
                         className={cn(
                           "-ml-1.5 flex size-6 items-center justify-center rounded-md text-xs font-medium",
-                          darkImage && "text-content-inverted/80",
+                          isDarkImage && "text-content-inverted/80",
                         )}
                       >
                         +{program.categories.length - 1}
