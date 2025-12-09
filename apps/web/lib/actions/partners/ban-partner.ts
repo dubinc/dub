@@ -119,7 +119,6 @@ export const banPartner = async ({
         body: {
           programId,
           partnerId,
-          userId: user.id,
         },
       }),
     ]),
