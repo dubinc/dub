@@ -565,6 +565,7 @@ export function AppSidebarNav({
   const { submissionsCount } = useBountySubmissionsCount<
     SubmissionsCountByStatus[]
   >({
+    ignoreParams: true,
     enabled: Boolean(currentArea === "program" && defaultProgramId),
   });
 

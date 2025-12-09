@@ -325,7 +325,10 @@ export const createManualCommissionAction = authActionClient
             linkId: link.id,
             clickId: clickEventData.click_id,
             clickedAt: new Date(clickEventData.timestamp),
-            country: clickEventData.country,
+            country:
+              clickEventData.country === "Unknown"
+                ? null
+                : clickEventData.country,
             ...(recordSaleEvents && {
               sales: totalSales,
               saleAmount: totalSaleAmount,
@@ -356,8 +359,8 @@ export const createManualCommissionAction = authActionClient
         url: link.url,
         ip: "127.0.0.1",
         continent: customer.country
-          ? COUNTRIES_TO_CONTINENTS[customer.country.toUpperCase()] || "NA"
-          : "NA",
+          ? COUNTRIES_TO_CONTINENTS[customer.country.toUpperCase()] || ""
+          : "",
       });
 
       tbEventsToRecord.push(recordClickZod(generatedClickEvent));
@@ -444,7 +447,6 @@ export const createManualCommissionAction = authActionClient
             linkId: link.id,
             clickId: clickId,
             clickedAt: new Date(clickTimestamp),
-            country: generatedClickEvent.country,
             ...(saleAmount && {
               sales: {
                 increment: 1,

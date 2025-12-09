@@ -1,6 +1,6 @@
-import { FraudEventContext } from "@/lib/types";
+import { CreateFraudEventInput, FraudEventContext } from "@/lib/types";
 import { prisma } from "@dub/prisma";
-import { FraudEvent, Prisma } from "@dub/prisma/client";
+import { Prisma } from "@dub/prisma/client";
 import { fraudEventContext } from "../../zod/schemas/schemas";
 import { createFraudEvents } from "./create-fraud-events";
 import { executeFraudRule } from "./execute-fraud-rule";
@@ -29,7 +29,7 @@ export async function detectAndRecordFraudEvent(context: FraudEventContext) {
   const mergedRules = getMergedFraudRules(programRules);
   const activeRules = mergedRules.filter((rule) => rule.enabled);
 
-  const triggeredRules: Pick<FraudEvent, "type" | "metadata">[] = [];
+  const triggeredRules: Pick<CreateFraudEventInput, "type" | "metadata">[] = [];
 
   // Evaluate each rule
   for (const rule of activeRules) {

@@ -1,5 +1,10 @@
 import { CustomerActivityResponse, CustomerProps } from "@/lib/types";
-import { CopyButton, TimestampTooltip, UTM_PARAMETERS } from "@dub/ui";
+import {
+  CopyButton,
+  CopyText,
+  TimestampTooltip,
+  UTM_PARAMETERS,
+} from "@dub/ui";
 import {
   capitalize,
   cn,
@@ -106,7 +111,11 @@ export function CustomerDetailsColumn({
               .map(({ key, icon, value }) => (
                 <ConditionalLink
                   key={key}
-                  href={`/${programSlug ? `programs/${programSlug}` : slug}/analytics?${key}=${encodeURIComponent(value)}`}
+                  href={
+                    value === "Unknown"
+                      ? undefined
+                      : `/${programSlug ? `programs/${programSlug}` : slug}/analytics?${key}=${encodeURIComponent(value)}`
+                  }
                   target="_blank"
                 >
                   <span className="flex items-center gap-2">
@@ -146,7 +155,9 @@ export function CustomerDetailsColumn({
           <DetailHeading>External ID</DetailHeading>
           {
             <div className="flex items-center gap-1">
-              <span className="truncate">{customer.externalId}</span>
+              <CopyText value={customer.externalId} className="truncate">
+                {customer.externalId}
+              </CopyText>
               <CopyButton
                 value={customer.externalId}
                 variant="neutral"

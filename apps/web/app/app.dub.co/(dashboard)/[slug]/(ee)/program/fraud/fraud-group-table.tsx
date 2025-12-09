@@ -187,7 +187,7 @@ export function FraudGroupTable() {
         },
       },
       {
-        id: "createdAt",
+        id: "lastEventAt",
         header: "Last Detected",
         size: 150,
         meta: {
@@ -360,36 +360,35 @@ export function FraudGroupTable() {
         />
       )}
 
-      {((fraudGroups?.length ?? 0) > 0 || (fraudGroupCount ?? 0) > 0) && (
-        <div>
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <Filter.Select
-              className="w-full md:w-fit"
-              filters={filters}
-              activeFilters={activeFilters}
-              onSelect={onSelect}
-              onRemove={onRemove}
-              onSearchChange={setSearch}
-              onSelectedFilterChange={setSelectedFilter}
-            />
-          </div>
-          <AnimatedSizeContainer height>
-            <div>
-              {activeFilters.length > 0 && (
-                <div className="pt-3">
-                  <Filter.List
-                    filters={filters}
-                    activeFilters={activeFilters}
-                    onSelect={onSelect}
-                    onRemove={onRemove}
-                    onRemoveAll={onRemoveAll}
-                  />
-                </div>
-              )}
-            </div>
-          </AnimatedSizeContainer>
+      <div>
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <Filter.Select
+            className="w-full md:w-fit"
+            filters={filters}
+            activeFilters={activeFilters}
+            onSelect={onSelect}
+            onRemove={onRemove}
+            onSearchChange={setSearch}
+            onSelectedFilterChange={setSelectedFilter}
+          />
         </div>
-      )}
+        <AnimatedSizeContainer height>
+          <div>
+            {activeFilters.length > 0 && (
+              <div className="pt-3">
+                <Filter.List
+                  filters={filters}
+                  activeFilters={activeFilters}
+                  onSelect={onSelect}
+                  onRemove={onRemove}
+                  onRemoveAll={onRemoveAll}
+                />
+              </div>
+            )}
+          </div>
+        </AnimatedSizeContainer>
+      </div>
+
       {fraudGroups?.length !== 0 ? (
         <Table {...tableProps} table={table} />
       ) : (

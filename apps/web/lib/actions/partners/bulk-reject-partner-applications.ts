@@ -4,7 +4,10 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createFraudEvents } from "@/lib/api/fraud/create-fraud-events";
 import { resolveFraudGroups } from "@/lib/api/fraud/resolve-fraud-groups";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { bulkRejectPartnersSchema } from "@/lib/zod/schemas/partners";
+import {
+  bulkRejectPartnersSchema,
+  INACTIVE_ENROLLMENT_STATUSES,
+} from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { FraudRuleType, ProgramEnrollmentStatus } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
@@ -77,7 +80,7 @@ export const bulkRejectPartnerApplicationsAction = authActionClient
                   not: programId,
                 },
                 status: {
-                  notIn: ["banned", "deactivated", "rejected"],
+                  notIn: INACTIVE_ENROLLMENT_STATUSES,
                 },
               },
               select: {
