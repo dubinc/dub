@@ -1,3 +1,4 @@
+import { prismaEdge } from "@dub/prisma/edge";
 import { NextRequest, NextResponse } from "next/server";
 import {
   ONBOARDING_WINDOW_SECONDS,
@@ -112,6 +113,45 @@ export async function AppMiddleware(req: NextRequest) {
       return NextResponse.redirect(
         new URL(`${appRedirectPath}${searchParamsString}`, req.url),
       );
+    }
+
+    if (path.startsWith("/onboarding")) {
+      // Redirect users with pending workspace invites away from onboarding
+      // to accept their invitation instead of creating a new workspace
+      const pendingInvite = await prismaEdge.projectInvite.findFirst({
+        where: {
+          email: user.email,
+        },
+        select: {
+          project: {
+            select: {
+              slug: true,
+            },
+          },
+        },
+      });
+
+      if (pendingInvite) {
+        return NextResponse.redirect(
+          new URL(`/${pendingInvite.project.slug}?invite=1`, req.url),
+        );
+      }
+
+      // If user already has a workspace, redirect them away from onboarding
+      // to their workspaces page instead of allowing them to create a new one
+      const existingWorkspace = await prismaEdge.project.findFirst({
+        where: {
+          users: {
+            some: {
+              userId: user.id,
+            },
+          },
+        },
+      });
+
+      if (existingWorkspace) {
+        return NextResponse.redirect(new URL("/workspaces", req.url));
+      }
     }
   }
 
