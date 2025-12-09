@@ -112,6 +112,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
                   name: "Marketplace",
                   icon: Shop,
                   href: "/programs/marketplace" as `/${string}`,
+                  badge: "New",
                 },
               ]
             : []),
