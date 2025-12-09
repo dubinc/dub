@@ -42,7 +42,7 @@ export const withCron = (handler: WithCronHandler) => {
         }
         // POST requests are typically from QStash
         else if (req.method === "POST") {
-          rawBody = await req.text();
+          rawBody = await clonedReq.text();
           await verifyQstashSignature({ req, rawBody });
         } else {
           throw new Error(`Unsupported HTTP method: ${req.method}`);
