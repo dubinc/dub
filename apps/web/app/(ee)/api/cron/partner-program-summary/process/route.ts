@@ -15,7 +15,7 @@ export const dynamic = "force-dynamic";
 const PARTNER_BATCH_SIZE = 100;
 
 const queue = qstash.queue({
-  queueName: "partner-program-summary",
+  queueName: "send-partner-summary",
 });
 
 const schema = z.object({
