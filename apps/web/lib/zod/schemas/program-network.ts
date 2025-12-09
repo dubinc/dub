@@ -13,10 +13,10 @@ export const NetworkProgramSchema = ProgramSchema.pick({
   logo: true,
   domain: true,
   url: true,
+  description: true,
   rewards: true,
   termsUrl: true,
 }).extend({
-  description: z.string().nullish(),
   discount: DiscountSchema.nullish(),
   categories: z.array(z.nativeEnum(Category)),
   featuredOnMarketplaceAt: z.date().nullable(),
