@@ -1,58 +1,34 @@
 import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 
-// Case 1: Remove fraud events where there's only one event in the group
-async function cleanupSingleEventGroups() {
-  const fraudGroups = await prisma.fraudEventGroup.findMany({
+// Remove partnerDuplicatePayoutMethod fraud events without a group
+async function main() {
+  const fraudEvents = await prisma.fraudEvent.findMany({
     where: {
       type: "partnerDuplicatePayoutMethod",
-      eventCount: 1,
+      fraudEventGroupId: null,
     },
     select: {
       id: true,
-      eventCount: true,
-      createdAt: true,
+      fraudEventGroupId: true,
     },
   });
 
   console.log(
-    `Found ${fraudGroups.length} fraud groups with one event for partnerDuplicatePayoutMethod.`,
+    `Found ${fraudEvents.length} partnerDuplicatePayoutMethod fraud events without a group.`,
   );
 
-  console.table(fraudGroups);
-
-  if (fraudGroups.length === 0) {
-    return;
-  }
-
-  const groupIds = fraudGroups.map(({ id }) => id);
-
-  await prisma.$transaction(async (tx) => {
-    // Delete the raw events
-    const deletedEvents = await tx.fraudEvent.deleteMany({
-      where: {
-        fraudEventGroupId: {
-          in: groupIds,
-        },
+  const deletedEvents = await prisma.fraudEvent.deleteMany({
+    where: {
+      id: {
+        in: fraudEvents.map(({ id }) => id),
       },
-    });
-
-    // Delete the group
-    const deletedGroups = await tx.fraudEventGroup.deleteMany({
-      where: {
-        id: {
-          in: groupIds,
-        },
-      },
-    });
-
-    console.log(`Deleted ${deletedEvents.count} fraud events`);
-    console.log(`Deleted ${deletedGroups.count} fraud event groups`);
+    },
   });
-}
 
-async function main() {
-  await cleanupSingleEventGroups();
+  console.log(
+    `Deleted ${deletedEvents.count} partnerDuplicatePayoutMethod fraud events without a group.`,
+  );
 }
 
 main();

@@ -8,7 +8,7 @@ import { withPartnerProfile } from "@/lib/auth/partner";
 import { PartnerProfileLinkSchema } from "@/lib/zod/schemas/partner-profile";
 import {
   createPartnerLinkSchema,
-  NON_ACTIVE_ENROLLMENT_STATUSES,
+  INACTIVE_ENROLLMENT_STATUSES,
 } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
@@ -65,7 +65,7 @@ export const POST = withPartnerProfile(
       },
     });
 
-    if (NON_ACTIVE_ENROLLMENT_STATUSES.includes(status)) {
+    if (INACTIVE_ENROLLMENT_STATUSES.includes(status)) {
       throw new DubApiError({
         code: "forbidden",
         message: `You cannot create links in this program because you have been ${status}`,

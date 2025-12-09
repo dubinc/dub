@@ -79,30 +79,35 @@ export const getCustomersCountQuerySchema = getCustomersQuerySchema
   .extend({ groupBy: z.enum(["country", "linkId"]).optional() });
 
 export const createCustomerBodySchema = z.object({
-  email: z
-    .string()
-    .email()
-    .nullish()
-    .describe("Email of the customer in the client's app."),
+  email: z.string().email().nullish().describe("The customer's email address."),
   name: z
     .string()
     .nullish()
     .describe(
-      "Name of the customer in the client's app. If not provided, a random name will be generated.",
+      "The customer's name. If not provided, the email address will be used, and if email is not provided, a random name will be generated.",
     ),
   avatar: z
     .string()
     .url()
     .nullish()
-    .describe("Avatar URL of the customer in the client's app."),
+    .describe(
+      "The customer's avatar URL. If not provided, a random avatar will be generated.",
+    ),
   externalId: z
     .string()
-    .describe("Unique identifier for the customer in the client's app."),
+    .describe(
+      "The customer's unique identifier your database. This is useful for associating subsequent conversion events from Dub's API to your internal systems.",
+    ),
   stripeCustomerId: z
     .string()
     .nullish()
     .describe(
-      "The customer's Stripe customer ID. Useful for attribution recurring sale events to the partner who referred the customer.",
+      "The customer's Stripe customer ID. This is useful for attributing recurring sale events to the partner who referred the customer.",
+    ),
+  country: z
+    .string()
+    .describe(
+      "The customer's country in ISO 3166-1 alpha-2 format. Updating this field will only affect the customer's country in Dub's system (and has no effect on existing conversion events).",
     ),
 });
 

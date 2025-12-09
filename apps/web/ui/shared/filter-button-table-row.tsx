@@ -7,9 +7,11 @@ export function FilterButtonTableRow({
   set,
   className,
 }: {
-  set: Record<string, any>;
+  set?: Record<string, any>;
   className?: string;
 }) {
+  if (!set) return null;
+
   const { queryParams } = useRouterStuff();
 
   return (

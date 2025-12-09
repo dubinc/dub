@@ -5,7 +5,7 @@ import { createFraudEvents } from "@/lib/api/fraud/create-fraud-events";
 import { resolveFraudGroups } from "@/lib/api/fraud/resolve-fraud-groups";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import {
-  NON_ACTIVE_ENROLLMENT_STATUSES,
+  INACTIVE_ENROLLMENT_STATUSES,
   rejectPartnerSchema,
 } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
@@ -65,7 +65,7 @@ export const rejectPartnerApplicationAction = authActionClient
                 not: programId,
               },
               status: {
-                notIn: NON_ACTIVE_ENROLLMENT_STATUSES,
+                notIn: INACTIVE_ENROLLMENT_STATUSES,
               },
             },
             select: {

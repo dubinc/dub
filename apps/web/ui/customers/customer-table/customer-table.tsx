@@ -121,7 +121,7 @@ export function CustomerTable() {
               <CustomerRowItem
                 customer={row.original}
                 href={`/${workspaceSlug}/customers/${row.original.id}`}
-                hideChartActivityOnHover={false}
+                chartActivityIconMode="visible"
               />
             );
           },
@@ -131,9 +131,12 @@ export function CustomerTable() {
           header: "Country",
           accessorKey: "country",
           meta: {
-            filterParams: ({ getValue }) => ({
-              country: getValue(),
-            }),
+            filterParams: ({ getValue }) =>
+              getValue()
+                ? {
+                    country: getValue(),
+                  }
+                : undefined,
           },
           minSize: 150,
           cell: ({ row }) => {
@@ -190,10 +193,8 @@ export function CustomerTable() {
           header: "Link",
           accessorKey: "link",
           meta: {
-            filterParams: ({ getValue }) => {
-              const link = getValue();
-              return link ? { linkId: link.id } : undefined;
-            },
+            filterParams: ({ getValue }) =>
+              getValue() ? { linkId: getValue().id } : undefined,
           },
           cell: ({ row }) =>
             row.original.link ? (

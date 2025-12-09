@@ -7,7 +7,7 @@ import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { linkEventSchema } from "@/lib/zod/schemas/links";
 import {
   createPartnerLinkSchema,
-  NON_ACTIVE_ENROLLMENT_STATUSES,
+  INACTIVE_ENROLLMENT_STATUSES,
 } from "@/lib/zod/schemas/partners";
 import { ReferralsEmbedLinkSchema } from "@/lib/zod/schemas/referrals-embed";
 import { prisma } from "@dub/prisma";
@@ -22,7 +22,7 @@ export const PATCH = withReferralsEmbedToken(
       .pick({ url: true, key: true })
       .parse(await parseRequestBody(req));
 
-    if (NON_ACTIVE_ENROLLMENT_STATUSES.includes(programEnrollment.status)) {
+    if (INACTIVE_ENROLLMENT_STATUSES.includes(programEnrollment.status)) {
       throw new DubApiError({
         code: "forbidden",
         message: `You are ${programEnrollment.status} from this program hence cannot create links.`,

@@ -15,8 +15,6 @@ export function ApplicationFormHero({
   preview?: boolean;
 }) {
   const Heading = preview ? "div" : "h1";
-  const label =
-    applicationFormData.label || `${program.name} Affiliate Program`;
   const title = applicationFormData.title || `Apply to ${program.name}`;
   const description =
     applicationFormData.description ||
@@ -27,9 +25,6 @@ export function ApplicationFormHero({
       <span className="w-fit rounded-md bg-neutral-100 px-2 py-1 text-xs font-medium text-neutral-700">
         Step 1 of 2
       </span>
-      {/* <p className="font-mono text-xs font-medium uppercase text-[var(--brand)]">
-        {label}
-      </p> */}
       <Heading className="text-4xl font-semibold" dir="auto">
         {title}
       </Heading>
