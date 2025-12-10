@@ -31,6 +31,7 @@ const config: Pick<Config, "presets"> = {
             "pulse-scale": "pulse-scale 6s ease-out infinite",
             "gradient-move": "gradient-move 5s linear infinite",
             "ellipsis-wave": "ellipsis-wave 1.5s ease-in-out infinite",
+            float: "float 4s linear infinite",
           },
           keyframes: {
             ...sharedConfig?.theme?.extend?.keyframes,
@@ -79,6 +80,21 @@ const config: Pick<Config, "presets"> = {
             "ellipsis-wave": {
               "0%,40%": { transform: "translateY(0)" },
               "20%": { transform: "translateY(var(--offset, -10%))" },
+            },
+            // Floating animation
+            float: {
+              "0%": {
+                transform:
+                  "scale(1) rotate(0) translateX(var(--r, 5%)) rotate(0)",
+              },
+              "50%": {
+                transform:
+                  "scale(1.05) rotate(180deg) translateX(var(--r, 5%)) rotate(-180deg)",
+              },
+              "100%": {
+                transform:
+                  "scale(1) rotate(360deg) translateX(var(--r, 5%)) rotate(-360deg)",
+              },
             },
           },
         },
