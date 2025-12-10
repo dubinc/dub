@@ -1,15 +1,15 @@
 import { Prisma } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { HTTPMethods } from "@upstash/qstash";
 import { NextRequest } from "next/server";
-import { encryptToken } from "../auth/encrypt-token";
 import { qstash } from "../cron";
 import { parseRequestBody } from "./utils";
 
-const ENDPOINTS_TO_RETRY = ["/api/track/lead", "/api/track/sale", "/api/links"];
-
-const queue = qstash.queue({
-  queueName: "retry-failed-request",
-});
+const RETRYABLE_ENDPOINTS = [
+  { method: "POST", path: "/api/track/lead" },
+  { method: "POST", path: "/api/track/sale" },
+  { method: "POST", path: "/api/links" },
+] as const;
 
 export async function queueFailedRequestForRetry({
   error,
@@ -19,33 +19,45 @@ export async function queueFailedRequestForRetry({
   error: unknown;
   apiKey: string | undefined;
   req: NextRequest;
-}): Promise<void> {
-  // Only queue requests for specific endpoints that failed due to DB connection errors
+}) {
+  const errorReq = req.clone();
+  const pathname = req.nextUrl.pathname;
+  const url = `${APP_DOMAIN_WITH_NGROK}${pathname}`;
+  const method = errorReq.method as HTTPMethods;
+  const headers = Object.fromEntries(errorReq.headers.entries());
+  const isRetryable = RETRYABLE_ENDPOINTS[method]?.has(url) ?? false;
+
+  // Skip retry if: error is one of the below
+  // - not a Prisma unknown request error
+  // - no API key provided
+  // - endpoint is not retryable
+  // - request already has an upstash signature (to prevent retry loops)
   if (
     !(error instanceof Prisma.PrismaClientUnknownRequestError) ||
     !apiKey ||
-    !ENDPOINTS_TO_RETRY.includes(req.nextUrl.pathname)
+    !isRetryable ||
+    headers["upstash-signature"] != null
   ) {
     return;
   }
 
-  const errorReq = req.clone();
-
-  const response = await queue.enqueueJSON({
-    url: `${APP_DOMAIN_WITH_NGROK}/api/cron/retry-failed-request`,
-    body: {
-      body: await parseRequestBody(errorReq),
-      method: errorReq.method,
-      pathname: req.nextUrl.pathname,
-    },
+  const response = await qstash.publishJSON({
+    url,
+    method,
+    body: await parseRequestBody(errorReq),
     headers: {
-      Authorization: `Bearer ${await encryptToken(apiKey)}`,
+      ...Object.fromEntries(errorReq.headers.entries()),
+      // Authorization: `Bearer ${await encryptToken(apiKey)}`,
     },
+    delay: "10s",
+    retries: 10,
   });
 
   if (response.messageId) {
-    console.log(
-      `${errorReq.method} ${req.nextUrl.pathname} queued for retry (${response.messageId}).`,
-    );
+    console.log("Request queued for retry", {
+      method,
+      url,
+      messageId: response.messageId,
+    });
   }
 }
