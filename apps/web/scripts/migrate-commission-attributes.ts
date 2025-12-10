@@ -2,7 +2,7 @@
 
 import { createId } from "@/lib/api/create-id";
 import { prisma } from "@dub/prisma";
-import { EventType } from "@prisma/client";
+import { EventType } from "@dub/prisma/client";
 import "dotenv-flow/config";
 
 // Migrate the commission attributes from Program table to Reward table.

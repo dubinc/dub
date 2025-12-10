@@ -3,7 +3,7 @@ import { recordLink } from "@/lib/tinybird";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { ABTestVariantsSchema, linkEventSchema } from "@/lib/zod/schemas/links";
 import { prisma } from "@dub/prisma";
-import { Link } from "@prisma/client";
+import { Link } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { linkCache } from "./cache";
 import { includeProgramEnrollment } from "./include-program-enrollment";

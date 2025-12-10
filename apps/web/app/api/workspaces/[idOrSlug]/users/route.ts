@@ -7,7 +7,7 @@ import {
   workspaceUserSchema,
 } from "@/lib/zod/schemas/workspaces";
 import { prisma } from "@dub/prisma";
-import { WorkspaceRole } from "@prisma/client";
+import { WorkspaceRole } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 

@@ -1,6 +1,6 @@
 import { sanitizeWebsite } from "@/lib/social-utils";
 import { prisma } from "@dub/prisma";
-import { Partner } from "@prisma/client";
+import { Partner } from "@dub/prisma/client";
 import "dotenv-flow/config";
 
 async function main() {

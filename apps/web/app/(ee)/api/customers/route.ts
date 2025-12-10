@@ -13,7 +13,6 @@ import {
 } from "@/lib/zod/schemas/customers";
 import { DiscountSchemaWithDeprecatedFields } from "@/lib/zod/schemas/discount";
 import { prisma, sanitizeFullTextSearch } from "@dub/prisma";
-import { nanoid, R2_URL } from "@dub/utils";
 import {
   Customer,
   Discount,
@@ -21,7 +20,8 @@ import {
   Partner,
   Program,
   ProgramEnrollment,
-} from "@prisma/client";
+} from "@dub/prisma/client";
+import { nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import { z } from "zod";

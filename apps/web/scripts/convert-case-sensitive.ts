@@ -1,6 +1,6 @@
 import { prisma } from "@dub/prisma";
+import { Prisma } from "@dub/prisma/client";
 import { linkConstructorSimple } from "@dub/utils";
-import { Prisma } from "@prisma/client";
 import "dotenv-flow/config";
 import { encodeKeyIfCaseSensitive } from "../lib/api/links/case-sensitivity";
 

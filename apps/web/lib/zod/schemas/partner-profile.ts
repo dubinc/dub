@@ -7,7 +7,7 @@ import {
   PartnerProfileType,
   PartnerRole,
   ProgramEnrollmentStatus,
-} from "@prisma/client";
+} from "@dub/prisma/client";
 import { z } from "zod";
 import { analyticsQuerySchema, eventsQuerySchema } from "./analytics";
 import { BountySchema, BountySubmissionSchema } from "./bounties";
