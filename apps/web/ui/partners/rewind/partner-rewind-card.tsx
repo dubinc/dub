@@ -18,12 +18,7 @@ export function PartnerRewindCard() {
   const { status } = usePartnerRewindStatus();
 
   // TODO: Add rewind fetch/check here
-  if (
-    !partner ||
-    !programEnrollments
-    // || status !== "card"
-  )
-    return null;
+  if (!partner || !programEnrollments || status !== "card") return null;
 
   return (
     <AnimatePresence>

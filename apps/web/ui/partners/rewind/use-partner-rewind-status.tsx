@@ -13,8 +13,7 @@ export function usePartnerRewindStatus(): {
   );
 
   return {
-    status:
-      partnerRewindStatuses.find((status) => status === status) ?? "banner",
+    status: partnerRewindStatuses.find((s) => s === status) ?? "banner",
     setStatus,
   };
 }
