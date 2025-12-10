@@ -31,6 +31,6 @@ export const sendViaNodeMailer = async ({
     to,
     subject,
     text,
-    html: render(react as ReactElement),
+    html: await render(react as ReactElement),
   });
 };
