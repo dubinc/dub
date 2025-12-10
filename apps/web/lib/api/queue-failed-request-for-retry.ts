@@ -5,11 +5,9 @@ import { NextRequest } from "next/server";
 import { qstash } from "../cron";
 import { parseRequestBody } from "./utils";
 
-const RETRYABLE_ENDPOINTS = [
-  { method: "POST", path: "/api/track/lead" },
-  { method: "POST", path: "/api/track/sale" },
-  { method: "POST", path: "/api/links" },
-] as const;
+const RETRYABLE_RULES: Record<string, Set<string>> = {
+  POST: new Set(["/api/track/lead", "/api/track/sale", "/api/links"]),
+} as const;
 
 export async function queueFailedRequestForRetry({
   error,
@@ -25,7 +23,7 @@ export async function queueFailedRequestForRetry({
   const url = `${APP_DOMAIN_WITH_NGROK}${pathname}`;
   const method = errorReq.method as HTTPMethods;
   const headers = Object.fromEntries(errorReq.headers.entries());
-  const isRetryable = RETRYABLE_ENDPOINTS[method]?.has(url) ?? false;
+  const isRetryable = RETRYABLE_RULES[method]?.has(pathname) ?? false;
 
   // Skip retry if: error is one of the below
   // - not a Prisma unknown request error
@@ -38,6 +36,14 @@ export async function queueFailedRequestForRetry({
     !isRetryable ||
     headers["upstash-signature"] != null
   ) {
+    console.log("Retry skipped", {
+      method,
+      url,
+      prismaUnknown: error instanceof Prisma.PrismaClientUnknownRequestError,
+      hasApiKey: !!apiKey,
+      retryable: isRetryable,
+      isQStashCallback: headers["upstash-signature"] != null,
+    });
     return;
   }
 
@@ -50,7 +56,7 @@ export async function queueFailedRequestForRetry({
       // Authorization: `Bearer ${await encryptToken(apiKey)}`,
     },
     delay: "10s",
-    retries: 10,
+    retries: 5,
   });
 
   if (response.messageId) {
