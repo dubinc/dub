@@ -120,6 +120,6 @@ export async function POST(req: Request) {
       type: "alerts",
     });
 
-    return handleAndReturnErrorResponse(error);
+    return handleAndReturnErrorResponse({ error });
   }
 }

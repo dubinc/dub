@@ -211,6 +211,6 @@ export async function GET(req: Request) {
     return NextResponse.json(response);
   } catch (error) {
     console.error("Failed to process workspace usage updates:", error);
-    return handleAndReturnErrorResponse(error);
+    return handleAndReturnErrorResponse({ error });
   }
 }

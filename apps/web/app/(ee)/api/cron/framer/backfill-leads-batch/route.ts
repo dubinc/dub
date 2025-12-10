@@ -388,6 +388,6 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
       errors: invalidEntries,
     });
   } catch (error) {
-    return handleAndReturnErrorResponse(error);
+    return handleAndReturnErrorResponse({ error });
   }
 });

@@ -58,6 +58,6 @@ export async function processOrder({
       return;
     }
   } catch (error) {
-    return handleAndReturnErrorResponse(error);
+    return handleAndReturnErrorResponse({ error });
   }
 }

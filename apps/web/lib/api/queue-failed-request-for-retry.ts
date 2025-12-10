@@ -36,14 +36,6 @@ export async function queueFailedRequestForRetry({
     !isRetryable ||
     headers["upstash-signature"] != null
   ) {
-    console.log("Retry skipped", {
-      method,
-      url,
-      prismaUnknown: error instanceof Prisma.PrismaClientUnknownRequestError,
-      hasApiKey: !!apiKey,
-      retryable: isRetryable,
-      isQStashCallback: headers["upstash-signature"] != null,
-    });
     return;
   }
 

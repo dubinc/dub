@@ -109,7 +109,7 @@ export const withPublishableKey = (
           });
         }
       } catch (error) {
-        return handleAndReturnErrorResponse(error, responseHeaders);
+        return handleAndReturnErrorResponse({ error, responseHeaders });
       }
     },
   );

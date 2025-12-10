@@ -190,7 +190,7 @@ async function handler(req: Request) {
 
     return logAndRespond(endMessage);
   } catch (error) {
-    return handleAndReturnErrorResponse(error);
+    return handleAndReturnErrorResponse({ error });
   }
 }
 

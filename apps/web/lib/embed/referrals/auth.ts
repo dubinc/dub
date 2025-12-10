@@ -127,7 +127,7 @@ export const withReferralsEmbedToken = (
           embedToken,
         });
       } catch (error) {
-        return handleAndReturnErrorResponse(error, responseHeaders);
+        return handleAndReturnErrorResponse({ error, responseHeaders });
       }
     },
   );

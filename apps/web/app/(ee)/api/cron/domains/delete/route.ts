@@ -134,6 +134,6 @@ export async function POST(req: Request) {
       `Deleted ${links.length} links, no more links remaining. Domain deleted.`,
     );
   } catch (error) {
-    return handleAndReturnErrorResponse(error);
+    return handleAndReturnErrorResponse({ error });
   }
 }

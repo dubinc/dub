@@ -49,6 +49,6 @@ export async function POST(req: Request) {
 
     return new Response(`Invalidated ${links.length} links.`);
   } catch (error) {
-    return handleAndReturnErrorResponse(error);
+    return handleAndReturnErrorResponse({ error });
   }
 }

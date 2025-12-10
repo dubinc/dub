@@ -53,6 +53,6 @@ export async function POST(
       type: "errors",
     });
 
-    return handleAndReturnErrorResponse(error);
+    return handleAndReturnErrorResponse({ error });
   }
 }

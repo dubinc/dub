@@ -113,7 +113,7 @@ export async function POST(req: Request) {
       return logAndRespond("Error scheduling next batch.");
     }
   } catch (error) {
-    return handleAndReturnErrorResponse(error);
+    return handleAndReturnErrorResponse({ error });
   }
 }
 

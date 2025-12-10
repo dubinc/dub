@@ -2,7 +2,6 @@ import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { BetaFeatures, PlanProps, WorkspaceWithUsers } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
 import { API_DOMAIN, getSearchParams } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { headers } from "next/headers";
@@ -22,14 +21,11 @@ import { hashToken } from "./hash-token";
 import { rateLimitRequest } from "./rate-limit-request";
 import { TokenCacheItem, tokenCache } from "./token-cache";
 import { Session, getSession } from "./utils";
+import { Prisma } from "@dub/prisma/client";
 
-/**
- * Simulates a Prisma database connection error for testing purposes.
- * Throws a PrismaClientUnknownRequestError to match real-world PlanetScale/Vitess connection errors.
- * Use by adding header: "x-simulate-db-error": "true"
- */
 
-// Remove after testing
+// Remove after testing before merging the PR
+// Simulates a Prisma database connection error for testing purposes.
 export function throwSimulatedDbError() {
   // Simulate the actual PlanetScale/Vitess connection error format
   throw new Prisma.PrismaClientUnknownRequestError(
@@ -513,7 +509,7 @@ export const withWorkspace = (
           })(),
         );
 
-        return handleAndReturnErrorResponse(error, responseHeaders);
+        return handleAndReturnErrorResponse({ error, requestHeaders });
       }
     },
   );

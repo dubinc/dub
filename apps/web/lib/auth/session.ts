@@ -130,7 +130,7 @@ export const withSession = (handler: WithSessionHandler) =>
         const searchParams = getSearchParams(req.url);
         return await handler({ req, params, searchParams, session });
       } catch (error) {
-        return handleAndReturnErrorResponse(error, responseHeaders);
+        return handleAndReturnErrorResponse({ error, responseHeaders });
       }
     },
   );

@@ -109,6 +109,6 @@ export async function POST(req: Request) {
       message: `YouTube stats updated for ${youtubeVerifiedPartners.length} partners`,
     });
   } catch (error) {
-    return handleAndReturnErrorResponse(error);
+    return handleAndReturnErrorResponse({ error });
   }
 }

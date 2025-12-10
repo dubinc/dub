@@ -66,6 +66,6 @@ export async function POST(req: Request) {
       });
     }
   } catch (error) {
-    return handleAndReturnErrorResponse(error);
+    return handleAndReturnErrorResponse({ error });
   }
 }

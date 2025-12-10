@@ -49,7 +49,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json("OK");
   } catch (error) {
-    return handleAndReturnErrorResponse(error);
+    return handleAndReturnErrorResponse({ error });
   }
 }
 
