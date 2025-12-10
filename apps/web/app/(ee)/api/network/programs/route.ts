@@ -51,7 +51,7 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
           { slug: { contains: search } },
           { domain: { contains: search } },
           { url: { contains: search } },
-          // { description: { contains: search } },
+          { description: { contains: search } },
         ],
       }),
       ...(category && {
