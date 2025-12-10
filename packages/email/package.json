@@ -28,6 +28,12 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
+  "pnpm": {
+    "overrides": {
+      "@types/react": "^18.2.48",
+      "@types/react-dom": "^18.2.14"
+    }
+  },
   "exports": {
     ".": {
       "import": "./src/index.ts",
