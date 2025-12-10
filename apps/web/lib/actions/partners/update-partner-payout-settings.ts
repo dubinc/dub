@@ -2,7 +2,7 @@
 
 import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
 import { prisma } from "@dub/prisma";
-import { Prisma } from "@prisma/client";
+import { Prisma } from "@dub/prisma/client";
 import { partnerPayoutSettingsSchema } from "../../zod/schemas/partners";
 import { authPartnerActionClient } from "../safe-action";
 

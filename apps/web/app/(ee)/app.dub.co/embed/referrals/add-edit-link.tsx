@@ -1,6 +1,7 @@
 import { mutateSuffix } from "@/lib/swr/mutate";
 import { PartnerGroupAdditionalLink, PartnerGroupProps } from "@/lib/types";
 import { Lock } from "@/ui/shared/icons";
+import { Program } from "@dub/prisma/client";
 import {
   Button,
   Combobox,
@@ -16,7 +17,6 @@ import {
   linkConstructor,
   punycode,
 } from "@dub/utils";
-import { Program } from "@prisma/client";
 import { motion } from "motion/react";
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";

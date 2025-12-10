@@ -1,6 +1,6 @@
 import { prisma } from "@dub/prisma";
+import { Project } from "@dub/prisma/client";
 import { getBillingStartDate } from "@dub/utils";
-import { Project } from "@prisma/client";
 
 export async function getNetworkInvitesUsage(
   workspace: Pick<Project, "id" | "billingCycleStart">,

@@ -13,7 +13,7 @@ import {
   FraudRuleType,
   ProgramEnrollment,
   ProgramEnrollmentStatus,
-} from "@prisma/client";
+} from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 

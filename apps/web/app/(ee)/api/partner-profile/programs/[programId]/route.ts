@@ -1,7 +1,7 @@
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { ProgramEnrollmentSchema } from "@/lib/zod/schemas/programs";
-import { Reward } from "@prisma/client";
+import { Reward } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 
 // GET /api/partner-profile/programs/[programId] – get a partner's enrollment in a program
