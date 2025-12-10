@@ -162,10 +162,7 @@ export default function ProgramMarketplaceAnnouncement({
             </Section>
 
             <Section className="mx-auto max-w-[400px] text-center">
-              <Footer
-                email={email}
-                notificationSettingsUrl="https://partners.dub.co/settings/notifications"
-              />
+              <Footer email={email} />
             </Section>
           </Container>
         </Body>
