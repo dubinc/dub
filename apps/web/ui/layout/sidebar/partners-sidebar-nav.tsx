@@ -1,7 +1,10 @@
 "use client";
 
+import { partnerCanViewMarketplace } from "@/lib/network/get-discoverability-requirements";
+import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import usePartnerProgramBounties from "@/lib/swr/use-partner-program-bounties";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
+import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
 import useProgramEnrollmentsCount from "@/lib/swr/use-program-enrollments-count";
 import { useProgramMessagesCount } from "@/lib/swr/use-program-messages-count";
 import { useRouterStuff } from "@dub/ui";
@@ -15,6 +18,7 @@ import {
   MoneyBills2,
   Msgs,
   ShieldCheck,
+  Shop,
   SquareUserSparkle2,
   Trophy,
   UserCheck,
@@ -39,6 +43,7 @@ type SidebarNavData = {
   unreadMessagesCount?: number;
   programBountiesCount?: number;
   showDetailedAnalytics?: boolean;
+  showMarketplace?: boolean;
 };
 
 const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
@@ -81,7 +86,7 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
 
 const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
   // Top-level
-  programs: ({ invitationsCount }) => ({
+  programs: ({ invitationsCount, showMarketplace }) => ({
     title: (
       <div className="mb-3">
         <PartnerProgramDropdown />
@@ -98,8 +103,20 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             href: "/programs",
             isActive: (pathname, href) =>
               pathname.startsWith(href) &&
-              !pathname.startsWith(`${href}/invitations`),
+              ["invitations", "marketplace"].every(
+                (k) => !pathname.startsWith(`${href}/${k}`),
+              ),
           },
+          ...(showMarketplace
+            ? [
+                {
+                  name: "Marketplace",
+                  icon: Shop,
+                  href: "/programs/marketplace" as `/${string}`,
+                  badge: "New",
+                },
+              ]
+            : []),
           {
             name: "Invitations",
             icon: UserCheck,
@@ -268,6 +285,8 @@ export function PartnersSidebarNav({
   const pathname = usePathname();
   const { getQueryString } = useRouterStuff();
 
+  const { partner } = usePartnerProfile();
+
   const isEnrolledProgramPage =
     pathname.startsWith(`/programs/${programSlug}`) &&
     pathname !== `/programs/${programSlug}/apply`;
@@ -288,6 +307,7 @@ export function PartnersSidebarNav({
             : "programs";
   }, [pathname, programSlug, isEnrolledProgramPage]);
 
+  const { programEnrollments } = useProgramEnrollments();
   const { count: invitationsCount } = useProgramEnrollmentsCount({
     status: "invited",
   });
@@ -321,6 +341,10 @@ export function PartnersSidebarNav({
         unreadMessagesCount,
         programBountiesCount: bountiesCount.active,
         showDetailedAnalytics,
+        showMarketplace: partnerCanViewMarketplace({
+          partner,
+          programEnrollments: programEnrollments || [],
+        }),
       }}
       toolContent={toolContent}
       newsContent={newsContent}

@@ -33,7 +33,8 @@ model Program {
   slug               String            @unique
   domain             String?           @unique
   url                String?
-  logo               String? // TODO: remove after we refactor all program.logo fields to use group.logo instead
+  logo               String?
+  description        String?           @db.Text
   primaryRewardEvent EventType         @default(sale)
   minPayoutAmount    Int               @default(0) // Default minimum payout amount of $0
   payoutMode         ProgramPayoutMode @default(internal)
@@ -50,6 +51,10 @@ model Program {
   createdAt               DateTime  @default(now())
   updatedAt               DateTime  @updatedAt
   startedAt               DateTime?
+
+  addedToMarketplaceAt    DateTime?
+  featuredOnMarketplaceAt DateTime?
+  marketplaceHeaderImage  String?
 
   workspace                Project                   @relation(fields: [workspaceId], references: [id])
   customDomain             Domain?                   @relation(fields: [domain], references: [slug])
@@ -80,6 +85,7 @@ model Program {
 
   @@index(workspaceId)
   @@index(domain)
+  @@index(addedToMarketplaceAt)
 }
 
 model ProgramEnrollment {
@@ -184,27 +190,4 @@ model ProgramApplication {
   @@index(programId)
   @@index(groupId)
   @@index(email)
-}
-
-enum Category {
-  Artificial_Intelligence
-  Development
-  Design
-  Productivity
-  Finance
-  Marketing
-  Ecommerce
-  Security
-  Education
-  Health
-  Consumer
-}
-
-model ProgramCategory {
-  programId String
-  category  Category
-
-  program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
-
-  @@unique([programId, category])
 }

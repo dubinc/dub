@@ -4,6 +4,7 @@ const PARTNERS_REDIRECTS = {
   "/settings/notifications": "/profile/notifications",
   "/account/settings/notifications": "/profile/notifications",
   "/profile/sites": "/profile",
+  "/marketplace": "/programs/marketplace",
 };
 
 export const partnersRedirect = (path: string) => {

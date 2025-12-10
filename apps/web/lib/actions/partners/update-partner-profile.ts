@@ -3,7 +3,7 @@
 import { confirmEmailChange } from "@/lib/auth/confirm-email-change";
 import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
 import { qstash } from "@/lib/cron";
-import { getDiscoverabilityRequirements } from "@/lib/partners/get-discoverability-requirements";
+import { getDiscoverabilityRequirements } from "@/lib/network/get-discoverability-requirements";
 import { storage } from "@/lib/storage";
 import { stripe } from "@/lib/stripe";
 import { partnerProfileChangeHistoryLogSchema } from "@/lib/zod/schemas/partner-profile";

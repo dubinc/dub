@@ -219,7 +219,7 @@ export function PayoutTable() {
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (p) => `payout${p ? "s" : ""}`,
-    rowCount: payoutsCount,
+    rowCount: payoutsCount || 0,
   });
 
   return (

@@ -4,6 +4,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import {
   CardList,
   ExpandingArrow,
+  useClickHandlers,
   useIntersectionObserver,
   useRouterStuff,
 } from "@dub/ui";
@@ -86,13 +87,9 @@ const LinkCardInner = memo(({ link }: { link: ResponseLink }) => {
     <>
       <CardList.Card
         key={link.id}
-        onClick={(e) => {
-          if (e.metaKey || e.ctrlKey) window.open(editUrl, "_blank");
-          else router.push(editUrl);
-        }}
-        onAuxClick={() => window.open(editUrl, "_blank")}
         outerClassName="overflow-hidden"
         innerClassName="p-0"
+        {...useClickHandlers(editUrl, router)}
         {...(variant === "loose" &&
           showFolderIcon && {
             banner: (

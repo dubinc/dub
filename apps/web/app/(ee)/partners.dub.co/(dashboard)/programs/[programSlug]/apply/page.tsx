@@ -9,6 +9,8 @@ import { redirect } from "next/navigation";
 import { CSSProperties } from "react";
 import { ProgramSidebar } from "./program-sidebar";
 
+export const revalidate = 3600; // 1 hour
+
 export default async function ProgramDetailsPage(props: {
   params: Promise<{ programSlug: string }>;
 }) {
