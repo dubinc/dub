@@ -168,7 +168,7 @@ export const withPartnerProfile = (
           headers: responseHeaders,
         });
       } catch (error) {
-        return handleAndReturnErrorResponse(error, responseHeaders);
+        return handleAndReturnErrorResponse({ error, responseHeaders });
       }
     },
   );

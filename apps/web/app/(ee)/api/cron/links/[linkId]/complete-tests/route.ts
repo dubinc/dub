@@ -46,6 +46,6 @@ export async function POST(
 
     return new Response(`No test completion necessary for link ${linkId}.`);
   } catch (error) {
-    return handleAndReturnErrorResponse(error);
+    return handleAndReturnErrorResponse({ error });
   }
 }

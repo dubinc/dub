@@ -112,6 +112,6 @@ export async function GET(req: Request) {
       message: "Domains cron failed. Error: " + error.message,
       type: "errors",
     });
-    return handleAndReturnErrorResponse(error);
+    return handleAndReturnErrorResponse({ error });
   }
 }

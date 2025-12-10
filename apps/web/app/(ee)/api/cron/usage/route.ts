@@ -33,7 +33,7 @@ async function handler(req: Request) {
       type: "cron",
     });
 
-    return handleAndReturnErrorResponse(error);
+    return handleAndReturnErrorResponse({ error });
   }
 }
 

@@ -53,7 +53,10 @@ export async function GET(req: NextRequest) {
       },
     );
   } catch (error) {
-    return handleAndReturnErrorResponse(error, CORS_HEADERS);
+    return handleAndReturnErrorResponse({
+      error,
+      responseHeaders: CORS_HEADERS,
+    });
   }
 }
 

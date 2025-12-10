@@ -107,8 +107,8 @@ export const GET = async (req: Request) => {
         }),
       );
     }
-  } catch (e: any) {
-    return handleAndReturnErrorResponse(e);
+  } catch (error) {
+    return handleAndReturnErrorResponse({ error });
   }
 
   redirect(`/${workspace.slug}/settings/integrations/hubspot`);

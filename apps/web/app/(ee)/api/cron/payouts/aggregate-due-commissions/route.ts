@@ -270,7 +270,7 @@ async function handler(req: Request) {
       type: "errors",
       mention: true,
     });
-    return handleAndReturnErrorResponse(error);
+    return handleAndReturnErrorResponse({ error });
   }
 }
 

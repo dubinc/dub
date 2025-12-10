@@ -110,7 +110,10 @@ export const POST = withAxiom(async (req) => {
       },
     );
   } catch (error) {
-    return handleAndReturnErrorResponse(error, COMMON_CORS_HEADERS);
+    return handleAndReturnErrorResponse({
+      error,
+      responseHeaders: COMMON_CORS_HEADERS,
+    });
   }
 });
 

@@ -84,6 +84,6 @@ export async function POST(req: Request) {
 
     return logAndRespond(`Expired cache for ${links.length} links.`);
   } catch (error) {
-    return handleAndReturnErrorResponse(error);
+    return handleAndReturnErrorResponse({ error });
   }
 }

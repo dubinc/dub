@@ -68,6 +68,6 @@ export async function POST(req: Request) {
       `Created payout: ${createdPayout.id} (${currencyFormatter(createdPayout.amount)})`,
     );
   } catch (error) {
-    return handleAndReturnErrorResponse(error);
+    return handleAndReturnErrorResponse({ error });
   }
 }

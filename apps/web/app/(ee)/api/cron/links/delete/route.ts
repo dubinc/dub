@@ -34,6 +34,6 @@ export async function POST(req: Request) {
 
     return new Response("Link deleted.", { status: 200 });
   } catch (error) {
-    return handleAndReturnErrorResponse(error);
+    return handleAndReturnErrorResponse({ error });
   }
 }

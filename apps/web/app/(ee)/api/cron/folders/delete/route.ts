@@ -81,6 +81,6 @@ export async function POST(req: Request) {
       `Processed ${linksToUpdate.length} links in the folder.`,
     );
   } catch (error) {
-    return handleAndReturnErrorResponse(error);
+    return handleAndReturnErrorResponse({ error });
   }
 }

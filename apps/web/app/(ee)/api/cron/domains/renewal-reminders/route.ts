@@ -130,6 +130,6 @@ export async function GET(req: Request) {
       type: "errors",
     });
 
-    return handleAndReturnErrorResponse(error);
+    return handleAndReturnErrorResponse({ error });
   }
 }

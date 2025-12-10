@@ -173,7 +173,7 @@ async function handler(req: Request) {
 
     return logAndRespond("Finished sending fraud events summary.");
   } catch (error) {
-    return handleAndReturnErrorResponse(error);
+    return handleAndReturnErrorResponse({ error });
   }
 }
 

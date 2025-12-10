@@ -106,6 +106,6 @@ export async function POST(req: Request) {
       `Deleted ${links.length} links, no more links remaining. Workspace deleted.`,
     );
   } catch (error) {
-    return handleAndReturnErrorResponse(error);
+    return handleAndReturnErrorResponse({ error });
   }
 }

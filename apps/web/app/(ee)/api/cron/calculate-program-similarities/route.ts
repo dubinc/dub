@@ -31,8 +31,8 @@ export async function GET(req: Request) {
     await verifyVercelSignature(req);
 
     return await calculateProgramSimilarity();
-  } catch (err) {
-    return handleAndReturnErrorResponse(err);
+  } catch (error) {
+    return handleAndReturnErrorResponse({ error });
   }
 }
 
@@ -54,8 +54,8 @@ export async function POST(req: Request) {
       currentProgramId,
       comparisonBatchCursor,
     });
-  } catch (err) {
-    return handleAndReturnErrorResponse(err);
+  } catch (error) {
+    return handleAndReturnErrorResponse({ error });
   }
 }
 

@@ -79,6 +79,6 @@ export async function POST(req: Request) {
 
     return new Response(`Retrying invoice charge ${invoice.id}...`);
   } catch (error) {
-    return handleAndReturnErrorResponse(error);
+    return handleAndReturnErrorResponse({ error });
   }
 }

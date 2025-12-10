@@ -57,6 +57,6 @@ export async function POST(
       `Discount code ${discountCode.code} disabled from Stripe for ${workspace.stripeConnectId}.`,
     );
   } catch (error) {
-    return handleAndReturnErrorResponse(error);
+    return handleAndReturnErrorResponse({ error });
   }
 }

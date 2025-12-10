@@ -20,6 +20,6 @@ export const GET = async (req: NextRequest) => {
     const response = await getRandomKey({ domain });
     return NextResponse.json(response);
   } catch (error) {
-    return handleAndReturnErrorResponse(error);
+    return handleAndReturnErrorResponse({ error });
   }
 };

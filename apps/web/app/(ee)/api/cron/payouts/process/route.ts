@@ -81,6 +81,6 @@ export async function POST(req: Request) {
       mention: true,
     });
 
-    return handleAndReturnErrorResponse(error);
+    return handleAndReturnErrorResponse({ error });
   }
 }
