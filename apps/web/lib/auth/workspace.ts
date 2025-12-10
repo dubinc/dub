@@ -2,10 +2,12 @@ import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { BetaFeatures, PlanProps, WorkspaceWithUsers } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
+import { Prisma } from "@dub/prisma/client";
 import { API_DOMAIN, getSearchParams } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { headers } from "next/headers";
 import { getRatelimitForPlan } from "../api/get-ratelimit-for-plan";
+import { queueFailedRequestForRetry } from "../api/queue-failed-request-for-retry";
 import {
   PermissionAction,
   getPermissionsByRole,
@@ -20,6 +22,23 @@ import { hashToken } from "./hash-token";
 import { rateLimitRequest } from "./rate-limit-request";
 import { TokenCacheItem, tokenCache } from "./token-cache";
 import { Session, getSession } from "./utils";
+
+/**
+ * Simulates a Prisma database connection error for testing purposes.
+ * Throws a PrismaClientUnknownRequestError to match real-world PlanetScale/Vitess connection errors.
+ * Use by adding header: "x-simulate-db-error": "true"
+ */
+
+// Remove after testing
+export function throwSimulatedDbError() {
+  // Simulate the actual PlanetScale/Vitess connection error format
+  throw new Prisma.PrismaClientUnknownRequestError(
+    'Error occurred during query execution:\n\nConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(Server(MysqlError { code: 1105, message: "internal: vtgate connection error: read tcp 10.193.61.156:54172->10.193.50.145:15999: read: connection reset by peer, after 1 attempts, reqid=", state: "HY000" })), transient: false })',
+    {
+      clientVersion: "5.18.0",
+    },
+  );
+}
 
 const RATE_LIMIT_FOR_SESSIONS = {
   api: {
@@ -161,6 +180,10 @@ export const withWorkspace = (
           } else {
             workspaceSlug = idOrSlug;
           }
+        }
+
+        if (requestHeaders.get("x-simulate-db-error") === "true") {
+          throwSimulatedDbError();
         }
 
         const isAnalytics =
@@ -424,7 +447,7 @@ export const withWorkspace = (
 
         // beta feature checks
         if (featureFlag) {
-          let flags = await getFeatureFlags({
+          const flags = await getFeatureFlags({
             workspaceId: workspace.id,
           });
 
@@ -466,13 +489,22 @@ export const withWorkspace = (
           permissions,
         });
       } catch (error) {
-        // Log the conversion events for debugging purposes
         waitUntil(
           (async () => {
-            const paths = ["/track/lead", "/track/sale"];
+            await queueFailedRequestForRetry({
+              error,
+              apiKey,
+              req,
+            });
 
-            if (workspace && paths.includes(req.nextUrl.pathname)) {
-              logConversionEvent({
+            // Log the conversion events for debugging purposes
+            if (
+              workspace &&
+              ["/api/track/lead", "/api/track/sale"].includes(
+                req.nextUrl.pathname,
+              )
+            ) {
+              await logConversionEvent({
                 workspace_id: workspace.id,
                 path: req.nextUrl.pathname,
                 error: error.message,
