@@ -109,7 +109,7 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
     orderBy:
       sortBy === "popularity"
         ? {
-            partners: {
+            applications: {
               _count: "desc",
             },
           }
@@ -117,6 +117,29 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
     skip: (page - 1) * pageSize,
     take: pageSize,
   });
+
+  // If sorting by popularity, put promoted programs first
+  if (sortBy === "popularity") {
+    const PROMOTED_PROGRAM_IDS = [
+      "prog_1K0QHV7MP3PR05CJSCF5VN93X",
+      "prog_1JPKFV1EFCJACKR4QZBZGRMZ9",
+      "prog_1K7J9JV5P2NBPH4A4X4YGHV68",
+      "prog_MqN7G1vSbuSELpYJwioHyDE8",
+      "prog_qGGSH0jXFZLeogOnq1sLkriY",
+      "prog_1K0A6SX71Q3ZRC1HYFMXQGWJ8",
+    ];
+
+    const promoted = programs.filter((p) =>
+      PROMOTED_PROGRAM_IDS.includes(p.id),
+    );
+    const others = programs.filter((p) => !PROMOTED_PROGRAM_IDS.includes(p.id));
+    // Sort promoted by their order in PROMOTED_PROGRAM_IDS
+    promoted.sort(
+      (a, b) =>
+        PROMOTED_PROGRAM_IDS.indexOf(a.id) - PROMOTED_PROGRAM_IDS.indexOf(b.id),
+    );
+    programs.splice(0, programs.length, ...promoted, ...others);
+  }
 
   return NextResponse.json(
     z.array(NetworkProgramSchema).parse(

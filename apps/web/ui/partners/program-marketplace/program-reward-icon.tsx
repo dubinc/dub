@@ -29,7 +29,14 @@ export const ProgramRewardIcon = ({
       </HoverCard.Portal>
       <HoverCard.Trigger>
         <As
-          {...(onClick && { type: "button", onClick })}
+          {...(onClick && {
+            type: "button",
+            onClick: (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onClick?.();
+            },
+          })}
           className={cn(
             "text-content-default flex size-6 items-center justify-center rounded-md",
             onClick && "hover:bg-bg-subtle active:bg-bg-emphasis",
