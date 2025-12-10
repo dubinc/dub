@@ -111,11 +111,16 @@ export default function UnresolvedFraudEventsSummary({
                 </Column>
               </Row>
 
-              {displayedGroups.map((group) => (
-                <Row
-                  key={group.id}
-                  className="h-11 border-b border-solid border-neutral-200 last:border-b-0"
-                >
+              {displayedGroups.map((group, index) => {
+                const isLastItem =
+                  index === displayedGroups.length - 1 && remainingCount === 0;
+                return (
+                  <Row
+                    key={group.id}
+                    className={`h-11 border-solid border-neutral-200 ${
+                      isLastItem ? "" : "border-b"
+                    }`}
+                  >
                   <Column width="50%" className="w-1/2 px-4" valign="middle">
                     <Row>
                       <Column width="auto" className="flex">
@@ -171,7 +176,8 @@ export default function UnresolvedFraudEventsSummary({
                     </Row>
                   </Column>
                 </Row>
-              ))}
+                );
+              })}
 
               {remainingCount > 0 && (
                 <Row className="h-11 rounded-b-xl border-t border-solid border-neutral-200 bg-neutral-50">

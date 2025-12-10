@@ -1,6 +1,5 @@
 declare module "@react-email/components" {
   import * as React from "react";
-
   export const Html: React.FC<React.HtmlHTMLAttributes<HTMLHtmlElement>>;
   export const Head: React.FC<React.HTMLAttributes<HTMLHeadElement>>;
   export const Body: React.FC<React.HTMLAttributes<HTMLBodyElement>>;
@@ -17,4 +16,5 @@ declare module "@react-email/components" {
   export const Hr: React.FC<React.HTMLAttributes<HTMLHRElement>>;
   export const Preview: React.FC<{ children: React.ReactNode }>;
   export const Tailwind: React.FC<{ children: React.ReactNode }>;
+  export const Markdown: React.FC<{ children: React.ReactNode }>;
 }
