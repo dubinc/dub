@@ -15,14 +15,21 @@ export const ProgramCategory = ({
   const categoryData = PROGRAM_CATEGORIES_MAP[category];
   const { icon: Icon, label } = categoryData ?? {
     icon: CircleInfo,
-    label: category.replace("_", " "),
+    label: category.replaceAll("_", " "),
   };
 
   const As = onClick ? "button" : "div";
 
   return (
     <As
-      {...(onClick && { type: "button", onClick })}
+      {...(onClick && {
+        type: "button",
+        onClick: (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onClick?.();
+        },
+      })}
       className={cn(
         "text-content-default -ml-1 flex h-6 min-w-0 items-center gap-1 rounded-md px-1",
         onClick && "hover:bg-bg-subtle active:bg-bg-emphasis",

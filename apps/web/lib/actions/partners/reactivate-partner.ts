@@ -39,7 +39,8 @@ export const reactivatePartnerAction = authActionClient
 
     const defaultGroup = await getGroupOrThrow({
       programId,
-      groupId: programEnrollment.program.defaultGroupId,
+      groupId:
+        programEnrollment.groupId || programEnrollment.program.defaultGroupId,
     });
 
     await prisma.$transaction([

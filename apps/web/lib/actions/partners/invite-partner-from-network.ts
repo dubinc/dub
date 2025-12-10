@@ -51,9 +51,6 @@ export const invitePartnerFromNetworkAction = authActionClient
     if (!partner || !partner.email)
       throw new Error("Partner not found or already enrolled in this program.");
 
-    if (!groupId && !program.defaultGroupId)
-      throw new Error("No group ID provided and no default group ID found.");
-
     const enrolledPartner = await createAndEnrollPartner({
       workspace,
       program,

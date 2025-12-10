@@ -1,10 +1,10 @@
 import { withPartnerProfile } from "@/lib/auth/partner";
+import { throwIfPartnerCannotViewMarketplace } from "@/lib/network/throw-if-partner-cannot-view-marketplace";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { getNetworkProgramsCountQuerySchema } from "@/lib/zod/schemas/program-network";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
-import { throwIfPartnerCannotViewMarketplace } from "../../../../../../lib/network/throw-if-partner-cannot-view-marketplace";
 
 const rewardTypeMap = {
   sale: Prisma.sql`pg.saleRewardId IS NOT NULL`,

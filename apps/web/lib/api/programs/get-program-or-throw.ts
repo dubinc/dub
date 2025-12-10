@@ -16,6 +16,11 @@ export const getProgramOrThrow = async ({
     where: {
       id: programId,
     },
+    ...(includeCategories && {
+      include: {
+        categories: true,
+      },
+    }),
   });
 
   if (!program || program.workspaceId !== workspaceId) {

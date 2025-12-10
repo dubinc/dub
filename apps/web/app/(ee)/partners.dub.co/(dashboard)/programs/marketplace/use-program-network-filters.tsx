@@ -96,7 +96,7 @@ export function useProgramNetworkFilters() {
           return <Icon className="size-4" />;
         },
         getOptionLabel: (value) =>
-          PROGRAM_CATEGORIES_MAP[value]?.label || value.replace("_", " "),
+          PROGRAM_CATEGORIES_MAP[value]?.label || value.replaceAll("_", " "),
         options:
           categoriesCount?.map(({ category, _count }) => ({
             value: category,
@@ -194,7 +194,13 @@ export function useProgramNetworkFilters() {
   const onRemoveAll = useCallback(
     () =>
       queryParams({
-        del: [...Object.keys(multiFilters), "category", "status", "search"],
+        del: [
+          ...Object.keys(multiFilters),
+          "category",
+          "status",
+          "search",
+          "page",
+        ],
       }),
     [queryParams, multiFilters],
   );

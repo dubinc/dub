@@ -42,7 +42,6 @@ export const createProgram = async ({
   const {
     name,
     domain,
-    categories,
     url,
     defaultRewardType,
     type,
@@ -130,11 +129,6 @@ export const createProgram = async ({
               },
             },
           }),
-        ...(Boolean(categories.length) && {
-          categories: {
-            create: categories.map((category) => ({ category })),
-          },
-        }),
       },
       include: {
         rewards: true,

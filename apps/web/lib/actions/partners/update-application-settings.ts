@@ -8,7 +8,7 @@ import { authActionClient } from "../safe-action";
 
 const schema = z.object({
   workspaceId: z.string(),
-  marketplaceEnabled: z.boolean().optional(),
+  description: z.string().optional(),
   categories: z.array(z.nativeEnum(Category)).optional(),
 });
 
@@ -16,10 +16,7 @@ export const updateApplicationSettingsAction = authActionClient
   .schema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const { marketplaceEnabled, categories } = parsedInput;
-
-    if (marketplaceEnabled && !categories?.length)
-      throw new Error("Categories are required when marketplace is enabled");
+    const { description, categories } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -28,9 +25,7 @@ export const updateApplicationSettingsAction = authActionClient
         id: programId,
       },
       data: {
-        ...(marketplaceEnabled !== undefined && {
-          addedToMarketplaceAt: marketplaceEnabled ? new Date() : null,
-        }),
+        ...(description && { description }),
         ...(categories && {
           categories: {
             deleteMany: {},
