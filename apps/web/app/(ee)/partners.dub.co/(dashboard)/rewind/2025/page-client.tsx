@@ -16,13 +16,13 @@ export function PartnerRewind2025PageClient() {
         <Wordmark
           className={cn(
             "h-12",
-            "animate-slide-up-fade [--offset:10px] [animation-duration:1s]",
+            "animate-slide-up-fade [--offset:10px] [animation-duration:1.5s]",
           )}
         />
         <h2
           className={cn(
             "text-content-emphasis text-2xl font-bold",
-            "animate-slide-up-fade [--offset:10px] [animation-delay:0.2s] [animation-duration:1s] [animation-fill-mode:both]",
+            "animate-slide-up-fade [--offset:10px] [animation-delay:0.2s] [animation-duration:1.5s] [animation-fill-mode:both]",
           )}
         >
           Partner Rewind &rsquo;25
