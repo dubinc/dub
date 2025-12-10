@@ -31,14 +31,10 @@ export default function ProgramMarketplaceAnnouncement({
           }
         `}</style>
       </Head>
-      <Preview>
-        Dub Program Marketplace is here – discover and apply for programs inside
-        Dub.
-      </Preview>
+      <Preview>Discover and apply to more programs on Dub.</Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="email-container mx-auto my-10 max-w-[600px] px-10 py-5">
-            {/* Header with Dub logo */}
             <Section className="mt-2 text-center">
               <Img
                 src={DUB_WORDMARK}
@@ -52,22 +48,19 @@ export default function ProgramMarketplaceAnnouncement({
               />
             </Section>
 
-            {/* Main heading */}
             <Heading className="mx-0 mb-2 mt-8 p-0 text-center text-2xl font-semibold text-black">
               Dub Program Marketplace is here
             </Heading>
 
-            {/* Subheading */}
             <Text className="mb-8 mt-0 text-center text-base leading-6 text-neutral-600">
-              Discover a new way to browse, discover, and apply for
+              A new way to discover, join, and partner with
               <br />
-              many more programs inside Dub.
+              more programs on Dub.
             </Text>
 
-            {/* Visual element */}
             <Section className="mb-8 text-center">
               <Link
-                href="https://partners.dub.co/programs"
+                href="https://partners.dub.co/programs/marketplace"
                 style={{ textDecoration: "none" }}
               >
                 <Img
@@ -85,19 +78,16 @@ export default function ProgramMarketplaceAnnouncement({
               </Link>
             </Section>
 
-            {/* Just the beginning section */}
             <Heading className="mx-0 mb-3 mt-0 p-0 text-center text-lg font-semibold text-black">
-              Just the beginning
+              Over 40+ programs to join
             </Heading>
 
-            {/* Body text */}
             <Text className="mx-auto mb-8 mt-0 max-w-[420px] text-center text-sm leading-6 text-neutral-600">
-              Find programs that fit your audience, compare rewards, and apply
-              quickly. It is the easiest way to expand your reach and unlock new
-              earning possibilities.
+              Find programs that fit your audience, compare rewards, and submit
+              your application. It is the easiest way to expand your reach and
+              unlock new earning possibilities.
             </Text>
 
-            {/* CTA Button */}
             <Section className="mb-8 text-center">
               <Link
                 href="https://partners.dub.co/programs"
