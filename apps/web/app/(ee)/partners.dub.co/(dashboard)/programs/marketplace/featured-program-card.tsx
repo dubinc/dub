@@ -1,9 +1,9 @@
 import { NetworkProgramProps } from "@/lib/types";
 import { ProgramCategory } from "@/ui/partners/program-marketplace/program-category";
 import { ProgramRewardsDisplay } from "@/ui/partners/program-marketplace/program-rewards-display";
-import { Tooltip, useClickHandlers, useRouterStuff } from "@dub/ui";
+import { Tooltip, useRouterStuff } from "@dub/ui";
 import { OG_AVATAR_URL, cn } from "@dub/utils";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { ProgramStatusBadge } from "./program-status-badge";
 
 export function FeaturedProgramCard({
@@ -12,14 +12,13 @@ export function FeaturedProgramCard({
   program: NetworkProgramProps;
 }) {
   const { queryParams } = useRouterStuff();
-  const router = useRouter();
 
   const isDarkImage = program.marketplaceHeaderImage?.includes("-dark");
 
   return (
-    <div
-      className="border-border-subtle relative h-full cursor-pointer overflow-hidden rounded-xl border p-6"
-      {...useClickHandlers(`/programs/marketplace/${program.slug}`, router)}
+    <Link
+      href={`/programs/marketplace/${program.slug}`}
+      className="border-border-subtle relative block h-full overflow-hidden rounded-xl border p-6"
     >
       {program.marketplaceHeaderImage && (
         <>
@@ -168,7 +167,7 @@ export function FeaturedProgramCard({
           </div>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
 

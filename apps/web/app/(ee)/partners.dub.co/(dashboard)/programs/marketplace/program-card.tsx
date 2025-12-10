@@ -1,21 +1,18 @@
 import { NetworkProgramProps } from "@/lib/types";
 import { ProgramCategory } from "@/ui/partners/program-marketplace/program-category";
 import { ProgramRewardsDisplay } from "@/ui/partners/program-marketplace/program-rewards-display";
-import { Tooltip, useClickHandlers, useRouterStuff } from "@dub/ui";
-import { OG_AVATAR_URL, cn } from "@dub/utils";
-import { useRouter } from "next/navigation";
+import { Tooltip, useRouterStuff } from "@dub/ui";
+import { OG_AVATAR_URL } from "@dub/utils";
+import Link from "next/link";
 import { ProgramStatusBadge } from "./program-status-badge";
 
 export function ProgramCard({ program }: { program: NetworkProgramProps }) {
   const { queryParams } = useRouterStuff();
-  const router = useRouter();
 
   return (
-    <div
-      className={cn(
-        "border-border-subtle hover:drop-shadow-card-hover cursor-pointer rounded-xl border bg-white p-6 transition-[filter]",
-      )}
-      {...useClickHandlers(`/programs/marketplace/${program.slug}`, router)}
+    <Link
+      href={`/programs/marketplace/${program.slug}`}
+      className="border-border-subtle hover:drop-shadow-card-hover rounded-xl border bg-white p-6 transition-[filter]"
     >
       <div className="flex justify-between gap-4">
         <img
@@ -117,7 +114,7 @@ export function ProgramCard({ program }: { program: NetworkProgramProps }) {
           )}
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
 

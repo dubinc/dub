@@ -30,6 +30,7 @@ export const ProgramSchema = z.object({
   logo: z.string().nullable(),
   domain: z.string().nullable(),
   url: z.string().nullable(),
+  description: z.string().nullish(),
   primaryRewardEvent: z.nativeEnum(EventType).default("sale"),
   minPayoutAmount: z.number(),
   addedToMarketplaceAt: z.date().nullish(),

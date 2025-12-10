@@ -61,13 +61,13 @@ export function ProgramMarketplaceBanner() {
 
                   <p
                     className="text-content-subtle flex min-w-0 flex-col px-3 text-base sm:block sm:truncate sm:px-0 sm:text-sm xl:text-base"
-                    title="Program Marketplace is here. Browse and apply for more programs on Dub."
+                    title="Program Marketplace is here. Discover and apply to more programs on Dub."
                   >
                     <span className="text-content-emphasis font-semibold">
                       Program Marketplace is here.
                     </span>{" "}
                     <span className="font-medium">
-                      Browse and apply for more programs on Dub.
+                      Discover and apply to more programs on Dub.
                     </span>
                   </p>
                 </div>

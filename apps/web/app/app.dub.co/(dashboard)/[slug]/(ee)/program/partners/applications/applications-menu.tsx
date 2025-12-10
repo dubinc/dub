@@ -29,13 +29,17 @@ export function ApplicationsMenu() {
   return (
     <>
       <ExportApplicationsModal />
-      <ApplicationSettingsModal />
-      <Button
-        text="Application settings"
-        onClick={() => setShowApplicationSettingsModal(true)}
-        variant="secondary"
-        className="hidden sm:flex"
-      />
+      {program?.addedToMarketplaceAt && (
+        <>
+          <ApplicationSettingsModal />
+          <Button
+            text="Application settings"
+            onClick={() => setShowApplicationSettingsModal(true)}
+            variant="secondary"
+            className="hidden sm:flex"
+          />
+        </>
+      )}
       <Popover
         openPopover={isOpen}
         setOpenPopover={setIsOpen}
@@ -45,20 +49,22 @@ export function ApplicationsMenu() {
               <p className="mb-1.5 mt-1 flex items-center gap-2 px-1 text-xs font-medium text-neutral-500">
                 Application Settings
               </p>
-              <button
-                onClick={() => {
-                  setShowApplicationSettingsModal(true);
-                  setIsOpen(false);
-                }}
-                className="w-full rounded-md p-2 hover:bg-neutral-100 active:bg-neutral-200 sm:hidden"
-              >
-                <div className="flex items-center gap-2 text-left">
-                  <Gear className="size-4 shrink-0" />
-                  <span className="text-sm font-medium">
-                    Application settings
-                  </span>
-                </div>
-              </button>
+              {program?.addedToMarketplaceAt && (
+                <button
+                  onClick={() => {
+                    setShowApplicationSettingsModal(true);
+                    setIsOpen(false);
+                  }}
+                  className="w-full rounded-md p-2 hover:bg-neutral-100 active:bg-neutral-200 sm:hidden"
+                >
+                  <div className="flex items-center gap-2 text-left">
+                    <Gear className="size-4 shrink-0" />
+                    <span className="text-sm font-medium">
+                      Application settings
+                    </span>
+                  </div>
+                </button>
+              )}
               <Link
                 href={`/${workspaceSlug}/program/groups/${DEFAULT_PARTNER_GROUP.slug}/settings`}
                 className="w-full rounded-md p-2 hover:bg-neutral-100 active:bg-neutral-200"

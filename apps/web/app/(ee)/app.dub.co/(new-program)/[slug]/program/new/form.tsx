@@ -3,7 +3,6 @@
 import { onboardProgramAction } from "@/lib/actions/partners/onboard-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramData } from "@/lib/types";
-import { ProgramCategorySelect } from "@/ui/partners/program-category-select";
 import { ProgramLinkConfiguration } from "@/ui/partners/program-link-configuration";
 import { Button, FileUpload, Input, useMediaQuery } from "@dub/ui";
 import { Plus } from "lucide-react";
@@ -29,13 +28,7 @@ export function Form() {
     formState: { isSubmitting },
   } = useFormContext<ProgramData>();
 
-  const [name, url, domain, logo, categories] = watch([
-    "name",
-    "url",
-    "domain",
-    "logo",
-    "categories",
-  ]);
+  const [name, url, domain, logo] = watch(["name", "url", "domain", "logo"]);
 
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
     onSuccess: () => {
@@ -103,13 +96,7 @@ export function Form() {
   };
 
   const buttonDisabled =
-    isSubmitting ||
-    isPending ||
-    !name ||
-    !url ||
-    !domain ||
-    !logo ||
-    !categories?.length;
+    isSubmitting || isPending || !name || !url || !domain || !logo;
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-10">
@@ -153,25 +140,6 @@ export function Form() {
                 onChange={({ file }) => handleUpload(file)}
                 content={null}
                 maxFileSizeMB={2}
-              />
-            )}
-          />
-        </div>
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-neutral-800">
-          Product industries
-        </label>
-        <div className="mt-2">
-          <Controller
-            control={control}
-            name="categories"
-            rules={{ required: true }}
-            render={({ field }) => (
-              <ProgramCategorySelect
-                selected={field.value}
-                onChange={field.onChange}
               />
             )}
           />

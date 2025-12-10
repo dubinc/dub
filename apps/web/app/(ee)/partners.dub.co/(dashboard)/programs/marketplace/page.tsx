@@ -5,7 +5,7 @@ import { ProgramMarketplacePageClient } from "./page-client";
 export default function PartnersDashboard() {
   return (
     <PageContent title="Program Marketplace">
-      <PageWidthWrapper className="mb-10">
+      <PageWidthWrapper>
         <ProgramMarketplacePageClient />
       </PageWidthWrapper>
     </PageContent>

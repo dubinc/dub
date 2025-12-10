@@ -8,9 +8,9 @@ const LOGOS = [
   { x: 23, y: 0, r: -7, s: 0.7 },
   // Tella
   { x: 44, y: 24, r: 13, s: 0.8 },
-  // BetterPic
+  // Buffer
   { x: 62, y: 0, r: -49, s: 0.8 },
-  // S?
+  // Superhuman
   { x: 82, y: 28, r: -26, s: 0.75 },
   // Framer
   { x: 12, y: 50, r: -11, s: 0.75 },
@@ -18,11 +18,11 @@ const LOGOS = [
   { x: 26, y: 34, r: -10, s: 0.9, z: 1 },
   // Fillout
   { x: 40, y: 48, r: -11, s: 0.75 },
-  // X?
+  // Copper
   { x: 60, y: 54, r: -18, s: 0.9 },
   // Firecrawl
   { x: 78, y: 50, r: -37, s: 0.75, z: 1 },
-  // Wispr
+  // Wispr Flow
   { x: 0, y: 72, r: 15, s: 0.8, z: 1 },
   // Granola
   { x: 26, y: 70, r: 4, s: 0.8 },

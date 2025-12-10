@@ -4,7 +4,7 @@ import { mutatePrefix } from "@/lib/swr/mutate";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Category } from "@dub/prisma/client";
-import { Button, Modal, Switch } from "@dub/ui";
+import { Button, Modal, useEnterSubmit } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import {
@@ -19,7 +19,7 @@ import { toast } from "sonner";
 import { ProgramCategorySelect } from "../partners/program-category-select";
 
 type FormData = {
-  marketplaceEnabled: boolean;
+  description: string;
   categories: Category[];
 };
 
@@ -34,19 +34,19 @@ function ApplicationSettingsModal({
   const { id: workspaceId } = useWorkspace();
 
   const {
-    watch,
     control,
     handleSubmit,
     setError,
-    formState: { errors, isSubmitting },
+    register,
+    formState: { errors, isSubmitting, isDirty },
   } = useForm<FormData>({
     defaultValues: {
-      marketplaceEnabled: program?.addedToMarketplaceAt ? true : false,
+      description: program?.description ?? "",
       categories: program?.categories ?? [],
     },
   });
 
-  const marketplaceEnabled = watch("marketplaceEnabled");
+  const { handleKeyDown } = useEnterSubmit();
 
   const { executeAsync } = useAction(updateApplicationSettingsAction, {
     onError: ({ error }) => {
@@ -92,72 +92,49 @@ function ApplicationSettingsModal({
       <form onSubmit={onSubmit}>
         <div className="space-y-6 bg-neutral-50 p-4 sm:p-6">
           <div>
-            <label className="flex gap-3">
-              <div>
-                <Controller
-                  control={control}
-                  name="marketplaceEnabled"
-                  render={({ field }) => (
-                    <Switch
-                      checked={field.value}
-                      fn={field.onChange}
-                      trackDimensions="radix-state-checked:bg-black focus-visible:ring-black/20"
-                    />
-                  )}
-                />
-              </div>
-              <div className="flex select-none flex-col gap-0.5">
-                <span className="text-content-emphasis text-sm font-medium">
-                  Show in the partner marketplace
-                </span>
-                <p className="text-content-subtle text-xs">
-                  Allow partners to discover your program.{" "}
-                  {/* <a
-                  href=""
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-content-default underline"
-                >
-                  Learn more
-                </a> */}
-                </p>
-              </div>
-            </label>
-
-            <div
-              className={cn(
-                "grid grid-cols-1 transition-[grid-template-rows,opacity]",
-                marketplaceEnabled
-                  ? "grid-rows-[1fr]"
-                  : "grid-rows-[0fr] opacity-0",
-              )}
-              inert={!marketplaceEnabled}
+            <label
+              htmlFor="description"
+              className="block text-sm font-medium text-neutral-800"
             >
-              <div className="min-h-0">
-                <div className="pt-6">
-                  <label className="block text-sm font-medium text-neutral-800">
-                    Product industries
-                  </label>
-                  <div className="mt-1">
-                    <Controller
-                      control={control}
-                      name="categories"
-                      rules={{ required: marketplaceEnabled }}
-                      render={({ field }) => (
-                        <ProgramCategorySelect
-                          selected={field.value}
-                          onChange={field.onChange}
-                          buttonProps={{
-                            className: cn(
-                              errors.categories && "border-red-600",
-                            ),
-                          }}
-                        />
-                      )}
-                    />
-                  </div>
-                </div>
-              </div>
+              Product description
+            </label>
+            <div className="mt-1">
+              <textarea
+                id="description"
+                {...register("description")}
+                rows={4}
+                placeholder="Describe your program for the marketplace..."
+                onKeyDown={handleKeyDown}
+                className={cn(
+                  "w-full rounded-md border border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                  errors.description &&
+                    "border-red-600 focus:border-red-600 focus:ring-red-600",
+                )}
+              />
+              <p className="mt-1 text-xs text-neutral-500">
+                This description will be displayed in the program marketplace.
+              </p>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-neutral-800">
+              Product categories
+            </label>
+            <div className="mt-1">
+              <Controller
+                control={control}
+                name="categories"
+                render={({ field }) => (
+                  <ProgramCategorySelect
+                    selected={field.value}
+                    onChange={field.onChange}
+                    buttonProps={{
+                      className: cn(errors.categories && "border-red-600"),
+                    }}
+                  />
+                )}
+              />
             </div>
           </div>
         </div>
@@ -173,6 +150,7 @@ function ApplicationSettingsModal({
           <Button
             type="submit"
             loading={isSubmitting}
+            disabled={!isDirty}
             text="Save"
             className="h-8 w-fit px-3"
           />

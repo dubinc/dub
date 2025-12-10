@@ -58,7 +58,7 @@ export function ProgramMarketplaceCard() {
                 Program Marketplace
               </span>
               <p className="text-content-subtle line-clamp-2 text-xs">
-                Browse and apply for more programs on Dub.
+                Discover and apply to more programs on Dub.
               </p>
             </div>
 
