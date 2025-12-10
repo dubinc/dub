@@ -16,6 +16,7 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
       clickReward: true,
       leadReward: true,
       saleReward: true,
+      discount: true,
       partnerGroup: true,
     },
   });
