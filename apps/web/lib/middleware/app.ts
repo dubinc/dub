@@ -121,6 +121,9 @@ export async function AppMiddleware(req: NextRequest) {
       const pendingInvite = await prismaEdge.projectInvite.findFirst({
         where: {
           email: user.email,
+          expires: {
+            gte: new Date(),
+          },
         },
         select: {
           project: {
