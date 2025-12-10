@@ -1,5 +1,6 @@
 "use client";
 
+import usePartnerRewind from "@/lib/swr/use-partner-rewind";
 import { X } from "@/ui/shared/icons";
 import { Button, Grid, buttonVariants } from "@dub/ui";
 import { cn } from "@dub/utils";
@@ -8,7 +9,10 @@ import Link from "next/link";
 import { usePartnerRewindStatus } from "./use-partner-rewind-status";
 
 export function PartnerRewindBanner() {
+  const { partnerRewind } = usePartnerRewind();
   const { status, setStatus } = usePartnerRewindStatus();
+
+  if (!partnerRewind) return null;
 
   return (
     <AnimatePresence>

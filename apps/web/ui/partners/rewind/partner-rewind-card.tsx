@@ -1,7 +1,6 @@
 "use client";
 
-import usePartnerProfile from "@/lib/swr/use-partner-profile";
-import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
+import usePartnerRewind from "@/lib/swr/use-partner-rewind";
 import { Grid, buttonVariants } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { AnimatePresence, motion } from "motion/react";
@@ -12,13 +11,10 @@ import { usePartnerRewindStatus } from "./use-partner-rewind-status";
 export function PartnerRewindCard() {
   const pathname = usePathname();
 
-  const { partner } = usePartnerProfile();
-  const { programEnrollments } = useProgramEnrollments();
-
+  const { partnerRewind } = usePartnerRewind();
   const { status } = usePartnerRewindStatus();
 
-  // TODO: Add rewind fetch/check here
-  if (!partner || !programEnrollments || status !== "card") return null;
+  if (!partnerRewind || status !== "card") return null;
 
   return (
     <AnimatePresence>
