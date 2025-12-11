@@ -2,8 +2,8 @@ import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { withAxiom } from "@/lib/axiom/server";
 import { ratelimit } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
+import { Project } from "@dub/prisma/client";
 import { getSearchParams } from "@dub/utils";
-import { Project } from "@prisma/client";
 import { headers } from "next/headers";
 import { COMMON_CORS_HEADERS } from "../api/cors";
 

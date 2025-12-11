@@ -9,7 +9,7 @@ import {
   INACTIVE_ENROLLMENT_STATUSES,
 } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
-import { FraudRuleType, ProgramEnrollmentStatus } from "@prisma/client";
+import { FraudRuleType, ProgramEnrollmentStatus } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 

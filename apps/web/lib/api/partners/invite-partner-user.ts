@@ -3,8 +3,8 @@ import { PartnerProps } from "@/lib/types";
 import { sendEmail } from "@dub/email";
 import PartnerUserInvited from "@dub/email/templates/partner-user-invited";
 import { prisma } from "@dub/prisma";
+import { PartnerRole } from "@dub/prisma/client";
 import { PARTNERS_DOMAIN, TWO_WEEKS_IN_SECONDS } from "@dub/utils";
-import { PartnerRole } from "@prisma/client";
 import { randomBytes } from "crypto";
 import { DubApiError } from "../errors";
 

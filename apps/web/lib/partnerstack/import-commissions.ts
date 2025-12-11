@@ -1,6 +1,6 @@
 import { prisma } from "@dub/prisma";
+import { CommissionStatus, Customer, Link, Program } from "@dub/prisma/client";
 import { nanoid } from "@dub/utils";
-import { CommissionStatus, Customer, Link, Program } from "@prisma/client";
 import { convertCurrencyWithFxRates } from "../analytics/convert-currency";
 import { isFirstConversion } from "../analytics/is-first-conversion";
 import { createId } from "../api/create-id";

@@ -24,6 +24,7 @@ function DeleteTokenModal({
   const { isMobile } = useMediaQuery();
   const { id: workspaceId } = useWorkspace();
   const [removing, setRemoving] = useState(false);
+  const [verification, setVerification] = useState("");
 
   // Determine the endpoint
   const isRestrictedToken = "scopes" in token ? true : false;
@@ -42,6 +43,26 @@ function DeleteTokenModal({
     }
   }, [isRestrictedToken]);
 
+  const confirmationText = "confirm delete token";
+  const isVerified = verification === confirmationText;
+
+  const deleteToken = async () => {
+    setRemoving(true);
+    const res = await fetch(endpoint.url, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+    });
+    setRemoving(false);
+    if (res.status === 200) {
+      toast.success(`Successfully deleted API key`);
+      mutate(endpoint.mutate);
+      setShowDeleteTokenModal(false);
+    } else {
+      const { error } = await res.json();
+      toast.error(error.message);
+    }
+  };
+
   return (
     <Modal
       showModal={showDeleteTokenModal}
@@ -56,7 +77,13 @@ function DeleteTokenModal({
         </p>
       </div>
 
-      <div className="flex flex-col space-y-4 bg-neutral-50 px-4 py-4 sm:px-6">
+      <form
+        onSubmit={async (e) => {
+          e.preventDefault();
+          await deleteToken();
+        }}
+        className="flex flex-col space-y-4 bg-neutral-50 px-4 py-4 sm:px-6"
+      >
         <div className="relative flex items-center gap-2 space-x-3 rounded-md border border-neutral-300 bg-white px-4 py-2">
           <Key className="size-5 text-neutral-500" />
 
@@ -95,30 +122,37 @@ function DeleteTokenModal({
           </div>
         </div>
 
+        <div>
+          <label
+            htmlFor="verification"
+            className="block text-sm text-neutral-700"
+          >
+            To verify, type{" "}
+            <span className="font-semibold">{confirmationText}</span> below
+          </label>
+          <div className="relative mt-1 rounded-md shadow-sm">
+            <input
+              type="text"
+              name="verification"
+              id="verification"
+              pattern={confirmationText}
+              required
+              autoFocus={!isMobile}
+              autoComplete="off"
+              value={verification}
+              onChange={(e) => setVerification(e.target.value)}
+              className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-300 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+            />
+          </div>
+        </div>
+
         <Button
           text="Delete"
           variant="danger"
-          autoFocus={!isMobile}
           loading={removing}
-          onClick={() => {
-            setRemoving(true);
-            fetch(endpoint.url, {
-              method: "DELETE",
-              headers: { "Content-Type": "application/json" },
-            }).then(async (res) => {
-              setRemoving(false);
-              if (res.status === 200) {
-                toast.success(`Successfully deleted API key`);
-                mutate(endpoint.mutate);
-                setShowDeleteTokenModal(false);
-              } else {
-                const { error } = await res.json();
-                toast.error(error.message);
-              }
-            });
-          }}
+          disabled={!isVerified}
         />
-      </div>
+      </form>
     </Modal>
   );
 }

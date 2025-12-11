@@ -136,9 +136,9 @@ export default function ProgramMarketplaceAnnouncement({
 
             <Text className="mx-auto mb-8 mt-0 max-w-[420px] text-center text-sm leading-6 text-neutral-600">
               We're also excited to share that we've crossed $10M in payouts
-              sent via Dub Partners to creators all around the world.
+              sent via Dub Partners to creators worldwide.
               <br />
-              <br />A huge thank you to all of you who have been part of this
+              <br />A huge thank you to all of you who have been a part of this
               journey – we couldn't have done it without you!
             </Text>
 

@@ -19,7 +19,7 @@ import {
   useTable,
 } from "@dub/ui";
 import { ShieldKeyhole } from "@dub/ui/icons";
-import { cn } from "@dub/utils";
+import { cn, formatDate } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
 import { useFraudGroupFilters } from "../use-fraud-group-filters";
@@ -151,7 +151,13 @@ export function ResolvedFraudGroupTable() {
           const user = row.original.user;
           const resolvedAt = row.original.resolvedAt;
 
-          if (!resolvedAt || !user) return "-";
+          if (!resolvedAt) return "-";
+
+          if (!user)
+            return formatDate(resolvedAt, {
+              month: "short",
+              year: undefined,
+            });
 
           return (
             <UserRowItem user={user} date={resolvedAt} label="Resolved at" />

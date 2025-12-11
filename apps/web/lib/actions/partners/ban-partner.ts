@@ -9,8 +9,11 @@ import { qstash } from "@/lib/cron";
 import { UserProps, WorkspaceProps } from "@/lib/types";
 import { banPartnerSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
+import {
+  PartnerBannedReason,
+  ProgramEnrollmentStatus,
+} from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
-import { PartnerBannedReason, ProgramEnrollmentStatus } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 

@@ -31,15 +31,6 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
       addedToMarketplaceAt: {
         not: null,
       },
-      // Has a published default application form
-      groups: {
-        some: {
-          slug: DEFAULT_PARTNER_GROUP.slug,
-          applicationFormPublishedAt: {
-            not: null,
-          },
-        },
-      },
       ...(featured && {
         featuredOnMarketplaceAt: {
           not: null,

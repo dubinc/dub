@@ -9,8 +9,8 @@ import {
   workspaceUserSchema,
 } from "@/lib/zod/schemas/workspaces";
 import { prisma } from "@dub/prisma";
+import { PartnerRole } from "@dub/prisma/client";
 import { pluralize } from "@dub/utils";
-import { PartnerRole } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 

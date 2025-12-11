@@ -1,4 +1,4 @@
-import { PayoutMode, ProgramPayoutMode } from "@prisma/client";
+import { PayoutMode, ProgramPayoutMode } from "@dub/prisma/client";
 
 export function getEffectivePayoutMode({
   payoutMode,

@@ -11,14 +11,6 @@ export const getNetworkProgram = cache(async ({ slug }: { slug: string }) => {
       addedToMarketplaceAt: {
         not: null,
       },
-      groups: {
-        some: {
-          slug: DEFAULT_PARTNER_GROUP.slug,
-          applicationFormPublishedAt: {
-            not: null,
-          },
-        },
-      },
     },
     include: {
       groups: {

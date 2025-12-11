@@ -1,7 +1,7 @@
 "use client";
 
+import { Link } from "@dub/prisma/client";
 import { Button, IOSAppStore, useCopyToClipboard } from "@dub/ui";
-import { Link } from "@prisma/client";
 import { useSearchParams } from "next/navigation";
 
 export function DeepLinkActionButtons({

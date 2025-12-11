@@ -21,6 +21,7 @@ import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { ThreeDots } from "@/ui/shared/icons";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
+import { ProgramEnrollmentStatus } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
   Button,
@@ -56,7 +57,6 @@ import {
   formatDate,
 } from "@dub/utils";
 import { nFormatter } from "@dub/utils/src/functions";
-import { ProgramEnrollmentStatus } from "@prisma/client";
 import { Row, Table as TableType } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { LockOpen } from "lucide-react";

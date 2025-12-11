@@ -1,4 +1,4 @@
-import { Partner } from "@prisma/client";
+import { Partner } from "@dub/prisma/client";
 
 type OnlinePresenceProvider = {
   verifiedColumn: string;
