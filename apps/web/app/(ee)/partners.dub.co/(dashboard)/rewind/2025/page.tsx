@@ -47,7 +47,7 @@ export default async function PartnerRewind2025Page() {
           <Gradient className="absolute right-0 top-0 h-[720px] w-96 -translate-y-1/2 translate-x-1/2 -rotate-[55deg] opacity-20" />
         </div>
 
-        <div className="scrollbar-hide flex size-full items-center justify-center overflow-y-auto">
+        <div className="scrollbar-hide flex size-full items-center justify-center overflow-y-auto p-6">
           <PartnerRewind2025PageClient partnerRewind={partnerRewind} />
         </div>
       </div>

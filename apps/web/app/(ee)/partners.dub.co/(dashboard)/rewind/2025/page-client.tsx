@@ -27,6 +27,7 @@ export function PartnerRewind2025PageClient({
         animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
         exit={{ opacity: 0, scale: 0.9, filter: "blur(10px)" }}
         transition={{ duration: 0.5 }}
+        className="w-full"
       >
         {state === "intro" && <Intro onStart={() => setState("rewind")} />}
         {state === "rewind" && (
