@@ -1,5 +1,6 @@
 "use client";
 
+import { PartnerRewindProps } from "@/lib/types";
 import { AnimatePresence, motion } from "motion/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -7,7 +8,11 @@ import { Conclusion } from "./conclusion";
 import { Intro } from "./intro";
 import { Rewind } from "./rewind";
 
-export function PartnerRewind2025PageClient() {
+export function PartnerRewind2025PageClient({
+  partnerRewind,
+}: {
+  partnerRewind: PartnerRewindProps;
+}) {
   const router = useRouter();
 
   const [state, setState] = useState<"intro" | "rewind" | "conclusion">(
@@ -25,7 +30,10 @@ export function PartnerRewind2025PageClient() {
       >
         {state === "intro" && <Intro onStart={() => setState("rewind")} />}
         {state === "rewind" && (
-          <Rewind onComplete={() => setState("conclusion")} />
+          <Rewind
+            partnerRewind={partnerRewind}
+            onComplete={() => setState("conclusion")}
+          />
         )}
         {state === "conclusion" && (
           <Conclusion

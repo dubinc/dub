@@ -1,9 +1,35 @@
+import { getPartnerRewind } from "@/lib/api/partners/get-partner-rewind";
+import { getSession } from "@/lib/auth";
 import { PageContent } from "@/ui/layout/page-content";
+import { prisma } from "@dub/prisma";
 import { Grid } from "@dub/ui";
 import { cn } from "@dub/utils";
+import { redirect } from "next/navigation";
 import { PartnerRewind2025PageClient } from "./page-client";
 
 export default async function PartnerRewind2025Page() {
+  const { user } = await getSession();
+
+  if (!user.defaultPartnerId) redirect("/");
+
+  const partnerUser = await prisma.partnerUser.findUnique({
+    select: { partnerId: true },
+    where: {
+      userId_partnerId: {
+        userId: user.id,
+        partnerId: user.defaultPartnerId,
+      },
+    },
+  });
+
+  if (!partnerUser) redirect("/");
+
+  const partnerRewind = await getPartnerRewind({
+    partnerId: partnerUser.partnerId,
+  });
+
+  if (!partnerRewind) redirect("/");
+
   return (
     <PageContent
       title="Partner rewind"
@@ -22,7 +48,7 @@ export default async function PartnerRewind2025Page() {
         </div>
 
         <div className="scrollbar-hide flex size-full items-center justify-center overflow-y-auto">
-          <PartnerRewind2025PageClient />
+          <PartnerRewind2025PageClient partnerRewind={partnerRewind} />
         </div>
       </div>
     </PageContent>
