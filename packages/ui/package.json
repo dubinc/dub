@@ -34,8 +34,8 @@
   },
   "peerDependencies": {
     "next": "15.5.7",
-    "react": "19.1.2",
-    "react-dom": "19.1.2"
+    "react": "19.1.3",
+    "react-dom": "19.1.3"
   },
   "devDependencies": {
     "@dub/tailwind-config": "workspace:*",
@@ -45,10 +45,10 @@
     "@types/react": "^19.1.14",
     "@types/react-dom": "^19.1.9",
     "autoprefixer": "^10.4.16",
-    "next": "15.5.7",
+    "next": "15.5.8",
     "postcss": "^8.4.31",
-    "react": "^19.1.2",
-    "react-dom": "^19.1.2",
+    "react": "^19.1.3",
+    "react-dom": "^19.1.3",
     "tailwindcss": "^3.4.4",
     "tsconfig": "workspace:*",
     "tsup": "^6.1.3",
