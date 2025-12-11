@@ -25,7 +25,7 @@ export const PayoutStats = memo(() => {
 
   return (
     <AnimatedSizeContainer height>
-      <div className="border-border-default grid gap-3 border-t p-3">
+      <div className="border-border-subtle grid gap-3 border-t p-3">
         <Link
           className="group flex items-center justify-between gap-2"
           href="/payouts"

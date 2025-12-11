@@ -104,7 +104,7 @@ Meta Description: ${description}
 Website Content Preview: ${content.slice(0, 300)}...`;
 
     const { object } = await generateObject({
-      model: anthropic("claude-3-5-haiku-latest"),
+      model: anthropic("claude-sonnet-4-20250514"),
       schema: categorizationSchema,
       prompt,
     });
@@ -145,10 +145,8 @@ async function main() {
       categories: {
         none: {},
       },
-      workspace: {
-        plan: {
-          in: ["advanced", "enterprise"],
-        },
+      addedToMarketplaceAt: {
+        not: null,
       },
     },
     take: 10,

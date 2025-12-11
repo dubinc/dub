@@ -1,5 +1,6 @@
 import { PartnerGroupProps } from "@/lib/types";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
+import { Program } from "@dub/prisma/client";
 import {
   Button,
   CopyButton,
@@ -15,7 +16,6 @@ import {
   getPrettyUrl,
   nFormatter,
 } from "@dub/utils";
-import { Program } from "@prisma/client";
 import { motion } from "motion/react";
 import { useEffect, useState } from "react";
 import useSWR from "swr";

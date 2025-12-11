@@ -1,5 +1,5 @@
 import { prisma } from "@dub/prisma";
-import { WorkspaceRole } from "@prisma/client";
+import { WorkspaceRole } from "@dub/prisma/client";
 import { z } from "zod";
 import { notificationTypes } from "../zod/schemas/workspaces";
 

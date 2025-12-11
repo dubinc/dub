@@ -1,5 +1,5 @@
+import { WorkspaceRole } from "@dub/prisma/client";
 import { combineWords } from "@dub/utils";
-import { WorkspaceRole } from "@prisma/client";
 import { PermissionAction, ROLE_PERMISSIONS } from "./api/rbac/permissions";
 
 export const clientAccessCheck = ({

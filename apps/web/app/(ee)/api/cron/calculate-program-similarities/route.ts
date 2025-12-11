@@ -5,7 +5,7 @@ import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { prisma } from "@dub/prisma";
 import { ProgramSimilarity } from "@dub/prisma/client";
-import { ACME_PROGRAM_ID, APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { z } from "zod";
 import { logAndRespond } from "../utils";
 import { calculateCategorySimilarity } from "./calculate-category-similarity";
@@ -73,15 +73,21 @@ async function calculateProgramSimilarity({
 
   const programs = await prisma.program.findMany({
     where: {
-      workspace: {
-        plan: {
-          in: ["advanced", "enterprise"],
-        },
-      },
       id: {
         gt: currentProgram.id,
-        notIn: [ACME_PROGRAM_ID],
       },
+      OR: [
+        {
+          addedToMarketplaceAt: {
+            not: null,
+          },
+        },
+        {
+          partnerNetworkEnabledAt: {
+            not: null,
+          },
+        },
+      ],
     },
     ...(comparisonBatchCursor && {
       cursor: {
@@ -239,15 +245,23 @@ async function findNextProgram({
   // Otherwise, find the first/next program
   return await prisma.program.findFirst({
     where: {
-      id: {
-        ...(afterProgramId && { gt: afterProgramId }),
-        notIn: [ACME_PROGRAM_ID],
-      },
-      workspace: {
-        plan: {
-          in: ["advanced", "enterprise"],
+      ...(afterProgramId && {
+        id: {
+          gt: afterProgramId,
         },
-      },
+      }),
+      OR: [
+        {
+          addedToMarketplaceAt: {
+            not: null,
+          },
+        },
+        {
+          partnerNetworkEnabledAt: {
+            not: null,
+          },
+        },
+      ],
     },
     select: {
       id: true,

@@ -1,9 +1,9 @@
 "use client";
 
+import { CampaignType } from "@dub/prisma/client";
 import { useRouterStuff } from "@dub/ui";
 import { Users } from "@dub/ui/icons";
 import { cn, nFormatter } from "@dub/utils";
-import { CampaignType } from "@prisma/client";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useMemo } from "react";

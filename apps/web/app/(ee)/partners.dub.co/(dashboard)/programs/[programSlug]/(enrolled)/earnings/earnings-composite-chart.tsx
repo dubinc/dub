@@ -10,6 +10,7 @@ import { LinkIcon } from "@/ui/links/link-icon";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
+import { CommissionType } from "@dub/prisma/client";
 import { Filter, LoadingSpinner, ToggleGroup, useRouterStuff } from "@dub/ui";
 import { Areas, TimeSeriesChart, XAxis, YAxis } from "@dub/ui/charts";
 import { CircleDotted, Hyperlink, Sliders, User } from "@dub/ui/icons";
@@ -22,7 +23,6 @@ import {
   nFormatter,
 } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
-import { CommissionType } from "@prisma/client";
 import { endOfDay, startOfDay } from "date-fns";
 import { Fragment, useMemo, useState } from "react";
 

@@ -1,6 +1,6 @@
 import { createId } from "@/lib/api/create-id";
 import { prisma } from "@dub/prisma";
-import { CommissionStatus, CommissionType, Prisma } from "@prisma/client";
+import { CommissionStatus, CommissionType, Prisma } from "@dub/prisma/client";
 import "dotenv-flow/config";
 
 async function main() {

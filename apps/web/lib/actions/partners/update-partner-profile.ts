@@ -3,7 +3,7 @@
 import { confirmEmailChange } from "@/lib/auth/confirm-email-change";
 import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
 import { qstash } from "@/lib/cron";
-import { getDiscoverabilityRequirements } from "@/lib/partners/get-discoverability-requirements";
+import { getDiscoverabilityRequirements } from "@/lib/network/get-discoverability-requirements";
 import { storage } from "@/lib/storage";
 import { stripe } from "@/lib/stripe";
 import { partnerProfileChangeHistoryLogSchema } from "@/lib/zod/schemas/partner-profile";
@@ -12,6 +12,7 @@ import {
   PartnerProfileSchema,
 } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
+import { Partner, PartnerProfileType } from "@dub/prisma/client";
 import {
   APP_DOMAIN_WITH_NGROK,
   COUNTRIES,
@@ -19,7 +20,6 @@ import {
   nanoid,
   PARTNERS_DOMAIN,
 } from "@dub/utils";
-import { Partner, PartnerProfileType } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import z from "../../zod";
 import { uploadedImageSchema } from "../../zod/schemas/misc";

@@ -6,8 +6,8 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { enqueueBatchJobs } from "@/lib/cron/enqueue-batch-jobs";
 import { bulkBanPartnersSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
+import { ProgramEnrollmentStatus } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
-import { ProgramEnrollmentStatus } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 
@@ -105,7 +105,6 @@ export const bulkBanPartnersAction = authActionClient
             body: {
               programId,
               partnerId,
-              userId: user.id,
             },
           })),
         ),
