@@ -5,6 +5,8 @@ import { prisma } from "@dub/prisma";
 import { Grid } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { redirect } from "next/navigation";
+import { preload } from "react-dom";
+import { REWIND_ASSETS_PATH, REWIND_STEPS } from "./constants";
 import { PartnerRewind2025PageClient } from "./page-client";
 
 export default async function PartnerRewind2025Page() {
@@ -29,6 +31,11 @@ export default async function PartnerRewind2025Page() {
   });
 
   if (!partnerRewind) redirect("/");
+
+  preload(`${REWIND_ASSETS_PATH}/top-medallion.png`, { as: "image" });
+  REWIND_STEPS.forEach((step) => {
+    preload(`${REWIND_ASSETS_PATH}/${step.video}`, { as: "video" });
+  });
 
   return (
     <PageContent

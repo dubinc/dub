@@ -1,46 +1,15 @@
 import { PartnerRewindProps } from "@/lib/types";
-import { ChevronLeft, ChevronRight } from "@dub/ui";
+import { AnimatedSizeContainer, ChevronLeft, ChevronRight } from "@dub/ui";
 import { cn } from "@dub/utils/src";
+import NumberFlow from "@number-flow/react";
 import { AnimatePresence, motion } from "motion/react";
-import { useEffect, useMemo, useState } from "react";
+import { CSSProperties, useEffect, useMemo, useState } from "react";
+import { REWIND_ASSETS_PATH, REWIND_STEPS } from "./constants";
 
-const ASSETS_PATH = "https://assets.dub.co/misc/partner-rewind-2025";
-
-const STEPS = [
-  {
-    id: "totalEarnings",
-    percentileId: "earningsPercentile",
-    label: "Total earnings",
-    valueType: "currency",
-    video: "revenue.webm",
-  },
-  {
-    id: "totalClicks",
-    percentileId: "clicksPercentile",
-    label: "Total clicks",
-    valueType: "number",
-    video: "clicks.webm",
-  },
-  {
-    id: "totalLeads",
-    percentileId: "leadsPercentile",
-    label: "Total leads",
-    valueType: "number",
-    video: "leads.webm",
-  },
-  {
-    id: "totalRevenue",
-    percentileId: "revenuePercentile",
-    label: "Total revenue",
-    valueType: "currency",
-    video: "revenue.webm",
-  },
-];
-
-const STEP_DELAY_MS = 2000;
+const STEP_DELAY_MS = 8_000;
 
 const navButtonClassName =
-  "bg-bg-inverted/5 text-content-default hover:bg-bg-inverted/10 flex size-8 items-center justify-center rounded-lg transition-[background-color,transform] active:scale-95";
+  "bg-neutral-200 text-content-subtle disabled:opacity-50 hover:bg-neutral-300 ease-out flex size-8 items-center justify-center rounded-lg transition-[background-color,transform] active:scale-95";
 
 export function Rewind({
   partnerRewind,
@@ -51,7 +20,7 @@ export function Rewind({
 }) {
   const steps = useMemo(
     () =>
-      STEPS.map((step) =>
+      REWIND_STEPS.map((step) =>
         partnerRewind[step.id]
           ? {
               ...step,
@@ -82,7 +51,7 @@ export function Rewind({
   }, [steps, currentStepIndex, isPaused]);
 
   return (
-    <div className="flex w-full flex-col items-center gap-6">
+    <div className="flex w-full flex-col items-center">
       <div className="flex items-center gap-0.5">
         {steps.map((step, index) => (
           <button
@@ -117,18 +86,24 @@ export function Rewind({
         ))}
       </div>
 
-      <AnimatePresence mode="popLayout">
-        <motion.div
-          key={currentStepIndex}
-          initial={{ opacity: 0, scale: 0.9, filter: "blur(10px)" }}
-          animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
-          exit={{ opacity: 0, scale: 0.9, filter: "blur(10px)" }}
-          transition={{ duration: 0.5 }}
-          className="flex w-full flex-col items-center"
-        >
-          <StepSlide title={steps[currentStepIndex].label} />
-        </motion.div>
-      </AnimatePresence>
+      <AnimatedSizeContainer
+        height
+        transition={{ duration: 0.3, ease: "easeOut" }}
+        className="!w-full"
+      >
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentStepIndex}
+            initial={{ opacity: 0, scale: 0.9, y: 20, filter: "blur(10px)" }}
+            animate={{ opacity: 1, scale: 1, y: 0, filter: "blur(0px)" }}
+            exit={{ opacity: 0, scale: 0.9, y: 20, filter: "blur(10px)" }}
+            transition={{ duration: 0.3 }}
+            className="flex w-full flex-col items-center py-6"
+          >
+            <StepSlide {...steps[currentStepIndex]} />
+          </motion.div>
+        </AnimatePresence>
+      </AnimatedSizeContainer>
 
       <div className="flex items-center gap-2">
         <button
@@ -140,7 +115,7 @@ export function Rewind({
           disabled={currentStepIndex <= 0}
           className={navButtonClassName}
         >
-          <ChevronLeft className="size-3" />
+          <ChevronLeft className="size-3 [&_*]:stroke-2" />
         </button>
         <button
           type="button"
@@ -151,7 +126,7 @@ export function Rewind({
           disabled={currentStepIndex >= steps.length - 1}
           className={navButtonClassName}
         >
-          <ChevronRight className="size-3" />
+          <ChevronRight className="size-3 [&_*]:stroke-2" />
         </button>
       </div>
     </div>
@@ -159,17 +134,92 @@ export function Rewind({
 }
 
 function StepSlide({
-  title,
-  onPrevious,
-  onNext,
+  label,
+  value: rawValue,
+  valueType,
+  percentile,
+  video,
 }: {
-  title: string;
-  onPrevious?: () => void;
-  onNext?: () => void;
+  label: string;
+  value: number;
+  valueType: "number" | "currency";
+  percentile: number;
+  video: string;
 }) {
+  const value =
+    valueType === "currency"
+      ? Math.floor(rawValue / 100)
+      : Math.floor(rawValue);
+
+  const [animatedValue, setAnimatedValue] = useState<number>(0);
+  useEffect(() => setAnimatedValue(value), [value]);
+
+  const isTop10 = percentile >= 90;
+
   return (
-    <div className="bg-bg-default border-border-subtle flex w-full max-w-screen-sm flex-col rounded-2xl border p-10">
-      <div>{title}</div>
+    <div className="bg-bg-default border-border-subtle flex w-full max-w-screen-sm flex-col rounded-2xl border p-10 drop-shadow-sm">
+      <div className="flex grow flex-col">
+        <span className="text-content-emphasis text-lg font-semibold">
+          {label}
+        </span>
+
+        <div className="pt-2">
+          <NumberFlow
+            value={animatedValue}
+            className="text-content-emphasis my-[-0.1em] text-8xl font-bold"
+            style={{ "--number-flow-mask-height": "0.1em" } as CSSProperties}
+            trend={1}
+            format={{
+              ...(valueType === "currency" && {
+                style: "currency",
+                currency: "USD",
+                // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
+                trailingZeroDisplay: "stripIfInteger",
+              }),
+              ...(animatedValue > 9999999 && {
+                notation: "compact",
+              }),
+            }}
+            continuous
+          />
+        </div>
+
+        <div
+          className={cn(
+            "mt-5 flex items-center gap-2.5",
+            isTop10
+              ? "animate-slide-up-fade [--offset:10px] [animation-delay:0.2s] [animation-duration:1.5s] [animation-fill-mode:both]"
+              : "opacity-0",
+          )}
+          inert={!isTop10}
+        >
+          <img
+            src={`${REWIND_ASSETS_PATH}/top-medallion.png`}
+            alt=""
+            className="size-6 drop-shadow-sm"
+          />
+          <span className="text-content-emphasis text-base font-semibold">
+            Top 10% of all partners
+          </span>
+        </div>
+      </div>
+
+      <div className="flex items-end justify-between">
+        <span className="text-content-emphasis font-display max-w-[140px] text-2xl font-bold">
+          Dub Partner Rewind &rsquo;25
+        </span>
+
+        <div className="-mb-6 -mr-8 -mt-16 h-[340px] grow">
+          <video
+            src={`${REWIND_ASSETS_PATH}/${video}`}
+            autoPlay
+            playsInline
+            muted
+            loop
+            className="size-full object-contain object-right"
+          />
+        </div>
+      </div>
     </div>
   );
 }
