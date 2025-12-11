@@ -1,5 +1,6 @@
 "use client";
 
+import { partnerCanViewMarketplace } from "@/lib/network/get-discoverability-requirements";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
 import { ProgramProps } from "@/lib/types";
@@ -9,7 +10,7 @@ import {
   Popover,
   ScrollContainer,
 } from "@dub/ui";
-import { Check2, GridIcon, Magnifier } from "@dub/ui/icons";
+import { Check2, GridIcon, Magnifier, Shop } from "@dub/ui/icons";
 import { cn, OG_AVATAR_URL } from "@dub/utils";
 import { Command } from "cmdk";
 import { ChevronsUpDown } from "lucide-react";
@@ -42,6 +43,10 @@ export function PartnerProgramDropdown() {
         }
       : undefined;
   }, [programSlug, programEnrollments]);
+
+  const canViewMarketplace =
+    programEnrollments &&
+    partnerCanViewMarketplace({ partner, programEnrollments });
 
   const [openPopover, setOpenPopover] = useState(false);
 
@@ -86,6 +91,21 @@ export function PartnerProgramDropdown() {
                     All programs
                   </span>
                 </Link>
+                {canViewMarketplace && (
+                  <Link
+                    href="/programs/marketplace"
+                    className={cn(
+                      "flex items-center gap-x-2.5 rounded-md px-2.5 py-2 text-sm transition-all duration-75 hover:bg-neutral-200/50 active:bg-neutral-200/80",
+                      "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
+                    )}
+                    onClick={() => setOpenPopover(false)}
+                  >
+                    <Shop className="size-4 text-neutral-500" />
+                    <span className="text-content-default block truncate">
+                      Marketplace
+                    </span>
+                  </Link>
+                )}
               </div>
             </div>
           </div>
