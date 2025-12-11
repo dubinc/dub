@@ -1,52 +1,47 @@
-// @ts-nocheck some weird typing issues below
-
 import { createId } from "@/lib/api/create-id";
 import { generateRandomName } from "@/lib/names";
 import { prisma } from "@dub/prisma";
-import { nanoid } from "@dub/utils";
+import { Prisma } from "@dub/prisma/client";
+import { chunk, nanoid, prettyPrint } from "@dub/utils";
 import "dotenv-flow/config";
 import * as fs from "fs";
 import * as Papa from "papaparse";
+import { syncPartnerLinksStats } from "../../lib/api/partners/sync-partner-links-stats";
 import { recordLeadWithTimestamp } from "../../lib/tinybird/record-lead";
 
-let leadsToBackfill: {
+const programId = "prog_xxx";
+type CustomerData = {
   customerExternalId: string;
   partnerLinkKey: string;
-  stripeCustomerId: string | null;
+  stripeCustomerId?: string;
   timestamp: string;
-}[] = [];
+};
+const leadsToBackfill: CustomerData[] = [];
 
 // script to backfill customers + leads
 // we also use a batching logic for tinybird events ingestion
 async function main() {
-  Papa.parse(fs.createReadStream("fillout-customers-updated.csv", "utf-8"), {
+  Papa.parse(fs.createReadStream("customers.csv", "utf-8"), {
     header: true,
     skipEmptyLines: true,
-    step: (result: {
-      data: {
-        userId: string;
-        referral: string;
-        stripeCustomerId: string;
-        createdAt: string;
-      };
-    }) => {
-      leadsToBackfill.push({
-        customerExternalId: result.data.userId,
-        partnerLinkKey: result.data.referral,
-        stripeCustomerId: result.data.stripeCustomerId || null,
-        timestamp: result.data.createdAt,
-      });
+    step: (result: { data: CustomerData }) => {
+      leadsToBackfill.push(result.data);
     },
     complete: async () => {
-      const workspace = await prisma.project.findUniqueOrThrow({
+      console.table(leadsToBackfill);
+      const program = await prisma.program.findUniqueOrThrow({
         where: {
-          id: "xxx",
+          id: programId,
+        },
+        include: {
+          workspace: true,
         },
       });
+      const { workspace } = program;
 
       const partnerLinks = await prisma.link.findMany({
         where: {
-          domain: "try.fillout.com",
+          domain: program.domain!,
           key: {
             in: leadsToBackfill.map((lead) => lead.partnerLinkKey),
           },
@@ -108,7 +103,7 @@ async function main() {
             trigger: "link",
           };
         })
-        .filter((c) => c !== null);
+        .filter((p): p is NonNullable<typeof p> => p !== null);
 
       // clickhouse only supports max 12 partitions (months) for a given event backfill
       // so we need to transform this into a list of lists, one for each year
@@ -164,7 +159,9 @@ async function main() {
             createdAt: new Date(lead.timestamp).toISOString(),
           };
         })
-        .filter((c) => c !== null);
+        .filter(
+          (p): p is NonNullable<typeof p> => p !== null,
+        ) satisfies Prisma.CustomerCreateManyInput[];
 
       console.table(customersToCreate.slice(0, 10));
 
@@ -172,7 +169,7 @@ async function main() {
         data: customersToCreate,
         skipDuplicates: true,
       });
-      console.log("backfilled customers", JSON.stringify(customerRes, null, 2));
+      console.log("backfilled customers", prettyPrint(customerRes));
 
       const leadsToCreate = clicksToCreate.map((clickData, idx) => ({
         ...clickData,
@@ -198,7 +195,7 @@ async function main() {
         const leadsBatch = leads as typeof leadsToCreate;
         console.log(`backfilling ${leadsBatch.length} leads for ${year}`);
         const leadRes = await recordLeadWithTimestamp(leadsBatch);
-        console.log("backfilled leads", JSON.stringify(leadRes, null, 2));
+        console.log("backfilled leads", prettyPrint(leadRes));
       });
 
       const statsByLink = finalLeadsToBackfill
@@ -236,25 +233,38 @@ async function main() {
           >,
         );
 
-      console.log(
-        JSON.stringify(Object.entries(statsByLink).slice(0, 10), null, 2),
-      );
+      console.log(prettyPrint(Object.entries(statsByLink).slice(0, 10)));
 
-      for (const [linkId, stats] of Object.entries(statsByLink)) {
-        const res = await prisma.link.update({
-          where: { id: linkId },
-          data: {
-            clicks: {
-              increment: stats.clicks,
-            },
-            leads: {
-              increment: stats.leads,
-            },
-            lastLeadAt: stats.lastLeadAt,
-          },
-        });
+      const statsByLinkChunks = chunk(Object.entries(statsByLink), 50);
+      for (let i = 0; i < statsByLinkChunks.length; i++) {
+        const chunk = statsByLinkChunks[i];
         console.log(
-          `Updated ${linkId} to ${res.clicks} clicks (+${stats.clicks} clicks), ${res.leads} leads (+${stats.leads} leads)`,
+          `backfilling stats for ${chunk.length} links in batch ${i + 1} of ${statsByLinkChunks.length}`,
+        );
+        await Promise.all(
+          chunk.map(async ([linkId, stats]) => {
+            const res = await prisma.link.update({
+              where: { id: linkId },
+              data: {
+                clicks: {
+                  increment: stats.clicks,
+                },
+                leads: {
+                  increment: stats.leads,
+                },
+                lastLeadAt: stats.lastLeadAt,
+              },
+            });
+            console.log(
+              `Updated ${linkId} to ${res.clicks} clicks (+${stats.clicks} clicks), ${res.leads} leads (+${stats.leads} leads)`,
+            );
+            const syncRes = await syncPartnerLinksStats({
+              partnerId: res.partnerId!,
+              programId: program.id,
+              eventType: "lead",
+            });
+            console.log("synced stats", prettyPrint(syncRes));
+          }),
         );
       }
     },

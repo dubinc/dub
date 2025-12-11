@@ -5,50 +5,52 @@ import * as Papa from "papaparse";
 import { createAndEnrollPartner } from "../../lib/api/partners/create-and-enroll-partner";
 
 const programId = "prog_xxx";
-const userId = "xxx";
+const userId = "user_xxx";
 const groupId = "grp_xxx";
-const partnersToImport: {
+type PartnerData = {
   name: string;
   email: string;
   username: string;
   tenantId: string;
   enrolledAt: Date;
-}[] = [];
+};
+const partnersToImport: PartnerData[] = [];
 
+// script to import partners into a program via CSV file
+// NOTE: Remove "server-only" and Axiom logging from handleApiError before running this script
 async function main() {
   Papa.parse(fs.createReadStream("partners.csv", "utf-8"), {
     header: true,
     skipEmptyLines: true,
-    step: (result: {
-      data: {
-        userId: string;
-        referral: string;
-        firstName: string;
-        lastName: string;
-        email: string;
-        createdAt: string;
-      };
-    }) => {
-      partnersToImport.push({
-        name: result.data.firstName + " " + result.data.lastName,
-        email: result.data.email,
-        username: result.data.referral,
-        tenantId: result.data.userId,
-        enrolledAt: new Date(result.data.createdAt),
-      });
+    step: (result: { data: PartnerData }) => {
+      partnersToImport.push(result.data);
     },
     complete: async () => {
-      console.table(partnersToImport);
+      console.log(`Found ${partnersToImport.length} partners to import`);
+
       const program = await prisma.program.findUniqueOrThrow({
         where: {
           id: programId,
         },
         include: {
           workspace: true,
+          partners: {
+            include: {
+              partner: true,
+            },
+          },
         },
       });
 
-      for (const partner of partnersToImport) {
+      const finalPartnersToImport = partnersToImport.filter(
+        (partner) =>
+          !program.partners.some((p) => p.partner.email === partner.email),
+      );
+      console.log(
+        `Found ${finalPartnersToImport.length} final partners to import`,
+      );
+
+      for (const partner of finalPartnersToImport) {
         const enrolledPartner = await createAndEnrollPartner({
           workspace: {
             id: program.workspace.id,
