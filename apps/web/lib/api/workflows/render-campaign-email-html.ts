@@ -63,7 +63,7 @@ export function renderCampaignEmailHTML({
     )
     .replace(
       /<li([^>]*)>/g,
-      '<li$1 style="margin-left: 0; padding-left: 4px; margin-top: 0px; margin-bottom: 0px; line-height:1;">',
+      '<li$1 style="margin-left: 0; padding-left: 4px; margin-top: 0px; margin-bottom: 0px;">',
     );
 
   return interpolateEmailTemplate({
