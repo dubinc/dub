@@ -43,9 +43,9 @@ model FraudEventGroup {
 
   program           Program           @relation(fields: [programId], references: [id], onDelete: Cascade)
   partner           Partner           @relation(fields: [partnerId], references: [id], onDelete: Cascade)
-  user              User?             @relation(fields: [userId], references: [id])
   programEnrollment ProgramEnrollment @relation(fields: [programId, partnerId], references: [programId, partnerId], onDelete: Cascade)
   fraudEvents       FraudEvent[]
+  user              User?             @relation(fields: [userId], references: [id])
 
   @@index([programId, partnerId, type, status])
   @@index(partnerId)
