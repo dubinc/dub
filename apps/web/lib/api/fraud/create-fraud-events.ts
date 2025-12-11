@@ -14,6 +14,7 @@ export async function createFraudEvents(fraudEvents: CreateFraudEventInput[]) {
   const startTime = performance.now();
 
   if (fraudEvents.length === 0) {
+    console.log(`[createFraudEvents] No fraud events to create`);
     return;
   }
 
@@ -52,6 +53,7 @@ export async function createFraudEvents(fraudEvents: CreateFraudEventInput[]) {
   );
 
   if (newEvents.length === 0) {
+    console.log(`[createFraudEvents] No new fraud events to create`);
     return;
   }
 
@@ -130,14 +132,9 @@ export async function createFraudEvents(fraudEvents: CreateFraudEventInput[]) {
     data: newEventsWithGroup,
   });
 
-  if (process.env.NODE_ENV === "development") {
-    if (createdEvents.count) {
-      console.info(
-        `Created ${createdEvents.count} fraud events ${prettyPrint(newEventsWithGroup)}`,
-      );
-    }
-  }
-
+  console.info(
+    `[createFraudEvents] Created ${createdEvents.count} fraud events ${prettyPrint(newEventsWithGroup)}`,
+  );
   await Promise.allSettled(
     finalGroups.map((group) =>
       prisma.fraudEventGroup.update({
@@ -158,6 +155,6 @@ export async function createFraudEvents(fraudEvents: CreateFraudEventInput[]) {
 
   const endTime = performance.now();
   console.info(
-    `createFraudEvents completed in ${(endTime - startTime).toFixed(2)}ms`,
+    `[createFraudEvents] completed in ${(endTime - startTime).toFixed(2)}ms`,
   );
 }
