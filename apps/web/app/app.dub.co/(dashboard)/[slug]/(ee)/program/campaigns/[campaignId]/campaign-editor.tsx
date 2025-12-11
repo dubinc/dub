@@ -552,8 +552,13 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
                     return null;
                   }}
                 >
-                  <div className="flex flex-col gap-4">
-                    <RichTextToolbar />
+                  <div className="relative z-0 flex flex-col gap-2">
+                    <div className="sticky -top-4 z-10 sm:-top-6">
+                      <div className="bg-white pt-2">
+                        <RichTextToolbar />
+                      </div>
+                      <div className="h-2 bg-gradient-to-b from-white" />
+                    </div>
                     <RichTextArea />
                   </div>
                 </RichTextProvider>
