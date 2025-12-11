@@ -1,49 +1,39 @@
 "use client";
 
-import { Button, Wordmark } from "@dub/ui";
-import { cn } from "@dub/utils";
-import { toast } from "sonner";
+import { AnimatePresence, motion } from "motion/react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { Conclusion } from "./conclusion";
+import { Intro } from "./intro";
+import { Rewind } from "./rewind";
 
 export function PartnerRewind2025PageClient() {
+  const router = useRouter();
+
+  const [state, setState] = useState<"intro" | "rewind" | "conclusion">(
+    "intro",
+  );
+
   return (
-    <div className="flex flex-col items-center gap-6 text-center">
-      <div
-        className={cn(
-          "flex flex-col items-center gap-2",
-          "animate-partner-rewind-intro",
-        )}
+    <AnimatePresence initial={false} mode="popLayout">
+      <motion.div
+        key={state}
+        initial={{ opacity: 0, scale: 0.9, filter: "blur(10px)" }}
+        animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+        exit={{ opacity: 0, scale: 0.9, filter: "blur(10px)" }}
+        transition={{ duration: 0.5 }}
       >
-        <Wordmark
-          className={cn(
-            "h-12",
-            "animate-slide-up-fade [--offset:10px] [animation-duration:1.5s]",
-          )}
-        />
-        <h2
-          className={cn(
-            "text-content-emphasis text-2xl font-bold",
-            "animate-slide-up-fade [--offset:10px] [animation-delay:0.2s] [animation-duration:1.5s] [animation-fill-mode:both]",
-          )}
-        >
-          Partner Rewind &rsquo;25
-        </h2>
-      </div>
-      <p
-        className={cn(
-          "text-content-default max-w-[420px] text-pretty text-xl font-medium",
-          "animate-slide-up-fade [--offset:10px] [animation-delay:1.9s] [animation-duration:1s] [animation-fill-mode:both]",
+        {state === "intro" && <Intro onStart={() => setState("rewind")} />}
+        {state === "rewind" && (
+          <Rewind onComplete={() => setState("conclusion")} />
         )}
-      >
-        This was a huge year for partners. Let&rsquo;s rewind to have a look at
-        your 2025 impact.
-      </p>
-      <div className="animate-slide-up-fade [--offset:10px] [animation-delay:2s] [animation-duration:1s] [animation-fill-mode:both]">
-        <Button
-          text="Rewind the year"
-          className="h-9 w-fit rounded-lg px-4"
-          onClick={() => toast.info("WIP")}
-        />
-      </div>
-    </div>
+        {state === "conclusion" && (
+          <Conclusion
+            onRestart={() => setState("intro")}
+            onClose={() => router.push("/")}
+          />
+        )}
+      </motion.div>
+    </AnimatePresence>
   );
 }
