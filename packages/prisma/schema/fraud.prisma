@@ -65,10 +65,10 @@ model FraudEvent {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
-  fraudEventGroup FraudEventGroup? @relation(fields: [fraudEventGroupId], references: [id], onDelete: Cascade)
+  fraudEventGroup FraudEventGroup  @relation(fields: [fraudEventGroupId], references: [id], onDelete: Cascade)
+  partner         Partner          @relation(fields: [partnerId], references: [id], onDelete: Cascade)
   customer        Customer?        @relation(fields: [customerId], references: [id])
   link            Link?            @relation(fields: [linkId], references: [id])
-  partner         Partner          @relation(fields: [partnerId], references: [id])
 
   @@index([programId, partnerId, customerId])
   @@index(partnerId)
