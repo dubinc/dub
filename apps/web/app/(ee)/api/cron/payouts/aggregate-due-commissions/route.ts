@@ -36,6 +36,7 @@ async function handler(req: Request) {
 
     const partnerGroupsByHoldingPeriod = await prisma.partnerGroup.groupBy({
       by: ["holdingPeriodDays"],
+      ...(programId ? { where: { programId } } : {}),
       _count: {
         id: true,
       },
