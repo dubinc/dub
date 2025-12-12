@@ -101,6 +101,8 @@ export const createManualCommissionAction = authActionClient
         description,
       });
 
+      waitUntil(triggerAggregateDueCommissionsCronJob(programId));
+
       return;
     }
 
@@ -580,15 +582,19 @@ export const createManualCommissionAction = authActionClient
           ]);
         }
 
-        const qstashResponse = await qstash.publishJSON({
-          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/aggregate-due-commissions`,
-          body: {
-            programId,
-          },
-        });
-        console.log(
-          `Triggered aggregate due commissions cron job for program ${programId}: ${prettyPrint(qstashResponse)}`,
-        );
+        await triggerAggregateDueCommissionsCronJob(programId);
       })(),
     );
   });
+
+async function triggerAggregateDueCommissionsCronJob(programId: string) {
+  const qstashResponse = await qstash.publishJSON({
+    url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/aggregate-due-commissions`,
+    body: {
+      programId,
+    },
+  });
+  console.log(
+    `Triggered aggregate due commissions cron job for program ${programId}: ${prettyPrint(qstashResponse)}`,
+  );
+}
