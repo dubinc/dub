@@ -208,7 +208,7 @@ function StepSlide({
       </div>
 
       <div className="flex items-end justify-between">
-        <span className="text-content-emphasis font-display max-w-[140px] text-2xl font-bold">
+        <span className="text-content-emphasis font-display max-w-[180px] text-3xl font-bold leading-8">
           Dub Partner Rewind &rsquo;25
         </span>
 

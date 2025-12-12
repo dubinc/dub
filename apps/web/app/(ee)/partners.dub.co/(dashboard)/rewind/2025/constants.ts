@@ -6,6 +6,7 @@ export const REWIND_STEPS: {
   percentileId: string;
   label: string;
   valueType: "number" | "currency";
+  image: string;
   video: string;
 }[] = [
   {
@@ -13,27 +14,31 @@ export const REWIND_STEPS: {
     percentileId: "earningsPercentile",
     label: "Total earnings",
     valueType: "currency",
+    image: "earning.png",
     video: "earning.webm",
   },
   {
     id: "totalClicks",
     percentileId: "clicksPercentile",
-    label: "Total clicks",
+    label: "Links clicked",
     valueType: "number",
+    image: "click.png",
     video: "click.webm",
   },
   {
     id: "totalLeads",
     percentileId: "leadsPercentile",
-    label: "Total leads",
+    label: "Leads generated",
     valueType: "number",
+    image: "lead.png",
     video: "lead.webm",
   },
   {
     id: "totalRevenue",
     percentileId: "revenuePercentile",
-    label: "Total revenue",
+    label: "Revenue generated",
     valueType: "currency",
+    image: "revenue.png",
     video: "revenue.webm",
   },
 ];

@@ -5,7 +5,9 @@ import { NextResponse } from "next/server";
 
 // GET /api/partner-profile/rewind - get a partner rewind
 export const GET = withPartnerProfile(async ({ partner }) => {
-  const partnerRewind = await getPartnerRewind({ partnerId: partner.id });
+  const partnerRewind = await getPartnerRewind({
+    partnerId: partner.id,
+  });
 
   if (!partnerRewind)
     throw new DubApiError({
