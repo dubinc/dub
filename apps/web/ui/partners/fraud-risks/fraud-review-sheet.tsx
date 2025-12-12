@@ -24,6 +24,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Dispatch, SetStateAction } from "react";
 import { CommissionsOnHoldTable } from "./commissions-on-hold-table";
+import { FraudDisclaimerBanner } from "./fraud-disclaimer-banner";
 import { FraudEventsTableWrapper } from "./fraud-events-tables";
 
 interface FraudReviewSheetProps {
@@ -183,6 +184,8 @@ function FraudReviewSheetContent({
                 </Link>
               </div>
             </div>
+
+            <FraudDisclaimerBanner />
 
             <div className="border-border-subtle flex flex-col gap-4 rounded-xl border p-4">
               <div className="flex flex-col">

@@ -14,15 +14,6 @@ const categorizationSchema = z.object({
   reasoning: z.string(),
 });
 
-// Result interface
-interface ProgramResult {
-  programId: string;
-  programName: string;
-  categories: Category[];
-  url?: string;
-  error?: string;
-}
-
 if (!process.env.FIRECRAWL_API_KEY)
   throw new Error("FIRECRAWL_API_KEY is not set");
 
