@@ -589,8 +589,8 @@ importers:
   packages/embeds/react:
     dependencies:
       '@dub/embed-core':
-        specifier: workspace:*
-        version: link:../core
+        specifier: ^0.0.18
+        version: 0.0.18
       class-variance-authority:
         specifier: ^0.7.0
         version: 0.7.0
@@ -1623,6 +1623,9 @@ packages:
 
   '@dub/analytics@0.0.27':
     resolution: {integrity: sha512-TbLr+sKWiBsMw1GOLpduZI7skXmrLwZlEoVoHyxq66RvMk/5Fl84QoenlhjdxaX1rlHAkWCcjcbAYcCN7skoKw==}
+
+  '@dub/embed-core@0.0.18':
+    resolution: {integrity: sha512-Yj+YbOkbDdb0cM4pgdvyfBtWdgzkgORUS02mY+DrBNuIMPyF1bYg+kCkBGRtMTbSl4CAkuzLdbtYbpzIe4B0Aw==}
 
   '@emnapi/runtime@1.5.0':
     resolution: {integrity: sha512-97/BJ3iXHww3djw6hYIfErCZFee7qCtrneuLa20UXFCOTCfBM2cvQHjWJ2EG0s0MtdNwInarqCTz35i4wWXHsQ==}
@@ -15092,6 +15095,10 @@ snapshots:
   '@dub/analytics@0.0.27':
     dependencies:
       server-only: 0.0.1
+
+  '@dub/embed-core@0.0.18':
+    dependencies:
+      '@floating-ui/dom': 1.6.12
 
   '@emnapi/runtime@1.5.0':
     dependencies:
