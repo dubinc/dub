@@ -26,6 +26,9 @@ export async function POST(req: Request) {
           updatedAt: {
             lt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 30),
           },
+          commissions: {
+            none: {}, // only delete if there are no commissions
+          },
         },
       });
 
