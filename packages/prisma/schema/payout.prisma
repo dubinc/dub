@@ -45,9 +45,11 @@ model Payout {
   user              User?             @relation(fields: [userId], references: [id])
   commissions       Commission[]
 
-  @@index(programId)
+  @@index([programId, status])
   @@index(partnerId)
   @@index(invoiceId)
   @@index(status)
   @@index(userId)
+  @@index(stripePayoutId)
+  @@index(stripeTransferId)
 }
