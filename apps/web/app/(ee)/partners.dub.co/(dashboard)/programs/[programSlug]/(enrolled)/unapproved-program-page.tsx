@@ -34,7 +34,8 @@ const states: Record<
   }),
   rejected: () => ({
     title: "Application rejected",
-    description: "Your application has been rejected.",
+    description:
+      "Your application has been rejected. You can re-apply in 30 days.",
   }),
 };
 
@@ -86,7 +87,7 @@ export function UnapprovedProgramPage({
           </h2>
           <p className="text-content-subtle [&_strong]:text-content-default mt-2 max-w-sm text-balance text-sm font-medium [&_strong]:font-semibold">
             {description}{" "}
-            {["banned", "rejected"].includes(programEnrollment.status) && (
+            {programEnrollment.status === "banned" && (
               <>
                 <Link
                   href={`/messages/${programEnrollment.program.slug}`}
