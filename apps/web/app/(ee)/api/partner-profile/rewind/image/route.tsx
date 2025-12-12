@@ -120,6 +120,7 @@ const CURRENT_YEAR = 2025;
 async function getPartnerRewind(rewindId: string) {
   const rewinds = await prismaEdge.$queryRaw<
     {
+      id: string;
       totalClicks: number;
       totalLeads: number;
       totalRevenue: number;
@@ -131,6 +132,7 @@ async function getPartnerRewind(rewindId: string) {
     }[]
   >`
     SELECT
+      pr.id,
       pr.year,
       pr.totalClicks,
       pr.totalLeads,

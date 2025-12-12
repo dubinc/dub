@@ -343,6 +343,7 @@ export const PartnerWithProfileSchema =
   PartnerSchema.merge(PartnerProfileSchema);
 
 export const PartnerRewindSchema = z.object({
+  id: z.string(),
   year: z.number(),
   totalClicks: z.number().default(0),
   totalLeads: z.number().default(0),

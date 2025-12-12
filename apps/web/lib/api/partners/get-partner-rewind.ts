@@ -29,6 +29,7 @@ export async function getPartnerRewind({
     }[]
   >`
     SELECT
+      pr.id,
       pr.year,
       pr.totalClicks,
       pr.totalLeads,

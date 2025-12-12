@@ -1,15 +1,21 @@
 import { PartnerRewindProps } from "@/lib/types";
-import { AnimatedSizeContainer, ChevronLeft, ChevronRight } from "@dub/ui";
+import {
+  AnimatedSizeContainer,
+  ChevronLeft,
+  ChevronRight,
+  ReferredVia,
+} from "@dub/ui";
 import { cn } from "@dub/utils/src";
 import NumberFlow from "@number-flow/react";
 import { AnimatePresence, motion } from "motion/react";
 import { CSSProperties, useEffect, useMemo, useState } from "react";
 import { REWIND_ASSETS_PATH, REWIND_STEPS } from "./constants";
+import { useShareRewindModal } from "./share-rewind-modal";
 
 const STEP_DELAY_MS = 8_000;
 
 export const navButtonClassName =
-  "bg-neutral-200 text-content-subtle disabled:opacity-50 hover:bg-neutral-300 ease-out flex size-8 items-center justify-center rounded-lg transition-[background-color,transform] active:scale-95";
+  "bg-neutral-200 text-content-subtle disabled:opacity-50 hover:bg-neutral-300 ease-out flex size-8 items-center text-sm font-medium gap-2 justify-center rounded-lg transition-[background-color,transform] active:scale-95";
 
 export function Rewind({
   partnerRewind,
@@ -50,8 +56,14 @@ export function Rewind({
     return () => clearTimeout(timeout);
   }, [steps, currentStepIndex, isPaused]);
 
+  const { ShareRewindModal, setShowShareRewindModal } = useShareRewindModal({
+    rewindId: partnerRewind.id,
+    step: steps[currentStepIndex].id,
+  });
+
   return (
     <div className="flex w-full flex-col items-center">
+      <ShareRewindModal />
       <div className="flex items-center gap-0.5">
         {steps.map((step, index) => (
           <button
@@ -118,6 +130,17 @@ export function Rewind({
           className={navButtonClassName}
         >
           <ChevronLeft className="size-3 [&_*]:stroke-2" />
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setIsPaused(true);
+            setShowShareRewindModal(true);
+          }}
+          className={cn(navButtonClassName, "text-content-emphasis w-fit px-3")}
+        >
+          Share
+          <ReferredVia className="size-3.5" />
         </button>
         <button
           type="button"
