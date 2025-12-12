@@ -183,7 +183,7 @@ function StepSlide({
   const isTop10 = percentile >= 90;
 
   return (
-    <div className="bg-bg-default border-border-subtle flex w-full max-w-screen-sm flex-col rounded-2xl border p-10 drop-shadow-sm">
+    <div className="bg-bg-default border-border-subtle flex w-full max-w-screen-sm flex-col rounded-2xl border p-6 drop-shadow-sm sm:p-10">
       <div className="flex grow flex-col">
         <span className="text-content-emphasis text-lg font-semibold">
           {label}
@@ -192,7 +192,7 @@ function StepSlide({
         <div className="pt-2">
           <NumberFlow
             value={animatedValue}
-            className="text-content-emphasis my-[-0.1em] text-8xl font-bold"
+            className="text-content-emphasis my-[-0.1em] text-5xl font-bold sm:text-8xl"
             style={{ "--number-flow-mask-height": "0.1em" } as CSSProperties}
             trend={1}
             format={{
@@ -231,18 +231,18 @@ function StepSlide({
       </div>
 
       <div className="flex items-end justify-between">
-        <span className="text-content-emphasis font-display max-w-[180px] text-3xl font-bold leading-8">
+        <span className="text-content-emphasis font-display max-w-[180px] text-2xl font-bold leading-8 sm:text-3xl">
           Dub Partner Rewind &rsquo;25
         </span>
 
-        <div className="-mb-6 -mr-8 -mt-16 h-[340px] grow">
+        <div className="-mb-3 -mr-2 -mt-16 h-[260px] grow sm:-mb-6 sm:-mr-8 sm:h-[340px]">
           <video
             src={`${REWIND_ASSETS_PATH}/${video}`}
             autoPlay
             playsInline
             muted
             loop
-            className="size-full object-contain object-right"
+            className="size-full object-contain object-right-bottom"
           />
         </div>
       </div>
