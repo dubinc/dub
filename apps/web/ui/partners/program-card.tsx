@@ -62,13 +62,17 @@ export function ProgramCard({
           ) : statusDescription ? (
             <p>
               {` ${statusDescription} `}
-              <Link
-                href={`/messages/${program.slug}`}
-                className="text-neutral-400 underline decoration-dotted underline-offset-2 hover:text-neutral-700"
-              >
-                Reach out to the {program.name} team
-              </Link>{" "}
-              if you have any questions.
+              {status !== "rejected" && (
+                <>
+                  <Link
+                    href={`/messages/${program.slug}`}
+                    className="text-neutral-400 underline decoration-dotted underline-offset-2 hover:text-neutral-700"
+                  >
+                    Reach out to the {program.name} team
+                  </Link>{" "}
+                  if you have any questions.
+                </>
+              )}
             </p>
           ) : null}
         </div>
