@@ -10,6 +10,9 @@ import { NextRequest } from "next/server";
 
 export const runtime = "edge";
 
+const WIDTH = 1084;
+const HEIGHT = 994;
+
 export async function GET(req: NextRequest) {
   // Use only Inter-Semibold to reduce bundle size (~300KB savings)
   const [interSemibold, satoshiBold] = await Promise.all([
@@ -51,8 +54,40 @@ export async function GET(req: NextRequest) {
         tw="flex flex-col bg-neutral-50 w-full h-full items-center justify-between"
         style={{ fontFamily: "Inter Semibold" }}
       >
+        {/* @ts-ignore */}
+        <svg tw="absolute inset-0 text-black/10" width={WIDTH} height={HEIGHT}>
+          <defs>
+            <pattern
+              id="grid"
+              width={84}
+              height={84}
+              x={-46}
+              y={-4}
+              patternUnits="userSpaceOnUse"
+            >
+              <path
+                d={`M 84 0 L 0 0 0 84`}
+                fill="transparent"
+                stroke="currentColor"
+                strokeWidth={1}
+              />
+            </pattern>
+            <radialGradient id="gradient1" cx="1.1" cy="0.1" r="0.5">
+              <stop offset="0%" stopColor="#855AFC" stopOpacity={0.1} />
+              <stop offset="100%" stopColor="#855AFC" stopOpacity={0} />
+            </radialGradient>
+            <radialGradient id="gradient2" cx="-0.1" cy="0.7" r="0.5">
+              <stop offset="0%" stopColor="#FD3A4E" stopOpacity={0.05} />
+              <stop offset="100%" stopColor="#FD3A4E" stopOpacity={0} />
+            </radialGradient>
+          </defs>
+          <rect fill="url(#grid)" width={WIDTH} height={HEIGHT} />
+          <rect fill="url(#gradient1)" width={WIDTH} height={HEIGHT} />
+          <rect fill="url(#gradient2)" width={WIDTH} height={HEIGHT} />
+        </svg>
+
         <div
-          tw="bg-white border-neutral-200 flex w-full max-w-screen-sm flex-col rounded-2xl border p-10 shadow-sm mt-16"
+          tw="relative bg-white border-neutral-200 flex w-full max-w-screen-sm flex-col rounded-2xl border p-10 shadow-sm mt-16"
           style={{ transform: "scale(1.5)", transformOrigin: "top center" }}
         >
           <div tw="flex grow flex-col">
@@ -97,8 +132,8 @@ export async function GET(req: NextRequest) {
       </div>
     ),
     {
-      width: 1084,
-      height: 994,
+      width: WIDTH,
+      height: HEIGHT,
       fonts: [
         {
           name: "Inter Semibold",
