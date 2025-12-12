@@ -59,20 +59,18 @@ export function ProgramCard({
         <div className="mt-4 flex h-20 items-center justify-center text-balance rounded-md border border-neutral-200 bg-neutral-50 p-5 text-center text-sm text-neutral-500">
           {status === "pending" ? (
             `Applied ${formatDate(createdAt)}`
+          ) : status === "rejected" ? (
+            `${statusDescription} You can re-apply in 30 days.`
           ) : statusDescription ? (
             <p>
-              {` ${statusDescription} `}
-              {status !== "rejected" && (
-                <>
-                  <Link
-                    href={`/messages/${program.slug}`}
-                    className="text-neutral-400 underline decoration-dotted underline-offset-2 hover:text-neutral-700"
-                  >
-                    Reach out to the {program.name} team
-                  </Link>{" "}
-                  if you have any questions.
-                </>
-              )}
+              {statusDescription}{" "}
+              <Link
+                href={`/messages/${program.slug}`}
+                className="text-neutral-400 underline decoration-dotted underline-offset-2 hover:text-neutral-700"
+              >
+                Reach out to the {program.name} team
+              </Link>{" "}
+              if you have any questions.
             </p>
           ) : null}
         </div>
