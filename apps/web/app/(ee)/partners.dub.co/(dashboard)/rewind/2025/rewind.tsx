@@ -8,7 +8,7 @@ import { REWIND_ASSETS_PATH, REWIND_STEPS } from "./constants";
 
 const STEP_DELAY_MS = 8_000;
 
-const navButtonClassName =
+export const navButtonClassName =
   "bg-neutral-200 text-content-subtle disabled:opacity-50 hover:bg-neutral-300 ease-out flex size-8 items-center justify-center rounded-lg transition-[background-color,transform] active:scale-95";
 
 export function Rewind({
@@ -37,11 +37,11 @@ export function Rewind({
 
   useEffect(() => {
     if (currentStepIndex > steps.length - 1) {
-      setCurrentStepIndex(steps.length - 1);
+      onComplete();
       return;
     }
 
-    if (isPaused || currentStepIndex === steps.length - 1) return;
+    if (isPaused) return;
 
     const timeout = setTimeout(() => {
       setCurrentStepIndex((i) => i + 1);
@@ -92,16 +92,18 @@ export function Rewind({
         className="!w-full"
       >
         <AnimatePresence mode="wait">
-          <motion.div
-            key={currentStepIndex}
-            initial={{ opacity: 0, scale: 0.9, y: 20, filter: "blur(10px)" }}
-            animate={{ opacity: 1, scale: 1, y: 0, filter: "blur(0px)" }}
-            exit={{ opacity: 0, scale: 0.9, y: 20, filter: "blur(10px)" }}
-            transition={{ duration: 0.3 }}
-            className="flex w-full flex-col items-center py-6"
-          >
-            <StepSlide {...steps[currentStepIndex]} />
-          </motion.div>
+          {currentStepIndex < steps.length && (
+            <motion.div
+              key={currentStepIndex}
+              initial={{ opacity: 0, scale: 0.9, y: 20, filter: "blur(10px)" }}
+              animate={{ opacity: 1, scale: 1, y: 0, filter: "blur(0px)" }}
+              exit={{ opacity: 0, scale: 0.9, y: 20, filter: "blur(10px)" }}
+              transition={{ duration: 0.3 }}
+              className="flex w-full flex-col items-center py-6"
+            >
+              <StepSlide {...steps[currentStepIndex]} />
+            </motion.div>
+          )}
         </AnimatePresence>
       </AnimatedSizeContainer>
 
@@ -121,9 +123,10 @@ export function Rewind({
           type="button"
           onClick={() => {
             setIsPaused(false);
-            setCurrentStepIndex((c) => Math.min(c + 1, steps.length - 1));
+            if (currentStepIndex < steps.length - 1)
+              setCurrentStepIndex((c) => Math.min(c + 1, steps.length - 1));
+            else onComplete();
           }}
-          disabled={currentStepIndex >= steps.length - 1}
           className={navButtonClassName}
         >
           <ChevronRight className="size-3 [&_*]:stroke-2" />
