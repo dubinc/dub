@@ -7,6 +7,7 @@ import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-sta
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
+import { qstash } from "@/lib/cron";
 import {
   createPartnerCommission,
   CreatePartnerCommissionProps,
@@ -23,7 +24,7 @@ import { leadEventSchemaTB } from "@/lib/zod/schemas/leads";
 import { saleEventSchemaTB } from "@/lib/zod/schemas/sales";
 import { prisma } from "@dub/prisma";
 import { WorkflowTrigger } from "@dub/prisma/client";
-import { nanoid } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, nanoid, prettyPrint } from "@dub/utils";
 import { COUNTRIES_TO_CONTINENTS } from "@dub/utils/src";
 import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
@@ -578,6 +579,16 @@ export const createManualCommissionAction = authActionClient
             }),
           ]);
         }
+
+        const qstashResponse = await qstash.publishJSON({
+          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/aggregate-due-commissions`,
+          body: {
+            programId,
+          },
+        });
+        console.log(
+          `Triggered aggregate due commissions cron job for program ${programId}: ${prettyPrint(qstashResponse)}`,
+        );
       })(),
     );
   });
