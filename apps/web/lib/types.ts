@@ -94,6 +94,7 @@ import {
   createPartnerSchema,
   EnrolledPartnerSchema,
   EnrolledPartnerSchemaExtended,
+  PartnerRewindSchema,
   PartnerSchema,
   WebhookPartnerSchema,
 } from "./zod/schemas/partners";
@@ -454,6 +455,8 @@ export type PartnerProps = z.infer<typeof PartnerSchema> & {
   role: PartnerRole;
   userId: string;
 };
+
+export type PartnerRewindProps = z.infer<typeof PartnerRewindSchema>;
 
 export type PartnerUserProps = z.infer<typeof partnerUserSchema>;
 export type PartnerProfileCustomerProps = z.infer<

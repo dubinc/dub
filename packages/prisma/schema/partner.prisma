@@ -80,6 +80,7 @@ model Partner {
   discoveredByPrograms       DiscoveredPartner[]
   fraudEventGroups           FraudEventGroup[]
   fraudEvents                FraudEvent[]
+  partnerRewinds             PartnerRewind[]
 
   @@index(country)
   @@index(discoverableAt)

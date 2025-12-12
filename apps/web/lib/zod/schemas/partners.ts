@@ -342,6 +342,19 @@ export const PartnerSchema = z
 export const PartnerWithProfileSchema =
   PartnerSchema.merge(PartnerProfileSchema);
 
+export const PartnerRewindSchema = z.object({
+  id: z.string(),
+  year: z.number(),
+  totalClicks: z.number().default(0),
+  totalLeads: z.number().default(0),
+  totalRevenue: z.number().default(0),
+  totalEarnings: z.number().default(0),
+  clicksPercentile: z.number().default(0),
+  leadsPercentile: z.number().default(0),
+  revenuePercentile: z.number().default(0),
+  earningsPercentile: z.number().default(0),
+});
+
 // Used externally by GET+POST /api/partners and partner.enrolled webhook
 export const EnrolledPartnerSchema = PartnerSchema.pick({
   id: true,
