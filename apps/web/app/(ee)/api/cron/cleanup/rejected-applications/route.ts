@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 // This route is used to remove rejected programEnrollments from the database after 30 days so partners can re-apply
 // Runs once every day at 02:00:00 AM UTC (0 2 * * *)
-// GET /api/cron/cleanup/rejected-applications
+// POST /api/cron/cleanup/rejected-applications
 export async function POST(req: Request) {
   try {
     const rawBody = await req.text();
@@ -23,7 +23,7 @@ export async function POST(req: Request) {
       await prisma.programEnrollment.deleteMany({
         where: {
           status: "rejected",
-          createdAt: {
+          updatedAt: {
             lt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 30),
           },
         },
