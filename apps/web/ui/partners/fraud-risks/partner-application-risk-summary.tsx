@@ -83,7 +83,9 @@ export function PartnerApplicationRiskSummary({
             );
           })}
         </ul>
-        <FraudDisclaimerBanner className="gap-2 px-3 py-2" />
+        {severity === "high" && (
+          <FraudDisclaimerBanner className="gap-2 px-3 py-2" />
+        )}
       </div>
 
       <PartnerApplicationRiskSummaryModal />
