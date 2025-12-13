@@ -47,10 +47,6 @@
     {
       "path": "/api/cron/payouts/reminders/program-owners",
       "schedule": "0 13 25-31,1-5 * *"
-    },
-    {
-      "path": "/api/cron/calculate-program-similarities",
-      "schedule": "0 */12 * * *"
     }
   ],
   "functions": {
