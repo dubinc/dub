@@ -2,7 +2,10 @@ import { DATE_RANGE_INTERVAL_PRESETS } from "@/lib/analytics/constants";
 import { CommissionStatus, CommissionType } from "@dub/prisma/client";
 import { z } from "zod";
 import { CustomerSchema } from "./customers";
-import { getPaginationQuerySchema } from "./misc";
+import {
+  getCursorPaginationQuerySchema,
+  getPaginationQuerySchema,
+} from "./misc";
 import { EnrolledPartnerSchema, WebhookPartnerSchema } from "./partners";
 import { parseDateSchema } from "./utils";
 
@@ -115,7 +118,15 @@ export const getCommissionsQuerySchema = z
       .describe("The end date of the date range to filter the commissions by."),
     timezone: z.string().optional(),
   })
-  .merge(getPaginationQuerySchema({ pageSize: COMMISSIONS_MAX_PAGE_SIZE }));
+  .merge(
+    getCursorPaginationQuerySchema({ example: "cm_1KAP4CGN2Z5TPYYQ1W4JEYD56" }),
+  )
+  .merge(
+    getPaginationQuerySchema({
+      pageSize: COMMISSIONS_MAX_PAGE_SIZE,
+      deprecated: true,
+    }),
+  );
 
 export const getCommissionsCountQuerySchema = getCommissionsQuerySchema.omit({
   page: true,
