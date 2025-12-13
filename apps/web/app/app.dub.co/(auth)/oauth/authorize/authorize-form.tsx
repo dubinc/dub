@@ -10,10 +10,6 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 
-interface AuthorizeFormProps extends z.infer<typeof authorizeRequestSchema> {
-  //
-}
-
 export const AuthorizeForm = ({
   client_id,
   redirect_uri,
@@ -22,7 +18,7 @@ export const AuthorizeForm = ({
   scope,
   code_challenge,
   code_challenge_method,
-}: AuthorizeFormProps) => {
+}: z.infer<typeof authorizeRequestSchema>) => {
   const { data: session } = useSession();
   const { workspaces } = useWorkspaces();
   const [submitting, setSubmitting] = useState(false);

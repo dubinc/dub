@@ -1,4 +1,4 @@
-import { vaidateAuthorizeRequest } from "@/lib/api/oauth/actions";
+import { validateAuthorizeRequest } from "@/lib/api/oauth/actions";
 import { getSession } from "@/lib/auth";
 import { authorizeRequestSchema } from "@/lib/zod/schemas/oauth";
 import EmptyState from "@/ui/shared/empty-state";
@@ -29,7 +29,7 @@ export default async function Authorize(props: {
   }
 
   const { error, integration, requestParams } =
-    await vaidateAuthorizeRequest(searchParams);
+    await validateAuthorizeRequest(searchParams);
 
   if (error || !integration) {
     return (
