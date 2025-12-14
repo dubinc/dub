@@ -2,12 +2,11 @@ import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { PROGRAM_SIMILARITY_SCORE_THRESHOLD } from "@/lib/constants/program";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
-import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { prisma } from "@dub/prisma";
 import { ProgramSimilarity } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { z } from "zod";
-import { logAndRespond } from "../utils";
+import { logAndRespond } from "../../utils";
 import { calculateCategorySimilarity } from "./calculate-category-similarity";
 import { calculatePartnerSimilarity } from "./calculate-partner-similarity";
 import { calculatePerformanceSimilarity } from "./calculate-performance-similarity";
@@ -25,18 +24,9 @@ const payloadSchema = z.object({
 
 const PROGRAMS_PER_BATCH = 10;
 
-// GET /api/cron/calculate-program-similarities - Initial cron request from Vercel
-export async function GET(req: Request) {
-  try {
-    await verifyVercelSignature(req);
-
-    return await calculateProgramSimilarity();
-  } catch (err) {
-    return handleAndReturnErrorResponse(err);
-  }
-}
-
-// POST /api/cron/calculate-program-similarities - Subsequent cron request from QStash
+// This route is used to calculate program similarities in the network
+// Runs once every 12 hours (0 */12 * * *)
+// POST /api/cron/network/calculate-program-similarities
 export async function POST(req: Request) {
   try {
     const rawBody = await req.text();
@@ -62,7 +52,7 @@ export async function POST(req: Request) {
 async function calculateProgramSimilarity({
   currentProgramId,
   comparisonBatchCursor,
-}: z.infer<typeof payloadSchema> = {}) {
+}: z.infer<typeof payloadSchema>) {
   const currentProgram = await findNextProgram({
     programId: currentProgramId,
   });

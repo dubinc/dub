@@ -177,7 +177,10 @@ export function AnalyticsAreaChart({
             showGridLines
             tickFormat={
               resource === "sales" && saleUnit === "saleAmount"
-                ? (v) => `$${nFormatter(v)}`
+                ? (v) =>
+                    currencyFormatter(v, {
+                      trailingZeroDisplay: "stripIfInteger",
+                    })
                 : nFormatter
             }
           />

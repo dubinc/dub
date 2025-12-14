@@ -13,16 +13,25 @@ import { Prisma, User } from "@dub/prisma/client";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 const MAX_WORKSPACE_TOKENS = 100;
 
+const getTokensQuerySchema = z.object({
+  userId: z.string().optional(),
+});
 // GET /api/tokens - get all tokens for a workspace
 export const GET = withWorkspace(
-  async ({ workspace }) => {
+  async ({ workspace, searchParams }) => {
+    const { userId } = getTokensQuerySchema.parse(searchParams);
+
     const tokens = await prisma.restrictedToken.findMany({
       where: {
         projectId: workspace.id,
         installationId: null,
+        ...(userId && {
+          userId,
+        }),
       },
       select: {
         id: true,

@@ -386,7 +386,6 @@ function RowMenuButton({
         hasPassword: false,
         provider: null,
       },
-      invite: isInvite,
     });
 
   const isCurrentUser = session?.user?.email === user.email;

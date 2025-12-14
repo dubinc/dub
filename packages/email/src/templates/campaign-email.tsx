@@ -76,7 +76,7 @@ export default function CampaignEmail({
 
             <Section>
               <div
-                style={{ fontSize: "14px" }}
+                style={{ fontSize: "14px", lineHeight: 1.7142857 }}
                 dangerouslySetInnerHTML={{ __html: styledHtml }}
               />
             </Section>
