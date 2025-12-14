@@ -8,7 +8,10 @@ import { ReferralsEmbedLink } from "./types";
 interface Props {
   links: ReferralsEmbedLink[];
   program: Pick<Program, "domain" | "url" | "name">;
-  group: Pick<PartnerGroupProps, "id" | "additionalLinks" | "maxPartnerLinks">;
+  group: Pick<
+    PartnerGroupProps,
+    "id" | "additionalLinks" | "maxPartnerLinks" | "linkStructure"
+  >;
 }
 
 export function ReferralsEmbedLinks({ links, program, group }: Props) {
