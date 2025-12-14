@@ -3,6 +3,7 @@ import { paypalOAuthProvider } from "@/lib/paypal/oauth";
 import { sendEmail } from "@dub/email";
 import ConnectedPaypalAccount from "@dub/email/templates/connected-paypal-account";
 import { prisma } from "@dub/prisma";
+import { Prisma } from "@dub/prisma/client";
 import { PARTNERS_DOMAIN } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { redirect } from "next/navigation";
@@ -93,13 +94,14 @@ export const GET = async (req: Request) => {
   } catch (e) {
     console.error(e);
 
-    if (e instanceof Error) {
-      if (e.message === "P2002") {
-        throw new Error("paypal_account_already_in_use");
-      } else {
-        error = e.message;
-      }
+    if (
+      e instanceof Prisma.PrismaClientKnownRequestError &&
+      e.code === "P2002"
+    ) {
+      throw new Error("paypal_account_already_in_use");
     }
+
+    error = e.message;
   }
 
   redirect(`/payouts${error ? `?error=${encodeURIComponent(error)}` : ""}`);
