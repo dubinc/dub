@@ -586,6 +586,24 @@ const partnerImageSchema = z
     message: "Image is required",
   });
 
+// Optional image schema for onboarding (image is not required)
+const optionalPartnerImageSchema = z
+  .union([
+    base64ImageSchema,
+    storedR2ImageUrlSchema,
+    publicHostedImageSchema,
+    z
+      .string()
+      .url()
+      .trim()
+      .refine((url) => url.startsWith(GOOGLE_FAVICON_URL), {
+        message: `Image URL must start with ${GOOGLE_FAVICON_URL}`,
+      }),
+    z.literal(""),
+  ])
+  .optional()
+  .transform((v) => v || undefined);
+
 export const onboardPartnerSchema = createPartnerSchema
   .omit({
     username: true,
@@ -595,7 +613,7 @@ export const onboardPartnerSchema = createPartnerSchema
   .merge(
     z.object({
       name: z.string().min(1, "Name is required"),
-      image: partnerImageSchema,
+      image: optionalPartnerImageSchema,
       country: z.enum(COUNTRY_CODES),
       profileType: z.nativeEnum(PartnerProfileType).default("individual"),
       companyName: z.string().nullish(),
