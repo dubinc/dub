@@ -1,7 +1,10 @@
 import { getSession } from "@/lib/auth";
 import { paypalOAuthProvider } from "@/lib/paypal/oauth";
+import { sendEmail } from "@dub/email";
+import ConnectedPaypalAccount from "@dub/email/templates/connected-paypal-account";
 import { prisma } from "@dub/prisma";
 import { PARTNERS_DOMAIN } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { redirect } from "next/navigation";
 
 // GET /api/paypal/callback - callback from PayPal
@@ -61,7 +64,7 @@ export const GET = async (req: Request) => {
       },
     });
 
-    await prisma.partner.update({
+    const updatedPartner = await prisma.partner.update({
       where: {
         id: defaultPartnerId,
       },
@@ -73,13 +76,29 @@ export const GET = async (req: Request) => {
       },
     });
 
-    // TODO:
     // Send an email to the partner to inform them that their PayPal account has been connected
+    if (updatedPartner.email && updatedPartner.paypalEmail) {
+      waitUntil(
+        sendEmail({
+          variant: "notifications",
+          subject: "Successfully connected PayPal account",
+          to: updatedPartner.email,
+          react: ConnectedPaypalAccount({
+            email: updatedPartner.email,
+            paypalEmail: updatedPartner.paypalEmail,
+          }),
+        }),
+      );
+    }
   } catch (e) {
     console.error(e);
 
     if (e instanceof Error) {
-      error = e.message;
+      if (e.message === "P2002") {
+        throw new Error("paypal_account_already_in_use");
+      } else {
+        error = e.message;
+      }
     }
   }
 
