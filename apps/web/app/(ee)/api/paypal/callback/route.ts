@@ -99,9 +99,9 @@ export const GET = async (req: Request) => {
       e.code === "P2002"
     ) {
       error = "paypal_account_already_in_use";
+    } else {
+      error = e.message;
     }
-
-    error = e.message;
   }
 
   redirect(`/payouts${error ? `?error=${encodeURIComponent(error)}` : ""}`);
