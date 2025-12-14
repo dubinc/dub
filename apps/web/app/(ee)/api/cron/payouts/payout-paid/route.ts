@@ -47,10 +47,10 @@ export async function POST(req: Request) {
       where: {
         status: "sent",
         stripePayoutId: stripePayout.id,
-        stripePayoutTraceId: stripePayout.traceId,
       },
       data: {
         status: "completed",
+        stripePayoutTraceId: stripePayout.traceId,
       },
     });
 
