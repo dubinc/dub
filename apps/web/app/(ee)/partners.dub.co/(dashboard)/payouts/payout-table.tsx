@@ -282,9 +282,10 @@ function AmountRowItem({ payout }: { payout: PartnerPayoutResponse }) {
   ) {
     return (
       <Tooltip
-        content={`This program's minimum payout amount is ${currencyFormatter(
+        content={`This program's [minimum payout amount](https://dub.co/help/article/commissions-payouts#what-does-minimum-payout-amount-mean) is ${currencyFormatter(
           payout.program.minPayoutAmount,
-        )}. This payout will be accrued and processed during the next payout period. [Learn more.](https://dub.co/help/article/receiving-payouts)`}
+          { trailingZeroDisplay: "stripIfInteger" },
+        )}. This payout will be accrued and processed during the next payout period.`}
       >
         <span className="cursor-help truncate text-neutral-400 underline decoration-dotted underline-offset-2">
           {display}
