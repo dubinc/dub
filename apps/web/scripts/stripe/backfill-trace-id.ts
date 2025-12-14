@@ -33,6 +33,12 @@ async function main() {
         console.log(
           `${payout.id} - ${status} - ${JSON.stringify(trace_id, null, 2)}`,
         );
+        if (trace_id?.value) {
+          await prisma.payout.update({
+            where: { id: payout.id },
+            data: { stripePayoutTraceId: trace_id.value },
+          });
+        }
       } catch (error) {
         console.error(error.message);
       }
