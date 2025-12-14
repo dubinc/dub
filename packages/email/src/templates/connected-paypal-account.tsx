@@ -48,7 +48,7 @@ export default function ConnectedPaypalAccount({
               <Row className="mb-4">
                 <Column align="left">
                   <Img
-                    src="https://assets.dub.co/misc/paypal-wordmark.svg"
+                    src="https://assets.dub.co/misc/paypal-wordmark.png"
                     width="120"
                     height="30"
                     alt="PayPal"
