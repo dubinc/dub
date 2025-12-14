@@ -98,7 +98,7 @@ export const GET = async (req: Request) => {
       e instanceof Prisma.PrismaClientKnownRequestError &&
       e.code === "P2002"
     ) {
-      throw new Error("paypal_account_already_in_use");
+      error = "paypal_account_already_in_use";
     }
 
     error = e.message;
