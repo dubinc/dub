@@ -2,8 +2,8 @@
 
 import { deleteProgramInviteAction } from "@/lib/actions/partners/delete-program-invite";
 import { resendProgramInviteAction } from "@/lib/actions/partners/resend-program-invite";
-import usePartner from "@/lib/swr/use-partner";
 import { mutatePrefix } from "@/lib/swr/mutate";
+import usePartner from "@/lib/swr/use-partner";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
 import { PageContent } from "@/ui/layout/page-content";
@@ -34,6 +34,7 @@ import {
   Users,
 } from "@dub/ui/icons";
 import { LockOpen } from "lucide-react";
+import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import {
   redirect,
@@ -42,7 +43,6 @@ import {
   useRouter,
   useSearchParams,
 } from "next/navigation";
-import { useAction } from "next-safe-action/hooks";
 import { ReactNode, useState } from "react";
 import { toast } from "sonner";
 import { useCreateClawbackSheet } from "../../commissions/create-clawback-sheet";
@@ -123,6 +123,7 @@ export default function ProgramPartnerLayout({
 
 function PageControls({ partner }: { partner: EnrolledPartnerProps }) {
   const { slug: workspaceSlug, id: workspaceId } = useWorkspace();
+  const router = useRouter();
 
   const { createCommissionSheet, setIsOpen: setCreateCommissionSheetOpen } =
     useCreateCommissionSheet({
@@ -154,6 +155,7 @@ function PageControls({ partner }: { partner: EnrolledPartnerProps }) {
         await mutatePrefix("/api/partners");
         setIsOpen(false);
         toast.success("Deleted the partner invite.");
+        router.push(`/${workspaceSlug}/program/partners?status=invited`);
       },
       onError: ({ error }) => {
         toast.error(error.serverError);
