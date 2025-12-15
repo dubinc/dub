@@ -3,12 +3,13 @@ import { bulkDeletePartners } from "@/lib/api/partners/bulk-delete-partners";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { prisma } from "@dub/prisma";
 import { ACME_PROGRAM_ID, log } from "@dub/utils";
+import { subHours } from "date-fns";
 import { logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";
 
 // This route is used to remove partners from the demo embed (acme.dub.sh)
-// Runs every day at 10AM UTC (0 10 * * *)
+// Runs every hour (0 * * * *)
 export async function POST(req: Request) {
   try {
     const rawBody = await req.text();
@@ -18,13 +19,11 @@ export async function POST(req: Request) {
       rawBody,
     });
 
-    const oneDayAgo = new Date(Date.now() - 1000 * 60 * 60 * 24);
-
     const programEnrollmentsToDelete = await prisma.programEnrollment.findMany({
       where: {
         programId: ACME_PROGRAM_ID,
         createdAt: {
-          lt: oneDayAgo,
+          lt: subHours(new Date(), 1), // 1 hour ago
         },
         NOT: [
           {
