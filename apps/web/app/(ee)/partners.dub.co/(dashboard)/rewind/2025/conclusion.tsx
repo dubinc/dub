@@ -1,5 +1,7 @@
+import { usePartnerRewindStatus } from "@/ui/partners/rewind/use-partner-rewind-status";
 import { Button, ChevronLeft, Wordmark } from "@dub/ui";
 import { cn } from "@dub/utils";
+import { useEffect } from "react";
 import { navButtonClassName } from "./rewind";
 
 export function Conclusion({
@@ -9,6 +11,13 @@ export function Conclusion({
   onRestart: () => void;
   onClose: () => void;
 }) {
+  const { status, setStatus } = usePartnerRewindStatus();
+
+  // Set status to card (shows in sidebar) after the user has finished the rewind
+  useEffect(() => {
+    if (status !== "card") setStatus("card");
+  }, [status]);
+
   return (
     <div className="flex flex-col items-center gap-6 text-center">
       <div className={cn("flex flex-col items-center gap-2")}>
