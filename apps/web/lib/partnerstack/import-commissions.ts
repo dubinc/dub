@@ -70,7 +70,10 @@ export async function importCommissions(payload: PartnerStackImportPayload) {
             email: {
               in: commissions
                 .map((commission) => commission.customer?.email)
-                .filter((email): email is string => email !== null),
+                .filter(
+                  (email): email is string =>
+                    email !== null && email !== undefined,
+                ),
             },
           },
           {
@@ -78,7 +81,8 @@ export async function importCommissions(payload: PartnerStackImportPayload) {
               in: commissions
                 .map((commission) => commission.customer?.external_key)
                 .filter(
-                  (externalKey): externalKey is string => externalKey !== null,
+                  (externalKey): externalKey is string =>
+                    externalKey !== null && externalKey !== undefined,
                 ),
             },
           },

@@ -42,6 +42,8 @@ export const partnerStackPartner = z.object({
   stats: z.object({
     CUSTOMER_COUNT: z
       .number()
+      .optional()
+      .default(0)
       .describe("Only import if CUSTOMER_COUNT is greater than 0."),
   }),
   group: z
@@ -59,7 +61,7 @@ export const partnerStackLink = z.object({
 
 export const partnerStackCustomer = z.object({
   key: z.string(),
-  name: z.string(),
+  name: z.string().nullable(),
   email: z.string(),
   provider_key: z
     .string()

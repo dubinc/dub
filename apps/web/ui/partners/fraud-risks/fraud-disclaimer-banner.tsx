@@ -11,8 +11,8 @@ export function FraudDisclaimerBanner({ className }: { className?: string }) {
     >
       <TriangleWarning className="mt-0.5 size-4 shrink-0 text-yellow-500" />
       <p className="flex-1 text-sm text-neutral-700">
-        We recommended reviewing the flagged events thoroughly and potentially
-        reach out to the partner before making a final decision.{" "}
+        We recommend reviewing the flagged events thoroughly and potentially
+        reaching out to the partner before making a final decision.{" "}
         <a
           href="https://dub.co/help/article/fraud-detection"
           target="_blank"
