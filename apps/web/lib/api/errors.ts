@@ -111,7 +111,7 @@ export function fromZodError(error: ZodError): ErrorResponse {
   };
 }
 
-function handleApiError(error: any): ErrorResponse & { status: number } {
+export function handleApiError(error: any): ErrorResponse & { status: number } {
   console.error(error.message);
 
   // Send error to Axiom
@@ -176,9 +176,8 @@ export function handleAndReturnErrorResponse({
   // Build final response headers & status code
   const headers = new Headers(responseHeaders);
 
-  const upstashSignature = requestHeaders?.get("upstash-signature");
-
   const isQStashCallback = requestHeaders?.get("upstash-signature") != null;
+
   if (isQStashCallback) {
     const shouldRetry = error instanceof Prisma.PrismaClientUnknownRequestError;
 

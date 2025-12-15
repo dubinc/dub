@@ -1,6 +1,5 @@
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { createId } from "@/lib/api/create-id";
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { qstash } from "@/lib/cron";
@@ -12,7 +11,7 @@ import { prisma } from "@dub/prisma";
 import { CommissionType, Prisma } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK, nFormatter } from "@dub/utils";
 import { z } from "zod";
-import { logAndRespond } from "../utils";
+import { handleCronErrorResponse, logAndRespond } from "../utils";
 
 export const dynamic = "force-dynamic";
 
@@ -190,7 +189,7 @@ async function handler(req: Request) {
 
     return logAndRespond(endMessage);
   } catch (error) {
-    return handleAndReturnErrorResponse({ error });
+    return handleCronErrorResponse({ error });
   }
 }
 

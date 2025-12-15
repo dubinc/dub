@@ -9,6 +9,8 @@ const RETRYABLE_RULES: Record<string, Set<string>> = {
   POST: new Set(["/api/track/lead", "/api/track/sale", "/api/links"]),
 } as const;
 
+// This function only runs the first time for a request.
+// If the request already has an "upstash-signature" header, it will not be queued again (prevents retry loops).
 export async function queueFailedRequestForRetry({
   error,
   apiKey,
@@ -22,7 +24,6 @@ export async function queueFailedRequestForRetry({
   const pathname = req.nextUrl.pathname;
   const url = `${APP_DOMAIN_WITH_NGROK}${pathname}`;
   const method = errorReq.method as HTTPMethods;
-  const headers = Object.fromEntries(errorReq.headers.entries());
   const isRetryable = RETRYABLE_RULES[method]?.has(pathname) ?? false;
 
   // Skip retry if: error is one of the below
@@ -34,7 +35,7 @@ export async function queueFailedRequestForRetry({
     !(error instanceof Prisma.PrismaClientUnknownRequestError) ||
     !apiKey ||
     !isRetryable ||
-    headers["upstash-signature"] != null
+    errorReq.headers.get("upstash-signature") != null
   ) {
     return;
   }

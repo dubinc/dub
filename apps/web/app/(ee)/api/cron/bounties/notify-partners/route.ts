@@ -1,5 +1,4 @@
 import { createId } from "@/lib/api/create-id";
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { sendBatchEmail } from "@dub/email";
@@ -9,7 +8,7 @@ import { NotificationEmailType } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
 import { differenceInMinutes } from "date-fns";
 import { z } from "zod";
-import { logAndRespond } from "../../utils";
+import { handleCronErrorResponse, logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";
 
@@ -215,6 +214,6 @@ export async function POST(req: Request) {
       type: "errors",
     });
 
-    return handleAndReturnErrorResponse({ error });
+    return handleCronErrorResponse({ error });
   }
 }

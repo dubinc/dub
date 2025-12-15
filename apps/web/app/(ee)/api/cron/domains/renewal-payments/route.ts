@@ -1,5 +1,4 @@
 import { createId } from "@/lib/api/create-id";
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { createPaymentIntent } from "@/lib/stripe/create-payment-intent";
 import { prisma } from "@dub/prisma";
@@ -7,6 +6,7 @@ import { Invoice, Project, RegisteredDomain } from "@dub/prisma/client";
 import { log } from "@dub/utils";
 import { addDays, endOfDay, startOfDay } from "date-fns";
 import { NextResponse } from "next/server";
+import { handleCronErrorResponse } from "../../utils";
 
 /**
  * Daily cron job to create payment intents for `.link` domain renewals.
@@ -155,6 +155,6 @@ export async function GET(req: Request) {
       type: "errors",
     });
 
-    return handleAndReturnErrorResponse({ error });
+    return handleCronErrorResponse({ error });
   }
 }

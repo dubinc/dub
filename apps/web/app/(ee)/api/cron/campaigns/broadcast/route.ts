@@ -1,6 +1,5 @@
 import { validateCampaignFromAddress } from "@/lib/api/campaigns/validate-campaign";
 import { createId } from "@/lib/api/create-id";
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { renderCampaignEmailHTML } from "@/lib/api/workflows/render-campaign-email-html";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
@@ -13,7 +12,7 @@ import { APP_DOMAIN_WITH_NGROK, chunk, log } from "@dub/utils";
 import { differenceInMinutes } from "date-fns";
 import { headers } from "next/headers";
 import { z } from "zod";
-import { logAndRespond } from "../../utils";
+import { handleCronErrorResponse, logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";
 
@@ -329,6 +328,6 @@ export async function POST(req: Request) {
       type: "errors",
     });
 
-    return handleAndReturnErrorResponse({ error });
+    return handleCronErrorResponse({ error });
   }
 }

@@ -1,4 +1,3 @@
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { queueFolderDeletion } from "@/lib/api/folders/queue-folder-deletion";
 import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
 import { includeTags } from "@/lib/api/links/include-tags";
@@ -6,6 +5,7 @@ import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { recordLink } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
 import { z } from "zod";
+import { handleCronErrorResponse } from "../../utils";
 
 export const dynamic = "force-dynamic";
 
@@ -81,6 +81,6 @@ export async function POST(req: Request) {
       `Processed ${linksToUpdate.length} links in the folder.`,
     );
   } catch (error) {
-    return handleAndReturnErrorResponse({ error });
+    return handleCronErrorResponse({ error });
   }
 }

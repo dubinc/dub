@@ -1,4 +1,3 @@
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { getPartnerApplicationRisks } from "@/lib/api/fraud/get-partner-application-risks";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { approvePartnerEnrollment } from "@/lib/partners/approve-partner-enrollment";
@@ -6,7 +5,7 @@ import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
 import { z } from "zod";
-import { logAndRespond } from "../utils";
+import { handleCronErrorResponse, logAndRespond } from "../utils";
 
 export const dynamic = "force-dynamic";
 
@@ -120,6 +119,6 @@ export async function POST(req: Request) {
       type: "alerts",
     });
 
-    return handleAndReturnErrorResponse({ error });
+    return handleCronErrorResponse({ error });
   }
 }

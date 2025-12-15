@@ -1,5 +1,4 @@
 import { queueDomainDeletion } from "@/lib/api/domains/queue-domain-update";
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
 import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
 import { includeTags } from "@/lib/api/links/include-tags";
@@ -10,6 +9,7 @@ import { recordLink } from "@/lib/tinybird/record-link";
 import { prisma } from "@dub/prisma";
 import { R2_URL } from "@dub/utils";
 import { z } from "zod";
+import { handleCronErrorResponse } from "../../utils";
 
 export const dynamic = "force-dynamic";
 
@@ -134,6 +134,6 @@ export async function POST(req: Request) {
       `Deleted ${links.length} links, no more links remaining. Domain deleted.`,
     );
   } catch (error) {
-    return handleAndReturnErrorResponse({ error });
+    return handleCronErrorResponse({ error });
   }
 }

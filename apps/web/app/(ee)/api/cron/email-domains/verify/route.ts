@@ -1,11 +1,11 @@
-import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { DubApiError } from "@/lib/api/errors";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { resend } from "@dub/email/resend/client";
 import { prisma } from "@dub/prisma";
 import { EmailDomain } from "@dub/prisma/client";
 import { log } from "@dub/utils";
 import { NextResponse } from "next/server";
-import { logAndRespond } from "../../utils";
+import { handleCronErrorResponse, logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";
 
@@ -52,7 +52,7 @@ export async function GET(req: Request) {
       type: "errors",
     });
 
-    return handleAndReturnErrorResponse({ error });
+    return handleCronErrorResponse({ error });
   }
 }
 

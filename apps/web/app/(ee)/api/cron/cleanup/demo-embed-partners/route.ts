@@ -1,10 +1,9 @@
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { bulkDeletePartners } from "@/lib/api/partners/bulk-delete-partners";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { prisma } from "@dub/prisma";
 import { ACME_PROGRAM_ID, log } from "@dub/utils";
 import { subHours } from "date-fns";
-import { logAndRespond } from "../../utils";
+import { handleCronErrorResponse, logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";
 
@@ -81,6 +80,6 @@ export async function POST(req: Request) {
       type: "errors",
     });
 
-    return handleAndReturnErrorResponse(error);
+    return handleCronErrorResponse(error);
   }
 }

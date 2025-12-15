@@ -1,4 +1,3 @@
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { sendBatchEmail } from "@dub/email";
 import DomainRenewalReminder from "@dub/email/templates/domain-renewal-reminder";
@@ -12,6 +11,7 @@ import {
   subDays,
 } from "date-fns";
 import { NextResponse } from "next/server";
+import { handleCronErrorResponse } from "../../utils";
 
 /**
  * Daily cron job to send `.link` domain renewal reminders.
@@ -130,6 +130,6 @@ export async function GET(req: Request) {
       type: "errors",
     });
 
-    return handleAndReturnErrorResponse({ error });
+    return handleCronErrorResponse({ error });
   }
 }
