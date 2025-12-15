@@ -1,6 +1,6 @@
 import { Customer, TrackLeadResponse } from "@/lib/types";
 import { fraudEventSchemas } from "@/lib/zod/schemas/fraud";
-import { FraudRuleType } from "@prisma/client";
+import { FraudRuleType } from "@dub/prisma/client";
 import { randomCustomer, retry } from "tests/utils/helpers";
 import { HttpClient } from "tests/utils/http";
 import {

@@ -12,6 +12,7 @@ import {
   PartnerProfileSchema,
 } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
+import { Partner, PartnerProfileType } from "@dub/prisma/client";
 import {
   APP_DOMAIN_WITH_NGROK,
   COUNTRIES,
@@ -19,7 +20,6 @@ import {
   nanoid,
   PARTNERS_DOMAIN,
 } from "@dub/utils";
-import { Partner, PartnerProfileType } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import z from "../../zod";
 import { uploadedImageSchema } from "../../zod/schemas/misc";

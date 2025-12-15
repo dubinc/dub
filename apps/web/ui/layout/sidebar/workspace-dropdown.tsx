@@ -62,7 +62,6 @@ export function WorkspaceDropdown() {
     } else {
       return {
         name: session?.user?.name || session?.user?.email,
-        slug: "/",
         image: getUserAvatarUrl(session?.user),
         plan: "free",
       };
@@ -132,7 +131,7 @@ function WorkspaceList({
 }: {
   selected: {
     name: string;
-    slug: string;
+    slug?: string; // undefined if the user is on the personal account
     image: string;
     plan: PlanProps;
   };
@@ -157,9 +156,11 @@ function WorkspaceList({
       if (link) {
         // if we're on a link page, navigate back to the workspace root
         return `/${slug}/links`;
-      } else {
+      } else if (selected.slug) {
         // else, we keep the path but remove all query params
         return pathname.replace(selected.slug, slug).split("?")[0] || "/";
+      } else {
+        return "/";
       }
     },
     [link, programId, pathname, selected.slug],
@@ -187,7 +188,7 @@ function WorkspaceList({
               <div className="truncate text-sm font-medium leading-5 text-neutral-900">
                 {selected.name}
               </div>
-              {selected.slug !== "/" && (
+              {selected.slug && (
                 <div
                   className={cn(
                     "truncate text-xs capitalize leading-tight",
@@ -204,21 +205,23 @@ function WorkspaceList({
           {/* Settings and Invite members options */}
           <div className="flex flex-row gap-1">
             <Link
-              href={`/${selected.slug}/settings`}
+              href={`/${selected.slug ? selected.slug : "account"}/settings`}
               className="flex items-center justify-start gap-x-2 rounded-lg border border-neutral-200 px-2 py-1 text-neutral-700 outline-none transition-all duration-75 hover:bg-neutral-100/50 focus-visible:ring-2 focus-visible:ring-black/50 active:bg-neutral-200/80"
               onClick={() => setOpenPopover(false)}
             >
               <Gear className="size-4 text-neutral-800" />
               <span className="block truncate text-sm">Settings</span>
             </Link>
-            <Link
-              href={`/${selected.slug}/settings/people`}
-              className="flex items-center justify-start gap-x-2 rounded-lg border border-neutral-200 px-2 py-1 text-neutral-700 outline-none transition-all duration-75 hover:bg-neutral-100/50 focus-visible:ring-2 focus-visible:ring-black/50 active:bg-neutral-200/80"
-              onClick={() => setOpenPopover(false)}
-            >
-              <UserPlus className="size-4 text-neutral-800" />
-              <span className="block truncate text-sm">Invite members</span>
-            </Link>
+            {selected.slug && (
+              <Link
+                href={`/${selected.slug}/settings/people`}
+                className="flex items-center justify-start gap-x-2 rounded-lg border border-neutral-200 px-2 py-1 text-neutral-700 outline-none transition-all duration-75 hover:bg-neutral-100/50 focus-visible:ring-2 focus-visible:ring-black/50 active:bg-neutral-200/80"
+                onClick={() => setOpenPopover(false)}
+              >
+                <UserPlus className="size-4 text-neutral-800" />
+                <span className="block truncate text-sm">Invite members</span>
+              </Link>
+            )}
           </div>
         </div>
 

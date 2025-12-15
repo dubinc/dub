@@ -136,6 +136,7 @@ export async function POST(req: Request) {
     if (partners.length > 0) {
       await bulkDeletePartners({
         partnerIds: partners.map((partner) => partner.id),
+        deletePartners: true,
       });
     }
 
@@ -160,7 +161,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ status: "OK" });
   } catch (error) {
     await log({
-      message: `Links and domain cleanup failed - ${error.message}`,
+      message: `/api/cron/cleanup/e2e-tests failed - ${error.message}`,
       type: "errors",
     });
 

@@ -4,37 +4,27 @@ import * as fs from "fs";
 import * as Papa from "papaparse";
 import { stripeAppClient } from "../../lib/stripe";
 
-const programId = "prog_xxx";
-const customersToImport: {
-  externalId: string;
-  referralLink: string;
-  createdAt: Date;
-  stripeCustomerId: string;
-}[] = [];
+const programId = "prog_1K89GZ21QE2YC296FHHBMCFSM";
+type CustomerData = {
+  customerExternalId: string;
+  partnerLinkKey: string;
+  stripeCustomerId?: string;
+  timestamp: string;
+};
+const customersToImport: CustomerData[] = [];
 
 // script to export stripe invoices based on the customer's stripeCustomerId
 async function main() {
-  Papa.parse(fs.createReadStream("fillout-customers-updated.csv", "utf-8"), {
+  Papa.parse(fs.createReadStream("customers.csv", "utf-8"), {
     header: true,
     skipEmptyLines: true,
-    step: (result: {
-      data: {
-        userId: string;
-        referral: string;
-        stripeCustomerId: string;
-        createdAt: string;
-      };
-    }) => {
+    step: (result: { data: CustomerData }) => {
       if (result.data.stripeCustomerId) {
-        customersToImport.push({
-          externalId: result.data.userId,
-          referralLink: result.data.referral,
-          createdAt: new Date(result.data.createdAt),
-          stripeCustomerId: result.data.stripeCustomerId,
-        });
+        customersToImport.push(result.data);
       }
     },
     complete: async () => {
+      console.log(`Found ${customersToImport.length} paying customers`);
       const program = await prisma.program.findUniqueOrThrow({
         where: {
           id: programId,
@@ -63,7 +53,7 @@ async function main() {
         );
 
         const invoicesToBackfill = invoices.data.map((invoice) => ({
-          customerExternalId: customer.externalId,
+          customerExternalId: customer.customerExternalId,
           invoiceId: invoice.id,
           amountPaid: invoice.amount_paid,
           createdAt: new Date(invoice.created * 1000).toISOString(),
@@ -77,9 +67,12 @@ async function main() {
             "createdAt",
           ]);
 
+          const filePath = "customer_stripe_invoices.csv";
+          const fileExists = fs.existsSync(filePath);
+
           fs.appendFileSync(
-            "fillout-invoices-updated.csv",
-            Papa.unparse(invoicesToBackfill, { header: false }) + "\n",
+            filePath,
+            Papa.unparse(invoicesToBackfill, { header: !fileExists }) + "\n",
           );
         }
       }

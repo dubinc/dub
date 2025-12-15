@@ -9,6 +9,7 @@ import { Button, ShieldKeyhole } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Link from "next/link";
 import { usePartnersUpgradeModal } from "../partners-upgrade-modal";
+import { FraudDisclaimerBanner } from "./fraud-disclaimer-banner";
 import { PartnerApplicationFraudSeverityIndicator } from "./partner-application-fraud-severity-indicator";
 import { usePartnerApplicationRiskSummaryModal } from "./partner-application-risk-summary-modal";
 
@@ -82,6 +83,9 @@ export function PartnerApplicationRiskSummary({
             );
           })}
         </ul>
+        {severity === "high" && (
+          <FraudDisclaimerBanner className="gap-2 px-3 py-2" />
+        )}
       </div>
 
       <PartnerApplicationRiskSummaryModal />

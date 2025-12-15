@@ -46,6 +46,9 @@ export async function WorkspacesMiddleware(req: NextRequest, user: UserProps) {
   const projectInvite = await prismaEdge.projectInvite.findFirst({
     where: {
       email: user.email,
+      expires: {
+        gte: new Date(),
+      },
     },
     select: {
       project: {

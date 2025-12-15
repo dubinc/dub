@@ -1,6 +1,7 @@
 import { CreateFraudEventInput, FraudEventContext } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
+import { prettyPrint } from "@dub/utils";
 import { fraudEventContext } from "../../zod/schemas/schemas";
 import { createFraudEvents } from "./create-fraud-events";
 import { executeFraudRule } from "./execute-fraud-rule";
@@ -57,6 +58,11 @@ export async function detectAndRecordFraudEvent(context: FraudEventContext) {
   if (triggeredRules.length === 0) {
     return;
   }
+
+  console.log(
+    `[detectAndRecordFraudEvent] Found ${triggeredRules.length} triggered rules`,
+    prettyPrint(triggeredRules),
+  );
 
   await createFraudEvents(
     triggeredRules.map((rule) => ({

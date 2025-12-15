@@ -4,7 +4,7 @@ import { withPartnerProfile } from "@/lib/auth/partner";
 import { sqlGranularityMap } from "@/lib/planetscale/granularity";
 import { getPartnerEarningsTimeseriesSchema } from "@/lib/zod/schemas/partner-profile";
 import { prisma } from "@dub/prisma";
-import { Prisma } from "@prisma/client";
+import { Prisma } from "@dub/prisma/client";
 import { format } from "date-fns";
 import { NextResponse } from "next/server";
 

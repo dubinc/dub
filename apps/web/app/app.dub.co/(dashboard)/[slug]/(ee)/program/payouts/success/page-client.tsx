@@ -4,6 +4,7 @@ import useProgram from "@/lib/swr/use-program";
 import LayoutLoader from "@/ui/layout/layout-loader";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { X } from "@/ui/shared/icons";
+import { Invoice } from "@dub/prisma/client";
 import { buttonVariants, CircleCheckFill, Grid, Receipt2 } from "@dub/ui";
 import {
   cn,
@@ -12,7 +13,6 @@ import {
   fetcher,
   pluralize,
 } from "@dub/utils";
-import { Invoice } from "@prisma/client";
 import Confetti from "canvas-confetti";
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";

@@ -13,7 +13,7 @@ export const GitHubButton = () => {
 
   return (
     <Button
-      text="Continue with Github"
+      text="Continue with GitHub"
       variant="secondary"
       onClick={() => {
         setClickedMethod("github");

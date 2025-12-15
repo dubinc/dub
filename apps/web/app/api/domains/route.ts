@@ -13,8 +13,8 @@ import {
   getDomainsQuerySchemaExtended,
 } from "@/lib/zod/schemas/domains";
 import { prisma } from "@dub/prisma";
+import { Link, Prisma } from "@dub/prisma/client";
 import { combineWords, DEFAULT_LINK_PROPS, nanoid } from "@dub/utils";
-import { Link, Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 // GET /api/domains – get all domains for a workspace

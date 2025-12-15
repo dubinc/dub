@@ -1,4 +1,4 @@
-import type { PartnerRole } from "@prisma/client";
+import type { PartnerRole } from "@dub/prisma/client";
 
 export type Permission = (typeof PERMISSIONS)[number];
 

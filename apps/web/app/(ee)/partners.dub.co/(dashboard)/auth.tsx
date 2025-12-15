@@ -15,6 +15,8 @@ const ERROR_CODES = {
     "Invalid or expired state. Please try again from the beginning.",
   paypal_email_not_verified:
     "PayPal email address is not verified. Please verify your email address in PayPal and try again.",
+  paypal_account_already_in_use:
+    "The PayPal account you're trying to connect is already in use by another partner. Please use a different PayPal account.",
 } as const;
 
 export function PartnerProfileAuth({ children }: { children: ReactNode }) {
@@ -26,7 +28,7 @@ export function PartnerProfileAuth({ children }: { children: ReactNode }) {
     const error = searchParams?.get("error");
 
     if (error) {
-      toast.error(ERROR_CODES[error] || "An unexpected error occurred.");
+      toast.error(ERROR_CODES[error] || error);
     }
   }, [searchParams]);
 

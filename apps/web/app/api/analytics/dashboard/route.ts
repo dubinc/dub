@@ -3,11 +3,11 @@ import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { assertValidDateRangeForPlan } from "@/lib/api/utils/assert-valid-date-range-for-plan";
 import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import { PlanProps } from "@/lib/types";
-import { ratelimit } from "@/lib/upstash";
+import { redis } from "@/lib/upstash";
 import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { prisma } from "@dub/prisma";
 import { DUB_DEMO_LINKS, DUB_WORKSPACE_ID, getSearchParams } from "@dub/utils";
-import { ipAddress } from "@vercel/functions";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -18,8 +18,7 @@ export const GET = async (req: Request) => {
     const searchParams = getSearchParams(req.url);
     const parsedParams = analyticsQuerySchema.parse(searchParams);
 
-    const { groupBy, domain, key, folderId, interval, start, end } =
-      parsedParams;
+    const { domain, key, folderId, interval, start, end } = parsedParams;
 
     if ((!domain || !key) && !folderId) {
       throw new DubApiError({
@@ -136,25 +135,21 @@ export const GET = async (req: Request) => {
       });
     }
 
-    // Rate limit in production
-    if (process.env.NODE_ENV !== "development") {
-      const ip = ipAddress(req);
-      // for demo links, we rate limit at:
-      // - 15 requests per 10 seconds if groupBy is "count"
-      // - 15 request per minute if groupBy is not "count"
-      // for non-demo links, we rate limit at 10 requests per 10 seconds
-      const { success } = await ratelimit(
-        demoLink ? 15 : 10,
-        !demoLink || groupBy === "count" ? "10 s" : "1 m",
-      ).limit(`analytics-dashboard:${folder?.id || link?.id}:${ip}:${groupBy}`);
+    // Create cache key based on all parameters that affect the result
+    const cacheKey = `analyticsDashboardCache:${JSON.stringify(parsedParams)}`;
 
-      if (!success) {
-        throw new DubApiError({
-          code: "rate_limit_exceeded",
-          message: "Don't DDoS me pls 🥺",
-        });
-      }
+    // Check if results exist in cache
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+      console.log(
+        `[Analytics Dashboard] Cache hit: ${JSON.stringify(parsedParams, null, 2)}`,
+      );
+      return NextResponse.json(cached);
     }
+
+    console.log(
+      `[Analytics Dashboard] Cache miss: ${JSON.stringify(parsedParams, null, 2)}`,
+    );
 
     const response = await getAnalytics({
       ...parsedParams,
@@ -163,6 +158,12 @@ export const GET = async (req: Request) => {
       ...(folder && { folderId: folder.id }),
       ...(link && { linkId: link.id }),
     });
+
+    // Cache the response for 1 minute
+    console.log(
+      `[Analytics Dashboard] Caching response for ${JSON.stringify(parsedParams, null, 2)}`,
+    );
+    waitUntil(await redis.set(cacheKey, response, { ex: 60 }));
 
     return NextResponse.json(response);
   } catch (error) {

@@ -16,7 +16,7 @@ import { sendBatchEmail, sendEmail } from "@dub/email";
 import NewBountySubmission from "@dub/email/templates/bounty-new-submission";
 import BountySubmitted from "@dub/email/templates/bounty-submitted";
 import { prisma } from "@dub/prisma";
-import { BountySubmission, WorkspaceRole } from "@prisma/client";
+import { BountySubmission, WorkspaceRole } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { formatDistanceToNow } from "date-fns";
 import { z } from "zod";

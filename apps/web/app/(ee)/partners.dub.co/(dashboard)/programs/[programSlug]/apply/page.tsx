@@ -23,7 +23,7 @@ export default async function ProgramDetailsPage(props: {
     groupSlug: DEFAULT_PARTNER_GROUP.slug,
   });
 
-  if (!program || !program.group) {
+  if (!program || !program.group || !program.group.applicationFormPublishedAt) {
     redirect("/programs");
   }
 

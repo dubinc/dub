@@ -1,6 +1,6 @@
 import { PartnerGroupAdditionalLink } from "@/lib/types";
+import { PartnerGroup } from "@dub/prisma/client";
 import { getUrlObjFromString } from "@dub/utils";
-import { PartnerGroup } from "@prisma/client";
 import { DubApiError } from "../errors";
 
 export const validatePartnerLinkUrl = ({

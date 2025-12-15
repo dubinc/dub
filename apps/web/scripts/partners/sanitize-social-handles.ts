@@ -1,7 +1,7 @@
 import { sanitizeSocialHandle, type SocialPlatform } from "@/lib/social-utils";
 import { prisma } from "@dub/prisma";
+import { Partner } from "@dub/prisma/client";
 import { deepEqual } from "@dub/utils";
-import { Partner } from "@prisma/client";
 import "dotenv-flow/config";
 
 async function main() {

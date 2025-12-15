@@ -49,17 +49,6 @@ function createHashKey(value: string): string {
   return createHash("sha256").update(value).digest("base64url").slice(0, 24);
 }
 
-// Create a unique group key to identify and deduplicate fraud events of the same type
-// based on programId and groupingKey
-// Deprecated: Use createGroupHash instead (Should be removed)
-export function createFraudEventGroupKey(input: CreateGroupKeyInput): string {
-  const parts = [input.programId, input.type, input.groupingKey].map((p) =>
-    p!.toLowerCase(),
-  );
-
-  return createHashKey(parts.join("|"));
-}
-
 // Creates a unique hash for a fraud event to enable deduplication.
 export function createFraudEventHash(fraudEvent: CreateEventHashInput) {
   const identityFields = getIdentityFieldsForFraudEvent(fraudEvent);

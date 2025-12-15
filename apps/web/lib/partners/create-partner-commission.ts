@@ -8,7 +8,7 @@ import {
   ProgramEnrollment,
   WorkflowTrigger,
 } from "@dub/prisma/client";
-import { currencyFormatter, log } from "@dub/utils";
+import { currencyFormatter, log, prettyPrint } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { differenceInMonths } from "date-fns";
 import { recordAuditLog } from "../api/audit-logs/record-audit-log";
@@ -266,7 +266,7 @@ export const createPartnerCommission = async ({
     });
 
     console.log(
-      `Created a ${event} commission ${commission.id} (${currencyFormatter(commission.earnings, { currency: commission.currency })}) for ${partnerId}: ${JSON.stringify(commission)}`,
+      `Created a ${event} commission ${commission.id} (${currencyFormatter(commission.earnings, { currency: commission.currency })}) for ${partnerId}: ${prettyPrint(commission)}`,
     );
 
     const webhookPartner = constructWebhookPartner(programEnrollment, {
