@@ -139,6 +139,7 @@ model ProgramEnrollment {
   discountCodes     DiscountCode[]
   commissions       Commission[]
   payouts           Payout[]
+  messages          Message[]
   fraudEventGroups  FraudEventGroup[]
 
   // unique constraints
