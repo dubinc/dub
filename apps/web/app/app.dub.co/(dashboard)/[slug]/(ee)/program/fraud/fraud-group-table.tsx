@@ -9,6 +9,7 @@ import { useBanPartnerModal } from "@/ui/modals/ban-partner-modal";
 import { useBulkBanPartnersModal } from "@/ui/modals/bulk-ban-partners-modal";
 import { useBulkResolveFraudGroupsModal } from "@/ui/modals/bulk-resolve-fraud-groups-modal";
 import { useRejectPartnerApplicationModal } from "@/ui/modals/reject-partner-application-modal";
+import { FraudDisclaimerBanner } from "@/ui/partners/fraud-risks/fraud-disclaimer-banner";
 import { FraudReviewSheet } from "@/ui/partners/fraud-risks/fraud-review-sheet";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
@@ -361,7 +362,8 @@ export function FraudGroupTable() {
       )}
 
       <div>
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <FraudDisclaimerBanner />
+        <div className="mt-3 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <Filter.Select
             className="w-full md:w-fit"
             filters={filters}

@@ -118,7 +118,7 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
         "Trace ID": (
           <CopyText
             value={payout.traceId}
-            className="font-mono text-sm text-neutral-500"
+            className="text-left font-mono text-sm text-neutral-500"
           >
             {payout.traceId}
           </CopyText>

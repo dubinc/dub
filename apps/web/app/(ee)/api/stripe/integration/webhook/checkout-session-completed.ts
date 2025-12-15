@@ -42,7 +42,8 @@ export async function checkoutSessionCompleted(
   mode: StripeMode,
 ) {
   let charge = event.data.object as Stripe.Checkout.Session;
-  let dubCustomerExternalId = charge.metadata?.dubCustomerId; // TODO: need to update to dubCustomerExternalId in the future for consistency
+  let dubCustomerExternalId =
+    charge.metadata?.dubCustomerExternalId || charge.metadata?.dubCustomerId;
   const clientReferenceId = charge.client_reference_id;
   const stripeAccountId = event.account as string;
   const stripeCustomerId = charge.customer as string;
@@ -238,8 +239,12 @@ export async function checkoutSessionCompleted(
           mode,
         });
 
-        if (connectedCustomer?.metadata.dubCustomerId) {
-          dubCustomerExternalId = connectedCustomer.metadata.dubCustomerId; // TODO: need to update to dubCustomerExternalId in the future for consistency
+        const connectedCustomerDubCustomerExternalId =
+          connectedCustomer?.metadata.dubCustomerExternalId ||
+          connectedCustomer?.metadata.dubCustomerId;
+
+        if (connectedCustomerDubCustomerExternalId) {
+          dubCustomerExternalId = connectedCustomerDubCustomerExternalId;
           customer = await updateCustomerWithStripeCustomerId({
             stripeAccountId,
             dubCustomerExternalId,

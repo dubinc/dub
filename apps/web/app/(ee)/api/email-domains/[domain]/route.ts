@@ -127,13 +127,14 @@ export const PATCH = withWorkspace(
     } catch (error) {
       console.error(error);
 
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        if (error.code === "P2002") {
-          throw new DubApiError({
-            code: "conflict",
-            message: `This ${slug} domain has been registered already by another program.`,
-          });
-        }
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2002"
+      ) {
+        throw new DubApiError({
+          code: "conflict",
+          message: `This ${slug} domain has been registered already by another program.`,
+        });
       }
 
       throw new DubApiError({
