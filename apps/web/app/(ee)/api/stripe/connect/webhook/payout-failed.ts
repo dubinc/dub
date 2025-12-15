@@ -41,7 +41,28 @@ export async function payoutFailed(event: Stripe.Event) {
 
   if (partner.email) {
     try {
+      // Generate Stripe account link for updating bank account
       const { url } = await stripe.accounts.createLoginLink(stripeConnectId);
+
+      // Fetch bank account information
+      const { data: externalAccounts } =
+        await stripe.accounts.listExternalAccounts(stripeConnectId);
+
+      const defaultExternalAccount = externalAccounts.find(
+        (account) =>
+          account.default_for_currency && account.object === "bank_account",
+      );
+
+      const bankAccount =
+        defaultExternalAccount &&
+        defaultExternalAccount.object === "bank_account"
+          ? {
+              account_holder_name: defaultExternalAccount.account_holder_name,
+              bank_name: defaultExternalAccount.bank_name,
+              last4: defaultExternalAccount.last4,
+              routing_number: defaultExternalAccount.routing_number,
+            }
+          : undefined;
 
       const sentEmail = await sendEmail({
         variant: "notifications",
@@ -50,6 +71,7 @@ export async function payoutFailed(event: Stripe.Event) {
         react: PartnerStripePayoutFailed({
           email: partner.email,
           accountUpdateUrl: url,
+          bankAccount,
           payout: {
             amount: stripePayout.amount,
             currency: stripePayout.currency,
