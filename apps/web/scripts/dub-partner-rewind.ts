@@ -1,3 +1,4 @@
+import { REWIND_EARNINGS_MINIMUM } from "@/ui/partners/rewind/constants";
 import { prisma } from "@dub/prisma";
 import { ACME_PROGRAM_ID } from "@dub/utils";
 import "dotenv-flow/config";
@@ -33,28 +34,11 @@ async function main() {
           programId: {
             not: ACME_PROGRAM_ID,
           },
-          OR: [
-            {
-              totalClicks: {
-                gt: 0,
-              },
+          totalCommissions: {
+            not: {
+              lt: REWIND_EARNINGS_MINIMUM,
             },
-            {
-              totalLeads: {
-                gt: 0,
-              },
-            },
-            {
-              totalSaleAmount: {
-                gt: 0,
-              },
-            },
-            {
-              totalCommissions: {
-                gt: 0,
-              },
-            },
-          ],
+          },
         },
       },
     },

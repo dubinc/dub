@@ -2,7 +2,7 @@ import { Button, LoadingSpinner, Modal } from "@dub/ui";
 import slugify from "@sindresorhus/slugify";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { REWIND_STEPS } from "./constants";
+import { REWIND_STEPS } from "../../../../../../ui/partners/rewind/constants";
 
 type ShareRewindModalInnerProps = {
   rewindId: string;

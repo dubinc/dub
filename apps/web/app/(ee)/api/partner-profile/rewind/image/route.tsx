@@ -1,10 +1,11 @@
 import { PartnerRewindSchema } from "@/lib/zod/schemas/partners";
-import { prismaEdge } from "@dub/prisma/edge";
-import { cn, nFormatter } from "@dub/utils";
 import {
   REWIND_ASSETS_PATH,
   REWIND_STEPS,
-} from "app/(ee)/partners.dub.co/(dashboard)/rewind/2025/constants";
+  REWIND_YEAR,
+} from "@/ui/partners/rewind/constants";
+import { prismaEdge } from "@dub/prisma/edge";
+import { cn, nFormatter } from "@dub/utils";
 import { ImageResponse } from "next/og";
 import { NextRequest } from "next/server";
 
@@ -150,8 +151,6 @@ export async function GET(req: NextRequest) {
 
 // Mostly copied from `getPartnerRewind` in `lib/api/partners/get-partner-rewind.ts`,
 // but couldn't get that to work with dynamic client + conditional Prisma.sql
-const CURRENT_YEAR = 2025;
-
 async function getPartnerRewind(rewindId: string) {
   const rewinds = await prismaEdge.$queryRaw<
     {
@@ -192,7 +191,7 @@ async function getPartnerRewind(rewindId: string) {
     FROM PartnerRewind pr
     WHERE
       pr.id = ${rewindId}
-      AND pr.year = ${CURRENT_YEAR}`;
+      AND pr.year = ${REWIND_YEAR}`;
 
   if (!rewinds.length) return null;
 

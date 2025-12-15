@@ -9,7 +9,10 @@ import { cn } from "@dub/utils/src";
 import NumberFlow from "@number-flow/react";
 import { AnimatePresence, motion } from "motion/react";
 import { CSSProperties, useEffect, useMemo, useState } from "react";
-import { REWIND_ASSETS_PATH, REWIND_STEPS } from "./constants";
+import {
+  REWIND_ASSETS_PATH,
+  REWIND_STEPS,
+} from "../../../../../../ui/partners/rewind/constants";
 import { useShareRewindModal } from "./share-rewind-modal";
 
 const STEP_DELAY_MS = 8_000;

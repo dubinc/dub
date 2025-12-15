@@ -6,7 +6,10 @@ import { Grid } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { redirect } from "next/navigation";
 import { preload } from "react-dom";
-import { REWIND_ASSETS_PATH, REWIND_STEPS } from "./constants";
+import {
+  REWIND_ASSETS_PATH,
+  REWIND_STEPS,
+} from "../../../../../../ui/partners/rewind/constants";
 import { PartnerRewind2025PageClient } from "./page-client";
 
 export default async function PartnerRewind2025Page() {
