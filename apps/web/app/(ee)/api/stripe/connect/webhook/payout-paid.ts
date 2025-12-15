@@ -3,7 +3,7 @@ import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import Stripe from "stripe";
 
 const queue = qstash.queue({
-  queueName: "payout-paid",
+  queueName: "handle-payout-paid",
 });
 
 export async function payoutPaid(event: Stripe.Event) {

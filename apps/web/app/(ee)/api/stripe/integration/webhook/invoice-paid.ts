@@ -39,7 +39,9 @@ export async function invoicePaid(event: Stripe.Event, mode: StripeMode) {
       mode,
     });
 
-    const dubCustomerExternalId = connectedCustomer?.metadata.dubCustomerId; // TODO: need to update to dubCustomerExternalId in the future for consistency
+    const dubCustomerExternalId =
+      connectedCustomer?.metadata.dubCustomerExternalId ||
+      connectedCustomer?.metadata.dubCustomerId;
 
     if (dubCustomerExternalId) {
       try {

@@ -1,3 +1,4 @@
+import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import { PartnerGroupProps } from "@/lib/types";
 import { Program } from "@dub/prisma/client";
 import {
@@ -27,7 +28,7 @@ export function ReferralsEmbedQuickstart({
   setSelectedTab,
 }: {
   program: Program;
-  group: Pick<PartnerGroupProps, "logo">;
+  group: Pick<PartnerGroupProps, "logo" | "linkStructure">;
   links: ReferralsEmbedLink[];
   earnings: {
     upcoming: number;
@@ -51,7 +52,12 @@ export function ReferralsEmbedQuickstart({
           className={BUTTON_CLASSNAME}
           onClick={() => {
             if (links.length > 0) {
-              copyToClipboard(links[0].shortLink);
+              copyToClipboard(
+                constructPartnerLink({
+                  group,
+                  link: links[0],
+                }),
+              );
             } else {
               setSelectedTab("Links");
             }

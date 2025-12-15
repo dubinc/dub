@@ -6,7 +6,9 @@ import { createNewCustomer } from "./utils/create-new-customer";
 export async function customerCreated(event: Stripe.Event) {
   const stripeCustomer = event.data.object as Stripe.Customer;
   const stripeAccountId = event.account as string;
-  const dubCustomerExternalId = stripeCustomer.metadata?.dubCustomerId; // TODO: need to update to dubCustomerExternalId in the future for consistency
+  const dubCustomerExternalId =
+    stripeCustomer.metadata?.dubCustomerExternalId ||
+    stripeCustomer.metadata?.dubCustomerId;
 
   if (!dubCustomerExternalId) {
     return "External ID not found in Stripe customer metadata, skipping...";

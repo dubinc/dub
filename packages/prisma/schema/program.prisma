@@ -84,7 +84,6 @@ model Program {
   fraudEventGroups         FraudEventGroup[]
 
   @@index(workspaceId)
-  @@index(domain)
   @@index(addedToMarketplaceAt)
 }
 
@@ -159,6 +158,7 @@ model ProgramEnrollment {
   @@index([programId, status, leadToConversionRate])
   @@index([programId, status, returnOnAdSpend])
   // other indexes
+  @@index([programId, groupId])
   @@index([groupId, status])
   @@index(clickRewardId)
   @@index(leadRewardId)
