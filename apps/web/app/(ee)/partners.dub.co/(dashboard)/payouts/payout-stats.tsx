@@ -231,8 +231,7 @@ export function PayoutStats() {
         for this payout, which means you will receive{" "}
         <strong className="text-black">
           {currencyFormatter(
-            (payoutStatusMap?.processed?.amount -
-              BELOW_MIN_WITHDRAWAL_FEE_CENTS),
+            payoutStatusMap?.processed?.amount - BELOW_MIN_WITHDRAWAL_FEE_CENTS,
             { trailingZeroDisplay: "stripIfInteger" },
           )}
         </strong>

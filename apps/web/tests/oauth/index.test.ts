@@ -1,4 +1,7 @@
-import { generateCodeChallengeHash, generateCodeVerifier } from "@/lib/api/oauth/utils";
+import {
+  generateCodeChallengeHash,
+  generateCodeVerifier,
+} from "@/lib/api/oauth/utils";
 import { describe, expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
 

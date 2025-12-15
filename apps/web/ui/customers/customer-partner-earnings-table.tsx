@@ -33,16 +33,12 @@ export function CustomerPartnerEarningsTable({
       {
         header: "Sale Amount",
         accessorKey: "amount",
-        cell: ({ getValue }) => (
-          <span>{currencyFormatter(getValue())}</span>
-        ),
+        cell: ({ getValue }) => <span>{currencyFormatter(getValue())}</span>,
       },
       {
         header: "Commission",
         accessorKey: "earnings",
-        cell: ({ getValue }) => (
-          <span>{currencyFormatter(getValue())}</span>
-        ),
+        cell: ({ getValue }) => <span>{currencyFormatter(getValue())}</span>,
       },
       {
         header: "Status",

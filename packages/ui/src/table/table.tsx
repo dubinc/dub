@@ -476,12 +476,14 @@ export function Table<T>({
                                       header.column.columnDef.header,
                                       header.getContext(),
                                     );
-                                    const headerTooltip =
-                                      (header.column.columnDef.meta as any)
-                                        ?.headerTooltip;
+                                    const headerTooltip = (
+                                      header.column.columnDef.meta as any
+                                    )?.headerTooltip;
 
                                     return (
-                                      <HeaderWithTooltip tooltip={headerTooltip}>
+                                      <HeaderWithTooltip
+                                        tooltip={headerTooltip}
+                                      >
                                         {headerContent}
                                       </HeaderWithTooltip>
                                     );

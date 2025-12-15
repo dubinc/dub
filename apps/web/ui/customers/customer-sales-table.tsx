@@ -58,9 +58,7 @@ export function CustomerSalesTable({
       {
         header: "Amount",
         accessorFn: (d) => ("saleAmount" in d ? d.saleAmount : d.amount),
-        cell: ({ getValue }) => (
-          <span>{currencyFormatter(getValue())}</span>
-        ),
+        cell: ({ getValue }) => <span>{currencyFormatter(getValue())}</span>,
       },
       ...(sales?.length && "earnings" in sales?.[0]
         ? [
