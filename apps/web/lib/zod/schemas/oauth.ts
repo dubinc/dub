@@ -48,21 +48,24 @@ export const authorizeRequestSchema = z.object({
   state: z.string().max(1024).optional(),
   scope: z
     .string()
-    .nullable()
+    .nullish()
     .transform((scope) => {
       // split by comma or space or plus sign
-      const scopes = [
-        ...new Set((scope ?? "").split(/[,\s+]/).filter(Boolean)),
-      ];
+      let scopes = [...new Set((scope ?? "").split(/[,\s+]/).filter(Boolean))];
 
       if (!scopes.includes("user.read")) {
         scopes.push("user.read");
       }
 
+      // remove workspaces.read and write
+      // We can remove this filter after existing integrations are updated
+      // Doing this to prevent zod throwing an error when the scopes are invalid
+      scopes = scopes.filter((scope) => !scope.startsWith("workspaces."));
+
       return scopes;
     })
     .refine((scopes) => scopes.every((scope) => OAUTH_SCOPES.includes(scope)), {
-      message: "Invalid scopes",
+      message: "One or more provided OAuth scopes are invalid or unsupported.",
     }),
   code_challenge: z.string().max(190).optional(),
   code_challenge_method: z

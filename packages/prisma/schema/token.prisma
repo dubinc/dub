@@ -18,7 +18,7 @@ model RestrictedToken {
   name           String
   hashedKey      String    @unique
   partialKey     String
-  scopes         String? // space separated (Eg: "links:write", "domains:read")
+  scopes         String? // space separated (Eg: "links.write domains.read")
   expires        DateTime?
   lastUsed       DateTime?
   createdAt      DateTime  @default(now())
