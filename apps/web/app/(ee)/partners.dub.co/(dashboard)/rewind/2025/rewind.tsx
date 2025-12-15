@@ -58,7 +58,7 @@ export function Rewind({
 
   const { ShareRewindModal, setShowShareRewindModal } = useShareRewindModal({
     rewindId: partnerRewind.id,
-    step: steps[currentStepIndex].id,
+    step: steps[Math.min(currentStepIndex, steps.length - 1)].id,
   });
 
   return (
