@@ -1,4 +1,3 @@
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { resolveFraudGroups } from "@/lib/api/fraud/resolve-fraud-groups";
 import { linkCache } from "@/lib/api/links/cache";
 import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
@@ -13,6 +12,7 @@ import PartnerAccountMerged from "@dub/email/templates/partner-account-merged";
 import { prisma } from "@dub/prisma";
 import { log, R2_URL } from "@dub/utils";
 import { z } from "zod";
+import { handleCronErrorResponse } from "../utils";
 
 export const dynamic = "force-dynamic";
 
@@ -337,6 +337,6 @@ export async function POST(req: Request) {
       type: "alerts",
     });
 
-    return handleAndReturnErrorResponse({ error });
+    return handleCronErrorResponse({ error });
   }
 }

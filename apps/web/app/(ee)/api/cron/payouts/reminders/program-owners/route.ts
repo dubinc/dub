@@ -1,10 +1,10 @@
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { sendBatchEmail } from "@dub/email";
 import ProgramPayoutReminder from "@dub/email/templates/program-payout-reminder";
 import { prisma } from "@dub/prisma";
 import { chunk, pluralize } from "@dub/utils";
 import { NextResponse } from "next/server";
+import { handleCronErrorResponse } from "../../../utils";
 
 export const dynamic = "force-dynamic";
 
@@ -205,6 +205,6 @@ export async function GET(req: Request) {
 
     return NextResponse.json("OK");
   } catch (error) {
-    return handleAndReturnErrorResponse({ error });
+    return handleCronErrorResponse({ error });
   }
 }

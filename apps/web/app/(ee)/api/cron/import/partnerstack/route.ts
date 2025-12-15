@@ -1,4 +1,3 @@
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { importCommissions } from "@/lib/partnerstack/import-commissions";
 import { importCustomers } from "@/lib/partnerstack/import-customers";
@@ -8,6 +7,7 @@ import { importPartners } from "@/lib/partnerstack/import-partners";
 import { partnerStackImportPayloadSchema } from "@/lib/partnerstack/schemas";
 import { updateStripeCustomers } from "@/lib/partnerstack/update-stripe-customers";
 import { NextResponse } from "next/server";
+import { handleCronErrorResponse } from "../../utils";
 
 export const dynamic = "force-dynamic";
 
@@ -47,6 +47,6 @@ export async function POST(req: Request) {
 
     return NextResponse.json("OK");
   } catch (error) {
-    return handleAndReturnErrorResponse({ error });
+    return handleCronErrorResponse({ error });
   }
 }

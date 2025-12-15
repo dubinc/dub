@@ -1,4 +1,3 @@
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { conn } from "@/lib/planetscale";
 import {
@@ -7,6 +6,7 @@ import {
   workspaceUsageStream,
 } from "@/lib/upstash/redis-streams";
 import { NextResponse } from "next/server";
+import { handleCronErrorResponse } from "../../utils";
 
 export const dynamic = "force-dynamic";
 
@@ -211,6 +211,6 @@ export async function GET(req: Request) {
     return NextResponse.json(response);
   } catch (error) {
     console.error("Failed to process workspace usage updates:", error);
-    return handleAndReturnErrorResponse({ error });
+    return handleCronErrorResponse({ error });
   }
 }

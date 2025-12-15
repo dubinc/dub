@@ -1,4 +1,3 @@
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { PROGRAM_SIMILARITY_SCORE_THRESHOLD } from "@/lib/constants/program";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
@@ -6,7 +5,7 @@ import { prisma } from "@dub/prisma";
 import { ProgramSimilarity } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { z } from "zod";
-import { logAndRespond } from "../../utils";
+import { handleCronErrorResponse, logAndRespond } from "../../utils";
 import { calculateCategorySimilarity } from "./calculate-category-similarity";
 import { calculatePartnerSimilarity } from "./calculate-partner-similarity";
 import { calculatePerformanceSimilarity } from "./calculate-performance-similarity";
@@ -45,7 +44,7 @@ export async function POST(req: Request) {
       comparisonBatchCursor,
     });
   } catch (error) {
-    return handleAndReturnErrorResponse({ error });
+    return handleCronErrorResponse({ error });
   }
 }
 

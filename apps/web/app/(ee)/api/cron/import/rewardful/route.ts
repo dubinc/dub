@@ -1,4 +1,3 @@
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { importAffiliateCoupons } from "@/lib/rewardful/import-affiliate-coupons";
 import { importCampaigns } from "@/lib/rewardful/import-campaigns";
@@ -7,6 +6,7 @@ import { importCustomers } from "@/lib/rewardful/import-customers";
 import { importPartners } from "@/lib/rewardful/import-partners";
 import { rewardfulImportPayloadSchema } from "@/lib/rewardful/schemas";
 import { NextResponse } from "next/server";
+import { handleCronErrorResponse } from "../../utils";
 
 export const dynamic = "force-dynamic";
 
@@ -37,6 +37,6 @@ export async function POST(req: Request) {
 
     return NextResponse.json("OK");
   } catch (error) {
-    return handleAndReturnErrorResponse({ error });
+    return handleCronErrorResponse({ error });
   }
 }

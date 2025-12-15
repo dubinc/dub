@@ -1,5 +1,4 @@
 import { queueDiscountCodeDeletion } from "@/lib/api/discounts/queue-discount-code-deletion";
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { createFraudEvents } from "@/lib/api/fraud/create-fraud-events";
 import { linkCache } from "@/lib/api/links/cache";
 import { includeTags } from "@/lib/api/links/include-tags";
@@ -14,7 +13,7 @@ import { prisma } from "@dub/prisma";
 import { FraudRuleType } from "@dub/prisma/client";
 import { log } from "@dub/utils";
 import { z } from "zod";
-import { logAndRespond } from "../../../utils";
+import { handleCronErrorResponse, logAndRespond } from "../../../utils";
 import { cancelCommissions } from "./cancel-commissions";
 
 const schema = z.object({
@@ -212,6 +211,6 @@ export async function POST(req: Request) {
       type: "cron",
     });
 
-    return handleAndReturnErrorResponse({ error });
+    return handleCronErrorResponse({ error });
   }
 }

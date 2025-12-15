@@ -1,8 +1,9 @@
-import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { DubApiError } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { processOrder } from "@/lib/integrations/shopify/process-order";
 import { redis } from "@/lib/upstash";
 import { z } from "zod";
+import { handleCronErrorResponse } from "../../utils";
 
 export const dynamic = "force-dynamic";
 
@@ -66,6 +67,6 @@ export async function POST(req: Request) {
       });
     }
   } catch (error) {
-    return handleAndReturnErrorResponse({ error });
+    return handleCronErrorResponse({ error });
   }
 }

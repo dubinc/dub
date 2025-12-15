@@ -1,4 +1,3 @@
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { conn } from "@/lib/planetscale";
 import {
@@ -9,6 +8,7 @@ import { prisma } from "@dub/prisma";
 import { ProgramEnrollment } from "@dub/prisma/client";
 import { differenceInDays, format } from "date-fns";
 import { NextResponse } from "next/server";
+import { handleCronErrorResponse } from "../../utils";
 
 export const dynamic = "force-dynamic";
 
@@ -361,6 +361,6 @@ export async function GET(req: Request) {
     return NextResponse.json(response);
   } catch (error) {
     console.error("Failed to process partner activity updates:", error);
-    return handleAndReturnErrorResponse({ error });
+    return handleCronErrorResponse({ error });
   }
 }

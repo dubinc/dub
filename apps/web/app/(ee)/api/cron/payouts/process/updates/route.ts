@@ -1,5 +1,4 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { sendBatchEmail } from "@dub/email";
@@ -7,7 +6,7 @@ import PartnerPayoutConfirmed from "@dub/email/templates/partner-payout-confirme
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, currencyFormatter, log } from "@dub/utils";
 import { z } from "zod";
-import { logAndRespond } from "../../../utils";
+import { handleCronErrorResponse, logAndRespond } from "../../../utils";
 
 export const dynamic = "force-dynamic";
 
@@ -178,6 +177,6 @@ export async function POST(req: Request) {
       mention: true,
     });
 
-    return handleAndReturnErrorResponse({ error });
+    return handleCronErrorResponse({ error });
   }
 }

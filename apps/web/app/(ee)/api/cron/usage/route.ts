@@ -1,8 +1,8 @@
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { log } from "@dub/utils";
 import { NextResponse } from "next/server";
+import { handleCronErrorResponse } from "../utils";
 import { updateUsage } from "./utils";
 
 /*
@@ -33,7 +33,7 @@ async function handler(req: Request) {
       type: "cron",
     });
 
-    return handleAndReturnErrorResponse({ error });
+    return handleCronErrorResponse({ error });
   }
 }
 
