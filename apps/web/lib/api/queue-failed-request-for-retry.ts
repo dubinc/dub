@@ -2,6 +2,7 @@ import { Prisma } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { HTTPMethods } from "@upstash/qstash";
 import { NextRequest } from "next/server";
+import { logger } from "../axiom/server";
 import { qstash } from "../cron";
 import { parseRequestBody } from "./utils";
 
@@ -46,7 +47,6 @@ export async function queueFailedRequestForRetry({
     body: await parseRequestBody(errorReq),
     headers: {
       ...Object.fromEntries(errorReq.headers.entries()),
-      // Authorization: `Bearer ${await encryptToken(apiKey)}`,
     },
     delay: "10s",
     retries: 5,
@@ -58,5 +58,13 @@ export async function queueFailedRequestForRetry({
       url,
       messageId: response.messageId,
     });
+
+    logger.info("request.retry.queued", {
+      url,
+      method,
+      messageId: response.messageId,
+    });
+
+    await logger.flush();
   }
 }
