@@ -19,7 +19,6 @@ export const OAUTH_CONFIG = {
 // Keep it separate from the actual scopes to avoid confusion
 // We don't want all the scopes to be requested by an app
 export const OAUTH_SCOPES = [
-  "workspaces.settings.write",
   "links.read",
   "links.write",
   "tags.read",
@@ -36,7 +35,6 @@ export const OAUTH_SCOPES = [
 
 // Scope descriptions
 export const OAUTH_SCOPE_DESCRIPTIONS = {
-  "workspaces.settings.write": "Update limited workspace information",
   "links.read": "Read access to links",
   "links.write": "Read and Write access to links",
   "tags.read": "Read access to tags",

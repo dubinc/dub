@@ -3,7 +3,6 @@ import { WorkspaceRole } from "@dub/prisma/client";
 export const PERMISSION_ACTIONS = [
   "workspaces.read",
   "workspaces.write",
-  "workspaces.settings.write",
   "links.read",
   "links.write",
   "tags.read",
@@ -58,11 +57,6 @@ export const ROLE_PERMISSIONS: {
   {
     action: "workspaces.write",
     description: "update or delete the current workspace",
-    roles: ["owner"],
-  },
-  {
-    action: "workspaces.settings.write",
-    description: "update limited workspace settings",
     roles: ["owner"],
   },
   {

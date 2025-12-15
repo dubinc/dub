@@ -14,7 +14,6 @@ export const SCOPES = [
   "domains.write",
   "workspaces.read",
   "workspaces.write",
-  "workspaces.settings.write",
   "webhooks.read",
   "webhooks.write",
   "groups.read",
@@ -114,13 +113,6 @@ export const RESOURCE_SCOPES: {
     scope: "workspaces.write",
     roles: ["owner"],
     permissions: ["workspaces.write", "workspaces.read"],
-    type: "write",
-    resource: "workspaces",
-  },
-  {
-    scope: "workspaces.settings.write",
-    roles: ["owner"],
-    permissions: ["workspaces.settings.write"],
     type: "write",
     resource: "workspaces",
   },
@@ -234,10 +226,7 @@ export const getScopesByResourceForRole = (role: WorkspaceRole) => {
   const groupedByResource = {};
 
   const allowedScopes = RESOURCE_SCOPES.map((scope) => {
-    if (
-      scope.roles.includes(role) &&
-      scope.scope !== "workspaces.settings.write"
-    ) {
+    if (scope.roles.includes(role)) {
       return scope;
     }
   }).filter(Boolean);

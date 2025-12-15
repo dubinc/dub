@@ -51,13 +51,16 @@ export const authorizeRequestSchema = z.object({
     .nullable()
     .transform((scope) => {
       // split by comma or space or plus sign
-      const scopes = [
-        ...new Set((scope ?? "").split(/[,\s+]/).filter(Boolean)),
-      ];
+      let scopes = [...new Set((scope ?? "").split(/[,\s+]/).filter(Boolean))];
 
       if (!scopes.includes("user.read")) {
         scopes.push("user.read");
       }
+
+      // remove workspaces.read and write
+      // We can remove this filter after existing integrations are updated
+      // Doing this to prevent zod throwing an error when the scopes are invalid
+      scopes = scopes.filter((scope) => !scope.startsWith("workspaces."));
 
       return scopes;
     })
