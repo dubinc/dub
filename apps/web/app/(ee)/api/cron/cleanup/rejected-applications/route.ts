@@ -43,6 +43,6 @@ export async function POST(req: Request) {
       type: "errors",
     });
 
-    return handleCronErrorResponse(error);
+    return handleCronErrorResponse({ error });
   }
 }
