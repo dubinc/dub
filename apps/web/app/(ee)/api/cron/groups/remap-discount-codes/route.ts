@@ -1,10 +1,9 @@
 import { isDiscountEquivalent } from "@/lib/api/discounts/is-discount-equivalent";
 import { queueDiscountCodeDeletion } from "@/lib/api/discounts/queue-discount-code-deletion";
-import { handleCronErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { prisma } from "@dub/prisma";
 import { z } from "zod";
-import { logAndRespond } from "../../utils";
+import { handleCronErrorResponse, logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";
 
