@@ -5,6 +5,7 @@ import Stripe from "stripe";
 import { accountApplicationDeauthorized } from "./account-application-deauthorized";
 import { accountUpdated } from "./account-updated";
 import { balanceAvailable } from "./balance-available";
+import { payoutFailed } from "./payout-failed";
 import { payoutPaid } from "./payout-paid";
 
 const relevantEvents = new Set([
@@ -12,6 +13,7 @@ const relevantEvents = new Set([
   "account.updated",
   "balance.available",
   "payout.paid",
+  "payout.failed",
 ]);
 
 // POST /api/stripe/connect/webhook – listen to Stripe Connect webhooks (for connected accounts)
@@ -52,6 +54,9 @@ export const POST = async (req: Request) => {
         break;
       case "payout.paid":
         response = await payoutPaid(event);
+        break;
+      case "payout.failed":
+        response = await payoutFailed(event);
         break;
     }
   } catch (error) {

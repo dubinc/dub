@@ -3,7 +3,7 @@ import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { sendEmail } from "@dub/email";
 import PartnerPayoutWithdrawalCompleted from "@dub/email/templates/partner-payout-withdrawal-completed";
 import { prisma } from "@dub/prisma";
-import { currencyFormatter, log } from "@dub/utils";
+import { currencyFormatter, log, prettyPrint } from "@dub/utils";
 import { z } from "zod";
 import { logAndRespond } from "../../utils";
 
@@ -71,7 +71,7 @@ export async function POST(req: Request) {
       });
 
       console.log(
-        `Sent email to partner ${partner.email} (${stripeAccount}): ${JSON.stringify(sentEmail, null, 2)}`,
+        `Sent email to partner ${partner.email} (${stripeAccount}): ${prettyPrint(sentEmail)}`,
       );
     }
 
