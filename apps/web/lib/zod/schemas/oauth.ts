@@ -62,7 +62,7 @@ export const authorizeRequestSchema = z.object({
       return scopes;
     })
     .refine((scopes) => scopes.every((scope) => OAUTH_SCOPES.includes(scope)), {
-      message: "Invalid scopes",
+      message: "One or more provided OAuth scopes are invalid or unsupported.",
     }),
   code_challenge: z.string().max(190).optional(),
   code_challenge_method: z

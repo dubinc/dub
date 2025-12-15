@@ -93,7 +93,7 @@ export const PATCH = withWorkspace(
     }
   },
   {
-    requiredPermissions: ["workspaces.write"],
+    requiredPermissions: ["workspaces.settings.write"],
     requiredPlan: [
       "business",
       "business plus",
