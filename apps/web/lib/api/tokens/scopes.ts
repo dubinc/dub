@@ -234,7 +234,10 @@ export const getScopesByResourceForRole = (role: WorkspaceRole) => {
   const groupedByResource = {};
 
   const allowedScopes = RESOURCE_SCOPES.map((scope) => {
-    if (scope.roles.includes(role)) {
+    if (
+      scope.roles.includes(role) &&
+      scope.scope !== "workspaces.settings.write"
+    ) {
       return scope;
     }
   }).filter(Boolean);
