@@ -494,6 +494,7 @@ export const withWorkspace = (
         return handleAndReturnErrorResponse({
           error,
           requestHeaders,
+          responseHeaders,
         });
       }
     },
