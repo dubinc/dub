@@ -141,7 +141,6 @@ function PageControls({ partner }: { partner: EnrolledPartnerProps }) {
     useAction(resendProgramInviteAction, {
       onSuccess: async () => {
         toast.success("Resent the partner invite.");
-        setIsOpen(false);
       },
       onError: ({ error }) => {
         toast.error(error.serverError);
