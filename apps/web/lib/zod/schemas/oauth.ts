@@ -48,7 +48,7 @@ export const authorizeRequestSchema = z.object({
   state: z.string().max(1024).optional(),
   scope: z
     .string()
-    .nullable()
+    .nullish()
     .transform((scope) => {
       // split by comma or space or plus sign
       let scopes = [...new Set((scope ?? "").split(/[,\s+]/).filter(Boolean))];
