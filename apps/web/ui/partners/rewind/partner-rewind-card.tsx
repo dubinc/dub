@@ -41,6 +41,7 @@ export function PartnerRewindCard() {
             <img
               src="https://assets.dub.co/misc/partner-rewind-2025/revenue.png"
               alt=""
+              draggable={false}
               className="h-20 object-contain object-left"
             />
 
