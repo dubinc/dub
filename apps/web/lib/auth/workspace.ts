@@ -2,6 +2,7 @@ import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { BetaFeatures, PlanProps, WorkspaceWithUsers } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
+import { Prisma } from "@dub/prisma/client";
 import { API_DOMAIN, getSearchParams } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { headers } from "next/headers";
@@ -21,8 +22,6 @@ import { hashToken } from "./hash-token";
 import { rateLimitRequest } from "./rate-limit-request";
 import { TokenCacheItem, tokenCache } from "./token-cache";
 import { Session, getSession } from "./utils";
-import { Prisma } from "@dub/prisma/client";
-
 
 // Remove after testing before merging the PR
 // Simulates a Prisma database connection error for testing purposes.
@@ -509,7 +508,10 @@ export const withWorkspace = (
           })(),
         );
 
-        return handleAndReturnErrorResponse({ error, requestHeaders });
+        return handleAndReturnErrorResponse({
+          error,
+          requestHeaders,
+        });
       }
     },
   );

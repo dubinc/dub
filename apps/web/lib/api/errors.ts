@@ -56,6 +56,12 @@ const ErrorSchema = z.object({
 type ErrorResponse = z.infer<typeof ErrorSchema>;
 export type ErrorCodes = z.infer<typeof ErrorCode>;
 
+interface ErrorHandlerOptions {
+  error: unknown;
+  responseHeaders?: Headers;
+  requestHeaders?: Headers;
+}
+
 export class DubApiError extends Error {
   public readonly code: z.infer<typeof ErrorCode>;
   public readonly docUrl?: string;
@@ -160,12 +166,6 @@ function handleApiError(error: any): ErrorResponse & { status: number } {
   };
 }
 
-interface ErrorHandlerOptions {
-  error: unknown;
-  responseHeaders?: Headers;
-  requestHeaders?: Headers;
-}
-
 export function handleAndReturnErrorResponse({
   error,
   responseHeaders,
@@ -175,6 +175,8 @@ export function handleAndReturnErrorResponse({
 
   // Build final response headers & status code
   const headers = new Headers(responseHeaders);
+
+  const upstashSignature = requestHeaders?.get("upstash-signature");
 
   const isQStashCallback = requestHeaders?.get("upstash-signature") != null;
   if (isQStashCallback) {
