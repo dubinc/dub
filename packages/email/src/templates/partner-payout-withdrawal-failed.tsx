@@ -38,12 +38,12 @@ export default function PartnerPayoutWithdrawalFailed({
     currency: string;
     failureReason?: string | null;
   };
-  bankAccount?: {
+  bankAccount: {
     account_holder_name: string | null;
     bank_name: string | null;
     last4: string;
     routing_number: string | null;
-  };
+  } | null;
 }) {
   const amountFormatted = currencyFormatter(payout.amount, {
     currency: payout.currency,
@@ -135,9 +135,10 @@ export default function PartnerPayoutWithdrawalFailed({
             )}
 
             <Text>
-              Please update your bank account details as soon as possible. A
-              failed payout is automatically retried, so having accurate bank
-              details on file ensures your payout can be successfully deposited.
+              Please update your bank account details as soon as possible.
+              Failed transfers are automatically retried, so having accurate
+              bank details on file will ensure your funds are deposited
+              successfully.
             </Text>
 
             <Section className="my-8">

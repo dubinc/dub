@@ -73,11 +73,12 @@ export async function POST(req: Request) {
                 last4: defaultExternalAccount.last4,
                 routing_number: defaultExternalAccount.routing_number,
               }
-            : undefined;
+            : null;
 
         const sentEmail = await sendEmail({
           variant: "notifications",
-          subject: `[Action Required]: Your recent Dub auto-withdrawal failed`,
+          subject:
+            "[Action Required]: Your recent auto-withdrawal from Dub failed",
           to: partner.email,
           react: PartnerPayoutWithdrawalFailed({
             email: partner.email,
