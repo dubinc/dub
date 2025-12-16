@@ -185,6 +185,7 @@ async function createCommission({
   if (!commission.customer && !commission.transaction) {
     const programEnrollment = await prisma.programEnrollment.findFirst({
       where: {
+        programId: program.id,
         partner: {
           email: commission.partnership.email,
         },
