@@ -153,6 +153,84 @@ async function createCommission({
     entity_id: commission.key,
   } as const;
 
+  const commissionFound = await prisma.commission.findUnique({
+    where: {
+      invoiceId_programId: {
+        invoiceId: commission.key, // This is not the actual invoice ID, but we use this to deduplicate the commissions
+        programId: program.id,
+      },
+    },
+  });
+
+  if (commissionFound) {
+    console.log(`Commission ${commission.key} already exists, skipping...`);
+    return;
+  }
+
+  // Earnings
+  let earnings = commission.amount;
+  const earningsCurrency = commission.currency;
+
+  if (earningsCurrency.toUpperCase() !== "USD" && fxRates) {
+    const { amount: convertedAmount } = convertCurrencyWithFxRates({
+      currency: earningsCurrency,
+      amount: earnings,
+      fxRates,
+    });
+
+    earnings = convertedAmount;
+  }
+
+  // Handle manual commissions (No customer and transaction)
+  if (!commission.customer && !commission.transaction) {
+    const programEnrollment = await prisma.programEnrollment.findFirst({
+      where: {
+        programId: program.id,
+        partner: {
+          email: commission.partnership.email,
+        },
+      },
+      select: {
+        partnerId: true,
+      },
+    });
+
+    // This should never happen, but just in case
+    if (!programEnrollment) {
+      await logImportError({
+        ...commonImportLogInputs,
+        code: "PARTNER_NOT_FOUND",
+        message: `Program enrollment for partner ${commission.partnership.email} not found in Dub.`,
+      });
+
+      return;
+    }
+
+    await prisma.commission.create({
+      data: {
+        id: createId({ prefix: "cm_" }),
+        type: "custom",
+        programId: program.id,
+        partnerId: programEnrollment.partnerId,
+        amount: 0,
+        earnings,
+        quantity: 1,
+        currency: "usd",
+        status: toDubStatus[commission.reward_status],
+        invoiceId: commission.key,
+        createdAt: new Date(commission.created_at),
+      },
+    });
+
+    await syncTotalCommissions({
+      partnerId: programEnrollment.partnerId,
+      programId: program.id,
+    });
+
+    return;
+  }
+
+  // Handle the sale commissions (transactions and customers are required)
   if (!commission.transaction) {
     await logImportError({
       ...commonImportLogInputs,
@@ -170,20 +248,6 @@ async function createCommission({
       message: `Commission ${commission.key} has no customer.`,
     });
 
-    return;
-  }
-
-  const commissionFound = await prisma.commission.findUnique({
-    where: {
-      invoiceId_programId: {
-        invoiceId: commission.key, // This is not the actual invoice ID, but we use this to deduplicate the commissions
-        programId: program.id,
-      },
-    },
-  });
-
-  if (commissionFound) {
-    console.log(`Commission ${commission.key} already exists, skipping...`);
     return;
   }
 
@@ -215,20 +279,6 @@ async function createCommission({
     });
 
     amount = convertedAmount;
-  }
-
-  // Earnings
-  let earnings = commission.amount;
-  const earningsCurrency = commission.currency;
-
-  if (earningsCurrency.toUpperCase() !== "USD" && fxRates) {
-    const { amount: convertedAmount } = convertCurrencyWithFxRates({
-      currency: earningsCurrency,
-      amount: earnings,
-      fxRates,
-    });
-
-    earnings = convertedAmount;
   }
 
   // here, we also check for commissions that have already been recorded on Dub

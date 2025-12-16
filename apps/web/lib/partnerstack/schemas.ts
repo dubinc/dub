@@ -95,4 +95,7 @@ export const partnerStackCommission = z.object({
     })
     .nullable(),
   reward_status: z.enum(["hold", "pending", "approved", "declined", "paid"]),
+  partnership: z.object({
+    email: z.string(),
+  }),
 });
