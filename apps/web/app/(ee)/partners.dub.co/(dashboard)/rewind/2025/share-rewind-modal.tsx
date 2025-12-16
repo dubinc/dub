@@ -76,7 +76,7 @@ function ShareRewindModalInner({ rewindId, step }: ShareRewindModalInnerProps) {
 
               toast.success("Copied to clipboard");
             } catch (err) {
-              console.error("Failed to copy image: ", err.name, err.message);
+              console.error("Failed to copy image: ", err);
               toast.error("Failed to copy image to clipboard");
             }
           }}
