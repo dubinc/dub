@@ -197,5 +197,5 @@ export const getGroupRulesQuerySchema = z.object({
 
 export const GroupRuleSchema = z.object({
   id: z.string(),
-  workflow: workflowSchema,
+  // workflow: workflowSchema,
 });

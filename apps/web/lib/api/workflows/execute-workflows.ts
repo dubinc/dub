@@ -10,6 +10,7 @@ import {
 import { prisma } from "@dub/prisma";
 import { WorkflowTrigger } from "@dub/prisma/client";
 import { executeCompleteBountyWorkflow } from "./execute-complete-bounty-workflow";
+import { executeMoveGroupWorkflow } from "./execute-move-group-workflow";
 import { executeSendCampaignWorkflow } from "./execute-send-campaign-workflow";
 import { parseWorkflowConfig } from "./parse-workflow-config";
 import { isScheduledWorkflow } from "./utils";
@@ -91,6 +92,15 @@ export async function executeWorkflows({
             context: workflowContext,
           });
         }
+
+        break;
+      }
+
+      case WORKFLOW_ACTION_TYPES.MoveGroup: {
+        await executeMoveGroupWorkflow({
+          workflow,
+          context: workflowContext,
+        });
 
         break;
       }
