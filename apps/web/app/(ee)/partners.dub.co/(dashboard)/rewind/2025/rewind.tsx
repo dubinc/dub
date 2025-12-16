@@ -57,7 +57,7 @@ export function Rewind({
     }, STEP_DELAY_MS);
 
     return () => clearTimeout(timeout);
-  }, [steps, currentStepIndex, isPaused]);
+  }, [steps, currentStepIndex, isPaused, onComplete]);
 
   const { ShareRewindModal, setShowShareRewindModal } = useShareRewindModal({
     rewindId: partnerRewind.id,
