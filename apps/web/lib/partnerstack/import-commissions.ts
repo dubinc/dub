@@ -123,7 +123,6 @@ export async function importCommissions(payload: PartnerStackImportPayload) {
   // Import scheduled commissions
   if (!hasMore) {
     const commissions = await partnerStackApi.listCommissions({
-      startingAfter: currentStartingAfter,
       status: "scheduled",
     });
 
