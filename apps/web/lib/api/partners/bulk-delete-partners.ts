@@ -101,6 +101,17 @@ export async function bulkDeletePartners({
   });
   console.log(`Deleted ${deletedPayouts.count} payouts`);
 
+  const deletedMessages = await prisma.message.deleteMany({
+    where: {
+      programEnrollment: {
+        id: {
+          in: programEnrollments.map((pe) => pe.id),
+        },
+      },
+    },
+  });
+  console.log(`Deleted ${deletedMessages.count} messages`);
+
   if (deletePartners) {
     const deletedPartners = await prisma.partner.deleteMany({
       where: {
