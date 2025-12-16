@@ -61,7 +61,6 @@ export async function importCommissions(payload: PartnerStackImportPayload) {
       }),
 
       partnerStackApi.listCommissions({
-        startingAfter: currentStartingAfter,
         status: "scheduled",
       }),
     ]);
