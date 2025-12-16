@@ -12,6 +12,7 @@ import {
   currencyFormatter,
   getParamsFromURL,
   getPrettyUrl,
+  OG_AVATAR_URL,
 } from "@dub/utils";
 import { useParams } from "next/navigation";
 import { Fragment, HTMLProps, useMemo } from "react";
@@ -50,6 +51,17 @@ export function CustomerDetailsColumn({
 
   return (
     <div className="grid grid-cols-1 gap-6 overflow-hidden whitespace-nowrap text-sm text-neutral-900 min-[320px]:grid-cols-2 lg:grid-cols-1">
+      <div>
+        {customer ? (
+          <img
+            src={customer.avatar || `${OG_AVATAR_URL}${customer.name}`}
+            alt={customer.name}
+            className="size-12 rounded-full"
+          />
+        ) : (
+          <div className="size-12 animate-pulse rounded-full bg-neutral-200" />
+        )}
+      </div>
       <div className="flex flex-col gap-2">
         <DetailHeading>Details</DetailHeading>
         {customer ? (
