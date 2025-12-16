@@ -38,12 +38,12 @@ export function Conclusion({
       </div>
       <p
         className={cn(
-          "text-content-default max-w-[440px] text-pretty text-xl font-medium",
+          "text-content-default max-w-[480px] text-pretty text-xl font-medium",
           "animate-slide-up-fade [--offset:10px] [animation-delay:0.3s] [animation-duration:1s] [animation-fill-mode:both]",
         )}
       >
-        Thank you for all your hard work being a Dub Partner. We can&rsquo;t to
-        see what you&rsquo;ll do in 2026!
+        Thank you for all your hard work being a Dub Partner. We can&rsquo;t
+        wait to see what you&rsquo;ll do in 2026!
       </p>
       <div className="animate-slide-up-fade flex items-center gap-2 [--offset:10px] [animation-delay:0.4s] [animation-duration:1s] [animation-fill-mode:both]">
         <button

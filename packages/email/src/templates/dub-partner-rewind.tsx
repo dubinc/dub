@@ -79,7 +79,7 @@ export default function DubPartnerRewind({
 
             <Text className="mx-auto mb-8 mt-0 max-w-[400px] text-center text-sm leading-6 text-neutral-600">
               Thank you for all your hard work being a Dub Partner. We
-              can&rsquo;t to see what you&rsquo;ll do in 2026!
+              can&rsquo;t wait to see what you&rsquo;ll do in 2026!
             </Text>
 
             <Section className="mb-8 text-center">
