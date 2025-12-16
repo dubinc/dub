@@ -22,7 +22,7 @@ function ShareRewindModal(props: ShareRewindModalProps) {
   );
 }
 
-function ShareRewindModalInner({ rewindId, step }: ShareRewindModalProps) {
+function ShareRewindModalInner({ rewindId, step }: ShareRewindModalInnerProps) {
   const imageUrl = `/api/partner-profile/rewind/image?${new URLSearchParams({ rewindId, step }).toString()}`;
 
   const [isLoading, setIsLoading] = useState(false);
