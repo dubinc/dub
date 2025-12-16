@@ -150,7 +150,7 @@ export default function WorkspacePeopleClient() {
                 <h3 className="text-sm font-medium">
                   {user.name || user.email}
                   {isCurrentUser && (
-                    <span className="ml-1.5 text-neutral-500">(You)</span>
+                    <span className="ml-1 text-neutral-500">(You)</span>
                   )}
                 </h3>
                 <p className="text-xs text-neutral-500">
