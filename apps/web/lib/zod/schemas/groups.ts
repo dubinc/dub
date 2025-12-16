@@ -12,6 +12,7 @@ import { programLanderSchema } from "./program-lander";
 import { RewardSchema } from "./rewards";
 import { parseUrlSchema } from "./utils";
 import { UTMTemplateSchema } from "./utm";
+import { workflowConditionSchema, workflowSchema } from "./workflows";
 
 export const DEFAULT_PARTNER_GROUP = {
   name: "Default Group",
@@ -182,4 +183,19 @@ export const getGroupsQuerySchema = z
 
 export const getGroupsCountQuerySchema = z.object({
   search: z.string().optional(),
+});
+
+export const createGroupRuleSchema = z.object({
+  fromGroupId: z.string(),
+  toGroupId: z.string(),
+  triggerCondition: workflowConditionSchema,
+});
+
+export const getGroupRulesQuerySchema = z.object({
+  groupId: z.string(),
+});
+
+export const GroupRuleSchema = z.object({
+  id: z.string(),
+  workflow: workflowSchema,
 });
