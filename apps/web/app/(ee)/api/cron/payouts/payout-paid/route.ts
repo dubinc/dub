@@ -45,7 +45,6 @@ export async function POST(req: Request) {
 
     const updatedPayouts = await prisma.payout.updateMany({
       where: {
-        status: "sent",
         stripePayoutId: stripePayout.id,
       },
       data: {

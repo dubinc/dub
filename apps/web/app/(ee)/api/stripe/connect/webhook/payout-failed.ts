@@ -29,7 +29,6 @@ export async function payoutFailed(event: Stripe.Event) {
 
   const updatedPayouts = await prisma.payout.updateMany({
     where: {
-      status: "sent",
       stripePayoutId: stripePayout.id,
     },
     data: {
@@ -44,9 +43,6 @@ export async function payoutFailed(event: Stripe.Event) {
 
   if (partner.email) {
     try {
-      // Generate Stripe account link for updating bank account
-      const { url } = await stripe.accounts.createLoginLink(stripeConnectId);
-
       // Fetch bank account information
       const { data: externalAccounts } =
         await stripe.accounts.listExternalAccounts(stripeConnectId);
@@ -73,7 +69,6 @@ export async function payoutFailed(event: Stripe.Event) {
         to: partner.email,
         react: PartnerStripePayoutFailed({
           email: partner.email,
-          accountUpdateUrl: url,
           bankAccount,
           payout: {
             amount: stripePayout.amount,

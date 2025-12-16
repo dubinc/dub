@@ -19,7 +19,6 @@ import { Footer } from "../components/footer";
 // Send this email to the partner when the Stripe payout fails
 export default function PartnerStripePayoutFailed({
   email = "panic@thedis.co",
-  accountUpdateUrl = "https://partners.dub.co/payouts",
   payout = {
     amount: 530000,
     currency: "usd",
@@ -34,7 +33,6 @@ export default function PartnerStripePayoutFailed({
   },
 }: {
   email: string;
-  accountUpdateUrl: string;
   payout: {
     amount: number; // in cents
     currency: string;
@@ -142,7 +140,7 @@ export default function PartnerStripePayoutFailed({
             <Section className="my-8">
               <Link
                 className="rounded-lg bg-neutral-900 px-6 py-3 text-[13px] font-medium text-white no-underline"
-                href={accountUpdateUrl}
+                href="https://partners.dub.co/payouts"
               >
                 Update bank account
               </Link>
