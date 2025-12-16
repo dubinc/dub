@@ -3,7 +3,7 @@ import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { sendEmail } from "@dub/email";
 import PartnerPayoutWithdrawalCompleted from "@dub/email/templates/partner-payout-withdrawal-completed";
 import { prisma } from "@dub/prisma";
-import { currencyFormatter, log, prettyPrint } from "@dub/utils";
+import { currencyFormatter, log, pluralize, prettyPrint } from "@dub/utils";
 import { z } from "zod";
 import { logAndRespond } from "../../utils";
 
@@ -75,7 +75,7 @@ export async function POST(req: Request) {
     }
 
     return logAndRespond(
-      `Updated ${updatedPayouts.count} payouts for partner ${partner.email} (${stripeAccount}) to "completed" status.`,
+      `Updated ${updatedPayouts.count} ${pluralize("payout", updatedPayouts.count)} for partner ${partner.email} (${stripeAccount}) to "completed" status.`,
     );
   } catch (error) {
     await log({

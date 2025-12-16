@@ -16,8 +16,8 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-// Send this email to the partner when the Stripe payout fails
-export default function PartnerStripePayoutFailed({
+// Send this email after payout.failed webhook is received
+export default function PartnerPayoutWithdrawalFailed({
   email = "panic@thedis.co",
   payout = {
     amount: 530000,
@@ -52,7 +52,9 @@ export default function PartnerStripePayoutFailed({
   return (
     <Html>
       <Head />
-      <Preview>Action Required - Your recent payout failed</Preview>
+      <Preview>
+        Please update your bank account details to receive payouts.
+      </Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-8 max-w-[600px] px-8 py-8">
@@ -61,15 +63,16 @@ export default function PartnerStripePayoutFailed({
             </Section>
 
             <Heading className="mx-0 my-8 p-0 text-lg font-medium text-black">
-              Your recent payout failed
+              Your recent auto-withdrawal failed
             </Heading>
 
             <Text>
-              We attempted to send your recent payout of{" "}
+              We attempted to transfer{" "}
               <span className="font-semibold text-purple-600">
                 {amountFormatted}
               </span>{" "}
-              to your connected bank account, but the transaction failed.
+              from your Stripe Express account to your connected bank account,
+              but the transaction failed.
             </Text>
 
             {payout.failureReason && (
@@ -147,13 +150,14 @@ export default function PartnerStripePayoutFailed({
             </Section>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              If you have any questions, please reach out to us:{" "}
+              If you have any questions, please{" "}
               <Link
                 href="https://dub.co/contact/support"
                 className="font-medium text-black underline"
               >
-                https://dub.co/contact/support
+                reach out to support
               </Link>
+              .
             </Text>
 
             <Footer email={email} />
