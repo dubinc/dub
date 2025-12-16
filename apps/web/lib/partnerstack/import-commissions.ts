@@ -26,6 +26,7 @@ const toDubStatus: Record<
   approved: "processed",
   declined: "canceled",
   paid: "paid",
+  scheduled: "pending",
 };
 
 export async function importCommissions(payload: PartnerStackImportPayload) {
@@ -53,9 +54,20 @@ export async function importCommissions(payload: PartnerStackImportPayload) {
   let currentStartingAfter = startingAfter;
 
   while (hasMore && processedBatches < MAX_BATCHES) {
-    const commissions = await partnerStackApi.listCommissions({
-      startingAfter: currentStartingAfter,
-    });
+    // Fetch both regular commissions and scheduled commissions
+    const [regularCommissions, scheduledCommissions] = await Promise.all([
+      partnerStackApi.listCommissions({
+        startingAfter: currentStartingAfter,
+      }),
+
+      partnerStackApi.listCommissions({
+        startingAfter: currentStartingAfter,
+        status: "scheduled",
+      }),
+    ]);
+
+    // Combine both sets of commissions
+    const commissions = [...regularCommissions, ...scheduledCommissions];
 
     if (commissions.length === 0) {
       hasMore = false;
