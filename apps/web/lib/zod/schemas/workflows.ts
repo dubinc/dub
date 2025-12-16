@@ -54,6 +54,7 @@ export const WORKFLOW_COMPARISON_OPERATOR_LABELS: Record<
 export enum WORKFLOW_ACTION_TYPES {
   AwardBounty = "awardBounty",
   SendCampaign = "sendCampaign",
+  MoveGroup = "moveGroup",
 }
 
 export const WORKFLOW_LOGICAL_OPERATORS = ["AND"] as const;
@@ -84,6 +85,14 @@ export const workflowActionSchema = z.discriminatedUnion("type", [
     type: z.literal(WORKFLOW_ACTION_TYPES.SendCampaign),
     data: z.object({
       campaignId: z.string(),
+    }),
+  }),
+
+  z.object({
+    type: z.literal(WORKFLOW_ACTION_TYPES.MoveGroup),
+    data: z.object({
+      fromGroupId: z.string(),
+      toGroupId: z.string(),
     }),
   }),
 ]);

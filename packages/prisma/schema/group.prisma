@@ -41,6 +41,7 @@ model PartnerGroup {
   campaigns                CampaignGroup[]
   utmTemplate              UtmTemplate?              @relation(fields: [utmTemplateId], references: [id])
   partnerGroupDefaultLinks PartnerGroupDefaultLink[]
+  partnerGroupRules        PartnerGroupRule[]
 
   @@unique([programId, slug])
 }
@@ -60,4 +61,17 @@ model PartnerGroupDefaultLink {
 
   @@unique([groupId, url])
   @@index(programId)
+}
+
+model PartnerGroupRule {
+  id         String   @id @default(cuid())
+  programId  String
+  groupId    String
+  workflowId String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  program      Program      @relation(fields: [programId], references: [id], onDelete: Cascade)
+  partnerGroup PartnerGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  workflow     Workflow     @relation(fields: [workflowId], references: [id], onDelete: Cascade)
 }
