@@ -54,19 +54,9 @@ export async function importCommissions(payload: PartnerStackImportPayload) {
   let currentStartingAfter = startingAfter;
 
   while (hasMore && processedBatches < MAX_BATCHES) {
-    // Fetch both regular commissions and scheduled commissions
-    const [regularCommissions, scheduledCommissions] = await Promise.all([
-      partnerStackApi.listCommissions({
-        startingAfter: currentStartingAfter,
-      }),
-
-      partnerStackApi.listCommissions({
-        status: "scheduled",
-      }),
-    ]);
-
-    // Combine both sets of commissions
-    const commissions = [...regularCommissions, ...scheduledCommissions];
+    const commissions = await partnerStackApi.listCommissions({
+      startingAfter: currentStartingAfter,
+    });
 
     if (commissions.length === 0) {
       hasMore = false;
@@ -128,6 +118,69 @@ export async function importCommissions(payload: PartnerStackImportPayload) {
 
     currentStartingAfter = commissions[commissions.length - 1].key;
     processedBatches++;
+  }
+
+  // Import scheduled commissions
+  if (!hasMore) {
+    const commissions = await partnerStackApi.listCommissions({
+      startingAfter: currentStartingAfter,
+      status: "scheduled",
+    });
+
+    if (commissions.length > 0) {
+      const customersData = await prisma.customer.findMany({
+        where: {
+          projectId: program.workspaceId,
+          OR: [
+            {
+              email: {
+                in: commissions
+                  .map((commission) => commission.customer?.email)
+                  .filter(
+                    (email): email is string =>
+                      email !== null && email !== undefined,
+                  ),
+              },
+            },
+            {
+              externalId: {
+                in: commissions
+                  .map((commission) => commission.customer?.external_key)
+                  .filter(
+                    (externalKey): externalKey is string =>
+                      externalKey !== null && externalKey !== undefined,
+                  ),
+              },
+            },
+          ],
+        },
+        include: {
+          link: true,
+        },
+        orderBy: {
+          createdAt: "asc",
+        },
+      });
+
+      const customerLeadEvents = await getLeadEvents({
+        customerIds: customersData.map((customer) => customer.id),
+      }).then((res) => res.data);
+
+      await Promise.allSettled(
+        commissions.map((commission) =>
+          createCommission({
+            program,
+            commission,
+            fxRates,
+            importId,
+            customersData,
+            customerLeadEvents,
+          }),
+        ),
+      );
+
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
   }
 
   if (!hasMore) {
