@@ -37,10 +37,6 @@ export async function payoutFailed(event: Stripe.Event) {
     },
   });
 
-  if (updatedPayouts.count === 0) {
-    return `No "sent" payouts found for Stripe payout ${stripePayout.id}. Skipping...`;
-  }
-
   if (partner.email) {
     try {
       // Fetch bank account information
