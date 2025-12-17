@@ -20,6 +20,8 @@ const expectValidClickResponse = ({
         id: expect.any(String),
         name: expect.any(String),
         image: expect.any(String),
+        groupId: expect.any(String),
+        tenantId: expect.any(String),
       }),
     }),
     ...(hasDiscount && {
