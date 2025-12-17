@@ -141,6 +141,7 @@ export default function WorkspacePeopleClient() {
         maxSize: 900,
         cell: ({ row }) => {
           const user = row.original;
+          const isCurrentUser = session?.user?.email === user.email;
 
           return (
             <div className="flex items-center space-x-3">
@@ -148,6 +149,9 @@ export default function WorkspacePeopleClient() {
               <div className="flex flex-col">
                 <h3 className="text-sm font-medium">
                   {user.name || user.email}
+                  {isCurrentUser && (
+                    <span className="ml-1 text-neutral-500">(You)</span>
+                  )}
                 </h3>
                 <p className="text-xs text-neutral-500">
                   {status === "invited"

@@ -2,6 +2,7 @@ import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
+import { subDays } from "date-fns";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -18,23 +19,45 @@ export async function POST(req: Request) {
       rawBody,
     });
 
-    // rejected programEnrollments more than 30 days ago
-    const rejectedProgramEnrollments =
-      await prisma.programEnrollment.deleteMany({
-        where: {
-          status: "rejected",
-          updatedAt: {
-            lt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 30),
+    while (true) {
+      // rejected programEnrollments more than 30 days ago
+      const rejectedProgramEnrollments =
+        await prisma.programEnrollment.findMany({
+          where: {
+            status: "rejected",
+            updatedAt: {
+              lt: subDays(new Date(), 30),
+            },
+            // only delete if there are no commissions or messages
+            commissions: {
+              none: {},
+            },
+            messages: {
+              none: {},
+            },
           },
-          commissions: {
-            none: {}, // only delete if there are no commissions
+          take: 250,
+        });
+
+      if (rejectedProgramEnrollments.length === 0) {
+        console.log(
+          "No more rejected programEnrollments to delete, skipping...",
+        );
+        break;
+      }
+
+      const deletedRes = await prisma.programEnrollment.deleteMany({
+        where: {
+          id: {
+            in: rejectedProgramEnrollments.map(({ id }) => id),
           },
         },
       });
 
-    console.log(
-      `Deleted ${rejectedProgramEnrollments.count} rejected programEnrollments (older than 30 days)`,
-    );
+      console.log(
+        `Deleted ${deletedRes.count} rejected programEnrollments that are older than 30 days`,
+      );
+    }
 
     return NextResponse.json({ status: "OK" });
   } catch (error) {
