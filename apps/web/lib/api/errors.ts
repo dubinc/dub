@@ -104,7 +104,7 @@ export function fromZodError(error: ZodError): ErrorResponse {
   };
 }
 
-function handleApiError(error: any): ErrorResponse & { status: number } {
+export function handleApiError(error: any): ErrorResponse & { status: number } {
   console.error(error.message);
 
   // Send error to Axiom
