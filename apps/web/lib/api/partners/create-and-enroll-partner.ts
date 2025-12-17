@@ -24,6 +24,32 @@ interface CreateAndEnrollPartnerInput {
   userId: string;
 }
 
+// check if the tenantId already exists for a different enrolled partner
+// if so, throw an error
+const throwIfExistingTenantEnrollmentExists = async ({
+  tenantId,
+  programId,
+}: {
+  tenantId: string;
+  programId: string;
+}) => {
+  const existingTenantEnrollment = await prisma.programEnrollment.findUnique({
+    where: {
+      tenantId_programId: {
+        tenantId,
+        programId,
+      },
+    },
+  });
+
+  if (existingTenantEnrollment) {
+    throw new DubApiError({
+      message: `Partner with tenantId '${tenantId}' already enrolled in this program.`,
+      code: "conflict",
+    });
+  }
+};
+
 export const createAndEnrollPartner = async ({
   workspace,
   program,
@@ -65,24 +91,10 @@ export const createAndEnrollPartner = async ({
         });
         // else, if the passed tenantId is different from the existing enrollment...
       } else if (partner.tenantId) {
-        const existingTenantEnrollment =
-          await prisma.programEnrollment.findUnique({
-            where: {
-              tenantId_programId: {
-                tenantId: partner.tenantId,
-                programId: program.id,
-              },
-            },
-          });
-
-        // check if the tenantId already exists for a different enrolled partner
-        // if so, throw an error
-        if (existingTenantEnrollment) {
-          throw new DubApiError({
-            message: `Partner with tenantId '${partner.tenantId}' already enrolled in this program.`,
-            code: "conflict",
-          });
-        }
+        await throwIfExistingTenantEnrollmentExists({
+          tenantId: partner.tenantId,
+          programId: program.id,
+        });
 
         // else, update the existing enrollment with the new tenantId
         const updatedProgramEnrollment = await prisma.programEnrollment.update({
@@ -106,6 +118,11 @@ export const createAndEnrollPartner = async ({
         });
       }
     }
+  } else if (partner.tenantId) {
+    await throwIfExistingTenantEnrollmentExists({
+      tenantId: partner.tenantId,
+      programId: program.id,
+    });
   }
 
   const finalGroupId = partner.groupId || program.defaultGroupId;
