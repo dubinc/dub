@@ -3,8 +3,6 @@ export const REWIND_YEAR = 2025;
 export const REWIND_ASSETS_PATH =
   "https://assets.dub.co/misc/partner-rewind-2025";
 
-export const REWIND_EARNINGS_MINIMUM = 10_00; // $10
-
 export const REWIND_STEPS: {
   id: string;
   percentileId: string;

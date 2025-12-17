@@ -1,9 +1,6 @@
 import { PartnerRewindProps } from "@/lib/types";
 import { PartnerRewindSchema } from "@/lib/zod/schemas/partners";
-import {
-  REWIND_EARNINGS_MINIMUM,
-  REWIND_YEAR,
-} from "@/ui/partners/rewind/constants";
+import { REWIND_YEAR } from "@/ui/partners/rewind/constants";
 import { prisma } from "@dub/prisma";
 
 export async function getPartnerRewind({
@@ -51,8 +48,7 @@ export async function getPartnerRewind({
       pr.partnerId = ${partnerId}
       AND pr.year = ${REWIND_YEAR}`;
 
-  if (!rewinds.length || rewinds[0].totalEarnings < REWIND_EARNINGS_MINIMUM)
-    return null;
+  if (!rewinds.length) return null;
 
   return PartnerRewindSchema.parse({
     ...rewinds[0],

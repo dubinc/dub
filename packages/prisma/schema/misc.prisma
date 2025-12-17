@@ -13,7 +13,7 @@ model YearInReview {
   createdAt DateTime  @default(now())
   sentAt    DateTime?
 
-  @@index([workspaceId])
+  @@index(workspaceId)
 }
 
 model PartnerRewind {
@@ -31,5 +31,5 @@ model PartnerRewind {
   createdAt DateTime  @default(now())
   sentAt    DateTime?
 
-  @@index([partnerId])
+  @@unique([partnerId, year])
 }
