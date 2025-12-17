@@ -67,7 +67,7 @@ export default function DubPartnerRewind({
                   src="https://assets.dub.co/misc/partner-rewind-2025/hero.jpg"
                   width="500"
                   height="292"
-                  alt="Dub Program Marketplace"
+                  alt="Dub Partner Rewind"
                   className="mx-auto my-0 block h-auto max-w-full rounded-2xl border border-solid border-neutral-200"
                 />
               </Link>

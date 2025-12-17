@@ -79,11 +79,11 @@ export async function POST(req: Request) {
     }
 
     const sourceAccount = partnerAccounts.find(
-      ({ email }) => email === sourceEmail,
+      ({ email }) => email?.toLowerCase() === sourceEmail.toLowerCase(),
     );
 
     const targetAccount = partnerAccounts.find(
-      ({ email }) => email === targetEmail,
+      ({ email }) => email?.toLowerCase() === targetEmail.toLowerCase(),
     );
 
     if (!sourceAccount) {

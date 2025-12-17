@@ -1,5 +1,6 @@
 import DubPartnerRewind from "@dub/email/templates/dub-partner-rewind";
 import { prisma } from "@dub/prisma";
+import { chunk } from "@dub/utils";
 import "dotenv-flow/config";
 import { queueBatchEmail } from "../lib/email/queue-batch-email";
 
@@ -16,6 +17,7 @@ async function main() {
         },
       },
       year: 2025,
+      sentAt: null,
     },
     include: {
       partner: true,
@@ -47,6 +49,21 @@ async function main() {
   );
 
   console.log({ res });
+
+  const chunks = chunk(partnerRewinds, 1000);
+  for (const chunk of chunks) {
+    const res = await prisma.partnerRewind.updateMany({
+      where: {
+        id: {
+          in: chunk.map(({ id }) => id),
+        },
+      },
+      data: {
+        sentAt: new Date(),
+      },
+    });
+    console.log(`Updated ${res.count} partner rewinds to sent`);
+  }
 }
 
 main();
