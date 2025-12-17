@@ -153,8 +153,8 @@ export function CustomerDetailsColumn({
             Details
           </h2>
 
-          <div className="flex flex-col gap-2 text-xs">
-            <div className="flex flex-col gap-2 py-2.5">
+          <div className="mt-2.5 flex flex-col gap-5 text-xs">
+            <div className="flex flex-col gap-2">
               {click
                 ? [
                     {
@@ -214,9 +214,9 @@ export function CustomerDetailsColumn({
             </div>
 
             {customer?.externalId && (
-              <div className="flex flex-col">
+              <div className="flex flex-col gap-2.5">
                 <DetailHeading>External ID</DetailHeading>
-                <div className="py-2.5">
+                <div>
                   <CopyText
                     value={customer.externalId}
                     className="truncate text-xs"
@@ -228,9 +228,9 @@ export function CustomerDetailsColumn({
             )}
 
             {utmParams && Boolean(utmParams.length) && (
-              <div className="flex flex-col">
+              <div className="flex flex-col gap-2.5">
                 <DetailHeading>UTM</DetailHeading>
-                <div className="grid w-full grid-cols-[min-content,minmax(0,1fr)] gap-x-4 gap-y-2 overflow-hidden py-2.5">
+                <div className="grid w-full grid-cols-[min-content,minmax(0,1fr)] gap-x-4 gap-y-2 overflow-hidden">
                   {utmParams.map(({ key, label, value }) => (
                     <Fragment key={key}>
                       <span className="truncate">{label}</span>
@@ -250,7 +250,7 @@ export function CustomerDetailsColumn({
         </div>
       </div>
 
-      <div className="[&>*]:border [&>*]:border-red-500">
+      <div className="border-border-subtle rounded-lg border p-4">
         <div className="flex flex-col gap-2">
           <DetailHeading>Referral link</DetailHeading>
           {!customer || isCustomerActivityLoading ? (
