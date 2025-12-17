@@ -91,8 +91,7 @@ export const workflowActionSchema = z.discriminatedUnion("type", [
   z.object({
     type: z.literal(WORKFLOW_ACTION_TYPES.MoveGroup),
     data: z.object({
-      fromGroupId: z.string(),
-      toGroupId: z.string(),
+      groupId: z.string(),
     }),
   }),
 ]);

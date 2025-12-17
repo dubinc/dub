@@ -1,5 +1,5 @@
 import { createId } from "@/lib/api/create-id";
-import { DubApiError } from "@/lib/api/errors";
+import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
@@ -53,50 +53,20 @@ export const POST = withWorkspace(
   async ({ workspace, req }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const { fromGroupId, toGroupId, triggerCondition } =
-      createGroupRuleSchema.parse(await parseRequestBody(req));
+    const { groupId, triggerCondition } = createGroupRuleSchema.parse(
+      await parseRequestBody(req),
+    );
 
-    if (fromGroupId === toGroupId) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: "From group and to group cannot be the same.",
-      });
-    }
-
-    const groups = await prisma.partnerGroup.findMany({
-      where: {
-        programId,
-        id: {
-          in: [fromGroupId, toGroupId],
-        },
-      },
-      select: {
-        id: true,
-      },
+    await getGroupOrThrow({
+      groupId,
+      programId,
     });
-
-    const groupIds = new Set(groups.map((g) => g.id));
-
-    if (!groupIds.has(fromGroupId)) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: "From group does not exist.",
-      });
-    }
-
-    if (!groupIds.has(toGroupId)) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: "To group does not exist.",
-      });
-    }
 
     const partnerGroupRule = await prisma.$transaction(async (tx) => {
       const action: WorkflowAction = {
         type: WORKFLOW_ACTION_TYPES.MoveGroup,
         data: {
-          fromGroupId,
-          toGroupId,
+          groupId,
         },
       };
 
@@ -114,7 +84,7 @@ export const POST = withWorkspace(
         data: {
           id: createId({ prefix: "grl_" }),
           programId,
-          groupId: fromGroupId,
+          groupId,
           workflowId: workflow.id,
         },
       });

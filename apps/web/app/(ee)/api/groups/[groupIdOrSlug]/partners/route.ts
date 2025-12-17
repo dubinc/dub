@@ -1,6 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
-import { moveGroup } from "@/lib/api/groups/move-group";
+import { movePartnersToGroup } from "@/lib/api/groups/move-partners-to-group";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
@@ -35,7 +35,7 @@ export const POST = withWorkspace(
       });
     }
 
-    const count = await moveGroup({
+    const count = await movePartnersToGroup({
       programId,
       partnerIds,
       userId: session.user.id,

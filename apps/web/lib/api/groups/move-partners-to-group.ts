@@ -8,7 +8,7 @@ import { triggerDraftBountySubmissionCreation } from "../bounties/trigger-draft-
 import { includeProgramEnrollment } from "../links/include-program-enrollment";
 import { includeTags } from "../links/include-tags";
 
-interface MoveGroupParams {
+interface MovePartnersToGroupParams {
   programId: string;
   partnerIds: string[];
   userId: string;
@@ -18,12 +18,12 @@ interface MoveGroupParams {
   >;
 }
 
-export async function moveGroup({
+export async function movePartnersToGroup({
   programId,
   partnerIds,
   userId,
   group,
-}: MoveGroupParams): Promise<number> {
+}: MovePartnersToGroupParams): Promise<number> {
   if (partnerIds.length === 0) {
     return 0;
   }

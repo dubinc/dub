@@ -3,8 +3,7 @@ import { WorkflowConditionAttribute, WorkflowContext } from "@/lib/types";
 import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
 import { prisma } from "@dub/prisma";
 import { Workflow } from "@dub/prisma/client";
-import { prettyPrint } from "@dub/utils/src";
-import { moveGroup } from "../groups/move-group";
+import { movePartnersToGroup } from "../groups/move-partners-to-group";
 import { evaluateWorkflowCondition } from "./execute-workflows";
 import { parseWorkflowConfig } from "./parse-workflow-config";
 
@@ -17,14 +16,6 @@ export const executeMoveGroupWorkflow = async ({
 }) => {
   const { condition, action } = parseWorkflowConfig(workflow);
 
-  console.log(
-    "executeMoveGroupWorkflow",
-    prettyPrint({
-      workflow,
-      context,
-    }),
-  );
-
   if (action.type !== WORKFLOW_ACTION_TYPES.MoveGroup) {
     console.error(
       `Workflow ${workflow.id} is not a move group workflow: ${action.type}`,
@@ -33,12 +24,13 @@ export const executeMoveGroupWorkflow = async ({
   }
 
   if (!context?.groupId) {
+    console.error(`Partner groupId not set in the context.`);
     return;
   }
 
-  const { fromGroupId, toGroupId } = action.data;
+  const { groupId: newGroupId } = action.data;
 
-  if (context.groupId !== fromGroupId) {
+  if (context.groupId === newGroupId) {
     return;
   }
 
@@ -50,6 +42,7 @@ export const executeMoveGroupWorkflow = async ({
       },
     },
     select: {
+      totalCommissions: true, // TODO: Fix it (This is not accurate)
       links: {
         select: {
           clicks: true,
@@ -62,13 +55,8 @@ export const executeMoveGroupWorkflow = async ({
     },
   });
 
-  const {
-    totalClicks,
-    totalLeads,
-    totalConversions,
-    totalSales,
-    totalSaleAmount,
-  } = aggregatePartnerLinksStats(programEnrollment.links);
+  const { totalLeads, totalConversions, totalSaleAmount } =
+    aggregatePartnerLinksStats(programEnrollment.links);
 
   const finalContext: Partial<
     Record<WorkflowConditionAttribute, number | null>
@@ -76,12 +64,13 @@ export const executeMoveGroupWorkflow = async ({
     totalLeads,
     totalConversions,
     totalSaleAmount,
+    totalCommissions: programEnrollment.totalCommissions,
   };
 
   const shouldExecute = evaluateWorkflowCondition({
     condition,
     attributes: {
-      [condition.attribute]: context[condition.attribute],
+      [condition.attribute]: finalContext[condition.attribute],
     },
   });
 
@@ -94,7 +83,7 @@ export const executeMoveGroupWorkflow = async ({
 
   const group = await prisma.partnerGroup.findUnique({
     where: {
-      id: toGroupId,
+      id: newGroupId,
     },
     select: {
       id: true,
@@ -106,11 +95,11 @@ export const executeMoveGroupWorkflow = async ({
   });
 
   if (!group) {
-    console.error(`Group with ID ${toGroupId} not found.`);
+    console.error(`Group with ID ${newGroupId} not found.`);
     return;
   }
 
-  await moveGroup({
+  await movePartnersToGroup({
     programId: context.programId,
     partnerIds: [context.partnerId],
     userId: "context.userId", // TODO: Fix it
