@@ -14,12 +14,7 @@ import {
   recordSale,
 } from "@/lib/tinybird";
 import { recordFakeClick } from "@/lib/tinybird/record-fake-click";
-import {
-  ClickEventTB,
-  LeadEventTB,
-  StripeMode,
-  WebhookPartner,
-} from "@/lib/types";
+import { ClickEventTB, LeadEventTB, StripeMode } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {
@@ -629,26 +624,27 @@ async function attributeViaPromoCode({
     (async () => {
       const linkUpdated = await incrementLinkLeads(link.id);
 
-      let webhookPartner: WebhookPartner | undefined;
-      if (link.programId && link.partnerId) {
-        await Promise.allSettled([
-          createPartnerCommission({
-            event: "lead",
-            programId: link.programId,
-            partnerId: link.partnerId,
-            linkId: link.id,
-            eventId: leadEvent.event_id,
-            customerId: customer.id,
-            quantity: 1,
-            context: {
-              customer: {
-                country: customer.country,
-              },
-            },
-          }).then((res) => {
-            webhookPartner = res.webhookPartner;
-          }),
+      let createdCommission:
+        | Awaited<ReturnType<typeof createPartnerCommission>>
+        | undefined = undefined;
 
+      if (link.programId && link.partnerId) {
+        createdCommission = await createPartnerCommission({
+          event: "lead",
+          programId: link.programId,
+          partnerId: link.partnerId,
+          linkId: link.id,
+          eventId: leadEvent.event_id,
+          customerId: customer.id,
+          quantity: 1,
+          context: {
+            customer: {
+              country: customer.country,
+            },
+          },
+        });
+
+        await Promise.allSettled([
           executeWorkflows({
             trigger: WorkflowTrigger.leadRecorded,
             context: {
@@ -659,6 +655,7 @@ async function attributeViaPromoCode({
               },
             },
           }),
+
           syncPartnerLinksStats({
             partnerId: link.partnerId,
             programId: link.programId,
@@ -666,6 +663,7 @@ async function attributeViaPromoCode({
           }),
         ]);
       }
+
       await sendWorkspaceWebhook({
         trigger: "lead.created",
         workspace,
@@ -674,7 +672,7 @@ async function attributeViaPromoCode({
           eventName: "Checkout session completed",
           link: linkUpdated,
           customer,
-          partner: webhookPartner,
+          partner: createdCommission?.webhookPartner,
           metadata: null,
         }),
       });
