@@ -6,17 +6,18 @@ import { Button, Grid, buttonVariants } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
+import { ProgramMarketplaceBanner } from "../program-marketplace/program-marketplace-banner";
 import { usePartnerRewindStatus } from "./use-partner-rewind-status";
 
 export function PartnerRewindBanner() {
   const { partnerRewind } = usePartnerRewind();
   const { status, setStatus } = usePartnerRewindStatus();
 
-  if (!partnerRewind) return null;
+  if (!partnerRewind) return <ProgramMarketplaceBanner />;
 
   return (
     <AnimatePresence>
-      {status === "banner" && (
+      {status === "banner" ? (
         <motion.div
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: "auto" }}
@@ -101,6 +102,8 @@ export function PartnerRewindBanner() {
             />
           </div>
         </motion.div>
+      ) : (
+        <ProgramMarketplaceBanner />
       )}
     </AnimatePresence>
   );
