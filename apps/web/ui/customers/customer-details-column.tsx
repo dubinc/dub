@@ -80,7 +80,7 @@ export function CustomerDetailsColumn({
   }, [click?.url]);
 
   return (
-    <div className="grid grid-cols-1 gap-6 overflow-hidden whitespace-nowrap text-sm text-neutral-900 min-[320px]:grid-cols-2 lg:grid-cols-1">
+    <div className="grid grid-cols-1 gap-6 overflow-hidden whitespace-nowrap text-sm text-neutral-900">
       <div className="border-border-subtle flex flex-col divide-y divide-neutral-200 rounded-xl border bg-white">
         <div className="p-4">
           <div className="flex items-start justify-between gap-2">
@@ -150,86 +150,90 @@ export function CustomerDetailsColumn({
             ))}
         </div>
 
-        <div className="p-4 text-xs">
-          <h2 className="text-content-emphasis text-sm font-semibold">
-            Details
-          </h2>
+        <div className="@md/page:grid-cols-2 @3xl/page:grid-cols-1 grid grid-cols-1 gap-5 p-4 text-xs">
+          <div>
+            <h2 className="text-content-emphasis text-sm font-semibold">
+              Details
+            </h2>
 
-          <div className="mt-2.5 flex flex-col gap-5 text-xs">
-            <div className="flex flex-col gap-2">
-              {click
-                ? [
-                    {
-                      key: "device",
-                      icon: (
-                        <DeviceIcon
-                          display={capitalize(click.device)!}
-                          tab="devices"
-                          className="size-3.5 shrink-0"
-                        />
-                      ),
-                      value: click.device,
-                    },
-                    {
-                      key: "browser",
-                      icon: (
-                        <DeviceIcon
-                          display={capitalize(click.browser)!}
-                          tab="browsers"
-                          className="size-3.5 shrink-0"
-                        />
-                      ),
-                      value: click.browser,
-                    },
-                    {
-                      key: "os",
-                      icon: (
-                        <DeviceIcon
-                          display={capitalize(click.os)!}
-                          tab="os"
-                          className="size-3.5 shrink-0"
-                        />
-                      ),
-                      value: click.os,
-                    },
-                  ]
-                    .filter(({ value }) => value)
-                    .map(({ key, icon, value }) => (
-                      <ConditionalLink
-                        key={key}
-                        href={
-                          value === "Unknown"
-                            ? undefined
-                            : `/${programSlug ? `programs/${programSlug}` : slug}/analytics?${key}=${encodeURIComponent(value)}`
-                        }
-                        target="_blank"
-                      >
-                        <span className="flex items-center gap-2">
-                          {icon}
-                          <span className="truncate">{value}</span>
-                        </span>
-                      </ConditionalLink>
-                    ))
-                : (isCustomerActivityLoading || !customer) && (
-                    <div className="h-5 w-12 animate-pulse rounded-md bg-neutral-100" />
-                  )}
-            </div>
-
-            {customer?.externalId && (
-              <div className="flex flex-col gap-2.5">
-                <DetailHeading>External ID</DetailHeading>
-                <div>
-                  <CopyText
-                    value={customer.externalId}
-                    className="truncate text-xs"
-                  >
-                    {customer.externalId}
-                  </CopyText>
-                </div>
+            <div className="mt-2.5 flex flex-col gap-5 text-xs">
+              <div className="flex flex-col gap-2">
+                {click
+                  ? [
+                      {
+                        key: "device",
+                        icon: (
+                          <DeviceIcon
+                            display={capitalize(click.device)!}
+                            tab="devices"
+                            className="size-3.5 shrink-0"
+                          />
+                        ),
+                        value: click.device,
+                      },
+                      {
+                        key: "browser",
+                        icon: (
+                          <DeviceIcon
+                            display={capitalize(click.browser)!}
+                            tab="browsers"
+                            className="size-3.5 shrink-0"
+                          />
+                        ),
+                        value: click.browser,
+                      },
+                      {
+                        key: "os",
+                        icon: (
+                          <DeviceIcon
+                            display={capitalize(click.os)!}
+                            tab="os"
+                            className="size-3.5 shrink-0"
+                          />
+                        ),
+                        value: click.os,
+                      },
+                    ]
+                      .filter(({ value }) => value)
+                      .map(({ key, icon, value }) => (
+                        <ConditionalLink
+                          key={key}
+                          href={
+                            value === "Unknown"
+                              ? undefined
+                              : `/${programSlug ? `programs/${programSlug}` : slug}/analytics?${key}=${encodeURIComponent(value)}`
+                          }
+                          target="_blank"
+                        >
+                          <span className="flex items-center gap-2">
+                            {icon}
+                            <span className="truncate">{value}</span>
+                          </span>
+                        </ConditionalLink>
+                      ))
+                  : (isCustomerActivityLoading || !customer) && (
+                      <div className="h-5 w-12 animate-pulse rounded-md bg-neutral-100" />
+                    )}
               </div>
-            )}
 
-            {utmParams && Boolean(utmParams.length) && (
+              {customer?.externalId && (
+                <div className="flex flex-col gap-2.5">
+                  <DetailHeading>External ID</DetailHeading>
+                  <div>
+                    <CopyText
+                      value={customer.externalId}
+                      className="truncate text-xs"
+                    >
+                      {customer.externalId}
+                    </CopyText>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {utmParams && Boolean(utmParams.length) && (
+            <div className="flex flex-col gap-5 text-xs">
               <div className="flex flex-col gap-2.5">
                 <DetailHeading>UTM</DetailHeading>
                 <div className="grid w-full grid-cols-[min-content,minmax(0,1fr)] gap-x-4 gap-y-2 overflow-hidden">
@@ -247,8 +251,8 @@ export function CustomerDetailsColumn({
                   ))}
                 </div>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
 
