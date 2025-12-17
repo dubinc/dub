@@ -5,6 +5,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { CustomerActivityResponse, CustomerEnriched } from "@/lib/types";
 import { CustomerActivityList } from "@/ui/customers/customer-activity-list";
 import { CustomerDetailsColumn } from "@/ui/customers/customer-details-column";
+import { CustomerStats } from "@/ui/customers/customer-stats";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageNavPanel } from "@/ui/layout/page-nav-panel";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
@@ -80,7 +81,8 @@ export default function CustomerLayout({ children }: { children: ReactNode }) {
       }
     >
       <PageWidthWrapper className="pb-10">
-        {/* <PartnerStats partner={partner} error={Boolean(partnerError)} /> */}
+        <CustomerStats customer={customer} error={Boolean(customerError)} />
+
         <div className="@3xl/page:grid-cols-[minmax(440px,1fr)_minmax(0,360px)] mt-6 grid grid-cols-1 gap-6">
           <div className="@3xl/page:order-2">
             <CustomerDetailsColumn
