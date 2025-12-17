@@ -68,10 +68,7 @@ export function CustomerDetailsColumn({
 
   const utmParams = useMemo(() => {
     if (!click?.url) return null;
-    // TODO
-    const allParams = getParamsFromURL(
-      "https://refer.dub.co/tim-partner10?utm_source=twitter&utm_medium=email&utm_campaign=test",
-    ); // getParamsFromURL(click.url);
+    const allParams = getParamsFromURL(click.url);
 
     return UTM_PARAMETERS.map((p) => ({
       ...p,
