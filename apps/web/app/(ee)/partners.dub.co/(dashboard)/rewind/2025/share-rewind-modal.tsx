@@ -23,7 +23,7 @@ function ShareRewindModal(props: ShareRewindModalProps) {
 }
 
 function ShareRewindModalInner({ rewindId, step }: ShareRewindModalInnerProps) {
-  const imageUrl = `/api/partner-profile/rewind/image?${new URLSearchParams({ rewindId, step }).toString()}`;
+  const imageUrl = `/api/og/partner-rewind?${new URLSearchParams({ rewindId, step }).toString()}`;
 
   const [isLoading, setIsLoading] = useState(false);
   const [blob, setBlob] = useState<Blob | null>(null);
@@ -52,7 +52,7 @@ function ShareRewindModalInner({ rewindId, step }: ShareRewindModalInnerProps) {
             <LoadingSpinner />
           </div>
           <img
-            src={`/api/partner-profile/rewind/image?${new URLSearchParams({ rewindId, step }).toString()}`}
+            src={`/api/og/partner-rewind?${new URLSearchParams({ rewindId, step }).toString()}`}
             alt="share rewind image"
             className="relative size-full"
           />

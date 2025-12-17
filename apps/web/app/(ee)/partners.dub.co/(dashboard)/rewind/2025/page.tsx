@@ -1,15 +1,15 @@
 import { getPartnerRewind } from "@/lib/api/partners/get-partner-rewind";
 import { getSession } from "@/lib/auth";
 import { PageContent } from "@/ui/layout/page-content";
+import {
+  REWIND_ASSETS_PATH,
+  REWIND_STEPS,
+} from "@/ui/partners/rewind/constants";
 import { prisma } from "@dub/prisma";
 import { Grid } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { redirect } from "next/navigation";
 import { preload } from "react-dom";
-import {
-  REWIND_ASSETS_PATH,
-  REWIND_STEPS,
-} from "../../../../../../ui/partners/rewind/constants";
 import { PartnerRewind2025PageClient } from "./page-client";
 
 export default async function PartnerRewind2025Page() {

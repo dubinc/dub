@@ -22,7 +22,7 @@ export const REWIND_STEPS: {
   {
     id: "totalClicks",
     percentileId: "clicksPercentile",
-    label: "Links clicked",
+    label: "Link clicks",
     valueType: "number",
     image: "click.png",
     video: "click.webm",

@@ -2,7 +2,6 @@ import { PartnerRewindSchema } from "@/lib/zod/schemas/partners";
 import {
   REWIND_ASSETS_PATH,
   REWIND_STEPS,
-  REWIND_YEAR,
 } from "@/ui/partners/rewind/constants";
 import { prismaEdge } from "@dub/prisma/edge";
 import { cn, nFormatter } from "@dub/utils";
@@ -189,9 +188,7 @@ async function getPartnerRewind(rewindId: string) {
             / (SELECT COUNT(*) FROM PartnerRewind WHERE year = pr.year)
       ) ELSE 0 END AS earningsPercentile
     FROM PartnerRewind pr
-    WHERE
-      pr.id = ${rewindId}
-      AND pr.year = ${REWIND_YEAR}`;
+    WHERE pr.id = ${rewindId}`;
 
   if (!rewinds.length) return null;
 
