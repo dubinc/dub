@@ -44,3 +44,22 @@ export const REWIND_STEPS: {
     video: "revenue.webm",
   },
 ];
+
+export const REWIND_PERCENTILES = [
+  {
+    minPercentile: 99,
+    label: "Top 1%",
+  },
+  {
+    minPercentile: 95,
+    label: "Top 5%",
+  },
+  {
+    minPercentile: 90,
+    label: "Top 10%",
+  },
+  {
+    minPercentile: 75,
+    label: "Top 25%",
+  },
+];
