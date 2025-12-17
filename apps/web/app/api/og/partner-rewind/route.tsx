@@ -1,6 +1,7 @@
 import { PartnerRewindSchema } from "@/lib/zod/schemas/partners";
 import {
   REWIND_ASSETS_PATH,
+  REWIND_PERCENTILES,
   REWIND_STEPS,
 } from "@/ui/partners/rewind/constants";
 import { prismaEdge } from "@dub/prisma/edge";
@@ -41,7 +42,9 @@ export async function GET(req: NextRequest) {
       status: 404,
     });
 
-  const isTop10 = rewind[step.percentileId] >= 90;
+  const percentileLabel = REWIND_PERCENTILES.find(
+    ({ minPercentile }) => rewind[step.percentileId] >= minPercentile,
+  )?.label;
 
   const value =
     step.valueType === "currency"
@@ -102,13 +105,15 @@ export async function GET(req: NextRequest) {
               </span>
             </div>
 
-            <div tw={cn("mt-5 flex items-center", !isTop10 && "opacity-0")}>
+            <div
+              tw={cn("mt-5 flex items-center", !percentileLabel && "opacity-0")}
+            >
               <img
                 src={`https://assets.dub.co/misc/partner-rewind-2025/top-medallion.png`}
                 tw="w-6 h-6 mr-2.5"
               />
               <span tw="text-neutral-900 text-base font-semibold">
-                Top 10% of all partners
+                {percentileLabel} of all partners
               </span>
             </div>
           </div>

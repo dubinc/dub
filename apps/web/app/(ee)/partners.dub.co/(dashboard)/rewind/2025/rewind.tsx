@@ -11,6 +11,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { CSSProperties, useEffect, useMemo, useState } from "react";
 import {
   REWIND_ASSETS_PATH,
+  REWIND_PERCENTILES,
   REWIND_STEPS,
 } from "../../../../../../ui/partners/rewind/constants";
 import { useShareRewindModal } from "./share-rewind-modal";
@@ -183,7 +184,9 @@ function StepSlide({
   const [animatedValue, setAnimatedValue] = useState<number>(0);
   useEffect(() => setAnimatedValue(value), [value]);
 
-  const isTop10 = percentile >= 90;
+  const percentileLabel = REWIND_PERCENTILES.find(
+    ({ minPercentile }) => percentile >= minPercentile,
+  )?.label;
 
   return (
     <div className="bg-bg-default border-border-subtle flex w-full max-w-screen-sm flex-col rounded-2xl border p-6 drop-shadow-sm sm:p-10">
@@ -216,11 +219,11 @@ function StepSlide({
         <div
           className={cn(
             "mt-5 flex items-center gap-2.5",
-            isTop10
+            percentileLabel
               ? "animate-slide-up-fade [--offset:10px] [animation-delay:0.2s] [animation-duration:1.5s] [animation-fill-mode:both]"
               : "opacity-0",
           )}
-          inert={!isTop10}
+          inert={!percentileLabel}
         >
           <img
             src={`${REWIND_ASSETS_PATH}/top-medallion.png`}
@@ -228,7 +231,7 @@ function StepSlide({
             className="size-6 drop-shadow-sm"
           />
           <span className="text-content-emphasis text-base font-semibold">
-            Top 10% of all partners
+            {percentileLabel} of all partners
           </span>
         </div>
       </div>
