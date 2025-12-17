@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ProgramEnrollmentSchema } from "./programs";
 
 export const fraudEventContext = z.object({
   program: z.object({
@@ -9,13 +10,13 @@ export const fraudEventContext = z.object({
     email: z.string().nullable(),
     name: z.string().nullable(),
   }),
+  programEnrollment: ProgramEnrollmentSchema.pick({
+    status: true,
+  }),
   customer: z.object({
     id: z.string(),
     email: z.string().nullable(),
     name: z.string().nullable(),
-  }),
-  commission: z.object({
-    id: z.string().nullable().optional(),
   }),
   link: z.object({
     id: z.string().nullable().optional(),

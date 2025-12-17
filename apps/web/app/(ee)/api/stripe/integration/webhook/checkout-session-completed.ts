@@ -431,7 +431,10 @@ export async function checkoutSessionCompleted(
   ]);
 
   // for program links
-  let webhookPartner: WebhookPartner | undefined;
+  let createdCommission:
+    | Awaited<ReturnType<typeof createPartnerCommission>>
+    | undefined = undefined;
+
   if (link && link.programId && link.partnerId) {
     const productId = await getSubscriptionProductId({
       stripeSubscriptionId: charge.subscription as string,
@@ -439,7 +442,7 @@ export async function checkoutSessionCompleted(
       mode,
     });
 
-    const createdCommission = await createPartnerCommission({
+    createdCommission = await createPartnerCommission({
       event: "sale",
       programId: link.programId,
       partnerId: link.partnerId,
@@ -461,7 +464,7 @@ export async function checkoutSessionCompleted(
       },
     });
 
-    webhookPartner = createdCommission?.webhookPartner;
+    const { webhookPartner, programEnrollment } = createdCommission;
 
     waitUntil(
       Promise.allSettled([
@@ -487,8 +490,8 @@ export async function checkoutSessionCompleted(
           detectAndRecordFraudEvent({
             program: { id: link.programId },
             partner: pick(webhookPartner, ["id", "email", "name"]),
+            programEnrollment: pick(programEnrollment, ["status"]),
             customer: pick(customer, ["id", "email", "name"]),
-            commission: { id: createdCommission.commission?.id },
             link: pick(link, ["id"]),
             click: pick(saleData, ["url", "referer"]),
             event: { id: saleData.event_id },
@@ -497,22 +500,20 @@ export async function checkoutSessionCompleted(
     );
   }
 
+  // send workspace webhook
   waitUntil(
-    (async () => {
-      // send workspace webhook
-      await sendWorkspaceWebhook({
-        trigger: "sale.created",
-        workspace,
-        data: transformSaleEventData({
-          ...saleData,
-          clickedAt: customer.clickedAt || customer.createdAt,
-          link: linkUpdated,
-          customer,
-          partner: webhookPartner,
-          metadata: null,
-        }),
-      });
-    })(),
+    sendWorkspaceWebhook({
+      trigger: "sale.created",
+      workspace,
+      data: transformSaleEventData({
+        ...saleData,
+        clickedAt: customer.clickedAt || customer.createdAt,
+        link: linkUpdated,
+        customer,
+        partner: createdCommission?.webhookPartner,
+        metadata: null,
+      }),
+    }),
   );
 
   return `Checkout session completed for customer with external ID ${dubCustomerExternalId} and invoice ID ${invoiceId}`;

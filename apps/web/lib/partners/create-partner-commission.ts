@@ -108,6 +108,7 @@ export const createPartnerCommission = async ({
       );
       return {
         commission: null,
+        programEnrollment,
         webhookPartner: constructWebhookPartner(programEnrollment),
       };
     }
@@ -145,6 +146,7 @@ export const createPartnerCommission = async ({
           );
           return {
             commission: null,
+            programEnrollment,
             webhookPartner: constructWebhookPartner(programEnrollment),
           };
         }
@@ -157,6 +159,7 @@ export const createPartnerCommission = async ({
 
           return {
             commission: null,
+            programEnrollment,
             webhookPartner: constructWebhookPartner(programEnrollment),
           };
 
@@ -186,6 +189,7 @@ export const createPartnerCommission = async ({
               );
               return {
                 commission: null,
+                programEnrollment,
                 webhookPartner: constructWebhookPartner(programEnrollment),
               };
             }
@@ -201,6 +205,7 @@ export const createPartnerCommission = async ({
               );
               return {
                 commission: null,
+                programEnrollment,
                 webhookPartner: constructWebhookPartner(programEnrollment),
               };
             }
@@ -218,6 +223,7 @@ export const createPartnerCommission = async ({
                 );
                 return {
                   commission: null,
+                  programEnrollment,
                   webhookPartner: constructWebhookPartner(programEnrollment),
                 };
               }
@@ -374,6 +380,7 @@ export const createPartnerCommission = async ({
 
     return {
       commission,
+      programEnrollment,
       webhookPartner,
     };
   } catch (error) {
@@ -387,6 +394,7 @@ export const createPartnerCommission = async ({
 
     return {
       commission: null,
+      programEnrollment,
       webhookPartner: constructWebhookPartner(programEnrollment),
     };
   }
