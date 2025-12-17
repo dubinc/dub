@@ -102,7 +102,7 @@ export default function DubPartnerRewind({
             </Section>
 
             <Section className="mx-auto max-w-[400px] text-center">
-              <Footer email={email} />
+              <Footer email={email} marketing />
             </Section>
           </Container>
         </Body>

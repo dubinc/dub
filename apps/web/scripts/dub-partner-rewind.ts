@@ -1,5 +1,6 @@
 import { EXCLUDED_PROGRAM_IDS } from "@/lib/constants/partner-profile";
 import { prisma } from "@dub/prisma";
+import { chunk } from "@dub/utils";
 import "dotenv-flow/config";
 
 const REWIND_EARNINGS_MINIMUM = 1_00; // $1
@@ -41,10 +42,23 @@ async function main() {
   console.table(payloads.slice(0, 10));
   console.table(payloads.slice(-10));
 
-  const res = await prisma.partnerRewind.createMany({
-    data: payloads,
-  });
-  console.log(`Created ${res.count} partner rewinds`);
+  const chunks = chunk(payloads, 1000);
+  for (const chunk of chunks) {
+    const res = await prisma.$transaction(async (tx) => {
+      const deleted = await tx.partnerRewind.deleteMany({
+        where: {
+          partnerId: {
+            in: chunk.map(({ partnerId }) => partnerId),
+          },
+        },
+      });
+      console.log(`Deleted ${deleted.count} partner rewinds`);
+      return await tx.partnerRewind.createMany({
+        data: chunk,
+      });
+    });
+    console.log(`Created ${res.count} partner rewinds`);
+  }
 }
 
 main();
