@@ -53,9 +53,9 @@ export default function DubPartnerRewind({
             </Heading>
 
             <Text className="mb-8 mt-0 text-center text-base leading-6 text-neutral-600">
-              This was a huge year for partners. Let&rsquo;s rewind to have a
+              2025 was a huge year for partners. Let&rsquo;s rewind to have a
               <br />
-              look at your 2025 impact.
+              look at your impact this year.
             </Text>
 
             <Section className="mb-8 text-center">
@@ -64,7 +64,7 @@ export default function DubPartnerRewind({
                 style={{ textDecoration: "none" }}
               >
                 <Img
-                  src="https://assets.dub.co/misc/partner-rewind-2025/hero.png"
+                  src="https://assets.dub.co/misc/partner-rewind-2025/hero.jpg"
                   width="500"
                   height="292"
                   alt="Dub Program Marketplace"
@@ -78,8 +78,8 @@ export default function DubPartnerRewind({
             </Heading>
 
             <Text className="mx-auto mb-8 mt-0 max-w-[400px] text-center text-sm leading-6 text-neutral-600">
-              Thank you for all your hard work being a Dub Partner. We
-              can&rsquo;t wait to see what you&rsquo;ll do in 2026!
+              Thank you for all your hard work as a Dub partner. We can&rsquo;t
+              wait to see what you&rsquo;ll do in 2026!
             </Text>
 
             <Section className="mb-8 text-center">

@@ -1,43 +1,45 @@
-import {
-  EXCLUDED_PROGRAM_IDS,
-  PARTNER_NETWORK_MIN_COMMISSIONS_CENTS,
-} from "@/lib/constants/partner-profile";
-import ProgramMarketplaceAnnouncement from "@dub/email/templates/program-marketplace-announcement";
+import DubPartnerRewind from "@dub/email/templates/dub-partner-rewind";
 import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 import { queueBatchEmail } from "../lib/email/queue-batch-email";
 
 async function main() {
-  const partners = await prisma.partner.findMany({
+  const partnerRewinds = await prisma.partnerRewind.findMany({
     where: {
-      email: "steven@dub.co",
-      users: {
-        some: {},
-      },
-      programs: {
-        some: {
-          programId: {
-            notIn: EXCLUDED_PROGRAM_IDS,
-          },
-          status: "approved",
-          totalCommissions: {
-            gte: PARTNER_NETWORK_MIN_COMMISSIONS_CENTS,
+      partner: {
+        users: {
+          some: {
+            user: {
+              subscribed: true,
+            },
           },
         },
-        none: {
-          status: "banned",
-        },
       },
+      year: 2025,
+    },
+    include: {
+      partner: true,
     },
   });
+  console.log(`Found ${partnerRewinds.length} partner rewinds`);
 
-  const res = await queueBatchEmail<typeof ProgramMarketplaceAnnouncement>(
-    partners.map((partner) => ({
+  console.table(
+    partnerRewinds
+      .map(({ partner, id, year, partnerId, createdAt, sentAt, ...rest }) => ({
+        ...rest,
+        partner: partner.email,
+        country: partner.country,
+      }))
+      .slice(0, 10),
+  );
+
+  const res = await queueBatchEmail<typeof DubPartnerRewind>(
+    partnerRewinds.map(({ partner }) => ({
       to: partner.email!,
-      subject: "Introducing the Dub Program Marketplace",
+      subject: "Your Dub Partner Rewind 2025",
       variant: "marketing",
       replyTo: "noreply",
-      templateName: "ProgramMarketplaceAnnouncement",
+      templateName: "DubPartnerRewind",
       templateProps: {
         email: partner.email!,
       },
