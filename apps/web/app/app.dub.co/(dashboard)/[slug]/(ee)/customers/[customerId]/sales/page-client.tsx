@@ -24,7 +24,9 @@ export function CustomerSalesPageClient() {
   return (
     <section className="flex flex-col gap-4">
       <h2 className="text-lg font-semibold text-neutral-900">Sales</h2>
-      <SalesTable customerId={customerId} />
+      <div className="border-border-subtle overflow-hidden rounded-lg border">
+        <SalesTable customerId={customerId} />
+      </div>
     </section>
   );
 }
