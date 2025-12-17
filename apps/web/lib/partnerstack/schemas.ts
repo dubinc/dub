@@ -94,7 +94,14 @@ export const partnerStackCommission = z.object({
       currency: z.string(),
     })
     .nullable(),
-  reward_status: z.enum(["hold", "pending", "approved", "declined", "paid"]),
+  reward_status: z.enum([
+    "hold",
+    "pending",
+    "approved",
+    "declined",
+    "paid",
+    "scheduled",
+  ]),
   partnership: z.object({
     email: z.string(),
   }),

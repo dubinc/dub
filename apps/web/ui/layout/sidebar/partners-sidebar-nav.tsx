@@ -313,8 +313,20 @@ export function PartnersSidebarNav({
     status: "invited",
   });
 
+  const isUnapproved = useMemo(
+    () =>
+      !!programEnrollment &&
+      !["approved", "deactivated", "archived"].includes(
+        programEnrollment.status,
+      ),
+    [programEnrollment],
+  );
+
   const { bountiesCount } = usePartnerProgramBounties({
-    enabled: isEnrolledProgramPage,
+    enabled:
+      isEnrolledProgramPage && programEnrollment && !isUnapproved
+        ? true
+        : false,
   });
 
   const { count: unreadMessagesCount } = useProgramMessagesCount({
@@ -333,11 +345,7 @@ export function PartnersSidebarNav({
         pathname,
         queryString: getQueryString(),
         programSlug: programSlug || "",
-        isUnapproved:
-          !!programEnrollment &&
-          !["approved", "deactivated", "archived"].includes(
-            programEnrollment.status,
-          ),
+        isUnapproved,
         invitationsCount,
         unreadMessagesCount,
         programBountiesCount: bountiesCount.active,
