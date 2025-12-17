@@ -1,6 +1,5 @@
 import { CustomerActivityResponse, CustomerProps } from "@/lib/types";
 import {
-  CopyButton,
   CopyText,
   Envelope,
   Globe,
@@ -11,7 +10,6 @@ import {
   capitalize,
   cn,
   COUNTRIES,
-  currencyFormatter,
   getParamsFromURL,
   getPrettyUrl,
   OG_AVATAR_URL,
@@ -68,7 +66,10 @@ export function CustomerDetailsColumn({
 
   const utmParams = useMemo(() => {
     if (!click?.url) return null;
-    const allParams = getParamsFromURL(click.url);
+    // TODO
+    const allParams = getParamsFromURL(
+      "https://refer.dub.co/tim-partner10?utm_source=twitter&utm_medium=email&utm_campaign=test",
+    ); // getParamsFromURL(click.url);
 
     return UTM_PARAMETERS.map((p) => ({
       ...p,
@@ -80,7 +81,7 @@ export function CustomerDetailsColumn({
     <div className="grid grid-cols-1 gap-6 overflow-hidden whitespace-nowrap text-sm text-neutral-900 min-[320px]:grid-cols-2 lg:grid-cols-1">
       <div className="border-border-subtle flex flex-col divide-y divide-neutral-200 rounded-xl border bg-white">
         <div className="p-4">
-          <div className="flex justify-between gap-2">
+          <div className="flex items-start justify-between gap-2">
             <div className="relative w-fit">
               {customer ? (
                 <img
@@ -93,7 +94,26 @@ export function CustomerDetailsColumn({
               )}
             </div>
 
-            {/* TODO: Since {date} */}
+            {customer ? (
+              <div className="text-content-default bg-bg-emphasis rounded-md px-1 text-xs font-medium">
+                Since{" "}
+                <TimestampTooltip
+                  timestamp={customer.createdAt}
+                  rows={["local"]}
+                  side="left"
+                >
+                  <span>
+                    {new Date(customer.createdAt).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
+                  </span>
+                </TimestampTooltip>
+              </div>
+            ) : (
+              <div className="h-5 w-24 animate-pulse rounded-md bg-neutral-100" />
+            )}
           </div>
 
           <div className="mt-3">
@@ -128,125 +148,109 @@ export function CustomerDetailsColumn({
             ))}
         </div>
 
-        <div className="flex flex-col gap-6 p-4">
-          <div className="flex flex-col gap-2">
-            <DetailHeading>Details</DetailHeading>
-            {click
-              ? [
-                  {
-                    key: "device",
-                    icon: (
-                      <DeviceIcon
-                        display={capitalize(click.device)!}
-                        tab="devices"
-                        className="size-3.5 shrink-0"
-                      />
-                    ),
-                    value: click.device,
-                  },
-                  {
-                    key: "browser",
-                    icon: (
-                      <DeviceIcon
-                        display={capitalize(click.browser)!}
-                        tab="browsers"
-                        className="size-3.5 shrink-0"
-                      />
-                    ),
-                    value: click.browser,
-                  },
-                  {
-                    key: "os",
-                    icon: (
-                      <DeviceIcon
-                        display={capitalize(click.os)!}
-                        tab="os"
-                        className="size-3.5 shrink-0"
-                      />
-                    ),
-                    value: click.os,
-                  },
-                ]
-                  .filter(({ value }) => value)
-                  .map(({ key, icon, value }) => (
-                    <ConditionalLink
-                      key={key}
-                      href={
-                        value === "Unknown"
-                          ? undefined
-                          : `/${programSlug ? `programs/${programSlug}` : slug}/analytics?${key}=${encodeURIComponent(value)}`
-                      }
-                      target="_blank"
-                    >
-                      <span className="flex items-center gap-2">
-                        {icon}
-                        <span className="truncate">{value}</span>
-                      </span>
-                    </ConditionalLink>
-                  ))
-              : (isCustomerActivityLoading || !customer) && (
-                  <div className="h-5 w-12 animate-pulse rounded-md bg-neutral-100" />
-                )}
-          </div>
+        <div className="p-4 text-xs">
+          <h2 className="text-content-emphasis text-sm font-semibold">
+            Details
+          </h2>
 
-          {customer?.externalId && (
-            <div className="flex flex-col gap-1.5">
-              <h3 className="text-content-emphasis text-sm font-semibold">
-                External ID
-              </h3>
-              <div className="flex items-center gap-1">
-                <CopyText value={customer.externalId} className="truncate">
-                  {customer.externalId}
-                </CopyText>
-                <CopyButton
-                  value={customer.externalId}
-                  variant="neutral"
-                  className="p-1 [&>*]:h-3 [&>*]:w-3"
-                  successMessage="Copied external ID to clipboard!"
-                />
-              </div>
+          <div className="flex flex-col gap-2 text-xs">
+            <div className="flex flex-col gap-2 py-2.5">
+              {click
+                ? [
+                    {
+                      key: "device",
+                      icon: (
+                        <DeviceIcon
+                          display={capitalize(click.device)!}
+                          tab="devices"
+                          className="size-3.5 shrink-0"
+                        />
+                      ),
+                      value: click.device,
+                    },
+                    {
+                      key: "browser",
+                      icon: (
+                        <DeviceIcon
+                          display={capitalize(click.browser)!}
+                          tab="browsers"
+                          className="size-3.5 shrink-0"
+                        />
+                      ),
+                      value: click.browser,
+                    },
+                    {
+                      key: "os",
+                      icon: (
+                        <DeviceIcon
+                          display={capitalize(click.os)!}
+                          tab="os"
+                          className="size-3.5 shrink-0"
+                        />
+                      ),
+                      value: click.os,
+                    },
+                  ]
+                    .filter(({ value }) => value)
+                    .map(({ key, icon, value }) => (
+                      <ConditionalLink
+                        key={key}
+                        href={
+                          value === "Unknown"
+                            ? undefined
+                            : `/${programSlug ? `programs/${programSlug}` : slug}/analytics?${key}=${encodeURIComponent(value)}`
+                        }
+                        target="_blank"
+                      >
+                        <span className="flex items-center gap-2">
+                          {icon}
+                          <span className="truncate">{value}</span>
+                        </span>
+                      </ConditionalLink>
+                    ))
+                : (isCustomerActivityLoading || !customer) && (
+                    <div className="h-5 w-12 animate-pulse rounded-md bg-neutral-100" />
+                  )}
             </div>
-          )}
+
+            {customer?.externalId && (
+              <div className="flex flex-col">
+                <DetailHeading>External ID</DetailHeading>
+                <div className="py-2.5">
+                  <CopyText
+                    value={customer.externalId}
+                    className="truncate text-xs"
+                  >
+                    {customer.externalId}
+                  </CopyText>
+                </div>
+              </div>
+            )}
+
+            {utmParams && Boolean(utmParams.length) && (
+              <div className="flex flex-col">
+                <DetailHeading>UTM</DetailHeading>
+                <div className="grid w-full grid-cols-[min-content,minmax(0,1fr)] gap-x-4 gap-y-2 overflow-hidden py-2.5">
+                  {utmParams.map(({ key, label, value }) => (
+                    <Fragment key={key}>
+                      <span className="truncate">{label}</span>
+                      <ConditionalLink
+                        href={`/${programSlug ? `programs/${programSlug}` : slug}/analytics?${key}=${encodeURIComponent(value)}`}
+                        target="_blank"
+                        className="truncate text-neutral-500"
+                      >
+                        {value}
+                      </ConditionalLink>
+                    </Fragment>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
       <div className="[&>*]:border [&>*]:border-red-500">
-        <div className="flex flex-col gap-2">
-          <DetailHeading>Customer since</DetailHeading>
-          {customer ? (
-            <TimestampTooltip
-              timestamp={customer.createdAt}
-              rows={["local"]}
-              side="left"
-            >
-              <span>
-                {new Date(customer.createdAt).toLocaleDateString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                  year: "numeric",
-                })}
-              </span>
-            </TimestampTooltip>
-          ) : (
-            <div className="h-5 w-12 animate-pulse rounded-md bg-neutral-100" />
-          )}
-        </div>
-
-        <div className="flex flex-col gap-2">
-          <DetailHeading>Lifetime value</DetailHeading>
-          {!customer || isCustomerActivityLoading ? (
-            <div className="h-5 w-12 animate-pulse rounded-md bg-neutral-100" />
-          ) : (
-            <span>
-              {customerActivity?.ltv !== undefined
-                ? currencyFormatter(customerActivity.ltv, {
-                    trailingZeroDisplay: "stripIfInteger",
-                  })
-                : "-"}
-            </span>
-          )}
-        </div>
-
         <div className="flex flex-col gap-2">
           <DetailHeading>Referral link</DetailHeading>
           {!customer || isCustomerActivityLoading ? (
@@ -267,26 +271,6 @@ export function CustomerDetailsColumn({
             <span>-</span>
           )}
         </div>
-
-        {utmParams && Boolean(utmParams.length) && (
-          <div className="flex flex-col gap-2">
-            <DetailHeading>UTM</DetailHeading>
-            <div className="grid w-full grid-cols-[min-content,minmax(0,1fr)] gap-x-4 gap-y-2 overflow-hidden">
-              {utmParams.map(({ key, label, value }) => (
-                <Fragment key={key}>
-                  <span className="truncate">{label}</span>
-                  <ConditionalLink
-                    href={`/${programSlug ? `programs/${programSlug}` : slug}/analytics?${key}=${encodeURIComponent(value)}`}
-                    target="_blank"
-                    className="truncate text-neutral-500"
-                  >
-                    {value}
-                  </ConditionalLink>
-                </Fragment>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
@@ -296,8 +280,8 @@ const DetailHeading = ({
   className,
   ...rest
 }: HTMLProps<HTMLHeadingElement>) => (
-  <h2
-    className={cn("text-content-emphasis text-sm font-semibold", className)}
+  <h3
+    className={cn("text-content-emphasis text-xs font-semibold", className)}
     {...rest}
   />
 );
