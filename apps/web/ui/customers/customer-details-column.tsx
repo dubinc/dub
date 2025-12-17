@@ -1,8 +1,9 @@
-import { CustomerActivityResponse, CustomerProps } from "@/lib/types";
+import { CustomerActivityResponse, CustomerEnriched } from "@/lib/types";
 import {
   CopyText,
   Envelope,
   Globe,
+  Hyperlink,
   TimestampTooltip,
   UTM_PARAMETERS,
 } from "@dub/ui";
@@ -25,7 +26,7 @@ export function CustomerDetailsColumn({
   isCustomerActivityLoading,
 }: {
   customer?: Omit<
-    CustomerProps,
+    CustomerEnriched,
     "name" | "externalId" | "sales" | "saleAmount"
   > & {
     name?: string;
@@ -61,6 +62,7 @@ export function CustomerDetailsColumn({
     },
   ];
 
+  const partner = customer?.partner;
   const link = customerActivity?.link;
   const click = customerActivity?.events.find((e) => e.event === "click");
 
@@ -250,28 +252,50 @@ export function CustomerDetailsColumn({
         </div>
       </div>
 
-      <div className="border-border-subtle rounded-lg border p-4">
-        <div className="flex flex-col gap-2">
-          <DetailHeading>Referral link</DetailHeading>
-          {!customer || isCustomerActivityLoading ? (
-            <div className="h-5 w-12 animate-pulse rounded-md bg-neutral-100" />
-          ) : link ? (
-            <ConditionalLink
-              href={
-                programSlug
-                  ? `/programs/${programSlug}/analytics?domain=${link.domain}&key=${link.key}`
-                  : `/${slug}/links/${link.domain}/${link.key}`
-              }
-              target="_blank"
-              className="min-w-0 overflow-hidden truncate"
-            >
-              {getPrettyUrl(link.shortLink)}
-            </ConditionalLink>
-          ) : (
-            <span>-</span>
+      {(link || !customer) && (
+        <div className="border-border-subtle rounded-lg border p-4">
+          <h2 className="text-content-emphasis mb-2.5 text-sm font-semibold">
+            Referral {partner ? "partner" : "link"}
+          </h2>
+
+          {partner && (
+            <div className="mb-4 flex items-center gap-2">
+              <img
+                src={partner.image || `${OG_AVATAR_URL}${partner.id}`}
+                alt=""
+                className="size-5 rounded-full"
+              />
+              <ConditionalLink
+                href={`/${slug}/program/partners/${partner.id}`}
+                target="_blank"
+                className="min-w-0 overflow-hidden truncate text-xs font-semibold"
+              >
+                {partner.name}
+              </ConditionalLink>
+            </div>
           )}
+
+          <div className="flex flex-col gap-2 text-xs">
+            {partner && <DetailHeading>Referral link</DetailHeading>}
+            {!customer || isCustomerActivityLoading ? (
+              <div className="h-5 w-12 animate-pulse rounded-md bg-neutral-100" />
+            ) : link ? (
+              <div className="flex items-center gap-1.5">
+                <Hyperlink className="size-3.5 shrink-0" />
+                <ConditionalLink
+                  href={`/${slug}/links/${link.domain}/${link.key}`}
+                  target="_blank"
+                  className="min-w-0 overflow-hidden truncate"
+                >
+                  {getPrettyUrl(link.shortLink)}
+                </ConditionalLink>
+              </div>
+            ) : (
+              <span>-</span>
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
