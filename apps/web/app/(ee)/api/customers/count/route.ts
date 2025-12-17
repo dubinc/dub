@@ -6,7 +6,7 @@ import { NextResponse } from "next/server";
 
 // GET /api/customers/count
 export const GET = withWorkspace(async ({ workspace, searchParams }) => {
-  const { email, externalId, search, country, linkId, groupBy } =
+  const { email, externalId, search, country, linkId, programId, groupBy } =
     getCustomersCountQuerySchema.parse(searchParams);
 
   const commonWhere: Prisma.CustomerWhereInput = {
@@ -33,6 +33,11 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
       groupBy !== "linkId" && {
         linkId,
       }),
+    ...(programId && {
+      link: {
+        programId,
+      },
+    }),
   };
 
   // Get customer count by country

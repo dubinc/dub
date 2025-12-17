@@ -62,7 +62,7 @@ export default function CustomerLayout({ children }: { children: ReactNode }) {
       title={
         <div className="flex items-center gap-1.5">
           <Link
-            href={`/${workspaceSlug}/customers`}
+            href={`/${workspaceSlug}/program/customers`}
             aria-label="Back to customers"
             title="Back to customers"
             className="bg-bg-subtle hover:bg-bg-emphasis flex size-8 shrink-0 items-center justify-center rounded-lg transition-[transform,background-color] duration-150 active:scale-95"

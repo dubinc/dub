@@ -38,6 +38,7 @@ export const getCustomersQuerySchema = z
       .describe(
         "A filter on the list based on the customer's `linkId` field (the referral link ID).",
       ),
+    programId: z.string().optional().describe("Program ID to filter by."),
     includeExpandedFields: booleanQuerySchema
       .optional()
       .describe(
