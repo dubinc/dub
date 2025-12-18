@@ -1,10 +1,12 @@
 import { createId } from "@/lib/api/create-id";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { evaluateWorkflowCondition } from "@/lib/api/workflows/execute-workflows";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
 import { workflowConditionSchema } from "@/lib/zod/schemas/workflows";
 import { prisma } from "@dub/prisma";
+import { Prisma } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
 import { differenceInMinutes } from "date-fns";
 import { z } from "zod";
@@ -143,16 +145,33 @@ export async function POST(req: Request) {
       };
     });
 
-    const bountySubmissionsToCreate = partners
-      // only create submissions for partners that have at least 1 performanceCount
-      .filter((partner) => partner[condition.attribute] > 0)
-      .map((partner) => ({
-        id: createId({ prefix: "bnty_sub_" }),
-        programId: bounty.programId,
-        partnerId: partner.id,
-        bountyId: bounty.id,
-        performanceCount: partner[condition.attribute],
-      }));
+    const bountySubmissionsToCreate: Prisma.BountySubmissionCreateManyInput[] =
+      partners
+        // only create submissions for partners that have at least 1 performanceCount
+        .filter((partner) => partner[condition.attribute] > 0)
+        .map((partner) => {
+          const performanceCount = partner[condition.attribute];
+
+          const conditionMet = evaluateWorkflowCondition({
+            condition,
+            attributes: {
+              [condition.attribute]: performanceCount,
+            },
+          });
+
+          return {
+            id: createId({ prefix: "bnty_sub_" }),
+            programId: bounty.programId,
+            partnerId: partner.id,
+            bountyId: bounty.id,
+            performanceCount,
+            // If the condition is met, automatically submit the submission
+            ...(conditionMet && {
+              status: "submitted",
+              completedAt: new Date(),
+            }),
+          };
+        });
 
     console.table(bountySubmissionsToCreate);
 
@@ -161,6 +180,7 @@ export async function POST(req: Request) {
       data: bountySubmissionsToCreate,
       skipDuplicates: true,
     });
+
     console.log(
       `Created ${createdBountySubmissions.count} bounty submissions for bounty ${bountyId}.`,
     );
