@@ -1,5 +1,6 @@
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { withWorkspace } from "@/lib/auth";
+import { ProgramSchema } from "@/lib/zod/schemas/programs";
 import { NextResponse } from "next/server";
 
 // GET /api/programs/[programId] - get a program by id
@@ -12,5 +13,5 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
     },
   });
 
-  return NextResponse.json(program);
+  return NextResponse.json(ProgramSchema.parse(program));
 });

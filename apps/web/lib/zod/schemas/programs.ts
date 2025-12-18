@@ -19,6 +19,7 @@ import { DiscountSchema } from "./discount";
 import { GroupSchema } from "./groups";
 import { LinkSchema } from "./links";
 import { programApplicationFormDataWithValuesSchema } from "./program-application-form";
+import { programInviteEmailDataSchema } from "./program-invite-email";
 import { RewardSchema } from "./rewards";
 import { UserSchema } from "./users";
 import { parseDateSchema } from "./utils";
@@ -40,6 +41,7 @@ export const ProgramSchema = z.object({
   rewards: z.array(RewardSchema).nullish(),
   discounts: z.array(DiscountSchema).nullish(),
   categories: z.array(z.nativeEnum(Category)).nullish(),
+  inviteEmailData: programInviteEmailDataSchema, // TODO: move to group-level soon
   defaultFolderId: z.string(),
   defaultGroupId: z.string(),
   supportEmail: z.string().nullish(),
