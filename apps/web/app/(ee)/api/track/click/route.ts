@@ -35,7 +35,12 @@ const trackClickResponseSchema = z.object({
     id: true,
     name: true,
     image: true,
-  }).nullish(),
+  })
+    .extend({
+      groupId: z.string().nullish(),
+      tenantId: z.string().nullish(),
+    })
+    .nullish(),
   discount: DiscountSchema.pick({
     id: true,
     amount: true,
