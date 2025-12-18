@@ -52,8 +52,8 @@ export const POST = withWorkspace(
     // check if from email is a valid email domain
     if (
       from &&
-      !program.emailDomains.some((domain) =>
-        emailAddresses.some((email) => email.endsWith(`@${domain.slug}`)),
+      !program.emailDomains.some(
+        ({ slug: emailDomain }) => from.split("@")[1] === emailDomain,
       )
     ) {
       throw new DubApiError({
