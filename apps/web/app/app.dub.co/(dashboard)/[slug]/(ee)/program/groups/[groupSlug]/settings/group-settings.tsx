@@ -198,22 +198,44 @@ function GroupSettingsFormSkeleton() {
             Group settings
           </h3>
         </div>
-        {[...Array(3)].map((_, index) => (
-          <div
-            key={index}
-            className="grid grid-cols-1 gap-10 px-6 py-8 sm:grid-cols-2"
-          >
-            <div className="flex flex-col gap-1">
-              <div className="h-4 w-32 animate-pulse rounded bg-neutral-200" />
-              <div className="h-5 w-48 animate-pulse rounded bg-neutral-200" />
-            </div>
-            <div className="h-10 w-full animate-pulse rounded-md bg-neutral-200" />
-          </div>
-        ))}
+        <SettingsRow
+          heading="Name"
+          description="For internal use only, never visible to partners."
+        >
+          <div className="h-[38px] w-full animate-pulse rounded-md bg-neutral-200" />
+        </SettingsRow>
+
+        <SettingsRow
+          heading="Group slug"
+          description="For program landing page and internal group page URLs"
+        >
+          <div className="h-[38px] w-full animate-pulse rounded-md bg-neutral-200" />
+        </SettingsRow>
+
+        <SettingsRow
+          heading="Group ID"
+          description={
+            <>
+              For setting up the Dub embedded referral dashboard within your
+              app.{" "}
+              <Link
+                href="https://dub.co/docs/partners/embedded-referrals"
+                target="_blank"
+                className="underline"
+              >
+                Learn more
+              </Link>
+            </>
+          }
+        >
+          <div className="h-[38px] w-full animate-pulse rounded-md bg-neutral-200" />
+        </SettingsRow>
       </div>
 
       <div className="border-border-subtle flex items-center justify-end rounded-b-lg border-t bg-neutral-50 px-6 py-4">
-        <div className="h-8 w-28 animate-pulse rounded bg-neutral-200" />
+        <div>
+          <Button text="Save changes" className="h-8" disabled />
+        </div>
       </div>
     </div>
   );

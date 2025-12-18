@@ -6,8 +6,10 @@ import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useGroup from "@/lib/swr/use-group";
 import { GroupProps } from "@/lib/types";
 import { Button, Checkbox, Modal, Switch } from "@dub/ui";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { GroupMoveRule } from "./group-move-rule";
 import { SettingsRow } from "./settings-row";
 
 export function GroupAdditionalSettings() {
@@ -149,6 +151,8 @@ function GroupOtherSettingsForm({ group }: { group: GroupProps }) {
             </div>
           </label>
         </SettingsRow>
+
+        <GroupMoveRule />
       </div>
     </div>
   );
@@ -163,18 +167,39 @@ function GroupAdditionalSettingsFormSkeleton() {
             Additional settings
           </h3>
         </div>
-        {[...Array(2)].map((_, index) => (
-          <div
-            key={index}
-            className="grid grid-cols-1 gap-10 px-6 py-8 sm:grid-cols-2"
-          >
-            <div className="flex flex-col gap-1">
-              <div className="h-4 w-32 animate-pulse rounded bg-neutral-200" />
-              <div className="h-5 w-48 animate-pulse rounded bg-neutral-200" />
-            </div>
-            <div className="h-10 w-full animate-pulse rounded-md bg-neutral-200" />
-          </div>
-        ))}
+
+        <SettingsRow
+          heading="Payout holding period"
+          description="Set how long to hold funds before they are eligible for payout."
+        >
+          <div className="h-[38px] w-full animate-pulse rounded-md bg-neutral-200" />
+        </SettingsRow>
+
+        <SettingsRow
+          heading="Auto-approve"
+          description="Automatically approve new partner applications."
+        >
+          <div className="h-[38px] w-full animate-pulse rounded-md bg-neutral-200" />
+        </SettingsRow>
+
+        <SettingsRow
+          heading="Group move"
+          description={
+            <>
+              Create rules to move partners to this group when they meet
+              specific criteria.
+              <Link
+                href="https://dub.co/help"
+                target="_blank"
+                className="ml-1 underline"
+              >
+                Learn more
+              </Link>
+            </>
+          }
+        >
+          <div className="min-h-28 w-full animate-pulse rounded-md bg-neutral-200" />
+        </SettingsRow>
       </div>
     </div>
   );
