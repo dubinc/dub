@@ -38,6 +38,9 @@ export const POST = withWorkspace(
       getProgramOrThrow({
         programId,
         workspaceId: workspace.id,
+        include: {
+          emailDomains: true,
+        },
       }),
 
       getCampaignOrThrow({
@@ -45,6 +48,19 @@ export const POST = withWorkspace(
         campaignId,
       }),
     ]);
+
+    // check if from email is a valid email domain
+    if (
+      from &&
+      !program.emailDomains.some((domain) =>
+        emailAddresses.some((email) => email.endsWith(`@${domain.slug}`)),
+      )
+    ) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "Invalid `from` email address.",
+      });
+    }
 
     const { data, error } = await sendBatchEmail(
       emailAddresses.map((email) => ({

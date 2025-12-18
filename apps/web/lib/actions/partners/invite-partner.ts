@@ -24,6 +24,9 @@ export const invitePartnerAction = authActionClient
       getProgramOrThrow({
         workspaceId: workspace.id,
         programId,
+        include: {
+          emailDomains: true,
+        },
       }),
 
       prisma.programEnrollment.findFirst({
@@ -85,6 +88,11 @@ export const invitePartnerAction = authActionClient
             inviteEmailData?.subject ||
             `${program.name} invited you to join Dub Partners`,
           variant: "notifications",
+          // use the first email domain as the from email address
+          from:
+            program.emailDomains.length > 0
+              ? `${program.name} <partners@${program.emailDomains[0].slug}>`
+              : undefined,
           to: email,
           replyTo: program.supportEmail || "noreply",
           react: ProgramInvite({
