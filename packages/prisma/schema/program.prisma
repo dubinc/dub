@@ -82,7 +82,6 @@ model Program {
   categories               ProgramCategory[]
   fraudRules               FraudRule[]
   fraudEventGroups         FraudEventGroup[]
-  partnerGroupRules        PartnerGroupRule[]
 
   @@index(workspaceId)
   @@index(addedToMarketplaceAt)

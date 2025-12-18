@@ -12,7 +12,7 @@ import { ArrowTurnRight2, Button, UserArrowRight, Users } from "@dub/ui";
 import { currencyFormatter, nFormatter } from "@dub/utils";
 import { X } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import { SettingsRow } from "./settings-row";
 
 const ATTRIBUTES = [
@@ -22,6 +22,7 @@ const ATTRIBUTES = [
   { value: "totalCommissions", text: "total commissions", type: "currency" },
 ] as const;
 
+type Attribute = (typeof ATTRIBUTES)[number];
 type AttributeValue = (typeof ATTRIBUTES)[number]["value"];
 type AttributeType = (typeof ATTRIBUTES)[number]["type"];
 
@@ -54,6 +55,15 @@ const formatValue = (
 export function GroupMoveRule() {
   const [rules, setRules] = useState<WorkflowCondition[]>([]);
 
+  const disableAddRuleButton = rules.length >= ATTRIBUTES.length;
+  const usedAttributes = useMemo(
+    () =>
+      rules
+        .map((r) => r.attribute)
+        .filter((a): a is NonNullable<typeof a> => a != null),
+    [rules],
+  );
+
   const addRule = () => {
     setRules([
       ...rules,
@@ -85,26 +95,36 @@ export function GroupMoveRule() {
       {rules.length === 0 ? (
         <NoGroupRule />
       ) : (
-        <div className="flex flex-col">
-          {rules.map((rule, index) => (
-            <div key={index}>
-              <GroupRule
-                rule={rule}
-                index={index}
-                onUpdate={(updatedRule) => {
-                  setRules((prev) =>
-                    prev.map((r, i) =>
-                      i === index ? { ...r, ...updatedRule } : r,
-                    ),
-                  );
-                }}
-                onRemove={() => {
-                  setRules((prev) => prev.filter((_, i) => i !== index));
-                }}
-              />
-              <div className="ml-6 h-4 w-px bg-neutral-200" />
-            </div>
-          ))}
+        <div className="relative flex flex-col">
+          {rules.map((rule, index) => {
+            // Filter out attributes already used by other rules
+            const availableAttributes = ATTRIBUTES.filter(
+              (a) =>
+                a.value === rule.attribute || !usedAttributes.includes(a.value),
+            );
+
+            return (
+              <Fragment key={index}>
+                <GroupRule
+                  index={index}
+                  rule={rule}
+                  attributes={availableAttributes}
+                  onUpdate={(updatedRule) => {
+                    setRules((prev) =>
+                      prev.map((r, i) =>
+                        i === index ? { ...r, ...updatedRule } : r,
+                      ),
+                    );
+                  }}
+                  onRemove={() => {
+                    setRules((prev) => prev.filter((_, i) => i !== index));
+                  }}
+                />
+
+                <div className="ml-6 h-4 w-px bg-neutral-200" />
+              </Fragment>
+            );
+          })}
 
           <GroupMoveTarget />
         </div>
@@ -115,6 +135,12 @@ export function GroupMoveRule() {
         variant="primary"
         className="mt-4 h-8 w-fit rounded-lg px-3"
         onClick={addRule}
+        disabled={disableAddRuleButton}
+        disabledTooltip={
+          disableAddRuleButton
+            ? "All rules are in use. Delete existing rules."
+            : undefined
+        }
       />
     </SettingsRow>
   );
@@ -125,11 +151,13 @@ function GroupRule({
   onUpdate,
   onRemove,
   index,
+  attributes,
 }: {
   rule: WorkflowCondition;
   onUpdate: (updates: Partial<WorkflowCondition>) => void;
   onRemove: () => void;
   index: number;
+  attributes: Attribute[];
 }) {
   const isFirst = index === 0;
 
@@ -153,7 +181,7 @@ function GroupRule({
               buttonClassName="mx-1"
             >
               <InlineBadgePopoverMenu
-                items={ATTRIBUTES.map((a) => ({
+                items={attributes.map((a) => ({
                   value: a.value,
                   text: a.text,
                 }))}
