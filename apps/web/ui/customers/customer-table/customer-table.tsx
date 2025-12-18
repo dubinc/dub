@@ -118,8 +118,6 @@ export function CustomerTable({
     },
   );
 
-  console.log(customers);
-
   const { columnVisibility, setColumnVisibility } = useColumnVisibility(
     "customers-table-columns",
     customersColumns,
