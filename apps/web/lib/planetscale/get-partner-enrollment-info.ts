@@ -55,7 +55,6 @@ export const getPartnerEnrollmentInfo = async ({
   if (!result) {
     return {
       partner: null,
-      group: null,
       discount: null,
     };
   }
