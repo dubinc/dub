@@ -74,7 +74,7 @@ export default function CustomerLayout({ children }: { children: ReactNode }) {
           </div>
           <div className="@3xl/page:order-1">
             <div className="border-border-subtle overflow-hidden rounded-xl border bg-neutral-100">
-              <CustomerTabs customer={customer} />
+              <CustomerTabs customer={customer} isProgramPage />
               <div className="border-border-subtle -mx-px -mb-px rounded-xl border bg-white p-4">
                 {children}
               </div>
