@@ -31,7 +31,7 @@ export function CustomerDetailsColumn({
     CustomerEnriched,
     "name" | "externalId" | "sales" | "saleAmount"
   > & {
-    name?: string;
+    name?: string | null;
     externalId?: string;
   };
   customerActivity?: CustomerActivityResponse;

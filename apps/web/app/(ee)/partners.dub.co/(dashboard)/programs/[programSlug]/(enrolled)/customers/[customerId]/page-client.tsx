@@ -67,7 +67,7 @@ export function ProgramCustomerPageClient() {
           <ChevronRight className="text-content-muted size-2.5 shrink-0 [&_*]:stroke-2" />
           <div>
             {customer ? (
-              customer.email
+              customer.name || customer.email
             ) : (
               <div className="h-6 w-32 animate-pulse rounded-md bg-neutral-200" />
             )}
