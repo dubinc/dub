@@ -154,9 +154,12 @@ export function CustomerTable({
               {
                 id: "partner",
                 header: "Partner",
-                cell: ({ row }) => {
-                  return <PartnerRowItem partner={row.original.partner} />;
-                },
+                cell: ({ row }) =>
+                  row.original.partner ? (
+                    <PartnerRowItem partner={row.original.partner} />
+                  ) : (
+                    "-"
+                  ),
                 size: 200,
               },
             ]

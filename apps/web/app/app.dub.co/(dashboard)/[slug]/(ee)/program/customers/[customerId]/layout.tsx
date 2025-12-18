@@ -35,7 +35,7 @@ export default function CustomerLayout({ children }: { children: ReactNode }) {
     );
 
   if (customerError && customerError.status === 404)
-    redirect(`/${workspaceSlug}/customers`);
+    redirect(`/${workspaceSlug}/program/customers`);
 
   return (
     <PageContent
