@@ -200,7 +200,7 @@ export function CustomerDetailsColumn({
                           href={
                             value === "Unknown"
                               ? undefined
-                              : `/${slug}/${isProgramPage ? "program" : ""}/analytics?${key}=${encodeURIComponent(value)}`
+                              : `/${slug}/${isProgramPage ? "program/" : ""}analytics?${key}=${encodeURIComponent(value)}`
                           }
                           target="_blank"
                         >
@@ -240,7 +240,7 @@ export function CustomerDetailsColumn({
                     <Fragment key={key}>
                       <span className="truncate">{label}</span>
                       <ConditionalLink
-                        href={`/${slug}/${isProgramPage ? "program" : ""}/analytics?${key}=${encodeURIComponent(value)}`}
+                        href={`/${slug}/${isProgramPage ? "program/" : ""}analytics?${key}=${encodeURIComponent(value)}`}
                         target="_blank"
                         className="truncate text-neutral-500"
                       >

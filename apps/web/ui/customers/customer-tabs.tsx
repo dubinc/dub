@@ -7,8 +7,10 @@ import { PageNavTabs } from "../layout/page-nav-tabs";
 
 export function CustomerTabs({
   customer,
+  isProgramPage = false,
 }: {
   customer?: Pick<CustomerEnriched, "programId" | "partner">;
+  isProgramPage?: boolean;
 }) {
   const { customerId } = useParams<{ customerId: string }>();
   const { slug: workspaceSlug } = useWorkspace();
@@ -35,7 +37,11 @@ export function CustomerTabs({
 
   return (
     <PageNavTabs
-      basePath={`/${workspaceSlug}/customers/${customerId}`}
+      basePath={
+        isProgramPage
+          ? `/${workspaceSlug}/program/customers/${customerId}`
+          : `/${workspaceSlug}/customers/${customerId}`
+      }
       tabs={tabs}
     />
   );
