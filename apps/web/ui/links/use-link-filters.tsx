@@ -6,6 +6,20 @@ import useWorkspaceUsers from "@/lib/swr/use-workspace-users";
 import { TagProps } from "@/lib/types";
 import { TAGS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/tags";
 import { Avatar, BlurImage, Globe, Tag, User, useRouterStuff } from "@dub/ui";
+import {
+  AndroidLogo,
+  AppleLogo,
+  Bolt,
+  CircleCheck,
+  CircleHalfDottedClock,
+  DiamondTurnRight,
+  Flask,
+  Incognito,
+  InputPassword,
+  Page2,
+  PenWriting,
+  WindowSearch,
+} from "@dub/ui/icons";
 import { GOOGLE_FAVICON_URL, nFormatter } from "@dub/utils";
 import { useContext, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
@@ -28,6 +42,10 @@ export function useLinkFilters() {
   });
 
   const users = useUserFilterOptions({
+    folderId: folderId ?? "",
+  });
+
+  const linkFeatures = useLinkFeatureFilterOptions({
     folderId: folderId ?? "",
   });
 
@@ -99,28 +117,50 @@ export function useLinkFilters() {
             right: nFormatter(count, { full: true }),
           })) ?? null,
       },
+      {
+        key: "linkFeatures",
+        icon: CircleCheck,
+        label: "Link feature",
+        multiple: true,
+        options: linkFeatures,
+      },
     ];
-  }, [domains, tags, users]);
+  }, [domains, tags, users, linkFeatures]);
 
   const selectedTagIds = useMemo(
     () => searchParamsObj["tagIds"]?.split(",")?.filter(Boolean) ?? [],
     [searchParamsObj],
   );
 
+  const selectedLinkFeatures = useMemo(
+    () => searchParamsObj["linkFeatures"]?.split(",")?.filter(Boolean) ?? [],
+    [searchParamsObj],
+  );
+
   const activeFilters = useMemo(() => {
-    const { domain, tagIds, userId } = searchParamsObj;
+    const { domain, tagIds, userId, linkFeatures } = searchParamsObj;
     return [
       ...(domain ? [{ key: "domain", value: domain }] : []),
       ...(tagIds ? [{ key: "tagIds", value: selectedTagIds }] : []),
       ...(userId ? [{ key: "userId", value: userId }] : []),
+      ...(linkFeatures
+        ? [{ key: "linkFeatures", value: selectedLinkFeatures }]
+        : []),
     ];
-  }, [searchParamsObj]);
+  }, [searchParamsObj, selectedTagIds, selectedLinkFeatures]);
 
   const onSelect = (key: string, value: any) => {
     if (key === "tagIds") {
       queryParams({
         set: {
           tagIds: selectedTagIds.concat(value).join(","),
+        },
+        del: "page",
+      });
+    } else if (key === "linkFeatures") {
+      queryParams({
+        set: {
+          linkFeatures: selectedLinkFeatures.concat(value).join(","),
         },
         del: "page",
       });
@@ -145,6 +185,18 @@ export function useLinkFilters() {
         },
         del: "page",
       });
+    } else if (
+      key === "linkFeatures" &&
+      !(selectedLinkFeatures.length === 1 && selectedLinkFeatures[0] === value)
+    ) {
+      queryParams({
+        set: {
+          linkFeatures: selectedLinkFeatures
+            .filter((feature) => feature !== value)
+            .join(","),
+        },
+        del: "page",
+      });
     } else {
       queryParams({
         del: [key, "page"],
@@ -154,7 +206,7 @@ export function useLinkFilters() {
 
   const onRemoveAll = () => {
     queryParams({
-      del: ["domain", "tagIds", "userId", "search"],
+      del: ["domain", "tagIds", "userId", "linkFeatures", "search"],
     });
   };
 
@@ -292,4 +344,108 @@ function useUserFilterOptions({ folderId }: { folderId: string }) {
         : null,
     [users, usersCount],
   );
+}
+
+const FEATURE_OPTIONS = [
+  {
+    value: "conversionTracking",
+    label: "Conversion Tracking",
+    icon: Bolt,
+  },
+  {
+    value: "customLinkPreview",
+    label: "Custom Link Preview",
+    icon: PenWriting,
+  },
+  {
+    value: "geoTargeting",
+    label: "Geo Targeting",
+    icon: Globe,
+  },
+  {
+    value: "utmTags",
+    label: "UTM Tags",
+    icon: DiamondTurnRight,
+  },
+  {
+    value: "abTest",
+    label: "A/B Test",
+    icon: Flask,
+  },
+  {
+    value: "tags",
+    label: "Tags",
+    icon: Tag,
+  },
+  {
+    value: "comments",
+    label: "Comments",
+    icon: Page2,
+  },
+  {
+    value: "iosTargeting",
+    label: "iOS Targeting",
+    icon: AppleLogo,
+  },
+  {
+    value: "androidTargeting",
+    label: "Android Targeting",
+    icon: AndroidLogo,
+  },
+  {
+    value: "expiration",
+    label: "Expiration",
+    icon: CircleHalfDottedClock,
+  },
+  {
+    value: "password",
+    label: "Password",
+    icon: InputPassword,
+  },
+  {
+    value: "linkCloaking",
+    label: "Link Cloaking",
+    icon: Incognito,
+  },
+  {
+    value: "searchEngineIndexing",
+    label: "Search Engine Indexing",
+    icon: WindowSearch,
+  },
+] as const;
+
+function useLinkFeatureFilterOptions({ folderId }: { folderId: string }) {
+  const { showArchived } = useContext(LinksDisplayContext);
+
+  const counts = FEATURE_OPTIONS.map((feature) =>
+    useLinksCount<number>({
+      query: {
+        linkFeatures: [feature.value],
+        showArchived,
+        folderId,
+      },
+    }),
+  );
+
+  const isLoading = counts.some(({ loading }) => loading);
+  const countValues = counts.map(({ data }) => data ?? 0);
+
+  return useMemo(() => {
+    if (isLoading) return null;
+
+    return FEATURE_OPTIONS.map((feature, index) => {
+      const count = countValues[index];
+      const Icon = feature.icon;
+      return {
+        value: feature.value,
+        label: feature.label,
+        icon: <Icon className="h-4 w-4" />,
+        right: nFormatter(count, { full: true }),
+      };
+    }).sort((a, b) => {
+      const countA = parseInt(a.right?.replace(/,/g, "") || "0");
+      const countB = parseInt(b.right?.replace(/,/g, "") || "0");
+      return countB - countA;
+    });
+  }, [isLoading, countValues]);
 }

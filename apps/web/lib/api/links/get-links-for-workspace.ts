@@ -3,7 +3,7 @@ import { prisma } from "@dub/prisma";
 import { z } from "zod";
 import { combineTagIds } from "../tags/combine-tag-ids";
 import { encodeKeyIfCaseSensitive } from "./case-sensitivity";
-import { transformLink } from "./utils";
+import { buildLinkFeaturesWhere, transformLink } from "./utils";
 
 export interface GetLinksForWorkspaceProps
   extends z.infer<typeof getLinksQuerySchemaExtended> {
@@ -39,6 +39,7 @@ export async function getLinksForWorkspace({
   partnerId,
   startDate,
   endDate,
+  linkFeatures,
 }: GetLinksForWorkspaceProps) {
   const combinedTagIds = combineTagIds({ tagId, tagIds });
 
@@ -143,6 +144,7 @@ export async function getLinksForWorkspace({
             lte: endDate,
           },
         }),
+      ...buildLinkFeaturesWhere(linkFeatures),
     },
     include: {
       tags: {
