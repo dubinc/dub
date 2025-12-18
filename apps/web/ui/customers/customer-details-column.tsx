@@ -24,6 +24,7 @@ export function CustomerDetailsColumn({
   customer,
   customerActivity,
   isCustomerActivityLoading,
+  isProgramPage = false,
 }: {
   customer?: Omit<
     CustomerEnriched,
@@ -34,8 +35,9 @@ export function CustomerDetailsColumn({
   };
   customerActivity?: CustomerActivityResponse;
   isCustomerActivityLoading: boolean;
+  isProgramPage?: boolean;
 }) {
-  const { slug, programSlug } = useParams();
+  const { slug } = useParams();
 
   const basicFields = [
     ...(!customer || customer?.email
@@ -198,7 +200,7 @@ export function CustomerDetailsColumn({
                           href={
                             value === "Unknown"
                               ? undefined
-                              : `/${programSlug ? `programs/${programSlug}` : slug}/analytics?${key}=${encodeURIComponent(value)}`
+                              : `/${slug}/${isProgramPage ? "program" : ""}/analytics?${key}=${encodeURIComponent(value)}`
                           }
                           target="_blank"
                         >
@@ -238,7 +240,7 @@ export function CustomerDetailsColumn({
                     <Fragment key={key}>
                       <span className="truncate">{label}</span>
                       <ConditionalLink
-                        href={`/${programSlug ? `programs/${programSlug}` : slug}/analytics?${key}=${encodeURIComponent(value)}`}
+                        href={`/${slug}/${isProgramPage ? "program" : ""}/analytics?${key}=${encodeURIComponent(value)}`}
                         target="_blank"
                         className="truncate text-neutral-500"
                       >
