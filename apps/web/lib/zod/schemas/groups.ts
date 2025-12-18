@@ -12,7 +12,7 @@ import { programLanderSchema } from "./program-lander";
 import { RewardSchema } from "./rewards";
 import { parseUrlSchema } from "./utils";
 import { UTMTemplateSchema } from "./utm";
-import { workflowConditionSchema } from "./workflows";
+import { workflowConditionSchema, workflowConditionsSchema } from "./workflows";
 
 export const DEFAULT_PARTNER_GROUP = {
   name: "Default Group",
@@ -148,6 +148,7 @@ export const updateGroupSchema = createGroupSchema.partial().extend({
   autoApprovePartners: z.coerce.boolean().optional(),
   updateAutoApprovePartnersForAllGroups: z.coerce.boolean().optional(),
   updateHoldingPeriodDaysForAllGroups: z.coerce.boolean().optional(),
+  moveRule: workflowConditionsSchema.optional(),
 });
 
 export const PartnerGroupDefaultLinkSchema = z.object({
