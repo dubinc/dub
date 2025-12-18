@@ -158,11 +158,6 @@ export function CustomerTable({
                   return <PartnerRowItem partner={row.original.partner} />;
                 },
                 size: 200,
-                meta: {
-                  filterParams: ({ row }) => ({
-                    partnerId: row.original.partner.id,
-                  }),
-                },
               },
             ]
           : []),
@@ -284,7 +279,7 @@ export function CustomerTable({
           cell: ({ row }) => <RowMenuButton row={row} />,
         },
       ].filter((c) => c.id === "menu" || customersColumns.all.includes(c.id)),
-    [isProgramPage],
+    [isProgramPage, workspaceSlug],
   );
 
   const { table, ...tableProps } = useTable({
