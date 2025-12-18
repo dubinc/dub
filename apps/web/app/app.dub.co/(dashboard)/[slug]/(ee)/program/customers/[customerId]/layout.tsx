@@ -94,7 +94,7 @@ export default function CustomerLayout({ children }: { children: ReactNode }) {
           <div className="@3xl/page:order-1">
             <div className="border-border-subtle overflow-hidden rounded-xl border bg-neutral-100">
               <PageNavPanel
-                basePath={`/${workspaceSlug}/customers/${customerId}`}
+                basePath={`/${workspaceSlug}/program/customers/${customerId}`}
                 tabs={tabs}
               />
               <div className="border-border-subtle -mx-px -mb-px rounded-xl border bg-white p-4">
