@@ -59,7 +59,14 @@ const customersColumns = {
     "link",
     "externalId",
   ],
-  defaultVisible: ["customer", "country", "saleAmount", "createdAt", "link"],
+  defaultVisible: [
+    "customer",
+    "partner",
+    "country",
+    "saleAmount",
+    "createdAt",
+    "link",
+  ],
 };
 
 type ColumnMeta = {
@@ -119,7 +126,9 @@ export function CustomerTable({
   );
 
   const { columnVisibility, setColumnVisibility } = useColumnVisibility(
-    "customers-table-columns",
+    isProgramPage
+      ? "program-customers-table-columns"
+      : "customers-table-columns",
     customersColumns,
   );
 
