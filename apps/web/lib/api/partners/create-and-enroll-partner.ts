@@ -117,12 +117,12 @@ export const createAndEnrollPartner = async ({
           links: updatedProgramEnrollment.links,
         });
       }
+    } else if (partner.tenantId) {
+      await throwIfExistingTenantEnrollmentExists({
+        tenantId: partner.tenantId,
+        programId: program.id,
+      });
     }
-  } else if (partner.tenantId) {
-    await throwIfExistingTenantEnrollmentExists({
-      tenantId: partner.tenantId,
-      programId: program.id,
-    });
   }
 
   const finalGroupId = partner.groupId || program.defaultGroupId;
