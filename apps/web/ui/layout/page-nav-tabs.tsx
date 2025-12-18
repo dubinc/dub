@@ -7,31 +7,27 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useId, useRef } from "react";
 
-export type PageNavPanelTab = {
+export type PageNavTabsTab = {
   id: string;
   label: string;
   icon: Icon;
   badge?: string | number;
 };
 
-export type PageNavPanelQuicklink = {
+export type PageNavTabsQuicklink = {
   id: string;
   label: string;
   icon: Icon;
   href: string;
 };
 
-export type PageNavPanelProps = {
+export type PageNavTabsProps = {
   basePath: string;
-  tabs: PageNavPanelTab[];
-  quickLinks?: PageNavPanelQuicklink[];
+  tabs: PageNavTabsTab[];
+  quickLinks?: PageNavTabsQuicklink[];
 };
 
-export function PageNavPanel({
-  basePath,
-  tabs,
-  quickLinks,
-}: PageNavPanelProps) {
+export function PageNavTabs({ basePath, tabs, quickLinks }: PageNavTabsProps) {
   const pathname = usePathname();
 
   const containerRef = useRef<HTMLDivElement>(null);

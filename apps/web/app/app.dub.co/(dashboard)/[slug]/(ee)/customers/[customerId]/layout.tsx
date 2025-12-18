@@ -6,15 +6,15 @@ import { CustomerActivityResponse, CustomerEnriched } from "@/lib/types";
 import { CustomerActivityList } from "@/ui/customers/customer-activity-list";
 import { CustomerDetailsColumn } from "@/ui/customers/customer-details-column";
 import { CustomerStats } from "@/ui/customers/customer-stats";
+import { CustomerTabs } from "@/ui/customers/customer-tabs";
 import { PageContent } from "@/ui/layout/page-content";
-import { PageNavPanel } from "@/ui/layout/page-nav-panel";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { Button } from "@dub/ui";
-import { ChevronRight, MoneyBills2, Receipt2, Users } from "@dub/ui/icons";
+import { ChevronRight, Users } from "@dub/ui/icons";
 import { fetcher } from "@dub/utils";
 import Link from "next/link";
 import { redirect, useParams } from "next/navigation";
-import { ReactNode, useMemo } from "react";
+import { ReactNode } from "react";
 import useSWR from "swr";
 
 export default function CustomerLayout({ children }: { children: ReactNode }) {
@@ -36,26 +36,6 @@ export default function CustomerLayout({ children }: { children: ReactNode }) {
 
   if (customerError && customerError.status === 404)
     redirect(`/${workspaceSlug}/customers`);
-
-  const tabs = useMemo(
-    () => [
-      {
-        id: "sales",
-        label: "Sales",
-        icon: Receipt2,
-      },
-      ...(customer?.programId && customer.partner
-        ? [
-            {
-              id: "earnings",
-              label: "Partner earnings",
-              icon: MoneyBills2,
-            },
-          ]
-        : []),
-    ],
-    [customer?.programId, customer?.partner],
-  );
 
   return (
     <PageContent
@@ -93,10 +73,7 @@ export default function CustomerLayout({ children }: { children: ReactNode }) {
           </div>
           <div className="@3xl/page:order-1">
             <div className="border-border-subtle overflow-hidden rounded-xl border bg-neutral-100">
-              <PageNavPanel
-                basePath={`/${workspaceSlug}/customers/${customerId}`}
-                tabs={tabs}
-              />
+              <CustomerTabs customer={customer} />
               <div className="border-border-subtle -mx-px -mb-px rounded-xl border bg-white p-4">
                 {children}
               </div>

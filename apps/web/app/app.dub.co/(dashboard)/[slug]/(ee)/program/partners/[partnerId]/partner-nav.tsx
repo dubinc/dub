@@ -2,7 +2,7 @@
 
 import { usePartnerCommentsCount } from "@/lib/swr/use-partner-comments-count";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { PageNavPanel } from "@/ui/layout/page-nav-panel";
+import { PageNavTabs } from "@/ui/layout/page-nav-tabs";
 import {
   Hyperlink,
   InvoiceDollar,
@@ -78,7 +78,7 @@ export function PartnerNav() {
   );
 
   return (
-    <PageNavPanel
+    <PageNavTabs
       basePath={`/${workspaceSlug}/program/partners/${partnerId}`}
       tabs={tabs}
       quickLinks={quickLinks}
