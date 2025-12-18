@@ -10,7 +10,7 @@ import { CustomerTabs } from "@/ui/customers/customer-tabs";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { Button } from "@dub/ui";
-import { ChevronRight, Users } from "@dub/ui/icons";
+import { ChevronRight, UserCheck } from "@dub/ui/icons";
 import { fetcher } from "@dub/utils";
 import Link from "next/link";
 import { redirect, useParams } from "next/navigation";
@@ -47,7 +47,7 @@ export default function CustomerLayout({ children }: { children: ReactNode }) {
             title="Back to customers"
             className="bg-bg-subtle hover:bg-bg-emphasis flex size-8 shrink-0 items-center justify-center rounded-lg transition-[transform,background-color] duration-150 active:scale-95"
           >
-            <Users className="size-4" />
+            <UserCheck className="size-4" />
           </Link>
           <ChevronRight className="text-content-muted size-2.5 shrink-0 [&_*]:stroke-2" />
           <div>
@@ -69,6 +69,7 @@ export default function CustomerLayout({ children }: { children: ReactNode }) {
               customer={customer}
               customerActivity={customerActivity}
               isCustomerActivityLoading={!customer || isCustomerActivityLoading}
+              workspaceSlug={workspaceSlug}
               isProgramPage
             />
           </div>

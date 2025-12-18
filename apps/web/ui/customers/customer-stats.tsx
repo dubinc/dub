@@ -8,7 +8,7 @@ export function CustomerStats({
   customer,
   error,
 }: {
-  customer: CustomerEnriched | undefined;
+  customer?: Pick<CustomerEnriched, "sales" | "saleAmount">;
   error?: boolean;
 }) {
   const stats: { label: string; value?: string; href?: string }[] = useMemo(

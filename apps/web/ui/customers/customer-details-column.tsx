@@ -25,6 +25,7 @@ export function CustomerDetailsColumn({
   customerActivity,
   isCustomerActivityLoading,
   isProgramPage = false,
+  workspaceSlug,
 }: {
   customer?: Omit<
     CustomerEnriched,
@@ -36,8 +37,9 @@ export function CustomerDetailsColumn({
   customerActivity?: CustomerActivityResponse;
   isCustomerActivityLoading: boolean;
   isProgramPage?: boolean;
+  workspaceSlug?: string;
 }) {
-  const { slug } = useParams();
+  const { programSlug } = useParams<{ programSlug: string }>();
 
   const basicFields = [
     ...(!customer || customer?.email
@@ -121,7 +123,7 @@ export function CustomerDetailsColumn({
             {customer ? (
               <div className="flex items-center gap-2">
                 <span className="text-content-emphasis text-base font-semibold">
-                  {customer.name}
+                  {customer.name || customer.email}
                 </span>
               </div>
             ) : (
@@ -139,7 +141,9 @@ export function CustomerDetailsColumn({
                   {text !== undefined ? (
                     <>
                       {icon}
-                      <span className="text-xs font-medium">{text}</span>
+                      <span className="min-w-0 truncate text-xs font-medium">
+                        {text}
+                      </span>
                     </>
                   ) : (
                     <div className="h-4 w-24 animate-pulse rounded bg-neutral-200" />
@@ -200,7 +204,7 @@ export function CustomerDetailsColumn({
                           href={
                             value === "Unknown"
                               ? undefined
-                              : `/${slug}/${isProgramPage ? "program/" : ""}analytics?${key}=${encodeURIComponent(value)}`
+                              : `/${workspaceSlug || `programs/${programSlug}`}/${isProgramPage ? "program/" : ""}analytics?${key}=${encodeURIComponent(value)}`
                           }
                           target="_blank"
                         >
@@ -240,7 +244,11 @@ export function CustomerDetailsColumn({
                     <Fragment key={key}>
                       <span className="truncate">{label}</span>
                       <ConditionalLink
-                        href={`/${slug}/${isProgramPage ? "program/" : ""}analytics?${key}=${encodeURIComponent(value)}`}
+                        href={
+                          workspaceSlug
+                            ? `/${workspaceSlug}/${isProgramPage ? "program/" : ""}analytics?${key}=${encodeURIComponent(value)}`
+                            : undefined
+                        }
                         target="_blank"
                         className="truncate text-neutral-500"
                       >
@@ -269,7 +277,11 @@ export function CustomerDetailsColumn({
                 className="size-5 rounded-full"
               />
               <ConditionalLink
-                href={`/${slug}/program/partners/${partner.id}`}
+                href={
+                  workspaceSlug
+                    ? `/${workspaceSlug}/program/partners/${partner.id}`
+                    : undefined
+                }
                 target="_blank"
                 className="min-w-0 overflow-hidden truncate text-xs font-semibold"
               >
@@ -286,7 +298,13 @@ export function CustomerDetailsColumn({
               <div className="flex items-center gap-1.5">
                 <Hyperlink className="size-3.5 shrink-0" />
                 <ConditionalLink
-                  href={`/${slug}/links/${link.domain}/${link.key}`}
+                  href={
+                    workspaceSlug
+                      ? `/${workspaceSlug}/links/${link.domain}/${link.key}`
+                      : programSlug
+                        ? `/programs/${programSlug}/analytics?domain=${encodeURIComponent(link.domain)}&key=${encodeURIComponent(link.key)}`
+                        : undefined
+                  }
                   target="_blank"
                   className="min-w-0 overflow-hidden truncate"
                 >
