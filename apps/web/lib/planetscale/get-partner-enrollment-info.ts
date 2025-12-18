@@ -11,6 +11,7 @@ interface QueryResult {
   couponId: string | null;
   couponTestId: string | null;
   groupId: string | null;
+  tenantId: string | null;
 }
 
 // Get enrollment info for a partner in a program
@@ -24,7 +25,6 @@ export const getPartnerEnrollmentInfo = async ({
   if (!partnerId || !programId) {
     return {
       partner: null,
-      group: null,
       discount: null,
     };
   }
@@ -40,7 +40,8 @@ export const getPartnerEnrollmentInfo = async ({
       Discount.maxDuration,
       Discount.couponId,
       Discount.couponTestId,
-      ProgramEnrollment.groupId
+      ProgramEnrollment.groupId,
+      ProgramEnrollment.tenantId
     FROM ProgramEnrollment
     LEFT JOIN Partner ON Partner.id = ProgramEnrollment.partnerId
     LEFT JOIN Discount ON Discount.id = ProgramEnrollment.discountId
@@ -54,7 +55,6 @@ export const getPartnerEnrollmentInfo = async ({
   if (!result) {
     return {
       partner: null,
-      group: null,
       discount: null,
     };
   }
@@ -64,9 +64,8 @@ export const getPartnerEnrollmentInfo = async ({
       id: result.id,
       name: result.name,
       image: result.image,
-    },
-    group: {
-      id: result.groupId,
+      groupId: result.groupId,
+      tenantId: result.tenantId,
     },
     discount: result.discountId
       ? {

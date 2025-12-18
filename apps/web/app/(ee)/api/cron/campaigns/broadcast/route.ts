@@ -229,7 +229,6 @@ export async function POST(req: Request) {
 
         const { data, error } = await sendBatchEmail(
           partnerUsersChunk.map((partnerUser) => ({
-            variant: "marketing",
             from: `${program.name} <${campaign.from}>`,
             to: partnerUser.email!,
             subject: campaign.subject,

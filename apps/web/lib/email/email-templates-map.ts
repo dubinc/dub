@@ -1,4 +1,5 @@
 import BountyApproved from "@dub/email/templates/bounty-approved";
+import DubPartnerRewind from "@dub/email/templates/dub-partner-rewind";
 import PartnerBanned from "@dub/email/templates/partner-banned";
 import PartnerDeactivated from "@dub/email/templates/partner-deactivated";
 import PartnerPayoutConfirmed from "@dub/email/templates/partner-payout-confirmed";
@@ -14,6 +15,8 @@ export const EMAIL_TEMPLATES_MAP = {
   PartnerDeactivated,
   PartnerBanned,
   ProgramPayoutThankYou,
-  ProgramMarketplaceAnnouncement,
   UnresolvedFraudEventsSummary,
+  // special promo emails
+  ProgramMarketplaceAnnouncement,
+  DubPartnerRewind,
 } as const;
