@@ -6,6 +6,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { CustomerProps } from "@/lib/types";
 import { getCustomersQuerySchema } from "@/lib/zod/schemas/customers";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
+import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { FilterButtonTableRow } from "@/ui/shared/filter-button-table-row";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
@@ -49,7 +50,15 @@ import { EXAMPLE_CUSTOMER_DATA } from "./example-data";
 import { useCustomerFilters } from "./use-customer-filters";
 
 const customersColumns = {
-  all: ["customer", "country", "saleAmount", "createdAt", "link", "externalId"],
+  all: [
+    "customer",
+    "partner",
+    "country",
+    "saleAmount",
+    "createdAt",
+    "link",
+    "externalId",
+  ],
   defaultVisible: ["customer", "country", "saleAmount", "createdAt", "link"],
 };
 
@@ -109,6 +118,8 @@ export function CustomerTable({
     },
   );
 
+  console.log(customers);
+
   const { columnVisibility, setColumnVisibility } = useColumnVisibility(
     "customers-table-columns",
     customersColumns,
@@ -140,6 +151,23 @@ export function CustomerTable({
             );
           },
         },
+        ...(isProgramPage
+          ? [
+              {
+                id: "partner",
+                header: "Partner",
+                cell: ({ row }) => {
+                  return <PartnerRowItem partner={row.original.partner} />;
+                },
+                size: 200,
+                meta: {
+                  filterParams: ({ row }) => ({
+                    partnerId: row.original.partner.id,
+                  }),
+                },
+              },
+            ]
+          : []),
         {
           id: "country",
           header: "Country",
