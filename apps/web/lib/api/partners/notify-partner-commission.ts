@@ -15,6 +15,7 @@ export async function notifyPartnerCommission({
   group,
   workspace,
   commission,
+  isFirstCommission,
 }: {
   program: Pick<Program, "name" | "slug" | "logo" | "supportEmail">;
   group: Pick<PartnerGroup, "holdingPeriodDays">;
@@ -23,8 +24,9 @@ export async function notifyPartnerCommission({
     Commission,
     "type" | "amount" | "earnings" | "partnerId" | "linkId"
   >;
+  isFirstCommission: boolean;
 }) {
-  let [partner, workspaceUsers, partnerLink] = await Promise.all([
+  const [partner, workspaceUsers, partnerLink] = await Promise.all([
     prisma.partner.findUnique({
       where: {
         id: commission.partnerId,
@@ -48,6 +50,7 @@ export async function notifyPartnerCommission({
         },
       },
     }),
+
     prisma.projectUsers.findMany({
       where: {
         projectId: workspace.id,
@@ -69,6 +72,7 @@ export async function notifyPartnerCommission({
         },
       },
     }),
+
     commission.linkId
       ? Promise.resolve(
           prisma.link.findUnique({
@@ -129,8 +133,11 @@ export async function notifyPartnerCommission({
           }),
         }) as ResendEmailOptions,
     ),
-    // Workspace owner emails (only for sale commissions)
-    ...(commission.type === "sale"
+
+    // Workspace owner emails are sent:
+    // - only for sale commissions
+    // - only for the first commission per partner–customer combination
+    ...(commission.type === "sale" && isFirstCommission
       ? workspaceUsers.map(
           ({ user }) =>
             ({
