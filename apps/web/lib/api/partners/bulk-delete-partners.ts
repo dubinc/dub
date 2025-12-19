@@ -26,6 +26,7 @@ export async function bulkDeletePartners({
   });
 
   const linksToDelete = programEnrollments.flatMap((pe) => pe.links);
+  const programEnrollmentIds = programEnrollments.map((pe) => pe.id);
 
   if (linksToDelete.length > 0) {
     while (true) {
@@ -69,7 +70,7 @@ export async function bulkDeletePartners({
       where: {
         programEnrollment: {
           id: {
-            in: programEnrollments.map((pe) => pe.id),
+            in: programEnrollmentIds,
           },
         },
       },
@@ -94,23 +95,36 @@ export async function bulkDeletePartners({
     where: {
       programEnrollment: {
         id: {
-          in: programEnrollments.map((pe) => pe.id),
+          in: programEnrollmentIds,
         },
       },
     },
   });
   console.log(`Deleted ${deletedPayouts.count} payouts`);
 
+  // Delete the messages
   const deletedMessages = await prisma.message.deleteMany({
     where: {
       programEnrollment: {
         id: {
-          in: programEnrollments.map((pe) => pe.id),
+          in: programEnrollmentIds,
         },
       },
     },
   });
   console.log(`Deleted ${deletedMessages.count} messages`);
+
+  // Delete the bounty submissions
+  const deletedBountySubmissions = await prisma.bountySubmission.deleteMany({
+    where: {
+      programEnrollment: {
+        id: {
+          in: programEnrollmentIds,
+        },
+      },
+    },
+  });
+  console.log(`Deleted ${deletedBountySubmissions.count} bounty submissions`);
 
   if (deletePartners) {
     const deletedPartners = await prisma.partner.deleteMany({
@@ -126,7 +140,7 @@ export async function bulkDeletePartners({
       {
         where: {
           id: {
-            in: programEnrollments.map((pe) => pe.id),
+            in: programEnrollmentIds,
           },
         },
       },
