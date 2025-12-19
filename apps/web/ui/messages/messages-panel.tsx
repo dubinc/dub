@@ -8,7 +8,7 @@ import {
   Tooltip,
   useMediaQuery,
 } from "@dub/ui";
-import { OG_AVATAR_URL, cn, formatDate } from "@dub/utils";
+import { OG_AVATAR_URL, cn, formatDate, formatDateTime } from "@dub/utils";
 import { ChevronRight } from "lucide-react";
 import { Fragment, useMemo, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
@@ -78,6 +78,17 @@ export function MessagesPanel({
         : message.senderUserId === currentUserId,
     );
 
+  const isMessageNewDate = (first: Message, second: Message) =>
+    new Date(first.createdAt).toDateString() !==
+    new Date(second.createdAt).toDateString();
+
+  const isMessageNewTime = (first: Message, second: Message) =>
+    Math.abs(
+      new Date(first.createdAt).getTime() -
+        new Date(second.createdAt).getTime(),
+    ) >
+    5 * 1000 * 60;
+
   return (
     <div className="flex size-full flex-col">
       {messages ? (
@@ -85,22 +96,23 @@ export function MessagesPanel({
           ref={scrollRef}
           className="scrollbar-hide flex grow flex-col-reverse overflow-y-auto"
         >
-          <div className="flex flex-col items-stretch gap-5 p-6">
+          <div className="flex flex-col items-stretch gap-2 p-6">
             {messages?.map((message, idx) => {
               const isNewDate =
-                idx === 0 ||
-                new Date(messages[idx - 1].createdAt).toDateString() !==
-                  new Date(message.createdAt).toDateString();
+                idx === 0 || isMessageNewDate(message, messages[idx - 1]);
 
               // If it's been more than 5 minutes since the last message
               const isNewTime =
-                isNewDate ||
-                new Date(message.createdAt).getTime() -
-                  new Date(messages[idx - 1].createdAt).getTime() >
-                  5 * 1000 * 60;
+                isNewDate || isMessageNewTime(message, messages[idx - 1]);
 
               const isMySide = isMessageMySide(message);
               const isMe = isMessageFromMe(message);
+
+              // Only show avatar if it's the last from a side
+              const showAvatar =
+                idx === messages.length - 1 ||
+                isMessageMySide(messages[idx + 1]) !== isMySide ||
+                isMessageNewTime(message, messages[idx + 1]);
 
               // Message is new if it was sent within the last 10 seconds (used for intro animations)
               const isNew =
@@ -120,14 +132,26 @@ export function MessagesPanel({
                 <Fragment
                   key={`${new Date(message.createdAt).getTime()}-${message.senderUserId}-${message.senderPartnerId}`}
                 >
-                  {isNewDate && (
+                  {isNewTime && (
                     <div
                       className={cn(
-                        "text-content-default text-center text-xs font-semibold",
+                        "text-content-subtle text-center text-xs font-medium",
                         isNew && "animate-scale-in-fade",
+                        isNewDate && "text-content-default font-semibold",
                       )}
                     >
-                      {formatDate(message.createdAt)}
+                      {isNewTime
+                        ? formatDateTime(
+                            message.createdAt,
+                            isNewDate
+                              ? undefined
+                              : {
+                                  month: undefined,
+                                  day: undefined,
+                                  year: undefined,
+                                },
+                          )
+                        : formatDate(message.createdAt)}
                     </div>
                   )}
 
@@ -153,11 +177,15 @@ export function MessagesPanel({
                       )}
                     >
                       {/* Avatar */}
-                      <MessageAvatar
-                        sender={sender}
-                        program={program}
-                        message={message}
-                      />
+                      {showAvatar ? (
+                        <MessageAvatar
+                          sender={sender}
+                          program={program}
+                          message={message}
+                        />
+                      ) : (
+                        <div className="size-8" />
+                      )}
 
                       <div
                         className={cn(
@@ -172,6 +200,10 @@ export function MessagesPanel({
                           sender={sender}
                           message={message}
                           isNewTime={isNewTime}
+                          isFirstFromSide={
+                            idx === 0 ||
+                            isMessageMySide(messages[idx - 1]) !== isMySide
+                          }
                           showStatusIndicator={showStatusIndicator}
                           program={program}
                         />
@@ -328,6 +360,7 @@ function MessageHeader({
   sender,
   message,
   isNewTime,
+  isFirstFromSide,
   showStatusIndicator,
   program,
 }: {
@@ -336,6 +369,7 @@ function MessageHeader({
   sender: Sender | null;
   message: Message & { delivered?: boolean };
   isNewTime: boolean;
+  isFirstFromSide: boolean;
   showStatusIndicator: boolean;
   program?: Pick<ProgramProps, "logo" | "name"> | null;
 }) {
@@ -343,8 +377,8 @@ function MessageHeader({
   const name = isCampaign ? program?.name : sender?.name;
 
   return (
-    (!isMySide || isNewTime || showStatusIndicator) && (
-      <div className="flex items-center gap-1.5">
+    ((!isMySide && isFirstFromSide) || isNewTime || showStatusIndicator) && (
+      <div className="flex items-center gap-1.5 pt-3">
         {!isMe && (
           <>
             <span className="text-content-default min-w-0 truncate text-xs font-medium">
@@ -364,14 +398,6 @@ function MessageHeader({
           </>
         )}
 
-        {isNewTime && (
-          <span className="text-content-subtle text-xs font-medium">
-            {new Date(message.createdAt).toLocaleTimeString("en-US", {
-              hour: "numeric",
-              minute: "numeric",
-            })}
-          </span>
-        )}
         {showStatusIndicator && <StatusIndicator message={message} />}
       </div>
     )
