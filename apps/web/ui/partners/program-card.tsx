@@ -41,8 +41,8 @@ export function ProgramCard({
             {program.name}
           </span>
           <div className="flex items-center gap-1 text-neutral-500">
-            <Link4 className="size-3" />
-            <span className="text-sm font-medium">
+            <Link4 className="size-3 shrink-0" />
+            <span className="min-w-0 truncate text-sm font-medium">
               {getPrettyUrl(
                 constructPartnerLink({
                   group,
