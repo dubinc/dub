@@ -89,6 +89,10 @@ export function MessagesPanel({
     ) >
     5 * 1000 * 60;
 
+  const isMessageSameSender = (first: Message, second: Message) =>
+    first.senderUserId === second.senderUserId &&
+    first.senderPartnerId === second.senderPartnerId;
+
   return (
     <div className="flex size-full flex-col">
       {messages ? (
@@ -128,6 +132,9 @@ export function MessagesPanel({
 
               const sender = message.senderPartner || message.senderUser;
 
+              const isFirstFromSender =
+                idx === 0 || !isMessageSameSender(message, messages[idx - 1]);
+
               return (
                 <Fragment
                   key={`${new Date(message.createdAt).getTime()}-${message.senderUserId}-${message.senderPartnerId}`}
@@ -163,6 +170,7 @@ export function MessagesPanel({
                       sender={sender}
                       showStatusIndicator={showStatusIndicator}
                       isNewTime={isNewTime}
+                      isFirstFromSender={isFirstFromSender}
                       isNew={isNew}
                       program={program}
                     />
@@ -200,10 +208,7 @@ export function MessagesPanel({
                           sender={sender}
                           message={message}
                           isNewTime={isNewTime}
-                          isFirstFromSide={
-                            idx === 0 ||
-                            isMessageMySide(messages[idx - 1]) !== isMySide
-                          }
+                          isFirstFromSender={isFirstFromSender}
                           showStatusIndicator={showStatusIndicator}
                           program={program}
                         />
@@ -360,7 +365,7 @@ function MessageHeader({
   sender,
   message,
   isNewTime,
-  isFirstFromSide,
+  isFirstFromSender,
   showStatusIndicator,
   program,
 }: {
@@ -369,7 +374,7 @@ function MessageHeader({
   sender: Sender | null;
   message: Message & { delivered?: boolean };
   isNewTime: boolean;
-  isFirstFromSide: boolean;
+  isFirstFromSender: boolean;
   showStatusIndicator: boolean;
   program?: Pick<ProgramProps, "logo" | "name"> | null;
 }) {
@@ -377,7 +382,7 @@ function MessageHeader({
   const name = isCampaign ? program?.name : sender?.name;
 
   return (
-    ((!isMySide && isFirstFromSide) || isNewTime || showStatusIndicator) && (
+    ((!isMySide && isFirstFromSender) || isNewTime || showStatusIndicator) && (
       <div className="flex items-center gap-1.5 pt-3">
         {!isMe && (
           <>
@@ -411,6 +416,7 @@ function CampaignMessage({
   sender,
   showStatusIndicator,
   isNewTime,
+  isFirstFromSender,
   isNew,
   program,
 }: {
@@ -420,6 +426,7 @@ function CampaignMessage({
   sender: Sender | null;
   showStatusIndicator: boolean;
   isNewTime: boolean;
+  isFirstFromSender: boolean;
   isNew: boolean;
   program?: Pick<ProgramProps, "logo" | "name"> | null;
 }) {
@@ -449,6 +456,7 @@ function CampaignMessage({
           sender={sender}
           message={message}
           isNewTime={isNewTime}
+          isFirstFromSender={isFirstFromSender}
           showStatusIndicator={showStatusIndicator}
           program={program}
         />
