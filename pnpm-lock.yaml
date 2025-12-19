@@ -782,7 +782,7 @@ importers:
         specifier: ^3.10.2
         version: 3.10.2(@tiptap/core@3.10.2(@tiptap/pm@3.10.2))
       '@tiptap/extension-link':
-        specifier: ^3.14.0
+        specifier: ^3.10.2
         version: 3.14.0(@tiptap/core@3.10.2(@tiptap/pm@3.10.2))(@tiptap/pm@3.10.2)
       '@tiptap/extension-mention':
         specifier: ^3.10.2
