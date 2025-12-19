@@ -41,7 +41,6 @@ export const ProgramSchema = z.object({
   rewards: z.array(RewardSchema).nullish(),
   discounts: z.array(DiscountSchema).nullish(),
   categories: z.array(z.nativeEnum(Category)).nullish(),
-  inviteEmailData: programInviteEmailDataSchema, // TODO: move to group-level soon
   defaultFolderId: z.string(),
   defaultGroupId: z.string(),
   supportEmail: z.string().nullish(),
@@ -50,6 +49,11 @@ export const ProgramSchema = z.object({
   createdAt: z.date(),
   updatedAt: z.date(),
   startedAt: z.date().nullish(),
+});
+
+// TODO: move to group-level soon
+export const ProgramSchemaWithInviteEmailData = ProgramSchema.extend({
+  inviteEmailData: programInviteEmailDataSchema,
 });
 
 export const updateProgramSchema = z.object({

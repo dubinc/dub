@@ -1,11 +1,11 @@
-import { ProgramSchema } from "@/lib/zod/schemas/programs";
+import { ProgramSchemaWithInviteEmailData } from "@/lib/zod/schemas/programs";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { z } from "zod";
 import { DubApiError } from "../errors";
 
 type ProgramWithInclude<T extends Prisma.ProgramInclude = {}> = z.infer<
-  typeof ProgramSchema
+  typeof ProgramSchemaWithInviteEmailData
 > &
   Prisma.ProgramGetPayload<{ include: T }>;
 
