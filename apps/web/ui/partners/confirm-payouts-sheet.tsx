@@ -640,10 +640,11 @@ function ConfirmPayoutsSheetContent() {
     customPermissionDescription: "confirm payouts",
   });
 
-  const isTouchDevice = useMemo(
-    () => window.matchMedia("(pointer: coarse)").matches,
-    [],
-  );
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
+
+  useEffect(() => {
+    setIsTouchDevice(window.matchMedia("(pointer: coarse)").matches);
+  }, []);
 
   return (
     <div className="flex h-full flex-col">
