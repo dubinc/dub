@@ -6,7 +6,13 @@ import {
 import NewCommissionAlertPartner from "@dub/email/templates/new-commission-alert-partner";
 import NewSaleAlertProgramOwner from "@dub/email/templates/new-sale-alert-program-owner";
 import { prisma } from "@dub/prisma";
-import { Commission, PartnerGroup, Program, Project } from "@dub/prisma/client";
+import {
+  Commission,
+  PartnerGroup,
+  Program,
+  Project,
+  User,
+} from "@dub/prisma/client";
 import { chunk } from "@dub/utils";
 
 // Send email to partner and program owners when a commission is created
@@ -26,6 +32,11 @@ export async function notifyPartnerCommission({
   >;
   isFirstCommission: boolean;
 }) {
+  // Workspace owner emails are sent:
+  // - only for sale commissions
+  // - only for the first commission per partner–customer combination
+  const shouldNotifyProgram = commission.type === "sale" && isFirstCommission;
+
   const [partner, workspaceUsers, partnerLink] = await Promise.all([
     prisma.partner.findUnique({
       where: {
@@ -51,27 +62,29 @@ export async function notifyPartnerCommission({
       },
     }),
 
-    prisma.projectUsers.findMany({
-      where: {
-        projectId: workspace.id,
-        notificationPreference: {
-          newPartnerSale: true,
-        },
-        user: {
-          email: {
-            not: null,
+    shouldNotifyProgram
+      ? prisma.projectUsers.findMany({
+          where: {
+            projectId: workspace.id,
+            notificationPreference: {
+              newPartnerSale: true,
+            },
+            user: {
+              email: {
+                not: null,
+              },
+            },
           },
-        },
-      },
-      include: {
-        user: {
-          select: {
-            name: true,
-            email: true,
+          include: {
+            user: {
+              select: {
+                name: true,
+                email: true,
+              },
+            },
           },
-        },
-      },
-    }),
+        })
+      : Promise.resolve([] as { user: Pick<User, "name" | "email"> }[]),
 
     commission.linkId
       ? Promise.resolve(
@@ -134,10 +147,7 @@ export async function notifyPartnerCommission({
         }) as ResendEmailOptions,
     ),
 
-    // Workspace owner emails are sent:
-    // - only for sale commissions
-    // - only for the first commission per partner–customer combination
-    ...(commission.type === "sale" && isFirstCommission
+    ...(shouldNotifyProgram
       ? workspaceUsers.map(
           ({ user }) =>
             ({
