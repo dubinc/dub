@@ -8,7 +8,7 @@ import {
   Tooltip,
   useMediaQuery,
 } from "@dub/ui";
-import { OG_AVATAR_URL, cn, formatDate, formatDateTime } from "@dub/utils";
+import { OG_AVATAR_URL, cn, formatDateTime } from "@dub/utils";
 import { ChevronRight } from "lucide-react";
 import { Fragment, useMemo, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
@@ -147,18 +147,16 @@ export function MessagesPanel({
                         isNewDate && "text-content-default font-semibold",
                       )}
                     >
-                      {isNewTime
-                        ? formatDateTime(
-                            message.createdAt,
-                            isNewDate
-                              ? undefined
-                              : {
-                                  month: undefined,
-                                  day: undefined,
-                                  year: undefined,
-                                },
-                          )
-                        : formatDate(message.createdAt)}
+                      {formatDateTime(
+                        message.createdAt,
+                        isNewDate
+                          ? undefined
+                          : {
+                              month: undefined,
+                              day: undefined,
+                              year: undefined,
+                            },
+                      )}
                     </div>
                   )}
 
