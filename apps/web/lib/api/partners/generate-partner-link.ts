@@ -18,6 +18,7 @@ interface GeneratePartnerLinkInput {
     domain: string;
     url: string;
     key?: string;
+    tenantId?: string | null;
     partnerGroupDefaultLinkId?: string | null;
   };
   userId: string;
