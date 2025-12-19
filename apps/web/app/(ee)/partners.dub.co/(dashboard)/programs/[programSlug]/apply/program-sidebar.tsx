@@ -19,7 +19,18 @@ export function ProgramSidebar({
   applicationRewards,
   applicationDiscount,
 }: {
-  program: ProgramProps;
+  program: Pick<
+    ProgramProps,
+    | "id"
+    | "slug"
+    | "defaultGroupId"
+    | "name"
+    | "domain"
+    | "logo"
+    | "termsUrl"
+    | "rewards"
+    | "discounts"
+  >;
   applicationRewards: RewardProps[];
   applicationDiscount: DiscountProps | null;
 }) {
