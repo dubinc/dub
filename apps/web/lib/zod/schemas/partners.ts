@@ -564,13 +564,26 @@ export const createPartnerSchema = z.object({
       url: true,
       domain: true,
       key: true,
+      // default programId / partnerId / tenantId fields
+      programId: true,
+      partnerId: true,
+      tenantId: true,
+      // partner links always track conversions
+      trackConversion: true,
+      // folderId is set to the program's defaultFolderId
+      folderId: true,
+      // UTM params are derived from the partner's group settings
+      utm_source: true,
+      utm_medium: true,
+      utm_campaign: true,
+      utm_term: true,
+      utm_content: true,
+      ref: true,
+      // additional unsupported fields
       publicStats: true,
       tagId: true,
       geo: true,
-      programId: true,
-      partnerId: true,
       webhookIds: true,
-      trackConversion: true,
     })
     .partial()
     .optional()
