@@ -564,10 +564,9 @@ export const createPartnerSchema = z.object({
       url: true,
       domain: true,
       key: true,
-      // default programId / partnerId / tenantId fields
+      // default programId / partnerId fields
       programId: true,
       partnerId: true,
-      tenantId: true,
       // partner links always track conversions
       trackConversion: true,
       // folderId is set to the program's defaultFolderId
