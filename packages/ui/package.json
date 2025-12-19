@@ -75,6 +75,7 @@
     "@tanstack/react-table": "^8.17.3",
     "@tiptap/extension-file-handler": "^3.10.2",
     "@tiptap/extension-image": "^3.10.2",
+    "@tiptap/extension-link": "^3.14.0",
     "@tiptap/extension-mention": "^3.10.2",
     "@tiptap/extensions": "^3.10.2",
     "@tiptap/markdown": "^3.10.2",
