@@ -119,12 +119,22 @@ export class PartnerStackApi {
     return partnerStackCustomer.array().parse(items);
   }
 
-  async listCommissions({ startingAfter }: { startingAfter?: string }) {
+  async listCommissions({
+    startingAfter,
+    status,
+  }: {
+    startingAfter?: string;
+    status?: PartnerStackCommission["reward_status"];
+  }) {
     const searchParams = new URLSearchParams();
     searchParams.append("limit", PAGE_LIMIT.toString());
 
     if (startingAfter) {
       searchParams.append("starting_after", startingAfter);
+    }
+
+    if (status) {
+      searchParams.append("status", status);
     }
 
     const {
