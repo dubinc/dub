@@ -143,6 +143,7 @@ export function MessagesPanel({
                     <div
                       className={cn(
                         "text-content-subtle text-center text-xs font-medium",
+                        idx > 0 && "pt-5",
                         isNew && "animate-scale-in-fade",
                         isNewDate && "text-content-default font-semibold",
                       )}
