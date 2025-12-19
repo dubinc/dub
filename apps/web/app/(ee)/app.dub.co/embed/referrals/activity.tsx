@@ -11,11 +11,13 @@ export function ReferralsEmbedActivity({
   leads,
   sales,
   saleAmount,
+  color,
 }: {
   clicks: number;
   leads: number;
   sales: number;
   saleAmount: number;
+  color?: string;
 }) {
   const token = useEmbedToken();
 
@@ -86,6 +88,7 @@ export function ReferralsEmbedActivity({
                       value: a[label.toLowerCase()],
                     })) ?? []
                   }
+                  color={color}
                 />
               </div>
             </div>
