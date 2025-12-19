@@ -72,8 +72,15 @@ export function BountySubmissionsTable() {
     ? PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES[performanceCondition.attribute]
     : "Progress";
 
-  const sortBy = searchParams.get("sortBy") || "completedAt";
-  const sortOrder = searchParams.get("sortOrder") === "desc" ? "desc" : "asc";
+  const sortBy = useMemo(() => {
+    if (searchParams.get("sortBy")) return searchParams.get("sortBy") as string;
+
+    if (bounty?.type === "performance") return "performanceCount";
+
+    return "completedAt";
+  }, [searchParams, bounty]);
+
+  const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
   const { submissionsCount } =
     useBountySubmissionsCount<SubmissionsCountByStatus[]>();
