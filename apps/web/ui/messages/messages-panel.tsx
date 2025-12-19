@@ -115,7 +115,7 @@ export function MessagesPanel({
               // Only show avatar if it's the last from a side
               const showAvatar =
                 idx === messages.length - 1 ||
-                isMessageMySide(messages[idx + 1]) !== isMySide ||
+                !isMessageSameSender(message, messages[idx + 1]) ||
                 isMessageNewTime(message, messages[idx + 1]);
 
               // Message is new if it was sent within the last 10 seconds (used for intro animations)
