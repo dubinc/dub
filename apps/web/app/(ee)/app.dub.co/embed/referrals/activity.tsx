@@ -17,7 +17,7 @@ export function ReferralsEmbedActivity({
   leads: number;
   sales: number;
   saleAmount: number;
-  color?: string;
+  color?: string | null;
 }) {
   const token = useEmbedToken();
 
@@ -88,7 +88,7 @@ export function ReferralsEmbedActivity({
                       value: a[label.toLowerCase()],
                     })) ?? []
                   }
-                  color={color}
+                  color={color ?? undefined}
                 />
               </div>
             </div>
