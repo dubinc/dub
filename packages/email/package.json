@@ -15,13 +15,14 @@
     "date-fns": "^4.1.0",
     "lucide-react": "^0.462.0",
     "nodemailer": "^6.9.3",
-    "react-email": "^5.1.0",
     "resend": "6.6.0"
   },
   "devDependencies": {
+    "@react-email/preview-server": "^5.1.0",
     "@types/nodemailer": "~6.4.17",
     "@types/react": "^19.1.15",
     "@types/react-dom": "^19.1.9",
+    "react-email": "^5.1.0",
     "typescript": "^5.4.4"
   },
   "peerDependencies": {
