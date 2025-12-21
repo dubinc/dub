@@ -49,26 +49,6 @@ import { z } from "zod";
 import { EXAMPLE_CUSTOMER_DATA } from "./example-data";
 import { useCustomerFilters } from "./use-customer-filters";
 
-const customersColumns = {
-  all: [
-    "customer",
-    "partner",
-    "country",
-    "saleAmount",
-    "createdAt",
-    "link",
-    "externalId",
-  ],
-  defaultVisible: [
-    "customer",
-    "partner",
-    "country",
-    "saleAmount",
-    "createdAt",
-    "link",
-  ],
-};
-
 type ColumnMeta = {
   filterParams?: (
     args: Pick<Cell<CustomerProps, any>, "getValue">,
@@ -125,6 +105,25 @@ export function CustomerTable({
     },
   );
 
+  const customersColumns = {
+    all: [
+      "customer",
+      "country",
+      ...(isProgramPage ? ["partner"] : []),
+      "link",
+      "saleAmount",
+      "createdAt",
+      "externalId",
+    ],
+    defaultVisible: [
+      "customer",
+      "country",
+      ...(isProgramPage ? ["partner"] : ["link"]),
+      "saleAmount",
+      "createdAt",
+    ],
+  };
+
   const { columnVisibility, setColumnVisibility } = useColumnVisibility(
     isProgramPage
       ? "program-customers-table-columns"
@@ -158,21 +157,6 @@ export function CustomerTable({
             );
           },
         },
-        ...(isProgramPage
-          ? [
-              {
-                id: "partner",
-                header: "Partner",
-                cell: ({ row }) =>
-                  row.original.partner ? (
-                    <PartnerRowItem partner={row.original.partner} />
-                  ) : (
-                    "-"
-                  ),
-                size: 200,
-              },
-            ]
-          : []),
         {
           id: "country",
           header: "Country",
@@ -205,6 +189,45 @@ export function CustomerTable({
           },
         },
         {
+          id: "partner",
+          header: "Partner",
+          cell: ({ row }) =>
+            row.original.partner ? (
+              <PartnerRowItem partner={row.original.partner} />
+            ) : (
+              "-"
+            ),
+          size: 200,
+        },
+        {
+          id: "link",
+          header: "Link",
+          accessorKey: "link",
+          meta: {
+            filterParams: ({ getValue }) =>
+              getValue() ? { linkId: getValue().id } : undefined,
+          },
+          cell: ({ row }) =>
+            row.original.link ? (
+              <Link
+                href={`/${workspaceSlug}/links/${row.original.link.domain}/${row.original.link.key}`}
+                target="_blank"
+                className="flex cursor-alias items-center gap-3 decoration-dotted underline-offset-2 hover:underline"
+              >
+                <LinkLogo
+                  apexDomain={getApexDomain(row.original.link.url)}
+                  className="size-4 shrink-0 sm:size-4"
+                />
+                <span className="truncate" title={row.original.link.shortLink}>
+                  {getPrettyUrl(row.original.link.shortLink)}
+                </span>
+              </Link>
+            ) : (
+              "-"
+            ),
+          size: 250,
+        },
+        {
           id: "saleAmount",
           header: "Lifetime value",
           accessorKey: "saleAmount",
@@ -234,34 +257,6 @@ export function CustomerTable({
               </span>
             </TimestampTooltip>
           ),
-        },
-        {
-          id: "link",
-          header: "Link",
-          accessorKey: "link",
-          meta: {
-            filterParams: ({ getValue }) =>
-              getValue() ? { linkId: getValue().id } : undefined,
-          },
-          cell: ({ row }) =>
-            row.original.link ? (
-              <Link
-                href={`/${workspaceSlug}/links/${row.original.link.domain}/${row.original.link.key}`}
-                target="_blank"
-                className="flex cursor-alias items-center gap-3 decoration-dotted underline-offset-2 hover:underline"
-              >
-                <LinkLogo
-                  apexDomain={getApexDomain(row.original.link.url)}
-                  className="size-4 shrink-0 sm:size-4"
-                />
-                <span className="truncate" title={row.original.link.shortLink}>
-                  {getPrettyUrl(row.original.link.shortLink)}
-                </span>
-              </Link>
-            ) : (
-              "-"
-            ),
-          size: 250,
         },
         {
           id: "externalId",

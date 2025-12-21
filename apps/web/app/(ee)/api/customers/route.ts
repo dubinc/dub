@@ -54,7 +54,7 @@ export const GET = withWorkspace(
       sortOrder,
     } = getCustomersQuerySchemaExtended.parse(searchParams);
 
-    const customers = (await prisma.customer.findMany({
+    const customers = await prisma.customer.findMany({
       where: {
         ...(customerIds
           ? {
@@ -114,7 +114,7 @@ export const GET = withWorkspace(
             },
           }
         : {}),
-    })) as CustomerResponse[];
+    });
 
     const responseSchema = includeExpandedFields
       ? CustomerEnrichedSchema.merge(
