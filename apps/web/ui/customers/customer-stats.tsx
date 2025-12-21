@@ -14,7 +14,7 @@ export function CustomerStats({
   const stats: { label: string; value?: string; href?: string }[] = useMemo(
     () => [
       {
-        label: "Conversions",
+        label: "Sales",
         value: customer
           ? nFormatter(customer.sales ?? 0, { full: true })
           : error
