@@ -102,7 +102,7 @@ export function CustomerDetailsColumn({
                 Since{" "}
                 <TimestampTooltip
                   timestamp={customer.createdAt}
-                  rows={["local"]}
+                  rows={["local", "utc", "unix"]}
                   side="left"
                 >
                   <span>
