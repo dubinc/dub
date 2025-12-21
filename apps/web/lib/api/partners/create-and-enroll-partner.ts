@@ -61,13 +61,24 @@ export const createAndEnrollPartner = async ({
   userId,
 }: CreateAndEnrollPartnerInput) => {
   if (!skipEnrollmentCheck) {
-    // Check if the partner is already enrolled in the program by email
+    // Check if the partner is already enrolled in the program by tenantId or email
     const programEnrollment = await prisma.programEnrollment.findFirst({
       where: {
         programId: program.id,
-        partner: {
-          email: partner.email,
-        },
+        OR: [
+          ...(partner.tenantId
+            ? [
+                {
+                  tenantId: partner.tenantId,
+                },
+              ]
+            : []),
+          {
+            partner: {
+              email: partner.email,
+            },
+          },
+        ],
       },
       include: {
         partner: true,
@@ -117,12 +128,12 @@ export const createAndEnrollPartner = async ({
           links: updatedProgramEnrollment.links,
         });
       }
+    } else if (partner.tenantId) {
+      await throwIfExistingTenantEnrollmentExists({
+        tenantId: partner.tenantId,
+        programId: program.id,
+      });
     }
-  } else if (partner.tenantId) {
-    await throwIfExistingTenantEnrollmentExists({
-      tenantId: partner.tenantId,
-      programId: program.id,
-    });
   }
 
   const finalGroupId = partner.groupId || program.defaultGroupId;

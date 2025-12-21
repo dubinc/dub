@@ -1,13 +1,13 @@
 import { triggerDraftBountySubmissionCreation } from "@/lib/api/bounties/trigger-draft-bounty-submissions";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { createPartnerDefaultLinks } from "@/lib/api/partners/create-partner-default-links";
+import { getPartnerInviteRewardsAndBounties } from "@/lib/api/partners/get-partner-invite-rewards-and-bounties";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { createWorkflowLogger } from "@/lib/cron/qstash-workflow-logger";
 import { PlanProps, RewardProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
-import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
 import { sendBatchEmail } from "@dub/email";
 import PartnerApplicationApproved from "@dub/email/templates/partner-application-approved";
 import { prisma } from "@dub/prisma";
@@ -215,6 +215,11 @@ export const { POST } = serve<Payload>(
         data: partnerUsers,
       });
 
+      const rewardsAndBounties = await getPartnerInviteRewardsAndBounties({
+        programId,
+        groupId: programEnrollment.groupId || program.defaultGroupId,
+      });
+
       // Resend batch email
       const { data, error } = await sendBatchEmail(
         partnerUsers.map(({ user }) => ({
@@ -233,10 +238,7 @@ export const { POST } = serve<Payload>(
               email: user.email!,
               payoutsEnabled: Boolean(partner.payoutsEnabledAt),
             },
-            rewardDescription: ProgramRewardDescription({
-              reward: rewards.find((r) => r.event === "sale"),
-              showModifiersTooltip: false,
-            }),
+            ...rewardsAndBounties,
           }),
         })),
         {
