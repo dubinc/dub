@@ -21,6 +21,7 @@ console.warn = (...args) => {
 module.exports = {
   reactStrictMode: false,
   transpilePackages: [
+    "prettier",
     "shiki",
     "@dub/prisma",
     "@dub/email",
