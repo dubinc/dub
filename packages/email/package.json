@@ -11,6 +11,7 @@
     "@dub/utils": "workspace:*",
     "@react-email/components": "^1.0.2",
     "@react-email/markdown": "^0.0.17",
+    "@react-email/preview-server": "5.1.0",
     "@react-email/render": "^2.0.0",
     "date-fns": "^4.1.0",
     "lucide-react": "^0.462.0",
