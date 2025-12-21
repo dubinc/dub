@@ -186,7 +186,7 @@ export default function PartnerProgramSummary({
       <Preview>{`Your ${reportingPeriod.month} performance report for ${program.name} program.`}</Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
-          <Container className="mx-auto my-10 max-w-[600px] space-y-10 px-3 py-5">
+          <Container className="mx-auto my-10 max-w-[600px] gap-y-10 px-3 py-5">
             <Section className="mt-8">
               <Img src={DUB_WORDMARK} height="32" alt={program.name} />
             </Section>
@@ -219,7 +219,7 @@ export default function PartnerProgramSummary({
                 </div>
               </Section>
 
-              <Section className="space-y-6 rounded-xl border-t border-solid border-neutral-200 bg-white p-6">
+              <Section className="gap-y-6 rounded-xl border-t border-solid border-neutral-200 bg-white p-6">
                 <Section>
                   <Heading
                     as="h4"
