@@ -11,7 +11,6 @@
     "@dub/utils": "workspace:*",
     "@react-email/components": "^1.0.2",
     "@react-email/markdown": "^0.0.17",
-    "@react-email/preview-server": "5.1.0",
     "@react-email/render": "^2.0.0",
     "date-fns": "^4.1.0",
     "lucide-react": "^0.462.0",
@@ -23,7 +22,8 @@
     "@types/nodemailer": "~6.4.17",
     "@types/react": "^19.1.15",
     "@types/react-dom": "^19.1.9",
-    "typescript": "^5.4.4"
+    "typescript": "^5.4.4",
+    "@react-email/preview-server": "5.1.0"
   },
   "peerDependencies": {
     "react": "^19.0.0",
