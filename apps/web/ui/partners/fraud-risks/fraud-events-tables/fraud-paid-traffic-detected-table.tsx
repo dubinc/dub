@@ -84,7 +84,7 @@ export function FraudPaidTrafficDetectedTable() {
           row.original.customer ? (
             <CustomerRowItem
               customer={row.original.customer}
-              href={`/${workspaceSlug}/customers/${row.original.customer.id}`}
+              href={`/${workspaceSlug}/program/customers/${row.original.customer.id}`}
               chartActivityIconMode="hidden"
             />
           ) : (

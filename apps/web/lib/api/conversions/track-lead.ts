@@ -334,6 +334,17 @@ export const trackLead = async ({
                 eventType: "lead",
               }),
 
+              // update customer's program/partner associations
+              prisma.customer.update({
+                where: {
+                  id: customer.id,
+                },
+                data: {
+                  programId: link.programId,
+                  partnerId: link.partnerId,
+                },
+              }),
+
               webhookPartner &&
                 detectAndRecordFraudEvent({
                   program: { id: link.programId },

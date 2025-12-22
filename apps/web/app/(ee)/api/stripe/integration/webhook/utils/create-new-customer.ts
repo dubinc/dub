@@ -55,6 +55,8 @@ export async function createNewCustomer(event: Stripe.Event) {
       projectConnectId: stripeAccountId,
       externalId: dubCustomerExternalId,
       projectId: link.projectId,
+      programId: link.programId,
+      partnerId: link.partnerId,
       linkId,
       clickId,
       clickedAt: new Date(clickData.timestamp + "Z"),
