@@ -26,7 +26,7 @@ export function ProgramPartnerCustomersPageClient() {
     <div className="flex justify-center py-16">
       {error ? (
         <span className="text-content-subtle text-sm">
-          Failed to load partner payouts
+          Failed to load partner customers
         </span>
       ) : (
         <LoadingSpinner />
