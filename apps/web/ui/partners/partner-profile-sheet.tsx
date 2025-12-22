@@ -1,7 +1,7 @@
 import { EnrolledPartnerProps } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
 import { Button, Sheet, useRouterStuff } from "@dub/ui";
-import { Dispatch, SetStateAction, useState } from "react";
+import { Dispatch, SetStateAction } from "react";
 import { PartnerAbout } from "./partner-about";
 import { PartnerApplicationDetails } from "./partner-application-details";
 
@@ -67,22 +67,4 @@ export function PartnerProfileSheet({
       <PartnerProfileSheetContent {...rest} />
     </Sheet>
   );
-}
-
-export function usePartnerProfileSheet(
-  props: Omit<PartnerProfileSheetProps, "setIsOpen">,
-) {
-  const [showPartnerProfileSheet, setShowPartnerProfileSheet] = useState(false);
-
-  return {
-    showPartnerProfileSheet,
-    setShowPartnerProfileSheet,
-    partnerProfileSheet: (
-      <PartnerProfileSheet
-        setIsOpen={setShowPartnerProfileSheet}
-        isOpen={showPartnerProfileSheet}
-        {...props}
-      />
-    ),
-  };
 }
