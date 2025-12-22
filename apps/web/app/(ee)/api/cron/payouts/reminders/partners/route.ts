@@ -1,4 +1,5 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { MIN_PAYOUT_AMOUNT_FOR_REMINDERS } from "@/lib/constants/misc";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
@@ -46,6 +47,9 @@ async function handler(req: Request) {
               },
             },
           ],
+        },
+        amount: {
+          gte: MIN_PAYOUT_AMOUNT_FOR_REMINDERS,
         },
       },
       _sum: {
