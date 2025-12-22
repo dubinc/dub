@@ -5,7 +5,10 @@ import { resendProgramInviteAction } from "@/lib/actions/partners/resend-program
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartner from "@/lib/swr/use-partner";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { EnrolledPartnerProps } from "@/lib/types";
+import {
+  EnrolledPartnerExtendedProps,
+  EnrolledPartnerProps,
+} from "@/lib/types";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { useArchivePartnerModal } from "@/ui/modals/archive-partner-modal";
@@ -15,9 +18,16 @@ import { useReactivatePartnerModal } from "@/ui/modals/reactivate-partner-modal"
 import { useUnbanPartnerModal } from "@/ui/modals/unban-partner-modal";
 import { usePartnerAdvancedSettingsModal } from "@/ui/partners/partner-advanced-settings-modal";
 import { PartnerInfoCards } from "@/ui/partners/partner-info-cards";
+import { PartnerProfileSheet } from "@/ui/partners/partner-profile-sheet";
 import { PartnerSelector } from "@/ui/partners/partner-selector";
 import { ThreeDots } from "@/ui/shared/icons";
-import { Button, MenuItem, Popover, useKeyboardShortcut } from "@dub/ui";
+import {
+  Button,
+  MenuItem,
+  Popover,
+  useKeyboardShortcut,
+  useRouterStuff,
+} from "@dub/ui";
 import {
   BoxArchive,
   ChevronRight,
@@ -28,6 +38,7 @@ import {
   Msgs,
   PenWriting,
   Refresh2,
+  SquareUserSparkle2,
   Trash,
   UserCheck,
   UserDelete,
@@ -101,7 +112,13 @@ export default function ProgramPartnerLayout({
         <PartnerStats partner={partner} error={Boolean(partnerError)} />
         <div className="@3xl/page:grid-cols-[minmax(440px,1fr)_minmax(0,360px)] mt-6 grid grid-cols-1 gap-x-6 gap-y-4">
           <div className="@3xl/page:order-2">
-            <PartnerInfoCards partner={partner} hideStatuses={["approved"]} />
+            <PartnerInfoCards
+              partner={partner}
+              hideStatuses={["approved"]}
+              controls={
+                partner ? <PartnerProfileButton partner={partner} /> : undefined
+              }
+            />
           </div>
           <div className="@3xl/page:order-1">
             <div className="border-border-subtle overflow-hidden rounded-xl border bg-neutral-100">
@@ -114,6 +131,38 @@ export default function ProgramPartnerLayout({
         </div>
       </PageWidthWrapper>
     </PageContent>
+  );
+}
+
+function PartnerProfileButton({
+  partner,
+}: {
+  partner: EnrolledPartnerExtendedProps;
+}) {
+  const { searchParams, queryParams } = useRouterStuff();
+
+  const isOpen = searchParams.has("profile");
+
+  const setIsOpen = (isOpen: boolean) =>
+    isOpen
+      ? queryParams({ set: { profile: "true" } })
+      : queryParams({ del: "profile" });
+
+  return (
+    <>
+      <PartnerProfileSheet
+        partner={partner}
+        isOpen={isOpen}
+        setIsOpen={setIsOpen}
+      />
+      <Button
+        variant="secondary"
+        icon={<SquareUserSparkle2 className="size-4" />}
+        text="Profile"
+        className="h-7 rounded-lg px-2"
+        onClick={() => setIsOpen(true)}
+      />
+    </>
   );
 }
 
