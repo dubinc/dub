@@ -1,4 +1,4 @@
-import { evaluateWorkflowCondition } from "@/lib/api/workflows/evaluate-workflow-condition";
+import { evaluateWorkflowConditions } from "@/lib/api/workflows/evaluate-workflow-conditions";
 import { WorkflowConditionAttribute, WorkflowContext } from "@/lib/types";
 import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
 import { sendBatchEmail, sendEmail } from "@dub/email";
@@ -142,8 +142,8 @@ export const executeCompleteBountyWorkflow = async ({
   });
 
   // Check if the bounty submission meet the reward criteria
-  const shouldExecute = evaluateWorkflowCondition({
-    condition,
+  const shouldExecute = evaluateWorkflowConditions({
+    conditions,
     attributes: {
       [condition.attribute]: bountySubmission.performanceCount,
     },

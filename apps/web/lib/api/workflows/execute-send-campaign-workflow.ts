@@ -1,4 +1,4 @@
-import { evaluateWorkflowCondition } from "@/lib/api/workflows/evaluate-workflow-condition";
+import { evaluateWorkflowConditions } from "@/lib/api/workflows/evaluate-workflow-conditions";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
 import {
   TiptapNode,
@@ -296,8 +296,8 @@ async function getProgramEnrollments({
           : {}),
       };
 
-    const shouldExecute = evaluateWorkflowCondition({
-      condition,
+    const shouldExecute = evaluateWorkflowConditions({
+      conditions: [condition],
       attributes: {
         [condition.attribute]: context[condition.attribute],
       },
