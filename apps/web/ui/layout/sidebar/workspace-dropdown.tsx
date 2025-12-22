@@ -174,7 +174,7 @@ function WorkspaceList({
         className="w-xs max-h-84 relative w-full overflow-auto rounded-xl bg-white text-base sm:w-72 sm:text-sm"
       >
         {/* Current workspace section */}
-        <div className="flex flex-col gap-2.5 border-b border-neutral-200 p-3">
+        <div className="flex flex-col gap-2.5 border-b border-neutral-200 p-3 pt-2">
           <div className="flex items-center gap-x-2.5">
             <BlurImage
               src={selected.image}
@@ -254,7 +254,7 @@ function WorkspaceList({
                     className="size-5 shrink-0 overflow-hidden rounded-full"
                     draggable={false}
                   />
-                  <span className="block truncate text-sm leading-5 text-neutral-900 sm:max-w-[140px]">
+                  <span className="block truncate text-base leading-5 text-neutral-900 sm:max-w-[140px] sm:text-sm">
                     {name}
                   </span>
                   {selected.slug === slug ? (
