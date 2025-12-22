@@ -15,10 +15,8 @@ import { CSSProperties, useMemo } from "react";
 
 export function CustomerStats({
   customer,
-  error,
 }: {
   customer?: Pick<CustomerEnriched, "sales" | "saleAmount" | "createdAt">;
-  error?: boolean;
 }) {
   const { customerId } = useParams<{ customerId: string }>();
   const { customerActivity, isCustomerActivityLoading } = useCustomerActivity({
@@ -64,20 +62,16 @@ export function CustomerStats({
         label: "Sales",
         value: customer
           ? nFormatter(customer.sales ?? 0, { full: true })
-          : error
-            ? "-"
-            : undefined,
+          : undefined,
       },
       {
         label: "Lifetime value",
         value: customer
           ? currencyFormatter(customer.saleAmount ?? 0)
-          : error
-            ? "-"
-            : undefined,
+          : undefined,
       },
     ],
-    [customer, error, customerActivity],
+    [customer, customerActivity, isCustomerActivityLoading],
   );
 
   return (

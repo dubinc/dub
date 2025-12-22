@@ -57,7 +57,7 @@ export default function CustomerLayout({ children }: { children: ReactNode }) {
       }
     >
       <PageWidthWrapper className="pb-10">
-        <CustomerStats customer={customer} error={Boolean(customerError)} />
+        <CustomerStats customer={customer} />
 
         <div className="@3xl/page:grid-cols-[minmax(440px,1fr)_minmax(0,360px)] mt-6 grid grid-cols-1 gap-6">
           <div className="@3xl/page:order-2">
