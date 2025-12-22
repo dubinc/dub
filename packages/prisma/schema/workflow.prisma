@@ -1,7 +1,6 @@
 enum WorkflowTrigger {
   partnerEnrolled // scheduled
   partnerMetricsUpdated
-
   commissionEarned
   leadRecorded
   saleRecorded
