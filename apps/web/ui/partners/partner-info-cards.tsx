@@ -9,12 +9,14 @@ import {
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { INACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import {
+  Button,
   CalendarIcon,
   ChartActivity2,
   CopyButton,
   Globe,
   Heart,
   OfficeBuilding,
+  SquareUserSparkle2,
   Trophy,
 } from "@dub/ui";
 import {
@@ -36,6 +38,7 @@ import {
 import { PartnerFraudIndicator } from "./fraud-risks/partner-fraud-indicator";
 import { PartnerInfoGroup } from "./partner-info-group";
 import { ConversionScoreTooltip } from "./partner-network/conversion-score-tooltip";
+import { usePartnerProfileSheet } from "./partner-profile-sheet";
 import { PartnerStarButton } from "./partner-star-button";
 import { PartnerStatusBadgeWithTooltip } from "./partner-status-badge-with-tooltip";
 import { ProgramRewardList } from "./program-reward-list";
@@ -198,8 +201,8 @@ export function PartnerInfoCards({
 
         <div className="border-border-subtle flex flex-col divide-y divide-neutral-200 rounded-xl border bg-white">
           <div className="p-4">
-            <div className="flex justify-between gap-2">
-              <div className="relative w-fit">
+            <div className="flex items-start justify-between gap-2">
+              <div className="relative w-fit shrink-0">
                 {partner ? (
                   <img
                     src={partner.image || `${OG_AVATAR_URL}${partner.id}`}
@@ -212,15 +215,21 @@ export function PartnerInfoCards({
                 {partner?.trustedAt && <TrustedPartnerBadge />}
               </div>
 
-              {isEnrolled &&
-                partner &&
-                !hideStatuses.includes(partner.status) && (
-                  <PartnerStatusBadgeWithTooltip partner={partner} />
+              <div className="flex items-center gap-2">
+                {isEnrolled &&
+                  partner &&
+                  !hideStatuses.includes(partner.status) && (
+                    <PartnerStatusBadgeWithTooltip partner={partner} />
+                  )}
+
+                {isNetwork && partner && (
+                  <PartnerStarButton partner={partner} className="size-9" />
                 )}
 
-              {isNetwork && partner && (
-                <PartnerStarButton partner={partner} className="size-9" />
-              )}
+                {isEnrolled && partner && (
+                  <PartnerProfileButton partner={partner} />
+                )}
+              </div>
             </div>
 
             <div className="mt-4">
@@ -384,5 +393,26 @@ export function PartnerInfoCards({
         )}
       </div>
     </div>
+  );
+}
+
+function PartnerProfileButton({
+  partner,
+}: {
+  partner: EnrolledPartnerExtendedProps;
+}) {
+  const { partnerProfileSheet, setShowPartnerProfileSheet } =
+    usePartnerProfileSheet({ partner });
+  return (
+    <>
+      {partnerProfileSheet}
+      <Button
+        variant="secondary"
+        icon={<SquareUserSparkle2 className="size-4" />}
+        text="Profile"
+        className="h-7 rounded-lg px-2"
+        onClick={() => setShowPartnerProfileSheet(true)}
+      />
+    </>
   );
 }
