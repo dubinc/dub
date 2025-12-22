@@ -220,6 +220,12 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
                   href: `/programs/${programSlug}/events` as `/${string}`,
                   locked: isUnapproved,
                 },
+                {
+                  name: "Customers",
+                  icon: UserCheck,
+                  href: `/programs/${programSlug}/customers` as `/${string}`,
+                  locked: isUnapproved,
+                },
               ]
             : []),
         ],
