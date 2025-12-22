@@ -382,7 +382,16 @@ export const DELETE = withWorkspace(
         });
       }
 
-      // 5. Delete the group
+      // 5. Delete the group move workflow
+      if (group.workflowId) {
+        await tx.workflow.delete({
+          where: {
+            id: group.workflowId,
+          },
+        });
+      }
+
+      // 6. Delete the group
       await tx.partnerGroup.delete({
         where: {
           id: group.id,
