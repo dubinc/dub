@@ -4,6 +4,7 @@ import { DUB_FOUNDING_DATE, formatDate, validDomainRegex } from "@dub/utils";
 import {
   base64ImageSchema,
   booleanQuerySchema,
+  getCursorPaginationQuerySchema,
   getPaginationQuerySchema,
   publicHostedImageSchema,
 } from "./misc";
@@ -168,7 +169,13 @@ export const getLinksQuerySchemaBase = LinksQuerySchema.merge(
       .openapi({ deprecated: true })
       .describe("DEPRECATED. Use `sortBy` instead."),
   }),
-).merge(getPaginationQuerySchema({ pageSize: 100 }));
+)
+  .merge(
+    getCursorPaginationQuerySchema({
+      example: "link_1KAP4CDPBSVMMBMH9XX3YZZ0Z",
+    }),
+  )
+  .merge(getPaginationQuerySchema({ deprecated: true }));
 
 export const getLinksCountQuerySchema = LinksQuerySchema.merge(
   z.object({
