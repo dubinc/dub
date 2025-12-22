@@ -108,9 +108,8 @@ function PartnerPayouts({ partner }: { partner: EnrolledPartnerProps }) {
       );
     },
     resourceName: (p) => `payout${p ? "s" : ""}`,
-    thClassName: (id) =>
-      cn(id === "total" && "[&>div]:justify-end", "border-l-0"),
-    tdClassName: (id) => cn(id === "total" && "text-right", "border-l-0"),
+    thClassName: () => "border-l-0",
+    tdClassName: () => "border-l-0",
     className: "[&_tr:last-child>td]:border-b-transparent",
     scrollWrapperClassName: "min-h-[40px]",
     emptyState: "No payouts yet",

@@ -245,7 +245,7 @@ const PartnerDiscountCodes = ({
         <TooltipContent
           title="Your workspace isn't connected to Stripe yet. Please install the Dub Stripe app in settings to create discount codes."
           cta="Install Stripe app"
-          href="/settings/integrations/stripe"
+          href={`/${slug}/settings/integrations/stripe`}
           target="_blank"
         />
       );
