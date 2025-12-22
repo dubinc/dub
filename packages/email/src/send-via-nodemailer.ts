@@ -1,6 +1,5 @@
-import { render } from "@react-email/components";
+import { pretty, render } from "@react-email/render";
 import nodemailer from "nodemailer";
-import { ReactElement } from "react";
 import { CreateEmailOptions } from "resend";
 
 // Send email using NodeMailer (Recommended for local development)
@@ -31,6 +30,6 @@ export const sendViaNodeMailer = async ({
     to,
     subject,
     text,
-    html: render(react as ReactElement),
+    html: await pretty(await render(react)),
   });
 };

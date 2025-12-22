@@ -1,6 +1,5 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
-import { stripe } from "@/lib/stripe";
 import { sendEmail } from "@dub/email";
 import PartnerPayoutWithdrawalFailed from "@dub/email/templates/partner-payout-withdrawal-failed";
 import { prisma } from "@dub/prisma";
@@ -54,52 +53,24 @@ export async function POST(req: Request) {
     });
 
     if (partner.email) {
-      try {
-        // Fetch bank account information
-        const { data: externalAccounts } =
-          await stripe.accounts.listExternalAccounts(stripeAccount);
+      const sentEmail = await sendEmail({
+        variant: "notifications",
+        subject:
+          "[Action Required]: Your recent auto-withdrawal from Dub failed",
+        to: partner.email,
+        react: PartnerPayoutWithdrawalFailed({
+          email: partner.email,
+          payout: {
+            amount: stripePayout.amount,
+            currency: stripePayout.currency,
+            failureReason: stripePayout.failureMessage,
+          },
+        }),
+      });
 
-        const defaultExternalAccount = externalAccounts.find(
-          (account) =>
-            account.default_for_currency && account.object === "bank_account",
-        );
-
-        const bankAccount =
-          defaultExternalAccount &&
-          defaultExternalAccount.object === "bank_account"
-            ? {
-                account_holder_name: defaultExternalAccount.account_holder_name,
-                bank_name: defaultExternalAccount.bank_name,
-                last4: defaultExternalAccount.last4,
-                routing_number: defaultExternalAccount.routing_number,
-              }
-            : null;
-
-        const sentEmail = await sendEmail({
-          variant: "notifications",
-          subject:
-            "[Action Required]: Your recent auto-withdrawal from Dub failed",
-          to: partner.email,
-          react: PartnerPayoutWithdrawalFailed({
-            email: partner.email,
-            bankAccount,
-            payout: {
-              amount: stripePayout.amount,
-              currency: stripePayout.currency,
-              failureReason: stripePayout.failureMessage,
-            },
-          }),
-        });
-
-        console.log(
-          `Sent email to partner ${partner.email} (${stripeAccount}): ${prettyPrint(sentEmail)}`,
-        );
-      } catch (error) {
-        console.error(
-          `Failed to send payout failed email to ${partner.email}:`,
-          error,
-        );
-      }
+      console.log(
+        `Sent email to partner ${partner.email} (${stripeAccount}): ${prettyPrint(sentEmail)}`,
+      );
     }
 
     return logAndRespond(

@@ -19,6 +19,7 @@ import { DiscountSchema } from "./discount";
 import { GroupSchema } from "./groups";
 import { LinkSchema } from "./links";
 import { programApplicationFormDataWithValuesSchema } from "./program-application-form";
+import { programInviteEmailDataSchema } from "./program-invite-email";
 import { RewardSchema } from "./rewards";
 import { UserSchema } from "./users";
 import { parseDateSchema } from "./utils";
@@ -48,6 +49,11 @@ export const ProgramSchema = z.object({
   createdAt: z.date(),
   updatedAt: z.date(),
   startedAt: z.date().nullish(),
+});
+
+// TODO: move to group-level soon
+export const ProgramSchemaWithInviteEmailData = ProgramSchema.extend({
+  inviteEmailData: programInviteEmailDataSchema,
 });
 
 export const updateProgramSchema = z.object({
