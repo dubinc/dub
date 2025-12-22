@@ -111,9 +111,8 @@ function PartnerCustomers({ partner }: { partner: EnrolledPartnerProps }) {
         ),
       },
     ],
-    onRowClick: (row) => {
-      window.open(`/${slug}/program/customers/${row.original.id}`, "_blank");
-    },
+    onRowClick: (row) =>
+      window.open(`/${slug}/program/customers/${row.original.id}`, "_blank"),
     resourceName: (p) => `customer${p ? "s" : ""}`,
     thClassName: (id) =>
       cn(id === "total" && "[&>div]:justify-end", "border-l-0"),
