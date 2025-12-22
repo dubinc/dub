@@ -1,35 +1,46 @@
-import {
-  WorkflowCondition,
-  WorkflowConditionAttribute,
-  WorkflowContext,
-} from "@/lib/types";
-import {
-  OPERATOR_FUNCTIONS,
-  WORKFLOW_ACTION_TYPES,
-} from "@/lib/zod/schemas/workflows";
+import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
+import { WorkflowContext } from "@/lib/types";
+import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
 import { prisma } from "@dub/prisma";
-import { WorkflowTrigger } from "@dub/prisma/client";
+import { Workflow, WorkflowTrigger } from "@dub/prisma/client";
+import { prettyPrint } from "@dub/utils";
 import { executeCompleteBountyWorkflow } from "./execute-complete-bounty-workflow";
 import { executeMoveGroupWorkflow } from "./execute-move-group-workflow";
 import { executeSendCampaignWorkflow } from "./execute-send-campaign-workflow";
 import { parseWorkflowConfig } from "./parse-workflow-config";
-import { isScheduledWorkflow } from "./utils";
 
-export async function executeWorkflows({
-  trigger,
-  context,
-}: {
-  trigger: WorkflowTrigger;
-  context: WorkflowContext;
-}) {
-  const { programId, partnerId } = context;
+interface WorkflowActionHandler {
+  execute(params: {
+    workflow: Workflow;
+    context: WorkflowContext;
+  }): Promise<void>;
+}
 
-  // Find the workflows for the program
-  const workflows = await prisma.workflow.findMany({
+const ACTION_HANDLERS: Record<WORKFLOW_ACTION_TYPES, WorkflowActionHandler> = {
+  [WORKFLOW_ACTION_TYPES.AwardBounty]: {
+    execute: executeCompleteBountyWorkflow,
+  },
+
+  [WORKFLOW_ACTION_TYPES.SendCampaign]: {
+    execute: executeSendCampaignWorkflow,
+  },
+
+  [WORKFLOW_ACTION_TYPES.MoveGroup]: {
+    execute: executeMoveGroupWorkflow,
+  },
+};
+
+export async function executeWorkflows(
+  trigger: WorkflowTrigger,
+  { identity, metrics, dependsOnAttributes }: WorkflowContext,
+) {
+  const { programId, partnerId } = identity;
+
+  let workflows = await prisma.workflow.findMany({
     where: {
       programId,
-      trigger,
       disabledAt: null,
+      trigger,
     },
   });
 
@@ -37,7 +48,27 @@ export async function executeWorkflows({
     return;
   }
 
-  // Find the program enrollment for the partner
+  if (dependsOnAttributes?.length) {
+    workflows = workflows.filter((w) => {
+      const { conditions } = parseWorkflowConfig(w);
+      return conditions.some(({ attribute }) =>
+        dependsOnAttributes.includes(attribute),
+      );
+    });
+  }
+
+  if (workflows.length === 0) {
+    return;
+  }
+
+  console.info(
+    `Found ${workflows.length} workflows to dispatch for partner metrics updated.`,
+    {
+      programId,
+      partnerId,
+    },
+  );
+
   const programEnrollment = await prisma.programEnrollment.findUnique({
     where: {
       partnerId_programId: {
@@ -48,6 +79,16 @@ export async function executeWorkflows({
     select: {
       partnerId: true,
       groupId: true,
+      totalCommissions: true,
+      links: {
+        select: {
+          clicks: true,
+          leads: true,
+          conversions: true,
+          sales: true,
+          saleAmount: true,
+        },
+      },
     },
   });
 
@@ -65,76 +106,53 @@ export async function executeWorkflows({
     return;
   }
 
+  const { totalLeads, totalSaleAmount, totalConversions } =
+    aggregatePartnerLinksStats(programEnrollment.links);
+
   // Final context for the workflow
   const workflowContext: WorkflowContext = {
-    ...context,
-    groupId: programEnrollment.groupId,
+    identity: {
+      ...identity,
+      groupId: programEnrollment.groupId,
+    },
+    metrics: {
+      ...metrics,
+      aggregated: {
+        leads: totalLeads,
+        conversions: totalConversions,
+        saleAmount: totalSaleAmount,
+        commissions: programEnrollment.totalCommissions,
+      },
+    },
   };
 
-  // Execute each workflow for the program
+  console.log("workflowContext", prettyPrint(workflowContext));
+
   for (const workflow of workflows) {
-    const { action } = parseWorkflowConfig(workflow);
+    const { conditions, action } = parseWorkflowConfig(workflow);
 
-    switch (action.type) {
-      case WORKFLOW_ACTION_TYPES.AwardBounty: {
-        await executeCompleteBountyWorkflow({
-          workflow,
-          context: workflowContext,
-        });
-
-        break;
-      }
-
-      case WORKFLOW_ACTION_TYPES.SendCampaign: {
-        if (!isScheduledWorkflow(workflow)) {
-          await executeSendCampaignWorkflow({
-            workflow,
-            context: workflowContext,
-          });
-        }
-
-        break;
-      }
-
-      case WORKFLOW_ACTION_TYPES.MoveGroup: {
-        await executeMoveGroupWorkflow({
-          workflow,
-          context: workflowContext,
-        });
-
-        break;
-      }
+    if (conditions.length === 0 || !action) {
+      continue;
     }
+
+    const handler = ACTION_HANDLERS[action.type];
+
+    if (!handler) {
+      throw new Error(`Unsupported workflow action ${action.type}`);
+    }
+
+    if (
+      dependsOnAttributes &&
+      !conditions.some((cond) => dependsOnAttributes.includes(cond.attribute))
+    ) {
+      continue;
+    }
+
+    console.log(`Executing workflow ${workflow.id} with action ${action.type}`);
+
+    await handler.execute({
+      workflow,
+      context: workflowContext,
+    });
   }
-}
-
-export function evaluateWorkflowCondition({
-  condition,
-  attributes,
-}: {
-  condition: WorkflowCondition;
-  attributes: Partial<Record<WorkflowConditionAttribute, number | null>>;
-}) {
-  console.log("Evaluating the workflow condition:", {
-    condition,
-    attributes,
-  });
-
-  const operatorFn = OPERATOR_FUNCTIONS[condition.operator];
-
-  if (!operatorFn) {
-    throw new Error(
-      `Operator ${condition.operator} is not supported in the workflow trigger condition.`,
-    );
-  }
-
-  const attributeValue = attributes[condition.attribute];
-
-  // If the attribute is not provided in context, return false
-  if (attributeValue === undefined || attributeValue === null) {
-    console.error(`${condition.attribute} doesn't exist in the context.`);
-    return false;
-  }
-
-  return operatorFn(attributeValue, condition.value);
 }

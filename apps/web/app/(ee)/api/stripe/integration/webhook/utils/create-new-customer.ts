@@ -9,7 +9,6 @@ import { getClickEvent, recordLead } from "@/lib/tinybird";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformLeadEventData } from "@/lib/webhook/transform";
 import { prisma } from "@dub/prisma";
-import { WorkflowTrigger } from "@dub/prisma/client";
 import { nanoid, pick } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
@@ -127,15 +126,17 @@ export async function createNewCustomer(event: Stripe.Event) {
 
     waitUntil(
       Promise.allSettled([
-        executeWorkflows({
-          trigger: WorkflowTrigger.leadRecorded,
-          context: {
+        executeWorkflows("partnerMetricsUpdated", {
+          identity: {
             programId: link.programId,
             partnerId: link.partnerId,
+          },
+          metrics: {
             current: {
               leads: 1,
             },
           },
+          dependsOnAttributes: ["totalLeads"],
         }),
 
         syncPartnerLinksStats({

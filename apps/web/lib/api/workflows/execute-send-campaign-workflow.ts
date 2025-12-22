@@ -1,3 +1,4 @@
+import { evaluateWorkflowCondition } from "@/lib/api/workflows/evaluate-workflow-condition";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
 import {
   TiptapNode,
@@ -14,7 +15,6 @@ import { chunk } from "@dub/utils";
 import { addHours, differenceInDays, subDays } from "date-fns";
 import { validateCampaignFromAddress } from "../campaigns/validate-campaign";
 import { createId } from "../create-id";
-import { evaluateWorkflowCondition } from "./execute-workflows";
 import { parseWorkflowConfig } from "./parse-workflow-config";
 import { renderCampaignEmailHTML } from "./render-campaign-email-html";
 
@@ -25,7 +25,7 @@ export const executeSendCampaignWorkflow = async ({
   workflow: Workflow;
   context?: WorkflowContext;
 }) => {
-  const { condition, action } = parseWorkflowConfig(workflow);
+  const { conditions, action } = parseWorkflowConfig(workflow);
 
   if (action.type !== WORKFLOW_ACTION_TYPES.SendCampaign) {
     console.log(
@@ -35,7 +35,8 @@ export const executeSendCampaignWorkflow = async ({
   }
 
   const { campaignId } = action.data;
-  const { programId, partnerId } = context || {
+  const condition = conditions[0];
+  const { programId, partnerId } = context?.identity || {
     programId: workflow.programId,
     partnerId: undefined,
   };

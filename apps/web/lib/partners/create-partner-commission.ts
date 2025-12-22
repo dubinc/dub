@@ -6,7 +6,6 @@ import {
   Link,
   Partner,
   ProgramEnrollment,
-  WorkflowTrigger,
 } from "@dub/prisma/client";
 import { currencyFormatter, log, prettyPrint } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -364,15 +363,17 @@ export const createPartnerCommission = async ({
             }),
 
           shouldTriggerWorkflow &&
-            executeWorkflows({
-              trigger: WorkflowTrigger.commissionEarned,
-              context: {
+            executeWorkflows("partnerMetricsUpdated", {
+              identity: {
                 programId,
                 partnerId,
+              },
+              metrics: {
                 current: {
                   commissions: commission.earnings,
                 },
               },
+              dependsOnAttributes: ["totalLeads"],
             }),
         ]);
       })(),

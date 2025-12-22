@@ -11,7 +11,6 @@ import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformSaleEventData } from "@/lib/webhook/transform";
 import { prisma } from "@dub/prisma";
-import { WorkflowTrigger } from "@dub/prisma/client";
 import { nanoid, pick } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
@@ -244,16 +243,18 @@ export async function invoicePaid(event: Stripe.Event, mode: StripeMode) {
 
     waitUntil(
       Promise.allSettled([
-        executeWorkflows({
-          trigger: WorkflowTrigger.saleRecorded,
-          context: {
+        executeWorkflows("partnerMetricsUpdated", {
+          identity: {
             programId: link.programId,
             partnerId: link.partnerId,
+          },
+          metrics: {
             current: {
               saleAmount: saleData.amount,
               conversions: firstConversionFlag ? 1 : 0,
             },
           },
+          dependsOnAttributes: ["totalSaleAmount", "totalConversions"],
         }),
 
         syncPartnerLinksStats({

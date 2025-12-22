@@ -1,6 +1,6 @@
 import { createId } from "@/lib/api/create-id";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { evaluateWorkflowCondition } from "@/lib/api/workflows/execute-workflows";
+import { evaluateWorkflowCondition } from "@/lib/api/workflows/evaluate-workflow-condition";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";

@@ -1,3 +1,4 @@
+import { evaluateWorkflowCondition } from "@/lib/api/workflows/evaluate-workflow-condition";
 import { WorkflowConditionAttribute, WorkflowContext } from "@/lib/types";
 import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
 import { sendBatchEmail, sendEmail } from "@dub/email";
@@ -7,7 +8,6 @@ import { prisma } from "@dub/prisma";
 import { Workflow, WorkspaceRole } from "@dub/prisma/client";
 import { createId } from "../create-id";
 import { getWorkspaceUsers } from "../get-workspace-users";
-import { evaluateWorkflowCondition } from "./execute-workflows";
 import { parseWorkflowConfig } from "./parse-workflow-config";
 
 export const executeCompleteBountyWorkflow = async ({
@@ -17,17 +17,19 @@ export const executeCompleteBountyWorkflow = async ({
   workflow: Workflow;
   context: WorkflowContext;
 }) => {
-  const { condition, action } = parseWorkflowConfig(workflow);
+  const { conditions, action } = parseWorkflowConfig(workflow);
 
   if (action.type !== WORKFLOW_ACTION_TYPES.AwardBounty) {
     return;
   }
 
+  const condition = conditions[0];
   const { bountyId } = action.data;
-  const { partnerId, groupId } = context;
+  const { identity, metrics } = context;
+  const { partnerId, groupId } = identity;
 
   if (!groupId) {
-    console.error(`Partner groupId not set in the context.`);
+    console.error("Partner groupId not set in the context.");
     return;
   }
 
@@ -108,18 +110,10 @@ export const executeCompleteBountyWorkflow = async ({
   const finalContext: Partial<
     Record<WorkflowConditionAttribute, number | null>
   > = {
-    ...(condition.attribute === "totalLeads" && {
-      totalLeads: context.current?.leads ?? 0,
-    }),
-    ...(condition.attribute === "totalConversions" && {
-      totalConversions: context.current?.conversions ?? 0,
-    }),
-    ...(condition.attribute === "totalSaleAmount" && {
-      totalSaleAmount: context.current?.saleAmount ?? 0,
-    }),
-    ...(condition.attribute === "totalCommissions" && {
-      totalCommissions: context.current?.commissions ?? 0,
-    }),
+    totalLeads: metrics?.current?.leads ?? 0,
+    totalConversions: metrics?.current?.conversions ?? 0,
+    totalSaleAmount: metrics?.current?.saleAmount ?? 0,
+    totalCommissions: metrics?.current?.commissions ?? 0,
   };
 
   const performanceCount = finalContext[condition.attribute] ?? 0;
