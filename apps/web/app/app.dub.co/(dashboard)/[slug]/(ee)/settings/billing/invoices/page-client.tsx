@@ -1,6 +1,9 @@
 "use client";
 
-import { INVOICE_PAYMENT_METHODS } from "@/lib/constants/payouts";
+import {
+  INVOICE_AVAILABLE_PAYOUT_STATUSES,
+  INVOICE_PAYMENT_METHODS,
+} from "@/lib/constants/payouts";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { InvoiceProps } from "@/lib/types";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
@@ -127,7 +130,8 @@ const InvoiceCard = ({
             </div>
           </div>
           <div className="flex items-center">
-            {invoice.pdfUrl ? (
+            {invoice.pdfUrl &&
+            INVOICE_AVAILABLE_PAYOUT_STATUSES.includes(invoice.status ?? "") ? (
               <a
                 href={invoice.pdfUrl}
                 target="_blank"
@@ -140,7 +144,7 @@ const InvoiceCard = ({
               </a>
             ) : (
               <Button
-                className="h-9 px-3"
+                className="h-9 w-fit px-3"
                 variant="secondary"
                 text="View invoice"
                 disabled
@@ -258,7 +262,8 @@ const InvoiceCard = ({
         )}
 
         <div className="flex items-center justify-end sm:col-span-1 sm:justify-end">
-          {invoice.pdfUrl ? (
+          {invoice.pdfUrl &&
+          INVOICE_AVAILABLE_PAYOUT_STATUSES.includes(invoice.status ?? "") ? (
             <a
               href={invoice.pdfUrl}
               target="_blank"
@@ -271,7 +276,7 @@ const InvoiceCard = ({
             </a>
           ) : (
             <Button
-              className="h-9 px-3"
+              className="h-9 w-fit px-3"
               variant="secondary"
               text="View invoice"
               disabled
