@@ -16,6 +16,7 @@ export const partnersRedirect = (path: string) => {
 const PARTNERS_PROGRAM_REDIRECTS = {
   "ship-30": "dwp",
   supercutai: "supercut",
+  "teller-perps": "teller",
 };
 
 export const partnersProgramRedirects = (path: string) => {
