@@ -521,21 +521,6 @@ const _trackSale = async ({
           },
         }),
 
-        // Update customer sales count
-        prisma.customer.update({
-          where: {
-            id: customer.id,
-          },
-          data: {
-            sales: {
-              increment: 1,
-            },
-            saleAmount: {
-              increment: amount,
-            },
-          },
-        }),
-
         // Log conversion event
         logConversionEvent({
           workspace_id: workspace.id,
@@ -604,6 +589,27 @@ const _trackSale = async ({
               click: pick(saleData, ["url", "referer"]),
               event: { id: saleData.event_id },
             }),
+
+          // Update customer stats + program/partner associations
+          prisma.customer.update({
+            where: {
+              id: customer.id,
+            },
+            data: {
+              ...(link.programId && {
+                programId: link.programId,
+              }),
+              ...(link.partnerId && {
+                partnerId: link.partnerId,
+              }),
+              sales: {
+                increment: 1,
+              },
+              saleAmount: {
+                increment: amount,
+              },
+            },
+          }),
         ]);
       }
 
