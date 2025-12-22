@@ -1,6 +1,6 @@
 import { EnrolledPartnerProps } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
-import { Button, Sheet, useRouterStuff } from "@dub/ui";
+import { Button, Sheet } from "@dub/ui";
 import { Dispatch, SetStateAction } from "react";
 import { PartnerAbout } from "./partner-about";
 import { PartnerApplicationDetails } from "./partner-application-details";
@@ -56,14 +56,8 @@ export function PartnerProfileSheet({
   isOpen: boolean;
   nested?: boolean;
 }) {
-  const { queryParams } = useRouterStuff();
   return (
-    <Sheet
-      open={isOpen}
-      onOpenChange={rest.setIsOpen}
-      onClose={() => queryParams({ del: "partnerId", scroll: false })}
-      nested={nested}
-    >
+    <Sheet open={isOpen} onOpenChange={rest.setIsOpen} nested={nested}>
       <PartnerProfileSheetContent {...rest} />
     </Sheet>
   );
