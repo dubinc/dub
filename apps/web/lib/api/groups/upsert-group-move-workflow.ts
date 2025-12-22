@@ -25,7 +25,7 @@ export async function upsertGroupMoveWorkflow({
     });
   }
 
-  if (moveRule === null && group.workflowId) {
+  if (moveRule?.length === 0 && group.workflowId) {
     await prisma.workflow.delete({
       where: {
         id: group.workflowId,
