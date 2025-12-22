@@ -35,7 +35,7 @@ const ATTRIBUTE_BY_VALUE = Object.fromEntries(
 ) as Record<AttributeValue, { text: string; type: AttributeType }>;
 
 export function GroupMoveRule() {
-  const { slug, plan, defaultProgramId } = useWorkspace();
+  const { plan } = useWorkspace();
 
   const { control, watch } = useFormContext<{
     moveRule?: WorkflowCondition[];
