@@ -33,16 +33,12 @@ export function CustomerPartnerEarningsTable({
       {
         header: "Sale Amount",
         accessorKey: "amount",
-        cell: ({ getValue }) => (
-          <span>{currencyFormatter(getValue())}</span>
-        ),
+        cell: ({ getValue }) => <span>{currencyFormatter(getValue())}</span>,
       },
       {
         header: "Commission",
         accessorKey: "earnings",
-        cell: ({ getValue }) => (
-          <span>{currencyFormatter(getValue())}</span>
-        ),
+        cell: ({ getValue }) => <span>{currencyFormatter(getValue())}</span>,
       },
       {
         header: "Status",
@@ -64,7 +60,7 @@ export function CustomerPartnerEarningsTable({
   return (
     <div className="overflow-x-auto">
       {isLoading ? (
-        <div className="flex h-32 w-full animate-pulse rounded-lg border border-transparent bg-neutral-100" />
+        <div className="flex h-32 w-full animate-pulse border border-transparent bg-neutral-100" />
       ) : !commissions?.length ? (
         <div className="border-border-subtle flex h-32 w-full items-center justify-center rounded-lg border text-xs text-neutral-500">
           {commissions?.length === 0
@@ -80,7 +76,7 @@ export function CustomerPartnerEarningsTable({
                   {headerGroup.headers.map((header) => (
                     <th
                       key={header.id}
-                      className="p-2 font-semibold text-neutral-900"
+                      className="px-4 py-3 font-semibold text-neutral-900"
                     >
                       {header.isPlaceholder
                         ? null
@@ -97,7 +93,7 @@ export function CustomerPartnerEarningsTable({
               {table.getRowModel().rows.map((row) => (
                 <tr key={row.id}>
                   {row.getVisibleCells().map((cell) => (
-                    <td key={cell.id} className="truncate p-2">
+                    <td key={cell.id} className="truncate px-4 py-3">
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext(),
@@ -108,7 +104,7 @@ export function CustomerPartnerEarningsTable({
               ))}
             </tbody>
           </table>
-          <div className="mt-2 flex items-center gap-1 px-2 text-sm text-neutral-600">
+          <div className="flex items-center gap-1 px-4 py-3 text-sm text-neutral-600">
             {commissions.length} of
             <As
               href={viewAllHref ?? "#"}

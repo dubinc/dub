@@ -763,8 +763,8 @@ export function useAnalyticsFilters({
           ) : null;
         },
         getOptionPermalink: () => {
-          return programSlug
-            ? `/programs/${programSlug}/customers/${selectedCustomerId}`
+          return programPage
+            ? `/${slug}/program/customers/${selectedCustomerId}`
             : slug
               ? `/${slug}/customers/${selectedCustomerId}`
               : null;

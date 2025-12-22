@@ -61,11 +61,7 @@ export default function ProgramPartnerLayout({
   const searchParams = useSearchParams();
 
   const params = useParams() as { slug: string; partnerId: string };
-  const {
-    partner,
-    loading: isPartnerLoading,
-    error: partnerError,
-  } = usePartner({
+  const { partner, error: partnerError } = usePartner({
     partnerId: params.partnerId,
   });
 

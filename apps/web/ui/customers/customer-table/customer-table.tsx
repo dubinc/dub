@@ -4,7 +4,9 @@ import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useCustomersCount from "@/lib/swr/use-customers-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CustomerProps } from "@/lib/types";
+import { getCustomersQuerySchema } from "@/lib/zod/schemas/customers";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
+import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { FilterButtonTableRow } from "@/ui/shared/filter-button-table-row";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
@@ -43,13 +45,9 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
+import { z } from "zod";
 import { EXAMPLE_CUSTOMER_DATA } from "./example-data";
 import { useCustomerFilters } from "./use-customer-filters";
-
-const customersColumns = {
-  all: ["customer", "country", "saleAmount", "createdAt", "link", "externalId"],
-  defaultVisible: ["customer", "country", "saleAmount", "createdAt", "link"],
-};
 
 type ColumnMeta = {
   filterParams?: (
@@ -57,7 +55,13 @@ type ColumnMeta = {
   ) => Record<string, any>;
 };
 
-export function CustomerTable() {
+export function CustomerTable({
+  query,
+  isProgramPage = false,
+}: {
+  query?: Partial<z.infer<typeof getCustomersQuerySchema>>;
+  isProgramPage?: boolean;
+}) {
   const { id: workspaceId, slug: workspaceSlug, plan } = useWorkspace();
 
   const { canManageCustomers } = getPlanCapabilities(plan);
@@ -81,6 +85,7 @@ export function CustomerTable() {
 
   const { data: customersCount, error: countError } = useCustomersCount({
     enabled: canManageCustomers,
+    query,
   });
 
   const {
@@ -92,6 +97,7 @@ export function CustomerTable() {
       `/api/customers${getQueryString({
         workspaceId,
         includeExpandedFields: "true",
+        ...query,
       })}`,
     fetcher,
     {
@@ -99,8 +105,29 @@ export function CustomerTable() {
     },
   );
 
+  const customersColumns = {
+    all: [
+      "customer",
+      "country",
+      ...(isProgramPage ? ["partner"] : []),
+      "link",
+      "saleAmount",
+      "createdAt",
+      "externalId",
+    ],
+    defaultVisible: [
+      "customer",
+      "country",
+      ...(isProgramPage ? ["partner"] : ["link"]),
+      "saleAmount",
+      "createdAt",
+    ],
+  };
+
   const { columnVisibility, setColumnVisibility } = useColumnVisibility(
-    "customers-table-columns",
+    isProgramPage
+      ? "program-customers-table-columns"
+      : "customers-table-columns",
     customersColumns,
   );
 
@@ -120,7 +147,11 @@ export function CustomerTable() {
             return (
               <CustomerRowItem
                 customer={row.original}
-                href={`/${workspaceSlug}/customers/${row.original.id}`}
+                href={
+                  isProgramPage
+                    ? `/${workspaceSlug}/program/customers/${row.original.id}`
+                    : `/${workspaceSlug}/customers/${row.original.id}`
+                }
                 chartActivityIconMode="visible"
               />
             );
@@ -158,6 +189,50 @@ export function CustomerTable() {
           },
         },
         {
+          id: "partner",
+          header: "Partner",
+          meta: {
+            filterParams: ({ row }) => ({
+              partnerId: row.original.partner.id,
+            }),
+          },
+          cell: ({ row }) =>
+            row.original.partner ? (
+              <PartnerRowItem partner={row.original.partner} />
+            ) : (
+              "-"
+            ),
+          size: 200,
+        },
+        {
+          id: "link",
+          header: "Link",
+          accessorKey: "link",
+          meta: {
+            filterParams: ({ getValue }) =>
+              getValue() ? { linkId: getValue().id } : undefined,
+          },
+          cell: ({ row }) =>
+            row.original.link ? (
+              <Link
+                href={`/${workspaceSlug}/links/${row.original.link.domain}/${row.original.link.key}`}
+                target="_blank"
+                className="flex cursor-alias items-center gap-3 decoration-dotted underline-offset-2 hover:underline"
+              >
+                <LinkLogo
+                  apexDomain={getApexDomain(row.original.link.url)}
+                  className="size-4 shrink-0 sm:size-4"
+                />
+                <span className="truncate" title={row.original.link.shortLink}>
+                  {getPrettyUrl(row.original.link.shortLink)}
+                </span>
+              </Link>
+            ) : (
+              "-"
+            ),
+          size: 250,
+        },
+        {
           id: "saleAmount",
           header: "Lifetime value",
           accessorKey: "saleAmount",
@@ -189,34 +264,6 @@ export function CustomerTable() {
           ),
         },
         {
-          id: "link",
-          header: "Link",
-          accessorKey: "link",
-          meta: {
-            filterParams: ({ getValue }) =>
-              getValue() ? { linkId: getValue().id } : undefined,
-          },
-          cell: ({ row }) =>
-            row.original.link ? (
-              <Link
-                href={`/${workspaceSlug}/links/${row.original.link.domain}/${row.original.link.key}`}
-                target="_blank"
-                className="flex cursor-alias items-center gap-3 decoration-dotted underline-offset-2 hover:underline"
-              >
-                <LinkLogo
-                  apexDomain={getApexDomain(row.original.link.url)}
-                  className="size-4 shrink-0 sm:size-4"
-                />
-                <span className="truncate" title={row.original.link.shortLink}>
-                  {getPrettyUrl(row.original.link.shortLink)}
-                </span>
-              </Link>
-            ) : (
-              "-"
-            ),
-          size: 250,
-        },
-        {
           id: "externalId",
           header: "External ID",
           accessorKey: "externalId",
@@ -244,7 +291,7 @@ export function CustomerTable() {
           cell: ({ row }) => <RowMenuButton row={row} />,
         },
       ].filter((c) => c.id === "menu" || customersColumns.all.includes(c.id)),
-    [],
+    [isProgramPage, workspaceSlug],
   );
 
   const { table, ...tableProps } = useTable({

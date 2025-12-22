@@ -409,12 +409,18 @@ export async function checkoutSessionCompleted(
       },
     }),
 
-    // update customer stats
+    // update customer stats + program/partner associations
     prisma.customer.update({
       where: {
         id: customer.id,
       },
       data: {
+        ...(link?.programId && {
+          programId: link.programId,
+        }),
+        ...(link?.partnerId && {
+          partnerId: link.partnerId,
+        }),
         sales: {
           increment: 1,
         },
