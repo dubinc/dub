@@ -88,7 +88,7 @@ export function UserDropdown() {
       content={
         <div className="flex w-full flex-col space-y-px rounded-md bg-white p-2 sm:min-w-56">
           {session?.user ? (
-            <div className="px-2 pb-2">
+            <div className="px-2 pb-4 sm:pb-2">
               <p className="truncate text-base font-medium text-neutral-900 sm:text-sm">
                 {session.user.name || session.user.email?.split("@")[0]}
               </p>
