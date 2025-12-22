@@ -78,6 +78,8 @@ export function CustomerTable({
     onRemove,
     onRemoveAll,
     isFiltered,
+    setSearch,
+    setSelectedFilter,
   } = useCustomerFilters(
     { sortBy, sortOrder },
     { enabled: canManageCustomers },
@@ -340,6 +342,8 @@ export function CustomerTable({
             activeFilters={activeFilters}
             onSelect={onSelect}
             onRemove={onRemove}
+            onSearchChange={setSearch}
+            onSelectedFilterChange={setSelectedFilter}
           />
           <SearchBoxPersisted
             placeholder="Search by email or name"

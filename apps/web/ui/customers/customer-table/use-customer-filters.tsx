@@ -6,10 +6,10 @@ import { LinkLogo, useRouterStuff } from "@dub/ui";
 import { FlagWavy, Hyperlink, SquareUserSparkle2, Users } from "@dub/ui/icons";
 import {
   COUNTRIES,
+  OG_AVATAR_URL,
   getApexDomain,
   getPrettyUrl,
   nFormatter,
-  OG_AVATAR_URL,
 } from "@dub/utils";
 import { useCallback, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
@@ -24,10 +24,6 @@ export function useCustomerFilters(
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
-
-  const { partners } = usePartnerFilterOptions(
-    selectedFilter === "partnerId" ? debouncedSearch : "",
-  );
 
   const { data: countriesCount } = useCustomersCount<
     | {
@@ -57,8 +53,32 @@ export function useCustomerFilters(
     enabled,
   });
 
+  const { partners } = usePartnerFilterOptions(
+    selectedFilter === "partnerId" ? debouncedSearch : "",
+  );
+
   const filters = useMemo(
     () => [
+      {
+        key: "partnerId",
+        icon: Users,
+        label: "Partner",
+        shouldFilter: false,
+        options:
+          partners?.map(({ id, name, image }) => {
+            return {
+              value: id,
+              label: name,
+              icon: (
+                <img
+                  src={image || `${OG_AVATAR_URL}${id}`}
+                  alt={`${name} image`}
+                  className="size-4 rounded-full"
+                />
+              ),
+            };
+          }) ?? null,
+      },
       {
         key: "country",
         icon: FlagWavy,
@@ -85,26 +105,6 @@ export function useCustomerFilters(
             country: getValue(),
           }),
         },
-      },
-      {
-        key: "partnerId",
-        icon: Users,
-        label: "Partner",
-        shouldFilter: false,
-        options:
-          partners?.map(({ id, name, image }) => {
-            return {
-              value: id,
-              label: name,
-              icon: (
-                <img
-                  src={image || `${OG_AVATAR_URL}${id}`}
-                  alt={`${name} image`}
-                  className="size-4 rounded-full"
-                />
-              ),
-            };
-          }) ?? null,
       },
       {
         key: "linkId",
@@ -146,7 +146,7 @@ export function useCustomerFilters(
   );
 
   const activeFilters = useMemo(() => {
-    const { country, linkId, externalId, partnerId } = searchParamsObj;
+    const { partnerId, country, linkId, externalId } = searchParamsObj;
 
     return [
       ...(partnerId ? [{ key: "partnerId", value: partnerId }] : []),
