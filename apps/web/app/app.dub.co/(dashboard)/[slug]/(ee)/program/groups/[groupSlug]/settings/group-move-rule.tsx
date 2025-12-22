@@ -209,21 +209,38 @@ function GroupRule({
                   <Controller
                     control={control}
                     name={`moveRule.${index}.value`}
-                    render={({ field }) => (
-                      <InlineBadgePopoverAmountInput
-                        type={
-                          ATTRIBUTE_BY_VALUE[rule.attribute]?.type || "number"
-                        }
-                        value={field.value ?? ""}
-                        onChange={(e) => {
-                          const value = (e.target as HTMLInputElement).value;
-                          field.onChange(
-                            value === "" ? undefined : Number(value),
-                          );
-                        }}
-                        onBlur={field.onBlur}
-                      />
-                    )}
+                    render={({ field }) => {
+                      const attributeType =
+                        ATTRIBUTE_BY_VALUE[rule.attribute]?.type || "number";
+                      const isCurrency = attributeType === "currency";
+
+                      // Convert from cents to dollars for display in input
+                      const displayValue =
+                        field.value != null
+                          ? isCurrency
+                            ? String(field.value / 100)
+                            : String(field.value)
+                          : "";
+
+                      return (
+                        <InlineBadgePopoverAmountInput
+                          type={attributeType}
+                          value={displayValue}
+                          onChange={(e) => {
+                            const value = (e.target as HTMLInputElement).value;
+                            if (value === "") {
+                              field.onChange(undefined);
+                            } else {
+                              const numValue = Number(value);
+                              field.onChange(
+                                isCurrency ? numValue * 100 : numValue,
+                              );
+                            }
+                          }}
+                          onBlur={field.onBlur}
+                        />
+                      );
+                    }}
                   />
                 </InlineBadgePopover>
               </>
@@ -293,7 +310,7 @@ const formatValue = (
   }
 
   if (type === "currency") {
-    return currencyFormatter(Number(value) * 100, {
+    return currencyFormatter(Number(value), {
       trailingZeroDisplay: "stripIfInteger",
     });
   }
