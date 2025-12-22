@@ -5,12 +5,18 @@ import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useGroup from "@/lib/swr/use-group";
 import { GroupProps } from "@/lib/types";
+import { updateGroupSchema } from "@/lib/zod/schemas/groups";
 import { Button, Checkbox, Modal, Switch } from "@dub/ui";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { mutate } from "swr";
+import { z } from "zod";
 import { GroupMoveRule } from "./group-move-rule";
 import { SettingsRow } from "./settings-row";
+
+type FormData = z.infer<typeof updateGroupSchema>;
 
 export function GroupAdditionalSettings() {
   const { group, loading } = useGroup();
@@ -83,8 +89,34 @@ function GroupOtherSettingsForm({ group }: { group: GroupProps }) {
     setSelectedHoldingPeriodDays(null);
   };
 
+  const form = useForm<FormData>({
+    defaultValues: {
+      moveRule: group.moveRule ?? [],
+    },
+  });
+
+  const {
+    handleSubmit,
+    formState: { isDirty },
+  } = form;
+
+  const onSubmit = async (data: FormData) => {
+    console.log("onSubmit", data);
+
+    await updateGroup(`/api/groups/${group.id}`, {
+      method: "PATCH",
+      body: {
+        moveRule: data.moveRule,
+      },
+      onSuccess: async () => {
+        await mutate(`/api/groups/${group.id}`);
+        toast.success("Group move updated!");
+      },
+    });
+  };
+
   return (
-    <div className="border-border-subtle rounded-lg border">
+    <>
       <ConfirmAutoApproveModal
         isOpen={showConfirmAutoApproveModal}
         setIsOpen={setShowConfirmAutoApproveModal}
@@ -100,61 +132,81 @@ function GroupOtherSettingsForm({ group }: { group: GroupProps }) {
         currentValue={group.holdingPeriodDays}
         newValue={selectedHoldingPeriodDays}
       />
-      <div className="flex flex-col divide-y divide-neutral-200">
-        <div className="px-6 py-6">
-          <h3 className="text-content-emphasis text-lg font-semibold leading-7">
-            Additional settings
-          </h3>
-        </div>
 
-        <SettingsRow
-          heading="Payout holding period"
-          description="Set how long to hold funds before they are eligible for payout."
-        >
-          <select
-            className="block w-full rounded-md border border-neutral-300 bg-white py-2 pl-3 pr-10 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500"
-            value={
-              selectedHoldingPeriodDays !== null
-                ? selectedHoldingPeriodDays
-                : group.holdingPeriodDays
-            }
-            onChange={(e) => {
-              const newValue = Number(e.target.value);
-              if (newValue !== group.holdingPeriodDays) {
-                setSelectedHoldingPeriodDays(newValue);
-                setShowConfirmHoldingPeriodModal(true);
-              }
-            }}
-          >
-            {PAYOUT_HOLDING_PERIOD_DAYS.map((v) => (
-              <option value={v} key={v}>
-                {v} days {v === 30 && " (recommended)"}
-              </option>
-            ))}
-          </select>
-        </SettingsRow>
+      <FormProvider {...form}>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <div className="border-border-subtle rounded-lg border">
+            <div className="flex flex-col divide-y divide-neutral-200">
+              <div className="px-6 py-6">
+                <h3 className="text-content-emphasis text-lg font-semibold leading-7">
+                  Additional settings
+                </h3>
+              </div>
 
-        <SettingsRow
-          heading="Auto-approve"
-          description="Automatically approve new partner applications."
-        >
-          <label>
-            <div className="flex select-none items-center gap-2">
-              <Switch
-                checked={group.autoApprovePartnersEnabledAt ? true : false}
-                fn={() => setShowConfirmAutoApproveModal(true)}
-                trackDimensions="radix-state-checked:bg-black focus-visible:ring-black/20"
-              />
-              <span className="text-content-emphasis text-sm">
-                Enable auto-approve
-              </span>
+              <SettingsRow
+                heading="Payout holding period"
+                description="Set how long to hold funds before they are eligible for payout."
+              >
+                <select
+                  className="block w-full rounded-md border border-neutral-300 bg-white py-2 pl-3 pr-10 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500"
+                  value={
+                    selectedHoldingPeriodDays !== null
+                      ? selectedHoldingPeriodDays
+                      : group.holdingPeriodDays
+                  }
+                  onChange={(e) => {
+                    const newValue = Number(e.target.value);
+                    if (newValue !== group.holdingPeriodDays) {
+                      setSelectedHoldingPeriodDays(newValue);
+                      setShowConfirmHoldingPeriodModal(true);
+                    }
+                  }}
+                >
+                  {PAYOUT_HOLDING_PERIOD_DAYS.map((v) => (
+                    <option value={v} key={v}>
+                      {v} days {v === 30 && " (recommended)"}
+                    </option>
+                  ))}
+                </select>
+              </SettingsRow>
+
+              <SettingsRow
+                heading="Auto-approve"
+                description="Automatically approve new partner applications."
+              >
+                <label>
+                  <div className="flex select-none items-center gap-2">
+                    <Switch
+                      checked={
+                        group.autoApprovePartnersEnabledAt ? true : false
+                      }
+                      fn={() => setShowConfirmAutoApproveModal(true)}
+                      trackDimensions="radix-state-checked:bg-black focus-visible:ring-black/20"
+                    />
+                    <span className="text-content-emphasis text-sm">
+                      Enable auto-approve
+                    </span>
+                  </div>
+                </label>
+              </SettingsRow>
+
+              <GroupMoveRule />
             </div>
-          </label>
-        </SettingsRow>
 
-        <GroupMoveRule />
-      </div>
-    </div>
+            <div className="border-border-subtle flex items-center justify-end rounded-b-lg border-t bg-neutral-50 px-6 py-4">
+              <div>
+                <Button
+                  text="Save changes"
+                  className="h-8"
+                  loading={isSubmitting}
+                  disabled={!isDirty}
+                />
+              </div>
+            </div>
+          </div>
+        </form>
+      </FormProvider>
+    </>
   );
 }
 

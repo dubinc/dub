@@ -12,7 +12,8 @@ import { ArrowTurnRight2, Button, UserArrowRight, Users } from "@dub/ui";
 import { currencyFormatter, nFormatter } from "@dub/utils";
 import { X } from "lucide-react";
 import Link from "next/link";
-import { Fragment, useMemo, useState } from "react";
+import { Fragment, useMemo } from "react";
+import { Controller, useFieldArray, useFormContext } from "react-hook-form";
 import { SettingsRow } from "./settings-row";
 
 const ATTRIBUTES = [
@@ -30,50 +31,41 @@ const ATTRIBUTE_BY_VALUE = Object.fromEntries(
   ATTRIBUTES.map(({ value, text, type }) => [value, { text, type }]),
 ) as Record<AttributeValue, { text: string; type: AttributeType }>;
 
-// Format the value based on the attribute type
-const formatValue = (
-  value: number | undefined,
-  type: AttributeType | undefined,
-) => {
-  if (!value) {
-    return "value";
-  }
-
-  if (type === "currency") {
-    return currencyFormatter(Number(value) * 100, {
-      trailingZeroDisplay: "stripIfInteger",
-    });
-  }
-
-  if (type === "number") {
-    return nFormatter(value);
-  }
-
-  return value;
-};
-
 export function GroupMoveRule() {
-  const [rules, setRules] = useState<WorkflowCondition[]>([]);
+  const { control, watch } = useFormContext<{
+    moveRule?: WorkflowCondition[];
+  }>();
 
-  const disableAddRuleButton = rules.length >= ATTRIBUTES.length;
+  const moveRule = watch("moveRule") ?? [];
+
+  const {
+    fields: ruleFields,
+    append: appendRule,
+    remove: removeRule,
+    update: updateRule,
+  } = useFieldArray({
+    control,
+    name: "moveRule",
+    shouldUnregister: false,
+  });
+
   const usedAttributes = useMemo(
     () =>
-      rules
-        .map((r) => r.attribute)
+      moveRule
+        ?.map((r) => r.attribute)
         .filter((a): a is NonNullable<typeof a> => a != null),
-    [rules],
+    [moveRule],
   );
 
   const addRule = () => {
-    setRules([
-      ...rules,
-      {
-        attribute: undefined as any,
-        operator: "gte",
-        value: undefined as any,
-      },
-    ]);
+    appendRule({
+      attribute: undefined,
+      operator: "gte",
+      value: undefined,
+    } as unknown as WorkflowCondition);
   };
+
+  const disableAddRuleButton = ruleFields.length >= ATTRIBUTES.length;
 
   return (
     <SettingsRow
@@ -92,32 +84,37 @@ export function GroupMoveRule() {
         </>
       }
     >
-      {rules.length === 0 ? (
+      {ruleFields.length === 0 ? (
         <NoGroupRule />
       ) : (
         <div className="relative flex flex-col">
-          {rules.map((rule, index) => {
+          {ruleFields.map((field, index) => {
+            const rule = moveRule?.[index];
+            if (!rule) {
+              return null;
+            }
+
             // Filter out attributes already used by other rules
             const availableAttributes = ATTRIBUTES.filter(
               (a) =>
-                a.value === rule.attribute || !usedAttributes.includes(a.value),
+                a.value === rule.attribute ||
+                !usedAttributes?.includes(a.value),
             );
 
             return (
-              <Fragment key={index}>
+              <Fragment key={field.id}>
                 <GroupRule
                   index={index}
                   rule={rule}
-                  attributes={availableAttributes}
+                  availableAttributes={availableAttributes}
                   onUpdate={(updatedRule) => {
-                    setRules((prev) =>
-                      prev.map((r, i) =>
-                        i === index ? { ...r, ...updatedRule } : r,
-                      ),
-                    );
+                    updateRule(index, {
+                      ...rule,
+                      ...updatedRule,
+                    });
                   }}
                   onRemove={() => {
-                    setRules((prev) => prev.filter((_, i) => i !== index));
+                    removeRule(index);
                   }}
                 />
 
@@ -151,14 +148,18 @@ function GroupRule({
   onUpdate,
   onRemove,
   index,
-  attributes,
+  availableAttributes,
 }: {
   rule: WorkflowCondition;
   onUpdate: (updates: Partial<WorkflowCondition>) => void;
   onRemove: () => void;
   index: number;
-  attributes: Attribute[];
+  availableAttributes: Attribute[];
 }) {
+  const { control } = useFormContext<{
+    moveRule?: WorkflowCondition[];
+  }>();
+
   const isFirst = index === 0;
 
   return (
@@ -181,7 +182,7 @@ function GroupRule({
               buttonClassName="mx-1"
             >
               <InlineBadgePopoverMenu
-                items={attributes.map((a) => ({
+                items={availableAttributes.map((a) => ({
                   value: a.value,
                   text: a.text,
                 }))}
@@ -207,15 +208,24 @@ function GroupRule({
                   invalid={!rule.value}
                   buttonClassName="mx-1"
                 >
-                  <InlineBadgePopoverAmountInput
-                    type={ATTRIBUTE_BY_VALUE[rule.attribute]?.type || "number"}
-                    value={rule.value || ""}
-                    onChange={(e) =>
-                      onUpdate({
-                        ...rule,
-                        value: Number((e.target as HTMLInputElement).value),
-                      })
-                    }
+                  <Controller
+                    control={control}
+                    name={`moveRule.${index}.value`}
+                    render={({ field }) => (
+                      <InlineBadgePopoverAmountInput
+                        type={
+                          ATTRIBUTE_BY_VALUE[rule.attribute]?.type || "number"
+                        }
+                        value={field.value ?? ""}
+                        onChange={(e) => {
+                          const value = (e.target as HTMLInputElement).value;
+                          field.onChange(
+                            value === "" ? undefined : Number(value),
+                          );
+                        }}
+                        onBlur={field.onBlur}
+                      />
+                    )}
                   />
                 </InlineBadgePopover>
               </>
@@ -274,3 +284,25 @@ function NoGroupRule() {
     </div>
   );
 }
+
+// Format the value based on the attribute type
+const formatValue = (
+  value: number | undefined,
+  type: AttributeType | undefined,
+) => {
+  if (!value) {
+    return "value";
+  }
+
+  if (type === "currency") {
+    return currencyFormatter(Number(value) * 100, {
+      trailingZeroDisplay: "stripIfInteger",
+    });
+  }
+
+  if (type === "number") {
+    return nFormatter(value);
+  }
+
+  return value;
+};

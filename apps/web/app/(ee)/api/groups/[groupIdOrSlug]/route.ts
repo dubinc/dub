@@ -3,6 +3,7 @@ import { isDiscountEquivalent } from "@/lib/api/discounts/is-discount-equivalent
 import { queueDiscountCodeDeletion } from "@/lib/api/discounts/queue-discount-code-deletion";
 import { DubApiError } from "@/lib/api/errors";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
+import { upsertGroupMoveWorkflow } from "@/lib/api/groups/upsert-group-move-workflow";
 import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
@@ -10,7 +11,6 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
-import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { recordLink } from "@/lib/tinybird";
 import { GroupWithProgramSchema } from "@/lib/zod/schemas/group-with-program";
 import {
@@ -54,7 +54,6 @@ export const GET = withWorkspace(
 export const PATCH = withWorkspace(
   async ({ req, params, workspace, session }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
-    const { canUseGroupMoveRule } = getPlanCapabilities(workspace.plan);
 
     const group = await getGroupOrThrow({
       programId,
@@ -77,19 +76,6 @@ export const PATCH = withWorkspace(
       updateHoldingPeriodDaysForAllGroups,
       moveRule,
     } = updateGroupSchema.parse(await parseRequestBody(req));
-
-    if (moveRule && !canUseGroupMoveRule) {
-      throw new DubApiError({
-        code: "forbidden",
-        message:
-          "Group move rules are only available on the Advanced plan and above.",
-      });
-    }
-
-    // Create the workflowId if doesn't exist or update the workflow
-    if (moveRule) {
-      //
-    }
 
     // Only check slug uniqueness if slug is being updated
     if (slug && slug.toLowerCase() !== group.slug.toLowerCase()) {
@@ -143,6 +129,12 @@ export const PATCH = withWorkspace(
         })
       : null;
 
+    const { workflowId } = await upsertGroupMoveWorkflow({
+      group,
+      moveRule,
+      workspace,
+    });
+
     const [updatedGroup] = await Promise.all([
       prisma.partnerGroup.update({
         where: {
@@ -158,6 +150,7 @@ export const PATCH = withWorkspace(
           utmTemplateId,
           applicationFormData,
           landerData,
+          workflowId,
           ...(holdingPeriodDays !== undefined &&
             !updateHoldingPeriodDaysForAllGroups && {
               holdingPeriodDays,
