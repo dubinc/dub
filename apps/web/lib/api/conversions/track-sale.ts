@@ -589,27 +589,6 @@ const _trackSale = async ({
               click: pick(saleData, ["url", "referer"]),
               event: { id: saleData.event_id },
             }),
-
-          // Update customer stats + program/partner associations
-          prisma.customer.update({
-            where: {
-              id: customer.id,
-            },
-            data: {
-              ...(link.programId && {
-                programId: link.programId,
-              }),
-              ...(link.partnerId && {
-                partnerId: link.partnerId,
-              }),
-              sales: {
-                increment: 1,
-              },
-              saleAmount: {
-                increment: amount,
-              },
-            },
-          }),
         ]);
       }
 
@@ -627,6 +606,27 @@ const _trackSale = async ({
         trigger: "sale.created",
         data: webhookPayload,
         workspace,
+      });
+
+      // Update customer stats + program/partner associations
+      await prisma.customer.update({
+        where: {
+          id: customer.id,
+        },
+        data: {
+          ...(link.programId && {
+            programId: link.programId,
+          }),
+          ...(link.partnerId && {
+            partnerId: link.partnerId,
+          }),
+          sales: {
+            increment: 1,
+          },
+          saleAmount: {
+            increment: amount,
+          },
+        },
       });
     })(),
   );
