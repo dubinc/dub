@@ -191,6 +191,11 @@ export function CustomerTable({
         {
           id: "partner",
           header: "Partner",
+          meta: {
+            filterParams: ({ row }) => ({
+              partnerId: row.original.partner.id,
+            }),
+          },
           cell: ({ row }) =>
             row.original.partner ? (
               <PartnerRowItem partner={row.original.partner} />

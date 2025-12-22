@@ -63,6 +63,7 @@ model Program {
   invoices                 Invoice[]
   applications             ProgramApplication[]
   links                    Link[]
+  customers                Customer[]
   commissions              Commission[]
   rewards                  Reward[]
   discounts                Discount[]                @relation("ProgramDiscounts")
@@ -129,6 +130,7 @@ model ProgramEnrollment {
   partner           Partner             @relation(fields: [partnerId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   program           Program             @relation(fields: [programId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   links             Link[]
+  customers         Customer[]
   partnerGroup      PartnerGroup?       @relation(fields: [groupId], references: [id])
   application       ProgramApplication? @relation(fields: [applicationId], references: [id])
   clickReward       Reward?             @relation("ClickRewardEnrollments", fields: [clickRewardId], references: [id])

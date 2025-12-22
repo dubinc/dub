@@ -149,14 +149,19 @@ export async function POST(req: Request) {
 
     // update links, commissions, bounty submissions, and payouts
     if (programIdsToTransfer.length > 0) {
-      const [updatedLinksRes, updatedCommissionsRes, updatedPayoutsRes] =
-        await Promise.all([
-          prisma.link.updateMany(updateManyPayload),
-          prisma.commission.updateMany(updateManyPayload),
-          prisma.payout.updateMany(updateManyPayload),
-        ]);
+      const [
+        updatedLinksRes,
+        updatedCustomersRes,
+        updatedCommissionsRes,
+        updatedPayoutsRes,
+      ] = await Promise.all([
+        prisma.link.updateMany(updateManyPayload),
+        prisma.customer.updateMany(updateManyPayload),
+        prisma.commission.updateMany(updateManyPayload),
+        prisma.payout.updateMany(updateManyPayload),
+      ]);
       console.log(
-        `Updated ${updatedLinksRes.count} links, ${updatedCommissionsRes.count} commissions, and ${updatedPayoutsRes.count} payouts`,
+        `Updated ${updatedLinksRes.count} links, ${updatedCustomersRes.count} customers, ${updatedCommissionsRes.count} commissions, and ${updatedPayoutsRes.count} payouts`,
       );
 
       // update notification emails, messages, and partner comments

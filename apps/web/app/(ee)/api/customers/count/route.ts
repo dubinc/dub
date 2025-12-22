@@ -1,3 +1,4 @@
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { getCustomersCountQuerySchema } from "@/lib/zod/schemas/customers";
 import { prisma, sanitizeFullTextSearch } from "@dub/prisma";
@@ -6,10 +7,28 @@ import { NextResponse } from "next/server";
 
 // GET /api/customers/count
 export const GET = withWorkspace(async ({ workspace, searchParams }) => {
-  const { email, externalId, search, country, linkId, programId, groupBy } =
-    getCustomersCountQuerySchema.parse(searchParams);
+  let {
+    email,
+    externalId,
+    search,
+    country,
+    linkId,
+    programId,
+    partnerId,
+    groupBy,
+  } = getCustomersCountQuerySchema.parse(searchParams);
+
+  if (programId || partnerId) {
+    programId = getDefaultProgramIdOrThrow(workspace);
+  }
 
   const commonWhere: Prisma.CustomerWhereInput = {
+    ...(programId && {
+      programId,
+    }),
+    ...(partnerId && {
+      partnerId,
+    }),
     projectId: workspace.id,
     ...(email
       ? { email }
@@ -33,11 +52,6 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
       groupBy !== "linkId" && {
         linkId,
       }),
-    ...(programId && {
-      link: {
-        programId,
-      },
-    }),
   };
 
   // Get customer count by country

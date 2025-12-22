@@ -65,6 +65,7 @@ model Partner {
   programs                   ProgramEnrollment[]
   users                      PartnerUser[]
   invites                    PartnerInvite[]
+  customers                  Customer[]
   payouts                    Payout[]
   commissions                Commission[]
   bountySubmissions          BountySubmission[]

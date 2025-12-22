@@ -39,6 +39,7 @@ export const getCustomersQuerySchema = z
         "A filter on the list based on the customer's `linkId` field (the referral link ID).",
       ),
     programId: z.string().optional().describe("Program ID to filter by."),
+    partnerId: z.string().optional().describe("Partner ID to filter by."),
     includeExpandedFields: booleanQuerySchema
       .optional()
       .describe(
@@ -77,7 +78,7 @@ export const getCustomersCountQuerySchema = getCustomersQuerySchema
     sortBy: true,
     sortOrder: true,
   })
-  .extend({ groupBy: z.enum(["country", "linkId"]).optional() });
+  .extend({ groupBy: z.enum(["country", "linkId", "partnerId"]).optional() });
 
 export const createCustomerBodySchema = z.object({
   email: z.string().email().nullish().describe("The customer's email address."),
