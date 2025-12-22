@@ -57,14 +57,6 @@ export function GroupMoveRule() {
     [moveRule],
   );
 
-  const addRule = () => {
-    appendRule({
-      attribute: undefined,
-      operator: "gte",
-      value: undefined,
-    } as unknown as WorkflowCondition);
-  };
-
   const disableAddRuleButton = ruleFields.length >= ATTRIBUTES.length;
 
   return (
@@ -131,7 +123,13 @@ export function GroupMoveRule() {
         text="Add rule"
         variant="primary"
         className="mt-4 h-8 w-fit rounded-lg px-3"
-        onClick={addRule}
+        onClick={() => {
+          appendRule({
+            attribute: undefined,
+            operator: "gte",
+            value: undefined,
+          } as unknown as WorkflowCondition);
+        }}
         disabled={disableAddRuleButton}
         disabledTooltip={
           disableAddRuleButton
