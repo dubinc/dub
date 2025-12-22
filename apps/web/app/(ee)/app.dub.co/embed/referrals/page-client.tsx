@@ -219,7 +219,7 @@ export function ReferralsEmbedPageClient({
           )}
         </div>
         <div className="mt-4 grid gap-2 sm:h-32 sm:grid-cols-3">
-          <ReferralsEmbedActivity {...stats} />
+          <ReferralsEmbedActivity color={group.brandColor} {...stats} />
           <ReferralsEmbedEarningsSummary
             earnings={earnings}
             programSlug={program.slug}
