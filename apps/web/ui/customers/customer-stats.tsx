@@ -1,18 +1,65 @@
+import useCustomerActivity from "@/lib/swr/use-customer-activity";
 import { CustomerEnriched } from "@/lib/types";
+import { TimestampTooltip } from "@dub/ui";
 import { ArrowUpRight2 } from "@dub/ui/icons";
-import { cn, currencyFormatter, nFormatter } from "@dub/utils";
+import {
+  cn,
+  currencyFormatter,
+  formatDateTimeSmart,
+  nFormatter,
+} from "@dub/utils";
+import { formatDistance } from "date-fns";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import { CSSProperties, useMemo } from "react";
 
 export function CustomerStats({
   customer,
   error,
 }: {
-  customer?: Pick<CustomerEnriched, "sales" | "saleAmount">;
+  customer?: Pick<CustomerEnriched, "sales" | "saleAmount" | "createdAt">;
   error?: boolean;
 }) {
-  const stats: { label: string; value?: string; href?: string }[] = useMemo(
+  const { customerId } = useParams<{ customerId: string }>();
+  const { customerActivity, isCustomerActivityLoading } = useCustomerActivity({
+    customerId,
+  });
+
+  const stats: {
+    label: string;
+    value?: string | React.ReactNode;
+    href?: string;
+  }[] = useMemo(
     () => [
+      {
+        label: "Time to sale",
+        value:
+          !customer || isCustomerActivityLoading
+            ? undefined
+            : customerActivity?.firstSaleDate
+              ? formatDistance(
+                  customerActivity.firstSaleDate,
+                  customer.createdAt,
+                )
+              : "-",
+      },
+      {
+        label: "First sale date",
+        value:
+          isCustomerActivityLoading ? undefined : customerActivity?.firstSaleDate ? (
+            <TimestampTooltip
+              timestamp={customerActivity.firstSaleDate}
+              side="right"
+              rows={["local", "utc"]}
+            >
+              <span className="hover:text-content-emphasis underline decoration-dotted underline-offset-2">
+                {formatDateTimeSmart(customerActivity.firstSaleDate)}
+              </span>
+            </TimestampTooltip>
+          ) : (
+            "-"
+          ),
+      },
       {
         label: "Sales",
         value: customer
@@ -30,7 +77,7 @@ export function CustomerStats({
             : undefined,
       },
     ],
-    [customer, error],
+    [customer, error, customerActivity],
   );
 
   return (

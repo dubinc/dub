@@ -1,8 +1,9 @@
 "use client";
 
 import useCustomer from "@/lib/swr/use-customer";
+import useCustomerActivity from "@/lib/swr/use-customer-activity";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { CustomerActivityResponse, CustomerEnriched } from "@/lib/types";
+import { CustomerEnriched } from "@/lib/types";
 import { CustomerActivityList } from "@/ui/customers/customer-activity-list";
 import { CustomerDetailsColumn } from "@/ui/customers/customer-details-column";
 import { CustomerStats } from "@/ui/customers/customer-stats";
@@ -11,14 +12,12 @@ import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { Button } from "@dub/ui";
 import { ChevronRight, UserCheck } from "@dub/ui/icons";
-import { fetcher } from "@dub/utils";
 import Link from "next/link";
 import { redirect, useParams } from "next/navigation";
 import { ReactNode } from "react";
-import useSWR from "swr";
 
 export default function CustomerLayout({ children }: { children: ReactNode }) {
-  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
+  const { slug: workspaceSlug } = useWorkspace();
   const { customerId } = useParams<{ customerId: string }>();
 
   const { data: customer, error: customerError } =
@@ -27,12 +26,9 @@ export default function CustomerLayout({ children }: { children: ReactNode }) {
       query: { includeExpandedFields: true },
     });
 
-  const { data: customerActivity, isLoading: isCustomerActivityLoading } =
-    useSWR<CustomerActivityResponse>(
-      customer &&
-        `/api/customers/${customer.id}/activity?workspaceId=${workspaceId}`,
-      fetcher,
-    );
+  const { customerActivity, isCustomerActivityLoading } = useCustomerActivity({
+    customerId,
+  });
 
   if (customerError && customerError.status === 404)
     redirect(`/${workspaceSlug}/program/customers`);
