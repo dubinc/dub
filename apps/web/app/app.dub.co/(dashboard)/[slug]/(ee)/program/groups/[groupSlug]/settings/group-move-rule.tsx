@@ -1,8 +1,11 @@
 "use client";
 
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useGroup from "@/lib/swr/use-group";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { WorkflowCondition } from "@/lib/types";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
+import { usePartnersUpgradeModal } from "@/ui/partners/partners-upgrade-modal";
 import {
   InlineBadgePopover,
   InlineBadgePopoverAmountInput,
@@ -32,6 +35,8 @@ const ATTRIBUTE_BY_VALUE = Object.fromEntries(
 ) as Record<AttributeValue, { text: string; type: AttributeType }>;
 
 export function GroupMoveRule() {
+  const { slug, plan, defaultProgramId } = useWorkspace();
+
   const { control, watch } = useFormContext<{
     moveRule?: WorkflowCondition[];
   }>();
@@ -59,6 +64,8 @@ export function GroupMoveRule() {
 
   const disableAddRuleButton = ruleFields.length >= ATTRIBUTES.length;
 
+  const { canUseGroupMoveRule } = getPlanCapabilities(plan);
+
   return (
     <SettingsRow
       heading="Group move"
@@ -76,7 +83,9 @@ export function GroupMoveRule() {
         </>
       }
     >
-      {ruleFields.length === 0 ? (
+      {!canUseGroupMoveRule ? (
+        <GroupMoveRuleUpsell />
+      ) : ruleFields.length === 0 ? (
         <NoGroupRule />
       ) : (
         <div className="relative flex flex-col">
@@ -119,24 +128,26 @@ export function GroupMoveRule() {
         </div>
       )}
 
-      <Button
-        text="Add rule"
-        variant="primary"
-        className="mt-4 h-8 w-fit rounded-lg px-3"
-        onClick={() => {
-          appendRule({
-            attribute: undefined,
-            operator: "gte",
-            value: undefined,
-          } as unknown as WorkflowCondition);
-        }}
-        disabled={disableAddRuleButton}
-        disabledTooltip={
-          disableAddRuleButton
-            ? "All rules are in use. Delete existing rules."
-            : undefined
-        }
-      />
+      {canUseGroupMoveRule && (
+        <Button
+          text="Add rule"
+          variant="primary"
+          className="mt-4 h-8 w-fit rounded-lg px-3"
+          onClick={() => {
+            appendRule({
+              attribute: undefined,
+              operator: "gte",
+              value: undefined,
+            } as unknown as WorkflowCondition);
+          }}
+          disabled={disableAddRuleButton}
+          disabledTooltip={
+            disableAddRuleButton
+              ? "All rules are in use. Delete existing rules."
+              : undefined
+          }
+        />
+      )}
     </SettingsRow>
   );
 }
@@ -297,6 +308,28 @@ function NoGroupRule() {
         No group move rules set
       </p>
     </div>
+  );
+}
+
+function GroupMoveRuleUpsell() {
+  const { partnersUpgradeModal, setShowPartnersUpgradeModal } =
+    usePartnersUpgradeModal();
+
+  return (
+    <>
+      {partnersUpgradeModal}
+      <div className="flex h-40 w-full flex-col items-center justify-center space-y-4 rounded-lg bg-neutral-50 py-1.5">
+        <UserArrowRight className="size-4 text-neutral-600" />
+        <p className="text-sm font-normal text-neutral-500">
+          Make managing partner groups even easier
+        </p>
+        <Button
+          onClick={() => setShowPartnersUpgradeModal(true)}
+          text="Upgrade to Advanced"
+          className="h-9 w-fit rounded-lg px-3"
+        />
+      </div>
+    </>
   );
 }
 
