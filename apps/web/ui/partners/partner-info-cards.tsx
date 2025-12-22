@@ -9,14 +9,12 @@ import {
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { INACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import {
-  Button,
   CalendarIcon,
   ChartActivity2,
   CopyButton,
   Globe,
   Heart,
   OfficeBuilding,
-  SquareUserSparkle2,
   Trophy,
 } from "@dub/ui";
 import {
@@ -28,6 +26,7 @@ import {
   timeAgo,
 } from "@dub/utils";
 import Link from "next/link";
+import { ReactNode } from "react";
 import useSWR from "swr";
 import { ConversionScoreIcon } from "./conversion-score-icon";
 import { PartnerApplicationRiskSummary } from "./fraud-risks/partner-application-risk-summary";
@@ -38,7 +37,6 @@ import {
 import { PartnerFraudIndicator } from "./fraud-risks/partner-fraud-indicator";
 import { PartnerInfoGroup } from "./partner-info-group";
 import { ConversionScoreTooltip } from "./partner-network/conversion-score-tooltip";
-import { usePartnerProfileSheet } from "./partner-profile-sheet";
 import { PartnerStarButton } from "./partner-star-button";
 import { PartnerStatusBadgeWithTooltip } from "./partner-status-badge-with-tooltip";
 import { ProgramRewardList } from "./program-reward-list";
@@ -47,6 +45,7 @@ import { TrustedPartnerBadge } from "./trusted-partner-badge";
 type PartnerInfoCardsProps = {
   showFraudIndicator?: boolean;
   showApplicationRiskAnalysis?: boolean;
+  controls?: ReactNode;
 
   /** Partner statuses to hide badges for */
   hideStatuses?: EnrolledPartnerExtendedProps["status"][];
@@ -69,6 +68,7 @@ type BasicField = {
 export function PartnerInfoCards({
   type,
   partner,
+  controls,
   hideStatuses = [],
   selectedGroupId,
   setSelectedGroupId,
@@ -226,9 +226,7 @@ export function PartnerInfoCards({
                   <PartnerStarButton partner={partner} className="size-9" />
                 )}
 
-                {isEnrolled && partner && (
-                  <PartnerProfileButton partner={partner} />
-                )}
+                {controls}
               </div>
             </div>
 
@@ -393,26 +391,5 @@ export function PartnerInfoCards({
         )}
       </div>
     </div>
-  );
-}
-
-function PartnerProfileButton({
-  partner,
-}: {
-  partner: EnrolledPartnerExtendedProps;
-}) {
-  const { partnerProfileSheet, setShowPartnerProfileSheet } =
-    usePartnerProfileSheet({ partner });
-  return (
-    <>
-      {partnerProfileSheet}
-      <Button
-        variant="secondary"
-        icon={<SquareUserSparkle2 className="size-4" />}
-        text="Profile"
-        className="h-7 rounded-lg px-2"
-        onClick={() => setShowPartnerProfileSheet(true)}
-      />
-    </>
   );
 }
