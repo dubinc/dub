@@ -22,7 +22,7 @@ async function main() {
           },
         },
       },
-      take: 1000,
+      take: 10000,
     });
     if (customers.length === 0) {
       console.log("No customers left to backfill");
