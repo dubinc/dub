@@ -1,26 +1,28 @@
-import { programInviteEmailDataSchema } from "@/lib/zod/schemas/program-invite-email";
-import { ProgramSchema } from "@/lib/zod/schemas/programs";
+import { ProgramSchemaWithInviteEmailData } from "@/lib/zod/schemas/programs";
 import { prisma } from "@dub/prisma";
+import { Prisma } from "@dub/prisma/client";
+import { z } from "zod";
 import { DubApiError } from "../errors";
 
-export const getProgramOrThrow = async ({
+type ProgramWithInclude<T extends Prisma.ProgramInclude = {}> = z.infer<
+  typeof ProgramSchemaWithInviteEmailData
+> &
+  Prisma.ProgramGetPayload<{ include: T }>;
+
+export async function getProgramOrThrow<T extends Prisma.ProgramInclude = {}>({
   workspaceId,
   programId,
-  includeCategories = false,
+  include,
 }: {
   workspaceId: string;
   programId: string;
-  includeCategories?: boolean;
-}) => {
+  include?: T;
+}): Promise<ProgramWithInclude<T>> {
   const program = await prisma.program.findUnique({
     where: {
       id: programId,
     },
-    ...(includeCategories && {
-      include: {
-        categories: true,
-      },
-    }),
+    include,
   });
 
   if (!program || program.workspaceId !== workspaceId) {
@@ -30,15 +32,15 @@ export const getProgramOrThrow = async ({
     });
   }
 
-  return ProgramSchema.extend({
-    inviteEmailData: programInviteEmailDataSchema,
-  }).parse(
-    includeCategories
+  // Transform categories if included
+  const transformedProgram =
+    include?.categories && "categories" in program
       ? {
           ...program,
-          // @ts-ignore conditionally including categories
+          // @ts-ignore conditionally transforming categories
           categories: program.categories?.map(({ category }) => category) ?? [],
         }
-      : program,
-  );
-};
+      : program;
+
+  return transformedProgram as ProgramWithInclude<T>;
+}

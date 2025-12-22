@@ -31,17 +31,16 @@ export default function AdminPage() {
         <BanLink />
       </div>
       <div className="flex flex-col space-y-4 px-5 py-10">
-        <h2 className="text-xl font-semibold">Delete Partner Account</h2>
+        <h2 className="text-xl font-semibold">Delete Stripe Express Account</h2>
         <p className="text-sm text-neutral-500">
-          Delete a partner's account and associated Stripe express account.{" "}
-          <br />
+          Delete a partner's Stripe express account (and potentially their
+          partner account as well). <br />
           <br />
           Caveats:
-          <br />
-          - If partner has already received commission on Dub, the partner
-          profile won't be deleted.
-          <br />- If partner has already received payouts via Stripe, the Stripe
-          express account won't be deleted.
+          <br />- If the partner has already received payouts via Stripe, their
+          Stripe Express account won't be deleted.
+          <br />- If the partner has already received commissions or leads on
+          Dub, their partner account won't be deleted.
         </p>
         <DeletePartnerAccount />
       </div>

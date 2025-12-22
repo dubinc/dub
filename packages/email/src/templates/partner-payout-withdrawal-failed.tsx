@@ -1,7 +1,6 @@
 import { currencyFormatter, DUB_WORDMARK } from "@dub/utils";
 import {
   Body,
-  Column,
   Container,
   Head,
   Heading,
@@ -9,7 +8,6 @@ import {
   Img,
   Link,
   Preview,
-  Row,
   Section,
   Tailwind,
   Text,
@@ -25,12 +23,6 @@ export default function PartnerPayoutWithdrawalFailed({
     failureReason:
       "Your bank notified us that the bank account holder tax ID on file is incorrect.",
   },
-  bankAccount = {
-    account_holder_name: "Brendon Urie",
-    bank_name: "BANK OF AMERICA, N.A.",
-    last4: "1234",
-    routing_number: "1234567890",
-  },
 }: {
   email: string;
   payout: {
@@ -38,12 +30,6 @@ export default function PartnerPayoutWithdrawalFailed({
     currency: string;
     failureReason?: string | null;
   };
-  bankAccount: {
-    account_holder_name: string | null;
-    bank_name: string | null;
-    last4: string;
-    routing_number: string | null;
-  } | null;
 }) {
   const amountFormatted = currencyFormatter(payout.amount, {
     currency: payout.currency,
@@ -82,56 +68,6 @@ export default function PartnerPayoutWithdrawalFailed({
                   {payout.failureReason}
                 </span>
               </Text>
-            )}
-
-            {bankAccount && (
-              <Section className="my-6 rounded-lg border border-solid border-neutral-200 bg-neutral-50 p-4 pt-0">
-                <Text className="mb-3 text-sm font-semibold text-neutral-800">
-                  Current bank account
-                </Text>
-
-                {bankAccount.account_holder_name && (
-                  <Row className="mb-2">
-                    <Column className="text-sm text-neutral-600">
-                      Account Holder
-                    </Column>
-                    <Column className="text-right text-sm font-medium text-neutral-800">
-                      {bankAccount.account_holder_name}
-                    </Column>
-                  </Row>
-                )}
-
-                {bankAccount.bank_name && (
-                  <Row className="mb-2">
-                    <Column className="text-sm text-neutral-600">
-                      Bank Name
-                    </Column>
-                    <Column className="text-right text-sm font-medium text-neutral-800">
-                      {bankAccount.bank_name}
-                    </Column>
-                  </Row>
-                )}
-
-                <Row className="mb-2">
-                  <Column className="text-sm text-neutral-600">
-                    Account Number
-                  </Column>
-                  <Column className="text-right text-sm font-medium text-neutral-800">
-                    •••• {bankAccount.last4}
-                  </Column>
-                </Row>
-
-                {bankAccount.routing_number && (
-                  <Row>
-                    <Column className="text-sm text-neutral-600">
-                      Routing Number
-                    </Column>
-                    <Column className="text-right text-sm font-medium text-neutral-800">
-                      {bankAccount.routing_number}
-                    </Column>
-                  </Row>
-                )}
-              </Section>
             )}
 
             <Text>

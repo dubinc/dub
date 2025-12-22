@@ -111,67 +111,73 @@ export default function UnresolvedFraudEventsSummary({
                 </Column>
               </Row>
 
-              {displayedGroups.map((group) => (
-                <Row
-                  key={group.id}
-                  className="h-11 border-b border-solid border-neutral-200 last:border-b-0"
-                >
-                  <Column width="50%" className="w-1/2 px-4" valign="middle">
-                    <Row>
-                      <Column width="auto" className="flex">
-                        <Text className="m-0 text-sm font-medium text-neutral-600">
-                          {group.name}
-                        </Text>
+              {displayedGroups.map((group, index) => {
+                const isLastItem =
+                  index === displayedGroups.length - 1 && remainingCount === 0;
+                return (
+                  <Row
+                    key={group.id}
+                    className={`h-11 border-solid border-neutral-200 ${
+                      isLastItem ? "" : "border-b"
+                    }`}
+                  >
+                    <Column width="50%" className="w-1/2 px-4" valign="middle">
+                      <Row>
+                        <Column width="auto" className="flex">
+                          <Text className="m-0 text-sm font-medium text-neutral-600">
+                            {group.name}
+                          </Text>
 
-                        <div>
-                          {group.count > 1 && (
-                            <Text className="m-0 ml-2 rounded-md bg-neutral-100 px-1.5 py-0.5 text-xs font-semibold text-neutral-700">
-                              {group.count}
-                            </Text>
-                          )}
-                        </div>
-                      </Column>
-                    </Row>
-                  </Column>
+                          <div>
+                            {group.count > 1 && (
+                              <Text className="m-0 ml-2 rounded-md bg-neutral-100 px-1.5 py-0.5 text-xs font-semibold text-neutral-700">
+                                {group.count}
+                              </Text>
+                            )}
+                          </div>
+                        </Column>
+                      </Row>
+                    </Column>
 
-                  <Column width="50%" className="w-1/2 px-4" valign="middle">
-                    <Row>
-                      <Column width="auto">
-                        <Img
-                          src={
-                            group.partner.image ||
-                            `${OG_AVATAR_URL}${group.partner.name}`
-                          }
-                          width={20}
-                          height={20}
-                          alt={group.partner.name}
-                          className="rounded-full"
-                        />
-                      </Column>
+                    <Column width="50%" className="w-1/2 px-4" valign="middle">
+                      <Row>
+                        <Column width="auto">
+                          <Img
+                            src={
+                              group.partner.image ||
+                              `${OG_AVATAR_URL}${group.partner.name}`
+                            }
+                            width={20}
+                            height={20}
+                            alt={group.partner.name}
+                            className="rounded-full"
+                          />
+                        </Column>
 
-                      <Column width="auto">
-                        <Text className="m-0 ml-1 text-sm font-medium text-neutral-600">
-                          {group.partner.name}
-                        </Text>
-                      </Column>
+                        <Column width="auto">
+                          <Text className="m-0 ml-1 text-sm font-medium text-neutral-600">
+                            {group.partner.name}
+                          </Text>
+                        </Column>
 
-                      <Column
-                        width="10%"
-                        className="px-4"
-                        align="right"
-                        valign="middle"
-                      >
-                        <Link
-                          className="rounded-lg border border-solid border-neutral-300 bg-white px-2.5 py-1.5 text-sm font-medium text-neutral-700 no-underline"
-                          href={`https://app.dub.co/${workspace.slug}/program/fraud?groupId=${group.id}`}
+                        <Column
+                          width="10%"
+                          className="px-4"
+                          align="right"
+                          valign="middle"
                         >
-                          View
-                        </Link>
-                      </Column>
-                    </Row>
-                  </Column>
-                </Row>
-              ))}
+                          <Link
+                            className="rounded-lg border border-solid border-neutral-300 bg-white px-2.5 py-1.5 text-sm font-medium text-neutral-700 no-underline"
+                            href={`https://app.dub.co/${workspace.slug}/program/fraud?groupId=${group.id}`}
+                          >
+                            View
+                          </Link>
+                        </Column>
+                      </Row>
+                    </Column>
+                  </Row>
+                );
+              })}
 
               {remainingCount > 0 && (
                 <Row className="h-11 rounded-b-xl border-t border-solid border-neutral-200 bg-neutral-50">

@@ -1,5 +1,6 @@
 import { prisma } from "@dub/prisma";
 import {
+  Commission,
   CommissionStatus,
   CommissionType,
   EventType,
@@ -90,6 +91,11 @@ export const createPartnerCommission = async ({
     },
   });
 
+  let firstCommission: Pick<
+    Commission,
+    "rewardId" | "status" | "createdAt"
+  > | null = null;
+
   if (event === "custom") {
     earnings = amount;
     amount = 0;
@@ -121,7 +127,7 @@ export const createPartnerCommission = async ({
       // 1. if the partner has reached the max duration for the reward (if applicable)
       // 2. if the previous commission were marked as fraud or canceled
     } else {
-      const firstCommission = await prisma.commission.findFirst({
+      firstCommission = await prisma.commission.findFirst({
         where: {
           partnerId,
           customerId,
@@ -315,7 +321,6 @@ export const createPartnerCommission = async ({
         });
 
         const { workspace } = program;
-
         const isClawback = earnings < 0;
         const shouldTriggerWorkflow = !isClawback && !skipWorkflow;
 
@@ -341,6 +346,7 @@ export const createPartnerCommission = async ({
               group: programEnrollment.partnerGroup ?? program.groups[0],
               workspace,
               commission,
+              isFirstCommission: firstCommission === null,
             }),
 
           // We only capture audit logs for manual commissions

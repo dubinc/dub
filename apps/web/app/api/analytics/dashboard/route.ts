@@ -163,7 +163,7 @@ export const GET = async (req: Request) => {
     console.log(
       `[Analytics Dashboard] Caching response for ${JSON.stringify(parsedParams, null, 2)}`,
     );
-    waitUntil(await redis.set(cacheKey, response, { ex: 60 }));
+    waitUntil(redis.set(cacheKey, response, { ex: 60 }));
 
     return NextResponse.json(response);
   } catch (error) {
