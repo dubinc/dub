@@ -3,4 +3,4 @@ export {
   generateStaticParams,
 } from "../../../(apply)/[programSlug]/layout";
 
-export { default } from "../../register/page";
+export { default } from "../../../(auth-login-register)/register/page";

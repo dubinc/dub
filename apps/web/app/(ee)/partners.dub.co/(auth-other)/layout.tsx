@@ -1,6 +1,6 @@
-import { DubPartnersLogo } from "@/ui/dub-partners-logo";
 import { Grid } from "@dub/ui";
 import { cn } from "@dub/utils";
+import { Logo } from "./logo";
 
 export default function PartnerAuthLayout({
   children,
@@ -46,7 +46,7 @@ export default function PartnerAuthLayout({
         ))}
       </div>
       <div className="relative flex h-screen w-full justify-center">
-        <DubPartnersLogo />
+        <Logo />
         {children}
       </div>
     </>

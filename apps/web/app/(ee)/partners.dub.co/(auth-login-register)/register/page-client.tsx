@@ -13,7 +13,7 @@ import { Program } from "@dub/prisma/client";
 import { truncate } from "@dub/utils";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { PartnerBanner } from "../partner-banner";
+import { PartnerBanner } from "../../(auth-other)/partner-banner";
 
 type PartialProgram = Pick<Program, "name" | "logo" | "slug">;
 
