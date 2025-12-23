@@ -54,40 +54,43 @@ export default async function LoginPage(props: {
   }
 
   return (
-    <div className="relative">
-      {program && <PartnerBanner program={program} />}
-      <AuthLayout showTerms="partners">
-        <div className="w-full max-w-sm">
-          <h1 className="text-center text-xl font-semibold">
-            Log in to your Dub Partner account
-          </h1>
-          <div className="mt-8">
-            <LoginForm
-              methods={["email", "password", "google"]}
-              next={programSlug ? `/programs/${programSlug}` : "/"}
-            />
-          </div>
-          <p className="mt-6 text-center text-sm font-medium text-neutral-500">
-            Don't have a partner account?&nbsp;
-            <Link
-              href={`${programSlug ? `/${programSlug}` : ""}/register`}
-              className="font-semibold text-neutral-700 transition-colors hover:text-neutral-900"
-            >
-              Sign up
-            </Link>
-          </p>
-
-          {!programSlug && (
-            <div className="mt-12 w-full">
-              <AuthAlternativeBanner
-                text="Looking for your Dub workspace account?"
-                cta="Log in at app.dub.co"
-                href="https://app.dub.co/login"
+    <div className="relative grid grid-cols-2">
+      <div />
+      <div className="relative">
+        {program && <PartnerBanner program={program} />}
+        <AuthLayout showTerms="partners">
+          <div className="w-full max-w-sm">
+            <h1 className="text-center text-xl font-semibold">
+              Log in to your Dub Partner account
+            </h1>
+            <div className="mt-8">
+              <LoginForm
+                methods={["email", "password", "google"]}
+                next={programSlug ? `/programs/${programSlug}` : "/"}
               />
             </div>
-          )}
-        </div>
-      </AuthLayout>
+            <p className="mt-6 text-center text-sm font-medium text-neutral-500">
+              Don't have a partner account?&nbsp;
+              <Link
+                href={`${programSlug ? `/${programSlug}` : ""}/register`}
+                className="font-semibold text-neutral-700 transition-colors hover:text-neutral-900"
+              >
+                Sign up
+              </Link>
+            </p>
+
+            {!programSlug && (
+              <div className="mt-12 w-full">
+                <AuthAlternativeBanner
+                  text="Looking for your Dub workspace account?"
+                  cta="Log in at app.dub.co"
+                  href="https://app.dub.co/login"
+                />
+              </div>
+            )}
+          </div>
+        </AuthLayout>
+      </div>
     </div>
   );
 }

@@ -1,6 +1,6 @@
+import { DubPartnersLogo } from "@/ui/dub-partners-logo";
 import { Grid } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { DubPartnersLogo } from "./dub-partners-logo";
 
 export default function PartnerAuthLayout({
   children,
