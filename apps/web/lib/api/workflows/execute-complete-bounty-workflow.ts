@@ -23,7 +23,6 @@ export const executeCompleteBountyWorkflow = async ({
     return;
   }
 
-  const condition = conditions[0];
   const { bountyId } = action.data;
   const { identity, metrics } = context;
   const { partnerId, groupId } = identity;
@@ -116,6 +115,7 @@ export const executeCompleteBountyWorkflow = async ({
     totalCommissions: metrics?.current?.commissions ?? 0,
   };
 
+  const condition = conditions[0];
   const performanceCount = finalContext[condition.attribute] ?? 0;
 
   // Create or update the submission
