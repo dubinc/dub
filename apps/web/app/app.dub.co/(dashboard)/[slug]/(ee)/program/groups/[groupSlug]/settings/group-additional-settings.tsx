@@ -97,6 +97,7 @@ function GroupOtherSettingsForm({ group }: { group: GroupProps }) {
 
   const {
     handleSubmit,
+    reset,
     formState: { isDirty },
   } = form;
 
@@ -108,6 +109,7 @@ function GroupOtherSettingsForm({ group }: { group: GroupProps }) {
       },
       onSuccess: async () => {
         await mutate(`/api/groups/${group.id}`);
+        reset({ moveRules: data.moveRules });
         toast.success("Group move rule updated!");
       },
     });
