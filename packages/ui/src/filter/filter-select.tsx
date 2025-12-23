@@ -1,7 +1,8 @@
-import { cn, truncate } from "@dub/utils";
+import { cn } from "@dub/utils";
 import { Command, useCommandState } from "cmdk";
 import { ChevronDown, ListFilter } from "lucide-react";
 import {
+  CSSProperties,
   Fragment,
   PropsWithChildren,
   ReactNode,
@@ -10,9 +11,11 @@ import {
   useCallback,
   useEffect,
   useImperativeHandle,
+  useMemo,
   useRef,
   useState,
 } from "react";
+import { List, type RowComponentProps } from "react-window";
 import { AnimatedSizeContainer } from "../animated-size-container";
 import { useKeyboardShortcut, useMediaQuery } from "../hooks";
 import { useScrollProgress } from "../hooks/use-scroll-progress";
@@ -107,12 +110,12 @@ export function FilterSelect({
         ({ key }) => key === selectedFilterKey,
       );
 
-      return (
+      return Boolean(
         activeFilter?.value === value ||
-        (activeFilter &&
-          selectedFilter.multiple &&
-          Array.isArray(activeFilter.value) &&
-          activeFilter.value.includes(value))
+          (activeFilter &&
+            selectedFilter.multiple &&
+            Array.isArray(activeFilter.value) &&
+            activeFilter.value.includes(value)),
       );
     },
     [selectedFilter],
@@ -150,6 +153,19 @@ export function FilterSelect({
       };
     }
   }, [selectedFilter?.options]);
+
+  // Virtualize the list if it has more than 1000 options
+  const virtualized = Boolean(
+    selectedFilter?.options && selectedFilter?.options.length > 1000,
+  );
+
+  const filterOptions = useMemo(
+    () =>
+      selectedFilter?.options?.filter(
+        (option) => !search || !option.hideDuringSearch,
+      ),
+    [selectedFilter, search],
+  );
 
   return (
     <Popover
@@ -213,57 +229,74 @@ export function FilterSelect({
             <FilterScroll key={selectedFilterKey} ref={listContainer}>
               <Command.List
                 className={cn(
-                  "flex w-full flex-col gap-1 p-1",
+                  "flex w-full flex-col gap-1 p-1 sm:max-w-[340px]",
+                  virtualized && "sm:w-[340px]",
                   selectedFilter ? "min-w-[100px]" : "min-w-[180px]",
                 )}
               >
-                {!selectedFilter
-                  ? // Top-level filters
-                    filters
-                      .filter((filter) => !filter.hideInFilterDropdown)
-                      .map((filter) => (
-                        <Fragment key={filter.key}>
-                          <FilterButton
-                            filter={filter}
-                            onSelect={() => openFilter(filter.key)}
-                          />
-                          {filter.separatorAfter && (
-                            <Command.Separator className="-mx-1 my-1 border-b border-neutral-200" />
-                          )}
-                        </Fragment>
-                      ))
-                  : // Filter options
-                    selectedFilter.options
-                      ?.filter((option) => !search || !option.hideDuringSearch)
-                      ?.map((option) => {
-                        const isSelected = isOptionSelected(option.value);
+                {!selectedFilter ? (
+                  // Top-level filters
+                  filters
+                    .filter((filter) => !filter.hideInFilterDropdown)
+                    .map((filter) => (
+                      <Fragment key={filter.key}>
+                        <FilterButton
+                          filter={filter}
+                          onSelect={() => openFilter(filter.key)}
+                        />
+                        {filter.separatorAfter && (
+                          <Command.Separator className="-mx-1 my-1 border-b border-neutral-200" />
+                        )}
+                      </Fragment>
+                    ))
+                ) : // Filter options
+                filterOptions ? (
+                  virtualized ? (
+                    // Virtualized list of options
+                    <List
+                      rowComponent={FilterOptionItem}
+                      rowCount={filterOptions.length}
+                      rowProps={{
+                        options: filterOptions,
+                        selectedFilter,
+                        isOptionSelected,
+                        selectOption,
+                      }}
+                      rowHeight={36}
+                    />
+                  ) : (
+                    // Non-virtualized list of options
+                    filterOptions.map((option) => {
+                      const isSelected = isOptionSelected(option.value);
 
-                        return (
-                          <FilterButton
-                            key={option.value}
-                            filter={selectedFilter}
-                            option={option}
-                            right={
-                              isSelected ? (
-                                <Check className="h-4 w-4" />
-                              ) : (
-                                option.right
-                              )
-                            }
-                            onSelect={() => selectOption(option.value)}
-                          />
-                        );
-                      }) ?? (
-                      // Filter options loading state
-                      <Command.Loading>
-                        <div
-                          className="-m-1 flex items-center justify-center"
-                          style={listDimensions.current}
-                        >
-                          <LoadingSpinner />
-                        </div>
-                      </Command.Loading>
-                    )}
+                      return (
+                        <FilterButton
+                          key={option.value}
+                          filter={selectedFilter}
+                          option={option}
+                          right={
+                            isSelected ? (
+                              <Check className="h-4 w-4" />
+                            ) : (
+                              option.right
+                            )
+                          }
+                          onSelect={() => selectOption(option.value)}
+                        />
+                      );
+                    })
+                  )
+                ) : (
+                  // Filter options loading state
+                  <Command.Loading>
+                    <div
+                      className="-m-1 flex items-center justify-center"
+                      style={listDimensions.current}
+                    >
+                      <LoadingSpinner />
+                    </div>
+                  </Command.Loading>
+                )}
 
                 {/* Only render CommandEmpty if not loading */}
                 {(!selectedFilter || selectedFilter.options) && (
@@ -311,6 +344,33 @@ export function FilterSelect({
         )}
       </button>
     </Popover>
+  );
+}
+
+function FilterOptionItem({
+  index,
+  options,
+  selectedFilter,
+  isOptionSelected,
+  selectOption,
+  style,
+}: RowComponentProps<{
+  options: FilterOption[];
+  selectedFilter: Filter;
+  isOptionSelected: (value: FilterOption["value"]) => boolean;
+  selectOption: (value: FilterOption["value"]) => void;
+}>) {
+  const option = options[index];
+  const isSelected = isOptionSelected(option.value);
+
+  return (
+    <FilterButton
+      style={style}
+      filter={selectedFilter}
+      option={option}
+      right={isSelected ? <Check className="h-4 w-4" /> : option.right}
+      onSelect={() => selectOption(option.value)}
+    />
   );
 }
 
@@ -379,11 +439,13 @@ function FilterButton({
   option,
   right,
   onSelect,
+  style,
 }: {
   filter: Filter;
   option?: FilterOption;
   right?: ReactNode;
   onSelect: () => void;
+  style?: CSSProperties;
 }) {
   const { isMobile } = useMediaQuery();
 
@@ -401,12 +463,11 @@ function FilterButton({
   return (
     <Command.Item
       className={cn(
-        "flex cursor-pointer items-center gap-3 whitespace-nowrap rounded-md px-3 py-2 text-left text-sm",
+        "flex h-9 cursor-pointer items-center gap-3 whitespace-nowrap rounded-md px-3 text-left text-sm",
         "data-[selected=true]:bg-neutral-100",
       )}
-      onPointerDown={(e) => {
-        e.preventDefault();
-      }}
+      style={style}
+      onPointerDown={(e) => e.preventDefault()}
       onPointerUp={(e) => {
         e.preventDefault();
         // Mobile touches have some sort of delay that can cause the next page's option's
@@ -419,7 +480,7 @@ function FilterButton({
       <span className="shrink-0 text-neutral-600">
         {isReactNode(Icon) ? Icon : <Icon className="h-4 w-4" />}
       </span>
-      {truncate(label, 48)}
+      <span className="min-w-0 truncate">{label}</span>
       <div className="ml-1 flex shrink-0 grow justify-end text-neutral-500">
         {right}
       </div>
