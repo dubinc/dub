@@ -1,7 +1,8 @@
 import { WorkflowConditionAttribute, WorkflowContext } from "@/lib/types";
 import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
 import { prisma } from "@dub/prisma";
-import { Workflow } from "@dub/prisma/client";
+import { Workflow, WorkspaceRole } from "@dub/prisma/client";
+import { getWorkspaceUsers } from "../get-workspace-users";
 import { movePartnersToGroup } from "../groups/move-partners-to-group";
 import { evaluateWorkflowConditions } from "./evaluate-workflow-conditions";
 import { parseWorkflowConfig } from "./parse-workflow-config";
@@ -17,7 +18,7 @@ export const executeMoveGroupWorkflow = async ({
 
   if (action.type !== WORKFLOW_ACTION_TYPES.MoveGroup) {
     console.error(
-      `Workflow ${workflow.id} is not a move group workflow: ${action.type}`,
+      `Workflow ${workflow.id} is not a move group workflow: ${action.type}. Skipping..`,
     );
     return;
   }
@@ -26,14 +27,14 @@ export const executeMoveGroupWorkflow = async ({
   const { programId, partnerId, groupId } = identity;
 
   if (!groupId) {
-    console.error("Partner groupId not set in the context.");
+    console.error("Partner groupId not set in the context. Skipping..");
     return;
   }
 
   const { groupId: newGroupId } = action.data;
 
   if (groupId === newGroupId) {
-    console.log("Partner is already in the group.");
+    console.log("Partner is already in the group. Skipping..");
     return;
   }
 
@@ -51,7 +52,9 @@ export const executeMoveGroupWorkflow = async ({
   });
 
   if (!shouldExecute) {
-    console.log("Partner does not meet the trigger condition.");
+    console.log(
+      `Partner does not meet the trigger condition for the workflow ${workflow.id}. Skipping..`,
+    );
     return;
   }
 
@@ -69,14 +72,24 @@ export const executeMoveGroupWorkflow = async ({
   });
 
   if (!group) {
-    console.log(`Group ${newGroupId} not found.`);
+    console.log(`Group ${newGroupId} not found. Skipping..`);
+    return;
+  }
+
+  const owners = await getWorkspaceUsers({
+    programId,
+    role: WorkspaceRole.owner,
+  });
+
+  if (owners.users.length === 0) {
+    console.log("No owners found for the program. Skipping..");
     return;
   }
 
   await movePartnersToGroup({
     programId,
     partnerIds: [partnerId],
-    userId: "context.userId", // TODO: Fix it
+    userId: owners.users[0].id,
     group,
   });
 };

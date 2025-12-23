@@ -1,6 +1,8 @@
 enum WorkflowTrigger {
   partnerEnrolled // scheduled
   partnerMetricsUpdated
+
+  // TODO: Remove this after migrations
   commissionEarned
   leadRecorded
   saleRecorded

@@ -1,5 +1,5 @@
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
-import { WorkflowConditionAttribute, WorkflowContext } from "@/lib/types";
+import { WorkflowContext } from "@/lib/types";
 import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
 import { prisma } from "@dub/prisma";
 import { Workflow } from "@dub/prisma/client";
@@ -30,15 +30,6 @@ const ACTION_HANDLERS: Record<WORKFLOW_ACTION_TYPES, WorkflowActionHandler> = {
   },
 };
 
-const DEPENDS_ON_BY_REASON: Record<
-  NonNullable<WorkflowContext["reason"]>,
-  WorkflowConditionAttribute[] | undefined
-> = {
-  lead: ["totalLeads"],
-  sale: ["totalConversions", "totalSaleAmount"],
-  commission: ["totalCommissions"],
-};
-
 export async function executeWorkflows({
   trigger,
   reason,
@@ -59,43 +50,55 @@ export async function executeWorkflows({
     return;
   }
 
-  const dependsOnAttributes = reason ? DEPENDS_ON_BY_REASON[reason] : undefined;
-
-  if (dependsOnAttributes?.length) {
-    workflows = workflows.filter((w) => {
-      const { conditions } = parseWorkflowConfig(w);
-      return conditions.some(({ attribute }) =>
-        dependsOnAttributes.includes(attribute),
-      );
-    });
-  }
-
   if (workflows.length === 0) {
     return;
   }
 
-  const programEnrollment = await prisma.programEnrollment.findUnique({
-    where: {
-      partnerId_programId: {
-        partnerId,
-        programId,
-      },
-    },
-    select: {
-      partnerId: true,
-      groupId: true,
-      totalCommissions: true,
-      links: {
-        select: {
-          clicks: true,
-          leads: true,
-          conversions: true,
-          sales: true,
-          saleAmount: true,
+  // Commissions require a separate expensive aggregate query.
+  // We only fetch if needed to avoid unnecessary database queries.
+  const shouldFetchCommissions = workflows.some((w) => {
+    const { conditions } = parseWorkflowConfig(w);
+    return conditions.some((c) => c.attribute === "totalCommissions");
+  });
+
+  const [programEnrollment, totalCommissions] = await Promise.all([
+    prisma.programEnrollment.findUnique({
+      where: {
+        partnerId_programId: {
+          partnerId,
+          programId,
         },
       },
-    },
-  });
+      select: {
+        partnerId: true,
+        groupId: true,
+        links: {
+          select: {
+            clicks: true,
+            leads: true,
+            conversions: true,
+            sales: true,
+            saleAmount: true,
+          },
+        },
+      },
+    }),
+
+    shouldFetchCommissions
+      ? prisma.commission.aggregate({
+          where: {
+            programId,
+            partnerId,
+            status: {
+              in: ["pending", "processed", "paid"],
+            },
+          },
+          _sum: {
+            earnings: true,
+          },
+        })
+      : Promise.resolve({ _sum: { earnings: null } }),
+  ]);
 
   if (!programEnrollment) {
     console.error(
@@ -127,7 +130,7 @@ export async function executeWorkflows({
         leads: totalLeads,
         conversions: totalConversions,
         saleAmount: totalSaleAmount,
-        commissions: programEnrollment.totalCommissions,
+        commissions: totalCommissions._sum.earnings ?? 0,
       },
     },
   };
@@ -146,15 +149,6 @@ export async function executeWorkflows({
     if (!handler) {
       throw new Error(`Unsupported workflow action ${action.type}`);
     }
-
-    if (
-      dependsOnAttributes &&
-      !conditions.some((cond) => dependsOnAttributes.includes(cond.attribute))
-    ) {
-      continue;
-    }
-
-    console.log(`Executing workflow ${workflow.id} with action ${action.type}`);
 
     await handler.execute({
       workflow,

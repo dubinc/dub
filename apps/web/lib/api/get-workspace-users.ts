@@ -60,6 +60,7 @@ export async function getWorkspaceUsers({
         select: {
           user: {
             select: {
+              id: true,
               name: true,
               email: true,
             },
@@ -84,6 +85,7 @@ export async function getWorkspaceUsers({
       .map(({ user }) => user)
       .filter((user) => user.email)
       .map((user) => ({
+        id: user.id,
         name: user.name,
         email: user.email!,
       })),
