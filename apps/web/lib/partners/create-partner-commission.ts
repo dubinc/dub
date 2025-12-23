@@ -369,7 +369,9 @@ export const createPartnerCommission = async ({
             }),
 
           shouldTriggerWorkflow &&
-            executeWorkflows("partnerMetricsUpdated", {
+            executeWorkflows({
+              trigger: "partnerMetricsUpdated",
+              reason: "commission",
               identity: {
                 programId,
                 partnerId,
@@ -379,7 +381,6 @@ export const createPartnerCommission = async ({
                   commissions: commission.earnings,
                 },
               },
-              dependsOnAttributes: ["totalLeads"],
             }),
         ]);
       })(),

@@ -128,7 +128,9 @@ export async function createNewCustomer(event: Stripe.Event) {
 
     waitUntil(
       Promise.allSettled([
-        executeWorkflows("partnerMetricsUpdated", {
+        executeWorkflows({
+          trigger: "partnerMetricsUpdated",
+          reason: "lead",
           identity: {
             programId: link.programId,
             partnerId: link.partnerId,
@@ -138,7 +140,6 @@ export async function createNewCustomer(event: Stripe.Event) {
               leads: 1,
             },
           },
-          dependsOnAttributes: ["totalLeads"],
         }),
 
         syncPartnerLinksStats({

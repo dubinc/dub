@@ -320,7 +320,8 @@ export const { POST } = serve<Payload>(
         data: input,
       });
 
-      await executeWorkflows("partnerEnrolled", {
+      await executeWorkflows({
+        trigger: "partnerEnrolled",
         identity: {
           programId,
           partnerId,

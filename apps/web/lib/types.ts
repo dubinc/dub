@@ -22,6 +22,7 @@ import {
   User,
   UtmTemplate,
   Webhook,
+  WorkflowTrigger,
   WorkspaceRole,
 } from "@dub/prisma/client";
 import { z } from "zod";
@@ -737,7 +738,8 @@ interface PartnerMetrics {
 }
 
 export interface WorkflowContext {
-  dependsOnAttributes?: WorkflowConditionAttribute[];
+  trigger: WorkflowTrigger;
+  reason?: "lead" | "sale" | "commission";
   identity: WorkflowIdentity;
   metrics?: {
     current?: PartnerMetrics;

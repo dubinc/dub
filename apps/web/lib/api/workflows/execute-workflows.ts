@@ -1,8 +1,8 @@
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
-import { WorkflowContext } from "@/lib/types";
+import { WorkflowConditionAttribute, WorkflowContext } from "@/lib/types";
 import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
 import { prisma } from "@dub/prisma";
-import { Workflow, WorkflowTrigger } from "@dub/prisma/client";
+import { Workflow } from "@dub/prisma/client";
 import { prettyPrint } from "@dub/utils";
 import { executeCompleteBountyWorkflow } from "./execute-complete-bounty-workflow";
 import { executeMoveGroupWorkflow } from "./execute-move-group-workflow";
@@ -30,10 +30,21 @@ const ACTION_HANDLERS: Record<WORKFLOW_ACTION_TYPES, WorkflowActionHandler> = {
   },
 };
 
-export async function executeWorkflows(
-  trigger: WorkflowTrigger,
-  { identity, metrics, dependsOnAttributes }: WorkflowContext,
-) {
+const DEPENDS_ON_BY_REASON: Record<
+  NonNullable<WorkflowContext["reason"]>,
+  WorkflowConditionAttribute[] | undefined
+> = {
+  lead: ["totalLeads"],
+  sale: ["totalConversions", "totalSaleAmount"],
+  commission: ["totalCommissions"],
+};
+
+export async function executeWorkflows({
+  trigger,
+  reason,
+  identity,
+  metrics,
+}: WorkflowContext) {
   const { programId, partnerId } = identity;
 
   let workflows = await prisma.workflow.findMany({
@@ -48,6 +59,8 @@ export async function executeWorkflows(
     return;
   }
 
+  const dependsOnAttributes = reason ? DEPENDS_ON_BY_REASON[reason] : undefined;
+
   if (dependsOnAttributes?.length) {
     workflows = workflows.filter((w) => {
       const { conditions } = parseWorkflowConfig(w);
@@ -60,14 +73,6 @@ export async function executeWorkflows(
   if (workflows.length === 0) {
     return;
   }
-
-  console.info(
-    `Found ${workflows.length} workflows to dispatch for partner metrics updated.`,
-    {
-      programId,
-      partnerId,
-    },
-  );
 
   const programEnrollment = await prisma.programEnrollment.findUnique({
     where: {
@@ -109,8 +114,9 @@ export async function executeWorkflows(
   const { totalLeads, totalSaleAmount, totalConversions } =
     aggregatePartnerLinksStats(programEnrollment.links);
 
-  // Final context for the workflow
   const workflowContext: WorkflowContext = {
+    trigger,
+    reason,
     identity: {
       ...identity,
       groupId: programEnrollment.groupId,

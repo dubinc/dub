@@ -362,7 +362,9 @@ const _trackLead = async ({
           });
 
         await Promise.allSettled([
-          executeWorkflows("partnerMetricsUpdated", {
+          executeWorkflows({
+            trigger: "partnerMetricsUpdated",
+            reason: "lead",
             identity: {
               programId: link.programId,
               partnerId: link.partnerId,
@@ -372,7 +374,6 @@ const _trackLead = async ({
                 leads: 1,
               },
             },
-            dependsOnAttributes: ["totalLeads"],
           }),
 
           syncPartnerLinksStats({
@@ -563,7 +564,9 @@ const _trackSale = async ({
         const { webhookPartner, programEnrollment } = createdCommission;
 
         await Promise.allSettled([
-          executeWorkflows("partnerMetricsUpdated", {
+          executeWorkflows({
+            trigger: "partnerMetricsUpdated",
+            reason: "sale",
             identity: {
               programId: link.programId,
               partnerId: link.partnerId,
@@ -574,7 +577,6 @@ const _trackSale = async ({
                 conversions: firstConversionFlag ? 1 : 0,
               },
             },
-            dependsOnAttributes: ["totalSaleAmount", "totalConversions"],
           }),
 
           syncPartnerLinksStats({

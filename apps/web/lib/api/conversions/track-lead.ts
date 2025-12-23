@@ -317,7 +317,9 @@ export const trackLead = async ({
             const { webhookPartner, programEnrollment } = createdCommission;
 
             await Promise.allSettled([
-              executeWorkflows("partnerMetricsUpdated", {
+              executeWorkflows({
+                trigger: "partnerMetricsUpdated",
+                reason: "lead",
                 identity: {
                   programId: link.programId,
                   partnerId: link.partnerId,

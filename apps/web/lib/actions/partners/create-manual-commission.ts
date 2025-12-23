@@ -560,7 +560,9 @@ export const createManualCommissionAction = authActionClient
         // execute workflows
         if (["lead", "sale"].includes(commissionType)) {
           await Promise.allSettled([
-            executeWorkflows("partnerMetricsUpdated", {
+            executeWorkflows({
+              trigger: "partnerMetricsUpdated",
+              reason: "commission",
               identity: {
                 programId,
                 partnerId,
@@ -572,11 +574,6 @@ export const createManualCommissionAction = authActionClient
                   conversions: firstConversionFlag ? 1 : 0,
                 },
               },
-              dependsOnAttributes: [
-                "totalLeads",
-                "totalSaleAmount",
-                "totalConversions",
-              ],
             }),
 
             syncPartnerLinksStats({
