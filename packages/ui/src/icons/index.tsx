@@ -31,6 +31,7 @@ export * from "./loading-spinner";
 
 // brand logos
 export * from "./anthropic";
+export * from "./bing";
 export * from "./facebook";
 export * from "./github";
 export * from "./google";
@@ -38,17 +39,21 @@ export * from "./instagram";
 export * from "./linkedin";
 export * from "./openai";
 export * from "./product-hunt";
+export * from "./reddit";
 export * from "./slack";
 export * from "./tiktok";
 export * from "./twitter";
 export * from "./unsplash";
 export * from "./youtube";
 
-// Card types
-export * from "./card-amex";
-export * from "./card-discover";
-export * from "./card-mastercard";
-export * from "./card-visa";
+// Payment platforms
+export * from "./payment-platforms/card-amex";
+export * from "./payment-platforms/card-discover";
+export * from "./payment-platforms/card-mastercard";
+export * from "./payment-platforms/card-visa";
+export * from "./payment-platforms/paypal";
+export * from "./payment-platforms/stripe-icon";
+export * from "./payment-platforms/stripe-link";
 
 // SDKs
 export * from "./go";
@@ -67,9 +72,6 @@ export * from "./default-domains/figma";
 export * from "./default-domains/github-enhanced";
 export * from "./default-domains/google-enhanced";
 export * from "./default-domains/spotify";
-
-// payout platforms
-export * from "./payout-platforms";
 
 // Nucleo icons
 export * from "./nucleo";

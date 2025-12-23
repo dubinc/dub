@@ -1,8 +1,12 @@
-import { isValidInternalRedirect, parse } from "@/lib/middleware/utils";
 import { NextRequest, NextResponse } from "next/server";
 import { getDefaultPartnerId } from "./utils/get-default-partner";
 import { getUserViaToken } from "./utils/get-user-via-token";
-import { partnersRedirect } from "./utils/partners-redirect";
+import { isValidInternalRedirect } from "./utils/is-valid-internal-redirect";
+import { parse } from "./utils/parse";
+import {
+  partnersProgramRedirects,
+  partnersRedirect,
+} from "./utils/partners-redirect";
 
 const AUTHENTICATED_PATHS = [
   "/programs",
@@ -16,7 +20,7 @@ const AUTHENTICATED_PATHS = [
   "/invite",
 ];
 
-export default async function PartnersMiddleware(req: NextRequest) {
+export async function PartnersMiddleware(req: NextRequest) {
   const { path, fullPath, searchParamsObj, searchParamsString } = parse(req);
 
   const user = await getUserViaToken(req);
@@ -30,7 +34,17 @@ export default async function PartnersMiddleware(req: NextRequest) {
     (p) => path.startsWith(p) || path.endsWith(p),
   );
 
-  if (!user && isAuthenticatedPath) {
+  if (partnersProgramRedirects(path)) {
+    return NextResponse.redirect(
+      new URL(
+        `${partnersProgramRedirects(path)}${searchParamsString}`,
+        req.url,
+      ),
+      {
+        status: 301,
+      },
+    );
+  } else if (!user && isAuthenticatedPath) {
     if (path.startsWith("/programs/")) {
       const programSlug = path.split("/")[2];
       return NextResponse.redirect(new URL(`/${programSlug}/login`, req.url));
@@ -48,7 +62,7 @@ export default async function PartnersMiddleware(req: NextRequest) {
     if (
       !defaultPartnerId &&
       !isPartnerInvite &&
-      !path.startsWith("/onboarding")
+      !["/onboarding", "/account"].some((p) => path.startsWith(p))
     ) {
       return NextResponse.redirect(new URL("/onboarding", req.url));
     }

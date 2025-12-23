@@ -1,7 +1,5 @@
 "use client";
 
-import { bulkRejectPartnersAction } from "@/lib/actions/partners/bulk-reject-partners";
-import { rejectPartnerAction } from "@/lib/actions/partners/reject-partner";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useGroups from "@/lib/swr/use-groups";
 import usePartner from "@/lib/swr/use-partner";
@@ -9,7 +7,8 @@ import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
 import { useBulkApprovePartnersModal } from "@/ui/modals/bulk-approve-partners-modal";
-import { useConfirmModal } from "@/ui/modals/confirm-modal";
+import { useBulkRejectPartnersModal } from "@/ui/modals/bulk-reject-partners-modal";
+import { useRejectPartnerApplicationModal } from "@/ui/modals/reject-partner-application-modal";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerApplicationSheet } from "@/ui/partners/partner-application-sheet";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
@@ -17,8 +16,10 @@ import { PartnerSocialColumn } from "@/ui/partners/partner-social-column";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import {
+  AnimatedSizeContainer,
   Button,
   EditColumnsButton,
+  Filter,
   MenuItem,
   Popover,
   Table,
@@ -27,20 +28,19 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { Dots, LoadingSpinner, Users, UserXmark } from "@dub/ui/icons";
+import { Dots, Users, UserXmark } from "@dub/ui/icons";
 import {
   COUNTRIES,
   fetcher,
   formatDate,
   getDomainWithoutWWW,
-  pluralize,
 } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
-import { useAction } from "next-safe-action/hooks";
 import { useEffect, useMemo, useState } from "react";
-import { toast } from "sonner";
 import useSWR from "swr";
+import { usePartnerFilters } from "../use-partner-filters";
+
 const applicationsColumns = {
   all: [
     "partner",
@@ -68,8 +68,20 @@ export function ProgramPartnersApplicationsPageClient() {
   const { queryParams, searchParams, getQueryString } = useRouterStuff();
 
   const search = searchParams.get("search");
-  const sortBy = searchParams.get("sortBy") || "saleAmount";
+  const sortBy = searchParams.get("sortBy") || "createdAt";
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
+
+  const {
+    filters,
+    activeFilters,
+    onSelect,
+    onRemove,
+    onRemoveAll,
+    isFiltered,
+  } = usePartnerFilters({ sortBy, sortOrder, status: "pending" }, [
+    "groupId",
+    "country",
+  ]);
 
   const { partnersCount, error: countError } = usePartnersCount<number>({
     status: "pending",
@@ -84,7 +96,8 @@ export function ProgramPartnersApplicationsPageClient() {
       {
         workspaceId,
         status: "pending",
-        sortBy: "createdAt",
+        sortBy,
+        sortOrder,
       },
       { exclude: ["partnerId"] },
     )}`,
@@ -113,45 +126,23 @@ export function ProgramPartnersApplicationsPageClient() {
       partnerId: detailsSheetState.partnerId,
     });
 
-  const { executeAsync: rejectPartners, isPending: isRejectingPartners } =
-    useAction(bulkRejectPartnersAction, {
-      onError: ({ error }) => {
-        toast.error(error.serverError);
-      },
-      onSuccess: ({ input }) => {
-        toast.success(
-          `${pluralize("Partner", input.partnerIds.length)} rejected`,
-        );
-        mutatePrefix(["/api/partners", "/api/partners/count"]);
-      },
-    });
-
   // State for pending bulk actions
   const [pendingApprovePartners, setPendingApprovePartners] = useState<
     EnrolledPartnerProps[]
   >([]);
 
-  const [pendingRejectIds, setPendingRejectIds] = useState<string[]>([]);
+  const [pendingRejectPartners, setPendingRejectPartners] = useState<
+    EnrolledPartnerProps[]
+  >([]);
 
   const { setShowBulkApprovePartnersModal, BulkApprovePartnersModal } =
     useBulkApprovePartnersModal({
       partners: pendingApprovePartners,
     });
 
-  const { setShowConfirmModal: setShowRejectModal, confirmModal: rejectModal } =
-    useConfirmModal({
-      title: "Reject Applications",
-      description: "Are you sure you want to reject these applications?",
-      confirmText: "Reject",
-      onConfirm: async () => {
-        if (pendingRejectIds.length > 0) {
-          await rejectPartners({
-            workspaceId: workspaceId!,
-            partnerIds: pendingRejectIds,
-          });
-          setPendingRejectIds([]);
-        }
-      },
+  const { setShowBulkRejectPartnersModal, BulkRejectPartnersModal } =
+    useBulkRejectPartnersModal({
+      partners: pendingRejectPartners,
     });
 
   const { columnVisibility, setColumnVisibility } = useColumnVisibility(
@@ -170,7 +161,11 @@ export function ProgramPartnersApplicationsPageClient() {
         minSize: 250,
         cell: ({ row }) => {
           return (
-            <PartnerRowItem partner={row.original} showPermalink={false} />
+            <PartnerRowItem
+              partner={row.original}
+              showPermalink={false}
+              showFraudIndicator={true}
+            />
           );
         },
       },
@@ -332,6 +327,7 @@ export function ProgramPartnersApplicationsPageClient() {
   const { table, ...tableProps } = useTable<EnrolledPartnerProps>({
     data: partners || [],
     columns,
+    columnPinning: { right: ["menu"] },
     onRowClick: (row) => {
       queryParams({
         set: {
@@ -364,7 +360,6 @@ export function ProgramPartnersApplicationsPageClient() {
           variant="primary"
           text="Approve"
           className="h-7 w-fit rounded-lg px-2.5"
-          // loading={isApprovingPartners}
           onClick={() => {
             const partners = table
               .getSelectedRowModel()
@@ -378,14 +373,13 @@ export function ProgramPartnersApplicationsPageClient() {
           variant="secondary"
           text="Reject"
           className="h-7 w-fit rounded-lg px-2.5"
-          loading={isRejectingPartners}
           onClick={() => {
-            const partnerIds = table
+            const selectedPartners = table
               .getSelectedRowModel()
-              .rows.map((row) => row.original.id);
+              .rows.map((row) => row.original);
 
-            setPendingRejectIds(partnerIds);
-            setShowRejectModal(true);
+            setPendingRejectPartners(selectedPartners);
+            setShowBulkRejectPartnersModal(true);
           }}
         />
       </>
@@ -443,13 +437,37 @@ export function ProgramPartnersApplicationsPageClient() {
         />
       )}
       <BulkApprovePartnersModal />
-      {rejectModal}
+      <BulkRejectPartnersModal />
 
-      <div className="w-min">
-        <SearchBoxPersisted
-          placeholder="Search by name or email"
-          inputClassName="md:w-72"
-        />
+      <div>
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <Filter.Select
+            className="w-full md:w-fit"
+            filters={filters}
+            activeFilters={activeFilters}
+            onSelect={onSelect}
+            onRemove={onRemove}
+          />
+          <SearchBoxPersisted
+            placeholder="Search by name or email"
+            inputClassName="md:w-72"
+          />
+        </div>
+        <AnimatedSizeContainer height>
+          <div>
+            {activeFilters.length > 0 && (
+              <div className="pt-3">
+                <Filter.List
+                  filters={filters}
+                  activeFilters={activeFilters}
+                  onSelect={onSelect}
+                  onRemove={onRemove}
+                  onRemoveAll={onRemoveAll}
+                />
+              </div>
+            )}
+          </div>
+        </AnimatedSizeContainer>
       </div>
       {partners?.length !== 0 ? (
         <Table {...tableProps} table={table} />
@@ -457,8 +475,8 @@ export function ProgramPartnersApplicationsPageClient() {
         <AnimatedEmptyState
           title="No applications found"
           description={
-            search
-              ? "No applications found for your search."
+            isFiltered || search
+              ? "No applications found for the selected filters."
               : "No applications have been submitted for this program."
           }
           cardContent={() => (
@@ -482,33 +500,19 @@ function RowMenuButton({
 }) {
   const [isOpen, setIsOpen] = useState(false);
 
-  const { executeAsync: rejectPartner, isPending: isRejectingPartner } =
-    useAction(rejectPartnerAction, {
-      onError: ({ error }) => {
-        toast.error(error.serverError);
-      },
-      onSuccess: () => {
-        toast.success(`Partner application rejected`);
-        mutatePrefix(["/api/partners", "/api/partners/count"]);
-      },
-    });
-
-  const { setShowConfirmModal: setShowRejectModal, confirmModal: rejectModal } =
-    useConfirmModal({
-      title: "Reject Application",
-      description: "Are you sure you want to reject this application?",
-      confirmText: "Reject",
-      onConfirm: async () => {
-        await rejectPartner({
-          workspaceId: workspaceId!,
-          partnerId: row.original.id,
-        });
-      },
-    });
+  const {
+    RejectPartnerApplicationModal,
+    setShowRejectPartnerApplicationModal,
+  } = useRejectPartnerApplicationModal({
+    partner: row.original,
+    onConfirm: async () => {
+      await mutatePrefix(["/api/partners", "/api/partners/count"]);
+    },
+  });
 
   return (
     <>
-      {rejectModal}
+      {RejectPartnerApplicationModal}
       <Popover
         openPopover={isOpen}
         setOpenPopover={setIsOpen}
@@ -521,7 +525,7 @@ function RowMenuButton({
                 variant="danger"
                 onSelect={() => {
                   setIsOpen(false);
-                  setShowRejectModal(true);
+                  setShowRejectPartnerApplicationModal(true);
                 }}
               >
                 Reject application
@@ -535,13 +539,7 @@ function RowMenuButton({
           type="button"
           className="h-8 whitespace-nowrap px-2"
           variant="outline"
-          icon={
-            isRejectingPartner ? (
-              <LoadingSpinner className="size-4 shrink-0" />
-            ) : (
-              <Dots className="size-4 shrink-0" />
-            )
-          }
+          icon={<Dots className="size-4 shrink-0" />}
         />
       </Popover>
     </>

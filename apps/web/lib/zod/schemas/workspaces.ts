@@ -1,6 +1,6 @@
 import z from "@/lib/zod";
+import { WorkspaceRole } from "@dub/prisma/client";
 import { DEFAULT_REDIRECTS, RESERVED_SLUGS, validSlugRegex } from "@dub/utils";
-import { WorkspaceRole } from "@prisma/client";
 import slugify from "@sindresorhus/slugify";
 import { DomainSchema } from "./domains";
 import { planSchema, roleSchema, uploadedImageSchema } from "./misc";
@@ -28,6 +28,10 @@ export const WorkspaceSchema = z
       .describe("The invite code of the workspace."),
 
     plan: planSchema,
+    planTier: z
+      .number()
+      .nullable()
+      .describe("The tier of the workspace's plan."),
     stripeId: z.string().nullable().describe("The Stripe ID of the workspace."),
     billingCycleStart: z
       .number()
@@ -158,6 +162,7 @@ export const notificationTypes = z.enum([
   "newPartnerApplication",
   "newBountySubmitted",
   "newMessageFromPartner",
+  "fraudEventsSummary",
 ]);
 
 export const WorkspaceSchemaExtended = WorkspaceSchema.extend({

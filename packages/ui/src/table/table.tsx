@@ -19,10 +19,12 @@ import {
   useRef,
   useState,
   type JSX,
+  type ReactNode,
 } from "react";
 import { Button } from "../button";
 import { Checkbox } from "../checkbox";
 import { LoadingSpinner, SortOrder } from "../icons";
+import { Tooltip } from "../tooltip";
 import { SelectionToolbar } from "./selection-toolbar";
 import { TableProps, UseTableProps } from "./types";
 
@@ -469,10 +471,21 @@ export function Table<T>({
                             >
                               {header.isPlaceholder
                                 ? null
-                                : flexRender(
-                                    header.column.columnDef.header,
-                                    header.getContext(),
-                                  )}
+                                : (() => {
+                                    const headerContent = flexRender(
+                                      header.column.columnDef.header,
+                                      header.getContext(),
+                                    );
+                                    const headerTooltip =
+                                      (header.column.columnDef.meta as any)
+                                        ?.headerTooltip;
+
+                                    return (
+                                      <HeaderWithTooltip tooltip={headerTooltip}>
+                                        {headerContent}
+                                      </HeaderWithTooltip>
+                                    );
+                                  })()}
                               {isSortableColumn &&
                                 sortBy === header.column.id && (
                                   <SortOrder
@@ -667,6 +680,7 @@ const getCommonPinningClassNames = (
 ): string => {
   const isPinned = column.getIsPinned();
   return cn(
+    isPinned && "bg-bg-default py-0",
     isPinned &&
       !isLastRow &&
       "animate-table-pinned-shadow [animation-timeline:scroll(inline)]",
@@ -682,3 +696,24 @@ const getCommonPinningStyles = (column: Column<any>): CSSProperties => {
     position: isPinned ? "sticky" : "relative",
   };
 };
+
+// Component to wrap header content with optional tooltip
+function HeaderWithTooltip({
+  children,
+  tooltip,
+}: {
+  children: ReactNode;
+  tooltip?: string;
+}) {
+  if (!tooltip) {
+    return <>{children}</>;
+  }
+
+  return (
+    <Tooltip content={tooltip}>
+      <span className="cursor-help underline decoration-dotted underline-offset-2">
+        {children}
+      </span>
+    </Tooltip>
+  );
+}

@@ -1,5 +1,5 @@
 import { CommissionResponse, SaleEvent } from "@/lib/types";
-import { StatusBadge } from "@dub/ui";
+import { StatusBadge, TimestampTooltip } from "@dub/ui";
 import { currencyFormatter, formatDateTimeSmart, nFormatter } from "@dub/utils";
 import {
   flexRender,
@@ -37,7 +37,15 @@ export function CustomerSalesTable({
           new Date("timestamp" in d ? d.timestamp : d.createdAt),
         enableHiding: false,
         minSize: 100,
-        cell: ({ getValue }) => <span>{formatDateTimeSmart(getValue())}</span>,
+        cell: ({ getValue }) => (
+          <TimestampTooltip
+            timestamp={getValue()}
+            side="right"
+            rows={["local", "utc", "unix"]}
+          >
+            <span>{formatDateTimeSmart(getValue())}</span>
+          </TimestampTooltip>
+        ),
       },
       ...(sales?.length && "eventName" in sales?.[0]
         ? [
@@ -50,9 +58,7 @@ export function CustomerSalesTable({
       {
         header: "Amount",
         accessorFn: (d) => ("saleAmount" in d ? d.saleAmount : d.amount),
-        cell: ({ getValue }) => (
-          <span>{currencyFormatter(getValue() / 100)}</span>
-        ),
+        cell: ({ getValue }) => <span>{currencyFormatter(getValue())}</span>,
       },
       ...(sales?.length && "earnings" in sales?.[0]
         ? [
@@ -60,7 +66,7 @@ export function CustomerSalesTable({
               header: "Earnings",
               accessorKey: "earnings",
               cell: ({ getValue }) => (
-                <span>{currencyFormatter(getValue() / 100)}</span>
+                <span>{currencyFormatter(getValue())}</span>
               ),
             },
             {
@@ -87,7 +93,7 @@ export function CustomerSalesTable({
       {isLoading ? (
         <div className="flex h-32 w-full animate-pulse rounded-lg border border-transparent bg-neutral-100" />
       ) : !sales?.length ? (
-        <div className="border-border-subtle flex h-32 w-full items-center justify-center rounded-lg border text-xs text-neutral-500">
+        <div className="flex h-32 w-full items-center justify-center rounded-lg border border-transparent text-xs text-neutral-500">
           {sales?.length === 0 ? "No sales yet" : "Failed to load sales"}
         </div>
       ) : (
@@ -99,7 +105,7 @@ export function CustomerSalesTable({
                   {headerGroup.headers.map((header) => (
                     <th
                       key={header.id}
-                      className="p-2 font-semibold text-neutral-900"
+                      className="px-4 py-3 font-semibold text-neutral-900"
                     >
                       {header.isPlaceholder
                         ? null
@@ -116,7 +122,7 @@ export function CustomerSalesTable({
               {table.getRowModel().rows.map((row) => (
                 <tr key={row.id}>
                   {row.getVisibleCells().map((cell) => (
-                    <td key={cell.id} className="truncate p-2">
+                    <td key={cell.id} className="truncate px-4 py-3">
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext(),
@@ -127,7 +133,7 @@ export function CustomerSalesTable({
               ))}
             </tbody>
           </table>
-          <div className="mt-2 flex items-center gap-1 px-2 text-sm text-neutral-600">
+          <div className="flex items-center gap-1 px-4 py-3 text-sm text-neutral-600">
             {sales.length} of
             <As
               href={viewAllHref ?? "#"}

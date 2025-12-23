@@ -1,5 +1,6 @@
 "use client";
 
+import useWorkspaceUsers from "@/lib/swr/use-workspace-users";
 import useWorkspaces from "@/lib/swr/use-workspaces";
 import { PlanProps, WorkspaceProps } from "@/lib/types";
 import { ModalContext } from "@/ui/modals/modal-provider";
@@ -10,7 +11,7 @@ import {
   useScrollProgress,
 } from "@dub/ui";
 import { Check2, Gear, Plus, UserPlus } from "@dub/ui/icons";
-import { cn } from "@dub/utils";
+import { cn, pluralize } from "@dub/utils";
 import { isLegacyBusinessPlan } from "@dub/utils/src/constants/pricing";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
@@ -61,7 +62,6 @@ export function WorkspaceDropdown() {
     } else {
       return {
         name: session?.user?.name || session?.user?.email,
-        slug: "/",
         image: getUserAvatarUrl(session?.user),
         plan: "free",
       };
@@ -131,7 +131,7 @@ function WorkspaceList({
 }: {
   selected: {
     name: string;
-    slug: string;
+    slug?: string; // undefined if the user is on the personal account
     image: string;
     plan: PlanProps;
   };
@@ -148,14 +148,19 @@ function WorkspaceList({
   const scrollRef = useRef<HTMLDivElement>(null);
   const { scrollProgress, updateScrollProgress } = useScrollProgress(scrollRef);
 
+  const { users } = useWorkspaceUsers();
+  const membersCount = users?.length ?? 0;
+
   const href = useCallback(
     (slug: string) => {
       if (link) {
         // if we're on a link page, navigate back to the workspace root
         return `/${slug}/links`;
-      } else {
+      } else if (selected.slug) {
         // else, we keep the path but remove all query params
         return pathname.replace(selected.slug, slug).split("?")[0] || "/";
+      } else {
+        return "/";
       }
     },
     [link, programId, pathname, selected.slug],
@@ -166,60 +171,65 @@ function WorkspaceList({
       <div
         ref={scrollRef}
         onScroll={updateScrollProgress}
-        className="relative max-h-80 w-full space-y-0.5 overflow-auto rounded-lg bg-white text-base sm:w-64 sm:text-sm"
+        className="w-xs max-h-84 relative w-full overflow-auto rounded-xl bg-white text-base sm:w-72 sm:text-sm"
       >
         {/* Current workspace section */}
-        <div className="border-b border-neutral-200 p-2">
-          <div className="flex items-center gap-x-2.5 rounded-md p-2">
+        <div className="flex flex-col gap-2.5 border-b border-neutral-200 px-3 pb-3 sm:p-3">
+          <div className="flex items-center gap-x-2.5">
             <BlurImage
               src={selected.image}
               width={28}
               height={28}
               alt={selected.name}
-              className="size-8 shrink-0 overflow-hidden rounded-full"
+              className="size-9 shrink-0 overflow-hidden rounded-full sm:size-8"
               draggable={false}
             />
             <div className="min-w-0">
-              <div className="truncate text-sm font-medium leading-5 text-neutral-900">
+              <div className="truncate text-base font-medium leading-5 text-neutral-900 sm:text-sm">
                 {selected.name}
               </div>
-              {selected.slug !== "/" && (
+              {selected.slug && (
                 <div
                   className={cn(
-                    "truncate text-xs capitalize leading-tight",
+                    "truncate text-sm capitalize leading-tight sm:text-xs",
                     getPlanColor(selected.plan),
                   )}
                 >
-                  {selected.plan}
+                  {selected.plan} · {membersCount}{" "}
+                  {pluralize("member", membersCount)}
                 </div>
               )}
             </div>
           </div>
 
           {/* Settings and Invite members options */}
-          <div className="mt-2 flex flex-col gap-0.5">
+          <div className="flex flex-row gap-1">
             <Link
-              href={`/${selected.slug}/settings`}
-              className="flex w-full items-center gap-x-2 rounded-md px-2 py-1.5 text-neutral-700 outline-none transition-all duration-75 hover:bg-neutral-200/50 focus-visible:ring-2 focus-visible:ring-black/50 active:bg-neutral-200/80"
+              href={`/${selected.slug ? selected.slug : "account"}/settings`}
+              className="flex items-center justify-start gap-x-2 rounded-lg border border-neutral-200 px-2 py-1 text-neutral-700 outline-none transition-all duration-75 hover:bg-neutral-100/50 focus-visible:ring-2 focus-visible:ring-black/50 active:bg-neutral-200/80"
               onClick={() => setOpenPopover(false)}
             >
-              <Gear className="size-4 text-neutral-500" />
+              <Gear className="size-4 text-neutral-800" />
               <span className="block truncate text-sm">Settings</span>
             </Link>
-            <Link
-              href={`/${selected.slug}/settings/people`}
-              className="flex w-full items-center gap-x-2 rounded-md px-2 py-1.5 text-neutral-700 outline-none transition-all duration-75 hover:bg-neutral-200/50 focus-visible:ring-2 focus-visible:ring-black/50 active:bg-neutral-200/80"
-              onClick={() => setOpenPopover(false)}
-            >
-              <UserPlus className="size-4 text-neutral-500" />
-              <span className="block truncate text-sm">Invite members</span>
-            </Link>
+            {selected.slug && (
+              <Link
+                href={`/${selected.slug}/settings/people`}
+                className="flex items-center justify-start gap-x-2 rounded-lg border border-neutral-200 px-2 py-1 text-neutral-700 outline-none transition-all duration-75 hover:bg-neutral-100/50 focus-visible:ring-2 focus-visible:ring-black/50 active:bg-neutral-200/80"
+                onClick={() => setOpenPopover(false)}
+              >
+                <UserPlus className="size-4 text-neutral-800" />
+                <span className="block truncate text-sm">Invite members</span>
+              </Link>
+            )}
           </div>
         </div>
 
         {/* Workspaces section */}
-        <div className="p-2">
-          <p className="p-1 text-xs font-medium text-neutral-500">Workspaces</p>
+        <div className="p-1">
+          <p className="px-2 py-2 text-xs font-medium text-neutral-500">
+            Workspaces
+          </p>
           <div className="flex flex-col gap-0.5">
             {workspaces.map(({ id, name, slug, logo }) => {
               const isActive = selected.slug === slug;
@@ -227,7 +237,7 @@ function WorkspaceList({
                 <Link
                   key={slug}
                   className={cn(
-                    "relative flex w-full items-center gap-x-2 rounded-md px-2 py-1.5 transition-all duration-75",
+                    "relative flex w-full items-center gap-x-2 rounded-md px-2 py-2 transition-all duration-75",
                     "hover:bg-neutral-200/50 active:bg-neutral-200/80",
                     "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
                     isActive && "bg-neutral-200/50",
@@ -241,10 +251,10 @@ function WorkspaceList({
                     width={28}
                     height={28}
                     alt={id}
-                    className="size-6 shrink-0 overflow-hidden rounded-full"
+                    className="size-5 shrink-0 overflow-hidden rounded-full"
                     draggable={false}
                   />
-                  <span className="block truncate text-sm leading-5 text-neutral-900 sm:max-w-[140px]">
+                  <span className="block truncate text-base leading-5 text-neutral-900 sm:max-w-[140px] sm:text-sm">
                     {name}
                   </span>
                   {selected.slug === slug ? (
@@ -261,10 +271,10 @@ function WorkspaceList({
                 setOpenPopover(false);
                 setShowAddWorkspaceModal(true);
               }}
-              className="group flex w-full cursor-pointer items-center gap-x-2 rounded-md p-2 text-neutral-700 transition-all duration-75 hover:bg-neutral-200/50 active:bg-neutral-200/80"
+              className="group flex w-full cursor-pointer items-center gap-x-2.5 rounded-md p-2 text-neutral-700 transition-all duration-75 hover:bg-neutral-200/50 active:bg-neutral-200/80"
             >
-              <Plus className="ml-1.5 size-4 text-neutral-500" />
-              <span className="block truncate">Create new workspace</span>
+              <Plus className="ml-0.5 size-4 text-neutral-500" />
+              <span className="block truncate">Create workspace</span>
             </button>
           </div>
         </div>

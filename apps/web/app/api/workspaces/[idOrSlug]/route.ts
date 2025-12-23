@@ -8,7 +8,6 @@ import { withWorkspace } from "@/lib/auth";
 import { getFeatureFlags } from "@/lib/edge-config";
 import { jackson } from "@/lib/jackson";
 import { storage } from "@/lib/storage";
-import z from "@/lib/zod";
 import {
   createWorkspaceSchema,
   WorkspaceSchema,
@@ -18,6 +17,7 @@ import { prisma } from "@dub/prisma";
 import { nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 const updateWorkspaceSchema = createWorkspaceSchema
   .extend({
@@ -77,7 +77,7 @@ export const GET = withWorkspace(
 
 // PATCH /api/workspaces/[idOrSlug] – update a specific workspace by id or slug
 export const PATCH = withWorkspace(
-  async ({ req, workspace, session }) => {
+  async ({ req, workspace }) => {
     const {
       name,
       slug,
@@ -100,10 +100,10 @@ export const PATCH = withWorkspace(
       : undefined;
 
     const logoUploaded = logo
-      ? await storage.upload(
-          `workspaces/${prefixWorkspaceId(workspace.id)}/logo_${nanoid(7)}`,
-          logo,
-        )
+      ? await storage.upload({
+          key: `workspaces/${prefixWorkspaceId(workspace.id)}/logo_${nanoid(7)}`,
+          body: logo,
+        })
       : null;
 
     if (enforceSAML) {
@@ -174,7 +174,9 @@ export const PATCH = withWorkspace(
       waitUntil(
         (async () => {
           if (logoUploaded && workspace.logo) {
-            await storage.delete(workspace.logo.replace(`${R2_URL}/`, ""));
+            await storage.delete({
+              key: workspace.logo.replace(`${R2_URL}/`, ""),
+            });
           }
 
           // Sync the allowedHostnames cache for workspace domains
@@ -233,6 +235,14 @@ export const PUT = PATCH;
 // DELETE /api/workspaces/[idOrSlug] – delete a specific project
 export const DELETE = withWorkspace(
   async ({ workspace }) => {
+    if (workspace.defaultProgramId) {
+      throw new DubApiError({
+        code: "bad_request",
+        message:
+          "You cannot delete a workspace with an active partner program.",
+      });
+    }
+
     await deleteWorkspace(workspace);
 
     return NextResponse.json(workspace);

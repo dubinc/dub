@@ -12,8 +12,8 @@ import { setRenewOption } from "@/lib/dynadot/set-renew-option";
 import { storage } from "@/lib/storage";
 import { updateDomainBodySchema } from "@/lib/zod/schemas/domains";
 import { prisma } from "@dub/prisma";
+import { Prisma } from "@dub/prisma/client";
 import { combineWords, nanoid, R2_URL } from "@dub/utils";
-import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -124,7 +124,10 @@ export const PATCH = withWorkspace(
     }
 
     const logoUploaded = logo
-      ? await storage.upload(`domains/${domainId}/logo_${nanoid(7)}`, logo)
+      ? await storage.upload({
+          key: `domains/${domainId}/logo_${nanoid(7)}`,
+          body: logo,
+        })
       : null;
 
     // If logo is null, we want to delete the logo (explicitly set in the request body to null or "")
@@ -192,7 +195,7 @@ export const PATCH = withWorkspace(
       (async () => {
         // remove old logo
         if (oldLogo && (logo === null || logoUploaded)) {
-          await storage.delete(oldLogo.replace(`${R2_URL}/`, ""));
+          await storage.delete({ key: oldLogo.replace(`${R2_URL}/`, "") });
         }
 
         if (domainUpdated) {
@@ -220,7 +223,11 @@ export const PATCH = withWorkspace(
 // DELETE /api/domains/[domain] - delete a workspace's domain
 export const DELETE = withWorkspace(
   async ({ params, workspace }) => {
-    const { slug: domain, registeredDomain } = await getDomainOrThrow({
+    const {
+      slug: domain,
+      registeredDomain,
+      partnerProgram,
+    } = await getDomainOrThrow({
       workspace,
       domain: params.domain,
       dubDomainChecks: true,
@@ -230,6 +237,14 @@ export const DELETE = withWorkspace(
       throw new DubApiError({
         code: "forbidden",
         message: "You cannot delete a Dub-provisioned domain.",
+      });
+    }
+
+    if (partnerProgram) {
+      throw new DubApiError({
+        code: "forbidden",
+        message:
+          "You cannot delete a domain that is actively in use in a partner program.",
       });
     }
 

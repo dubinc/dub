@@ -1,9 +1,8 @@
 import { withPartnerProfile } from "@/lib/auth/partner";
-import { sortRewardsByEventOrder } from "@/lib/partners/sort-rewards-by-event-order";
 import { partnerProfileProgramsQuerySchema } from "@/lib/zod/schemas/partner-profile";
 import { ProgramEnrollmentSchema } from "@/lib/zod/schemas/programs";
 import { prisma } from "@dub/prisma";
-import { Reward } from "@prisma/client";
+import { Reward } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -12,7 +11,7 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
   const { includeRewardsDiscounts, status } =
     partnerProfileProgramsQuerySchema.parse(searchParams);
 
-  let programEnrollments = await prisma.programEnrollment.findMany({
+  const programEnrollments = await prisma.programEnrollment.findMany({
     where: {
       partnerId: partner.id,
       ...(status && { status }),
@@ -54,13 +53,11 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
     return {
       ...enrollment,
       rewards: includeRewardsDiscounts
-        ? sortRewardsByEventOrder(
-            [
-              enrollment.clickReward,
-              enrollment.leadReward,
-              enrollment.saleReward,
-            ].filter((r): r is Reward => r !== null),
-          )
+        ? [
+            enrollment.clickReward,
+            enrollment.leadReward,
+            enrollment.saleReward,
+          ].filter((r): r is Reward => r !== null)
         : [],
     };
   });

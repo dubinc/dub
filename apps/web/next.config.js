@@ -1,5 +1,4 @@
 const { PrismaPlugin } = require("@prisma/nextjs-monorepo-workaround-plugin");
-const { withAxiom } = require("next-axiom");
 
 // Suppress specific external package warnings
 const originalConsoleWarn = console.warn;
@@ -19,9 +18,10 @@ console.warn = (...args) => {
 };
 
 /** @type {import('next').NextConfig} */
-module.exports = withAxiom({
+module.exports = {
   reactStrictMode: false,
   transpilePackages: [
+    "prettier",
     "shiki",
     "@dub/prisma",
     "@dub/email",
@@ -199,15 +199,6 @@ module.exports = withAxiom({
         source: "/_proxy/dub/track/click",
         destination: "https://api.dub.co/track/click",
       },
-      // for plausible proxy
-      {
-        source: "/_proxy/plausible/script.js",
-        destination: "https://plausible.io/js/script.js",
-      },
-      {
-        source: "/_proxy/plausible/event",
-        destination: "https://plausible.io/api/event",
-      },
     ];
   },
-});
+};

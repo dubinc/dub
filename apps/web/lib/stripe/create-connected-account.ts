@@ -3,24 +3,17 @@ import { stripe } from ".";
 import { onboardPartnerSchema } from "../zod/schemas/partners";
 
 export const createConnectedAccount = async ({
-  name,
-  email,
   country,
   profileType,
   companyName,
 }: Pick<
   z.infer<typeof onboardPartnerSchema>,
-  "name" | "country" | "profileType" | "companyName"
-> & {
-  email: string;
-}) => {
-  const [firstName, lastName] = name.split(" ");
-
+  "country" | "profileType" | "companyName"
+>) => {
   try {
     return await stripe.accounts.create({
       type: "express",
       business_type: profileType,
-      email,
       country,
       ...(profileType === "company"
         ? {
@@ -29,11 +22,7 @@ export const createConnectedAccount = async ({
             },
           }
         : {
-            individual: {
-              first_name: firstName,
-              last_name: lastName,
-              email,
-            },
+            individual: {},
           }),
       capabilities: {
         transfers: {

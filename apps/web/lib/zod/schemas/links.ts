@@ -1,4 +1,4 @@
-import { ErrorCode } from "@/lib/api/errors";
+import { ErrorCode } from "@/lib/api/error-codes";
 import z from "@/lib/zod";
 import { DUB_FOUNDING_DATE, formatDate, validDomainRegex } from "@dub/utils";
 import {
@@ -7,7 +7,7 @@ import {
   getPaginationQuerySchema,
   publicHostedImageSchema,
 } from "./misc";
-import { TagSchema } from "./tags";
+import { LinkTagSchema } from "./tags";
 import {
   DESTINATION_URL_MAX_LENGTH,
   parseDateSchema,
@@ -120,6 +120,7 @@ const LinksQuerySchema = z.object({
   folderId: z
     .string()
     .optional()
+    .transform((v) => (v === "unsorted" ? null : v))
     .describe("The folder ID to filter the links by."),
   search: z
     .string()
@@ -183,12 +184,91 @@ export const getLinksCountQuerySchema = LinksQuerySchema.merge(
   }),
 );
 
+export const exportLinksColumns = [
+  {
+    id: "link",
+    label: "Short link",
+    default: true,
+    transform: (value: unknown) => String(value ?? ""),
+  },
+  {
+    id: "url",
+    label: "Destination URL",
+    default: true,
+    transform: (value: unknown) => String(value ?? ""),
+  },
+  {
+    id: "clicks",
+    label: "Clicks",
+    default: true,
+    transform: (value: unknown) => Number(value ?? 0),
+  },
+  {
+    id: "leads",
+    label: "Leads",
+    default: false,
+    transform: (value: unknown) => Number(value ?? 0),
+  },
+  {
+    id: "conversions",
+    label: "Conversions",
+    default: false,
+    transform: (value: unknown) => Number(value ?? 0),
+  },
+  {
+    id: "saleAmount",
+    label: "Revenue",
+    default: false,
+    transform: (value: unknown) => Number(value ?? 0),
+  },
+  {
+    id: "createdAt",
+    label: "Created at",
+    default: true,
+    transform: (value: unknown) =>
+      value instanceof Date ? value.toISOString() : "",
+  },
+  {
+    id: "id",
+    label: "Link ID",
+    default: false,
+    transform: (value: unknown) => String(value ?? ""),
+  },
+  {
+    id: "updatedAt",
+    label: "Updated at",
+    default: false,
+    transform: (value: unknown) =>
+      value instanceof Date ? value.toISOString() : "",
+  },
+  {
+    id: "tags",
+    label: "Tags",
+    default: false,
+    transform: (value: unknown) =>
+      Array.isArray(value) ? value.join(", ") : String(value ?? ""),
+  },
+  {
+    id: "archived",
+    label: "Archived",
+    default: false,
+    transform: (value: unknown) => (value === 1 ? "Yes" : "No"),
+  },
+] as const;
+
+export type ExportLinksColumn = (typeof exportLinksColumns)[number];
+
+export const exportLinksColumnsDefault = exportLinksColumns
+  .filter((column) => column.default)
+  .map((column) => column.id);
+
 export const linksExportQuerySchema = getLinksQuerySchemaBase
   .omit({ page: true, pageSize: true })
   .merge(
     z.object({
       columns: z
         .string()
+        .default(exportLinksColumnsDefault.join(","))
         .transform((v) => v.split(","))
         .describe("The columns to export."),
       start: parseDateSchema
@@ -234,7 +314,7 @@ export const createLinkBodySchema = z.object({
     .max(190)
     .optional()
     .describe(
-      "The domain of the short link. If not provided, the primary domain for the workspace will be used (or `dub.sh` if the workspace has no domains).",
+      "The domain of the short link (without protocol). If not provided, the primary domain for the workspace will be used (or `dub.sh` if the workspace has no domains).",
     ),
   key: z
     .string()
@@ -391,36 +471,42 @@ export const createLinkBodySchema = z.object({
     ),
   utm_source: z
     .string()
+    .transform((v) => (v === "" ? null : v))
     .nullish()
     .describe(
       "The UTM source of the short link. If set, this will populate or override the UTM source in the destination URL.",
     ),
   utm_medium: z
     .string()
+    .transform((v) => (v === "" ? null : v))
     .nullish()
     .describe(
       "The UTM medium of the short link. If set, this will populate or override the UTM medium in the destination URL.",
     ),
   utm_campaign: z
     .string()
+    .transform((v) => (v === "" ? null : v))
     .nullish()
     .describe(
       "The UTM campaign of the short link. If set, this will populate or override the UTM campaign in the destination URL.",
     ),
   utm_term: z
     .string()
+    .transform((v) => (v === "" ? null : v))
     .nullish()
     .describe(
       "The UTM term of the short link. If set, this will populate or override the UTM term in the destination URL.",
     ),
   utm_content: z
     .string()
+    .transform((v) => (v === "" ? null : v))
     .nullish()
     .describe(
       "The UTM content of the short link. If set, this will populate or override the UTM content in the destination URL.",
     ),
   ref: z
     .string()
+    .transform((v) => (v === "" ? null : v))
     .nullish()
     .describe(
       "The referral tag of the short link. If set, this will populate or override the `ref` query parameter in the destination URL.",
@@ -564,6 +650,12 @@ export const LinkSchema = z
       .url()
       .nullable()
       .describe("The URL to redirect to when the short link has expired."),
+    disabledAt: z
+      .string()
+      .nullable()
+      .describe(
+        "The date and time when the short link was disabled. When a short link is disabled, it will redirect to its domain's not found URL, and its stats will be excluded from your overall stats.",
+      ),
     password: z
       .string()
       .nullable()
@@ -628,7 +720,7 @@ export const LinkSchema = z
       .boolean()
       .default(false)
       .describe("Whether the short link's stats are publicly accessible."),
-    tags: TagSchema.array()
+    tags: LinkTagSchema.array()
       .nullable()
       .describe("The tags assigned to the short link."),
     folderId: z
@@ -804,8 +896,9 @@ export const linkEventSchema = LinkSchema.extend({
   updatedAt: z.coerce.date(),
   lastClicked: z.coerce.date(),
   expiresAt: z.coerce.date(),
-  testCompletedAt: z.coerce.date().nullable(),
-  testStartedAt: z.coerce.date().nullable(),
+  disabledAt: z.coerce.date(),
+  testCompletedAt: z.coerce.date(),
+  testStartedAt: z.coerce.date(),
   // userId can be null
   userId: z.string().nullable(),
 });

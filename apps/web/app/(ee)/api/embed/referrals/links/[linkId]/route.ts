@@ -3,9 +3,16 @@ import { processLink, updateLink } from "@/lib/api/links";
 import { validatePartnerLinkUrl } from "@/lib/api/links/validate-partner-link-url";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
-import { createPartnerLinkSchema } from "@/lib/zod/schemas/partners";
+import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
+import { linkEventSchema } from "@/lib/zod/schemas/links";
+import {
+  createPartnerLinkSchema,
+  INACTIVE_ENROLLMENT_STATUSES,
+} from "@/lib/zod/schemas/partners";
 import { ReferralsEmbedLinkSchema } from "@/lib/zod/schemas/referrals-embed";
+import { prisma } from "@dub/prisma";
 import { getPrettyUrl } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // PATCH /api/embed/referrals/links/[linkId] - update a link for a partner
@@ -15,9 +22,7 @@ export const PATCH = withReferralsEmbedToken(
       .pick({ url: true, key: true })
       .parse(await parseRequestBody(req));
 
-    if (
-      ["banned", "deactivated", "rejected"].includes(programEnrollment.status)
-    ) {
+    if (INACTIVE_ENROLLMENT_STATUSES.includes(programEnrollment.status)) {
       throw new DubApiError({
         code: "forbidden",
         message: `You are ${programEnrollment.status} from this program hence cannot create links.`,
@@ -72,6 +77,7 @@ export const PATCH = withReferralsEmbedToken(
       workspace: {
         id: program.workspaceId,
         plan: "business",
+        users: [{ role: "owner" }],
       },
       userId: link.userId!,
       skipKeyChecks,
@@ -95,6 +101,27 @@ export const PATCH = withReferralsEmbedToken(
       },
       updatedLink: processedLink,
     });
+
+    waitUntil(
+      (async () => {
+        const workspace = await prisma.project.findUnique({
+          where: {
+            id: program.workspaceId,
+          },
+          select: {
+            id: true,
+            webhookEnabled: true,
+          },
+        });
+        if (workspace) {
+          await sendWorkspaceWebhook({
+            trigger: "link.updated",
+            workspace,
+            data: linkEventSchema.parse(partnerLink),
+          });
+        }
+      })(),
+    );
 
     return NextResponse.json(ReferralsEmbedLinkSchema.parse(partnerLink));
   },

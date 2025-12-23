@@ -54,8 +54,8 @@ export default function PartnerUserInvited({
               </Text>
             ) : (
               <Text className="text-sm leading-6 text-black">
-                You have been invited to join the{" "}
-                <strong>{partnerName}</strong> partner profile on Dub Partners!
+                You have been invited to join the <strong>{partnerName}</strong>{" "}
+                partner profile on Dub Partners!
               </Text>
             )}
             <Section className="mb-8 mt-8">

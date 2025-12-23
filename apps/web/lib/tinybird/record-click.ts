@@ -10,12 +10,9 @@ import { geolocation, ipAddress, waitUntil } from "@vercel/functions";
 import { userAgent } from "next/server";
 import { recordClickCache } from "../api/links/record-click-cache";
 import { ExpandedLink, transformLink } from "../api/links/utils/transform-link";
-import {
-  detectBot,
-  detectQr,
-  getFinalUrlForRecordClick,
-  getIdentityHash,
-} from "../middleware/utils";
+import { detectBot } from "../middleware/utils/detect-bot";
+import { detectQr } from "../middleware/utils/detect-qr";
+import { getIdentityHash } from "../middleware/utils/get-identity-hash";
 import { conn } from "../planetscale";
 import { WorkspaceProps } from "../types";
 import { redis } from "../upstash";
@@ -33,6 +30,7 @@ import { transformClickEventData } from "../webhook/transform";
 export async function recordClick({
   req,
   clickId,
+  workspaceId,
   linkId,
   domain,
   key,
@@ -40,7 +38,6 @@ export async function recordClick({
   programId,
   partnerId,
   webhookIds,
-  workspaceId,
   skipRatelimit,
   timestamp,
   referrer,
@@ -50,13 +47,13 @@ export async function recordClick({
   req: Request;
   clickId?: string;
   linkId: string;
+  workspaceId?: string;
   domain: string;
   key: string;
   url?: string;
   programId?: string;
   partnerId?: string;
   webhookIds?: string[];
-  workspaceId: string | undefined;
   skipRatelimit?: boolean;
   timestamp?: string;
   referrer?: string;
@@ -131,14 +128,15 @@ export async function recordClick({
 
   const referer = referrer || req.headers.get("referer");
 
-  const finalUrl = url ? getFinalUrlForRecordClick({ req, url }) : "";
-
   const clickData = {
     timestamp: timestamp || new Date(Date.now()).toISOString(),
     identity_hash: identityHash,
     click_id: clickId,
+    workspace_id: workspaceId || "",
     link_id: linkId,
-    url: finalUrl,
+    domain,
+    key,
+    url: url || "",
     ip:
       // only record IP if it's a valid IP and not from a EU country
       typeof ip === "string" && ip.trim().length > 0 && !isEuCountry ? ip : "",
@@ -168,10 +166,10 @@ export async function recordClick({
   };
 
   if (shouldCacheClickId) {
-    // cache the click ID and its corresponding click data in Redis for 5 mins
+    // cache the click ID and its corresponding click data in Redis for 1 day
     // we're doing this because ingested click events are not available immediately in Tinybird
     await redis.set(`clickIdCache:${clickId}`, clickData, {
-      ex: 60 * 5,
+      ex: 60 * 60 * 24, // cache for 1 day
     });
   }
 
@@ -228,18 +226,6 @@ export async function recordClick({
               [programId, partnerId],
             );
           }),
-
-        // TODO: Remove after Tinybird migration
-        fetchWithRetry(
-          `${process.env.TINYBIRD_API_URL}/v0/events?name=dub_click_events&wait=true`,
-          {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${process.env.TINYBIRD_API_KEY_NEW}`,
-            },
-            body: JSON.stringify(clickData),
-          },
-        ).then((res) => res.json()),
       ]);
 
       // Find the rejected promises and log them

@@ -1,17 +1,13 @@
+import { generatePerformanceBountyName } from "@/lib/api/bounties/generate-performance-bounty-name";
 import { isCurrencyAttribute } from "@/lib/api/workflows/utils";
-import { BOUNTY_DESCRIPTION_MAX_LENGTH } from "@/lib/partners/constants";
+import { BOUNTY_DESCRIPTION_MAX_LENGTH } from "@/lib/constants/bounties";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
-import {
-  BountyExtendedProps,
-  BountyProps,
-  BountySubmissionRequirement,
-} from "@/lib/types";
+import { BountyProps, BountySubmissionRequirement } from "@/lib/types";
 import { createBountySchema } from "@/lib/zod/schemas/bounties";
 import { workflowConditionSchema } from "@/lib/zod/schemas/workflows";
-import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { BountyLogic } from "@/ui/partners/bounties/bounty-logic";
 import { GroupsMultiSelect } from "@/ui/partners/groups/groups-multi-select";
 import {
@@ -22,19 +18,23 @@ import {
 } from "@/ui/partners/program-sheet-accordion";
 import { AmountInput } from "@/ui/shared/amount-input";
 import { X } from "@/ui/shared/icons";
+import { MaxCharactersCounter } from "@/ui/shared/max-characters-counter";
 import {
   AnimatedSizeContainer,
   Button,
   CardSelector,
   CardSelectorOption,
   NumberStepper,
+  RichTextArea,
+  RichTextProvider,
+  RichTextToolbar,
   Sheet,
   SmartDateTimePicker,
   Switch,
   ToggleGroup,
   useRouterStuff,
 } from "@dub/ui";
-import { cn, formatDate, nFormatter } from "@dub/utils";
+import { cn, formatDate } from "@dub/utils";
 import { Dispatch, SetStateAction, useMemo, useState } from "react";
 import {
   Controller,
@@ -44,10 +44,11 @@ import {
 } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
+import { useConfirmCreateBountyModal } from "./confirm-create-bounty-modal";
 
 type BountySheetProps = {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
-  bounty?: BountyExtendedProps;
+  bounty?: BountyProps;
 };
 
 type FormData = z.infer<typeof createBountySchema>;
@@ -171,6 +172,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     name,
     description,
     performanceCondition,
+    groupIds,
   ] = watch([
     "startsAt",
     "endsAt",
@@ -180,6 +182,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     "name",
     "description",
     "performanceCondition",
+    "groupIds",
   ]);
 
   // Helper functions to update form values
@@ -257,17 +260,6 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     setRequireUrl(checked);
     updateSubmissionRequirements(requireImage, checked);
   };
-
-  // Confirmation modal for bounty creation only
-  const { setShowConfirmModal, confirmModal } = useConfirmModal({
-    title: "Confirm bounty creation",
-    description:
-      "This will create the bounty and notify all partners in the selected partner groups. Are you sure you want to continue?",
-    confirmText: "Confirm",
-    onConfirm: async () => {
-      await performSubmit();
-    },
-  });
 
   // Comprehensive validation logic
   const validationError = useMemo(() => {
@@ -406,8 +398,41 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     performanceCondition?.value,
   ]);
 
+  const { setShowConfirmCreateBountyModal, confirmCreateBountyModal } =
+    useConfirmCreateBountyModal({
+      bounty: !validationError
+        ? {
+            type,
+            name:
+              type === "performance" && performanceCondition
+                ? generatePerformanceBountyName({
+                    rewardAmount: rewardAmount ? rewardAmount * 100 : 0,
+                    condition: isCurrencyAttribute(
+                      performanceCondition?.attribute,
+                    )
+                      ? {
+                          ...performanceCondition,
+                          value: performanceCondition?.value * 100,
+                        }
+                      : performanceCondition,
+                  })
+                : name || "New bounty",
+            startsAt: startsAt || new Date(),
+            endsAt: endsAt || null,
+            rewardAmount: rewardAmount ? rewardAmount * 100 : null,
+            rewardDescription: rewardDescription || null,
+            groups: groupIds?.map((id) => ({ id })) || [],
+          }
+        : undefined,
+      onConfirm: async ({ sendNotificationEmails }) => {
+        await performSubmit({ sendNotificationEmails });
+      },
+    });
+
   // Handle actual form submission (called after confirmation)
-  const performSubmit = async () => {
+  const performSubmit = async ({
+    sendNotificationEmails,
+  }: { sendNotificationEmails?: boolean } = {}) => {
     if (!workspaceId) return;
 
     const data = form.getValues();
@@ -452,7 +477,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
 
     await makeRequest(bounty ? `/api/bounties/${bounty.id}` : "/api/bounties", {
       method: bounty ? "PATCH" : "POST",
-      body: data,
+      body: { ...data, sendNotificationEmails },
       onSuccess: () => {
         mutatePrefix("/api/bounties");
         setIsOpen(false);
@@ -468,7 +493,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
       await performSubmit();
     } else {
       // For creation, show confirmation modal
-      setShowConfirmModal(true);
+      setShowConfirmCreateBountyModal(true);
     }
   });
 
@@ -788,38 +813,53 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                     )}
 
                     <div>
-                      <label
-                        htmlFor="description"
-                        className="text-sm font-medium text-neutral-800"
-                      >
+                      <label className="text-sm font-medium text-neutral-800">
                         Details
                         <span className="ml-1 font-normal text-neutral-500">
                           (optional)
                         </span>
                       </label>
                       <div className="mt-2">
-                        <textarea
-                          id="description"
-                          rows={3}
-                          maxLength={BOUNTY_DESCRIPTION_MAX_LENGTH}
-                          className={cn(
-                            "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-                            errors.description &&
-                              "border-red-600 focus:border-red-500 focus:ring-red-600",
+                        <Controller
+                          control={control}
+                          name="description"
+                          render={({ field }) => (
+                            <RichTextProvider
+                              features={["bold", "italic", "links"]}
+                              markdown
+                              placeholder="Provide any bounty requirements to the partner"
+                              editorClassName="block max-h-48 overflow-auto scrollbar-hide w-full resize-none border-none p-3 text-base sm:text-sm"
+                              initialValue={field.value}
+                              onChange={(editor) =>
+                                field.onChange(
+                                  (editor as any).getMarkdown() || null,
+                                )
+                              }
+                            >
+                              <div
+                                className={cn(
+                                  "border-border-subtle overflow-hidden rounded-md border border-neutral-300 focus-within:border-neutral-500 focus-within:ring-1 focus-within:ring-neutral-500",
+                                  errors.description &&
+                                    "border-red-600 focus-within:border-red-500 focus-within:ring-red-600",
+                                )}
+                              >
+                                <div className="flex flex-col">
+                                  <RichTextArea />
+                                  <RichTextToolbar className="px-1 pb-1" />
+                                </div>
+                              </div>
+                            </RichTextProvider>
                           )}
-                          placeholder="Provide any bounty requirements to the partner"
-                          {...register("description", {
-                            setValueAs: (value) =>
-                              value === "" ? null : value,
-                          })}
                         />
+
                         <div className="mt-1 text-left">
-                          <span className="text-xs text-neutral-400">
-                            {description?.length || 0} /{" "}
-                            {nFormatter(BOUNTY_DESCRIPTION_MAX_LENGTH, {
-                              full: true,
-                            })}
-                          </span>
+                          <MaxCharactersCounter
+                            name="description"
+                            control={control}
+                            maxLength={BOUNTY_DESCRIPTION_MAX_LENGTH}
+                            spaced
+                            className="text-content-muted"
+                          />
                         </div>
                       </div>
                     </div>
@@ -931,7 +971,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
           </div>
         </div>
       </FormProvider>
-      {!bounty && confirmModal}
+      {!bounty && confirmCreateBountyModal}
     </form>
   );
 }

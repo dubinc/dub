@@ -1,6 +1,7 @@
+import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
-import { getGroupRewardsAndDiscount } from "@/lib/partners/get-group-rewards-and-discount";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
+import { Reward } from "@dub/prisma/client";
 import { prismaEdge } from "@dub/prisma/edge";
 import { ImageResponse } from "next/og";
 import { NextRequest } from "next/server";
@@ -22,6 +23,7 @@ export async function GET(req: NextRequest) {
   ).then((res) => res.arrayBuffer());
 
   const slug = req.nextUrl.searchParams.get("slug");
+  const groupSlug = req.nextUrl.searchParams.get("groupSlug");
 
   if (!slug) {
     return new Response("Missing 'slug' parameter", {
@@ -36,7 +38,7 @@ export async function GET(req: NextRequest) {
     include: {
       groups: {
         where: {
-          slug: DEFAULT_PARTNER_GROUP.slug,
+          slug: groupSlug ?? DEFAULT_PARTNER_GROUP.slug,
         },
         include: {
           clickReward: true,
@@ -53,11 +55,14 @@ export async function GET(req: NextRequest) {
     });
   }
 
-  const logo = program.wordmark || program.logo;
-  const brandColor = program.brandColor || "#000000";
+  const group = program.groups[0];
 
-  const { rewards } = getGroupRewardsAndDiscount(program.groups[0]);
+  const logo = group.wordmark || group.logo;
+  const brandColor = group.brandColor || "#000000";
 
+  const rewards = [group.clickReward, group.leadReward, group.saleReward]
+    .filter((r): r is Reward => r !== null)
+    .map(serializeReward);
   const reward = rewards[0];
 
   return new ImageResponse(
@@ -141,7 +146,7 @@ export async function GET(req: NextRequest) {
               <div tw="w-full flex items-center rounded-md bg-neutral-100 border border-neutral-200 p-8 text-2xl">
                 {/* @ts-ignore */}
                 <InvoiceDollar tw="w-8 h-8 mr-4" />
-                {constructRewardAmount(rewards[0])}
+                {constructRewardAmount(reward)}
                 {reward.event === "sale" && reward.maxDuration === 0
                   ? " for the first sale "
                   : ` per ${reward.event} `}

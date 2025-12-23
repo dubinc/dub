@@ -30,8 +30,9 @@ export const PayoutStatusBadgePartner = ({
       payout.status === "pending" &&
       payout.amount < program.minPayoutAmount
     ) {
-      return `This program's minimum payout amount is ${currencyFormatter(
-        program.minPayoutAmount / 100,
+      return `This program's [minimum payout amount](https://dub.co/help/article/commissions-payouts#what-does-minimum-payout-amount-mean) is ${currencyFormatter(
+        program.minPayoutAmount,
+        { trailingZeroDisplay: "stripIfInteger" },
       )}. This payout will be accrued and processed during the next payout period.`;
     }
     return (

@@ -1,11 +1,11 @@
+import {
+  BELOW_MIN_WITHDRAWAL_FEE_CENTS,
+  MIN_WITHDRAWAL_AMOUNT_CENTS,
+} from "@/lib/constants/payouts";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@dub/prisma";
 import { Partner, Payout } from "@dub/prisma/client";
 import { currencyFormatter, pluralize } from "@dub/utils";
-import {
-  BELOW_MIN_WITHDRAWAL_FEE_CENTS,
-  MIN_WITHDRAWAL_AMOUNT_CENTS,
-} from "./constants";
 
 type PayoutWithProgramName = Pick<Payout, "id" | "amount" | "invoiceId"> & {
   program: {
@@ -18,11 +18,13 @@ export const createStripeTransfer = async ({
   previouslyProcessedPayouts,
   currentInvoicePayouts,
   chargeId,
+  forceWithdrawal = false,
 }: {
-  partner: Pick<Partner, "id" | "minWithdrawalAmount" | "stripeConnectId">;
+  partner: Pick<Partner, "id" | "stripeConnectId">;
   previouslyProcessedPayouts: PayoutWithProgramName[];
   currentInvoicePayouts?: PayoutWithProgramName[];
   chargeId?: string;
+  forceWithdrawal?: boolean;
 }) => {
   // this should never happen since we guard for it outside, but just in case
   if (!partner.stripeConnectId) {
@@ -52,31 +54,34 @@ export const createStripeTransfer = async ({
     0,
   );
 
-  // If the total transferable amount is less than the partner's minimum withdrawal amount
-  // we only update status for all the partner payouts for the current invoice (if any) to "processed" – no need to create a transfer for now
-  if (totalTransferableAmount < partner.minWithdrawalAmount) {
-    if (currentInvoicePayouts) {
-      await prisma.payout.updateMany({
-        where: {
-          id: {
-            in: currentInvoicePayouts.map((p) => p.id),
+  // If the total transferable amount is less than the minimum withdrawal amount
+  if (totalTransferableAmount < MIN_WITHDRAWAL_AMOUNT_CENTS) {
+    // if we're not forcing a withdrawal
+    if (!forceWithdrawal) {
+      // we need to update current invoice payouts to "processed" status
+      if (currentInvoicePayouts) {
+        await prisma.payout.updateMany({
+          where: {
+            id: {
+              in: currentInvoicePayouts.map((p) => p.id),
+            },
           },
-        },
-        data: {
-          status: "processed",
-        },
-      });
+          data: {
+            status: "processed",
+            paidAt: new Date(),
+          },
+        });
+      }
+
+      console.log(
+        `Total processed payouts (${currencyFormatter(totalTransferableAmount)}) for partner ${partner.id} are below ${currencyFormatter(MIN_WITHDRAWAL_AMOUNT_CENTS)}, skipping...`,
+      );
+
+      // skip creating a transfer
+      return;
     }
 
-    console.log(
-      `Total processed payouts (${currencyFormatter(totalTransferableAmount / 100)}) for partner ${partner.id} are below the minWithdrawalAmount (${currencyFormatter(partner.minWithdrawalAmount / 100)}), skipping...`,
-    );
-
-    return;
-  }
-
-  // Decide if we need to charge a withdrawal fee for the partner
-  if (partner.minWithdrawalAmount < MIN_WITHDRAWAL_AMOUNT_CENTS) {
+    // else, if we're forcing a withdrawal, we need to charge a withdrawal fee
     withdrawalFee = BELOW_MIN_WITHDRAWAL_FEE_CENTS;
   }
 
@@ -85,7 +90,7 @@ export const createStripeTransfer = async ({
 
   if (finalTransferableAmount <= 0) {
     console.log(
-      `Final transferable amount after deducting withdrawal fee (${currencyFormatter(finalTransferableAmount / 100)}) is less than or equal to 0, skipping...`,
+      `Final transferable amount after deducting withdrawal fee (${currencyFormatter(finalTransferableAmount)}) is less than or equal to 0, skipping...`,
     );
 
     return;
@@ -118,7 +123,7 @@ export const createStripeTransfer = async ({
   );
 
   console.log(
-    `Transfer of ${currencyFormatter(finalTransferableAmount / 100)} (${transfer.id}) created for partner ${partner.id} for ${pluralize(
+    `Transfer of ${currencyFormatter(finalTransferableAmount)} (${transfer.id}) created for partner ${partner.id} for ${pluralize(
       "payout",
       allPayouts.length,
     )} ${allPayouts.map((p) => p.id).join(", ")}`,

@@ -1,6 +1,7 @@
 "use server";
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
@@ -14,6 +15,7 @@ const updatePartnerEnrollmentSchema = z.object({
   workspaceId: z.string(),
   partnerId: z.string(),
   tenantId: z.string().nullable(),
+  customerDataSharingEnabledAt: z.coerce.date().nullable(),
 });
 
 // Update a partner's program enrollment data
@@ -21,7 +23,7 @@ export const updatePartnerEnrollmentAction = authActionClient
   .schema(updatePartnerEnrollmentSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const { partnerId, tenantId } = parsedInput;
+    const { partnerId, tenantId, customerDataSharingEnabledAt } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -45,16 +47,18 @@ export const updatePartnerEnrollmentAction = authActionClient
           tenantId,
         },
       });
+
       return await tx.programEnrollment.update({
         where: {
           partnerId_programId: where,
         },
         data: {
           tenantId,
+          customerDataSharingEnabledAt,
         },
         include: {
           links: {
-            include: includeTags,
+            include: { ...includeTags, ...includeProgramEnrollment },
           },
         },
       });

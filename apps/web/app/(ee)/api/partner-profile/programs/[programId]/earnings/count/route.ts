@@ -10,13 +10,14 @@ import { NextResponse } from "next/server";
 // GET /api/partner-profile/programs/[programId]/earnings/count – get earnings count for a partner in a program enrollment
 export const GET = withPartnerProfile(
   async ({ partner, params, searchParams }) => {
-    const { program } = await getProgramEnrollmentOrThrow({
-      partnerId: partner.id,
-      programId: params.programId,
-      include: {
-        program: true,
-      },
-    });
+    const { program, customerDataSharingEnabledAt } =
+      await getProgramEnrollmentOrThrow({
+        partnerId: partner.id,
+        programId: params.programId,
+        include: {
+          program: true,
+        },
+      });
 
     const {
       groupBy,
@@ -27,12 +28,14 @@ export const GET = withPartnerProfile(
       interval,
       start,
       end,
+      timezone,
     } = getPartnerEarningsCountQuerySchema.parse(searchParams);
 
     const { startDate, endDate } = getStartEndDates({
       interval,
       start,
       end,
+      timezone,
     });
 
     const where: Prisma.CommissionWhereInput = {
@@ -43,8 +46,8 @@ export const GET = withPartnerProfile(
       partnerId: partner.id,
       ...(payoutId && { payoutId }),
       createdAt: {
-        gte: startDate.toISOString(),
-        lte: endDate.toISOString(),
+        gte: startDate,
+        lte: endDate,
       },
     };
 
@@ -100,7 +103,9 @@ export const GET = withPartnerProfile(
           return {
             id: customerId,
             email: customer?.email
-              ? customer.email.replace(/(?<=^.).+(?=.@)/, "****")
+              ? customerDataSharingEnabledAt
+                ? customer.email
+                : customer.email.replace(/(?<=^.).+(?=.@)/, "****")
               : customer?.name || generateRandomName(),
             _count,
           };

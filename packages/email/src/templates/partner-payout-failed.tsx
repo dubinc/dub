@@ -46,7 +46,7 @@ export default function PartnerPayoutFailed({
   };
   email: string;
 }) {
-  const payoutAmount = currencyFormatter(payout.amount / 100);
+  const payoutAmount = currencyFormatter(payout.amount);
   const payoutMethod = payout.method.replace("_", " ");
 
   return (
@@ -91,7 +91,7 @@ export default function PartnerPayoutFailed({
               <Text className="text-sm leading-6 text-neutral-600">
                 To cover the cost of the failed payout, we've charged a{" "}
                 <span className="font-semibold text-neutral-800">
-                  ${payout.failureFee / 100} payment failure fee
+                  {currencyFormatter(payout.failureFee)} payment failure fee
                 </span>
                 {payout.cardLast4 && (
                   <>
@@ -116,7 +116,7 @@ export default function PartnerPayoutFailed({
               </Link>{" "}
               at your earliest convenience and retry the payout from your{" "}
               <Link
-                href="https://app.dub.co/program/payouts?status=pending&sortBy=amount"
+                href="https://app.dub.co/program/payouts?status=pending"
                 className="font-medium text-black underline"
               >
                 payouts tab
@@ -127,7 +127,7 @@ export default function PartnerPayoutFailed({
             <Section className="my-8">
               <Link
                 className="rounded-lg bg-neutral-900 px-6 py-3 text-[13px] font-medium text-white no-underline"
-                href="https://app.dub.co/program/payouts?status=pending&sortBy=amount"
+                href="https://app.dub.co/program/payouts?status=pending"
               >
                 Retry payout
               </Link>

@@ -4,13 +4,13 @@ import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps, LinkProps } from "@/lib/types";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
+import { UtmTemplate } from "@dub/prisma/client";
 import {
   ArrowTurnLeft,
   Button,
   Combobox,
   InfoTooltip,
   Modal,
-  SimpleTooltipContent,
   useCopyToClipboard,
   useMediaQuery,
 } from "@dub/ui";
@@ -21,7 +21,6 @@ import {
   linkConstructor,
   punycode,
 } from "@dub/utils";
-import { UtmTemplate } from "@prisma/client";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -181,15 +180,7 @@ const AddPartnerLinkModal = ({
                     Short Link
                   </label>
 
-                  <InfoTooltip
-                    content={
-                      <SimpleTooltipContent
-                        title="This is the short link that will redirect to your destination URL."
-                        cta="Learn more."
-                        href="https://dub.co/help/article/how-to-create-link"
-                      />
-                    }
-                  />
+                  <InfoTooltip content="This is the short link that will redirect to your destination URL. [Learn more.](https://dub.co/help/article/how-to-create-link)" />
                 </div>
               </div>
 
@@ -227,15 +218,7 @@ const AddPartnerLinkModal = ({
                     Destination URL
                   </label>
 
-                  <InfoTooltip
-                    content={
-                      <SimpleTooltipContent
-                        title="The URL your users will get redirected to when they visit your short link."
-                        cta="Learn more."
-                        href="https://dub.co/help/article/how-to-create-link"
-                      />
-                    }
-                  />
+                  <InfoTooltip content="The URL your users will get redirected to when they visit your short link. [Learn more.](https://dub.co/help/article/how-to-create-link)" />
                 </div>
 
                 <div className="relative flex rounded-md shadow-sm">

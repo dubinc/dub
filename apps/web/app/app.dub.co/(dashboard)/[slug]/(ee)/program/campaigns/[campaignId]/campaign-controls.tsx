@@ -1,12 +1,12 @@
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { Campaign, UpdateCampaignFormData } from "@/lib/types";
-import { useConfirmModal } from "@/ui/modals/confirm-modal";
+import { Campaign } from "@/lib/types";
 import { ThreeDots } from "@/ui/shared/icons";
 import { CampaignStatus } from "@dub/prisma/client";
 import {
   Button,
+  CircleXmark,
   Duplicate,
   Flask,
   LoadingCircle,
@@ -19,27 +19,25 @@ import {
   useMediaQuery,
 } from "@dub/ui";
 import { Command } from "cmdk";
+import { isFuture } from "date-fns";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import { useWatch } from "react-hook-form";
-import { toast } from "sonner";
 import { useDeleteCampaignModal } from "../delete-campaign-modal";
 import { useCampaignFormContext } from "./campaign-form-context";
 import { useSendEmailPreviewModal } from "./send-email-preview-modal";
+import { useCampaignConfirmationModals } from "./use-campaign-confirmation-modals";
 
 interface CampaignControlsProps {
   campaign: Pick<Campaign, "id" | "name" | "type" | "status">;
 }
 
 export function CampaignControls({ campaign }: CampaignControlsProps) {
-  const { isMobile } = useMediaQuery();
   const router = useRouter();
+  const { isMobile } = useMediaQuery();
   const { slug: workspaceSlug } = useWorkspace();
   const [openPopover, setOpenPopover] = useState(false);
-  const { control, getValues } = useCampaignFormContext();
-
-  const { makeRequest, isSubmitting: isUpdatingCampaign } =
-    useApiMutation<Campaign>();
+  const { control } = useCampaignFormContext();
 
   const {
     makeRequest: duplicateCampaign,
@@ -54,75 +52,25 @@ export function CampaignControls({ campaign }: CampaignControlsProps) {
   const { DeleteCampaignModal, setShowDeleteCampaignModal } =
     useDeleteCampaignModal(campaign);
 
-  // Confirmation modals
-  const {
-    confirmModal: publishConfirmModal,
-    setShowConfirmModal: setShowPublishModal,
-  } = useConfirmModal({
-    title: "Publish Campaign",
-    description:
-      "Are you sure you want to publish this email campaign? It will be sent to all selected partner groups.",
-    onConfirm: async () => {
-      await updateCampaign(
-        {
-          ...getValues(),
-          status: CampaignStatus.active,
-        },
-        () => {
-          toast.success("Email campaign published!");
-          router.push(`/${workspaceSlug}/program/campaigns`);
-        },
-      );
-    },
-    confirmText: "Publish",
-    confirmShortcut: "Enter",
-  });
-
-  const {
-    confirmModal: pauseConfirmModal,
-    setShowConfirmModal: setShowPauseModal,
-  } = useConfirmModal({
-    title: "Pause Campaign",
-    description:
-      "Are you sure you want to pause this email campaign? It will stop sending emails to new recipients.",
-    onConfirm: async () => {
-      await updateCampaign(
-        {
-          status: CampaignStatus.paused,
-        },
-        () => {
-          toast.success("Email campaign paused!");
-        },
-      );
-    },
-    confirmText: "Pause",
-    confirmShortcut: "Enter",
-  });
-
-  const {
-    confirmModal: resumeConfirmModal,
-    setShowConfirmModal: setShowResumeModal,
-  } = useConfirmModal({
-    title: "Resume Campaign",
-    description:
-      "Are you sure you want to resume this email campaign? It will continue sending emails to remaining recipients.",
-    onConfirm: async () => {
-      await updateCampaign(
-        {
-          status: CampaignStatus.active,
-        },
-        () => {
-          toast.success("Email campaign resumed!");
-        },
-      );
-    },
-    confirmText: "Resume",
-    confirmShortcut: "Enter",
-  });
-
-  const [name, subject, groupIds, bodyJson, triggerCondition] = useWatch({
+  const [
+    name,
+    subject,
+    groupIds,
+    bodyJson,
+    triggerCondition,
+    from,
+    scheduledAt,
+  ] = useWatch({
     control,
-    name: ["name", "subject", "groupIds", "bodyJson", "triggerCondition"],
+    name: [
+      "name",
+      "subject",
+      "groupIds",
+      "bodyJson",
+      "triggerCondition",
+      "from",
+      "scheduledAt",
+    ],
   });
 
   // Form validation
@@ -140,7 +88,15 @@ export function CampaignControls({ campaign }: CampaignControlsProps) {
         return "Please select the groups you want to send this campaign to.";
       }
 
-      if (!sendPreview && !triggerCondition) {
+      if (!from && !sendPreview) {
+        return "Please select a sender email address.";
+      }
+
+      if (
+        !sendPreview &&
+        campaign.type === "transactional" &&
+        !triggerCondition
+      ) {
         return "Please select a trigger condition.";
       }
 
@@ -148,27 +104,25 @@ export function CampaignControls({ campaign }: CampaignControlsProps) {
         return "Please write the message you want to send to the partners.";
       }
     },
-    [name, subject, groupIds, triggerCondition, bodyJson],
+    [name, subject, groupIds, triggerCondition, bodyJson, from],
   );
 
-  const updateCampaign = useCallback(
-    async (
-      data: Partial<UpdateCampaignFormData>,
-      onSuccess: (data: Campaign) => void,
-    ) => {
-      await makeRequest(`/api/campaigns/${campaign.id}`, {
-        method: "PATCH",
-        body: {
-          ...data,
-        },
-        onSuccess: async (data) => {
-          await mutatePrefix(`/api/campaigns/${campaign.id}`);
-          onSuccess(data);
-        },
-      });
-    },
-    [makeRequest, campaign.id],
-  );
+  // Confirmation modals
+  const {
+    isUpdatingCampaign,
+    publishConfirmModal,
+    setShowPublishModal,
+    scheduleConfirmModal,
+    setShowScheduleModal,
+    pauseConfirmModal,
+    setShowPauseModal,
+    resumeConfirmModal,
+    setShowResumeModal,
+    cancelConfirmModal,
+    setShowCancelModal,
+  } = useCampaignConfirmationModals({
+    campaign,
+  });
 
   const handleCampaignDuplication = async () => {
     await duplicateCampaign(`/api/campaigns/${campaign.id}/duplicate`, {
@@ -181,37 +135,78 @@ export function CampaignControls({ campaign }: CampaignControlsProps) {
   };
 
   const actionButton = (() => {
-    switch (campaign.status) {
-      case CampaignStatus.draft:
-        return {
-          text: "Publish",
-          icon: PaperPlane,
-          onClick: () => {
-            setShowPublishModal(true);
-          },
-          loading: isUpdatingCampaign,
-        };
-      case CampaignStatus.active:
-        return {
-          text: "Pause",
-          icon: MediaPause,
-          onClick: () => {
-            setShowPauseModal(true);
-          },
-          loading: isUpdatingCampaign,
-        };
-      case CampaignStatus.paused:
-        return {
-          text: "Resume",
-          icon: MediaPlay,
-          onClick: () => {
-            setShowResumeModal(true);
-          },
-          loading: isUpdatingCampaign,
-        };
-      default:
-        return null;
+    const marketingActionButtonMap = {
+      [CampaignStatus.draft]: {
+        text:
+          scheduledAt && isFuture(new Date(scheduledAt)) ? "Schedule" : "Send",
+        icon: PaperPlane,
+        loading: isUpdatingCampaign,
+        variant: "primary",
+        onClick: () => {
+          setShowScheduleModal(true);
+        },
+      },
+
+      [CampaignStatus.scheduled]: {
+        text: "Cancel",
+        icon: CircleXmark,
+        loading: isUpdatingCampaign,
+        onClick: () => {
+          setShowCancelModal(true);
+        },
+      },
+
+      [CampaignStatus.sending]: {
+        text: "Cancel",
+        icon: CircleXmark,
+        loading: isUpdatingCampaign,
+        onClick: () => {
+          setShowCancelModal(true);
+        },
+      },
+
+      [CampaignStatus.sent]: null, // No action once sent
+      [CampaignStatus.canceled]: null, // No action once canceled
+    };
+
+    const transactionalActionButtonMap = {
+      [CampaignStatus.draft]: {
+        text: "Publish",
+        icon: PaperPlane,
+        loading: isUpdatingCampaign,
+        onClick: () => {
+          setShowPublishModal(true);
+        },
+      },
+
+      [CampaignStatus.active]: {
+        text: "Pause",
+        icon: MediaPause,
+        loading: isUpdatingCampaign,
+        onClick: () => {
+          setShowPauseModal(true);
+        },
+      },
+
+      [CampaignStatus.paused]: {
+        text: "Resume",
+        icon: MediaPlay,
+        loading: isUpdatingCampaign,
+        onClick: () => {
+          setShowResumeModal(true);
+        },
+      },
+    };
+
+    if (campaign.type === "transactional") {
+      return transactionalActionButtonMap[campaign.status];
     }
+
+    if (campaign.type === "marketing") {
+      return marketingActionButtonMap[campaign.status];
+    }
+
+    return null;
   })();
 
   return (
@@ -226,7 +221,7 @@ export function CampaignControls({ campaign }: CampaignControlsProps) {
             onClick={actionButton.onClick}
             loading={actionButton.loading}
             className="hidden h-9 px-4 sm:flex"
-            variant="secondary"
+            variant={actionButton.variant || "secondary"}
           />
         )}
 
@@ -307,10 +302,11 @@ export function CampaignControls({ campaign }: CampaignControlsProps) {
       <SendEmailPreviewModal />
       <DeleteCampaignModal />
 
-      {/* Confirmation Modals */}
       {publishConfirmModal}
+      {scheduleConfirmModal}
       {pauseConfirmModal}
       {resumeConfirmModal}
+      {cancelConfirmModal}
     </>
   );
 }

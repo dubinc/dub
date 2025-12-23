@@ -16,7 +16,6 @@ import {
   LoadingSpinner,
   MobilePhone,
   ShimmerDots,
-  SimpleTooltipContent,
   Switch,
   useEnterSubmit,
   useMediaQuery,
@@ -32,7 +31,7 @@ import {
 } from "lucide-react";
 import { motion } from "motion/react";
 import posthog from "posthog-js";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useDebouncedCallback } from "use-debounce";
@@ -277,7 +276,15 @@ export function AddEditDomainForm({
   const currentStatusProps = STATUS_CONFIG[domainStatus];
 
   return (
-    <form ref={formRef} onSubmit={handleSubmit(onSubmit)}>
+    <form
+      ref={formRef}
+      onSubmit={async (e: FormEvent<HTMLFormElement>) => {
+        // prevent the submission event from propagating to the parent form (in the link builder)
+        e.preventDefault();
+        e.stopPropagation();
+        handleSubmit(onSubmit)(e);
+      }}
+    >
       <div
         className={cn(
           "flex flex-col gap-y-6 text-left",
@@ -292,11 +299,7 @@ export function AddEditDomainForm({
               </h2>
               <InfoTooltip
                 content={
-                  <SimpleTooltipContent
-                    title="Not sure which domain to use?"
-                    cta="Check out our guide"
-                    href="https://dub.co/help/article/choosing-a-custom-domain"
-                  />
+                  "Not sure which domain to use? [Check out our guide](https://dub.co/help/article/choosing-a-custom-domain)"
                 }
               />
             </label>
@@ -416,7 +419,7 @@ export function AddEditDomainForm({
                               [id]: checked,
                             }));
                             if (!checked) {
-                              setValue(id, "", {
+                              setValue(id, null, {
                                 shouldDirty: true,
                               });
                             }
@@ -543,7 +546,7 @@ export function AddEditDomainForm({
                                     });
                                   }
                                 } else {
-                                  setValue(id, "", {
+                                  setValue(id, null, {
                                     shouldDirty: true,
                                   });
                                 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { markProgramMessagesReadAction } from "@/lib/actions/partners/mark-program-messages-read";
 import { messageProgramAction } from "@/lib/actions/partners/message-program";
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
@@ -16,13 +17,12 @@ import { ToggleSidePanelButton } from "@/ui/messages/toggle-side-panel-button";
 import { ProgramHelpLinks } from "@/ui/partners/program-help-links";
 import { ProgramRewardsPanel } from "@/ui/partners/program-rewards-panel";
 import { X } from "@/ui/shared/icons";
-import { Button, Grid, useCopyToClipboard, useMediaQuery } from "@dub/ui";
+import { Button, Grid, useCopyToClipboard } from "@dub/ui";
 import {
   Check,
   ChevronLeft,
   Copy,
   EnvelopeArrowRight,
-  LoadingSpinner,
   MsgsDotted,
 } from "@dub/ui/icons";
 import {
@@ -43,13 +43,19 @@ import { v4 as uuid } from "uuid";
 
 export function PartnerMessagesProgramPageClient() {
   const { programSlug } = useParams() as { programSlug: string };
-  const { isMobile } = useMediaQuery();
 
   const { user } = useUser();
   const { partner } = usePartnerProfile();
-  const { programEnrollment, error: errorProgramEnrollment } =
-    useProgramEnrollment();
-  const program = programEnrollment?.program;
+  const {
+    programEnrollment,
+    error: programEnrollmentError,
+    loading: programEnrollmentLoading,
+  } = useProgramEnrollment({
+    swrOpts: {
+      shouldRetryOnError: (err) => err.status !== 404,
+    },
+  });
+  const enrolledProgram = programEnrollment?.program;
 
   const {
     executeAsync: markProgramMessagesRead,
@@ -62,7 +68,6 @@ export function PartnerMessagesProgramPageClient() {
     mutate: mutateProgramMessages,
   } = useProgramMessages({
     query: { programSlug, sortOrder: "asc" },
-    enabled: Boolean(programEnrollment?.program?.messagingEnabledAt),
     swrOpts: {
       onSuccess: async (data) => {
         // Mark unread messages from the program as read
@@ -80,14 +85,25 @@ export function PartnerMessagesProgramPageClient() {
       },
     },
   });
+
+  const program = programMessages?.[0]?.program;
   const messages = programMessages?.[0]?.messages;
 
-  const { executeAsync: sendMessage } = useAction(messageProgramAction);
+  const { executeAsync: sendMessage } = useAction(messageProgramAction, {
+    onError({ error }) {
+      toast.error(parseActionError(error, "Failed to send message"));
+    },
+  });
 
   const { setCurrentPanel } = useMessagesContext();
-  const [isRightPanelOpen, setIsRightPanelOpen] = useState(!isMobile);
+  const [isRightPanelOpen, setIsRightPanelOpen] = useState(true);
 
-  if (errorProgramEnrollment) redirect(`/messages`);
+  // Redirect if no messages and not enrolled, or messages error
+  if (
+    (programEnrollmentError && programMessages?.length === 0) ||
+    errorMessages
+  )
+    redirect(`/messages`);
 
   return (
     <div
@@ -110,7 +126,8 @@ export function PartnerMessagesProgramPageClient() {
               <button
                 type="button"
                 onClick={() => setIsRightPanelOpen((o) => !o)}
-                className="-mx-2 -my-1 flex items-center gap-3 rounded-lg px-2 py-1 transition-colors duration-100 hover:bg-black/5 active:bg-black/10"
+                disabled={!programEnrollment}
+                className="-mx-2 -my-1 flex items-center gap-3 rounded-lg px-2 py-1 transition-colors duration-100 enabled:hover:bg-black/5 enabled:active:bg-black/10"
               >
                 {!program ? (
                   <>
@@ -132,13 +149,19 @@ export function PartnerMessagesProgramPageClient() {
               </button>
             </div>
           </div>
-          <ToggleSidePanelButton
-            isOpen={isRightPanelOpen}
-            onClick={() => setIsRightPanelOpen((o) => !o)}
-          />
+          {programEnrollment ? (
+            <ToggleSidePanelButton
+              isOpen={isRightPanelOpen}
+              onClick={() => setIsRightPanelOpen((o) => !o)}
+            />
+          ) : programEnrollmentError ? (
+            <ViewProgramButton programSlug={programSlug} />
+          ) : null}
         </div>
         {["banned", "rejected"].includes(programEnrollment?.status ?? "") ||
-        programEnrollment?.program?.messagingEnabledAt === null ? (
+        (program?.messagingEnabledAt === null &&
+          messages &&
+          !messages.length) ? (
           <div className="flex size-full flex-col items-center justify-center px-4">
             <MsgsDotted className="size-10 text-neutral-700" />
             <div className="mt-6 max-w-md text-center">
@@ -149,8 +172,11 @@ export function PartnerMessagesProgramPageClient() {
                 You can contact them directly via email.
               </p>
             </div>
-            {program?.supportEmail && (
-              <Link href={`mailto:${program.supportEmail}`} target="_blank">
+            {enrolledProgram?.supportEmail && (
+              <Link
+                href={`mailto:${enrolledProgram.supportEmail}`}
+                target="_blank"
+              >
                 <Button
                   className="mt-4 h-9 rounded-lg px-3"
                   variant="secondary"
@@ -177,25 +203,21 @@ export function PartnerMessagesProgramPageClient() {
                       const result = await sendMessage({
                         programSlug,
                         text: message,
-                        createdAt,
                       });
 
-                      if (!result?.data?.message)
-                        throw new Error(
-                          result?.serverError || "Failed to send message",
-                        );
-
-                      return data
-                        ? [
-                            {
-                              ...data[0],
-                              messages: [
-                                ...data[0].messages,
-                                result.data.message,
-                              ],
-                            },
-                          ]
-                        : [];
+                      if (result?.data?.message) {
+                        return data
+                          ? [
+                              {
+                                ...data[0],
+                                messages: [
+                                  ...data[0].messages,
+                                  result.data.message,
+                                ],
+                              },
+                            ]
+                          : [];
+                      }
                     },
                     {
                       optimisticData: (data) =>
@@ -240,8 +262,8 @@ export function PartnerMessagesProgramPageClient() {
 
                   mutatePrefix("/api/partner-profile/messages");
                 } catch (e) {
-                  console.log("Failed to send message", e);
-                  toast.error("Failed to send message");
+                  console.log(`Failed to send message: ${e}`);
+                  toast.error(`Failed to send message: ${e}`);
                 }
               }}
             />
@@ -263,13 +285,7 @@ export function PartnerMessagesProgramPageClient() {
               Program
             </h2>
             <div className="flex items-center gap-2">
-              <Link href={`/programs/${programSlug}`} target="_blank">
-                <Button
-                  variant="secondary"
-                  text="View program"
-                  className="h-8 rounded-lg px-3"
-                />
-              </Link>
+              <ViewProgramButton programSlug={programSlug} />
               <button
                 type="button"
                 onClick={() => setIsRightPanelOpen(false)}
@@ -280,13 +296,11 @@ export function PartnerMessagesProgramPageClient() {
             </div>
           </div>
           <div className="bg-bg-muted scrollbar-hide flex grow flex-col overflow-y-scroll">
-            {programEnrollment && program ? (
+            {programEnrollmentLoading ? (
+              <ProgramInfoPanelSkeleton />
+            ) : programEnrollment ? (
               <ProgramInfoPanel programEnrollment={programEnrollment} />
-            ) : (
-              <div className="flex size-full items-center justify-center">
-                <LoadingSpinner />
-              </div>
-            )}
+            ) : null}
           </div>
         </div>
       </div>
@@ -425,7 +439,7 @@ function ProgramInfoPanel({
                 </span>
                 {value !== undefined ? (
                   <span className="text-content-emphasis text-sm font-medium">
-                    {currencyFormatter(value / 100)}
+                    {currencyFormatter(value)}
                   </span>
                 ) : (
                   <div className="h-5 w-12 animate-pulse rounded-md bg-neutral-200" />
@@ -457,5 +471,87 @@ function ProgramInfoPanel({
         </div>
       </div>
     </>
+  );
+}
+
+function ProgramInfoPanelSkeleton() {
+  return (
+    <>
+      {/* Program info skeleton */}
+      <div className="border-border-subtle relative shrink-0 overflow-hidden border-b">
+        <div className="absolute inset-y-0 right-0 w-96 [mask-image:radial-gradient(100%_100%_at_100%_0%,black_30%,transparent)]">
+          <Grid cellSize={20} className="text-neutral-200" />
+        </div>
+        <div className="relative flex flex-col gap-4 p-6">
+          <div className="size-10 animate-pulse rounded-full bg-neutral-200" />
+          <div className="flex flex-col gap-2">
+            <div className="h-6 w-32 animate-pulse rounded-md bg-neutral-200" />
+            <div className="h-4 w-40 animate-pulse rounded-md bg-neutral-200" />
+          </div>
+        </div>
+      </div>
+
+      {/* Referral link skeleton */}
+      <div className="pl-6 pr-6 pt-7">
+        <div className="flex items-end justify-between">
+          <div className="h-5 w-24 animate-pulse rounded-md bg-neutral-200" />
+          <div className="h-4 w-16 animate-pulse rounded-md bg-neutral-200" />
+        </div>
+        <div className="relative mt-2">
+          <div className="h-11 w-full animate-pulse rounded-xl bg-neutral-200" />
+        </div>
+      </div>
+
+      {/* Stats skeleton */}
+      <div className="pl-6 pr-6 pt-7">
+        <div className="h-5 w-24 animate-pulse rounded-md bg-neutral-200" />
+        <div className="divide-border-subtle border-border-subtle mt-2 divide-y rounded-xl border">
+          <div className="divide-border-subtle grid grid-cols-3 divide-x">
+            {[...Array(3)].map((_, idx) => (
+              <div key={idx} className="flex flex-col px-3 py-2.5">
+                <div className="h-3 w-12 animate-pulse rounded-md bg-neutral-200" />
+                <div className="mt-1 h-5 w-16 animate-pulse rounded-md bg-neutral-200" />
+              </div>
+            ))}
+          </div>
+          <div className="divide-border-subtle grid grid-cols-2 divide-x">
+            {[...Array(2)].map((_, idx) => (
+              <div key={idx} className="flex flex-col px-3 py-2.5">
+                <div className="h-3 w-16 animate-pulse rounded-md bg-neutral-200" />
+                <div className="mt-1 h-5 w-20 animate-pulse rounded-md bg-neutral-200" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Rewards skeleton */}
+      <div className="pl-6 pr-6 pt-7">
+        <div className="h-5 w-16 animate-pulse rounded-md bg-neutral-200" />
+        <div className="mt-1">
+          <div className="h-20 w-full animate-pulse rounded-lg bg-neutral-200" />
+        </div>
+      </div>
+
+      {/* Help & support skeleton */}
+      <div className="border-border-subtle pl-6 pr-6 pt-7">
+        <div className="h-5 w-32 animate-pulse rounded-md bg-neutral-200" />
+        <div className="mt-1">
+          <div className="h-16 w-full animate-pulse rounded-lg bg-neutral-200" />
+        </div>
+      </div>
+    </>
+  );
+}
+
+function ViewProgramButton({ programSlug }: { programSlug: string }) {
+  return (
+    <Link href={`/programs/${programSlug}`} target="_blank">
+      <Button
+        variant="secondary"
+        text="View program"
+        className="h-8 rounded-lg px-3"
+      />
+    </Link>
   );
 }

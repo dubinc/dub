@@ -1,55 +1,8 @@
 import { EnrolledPartnerProps } from "@/lib/types";
+import { ArrowUpRight2 } from "@dub/ui";
 import { cn, currencyFormatter, nFormatter } from "@dub/utils";
-
-const stats: {
-  label: string;
-  value: (partner: EnrolledPartnerProps) => string;
-}[] = [
-  {
-    label: "Clicks",
-    value: (partner) =>
-      Number.isNaN(partner.totalClicks)
-        ? "-"
-        : nFormatter(partner.totalClicks, { full: true }),
-  },
-  {
-    label: "Leads",
-    value: (partner) =>
-      Number.isNaN(partner.totalLeads)
-        ? "-"
-        : nFormatter(partner.totalLeads, { full: true }),
-  },
-  {
-    label: "Conversions",
-    value: (partner) =>
-      Number.isNaN(partner.totalConversions)
-        ? "-"
-        : nFormatter(partner.totalConversions, { full: true }),
-  },
-  {
-    label: "Revenue",
-    value: (partner) =>
-      Number.isNaN(partner.totalSaleAmount)
-        ? "-"
-        : currencyFormatter((partner.totalSaleAmount ?? 0) / 100, {
-            trailingZeroDisplay: "stripIfInteger",
-          }),
-  },
-  {
-    label: "Commissions",
-    value: (partner) =>
-      Number.isNaN(partner.totalCommissions)
-        ? "-"
-        : currencyFormatter((partner.totalCommissions ?? 0) / 100),
-  },
-  {
-    label: "Net revenue",
-    value: (partner) =>
-      Number.isNaN(partner.netRevenue)
-        ? "-"
-        : currencyFormatter((partner.netRevenue ?? 0) / 100),
-  },
-];
+import Link from "next/link";
+import { useParams } from "next/navigation";
 
 export function PartnerStats({
   partner,
@@ -58,6 +11,7 @@ export function PartnerStats({
   partner?: EnrolledPartnerProps;
   error?: boolean;
 }) {
+  const { slug } = useParams() as { slug: string };
   return (
     <div className="@container/stats">
       <div
@@ -66,10 +20,97 @@ export function PartnerStats({
           "gap-px overflow-hidden rounded-lg border border-neutral-200 bg-neutral-200",
         )}
       >
-        {stats.map(({ label, value: valueFn }) => {
-          const value = partner ? valueFn(partner) : error ? "-" : undefined;
+        {[
+          {
+            label: "Clicks",
+            value: partner
+              ? Number.isNaN(partner.totalClicks)
+                ? "-"
+                : nFormatter(partner.totalClicks, { full: true })
+              : error
+                ? "-"
+                : undefined,
+            href: partner?.id
+              ? `/${slug}/events?event=clicks&partnerId=${partner.id}&interval=1y`
+              : undefined,
+          },
+          {
+            label: "Leads",
+            value: partner
+              ? Number.isNaN(partner.totalLeads)
+                ? "-"
+                : nFormatter(partner.totalLeads, { full: true })
+              : error
+                ? "-"
+                : undefined,
+            href: partner?.id
+              ? `/${slug}/events?event=leads&partnerId=${partner.id}&interval=1y`
+              : undefined,
+          },
+          {
+            label: "Conversions",
+            value: partner
+              ? Number.isNaN(partner.totalConversions)
+                ? "-"
+                : nFormatter(partner.totalConversions, { full: true })
+              : error
+                ? "-"
+                : undefined,
+            href: partner?.id
+              ? `/${slug}/events?event=sales&partnerId=${partner.id}&interval=1y`
+              : undefined,
+          },
+          {
+            label: "Revenue",
+            value: partner
+              ? Number.isNaN(partner.totalSaleAmount)
+                ? "-"
+                : currencyFormatter(partner.totalSaleAmount ?? 0, {
+                    trailingZeroDisplay: "stripIfInteger",
+                  })
+              : error
+                ? "-"
+                : undefined,
+            href: partner?.id
+              ? `/${slug}/events?event=sales&partnerId=${partner.id}&interval=1y`
+              : undefined,
+          },
+          {
+            label: "Commissions",
+            value: partner
+              ? Number.isNaN(partner.totalCommissions)
+                ? "-"
+                : currencyFormatter(partner.totalCommissions ?? 0)
+              : error
+                ? "-"
+                : undefined,
+            href: partner?.id
+              ? `/${slug}/program/commissions?partnerId=${partner.id}`
+              : undefined,
+          },
+          {
+            label: "Net revenue",
+            value: partner
+              ? Number.isNaN(partner.netRevenue)
+                ? "-"
+                : currencyFormatter(partner.netRevenue ?? 0)
+              : error
+                ? "-"
+                : undefined,
+            href: partner?.id
+              ? `/${slug}/events?event=sales&partnerId=${partner.id}&interval=1y`
+              : undefined,
+          },
+        ].map(({ label, value, href }) => {
+          const As = href ? Link : "div";
           return (
-            <div key={label} className="flex flex-col bg-white p-3">
+            <As
+              key={label}
+              href={href ?? "#"}
+              target="_blank"
+              className="group relative flex flex-col bg-white p-3 transition-colors duration-150 hover:bg-neutral-50"
+            >
+              <ArrowUpRight2 className="text-content-subtle absolute right-3 top-3 size-3.5 opacity-50 transition-opacity duration-150 group-hover:opacity-100" />
               <span className="text-xs text-neutral-500">{label}</span>
               {value === undefined ? (
                 <div className="h-5 w-16 animate-pulse rounded-md bg-neutral-200" />
@@ -78,7 +119,7 @@ export function PartnerStats({
                   {value}
                 </span>
               )}
-            </div>
+            </As>
           );
         })}
       </div>

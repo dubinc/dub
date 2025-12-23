@@ -49,6 +49,7 @@ export const RESERVED_SLUGS = [
   "webhooks",
   "upgrade",
   "wrapped",
+  "rewind",
   "invoices",
   "onboarding",
   "program",
@@ -58,4 +59,9 @@ export const RESERVED_SLUGS = [
   "commissions",
   "sales",
   "resources",
+  "campaigns",
+  "messages",
+  "network",
+  "marketplace",
+  "fraud",
 ];

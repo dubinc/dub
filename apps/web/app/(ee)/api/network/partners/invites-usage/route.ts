@@ -14,6 +14,6 @@ export const GET = withWorkspace(
     });
   },
   {
-    requiredPlan: ["enterprise"],
+    requiredPlan: ["enterprise", "advanced"],
   },
 );

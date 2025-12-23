@@ -1,8 +1,9 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CustomerProps } from "@/lib/types";
 import { createCustomerBodySchema } from "@/lib/zod/schemas/customers";
+import { CountryCombobox } from "@/ui/partners/country-combobox";
 import { Button, Modal, useMediaQuery } from "@dub/ui";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
@@ -12,14 +13,16 @@ interface AddCustomerModalProps {
   showModal: boolean;
   setShowModal: (showModal: boolean) => void;
   onSuccess?: (customer: CustomerProps) => void;
+  initialName?: string;
 }
 
 type FormData = z.infer<typeof createCustomerBodySchema>;
 
-const AddCustomerModal = ({
+export const AddCustomerModal = ({
   showModal,
   setShowModal,
   onSuccess,
+  initialName,
 }: AddCustomerModalProps) => {
   const { id: workspaceId } = useWorkspace();
   const { isMobile } = useMediaQuery();
@@ -28,15 +31,34 @@ const AddCustomerModal = ({
     register,
     handleSubmit,
     watch,
-    formState: { isSubmitting },
+    reset,
+    setValue,
+    formState: { isSubmitting, errors },
   } = useForm<FormData>({
     defaultValues: {
       name: null,
       email: null,
       externalId: "",
       stripeCustomerId: null,
+      country: "US",
     },
   });
+
+  const prevShowModal = useRef(showModal);
+
+  useEffect(() => {
+    // Only reset when the modal opens (transitions from false to true)
+    if (showModal && !prevShowModal.current) {
+      reset({
+        name: initialName || null,
+        email: null,
+        externalId: "",
+        stripeCustomerId: null,
+        country: "US",
+      });
+    }
+    prevShowModal.current = showModal;
+  }, [showModal, initialName, reset]);
 
   const onSubmit = async (data: FormData) => {
     try {
@@ -69,6 +91,7 @@ const AddCustomerModal = ({
   };
 
   const externalId = watch("externalId");
+  const country = watch("country");
 
   return (
     <Modal showModal={showModal} setShowModal={setShowModal}>
@@ -150,6 +173,24 @@ const AddCustomerModal = ({
                 The customer's Stripe customer ID (optional)
               </p>
             </div>
+
+            <div>
+              <label className="text-sm font-normal text-neutral-500">
+                Country (Required)
+              </label>
+              <CountryCombobox
+                value={country || "US"}
+                onChange={(value) =>
+                  setValue("country", value, { shouldValidate: true })
+                }
+                error={!!errors.country}
+                className="mt-2"
+              />
+              <input
+                type="hidden"
+                {...register("country", { required: true })}
+              />
+            </div>
           </div>
 
           <div className="flex items-center justify-end border-t border-neutral-200 px-4 py-4 sm:px-6">
@@ -167,7 +208,7 @@ const AddCustomerModal = ({
                 text="Create customer"
                 className="h-9 w-fit"
                 loading={isSubmitting}
-                disabled={!externalId}
+                disabled={!externalId || !country}
               />
             </div>
           </div>
@@ -183,22 +224,37 @@ export function useAddCustomerModal({
   onSuccess?: (customer: CustomerProps) => void;
 } = {}) {
   const [showAddCustomerModal, setShowAddCustomerModal] = useState(false);
+  const [initialName, setInitialName] = useState<string | undefined>();
 
   const AddCustomerModalCallback = useCallback(() => {
     return (
       <AddCustomerModal
         showModal={showAddCustomerModal}
-        setShowModal={setShowAddCustomerModal}
+        setShowModal={(show) => {
+          setShowAddCustomerModal(show);
+          if (!show) {
+            setInitialName(undefined);
+          }
+        }}
         onSuccess={onSuccess}
+        initialName={initialName}
       />
     );
-  }, [showAddCustomerModal, setShowAddCustomerModal]);
+  }, [showAddCustomerModal, initialName, onSuccess]);
+
+  const setShowAddCustomerModalWithName = useCallback(
+    (show: boolean, name?: string) => {
+      setShowAddCustomerModal(show);
+      setInitialName(name);
+    },
+    [],
+  );
 
   return useMemo(
     () => ({
-      setShowAddCustomerModal,
+      setShowAddCustomerModal: setShowAddCustomerModalWithName,
       AddCustomerModal: AddCustomerModalCallback,
     }),
-    [setShowAddCustomerModal, AddCustomerModalCallback],
+    [setShowAddCustomerModalWithName, AddCustomerModalCallback],
   );
 }

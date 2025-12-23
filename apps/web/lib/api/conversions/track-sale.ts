@@ -1,6 +1,7 @@
 import { convertCurrency } from "@/lib/analytics/convert-currency";
 import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { DubApiError } from "@/lib/api/errors";
+import { detectAndRecordFraudEvent } from "@/lib/api/fraud/detect-record-fraud-event";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { generateRandomName } from "@/lib/names";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
@@ -12,12 +13,7 @@ import {
   recordSale,
 } from "@/lib/tinybird";
 import { logConversionEvent } from "@/lib/tinybird/log-conversion-events";
-import {
-  ClickEventTB,
-  LeadEventTB,
-  WebhookPartner,
-  WorkspaceProps,
-} from "@/lib/types";
+import { LeadEventTB, WorkspaceProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {
@@ -30,7 +26,7 @@ import {
 } from "@/lib/zod/schemas/sales";
 import { prisma } from "@dub/prisma";
 import { Customer, WorkflowTrigger } from "@dub/prisma/client";
-import { nanoid, R2_URL } from "@dub/utils";
+import { nanoid, pick, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
 import { createId } from "../create-id";
@@ -59,25 +55,15 @@ export const trackSale = async ({
 }: TrackSaleParams) => {
   let existingCustomer: Customer | null = null;
   let newCustomer: Customer | null = null;
-  let clickData: ClickEventTB | null = null;
   let leadEventData: LeadEventTB | null = null;
 
   // Return idempotent response if invoiceId is already processed
   if (invoiceId) {
-    // TODO: remove oldKeyValue stuff after 7 days (on Sep 18)
-    const [newKeyValue, oldKeyValue] = await redis.mget([
+    const cachedResponse = await redis.get(
       `trackSale:${workspace.id}:invoiceId:${invoiceId}`,
-      `dub_sale_events:invoiceId:${invoiceId}`,
-    ]);
-
-    if (newKeyValue) {
-      return newKeyValue;
-    } else if (oldKeyValue) {
-      return {
-        eventName,
-        customer: null,
-        sale: null,
-      };
+    );
+    if (cachedResponse) {
+      return cachedResponse;
     }
   }
 
@@ -125,9 +111,15 @@ export const trackSale = async ({
         });
       }
 
-      leadEventData = cachedLeadEvent;
+      leadEventData = {
+        ...cachedLeadEvent,
+        workspace_id: cachedLeadEvent.workspace_id || workspace.id, // in case for some reason the lead event doesn't have workspace_id
+      };
     } else {
-      leadEventData = leadEvent.data[0];
+      leadEventData = {
+        ...leadEvent.data[0],
+        workspace_id: leadEvent.data[0].workspace_id || workspace.id, // in case for some reason the lead event doesn't have workspace_id
+      };
     }
   }
 
@@ -151,31 +143,9 @@ export const trackSale = async ({
     }
 
     // Find the click event for the given clickId
-    const clickEvent = await getClickEvent({
+    const clickData = await getClickEvent({
       clickId,
     });
-
-    if (clickEvent && clickEvent.data && clickEvent.data.length > 0) {
-      clickData = clickEvent.data[0];
-    }
-
-    // If there is no click data in Tinybird yet, check the clickIdCache
-    if (!clickData) {
-      const cachedClickData = await redis.get<ClickEventTB>(
-        `clickIdCache:${clickId}`,
-      );
-
-      if (cachedClickData) {
-        clickData = {
-          ...cachedClickData,
-          timestamp: cachedClickData.timestamp
-            .replace("T", " ")
-            .replace("Z", ""),
-          qr: cachedClickData.qr ? 1 : 0,
-          bot: cachedClickData.bot ? 1 : 0,
-        };
-      }
-    }
 
     if (!clickData) {
       throw new DubApiError({
@@ -192,6 +162,7 @@ export const trackSale = async ({
       select: {
         id: true,
         projectId: true,
+        disabledAt: true,
       },
     });
 
@@ -205,7 +176,14 @@ export const trackSale = async ({
     if (link.projectId !== workspace.id) {
       throw new DubApiError({
         code: "not_found",
-        message: `Link for clickId ${clickData.click_id} does not belong to the workspace`,
+        message: `Link ${link.id} for clickId ${clickData.click_id} does not belong to the workspace`,
+      });
+    }
+
+    if (link.disabledAt) {
+      throw new DubApiError({
+        code: "not_found",
+        message: `Link ${link.id} for clickId ${clickData.click_id} is disabled, sale not tracked`,
       });
     }
 
@@ -236,14 +214,25 @@ export const trackSale = async ({
     if (customerAvatar && !isStored(customerAvatar) && finalCustomerAvatar) {
       // persist customer avatar to R2 if it's not already stored
       waitUntil(
-        storage.upload(
-          finalCustomerAvatar.replace(`${R2_URL}/`, ""),
-          customerAvatar,
-          {
-            width: 128,
-            height: 128,
-          },
-        ),
+        storage
+          .upload({
+            key: finalCustomerAvatar.replace(`${R2_URL}/`, ""),
+            body: customerAvatar,
+            opts: {
+              width: 128,
+              height: 128,
+            },
+          })
+          .catch(async (error) => {
+            console.error("Error persisting customer avatar to R2", error);
+            // if the avatar fails to upload to R2, set the avatar to null in the database
+            if (newCustomer) {
+              await prisma.customer.update({
+                where: { id: newCustomer.id },
+                data: { avatar: null },
+              });
+            }
+          }),
       );
     }
 
@@ -322,7 +311,10 @@ const _trackLead = async ({
     (async () => {
       const [_leadEvent, link, _workspace] = await Promise.all([
         // Record the lead event for the customer
-        recordLead(leadEventData),
+        recordLead({
+          ...leadEventData,
+          workspace_id: leadEventData.workspace_id || workspace.id, // in case for some reason the lead event doesn't have workspace_id
+        }),
 
         // Update link leads count + lastLeadAt date
         prisma.link.update({
@@ -353,20 +345,21 @@ const _trackLead = async ({
 
       // Create partner commission and execute workflows
       if (link.programId && link.partnerId && customer) {
-        await createPartnerCommission({
-          event: "lead",
-          programId: link.programId,
-          partnerId: link.partnerId,
-          linkId: link.id,
-          eventId: leadEventData.event_id,
-          customerId: customer.id,
-          quantity: 1,
-          context: {
-            customer: {
-              country: customer.country,
+        const { webhookPartner, programEnrollment } =
+          await createPartnerCommission({
+            event: "lead",
+            programId: link.programId,
+            partnerId: link.partnerId,
+            linkId: link.id,
+            eventId: leadEventData.event_id,
+            customerId: customer.id,
+            quantity: 1,
+            context: {
+              customer: {
+                country: customer.country,
+              },
             },
-          },
-        });
+          });
 
         await Promise.allSettled([
           executeWorkflows({
@@ -379,11 +372,23 @@ const _trackLead = async ({
               },
             },
           }),
+
           syncPartnerLinksStats({
             partnerId: link.partnerId,
             programId: link.programId,
             eventType: "lead",
           }),
+
+          webhookPartner &&
+            detectAndRecordFraudEvent({
+              program: { id: link.programId },
+              partner: pick(webhookPartner, ["id", "email", "name"]),
+              programEnrollment: pick(programEnrollment, ["status"]),
+              customer: pick(customer, ["id", "email", "name"]),
+              link: pick(link, ["id"]),
+              click: pick(leadEventData, ["url", "referer"]),
+              event: { id: leadEventData.event_id },
+            }),
         ]);
       }
 
@@ -426,6 +431,24 @@ const _trackSale = async ({
     });
   }
 
+  // Skip if amount is 0 or less
+  if (amount <= 0) {
+    waitUntil(
+      logConversionEvent({
+        workspace_id: workspace.id,
+        path: "/track/sale",
+        body: JSON.stringify(rawBody),
+        error: `Sale amount is ${amount}, skipping...`,
+      }),
+    );
+
+    return {
+      eventName,
+      customer: null,
+      sale: null,
+    };
+  }
+
   // if currency is not USD, convert it to USD based on the current FX rate
   // TODO: allow custom "defaultCurrency" on workspace table in the future
   if (currency !== "usd") {
@@ -441,6 +464,7 @@ const _trackSale = async ({
 
   const saleData = {
     ...leadEventData,
+    workspace_id: leadEventData.workspace_id || workspace.id, // in case for some reason the lead event doesn't have workspace_id
     event_id: nanoid(16),
     event_name: eventName,
     customer_id: customer.id,
@@ -497,21 +521,6 @@ const _trackSale = async ({
           },
         }),
 
-        // Update customer sales count
-        prisma.customer.update({
-          where: {
-            id: customer.id,
-          },
-          data: {
-            sales: {
-              increment: 1,
-            },
-            saleAmount: {
-              increment: amount,
-            },
-          },
-        }),
-
         // Log conversion event
         logConversionEvent({
           workspace_id: workspace.id,
@@ -521,10 +530,13 @@ const _trackSale = async ({
         }),
       ]);
 
-      let webhookPartner: WebhookPartner | undefined;
+      let createdCommission:
+        | Awaited<ReturnType<typeof createPartnerCommission>>
+        | undefined = undefined;
+
       // Create partner commission and execute workflows
       if (link.programId && link.partnerId) {
-        const createdCommission = await createPartnerCommission({
+        createdCommission = await createPartnerCommission({
           event: "sale",
           programId: link.programId,
           partnerId: link.partnerId,
@@ -546,7 +558,7 @@ const _trackSale = async ({
           },
         });
 
-        webhookPartner = createdCommission?.webhookPartner;
+        const { webhookPartner, programEnrollment } = createdCommission;
 
         await Promise.allSettled([
           executeWorkflows({
@@ -560,11 +572,23 @@ const _trackSale = async ({
               },
             },
           }),
+
           syncPartnerLinksStats({
             partnerId: link.partnerId,
             programId: link.programId,
             eventType: "sale",
           }),
+
+          webhookPartner &&
+            detectAndRecordFraudEvent({
+              program: { id: link.programId },
+              partner: pick(webhookPartner, ["id", "email", "name"]),
+              programEnrollment: pick(programEnrollment, ["status"]),
+              customer: pick(customer, ["id", "email", "name"]),
+              link: pick(link, ["id"]),
+              click: pick(saleData, ["url", "referer"]),
+              event: { id: saleData.event_id },
+            }),
         ]);
       }
 
@@ -574,7 +598,7 @@ const _trackSale = async ({
         clickedAt: customer.clickedAt || customer.createdAt,
         link,
         customer,
-        partner: webhookPartner,
+        partner: createdCommission?.webhookPartner,
         metadata,
       });
 
@@ -582,6 +606,27 @@ const _trackSale = async ({
         trigger: "sale.created",
         data: webhookPayload,
         workspace,
+      });
+
+      // Update customer stats + program/partner associations
+      await prisma.customer.update({
+        where: {
+          id: customer.id,
+        },
+        data: {
+          ...(link.programId && {
+            programId: link.programId,
+          }),
+          ...(link.partnerId && {
+            partnerId: link.partnerId,
+          }),
+          sales: {
+            increment: 1,
+          },
+          saleAmount: {
+            increment: amount,
+          },
+        },
       });
     })(),
   );

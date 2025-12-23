@@ -78,13 +78,13 @@ export const getFinalUrl = (
 
   // for Google Play Store links
   if (isGooglePlayStoreUrl(url)) {
-    const { shortLink } = parse(req);
+    const { shortLink, searchParamsString } = parse(req);
     const existingReferrer = urlObj.searchParams.get("referrer");
 
     const referrerSearchParam = new URLSearchParams(
       existingReferrer ? decodeURIComponent(existingReferrer) : "",
     );
-    referrerSearchParam.set("deepLink", shortLink);
+    referrerSearchParam.set("deepLink", `${shortLink}${searchParamsString}`);
     urlObj.searchParams.set("referrer", referrerSearchParam.toString());
   }
 
@@ -107,46 +107,6 @@ export const getFinalUrl = (
   // remove skip_deeplink_preview param from the final url (only used for internal redirection behavior)
   if (urlObj.searchParams.get("skip_deeplink_preview") === "1") {
     urlObj.searchParams.delete("skip_deeplink_preview");
-  }
-
-  return urlObj.toString();
-};
-
-// Only add query params to the final URL if they are in this list
-const allowedQueryParams = [
-  "utm_source",
-  "utm_medium",
-  "utm_campaign",
-  "utm_term",
-  "utm_content",
-  "ref",
-];
-
-// Get final cleaned url for storing in TB
-export const getFinalUrlForRecordClick = ({
-  req,
-  url,
-}: {
-  req: Request;
-  url: string;
-}) => {
-  const searchParams = new URL(req.url).searchParams;
-
-  // if there is a redirection url set, then use it instead of the target url
-  const redirectionUrl = getUrlFromStringIfValid(
-    searchParams.get(REDIRECTION_QUERY_PARAM) ?? "",
-  );
-
-  // get the query params of the target url
-  const urlObj = redirectionUrl ? new URL(redirectionUrl) : new URL(url);
-
-  // Filter out query params that are not in the allowed list
-  if (searchParams.size > 0) {
-    for (const [key, value] of searchParams) {
-      if (allowedQueryParams.includes(key)) {
-        urlObj.searchParams.set(key, value);
-      }
-    }
   }
 
   return urlObj.toString();

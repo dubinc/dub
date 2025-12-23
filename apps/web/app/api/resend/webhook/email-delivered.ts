@@ -2,11 +2,9 @@ import { prisma } from "@dub/prisma";
 
 export async function emailDelivered({
   email_id: emailId,
-  subject,
   tags,
 }: {
   email_id: string;
-  subject?: string;
   tags?: Record<string, string>;
 }) {
   if (tags?.type !== "notification-email") {
@@ -33,7 +31,7 @@ export async function emailDelivered({
     return;
   }
 
-  await prisma.notificationEmail.update({
+  const res = await prisma.notificationEmail.update({
     where: {
       emailId,
     },
@@ -41,4 +39,8 @@ export async function emailDelivered({
       deliveredAt: new Date(),
     },
   });
+
+  console.log(
+    `Updated notification email ${res.id} with Resend email id ${emailId} to deliveredAt: ${res.deliveredAt}`,
+  );
 }

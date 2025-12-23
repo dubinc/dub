@@ -11,11 +11,13 @@ import { usePartnerEarningsTimeseries } from "@/lib/swr/use-partner-earnings-tim
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { HeroBackground } from "@/ui/partners/hero-background";
+import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { ProgramRewardList } from "@/ui/partners/program-reward-list";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import {
   Button,
   buttonVariants,
+  StatusBadge,
   useCopyToClipboard,
   useRouterStuff,
 } from "@dub/ui";
@@ -26,10 +28,18 @@ import {
   TimeSeriesChart,
   XAxis,
 } from "@dub/ui/charts";
-import { Check, Copy, LoadingSpinner } from "@dub/ui/icons";
+import {
+  Check,
+  Copy,
+  CursorRays,
+  InvoiceDollar,
+  LoadingSpinner,
+  UserPlus,
+} from "@dub/ui/icons";
 import { cn, currencyFormatter, getPrettyUrl, nFormatter } from "@dub/utils";
 import NumberFlow, { NumberFlowGroup } from "@number-flow/react";
 import { LinearGradient } from "@visx/gradient";
+import { endOfDay, startOfDay } from "date-fns";
 import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -61,7 +71,7 @@ export default function ProgramPageClient() {
     false,
   );
 
-  const { programEnrollment } = useProgramEnrollment();
+  const { programEnrollment, showDetailedAnalytics } = useProgramEnrollment();
   const [copied, copyToClipboard] = useCopyToClipboard();
 
   const {
@@ -86,6 +96,8 @@ export default function ProgramPageClient() {
     link: defaultProgramLink,
   });
 
+  const isDeactivated = programEnrollment?.status === "deactivated";
+
   return (
     <PageWidthWrapper className="pb-10">
       {partnerLink && (
@@ -103,11 +115,16 @@ export default function ProgramPageClient() {
               }}
               className="overflow-hidden"
             >
-              <div className="relative z-0 mb-4 flex flex-col overflow-hidden rounded-lg border border-neutral-300 p-4 sm:mb-10 md:p-6">
+              <div
+                className={cn(
+                  "relative z-0 mb-4 flex flex-col overflow-hidden rounded-lg border border-neutral-300 p-4 sm:mb-10 md:p-6",
+                  isDeactivated && "opacity-80",
+                )}
+              >
                 {program && (
                   <HeroBackground
-                    logo={program.logo}
-                    color={program.brandColor}
+                    logo={programEnrollment.group?.logo}
+                    color={programEnrollment.group?.brandColor}
                   />
                 )}
 
@@ -120,40 +137,60 @@ export default function ProgramPageClient() {
                       type="text"
                       readOnly
                       value={getPrettyUrl(partnerLink)}
-                      className="border-border-default text-content-default focus:border-border-emphasis bg-bg-default h-10 min-w-0 shrink grow rounded-md border px-3 text-sm focus:outline-none focus:ring-neutral-500"
+                      disabled={isDeactivated}
+                      className={cn(
+                        "border-border-default text-content-default focus:border-border-emphasis bg-bg-default h-10 min-w-0 shrink grow rounded-md border px-3 text-sm focus:outline-none focus:ring-neutral-500",
+                        isDeactivated && "text-content-subtle cursor-default",
+                      )}
                     />
                   ) : (
                     <div className="h-10 w-16 animate-pulse rounded-md bg-neutral-200 lg:w-72" />
                   )}
-                  <Button
-                    icon={
-                      <div className="relative size-4">
-                        <div
-                          className={cn(
-                            "absolute inset-0 transition-[transform,opacity]",
-                            copied && "translate-y-1 opacity-0",
-                          )}
-                        >
-                          <Copy className="size-4" />
-                        </div>
-                        <div
-                          className={cn(
-                            "absolute inset-0 transition-[transform,opacity]",
-                            !copied && "translate-y-1 opacity-0",
-                          )}
-                        >
-                          <Check className="size-4" />
-                        </div>
-                      </div>
-                    }
-                    text={copied ? "Copied link" : "Copy link"}
-                    className="xs:w-fit"
-                    onClick={() => {
-                      if (partnerLink) {
-                        copyToClipboard(partnerLink);
-                      }
-                    }}
-                  />
+                  {isDeactivated
+                    ? (() => {
+                        const deactivatedBadge =
+                          PartnerStatusBadges.deactivated;
+                        return (
+                          <StatusBadge
+                            variant={deactivatedBadge.variant}
+                            icon={deactivatedBadge.icon}
+                            className="xs:w-fit absolute right-4 top-1/2 -translate-y-1/2 px-1.5 py-0.5"
+                          >
+                            {deactivatedBadge.label}
+                          </StatusBadge>
+                        );
+                      })()
+                    : !isDeactivated && (
+                        <Button
+                          icon={
+                            <div className="relative size-4">
+                              <div
+                                className={cn(
+                                  "absolute inset-0 transition-[transform,opacity]",
+                                  copied && "translate-y-1 opacity-0",
+                                )}
+                              >
+                                <Copy className="size-4" />
+                              </div>
+                              <div
+                                className={cn(
+                                  "absolute inset-0 transition-[transform,opacity]",
+                                  !copied && "translate-y-1 opacity-0",
+                                )}
+                              >
+                                <Check className="size-4" />
+                              </div>
+                            </div>
+                          }
+                          text={copied ? "Copied link" : "Copy link"}
+                          className="xs:w-fit"
+                          onClick={() => {
+                            if (partnerLink) {
+                              copyToClipboard(partnerLink);
+                            }
+                          }}
+                        />
+                      )}
                 </div>
 
                 {programEnrollment.group?.linkStructure === "query" && (
@@ -186,10 +223,10 @@ export default function ProgramPageClient() {
       )}
       <ProgramOverviewContext.Provider
         value={{
-          start: start ? new Date(start) : undefined,
-          end: end ? new Date(end) : undefined,
+          start: start ? startOfDay(new Date(start)) : undefined,
+          end: end ? endOfDay(new Date(end)) : undefined,
           interval,
-          color: program?.brandColor ?? undefined,
+          color: programEnrollment.group?.brandColor ?? undefined,
         }}
       >
         <ChartTooltipSync>
@@ -200,9 +237,19 @@ export default function ProgramPageClient() {
 
             <PayoutsCard programId={program?.id} />
             <NumberFlowGroup>
-              <StatCard title="Clicks" event="clicks" />
-              <StatCard title="Leads" event="leads" />
-              <StatCard title="Sales" event="sales" />
+              {showDetailedAnalytics ? (
+                <>
+                  <StatCard title="Clicks" event="clicks" />
+                  <StatCard title="Leads" event="leads" />
+                  <StatCard title="Sales" event="sales" />
+                </>
+              ) : (
+                <>
+                  <StatCardSimple title="Clicks" event="clicks" />
+                  <StatCardSimple title="Leads" event="leads" />
+                  <StatCardSimple title="Sales" event="sales" />
+                </>
+              )}
             </NumberFlowGroup>
           </div>
         </ChartTooltipSync>
@@ -241,16 +288,34 @@ function EarningsChart() {
     end,
   });
 
+  const { data: analyticsData } = usePartnerAnalytics({
+    event: "composite",
+    groupBy: "count",
+    interval,
+    start,
+    end,
+  });
+
   const total = useMemo(
     () => timeseries?.reduce((acc, { earnings }) => acc + earnings, 0),
     [timeseries],
   );
 
+  const totalClicks = useMemo(
+    () => analyticsData?.clicks ?? 0,
+    [analyticsData],
+  );
+
+  const epc = useMemo(() => {
+    if (!total || !totalClicks || totalClicks === 0) return 0;
+    return total / totalClicks;
+  }, [total, totalClicks]);
+
   const data = useMemo(
     () =>
       timeseries?.map(({ start, earnings }) => ({
         date: new Date(start),
-        value: earnings / 100,
+        value: earnings,
       })),
     [timeseries],
   );
@@ -258,25 +323,42 @@ function EarningsChart() {
   return (
     <div>
       <div className="flex flex-col-reverse items-start justify-between gap-4 md:flex-row">
-        <div>
-          <span className="block text-base font-semibold leading-none text-neutral-800">
-            Earnings
-          </span>
-          <div className="mt-1">
-            {total !== undefined ? (
-              <NumberFlow
-                className="text-lg font-medium leading-none text-neutral-600"
-                value={total / 100}
-                format={{
-                  style: "currency",
-                  currency: "USD",
-                  // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
-                  trailingZeroDisplay: "stripIfInteger",
-                }}
-              />
-            ) : (
-              <div className="h-[27px] w-24 animate-pulse rounded-md bg-neutral-200" />
-            )}
+        <div className="flex items-center gap-6">
+          <div>
+            <span className="block text-base font-semibold leading-none text-neutral-800">
+              Earnings
+            </span>
+            <div className="mt-1 flex items-center gap-2">
+              {total !== undefined ? (
+                <>
+                  <NumberFlow
+                    className="text-lg font-medium leading-none text-neutral-600"
+                    value={total / 100}
+                    format={{
+                      style: "currency",
+                      currency: "USD",
+                      // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
+                      trailingZeroDisplay: "stripIfInteger",
+                    }}
+                  />
+                  {total > 0 && analyticsData && (
+                    <NumberFlow
+                      className="text-sm font-medium leading-none text-neutral-500/80"
+                      value={epc / 100}
+                      format={{
+                        style: "currency",
+                        currency: "USD",
+                        // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
+                        trailingZeroDisplay: "stripIfInteger",
+                      }}
+                      suffix=" EPC"
+                    />
+                  )}
+                </>
+              ) : (
+                <div className="h-[27px] w-24 animate-pulse rounded-md bg-neutral-200" />
+              )}
+            </div>
           </div>
         </div>
         <div className="flex w-full items-center gap-2 md:w-auto">
@@ -319,20 +401,26 @@ function StatCard({
   const { getQueryString } = useRouterStuff();
   const { start, end, interval } = useContext(ProgramOverviewContext);
 
-  const { data: total } = usePartnerAnalytics({
+  const { data: timeseries, error } = usePartnerAnalytics({
+    groupBy: "timeseries",
     event: "composite",
     interval,
     start,
     end,
   });
 
-  const { data: timeseries, error } = usePartnerAnalytics({
-    groupBy: "timeseries",
-    interval,
-    start,
-    end,
-    event,
-  });
+  const totals = useMemo(() => {
+    return timeseries && timeseries.length > 0
+      ? timeseries.reduce(
+          (acc, { clicks, leads, sales }) => ({
+            clicks: acc.clicks + clicks,
+            leads: acc.leads + leads,
+            sales: acc.sales + sales,
+          }),
+          { clicks: 0, leads: 0, sales: 0 },
+        )
+      : { clicks: 0, leads: 0, sales: 0 };
+  }, [timeseries]);
 
   return (
     <div className="group block rounded-lg border border-neutral-300 bg-white p-5 pb-3">
@@ -341,12 +429,12 @@ function StatCard({
           <span className="mb-1 block text-base font-semibold leading-none text-neutral-800">
             {title}
           </span>
-          {total !== undefined ? (
+          {totals !== undefined ? (
             <div className="flex items-center gap-1 text-lg font-medium text-neutral-600">
               <NumberFlow
-                value={total[event]}
+                value={totals[event]}
                 format={{
-                  notation: total[event] > 999999 ? "compact" : "standard",
+                  notation: totals[event] > 999999 ? "compact" : "standard",
                 }}
               />
             </div>
@@ -377,6 +465,55 @@ function StatCard({
             )}
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+function StatCardSimple({
+  title,
+  event,
+}: {
+  title: string;
+  event: "clicks" | "leads" | "sales";
+}) {
+  const { data: total } = usePartnerAnalytics({
+    event: "composite",
+  });
+
+  const iconMap = {
+    clicks: CursorRays,
+    leads: UserPlus,
+    sales: InvoiceDollar,
+  };
+
+  const Icon = iconMap[event];
+
+  return (
+    <div className="relative block rounded-lg border border-neutral-300 bg-white px-5 py-4">
+      <div className="flex items-center gap-4">
+        <div className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-neutral-100">
+          <Icon className="size-5 text-neutral-700" />
+        </div>
+        <div className="flex min-w-0 flex-1 flex-col">
+          <span className="block text-sm font-medium text-neutral-600">
+            {title}
+          </span>
+          {total !== undefined ? (
+            <NumberFlow
+              className="text-xl font-semibold text-neutral-900"
+              value={total[event]}
+              format={{
+                notation: total[event] > 999999 ? "compact" : "standard",
+              }}
+            />
+          ) : (
+            <div className="mt-0.5 h-7 w-12 animate-pulse rounded-md bg-neutral-200" />
+          )}
+        </div>
+      </div>
+      <div className="absolute right-6 top-4 text-xs text-neutral-400">
+        All-time data
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 "use server";
 
-import { throwIfNoPermission } from "@/lib/auth/partner-user-permissions";
+import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
 import { stripe } from "@/lib/stripe";
 import { createConnectedAccount } from "@/lib/stripe/create-connected-account";
 import { prisma } from "@dub/prisma";
@@ -42,8 +42,6 @@ export const generateStripeAccountLink = authPartnerActionClient.action(
       }
       // create a new account
       const connectedAccount = await createConnectedAccount({
-        name: partner.name,
-        email: partner.email,
         country: partner.country,
         profileType: partner.profileType,
         companyName: partner.companyName,

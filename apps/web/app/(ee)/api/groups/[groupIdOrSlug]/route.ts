@@ -3,11 +3,14 @@ import { isDiscountEquivalent } from "@/lib/api/discounts/is-discount-equivalent
 import { queueDiscountCodeDeletion } from "@/lib/api/discounts/queue-discount-code-deletion";
 import { DubApiError } from "@/lib/api/errors";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
+import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
+import { includeTags } from "@/lib/api/links/include-tags";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
+import { recordLink } from "@/lib/tinybird";
 import { GroupWithProgramSchema } from "@/lib/zod/schemas/group-with-program";
 import {
   DEFAULT_PARTNER_GROUP,
@@ -15,8 +18,8 @@ import {
   updateGroupSchema,
 } from "@/lib/zod/schemas/groups";
 import { prisma } from "@dub/prisma";
+import { DiscountCode } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK, constructURLFromUTMParams } from "@dub/utils";
-import { DiscountCode } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -66,6 +69,10 @@ export const PATCH = withWorkspace(
       linkStructure,
       applicationFormData,
       landerData,
+      holdingPeriodDays,
+      autoApprovePartners,
+      updateAutoApprovePartnersForAllGroups,
+      updateHoldingPeriodDaysForAllGroups,
     } = updateGroupSchema.parse(await parseRequestBody(req));
 
     // Only check slug uniqueness if slug is being updated
@@ -120,28 +127,70 @@ export const PATCH = withWorkspace(
         })
       : null;
 
-    const updatedGroup = await prisma.partnerGroup.update({
-      where: {
-        id: group.id,
-      },
-      data: {
-        name,
-        slug,
-        color,
-        additionalLinks,
-        maxPartnerLinks,
-        linkStructure,
-        utmTemplateId,
-        applicationFormData,
-        landerData,
-      },
-      include: {
-        clickReward: true,
-        leadReward: true,
-        saleReward: true,
-        discount: true,
-      },
-    });
+    const [updatedGroup] = await Promise.all([
+      prisma.partnerGroup.update({
+        where: {
+          id: group.id,
+        },
+        data: {
+          name,
+          slug,
+          color,
+          additionalLinks,
+          maxPartnerLinks,
+          linkStructure,
+          utmTemplateId,
+          applicationFormData,
+          landerData,
+          ...(holdingPeriodDays !== undefined &&
+            !updateHoldingPeriodDaysForAllGroups && {
+              holdingPeriodDays,
+            }),
+          ...(autoApprovePartners !== undefined &&
+            !updateAutoApprovePartnersForAllGroups && {
+              autoApprovePartnersEnabledAt: autoApprovePartners
+                ? new Date()
+                : null,
+            }),
+        },
+        include: {
+          clickReward: true,
+          leadReward: true,
+          saleReward: true,
+          discount: true,
+        },
+      }),
+
+      // Update auto-approve for all groups if selected
+      ...(autoApprovePartners !== undefined &&
+      updateAutoApprovePartnersForAllGroups
+        ? [
+            prisma.partnerGroup.updateMany({
+              where: {
+                programId,
+              },
+              data: {
+                autoApprovePartnersEnabledAt: autoApprovePartners
+                  ? new Date()
+                  : null,
+              },
+            }),
+          ]
+        : []),
+      // Update holding period for all groups if selected
+      ...(holdingPeriodDays !== undefined && updateHoldingPeriodDaysForAllGroups
+        ? [
+            prisma.partnerGroup.updateMany({
+              where: {
+                programId,
+              },
+              data: {
+                holdingPeriodDays,
+              },
+            }),
+          ]
+        : []),
+    ]);
 
     waitUntil(
       (async () => {
@@ -334,42 +383,62 @@ export const DELETE = withWorkspace(
       return true;
     });
 
-    const partnerIds = group.partners.map(({ partnerId }) => partnerId);
-
     if (deletedGroup) {
       waitUntil(
-        Promise.allSettled([
-          partnerIds.length > 0 &&
-            qstash.publishJSON({
-              url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/remap-default-links`,
-              body: {
-                programId,
-                groupId: defaultGroup.id,
-                partnerIds,
-                userId: session.user.id,
-                isGroupDeleted: true,
+        (async () => {
+          const partnerIds = group.partners.map(({ partnerId }) => partnerId);
+
+          // TODO:
+          // This won't work for larger groups
+          // We should split this into multiple batches
+          const partnerLinks = await prisma.link.findMany({
+            where: {
+              programId,
+              partnerId: {
+                in: partnerIds,
               },
+            },
+            include: {
+              ...includeTags,
+              ...includeProgramEnrollment,
+            },
+          });
+
+          await Promise.allSettled([
+            partnerIds.length > 0 &&
+              qstash.publishJSON({
+                url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/remap-default-links`,
+                body: {
+                  programId,
+                  groupId: defaultGroup.id,
+                  partnerIds,
+                  userId: session.user.id,
+                  isGroupDeleted: true,
+                },
+              }),
+
+            ...discountCodesToDelete.map((discountCode) =>
+              queueDiscountCodeDeletion(discountCode.id),
+            ),
+
+            recordAuditLog({
+              workspaceId: workspace.id,
+              programId,
+              action: "group.deleted",
+              description: `Group ${group.name} (${group.id}) deleted`,
+              actor: session.user,
+              targets: [
+                {
+                  type: "group",
+                  id: group.id,
+                  metadata: group,
+                },
+              ],
             }),
 
-          ...discountCodesToDelete.map((discountCode) =>
-            queueDiscountCodeDeletion(discountCode.id),
-          ),
-
-          recordAuditLog({
-            workspaceId: workspace.id,
-            programId,
-            action: "group.deleted",
-            description: `Group ${group.name} (${group.id}) deleted`,
-            actor: session.user,
-            targets: [
-              {
-                type: "group",
-                id: group.id,
-                metadata: group,
-              },
-            ],
-          }),
-        ]),
+            recordLink(partnerLinks),
+          ]);
+        })(),
       );
     }
 

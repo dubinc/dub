@@ -1,7 +1,8 @@
+import { formatUTCDateTimeClickhouse } from "@/lib/analytics/utils/format-utc-datetime-clickhouse";
 import { tb } from "@/lib/tinybird";
-import z from "@/lib/zod";
 import { prisma } from "@dub/prisma";
 import { ACME_PROGRAM_ID } from "@dub/utils";
+import { z } from "zod";
 
 export async function getTopProgramsBySales({
   startDate,
@@ -18,8 +19,8 @@ export async function getTopProgramsBySales({
 
   const response = await pipe({
     eventType: "sales",
-    start: startDate.toISOString().replace("T", " ").replace("Z", ""),
-    end: endDate.toISOString().replace("T", " ").replace("Z", ""),
+    start: formatUTCDateTimeClickhouse(startDate),
+    end: formatUTCDateTimeClickhouse(endDate),
   });
 
   const topProgramsData = response.data as {

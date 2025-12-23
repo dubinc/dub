@@ -12,6 +12,7 @@ import {
   EditColumnsButton,
   LinkLogo,
   Table,
+  TimestampTooltip,
   Tooltip,
   useColumnVisibility,
   usePagination,
@@ -38,8 +39,8 @@ import { useParams } from "next/navigation";
 import { ReactNode, useCallback, useContext, useEffect, useMemo } from "react";
 import useSWR from "swr";
 import { AnalyticsContext } from "../analytics-provider";
-import ContinentIcon from "../continent-icon";
-import DeviceIcon from "../device-icon";
+import { ContinentIcon } from "../continent-icon";
+import { DeviceIcon } from "../device-icon";
 import { TRIGGER_DISPLAY } from "../trigger-display";
 import { EventsContext } from "./events-provider";
 import { EXAMPLE_EVENTS_DATA } from "./example-data";
@@ -74,6 +75,8 @@ const eventColumns = {
       "link",
       "url",
       "customer",
+      "customerName",
+      "customerExternalId",
       "country",
       "city",
       "region",
@@ -85,6 +88,7 @@ const eventColumns = {
       "refererUrl",
       "ip",
       "clickId",
+      "eventId",
       "metadata",
     ],
     defaultVisible: ["timestamp", "event", "link", "customer", "referer"],
@@ -95,6 +99,8 @@ const eventColumns = {
       "saleAmount",
       "event",
       "customer",
+      "customerName",
+      "customerExternalId",
       "link",
       "url",
       "invoiceId",
@@ -109,6 +115,7 @@ const eventColumns = {
       "refererUrl",
       "ip",
       "clickId",
+      "eventId",
       "metadata",
     ],
     defaultVisible: [
@@ -184,21 +191,15 @@ export default function EventsTable({
           enableHiding: false,
           size: 160,
           cell: ({ getValue }) => (
-            <Tooltip
-              content={getValue().toLocaleTimeString("en-US", {
-                year: "numeric",
-                month: "short",
-                day: "numeric",
-                hour: "numeric",
-                minute: "numeric",
-                second: "numeric",
-                hour12: true,
-              })}
+            <TimestampTooltip
+              timestamp={getValue()}
+              side="right"
+              rows={["local", "utc", "unix"]}
             >
-              <div className="w-full truncate">
+              <span className="select-none truncate">
                 {formatDateTimeSmart(getValue())}
-              </div>
-            </Tooltip>
+              </span>
+            </TimestampTooltip>
           ),
         },
         // Sale amount
@@ -210,7 +211,7 @@ export default function EventsTable({
           cell: ({ getValue }) => (
             <div className="flex items-center gap-2">
               <span>
-                {currencyFormatter(getValue() / 100, {
+                {currencyFormatter(getValue(), {
                   trailingZeroDisplay: "stripIfInteger",
                 })}
               </span>
@@ -281,6 +282,47 @@ export default function EventsTable({
             }),
           },
         },
+        {
+          id: "customerName",
+          header: "Customer Name",
+          accessorKey: "customer.name",
+          minSize: 300,
+          size: 300,
+          maxSize: 300,
+          cell: ({ getValue }) =>
+            getValue() ? (
+              <span className="truncate" title={getValue()}>
+                {getValue()}
+              </span>
+            ) : (
+              <span className="text-neutral-400">-</span>
+            ),
+        },
+        ...(partnerPage
+          ? []
+          : [
+              {
+                id: "customerExternalId",
+                header: "Customer External ID",
+                accessorKey: "customer.externalId",
+                minSize: 300,
+                size: 300,
+                maxSize: 300,
+                cell: ({ getValue }) =>
+                  getValue() ? (
+                    <CopyText
+                      value={getValue()}
+                      successMessage="Copied customer external ID to clipboard!"
+                    >
+                      <span className="truncate font-mono" title={getValue()}>
+                        {getValue()}
+                      </span>
+                    </CopyText>
+                  ) : (
+                    <span className="text-neutral-400">-</span>
+                  ),
+              },
+            ]),
         {
           id: "link",
           header: "Link",
@@ -572,12 +614,17 @@ export default function EventsTable({
                 id: "invoiceId",
                 header: "Invoice ID",
                 accessorKey: "sale.invoiceId",
-                maxSize: 200,
+                minSize: 200,
                 cell: ({ getValue }) =>
                   getValue() ? (
-                    <span className="truncate" title={getValue()}>
-                      {getValue()}
-                    </span>
+                    <CopyText
+                      value={getValue()}
+                      successMessage="Copied invoice ID to clipboard!"
+                    >
+                      <span className="truncate font-mono" title={getValue()}>
+                        {getValue()}
+                      </span>
+                    </CopyText>
                   ) : (
                     <span className="text-neutral-400">-</span>
                   ),
@@ -593,6 +640,26 @@ export default function EventsTable({
                     <CopyText
                       value={getValue()}
                       successMessage="Copied click ID to clipboard!"
+                    >
+                      <span className="truncate font-mono" title={getValue()}>
+                        {getValue()}
+                      </span>
+                    </CopyText>
+                  ) : (
+                    <span className="text-neutral-400">-</span>
+                  ),
+              },
+              // Event ID
+              {
+                id: "eventId",
+                header: "Event ID",
+                accessorKey: "eventId",
+                maxSize: 200,
+                cell: ({ getValue }) =>
+                  getValue() ? (
+                    <CopyText
+                      value={getValue()}
+                      successMessage="Copied event ID to clipboard!"
                     >
                       <span className="truncate font-mono" title={getValue()}>
                         {getValue()}

@@ -4,6 +4,7 @@ import useProgram from "@/lib/swr/use-program";
 import LayoutLoader from "@/ui/layout/layout-loader";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { X } from "@/ui/shared/icons";
+import { Invoice } from "@dub/prisma/client";
 import { buttonVariants, CircleCheckFill, Grid, Receipt2 } from "@dub/ui";
 import {
   cn,
@@ -12,7 +13,6 @@ import {
   fetcher,
   pluralize,
 } from "@dub/utils";
-import { Invoice } from "@prisma/client";
 import Confetti from "canvas-confetti";
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
@@ -76,7 +76,7 @@ export function PayoutsSuccessPageClient() {
           )}
           className="border-none"
           learnMoreText="Back to payouts"
-          learnMoreHref={`/${slug}/program/payouts?status=pending&sortBy=amount`}
+          learnMoreHref={`/${slug}/program/payouts?status=pending`}
           learnMoreTarget="_self"
         />
       </div>
@@ -84,7 +84,7 @@ export function PayoutsSuccessPageClient() {
   }
 
   // Convert total from cents to dollars
-  const amountPaid = currencyFormatter(invoice.amount / 100);
+  const amountPaid = currencyFormatter(invoice.amount);
 
   // this can be zero in the beginning, so maybe we can add a loading state for the partner count,
   // while we keep calling mutate() for the invoice SWR above?
@@ -95,7 +95,7 @@ export function PayoutsSuccessPageClient() {
     <div className="rounded-t-[inherit] bg-white">
       <div className="flex justify-end pr-2 pt-2">
         <Link
-          href={`/${slug}/program/payouts?status=pending&sortBy=amount`}
+          href={`/${slug}/program/payouts?status=pending`}
           className={cn(
             "flex size-8 items-center justify-center whitespace-nowrap rounded-lg border p-0 text-base",
             buttonVariants({ variant: "outline" }),

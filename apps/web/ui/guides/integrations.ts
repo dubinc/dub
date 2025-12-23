@@ -9,10 +9,10 @@ import { NextAuth } from "@/ui/guides/icons/next-auth";
 import { React } from "@/ui/guides/icons/react";
 import { Segment } from "@/ui/guides/icons/segment";
 import { Shopify } from "@/ui/guides/icons/shopify";
-import { Stripe } from "@/ui/guides/icons/stripe";
 import { Supabase } from "@/ui/guides/icons/supabase";
 import { Webflow } from "@/ui/guides/icons/webflow";
 import { Wordpress } from "@/ui/guides/icons/wordpress";
+import { StripeIcon } from "@dub/ui/icons";
 
 export type IntegrationType = "client-sdk" | "track-lead" | "track-sale";
 
@@ -29,10 +29,6 @@ export type IntegrationGuide = {
   recommended?: boolean;
   content?: string;
   url: string;
-};
-
-export type IntegrationGuideWithMarkdown = IntegrationGuide & {
-  markdown: string | null;
 };
 
 export const sections: {
@@ -131,6 +127,13 @@ export const guides: IntegrationGuide[] = [
   },
   {
     type: "track-lead",
+    key: "gtm-track-lead",
+    title: "Google Tag Manager",
+    icon: GoogleTagManager,
+    url: "https://dub.co/docs/conversions/leads/google-tag-manager",
+  },
+  {
+    type: "track-lead",
     key: "clerk",
     title: "Clerk",
     icon: Clerk,
@@ -171,13 +174,6 @@ export const guides: IntegrationGuide[] = [
     icon: Appwrite,
     url: "https://dub.co/docs/conversions/leads/appwrite",
   },
-  {
-    type: "track-lead",
-    key: "gtm-track-lead",
-    title: "Google Tag Manager",
-    icon: GoogleTagManager,
-    url: "https://dub.co/docs/conversions/leads/google-tag-manager",
-  },
 
   // Track Sales
   {
@@ -187,7 +183,7 @@ export const guides: IntegrationGuide[] = [
     subtitle: "Checkout",
     recommended: true,
     description: "Stripe Checkout",
-    icon: Stripe,
+    icon: StripeIcon,
     iconProps: {
       fullSize: true,
     },
@@ -199,7 +195,7 @@ export const guides: IntegrationGuide[] = [
     title: "Stripe",
     subtitle: "Payment Links",
     description: "Stripe Payment Links",
-    icon: Stripe,
+    icon: StripeIcon,
     iconProps: {
       fullSize: true,
     },
@@ -211,7 +207,7 @@ export const guides: IntegrationGuide[] = [
     title: "Stripe",
     subtitle: "Customers",
     description: "Stripe Customers",
-    icon: Stripe,
+    icon: StripeIcon,
     iconProps: {
       fullSize: true,
     },

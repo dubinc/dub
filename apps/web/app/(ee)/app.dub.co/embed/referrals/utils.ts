@@ -1,11 +1,11 @@
+import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { referralsEmbedToken } from "@/lib/embed/referrals/token-class";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
-import { sortRewardsByEventOrder } from "@/lib/partners/sort-rewards-by-event-order";
-import { PartnerGroupProps } from "@/lib/types";
+import { PartnerGroupAdditionalLink } from "@/lib/types";
 import { ReferralsEmbedLinkSchema } from "@/lib/zod/schemas/referrals-embed";
 import { prisma } from "@dub/prisma";
-import { Reward } from "@prisma/client";
+import { Reward } from "@dub/prisma/client";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 
@@ -71,11 +71,9 @@ export const getReferralsEmbedData = async (token: string) => {
       email: partner.email,
     },
     links: z.array(ReferralsEmbedLinkSchema).parse(links),
-    rewards: sortRewardsByEventOrder(
-      [clickReward, leadReward, saleReward].filter(
-        (r): r is Reward => r !== null,
-      ),
-    ),
+    rewards: [clickReward, leadReward, saleReward]
+      .filter((r): r is Reward => r !== null)
+      .map((r) => serializeReward(r)),
     discount,
     earnings: {
       upcoming: commissions.reduce((acc, c) => {
@@ -94,9 +92,12 @@ export const getReferralsEmbedData = async (token: string) => {
     },
     group: {
       id: group.id,
-      additionalLinks: group.additionalLinks,
+      logo: group.logo,
+      wordmark: group.wordmark,
+      brandColor: group.brandColor,
+      additionalLinks: group.additionalLinks as PartnerGroupAdditionalLink[],
       maxPartnerLinks: group.maxPartnerLinks,
       linkStructure: group.linkStructure,
-    } as PartnerGroupProps,
+    },
   };
 };

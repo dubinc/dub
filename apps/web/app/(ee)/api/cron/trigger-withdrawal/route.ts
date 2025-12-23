@@ -1,5 +1,5 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
+import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@dub/prisma";
 import { currencyFormatter } from "@dub/utils";
@@ -7,22 +7,24 @@ import { logAndRespond } from "../utils";
 
 export const dynamic = "force-dynamic";
 
-/*
-    This route is used to trigger withdrawal from Stripe (since we're using manual payouts)
-    Runs twice a day at midnight and noon UTC (0 0 * * * and 0 12 * * *)
-*/
-export async function GET(req: Request) {
+// This route is used to trigger withdrawal from Stripe (since we're using manual payouts)
+// Runs twice a day at midnight and noon UTC (0 0 * * * and 0 12 * * *)
+export async function POST(req: Request) {
   try {
-    await verifyVercelSignature(req);
+    const rawBody = await req.text();
 
-    const [stripeBalanceData, toBeSentPayouts] = await Promise.all([
+    await verifyQstashSignature({
+      req,
+      rawBody,
+    });
+
+    const [stripeBalanceData, payoutsToBeSentData] = await Promise.all([
       stripe.balance.retrieve(),
       prisma.payout.aggregate({
         where: {
           status: {
             in: ["processing", "processed"],
           },
-          stripeTransferId: null,
         },
         _sum: {
           amount: true,
@@ -30,40 +32,30 @@ export async function GET(req: Request) {
       }),
     ]);
 
-    const currentAvailableBalance = stripeBalanceData.available[0].amount;
-    const currentPendingBalance = stripeBalanceData.pending[0].amount;
-
-    // if the pending balance is negative, add it to the available balance
-    // this only happens when we have a connected account transfer that hasn't fully settled yet
+    const currentAvailableBalance = stripeBalanceData.available[0].amount; // available to withdraw
+    const currentPendingBalance = stripeBalanceData.pending[0].amount; // balance waiting to settle
     // x-slack-ref: https://dub.slack.com/archives/C074P7LMV9C/p1750185638973479
     const currentNetBalance =
       currentPendingBalance < 0
         ? currentAvailableBalance + currentPendingBalance
         : currentAvailableBalance;
 
+    const payoutsToBeSent = payoutsToBeSentData._sum.amount ?? 0;
+    const reservedBalance = 30_000_00; // keep at least $30,000 in the account
+    const balanceToWithdraw =
+      currentNetBalance - payoutsToBeSent - reservedBalance;
+
     console.log({
-      currentAvailableBalance,
-      currentPendingBalance,
-      currentNetBalance,
-      toBeSentPayouts,
-      stripeBalanceData,
+      currentAvailableBalance: `${currencyFormatter(currentAvailableBalance)}`,
+      currentPendingBalance: `${currencyFormatter(currentPendingBalance)}`,
+      currentNetBalance: `${currencyFormatter(currentNetBalance)}`,
+      payoutsToBeSent: `${currencyFormatter(payoutsToBeSent)}`,
+      balanceToWithdraw: `${currencyFormatter(balanceToWithdraw)}`,
     });
 
-    let reservedBalance = 50000; // keep at least $500 in the account
-
-    const totalToBeSentPayouts = toBeSentPayouts._sum.amount;
-    if (totalToBeSentPayouts) {
-      // add the total payouts that are still to be sent to connected accounts
-      // to the reserved balance (to make sure we have enough balance
-      // to pay out partners when chargeSucceeded webhook is triggered)
-      reservedBalance += totalToBeSentPayouts;
-    }
-
-    const balanceToWithdraw = currentNetBalance - reservedBalance;
-
-    if (balanceToWithdraw <= 10000) {
+    if (balanceToWithdraw <= 0) {
       return logAndRespond(
-        "Balance to withdraw is less than $100, skipping...",
+        `Balance to withdraw (after deducting payouts to be sent and reserved balance) is less than $0, skipping...`,
       );
     }
 
@@ -73,7 +65,7 @@ export async function GET(req: Request) {
     });
 
     return logAndRespond(
-      `Created payout: ${createdPayout.id} (${currencyFormatter(createdPayout.amount / 100, { currency: createdPayout.currency })})`,
+      `Created payout: ${createdPayout.id} (${currencyFormatter(createdPayout.amount)})`,
     );
   } catch (error) {
     return handleAndReturnErrorResponse(error);

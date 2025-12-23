@@ -3,10 +3,10 @@ import { linkCache } from "@/lib/api/links/cache";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { recordLink } from "@/lib/tinybird";
-import z from "@/lib/zod";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { sendDomainTransferredEmail } from "./utils";
 
 const schema = z.object({
@@ -62,6 +62,15 @@ export async function POST(req: Request) {
           },
           data: {
             projectId: newWorkspaceId,
+            // reset all stats and folder
+            clicks: 0,
+            leads: 0,
+            sales: 0,
+            saleAmount: 0,
+            conversions: 0,
+            lastClicked: null,
+            lastLeadAt: null,
+            lastConversionAt: null,
             folderId: null,
           },
         }),
@@ -80,6 +89,10 @@ export async function POST(req: Request) {
           where: { linkId: { in: linkIds } },
         }),
 
+        // set the links with the old workspace ID to be deleted in Tinybird
+        recordLink(links, { deleted: true }),
+
+        // set the links with the new workspace ID to be created in Tinybird
         recordLink(
           links.map((link) => ({
             ...link,

@@ -1,13 +1,16 @@
+import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
 import { LoadingSpinner, useRouterStuff } from "@dub/ui";
 import { FunnelChart } from "@dub/ui/charts";
 import { nFormatter } from "@dub/utils";
 import { useContext, useMemo } from "react";
+import { ExceededEventsLimit } from "../exceeded-events-limit";
 import { ProgramOverviewBlock } from "../program-overview-block";
 
 export function ConversionBlock() {
-  const { slug: workspaceSlug } = useWorkspace();
+  const { slug: workspaceSlug, exceededClicks } = useWorkspace();
+  const { program } = useProgram();
 
   const { getQueryString } = useRouterStuff();
 
@@ -47,7 +50,10 @@ export function ConversionBlock() {
     <ProgramOverviewBlock
       title="Conversion rate"
       viewAllHref={`/${workspaceSlug}/program/analytics${getQueryString(
-        { saleType: "new", view: "funnel" },
+        {
+          // saleType: "new", // TODO: Add this back once we fix sales by type
+          view: "funnel",
+        },
         {
           include: ["interval", "start", "end"],
         },
@@ -56,7 +62,9 @@ export function ConversionBlock() {
       contentClassName="px-0 mt-1"
     >
       <div className="h-full min-h-48">
-        {totalEventsLoading ? (
+        {exceededClicks ? (
+          <ExceededEventsLimit />
+        ) : totalEventsLoading ? (
           <div className="flex size-full items-center justify-center py-4">
             <LoadingSpinner />
           </div>
@@ -64,7 +72,14 @@ export function ConversionBlock() {
           <div className="flex size-full flex-col">
             <div className="px-6">
               <span className="text-content-emphasis block text-xl font-medium">
-                {formatPercentage((steps.at(-1)!.value / maxValue) * 100) + "%"}
+                {formatPercentage(
+                  (steps.at(
+                    // show conversion rate based on program's primary reward event
+                    program?.primaryRewardEvent === "lead" ? 1 : 2,
+                  )!.value /
+                    maxValue) *
+                    100,
+                ) + "%"}
               </span>
             </div>
             <div className="mt-4 grid grid-cols-3">

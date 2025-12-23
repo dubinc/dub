@@ -36,13 +36,14 @@ model Commission {
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
 
-  program          Program           @relation(fields: [programId], references: [id])
-  partner          Partner           @relation(fields: [partnerId], references: [id])
-  payout           Payout?           @relation(fields: [payoutId], references: [id])
-  link             Link?             @relation(fields: [linkId], references: [id])
-  customer         Customer?         @relation(fields: [customerId], references: [id])
-  reward           Reward?           @relation(fields: [rewardId], references: [id])
-  bountySubmission BountySubmission?
+  program           Program           @relation(fields: [programId], references: [id])
+  partner           Partner           @relation(fields: [partnerId], references: [id])
+  programEnrollment ProgramEnrollment @relation(fields: [programId, partnerId], references: [programId, partnerId]) // used in cron/payouts/aggregate-due-commissions
+  payout            Payout?           @relation(fields: [payoutId], references: [id])
+  link              Link?             @relation(fields: [linkId], references: [id])
+  customer          Customer?         @relation(fields: [customerId], references: [id])
+  reward            Reward?           @relation(fields: [rewardId], references: [id])
+  bountySubmission  BountySubmission?
 
   @@unique([invoiceId, programId])
   @@index([earnings, programId, partnerId, status])

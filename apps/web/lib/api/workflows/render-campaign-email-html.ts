@@ -20,7 +20,11 @@ export function renderCampaignEmailHTML({
         levels: [1, 2],
       },
     }),
-    Image,
+    Image.configure({
+      HTMLAttributes: {
+        style: "max-width: 100%; height: auto; margin: 12px auto;",
+      },
+    }),
     Mention.extend({
       renderHTML({ node }: { node: any }) {
         return [
@@ -59,7 +63,7 @@ export function renderCampaignEmailHTML({
     )
     .replace(
       /<li([^>]*)>/g,
-      '<li$1 style="margin-left: 0; padding-left: 4px; margin-top: 0px; margin-bottom: 0px; line-height:1;">',
+      '<li$1 style="margin-left: 0; padding-left: 4px; margin-top: 0px; margin-bottom: 0px;">',
     );
 
   return interpolateEmailTemplate({
@@ -81,10 +85,11 @@ const sanitizeHtmlBody = (body: string) => {
       "h1",
       "h2",
       "img",
+      "br",
     ],
     allowedAttributes: {
       a: ["href", "name", "target", "rel"],
-      img: ["src", "alt", "title"],
+      img: ["src", "alt", "title", "style"],
       ul: ["style"],
       ol: ["style"],
       li: ["style"],

@@ -1,7 +1,9 @@
 import { sqlGranularityMap } from "@/lib/planetscale/granularity";
+import { TZDate } from "@date-fns/tz";
 import { prisma } from "@dub/prisma";
+import { Prisma } from "@dub/prisma/client";
 import { ACME_PROGRAM_ID } from "@dub/utils";
-import { DateTime } from "luxon";
+import { format } from "date-fns";
 
 interface Commission {
   start: string;
@@ -9,11 +11,13 @@ interface Commission {
 }
 
 export async function getCommissionsTimeseries({
+  programId,
   startDate,
   endDate,
   granularity,
   timezone,
 }: {
+  programId?: string;
   startDate: Date;
   endDate: Date;
   granularity: string;
@@ -28,16 +32,18 @@ export async function getCommissionsTimeseries({
           SUM(earnings) AS commissions
         FROM Commission
         WHERE 
-          programId != ${ACME_PROGRAM_ID}
+          ${programId ? Prisma.sql`programId = ${programId}` : Prisma.sql`programId != ${ACME_PROGRAM_ID}`}
           AND createdAt >= ${startDate}
           AND createdAt < ${endDate}
           AND status IN ("pending", "processed", "paid")
         GROUP BY start
         ORDER BY start ASC;`;
 
-  let currentDate = startFunction(
-    DateTime.fromJSDate(startDate).setZone(timezone || "UTC"),
-  );
+  // Convert dates to TZDate with the specified timezone
+  const tzStartDate = new TZDate(startDate, timezone || "UTC");
+  const tzEndDate = new TZDate(endDate, timezone || "UTC");
+
+  let currentDate = startFunction(tzStartDate);
 
   const commissionsLookup = Object.fromEntries(
     commissions.map((item) => [
@@ -50,11 +56,11 @@ export async function getCommissionsTimeseries({
 
   const timeseries: Commission[] = [];
 
-  while (currentDate < endDate) {
-    const periodKey = currentDate.toFormat(formatString);
+  while (currentDate < tzEndDate) {
+    const periodKey = format(currentDate, formatString);
 
     timeseries.push({
-      start: currentDate.toISO(),
+      start: currentDate.toISOString(),
       ...(commissionsLookup[periodKey] || {
         commissions: 0,
       }),

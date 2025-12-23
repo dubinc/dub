@@ -18,47 +18,56 @@ enum PartnerBannedReason {
   brand_abuse
 }
 
-enum PartnerUrlValidationMode {
-  domain // domain match (e.g. if URL is example.com/path, example.com and example.com/another-path are allowed)
-  exact // exact match (e.g. if URL is example.com/path, only example.com/path is allowed)
+enum ProgramPayoutMode {
+  internal // All payouts are handled by Dub
+  hybrid // Partners with payouts enabled are paid by Dub, others via external
+  external // All payouts are processed through external
 }
 
 model Program {
-  id                           String                   @id @default(cuid())
-  workspaceId                  String
-  defaultFolderId              String
-  defaultGroupId               String
-  name                         String
-  slug                         String                   @unique
-  logo                         String?
-  wordmark                     String?
-  brandColor                   String?
-  domain                       String?
-  url                          String?
-  holdingPeriodDays            Int                      @default(0) // number of days to wait before earnings are added to a payout
-  minPayoutAmount              Int                      @default(0) // Default minimum payout amount of $0
-  embedData                    Json?                    @db.Json
-  resources                    Json?                    @db.Json
-  termsUrl                     String?                  @db.Text
-  helpUrl                      String?                  @db.Text
-  supportEmail                 String?
-  ageVerification              Int?
-  autoApprovePartnersEnabledAt DateTime?
-  messagingEnabledAt           DateTime?
-  partnerNetworkEnabledAt      DateTime?
-  createdAt                    DateTime                 @default(now())
-  updatedAt                    DateTime                 @updatedAt
-  startedAt                    DateTime?
+  id                 String            @id @default(cuid())
+  workspaceId        String
+  defaultFolderId    String
+  defaultGroupId     String
+  name               String
+  slug               String            @unique
+  domain             String?           @unique
+  url                String?
+  logo               String?
+  description        String?           @db.Text
+  primaryRewardEvent EventType         @default(sale)
+  minPayoutAmount    Int               @default(0) // Default minimum payout amount of $0
+  payoutMode         ProgramPayoutMode @default(internal)
+
+  inviteEmailData Json?   @db.Json
+  embedData       Json?   @db.Json
+  resources       Json?   @db.Json
+  termsUrl        String? @db.Text
+  helpUrl         String? @db.Text
+  supportEmail    String?
+
+  messagingEnabledAt      DateTime?
+  partnerNetworkEnabledAt DateTime?
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+  startedAt               DateTime?
+
+  addedToMarketplaceAt    DateTime?
+  featuredOnMarketplaceAt DateTime?
+  marketplaceHeaderImage  String?
 
   workspace                Project                   @relation(fields: [workspaceId], references: [id])
+  customDomain             Domain?                   @relation(fields: [domain], references: [slug])
   partners                 ProgramEnrollment[]
   payouts                  Payout[]
   invoices                 Invoice[]
   applications             ProgramApplication[]
   links                    Link[]
+  customers                Customer[]
   commissions              Commission[]
   rewards                  Reward[]
   discounts                Discount[]                @relation("ProgramDiscounts")
+  discountCodes            DiscountCode[]
   groups                   PartnerGroup[]
   partnerGroupDefaultLinks PartnerGroupDefaultLink[]
   bounties                 Bounty[]
@@ -66,13 +75,17 @@ model Program {
   workflows                Workflow[]
   messages                 Message[]
   comments                 PartnerComment[]
-  discountCodes            DiscountCode[]
   campaigns                Campaign[]
+  emailDomains             EmailDomain[]
   discoveredPartners       DiscoveredPartner[]
-  industryInterests        ProgramIndustryInterest[]
+  similarPrograms          ProgramSimilarity[]
+  similarToPrograms        ProgramSimilarity[]       @relation("SimilarProgram")
+  categories               ProgramCategory[]
+  fraudRules               FraudRule[]
+  fraudEventGroups         FraudEventGroup[]
 
   @@index(workspaceId)
-  @@index(domain)
+  @@index(addedToMarketplaceAt)
 }
 
 model ProgramEnrollment {
@@ -96,14 +109,28 @@ model ProgramEnrollment {
   totalSaleAmount  Int @default(0) // total sale amount (in cents)
   totalCommissions Int @default(0) // total commissions earned by the partner (in cents)
 
-  createdAt    DateTime             @default(now())
-  updatedAt    DateTime             @updatedAt
-  bannedAt     DateTime?
-  bannedReason PartnerBannedReason?
+  // calculated stats
+  netRevenue              Int       @default(0) // totalSaleAmount - totalCommissions
+  earningsPerClick        Float     @default(0) // totalSaleAmount / totalClicks
+  averageLifetimeValue    Float? // totalSaleAmount / totalConversions (in cents)
+  clickToLeadRate         Float? // totalLeads / totalClicks
+  clickToConversionRate   Float? // totalConversions / totalClicks
+  leadToConversionRate    Float? // totalConversions / totalLeads
+  returnOnAdSpend         Float? // totalSaleAmount / totalCommissions
+  lastConversionAt        DateTime? // latest conversion from partner's links
+  daysSinceLastConversion Int? // days since lastConversionAt
+  consistencyScore        Int? // based on daysSinceLastConversion
+
+  createdAt                    DateTime             @default(now())
+  updatedAt                    DateTime             @updatedAt
+  customerDataSharingEnabledAt DateTime?
+  bannedAt                     DateTime?
+  bannedReason                 PartnerBannedReason?
 
   partner           Partner             @relation(fields: [partnerId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   program           Program             @relation(fields: [programId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   links             Link[]
+  customers         Customer[]
   partnerGroup      PartnerGroup?       @relation(fields: [groupId], references: [id])
   application       ProgramApplication? @relation(fields: [applicationId], references: [id])
   clickReward       Reward?             @relation("ClickRewardEnrollments", fields: [clickRewardId], references: [id])
@@ -112,11 +139,30 @@ model ProgramEnrollment {
   discount          Discount?           @relation(fields: [discountId], references: [id])
   bountySubmissions BountySubmission[]
   discountCodes     DiscountCode[]
+  commissions       Commission[]
+  payouts           Payout[]
+  messages          Message[]
+  fraudEventGroups  FraudEventGroup[]
 
+  // unique constraints
   @@unique([partnerId, programId])
   @@unique([tenantId, programId])
-  @@index(programId)
-  @@index(groupId)
+  // indexes for sorting partners
+  @@index([programId, status, totalClicks])
+  @@index([programId, status, totalLeads])
+  @@index([programId, status, totalConversions])
+  @@index([programId, status, totalSaleAmount])
+  @@index([programId, status, totalCommissions])
+  @@index([programId, status, netRevenue])
+  @@index([programId, status, earningsPerClick])
+  @@index([programId, status, averageLifetimeValue])
+  @@index([programId, status, clickToLeadRate])
+  @@index([programId, status, clickToConversionRate])
+  @@index([programId, status, leadToConversionRate])
+  @@index([programId, status, returnOnAdSpend])
+  // other indexes
+  @@index([programId, groupId])
+  @@index([groupId, status])
   @@index(clickRewardId)
   @@index(leadRewardId)
   @@index(saleRewardId)
@@ -147,13 +193,4 @@ model ProgramApplication {
   @@index(programId)
   @@index(groupId)
   @@index(email)
-}
-
-model ProgramIndustryInterest {
-  programId        String
-  industryInterest IndustryInterest
-
-  program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
-
-  @@unique([programId, industryInterest])
 }

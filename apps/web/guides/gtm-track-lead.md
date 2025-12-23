@@ -1,120 +1,141 @@
-Configure Google Tag Manager server-side tracking
+Configure Google Tag Manager for lead tracking
 
-To track lead conversion events with Google Tag Manager, you'll need to set up a server container and configure a custom client to handle Dub conversion events.
+The following steps assume that you've already installed the Dub Analytics script through GTM.
 
-## Step 1: Set up GTM Server Container
+## Step 1: Create a GTM Variable to read the dub_id Cookie
 
-In Google Tag Manager, you'll need to use an existing server container or [create a new one](https://youtu.be/waqBSk3vkko). Server containers are the foundation for server-side tracking and allow you to process events before they reach their final destinations.
+To read the `dub_id` cookie that Dub Analytics sets, you'll need to create a new **User-Defined Variable** in Google Tag Manager.
 
-- If you already have a server container set up, you can use that
-- If not, [create a new server container in your GTM workspace](https://developers.google.com/tag-platform/learn/sst-fundamentals/4-sst-setup-container)
+In your GTM workspace, navigate to the **Variables** section and click **New** to create a new variable.
 
-## Step 2: Import Dub GTM Server Client Template
+Configure the variable with the following settings:
 
-Inside your GTM server container, navigate to the **Templates** tab. Under **Client Templates**, click the **New** button.
+- **Variable Type**: Select **1st Party Cookie**
+- **Cookie Name**: `dub_id`
+- **Variable Name**: Name it "Dub ID Cookie"
 
-![GTM New Client Template](https://mintlify.s3.us-west-1.amazonaws.com/dub/images/conversions/google-tag-manager/gtm-new-client-template.png)
+Click **Save** to create the variable.
 
-This will open up the **Template Editor**. In the top right corner, click on the **⋮** button and select **Import**.
+## Step 2: Tracking lead events
 
-![GTM Import Client Template](https://mintlify.s3.us-west-1.amazonaws.com/dub/images/conversions/google-tag-manager/gtm-import-client-template.png)
+There are two ways to track lead events with Google Tag Manager:
 
-Download the [gtm-server-client-template/template.tpl](https://raw.githubusercontent.com/dubinc/gtm-server-client-template/main/template.tpl) file and upload it to the Template Editor. You'll see a preview of the template:
+- Thank You Page Tracking (Recommended)
+- Form Submission Tracking
 
-![GTM Server Client Template](https://mintlify.s3.us-west-1.amazonaws.com/dub/images/conversions/google-tag-manager/gtm-server-client-template.png)
+### Option 1: Thank You Page Tracking (Recommended)
 
-Click the **Save** button in the top right to save the template.
+This method tracks leads when users land on a thank-you or success page after completing a form. This approach is more reliable as it's less likely to be blocked by ad blockers and provides better data accuracy.
 
-## Step 3: Create Dub Server Client
+Create a **Custom HTML** tag with the following code:
 
-Next, you'd want to create a new GTM Server Client using the imported template.
+```html
+<script>
+  (function () {
+    // Get query parameters from URL
+    var params = new URLSearchParams(window.location.search);
+    var email = params.get("email");
+    var name = params.get("name");
 
-In your GTM server container, navigate to the **Clients** tab and click **New**.
+    // Get dub_id from cookie using GTM variable
+    var clickId = {{Dub ID Cookie}} || "";
 
-![GTM New Server Client](https://mintlify.s3.us-west-1.amazonaws.com/dub/images/conversions/google-tag-manager/gtm-new-server-client.png)
+    // Only track the lead event if email and clickId are present
+    if (email && clickId) {
+      dubAnalytics.trackLead({
+        eventName: "Sign Up",
+        customerExternalId: email,
+        customerName: name || email,
+        customerEmail: email,
+        clickId: clickId,
+      });
+    }
+  })();
+</script>
+```
 
-This will open up the client configuration page, where you can choose a client type to begin setup. Under **Custom**, select the **Dub GTM Server Client** template that you created in step 2.
+> **Important**: Make sure to pass along the `email` and `name` query parameters to the thank-you page so that the lead event can be attributed to the correct customer.
 
-![GTM Choose Client Type](https://mintlify.s3.us-west-1.amazonaws.com/dub/images/conversions/google-tag-manager/gtm-choose-client-type.png)
+Configure this tag to fire on specific pages by creating a **Page View** trigger with conditions:
 
-Make sure your client configuration is set to the following:
+- Trigger Type: **Page View**
+- This trigger fires on: **Some Page Views**
+- Add conditions like:
+  - **Page URL** contains `/thank-you`
+  - Or **Page Path** equals `/success`
+  - Or whatever URL pattern matches your thank-you pages
 
-- Client Name: **Dub GTM Server Client**
-- Priority: **0**
-- Request Path: `/dub/track`
-- Debug Logging: (optional)
+Name this tag "Dub Lead Tracking - Thank You Page" and save it.
 
-![GTM Server Client](https://mintlify.s3.us-west-1.amazonaws.com/dub/images/conversions/google-tag-manager/gtm-server-client.png)
+### Option 2: Form Submission Tracking
 
-> Clients in GTM Server are adapters that act as bridges between the software running on a user's device and your server container. They receive requests and transform them into events that can be processed by tags.
+This method tracks leads immediately when users submit forms on your website. Note that this approach may be less reliable due to ad blockers and timing issues.
 
-## Step 4: Import Dub GTM Server Tag Template
+Create a **Custom HTML** tag with the following code:
 
-Next, you'll want to import the Dub GTM Server Tag template to handle lead tracking.
+```html
+<script>
+  (function () {
+    // Get form data - customize these selectors based on your form
+    var name = document.getElementById("name")
+      ? document.getElementById("name").value
+      : "";
+    var email = document.getElementById("email")
+      ? document.getElementById("email").value
+      : "";
 
-In your GTM server container, navigate to the **Templates** tab once again. Under **Tag Templates**, click the **New** button.
+    // Get dub_id from cookie using GTM variable
+    var clickId = {{Dub ID Cookie}} || "";
 
-![GTM New Tag Template](https://mintlify.s3.us-west-1.amazonaws.com/dub/images/conversions/google-tag-manager/gtm-new-tag-template.png)
+    // Only track the lead event if email and clickId are present
+    if (email && clickId) {
+      dubAnalytics.trackLead({
+        eventName: "Sign Up",
+        customerExternalId: email,
+        customerName: name || email,
+        customerEmail: email,
+        clickId: clickId,
+      });
+    }
+  })();
+</script>
+```
 
-This will open up the **Template Editor**. In the top right corner, click on the **⋮** button and select **Import**.
+> **Important**: You'll need to customize the DOM selectors
+> (`getElementById('name')`, `getElementById('email')`) to match your actual
+> form field IDs or use different methods to capture the form data based on your
+> website's structure.
 
-![GTM Import Client Template](https://mintlify.s3.us-west-1.amazonaws.com/dub/images/conversions/google-tag-manager/gtm-import-client-template.png)
+Configure this tag to fire on **Form Submission** by creating a new trigger:
 
-Download the [gtm-server-tag-template/template.tpl](https://raw.githubusercontent.com/dubinc/gtm-server-tag-template/main/template.tpl) file and upload it to the Template Editor. You'll see a preview of the template:
+- Trigger Type: **Form Submission**
+- This trigger fires on: **Some Forms** (or **All Forms** if you want to track all form submissions)
+- Add conditions to specify which forms should trigger lead tracking
 
-![Dub GTM Server Tag Template](https://mintlify.s3.us-west-1.amazonaws.com/dub/images/conversions/google-tag-manager/gtm-server-tag-template.png)
-
-Click the **Save** button in the top right to save the template.
-
-## Step 5: Add Lead Tracking Tag
-
-Last but not least, you'll want to create a new GTM Server Tag using the imported template.
-
-In your GTM server container, navigate to the **Tags** tab and click **New**.
-
-![GTM New Tag](https://mintlify.s3.us-west-1.amazonaws.com/dub/images/conversions/google-tag-manager/gtm-new-tag.png)
-
-This will open up the tag configuration page. Under **Tag Configuration**, select the **Dub Conversion Tag** server tag template that you created in step 4.
-
-![GTM Choose Tag Type](https://mintlify.s3.us-west-1.amazonaws.com/dub/images/conversions/google-tag-manager/gtm-choose-tag-type.png)
-
-Make sure your tag configuration is set to the following:
-
-- **Dub API Key**: Your [Dub API key](https://dub.co/docs/api-reference/tokens) (starts with `dub_`)
-- **Event**: Select "Track lead" from the dropdown
-- **Click ID**: `clickId` from the Dub Server Client event data
-- **Customer External ID**: `customerExternalId` from the event data
-- **Event Name**: `eventName` from the event data (e.g., "Sign Up")
-- **Customer Name**: `customerName` from the event data
-- **Customer Email**: Map to the `customerEmail` from the event data
-- **Customer Avatar**: Map to the `customerAvatar` from the event data (optional)
-- **Event Quantity**: Map to the `eventQuantity` from the event data (default: 1)
-
-![GTM Lead Tracking Tag](https://mintlify.s3.us-west-1.amazonaws.com/dub/images/conversions/google-tag-manager/gtm-track-lead-tag.png)
-
-Under the **Triggering** section, configure when the tag should fire:
-
-- Click **+** to add a new trigger
-- Select **Custom Event** as the trigger type
-- Set the **Event Name** to match the event name from the Dub Server Client. Default is `dub_conversion`
-- Add a condition to filter for lead events:
-  - **Variable**: Select a variable that contains the event type
-  - **Operator**: Equals
-  - **Value**: "Sign Up"
-- Name the trigger "Dub Lead Event Trigger" and save it
+Name this tag "Dub Lead Tracking - Form Submission" and save it.
 
 ## Testing your setup
 
-You can test your GTM server setup by sending a curl request to your server URL with the appropriate query parameters:
+To test your GTM setup, you can use the **Preview** mode in Google Tag Manager:
 
-```bash
-curl "https://server-side-tagging-xxx-uc.a.run.app/dub/track/lead?\
-dub_id=pAzVZ3jzwZXcLMDT&\
-eventName=Sign%20Up&\
-customerExternalId=user_1K0RN3SDNAC0C1WCW4BGRS3EW&\
-customerName=John%20Doe&\
-customerEmail=john@example.com&\
-customerAvatar=https://example.com/avatar.jpg&\
-eventQuantity=1&\
-mode=async"
-```
+1. **Enable Preview Mode**: In your GTM workspace, click the **Preview** button in the top right corner
+2. **Enter your website URL** and click **Connect**
+3. **Test your chosen tracking method**:
+   - **For Option 1 (Thank You Page)**: Navigate to your thank-you page with query parameters (e.g., `?email=test@example.com&name=Test User`)
+   - **For Option 2 (Form Submission)**: Navigate to a page with a form and submit a test form
+4. **Check the GTM debugger** to see if your tags are firing correctly
+
+### Verify lead tracking
+
+You can also verify that leads are being tracked by:
+
+1. **Checking your browser's developer console** for any JavaScript errors
+2. **Using the Network tab** to see if requests are being sent to Dub's analytics endpoint
+3. **Viewing your Dub dashboard** to confirm that lead events are appearing in your analytics
+
+### Common troubleshooting tips
+
+- **Tag not firing**: Check that your triggers are configured correctly and that the conditions match your page structure
+- **Missing publishable key**: Ensure you've replaced the placeholder with your actual publishable key
+- **Missing query parameters** (Option 1): Ensure your form redirects to the thank-you page with the required query parameters
+- **Form data not captured** (Option 2): Verify that your DOM selectors match your actual form field IDs or names

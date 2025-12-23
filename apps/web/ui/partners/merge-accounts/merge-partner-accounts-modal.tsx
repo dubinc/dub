@@ -4,7 +4,7 @@ import { MergePartnerAccountsFormProvider } from "@/ui/partners/merge-accounts/f
 import { MergeAccountForm } from "@/ui/partners/merge-accounts/merge-account-form";
 import { SendVerificationCodeForm } from "@/ui/partners/merge-accounts/send-verification-code-form";
 import { VerifyCodeForm } from "@/ui/partners/merge-accounts/verify-code-form";
-import { InfoTooltip, Modal, SimpleTooltipContent } from "@dub/ui";
+import { InfoTooltip, Modal } from "@dub/ui";
 import { AnimatePresence, motion, Variants } from "motion/react";
 import {
   Dispatch,
@@ -72,15 +72,7 @@ function MergePartnerAccountsModalInner({
     <div>
       <div className="flex items-center gap-2 border-b border-neutral-200 p-4 sm:p-6">
         <h3 className="text-lg font-medium leading-none">Merge accounts</h3>
-        <InfoTooltip
-          content={
-            <SimpleTooltipContent
-              title="Learn how to merge one of your partner accounts with another, to keep things organized and better managed."
-              cta="Learn more"
-              href="https://dub.co/help/article/merging-partner-accounts"
-            />
-          }
-        />
+        <InfoTooltip content="Learn how to merge one of your partner accounts with another, to keep things organized and better managed. [Learn more](https://dub.co/help/article/merging-partner-accounts)" />
       </div>
 
       <div className="flex flex-col gap-2 bg-neutral-50 p-4 sm:p-6">

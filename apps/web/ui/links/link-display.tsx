@@ -2,7 +2,7 @@ import {
   linksDisplayProperties,
   LinksViewMode,
 } from "@/lib/links/links-display";
-import { useIsMegaFolder } from "@/lib/swr/use-is-mega-folder";
+import useWorkspace from "@/lib/swr/use-workspace";
 import {
   Button,
   Popover,
@@ -37,13 +37,13 @@ export default function LinkDisplay() {
     reset,
   } = useContext(LinksDisplayContext);
 
-  const { isMegaFolder } = useIsMegaFolder();
+  const { isMegaWorkspace } = useWorkspace();
 
   const [openPopover, setOpenPopover] = useState(false);
   const { queryParams } = useRouterStuff();
 
   useKeyboardShortcut("a", () => setShowArchived((o) => !o), {
-    enabled: !isMegaFolder,
+    enabled: !isMegaWorkspace,
   });
 
   return (
@@ -79,7 +79,7 @@ export default function LinkDisplay() {
               );
             })}
           </div>
-          {!isMegaFolder && (
+          {!isMegaWorkspace && (
             <div className="flex h-16 items-center justify-between gap-2 px-4">
               <span className="flex items-center gap-2">
                 <ArrowsOppositeDirectionY className="h-4 w-4 text-neutral-800" />
@@ -90,7 +90,7 @@ export default function LinkDisplay() {
               </div>
             </div>
           )}
-          {!isMegaFolder && (
+          {!isMegaWorkspace && (
             <div className="group flex h-16 items-center justify-between gap-2 px-4">
               <div className="flex items-center gap-2">
                 <div className="flex w-6 items-center justify-center">

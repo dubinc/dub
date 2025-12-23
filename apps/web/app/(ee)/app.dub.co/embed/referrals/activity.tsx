@@ -11,11 +11,13 @@ export function ReferralsEmbedActivity({
   leads,
   sales,
   saleAmount,
+  color,
 }: {
   clicks: number;
   leads: number;
   sales: number;
   saleAmount: number;
+  color?: string | null;
 }) {
   const token = useEmbedToken();
 
@@ -73,7 +75,7 @@ export function ReferralsEmbedActivity({
                   {nFormatter(value, { full: true })}{" "}
                   {subValue || subValue === 0 ? (
                     <span className="text-content-subtle text-xs">
-                      ({currencyFormatter(subValue / 100)})
+                      ({currencyFormatter(subValue)})
                     </span>
                   ) : null}
                 </span>
@@ -86,6 +88,7 @@ export function ReferralsEmbedActivity({
                       value: a[label.toLowerCase()],
                     })) ?? []
                   }
+                  color={color ?? undefined}
                 />
               </div>
             </div>

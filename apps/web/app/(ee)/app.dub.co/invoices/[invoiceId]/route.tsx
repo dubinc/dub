@@ -1,5 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withSession } from "@/lib/auth";
+import { INVOICE_AVAILABLE_PAYOUT_STATUSES } from "@/lib/constants/payouts";
 import { prisma } from "@dub/prisma";
 import { DomainRenewalInvoice } from "./domain-renewal-invoice";
 import { PartnerPayoutInvoice } from "./partner-payout-invoice";
@@ -18,11 +19,19 @@ export const GET = withSession(async ({ session, params }) => {
         select: {
           id: true,
           name: true,
+          slug: true,
           stripeId: true,
         },
       },
     },
   });
+
+  if (!INVOICE_AVAILABLE_PAYOUT_STATUSES.includes(invoice.status)) {
+    throw new DubApiError({
+      code: "bad_request",
+      message: "This invoice is not available for download.",
+    });
+  }
 
   const userInWorkspace = await prisma.projectUsers.findUnique({
     where: {
@@ -64,7 +73,7 @@ export const GET = withSession(async ({ session, params }) => {
   return new Response(new Uint8Array(pdf), {
     headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": `inline; filename="Invoice-${invoice.number}.pdf"`,
+      "Content-Disposition": `inline; filename="dub-invoice-${invoice.number}.pdf"`,
     },
   });
 });

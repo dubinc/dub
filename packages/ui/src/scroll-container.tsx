@@ -25,7 +25,7 @@ export function ScrollContainer({
       </div>
       {/* Bottom scroll fade */}
       <div
-        className="pointer-events-none absolute bottom-0 left-0 hidden h-16 w-full rounded-b-lg bg-gradient-to-t from-white sm:block"
+        className="pointer-events-none absolute bottom-0 left-0 z-10 hidden h-16 w-full rounded-b-lg bg-gradient-to-t from-white to-transparent sm:block"
         style={{ opacity: 1 - Math.pow(scrollProgress, 2) }}
       />
     </div>

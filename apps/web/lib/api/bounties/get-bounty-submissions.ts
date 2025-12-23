@@ -8,21 +8,27 @@ interface GetBountySubmissionsParams extends BountySubmissionsQueryFilters {
 // Get list of submissions for a given bounty
 export async function getBountySubmissions({
   bountyId,
+  status,
   groupId,
+  partnerId,
   sortOrder,
   sortBy,
   page,
   pageSize,
-  status,
 }: GetBountySubmissionsParams) {
   const submissions = await prisma.bountySubmission.findMany({
     where: {
       bountyId,
-      ...(status ? { status } : { status: { not: "rejected" } }),
+      status: status ?? {
+        in: ["draft", "submitted", "approved"],
+      },
       ...(groupId && {
         programEnrollment: {
           groupId,
         },
+      }),
+      ...(partnerId && {
+        partnerId,
       }),
     },
     include: {
@@ -32,7 +38,8 @@ export async function getBountySubmissions({
       programEnrollment: true,
     },
     orderBy: {
-      [sortBy === "createdAt" ? "createdAt" : "performanceCount"]: sortOrder,
+      [sortBy === "completedAt" ? "completedAt" : "performanceCount"]:
+        sortOrder,
     },
     skip: (page - 1) * pageSize,
     take: pageSize,

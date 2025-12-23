@@ -3,8 +3,8 @@ import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { createPaymentIntent } from "@/lib/stripe/create-payment-intent";
 import { prisma } from "@dub/prisma";
+import { Invoice, Project, RegisteredDomain } from "@dub/prisma/client";
 import { log } from "@dub/utils";
-import { Invoice, Project, RegisteredDomain } from "@prisma/client";
 import { addDays, endOfDay, startOfDay } from "date-fns";
 import { NextResponse } from "next/server";
 

@@ -1,19 +1,23 @@
 "use client";
 
 import { mutatePrefix } from "@/lib/swr/mutate";
+import {
+  SubmissionsCountByStatus,
+  useBountySubmissionsCount,
+} from "@/lib/swr/use-bounty-submissions-count";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { BountyExtendedProps } from "@/lib/types";
+import { BountyProps } from "@/lib/types";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { ThreeDots } from "@/ui/shared/icons";
 import { Button, MenuItem, Popover } from "@dub/ui";
 import { PenWriting, Trash } from "@dub/ui/icons";
 import { Command } from "cmdk";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useBountySheet } from "./add-edit-bounty-sheet";
 
 interface BountyActionButtonProps {
-  bounty: BountyExtendedProps;
+  bounty: BountyProps;
   className?: string;
   buttonClassName?: string;
 }
@@ -26,6 +30,16 @@ export function BountyActionButton({
   const [isOpen, setIsOpen] = useState(false);
   const { id: workspaceId } = useWorkspace();
   const { setShowCreateBountySheet, BountySheet } = useBountySheet({ bounty });
+
+  const { submissionsCount } = useBountySubmissionsCount<
+    SubmissionsCountByStatus[]
+  >({
+    ignoreParams: true,
+    enabled: Boolean(bounty),
+  });
+  const totalSubmissions = useMemo(() => {
+    return submissionsCount?.reduce((acc, curr) => acc + curr.count, 0) ?? 0;
+  }, [submissionsCount]);
 
   const { confirmModal: deleteModal, setShowConfirmModal: setShowDeleteModal } =
     useConfirmModal({
@@ -86,7 +100,7 @@ export function BountyActionButton({
                     setShowDeleteModal(true);
                   }}
                   disabledTooltip={
-                    bounty.submissionsCount > 0
+                    totalSubmissions > 0
                       ? "Bounties with submissions cannot be deleted."
                       : undefined
                   }

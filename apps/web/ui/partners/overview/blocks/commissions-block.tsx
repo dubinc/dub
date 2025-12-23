@@ -50,8 +50,8 @@ export function CommissionsBlock() {
               >
                 <div className="flex min-w-0 items-center gap-2">
                   <img
-                    src={partner.image || `${OG_AVATAR_URL}${partner.name}`}
-                    alt={`${partner.name} avatar`}
+                    src={partner.image || `${OG_AVATAR_URL}${partner.id}`}
+                    alt={partner.id}
                     className="size-4 rounded-full"
                   />
                   <span className="min-w-0 truncate">{partner.name}</span>
@@ -67,7 +67,7 @@ export function CommissionsBlock() {
                   </StatusBadge>
 
                   <span className="min-w-12 text-right">
-                    {currencyFormatter(earnings / 100)}
+                    {currencyFormatter(earnings)}
                   </span>
                 </div>
               </div>

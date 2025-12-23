@@ -1,5 +1,5 @@
 import { prisma } from "@dub/prisma";
-import { getPlanFromPriceId } from "@dub/utils";
+import { getPlanAndTierFromPriceId } from "@dub/utils";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { sendCancellationFeedback } from "./utils/send-cancellation-feedback";
@@ -9,7 +9,7 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
   const subscriptionUpdated = event.data.object as Stripe.Subscription;
   const priceId = subscriptionUpdated.items.data[0].price.id;
 
-  const plan = getPlanFromPriceId(priceId);
+  const { plan } = getPlanAndTierFromPriceId({ priceId });
 
   if (!plan) {
     console.log(
@@ -27,6 +27,7 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
     select: {
       id: true,
       plan: true,
+      planTier: true,
       paymentFailedAt: true,
       payoutsLimit: true,
       foldersUsage: true,
@@ -66,7 +67,6 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
 
   await updateWorkspacePlan({
     workspace,
-    plan,
     priceId,
   });
 

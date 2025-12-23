@@ -8,13 +8,15 @@ import {
   leadWebhookEventSchema,
   saleWebhookEventSchema,
 } from "@/lib/webhook/schemas";
-import z from "@/lib/zod";
 import { BountySchema } from "@/lib/zod/schemas/bounties";
 import { CommissionWebhookSchema } from "@/lib/zod/schemas/commissions";
 import { CustomerSchema } from "@/lib/zod/schemas/customers";
 import { linkEventSchema } from "@/lib/zod/schemas/links";
 import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
+import { payoutWebhookEventSchema } from "@/lib/zod/schemas/payouts";
+import { partnerApplicationWebhookSchema } from "@/lib/zod/schemas/program-application";
 import { describe, expect, test } from "vitest";
+import { z } from "zod";
 
 const webhook = {
   id: "wh_IFL4j0toU6RAMz4R7mXjJ6C5", // dummy id
@@ -56,6 +58,23 @@ const bountyWebhookEventSchemaExtended = BountySchema.extend({
   endsAt: z.string().transform((str) => (str ? new Date(str) : null)),
 });
 
+const payoutWebhookEventSchemaExtended = payoutWebhookEventSchema.extend({
+  periodStart: z
+    .string()
+    .nullable()
+    .transform((str) => (str ? new Date(str) : null)),
+  periodEnd: z
+    .string()
+    .nullable()
+    .transform((str) => (str ? new Date(str) : null)),
+  createdAt: z.string().transform((str) => new Date(str)),
+  initiatedAt: z.string().transform((str) => new Date(str)),
+  paidAt: z
+    .string()
+    .nullable()
+    .transform((str) => (str ? new Date(str) : null)),
+});
+
 const eventSchemas: Record<WebhookTrigger, z.ZodSchema> = {
   "link.created": linkEventSchema,
   "link.updated": linkEventSchema,
@@ -63,10 +82,12 @@ const eventSchemas: Record<WebhookTrigger, z.ZodSchema> = {
   "link.clicked": clickWebhookEventSchema,
   "lead.created": leadWebhookEventSchemaExtended,
   "sale.created": saleWebhookEventSchemaExtended,
+  "partner.application_submitted": partnerApplicationWebhookSchema,
   "partner.enrolled": enrolledPartnerSchemaExtended,
   "commission.created": commissionWebhookEventSchemaExtended,
   "bounty.created": bountyWebhookEventSchemaExtended,
   "bounty.updated": bountyWebhookEventSchemaExtended,
+  "payout.confirmed": payoutWebhookEventSchemaExtended,
 };
 
 describe("Webhooks", () => {

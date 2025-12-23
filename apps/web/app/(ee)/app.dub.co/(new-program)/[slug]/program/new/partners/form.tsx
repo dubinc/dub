@@ -1,7 +1,7 @@
 "use client";
 
 import { onboardProgramAction } from "@/lib/actions/partners/onboard-program";
-import { PROGRAM_ONBOARDING_PARTNERS_LIMIT } from "@/lib/partners/constants";
+import { PROGRAM_ONBOARDING_PARTNERS_LIMIT } from "@/lib/constants/program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramData } from "@/lib/types";
 import { Button, Input } from "@dub/ui";

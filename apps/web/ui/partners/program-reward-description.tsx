@@ -1,3 +1,4 @@
+import { constructDiscountAmount } from "@/lib/api/sales/construct-discount-amount";
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
 import { DiscountProps, RewardProps } from "@/lib/types";
 import { cn } from "@dub/utils";
@@ -12,7 +13,14 @@ export function ProgramRewardDescription({
 }: {
   reward?: Pick<
     RewardProps,
-    "amount" | "type" | "event" | "maxDuration" | "description" | "modifiers"
+    | "description"
+    | "event"
+    | "maxDuration"
+    | "modifiers"
+    | "tooltipDescription"
+    | "type"
+    | "amountInCents"
+    | "amountInPercentage"
   > | null;
   discount?: DiscountProps | null;
   amountClassName?: string;
@@ -21,8 +29,9 @@ export function ProgramRewardDescription({
 }) {
   return (
     <>
-      {reward
-        ? reward.description || (
+      {reward ? (
+        <>
+          {reward.description || (
             <>
               Earn{" "}
               <strong
@@ -54,23 +63,27 @@ export function ProgramRewardDescription({
                   </strong>
                 </>
               ) : null}
-              {/* Modifiers */}
-              {showModifiersTooltip && !!reward.modifiers?.length && (
-                <>
-                  {" "}
-                  <ProgramRewardModifiersTooltip reward={reward} />
-                </>
-              )}
             </>
-          )
-        : null}
+          )}
+
+          {/* Modifiers */}
+          {showModifiersTooltip &&
+            (!!reward.modifiers?.length ||
+              Boolean(reward.tooltipDescription)) && (
+              <>
+                {" "}
+                <ProgramRewardModifiersTooltip reward={reward} />
+              </>
+            )}
+        </>
+      ) : null}
 
       {discount ? (
         <>
           {" "}
           New users get{" "}
           <strong className={cn("font-semibold", amountClassName)}>
-            {constructRewardAmount(discount)}
+            {constructDiscountAmount(discount)}
           </strong>{" "}
           off{" "}
           {discount.maxDuration === null ? (

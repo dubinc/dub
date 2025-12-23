@@ -5,12 +5,10 @@ Follow these steps to add Dub client-side script to your Framer site:
 - Paste the Dub analytics script in the **Start of head tag** section.
 - Click on the **Save** button to save the changes.
 
+<!-- prettier-ignore -->
 ```html
 <script
-  src="https://www.dubcdn.com/analytics/script.js"
   defer
-  data-domains='{"refer":"yourcompany.link"}'
+  src="https://www.dubcdn.com/analytics/script.js"
 ></script>
 ```
-
-Read the [client-side click-tracking guide](https://dub.co/docs/sdks/client-side/features/client-side-click-tracking) for more information.

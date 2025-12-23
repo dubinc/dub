@@ -1,10 +1,6 @@
-import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
-import { exceededLimitError } from "@/lib/api/errors";
-import {
-  DIRECT_DEBIT_PAYMENT_METHOD_TYPES,
-  FAST_ACH_FEE_CENTS,
-  FOREX_MARKUP_RATE,
-} from "@/lib/partners/constants";
+import { getPayoutEligibilityFilter } from "@/lib/api/payouts/payout-eligibility-filter";
+import { FAST_ACH_FEE_CENTS, FOREX_MARKUP_RATE } from "@/lib/constants/payouts";
+import { qstash } from "@/lib/cron";
 import {
   CUTOFF_PERIOD,
   CUTOFF_PERIOD_TYPES,
@@ -12,115 +8,137 @@ import {
 import { stripe } from "@/lib/stripe";
 import { createFxQuote } from "@/lib/stripe/create-fx-quote";
 import { calculatePayoutFeeForMethod } from "@/lib/stripe/payment-methods";
-import { PlanProps } from "@/lib/types";
-import { sendBatchEmail } from "@dub/email";
-import { resend } from "@dub/email/resend";
-import PartnerPayoutConfirmed from "@dub/email/templates/partner-payout-confirmed";
+import { sendEmail } from "@dub/email";
+import ProgramPayoutThankYou from "@dub/email/templates/program-payout-thank-you";
 import { prisma } from "@dub/prisma";
-import { chunk, currencyFormatter, log } from "@dub/utils";
-import { Program, Project } from "@prisma/client";
-import { waitUntil } from "@vercel/functions";
+import {
+  Invoice,
+  Program,
+  ProgramPayoutMode,
+  Project,
+} from "@dub/prisma/client";
+import {
+  APP_DOMAIN_WITH_NGROK,
+  currencyFormatter,
+  log,
+  nFormatter,
+  pluralize,
+} from "@dub/utils";
 
-const paymentMethodToCurrency = {
+const nonUsdPaymentMethodTypes = {
   sepa_debit: "eur",
   acss_debit: "cad",
 } as const;
 
-export async function processPayouts({
-  workspace,
-  program,
-  userId,
-  invoiceId,
-  paymentMethodId,
-  cutoffPeriod,
-  selectedPayoutId,
-  excludedPayoutIds,
-}: {
+interface ProcessPayoutsProps {
   workspace: Pick<
     Project,
     | "id"
+    | "slug"
     | "stripeId"
     | "plan"
     | "invoicePrefix"
     | "payoutsUsage"
     | "payoutsLimit"
     | "payoutFee"
+    | "webhookEnabled"
   >;
-  program: Pick<Program, "id" | "name" | "logo" | "minPayoutAmount">;
+  program: Pick<
+    Program,
+    "id" | "name" | "logo" | "minPayoutAmount" | "supportEmail"
+  > & {
+    payoutMode: ProgramPayoutMode;
+  };
+  invoice: Pick<Invoice, "id" | "paymentMethod">;
   userId: string;
-  invoiceId: string;
   paymentMethodId: string;
   cutoffPeriod?: CUTOFF_PERIOD_TYPES;
   selectedPayoutId?: string;
   excludedPayoutIds?: string[];
-}) {
+}
+
+export async function processPayouts({
+  workspace,
+  program,
+  invoice,
+  userId,
+  paymentMethodId,
+  cutoffPeriod,
+  selectedPayoutId,
+  excludedPayoutIds,
+}: ProcessPayoutsProps) {
   const cutoffPeriodValue = CUTOFF_PERIOD.find(
     (c) => c.id === cutoffPeriod,
   )?.value;
 
-  const payouts = await prisma.payout.findMany({
+  const res = await prisma.payout.updateMany({
     where: {
       ...(selectedPayoutId
         ? { id: selectedPayoutId }
         : excludedPayoutIds && excludedPayoutIds.length > 0
           ? { id: { notIn: excludedPayoutIds } }
           : {}),
-      programId: program.id,
-      status: "pending",
-      invoiceId: null,
-      amount: {
-        gte: program.minPayoutAmount,
-      },
-      partner: {
-        payoutsEnabledAt: {
-          not: null,
-        },
-      },
+      ...getPayoutEligibilityFilter(program),
       ...(cutoffPeriodValue && {
-        OR: [
-          {
-            periodStart: null,
-            periodEnd: null,
-          },
-          {
-            periodEnd: {
-              lte: cutoffPeriodValue,
-            },
-          },
-        ],
+        periodEnd: {
+          lte: cutoffPeriodValue,
+        },
       }),
     },
-    select: {
-      id: true,
-      amount: true,
-      periodStart: true,
-      periodEnd: true,
-      partner: {
-        select: {
-          email: true,
-        },
-      },
+    data: {
+      invoiceId: invoice.id,
+      status: "processing",
+      userId,
+      initiatedAt: new Date(),
+      // if the program is in external mode, set the mode to external
+      // otherwise set it to internal (we'll update specific payouts to "external" later if it's hybrid mode)
+      mode: program.payoutMode === "external" ? "external" : "internal",
     },
   });
 
-  if (payouts.length === 0) {
+  if (res.count === 0) {
+    console.log(
+      `No payouts updated/found for invoice ${invoice.id}. Skipping...`,
+    );
     return;
   }
 
-  const payoutAmount = payouts.reduce(
-    (total, payout) => total + payout.amount,
-    0,
+  console.log(
+    `Updated ${res.count} payouts to invoice ${invoice.id} and "processing" status`,
   );
 
-  if (workspace.payoutsUsage + payoutAmount > workspace.payoutsLimit) {
-    throw new Error(
-      exceededLimitError({
-        plan: workspace.plan as PlanProps,
-        limit: workspace.payoutsLimit,
-        type: "payouts",
-      }),
-    );
+  // if hybrid mode, we need to update payouts for partners with payoutsEnabledAt = null to external mode
+  // here we don't need to filter if they have tenantId cause getPayoutEligibilityFilter above already takes care of that
+  if (program.payoutMode === "hybrid") {
+    await prisma.payout.updateMany({
+      where: {
+        invoiceId: invoice.id,
+        partner: {
+          payoutsEnabledAt: null,
+        },
+      },
+      data: {
+        mode: "external",
+      },
+    });
   }
+
+  const payoutsByMode = await prisma.payout.groupBy({
+    by: ["mode"],
+    where: {
+      invoiceId: invoice.id,
+    },
+    _sum: {
+      amount: true,
+    },
+  });
+
+  const totalInternalPayoutAmount =
+    payoutsByMode.find((p) => p.mode === "internal")?._sum.amount ?? 0;
+  const totalExternalPayoutAmount =
+    payoutsByMode.find((p) => p.mode === "external")?._sum.amount ?? 0;
+  const totalPayoutAmount =
+    totalInternalPayoutAmount + totalExternalPayoutAmount;
 
   const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodId);
 
@@ -137,21 +155,36 @@ export async function processPayouts({
     `Using payout fee of ${payoutFee} for payment method ${paymentMethod.type}`,
   );
 
-  let invoice = await prisma.invoice.findUniqueOrThrow({
+  const fastAchFee =
+    invoice.paymentMethod === "ach_fast" ? FAST_ACH_FEE_CENTS : 0;
+  const invoiceFee = Math.round(totalPayoutAmount * payoutFee) + fastAchFee;
+  const invoiceTotal = totalPayoutAmount + invoiceFee;
+
+  console.log({
+    totalInternalPayoutAmount,
+    totalExternalPayoutAmount,
+    totalPayoutAmount,
+    invoiceFee,
+    invoiceTotal,
+  });
+
+  await prisma.invoice.update({
     where: {
-      id: invoiceId,
+      id: invoice.id,
+    },
+    data: {
+      amount: totalPayoutAmount,
+      externalAmount: totalExternalPayoutAmount,
+      fee: invoiceFee,
+      total: invoiceTotal,
     },
   });
 
-  const fastAchFee =
-    invoice.paymentMethod === "ach_fast" ? FAST_ACH_FEE_CENTS : 0;
-  const currency = paymentMethodToCurrency[paymentMethod.type] || "usd";
-  const totalFee = Math.round(payoutAmount * payoutFee) + fastAchFee;
-  const total = payoutAmount + totalFee;
-  let convertedTotal = total;
+  let totalToCharge = invoiceTotal - totalExternalPayoutAmount;
+  const currency = nonUsdPaymentMethodTypes[paymentMethod.type] || "usd";
 
   // convert the amount to EUR/CAD if the payment method is sepa_debit or acss_debit
-  if (["sepa_debit", "acss_debit"].includes(paymentMethod.type)) {
+  if (Object.keys(nonUsdPaymentMethodTypes).includes(paymentMethod.type)) {
     const fxQuote = await createFxQuote({
       fromCurrency: currency,
       toCurrency: "usd",
@@ -166,153 +199,113 @@ export async function processPayouts({
       );
     }
 
-    convertedTotal = Math.round(
-      (total / exchangeRate) * (1 + FOREX_MARKUP_RATE),
+    const convertedTotal = Math.round(
+      (totalToCharge / exchangeRate) * (1 + FOREX_MARKUP_RATE),
     );
 
     console.log(
-      `Currency conversion: ${total} usd -> ${convertedTotal} ${currency} using exchange rate ${exchangeRate}.`,
+      `Currency conversion: ${totalToCharge} usd -> ${convertedTotal} ${currency} using exchange rate ${exchangeRate}.`,
     );
+
+    totalToCharge = convertedTotal;
   }
 
-  // Update the invoice with the finalized payout amount, fee, and total
-  invoice = await prisma.invoice.update({
-    where: {
-      id: invoiceId,
-    },
-    data: {
-      amount: payoutAmount,
-      fee: totalFee,
-      total,
-    },
-  });
-
-  await stripe.paymentIntents.create({
-    amount: convertedTotal,
-    customer: workspace.stripeId!,
-    payment_method_types: [paymentMethod.type],
-    payment_method: paymentMethod.id,
-    ...(paymentMethod.type === "us_bank_account" && {
-      payment_method_options: {
-        us_bank_account: {
-          preferred_settlement_speed:
-            invoice.paymentMethod === "ach_fast" ? "fastest" : "standard",
+  await stripe.paymentIntents.create(
+    {
+      amount: totalToCharge,
+      customer: workspace.stripeId!,
+      payment_method_types: [paymentMethod.type],
+      payment_method: paymentMethod.id,
+      ...(paymentMethod.type === "us_bank_account" && {
+        payment_method_options: {
+          us_bank_account: {
+            preferred_settlement_speed:
+              invoice.paymentMethod === "ach_fast" ? "fastest" : "standard",
+          },
         },
-      },
-    }),
-    currency,
-    confirmation_method: "automatic",
-    confirm: true,
-    transfer_group: invoice.id,
-    statement_descriptor: "Dub Partners",
-    description: `Dub Partners payout invoice (${invoice.id})`,
-  });
-
-  await prisma.payout.updateMany({
-    where: {
-      id: {
-        in: payouts.map((p) => p.id),
-      },
+      }),
+      currency,
+      confirmation_method: "automatic",
+      confirm: true,
+      transfer_group: invoice.id,
+      statement_descriptor: "Dub Partners",
+      description: `Dub Partners payout invoice (${invoice.id})`,
     },
-    data: {
-      invoiceId: invoice.id,
-      status: "processing",
-      userId,
+    {
+      idempotencyKey: `process-payout-invoice/${invoice.id}`,
     },
-  });
+  );
 
-  await prisma.project.update({
+  const { users } = await prisma.project.update({
     where: {
       id: workspace.id,
     },
     data: {
       payoutsUsage: {
-        increment: payoutAmount,
+        increment: totalPayoutAmount,
+      },
+    },
+    include: {
+      users: {
+        where: {
+          userId,
+        },
+        select: {
+          user: {
+            select: {
+              email: true,
+            },
+          },
+        },
       },
     },
   });
 
   await log({
-    message: `*${program.name}* just sent a payout of *${currencyFormatter(payoutAmount / 100)}* :money_with_wings: \n\n Fees earned: *${currencyFormatter(totalFee / 100)} (${payoutFee * 100}%)* :money_mouth_face:`,
+    message: `*${program.name}* just sent a payout of *${currencyFormatter(totalPayoutAmount)}* :money_with_wings: \n\n Fees earned: *${currencyFormatter(invoiceFee)} (${payoutFee * 100}%)* :money_mouth_face:`,
     type: "payouts",
   });
 
-  // Send emails to all the partners involved in the payouts if the payout method is Direct Debit
-  // This is because Direct Debit takes 4 business days to process, so we want to give partners a heads up
-  if (
-    invoice &&
-    DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(paymentMethod.type)
-  ) {
-    if (!resend) {
-      // this should never happen, but just in case
-      await log({
-        message: "Resend is not configured, skipping email sending.",
-        type: "errors",
-      });
-      console.log("Resend is not configured, skipping email sending.");
-      return;
-    }
+  const qstashResponse = await qstash.publishJSON({
+    url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/process/updates`,
+    body: {
+      invoiceId: invoice.id,
+    },
+  });
 
-    const payoutChunks = chunk(
-      payouts.filter((payout) => payout.partner.email),
-      100,
-    );
-
-    for (const payoutChunk of payoutChunks) {
-      await sendBatchEmail(
-        payoutChunk.map((payout) => ({
-          variant: "notifications",
-          to: payout.partner.email!,
-          subject: "You've got money coming your way!",
-          react: PartnerPayoutConfirmed({
-            email: payout.partner.email!,
-            program,
-            payout: {
-              id: payout.id,
-              amount: payout.amount,
-              startDate: payout.periodStart,
-              endDate: payout.periodEnd,
-              paymentMethod: invoice.paymentMethod ?? "ach",
-            },
-          }),
-        })),
-      );
-    }
+  if (qstashResponse.messageId) {
+    console.log(`Message sent to Qstash with id ${qstashResponse.messageId}`);
+  } else {
+    console.error("Error sending message to Qstash", qstashResponse);
   }
 
-  waitUntil(
-    (async () => {
-      // refetching to confirm the payouts are in the processing state
-      const updatedPayouts = await prisma.payout.findMany({
-        where: {
-          id: {
-            in: payouts.map((p) => p.id),
-          },
-          status: "processing",
-        },
-        select: {
-          id: true,
-          status: true,
-          user: true,
-        },
-      });
+  // should never happen, but just in case
+  if (users.length === 0) {
+    console.error(
+      `No users found for workspace ${workspace.id}. Skipping email send...`,
+    );
+    return;
+  }
 
-      await recordAuditLog(
-        updatedPayouts.map((payout) => ({
-          workspaceId: workspace.id,
-          programId: program.id,
-          action: "payout.confirmed",
-          description: `Payout ${payout.id} confirmed`,
-          actor: payout.user!,
-          targets: [
-            {
-              type: "payout",
-              id: payout.id,
-              metadata: payout,
-            },
-          ],
-        })),
-      );
-    })(),
-  );
+  const userWhoInitiatedPayout = users[0].user;
+  if (userWhoInitiatedPayout.email) {
+    const emailRes = await sendEmail({
+      to: userWhoInitiatedPayout.email,
+      subject: `Thank you for your ${currencyFormatter(totalPayoutAmount)} payout to ${nFormatter(res.count, { full: true })} ${pluralize("partner", res.count)}`,
+      react: ProgramPayoutThankYou({
+        email: userWhoInitiatedPayout.email,
+        workspace,
+        program: {
+          name: program.name,
+        },
+        payout: {
+          amount: totalPayoutAmount,
+          partnersCount: res.count,
+        },
+      }),
+    });
+    console.log(
+      `Sent email to user ${userWhoInitiatedPayout.email}: ${JSON.stringify(emailRes, null, 2)}`,
+    );
+  }
 }

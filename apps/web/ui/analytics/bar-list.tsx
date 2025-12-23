@@ -1,7 +1,7 @@
 "use client";
 
 import { LinkProps } from "@/lib/types";
-import { LinkifyTooltipContent, Tooltip, useMediaQuery } from "@dub/ui";
+import { Tooltip, useMediaQuery } from "@dub/ui";
 import { cn, getPrettyUrl } from "@dub/utils";
 import NumberFlow, { NumberFlowGroup } from "@number-flow/react";
 import { Search } from "lucide-react";
@@ -22,7 +22,7 @@ import { areEqual, FixedSizeList } from "react-window";
 import { AnalyticsContext } from "./analytics-provider";
 import LinkPreviewTooltip from "./link-preview";
 
-export default function BarList({
+export function BarList({
   tab,
   unit,
   data,
@@ -219,13 +219,8 @@ export function LineItem({
             </Tooltip>
           ) : tab === "urls" ? (
             <Tooltip
-              content={
-                <div className="overflow-auto px-4 py-2">
-                  <LinkifyTooltipContent tooltipClassName="max-w-md">
-                    {title}
-                  </LinkifyTooltipContent>
-                </div>
-              }
+              content={`[${title}](${title})`}
+              contentClassName="max-w-lg"
             >
               {lineItem}
             </Tooltip>
@@ -253,8 +248,6 @@ export function LineItem({
                 ? {
                     style: "currency",
                     currency: "USD",
-                    // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
-                    trailingZeroDisplay: "stripIfInteger",
                   }
                 : {
                     notation: value > 999999 ? "compact" : "standard",

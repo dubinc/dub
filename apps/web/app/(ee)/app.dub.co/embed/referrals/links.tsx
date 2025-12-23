@@ -1,5 +1,5 @@
 import { PartnerGroupProps } from "@/lib/types";
-import { Program } from "@prisma/client";
+import { Program } from "@dub/prisma/client";
 import { useState } from "react";
 import { ReferralsEmbedCreateUpdateLink } from "./add-edit-link";
 import { ReferralsEmbedLinksList } from "./links-list";
@@ -8,7 +8,10 @@ import { ReferralsEmbedLink } from "./types";
 interface Props {
   links: ReferralsEmbedLink[];
   program: Pick<Program, "domain" | "url" | "name">;
-  group: Pick<PartnerGroupProps, "id" | "additionalLinks" | "maxPartnerLinks">;
+  group: Pick<
+    PartnerGroupProps,
+    "id" | "additionalLinks" | "maxPartnerLinks" | "linkStructure"
+  >;
 }
 
 export function ReferralsEmbedLinks({ links, program, group }: Props) {

@@ -1,3 +1,4 @@
+import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
@@ -25,7 +26,7 @@ async function main() {
     commissions.map(async (commission) => {
       // Recalculate the earnings based on the new amount
       const earnings = calculateSaleEarnings({
-        reward,
+        reward: serializeReward(reward),
         sale: {
           amount: commission.amount,
           quantity: commission.quantity,

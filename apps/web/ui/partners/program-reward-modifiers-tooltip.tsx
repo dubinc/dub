@@ -1,6 +1,7 @@
 "use client";
 
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
+import { getRewardAmount } from "@/lib/partners/get-reward-amount";
 import { RewardProps } from "@/lib/types";
 import {
   ATTRIBUTE_LABELS,
@@ -25,21 +26,23 @@ const REWARD_MODIFIER_LABELS = {
 };
 
 type ProgramRewardModifiersTooltipProps = {
-  reward?: Pick<
-    RewardProps,
-    "amount" | "type" | "event" | "maxDuration" | "modifiers"
-  > | null;
+  reward?: Omit<RewardProps, "id"> | null;
 };
 
 export function ProgramRewardModifiersTooltip({
   reward,
 }: ProgramRewardModifiersTooltipProps) {
-  if (!reward?.modifiers?.length) return null;
+  if (!reward?.modifiers?.length && !reward?.tooltipDescription) return null;
 
   return (
     <div className="inline-block align-text-top">
       <InfoTooltip
-        content={<ProgramRewardModifiersTooltipContent reward={reward} />}
+        content={
+          reward.tooltipDescription || (
+            <ProgramRewardModifiersTooltipContent reward={reward} />
+          )
+        }
+        contentClassName={reward.tooltipDescription ? "text-left" : undefined}
       />
     </div>
   );
@@ -53,7 +56,7 @@ export function ProgramRewardModifiersTooltipContent({
 
   if (!reward?.modifiers?.length) return null;
 
-  const showBaseReward = reward.amount !== 0;
+  const showBaseReward = getRewardAmount(reward) !== 0;
 
   return (
     <div className="relative">
@@ -75,9 +78,10 @@ export function ProgramRewardModifiersTooltipContent({
               <RewardItem
                 reward={{
                   event: reward.event,
-                  amount: modifier.amount,
                   type:
                     modifier.type === undefined ? reward.type : modifier.type, // fallback to primary
+                  amountInCents: modifier.amountInCents,
+                  amountInPercentage: modifier.amountInPercentage,
                   maxDuration:
                     modifier.maxDuration === undefined
                       ? reward.maxDuration
@@ -103,7 +107,7 @@ const RewardItem = ({
   conditions,
   operator = "AND",
 }: {
-  reward: Pick<RewardProps, "amount" | "type" | "event" | "maxDuration">;
+  reward: Omit<RewardProps, "id">;
   conditions?: z.infer<
     typeof rewardConditionsArraySchema
   >[number]["conditions"];
@@ -166,7 +170,7 @@ const RewardItem = ({
                                 condition.attribute
                               ] === "currency"
                             ? // Currency value
-                              currencyFormatter(Number(condition.value) / 100)
+                              currencyFormatter(Number(condition.value))
                             : // Everything else
                               condition.value.toString())}
                 </span>

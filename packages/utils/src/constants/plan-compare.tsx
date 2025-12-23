@@ -28,13 +28,6 @@ export const PLAN_COMPARE_FEATURES: {
     href: "https://dub.co/links",
     features: [
       {
-        text: () => (
-          <>
-            <strong>Unlimited</strong> clicks
-          </>
-        ),
-      },
-      {
         text: ({ plan }) => (
           <>
             <strong>
@@ -323,7 +316,7 @@ export const PLAN_COMPARE_FEATURES: {
           advanced: true,
           enterprise: true,
         },
-        text: "Email campaigns (beta)",
+        text: "Email campaigns",
       },
       {
         check: {

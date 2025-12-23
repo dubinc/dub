@@ -1,7 +1,7 @@
 import { qstash } from "@/lib/cron";
 import { prisma } from "@dub/prisma";
+import { Bounty } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
-import { Bounty } from "@prisma/client";
 import { getBountiesByGroups } from "./get-bounties-by-groups";
 
 // Trigger the creation of draft submissions for performance bounties that uses lifetime stats for the given partners

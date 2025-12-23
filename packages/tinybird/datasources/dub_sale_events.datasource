@@ -1,4 +1,5 @@
-TOKEN dub_tinybird_token APPEND
+TOKEN "dub_tinybird_token" APPEND
+
 
 SCHEMA >
     `timestamp` DateTime64(3) `json:$.timestamp` DEFAULT now(),
@@ -34,7 +35,11 @@ SCHEMA >
     `referer_url` String `json:$.referer_url`,
     `ip` String `json:$.ip`,
     `qr` UInt8 `json:$.qr`,
-    `metadata` String `json:$.metadata`
+    `metadata` String `json:$.metadata`,
+    `trigger` String `json:$.trigger`,
+    `domain` Nullable(String) `json:$.domain`,
+    `key` Nullable(String) `json:$.key`,
+    `workspace_id` Nullable(String) `json:$.workspace_id`
 
 ENGINE "MergeTree"
 ENGINE_PARTITION_KEY "toYYYYMM(timestamp)"

@@ -28,6 +28,8 @@ export default function NewSaleAlertProgramOwner({
   program = {
     name: "Acme",
     logo: DUB_WORDMARK,
+  },
+  group = {
     holdingPeriodDays: 30,
   },
   partner = {
@@ -51,6 +53,8 @@ export default function NewSaleAlertProgramOwner({
   program: {
     name: string;
     logo: string | null;
+  };
+  group: {
     holdingPeriodDays: number;
   };
   partner: {
@@ -66,19 +70,19 @@ export default function NewSaleAlertProgramOwner({
   const salesLink = `https://app.dub.co/${workspace.slug}/program/commissions?partnerId=${partner.id}`;
   const notificationPreferencesLink = `https://app.dub.co/${workspace.slug}/settings/notifications`;
 
-  const saleAmountInDollars = currencyFormatter(commission.amount / 100);
+  const saleAmountInDollars = currencyFormatter(commission.amount);
 
-  const earningsInDollars = currencyFormatter(commission.earnings / 100);
+  const earningsInDollars = currencyFormatter(commission.earnings);
 
   const profitInDollars = currencyFormatter(
-    (commission.amount - commission.earnings) / 100,
+    commission.amount - commission.earnings,
   );
 
   let formattedDueDate = "";
 
-  if (program.holdingPeriodDays > 0) {
+  if (group.holdingPeriodDays > 0) {
     const dueDate = new Date();
-    dueDate.setDate(dueDate.getDate() + program.holdingPeriodDays);
+    dueDate.setDate(dueDate.getDate() + group.holdingPeriodDays);
 
     formattedDueDate = dueDate.toLocaleDateString("en-US", {
       month: "long",
@@ -122,7 +126,7 @@ export default function NewSaleAlertProgramOwner({
             </Text>
 
             <Section className="my-8 w-full">
-              <div className="rounded-lg border border-neutral-200">
+              <div className="rounded-lg">
                 <Row>
                   <Column>
                     <Text className="m-0 text-sm leading-6 text-neutral-600">

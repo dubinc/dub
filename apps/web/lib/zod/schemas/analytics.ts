@@ -6,12 +6,11 @@ import {
   TRIGGER_TYPES,
   VALID_ANALYTICS_ENDPOINTS,
 } from "@/lib/analytics/constants";
-import { prefixWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import z from "@/lib/zod";
 import {
   CONTINENT_CODES,
+  DEFAULT_PAGINATION_LIMIT,
   DUB_FOUNDING_DATE,
-  PAGINATION_LIMIT,
   capitalize,
   formatDate,
 } from "@dub/utils";
@@ -196,7 +195,7 @@ export const analyticsQuerySchema = z
     referer: z
       .string()
       .optional()
-      .describe("The referer to retrieve analytics for.")
+      .describe("The referer hostname to retrieve analytics for.")
       .openapi({ example: "google.com" }),
     refererUrl: z
       .string()
@@ -215,6 +214,10 @@ export const analyticsQuerySchema = z
       .describe(
         "The folder ID to retrieve analytics for. If not provided, return analytics for unsorted links.",
       ),
+    groupId: z
+      .string()
+      .optional()
+      .describe("The group ID to retrieve analytics for."),
     root: booleanQuerySchema
       .optional()
       .describe(
@@ -257,10 +260,7 @@ export const analyticsQuerySchema = z
 export const analyticsFilterTB = z
   .object({
     eventType: analyticsEvents,
-    workspaceId: z
-      .string()
-      .optional()
-      .transform((v) => (v ? prefixWorkspaceId(v) : undefined)),
+    workspaceId: z.string().optional(),
     customerId: z.string().optional(),
     root: z.boolean().optional(),
     saleType: z.string().optional(),
@@ -269,10 +269,6 @@ export const analyticsFilterTB = z
     end: z.string(),
     granularity: z.enum(["minute", "hour", "day", "month"]).optional(),
     timezone: z.string().optional(),
-    groupByUtmTag: z
-      .string()
-      .optional()
-      .describe("The UTM tag to group by. Defaults to `utm_source`."),
     // TODO: remove this once it's been added to the public API
     linkIds: z
       .union([z.string(), z.array(z.string())])
@@ -284,7 +280,6 @@ export const analyticsFilterTB = z
       .transform((v) => (Array.isArray(v) ? v : v.split(",")))
       .optional()
       .describe("The folder IDs to retrieve analytics for."),
-    isMegaFolder: z.boolean().optional(),
     filters: z
       .string()
       .optional()
@@ -292,6 +287,7 @@ export const analyticsFilterTB = z
   })
   .merge(
     analyticsQuerySchema.pick({
+      groupBy: true,
       browser: true,
       city: true,
       country: true,
@@ -314,16 +310,16 @@ export const analyticsFilterTB = z
       partnerId: true,
       tenantId: true,
       folderId: true,
-      sortBy: true,
+      groupId: true,
     }),
   );
 
 export const eventsFilterTB = analyticsFilterTB
-  .omit({ granularity: true, timezone: true, page: true, sortBy: true })
+  .omit({ granularity: true, timezone: true })
   .and(
     z.object({
       offset: z.coerce.number().default(0),
-      limit: z.coerce.number().default(PAGINATION_LIMIT),
+      limit: z.coerce.number().default(DEFAULT_PAGINATION_LIMIT),
       order: z.enum(["asc", "desc"]).default("desc"),
       sortBy: z.enum(["timestamp"]).default("timestamp"),
     }),
@@ -336,7 +332,7 @@ const sortOrder = z
   .describe("The sort order. The default is `desc`.");
 
 export const eventsQuerySchema = analyticsQuerySchema
-  .omit({ groupBy: true, sortBy: true })
+  .omit({ groupBy: true })
   .extend({
     event: z
       .enum(EVENT_TYPES)
@@ -345,7 +341,10 @@ export const eventsQuerySchema = analyticsQuerySchema
         "The type of event to retrieve analytics for. Defaults to 'clicks'.",
       ),
     page: z.coerce.number().default(1),
-    limit: z.coerce.number().default(PAGINATION_LIMIT),
+    limit: z.coerce
+      .number()
+      .max(1000, { message: "Max pagination limit is 1000 items per page." })
+      .default(DEFAULT_PAGINATION_LIMIT),
     sortOrder,
     sortBy: z
       .enum(["timestamp"])

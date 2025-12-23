@@ -1,6 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withPartnerProfile } from "@/lib/auth/partner";
-import { INVOICE_AVAILABLE_PAYOUT_STATUSES } from "@/lib/partners/constants";
+import { INVOICE_AVAILABLE_PAYOUT_STATUSES } from "@/lib/constants/payouts";
 import { prisma } from "@dub/prisma";
 import {
   currencyFormatter,
@@ -57,9 +57,16 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
 
   if (!INVOICE_AVAILABLE_PAYOUT_STATUSES.includes(payout.status)) {
     throw new DubApiError({
-      code: "unauthorized",
+      code: "bad_request",
       message:
         "This payout is not completed yet, hence no invoice is generated.",
+    });
+  }
+
+  if (payout.mode === "external") {
+    throw new DubApiError({
+      code: "bad_request",
+      message: "This payout is made externally, hence no invoice is generated.",
     });
   }
 
@@ -109,7 +116,7 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
       label: "Payout amount",
       value: (
         <Text style={tw("text-neutral-800 w-2/3")}>
-          {currencyFormatter(payout.amount / 100)}
+          {currencyFormatter(payout.amount)}
         </Text>
       ),
     },
@@ -143,8 +150,6 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
         ]
       : []),
   ];
-
-  const supportEmail = payout.program.supportEmail || "support@dub.co";
 
   const invoiceDate = payout.paidAt
     ? formatDate(payout.paidAt, {
@@ -232,17 +237,22 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
         <View style={tw("h-0.5 bg-neutral-200 mb-6")} />
 
         {/* Footer */}
-        <Text style={tw("text-sm text-neutral-600 mt-auto")}>
-          If you have any questions, contact the program at{" "}
-          <Link href={`mailto:${supportEmail}`} style={tw("text-neutral-900")}>
-            {supportEmail}
-          </Link>
-        </Text>
+        {payout.program.supportEmail && (
+          <Text style={tw("text-sm text-neutral-600 mt-auto")}>
+            If you have any questions, contact the program at{" "}
+            <Link
+              href={`mailto:${payout.program.supportEmail}`}
+              style={tw("text-neutral-900")}
+            >
+              {payout.program.supportEmail}
+            </Link>
+          </Text>
+        )}
       </Page>
     </Document>,
   );
 
-  return new Response(pdf, {
+  return new Response(new Uint8Array(pdf), {
     headers: {
       "Content-Type": "application/pdf",
       "Content-Disposition": `inline; filename="payout-invoice-${payout.id}.pdf"`,

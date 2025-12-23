@@ -22,7 +22,7 @@ export default function ConnectPayoutReminder({
     {
       id: "1",
       name: "Acme",
-      logo: "https://dubassets.com/programs/prog_CYCu7IMAapjkRpTnr8F1azjN/logo_ObfFYsM",
+      logo: "https://dubassets.com/programs/prog_CYCu7IMAapjkRpTnr8F1azjN/logo_HPEaC8P",
       amount: 120_00,
     },
     {
@@ -96,7 +96,7 @@ export default function ConnectPayoutReminder({
                     </Row>
                   </Column>
                   <Column className="text-right text-sm">
-                    {currencyFormatter(program.amount / 100)}
+                    {currencyFormatter(program.amount)}
                   </Column>
                 </Row>
               ))}

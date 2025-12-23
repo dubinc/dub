@@ -1,9 +1,10 @@
+import { REFERRALS_EMBED_EARNINGS_LIMIT } from "@/lib/constants/misc";
 import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
-import { REFERRALS_EMBED_EARNINGS_LIMIT } from "@/lib/partners/constants";
-import z from "@/lib/zod";
+import { generateRandomName } from "@/lib/names";
 import { PartnerEarningsSchema } from "@/lib/zod/schemas/partner-profile";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 // GET /api/embed/referrals/earnings – get commissions for a partner from an embed token
 export const GET = withReferralsEmbedToken(
@@ -25,6 +26,7 @@ export const GET = withReferralsEmbedToken(
           select: {
             id: true,
             email: true,
+            name: true,
           },
         },
         link: {
@@ -42,6 +44,22 @@ export const GET = withReferralsEmbedToken(
       },
     });
 
-    return NextResponse.json(z.array(PartnerEarningsSchema).parse(earnings));
+    return NextResponse.json(
+      z.array(PartnerEarningsSchema).parse(
+        earnings.map((e) => ({
+          ...e,
+          customer: e.customer
+            ? {
+                ...e.customer,
+                email: e.customer.email
+                  ? programEnrollment.customerDataSharingEnabledAt
+                    ? e.customer.email
+                    : e.customer.email.replace(/(?<=^.).+(?=.@)/, "****")
+                  : e.customer.name || generateRandomName(),
+              }
+            : null,
+        })),
+      ),
+    );
   },
 );

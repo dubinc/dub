@@ -10,19 +10,28 @@ import { sendEmail } from "@dub/email";
 import APIKeyCreated from "@dub/email/templates/api-key-created";
 import { prisma } from "@dub/prisma";
 import { Prisma, User } from "@dub/prisma/client";
-import { getCurrentPlan, nanoid } from "@dub/utils";
+import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 const MAX_WORKSPACE_TOKENS = 100;
 
+const getTokensQuerySchema = z.object({
+  userId: z.string().optional(),
+});
 // GET /api/tokens - get all tokens for a workspace
 export const GET = withWorkspace(
-  async ({ workspace }) => {
+  async ({ workspace, searchParams }) => {
+    const { userId } = getTokensQuerySchema.parse(searchParams);
+
     const tokens = await prisma.restrictedToken.findMany({
       where: {
         projectId: workspace.id,
         installationId: null,
+        ...(userId && {
+          userId,
+        }),
       },
       select: {
         id: true,
@@ -150,7 +159,6 @@ export const POST = withWorkspace(
             partialKey,
             userId: isMachine ? machineUser?.id! : session.user.id,
             projectId: workspace.id,
-            rateLimit: getCurrentPlan(workspace.plan).limits.api,
             scopes:
               scopes && scopes.length > 0
                 ? [...new Set(scopes)].join(" ")

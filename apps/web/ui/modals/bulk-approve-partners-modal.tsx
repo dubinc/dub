@@ -82,8 +82,8 @@ function BulkApprovePartnersModal({
             {partners.slice(0, 3).map((partner, index) => (
               <img
                 key={partner.id}
-                src={partner.image || `${OG_AVATAR_URL}${partner.name}`}
-                alt={partner.name}
+                src={partner.image || `${OG_AVATAR_URL}${partner.id}`}
+                alt={partner.id}
                 className={cn(
                   "inline-block size-7 rounded-full border-2 border-neutral-100",
                   index > 0 && "-ml-2.5",

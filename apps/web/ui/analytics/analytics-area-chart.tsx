@@ -27,7 +27,7 @@ const DEMO_DATA = [
   }))
   .reverse();
 
-export default function AnalyticsAreaChart({
+export function AnalyticsAreaChart({
   resource,
   demo,
 }: {
@@ -89,7 +89,7 @@ export default function AnalyticsAreaChart({
               clicks,
               leads,
               sales,
-              saleAmount: (saleAmount ?? 0) / 100,
+              saleAmount,
             },
           })) ?? null,
     [data, demo],
@@ -177,7 +177,10 @@ export default function AnalyticsAreaChart({
             showGridLines
             tickFormat={
               resource === "sales" && saleUnit === "saleAmount"
-                ? (v) => `$${nFormatter(v)}`
+                ? (v) =>
+                    currencyFormatter(v, {
+                      trailingZeroDisplay: "stripIfInteger",
+                    })
                 : nFormatter
             }
           />

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { parse } from "./utils";
+import { parse } from "./utils/parse";
 
-export default function EmbedMiddleware(req: NextRequest) {
+export function EmbedMiddleware(req: NextRequest) {
   const { searchParamsObj, fullPath } = parse(req);
 
   if (searchParamsObj.token) {

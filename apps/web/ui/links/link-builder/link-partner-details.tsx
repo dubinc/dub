@@ -1,5 +1,6 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps, LinkProps } from "@/lib/types";
+import { PartnerStatusBadgeWithTooltip } from "@/ui/partners/partner-status-badge-with-tooltip";
 import { ArrowUpRight } from "@dub/ui/icons";
 import { currencyFormatter, OG_AVATAR_URL } from "@dub/utils";
 import Link from "next/link";
@@ -23,8 +24,8 @@ export function LinkPartnerDetails({
         <div className="flex min-w-0 items-center gap-3">
           {partner ? (
             <img
-              src={partner.image || `${OG_AVATAR_URL}${partner.name}`}
-              alt={partner.name}
+              src={partner.image || `${OG_AVATAR_URL}${partner.id}`}
+              alt={partner.id}
               className="size-8 rounded-full"
             />
           ) : (
@@ -32,9 +33,12 @@ export function LinkPartnerDetails({
           )}
           <div className="min-w-0">
             {partner ? (
-              <span className="block truncate text-xs font-semibold leading-tight text-neutral-900">
-                {partner.name}
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="block truncate text-xs font-semibold leading-tight text-neutral-900">
+                  {partner.name}
+                </span>
+                <PartnerStatusBadgeWithTooltip partner={partner} size="sm" />
+              </div>
             ) : (
               <div className="h-3 w-24 animate-pulse rounded bg-neutral-200" />
             )}
@@ -56,19 +60,15 @@ export function LinkPartnerDetails({
         {[
           [
             "Revenue",
-            partner
-              ? currencyFormatter(partner.totalSaleAmount / 100)
-              : undefined,
+            partner ? currencyFormatter(partner.totalSaleAmount) : undefined,
           ],
           [
             "Commissions",
-            partner
-              ? currencyFormatter(partner.totalCommissions / 100)
-              : undefined,
+            partner ? currencyFormatter(partner.totalCommissions) : undefined,
           ],
           [
             "Net revenue",
-            partner ? currencyFormatter(partner.netRevenue / 100) : undefined,
+            partner ? currencyFormatter(partner.netRevenue) : undefined,
           ],
         ].map(([label, value]) => (
           <div key={label} className="flex flex-col gap-1 px-4 py-3">

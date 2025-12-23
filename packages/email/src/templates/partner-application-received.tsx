@@ -108,10 +108,10 @@ export default function PartnerApplicationReceived({
                   <div>
                     <div className="relative w-fit">
                       <Img
-                        src={partner.image || `${OG_AVATAR_URL}${partner.name}`}
+                        src={partner.image || `${OG_AVATAR_URL}${partner.id}`}
                         width="48"
                         height="48"
-                        alt={partner.name}
+                        alt={partner.id}
                         className="rounded-full"
                       />
 

@@ -74,7 +74,7 @@ export default function ProgramPayoutReminder({
                   <Stats
                     title="Total payout amount"
                     icon="https://assets.dub.co/misc/icons/nucleo/money-bills.png"
-                    value={currencyFormatter(payout.amount / 100)}
+                    value={currencyFormatter(payout.amount)}
                   />
                 </Column>
 
@@ -89,7 +89,7 @@ export default function ProgramPayoutReminder({
 
               <Section className="mt-6 text-center">
                 <Link
-                  href={`https://app.dub.co/${workspace.slug}/program/payouts?status=pending&sortBy=amount&confirmPayouts=true`}
+                  href={`https://app.dub.co/${workspace.slug}/program/payouts?status=pending&confirmPayouts=true`}
                   className="box-border block w-full rounded-lg bg-black px-0 py-4 text-center text-sm leading-none text-white no-underline"
                 >
                   Review and confirm payouts

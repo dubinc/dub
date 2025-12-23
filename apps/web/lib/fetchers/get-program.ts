@@ -1,6 +1,7 @@
 import { prisma } from "@dub/prisma";
-import { Program } from "@prisma/client";
+import { Program, Reward } from "@dub/prisma/client";
 import { cache } from "react";
+import { serializeReward } from "../api/partners/serialize-reward";
 import { DiscountProps, GroupWithFormDataProps, RewardProps } from "../types";
 
 type Result = Program & {
@@ -54,26 +55,15 @@ export const getProgram = cache(
 
     const group = groups[0];
 
-    const rewards = [
-      group.clickReward,
-      group.leadReward,
-      group.saleReward,
-    ].filter(Boolean);
+    const rewards = [group.clickReward, group.leadReward, group.saleReward]
+      .filter((r) => r !== null)
+      .map((r) => serializeReward(r as Reward));
 
     const discount = group.discount;
 
     return {
       ...program,
-      group: {
-        id: group.id,
-        name: group.name,
-        slug: group.slug,
-        color: group.color,
-        applicationFormData: group.applicationFormData,
-        applicationFormPublishedAt: group.applicationFormPublishedAt,
-        landerData: group.landerData,
-        landerPublishedAt: group.landerPublishedAt,
-      },
+      group,
       rewards: rewards as RewardProps[],
       discount: discount as DiscountProps | null,
     };

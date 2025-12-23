@@ -2,7 +2,12 @@ import { programResourcesSchema } from "@/lib/zod/schemas/program-resources";
 import { ResourceCard } from "@/ui/partners/resources/resource-card";
 import { ResourceSection } from "@/ui/partners/resources/resource-section";
 import { FileContent, TAB_ITEM_ANIMATION_SETTINGS } from "@dub/ui";
-import { formatFileSize, getApexDomain, GOOGLE_FAVICON_URL } from "@dub/utils";
+import {
+  formatFileSize,
+  getApexDomain,
+  getFileExtension,
+  GOOGLE_FAVICON_URL,
+} from "@dub/utils";
 import { motion } from "motion/react";
 import { z } from "zod";
 
@@ -32,7 +37,7 @@ export function ReferralsEmbedResources({
                 </div>
               }
               title={logo.name || "Logo"}
-              description={formatFileSize(logo.size, 0)}
+              description={`${getFileExtension(logo.url) || "Unknown"}・${formatFileSize(logo.size, 0)}`}
               downloadUrl={logo.url}
             />
           ))}
@@ -94,7 +99,7 @@ export function ReferralsEmbedResources({
                 </div>
               }
               title={file.name || "File"}
-              description={formatFileSize(file.size, 0)}
+              description={`${getFileExtension(file.url) || "Unknown"}・${formatFileSize(file.size, 0)}`}
               downloadUrl={file.url}
             />
           ))}

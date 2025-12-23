@@ -1,5 +1,5 @@
 import { CustomerActivityResponse } from "@/lib/types";
-import { DynamicTooltipWrapper, LinkLogo } from "@dub/ui";
+import { DynamicTooltipWrapper, LinkLogo, TimestampTooltip } from "@dub/ui";
 import { CursorRays, MoneyBill2, UserCheck } from "@dub/ui/icons";
 import { formatDateTimeSmart, getApexDomain, getPrettyUrl } from "@dub/utils";
 import Link from "next/link";
@@ -117,7 +117,7 @@ export function CustomerActivityList({
   return isLoading ? (
     <div className="flex h-32 w-full animate-pulse rounded-lg border border-transparent bg-neutral-100" />
   ) : !activity?.events?.length ? (
-    <div className="flex h-32 w-full items-center justify-center border border-neutral-200 text-xs text-neutral-500">
+    <div className="flex h-32 w-full items-center justify-center rounded-lg border border-neutral-200 text-xs text-neutral-500">
       {activity?.events ? "No activity yet" : "Failed to load activity"}
     </div>
   ) : (
@@ -136,9 +136,15 @@ export function CustomerActivityList({
             </div>
             <div className="flex min-w-0 flex-col gap-x-4 gap-y-1 whitespace-nowrap text-sm text-neutral-800 lg:grow lg:flex-row lg:justify-between">
               <div className="truncate">{content(event)}</div>
-              <span className="shrink-0 truncate text-sm text-neutral-500">
-                {formatDateTimeSmart(event.timestamp)}
-              </span>
+              <TimestampTooltip
+                timestamp={event.timestamp}
+                side="right"
+                rows={["local", "utc", "unix"]}
+              >
+                <span className="shrink-0 truncate text-sm text-neutral-500">
+                  {formatDateTimeSmart(event.timestamp)}
+                </span>
+              </TimestampTooltip>
             </div>
           </li>
         );

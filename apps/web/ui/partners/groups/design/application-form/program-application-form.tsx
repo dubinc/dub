@@ -9,16 +9,6 @@ import {
   ProgramApplicationFormDataWithValues,
   ProgramProps,
 } from "@/lib/types";
-import z from "@/lib/zod";
-import {
-  programApplicationFormFieldSchema,
-  programApplicationFormLongTextFieldWithValueSchema,
-  programApplicationFormMultipleChoiceFieldSchema,
-  programApplicationFormMultipleChoiceFieldWithValueSchema,
-  programApplicationFormSelectFieldWithValueSchema,
-  programApplicationFormShortTextFieldWithValueSchema,
-  programApplicationFormWebsiteAndSocialsFieldWithValueSchema,
-} from "@/lib/zod/schemas/program-application-form";
 import { Button, useLocalStorage, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useSession } from "next-auth/react";
@@ -30,64 +20,14 @@ import { toast } from "sonner";
 import { CountryCombobox } from "../../../country-combobox";
 import { ProgramApplicationFormField } from "./fields";
 import { FormControlRequiredBadge } from "./fields/form-control";
+import { formDataForApplicationFormData } from "./form-data-for-application-form-data";
 
 type FormData = {
   name: string;
   email: string;
   country: string;
-  ageVerification: boolean;
   termsAgreement: boolean;
   formData: ProgramApplicationFormDataWithValues;
-};
-
-const formDataForApplicationFormData = (
-  fields: z.infer<typeof programApplicationFormFieldSchema>[],
-): ProgramApplicationFormDataWithValues => {
-  return {
-    fields: fields.map((field: any) => {
-      switch (field.type) {
-        case "short-text":
-          return {
-            ...field,
-            value: "",
-          } as z.infer<
-            typeof programApplicationFormShortTextFieldWithValueSchema
-          >;
-        case "long-text":
-          return {
-            ...field,
-            value: "",
-          } as z.infer<
-            typeof programApplicationFormLongTextFieldWithValueSchema
-          >;
-        case "select":
-          return {
-            ...field,
-            value: "",
-          } as z.infer<typeof programApplicationFormSelectFieldWithValueSchema>;
-        case "multiple-choice":
-          const multipleChoiceField = field as z.infer<
-            typeof programApplicationFormMultipleChoiceFieldSchema
-          >;
-          return {
-            ...field,
-            value: multipleChoiceField.data.multiple ? [] : "",
-          } as z.infer<
-            typeof programApplicationFormMultipleChoiceFieldWithValueSchema
-          >;
-        case "website-and-socials":
-          return {
-            ...field,
-            data: field.data.map((data) => ({
-              ...data,
-              value: "",
-            })),
-          } as z.infer<
-            typeof programApplicationFormWebsiteAndSocialsFieldWithValueSchema
-          >;
-      }
-    }),
-  } as any;
 };
 
 export function ProgramApplicationForm({
@@ -95,10 +35,7 @@ export function ProgramApplicationForm({
   group,
   preview = false,
 }: {
-  program: Pick<
-    ProgramProps,
-    "id" | "slug" | "name" | "termsUrl" | "ageVerification"
-  >;
+  program: Pick<ProgramProps, "id" | "slug" | "name" | "termsUrl">;
   group: Pick<GroupWithFormDataProps, "id" | "applicationFormData" | "slug">;
   preview?: boolean;
 }) {
@@ -111,7 +48,6 @@ export function ProgramApplicationForm({
       name: "",
       email: "",
       country: "",
-      ageVerification: false,
       termsAgreement: false,
       formData: formDataForApplicationFormData(
         group.applicationFormData?.fields ?? [],
@@ -148,8 +84,6 @@ export function ProgramApplicationForm({
           toast.error("Failed to submit application. Please try again.");
           return;
         }
-
-        toast.success("Your application submitted successfully.");
 
         const { programApplicationId, programEnrollmentId, partnerData } = data;
 
@@ -275,28 +209,6 @@ export function ProgramApplicationForm({
           );
         })}
 
-        {program.ageVerification && (
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="ageVerification"
-              className={cn(
-                "h-4 w-4 rounded border-neutral-300 text-[var(--brand)] focus:ring-[var(--brand)]",
-                errors.ageVerification && "border-red-400 focus:ring-red-500",
-              )}
-              {...register("ageVerification", {
-                required: true,
-              })}
-            />
-            <label
-              htmlFor="ageVerification"
-              className="text-sm text-neutral-800"
-            >
-              I'm {program.ageVerification} years or older
-            </label>
-          </div>
-        )}
-
         {program.termsUrl && (
           <div className="flex items-center gap-2">
             <input
@@ -319,14 +231,14 @@ export function ProgramApplicationForm({
                 rel="noopener noreferrer"
                 className="text-[var(--brand)] underline hover:opacity-80"
               >
-                {program.name} Affiliate Program Terms ↗
+                {program.name} Program Terms ↗
               </a>
             </label>
           </div>
         )}
 
         <Button
-          text="Submit application"
+          text="Continue"
           className="mt-4 enabled:border-[var(--brand)] enabled:bg-[var(--brand)] enabled:hover:bg-[var(--brand)] enabled:hover:ring-[var(--brand-ring)]"
           loading={isLoading}
         />

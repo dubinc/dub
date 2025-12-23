@@ -1,5 +1,6 @@
 import { convertCurrency } from "@/lib/analytics/convert-currency";
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { transformCustomerForCommission } from "@/lib/api/customers/transform-customer";
 import { DubApiError } from "@/lib/api/errors";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
@@ -89,6 +90,7 @@ export const PATCH = withWorkspace(
         partnerId: partner.id,
         programId,
         include: {
+          partner: true,
           links: true,
           saleReward: true,
         },
@@ -192,6 +194,11 @@ export const PATCH = withWorkspace(
       ]),
     );
 
-    return NextResponse.json(CommissionEnrichedSchema.parse(updatedCommission));
+    return NextResponse.json(
+      CommissionEnrichedSchema.parse({
+        ...updatedCommission,
+        customer: transformCustomerForCommission(updatedCommission.customer),
+      }),
+    );
   },
 );

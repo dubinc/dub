@@ -1,5 +1,5 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
+import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
 import { NextResponse } from "next/server";
@@ -12,9 +12,14 @@ export const dynamic = "force-dynamic";
 // 3. PasswordResetToken
 // Runs once every day at 02:00:00 AM UTC (0 2 * * *)
 // GET /api/cron/cleanup/expired-tokens
-export async function GET(req: Request) {
+export async function POST(req: Request) {
   try {
-    await verifyVercelSignature(req);
+    const rawBody = await req.text();
+
+    await verifyQstashSignature({
+      req,
+      rawBody,
+    });
 
     // tokens expired 1 day ago
     const cutoff = new Date(Date.now() - 1000 * 60 * 60 * 24);

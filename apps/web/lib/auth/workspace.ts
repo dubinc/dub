@@ -4,20 +4,33 @@ import { ratelimit } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
 import { API_DOMAIN, getSearchParams } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import { AxiomRequest, withAxiom } from "next-axiom";
 import { headers } from "next/headers";
+import { getRatelimitForPlan } from "../api/get-ratelimit-for-plan";
 import {
   PermissionAction,
   getPermissionsByRole,
 } from "../api/rbac/permissions";
-import { throwIfNoAccess } from "../api/tokens/permissions";
 import { Scope, mapScopesToPermissions } from "../api/tokens/scopes";
+import { throwIfNoAccess } from "../api/tokens/throw-if-no-access";
 import { normalizeWorkspaceId } from "../api/workspaces/workspace-id";
+import { withAxiomBodyLog } from "../axiom/server";
 import { getFeatureFlags } from "../edge-config";
 import { logConversionEvent } from "../tinybird/log-conversion-events";
 import { hashToken } from "./hash-token";
-import { tokenCache } from "./token-cache";
+import { rateLimitRequest } from "./rate-limit-request";
+import { TokenCacheItem, tokenCache } from "./token-cache";
 import { Session, getSession } from "./utils";
+
+const RATE_LIMIT_FOR_SESSIONS = {
+  api: {
+    limit: 600,
+    interval: "1 m",
+  },
+  analyticsApi: {
+    limit: 12,
+    interval: "1 s",
+  },
+} as const;
 
 interface WithWorkspaceHandler {
   ({
@@ -28,6 +41,7 @@ interface WithWorkspaceHandler {
     session,
     workspace,
     permissions,
+    token,
   }: {
     req: Request;
     params: Record<string, string>;
@@ -36,6 +50,7 @@ interface WithWorkspaceHandler {
     session: Session;
     permissions: PermissionAction[];
     workspace: WorkspaceWithUsers;
+    token: TokenCacheItem | null;
   }): Promise<Response>;
 }
 
@@ -62,11 +77,15 @@ export const withWorkspace = (
     skipPermissionChecks?: boolean;
   } = {},
 ) => {
-  return withAxiom(
+  return withAxiomBodyLog(
     async (
-      req: AxiomRequest,
+      req,
       { params: initialParams }: { params: Promise<Record<string, string>> },
     ) => {
+      // Clone the request early so handlers can read the body without cloning
+      // Keep the original for withAxiomBodyLog to read in onSuccess
+      const clonedReq = req.clone();
+
       const params = (await initialParams) || {};
       const searchParams = getSearchParams(req.url);
 
@@ -88,11 +107,13 @@ export const withWorkspace = (
           apiKey = authorizationHeader.replace("Bearer ", "");
         }
 
+        const url = new URL(req.url || "", API_DOMAIN);
+
         let session: Session | undefined;
         let workspaceId: string | undefined;
         let workspaceSlug: string | undefined;
         let permissions: PermissionAction[] = [];
-        let token: any | null = null;
+        let token: TokenCacheItem | null = null;
         const isRestrictedToken = apiKey?.startsWith("dub_");
 
         const idOrSlug =
@@ -115,7 +136,7 @@ export const withWorkspace = (
           ) {
             // @ts-expect-error
             return await handler({
-              req,
+              req: clonedReq,
               params,
               searchParams,
               headers: responseHeaders,
@@ -144,6 +165,10 @@ export const withWorkspace = (
           }
         }
 
+        const isAnalytics =
+          url.pathname.includes("/analytics") ||
+          url.pathname.includes("/events");
+
         if (apiKey) {
           const hashedKey = await hashToken(apiKey);
 
@@ -159,10 +184,14 @@ export const withWorkspace = (
               select: {
                 ...(isRestrictedToken && {
                   scopes: true,
-                  rateLimit: true,
                   projectId: true,
                   expires: true,
                   installationId: true,
+                  project: {
+                    select: {
+                      plan: true,
+                    },
+                  },
                 }),
                 user: {
                   select: {
@@ -208,17 +237,25 @@ export const withWorkspace = (
           }
 
           // Rate limit checks for API keys
-          const rateLimit = token.rateLimit || 600;
+          let limit = 0;
+          let interval: `${number} s` | `${number} m` = isAnalytics
+            ? "1 s"
+            : "1 m";
 
-          const { success, limit, reset, remaining } = await ratelimit(
-            rateLimit,
-            "1 m",
-          ).limit(apiKey);
+          const planLimit = getRatelimitForPlan(token.project?.plan || "free");
+          limit = planLimit.limits[isAnalytics ? "analyticsApi" : "api"];
 
-          responseHeaders.set("Retry-After", reset.toString());
-          responseHeaders.set("X-RateLimit-Limit", limit.toString());
-          responseHeaders.set("X-RateLimit-Remaining", remaining.toString());
-          responseHeaders.set("X-RateLimit-Reset", reset.toString());
+          const { success, headers } = await rateLimitRequest({
+            identifier: `workspace:ratelimit:${hashedKey}`,
+            requests: limit,
+            interval,
+          });
+
+          if (headers) {
+            for (const [key, value] of Object.entries(headers)) {
+              responseHeaders.set(key, value);
+            }
+          }
 
           if (!success) {
             throw new DubApiError({
@@ -228,7 +265,7 @@ export const withWorkspace = (
           }
 
           // Find workspaceId if it's a restricted token
-          if (isRestrictedToken) {
+          if (isRestrictedToken && token?.projectId) {
             workspaceId = token.projectId;
           }
 
@@ -277,6 +314,27 @@ export const withWorkspace = (
             throw new DubApiError({
               code: "unauthorized",
               message: "Unauthorized: Login required.",
+            });
+          }
+
+          // Rate limit checks for session requests
+          const rateLimit =
+            RATE_LIMIT_FOR_SESSIONS[isAnalytics ? "analyticsApi" : "api"];
+
+          const { success, headers } = await rateLimitRequest({
+            identifier: `workspace:ratelimit:${session.user.id}`,
+            requests: rateLimit.limit,
+            interval: rateLimit.interval,
+          });
+
+          for (const [key, value] of Object.entries(headers)) {
+            responseHeaders.set(key, value);
+          }
+
+          if (!success) {
+            throw new DubApiError({
+              code: "rate_limit_exceeded",
+              message: "Too many requests.",
             });
           }
         }
@@ -349,8 +407,8 @@ export const withWorkspace = (
         permissions = getPermissionsByRole(workspace.users[0].role);
 
         // Find the subset of permissions that the user has access to based on the token scopes
-        if (isRestrictedToken) {
-          const tokenScopes: Scope[] = token.scopes.split(" ") || [];
+        if (isRestrictedToken && token?.scopes) {
+          const tokenScopes = (token.scopes.split(" ") as Scope[]) || [];
           permissions = mapScopesToPermissions(tokenScopes).filter((p) =>
             permissions.includes(p),
           );
@@ -380,8 +438,6 @@ export const withWorkspace = (
           }
         }
 
-        const url = new URL(req.url || "", API_DOMAIN);
-
         // plan checks
         if (!requiredPlan.includes(workspace.plan)) {
           throw new DubApiError({
@@ -403,17 +459,16 @@ export const withWorkspace = (
         }
 
         return await handler({
-          req,
+          req: clonedReq,
           params,
           searchParams,
           headers: responseHeaders,
           session,
           workspace,
           permissions,
+          token,
         });
       } catch (error) {
-        req.log.error(error);
-
         // Log the conversion events for debugging purposes
         waitUntil(
           (async () => {

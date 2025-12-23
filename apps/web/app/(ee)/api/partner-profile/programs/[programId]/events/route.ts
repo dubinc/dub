@@ -1,76 +1,110 @@
 import { getEvents } from "@/lib/analytics/get-events";
+import { DubApiError } from "@/lib/api/errors";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
+import {
+  LARGE_PROGRAM_IDS,
+  LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS,
+  MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING,
+} from "@/lib/constants/partner-profile";
+import { generateRandomName } from "@/lib/names";
 import {
   PartnerProfileLinkSchema,
   partnerProfileEventsQuerySchema,
 } from "@/lib/zod/schemas/partner-profile";
-
-import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-
-const CustomerSchema = z.object({
-  id: z.string(),
-  email: z
-    .string()
-    .transform((email) => email.replace(/(?<=^.).+(?=.@)/, "****")),
-});
 
 // GET /api/partner-profile/programs/[programId]/events – get events for a program enrollment link
 export const GET = withPartnerProfile(
   async ({ partner, params, searchParams }) => {
-    const { program } = await getProgramEnrollmentOrThrow({
-      partnerId: partner.id,
-      programId: params.programId,
-      include: {
-        program: true,
-      },
-    });
+    const { program, links, totalCommissions, customerDataSharingEnabledAt } =
+      await getProgramEnrollmentOrThrow({
+        partnerId: partner.id,
+        programId: params.programId,
+        include: {
+          program: true,
+          links: true,
+        },
+      });
+
+    if (
+      LARGE_PROGRAM_IDS.includes(program.id) &&
+      totalCommissions < LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS
+    ) {
+      throw new DubApiError({
+        code: "forbidden",
+        message: "This feature is not available for your program.",
+      });
+    }
 
     let { linkId, domain, key, ...rest } =
       partnerProfileEventsQuerySchema.parse(searchParams);
 
-    if (!linkId && domain && key) {
-      const link = await prisma.link.findUnique({
-        where: {
-          domain_key: {
-            domain,
-            key,
-          },
-        },
-      });
-
-      if (!link || link.partnerId !== partner.id) {
-        return NextResponse.json({ error: "Link not found" }, { status: 404 });
+    if (linkId) {
+      if (!links.some((link) => link.id === linkId)) {
+        throw new DubApiError({
+          code: "not_found",
+          message: "Link not found",
+        });
+      }
+    } else if (domain && key) {
+      const foundLink = links.find(
+        (link) => link.domain === domain && link.key === key,
+      );
+      if (!foundLink) {
+        throw new DubApiError({
+          code: "not_found",
+          message: "Link not found",
+        });
       }
 
-      linkId = link.id;
+      linkId = foundLink.id;
+    }
+
+    if (links.length === 0) {
+      return NextResponse.json([], { status: 200 });
     }
 
     const events = await getEvents({
       ...rest,
-      linkId,
-      programId: program.id,
-      partnerId: partner.id,
+      workspaceId: program.workspaceId,
+      ...(linkId
+        ? { linkId }
+        : links.length > MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING
+          ? { partnerId: partner.id }
+          : { linkIds: links.map((link) => link.id) }),
       dataAvailableFrom: program.startedAt ?? program.createdAt,
     });
 
     const response = events.map((event) => {
       // don't return ip address for partner profile
       // @ts-ignore – ip is deprecated but present in the data
-      const { ip, click, ...eventRest } = event;
+      const { ip, click, customer, ...eventRest } = event;
       const { ip: _, ...clickRest } = click;
 
       return {
         ...eventRest,
         click: clickRest,
         link: event?.link ? PartnerProfileLinkSchema.parse(event.link) : null,
-        // @ts-expect-error - customer is not always present
-        ...(event?.customer && {
-          customer: CustomerSchema
-            // @ts-expect-error - customer is not always present
-            .parse(event.customer),
+        ...(customer && {
+          customer: z
+            .object({
+              id: z.string(),
+              email: z.string(),
+              ...(customerDataSharingEnabledAt && { name: z.string() }),
+            })
+            .parse({
+              ...customer,
+              email: customer.email
+                ? customerDataSharingEnabledAt
+                  ? customer.email
+                  : customer.email.replace(/(?<=^.).+(?=.@)/, "****")
+                : customer.name || generateRandomName(),
+              ...(customerDataSharingEnabledAt && {
+                name: customer.name || generateRandomName(),
+              }),
+            }),
         }),
       };
     });

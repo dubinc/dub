@@ -9,7 +9,9 @@ import {
   ClickEventWebhookPayload,
   CommissionEventWebhookPayload,
   LeadEventWebhookPayload,
+  PartnerApplicationWebhookPayload,
   PartnerEventWebhookPayload,
+  PayoutEventWebhookPayload,
   SaleEventWebhookPayload,
 } from "../../webhook/types";
 
@@ -250,6 +252,61 @@ const partnerEnrolledTemplate = ({
   };
 };
 
+const partnerApplicationSubmittedTemplate = ({
+  data,
+}: {
+  data: PartnerApplicationWebhookPayload;
+}) => {
+  const { id, partner } = data;
+  const linkToApplication = `${APP_DOMAIN}/program/partners/applications?partnerId=${partner.id}`;
+
+  return {
+    blocks: [
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: `*New partner application submitted* :incoming_envelope:`,
+        },
+      },
+      {
+        type: "section",
+        fields: [
+          {
+            type: "mrkdwn",
+            text: `*Name*\n${partner.name}`,
+          },
+          {
+            type: "mrkdwn",
+            text: `*Email*\n<mailto:${partner.email}|${partner.email}>`,
+          },
+          {
+            type: "mrkdwn",
+            text: `*Country*\n${partner.country}`,
+          },
+          ...(partner.companyName
+            ? [
+                {
+                  type: "mrkdwn",
+                  text: `*Company*\n${partner.companyName}`,
+                },
+              ]
+            : []),
+        ],
+      },
+      {
+        type: "context",
+        elements: [
+          {
+            type: "mrkdwn",
+            text: `Application ID: ${id} | <${linkToApplication}|View on Dub>`,
+          },
+        ],
+      },
+    ],
+  };
+};
+
 const commissionCreatedTemplate = ({
   data,
 }: {
@@ -257,8 +314,8 @@ const commissionCreatedTemplate = ({
 }) => {
   const { id, amount, earnings, currency, partner, customer } = data;
 
-  const formattedAmount = currencyFormatter(amount / 100, { currency });
-  const formattedEarnings = currencyFormatter(earnings / 100, { currency });
+  const formattedAmount = currencyFormatter(amount, { currency });
+  const formattedEarnings = currencyFormatter(earnings, { currency });
   const linkToCommissions = `${APP_DOMAIN}/program/commissions`;
 
   return {
@@ -415,6 +472,67 @@ const bountyTemplates = ({
   };
 };
 
+const payoutConfirmedTemplate = ({
+  data,
+}: {
+  data: PayoutEventWebhookPayload;
+}) => {
+  const { id, amount, currency, partner, invoiceId } = data;
+  const formattedAmount = currencyFormatter(amount, { currency });
+  const linkToPayout = `${APP_DOMAIN}/program/payouts?payoutId=${id}`;
+
+  return {
+    blocks: [
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: `*Payout confirmed* :money_with_wings:`,
+        },
+      },
+      {
+        type: "section",
+        fields: [
+          {
+            type: "mrkdwn",
+            text: `*Partner*\n${partner.name}`,
+          },
+          {
+            type: "mrkdwn",
+            text: `*Email*\n<mailto:${partner.email}|${partner.email}>`,
+          },
+        ],
+      },
+      {
+        type: "section",
+        fields: [
+          {
+            type: "mrkdwn",
+            text: `*Amount*\n${formattedAmount}`,
+          },
+          ...(invoiceId
+            ? [
+                {
+                  type: "mrkdwn",
+                  text: `*Invoice ID*\n${invoiceId}`,
+                },
+              ]
+            : []),
+        ],
+      },
+      {
+        type: "context",
+        elements: [
+          {
+            type: "mrkdwn",
+            text: `Payout ID: ${id} | <${linkToPayout}|View on Dub>`,
+          },
+        ],
+      },
+    ],
+  };
+};
+
 const slackTemplates: Record<WebhookTrigger, any> = {
   "link.created": linkTemplates,
   "link.updated": linkTemplates,
@@ -423,9 +541,11 @@ const slackTemplates: Record<WebhookTrigger, any> = {
   "lead.created": leadCreatedTemplate,
   "sale.created": saleCreatedTemplate,
   "partner.enrolled": partnerEnrolledTemplate,
+  "partner.application_submitted": partnerApplicationSubmittedTemplate,
   "commission.created": commissionCreatedTemplate,
   "bounty.created": bountyTemplates,
   "bounty.updated": bountyTemplates,
+  "payout.confirmed": payoutConfirmedTemplate,
 };
 
 export const formatEventForSlack = (

@@ -1,12 +1,5 @@
-import {
-  AdminMiddleware,
-  ApiMiddleware,
-  AppMiddleware,
-  AxiomMiddleware,
-  CreateLinkMiddleware,
-  LinkMiddleware,
-} from "@/lib/middleware";
-import { parse } from "@/lib/middleware/utils";
+import { logger } from "@/lib/axiom/server";
+import { transformMiddlewareRequest } from "@axiomhq/nextjs";
 import {
   ADMIN_HOSTNAMES,
   API_HOSTNAMES,
@@ -16,7 +9,13 @@ import {
 } from "@dub/utils";
 import { PARTNERS_HOSTNAMES } from "@dub/utils/src/constants";
 import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
-import PartnersMiddleware from "./lib/middleware/partners";
+import { AdminMiddleware } from "./lib/middleware/admin";
+import { ApiMiddleware } from "./lib/middleware/api";
+import { AppMiddleware } from "./lib/middleware/app";
+import { CreateLinkMiddleware } from "./lib/middleware/create-link";
+import { LinkMiddleware } from "./lib/middleware/link";
+import { PartnersMiddleware } from "./lib/middleware/partners";
+import { parse } from "./lib/middleware/utils/parse";
 import { supportedWellKnownFiles } from "./lib/well-known";
 
 export const config = {
@@ -35,7 +34,9 @@ export const config = {
 export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
   const { domain, path, key, fullKey } = parse(req);
 
-  AxiomMiddleware(req, ev);
+  // Axiom logging
+  logger.info(...transformMiddlewareRequest(req));
+  ev.waitUntil(logger.flush());
 
   // for App
   if (APP_HOSTNAMES.has(domain)) {
@@ -67,7 +68,6 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
     return NextResponse.redirect(DEFAULT_REDIRECTS[key]);
   }
 
-  // for Admin
   if (ADMIN_HOSTNAMES.has(domain)) {
     return AdminMiddleware(req);
   }

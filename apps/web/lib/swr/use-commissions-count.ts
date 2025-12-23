@@ -12,6 +12,7 @@ export default function useCommissionsCount(opts?: Record<string, any>) {
     `/api/commissions/count${getQueryString(
       {
         workspaceId,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       },
       {
         ...opts,

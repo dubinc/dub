@@ -1,8 +1,8 @@
 import { sendEmail } from "@dub/email";
 import ProgramImported from "@dub/email/templates/program-imported";
 import { prisma } from "@dub/prisma";
+import { CommissionStatus, Customer, Link, Program } from "@dub/prisma/client";
 import { nanoid } from "@dub/utils";
-import { CommissionStatus, Customer, Link, Program } from "@prisma/client";
 import { convertCurrencyWithFxRates } from "../analytics/convert-currency";
 import { isFirstConversion } from "../analytics/is-first-conversion";
 import { createId } from "../api/create-id";
@@ -157,7 +157,9 @@ async function createCommission({
     entity_id: commission.id,
   } as const;
 
-  if (commission.campaign.id && !campaignIds.includes(commission.campaign.id)) {
+  const campaignId = commission.sale.affiliate.campaign?.id;
+
+  if (campaignId && !campaignIds.includes(campaignId)) {
     console.log(
       `Affiliate ${commission?.sale?.affiliate?.email} for commission ${commission.id}) not in campaignIds (${campaignIds.join(", ")}) (they're in ${commission.campaign.id}). Skipping...`,
     );

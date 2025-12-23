@@ -5,11 +5,12 @@ import {
   SubmissionsCountByStatus,
   useBountySubmissionsCount,
 } from "@/lib/swr/use-bounty-submissions-count";
-import useCustomersCount from "@/lib/swr/use-customers-count";
+import { useFraudGroupCount } from "@/lib/swr/use-fraud-groups-count";
 import { usePartnerMessagesCount } from "@/lib/swr/use-partner-messages-count";
 import usePayoutsCount from "@/lib/swr/use-payouts-count";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
+import useWorkspaces from "@/lib/swr/use-workspaces";
 import { useRouterStuff } from "@dub/ui";
 import {
   Bell,
@@ -17,7 +18,6 @@ import {
   ConnectedDots,
   CubeSettings,
   DiamondTurnRight,
-  Discount,
   Folder,
   Gauge6,
   Gear2,
@@ -32,6 +32,7 @@ import {
   PaperPlane,
   Receipt2,
   ShieldCheck,
+  ShieldKeyhole,
   Sliders,
   Tag,
   UserCheck,
@@ -44,7 +45,7 @@ import { Trophy } from "lucide-react";
 import { Session } from "next-auth";
 import { useSession } from "next-auth/react";
 import { useParams, usePathname } from "next/navigation";
-import { ReactNode, useMemo } from "react";
+import { ReactNode, useEffect, useMemo } from "react";
 import { DubPartnersPopup } from "./dub-partners-popup";
 import { Compass } from "./icons/compass";
 import { ConnectedDots4 } from "./icons/connected-dots4";
@@ -68,9 +69,9 @@ type SidebarNavData = {
   applicationsCount?: number;
   submittedBountiesCount?: number;
   unreadMessagesCount?: number;
+  pendingFraudEventsCount?: number;
   showConversionGuides?: boolean;
   partnerNetworkEnabled?: boolean;
-  emailCampaignsEnabled?: boolean;
 };
 
 const FIVE_YEARS_SECONDS = 60 * 60 * 24 * 365 * 5;
@@ -203,8 +204,8 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
     applicationsCount,
     submittedBountiesCount,
     unreadMessagesCount,
+    pendingFraudEventsCount,
     partnerNetworkEnabled,
-    emailCampaignsEnabled,
   }) => ({
     title: "Partner Program",
     showNews,
@@ -221,7 +222,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
           {
             name: "Payouts",
             icon: MoneyBills2,
-            href: `/${slug}/program/payouts?status=pending&sortBy=amount`,
+            href: `/${slug}/program/payouts?status=pending`,
             badge: pendingPayoutsCount
               ? pendingPayoutsCount > 99
                 ? "99+"
@@ -262,6 +263,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
                   name: "Partner Network",
                   icon: UserPlus,
                   href: `/${slug}/program/network` as `/${string}`,
+                  badge: "New",
                 },
               ]
             : []),
@@ -286,15 +288,25 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             href: `/${slug}/program/analytics`,
           },
           {
+            name: "Customers",
+            icon: UserCheck,
+            href: `/${slug}/program/customers`,
+          },
+          {
             name: "Commissions",
             icon: InvoiceDollar,
             href: `/${slug}/program/commissions`,
           },
-          // {
-          //   name: "Fraud & Risk",
-          //   icon: ShieldKeyhole,
-          //   href: `/${slug}/program/fraud`,
-          // },
+          {
+            name: "Fraud Detection",
+            icon: ShieldKeyhole,
+            href: `/${slug}/program/fraud`,
+            badge: pendingFraudEventsCount
+              ? pendingFraudEventsCount > 99
+                ? "99+"
+                : pendingFraudEventsCount
+              : undefined,
+          },
         ],
       },
       {
@@ -310,16 +322,12 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
                 : submittedBountiesCount
               : "",
           },
-          ...(emailCampaignsEnabled
-            ? [
-                {
-                  name: "Email Campaigns",
-                  icon: PaperPlane,
-                  href: `/${slug}/program/campaigns` as `/${string}`,
-                  badge: "New",
-                },
-              ]
-            : []),
+          {
+            name: "Email Campaigns",
+            icon: PaperPlane,
+            href: `/${slug}/program/campaigns` as `/${string}`,
+            badge: "New",
+          },
           {
             name: "Resources",
             icon: LifeRing,
@@ -337,17 +345,6 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             arrow: true,
             isActive: () => false,
           },
-          ...(!emailCampaignsEnabled
-            ? [
-                {
-                  name: "Discounts",
-                  icon: Discount,
-                  href: `/${slug}/program/groups/default/discounts` as `/${string}`,
-                  arrow: true,
-                  isActive: () => false,
-                },
-              ]
-            : []),
           {
             name: "Links",
             icon: Sliders,
@@ -392,9 +389,9 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             href: `/${slug}/settings/domains`,
           },
           {
-            name: "People",
+            name: "Members",
             icon: Users6,
-            href: `/${slug}/settings/people`,
+            href: `/${slug}/settings/members`,
           },
           {
             name: "Integrations",
@@ -471,6 +468,12 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             icon: Gift,
             href: "/account/settings/referrals",
           },
+          {
+            name: "Notifications",
+            icon: Bell,
+            href: `/${slug}/settings/notifications`,
+            arrow: true,
+          },
         ],
       },
     ],
@@ -484,11 +487,55 @@ export function AppSidebarNav({
   toolContent?: ReactNode;
   newsContent?: ReactNode;
 }) {
-  const { slug } = useParams() as { slug?: string };
+  const { slug: paramsSlug } = useParams() as { slug?: string };
   const pathname = usePathname();
   const { getQueryString } = useRouterStuff();
-  const { data: session } = useSession();
-  const { plan, defaultProgramId, flags } = useWorkspace();
+  const { data: session, status } = useSession();
+  const { plan, defaultProgramId } = useWorkspace();
+  const { workspaces } = useWorkspaces();
+
+  // Store the current workspace slug in sessionStorage so we can remember it on account settings pages
+  useEffect(() => {
+    if (paramsSlug) {
+      sessionStorage.setItem("dub_last_workspace", paramsSlug);
+    }
+  }, [paramsSlug]);
+
+  // Validate and clear sessionStorage if user doesn't have access to the stored workspace
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      // Clear sessionStorage on logout
+      sessionStorage.removeItem("dub_last_workspace");
+      return;
+    }
+
+    if (workspaces && typeof window !== "undefined") {
+      const storedSlug = sessionStorage.getItem("dub_last_workspace");
+      if (storedSlug && !paramsSlug) {
+        // Only validate if we're not currently on a workspace page (to avoid clearing during navigation)
+        const hasAccess = workspaces.some((w) => w.slug === storedSlug);
+        if (!hasAccess) {
+          // User doesn't have access to the stored workspace, clear it
+          sessionStorage.removeItem("dub_last_workspace");
+        }
+      }
+    }
+  }, [workspaces, status, paramsSlug]);
+
+  // Use params slug when available, otherwise try sessionStorage (last visited workspace), then fall back to default workspace
+  const slug =
+    paramsSlug ||
+    (typeof window !== "undefined" && workspaces
+      ? (() => {
+          const storedSlug = sessionStorage.getItem("dub_last_workspace");
+          // Validate that the stored slug is accessible by the current user
+          if (storedSlug && workspaces.some((w) => w.slug === storedSlug)) {
+            return storedSlug;
+          }
+          return null;
+        })()
+      : null) ||
+    session?.user?.["defaultWorkspace"];
 
   const currentArea = useMemo(() => {
     return pathname.startsWith("/account/settings")
@@ -523,6 +570,7 @@ export function AppSidebarNav({
   const { submissionsCount } = useBountySubmissionsCount<
     SubmissionsCountByStatus[]
   >({
+    ignoreParams: true,
     enabled: Boolean(currentArea === "program" && defaultProgramId),
   });
 
@@ -536,10 +584,15 @@ export function AppSidebarNav({
     },
   });
 
-  const { canTrackConversions } = getPlanCapabilities(plan);
-  const { data: customersCount } = useCustomersCount({
-    enabled: canTrackConversions === true,
+  const { fraudGroupCount: pendingFraudEventsCount } = useFraudGroupCount<
+    number | undefined
+  >({
+    query: { status: "pending" },
+    enabled: Boolean(currentArea === "program" && defaultProgramId),
+    ignoreParams: true,
   });
+
+  const { canTrackConversions } = getPlanCapabilities(plan);
 
   return (
     <SidebarNav
@@ -559,10 +612,10 @@ export function AppSidebarNav({
         applicationsCount,
         submittedBountiesCount,
         unreadMessagesCount,
-        showConversionGuides: canTrackConversions && customersCount === 0,
+        pendingFraudEventsCount,
+        showConversionGuides: canTrackConversions,
         partnerNetworkEnabled:
           program && program.partnerNetworkEnabledAt !== null,
-        emailCampaignsEnabled: flags?.emailCampaigns,
       }}
       toolContent={toolContent}
       newsContent={plan && (plan === "free" ? <SidebarUsage /> : newsContent)}

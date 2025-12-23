@@ -1,9 +1,13 @@
 import { RESOURCE_COLORS } from "@/ui/colors";
 import { prisma } from "@dub/prisma";
-import { EventType, RewardStructure } from "@dub/prisma/client";
+import { EventType, Prisma, RewardStructure } from "@dub/prisma/client";
 import { randomValue } from "@dub/utils";
 import { differenceInSeconds } from "date-fns";
 import { createId } from "../api/create-id";
+
+import { serializeReward } from "../api/partners/serialize-reward";
+import { getRewardAmount } from "../partners/get-reward-amount";
+import { DEFAULT_PARTNER_GROUP } from "../zod/schemas/groups";
 import { RewardfulApi } from "./api";
 import { rewardfulImporter } from "./importer";
 import { RewardfulImportPayload } from "./types";
@@ -11,13 +15,37 @@ import { RewardfulImportPayload } from "./types";
 export async function importCampaigns(payload: RewardfulImportPayload) {
   const { programId, campaignIds } = payload;
 
-  const { workspaceId } = await prisma.program.findUniqueOrThrow({
+  const program = await prisma.program.findUniqueOrThrow({
     where: {
       id: programId,
     },
+    include: {
+      groups: {
+        where: {
+          slug: DEFAULT_PARTNER_GROUP.slug,
+        },
+      },
+    },
   });
 
-  const { token } = await rewardfulImporter.getCredentials(workspaceId);
+  if (!program.domain || !program.url) {
+    throw new Error("Program domain or URL is not set.");
+  }
+
+  const {
+    logo,
+    wordmark,
+    brandColor,
+    holdingPeriodDays,
+    autoApprovePartnersEnabledAt,
+    additionalLinks,
+    maxPartnerLinks,
+    linkStructure,
+    applicationFormData,
+    landerData,
+  } = program.groups[0] ?? {};
+
+  const { token } = await rewardfulImporter.getCredentials(program.workspaceId);
 
   const rewardfulApi = new RewardfulApi({ token });
 
@@ -45,14 +73,34 @@ export async function importCampaigns(payload: RewardfulImportPayload) {
           slug: groupSlug,
         },
       },
-      update: {},
       create: {
         id: createId({ prefix: "grp_" }),
         programId,
         name: `(Rewardful) ${campaign.name}`,
         slug: groupSlug,
         color: randomValue(RESOURCE_COLORS),
+        // Use default group settings for new groups
+        logo,
+        wordmark,
+        brandColor,
+        holdingPeriodDays,
+        autoApprovePartnersEnabledAt,
+        ...(additionalLinks && { additionalLinks }),
+        ...(maxPartnerLinks && { maxPartnerLinks }),
+        ...(linkStructure && { linkStructure }),
+        ...(applicationFormData && { applicationFormData }),
+        ...(landerData && { landerData }),
+        // Create default link for the group
+        partnerGroupDefaultLinks: {
+          create: {
+            id: createId({ prefix: "pgdl_" }),
+            programId,
+            domain: program.domain,
+            url: program.url,
+          },
+        },
       },
+      update: {},
     });
 
     console.log(
@@ -63,6 +111,7 @@ export async function importCampaigns(payload: RewardfulImportPayload) {
       new Date(),
       createdGroup.createdAt,
     );
+
     console.log(
       `This group was created ${createdSecondsAgo} seconds ago (most likely ${createdSecondsAgo < 10 ? "created" : "upserted"})`,
     );
@@ -84,14 +133,18 @@ export async function importCampaigns(payload: RewardfulImportPayload) {
             reward_type === "amount"
               ? RewardStructure.flat
               : RewardStructure.percentage,
-          amount:
-            reward_type === "amount"
-              ? commission_amount_cents
-              : commission_percent,
+          ...(reward_type === "amount"
+            ? {
+                amountInCents: commission_amount_cents,
+              }
+            : {
+                amountInPercentage: new Prisma.Decimal(commission_percent),
+              }),
         },
       });
+
       console.log(
-        `Since group was newly created, also created reward ${createdReward.id} with amount ${createdReward.amount} and type ${createdReward.type}`,
+        `Since group was newly created, also created reward ${createdReward.id} with amount ${getRewardAmount(serializeReward(createdReward))} and type ${createdReward.type}`,
       );
     }
 
@@ -102,7 +155,6 @@ export async function importCampaigns(payload: RewardfulImportPayload) {
         },
         data: {
           minPayoutAmount: minimum_payout_cents,
-          holdingPeriodDays: days_until_commissions_are_due,
         },
       });
       console.log(

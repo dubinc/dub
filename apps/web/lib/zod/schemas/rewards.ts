@@ -22,6 +22,7 @@ export const CONDITION_CUSTOMER_ATTRIBUTES = ["country"] as const;
 export const CONDITION_SALE_ATTRIBUTES = ["productId", "amount"] as const;
 
 export const CONDITION_PARTNER_ATTRIBUTES = [
+  "country",
   "totalClicks",
   "totalLeads",
   "totalConversions",
@@ -46,7 +47,11 @@ export const ENTITY_ATTRIBUTE_TYPES: Partial<
     >
   >
 > = {
+  customer: {
+    country: "string",
+  },
   partner: {
+    country: "string",
     totalClicks: "number",
     totalLeads: "number",
     totalConversions: "number",
@@ -124,10 +129,26 @@ export const rewardConditionSchema = z.object({
     .describe("Product name used for display purposes in the UI."),
 });
 
+export const PERCENTAGE_REWARD_AMOUNT_SCHEMA = z
+  .number()
+  .min(0, { message: "Reward percentage amount cannot be less than 0%" })
+  .max(100, {
+    message: "Reward percentage amount cannot be greater than 100%",
+  });
+
+export const FLAT_REWARD_AMOUNT_SCHEMA = z
+  .number()
+  .int()
+  .min(0, { message: "Reward amount cannot be less than $0" })
+  .max(999_999_99, {
+    message: "Reward amount cannot be greater than $999,999.99",
+  });
+
 export const rewardConditionsSchema = z.object({
   operator: z.enum(["AND", "OR"]).default("AND"),
   conditions: z.array(rewardConditionSchema).min(1),
-  amount: z.number().int().min(0),
+  amountInCents: FLAT_REWARD_AMOUNT_SCHEMA.optional(),
+  amountInPercentage: PERCENTAGE_REWARD_AMOUNT_SCHEMA.optional(),
   type: z.nativeEnum(RewardStructure).optional(),
   maxDuration: maxDurationSchema,
 });
@@ -136,24 +157,40 @@ export const rewardConditionsArraySchema = z
   .array(rewardConditionsSchema)
   .min(1);
 
+const decimalToNumber = z
+  .any()
+  .transform((val) => (val != null && val !== "" ? Number(val) : null))
+  .nullable()
+  .optional();
+
 export const RewardSchema = z.object({
   id: z.string(),
   event: z.nativeEnum(EventType),
   description: z.string().nullish(),
+  tooltipDescription: z.string().nullish(),
   type: z.nativeEnum(RewardStructure),
-  amount: z.number(),
+  amountInCents: z.number().int().nullable().optional(),
+  amountInPercentage: decimalToNumber,
   maxDuration: z.number().nullish(),
   modifiers: z.any().nullish(), // TODO: Fix this
 });
+
+export const REWARD_DESCRIPTION_MAX_LENGTH = 100;
+export const REWARD_TOOLTIP_DESCRIPTION_MAX_LENGTH = 2000;
 
 export const createOrUpdateRewardSchema = z.object({
   workspaceId: z.string(),
   event: z.nativeEnum(EventType),
   type: z.nativeEnum(RewardStructure).default(RewardStructure.flat),
-  amount: z.number().min(0),
+  amountInCents: FLAT_REWARD_AMOUNT_SCHEMA.optional(),
+  amountInPercentage: PERCENTAGE_REWARD_AMOUNT_SCHEMA.optional(),
   maxDuration: maxDurationSchema,
   modifiers: rewardConditionsArraySchema.nullish(),
-  description: z.string().max(100).nullish(),
+  description: z.string().max(REWARD_DESCRIPTION_MAX_LENGTH).nullish(),
+  tooltipDescription: z
+    .string()
+    .max(REWARD_TOOLTIP_DESCRIPTION_MAX_LENGTH)
+    .nullish(),
   groupId: z.string(),
 });
 
@@ -209,6 +246,7 @@ export const rewardContextSchema = z.object({
 
   partner: z
     .object({
+      country: z.string().nullish(),
       totalClicks: z.number().nullish(),
       totalLeads: z.number().nullish(),
       totalConversions: z.number().nullish(),

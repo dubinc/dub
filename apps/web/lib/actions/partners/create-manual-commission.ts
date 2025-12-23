@@ -7,6 +7,7 @@ import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-sta
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
+import { qstash } from "@/lib/cron";
 import {
   createPartnerCommission,
   CreatePartnerCommissionProps,
@@ -22,9 +23,9 @@ import { createCommissionSchema } from "@/lib/zod/schemas/commissions";
 import { leadEventSchemaTB } from "@/lib/zod/schemas/leads";
 import { saleEventSchemaTB } from "@/lib/zod/schemas/sales";
 import { prisma } from "@dub/prisma";
-import { nanoid } from "@dub/utils";
+import { WorkflowTrigger } from "@dub/prisma/client";
+import { APP_DOMAIN_WITH_NGROK, nanoid, prettyPrint } from "@dub/utils";
 import { COUNTRIES_TO_CONTINENTS } from "@dub/utils/src";
-import { WorkflowTrigger } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
 import { authActionClient } from "../safe-action";
@@ -99,6 +100,8 @@ export const createManualCommissionAction = authActionClient
         user,
         description,
       });
+
+      waitUntil(triggerAggregateDueCommissionsCronJob(programId));
 
       return;
     }
@@ -323,9 +326,14 @@ export const createManualCommissionAction = authActionClient
             ...customer,
             id: duplicateCustomerId,
             linkId: link.id,
+            programId: link.programId,
+            partnerId: link.partnerId,
             clickId: clickEventData.click_id,
             clickedAt: new Date(clickEventData.timestamp),
-            country: clickEventData.country,
+            country:
+              clickEventData.country === "Unknown"
+                ? null
+                : clickEventData.country,
             ...(recordSaleEvents && {
               sales: totalSales,
               saleAmount: totalSaleAmount,
@@ -356,8 +364,8 @@ export const createManualCommissionAction = authActionClient
         url: link.url,
         ip: "127.0.0.1",
         continent: customer.country
-          ? COUNTRIES_TO_CONTINENTS[customer.country.toUpperCase()] || "NA"
-          : "NA",
+          ? COUNTRIES_TO_CONTINENTS[customer.country.toUpperCase()] || ""
+          : "",
       });
 
       tbEventsToRecord.push(recordClickZod(generatedClickEvent));
@@ -435,6 +443,29 @@ export const createManualCommissionAction = authActionClient
           // Track the sale event timestamp for link stats update
           saleEventTimestamp = new Date(saleEventData.timestamp);
         }
+
+        const updatedCustomer = await prisma.customer.update({
+          where: {
+            id: customer.id,
+          },
+          data: {
+            linkId: link.id,
+            clickId: clickId,
+            clickedAt: new Date(clickTimestamp),
+            ...(saleAmount && {
+              sales: {
+                increment: 1,
+              },
+              saleAmount: {
+                increment: saleAmount,
+              },
+            }),
+          },
+        });
+        console.log(
+          "Updated customer to include link & sale attributes: ",
+          updatedCustomer,
+        );
       }
     }
 
@@ -552,6 +583,20 @@ export const createManualCommissionAction = authActionClient
             }),
           ]);
         }
+
+        await triggerAggregateDueCommissionsCronJob(programId);
       })(),
     );
   });
+
+async function triggerAggregateDueCommissionsCronJob(programId: string) {
+  const qstashResponse = await qstash.publishJSON({
+    url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/aggregate-due-commissions`,
+    body: {
+      programId,
+    },
+  });
+  console.log(
+    `Triggered aggregate due commissions cron job for program ${programId}: ${prettyPrint(qstashResponse)}`,
+  );
+}

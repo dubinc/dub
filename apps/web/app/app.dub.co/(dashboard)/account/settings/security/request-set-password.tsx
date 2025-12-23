@@ -37,9 +37,9 @@ export const RequestSetPassword = () => {
   };
 
   return (
-    <div className="rounded-lg border border-neutral-200 bg-white">
-      <div className="flex flex-col gap-3 border-b border-neutral-200 p-5 sm:p-10">
-        <h2 className="text-xl font-medium">Password</h2>
+    <div className="rounded-xl border border-neutral-200 bg-white p-6">
+      <div className="flex flex-col space-y-1 border-b border-neutral-200">
+        <h2 className="text-base font-semibold">Password</h2>
         <p className="pb-2 text-sm text-neutral-500">
           {user?.provider && (
             <>
@@ -58,14 +58,16 @@ export const RequestSetPassword = () => {
           You can set a password to use with your Dub account.
         </p>
       </div>
-      <div className="p-5 sm:p-10">
-        <Button
-          text="Create account password"
-          onClick={sendPasswordSetRequest}
-          loading={sending}
-          disabled={sending}
-          className="w-fit"
-        />
+      <div className="flex items-center justify-start">
+        <div className="shrink-0">
+          <Button
+            text="Create account password"
+            onClick={sendPasswordSetRequest}
+            loading={sending}
+            disabled={sending}
+            className="w-fit"
+          />
+        </div>
       </div>
     </div>
   );

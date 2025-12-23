@@ -4,19 +4,20 @@ import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
 import { recordClickCache } from "@/lib/api/links/record-click-cache";
 import { parseRequestBody } from "@/lib/api/utils";
-import { getIdentityHash } from "@/lib/middleware/utils";
+import { withAxiom } from "@/lib/axiom/server";
+import { getIdentityHash } from "@/lib/middleware/utils/get-identity-hash";
 import { getLinkViaEdge, getWorkspaceViaEdge } from "@/lib/planetscale";
 import { recordClick } from "@/lib/tinybird";
 import { RedisLinkProps } from "@/lib/types";
 import { formatRedisLink, redis } from "@/lib/upstash";
 import { isValidUrl, nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import { AxiomRequest, withAxiom } from "next-axiom";
 import { NextResponse } from "next/server";
 
 export const runtime = "edge";
+
 // POST /api/track/visit – Track a visit event from the client-side
-export const POST = withAxiom(async (req: AxiomRequest) => {
+export const POST = withAxiom(async (req) => {
   try {
     const { domain, url, referrer } = await parseRequestBody(req);
 
@@ -86,11 +87,11 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
           await recordClick({
             req,
             clickId,
+            workspaceId: cachedLink.projectId,
             linkId: cachedLink.id,
             domain,
             key,
             url: finalUrl,
-            workspaceId: cachedLink.projectId,
             skipRatelimit: true,
             ...(referrer && { referrer }),
             trigger: "pageview",

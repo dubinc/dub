@@ -41,7 +41,9 @@ export default function PartnerPayoutProcessed({
   };
   variant: "stripe" | "paypal";
 }) {
-  const saleAmountInDollars = currencyFormatter(payout.amount / 100);
+  const payoutAmountInDollars = currencyFormatter(payout.amount, {
+    trailingZeroDisplay: "stripIfInteger",
+  });
 
   const startDate = payout.periodStart
     ? formatDate(payout.periodStart, {
@@ -64,12 +66,22 @@ export default function PartnerPayoutProcessed({
   return (
     <Html>
       <Head />
-      <Preview>You've been paid!</Preview>
+      <Preview>
+        {program.name} has sent you a {payoutAmountInDollars} payout
+        {startDate && endDate
+          ? ` for affiliate commissions made from ${startDate} to ${endDate}`
+          : ""}
+        .
+      </Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[600px] rounded border border-solid border-neutral-200 px-10 py-5">
             <Section className="mt-8">
-              <Img src={DUB_WORDMARK} height="32" alt="Dub" />
+              <Img
+                src={program.logo || "https://assets.dub.co/logo.png"}
+                height="32"
+                alt={program.name}
+              />
             </Section>
 
             <Heading className="mx-0 my-7 p-0 text-lg font-medium text-black">
@@ -79,7 +91,7 @@ export default function PartnerPayoutProcessed({
             <Text className="text-sm leading-6 text-neutral-600">
               Good news! <strong className="text-black">{program.name}</strong>{" "}
               has sent you{" "}
-              <strong className="text-black">{saleAmountInDollars}</strong>
+              <strong className="text-black">{payoutAmountInDollars}</strong>
               {startDate && endDate ? (
                 <>
                   {" "}
@@ -92,20 +104,36 @@ export default function PartnerPayoutProcessed({
               )}
             </Text>
 
+            <Section className="my-8">
+              <Link
+                className="rounded-lg bg-neutral-900 px-4 py-3 text-[12px] font-semibold text-white no-underline"
+                href={`https://partners.dub.co/payouts?payoutId=${payout.id}`}
+              >
+                View payout
+              </Link>
+            </Section>
+
             <Text className="text-sm leading-6 text-neutral-600">
               {variant === "stripe"
-                ? "If the balance in your Stripe Express account is above your minimum withdrawal amount, they'll automatically begin transferring to your bank account. You can change your minimum withdrawal amount any time in your payout settings."
+                ? payout.amount >= 1000
+                  ? "The funds will begin transferring to your connected bank account shortly. You will receive another email when the funds are on their way."
+                  : "Since this payout is below the minimum withdrawal amount of $10, it will remain in processed status."
                 : "Your payout is on its way to your PayPal account. You'll receive an email from PayPal when it's complete."}
             </Text>
 
-            <Section className="mb-12 mt-8">
-              <Link
-                className="rounded-lg bg-neutral-900 px-4 py-3 text-[12px] font-semibold text-white no-underline"
-                href="https://partners.dub.co/payouts"
-              >
-                View payouts
-              </Link>
-            </Section>
+            {variant === "stripe" && payout.amount < 1000 && (
+              <Text className="text-sm leading-6 text-neutral-600">
+                If you'd like to receive your payout right away, please{" "}
+                <Link
+                  href="https://partners.dub.co/payouts"
+                  className="font-medium text-black underline"
+                >
+                  go to your Payouts page
+                </Link>{" "}
+                and select <strong className="text-black">"Pay out now"</strong>{" "}
+                to receive your payout with a $0.50 withdrawal fee.
+              </Text>
+            )}
             <Footer email={email} />
           </Container>
         </Body>

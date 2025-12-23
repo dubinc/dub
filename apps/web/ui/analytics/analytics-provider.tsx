@@ -14,7 +14,6 @@ import {
 } from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
-import useCustomersCount from "@/lib/swr/use-customers-count";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PlanProps } from "@/lib/types";
@@ -34,13 +33,25 @@ import { defaultConfig } from "swr/_internal";
 import { UpgradeRequiredToast } from "../shared/upgrade-required-toast";
 import { useAnalyticsQuery } from "./use-analytics-query";
 
-export interface AnalyticsDashboardProps {
-  domain: string;
-  key: string;
-  url: string;
+export type AnalyticsDashboardProps = {
   showConversions?: boolean;
   workspacePlan?: PlanProps;
-}
+} & (
+  | {
+      domain: string;
+      key: string;
+      url: string;
+      folderId?: never;
+      folderName?: never;
+    }
+  | {
+      folderId: string;
+      folderName: string;
+      domain?: never;
+      key?: never;
+      url?: never;
+    }
+);
 
 export const AnalyticsContext = createContext<{
   basePath: string;
@@ -52,6 +63,7 @@ export const AnalyticsContext = createContext<{
   domain?: string;
   key?: string;
   url?: string;
+  folderId?: string;
   queryString: string;
   start?: Date;
   end?: Date;
@@ -170,7 +182,7 @@ export default function AnalyticsProvider({
       return {
         basePath: `/share/${dashboardId}`,
         baseApiPath: "/api/analytics/dashboard",
-        domain: dashboardProps?.domain,
+        domain: dashboardProps?.domain ?? null,
       };
     } else {
       return {
@@ -188,39 +200,28 @@ export default function AnalyticsProvider({
     domainSlug,
   ]);
 
-  const { queryString, key, start, end, interval, tagIds, selectedTab } =
-    useAnalyticsQuery({
-      domain: domain ?? undefined,
-      defaultKey: dashboardProps?.key,
-      defaultInterval: partnerPage
-        ? DUB_PARTNERS_ANALYTICS_INTERVAL
-        : DUB_LINKS_ANALYTICS_INTERVAL,
-
-      /*
-      If not explicitly set, show root domain links if:
-        - it's filtered by a link, or
-        - the workspace has more than 50 domains
-        - is admin page
-        - is filtered by a folder or tag
-      Otherwise, hide root domain links
-    */
-      defaultRoot: ({ key, folderId, tagIds }) =>
-        (domain && key) ||
-        (domains && domains.length > 50) ||
-        adminPage ||
-        folderId ||
-        tagIds
-          ? undefined
-          : "false",
-    });
+  const {
+    queryString,
+    key,
+    start,
+    end,
+    interval,
+    tagIds,
+    folderId,
+    selectedTab,
+  } = useAnalyticsQuery({
+    domain: domain ?? undefined,
+    defaultKey: dashboardProps?.key,
+    defaultFolderId: dashboardProps?.folderId,
+    defaultInterval: partnerPage
+      ? DUB_PARTNERS_ANALYTICS_INTERVAL
+      : DUB_LINKS_ANALYTICS_INTERVAL,
+  });
 
   // Reset requiresUpgrade when query changes
   useEffect(() => setRequiresUpgrade(false), [queryString]);
 
   const { canTrackConversions } = getPlanCapabilities(workspacePlan);
-  const { data: customersCount } = useCustomersCount({
-    enabled: canTrackConversions === true,
-  });
 
   const fetchCompositeStats = useMemo(() => {
     // show composite stats if:
@@ -230,10 +231,15 @@ export default function AnalyticsProvider({
     return dashboardProps?.showConversions ||
       adminPage ||
       partnerPage ||
-      (customersCount && customersCount > 0)
+      canTrackConversions === true
       ? true
       : false;
-  }, [dashboardProps?.showConversions, adminPage, partnerPage, customersCount]);
+  }, [
+    dashboardProps?.showConversions,
+    adminPage,
+    partnerPage,
+    canTrackConversions,
+  ]);
 
   const { data: totalEvents, isLoading: totalEventsLoading } = useSWR<{
     [key in AnalyticsResponseOptions]: number;
@@ -286,6 +292,7 @@ export default function AnalyticsProvider({
         domain: domain || undefined, // domain for the link (e.g. dub.sh, stey.me, etc.)
         key: key ? decodeURIComponent(key) : undefined, // link key (e.g. github, weathergpt, etc.)
         url: dashboardProps?.url, // url for the link (only for public stats pages)
+        folderId: folderId || undefined, // id of the folder to filter by
         start, // start of time period
         end, // end of time period
         interval, /// time period interval

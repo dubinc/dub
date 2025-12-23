@@ -1,15 +1,17 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { resolveFraudGroups } from "@/lib/api/fraud/resolve-fraud-groups";
 import { linkCache } from "@/lib/api/links/cache";
+import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
 import { includeTags } from "@/lib/api/links/include-tags";
+import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import { sendBatchEmail } from "@dub/email";
-import { unsubscribe } from "@dub/email/resend";
 import PartnerAccountMerged from "@dub/email/templates/partner-account-merged";
 import { prisma } from "@dub/prisma";
-import { log, R2_URL } from "@dub/utils";
+import { log, prettyPrint, R2_URL } from "@dub/utils";
 import { z } from "zod";
 
 export const dynamic = "force-dynamic";
@@ -58,6 +60,7 @@ export async function POST(req: Request) {
       select: {
         id: true,
         email: true,
+        payoutMethodHash: true,
         programs: {
           select: {
             programId: true,
@@ -68,6 +71,7 @@ export async function POST(req: Request) {
             userId: true,
           },
         },
+        partnerRewinds: true,
       },
     });
 
@@ -76,11 +80,11 @@ export async function POST(req: Request) {
     }
 
     const sourceAccount = partnerAccounts.find(
-      ({ email }) => email === sourceEmail,
+      ({ email }) => email?.toLowerCase() === sourceEmail.toLowerCase(),
     );
 
     const targetAccount = partnerAccounts.find(
-      ({ email }) => email === targetEmail,
+      ({ email }) => email?.toLowerCase() === targetEmail.toLowerCase(),
     );
 
     if (!sourceAccount) {
@@ -131,45 +135,48 @@ export async function POST(req: Request) {
       ({ programId }) => programId,
     );
 
-    // update links, commissions, and payouts
+    const updateManyPayload = {
+      where: {
+        programId: {
+          in: programIdsToTransfer,
+        },
+        partnerId: sourcePartnerId,
+      },
+      data: {
+        partnerId: targetPartnerId,
+      },
+    };
+
+    // update links, commissions, bounty submissions, and payouts
     if (programIdsToTransfer.length > 0) {
-      await Promise.all([
-        prisma.link.updateMany({
-          where: {
-            programId: {
-              in: programIdsToTransfer,
-            },
-            partnerId: sourcePartnerId,
-          },
-          data: {
-            partnerId: targetPartnerId,
-          },
-        }),
-
-        prisma.commission.updateMany({
-          where: {
-            programId: {
-              in: programIdsToTransfer,
-            },
-            partnerId: sourcePartnerId,
-          },
-          data: {
-            partnerId: targetPartnerId,
-          },
-        }),
-
-        prisma.payout.updateMany({
-          where: {
-            programId: {
-              in: programIdsToTransfer,
-            },
-            partnerId: sourcePartnerId,
-          },
-          data: {
-            partnerId: targetPartnerId,
-          },
-        }),
+      const [
+        updatedLinksRes,
+        updatedCustomersRes,
+        updatedCommissionsRes,
+        updatedPayoutsRes,
+      ] = await Promise.all([
+        prisma.link.updateMany(updateManyPayload),
+        prisma.customer.updateMany(updateManyPayload),
+        prisma.commission.updateMany(updateManyPayload),
+        prisma.payout.updateMany(updateManyPayload),
       ]);
+      console.log(
+        `Updated ${updatedLinksRes.count} links, ${updatedCustomersRes.count} customers, ${updatedCommissionsRes.count} commissions, and ${updatedPayoutsRes.count} payouts`,
+      );
+
+      // update notification emails, messages, and partner comments
+      const [
+        updatedNotificationEmailsRes,
+        updatedMessagesRes,
+        updatedPartnerCommentsRes,
+      ] = await Promise.all([
+        prisma.notificationEmail.updateMany(updateManyPayload),
+        prisma.message.updateMany(updateManyPayload),
+        prisma.partnerComment.updateMany(updateManyPayload),
+      ]);
+      console.log(
+        `Updated ${updatedNotificationEmailsRes.count} notification emails, ${updatedMessagesRes.count} messages, and ${updatedPartnerCommentsRes.count} partner comments`,
+      );
 
       const updatedLinks = await prisma.link.findMany({
         where: {
@@ -178,15 +185,101 @@ export async function POST(req: Request) {
           },
           partnerId: targetPartnerId,
         },
-        include: includeTags,
+        include: {
+          ...includeTags,
+          ...includeProgramEnrollment,
+        },
       });
 
-      await Promise.all([
+      // Bounty submissions to transfer to the target partner
+      const bountySubmissions = await prisma.bountySubmission.findMany({
+        where: {
+          programId: {
+            in: programIdsToTransfer,
+          },
+          partnerId: sourcePartnerId,
+        },
+      });
+
+      // Attempting to update all source submissions to the target partnerId fails
+      // if the target already has submissions for the same bounties.
+      if (bountySubmissions.length > 0) {
+        await Promise.allSettled(
+          bountySubmissions.map((submission) =>
+            prisma.bountySubmission.update({
+              where: {
+                id: submission.id,
+              },
+              data: {
+                partnerId: targetPartnerId,
+              },
+            }),
+          ),
+        );
+      }
+
+      const res = await Promise.allSettled([
         // update link metadata in Tinybird
         recordLink(updatedLinks),
         // expire link cache in Redis
         linkCache.expireMany(updatedLinks),
+        // Sync total commissions for the target partner in each program
+        ...programIdsToTransfer.map((programId) =>
+          syncTotalCommissions({
+            partnerId: targetPartnerId,
+            programId,
+            mode: "direct",
+          }),
+        ),
       ]);
+      console.log(prettyPrint(res));
+    }
+
+    // If source account has rewind, need to delete and recalculate for the target account
+    if (sourceAccount.partnerRewinds.length > 0) {
+      const deletedRewinds = await prisma.partnerRewind.deleteMany({
+        where: {
+          partnerId: sourcePartnerId,
+        },
+      });
+      console.log(`Deleted ${deletedRewinds.count} partner rewinds`);
+
+      const rewindStats = await prisma.programEnrollment
+        .aggregate({
+          where: {
+            partnerId: targetPartnerId,
+          },
+          _sum: {
+            totalClicks: true,
+            totalLeads: true,
+            totalSaleAmount: true,
+            totalCommissions: true,
+          },
+        })
+        .then((res) => ({
+          totalClicks: res._sum.totalClicks ?? 0,
+          totalLeads: res._sum.totalLeads ?? 0,
+          totalRevenue: res._sum.totalSaleAmount ?? 0,
+          totalEarnings: res._sum.totalCommissions ?? 0,
+        }));
+
+      await prisma.partnerRewind.upsert({
+        where: {
+          partnerId_year: {
+            partnerId: targetPartnerId,
+            year: 2025,
+          },
+        },
+        update: rewindStats,
+        create: {
+          partnerId: targetPartnerId,
+          year: 2025,
+          ...rewindStats,
+        },
+      });
+      console.log(
+        `Upserted partner rewind for ${targetPartnerId} in 2025: ${prettyPrint(rewindStats)}`,
+      );
     }
 
     // Remove the user if there are no workspaces left
@@ -201,71 +294,107 @@ export async function POST(req: Request) {
       });
 
       if (workspaceCount === 0) {
-        const deletedUser = await prisma.user.delete({
-          where: {
-            id: sourcePartnerUser.userId,
-          },
-          select: {
-            image: true,
-            email: true,
-          },
-        });
+        try {
+          const deletedUser = await prisma.user.delete({
+            where: {
+              id: sourcePartnerUser.userId,
+            },
+            select: {
+              id: true,
+              email: true,
+              image: true,
+            },
+          });
+          console.log(`Deleted user ${deletedUser.email} (${deletedUser.id})`);
 
-        await Promise.all([
-          deletedUser.image
-            ? storage.delete(deletedUser.image.replace(`${R2_URL}/`, ""))
-            : Promise.resolve(),
-
-          unsubscribe({
-            email: deletedUser.email!,
-          }),
-        ]);
+          if (deletedUser.image) {
+            await storage.delete({
+              key: deletedUser.image.replace(`${R2_URL}/`, ""),
+            });
+          }
+        } catch (error) {
+          console.error(
+            `Error deleting user ${sourcePartnerUser.userId}: ${error.message}`,
+          );
+        }
       }
     }
 
-    // Finally, delete the partner account
-    const deletedPartner = await prisma.partner.delete({
-      where: {
-        id: sourcePartnerId,
-      },
-    });
+    try {
+      // Finally, delete the partner account
+      const deletedPartner = await prisma.partner.delete({
+        where: {
+          id: sourcePartnerId,
+        },
+      });
+      console.log(
+        `Deleted partner ${deletedPartner.email} (${deletedPartner.id})`,
+      );
 
-    await Promise.all([
-      deletedPartner.image
-        ? storage.delete(deletedPartner.image.replace(`${R2_URL}/`, ""))
-        : Promise.resolve(),
+      if (deletedPartner.image) {
+        await storage.delete({
+          key: deletedPartner.image.replace(`${R2_URL}/`, ""),
+        });
+      }
+    } catch (error) {
+      console.error(
+        `Error deleting partner ${sourcePartnerId}: ${error.message}`,
+      );
+    }
 
-      unsubscribe({
-        email: sourceEmail,
-        audience: "partners.dub.co",
-      }),
-    ]);
+    // After merging, check if the fraud condition has been resolved.
+    // If no other partners share the same payout method hash, we can
+    // automatically resolve any pending fraud groups for this partner.
+    if (targetAccount.payoutMethodHash) {
+      const duplicatePartners = await prisma.partner.count({
+        where: {
+          payoutMethodHash: targetAccount.payoutMethodHash,
+        },
+      });
+
+      if (duplicatePartners <= 1) {
+        await resolveFraudGroups({
+          where: {
+            partnerId: targetPartnerId,
+            type: "partnerDuplicatePayoutMethod",
+          },
+          resolutionReason:
+            "Automatically resolved because partners with duplicate payout methods were merged. No other partners share this payout method.",
+        });
+      }
+    }
 
     // Make sure the cache is cleared
     await redis.del(`${CACHE_KEY_PREFIX}:${userId}`);
 
-    await sendBatchEmail([
+    const resendBatchEmailRes = await sendBatchEmail(
+      [
+        {
+          variant: "notifications",
+          to: sourceEmail,
+          subject: "Your Dub partner accounts are now merged",
+          react: PartnerAccountMerged({
+            email: sourceEmail,
+            sourceEmail,
+            targetEmail,
+          }),
+        },
+        {
+          variant: "notifications",
+          to: targetEmail,
+          subject: "Your Dub partner accounts are now merged",
+          react: PartnerAccountMerged({
+            email: targetEmail,
+            sourceEmail,
+            targetEmail,
+          }),
+        },
+      ],
       {
-        variant: "notifications",
-        to: sourceEmail,
-        subject: "Your Dub partner accounts are now merged",
-        react: PartnerAccountMerged({
-          email: sourceEmail,
-          sourceEmail,
-          targetEmail,
-        }),
+        idempotencyKey: `merge-partner-accounts/${userId}`,
       },
-      {
-        variant: "notifications",
-        to: targetEmail,
-        subject: "Your Dub partner accounts are now merged",
-        react: PartnerAccountMerged({
-          email: targetEmail,
-          sourceEmail,
-          targetEmail,
-        }),
-      },
-    ]);
+    );
+    console.log(prettyPrint(resendBatchEmailRes));
 
     return new Response(
       `Partner account ${sourceEmail} merged into ${targetEmail}.`,

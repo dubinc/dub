@@ -1,16 +1,17 @@
 import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
+import { detectAndRecordFraudEvent } from "@/lib/api/fraud/detect-record-fraud-event";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import { recordSale } from "@/lib/tinybird";
-import { LeadEventTB, WebhookPartner } from "@/lib/types";
+import { LeadEventTB } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformSaleEventData } from "@/lib/webhook/transform";
 import { prisma } from "@dub/prisma";
-import { nanoid } from "@dub/utils";
-import { WorkflowTrigger } from "@prisma/client";
+import { WorkflowTrigger } from "@dub/prisma/client";
+import { nanoid, pick } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { orderSchema } from "./schema";
 
@@ -55,6 +56,7 @@ export async function createShopifySale({
 
   const saleData = {
     ...leadData,
+    workspace_id: leadData.workspace_id || workspaceId, // in case for some reason the lead event doesn't have workspace_id
     event_id: nanoid(16),
     event_name: "Purchase",
     payment_processor: "shopify",
@@ -129,9 +131,12 @@ export async function createShopifySale({
   ]);
 
   // for program links
-  let webhookPartner: WebhookPartner | undefined;
+  let createdCommission:
+    | Awaited<ReturnType<typeof createPartnerCommission>>
+    | undefined = undefined;
+
   if (link.programId && link.partnerId) {
-    const createdCommission = await createPartnerCommission({
+    createdCommission = await createPartnerCommission({
       event: "sale",
       programId: link.programId,
       partnerId: link.partnerId,
@@ -151,7 +156,8 @@ export async function createShopifySale({
         },
       },
     });
-    webhookPartner = createdCommission?.webhookPartner;
+
+    const { webhookPartner, programEnrollment } = createdCommission;
 
     waitUntil(
       Promise.allSettled([
@@ -166,11 +172,23 @@ export async function createShopifySale({
             },
           },
         }),
+
         syncPartnerLinksStats({
           partnerId: link.partnerId,
           programId: link.programId,
           eventType: "sale",
         }),
+
+        webhookPartner &&
+          detectAndRecordFraudEvent({
+            program: { id: link.programId },
+            partner: pick(webhookPartner, ["id", "email", "name"]),
+            programEnrollment: pick(programEnrollment, ["status"]),
+            customer: pick(customer, ["id", "email", "name"]),
+            link: pick(link, ["id"]),
+            click: pick(saleData, ["url", "referer"]),
+            event: { id: saleData.event_id },
+          }),
       ]),
     );
   }
@@ -184,7 +202,7 @@ export async function createShopifySale({
         link,
         clickedAt: customer.clickedAt || customer.createdAt,
         customer,
-        partner: webhookPartner,
+        partner: createdCommission?.webhookPartner,
         metadata: null,
       }),
     }),

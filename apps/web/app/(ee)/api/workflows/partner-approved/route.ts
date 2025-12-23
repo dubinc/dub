@@ -1,15 +1,14 @@
 import { triggerDraftBountySubmissionCreation } from "@/lib/api/bounties/trigger-draft-bounty-submissions";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { createPartnerDefaultLinks } from "@/lib/api/partners/create-partner-default-links";
+import { getPartnerInviteRewardsAndBounties } from "@/lib/api/partners/get-partner-invite-rewards-and-bounties";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { createWorkflowLogger } from "@/lib/cron/qstash-workflow-logger";
 import { PlanProps, RewardProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
-import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
-import { resend } from "@dub/email/resend/client";
-import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
+import { sendBatchEmail } from "@dub/email";
 import PartnerApplicationApproved from "@dub/email/templates/partner-application-approved";
 import { prisma } from "@dub/prisma";
 import { serve } from "@upstash/workflow/nextjs";
@@ -216,16 +215,18 @@ export const { POST } = serve<Payload>(
         data: partnerUsers,
       });
 
-      if (!resend) {
-        return;
-      }
+      const rewardsAndBounties = await getPartnerInviteRewardsAndBounties({
+        programId,
+        groupId: programEnrollment.groupId || program.defaultGroupId,
+      });
 
       // Resend batch email
-      const { data, error } = await resend.batch.send(
+      const { data, error } = await sendBatchEmail(
         partnerUsers.map(({ user }) => ({
-          subject: `Your application to join ${program.name} partner program has been approved!`,
-          from: VARIANT_TO_FROM_MAP.notifications,
+          variant: "notifications",
           to: user.email!,
+          subject: `Your application to join ${program.name} partner program has been approved!`,
+          replyTo: program.supportEmail || "noreply",
           react: PartnerApplicationApproved({
             program: {
               name: program.name,
@@ -237,15 +238,12 @@ export const { POST } = serve<Payload>(
               email: user.email!,
               payoutsEnabled: Boolean(partner.payoutsEnabledAt),
             },
-            rewardDescription: ProgramRewardDescription({
-              reward: rewards.find((r) => r.event === "sale"),
-              showModifiersTooltip: false,
-            }),
+            ...rewardsAndBounties,
           }),
-          headers: {
-            "Idempotency-Key": `application-approved-${programEnrollment.id}`,
-          },
         })),
+        {
+          idempotencyKey: `application-approved/${programEnrollment.id}`,
+        },
       );
 
       if (data) {
@@ -256,7 +254,7 @@ export const { POST } = serve<Payload>(
       }
 
       if (error) {
-        throw new Error(`Failed to send email notification to partner users.`);
+        throw new Error(error.message);
       }
     });
 

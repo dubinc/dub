@@ -380,10 +380,10 @@ export const authOptions: NextAuthOptions = {
             (!userExists.image || !isStored(userExists.image)) &&
             profilePic
           ) {
-            const { url } = await storage.upload(
-              `avatars/${userExists.id}`,
-              profilePic,
-            );
+            const { url } = await storage.upload({
+              key: `avatars/${userExists.id}`,
+              body: profilePic,
+            });
             newAvatar = url;
           }
           await prisma.user.update({
@@ -593,10 +593,10 @@ export const authOptions: NextAuthOptions = {
       if (currentImage && !isStored(currentImage)) {
         waitUntil(
           (async () => {
-            const { url } = await storage.upload(
-              `avatars/${message.user.id}`,
-              currentImage,
-            );
+            const { url } = await storage.upload({
+              key: `avatars/${message.user.id}`,
+              body: currentImage,
+            });
             await prisma.user.update({
               where: {
                 id: message.user.id,

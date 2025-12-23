@@ -6,23 +6,38 @@ import {
 import NewCommissionAlertPartner from "@dub/email/templates/new-commission-alert-partner";
 import NewSaleAlertProgramOwner from "@dub/email/templates/new-sale-alert-program-owner";
 import { prisma } from "@dub/prisma";
-import { Commission, Program, Project } from "@dub/prisma/client";
+import {
+  Commission,
+  PartnerGroup,
+  Program,
+  Project,
+  User,
+} from "@dub/prisma/client";
 import { chunk } from "@dub/utils";
 
 // Send email to partner and program owners when a commission is created
 export async function notifyPartnerCommission({
   program,
+  group,
   workspace,
   commission,
+  isFirstCommission,
 }: {
-  program: Pick<Program, "name" | "slug" | "logo" | "holdingPeriodDays">;
+  program: Pick<Program, "name" | "slug" | "logo" | "supportEmail">;
+  group: Pick<PartnerGroup, "holdingPeriodDays">;
   workspace: Pick<Project, "id" | "slug" | "name">;
   commission: Pick<
     Commission,
     "type" | "amount" | "earnings" | "partnerId" | "linkId"
   >;
+  isFirstCommission: boolean;
 }) {
-  let [partner, workspaceUsers, partnerLink] = await Promise.all([
+  // Workspace owner emails are sent:
+  // - only for sale commissions
+  // - only for the first commission per partner–customer combination
+  const shouldNotifyProgram = commission.type === "sale" && isFirstCommission;
+
+  const [partner, workspaceUsers, partnerLink] = await Promise.all([
     prisma.partner.findUnique({
       where: {
         id: commission.partnerId,
@@ -46,27 +61,31 @@ export async function notifyPartnerCommission({
         },
       },
     }),
-    prisma.projectUsers.findMany({
-      where: {
-        projectId: workspace.id,
-        notificationPreference: {
-          newPartnerSale: true,
-        },
-        user: {
-          email: {
-            not: null,
+
+    shouldNotifyProgram
+      ? prisma.projectUsers.findMany({
+          where: {
+            projectId: workspace.id,
+            notificationPreference: {
+              newPartnerSale: true,
+            },
+            user: {
+              email: {
+                not: null,
+              },
+            },
           },
-        },
-      },
-      include: {
-        user: {
-          select: {
-            name: true,
-            email: true,
+          include: {
+            user: {
+              select: {
+                name: true,
+                email: true,
+              },
+            },
           },
-        },
-      },
-    }),
+        })
+      : Promise.resolve([] as { user: Pick<User, "name" | "email"> }[]),
+
     commission.linkId
       ? Promise.resolve(
           prisma.link.findUnique({
@@ -90,7 +109,9 @@ export async function notifyPartnerCommission({
       name: program.name,
       slug: program.slug,
       logo: program.logo,
-      holdingPeriodDays: program.holdingPeriodDays,
+    },
+    group: {
+      holdingPeriodDays: group.holdingPeriodDays,
     },
     partner: {
       id: commission.partnerId,
@@ -118,14 +139,15 @@ export async function notifyPartnerCommission({
           subject: "You just made a commission via Dub Partners!",
           variant: "notifications",
           to: email,
+          replyTo: program.supportEmail || "noreply",
           react: NewCommissionAlertPartner({
             email,
             ...data,
           }),
         }) as ResendEmailOptions,
     ),
-    // Workspace owner emails (only for sale commissions)
-    ...(commission.type === "sale"
+
+    ...(shouldNotifyProgram
       ? workspaceUsers.map(
           ({ user }) =>
             ({

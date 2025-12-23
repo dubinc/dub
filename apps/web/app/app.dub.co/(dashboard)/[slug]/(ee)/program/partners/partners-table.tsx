@@ -5,10 +5,12 @@ import { resendProgramInviteAction } from "@/lib/actions/partners/resend-program
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useGroups from "@/lib/swr/use-groups";
 import usePartnersCount from "@/lib/swr/use-partners-count";
+import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
 import { useArchivePartnerModal } from "@/ui/modals/archive-partner-modal";
 import { useBanPartnerModal } from "@/ui/modals/ban-partner-modal";
+import { useBulkBanPartnersModal } from "@/ui/modals/bulk-ban-partners-modal";
 import { useChangeGroupModal } from "@/ui/modals/change-group-modal";
 import { useDeactivatePartnerModal } from "@/ui/modals/deactivate-partner-modal";
 import { useReactivatePartnerModal } from "@/ui/modals/reactivate-partner-modal";
@@ -17,7 +19,9 @@ import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
+import { ThreeDots } from "@/ui/shared/icons";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
+import { ProgramEnrollmentStatus } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
   Button,
@@ -28,6 +32,7 @@ import {
   Popover,
   StatusBadge,
   Table,
+  TimestampTooltip,
   useColumnVisibility,
   usePagination,
   useRouterStuff,
@@ -52,8 +57,7 @@ import {
   formatDate,
 } from "@dub/utils";
 import { nFormatter } from "@dub/utils/src/functions";
-import { ProgramEnrollmentStatus } from "@prisma/client";
-import { Row } from "@tanstack/react-table";
+import { Row, Table as TableType } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { LockOpen } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
@@ -77,6 +81,12 @@ const partnersColumns = {
     "totalSaleAmount",
     "totalCommissions",
     "netRevenue",
+    "earningsPerClick",
+    "averageLifetimeValue",
+    "clickToLeadRate",
+    "clickToConversionRate",
+    "leadToConversionRate",
+    "returnOnAdSpend",
   ],
   defaultVisible: [
     "partner",
@@ -100,13 +110,17 @@ const getPartnerUrl = ({
 }) => `/${workspaceSlug}/program/partners/${id}`;
 
 export function PartnersTable() {
-  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
   const router = useRouter();
   const { queryParams, searchParams, getQueryString } = useRouterStuff();
 
+  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
+  const { program } = useProgram();
+
   const status = (searchParams.get("status") ||
     "approved") as ProgramEnrollmentStatus;
-  const sortBy = searchParams.get("sortBy") || "totalSaleAmount";
+  const sortBy =
+    searchParams.get("sortBy") ||
+    (program?.primaryRewardEvent === "lead" ? "totalLeads" : "totalSaleAmount");
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
   const {
@@ -130,6 +144,8 @@ export function PartnersTable() {
     `/api/partners${getQueryString({
       workspaceId,
       status,
+      sortBy,
+      sortOrder,
     })}`,
     fetcher,
     {
@@ -146,6 +162,18 @@ export function PartnersTable() {
   const { ChangeGroupModal, setShowChangeGroupModal } = useChangeGroupModal({
     partners: pendingChangeGroupPartners,
   });
+
+  const [pendingBanPartners, setPendingBanPartners] = useState<
+    EnrolledPartnerProps[]
+  >([]);
+
+  const { BulkBanPartnersModal, setShowBulkBanPartnersModal } =
+    useBulkBanPartnersModal({
+      partners: pendingBanPartners,
+      onConfirm: async () => {
+        await mutatePrefix("/api/partners");
+      },
+    });
 
   const { columnVisibility, setColumnVisibility } = useColumnVisibility(
     "partners-table-columns-v2",
@@ -191,7 +219,18 @@ export function PartnersTable() {
         {
           id: "createdAt",
           header: "Enrolled",
-          accessorFn: (d) => formatDate(d.createdAt, { month: "short" }),
+          cell: ({ row }) => (
+            <TimestampTooltip
+              timestamp={row.original.createdAt}
+              side="right"
+              rows={["local"]}
+              delayDuration={150}
+            >
+              <span>
+                {formatDate(row.original.createdAt, { month: "short" })}
+              </span>
+            </TimestampTooltip>
+          ),
         },
         {
           id: "status",
@@ -232,37 +271,137 @@ export function PartnersTable() {
         {
           id: "totalClicks",
           header: "Clicks",
-          accessorFn: (d) => nFormatter(d.totalClicks),
+          meta: {
+            headerTooltip: "Total number of clicks on the partner's links.",
+          },
+          accessorFn: (d: EnrolledPartnerProps) => nFormatter(d.totalClicks),
         },
         {
           id: "totalLeads",
           header: "Leads",
-          accessorFn: (d) => nFormatter(d.totalLeads),
+          meta: {
+            headerTooltip:
+              "Total number of leads generated by the partner's links.",
+          },
+          accessorFn: (d: EnrolledPartnerProps) => nFormatter(d.totalLeads),
         },
         {
           id: "totalConversions",
           header: "Conversions",
-          accessorFn: (d) => nFormatter(d.totalConversions),
+          meta: {
+            headerTooltip:
+              "Total number of leads that converted to paying customers.",
+          },
+          accessorFn: (d: EnrolledPartnerProps) =>
+            nFormatter(d.totalConversions),
         },
         {
           id: "totalSales",
           header: "Sales",
-          accessorFn: (d) => nFormatter(d.totalSales),
+          meta: {
+            headerTooltip:
+              "Total number of sales generated by the partner's links (includes recurring sales).",
+          },
+          accessorFn: (d: EnrolledPartnerProps) => nFormatter(d.totalSales),
         },
         {
           id: "totalSaleAmount",
           header: "Revenue",
-          accessorFn: (d) => currencyFormatter(d.totalSaleAmount / 100),
+          meta: {
+            headerTooltip: "Total revenue generated by the partner's links.",
+          },
+          accessorFn: (d: EnrolledPartnerProps) =>
+            currencyFormatter(d.totalSaleAmount),
         },
         {
           id: "totalCommissions",
           header: "Commissions",
-          accessorFn: (d) => currencyFormatter(d.totalCommissions / 100),
+          meta: {
+            headerTooltip:
+              "Total commissions paid to the partner for their referrals.",
+          },
+          accessorFn: (d: EnrolledPartnerProps) =>
+            currencyFormatter(d.totalCommissions),
         },
         {
           id: "netRevenue",
           header: "Net Revenue",
-          accessorFn: (d) => currencyFormatter(d.netRevenue / 100),
+          meta: {
+            headerTooltip:
+              "Net revenue after commissions.  \n`Total Revenue - Total Commissions`",
+          },
+          accessorFn: (d: EnrolledPartnerProps) =>
+            currencyFormatter(d.netRevenue),
+        },
+        {
+          id: "earningsPerClick",
+          header: "EPC",
+          meta: {
+            headerTooltip:
+              "Earnings Per Click (EPC).  \n`Total Revenue ÷ Total Clicks`",
+          },
+          accessorFn: (d: EnrolledPartnerProps) =>
+            d.earningsPerClick ? currencyFormatter(d.earningsPerClick) : "-",
+        },
+        {
+          id: "averageLifetimeValue",
+          header: "Avg LTV",
+          meta: {
+            headerTooltip:
+              "Average lifetime value for each paying customer.  \n`Total Revenue ÷ Total Conversions`",
+          },
+          accessorFn: (d: EnrolledPartnerProps) =>
+            d.averageLifetimeValue
+              ? currencyFormatter(d.averageLifetimeValue)
+              : "-",
+        },
+        {
+          id: "clickToLeadRate",
+          header: "Click → Lead",
+          meta: {
+            headerTooltip:
+              "Percentage of clicks that become leads.  \n`Total Leads ÷ Total Clicks`",
+          },
+          accessorFn: (d: EnrolledPartnerProps) =>
+            d.clickToLeadRate
+              ? `${parseFloat((d.clickToLeadRate * 100).toFixed(2))}%`
+              : "-",
+        },
+        {
+          id: "clickToConversionRate",
+          header: "Click → Conv",
+          meta: {
+            headerTooltip:
+              "Percentage of clicks that convert to paying customers.  \n`Total Conversions ÷ Total Clicks`",
+          },
+          accessorFn: (d: EnrolledPartnerProps) =>
+            d.clickToConversionRate
+              ? `${parseFloat((d.clickToConversionRate * 100).toFixed(2))}%`
+              : "-",
+        },
+        {
+          id: "leadToConversionRate",
+          header: "Lead → Conv",
+          meta: {
+            headerTooltip:
+              "Percentage of leads that convert to paying customers.  \n`Total Conversions ÷ Total Leads`",
+          },
+          accessorFn: (d: EnrolledPartnerProps) =>
+            d.leadToConversionRate
+              ? `${parseFloat((d.leadToConversionRate * 100).toFixed(2))}%`
+              : "-",
+        },
+        {
+          id: "returnOnAdSpend",
+          header: "ROAS",
+          meta: {
+            headerTooltip:
+              "Return On Ad Spend (ROAS).  \n`Total Revenue ÷ Total Commissions`",
+          },
+          accessorFn: (d: EnrolledPartnerProps) =>
+            d.returnOnAdSpend
+              ? `${parseFloat(d.returnOnAdSpend.toFixed(2))}x`
+              : "-",
         },
         // Menu
         {
@@ -283,6 +422,7 @@ export function PartnersTable() {
   const { table, ...tableProps } = useTable({
     data: partners || [],
     columns,
+    columnPinning: { right: ["menu"] },
     onRowClick: (row, e) => {
       const url = getPartnerUrl({
         workspaceSlug: workspaceSlug!,
@@ -313,10 +453,15 @@ export function PartnersTable() {
       "totalClicks",
       "totalLeads",
       "totalConversions",
-      "totalSales",
       "totalSaleAmount",
       "totalCommissions",
-      // "netRevenue", // TODO: add back when we can sort by this again
+      "netRevenue",
+      "earningsPerClick",
+      "averageLifetimeValue",
+      "clickToLeadRate",
+      "clickToConversionRate",
+      "leadToConversionRate",
+      "returnOnAdSpend",
     ],
     sortBy,
     sortOrder,
@@ -348,34 +493,16 @@ export function PartnersTable() {
             setShowChangeGroupModal(true);
           }}
         />
-        {/* <Button
-          variant="secondary"
-          text="Archive"
-          icon={<BoxArchive className="size-3.5 shrink-0" />}
-          className="h-7 w-fit rounded-lg px-2.5"
-          loading={false}
-          onClick={() => {
-            const partnerIds = table
-              .getSelectedRowModel()
-              .rows.map((row) => row.original.id);
 
-            toast.info("WIP");
-          }}
-        />
-        <Button
-          variant="secondary"
-          text="Ban"
-          icon={<UserXmark className="size-3.5 shrink-0" />}
-          className="h-7 w-fit rounded-lg px-2.5 text-red-700"
-          loading={false}
-          onClick={() => {
-            const partnerIds = table
-              .getSelectedRowModel()
-              .rows.map((row) => row.original.id);
-
-            toast.info("WIP");
-          }}
-        /> */}
+        {status !== "banned" && (
+          <BulkActionsMenu
+            table={table}
+            onBanPartners={(partners) => {
+              setPendingBanPartners(partners);
+              setShowBulkBanPartnersModal(true);
+            }}
+          />
+        )}
       </>
     ),
     thClassName: "border-l-0",
@@ -389,6 +516,7 @@ export function PartnersTable() {
   return (
     <div className="flex flex-col gap-6">
       <ChangeGroupModal />
+      <BulkBanPartnersModal />
       <div>
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <Filter.Select
@@ -399,8 +527,8 @@ export function PartnersTable() {
             onRemove={onRemove}
           />
           <SearchBoxPersisted
-            placeholder="Search by ID, name, or email"
-            inputClassName="md:w-[19rem]"
+            placeholder="Search by name or email"
+            inputClassName="md:w-72"
           />
         </div>
         <AnimatedSizeContainer height>
@@ -441,6 +569,51 @@ export function PartnersTable() {
   );
 }
 
+function BulkActionsMenu({
+  table,
+  onBanPartners,
+}: {
+  table: TableType<EnrolledPartnerProps>;
+  onBanPartners: (partners: EnrolledPartnerProps[]) => void;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <Popover
+      openPopover={isOpen}
+      setOpenPopover={setIsOpen}
+      content={
+        <Command tabIndex={0} loop className="focus:outline-none">
+          <Command.List className="w-screen text-sm focus-visible:outline-none sm:w-auto sm:min-w-[200px]">
+            <Command.Group className="grid gap-px p-1.5">
+              <MenuItem
+                icon={UserDelete}
+                label="Ban partners"
+                variant="danger"
+                onSelect={() => {
+                  const partners = table
+                    .getSelectedRowModel()
+                    .rows.map((row) => row.original);
+                  onBanPartners(partners);
+                  setIsOpen(false);
+                }}
+              />
+            </Command.Group>
+          </Command.List>
+        </Command>
+      }
+      align="start"
+    >
+      <Button
+        type="button"
+        className="size-7 whitespace-nowrap rounded-lg p-2"
+        variant="secondary"
+        icon={<ThreeDots className="h-4 w-4 shrink-0" />}
+      />
+    </Popover>
+  );
+}
+
 function RowMenuButton({
   row,
   workspaceId,
@@ -463,6 +636,9 @@ function RowMenuButton({
 
   const { BanPartnerModal, setShowBanPartnerModal } = useBanPartnerModal({
     partner: row.original,
+    onConfirm: async () => {
+      mutatePrefix("/api/partners");
+    },
   });
 
   const { UnbanPartnerModal, setShowUnbanPartnerModal } = useUnbanPartnerModal({

@@ -1,10 +1,11 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createId } from "@/lib/api/create-id";
-import { DubApiError, exceededLimitError } from "@/lib/api/errors";
+import { DubApiError } from "@/lib/api/errors";
 import { getGroups } from "@/lib/api/groups/get-groups";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import {
   createGroupSchema,
   DEFAULT_PARTNER_GROUP,
@@ -105,15 +106,19 @@ export const POST = withWorkspace(
         });
       }
 
-      // copy over the default group's link settings + lander/application data
-      // when creating a new group
+      // copy over the default group's settings when creating a new group
       const {
+        logo,
+        wordmark,
+        brandColor,
         additionalLinks,
         maxPartnerLinks,
         linkStructure,
         partnerGroupDefaultLinks,
         applicationFormData,
         landerData,
+        holdingPeriodDays,
+        autoApprovePartnersEnabledAt,
       } = program.groups[0];
 
       return await tx.partnerGroup.create({
@@ -123,6 +128,11 @@ export const POST = withWorkspace(
           name,
           slug,
           color,
+          logo,
+          wordmark,
+          brandColor,
+          holdingPeriodDays,
+          autoApprovePartnersEnabledAt,
           ...(additionalLinks && { additionalLinks }),
           ...(maxPartnerLinks && { maxPartnerLinks }),
           ...(linkStructure && { linkStructure }),

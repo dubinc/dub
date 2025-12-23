@@ -39,7 +39,7 @@ export function AnalyticsChart() {
         values: {
           amount:
             selectedTab === "sales" && saleUnit === "saleAmount"
-              ? d.saleAmount / 100
+              ? d.saleAmount
               : d[selectedTab],
         },
       })),

@@ -2,7 +2,7 @@
 
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Crown } from "@dub/ui";
-import { cn, getNextPlan } from "@dub/utils";
+import { cn } from "@dub/utils";
 import { motion } from "motion/react";
 import Link from "next/link";
 import { useMemo } from "react";
@@ -51,7 +51,7 @@ export function UpgradeBanner() {
             </Link>
             <span className="xs:inline hidden">&nbsp;on your current plan</span>
             <span className="hidden md:inline">
-              . Upgrade to keep creating.
+              . Upgrade to keep using Dub.
             </span>
           </>
         ) : (
@@ -72,16 +72,7 @@ export function UpgradeBanner() {
           "hover:bg-bg-subtle transition-colors duration-150",
         )}
       >
-        {needsUpgrade ? (
-          <>
-            Upgrade
-            <span className="hidden sm:inline">
-              &nbsp;to {getNextPlan(plan).name}
-            </span>
-          </>
-        ) : (
-          <>Update Payment Method</>
-        )}
+        {needsUpgrade ? "Upgrade" : "Update Payment Method"}
       </Link>
     </motion.div>
   );

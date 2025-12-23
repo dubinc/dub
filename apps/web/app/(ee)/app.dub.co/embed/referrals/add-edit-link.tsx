@@ -1,11 +1,11 @@
 import { mutateSuffix } from "@/lib/swr/mutate";
 import { PartnerGroupAdditionalLink, PartnerGroupProps } from "@/lib/types";
 import { Lock } from "@/ui/shared/icons";
+import { Program } from "@dub/prisma/client";
 import {
   Button,
   Combobox,
   InfoTooltip,
-  SimpleTooltipContent,
   TAB_ITEM_ANIMATION_SETTINGS,
   useCopyToClipboard,
   useMediaQuery,
@@ -17,7 +17,6 @@ import {
   linkConstructor,
   punycode,
 } from "@dub/utils";
-import { Program } from "@prisma/client";
 import { motion } from "motion/react";
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -189,11 +188,7 @@ export function ReferralsEmbedCreateUpdateLink({
                 </label>
                 <InfoTooltip
                   content={
-                    <SimpleTooltipContent
-                      title="The URL that will be shared with your users. Keep it short and memorable!"
-                      cta="Learn more."
-                      href="https://dub.co/help/article/how-to-create-link"
-                    />
+                    "The URL that will be shared with your users. Keep it short and memorable! [Learn more.](https://dub.co/help/article/how-to-create-link)"
                   }
                 />
               </div>
@@ -252,11 +247,7 @@ export function ReferralsEmbedCreateUpdateLink({
                 </label>
                 <InfoTooltip
                   content={
-                    <SimpleTooltipContent
-                      title="The URL your users will get redirected to when they visit your referral link."
-                      cta="Learn more."
-                      href="https://dub.co/help/article/how-to-create-link"
-                    />
+                    "The URL your users will get redirected to when they visit your referral link. [Learn more.](https://dub.co/help/article/how-to-create-link)"
                   }
                 />
               </div>

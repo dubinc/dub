@@ -5,7 +5,7 @@ import { EnrolledPartnerProps, PayoutsCount } from "@/lib/types";
 import { PARTNERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/partners";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { useRouterStuff } from "@dub/ui";
-import { CircleDotted, Users } from "@dub/ui/icons";
+import { CircleDotted, InvoiceDollar, Users } from "@dub/ui/icons";
 import { cn, nFormatter, OG_AVATAR_URL } from "@dub/utils";
 import { useCallback, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
@@ -39,7 +39,7 @@ export function usePayoutFilters() {
               label: name,
               icon: (
                 <img
-                  src={image || `${OG_AVATAR_URL}${name}`}
+                  src={image || `${OG_AVATAR_URL}${id}`}
                   alt={`${name} image`}
                   className="size-4 rounded-full"
                 />
@@ -51,8 +51,9 @@ export function usePayoutFilters() {
         key: "status",
         icon: CircleDotted,
         label: "Status",
-        options: Object.entries(PayoutStatusBadges).map(
-          ([value, { label }]) => {
+        options: Object.entries(PayoutStatusBadges)
+          .filter(([key]) => key !== "hold")
+          .map(([value, { label }]) => {
             const Icon = PayoutStatusBadges[value].icon;
             const count = payoutsCount?.find((p) => p.status === value)?.count;
 
@@ -69,20 +70,30 @@ export function usePayoutFilters() {
               ),
               right: nFormatter(count || 0, { full: true }),
             };
-          },
-        ),
+          }),
+      },
+      {
+        key: "invoiceId",
+        icon: InvoiceDollar,
+        label: "Invoice",
+        options: [],
       },
     ],
     [payoutsCount, partners, partnersAsync],
   );
 
   const activeFilters = useMemo(() => {
-    const { status, partnerId } = searchParamsObj;
+    const { status, partnerId, invoiceId } = searchParamsObj;
     return [
       ...(status ? [{ key: "status", value: status }] : []),
       ...(partnerId ? [{ key: "partnerId", value: partnerId }] : []),
+      ...(invoiceId ? [{ key: "invoiceId", value: invoiceId }] : []),
     ];
-  }, [searchParamsObj.status, searchParamsObj.partnerId]);
+  }, [
+    searchParamsObj.status,
+    searchParamsObj.partnerId,
+    searchParamsObj.invoiceId,
+  ]);
 
   const onSelect = useCallback(
     (key: string, value: any) =>
@@ -106,7 +117,7 @@ export function usePayoutFilters() {
   const onRemoveAll = useCallback(
     () =>
       queryParams({
-        del: ["status", "search", "partnerId"],
+        del: ["status", "search", "partnerId", "invoiceId"],
       }),
     [queryParams],
   );

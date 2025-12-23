@@ -4,33 +4,68 @@ NODE mv
 SQL >
 
     SELECT
-        timestamp,
-        event_id,
-        event_name,
-        click_id,
-        link_id,
-        customer_id,
-        payment_processor,
-        invoice_id,
-        amount,
-        url,
-        continent,
-        country,
-        city,
-        region,
-        latitude,
-        longitude,
-        device,
-        browser,
-        os,
-        engine,
-        ua,
-        referer,
-        referer_url,
-        qr,
-        ip,
-        metadata
-    FROM dub_sale_events
+        se.timestamp,
+        se.click_id,
+        toLowCardinality(coalesce(nullIf(se.workspace_id, ''), lm.workspace_id)) AS workspace_id,
+        se.link_id as link_id,
+        coalesce(nullIf(se.domain, ''), lm.domain) AS domain,
+        coalesce(nullIf(se.key, ''), lm.key) AS key,
+        se.url,
+        -- sale event fields
+        se.event_id,
+        se.event_name,
+        se.customer_id as customer_id,
+        se.payment_processor,
+        se.invoice_id,
+        se.amount,
+        -- correct sale_type classification using summary table
+        if(
+            dateDiff('millisecond', fs.first_sale_ts, se.timestamp) < 1, 'new', 'recurring'
+        ) AS sale_type,
+        se.metadata,
+        -- geolocation fields
+        toLowCardinality(se.continent) AS continent,
+        toLowCardinality(se.country) AS country,
+        toLowCardinality(se.city) AS city,
+        toLowCardinality(se.region) AS region,
+        se.latitude,
+        se.longitude,
+        -- additional fields
+        se.device,
+        se.browser,
+        se.os,
+        CASE
+            WHEN se.trigger = '' THEN CASE WHEN se.qr = true THEN 'qr' ELSE 'link' END ELSE se.trigger
+        END AS trigger,
+        se.ua,
+        se.referer,
+        se.referer_url,
+        se.ip,
+        -- other fields from raw DS
+        se.device_model,
+        se.device_vendor,
+        se.browser_version,
+        se.os_version,
+        se.engine,
+        se.engine_version,
+        se.cpu_architecture,
+        se.qr,
+        se.bot
+    FROM dub_sale_events AS se
+    -- join pre-aggregated first-sale timestamps
+    LEFT JOIN
+        (
+            SELECT customer_id, link_id, minMerge(first_sale_state) AS first_sale_ts
+            FROM dub_first_sale_mv
+            GROUP BY customer_id, link_id
+        ) AS fs USING (customer_id, link_id)
+    -- join link metadata for workspace/domain/key enrichment
+    LEFT JOIN
+        (
+            SELECT link_id, workspace_id, domain, key
+            FROM dub_links_metadata_latest FINAL
+            WHERE link_id IN (SELECT link_id FROM dub_sale_events)
+        ) AS lm USING (link_id)
 
 TYPE materialized
 DATASOURCE dub_sale_events_mv

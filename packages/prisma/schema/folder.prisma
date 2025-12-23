@@ -28,6 +28,7 @@ model Folder {
   links          Link[]
   users          FolderUser[]
   accessRequests FolderAccessRequest[]
+  dashboard      Dashboard?
 
   @@unique([name, projectId])
   @@index(projectId)

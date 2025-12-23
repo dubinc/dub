@@ -1,13 +1,13 @@
 import { getEvents } from "@/lib/analytics/get-events";
 import { getFolderIdsToFilter } from "@/lib/analytics/get-folder-ids-to-filter";
-import { validDateRangeForPlan } from "@/lib/analytics/utils";
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { throwIfClicksUsageExceeded } from "@/lib/api/links/usage-checks";
+import { assertValidDateRangeForPlan } from "@/lib/api/utils/assert-valid-date-range-for-plan";
 import { withWorkspace } from "@/lib/auth";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
 import { eventsQuerySchema } from "@/lib/zod/schemas/analytics";
-import { Folder, Link } from "@dub/prisma/client";
+import { Link } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 
 // GET /api/events
@@ -47,9 +47,8 @@ export const GET = withWorkspace(
 
     const folderIdToVerify = link?.folderId || folderId;
 
-    let selectedFolder: Pick<Folder, "id" | "type"> | null = null;
     if (folderIdToVerify) {
-      selectedFolder = await verifyFolderAccess({
+      await verifyFolderAccess({
         workspace,
         userId: session.user.id,
         folderId: folderIdToVerify,
@@ -57,13 +56,12 @@ export const GET = withWorkspace(
       });
     }
 
-    validDateRangeForPlan({
+    assertValidDateRangeForPlan({
       plan: workspace.plan,
       dataAvailableFrom: workspace.createdAt,
       interval,
       start,
       end,
-      throwError: true,
     });
 
     const folderIds = folderIdToVerify
@@ -73,6 +71,7 @@ export const GET = withWorkspace(
           userId: session.user.id,
         });
 
+    console.time("getEvents");
     const response = await getEvents({
       ...parsedParams,
       event,
@@ -80,8 +79,8 @@ export const GET = withWorkspace(
       workspaceId: workspace.id,
       folderIds,
       folderId: folderId || "",
-      isMegaFolder: workspace.totalLinks > 1_000_000,
     });
+    console.timeEnd("getEvents");
 
     return NextResponse.json(response);
   },

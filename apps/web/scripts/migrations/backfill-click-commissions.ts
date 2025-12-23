@@ -1,5 +1,6 @@
 import { createId } from "@/lib/api/create-id";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
+import { getRewardAmount } from "@/lib/partners/get-reward-amount";
 import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 import { getAnalytics } from "../../lib/analytics/get-analytics";
@@ -13,6 +14,7 @@ async function main() {
     partnerId,
     programId,
     include: {
+      partner: true,
       links: true,
       clickReward: true,
     },
@@ -66,7 +68,7 @@ async function main() {
         type: "click",
         amount: 0,
         quantity,
-        earnings: reward.amount * quantity,
+        earnings: getRewardAmount(reward) * quantity,
         status: payoutId ? "paid" : "pending",
         createdAt: new Date(start),
         updatedAt: new Date(start),

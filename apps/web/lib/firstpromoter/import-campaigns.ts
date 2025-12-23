@@ -3,6 +3,7 @@ import { prisma } from "@dub/prisma";
 import { randomValue } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import { createId } from "../api/create-id";
+import { DEFAULT_PARTNER_GROUP } from "../zod/schemas/groups";
 import { FirstPromoterApi } from "./api";
 import { firstPromoterImporter, MAX_BATCHES } from "./importer";
 import { FirstPromoterImportPayload } from "./types";
@@ -20,8 +21,32 @@ export async function importCampaigns(payload: FirstPromoterImportPayload) {
     },
   });
 
+  if (!program.domain || !program.url) {
+    console.error(
+      `domain or url not found for program ${program.id}. Skipping the import..`,
+    );
+    return;
+  }
+
   // Groups in the program
   const existingGroupNames = program.groups.map((group) => group.name);
+
+  const defaultGroup = program.groups.find(
+    (group) => group.slug === DEFAULT_PARTNER_GROUP.slug,
+  );
+
+  const {
+    logo,
+    wordmark,
+    brandColor,
+    holdingPeriodDays,
+    autoApprovePartnersEnabledAt,
+    additionalLinks,
+    maxPartnerLinks,
+    linkStructure,
+    applicationFormData,
+    landerData,
+  } = defaultGroup ?? {};
 
   const credentials = await firstPromoterImporter.getCredentials(
     program.workspaceId,
@@ -57,6 +82,17 @@ export async function importCampaigns(payload: FirstPromoterImportPayload) {
           slug: slugify(campaign.campaign.name),
           name: campaign.campaign.name,
           color: randomValue(RESOURCE_COLORS),
+          // Use default group settings for new groups
+          logo,
+          wordmark,
+          brandColor,
+          holdingPeriodDays,
+          autoApprovePartnersEnabledAt,
+          ...(additionalLinks && { additionalLinks }),
+          ...(maxPartnerLinks && { maxPartnerLinks }),
+          ...(linkStructure && { linkStructure }),
+          ...(applicationFormData && { applicationFormData }),
+          ...(landerData && { landerData }),
         })),
         skipDuplicates: true,
       });
@@ -64,6 +100,28 @@ export async function importCampaigns(payload: FirstPromoterImportPayload) {
       console.log(
         `Created ${groups.count} new groups for ${program.id}: ${newCampaigns.map(({ campaign }) => campaign.name).join(", ")}`,
       );
+    }
+
+    // Create default links for groups without default links
+    const groupsWithoutDefaultLinks = await prisma.partnerGroup.findMany({
+      where: {
+        programId: program.id,
+        partnerGroupDefaultLinks: {
+          none: {},
+        },
+      },
+    });
+
+    if (groupsWithoutDefaultLinks.length > 0) {
+      await prisma.partnerGroupDefaultLink.createMany({
+        data: groupsWithoutDefaultLinks.map((group) => ({
+          id: createId({ prefix: "pgdl_" }),
+          groupId: group.id,
+          programId: program.id,
+          domain: program.domain!,
+          url: program.url!,
+        })),
+      });
     }
 
     currentPage++;

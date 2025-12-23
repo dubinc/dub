@@ -1,4 +1,5 @@
 import { editQueryString } from "@/lib/analytics/utils";
+import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
 import {
@@ -12,14 +13,17 @@ import {
   fetcher,
   getApexDomain,
   getPrettyUrl,
+  nFormatter,
 } from "@dub/utils";
 import Link from "next/link";
 import { useContext } from "react";
 import useSWR from "swr";
+import { ExceededEventsLimit } from "../exceeded-events-limit";
 import { ProgramOverviewBlock } from "../program-overview-block";
 
 export function LinksBlock() {
-  const { slug: workspaceSlug } = useWorkspace();
+  const { slug: workspaceSlug, exceededClicks } = useWorkspace();
+  const { program } = useProgram();
 
   const { getQueryString } = useRouterStuff();
 
@@ -31,19 +35,21 @@ export function LinksBlock() {
       url: string;
       domain: string;
       key: string;
+      leads: number;
       saleAmount: number;
     }[]
   >(
-    `/api/analytics?${editQueryString(queryString, {
-      groupBy: "top_links",
-      event: "sales",
-    })}`,
+    !exceededClicks &&
+      `/api/analytics?${editQueryString(queryString, {
+        groupBy: "top_links",
+        event: program?.primaryRewardEvent === "lead" ? "leads" : "sales",
+      })}`,
     fetcher,
   );
 
   return (
     <ProgramOverviewBlock
-      title="Top links by revenue"
+      title={`Top links by ${program?.primaryRewardEvent === "lead" ? "leads" : "revenue"}`}
       viewAllHref={`/${workspaceSlug}/program/analytics${getQueryString(
         undefined,
         {
@@ -52,7 +58,9 @@ export function LinksBlock() {
       )}`}
     >
       <div className="divide-border-subtle @2xl:h-60 flex h-auto flex-col divide-y">
-        {isLoading ? (
+        {exceededClicks ? (
+          <ExceededEventsLimit />
+        ) : isLoading ? (
           <div className="flex size-full items-center justify-center py-4">
             <LoadingSpinner />
           </div>
@@ -67,7 +75,7 @@ export function LinksBlock() {
         ) : (
           data
             ?.slice(0, 6)
-            .map(({ shortLink, url, domain, key, saleAmount }) => (
+            .map(({ shortLink, url, domain, key, leads, saleAmount }) => (
               <Link
                 key={shortLink}
                 href={`/${workspaceSlug}/links/${domain}/${key}`}
@@ -85,7 +93,11 @@ export function LinksBlock() {
                   <ArrowUpRight className="text-content-emphasis size-2.5 -translate-x-0.5 opacity-0 transition-[opacity,transform] group-hover:translate-x-0 group-hover:opacity-100 [&_*]:stroke-2" />
                 </div>
 
-                <span>{currencyFormatter(saleAmount / 100)}</span>
+                <span>
+                  {program?.primaryRewardEvent === "lead"
+                    ? nFormatter(leads, { full: true })
+                    : currencyFormatter(saleAmount)}
+                </span>
               </Link>
             ))
         )}

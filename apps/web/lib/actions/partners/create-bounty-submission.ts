@@ -4,16 +4,19 @@ import { createId } from "@/lib/api/create-id";
 import { getWorkspaceUsers } from "@/lib/api/get-workspace-users";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import {
+  BOUNTY_MAX_SUBMISSION_DESCRIPTION_LENGTH,
+  BOUNTY_MAX_SUBMISSION_FILES,
+  BOUNTY_MAX_SUBMISSION_URLS,
+} from "@/lib/constants/bounties";
+import {
   BountySubmissionFileSchema,
-  MAX_SUBMISSION_FILES,
-  MAX_SUBMISSION_URLS,
   submissionRequirementsSchema,
 } from "@/lib/zod/schemas/bounties";
 import { sendBatchEmail, sendEmail } from "@dub/email";
 import NewBountySubmission from "@dub/email/templates/bounty-new-submission";
 import BountySubmitted from "@dub/email/templates/bounty-submitted";
 import { prisma } from "@dub/prisma";
-import { BountySubmission, WorkspaceRole } from "@prisma/client";
+import { BountySubmission, WorkspaceRole } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { formatDistanceToNow } from "date-fns";
 import { z } from "zod";
@@ -24,10 +27,14 @@ const schema = z.object({
   bountyId: z.string(),
   files: z
     .array(BountySubmissionFileSchema)
-    .max(MAX_SUBMISSION_FILES)
+    .max(BOUNTY_MAX_SUBMISSION_FILES)
     .default([]),
-  urls: z.array(z.string().url()).max(MAX_SUBMISSION_URLS).default([]),
-  description: z.string().trim().max(1000).optional(),
+  urls: z.array(z.string().url()).max(BOUNTY_MAX_SUBMISSION_URLS).default([]),
+  description: z
+    .string()
+    .trim()
+    .max(BOUNTY_MAX_SUBMISSION_DESCRIPTION_LENGTH)
+    .optional(),
   isDraft: z
     .boolean()
     .default(false)
@@ -208,6 +215,7 @@ export const createBountySubmissionAction = authPartnerActionClient
                   name: bounty.name,
                 },
                 partner: {
+                  id: partner.id,
                   name: partner.name,
                   image: partner.image,
                   email: partner.email!,
@@ -225,6 +233,7 @@ export const createBountySubmissionAction = authPartnerActionClient
           await sendEmail({
             subject: "Bounty submitted!",
             to: partner.email,
+            replyTo: program.supportEmail || "noreply",
             react: BountySubmitted({
               email: partner.email,
               bounty: {

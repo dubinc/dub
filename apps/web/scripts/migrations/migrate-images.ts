@@ -21,14 +21,14 @@ async function main() {
   const res = await Promise.allSettled(
     imagesToMigrate.map(async (link) => {
       try {
-        const { url } = await storage.upload(
-          `images/${link.id}`,
-          link.image!, // this exists since we're filtering above
-          {
+        const { url } = await storage.upload({
+          key: `images/${link.id}`,
+          body: link.image!, // this exists since we're filtering above
+          opts: {
             width: 1200,
             height: 630,
           },
-        );
+        });
 
         await prisma.link.update({
           where: {

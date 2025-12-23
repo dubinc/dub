@@ -1,10 +1,10 @@
 import { approvePartnerAction } from "@/lib/actions/partners/approve-partner";
-import { rejectPartnerAction } from "@/lib/actions/partners/reject-partner";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
+import { useRejectPartnerApplicationModal } from "@/ui/modals/reject-partner-application-modal";
 import { X } from "@/ui/shared/icons";
 import {
   Button,
@@ -43,6 +43,28 @@ function PartnerApplicationSheetContent({
 
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(
     partner.groupId ?? null,
+  );
+
+  // right arrow key onNext
+  useKeyboardShortcut(
+    "ArrowRight",
+    () => {
+      if (onNext) {
+        onNext();
+      }
+    },
+    { sheet: true },
+  );
+
+  // left arrow key onPrevious
+  useKeyboardShortcut(
+    "ArrowLeft",
+    () => {
+      if (onPrevious) {
+        onPrevious();
+      }
+    },
+    { sheet: true },
   );
 
   // Reset selection when navigating between partners
@@ -105,6 +127,7 @@ function PartnerApplicationSheetContent({
               selectedGroupId,
               setSelectedGroupId,
             })}
+            showApplicationRiskAnalysis={true}
           />
         </div>
         <div className="@3xl/sheet:order-1">
@@ -278,51 +301,32 @@ function PartnerRejectButton({
   setIsOpen: Dispatch<SetStateAction<boolean>>;
   onNext?: () => void;
 }) {
-  const { id: workspaceId } = useWorkspace();
-
-  const { executeAsync: rejectPartner, isPending } = useAction(
-    rejectPartnerAction,
-    {
-      onSuccess: () => {
-        onNext ? onNext() : setIsOpen(false);
-        toast.success(
-          `Partner ${partner.email} has been rejected from your program.`,
-        );
-        mutatePrefix("/api/partners");
-      },
-      onError({ error }) {
-        toast.error(error.serverError || "Failed to reject partner.");
-      },
-    },
-  );
-
-  const { setShowConfirmModal, confirmModal } = useConfirmModal({
-    title: "Reject Application",
-    description: "Are you sure you want to reject this partner application?",
-    confirmText: "Reject",
-    confirmShortcut: "r",
-    confirmShortcutOptions: { sheet: true, modal: true },
+  const {
+    RejectPartnerApplicationModal,
+    setShowRejectPartnerApplicationModal,
+  } = useRejectPartnerApplicationModal({
+    partner,
     onConfirm: async () => {
-      await rejectPartner({
-        workspaceId: workspaceId!,
-        partnerId: partner.id,
-      });
+      onNext ? onNext() : setIsOpen(false);
+      await mutatePrefix("/api/partners");
     },
+    confirmShortcutOptions: { sheet: true, modal: true },
   });
 
-  useKeyboardShortcut("r", () => setShowConfirmModal(true), { sheet: true });
+  useKeyboardShortcut("r", () => setShowRejectPartnerApplicationModal(true), {
+    sheet: true,
+  });
 
   return (
     <>
-      {confirmModal}
+      {RejectPartnerApplicationModal}
       <Button
         type="button"
         variant="secondary"
-        text={isPending ? "" : "Reject"}
-        loading={isPending}
+        text="Reject"
         shortcut="R"
         onClick={() => {
-          setShowConfirmModal(true);
+          setShowRejectPartnerApplicationModal(true);
         }}
         className="px-4"
       />

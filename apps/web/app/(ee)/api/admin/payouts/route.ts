@@ -1,10 +1,13 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { withAdmin } from "@/lib/auth";
 import { sqlGranularityMap } from "@/lib/planetscale/granularity";
+import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { prisma } from "@dub/prisma";
+import { InvoiceStatus, Prisma } from "@dub/prisma/client";
 import { ACME_PROGRAM_ID } from "@dub/utils";
-import { DateTime } from "luxon";
+import { format } from "date-fns";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 interface TimeseriesPoint {
   payouts: number;
@@ -16,45 +19,50 @@ interface FormattedTimeseriesPoint extends TimeseriesPoint {
   date: Date;
 }
 
-export const GET = withAdmin(async ({ searchParams }) => {
-  const { interval = "mtd", start, end } = searchParams;
+const adminPayoutsQuerySchema = z
+  .object({
+    programId: z.string().optional(),
+    status: z.nativeEnum(InvoiceStatus).optional(),
+  })
+  .merge(analyticsQuerySchema.pick({ interval: true, start: true, end: true }));
 
-  let { startDate, endDate, granularity } = getStartEndDates({
+export const GET = withAdmin(async ({ searchParams }) => {
+  const {
+    programId,
+    status,
+    interval = "mtd",
+    start,
+    end,
+  } = adminPayoutsQuerySchema.parse(searchParams);
+
+  const timezone = "UTC";
+  const { startDate, endDate, granularity } = getStartEndDates({
     interval,
     start,
     end,
+    timezone,
   });
-
-  const timezone = "UTC";
-  // convert to UTC
-  startDate = DateTime.fromJSDate(startDate)
-    .setZone(timezone)
-    .startOf("day")
-    .toUTC()
-    .toJSDate();
-
-  endDate = DateTime.fromJSDate(endDate)
-    .setZone(timezone)
-    .endOf("day")
-    .toUTC()
-    .toJSDate();
 
   // Fetch invoices
   const invoices = await prisma.invoice.findMany({
     where: {
-      AND: [
-        {
-          programId: {
-            not: ACME_PROGRAM_ID,
-          },
-        },
-        {
-          program: {
-            isNot: null,
-          },
-        },
-      ],
-      status: {
+      ...(programId
+        ? { programId }
+        : {
+            AND: [
+              {
+                programId: {
+                  not: ACME_PROGRAM_ID,
+                },
+              },
+              {
+                program: {
+                  isNot: null,
+                },
+              },
+            ],
+          }),
+      status: status || {
         not: "failed",
       },
       createdAt: {
@@ -89,8 +97,8 @@ export const GET = withAdmin(async ({ searchParams }) => {
       SUM(total) as total
     FROM Invoice
     WHERE 
-      programId != ${ACME_PROGRAM_ID}
-      AND status != 'failed'
+      ${programId ? Prisma.sql`programId = ${programId}` : Prisma.sql`programId != ${ACME_PROGRAM_ID}`}
+      AND ${status ? Prisma.sql`status = ${status}` : Prisma.sql`status != 'failed'`}
       AND createdAt >= ${startDate}
       AND createdAt <= ${endDate}
     GROUP BY DATE_FORMAT(CONVERT_TZ(createdAt, "UTC", ${timezone}), ${dateFormat})
@@ -100,6 +108,7 @@ export const GET = withAdmin(async ({ searchParams }) => {
   const formattedInvoices = invoices.map((invoice) => ({
     date: invoice.createdAt,
     // we're coercing this cause we've filtered out invoices without a programId above
+    programId: invoice.programId!,
     programName: invoice.program!.name,
     programLogo: invoice.program!.logo,
     status: invoice.status,
@@ -121,17 +130,15 @@ export const GET = withAdmin(async ({ searchParams }) => {
   );
 
   // Backfill missing dates with 0 values
-  let currentDate = startFunction(
-    DateTime.fromJSDate(startDate).setZone(timezone),
-  );
+  let currentDate = startFunction(startDate);
 
   const formattedTimeseriesData: FormattedTimeseriesPoint[] = [];
 
   while (currentDate < endDate) {
-    const periodKey = currentDate.toFormat(formatString);
+    const periodKey = format(currentDate, formatString);
 
     formattedTimeseriesData.push({
-      date: currentDate.toJSDate(),
+      date: currentDate,
       ...(timeseriesLookup[periodKey] || {
         payouts: 0,
         fees: 0,

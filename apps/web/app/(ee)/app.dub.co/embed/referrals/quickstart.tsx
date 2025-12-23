@@ -1,3 +1,5 @@
+import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
+import { PartnerGroupProps } from "@/lib/types";
 import { Program } from "@dub/prisma/client";
 import {
   Button,
@@ -19,19 +21,26 @@ const BUTTON_CLASSNAME = "h-9 rounded-lg bg-bg-inverted hover:bg-neutral-800";
 
 export function ReferralsEmbedQuickstart({
   program,
-  link,
+  group,
+  links,
+  earnings,
   hasResources,
   setSelectedTab,
 }: {
   program: Program;
-  link: ReferralsEmbedLink | undefined;
+  group: Pick<PartnerGroupProps, "logo" | "linkStructure">;
+  links: ReferralsEmbedLink[];
+  earnings: {
+    upcoming: number;
+    paid: number;
+  };
   hasResources: boolean;
   setSelectedTab: (tab: "Links" | "Resources") => void;
 }) {
   const [copied, copyToClipboard] = useCopyToClipboard();
   const { isMobile } = useMediaQuery();
 
-  const payoutsDisabled = !link || link.saleAmount === 0;
+  const payoutsDisabled = earnings.upcoming === 0 && earnings.paid === 0;
 
   const items = [
     {
@@ -42,15 +51,26 @@ export function ReferralsEmbedQuickstart({
         <Button
           className={BUTTON_CLASSNAME}
           onClick={() => {
-            if (link) {
-              copyToClipboard(link.shortLink);
+            if (links.length > 0) {
+              copyToClipboard(
+                constructPartnerLink({
+                  group,
+                  link: links[0],
+                }),
+              );
             } else {
               setSelectedTab("Links");
             }
           }}
-          text={link ? (copied ? "Copied link" : "Copy link") : "Create a link"}
+          text={
+            links.length > 0
+              ? copied
+                ? "Copied link"
+                : "Copy link"
+              : "Create a link"
+          }
           icon={
-            link ? (
+            links.length > 0 ? (
               <div className="relative size-4">
                 <div
                   className={cn(
@@ -78,7 +98,7 @@ export function ReferralsEmbedQuickstart({
       title: "Success kit",
       description:
         "Make sure you get setup for success with the official brand files and supportive content and documents.",
-      illustration: <SuccessKit logo={program.logo ?? DUB_LOGO} />,
+      illustration: <SuccessKit logo={group.logo ?? DUB_LOGO} />,
       cta: (
         <Button
           className="h-9 rounded-lg"
@@ -94,7 +114,7 @@ export function ReferralsEmbedQuickstart({
       title: "Receive earnings",
       description:
         "After your payouts are connected, you'll get paid out automatically for all your sales.",
-      illustration: <ConnectPayouts logo={program.logo ?? DUB_LOGO} />,
+      illustration: <ConnectPayouts logo={group.logo ?? DUB_LOGO} />,
       cta: (
         <Button
           className={payoutsDisabled ? "h-9 rounded-lg" : BUTTON_CLASSNAME}

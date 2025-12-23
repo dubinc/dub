@@ -3,7 +3,7 @@ model Discount {
   programId    String
   amount       Int             @default(0)
   type         RewardStructure @default(percentage)
-  maxDuration  Int? // in months (0 -> one-time purchase, 1, 3, 6, 12, 18, 24, 36 -> months, null -> lifetime)
+  maxDuration  Int? // in months (0 -> one-time purchase, 1, 3, 6, 12, 18, 24, 36, 48 -> months, null -> lifetime)
   description  String?
   couponId     String?
   couponTestId String?

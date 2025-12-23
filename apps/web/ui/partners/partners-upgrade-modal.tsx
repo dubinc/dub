@@ -4,9 +4,10 @@ import {
   Check,
   Grid,
   Modal,
-  SimpleTooltipContent,
+  PLAN_FEATURE_ICONS,
   Switch,
   Tooltip,
+  useRouterStuff,
 } from "@dub/ui";
 import { cn, INFINITY_NUMBER, nFormatter, PLANS } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
@@ -33,6 +34,8 @@ export function PartnersUpgradeModal({
   showPartnersUpgradeModal,
   setShowPartnersUpgradeModal,
 }: PartnersUpgradeModalProps) {
+  const { queryParams } = useRouterStuff();
+
   const plan = PLANS.find(({ name }) => name === planName)!;
 
   const [period, setPeriod] = useState<"monthly" | "yearly">("monthly");
@@ -75,7 +78,27 @@ export function PartnersUpgradeModal({
             },
           },
           {
-            id: "groups",
+            id: "messages",
+            text: "Messaging center",
+            tooltip: {
+              title:
+                "Easily communicate with your partners using our messaging center.",
+              cta: "Learn more.",
+              href: "https://dub.co/help/article/messaging-partners",
+            },
+          },
+          {
+            id: "email",
+            text: "Email campaigns",
+            tooltip: {
+              title:
+                "Send marketing and transactional emails to your partners to increase engagement and drive conversions.",
+              cta: "Learn more.",
+              href: "https://dub.co/help/article/email-campaigns",
+            },
+          },
+          {
+            id: "partnergroups",
             text: `${plan.limits.groups} partner groups`,
             tooltip: {
               title:
@@ -85,23 +108,13 @@ export function PartnersUpgradeModal({
             },
           },
           {
-            id: "api",
-            text: "Partners API",
-            tooltip: {
-              title:
-                "Leverage our partners API to build a bespoke, white-labeled referral program that lives within your app.",
-              cta: "Learn more.",
-              href: "https://dub.co/docs/api-reference/endpoint/create-a-partner",
-            },
-          },
-          {
             id: "slack",
             text: "Priority Slack support",
           },
         ],
         Enterprise: [
           {
-            id: "groups",
+            id: "users",
             text: "Unlimited partner groups",
           },
           {
@@ -136,6 +149,7 @@ export function PartnersUpgradeModal({
     <Modal
       showModal={showPartnersUpgradeModal}
       setShowModal={setShowPartnersUpgradeModal}
+      onClose={() => queryParams({ del: "showPartnersUpgradeModal" })}
     >
       <div className="scrollbar-hide relative max-h-[calc(100dvh-50px)] overflow-y-auto p-4 sm:p-8">
         <div className="pointer-events-none absolute inset-y-0 left-1/2 hidden w-[640px] -translate-x-1/2 [mask-image:linear-gradient(black,transparent_280px)] sm:block">
@@ -204,20 +218,33 @@ export function PartnersUpgradeModal({
           )}
 
           <div className="mt-6 flex flex-col gap-2 text-sm">
-            {features.map(({ id, text, tooltip }) => (
-              <li key={id} className="flex items-center gap-2 text-neutral-600">
-                <Check className="size-2.5 shrink-0 [&_*]:stroke-2" />
-                {tooltip ? (
-                  <Tooltip content={<SimpleTooltipContent {...tooltip} />}>
-                    <span className="cursor-help underline decoration-dotted underline-offset-2">
-                      {text}
-                    </span>
-                  </Tooltip>
-                ) : (
-                  <p>{text}</p>
-                )}
-              </li>
-            ))}
+            {features.map(({ id, text, tooltip }) => {
+              const Icon =
+                id && PLAN_FEATURE_ICONS[id] ? PLAN_FEATURE_ICONS[id] : Check;
+              return (
+                <li
+                  key={id}
+                  className="flex items-center gap-2 text-neutral-600"
+                >
+                  <Icon className="size-3 shrink-0 [&_*]:stroke-2" />
+                  {tooltip ? (
+                    <Tooltip
+                      content={
+                        tooltip.href && tooltip.cta
+                          ? `${tooltip.title} [${tooltip.cta}](${tooltip.href})`
+                          : tooltip.title
+                      }
+                    >
+                      <span className="cursor-help underline decoration-dotted underline-offset-2">
+                        {text}
+                      </span>
+                    </Tooltip>
+                  ) : (
+                    <p>{text}</p>
+                  )}
+                </li>
+              );
+            })}
           </div>
         </div>
 
@@ -244,7 +271,10 @@ export function PartnersUpgradeModal({
           <Button
             text="Maybe later"
             variant="secondary"
-            onClick={() => setShowPartnersUpgradeModal(false)}
+            onClick={() => {
+              setShowPartnersUpgradeModal(false);
+              queryParams({ del: "showPartnersUpgradeModal" });
+            }}
           />
         </div>
       </div>
@@ -253,7 +283,7 @@ export function PartnersUpgradeModal({
 }
 
 export function usePartnersUpgradeModal(
-  props: Omit<
+  props?: Omit<
     PartnersUpgradeModalProps,
     "showPartnersUpgradeModal" | "setShowPartnersUpgradeModal"
   >,

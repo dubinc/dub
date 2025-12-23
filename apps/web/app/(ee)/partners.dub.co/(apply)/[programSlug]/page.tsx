@@ -12,9 +12,7 @@ import { ApplyHeader } from "./header";
 export default async function ApplyPage(props: {
   params: Promise<{ programSlug: string; groupSlug?: string }>;
 }) {
-  const params = await props.params;
-
-  const { programSlug, groupSlug } = params;
+  const { programSlug, groupSlug } = await props.params;
 
   const partnerGroupSlug = groupSlug ?? DEFAULT_PARTNER_GROUP.slug;
 
@@ -44,12 +42,12 @@ export default async function ApplyPage(props: {
       className="relative"
       style={
         {
-          "--brand": program.brandColor || "#000000",
+          "--brand": program.group.brandColor || "#000000",
           "--brand-ring": "rgb(from var(--brand) r g b / 0.2)",
         } as CSSProperties
       }
     >
-      <ApplyHeader program={program} />
+      <ApplyHeader group={program.group} />
       <div className="p-6">
         <LanderHero program={program} landerData={landerData} />
 
@@ -70,7 +68,7 @@ export default async function ApplyPage(props: {
           {landerData.blocks.map((block, idx) => {
             const Component = BLOCK_COMPONENTS[block.type];
             return Component ? (
-              <Component key={idx} block={block} program={program} />
+              <Component key={idx} block={block} group={program.group} />
             ) : null;
           })}
         </div>

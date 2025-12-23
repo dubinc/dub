@@ -1,158 +1,131 @@
 "use server";
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
-import { queueDiscountCodeDeletion } from "@/lib/api/discounts/queue-discount-code-deletion";
-import { linkCache } from "@/lib/api/links/cache";
-import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
+import { DubApiError } from "@/lib/api/errors";
+import { resolveFraudGroups } from "@/lib/api/fraud/resolve-fraud-groups";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
-import {
-  BAN_PARTNER_REASONS,
-  banPartnerSchema,
-} from "@/lib/zod/schemas/partners";
-import { sendEmail } from "@dub/email";
-import PartnerBanned from "@dub/email/templates/partner-banned";
+import { qstash } from "@/lib/cron";
+import { UserProps, WorkspaceProps } from "@/lib/types";
+import { banPartnerSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
-import { ProgramEnrollmentStatus } from "@prisma/client";
+import {
+  PartnerBannedReason,
+  ProgramEnrollmentStatus,
+} from "@dub/prisma/client";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
+
+const queue = qstash.queue({
+  queueName: "ban-partner",
+});
 
 // Ban a partner
 export const banPartnerAction = authActionClient
   .schema(banPartnerSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const { partnerId } = parsedInput;
+    const { partnerId, reason } = parsedInput;
 
-    const programId = getDefaultProgramIdOrThrow(workspace);
-
-    const programEnrollment = await getProgramEnrollmentOrThrow({
+    await banPartner({
+      workspace,
       partnerId,
-      programId,
-      include: {
-        program: true,
-        partner: true,
-        links: true,
-        discountCodes: true,
-      },
+      reason,
+      user,
     });
-
-    if (programEnrollment.status === "banned") {
-      throw new Error("This partner is already banned.");
-    }
-
-    const where = {
-      programId,
-      partnerId,
-    };
-
-    await prisma.$transaction([
-      prisma.link.updateMany({
-        where,
-        data: {
-          expiresAt: new Date(),
-        },
-      }),
-
-      prisma.programEnrollment.update({
-        where: {
-          partnerId_programId: where,
-        },
-        data: {
-          status: ProgramEnrollmentStatus.banned,
-          bannedAt: new Date(),
-          bannedReason: parsedInput.reason,
-          groupId: null,
-          clickRewardId: null,
-          leadRewardId: null,
-          saleRewardId: null,
-          discountId: null,
-        },
-      }),
-
-      prisma.commission.updateMany({
-        where,
-        data: {
-          status: "canceled",
-        },
-      }),
-
-      prisma.payout.updateMany({
-        where: {
-          ...where,
-          status: "pending",
-        },
-        data: {
-          status: "canceled",
-        },
-      }),
-
-      prisma.bountySubmission.updateMany({
-        where: {
-          ...where,
-          status: {
-            not: "approved",
-          },
-        },
-        data: {
-          status: "rejected",
-        },
-      }),
-
-      prisma.discountCode.updateMany({
-        where,
-        data: {
-          discountId: null,
-        },
-      }),
-    ]);
-
-    waitUntil(
-      (async () => {
-        // Sync total commissions
-        await syncTotalCommissions({ partnerId, programId });
-
-        const { program, partner, links, discountCodes } = programEnrollment;
-
-        await Promise.allSettled([
-          linkCache.expireMany(links),
-
-          queueDiscountCodeDeletion(discountCodes.map(({ id }) => id)),
-
-          partner.email &&
-            sendEmail({
-              subject: `You've been banned from the ${program.name} Partner Program`,
-              to: partner.email,
-              replyTo: program.supportEmail || "support@dub.co",
-              react: PartnerBanned({
-                partner: {
-                  name: partner.name,
-                  email: partner.email,
-                },
-                program: {
-                  name: program.name,
-                  slug: program.slug,
-                },
-                bannedReason: BAN_PARTNER_REASONS[parsedInput.reason],
-              }),
-              variant: "notifications",
-            }),
-
-          recordAuditLog({
-            workspaceId: workspace.id,
-            programId,
-            action: "partner.banned",
-            description: `Partner ${partnerId} banned`,
-            actor: user,
-            targets: [
-              {
-                type: "partner",
-                id: partnerId,
-                metadata: partner,
-              },
-            ],
-          }),
-        ]);
-      })(),
-    );
   });
+
+export const banPartner = async ({
+  workspace,
+  partnerId,
+  reason,
+  user,
+}: {
+  workspace: Pick<WorkspaceProps, "id" | "defaultProgramId">;
+  partnerId: string;
+  reason: PartnerBannedReason;
+  user: Pick<UserProps, "id">;
+}) => {
+  const programId = getDefaultProgramIdOrThrow(workspace);
+
+  const programEnrollment = await getProgramEnrollmentOrThrow({
+    partnerId,
+    programId,
+    include: {
+      partner: true,
+    },
+  });
+
+  if (programEnrollment.status === "pending") {
+    throw new DubApiError({
+      code: "bad_request",
+      message: "This partner is not approved yet to be banned.",
+    });
+  }
+
+  if (programEnrollment.status === "banned") {
+    throw new DubApiError({
+      code: "bad_request",
+      message: "This partner is already banned from your program.",
+    });
+  }
+
+  const commonWhere = {
+    partnerId,
+    programId,
+  };
+
+  const programEnrollmentUpdated = await prisma.programEnrollment.update({
+    where: {
+      partnerId_programId: commonWhere,
+    },
+    data: {
+      status: ProgramEnrollmentStatus.banned,
+      bannedAt: new Date(),
+      bannedReason: reason,
+      clickRewardId: null,
+      leadRewardId: null,
+      saleRewardId: null,
+      discountId: null,
+    },
+  });
+
+  // Automatically resolve all pending fraud events for this partner in the current program
+  await resolveFraudGroups({
+    where: commonWhere,
+    userId: user.id,
+    resolutionReason: "Resolved automatically because the partner was banned.",
+  });
+
+  waitUntil(
+    Promise.allSettled([
+      recordAuditLog({
+        workspaceId: workspace.id,
+        programId,
+        action: "partner.banned",
+        description: `Partner ${partnerId} banned`,
+        actor: user,
+        targets: [
+          {
+            type: "partner",
+            id: partnerId,
+            metadata: programEnrollment.partner,
+          },
+        ],
+      }),
+
+      queue.enqueueJSON({
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/ban/process`,
+        deduplicationId: `ban-${programId}-${partnerId}`,
+        method: "POST",
+        body: {
+          programId,
+          partnerId,
+        },
+      }),
+    ]),
+  );
+
+  return programEnrollmentUpdated;
+};

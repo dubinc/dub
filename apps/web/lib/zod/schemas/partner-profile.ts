@@ -4,9 +4,10 @@ import {
 } from "@/lib/analytics/constants";
 import {
   CommissionType,
+  PartnerProfileType,
   PartnerRole,
   ProgramEnrollmentStatus,
-} from "@prisma/client";
+} from "@dub/prisma/client";
 import { z } from "zod";
 import { analyticsQuerySchema, eventsQuerySchema } from "./analytics";
 import { BountySchema, BountySubmissionSchema } from "./bounties";
@@ -18,6 +19,7 @@ import {
 import { customerActivityResponseSchema } from "./customer-activity";
 import { CustomerEnrichedSchema } from "./customers";
 import { LinkSchema } from "./links";
+import { payoutsQuerySchema } from "./payouts";
 import { workflowConditionSchema } from "./workflows";
 
 export const PartnerEarningsSchema = CommissionSchema.omit({
@@ -28,9 +30,8 @@ export const PartnerEarningsSchema = CommissionSchema.omit({
     customer: z
       .object({
         id: z.string(),
-        email: z
-          .string()
-          .transform((email) => email.replace(/(?<=^.).+(?=.@)/, "****")),
+        email: z.string(),
+        country: z.string().nullish(),
       })
       .nullable(),
     link: LinkSchema.pick({
@@ -51,6 +52,7 @@ export const getPartnerEarningsQuerySchema = getCommissionsQuerySchema
       interval: z
         .enum(DATE_RANGE_INTERVAL_PRESETS)
         .default(DUB_PARTNERS_ANALYTICS_INTERVAL),
+      timezone: z.string().optional(),
       type: z.nativeEnum(CommissionType).optional(),
       linkId: z.string().optional(),
       sortBy: z.enum(["createdAt", "amount", "earnings"]).default("createdAt"),
@@ -66,6 +68,7 @@ export const getPartnerEarningsCountQuerySchema = getCommissionsCountQuerySchema
       interval: z
         .enum(DATE_RANGE_INTERVAL_PRESETS)
         .default(DUB_PARTNERS_ANALYTICS_INTERVAL),
+      timezone: z.string().optional(),
       type: z.nativeEnum(CommissionType).optional(),
       linkId: z.string().optional(),
       groupBy: z.enum(["linkId", "customerId", "status", "type"]).optional(),
@@ -96,12 +99,10 @@ export const PartnerProfileLinkSchema = LinkSchema.pick({
 
 export const PartnerProfileCustomerSchema = CustomerEnrichedSchema.pick({
   id: true,
+  email: true,
   country: true,
   createdAt: true,
 }).extend({
-  email: z
-    .string()
-    .transform((email) => email.replace(/(?<=^.).+(?=.@)/, "****")),
   activity: customerActivityResponseSchema,
 });
 
@@ -137,6 +138,7 @@ export const partnerNotificationTypes = z.enum([
   "commissionCreated",
   "applicationApproved",
   "newMessageFromProgram",
+  "marketingCampaign",
 ]);
 
 export const PartnerBountySchema = BountySchema.omit({
@@ -174,4 +176,25 @@ export const partnerUserSchema = z.object({
   role: z.nativeEnum(PartnerRole),
   image: z.string().nullish(),
   createdAt: z.date(),
+});
+
+export const partnerProfileChangeHistoryLogSchema = z.array(
+  z.union([
+    z.object({
+      field: z.literal("country"),
+      from: z.string(),
+      to: z.string(),
+      changedAt: z.coerce.date(),
+    }),
+    z.object({
+      field: z.literal("profileType"),
+      from: z.nativeEnum(PartnerProfileType),
+      to: z.nativeEnum(PartnerProfileType),
+      changedAt: z.coerce.date(),
+    }),
+  ]),
+);
+
+export const partnerProfilePayoutsQuerySchema = payoutsQuerySchema.extend({
+  sortBy: payoutsQuerySchema.shape.sortBy.default("initiatedAt"),
 });

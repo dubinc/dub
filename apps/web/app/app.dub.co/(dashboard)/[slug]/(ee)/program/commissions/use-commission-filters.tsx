@@ -1,37 +1,33 @@
 import useCommissionsCount from "@/lib/swr/use-commissions-count";
 import useCustomers from "@/lib/swr/use-customers";
-import useCustomersCount from "@/lib/swr/use-customers-count";
 import useGroups from "@/lib/swr/use-groups";
 import usePartners from "@/lib/swr/use-partners";
-import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CustomerProps, EnrolledPartnerProps } from "@/lib/types";
-import { CUSTOMERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/customers";
-import { PARTNERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/partners";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
+import { CommissionType } from "@dub/prisma/client";
 import { CircleDotted, useRouterStuff } from "@dub/ui";
 import { Sliders, User, Users, Users6 } from "@dub/ui/icons";
 import { capitalize, cn, nFormatter, OG_AVATAR_URL } from "@dub/utils";
-import { CommissionType } from "@prisma/client";
 import { useCallback, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 
 export function useCommissionFilters() {
   const { slug } = useWorkspace();
-  const { commissionsCount } = useCommissionsCount();
+  const { commissionsCount } = useCommissionsCount({ exclude: ["status"] });
   const { searchParamsObj, queryParams } = useRouterStuff();
 
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
 
-  const { partners, partnersAsync } = usePartnerFilterOptions(
+  const { partners } = usePartnerFilterOptions(
     selectedFilter === "partnerId" ? debouncedSearch : "",
   );
 
-  const { customers, customersAsync } = useCustomerFilterOptions(
+  const { customers } = useCustomerFilterOptions(
     selectedFilter === "customerId" ? debouncedSearch : "",
   );
 
@@ -43,7 +39,7 @@ export function useCommissionFilters() {
         key: "customerId",
         icon: User,
         label: "Customer",
-        shouldFilter: !customersAsync,
+        shouldFilter: false,
         options:
           customers?.map(({ id, email, name, avatar }) => {
             return {
@@ -63,7 +59,7 @@ export function useCommissionFilters() {
         key: "partnerId",
         icon: Users,
         label: "Partner",
-        shouldFilter: !partnersAsync,
+        shouldFilter: false,
         options:
           partners?.map(({ id, name, image }) => {
             return {
@@ -71,7 +67,7 @@ export function useCommissionFilters() {
               label: name,
               icon: (
                 <img
-                  src={image || `${OG_AVATAR_URL}${name}`}
+                  src={image || `${OG_AVATAR_URL}${id}`}
                   alt={`${name} image`}
                   className="size-4 rounded-full"
                 />
@@ -107,8 +103,9 @@ export function useCommissionFilters() {
         key: "status",
         icon: CircleDotted,
         label: "Status",
-        options: Object.entries(CommissionStatusBadges).map(
-          ([value, { label }]) => {
+        options: Object.entries(CommissionStatusBadges)
+          .filter(([key]) => key !== "hold")
+          .map(([value, { label }]) => {
             const Icon = CommissionStatusBadges[value].icon;
             return {
               value,
@@ -121,12 +118,13 @@ export function useCommissionFilters() {
                   )}
                 />
               ),
-              right: nFormatter(commissionsCount?.[value]?.count || 0, {
-                full: true,
-              }),
+              right: commissionsCount?.[value]?.count
+                ? nFormatter(commissionsCount[value].count, {
+                    full: true,
+                  })
+                : undefined,
             };
-          },
-        ),
+          }),
       },
     ],
     [commissionsCount, partners, customers, groups],
@@ -200,16 +198,8 @@ export function useCommissionFilters() {
 function usePartnerFilterOptions(search: string) {
   const { searchParamsObj } = useRouterStuff();
 
-  const { partnersCount } = usePartnersCount<number>({
-    ignoreParams: true,
-  });
-
-  const partnersAsync = Boolean(
-    partnersCount && partnersCount > PARTNERS_MAX_PAGE_SIZE,
-  );
-
   const { partners, loading: partnersLoading } = usePartners({
-    query: { search: partnersAsync ? search : "" },
+    query: { search },
   });
 
   const { partners: selectedPartners } = usePartners({
@@ -218,7 +208,6 @@ function usePartnerFilterOptions(search: string) {
         ? [searchParamsObj.partnerId]
         : undefined,
     },
-    enabled: partnersAsync,
   });
 
   const result = useMemo(() => {
@@ -238,19 +227,14 @@ function usePartnerFilterOptions(search: string) {
         ] as (EnrolledPartnerProps & { hideDuringSearch?: boolean })[]);
   }, [partnersLoading, partners, selectedPartners, searchParamsObj.partnerId]);
 
-  return { partners: result, partnersAsync };
+  return { partners: result };
 }
 
 function useCustomerFilterOptions(search: string) {
   const { searchParamsObj } = useRouterStuff();
 
-  const { data: customersCount } = useCustomersCount();
-  const customersAsync = Boolean(
-    customersCount && customersCount > CUSTOMERS_MAX_PAGE_SIZE,
-  );
-
   const { customers, loading: customersLoading } = useCustomers({
-    query: { search: customersAsync ? search : "" },
+    query: { search },
   });
 
   const { customers: selectedCustomers } = useCustomers({
@@ -259,7 +243,6 @@ function useCustomerFilterOptions(search: string) {
         ? [searchParamsObj.customerId]
         : undefined,
     },
-    enabled: customersAsync,
   });
 
   const result = useMemo(() => {
@@ -284,5 +267,5 @@ function useCustomerFilterOptions(search: string) {
     searchParamsObj.customerId,
   ]);
 
-  return { customers: result, customersAsync };
+  return { customers: result };
 }

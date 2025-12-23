@@ -1,9 +1,3 @@
-enum PartnerStatus {
-  default
-  verified
-  featured
-}
-
 enum PartnerRole {
   owner
   member
@@ -23,63 +17,77 @@ enum MonthlyTraffic {
 }
 
 model Partner {
-  id                           String             @id @default(cuid())
-  name                         String
-  companyName                  String?
-  profileType                  PartnerProfileType @default(individual)
-  email                        String?            @unique
-  image                        String?
-  description                  String?            @db.Text
-  country                      String?
-  status                       PartnerStatus      @default(default)
-  paypalEmail                  String?            @unique
-  stripeConnectId              String?            @unique
+  id          String             @id @default(cuid())
+  name        String
+  companyName String?
+  profileType PartnerProfileType @default(individual)
+  email       String?            @unique
+  image       String?
+  description String?            @db.Text
+  country     String?
+
+  // payout fields
+  paypalEmail                  String?   @unique
+  stripeConnectId              String?   @unique
   payoutsEnabledAt             DateTime?
-  payoutMethodHash             String?            @unique
-  minWithdrawalAmount          Int                @default(10000) // Default minimum withdrawal amount of $100
+  payoutMethodHash             String?
   connectPayoutsLastRemindedAt DateTime?
-  createdAt                    DateTime           @default(now())
-  updatedAt                    DateTime           @updatedAt
-  discoverableAt               DateTime?
-  website                      String?
-  websiteTxtRecord             String?
-  websiteVerifiedAt            DateTime?
-  youtube                      String?
-  youtubeChannelId             String?
-  youtubeVerifiedAt            DateTime?
-  youtubeSubscriberCount       Int                @default(0)
-  youtubeVideoCount            Int                @default(0)
-  youtubeViewCount             Int                @default(0)
-  twitter                      String?
-  twitterVerifiedAt            DateTime?
-  linkedin                     String?
-  linkedinVerifiedAt           DateTime?
-  instagram                    String?
-  instagramVerifiedAt          DateTime?
-  tiktok                       String?
-  tiktokVerifiedAt             DateTime?
-  invoiceSettings              Json?
-  monthlyTraffic               MonthlyTraffic?
 
-  programs           ProgramEnrollment[]
-  users              PartnerUser[]
-  invites            PartnerInvite[]
-  payouts            Payout[]
-  commissions        Commission[]
-  bountySubmissions  BountySubmission[]
-  messages           Message[]
-  sentMessages       Message[]           @relation("SenderPartner")
-  comments           PartnerComment[]
-  discountCodes      DiscountCode[]
-  notificationEmails NotificationEmail[]
+  // timestamp fields
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  discoverableAt DateTime?
+  trustedAt      DateTime?
 
+  // online presence fields
+  website                String?
+  websiteTxtRecord       String?
+  websiteVerifiedAt      DateTime?
+  youtube                String?
+  youtubeChannelId       String?
+  youtubeVerifiedAt      DateTime?
+  youtubeSubscriberCount Int       @default(0)
+  youtubeVideoCount      Int       @default(0)
+  youtubeViewCount       Int       @default(0)
+  twitter                String?
+  twitterVerifiedAt      DateTime?
+  linkedin               String?
+  linkedinVerifiedAt     DateTime?
+  instagram              String?
+  instagramVerifiedAt    DateTime?
+  tiktok                 String?
+  tiktokVerifiedAt       DateTime?
+
+  // miscellaneous fields
+  invoiceSettings  Json?
+  changeHistoryLog Json?
+
+  programs                   ProgramEnrollment[]
+  users                      PartnerUser[]
+  invites                    PartnerInvite[]
+  customers                  Customer[]
+  payouts                    Payout[]
+  commissions                Commission[]
+  bountySubmissions          BountySubmission[]
+  messages                   Message[]
+  sentMessages               Message[]                          @relation("SenderPartner")
+  comments                   PartnerComment[]
+  discountCodes              DiscountCode[]
+  notificationEmails         NotificationEmail[]
+  monthlyTraffic             MonthlyTraffic?
   industryInterests          PartnerIndustryInterest[]
   preferredEarningStructures PartnerPreferredEarningStructure[]
   salesChannels              PartnerSalesChannel[]
+  discoveredByPrograms       DiscoveredPartner[]
+  fraudEventGroups           FraudEventGroup[]
+  fraudEvents                FraudEvent[]
+  partnerRewinds             PartnerRewind[]
 
-  discoveredByPrograms DiscoveredPartner[]
-
+  @@index(country)
   @@index(discoverableAt)
+  @@index(trustedAt)
+  @@index(payoutMethodHash)
+  @@fulltext([email, name]) // For full-text search
 }
 
 model PartnerInvite {

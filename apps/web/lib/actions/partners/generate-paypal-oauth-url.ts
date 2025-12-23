@@ -1,6 +1,6 @@
 "use server";
 
-import { throwIfNoPermission } from "@/lib/auth/partner-user-permissions";
+import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
 import { paypalOAuthProvider } from "@/lib/paypal/oauth";
 import { COUNTRIES, PAYPAL_SUPPORTED_COUNTRIES } from "@dub/utils";
 import { authPartnerActionClient } from "../safe-action";

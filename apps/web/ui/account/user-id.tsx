@@ -12,10 +12,10 @@ export default function UserId() {
 
   return (
     <>
-      <div className="rounded-lg border border-neutral-200 bg-white">
-        <div className="relative flex flex-col space-y-6 p-5 sm:p-10">
-          <div className="flex flex-col space-y-3">
-            <h2 className="text-xl font-medium">Your User ID</h2>
+      <div className="rounded-xl border border-neutral-200 bg-white">
+        <div className="relative flex flex-col space-y-6 p-6">
+          <div className="flex flex-col space-y-1">
+            <h2 className="text-base font-semibold">Your User ID</h2>
             <p className="text-sm text-neutral-500">
               This is your unique account identifier on Dub.
             </p>
@@ -29,7 +29,12 @@ export default function UserId() {
             <div className="h-[2.35rem] w-full max-w-md animate-pulse rounded-md bg-neutral-200" />
           )}
         </div>
-        <div className="h-14 rounded-b-lg border-t border-neutral-200 bg-neutral-50" />
+
+        <div className="flex items-center justify-between space-x-4 rounded-b-lg border-t border-neutral-200 bg-neutral-50 px-6 py-5">
+          <p className="text-sm text-neutral-500">
+            This may be used to identify your account in the API.
+          </p>
+        </div>
       </div>
     </>
   );

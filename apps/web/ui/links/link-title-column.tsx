@@ -12,6 +12,7 @@ import {
   CopyButton,
   LinkLogo,
   Switch,
+  TimestampTooltip,
   Tooltip,
   TooltipContent,
   useInViewport,
@@ -32,7 +33,6 @@ import {
 } from "@dub/ui/icons";
 import {
   cn,
-  formatDateTime,
   getApexDomain,
   getPrettyUrl,
   isDubDomain,
@@ -54,6 +54,7 @@ import {
 import { FolderIcon } from "../folders/folder-icon";
 import { useLinkBuilder } from "../modals/link-builder";
 import { CommentsBadge } from "./comments-badge";
+import { DisabledLinkTooltip } from "./disabled-link-tooltip";
 import { useLinkSelection } from "./link-selection-provider";
 import { ResponseLink } from "./links-container";
 import { LinksDisplayContext } from "./links-display-provider";
@@ -141,6 +142,7 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
                   </a>
                 </UnverifiedTooltip>
               )}
+              {link.disabledAt && <DisabledLinkTooltip />}
               <CopyButton
                 value={linkConstructor({
                   domain,
@@ -381,9 +383,13 @@ const Details = memo(
             displayProperties.includes("createdAt") && "sm:block",
           )}
         >
-          <Tooltip content={formatDateTime(createdAt)} delayDuration={150}>
+          <TimestampTooltip
+            timestamp={createdAt}
+            rows={["local"]}
+            delayDuration={150}
+          >
             <span className="text-neutral-400">{timeAgo(createdAt)}</span>
-          </Tooltip>
+          </TimestampTooltip>
         </div>
       </div>
     );

@@ -5,6 +5,7 @@ import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PartnerProfileLinkProps } from "@/lib/types";
 import { CommentsBadge } from "@/ui/links/comments-badge";
 import { DiscountCodeBadge } from "@/ui/partners/discounts/discount-code-badge";
+import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import {
   ArrowTurnRight2,
   Button,
@@ -14,15 +15,20 @@ import {
   InvoiceDollar,
   LinkLogo,
   LoadingSpinner,
-  SimpleTooltipContent,
+  StatusBadge,
   Tooltip,
-  useCopyToClipboard,
   useInViewport,
   UserCheck,
   useRouterStuff,
 } from "@dub/ui";
 import { Areas, TimeSeriesChart, XAxis } from "@dub/ui/charts";
-import { cn, getApexDomain, getPrettyUrl } from "@dub/utils";
+import {
+  cn,
+  currencyFormatter,
+  getApexDomain,
+  getPrettyUrl,
+  nFormatter,
+} from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import Link from "next/link";
 import {
@@ -59,6 +65,205 @@ const CHARTS = [
 ];
 
 export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
+  const { programEnrollment } = useProgramEnrollment();
+  const { displayOption } = usePartnerLinksContext();
+
+  const partnerLink = constructPartnerLink({
+    group: programEnrollment?.group,
+    link,
+  });
+
+  const isDeactivated = programEnrollment?.status === "deactivated";
+
+  return (
+    <CardList.Card
+      innerClassName={cn("px-0 py-0 group/card", isDeactivated && "opacity-80")}
+    >
+      <div className="p-4">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="relative hidden shrink-0 items-center justify-center sm:flex">
+              <div className="absolute inset-0 shrink-0 rounded-full border border-neutral-200">
+                <div className="h-full w-full rounded-full border border-white bg-gradient-to-t from-neutral-100" />
+              </div>
+              <div className="relative p-2.5">
+                <LinkLogo
+                  apexDomain={getApexDomain(link.url)}
+                  className="size-4 sm:size-6"
+                />
+              </div>
+            </div>
+
+            <div className="flex min-w-0 flex-col">
+              <div className="flex flex-col">
+                <div className="flex items-center gap-1">
+                  <div
+                    className={cn(
+                      "group/shortlink relative flex w-fit items-center gap-1 py-0 pl-1 pr-1.5 transition-colors duration-150",
+                      !isDeactivated && "hover:rounded-lg hover:bg-neutral-100",
+                    )}
+                  >
+                    <a
+                      href={isDeactivated ? undefined : partnerLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={cn(
+                        "truncate text-sm font-semibold leading-6 transition-colors",
+                        isDeactivated
+                          ? "cursor-default text-neutral-400"
+                          : "text-neutral-700 hover:text-black",
+                      )}
+                      onClick={
+                        isDeactivated ? (e) => e.preventDefault() : undefined
+                      }
+                    >
+                      {getPrettyUrl(partnerLink)}
+                    </a>
+                    {!isDeactivated && (
+                      <span className="flex items-center">
+                        <CopyButton
+                          value={partnerLink}
+                          variant="neutral"
+                          className="p-0.5 opacity-0 transition-opacity duration-150 group-hover/shortlink:opacity-100"
+                        />
+                      </span>
+                    )}
+                  </div>
+
+                  {link.comments && <CommentsBadge comments={link.comments} />}
+                </div>
+
+                {/* The max width implementation here is a bit hacky, we should improve in the future */}
+                <div
+                  className={cn(
+                    "group/desturl flex max-w-[100px] items-center gap-1 py-0 pl-1 pr-1.5 transition-colors duration-150 sm:w-fit sm:max-w-[400px]",
+                    !isDeactivated && "hover:rounded-lg hover:bg-neutral-100",
+                  )}
+                >
+                  <ArrowTurnRight2 className="h-3 w-3 shrink-0 text-neutral-400" />
+                  <a
+                    href={isDeactivated ? undefined : link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={cn(
+                      "truncate text-sm transition-colors",
+                      isDeactivated
+                        ? "cursor-default text-neutral-400"
+                        : "text-neutral-500 hover:text-neutral-700",
+                    )}
+                    title={getPrettyUrl(link.url)}
+                    onClick={
+                      isDeactivated ? (e) => e.preventDefault() : undefined
+                    }
+                  >
+                    {getPrettyUrl(link.url)}
+                  </a>
+                  {!isDeactivated && (
+                    <span className="flex items-center">
+                      <CopyButton
+                        value={link.url}
+                        variant="neutral"
+                        className="p-0.5 opacity-0 transition-opacity duration-150 group-hover/desturl:opacity-100"
+                      />
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            {isDeactivated &&
+              (() => {
+                const deactivatedBadge = PartnerStatusBadges.deactivated;
+                return (
+                  <StatusBadge
+                    variant={deactivatedBadge.variant}
+                    icon={deactivatedBadge.icon}
+                    className="px-1.5 py-0.5"
+                  >
+                    {deactivatedBadge.label}
+                  </StatusBadge>
+                );
+              })()}
+            {link.discountCode && (
+              <Tooltip
+                content={
+                  "This program supports discount code tracking. Copy the code to use it in podcasts, videos, etc. [Learn more](https://dub.co/help/article/dual-sided-incentives)"
+                }
+              >
+                <div className="flex items-center gap-1.5 rounded-xl border border-neutral-200 py-1 pl-2 pr-1">
+                  <span className="text-sm leading-none text-neutral-500">
+                    Discount code
+                  </span>
+                  <DiscountCodeBadge code={link.discountCode} />
+                </div>
+              </Tooltip>
+            )}
+            {displayOption === "cards" && <StatsBadge link={link} />}
+            <Controls link={link} />
+          </div>
+        </div>
+      </div>
+      {displayOption === "full" && <StatsCharts link={link} />}
+    </CardList.Card>
+  );
+}
+
+const StatsBadge = memo(({ link }: { link: PartnerProfileLinkProps }) => {
+  const { programEnrollment, showDetailedAnalytics } = useProgramEnrollment();
+  const As = showDetailedAnalytics ? Link : "div";
+  return (
+    <As
+      href={`/programs/${programEnrollment?.program.slug}/analytics?domain=${link.domain}&key=${link.key}`}
+      className="flex items-center gap-0.5 rounded-md border border-neutral-200 bg-neutral-50 p-0.5 text-sm text-neutral-600"
+    >
+      {[
+        {
+          id: "clicks",
+          icon: CursorRays,
+          value: link.clicks,
+          iconClassName: "data-[active=true]:text-blue-500",
+        },
+        {
+          id: "leads",
+          icon: UserCheck,
+          value: link.leads,
+          className: "hidden sm:flex",
+          iconClassName: "data-[active=true]:text-purple-500",
+        },
+        {
+          id: "sales",
+          icon: InvoiceDollar,
+          value: link.saleAmount,
+          className: "hidden sm:flex",
+          iconClassName: "data-[active=true]:text-teal-500",
+        },
+      ].map(({ id: tab, icon: Icon, value, className, iconClassName }) => (
+        <div
+          key={tab}
+          className={cn(
+            "flex items-center gap-1 whitespace-nowrap rounded-md px-1 py-px transition-colors",
+            className,
+          )}
+        >
+          <Icon
+            data-active={value > 0}
+            className={cn("h-4 w-4 shrink-0", iconClassName)}
+          />
+          <span>
+            {tab === "sales"
+              ? currencyFormatter(value, {
+                  trailingZeroDisplay: "stripIfInteger",
+                })
+              : nFormatter(value)}
+          </span>
+        </div>
+      ))}
+    </As>
+  );
+});
+
+const StatsCharts = memo(({ link }: { link: PartnerProfileLinkProps }) => {
   const { getQueryString } = useRouterStuff();
   const { start, end, interval } = usePartnerLinksContext();
   const { programEnrollment } = useProgramEnrollment();
@@ -107,196 +312,97 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
   const chartData = useMemo(() => {
     return timeseries?.map(({ start, clicks, leads, saleAmount }) => ({
       date: new Date(start),
-      values: { clicks, leads, saleAmount: saleAmount / 100 },
+      values: { clicks, leads, saleAmount: saleAmount },
     }));
   }, [timeseries]);
 
-  const partnerLink = constructPartnerLink({
-    group: programEnrollment?.group,
-    link,
-  });
-
-  const [copied, copyToClipboard] = useCopyToClipboard();
-
   return (
-    <CardList.Card innerClassName="px-0 py-0 group/card">
-      <div className="p-4" ref={ref}>
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex min-w-0 items-center gap-3">
-            <div className="relative hidden shrink-0 items-center justify-center sm:flex">
-              <div className="absolute inset-0 shrink-0 rounded-full border border-neutral-200">
-                <div className="h-full w-full rounded-full border border-white bg-gradient-to-t from-neutral-100" />
-              </div>
-              <div className="relative p-2.5">
-                <LinkLogo
-                  apexDomain={getApexDomain(link.url)}
-                  className="size-4 sm:size-6"
+    <div ref={ref} className="grid grid-cols-1 gap-4 p-4 pt-0 sm:grid-cols-3">
+      {CHARTS.map((chart) => (
+        <Link
+          key={chart.key}
+          href={`/programs/${programEnrollment?.program.slug}/analytics${getQueryString(
+            {
+              domain: link.domain,
+              key: link.key,
+              event: chart.key === "saleAmount" ? "sales" : chart.key,
+            },
+          )}`}
+          className="group/chart relative isolate rounded-lg border border-neutral-200 px-2 py-1.5 lg:px-3"
+        >
+          <div className="absolute right-2 top-2 overflow-hidden">
+            <div className="translate-x-full transition-transform duration-200 group-hover/chart:translate-x-0">
+              <Button
+                text="View more"
+                variant="secondary"
+                className="h-6 w-fit px-2 text-xs"
+              />
+            </div>
+          </div>
+          <div className="flex flex-col gap-1 pl-2 pt-3 lg:pl-1.5">
+            <div className="flex items-center gap-1.5">
+              <chart.icon
+                className={cn("h-4 w-4 shrink-0", chart.colorClassName)}
+              />
+              <span className="text-sm font-semibold leading-none text-neutral-800">
+                {chart.label}
+              </span>
+            </div>
+            {totals ? (
+              <span className="text-base font-medium leading-none text-neutral-600">
+                <NumberFlow
+                  value={
+                    chart.currency ? totals[chart.key] / 100 : totals[chart.key]
+                  }
+                  format={
+                    chart.currency
+                      ? {
+                          style: "currency",
+                          currency: "USD",
+                          // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
+                          trailingZeroDisplay: "stripIfInteger",
+                        }
+                      : {
+                          notation:
+                            totals[chart.key] > 999999 ? "compact" : "standard",
+                        }
+                  }
                 />
-              </div>
-            </div>
-
-            <div className="flex min-w-0 flex-col">
-              <div className="flex flex-col">
-                <div className="flex items-center gap-1">
-                  <div className="group/shortlink relative flex w-fit items-center gap-1 py-0 pl-1 pr-1.5 transition-colors duration-150 hover:rounded-lg hover:bg-neutral-100">
-                    <a
-                      href={partnerLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="truncate text-sm font-semibold leading-6 text-neutral-700 transition-colors hover:text-black"
-                    >
-                      {getPrettyUrl(partnerLink)}
-                    </a>
-                    <span className="flex items-center">
-                      <CopyButton
-                        value={partnerLink}
-                        variant="neutral"
-                        className="p-0.5 opacity-0 transition-opacity duration-150 group-hover/shortlink:opacity-100"
-                      />
-                    </span>
-                  </div>
-
-                  {link.comments && <CommentsBadge comments={link.comments} />}
-                </div>
-
-                {/* The max width implementation here is a bit hacky, we should improve in the future */}
-                <div className="group/desturl flex max-w-[100px] items-center gap-1 py-0 pl-1 pr-1.5 transition-colors duration-150 hover:rounded-lg hover:bg-neutral-100 sm:w-fit sm:max-w-[400px]">
-                  <ArrowTurnRight2 className="h-3 w-3 shrink-0 text-neutral-400" />
-                  <a
-                    href={link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="truncate text-sm text-neutral-500 transition-colors hover:text-neutral-700"
-                    title={getPrettyUrl(link.url)}
-                  >
-                    {getPrettyUrl(link.url)}
-                  </a>
-                  <span className="flex items-center">
-                    <CopyButton
-                      value={link.url}
-                      variant="neutral"
-                      className="p-0.5 opacity-0 transition-opacity duration-150 group-hover/desturl:opacity-100"
-                    />
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            {link.discountCode && (
-              <Tooltip
-                content={
-                  <SimpleTooltipContent
-                    title="This program supports discount code tracking. Copy the code to use it in podcasts, videos, etc."
-                    cta="Learn more"
-                    href="https://dub.co/help/article/dual-sided-incentives"
-                  />
-                }
-              >
-                <div className="flex items-center gap-1.5 rounded-xl border border-neutral-200 py-1 pl-2 pr-1">
-                  <span className="text-sm leading-none text-neutral-500">
-                    Discount code
-                  </span>
-                  <DiscountCodeBadge code={link.discountCode} />
-                </div>
-              </Tooltip>
+              </span>
+            ) : (
+              <div className="h-4 w-12 animate-pulse rounded bg-neutral-200" />
             )}
-            <Controls link={link} />
           </div>
-        </div>
-
-        <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
-          {CHARTS.map((chart) => (
-            <Link
-              key={chart.key}
-              href={`/programs/${programEnrollment?.program.slug}/analytics${getQueryString(
-                {
-                  domain: link.domain,
-                  key: link.key,
-                  event: chart.key === "saleAmount" ? "sales" : chart.key,
-                },
-              )}`}
-              className="group/chart relative isolate rounded-lg border border-neutral-200 px-2 py-1.5 lg:px-3"
-            >
-              <div className="absolute right-2 top-2 overflow-hidden">
-                <div className="translate-x-full transition-transform duration-200 group-hover/chart:translate-x-0">
-                  <Button
-                    text="View more"
-                    variant="secondary"
-                    className="h-6 w-fit px-2 text-xs"
-                  />
-                </div>
-              </div>
-              <div className="flex flex-col gap-1 pl-2 pt-3 lg:pl-1.5">
-                <div className="flex items-center gap-1.5">
-                  <chart.icon
-                    className={cn("h-4 w-4 shrink-0", chart.colorClassName)}
-                  />
-                  <span className="text-sm font-semibold leading-none text-neutral-800">
-                    {chart.label}
-                  </span>
-                </div>
-                {totals ? (
-                  <span className="text-base font-medium leading-none text-neutral-600">
-                    <NumberFlow
-                      value={
-                        chart.currency
-                          ? totals[chart.key] / 100
-                          : totals[chart.key]
-                      }
-                      format={
-                        chart.currency
-                          ? {
-                              style: "currency",
-                              currency: "USD",
-                              // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
-                              trailingZeroDisplay: "stripIfInteger",
-                            }
-                          : {
-                              notation:
-                                totals[chart.key] > 999999
-                                  ? "compact"
-                                  : "standard",
-                            }
-                      }
-                    />
-                  </span>
+          <div className="h-20 sm:h-24">
+            {chartData ? (
+              <LinkEventsChart
+                key={`${interval}-${start}-${end}`}
+                data={chartData}
+                series={{
+                  id: chart.key,
+                  valueAccessor: (d) => d.values[chart.key],
+                  colorClassName: chart.colorClassName,
+                  isActive: true,
+                }}
+                currency={chart.currency}
+              />
+            ) : (
+              <div className="flex size-full items-center justify-center">
+                {error ? (
+                  <p className="text-xs text-neutral-500">
+                    Failed to load data
+                  </p>
                 ) : (
-                  <div className="h-4 w-12 animate-pulse rounded bg-neutral-200" />
+                  <LoadingSpinner className="size-4" />
                 )}
               </div>
-              <div className="h-20 sm:h-24">
-                {chartData ? (
-                  <LinkEventsChart
-                    key={`${interval}-${start}-${end}`}
-                    data={chartData}
-                    series={{
-                      id: chart.key,
-                      valueAccessor: (d) => d.values[chart.key],
-                      colorClassName: chart.colorClassName,
-                      isActive: true,
-                    }}
-                    currency={chart.currency}
-                  />
-                ) : (
-                  <div className="flex size-full items-center justify-center">
-                    {error ? (
-                      <p className="text-xs text-neutral-500">
-                        Failed to load data
-                      </p>
-                    ) : (
-                      <LoadingSpinner className="size-4" />
-                    )}
-                  </div>
-                )}
-              </div>
-            </Link>
-          ))}
-        </div>
-      </div>
-    </CardList.Card>
+            )}
+          </div>
+        </Link>
+      ))}
+    </div>
   );
-}
+});
 
 const Controls = memo(({ link }: { link: PartnerProfileLinkProps }) => {
   const { hovered } = useContext(CardList.Card.Context);
@@ -353,7 +459,7 @@ function LinkEventsChart({
                 <p className="text-right text-neutral-500">
                   {currency ? (
                     <NumberFlow
-                      value={series.valueAccessor(d)}
+                      value={series.valueAccessor(d) / 100}
                       format={{ style: "currency", currency: "USD" }}
                     />
                   ) : (

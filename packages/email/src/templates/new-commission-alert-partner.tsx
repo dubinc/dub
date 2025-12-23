@@ -20,6 +20,8 @@ export default function NewCommissionAlertPartner({
     name: "Acme",
     slug: "acme",
     logo: DUB_WORDMARK,
+  },
+  group = {
     holdingPeriodDays: 30,
   },
   commission = {
@@ -34,6 +36,8 @@ export default function NewCommissionAlertPartner({
     name: string;
     slug: string;
     logo: string | null;
+  };
+  group: {
     holdingPeriodDays: number;
   };
   commission: {
@@ -43,7 +47,7 @@ export default function NewCommissionAlertPartner({
   };
   shortLink?: string | null;
 }) {
-  const earningsInDollars = currencyFormatter(commission.earnings / 100);
+  const earningsInDollars = currencyFormatter(commission.earnings);
   const linkToEarnings = `https://partners.dub.co/programs/${program.slug}/earnings`;
 
   return (
@@ -79,7 +83,7 @@ export default function NewCommissionAlertPartner({
                   <>
                     made a{" "}
                     <strong className="text-black">
-                      {currencyFormatter(commission.amount / 100)}
+                      {currencyFormatter(commission.amount)}
                     </strong>{" "}
                     purchase
                   </>
@@ -122,15 +126,15 @@ export default function NewCommissionAlertPartner({
               ) : (
                 ` for this ${commission.type}`
               )}
-              {program.holdingPeriodDays > 0 ? (
+              {group.holdingPeriodDays > 0 ? (
                 <>
                   {" "}
                   and it will be eligible for payout after the program's{" "}
-                  {program.holdingPeriodDays}-day holding period (
+                  {group.holdingPeriodDays}-day holding period (
                   <strong>
                     {new Date(
                       Date.now() +
-                        program.holdingPeriodDays * 24 * 60 * 60 * 1000,
+                        group.holdingPeriodDays * 24 * 60 * 60 * 1000,
                     ).toLocaleDateString("en-US", {
                       month: "long",
                       day: "numeric",

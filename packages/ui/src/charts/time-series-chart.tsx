@@ -10,7 +10,7 @@ import {
   Datum,
   type ChartContext as ChartContextType,
 } from "./types";
-import { useTooltip } from "./useTooltip";
+import { useTooltip } from "./use-tooltip";
 
 type TimeSeriesChartProps<T extends Datum> = PropsWithChildren<ChartProps<T>>;
 
@@ -41,6 +41,7 @@ function TimeSeriesChartInner<T extends Datum>({
   tooltipContent = (d) => series[0].valueAccessor(d).toString(),
   tooltipClassName = "",
   defaultTooltipIndex = null,
+  onHoverDateChange,
   margin: marginProp = {
     top: 12,
     right: 5,
@@ -78,10 +79,14 @@ function TimeSeriesChartInner<T extends Datum>({
   }, [data]);
 
   const { minY, maxY } = useMemo(() => {
-    const values = series
-      .filter(({ isActive }) => isActive !== false)
-      .map(({ valueAccessor }) => data.map((d) => valueAccessor(d)))
-      .flat()
+    const activeSeries = series.filter(({ isActive }) => isActive !== false);
+    const values = data
+      .flatMap((d) =>
+        type === "bar"
+          ? // Sum values for stacked bars
+            activeSeries.reduce((sum, s) => sum + s.valueAccessor(d), 0)
+          : activeSeries.map((s) => s.valueAccessor(d)),
+      )
       .filter((v): v is number => v != null);
 
     return {
@@ -89,7 +94,7 @@ function TimeSeriesChartInner<T extends Datum>({
       minY: type === "area" ? Math.min(...values) : Math.min(0, ...values),
       maxY: Math.max(...values),
     };
-  }, [data, series]);
+  }, [data, series, type]);
 
   const { yScale, xScale } = useMemo(() => {
     const rangeY = maxY - minY;
@@ -112,7 +117,7 @@ function TimeSeriesChartInner<T extends Datum>({
           : scaleBand({
               domain: data.map(({ date }) => date),
               range: [0, width],
-              padding: Math.min(0.75, (width / data.length) * 0.02),
+              padding: 0.15,
               align: 0.5,
             }),
     };
@@ -135,6 +140,7 @@ function TimeSeriesChartInner<T extends Datum>({
     tooltipContent,
     tooltipClassName,
     defaultTooltipIndex,
+    onHoverDateChange,
     leftAxisMargin,
     setLeftAxisMargin,
   };
@@ -142,6 +148,7 @@ function TimeSeriesChartInner<T extends Datum>({
   const tooltipContext = useTooltip({
     seriesId: series[0].id,
     chartContext,
+    onHoverDateChange,
     defaultIndex: defaultTooltipIndex ?? undefined,
   });
 
@@ -226,7 +233,11 @@ function TimeSeriesChartInner<T extends Datum>({
               key={tooltipData.date.toString()}
               left={(tooltipLeft ?? 0) + margin.left}
               top={(tooltipTop ?? 0) + margin.top}
-              offsetLeft={"bandwidth" in xScale ? xScale.bandwidth() + 8 : 8}
+              offsetLeft={
+                "bandwidth" in xScale
+                  ? xScale.bandwidth() * (1 + xScale.padding())
+                  : 8
+              }
               offsetTop={12}
               className="absolute"
               unstyled={true}

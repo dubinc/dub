@@ -36,7 +36,7 @@ export function OverviewTasks() {
         icon: MoneyBills2,
         label: "Confirm pending payouts",
         count: eligiblePayoutsCount,
-        href: `/${slug}/program/payouts?status=pending&sortBy=amount`,
+        href: `/${slug}/program/payouts?status=pending`,
         loading: eligiblePayoutsLoading,
       },
       {

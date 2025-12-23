@@ -1,4 +1,5 @@
 import { isValidDomainFormat } from "@/lib/api/domains/is-valid-domain";
+import { PAYOUT_HOLDING_PERIOD_DAYS } from "@/lib/constants/payouts";
 import { RESOURCE_COLORS } from "@/ui/colors";
 import { PartnerLinkStructure } from "@dub/prisma/client";
 import { validSlugRegex } from "@dub/utils";
@@ -18,9 +19,12 @@ export const DEFAULT_PARTNER_GROUP = {
   color: null,
 } as const;
 
-export const MAX_DEFAULT_PARTNER_LINKS = 5;
+// max number of partnerGroupDefaultLinks per group
+export const MAX_DEFAULT_LINKS_PER_GROUP = 5;
 
-export const MAX_ADDITIONAL_PARTNER_LINKS = 20;
+// for the maxPartnerLinks setting (alongside additionalLinks)
+export const DEFAULT_ADDITIONAL_PARTNER_LINKS = 10;
+export const MAX_ADDITIONAL_PARTNER_LINKS = 100;
 
 export const GROUPS_MAX_PAGE_SIZE = 100;
 
@@ -53,6 +57,11 @@ export const GroupSchema = z.object({
   name: z.string(),
   slug: z.string(),
   color: z.string().nullable(),
+  logo: z.string().nullable(),
+  wordmark: z.string().nullable(),
+  brandColor: z.string().nullable(),
+  holdingPeriodDays: z.number(),
+  autoApprovePartnersEnabledAt: z.coerce.date().nullish(),
   clickReward: RewardSchema.nullish(),
   leadReward: RewardSchema.nullish(),
   saleReward: RewardSchema.nullish(),
@@ -81,7 +90,14 @@ export const GroupSchemaExtended = GroupSchema.extend({
   netRevenue: z.number().default(0),
 });
 
+export const PartnerProgramGroupSchema = GroupWithFormDataSchema.pick({
+  id: true,
+  slug: true,
+  applicationFormData: true,
+});
+
 export const createOrUpdateDefaultLinkSchema = z.object({
+  domain: z.string().toLowerCase(),
   url: parseUrlSchema,
 });
 
@@ -119,6 +135,18 @@ export const updateGroupSchema = createGroupSchema.partial().extend({
   linkStructure: z.nativeEnum(PartnerLinkStructure).optional(),
   applicationFormData: programApplicationFormSchema.optional(),
   landerData: programLanderSchema.optional(),
+  holdingPeriodDays: z.coerce
+    .number()
+    .refine(
+      (val) => val === undefined || PAYOUT_HOLDING_PERIOD_DAYS.includes(val),
+      {
+        message: `Holding period must be ${PAYOUT_HOLDING_PERIOD_DAYS.join(", ")} days`,
+      },
+    )
+    .optional(),
+  autoApprovePartners: z.coerce.boolean().optional(),
+  updateAutoApprovePartnersForAllGroups: z.coerce.boolean().optional(),
+  updateHoldingPeriodDaysForAllGroups: z.coerce.boolean().optional(),
 });
 
 export const PartnerGroupDefaultLinkSchema = z.object({

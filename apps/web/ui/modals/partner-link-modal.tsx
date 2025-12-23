@@ -11,7 +11,6 @@ import {
   InfoTooltip,
   Modal,
   ShimmerDots,
-  SimpleTooltipContent,
   useCopyToClipboard,
   useEnterSubmit,
   useLocalStorage,
@@ -28,11 +27,12 @@ import {
   getApexDomain,
   getDomainWithoutWWW,
   getPathnameFromUrl,
-  // getPathnameFromUrl,
   linkConstructor,
+  nanoid,
   punycode,
 } from "@dub/utils";
 import { AnimatePresence, motion } from "motion/react";
+import { useSession } from "next-auth/react";
 import { useParams } from "next/navigation";
 import {
   Dispatch,
@@ -115,15 +115,7 @@ function QRCodePreview({
       <LinkQRModal />
       <div className="flex items-center gap-2">
         <h4 className="text-sm font-medium text-neutral-700">QR Code</h4>
-        <InfoTooltip
-          content={
-            <SimpleTooltipContent
-              title="Set a custom QR code design to improve click-through rates."
-              cta="Learn more."
-              href="https://dub.co/help/article/custom-qr-codes"
-            />
-          }
-        />
+        <InfoTooltip content="Set a custom QR code design to improve click-through rates. [Learn more.](https://dub.co/help/article/custom-qr-codes)" />
       </div>
       <div className="relative mt-2 h-24 overflow-hidden rounded-md border border-neutral-300">
         <Button
@@ -180,8 +172,9 @@ function PartnerLinkModalContent({
   const { handleKeyDown } = useEnterSubmit(formRef);
   const [lockKey, setLockKey] = useState(isEditingLink);
   const [isLoading, setIsLoading] = useState(false);
-
+  const { data: session } = useSession();
   const { programEnrollment } = useProgramEnrollment();
+  const [keyInputFocused, setKeyInputFocused] = useState(false);
 
   const { shortLinkDomain, additionalLinks } = useMemo(() => {
     return {
@@ -219,7 +212,7 @@ function PartnerLinkModalContent({
     watch,
     handleSubmit,
     setValue,
-    formState: { isDirty },
+    formState: { isDirty, errors },
   } = useForm<PartnerLinkFormData>({
     defaultValues: link
       ? {
@@ -230,8 +223,17 @@ function PartnerLinkModalContent({
       : undefined,
   });
 
+  const [key, pathname] = watch(["key", "pathname"]);
+
+  // Auto-generate short link key for new links
   useEffect(() => {
-    if (!selectedAdditionalLink) {
+    if (!key && !keyInputFocused && !isLoading) {
+      setValue("key", nanoid(7), { shouldDirty: false });
+    }
+  }, [key, setValue, keyInputFocused, isLoading]);
+
+  useEffect(() => {
+    if (!selectedAdditionalLink || isEditingLink) {
       return;
     }
 
@@ -240,9 +242,7 @@ function PartnerLinkModalContent({
     } else {
       setValue("pathname", "", { shouldDirty: true });
     }
-  }, [selectedAdditionalLink, isExactMode]);
-
-  const [key, pathname] = watch(["key", "pathname"]);
+  }, [selectedAdditionalLink, isExactMode, isEditingLink]);
 
   const saveDisabled = useMemo(
     () =>
@@ -352,15 +352,7 @@ function PartnerLinkModalContent({
                 >
                   Short Link
                 </label>
-                <InfoTooltip
-                  content={
-                    <SimpleTooltipContent
-                      title="This is the short link that will redirect to your destination URL."
-                      cta="Learn more."
-                      href="https://dub.co/help/article/how-to-create-link"
-                    />
-                  }
-                />
+                <InfoTooltip content="This is the short link that will redirect to your destination URL. [Learn more.](https://dub.co/help/article/how-to-create-link)" />
               </div>
               {lockKey && (
                 <button
@@ -381,21 +373,32 @@ function PartnerLinkModalContent({
                 {shortLinkDomain}
               </span>
               <input
-                {...register("key", { required: true })}
+                {...register("key", {
+                  required: "Short link key is required.",
+                })}
                 type="text"
                 id="key"
-                autoFocus={!isMobile}
+                autoFocus={Boolean(hideDestinationUrl && !isMobile)}
+                onFocus={() => setKeyInputFocused(true)}
+                onBlur={() => setKeyInputFocused(false)}
                 disabled={lockKey}
                 className={cn(
                   "block w-full rounded-r-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
                   {
                     "cursor-not-allowed border border-neutral-300 bg-neutral-100 text-neutral-500":
                       lockKey,
+                    "border-red-300 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500":
+                      errors.key,
                   },
                 )}
                 placeholder="short-link"
               />
             </div>
+            {errors.key && (
+              <p className="mt-2 text-sm text-red-600" id="key-error">
+                {errors.key.message}
+              </p>
+            )}
           </div>
 
           {!hideDestinationUrl && (
@@ -407,15 +410,7 @@ function PartnerLinkModalContent({
                 >
                   Destination URL
                 </label>
-                <InfoTooltip
-                  content={
-                    <SimpleTooltipContent
-                      title="The URL your users will get redirected to when they visit your short link."
-                      cta="Learn more."
-                      href="https://dub.co/help/article/how-to-create-link"
-                    />
-                  }
-                />
+                <InfoTooltip content="The URL your users will get redirected to when they visit your short link. [Learn more.](https://dub.co/help/article/how-to-create-link)" />
               </div>
               <div className="relative mt-1 flex rounded-md shadow-sm">
                 <div className="z-[1]">
@@ -430,6 +425,7 @@ function PartnerLinkModalContent({
                   {...register("pathname", { required: false })}
                   type="text"
                   placeholder="(optional)"
+                  autoFocus={Boolean(!hideDestinationUrl && !isMobile)}
                   disabled={isExactMode}
                   onPaste={(e: React.ClipboardEvent<HTMLInputElement>) => {
                     if (isExactMode) return;
@@ -468,15 +464,7 @@ function PartnerLinkModalContent({
               >
                 Comments
               </label>
-              <InfoTooltip
-                content={
-                  <SimpleTooltipContent
-                    title="Use comments to add context to your short links – for you and your team."
-                    cta="Learn more."
-                    href="https://dub.co/help/article/link-comments"
-                  />
-                }
-              />
+              <InfoTooltip content="Use comments to add context to your short links – for you and your team. [Learn more.](https://dub.co/help/article/link-comments)" />
             </div>
             <TextareaAutosize
               {...register("comments")}

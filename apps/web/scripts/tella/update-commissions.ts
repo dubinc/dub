@@ -24,6 +24,7 @@ async function main() {
         partnerId: commission.partnerId,
         programId: commission.programId,
         include: {
+          partner: true,
           links: true,
           ...(commission.type === "click" && { clickReward: true }),
           ...(commission.type === "lead" && { leadReward: true }),

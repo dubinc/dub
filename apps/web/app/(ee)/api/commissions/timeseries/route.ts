@@ -5,7 +5,7 @@ import { withWorkspace } from "@/lib/auth";
 import { sqlGranularityMap } from "@/lib/planetscale/granularity";
 import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { prisma } from "@dub/prisma";
-import { DateTime } from "luxon";
+import { format } from "date-fns";
 import { NextResponse } from "next/server";
 
 const querySchema = analyticsQuerySchema.pick({
@@ -38,27 +38,28 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
             programId,
           }).then((program) => program.startedAt ?? program.createdAt)
         : undefined,
+    timezone,
   });
 
   const { dateFormat, dateIncrement, startFunction, formatString } =
     sqlGranularityMap[granularity];
 
+  console.time("getCommissionsTimeseries");
   const commissions = await prisma.$queryRaw<Commission[]>`
       SELECT 
         DATE_FORMAT(CONVERT_TZ(createdAt, "UTC", ${timezone || "UTC"}), ${dateFormat}) AS start, 
         SUM(earnings) AS earnings
       FROM Commission
       WHERE 
-        earnings > 0
-        AND programId = ${programId}
+        programId = ${programId}
         AND createdAt >= ${startDate}
         AND createdAt < ${endDate}
+        AND status IN ("pending", "processed", "paid")
       GROUP BY start
       ORDER BY start ASC;`;
+  console.timeEnd("getCommissionsTimeseries");
 
-  let currentDate = startFunction(
-    DateTime.fromJSDate(startDate).setZone(timezone || "UTC"),
-  );
+  let currentDate = startFunction(startDate);
 
   const earningsLookup = Object.fromEntries(
     commissions.map((item) => [
@@ -72,10 +73,10 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   const timeseries: Commission[] = [];
 
   while (currentDate < endDate) {
-    const periodKey = currentDate.toFormat(formatString);
+    const periodKey = format(currentDate, formatString);
 
     timeseries.push({
-      start: currentDate.toISO(),
+      start: currentDate.toISOString(),
       ...(earningsLookup[periodKey] || {
         earnings: 0,
       }),

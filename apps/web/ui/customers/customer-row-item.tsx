@@ -9,7 +9,7 @@ export function CustomerRowItem({
   href,
   className,
   avatarClassName,
-  hideChartActivityOnHover = true,
+  chartActivityIconMode = "hiddenOnHover",
 }: {
   customer: {
     id: string;
@@ -20,7 +20,7 @@ export function CustomerRowItem({
   href?: string;
   className?: string;
   avatarClassName?: string;
-  hideChartActivityOnHover?: boolean;
+  chartActivityIconMode?: "visible" | "hidden" | "hiddenOnHover";
 }) {
   const display = customer.email || customer.name || generateRandomName();
 
@@ -39,17 +39,17 @@ export function CustomerRowItem({
           alt={display}
           src={customer.avatar || `${OG_AVATAR_URL}${customer.id}`}
           className={cn(
-            "size-4 shrink-0 rounded-full border border-neutral-200",
+            "size-5 shrink-0 rounded-full border border-neutral-200",
             avatarClassName,
           )}
         />
         <span className="truncate">{display}</span>
       </div>
-      {href && (
+      {href && chartActivityIconMode !== "hidden" && (
         <ChartActivity2
           className={cn(
             "size-3.5 shrink-0 transition-all",
-            hideChartActivityOnHover &&
+            chartActivityIconMode === "hiddenOnHover" &&
               "group-hover:-translate-x-3 group-hover:opacity-0",
           )}
         />

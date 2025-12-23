@@ -1,17 +1,18 @@
 import { convertCurrency } from "@/lib/analytics/convert-currency";
 import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
+import { detectAndRecordFraudEvent } from "@/lib/api/fraud/detect-record-fraud-event";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
-import { StripeMode, WebhookPartner } from "@/lib/types";
+import { StripeMode } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformSaleEventData } from "@/lib/webhook/transform";
 import { prisma } from "@dub/prisma";
 import { WorkflowTrigger } from "@dub/prisma/client";
-import { nanoid } from "@dub/utils";
+import { nanoid, pick } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
 import { getConnectedCustomer } from "./utils/get-connected-customer";
@@ -38,7 +39,9 @@ export async function invoicePaid(event: Stripe.Event, mode: StripeMode) {
       mode,
     });
 
-    const dubCustomerExternalId = connectedCustomer?.metadata.dubCustomerId; // TODO: need to update to dubCustomerExternalId in the future for consistency
+    const dubCustomerExternalId =
+      connectedCustomer?.metadata.dubCustomerExternalId ||
+      connectedCustomer?.metadata.dubCustomerId;
 
     if (dubCustomerExternalId) {
       try {
@@ -66,6 +69,8 @@ export async function invoicePaid(event: Stripe.Event, mode: StripeMode) {
     return `Customer with stripeCustomerId ${stripeCustomerId} not found on Dub (nor does the connected customer ${stripeCustomerId} have a valid dubCustomerExternalId), skipping...`;
   }
 
+  let invoiceSaleAmount = invoice.total_excluding_tax ?? invoice.amount_paid;
+
   // Skip if invoice id is already processed
   const ok = await redis.set(
     `trackSale:stripe:invoiceId:${invoiceId}`, // here we assume that Stripe's invoice ID is unique across all customers
@@ -77,7 +82,7 @@ export async function invoicePaid(event: Stripe.Event, mode: StripeMode) {
       invoiceId,
       customerId: customer.id,
       workspaceId: customer.projectId,
-      amount: invoice.amount_paid,
+      amount: invoiceSaleAmount,
       currency: invoice.currency,
     },
     {
@@ -94,7 +99,8 @@ export async function invoicePaid(event: Stripe.Event, mode: StripeMode) {
     return `Invoice with ID ${invoiceId} already processed, skipping...`;
   }
 
-  if (invoice.amount_paid === 0) {
+  // Stripe can sometimes return a negative amount for some reason, so we skip if it's below 0
+  if (invoiceSaleAmount <= 0) {
     return `Invoice with ID ${invoiceId} has an amount of 0, skipping...`;
   }
 
@@ -104,11 +110,11 @@ export async function invoicePaid(event: Stripe.Event, mode: StripeMode) {
     const { currency: convertedCurrency, amount: convertedAmount } =
       await convertCurrency({
         currency: invoice.currency,
-        amount: invoice.amount_paid,
+        amount: invoiceSaleAmount,
       });
 
     invoice.currency = convertedCurrency;
-    invoice.amount_paid = convertedAmount;
+    invoiceSaleAmount = convertedAmount;
   }
 
   // Find lead
@@ -126,10 +132,11 @@ export async function invoicePaid(event: Stripe.Event, mode: StripeMode) {
 
   const saleData = {
     ...leadEvent.data[0],
+    workspace_id: leadEvent.data[0].workspace_id || customer.projectId, // in case for some reason the lead event doesn't have workspace_id
     event_id: eventId,
     event_name: isOneTimePayment ? "Purchase" : "Invoice paid",
     payment_processor: "stripe",
-    amount: invoice.amount_paid,
+    amount: invoiceSaleAmount,
     currency: invoice.currency,
     invoice_id: invoiceId,
     metadata: JSON.stringify({
@@ -172,7 +179,7 @@ export async function invoicePaid(event: Stripe.Event, mode: StripeMode) {
           increment: 1,
         },
         saleAmount: {
-          increment: invoice.amount_paid,
+          increment: invoiceSaleAmount,
         },
       },
       include: includeTags,
@@ -199,16 +206,19 @@ export async function invoicePaid(event: Stripe.Event, mode: StripeMode) {
           increment: 1,
         },
         saleAmount: {
-          increment: invoice.amount_paid,
+          increment: invoiceSaleAmount,
         },
       },
     }),
   ]);
 
   // for program links
-  let webhookPartner: WebhookPartner | undefined;
+  let createdCommission:
+    | Awaited<ReturnType<typeof createPartnerCommission>>
+    | undefined = undefined;
+
   if (link.programId && link.partnerId) {
-    const createdCommission = await createPartnerCommission({
+    createdCommission = await createPartnerCommission({
       event: "sale",
       programId: link.programId,
       partnerId: link.partnerId,
@@ -229,7 +239,8 @@ export async function invoicePaid(event: Stripe.Event, mode: StripeMode) {
         },
       },
     });
-    webhookPartner = createdCommission?.webhookPartner;
+
+    const { webhookPartner, programEnrollment } = createdCommission;
 
     waitUntil(
       Promise.allSettled([
@@ -244,11 +255,23 @@ export async function invoicePaid(event: Stripe.Event, mode: StripeMode) {
             },
           },
         }),
+
         syncPartnerLinksStats({
           partnerId: link.partnerId,
           programId: link.programId,
           eventType: "sale",
         }),
+
+        webhookPartner &&
+          detectAndRecordFraudEvent({
+            program: { id: link.programId },
+            partner: pick(webhookPartner, ["id", "email", "name"]),
+            programEnrollment: pick(programEnrollment, ["status"]),
+            customer: pick(customer, ["id", "email", "name"]),
+            link: pick(link, ["id"]),
+            click: pick(saleData, ["url", "referer"]),
+            event: { id: saleData.event_id },
+          }),
       ]),
     );
   }
@@ -263,7 +286,7 @@ export async function invoicePaid(event: Stripe.Event, mode: StripeMode) {
         clickedAt: customer.clickedAt || customer.createdAt,
         link: linkUpdated,
         customer,
-        partner: webhookPartner,
+        partner: createdCommission?.webhookPartner,
         metadata: null,
       }),
     }),

@@ -1,14 +1,51 @@
 import { publishPartnerActivityEvent } from "@/lib/upstash/redis-streams";
 import { prisma } from "@dub/prisma";
 
-// syncs the total commissions for a partner in a program
-export const syncTotalCommissions = async ({
+async function aggregateAndUpdateTotalCommissions({
   partnerId,
   programId,
 }: {
   partnerId: string;
   programId: string;
+}) {
+  return await prisma.$transaction(async (tx) => {
+    const totalCommissions = await tx.commission.aggregate({
+      where: {
+        earnings: { not: 0 },
+        programId,
+        partnerId,
+        status: { in: ["pending", "processed", "paid"] },
+      },
+      _sum: { earnings: true },
+    });
+    console.log(
+      `Updating total commissions for partner ${partnerId} in program ${programId} to ${totalCommissions._sum.earnings || 0}`,
+    );
+
+    return await tx.programEnrollment.update({
+      where: {
+        partnerId_programId: { partnerId, programId },
+      },
+      data: {
+        totalCommissions: totalCommissions._sum.earnings || 0,
+      },
+    });
+  });
+}
+
+// syncs the total commissions for a partner in a program
+export const syncTotalCommissions = async ({
+  partnerId,
+  programId,
+  mode = "queue",
+}: {
+  partnerId: string;
+  programId: string;
+  mode?: "queue" | "direct";
 }) => {
+  if (mode === "direct") {
+    return await aggregateAndUpdateTotalCommissions({ partnerId, programId });
+  }
   try {
     return await publishPartnerActivityEvent({
       programId,
@@ -22,29 +59,6 @@ export const syncTotalCommissions = async ({
       error,
     );
 
-    return await prisma.$transaction(async (tx) => {
-      const totalCommissions = await tx.commission.aggregate({
-        where: {
-          earnings: { not: 0 },
-          programId,
-          partnerId,
-          status: { in: ["pending", "processed", "paid"] },
-        },
-        _sum: { earnings: true },
-      });
-
-      console.log(
-        `Updating total commissions for partner ${partnerId} in program ${programId} to ${totalCommissions._sum.earnings || 0}`,
-      );
-
-      return await tx.programEnrollment.update({
-        where: {
-          partnerId_programId: { partnerId, programId },
-        },
-        data: {
-          totalCommissions: totalCommissions._sum.earnings || 0,
-        },
-      });
-    });
+    return await aggregateAndUpdateTotalCommissions({ partnerId, programId });
   }
 };

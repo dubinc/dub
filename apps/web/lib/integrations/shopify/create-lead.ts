@@ -1,5 +1,7 @@
 import { createId } from "@/lib/api/create-id";
+import { DubApiError } from "@/lib/api/errors";
 import { includeTags } from "@/lib/api/links/include-tags";
+import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { generateRandomName } from "@/lib/names";
 import { getClickEvent, recordLead } from "@/lib/tinybird";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
@@ -34,9 +36,15 @@ export async function createShopifyLead({
   const email = orderCustomer?.email;
 
   // find click
-  const clickEvent = await getClickEvent({ clickId });
+  const clickData = await getClickEvent({ clickId });
 
-  const clickData = clickEvent.data[0];
+  if (!clickData) {
+    throw new DubApiError({
+      code: "not_found",
+      message: `Click event not found for clickId: ${clickId}`,
+    });
+  }
+
   const { link_id: linkId, country, timestamp } = clickData;
 
   // create customer
@@ -58,6 +66,7 @@ export async function createShopifyLead({
 
   const leadData = leadEventSchemaTB.parse({
     ...clickData,
+    workspace_id: clickData.workspace_id || customer.projectId, // in case for some reason the click event doesn't have workspace_id
     event_id: nanoid(16),
     event_name: eventName,
     customer_id: customer.id,
@@ -95,17 +104,37 @@ export async function createShopifyLead({
   ]);
 
   waitUntil(
-    sendWorkspaceWebhook({
-      trigger: "lead.created",
-      workspace,
-      data: transformLeadEventData({
-        ...clickData,
-        eventName,
-        link,
-        customer,
-        metadata: null,
+    Promise.allSettled([
+      sendWorkspaceWebhook({
+        trigger: "lead.created",
+        workspace,
+        data: transformLeadEventData({
+          ...clickData,
+          eventName,
+          link,
+          customer,
+          metadata: null,
+        }),
       }),
-    }),
+      ...(link.programId && link.partnerId
+        ? [
+            syncPartnerLinksStats({
+              partnerId: link.partnerId,
+              programId: link.programId,
+              eventType: "lead",
+            }),
+            prisma.customer.update({
+              where: {
+                id: customer.id,
+              },
+              data: {
+                programId: link.programId,
+                partnerId: link.partnerId,
+              },
+            }),
+          ]
+        : []),
+    ]),
   );
 
   return leadData;

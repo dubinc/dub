@@ -1,7 +1,7 @@
 import {
   DIRECT_DEBIT_PAYMENT_METHOD_TYPES,
   PAYOUT_FAILURE_FEE_CENTS,
-} from "@/lib/partners/constants";
+} from "@/lib/constants/payouts";
 import { createPaymentIntent } from "@/lib/stripe/create-payment-intent";
 import { sendBatchEmail } from "@dub/email";
 import PartnerPayoutFailed from "@dub/email/templates/partner-payout-failed";
@@ -24,8 +24,8 @@ export async function processPayoutInvoiceFailure({
     mention: true,
   });
 
-  // Mark the payouts as pending again
-  await prisma.payout.updateMany({
+  // reset the payouts to their initial state
+  const { count } = await prisma.payout.updateMany({
     where: {
       invoiceId: invoice.id,
     },
@@ -33,8 +33,15 @@ export async function processPayoutInvoiceFailure({
       status: "pending",
       userId: null,
       invoiceId: null,
+      initiatedAt: null,
+      paidAt: null,
+      mode: null,
     },
   });
+
+  console.log(
+    `Reset ${count} payouts to their initial state for invoice ${invoice.id}`,
+  );
 
   const workspace = await prisma.project.update({
     where: {
@@ -81,24 +88,32 @@ export async function processPayoutInvoiceFailure({
   let chargedFailureFee = false;
   let cardLast4: string | undefined;
 
-  // Charge failure fee for direct debit payment failures
+  // Charge failure fee for direct debit payment failures (excluding blocked charges)
   if (paymentMethod === "direct_debit") {
-    const { paymentIntent, paymentMethod } = await createPaymentIntent({
-      stripeId: workspace.stripeId,
-      amount: PAYOUT_FAILURE_FEE_CENTS,
-      description: `Dub Partners payout failure fee for invoice ${invoice.id}`,
-      statementDescriptor: "Dub Partners",
-    });
+    const isBlocked = charge?.outcome?.type === "blocked";
 
-    if (paymentIntent) {
-      chargedFailureFee = true;
+    if (!isBlocked) {
+      const { paymentIntent, paymentMethod } = await createPaymentIntent({
+        stripeId: workspace.stripeId,
+        amount: PAYOUT_FAILURE_FEE_CENTS,
+        description: `Dub Partners payout failure fee for invoice ${invoice.id}`,
+        statementDescriptor: "Dub Partners",
+      });
+
+      if (paymentIntent) {
+        chargedFailureFee = true;
+        console.log(
+          `Charged a failure fee of $${PAYOUT_FAILURE_FEE_CENTS / 100} to ${workspace.slug}.`,
+        );
+      }
+
+      if (paymentMethod?.card) {
+        cardLast4 = paymentMethod.card.last4;
+      }
+    } else {
       console.log(
-        `Charged a failure fee of $${PAYOUT_FAILURE_FEE_CENTS / 100} to ${workspace.slug}.`,
+        `Skipped charging failure fee for blocked direct debit charge on invoice ${invoice.id}.`,
       );
-    }
-
-    if (paymentMethod?.card) {
-      cardLast4 = paymentMethod.card.last4;
     }
   }
 
