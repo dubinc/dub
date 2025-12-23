@@ -284,10 +284,6 @@ function UsageTabCard({
     return acc;
   }, 0);
 
-  if (resource === "links") {
-    console.log({ filteredUsage, usageProp, hasActiveFilters });
-  }
-
   const [usage, limit] =
     unit === "$" && usageProp !== undefined && limitProp !== undefined
       ? [

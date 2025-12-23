@@ -64,7 +64,7 @@ export function Popover({
             <div className="sticky top-0 z-20 flex w-full items-center justify-center rounded-t-[10px] bg-inherit">
               <div className="bg-border-default my-3 h-1 w-12 rounded-full" />
             </div>
-            <div className="bg-bg-default flex min-h-[150px] w-full items-center justify-center overflow-hidden pb-8 align-middle shadow-xl">
+            <div className="bg-bg-default flex w-full items-center justify-center overflow-hidden pb-4 align-middle shadow-xl">
               {content}
             </div>
           </Drawer.Content>

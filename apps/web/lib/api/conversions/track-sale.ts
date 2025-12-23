@@ -523,21 +523,6 @@ const _trackSale = async ({
           },
         }),
 
-        // Update customer sales count
-        prisma.customer.update({
-          where: {
-            id: customer.id,
-          },
-          data: {
-            sales: {
-              increment: 1,
-            },
-            saleAmount: {
-              increment: amount,
-            },
-          },
-        }),
-
         // Log conversion event
         logConversionEvent({
           workspace_id: workspace.id,
@@ -625,6 +610,27 @@ const _trackSale = async ({
         trigger: "sale.created",
         data: webhookPayload,
         workspace,
+      });
+
+      // Update customer stats + program/partner associations
+      await prisma.customer.update({
+        where: {
+          id: customer.id,
+        },
+        data: {
+          ...(link.programId && {
+            programId: link.programId,
+          }),
+          ...(link.partnerId && {
+            partnerId: link.partnerId,
+          }),
+          sales: {
+            increment: 1,
+          },
+          saleAmount: {
+            increment: amount,
+          },
+        },
       });
     })(),
   );

@@ -201,7 +201,7 @@ async function calculateProgramSimilarity({
   }
 
   await qstash.publishJSON({
-    url: `${APP_DOMAIN_WITH_NGROK}/api/cron/calculate-program-similarities`,
+    url: `${APP_DOMAIN_WITH_NGROK}/api/cron/network/calculate-program-similarities`,
     method: "POST",
     body: {
       currentProgramId,
