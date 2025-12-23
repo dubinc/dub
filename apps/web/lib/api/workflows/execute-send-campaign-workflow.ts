@@ -35,7 +35,6 @@ export const executeSendCampaignWorkflow = async ({
   }
 
   const { campaignId } = action.data;
-  const condition = conditions[0];
   const { programId, partnerId } = context?.identity || {
     programId: workflow.programId,
     partnerId: undefined,
@@ -73,7 +72,7 @@ export const executeSendCampaignWorkflow = async ({
     programId,
     partnerId,
     groupIds: campaign.groups.map(({ groupId }) => groupId),
-    condition,
+    condition: conditions[0],
   });
 
   if (programEnrollments.length === 0) {
