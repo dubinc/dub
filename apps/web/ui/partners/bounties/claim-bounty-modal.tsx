@@ -6,14 +6,16 @@ import {
   BOUNTY_MAX_SUBMISSION_URLS,
   REJECT_BOUNTY_SUBMISSION_REASONS,
 } from "@/lib/constants/bounties";
-import {
-  hasImageRequirement,
-  hasUrlRequirement,
-} from "@/lib/zod/schemas/bounties";
 import { getBountyRewardDescription } from "@/lib/partners/get-bounty-reward-description";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PartnerBountyProps } from "@/lib/types";
+import {
+  getImageRequirement,
+  getUrlRequirement,
+  hasImageRequirement,
+  hasUrlRequirement,
+} from "@/lib/zod/schemas/bounties";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { X } from "@/ui/shared/icons";
 import { Markdown } from "@/ui/shared/markdown";
@@ -147,6 +149,12 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
   const urlRequired = hasUrlRequirement(bounty.submissionRequirements);
   const fileUploading = files.some(({ uploading }) => uploading);
 
+  // Get max values from bounty submission requirements, fallback to constants
+  const imageRequirement = getImageRequirement(bounty.submissionRequirements);
+  const urlRequirement = getUrlRequirement(bounty.submissionRequirements);
+  const maxFiles = imageRequirement?.max ?? BOUNTY_MAX_SUBMISSION_FILES;
+  const maxUrls = urlRequirement?.max ?? BOUNTY_MAX_SUBMISSION_URLS;
+
   const hasSubmissionsOpen = bounty.submissionsOpenAt
     ? isBefore(bounty.submissionsOpenAt, new Date())
     : true;
@@ -224,6 +232,7 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
           ? error.message
           : "Failed to create submission. Please try again.",
       );
+      setIsDraft(null); // reset submit state on error
     }
   };
 
@@ -507,9 +516,7 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                             onChange={async ({ file }) =>
                               await handleUpload(file)
                             }
-                            disabled={
-                              files.length >= BOUNTY_MAX_SUBMISSION_FILES
-                            }
+                            disabled={files.length >= maxFiles}
                             maxFileSizeMB={5}
                           />
                         </div>
@@ -528,8 +535,7 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                             {urlRequired && " (at least 1 required)"}
                           </h2>
                           <span className="text-xs font-medium text-neutral-500">
-                            {urls.filter((u) => u.url).length} /{" "}
-                            {BOUNTY_MAX_SUBMISSION_URLS}
+                            {urls.filter((u) => u.url).length} / {maxUrls}
                           </span>
                         </label>
                         <div className={cn("mt-2 flex flex-col gap-2")}>
@@ -564,7 +570,7 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                               )}
                             </div>
                           ))}
-                          {urls.length < BOUNTY_MAX_SUBMISSION_URLS && (
+                          {urls.length < maxUrls && (
                             <Button
                               variant="secondary"
                               text="Add URL"
