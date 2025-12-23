@@ -11,7 +11,12 @@ import { calculatePayoutFeeForMethod } from "@/lib/stripe/payment-methods";
 import { sendEmail } from "@dub/email";
 import ProgramPayoutThankYou from "@dub/email/templates/program-payout-thank-you";
 import { prisma } from "@dub/prisma";
-import { Program, ProgramPayoutMode, Project } from "@dub/prisma/client";
+import {
+  Invoice,
+  Program,
+  ProgramPayoutMode,
+  Project,
+} from "@dub/prisma/client";
 import {
   APP_DOMAIN_WITH_NGROK,
   currencyFormatter,
@@ -44,8 +49,8 @@ interface ProcessPayoutsProps {
   > & {
     payoutMode: ProgramPayoutMode;
   };
+  invoice: Pick<Invoice, "id" | "paymentMethod">;
   userId: string;
-  invoiceId: string;
   paymentMethodId: string;
   cutoffPeriod?: CUTOFF_PERIOD_TYPES;
   selectedPayoutId?: string;
@@ -55,8 +60,8 @@ interface ProcessPayoutsProps {
 export async function processPayouts({
   workspace,
   program,
+  invoice,
   userId,
-  invoiceId,
   paymentMethodId,
   cutoffPeriod,
   selectedPayoutId,
@@ -65,12 +70,6 @@ export async function processPayouts({
   const cutoffPeriodValue = CUTOFF_PERIOD.find(
     (c) => c.id === cutoffPeriod,
   )?.value;
-
-  const invoice = await prisma.invoice.findUniqueOrThrow({
-    where: {
-      id: invoiceId,
-    },
-  });
 
   const res = await prisma.payout.updateMany({
     where: {
