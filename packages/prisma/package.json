@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@planetscale/database": "1.19.0",
-    "@prisma/adapter-planetscale": "6.17.1",
+    "@prisma/adapter-planetscale": "6.19.1",
     "@prisma/client": "6.19.1"
   },
   "devDependencies": {
