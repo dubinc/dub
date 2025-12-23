@@ -19,10 +19,10 @@ export const WORKFLOW_ATTRIBUTE_TRIGGER: Record<
   WorkflowConditionAttribute,
   WorkflowTrigger
 > = {
-  totalLeads: WorkflowTrigger.leadRecorded,
-  totalConversions: WorkflowTrigger.saleRecorded,
-  totalSaleAmount: WorkflowTrigger.saleRecorded,
-  totalCommissions: WorkflowTrigger.commissionEarned,
+  totalLeads: WorkflowTrigger.partnerMetricsUpdated,
+  totalConversions: WorkflowTrigger.partnerMetricsUpdated,
+  totalSaleAmount: WorkflowTrigger.partnerMetricsUpdated,
+  totalCommissions: WorkflowTrigger.partnerMetricsUpdated,
   partnerEnrolledDays: WorkflowTrigger.partnerEnrolled,
   partnerJoined: WorkflowTrigger.partnerEnrolled,
 } as const;

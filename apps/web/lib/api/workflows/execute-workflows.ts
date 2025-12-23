@@ -1,9 +1,8 @@
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
-import { WorkflowContext } from "@/lib/types";
+import { WorkflowConditionAttribute, WorkflowContext } from "@/lib/types";
 import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
 import { prisma } from "@dub/prisma";
 import { Workflow } from "@dub/prisma/client";
-import { prettyPrint } from "@dub/utils";
 import { executeCompleteBountyWorkflow } from "./execute-complete-bounty-workflow";
 import { executeMoveGroupWorkflow } from "./execute-move-group-workflow";
 import { executeSendCampaignWorkflow } from "./execute-send-campaign-workflow";
@@ -30,6 +29,17 @@ const ACTION_HANDLERS: Record<WORKFLOW_ACTION_TYPES, WorkflowActionHandler> = {
   },
 };
 
+// Map reason to expected attributes for early filtering optimization.
+// This prevents workflows from executing unnecessarily
+const REASON_TO_ATTRIBUTES: Record<
+  NonNullable<WorkflowContext["reason"]>,
+  WorkflowConditionAttribute[]
+> = {
+  lead: ["totalLeads"],
+  sale: ["totalConversions", "totalSaleAmount"],
+  commission: ["totalCommissions"],
+};
+
 export async function executeWorkflows({
   trigger,
   reason,
@@ -47,10 +57,26 @@ export async function executeWorkflows({
   });
 
   if (workflows.length === 0) {
+    console.log(
+      `No workflows found to execute for trigger ${trigger} and reason ${reason}.`,
+    );
     return;
   }
 
+  if (reason) {
+    workflows = workflows.filter((workflow) => {
+      const { conditions } = parseWorkflowConfig(workflow);
+      const expectedAttributes = REASON_TO_ATTRIBUTES[reason];
+      return conditions.some(({ attribute }) =>
+        expectedAttributes.includes(attribute),
+      );
+    });
+  }
+
   if (workflows.length === 0) {
+    console.log(
+      `No relevant workflows found to execute for trigger ${trigger} and reason ${reason}.`,
+    );
     return;
   }
 
@@ -135,24 +161,29 @@ export async function executeWorkflows({
     },
   };
 
-  console.log("workflowContext", prettyPrint(workflowContext));
+  // console.log("workflowContext", prettyPrint(workflowContext));
 
   for (const workflow of workflows) {
-    const { conditions, action } = parseWorkflowConfig(workflow);
+    try {
+      const { action } = parseWorkflowConfig(workflow);
 
-    if (conditions.length === 0 || !action) {
+      if (!action) {
+        continue;
+      }
+
+      const handler = ACTION_HANDLERS[action.type];
+
+      if (!handler) {
+        throw new Error(`Unsupported workflow action ${action.type}`);
+      }
+
+      await handler.execute({
+        workflow,
+        context: workflowContext,
+      });
+    } catch (error) {
+      console.error(`Failed to parse workflow ${workflow.id}:`, error);
       continue;
     }
-
-    const handler = ACTION_HANDLERS[action.type];
-
-    if (!handler) {
-      throw new Error(`Unsupported workflow action ${action.type}`);
-    }
-
-    await handler.execute({
-      workflow,
-      context: workflowContext,
-    });
   }
 }
