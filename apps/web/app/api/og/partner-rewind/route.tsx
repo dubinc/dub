@@ -16,14 +16,9 @@ const HEIGHT = 994;
 
 export async function GET(req: NextRequest) {
   // Use only Inter-Semibold to reduce bundle size (~300KB savings)
-  const [interSemibold, satoshiBold] = await Promise.all([
-    fetch(new URL("@/styles/Inter-Semibold.ttf", import.meta.url)).then((res) =>
-      res.arrayBuffer(),
-    ),
-    fetch(new URL("@/styles/Satoshi-Bold.ttf", import.meta.url)).then((res) =>
-      res.arrayBuffer(),
-    ),
-  ]);
+  const interSemibold = await fetch(
+    new URL("@/styles/Inter-Semibold.ttf", import.meta.url),
+  ).then((res) => res.arrayBuffer());
 
   const rewindId = req.nextUrl.searchParams.get("rewindId");
   const stepRaw = req.nextUrl.searchParams.get("step");
@@ -109,7 +104,7 @@ export async function GET(req: NextRequest) {
               tw={cn("mt-5 flex items-center", !percentileLabel && "opacity-0")}
             >
               <img
-                src={`https://assets.dub.co/misc/partner-rewind-2025/top-medallion.png`}
+                src="https://assets.dub.co/misc/partner-rewind-2025/top-medallion.png"
                 tw="w-6 h-6 mr-2.5"
               />
               <span tw="text-neutral-900 text-base font-semibold">
@@ -119,10 +114,7 @@ export async function GET(req: NextRequest) {
           </div>
 
           <div tw="flex items-end justify-between">
-            <span
-              tw="text-neutral-900 max-w-[180px] text-3xl leading-8 font-bold"
-              style={{ fontFamily: "Satoshi Bold" }}
-            >
+            <span tw="text-neutral-900 max-w-[180px] text-3xl leading-8 font-bold">
               Dub Partner Rewind &rsquo;25
             </span>
 
@@ -143,10 +135,6 @@ export async function GET(req: NextRequest) {
         {
           name: "Inter Semibold",
           data: interSemibold,
-        },
-        {
-          name: "Satoshi Bold",
-          data: satoshiBold,
         },
       ],
     },
