@@ -49,15 +49,7 @@ interface ProcessPayoutsProps {
   > & {
     payoutMode: ProgramPayoutMode;
   };
-  invoice: Pick<
-    Invoice,
-    | "id"
-    | "status"
-    | "paymentMethod"
-    | "programId"
-    | "workspaceId"
-    | "payoutMode"
-  >;
+  invoice: Pick<Invoice, "id" | "paymentMethod">;
   userId: string;
   paymentMethodId: string;
   cutoffPeriod?: CUTOFF_PERIOD_TYPES;
