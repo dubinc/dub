@@ -6,6 +6,10 @@ import {
   BOUNTY_MAX_SUBMISSION_URLS,
   REJECT_BOUNTY_SUBMISSION_REASONS,
 } from "@/lib/constants/bounties";
+import {
+  hasImageRequirement,
+  hasUrlRequirement,
+} from "@/lib/zod/schemas/bounties";
 import { getBountyRewardDescription } from "@/lib/partners/get-bounty-reward-description";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
@@ -139,8 +143,8 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
     createBountySubmissionAction,
   );
 
-  const imageRequired = bounty.submissionRequirements?.includes("image");
-  const urlRequired = bounty.submissionRequirements?.includes("url");
+  const imageRequired = hasImageRequirement(bounty.submissionRequirements);
+  const urlRequired = hasUrlRequirement(bounty.submissionRequirements);
   const fileUploading = files.some(({ uploading }) => uploading);
 
   const hasSubmissionsOpen = bounty.submissionsOpenAt

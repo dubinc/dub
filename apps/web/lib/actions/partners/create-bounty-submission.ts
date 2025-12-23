@@ -10,6 +10,10 @@ import {
 } from "@/lib/constants/bounties";
 import {
   BountySubmissionFileSchema,
+  getImageRequirement,
+  getUrlRequirement,
+  hasImageRequirement,
+  hasUrlRequirement,
   submissionRequirementsSchema,
 } from "@/lib/zod/schemas/bounties";
 import { sendBatchEmail, sendEmail } from "@dub/email";
@@ -17,6 +21,7 @@ import NewBountySubmission from "@dub/email/templates/bounty-new-submission";
 import BountySubmitted from "@dub/email/templates/bounty-submitted";
 import { prisma } from "@dub/prisma";
 import { BountySubmission, WorkspaceRole } from "@dub/prisma/client";
+import { getDomainWithoutWWW } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { formatDistanceToNow } from "date-fns";
 import { z } from "zod";
@@ -141,8 +146,10 @@ export const createBountySubmissionAction = authPartnerActionClient
       bounty.submissionRequirements || [],
     );
 
-    const requireImage = submissionRequirements.includes("image");
-    const requireUrl = submissionRequirements.includes("url");
+    const requireImage = hasImageRequirement(submissionRequirements);
+    const requireUrl = hasUrlRequirement(submissionRequirements);
+    const urlRequirement = getUrlRequirement(submissionRequirements);
+    const imageRequirement = getImageRequirement(submissionRequirements);
 
     if (!isDraft) {
       if (requireImage && files.length === 0) {
@@ -151,6 +158,51 @@ export const createBountySubmissionAction = authPartnerActionClient
 
       if (requireUrl && urls.length === 0) {
         throw new Error("You must submit a URL.");
+      }
+
+      // Validate URL domain restrictions
+      if (
+        urlRequirement?.domains &&
+        urlRequirement.domains.length > 0 &&
+        urls.length > 0
+      ) {
+        const allowedDomains = urlRequirement.domains
+          .map((domain) => getDomainWithoutWWW(domain)?.toLowerCase())
+          .filter((domain): domain is string => !!domain);
+
+        if (allowedDomains.length > 0) {
+          const invalidUrls = urls.filter((url) => {
+            const urlDomain = getDomainWithoutWWW(url)?.toLowerCase();
+            if (!urlDomain) return true;
+            // Check if URL domain matches any allowed domain or is a subdomain
+            return !allowedDomains.some(
+              (allowedDomain) =>
+                urlDomain === allowedDomain ||
+                urlDomain.endsWith(`.${allowedDomain}`),
+            );
+          });
+
+          if (invalidUrls.length > 0) {
+            const domainsList = allowedDomains.join(", ");
+            throw new Error(
+              `All URLs must be from one of the following domains: ${domainsList}. Please check your submission.`,
+            );
+          }
+        }
+      }
+
+      // Validate max count for URLs
+      if (urlRequirement?.max && urls.length > urlRequirement.max) {
+        throw new Error(
+          `You can submit at most ${urlRequirement.max} URL${urlRequirement.max === 1 ? "" : "s"}.`,
+        );
+      }
+
+      // Validate max count for images
+      if (imageRequirement?.max && files.length > imageRequirement.max) {
+        throw new Error(
+          `You can submit at most ${imageRequirement.max} image${imageRequirement.max === 1 ? "" : "s"}.`,
+        );
       }
     }
 
