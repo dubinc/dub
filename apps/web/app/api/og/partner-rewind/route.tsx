@@ -6,22 +6,23 @@ import {
   REWIND_STEPS,
 } from "@/ui/partners/rewind/constants";
 import { cn, nFormatter } from "@dub/utils";
+import { readFile } from "fs/promises";
 import { ImageResponse } from "next/og";
 import { NextRequest } from "next/server";
-
-export const runtime = "edge";
+import { dirname, join } from "path";
+import { fileURLToPath } from "url";
 
 const WIDTH = 1084;
 const HEIGHT = 994;
 
 export async function GET(req: NextRequest) {
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = dirname(__filename);
+  const stylesPath = join(__dirname, "../../../../styles");
+
   const [interSemibold, satoshiBold] = await Promise.all([
-    fetch(new URL("@/styles/Inter-Semibold.ttf", import.meta.url)).then((res) =>
-      res.arrayBuffer(),
-    ),
-    fetch(new URL("@/styles/Satoshi-Bold.ttf", import.meta.url)).then((res) =>
-      res.arrayBuffer(),
-    ),
+    readFile(join(stylesPath, "Inter-Semibold.ttf")),
+    readFile(join(stylesPath, "Satoshi-Bold.ttf")),
   ]);
 
   const rewindId = req.nextUrl.searchParams.get("rewindId");
