@@ -1,5 +1,4 @@
-import { conn } from "@/lib/planetscale/connection";
-import { PartnerRewindSchema } from "@/lib/zod/schemas/partners";
+import { getPartnerRewind } from "@/lib/api/partners/get-partner-rewind";
 import {
   REWIND_ASSETS_PATH,
   REWIND_PERCENTILES,
@@ -25,17 +24,17 @@ export async function GET(req: NextRequest) {
     readFile(join(stylesPath, "Satoshi-Bold.ttf")),
   ]);
 
-  const rewindId = req.nextUrl.searchParams.get("rewindId");
+  const partnerId = req.nextUrl.searchParams.get("partnerId");
   const stepRaw = req.nextUrl.searchParams.get("step");
 
   const step = REWIND_STEPS.find((step) => step.id === stepRaw);
 
-  if (!rewindId || !step)
-    return new Response("Missing 'rewindId' or 'step' parameter", {
+  if (!partnerId || !step)
+    return new Response("Missing 'partnerId' or 'step' parameter", {
       status: 400,
     });
 
-  const rewind = await getPartnerRewind(rewindId);
+  const rewind = await getPartnerRewind({ partnerId });
 
   if (!rewind)
     return new Response("Partner rewind not found", {
@@ -151,63 +150,4 @@ export async function GET(req: NextRequest) {
       ],
     },
   );
-}
-
-// Mostly copied from `getPartnerRewind` in `lib/api/partners/get-partner-rewind.ts`,
-// but couldn't get that to work with dynamic client + conditional Prisma.sql
-async function getPartnerRewind(rewindId: string) {
-  type Row = {
-    id: string;
-    year: number;
-    totalClicks: number;
-    totalLeads: number;
-    totalRevenue: number;
-    totalEarnings: number;
-    clicksPercentile: any; // Decimal
-    leadsPercentile: any; // Decimal
-    revenuePercentile: any; // Decimal
-    earningsPercentile: any; // Decimal
-  };
-
-  const { rows } =
-    (await conn.execute<Row>(
-      `SELECT
-        pr.id,
-        pr.year,
-        pr.totalClicks,
-        pr.totalLeads,
-        pr.totalRevenue,
-        pr.totalEarnings,
-        CASE WHEN pr.totalClicks > 0 THEN ROUND(
-          100 - 100 * (SELECT COUNT(*) FROM PartnerRewind c WHERE c.year = pr.year AND c.totalClicks >= pr.totalClicks)
-              / (SELECT COUNT(*) FROM PartnerRewind WHERE year = pr.year)
-        ) ELSE 0 END AS clicksPercentile,
-        CASE WHEN pr.totalLeads > 0 THEN ROUND(
-          100 - 100 * (SELECT COUNT(*) FROM PartnerRewind c WHERE c.year = pr.year AND c.totalLeads >= pr.totalLeads)
-              / (SELECT COUNT(*) FROM PartnerRewind WHERE year = pr.year)
-        ) ELSE 0 END AS leadsPercentile,
-        CASE WHEN pr.totalRevenue > 0 THEN ROUND(
-          100 - 100 * (SELECT COUNT(*) FROM PartnerRewind c WHERE c.year = pr.year AND c.totalRevenue >= pr.totalRevenue)
-              / (SELECT COUNT(*) FROM PartnerRewind WHERE year = pr.year)
-        ) ELSE 0 END AS revenuePercentile,
-        CASE WHEN pr.totalEarnings > 0 THEN ROUND(
-          100 - 100 * (SELECT COUNT(*) FROM PartnerRewind c WHERE c.year = pr.year AND c.totalEarnings >= pr.totalEarnings)
-              / (SELECT COUNT(*) FROM PartnerRewind WHERE year = pr.year)
-        ) ELSE 0 END AS earningsPercentile
-      FROM PartnerRewind pr
-      WHERE pr.id = ?`,
-      [rewindId],
-    )) || {};
-
-  if (!rows || !Array.isArray(rows) || rows.length === 0) return null;
-
-  const firstRow = rows[0] as Row;
-
-  return PartnerRewindSchema.parse({
-    ...firstRow,
-    clicksPercentile: Number(firstRow.clicksPercentile),
-    leadsPercentile: Number(firstRow.leadsPercentile),
-    revenuePercentile: Number(firstRow.revenuePercentile),
-    earningsPercentile: Number(firstRow.earningsPercentile),
-  });
 }
