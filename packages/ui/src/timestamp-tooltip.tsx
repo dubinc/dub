@@ -148,56 +148,58 @@ function TimestampTooltipContent({
         <span className="text-content-subtle cursor-default">{relative}</span>
       )}
       <table>
-        {items.map((row, idx) => (
-          <tr
-            key={idx}
-            className={cn(
-              interactive &&
-                "before:bg-bg-emphasis relative select-none before:absolute before:-inset-x-1 before:inset-y-0 before:rounded before:opacity-0 before:content-[''] hover:cursor-copy hover:before:opacity-60 active:before:opacity-100",
-            )}
-            onClick={
-              interactive
-                ? async () => {
-                    try {
-                      await navigator.clipboard.writeText(row.value);
-                      toast.success(
-                        `Copied ${row.successMessageLabel} to clipboard`,
-                      );
-                    } catch (e) {
-                      toast.error(
-                        `Failed to copy ${row.successMessageLabel} to clipboard`,
-                      );
-                      console.error(
-                        `Failed to copy ${row.successMessageLabel} to clipboard`,
-                        e,
-                      );
-                    }
-                  }
-                : undefined
-            }
-          >
-            <td className="relative py-0.5">
-              <span
-                className={cn(
-                  "text-content-subtle truncate",
-                  shortLabels && "bg-bg-inverted/10 rounded px-1 font-mono",
-                )}
-                title={shortLabels ? row.label : undefined}
-              >
-                {shortLabels ? row.shortLabel : row.label}
-              </span>
-            </td>
-            <td
+        <tbody>
+          {items.map((row, idx) => (
+            <tr
+              key={idx}
               className={cn(
-                "text-content-default relative whitespace-nowrap py-0.5 pl-3",
-                shortLabels && "pl-2",
-                row.valueMono && "font-mono",
+                interactive &&
+                  "before:bg-bg-emphasis relative select-none before:absolute before:-inset-x-1 before:inset-y-0 before:rounded before:opacity-0 before:content-[''] hover:cursor-copy hover:before:opacity-60 active:before:opacity-100",
               )}
+              onClick={
+                interactive
+                  ? async () => {
+                      try {
+                        await navigator.clipboard.writeText(row.value);
+                        toast.success(
+                          `Copied ${row.successMessageLabel} to clipboard`,
+                        );
+                      } catch (e) {
+                        toast.error(
+                          `Failed to copy ${row.successMessageLabel} to clipboard`,
+                        );
+                        console.error(
+                          `Failed to copy ${row.successMessageLabel} to clipboard`,
+                          e,
+                        );
+                      }
+                    }
+                  : undefined
+              }
             >
-              {row.value}
-            </td>
-          </tr>
-        ))}
+              <td className="relative py-0.5">
+                <span
+                  className={cn(
+                    "text-content-subtle truncate",
+                    shortLabels && "bg-bg-inverted/10 rounded px-1 font-mono",
+                  )}
+                  title={shortLabels ? row.label : undefined}
+                >
+                  {shortLabels ? row.shortLabel : row.label}
+                </span>
+              </td>
+              <td
+                className={cn(
+                  "text-content-default relative whitespace-nowrap py-0.5 pl-3",
+                  shortLabels && "pl-2",
+                  row.valueMono && "font-mono",
+                )}
+              >
+                {row.value}
+              </td>
+            </tr>
+          ))}
+        </tbody>
       </table>
     </div>
   );

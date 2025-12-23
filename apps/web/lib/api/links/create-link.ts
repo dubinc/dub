@@ -141,7 +141,7 @@ export async function createLink(link: ProcessedLinkProps) {
 
   waitUntil(
     (async () => {
-      const { partner, discount, group } = await getPartnerEnrollmentInfo({
+      const { partner, discount } = await getPartnerEnrollmentInfo({
         programId: response.programId,
         partnerId: response.partnerId,
       });
@@ -157,7 +157,9 @@ export async function createLink(link: ProcessedLinkProps) {
         // Record link in Tinybird
         recordLink({
           ...response,
-          ...(group && { programEnrollment: { groupId: group.id } }),
+          ...(partner?.groupId && {
+            programEnrollment: { groupId: partner.groupId },
+          }),
         }),
 
         // Upload image to R2 and update the link with the uploaded image URL when

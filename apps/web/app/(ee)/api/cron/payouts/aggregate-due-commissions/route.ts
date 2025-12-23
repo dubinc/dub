@@ -253,6 +253,7 @@ async function handler(req: Request) {
 
       const qstashResponse = await qstash.publishJSON({
         url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/aggregate-due-commissions`,
+        body: programId ? { programId } : {}, // pass programId if defined, else pass an empty object
       });
       if (qstashResponse.messageId) {
         console.log(

@@ -1,6 +1,7 @@
 import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { invitePartnerAction } from "@/lib/actions/partners/invite-partner";
 import { saveInviteEmailDataAction } from "@/lib/actions/partners/save-invite-email-data";
+import { useEmailDomains } from "@/lib/swr/use-email-domains";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramInviteEmailData, ProgramProps } from "@/lib/types";
@@ -352,6 +353,8 @@ function EmailPreview({
   isSavingEmailData: boolean;
 }) {
   const { program } = useProgram();
+  const { verifiedEmailDomain } = useEmailDomains();
+
   const { isMobile } = useMediaQuery();
   const richTextRef = useRef<{ setContent: (content: any) => void }>(null);
 
@@ -511,7 +514,9 @@ function EmailPreview({
             <div className="grid gap-1 border-b border-neutral-200 bg-white px-4 py-3">
               <p className="text-xs text-neutral-500">
                 <strong className="font-medium text-neutral-900">From: </strong>
-                notifications@mail.dub.co
+                {verifiedEmailDomain
+                  ? `partners@${verifiedEmailDomain.slug}`
+                  : "notifications@mail.dub.co"}
               </p>
               <p className="text-xs text-neutral-500">
                 <strong className="font-medium text-neutral-900">

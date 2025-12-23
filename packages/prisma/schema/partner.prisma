@@ -65,6 +65,7 @@ model Partner {
   programs                   ProgramEnrollment[]
   users                      PartnerUser[]
   invites                    PartnerInvite[]
+  customers                  Customer[]
   payouts                    Payout[]
   commissions                Commission[]
   bountySubmissions          BountySubmission[]
@@ -80,6 +81,7 @@ model Partner {
   discoveredByPrograms       DiscoveredPartner[]
   fraudEventGroups           FraudEventGroup[]
   fraudEvents                FraudEvent[]
+  partnerRewinds             PartnerRewind[]
 
   @@index(country)
   @@index(discoverableAt)

@@ -24,8 +24,8 @@ export async function processPayoutInvoiceFailure({
     mention: true,
   });
 
-  // Mark the payouts as pending again
-  await prisma.payout.updateMany({
+  // reset the payouts to their initial state
+  const { count } = await prisma.payout.updateMany({
     where: {
       invoiceId: invoice.id,
     },
@@ -33,8 +33,15 @@ export async function processPayoutInvoiceFailure({
       status: "pending",
       userId: null,
       invoiceId: null,
+      initiatedAt: null,
+      paidAt: null,
+      mode: null,
     },
   });
+
+  console.log(
+    `Reset ${count} payouts to their initial state for invoice ${invoice.id}`,
+  );
 
   const workspace = await prisma.project.update({
     where: {

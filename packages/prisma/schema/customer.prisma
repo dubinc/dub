@@ -16,20 +16,27 @@ model Customer {
 
   projectId        String
   projectConnectId String?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
 
-  project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  link        Link?        @relation(fields: [linkId], references: [id])
-  commissions Commission[]
-  fraudEvents FraudEvent[]
+  programId String?
+  partnerId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project           Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  link              Link?              @relation(fields: [linkId], references: [id])
+  program           Program?           @relation(fields: [programId], references: [id])
+  partner           Partner?           @relation(fields: [partnerId], references: [id])
+  programEnrollment ProgramEnrollment? @relation(fields: [programId, partnerId], references: [programId, partnerId])
+  commissions       Commission[]
+  fraudEvents       FraudEvent[]
 
   @@unique([projectId, externalId])
   @@unique([projectConnectId, externalId])
   @@index([projectId, email])
   @@index([projectId, createdAt])
   @@index([projectId, saleAmount])
-  @@index(externalId)
+  @@index([programId, partnerId])
   @@index(linkId)
   @@index(country)
   @@fulltext([email, name]) // For full-text search

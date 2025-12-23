@@ -2,7 +2,7 @@ import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { sendEmail } from "@dub/email";
 import PartnerPayoutWithdrawalCompleted from "@dub/email/templates/partner-payout-withdrawal-completed";
 import { prisma } from "@dub/prisma";
-import { currencyFormatter, log } from "@dub/utils";
+import { currencyFormatter, log, pluralize, prettyPrint } from "@dub/utils";
 import { z } from "zod";
 import { handleCronErrorResponse, logAndRespond } from "../../utils";
 
@@ -44,7 +44,6 @@ export async function POST(req: Request) {
 
     const updatedPayouts = await prisma.payout.updateMany({
       where: {
-        status: "sent",
         stripePayoutId: stripePayout.id,
       },
       data: {
@@ -70,12 +69,12 @@ export async function POST(req: Request) {
       });
 
       console.log(
-        `Sent email to partner ${partner.email} (${stripeAccount}): ${JSON.stringify(sentEmail, null, 2)}`,
+        `Sent email to partner ${partner.email} (${stripeAccount}): ${prettyPrint(sentEmail)}`,
       );
     }
 
     return logAndRespond(
-      `Updated ${updatedPayouts.count} payouts for partner ${partner.email} (${stripeAccount}) to "completed" status.`,
+      `Updated ${updatedPayouts.count} ${pluralize("payout", updatedPayouts.count)} for partner ${partner.email} (${stripeAccount}) to "completed" status.`,
     );
   } catch (error) {
     await log({

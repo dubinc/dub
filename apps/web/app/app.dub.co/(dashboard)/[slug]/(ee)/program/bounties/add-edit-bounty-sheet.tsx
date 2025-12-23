@@ -407,7 +407,14 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
               type === "performance" && performanceCondition
                 ? generatePerformanceBountyName({
                     rewardAmount: rewardAmount ? rewardAmount * 100 : 0,
-                    condition: performanceCondition,
+                    condition: isCurrencyAttribute(
+                      performanceCondition?.attribute,
+                    )
+                      ? {
+                          ...performanceCondition,
+                          value: performanceCondition?.value * 100,
+                        }
+                      : performanceCondition,
                   })
                 : name || "New bounty",
             startsAt: startsAt || new Date(),

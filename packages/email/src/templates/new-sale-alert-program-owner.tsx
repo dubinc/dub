@@ -126,7 +126,7 @@ export default function NewSaleAlertProgramOwner({
             </Text>
 
             <Section className="my-8 w-full">
-              <div className="rounded-lg border border-neutral-200">
+              <div className="rounded-lg">
                 <Row>
                   <Column>
                     <Text className="m-0 text-sm leading-6 text-neutral-600">

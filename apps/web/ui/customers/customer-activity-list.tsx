@@ -117,7 +117,7 @@ export function CustomerActivityList({
   return isLoading ? (
     <div className="flex h-32 w-full animate-pulse rounded-lg border border-transparent bg-neutral-100" />
   ) : !activity?.events?.length ? (
-    <div className="flex h-32 w-full items-center justify-center border border-neutral-200 text-xs text-neutral-500">
+    <div className="flex h-32 w-full items-center justify-center rounded-lg border border-neutral-200 text-xs text-neutral-500">
       {activity?.events ? "No activity yet" : "Failed to load activity"}
     </div>
   ) : (
