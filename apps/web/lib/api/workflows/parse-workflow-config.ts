@@ -24,6 +24,7 @@ export function parseWorkflowConfig(
 
   return {
     conditions,
-    action: actions[0], // A workflow can have only one action for now
+    condition: conditions[0],
+    action: actions[0],
   };
 }

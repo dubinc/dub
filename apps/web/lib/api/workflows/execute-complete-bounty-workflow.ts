@@ -17,7 +17,7 @@ export const executeCompleteBountyWorkflow = async ({
   workflow: Workflow;
   context: WorkflowContext;
 }) => {
-  const { conditions, action } = parseWorkflowConfig(workflow);
+  const { condition, action } = parseWorkflowConfig(workflow);
 
   if (action.type !== WORKFLOW_ACTION_TYPES.AwardBounty) {
     return;
@@ -115,7 +115,6 @@ export const executeCompleteBountyWorkflow = async ({
     totalCommissions: metrics?.current?.commissions ?? 0,
   };
 
-  const condition = conditions[0];
   const performanceCount = finalContext[condition.attribute] ?? 0;
 
   // Create or update the submission
@@ -143,7 +142,7 @@ export const executeCompleteBountyWorkflow = async ({
 
   // Check if the bounty submission meet the reward criteria
   const shouldExecute = evaluateWorkflowConditions({
-    conditions,
+    conditions: [condition],
     attributes: {
       [condition.attribute]: bountySubmission.performanceCount,
     },

@@ -25,7 +25,7 @@ export const executeSendCampaignWorkflow = async ({
   workflow: Workflow;
   context?: WorkflowContext;
 }) => {
-  const { conditions, action } = parseWorkflowConfig(workflow);
+  const { condition, action } = parseWorkflowConfig(workflow);
 
   if (action.type !== WORKFLOW_ACTION_TYPES.SendCampaign) {
     console.log(
@@ -72,7 +72,7 @@ export const executeSendCampaignWorkflow = async ({
     programId,
     partnerId,
     groupIds: campaign.groups.map(({ groupId }) => groupId),
-    condition: conditions[0],
+    condition,
   });
 
   if (programEnrollments.length === 0) {
