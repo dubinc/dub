@@ -183,7 +183,7 @@ export async function executeWorkflows({
         context: workflowContext,
       });
     } catch (error) {
-      console.error(`Failed to parse workflow ${workflow.id}:`, error);
+      console.error(`Failed to execute workflow ${workflow.id}:`, error);
       continue;
     }
   }

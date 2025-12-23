@@ -338,7 +338,7 @@ const formatValue = (
   value: number | undefined,
   type: AttributeType | undefined,
 ) => {
-  if (!value) {
+  if (value == null) {
     return "value";
   }
 
