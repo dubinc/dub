@@ -57,6 +57,7 @@ export async function upsertGroupMoveWorkflow({
     actions: [action],
   };
 
+  // Create a new workflow
   if (!group.workflowId) {
     const workflow = await prisma.workflow.create({
       data: {
@@ -71,6 +72,7 @@ export async function upsertGroupMoveWorkflow({
     };
   }
 
+  // Update the existing workflow
   const workflow = await prisma.workflow.update({
     where: {
       id: group.workflowId,

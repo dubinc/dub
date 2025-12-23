@@ -101,8 +101,6 @@ function GroupOtherSettingsForm({ group }: { group: GroupProps }) {
   } = form;
 
   const onSubmit = async (data: FormData) => {
-    console.log("onSubmit", data);
-
     await updateGroup(`/api/groups/${group.id}`, {
       method: "PATCH",
       body: {
@@ -110,7 +108,7 @@ function GroupOtherSettingsForm({ group }: { group: GroupProps }) {
       },
       onSuccess: async () => {
         await mutate(`/api/groups/${group.id}`);
-        toast.success("Group move updated!");
+        toast.success("Group move rule updated!");
       },
     });
   };

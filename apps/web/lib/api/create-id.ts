@@ -32,7 +32,6 @@ const prefixes = [
   "audit_", // audit log
   "import_", // import log
   "grp_", // group
-  "grl_", // group rule
   "bnty_", // bounty
   "bnty_sub_", // bounty submission
   "wf_", // workflow
