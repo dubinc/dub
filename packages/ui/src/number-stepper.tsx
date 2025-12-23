@@ -198,9 +198,9 @@ export function NumberStepper({
           onKeyDown={handleInputKeyDown}
           disabled={disabled}
           className={cn(
-            "w-full border-0 bg-transparent px-3 text-center text-sm text-neutral-900 outline-none focus:ring-0",
+            "w-full border-0 bg-transparent px-3 text-center text-sm text-neutral-900 outline-none transition-colors focus:ring-0",
             disabled && "cursor-not-allowed",
-            !disabled && "cursor-text",
+            !disabled && "cursor-text focus:bg-neutral-50",
             !isEditing && formatValue && "pointer-events-none opacity-0",
           )}
         />

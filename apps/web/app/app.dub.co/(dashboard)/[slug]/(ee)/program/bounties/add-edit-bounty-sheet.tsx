@@ -1051,7 +1051,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                                 min={1}
                                 max={BOUNTY_MAX_SUBMISSION_FILES}
                                 step={1}
-                                className="w-full [&>div]:h-8"
+                                className="h-9 w-full [&>div]:h-9"
                               />
                               <p className="text-xs text-neutral-500">
                                 Set a maximum number of images partners can
@@ -1090,7 +1090,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                                   min={1}
                                   max={BOUNTY_MAX_SUBMISSION_URLS}
                                   step={1}
-                                  className="w-full [&>div]:h-8"
+                                  className="h-9 w-full [&>div]:h-9"
                                 />
                                 <p className="text-xs text-neutral-500">
                                   Set a maximum number of URLs partners can
@@ -1110,7 +1110,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                                     type="text"
                                     placeholder="e.g. x.com"
                                     className={cn(
-                                      "block h-8 flex-1 rounded-md border-neutral-300 px-3 py-1.5 text-sm text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500",
+                                      "block h-9 flex-1 rounded-md border-neutral-300 px-3 py-1.5 text-sm text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500",
                                     )}
                                     onKeyDown={(e) => {
                                       if (e.key === "Enter") {
@@ -1125,7 +1125,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                                     type="button"
                                     variant="secondary"
                                     text="Add"
-                                    className="h-8 w-fit px-3"
+                                    className="h-9 w-fit px-3"
                                     onClick={(e) => {
                                       const input = e.currentTarget
                                         .previousElementSibling as HTMLInputElement;
