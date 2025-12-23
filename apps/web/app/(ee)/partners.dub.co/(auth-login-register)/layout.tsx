@@ -2,6 +2,8 @@ import { DubPartnersLogo } from "@/ui/dub-partners-logo";
 import { Grid } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Link from "next/link";
+import { Logo } from "../(auth-other)/logo";
+import { ProgramLogos } from "./program-logos";
 
 export default function PartnerAuthLayout({
   children,
@@ -10,12 +12,12 @@ export default function PartnerAuthLayout({
 }) {
   return (
     <div className="relative grid grid-cols-1 min-[900px]:grid-cols-[440px_minmax(0,1fr)] lg:grid-cols-[595px_minmax(0,1fr)]">
-      <div className="hidden flex-col items-start justify-between border-r border-black/5 bg-neutral-50 p-4 min-[900px]:flex lg:p-10">
-        <div className="grow basis-0">
-          <DubPartnersLogo />
+      <div className="hidden h-full flex-col items-start justify-between gap-8 overflow-hidden border-r border-black/5 bg-neutral-50 min-[900px]:flex">
+        <div className="grow basis-0 p-4 lg:p-10">
+          <DubPartnersLogo className="w-fit" />
         </div>
 
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-6 px-4 lg:px-10">
           <p className="text-content-default max-w-[370px] text-pretty text-xl font-medium">
             Join thousands of others who have earned over $10,000,000 on Dub
             partnering with world-class companies.
@@ -29,7 +31,9 @@ export default function PartnerAuthLayout({
           </Link>
         </div>
 
-        <div className="grow basis-0" />
+        <div className="w-full grow basis-0">
+          <ProgramLogos />
+        </div>
       </div>
 
       <div className="relative">
@@ -70,9 +74,7 @@ export default function PartnerAuthLayout({
           ))}
         </div>
         <div className="relative flex h-screen w-full justify-center">
-          <div className="md:hidden">
-            <DubPartnersLogo />
-          </div>
+          <Logo className="min-[900px]:hidden" />
           {children}
         </div>
       </div>
