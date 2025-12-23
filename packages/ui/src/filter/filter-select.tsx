@@ -3,11 +3,11 @@ import { Command, useCommandState } from "cmdk";
 import { ChevronDown, ListFilter } from "lucide-react";
 import {
   CSSProperties,
+  forwardRef,
   Fragment,
+  isValidElement,
   PropsWithChildren,
   ReactNode,
-  forwardRef,
-  isValidElement,
   useCallback,
   useEffect,
   useImperativeHandle,
@@ -15,7 +15,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { List, type RowComponentProps } from "react-window";
+import { AutoSizer, List, WindowScroller } from "react-virtualized";
 import { AnimatedSizeContainer } from "../animated-size-container";
 import { useKeyboardShortcut, useMediaQuery } from "../hooks";
 import { useScrollProgress } from "../hooks/use-scroll-progress";
@@ -154,18 +154,39 @@ export function FilterSelect({
     }
   }, [selectedFilter?.options]);
 
-  // Virtualize the list if it has more than 1000 options
-  const virtualized = Boolean(
-    selectedFilter?.options && selectedFilter?.options.length > 1000,
-  );
-
-  const filterOptions = useMemo(
+  const filterOptions: FilterOption[] | undefined = useMemo(
     () =>
       selectedFilter?.options?.filter(
         (option) => !search || !option.hideDuringSearch,
       ),
     [selectedFilter, search],
   );
+
+  // Virtualize the list if it has more than 1000 options
+  const virtualized = Boolean(filterOptions && filterOptions.length > 1000);
+
+  const rowRenderer = ({
+    index,
+    style,
+  }: {
+    index: number;
+    style: CSSProperties;
+  }) => {
+    if (!selectedFilter || !filterOptions) return null;
+
+    const option = filterOptions[index];
+    const isSelected = isOptionSelected(option.value);
+
+    return (
+      <FilterButton
+        style={style}
+        filter={selectedFilter}
+        option={option}
+        right={isSelected ? <Check className="h-4 w-4" /> : option.right}
+        onSelect={() => selectOption(option.value)}
+      />
+    );
+  };
 
   return (
     <Popover
@@ -252,18 +273,36 @@ export function FilterSelect({
                 ) : // Filter options
                 filterOptions ? (
                   virtualized ? (
-                    // Virtualized list of options
-                    <List
-                      rowComponent={FilterOptionItem}
-                      rowCount={filterOptions.length}
-                      rowProps={{
-                        options: filterOptions,
-                        selectedFilter,
-                        isOptionSelected,
-                        selectOption,
-                      }}
-                      rowHeight={36}
-                    />
+                    <WindowScroller
+                      scrollElement={listContainer.current ?? undefined}
+                    >
+                      {({
+                        height,
+                        isScrolling,
+                        registerChild,
+                        onChildScroll,
+                        scrollTop,
+                      }) => (
+                        <AutoSizer disableHeight>
+                          {({ width }) => (
+                            <div ref={registerChild}>
+                              <List
+                                autoHeight
+                                height={height}
+                                isScrolling={isScrolling}
+                                onScroll={onChildScroll}
+                                overscanRowCount={2}
+                                rowCount={filterOptions.length}
+                                rowHeight={36}
+                                rowRenderer={rowRenderer}
+                                scrollTop={scrollTop}
+                                width={width}
+                              />
+                            </div>
+                          )}
+                        </AutoSizer>
+                      )}
+                    </WindowScroller>
                   ) : (
                     // Non-virtualized list of options
                     filterOptions.map((option) => {
@@ -344,33 +383,6 @@ export function FilterSelect({
         )}
       </button>
     </Popover>
-  );
-}
-
-function FilterOptionItem({
-  index,
-  options,
-  selectedFilter,
-  isOptionSelected,
-  selectOption,
-  style,
-}: RowComponentProps<{
-  options: FilterOption[];
-  selectedFilter: Filter;
-  isOptionSelected: (value: FilterOption["value"]) => boolean;
-  selectOption: (value: FilterOption["value"]) => void;
-}>) {
-  const option = options[index];
-  const isSelected = isOptionSelected(option.value);
-
-  return (
-    <FilterButton
-      style={style}
-      filter={selectedFilter}
-      option={option}
-      right={isSelected ? <Check className="h-4 w-4" /> : option.right}
-      onSelect={() => selectOption(option.value)}
-    />
   );
 }
 
