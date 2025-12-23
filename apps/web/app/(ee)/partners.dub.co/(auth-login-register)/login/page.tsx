@@ -55,7 +55,7 @@ export default async function LoginPage(props: {
   }
 
   return (
-    <div className="relative">
+    <div className="relative w-full">
       {program && <PartnerBanner program={program} />}
       <AuthLayout showTerms="partners" className={cn(programSlug && "pt-20")}>
         <div className="w-full max-w-sm">

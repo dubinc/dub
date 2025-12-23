@@ -44,7 +44,7 @@ export default function RegisterPageClient({
 
 function SignUp({ program }: { program?: PartialProgram }) {
   return (
-    <div className="relative">
+    <div className="relative w-full">
       {program && <PartnerBanner program={program} />}
       <AuthLayout showTerms="partners">
         <div className="w-full max-w-sm">
