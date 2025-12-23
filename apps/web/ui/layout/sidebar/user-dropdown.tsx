@@ -88,11 +88,11 @@ export function UserDropdown() {
       content={
         <div className="flex w-full flex-col space-y-px rounded-md bg-white p-2 sm:min-w-56">
           {session?.user ? (
-            <div className="p-2">
-              <p className="truncate text-sm font-medium text-neutral-900">
+            <div className="px-2 pb-4 sm:pb-2">
+              <p className="truncate text-base font-medium text-neutral-900 sm:text-sm">
                 {session.user.name || session.user.email?.split("@")[0]}
               </p>
-              <p className="truncate text-sm text-neutral-500">
+              <p className="truncate text-base text-neutral-500 sm:text-sm">
                 {session.user.email}
               </p>
             </div>
@@ -154,10 +154,10 @@ function UserOption<T extends ElementType = "button">({
 
   return (
     <Component
-      className="flex items-center gap-x-4 rounded-md px-2.5 py-1.5 text-sm transition-all duration-75 hover:bg-neutral-200/50 active:bg-neutral-200/80"
+      className="flex items-center gap-x-4 rounded-md px-2.5 py-1.5 text-base transition-all duration-75 hover:bg-neutral-200/50 active:bg-neutral-200/80 sm:text-sm"
       {...rest}
     >
-      <Icon className="size-4 text-neutral-500" />
+      <Icon className="size-5 text-neutral-500 sm:size-4" />
       <span className="block truncate text-neutral-600">{label}</span>
       {children}
     </Component>
