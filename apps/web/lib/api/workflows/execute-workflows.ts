@@ -71,13 +71,13 @@ export async function executeWorkflows({
         expectedAttributes.includes(attribute),
       );
     });
-  }
 
-  if (workflows.length === 0) {
-    console.log(
-      `No relevant workflows found to execute for trigger ${trigger} and reason ${reason}.`,
-    );
-    return;
+    if (workflows.length === 0) {
+      console.log(
+        `No relevant workflows found to execute for trigger ${trigger} and reason ${reason}.`,
+      );
+      return;
+    }
   }
 
   // Commissions require a separate expensive aggregate query.
@@ -113,6 +113,7 @@ export async function executeWorkflows({
     shouldFetchCommissions
       ? prisma.commission.aggregate({
           where: {
+            earnings: { not: 0 },
             programId,
             partnerId,
             status: {
