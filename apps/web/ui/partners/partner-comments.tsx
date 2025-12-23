@@ -356,8 +356,7 @@ function CommentCard({
               ) : (
                 <ReactMarkdown
                   className={cn(
-                    "neutral-700 font-regular",
-                    "prose prose-sm break-words",
+                    "prose prose-sm text-content-default break-words font-normal",
                     PROSE_STYLES.condensed,
                     "prose-a:font-medium prose-a:underline-offset-4",
                   )}
