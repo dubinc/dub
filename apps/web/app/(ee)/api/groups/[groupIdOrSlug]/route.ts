@@ -74,7 +74,7 @@ export const PATCH = withWorkspace(
       autoApprovePartners,
       updateAutoApprovePartnersForAllGroups,
       updateHoldingPeriodDaysForAllGroups,
-      moveRule,
+      moveRules,
     } = updateGroupSchema.parse(await parseRequestBody(req));
 
     // Only check slug uniqueness if slug is being updated
@@ -131,7 +131,7 @@ export const PATCH = withWorkspace(
 
     const { workflowId } = await upsertGroupMoveWorkflow({
       group,
-      moveRule,
+      moveRules,
       workspace,
     });
 

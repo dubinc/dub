@@ -71,7 +71,7 @@ export const GroupSchema = z.object({
   additionalLinks: z.array(additionalPartnerLinkSchema).nullable(),
   maxPartnerLinks: z.number(),
   linkStructure: z.nativeEnum(PartnerLinkStructure),
-  moveRule: z.array(workflowConditionSchema).nullish().default(null),
+  moveRules: z.array(workflowConditionSchema).nullish().default(null),
 });
 
 export const GroupWithFormDataSchema = GroupSchema.extend({
@@ -149,7 +149,7 @@ export const updateGroupSchema = createGroupSchema.partial().extend({
   autoApprovePartners: z.coerce.boolean().optional(),
   updateAutoApprovePartnersForAllGroups: z.coerce.boolean().optional(),
   updateHoldingPeriodDaysForAllGroups: z.coerce.boolean().optional(),
-  moveRule: z.array(workflowConditionSchema).optional(),
+  moveRules: z.array(workflowConditionSchema).optional(),
 });
 
 export const PartnerGroupDefaultLinkSchema = z.object({

@@ -8,16 +8,16 @@ import { DubApiError } from "../errors";
 
 export async function upsertGroupMoveWorkflow({
   group,
-  moveRule,
+  moveRules,
   workspace,
 }: {
   group: PartnerGroup;
-  moveRule?: WorkflowCondition[];
+  moveRules?: WorkflowCondition[];
   workspace: Pick<WorkspaceProps, "plan">;
 }): Promise<{ workflowId: string | null | undefined }> {
   const { canUseGroupMoveRule } = getPlanCapabilities(workspace.plan);
 
-  if (moveRule && !canUseGroupMoveRule) {
+  if (moveRules && !canUseGroupMoveRule) {
     throw new DubApiError({
       code: "forbidden",
       message:
@@ -25,7 +25,7 @@ export async function upsertGroupMoveWorkflow({
     });
   }
 
-  if (moveRule?.length === 0 && group.workflowId) {
+  if (moveRules?.length === 0 && group.workflowId) {
     await prisma.workflow.delete({
       where: {
         id: group.workflowId,
@@ -38,7 +38,7 @@ export async function upsertGroupMoveWorkflow({
   }
 
   // Do nothing if no move rule is provided
-  if (!moveRule) {
+  if (!moveRules) {
     return {
       workflowId: undefined,
     };
@@ -53,7 +53,7 @@ export async function upsertGroupMoveWorkflow({
 
   const workflowData = {
     trigger: "partnerMetricsUpdated" as WorkflowTrigger,
-    triggerConditions: moveRule,
+    triggerConditions: moveRules,
     actions: [action],
   };
 

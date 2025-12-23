@@ -91,7 +91,7 @@ function GroupOtherSettingsForm({ group }: { group: GroupProps }) {
 
   const form = useForm<FormData>({
     defaultValues: {
-      moveRule: group.moveRule ?? [],
+      moveRules: group.moveRules ?? [],
     },
   });
 
@@ -104,7 +104,7 @@ function GroupOtherSettingsForm({ group }: { group: GroupProps }) {
     await updateGroup(`/api/groups/${group.id}`, {
       method: "PATCH",
       body: {
-        moveRule: data.moveRule,
+        moveRules: data.moveRules,
       },
       onSuccess: async () => {
         await mutate(`/api/groups/${group.id}`);

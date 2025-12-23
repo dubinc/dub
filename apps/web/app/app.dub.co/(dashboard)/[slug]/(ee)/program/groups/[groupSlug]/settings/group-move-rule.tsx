@@ -38,10 +38,10 @@ export function GroupMoveRule() {
   const { plan } = useWorkspace();
 
   const { control, watch } = useFormContext<{
-    moveRule?: WorkflowCondition[];
+    moveRules?: WorkflowCondition[];
   }>();
 
-  const moveRule = watch("moveRule") ?? [];
+  const moveRules = watch("moveRules") ?? [];
 
   const {
     fields: ruleFields,
@@ -50,16 +50,16 @@ export function GroupMoveRule() {
     update: updateRule,
   } = useFieldArray({
     control,
-    name: "moveRule",
+    name: "moveRules",
     shouldUnregister: false,
   });
 
   const usedAttributes = useMemo(
     () =>
-      moveRule
+      moveRules
         ?.map((r) => r.attribute)
         .filter((a): a is NonNullable<typeof a> => a != null),
-    [moveRule],
+    [moveRules],
   );
 
   const disableAddRuleButton = ruleFields.length >= ATTRIBUTES.length;
@@ -90,7 +90,7 @@ export function GroupMoveRule() {
       ) : (
         <div className="relative flex flex-col">
           {ruleFields.map((field, index) => {
-            const rule = moveRule?.[index];
+            const rule = moveRules?.[index];
             if (!rule) {
               return null;
             }
@@ -166,7 +166,7 @@ function GroupRule({
   availableAttributes: Attribute[];
 }) {
   const { control } = useFormContext<{
-    moveRule?: WorkflowCondition[];
+    moveRules?: WorkflowCondition[];
   }>();
 
   const isFirst = index === 0;
@@ -219,7 +219,7 @@ function GroupRule({
                 >
                   <Controller
                     control={control}
-                    name={`moveRule.${index}.value`}
+                    name={`moveRules.${index}.value`}
                     render={({ field }) => {
                       const attributeType =
                         ATTRIBUTE_BY_VALUE[rule.attribute]?.type || "number";

@@ -51,6 +51,6 @@ export const getGroupOrThrow = async ({
 
   return {
     ...group,
-    moveRule: group.workflow?.triggerConditions,
+    moveRules: group.workflow?.triggerConditions,
   };
 };
