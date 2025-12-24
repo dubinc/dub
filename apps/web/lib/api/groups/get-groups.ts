@@ -19,7 +19,7 @@ export async function getGroups(filters: GroupFilters) {
     includeExpandedFields,
   } = filters;
 
-  const groups = (await prisma.$queryRaw`
+  const groups = (await prisma.$queryRaw(Prisma.sql`
     SELECT
       pg.id,
       pg.programId,
@@ -76,7 +76,7 @@ export async function getGroups(filters: GroupFilters) {
     GROUP BY pg.id
     ORDER BY ${Prisma.raw(sortBy === "createdAt" ? "pg.createdAt" : sortBy)} ${Prisma.raw(sortOrder)}
     LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}
-  `) satisfies Array<any>;
+  `)) satisfies Array<any>;
 
   return groups.map((group) => ({
     ...group,
