@@ -1,6 +1,7 @@
 import { generatePerformanceBountyName } from "@/lib/api/bounties/generate-performance-bounty-name";
 import { isCurrencyAttribute } from "@/lib/api/workflows/utils";
 import {
+  BOUNTY_DEFAULT_SUBMISSION_URLS,
   BOUNTY_DESCRIPTION_MAX_LENGTH,
   BOUNTY_MAX_SUBMISSION_FILES,
   BOUNTY_MAX_SUBMISSION_URLS,
@@ -1085,7 +1086,9 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                                   </span>
                                 </label>
                                 <NumberStepper
-                                  value={urlMax ?? BOUNTY_MAX_SUBMISSION_URLS}
+                                  value={
+                                    urlMax ?? BOUNTY_DEFAULT_SUBMISSION_URLS
+                                  }
                                   onChange={handleUrlMaxChange}
                                   min={1}
                                   max={BOUNTY_MAX_SUBMISSION_URLS}

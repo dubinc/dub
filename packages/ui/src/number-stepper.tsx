@@ -3,6 +3,8 @@ import {
   HTMLAttributes,
   ReactNode,
   useCallback,
+  useEffect,
+  useLayoutEffect,
   useRef,
   useState,
 } from "react";
@@ -43,6 +45,21 @@ export function NumberStepper({
   const canDecrement = typeof min === "number" ? value > min : true;
   const canIncrement = typeof max === "number" ? value < max : true;
 
+  // Focus and select input when entering edit mode
+  useLayoutEffect(() => {
+    if (isEditing && inputRef.current && !disabled) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [isEditing, disabled]);
+
+  // Update input value when prop value changes (but not while editing)
+  useEffect(() => {
+    if (!isEditing && inputValue !== String(value)) {
+      setInputValue(String(value));
+    }
+  }, [value, isEditing, inputValue]);
+
   const constrainToRange = useCallback(
     (next: number) => {
       let nextValue = next;
@@ -59,11 +76,6 @@ export function NumberStepper({
     },
     [min, max],
   );
-
-  // Update input value when prop value changes (but not while editing)
-  if (!isEditing && inputValue !== String(value)) {
-    setInputValue(String(value));
-  }
 
   const handleDecrement = useCallback(() => {
     if (disabled) {
@@ -217,23 +229,17 @@ export function NumberStepper({
                 if (!disabled) {
                   setIsEditing(true);
                   setInputValue(String(value));
-                  setTimeout(() => {
-                    inputRef.current?.focus();
-                    inputRef.current?.select();
-                  }, 0);
                 }
               } else {
-                handleInputKeyDown(e as any);
+                handleInputKeyDown(
+                  e as Parameters<typeof handleInputKeyDown>[0],
+                );
               }
             }}
             onClick={() => {
               if (!disabled) {
                 setIsEditing(true);
                 setInputValue(String(value));
-                setTimeout(() => {
-                  inputRef.current?.focus();
-                  inputRef.current?.select();
-                }, 0);
               }
             }}
             className={cn(
