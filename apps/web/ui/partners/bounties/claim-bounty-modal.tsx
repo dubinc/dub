@@ -151,7 +151,7 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
 
   // Get placeholder URL from domain if available
   const placeholderUrl = (() => {
-    const firstDomain = urlRequirement?.domains?.[0];
+    const firstDomain = bounty.submissionRequirements?.url?.domains?.[0];
     if (!firstDomain) return "https://";
     return `https://${firstDomain}`;
   })();
