@@ -10,12 +10,6 @@ import { getBountyRewardDescription } from "@/lib/partners/get-bounty-reward-des
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PartnerBountyProps } from "@/lib/types";
-import {
-  getImageRequirement,
-  getUrlRequirement,
-  hasImageRequirement,
-  hasUrlRequirement,
-} from "@/lib/zod/schemas/bounties";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { X } from "@/ui/shared/icons";
 import { Markdown } from "@/ui/shared/markdown";
@@ -145,19 +139,19 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
     createBountySubmissionAction,
   );
 
-  const imageRequired = hasImageRequirement(bounty.submissionRequirements);
-  const urlRequired = hasUrlRequirement(bounty.submissionRequirements);
+  const imageRequired = !!bounty.submissionRequirements?.image;
+  const urlRequired = !!bounty.submissionRequirements?.url;
   const fileUploading = files.some(({ uploading }) => uploading);
 
   // Get max values from bounty submission requirements, fallback to constants
-  const imageRequirement = getImageRequirement(bounty.submissionRequirements);
-  const urlRequirement = getUrlRequirement(bounty.submissionRequirements);
-  const maxFiles = imageRequirement?.max ?? BOUNTY_MAX_SUBMISSION_FILES;
-  const maxUrls = urlRequirement?.max ?? BOUNTY_MAX_SUBMISSION_URLS;
+  const maxFiles =
+    bounty.submissionRequirements?.image?.max ?? BOUNTY_MAX_SUBMISSION_FILES;
+  const maxUrls =
+    bounty.submissionRequirements?.url?.max ?? BOUNTY_MAX_SUBMISSION_URLS;
 
   // Get placeholder URL from domain if available
   const placeholderUrl = (() => {
-    const firstDomain = urlRequirement?.domains?.[0];
+    const firstDomain = bounty.submissionRequirements?.url?.domains?.[0];
     if (!firstDomain) return "https://";
     return `https://${firstDomain}`;
   })();

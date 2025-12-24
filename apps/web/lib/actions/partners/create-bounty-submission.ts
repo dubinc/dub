@@ -10,10 +10,6 @@ import {
 } from "@/lib/constants/bounties";
 import {
   BountySubmissionFileSchema,
-  getImageRequirement,
-  getUrlRequirement,
-  hasImageRequirement,
-  hasUrlRequirement,
   submissionRequirementsSchema,
 } from "@/lib/zod/schemas/bounties";
 import { sendBatchEmail, sendEmail } from "@dub/email";
@@ -142,14 +138,14 @@ export const createBountySubmissionAction = authPartnerActionClient
     }
 
     // Validate the submission requirements
-    const submissionRequirements = submissionRequirementsSchema.parse(
-      bounty.submissionRequirements || [],
-    );
+    const submissionRequirements = bounty.submissionRequirements
+      ? submissionRequirementsSchema.parse(bounty.submissionRequirements)
+      : null;
 
-    const requireImage = hasImageRequirement(submissionRequirements);
-    const requireUrl = hasUrlRequirement(submissionRequirements);
-    const urlRequirement = getUrlRequirement(submissionRequirements);
-    const imageRequirement = getImageRequirement(submissionRequirements);
+    const requireImage = !!submissionRequirements?.image;
+    const requireUrl = !!submissionRequirements?.url;
+    const urlRequirement = submissionRequirements?.url || null;
+    const imageRequirement = submissionRequirements?.image || null;
 
     if (!isDraft) {
       if (requireImage && files.length === 0) {

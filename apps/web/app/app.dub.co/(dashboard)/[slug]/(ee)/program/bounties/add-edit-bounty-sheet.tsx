@@ -10,14 +10,8 @@ import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { BountyProps, BountySubmissionRequirement } from "@/lib/types";
-import {
-  createBountySchema,
-  getImageRequirement,
-  getUrlRequirement,
-  hasImageRequirement,
-  hasUrlRequirement,
-} from "@/lib/zod/schemas/bounties";
+import { BountyProps } from "@/lib/types";
+import { createBountySchema } from "@/lib/zod/schemas/bounties";
 import { workflowConditionSchema } from "@/lib/zod/schemas/workflows";
 import { BountyLogic } from "@/ui/partners/bounties/bounty-logic";
 import { GroupsMultiSelect } from "@/ui/partners/groups/groups-multi-select";
@@ -126,26 +120,23 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
   );
 
   const [requireImage, setRequireImage] = useState(() =>
-    hasImageRequirement(bounty?.submissionRequirements),
+    !!bounty?.submissionRequirements?.image,
   );
 
   const [requireUrl, setRequireUrl] = useState(() =>
-    hasUrlRequirement(bounty?.submissionRequirements),
+    !!bounty?.submissionRequirements?.url,
   );
 
   const [imageMax, setImageMax] = useState<number | undefined>(() => {
-    const imageReq = getImageRequirement(bounty?.submissionRequirements);
-    return imageReq?.max;
+    return bounty?.submissionRequirements?.image?.max;
   });
 
   const [urlMax, setUrlMax] = useState<number | undefined>(() => {
-    const urlReq = getUrlRequirement(bounty?.submissionRequirements);
-    return urlReq?.max;
+    return bounty?.submissionRequirements?.url?.max;
   });
 
   const [urlDomains, setUrlDomains] = useState<string[]>(() => {
-    const urlReq = getUrlRequirement(bounty?.submissionRequirements);
-    return urlReq?.domains || [];
+    return bounty?.submissionRequirements?.url?.domains || [];
   });
 
   const [rewardType, setRewardType] = useState<RewardType>(
@@ -269,51 +260,33 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     urlMaxCount?: number,
     urlDomainsList?: string[],
   ) => {
-    // Use new object format if any advanced settings are configured
-    if (
-      imageMaxCount !== undefined ||
-      urlMaxCount !== undefined ||
-      (urlDomainsList && urlDomainsList.length > 0)
-    ) {
-      const requirements: {
-        image?: { max?: number };
-        url?: { max?: number; domains?: string[] };
-      } = {};
+    const requirements: {
+      image?: { max?: number };
+      url?: { max?: number; domains?: string[] };
+    } = {};
 
-      if (imageRequired) {
-        requirements.image = {};
-        if (imageMaxCount !== undefined) {
-          requirements.image.max = imageMaxCount;
-        }
+    if (imageRequired) {
+      requirements.image = {};
+      if (imageMaxCount !== undefined) {
+        requirements.image.max = imageMaxCount;
       }
-
-      if (urlRequired) {
-        requirements.url = {};
-        if (urlMaxCount !== undefined) {
-          requirements.url.max = urlMaxCount;
-        }
-        if (urlDomainsList && urlDomainsList.length > 0) {
-          requirements.url.domains = urlDomainsList;
-        }
-      }
-
-      setValue(
-        "submissionRequirements",
-        Object.keys(requirements).length > 0 ? requirements : null,
-        { shouldDirty: true },
-      );
-    } else {
-      // Use legacy array format for backwards compatibility
-      const requirements: BountySubmissionRequirement[] = [];
-      if (imageRequired) requirements.push("image");
-      if (urlRequired) requirements.push("url");
-
-      setValue(
-        "submissionRequirements",
-        requirements.length > 0 ? requirements : null,
-        { shouldDirty: true },
-      );
     }
+
+    if (urlRequired) {
+      requirements.url = {};
+      if (urlMaxCount !== undefined) {
+        requirements.url.max = urlMaxCount;
+      }
+      if (urlDomainsList && urlDomainsList.length > 0) {
+        requirements.url.domains = urlDomainsList;
+      }
+    }
+
+    setValue(
+      "submissionRequirements",
+      Object.keys(requirements).length > 0 ? requirements : null,
+      { shouldDirty: true },
+    );
   };
 
   const handleRequireImageToggle = (checked: boolean) => {
