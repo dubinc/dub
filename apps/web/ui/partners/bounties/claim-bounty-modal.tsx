@@ -155,6 +155,13 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
   const maxFiles = imageRequirement?.max ?? BOUNTY_MAX_SUBMISSION_FILES;
   const maxUrls = urlRequirement?.max ?? BOUNTY_MAX_SUBMISSION_URLS;
 
+  // Get placeholder URL from domain if available
+  const placeholderUrl = (() => {
+    const firstDomain = urlRequirement?.domains?.[0];
+    if (!firstDomain) return "https://";
+    return `https://${firstDomain}`;
+  })();
+
   const hasSubmissionsOpen = bounty.submissionsOpenAt
     ? isBefore(bounty.submissionsOpenAt, new Date())
     : true;
@@ -543,7 +550,7 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                             <div key={id} className="flex items-center gap-2">
                               <input
                                 type="url"
-                                placeholder="https://"
+                                placeholder={placeholderUrl}
                                 value={url}
                                 onChange={(e) =>
                                   setUrls((prev) =>
