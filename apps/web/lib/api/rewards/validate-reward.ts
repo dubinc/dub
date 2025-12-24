@@ -65,13 +65,6 @@ export function validateReward(
   }
 
   if (reward.modifiers != null) {
-    if (reward.event === "click") {
-      throw new DubApiError({
-        code: "bad_request",
-        message: "Modifiers are only allowed for lead and sale events.",
-      });
-    }
-
     const parsedModifiers = rewardConditionsArraySchema.safeParse(
       reward.modifiers,
     );
