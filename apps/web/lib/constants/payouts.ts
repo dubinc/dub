@@ -11,6 +11,7 @@ export const ALLOWED_MIN_PAYOUT_AMOUNTS = [0, 1000, 2000, 5000, 10000];
 export const INVOICE_MIN_PAYOUT_AMOUNT_CENTS = 1000; // $10
 export const MIN_WITHDRAWAL_AMOUNT_CENTS = 1000; // $10
 export const BELOW_MIN_WITHDRAWAL_FEE_CENTS = 50; // $0.50
+export const MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS = 100; // $1 (doesn't make sense to force a withdrawal for less than $1)
 
 export const ELIGIBLE_PAYOUTS_MAX_PAGE_SIZE = 500;
 export const CUTOFF_PERIOD_MAX_PAYOUTS = 1000;

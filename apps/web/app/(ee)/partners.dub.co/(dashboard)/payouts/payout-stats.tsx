@@ -3,6 +3,7 @@
 import { forceWithdrawalAction } from "@/lib/actions/partners/force-withdrawal";
 import {
   BELOW_MIN_WITHDRAWAL_FEE_CENTS,
+  MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS,
   MIN_WITHDRAWAL_AMOUNT_CENTS,
 } from "@/lib/constants/payouts";
 import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
@@ -98,6 +99,11 @@ function PayoutStatsCard({
                   text="Pay out now"
                   className="ml-2 h-7 px-2 py-1"
                   onClick={() => setShowForceWithdrawalModal(true)}
+                  disabledTooltip={
+                    amount < MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS
+                      ? `Your current processed payouts balance is less than the minimum amount required for withdrawal (${currencyFormatter(MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS)}).`
+                      : undefined
+                  }
                 />
               )}
             </div>
@@ -231,8 +237,7 @@ export function PayoutStats() {
         for this payout, which means you will receive{" "}
         <strong className="text-black">
           {currencyFormatter(
-            (payoutStatusMap?.processed?.amount -
-              BELOW_MIN_WITHDRAWAL_FEE_CENTS),
+            payoutStatusMap?.processed?.amount - BELOW_MIN_WITHDRAWAL_FEE_CENTS,
             { trailingZeroDisplay: "stripIfInteger" },
           )}
         </strong>
