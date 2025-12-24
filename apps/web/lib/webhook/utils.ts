@@ -1,4 +1,4 @@
-import { Webhook, WebhookReceiver } from "@dub/prisma/client";
+import { Webhook, WebhookReceiver } from "@dub/prisma/types";
 import { LINK_LEVEL_WEBHOOK_TRIGGERS } from "./constants";
 
 const webhookReceivers: Record<string, WebhookReceiver> = {

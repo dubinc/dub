@@ -13,7 +13,7 @@ import {
   CommissionEnrichedSchema,
   updateCommissionSchema,
 } from "@/lib/zod/schemas/commissions";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 

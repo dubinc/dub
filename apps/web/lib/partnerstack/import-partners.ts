@@ -1,5 +1,5 @@
-import { prisma } from "@dub/prisma";
-import { PartnerGroup, Program } from "@dub/prisma/client";
+import { prisma } from "@dub/prisma/node";
+import { PartnerGroup, Program } from "@dub/prisma/types";
 import { COUNTRIES, COUNTRY_CODES } from "@dub/utils";
 import { createId } from "../api/create-id";
 import { logImportError } from "../tinybird/log-import-error";

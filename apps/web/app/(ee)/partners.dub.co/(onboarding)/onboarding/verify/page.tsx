@@ -1,6 +1,6 @@
 import { getSession } from "@/lib/auth";
 import { ConnectPayoutButton } from "@/ui/partners/connect-payout-button";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import {
   CONNECT_SUPPORTED_COUNTRIES,
   PAYPAL_SUPPORTED_COUNTRIES,

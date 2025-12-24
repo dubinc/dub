@@ -2,7 +2,7 @@ import { getEffectivePayoutMode } from "@/lib/api/payouts/get-effective-payout-m
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { partnerProfilePayoutsQuerySchema } from "@/lib/zod/schemas/partner-profile";
 import { PartnerPayoutResponseSchema } from "@/lib/zod/schemas/payouts";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 

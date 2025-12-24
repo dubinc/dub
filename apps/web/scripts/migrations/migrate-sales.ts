@@ -1,6 +1,6 @@
 import { createId } from "@/lib/api/create-id";
-import { prisma } from "@dub/prisma";
-import { EventType } from "@dub/prisma/client";
+import { prisma } from "@dub/prisma/node";
+import { EventType } from "@dub/prisma/types";
 import "dotenv-flow/config";
 
 async function main() {

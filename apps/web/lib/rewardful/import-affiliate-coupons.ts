@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { bulkCreateLinks } from "../api/links";
 import { ProcessedLinkProps } from "../types";
 import { redis } from "../upstash";

@@ -10,13 +10,13 @@ import { createFxQuote } from "@/lib/stripe/create-fx-quote";
 import { calculatePayoutFeeForMethod } from "@/lib/stripe/payment-methods";
 import { sendEmail } from "@dub/email";
 import ProgramPayoutThankYou from "@dub/email/templates/program-payout-thank-you";
-import { prisma } from "@dub/prisma";
 import {
   Invoice,
+  prisma,
   Program,
   ProgramPayoutMode,
   Project,
-} from "@dub/prisma/client";
+} from "@dub/prisma/node";
 import {
   APP_DOMAIN_WITH_NGROK,
   currencyFormatter,

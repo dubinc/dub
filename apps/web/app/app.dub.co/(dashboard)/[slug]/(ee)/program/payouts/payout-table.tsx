@@ -9,7 +9,7 @@ import { ExternalPayoutsIndicator } from "@/ui/partners/external-payouts-indicat
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
-import { PayoutStatus } from "@dub/prisma/client";
+import { PayoutStatus } from "@dub/prisma/types";
 import {
   AnimatedSizeContainer,
   DynamicTooltipWrapper,

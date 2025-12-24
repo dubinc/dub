@@ -1,5 +1,5 @@
 import { withSession } from "@/lib/auth";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { NextResponse } from "next/server";
 
 // GET /api/user/tokens – get all tokens for a specific user

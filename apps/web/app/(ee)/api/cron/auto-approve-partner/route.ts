@@ -2,7 +2,7 @@ import { getPartnerApplicationRisks } from "@/lib/api/fraud/get-partner-applicat
 import { withCron } from "@/lib/cron/with-cron";
 import { approvePartnerEnrollment } from "@/lib/partners/approve-partner-enrollment";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { z } from "zod";
 import { logAndRespond } from "../utils";
 

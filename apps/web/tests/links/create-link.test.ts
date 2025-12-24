@@ -1,6 +1,6 @@
 import { normalizeWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { FolderSchema } from "@/lib/zod/schemas/folders";
-import { Link, Tag } from "@dub/prisma/client";
+import { Link, Tag } from "@dub/prisma/generated/browser";
 import { IntegrationHarnessOld } from "tests/utils/integration-old";
 import { describe, expect, onTestFinished, test } from "vitest";
 import { z } from "zod";

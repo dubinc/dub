@@ -22,7 +22,7 @@ import {
   rewardConditionsSchema,
 } from "@/lib/zod/schemas/rewards";
 import { X } from "@/ui/shared/icons";
-import { EventType, RewardStructure } from "@dub/prisma/client";
+import { EventType, RewardStructure } from "@dub/prisma/types";
 import {
   Button,
   Gift,

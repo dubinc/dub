@@ -6,7 +6,7 @@ import {
   BountySubmissionExtendedSchema,
   getBountySubmissionsQuerySchema,
 } from "@/lib/zod/schemas/bounties";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 

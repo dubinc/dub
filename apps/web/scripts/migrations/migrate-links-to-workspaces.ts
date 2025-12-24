@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import "dotenv-flow/config";
 
 const DUB_PROJECT_ID = "cl7pj5kq4006835rbjlt2ofka";

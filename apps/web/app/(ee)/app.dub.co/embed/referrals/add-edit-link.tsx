@@ -1,7 +1,7 @@
 import { mutateSuffix } from "@/lib/swr/mutate";
 import { PartnerGroupAdditionalLink, PartnerGroupProps } from "@/lib/types";
 import { Lock } from "@/ui/shared/icons";
-import { Program } from "@dub/prisma/client";
+import { Program } from "@dub/prisma/types";
 import {
   Button,
   Combobox,

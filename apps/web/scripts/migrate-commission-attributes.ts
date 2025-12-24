@@ -1,8 +1,8 @@
 // @ts-nocheck – since this contains old schema code
 
 import { createId } from "@/lib/api/create-id";
-import { prisma } from "@dub/prisma";
-import { EventType } from "@dub/prisma/client";
+import { prisma } from "@dub/prisma/node";
+import { EventType } from "@dub/prisma/types";
 import "dotenv-flow/config";
 
 // Migrate the commission attributes from Program table to Reward table.

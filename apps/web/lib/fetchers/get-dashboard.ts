@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { cache } from "react";
 
 export const getDashboard = cache(async ({ id }: { id: string }) => {

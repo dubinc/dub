@@ -1,6 +1,6 @@
 "use client";
 
-import { CampaignType } from "@dub/prisma/client";
+import { CampaignType } from "@dub/prisma/types";
 import { useRouterStuff } from "@dub/ui";
 import { Users } from "@dub/ui/icons";
 import { cn, nFormatter } from "@dub/utils";

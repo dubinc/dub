@@ -2,21 +2,20 @@
   "name": "@dub/prisma",
   "version": "1.0.0",
   "license": "MIT",
-  "main": "./index.ts",
-  "module": "./index.ts",
-  "types": "./index.ts",
   "scripts": {
-    "generate": "npx prisma generate --schema=./schema",
-    "push": "npx prisma db push --schema=./schema",
-    "studio": "npx prisma studio --schema=./schema --browser none",
+    "generate": "npx prisma generate",
+    "push": "npx prisma db push",
+    "studio": "npx prisma studio --browser none",
     "prebuild": "pnpm run generate",
     "predev": "pnpm run generate",
-    "format": "npx prisma format --schema=./schema"
+    "format": "npx prisma format"
   },
   "dependencies": {
     "@planetscale/database": "1.19.0",
     "@prisma/adapter-planetscale": "6.19.1",
-    "@prisma/client": "6.19.1"
+    "@prisma/client": "6.19.1",
+    "dotenv": "^17.2.3",
+    "undici": "^7.16.0"
   },
   "devDependencies": {
     "@types/node": "18.11.9",
@@ -25,9 +24,9 @@
     "typescript": "5.2.2"
   },
   "exports": {
-    ".": "./index.ts",
+    "./node": "./client.ts",
     "./edge": "./edge.ts",
-    "./client": "./client.ts"
+    "./types": "./generated/browser.ts"
   },
   "author": "Steven Tey <stevensteel97@gmail.com>",
   "homepage": "https://dub.co",

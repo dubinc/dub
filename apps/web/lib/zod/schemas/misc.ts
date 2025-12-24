@@ -1,6 +1,6 @@
 import { plans } from "@/lib/types";
 import z from "@/lib/zod";
-import { WorkspaceRole } from "@dub/prisma/client";
+import { WorkspaceRole } from "@dub/prisma/types";
 import { GOOGLE_FAVICON_URL, R2_URL } from "@dub/utils";
 import { fileTypeFromBuffer } from "file-type";
 

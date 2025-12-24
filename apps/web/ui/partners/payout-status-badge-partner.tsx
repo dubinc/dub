@@ -1,5 +1,5 @@
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
-import { Payout, Program } from "@dub/prisma/client";
+import { Payout, Program } from "@dub/prisma/types";
 import { StatusBadge, Tooltip } from "@dub/ui";
 import { currencyFormatter } from "@dub/utils";
 import { useMemo } from "react";

@@ -1,6 +1,5 @@
 import { setRenewOption } from "@/lib/dynadot/set-renew-option";
-import { prisma } from "@dub/prisma";
-import { Invoice } from "@dub/prisma/client";
+import { Invoice, prisma } from "@dub/prisma/node";
 import Stripe from "stripe";
 
 export async function chargeRefunded(event: Stripe.Event) {

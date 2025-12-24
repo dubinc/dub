@@ -1,5 +1,5 @@
 import { FraudRuleProps } from "@/lib/types";
-import { FraudRule, FraudRuleType } from "@dub/prisma/client";
+import { FraudRule, FraudRuleType } from "@dub/prisma/node";
 import { FRAUD_RULES_BY_SCOPE } from "./constants";
 
 // Merges global fraud rules with program-specific overrides.

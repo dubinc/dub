@@ -6,7 +6,7 @@ import { createPartnerCommission } from "@/lib/partners/create-partner-commissio
 import { BountySubmissionSchema } from "@/lib/zod/schemas/bounties";
 import { sendEmail } from "@dub/email";
 import BountyApproved from "@dub/email/templates/bounty-approved";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
 import { authActionClient } from "../safe-action";

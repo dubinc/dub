@@ -2,7 +2,7 @@
 
 import { getIP } from "@/lib/api/utils/get-ip";
 import { ratelimit } from "@/lib/upstash";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { isSamlEnforcedForEmailDomain } from "../api/workspaces/is-saml-enforced-for-email-domain";
 import z from "../zod";
 import { emailSchema } from "../zod/schemas/auth";

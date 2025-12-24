@@ -1,4 +1,4 @@
-import { Link } from "@dub/prisma/client";
+import { Link } from "@dub/prisma/generated/browser";
 import { IntegrationHarnessMember } from "tests/utils/integration-member";
 import { expectedLink } from "tests/utils/schema";
 import { describe, expect, test } from "vitest";

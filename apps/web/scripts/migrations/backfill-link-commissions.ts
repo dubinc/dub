@@ -1,5 +1,5 @@
-import { prisma } from "@dub/prisma";
-import { EventType, Prisma } from "@dub/prisma/client";
+import { prisma } from "@dub/prisma/node";
+import { EventType, Prisma } from "@dub/prisma/types";
 import "dotenv-flow/config";
 import { getEvents } from "../../lib/analytics/get-events";
 import { createId } from "../../lib/api/create-id";

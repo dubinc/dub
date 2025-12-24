@@ -1,5 +1,5 @@
 import { PartnerProps } from "@/lib/types";
-import { Commission, PartnerGroup, Program } from "@dub/prisma/client";
+import { Commission, PartnerGroup, Program } from "@dub/prisma/types";
 import {
   CircleCheck,
   CircleHalfDottedClock,

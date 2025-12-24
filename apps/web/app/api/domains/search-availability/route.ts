@@ -1,7 +1,7 @@
 import { withWorkspace } from "@/lib/auth";
 import { searchDomainsAvailability } from "@/lib/dynadot/search-domains";
 import { ratelimit } from "@/lib/upstash";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 

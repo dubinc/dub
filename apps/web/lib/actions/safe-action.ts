@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { createSafeActionClient } from "next-safe-action";
 import { after } from "next/server";
 import { normalizeWorkspaceId } from "../api/workspaces/workspace-id";

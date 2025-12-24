@@ -662,6 +662,12 @@ importers:
       '@prisma/client':
         specifier: 6.19.1
         version: 6.19.1(prisma@6.19.1(typescript@5.2.2))(typescript@5.2.2)
+      dotenv:
+        specifier: ^17.2.3
+        version: 17.2.3
+      undici:
+        specifier: ^7.16.0
+        version: 7.16.0
     devDependencies:
       '@types/node':
         specifier: 18.11.9
@@ -7612,12 +7618,12 @@ packages:
     resolution: {integrity: sha512-IPzF4w4/Rd94bA9imS68tZBaYyBWSCE47V1RGuMrB94iyTOIEwRmVL2x/4An+6mETpLrKJ5hQkB8W4kFAadeIQ==}
     engines: {node: '>=12'}
 
-  dotenv@16.4.7:
-    resolution: {integrity: sha512-47qPchRCykZC03FhkYAhrvwU4xDBFIj1QPqaarj6mdM/hgUzfPHcpkHJOn3mJAufFeeAxAzeGsr5X0M4k6fLZQ==}
-    engines: {node: '>=12'}
-
   dotenv@16.6.1:
     resolution: {integrity: sha512-uBq4egWHTcTt33a72vpSG0z3HnPuIl6NqYcTrKEg2azoEyl2hpW0zqlxysq2pK9HlDIHyHyakeYaYnSAwd8bow==}
+    engines: {node: '>=12'}
+
+  dotenv@17.2.3:
+    resolution: {integrity: sha512-JVUnt+DUIzu87TABbhPmNfVdBDt18BLOWjMUFJMSi/Qqg7NTYtabbvSNJGOJ7afbRuv9D/lngizHtP7QyLQ+9w==}
     engines: {node: '>=12'}
 
   dotenv@8.6.0:
@@ -12779,6 +12785,10 @@ packages:
 
   undici-types@6.21.0:
     resolution: {integrity: sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ==}
+
+  undici@7.16.0:
+    resolution: {integrity: sha512-QEg3HPMll0o3t2ourKwOeUAZ159Kn9mx5pnzHRQO8+Wixmh88YdZRiIwat0iNzNNXn0yoEtXJqFpyW7eM8BV7g==}
+    engines: {node: '>=20.18.1'}
 
   unicode-properties@1.4.1:
     resolution: {integrity: sha512-CLjCCLQ6UuMxWnbIylkisbRj31qxHPAurvena/0iwSVbQ2G1VY5/HjV0IRabOEbDHlzZlRdCrD4NhB0JtU40Pg==}
@@ -21545,7 +21555,7 @@ snapshots:
 
   dotenv-expand@12.0.1:
     dependencies:
-      dotenv: 16.4.7
+      dotenv: 16.6.1
 
   dotenv-flow-cli@1.1.1:
     dependencies:
@@ -21556,13 +21566,13 @@ snapshots:
 
   dotenv-flow@4.1.0:
     dependencies:
-      dotenv: 16.3.1
+      dotenv: 16.6.1
 
   dotenv@16.3.1: {}
 
-  dotenv@16.4.7: {}
-
   dotenv@16.6.1: {}
+
+  dotenv@17.2.3: {}
 
   dotenv@8.6.0: {}
 
@@ -28238,7 +28248,7 @@ snapshots:
       buffer: 6.0.3
       dayjs: 1.11.13
       debug: 4.4.0
-      dotenv: 16.4.7
+      dotenv: 16.6.1
       glob: 10.4.5
       reflect-metadata: 0.2.2
       sha.js: 2.4.11
@@ -28288,6 +28298,8 @@ snapshots:
   uncrypto@0.1.3: {}
 
   undici-types@6.21.0: {}
+
+  undici@7.16.0: {}
 
   unicode-properties@1.4.1:
     dependencies:

@@ -4,7 +4,7 @@ import { confirmEmailChange } from "@/lib/auth/confirm-email-change";
 import { storage } from "@/lib/storage";
 import { uploadedImageSchema } from "@/lib/zod/schemas/misc";
 import { unsubscribe } from "@dub/email/resend/unsubscribe";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import {
   APP_DOMAIN,
   APP_HOSTNAMES,

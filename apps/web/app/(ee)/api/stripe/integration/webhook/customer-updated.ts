@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import type Stripe from "stripe";
 import { createNewCustomer } from "./utils/create-new-customer";
 

@@ -1,8 +1,7 @@
 import { createId } from "@/lib/api/create-id";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { RESOURCE_COLORS } from "@/ui/colors";
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { Prisma, prisma } from "@dub/prisma/node";
 import { randomValue } from "@dub/utils";
 import "dotenv-flow/config";
 

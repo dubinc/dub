@@ -3,7 +3,7 @@ import { getCustomerOrThrow } from "@/lib/api/customers/get-customer-or-throw";
 import { decodeLinkIfCaseSensitive } from "@/lib/api/links/case-sensitivity";
 import { withWorkspace } from "@/lib/auth";
 import { customerActivityResponseSchema } from "@/lib/zod/schemas/customer-activity";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { NextResponse } from "next/server";
 
 // GET /api/customers/[id]/activity - get a customer's activity

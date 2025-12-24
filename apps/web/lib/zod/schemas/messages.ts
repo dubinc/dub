@@ -1,4 +1,4 @@
-import { MessageType } from "@dub/prisma/client";
+import { MessageType } from "@dub/prisma/types";
 import { z } from "zod";
 import { PartnerSchema } from "./partners";
 import { ProgramSchema } from "./programs";

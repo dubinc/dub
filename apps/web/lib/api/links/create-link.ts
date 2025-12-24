@@ -4,8 +4,7 @@ import { isNotHostedImage, storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import { ProcessedLinkProps } from "@/lib/types";
 import { propagateWebhookTriggerChanges } from "@/lib/webhook/update-webhook";
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { Prisma, prisma } from "@dub/prisma/node";
 import {
   APP_DOMAIN_WITH_NGROK,
   R2_URL,

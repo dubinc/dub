@@ -1,4 +1,4 @@
-import { RewardStructure } from "@dub/prisma/client";
+import { RewardStructure } from "@dub/prisma/types";
 import { z } from "zod";
 import { getPaginationQuerySchema, maxDurationSchema } from "./misc";
 

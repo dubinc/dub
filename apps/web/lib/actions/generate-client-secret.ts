@@ -1,6 +1,6 @@
 "use server";
 
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { OAUTH_CONFIG } from "../api/oauth/constants";
 import { createToken } from "../api/oauth/utils";
 import { hashToken } from "../auth";

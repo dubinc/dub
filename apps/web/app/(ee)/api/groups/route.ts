@@ -13,7 +13,7 @@ import {
   GroupSchema,
   GroupSchemaExtended,
 } from "@/lib/zod/schemas/groups";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -24,12 +24,10 @@ export const GET = withWorkspace(
     const programId = getDefaultProgramIdOrThrow(workspace);
     const parsedInput = getGroupsQuerySchema.parse(searchParams);
 
-    console.time("getGroups");
     const groups = await getGroups({
       ...parsedInput,
       programId,
     });
-    console.timeEnd("getGroups");
 
     return NextResponse.json(z.array(GroupSchemaExtended).parse(groups));
   },

@@ -4,7 +4,7 @@ import { sendEmail } from "@dub/email";
 import { subscribe } from "@dub/email/resend/subscribe";
 import WelcomeEmail from "@dub/email/templates/welcome-email";
 import WelcomeEmailPartner from "@dub/email/templates/welcome-email-partner";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 
 export const dynamic = "force-dynamic";
 

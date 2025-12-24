@@ -3,7 +3,7 @@ import {
   WorkflowComparisonOperator,
   WorkflowConditionAttribute,
 } from "@/lib/types";
-import { WorkflowTrigger } from "@dub/prisma/client";
+import { WorkflowTrigger } from "@dub/prisma/types";
 import { z } from "zod";
 
 export const WORKFLOW_ATTRIBUTES = [

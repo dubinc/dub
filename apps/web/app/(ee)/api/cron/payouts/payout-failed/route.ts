@@ -2,7 +2,7 @@ import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { sendEmail } from "@dub/email";
 import PartnerPayoutWithdrawalFailed from "@dub/email/templates/partner-payout-withdrawal-failed";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { log, pluralize, prettyPrint } from "@dub/utils";
 import { z } from "zod";
 import { logAndRespond } from "../../utils";

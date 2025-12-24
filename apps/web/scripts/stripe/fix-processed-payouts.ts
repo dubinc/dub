@@ -1,5 +1,5 @@
 import { MIN_WITHDRAWAL_AMOUNT_CENTS } from "@/lib/constants/payouts";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { currencyFormatter } from "@dub/utils";
 import "dotenv-flow/config";
 import { createStripeTransfer } from "../../lib/partners/create-stripe-transfer";

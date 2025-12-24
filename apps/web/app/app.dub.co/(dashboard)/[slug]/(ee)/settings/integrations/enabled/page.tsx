@@ -2,7 +2,7 @@ import { IntegrationLogo } from "@/ui/integrations/integration-logo";
 import LayoutLoader from "@/ui/layout/layout-loader";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { BackLink } from "@/ui/shared/back-link";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { Avatar, ConnectedDots } from "@dub/ui";
 import { cn, formatDate, truncate } from "@dub/utils";
 import { ChevronRight } from "lucide-react";

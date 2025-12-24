@@ -1,5 +1,3 @@
-const { PrismaPlugin } = require("@prisma/nextjs-monorepo-workaround-plugin");
-
 // Suppress specific external package warnings
 const originalConsoleWarn = console.warn;
 console.warn = (...args) => {
@@ -23,7 +21,6 @@ module.exports = {
   transpilePackages: [
     "prettier",
     "shiki",
-    "@dub/prisma",
     "@dub/email",
     "@boxyhq/saml-jackson",
   ],
@@ -33,6 +30,7 @@ module.exports = {
       "./node_modules/openid-client/**/*",
     ],
   },
+  serverExternalPackages: ["@dub/prisma"],
   experimental: {
     optimizePackageImports: [
       "@dub/email",
@@ -51,8 +49,19 @@ module.exports = {
         }),
       );
 
-      config.plugins = [...config.plugins, new PrismaPlugin()];
+      config.plugins = [...config.plugins];
     }
+
+    // Handle node: protocol imports for Edge Runtime (middleware)
+    // This prevents webpack from trying to bundle Node.js built-ins
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      "node:fs": false,
+      "node:path": false,
+      "node:process": false,
+      "node:url": false,
+      "node:crypto": false,
+    };
 
     config.module = {
       ...config.module,

@@ -9,7 +9,7 @@ import {
 } from "@/lib/constants/partner-profile";
 import { generateRandomName } from "@/lib/names";
 import { PartnerProfileCustomerSchema } from "@/lib/zod/schemas/partner-profile";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 

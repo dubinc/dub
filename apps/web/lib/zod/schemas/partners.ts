@@ -6,7 +6,7 @@ import {
   PreferredEarningStructure,
   ProgramEnrollmentStatus,
   SalesChannel,
-} from "@dub/prisma/client";
+} from "@dub/prisma/types";
 import { COUNTRY_CODES, GOOGLE_FAVICON_URL } from "@dub/utils";
 import { z } from "zod";
 import { analyticsQuerySchema } from "./analytics";

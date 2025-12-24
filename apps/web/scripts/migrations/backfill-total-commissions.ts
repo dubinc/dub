@@ -1,6 +1,5 @@
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { Prisma, prisma } from "@dub/prisma/node";
 import "dotenv-flow/config";
 
 async function main() {

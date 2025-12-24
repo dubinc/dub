@@ -9,7 +9,7 @@ import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { ConditionalLink } from "@/ui/shared/conditional-link";
 import { X } from "@/ui/shared/icons";
-import { PayoutStatus } from "@dub/prisma/client";
+import { PayoutStatus } from "@dub/prisma/types";
 import {
   Button,
   CircleArrowRight,

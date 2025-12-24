@@ -3,7 +3,7 @@
 import { ratelimit } from "@/lib/upstash";
 import { sendEmail } from "@dub/email";
 import ResetPasswordLink from "@dub/email/templates/reset-password-link";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { randomBytes } from "crypto";
 import { flattenValidationErrors } from "next-safe-action";
 import { PASSWORD_RESET_TOKEN_EXPIRY } from "../auth/constants";

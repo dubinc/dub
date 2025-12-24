@@ -1,7 +1,7 @@
 import { withSession } from "@/lib/auth";
 import { dub } from "@/lib/dub";
 import { partnerCanViewMarketplace } from "@/lib/network/get-discoverability-requirements";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { NextResponse } from "next/server";
 
 export const GET = withSession(async ({ session }) => {

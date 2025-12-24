@@ -4,7 +4,7 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { DubApiError } from "@/lib/api/errors";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
 import { authActionClient } from "../safe-action";

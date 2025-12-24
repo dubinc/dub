@@ -1,5 +1,5 @@
-import { prisma } from "@dub/prisma";
-import { Program, Reward } from "@dub/prisma/client";
+import { prisma } from "@dub/prisma/node";
+import { Program, Reward } from "@dub/prisma/types";
 import { cache } from "react";
 import { serializeReward } from "../api/partners/serialize-reward";
 import { DiscountProps, GroupWithFormDataProps, RewardProps } from "../types";

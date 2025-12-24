@@ -1,6 +1,6 @@
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { partnerProfileProgramsCountQuerySchema } from "@/lib/zod/schemas/partner-profile";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { NextResponse } from "next/server";
 
 // GET /api/partner-profile/programs/count - count program enrollments for a given partnerId

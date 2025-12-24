@@ -1,6 +1,6 @@
 // @ts-nocheck - old migration script
 
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import "dotenv-flow/config";
 
 async function main() {

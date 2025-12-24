@@ -1,6 +1,6 @@
 import { storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { R2_URL } from "@dub/utils";
 import { linkCache } from "./cache";
 import { ExpandedLink } from "./utils";

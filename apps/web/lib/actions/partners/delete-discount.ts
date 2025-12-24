@@ -5,7 +5,7 @@ import { queueDiscountCodeDeletion } from "@/lib/api/discounts/queue-discount-co
 import { getDiscountOrThrow } from "@/lib/api/partners/get-discount-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { qstash } from "@/lib/cron";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { z } from "zod";

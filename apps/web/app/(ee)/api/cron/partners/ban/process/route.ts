@@ -9,8 +9,7 @@ import { recordLink } from "@/lib/tinybird";
 import { BAN_PARTNER_REASONS } from "@/lib/zod/schemas/partners";
 import { sendEmail } from "@dub/email";
 import PartnerBanned from "@dub/email/templates/partner-banned";
-import { prisma } from "@dub/prisma";
-import { FraudRuleType } from "@dub/prisma/client";
+import { FraudRuleType, prisma } from "@dub/prisma/node";
 import { z } from "zod";
 import { logAndRespond } from "../../../utils";
 import { cancelCommissions } from "./cancel-commissions";
@@ -126,9 +125,11 @@ export const POST = withCron(async ({ rawBody }) => {
 
     // Queue discount code deletions
     queueDiscountCodeDeletion(
-      links
-        .map((link) => link.discountCode?.id)
-        .filter((id): id is string => id !== undefined),
+      links.flatMap((link) => {
+        const discountCode = (link as { discountCode?: { id: string } | null })
+          .discountCode;
+        return discountCode?.id ? [discountCode.id] : [];
+      }),
     ),
   ]);
 

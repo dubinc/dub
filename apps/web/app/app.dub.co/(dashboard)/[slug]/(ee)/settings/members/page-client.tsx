@@ -10,7 +10,7 @@ import { useInviteWorkspaceUserModal } from "@/ui/modals/invite-workspace-user-m
 import { useRemoveWorkspaceUserModal } from "@/ui/modals/remove-workspace-user-modal";
 import { useWorkspaceUserRoleModal } from "@/ui/modals/update-workspace-user-role";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
-import { PartnerRole } from "@dub/prisma/client";
+import { PartnerRole } from "@dub/prisma/types";
 import {
   Avatar,
   Button,

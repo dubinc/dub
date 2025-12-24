@@ -7,7 +7,7 @@ import {
   BountySubmissionRejectionReason,
   BountySubmissionStatus,
   BountyType,
-} from "@dub/prisma/client";
+} from "@dub/prisma/types";
 import { z } from "zod";
 import { CommissionSchema } from "./commissions";
 import { GroupSchema } from "./groups";

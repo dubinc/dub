@@ -1,5 +1,5 @@
 import { ONLINE_PRESENCE_PROVIDERS } from "@/lib/actions/partners/online-presence-providers";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { PARTNERS_DOMAIN, PARTNERS_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";

@@ -2,7 +2,7 @@
 
 import { addDomainToVercel } from "@/lib/api/domains/add-domain-vercel";
 import { createLink } from "@/lib/api/links";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import "dotenv-flow/config";
 import * as fs from "fs";
 import * as Papa from "papaparse";

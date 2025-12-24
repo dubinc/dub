@@ -1,6 +1,6 @@
 import AddEditIntegrationForm from "@/ui/oauth-apps/add-edit-integration-form";
 import { BackLink } from "@/ui/shared/back-link";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { MaxWidthWrapper } from "@dub/ui";
 import { redirect } from "next/navigation";
 

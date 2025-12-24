@@ -15,8 +15,7 @@ import {
   updateCampaignSchema,
 } from "@/lib/zod/schemas/campaigns";
 import { WORKFLOW_ATTRIBUTE_TRIGGER } from "@/lib/zod/schemas/workflows";
-import { prisma } from "@dub/prisma";
-import { PartnerGroup } from "@dub/prisma/client";
+import { PartnerGroup, prisma } from "@dub/prisma/node";
 import { arrayEqual } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";

@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { log } from "@dub/utils";
 import crypto from "crypto";
 import { appUninstalled } from "./app-uninstalled";

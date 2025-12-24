@@ -1,5 +1,4 @@
-import { prisma } from "@dub/prisma";
-import { PartnerGroup } from "@dub/prisma/client";
+import { PartnerGroup, prisma } from "@dub/prisma/node";
 import { DubApiError } from "../errors";
 
 export async function throwIfInvalidGroupIds({

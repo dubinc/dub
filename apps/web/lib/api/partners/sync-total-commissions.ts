@@ -1,5 +1,5 @@
 import { publishPartnerActivityEvent } from "@/lib/upstash/redis-streams";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 
 async function aggregateAndUpdateTotalCommissions({
   partnerId,

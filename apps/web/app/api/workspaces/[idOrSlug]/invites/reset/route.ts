@@ -1,5 +1,5 @@
 import { withWorkspace } from "@/lib/auth";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { nanoid } from "@dub/utils";
 import { NextResponse } from "next/server";
 

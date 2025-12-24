@@ -2,7 +2,7 @@ import { markDomainAsDeleted } from "@/lib/api/domains/mark-domain-deleted";
 import { sendBatchEmail } from "@dub/email";
 import DomainDeleted from "@dub/email/templates/domain-deleted";
 import InvalidDomain from "@dub/email/templates/invalid-domain";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { log } from "@dub/utils";
 
 export const handleDomainUpdates = async ({

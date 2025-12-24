@@ -1,5 +1,4 @@
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { Prisma, prisma } from "@dub/prisma/node";
 import { nanoid } from "@dub/utils";
 import "dotenv-flow/config";
 import { storage } from "../lib/storage";

@@ -1,6 +1,5 @@
 import { updateCampaignSchema } from "@/lib/zod/schemas/campaigns";
-import { prisma } from "@dub/prisma";
-import { Campaign, EmailDomain } from "@dub/prisma/client";
+import { Campaign, EmailDomain, prisma } from "@dub/prisma/node";
 import { z } from "zod";
 import { DubApiError } from "../errors";
 import {

@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 
 // Mark the commissions as cancelled
 export async function cancelCommissions({

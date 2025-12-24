@@ -3,7 +3,7 @@
 import { createId } from "@/lib/api/create-id";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { updateDiscoveredPartnerSchema } from "@/lib/zod/schemas/partner-network";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { authActionClient } from "../safe-action";
 
 // Star or dismiss a partner in the partner network

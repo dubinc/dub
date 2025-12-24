@@ -3,7 +3,7 @@ import { tokenCache } from "@/lib/auth/token-cache";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { WorkspaceProps } from "@/lib/types";
 import { webhookCache } from "@/lib/webhook/cache";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { getPlanAndTierFromPriceId } from "@dub/utils";
 import { NEW_BUSINESS_PRICE_IDS } from "@dub/utils/src";
 

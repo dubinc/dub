@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { OG_AVATAR_URL } from "@dub/utils";
 import { DubApiError } from "../errors";
 import { CustomerWithLink } from "./transform-customer";

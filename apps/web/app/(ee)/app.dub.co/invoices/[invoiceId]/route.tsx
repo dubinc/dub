@@ -1,7 +1,7 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withSession } from "@/lib/auth";
 import { INVOICE_AVAILABLE_PAYOUT_STATUSES } from "@/lib/constants/payouts";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { DomainRenewalInvoice } from "./domain-renewal-invoice";
 import { PartnerPayoutInvoice } from "./partner-payout-invoice";
 

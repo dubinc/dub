@@ -1,4 +1,4 @@
-import { Prisma } from "@dub/prisma/client";
+import { Prisma } from "@dub/prisma/types";
 
 export const includeTags = {
   tags: {

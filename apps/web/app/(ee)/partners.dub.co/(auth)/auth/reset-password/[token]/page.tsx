@@ -1,7 +1,7 @@
 import { ResetPasswordForm } from "@/ui/auth/reset-password-form";
 import { AuthLayout } from "@/ui/layout/auth-layout";
 import EmptyState from "@/ui/shared/empty-state";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { InputPassword } from "@dub/ui";
 interface Props {
   params: Promise<{

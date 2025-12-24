@@ -7,7 +7,7 @@ import { assertValidDateRangeForPlan } from "@/lib/api/utils/assert-valid-date-r
 import { withWorkspace } from "@/lib/auth";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
 import { eventsQuerySchema } from "@/lib/zod/schemas/analytics";
-import { Link } from "@dub/prisma/client";
+import { Link } from "@dub/prisma/node";
 import { NextResponse } from "next/server";
 
 // GET /api/events

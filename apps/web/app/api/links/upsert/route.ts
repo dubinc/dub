@@ -14,7 +14,7 @@ import {
   createLinkBodySchemaAsync,
   linkEventSchema,
 } from "@/lib/zod/schemas/links";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { deepEqual } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";

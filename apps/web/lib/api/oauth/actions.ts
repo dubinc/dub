@@ -1,6 +1,6 @@
 "use server";
 
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { authorizeRequestSchema } from "../../zod/schemas/oauth";
 import { fromZodError } from "../errors";
 

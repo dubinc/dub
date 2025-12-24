@@ -12,7 +12,7 @@ import { PlanProps } from "@/lib/types";
 import { linksExportQuerySchema } from "@/lib/zod/schemas/links";
 import { sendEmail } from "@dub/email";
 import ExportReady from "@dub/email/templates/export-ready";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { log } from "@dub/utils";
 import { endOfDay, startOfDay } from "date-fns";
 import { z } from "zod";

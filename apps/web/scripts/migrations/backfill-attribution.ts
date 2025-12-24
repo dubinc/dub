@@ -1,6 +1,6 @@
 import { createId } from "@/lib/api/create-id";
 import { generateRandomName } from "@/lib/names";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { DUB_WORKSPACE_ID, nanoid } from "@dub/utils";
 import "dotenv-flow/config";
 import { getClickEvent, recordLeadWithTimestamp } from "../../lib/tinybird";

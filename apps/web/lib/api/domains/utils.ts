@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { DubApiError } from "../errors";
 import { isValidDomain } from "./is-valid-domain";
 

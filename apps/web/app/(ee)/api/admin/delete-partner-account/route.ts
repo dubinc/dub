@@ -1,7 +1,7 @@
 import { withAdmin } from "@/lib/auth";
 import { stripe } from "@/lib/stripe";
 import { recordLink } from "@/lib/tinybird";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { NextResponse } from "next/server";
 
 // POST /api/admin/delete-partner-account

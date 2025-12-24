@@ -3,8 +3,7 @@ import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enro
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { generateRandomName } from "@/lib/names";
 import { getPartnerEarningsCountQuerySchema } from "@/lib/zod/schemas/partner-profile";
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { Prisma, prisma } from "@dub/prisma/node";
 import { NextResponse } from "next/server";
 
 // GET /api/partner-profile/programs/[programId]/earnings/count – get earnings count for a partner in a program enrollment

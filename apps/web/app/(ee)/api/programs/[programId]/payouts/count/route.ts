@@ -3,8 +3,7 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { payoutsCountQuerySchema } from "@/lib/zod/schemas/payouts";
-import { prisma } from "@dub/prisma";
-import { PayoutStatus, Prisma } from "@dub/prisma/client";
+import { PayoutStatus, prisma, Prisma } from "@dub/prisma/node";
 import { NextResponse } from "next/server";
 
 // GET /api/programs/[programId]/payouts/count

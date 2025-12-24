@@ -1,5 +1,5 @@
 import { normalizeWorkspaceId } from "@/lib/api/workspaces/workspace-id";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import "dotenv-flow/config";
 import * as fs from "fs";
 import * as Papa from "papaparse";

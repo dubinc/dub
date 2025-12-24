@@ -13,7 +13,7 @@ import {
   salesChannels,
 } from "@/lib/partners/partner-profile";
 import { mutatePrefix } from "@/lib/swr/mutate";
-import { PreferredEarningStructure, SalesChannel } from "@dub/prisma/client";
+import { PreferredEarningStructure, SalesChannel } from "@dub/prisma/types";
 import { cn } from "@dub/utils";
 
 type HowYouWorkFormData = {

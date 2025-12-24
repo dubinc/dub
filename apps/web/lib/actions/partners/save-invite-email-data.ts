@@ -2,7 +2,7 @@
 
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { sanitizeMarkdown } from "@/lib/partners/sanitize-markdown";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { z } from "zod";
 import { authActionClient } from "../safe-action";
 

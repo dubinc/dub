@@ -1,8 +1,7 @@
 import { queueBatchEmail } from "@/lib/email/queue-batch-email";
 import { createPayPalBatchPayout } from "@/lib/paypal/create-batch-payout";
 import PartnerPayoutProcessed from "@dub/email/templates/partner-payout-processed";
-import { prisma } from "@dub/prisma";
-import { Invoice } from "@dub/prisma/client";
+import { Invoice, prisma } from "@dub/prisma/node";
 import { currencyFormatter } from "@dub/utils";
 
 export async function sendPaypalPayouts(invoice: Pick<Invoice, "id">) {

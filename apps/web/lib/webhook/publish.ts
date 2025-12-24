@@ -1,5 +1,5 @@
-import { prisma } from "@dub/prisma";
-import { Webhook } from "@dub/prisma/client";
+import { prisma } from "@dub/prisma/node";
+import { Webhook } from "@dub/prisma/types";
 import { WebhookTrigger, WorkspaceProps } from "../types";
 import { sendWebhooks } from "./qstash";
 import { WebhookEventPayload } from "./types";

@@ -4,7 +4,7 @@ import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enro
 import { storage } from "@/lib/storage";
 import { ratelimit } from "@/lib/upstash";
 import { submissionRequirementsSchema } from "@/lib/zod/schemas/bounties";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { nanoid, R2_URL } from "@dub/utils";
 import { z } from "zod";
 import { authPartnerActionClient } from "../safe-action";

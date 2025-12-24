@@ -5,7 +5,7 @@ import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import { PlanProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { DUB_DEMO_LINKS, DUB_WORKSPACE_ID, getSearchParams } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";

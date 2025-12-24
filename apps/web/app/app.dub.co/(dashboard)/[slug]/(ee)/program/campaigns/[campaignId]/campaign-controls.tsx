@@ -3,7 +3,7 @@ import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Campaign } from "@/lib/types";
 import { ThreeDots } from "@/ui/shared/icons";
-import { CampaignStatus } from "@dub/prisma/client";
+import { CampaignStatus } from "@dub/prisma/types";
 import {
   Button,
   CircleXmark,

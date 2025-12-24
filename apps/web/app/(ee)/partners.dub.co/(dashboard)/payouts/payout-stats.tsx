@@ -12,7 +12,7 @@ import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { PAYOUT_STATUS_DESCRIPTIONS } from "@/ui/partners/payout-status-descriptions";
 import { AlertCircleFill } from "@/ui/shared/icons";
-import { PayoutStatus } from "@dub/prisma/client";
+import { PayoutStatus } from "@dub/prisma/types";
 import { Button, Tooltip } from "@dub/ui";
 import {
   cn,
@@ -231,8 +231,7 @@ export function PayoutStats() {
         for this payout, which means you will receive{" "}
         <strong className="text-black">
           {currencyFormatter(
-            (payoutStatusMap?.processed?.amount -
-              BELOW_MIN_WITHDRAWAL_FEE_CENTS),
+            payoutStatusMap?.processed?.amount - BELOW_MIN_WITHDRAWAL_FEE_CENTS,
             { trailingZeroDisplay: "stripIfInteger" },
           )}
         </strong>

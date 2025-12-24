@@ -1,6 +1,5 @@
 import { ProcessedLinkProps } from "@/lib/types";
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { Prisma, prisma } from "@dub/prisma/node";
 import { getParamsFromURL, linkConstructorSimple, truncate } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { createId } from "../create-id";

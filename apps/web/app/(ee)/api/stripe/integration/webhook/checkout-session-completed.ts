@@ -21,8 +21,7 @@ import {
   transformLeadEventData,
   transformSaleEventData,
 } from "@/lib/webhook/transform";
-import { prisma } from "@dub/prisma";
-import { Customer, Project, WorkflowTrigger } from "@dub/prisma/client";
+import { Customer, prisma, Project, WorkflowTrigger } from "@dub/prisma/node";
 import { COUNTRIES_TO_CONTINENTS, nanoid, pick } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";

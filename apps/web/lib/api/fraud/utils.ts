@@ -1,5 +1,5 @@
 import { CreateFraudEventInput } from "@/lib/types";
-import { FraudEventGroup, FraudRuleType, Prisma } from "@dub/prisma/client";
+import { FraudEventGroup, FraudRuleType, Prisma } from "@dub/prisma/node";
 import { createHash } from "crypto";
 
 interface CreateGroupKeyInput {

@@ -5,7 +5,7 @@ import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { WorkspaceProps } from "@/lib/types";
 import { MAX_DEFAULT_LINKS_PER_GROUP } from "@/lib/zod/schemas/groups";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { APP_DOMAIN_WITH_NGROK, isFulfilled, log } from "@dub/utils";
 import { z } from "zod";
 import { logAndRespond } from "../../utils";

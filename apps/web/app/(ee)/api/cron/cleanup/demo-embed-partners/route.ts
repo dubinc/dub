@@ -1,7 +1,7 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { bulkDeletePartners } from "@/lib/api/partners/bulk-delete-partners";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { ACME_PROGRAM_ID, log } from "@dub/utils";
 import { subHours } from "date-fns";
 import { logAndRespond } from "../../utils";

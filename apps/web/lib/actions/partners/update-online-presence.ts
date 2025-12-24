@@ -6,7 +6,7 @@ import {
 } from "@/lib/api/oauth/utils";
 import { sanitizeSocialHandle, sanitizeWebsite } from "@/lib/social-utils";
 import { parseUrlSchemaAllowEmpty } from "@/lib/zod/schemas/utils";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { isValidUrl, PARTNERS_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { cookies } from "next/headers";
 import { v4 as uuid } from "uuid";

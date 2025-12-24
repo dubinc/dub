@@ -1,5 +1,5 @@
 import { generateRandomString } from "@/lib/api/utils/generate-random-string";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import "dotenv-flow/config";
 
 async function main() {

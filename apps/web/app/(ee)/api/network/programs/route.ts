@@ -5,7 +5,7 @@ import {
   NetworkProgramSchema,
   getNetworkProgramsQuerySchema,
 } from "@/lib/zod/schemas/program-network";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 

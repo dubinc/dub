@@ -8,8 +8,7 @@ import {
   createReferralsEmbedTokenSchema,
   ReferralsEmbedTokenSchema,
 } from "@/lib/zod/schemas/token";
-import { prisma } from "@dub/prisma";
-import { ProgramEnrollment } from "@dub/prisma/client";
+import { prisma, ProgramEnrollment } from "@dub/prisma/node";
 import { NextResponse } from "next/server";
 
 // POST /api/tokens/embed/referrals - create a new embed token for the given partner/tenant

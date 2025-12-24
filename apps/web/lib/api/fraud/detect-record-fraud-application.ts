@@ -1,6 +1,5 @@
 import { CreateFraudEventInput, PartnerProps, ProgramProps } from "@/lib/types";
-import { prisma } from "@dub/prisma";
-import { FraudRuleType } from "@dub/prisma/client";
+import { FraudRuleType, prisma } from "@dub/prisma/node";
 import { FRAUD_RULES_BY_SCOPE } from "./constants";
 import { createFraudEvents } from "./create-fraud-events";
 

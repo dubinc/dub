@@ -1,5 +1,5 @@
 import { FraudTriggeredRule } from "@/lib/types";
-import { FraudRuleType } from "@dub/prisma/client";
+import { FraudRuleType } from "@dub/prisma/node";
 import { z } from "zod";
 
 export function defineFraudRule<TCfg extends z.ZodType = z.ZodTypeAny>(rule: {

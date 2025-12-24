@@ -2,7 +2,7 @@
 
 import { createId } from "@/lib/api/create-id";
 import { PartnerGroupAdditionalLink } from "@/lib/types";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { getDomainWithoutWWW } from "@dub/utils";
 import "dotenv-flow/config";
 

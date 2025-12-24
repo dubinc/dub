@@ -7,8 +7,7 @@ import {
   OPERATOR_FUNCTIONS,
   WORKFLOW_ACTION_TYPES,
 } from "@/lib/zod/schemas/workflows";
-import { prisma } from "@dub/prisma";
-import { WorkflowTrigger } from "@dub/prisma/client";
+import { prisma, WorkflowTrigger } from "@dub/prisma/node";
 import { executeCompleteBountyWorkflow } from "./execute-complete-bounty-workflow";
 import { executeSendCampaignWorkflow } from "./execute-send-campaign-workflow";
 import { parseWorkflowConfig } from "./parse-workflow-config";

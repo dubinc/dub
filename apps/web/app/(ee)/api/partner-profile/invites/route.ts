@@ -11,8 +11,7 @@ import {
   invitePartnerUserSchema,
   partnerUserSchema,
 } from "@/lib/zod/schemas/partner-profile";
-import { prisma } from "@dub/prisma";
-import { PartnerRole } from "@dub/prisma/client";
+import { PartnerRole, prisma } from "@dub/prisma/node";
 import { isRejected, pluralize } from "@dub/utils";
 import { NextResponse } from "next/server";
 import { z } from "zod";

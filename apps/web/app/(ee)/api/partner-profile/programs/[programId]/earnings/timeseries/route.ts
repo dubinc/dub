@@ -3,8 +3,7 @@ import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enro
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { sqlGranularityMap } from "@/lib/planetscale/granularity";
 import { getPartnerEarningsTimeseriesSchema } from "@/lib/zod/schemas/partner-profile";
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { Prisma, prisma } from "@dub/prisma/node";
 import { format } from "date-fns";
 import { NextResponse } from "next/server";
 

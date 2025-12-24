@@ -4,7 +4,7 @@ import { getDomainResponse } from "@/lib/api/domains/get-domain-response";
 import { verifyDomain } from "@/lib/api/domains/verify-domain";
 import { withWorkspace } from "@/lib/auth";
 import { DomainVerificationStatusProps } from "@/lib/types";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { NextResponse } from "next/server";
 
 export const maxDuration = 30;

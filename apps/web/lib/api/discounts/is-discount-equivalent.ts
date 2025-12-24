@@ -1,4 +1,4 @@
-import { Discount } from "@dub/prisma/client";
+import { Discount } from "@dub/prisma/node";
 
 export function isDiscountEquivalent(
   firstDiscount: Discount | null | undefined,

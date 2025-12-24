@@ -1,5 +1,5 @@
 import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import "dotenv-flow/config";
 import { includeTags } from "../../lib/api/links/include-tags";
 import { recordLink } from "../../lib/tinybird/record-link";

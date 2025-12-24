@@ -1,4 +1,4 @@
-import { Customer } from "@dub/prisma/client";
+import { Customer } from "@dub/prisma/types";
 
 export const isFirstConversion = ({
   customer,

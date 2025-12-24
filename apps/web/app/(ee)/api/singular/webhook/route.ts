@@ -3,7 +3,7 @@ import { normalizeWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { withAxiom } from "@/lib/axiom/server";
 import { trackSingularLeadEvent } from "@/lib/integrations/singular/track-lead";
 import { trackSingularSaleEvent } from "@/lib/integrations/singular/track-sale";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { getSearchParams } from "@dub/utils";
 import { NextResponse } from "next/server";
 import { z } from "zod";

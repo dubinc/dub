@@ -1,6 +1,6 @@
 import { WorkflowConditionAttribute } from "@/lib/types";
 import { SCHEDULED_WORKFLOW_TRIGGERS } from "@/lib/zod/schemas/workflows";
-import { Workflow } from "@dub/prisma/client";
+import { Workflow } from "@dub/prisma/node";
 import { parseWorkflowConfig } from "./parse-workflow-config";
 
 export const isCurrencyAttribute = (activity: WorkflowConditionAttribute) =>

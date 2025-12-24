@@ -1,6 +1,6 @@
 import { prefixWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { plain } from "@/lib/plain";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { capitalize, formatDate } from "@dub/utils";
 import { uiComponent } from "@team-plain/typescript-sdk";
 import { NextRequest, NextResponse } from "next/server";

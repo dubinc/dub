@@ -2,7 +2,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { installIntegration } from "@/lib/integrations/install";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { SHOPIFY_INTEGRATION_ID } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";

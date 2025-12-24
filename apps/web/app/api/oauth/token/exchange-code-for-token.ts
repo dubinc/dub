@@ -5,7 +5,7 @@ import { hashToken } from "@/lib/auth";
 import { installIntegration } from "@/lib/integrations/install";
 import { generateRandomName } from "@/lib/names";
 import { authCodeExchangeSchema } from "@/lib/zod/schemas/oauth";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { waitUntil } from "@vercel/functions";
 import { NextRequest } from "next/server";
 import { z } from "zod";

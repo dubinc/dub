@@ -1,12 +1,21 @@
 datasource db {
   provider     = "mysql"
-  url          = env("DATABASE_URL")
   relationMode = "prisma"
+  url          = ""
 }
 
 generator client {
-  provider = "prisma-client-js"
-  previewFeatures = ["driverAdapters"]
+  provider   = "prisma-client"
+  output     = "../generated"
+  engineType = "client"
+  runtime    = "nodejs"
+}
+
+generator edge {
+  provider   = "prisma-client"
+  output     = "../generated-edge"
+  engineType = "client"
+  runtime    = "edge-light"
 }
 
 model User {

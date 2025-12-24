@@ -1,5 +1,5 @@
-import { prisma } from "@dub/prisma";
-import { CommissionStatus, Customer, Link, Program } from "@dub/prisma/client";
+import { prisma } from "@dub/prisma/node";
+import { CommissionStatus, Customer, Link, Program } from "@dub/prisma/types";
 import { nanoid } from "@dub/utils";
 import { convertCurrencyWithFxRates } from "../analytics/convert-currency";
 import { isFirstConversion } from "../analytics/is-first-conversion";

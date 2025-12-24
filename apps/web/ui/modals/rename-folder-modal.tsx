@@ -1,4 +1,4 @@
-import { Folder } from "@dub/prisma/client";
+import { Folder } from "@dub/prisma/types";
 import { Modal } from "@dub/ui";
 import { useCallback, useMemo, useState } from "react";
 import { RenameFolderForm } from "../folders/rename-folder-form";

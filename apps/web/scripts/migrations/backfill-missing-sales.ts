@@ -1,7 +1,7 @@
 import { getEvents } from "@/lib/analytics/get-events";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
 import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { nanoid } from "@dub/utils";
 import "dotenv-flow/config";
 import { SaleEvent } from "dub/models/components";

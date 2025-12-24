@@ -1,4 +1,4 @@
-import { WorkspaceRole } from "@dub/prisma/client";
+import { WorkspaceRole } from "@dub/prisma/node";
 import { PermissionAction } from "../rbac/permissions";
 import { ResourceKey } from "../rbac/resources";
 

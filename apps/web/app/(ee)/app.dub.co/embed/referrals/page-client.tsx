@@ -8,7 +8,7 @@ import { programResourcesSchema } from "@/lib/zod/schemas/program-resources";
 import { HeroBackground } from "@/ui/partners/hero-background";
 import { ProgramRewardList } from "@/ui/partners/program-reward-list";
 import { ThreeDots } from "@/ui/shared/icons";
-import { Partner, Program } from "@dub/prisma/client";
+import { Partner, Program } from "@dub/prisma/types";
 import {
   Button,
   Check,

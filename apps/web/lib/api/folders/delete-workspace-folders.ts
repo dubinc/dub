@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { queueFolderDeletion } from "./queue-folder-deletion";
 
 export async function deleteWorkspaceFolders({

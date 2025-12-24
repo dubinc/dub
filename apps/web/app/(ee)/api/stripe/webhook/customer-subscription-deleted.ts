@@ -7,7 +7,7 @@ import { isBlacklistedEmail } from "@/lib/edge-config/is-blacklisted-email";
 import { stripe } from "@/lib/stripe";
 import { recordLink } from "@/lib/tinybird";
 import { webhookCache } from "@/lib/webhook/cache";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { capitalize, FREE_PLAN, log } from "@dub/utils";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";

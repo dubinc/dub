@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { cache } from "react";
 import { DEFAULT_PARTNER_GROUP } from "../zod/schemas/groups";
 import { programLanderSchema } from "../zod/schemas/program-lander";

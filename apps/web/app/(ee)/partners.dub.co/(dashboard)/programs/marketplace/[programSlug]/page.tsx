@@ -6,7 +6,7 @@ import { LanderHero } from "@/ui/partners/lander/lander-hero";
 import { LanderRewards } from "@/ui/partners/lander/lander-rewards";
 import { ProgramCategory } from "@/ui/partners/program-marketplace/program-category";
 import { ProgramRewardsDisplay } from "@/ui/partners/program-marketplace/program-rewards-display";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { ChevronRight, Shop, Tooltip } from "@dub/ui";
 import { OG_AVATAR_URL, cn } from "@dub/utils";
 import Link from "next/link";

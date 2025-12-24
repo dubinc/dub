@@ -2,8 +2,7 @@ import { withPartnerProfile } from "@/lib/auth/partner";
 import { throwIfPartnerCannotViewMarketplace } from "@/lib/network/throw-if-partner-cannot-view-marketplace";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { getNetworkProgramsCountQuerySchema } from "@/lib/zod/schemas/program-network";
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { Prisma, prisma } from "@dub/prisma/node";
 import { NextResponse } from "next/server";
 
 const rewardTypeMap = {

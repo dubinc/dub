@@ -2,7 +2,7 @@
 
 import { sendEmail } from "@dub/email";
 import FolderEditAccessRequested from "@dub/email/templates/folder-edit-access-requested";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { z } from "zod";

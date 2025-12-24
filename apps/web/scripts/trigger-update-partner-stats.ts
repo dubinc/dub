@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { chunk } from "@dub/utils";
 import "dotenv-flow/config";
 import { syncTotalCommissions } from "../lib/api/partners/sync-total-commissions";

@@ -1,6 +1,6 @@
 // @ts-nocheck – contains old schema code
 
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import "dotenv-flow/config";
 
 /* 

@@ -1,7 +1,7 @@
 import { withSession } from "@/lib/auth";
 import { subscribe } from "@dub/email/resend/subscribe";
 import { unsubscribe } from "@dub/email/resend/unsubscribe";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { NextResponse } from "next/server";
 
 // GET /api/user/subscribe – get a specific user

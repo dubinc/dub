@@ -1,7 +1,6 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { getCommissionsCountQuerySchema } from "@/lib/zod/schemas/commissions";
-import { prisma } from "@dub/prisma";
-import { CommissionStatus } from "@dub/prisma/client";
+import { CommissionStatus, prisma } from "@dub/prisma/node";
 import { z } from "zod";
 
 type CommissionsCountFilters = z.infer<

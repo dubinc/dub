@@ -2,7 +2,7 @@ import { getCampaignOrThrow } from "@/lib/api/campaigns/get-campaign-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { getCampaignEventsCountQuerySchema } from "@/lib/zod/schemas/campaigns";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { NextResponse } from "next/server";
 
 // GET /api/campaigns/[campaignId]/events/count

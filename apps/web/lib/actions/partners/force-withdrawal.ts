@@ -3,7 +3,7 @@
 import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
 import { createStripeTransfer } from "@/lib/partners/create-stripe-transfer";
 import { ratelimit } from "@/lib/upstash";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { authPartnerActionClient } from "../safe-action";
 
 // Force a withdrawal for a partner (even if the total amount is below the minimum withdrawal amount)

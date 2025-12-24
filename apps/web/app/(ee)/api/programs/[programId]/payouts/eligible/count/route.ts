@@ -5,7 +5,7 @@ import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { CUTOFF_PERIOD } from "@/lib/partners/cutoff-period";
 import { eligiblePayoutsCountQuerySchema } from "@/lib/zod/schemas/payouts";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { NextResponse } from "next/server";
 
 /*

@@ -1,6 +1,6 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { log } from "@dub/utils";
 import { subDays } from "date-fns";
 import { NextResponse } from "next/server";

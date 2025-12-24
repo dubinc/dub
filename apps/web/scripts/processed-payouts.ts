@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { currencyFormatter } from "@dub/utils";
 import "dotenv-flow/config";
 

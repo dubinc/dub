@@ -1,5 +1,5 @@
 import { isGenericEmail } from "@/lib/is-generic-email";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import "dotenv-flow/config";
 
 async function main() {

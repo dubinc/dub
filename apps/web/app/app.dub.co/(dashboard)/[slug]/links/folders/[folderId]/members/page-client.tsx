@@ -15,7 +15,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { Folder, FolderUser } from "@/lib/types";
 import { FolderIcon } from "@/ui/folders/folder-icon";
 import { RequestFolderEditAccessButton } from "@/ui/folders/request-edit-button";
-import { FolderUserRole } from "@dub/prisma/client";
+import { FolderUserRole } from "@dub/prisma/types";
 import { Avatar, BlurImage, Globe } from "@dub/ui";
 import { cn, fetcher, nFormatter, OG_AVATAR_URL, pluralize } from "@dub/utils";
 import { ChevronLeft } from "lucide-react";

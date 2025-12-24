@@ -3,8 +3,8 @@ import {
   MIN_WITHDRAWAL_AMOUNT_CENTS,
 } from "@/lib/constants/payouts";
 import { stripe } from "@/lib/stripe";
-import { prisma } from "@dub/prisma";
-import { Partner, Payout } from "@dub/prisma/client";
+import { prisma } from "@dub/prisma/node";
+import { Partner, Payout } from "@dub/prisma/types";
 import { currencyFormatter, pluralize } from "@dub/utils";
 
 type PayoutWithProgramName = Pick<Payout, "id" | "amount" | "invoiceId"> & {

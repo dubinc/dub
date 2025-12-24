@@ -5,8 +5,7 @@ import {
 import { createPaymentIntent } from "@/lib/stripe/create-payment-intent";
 import { sendBatchEmail } from "@dub/email";
 import PartnerPayoutFailed from "@dub/email/templates/partner-payout-failed";
-import { prisma } from "@dub/prisma";
-import { Invoice } from "@dub/prisma/client";
+import { Invoice, prisma } from "@dub/prisma/node";
 import { log } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import Stripe from "stripe";

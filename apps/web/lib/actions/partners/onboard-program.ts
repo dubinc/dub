@@ -3,8 +3,8 @@
 import { createId } from "@/lib/api/create-id";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { onboardProgramSchema } from "@/lib/zod/schemas/program-onboarding";
-import { prisma } from "@dub/prisma";
-import { Project } from "@dub/prisma/client";
+import { prisma } from "@dub/prisma/node";
+import { Project } from "@dub/prisma/types";
 import { isLegacyBusinessPlan } from "@dub/utils";
 import { redirect } from "next/navigation";
 import { z } from "zod";

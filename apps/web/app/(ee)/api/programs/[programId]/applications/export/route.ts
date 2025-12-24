@@ -5,7 +5,7 @@ import {
   exportApplicationColumns,
   exportApplicationsColumnsDefault,
 } from "@/lib/zod/schemas/partners";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { z } from "zod";
 
 const columnIdToLabel = exportApplicationColumns.reduce((acc, column) => {

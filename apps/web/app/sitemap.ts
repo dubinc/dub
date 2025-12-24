@@ -1,5 +1,4 @@
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { Prisma, prisma } from "@dub/prisma/node";
 import { PARTNERS_HOSTNAMES, SHORT_DOMAIN } from "@dub/utils";
 import { MetadataRoute } from "next";
 import { headers } from "next/headers";

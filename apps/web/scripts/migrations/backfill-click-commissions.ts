@@ -1,7 +1,7 @@
 import { createId } from "@/lib/api/create-id";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { getRewardAmount } from "@/lib/partners/get-reward-amount";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import "dotenv-flow/config";
 import { getAnalytics } from "../../lib/analytics/get-analytics";
 import { determinePartnerReward } from "../../lib/partners/determine-partner-reward";

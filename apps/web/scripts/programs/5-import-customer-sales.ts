@@ -2,7 +2,7 @@ import { createId } from "@/lib/api/create-id";
 import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
 import { RewardProps } from "@/lib/types";
 import { saleEventSchemaTB } from "@/lib/zod/schemas/sales";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { chunk, nanoid, prettyPrint } from "@dub/utils";
 import "dotenv-flow/config";
 import * as fs from "fs";

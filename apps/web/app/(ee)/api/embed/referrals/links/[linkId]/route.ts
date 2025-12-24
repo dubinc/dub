@@ -10,7 +10,7 @@ import {
   INACTIVE_ENROLLMENT_STATUSES,
 } from "@/lib/zod/schemas/partners";
 import { ReferralsEmbedLinkSchema } from "@/lib/zod/schemas/referrals-embed";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { getPrettyUrl } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";

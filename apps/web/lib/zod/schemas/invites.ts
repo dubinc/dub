@@ -1,4 +1,4 @@
-import { WorkspaceRole } from "@dub/prisma/client";
+import { WorkspaceRole } from "@dub/prisma/types";
 import { z } from "zod";
 
 export const inviteTeammatesSchema = z.object({

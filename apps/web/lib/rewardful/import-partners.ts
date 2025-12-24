@@ -1,5 +1,5 @@
-import { prisma } from "@dub/prisma";
-import { Program } from "@dub/prisma/client";
+import { prisma } from "@dub/prisma/node";
+import { Program } from "@dub/prisma/types";
 import { nanoid } from "@dub/utils";
 import { createId } from "../api/create-id";
 import { bulkCreateLinks } from "../api/links";

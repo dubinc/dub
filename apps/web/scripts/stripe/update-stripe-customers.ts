@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import "dotenv-flow/config";
 import Stripe from "stripe";
 import { stripeAppClient } from "../../lib/stripe";

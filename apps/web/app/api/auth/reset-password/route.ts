@@ -4,7 +4,7 @@ import { hashPassword, validatePassword } from "@/lib/auth/password";
 import { resetPasswordSchema } from "@/lib/zod/schemas/auth";
 import { sendEmail } from "@dub/email";
 import PasswordUpdated from "@dub/email/templates/password-updated";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { waitUntil } from "@vercel/functions";
 import { NextRequest, NextResponse } from "next/server";
 

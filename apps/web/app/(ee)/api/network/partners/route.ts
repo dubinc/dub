@@ -8,8 +8,11 @@ import {
   NetworkPartnerSchema,
   getNetworkPartnersQuerySchema,
 } from "@/lib/zod/schemas/partner-network";
-import { prisma } from "@dub/prisma";
-import { PreferredEarningStructure, SalesChannel } from "@dub/prisma/client";
+import {
+  PreferredEarningStructure,
+  SalesChannel,
+  prisma,
+} from "@dub/prisma/node";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 

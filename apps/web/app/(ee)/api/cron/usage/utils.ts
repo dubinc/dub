@@ -4,7 +4,7 @@ import { sendLimitEmail } from "@/lib/cron/send-limit-email";
 import { WorkspaceProps } from "@/lib/types";
 import { sendBatchEmail } from "@dub/email";
 import ClicksSummary from "@dub/email/templates/clicks-summary";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import {
   APP_DOMAIN_WITH_NGROK,
   capitalize,

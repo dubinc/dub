@@ -1,6 +1,6 @@
 import { tb } from "@/lib/tinybird";
-import { prisma } from "@dub/prisma";
-import { Link } from "@dub/prisma/client";
+import { prisma } from "@dub/prisma/node";
+import { Link } from "@dub/prisma/types";
 import { OG_AVATAR_URL } from "@dub/utils";
 import { decodeLinkIfCaseSensitive } from "../api/links/case-sensitivity";
 import { transformLink } from "../api/links/utils/transform-link";

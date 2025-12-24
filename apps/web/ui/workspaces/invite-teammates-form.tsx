@@ -1,7 +1,7 @@
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Invite } from "@/lib/zod/schemas/invites";
-import { WorkspaceRole } from "@dub/prisma/client";
+import { WorkspaceRole } from "@dub/prisma/types";
 import { Button, useMediaQuery, useRouterStuff } from "@dub/ui";
 import { Trash } from "@dub/ui/icons";
 import { capitalize, cn, pluralize } from "@dub/utils";

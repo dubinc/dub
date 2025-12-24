@@ -12,8 +12,7 @@ import {
   createDomainBodySchemaExtended,
   getDomainsQuerySchemaExtended,
 } from "@/lib/zod/schemas/domains";
-import { prisma } from "@dub/prisma";
-import { Link, Prisma } from "@dub/prisma/client";
+import { Link, prisma, Prisma } from "@dub/prisma/node";
 import { combineWords, DEFAULT_LINK_PROPS, nanoid } from "@dub/utils";
 import { NextResponse } from "next/server";
 

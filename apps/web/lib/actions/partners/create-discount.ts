@@ -12,7 +12,7 @@ import {
   validateStripeCouponForDubDiscount,
 } from "@/lib/stripe/coupon-discount-converter";
 import { createDiscountSchema } from "@/lib/zod/schemas/discount";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { APP_DOMAIN_WITH_NGROK, truncate } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { Stripe } from "stripe";

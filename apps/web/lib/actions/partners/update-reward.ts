@@ -7,8 +7,7 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { validateReward } from "@/lib/api/rewards/validate-reward";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { updateRewardSchema } from "@/lib/zod/schemas/rewards";
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { Prisma, prisma } from "@dub/prisma/node";
 import { waitUntil } from "@vercel/functions";
 import { revalidatePath } from "next/cache";
 import { authActionClient } from "../safe-action";

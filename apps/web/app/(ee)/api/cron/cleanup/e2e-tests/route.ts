@@ -5,7 +5,7 @@ import { includeProgramEnrollment } from "@/lib/api/links/include-program-enroll
 import { includeTags } from "@/lib/api/links/include-tags";
 import { bulkDeletePartners } from "@/lib/api/partners/bulk-delete-partners";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { log } from "@dub/utils";
 import { NextResponse } from "next/server";
 
@@ -72,12 +72,10 @@ export async function POST(req: Request) {
 
       prisma.partner.findMany({
         where: {
-          email: {
-            endsWith: "@dub-internal-test.com",
-          },
-          createdAt: {
-            lt: oneDayAgo,
-          },
+          email: "kiran+1@dub.co",
+          // createdAt: {
+          //   lt: oneDayAgo,
+          // },
         },
         select: {
           id: true,

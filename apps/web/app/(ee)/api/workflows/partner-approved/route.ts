@@ -10,7 +10,7 @@ import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
 import { sendBatchEmail } from "@dub/email";
 import PartnerApplicationApproved from "@dub/email/templates/partner-application-approved";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { serve } from "@upstash/workflow/nextjs";
 import { z } from "zod";
 

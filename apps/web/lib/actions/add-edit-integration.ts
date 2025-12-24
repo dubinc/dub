@@ -1,6 +1,6 @@
 "use server";
 
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { DUB_WORKSPACE_ID, nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { createId } from "../api/create-id";

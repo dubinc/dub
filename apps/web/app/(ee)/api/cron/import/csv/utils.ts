@@ -1,7 +1,7 @@
 import { sendEmail } from "@dub/email";
 import LinksImportErrors from "@dub/email/templates/links-import-errors";
 import LinksImported from "@dub/email/templates/links-imported";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 
 export async function sendCsvImportEmails({
   workspaceId,

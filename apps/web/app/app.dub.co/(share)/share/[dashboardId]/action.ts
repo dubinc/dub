@@ -1,6 +1,6 @@
 "use server";
 
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { cookies } from "next/headers";
 
 export async function verifyPassword(_prevState: any, data: FormData) {

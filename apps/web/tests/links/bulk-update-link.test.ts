@@ -1,5 +1,5 @@
 import { normalizeWorkspaceId } from "@/lib/api/workspaces/workspace-id";
-import { Link, Tag } from "@dub/prisma/client";
+import { Link, Tag } from "@dub/prisma/types";
 import { expect, onTestFinished, test } from "vitest";
 import { randomId, randomTagName } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";

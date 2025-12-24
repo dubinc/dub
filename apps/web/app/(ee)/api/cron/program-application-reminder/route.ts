@@ -3,7 +3,7 @@ import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { sendEmail } from "@dub/email";
 import ProgramApplicationReminder from "@dub/email/templates/program-application-reminder";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils/src/constants";
 
 // POST - /api/cron/program-application-reminder

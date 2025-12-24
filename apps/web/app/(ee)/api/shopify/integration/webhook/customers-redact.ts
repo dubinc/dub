@@ -1,6 +1,6 @@
 import { generateRandomName } from "@/lib/names";
 import { createPlainThread } from "@/lib/plain";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
 

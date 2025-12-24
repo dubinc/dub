@@ -6,7 +6,7 @@ import { ratelimit, redis } from "@/lib/upstash";
 import { emailSchema } from "@/lib/zod/schemas/auth";
 import { sendBatchEmail } from "@dub/email";
 import VerifyEmailForAccountMerge from "@dub/email/templates/verify-email-for-account-merge";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { z } from "zod";
 import { authPartnerActionClient } from "../safe-action";

@@ -1,6 +1,6 @@
 "use server";
 
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import dns from "dns";
 import { authPartnerActionClient } from "../safe-action";
 

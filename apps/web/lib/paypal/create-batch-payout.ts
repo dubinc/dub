@@ -1,6 +1,6 @@
 import { createPaypalToken } from "@/lib/paypal/create-paypal-token";
 import { paypalEnv } from "@/lib/paypal/env";
-import { Partner, Payout, Program } from "@dub/prisma/client";
+import { Partner, Payout, Program } from "@dub/prisma/types";
 
 interface CreatePayPalBatchPayout {
   payouts: (Pick<Payout, "id" | "amount"> & {

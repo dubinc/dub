@@ -2,7 +2,7 @@ import {
   clickWebhookEventSchema,
   webhookPayloadSchema,
 } from "@/lib/webhook/schemas";
-import { Webhook } from "@dub/prisma/client";
+import { Webhook } from "@dub/prisma/types";
 import { OG_AVATAR_URL, nanoid, toCamelCase } from "@dub/utils";
 import { ExpandedLink, transformLink } from "../api/links/utils/transform-link";
 import { generateRandomName } from "../names";

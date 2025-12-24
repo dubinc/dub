@@ -3,8 +3,7 @@ import { verifyFolderAccess } from "@/lib/folder/permissions";
 import { checkIfUserExists, getRandomKey } from "@/lib/planetscale";
 import { isNotHostedImage } from "@/lib/storage";
 import { NewLinkProps, ProcessedLinkProps } from "@/lib/types";
-import { prisma } from "@dub/prisma";
-import { Project, WorkspaceRole } from "@dub/prisma/client";
+import { Project, WorkspaceRole, prisma } from "@dub/prisma/node";
 import {
   DUB_DOMAINS,
   UTMTags,

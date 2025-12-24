@@ -1,8 +1,7 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { resend } from "@dub/email/resend/client";
-import { prisma } from "@dub/prisma";
-import { EmailDomain } from "@dub/prisma/client";
+import { EmailDomain, prisma } from "@dub/prisma/node";
 import { log } from "@dub/utils";
 import { NextResponse } from "next/server";
 import { logAndRespond } from "../../utils";

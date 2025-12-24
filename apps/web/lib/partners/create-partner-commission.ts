@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import {
   Commission,
   CommissionStatus,
@@ -8,7 +8,7 @@ import {
   Partner,
   ProgramEnrollment,
   WorkflowTrigger,
-} from "@dub/prisma/client";
+} from "@dub/prisma/types";
 import { currencyFormatter, log, prettyPrint } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { differenceInMonths } from "date-fns";

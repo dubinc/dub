@@ -3,7 +3,7 @@ import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { createStripeTransfer } from "@/lib/partners/create-stripe-transfer";
 import { sendEmail } from "@dub/email";
 import PartnerPayoutProcessed from "@dub/email/templates/partner-payout-processed";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { currencyFormatter, log } from "@dub/utils";
 import { z } from "zod";
 import { logAndRespond } from "../../utils";

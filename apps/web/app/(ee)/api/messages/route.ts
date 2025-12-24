@@ -4,7 +4,7 @@ import {
   PartnerMessagesSchema,
   getPartnerMessagesQuerySchema,
 } from "@/lib/zod/schemas/messages";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { NextResponse } from "next/server";
 
 // GET /api/messages - get messages grouped by partner

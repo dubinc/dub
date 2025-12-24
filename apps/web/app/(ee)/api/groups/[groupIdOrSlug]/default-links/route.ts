@@ -11,7 +11,7 @@ import {
   MAX_DEFAULT_LINKS_PER_GROUP,
   PartnerGroupDefaultLinkSchema,
 } from "@/lib/zod/schemas/groups";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { APP_DOMAIN_WITH_NGROK, constructURLFromUTMParams } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";

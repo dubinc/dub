@@ -1,7 +1,7 @@
 // @ts-nocheck
 
 import { createLink } from "@/lib/api/links";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { DEFAULT_LINK_PROPS } from "@dub/utils";
 import "dotenv-flow/config";
 

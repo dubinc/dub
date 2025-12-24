@@ -4,7 +4,7 @@ import { getIP } from "@/lib/api/utils/get-ip";
 import { ratelimit, redis } from "@/lib/upstash";
 import { sendEmail } from "@dub/email";
 import VerifyEmail from "@dub/email/templates/verify-email";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { get } from "@vercel/edge-config";
 import { flattenValidationErrors } from "next-safe-action";
 import { generateOTP } from "../auth";

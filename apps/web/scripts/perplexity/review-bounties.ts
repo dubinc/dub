@@ -1,7 +1,6 @@
 import { createId } from "@/lib/api/create-id";
 import BountyApproved from "@dub/email/templates/bounty-approved";
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { Prisma, prisma } from "@dub/prisma/node";
 import { chunk } from "@dub/utils";
 import "dotenv-flow/config";
 import { syncTotalCommissions } from "../../lib/api/partners/sync-total-commissions";

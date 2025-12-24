@@ -3,7 +3,7 @@ import { queueDiscountCodeDeletion } from "@/lib/api/discounts/queue-discount-co
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 

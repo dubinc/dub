@@ -1,4 +1,4 @@
-import { Prisma } from "@dub/prisma/client";
+import { Prisma } from "@dub/prisma/node";
 
 const DEFAULT_CONFIG = {
   maxRetries: 3,

@@ -2,7 +2,7 @@ import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { sendBatchEmail } from "@dub/email";
 import ProgramPayoutReminder from "@dub/email/templates/program-payout-reminder";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { chunk, pluralize } from "@dub/utils";
 import { NextResponse } from "next/server";
 

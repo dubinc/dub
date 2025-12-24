@@ -1,7 +1,6 @@
 import { qstash } from "@/lib/cron";
 import { WORKFLOW_SCHEDULES } from "@/lib/zod/schemas/workflows";
-import { prisma } from "@dub/prisma";
-import { Campaign, Workflow } from "@dub/prisma/client";
+import { Campaign, prisma, Workflow } from "@dub/prisma/node";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { isScheduledWorkflow } from "../workflows/utils";
 

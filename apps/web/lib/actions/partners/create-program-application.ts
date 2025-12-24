@@ -19,14 +19,14 @@ import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { partnerApplicationWebhookSchema } from "@/lib/zod/schemas/program-application";
 import { programApplicationFormWebsiteAndSocialsFieldWithValueSchema } from "@/lib/zod/schemas/program-application-form";
 import { createProgramApplicationSchema } from "@/lib/zod/schemas/programs";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import {
   Partner,
   PartnerGroup,
   Program,
   ProgramEnrollment,
   Project,
-} from "@dub/prisma/client";
+} from "@dub/prisma/types";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { addDays } from "date-fns";

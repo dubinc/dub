@@ -17,8 +17,7 @@ import {
   GroupSchema,
   updateGroupSchema,
 } from "@/lib/zod/schemas/groups";
-import { prisma } from "@dub/prisma";
-import { DiscountCode } from "@dub/prisma/client";
+import { DiscountCode, prisma } from "@dub/prisma/node";
 import { APP_DOMAIN_WITH_NGROK, constructURLFromUTMParams } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";

@@ -3,7 +3,7 @@ import { updateApplicationSettingsAction } from "@/lib/actions/partners/update-a
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { Category } from "@dub/prisma/client";
+import { Category } from "@dub/prisma/types";
 import { Button, Modal, useEnterSubmit } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";

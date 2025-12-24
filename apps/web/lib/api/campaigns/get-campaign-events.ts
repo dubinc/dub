@@ -2,7 +2,7 @@ import {
   campaignEventSchema,
   getCampaignsEventsQuerySchema,
 } from "@/lib/zod/schemas/campaigns";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { z } from "zod";
 
 interface GetCampaignEventsParams

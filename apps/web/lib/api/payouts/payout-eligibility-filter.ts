@@ -1,4 +1,4 @@
-import { Prisma, Program } from "@dub/prisma/client";
+import { Prisma, Program } from "@dub/prisma/node";
 
 export function getPayoutEligibilityFilter(
   program: Pick<Program, "id" | "minPayoutAmount" | "payoutMode">,

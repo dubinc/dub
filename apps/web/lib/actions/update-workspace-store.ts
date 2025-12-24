@@ -1,6 +1,6 @@
 "use server";
 
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import z from "../zod";
 import { workspaceStoreKeys } from "../zod/schemas/workspaces";
 import { authActionClient } from "./safe-action";

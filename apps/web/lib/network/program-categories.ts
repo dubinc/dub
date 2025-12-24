@@ -1,4 +1,4 @@
-import { Category } from "@dub/prisma/client";
+import { Category } from "@dub/prisma/types";
 import {
   BookOpen,
   Brush,

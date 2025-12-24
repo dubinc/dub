@@ -7,7 +7,7 @@ import { PartnerPayoutResponse } from "@/lib/types";
 import { PayoutRowMenu } from "@/ui/partners/payout-row-menu";
 import { PayoutStatusBadgePartner } from "@/ui/partners/payout-status-badge-partner";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
-import { PayoutStatus } from "@dub/prisma/client";
+import { PayoutStatus } from "@dub/prisma/types";
 import {
   AnimatedSizeContainer,
   Filter,

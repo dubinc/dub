@@ -1,5 +1,5 @@
 import { PlanProps } from "@/lib/types";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import "dotenv-flow/config";
 import * as fs from "fs";
 import * as Papa from "papaparse";

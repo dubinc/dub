@@ -5,14 +5,14 @@ import {
 } from "@dub/email/resend/types";
 import NewCommissionAlertPartner from "@dub/email/templates/new-commission-alert-partner";
 import NewSaleAlertProgramOwner from "@dub/email/templates/new-sale-alert-program-owner";
-import { prisma } from "@dub/prisma";
 import {
   Commission,
   PartnerGroup,
+  prisma,
   Program,
   Project,
   User,
-} from "@dub/prisma/client";
+} from "@dub/prisma/node";
 import { chunk } from "@dub/utils";
 
 // Send email to partner and program owners when a commission is created

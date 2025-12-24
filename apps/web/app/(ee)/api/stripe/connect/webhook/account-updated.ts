@@ -4,7 +4,7 @@ import { stripe } from "@/lib/stripe";
 import { sendEmail } from "@dub/email";
 import ConnectedPayoutMethod from "@dub/email/templates/connected-payout-method";
 import DuplicatePayoutMethod from "@dub/email/templates/duplicate-payout-method";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
 import Stripe from "stripe";
 

@@ -1,5 +1,5 @@
-import { prisma } from "@dub/prisma";
-import { FolderType, WorkspaceRole } from "@dub/prisma/client";
+import { prisma } from "@dub/prisma/node";
+import { FolderType, WorkspaceRole } from "@dub/prisma/types";
 import { FOLDERS_MAX_PAGE_SIZE } from "../zod/schemas/folders";
 
 export const getFolders = async ({

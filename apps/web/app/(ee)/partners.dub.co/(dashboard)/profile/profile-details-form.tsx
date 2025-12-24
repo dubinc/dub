@@ -10,7 +10,7 @@ import {
 } from "@/ui/partners/online-presence-form";
 import { CustomToast } from "@/ui/shared/custom-toast";
 import { AlertCircleFill } from "@/ui/shared/icons";
-import { PartnerProfileType } from "@dub/prisma/client";
+import { PartnerProfileType } from "@dub/prisma/types";
 import {
   Button,
   DynamicTooltipWrapper,

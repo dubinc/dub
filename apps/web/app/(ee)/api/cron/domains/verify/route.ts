@@ -3,7 +3,7 @@ import { getDomainResponse } from "@/lib/api/domains/get-domain-response";
 import { verifyDomain } from "@/lib/api/domains/verify-domain";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import { log } from "@dub/utils";
 import { NextResponse } from "next/server";
 import { handleDomainUpdates } from "./utils";

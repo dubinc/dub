@@ -3,7 +3,7 @@ import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import { updateUTMTemplateBodySchema } from "@/lib/zod/schemas/utm";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@dub/prisma/node";
 import {
   APP_DOMAIN_WITH_NGROK,
   constructURLFromUTMParams,
