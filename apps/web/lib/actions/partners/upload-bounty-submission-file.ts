@@ -3,7 +3,10 @@
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { storage } from "@/lib/storage";
 import { ratelimit } from "@/lib/upstash";
-import { submissionRequirementsSchema } from "@/lib/zod/schemas/bounties";
+import {
+  submissionRequirementsSchema,
+  hasImageRequirement,
+} from "@/lib/zod/schemas/bounties";
 import { prisma } from "@dub/prisma";
 import { nanoid, R2_URL } from "@dub/utils";
 import { z } from "zod";
@@ -110,7 +113,7 @@ export const uploadBountySubmissionFileAction = authPartnerActionClient
       bounty.submissionRequirements,
     );
 
-    const requireImage = submissionRequirements.includes("image");
+    const requireImage = hasImageRequirement(submissionRequirements);
 
     if (!requireImage) {
       throw new Error(
