@@ -1,7 +1,6 @@
 import {
   BOUNTY_DESCRIPTION_MAX_LENGTH,
   BOUNTY_MAX_SUBMISSION_REJECTION_NOTE_LENGTH,
-  BOUNTY_SUBMISSION_REQUIREMENTS,
 } from "@/lib/constants/bounties";
 import {
   BountyPerformanceScope,
@@ -18,8 +17,8 @@ import { UserSchema } from "./users";
 import { parseDateSchema } from "./utils";
 import { workflowConditionSchema } from "./workflows";
 
-// New format: object with image and url keys
-const submissionRequirementsObjectSchema = z.object({
+// Object format with image and url keys
+export const submissionRequirementsSchema = z.object({
   image: z
     .object({
       max: z.number().int().positive().optional(),
@@ -33,78 +32,10 @@ const submissionRequirementsObjectSchema = z.object({
     .optional(),
 });
 
-// Legacy format: array of strings (backwards compatible)
-const legacySubmissionRequirementsSchema = z.array(
-  z.enum(BOUNTY_SUBMISSION_REQUIREMENTS),
-);
-
-// Union schema supporting both old and new formats
-export const submissionRequirementsSchema = z.union([
-  submissionRequirementsObjectSchema,
-  legacySubmissionRequirementsSchema,
-]);
-
 // Type exports for TypeScript
-export type SubmissionRequirements =
-  | z.infer<typeof submissionRequirementsObjectSchema>
-  | z.infer<typeof legacySubmissionRequirementsSchema>;
-
-// Helper functions for backwards-compatible requirement checking
-export function hasImageRequirement(
-  requirements: SubmissionRequirements | null | undefined,
-): boolean {
-  if (!requirements) return false;
-  // New format: object with image key
-  if (typeof requirements === "object" && !Array.isArray(requirements)) {
-    return !!requirements.image;
-  }
-  // Legacy format: array of strings
-  if (Array.isArray(requirements)) {
-    return requirements.includes("image");
-  }
-  return false;
-}
-
-// Helper to get image requirement details
-export function getImageRequirement(
-  requirements: SubmissionRequirements | null | undefined,
-): { max?: number } | null {
-  if (!requirements) return null;
-  // New format: object with image key
-  if (typeof requirements === "object" && !Array.isArray(requirements)) {
-    return requirements.image || null;
-  }
-  // Legacy format: no constraints
-  return null;
-}
-
-export function hasUrlRequirement(
-  requirements: SubmissionRequirements | null | undefined,
-): boolean {
-  if (!requirements) return false;
-  // New format: object with url key
-  if (typeof requirements === "object" && !Array.isArray(requirements)) {
-    return !!requirements.url;
-  }
-  // Legacy format: array of strings
-  if (Array.isArray(requirements)) {
-    return requirements.includes("url");
-  }
-  return false;
-}
-
-// Helper to get URL requirement details
-export function getUrlRequirement(
-  requirements: SubmissionRequirements | null | undefined,
-): { max?: number; domains?: string[] } | null {
-  if (!requirements) return null;
-  // New format: object with url key
-  if (typeof requirements === "object" && !Array.isArray(requirements)) {
-    return requirements.url || null;
-  }
-  // Legacy format: no constraints
-  return null;
-}
+export type SubmissionRequirements = z.infer<
+  typeof submissionRequirementsSchema
+>;
 
 export const createBountySchema = z.object({
   name: z
