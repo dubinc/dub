@@ -1,8 +1,9 @@
 import { prefixWorkspaceId } from "@/lib/api/workspaces/workspace-id";
-import { plain } from "@/lib/plain";
+import { syncCustomerPlanToPlain } from "@/lib/plain/sync-customer-plan";
 import { prisma } from "@dub/prisma";
 import { capitalize, formatDate } from "@dub/utils";
 import { uiComponent } from "@team-plain/typescript-sdk";
+import { waitUntil } from "@vercel/functions";
 import { NextRequest, NextResponse } from "next/server";
 import {
   plainCopySection,
@@ -43,58 +44,35 @@ export async function POST(req: NextRequest) {
         ],
       });
     }
-
-    customer.externalId = user.id;
-
-    const customerName = user.name || customer.email.split("@")[0];
-
-    await plain.upsertCustomer({
-      identifier: {
-        emailAddress: customer.email,
-      },
-      onCreate: {
-        fullName: customerName,
-        shortName: customerName.split(" ")[0],
-        email: {
-          email: customer.email,
-          isVerified: true,
-        },
-        externalId: user.id,
-      },
-      onUpdate: {
-        externalId: {
-          value: user.id,
-        },
-      },
-    });
   }
 
-  const [plainCustomer, topWorkspace] = await Promise.all([
-    plain.getCustomerByEmail({
-      email: customer.email,
+  waitUntil(
+    syncCustomerPlanToPlain({
+      customer,
     }),
-    prisma.project.findFirst({
-      where: {
-        users: {
-          some: {
-            userId: customer.externalId,
-          },
+  );
+
+  const topWorkspace = await prisma.project.findFirst({
+    where: {
+      users: {
+        some: {
+          userId: customer.externalId,
         },
       },
-      include: {
-        _count: {
-          select: {
-            domains: true,
-            users: true,
-          },
+    },
+    include: {
+      _count: {
+        select: {
+          domains: true,
+          users: true,
         },
       },
-      orderBy: {
-        usageLimit: "desc",
-      },
-      take: 1,
-    }),
-  ]);
+    },
+    orderBy: {
+      usageLimit: "desc",
+    },
+    take: 1,
+  });
 
   if (!topWorkspace) {
     return NextResponse.json({
@@ -125,33 +103,6 @@ export async function POST(req: NextRequest) {
     usersLimit,
     _count: { domains, users },
   } = topWorkspace;
-
-  const companyDomainName = customer.email && customer.email.split("@")[1];
-
-  if (plainCustomer.data) {
-    await Promise.allSettled([
-      plain.addCustomerToCustomerGroups({
-        customerId: plainCustomer.data.id,
-        customerGroupIdentifiers: [
-          {
-            customerGroupKey: topWorkspace.plan.split(" ")[0],
-          },
-        ],
-      }),
-      ...(topWorkspace && companyDomainName
-        ? [
-            plain.updateCompanyTier({
-              companyIdentifier: {
-                companyDomainName,
-              },
-              tierIdentifier: {
-                externalId: topWorkspace.plan.split(" ")[0],
-              },
-            }),
-          ]
-        : []),
-    ]);
-  }
 
   return NextResponse.json({
     cards: [

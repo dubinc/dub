@@ -1,9 +1,6 @@
-import { CreateThreadInput, PlainClient } from "@team-plain/typescript-sdk";
+import { CreateThreadInput } from "@team-plain/typescript-sdk";
 import { Session } from "./auth";
-
-export const plain = new PlainClient({
-  apiKey: process.env.PLAIN_API_KEY as string,
-});
+import { plain } from "./plain/client";
 
 type PlainUser = Pick<Session["user"], "id" | "name" | "email">;
 

@@ -1,4 +1,4 @@
-import { plain } from "@/lib/plain";
+import { plain } from "@/lib/plain/client";
 import { prisma } from "@dub/prisma";
 import { COUNTRIES, currencyFormatter, formatDate } from "@dub/utils";
 import { uiComponent } from "@team-plain/typescript-sdk";
