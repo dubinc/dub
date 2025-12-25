@@ -1,12 +1,9 @@
-import { Client } from "@planetscale/database";
 import { PrismaPlanetScale } from "@prisma/adapter-planetscale";
 import { PrismaClient } from "./generated/client";
 
-const client = new Client({
+const adapter = new PrismaPlanetScale({
   url: process.env.PLANETSCALE_DATABASE_URL || process.env.DATABASE_URL,
 });
-
-const adapter = new PrismaPlanetScale(client);
 
 const prismaClientSingleton = () => {
   return new PrismaClient({
@@ -16,8 +13,7 @@ const prismaClientSingleton = () => {
         passwordHash: true,
       },
     },
-    log: ["query"]
-  })
+  });
 };
 
 declare global {
