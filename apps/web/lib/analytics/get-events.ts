@@ -26,7 +26,30 @@ import { EventsFilters } from "./types";
 import { formatUTCDateTimeClickhouse } from "./utils/format-utc-datetime-clickhouse";
 import { getStartEndDates } from "./utils/get-start-end-dates";
 
-// Fetch data for /api/events
+/* -------------------------------------------------------------------------- */
+/*                            ✅ Event Type Handling                           */
+/* -------------------------------------------------------------------------- */
+
+export const EVENT_TYPES = [
+  "click",
+  "lead",
+  "sale",
+] as const;
+
+/** 🔹 Keeps EventType as a precise literal union */
+export type EventType = (typeof EVENT_TYPES)[number];
+
+/** 🔹 Zod enum for runtime validation & compile-time safety */
+export const EventTypeSchema = z.enum(EVENT_TYPES);
+
+/* -------------------------------------------------------------------------- */
+/*                             🚀 getEvents Function                          */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Fetch data for /api/events
+ * Handles clicks, leads, and sales analytics via Tinybird + Prisma.
+ */
 export const getEvents = async (params: EventsFilters) => {
   let {
     event: eventType,
@@ -63,7 +86,7 @@ export const getEvents = async (params: EventsFilters) => {
     region = split[1];
   }
 
-  // support legacy order param
+  // Support legacy order param
   if (order && order !== "desc") {
     sortOrder = order;
   }
@@ -76,7 +99,7 @@ export const getEvents = async (params: EventsFilters) => {
         clicks: clickEventSchemaTBEndpoint,
         leads: leadEventSchemaTBEndpoint,
         sales: saleEventSchemaTBEndpoint,
-      }[eventType] ?? clickEventSchemaTBEndpoint,
+      }[eventType as EventType] ?? clickEventSchemaTBEndpoint,
   });
 
   const filters = queryParser(query);
@@ -160,6 +183,7 @@ export const getEvents = async (params: EventsFilters) => {
           : {}),
       };
 
+      // ✅ Strict event type-safe validation
       if (evt.event === "click") {
         return clickEventResponseSchema.parse(eventData);
       } else if (evt.event === "lead") {
@@ -170,10 +194,14 @@ export const getEvents = async (params: EventsFilters) => {
 
       return eventData;
     })
-    .filter((d) => d !== null);
+    .filter((d): d is NonNullable<typeof d> => d !== null);
 
   return events;
 };
+
+/* -------------------------------------------------------------------------- */
+/*                             🔗 Helper Functions                            */
+/* -------------------------------------------------------------------------- */
 
 const getLinksMap = async (linkIds: string[]) => {
   const links = await prisma.link.findMany({
