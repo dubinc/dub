@@ -1,3 +1,4 @@
+export * from "./build-link-features-where";
 export * from "./check-if-links-have-tags";
 export * from "./check-if-links-have-webhooks";
 export * from "./key-checks";
