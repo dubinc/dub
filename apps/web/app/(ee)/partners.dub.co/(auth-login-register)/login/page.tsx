@@ -3,9 +3,10 @@ import { AuthAlternativeBanner } from "@/ui/auth/auth-alternative-banner";
 import { FramerButton } from "@/ui/auth/login/framer-button";
 import LoginForm from "@/ui/auth/login/login-form";
 import { AuthLayout } from "@/ui/layout/auth-layout";
+import { cn } from "@dub/utils";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { PartnerBanner } from "../partner-banner";
+import { PartnerBanner } from "../../(auth-other)/partner-banner";
 
 export default async function LoginPage(props: {
   params: Promise<{ programSlug?: string }>;
@@ -54,9 +55,9 @@ export default async function LoginPage(props: {
   }
 
   return (
-    <div className="relative">
+    <div className="relative w-full">
       {program && <PartnerBanner program={program} />}
-      <AuthLayout showTerms="partners">
+      <AuthLayout showTerms="partners" className={cn(programSlug && "pt-20")}>
         <div className="w-full max-w-sm">
           <h1 className="text-center text-xl font-semibold">
             Log in to your Dub Partner account
