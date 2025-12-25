@@ -1,5 +1,6 @@
 import { prefixWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { syncCustomerPlanToPlain } from "@/lib/plain/sync-customer-plan";
+import { upsertPlainCustomer } from "@/lib/plain/upsert-plain-customer";
 import { prisma } from "@dub/prisma";
 import { capitalize, formatDate } from "@dub/utils";
 import { uiComponent } from "@team-plain/typescript-sdk";
@@ -34,7 +35,7 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    if (!user) {
+    if (!user || !user.email) {
       return NextResponse.json({
         cards: [
           {
@@ -44,6 +45,13 @@ export async function POST(req: NextRequest) {
         ],
       });
     }
+    customer.externalId = user.id;
+
+    await upsertPlainCustomer({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+    });
   }
 
   waitUntil(

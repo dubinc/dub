@@ -1,29 +1,6 @@
 import { CreateThreadInput } from "@team-plain/typescript-sdk";
-import { Session } from "./auth";
-import { plain } from "./plain/client";
-
-type PlainUser = Pick<Session["user"], "id" | "name" | "email">;
-
-export const upsertPlainCustomer = async (user: PlainUser) => {
-  const fullName = user.name ?? user.email;
-  const shortName = user.name ?? user.email.split("@")[0];
-
-  return await plain.upsertCustomer({
-    identifier: {
-      externalId: user.id,
-    },
-    onCreate: {
-      fullName,
-      shortName,
-      email: {
-        email: user.email,
-        isVerified: true,
-      },
-      externalId: user.id,
-    },
-    onUpdate: {},
-  });
-};
+import { plain, PlainUser } from "./client";
+import { upsertPlainCustomer } from "./upsert-plain-customer";
 
 export const createPlainThread = async ({
   user,
@@ -31,7 +8,6 @@ export const createPlainThread = async ({
 }: {
   user: PlainUser;
 } & Omit<CreateThreadInput, "customerIdentifier">) => {
-  let plainCustomerId: string | undefined;
   if (!user.email) {
     throw new Error("User email is required");
   }
@@ -40,6 +16,7 @@ export const createPlainThread = async ({
     email: user.email,
   });
 
+  let plainCustomerId: string | undefined;
   if (plainCustomer.data) {
     plainCustomerId = plainCustomer.data.id;
   } else {

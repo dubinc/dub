@@ -163,7 +163,10 @@ export async function updateWorkspacePlan({
       });
     }
 
-    if (updatedWorkspace.status === "fulfilled") {
+    if (
+      updatedWorkspace.status === "fulfilled" &&
+      updatedWorkspace.value.users.length
+    ) {
       const workspaceOwner = updatedWorkspace.value.users[0].user;
       waitUntil(
         syncCustomerPlanToPlain({

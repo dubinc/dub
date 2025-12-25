@@ -1,15 +1,12 @@
 import { prisma } from "@dub/prisma";
 import { isGenericEmail } from "../is-generic-email";
-import { plain } from "./client";
+import { plain, PlainUser } from "./client";
+import { upsertPlainCustomer } from "./upsert-plain-customer";
 
 export const syncCustomerPlanToPlain = async ({
   customer,
 }: {
-  customer: {
-    id: string;
-    name: string | null;
-    email: string | null;
-  };
+  customer: PlainUser;
 }) => {
   if (!customer.email) {
     console.log(
@@ -17,26 +14,11 @@ export const syncCustomerPlanToPlain = async ({
     );
     return;
   }
-  const customerName = customer.name || customer.email.split("@")[0];
 
-  await plain.upsertCustomer({
-    identifier: {
-      emailAddress: customer.email,
-    },
-    onCreate: {
-      fullName: customerName,
-      shortName: customerName.split(" ")[0],
-      email: {
-        email: customer.email,
-        isVerified: true,
-      },
-      externalId: customer.id,
-    },
-    onUpdate: {
-      externalId: {
-        value: customer.id,
-      },
-    },
+  await upsertPlainCustomer({
+    id: customer.id,
+    name: customer.name,
+    email: customer.email,
   });
 
   const plainCustomer = await plain.getCustomerByEmail({
