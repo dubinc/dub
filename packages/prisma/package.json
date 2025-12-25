@@ -13,9 +13,7 @@
   "dependencies": {
     "@planetscale/database": "1.19.0",
     "@prisma/adapter-planetscale": "6.19.1",
-    "@prisma/client": "6.19.1",
-    "dotenv": "^17.2.3",
-    "undici": "^7.16.0"
+    "@prisma/client": "6.19.1"
   },
   "devDependencies": {
     "@types/node": "18.11.9",
