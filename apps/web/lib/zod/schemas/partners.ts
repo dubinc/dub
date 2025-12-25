@@ -456,6 +456,12 @@ export const EnrolledPartnerSchema = PartnerSchema.pick({
       linkedin: true,
       instagram: true,
       tiktok: true,
+      websiteVerifiedAt: true,
+      youtubeVerifiedAt: true,
+      twitterVerifiedAt: true,
+      linkedinVerifiedAt: true,
+      instagramVerifiedAt: true,
+      tiktokVerifiedAt: true,
     }),
   );
 
