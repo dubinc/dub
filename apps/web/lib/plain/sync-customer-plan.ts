@@ -21,13 +21,9 @@ export const syncCustomerPlanToPlain = async ({
     email: customer.email,
   });
 
-  const plainCustomer = await plain.getCustomerByEmail({
-    email: customer.email,
+  const plainCustomer = await plain.getCustomerByExternalId({
+    externalId: customer.id,
   });
-
-  console.log(
-    `Synced customer ${customer.email} to Plain (ID: ${plainCustomer.data?.id})`,
-  );
 
   let companyDomainName: string | undefined;
   if (!isGenericEmail(customer.email)) {
@@ -69,7 +65,7 @@ export const syncCustomerPlanToPlain = async ({
         customerId: plainCustomer.data.id,
         customerGroupIdentifiers: [
           {
-            customerGroupKey: topWorkspace.plan.split(" ")[0].toLowerCase(),
+            customerGroupKey: "app.dub.co",
           },
         ],
       }),

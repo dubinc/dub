@@ -53,8 +53,8 @@ export async function POST(req: NextRequest) {
   }
 
   const [plainCustomer, partnerProfile] = await Promise.all([
-    plain.getCustomerByEmail({
-      email: customer.email,
+    plain.getCustomerByExternalId({
+      externalId: customer.externalId,
     }),
     prisma.partner.findFirst({
       where: {

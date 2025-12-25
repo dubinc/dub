@@ -28,19 +28,24 @@ async function main() {
         },
       },
     },
+    take: 50,
     orderBy: {
       createdAt: "asc",
     },
   });
 
   const chunks = chunk(users, 50);
-  for (const chunk of chunks) {
+  for (let i = 0; i < chunks.length; i++) {
+    const chunk = chunks[i];
     await Promise.allSettled(
       chunk.map((user) =>
         syncCustomerPlanToPlain({
           customer: user,
         }),
       ),
+    );
+    console.log(
+      `Backfilled ${chunk.length} users in batch ${i + 1} of ${chunks.length} (out of ${users.length} total users)`,
     );
   }
 }
