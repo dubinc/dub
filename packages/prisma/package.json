@@ -3,12 +3,12 @@
   "version": "1.0.0",
   "license": "MIT",
   "scripts": {
-    "generate": "npx prisma generate",
-    "push": "npx prisma db push",
-    "studio": "npx prisma studio --browser none",
+    "generate": "npx prisma generate --schema=./schema",
+    "push": "npx prisma db push --schema=./schema",
+    "studio": "npx prisma studio --schema=./schema --browser none",
+    "format": "npx prisma format --schema=./schema",
     "prebuild": "pnpm run generate",
-    "predev": "pnpm run generate",
-    "format": "npx prisma format"
+    "predev": "pnpm run generate"
   },
   "dependencies": {
     "@planetscale/database": "1.19.0",

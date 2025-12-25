@@ -45,3 +45,7 @@ packages/stripe-app/.build/*
 *.csv
 *.ndjson
 .vitest
+
+# prisma
+packages/prisma/generated
+packages/prisma/generated-edge
