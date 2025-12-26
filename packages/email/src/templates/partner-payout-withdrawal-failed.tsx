@@ -149,9 +149,8 @@ export default function PartnerPayoutWithdrawalFailed({
 
             <Text>
               Please update your bank account details as soon as possible.
-              Failed transfers are automatically retried, so having accurate
-              bank details on file will ensure your funds are deposited
-              successfully.
+              Failed transfers are automatically retried once you have a valid
+              bank account on file.
             </Text>
 
             <Section className="my-8">
@@ -162,18 +161,6 @@ export default function PartnerPayoutWithdrawalFailed({
                 Update bank account
               </Link>
             </Section>
-
-            <Text className="text-sm leading-6 text-neutral-600">
-              If you have any questions, please{" "}
-              <Link
-                href="https://dub.co/contact/support"
-                className="font-medium text-black underline"
-              >
-                reach out to support
-              </Link>
-              .
-            </Text>
-
             <Footer email={email} />
           </Container>
         </Body>

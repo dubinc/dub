@@ -302,13 +302,13 @@ function PayoutMethodStatusIndicator({
               {statusInfo.title}
               <div
                 className={cn(
-                  statusInfo.variant === "errored"
+                  statusInfo.variant === "invalid"
                     ? "border-red-300 bg-red-200 text-red-800"
                     : "border-green-300 bg-green-200 text-green-800",
                   "flex size-5 items-center justify-center rounded-md border",
                 )}
               >
-                {statusInfo.variant === "errored" ? (
+                {statusInfo.variant === "invalid" ? (
                   <AlertCircle className="size-3" />
                 ) : (
                   <CheckCircle2 className="size-3" />
@@ -327,7 +327,7 @@ function PayoutMethodStatusIndicator({
         <div
           className={cn(
             "absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full",
-            statusInfo.variant === "errored" ? "bg-red-500" : "bg-green-500",
+            statusInfo.variant === "invalid" ? "bg-red-500" : "bg-green-500",
           )}
         />
       </div>

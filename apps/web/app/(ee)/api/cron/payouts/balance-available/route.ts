@@ -92,18 +92,16 @@ export async function POST(req: Request) {
 
     const bankAccount = await getPartnerBankAccount(stripeAccount);
 
-    if (!bankAccount) {
-      // should never happen, but just in case
-      return logAndRespond(
-        `Partner ${partner.email} (${stripeAccount}) has no external bank account. Skipping...`,
+    const statusInfo = bankAccount
+      ? BANK_ACCOUNT_STATUS_DESCRIPTIONS[bankAccount.status]
+      : // edge case for cases where the partner doesn't have a bank account on file at all
         {
-          logLevel: "error",
-        },
-      );
-    }
+          title: "No bank account",
+          description: "This partner does not have an active bank account.",
+          variant: "invalid",
+        };
 
-    const statusInfo = BANK_ACCOUNT_STATUS_DESCRIPTIONS[bankAccount.status];
-    if (statusInfo.variant === "errored") {
+    if (statusInfo.variant === "invalid") {
       if (partner.email) {
         const sentEmail = await sendEmail({
           variant: "notifications",
