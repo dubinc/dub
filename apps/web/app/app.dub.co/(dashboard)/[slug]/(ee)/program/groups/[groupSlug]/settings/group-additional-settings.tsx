@@ -115,11 +115,11 @@ function GroupOtherSettingsForm({ group }: { group: GroupProps }) {
       }
 
       if (groups) {
-        const groupsWithMatchingRules = findGroupsWithMatchingRules(
-          data.moveRules,
+        const groupsWithMatchingRules = findGroupsWithMatchingRules({
           groups,
-          group.id,
-        );
+          currentRules: data.moveRules,
+          currentGroupId: group.id,
+        });
 
         if (groupsWithMatchingRules.length > 0) {
           const groupNames = groupsWithMatchingRules
