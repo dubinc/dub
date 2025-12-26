@@ -1,19 +1,19 @@
-import { WorkflowCondition } from "@/lib/types";
+import { GroupProps, WorkflowCondition } from "@/lib/types";
 
-export const findGroupsWithMatchingRules = (
-  currentRules: WorkflowCondition[] | null | undefined,
-  allGroups: Array<{
-    id: string;
-    name: string;
-    moveRules?: WorkflowCondition[] | null;
-  }>,
-  currentGroupId: string,
-): Array<{ id: string; name: string }> => {
+export const findGroupsWithMatchingRules = ({
+  groups,
+  currentRules,
+  currentGroupId,
+}: {
+  groups: Pick<GroupProps, "id" | "name" | "moveRules">[];
+  currentRules: WorkflowCondition[] | null | undefined;
+  currentGroupId: string;
+}): Array<{ id: string; name: string }> => {
   if (!currentRules || currentRules.length === 0) {
     return [];
   }
 
-  return allGroups
+  return groups
     .filter(
       (group) =>
         group.id !== currentGroupId &&
