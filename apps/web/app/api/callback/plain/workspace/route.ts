@@ -1,5 +1,5 @@
 import { prefixWorkspaceId } from "@/lib/api/workspaces/workspace-id";
-import { syncCustomerPlanToPlain } from "@/lib/plain/sync-customer-plan";
+import { syncUserPlanToPlain } from "@/lib/plain/sync-user-plan";
 import { upsertPlainCustomer } from "@/lib/plain/upsert-plain-customer";
 import { prisma } from "@dub/prisma";
 import { capitalize, formatDate } from "@dub/utils";
@@ -52,13 +52,9 @@ export async function POST(req: NextRequest) {
       name: user.name,
       email: user.email,
     });
-  }
 
-  waitUntil(
-    syncCustomerPlanToPlain({
-      customer,
-    }),
-  );
+    waitUntil(syncUserPlanToPlain(user));
+  }
 
   const topWorkspace = await prisma.project.findFirst({
     where: {

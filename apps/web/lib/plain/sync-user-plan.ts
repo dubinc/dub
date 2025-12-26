@@ -3,31 +3,25 @@ import { isGenericEmail } from "../is-generic-email";
 import { plain, PlainUser } from "./client";
 import { upsertPlainCustomer } from "./upsert-plain-customer";
 
-export const syncCustomerPlanToPlain = async ({
-  customer,
-}: {
-  customer: PlainUser;
-}) => {
-  if (!customer.email) {
-    console.log(
-      `Customer email is null for user ${customer.id}, skipping sync...`,
-    );
+export const syncUserPlanToPlain = async (user: PlainUser) => {
+  if (!user.email) {
+    console.log(`User ${user.id} has no email, skipping sync...`);
     return;
   }
 
   await upsertPlainCustomer({
-    id: customer.id,
-    name: customer.name,
-    email: customer.email,
+    id: user.id,
+    name: user.name,
+    email: user.email,
   });
 
   const plainCustomer = await plain.getCustomerByExternalId({
-    externalId: customer.id,
+    externalId: user.id,
   });
 
   let companyDomainName: string | undefined;
-  if (!isGenericEmail(customer.email)) {
-    companyDomainName = customer.email.split("@")[1];
+  if (!isGenericEmail(user.email)) {
+    companyDomainName = user.email.split("@")[1];
   }
 
   const topWorkspace = await prisma.project.findFirst({
@@ -42,14 +36,13 @@ export const syncCustomerPlanToPlain = async ({
               },
             }
           : {
-              userId: customer.id,
+              userId: user.id,
             },
       },
     },
     orderBy: {
       usageLimit: "desc",
     },
-    take: 1,
   });
 
   if (!topWorkspace) {
@@ -84,7 +77,7 @@ export const syncCustomerPlanToPlain = async ({
     ]);
 
     console.log(
-      `Synced customer ${customer.email}'s plan in Plain to ${topWorkspace.plan}`,
+      `Synced user ${user.id}'s plan in Plain to ${topWorkspace.plan}`,
     );
   }
 
