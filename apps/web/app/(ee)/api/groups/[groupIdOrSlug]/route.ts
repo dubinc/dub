@@ -3,7 +3,7 @@ import { isDiscountEquivalent } from "@/lib/api/discounts/is-discount-equivalent
 import { queueDiscountCodeDeletion } from "@/lib/api/discounts/queue-discount-code-deletion";
 import { DubApiError } from "@/lib/api/errors";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
-import { upsertGroupMoveWorkflow } from "@/lib/api/groups/upsert-group-move-workflow";
+import { upsertGroupMoveRules } from "@/lib/api/groups/upsert-group-move-rules";
 import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
@@ -129,7 +129,7 @@ export const PATCH = withWorkspace(
         })
       : null;
 
-    const { workflowId } = await upsertGroupMoveWorkflow({
+    const { workflowId } = await upsertGroupMoveRules({
       group,
       moveRules,
       workspace,

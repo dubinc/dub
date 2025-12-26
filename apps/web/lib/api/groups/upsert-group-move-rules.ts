@@ -3,17 +3,20 @@ import { WorkflowAction, WorkflowCondition, WorkspaceProps } from "@/lib/types";
 import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
 import { prisma } from "@dub/prisma";
 import { PartnerGroup, WorkflowTrigger } from "@dub/prisma/client";
+import { pluralize } from "@dub/utils";
 import { createId } from "../create-id";
 import { DubApiError } from "../errors";
+import { findGroupsWithMatchingRules } from "./find-groups-with-matching-rules.ts";
+import { getGroupMoveRules } from "./get-group-move-rules.ts";
 
-export async function upsertGroupMoveWorkflow({
+export async function upsertGroupMoveRules({
   group,
   moveRules,
   workspace,
 }: {
   group: PartnerGroup;
   moveRules?: WorkflowCondition[];
-  workspace: Pick<WorkspaceProps, "plan">;
+  workspace: Pick<WorkspaceProps, "plan" | "defaultProgramId">;
 }): Promise<{ workflowId: string | null | undefined }> {
   const { canUseGroupMoveRule } = getPlanCapabilities(workspace.plan);
 
@@ -42,6 +45,21 @@ export async function upsertGroupMoveWorkflow({
     return {
       workflowId: undefined,
     };
+  }
+
+  const groupsWithMatchingRules = findGroupsWithMatchingRules({
+    groups: await getGroupMoveRules(group.programId),
+    currentRules: moveRules,
+    currentGroupId: group.id,
+  });
+
+  if (groupsWithMatchingRules.length > 0) {
+    const groupNames = groupsWithMatchingRules.map((g) => g.name).join(", ");
+
+    throw new DubApiError({
+      code: "bad_request",
+      message: `This rule is already in use by the ${groupNames} ${pluralize("group", groupsWithMatchingRules.length)}. Select a different activity or amount.`,
+    });
   }
 
   const action: WorkflowAction = {

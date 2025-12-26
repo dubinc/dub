@@ -1,5 +1,7 @@
 "use client";
 
+import { findGroupsWithMatchingRules } from "@/lib/api/groups/find-groups-with-matching-rules.ts";
+import { validateGroupMoveRules } from "@/lib/api/groups/validate-group-move-rules.ts";
 import { PAYOUT_HOLDING_PERIOD_DAYS } from "@/lib/constants/payouts";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
@@ -8,16 +10,15 @@ import useGroupsRules from "@/lib/swr/use-groups-rules.ts";
 import { GroupProps } from "@/lib/types";
 import { updateGroupSchema } from "@/lib/zod/schemas/groups";
 import { Button, Checkbox, Modal, Switch } from "@dub/ui";
+import { pluralize } from "@dub/utils";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { z } from "zod";
-import { findGroupsWithMatchingRules } from "./find-groups-with-matching-rules.ts";
 import { GroupMoveRules } from "./group-move-rules";
 import { SettingsRow } from "./settings-row";
-import { validateGroupMoveRules } from "./validate-group-move-rules.ts";
 
 type FormData = z.infer<typeof updateGroupSchema>;
 
@@ -126,7 +127,7 @@ function GroupOtherSettingsForm({ group }: { group: GroupProps }) {
             .map((g) => g.name)
             .join(", ");
           toast.error(
-            `This rule is already in use by the ${groupNames} group${groupsWithMatchingRules.length > 1 ? "s" : ""}. Select a different activity or amount.`,
+            `This rule is already in use by the ${groupNames} ${pluralize("group", groupsWithMatchingRules.length)}. Select a different activity or amount.`,
           );
           return;
         }
