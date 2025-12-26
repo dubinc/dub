@@ -127,7 +127,7 @@ export async function accountUpdated(event: Stripe.Event) {
   });
 
   if (pendingPayouts > 0) {
-    await queue.enqueueJSON({
+    const response = await queue.enqueueJSON({
       url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/balance-available`,
       deduplicationId: event.id,
       method: "POST",
@@ -135,6 +135,7 @@ export async function accountUpdated(event: Stripe.Event) {
         stripeAccount: partner.stripeConnectId,
       },
     });
+    return `Enqueued handle-balance-available queue for partner ${partner.stripeConnectId}: ${response.messageId}`;
   }
 
   return `Updated partner ${partner.email} (${partner.stripeConnectId}) with country ${country}, payoutsEnabledAt set, payoutMethodHash ${bankAccount.fingerprint}`;

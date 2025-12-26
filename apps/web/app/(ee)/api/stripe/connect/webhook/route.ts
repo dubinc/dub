@@ -3,6 +3,7 @@ import { log } from "@dub/utils";
 import { logAndRespond } from "app/(ee)/api/cron/utils";
 import Stripe from "stripe";
 import { accountApplicationDeauthorized } from "./account-application-deauthorized";
+import { accountExternalAccountUpdated } from "./account-external-account-updated";
 import { accountUpdated } from "./account-updated";
 import { balanceAvailable } from "./balance-available";
 import { payoutFailed } from "./payout-failed";
@@ -10,6 +11,7 @@ import { payoutPaid } from "./payout-paid";
 
 const relevantEvents = new Set([
   "account.application.deauthorized",
+  "account.external_account.updated",
   "account.updated",
   "balance.available",
   "payout.paid",
@@ -45,6 +47,9 @@ export const POST = async (req: Request) => {
     switch (event.type) {
       case "account.application.deauthorized":
         response = await accountApplicationDeauthorized(event);
+        break;
+      case "account.external_account.updated":
+        response = await accountExternalAccountUpdated(event);
         break;
       case "account.updated":
         response = await accountUpdated(event);

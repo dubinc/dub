@@ -56,7 +56,7 @@ export async function POST(req: Request) {
     if (balance.available.length === 0) {
       // should never happen, but just in case
       return logAndRespond(
-        `Partner ${partner.email} (${stripeAccount}) has no available balance. Skipping...`,
+        `Partner ${partner.email} (${stripeAccount}) has no available balances. Skipping...`,
       );
     }
 
@@ -122,20 +122,9 @@ export async function POST(req: Request) {
         console.log(
           `Sent email to partner ${partner.email} (${stripeAccount}): ${prettyPrint(sentEmail)}`,
         );
-
-        const res = await qstash.publishJSON({
-          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/balance-available`,
-          delay: 3 * 60 * 60, // check again in 3 hours
-          body: {
-            stripeAccount,
-          },
-        });
-        console.log(
-          `Scheduled another check for partner ${partner.email} (${stripeAccount}) in 3 hours: ${res.messageId}`,
-        );
       }
       return logAndRespond(
-        `Partner ${partner.email} (${stripeAccount}) has an errored bank account. Sending email to notify the partner + scheduling another check in 3 hours...`,
+        `Partner ${partner.email} (${stripeAccount}) has an errored bank account. Skipping...`,
       );
     }
 

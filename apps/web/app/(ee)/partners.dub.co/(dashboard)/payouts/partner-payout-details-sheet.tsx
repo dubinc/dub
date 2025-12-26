@@ -32,7 +32,6 @@ import {
   formatDateTime,
   formatDateTimeSmart,
   OG_AVATAR_URL,
-  PARTNERS_DOMAIN,
   pluralize,
 } from "@dub/utils";
 import { formatPeriod } from "@dub/utils/src/functions/datetime";
@@ -144,7 +143,7 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
               value: (
                 <span className="text-red-600">{payout.failureReason}</span>
               ),
-              tooltip: `Payout failures are usually due to ${payoutMethod === "paypal" ? "incorrect PayPal account configuration" : "invalid bank account details"}. Once you've [updated your account](${PARTNERS_DOMAIN}/payouts?settings=true), ${
+              tooltip: `Payout failures are usually due to ${payoutMethod === "paypal" ? "incorrect PayPal account configuration" : "invalid bank account details"}. Once you've [updated your account](/payouts?settings=true), ${
                 payoutMethod === "paypal"
                   ? "you can retry the payout"
                   : "the payout will be retried automatically"
