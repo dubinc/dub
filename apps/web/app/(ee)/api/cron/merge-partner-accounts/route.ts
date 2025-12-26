@@ -212,6 +212,7 @@ export async function POST(req: Request) {
           await prisma.bountySubmission.updateMany({
             where: {
               bountyId: { in: bountiesToTransfer },
+              partnerId: sourcePartnerId,
             },
             data: {
               partnerId: targetPartnerId,
