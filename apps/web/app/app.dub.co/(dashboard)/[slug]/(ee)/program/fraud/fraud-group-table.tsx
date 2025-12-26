@@ -335,6 +335,7 @@ export function FraudGroupTable() {
       <BulkResolveFraudGroupsModal />
       {detailsSheetState.groupId && currentFraudGroup && (
         <FraudReviewSheet
+          displayMode="unresolved"
           isOpen={detailsSheetState.open}
           setIsOpen={(open) =>
             setDetailsSheetState((s) => ({ ...s, open }) as any)

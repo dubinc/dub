@@ -26,18 +26,21 @@ import { Dispatch, SetStateAction } from "react";
 import { CommissionsOnHoldTable } from "./commissions-on-hold-table";
 import { FraudDisclaimerBanner } from "./fraud-disclaimer-banner";
 import { FraudEventsTableWrapper } from "./fraud-events-tables";
+import { ResolvedFraudGroupTable } from "./resolved-fraud-group-table";
 
 interface FraudReviewSheetProps {
   fraudGroup: FraudGroupProps;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
   onNext?: () => void;
   onPrevious?: () => void;
+  displayMode?: "resolved" | "unresolved";
 }
 
 function FraudReviewSheetContent({
   fraudGroup,
   onPrevious,
   onNext,
+  displayMode,
 }: FraudReviewSheetProps) {
   const { partner, user } = fraudGroup;
 
@@ -206,6 +209,28 @@ function FraudReviewSheetContent({
                   Commissions on hold
                 </h3>
                 <CommissionsOnHoldTable fraudGroup={fraudGroup} />
+              </div>
+            )}
+
+            {displayMode === "unresolved" && (
+              <div className="flex flex-col gap-4">
+                <div className="flex items-end justify-between gap-4">
+                  <h3 className="text-content-emphasis font-semibold">
+                    Resolved events
+                  </h3>
+                  <Link
+                    href={`/${slug}/program/fraud/resolved?partnerId=${partner.id}`}
+                    target="_blank"
+                    className={cn(
+                      buttonVariants({ variant: "secondary" }),
+                      "flex h-7 items-center rounded-lg border px-2 text-sm",
+                    )}
+                  >
+                    View all
+                  </Link>
+                </div>
+
+                <ResolvedFraudGroupTable partnerId={partner.id} />
               </div>
             )}
 
