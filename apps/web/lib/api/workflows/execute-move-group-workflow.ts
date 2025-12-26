@@ -2,6 +2,7 @@ import { WorkflowConditionAttribute, WorkflowContext } from "@/lib/types";
 import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
 import { prisma } from "@dub/prisma";
 import { Workflow, WorkspaceRole } from "@dub/prisma/client";
+import { prettyPrint } from "@dub/utils";
 import { getWorkspaceUsers } from "../get-workspace-users";
 import { movePartnersToGroup } from "../groups/move-partners-to-group";
 import { evaluateWorkflowConditions } from "./evaluate-workflow-conditions";
@@ -14,6 +15,8 @@ export const executeMoveGroupWorkflow = async ({
   workflow: Workflow;
   context: WorkflowContext;
 }) => {
+  console.debug("executeMoveGroupWorkflow", prettyPrint(context));
+
   const { conditions, action } = parseWorkflowConfig(workflow);
 
   if (action.type !== WORKFLOW_ACTION_TYPES.MoveGroup) {
@@ -33,8 +36,8 @@ export const executeMoveGroupWorkflow = async ({
 
   const { groupId: newGroupId } = action.data;
 
+  // Do nothing if the partner is already in the group
   if (groupId === newGroupId) {
-    console.log("Partner is already in the group. Skipping..");
     return;
   }
 
@@ -57,6 +60,10 @@ export const executeMoveGroupWorkflow = async ({
     );
     return;
   }
+
+  console.log(
+    `Partner meets the trigger condition for the workflow ${workflow.id}. Executing..`,
+  );
 
   const group = await prisma.partnerGroup.findUnique({
     where: {

@@ -162,8 +162,6 @@ export async function executeWorkflows({
     },
   };
 
-  // console.log("workflowContext", prettyPrint(workflowContext));
-
   for (const workflow of workflows) {
     try {
       const { action } = parseWorkflowConfig(workflow);
