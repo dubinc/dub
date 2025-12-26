@@ -32,7 +32,7 @@ const BLOCKS = [
 ];
 
 export default function ProgramOverviewPageClient() {
-  const { defaultProgramId, id: workspaceId, exceededClicks } = useWorkspace();
+  const { defaultProgramId, id: workspaceId, exceededEvents } = useWorkspace();
 
   const { searchParamsObj } = useRouterStuff();
 
@@ -55,7 +55,7 @@ export default function ProgramOverviewPageClient() {
   const { data: totalEvents, isLoading: totalEventsLoading } = useSWR<{
     [key in AnalyticsResponseOptions]: number;
   }>(
-    !exceededClicks &&
+    !exceededEvents &&
       `/api/analytics?${editQueryString(queryString, {
         event: "composite",
         // saleType: "new", // TODO: Add this back once we fix sales by type

@@ -33,13 +33,18 @@ export default function useWorkspace({
     nextPlan: workspace?.plan ? getNextPlan(workspace.plan) : PRO_PLAN,
     role: (workspace?.users && workspace.users[0].role) || "member",
     isOwner: workspace?.users && workspace.users[0].role === "owner",
-    exceededClicks: workspace && workspace.usage >= workspace.usageLimit,
+    exceededEvents: workspace && workspace.usage >= workspace.usageLimit,
     exceededLinks: workspace && workspace.linksUsage >= workspace.linksLimit,
+    exceededPayouts:
+      workspace?.payoutsLimit &&
+      workspace.payoutsUsage >= workspace.payoutsLimit
+        ? true
+        : false,
     exceededAI: workspace && workspace.aiUsage >= workspace.aiLimit,
     exceededDomains:
       workspace?.domains && workspace.domains.length >= workspace.domainsLimit,
     isMegaWorkspace:
-      workspace && workspace.totalLinks > MEGA_WORKSPACE_LINKS_LIMIT,
+      workspace && workspace.totalLinks >= MEGA_WORKSPACE_LINKS_LIMIT,
     error,
     defaultFolderId: workspace?.users && workspace.users[0].defaultFolderId,
     mutate,

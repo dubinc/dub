@@ -2,7 +2,7 @@ import { GENERIC_EMAIL_DOMAINS } from "@/lib/is-generic-email";
 import { prisma } from "@dub/prisma";
 import { chunk } from "@dub/utils";
 import "dotenv-flow/config";
-import { syncCustomerPlanToPlain } from "../../lib/plain/sync-customer-plan";
+import { syncUserPlanToPlain } from "../../lib/plain/sync-user-plan";
 
 async function main() {
   const users = await prisma.user.findMany({
@@ -37,13 +37,7 @@ async function main() {
   const chunks = chunk(users, 50);
   for (let i = 0; i < chunks.length; i++) {
     const chunk = chunks[i];
-    await Promise.allSettled(
-      chunk.map((user) =>
-        syncCustomerPlanToPlain({
-          customer: user,
-        }),
-      ),
-    );
+    await Promise.allSettled(chunk.map((user) => syncUserPlanToPlain(user)));
     console.log(
       `Backfilled ${chunk.length} users in batch ${i + 1} of ${chunks.length} (out of ${users.length} total users)`,
     );

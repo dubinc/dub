@@ -5,6 +5,7 @@ import { COUNTRIES, currencyFormatter, formatDate } from "@dub/utils";
 import { uiComponent } from "@team-plain/typescript-sdk";
 import { NextRequest, NextResponse } from "next/server";
 import {
+  plainCallbackSchema,
   plainCopySection,
   plainDivider,
   plainEmptyContainer,
@@ -19,11 +20,7 @@ export async function POST(req: NextRequest) {
     return new Response("Unauthorized", { status: 401 });
   }
 
-  let { cardKeys, customer } = await req.json();
-
-  if (!cardKeys || !customer) {
-    return new Response("Invalid payload", { status: 400 });
-  }
+  let { customer } = plainCallbackSchema.parse(await req.json());
 
   // if there's no externalId yet, try to find the user by email and set it
   if (!customer.externalId) {
@@ -52,42 +49,37 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  const [plainCustomer, partnerProfile] = await Promise.all([
-    plain.getCustomerByExternalId({
-      externalId: customer.externalId,
-    }),
-    prisma.partner.findFirst({
-      where: {
-        users: {
-          some: {
-            userId: customer.externalId,
-          },
+  const partnerProfile = await prisma.partner.findFirst({
+    where: {
+      users: {
+        some: {
+          userId: customer.externalId,
         },
       },
-      include: {
-        programs: {
-          select: {
-            program: {
-              select: {
-                name: true,
-              },
-            },
-            createdAt: true,
-            totalCommissions: true,
-          },
-          where: {
-            totalCommissions: {
-              gt: 0,
+    },
+    include: {
+      programs: {
+        select: {
+          program: {
+            select: {
+              name: true,
             },
           },
-          orderBy: {
-            totalCommissions: "desc",
-          },
-          take: 5,
+          createdAt: true,
+          totalCommissions: true,
         },
+        where: {
+          totalCommissions: {
+            gt: 0,
+          },
+        },
+        orderBy: {
+          totalCommissions: "desc",
+        },
+        take: 5,
       },
-    }),
-  ]);
+    },
+  });
 
   if (!partnerProfile) {
     return NextResponse.json({
@@ -110,16 +102,14 @@ export async function POST(req: NextRequest) {
     payoutsEnabledAt,
   } = partnerProfile;
 
-  if (plainCustomer.data) {
-    await plain.addCustomerToCustomerGroups({
-      customerId: plainCustomer.data.id,
-      customerGroupIdentifiers: [
-        {
-          customerGroupKey: "partners.dub.co",
-        },
-      ],
-    });
-  }
+  await plain.addCustomerToCustomerGroups({
+    customerId: customer.id,
+    customerGroupIdentifiers: [
+      {
+        customerGroupKey: "partners.dub.co",
+      },
+    ],
+  });
 
   return NextResponse.json({
     cards: [
