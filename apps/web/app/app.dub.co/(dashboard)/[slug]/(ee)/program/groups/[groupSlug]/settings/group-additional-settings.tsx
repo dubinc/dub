@@ -1,7 +1,7 @@
 "use client";
 
-import { findGroupsWithMatchingRules } from "@/lib/api/groups/find-groups-with-matching-rules.ts";
-import { validateGroupMoveRules } from "@/lib/api/groups/validate-group-move-rules.ts";
+import { findGroupsWithMatchingRules } from "@/lib/api/groups/find-groups-with-matching-rules";
+import { validateGroupMoveRules } from "@/lib/api/groups/validate-group-move-rules";
 import { PAYOUT_HOLDING_PERIOD_DAYS } from "@/lib/constants/payouts";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
