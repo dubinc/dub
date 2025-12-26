@@ -131,7 +131,8 @@ const InvoiceCard = ({
           </div>
           <div className="flex items-center">
             {invoice.pdfUrl &&
-            INVOICE_AVAILABLE_PAYOUT_STATUSES.includes(invoice.status ?? "") ? (
+            (!invoice.status ||
+              INVOICE_AVAILABLE_PAYOUT_STATUSES.includes(invoice.status)) ? (
               <a
                 href={invoice.pdfUrl}
                 target="_blank"
@@ -263,7 +264,8 @@ const InvoiceCard = ({
 
         <div className="flex items-center justify-end sm:col-span-1 sm:justify-end">
           {invoice.pdfUrl &&
-          INVOICE_AVAILABLE_PAYOUT_STATUSES.includes(invoice.status ?? "") ? (
+          (!invoice.status ||
+            INVOICE_AVAILABLE_PAYOUT_STATUSES.includes(invoice.status)) ? (
             <a
               href={invoice.pdfUrl}
               target="_blank"

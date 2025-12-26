@@ -1,4 +1,5 @@
-import { plain } from "@/lib/plain";
+import { plain } from "@/lib/plain/client";
+import { upsertPlainCustomer } from "@/lib/plain/upsert-plain-customer";
 import { prisma } from "@dub/prisma";
 import { COUNTRIES, currencyFormatter, formatDate } from "@dub/utils";
 import { uiComponent } from "@team-plain/typescript-sdk";
@@ -32,7 +33,7 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    if (!user) {
+    if (!user || !user.email) {
       return NextResponse.json({
         cards: [
           {
@@ -42,35 +43,18 @@ export async function POST(req: NextRequest) {
         ],
       });
     }
-
     customer.externalId = user.id;
 
-    const customerName = user.name || customer.email.split("@")[0];
-
-    await plain.upsertCustomer({
-      identifier: {
-        emailAddress: customer.email,
-      },
-      onCreate: {
-        fullName: customerName,
-        shortName: customerName.split(" ")[0],
-        email: {
-          email: customer.email,
-          isVerified: true,
-        },
-        externalId: user.id,
-      },
-      onUpdate: {
-        externalId: {
-          value: user.id,
-        },
-      },
+    await upsertPlainCustomer({
+      id: user.id,
+      name: user.name,
+      email: user.email,
     });
   }
 
   const [plainCustomer, partnerProfile] = await Promise.all([
-    plain.getCustomerByEmail({
-      email: customer.email,
+    plain.getCustomerByExternalId({
+      externalId: customer.externalId,
     }),
     prisma.partner.findFirst({
       where: {

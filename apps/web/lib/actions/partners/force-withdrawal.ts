@@ -1,9 +1,11 @@
 "use server";
 
 import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
+import { MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS } from "@/lib/constants/payouts";
 import { createStripeTransfer } from "@/lib/partners/create-stripe-transfer";
 import { ratelimit } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
+import { currencyFormatter } from "@dub/utils";
 import { authPartnerActionClient } from "../safe-action";
 
 // Force a withdrawal for a partner (even if the total amount is below the minimum withdrawal amount)
@@ -50,6 +52,16 @@ export const forceWithdrawalAction = authPartnerActionClient.action(
     if (previouslyProcessedPayouts.length === 0) {
       throw new Error(
         "No previously processed payouts found. Please try again or contact support.",
+      );
+    }
+
+    const totalProcessedAmount = previouslyProcessedPayouts.reduce(
+      (acc, payout) => acc + payout.amount,
+      0,
+    );
+    if (totalProcessedAmount < MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS) {
+      throw new Error(
+        `Your current processed payouts balance (${currencyFormatter(totalProcessedAmount)}) is less than the minimum amount required for withdrawal (${currencyFormatter(MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS)}).`,
       );
     }
 
