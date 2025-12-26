@@ -4,7 +4,7 @@ import { PAYOUT_HOLDING_PERIOD_DAYS } from "@/lib/constants/payouts";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useGroup from "@/lib/swr/use-group";
-import useGroups from "@/lib/swr/use-groups";
+import useGroupsRules from "@/lib/swr/use-groups-rules.ts";
 import { GroupProps } from "@/lib/types";
 import { updateGroupSchema } from "@/lib/zod/schemas/groups";
 import { Button, Checkbox, Modal, Switch } from "@dub/ui";
@@ -32,8 +32,8 @@ export function GroupAdditionalSettings() {
 }
 
 function GroupOtherSettingsForm({ group }: { group: GroupProps }) {
+  const { groups } = useGroupsRules();
   const { makeRequest: updateGroup, isSubmitting } = useApiMutation();
-  const { groups } = useGroups();
 
   const [showConfirmAutoApproveModal, setShowConfirmAutoApproveModal] =
     useState(false);
@@ -140,6 +140,7 @@ function GroupOtherSettingsForm({ group }: { group: GroupProps }) {
       },
       onSuccess: async () => {
         await mutate(`/api/groups/${group.id}`);
+        await mutatePrefix(`/api/groups/rules`);
         reset({ moveRules: data.moveRules });
         toast.success("Group move rules updated!");
       },

@@ -186,3 +186,7 @@ export const getGroupsQuerySchema = z
 export const getGroupsCountQuerySchema = z.object({
   search: z.string().optional(),
 });
+
+export const groupRulesSchema = z.array(
+  GroupSchema.pick({ id: true, name: true, moveRules: true }),
+);

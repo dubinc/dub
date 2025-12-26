@@ -1,15 +1,22 @@
-import { GroupProps, WorkflowCondition } from "@/lib/types";
+import { WorkflowCondition } from "@/lib/types";
+import { groupRulesSchema } from "@/lib/zod/schemas/groups";
+import { z } from "zod";
 
 export const findGroupsWithMatchingRules = ({
   groups,
   currentRules,
   currentGroupId,
 }: {
-  groups: Pick<GroupProps, "id" | "name" | "moveRules">[];
+  groups: z.infer<typeof groupRulesSchema>;
   currentRules: WorkflowCondition[] | null | undefined;
   currentGroupId: string;
 }): Array<{ id: string; name: string }> => {
-  if (!currentRules || currentRules.length === 0) {
+  if (
+    !currentRules ||
+    currentRules.length === 0 ||
+    !groups ||
+    groups.length === 0
+  ) {
     return [];
   }
 
@@ -19,50 +26,99 @@ export const findGroupsWithMatchingRules = ({
         group.id !== currentGroupId &&
         group.moveRules &&
         group.moveRules.length > 0 &&
-        areRuleSetsEqual(currentRules, group.moveRules),
+        doRuleSetsOverlap(currentRules, group.moveRules),
     )
     .map((group) => ({ id: group.id, name: group.name }));
 };
 
-const areRulesEqual = (
-  rule1: WorkflowCondition,
-  rule2: WorkflowCondition,
-): boolean => {
-  if (rule1.attribute !== rule2.attribute) return false;
-  if (rule1.operator !== rule2.operator) return false;
-
-  // Compare values
-  if (typeof rule1.value === "number" && typeof rule2.value === "number") {
-    return rule1.value === rule2.value;
-  }
-
-  if (
-    typeof rule1.value === "object" &&
-    typeof rule2.value === "object" &&
-    rule1.value !== null &&
-    rule2.value !== null
-  ) {
-    return (
-      rule1.value.min === rule2.value.min && rule1.value.max === rule2.value.max
-    );
-  }
-
-  return false;
-};
-
-const areRuleSetsEqual = (
+// Two rule sets conflict if there exists ANY set of attribute values that would satisfy both simultaneously.
+// This ensures that for any given set of attribute values, at most one group rule set will match.
+const doRuleSetsOverlap = (
   rules1: WorkflowCondition[],
   rules2: WorkflowCondition[],
 ): boolean => {
-  if (rules1.length !== rules2.length) return false;
+  const rules1ByAttribute = new Map<string, WorkflowCondition>();
+  for (const rule of rules1) {
+    rules1ByAttribute.set(rule.attribute, rule);
+  }
 
-  // Sort rules by attribute for comparison
-  const sorted1 = [...rules1].sort((a, b) =>
-    (a.attribute || "").localeCompare(b.attribute || ""),
-  );
-  const sorted2 = [...rules2].sort((a, b) =>
-    (a.attribute || "").localeCompare(b.attribute || ""),
+  const rules2ByAttribute = new Map<string, WorkflowCondition>();
+  for (const rule of rules2) {
+    rules2ByAttribute.set(rule.attribute, rule);
+  }
+
+  // Get all attributes that appear in BOTH rule sets (intersection)
+  const sharedAttributes = Array.from(rules1ByAttribute.keys()).filter((attr) =>
+    rules2ByAttribute.has(attr),
   );
 
-  return sorted1.every((rule1, index) => areRulesEqual(rule1, sorted2[index]));
+  // If there are no shared attributes, the rule sets cannot conflict
+  // (e.g., one checks conversions, the other checks leads - they're independent)
+  if (sharedAttributes.length === 0) {
+    return false;
+  }
+
+  // For rule sets to conflict, ALL shared attributes must overlap
+  // This means there exists a set of values that satisfies both rule sets
+  for (const attribute of sharedAttributes) {
+    const condition1 = rules1ByAttribute.get(attribute);
+    const condition2 = rules2ByAttribute.get(attribute);
+
+    if (!condition1 || !condition2) {
+      return false;
+    }
+
+    // If any shared attribute doesn't overlap, the rule sets cannot both match
+    if (!doConditionsOverlap(condition1, condition2)) {
+      return false;
+    }
+  }
+
+  return true;
+};
+
+const conditionToInterval = (
+  condition: WorkflowCondition,
+): { min: number; max: number } | null => {
+  switch (condition.operator) {
+    case "gte":
+      if (typeof condition.value === "number") {
+        return {
+          min: condition.value,
+          max: Number.POSITIVE_INFINITY,
+        };
+      }
+      return null;
+
+    case "between":
+      if (typeof condition.value === "object" && condition.value !== null) {
+        return {
+          min: condition.value.min,
+          max: condition.value.max,
+        };
+      }
+      return null;
+
+    default:
+      return null;
+  }
+};
+
+const doConditionsOverlap = (
+  condition1: WorkflowCondition,
+  condition2: WorkflowCondition,
+): boolean => {
+  // Conditions must be for the same attribute to overlap
+  if (condition1.attribute !== condition2.attribute) {
+    return false;
+  }
+
+  const interval1 = conditionToInterval(condition1);
+  const interval2 = conditionToInterval(condition2);
+
+  if (!interval1 || !interval2) {
+    return false;
+  }
+
+  return interval1.min <= interval2.max && interval2.min <= interval1.max;
 };
