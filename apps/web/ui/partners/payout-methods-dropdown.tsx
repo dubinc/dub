@@ -137,13 +137,9 @@ export function PayoutMethodsDropdown() {
   return (
     <div>
       <Popover
+        popoverContentClassName="w-[var(--radix-popover-trigger-width)]"
         content={
-          <div
-            className={cn(
-              "relative w-[350px]",
-              isConnected("paypal") && "w-fit",
-            )}
-          >
+          <div className="relative w-full">
             <div className="w-full space-y-0.5 rounded-lg bg-white p-1 text-sm">
               <div className="flex flex-col gap-2">
                 {payoutMethods
