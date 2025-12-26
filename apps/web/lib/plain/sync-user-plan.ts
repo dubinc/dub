@@ -50,9 +50,7 @@ export const syncUserPlanToPlain = async (user: PlainUser) => {
   });
 
   if (!topWorkspace) {
-    console.log(
-      `No workspace found for company domain ${companyDomainName}, skipping sync...`,
-    );
+    console.log(`No workspace found for user ${user.email}, skipping sync...`);
     return;
   }
 
