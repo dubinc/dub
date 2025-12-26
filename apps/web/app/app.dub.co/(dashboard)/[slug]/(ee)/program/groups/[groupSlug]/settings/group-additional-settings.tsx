@@ -4,6 +4,7 @@ import { PAYOUT_HOLDING_PERIOD_DAYS } from "@/lib/constants/payouts";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useGroup from "@/lib/swr/use-group";
+import useGroups from "@/lib/swr/use-groups";
 import { GroupProps } from "@/lib/types";
 import { updateGroupSchema } from "@/lib/zod/schemas/groups";
 import { Button, Checkbox, Modal, Switch } from "@dub/ui";
@@ -13,8 +14,10 @@ import { FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { z } from "zod";
-import { GroupMoveRules, validateGroupMoveRules } from "./group-move-rules";
+import { findGroupsWithMatchingRules } from "./find-groups-with-matching-rules.ts";
+import { GroupMoveRules } from "./group-move-rules";
 import { SettingsRow } from "./settings-row";
+import { validateGroupMoveRules } from "./validate-group-move-rules.ts";
 
 type FormData = z.infer<typeof updateGroupSchema>;
 
@@ -30,6 +33,7 @@ export function GroupAdditionalSettings() {
 
 function GroupOtherSettingsForm({ group }: { group: GroupProps }) {
   const { makeRequest: updateGroup, isSubmitting } = useApiMutation();
+  const { groups } = useGroups();
 
   const [showConfirmAutoApproveModal, setShowConfirmAutoApproveModal] =
     useState(false);
@@ -102,10 +106,31 @@ function GroupOtherSettingsForm({ group }: { group: GroupProps }) {
   } = form;
 
   const onSubmit = async (data: FormData) => {
-    const validationError = validateGroupMoveRules(data.moveRules);
-    if (validationError) {
-      toast.error(validationError);
-      return;
+    if (data.moveRules && data.moveRules.length > 0) {
+      try {
+        validateGroupMoveRules(data.moveRules);
+      } catch (error) {
+        toast.error(error.message);
+        return;
+      }
+
+      if (groups) {
+        const groupsWithMatchingRules = findGroupsWithMatchingRules(
+          data.moveRules,
+          groups,
+          group.id,
+        );
+
+        if (groupsWithMatchingRules.length > 0) {
+          const groupNames = groupsWithMatchingRules
+            .map((g) => g.name)
+            .join(", ");
+          toast.error(
+            `This rule is already in use by the ${groupNames} group${groupsWithMatchingRules.length > 1 ? "s" : ""}. Select a different activity or amount.`,
+          );
+          return;
+        }
+      }
     }
 
     await updateGroup(`/api/groups/${group.id}`, {
