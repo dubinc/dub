@@ -15,7 +15,13 @@ import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
 import { EnrolledPartnerSchema } from "./partners";
 import { UserSchema } from "./users";
 import { parseDateSchema } from "./utils";
-import { workflowConditionSchema } from "./workflows";
+import { WORKFLOW_ATTRIBUTES } from "./workflows";
+
+export const bountyPerformanceConditionSchema = z.object({
+  attribute: z.enum(WORKFLOW_ATTRIBUTES),
+  operator: z.literal("gte").default("gte"),
+  value: z.number(),
+});
 
 // Object format with image and url keys
 export const submissionRequirementsSchema = z.object({
@@ -67,7 +73,7 @@ export const createBountySchema = z.object({
     .nullish(),
   submissionRequirements: submissionRequirementsSchema.nullish(),
   groupIds: z.array(z.string()).nullable(),
-  performanceCondition: workflowConditionSchema.nullish(),
+  performanceCondition: bountyPerformanceConditionSchema.nullish(),
   performanceScope: z.nativeEnum(BountyPerformanceScope).nullish(),
   sendNotificationEmails: z.boolean().optional(),
 });
@@ -97,7 +103,9 @@ export const BountySchema = z.object({
   submissionsOpenAt: z.date().nullable(),
   rewardAmount: z.number().nullable(),
   rewardDescription: z.string().nullable(),
-  performanceCondition: workflowConditionSchema.nullable().default(null),
+  performanceCondition: bountyPerformanceConditionSchema
+    .nullable()
+    .default(null),
   performanceScope: z.nativeEnum(BountyPerformanceScope).nullable(),
   submissionRequirements: submissionRequirementsSchema.nullable().default(null),
   groups: z.array(GroupSchema.pick({ id: true })),

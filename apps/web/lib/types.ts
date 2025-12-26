@@ -36,6 +36,7 @@ import {
 import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "./webhook/constants";
 import {
   BountyListSchema,
+  bountyPerformanceConditionSchema,
   BountySchema,
   BountySubmissionExtendedSchema,
   getBountySubmissionsQuerySchema,
@@ -44,6 +45,7 @@ import {
   CampaignListSchema,
   CampaignSchema,
   campaignSummarySchema,
+  campaignTriggerConditionSchema,
   EMAIL_TEMPLATE_VARIABLES,
   updateCampaignSchema,
 } from "./zod/schemas/campaigns";
@@ -624,6 +626,14 @@ export type BountySubmissionRequirement =
   (typeof BOUNTY_SUBMISSION_REQUIREMENTS)[number];
 
 export type WorkflowCondition = z.infer<typeof workflowConditionSchema>;
+
+export type BountyPerformanceCondition = z.infer<
+  typeof bountyPerformanceConditionSchema
+>;
+
+export type CampaignTriggerCondition = z.infer<
+  typeof campaignTriggerConditionSchema
+>;
 
 export type WorkflowConditionAttribute = (typeof WORKFLOW_ATTRIBUTES)[number];
 
