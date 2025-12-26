@@ -1,8 +1,8 @@
 "use server";
 
-import { plain, upsertPlainCustomer } from "@/lib/plain";
 import { prisma } from "@dub/prisma";
 import { ComponentDividerSpacingSize } from "@team-plain/typescript-sdk";
+import { createPlainThread } from "../plain/create-plain-thread";
 import { ratelimit } from "../upstash";
 import z from "../zod";
 import { authActionClient } from "./safe-action";
@@ -37,25 +37,8 @@ export const submitOAuthAppForReview = authActionClient
       );
     }
 
-    let plainCustomerId: string | null = null;
-
-    const plainCustomer = await plain.getCustomerByEmail({
-      email: user.email,
-    });
-
-    if (plainCustomer.data) {
-      plainCustomerId = plainCustomer.data.id;
-    } else {
-      const { data } = await upsertPlainCustomer(user);
-      if (data) {
-        plainCustomerId = data.customer.id;
-      }
-    }
-
-    await plain.createThread({
-      customerIdentifier: {
-        customerId: plainCustomerId,
-      },
+    await createPlainThread({
+      user,
       title: `Integration Submission: ${integration.name}`,
       components: [
         {
