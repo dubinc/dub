@@ -2,6 +2,7 @@
 
 import { generatePaypalOAuthUrl } from "@/lib/actions/partners/generate-paypal-oauth-url";
 import { generateStripeAccountLink } from "@/lib/actions/partners/generate-stripe-account-link";
+import { BANK_ACCOUNT_STATUS_DESCRIPTIONS } from "@/lib/constants/payouts";
 import { bankAccountSchema } from "@/lib/partners/get-partner-bank-account";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PartnerProps } from "@/lib/types";
@@ -273,32 +274,6 @@ function PayoutMethodSkeleton() {
   );
 }
 
-const BANK_ACCOUNT_STATUS_DESCRIPTIONS: Record<
-  string,
-  { title: string; description: string }
-> = {
-  verified: {
-    title: "Verified bank account",
-    description:
-      "This bank account is successfully verified and ready to receive payouts.",
-  },
-  verification_failed: {
-    title: "Verification failed",
-    description:
-      "Bank account verification failed (e.g., microdeposit failure). Please update your bank account details to continue receiving payouts.",
-  },
-  tokenized_account_number_deactivated: {
-    title: "Tokenized account deactivated",
-    description:
-      "The account uses a tokenized account number that has been deactivated due to expiration or revocation. Please reverify your bank account to continue receiving payouts.",
-  },
-  errored: {
-    title: "Bank account error",
-    description:
-      "A payout sent to this bank account failed. Please update your bank account details to continue receiving payouts.",
-  },
-};
-
 function PayoutMethodStatusIndicator({
   icon,
   className,
@@ -316,17 +291,7 @@ function PayoutMethodStatusIndicator({
     return <div className={className}>{icon}</div>;
   }
 
-  let status = bankAccount.status;
-  if (["validated", "new"].includes(status)) {
-    status = "verified";
-  }
-
-  const isErrorStatus =
-    status === "verification_failed" ||
-    status === "tokenized_account_number_deactivated" ||
-    status === "errored";
-
-  const statusInfo = BANK_ACCOUNT_STATUS_DESCRIPTIONS[status];
+  const statusInfo = BANK_ACCOUNT_STATUS_DESCRIPTIONS[bankAccount.status];
 
   return (
     <DynamicTooltipWrapper
@@ -337,13 +302,13 @@ function PayoutMethodStatusIndicator({
               {statusInfo.title}
               <div
                 className={cn(
-                  isErrorStatus
+                  statusInfo.variant === "errored"
                     ? "border-red-300 bg-red-200 text-red-800"
                     : "border-green-300 bg-green-200 text-green-800",
                   "flex size-5 items-center justify-center rounded-md border",
                 )}
               >
-                {isErrorStatus ? (
+                {statusInfo.variant === "errored" ? (
                   <AlertCircle className="size-3" />
                 ) : (
                   <CheckCircle2 className="size-3" />
@@ -362,7 +327,7 @@ function PayoutMethodStatusIndicator({
         <div
           className={cn(
             "absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full",
-            isErrorStatus ? "bg-red-500" : "bg-green-500",
+            statusInfo.variant === "errored" ? "bg-red-500" : "bg-green-500",
           )}
         />
       </div>

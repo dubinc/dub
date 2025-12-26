@@ -1,4 +1,5 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { BANK_ACCOUNT_STATUS_DESCRIPTIONS } from "@/lib/constants/payouts";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { getPartnerBankAccount } from "@/lib/partners/get-partner-bank-account";
@@ -101,7 +102,8 @@ export async function POST(req: Request) {
       );
     }
 
-    if (bankAccount.status === "errored") {
+    const statusInfo = BANK_ACCOUNT_STATUS_DESCRIPTIONS[bankAccount.status];
+    if (statusInfo.variant === "errored") {
       if (partner.email) {
         const sentEmail = await sendEmail({
           variant: "notifications",
@@ -114,7 +116,7 @@ export async function POST(req: Request) {
             payout: {
               amount: availableBalance,
               currency,
-              failureReason: bankAccount.status,
+              failureReason: statusInfo.description,
               isAvailableBalance: true,
             },
           }),
