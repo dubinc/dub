@@ -33,7 +33,7 @@ export function GroupAdditionalSettings() {
 }
 
 function GroupOtherSettingsForm({ group }: { group: GroupProps }) {
-  const { groups } = useGroupsRules();
+  const { groups, loading: groupsLoading } = useGroupsRules();
   const { makeRequest: updateGroup, isSubmitting } = useApiMutation();
 
   const [showConfirmAutoApproveModal, setShowConfirmAutoApproveModal] =
@@ -232,7 +232,7 @@ function GroupOtherSettingsForm({ group }: { group: GroupProps }) {
                   text="Save changes"
                   className="h-8"
                   loading={isSubmitting}
-                  disabled={!isDirty}
+                  disabled={!isDirty || groupsLoading}
                 />
               </div>
             </div>
