@@ -113,7 +113,7 @@ export const GET = withAxiom(async (req) => {
 
     return NextResponse.json("OK");
   } catch (error) {
-    return handleAndReturnErrorResponse(error);
+    return handleAndReturnErrorResponse({ error });
   }
 });
 

@@ -70,8 +70,11 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(userInfo, {
       headers: CORS_HEADERS,
     });
-  } catch (e) {
-    return handleAndReturnErrorResponse(e, CORS_HEADERS);
+  } catch (error) {
+    return handleAndReturnErrorResponse({
+      error,
+      responseHeaders: CORS_HEADERS,
+    });
   }
 }
 

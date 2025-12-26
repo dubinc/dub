@@ -1,4 +1,3 @@
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { cleanupPartners } from "@/lib/tolt/cleanup-partners";
 import { importCommissions } from "@/lib/tolt/import-commissions";
@@ -8,6 +7,7 @@ import { importPartners } from "@/lib/tolt/import-partners";
 import { toltImportPayloadSchema } from "@/lib/tolt/schemas";
 import { updateStripeCustomers } from "@/lib/tolt/update-stripe-customers";
 import { NextResponse } from "next/server";
+import { handleCronErrorResponse } from "../../utils";
 
 export const dynamic = "force-dynamic";
 
@@ -45,6 +45,6 @@ export async function POST(req: Request) {
 
     return NextResponse.json("OK");
   } catch (error) {
-    return handleAndReturnErrorResponse(error);
+    return handleCronErrorResponse({ error });
   }
 }

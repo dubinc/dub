@@ -41,6 +41,6 @@ export async function GET(req: NextRequest) {
       },
     );
   } catch (error) {
-    return handleAndReturnErrorResponse(error);
+    return handleAndReturnErrorResponse({ error });
   }
 }

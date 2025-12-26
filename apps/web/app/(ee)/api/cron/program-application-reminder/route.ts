@@ -1,10 +1,10 @@
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { sendEmail } from "@dub/email";
 import ProgramApplicationReminder from "@dub/email/templates/program-application-reminder";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils/src/constants";
+import { handleCronErrorResponse } from "../utils";
 
 // POST - /api/cron/program-application-reminder
 // Sends an email if a program application hasn't received an associated partner
@@ -99,6 +99,6 @@ export async function POST(req: Request) {
       `Email sent to ${application.email} for application ${applicationId}.`,
     );
   } catch (error) {
-    return handleAndReturnErrorResponse(error);
+    return handleCronErrorResponse({ error });
   }
 }

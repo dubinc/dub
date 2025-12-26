@@ -1,4 +1,3 @@
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { MIN_PAYOUT_AMOUNT_FOR_REMINDERS } from "@/lib/constants/misc";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
@@ -7,7 +6,7 @@ import { queueBatchEmail } from "@/lib/email/queue-batch-email";
 import ConnectPayoutReminder from "@dub/email/templates/connect-payout-reminder";
 import { prisma } from "@dub/prisma";
 import { ACME_PROGRAM_ID, APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
-import { logAndRespond } from "../../../utils";
+import { handleCronErrorResponse, logAndRespond } from "../../../utils";
 
 export const dynamic = "force-dynamic";
 
@@ -204,7 +203,8 @@ async function handler(req: Request) {
       type: "errors",
       mention: true,
     });
-    return handleAndReturnErrorResponse(error);
+
+    return handleCronErrorResponse({ error });
   }
 }
 

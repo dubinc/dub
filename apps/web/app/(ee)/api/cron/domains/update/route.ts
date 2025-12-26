@@ -2,7 +2,6 @@ import {
   linkDomainUpdateSchema,
   queueDomainUpdate,
 } from "@/lib/api/domains/queue-domain-update";
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
 import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
 import { includeTags } from "@/lib/api/links/include-tags";
@@ -11,7 +10,7 @@ import { recordLink } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
 import { Link } from "@dub/prisma/client";
 import { linkConstructorSimple } from "@dub/utils";
-import { logAndRespond } from "../../utils";
+import { handleCronErrorResponse, logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";
 
@@ -113,7 +112,7 @@ export async function POST(req: Request) {
       return logAndRespond("Error scheduling next batch.");
     }
   } catch (error) {
-    return handleAndReturnErrorResponse(error);
+    return handleCronErrorResponse({ error });
   }
 }
 

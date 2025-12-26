@@ -1,9 +1,8 @@
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { EXCLUDED_PROGRAM_IDS } from "@/lib/constants/partner-profile";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { prisma } from "@dub/prisma";
 import { log, prettyPrint } from "@dub/utils";
-import { logAndRespond } from "../../utils";
+import { handleCronErrorResponse, logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";
 
@@ -77,6 +76,6 @@ export async function POST(req: Request) {
       type: "errors",
     });
 
-    return handleAndReturnErrorResponse(error);
+    return handleCronErrorResponse({ error });
   }
 }

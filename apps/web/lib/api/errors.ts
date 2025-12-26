@@ -1,4 +1,5 @@
 import z from "@/lib/zod";
+import { Prisma } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 import "server-only";
 import { ZodError } from "zod";
@@ -55,6 +56,12 @@ const ErrorSchema = z.object({
 type ErrorResponse = z.infer<typeof ErrorSchema>;
 export type ErrorCodes = z.infer<typeof ErrorCode>;
 
+interface ErrorHandlerOptions {
+  error: unknown;
+  responseHeaders?: Headers;
+  requestHeaders?: Headers;
+}
+
 export class DubApiError extends Error {
   public readonly code: z.infer<typeof ErrorCode>;
   public readonly docUrl?: string;
@@ -104,7 +111,7 @@ export function fromZodError(error: ZodError): ErrorResponse {
   };
 }
 
-function handleApiError(error: any): ErrorResponse & { status: number } {
+export function handleApiError(error: any): ErrorResponse & { status: number } {
   console.error(error.message);
 
   // Send error to Axiom
@@ -159,9 +166,38 @@ function handleApiError(error: any): ErrorResponse & { status: number } {
   };
 }
 
-export function handleAndReturnErrorResponse(err: unknown, headers?: Headers) {
-  const { error, status } = handleApiError(err);
-  return NextResponse.json<ErrorResponse>({ error }, { headers, status });
+export function handleAndReturnErrorResponse({
+  error,
+  responseHeaders,
+  requestHeaders,
+}: ErrorHandlerOptions) {
+  let { error: apiError, status } = handleApiError(error);
+
+  // Build final response headers & status code
+  const headers = new Headers(responseHeaders);
+
+  const isQStashCallback = requestHeaders?.get("upstash-signature") != null;
+
+  if (isQStashCallback) {
+    const shouldRetry = error instanceof Prisma.PrismaClientUnknownRequestError;
+
+    // Allow QStash retries only for transient DB errors. For invalid payloads or
+    // other non-recoverable errors, do not retry QStash callbacks.
+    if (!shouldRetry) {
+      headers.set("Upstash-NonRetryable-Error", "true");
+      status = 489;
+    }
+  }
+
+  return NextResponse.json<ErrorResponse>(
+    {
+      error: apiError,
+    },
+    {
+      headers,
+      status,
+    },
+  );
 }
 
 export const errorSchemaFactory = (

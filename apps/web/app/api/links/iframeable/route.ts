@@ -21,6 +21,6 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ iframeable });
   } catch (error) {
-    return handleAndReturnErrorResponse(error);
+    return handleAndReturnErrorResponse({ error });
   }
 }

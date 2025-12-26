@@ -52,6 +52,6 @@ export const GET = async (req: NextRequest) => {
 
     return NextResponse.json(response);
   } catch (error) {
-    return handleAndReturnErrorResponse(error);
+    return handleAndReturnErrorResponse({ error });
   }
 };
