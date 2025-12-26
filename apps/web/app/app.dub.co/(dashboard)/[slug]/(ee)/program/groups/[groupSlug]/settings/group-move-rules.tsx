@@ -406,37 +406,9 @@ function ValueInput({
 
         const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
           const inputValue = e.target.value;
-          const currentFieldValue = field.value;
 
           if (inputValue === "") {
-            if (isMin) {
-              // For min: if range object exists and has max, keep structure but remove min
-              // Otherwise, clear the value entirely
-              if (isRangeValue(currentFieldValue)) {
-                const rangeValue = currentFieldValue as RangeValue;
-                // If max exists, keep the range object but remove min (will be set when user types)
-                if (rangeValue.max != null && rangeValue.max > 0) {
-                  // Keep range object but don't set min to 0 - create object without min
-                  field.onChange({ max: rangeValue.max } as any);
-                } else {
-                  // No max, so clear entirely
-                  field.onChange(undefined);
-                }
-              } else {
-                field.onChange(undefined);
-              }
-            } else {
-              // For max: clear max but keep min
-              if (isRangeValue(currentFieldValue)) {
-                const rangeValue = currentFieldValue as RangeValue;
-                // If min exists, keep it, otherwise clear entirely
-                if (rangeValue.min != null && rangeValue.min > 0) {
-                  field.onChange({ min: rangeValue.min } as any);
-                } else {
-                  field.onChange(undefined);
-                }
-              }
-            }
+            field.onChange(handleClearValue(field.value, isMin));
             return;
           }
 
@@ -445,44 +417,16 @@ function ValueInput({
             isCurrency,
           );
 
-          if (isMin) {
-            // Update min value
-            if (
-              rule.operator === "between" &&
-              isRangeValue(currentFieldValue)
-            ) {
-              const rangeValue = currentFieldValue as RangeValue;
-              field.onChange({ ...rangeValue, min: convertedValue });
-            } else {
-              field.onChange(convertedValue);
-            }
-          } else {
-            // Update max value
-            if (isRangeValue(currentFieldValue)) {
-              const rangeValue = currentFieldValue as RangeValue;
-              // Preserve min if it exists and is valid, otherwise create new range
-              const min = rangeValue.min != null && rangeValue.min > 0 ? rangeValue.min : undefined;
-              if (min != null) {
-                field.onChange({ min, max: convertedValue } as any);
-              } else {
-                // No valid min, create range with just max (min will be set when user enters it)
-                field.onChange({ max: convertedValue } as any);
-              }
-            } else {
-              // Fallback: create range object from current value
-              const currentMin = getMinValue(currentFieldValue);
-              if (currentMin != null && currentMin > 0) {
-                field.onChange({ min: currentMin, max: convertedValue } as any);
-              } else {
-                // No valid min, create range with just max
-                field.onChange({ max: convertedValue } as any);
-              }
-              // Also update operator if needed
-              if (rule.operator === "gte") {
-                onUpdate({ operator: "between" });
-              }
-            }
-          }
+          const newValue = isMin
+            ? handleUpdateMinValue(field.value, convertedValue, rule.operator)
+            : handleUpdateMaxValue(
+                field.value,
+                convertedValue,
+                onUpdate,
+                rule.operator,
+              );
+
+          field.onChange(newValue);
         };
 
         return (
@@ -497,6 +441,71 @@ function ValueInput({
     />
   );
 }
+
+const handleClearValue = (
+  currentFieldValue: ValueType,
+  isMin: boolean,
+): ValueType | undefined => {
+  if (!isRangeValue(currentFieldValue)) {
+    return undefined;
+  }
+
+  const rangeValue = currentFieldValue as RangeValue;
+
+  if (isMin) {
+    // For min: keep max if valid, otherwise clear
+    return rangeValue.max != null && rangeValue.max > 0
+      ? ({ max: rangeValue.max } as any)
+      : undefined;
+  } else {
+    // For max: keep min if valid, otherwise clear
+    return rangeValue.min != null && rangeValue.min > 0
+      ? ({ min: rangeValue.min } as any)
+      : undefined;
+  }
+};
+
+const handleUpdateMinValue = (
+  currentFieldValue: ValueType,
+  convertedValue: number,
+  operator: WorkflowCondition["operator"],
+): ValueType => {
+  if (operator === "between" && isRangeValue(currentFieldValue)) {
+    const rangeValue = currentFieldValue as RangeValue;
+    return { ...rangeValue, min: convertedValue };
+  }
+  return convertedValue;
+};
+
+const handleUpdateMaxValue = (
+  currentFieldValue: ValueType,
+  convertedValue: number,
+  onUpdate: (updates: Partial<WorkflowCondition>) => void,
+  ruleOperator: WorkflowCondition["operator"],
+): ValueType => {
+  if (isRangeValue(currentFieldValue)) {
+    const rangeValue = currentFieldValue as RangeValue;
+    const min =
+      rangeValue.min != null && rangeValue.min > 0 ? rangeValue.min : undefined;
+    return (
+      min != null ? { min, max: convertedValue } : { max: convertedValue }
+    ) as any;
+  }
+
+  // Create range from current value
+  const currentMin = getMinValue(currentFieldValue);
+  const newRange =
+    currentMin != null && currentMin > 0
+      ? { min: currentMin, max: convertedValue }
+      : { max: convertedValue };
+
+  // Update operator if needed
+  if (ruleOperator === "gte") {
+    onUpdate({ operator: "between" });
+  }
+
+  return newRange as any;
+};
 
 const getMinValue = (value: ValueType): number | null => {
   if (typeof value === "number") {
