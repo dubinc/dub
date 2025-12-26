@@ -25,8 +25,8 @@ model Customer {
 
   project           Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
   link              Link?              @relation(fields: [linkId], references: [id])
-  program           Program?           @relation(fields: [programId], references: [id])
-  partner           Partner?           @relation(fields: [partnerId], references: [id])
+  program           Program?           @relation(fields: [programId], references: [id], onDelete: Cascade)
+  partner           Partner?           @relation(fields: [partnerId], references: [id], onDelete: Cascade)
   programEnrollment ProgramEnrollment? @relation(fields: [programId, partnerId], references: [programId, partnerId])
   commissions       Commission[]
   fraudEvents       FraudEvent[]
