@@ -2,7 +2,6 @@ import { WorkflowConditionAttribute, WorkflowContext } from "@/lib/types";
 import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
 import { prisma } from "@dub/prisma";
 import { Workflow, WorkspaceRole } from "@dub/prisma/client";
-import { prettyPrint } from "@dub/utils";
 import { getWorkspaceUsers } from "../get-workspace-users";
 import { movePartnersToGroup } from "../groups/move-partners-to-group";
 import { evaluateWorkflowConditions } from "./evaluate-workflow-conditions";
@@ -15,8 +14,6 @@ export const executeMoveGroupWorkflow = async ({
   workflow: Workflow;
   context: WorkflowContext;
 }) => {
-  console.debug("executeMoveGroupWorkflow", prettyPrint(context));
-
   const { conditions, action } = parseWorkflowConfig(workflow);
 
   if (action.type !== WORKFLOW_ACTION_TYPES.MoveGroup) {
