@@ -27,7 +27,7 @@ export const WORKFLOW_ATTRIBUTE_TRIGGER: Record<
   partnerJoined: WorkflowTrigger.partnerEnrolled,
 } as const;
 
-export const WORKFLOW_COMPARISON_OPERATORS = ["gte"] as const;
+export const WORKFLOW_COMPARISON_OPERATORS = ["gte", "between"] as const;
 
 export const SCHEDULED_WORKFLOW_TRIGGERS: WorkflowTrigger[] = [
   "partnerEnrolled",
@@ -41,7 +41,26 @@ export const OPERATOR_FUNCTIONS: Record<
   WorkflowComparisonOperator,
   OperatorFn
 > = {
-  gte: (a, b) => a >= b,
+  gte: (aV, cV) => {
+    if (typeof cV !== "number") {
+      return false;
+    }
+
+    return aV >= cV;
+  },
+  between: (aV, cV) => {
+    if (typeof cV !== "object" || cV === null) {
+      return false;
+    }
+
+    const { min, max } = cV;
+
+    if (min == null || max == null) {
+      return false;
+    }
+
+    return aV >= min && aV <= max;
+  },
 };
 
 export const WORKFLOW_COMPARISON_OPERATOR_LABELS: Record<
@@ -49,6 +68,7 @@ export const WORKFLOW_COMPARISON_OPERATOR_LABELS: Record<
   string
 > = {
   gte: "more than",
+  between: "between",
 } as const;
 
 export enum WORKFLOW_ACTION_TYPES {
@@ -63,7 +83,13 @@ export const WORKFLOW_LOGICAL_OPERATORS = ["AND"] as const;
 export const workflowConditionSchema = z.object({
   attribute: z.enum(WORKFLOW_ATTRIBUTES),
   operator: z.enum(WORKFLOW_COMPARISON_OPERATORS).default("gte"),
-  value: z.number(),
+  value: z.union([
+    z.number(),
+    z.object({
+      min: z.number(),
+      max: z.number(),
+    }),
+  ]),
 });
 
 // Array of conditions with AND operator

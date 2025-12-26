@@ -13,7 +13,7 @@ import { FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { z } from "zod";
-import { GroupMoveRule } from "./group-move-rule";
+import { GroupMoveRules, validateGroupMoveRules } from "./group-move-rules";
 import { SettingsRow } from "./settings-row";
 
 type FormData = z.infer<typeof updateGroupSchema>;
@@ -102,6 +102,12 @@ function GroupOtherSettingsForm({ group }: { group: GroupProps }) {
   } = form;
 
   const onSubmit = async (data: FormData) => {
+    const validationError = validateGroupMoveRules(data.moveRules);
+    if (validationError) {
+      toast.error(validationError);
+      return;
+    }
+
     await updateGroup(`/api/groups/${group.id}`, {
       method: "PATCH",
       body: {
@@ -110,7 +116,7 @@ function GroupOtherSettingsForm({ group }: { group: GroupProps }) {
       onSuccess: async () => {
         await mutate(`/api/groups/${group.id}`);
         reset({ moveRules: data.moveRules });
-        toast.success("Group move rule updated!");
+        toast.success("Group move rules updated!");
       },
     });
   };
@@ -190,7 +196,7 @@ function GroupOtherSettingsForm({ group }: { group: GroupProps }) {
                 </label>
               </SettingsRow>
 
-              <GroupMoveRule />
+              <GroupMoveRules />
             </div>
 
             <div className="border-border-subtle flex items-center justify-end rounded-b-lg border-t bg-neutral-50 px-6 py-4">
