@@ -14,13 +14,13 @@
     "format": "npx prisma format --schema=./schema"
   },
   "dependencies": {
-    "@planetscale/database": "^1.18.0",
-    "@prisma/adapter-planetscale": "^5.18.0",
-    "@prisma/client": "5.18.0"
+    "@planetscale/database": "1.19.0",
+    "@prisma/adapter-planetscale": "6.19.1",
+    "@prisma/client": "6.19.1"
   },
   "devDependencies": {
     "@types/node": "18.11.9",
-    "prisma": "5.18.0",
+    "prisma": "6.19.1",
     "tsx": "^4.11.0",
     "typescript": "5.2.2"
   },

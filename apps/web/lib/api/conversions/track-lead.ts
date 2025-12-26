@@ -185,7 +185,9 @@ export const trackLead = async ({
           projectId: workspace.id,
           projectConnectId: workspace.stripeConnectId,
           clickId: clickData.click_id,
-          linkId: clickData.link_id,
+          linkId: link.id,
+          programId: link.programId,
+          partnerId: link.partnerId,
           country: clickData.country,
           clickedAt: new Date(clickData.timestamp + "Z"),
         },
@@ -227,7 +229,7 @@ export const trackLead = async ({
         // track the conversion event in our logs
         await logConversionEvent({
           workspace_id: workspace.id,
-          link_id: clickData.link_id,
+          link_id: link.id,
           path: "/track/lead",
           body: JSON.stringify(rawBody),
         });
@@ -269,7 +271,7 @@ export const trackLead = async ({
             // update link leads count
             prisma.link.update({
               where: {
-                id: clickData.link_id,
+                id: link.id,
               },
               data: {
                 leads: {
@@ -332,17 +334,6 @@ export const trackLead = async ({
                 partnerId: link.partnerId,
                 programId: link.programId,
                 eventType: "lead",
-              }),
-
-              // update customer's program/partner associations
-              prisma.customer.update({
-                where: {
-                  id: customer.id,
-                },
-                data: {
-                  programId: link.programId,
-                  partnerId: link.partnerId,
-                },
               }),
 
               webhookPartner &&

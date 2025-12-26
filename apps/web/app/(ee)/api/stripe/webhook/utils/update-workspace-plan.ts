@@ -1,11 +1,13 @@
 import { deleteWorkspaceFolders } from "@/lib/api/folders/delete-workspace-folders";
 import { tokenCache } from "@/lib/auth/token-cache";
+import { syncCustomerPlanToPlain } from "@/lib/plain/sync-customer-plan";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { WorkspaceProps } from "@/lib/types";
 import { webhookCache } from "@/lib/webhook/cache";
 import { prisma } from "@dub/prisma";
 import { getPlanAndTierFromPriceId } from "@dub/utils";
 import { NEW_BUSINESS_PRICE_IDS } from "@dub/utils/src";
+import { waitUntil } from "@vercel/functions";
 
 export async function updateWorkspacePlan({
   workspace,
@@ -46,7 +48,7 @@ export async function updateWorkspacePlan({
     (workspace.payoutsLimit < newPlan.limits.payouts &&
       NEW_BUSINESS_PRICE_IDS.includes(priceId))
   ) {
-    await Promise.allSettled([
+    const [updatedWorkspace] = await Promise.allSettled([
       prisma.project.update({
         where: {
           id: workspace.id,
@@ -66,6 +68,26 @@ export async function updateWorkspacePlan({
           usersLimit: newPlan.limits.users,
           paymentFailedAt: null,
           ...(shouldDeleteFolders && { foldersUsage: 0 }),
+        },
+        include: {
+          users: {
+            where: {
+              role: "owner",
+            },
+            select: {
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                },
+              },
+            },
+            orderBy: {
+              createdAt: "asc",
+            },
+            take: 1,
+          },
         },
       }),
 
@@ -139,6 +161,18 @@ export async function updateWorkspacePlan({
       await deleteWorkspaceFolders({
         workspaceId: workspace.id,
       });
+    }
+
+    if (
+      updatedWorkspace.status === "fulfilled" &&
+      updatedWorkspace.value.users.length
+    ) {
+      const workspaceOwner = updatedWorkspace.value.users[0].user;
+      waitUntil(
+        syncCustomerPlanToPlain({
+          customer: workspaceOwner,
+        }),
+      );
     }
   } else if (workspace.paymentFailedAt) {
     await prisma.project.update({

@@ -139,9 +139,22 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
     createBountySubmissionAction,
   );
 
-  const imageRequired = bounty.submissionRequirements?.includes("image");
-  const urlRequired = bounty.submissionRequirements?.includes("url");
+  const imageRequired = !!bounty.submissionRequirements?.image;
+  const urlRequired = !!bounty.submissionRequirements?.url;
   const fileUploading = files.some(({ uploading }) => uploading);
+
+  // Get max values from bounty submission requirements, fallback to constants
+  const maxFiles =
+    bounty.submissionRequirements?.image?.max ?? BOUNTY_MAX_SUBMISSION_FILES;
+  const maxUrls =
+    bounty.submissionRequirements?.url?.max ?? BOUNTY_MAX_SUBMISSION_URLS;
+
+  // Get placeholder URL from domain if available
+  const placeholderUrl = (() => {
+    const firstDomain = bounty.submissionRequirements?.url?.domains?.[0];
+    if (!firstDomain) return "https://";
+    return `https://${firstDomain}`;
+  })();
 
   const hasSubmissionsOpen = bounty.submissionsOpenAt
     ? isBefore(bounty.submissionsOpenAt, new Date())
@@ -220,6 +233,7 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
           ? error.message
           : "Failed to create submission. Please try again.",
       );
+      setIsDraft(null); // reset submit state on error
     }
   };
 
@@ -503,9 +517,7 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                             onChange={async ({ file }) =>
                               await handleUpload(file)
                             }
-                            disabled={
-                              files.length >= BOUNTY_MAX_SUBMISSION_FILES
-                            }
+                            disabled={files.length >= maxFiles}
                             maxFileSizeMB={5}
                           />
                         </div>
@@ -524,8 +536,7 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                             {urlRequired && " (at least 1 required)"}
                           </h2>
                           <span className="text-xs font-medium text-neutral-500">
-                            {urls.filter((u) => u.url).length} /{" "}
-                            {BOUNTY_MAX_SUBMISSION_URLS}
+                            {urls.filter((u) => u.url).length} / {maxUrls}
                           </span>
                         </label>
                         <div className={cn("mt-2 flex flex-col gap-2")}>
@@ -533,7 +544,7 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                             <div key={id} className="flex items-center gap-2">
                               <input
                                 type="url"
-                                placeholder="https://"
+                                placeholder={placeholderUrl}
                                 value={url}
                                 onChange={(e) =>
                                   setUrls((prev) =>
@@ -560,7 +571,7 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                               )}
                             </div>
                           ))}
-                          {urls.length < BOUNTY_MAX_SUBMISSION_URLS && (
+                          {urls.length < maxUrls && (
                             <Button
                               variant="secondary"
                               text="Add URL"
