@@ -5,12 +5,7 @@ import { generateStripeAccountLink } from "@/lib/actions/partners/generate-strip
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PartnerProps } from "@/lib/types";
 import { Button, MatrixLines, Paypal, Popover, StripeIcon } from "@dub/ui";
-import {
-  cn,
-  CONNECT_SUPPORTED_COUNTRIES,
-  fetcher,
-  PAYPAL_SUPPORTED_COUNTRIES,
-} from "@dub/utils";
+import { cn, fetcher } from "@dub/utils";
 import { ChevronsUpDown } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
@@ -22,7 +17,11 @@ import useSWR from "swr";
 export function PayoutMethodsDropdown() {
   const router = useRouter();
   const [openPopover, setOpenPopover] = useState(false);
-  const { partner, loading: isPartnerLoading } = usePartnerProfile();
+  const {
+    partner,
+    payoutMethod,
+    loading: isPartnerLoading,
+  } = usePartnerProfile();
 
   const { data: bankAccount, isLoading: isBankAccountLoading } =
     useSWR<Stripe.BankAccount>(
@@ -73,9 +72,7 @@ export function PayoutMethodsDropdown() {
           ? `Account ${partner.paypalEmail}`
           : "Not connected",
       isVisible: (partner: Pick<PartnerProps, "country" | "paypalEmail">) =>
-        (partner.country &&
-          PAYPAL_SUPPORTED_COUNTRIES.includes(partner.country)) ||
-        partner.paypalEmail,
+        payoutMethod === "paypal" || partner.paypalEmail,
     },
     {
       id: "stripe",
@@ -97,9 +94,7 @@ export function PayoutMethodsDropdown() {
         );
       },
       isVisible: (partner: Pick<PartnerProps, "country" | "stripeConnectId">) =>
-        (partner.country &&
-          CONNECT_SUPPORTED_COUNTRIES.includes(partner.country)) ||
-        partner.stripeConnectId,
+        payoutMethod === "stripe" || partner.stripeConnectId,
     },
   ];
 

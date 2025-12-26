@@ -5,6 +5,7 @@ import { BlurImage, Link4, MiniAreaChart } from "@dub/ui";
 import { formatDate, getPrettyUrl, OG_AVATAR_URL } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 
 export function ProgramCard({
@@ -12,6 +13,7 @@ export function ProgramCard({
 }: {
   programEnrollment: ProgramEnrollmentProps;
 }) {
+  const router = useRouter();
   const { program, status, createdAt, group } = programEnrollment;
 
   const defaultLink = programEnrollment.links?.[0];
@@ -64,12 +66,16 @@ export function ProgramCard({
           ) : statusDescription ? (
             <p>
               {statusDescription}{" "}
-              <Link
-                href={`/messages/${program.slug}`}
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  router.push(`/messages/${program.slug}`);
+                }}
                 className="text-neutral-400 underline decoration-dotted underline-offset-2 hover:text-neutral-700"
               >
                 Reach out to the {program.name} team
-              </Link>{" "}
+              </button>{" "}
               if you have any questions.
             </p>
           ) : null}

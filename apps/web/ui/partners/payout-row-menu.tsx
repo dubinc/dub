@@ -4,7 +4,7 @@ import { PartnerPayoutResponse } from "@/lib/types";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { Button, Icon, Popover } from "@dub/ui";
 import { Dots, Refresh2 } from "@dub/ui/icons";
-import { cn, PAYPAL_SUPPORTED_COUNTRIES } from "@dub/utils";
+import { cn } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { useAction } from "next-safe-action/hooks";
@@ -12,7 +12,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 export function PayoutRowMenu({ row }: { row: Row<PartnerPayoutResponse> }) {
-  const { partner } = usePartnerProfile();
+  const { payoutMethod } = usePartnerProfile();
   const [isOpen, setIsOpen] = useState(false);
 
   const { executeAsync: executeRetryPayout, isPending: isRetryPayoutPending } =
@@ -42,9 +42,7 @@ export function PayoutRowMenu({ row }: { row: Row<PartnerPayoutResponse> }) {
   });
 
   const canRetry =
-    row.original.status === "failed" &&
-    partner?.country &&
-    PAYPAL_SUPPORTED_COUNTRIES.includes(partner.country);
+    row.original.status === "failed" && payoutMethod === "paypal";
 
   if (!canRetry) {
     return null;

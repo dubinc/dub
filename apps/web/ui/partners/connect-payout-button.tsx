@@ -5,11 +5,7 @@ import { generateStripeAccountLink } from "@/lib/actions/partners/generate-strip
 import { hasPermission } from "@/lib/auth/partner-users/partner-user-permissions";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { Button, ButtonProps, TooltipContent } from "@dub/ui";
-import {
-  CONNECT_SUPPORTED_COUNTRIES,
-  COUNTRIES,
-  PAYPAL_SUPPORTED_COUNTRIES,
-} from "@dub/utils";
+import { COUNTRIES } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo } from "react";
@@ -17,7 +13,7 @@ import { toast } from "sonner";
 
 export function ConnectPayoutButton(props: ButtonProps) {
   const router = useRouter();
-  const { partner } = usePartnerProfile();
+  const { partner, payoutMethod } = usePartnerProfile();
 
   const { executeAsync: executeStripeAsync, isPending: isStripePending } =
     useAction(generateStripeAccountLink, {
@@ -60,9 +56,9 @@ export function ConnectPayoutButton(props: ButtonProps) {
       return;
     }
 
-    if (PAYPAL_SUPPORTED_COUNTRIES.includes(partner.country)) {
+    if (payoutMethod === "paypal") {
       await executePaypalAsync();
-    } else if (CONNECT_SUPPORTED_COUNTRIES.includes(partner.country)) {
+    } else if (payoutMethod === "stripe") {
       await executeStripeAsync();
     } else {
       toast.error(
@@ -70,16 +66,13 @@ export function ConnectPayoutButton(props: ButtonProps) {
       );
       return;
     }
-  }, [executeStripeAsync, executePaypalAsync, partner]);
+  }, [executeStripeAsync, executePaypalAsync, partner, payoutMethod]);
 
   const errorMessage = useMemo(
     () =>
       !partner?.country
         ? "You haven't set your country yet. Please update your country or contact support."
-        : ![
-              ...CONNECT_SUPPORTED_COUNTRIES,
-              ...PAYPAL_SUPPORTED_COUNTRIES,
-            ].includes(partner.country)
+        : !payoutMethod
           ? `Your current country (${COUNTRIES[partner.country]}) is not supported for payout. Please update your country or contact support.`
           : undefined,
     [partner?.country],
@@ -94,9 +87,7 @@ export function ConnectPayoutButton(props: ButtonProps) {
       onClick={onClick}
       loading={isStripePending || isPaypalPending}
       text={
-        partner?.country && PAYPAL_SUPPORTED_COUNTRIES.includes(partner.country)
-          ? "Connect PayPal"
-          : "Connect bank account"
+        payoutMethod === "paypal" ? "Connect PayPal" : "Connect bank account"
       }
       disabledTooltip={
         errorMessage && (

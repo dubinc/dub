@@ -14,6 +14,7 @@ import {
   Button,
   CircleArrowRight,
   CopyText,
+  DynamicTooltipWrapper,
   InvoiceDollar,
   LoadingSpinner,
   Sheet,
@@ -45,7 +46,7 @@ type PayoutDetailsSheetProps = {
 };
 
 function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
-  const { partner } = usePartnerProfile();
+  const { partner, payoutMethod } = usePartnerProfile();
 
   const {
     data: earnings,
@@ -61,106 +62,150 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
   const invoiceData = useMemo(() => {
     const statusBadge = PayoutStatusBadges[payout.status];
 
-    return {
-      Program: (
-        <ConditionalLink
-          href={`/programs/${payout.program.slug}`}
-          target="_blank"
-        >
-          <img
-            src={
-              payout.program.logo || `${OG_AVATAR_URL}${payout.program.name}`
-            }
-            alt={payout.program.name}
-            className="mr-1.5 inline-flex size-4 rounded-sm"
-          />
-          {payout.program.name}
-        </ConditionalLink>
-      ),
-
-      Period: formatPeriod(payout),
-
-      Status: (
-        <StatusBadge variant={statusBadge.variant} icon={statusBadge.icon}>
-          {statusBadge.label}
-        </StatusBadge>
-      ),
-
-      Initiated: payout.initiatedAt ? (
-        <TimestampTooltip
-          timestamp={payout.initiatedAt}
-          side="right"
-          rows={["local", "utc"]}
-        >
-          <span className="hover:text-content-emphasis underline decoration-dotted underline-offset-2">
-            {formatDateTimeSmart(payout.initiatedAt)}
-          </span>
-        </TimestampTooltip>
-      ) : (
-        "-"
-      ),
-
-      Paid: payout.paidAt ? (
-        <TimestampTooltip
-          timestamp={payout.paidAt}
-          side="right"
-          rows={["local", "utc"]}
-        >
-          <span className="hover:text-content-emphasis underline decoration-dotted underline-offset-2">
-            {formatDateTimeSmart(payout.paidAt)}
-          </span>
-        </TimestampTooltip>
-      ) : (
-        "-"
-      ),
-
-      ...(payout.traceId && {
-        "Trace ID": (
-          <CopyText
-            value={payout.traceId}
-            className="text-left font-mono text-sm text-neutral-500"
+    return [
+      {
+        key: "Program",
+        value: (
+          <ConditionalLink
+            href={`/programs/${payout.program.slug}`}
+            target="_blank"
           >
-            {payout.traceId}
-          </CopyText>
-        ),
-      }),
-
-      Amount: (
-        <div className="flex items-center gap-2">
-          <strong>{currencyFormatter(payout.amount)}</strong>
-
-          {payout.mode === "external" && (
-            <Tooltip
-              content={
-                payout.status === PayoutStatus.pending
-                  ? `This payout will be made externally through your ${payout.program.name} account after approval.`
-                  : `This payout was made externally through your ${payout.program.name} account.`
+            <img
+              src={
+                payout.program.logo || `${OG_AVATAR_URL}${payout.program.name}`
               }
-            >
-              <CircleArrowRight className="size-3.5 shrink-0 text-neutral-500" />
-            </Tooltip>
-          )}
+              alt={payout.program.name}
+              className="mr-1.5 inline-flex size-4 rounded-sm"
+            />
+            {payout.program.name}
+          </ConditionalLink>
+        ),
+      },
+      {
+        key: "Period",
+        value: formatPeriod(payout),
+      },
+      {
+        key: "Amount",
+        value: (
+          <div className="flex items-center gap-2">
+            <strong>{currencyFormatter(payout.amount)}</strong>
 
-          {payout.mode === "internal" &&
-            INVOICE_AVAILABLE_PAYOUT_STATUSES.includes(payout.status) && (
-              <Tooltip content="View invoice">
-                <div className="flex h-5 w-5 items-center justify-center rounded-md transition-colors duration-150 hover:border hover:border-neutral-200 hover:bg-neutral-100">
-                  <Link
-                    href={`/invoices/${payout.id}`}
-                    className="text-neutral-700"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <InvoiceDollar className="size-4" />
-                  </Link>
-                </div>
+            {payout.mode === "external" && (
+              <Tooltip
+                content={
+                  payout.status === PayoutStatus.pending
+                    ? `This payout will be made externally through your ${payout.program.name} account after approval.`
+                    : `This payout was made externally through your ${payout.program.name} account.`
+                }
+              >
+                <CircleArrowRight className="size-3.5 shrink-0 text-neutral-500" />
               </Tooltip>
             )}
-        </div>
-      ),
 
-      Description: payout.description || "-",
-    };
+            {payout.mode === "internal" &&
+              INVOICE_AVAILABLE_PAYOUT_STATUSES.includes(payout.status) && (
+                <Tooltip content="View invoice">
+                  <div className="flex h-5 w-5 items-center justify-center rounded-md transition-colors duration-150 hover:border hover:border-neutral-200 hover:bg-neutral-100">
+                    <Link
+                      href={`/invoices/${payout.id}`}
+                      className="text-neutral-700"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <InvoiceDollar className="size-4" />
+                    </Link>
+                  </div>
+                </Tooltip>
+              )}
+          </div>
+        ),
+      },
+
+      {
+        key: "Description",
+        value: payout.description || "-",
+      },
+
+      {
+        key: "Status",
+        value: (
+          <StatusBadge variant={statusBadge.variant} icon={statusBadge.icon}>
+            {statusBadge.label}
+          </StatusBadge>
+        ),
+      },
+
+      ...(payout.failureReason
+        ? [
+            {
+              key: "Failure reason",
+              value: (
+                <span className="text-red-600">{payout.failureReason}</span>
+              ),
+              tooltip: `Payout failures are usually due to ${payoutMethod === "paypal" ? "incorrect PayPal account configuration" : "invalid bank account details"}. Once you've updated your account, ${
+                payoutMethod === "paypal"
+                  ? "you can retry the payout"
+                  : "the payout will be retried automatically"
+              }.`,
+            },
+          ]
+        : []),
+
+      {
+        key: "Initiated",
+        value: payout.initiatedAt ? (
+          <TimestampTooltip
+            timestamp={payout.initiatedAt}
+            side="right"
+            rows={["local", "utc"]}
+          >
+            <span className="hover:text-content-emphasis underline decoration-dotted underline-offset-2">
+              {formatDateTimeSmart(payout.initiatedAt)}
+            </span>
+          </TimestampTooltip>
+        ) : (
+          "-"
+        ),
+        tooltip:
+          "Date and time when the payout was initiated by the program. Payouts usually take up to 5 business days to be fully processed.",
+      },
+      {
+        key: "Paid",
+        value: payout.paidAt ? (
+          <TimestampTooltip
+            timestamp={payout.paidAt}
+            side="right"
+            rows={["local", "utc"]}
+          >
+            <span className="hover:text-content-emphasis underline decoration-dotted underline-offset-2">
+              {formatDateTimeSmart(payout.paidAt)}
+            </span>
+          </TimestampTooltip>
+        ) : (
+          "-"
+        ),
+        tooltip:
+          "Date and time when the payout was fully processed by the program and paid to your account.",
+      },
+
+      ...(payout.traceId
+        ? [
+            {
+              key: "Trace ID",
+              value: (
+                <CopyText
+                  value={payout.traceId}
+                  className="text-left font-mono text-sm text-neutral-500"
+                >
+                  {payout.traceId}
+                </CopyText>
+              ),
+              tooltip: `Banks can take up to 5 business days to process payouts. If you haven't received your payout${payout.paidAt ? ` by \`${formatDateTimeSmart(addBusinessDays(payout.paidAt, 5))}\`` : ""}, you can contact your bank and provide the following trace ID as reference.`,
+            },
+          ]
+        : []),
+    ];
   }, [payout, earnings]);
 
   const table = useTable({
@@ -255,33 +300,21 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
             Invoice details
           </div>
           <div className="grid grid-cols-2 gap-3 text-sm">
-            {Object.entries(invoiceData).map(([key, value]) => (
+            {invoiceData.map(({ key, value, tooltip }) => (
               <Fragment key={key}>
-                <div className="flex items-center font-medium text-neutral-500">
-                  {key === "Initiated" ? (
-                    <Tooltip content="Date and time when the payout was initiated by the program. Payouts usually take up to 5 business days to be fully processed.">
-                      <span className="cursor-help underline decoration-dotted underline-offset-2">
-                        {key}
-                      </span>
-                    </Tooltip>
-                  ) : key === "Paid" ? (
-                    <Tooltip content="Date and time when the payout was fully processed by the program and paid to your account.">
-                      <span className="cursor-help underline decoration-dotted underline-offset-2">
-                        {key}
-                      </span>
-                    </Tooltip>
-                  ) : key === "Trace ID" ? (
-                    <Tooltip
-                      content={`Banks can take up to 5 business days to process payouts. If you haven't received your payout${payout.paidAt ? ` by \`${formatDateTimeSmart(addBusinessDays(payout.paidAt, 5))}\`` : ""}, you can contact your bank and provide the following trace ID as reference.`}
-                    >
-                      <span className="cursor-help underline decoration-dotted underline-offset-2">
-                        {key}
-                      </span>
-                    </Tooltip>
-                  ) : (
-                    key
-                  )}
-                </div>
+                <DynamicTooltipWrapper
+                  tooltipProps={tooltip ? { content: tooltip } : undefined}
+                >
+                  <div
+                    className={cn(
+                      "flex items-center font-medium text-neutral-500",
+                      tooltip &&
+                        "cursor-help underline decoration-dotted underline-offset-2",
+                    )}
+                  >
+                    {key}
+                  </div>
+                </DynamicTooltipWrapper>
                 <div className="text-neutral-800">{value}</div>
               </Fragment>
             ))}
