@@ -10,7 +10,11 @@ import {
 } from "@dub/prisma/client";
 import { z } from "zod";
 import { analyticsQuerySchema, eventsQuerySchema } from "./analytics";
-import { BountySchema, BountySubmissionSchema } from "./bounties";
+import {
+  bountyPerformanceConditionSchema,
+  BountySchema,
+  BountySubmissionSchema,
+} from "./bounties";
 import {
   CommissionSchema,
   getCommissionsCountQuerySchema,
@@ -20,7 +24,6 @@ import { customerActivityResponseSchema } from "./customer-activity";
 import { CustomerEnrichedSchema } from "./customers";
 import { LinkSchema } from "./links";
 import { payoutsQuerySchema } from "./payouts";
-import { workflowConditionSchema } from "./workflows";
 
 export const PartnerEarningsSchema = CommissionSchema.omit({
   userId: true,
@@ -145,7 +148,9 @@ export const PartnerBountySchema = BountySchema.omit({
   groups: true,
 }).extend({
   submission: BountySubmissionSchema.nullable(),
-  performanceCondition: workflowConditionSchema.nullable().default(null),
+  performanceCondition: bountyPerformanceConditionSchema
+    .nullable()
+    .default(null),
   partner: z.object({
     totalClicks: z.number(),
     totalLeads: z.number(),
