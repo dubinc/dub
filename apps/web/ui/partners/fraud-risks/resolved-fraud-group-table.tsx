@@ -2,9 +2,19 @@ import { FRAUD_RULES_BY_TYPE } from "@/lib/api/fraud/constants";
 import { useFraudGroups } from "@/lib/swr/use-fraud-groups";
 import { FraudGroupProps } from "@/lib/types";
 import { UserRowItem } from "@/ui/users/user-row-item";
-import { Badge, LoadingSpinner, Table, Tooltip, useTable } from "@dub/ui";
+import {
+  Badge,
+  buttonVariants,
+  LoadingSpinner,
+  Table,
+  Tooltip,
+  useTable,
+} from "@dub/ui";
 import { cn, formatDate } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
+import Link from "next/link";
+
+const RESOLVED_FRAUD_GROUP_PAGE_SIZE = 10;
 
 export function ResolvedFraudGroupTable({ partnerId }: { partnerId: string }) {
   const {
@@ -16,7 +26,7 @@ export function ResolvedFraudGroupTable({ partnerId }: { partnerId: string }) {
       status: "resolved",
       partnerId,
       page: 1,
-      pageSize: 5,
+      pageSize: RESOLVED_FRAUD_GROUP_PAGE_SIZE,
       sortBy: "resolvedAt",
     },
     exclude: ["groupId"],
@@ -101,27 +111,48 @@ export function ResolvedFraudGroupTable({ partnerId }: { partnerId: string }) {
     tdClassName: "border-l-0",
     className: "[&_tr:last-child>td]:border-b-transparent",
     scrollWrapperClassName: "min-h-0",
-    resourceName: (plural) => `resolved fraud event${plural ? "s" : ""}`,
     error: fraudGroupsError
       ? "Failed to load resolved fraud events"
       : undefined,
   });
 
+  const displayViewAll =
+    fraudGroups?.length &&
+    fraudGroups.length === RESOLVED_FRAUD_GROUP_PAGE_SIZE;
+
   return (
-    <div className="flex flex-col gap-3">
-      {fraudGroups?.length ? (
-        <Table {...table} />
-      ) : (
-        <div className="border-border-subtle flex flex-col items-center justify-center gap-2 rounded-lg border">
-          {fraudGroupsLoading ? (
-            <LoadingSpinner />
-          ) : (
-            <p className="text-content-subtle text-sm">
-              No resolved fraud events yet
-            </p>
-          )}
-        </div>
-      )}
+    <div className="flex flex-col gap-4">
+      <div className="flex items-end justify-between gap-4">
+        <h3 className="text-content-emphasis font-semibold">Resolved events</h3>
+        {displayViewAll ? (
+          <Link
+            href={`/${"workspaceSlug"}/program/fraud/resolved?partnerId=${partnerId}`}
+            target="_blank"
+            className={cn(
+              buttonVariants({ variant: "secondary" }),
+              "flex h-7 items-center rounded-lg border px-2 text-sm",
+            )}
+          >
+            View all
+          </Link>
+        ) : null}
+      </div>
+
+      <div className="flex flex-col gap-3">
+        {fraudGroups?.length ? (
+          <Table {...table} />
+        ) : (
+          <div className="border-border-subtle flex h-24 flex-col items-center justify-center gap-2 rounded-lg border">
+            {fraudGroupsLoading ? (
+              <LoadingSpinner />
+            ) : (
+              <p className="text-content-subtle text-sm">
+                No past resolved fraud events found for this partner
+              </p>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

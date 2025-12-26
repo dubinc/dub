@@ -233,7 +233,6 @@ export function ResolvedFraudGroupTable() {
     <div className="flex flex-col gap-6">
       {detailsSheetState.groupId && currentFraudGroup && (
         <FraudReviewSheet
-          displayMode="resolved"
           isOpen={detailsSheetState.open}
           setIsOpen={(open) =>
             setDetailsSheetState((s) => ({ ...s, open }) as any)

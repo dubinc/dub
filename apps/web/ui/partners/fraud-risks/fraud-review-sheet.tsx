@@ -33,14 +33,12 @@ interface FraudReviewSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
   onNext?: () => void;
   onPrevious?: () => void;
-  displayMode?: "resolved" | "unresolved";
 }
 
 function FraudReviewSheetContent({
   fraudGroup,
   onPrevious,
   onNext,
-  displayMode,
 }: FraudReviewSheetProps) {
   const { partner, user } = fraudGroup;
 
@@ -212,26 +210,8 @@ function FraudReviewSheetContent({
               </div>
             )}
 
-            {displayMode === "unresolved" && (
-              <div className="flex flex-col gap-4">
-                <div className="flex items-end justify-between gap-4">
-                  <h3 className="text-content-emphasis font-semibold">
-                    Resolved events
-                  </h3>
-                  <Link
-                    href={`/${slug}/program/fraud/resolved?partnerId=${partner.id}`}
-                    target="_blank"
-                    className={cn(
-                      buttonVariants({ variant: "secondary" }),
-                      "flex h-7 items-center rounded-lg border px-2 text-sm",
-                    )}
-                  >
-                    View all
-                  </Link>
-                </div>
-
-                <ResolvedFraudGroupTable partnerId={partner.id} />
-              </div>
+            {fraudGroup.status === "pending" && (
+              <ResolvedFraudGroupTable partnerId={partner.id} />
             )}
 
             {fraudGroup.status === "resolved" && (
