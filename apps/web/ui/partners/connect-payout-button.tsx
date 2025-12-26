@@ -75,7 +75,7 @@ export function ConnectPayoutButton(props: ButtonProps) {
         : !payoutMethod
           ? `Your current country (${COUNTRIES[partner.country]}) is not supported for payout. Please update your country or contact support.`
           : undefined,
-    [partner?.country],
+    [partner, payoutMethod],
   );
 
   if (partner && !hasPermission(partner.role, "payout_settings.update")) {
@@ -94,7 +94,7 @@ export function ConnectPayoutButton(props: ButtonProps) {
           <TooltipContent
             title={errorMessage}
             cta="Update profile settings"
-            href="/settings"
+            href="/profile"
           />
         )
       }

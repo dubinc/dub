@@ -9,7 +9,7 @@ import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
 import Stripe from "stripe";
 
 const queue = qstash.queue({
-  queueName: "withdraw-stripe-balance",
+  queueName: "handle-balance-available",
 });
 
 export async function accountUpdated(event: Stripe.Event) {

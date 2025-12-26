@@ -28,9 +28,9 @@ export default function usePartnerProfile() {
   return {
     partner,
     payoutMethod: partner?.country
-      ? partner.country in PAYPAL_SUPPORTED_COUNTRIES
+      ? PAYPAL_SUPPORTED_COUNTRIES.includes(partner.country)
         ? "paypal"
-        : partner.country in CONNECT_SUPPORTED_COUNTRIES
+        : CONNECT_SUPPORTED_COUNTRIES.includes(partner.country)
           ? "stripe"
           : undefined
       : undefined,
