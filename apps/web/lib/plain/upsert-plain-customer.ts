@@ -19,6 +19,17 @@ export const upsertPlainCustomer = async (
       },
       externalId: user.id,
     },
-    onUpdate: {},
+    onUpdate: {
+      fullName: {
+        value: fullName,
+      },
+      shortName: {
+        value: shortName,
+      },
+      email: {
+        email: user.email,
+        isVerified: true,
+      },
+    },
   });
 };

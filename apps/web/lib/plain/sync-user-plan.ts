@@ -9,15 +9,19 @@ export const syncUserPlanToPlain = async (user: PlainUser) => {
     return;
   }
 
-  await upsertPlainCustomer({
+  const { data } = await upsertPlainCustomer({
     id: user.id,
     name: user.name,
     email: user.email,
   });
 
-  const plainCustomer = await plain.getCustomerByExternalId({
-    externalId: user.id,
-  });
+  if (!data) {
+    console.log(
+      `Failed to upsert plain customer for user ${user.id}, skipping sync...`,
+    );
+    return;
+  }
+  const plainCustomer = data.customer;
 
   let companyDomainName: string | undefined;
   if (!isGenericEmail(user.email)) {
@@ -52,34 +56,39 @@ export const syncUserPlanToPlain = async (user: PlainUser) => {
     return;
   }
 
-  if (plainCustomer.data) {
-    await Promise.allSettled([
-      plain.addCustomerToCustomerGroups({
-        customerId: plainCustomer.data.id,
-        customerGroupIdentifiers: [
-          {
-            customerGroupKey: "app.dub.co",
-          },
-        ],
-      }),
-      ...(companyDomainName
-        ? [
-            plain.updateCompanyTier({
-              companyIdentifier: {
-                companyDomainName,
-              },
-              tierIdentifier: {
-                externalId: topWorkspace.plan.split(" ")[0].toLowerCase(),
-              },
-            }),
-          ]
-        : []),
-    ]);
+  await Promise.allSettled([
+    plain.addCustomerToCustomerGroups({
+      customerId: plainCustomer.id,
+      customerGroupIdentifiers: [
+        {
+          customerGroupKey: "app.dub.co",
+        },
+      ],
+    }),
+    ...(companyDomainName
+      ? [
+          plain.updateCompanyTier({
+            companyIdentifier: {
+              companyDomainName,
+            },
+            tierIdentifier: {
+              externalId: topWorkspace.plan.split(" ")[0].toLowerCase(),
+            },
+          }),
+        ]
+      : []),
+  ]);
 
-    console.log(
-      `Synced user ${user.id}'s plan in Plain to ${topWorkspace.plan}`,
-    );
-  }
+  await plain.addCustomerToCustomerGroups({
+    customerId: plainCustomer.id,
+    customerGroupIdentifiers: [
+      {
+        customerGroupKey: "app.dub.co",
+      },
+    ],
+  });
+
+  console.log(`Synced user ${user.id}'s plan in Plain to ${topWorkspace.plan}`);
 
   return plainCustomer;
 };

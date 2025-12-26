@@ -5,41 +5,30 @@ import { Crown } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { motion } from "motion/react";
 import Link from "next/link";
-import { useMemo } from "react";
+import ManageSubscriptionButton from "../workspaces/manage-subscription-button";
+
+export function useUpgradeBannerVisible() {
+  const { exceededClicks, exceededLinks, exceededPayouts, paymentFailedAt } =
+    useWorkspace();
+
+  const needsUpgrade = exceededClicks || exceededLinks || exceededPayouts;
+  return needsUpgrade || !!paymentFailedAt;
+}
 
 export function UpgradeBanner() {
-  const {
-    slug,
-    plan,
-    usage,
-    usageLimit,
-    linksUsage,
-    linksLimit,
-    payoutsUsage,
-    payoutsLimit,
-    paymentFailedAt,
-  } = useWorkspace();
+  const { slug, exceededClicks, exceededLinks, exceededPayouts } =
+    useWorkspace();
 
-  const needsUpgrade = useMemo(
-    () =>
-      [
-        [usage, usageLimit],
-        [linksUsage, linksLimit],
-        [payoutsUsage, payoutsLimit],
-      ].some(
-        ([usage, limit]) =>
-          usage !== undefined && limit !== undefined && usage > limit,
-      ),
-    [usage, usageLimit, linksUsage, linksLimit, payoutsUsage, payoutsLimit],
-  );
+  const needsUpgrade = exceededClicks || exceededLinks || exceededPayouts;
 
-  if (!needsUpgrade && !paymentFailedAt) return null;
+  const isVisible = useUpgradeBannerVisible();
+  if (!isVisible) return null;
 
   return (
     <motion.div
-      initial={{ height: 0 }}
-      animate={{ height: "48px" }}
-      className="text-content-inverted bg-bg-inverted flex h-12 items-center justify-center overflow-hidden px-6"
+      initial={{ transform: "translateY(-100%)" }}
+      animate={{ transform: "translateY(0)" }}
+      className="text-content-inverted bg-bg-inverted fixed left-0 right-0 top-0 z-50 flex h-12 items-center justify-center overflow-hidden px-6"
     >
       {needsUpgrade && <Crown className="mr-2 size-4 shrink-0" />}
       <p className="text-sm">
@@ -47,7 +36,9 @@ export function UpgradeBanner() {
           <>
             You&rsquo;ve hit the{" "}
             <Link href={`/${slug}/settings/billing`} className="underline">
-              monthly usage limit
+              monthly{" "}
+              {exceededClicks ? "events" : exceededLinks ? "links" : "payouts"}{" "}
+              limit
             </Link>
             <span className="xs:inline hidden">&nbsp;on your current plan</span>
             <span className="hidden md:inline">
@@ -61,19 +52,23 @@ export function UpgradeBanner() {
           </>
         )}
       </p>
-      <Link
-        href={
-          needsUpgrade
-            ? `/${slug}/settings/billing/upgrade`
-            : `/${slug}/settings/billing`
-        }
-        className={cn(
-          "bg-bg-default text-content-emphasis border-border-subtle ml-4 flex h-7 items-center justify-center rounded-lg border px-2.5 text-sm font-medium",
-          "hover:bg-bg-subtle transition-colors duration-150",
-        )}
-      >
-        {needsUpgrade ? "Upgrade" : "Update Payment Method"}
-      </Link>
+      {needsUpgrade ? (
+        <Link
+          href={`/${slug}/settings/billing/upgrade`}
+          className={cn(
+            "bg-bg-default text-content-emphasis border-border-subtle ml-4 flex h-7 items-center justify-center rounded-lg border px-2.5 text-sm font-medium",
+            "hover:bg-bg-subtle transition-colors duration-150",
+          )}
+        >
+          Upgrade
+        </Link>
+      ) : (
+        <ManageSubscriptionButton
+          text="Update Payment Method"
+          variant="secondary"
+          className="ml-4 h-7 w-fit px-2.5 text-sm font-medium"
+        />
+      )}
     </motion.div>
   );
 }

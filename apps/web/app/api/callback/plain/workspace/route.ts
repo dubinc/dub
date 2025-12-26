@@ -7,6 +7,7 @@ import { uiComponent } from "@team-plain/typescript-sdk";
 import { waitUntil } from "@vercel/functions";
 import { NextRequest, NextResponse } from "next/server";
 import {
+  plainCallbackSchema,
   plainCopySection,
   plainDivider,
   plainEmptyContainer,
@@ -21,40 +22,35 @@ export async function POST(req: NextRequest) {
     return new Response("Unauthorized", { status: 401 });
   }
 
-  let { cardKeys, customer } = await req.json();
+  let { customer } = plainCallbackSchema.parse(await req.json());
 
-  if (!cardKeys || !customer) {
-    return new Response("Invalid payload", { status: 400 });
+  const user = await prisma.user.findUnique({
+    where: customer.externalId
+      ? { id: customer.externalId }
+      : { email: customer.email },
+  });
+
+  if (!user || !user.email) {
+    return NextResponse.json({
+      cards: [
+        {
+          key: "workspace",
+          components: [plainEmptyContainer("No user found.")],
+        },
+      ],
+    });
   }
 
-  // if there's no externalId yet, try to find the user by email and set it
   if (!customer.externalId) {
-    const user = await prisma.user.findUnique({
-      where: {
-        email: customer.email,
-      },
-    });
-
-    if (!user || !user.email) {
-      return NextResponse.json({
-        cards: [
-          {
-            key: "workspace",
-            components: [plainEmptyContainer("No user found.")],
-          },
-        ],
-      });
-    }
     customer.externalId = user.id;
-
     await upsertPlainCustomer({
       id: user.id,
       name: user.name,
       email: user.email,
     });
-
-    waitUntil(syncUserPlanToPlain(user));
   }
+
+  waitUntil(syncUserPlanToPlain(user));
 
   const topWorkspace = await prisma.project.findFirst({
     where: {
