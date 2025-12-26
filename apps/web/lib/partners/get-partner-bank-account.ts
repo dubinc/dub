@@ -1,11 +1,12 @@
 import { stripe } from "@/lib/stripe";
+import Stripe from "stripe";
 import { z } from "zod";
 
-const bankAccountSchema = z
+export const bankAccountSchema = z
   .object({
     account_holder_name: z.string().nullable(),
-    bank_name: z.string(),
-    routing_number: z.string(),
+    bank_name: z.string().nullable(),
+    routing_number: z.string().nullable(),
     last4: z.string(),
     status: z.enum([
       "new",
@@ -15,16 +16,17 @@ const bankAccountSchema = z
       "tokenized_account_number_deactivated",
       "errored",
     ]),
+    fingerprint: z.string().nullish(),
   })
   .nullable();
 
 export const getPartnerBankAccount = async (stripeAccount: string) => {
-  const externalAccounts = await stripe.accounts.listExternalAccounts(
+  const externalAccounts = (await stripe.accounts.listExternalAccounts(
     stripeAccount,
     {
       object: "bank_account",
     },
-  );
+  )) as Stripe.ApiList<Stripe.BankAccount>;
 
   return externalAccounts.data.length > 0
     ? bankAccountSchema.parse(externalAccounts.data[0])

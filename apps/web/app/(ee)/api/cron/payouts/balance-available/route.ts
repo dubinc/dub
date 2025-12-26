@@ -1,8 +1,10 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { getPartnerBankAccount } from "@/lib/partners/get-partner-bank-account";
 import { stripe } from "@/lib/stripe";
 import { sendEmail } from "@dub/email";
+import PartnerPayoutWithdrawalFailed from "@dub/email/templates/partner-payout-withdrawal-failed";
 import PartnerPayoutWithdrawalInitiated from "@dub/email/templates/partner-payout-withdrawal-initiated";
 import { prisma } from "@dub/prisma";
 import {
@@ -10,6 +12,7 @@ import {
   currencyFormatter,
   formatDate,
   log,
+  prettyPrint,
 } from "@dub/utils";
 import { z } from "zod";
 import { logAndRespond } from "../../utils";
@@ -54,9 +57,6 @@ export async function POST(req: Request) {
       // should never happen, but just in case
       return logAndRespond(
         `Partner ${partner.email} (${stripeAccount}) has no available balance. Skipping...`,
-        {
-          logLevel: "error",
-        },
       );
     }
 
@@ -86,6 +86,56 @@ export async function POST(req: Request) {
 
       return logAndRespond(
         `Partner ${partner.email} (${stripeAccount})'s available balance is 0. Skipping...`,
+      );
+    }
+
+    const bankAccount = await getPartnerBankAccount(stripeAccount);
+
+    if (!bankAccount) {
+      // should never happen, but just in case
+      return logAndRespond(
+        `Partner ${partner.email} (${stripeAccount}) has no external bank account. Skipping...`,
+        {
+          logLevel: "error",
+        },
+      );
+    }
+
+    if (bankAccount.status === "errored") {
+      if (partner.email) {
+        const sentEmail = await sendEmail({
+          variant: "notifications",
+          subject:
+            "[Action Required]: Update your bank account details to receive payouts",
+          to: partner.email,
+          react: PartnerPayoutWithdrawalFailed({
+            email: partner.email,
+            bankAccount,
+            payout: {
+              amount: availableBalance,
+              currency,
+              failureReason: bankAccount.status,
+              isAvailableBalance: true,
+            },
+          }),
+        });
+        console.log(
+          `Sent email to partner ${partner.email} (${stripeAccount}): ${prettyPrint(sentEmail)}`,
+        );
+
+        const res = await qstash.publishJSON({
+          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/balance-available`,
+          delay: 3 * 60 * 60, // check again in 3 hours
+          body: {
+            stripeAccount,
+          },
+        });
+        console.log(
+          `Scheduled another check for partner ${partner.email} (${stripeAccount}) in 3 hours: ${res.messageId}`,
+        );
+      }
+      return logAndRespond(
+        `Partner ${partner.email} (${stripeAccount}) has an errored bank account. Sending email to notify the partner + scheduling another check in 3 hours...`,
       );
     }
 

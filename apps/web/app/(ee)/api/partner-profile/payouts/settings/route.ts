@@ -1,5 +1,5 @@
 import { withPartnerProfile } from "@/lib/auth/partner";
-import { getPartnerBankAccount } from "@/lib/partners/get-partner-bank-accounts";
+import { getPartnerBankAccount } from "@/lib/partners/get-partner-bank-account";
 import { NextResponse } from "next/server";
 
 // GET /api/partner-profile/payouts/settings

@@ -37,6 +37,7 @@ export default function PartnerPayoutWithdrawalFailed({
     amount: number; // in cents
     currency: string;
     failureReason?: string | null;
+    isAvailableBalance?: boolean;
   };
   bankAccount?: {
     account_holder_name: string | null;
@@ -63,17 +64,30 @@ export default function PartnerPayoutWithdrawalFailed({
             </Section>
 
             <Heading className="mx-0 my-8 p-0 text-lg font-medium text-black">
-              Your recent auto-withdrawal failed
+              {payout.isAvailableBalance
+                ? "Update your bank account details to receive payouts"
+                : "Your recent auto-withdrawal failed"}
             </Heading>
 
-            <Text>
-              We attempted to transfer{" "}
-              <span className="font-semibold text-purple-600">
-                {amountFormatted}
-              </span>{" "}
-              from your Stripe Express account to your connected bank account,
-              but the transaction failed.
-            </Text>
+            {payout.isAvailableBalance ? (
+              <Text>
+                You have an available balance of{" "}
+                <span className="font-semibold text-purple-600">
+                  {amountFormatted}
+                </span>{" "}
+                in your Stripe Express account, but we encountered an error when
+                attempting to transfer it to your connected bank account.
+              </Text>
+            ) : (
+              <Text>
+                We attempted to transfer{" "}
+                <span className="font-semibold text-purple-600">
+                  {amountFormatted}
+                </span>{" "}
+                from your Stripe Express account to your connected bank account,
+                but the transaction failed.
+              </Text>
+            )}
 
             {payout.failureReason && (
               <Text className="text-sm leading-6 text-neutral-600">
