@@ -3,7 +3,6 @@ import { log } from "@dub/utils";
 import { logAndRespond } from "app/(ee)/api/cron/utils";
 import Stripe from "stripe";
 import { accountApplicationDeauthorized } from "./account-application-deauthorized";
-import { accountExternalAccountUpdated } from "./account-external-account-updated";
 import { accountUpdated } from "./account-updated";
 import { balanceAvailable } from "./balance-available";
 import { payoutFailed } from "./payout-failed";
@@ -48,12 +47,10 @@ export const POST = async (req: Request) => {
       case "account.application.deauthorized":
         response = await accountApplicationDeauthorized(event);
         break;
-      case "account.external_account.updated":
-        response = await accountExternalAccountUpdated(event);
-        break;
       case "account.updated":
         response = await accountUpdated(event);
         break;
+      case "account.external_account.updated":
       case "balance.available":
         response = await balanceAvailable(event);
         break;
