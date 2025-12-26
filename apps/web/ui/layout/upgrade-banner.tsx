@@ -8,18 +8,18 @@ import Link from "next/link";
 import ManageSubscriptionButton from "../workspaces/manage-subscription-button";
 
 export function useUpgradeBannerVisible() {
-  const { exceededClicks, exceededLinks, exceededPayouts, paymentFailedAt } =
+  const { exceededEvents, exceededLinks, exceededPayouts, paymentFailedAt } =
     useWorkspace();
 
-  const needsUpgrade = exceededClicks || exceededLinks || exceededPayouts;
+  const needsUpgrade = exceededEvents || exceededLinks || exceededPayouts;
   return needsUpgrade || !!paymentFailedAt;
 }
 
 export function UpgradeBanner() {
-  const { slug, exceededClicks, exceededLinks, exceededPayouts } =
+  const { slug, exceededEvents, exceededLinks, exceededPayouts } =
     useWorkspace();
 
-  const needsUpgrade = exceededClicks || exceededLinks || exceededPayouts;
+  const needsUpgrade = exceededEvents || exceededLinks || exceededPayouts;
 
   const isVisible = useUpgradeBannerVisible();
   if (!isVisible) return null;
@@ -37,7 +37,7 @@ export function UpgradeBanner() {
             You&rsquo;ve hit the{" "}
             <Link href={`/${slug}/settings/billing`} className="underline">
               monthly{" "}
-              {exceededClicks ? "events" : exceededLinks ? "links" : "payouts"}{" "}
+              {exceededEvents ? "events" : exceededLinks ? "links" : "payouts"}{" "}
               limit
             </Link>
             <span className="xs:inline hidden">&nbsp;on your current plan</span>

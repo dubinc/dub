@@ -17,7 +17,7 @@ import useSWR from "swr";
 import { ProgramOverviewBlock } from "../program-overview-block";
 
 export function PartnersBlock() {
-  const { slug: workspaceSlug, exceededClicks } = useWorkspace();
+  const { slug: workspaceSlug, exceededEvents } = useWorkspace();
   const { program } = useProgram();
 
   const { queryString } = useContext(AnalyticsContext);
@@ -30,7 +30,7 @@ export function PartnersBlock() {
       partner: Pick<PartnerProps, "name" | "image">;
     }[]
   >(
-    !exceededClicks &&
+    !exceededEvents &&
       `/api/analytics?${editQueryString(queryString, {
         groupBy: "top_partners",
         event: program?.primaryRewardEvent === "lead" ? "leads" : "sales",
@@ -44,7 +44,7 @@ export function PartnersBlock() {
       viewAllHref={`/${workspaceSlug}/program/partners`}
     >
       <div className="divide-border-subtle @2xl:h-60 flex h-auto flex-col divide-y">
-        {exceededClicks ? (
+        {exceededEvents ? (
           <ExceededEventsLimit />
         ) : isLoading ? (
           <div className="flex size-full items-center justify-center py-4">
