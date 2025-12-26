@@ -112,6 +112,7 @@
     "react-hook-form": "^7.52.1",
     "react-markdown": "^9.0.3",
     "react-medium-image-zoom": "^5.3.0",
+    "react-pdf": "^10.2.0",
     "react-pdf-tailwind": "^2.3.0",
     "react-textarea-autosize": "^8.4.0",
     "react-virtualized-auto-sizer": "^1.0.25",
