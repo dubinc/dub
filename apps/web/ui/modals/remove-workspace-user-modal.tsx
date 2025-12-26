@@ -92,7 +92,7 @@ function RemoveWorkspaceUserModal({
       {restrictedTokens && restrictedTokens.length > 0 && (
         <div className="space-y-3 rounded-lg border border-amber-200 bg-amber-50 p-4">
           <div className="flex-shrink-0">
-            <TriangleWarning className="size-5 text-amber-400" />
+            <TriangleWarning className="size-5 text-amber-600" />
           </div>
 
           <h3 className="text-sm font-semibold leading-5 text-amber-900">
