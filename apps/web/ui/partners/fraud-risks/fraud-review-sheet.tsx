@@ -26,6 +26,7 @@ import { Dispatch, SetStateAction } from "react";
 import { CommissionsOnHoldTable } from "./commissions-on-hold-table";
 import { FraudDisclaimerBanner } from "./fraud-disclaimer-banner";
 import { FraudEventsTableWrapper } from "./fraud-events-tables";
+import { ResolvedFraudGroupTable } from "./resolved-fraud-group-table";
 
 interface FraudReviewSheetProps {
   fraudGroup: FraudGroupProps;
@@ -207,6 +208,10 @@ function FraudReviewSheetContent({
                 </h3>
                 <CommissionsOnHoldTable fraudGroup={fraudGroup} />
               </div>
+            )}
+
+            {fraudGroup.status === "pending" && (
+              <ResolvedFraudGroupTable partnerId={partner.id} />
             )}
 
             {fraudGroup.status === "resolved" && (
