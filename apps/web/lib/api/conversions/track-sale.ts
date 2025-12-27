@@ -25,7 +25,7 @@ import {
   trackSaleResponseSchema,
 } from "@/lib/zod/schemas/sales";
 import { prisma } from "@dub/prisma";
-import { Customer, WorkflowTrigger } from "@dub/prisma/client";
+import { Customer } from "@dub/prisma/client";
 import { nanoid, pick, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
@@ -363,10 +363,13 @@ const _trackLead = async ({
 
         await Promise.allSettled([
           executeWorkflows({
-            trigger: WorkflowTrigger.leadRecorded,
-            context: {
+            trigger: "partnerMetricsUpdated",
+            reason: "lead",
+            identity: {
               programId: link.programId,
               partnerId: link.partnerId,
+            },
+            metrics: {
               current: {
                 leads: 1,
               },
@@ -562,10 +565,13 @@ const _trackSale = async ({
 
         await Promise.allSettled([
           executeWorkflows({
-            trigger: WorkflowTrigger.saleRecorded,
-            context: {
+            trigger: "partnerMetricsUpdated",
+            reason: "sale",
+            identity: {
               programId: link.programId,
               partnerId: link.partnerId,
+            },
+            metrics: {
               current: {
                 saleAmount: saleData.amount,
                 conversions: firstConversionFlag ? 1 : 0,
