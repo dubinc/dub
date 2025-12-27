@@ -31,9 +31,9 @@ model NotificationEmail {
   @@index(partnerId)
 }
 
-model AccountNotificationPreferences {
-  id                    String  @id @default(cuid())
-  userId                String  @unique
+model UserNotificationPreferences {
+  id             String  @id @default(cuid())
+  userId         String  @unique
   dubLinks       Boolean @default(false)
   dubPartners    Boolean @default(false)
   partnerAccount Boolean @default(false)
