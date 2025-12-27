@@ -1,11 +1,11 @@
 import { detectDuplicatePayoutMethodFraud } from "@/lib/api/fraud/detect-duplicate-payout-method-fraud";
 import { qstash } from "@/lib/cron";
-import { stripe } from "@/lib/stripe";
+import { getPartnerBankAccount } from "@/lib/partners/get-partner-bank-account";
 import { sendEmail } from "@dub/email";
 import ConnectedPayoutMethod from "@dub/email/templates/connected-payout-method";
 import DuplicatePayoutMethod from "@dub/email/templates/duplicate-payout-method";
 import { prisma } from "@dub/prisma";
-import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import Stripe from "stripe";
 
 const queue = qstash.queue({
@@ -45,26 +45,17 @@ export async function accountUpdated(event: Stripe.Event) {
           payoutMethodHash: null,
         },
       });
+      // TODO: notify partner about the change
       return `Payouts disabled, updated partner ${partner.email} (${partner.stripeConnectId}) with payoutsEnabledAt and payoutMethodHash null`;
     }
     return `No change in payout status for ${partner.email} (${partner.stripeConnectId}), skipping...`;
   }
 
-  const { data: externalAccounts } = await stripe.accounts.listExternalAccounts(
-    partner.stripeConnectId!,
-  );
+  const bankAccount = await getPartnerBankAccount(partner.stripeConnectId!);
 
-  const defaultExternalAccount = externalAccounts.find(
-    (account) => account.default_for_currency,
-  );
-
-  if (!defaultExternalAccount) {
-    // this should never happen, but just in case
-    await log({
-      message: `Expected at least 1 external account for partner ${partner.email} (${partner.stripeConnectId}), none found`,
-      type: "errors",
-    });
-    return `Expected at least 1 external account for partner ${partner.email} (${partner.stripeConnectId}), none found`;
+  if (!bankAccount) {
+    // TODO: account for cases where partner connects a debit card instead
+    return `No bank account found for partner ${partner.email} (${partner.stripeConnectId}), skipping...`;
   }
 
   const { payoutMethodHash } = await prisma.partner.update({
@@ -76,7 +67,7 @@ export async function accountUpdated(event: Stripe.Event) {
       payoutsEnabledAt: partner.payoutsEnabledAt
         ? undefined // Don't update if already set
         : new Date(),
-      payoutMethodHash: defaultExternalAccount.fingerprint,
+      payoutMethodHash: bankAccount.fingerprint,
     },
   });
 
@@ -98,8 +89,7 @@ export async function accountUpdated(event: Stripe.Event) {
     if (
       duplicatePartnersCount === 0 &&
       partner.email &&
-      !partner.payoutsEnabledAt &&
-      defaultExternalAccount.object === "bank_account"
+      !partner.payoutsEnabledAt
     ) {
       await sendEmail({
         variant: "notifications",
@@ -107,34 +97,20 @@ export async function accountUpdated(event: Stripe.Event) {
         to: partner.email,
         react: ConnectedPayoutMethod({
           email: partner.email,
-          payoutMethod: {
-            account_holder_name: defaultExternalAccount.account_holder_name,
-            bank_name: defaultExternalAccount.bank_name,
-            last4: defaultExternalAccount.last4,
-            routing_number: defaultExternalAccount.routing_number,
-          },
+          payoutMethod: bankAccount,
         }),
       });
     }
 
     // Notify the partner about duplicate payout method
-    if (
-      duplicatePartnersCount > 0 &&
-      partner.email &&
-      defaultExternalAccount.object === "bank_account"
-    ) {
+    if (duplicatePartnersCount > 0 && partner.email) {
       await sendEmail({
         variant: "notifications",
         subject: "Duplicate payout method detected",
         to: partner.email,
         react: DuplicatePayoutMethod({
           email: partner.email,
-          payoutMethod: {
-            account_holder_name: defaultExternalAccount.account_holder_name,
-            bank_name: defaultExternalAccount.bank_name,
-            last4: defaultExternalAccount.last4,
-            routing_number: defaultExternalAccount.routing_number,
-          },
+          payoutMethod: bankAccount,
         }),
       });
     }
@@ -151,7 +127,7 @@ export async function accountUpdated(event: Stripe.Event) {
   });
 
   if (pendingPayouts > 0) {
-    await queue.enqueueJSON({
+    const response = await queue.enqueueJSON({
       url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/balance-available`,
       deduplicationId: event.id,
       method: "POST",
@@ -159,7 +135,8 @@ export async function accountUpdated(event: Stripe.Event) {
         stripeAccount: partner.stripeConnectId,
       },
     });
+    return `Enqueued handle-balance-available queue for partner ${partner.stripeConnectId}: ${response.messageId}`;
   }
 
-  return `Updated partner ${partner.email} (${partner.stripeConnectId}) with country ${country}, payoutsEnabledAt set, payoutMethodHash ${defaultExternalAccount.fingerprint}`;
+  return `Updated partner ${partner.email} (${partner.stripeConnectId}) with country ${country}, payoutsEnabledAt set, payoutMethodHash ${bankAccount.fingerprint}`;
 }

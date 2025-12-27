@@ -13,6 +13,7 @@ import {
   Button,
   InfoTooltip,
   Sheet,
+  useRouterStuff,
   useScrollProgress,
 } from "@dub/ui";
 import {
@@ -23,23 +24,11 @@ import {
 import { COUNTRY_CURRENCY_CODES } from "@dub/utils/src";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
-import {
-  Dispatch,
-  SetStateAction,
-  useCallback,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import TextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 import { z } from "zod";
-
-type PartnerPayoutSettingsSheetProps = {
-  showPartnerPayoutSettingsSheet: boolean;
-  setShowPartnerPayoutSettingsSheet: Dispatch<SetStateAction<boolean>>;
-};
 
 type PartnerPayoutSettingsFormData = z.infer<
   typeof partnerPayoutSettingsSchema
@@ -67,24 +56,38 @@ function useExternalPayoutEnrollments() {
   };
 }
 
-function PartnerPayoutSettingsSheet(props: PartnerPayoutSettingsSheetProps) {
-  const { showPartnerPayoutSettingsSheet, setShowPartnerPayoutSettingsSheet } =
-    props;
+export function PartnerPayoutSettingsSheet() {
+  const { queryParams, searchParams } = useRouterStuff();
+  const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    const settings = searchParams.get("settings");
+
+    if (settings === "true") {
+      setIsOpen(true);
+    } else {
+      setIsOpen(false);
+    }
+  }, [searchParams]);
 
   return (
     <Sheet
-      open={showPartnerPayoutSettingsSheet}
-      onOpenChange={setShowPartnerPayoutSettingsSheet}
+      open={isOpen}
+      onOpenChange={setIsOpen}
+      onClose={() => {
+        queryParams({
+          del: "settings",
+        });
+      }}
     >
-      <PartnerPayoutSettingsSheetInner {...props} />
+      <PartnerPayoutSettingsSheetInner />
     </Sheet>
   );
 }
 
-function PartnerPayoutSettingsSheetInner({
-  setShowPartnerPayoutSettingsSheet,
-}: PartnerPayoutSettingsSheetProps) {
+function PartnerPayoutSettingsSheetInner() {
   const { partner } = usePartnerProfile();
+  const { queryParams } = useRouterStuff();
 
   const {
     register,
@@ -103,7 +106,9 @@ function PartnerPayoutSettingsSheetInner({
     {
       onSuccess: async () => {
         toast.success("Payout settings updated successfully!");
-        setShowPartnerPayoutSettingsSheet(false);
+        queryParams({
+          del: "settings",
+        });
         mutatePrefix("/api/partner-profile");
       },
       onError({ error }) {
@@ -242,7 +247,11 @@ function PartnerPayoutSettingsSheetInner({
           text="Cancel"
           disabled={isPending}
           className="h-8 w-fit px-3"
-          onClick={() => setShowPartnerPayoutSettingsSheet(false)}
+          onClick={() => {
+            queryParams({
+              del: "settings",
+            });
+          }}
         />
 
         <Button
@@ -324,23 +333,25 @@ function ConnectedExternalAccounts() {
 }
 
 export function usePartnerPayoutSettingsSheet() {
-  const [showPartnerPayoutSettingsSheet, setShowPartnerPayoutSettingsSheet] =
-    useState(false);
+  const { queryParams } = useRouterStuff();
+
+  const openSettings = useCallback(() => {
+    queryParams({
+      set: {
+        settings: "true",
+      },
+    });
+  }, [queryParams]);
 
   const PartnerPayoutSettingsSheetCallback = useCallback(() => {
-    return (
-      <PartnerPayoutSettingsSheet
-        showPartnerPayoutSettingsSheet={showPartnerPayoutSettingsSheet}
-        setShowPartnerPayoutSettingsSheet={setShowPartnerPayoutSettingsSheet}
-      />
-    );
-  }, [showPartnerPayoutSettingsSheet, setShowPartnerPayoutSettingsSheet]);
+    return <PartnerPayoutSettingsSheet />;
+  }, []);
 
   return useMemo(
     () => ({
-      setShowPartnerPayoutSettingsSheet,
+      openSettings,
       PartnerPayoutSettingsSheet: PartnerPayoutSettingsSheetCallback,
     }),
-    [setShowPartnerPayoutSettingsSheet, PartnerPayoutSettingsSheetCallback],
+    [openSettings, PartnerPayoutSettingsSheetCallback],
   );
 }

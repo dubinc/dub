@@ -22,5 +22,5 @@ export async function balanceAvailable(event: Stripe.Event) {
     },
   });
 
-  return `Enqueued balance available for partner ${stripeAccount}: ${response.messageId}`;
+  return `Enqueued handle-balance-available queue for partner ${stripeAccount}: ${response.messageId}`;
 }

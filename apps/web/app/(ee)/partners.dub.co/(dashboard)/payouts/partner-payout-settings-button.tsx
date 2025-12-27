@@ -9,7 +9,7 @@ import { usePartnerPayoutSettingsSheet } from "./partner-payout-settings-sheet";
 export function PartnerPayoutSettingsButton() {
   const { partner } = usePartnerProfile();
 
-  const { PartnerPayoutSettingsSheet, setShowPartnerPayoutSettingsSheet } =
+  const { PartnerPayoutSettingsSheet, openSettings } =
     usePartnerPayoutSettingsSheet();
 
   if (partner && !hasPermission(partner.role, "payout_settings.update")) {
@@ -29,7 +29,7 @@ export function PartnerPayoutSettingsButton() {
         text="Payout settings"
         variant="secondary"
         className="h-9 px-3"
-        onClick={() => setShowPartnerPayoutSettingsSheet(true)}
+        onClick={openSettings}
       />
     </>
   );
