@@ -38,7 +38,6 @@ export function UnsubscribeForm({
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [unsubscribedAll, setUnsubscribedAll] = useState(false);
   const [originalPreferences, setOriginalPreferences] =
     useState<PreferenceState | null>(null);
 
@@ -142,7 +141,6 @@ export function UnsubscribeForm({
 
       setPreferences(allOff);
       setOriginalPreferences(allOff);
-      setUnsubscribedAll(true);
       toast.success("You have been unsubscribed from all emails!");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Something went wrong");
@@ -150,39 +148,6 @@ export function UnsubscribeForm({
       setSaving(false);
     }
   }, [token]);
-
-  if (unsubscribedAll) {
-    return (
-      <div className="flex flex-col items-center justify-center gap-3 border-b border-neutral-200 bg-white px-4 py-6 pt-8 text-center sm:rounded-t-2xl sm:px-6 md:px-16">
-        <div className="flex size-12 items-center justify-center rounded-full bg-green-100">
-          <svg
-            className="size-6 text-green-600"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M5 13l4 4L19 7"
-            />
-          </svg>
-        </div>
-        <h2 className="mt-2 text-xl font-semibold text-neutral-900">
-          You&apos;ve been unsubscribed
-        </h2>
-        <p className="max-w-xs text-sm text-neutral-500">
-          You won&apos;t receive any more marketing emails from us at{" "}
-          <span className="font-medium text-neutral-700">{email}</span>
-        </p>
-        <p className="mt-4 text-xs text-neutral-400">
-          Changed your mind? You can always re-subscribe from your account
-          settings.
-        </p>
-      </div>
-    );
-  }
 
   return (
     <>

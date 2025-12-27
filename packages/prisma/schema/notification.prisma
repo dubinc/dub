@@ -34,9 +34,9 @@ model NotificationEmail {
 model UserNotificationPreferences {
   id             String  @id @default(cuid())
   userId         String  @unique
-  dubLinks       Boolean @default(false)
-  dubPartners    Boolean @default(false)
-  partnerAccount Boolean @default(false)
+  dubLinks       Boolean @default(true)
+  dubPartners    Boolean @default(true)
+  partnerAccount Boolean @default(true)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 

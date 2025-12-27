@@ -1,7 +1,5 @@
 import { NOTIFICATION_PREFERENCE_TYPES } from "@/lib/constants/notification-preferences";
 import { verifyUnsubscribeToken } from "@/lib/email/unsubscribe-token";
-import { subscribe } from "@dub/email/resend/subscribe";
-import { unsubscribe } from "@dub/email/resend/unsubscribe";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -48,8 +46,6 @@ export async function GET(request: Request) {
         },
       },
     });
-
-    console.log({ user });
 
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
@@ -101,7 +97,6 @@ export async function POST(request: Request) {
         id: true,
         name: true,
         email: true,
-        subscribed: true,
         notificationPreferences: {
           select: {
             dubLinks: true,
@@ -143,27 +138,6 @@ export async function POST(request: Request) {
         },
       },
     });
-
-    // Check if all preferences are off (unsubscribed from all)
-    const allUnsubscribed = NOTIFICATION_PREFERENCE_TYPES.every(
-      (type) => preferences[type] === false,
-    );
-
-    // Update legacy subscribed field
-    await prisma.user.update({
-      where: { id: user.id },
-      data: {
-        subscribed: !allUnsubscribed,
-      },
-    });
-
-    // Sync with Resend audience
-    if (allUnsubscribed) {
-      await unsubscribe({ email });
-    } else if (!user.subscribed) {
-      // Re-subscribe if previously unsubscribed
-      await subscribe({ email, name: user.name ?? undefined });
-    }
 
     // Return updated preferences
     return NextResponse.json({

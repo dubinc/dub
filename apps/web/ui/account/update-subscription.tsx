@@ -1,36 +1,26 @@
-import { Switch, useOptimisticUpdate } from "@dub/ui";
-import { APP_NAME } from "@dub/utils";
+import { generateUnsubscribeUrl } from "@/lib/email/unsubscribe-token";
+import useUser from "@/lib/swr/use-user";
+import ExternalLink from "@/ui/shared/icons/external-link";
+import Link from "next/link";
 
 export default function UpdateSubscription() {
-  const { data, isLoading, update } = useOptimisticUpdate<{
-    subscribed: boolean;
-  }>("/api/user/subscribe", {
-    loading: "Updating email preferences...",
-    success: `Your ${APP_NAME} email preferences has been updated!`,
-    error: "Failed to update email preferences. Please try again.",
-  });
+  const { user } = useUser();
 
-  const subscribe = async (checked: boolean) => {
-    const method = checked ? "POST" : "DELETE";
-    const res = await fetch("/api/user/subscribe", {
-      method,
-    });
-    if (!res.ok) {
-      throw new Error("Failed to update email preferences");
-    }
-    return { subscribed: checked };
-  };
+  if (!user?.email) {
+    return null;
+  }
+
+  const unsubscribeUrl = generateUnsubscribeUrl(user.email);
 
   return (
     <div className="flex items-center gap-x-2">
-      <Switch
-        checked={data?.subscribed}
-        loading={isLoading}
-        fn={(checked: boolean) => {
-          update(() => subscribe(checked), { subscribed: checked });
-        }}
-      />
-      <p className="text-sm text-neutral-500">Subscribed to product updates</p>
+      <Link
+        href={unsubscribeUrl}
+        className="flex items-center gap-x-2 text-sm text-neutral-500 transition-colors hover:text-neutral-700"
+      >
+        <span>Manage email subscriptions</span>
+        <ExternalLink className="h-4 w-4" />
+      </Link>
     </div>
   );
 }

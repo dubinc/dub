@@ -3,7 +3,6 @@ import { withSession } from "@/lib/auth";
 import { confirmEmailChange } from "@/lib/auth/confirm-email-change";
 import { storage } from "@/lib/storage";
 import { uploadedImageSchema } from "@/lib/zod/schemas/misc";
-import { unsubscribe } from "@dub/email/resend/unsubscribe";
 import { prisma } from "@dub/prisma";
 import {
   APP_DOMAIN,
@@ -37,7 +36,6 @@ export const GET = withSession(async ({ session }) => {
         name: true,
         email: true,
         image: true,
-        subscribed: true,
         source: true,
         defaultWorkspace: true,
         defaultPartnerId: true,
@@ -171,13 +169,13 @@ export const DELETE = withSession(async ({ session }) => {
         id: session.user.id,
       },
     });
-    const response = await Promise.allSettled([
-      // if the user has a custom avatar and it is stored by their userId, delete it
+    // if the user has a custom avatar and it is stored by their userId, delete it
+    if (
       user.image &&
-        user.image.startsWith(`${R2_URL}/avatars/${session.user.id}`) &&
-        storage.delete({ key: user.image.replace(`${R2_URL}/`, "") }),
-      unsubscribe({ email: session.user.email }),
-    ]);
-    return NextResponse.json(response);
+      user.image.startsWith(`${R2_URL}/avatars/${session.user.id}`)
+    ) {
+      await storage.delete({ key: user.image.replace(`${R2_URL}/`, "") });
+    }
+    return NextResponse.json(user);
   }
 });
