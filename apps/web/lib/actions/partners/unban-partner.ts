@@ -138,6 +138,33 @@ export const unbanPartnerAction = authActionClient
           }),
         ]);
 
+        await prisma.$transaction([
+          // Since we're unbanning the partner, we need to
+          // clean up any pending cross-program ban alerts that originated from this program.
+          prisma.fraudEvent.deleteMany({
+            where: {
+              partnerId,
+              sourceProgramId: programId,
+              fraudEventGroup: {
+                status: "pending",
+                type: "partnerCrossProgramBan",
+              },
+            },
+          }),
+
+          // Delete the fraud group if it has no more fraud events
+          prisma.fraudEventGroup.deleteMany({
+            where: {
+              partnerId,
+              status: "pending",
+              type: "partnerCrossProgramBan",
+              fraudEvents: {
+                none: {},
+              },
+            },
+          }),
+        ]);
+
         // TODO
         // Send email to partner about being unbanned
       })(),

@@ -3,12 +3,17 @@ import { createHash } from "crypto";
 
 type CreateEventHashInput = Pick<
   CreateFraudEventInput,
-  "type" | "programId" | "partnerId" | "customerId" | "metadata"
+  | "type"
+  | "programId"
+  | "partnerId"
+  | "customerId"
+  | "sourceProgramId"
+  | "metadata"
 >;
 
 type GetIdentityFieldsForFraudEventInput = Pick<
   CreateFraudEventInput,
-  "type" | "partnerId" | "customerId" | "metadata"
+  "type" | "partnerId" | "customerId" | "sourceProgramId" | "metadata"
 >;
 
 // Normalize email for comparison
@@ -67,6 +72,7 @@ function getIdentityFieldsForFraudEvent({
   type,
   customerId,
   metadata,
+  sourceProgramId,
 }: GetIdentityFieldsForFraudEventInput): Record<string, string> {
   const eventMetadata = metadata as Record<string, string>;
 
@@ -89,6 +95,14 @@ function getIdentityFieldsForFraudEvent({
       };
 
     case "partnerCrossProgramBan":
+      if (!sourceProgramId) {
+        throw new Error(`sourceProgramId is required for ${type} fraud rule.`);
+      }
+
+      return {
+        sourceProgramId,
+      };
+
     case "partnerFraudReport":
       return {};
   }
