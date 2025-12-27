@@ -22,14 +22,14 @@ export function FraudCrossProgramBanTable() {
         header: "Date",
         minSize: 140,
         size: 160,
-        cell: ({ row }) => (
+        cell: ({ row: { original } }) => (
           <TimestampTooltip
-            timestamp={row.original.bannedAt}
+            timestamp={original.metadata.bannedAt}
             side="right"
             rows={["local", "utc", "unix"]}
             delayDuration={150}
           >
-            <p>{formatDateTimeSmart(row.original.bannedAt || "")}</p>
+            <p>{formatDateTimeSmart(original.metadata.bannedAt || "")}</p>
           </TimestampTooltip>
         ),
       },
@@ -38,10 +38,10 @@ export function FraudCrossProgramBanTable() {
         header: "Ban reason",
         minSize: 180,
         size: 220,
-        cell: ({ row }) => {
-          return row.original.bannedReason ? (
+        cell: ({ row: { original } }) => {
+          return original.metadata.bannedReason ? (
             <span className="text-sm text-neutral-600">
-              {BAN_PARTNER_REASONS[row.original.bannedReason]}
+              {BAN_PARTNER_REASONS[original.metadata.bannedReason]}
             </span>
           ) : (
             "-"

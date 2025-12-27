@@ -60,6 +60,7 @@ model FraudEvent {
   linkId            String?
   customerId        String?
   eventId           String?
+  sourceProgramId   String? // The program that originated the ban/fraud report
   hash              String
   metadata          Json?    @db.Json
   createdAt         DateTime @default(now())
@@ -69,6 +70,7 @@ model FraudEvent {
   partner         Partner         @relation(fields: [partnerId], references: [id], onDelete: Cascade)
   customer        Customer?       @relation(fields: [customerId], references: [id])
   link            Link?           @relation(fields: [linkId], references: [id])
+  sourceProgram   Program?        @relation("SourceFraudEvents", fields: [sourceProgramId], references: [id])
 
   @@index([programId, partnerId, customerId])
   @@index(partnerId)
@@ -76,4 +78,5 @@ model FraudEvent {
   @@index(linkId)
   @@index(eventId)
   @@index(hash)
+  @@index(sourceProgramId)
 }
