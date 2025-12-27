@@ -1,26 +1,42 @@
-import { generateUnsubscribeUrl } from "@/lib/email/unsubscribe-token";
+import { generateUnsubscribeTokenAction } from "@/lib/actions/generate-unsubscribe-url";
 import useUser from "@/lib/swr/use-user";
-import ExternalLink from "@/ui/shared/icons/external-link";
-import Link from "next/link";
+import { LoadingSpinner } from "@dub/ui";
+import { cn } from "@dub/utils";
+import { useAction } from "next-safe-action/hooks";
 
 export default function UpdateSubscription() {
   const { user } = useUser();
 
+  const { executeAsync, isExecuting } = useAction(
+    generateUnsubscribeTokenAction,
+    {
+      onSuccess: ({ data }) => {
+        if (!data?.token) {
+          return;
+        }
+        window.open(`/unsubscribe/${data.token}`, "_blank");
+      },
+    },
+  );
+
   if (!user?.email) {
-    return null;
+    return <div />;
   }
 
-  const unsubscribeUrl = generateUnsubscribeUrl(user.email);
-
   return (
-    <div className="flex items-center gap-x-2">
-      <Link
-        href={unsubscribeUrl}
-        className="flex items-center gap-x-2 text-sm text-neutral-500 transition-colors hover:text-neutral-700"
-      >
-        <span>Manage email subscriptions</span>
-        <ExternalLink className="h-4 w-4" />
-      </Link>
-    </div>
+    <button
+      type="button"
+      onClick={() => executeAsync()}
+      disabled={isExecuting}
+      className={cn(
+        "flex items-center gap-x-1.5 text-sm text-neutral-500 transition-colors hover:text-neutral-700",
+        isExecuting && "cursor-not-allowed",
+      )}
+    >
+      <span className="underline decoration-dotted underline-offset-2">
+        Manage email preferences
+      </span>{" "}
+      {isExecuting ? <LoadingSpinner className="size-3" /> : "↗"}
+    </button>
   );
 }

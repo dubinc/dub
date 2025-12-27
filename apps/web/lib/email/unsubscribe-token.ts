@@ -1,7 +1,6 @@
-import { APP_DOMAIN } from "@dub/utils";
 import { createHmac } from "crypto";
 
-const UNSUBSCRIBE_TOKEN_SECRET = process.env.NEXTAUTH_SECRET || "secret";
+const UNSUBSCRIBE_TOKEN_SECRET = process.env.UNSUBSCRIBE_TOKEN_SECRET!;
 
 /**
  * Generate a secure unsubscribe token for an email address.
@@ -45,12 +44,4 @@ export function verifyUnsubscribeToken(token: string): string | null {
   } catch {
     return null;
   }
-}
-
-/**
- * Generate an unsubscribe URL for an email address.
- */
-export function generateUnsubscribeUrl(email: string): string {
-  const token = generateUnsubscribeToken(email);
-  return `${APP_DOMAIN}/unsubscribe/${token}`;
 }
