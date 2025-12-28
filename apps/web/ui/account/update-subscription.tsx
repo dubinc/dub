@@ -1,20 +1,22 @@
 import { generateUnsubscribeTokenAction } from "@/lib/actions/generate-unsubscribe-url";
 import useUser from "@/lib/swr/use-user";
-import { LoadingSpinner } from "@dub/ui";
+import { ExpandingArrow, LoadingSpinner } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
+import { useRouter } from "next/navigation";
 
 export default function UpdateSubscription() {
+  const router = useRouter();
   const { user } = useUser();
 
-  const { executeAsync, isExecuting } = useAction(
+  const { executeAsync, isPending } = useAction(
     generateUnsubscribeTokenAction,
     {
       onSuccess: ({ data }) => {
         if (!data?.token) {
           return;
         }
-        window.open(`/unsubscribe/${data.token}`, "_blank");
+        router.push(`/unsubscribe/${data.token}`);
       },
     },
   );
@@ -27,16 +29,20 @@ export default function UpdateSubscription() {
     <button
       type="button"
       onClick={() => executeAsync()}
-      disabled={isExecuting}
+      disabled={isPending}
       className={cn(
-        "flex items-center gap-x-1.5 text-sm text-neutral-500 transition-colors hover:text-neutral-700",
-        isExecuting && "cursor-not-allowed",
+        "group flex items-center gap-x-1 text-sm text-neutral-500 transition-colors hover:text-neutral-700",
+        isPending && "cursor-not-allowed",
       )}
     >
       <span className="underline decoration-dotted underline-offset-2">
         Manage email preferences
       </span>{" "}
-      {isExecuting ? <LoadingSpinner className="size-3" /> : "↗"}
+      {isPending ? (
+        <LoadingSpinner className="size-3" />
+      ) : (
+        <ExpandingArrow className="size-3" />
+      )}
     </button>
   );
 }

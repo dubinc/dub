@@ -1,7 +1,9 @@
+import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { ratelimitOrThrow } from "@/lib/api/utils";
 import { NOTIFICATION_PREFERENCE_TYPES } from "@/lib/constants/notification-preferences";
 import { verifyUnsubscribeToken } from "@/lib/email/unsubscribe-token";
 import { prisma } from "@dub/prisma";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 const requestSchema = z.object({
@@ -13,8 +15,10 @@ const requestSchema = z.object({
 });
 
 // GET /api/user/notification-preferences?token=... – get notification preferences via unsubscribe link
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
+    await ratelimitOrThrow(request, "notification-preferences");
+
     const { searchParams } = new URL(request.url);
     const token = searchParams.get("token");
 
@@ -66,17 +70,15 @@ export async function GET(request: Request) {
 
     return NextResponse.json(preferences);
   } catch (error) {
-    console.error("Error fetching notification preferences:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return handleAndReturnErrorResponse(error);
   }
 }
 
 // POST /api/user/notification-preferences – update notification preferences via unsubscribe link
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
+    await ratelimitOrThrow(request, "notification-preferences");
+
     const body = await request.json();
     const { token, preferences } = requestSchema.parse(body);
 
@@ -145,17 +147,6 @@ export async function POST(request: Request) {
       preferences: updatedPrefs,
     });
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: "Invalid request body", details: error.errors },
-        { status: 400 },
-      );
-    }
-
-    console.error("Error updating notification preferences:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return handleAndReturnErrorResponse(error);
   }
 }
