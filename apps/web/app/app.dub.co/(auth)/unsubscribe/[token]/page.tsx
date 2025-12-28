@@ -6,7 +6,7 @@ import { UnsubscribeForm } from "./unsubscribe-form";
 
 export const metadata = constructMetadata({
   title: "Email Preferences – Dub",
-  description: "Manage your email subscription preferences",
+  description: "Manage your email subscription preferences on Dub",
   noIndex: true,
 });
 
