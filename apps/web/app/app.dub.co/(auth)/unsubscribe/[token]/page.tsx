@@ -28,7 +28,7 @@ export default async function UnsubscribePage(props: {
   }
 
   return (
-    <div className="m-auto w-full max-w-lg rounded-2xl border border-neutral-200 shadow-xl">
+    <div className="m-auto w-full max-w-lg overflow-hidden border border-neutral-200 shadow-xl sm:rounded-2xl">
       <UnsubscribeForm email={email} token={token} />
     </div>
   );

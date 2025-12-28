@@ -1,4 +1,4 @@
-import { createHmac } from "crypto";
+import { createHmac, timingSafeEqual } from "crypto";
 
 const TOKEN_SECRET = process.env.UNSUBSCRIBE_TOKEN_SECRET;
 
@@ -40,7 +40,12 @@ export function verifyUnsubscribeToken(token: string): string | null {
       .digest("hex")
       .slice(0, 16);
 
-    if (signature !== expectedSignature) {
+    if (
+      !timingSafeEqual(
+        Uint8Array.from(Buffer.from(signature)),
+        Uint8Array.from(Buffer.from(expectedSignature)),
+      )
+    ) {
       return null;
     }
 

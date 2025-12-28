@@ -7,8 +7,10 @@ import {
 } from "@/lib/constants/notification-preferences";
 import { Button, Switch } from "@dub/ui";
 import { DubLinksIcon, DubPartnersIcon, UserPlus } from "@dub/ui/icons";
+import { fetcher } from "@dub/utils";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import useSWRImmutable from "swr/immutable";
 
 type PreferenceState = Record<NotificationPreferenceType, boolean>;
 
@@ -36,38 +38,36 @@ export function UnsubscribeForm({
     return initial as PreferenceState;
   });
 
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [originalPreferences, setOriginalPreferences] =
     useState<PreferenceState | null>(null);
 
   // Fetch initial preferences from API
+  const {
+    data: fetchedPreferences,
+    error,
+    isLoading: loading,
+  } = useSWRImmutable<PreferenceState>(
+    `/api/user/notification-preferences?token=${encodeURIComponent(token)}`,
+    fetcher,
+  );
+
+  // Sync fetched preferences to state
   useEffect(() => {
-    const fetchPreferences = async () => {
-      try {
-        const res = await fetch(
-          `/api/user/notification-preferences?token=${encodeURIComponent(token)}`,
-        );
+    if (fetchedPreferences) {
+      setPreferences(fetchedPreferences);
+      setOriginalPreferences(fetchedPreferences);
+    }
+  }, [fetchedPreferences]);
 
-        if (!res.ok) {
-          const data = await res.json();
-          throw new Error(data.error || "Failed to load preferences");
-        }
-
-        const data = await res.json();
-        setPreferences(data as PreferenceState);
-        setOriginalPreferences(data as PreferenceState);
-      } catch (err) {
-        toast.error(
-          err instanceof Error ? err.message : "Failed to load preferences",
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPreferences();
-  }, [token]);
+  // Handle errors
+  useEffect(() => {
+    if (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to load preferences",
+      );
+    }
+  }, [error]);
 
   // Check if form is dirty (has changes)
   const isDirty = useMemo(() => {
