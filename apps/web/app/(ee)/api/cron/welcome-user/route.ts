@@ -1,7 +1,6 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { sendEmail } from "@dub/email";
-import { subscribe } from "@dub/email/resend/subscribe";
 import WelcomeEmail from "@dub/email/templates/welcome-email";
 import WelcomeEmailPartner from "@dub/email/templates/welcome-email-partner";
 import { prisma } from "@dub/prisma";
@@ -57,13 +56,6 @@ export async function POST(req: Request) {
             }),
         variant: "marketing",
       }),
-      // only subscribe non-partner users to the mailing list
-      !isPartner
-        ? subscribe({
-            email: user.email,
-            name: user.name || undefined,
-          })
-        : Promise.resolve(),
     ]);
 
     return new Response("Welcome email sent and user subscribed.", {

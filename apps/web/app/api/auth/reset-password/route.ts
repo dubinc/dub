@@ -90,7 +90,7 @@ export async function POST(req: NextRequest) {
     // Send the email to inform the user that their password has been reset
     waitUntil(
       sendEmail({
-        subject: `Your ${process.env.NEXT_PUBLIC_APP_NAME} account password has been reset`,
+        subject: "Your Dub account password has been reset",
         to: identifier,
         react: PasswordUpdated({
           email: identifier,

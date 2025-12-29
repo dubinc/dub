@@ -18,6 +18,7 @@ const resendEmailForOptions = (
     scheduledAt,
     headers,
     tags,
+    unsubscribeUrl,
   } = opts;
 
   // Build base options without rendered outputs (react/text)
@@ -36,7 +37,8 @@ const resendEmailForOptions = (
       ? {
           headers: {
             ...(headers || {}),
-            "List-Unsubscribe": "https://app.dub.co/account/settings",
+            "List-Unsubscribe":
+              unsubscribeUrl || "https://app.dub.co/account/settings",
           },
         }
       : headers && { headers }),
