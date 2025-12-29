@@ -12,6 +12,7 @@ import { usePartnersUpgradeModal } from "../partners-upgrade-modal";
 import { FraudDisclaimerBanner } from "./fraud-disclaimer-banner";
 import { PartnerApplicationFraudSeverityIndicator } from "./partner-application-fraud-severity-indicator";
 import { usePartnerApplicationRiskSummaryModal } from "./partner-application-risk-summary-modal";
+import { PartnerCrossProgramSummary } from "./program-owner-activity";
 
 interface PartnerApplicationRiskSummaryProps {
   partner: EnrolledPartnerExtendedProps;
@@ -83,6 +84,9 @@ export function PartnerApplicationRiskSummary({
             );
           })}
         </ul>
+
+        <PartnerCrossProgramSummary partnerId={partner.id} />
+
         {severity === "high" && (
           <FraudDisclaimerBanner className="gap-2 px-3 py-2" />
         )}

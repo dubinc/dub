@@ -3,7 +3,11 @@
 import { useCrossProgramSummary } from "@/lib/swr/use-cross-program-summary";
 import { UserCheck, UserXmark } from "@dub/ui";
 
-export function ProgramOwnerActivity({ partnerId }: { partnerId: string }) {
+export function PartnerCrossProgramSummary({
+  partnerId,
+}: {
+  partnerId: string;
+}) {
   const { crossProgramSummary, isLoading } = useCrossProgramSummary({
     partnerId,
   });
