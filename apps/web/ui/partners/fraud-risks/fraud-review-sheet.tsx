@@ -19,13 +19,14 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { OG_AVATAR_URL, cn, formatDateTime } from "@dub/utils";
-import { useResolveFraudGroupModal } from "app/app.dub.co/(dashboard)/[slug]/(ee)/program/fraud/resolve-fraud-group-modal";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Dispatch, SetStateAction } from "react";
 import { CommissionsOnHoldTable } from "./commissions-on-hold-table";
 import { FraudDisclaimerBanner } from "./fraud-disclaimer-banner";
 import { FraudEventsTableWrapper } from "./fraud-events-tables";
+import { PartnerCrossProgramSummary } from "./partner-cross-program-summary";
+import { useResolveFraudGroupModal } from "./resolve-fraud-group-modal";
 import { ResolvedFraudGroupTable } from "./resolved-fraud-group-table";
 
 interface FraudReviewSheetProps {
@@ -110,7 +111,31 @@ function FraudReviewSheetContent({
               : "Resolved fraud and risk event"}
           </Sheet.Title>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Link
+              href={`/${slug}/program/partners/${partner.id}`}
+              target="_blank"
+              className={cn(
+                buttonVariants({ variant: "secondary" }),
+                "flex h-9 items-center gap-2 whitespace-nowrap rounded-lg border px-3 text-sm font-medium",
+              )}
+            >
+              <User className="size-4 shrink-0" />
+              <span className="hidden sm:inline">View profile</span>
+            </Link>
+
+            <Link
+              href={`/${slug}/program/messages/${partner.id}`}
+              target="_blank"
+              className={cn(
+                buttonVariants({ variant: "secondary" }),
+                "flex h-9 items-center gap-2 whitespace-nowrap rounded-lg border px-3 text-sm font-medium",
+              )}
+            >
+              <Msgs className="size-4 shrink-0" />
+              <span className="hidden sm:inline">Message</span>
+            </Link>
+
             <div className="flex items-center">
               <Button
                 type="button"
@@ -129,11 +154,12 @@ function FraudReviewSheetContent({
                 icon={<ChevronRight className="size-3.5" />}
               />
             </div>
+
             <Sheet.Close asChild>
               <Button
                 variant="outline"
                 icon={<X className="size-5" />}
-                className="h-auto w-fit p-1"
+                className="ml-2 h-auto w-fit p-1"
               />
             </Sheet.Close>
           </div>
@@ -141,52 +167,40 @@ function FraudReviewSheetContent({
 
         <div className="min-h-0 grow overflow-y-auto">
           <div className="flex flex-col gap-6 p-6">
-            {/* Partner details */}
-            <div className="bg-bg-muted border-border-subtle flex items-center justify-between gap-3 rounded-xl border px-4 py-3">
-              <div className="flex min-w-0 items-center gap-3">
-                <img
-                  src={partner.image || `${OG_AVATAR_URL}${partner.id}`}
-                  alt={partner.id}
-                  className="size-10 rounded-full"
-                />
-                <div className="flex min-w-0 flex-col">
-                  <span className="text-content-emphasis truncate text-sm font-semibold">
-                    {partner.name}
-                  </span>
-                  <span className="text-content-subtle truncate text-xs font-medium">
-                    {partner.email}
-                  </span>
+            <FraudDisclaimerBanner />
+
+            <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:gap-6">
+              {/* Partner details */}
+              <div className="bg-bg-muted border-border-subtle flex flex-grow flex-col gap-3 rounded-xl border px-4 py-3">
+                <h2 className="text-content-default text-sm font-semibold leading-5">
+                  Partner details
+                </h2>
+                <div className="flex min-w-0 items-center gap-3">
+                  <img
+                    src={partner.image || `${OG_AVATAR_URL}${partner.id}`}
+                    alt={partner.id}
+                    className="size-10 rounded-full"
+                  />
+                  <div className="flex min-w-0 flex-col">
+                    <span className="text-content-emphasis truncate text-sm font-semibold">
+                      {partner.name}
+                    </span>
+                    <span className="text-content-subtle truncate text-xs font-medium">
+                      {partner.email}
+                    </span>
+                  </div>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
-                <Link
-                  href={`/${slug}/program/messages/${partner.id}`}
-                  target="_blank"
-                  className={cn(
-                    buttonVariants({ variant: "secondary" }),
-                    "flex h-8 items-center gap-2 whitespace-nowrap rounded-lg border px-3 text-sm font-medium",
-                  )}
-                >
-                  <Msgs className="size-4 shrink-0" />
-                  <span className="hidden sm:inline">Message</span>
-                </Link>
-
-                <Link
-                  href={`/${slug}/program/partners/${partner.id}`}
-                  target="_blank"
-                  className={cn(
-                    buttonVariants({ variant: "secondary" }),
-                    "flex h-8 items-center gap-2 whitespace-nowrap rounded-lg border px-3 text-sm font-medium",
-                  )}
-                >
-                  <User className="size-4 shrink-0" />
-                  <span className="hidden sm:inline">View profile</span>
-                </Link>
+              <div className="bg-bg-muted border-border-subtle flex flex-col gap-3 rounded-xl border px-4 py-3 sm:shrink-0">
+                <h2 className="text-content-default text-sm font-semibold leading-5">
+                  Program owner activity
+                </h2>
+                <div className="flex flex-col gap-2">
+                  <PartnerCrossProgramSummary partnerId={partner.id} />
+                </div>
               </div>
             </div>
-
-            <FraudDisclaimerBanner />
 
             <div className="border-border-subtle flex flex-col gap-4 rounded-xl border p-4">
               <div className="flex flex-col">
