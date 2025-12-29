@@ -1,5 +1,5 @@
 import { prisma } from "@dub/prisma";
-import { groupBy } from "@dub/utils";
+import { chunk, groupBy } from "@dub/utils";
 import "dotenv-flow/config";
 
 async function main() {
@@ -20,6 +20,13 @@ async function main() {
       createdAt: "asc",
     },
   });
+
+  if (fraudEvents.length === 0) {
+    console.log("No fraud events to process.");
+    return;
+  }
+
+  console.log(`Found ${fraudEvents.length} fraud events to process.`);
 
   const bannedEnrollments = await prisma.programEnrollment.findMany({
     where: {
@@ -47,6 +54,11 @@ async function main() {
   const fraudEventsByPartnerId = groupBy(fraudEvents, (e) => e.partnerId);
 
   const toDelete = new Set<string>();
+  const toUpdate: {
+    id: string;
+    sourceProgramId: string;
+    metadata: { bannedAt: Date | null; bannedReason: string | null };
+  }[] = [];
 
   for (const [partnerId, partnerFraudEvents] of Object.entries(
     fraudEventsByPartnerId,
@@ -69,20 +81,38 @@ async function main() {
         continue;
       }
 
-      await prisma.fraudEvent.update({
-        where: {
-          id: fraudEvent.id,
-        },
-        data: {
-          sourceProgramId: sourceBan.programId,
-          metadata: {
-            bannedAt: sourceBan.bannedAt,
-            bannedReason: sourceBan.bannedReason,
-          },
+      toUpdate.push({
+        id: fraudEvent.id,
+        sourceProgramId: sourceBan.programId,
+        metadata: {
+          bannedAt: sourceBan.bannedAt,
+          bannedReason: sourceBan.bannedReason,
         },
       });
+    }
+  }
 
-      console.log(`Updated fraud event ${fraudEvent.id}.`);
+  console.table(toUpdate);
+
+  if (toUpdate.length > 0) {
+    const chunks = chunk(toUpdate, 100);
+
+    for (const chunk of chunks) {
+      await Promise.all(
+        chunk.map((e) =>
+          prisma.fraudEvent.update({
+            where: {
+              id: e.id,
+            },
+            data: {
+              sourceProgramId: e.sourceProgramId,
+              metadata: e.metadata,
+            },
+          }),
+        ),
+      );
+
+      console.log(`Updated ${chunk.length} fraud events...`);
     }
   }
 
