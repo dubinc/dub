@@ -71,10 +71,19 @@ async function main() {
       continue;
     }
 
+    let banIndex = 0;
+
     for (const fraudEvent of partnerFraudEvents) {
-      const sourceBan = bannedEnrollments.find(
-        (e) => e.programId !== fraudEvent.programId,
-      );
+      // Skip to next ban if current ban's program matches this fraud event's program
+      // (this fraud event couldn't have come from current ban)
+      while (
+        banIndex < bannedEnrollments.length &&
+        bannedEnrollments[banIndex].programId === fraudEvent.programId
+      ) {
+        banIndex++;
+      }
+
+      const sourceBan = bannedEnrollments[banIndex];
 
       if (!sourceBan) {
         toDelete.add(fraudEvent.id);
