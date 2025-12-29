@@ -15,7 +15,7 @@ const queue = qstash.queue({
 export async function accountUpdated(event: Stripe.Event) {
   const account = event.data.object as Stripe.Account;
 
-  const { country, payouts_enabled: payoutsEnabled } = account;
+  const { country, payouts_enabled: payoutsEnabled, capabilities } = account;
 
   const partner = await prisma.partner.findUnique({
     where: {
@@ -34,7 +34,11 @@ export async function accountUpdated(event: Stripe.Event) {
     return `Partner with stripeConnectId ${account.id} not found, skipping...`;
   }
 
-  if (!payoutsEnabled) {
+  if (
+    !payoutsEnabled ||
+    !capabilities?.transfers ||
+    capabilities.transfers === "inactive"
+  ) {
     if (partner.payoutsEnabledAt || partner.payoutMethodHash) {
       await prisma.partner.update({
         where: {

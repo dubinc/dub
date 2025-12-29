@@ -36,51 +36,14 @@ async function main() {
   console.log(
     `Total amount: ${currencyFormatter(partnersWithProcessedPayouts.reduce((acc, partner) => acc + (partner._sum.amount ?? 0), 0))}`,
   );
-  console.table(partnersWithProcessedPayouts.slice(0, 10));
-
-  const processedPayouts = await prisma.payout.findMany({
-    where: {
-      status: "processed",
-      stripeTransferId: null,
-      partnerId: {
-        in: partnersWithProcessedPayouts.map((partner) => partner.partnerId),
-      },
-    },
-    include: {
-      partner: {
-        select: {
-          id: true,
-          email: true,
-          stripeConnectId: true,
-        },
-      },
-      program: {
-        select: {
-          name: true,
-        },
-      },
-    },
-  });
-
   for (const partner of partnersWithProcessedPayouts) {
-    const previouslyProcessedPayouts = processedPayouts.filter(
-      (p) => p.partner.id === partner.partnerId,
-    );
-    if (previouslyProcessedPayouts.length === 0) {
-      // shouldn't happen but just in case
-      console.log(
-        `No previously processed payouts found for partner ${partner.partnerId}, skipping...`,
-      );
-      continue;
-    }
-    console.log(
-      `Creating stripe transfer for partner ${previouslyProcessedPayouts[0].partner.email} with ${previouslyProcessedPayouts.length} payouts (total amount: ${currencyFormatter(previouslyProcessedPayouts.reduce((acc, p) => acc + p.amount, 0))})`,
-    );
     await createStripeTransfer({
-      partner: previouslyProcessedPayouts[0].partner,
-      previouslyProcessedPayouts,
+      partnerId: partner.partnerId,
+      forceWithdrawal: true,
     });
   }
+
+  console.log("Done");
 }
 
 main();
