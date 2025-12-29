@@ -1,14 +1,19 @@
+import { createId } from "@/lib/api/create-id";
+import { createFraudEventHash } from "@/lib/api/fraud/utils";
 import { prisma } from "@dub/prisma";
+import { FraudRuleType, Prisma } from "@dub/prisma/client";
 import { chunk, groupBy } from "@dub/utils";
 import "dotenv-flow/config";
 
 async function main() {
-  const fraudEvents = await prisma.fraudEvent.findMany({
+  const fraudGroups = await prisma.fraudEventGroup.findMany({
     where: {
-      fraudEventGroup: {
-        type: "partnerCrossProgramBan",
+      type: "partnerCrossProgramBan",
+      fraudEvents: {
+        some: {
+          sourceProgramId: null,
+        },
       },
-      sourceProgramId: null, // Only process unprocessed records
     },
     select: {
       id: true,
@@ -21,17 +26,17 @@ async function main() {
     },
   });
 
-  if (fraudEvents.length === 0) {
+  if (fraudGroups.length === 0) {
     console.log("No fraud events to process.");
     return;
   }
 
-  console.log(`Found ${fraudEvents.length} fraud events to process.`);
+  console.log(`Found ${fraudGroups.length} fraud groups to process.`);
 
   const bannedEnrollments = await prisma.programEnrollment.findMany({
     where: {
       partnerId: {
-        in: fraudEvents.map((e) => e.partnerId),
+        in: fraudGroups.map((e) => e.partnerId),
       },
       status: "banned",
     },
@@ -51,83 +56,70 @@ async function main() {
     (e) => e.partnerId,
   );
 
-  const fraudEventsByPartnerId = groupBy(fraudEvents, (e) => e.partnerId);
+  const fraudEventsToCreate: Prisma.FraudEventCreateManyInput[] = [];
 
-  const toDelete = new Set<string>();
-  const toUpdate: {
-    id: string;
-    sourceProgramId: string;
-    metadata: { bannedAt: Date | null; bannedReason: string | null };
-  }[] = [];
+  for (const fraudGroup of fraudGroups) {
+    const bannedEnrollments =
+      bannedEnrollmentsByPartnerId[fraudGroup.partnerId];
 
-  for (const [partnerId, partnerFraudEvents] of Object.entries(
-    fraudEventsByPartnerId,
-  )) {
-    const bannedEnrollments = bannedEnrollmentsByPartnerId[partnerId];
-
-    // No banned enrollments found for this partner
-    if (!bannedEnrollments) {
-      partnerFraudEvents.forEach((e) => toDelete.add(e.id));
+    if (!bannedEnrollments || bannedEnrollments.length === 0) {
       continue;
     }
 
-    for (const fraudEvent of partnerFraudEvents) {
-      const sourceBan = bannedEnrollments.find(
-        (e) => e.programId !== fraudEvent.programId,
-      );
-
-      if (!sourceBan) {
-        toDelete.add(fraudEvent.id);
+    for (const bannedEnrollment of bannedEnrollments) {
+      if (bannedEnrollment.programId === fraudGroup.programId) {
         continue;
       }
 
-      toUpdate.push({
-        id: fraudEvent.id,
-        sourceProgramId: sourceBan.programId,
+      const fraudEvent = {
+        type: FraudRuleType.partnerCrossProgramBan,
+        programId: fraudGroup.programId,
+        partnerId: fraudGroup.partnerId,
+        sourceProgramId: bannedEnrollment.programId,
         metadata: {
-          bannedAt: sourceBan.bannedAt,
-          bannedReason: sourceBan.bannedReason,
+          bannedAt: bannedEnrollment.bannedAt,
+          bannedReason: bannedEnrollment.bannedReason,
         },
+      };
+
+      fraudEventsToCreate.push({
+        ...fraudEvent,
+        id: createId({ prefix: "fre_" }),
+        fraudEventGroupId: fraudGroup.id,
+        hash: createFraudEventHash(fraudEvent),
+        createdAt: bannedEnrollment.bannedAt ?? new Date(),
+        updatedAt: bannedEnrollment.bannedAt ?? new Date(),
       });
     }
   }
 
-  console.table(toUpdate);
+  console.table(fraudEventsToCreate);
 
-  if (toUpdate.length > 0) {
-    const chunks = chunk(toUpdate, 100);
+  if (fraudEventsToCreate.length > 0) {
+    const chunks = chunk(fraudEventsToCreate, 500);
 
     for (const chunk of chunks) {
-      await Promise.all(
-        chunk.map((e) =>
-          prisma.fraudEvent.update({
-            where: {
-              id: e.id,
-            },
-            data: {
-              sourceProgramId: e.sourceProgramId,
-              metadata: e.metadata,
-            },
-          }),
-        ),
-      );
-
-      console.log(`Updated ${chunk.length} fraud events...`);
+      await prisma.fraudEvent.createMany({
+        data: chunk,
+        skipDuplicates: true,
+      });
     }
+
+    console.log(`Created ${fraudEventsToCreate.length} fraud events total.`);
   }
 
-  // Delete fraud events that were not matched to a program enrollment (means the partner might have been unbanned)
-  if (toDelete.size > 0) {
-    const deletedFraudEvents = await prisma.fraudEvent.deleteMany({
-      where: {
-        id: {
-          in: Array.from(toDelete),
-        },
+  // Delete old fraud events without sourceProgramId
+  // These are the old fraud events that we're replacing with new ones that have sourceProgramId
+  const deletedFraudEvent = await prisma.fraudEvent.deleteMany({
+    where: {
+      fraudEventGroup: {
+        type: "partnerCrossProgramBan",
       },
-    });
+      sourceProgramId: null,
+    },
+  });
 
-    console.log(`Deleted ${deletedFraudEvents.count} fraud events.`);
-  }
+  console.log(`Deleted ${deletedFraudEvent.count} old fraud events.`);
 
   // Delete fraud event groups that have no fraud events
   const deletedFraudEventGroups = await prisma.fraudEventGroup.deleteMany({
