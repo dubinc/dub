@@ -20,11 +20,17 @@ export const GET = withWorkspace(
           programId,
         },
       },
+      select: {
+        id: true,
+      },
     });
 
     const programEnrollments = await prisma.programEnrollment.findMany({
       where: {
         partnerId,
+        status: {
+          notIn: ["pending"],
+        },
       },
       select: {
         status: true,
