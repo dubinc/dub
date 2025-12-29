@@ -76,7 +76,7 @@
     "cmdk": "^1.1.1",
     "concurrently": "^8.0.1",
     "date-fns": "^4.1.0",
-    "dub": "^0.65.1",
+    "dub": "^0.69.0",
     "fast-xml-parser": "^5.0.6",
     "file-type": "^20.4.1",
     "frimousse": "^0.3.0",

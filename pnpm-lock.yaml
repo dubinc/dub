@@ -216,8 +216,8 @@ importers:
         specifier: ^4.1.0
         version: 4.1.0
       dub:
-        specifier: ^0.65.1
-        version: 0.65.1
+        specifier: ^0.69.0
+        version: 0.69.0
       fast-xml-parser:
         specifier: ^5.0.6
         version: 5.0.6
@@ -7629,8 +7629,8 @@ packages:
     peerDependencies:
       zod: '>= 3'
 
-  dub@0.65.1:
-    resolution: {integrity: sha512-ePXPCZh+EbKUwnXi2vjZ8U78jUU9SlGNiXiLDWJZnyKo/2vwFwjFej4HHKDrw2kn2IpW4JOQ1Qp0b6Uy1/Bmmw==}
+  dub@0.69.0:
+    resolution: {integrity: sha512-2UotC3GARdPxtduY9/mD6fwxYhHIJnfXe1emLY96b1kj4iRcMRRerYbde1y5FPRsAJKBhuO2PaoT0TZNmn7gxA==}
 
   dunder-proto@1.0.1:
     resolution: {integrity: sha512-KIN/nDJBQRcXw0MLVhZE9iQHmG68qAVIBg9CqmUYjmQIhgij9U5MFvrqkUL5FbtyyzZuOeOt0zdeRe4UY7ct+A==}
@@ -16017,8 +16017,8 @@ snapshots:
       express-rate-limit: 7.5.1(express@5.1.0)
       pkce-challenge: 5.0.0
       raw-body: 3.0.1
-      zod: 3.23.8
-      zod-to-json-schema: 3.24.1(zod@3.23.8)
+      zod: 3.25.76
+      zod-to-json-schema: 3.24.1(zod@3.25.76)
     transitivePeerDependencies:
       - supports-color
     optional: true
@@ -21570,9 +21570,9 @@ snapshots:
     dependencies:
       zod: 3.23.8
 
-  dub@0.65.1:
+  dub@0.69.0:
     dependencies:
-      zod: 3.23.8
+      zod: 3.25.76
 
   dunder-proto@1.0.1:
     dependencies:
