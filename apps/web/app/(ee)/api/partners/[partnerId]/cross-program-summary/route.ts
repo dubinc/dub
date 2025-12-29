@@ -1,8 +1,9 @@
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import {
-  partnerCrossProgramSummarySchema,
   INACTIVE_ENROLLMENT_STATUSES,
+  partnerCrossProgramSummarySchema,
 } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
@@ -13,19 +14,14 @@ export const GET = withWorkspace(
     const { partnerId } = params;
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    await prisma.programEnrollment.findUniqueOrThrow({
-      where: {
-        partnerId_programId: {
-          partnerId,
-          programId,
-        },
-      },
-      select: {
-        id: true,
-      },
+    await getProgramEnrollmentOrThrow({
+      partnerId,
+      programId,
+      include: {},
     });
 
-    const programEnrollments = await prisma.programEnrollment.findMany({
+    const programEnrollments = await prisma.programEnrollment.groupBy({
+      by: ["status"],
       where: {
         partnerId,
         programId: {
@@ -35,22 +31,30 @@ export const GET = withWorkspace(
           notIn: ["pending"],
         },
       },
-      select: {
-        status: true,
-      },
+      _count: true,
     });
 
-    const bannedPrograms = programEnrollments.filter(
-      (enrollment) => enrollment.status === "banned",
-    ).length;
+    const totalPrograms = programEnrollments.reduce(
+      (acc, enrollment) => acc + enrollment._count,
+      0,
+    );
 
-    const trustedPrograms = programEnrollments.filter(
-      (enrollment) => !INACTIVE_ENROLLMENT_STATUSES.includes(enrollment.status),
-    ).length;
+    const bannedPrograms =
+      programEnrollments.find((enrollment) => enrollment.status === "banned")
+        ?._count ?? 0;
+
+    const trustedPrograms = programEnrollments.reduce(
+      (acc, enrollment) =>
+        acc +
+        (INACTIVE_ENROLLMENT_STATUSES.includes(enrollment.status)
+          ? 0
+          : enrollment._count),
+      0,
+    );
 
     return NextResponse.json(
       partnerCrossProgramSummarySchema.parse({
-        totalPrograms: programEnrollments.length,
+        totalPrograms,
         bannedPrograms,
         trustedPrograms,
       }),
