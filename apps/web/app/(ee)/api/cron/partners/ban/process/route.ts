@@ -135,7 +135,6 @@ export const POST = withCron(async ({ rawBody }) => {
     ),
   ]);
 
-  // Find other programs where this partner is enrolled and approved
   const affectedProgramEnrollments = await prisma.programEnrollment.findMany({
     where: {
       partnerId,
@@ -152,8 +151,8 @@ export const POST = withCron(async ({ rawBody }) => {
     },
   });
 
-  // Create partnerCrossProgramBan fraud events for other programs where this partner
-  // is enrolled and approved, to flag potential cross-program fraud risk
+  // Create partnerCrossProgramBan fraud events for all active enrollments
+  // to flag potential cross-program fraud risk
   await createFraudEvents(
     affectedProgramEnrollments.map((affectedEnrollment) => ({
       programId: affectedEnrollment.programId,
