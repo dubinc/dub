@@ -8,7 +8,11 @@ import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import Stripe from "stripe";
 
-const queue = qstash.queue({
+const stripePayoutQueue = qstash.queue({
+  queueName: "send-stripe-payout",
+});
+
+const balanceAvailableQueue = qstash.queue({
   queueName: "handle-balance-available",
 });
 
@@ -119,27 +123,65 @@ export async function accountUpdated(event: Stripe.Event) {
     }
   }
 
-  // Retry payouts that got stuck when the account was restricted (e.g: payout sent but paused
-  // due to verification requirements). Once payouts are re-enabled, queue them for processing.
-  const pendingPayouts = await prisma.payout.count({
-    where: {
-      partnerId: partner.id,
-      status: "sent",
-      mode: "internal",
-    },
-  });
-
-  if (pendingPayouts > 0) {
-    const response = await queue.enqueueJSON({
-      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/balance-available`,
-      deduplicationId: event.id,
-      method: "POST",
-      body: {
-        stripeAccount: partner.stripeConnectId,
+  // Retry payouts that got stuck when the account was restricted
+  // (e.g: previously processed payouts OR payouts that were sent but paused due to verification requirements).
+  // Once payouts are re-enabled, queue them for processing.
+  const [previouslyProcessedPayouts, payoutsToWithdraw] = await Promise.all([
+    prisma.payout.count({
+      where: {
+        partnerId: partner.id,
+        status: "processed",
+        stripeTransferId: null,
       },
-    });
-    return `Enqueued handle-balance-available queue for partner ${partner.stripeConnectId}: ${response.messageId}`;
-  }
+    }),
+    prisma.payout.count({
+      where: {
+        partnerId: partner.id,
+        status: "sent",
+        mode: "internal",
+      },
+    }),
+  ]);
+  console.log({ previouslyProcessedPayouts, payoutsToWithdraw });
+
+  await Promise.allSettled([
+    ...(previouslyProcessedPayouts > 0
+      ? [
+          stripePayoutQueue
+            .enqueueJSON({
+              url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/send-stripe-payout`,
+              method: "POST",
+              deduplicationId: `${event.id}-send-stripe-payout`,
+              body: {
+                partnerId: partner.id,
+              },
+            })
+            .then((res) => {
+              console.log(
+                `Enqueued send-stripe-payout queue for partner ${partner.id}: ${res.messageId}`,
+              );
+            }),
+        ]
+      : []),
+    ...(payoutsToWithdraw > 0
+      ? [
+          balanceAvailableQueue
+            .enqueueJSON({
+              url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/balance-available`,
+              deduplicationId: `${event.id}-balance-available`,
+              method: "POST",
+              body: {
+                stripeAccount: partner.stripeConnectId,
+              },
+            })
+            .then((res) => {
+              console.log(
+                `Enqueued balance-available queue for partner ${partner.stripeConnectId}: ${res.messageId}`,
+              );
+            }),
+        ]
+      : []),
+  ]);
 
   return `Updated partner ${partner.email} (${partner.stripeConnectId}) with country ${country}, payoutsEnabledAt set, payoutMethodHash ${bankAccount.fingerprint}`;
 }

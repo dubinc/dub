@@ -83,7 +83,10 @@ export const createStripeTransfer = async ({
 
   // this should never happen but just in case
   if (allPayouts.length === 0) {
-    throw new Error(`No available payouts found for partner ${partner.email}`);
+    console.log(
+      `No available payouts found for partner ${partner.email}, skipping...`,
+    );
+    return;
   }
 
   // total transferable amount is the sum of all previously processed payouts (but not sent yet) and the current invoice payouts
