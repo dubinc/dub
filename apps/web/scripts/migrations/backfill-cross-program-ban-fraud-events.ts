@@ -72,7 +72,6 @@ async function main() {
       }
 
       const fraudEvent = {
-        type: FraudRuleType.partnerCrossProgramBan,
         programId: fraudGroup.programId,
         partnerId: fraudGroup.partnerId,
         sourceProgramId: bannedEnrollment.programId,
@@ -86,14 +85,15 @@ async function main() {
         ...fraudEvent,
         id: createId({ prefix: "fre_" }),
         fraudEventGroupId: fraudGroup.id,
-        hash: createFraudEventHash(fraudEvent),
+        hash: createFraudEventHash({
+          ...fraudEvent,
+          type: FraudRuleType.partnerCrossProgramBan,
+        }),
         createdAt: bannedEnrollment.bannedAt ?? new Date(),
         updatedAt: bannedEnrollment.bannedAt ?? new Date(),
       });
     }
   }
-
-  console.table(fraudEventsToCreate);
 
   if (fraudEventsToCreate.length > 0) {
     const chunks = chunk(fraudEventsToCreate, 500);
@@ -101,7 +101,6 @@ async function main() {
     for (const chunk of chunks) {
       await prisma.fraudEvent.createMany({
         data: chunk,
-        skipDuplicates: true,
       });
     }
 
