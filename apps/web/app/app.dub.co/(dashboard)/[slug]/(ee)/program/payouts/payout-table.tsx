@@ -1,5 +1,6 @@
 "use client";
 
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { useFraudGroupCount } from "@/lib/swr/use-fraud-groups-count";
 import usePayoutsCount from "@/lib/swr/use-payouts-count";
 import useProgram from "@/lib/swr/use-program";
@@ -49,7 +50,7 @@ const PayoutTableInner = memo(
     setSearch,
     setSelectedFilter,
   }: ReturnType<typeof usePayoutFilters>) => {
-    const { id: workspaceId, defaultProgramId } = useWorkspace();
+    const { id: workspaceId, plan, defaultProgramId } = useWorkspace();
     const { queryParams, searchParams, getQueryString } = useRouterStuff();
 
     const sortBy = searchParams.get("sortBy") || "amount";
@@ -130,9 +131,9 @@ const PayoutTableInner = memo(
         {
           header: "Status",
           cell: ({ row }) => {
-            const hasFraudPending = fraudGroupCountMap.has(
-              row.original.partner.id,
-            );
+            const hasFraudPending =
+              fraudGroupCountMap.has(row.original.partner.id) &&
+              getPlanCapabilities(plan).canManageFraudEvents;
 
             const status =
               hasFraudPending && row.original.status === "pending"
@@ -178,7 +179,10 @@ const PayoutTableInner = memo(
           cell: ({ row }) => (
             <AmountRowItem
               payout={row.original}
-              hasFraudPending={fraudGroupCountMap.has(row.original.partner.id)}
+              hasFraudPending={
+                fraudGroupCountMap.has(row.original.partner.id) &&
+                getPlanCapabilities(plan).canManageFraudEvents
+              }
             />
           ),
         },

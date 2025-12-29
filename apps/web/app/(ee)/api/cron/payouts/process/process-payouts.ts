@@ -78,7 +78,7 @@ export async function processPayouts({
         : excludedPayoutIds && excludedPayoutIds.length > 0
           ? { id: { notIn: excludedPayoutIds } }
           : {}),
-      ...getPayoutEligibilityFilter(program),
+      ...getPayoutEligibilityFilter({ program, workspace }),
       ...(cutoffPeriodValue && {
         periodEnd: {
           lte: cutoffPeriodValue,
