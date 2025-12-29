@@ -25,7 +25,7 @@ import { Dispatch, SetStateAction } from "react";
 import { CommissionsOnHoldTable } from "./commissions-on-hold-table";
 import { FraudDisclaimerBanner } from "./fraud-disclaimer-banner";
 import { FraudEventsTableWrapper } from "./fraud-events-tables";
-import { PartnerCrossProgramSummary } from "./program-owner-activity";
+import { PartnerCrossProgramSummary } from "./partner-cross-program-summary";
 import { useResolveFraudGroupModal } from "./resolve-fraud-group-modal";
 import { ResolvedFraudGroupTable } from "./resolved-fraud-group-table";
 

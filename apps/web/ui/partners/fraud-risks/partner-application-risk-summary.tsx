@@ -12,7 +12,7 @@ import { usePartnersUpgradeModal } from "../partners-upgrade-modal";
 import { FraudDisclaimerBanner } from "./fraud-disclaimer-banner";
 import { PartnerApplicationFraudSeverityIndicator } from "./partner-application-fraud-severity-indicator";
 import { usePartnerApplicationRiskSummaryModal } from "./partner-application-risk-summary-modal";
-import { PartnerCrossProgramSummary } from "./program-owner-activity";
+import { PartnerCrossProgramSummary } from "./partner-cross-program-summary";
 
 interface PartnerApplicationRiskSummaryProps {
   partner: EnrolledPartnerExtendedProps;
