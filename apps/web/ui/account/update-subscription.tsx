@@ -1,36 +1,48 @@
-import { Switch, useOptimisticUpdate } from "@dub/ui";
-import { APP_NAME } from "@dub/utils";
+import { generateUnsubscribeTokenAction } from "@/lib/actions/generate-unsubscribe-url";
+import useUser from "@/lib/swr/use-user";
+import { ExpandingArrow, LoadingSpinner } from "@dub/ui";
+import { cn } from "@dub/utils";
+import { useAction } from "next-safe-action/hooks";
+import { useRouter } from "next/navigation";
 
 export default function UpdateSubscription() {
-  const { data, isLoading, update } = useOptimisticUpdate<{
-    subscribed: boolean;
-  }>("/api/user/subscribe", {
-    loading: "Updating email preferences...",
-    success: `Your ${APP_NAME} email preferences has been updated!`,
-    error: "Failed to update email preferences. Please try again.",
-  });
+  const router = useRouter();
+  const { user } = useUser();
 
-  const subscribe = async (checked: boolean) => {
-    const method = checked ? "POST" : "DELETE";
-    const res = await fetch("/api/user/subscribe", {
-      method,
-    });
-    if (!res.ok) {
-      throw new Error("Failed to update email preferences");
-    }
-    return { subscribed: checked };
-  };
+  const { executeAsync, isPending } = useAction(
+    generateUnsubscribeTokenAction,
+    {
+      onSuccess: ({ data }) => {
+        if (!data?.token) {
+          return;
+        }
+        router.push(`/unsubscribe/${data.token}`);
+      },
+    },
+  );
+
+  if (!user?.email) {
+    return <div />;
+  }
 
   return (
-    <div className="flex items-center gap-x-2">
-      <Switch
-        checked={data?.subscribed}
-        loading={isLoading}
-        fn={(checked: boolean) => {
-          update(() => subscribe(checked), { subscribed: checked });
-        }}
-      />
-      <p className="text-sm text-neutral-500">Subscribed to product updates</p>
-    </div>
+    <button
+      type="button"
+      onClick={() => executeAsync()}
+      disabled={isPending}
+      className={cn(
+        "group flex items-center gap-x-1 text-sm text-neutral-500 transition-colors hover:text-neutral-700",
+        isPending && "cursor-not-allowed",
+      )}
+    >
+      <span className="underline decoration-dotted underline-offset-2">
+        Manage email preferences
+      </span>{" "}
+      {isPending ? (
+        <LoadingSpinner className="size-3" />
+      ) : (
+        <ExpandingArrow className="size-3" />
+      )}
+    </button>
   );
 }
