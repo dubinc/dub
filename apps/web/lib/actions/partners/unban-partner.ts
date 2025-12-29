@@ -9,6 +9,7 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { recordLink } from "@/lib/tinybird";
 import { banPartnerSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
+import { FraudRuleType } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 
@@ -146,8 +147,7 @@ export const unbanPartnerAction = authActionClient
               partnerId,
               sourceProgramId: programId,
               fraudEventGroup: {
-                status: "pending",
-                type: "partnerCrossProgramBan",
+                type: FraudRuleType.partnerCrossProgramBan,
               },
             },
           }),
@@ -156,8 +156,7 @@ export const unbanPartnerAction = authActionClient
           prisma.fraudEventGroup.deleteMany({
             where: {
               partnerId,
-              status: "pending",
-              type: "partnerCrossProgramBan",
+              type: FraudRuleType.partnerCrossProgramBan,
               fraudEvents: {
                 none: {},
               },
