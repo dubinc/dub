@@ -845,7 +845,7 @@ export const partnerPayoutSettingsSchema = z.object({
   taxId: z.string().max(100).trim().nullish(),
 });
 
-export const crossProgramSummarySchema = z.object({
+export const partnerCrossProgramSummarySchema = z.object({
   totalPrograms: z.number(),
   bannedPrograms: z.number(),
   trustedPrograms: z.number(),

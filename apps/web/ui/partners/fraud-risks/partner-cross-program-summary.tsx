@@ -1,6 +1,6 @@
 "use client";
 
-import { useParterCrossProgramSummary } from "@/lib/swr/use-partner-cross-program-summary";
+import { usePartnerCrossProgramSummary } from "@/lib/swr/use-partner-cross-program-summary";
 import { UserCheck, UserXmark } from "@dub/ui";
 
 export function PartnerCrossProgramSummary({
@@ -8,7 +8,7 @@ export function PartnerCrossProgramSummary({
 }: {
   partnerId: string;
 }) {
-  const { crossProgramSummary, isLoading } = useParterCrossProgramSummary({
+  const { crossProgramSummary, isLoading } = usePartnerCrossProgramSummary({
     partnerId,
   });
 
@@ -41,12 +41,12 @@ export function PartnerCrossProgramSummary({
             </span>
           </div>
 
-          {isLoading ? (
+          {isLoading || !crossProgramSummary ? (
             <div className="h-4 w-9 animate-pulse justify-end rounded bg-neutral-200" />
           ) : (
             <div className="flex w-9 items-center justify-end gap-1 text-xs font-medium">
-              <span className="text-neutral-700">{item.value}</span>
-              <span className="text-neutral-400">of {item.total}</span>
+              <span className="text-neutral-700">{item.value || 0}</span>
+              <span className="text-neutral-400">of {item.total || 0}</span>
             </div>
           )}
         </div>

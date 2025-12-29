@@ -1,7 +1,7 @@
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import {
-  crossProgramSummarySchema,
+  partnerCrossProgramSummarySchema,
   INACTIVE_ENROLLMENT_STATUSES,
 } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
@@ -49,7 +49,7 @@ export const GET = withWorkspace(
     ).length;
 
     return NextResponse.json(
-      crossProgramSummarySchema.parse({
+      partnerCrossProgramSummarySchema.parse({
         totalPrograms: programEnrollments.length,
         bannedPrograms,
         trustedPrograms,
