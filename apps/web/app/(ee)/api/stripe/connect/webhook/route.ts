@@ -63,7 +63,7 @@ export const POST = async (req: Request) => {
     }
   } catch (error) {
     await log({
-      message: `Stripe webhook failed (${event.type}). Error: ${error.message}`,
+      message: `Stripe Connect webhook failed (${event.type}). Error: ${error.message}`,
       type: "errors",
     });
 
