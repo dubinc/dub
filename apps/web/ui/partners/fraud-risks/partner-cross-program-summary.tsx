@@ -41,16 +41,18 @@ export function PartnerCrossProgramSummary({
             </span>
           </div>
 
-          {isLoading || !crossProgramSummary ? (
-            <div className="h-4 w-12 animate-pulse justify-end rounded bg-neutral-200" />
-          ) : (
-            <div className="flex w-fit items-center justify-end gap-1 text-xs font-medium">
-              <span className="text-neutral-700">{item.value || 0}</span>
-              <span className="whitespace-nowrap text-neutral-400">
-                of {item.total || 0}
-              </span>
-            </div>
-          )}
+          <div className="w-10">
+            {isLoading || !crossProgramSummary ? (
+              <div className="h-4 w-full animate-pulse justify-end rounded bg-neutral-200" />
+            ) : (
+              <div className="flex items-center justify-end gap-1 text-xs font-medium">
+                <span className="text-neutral-700">{item.value || 0}</span>
+                <span className="whitespace-nowrap text-neutral-400">
+                  of {item.total || 0}
+                </span>
+              </div>
+            )}
+          </div>
         </div>
       ))}
     </>
