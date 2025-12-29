@@ -1,9 +1,11 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { generateUnsubscribeToken } from "@/lib/email/unsubscribe-token";
 import { sendEmail } from "@dub/email";
 import WelcomeEmail from "@dub/email/templates/welcome-email";
 import WelcomeEmailPartner from "@dub/email/templates/welcome-email-partner";
 import { prisma } from "@dub/prisma";
+import { APP_DOMAIN, PARTNERS_DOMAIN } from "@dub/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -40,6 +42,8 @@ export async function POST(req: Request) {
 
     const isPartner = user.partners.length > 0;
 
+    const unsubscribeUrl = `${isPartner ? PARTNERS_DOMAIN : APP_DOMAIN}/unsubscribe/${generateUnsubscribeToken(user.email)}`;
+
     await Promise.allSettled([
       sendEmail({
         to: user.email,
@@ -49,10 +53,12 @@ export async function POST(req: Request) {
           ? WelcomeEmailPartner({
               email: user.email,
               name: user.name,
+              unsubscribeUrl,
             })
           : WelcomeEmail({
               email: user.email,
               name: user.name,
+              unsubscribeUrl,
             }),
         variant: "marketing",
       }),

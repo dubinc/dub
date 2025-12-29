@@ -18,9 +18,11 @@ import { Footer } from "../components/footer";
 export default function WelcomeEmailPartner({
   name = "Brendon Urie",
   email = "panic@thedis.co",
+  unsubscribeUrl,
 }: {
   name: string | null;
   email: string;
+  unsubscribeUrl: string;
 }) {
   return (
     <Html>
@@ -116,7 +118,7 @@ export default function WelcomeEmailPartner({
               </Link>
             </Section>
 
-            <Footer email={email} marketing />
+            <Footer email={email} marketing unsubscribeUrl={unsubscribeUrl} />
           </Container>
         </Body>
       </Tailwind>
