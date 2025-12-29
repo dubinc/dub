@@ -1,6 +1,7 @@
 import { createHmac, timingSafeEqual } from "crypto";
 
-const TOKEN_SECRET = process.env.UNSUBSCRIBE_TOKEN_SECRET;
+const TOKEN_SECRET =
+  process.env.UNSUBSCRIBE_TOKEN_SECRET || process.env.NEXTAUTH_SECRET;
 
 /**
  * Generate a secure unsubscribe token for an email address.
@@ -12,7 +13,7 @@ export function generateUnsubscribeToken(email: string): string {
   const signature = createHmac("sha256", TOKEN_SECRET)
     .update(email.toLowerCase())
     .digest("hex")
-    .slice(0, 16); // Truncate for shorter URLs
+    .slice(0, 24); // Truncate for shorter URLs
 
   // Base64 encode the email and append the signature
   const encodedEmail = Buffer.from(email.toLowerCase()).toString("base64url");
@@ -38,7 +39,7 @@ export function verifyUnsubscribeToken(token: string): string | null {
     const expectedSignature = createHmac("sha256", TOKEN_SECRET)
       .update(email.toLowerCase())
       .digest("hex")
-      .slice(0, 16);
+      .slice(0, 24);
 
     if (
       !timingSafeEqual(
