@@ -192,7 +192,14 @@ function FraudReviewSheetContent({
                 </div>
               </div>
 
-              <PartnerCrossProgramSummary partnerId={partner.id} />
+              <div className="bg-bg-muted border-border-subtle flex flex-col gap-3 rounded-xl border px-4 py-3 sm:shrink-0">
+                <h2 className="text-content-default text-sm font-semibold leading-5">
+                  Program owner activity
+                </h2>
+                <div className="flex flex-col gap-2">
+                  <PartnerCrossProgramSummary partnerId={partner.id} />
+                </div>
+              </div>
             </div>
 
             <div className="border-border-subtle flex flex-col gap-4 rounded-xl border p-4">

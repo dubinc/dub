@@ -6,7 +6,7 @@ import useWorkspace from "./use-workspace";
 
 type CrossProgramSummary = z.infer<typeof crossProgramSummarySchema>;
 
-export function useCrossProgramSummary({
+export function useParterCrossProgramSummary({
   partnerId,
   enabled = true,
 }: {

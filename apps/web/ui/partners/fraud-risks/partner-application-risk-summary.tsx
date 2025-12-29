@@ -85,7 +85,14 @@ export function PartnerApplicationRiskSummary({
           })}
         </ul>
 
-        <PartnerCrossProgramSummary partnerId={partner.id} />
+        <div className="flex flex-col gap-3">
+          <h3 className="text-content-emphasis text-sm font-semibold">
+            Program owner activity
+          </h3>
+          <div className="flex flex-col gap-2">
+            <PartnerCrossProgramSummary partnerId={partner.id} />
+          </div>
+        </div>
 
         {severity === "high" && (
           <FraudDisclaimerBanner className="gap-2 px-3 py-2" />

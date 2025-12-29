@@ -28,6 +28,9 @@ export const GET = withWorkspace(
     const programEnrollments = await prisma.programEnrollment.findMany({
       where: {
         partnerId,
+        programId: {
+          not: programId,
+        },
         status: {
           notIn: ["pending"],
         },
