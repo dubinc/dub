@@ -39,18 +39,17 @@ export async function accountUpdated(event: Stripe.Event) {
     !capabilities?.transfers ||
     capabilities.transfers === "inactive"
   ) {
-    if (partner.payoutsEnabledAt || partner.payoutMethodHash) {
+    if (partner.payoutsEnabledAt) {
       await prisma.partner.update({
         where: {
           id: partner.id,
         },
         data: {
           payoutsEnabledAt: null,
-          payoutMethodHash: null,
         },
       });
       // TODO: notify partner about the change
-      return `Payouts disabled, updated partner ${partner.email} (${partner.stripeConnectId}) with payoutsEnabledAt and payoutMethodHash null`;
+      return `Payouts disabled, updated partner ${partner.email} (${partner.stripeConnectId}) with payoutsEnabledAt null`;
     }
     return `No change in payout status for ${partner.email} (${partner.stripeConnectId}), skipping...`;
   }

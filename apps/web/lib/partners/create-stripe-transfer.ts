@@ -101,22 +101,7 @@ export const createStripeTransfer = async ({
       withdrawalFee = BELOW_MIN_WITHDRAWAL_FEE_CENTS;
       // else, we will just update current invoice payouts to "processed" status
     } else {
-      if (currentInvoicePayouts) {
-        const res = await prisma.payout.updateMany({
-          where: {
-            id: {
-              in: currentInvoicePayouts.map((p) => p.id),
-            },
-          },
-          data: {
-            status: "processed",
-            paidAt: new Date(),
-          },
-        });
-        console.log(
-          `Updated ${res.count} payouts in current invoice to "processed" status`,
-        );
-      }
+      await updateCurrentInvoicePayoutsToProcessed(currentInvoicePayouts);
 
       console.log(
         `Total processed payouts (${currencyFormatter(totalTransferableAmount)}) for partner ${partner.id} are below ${currencyFormatter(MIN_WITHDRAWAL_AMOUNT_CENTS)}, skipping...`,
@@ -159,23 +144,7 @@ export const createStripeTransfer = async ({
     });
     console.log(`Updated partner ${partner.email} with payoutsEnabledAt null`);
 
-    // update current invoice payouts to "processed" status for
-    if (currentInvoicePayouts.length > 0) {
-      const res = await prisma.payout.updateMany({
-        where: {
-          id: {
-            in: currentInvoicePayouts.map((p) => p.id),
-          },
-        },
-        data: {
-          status: "processed",
-          paidAt: new Date(),
-        },
-      });
-      console.log(
-        `Updated ${res.count} payouts in current invoice to "processed" status`,
-      );
-    }
+    await updateCurrentInvoicePayoutsToProcessed(currentInvoicePayouts);
 
     throw new Error(
       `Partner's Stripe Express account (${partner.stripeConnectId}) is not configured to receive transfers`,
@@ -258,4 +227,25 @@ export const createStripeTransfer = async ({
   }
 
   return transfer;
+};
+
+const updateCurrentInvoicePayoutsToProcessed = async (
+  currentInvoicePayouts: Pick<Payout, "id">[],
+) => {
+  if (currentInvoicePayouts.length > 0) {
+    const res = await prisma.payout.updateMany({
+      where: {
+        id: {
+          in: currentInvoicePayouts.map((p) => p.id),
+        },
+      },
+      data: {
+        status: "processed",
+        paidAt: new Date(),
+      },
+    });
+    console.log(
+      `Updated ${res.count} payouts in current invoice to "processed" status`,
+    );
+  }
 };
