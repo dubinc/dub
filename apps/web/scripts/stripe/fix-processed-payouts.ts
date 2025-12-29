@@ -1,49 +1,47 @@
-import { MIN_WITHDRAWAL_AMOUNT_CENTS } from "@/lib/constants/payouts";
 import { prisma } from "@dub/prisma";
-import { currencyFormatter } from "@dub/utils";
 import "dotenv-flow/config";
-import { createStripeTransfer } from "../../lib/partners/create-stripe-transfer";
+import { stripeConnectClient } from "./connect-client";
 
 async function main() {
-  const partnersWithProcessedPayouts = await prisma.payout
-    .groupBy({
-      by: ["partnerId"],
-      where: {
-        status: "processed",
-        stripeTransferId: null,
-      },
-      _sum: {
-        amount: true,
-      },
-      orderBy: {
-        _sum: {
-          amount: "desc",
+  const partnersWithProcessingPayouts = await prisma.partner.findMany({
+    where: {
+      payouts: {
+        some: {
+          status: "processing",
+          stripeTransferId: null,
+          invoice: {
+            status: "completed",
+          },
         },
       },
-      // filter out sum amount below 1000
-    })
-    .then((result) => {
-      return result.filter(
-        (partner) =>
-          partner._sum.amount &&
-          partner._sum.amount >= MIN_WITHDRAWAL_AMOUNT_CENTS,
-      );
-    });
+    },
+  });
 
   console.log(
-    `Found ${partnersWithProcessedPayouts.length} partners with processed payouts`,
+    `Found ${partnersWithProcessingPayouts.length} partners with processing payouts`,
   );
-  console.log(
-    `Total amount: ${currencyFormatter(partnersWithProcessedPayouts.reduce((acc, partner) => acc + (partner._sum.amount ?? 0), 0))}`,
-  );
-  for (const partner of partnersWithProcessedPayouts) {
-    await createStripeTransfer({
-      partnerId: partner.partnerId,
-      forceWithdrawal: true,
-    });
-  }
 
-  console.log("Done");
+  const results = await Promise.all(
+    partnersWithProcessingPayouts.map(async (partner) => {
+      try {
+        const stripeConnectAccount =
+          await stripeConnectClient.accounts.retrieve(partner.stripeConnectId!);
+        return {
+          partnerId: partner.id,
+          email: partner.email,
+          stripeConnectId: partner.stripeConnectId,
+          payoutsEnabledAt: partner.payoutsEnabledAt,
+          actualPayoutsEnabled: stripeConnectAccount.payouts_enabled,
+          transfersEnabled: stripeConnectAccount.capabilities?.transfers,
+          transfersEnabledStatus: stripeConnectAccount.capabilities?.transfers,
+        };
+      } catch (error) {
+        return null;
+      }
+    }),
+  );
+
+  console.table(results.filter((result) => result !== null));
 }
 
 main();

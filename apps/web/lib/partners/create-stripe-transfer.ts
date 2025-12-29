@@ -7,9 +7,8 @@ import { stripe } from "@/lib/stripe";
 import { sendEmail } from "@dub/email";
 import PartnerPayoutProcessed from "@dub/email/templates/partner-payout-processed";
 import { prisma } from "@dub/prisma";
-import { Payout } from "@dub/prisma/client";
+import { Payout, Prisma } from "@dub/prisma/client";
 import { currencyFormatter, pluralize } from "@dub/utils";
-import { waitUntil } from "@vercel/functions";
 
 export type PayoutWithProgramName = Pick<
   Payout,
@@ -40,20 +39,6 @@ export const createStripeTransfer = async ({
       email: true,
       stripeConnectId: true,
       payoutsEnabledAt: true,
-      payouts: {
-        where: {
-          invoiceId,
-          status: "processing",
-        },
-        include: {
-          program: {
-            select: {
-              name: true,
-              logo: true,
-            },
-          },
-        },
-      },
     },
   });
 
@@ -64,24 +49,35 @@ export const createStripeTransfer = async ({
     );
   }
 
-  const currentInvoicePayouts = partner.payouts ?? [];
-
-  // get all previously processed payouts for the partners in this invoice
-  // but haven't been transferred to their Stripe Express account yet
-  const previouslyProcessedPayouts = await prisma.payout.findMany({
-    where: {
-      partnerId: partner.id,
-      status: "processed",
-      stripeTransferId: null,
-    },
-    include: {
-      program: {
-        select: {
-          name: true,
-        },
+  const commonInclude: Prisma.PayoutInclude = {
+    program: {
+      select: {
+        name: true,
+        logo: true,
       },
     },
-  });
+  };
+
+  const [previouslyProcessedPayouts, currentInvoicePayouts] = await Promise.all(
+    [
+      prisma.payout.findMany({
+        where: {
+          partnerId: partner.id,
+          status: "processed",
+          stripeTransferId: null,
+        },
+        include: commonInclude,
+      }),
+      prisma.payout.findMany({
+        where: {
+          partnerId: partner.id,
+          invoiceId,
+          status: "processing",
+        },
+        include: commonInclude,
+      }),
+    ],
+  );
 
   const allPayouts = [...previouslyProcessedPayouts, ...currentInvoicePayouts];
 
@@ -153,39 +149,34 @@ export const createStripeTransfer = async ({
     !stripeConnectAccount.capabilities?.transfers ||
     stripeConnectAccount.capabilities.transfers === "inactive"
   ) {
-    waitUntil(
-      (async () => {
-        await prisma.partner.update({
-          where: {
-            id: partner.id,
-          },
-          data: {
-            payoutsEnabledAt: null,
-          },
-        });
-        console.log(
-          `Updated partner ${partner.email} with payoutsEnabledAt null`,
-        );
+    await prisma.partner.update({
+      where: {
+        id: partner.id,
+      },
+      data: {
+        payoutsEnabledAt: null,
+      },
+    });
+    console.log(`Updated partner ${partner.email} with payoutsEnabledAt null`);
 
-        // update current invoice payouts to "processed" status for now
-        if (currentInvoicePayouts.length > 0) {
-          const res = await prisma.payout.updateMany({
-            where: {
-              id: {
-                in: currentInvoicePayouts.map((p) => p.id),
-              },
-            },
-            data: {
-              status: "processed",
-              paidAt: new Date(),
-            },
-          });
-          console.log(
-            `Updated ${res.count} payouts in current invoice to "processed" status`,
-          );
-        }
-      })(),
-    );
+    // update current invoice payouts to "processed" status for
+    if (currentInvoicePayouts.length > 0) {
+      const res = await prisma.payout.updateMany({
+        where: {
+          id: {
+            in: currentInvoicePayouts.map((p) => p.id),
+          },
+        },
+        data: {
+          status: "processed",
+          paidAt: new Date(),
+        },
+      });
+      console.log(
+        `Updated ${res.count} payouts in current invoice to "processed" status`,
+      );
+    }
+
     throw new Error(
       `Partner's Stripe Express account (${partner.stripeConnectId}) is not configured to receive transfers`,
     );
