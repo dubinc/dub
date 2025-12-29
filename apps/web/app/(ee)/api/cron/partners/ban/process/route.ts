@@ -6,7 +6,10 @@ import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions"
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withCron } from "@/lib/cron/with-cron";
 import { recordLink } from "@/lib/tinybird";
-import { BAN_PARTNER_REASONS } from "@/lib/zod/schemas/partners";
+import {
+  BAN_PARTNER_REASONS,
+  INACTIVE_ENROLLMENT_STATUSES,
+} from "@/lib/zod/schemas/partners";
 import { sendEmail } from "@dub/email";
 import PartnerBanned from "@dub/email/templates/partner-banned";
 import { prisma } from "@dub/prisma";
@@ -132,27 +135,34 @@ export const POST = withCron(async ({ rawBody }) => {
     ),
   ]);
 
-  // Find other programs where this partner is enrolled and approved
-  const programEnrollments = await prisma.programEnrollment.findMany({
+  const affectedProgramEnrollments = await prisma.programEnrollment.findMany({
     where: {
       partnerId,
       programId: {
         not: programId,
       },
-      status: "approved",
+      status: {
+        notIn: INACTIVE_ENROLLMENT_STATUSES,
+      },
     },
     select: {
       programId: true,
+      partnerId: true,
     },
   });
 
-  // Create partnerCrossProgramBan fraud events for other programs where this partner
-  // is enrolled and approved, to flag potential cross-program fraud risk
+  // Create partnerCrossProgramBan fraud events for all active enrollments
+  // to flag potential cross-program fraud risk
   await createFraudEvents(
-    programEnrollments.map(({ programId }) => ({
-      programId,
-      partnerId,
+    affectedProgramEnrollments.map((affectedEnrollment) => ({
+      programId: affectedEnrollment.programId,
+      partnerId: affectedEnrollment.partnerId,
       type: FraudRuleType.partnerCrossProgramBan,
+      sourceProgramId: programEnrollment.programId, // The program that issued the ban
+      metadata: {
+        bannedReason: programEnrollment.bannedReason,
+        bannedAt: programEnrollment.bannedAt,
+      },
     })),
   );
 

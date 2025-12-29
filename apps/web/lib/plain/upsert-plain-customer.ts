@@ -8,7 +8,7 @@ export const upsertPlainCustomer = async (
 
   return await plain.upsertCustomer({
     identifier: {
-      externalId: user.id,
+      emailAddress: user.email,
     },
     onCreate: {
       fullName,
@@ -19,6 +19,16 @@ export const upsertPlainCustomer = async (
       },
       externalId: user.id,
     },
-    onUpdate: {},
+    onUpdate: {
+      fullName: {
+        value: fullName,
+      },
+      shortName: {
+        value: shortName,
+      },
+      externalId: {
+        value: user.id,
+      },
+    },
   });
 };

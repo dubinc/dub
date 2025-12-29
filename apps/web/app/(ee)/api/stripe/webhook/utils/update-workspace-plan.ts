@@ -1,6 +1,6 @@
 import { deleteWorkspaceFolders } from "@/lib/api/folders/delete-workspace-folders";
 import { tokenCache } from "@/lib/auth/token-cache";
-import { syncCustomerPlanToPlain } from "@/lib/plain/sync-customer-plan";
+import { syncUserPlanToPlain } from "@/lib/plain/sync-user-plan";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { WorkspaceProps } from "@/lib/types";
 import { webhookCache } from "@/lib/webhook/cache";
@@ -168,11 +168,7 @@ export async function updateWorkspacePlan({
       updatedWorkspace.value.users.length
     ) {
       const workspaceOwner = updatedWorkspace.value.users[0].user;
-      waitUntil(
-        syncCustomerPlanToPlain({
-          customer: workspaceOwner,
-        }),
-      );
+      waitUntil(syncUserPlanToPlain(workspaceOwner));
     }
   } else if (workspace.paymentFailedAt) {
     await prisma.project.update({
