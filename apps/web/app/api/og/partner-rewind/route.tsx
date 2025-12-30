@@ -1,45 +1,38 @@
+import { DubApiError } from "@/lib/api/errors";
 import { getPartnerRewind } from "@/lib/api/partners/get-partner-rewind";
+import { withPartnerProfile } from "@/lib/auth/partner";
 import {
   REWIND_ASSETS_PATH,
   REWIND_PERCENTILES,
   REWIND_STEPS,
 } from "@/ui/partners/rewind/constants";
 import { cn, nFormatter } from "@dub/utils";
-import { readFile } from "fs/promises";
 import { ImageResponse } from "next/og";
-import { NextRequest } from "next/server";
-import { dirname, join } from "path";
-import { fileURLToPath } from "url";
+import { z } from "zod";
+import { loadGoogleFont } from "../load-google-font";
 
 const WIDTH = 1084;
 const HEIGHT = 994;
 
-export async function GET(req: NextRequest) {
-  const __filename = fileURLToPath(import.meta.url);
-  const __dirname = dirname(__filename);
-  const stylesPath = join(__dirname, "../../../../styles");
+export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
+  const { step: stepRaw } = z
+    .object({
+      step: z.enum(
+        REWIND_STEPS.map((step) => step.id) as [string, ...string[]],
+      ),
+    })
+    .parse(searchParams);
 
-  const [interSemibold, satoshiBold] = await Promise.all([
-    readFile(join(stylesPath, "Inter-Semibold.ttf")),
-    readFile(join(stylesPath, "Satoshi-Bold.ttf")),
-  ]);
+  const step = REWIND_STEPS.find((step) => step.id === stepRaw)!;
 
-  const partnerId = req.nextUrl.searchParams.get("partnerId");
-  const stepRaw = req.nextUrl.searchParams.get("step");
+  const rewind = await getPartnerRewind({ partnerId: partner.id });
 
-  const step = REWIND_STEPS.find((step) => step.id === stepRaw);
-
-  if (!partnerId || !step)
-    return new Response("Missing 'partnerId' or 'step' parameter", {
-      status: 400,
+  if (!rewind) {
+    throw new DubApiError({
+      code: "not_found",
+      message: "Partner rewind not found",
     });
-
-  const rewind = await getPartnerRewind({ partnerId });
-
-  if (!rewind)
-    return new Response("Partner rewind not found", {
-      status: 404,
-    });
+  }
 
   const percentileLabel = REWIND_PERCENTILES.find(
     ({ minPercentile }) => rewind[step.percentileId] >= minPercentile,
@@ -50,11 +43,14 @@ export async function GET(req: NextRequest) {
       ? Math.floor(rewind[step.id] / 100)
       : Math.floor(rewind[step.id]);
 
+  // Load Inter font (full character set)
+  const interBold = await loadGoogleFont("Inter:wght@700");
+
   return new ImageResponse(
     (
       <div
         tw="flex flex-col bg-neutral-50 w-full h-full items-center justify-between"
-        style={{ fontFamily: "Inter Semibold" }}
+        style={{ fontFamily: "Inter" }}
       >
         {/* @ts-ignore */}
         <svg tw="absolute inset-0 text-black/10" width={WIDTH} height={HEIGHT}>
@@ -120,7 +116,7 @@ export async function GET(req: NextRequest) {
           <div tw="flex items-end justify-between">
             <span
               tw="text-neutral-900 max-w-[180px] text-3xl leading-8 font-bold"
-              style={{ fontFamily: "Satoshi Bold" }}
+              style={{ fontFamily: "Inter" }}
             >
               Dub Partner Rewind &rsquo;25
             </span>
@@ -138,16 +134,16 @@ export async function GET(req: NextRequest) {
     {
       width: WIDTH,
       height: HEIGHT,
-      fonts: [
-        {
-          name: "Inter Semibold",
-          data: interSemibold,
-        },
-        {
-          name: "Satoshi Bold",
-          data: satoshiBold,
-        },
-      ],
+      fonts: interBold
+        ? [
+            {
+              name: "Inter",
+              data: interBold,
+              style: "normal",
+              weight: 700,
+            },
+          ]
+        : [],
     },
   );
-}
+});
