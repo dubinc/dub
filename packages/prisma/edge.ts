@@ -6,8 +6,6 @@ const client = new Client({
   url: process.env.PLANETSCALE_DATABASE_URL || process.env.DATABASE_URL,
 });
 
-const adapter = new PrismaPlanetScale(client);
-
 export const prismaEdge = new PrismaClient({
-  adapter,
+  adapter: new PrismaPlanetScale(client),
 });
