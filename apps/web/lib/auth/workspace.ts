@@ -473,9 +473,9 @@ export const withWorkspace = (
         waitUntil(
           (async () => {
             await queueFailedRequestForRetry({
+              req,
               error,
               apiKey,
-              req,
             });
 
             // Log the conversion events for debugging purposes

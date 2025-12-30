@@ -176,17 +176,14 @@ export function handleAndReturnErrorResponse({
   // Build final response headers & status code
   const headers = new Headers(responseHeaders);
 
+  // Allow QStash retries only for transient DB errors. For invalid payloads or
+  // other non-recoverable errors, do not retry QStash callbacks.
   const isQStashCallback = requestHeaders?.get("upstash-signature") != null;
+  const shouldRetry = error instanceof Prisma.PrismaClientUnknownRequestError;
 
-  if (isQStashCallback) {
-    const shouldRetry = error instanceof Prisma.PrismaClientUnknownRequestError;
-
-    // Allow QStash retries only for transient DB errors. For invalid payloads or
-    // other non-recoverable errors, do not retry QStash callbacks.
-    if (!shouldRetry) {
-      headers.set("Upstash-NonRetryable-Error", "true");
-      status = 489;
-    }
+  if (isQStashCallback && !shouldRetry) {
+    headers.set("Upstash-NonRetryable-Error", "true");
+    status = 489;
   }
 
   return NextResponse.json<ErrorResponse>(
