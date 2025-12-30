@@ -11,7 +11,7 @@ import { redis } from "@/lib/upstash";
 import { sendBatchEmail } from "@dub/email";
 import PartnerAccountMerged from "@dub/email/templates/partner-account-merged";
 import { prisma } from "@dub/prisma";
-import { log, R2_URL } from "@dub/utils";
+import { log, prettyPrint, R2_URL } from "@dub/utils";
 import { z } from "zod";
 
 export const dynamic = "force-dynamic";
@@ -71,6 +71,7 @@ export async function POST(req: Request) {
             userId: true,
           },
         },
+        partnerRewinds: true,
       },
     });
 
@@ -79,11 +80,11 @@ export async function POST(req: Request) {
     }
 
     const sourceAccount = partnerAccounts.find(
-      ({ email }) => email === sourceEmail,
+      ({ email }) => email?.toLowerCase() === sourceEmail.toLowerCase(),
     );
 
     const targetAccount = partnerAccounts.find(
-      ({ email }) => email === targetEmail,
+      ({ email }) => email?.toLowerCase() === targetEmail.toLowerCase(),
     );
 
     if (!sourceAccount) {
@@ -148,18 +149,34 @@ export async function POST(req: Request) {
 
     // update links, commissions, bounty submissions, and payouts
     if (programIdsToTransfer.length > 0) {
-      await Promise.all([
+      const [
+        updatedLinksRes,
+        updatedCustomersRes,
+        updatedCommissionsRes,
+        updatedPayoutsRes,
+      ] = await Promise.all([
         prisma.link.updateMany(updateManyPayload),
+        prisma.customer.updateMany(updateManyPayload),
         prisma.commission.updateMany(updateManyPayload),
         prisma.payout.updateMany(updateManyPayload),
       ]);
+      console.log(
+        `Updated ${updatedLinksRes.count} links, ${updatedCustomersRes.count} customers, ${updatedCommissionsRes.count} commissions, and ${updatedPayoutsRes.count} payouts`,
+      );
 
       // update notification emails, messages, and partner comments
-      await Promise.all([
+      const [
+        updatedNotificationEmailsRes,
+        updatedMessagesRes,
+        updatedPartnerCommentsRes,
+      ] = await Promise.all([
         prisma.notificationEmail.updateMany(updateManyPayload),
         prisma.message.updateMany(updateManyPayload),
         prisma.partnerComment.updateMany(updateManyPayload),
       ]);
+      console.log(
+        `Updated ${updatedNotificationEmailsRes.count} notification emails, ${updatedMessagesRes.count} messages, and ${updatedPartnerCommentsRes.count} partner comments`,
+      );
 
       const updatedLinks = await prisma.link.findMany({
         where: {
@@ -174,34 +191,39 @@ export async function POST(req: Request) {
         },
       });
 
-      // Bounty submissions to transfer to the target partner
-      const bountySubmissions = await prisma.bountySubmission.findMany({
+      // only transfer bounty submissions if the target partner has no submissions for the same bounty
+      const bountySubmissionStats = await prisma.bountySubmission.groupBy({
+        by: ["bountyId"],
         where: {
-          programId: {
-            in: programIdsToTransfer,
+          partnerId: {
+            in: [sourcePartnerId, targetPartnerId],
           },
-          partnerId: sourcePartnerId,
+        },
+        _count: {
+          partnerId: true,
         },
       });
+      const bountiesToTransfer = bountySubmissionStats
+        .filter(({ _count }) => _count.partnerId === 1)
+        .map(({ bountyId }) => bountyId);
 
-      // Attempting to update all source submissions to the target partnerId fails
-      // if the target already has submissions for the same bounties.
-      if (bountySubmissions.length > 0) {
-        await Promise.allSettled(
-          bountySubmissions.map((submission) =>
-            prisma.bountySubmission.update({
-              where: {
-                id: submission.id,
-              },
-              data: {
-                partnerId: targetPartnerId,
-              },
-            }),
-          ),
+      if (bountiesToTransfer.length > 0) {
+        const updatedBountySubmissions =
+          await prisma.bountySubmission.updateMany({
+            where: {
+              bountyId: { in: bountiesToTransfer },
+              partnerId: sourcePartnerId,
+            },
+            data: {
+              partnerId: targetPartnerId,
+            },
+          });
+        console.log(
+          `Transferred ${updatedBountySubmissions.count} bounty submissions`,
         );
       }
 
-      await Promise.allSettled([
+      const res = await Promise.allSettled([
         // update link metadata in Tinybird
         recordLink(updatedLinks),
         // expire link cache in Redis
@@ -211,9 +233,58 @@ export async function POST(req: Request) {
           syncTotalCommissions({
             partnerId: targetPartnerId,
             programId,
+            mode: "direct",
           }),
         ),
       ]);
+      console.log(prettyPrint(res));
+    }
+
+    // If source account has rewind, need to delete and recalculate for the target account
+    if (sourceAccount.partnerRewinds.length > 0) {
+      const deletedRewinds = await prisma.partnerRewind.deleteMany({
+        where: {
+          partnerId: sourcePartnerId,
+        },
+      });
+      console.log(`Deleted ${deletedRewinds.count} partner rewinds`);
+
+      const rewindStats = await prisma.programEnrollment
+        .aggregate({
+          where: {
+            partnerId: targetPartnerId,
+          },
+          _sum: {
+            totalClicks: true,
+            totalLeads: true,
+            totalSaleAmount: true,
+            totalCommissions: true,
+          },
+        })
+        .then((res) => ({
+          totalClicks: res._sum.totalClicks ?? 0,
+          totalLeads: res._sum.totalLeads ?? 0,
+          totalRevenue: res._sum.totalSaleAmount ?? 0,
+          totalEarnings: res._sum.totalCommissions ?? 0,
+        }));
+
+      await prisma.partnerRewind.upsert({
+        where: {
+          partnerId_year: {
+            partnerId: targetPartnerId,
+            year: 2025,
+          },
+        },
+        update: rewindStats,
+        create: {
+          partnerId: targetPartnerId,
+          year: 2025,
+          ...rewindStats,
+        },
+      });
+      console.log(
+        `Upserted partner rewind for ${targetPartnerId} in 2025: ${prettyPrint(rewindStats)}`,
+      );
     }
 
     // Remove the user if there are no workspaces left
@@ -234,10 +305,12 @@ export async function POST(req: Request) {
               id: sourcePartnerUser.userId,
             },
             select: {
-              image: true,
+              id: true,
               email: true,
+              image: true,
             },
           });
+          console.log(`Deleted user ${deletedUser.email} (${deletedUser.id})`);
 
           if (deletedUser.image) {
             await storage.delete({
@@ -259,6 +332,9 @@ export async function POST(req: Request) {
           id: sourcePartnerId,
         },
       });
+      console.log(
+        `Deleted partner ${deletedPartner.email} (${deletedPartner.id})`,
+      );
 
       if (deletedPartner.image) {
         await storage.delete({
@@ -296,7 +372,7 @@ export async function POST(req: Request) {
     // Make sure the cache is cleared
     await redis.del(`${CACHE_KEY_PREFIX}:${userId}`);
 
-    await sendBatchEmail(
+    const resendBatchEmailRes = await sendBatchEmail(
       [
         {
           variant: "notifications",
@@ -320,9 +396,10 @@ export async function POST(req: Request) {
         },
       ],
       {
-        idempotencyKey: `merge-partner-accounts/${userId}`,
+        idempotencyKey: `${CACHE_KEY_PREFIX}/${userId}`,
       },
     );
+    console.log(prettyPrint(resendBatchEmailRes));
 
     return new Response(
       `Partner account ${sourceEmail} merged into ${targetEmail}.`,

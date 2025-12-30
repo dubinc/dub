@@ -82,6 +82,9 @@ export function ProgramLinksPageClient() {
     enabled: canCreateNewLink ?? false,
   });
 
+  const showAllTimeAnalytics =
+    !showDetailedAnalytics || displayOption === "cards";
+
   return (
     <div className="flex flex-col gap-5">
       <PartnerLinkModal />
@@ -89,7 +92,10 @@ export function ProgramLinksPageClient() {
         <SimpleDateRangePicker
           className="w-fit"
           align="start"
-          defaultInterval={DUB_PARTNERS_ANALYTICS_INTERVAL}
+          defaultInterval={
+            showAllTimeAnalytics ? "all" : DUB_PARTNERS_ANALYTICS_INTERVAL
+          }
+          disabled={showAllTimeAnalytics}
         />
         <div className="flex items-center gap-3">
           {!!showDetailedAnalytics && (

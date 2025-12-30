@@ -30,6 +30,7 @@ import {
   DynamicTooltipWrapper,
   Gear,
   PaperPlane,
+  Popover,
   Sheet,
   ShimmerDots,
   Table,
@@ -49,7 +50,14 @@ import {
 } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
-import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import {
+  Fragment,
+  ReactNode,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { toast } from "sonner";
 import Stripe from "stripe";
 import useSWR from "swr";
@@ -632,6 +640,12 @@ function ConfirmPayoutsSheetContent() {
     customPermissionDescription: "confirm payouts",
   });
 
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
+
+  useEffect(() => {
+    setIsTouchDevice(window.matchMedia("(pointer: coarse)").matches);
+  }, []);
+
   return (
     <div className="flex h-full flex-col">
       <div className="flex h-16 items-center justify-between border-b border-neutral-200 px-6 py-4">
@@ -721,8 +735,8 @@ function ConfirmPayoutsSheetContent() {
           }}
           text={
             amount && amount > 0
-              ? `Hold to confirm ${currencyFormatter(amount)} payout`
-              : "Hold to confirm payout"
+              ? `${isTouchDevice ? "Press" : "Click"} and hold to confirm ${currencyFormatter(amount)} payout`
+              : `${isTouchDevice ? "Press" : "Click"} and hold to confirm payout`
           }
           disabled={
             eligiblePayoutsLoading || !selectedPaymentMethod || amount === 0
@@ -790,7 +804,7 @@ function ConfirmPayoutsButton({
   disabledTooltip,
 }: {
   onClick: () => Promise<boolean>;
-  text: string;
+  text: ReactNode;
   disabled: boolean;
   disabledTooltip: React.ReactNode;
 }) {
@@ -831,6 +845,8 @@ function ConfirmPayoutsButton({
     requestRef.current = requestAnimationFrame(animate);
   };
 
+  const [cancelCounter, setCancelCounter] = useState(0);
+
   const submitting = useRef(false);
 
   // Submit when the progress is >= 1 and not already submitting
@@ -838,6 +854,8 @@ function ConfirmPayoutsButton({
     if (roundedProgress < 1 || submitting.current) return;
 
     submitting.current = true;
+    setCancelCounter(0);
+
     onClick()
       .then((result) => {
         if (result) {
@@ -860,83 +878,109 @@ function ConfirmPayoutsButton({
     return () => cancelAnimationFrame(requestRef.current!);
   }, []);
 
+  const handleCancel = () => {
+    if (!holding.current) return;
+    holding.current = false;
+
+    if (isSuccess) return;
+    setCancelCounter((c) => c + 1);
+  };
+
   return (
-    <Button
-      type="button"
-      variant="primary"
-      className={cn(
-        "relative overflow-hidden",
-        isSuccess && "border-green-500 bg-green-500",
-      )}
-      textWrapperClassName="!overflow-visible select-none"
-      {...(!disabled &&
-        !disabledTooltip && {
-          // TODO: Handle keyboard control
-          onPointerDown: () => (holding.current = true),
-          onPointerUp: () => (holding.current = false),
-          onPointerLeave: () => (holding.current = false),
-          onPointerCancel: () => (holding.current = false),
-        })}
-      text={
-        <>
-          <div
-            ref={loadingBar}
-            className={cn(
-              "pointer-events-none absolute inset-y-0 left-0 overflow-hidden",
-              !isSuccess && "bg-[linear-gradient(90deg,#fff1,#fff4)]",
-            )}
-          >
-            <ShimmerDots
-              className="inset-[unset] inset-y-0 left-0 w-[600px] opacity-30"
-              color={[1, 1, 1]}
-            />
-          </div>
-          <div className="relative text-center">
-            <div
-              className={cn(
-                "transition-[transform,opacity] duration-300",
-                roundedProgress >= 0.5 && "-translate-y-4 opacity-0",
-              )}
-            >
-              {text}
-            </div>
-            <div
-              className={cn(
-                "pointer-events-none absolute inset-0 transition-[transform,opacity] duration-300",
-                roundedProgress < 0.5 && "translate-y-4 opacity-0",
-                roundedProgress >= 1 && "-translate-y-4 opacity-0",
-              )}
-              aria-hidden
-            >
-              Preparing payout...
-            </div>
-            <div
-              className={cn(
-                "pointer-events-none absolute inset-0 flex items-center justify-center transition-[transform,opacity] duration-300",
-                roundedProgress < 1 && "-translate-x-1 translate-y-4 opacity-0",
-                roundedProgress >= 1 &&
-                  isSuccess &&
-                  "-translate-y-4 translate-x-3 opacity-0",
-              )}
-              aria-hidden
-            >
-              <PaperPlane className="size-4" />
-            </div>
-            <div
-              className={cn(
-                "pointer-events-none absolute inset-0 flex items-center justify-center transition-[transform,opacity] duration-300",
-                (roundedProgress < 1 || !isSuccess) &&
-                  "translate-y-4 opacity-0",
-              )}
-              aria-hidden
-            >
-              Payout sent
-            </div>
-          </div>
-        </>
+    <Popover
+      openPopover={cancelCounter >= 2}
+      setOpenPopover={() => {}}
+      content={
+        <div
+          className="text-content-subtle select-none px-2 py-0.5 text-xs"
+          onClick={() => setCancelCounter(0)}
+        >
+          Keep holding the button to confirm
+        </div>
       }
-      disabled={disabled}
-      disabledTooltip={disabledTooltip}
-    />
+      side="top"
+    >
+      <div className="w-full">
+        <Button
+          type="button"
+          variant="primary"
+          className={cn(
+            "relative overflow-hidden",
+            isSuccess && "border-green-500 bg-green-500",
+            "active:scale-[0.98]",
+          )}
+          textWrapperClassName="!overflow-visible select-none"
+          {...(!disabled &&
+            !disabledTooltip && {
+              // TODO: Handle keyboard control
+              onPointerDown: () => (holding.current = true),
+              onPointerUp: handleCancel,
+              onPointerLeave: handleCancel,
+              onPointerCancel: handleCancel,
+            })}
+          text={
+            <>
+              <div
+                ref={loadingBar}
+                className={cn(
+                  "pointer-events-none absolute inset-y-0 left-0 overflow-hidden",
+                  !isSuccess && "bg-[linear-gradient(90deg,#fff1,#fff4)]",
+                )}
+              >
+                <ShimmerDots
+                  className="inset-[unset] inset-y-0 left-0 w-[600px] opacity-30"
+                  color={[1, 1, 1]}
+                />
+              </div>
+              <div className="relative text-center">
+                <div
+                  className={cn(
+                    "truncate transition-[transform,opacity] duration-300",
+                    roundedProgress >= 0.5 && "-translate-y-4 opacity-0",
+                  )}
+                >
+                  {text}
+                </div>
+                <div
+                  className={cn(
+                    "pointer-events-none absolute inset-0 transition-[transform,opacity] duration-300",
+                    roundedProgress < 0.5 && "translate-y-4 opacity-0",
+                    roundedProgress >= 1 && "-translate-y-4 opacity-0",
+                  )}
+                  aria-hidden
+                >
+                  Preparing payout...
+                </div>
+                <div
+                  className={cn(
+                    "pointer-events-none absolute inset-0 flex items-center justify-center transition-[transform,opacity] duration-300",
+                    roundedProgress < 1 &&
+                      "-translate-x-1 translate-y-4 opacity-0",
+                    roundedProgress >= 1 &&
+                      isSuccess &&
+                      "-translate-y-4 translate-x-3 opacity-0",
+                  )}
+                  aria-hidden
+                >
+                  <PaperPlane className="size-4" />
+                </div>
+                <div
+                  className={cn(
+                    "pointer-events-none absolute inset-0 flex items-center justify-center transition-[transform,opacity] duration-300",
+                    (roundedProgress < 1 || !isSuccess) &&
+                      "translate-y-4 opacity-0",
+                  )}
+                  aria-hidden
+                >
+                  Payout sent
+                </div>
+              </div>
+            </>
+          }
+          disabled={disabled}
+          disabledTooltip={disabledTooltip}
+        />
+      </div>
+    </Popover>
   );
 }

@@ -24,6 +24,8 @@ async function main() {
   Papa.parse(fs.createReadStream("customers.csv", "utf-8"), {
     header: true,
     skipEmptyLines: true,
+    transformHeader: (header: string) =>
+      header.trim().replace(/^["']|["']$/g, ""),
     step: (result: { data: CustomerData }) => {
       leadsToBackfill.push(result.data);
     },
@@ -145,6 +147,10 @@ async function main() {
           if (!clickData) {
             return null;
           }
+          const link = partnerLinks.find(
+            (link) =>
+              link.key.toLowerCase() === lead.partnerLinkKey.toLowerCase(),
+          )!;
           return {
             id: createId({ prefix: "cus_" }),
             name: generateRandomName(),
@@ -152,9 +158,11 @@ async function main() {
             projectId: workspace.id,
             projectConnectId: workspace.stripeConnectId,
             stripeCustomerId: lead.stripeCustomerId,
-            clickId: clickData.click_id,
-            linkId: clickData.link_id,
+            linkId: link.id,
+            programId: link.programId,
+            partnerId: link.partnerId,
             country: clickData.country,
+            clickId: clickData.click_id,
             clickedAt: new Date(lead.timestamp).toISOString(),
             createdAt: new Date(lead.timestamp).toISOString(),
           };

@@ -94,6 +94,7 @@ import {
   createPartnerSchema,
   EnrolledPartnerSchema,
   EnrolledPartnerSchemaExtended,
+  PartnerRewindSchema,
   PartnerSchema,
   WebhookPartnerSchema,
 } from "./zod/schemas/partners";
@@ -187,7 +188,10 @@ export interface RedisLinkProps {
   webhookIds?: string[];
   programId?: string;
   partnerId?: string;
-  partner?: Pick<PartnerProps, "id" | "name" | "image">;
+  partner?: Pick<PartnerProps, "id" | "name" | "image"> & {
+    groupId?: string | null;
+    tenantId?: string | null;
+  };
   discount?: Pick<
     DiscountProps,
     "id" | "amount" | "type" | "maxDuration" | "couponId" | "couponTestId"
@@ -454,6 +458,8 @@ export type PartnerProps = z.infer<typeof PartnerSchema> & {
   role: PartnerRole;
   userId: string;
 };
+
+export type PartnerRewindProps = z.infer<typeof PartnerRewindSchema>;
 
 export type PartnerUserProps = z.infer<typeof partnerUserSchema>;
 export type PartnerProfileCustomerProps = z.infer<
@@ -734,4 +740,8 @@ export type CreateFraudEventInput = Pick<
   FraudEventGroup,
   "programId" | "partnerId" | "type"
 > &
-  Partial<Pick<FraudEvent, "linkId" | "eventId" | "customerId" | "metadata">>;
+  Partial<
+    Pick<FraudEvent, "linkId" | "eventId" | "customerId" | "sourceProgramId">
+  > & {
+    metadata?: Record<string, unknown> | null;
+  };

@@ -72,7 +72,7 @@ export function FraudMatchingCustomerEmailTable() {
 
           return (
             <Link
-              href={`/${workspaceSlug}/customers/${row.original.customer.id}`}
+              href={`/${workspaceSlug}/program/customers/${row.original.customer.id}`}
               target="_blank"
             >
               <Button

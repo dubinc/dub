@@ -87,10 +87,7 @@ const statusMessages = {
 
 export function CampaignEditor({ campaign }: { campaign: Campaign }) {
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
-  const { emailDomains } = useEmailDomains();
-  const firstVerifiedEmailDomain = emailDomains?.find(
-    (domain) => domain.status === "verified",
-  );
+  const { verifiedEmailDomain } = useEmailDomains();
 
   const isActive = campaign.status === CampaignStatus.active;
   const isReadOnly = CAMPAIGN_READONLY_STATUSES.includes(campaign.status);
@@ -331,17 +328,17 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
                 name="from"
                 render={({ field }) => {
                   const localPart = field.value?.split("@")[0] || "";
-                  const domainSuffix = firstVerifiedEmailDomain?.slug
-                    ? `@${firstVerifiedEmailDomain.slug}`
+                  const domainSuffix = verifiedEmailDomain?.slug
+                    ? `@${verifiedEmailDomain.slug}`
                     : "";
-                  const isDisabled = isReadOnly || !firstVerifiedEmailDomain;
+                  const isDisabled = isReadOnly || !verifiedEmailDomain;
 
                   return (
                     <DisabledInputWrapper
                       tooltip={
                         isReadOnly ? (
                           statusMessages[campaign.status]
-                        ) : !firstVerifiedEmailDomain ? (
+                        ) : !verifiedEmailDomain ? (
                           <TooltipContent
                             title="You haven't configured an email domain yet. Please configure an email domain to enable campaign sending."
                             cta="Configure email domain"
@@ -364,9 +361,9 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
                           value={localPart}
                           onChange={(e) => {
                             const newLocalPart = e.target.value;
-                            if (firstVerifiedEmailDomain?.slug) {
+                            if (verifiedEmailDomain?.slug) {
                               field.onChange(
-                                `${newLocalPart}@${firstVerifiedEmailDomain.slug}`,
+                                `${newLocalPart}@${verifiedEmailDomain.slug}`,
                               );
                             }
                           }}

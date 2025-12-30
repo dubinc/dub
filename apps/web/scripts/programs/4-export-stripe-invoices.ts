@@ -4,7 +4,7 @@ import * as fs from "fs";
 import * as Papa from "papaparse";
 import { stripeAppClient } from "../../lib/stripe";
 
-const programId = "prog_1K89GZ21QE2YC296FHHBMCFSM";
+const programId = "prog_xxx";
 type CustomerData = {
   customerExternalId: string;
   partnerLinkKey: string;
@@ -18,6 +18,8 @@ async function main() {
   Papa.parse(fs.createReadStream("customers.csv", "utf-8"), {
     header: true,
     skipEmptyLines: true,
+    transformHeader: (header: string) =>
+      header.trim().replace(/^["']|["']$/g, ""),
     step: (result: { data: CustomerData }) => {
       if (result.data.stripeCustomerId) {
         customersToImport.push(result.data);
@@ -43,9 +45,6 @@ async function main() {
           {
             customer: customer.stripeCustomerId,
             status: "paid",
-            created: {
-              gte: 1751526000,
-            },
           },
           {
             stripeAccount: program.workspace.stripeConnectId!,

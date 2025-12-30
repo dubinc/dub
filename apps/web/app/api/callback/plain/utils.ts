@@ -1,5 +1,14 @@
 import { nFormatter } from "@dub/utils";
 import { uiComponent } from "@team-plain/typescript-sdk";
+import { z } from "zod";
+
+export const plainCallbackSchema = z.object({
+  customer: z.object({
+    id: z.string(),
+    email: z.string().email(),
+    externalId: z.string().nullish(),
+  }),
+});
 
 export const plainDivider = uiComponent.divider({
   spacingSize: "M",

@@ -1,8 +1,11 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { BANK_ACCOUNT_STATUS_DESCRIPTIONS } from "@/lib/constants/payouts";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { getPartnerBankAccount } from "@/lib/partners/get-partner-bank-account";
 import { stripe } from "@/lib/stripe";
 import { sendEmail } from "@dub/email";
+import PartnerPayoutWithdrawalFailed from "@dub/email/templates/partner-payout-withdrawal-failed";
 import PartnerPayoutWithdrawalInitiated from "@dub/email/templates/partner-payout-withdrawal-initiated";
 import { prisma } from "@dub/prisma";
 import {
@@ -10,6 +13,7 @@ import {
   currencyFormatter,
   formatDate,
   log,
+  prettyPrint,
 } from "@dub/utils";
 import { z } from "zod";
 import { logAndRespond } from "../../utils";
@@ -53,10 +57,7 @@ export async function POST(req: Request) {
     if (balance.available.length === 0) {
       // should never happen, but just in case
       return logAndRespond(
-        `Partner ${partner.email} (${stripeAccount}) has no available balance. Skipping...`,
-        {
-          logLevel: "error",
-        },
+        `Partner ${partner.email} (${stripeAccount}) has no available balances. Skipping...`,
       );
     }
 
@@ -86,6 +87,44 @@ export async function POST(req: Request) {
 
       return logAndRespond(
         `Partner ${partner.email} (${stripeAccount})'s available balance is 0. Skipping...`,
+      );
+    }
+
+    const bankAccount = await getPartnerBankAccount(stripeAccount);
+
+    const statusInfo = bankAccount
+      ? BANK_ACCOUNT_STATUS_DESCRIPTIONS[bankAccount.status]
+      : // edge case for cases where the partner doesn't have a bank account on file at all
+        {
+          title: "No bank account",
+          description: "This partner does not have an active bank account.",
+          variant: "invalid",
+        };
+
+    if (statusInfo.variant === "invalid") {
+      if (partner.email) {
+        const sentEmail = await sendEmail({
+          variant: "notifications",
+          subject:
+            "[Action Required]: Update your bank account details to receive payouts",
+          to: partner.email,
+          react: PartnerPayoutWithdrawalFailed({
+            email: partner.email,
+            bankAccount,
+            payout: {
+              amount: availableBalance,
+              currency,
+              failureReason: statusInfo.description,
+              isAvailableBalance: true,
+            },
+          }),
+        });
+        console.log(
+          `Sent email to partner ${partner.email} (${stripeAccount}): ${prettyPrint(sentEmail)}`,
+        );
+      }
+      return logAndRespond(
+        `Partner ${partner.email} (${stripeAccount}) has an errored bank account. Skipping...`,
       );
     }
 

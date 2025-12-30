@@ -7,6 +7,7 @@ import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
 import useProgramEnrollmentsCount from "@/lib/swr/use-program-enrollments-count";
 import { useProgramMessagesCount } from "@/lib/swr/use-program-messages-count";
+import { PartnerRewindCard } from "@/ui/partners/rewind/partner-rewind-card";
 import { useRouterStuff } from "@dub/ui";
 import {
   Bell,
@@ -26,7 +27,6 @@ import {
 } from "@dub/ui/icons";
 import { useParams, usePathname } from "next/navigation";
 import { ReactNode, useMemo } from "react";
-import { ProgramMarketplaceCard } from "../../partners/program-marketplace/program-marketplace-card";
 import { CursorRays } from "./icons/cursor-rays";
 import { Hyperlink } from "./icons/hyperlink";
 import { LinesY } from "./icons/lines-y";
@@ -362,7 +362,7 @@ export function PartnersSidebarNav({
           <ProgramHelpSupport />
         ) : (
           <>
-            <ProgramMarketplaceCard />
+            <PartnerRewindCard />
             <PayoutStats />
           </>
         )
