@@ -1,8 +1,9 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
-import { conn } from "@/lib/planetscale/connection";
 import { sqlGranularityMap } from "@/lib/planetscale/granularity";
 import { getPartnerEarningsTimeseriesSchema } from "@/lib/zod/schemas/partner-profile";
+import { prisma } from "@dub/prisma";
+import { Prisma } from "@dub/prisma/client";
 import { format } from "date-fns";
 import { z } from "zod";
 
@@ -48,83 +49,33 @@ export async function getPartnerEarningsTimeseries({
   const { dateFormat, dateIncrement, startFunction, formatString } =
     sqlGranularityMap[granularity];
 
-  // Build SQL query with conditional parts
-  const selectFields = groupBy
-    ? groupBy === "type"
-      ? "type,"
-      : "linkId,"
-    : "";
-  const groupByClause = groupBy
-    ? groupBy === "type"
-      ? ", type"
-      : ", linkId"
-    : "";
-
-  const whereConditions: string[] = [];
-  const params: any[] = [];
-
-  // Add base conditions
-  whereConditions.push("earnings > 0");
-  whereConditions.push("programId = ?");
-  params.push(program.id);
-  whereConditions.push("partnerId = ?");
-  params.push(partnerId);
-  whereConditions.push("createdAt >= ?");
-  params.push(
-    startDate instanceof Date
-      ? format(startDate, "yyyy-MM-dd HH:mm:ss")
-      : startDate,
-  );
-  whereConditions.push("createdAt < ?");
-  params.push(
-    endDate instanceof Date ? format(endDate, "yyyy-MM-dd HH:mm:ss") : endDate,
-  );
-
-  // Add optional filters
-  if (type) {
-    whereConditions.push("type = ?");
-    params.push(type);
-  }
-  if (payoutId) {
-    whereConditions.push("payoutId = ?");
-    params.push(payoutId);
-  }
-  if (linkId) {
-    whereConditions.push("linkId = ?");
-    params.push(linkId);
-  }
-  if (customerId) {
-    whereConditions.push("customerId = ?");
-    params.push(customerId);
-  }
-  if (status) {
-    whereConditions.push("status = ?");
-    params.push(status);
-  }
-
-  const sql = `
-    SELECT 
-      DATE_FORMAT(CONVERT_TZ(createdAt, "UTC", ?), ?) AS start, 
-      ${selectFields}
-      SUM(earnings) AS earnings
-    FROM Commission
-    WHERE ${whereConditions.join(" AND ")}
-    GROUP BY start${groupByClause}
-    ORDER BY start ASC
-  `;
-
-  // Add timezone and dateFormat to params (they go first in the SELECT)
-  const queryParams = [timezone || "UTC", dateFormat, ...params];
-
-  interface QueryResult {
-    start: string;
-    earnings: number;
-    type?: string;
-    linkId?: string;
-  }
-
-  const { rows } = await conn.execute<QueryResult>(sql, queryParams);
-  const earnings = (rows && Array.isArray(rows) ? rows : []) as QueryResult[];
+  const earnings = await prisma.$queryRaw<
+    {
+      start: string;
+      earnings: number;
+      type?: string;
+      linkId?: string;
+    }[]
+  >`
+        SELECT 
+          DATE_FORMAT(CONVERT_TZ(createdAt, "UTC", ${timezone || "UTC"}), ${dateFormat}) AS start, 
+          ${groupBy ? (groupBy === "type" ? Prisma.sql`type,` : Prisma.sql`linkId,`) : Prisma.sql``}
+          SUM(earnings) AS earnings
+        FROM Commission
+        WHERE 
+          earnings > 0
+          AND programId = ${program.id}
+          AND partnerId = ${partnerId}
+          AND createdAt >= ${startDate}
+          AND createdAt < ${endDate}
+          ${type ? Prisma.sql`AND type = ${type}` : Prisma.sql``}
+          ${payoutId ? Prisma.sql`AND payoutId = ${payoutId}` : Prisma.sql``}
+          ${linkId ? Prisma.sql`AND linkId = ${linkId}` : Prisma.sql``}
+          ${customerId ? Prisma.sql`AND customerId = ${customerId}` : Prisma.sql``}
+          ${status ? Prisma.sql`AND status = ${status}` : Prisma.sql``}
+          GROUP BY start${groupBy ? (groupBy === "type" ? Prisma.sql`, type` : Prisma.sql`, linkId`) : Prisma.sql``}
+        ORDER BY start ASC;
+      `;
 
   const timeseries: {
     start: string;
@@ -134,18 +85,24 @@ export async function getPartnerEarningsTimeseries({
   }[] = [];
   let currentDate = startFunction(startDate);
 
-  const commissionLookup = earnings.reduce((acc, item) => {
-    if (!(item.start in acc)) acc[item.start] = { earnings: 0 };
-    acc[item.start].earnings += Number(item.earnings);
-    if (groupBy) {
-      acc[item.start][item[groupBy]] = Number(item.earnings);
-    }
-    return acc;
-  }, {});
+  const commissionLookup = earnings.reduce(
+    (acc, item) => {
+      if (!(item.start in acc)) {
+        acc[item.start] = { earnings: 0 };
+      }
+      acc[item.start].earnings += Number(item.earnings);
+      if (groupBy && item[groupBy]) {
+        acc[item.start][item[groupBy] as string] = Number(item.earnings);
+      }
+      return acc;
+    },
+    {} as Record<string, { earnings: number; [key: string]: number }>,
+  );
 
   while (currentDate < endDate) {
     const periodKey = format(currentDate, formatString);
-    const { earnings, ...rest } = commissionLookup[periodKey] || {};
+    const periodData = commissionLookup[periodKey];
+    const { earnings, ...rest } = periodData || { earnings: 0 };
 
     timeseries.push({
       start: currentDate.toISOString(),
@@ -166,7 +123,7 @@ export async function getPartnerEarningsTimeseries({
                     .filter((link) => (linkId ? link.id === linkId : true))
                     .map((link) => [link.id, 0]),
                 )),
-            ...rest,
+            ...(rest as Record<string, number>),
           }
         : undefined,
     });
