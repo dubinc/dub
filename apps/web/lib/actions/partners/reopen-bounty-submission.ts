@@ -40,8 +40,8 @@ export const reopenBountySubmissionAction = authActionClient
       throw new Error("Bounty submission does not belong to this program.");
     }
 
-    if (bountySubmission.status !== "submitted") {
-      throw new Error("Bounty submission is not submitted yet.");
+    if (bountySubmission.status === "approved") {
+      throw new Error("Bounty submission has already been approved.");
     }
 
     await prisma.bountySubmission.update({
@@ -50,6 +50,10 @@ export const reopenBountySubmissionAction = authActionClient
       },
       data: {
         status: "draft",
+        completedAt: null,
+        reviewedAt: null,
+        rejectionNote: null,
+        rejectionReason: null,
       },
     });
 

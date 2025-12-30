@@ -1,10 +1,7 @@
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withWorkspace } from "@/lib/auth";
-import {
-  INACTIVE_ENROLLMENT_STATUSES,
-  partnerCrossProgramSummarySchema,
-} from "@/lib/zod/schemas/partners";
+import { partnerCrossProgramSummarySchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
@@ -28,7 +25,7 @@ export const GET = withWorkspace(
           not: programId,
         },
         status: {
-          notIn: ["pending"],
+          not: "pending",
         },
       },
       _count: true,
@@ -39,24 +36,21 @@ export const GET = withWorkspace(
       0,
     );
 
-    const bannedPrograms =
-      programEnrollments.find((enrollment) => enrollment.status === "banned")
-        ?._count ?? 0;
+    // approved and archived statuses
+    const trustedPrograms = programEnrollments
+      .filter((enrollment) =>
+        ["approved", "archived"].includes(enrollment.status),
+      )
+      .reduce((acc, enrollment) => acc + enrollment._count, 0);
 
-    const trustedPrograms = programEnrollments.reduce(
-      (acc, enrollment) =>
-        acc +
-        (INACTIVE_ENROLLMENT_STATUSES.includes(enrollment.status)
-          ? 0
-          : enrollment._count),
-      0,
-    );
+    // all other statuses
+    const removedPrograms = totalPrograms - trustedPrograms;
 
     return NextResponse.json(
       partnerCrossProgramSummarySchema.parse({
         totalPrograms,
-        bannedPrograms,
         trustedPrograms,
+        removedPrograms,
       }),
     );
   },
