@@ -26,7 +26,7 @@ import {
   punycode,
   truncate,
 } from "@dub/utils";
-import { useCompletion } from "ai/react";
+import { useCompletion } from "@ai-sdk/react";
 import { TriangleAlert } from "lucide-react";
 import { useParams, usePathname } from "next/navigation";
 import posthog from "posthog-js";

@@ -14,7 +14,7 @@ import {
   Tooltip,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { useCompletion } from "ai/react";
+import { useCompletion } from "@ai-sdk/react";
 import posthog from "posthog-js";
 import { memo, useEffect, useMemo, useState } from "react";
 import { useFormContext, useWatch } from "react-hook-form";

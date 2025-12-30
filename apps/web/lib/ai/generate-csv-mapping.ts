@@ -2,7 +2,7 @@
 
 import { anthropic } from "@ai-sdk/anthropic";
 import { streamObject } from "ai";
-import { createStreamableValue } from "ai/rsc";
+import { createStreamableValue } from "@ai-sdk/rsc";
 import { z } from "zod";
 
 export async function generateCsvMapping(

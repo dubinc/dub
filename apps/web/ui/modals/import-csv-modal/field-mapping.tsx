@@ -16,7 +16,7 @@ import {
   parseDateTime,
   truncate,
 } from "@dub/utils";
-import { readStreamableValue } from "ai/rsc";
+import { readStreamableValue } from "@ai-sdk/rsc";
 import { ChevronDown } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Controller } from "react-hook-form";

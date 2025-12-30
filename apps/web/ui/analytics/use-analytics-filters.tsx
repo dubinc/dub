@@ -48,7 +48,7 @@ import {
   OG_AVATAR_URL,
   REGIONS,
 } from "@dub/utils";
-import { readStreamableValue } from "ai/rsc";
+import { readStreamableValue } from "@ai-sdk/rsc";
 import { useParams } from "next/navigation";
 import posthog from "posthog-js";
 import {
