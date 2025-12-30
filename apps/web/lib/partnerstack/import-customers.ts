@@ -261,6 +261,8 @@ async function createCustomer({
         projectConnectId: workspace.stripeConnectId,
         clickId: clickEvent.click_id,
         linkId: link.id,
+        programId: link.programId,
+        partnerId: link.partnerId,
         country: clickEvent.country,
         clickedAt: new Date(customer.created_at),
         createdAt: new Date(customer.created_at),

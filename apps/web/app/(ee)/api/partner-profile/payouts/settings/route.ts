@@ -1,15 +1,6 @@
 import { withPartnerProfile } from "@/lib/auth/partner";
-import { stripe } from "@/lib/stripe";
+import { getPartnerBankAccount } from "@/lib/partners/get-partner-bank-account";
 import { NextResponse } from "next/server";
-import { z } from "zod";
-
-const response = z
-  .object({
-    bank_name: z.string(),
-    routing_number: z.string(),
-    last4: z.string(),
-  })
-  .nullable();
 
 // GET /api/partner-profile/payouts/settings
 export const GET = withPartnerProfile(async ({ partner }) => {
@@ -17,17 +8,7 @@ export const GET = withPartnerProfile(async ({ partner }) => {
     return NextResponse.json({});
   }
 
-  const externalAccounts = await stripe.accounts.listExternalAccounts(
-    partner.stripeConnectId,
-    {
-      object: "bank_account",
-    },
-  );
+  const bankAccount = await getPartnerBankAccount(partner.stripeConnectId);
 
-  const bankAccounts =
-    externalAccounts.data.length > 0
-      ? response.parse(externalAccounts.data[0])
-      : {};
-
-  return NextResponse.json(bankAccounts);
+  return NextResponse.json(bankAccount);
 });

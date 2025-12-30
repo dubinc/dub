@@ -10,7 +10,7 @@ import useSWR from "swr";
 import { ProgramOverviewBlock } from "../program-overview-block";
 
 export function SaleTypeBlock() {
-  const { slug: workspaceSlug, exceededClicks } = useWorkspace();
+  const { slug: workspaceSlug, exceededEvents } = useWorkspace();
   const { getQueryString } = useRouterStuff();
   const {
     queryString,
@@ -27,7 +27,7 @@ export function SaleTypeBlock() {
   } = useSWR<{
     [key in AnalyticsResponseOptions]: number;
   }>(
-    !exceededClicks &&
+    !exceededEvents &&
       `/api/analytics?${editQueryString(queryString, {
         event: "sales",
         saleType: "recurring",

@@ -288,6 +288,11 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             href: `/${slug}/program/analytics`,
           },
           {
+            name: "Customers",
+            icon: UserCheck,
+            href: `/${slug}/program/customers`,
+          },
+          {
             name: "Commissions",
             icon: InvoiceDollar,
             href: `/${slug}/program/commissions`,

@@ -74,17 +74,17 @@ export default function NewBountyAvailable({
               </Section>
 
               {bounty.description && (
-                <Section className="flex border-t border-solid border-neutral-200 p-6">
+                <Section className="border-t border-solid border-neutral-200 p-6">
                   <Text className="m-0 p-0 text-sm font-semibold text-neutral-900">
                     Details
                   </Text>
-                  <Text className="m-0 mt-2 p-0 text-sm font-medium text-neutral-500">
+                  <Section className="p-0 text-sm font-medium text-neutral-500">
                     <Markdown
                       markdownCustomStyles={{ link: { color: "black" } }}
                     >
                       {bounty.description}
                     </Markdown>
-                  </Text>
+                  </Section>
                 </Section>
               )}
 

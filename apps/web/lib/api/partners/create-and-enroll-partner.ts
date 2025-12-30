@@ -12,6 +12,7 @@ import { waitUntil } from "@vercel/functions";
 import { DubApiError } from "../errors";
 import { getGroupOrThrow } from "../groups/get-group-or-throw";
 import { createPartnerDefaultLinks } from "./create-partner-default-links";
+import { throwIfExistingTenantEnrollmentExists } from "./throw-if-existing-tenant-id-exists";
 
 interface CreateAndEnrollPartnerInput {
   workspace: Pick<WorkspaceProps, "id" | "webhookEnabled" | "plan">;
@@ -24,32 +25,6 @@ interface CreateAndEnrollPartnerInput {
   userId: string;
 }
 
-// check if the tenantId already exists for a different enrolled partner
-// if so, throw an error
-const throwIfExistingTenantEnrollmentExists = async ({
-  tenantId,
-  programId,
-}: {
-  tenantId: string;
-  programId: string;
-}) => {
-  const existingTenantEnrollment = await prisma.programEnrollment.findUnique({
-    where: {
-      tenantId_programId: {
-        tenantId,
-        programId,
-      },
-    },
-  });
-
-  if (existingTenantEnrollment) {
-    throw new DubApiError({
-      message: `Partner with tenantId '${tenantId}' already enrolled in this program.`,
-      code: "conflict",
-    });
-  }
-};
-
 export const createAndEnrollPartner = async ({
   workspace,
   program,
@@ -61,13 +36,24 @@ export const createAndEnrollPartner = async ({
   userId,
 }: CreateAndEnrollPartnerInput) => {
   if (!skipEnrollmentCheck) {
-    // Check if the partner is already enrolled in the program by email
+    // Check if the partner is already enrolled in the program by tenantId or email
     const programEnrollment = await prisma.programEnrollment.findFirst({
       where: {
         programId: program.id,
-        partner: {
-          email: partner.email,
-        },
+        OR: [
+          ...(partner.tenantId
+            ? [
+                {
+                  tenantId: partner.tenantId,
+                },
+              ]
+            : []),
+          {
+            partner: {
+              email: partner.email,
+            },
+          },
+        ],
       },
       include: {
         partner: true,

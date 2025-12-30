@@ -97,7 +97,7 @@ export const confirmPayoutsAction = authActionClient
             : excludedPayoutIds && excludedPayoutIds.length > 0
               ? { id: { notIn: excludedPayoutIds } }
               : {}),
-          ...getPayoutEligibilityFilter(program),
+          ...getPayoutEligibilityFilter({ program, workspace }),
         },
         _count: true,
       });
@@ -113,6 +113,7 @@ export const confirmPayoutsAction = authActionClient
       const [eligiblePayouts, payoutWebhooks] = await Promise.all([
         getEligiblePayouts({
           program,
+          workspace,
           cutoffPeriod,
           selectedPayoutId,
           excludedPayoutIds,
