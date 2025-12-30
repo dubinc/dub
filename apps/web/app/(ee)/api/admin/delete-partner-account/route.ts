@@ -2,6 +2,7 @@ import { withAdmin } from "@/lib/auth";
 import { stripe } from "@/lib/stripe";
 import { recordLink } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma/node";
+import { prettyPrint } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // POST /api/admin/delete-partner-account
@@ -29,35 +30,45 @@ export const POST = withAdmin(async ({ req }) => {
   }
 
   if (partner.stripeConnectId) {
-    // check if stripe express account has received payouts before
-    const transfers = await stripe.transfers.list({
-      destination: partner.stripeConnectId,
-      limit: 1,
-    });
+    try {
+      // check if stripe express account has received payouts before
+      const transfers = await stripe.transfers.list({
+        destination: partner.stripeConnectId,
+        limit: 1,
+      });
 
-    if (transfers.data.length > 0) {
-      return new Response(
-        "Stripe express account has received payouts before and cannot be deleted.",
-        {
-          status: 400,
-        },
+      if (transfers.data.length > 0) {
+        return new Response(
+          "Stripe express account has received payouts before and cannot be deleted.",
+          {
+            status: 400,
+          },
+        );
+      }
+
+      const res = await stripe.accounts.del(partner.stripeConnectId);
+      console.log(
+        `Deleted Stripe express account for partner ${partner.email}: `,
+        prettyPrint(res),
+      );
+    } catch (error) {
+      console.log(
+        "Error deleting Stripe express account (probably already deleted): ",
+        error,
       );
     }
 
-    try {
-      await stripe.accounts.del(partner.stripeConnectId);
-      console.log("Deleted Stripe express account: ", partner.stripeConnectId);
-      await prisma.partner.update({
-        where: {
-          id: partner.id,
-        },
-        data: {
-          stripeConnectId: null,
-          payoutsEnabledAt: null,
-          payoutMethodHash: null,
-        },
-      });
-    } catch (error) {}
+    await prisma.partner.update({
+      where: {
+        id: partner.id,
+      },
+      data: {
+        stripeConnectId: null,
+        payoutsEnabledAt: null,
+        payoutMethodHash: null,
+      },
+    });
+    console.log(`Updated partner ${partner.email} with stripeConnectId null`);
   }
 
   if (deletePartnerAccount) {

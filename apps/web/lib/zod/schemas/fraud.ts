@@ -4,7 +4,6 @@ import { z } from "zod";
 import { CustomerSchema } from "./customers";
 import { getPaginationQuerySchema } from "./misc";
 import { EnrolledPartnerSchema, PartnerSchema } from "./partners";
-import { ProgramEnrollmentSchema } from "./programs";
 import { UserSchema } from "./users";
 
 export const MAX_RESOLUTION_REASON_LENGTH = 200;
@@ -252,9 +251,11 @@ export const fraudEventSchemas = {
     }),
   }),
 
-  partnerCrossProgramBan: ProgramEnrollmentSchema.pick({
-    bannedAt: true,
-    bannedReason: true,
+  partnerCrossProgramBan: z.object({
+    metadata: z.object({
+      bannedAt: z.string(),
+      bannedReason: z.string(),
+    }),
   }),
 
   partnerDuplicatePayoutMethod: z.object({

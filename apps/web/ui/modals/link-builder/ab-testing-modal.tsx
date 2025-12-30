@@ -422,7 +422,7 @@ function ABTestingModal({
 
         {testVariantsParent && (
           <div className="mt-6 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-4">
-            <TriangleWarning className="mt-0.5 size-4 shrink-0 text-amber-500" />
+            <TriangleWarning className="mt-0.5 size-4 shrink-0 text-amber-600" />
             <p className="text-sm font-medium text-amber-900">
               Changing the original A/B test settings will impact your future
               analytics and event tracking.

@@ -8,7 +8,7 @@ import { includeTags } from "@/lib/api/links/include-tags";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { recordLink } from "@/lib/tinybird";
 import { banPartnerSchema } from "@/lib/zod/schemas/partners";
-import { prisma } from "@dub/prisma/node";
+import { FraudRuleType, prisma } from "@dub/prisma/node";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 
@@ -135,6 +135,31 @@ export const unbanPartnerAction = authActionClient
                 metadata: programEnrollment.partner,
               },
             ],
+          }),
+        ]);
+
+        await prisma.$transaction([
+          // Since we're unbanning the partner, we need to
+          // clean up any pending cross-program ban alerts that originated from this program.
+          prisma.fraudEvent.deleteMany({
+            where: {
+              partnerId,
+              sourceProgramId: programId,
+              fraudEventGroup: {
+                type: FraudRuleType.partnerCrossProgramBan,
+              },
+            },
+          }),
+
+          // Delete the fraud group if it has no more fraud events
+          prisma.fraudEventGroup.deleteMany({
+            where: {
+              partnerId,
+              type: FraudRuleType.partnerCrossProgramBan,
+              fraudEvents: {
+                none: {},
+              },
+            },
           }),
         ]);
 

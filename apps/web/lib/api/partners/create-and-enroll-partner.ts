@@ -11,6 +11,7 @@ import { waitUntil } from "@vercel/functions";
 import { DubApiError } from "../errors";
 import { getGroupOrThrow } from "../groups/get-group-or-throw";
 import { createPartnerDefaultLinks } from "./create-partner-default-links";
+import { throwIfExistingTenantEnrollmentExists } from "./throw-if-existing-tenant-id-exists";
 
 interface CreateAndEnrollPartnerInput {
   workspace: Pick<WorkspaceProps, "id" | "webhookEnabled" | "plan">;
@@ -22,32 +23,6 @@ interface CreateAndEnrollPartnerInput {
   enrolledAt?: Date;
   userId: string;
 }
-
-// check if the tenantId already exists for a different enrolled partner
-// if so, throw an error
-const throwIfExistingTenantEnrollmentExists = async ({
-  tenantId,
-  programId,
-}: {
-  tenantId: string;
-  programId: string;
-}) => {
-  const existingTenantEnrollment = await prisma.programEnrollment.findUnique({
-    where: {
-      tenantId_programId: {
-        tenantId,
-        programId,
-      },
-    },
-  });
-
-  if (existingTenantEnrollment) {
-    throw new DubApiError({
-      message: `Partner with tenantId '${tenantId}' already enrolled in this program.`,
-      code: "conflict",
-    });
-  }
-};
 
 export const createAndEnrollPartner = async ({
   workspace,

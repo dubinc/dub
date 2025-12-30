@@ -5,12 +5,11 @@ const PARTNERS_REDIRECTS = {
   "/account/settings/notifications": "/profile/notifications",
   "/profile/sites": "/profile",
   "/marketplace": "/programs/marketplace",
+  "/rewind": "/rewind/2025",
 };
 
 export const partnersRedirect = (path: string) => {
-  if (PARTNERS_REDIRECTS[path]) return PARTNERS_REDIRECTS[path];
-
-  return null;
+  return PARTNERS_REDIRECTS[path] || null;
 };
 
 const PARTNERS_PROGRAM_REDIRECTS = {

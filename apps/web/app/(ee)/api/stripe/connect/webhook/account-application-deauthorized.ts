@@ -23,10 +23,11 @@ export async function accountApplicationDeauthorized(event: Stripe.Event) {
       id: partner.id,
     },
     data: {
+      stripeConnectId: null,
       payoutsEnabledAt: null,
       payoutMethodHash: null,
     },
   });
 
-  return `Connected account deauthorized, updated partner ${partner.email} (${partner.stripeConnectId}) with payoutsEnabledAt and payoutMethodHash null`;
+  return `Connected account ${stripeAccount} deauthorized, removed stripeConnectId for partner ${partner.email} (${partner.id})`;
 }

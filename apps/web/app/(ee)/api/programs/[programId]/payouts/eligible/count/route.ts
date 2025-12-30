@@ -30,6 +30,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   if (cutoffPeriodValue) {
     const eligiblePayouts = await getEligiblePayouts({
       program,
+      workspace,
       cutoffPeriod,
       selectedPayoutId,
       excludedPayoutIds,
@@ -50,7 +51,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
         : excludedPayoutIds && excludedPayoutIds.length > 0
           ? { id: { notIn: excludedPayoutIds } }
           : {}),
-      ...getPayoutEligibilityFilter(program),
+      ...getPayoutEligibilityFilter({ program, workspace }),
     },
     _count: true,
     _sum: {

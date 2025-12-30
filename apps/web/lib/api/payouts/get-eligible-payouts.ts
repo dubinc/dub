@@ -3,7 +3,7 @@ import {
   eligiblePayoutsQuerySchema,
   PayoutResponseSchema,
 } from "@/lib/zod/schemas/payouts";
-import { prisma, Program } from "@dub/prisma/node";
+import { prisma, Program, Project } from "@dub/prisma/node";
 import { z } from "zod";
 import { getEffectivePayoutMode } from "./get-effective-payout-mode";
 import { getPayoutEligibilityFilter } from "./payout-eligibility-filter";
@@ -15,10 +15,12 @@ interface GetEligiblePayoutsProps
   > {
   excludedPayoutIds?: string[];
   program: Pick<Program, "id" | "name" | "minPayoutAmount" | "payoutMode">;
+  workspace: Pick<Project, "plan">;
 }
 
 export async function getEligiblePayouts({
   program,
+  workspace,
   cutoffPeriod,
   selectedPayoutId,
   excludedPayoutIds,
@@ -36,7 +38,7 @@ export async function getEligiblePayouts({
         : excludedPayoutIds && excludedPayoutIds.length > 0
           ? { id: { notIn: excludedPayoutIds } }
           : {}),
-      ...getPayoutEligibilityFilter(program),
+      ...getPayoutEligibilityFilter({ program, workspace }),
     },
     include: {
       partner: {

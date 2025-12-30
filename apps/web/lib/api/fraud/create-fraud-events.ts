@@ -122,6 +122,7 @@ export async function createFraudEvents(fraudEvents: CreateFraudEventInput[]) {
       linkId: e.linkId,
       customerId: e.customerId,
       eventId: e.eventId,
+      sourceProgramId: e.sourceProgramId,
       hash: e.hash,
       metadata: e.metadata ? sanitizeFraudEventMetadata(e.metadata) : undefined,
     }),

@@ -18,6 +18,7 @@ import {
   Button,
   buttonVariants,
   StatusBadge,
+  Tooltip,
   useCopyToClipboard,
   useRouterStuff,
 } from "@dub/ui";
@@ -34,6 +35,7 @@ import {
   CursorRays,
   InvoiceDollar,
   LoadingSpinner,
+  ReferredVia,
   UserPlus,
 } from "@dub/ui/icons";
 import { cn, currencyFormatter, getPrettyUrl, nFormatter } from "@dub/utils";
@@ -49,9 +51,11 @@ import {
   useContext,
   useId,
   useMemo,
+  useState,
 } from "react";
 import { EarningsTablePartner } from "./earnings/earnings-table";
 import { PayoutsCard } from "./payouts-card";
+import { ShareEarningsModal } from "./share-earnings-modal";
 
 const ProgramOverviewContext = createContext<{
   start?: Date;
@@ -117,7 +121,7 @@ export default function ProgramPageClient() {
             >
               <div
                 className={cn(
-                  "relative z-0 mb-4 flex flex-col overflow-hidden rounded-lg border border-neutral-300 p-4 sm:mb-10 md:p-6",
+                  "relative z-0 mb-4 flex flex-col overflow-hidden rounded-xl border border-neutral-200 p-4 sm:mb-8 md:p-6",
                   isDeactivated && "opacity-80",
                 )}
               >
@@ -231,7 +235,7 @@ export default function ProgramPageClient() {
       >
         <ChartTooltipSync>
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-            <div className="group rounded-lg border border-neutral-300 p-5 pb-3 lg:col-span-2">
+            <div className="group rounded-xl border border-neutral-200 p-5 pb-3 pt-4 lg:col-span-2">
               <EarningsChart />
             </div>
 
@@ -281,6 +285,9 @@ function EarningsChart() {
   const { programSlug } = useParams();
   const { getQueryString } = useRouterStuff();
   const { start, end, interval } = useContext(ProgramOverviewContext);
+  const [showShareModal, setShowShareModal] = useState(false);
+
+  const { programEnrollment } = useProgramEnrollment();
 
   const { data: timeseries, error } = usePartnerEarningsTimeseries({
     interval,
@@ -322,13 +329,35 @@ function EarningsChart() {
 
   return (
     <div>
+      {programEnrollment?.program && (
+        <ShareEarningsModal
+          showModal={showShareModal}
+          setShowModal={setShowShareModal}
+          programId={programEnrollment.program.id}
+          start={start}
+          end={end}
+          interval={interval}
+          timeseries={timeseries}
+        />
+      )}
       <div className="flex flex-col-reverse items-start justify-between gap-4 md:flex-row">
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-0">
           <div>
-            <span className="block text-base font-semibold leading-none text-neutral-800">
-              Earnings
-            </span>
-            <div className="mt-1 flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
+              <span className="block text-base font-semibold leading-none text-neutral-800">
+                Earnings
+              </span>
+              <Tooltip content="Share chart">
+                <button
+                  type="button"
+                  onClick={() => setShowShareModal(true)}
+                  className="flex size-6 items-center justify-center rounded-md border border-transparent text-neutral-500 transition-colors hover:border-neutral-200 hover:bg-neutral-50 hover:text-neutral-700"
+                >
+                  <ReferredVia className="size-3.5" />
+                </button>
+              </Tooltip>
+            </div>
+            <div className="flex items-baseline gap-2">
               {total !== undefined ? (
                 <>
                   <NumberFlow
@@ -423,7 +452,7 @@ function StatCard({
   }, [timeseries]);
 
   return (
-    <div className="group block rounded-lg border border-neutral-300 bg-white p-5 pb-3">
+    <div className="group block rounded-xl border border-neutral-200 bg-white p-5 pb-3">
       <div className="flex justify-between">
         <div>
           <span className="mb-1 block text-base font-semibold leading-none text-neutral-800">
@@ -490,7 +519,7 @@ function StatCardSimple({
   const Icon = iconMap[event];
 
   return (
-    <div className="relative block rounded-lg border border-neutral-300 bg-white px-5 py-4">
+    <div className="relative block rounded-xl border border-neutral-200 bg-white px-5 py-4">
       <div className="flex items-center gap-4">
         <div className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-neutral-100">
           <Icon className="size-5 text-neutral-700" />

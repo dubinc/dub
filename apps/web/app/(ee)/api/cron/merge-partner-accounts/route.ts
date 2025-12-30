@@ -191,30 +191,35 @@ export async function POST(req: Request) {
         },
       });
 
-      // Bounty submissions to transfer to the target partner
-      const bountySubmissions = await prisma.bountySubmission.findMany({
+      // only transfer bounty submissions if the target partner has no submissions for the same bounty
+      const bountySubmissionStats = await prisma.bountySubmission.groupBy({
+        by: ["bountyId"],
         where: {
-          programId: {
-            in: programIdsToTransfer,
+          partnerId: {
+            in: [sourcePartnerId, targetPartnerId],
           },
-          partnerId: sourcePartnerId,
+        },
+        _count: {
+          partnerId: true,
         },
       });
+      const bountiesToTransfer = bountySubmissionStats
+        .filter(({ _count }) => _count.partnerId === 1)
+        .map(({ bountyId }) => bountyId);
 
-      // Attempting to update all source submissions to the target partnerId fails
-      // if the target already has submissions for the same bounties.
-      if (bountySubmissions.length > 0) {
-        await Promise.allSettled(
-          bountySubmissions.map((submission) =>
-            prisma.bountySubmission.update({
-              where: {
-                id: submission.id,
-              },
-              data: {
-                partnerId: targetPartnerId,
-              },
-            }),
-          ),
+      if (bountiesToTransfer.length > 0) {
+        const updatedBountySubmissions =
+          await prisma.bountySubmission.updateMany({
+            where: {
+              bountyId: { in: bountiesToTransfer },
+              partnerId: sourcePartnerId,
+            },
+            data: {
+              partnerId: targetPartnerId,
+            },
+          });
+        console.log(
+          `Transferred ${updatedBountySubmissions.count} bounty submissions`,
         );
       }
 
@@ -391,7 +396,7 @@ export async function POST(req: Request) {
         },
       ],
       {
-        idempotencyKey: `merge-partner-accounts/${userId}`,
+        idempotencyKey: `${CACHE_KEY_PREFIX}/${userId}`,
       },
     );
     console.log(prettyPrint(resendBatchEmailRes));

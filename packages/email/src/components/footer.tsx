@@ -3,24 +3,25 @@ import { Hr, Link, Tailwind, Text } from "@react-email/components";
 export function Footer({
   email,
   marketing,
+  unsubscribeUrl,
   notificationSettingsUrl,
 }: {
   email: string;
   marketing?: boolean;
+  unsubscribeUrl?: string;
   notificationSettingsUrl?: string;
 }) {
   if (marketing) {
+    const unsubscribeHref =
+      unsubscribeUrl || "https://app.dub.co/account/settings";
+
     return (
       <Tailwind>
         <Hr className="mx-0 my-6 w-full border border-neutral-200" />
         <Text className="text-[12px] leading-6 text-neutral-500">
-          We send out product update emails once a month – no spam, no nonsense.
-          Don't want to get these emails?{" "}
-          <Link
-            className="text-neutral-700 underline"
-            href="https://app.dub.co/account/settings"
-          >
-            Unsubscribe here.
+          We send out product update emails once a month – no spam, no nonsense.{" "}
+          <Link className="text-neutral-700 underline" href={unsubscribeHref}>
+            Manage your email preferences.
           </Link>
         </Text>
         <Text className="text-[12px] text-neutral-500">

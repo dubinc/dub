@@ -11,7 +11,9 @@ async function main() {
         users: {
           some: {
             user: {
-              subscribed: true,
+              notificationPreferences: {
+                partnerAccount: true,
+              },
             },
           },
         },

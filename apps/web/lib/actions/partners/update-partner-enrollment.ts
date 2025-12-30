@@ -3,6 +3,7 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
 import { includeTags } from "@/lib/api/links/include-tags";
+import { throwIfExistingTenantEnrollmentExists } from "@/lib/api/partners/throw-if-existing-tenant-id-exists";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { recordLink } from "@/lib/tinybird";
@@ -27,18 +28,26 @@ export const updatePartnerEnrollmentAction = authActionClient
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const { partner } = await getProgramEnrollmentOrThrow({
-      partnerId,
-      programId,
-      include: {
-        partner: true,
-      },
-    });
+    const { partner, tenantId: existingTenantId } =
+      await getProgramEnrollmentOrThrow({
+        partnerId,
+        programId,
+        include: {
+          partner: true,
+        },
+      });
 
     const where = {
       programId,
       partnerId,
     };
+
+    if (tenantId && tenantId !== existingTenantId) {
+      await throwIfExistingTenantEnrollmentExists({
+        tenantId,
+        programId,
+      });
+    }
 
     const programEnrollment = await prisma.$transaction(async (tx) => {
       await tx.link.updateMany({
