@@ -237,10 +237,8 @@ async function handler(req: Request) {
   }
 }
 
-export { handler as GET, handler as POST };
-
 // Resolve the click reward amount for a given reward and country
-export function resolveClickRewardAmount({
+function resolveClickRewardAmount({
   reward,
   country,
 }: {
@@ -276,3 +274,5 @@ export function resolveClickRewardAmount({
 
   return getRewardAmount(serializeReward(partnerReward));
 }
+
+export { handler as GET, handler as POST };
