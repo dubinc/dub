@@ -4,7 +4,7 @@ import { IntervalOptions } from "@/lib/analytics/types";
 import { Button, LoadingSpinner, Modal } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { X } from "lucide-react";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 const BACKGROUND_OPTIONS = [
@@ -69,13 +69,17 @@ function ShareEarningsModalInner({
   const [isLoading, setIsLoading] = useState(false);
   const [blob, setBlob] = useState<Blob | null>(null);
 
-  const imageUrl = `/api/og/partner-earnings?${new URLSearchParams({
-    programId,
-    interval,
-    ...(start && { start: start.toISOString() }),
-    ...(end && { end: end.toISOString() }),
-    background,
-  }).toString()}`;
+  const imageUrl = useMemo(
+    () =>
+      `/api/og/partner-earnings?${new URLSearchParams({
+        programId,
+        background,
+        interval,
+        ...(start && { start: start.toISOString() }),
+        ...(end && { end: end.toISOString() }),
+      }).toString()}`,
+    [programId, background, interval, start, end],
+  );
 
   useEffect(() => {
     if (!programId) return;
