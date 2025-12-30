@@ -1,8 +1,12 @@
-import { PrismaPlanetScale } from "@prisma/adapter-planetscale";
+import { PrismaMariaDb } from "@prisma/adapter-mariadb";
 import { PrismaClient } from "./generated/client";
 
-const adapter = new PrismaPlanetScale({
-  url: process.env.PLANETSCALE_DATABASE_URL || process.env.DATABASE_URL,
+const adapter = new PrismaMariaDb({
+  // database: process.env.PLANETSCALE_DATABASE_URL || process.env.DATABASE_URL,
+
+  host: process.env.PLANETSCALE_DATABASE_URL || process.env.DATABASE_URL,
+  // port: 3306,
+  // connectionLimit: 5,
 });
 
 const prismaClientSingleton = () => {

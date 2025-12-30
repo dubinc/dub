@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@planetscale/database": "1.19.0",
+    "@prisma/adapter-mariadb": "^7.2.0",
     "@prisma/adapter-planetscale": "6.19.1",
     "@prisma/client": "6.19.1"
   },
