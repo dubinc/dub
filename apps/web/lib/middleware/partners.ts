@@ -18,6 +18,7 @@ const AUTHENTICATED_PATHS = [
   "/payouts",
   "/account",
   "/invite",
+  "/rewind",
 ];
 
 export async function PartnersMiddleware(req: NextRequest) {
