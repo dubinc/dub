@@ -14,6 +14,7 @@ import { analyticsResponse } from "./analytics-response";
 import { createLinkBodySchema } from "./links";
 import {
   base64ImageSchema,
+  booleanQuerySchema,
   getPaginationQuerySchema,
   publicHostedImageSchema,
   storedR2ImageUrlSchema,
@@ -177,6 +178,7 @@ export const getPartnersQuerySchemaExtended = getPartnersQuerySchema.merge(
       .transform((v) => (Array.isArray(v) ? v : v.split(",")))
       .optional(),
     groupId: z.string().optional(),
+    includeOnlinePresenceVerification: booleanQuerySchema.optional(),
   }),
 );
 
@@ -456,12 +458,6 @@ export const EnrolledPartnerSchema = PartnerSchema.pick({
       linkedin: true,
       instagram: true,
       tiktok: true,
-      websiteVerifiedAt: true,
-      youtubeVerifiedAt: true,
-      twitterVerifiedAt: true,
-      linkedinVerifiedAt: true,
-      instagramVerifiedAt: true,
-      tiktokVerifiedAt: true,
     }),
   );
 
