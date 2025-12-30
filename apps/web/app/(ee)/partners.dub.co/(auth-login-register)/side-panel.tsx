@@ -8,16 +8,44 @@ export function SidePanel({
 }: {
   program?: Pick<Program, "name" | "logo" | "slug">;
 }) {
+  // program = program ?? {
+  //   name: "Tella",
+  //   logo: "https://dubassets.com/workspaces/ws_clvz1dk090002g692xp9hk4ec/logo_4VfXRx8",
+  //   slug: "tella",
+  // };
+
   return (
     <div className="hidden h-full flex-col items-start justify-between gap-8 overflow-hidden border-r border-black/5 bg-neutral-50 min-[900px]:flex">
+      <div className="grow basis-0 p-4 lg:p-10">
+        <DubPartnersLogo className="w-fit" />
+      </div>
       {program ? (
-        <></>
+        <div className="relative w-full">
+          {program.logo && (
+            <div className="absolute inset-0 blur-[100px]">
+              <img
+                className="absolute bottom-0 left-1/2 size-72 shrink-0 -translate-x-1/2 translate-y-1/2 -skew-x-12 rounded-full opacity-50"
+                src={program.logo}
+                alt={`${program.name} logo`}
+              />
+            </div>
+          )}
+          <div className="relative flex flex-col gap-8 p-4 lg:p-10">
+            {program.logo && (
+              <img
+                className="size-14 shrink-0 rounded-full"
+                src={program.logo}
+                alt={`${program.name} logo`}
+              />
+            )}
+            <p className="text-content-default max-w-[370px] text-pretty text-xl font-medium [&_strong]:font-semibold">
+              <strong>{program.name}</strong> uses <strong>Dub Partners</strong>{" "}
+              to power their affiliate program
+            </p>
+          </div>
+        </div>
       ) : (
         <>
-          <div className="grow basis-0 p-4 lg:p-10">
-            <DubPartnersLogo className="w-fit" />
-          </div>
-
           <div className="flex flex-col gap-6 px-4 lg:px-10">
             <p className="text-content-default max-w-[370px] text-pretty text-xl font-medium">
               Join thousands of others who have earned over $10,000,000 on Dub
