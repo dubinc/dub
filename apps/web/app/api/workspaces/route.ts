@@ -9,7 +9,6 @@ import {
   createWorkspaceSchema,
   WorkspaceSchema,
 } from "@/lib/zod/schemas/workspaces";
-import { subscribe } from "@dub/email/resend/subscribe";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { FREE_WORKSPACES_LIMIT, nanoid, R2_URL } from "@dub/utils";
@@ -162,11 +161,7 @@ export const POST = withSession(async ({ req, session }) => {
               defaultWorkspace: workspace.slug,
             },
           }),
-        // Subscribe the user to the Resend audience
-        subscribe({
-          email: session.user.email,
-          name: session.user.name || undefined,
-        }),
+
         // Upload logo to R2 if uploaded
         logo &&
           uploadedImageUrl &&

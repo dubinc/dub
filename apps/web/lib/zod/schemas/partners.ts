@@ -344,6 +344,7 @@ export const PartnerWithProfileSchema =
 
 export const PartnerRewindSchema = z.object({
   id: z.string(),
+  partnerId: z.string(),
   year: z.number(),
   totalClicks: z.number().default(0),
   totalLeads: z.number().default(0),
@@ -842,4 +843,10 @@ export const partnerPayoutSettingsSchema = z.object({
   companyName: z.string().max(190).trim().nullish(),
   address: z.string().max(500).trim().nullish(),
   taxId: z.string().max(100).trim().nullish(),
+});
+
+export const partnerCrossProgramSummarySchema = z.object({
+  totalPrograms: z.number(),
+  bannedPrograms: z.number(),
+  trustedPrograms: z.number(),
 });

@@ -83,6 +83,7 @@ model Program {
   categories               ProgramCategory[]
   fraudRules               FraudRule[]
   fraudEventGroups         FraudEventGroup[]
+  sourceFraudEvents        FraudEvent[]              @relation("SourceFraudEvents")
 
   @@index(workspaceId)
   @@index(addedToMarketplaceAt)

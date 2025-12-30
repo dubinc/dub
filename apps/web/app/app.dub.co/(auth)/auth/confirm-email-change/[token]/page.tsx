@@ -2,8 +2,6 @@ import { getSession, hashToken } from "@/lib/auth";
 import { redis } from "@/lib/upstash";
 import EmptyState from "@/ui/shared/empty-state";
 import { sendEmail } from "@dub/email";
-import { subscribe } from "@dub/email/resend/subscribe";
-import { unsubscribe } from "@dub/email/resend/unsubscribe";
 import EmailUpdated from "@dub/email/templates/email-updated";
 import { prisma } from "@dub/prisma";
 import { User, VerificationToken } from "@dub/prisma/client";
@@ -132,22 +130,12 @@ const VerifyEmailChange = async ({ params, searchParams }: PageProps) => {
       data: {
         email: data.newEmail,
       },
-      select: {
-        subscribed: true,
-      },
     });
   }
 
   waitUntil(
     Promise.allSettled([
       deleteRequest(tokenFound),
-
-      ...(user?.subscribed
-        ? [
-            unsubscribe({ email: data.email }),
-            subscribe({ email: data.newEmail }),
-          ]
-        : []),
 
       sendEmail({
         subject: "Your email address has been changed",

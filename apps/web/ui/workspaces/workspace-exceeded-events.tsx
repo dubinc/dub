@@ -5,7 +5,7 @@ import { MaxWidthWrapper } from "@dub/ui";
 import { CursorRays } from "../layout/sidebar/icons/cursor-rays";
 import { AnimatedEmptyState } from "../shared/animated-empty-state";
 
-export default function WorkspaceExceededClicks() {
+export default function WorkspaceExceededEvents() {
   const { slug } = useWorkspace();
 
   return (

@@ -126,13 +126,7 @@ export function ResolvedFraudGroupTable() {
           if (!partner) return "-";
 
           return (
-            <PartnerRowItem
-              partner={{
-                id: partner.id,
-                name: partner.name || "Unknown",
-              }}
-              showFraudIndicator={false}
-            />
+            <PartnerRowItem partner={partner} showFraudIndicator={false} />
           );
         },
         meta: {

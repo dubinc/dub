@@ -32,7 +32,7 @@ export function OverviewChart() {
   const { queryString, start, end, interval } = useContext(AnalyticsContext);
   const [viewType, setViewType] = useState<ViewType>("sales");
 
-  const { slug, exceededClicks } = useWorkspace();
+  const { slug, exceededEvents } = useWorkspace();
   const { program } = useProgram();
   useEffect(() => {
     if (program?.primaryRewardEvent === "lead") {
@@ -49,7 +49,7 @@ export function OverviewChart() {
       saleAmount: number;
     }[]
   >(
-    !exceededClicks &&
+    !exceededEvents &&
       (viewType === "sales" || viewType === "leads") &&
       `/api/analytics?${editQueryString(queryString, {
         event: viewType,
@@ -93,7 +93,7 @@ export function OverviewChart() {
 
   return (
     <div className="flex size-full flex-col gap-6">
-      {!exceededClicks && (
+      {!exceededEvents && (
         <div className="flex items-start justify-between">
           <div className="flex flex-col">
             <Combobox
@@ -144,7 +144,7 @@ export function OverviewChart() {
       )}
 
       <div className="relative min-h-0 grow">
-        {exceededClicks ? (
+        {exceededEvents ? (
           <ExceededEventsLimit />
         ) : isLoading ? (
           <div className="flex size-full items-center justify-center">

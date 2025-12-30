@@ -110,7 +110,7 @@ export const uploadBountySubmissionFileAction = authPartnerActionClient
       bounty.submissionRequirements,
     );
 
-    const requireImage = submissionRequirements.includes("image");
+    const requireImage = !!submissionRequirements?.image;
 
     if (!requireImage) {
       throw new Error(
