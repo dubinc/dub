@@ -98,6 +98,7 @@ export function ProgramPartnersApplicationsPageClient() {
         status: "pending",
         sortBy,
         sortOrder,
+        includeOnlinePresenceVerification: true,
       },
       { exclude: ["partnerId"] },
     )}`,
