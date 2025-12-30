@@ -47,17 +47,23 @@ export const POST = withAdmin(async ({ req }) => {
     try {
       await stripe.accounts.del(partner.stripeConnectId);
       console.log("Deleted Stripe express account: ", partner.stripeConnectId);
-      await prisma.partner.update({
-        where: {
-          id: partner.id,
-        },
-        data: {
-          stripeConnectId: null,
-          payoutsEnabledAt: null,
-          payoutMethodHash: null,
-        },
-      });
-    } catch (error) {}
+    } catch (error) {
+      console.log(
+        "Error deleting Stripe express account (probably already deleted): ",
+        error,
+      );
+    }
+
+    await prisma.partner.update({
+      where: {
+        id: partner.id,
+      },
+      data: {
+        stripeConnectId: null,
+        payoutsEnabledAt: null,
+        payoutMethodHash: null,
+      },
+    });
   }
 
   if (deletePartnerAccount) {
