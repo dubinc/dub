@@ -1,15 +1,36 @@
 import { PrismaMariaDb } from "@prisma/adapter-mariadb";
 import { PrismaClient } from "./generated/client";
 
-const adapter = new PrismaMariaDb({
-  // database: process.env.PLANETSCALE_DATABASE_URL || process.env.DATABASE_URL,
-
-  host: process.env.PLANETSCALE_DATABASE_URL || process.env.DATABASE_URL,
-  // port: 3306,
-  // connectionLimit: 5,
-});
-
 const prismaClientSingleton = () => {
+  const databaseUrl =
+    process.env.PLANETSCALE_DATABASE_URL || process.env.DATABASE_URL;
+
+  if (!databaseUrl) {
+    throw new Error("DATABASE_URL or PLANETSCALE_DATABASE_URL must be set");
+  }
+
+  const url = new URL(databaseUrl);
+
+  const adapter = new PrismaMariaDb({
+    host: url.hostname,
+    port: url.port ? parseInt(url.port, 10) : 3306,
+    user: url.username || undefined,
+    password: url.password || undefined,
+    database: url.pathname.slice(1) || undefined,
+    connectionLimit: 50,
+    connectTimeout: 60000,
+    acquireTimeout: 60000,
+    // SSL configuration for PlanetScale
+    ssl:
+      url.searchParams.get("sslaccept") === "strict" ||
+      url.searchParams.has("ssl") ||
+      url.protocol === "mysqls:"
+        ? {
+            rejectUnauthorized: false,
+          }
+        : undefined,
+  });
+
   return new PrismaClient({
     adapter,
     omit: {
