@@ -82,6 +82,7 @@ export async function POST(req: Request) {
     if (cutoffPeriod) {
       await splitPayouts({
         program,
+        workspace,
         cutoffPeriod,
         selectedPayoutId,
         excludedPayoutIds,
@@ -89,8 +90,8 @@ export async function POST(req: Request) {
     }
 
     await processPayouts({
-      workspace,
       program,
+      workspace,
       invoice,
       userId,
       paymentMethodId,

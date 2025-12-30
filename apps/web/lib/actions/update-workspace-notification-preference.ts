@@ -12,7 +12,7 @@ const schema = z.object({
 });
 
 // Update the notification preference for a user in a workspace
-export const updateNotificationPreference = authActionClient
+export const updateWorkspaceNotificationPreference = authActionClient
   .schema(schema)
   .action(async ({ ctx, parsedInput }) => {
     const { user, workspace } = ctx;

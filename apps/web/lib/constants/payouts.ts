@@ -105,3 +105,37 @@ export const INVOICE_AVAILABLE_PAYOUT_STATUSES = [
   "sent",
   "completed",
 ];
+
+const VERIFIED_BANK_ACCOUNT_DESCRIPTION = {
+  title: "Verified bank account",
+  description:
+    "This bank account is successfully verified and ready to receive payouts.",
+  variant: "valid" as const,
+};
+
+export const BANK_ACCOUNT_STATUS_DESCRIPTIONS: Record<
+  string,
+  { title: string; description: string; variant: "valid" | "invalid" }
+> = {
+  verified: VERIFIED_BANK_ACCOUNT_DESCRIPTION,
+  new: VERIFIED_BANK_ACCOUNT_DESCRIPTION,
+  validated: VERIFIED_BANK_ACCOUNT_DESCRIPTION,
+  verification_failed: {
+    title: "Verification failed",
+    description:
+      "Bank account verification failed (e.g., microdeposit failure). Please update your bank account details to continue receiving payouts.",
+    variant: "invalid",
+  },
+  tokenized_account_number_deactivated: {
+    title: "Tokenized account deactivated",
+    description:
+      "The account uses a tokenized account number that has been deactivated due to expiration or revocation. Please reverify your bank account to continue receiving payouts.",
+    variant: "invalid",
+  },
+  errored: {
+    title: "Bank account error",
+    description:
+      "A payout sent to this bank account failed. Please update your bank account details to continue receiving payouts.",
+    variant: "invalid",
+  },
+};

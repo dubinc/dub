@@ -15,12 +15,7 @@ import { PAYOUT_STATUS_DESCRIPTIONS } from "@/ui/partners/payout-status-descript
 import { AlertCircleFill } from "@/ui/shared/icons";
 import { PayoutStatus } from "@dub/prisma/client";
 import { Button, Tooltip } from "@dub/ui";
-import {
-  cn,
-  CONNECT_SUPPORTED_COUNTRIES,
-  currencyFormatter,
-  PAYPAL_SUPPORTED_COUNTRIES,
-} from "@dub/utils";
+import { cn, currencyFormatter } from "@dub/utils";
 import { HelpCircle } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { toast } from "sonner";
@@ -117,7 +112,7 @@ function PayoutStatsCard({
 }
 
 export function PayoutStats() {
-  const { partner } = usePartnerProfile();
+  const { payoutMethod } = usePartnerProfile();
 
   const { payoutsCount, error } = usePartnerPayoutsCount<PayoutsCount[]>({
     groupBy: "status",
@@ -126,16 +121,6 @@ export function PayoutStats() {
   const payoutStatusMap = Object.fromEntries(
     payoutsCount?.map((p) => [p.status, p]) || [],
   ) as Record<PayoutStatus, PayoutsCount>;
-
-  let payoutMethod: "stripe" | "paypal" | undefined = undefined;
-
-  if (partner?.country) {
-    if (PAYPAL_SUPPORTED_COUNTRIES.includes(partner.country)) {
-      payoutMethod = "paypal";
-    } else if (CONNECT_SUPPORTED_COUNTRIES.includes(partner.country)) {
-      payoutMethod = "stripe";
-    }
-  }
 
   const tooltip = payoutMethod
     ? PAYOUT_STATUS_DESCRIPTIONS[payoutMethod]
