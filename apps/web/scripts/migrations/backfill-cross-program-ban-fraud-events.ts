@@ -1,7 +1,6 @@
 import { createId } from "@/lib/api/create-id";
 import { createFraudEventHash } from "@/lib/api/fraud/utils";
-import { prisma } from "@dub/prisma";
-import { FraudRuleType, Prisma } from "@dub/prisma/client";
+import { FraudRuleType, prisma, Prisma } from "@dub/prisma";
 import { chunk, groupBy } from "@dub/utils";
 import "dotenv-flow/config";
 
