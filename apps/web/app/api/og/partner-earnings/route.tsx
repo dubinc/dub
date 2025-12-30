@@ -63,7 +63,9 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
         />
 
         <div
-          tw="flex flex-col bg-white rounded-3xl shadow-2xl overflow-hidden"
+          tw={`flex flex-col rounded-3xl shadow-2xl overflow-hidden ${
+            background === "dark" ? "bg-neutral-900" : "bg-white"
+          }`}
           style={{
             width: 1210,
             marginTop: -10,
@@ -71,7 +73,9 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
         >
           <div tw="flex flex-col p-10">
             <span
-              tw="text-neutral-800 text-4xl"
+              tw={`text-4xl ${
+                background === "dark" ? "text-neutral-100" : "text-neutral-800"
+              }`}
               style={{ fontFamily: "Inter Semibold" }}
             >
               Earnings
@@ -79,7 +83,11 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
 
             <div tw="flex items-baseline mt-3">
               <span
-                tw="text-neutral-600 font-medium text-4xl"
+                tw={`font-medium text-4xl ${
+                  background === "dark"
+                    ? "text-neutral-200"
+                    : "text-neutral-600"
+                }`}
                 style={{ fontFamily: "Inter Semibold" }}
               >
                 {currencyFormatter(total, { maximumFractionDigits: 2 })}
@@ -87,12 +95,28 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
             </div>
 
             <div tw="flex mt-6" style={{ width: 1130, height: 430 }}>
-              <Chart data={timeseries} />
+              <Chart data={timeseries} background={background} />
             </div>
 
             <div tw="flex justify-between mt-4">
-              <span tw="text-neutral-500 text-2xl">{startLabel}</span>
-              <span tw="text-neutral-500 text-2xl">{endLabel}</span>
+              <span
+                tw={`text-2xl ${
+                  background === "dark"
+                    ? "text-neutral-400"
+                    : "text-neutral-500"
+                }`}
+              >
+                {startLabel}
+              </span>
+              <span
+                tw={`text-2xl ${
+                  background === "dark"
+                    ? "text-neutral-400"
+                    : "text-neutral-500"
+                }`}
+              >
+                {endLabel}
+              </span>
             </div>
           </div>
         </div>
@@ -132,7 +156,13 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
   );
 });
 
-function Chart({ data }: { data: { start: string; earnings: number }[] }) {
+function Chart({
+  data,
+  background,
+}: {
+  data: { start: string; earnings: number }[];
+  background: "light" | "dark";
+}) {
   if (!data || data.length === 0) {
     return null;
   }
@@ -162,6 +192,15 @@ function Chart({ data }: { data: { start: string; earnings: number }[] }) {
   const scaleY = (value: number) =>
     padding.top + chartHeight - (value / maxEarnings) * chartHeight;
 
+  const isDark = background === "dark";
+  const lineColorStart = isDark ? "#A78BFA" : "#7D3AEC";
+  const lineColorEnd = isDark ? "#F472B6" : "#DA2778";
+  const circleColor = isDark ? "#F472B6" : "#DA2778";
+  const areaColorStart = isDark ? "#F472B6" : "#DA2778";
+  const areaColorEnd = isDark ? "#DA2778" : "#DA2778";
+  const areaOpacityStart = isDark ? 0.25 : 0.15;
+  const areaOpacityEnd = isDark ? 0.05 : 0.02;
+
   if (data.length === 1) {
     const singleX = padding.left + chartWidth / 2;
     const singleY = scaleY(data[0].earnings);
@@ -170,7 +209,7 @@ function Chart({ data }: { data: { start: string; earnings: number }[] }) {
         viewBox={`0 0 ${width} ${height}`}
         style={{ width: "100%", height: "100%" }}
       >
-        <circle cx={singleX} cy={singleY} r={circleRadius} fill="#DA2778" />
+        <circle cx={singleX} cy={singleY} r={circleRadius} fill={circleColor} />
       </svg>
     );
   }
@@ -195,12 +234,20 @@ function Chart({ data }: { data: { start: string; earnings: number }[] }) {
     >
       <defs>
         <linearGradient id="lineGradient" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stopColor="#7D3AEC" />
-          <stop offset="100%" stopColor="#DA2778" />
+          <stop offset="0%" stopColor={lineColorStart} />
+          <stop offset="100%" stopColor={lineColorEnd} />
         </linearGradient>
         <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#DA2778" stopOpacity="0.15" />
-          <stop offset="100%" stopColor="#DA2778" stopOpacity="0.02" />
+          <stop
+            offset="0%"
+            stopColor={areaColorStart}
+            stopOpacity={areaOpacityStart}
+          />
+          <stop
+            offset="100%"
+            stopColor={areaColorEnd}
+            stopOpacity={areaOpacityEnd}
+          />
         </linearGradient>
       </defs>
 
@@ -215,7 +262,7 @@ function Chart({ data }: { data: { start: string; earnings: number }[] }) {
         strokeLinejoin="round"
       />
 
-      <circle cx={lastX} cy={lastY} r={circleRadius} fill="#DA2778" />
+      <circle cx={lastX} cy={lastY} r={circleRadius} fill={circleColor} />
     </svg>
   );
 }

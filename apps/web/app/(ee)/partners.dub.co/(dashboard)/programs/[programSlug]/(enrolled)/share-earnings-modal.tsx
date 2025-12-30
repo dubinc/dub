@@ -157,7 +157,7 @@ function ShareEarningsModalInner({
               <LoadingSpinner />
             </div>
           )}
-          {programId && timeseries && (
+          {imageUrl && (
             <img
               src={imageUrl}
               alt="Earnings chart"
