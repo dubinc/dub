@@ -1,8 +1,10 @@
+import { getPartnerEarningsTimeseries } from "@/lib/api/partner-profile/get-partner-earnings-timeseries";
+import { withPartnerProfile } from "@/lib/auth/partner";
+import { getPartnerEarningsTimeseriesSchema } from "@/lib/zod/schemas/partner-profile";
 import { currencyFormatter, formatDate } from "@dub/utils";
 import { ImageResponse } from "next/og";
-import { NextRequest } from "next/server";
-
-export const runtime = "edge";
+import { z } from "zod";
+import { loadGoogleFont } from "../load-google-font";
 
 const WIDTH = 1368;
 const HEIGHT = 994;
@@ -12,28 +14,25 @@ const BACKGROUND_IMAGES = {
   dark: "https://assets.dub.co/cms/bg-share-main-2a.png",
 };
 
-export async function GET(req: NextRequest) {
-  const searchParams = Object.fromEntries(req.nextUrl.searchParams.entries());
-  const [interMedium, interSemibold] = await Promise.all([
-    fetch(new URL("@/styles/Inter-Medium.ttf", import.meta.url)).then((res) =>
-      res.arrayBuffer(),
-    ),
-    fetch(new URL("@/styles/Inter-Semibold.ttf", import.meta.url)).then((res) =>
-      res.arrayBuffer(),
-    ),
-  ]);
+export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
+  const { programId, ...filters } = getPartnerEarningsTimeseriesSchema
+    .extend({
+      programId: z.string(),
+      background: z.enum(["light", "dark"]).optional().default("light"),
+    })
+    .parse(searchParams);
+
+  const timeseries = await getPartnerEarningsTimeseries({
+    partnerId: partner.id,
+    programId,
+    filters,
+  });
+
+  const interSemibold = await loadGoogleFont("Inter:wght@600");
 
   const background = (searchParams.background as "light" | "dark") || "light";
   const total = Number(searchParams.total) || 0;
   const epc = Number(searchParams.epc) || 0;
-  const timeseriesParam = searchParams.timeseries as string;
-
-  let timeseries: { start: string; earnings: number }[] = [];
-  try {
-    timeseries = timeseriesParam ? JSON.parse(timeseriesParam) : [];
-  } catch {
-    timeseries = [];
-  }
 
   const startLabel =
     timeseries.length > 0
@@ -56,7 +55,7 @@ export async function GET(req: NextRequest) {
     (
       <div
         tw="flex flex-col w-full h-full items-center justify-center"
-        style={{ fontFamily: "Inter Medium" }}
+        style={{ fontFamily: "Inter Semibold" }}
       >
         <img
           src={BACKGROUND_IMAGES[background]}
@@ -126,19 +125,19 @@ export async function GET(req: NextRequest) {
     {
       width: WIDTH,
       height: HEIGHT,
-      fonts: [
-        {
-          name: "Inter Medium",
-          data: interMedium,
-        },
-        {
-          name: "Inter Semibold",
-          data: interSemibold,
-        },
-      ],
+      fonts: interSemibold
+        ? [
+            {
+              name: "Inter Semibold",
+              data: interSemibold,
+              style: "normal",
+              weight: 600,
+            },
+          ]
+        : [],
     },
   );
-}
+});
 
 function Chart({ data }: { data: { start: string; earnings: number }[] }) {
   if (!data || data.length === 0) {

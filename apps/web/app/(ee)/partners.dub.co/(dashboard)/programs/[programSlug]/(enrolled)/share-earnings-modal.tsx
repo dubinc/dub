@@ -77,17 +77,13 @@ function ShareEarningsModalInner({
   const [isLoading, setIsLoading] = useState(false);
   const [blob, setBlob] = useState<Blob | null>(null);
 
-  const imageUrl = `/api/partner-profile/programs/${programId}/earnings/share?${new URLSearchParams(
-    {
-      background,
-      total: String(total),
-      epc: String(epc),
-      interval,
-      ...(start && { start: start.toISOString() }),
-      ...(end && { end: end.toISOString() }),
-      ...(timeseries && { timeseries: JSON.stringify(timeseries) }),
-    },
-  ).toString()}`;
+  const imageUrl = `/api/og/partner-earnings?${new URLSearchParams({
+    programId,
+    interval,
+    ...(start && { start: start.toISOString() }),
+    ...(end && { end: end.toISOString() }),
+    background,
+  }).toString()}`;
 
   useEffect(() => {
     if (!programId || !timeseries) return;
