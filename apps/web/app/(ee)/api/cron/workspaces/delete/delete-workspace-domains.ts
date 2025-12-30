@@ -39,7 +39,9 @@ export async function deleteWorkspaceDomains(payload: DeleteWorkspacePayload) {
       `Deleted ${deletedDomains.count} domains for workspace ${workspaceId}.`,
     );
 
-    await Promise.all(domains.map(({ slug }) => removeDomainFromVercel(slug)));
+    await Promise.allSettled(
+      domains.map(({ slug }) => removeDomainFromVercel(slug)),
+    );
   }
 
   return await enqueueNextWorkspaceDeleteStep({
