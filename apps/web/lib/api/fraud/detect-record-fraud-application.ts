@@ -12,7 +12,7 @@ interface FraudApplicationContext {
 // Detect and record fraud events for the partner when they apply to a program
 // Checks for cross-program bans and duplicate payout methods
 export async function detectAndRecordFraudApplication({
-  context,
+  context: { program, partner },
 }: {
   context: FraudApplicationContext;
 }) {
@@ -22,12 +22,11 @@ export async function detectAndRecordFraudApplication({
     return;
   }
 
-  const { partner, program } = context;
   const fraudEvents: CreateFraudEventInput[] = [];
 
   // Check if partner has been banned in other programs
   // indicates cross-program fraud risk
-  const bannedProgramEnrollments = await prisma.programEnrollment.count({
+  const bannedProgramEnrollments = await prisma.programEnrollment.findMany({
     where: {
       partnerId: partner.id,
       programId: {
@@ -35,15 +34,27 @@ export async function detectAndRecordFraudApplication({
       },
       status: "banned",
     },
+    select: {
+      programId: true,
+      bannedReason: true,
+      bannedAt: true,
+    },
   });
 
-  if (bannedProgramEnrollments > 0) {
-    fraudEvents.push({
-      programId: program.id,
-      partnerId: partner.id,
-      type: FraudRuleType.partnerCrossProgramBan,
-      metadata: null,
-    });
+  // Create a fraud event for each program that banned the partner
+  if (bannedProgramEnrollments.length > 0) {
+    for (const bannedEnrollment of bannedProgramEnrollments) {
+      fraudEvents.push({
+        programId: program.id,
+        partnerId: partner.id,
+        type: FraudRuleType.partnerCrossProgramBan,
+        sourceProgramId: bannedEnrollment.programId,
+        metadata: {
+          bannedReason: bannedEnrollment.bannedReason,
+          bannedAt: bannedEnrollment.bannedAt,
+        },
+      });
+    }
   }
 
   // Check if partner shares the same payout method hash with other partners

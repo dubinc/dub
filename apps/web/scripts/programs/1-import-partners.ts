@@ -22,6 +22,8 @@ async function main() {
   Papa.parse(fs.createReadStream("partners.csv", "utf-8"), {
     header: true,
     skipEmptyLines: true,
+    transformHeader: (header: string) =>
+      header.trim().replace(/^["']|["']$/g, ""),
     step: (result: { data: PartnerData }) => {
       partnersToImport.push(result.data);
     },

@@ -37,8 +37,9 @@ export default function PartnerPayoutWithdrawalFailed({
     amount: number; // in cents
     currency: string;
     failureReason?: string | null;
+    isAvailableBalance?: boolean;
   };
-  bankAccount: {
+  bankAccount?: {
     account_holder_name: string | null;
     bank_name: string | null;
     last4: string;
@@ -63,17 +64,30 @@ export default function PartnerPayoutWithdrawalFailed({
             </Section>
 
             <Heading className="mx-0 my-8 p-0 text-lg font-medium text-black">
-              Your recent auto-withdrawal failed
+              {payout.isAvailableBalance
+                ? "Update your bank account details to receive payouts"
+                : "Your recent auto-withdrawal failed"}
             </Heading>
 
-            <Text>
-              We attempted to transfer{" "}
-              <span className="font-semibold text-purple-600">
-                {amountFormatted}
-              </span>{" "}
-              from your Stripe Express account to your connected bank account,
-              but the transaction failed.
-            </Text>
+            {payout.isAvailableBalance ? (
+              <Text>
+                You have an available balance of{" "}
+                <span className="font-semibold text-purple-600">
+                  {amountFormatted}
+                </span>{" "}
+                in your Stripe Express account, but we encountered an error when
+                attempting to transfer it to your connected bank account.
+              </Text>
+            ) : (
+              <Text>
+                We attempted to transfer{" "}
+                <span className="font-semibold text-purple-600">
+                  {amountFormatted}
+                </span>{" "}
+                from your Stripe Express account to your connected bank account,
+                but the transaction failed.
+              </Text>
+            )}
 
             {payout.failureReason && (
               <Text className="text-sm leading-6 text-neutral-600">
@@ -83,7 +97,6 @@ export default function PartnerPayoutWithdrawalFailed({
                 </span>
               </Text>
             )}
-
             {bankAccount && (
               <Section className="my-6 rounded-lg border border-solid border-neutral-200 bg-neutral-50 p-4 pt-0">
                 <Text className="mb-3 text-sm font-semibold text-neutral-800">
@@ -136,31 +149,18 @@ export default function PartnerPayoutWithdrawalFailed({
 
             <Text>
               Please update your bank account details as soon as possible.
-              Failed transfers are automatically retried, so having accurate
-              bank details on file will ensure your funds are deposited
-              successfully.
+              Failed transfers are automatically retried once you have a valid
+              bank account on file.
             </Text>
 
             <Section className="my-8">
               <Link
                 className="rounded-lg bg-neutral-900 px-6 py-3 text-[13px] font-medium text-white no-underline"
-                href="https://partners.dub.co/payouts"
+                href="https://partners.dub.co/payouts?settings=true"
               >
                 Update bank account
               </Link>
             </Section>
-
-            <Text className="text-sm leading-6 text-neutral-600">
-              If you have any questions, please{" "}
-              <Link
-                href="https://dub.co/contact/support"
-                className="font-medium text-black underline"
-              >
-                reach out to support
-              </Link>
-              .
-            </Text>
-
             <Footer email={email} />
           </Container>
         </Body>

@@ -100,17 +100,19 @@ export function MergeAccountForm({
         </AccountInputGroup>
 
         <div className="mt-2 flex flex-col gap-3 rounded-lg border border-amber-200 bg-amber-50 px-5 py-4">
-          <AlertTriangle className="size-4 text-amber-500" />
+          <AlertTriangle className="size-4 text-amber-600" />
           <h3 className="text-sm font-semibold leading-5 text-amber-900">
-            This action can’t be undone.
+            This action can't be undone.
           </h3>
           <p className="text-sm font-normal leading-5 text-amber-900">
             All data — including links, commissions, and payouts from{" "}
-            {sourceAccount.email} will be merged into {targetAccount.email}.
+            {sourceAccount.email} will be transferred to {targetAccount.email}.
+            Duplicate bounty submissions from {sourceAccount.email} will also be
+            deleted.
             <br />
             <br />
             After the merge, {sourceAccount.email} will be permanently deleted.
-            If you’re unsure, please contact our support team before proceeding.
+            If you're unsure, please contact our support team before proceeding.
           </p>
         </div>
       </div>

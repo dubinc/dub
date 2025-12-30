@@ -25,7 +25,14 @@ const submissionBounty = {
   endsAt: null,
   submissionsOpenAt: null,
   rewardAmount: 1000,
-  submissionRequirements: ["image", "url"],
+  submissionRequirements: {
+    image: {
+      max: 4,
+    },
+    url: {
+      max: 10,
+    },
+  },
 };
 
 describe.sequential("/bounties/**", async () => {
@@ -201,7 +208,6 @@ describe.sequential("/bounties/**", async () => {
       name: "Submission Bounty Updated",
       endsAt: endsAt.toISOString(),
       rewardAmount: 2000,
-      submissionRequirements: ["image"],
     };
 
     const { status, data: bounty } = await http.patch<Bounty>({

@@ -7,7 +7,7 @@ import { createPartnerCommission } from "@/lib/partners/create-partner-commissio
 import { isStored, storage } from "@/lib/storage";
 import { getClickEvent, recordLead } from "@/lib/tinybird";
 import { logConversionEvent } from "@/lib/tinybird/log-conversion-events";
-import { WebhookPartner, WorkspaceProps } from "@/lib/types";
+import { WorkspaceProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformLeadEventData } from "@/lib/webhook/transform";
@@ -185,7 +185,9 @@ export const trackLead = async ({
           projectId: workspace.id,
           projectConnectId: workspace.stripeConnectId,
           clickId: clickData.click_id,
-          linkId: clickData.link_id,
+          linkId: link.id,
+          programId: link.programId,
+          partnerId: link.partnerId,
           country: clickData.country,
           clickedAt: new Date(clickData.timestamp + "Z"),
         },
@@ -227,7 +229,7 @@ export const trackLead = async ({
         // track the conversion event in our logs
         await logConversionEvent({
           workspace_id: workspace.id,
-          link_id: clickData.link_id,
+          link_id: link.id,
           path: "/track/lead",
           body: JSON.stringify(rawBody),
         });
@@ -269,7 +271,7 @@ export const trackLead = async ({
             // update link leads count
             prisma.link.update({
               where: {
-                id: clickData.link_id,
+                id: link.id,
               },
               data: {
                 leads: {
@@ -294,10 +296,12 @@ export const trackLead = async ({
           ]);
           link = updatedLink; // update the link variable to the latest version
 
-          let webhookPartner: WebhookPartner | undefined;
+          let createdCommission:
+            | Awaited<ReturnType<typeof createPartnerCommission>>
+            | undefined = undefined;
 
           if (link.programId && link.partnerId && customer) {
-            const createdCommission = await createPartnerCommission({
+            createdCommission = await createPartnerCommission({
               event: "lead",
               programId: link.programId,
               partnerId: link.partnerId,
@@ -312,7 +316,7 @@ export const trackLead = async ({
               },
             });
 
-            webhookPartner = createdCommission?.webhookPartner;
+            const { webhookPartner, programEnrollment } = createdCommission;
 
             await Promise.allSettled([
               executeWorkflows({
@@ -336,8 +340,8 @@ export const trackLead = async ({
                 detectAndRecordFraudEvent({
                   program: { id: link.programId },
                   partner: pick(webhookPartner, ["id", "email", "name"]),
+                  programEnrollment: pick(programEnrollment, ["status"]),
                   customer: pick(customer, ["id", "email", "name"]),
-                  commission: { id: createdCommission.commission?.id },
                   link: pick(link, ["id"]),
                   click: pick(clickData, ["url", "referer"]),
                   event: { id: leadEventId },
@@ -352,7 +356,7 @@ export const trackLead = async ({
               eventName,
               link,
               customer,
-              partner: webhookPartner,
+              partner: createdCommission?.webhookPartner,
               metadata,
             }),
             workspace,

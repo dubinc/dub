@@ -33,6 +33,19 @@ const expectValidClickResponse = ({
       }),
     }),
   });
+
+  // Check nullish fields separately if partner exists
+  if (hasPartner && response.data.partner) {
+    const { groupId, tenantId } = response.data.partner;
+    expect(
+      groupId === null || groupId === undefined || typeof groupId === "string",
+    ).toBe(true);
+    expect(
+      tenantId === null ||
+        tenantId === undefined ||
+        typeof tenantId === "string",
+    ).toBe(true);
+  }
 };
 
 describe("POST /track/click", async () => {

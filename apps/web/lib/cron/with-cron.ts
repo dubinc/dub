@@ -1,6 +1,6 @@
 import { APP_DOMAIN_WITH_NGROK, getSearchParams, log } from "@dub/utils";
 import { logAndRespond } from "app/(ee)/api/cron/utils";
-import { withAxiomBodyLog } from "../axiom/server";
+import { logger, withAxiomBodyLog } from "../axiom/server";
 import { verifyQstashSignature } from "./verify-qstash";
 import { verifyVercelSignature } from "./verify-vercel";
 
@@ -36,12 +36,11 @@ export const withCron = (handler: WithCronHandler) => {
         let rawBody: string | undefined;
 
         // Verify signature based on HTTP method
-        // GET requests are typically from Vercel Cron
         if (req.method === "GET") {
+          // GET requests are typically from Vercel Cron
           await verifyVercelSignature(req);
-        }
-        // POST requests are typically from QStash
-        else if (req.method === "POST") {
+        } else if (req.method === "POST") {
+          // POST requests are typically from QStash
           rawBody = await clonedReq.text();
           await verifyQstashSignature({ req, rawBody });
         } else {
@@ -60,12 +59,16 @@ export const withCron = (handler: WithCronHandler) => {
         const errorMessage =
           error instanceof Error ? error.message : String(error);
 
+        // Send error to Axiom
+        logger.error(errorMessage, error);
+        await logger.flush();
+
         await log({
-          message: `Cron job ${url.pathname} failed: ${errorMessage}`,
+          message: `Cron job "${url.pathname}" failed during execution. Error: ${errorMessage}`,
           type: "cron",
         });
 
-        return logAndRespond(errorMessage);
+        return logAndRespond(errorMessage, { status: 500 });
       }
     },
   );

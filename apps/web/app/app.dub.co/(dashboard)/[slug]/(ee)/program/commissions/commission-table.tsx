@@ -159,7 +159,7 @@ export function CommissionTable() {
             row.original.customer ? (
               <CustomerRowItem
                 customer={row.original.customer}
-                href={`/${slug}/customers/${row.original.customer.id}`}
+                href={`/${slug}/program/customers/${row.original.customer.id}`}
               />
             ) : (
               "-"

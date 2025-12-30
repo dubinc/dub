@@ -326,6 +326,8 @@ export const createManualCommissionAction = authActionClient
             ...customer,
             id: duplicateCustomerId,
             linkId: link.id,
+            programId: link.programId,
+            partnerId: link.partnerId,
             clickId: clickEventData.click_id,
             clickedAt: new Date(clickEventData.timestamp),
             country:

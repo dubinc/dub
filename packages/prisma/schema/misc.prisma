@@ -13,5 +13,23 @@ model YearInReview {
   createdAt DateTime  @default(now())
   sentAt    DateTime?
 
-  @@index([workspaceId])
+  @@index(workspaceId)
+}
+
+model PartnerRewind {
+  id   String @id @default(cuid())
+  year Int
+
+  totalClicks   Int
+  totalLeads    Int
+  totalRevenue  Int
+  totalEarnings Int
+
+  partnerId String
+  partner   Partner @relation(fields: [partnerId], references: [id])
+
+  createdAt DateTime  @default(now())
+  sentAt    DateTime?
+
+  @@unique([partnerId, year])
 }

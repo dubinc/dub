@@ -1,6 +1,6 @@
 "use client";
 
-import { updateNotificationPreference } from "@/lib/actions/update-notification-preference";
+import { updateWorkspaceNotificationPreference } from "@/lib/actions/update-workspace-notification-preference";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { notificationTypes } from "@/lib/zod/schemas/workspaces";
 import { Switch, useOptimisticUpdate } from "@dub/ui";
@@ -16,7 +16,7 @@ type Preferences = Record<PreferenceType, boolean>;
 
 export default function NotificationsSettingsPageClient() {
   const { id: workspaceId } = useWorkspace();
-  const { executeAsync } = useAction(updateNotificationPreference);
+  const { executeAsync } = useAction(updateWorkspaceNotificationPreference);
 
   const workspaceNotifications = [
     {

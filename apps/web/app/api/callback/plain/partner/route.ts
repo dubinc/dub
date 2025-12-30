@@ -1,9 +1,11 @@
-import { plain } from "@/lib/plain";
+import { plain } from "@/lib/plain/client";
+import { upsertPlainCustomer } from "@/lib/plain/upsert-plain-customer";
 import { prisma } from "@dub/prisma";
 import { COUNTRIES, currencyFormatter, formatDate } from "@dub/utils";
 import { uiComponent } from "@team-plain/typescript-sdk";
 import { NextRequest, NextResponse } from "next/server";
 import {
+  plainCallbackSchema,
   plainCopySection,
   plainDivider,
   plainEmptyContainer,
@@ -18,11 +20,7 @@ export async function POST(req: NextRequest) {
     return new Response("Unauthorized", { status: 401 });
   }
 
-  let { cardKeys, customer } = await req.json();
-
-  if (!cardKeys || !customer) {
-    return new Response("Invalid payload", { status: 400 });
-  }
+  let { customer } = plainCallbackSchema.parse(await req.json());
 
   // if there's no externalId yet, try to find the user by email and set it
   if (!customer.externalId) {
@@ -32,7 +30,7 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    if (!user) {
+    if (!user || !user.email) {
       return NextResponse.json({
         cards: [
           {
@@ -42,68 +40,46 @@ export async function POST(req: NextRequest) {
         ],
       });
     }
-
     customer.externalId = user.id;
 
-    const customerName = user.name || customer.email.split("@")[0];
-
-    await plain.upsertCustomer({
-      identifier: {
-        emailAddress: customer.email,
-      },
-      onCreate: {
-        fullName: customerName,
-        shortName: customerName.split(" ")[0],
-        email: {
-          email: customer.email,
-          isVerified: true,
-        },
-        externalId: user.id,
-      },
-      onUpdate: {
-        externalId: {
-          value: user.id,
-        },
-      },
+    await upsertPlainCustomer({
+      id: user.id,
+      name: user.name,
+      email: user.email,
     });
   }
 
-  const [plainCustomer, partnerProfile] = await Promise.all([
-    plain.getCustomerByEmail({
-      email: customer.email,
-    }),
-    prisma.partner.findFirst({
-      where: {
-        users: {
-          some: {
-            userId: customer.externalId,
-          },
+  const partnerProfile = await prisma.partner.findFirst({
+    where: {
+      users: {
+        some: {
+          userId: customer.externalId,
         },
       },
-      include: {
-        programs: {
-          select: {
-            program: {
-              select: {
-                name: true,
-              },
-            },
-            createdAt: true,
-            totalCommissions: true,
-          },
-          where: {
-            totalCommissions: {
-              gt: 0,
+    },
+    include: {
+      programs: {
+        select: {
+          program: {
+            select: {
+              name: true,
             },
           },
-          orderBy: {
-            totalCommissions: "desc",
-          },
-          take: 5,
+          createdAt: true,
+          totalCommissions: true,
         },
+        where: {
+          totalCommissions: {
+            gt: 0,
+          },
+        },
+        orderBy: {
+          totalCommissions: "desc",
+        },
+        take: 5,
       },
-    }),
-  ]);
+    },
+  });
 
   if (!partnerProfile) {
     return NextResponse.json({
@@ -126,16 +102,14 @@ export async function POST(req: NextRequest) {
     payoutsEnabledAt,
   } = partnerProfile;
 
-  if (plainCustomer.data) {
-    await plain.addCustomerToCustomerGroups({
-      customerId: plainCustomer.data.id,
-      customerGroupIdentifiers: [
-        {
-          customerGroupKey: "partners.dub.co",
-        },
-      ],
-    });
-  }
+  await plain.addCustomerToCustomerGroups({
+    customerId: customer.id,
+    customerGroupIdentifiers: [
+      {
+        customerGroupKey: "partners.dub.co",
+      },
+    ],
+  });
 
   return NextResponse.json({
     cards: [

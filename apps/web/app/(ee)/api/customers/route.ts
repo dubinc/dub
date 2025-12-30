@@ -1,6 +1,7 @@
 import { createId } from "@/lib/api/create-id";
 import { transformCustomer } from "@/lib/api/customers/transform-customer";
 import { DubApiError } from "@/lib/api/errors";
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
@@ -39,12 +40,14 @@ interface CustomerResponse extends Customer {
 // GET /api/customers – Get all customers
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
-    const {
+    let {
       email,
       externalId,
       search,
       country,
       linkId,
+      programId,
+      partnerId,
       includeExpandedFields,
       page,
       pageSize,
@@ -53,13 +56,23 @@ export const GET = withWorkspace(
       sortOrder,
     } = getCustomersQuerySchemaExtended.parse(searchParams);
 
-    const customers = (await prisma.customer.findMany({
+    if (programId || partnerId) {
+      programId = getDefaultProgramIdOrThrow(workspace);
+    }
+
+    const customers = await prisma.customer.findMany({
       where: {
         ...(customerIds
           ? {
               id: { in: customerIds },
             }
           : {}),
+        ...(programId && {
+          programId,
+        }),
+        ...(partnerId && {
+          partnerId,
+        }),
         projectId: workspace.id,
         ...(email
           ? { email }
@@ -108,7 +121,7 @@ export const GET = withWorkspace(
             },
           }
         : {}),
-    })) as CustomerResponse[];
+    });
 
     const responseSchema = includeExpandedFields
       ? CustomerEnrichedSchema.merge(

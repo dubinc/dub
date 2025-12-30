@@ -342,6 +342,20 @@ export const PartnerSchema = z
 export const PartnerWithProfileSchema =
   PartnerSchema.merge(PartnerProfileSchema);
 
+export const PartnerRewindSchema = z.object({
+  id: z.string(),
+  partnerId: z.string(),
+  year: z.number(),
+  totalClicks: z.number().default(0),
+  totalLeads: z.number().default(0),
+  totalRevenue: z.number().default(0),
+  totalEarnings: z.number().default(0),
+  clicksPercentile: z.number().default(0),
+  leadsPercentile: z.number().default(0),
+  revenuePercentile: z.number().default(0),
+  earningsPercentile: z.number().default(0),
+});
+
 // Used externally by GET+POST /api/partners and partner.enrolled webhook
 export const EnrolledPartnerSchema = PartnerSchema.pick({
   id: true,
@@ -551,13 +565,25 @@ export const createPartnerSchema = z.object({
       url: true,
       domain: true,
       key: true,
+      // default programId / partnerId fields
+      programId: true,
+      partnerId: true,
+      // partner links always track conversions
+      trackConversion: true,
+      // folderId is set to the program's defaultFolderId
+      folderId: true,
+      // UTM params are derived from the partner's group settings
+      utm_source: true,
+      utm_medium: true,
+      utm_campaign: true,
+      utm_term: true,
+      utm_content: true,
+      ref: true,
+      // additional unsupported fields
       publicStats: true,
       tagId: true,
       geo: true,
-      programId: true,
-      partnerId: true,
       webhookIds: true,
-      trackConversion: true,
     })
     .partial()
     .optional()
@@ -817,4 +843,10 @@ export const partnerPayoutSettingsSchema = z.object({
   companyName: z.string().max(190).trim().nullish(),
   address: z.string().max(500).trim().nullish(),
   taxId: z.string().max(100).trim().nullish(),
+});
+
+export const partnerCrossProgramSummarySchema = z.object({
+  totalPrograms: z.number(),
+  bannedPrograms: z.number(),
+  trustedPrograms: z.number(),
 });
