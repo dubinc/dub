@@ -1,10 +1,10 @@
 import { withCron } from "@/lib/cron/with-cron";
 import { logAndRespond } from "../../utils";
 import { deleteWorkspace } from "./delete-workspace";
-import { deleteWorkspaceCustomersBatch } from "./delete-workspace-customers";
-import { deleteWorkspaceDomainsBatch } from "./delete-workspace-domains";
-import { deleteWorkspaceFoldersBatch } from "./delete-workspace-folders";
-import { deleteWorkspaceLinksBatch } from "./delete-workspace-links";
+import { deleteWorkspaceCustomers } from "./delete-workspace-customers";
+import { deleteWorkspaceDomains } from "./delete-workspace-domains";
+import { deleteWorkspaceFolders } from "./delete-workspace-folders";
+import { deleteWorkspaceLinks } from "./delete-workspace-links";
 import { deleteWorkspaceSchema } from "./utils";
 
 export const dynamic = "force-dynamic";
@@ -15,25 +15,16 @@ export const POST = withCron(async ({ rawBody }) => {
 
   switch (payload.step) {
     case "delete-links":
-      await deleteWorkspaceLinksBatch(payload);
-      break;
+      return await deleteWorkspaceLinks(payload);
     case "delete-domains":
-      await deleteWorkspaceDomainsBatch(payload);
-      break;
+      return await deleteWorkspaceDomains(payload);
     case "delete-folders":
-      await deleteWorkspaceFoldersBatch(payload);
-      break;
+      return await deleteWorkspaceFolders(payload);
     case "delete-customers":
-      await deleteWorkspaceCustomersBatch(payload);
-      break;
+      return await deleteWorkspaceCustomers(payload);
     case "delete-workspace":
-      await deleteWorkspace(payload);
-      break;
+      return await deleteWorkspace(payload);
     default:
-      throw new Error(`Unknown step ${payload.step}`);
+      return logAndRespond(`Unknown step ${payload.step}`);
   }
-
-  return logAndRespond(
-    `Workspace ${payload.workspaceId} deleted successfully.`,
-  );
 });

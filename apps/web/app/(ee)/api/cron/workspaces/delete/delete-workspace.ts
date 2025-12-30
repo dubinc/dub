@@ -5,7 +5,13 @@ import { DeleteWorkspacePayload } from "./utils";
 export async function deleteWorkspace(payload: DeleteWorkspacePayload) {
   const { workspaceId } = payload;
 
-  console.log(`Deleting the workspace ${workspaceId}...`);
+  const deletedYearInReview = await prisma.yearInReview.deleteMany({
+    where: {
+      workspaceId,
+    },
+  });
+
+  console.log(`Deleted ${deletedYearInReview.count} year in reviews.`);
 
   const workspace = await prisma.project.findUnique({
     where: {
@@ -26,7 +32,5 @@ export async function deleteWorkspace(payload: DeleteWorkspacePayload) {
     },
   });
 
-  return logAndRespond(
-    `Workspace ${workspaceId} deleted successfully. Good bye!`,
-  );
+  return logAndRespond(`Workspace ${workspaceId} deleted successfully.`);
 }

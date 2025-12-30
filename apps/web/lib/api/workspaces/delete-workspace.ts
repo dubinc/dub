@@ -53,9 +53,12 @@ export async function deleteWorkspace(
         workspace.logo.startsWith(`${R2_URL}/logos/${workspace.id}`) &&
         storage.delete({ key: workspace.logo.replace(`${R2_URL}/`, "") }),
 
-      // queue the workspace for deletion
-      queueWorkspaceDeletion({
-        workspaceId: workspace.id,
+      // Queue the workspace for deletion
+      qstash.publishJSON({
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/workspaces/delete`,
+        body: {
+          workspaceId: workspace.id,
+        },
       }),
     ]),
   );
@@ -150,21 +153,4 @@ export async function deleteWorkspaceAdmin(
     deleteDomainsLinksResponse,
     deleteWorkspaceResponse,
   };
-}
-
-// Remove this
-export async function queueWorkspaceDeletion({
-  workspaceId,
-  delay,
-}: {
-  workspaceId: string;
-  delay?: number;
-}) {
-  return await qstash.publishJSON({
-    url: `${APP_DOMAIN_WITH_NGROK}/api/cron/workspaces/delete`,
-    ...(delay && { delay }),
-    body: {
-      workspaceId,
-    },
-  });
 }
