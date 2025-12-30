@@ -10,17 +10,18 @@ const WIDTH = 1368;
 const HEIGHT = 994;
 
 const BACKGROUND_IMAGES = {
-  light: "https://assets.dub.co/cms/bg-share-main-1a.png",
-  dark: "https://assets.dub.co/cms/bg-share-main-2a.png",
+  light: "https://assets.dub.co/misc/partner-earnings-share-light.jpg",
+  dark: "https://assets.dub.co/misc/partner-earnings-share-dark.jpg",
 };
 
 export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
-  const { programId, ...filters } = getPartnerEarningsTimeseriesSchema
-    .extend({
-      programId: z.string(),
-      background: z.enum(["light", "dark"]).optional().default("light"),
-    })
-    .parse(searchParams);
+  const { programId, background, ...filters } =
+    getPartnerEarningsTimeseriesSchema
+      .extend({
+        programId: z.string(),
+        background: z.enum(["light", "dark"]).optional().default("light"),
+      })
+      .parse(searchParams);
 
   const timeseries = await getPartnerEarningsTimeseries({
     partnerId: partner.id,
@@ -30,9 +31,7 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
 
   const interSemibold = await loadGoogleFont("Inter:wght@600");
 
-  const background = (searchParams.background as "light" | "dark") || "light";
-  const total = Number(searchParams.total) || 0;
-  const epc = Number(searchParams.epc) || 0;
+  const total = timeseries.reduce((acc, { earnings }) => acc + earnings, 0);
 
   const startLabel =
     timeseries.length > 0
@@ -84,12 +83,6 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
                 style={{ fontFamily: "Inter Semibold" }}
               >
                 {currencyFormatter(total, { maximumFractionDigits: 2 })}
-              </span>
-              <span tw="text-neutral-500 text-2xl ml-3">
-                {`${currencyFormatter(epc, {
-                  maximumFractionDigits: 2,
-                  minimumFractionDigits: 2,
-                })} EPC`}
               </span>
             </div>
 

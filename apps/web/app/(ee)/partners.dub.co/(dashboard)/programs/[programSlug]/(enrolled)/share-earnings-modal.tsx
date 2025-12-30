@@ -24,8 +24,6 @@ type ShareEarningsModalProps = {
   showModal: boolean;
   setShowModal: Dispatch<SetStateAction<boolean>>;
   programId: string;
-  total: number;
-  epc: number;
   start?: Date;
   end?: Date;
   interval: IntervalOptions;
@@ -36,8 +34,6 @@ export function ShareEarningsModal({
   showModal,
   setShowModal,
   programId,
-  total,
-  epc,
   start,
   end,
   interval,
@@ -52,8 +48,6 @@ export function ShareEarningsModal({
       <ShareEarningsModalInner
         setShowModal={setShowModal}
         programId={programId}
-        total={total}
-        epc={epc}
         start={start}
         end={end}
         interval={interval}
@@ -66,8 +60,6 @@ export function ShareEarningsModal({
 function ShareEarningsModalInner({
   setShowModal,
   programId,
-  total,
-  epc,
   start,
   end,
   interval,
@@ -86,7 +78,7 @@ function ShareEarningsModalInner({
   }).toString()}`;
 
   useEffect(() => {
-    if (!programId || !timeseries) return;
+    if (!programId) return;
 
     const abortController = new AbortController();
 
@@ -106,7 +98,7 @@ function ShareEarningsModalInner({
       });
 
     return () => abortController.abort();
-  }, [imageUrl, programId, timeseries]);
+  }, [imageUrl, programId]);
 
   const handleCopy = async () => {
     if (!blob) return;

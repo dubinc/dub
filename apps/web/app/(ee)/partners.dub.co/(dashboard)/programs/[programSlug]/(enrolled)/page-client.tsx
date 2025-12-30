@@ -30,12 +30,12 @@ import {
   XAxis,
 } from "@dub/ui/charts";
 import {
-  ArrowUpRight2,
   Check,
   Copy,
   CursorRays,
   InvoiceDollar,
   LoadingSpinner,
+  ReferredVia,
   UserPlus,
 } from "@dub/ui/icons";
 import { cn, currencyFormatter, getPrettyUrl, nFormatter } from "@dub/utils";
@@ -329,17 +329,17 @@ function EarningsChart() {
 
   return (
     <div>
-      <ShareEarningsModal
-        showModal={showShareModal}
-        setShowModal={setShowShareModal}
-        programId={programEnrollment?.program.id ?? ""}
-        total={total ?? 0}
-        epc={epc}
-        start={start}
-        end={end}
-        interval={interval}
-        timeseries={timeseries}
-      />
+      {programEnrollment?.program && (
+        <ShareEarningsModal
+          showModal={showShareModal}
+          setShowModal={setShowShareModal}
+          programId={programEnrollment.program.id}
+          start={start}
+          end={end}
+          interval={interval}
+          timeseries={timeseries}
+        />
+      )}
       <div className="flex flex-col-reverse items-start justify-between gap-4 md:flex-row">
         <div className="flex items-center gap-0">
           <div>
@@ -353,7 +353,7 @@ function EarningsChart() {
                   onClick={() => setShowShareModal(true)}
                   className="flex size-6 items-center justify-center rounded-md border border-transparent text-neutral-500 transition-colors hover:border-neutral-200 hover:bg-neutral-50 hover:text-neutral-700"
                 >
-                  <ArrowUpRight2 className="size-3.5" />
+                  <ReferredVia className="size-3.5" />
                 </button>
               </Tooltip>
             </div>
