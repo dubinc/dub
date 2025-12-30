@@ -1,0 +1,33 @@
+DESCRIPTION >
+	Get clicks grouped by link_id and country filtered by linkIds
+
+TAGS "Dub Endpoints"
+
+NODE link_country_clicks
+SQL >
+
+    %
+    SELECT
+        link_id,
+        country,
+        COUNT(*) AS clicks
+    FROM
+        dub_click_events_mv
+    WHERE
+        link_id IN {{ Array(linkIds, 'String') }}
+        AND timestamp >= {{ DateTime64(start) }}
+        AND timestamp <= {{ DateTime64(end) }}
+    GROUP BY
+        link_id,
+        country
+    ORDER BY
+        link_id ASC,
+        clicks DESC
+
+NODE endpoint
+SQL >
+
+    %
+    SELECT *
+    FROM link_country_clicks
+
