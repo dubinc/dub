@@ -11,7 +11,7 @@ import {
 import { redis } from "@/lib/upstash";
 import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
 import { parseDateSchema } from "@/lib/zod/schemas/utils";
-import { Prisma, prisma } from "@dub/prisma/node";
+import { Prisma, prisma } from "@dub/prisma";
 import { linkConstructorSimple, nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";

@@ -1,5 +1,5 @@
+import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
-import { prisma } from "@dub/prisma/node";
 
 async function main() {
   await prisma.partner.deleteMany({

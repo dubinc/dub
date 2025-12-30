@@ -1,7 +1,7 @@
 "server-only";
 
 import { Folder, FolderPermission } from "@/lib/types";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import {
   FolderUser,
   FolderUserRole,

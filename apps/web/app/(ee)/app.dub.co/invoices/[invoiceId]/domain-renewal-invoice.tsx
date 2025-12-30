@@ -1,5 +1,5 @@
 import { stripe } from "@/lib/stripe";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { Invoice, Project } from "@dub/prisma/types";
 import { currencyFormatter, DUB_WORDMARK, formatDate } from "@dub/utils";
 import {

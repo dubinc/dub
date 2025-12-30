@@ -4,7 +4,7 @@ import {
   CUTOFF_PERIOD,
   CUTOFF_PERIOD_TYPES,
 } from "@/lib/partners/cutoff-period";
-import { prisma, Program, Project } from "@dub/prisma/node";
+import { prisma, Program, Project } from "@dub/prisma";
 import { endOfMonth } from "date-fns";
 
 export async function splitPayouts({

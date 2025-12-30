@@ -4,7 +4,7 @@ import {
   PARTNER_NETWORK_MIN_COMMISSIONS_CENTS,
 } from "@/lib/constants/partner-profile";
 import { PartnerProps } from "@/lib/types";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 
 // similar logic to partnerCanViewMarketplace but throws an error instead of returning a boolean
 export async function throwIfPartnerCannotViewMarketplace({

@@ -2,7 +2,7 @@ import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { PROGRAM_SIMILARITY_SCORE_THRESHOLD } from "@/lib/constants/program";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
-import { prisma, ProgramSimilarity } from "@dub/prisma/node";
+import { prisma, ProgramSimilarity } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { z } from "zod";
 import { logAndRespond } from "../../utils";

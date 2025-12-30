@@ -4,7 +4,7 @@ import { withWorkspace } from "@/lib/auth";
 import { deleteScreenshots } from "@/lib/integrations/utils";
 import { storage } from "@/lib/storage";
 import { oAuthAppSchema, updateOAuthAppSchema } from "@/lib/zod/schemas/oauth";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";

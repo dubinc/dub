@@ -3,7 +3,7 @@ import { updateLinksUsage } from "@/lib/api/links/update-links-usage";
 import { withWorkspace } from "@/lib/auth";
 import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import { SimpleLinkProps } from "@/lib/types";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
 // POST /api/links/sync – sync user's publicly created links to their accounts

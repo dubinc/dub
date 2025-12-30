@@ -4,7 +4,7 @@ import { createId } from "@/lib/api/create-id";
 import { completeProgramApplications } from "@/lib/partners/complete-program-applications";
 import { storage } from "@/lib/storage";
 import { onboardPartnerSchema } from "@/lib/zod/schemas/partners";
-import { Prisma, prisma } from "@dub/prisma/node";
+import { Prisma, prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { authUserActionClient } from "../safe-action";

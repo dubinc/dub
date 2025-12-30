@@ -1,7 +1,7 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { CUTOFF_PERIOD_ENUM } from "@/lib/partners/cutoff-period";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
 import { z } from "zod";
 import { logAndRespond } from "../../utils";

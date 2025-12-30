@@ -1,6 +1,6 @@
 "use server";
 
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { ComponentDividerSpacingSize } from "@team-plain/typescript-sdk";
 import { createPlainThread } from "../plain/create-plain-thread";
 import { ratelimit } from "../upstash";

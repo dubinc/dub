@@ -1,6 +1,6 @@
 import { getProgram } from "@/lib/fetchers/get-program";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { Logo } from "@dub/ui";
 import { BoltFill, CursorRays, LinesY, MoneyBills2 } from "@dub/ui/icons";
 import { OG_AVATAR_URL } from "@dub/utils";

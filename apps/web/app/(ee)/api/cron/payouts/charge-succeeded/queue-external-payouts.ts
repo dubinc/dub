@@ -2,7 +2,7 @@ import { queueBatchEmail } from "@/lib/email/queue-batch-email";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { payoutWebhookEventSchema } from "@/lib/zod/schemas/payouts";
 import type PartnerPayoutConfirmed from "@dub/email/templates/partner-payout-confirmed";
-import { Invoice, prisma } from "@dub/prisma/node";
+import { Invoice, prisma } from "@dub/prisma";
 import { currencyFormatter } from "@dub/utils";
 
 export async function queueExternalPayouts(

@@ -13,7 +13,7 @@ import {
   WORKFLOW_ACTION_TYPES,
   WORKFLOW_ATTRIBUTE_TRIGGER,
 } from "@/lib/zod/schemas/workflows";
-import { CampaignStatus, prisma } from "@dub/prisma/node";
+import { CampaignStatus, prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
 // GET /api/campaigns - get all email campaigns for a program

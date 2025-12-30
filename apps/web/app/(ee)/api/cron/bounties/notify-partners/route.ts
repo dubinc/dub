@@ -4,7 +4,7 @@ import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { sendBatchEmail } from "@dub/email";
 import NewBountyAvailable from "@dub/email/templates/new-bounty-available";
-import { NotificationEmailType, prisma } from "@dub/prisma/node";
+import { NotificationEmailType, prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
 import { differenceInMinutes } from "date-fns";
 import { z } from "zod";

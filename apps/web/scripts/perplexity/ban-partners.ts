@@ -1,6 +1,6 @@
 import { BAN_PARTNER_REASONS } from "@/lib/zod/schemas/partners";
 import PartnerBanned from "@dub/email/templates/partner-banned";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 import * as fs from "fs";
 import * as Papa from "papaparse";

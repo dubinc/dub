@@ -8,7 +8,7 @@ import { toggleWebhooksForWorkspace } from "@/lib/webhook/update-webhook";
 import { isLinkLevelWebhook } from "@/lib/webhook/utils";
 import { validateWebhook } from "@/lib/webhook/validate-webhook";
 import { updateWebhookSchema } from "@/lib/zod/schemas/webhooks";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 

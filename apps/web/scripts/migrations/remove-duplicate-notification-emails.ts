@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 
 // one time script to make sure notificationEmail entries are unique by emailId

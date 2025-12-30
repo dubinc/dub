@@ -1,4 +1,4 @@
-import { Link, prisma } from "@dub/prisma/node";
+import { Link, prisma } from "@dub/prisma";
 import { DubApiError } from "../errors";
 import { prefixWorkspaceId } from "../workspaces/workspace-id";
 import {

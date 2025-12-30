@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 
 // Calculate category similarity using Jaccard similarity
 export async function calculateCategorySimilarity(

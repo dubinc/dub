@@ -1,4 +1,4 @@
-import { Prisma, prisma } from "@dub/prisma/node";
+import { Prisma, prisma } from "@dub/prisma";
 import { linkConstructorSimple } from "@dub/utils";
 import "dotenv-flow/config";
 import { encodeKeyIfCaseSensitive } from "../lib/api/links/case-sensitivity";

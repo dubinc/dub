@@ -1,6 +1,6 @@
 "use server";
 
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { webhookCache } from "../webhook/cache";
 import { toggleWebhooksForWorkspace } from "../webhook/update-webhook";

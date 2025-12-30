@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { getApexDomain } from "@dub/utils";
 
 export const removeDomainFromVercel = async (domain: string) => {

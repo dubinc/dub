@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { HUBSPOT_INTEGRATION_ID } from "@dub/utils/src";
 import { redirect } from "next/navigation";
 import IntegrationPageClient from "./page-client";

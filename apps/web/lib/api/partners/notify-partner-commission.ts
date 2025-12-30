@@ -12,7 +12,7 @@ import {
   Program,
   Project,
   User,
-} from "@dub/prisma/node";
+} from "@dub/prisma";
 import { chunk } from "@dub/utils";
 
 // Send email to partner and program owners when a commission is created

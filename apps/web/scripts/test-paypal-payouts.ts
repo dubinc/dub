@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 import { createPaypalToken } from "../lib/paypal/create-paypal-token";
 import { paypalEnv } from "../lib/paypal/env";

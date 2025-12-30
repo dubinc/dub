@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import Stripe from "stripe";
 import { processDomainRenewalFailure } from "./utils/process-domain-renewal-failure";
 import { processPayoutInvoiceFailure } from "./utils/process-payout-invoice-failure";

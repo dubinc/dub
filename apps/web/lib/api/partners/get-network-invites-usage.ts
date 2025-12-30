@@ -1,4 +1,4 @@
-import { prisma, Project } from "@dub/prisma/node";
+import { prisma, Project } from "@dub/prisma";
 import { getBillingStartDate } from "@dub/utils";
 
 export async function getNetworkInvitesUsage(

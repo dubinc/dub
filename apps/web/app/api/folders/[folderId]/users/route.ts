@@ -3,7 +3,7 @@ import {
   findFolderUserRole,
   verifyFolderAccess,
 } from "@/lib/folder/permissions";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
 // GET /api/folders/[folderId]/users – get users with access to a folder

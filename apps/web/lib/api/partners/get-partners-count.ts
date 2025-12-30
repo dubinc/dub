@@ -4,7 +4,7 @@ import {
   Prisma,
   ProgramEnrollmentStatus,
   sanitizeFullTextSearch,
-} from "@dub/prisma/node";
+} from "@dub/prisma";
 import { z } from "zod";
 
 type PartnersCountFilters = z.infer<typeof partnersCountQuerySchema> & {

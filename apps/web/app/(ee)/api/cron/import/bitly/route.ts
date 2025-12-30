@@ -3,7 +3,7 @@ import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { redis } from "@/lib/upstash";
 import { randomBadgeColor } from "@/ui/links/tag-badge";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
 import { NextResponse } from "next/server";
 import { checkIfRateLimited } from "./rate-limit";

@@ -3,7 +3,7 @@ import { isNotHostedImage, storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import { LinkProps, ProcessedLinkProps } from "@/lib/types";
 import { propagateWebhookTriggerChanges } from "@/lib/webhook/update-webhook";
-import { Prisma, prisma } from "@dub/prisma/node";
+import { Prisma, prisma } from "@dub/prisma";
 import {
   R2_URL,
   getParamsFromURL,

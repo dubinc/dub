@@ -4,7 +4,7 @@ import { getPartnerBankAccount } from "@/lib/partners/get-partner-bank-account";
 import { sendEmail } from "@dub/email";
 import ConnectedPayoutMethod from "@dub/email/templates/connected-payout-method";
 import DuplicatePayoutMethod from "@dub/email/templates/duplicate-payout-method";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import Stripe from "stripe";
 

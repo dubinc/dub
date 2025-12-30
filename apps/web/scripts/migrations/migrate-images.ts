@@ -1,5 +1,5 @@
 import { storage } from "@/lib/storage";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { truncate } from "@dub/utils";
 import "dotenv-flow/config";
 

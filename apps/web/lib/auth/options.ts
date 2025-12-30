@@ -5,7 +5,7 @@ import { UserProps } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
 import { sendEmail } from "@dub/email";
 import LoginLink from "@dub/email/templates/login-link";
-import { prisma, PrismaClient } from "@dub/prisma/node";
+import { prisma, PrismaClient } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { waitUntil } from "@vercel/functions";

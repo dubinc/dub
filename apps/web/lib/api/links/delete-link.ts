@@ -1,6 +1,6 @@
 import { storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { queueDiscountCodeDeletion } from "../discounts/queue-discount-code-deletion";

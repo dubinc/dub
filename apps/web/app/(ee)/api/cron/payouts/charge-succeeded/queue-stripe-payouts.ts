@@ -1,5 +1,5 @@
 import { qstash } from "@/lib/cron";
-import { Invoice, prisma } from "@dub/prisma/node";
+import { Invoice, prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, chunk, log } from "@dub/utils";
 import { z } from "zod";
 

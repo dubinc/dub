@@ -4,7 +4,7 @@ import { registerDomain } from "@/lib/dynadot/register-domain";
 import { WorkspaceWithUsers } from "@/lib/types";
 import { sendBatchEmail } from "@dub/email";
 import DomainClaimed from "@dub/email/templates/domain-claimed";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { DEFAULT_LINK_PROPS } from "@dub/utils";
 import { get } from "@vercel/edge-config";
 import { waitUntil } from "@vercel/functions";

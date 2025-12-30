@@ -5,7 +5,7 @@ import {
   Link,
   Partner,
   ProgramEnrollment,
-} from "@dub/prisma/node";
+} from "@dub/prisma";
 
 export interface CustomerWithLink extends Customer {
   link?:

@@ -5,7 +5,7 @@ import { redis } from "@/lib/upstash";
 import { randomBadgeColor } from "@/ui/links/tag-badge";
 import { sendEmail } from "@dub/email";
 import LinksImported from "@dub/email/templates/links-imported";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, linkConstructorSimple } from "@dub/utils";
 
 export const importTagsFromRebrandly = async ({

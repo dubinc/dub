@@ -8,11 +8,7 @@ import {
   INACTIVE_ENROLLMENT_STATUSES,
   rejectPartnerSchema,
 } from "@/lib/zod/schemas/partners";
-import {
-  FraudRuleType,
-  prisma,
-  ProgramEnrollmentStatus,
-} from "@dub/prisma/node";
+import { FraudRuleType, prisma, ProgramEnrollmentStatus } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 

@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { User } from "@dub/prisma/types";
 import { MAX_LOGIN_ATTEMPTS } from "./constants";
 

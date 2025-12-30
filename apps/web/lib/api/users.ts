@@ -2,7 +2,7 @@ import { Session, hashToken } from "@/lib/auth";
 import { WorkspaceWithUsers } from "@/lib/types";
 import { sendEmail } from "@dub/email";
 import WorkspaceInvite from "@dub/email/templates/workspace-invite";
-import { WorkspaceRole, prisma } from "@dub/prisma/node";
+import { WorkspaceRole, prisma } from "@dub/prisma";
 import { TWO_WEEKS_IN_SECONDS } from "@dub/utils";
 import { randomBytes } from "crypto";
 import { DubApiError } from "./errors";

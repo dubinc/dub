@@ -1,4 +1,4 @@
-import { Prisma, prisma } from "@dub/prisma/node";
+import { Prisma, prisma } from "@dub/prisma";
 import { ACME_PROGRAM_ID } from "@dub/utils";
 
 export interface PartnerRankingFilters {

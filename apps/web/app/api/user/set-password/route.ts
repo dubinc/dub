@@ -3,7 +3,7 @@ import { withSession } from "@/lib/auth";
 import { PASSWORD_RESET_TOKEN_EXPIRY } from "@/lib/auth/constants";
 import { sendEmail } from "@dub/email";
 import ResetPasswordLink from "@dub/email/templates/reset-password-link";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { randomBytes } from "crypto";
 import { NextResponse } from "next/server";
 

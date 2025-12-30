@@ -1,7 +1,7 @@
 import { createLink, processLink } from "@/lib/api/links";
 import { WorkspaceProps } from "@/lib/types";
 import { createLinkBodySchema } from "@/lib/zod/schemas/links";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { User } from "@dub/prisma/types";
 import { APP_DOMAIN, SLACK_INTEGRATION_ID } from "@dub/utils";
 import { z } from "zod";

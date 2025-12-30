@@ -1,7 +1,7 @@
 import { sendEmail } from "@dub/email";
 import WebhookDisabled from "@dub/email/templates/webhook-disabled";
 import WebhookFailed from "@dub/email/templates/webhook-failed";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { Webhook } from "@dub/prisma/types";
 import { webhookCache } from "./cache";
 import {

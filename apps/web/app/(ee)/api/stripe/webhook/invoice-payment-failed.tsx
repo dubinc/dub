@@ -1,6 +1,6 @@
 import { sendEmail } from "@dub/email";
 import FailedPayment from "@dub/email/templates/failed-payment";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import Stripe from "stripe";
 
 export async function invoicePaymentFailed(event: Stripe.Event) {

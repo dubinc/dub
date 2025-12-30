@@ -1,6 +1,6 @@
 import { sendLimitEmail } from "@/lib/cron/send-limit-email";
 import { WorkspaceProps } from "@/lib/types";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
 
 export async function updateLinksUsage({

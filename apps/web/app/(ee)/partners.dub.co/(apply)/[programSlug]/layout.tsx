@@ -1,7 +1,7 @@
 import { getProgram } from "@/lib/fetchers/get-program";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { Wordmark } from "@dub/ui";
 import { APP_DOMAIN, PARTNERS_DOMAIN } from "@dub/utils";
 import { constructMetadata } from "@dub/utils/src/functions";

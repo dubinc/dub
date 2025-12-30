@@ -1,7 +1,7 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { resend } from "@dub/email/resend/client";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
 import { z } from "zod";
 import { logAndRespond } from "../../utils";

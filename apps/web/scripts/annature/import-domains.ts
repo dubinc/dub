@@ -1,7 +1,7 @@
 import { createId } from "@/lib/api/create-id";
 import { addDomainToVercel } from "@/lib/api/domains/add-domain-vercel";
 import { configureVercelNameservers } from "@/lib/api/domains/configure-vercel-nameservers";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { linkConstructorSimple } from "@dub/utils";
 import "dotenv-flow/config";
 

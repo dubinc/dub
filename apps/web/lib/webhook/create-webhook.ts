@@ -3,7 +3,7 @@ import { linkCache } from "@/lib/api/links/cache";
 import { webhookCache } from "@/lib/webhook/cache";
 import { WEBHOOK_ID_PREFIX } from "@/lib/webhook/constants";
 import { isLinkLevelWebhook } from "@/lib/webhook/utils";
-import { prisma, Project, WebhookReceiver } from "@dub/prisma/node";
+import { prisma, Project, WebhookReceiver } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
 import { createWebhookSchema } from "../zod/schemas/webhooks";

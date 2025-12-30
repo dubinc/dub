@@ -1,6 +1,6 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { ratelimit } from "@/lib/upstash";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { getSearchParams } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { headers } from "next/headers";

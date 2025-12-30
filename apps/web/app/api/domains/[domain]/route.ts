@@ -11,7 +11,7 @@ import { withWorkspace } from "@/lib/auth";
 import { setRenewOption } from "@/lib/dynadot/set-renew-option";
 import { storage } from "@/lib/storage";
 import { updateDomainBodySchema } from "@/lib/zod/schemas/domains";
-import { Prisma, prisma } from "@dub/prisma/node";
+import { Prisma, prisma } from "@dub/prisma";
 import { combineWords, nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";

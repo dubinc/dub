@@ -1,5 +1,5 @@
 import { EXCLUDED_PROGRAM_IDS } from "@/lib/constants/partner-profile";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 
 async function main() {

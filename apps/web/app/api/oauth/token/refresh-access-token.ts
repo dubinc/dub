@@ -4,7 +4,7 @@ import { createToken } from "@/lib/api/oauth/utils";
 import { hashToken } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
 import { refreshTokenSchema } from "@/lib/zod/schemas/oauth";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { NextRequest } from "next/server";
 import { z } from "zod";
 

@@ -3,7 +3,7 @@ import { ButtonLink } from "@/ui/placeholders/button-link";
 import { CTA } from "@/ui/placeholders/cta";
 import { FeaturesSection } from "@/ui/placeholders/features-section";
 import { Hero } from "@/ui/placeholders/hero";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { CircleHalfDottedClock, Footer, Nav, NavMobile } from "@dub/ui";
 import { cn, constructMetadata, createHref } from "@dub/utils";
 import { redirect } from "next/navigation";

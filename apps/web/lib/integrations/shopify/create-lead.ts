@@ -7,7 +7,7 @@ import { getClickEvent, recordLead } from "@/lib/tinybird";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformLeadEventData } from "@/lib/webhook/transform";
 import { leadEventSchemaTB } from "@/lib/zod/schemas/leads";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { orderSchema } from "./schema";

@@ -1,7 +1,7 @@
 import { withAdmin } from "@/lib/auth";
 import { stripe } from "@/lib/stripe";
 import { recordLink } from "@/lib/tinybird";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { prettyPrint } from "@dub/utils";
 import { NextResponse } from "next/server";
 

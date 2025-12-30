@@ -2,7 +2,7 @@
 
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { programLanderSchema } from "@/lib/zod/schemas/program-lander";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 
 async function main() {

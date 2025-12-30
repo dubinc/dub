@@ -17,7 +17,7 @@ import { REWARD_EVENT_COLUMN_MAPPING } from "@/lib/zod/schemas/rewards";
 import { sendEmail } from "@dub/email";
 import ProgramInvite from "@dub/email/templates/program-invite";
 import ProgramWelcome from "@dub/email/templates/program-welcome";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { Program, Project, User } from "@dub/prisma/types";
 import { getDomainWithoutWWW, nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";

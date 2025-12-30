@@ -5,7 +5,7 @@ import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
 import { workflowConditionSchema } from "@/lib/zod/schemas/workflows";
-import { prisma, Prisma } from "@dub/prisma/node";
+import { prisma, Prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
 import { differenceInMinutes } from "date-fns";
 import { z } from "zod";

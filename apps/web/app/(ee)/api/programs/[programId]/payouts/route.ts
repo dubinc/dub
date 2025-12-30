@@ -6,7 +6,7 @@ import {
   PayoutResponseSchema,
   payoutsQuerySchema,
 } from "@/lib/zod/schemas/payouts";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 

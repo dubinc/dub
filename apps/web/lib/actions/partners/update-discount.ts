@@ -6,7 +6,7 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { qstash } from "@/lib/cron";
 import { updateDiscountSchema } from "@/lib/zod/schemas/discount";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { revalidatePath } from "next/cache";

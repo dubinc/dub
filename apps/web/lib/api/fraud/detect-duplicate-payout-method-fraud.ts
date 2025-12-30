@@ -1,6 +1,6 @@
 import { CreateFraudEventInput } from "@/lib/types";
 import { INACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
-import { FraudRuleType, prisma, ProgramEnrollment } from "@dub/prisma/node";
+import { FraudRuleType, prisma, ProgramEnrollment } from "@dub/prisma";
 import { createFraudEvents } from "./create-fraud-events";
 
 // Check for duplicate payout methods: if multiple partners share the same payout method hash,

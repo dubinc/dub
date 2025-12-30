@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import FireCrawlApp from "@mendable/firecrawl-js";
 import "dotenv-flow/config";
 

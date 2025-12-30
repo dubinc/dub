@@ -14,7 +14,7 @@ import {
   retrievePartnerLinksSchema,
 } from "@/lib/zod/schemas/partners";
 import { ProgramPartnerLinkSchema } from "@/lib/zod/schemas/programs";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { constructURLFromUTMParams } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";

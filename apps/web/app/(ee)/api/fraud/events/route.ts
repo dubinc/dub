@@ -5,7 +5,7 @@ import {
   fraudEventQuerySchema,
   fraudEventSchemas,
 } from "@/lib/zod/schemas/fraud";
-import { FraudRuleType, prisma, Prisma } from "@dub/prisma/node";
+import { FraudRuleType, prisma, Prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 

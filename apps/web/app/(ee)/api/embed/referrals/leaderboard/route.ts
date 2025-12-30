@@ -1,7 +1,7 @@
 import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
 import { generateRandomName } from "@/lib/names";
 import { LeaderboardPartnerSchema } from "@/lib/zod/schemas/partners";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { OG_AVATAR_URL } from "@dub/utils";
 import { NextResponse } from "next/server";
 import z from "node_modules/zod/lib";

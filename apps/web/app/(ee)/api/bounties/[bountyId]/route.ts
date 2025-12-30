@@ -11,7 +11,7 @@ import { withWorkspace } from "@/lib/auth";
 import { WorkflowCondition } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { BountySchema, updateBountySchema } from "@/lib/zod/schemas/bounties";
-import { PartnerGroup, prisma, Prisma } from "@dub/prisma/node";
+import { PartnerGroup, prisma, Prisma } from "@dub/prisma";
 import { arrayEqual } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";

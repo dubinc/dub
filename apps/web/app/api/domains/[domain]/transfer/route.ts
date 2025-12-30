@@ -5,7 +5,7 @@ import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import { ratelimit } from "@/lib/upstash";
 import { transferDomainBodySchema } from "@/lib/zod/schemas/domains";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { NextResponse } from "next/server";
 

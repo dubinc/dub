@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { getPlanAndTierFromPriceId } from "@dub/utils";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";

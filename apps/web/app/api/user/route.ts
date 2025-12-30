@@ -3,7 +3,7 @@ import { withSession } from "@/lib/auth";
 import { confirmEmailChange } from "@/lib/auth/confirm-email-change";
 import { storage } from "@/lib/storage";
 import { uploadedImageSchema } from "@/lib/zod/schemas/misc";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import {
   APP_DOMAIN,
   APP_HOSTNAMES,

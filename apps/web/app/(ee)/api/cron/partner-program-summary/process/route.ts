@@ -3,7 +3,7 @@ import { qstash } from "@/lib/cron";
 import { withCron } from "@/lib/cron/with-cron";
 import { sendBatchEmail } from "@dub/email";
 import PartnerProgramSummary from "@dub/email/templates/partner-program-summary";
-import { Prisma, prisma } from "@dub/prisma/node";
+import { Prisma, prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { endOfMonth, format, startOfMonth, subMonths } from "date-fns";
 import { z } from "zod";

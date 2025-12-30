@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { InstalledIntegration } from "@dub/prisma/types";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { OAuthProvider, OAuthProviderConfig } from "../oauth-provider";

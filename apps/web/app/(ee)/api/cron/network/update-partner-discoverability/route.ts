@@ -1,7 +1,7 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { EXCLUDED_PROGRAM_IDS } from "@/lib/constants/partner-profile";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { log, prettyPrint } from "@dub/utils";
 import { logAndRespond } from "../../utils";
 

@@ -8,7 +8,7 @@ import { createPartnerCommission } from "@/lib/partners/create-partner-commissio
 import { getClickEvent, recordLead } from "@/lib/tinybird";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformLeadEventData } from "@/lib/webhook/transform";
-import { prisma, WorkflowTrigger } from "@dub/prisma/node";
+import { prisma, WorkflowTrigger } from "@dub/prisma";
 import { nanoid, pick } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";

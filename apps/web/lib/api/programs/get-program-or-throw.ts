@@ -1,5 +1,5 @@
 import { ProgramSchemaWithInviteEmailData } from "@/lib/zod/schemas/programs";
-import { Prisma, prisma } from "@dub/prisma/node";
+import { Prisma, prisma } from "@dub/prisma";
 import { z } from "zod";
 import { DubApiError } from "../errors";
 

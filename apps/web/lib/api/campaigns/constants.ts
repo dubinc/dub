@@ -1,4 +1,4 @@
-import { CampaignStatus, CampaignType } from "@dub/prisma/node";
+import { CampaignStatus, CampaignType } from "@dub/prisma";
 
 export const DEFAULT_CAMPAIGN_BODY = {
   type: "doc",

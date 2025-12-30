@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { payoutsItemSchema } from "./utils";
 
 export async function payoutsItemSucceeded(event: any) {

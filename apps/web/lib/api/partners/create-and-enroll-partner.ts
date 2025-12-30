@@ -5,7 +5,7 @@ import { isStored, storage } from "@/lib/storage";
 import { CreatePartnerProps, ProgramProps, WorkspaceProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
-import { prisma, Prisma, ProgramEnrollmentStatus } from "@dub/prisma/node";
+import { prisma, Prisma, ProgramEnrollmentStatus } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { DubApiError } from "../errors";

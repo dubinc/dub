@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { addSeconds, subSeconds } from "date-fns";
 import "dotenv-flow/config";
 

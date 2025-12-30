@@ -1,5 +1,5 @@
 import { withAdmin } from "@/lib/auth";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { DUB_DOMAINS_ARRAY, LEGAL_USER_ID } from "@dub/utils";
 import { NextResponse } from "next/server";
 

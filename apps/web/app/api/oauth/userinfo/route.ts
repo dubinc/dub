@@ -1,7 +1,7 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { prefixWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { getAuthTokenOrThrow, hashToken } from "@/lib/auth";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";

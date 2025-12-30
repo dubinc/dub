@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 import { AnalyticsCountries, AnalyticsTopLinks } from "dub/models/components";
 import { getAnalytics } from "../lib/analytics/get-analytics";

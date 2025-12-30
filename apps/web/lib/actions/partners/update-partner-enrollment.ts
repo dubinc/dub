@@ -7,7 +7,7 @@ import { throwIfExistingTenantEnrollmentExists } from "@/lib/api/partners/throw-
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { recordLink } from "@/lib/tinybird";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
 import { authActionClient } from "../safe-action";

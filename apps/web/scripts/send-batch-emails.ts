@@ -1,5 +1,5 @@
 import DubPartnerRewind from "@dub/email/templates/dub-partner-rewind";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { chunk } from "@dub/utils";
 import "dotenv-flow/config";
 import { queueBatchEmail } from "../lib/email/queue-batch-email";

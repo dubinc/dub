@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { PartnerGroup, Program } from "@dub/prisma/types";
 import { COUNTRIES, COUNTRY_CODES } from "@dub/utils";
 import { createId } from "../api/create-id";

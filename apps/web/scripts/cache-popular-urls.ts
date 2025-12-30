@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { getApexDomain } from "@dub/utils";
 import "dotenv-flow/config";
 import * as fs from "fs";

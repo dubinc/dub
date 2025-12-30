@@ -2,7 +2,7 @@
 
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { PlanProps } from "@/lib/types";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
 import { verifyFolderAccess } from "../../folder/permissions";

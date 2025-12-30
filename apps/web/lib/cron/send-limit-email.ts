@@ -1,7 +1,7 @@
 import { sendBatchEmail } from "@dub/email";
 import ClicksExceeded from "@dub/email/templates/clicks-exceeded";
 import LinksLimitAlert from "@dub/email/templates/links-limit";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { WorkspaceProps } from "../types";
 
 export const sendLimitEmail = async ({

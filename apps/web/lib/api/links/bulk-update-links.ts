@@ -1,6 +1,6 @@
 import { isNotHostedImage, storage } from "@/lib/storage";
 import { bulkUpdateLinksBodySchema } from "@/lib/zod/schemas/links";
-import { Prisma, prisma } from "@dub/prisma/node";
+import { Prisma, prisma } from "@dub/prisma";
 import { R2_URL, getParamsFromURL, nanoid, truncate } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { z } from "zod";

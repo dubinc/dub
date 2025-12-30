@@ -22,7 +22,7 @@ import { recordSaleWithTimestamp } from "@/lib/tinybird/record-sale";
 import { createCommissionSchema } from "@/lib/zod/schemas/commissions";
 import { leadEventSchemaTB } from "@/lib/zod/schemas/leads";
 import { saleEventSchemaTB } from "@/lib/zod/schemas/sales";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { WorkflowTrigger } from "@dub/prisma/types";
 import { APP_DOMAIN_WITH_NGROK, nanoid, prettyPrint } from "@dub/utils";
 import { COUNTRIES_TO_CONTINENTS } from "@dub/utils/src";

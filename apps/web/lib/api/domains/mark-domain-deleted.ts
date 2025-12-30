@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { queueDomainDeletion } from "./queue-domain-update";
 import { removeDomainFromVercel } from "./remove-domain-vercel";
 

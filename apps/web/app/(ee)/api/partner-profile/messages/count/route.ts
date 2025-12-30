@@ -1,6 +1,6 @@
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { countMessagesQuerySchema } from "@/lib/zod/schemas/messages";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
 // GET /api/partner-profile/messages/count - count messages for a partner

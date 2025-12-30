@@ -1,6 +1,6 @@
 import { plain } from "@/lib/plain/client";
 import { upsertPlainCustomer } from "@/lib/plain/upsert-plain-customer";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { COUNTRIES, currencyFormatter, formatDate } from "@dub/utils";
 import { uiComponent } from "@team-plain/typescript-sdk";
 import { NextRequest, NextResponse } from "next/server";

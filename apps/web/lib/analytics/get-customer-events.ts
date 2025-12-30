@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { Link } from "@dub/prisma/types";
 import { transformLink } from "../api/links";
 import { decodeLinkIfCaseSensitive } from "../api/links/case-sensitivity";

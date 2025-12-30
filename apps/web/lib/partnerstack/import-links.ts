@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { createLink } from "../api/links";
 import { generatePartnerLink } from "../api/partners/generate-partner-link";
 import { logImportError } from "../tinybird/log-import-error";

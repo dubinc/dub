@@ -1,7 +1,7 @@
 import { createId } from "@/lib/api/create-id";
 import { generateRandomName } from "@/lib/names";
 import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { linkConstructorSimple, nanoid } from "@dub/utils";
 import "dotenv-flow/config";
 import * as fs from "fs";

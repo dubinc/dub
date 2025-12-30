@@ -23,7 +23,7 @@
     "typescript": "5.2.2"
   },
   "exports": {
-    "./node": "./client.ts",
+    ".": "./client.ts",
     "./edge": "./edge.ts",
     "./types": "./generated/browser.ts"
   },

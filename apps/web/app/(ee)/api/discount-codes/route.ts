@@ -11,7 +11,7 @@ import {
   DiscountCodeSchema,
   getDiscountCodesQuerySchema,
 } from "@/lib/zod/schemas/discount";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 

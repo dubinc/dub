@@ -8,7 +8,7 @@ import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { getRewardAmount } from "@/lib/partners/get-reward-amount";
 import { analyticsResponse } from "@/lib/zod/schemas/analytics-response";
-import { CommissionType, prisma, Prisma } from "@dub/prisma/node";
+import { CommissionType, prisma, Prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, nFormatter } from "@dub/utils";
 import { z } from "zod";
 import { logAndRespond } from "../utils";

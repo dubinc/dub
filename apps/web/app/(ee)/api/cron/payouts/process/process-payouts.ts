@@ -16,7 +16,7 @@ import {
   Program,
   ProgramPayoutMode,
   Project,
-} from "@dub/prisma/node";
+} from "@dub/prisma";
 import {
   APP_DOMAIN_WITH_NGROK,
   currencyFormatter,

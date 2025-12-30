@@ -9,7 +9,7 @@ import { assertValidDateRangeForPlan } from "@/lib/api/utils/assert-valid-date-r
 import { withWorkspace } from "@/lib/auth";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
 import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
-import { Link } from "@dub/prisma/node";
+import { Link } from "@dub/prisma";
 import JSZip from "jszip";
 
 // GET /api/analytics/export – get export data for analytics

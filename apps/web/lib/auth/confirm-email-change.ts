@@ -1,6 +1,6 @@
 import { sendEmail } from "@dub/email";
 import ConfirmEmailChange from "@dub/email/templates/confirm-email-change";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { randomBytes } from "crypto";
 import { hashToken } from ".";

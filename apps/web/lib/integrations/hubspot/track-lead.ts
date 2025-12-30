@@ -1,6 +1,6 @@
 import { trackLead } from "@/lib/api/conversions/track-lead";
 import { TrackLeadResponse, WorkspaceProps } from "@/lib/types";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
 import { HubSpotAuthToken, HubSpotContact } from "../types";

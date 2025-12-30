@@ -8,7 +8,7 @@ import {
   prisma,
   Program,
   ProgramApplication,
-} from "@dub/prisma/node";
+} from "@dub/prisma";
 import { chunk } from "@dub/utils";
 
 export async function notifyPartnerApplication({

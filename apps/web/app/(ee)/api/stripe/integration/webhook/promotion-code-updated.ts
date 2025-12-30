@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import type Stripe from "stripe";
 
 // Handle event "promotion_code.updated"

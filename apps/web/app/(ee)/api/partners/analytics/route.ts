@@ -9,7 +9,7 @@ import {
   partnerAnalyticsQuerySchema,
   partnersTopLinksSchema,
 } from "@/lib/zod/schemas/partners";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { format } from "date-fns";
 import { NextResponse } from "next/server";
 

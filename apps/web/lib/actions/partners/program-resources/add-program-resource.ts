@@ -9,7 +9,7 @@ import {
   programResourceFileSchema,
   programResourceLinkSchema,
 } from "@/lib/zod/schemas/program-resources";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import { z } from "zod";

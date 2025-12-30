@@ -4,7 +4,7 @@ import {
   dashboardSchema,
   updateDashboardBodySchema,
 } from "@/lib/zod/schemas/dashboard";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 

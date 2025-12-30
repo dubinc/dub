@@ -5,7 +5,7 @@ import { consolidateScopes, getScopesForRole } from "@/lib/api/tokens/scopes";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { authorizeRequestSchema } from "@/lib/zod/schemas/oauth";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { SHOPIFY_INTEGRATION_ID, STRIPE_INTEGRATION_ID } from "@dub/utils";
 import { NextResponse } from "next/server";
 

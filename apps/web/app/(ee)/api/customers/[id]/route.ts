@@ -10,7 +10,7 @@ import {
   getCustomersQuerySchema,
   updateCustomerBodySchema,
 } from "@/lib/zod/schemas/customers";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";

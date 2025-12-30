@@ -1,7 +1,7 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { INVOICE_AVAILABLE_PAYOUT_STATUSES } from "@/lib/constants/payouts";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import {
   currencyFormatter,
   DUB_WORDMARK,

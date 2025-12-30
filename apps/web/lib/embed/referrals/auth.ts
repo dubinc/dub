@@ -2,7 +2,7 @@ import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { withAxiom } from "@/lib/axiom/server";
 import { PartnerGroupProps } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { Link, Program, ProgramEnrollment } from "@dub/prisma/types";
 import { getSearchParams } from "@dub/utils";
 import { headers } from "next/headers";

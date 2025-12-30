@@ -8,7 +8,7 @@ import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enro
 import { qstash } from "@/lib/cron";
 import { UserProps, WorkspaceProps } from "@/lib/types";
 import { banPartnerSchema } from "@/lib/zod/schemas/partners";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import {
   PartnerBannedReason,
   ProgramEnrollmentStatus,

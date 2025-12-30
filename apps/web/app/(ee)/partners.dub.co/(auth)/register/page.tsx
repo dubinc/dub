@@ -1,5 +1,5 @@
 import { getProgram } from "@/lib/fetchers/get-program";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import RegisterPageClient from "./page-client";

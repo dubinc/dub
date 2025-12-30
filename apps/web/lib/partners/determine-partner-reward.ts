@@ -1,4 +1,4 @@
-import { EventType, Link, Prisma, Reward } from "@dub/prisma/node";
+import { EventType, Link, Prisma, Reward } from "@dub/prisma";
 import { serializeReward } from "../api/partners/serialize-reward";
 import { RewardContext } from "../types";
 import {

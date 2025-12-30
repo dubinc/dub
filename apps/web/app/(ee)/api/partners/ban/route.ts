@@ -5,7 +5,7 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { throwIfNoPartnerIdOrTenantId } from "@/lib/partners/throw-if-no-partnerid-tenantid";
 import { banPartnerApiSchema } from "@/lib/zod/schemas/partners";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
 // POST /api/partners/ban – Ban a partner via API

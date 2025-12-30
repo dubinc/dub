@@ -22,7 +22,7 @@ import {
   WORKFLOW_ACTION_TYPES,
   WORKFLOW_ATTRIBUTE_TRIGGER,
 } from "@/lib/zod/schemas/workflows";
-import { prisma, Workflow } from "@dub/prisma/node";
+import { prisma, Workflow } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";

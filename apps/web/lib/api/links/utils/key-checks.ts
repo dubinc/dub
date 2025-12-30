@@ -1,7 +1,7 @@
 import { DubApiError } from "@/lib/api/errors";
 import { isBlacklistedKey, isReservedUsername } from "@/lib/edge-config";
 import { checkIfKeyExists } from "@/lib/planetscale";
-import { Project } from "@dub/prisma/node";
+import { Project } from "@dub/prisma";
 import {
   DEFAULT_REDIRECTS,
   isDubDomain,

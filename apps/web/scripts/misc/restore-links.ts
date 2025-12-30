@@ -1,4 +1,4 @@
-import { Prisma, prisma } from "@dub/prisma/node";
+import { Prisma, prisma } from "@dub/prisma";
 import { chunk, getParamsFromURL, linkConstructorSimple } from "@dub/utils";
 import "dotenv-flow/config";
 import * as fs from "fs";

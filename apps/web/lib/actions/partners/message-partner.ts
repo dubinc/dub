@@ -6,7 +6,7 @@ import { getNetworkInvitesUsage } from "@/lib/api/partners/get-network-invites-u
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { qstash } from "@/lib/cron";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { z } from "zod";

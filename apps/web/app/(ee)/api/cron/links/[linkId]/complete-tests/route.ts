@@ -1,7 +1,7 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { completeABTests } from "@/lib/api/links/complete-ab-tests";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 
 // POST - /api/cron/links/[linkId]/complete-tests
 // Completes a link's AB tests if they're ready, scheduled by QStash

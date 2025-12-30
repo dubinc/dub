@@ -1,7 +1,7 @@
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { getCustomersCountQuerySchema } from "@/lib/zod/schemas/customers";
-import { Prisma, prisma, sanitizeFullTextSearch } from "@dub/prisma/node";
+import { Prisma, prisma, sanitizeFullTextSearch } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
 // GET /api/customers/count

@@ -1,7 +1,7 @@
 // @ts-nocheck some weird typing issues below
 
 import { createId } from "@/lib/api/create-id";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import "dotenv-flow/config";
 import * as fs from "fs";

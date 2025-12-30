@@ -5,7 +5,7 @@ import {
   PartnerActivityEvent,
   partnerActivityStream,
 } from "@/lib/upstash/redis-streams";
-import { prisma, ProgramEnrollment } from "@dub/prisma/node";
+import { prisma, ProgramEnrollment } from "@dub/prisma";
 import { differenceInDays, format } from "date-fns";
 import { NextResponse } from "next/server";
 

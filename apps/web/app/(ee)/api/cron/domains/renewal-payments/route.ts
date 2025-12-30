@@ -2,7 +2,7 @@ import { createId } from "@/lib/api/create-id";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { createPaymentIntent } from "@/lib/stripe/create-payment-intent";
-import { Invoice, prisma, Project, RegisteredDomain } from "@dub/prisma/node";
+import { Invoice, prisma, Project, RegisteredDomain } from "@dub/prisma";
 import { log } from "@dub/utils";
 import { addDays, endOfDay, startOfDay } from "date-fns";
 import { NextResponse } from "next/server";

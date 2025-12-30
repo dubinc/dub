@@ -1,4 +1,4 @@
-import type { Reward } from "@dub/prisma/node";
+import type { Reward } from "@dub/prisma";
 import "server-only";
 
 // Convert Prisma.Decimal object to number

@@ -1,4 +1,4 @@
-import { Link, PartnerGroupDefaultLink } from "@dub/prisma/node";
+import { Link, PartnerGroupDefaultLink } from "@dub/prisma";
 import { normalizeUrl } from "@dub/utils";
 
 // Add a new method that update the partner group default links when their group changes

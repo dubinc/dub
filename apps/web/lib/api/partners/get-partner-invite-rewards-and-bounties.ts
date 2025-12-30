@@ -1,6 +1,6 @@
 import { formatDiscountDescription } from "@/ui/partners/format-discount-description";
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
-import { BountyType, EventType, prisma, Reward } from "@dub/prisma/node";
+import { BountyType, EventType, prisma, Reward } from "@dub/prisma";
 import { getGroupOrThrow } from "../groups/get-group-or-throw";
 import { serializeReward } from "./serialize-reward";
 

@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { Webhook } from "@dub/prisma/types";
 import { z } from "zod";
 import { DubApiError } from "../api/errors";

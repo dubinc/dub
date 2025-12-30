@@ -4,7 +4,7 @@ import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
 import { getLinkInfoQuerySchemaExtended } from "@/lib/zod/schemas/links";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
 // GET /api/links/info – get the info for a link

@@ -7,7 +7,7 @@ import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { TiptapNode } from "@/lib/types";
 import { sendBatchEmail } from "@dub/email";
 import CampaignEmail from "@dub/email/templates/campaign-email";
-import { NotificationEmailType, prisma } from "@dub/prisma/node";
+import { NotificationEmailType, prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, chunk, log } from "@dub/utils";
 import { differenceInMinutes } from "date-fns";
 import { headers } from "next/headers";

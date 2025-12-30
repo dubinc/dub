@@ -1,7 +1,7 @@
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { partnerProfileProgramsQuerySchema } from "@/lib/zod/schemas/partner-profile";
 import { ProgramEnrollmentSchema } from "@/lib/zod/schemas/programs";
-import { prisma, Reward } from "@dub/prisma/node";
+import { prisma, Reward } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 

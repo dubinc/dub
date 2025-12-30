@@ -1,5 +1,5 @@
 import { qstash } from "@/lib/cron";
-import { Bounty, prisma } from "@dub/prisma/node";
+import { Bounty, prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { getBountiesByGroups } from "./get-bounties-by-groups";
 

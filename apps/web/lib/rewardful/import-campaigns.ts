@@ -1,5 +1,5 @@
 import { RESOURCE_COLORS } from "@/ui/colors";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { EventType, Prisma, RewardStructure } from "@dub/prisma/types";
 import { randomValue } from "@dub/utils";
 import { differenceInSeconds } from "date-fns";

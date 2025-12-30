@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { recordAuditLog } from "../api/audit-logs/record-audit-log";
 import { getGroupOrThrow } from "../api/groups/get-group-or-throw";

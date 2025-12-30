@@ -3,7 +3,7 @@ import { setRenewOption } from "@/lib/dynadot/set-renew-option";
 import { sendBatchEmail } from "@dub/email";
 import DomainExpired from "@dub/email/templates/domain-expired";
 import DomainRenewalFailed from "@dub/email/templates/domain-renewal-failed";
-import { Invoice, prisma } from "@dub/prisma/node";
+import { Invoice, prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 
 export async function processDomainRenewalFailure({

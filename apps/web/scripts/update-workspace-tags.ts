@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { INFINITY_NUMBER } from "@dub/utils";
 import "dotenv-flow/config";
 

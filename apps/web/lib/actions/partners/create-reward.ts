@@ -11,7 +11,7 @@ import {
   createRewardSchema,
   REWARD_EVENT_COLUMN_MAPPING,
 } from "@/lib/zod/schemas/rewards";
-import { Prisma, prisma } from "@dub/prisma/node";
+import { Prisma, prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 

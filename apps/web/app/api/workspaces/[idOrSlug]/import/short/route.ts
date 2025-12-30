@@ -6,7 +6,7 @@ import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
 import { redis } from "@/lib/upstash";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, fetchWithTimeout } from "@dub/utils";
 import { NextResponse } from "next/server";
 

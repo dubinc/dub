@@ -1,5 +1,5 @@
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
-import { Prisma, Program, Project } from "@dub/prisma/node";
+import { Prisma, Program, Project } from "@dub/prisma";
 
 export function getPayoutEligibilityFilter({
   program,

@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { ACME_PROGRAM_ID } from "@dub/utils";
 import { bulkDeleteLinks } from "../links/bulk-delete-links";
 

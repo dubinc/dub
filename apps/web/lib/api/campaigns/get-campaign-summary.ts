@@ -1,6 +1,6 @@
 import { CampaignSummary } from "@/lib/types";
 import { campaignSummarySchema } from "@/lib/zod/schemas/campaigns";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 
 export const getCampaignSummary = async (campaignId: string) => {
   const [queryResult] = await prisma.$queryRaw<CampaignSummary[]>`

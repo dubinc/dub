@@ -1,5 +1,5 @@
 import { ProcessedLinkProps } from "@/lib/types";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { normalizeUrl } from "@dub/utils";
 import "dotenv-flow/config";
 import { bulkCreateLinks } from "../../lib/api/links";

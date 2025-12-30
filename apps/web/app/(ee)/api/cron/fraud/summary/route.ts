@@ -6,7 +6,7 @@ import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { queueBatchEmail } from "@/lib/email/queue-batch-email";
 import type UnresolvedFraudEventsSummary from "@dub/email/templates/unresolved-fraud-events-summary";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { format, startOfDay } from "date-fns";
 import { z } from "zod";

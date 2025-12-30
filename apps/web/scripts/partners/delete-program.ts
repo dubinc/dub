@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { R2_URL } from "@dub/utils";
 import "dotenv-flow/config";
 import { storage } from "../../lib/storage";

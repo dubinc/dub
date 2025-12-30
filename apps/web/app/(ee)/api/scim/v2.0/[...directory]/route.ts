@@ -5,7 +5,7 @@ import type {
   DirectorySyncEvent,
   DirectorySyncRequest,
 } from "@boxyhq/saml-jackson";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { getSearchParams } from "@dub/utils";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";

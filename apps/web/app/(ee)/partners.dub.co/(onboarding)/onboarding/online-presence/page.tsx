@@ -1,6 +1,6 @@
 import { getSession } from "@/lib/auth";
 import { OnlinePresenceForm } from "@/ui/partners/online-presence-form";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { Suspense } from "react";
 import { OnlinePresencePageClient } from "./page-client";
 

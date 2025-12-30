@@ -1,6 +1,6 @@
 import { sendEmail } from "@dub/email";
 import ProgramImported from "@dub/email/templates/program-imported";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { CommissionStatus, Customer, Link, Program } from "@dub/prisma/types";
 import { nanoid } from "@dub/utils";
 import { convertCurrencyWithFxRates } from "../analytics/convert-currency";

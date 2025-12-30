@@ -1,6 +1,6 @@
 import { prefixWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { dub } from "@/lib/dub";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 
 async function main() {

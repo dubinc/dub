@@ -1,7 +1,7 @@
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
 import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { EventType, Prisma } from "@dub/prisma/types";
 import "dotenv-flow/config";
 

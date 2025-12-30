@@ -2,7 +2,7 @@ import { getSession } from "@/lib/auth";
 import { paypalOAuthProvider } from "@/lib/paypal/oauth";
 import { sendEmail } from "@dub/email";
 import ConnectedPaypalAccount from "@dub/email/templates/connected-paypal-account";
-import { Prisma, prisma } from "@dub/prisma/node";
+import { Prisma, prisma } from "@dub/prisma";
 import { PARTNERS_DOMAIN } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { redirect } from "next/navigation";

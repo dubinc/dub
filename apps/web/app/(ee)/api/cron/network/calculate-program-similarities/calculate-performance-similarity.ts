@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 
 const METRIC_KEYS = [
   "totalClicks",

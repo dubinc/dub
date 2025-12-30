@@ -12,7 +12,7 @@ import {
 } from "@/lib/zod/schemas/partners";
 import { sendEmail } from "@dub/email";
 import PartnerBanned from "@dub/email/templates/partner-banned";
-import { FraudRuleType, prisma } from "@dub/prisma/node";
+import { FraudRuleType, prisma } from "@dub/prisma";
 import { z } from "zod";
 import { logAndRespond } from "../../../utils";
 import { cancelCommissions } from "./cancel-commissions";

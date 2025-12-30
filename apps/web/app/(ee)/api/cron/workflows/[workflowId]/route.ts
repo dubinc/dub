@@ -3,7 +3,7 @@ import { executeSendCampaignWorkflow } from "@/lib/api/workflows/execute-send-ca
 import { parseWorkflowConfig } from "@/lib/api/workflows/parse-workflow-config";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
 import { logAndRespond } from "../../utils";
 

@@ -8,7 +8,7 @@ import { withPartnerProfile } from "@/lib/auth/partner";
 import { NewLinkProps } from "@/lib/types";
 import { PartnerProfileLinkSchema } from "@/lib/zod/schemas/partner-profile";
 import { createPartnerLinkSchema } from "@/lib/zod/schemas/partners";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { getPrettyUrl } from "@dub/utils";
 import { NextResponse } from "next/server";
 

@@ -4,7 +4,7 @@ import { includeTags } from "@/lib/api/links/include-tags";
 import { withWorkspace } from "@/lib/auth";
 import { recordLink } from "@/lib/tinybird";
 import { LinkTagSchema, updateTagBodySchema } from "@/lib/zod/schemas/tags";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 

@@ -2,7 +2,7 @@ import { qstash } from "@/lib/cron";
 import { setRenewOption } from "@/lib/dynadot/set-renew-option";
 import { sendBatchEmail } from "@dub/email";
 import DomainRenewed from "@dub/email/templates/domain-renewed";
-import { Invoice, prisma } from "@dub/prisma/node";
+import { Invoice, prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, pluralize } from "@dub/utils";
 import { addDays } from "date-fns";
 import Stripe from "stripe";

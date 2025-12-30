@@ -1,4 +1,4 @@
-import { Prisma, prisma } from "@dub/prisma/node";
+import { Prisma, prisma } from "@dub/prisma";
 import { prettyPrint } from "@dub/utils";
 
 export async function resolveFraudGroups({

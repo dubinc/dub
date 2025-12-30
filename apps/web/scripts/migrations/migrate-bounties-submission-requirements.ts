@@ -1,6 +1,6 @@
 // @ts-nocheck – old migration script
 import { submissionRequirementsSchema } from "@/lib/zod/schemas/bounties";
-import { Prisma, prisma } from "@dub/prisma/node";
+import { Prisma, prisma } from "@dub/prisma";
 import { prettyPrint } from "@dub/utils";
 import "dotenv-flow/config";
 

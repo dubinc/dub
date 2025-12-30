@@ -9,7 +9,7 @@ import { LeadEventTB } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformSaleEventData } from "@/lib/webhook/transform";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { WorkflowTrigger } from "@dub/prisma/types";
 import { nanoid, pick } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";

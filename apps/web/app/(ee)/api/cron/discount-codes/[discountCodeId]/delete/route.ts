@@ -1,7 +1,7 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { disableStripeDiscountCode } from "@/lib/stripe/disable-stripe-discount-code";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { logAndRespond } from "../../../utils";
 
 export const dynamic = "force-dynamic";

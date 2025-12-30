@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { Program, Reward } from "@dub/prisma/types";
 import { cache } from "react";
 import { serializeReward } from "../api/partners/serialize-reward";

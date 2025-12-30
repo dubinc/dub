@@ -1,5 +1,5 @@
 import { deepViewDataSchema } from "@/lib/zod/schemas/deep-links";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { Grid, Wordmark } from "@dub/ui";
 import { ArrowRight, Copy, IOSAppStore, MobilePhone } from "@dub/ui/icons";
 import { cn } from "@dub/utils";

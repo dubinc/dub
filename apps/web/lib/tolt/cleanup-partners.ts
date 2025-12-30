@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { toltImporter } from "./importer";
 
 const PARTNER_IDS_PER_BATCH = 100;

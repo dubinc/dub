@@ -1,5 +1,5 @@
 import { redis } from "@/lib/upstash";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 
 // This script delete the existing link's cache

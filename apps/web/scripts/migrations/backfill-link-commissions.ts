@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { EventType, Prisma } from "@dub/prisma/types";
 import "dotenv-flow/config";
 import { getEvents } from "../../lib/analytics/get-events";

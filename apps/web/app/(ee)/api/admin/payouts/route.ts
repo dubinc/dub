@@ -2,7 +2,7 @@ import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { withAdmin } from "@/lib/auth";
 import { sqlGranularityMap } from "@/lib/planetscale/granularity";
 import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
-import { InvoiceStatus, Prisma, prisma } from "@dub/prisma/node";
+import { InvoiceStatus, Prisma, prisma } from "@dub/prisma";
 import { ACME_PROGRAM_ID } from "@dub/utils";
 import { format } from "date-fns";
 import { NextResponse } from "next/server";

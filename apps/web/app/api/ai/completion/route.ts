@@ -3,7 +3,7 @@ import { throwIfAIUsageExceeded } from "@/lib/api/links/usage-checks";
 import { normalizeWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { withWorkspace } from "@/lib/auth";
 import { anthropic } from "@ai-sdk/anthropic";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { streamText } from "ai";
 import { z } from "zod";

@@ -1,4 +1,4 @@
-import { Prisma, prisma } from "@dub/prisma/node";
+import { Prisma, prisma } from "@dub/prisma";
 import { DubApiError } from "../errors";
 
 // Type-safe version that accepts an include object directly

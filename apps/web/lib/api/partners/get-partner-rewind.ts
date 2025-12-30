@@ -1,7 +1,7 @@
 import { PartnerRewindProps } from "@/lib/types";
 import { PartnerRewindSchema } from "@/lib/zod/schemas/partners";
 import { REWIND_YEAR } from "@/ui/partners/rewind/constants";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 
 export async function getPartnerRewind({
   partnerId,

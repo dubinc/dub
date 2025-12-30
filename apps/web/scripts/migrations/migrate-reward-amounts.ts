@@ -1,7 +1,7 @@
 // @ts-nocheck – contains old schema code
 
 import { RewardConditions } from "@/lib/types";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 
 // One time script to migrate rewards from the old "amount" field to the new "amountInCents" and "amountInPercentage" fields.

@@ -8,7 +8,7 @@ import { ratelimit } from "@/lib/upstash";
 import { createTokenSchema, tokenSchema } from "@/lib/zod/schemas/token";
 import { sendEmail } from "@dub/email";
 import APIKeyCreated from "@dub/email/templates/api-key-created";
-import { prisma, Prisma, User } from "@dub/prisma/node";
+import { prisma, Prisma, User } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";

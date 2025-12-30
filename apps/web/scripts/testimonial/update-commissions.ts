@@ -1,6 +1,6 @@
 import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
-import { Prisma, prisma } from "@dub/prisma/node";
+import { Prisma, prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 
 // update commissions for a program

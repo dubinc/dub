@@ -5,7 +5,7 @@ import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { WorkspaceProps } from "@/lib/types";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import {
   APP_DOMAIN_WITH_NGROK,
   constructURLFromUTMParams,

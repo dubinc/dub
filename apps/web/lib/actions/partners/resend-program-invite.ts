@@ -5,7 +5,7 @@ import { getPartnerInviteRewardsAndBounties } from "@/lib/api/partners/get-partn
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { sendEmail } from "@dub/email";
 import ProgramInvite from "@dub/email/templates/program-invite";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import z from "../../zod";
 import { authActionClient } from "../safe-action";
 

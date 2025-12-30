@@ -1,4 +1,4 @@
-import { Prisma, prisma } from "@dub/prisma/node";
+import { Prisma, prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 import { tb } from "../../lib/tinybird/client";
 import { getLeadEvents } from "../../lib/tinybird/get-lead-events";

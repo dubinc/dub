@@ -3,7 +3,7 @@ import {
   eligiblePayoutsQuerySchema,
   PayoutResponseSchema,
 } from "@/lib/zod/schemas/payouts";
-import { prisma, Program, Project } from "@dub/prisma/node";
+import { prisma, Program, Project } from "@dub/prisma";
 import { z } from "zod";
 import { getEffectivePayoutMode } from "./get-effective-payout-mode";
 import { getPayoutEligibilityFilter } from "./payout-eligibility-filter";

@@ -1,5 +1,5 @@
 import { BountySubmissionsQueryFilters } from "@/lib/types";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 
 interface GetBountySubmissionsParams extends BountySubmissionsQueryFilters {
   bountyId: string;

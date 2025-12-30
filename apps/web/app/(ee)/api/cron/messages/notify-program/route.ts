@@ -3,7 +3,7 @@ import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { sendBatchEmail } from "@dub/email";
 import NewMessageFromPartner from "@dub/email/templates/new-message-from-partner";
-import { NotificationEmailType, prisma } from "@dub/prisma/node";
+import { NotificationEmailType, prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
 import { subDays } from "date-fns";
 import { z } from "zod";

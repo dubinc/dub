@@ -9,7 +9,7 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { invitePartnerFromNetworkSchema } from "@/lib/zod/schemas/partner-network";
 import { sendEmail } from "@dub/email";
 import ProgramNetworkInvite from "@dub/email/templates/program-network-invite";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { getProgramOrThrow } from "../../api/programs/get-program-or-throw";
 import { authActionClient } from "../safe-action";

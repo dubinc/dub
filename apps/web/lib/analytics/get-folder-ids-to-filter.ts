@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { Project } from "@dub/prisma/types";
 import { getFolders } from "../folder/get-folders";
 import { getPlanCapabilities } from "../plan-capabilities";

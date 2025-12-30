@@ -9,7 +9,7 @@ import { redis } from "@/lib/upstash";
 import { linkMappingSchema } from "@/lib/zod/schemas/import-csv";
 import { createLinkBodySchema } from "@/lib/zod/schemas/links";
 import { randomBadgeColor } from "@/ui/links/tag-badge";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import {
   APP_DOMAIN_WITH_NGROK,
   DEFAULT_LINK_PROPS,

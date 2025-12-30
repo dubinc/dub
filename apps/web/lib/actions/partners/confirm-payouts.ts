@@ -16,7 +16,7 @@ import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import { CUTOFF_PERIOD_ENUM } from "@/lib/partners/cutoff-period";
 import { stripe } from "@/lib/stripe";
 import { getWebhooks } from "@/lib/webhook/get-webhooks";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { z } from "zod";
 import { authActionClient } from "../safe-action";

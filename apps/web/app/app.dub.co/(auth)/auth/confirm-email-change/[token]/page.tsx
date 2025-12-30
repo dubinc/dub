@@ -3,7 +3,7 @@ import { redis } from "@/lib/upstash";
 import EmptyState from "@/ui/shared/empty-state";
 import { sendEmail } from "@dub/email";
 import EmailUpdated from "@dub/email/templates/email-updated";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { User, VerificationToken } from "@dub/prisma/types";
 import { InputPassword, LoadingSpinner } from "@dub/ui";
 import { waitUntil } from "@vercel/functions";

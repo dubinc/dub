@@ -15,7 +15,7 @@ import {
   trackLeadRequestSchema,
   trackLeadResponseSchema,
 } from "@/lib/zod/schemas/leads";
-import { Link, prisma, WorkflowTrigger } from "@dub/prisma/node";
+import { Link, prisma, WorkflowTrigger } from "@dub/prisma";
 import { nanoid, pick, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { z } from "zod";

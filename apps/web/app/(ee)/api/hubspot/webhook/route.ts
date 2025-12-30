@@ -7,7 +7,7 @@ import {
 } from "@/lib/integrations/hubspot/schema";
 import { trackHubSpotLeadEvent } from "@/lib/integrations/hubspot/track-lead";
 import { trackHubSpotSaleEvent } from "@/lib/integrations/hubspot/track-sale";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import crypto from "crypto";
 import { NextResponse } from "next/server";
 

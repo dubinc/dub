@@ -1,7 +1,7 @@
 import { getSession } from "@/lib/auth";
 import { installIntegration } from "@/lib/integrations/install";
 import { redis } from "@/lib/upstash";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { APP_DOMAIN, getSearchParams, STRIPE_INTEGRATION_ID } from "@dub/utils";
 import { redirect } from "next/navigation";
 import { NextRequest } from "next/server";

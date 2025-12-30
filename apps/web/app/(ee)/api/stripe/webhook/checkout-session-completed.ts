@@ -9,7 +9,7 @@ import { redis } from "@/lib/upstash";
 import { Invite } from "@/lib/zod/schemas/invites";
 import { sendBatchEmail } from "@dub/email";
 import UpgradeEmail from "@dub/email/templates/upgrade-email";
-import { prisma, User } from "@dub/prisma/node";
+import { prisma, User } from "@dub/prisma";
 import { getPlanAndTierFromPriceId, log } from "@dub/utils";
 import Stripe from "stripe";
 

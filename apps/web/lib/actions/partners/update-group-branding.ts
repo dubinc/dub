@@ -11,7 +11,7 @@ import {
   programLanderImageBlockSchema,
   programLanderSchema,
 } from "@/lib/zod/schemas/program-lander";
-import { prisma } from "@dub/prisma/node";
+import { prisma } from "@dub/prisma";
 import { isFulfilled, isRejected, nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { revalidatePath } from "next/cache";
