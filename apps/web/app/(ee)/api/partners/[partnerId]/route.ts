@@ -1,5 +1,5 @@
 import { DubApiError } from "@/lib/api/errors";
-import { getPartnerForProgram } from "@/lib/api/partners/get-partner-for-program";
+import { getPartnerForProgram } from "@/lib/api/partner-profile/get-partner-for-program";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { EnrolledPartnerSchemaExtended } from "@/lib/zod/schemas/partners";

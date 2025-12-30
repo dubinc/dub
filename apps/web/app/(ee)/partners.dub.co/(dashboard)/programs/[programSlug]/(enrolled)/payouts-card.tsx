@@ -36,7 +36,7 @@ export function PayoutsCard({ programId }: { programId?: string }) {
           payout={detailsSheetState.payout}
         />
       )}
-      <div className="flex flex-col gap-4 rounded-lg border border-neutral-300 p-5 pb-3">
+      <div className="flex flex-col gap-4 rounded-xl border border-neutral-200 p-5 pb-3">
         <div className="flex justify-between">
           <span className="block text-base font-semibold leading-none text-neutral-800">
             Payouts
@@ -107,20 +107,17 @@ export function PayoutsCard({ programId }: { programId?: string }) {
               })}
             </div>
           ) : (
-            // Empty state
             <div className="flex grow flex-col items-center justify-center gap-2 p-4 text-xs text-neutral-600">
               <MoneyBills2 className="size-4" />
               No payouts
             </div>
           )
         ) : error ? (
-          // Error state
           <div className="flex grow flex-col items-center justify-center gap-2 p-4 text-xs text-neutral-600">
             <CircleWarning className="size-4" />
             Failed to load payouts
           </div>
         ) : (
-          // Loading state
           <div className="flex flex-col divide-y divide-neutral-200">
             {[...Array(4)].map((_, idx) => (
               <div

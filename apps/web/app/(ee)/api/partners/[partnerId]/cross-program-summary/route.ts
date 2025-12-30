@@ -28,7 +28,7 @@ export const GET = withWorkspace(
           not: programId,
         },
         status: {
-          notIn: ["pending"],
+          notIn: [...INACTIVE_ENROLLMENT_STATUSES, "pending"],
         },
       },
       _count: true,
@@ -43,14 +43,7 @@ export const GET = withWorkspace(
       programEnrollments.find((enrollment) => enrollment.status === "banned")
         ?._count ?? 0;
 
-    const trustedPrograms = programEnrollments.reduce(
-      (acc, enrollment) =>
-        acc +
-        (INACTIVE_ENROLLMENT_STATUSES.includes(enrollment.status)
-          ? 0
-          : enrollment._count),
-      0,
-    );
+    const trustedPrograms = totalPrograms - bannedPrograms;
 
     return NextResponse.json(
       partnerCrossProgramSummarySchema.parse({
