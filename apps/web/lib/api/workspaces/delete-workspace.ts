@@ -132,6 +132,17 @@ export async function deleteWorkspaceAdmin(
     deleteDomainsLinksResponse,
   );
 
+  // Delete folders
+  const deleteFoldersResponse = await prisma.folder.deleteMany({
+    where: {
+      projectId: workspace.id,
+    },
+  });
+
+  console.log(
+    `Deleted ${deleteFoldersResponse.count} folders for ${workspace.slug}`,
+  );
+
   const deleteWorkspaceResponse = await Promise.allSettled([
     // delete workspace logo if it's a custom logo stored in R2
     workspace.logo &&
