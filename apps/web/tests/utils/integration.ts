@@ -1,4 +1,4 @@
-import { Project, User } from "@dub/prisma";
+import { Project, User } from "@dub/prisma/types";
 import { type TestContext } from "vitest";
 import { z } from "zod";
 import { HttpClient } from "../utils/http";

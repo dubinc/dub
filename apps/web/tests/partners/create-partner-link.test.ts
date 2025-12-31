@@ -1,4 +1,4 @@
-import { Link } from "@dub/prisma";
+import { Link } from "@dub/prisma/types";
 import { expect, onTestFinished, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
 import { E2E_PARTNER } from "../utils/resource";
