@@ -31,12 +31,14 @@ const prismaClientSingleton = () => {
     password: url.password || undefined,
     database: url.pathname.slice(1) || undefined,
     connectionLimit,
-    connectTimeout,
+    // connectTimeout,
     // acquireTimeout: poolTimeout,
     ssl: {
       rejectUnauthorized: false,
     },
   });
+
+  console.log({ connectionLimit, connectTimeout, poolTimeout });
 
   return new PrismaClient({
     adapter,
