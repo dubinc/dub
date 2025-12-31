@@ -39,7 +39,11 @@ export const POST = withWorkspace(
         programId,
         workspaceId: workspace.id,
         include: {
-          emailDomains: true,
+          emailDomains: {
+            where: {
+              status: "verified",
+            },
+          },
         },
       }),
 

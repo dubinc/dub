@@ -52,7 +52,8 @@ export function SCIM() {
 
   return (
     <>
-      {configured ? <RemoveSCIMModal /> : <SCIMModal />}
+      <SCIMModal />
+      {configured && <RemoveSCIMModal />}
       <div className="rounded-xl border border-neutral-200 bg-white">
         <div className="relative flex flex-col gap-5 p-5">
           <div className="flex flex-col gap-1">

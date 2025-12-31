@@ -70,7 +70,7 @@ export const bulkRejectPartnerApplicationsAction = authActionClient
 
     waitUntil(
       (async () => {
-        const otherProgramEnrollments = reportFraud
+        const affectedProgramEnrollments = reportFraud
           ? await prisma.programEnrollment.findMany({
               where: {
                 partnerId: {
@@ -111,10 +111,11 @@ export const bulkRejectPartnerApplicationsAction = authActionClient
           // Create fraud report events in other programs where these partners are enrolled
           // to help keep the network safe by alerting other programs about suspected fraud
           createFraudEvents(
-            otherProgramEnrollments.map(({ programId, partnerId }) => ({
-              programId,
-              partnerId,
+            affectedProgramEnrollments.map((affectedEnrollment) => ({
+              programId: affectedEnrollment.programId,
+              partnerId: affectedEnrollment.partnerId,
               type: FraudRuleType.partnerFraudReport,
+              sourceProgramId: programId, // The program that reported the fraud,
             })),
           ),
         ]);

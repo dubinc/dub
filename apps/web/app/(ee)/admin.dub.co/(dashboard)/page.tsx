@@ -1,9 +1,9 @@
 import { constructMetadata } from "@dub/utils";
-import BanLink from "./components/ban-link";
-import DeletePartnerAccount from "./components/delete-partner-account";
-import ImpersonateUser from "./components/impersonate-user";
-import ImpersonateWorkspace from "./components/impersonate-workspace";
-import RefreshDomain from "./components/refresh-domain";
+import { BanLink } from "./components/ban-link";
+import { DeletePartnerAccount } from "./components/delete-partner-account";
+import { ImpersonateUser } from "./components/impersonate-user";
+import { ImpersonateWorkspace } from "./components/impersonate-workspace";
+import { RefreshDomain } from "./components/refresh-domain";
 
 export const metadata = constructMetadata({
   title: "Dub Admin",

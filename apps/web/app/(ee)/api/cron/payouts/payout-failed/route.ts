@@ -1,5 +1,6 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { getPartnerBankAccount } from "@/lib/partners/get-partner-bank-account";
 import { sendEmail } from "@dub/email";
 import PartnerPayoutWithdrawalFailed from "@dub/email/templates/partner-payout-withdrawal-failed";
 import { prisma } from "@dub/prisma";
@@ -53,6 +54,8 @@ export async function POST(req: Request) {
     });
 
     if (partner.email) {
+      const bankAccount = await getPartnerBankAccount(stripeAccount);
+
       const sentEmail = await sendEmail({
         variant: "notifications",
         subject:
@@ -60,6 +63,7 @@ export async function POST(req: Request) {
         to: partner.email,
         react: PartnerPayoutWithdrawalFailed({
           email: partner.email,
+          bankAccount,
           payout: {
             amount: stripePayout.amount,
             currency: stripePayout.currency,

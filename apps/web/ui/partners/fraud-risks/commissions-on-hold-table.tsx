@@ -1,6 +1,5 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CommissionResponse, FraudGroupProps } from "@/lib/types";
-import { COMMISSIONS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/commissions";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import {
   LoadingSpinner,
@@ -20,18 +19,18 @@ import { useState } from "react";
 import useSWR from "swr";
 import { CommissionTypeBadge } from "../commission-type-badge";
 
+const COMMISSIONS_ON_HOLD_PAGE_SIZE = 10;
+
 export function CommissionsOnHoldTable({
   fraudGroup,
 }: {
   fraudGroup: FraudGroupProps;
 }) {
-  const workspace = useWorkspace();
-  const { id: workspaceId, slug } = workspace;
-
+  const { id: workspaceId, slug } = useWorkspace();
   const [page, setPage] = useState(1);
 
   const { pagination, setPagination } = useTablePagination({
-    pageSize: COMMISSIONS_MAX_PAGE_SIZE,
+    pageSize: COMMISSIONS_ON_HOLD_PAGE_SIZE,
     page,
     onPageChange: setPage,
   });
@@ -40,7 +39,6 @@ export function CommissionsOnHoldTable({
     workspaceId: workspaceId!,
     status: "pending",
     partnerId: fraudGroup.partner.id,
-    page: page.toString(),
   };
 
   const {
@@ -48,7 +46,11 @@ export function CommissionsOnHoldTable({
     error,
     isLoading,
   } = useSWR<CommissionResponse[]>(
-    `/api/commissions?${new URLSearchParams(query).toString()}`,
+    `/api/commissions?${new URLSearchParams({
+      ...query,
+      page: page.toString(),
+      pageSize: COMMISSIONS_ON_HOLD_PAGE_SIZE.toString(),
+    }).toString()}`,
     fetcher,
     {
       keepPreviousData: true,
@@ -129,7 +131,7 @@ export function CommissionsOnHoldTable({
         ),
       },
     ],
-    ...((commissionsCount?.all.count || 0) > COMMISSIONS_MAX_PAGE_SIZE
+    ...((commissionsCount?.all.count || 0) > COMMISSIONS_ON_HOLD_PAGE_SIZE
       ? {
           pagination,
           onPaginationChange: setPagination,

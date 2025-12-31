@@ -96,6 +96,7 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
         status: "rejected",
         sortBy,
         sortOrder,
+        includeOnlinePresenceVerification: true,
       },
       { exclude: ["partnerId"] },
     )}`,

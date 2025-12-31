@@ -16,24 +16,27 @@ import { z } from "zod";
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
-    const { sortBy: sortByWithOldFields, ...parsedParams } =
-      getPartnersQuerySchemaExtended
-        .merge(
-          z.object({
-            // add old fields for backward compatibility
-            sortBy: getPartnersQuerySchemaExtended.shape.sortBy.or(
-              z.enum([
-                "clicks",
-                "leads",
-                "conversions",
-                "sales",
-                "saleAmount",
-                "totalSales",
-              ]),
-            ),
-          }),
-        )
-        .parse(searchParams);
+    const {
+      sortBy: sortByWithOldFields,
+      includeOnlinePresenceVerification,
+      ...parsedParams
+    } = getPartnersQuerySchemaExtended
+      .merge(
+        z.object({
+          // add old fields for backward compatibility
+          sortBy: getPartnersQuerySchemaExtended.shape.sortBy.or(
+            z.enum([
+              "clicks",
+              "leads",
+              "conversions",
+              "sales",
+              "saleAmount",
+              "totalSales",
+            ]),
+          ),
+        }),
+      )
+      .parse(searchParams);
 
     // get the final sortBy field (replace old fields with new fields)
     const sortBy =
@@ -55,27 +58,37 @@ export const GET = withWorkspace(
     console.timeEnd("getPartners");
 
     // polyfill deprecated fields for backward compatibility
+    const baseSchema = EnrolledPartnerSchema.extend({
+      clicks: z.number().default(0),
+      leads: z.number().default(0),
+      conversions: z.number().default(0),
+      sales: z.number().default(0),
+      saleAmount: z.number().default(0),
+    });
+
+    // Whether to include online presence verification fields (websiteVerifiedAt, youtubeVerifiedAt, etc.) in the response.
+    const responseSchema = includeOnlinePresenceVerification
+      ? baseSchema.extend({
+          websiteVerifiedAt: z.date().nullish(),
+          youtubeVerifiedAt: z.date().nullish(),
+          twitterVerifiedAt: z.date().nullish(),
+          linkedinVerifiedAt: z.date().nullish(),
+          instagramVerifiedAt: z.date().nullish(),
+          tiktokVerifiedAt: z.date().nullish(),
+        })
+      : baseSchema;
+
     return NextResponse.json(
-      z
-        .array(
-          EnrolledPartnerSchema.extend({
-            clicks: z.number().default(0),
-            leads: z.number().default(0),
-            conversions: z.number().default(0),
-            sales: z.number().default(0),
-            saleAmount: z.number().default(0),
-          }),
-        )
-        .parse(
-          partners.map((partner) => ({
-            ...partner,
-            clicks: partner.totalClicks,
-            leads: partner.totalLeads,
-            conversions: partner.totalConversions,
-            sales: partner.totalSales,
-            saleAmount: partner.totalSaleAmount,
-          })),
-        ),
+      z.array(responseSchema).parse(
+        partners.map((partner) => ({
+          ...partner,
+          clicks: partner.totalClicks,
+          leads: partner.totalLeads,
+          conversions: partner.totalConversions,
+          sales: partner.totalSales,
+          saleAmount: partner.totalSaleAmount,
+        })),
+      ),
     );
   },
   {

@@ -54,30 +54,6 @@ export const GET = withWorkspace(
       };
 
       eventGroupType = fraudGroup.type;
-
-      // Special case for partnerCrossProgramBan rule type
-      if (eventGroupType === FraudRuleType.partnerCrossProgramBan) {
-        const bannedProgramEnrollments =
-          await prisma.programEnrollment.findMany({
-            where: {
-              partnerId: fraudGroup.partnerId,
-              programId: {
-                not: programId,
-              },
-              status: "banned",
-            },
-            select: {
-              bannedAt: true,
-              bannedReason: true,
-            },
-          });
-
-        return NextResponse.json(
-          z
-            .array(fraudEventSchemas["partnerCrossProgramBan"])
-            .parse(bannedProgramEnrollments),
-        );
-      }
     }
 
     // Filter by customer ID and type

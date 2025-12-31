@@ -2,36 +2,41 @@ import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 
 async function main() {
-  const userIds = await prisma.user.findMany({
-    select: {
-      id: true,
-    },
-  });
-  const projectUserIds = await prisma.projectUsers.findMany({
-    select: {
-      userId: true,
-    },
-  });
+  let batch = 0;
+  while (true) {
+    const workspaceUserIds = await prisma.projectUsers.findMany({
+      select: {
+        userId: true,
+      },
+      take: 50000,
+      skip: batch * 50000,
+    });
+    if (workspaceUserIds.length === 0) {
+      break;
+    }
+    const users = await prisma.user.findMany({
+      where: {
+        id: {
+          in: workspaceUserIds.map((workspaceUser) => workspaceUser.userId),
+        },
+      },
+    });
+    const usersThatDontExist = workspaceUserIds.filter(
+      (workspaceUser) =>
+        !users.some((user) => user.id === workspaceUser.userId),
+    );
+    console.log(usersThatDontExist);
 
-  // check projectUserIds that don't exist in userIds
-  const projectUserIdsSet = new Set(
-    projectUserIds.map((projectUser) => projectUser.userId),
-  );
-  const userIdsSet = new Set(userIds.map((user) => user.id));
-  const diff = new Set(
-    [...projectUserIdsSet].filter((x) => !userIdsSet.has(x)),
-  );
-  console.log(diff);
-
-  // const res = await prisma.projectUsers.deleteMany({
-  //   where: {
-  //     userId: {
-  //       in: [],
-  //     },
-  //   },
-  // });
-
-  // console.log(res);
+    const deletedWorkspaceUsers = await prisma.projectUsers.deleteMany({
+      where: {
+        userId: {
+          in: usersThatDontExist.map((workspaceUser) => workspaceUser.userId),
+        },
+      },
+    });
+    console.log(`Deleted ${deletedWorkspaceUsers.count} workspace users`);
+    batch++;
+  }
 }
 
 main();
