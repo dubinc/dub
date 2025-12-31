@@ -8,12 +8,6 @@ export function SidePanel({
 }: {
   program?: Pick<Program, "name" | "logo" | "slug">;
 }) {
-  // program = program ?? {
-  //   name: "Tella",
-  //   logo: "https://dubassets.com/workspaces/ws_clvz1dk090002g692xp9hk4ec/logo_4VfXRx8",
-  //   slug: "tella",
-  // };
-
   return (
     <div className="hidden h-full flex-col items-start justify-between gap-8 overflow-hidden border-r border-black/5 bg-neutral-50 min-[900px]:flex">
       <div className="grow basis-0 p-4 lg:p-10">
