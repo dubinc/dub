@@ -6,14 +6,14 @@ datasource db {
 
 generator client {
   provider   = "prisma-client"
-  output     = "../generated"
+  output     = "../generated/node"
   engineType = "client"
   runtime    = "nodejs"
 }
 
 generator edge {
   provider   = "prisma-client"
-  output     = "../generated-edge"
+  output     = "../generated/edge"
   engineType = "client"
   runtime    = "edge-light"
 }

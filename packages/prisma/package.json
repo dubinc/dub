@@ -23,9 +23,9 @@
     "typescript": "5.2.2"
   },
   "exports": {
-    ".": "./client.ts",
+    ".": "./node.ts",
     "./edge": "./edge.ts",
-    "./types": "./generated/browser.ts"
+    "./types": "./generated/node/browser.ts"
   },
   "author": "Steven Tey <stevensteel97@gmail.com>",
   "homepage": "https://dub.co",

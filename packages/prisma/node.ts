@@ -1,5 +1,5 @@
 import { PrismaMariaDb } from "@prisma/adapter-mariadb";
-import { PrismaClient } from "./generated/client";
+import { PrismaClient } from "./generated/node/client";
 
 const prismaClientSingleton = () => {
   const databaseUrl =
@@ -56,5 +56,5 @@ export const sanitizeFullTextSearch = (search: string) => {
   return search.replace(/[*+\-()~@%<>!=?:]/g, "").trim();
 };
 
-export * from "./generated/client";
-export * from "./generated/commonInputTypes";
+export * from "./generated/node/client";
+export * from "./generated/node/commonInputTypes";
