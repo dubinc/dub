@@ -5,6 +5,7 @@ import { cn } from "@dub/utils";
 import { redirect } from "next/navigation";
 import { ReactNode } from "react";
 import { Logo } from "../../(auth-other)/logo";
+import { PartnerBanner } from "../partner-banner";
 import { SidePanel } from "../side-panel";
 
 export async function generateStaticParams() {
@@ -30,6 +31,7 @@ export default async function PartnerAuthLayout(props: {
   }
   return (
     <div className="relative grid grid-cols-1 min-[900px]:grid-cols-[440px_minmax(0,1fr)] lg:grid-cols-[595px_minmax(0,1fr)]">
+      <PartnerBanner program={program} />
       <SidePanel program={program} />
 
       <div className="relative">
