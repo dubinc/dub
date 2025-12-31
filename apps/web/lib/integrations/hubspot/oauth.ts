@@ -1,5 +1,4 @@
-import { prisma } from "@dub/prisma";
-import { InstalledIntegration } from "@dub/prisma/types";
+import { InstalledIntegration, prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { OAuthProvider, OAuthProviderConfig } from "../oauth-provider";
 import { HubSpotAuthToken } from "../types";

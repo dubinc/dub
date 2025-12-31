@@ -1,5 +1,5 @@
 import { storage } from "@/lib/storage";
-import { Prisma } from "@dub/prisma/types";
+import { Prisma } from "@dub/prisma";
 import { R2_URL } from "@dub/utils";
 
 export const deleteScreenshots = async (
