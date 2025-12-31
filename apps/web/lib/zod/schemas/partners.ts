@@ -14,6 +14,7 @@ import { analyticsResponse } from "./analytics-response";
 import { createLinkBodySchema } from "./links";
 import {
   base64ImageSchema,
+  booleanQuerySchema,
   getPaginationQuerySchema,
   publicHostedImageSchema,
   storedR2ImageUrlSchema,
@@ -177,6 +178,7 @@ export const getPartnersQuerySchemaExtended = getPartnersQuerySchema.merge(
       .transform((v) => (Array.isArray(v) ? v : v.split(",")))
       .optional(),
     groupId: z.string().optional(),
+    includeOnlinePresenceVerification: booleanQuerySchema.optional(),
   }),
 );
 
@@ -847,6 +849,6 @@ export const partnerPayoutSettingsSchema = z.object({
 
 export const partnerCrossProgramSummarySchema = z.object({
   totalPrograms: z.number(),
-  bannedPrograms: z.number(),
   trustedPrograms: z.number(),
+  removedPrograms: z.number(),
 });

@@ -21,9 +21,9 @@ export function PartnerCrossProgramSummary({
     },
     {
       icon: UserXmark,
-      text: "Banned from programs",
+      text: "Removed from programs",
       total: crossProgramSummary?.totalPrograms,
-      value: crossProgramSummary?.bannedPrograms,
+      value: crossProgramSummary?.removedPrograms,
     },
   ];
 

@@ -348,7 +348,7 @@ function AmountRowItem({
 
     if (payout.mode === "internal" && !payout.partner?.payoutsEnabledAt) {
       return (
-        <Tooltip content="This partner does not have payouts enabled, which means they will not be able to receive any payouts from this program.">
+        <Tooltip content="This partner has not [connected a bank account](https://dub.co/help/article/receiving-payouts) to receive payouts yet, which means they won't be able to receive payouts from your program.">
           <span className="cursor-help truncate text-neutral-400 underline decoration-dotted underline-offset-2">
             {display}
           </span>

@@ -323,6 +323,11 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
             <Button
               type="button"
               text="Confirm payout"
+              disabledTooltip={
+                !payout.partner.payoutsEnabledAt
+                  ? "This partner has not [connected a bank account](https://dub.co/help/article/receiving-payouts) to receive payouts yet, which means they won't be able to receive payouts from your program."
+                  : undefined
+              }
               onClick={() => {
                 queryParams({
                   set: {

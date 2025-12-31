@@ -53,7 +53,7 @@ const PAYOUT_STATUS_CONFIG = {
   disabled: {
     title: "Payouts disabled",
     description:
-      "This partner does not have payouts enabled, which means they will not be able to receive any payouts from this program.",
+      "This partner has not connected a bank account to receive payouts yet, which means they won't be able to receive payouts from your program.",
     icon: CircleMinus,
     iconClassName: "border-red-300 bg-red-200 text-red-800",
     indicatorColor: "bg-red-500",
