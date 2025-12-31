@@ -1,4 +1,4 @@
-import { CampaignStatus, CampaignType } from "@dub/prisma";
+import { CampaignStatus, CampaignType } from "@dub/prisma/types";
 
 export const DEFAULT_CAMPAIGN_BODY = {
   type: "doc",
@@ -27,6 +27,12 @@ export const CAMPAIGN_EDITABLE_STATUSES: CampaignStatus[] = [
   "draft",
   "paused",
   "scheduled",
+];
+
+export const CAMPAIGN_READONLY_STATUSES: CampaignStatus[] = [
+  "sending",
+  "sent",
+  "canceled",
 ];
 
 export const CAMPAIGN_ACTIVE_STATUSES: CampaignStatus[] = [
