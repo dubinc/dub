@@ -32,7 +32,7 @@ const prismaClientSingleton = () => {
     database: url.pathname.slice(1) || undefined,
     connectionLimit,
     connectTimeout,
-    acquireTimeout: poolTimeout,
+    // acquireTimeout: poolTimeout,
     ssl: {
       rejectUnauthorized: false,
     },
