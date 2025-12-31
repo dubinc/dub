@@ -72,10 +72,12 @@ export async function POST(req: Request) {
 
       prisma.partner.findMany({
         where: {
-          email: "kiran+1@dub.co",
-          // createdAt: {
-          //   lt: oneDayAgo,
-          // },
+          email: {
+            endsWith: "@dub-internal-test.com",
+          },
+          createdAt: {
+            lt: oneDayAgo,
+          },
         },
         select: {
           id: true,
