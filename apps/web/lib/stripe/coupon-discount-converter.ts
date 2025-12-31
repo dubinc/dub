@@ -1,4 +1,4 @@
-import { RewardStructure } from "@dub/prisma/types";
+import { RewardStructure } from "@dub/prisma";
 import { Stripe } from "stripe";
 
 /**
