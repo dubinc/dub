@@ -25,21 +25,18 @@ const prismaClientSingleton = () => {
     : 60000;
 
   const adapter = new PrismaMariaDb({
-    
     host: url.hostname,
     port: url.port ? parseInt(url.port, 10) : 3306,
     user: url.username || undefined,
     password: url.password || undefined,
     database: url.pathname.slice(1) || undefined,
     connectionLimit,
-    // connectTimeout,
+    connectTimeout,
     // acquireTimeout: poolTimeout,
     ssl: {
       rejectUnauthorized: false,
     },
   });
-
-  console.log({ connectionLimit, connectTimeout, poolTimeout });
 
   return new PrismaClient({
     adapter,
@@ -57,7 +54,7 @@ declare global {
 
 export const prisma = global.prisma ?? prismaClientSingleton();
 
-if (process.env.NODE_ENV !== "production") {
+if (process.env.NODE_ENV === "development") {
   global.prisma = prisma;
 }
 
