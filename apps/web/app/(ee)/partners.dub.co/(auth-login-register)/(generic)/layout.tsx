@@ -1,5 +1,5 @@
 import { getProgram } from "@/lib/fetchers/get-program";
-import { prisma } from "@dub/prisma";
+import { getProgramSlugs } from "@/lib/fetchers/get-program-slugs";
 import { Grid } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { redirect } from "next/navigation";
@@ -8,11 +8,7 @@ import { Logo } from "../../(auth-other)/logo";
 import { SidePanel } from "../side-panel";
 
 export async function generateStaticParams() {
-  const programs = await prisma.program.findMany({
-    select: {
-      slug: true,
-    },
-  });
+  const programs = await getProgramSlugs();
 
   return programs.map((program) => ({
     programSlug: program.slug,
