@@ -13,7 +13,6 @@ import { Program } from "@dub/prisma/client";
 import { truncate } from "@dub/utils";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { PartnerBanner } from "../partner-banner";
 
 type PartialProgram = Pick<Program, "name" | "logo" | "slug">;
 
@@ -44,8 +43,7 @@ export default function RegisterPageClient({
 
 function SignUp({ program }: { program?: PartialProgram }) {
   return (
-    <div className="relative">
-      {program && <PartnerBanner program={program} />}
+    <div className="relative w-full">
       <AuthLayout showTerms="partners">
         <div className="w-full max-w-sm">
           <h1 className="text-center text-xl font-semibold">
