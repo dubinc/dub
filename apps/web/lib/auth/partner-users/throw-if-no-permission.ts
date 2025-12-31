@@ -1,5 +1,5 @@
 import { DubApiError } from "@/lib/api/errors";
-import { PartnerRole } from "@dub/prisma/types";
+import { PartnerRole } from "@dub/prisma";
 import { hasPermission, Permission } from "./partner-user-permissions";
 
 export function throwIfNoPermission({

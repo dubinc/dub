@@ -4,8 +4,7 @@ import { referralsEmbedToken } from "@/lib/embed/referrals/token-class";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
 import { PartnerGroupAdditionalLink } from "@/lib/types";
 import { ReferralsEmbedLinkSchema } from "@/lib/zod/schemas/referrals-embed";
-import { prisma } from "@dub/prisma";
-import { Reward } from "@dub/prisma/types";
+import { prisma, Reward } from "@dub/prisma";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 

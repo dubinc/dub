@@ -10,8 +10,7 @@ import {
 import { formatDiscountDescription } from "@/ui/partners/format-discount-description";
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
 import { anthropic } from "@ai-sdk/anthropic";
-import { prisma } from "@dub/prisma";
-import { Reward } from "@dub/prisma/types";
+import { prisma, Reward } from "@dub/prisma";
 import FireCrawlApp, {
   ErrorResponse,
   ScrapeResponse,

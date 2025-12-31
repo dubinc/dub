@@ -8,8 +8,7 @@ import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enro
 import { deactivatePartnerSchema } from "@/lib/zod/schemas/partners";
 import { sendEmail } from "@dub/email";
 import PartnerDeactivated from "@dub/email/templates/partner-deactivated";
-import { prisma } from "@dub/prisma";
-import { ProgramEnrollmentStatus } from "@dub/prisma/types";
+import { prisma, ProgramEnrollmentStatus } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 

@@ -1,5 +1,4 @@
-import { prisma } from "@dub/prisma";
-import { Link } from "@dub/prisma/types";
+import { Link, prisma } from "@dub/prisma";
 import { transformLink } from "../api/links";
 import { decodeLinkIfCaseSensitive } from "../api/links/case-sensitivity";
 import { getCustomerEventsTB } from "../tinybird/get-customer-events-tb";

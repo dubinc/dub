@@ -1,4 +1,4 @@
-import { Prisma } from "@dub/prisma/types";
+import { Prisma } from "@dub/prisma";
 
 export const includeProgramEnrollment = {
   programEnrollment: {

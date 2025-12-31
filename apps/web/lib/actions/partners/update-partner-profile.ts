@@ -11,8 +11,7 @@ import {
   MAX_PARTNER_DESCRIPTION_LENGTH,
   PartnerProfileSchema,
 } from "@/lib/zod/schemas/partners";
-import { prisma } from "@dub/prisma";
-import { Partner, PartnerProfileType } from "@dub/prisma/types";
+import { Partner, PartnerProfileType, prisma } from "@dub/prisma";
 import {
   APP_DOMAIN_WITH_NGROK,
   COUNTRIES,

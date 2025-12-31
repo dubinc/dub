@@ -1,8 +1,7 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { withAxiom } from "@/lib/axiom/server";
 import { PartnerProps } from "@/lib/types";
-import { prisma } from "@dub/prisma";
-import { PartnerUser } from "@dub/prisma/types";
+import { PartnerUser, prisma } from "@dub/prisma";
 import { getSearchParams, PARTNERS_DOMAIN } from "@dub/utils";
 import { Permission } from "./partner-users/partner-user-permissions";
 import { throwIfNoPermission } from "./partner-users/throw-if-no-permission";

@@ -1,7 +1,6 @@
 import { combineTagIds } from "@/lib/api/tags/combine-tag-ids";
 import { tb } from "@/lib/tinybird";
-import { prisma } from "@dub/prisma";
-import { FolderAccessLevel } from "@dub/prisma/types";
+import { FolderAccessLevel, prisma } from "@dub/prisma";
 import { linkConstructor, punyEncode } from "@dub/utils";
 import { decodeKeyIfCaseSensitive } from "../api/links/case-sensitivity";
 import { conn } from "../planetscale";

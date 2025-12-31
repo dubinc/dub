@@ -8,8 +8,7 @@ import {
   bulkRejectPartnersSchema,
   INACTIVE_ENROLLMENT_STATUSES,
 } from "@/lib/zod/schemas/partners";
-import { prisma } from "@dub/prisma";
-import { FraudRuleType, ProgramEnrollmentStatus } from "@dub/prisma/types";
+import { FraudRuleType, prisma, ProgramEnrollmentStatus } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 

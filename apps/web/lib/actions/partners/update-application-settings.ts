@@ -1,8 +1,7 @@
 "use server";
 
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { prisma } from "@dub/prisma";
-import { Category } from "@dub/prisma/types";
+import { Category, prisma } from "@dub/prisma";
 import { z } from "zod";
 import { authActionClient } from "../safe-action";
 
