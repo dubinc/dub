@@ -1,1 +1,5 @@
-export { default, generateStaticParams } from "../../(generic)/layout";
+export {
+  default,
+  generateMetadata,
+  generateStaticParams,
+} from "../../(generic)/layout";

@@ -1,12 +1,46 @@
 import { getProgram } from "@/lib/fetchers/get-program";
 import { getProgramSlugs } from "@/lib/fetchers/get-program-slugs";
+import { formatRewardDescription } from "@/ui/partners/format-reward-description";
 import { Grid } from "@dub/ui";
-import { cn } from "@dub/utils";
+import { cn, constructMetadata, PARTNERS_DOMAIN } from "@dub/utils";
 import { redirect } from "next/navigation";
 import { ReactNode } from "react";
 import { Logo } from "../../(auth-other)/logo";
 import { PartnerBanner } from "../partner-banner";
 import { SidePanel } from "../side-panel";
+
+export async function generateMetadata(props: {
+  params: Promise<{ programSlug?: string }>;
+}) {
+  const { programSlug } = await props.params;
+
+  const program = programSlug
+    ? (await getProgram({ slug: programSlug })) ?? undefined
+    : undefined;
+
+  if (programSlug && !program) {
+    redirect("/register");
+  }
+
+  if (program) {
+    return constructMetadata({
+      title: `${program.name} Affiliate Program`,
+      description: `Join the ${program.name} affiliate program and ${
+        program.rewards && program.rewards.length > 0
+          ? formatRewardDescription(program.rewards[0]).toLowerCase()
+          : "earn commissions"
+      } by referring ${program.name} to your friends and followers.`,
+      image: `${PARTNERS_DOMAIN}/api/og/program?slug=${program.slug}`,
+      canonicalUrl: `${PARTNERS_DOMAIN}/${program.slug}`,
+    });
+  }
+
+  return constructMetadata({
+    fullTitle: "Dub Partners | Earn by partnering with world-class companies",
+    description:
+      "Join thousands of partners who have earned over $10,000,000 on Dub partnering with world-class companies.",
+  });
+}
 
 export async function generateStaticParams() {
   const programs = await getProgramSlugs();
