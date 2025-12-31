@@ -1,7 +1,7 @@
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { completeABTests } from "@/lib/api/links/complete-ab-tests";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { prisma } from "@dub/prisma";
+import { handleCronErrorResponse } from "../../../utils";
 
 // POST - /api/cron/links/[linkId]/complete-tests
 // Completes a link's AB tests if they're ready, scheduled by QStash
@@ -46,6 +46,6 @@ export async function POST(
 
     return new Response(`No test completion necessary for link ${linkId}.`);
   } catch (error) {
-    return handleAndReturnErrorResponse(error);
+    return handleCronErrorResponse({ error });
   }
 }

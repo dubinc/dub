@@ -1,8 +1,8 @@
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { redis } from "@/lib/upstash";
 import { log } from "@dub/utils";
 import { NextResponse } from "next/server";
+import { handleCronErrorResponse } from "../utils";
 
 export const dynamic = "force-dynamic";
 
@@ -39,6 +39,6 @@ export async function POST(req: Request) {
       type: "cron",
     });
 
-    return handleAndReturnErrorResponse(error);
+    return handleCronErrorResponse({ error });
   }
 }

@@ -92,8 +92,8 @@ export const GET = async (req: Request) => {
       workspace,
       installationId: installation.id,
     });
-  } catch (e: any) {
-    return handleAndReturnErrorResponse(e);
+  } catch (error) {
+    return handleAndReturnErrorResponse({ error });
   }
 
   redirect(`/${workspace.slug}/settings/integrations/slack`);

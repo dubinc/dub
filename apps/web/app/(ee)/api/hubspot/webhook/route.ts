@@ -57,7 +57,7 @@ export const POST = withAxiom(async (req) => {
 
     return NextResponse.json({ message: "Webhook received." });
   } catch (error) {
-    return handleAndReturnErrorResponse(error);
+    return handleAndReturnErrorResponse({ error });
   }
 });
 

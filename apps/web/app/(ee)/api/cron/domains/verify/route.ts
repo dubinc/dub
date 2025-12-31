@@ -1,11 +1,11 @@
 import { getConfigResponse } from "@/lib/api/domains/get-config-response";
 import { getDomainResponse } from "@/lib/api/domains/get-domain-response";
 import { verifyDomain } from "@/lib/api/domains/verify-domain";
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
 import { NextResponse } from "next/server";
+import { handleCronErrorResponse } from "../../utils";
 import { handleDomainUpdates } from "./utils";
 
 /**
@@ -112,6 +112,6 @@ export async function GET(req: Request) {
       message: "Domains cron failed. Error: " + error.message,
       type: "errors",
     });
-    return handleAndReturnErrorResponse(error);
+    return handleCronErrorResponse({ error });
   }
 }
