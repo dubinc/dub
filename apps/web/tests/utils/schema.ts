@@ -1,5 +1,5 @@
 import { LinkSchema as LinkSchemaOld } from "@/lib/zod/schemas/links";
-import { Link, Project, Tag } from "@dub/prisma/types";
+import { Link, Project, Tag } from "@dub/prisma";
 import { expect } from "vitest";
 import { z } from "zod";
 

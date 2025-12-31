@@ -1,10 +1,8 @@
 import { RESOURCE_COLORS } from "@/ui/colors";
-import { prisma } from "@dub/prisma";
-import { EventType, Prisma, RewardStructure } from "@dub/prisma/types";
+import { EventType, prisma, Prisma, RewardStructure } from "@dub/prisma";
 import { randomValue } from "@dub/utils";
 import { differenceInSeconds } from "date-fns";
 import { createId } from "../api/create-id";
-
 import { serializeReward } from "../api/partners/serialize-reward";
 import { getRewardAmount } from "../partners/get-reward-amount";
 import { DEFAULT_PARTNER_GROUP } from "../zod/schemas/groups";

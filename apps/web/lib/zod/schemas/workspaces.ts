@@ -1,5 +1,5 @@
 import z from "@/lib/zod";
-import { WorkspaceRole } from "@dub/prisma/types";
+import { WorkspaceRole } from "@dub/prisma";
 import { DEFAULT_REDIRECTS, RESERVED_SLUGS, validSlugRegex } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import { DomainSchema } from "./domains";

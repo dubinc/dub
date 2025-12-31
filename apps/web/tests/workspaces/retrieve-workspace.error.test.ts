@@ -1,4 +1,4 @@
-import { Project } from "@dub/prisma/types";
+import { Project } from "@dub/prisma";
 import { expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
 

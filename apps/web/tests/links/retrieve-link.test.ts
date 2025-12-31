@@ -1,5 +1,5 @@
 import { normalizeWorkspaceId } from "@/lib/api/workspaces/workspace-id";
-import { Link } from "@dub/prisma/types";
+import { Link } from "@dub/prisma";
 import { expectedLink } from "tests/utils/schema";
 import { afterAll, describe, expect, test } from "vitest";
 import { randomId } from "../utils/helpers";

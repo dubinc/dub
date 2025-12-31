@@ -1,5 +1,4 @@
-import { prisma } from "@dub/prisma";
-import { PayoutStatus } from "@dub/prisma/types";
+import { PayoutStatus, prisma } from "@dub/prisma";
 import { PAYPAL_SUPPORTED_COUNTRIES } from "@dub/utils";
 import { z } from "zod";
 import { PartnerSchema } from "../zod/schemas/partners";

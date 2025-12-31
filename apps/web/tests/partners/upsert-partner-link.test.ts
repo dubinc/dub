@@ -1,4 +1,4 @@
-import { Link } from "@dub/prisma/types";
+import { Link } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { randomId } from "tests/utils/helpers";
 import { afterAll, describe, expect, test } from "vitest";

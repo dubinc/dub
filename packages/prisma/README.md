@@ -48,7 +48,7 @@ import { Prisma, WorkspaceRole } from "@dub/prisma";
 - **Database**: MySQL with Prisma relation mode
 - **Provider**: Uses `DATABASE_URL` or `PLANETSCALE_DATABASE_URL` environment variable
 - **Relation Mode**: `prisma` (required for PlanetScale compatibility)
-- **Generators**: 
+- **Generators**:
   - Standard client for Node.js runtime
   - Edge client for Edge runtime
 

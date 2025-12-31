@@ -1,4 +1,3 @@
-import { prisma } from "@dub/prisma";
 import {
   Commission,
   CommissionStatus,
@@ -6,9 +5,10 @@ import {
   EventType,
   Link,
   Partner,
+  prisma,
   ProgramEnrollment,
   WorkflowTrigger,
-} from "@dub/prisma/types";
+} from "@dub/prisma";
 import { currencyFormatter, log, prettyPrint } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { differenceInMonths } from "date-fns";
