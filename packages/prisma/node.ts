@@ -25,6 +25,7 @@ const prismaClientSingleton = () => {
     : 60000;
 
   const adapter = new PrismaMariaDb({
+    
     host: url.hostname,
     port: url.port ? parseInt(url.port, 10) : 3306,
     user: url.username || undefined,
