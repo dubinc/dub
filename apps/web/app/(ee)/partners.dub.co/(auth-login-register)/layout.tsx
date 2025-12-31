@@ -1,17 +1,40 @@
+import { getProgram } from "@/lib/fetchers/get-program";
+import { prisma } from "@dub/prisma";
 import { Grid } from "@dub/ui";
 import { cn } from "@dub/utils";
+import { redirect } from "next/navigation";
 import { ReactNode } from "react";
 import { Logo } from "../(auth-other)/logo";
 import { SidePanel } from "./side-panel";
 
-export default async function PartnerAuthLayout({
-  children,
-}: {
+export async function generateStaticParams() {
+  const programs = await prisma.program.findMany({
+    select: {
+      slug: true,
+    },
+  });
+
+  return programs.map((program) => ({
+    programSlug: program.slug,
+  }));
+}
+
+export default async function PartnerAuthLayout(props: {
+  params: Promise<{ programSlug?: string }>;
   children: ReactNode;
 }) {
+  const { programSlug } = await props.params;
+
+  const program = programSlug
+    ? (await getProgram({ slug: programSlug })) ?? undefined
+    : undefined;
+
+  if (programSlug && !program) {
+    redirect("/register");
+  }
   return (
     <div className="relative grid grid-cols-1 min-[900px]:grid-cols-[440px_minmax(0,1fr)] lg:grid-cols-[595px_minmax(0,1fr)]">
-      <SidePanel program={undefined} />
+      <SidePanel program={program} />
 
       <div className="relative">
         <div className="absolute inset-0 isolate overflow-hidden bg-white">
@@ -52,7 +75,7 @@ export default async function PartnerAuthLayout({
         </div>
         <div className="relative flex h-screen w-full justify-center">
           <Logo className="min-[900px]:hidden" />
-          {children}
+          {props.children}
         </div>
       </div>
     </div>
