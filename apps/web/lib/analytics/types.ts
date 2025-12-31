@@ -35,12 +35,14 @@ export type AnalyticsSaleUnit = (typeof ANALYTICS_SALE_UNIT)[number];
 
 export type DeviceTabs = "devices" | "browsers" | "os" | "triggers";
 
-export type AnalyticsFilters = z.infer<typeof analyticsQuerySchema> & {
+export type AnalyticsFilters = Partial<z.infer<typeof analyticsQuerySchema>> & {
   workspaceId?: string;
   dataAvailableFrom?: Date;
   isDeprecatedClicksEndpoint?: boolean;
   linkIds?: string[]; // TODO: remove this once it's been added to the public API
   folderIds?: string[];
+  start?: Date | null;
+  end?: Date | null;
 };
 
 export type EventsFilters = z.infer<typeof eventsQuerySchema> & {
