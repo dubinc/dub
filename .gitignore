@@ -48,4 +48,3 @@ packages/stripe-app/.build/*
 
 # prisma
 packages/prisma/generated
-packages/prisma/generated-edge
