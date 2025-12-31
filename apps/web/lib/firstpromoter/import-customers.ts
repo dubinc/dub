@@ -1,5 +1,4 @@
-import { prisma } from "@dub/prisma";
-import { Link, Project } from "@dub/prisma/types";
+import { Link, prisma, Project } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { createId } from "../api/create-id";
 import { updateLinkStatsForImporter } from "../api/links/update-link-stats-for-importer";

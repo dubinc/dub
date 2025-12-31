@@ -1,8 +1,7 @@
 // @ts-nocheck - old migration script
 
 import { ProgramProps } from "@/lib/types";
-import { prisma } from "@dub/prisma";
-import { Prisma, ProgramApplication } from "@dub/prisma/types";
+import { prisma, Prisma, ProgramApplication } from "@dub/prisma";
 import "dotenv-flow/config";
 import { v4 as uuid } from "uuid";
 

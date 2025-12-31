@@ -1,9 +1,9 @@
-import { prisma } from "@dub/prisma";
 import {
   PartnerGroup,
   PartnerGroupDefaultLink,
+  prisma,
   Program,
-} from "@dub/prisma/types";
+} from "@dub/prisma";
 import { isRejected, nanoid } from "@dub/utils";
 import { createId } from "../api/create-id";
 import { bulkCreateLinks } from "../api/links";

@@ -1,6 +1,5 @@
 import { STRIPE_PAYMENT_METHOD_NORMALIZATION } from "@/lib/constants/payouts";
-import { prisma } from "@dub/prisma";
-import { Invoice } from "@dub/prisma/types";
+import { Invoice, prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 
 // migrations/backfill-invoice-payment-method

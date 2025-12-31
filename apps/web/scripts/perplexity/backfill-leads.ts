@@ -3,8 +3,7 @@
 import { createId } from "@/lib/api/create-id";
 import { generateRandomName } from "@/lib/names";
 import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
-import { prisma } from "@dub/prisma";
-import { EventType } from "@dub/prisma/types";
+import { EventType, prisma } from "@dub/prisma";
 import { capitalize, nanoid } from "@dub/utils";
 import { COUNTRIES_TO_CONTINENTS } from "@dub/utils/src/constants/continents";
 import { geolocation } from "@vercel/functions";

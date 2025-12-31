@@ -1,6 +1,5 @@
 import { anthropic } from "@ai-sdk/anthropic";
-import { prisma } from "@dub/prisma";
-import { Category } from "@dub/prisma/types";
+import { Category, prisma } from "@dub/prisma";
 import FireCrawlApp from "@mendable/firecrawl-js";
 import { generateObject } from "ai";
 import "dotenv-flow/config";
