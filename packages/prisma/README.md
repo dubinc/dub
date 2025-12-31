@@ -52,52 +52,9 @@ import { Prisma, WorkspaceRole } from "@dub/prisma";
   - Standard client for Node.js runtime
   - Edge client for Edge runtime
 
-## Scripts
-
-### Generate Prisma Client
-
-Generate the Prisma client after schema changes:
-
-```bash
-pnpm run generate
-```
-
-This script runs automatically before `build` and `dev` commands via `prebuild` and `predev` hooks.
-
-### Database Push
-
-Push schema changes to the database (development only):
-
-```bash
-pnpm run push
-```
-
-### Prisma Studio
-
-Open Prisma Studio to view and edit data:
-
-```bash
-pnpm run studio
-```
-
-### Format Schema
-
-Format all Prisma schema files:
-
-```bash
-pnpm run format
-```
-
-## Environment Variables
-
-The package requires one of the following environment variables:
-
-- `DATABASE_URL` - Standard database connection string
-- `PLANETSCALE_DATABASE_URL` - PlanetScale-specific connection string (takes precedence)
-
 ## Client Configuration
 
-### Node.js Client (`client.ts`)
+### Node.js Client (`node.ts`)
 
 - Uses `@prisma/adapter-mariadb` adapter
 
