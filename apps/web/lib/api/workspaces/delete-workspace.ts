@@ -6,6 +6,7 @@ import {
   DUB_DOMAINS_ARRAY,
   LEGAL_USER_ID,
   LEGAL_WORKSPACE_ID,
+  prettyPrint,
   R2_URL,
 } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -34,10 +35,12 @@ export async function deleteWorkspace(
         defaultWorkspace: null,
       },
     }),
-  ]);
+  ]).then((results) => {
+    console.log(prettyPrint(results));
+  });
 
   waitUntil(
-    Promise.all([
+    Promise.allSettled([
       // Remove the API keys
       prisma.restrictedToken.deleteMany({
         where: {
@@ -45,7 +48,7 @@ export async function deleteWorkspace(
         },
       }),
 
-      // Cancel the workspace's Stripe subscription
+      // Cancel the workspace's Stripe subscription if exists
       workspace.stripeId && cancelSubscription(workspace.stripeId),
 
       // Delete workspace logo if it's a custom logo stored in R2
@@ -60,7 +63,9 @@ export async function deleteWorkspace(
           workspaceId: workspace.id,
         },
       }),
-    ]),
+    ]).then((results) => {
+      console.log(prettyPrint(results));
+    }),
   );
 }
 

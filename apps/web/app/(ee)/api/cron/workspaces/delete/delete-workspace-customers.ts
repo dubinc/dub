@@ -31,7 +31,7 @@ export async function deleteWorkspaceCustomers(
 
   if (customers.length > 0) {
     // Delete customer avatars from storage
-    await Promise.all(
+    await Promise.allSettled(
       customers.map(async (customer) => {
         if (customer.avatar && isStored(customer.avatar)) {
           await storage.delete({

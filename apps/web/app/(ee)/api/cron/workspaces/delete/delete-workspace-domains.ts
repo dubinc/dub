@@ -5,7 +5,7 @@ import {
   enqueueNextWorkspaceDeleteStep,
 } from "./utils";
 
-const MAX_DOMAINS_PER_BATCH = 100;
+const MAX_DOMAINS_PER_BATCH = 10;
 
 export async function deleteWorkspaceDomains(payload: DeleteWorkspacePayload) {
   const { workspaceId, startingAfter } = payload;
