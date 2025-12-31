@@ -3,9 +3,9 @@ import { AuthAlternativeBanner } from "@/ui/auth/auth-alternative-banner";
 import { FramerButton } from "@/ui/auth/login/framer-button";
 import LoginForm from "@/ui/auth/login/login-form";
 import { AuthLayout } from "@/ui/layout/auth-layout";
+import { cn } from "@dub/utils";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { PartnerBanner } from "../partner-banner";
 
 export default async function LoginPage(props: {
   params: Promise<{ programSlug?: string }>;
@@ -29,13 +29,14 @@ export default async function LoginPage(props: {
             </h1>
             <p className="text-center text-sm text-neutral-700">
               Not a Framer Partner?&nbsp;
-              <Link
+              <a
                 href="https://www.framer.com/creators"
                 target="_blank"
-                className="font-normal underline underline-offset-2 transition-colors hover:text-black"
+                rel="noopener noreferrer"
+                className="font-normal underline decoration-dotted underline-offset-2 transition-colors hover:text-black"
               >
                 Apply today
-              </Link>
+              </a>
             </p>
           </div>
 
@@ -54,9 +55,8 @@ export default async function LoginPage(props: {
   }
 
   return (
-    <div className="relative">
-      {program && <PartnerBanner program={program} />}
-      <AuthLayout showTerms="partners">
+    <div className="relative w-full">
+      <AuthLayout showTerms="partners" className={cn(programSlug && "pt-20")}>
         <div className="w-full max-w-sm">
           <h1 className="text-center text-xl font-semibold">
             Log in to your Dub Partner account
