@@ -11,24 +11,31 @@ const prismaClientSingleton = () => {
 
   const url = new URL(databaseUrl);
 
+  // Read configuration from connection string query parameters
+  const connectionLimit = url.searchParams.has("connection_limit")
+    ? parseInt(url.searchParams.get("connection_limit")!, 10)
+    : 50;
+
+  const connectTimeout = url.searchParams.has("connect_timeout")
+    ? parseInt(url.searchParams.get("connect_timeout")!, 10) * 1000 // convert seconds to milliseconds
+    : 60000;
+
+  const poolTimeout = url.searchParams.has("pool_timeout")
+    ? parseInt(url.searchParams.get("pool_timeout")!, 10) * 1000 // convert seconds to milliseconds
+    : 60000;
+
   const adapter = new PrismaMariaDb({
     host: url.hostname,
     port: url.port ? parseInt(url.port, 10) : 3306,
     user: url.username || undefined,
     password: url.password || undefined,
     database: url.pathname.slice(1) || undefined,
-    connectionLimit: 50,
-    connectTimeout: 60000,
-    acquireTimeout: 60000,
-    // SSL configuration for PlanetScale
-    ssl:
-      url.searchParams.get("sslaccept") === "strict" ||
-      url.searchParams.has("ssl") ||
-      url.protocol === "mysqls:"
-        ? {
-            rejectUnauthorized: false,
-          }
-        : undefined,
+    connectionLimit,
+    connectTimeout,
+    acquireTimeout: poolTimeout,
+    ssl: {
+      rejectUnauthorized: false,
+    },
   });
 
   return new PrismaClient({
