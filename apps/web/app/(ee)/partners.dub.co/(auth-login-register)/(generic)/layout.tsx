@@ -4,8 +4,8 @@ import { Grid } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { redirect } from "next/navigation";
 import { ReactNode } from "react";
-import { Logo } from "../(auth-other)/logo";
-import { SidePanel } from "./side-panel";
+import { Logo } from "../../(auth-other)/logo";
+import { SidePanel } from "../side-panel";
 
 export async function generateStaticParams() {
   const programs = await prisma.program.findMany({

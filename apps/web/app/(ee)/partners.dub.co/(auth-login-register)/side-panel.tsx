@@ -33,7 +33,14 @@ export function SidePanel({
               />
             )}
             <p className="text-content-default max-w-[370px] text-pretty text-xl font-medium [&_strong]:font-semibold">
-              <strong>{program.name}</strong> uses <strong>Dub Partners</strong>{" "}
+              <strong>{program.name}</strong> uses{" "}
+              <a
+                href="https://dub.co/partners"
+                target="_blank"
+                className="text-neutral-600 decoration-dotted underline-offset-2 transition-colors hover:underline"
+              >
+                <strong>Dub Partners</strong>
+              </a>{" "}
               to power their affiliate program
             </p>
           </div>
@@ -47,7 +54,7 @@ export function SidePanel({
             </p>
             <Link
               target="_blank"
-              href="https://dub.co/partners"
+              href="https://dub.co/blog/10m-payouts"
               className="text-content-emphasis flex h-8 w-fit items-center rounded-lg bg-black/5 px-3 text-sm font-medium transition-[transform,background-color] duration-75 hover:bg-black/10 active:scale-[0.98]"
             >
               Read more
