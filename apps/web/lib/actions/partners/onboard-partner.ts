@@ -6,7 +6,7 @@ import { storage } from "@/lib/storage";
 import { onboardPartnerSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
-import { nanoid } from "@dub/utils";
+import { nanoid, OG_AVATAR_URL, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { authUserActionClient } from "../safe-action";
 
@@ -19,22 +19,42 @@ export const onboardPartnerAction = authUserActionClient
     const { user } = ctx;
     const { name, image, country, description, profileType } = parsedInput;
 
-    const existingPartner = await prisma.partner.findUnique({
-      where: {
-        email: user.email,
-      },
-    });
+    const [existingPartner, userHasProjects] = await Promise.all([
+      prisma.partner.findUnique({
+        where: {
+          email: user.email,
+        },
+      }),
+      // Check if user has any workspaces (dub account)
+      prisma.projectUsers.findFirst({
+        where: {
+          userId: user.id,
+        },
+        select: { id: true },
+      }),
+    ]);
 
     const partnerId = existingPartner
       ? existingPartner.id
       : createId({ prefix: "pn_" });
 
-    const imageUrl = await storage
-      .upload({
-        key: `partners/${partnerId}/image_${nanoid(7)}`,
-        body: image,
-      })
-      .then(({ url }) => url);
+    // Determine if we should sync the partner image to the user account
+    // Only sync on partner creation (not update) and only if user has no dub account (no projects)
+    // Also don't overwrite if user already has a custom image (stored in R2, not a default avatar)
+    const isNewPartner = !existingPartner;
+    const userHasCustomImage = user.image?.startsWith(R2_URL);
+    const shouldSyncImageToUser =
+      isNewPartner && !userHasProjects && !userHasCustomImage;
+
+    // Use uploaded image or generate default avatar URL
+    const imageUrl = image
+      ? await storage
+          .upload({
+            key: `partners/${partnerId}/image_${nanoid(7)}`,
+            body: image,
+          })
+          .then(({ url }) => url)
+      : `${OG_AVATAR_URL}${name || user.email}`;
 
     // country, profileType, and companyName cannot be changed once set
     const payload: Prisma.PartnerCreateInput = {
@@ -80,13 +100,15 @@ export const onboardPartnerAction = authUserActionClient
           }),
 
       // only set the default partner ID if the user doesn't already have one
-      !user.defaultPartnerId &&
+      // also sync the partner image to user account if creating a new partner and user has no dub account
+      (!user.defaultPartnerId || shouldSyncImageToUser) &&
         prisma.user.update({
           where: {
             id: user.id,
           },
           data: {
-            defaultPartnerId: partnerId,
+            ...(!user.defaultPartnerId && { defaultPartnerId: partnerId }),
+            ...(shouldSyncImageToUser && { image: imageUrl }),
           },
         }),
     ]);
