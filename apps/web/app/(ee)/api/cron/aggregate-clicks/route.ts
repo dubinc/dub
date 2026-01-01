@@ -4,7 +4,7 @@ import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions"
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
-import { getTopLinksByCountries } from "@/lib/tinybird/get-clicks-by-countries";
+import { getTopLinksByCountries } from "@/lib/tinybird/get-top-links-by-countries";
 import { prisma } from "@dub/prisma";
 import { CommissionType, Prisma } from "@dub/prisma/client";
 import {
