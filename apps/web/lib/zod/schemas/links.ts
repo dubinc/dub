@@ -148,6 +148,43 @@ const LinksQuerySchema = z.object({
       "DEPRECATED. Filter for links that have at least one tag assigned to them.",
     )
     .openapi({ deprecated: true }),
+  linkFeatures: z
+    .union([z.string(), z.array(z.string())])
+    .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+    .optional()
+    .describe("Filter links by enabled features (comma-separated)")
+    .openapi({
+      param: {
+        style: "form",
+        explode: false,
+      },
+      anyOf: [
+        {
+          type: "string",
+        },
+        {
+          type: "array",
+          items: {
+            type: "string",
+            enum: [
+              "conversionTracking",
+              "customLinkPreview",
+              "geoTargeting",
+              "utmTags",
+              "abTest",
+              "tags",
+              "comments",
+              "iosTargeting",
+              "androidTargeting",
+              "expiration",
+              "password",
+              "linkCloaking",
+              "searchEngineIndexing",
+            ],
+          },
+        },
+      ],
+    }),
 });
 
 const sortBy = z

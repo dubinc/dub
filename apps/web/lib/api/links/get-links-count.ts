@@ -2,6 +2,7 @@ import { combineTagIds } from "@/lib/api/tags/combine-tag-ids";
 import { getLinksCountQuerySchema } from "@/lib/zod/schemas/links";
 import { prisma } from "@dub/prisma";
 import { z } from "zod";
+import { buildLinkFeaturesWhere } from "./utils";
 
 interface GetLinksCountParams extends z.infer<typeof getLinksCountQuerySchema> {
   workspaceId: string;
@@ -22,6 +23,7 @@ export async function getLinksCount({
   tenantId,
   workspaceId,
   folderIds,
+  linkFeatures,
 }: GetLinksCountParams) {
   const combinedTagIds = combineTagIds({ tagId, tagIds });
 
@@ -71,6 +73,7 @@ export async function getLinksCount({
         userId,
       }),
     ...(tenantId && { tenantId }),
+    ...buildLinkFeaturesWhere(linkFeatures),
   };
 
   if (groupBy === "tagId") {
