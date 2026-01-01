@@ -79,6 +79,22 @@ export const GET = withWorkspace(async ({ workspace }) => {
 // PUT /api/workspaces/[idOrSlug]/import/rebrandly - save Rebrandly API key
 export const PUT = withWorkspace(async ({ req, workspace }) => {
   const { apiKey } = await req.json();
+  const isValidApiKeyResponse = await fetch(
+    "https://api.rebrandly.com/v1/account",
+    {
+      method: "HEAD",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: apiKey,
+      },
+    },
+  );
+  if (!isValidApiKeyResponse.ok) {
+    throw new DubApiError({
+      code: "bad_request",
+      message: "Invalid Rebrandly API key",
+    });
+  }
   const response = await redis.set(`import:rebrandly:${workspace.id}`, apiKey);
   return NextResponse.json(response);
 });

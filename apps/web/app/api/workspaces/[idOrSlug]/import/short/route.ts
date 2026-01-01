@@ -66,6 +66,22 @@ export const GET = withWorkspace(async ({ workspace }) => {
 // PUT /api/workspaces/[idOrSlug]/import/short - save Short.io API key
 export const PUT = withWorkspace(async ({ req, workspace }) => {
   const { apiKey } = await req.json();
+  const isValidApiKeyResponse = await fetch(
+    "https://api.short.io/api/domains?limit=1&offset=0",
+    {
+      method: "HEAD",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: apiKey,
+      },
+    },
+  );
+  if (!isValidApiKeyResponse.ok) {
+    throw new DubApiError({
+      code: "bad_request",
+      message: "Invalid Short.io API key",
+    });
+  }
   const response = await redis.set(`import:short:${workspace.id}`, apiKey);
   return NextResponse.json(response);
 });
