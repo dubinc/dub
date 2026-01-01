@@ -1,16 +1,12 @@
 import { createId } from "@/lib/api/create-id";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
-import { evaluateRewardConditions } from "@/lib/partners/evaluate-reward-conditions";
-import { getRewardAmount } from "@/lib/partners/get-reward-amount";
-import { getClicksByCountries } from "@/lib/tinybird/get-clicks-by-countries";
-import { rewardConditionsArraySchema } from "@/lib/zod/schemas/rewards";
+import { getTopLinksByCountries } from "@/lib/tinybird/get-clicks-by-countries";
 import { prisma } from "@dub/prisma";
-import { CommissionType, Prisma, Reward } from "@dub/prisma/client";
+import { CommissionType, Prisma } from "@dub/prisma/client";
 import {
   APP_DOMAIN_WITH_NGROK,
   currencyFormatter,
@@ -18,6 +14,7 @@ import {
 } from "@dub/utils";
 import { z } from "zod";
 import { logAndRespond } from "../utils";
+import { resolveClickRewardAmount } from "./resolve-click-reward-amount";
 
 export const dynamic = "force-dynamic";
 
@@ -104,7 +101,7 @@ async function handler(req: Request) {
       return logAndRespond(endMessage);
     }
 
-    const clicksByCountries = await getClicksByCountries({
+    const clicksByCountries = await getTopLinksByCountries({
       linkIds: linksWithClickRewards.map(({ id }) => id),
       start,
       end,
@@ -235,44 +232,6 @@ async function handler(req: Request) {
   } catch (error) {
     return handleAndReturnErrorResponse(error);
   }
-}
-
-// Resolve the click reward amount for a given reward and country
-function resolveClickRewardAmount({
-  reward,
-  country,
-}: {
-  reward: Reward;
-  country: string;
-}): number {
-  let partnerReward = reward;
-
-  if (reward.modifiers) {
-    const modifiers = rewardConditionsArraySchema.safeParse(reward.modifiers);
-
-    if (modifiers.success) {
-      const matchedCondition = evaluateRewardConditions({
-        conditions: modifiers.data,
-        context: {
-          customer: {
-            country,
-          },
-        },
-      });
-
-      if (matchedCondition) {
-        partnerReward = {
-          ...partnerReward,
-          amountInCents:
-            matchedCondition.amountInCents != null
-              ? matchedCondition.amountInCents
-              : null,
-        };
-      }
-    }
-  }
-
-  return getRewardAmount(serializeReward(partnerReward));
 }
 
 export { handler as GET, handler as POST };

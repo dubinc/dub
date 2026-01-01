@@ -16,13 +16,13 @@ const responseSchema = z.object({
   clicks: z.number().default(0),
 });
 
-const getClicksByCountriesTB = tb.buildPipe({
-  pipe: "v3_clicks_by_countries",
+const getTopLinksByCountriesTB = tb.buildPipe({
+  pipe: "v3_group_by_link_country",
   parameters: inputSchema,
   data: responseSchema,
 });
 
-export async function getClicksByCountries({
+export async function getTopLinksByCountries({
   linkIds,
   start,
   end,
@@ -33,7 +33,7 @@ export async function getClicksByCountries({
     timezone: "UTC",
   });
 
-  const response = await getClicksByCountriesTB({
+  const response = await getTopLinksByCountriesTB({
     linkIds,
     start: formatUTCDateTimeClickhouse(startDate),
     end: formatUTCDateTimeClickhouse(endDate),
