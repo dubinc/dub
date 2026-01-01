@@ -39,9 +39,9 @@ function InviteWorkspaceUserModal({
     <Modal
       showModal={showInviteWorkspaceUserModal}
       setShowModal={setShowInviteWorkspaceUserModal}
-      className="max-h-[95dvh]"
+      className="max-h-[95dvh] overflow-x-hidden"
     >
-      <div className="space-y-2 border-b border-neutral-200 px-4 py-4 sm:px-6">
+      <div className="space-y-2 border-b border-neutral-200 px-4 pr-8 py-4 sm:px-6 sm:pr-10">
         <h3 className="text-lg font-medium">Invite Teammates</h3>
         <p className="text-sm text-neutral-500">
           Invite teammates with{" "}
@@ -62,7 +62,7 @@ function InviteWorkspaceUserModal({
       ) : (
         <InviteTeammatesForm
           onSuccess={() => setShowInviteWorkspaceUserModal(false)}
-          className="bg-neutral-50 px-4 py-4 sm:px-6"
+          className="bg-neutral-50 px-4 pr-8 py-4 sm:px-6 sm:pr-10"
           invites={invites}
         />
       )}
