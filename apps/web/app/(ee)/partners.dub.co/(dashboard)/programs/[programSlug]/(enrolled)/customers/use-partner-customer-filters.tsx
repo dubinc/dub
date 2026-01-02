@@ -15,7 +15,9 @@ export function usePartnerCustomerFilters() {
       }[]
     | undefined
   >({
-    groupBy: "country",
+    query: {
+      groupBy: "country",
+    },
     enabled: selectedFilter === "country" || !!searchParamsObj.country,
   });
 
@@ -29,7 +31,7 @@ export function usePartnerCustomerFilters() {
       }[]
     | undefined
   >({
-    groupBy: "linkId",
+    query: { groupBy: "linkId" },
     enabled: selectedFilter === "linkId" || !!searchParamsObj.linkId,
   });
 
@@ -122,4 +124,3 @@ export function usePartnerCustomerFilters() {
     setSelectedFilter,
   };
 }
-

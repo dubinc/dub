@@ -8,7 +8,7 @@ export default function usePartnerCustomers() {
   const { programSlug } = useParams<{ programSlug: string }>();
   const { getQueryString } = useRouterStuff();
 
-  const { data, isLoading } = useSWR<
+  const { data, isLoading, error } = useSWR<
     (PartnerProfileCustomerProps & { name?: string | null })[]
   >(
     programSlug &&
@@ -22,5 +22,6 @@ export default function usePartnerCustomers() {
   return {
     data,
     isLoading,
+    error,
   };
 }

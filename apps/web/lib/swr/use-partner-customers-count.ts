@@ -1,25 +1,31 @@
+import { useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
-
-interface UsePartnerCustomersCountProps<T> {
-  groupBy?: "country" | "linkId";
-  enabled?: boolean;
-}
+import z from "../zod";
+import { getPartnerCustomersCountQuerySchema } from "../zod/schemas/partners";
 
 export default function usePartnerCustomersCount<T = number>({
-  groupBy,
+  query,
   enabled = true,
-}: UsePartnerCustomersCountProps<T> = {}) {
+}: {
+  query?: z.infer<typeof getPartnerCustomersCountQuerySchema>;
+  enabled?: boolean;
+} = {}) {
   const { programSlug } = useParams<{ programSlug: string }>();
+  const { getQueryString } = useRouterStuff();
 
   const { data, error } = useSWR<T>(
-    enabled && programSlug
-      ? `/api/partner-profile/programs/${programSlug}/customers/count${groupBy ? `?groupBy=${groupBy}` : ""}`
-      : null,
+    enabled &&
+      `/api/partner-profile/programs/${programSlug}/customers/count${getQueryString(
+        query,
+        {
+          include: ["country", "linkId", "search"],
+        },
+      )}`,
     fetcher,
     {
-      dedupingInterval: 60000,
+      keepPreviousData: true,
     },
   );
 
@@ -28,4 +34,3 @@ export default function usePartnerCustomersCount<T = number>({
     error,
   };
 }
-

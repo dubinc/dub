@@ -8,7 +8,7 @@ import {
 } from "@/lib/constants/partner-profile";
 import { generateRandomName } from "@/lib/names";
 import { PartnerProfileCustomerSchema } from "@/lib/zod/schemas/partner-profile";
-import { getPartnerCustomersQuerySchema } from "@/lib/zod/schemas/programs";
+import { getPartnerCustomersQuerySchema } from "@/lib/zod/schemas/partners";
 import { prisma, sanitizeFullTextSearch } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import { z } from "zod";

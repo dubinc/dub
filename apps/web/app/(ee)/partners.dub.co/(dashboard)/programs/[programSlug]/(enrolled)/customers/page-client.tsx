@@ -1,8 +1,9 @@
 "use client";
 
 import usePartnerCustomers from "@/lib/swr/use-partner-customers";
+import usePartnerCustomersCount from "@/lib/swr/use-partner-customers-count";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
-import { PARTNER_CUSTOMERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/programs";
+import { PARTNER_CUSTOMERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/partners";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
@@ -38,7 +39,9 @@ export function ProgramCustomersPageClient() {
   const { programSlug } = useParams<{ programSlug: string }>();
   const { programEnrollment } = useProgramEnrollment();
 
-  const { data: customers, isLoading } = usePartnerCustomers();
+  const { data: customersCount, error: countError } =
+    usePartnerCustomersCount();
+  const { data: customers, isLoading, error } = usePartnerCustomers();
 
   const { pagination, setPagination } = usePagination(
     PARTNER_CUSTOMERS_MAX_PAGE_SIZE,
@@ -190,10 +193,12 @@ export function ProgramCustomersPageClient() {
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (p) => `customer${p ? "s" : ""}`,
-    rowCount: customers?.length || 0,
+    rowCount: customersCount || 0,
     loading: isLoading,
-    error: !isLoading && !customers ? "Failed to load customers" : undefined,
+    error: error || countError ? "Failed to load customers" : undefined,
   });
+
+  console.log({ customersCount });
 
   return (
     <PageWidthWrapper className="pb-10">
