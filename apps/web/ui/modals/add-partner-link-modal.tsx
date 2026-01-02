@@ -4,7 +4,7 @@ import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps, LinkProps } from "@/lib/types";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
-import { UtmTemplate } from "@dub/prisma/client";
+import { UtmTemplate } from "@dub/prisma/types";
 import {
   ArrowTurnLeft,
   Button,

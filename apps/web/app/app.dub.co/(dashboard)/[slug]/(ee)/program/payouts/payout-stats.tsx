@@ -4,7 +4,7 @@ import usePayoutsCount from "@/lib/swr/use-payouts-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PayoutsCount } from "@/lib/types";
 import { ConfirmPayoutsSheet } from "@/ui/partners/confirm-payouts-sheet";
-import { PayoutStatus } from "@dub/prisma/client";
+import { PayoutStatus } from "@dub/prisma/types";
 import {
   Button,
   buttonVariants,
@@ -137,10 +137,8 @@ export function PayoutStats() {
                 }
               >
                 <span className="underline decoration-dotted underline-offset-2">
-                  {currencyFormatter(
-                    eligiblePendingPayouts?.amount ?? 0,
-                    {},
-                  ) + " USD"}
+                  {currencyFormatter(eligiblePendingPayouts?.amount ?? 0, {}) +
+                    " USD"}
                 </span>
               </Tooltip>
             )}

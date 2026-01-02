@@ -23,7 +23,7 @@ import {
   UtmTemplate,
   Webhook,
   WorkspaceRole,
-} from "@dub/prisma/client";
+} from "@dub/prisma/types";
 import { z } from "zod";
 import { RESOURCE_COLORS } from "../ui/colors";
 import { PAID_TRAFFIC_PLATFORMS } from "./api/fraud/constants";

@@ -1,4 +1,4 @@
-import { EmailDomainStatus } from "@dub/prisma/client";
+import { EmailDomainStatus } from "@dub/prisma/types";
 
 export const EMAIL_DOMAIN_STATUS_TO_VARIANT: Record<EmailDomainStatus, string> =
   {

@@ -1,5 +1,5 @@
 import { ProgramApplicationFormDataWithValues } from "@/lib/types";
-import { ProgramApplication } from "@dub/prisma/client";
+import { ProgramApplication } from "@dub/prisma/types";
 
 export interface FormDataKeyValue {
   title: string;

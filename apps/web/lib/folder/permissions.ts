@@ -7,7 +7,7 @@ import {
   FolderUserRole,
   Project,
   WorkspaceRole,
-} from "@dub/prisma/client";
+} from "@dub/prisma/types";
 import { DubApiError } from "../api/errors";
 import { getPlanCapabilities } from "../plan-capabilities";
 import {

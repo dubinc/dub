@@ -1,5 +1,5 @@
 import useWorkspace from "@/lib/swr/use-workspace";
-import { Folder } from "@dub/prisma/client";
+import { Folder } from "@dub/prisma/types";
 import { Button, useMediaQuery } from "@dub/ui";
 import { FormEvent, useState } from "react";
 import { toast } from "sonner";

@@ -3,7 +3,7 @@ import {
   PROGRAM_CATEGORIES,
   PROGRAM_CATEGORIES_MAP,
 } from "@/lib/network/program-categories";
-import { Category } from "@dub/prisma/client";
+import { Category } from "@dub/prisma/types";
 import { Combobox, ComboboxProps } from "@dub/ui";
 
 export function ProgramCategorySelect({

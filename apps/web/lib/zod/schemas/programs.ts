@@ -12,7 +12,7 @@ import {
   PartnerBannedReason,
   ProgramEnrollmentStatus,
   ProgramPayoutMode,
-} from "@dub/prisma/client";
+} from "@dub/prisma/types";
 import { COUNTRY_CODES } from "@dub/utils";
 import { z } from "zod";
 import { DiscountSchema } from "./discount";

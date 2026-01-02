@@ -1,6 +1,6 @@
 import { formatUTCDateTimeClickhouse } from "@/lib/analytics/utils/format-utc-datetime-clickhouse";
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
-import { Folder, Link } from "@dub/prisma/client";
+import { Folder, Link } from "@dub/prisma";
 import { prismaEdge } from "@dub/prisma/edge";
 import {
   GOOGLE_FAVICON_URL,

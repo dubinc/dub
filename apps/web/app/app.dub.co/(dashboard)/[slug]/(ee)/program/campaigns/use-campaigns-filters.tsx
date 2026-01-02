@@ -1,5 +1,5 @@
 import useWorkspace from "@/lib/swr/use-workspace";
-import { CampaignStatus, CampaignType } from "@dub/prisma/client";
+import { CampaignStatus, CampaignType } from "@dub/prisma/types";
 import { useRouterStuff } from "@dub/ui";
 import { CircleDotted, Sliders } from "@dub/ui/icons";
 import { nFormatter } from "@dub/utils";

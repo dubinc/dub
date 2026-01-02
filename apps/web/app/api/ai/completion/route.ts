@@ -3,7 +3,7 @@ import { throwIfAIUsageExceeded } from "@/lib/api/links/usage-checks";
 import { normalizeWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { withWorkspace } from "@/lib/auth";
 import { anthropic } from "@ai-sdk/anthropic";
-import { prismaEdge } from "@dub/prisma/edge";
+import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { streamText } from "ai";
 import { z } from "zod";
@@ -43,7 +43,7 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
     // only count usage for the sonnet model
     if (model === "claude-sonnet-4-20250514") {
       waitUntil(
-        prismaEdge.project.update({
+        prisma.project.update({
           where: { id: normalizeWorkspaceId(workspace.id) },
           data: {
             aiUsage: {

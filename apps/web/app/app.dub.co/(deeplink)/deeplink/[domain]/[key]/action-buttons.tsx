@@ -1,6 +1,6 @@
 "use client";
 
-import { Link } from "@dub/prisma/client";
+import { Link } from "@dub/prisma/types";
 import { Button, IOSAppStore, useCopyToClipboard } from "@dub/ui";
 import { useSearchParams } from "next/navigation";
 

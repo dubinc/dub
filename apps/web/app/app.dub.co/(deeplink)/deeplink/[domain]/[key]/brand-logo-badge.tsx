@@ -1,6 +1,6 @@
 "use client";
 
-import { Link } from "@dub/prisma/client";
+import { Link } from "@dub/prisma/types";
 import { useCopyToClipboard } from "@dub/ui";
 import { getApexDomain, GOOGLE_FAVICON_URL } from "@dub/utils";
 

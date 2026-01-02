@@ -3,7 +3,7 @@ import {
   PartnerProps,
   ProgramEnrollmentProps,
 } from "@/lib/types";
-import { Dashboard, Link, Tag } from "@dub/prisma/client";
+import { Dashboard, Link, Tag } from "@dub/prisma/types";
 import { prefixWorkspaceId } from "../../workspaces/workspace-id";
 import { decodeLinkIfCaseSensitive } from "../case-sensitivity";
 

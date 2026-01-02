@@ -10,7 +10,7 @@ import {
   useRewardSheet,
 } from "@/ui/partners/rewards/add-edit-reward-sheet";
 import { X } from "@/ui/shared/icons";
-import { EventType } from "@dub/prisma/client";
+import { EventType } from "@dub/prisma/types";
 import {
   Button,
   buttonVariants,

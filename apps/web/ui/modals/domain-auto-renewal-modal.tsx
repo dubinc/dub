@@ -93,9 +93,9 @@ function DomainAutoRenewalModal({
           ) : (
             <>
               Dub will automatically renew your domain for{" "}
-              <strong>{currencyFormatter(renewalFee)}</strong>. By
-              disabling auto-renewal, your domain <strong>{domain.slug}</strong>{" "}
-              will expire on <strong>{formatDate(expiresAt)}</strong>.
+              <strong>{currencyFormatter(renewalFee)}</strong>. By disabling
+              auto-renewal, your domain <strong>{domain.slug}</strong> will
+              expire on <strong>{formatDate(expiresAt)}</strong>.
               <br />
               <br />
               Once your domain expires, there is no guarantee that you'll be

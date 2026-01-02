@@ -13,7 +13,7 @@ import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { PAYOUT_STATUS_DESCRIPTIONS } from "@/ui/partners/payout-status-descriptions";
 import { AlertCircleFill } from "@/ui/shared/icons";
-import { PayoutStatus } from "@dub/prisma/client";
+import { PayoutStatus } from "@dub/prisma/types";
 import { Button, Tooltip } from "@dub/ui";
 import { cn, currencyFormatter } from "@dub/utils";
 import { HelpCircle } from "lucide-react";

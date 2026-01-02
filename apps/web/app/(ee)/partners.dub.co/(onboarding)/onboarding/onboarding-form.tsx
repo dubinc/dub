@@ -4,7 +4,7 @@ import { PartnerData } from "@/lib/actions/partners/create-program-application";
 import { onboardPartnerAction } from "@/lib/actions/partners/onboard-partner";
 import { onboardPartnerSchema } from "@/lib/zod/schemas/partners";
 import { CountryCombobox } from "@/ui/partners/country-combobox";
-import { Partner } from "@dub/prisma/client";
+import { Partner } from "@dub/prisma/types";
 import {
   Button,
   buttonVariants,

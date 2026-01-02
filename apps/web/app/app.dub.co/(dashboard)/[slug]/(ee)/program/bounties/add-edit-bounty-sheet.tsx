@@ -119,12 +119,12 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     originalSubmissionWindow,
   );
 
-  const [requireImage, setRequireImage] = useState(() =>
-    !!bounty?.submissionRequirements?.image,
+  const [requireImage, setRequireImage] = useState(
+    () => !!bounty?.submissionRequirements?.image,
   );
 
-  const [requireUrl, setRequireUrl] = useState(() =>
-    !!bounty?.submissionRequirements?.url,
+  const [requireUrl, setRequireUrl] = useState(
+    () => !!bounty?.submissionRequirements?.url,
   );
 
   const [imageMax, setImageMax] = useState<number | undefined>(() => {

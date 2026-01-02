@@ -1,6 +1,6 @@
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import { PartnerGroupProps } from "@/lib/types";
-import { Program } from "@dub/prisma/client";
+import { Program } from "@dub/prisma/types";
 import {
   Button,
   Carousel,

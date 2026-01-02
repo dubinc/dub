@@ -6,7 +6,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { Campaign, CampaignList } from "@/lib/types";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
-import { CampaignStatus } from "@dub/prisma/client";
+import { CampaignStatus } from "@dub/prisma/types";
 import {
   AnimatedSizeContainer,
   Button,
@@ -312,11 +312,3 @@ function RowMenuButton({
     </>
   );
 }
-
-const calculatePercentage = (value: number, total: number) => {
-  if (total === 0) {
-    return 0;
-  }
-
-  return Number(((value / total) * 100).toFixed(2));
-};

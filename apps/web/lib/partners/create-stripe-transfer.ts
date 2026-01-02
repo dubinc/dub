@@ -6,8 +6,7 @@ import {
 import { stripe } from "@/lib/stripe";
 import { sendEmail } from "@dub/email";
 import PartnerPayoutProcessed from "@dub/email/templates/partner-payout-processed";
-import { prisma } from "@dub/prisma";
-import { Payout, Prisma } from "@dub/prisma/client";
+import { Payout, Prisma, prisma } from "@dub/prisma";
 import { currencyFormatter, pluralize } from "@dub/utils";
 
 export type PayoutWithProgramName = Pick<

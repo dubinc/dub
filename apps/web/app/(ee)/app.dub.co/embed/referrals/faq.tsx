@@ -2,7 +2,7 @@ import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
 import { RewardProps } from "@/lib/types";
 import { programEmbedSchema } from "@/lib/zod/schemas/program-embed";
 import { BlockMarkdown } from "@/ui/partners/lander/blocks/block-markdown";
-import { Program } from "@dub/prisma/client";
+import { Program } from "@dub/prisma/types";
 import {
   Accordion,
   AccordionContent,

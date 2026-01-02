@@ -1,5 +1,4 @@
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { Prisma, prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 
 // update commissions for a program

@@ -1,4 +1,4 @@
-import { Category, ProgramEnrollmentStatus } from "@dub/prisma/client";
+import { Category, ProgramEnrollmentStatus } from "@dub/prisma/types";
 import { z } from "zod";
 import { DiscountSchema } from "./discount";
 import { getPaginationQuerySchema } from "./misc";

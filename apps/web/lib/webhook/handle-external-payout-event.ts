@@ -1,5 +1,4 @@
-import { prisma } from "@dub/prisma";
-import { PayoutStatus, Webhook } from "@dub/prisma/client";
+import { PayoutStatus, prisma, Webhook } from "@dub/prisma";
 import { z } from "zod";
 import { payoutWebhookEventSchema } from "../zod/schemas/payouts";
 

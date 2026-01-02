@@ -1,5 +1,5 @@
 import { FRAUD_RULES_BY_TYPE } from "@/lib/api/fraud/constants";
-import { FraudRuleType } from "@dub/prisma/client";
+import { FraudRuleType } from "@dub/prisma/types";
 import { Button, ShieldKeyhole } from "@dub/ui";
 import { formatDate, OG_AVATAR_URL } from "@dub/utils";
 

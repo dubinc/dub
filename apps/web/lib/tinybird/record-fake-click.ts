@@ -1,4 +1,4 @@
-import { Link } from "@dub/prisma/client";
+import { Link } from "@dub/prisma/types";
 import { nanoid } from "@dub/utils";
 import { clickEventSchemaTB } from "../zod/schemas/clicks";
 import { recordClick } from "./record-click";

@@ -14,7 +14,7 @@ import {
   ProgramSheetAccordionTrigger,
 } from "@/ui/partners/program-sheet-accordion";
 import { X } from "@/ui/shared/icons";
-import { CommissionType } from "@dub/prisma/client";
+import { CommissionType } from "@dub/prisma/types";
 import {
   AnimatedSizeContainer,
   Button,

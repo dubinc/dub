@@ -5,7 +5,7 @@ import {
   PartnerEventWebhookPayload,
   SaleEventWebhookPayload,
 } from "@/lib/webhook/types";
-import { Link } from "@dub/prisma/client";
+import { Link } from "@dub/prisma/types";
 import { capitalize } from "@dub/utils";
 import { z } from "zod";
 

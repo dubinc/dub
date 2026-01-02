@@ -1,5 +1,5 @@
 import { PartnerGroupProps } from "@/lib/types";
-import { Program } from "@dub/prisma/client";
+import { Program } from "@dub/prisma/types";
 import { useState } from "react";
 import { ReferralsEmbedCreateUpdateLink } from "./add-edit-link";
 import { ReferralsEmbedLinksList } from "./links-list";

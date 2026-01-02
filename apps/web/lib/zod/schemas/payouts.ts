@@ -1,6 +1,6 @@
 import { ELIGIBLE_PAYOUTS_MAX_PAGE_SIZE } from "@/lib/constants/payouts";
 import { CUTOFF_PERIOD_ENUM } from "@/lib/partners/cutoff-period";
-import { PayoutMode, PayoutStatus } from "@dub/prisma/client";
+import { PayoutMode, PayoutStatus } from "@dub/prisma/types";
 import { z } from "zod";
 import { getPaginationQuerySchema } from "./misc";
 import { EnrolledPartnerSchema, PartnerSchema } from "./partners";

@@ -1,7 +1,7 @@
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import { PartnerGroupProps } from "@/lib/types";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
-import { Program } from "@dub/prisma/client";
+import { Program } from "@dub/prisma/types";
 import {
   Button,
   CopyButton,

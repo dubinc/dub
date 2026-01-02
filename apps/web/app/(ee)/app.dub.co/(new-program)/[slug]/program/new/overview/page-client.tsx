@@ -5,7 +5,7 @@ import { getLinkStructureOptions } from "@/lib/partners/get-link-structure-optio
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramData, RewardProps } from "@/lib/types";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
-import { RewardStructure } from "@dub/prisma/client";
+import { RewardStructure } from "@dub/prisma/types";
 import { Button } from "@dub/ui";
 import { Pencil } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";

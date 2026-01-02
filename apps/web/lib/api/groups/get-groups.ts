@@ -1,6 +1,5 @@
 import { getGroupsQuerySchema } from "@/lib/zod/schemas/groups";
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { prisma, Prisma } from "@dub/prisma";
 import { z } from "zod";
 
 type GroupFilters = z.infer<typeof getGroupsQuerySchema> & {

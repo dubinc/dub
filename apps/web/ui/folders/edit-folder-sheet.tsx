@@ -11,7 +11,7 @@ import {
 import { useFolderUsers } from "@/lib/swr/use-folder-users";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Folder, FolderUser } from "@/lib/types";
-import { FolderUserRole, WorkspaceRole } from "@dub/prisma/client";
+import { FolderUserRole, WorkspaceRole } from "@dub/prisma/types";
 import {
   Avatar,
   BlurImage,

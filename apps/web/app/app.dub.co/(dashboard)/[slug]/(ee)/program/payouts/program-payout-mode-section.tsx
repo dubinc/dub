@@ -2,7 +2,7 @@
 
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { ProgramPayoutMode } from "@dub/prisma/client";
+import { ProgramPayoutMode } from "@dub/prisma/types";
 import { CircleDollarOut, Webhook } from "@dub/ui";
 import Link from "next/link";
 
