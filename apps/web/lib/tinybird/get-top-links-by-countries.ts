@@ -1,13 +1,12 @@
 import { formatUTCDateTimeClickhouse } from "../analytics/utils/format-utc-datetime-clickhouse";
 import { getStartEndDates } from "../analytics/utils/get-start-end-dates";
 import z from "../zod";
-import { parseDateSchema } from "../zod/schemas/utils";
 import { tb } from "./client";
 
 const inputSchema = z.object({
   linkIds: z.array(z.string()),
-  start: parseDateSchema,
-  end: parseDateSchema,
+  start: z.string(),
+  end: z.string(),
 });
 
 const responseSchema = z.object({
@@ -26,7 +25,11 @@ export async function getTopLinksByCountries({
   linkIds,
   start,
   end,
-}: z.infer<typeof inputSchema>) {
+}: {
+  linkIds: string[];
+  start: Date;
+  end: Date;
+}) {
   const { startDate, endDate } = getStartEndDates({
     start,
     end,

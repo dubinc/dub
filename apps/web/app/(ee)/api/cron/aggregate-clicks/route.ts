@@ -10,6 +10,7 @@ import { CommissionType, Prisma } from "@dub/prisma/client";
 import {
   APP_DOMAIN_WITH_NGROK,
   currencyFormatter,
+  getPrettyUrl,
   nFormatter,
 } from "@dub/utils";
 import { z } from "zod";
@@ -75,6 +76,7 @@ async function handler(req: Request) {
       },
       select: {
         id: true,
+        shortLink: true,
         programId: true,
         partnerId: true,
         programEnrollment: {
@@ -126,7 +128,11 @@ async function handler(req: Request) {
     >();
 
     // Calculate earnings per link considering geo CPC
-    for (const { id: linkId, programEnrollment } of linksWithClickRewards) {
+    for (const {
+      id: linkId,
+      shortLink,
+      programEnrollment,
+    } of linksWithClickRewards) {
       if (!programEnrollment?.clickReward) {
         console.log(`No click reward for link ${linkId}.`);
         continue;
@@ -151,11 +157,14 @@ async function handler(req: Request) {
           earnings: existing.earnings + rewardAmount * clicks,
         });
 
-        console.log(
-          `Earnings for link ${linkId} for ${country}: ${currencyFormatter(rewardAmount)} * ${clicks} = ${currencyFormatter(
-            rewardAmount * clicks,
-          )}`,
-        );
+        // only console.log if there are modifiers
+        if (programEnrollment.clickReward.modifiers) {
+          console.log(
+            `Earnings for link ${getPrettyUrl(shortLink)} for ${country}: ${currencyFormatter(rewardAmount)} * ${clicks} = ${currencyFormatter(
+              rewardAmount * clicks,
+            )}`,
+          );
+        }
       }
     }
 
