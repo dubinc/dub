@@ -34,7 +34,7 @@ export const payoutsQuerySchema = z
     sortBy: z.enum(["amount", "initiatedAt", "paidAt"]).default("amount"),
     sortOrder: z.enum(["asc", "desc"]).default("desc"),
   })
-  .merge(getPaginationQuerySchema({ pageSize: PAYOUTS_MAX_PAGE_SIZE }));
+  .extend(getPaginationQuerySchema({ pageSize: PAYOUTS_MAX_PAGE_SIZE }));
 
 export const payoutsCountQuerySchema = payoutsQuerySchema
   .pick({
@@ -44,11 +44,9 @@ export const payoutsCountQuerySchema = payoutsQuerySchema
     eligibility: true,
     invoiceId: true,
   })
-  .merge(
-    z.object({
-      groupBy: z.enum(["status"]).optional(),
-    }),
-  );
+  .extend({
+    groupBy: z.enum(["status"]).optional(),
+  });
 
 export const PayoutSchema = z.object({
   id: z.string(),
@@ -79,19 +77,17 @@ export const PayoutResponseSchema = PayoutSchema.merge(
 
 export const PartnerPayoutResponseSchema = PayoutResponseSchema.omit({
   partner: true,
-}).merge(
-  z.object({
-    program: ProgramSchema.pick({
-      id: true,
-      name: true,
-      slug: true,
-      logo: true,
-      minPayoutAmount: true,
-      payoutMode: true,
-    }),
-    traceId: z.string().nullish(),
+}).extend({
+  program: ProgramSchema.pick({
+    id: true,
+    name: true,
+    slug: true,
+    logo: true,
+    minPayoutAmount: true,
+    payoutMode: true,
   }),
-);
+  traceId: z.string().nullish(),
+});
 
 export const payoutWebhookEventSchema = PayoutSchema.omit({
   failureReason: true,
@@ -112,7 +108,7 @@ export const eligiblePayoutsQuerySchema = z
     cutoffPeriod: CUTOFF_PERIOD_ENUM,
     selectedPayoutId: z.string().optional(),
   })
-  .merge(
+  .extend(
     getPaginationQuerySchema({ pageSize: ELIGIBLE_PAYOUTS_MAX_PAGE_SIZE }),
   );
 

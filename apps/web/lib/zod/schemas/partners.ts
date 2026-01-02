@@ -169,7 +169,7 @@ export const getPartnersQuerySchema = z
       )
       .meta({ example: "john" }),
   })
-  .merge(getPaginationQuerySchema({ pageSize: PARTNERS_MAX_PAGE_SIZE }));
+  .extend(getPaginationQuerySchema({ pageSize: PARTNERS_MAX_PAGE_SIZE }));
 
 export const getPartnersQuerySchemaExtended = getPartnersQuerySchema.merge(
   z.object({
@@ -504,7 +504,7 @@ export const getPartnerCustomersQuerySchema = z
   .object({
     search: z.string().optional(),
   })
-  .merge(getPaginationQuerySchema({ pageSize: 100 }));
+  .extend(getPaginationQuerySchema({ pageSize: 100 }));
 
 export const createPartnerSchema = z.object({
   name: z

@@ -43,10 +43,8 @@ export const getNetworkPartnersQuerySchema = z
       .transform((v) => (Array.isArray(v) ? v : v.split(",")))
       .optional(),
   })
-  .merge(
-    getPaginationQuerySchema({
-      pageSize: PARTNER_NETWORK_MAX_PAGE_SIZE,
-    }),
+  .extend(
+    getPaginationQuerySchema({ pageSize: PARTNER_NETWORK_MAX_PAGE_SIZE }),
   );
 
 export const getNetworkPartnersCountQuerySchema = getNetworkPartnersQuerySchema

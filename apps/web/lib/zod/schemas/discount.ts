@@ -44,11 +44,7 @@ export const discountPartnersQuerySchema = z
   .object({
     discountId: z.string(),
   })
-  .merge(
-    getPaginationQuerySchema({
-      pageSize: 25,
-    }),
-  );
+  .extend(getPaginationQuerySchema({ pageSize: 25 }));
 
 export const DiscountCodeSchema = z.object({
   id: z.string(),

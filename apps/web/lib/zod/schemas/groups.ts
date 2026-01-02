@@ -178,7 +178,7 @@ export const getGroupsQuerySchema = z
     sortOrder: z.enum(["asc", "desc"]).default("desc"),
     includeExpandedFields: booleanQuerySchema.optional(),
   })
-  .merge(getPaginationQuerySchema({ pageSize: GROUPS_MAX_PAGE_SIZE }));
+  .extend(getPaginationQuerySchema({ pageSize: GROUPS_MAX_PAGE_SIZE }));
 
 export const getGroupsCountQuerySchema = z.object({
   search: z.string().optional(),

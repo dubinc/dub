@@ -52,10 +52,8 @@ export const getNetworkProgramsQuerySchema = z
     sortBy: z.enum(["name", "createdAt", "popularity"]).default("popularity"),
     sortOrder: z.enum(["asc", "desc"]).default("desc"),
   })
-  .merge(
-    getPaginationQuerySchema({
-      pageSize: PROGRAM_NETWORK_MAX_PAGE_SIZE,
-    }),
+  .extend(
+    getPaginationQuerySchema({ pageSize: PROGRAM_NETWORK_MAX_PAGE_SIZE }),
   );
 
 export const getNetworkProgramsCountQuerySchema = getNetworkProgramsQuerySchema

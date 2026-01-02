@@ -180,4 +180,4 @@ export const getBountySubmissionsQuerySchema = z
     sortBy: z.enum(["completedAt", "performanceCount"]).default("completedAt"),
     sortOrder: z.enum(["asc", "desc"]).default("asc"),
   })
-  .merge(getPaginationQuerySchema({ pageSize: 100 }));
+  .extend(getPaginationQuerySchema({ pageSize: 100 }));

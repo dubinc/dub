@@ -168,7 +168,7 @@ export const getLinksQuerySchemaBase = LinksQuerySchema.merge(
       .meta({ deprecated: true })
       .describe("DEPRECATED. Use `sortBy` instead."),
   }),
-).merge(getPaginationQuerySchema({ pageSize: 100 }));
+).extend(getPaginationQuerySchema({ pageSize: 100 }));
 
 export const getLinksCountQuerySchema = LinksQuerySchema.merge(
   z.object({

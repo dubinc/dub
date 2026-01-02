@@ -116,7 +116,7 @@ export const getCampaignsQuerySchema = z
       )
       .optional(),
   })
-  .merge(getPaginationQuerySchema({ pageSize: 100 }));
+  .extend(getPaginationQuerySchema({ pageSize: 100 }));
 
 export const getCampaignsCountQuerySchema = getCampaignsQuerySchema
   .pick({
@@ -133,7 +133,7 @@ export const getCampaignsEventsQuerySchema = z
     status: z.enum(["delivered", "opened", "bounced"]).default("delivered"),
     search: z.string().optional(),
   })
-  .merge(getPaginationQuerySchema({ pageSize: 100 }));
+  .extend(getPaginationQuerySchema({ pageSize: 100 }));
 
 export const getCampaignEventsCountQuerySchema =
   getCampaignsEventsQuerySchema.pick({

@@ -26,7 +26,7 @@ export const getTagsQuerySchema = z
       .optional()
       .describe("IDs of tags to filter by."),
   })
-  .merge(getPaginationQuerySchema({ pageSize: TAGS_MAX_PAGE_SIZE }));
+  .extend(getPaginationQuerySchema({ pageSize: TAGS_MAX_PAGE_SIZE }));
 
 export const getTagsQuerySchemaExtended = getTagsQuerySchema.merge(
   z.object({

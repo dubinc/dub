@@ -91,7 +91,7 @@ export const getDomainsQuerySchema = z
       .optional()
       .describe("The search term to filter the domains by."),
   })
-  .merge(getPaginationQuerySchema({ pageSize: DOMAINS_MAX_PAGE_SIZE }));
+  .extend(getPaginationQuerySchema({ pageSize: DOMAINS_MAX_PAGE_SIZE }));
 
 export const getDomainsQuerySchemaExtended = getDomainsQuerySchema.merge(
   z.object({

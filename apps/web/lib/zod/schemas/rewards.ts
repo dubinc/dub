@@ -208,21 +208,15 @@ export const updateRewardSchema = createOrUpdateRewardSchema
     event: true,
     groupId: true,
   })
-  .merge(
-    z.object({
-      rewardId: z.string(),
-    }),
-  );
+  .extend({
+    rewardId: z.string(),
+  });
 
 export const rewardPartnersQuerySchema = z
   .object({
     rewardId: z.string(),
   })
-  .merge(
-    getPaginationQuerySchema({
-      pageSize: 25,
-    }),
-  );
+  .extend(getPaginationQuerySchema({ pageSize: 25 }));
 
 export const REWARD_EVENT_COLUMN_MAPPING = Object.freeze({
   click: "clickRewardId",

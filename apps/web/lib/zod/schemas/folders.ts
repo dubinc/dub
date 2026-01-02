@@ -53,6 +53,6 @@ export const listFoldersQuerySchema = z
       .optional()
       .describe("The search term to filter the folders by."),
   })
-  .merge(getPaginationQuerySchema({ pageSize: FOLDERS_MAX_PAGE_SIZE }));
+  .extend(getPaginationQuerySchema({ pageSize: FOLDERS_MAX_PAGE_SIZE }));
 
 export const updateFolderSchema = createFolderSchema.partial();

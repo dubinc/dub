@@ -29,30 +29,33 @@ export const booleanQuerySchema = z
   });
 
 // Pagination
-export const getPaginationQuerySchema = ({ pageSize }: { pageSize: number }) =>
-  z.object({
-    page: z.coerce
-      .number({ error: "Page must be a number." })
-      .positive({ message: "Page must be greater than 0." })
-      .optional()
-      .default(1)
-      .describe("The page number for pagination.")
-      .meta({
-        example: 1,
-      }),
-    pageSize: z.coerce
-      .number({ error: "Page size must be a number." })
-      .positive({ message: "Page size must be greater than 0." })
-      .max(pageSize, {
-        message: `Max page size is ${pageSize}.`,
-      })
-      .optional()
-      .default(pageSize)
-      .describe("The number of items per page.")
-      .meta({
-        example: 50,
-      }),
-  });
+export const getPaginationQuerySchema = ({
+  pageSize,
+}: {
+  pageSize: number;
+}) => ({
+  page: z.coerce
+    .number({ error: "Page must be a number." })
+    .positive({ message: "Page must be greater than 0." })
+    .optional()
+    .default(1)
+    .describe("The page number for pagination.")
+    .meta({
+      example: 1,
+    }),
+  pageSize: z.coerce
+    .number({ error: "Page size must be a number." })
+    .positive({ message: "Page size must be greater than 0." })
+    .max(pageSize, {
+      message: `Max page size is ${pageSize}.`,
+    })
+    .optional()
+    .default(pageSize)
+    .describe("The number of items per page.")
+    .meta({
+      example: 50,
+    }),
+});
 
 export const maxDurationSchema = z.coerce
   .number()

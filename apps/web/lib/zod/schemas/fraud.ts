@@ -37,7 +37,7 @@ export const fraudGroupQuerySchema = z
     sortOrder: z.enum(["asc", "desc"]).default("desc"),
     groupId: z.string().optional(),
   })
-  .merge(getPaginationQuerySchema({ pageSize: 100 }));
+  .extend(getPaginationQuerySchema({ pageSize: 100 }));
 
 export const fraudGroupCountQuerySchema = fraudGroupQuerySchema
   .omit({
@@ -69,14 +69,14 @@ export const fraudEventQuerySchema = z.union([
     .object({
       groupId: z.string(),
     })
-    .merge(getPaginationQuerySchema({ pageSize: 25 })),
+    .extend(getPaginationQuerySchema({ pageSize: 25 })),
 
   z
     .object({
       customerId: z.string(),
       type: z.nativeEnum(FraudRuleType),
     })
-    .merge(getPaginationQuerySchema({ pageSize: 25 })),
+    .extend(getPaginationQuerySchema({ pageSize: 25 })),
 ]);
 
 export const fraudEventCountQuerySchema = z.object({
