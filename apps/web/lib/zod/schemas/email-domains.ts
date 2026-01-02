@@ -17,7 +17,7 @@ export const EmailDomainSchema = z.object({
 
 export const createEmailDomainBodySchema = z.object({
   slug: z
-    .string({ required_error: "Email domain is required" })
+    .string({ error: "Email domain is required" })
     .min(5, "Email domain is too short")
     .max(50, "Email domain is too long")
     .refine(isValidDomainFormat, { message: "Please use a valid domain name." })

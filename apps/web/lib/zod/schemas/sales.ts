@@ -14,7 +14,7 @@ export const trackSaleRequestSchema = z.object({
       "The unique ID of the customer in your system. Will be used to identify and attribute all future events to this customer.",
     ),
   amount: z
-    .number({ required_error: "amount is required" })
+    .number({ error: "amount is required" })
     .int()
     .min(0, "amount cannot be negative")
     .describe(
@@ -48,7 +48,7 @@ export const trackSaleRequestSchema = z.object({
       "The invoice ID of the sale. Can be used as a idempotency key – only one sale event can be recorded for a given invoice ID.",
     ),
   metadata: z
-    .record(z.unknown())
+    .record(z.string(), z.any())
     .nullish()
     .default(null)
     .refine((val) => !val || JSON.stringify(val).length <= 10000, {
@@ -112,7 +112,7 @@ export const trackSaleResponseSchema = z.object({
       currency: z.string(),
       paymentProcessor: z.string(),
       invoiceId: z.string().nullable(),
-      metadata: z.record(z.unknown()).nullable(),
+      metadata: z.record(z.string(), z.any()).nullable(),
     })
     .nullable(),
 });

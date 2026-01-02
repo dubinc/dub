@@ -23,8 +23,8 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 const trackClickSchema = z.object({
-  domain: z.string({ required_error: "domain is required." }),
-  key: z.string({ required_error: "key is required." }),
+  domain: z.string({ error: "domain is requireds." }),
+  key: z.string({ error: "key is required." }),
   url: z.string().nullish(),
   referrer: z.string().nullish(),
 });

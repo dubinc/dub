@@ -9,7 +9,7 @@ import { UserSchema } from "./users";
 
 export const createManualPayoutSchema = z.object({
   workspaceId: z.string(),
-  partnerId: z.string({ required_error: "Please select a partner" }),
+  partnerId: z.string({ error: "Please select a partner" }),
   amount: z
     .preprocess((val) => {
       const parsed = parseFloat(val as string);

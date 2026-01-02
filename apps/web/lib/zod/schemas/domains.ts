@@ -113,7 +113,7 @@ export const getDefaultDomainsQuerySchema = getDomainsQuerySchema.pick({
 
 export const createDomainBodySchema = z.object({
   slug: z
-    .string({ required_error: "slug is required" })
+    .string({ error: "slug is required" })
     .min(1, "slug cannot be empty.")
     .max(190, "slug cannot be longer than 190 characters.")
     .trim()
@@ -171,7 +171,7 @@ export const updateDomainBodySchema = createDomainBodySchema.partial();
 
 export const transferDomainBodySchema = z.object({
   newWorkspaceId: z
-    .string({ required_error: "New workspace ID is required." })
+    .string({ error: "New workspace ID is required." })
     .min(1, "New workspace ID cannot be empty.")
     .transform((v) => normalizeWorkspaceId(v))
     .describe("The ID of the new workspace to transfer the domain to."),
