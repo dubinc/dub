@@ -16,7 +16,7 @@ import {
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 // GET /api/groups - get all groups for a program
 export const GET = withWorkspace(

@@ -3,7 +3,7 @@ import { withWorkspace } from "@/lib/auth";
 import { RewardSchema } from "@/lib/zod/schemas/rewards";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 // TODO: Remove once we migrate fully to partner groups
 // GET /api/programs/[programId]/rewards - get all rewards for a program

@@ -1,5 +1,5 @@
 import { OAUTH_SCOPES } from "@/lib/api/oauth/constants";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { createIntegrationSchema, integrationSchema } from "./integration";
 
 export const oAuthAppSchema = integrationSchema.merge(

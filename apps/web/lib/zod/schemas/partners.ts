@@ -8,7 +8,7 @@ import {
   SalesChannel,
 } from "@dub/prisma/client";
 import { COUNTRY_CODES, GOOGLE_FAVICON_URL } from "@dub/utils";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { analyticsQuerySchema } from "./analytics";
 import { analyticsResponse } from "./analytics-response";
 import { createLinkBodySchema } from "./links";

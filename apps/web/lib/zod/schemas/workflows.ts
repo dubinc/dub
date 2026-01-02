@@ -4,7 +4,7 @@ import {
   WorkflowConditionAttribute,
 } from "@/lib/types";
 import { WorkflowTrigger } from "@dub/prisma/client";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 export const WORKFLOW_ATTRIBUTES = [
   // "totalClicks",

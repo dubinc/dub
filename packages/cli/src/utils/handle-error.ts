@@ -1,5 +1,5 @@
 import { logger } from "@/utils/logger";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 export function handleError(error: unknown) {
   if (error instanceof z.ZodError) {

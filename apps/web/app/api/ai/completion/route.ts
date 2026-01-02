@@ -6,7 +6,7 @@ import { anthropic } from "@ai-sdk/anthropic";
 import { prismaEdge } from "@dub/prisma/edge";
 import { waitUntil } from "@vercel/functions";
 import { streamText } from "ai";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 const completionSchema = z.object({
   prompt: z.string(),

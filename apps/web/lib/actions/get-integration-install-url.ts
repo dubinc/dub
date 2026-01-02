@@ -1,6 +1,6 @@
 "use server";
 
-import { z } from "zod";
+import * as z from "zod/v4";
 import { hubSpotOAuthProvider } from "../integrations/hubspot/oauth";
 import { slackOAuthProvider } from "../integrations/slack/oauth";
 import { authActionClient } from "./safe-action";

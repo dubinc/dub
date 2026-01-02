@@ -11,7 +11,7 @@ import { analyticsResponse } from "@/lib/zod/schemas/analytics-response";
 import { prisma } from "@dub/prisma";
 import { CommissionType, Prisma } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK, nFormatter } from "@dub/utils";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { logAndRespond } from "../utils";
 
 export const dynamic = "force-dynamic";

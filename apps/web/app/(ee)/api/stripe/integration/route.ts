@@ -6,7 +6,7 @@ import { prisma } from "@dub/prisma";
 import { STRIPE_INTEGRATION_ID } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 const CORS_HEADERS = new Headers({
   "Access-Control-Allow-Origin": "*",

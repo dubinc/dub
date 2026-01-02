@@ -8,7 +8,7 @@ import {
 } from "@/lib/zod/schemas/program-resources";
 import { prisma } from "@dub/prisma";
 import { R2_URL } from "@dub/utils";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { authActionClient } from "../../safe-action";
 
 // Schema for deleting a program resource

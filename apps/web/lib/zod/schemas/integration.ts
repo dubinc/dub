@@ -1,5 +1,5 @@
 import { R2_URL } from "@dub/utils";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { uploadedImageSchema } from "./misc";
 
 export const integrationSchema = z.object({

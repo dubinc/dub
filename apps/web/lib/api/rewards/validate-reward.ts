@@ -2,7 +2,7 @@ import {
   createOrUpdateRewardSchema,
   rewardConditionsArraySchema,
 } from "@/lib/zod/schemas/rewards";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { DubApiError } from "../errors";
 
 export function validateReward(

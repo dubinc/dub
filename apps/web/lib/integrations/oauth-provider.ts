@@ -1,5 +1,5 @@
 import { getSearchParams, nanoid } from "@dub/utils";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { redis } from "../upstash";
 
 export interface OAuthProviderConfig<T extends z.ZodSchema = z.ZodSchema> {

@@ -7,7 +7,7 @@ import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { Button, Table, TimestampTooltip, useTable } from "@dub/ui";
 import { formatDateTimeSmart } from "@dub/utils";
 import Link from "next/link";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 // Both partnerFraudReport and partnerDuplicatePayoutMethod have the same schema
 // We can use either one since they're identical

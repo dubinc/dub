@@ -1,5 +1,5 @@
 import { Category, ProgramEnrollmentStatus } from "@dub/prisma/client";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { DiscountSchema } from "./discount";
 import { getPaginationQuerySchema } from "./misc";
 import { programLanderSchema } from "./program-lander";

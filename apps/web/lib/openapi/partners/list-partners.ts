@@ -3,7 +3,7 @@ import {
   EnrolledPartnerSchema,
   getPartnersQuerySchema,
 } from "@/lib/zod/schemas/partners";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { ZodOpenApiOperationObject } from "zod-openapi";
 
 export const listPartners: ZodOpenApiOperationObject = {

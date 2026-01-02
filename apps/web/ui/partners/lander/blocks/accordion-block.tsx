@@ -5,7 +5,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@dub/ui";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { BlockMarkdown } from "./block-markdown";
 import { BlockTitle } from "./block-title";
 

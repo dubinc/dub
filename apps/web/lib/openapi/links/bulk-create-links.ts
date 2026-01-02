@@ -4,7 +4,7 @@ import {
   LinkSchema,
   createLinkBodySchema,
 } from "@/lib/zod/schemas/links";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { ZodOpenApiOperationObject } from "zod-openapi";
 
 export const bulkCreateLinks: ZodOpenApiOperationObject = {

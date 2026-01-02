@@ -1,6 +1,6 @@
 import { nFormatter } from "@dub/utils";
 import { uiComponent } from "@team-plain/typescript-sdk";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 export const plainCallbackSchema = z.object({
   customer: z.object({

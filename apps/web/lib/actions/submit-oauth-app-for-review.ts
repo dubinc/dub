@@ -2,7 +2,7 @@
 
 import { prisma } from "@dub/prisma";
 import { ComponentDividerSpacingSize } from "@team-plain/typescript-sdk";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { createPlainThread } from "../plain/create-plain-thread";
 import { ratelimit } from "../upstash";
 import { authActionClient } from "./safe-action";

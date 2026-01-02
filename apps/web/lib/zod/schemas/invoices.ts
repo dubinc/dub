@@ -1,5 +1,5 @@
 import { InvoiceStatus, PaymentMethod } from "@dub/prisma/client";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 export const InvoiceSchema = z.object({
   id: z.string(),

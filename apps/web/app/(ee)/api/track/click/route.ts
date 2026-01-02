@@ -20,7 +20,7 @@ import { PartnerSchema } from "@/lib/zod/schemas/partners";
 import { isValidUrl, nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 const trackClickSchema = z.object({
   domain: z.string({ error: "domain is requireds." }),

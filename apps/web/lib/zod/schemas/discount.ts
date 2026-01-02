@@ -1,5 +1,5 @@
 import { RewardStructure } from "@dub/prisma/client";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { getPaginationQuerySchema, maxDurationSchema } from "./misc";
 
 export const DiscountSchema = z.object({

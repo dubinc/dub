@@ -1,7 +1,7 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
 import { retrievePartnerLinksSchema } from "@/lib/zod/schemas/partners";
 import { ProgramPartnerLinkSchema } from "@/lib/zod/schemas/programs";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { ZodOpenApiOperationObject } from "zod-openapi";
 
 export const retrievePartnerLinks: ZodOpenApiOperationObject = {

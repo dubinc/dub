@@ -2,7 +2,7 @@ import { qstash } from "@/lib/cron";
 import { webhookPayloadSchema } from "@/lib/webhook/schemas";
 import { Webhook, WebhookReceiver } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { formatEventForSegment } from "../integrations/segment/transform";
 import { createSegmentBasicAuthHeader } from "../integrations/segment/utils";
 import { formatEventForSlack } from "../integrations/slack/transform";

@@ -1,6 +1,6 @@
 import { ErrorCode } from "@/lib/api/error-codes";
 import { DUB_FOUNDING_DATE, formatDate, validDomainRegex } from "@dub/utils";
-import { z } from "zod";
+import * as z from "zod/v4";
 import {
   base64ImageSchema,
   booleanQuerySchema,

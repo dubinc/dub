@@ -10,7 +10,7 @@ import {
   getPartnersQuerySchemaExtended,
 } from "@/lib/zod/schemas/partners";
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 // GET /api/partners - get all partners for a program
 export const GET = withWorkspace(

@@ -6,7 +6,7 @@ import { prisma } from "@dub/prisma";
 import { SHOPIFY_INTEGRATION_ID } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 // PATCH /api/shopify/integration/callback – update a shopify store id
 export const PATCH = withWorkspace(

@@ -12,7 +12,7 @@ import { prisma } from "@dub/prisma";
 import { PartnerRole } from "@dub/prisma/client";
 import { pluralize } from "@dub/utils";
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 // GET /api/workspaces/[idOrSlug]/invites – get invites for a specific workspace
 export const GET = withWorkspace(

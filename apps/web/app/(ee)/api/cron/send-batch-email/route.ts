@@ -6,7 +6,7 @@ import { ResendEmailOptions } from "@dub/email/resend/types";
 import { log } from "@dub/utils";
 import { NextResponse } from "next/server";
 import React from "react";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 export const dynamic = "force-dynamic";
 

@@ -1,5 +1,5 @@
 import { parseUrlSchema } from "@/lib/zod/schemas/utils";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 export const trackOpenRequestSchema = z
   .object({

@@ -14,7 +14,7 @@ import {
   ProgramPayoutMode,
 } from "@dub/prisma/client";
 import { COUNTRY_CODES } from "@dub/utils";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { DiscountSchema } from "./discount";
 import { GroupSchema } from "./groups";
 import { LinkSchema } from "./links";

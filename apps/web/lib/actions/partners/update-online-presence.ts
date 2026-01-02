@@ -10,7 +10,7 @@ import { prisma } from "@dub/prisma";
 import { isValidUrl, PARTNERS_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { cookies } from "next/headers";
 import { v4 as uuid } from "uuid";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { authPartnerActionClient } from "../safe-action";
 import { ONLINE_PRESENCE_PROVIDERS } from "./online-presence-providers";
 

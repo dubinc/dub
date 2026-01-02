@@ -15,7 +15,7 @@ import { prisma } from "@dub/prisma";
 import { PartnerRole } from "@dub/prisma/client";
 import { isRejected, pluralize } from "@dub/utils";
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 // GET /api/partner-profile/invites - get all invites for a partner profile
 export const GET = withPartnerProfile(async ({ partner, searchParams }) => {

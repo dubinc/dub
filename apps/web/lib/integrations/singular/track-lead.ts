@@ -1,7 +1,7 @@
 import { trackLead } from "@/lib/api/conversions/track-lead";
 import { WorkspaceProps } from "@/lib/types";
 import { trackLeadRequestSchema } from "@/lib/zod/schemas/leads";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 const singularLeadEventSchema = z.object({
   dub_id: z.string().min(1),

@@ -1,4 +1,4 @@
-import { z } from "zod";
+import * as z from "zod/v4";
 import { programLanderAccordionItemSchema } from "./program-lander";
 
 export const programEmbedSchema = z
