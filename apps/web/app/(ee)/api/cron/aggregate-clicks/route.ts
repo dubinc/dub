@@ -1,18 +1,21 @@
-import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { createId } from "@/lib/api/create-id";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
-import { getRewardAmount } from "@/lib/partners/get-reward-amount";
-import { analyticsResponse } from "@/lib/zod/schemas/analytics-response";
+import { getTopLinksByCountries } from "@/lib/tinybird/get-top-links-by-countries";
 import { prisma } from "@dub/prisma";
 import { CommissionType, Prisma } from "@dub/prisma/client";
-import { APP_DOMAIN_WITH_NGROK, nFormatter } from "@dub/utils";
+import {
+  APP_DOMAIN_WITH_NGROK,
+  currencyFormatter,
+  getPrettyUrl,
+  nFormatter,
+} from "@dub/utils";
 import { z } from "zod";
 import { logAndRespond } from "../utils";
+import { resolveClickRewardAmount } from "./resolve-click-reward-amount";
 
 export const dynamic = "force-dynamic";
 
@@ -73,6 +76,7 @@ async function handler(req: Request) {
       },
       select: {
         id: true,
+        shortLink: true,
         programId: true,
         partnerId: true,
         programEnrollment: {
@@ -99,39 +103,82 @@ async function handler(req: Request) {
       return logAndRespond(endMessage);
     }
 
-    console.time("getAnalytics");
-    // getting the actual click count for the links for the previous day
-    const linkClickStats: z.infer<(typeof analyticsResponse)["top_links"]>[] =
-      await getAnalytics({
-        event: "clicks",
-        groupBy: "top_links",
-        linkIds: linksWithClickRewards.map(({ id }) => id),
-        start,
-        end,
-      });
-    console.timeEnd("getAnalytics");
+    const clicksByCountries = await getTopLinksByCountries({
+      linkIds: linksWithClickRewards.map(({ id }) => id),
+      start,
+      end,
+    });
 
     // This should never happen, but just in case
-    if (linkClickStats.length === 0) {
+    if (clicksByCountries.length === 0) {
       return logAndRespond(endMessage);
     }
 
-    // creating a map of link id to clicks count (for easy lookup)
-    const linkClicksMap = new Map(
-      linkClickStats.map(({ id, clicks }) => [id, clicks]),
-    );
+    // Group clicks by link_id for easier iteration
+    const clicksByLinkId = new Map<string, typeof clicksByCountries>();
+    for (const click of clicksByCountries) {
+      const existing = clicksByLinkId.get(click.link_id) || [];
+      existing.push(click);
+      clicksByLinkId.set(click.link_id, existing);
+    }
 
-    // creating a list of commissions to create
+    const linkEarningsMap = new Map<
+      string,
+      { linkClicks: number; earnings: number }
+    >();
+
+    // Calculate earnings per link considering geo CPC
+    for (const {
+      id: linkId,
+      shortLink,
+      programEnrollment,
+    } of linksWithClickRewards) {
+      if (!programEnrollment?.clickReward) {
+        console.log(`No click reward for link ${linkId}.`);
+        continue;
+      }
+
+      const linkClicksByCountry = clicksByLinkId.get(linkId) || [];
+
+      // Calculate earnings per country for each link
+      for (const { country, clicks } of linkClicksByCountry) {
+        const rewardAmount = resolveClickRewardAmount({
+          reward: programEnrollment.clickReward,
+          country,
+        });
+
+        const existing = linkEarningsMap.get(linkId) || {
+          linkClicks: 0,
+          earnings: 0,
+        };
+
+        linkEarningsMap.set(linkId, {
+          linkClicks: existing.linkClicks + clicks,
+          earnings: existing.earnings + rewardAmount * clicks,
+        });
+
+        // only console.log if there are modifiers
+        if (programEnrollment.clickReward.modifiers) {
+          console.log(
+            `Earnings for link ${getPrettyUrl(shortLink)} for ${country}: ${currencyFormatter(rewardAmount)} * ${clicks} = ${currencyFormatter(
+              rewardAmount * clicks,
+            )}`,
+          );
+        }
+      }
+    }
+
+    // Create commissions for each link
     const commissionsToCreate = linksWithClickRewards
       .map(({ id, programId, partnerId, programEnrollment }) => {
         if (!programId || !partnerId || !programEnrollment?.clickReward) {
           return null;
         }
 
-        const linkClicks = linkClicksMap.get(id) ?? 0;
-        const earnings =
-          getRewardAmount(serializeReward(programEnrollment.clickReward)) *
-          linkClicks;
+        const { linkClicks, earnings } = linkEarningsMap.get(id) || {
+          linkClicks: 0,
+          earnings: 0,
+        };
 
         if (linkClicks === 0 || earnings === 0) {
           return null;
@@ -159,17 +206,19 @@ async function handler(req: Request) {
       data: commissionsToCreate,
     });
 
+    // Sync total commissions for each partner that we created commissions for
     for (const { partnerId, programId } of commissionsToCreate) {
-      // Sync total commissions for each partner that we created commissions for
       await syncTotalCommissions({
         partnerId,
         programId,
       });
     }
+
     console.log(
       `Synced total commissions count for ${commissionsToCreate.length} partners`,
     );
 
+    // Schedule next batch if we have more links to process
     if (linksWithClickRewards.length === BATCH_SIZE) {
       const nextStartingAfter =
         linksWithClickRewards[linksWithClickRewards.length - 1].id;
