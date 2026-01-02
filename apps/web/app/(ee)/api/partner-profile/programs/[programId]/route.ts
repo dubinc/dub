@@ -4,7 +4,7 @@ import { ProgramEnrollmentSchema } from "@/lib/zod/schemas/programs";
 import { Reward } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 
-// GET /api/partner-profile/programs/[programId] – get a partner's enrollment in a program
+// GET /api/partner-profile/programs/[programId] – get a partner's enrollment in a program
 export const GET = withPartnerProfile(async ({ partner, params }) => {
   const programEnrollment = await getProgramEnrollmentOrThrow({
     partnerId: partner.id,

@@ -1,9 +1,11 @@
 "use client";
 
 import usePartnerCustomers from "@/lib/swr/use-partner-customers";
+import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
+import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import {
   LinkLogo,
   Table,
@@ -26,6 +28,7 @@ import { useMemo } from "react";
 
 export function ProgramCustomersPageClient() {
   const { programSlug } = useParams<{ programSlug: string }>();
+  const { programEnrollment } = useProgramEnrollment();
 
   const { data: customers, isLoading } = usePartnerCustomers();
 
@@ -161,6 +164,13 @@ export function ProgramCustomersPageClient() {
   return (
     <PageWidthWrapper className="pb-10">
       <div className="flex flex-col gap-3">
+        {Boolean(programEnrollment?.customerDataSharingEnabledAt) && (
+          <SearchBoxPersisted
+            placeholder="Search by email or name"
+            inputClassName="w-full"
+          />
+        )}
+
         {customers?.length !== 0 ? (
           <Table {...tableProps} table={table} />
         ) : (
