@@ -33,7 +33,7 @@ export const programInvitePartnersSchema = z.object({
   partners: z
     .array(
       z.object({
-        email: z.email("Please enter a valid email"),
+        email: z.email({ error: "Please enter a valid email" }),
       }),
     )
     .max(

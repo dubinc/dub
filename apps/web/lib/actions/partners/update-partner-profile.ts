@@ -28,7 +28,7 @@ import { authPartnerActionClient } from "../safe-action";
 const updatePartnerProfileSchema = z
   .object({
     name: z.string().optional(),
-    email: z.string().optional(),
+    email: z.email().optional(),
     image: uploadedImageSchema.nullish(),
     description: z.string().max(MAX_PARTNER_DESCRIPTION_LENGTH).nullish(),
     country: z.enum(Object.keys(COUNTRIES) as [string, ...string[]]).nullish(),
