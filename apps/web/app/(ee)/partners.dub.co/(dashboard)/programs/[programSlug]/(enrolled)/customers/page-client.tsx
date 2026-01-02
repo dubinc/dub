@@ -21,7 +21,6 @@ import {
 } from "@dub/ui";
 import { User } from "@dub/ui/icons";
 import {
-  cn,
   COUNTRIES,
   currencyFormatter,
   formatDate,
@@ -203,7 +202,7 @@ export function ProgramCustomersPageClient() {
   return (
     <PageWidthWrapper className="pb-10">
       <div className="flex flex-col gap-3">
-        <div className="flex flex-col gap-3">
+        <div>
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <Filter.Select
               className="w-full md:w-fit"
@@ -222,15 +221,17 @@ export function ProgramCustomersPageClient() {
           </div>
           <AnimatedSizeContainer height>
             <div>
-              <div className={cn(!isFiltered && "hidden")}>
-                <Filter.List
-                  filters={filters}
-                  activeFilters={activeFilters}
-                  onSelect={onSelect}
-                  onRemove={onRemove}
-                  onRemoveAll={onRemoveAll}
-                />
-              </div>
+              {activeFilters.length > 0 && (
+                <div className="pt-3">
+                  <Filter.List
+                    filters={filters}
+                    activeFilters={activeFilters}
+                    onSelect={onSelect}
+                    onRemove={onRemove}
+                    onRemoveAll={onRemoveAll}
+                  />
+                </div>
+              )}
             </div>
           </AnimatedSizeContainer>
         </div>
