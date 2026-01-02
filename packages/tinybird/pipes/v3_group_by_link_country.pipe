@@ -1,0 +1,22 @@
+NODE endpoint
+SQL >
+
+    %
+        SELECT
+            link_id,
+            country,
+            COUNT(*) AS clicks
+        FROM
+            dub_click_events_mv
+        WHERE
+            link_id IN {{ Array(linkIds, 'String') }}
+            AND timestamp >= {{ DateTime64(start) }}
+            AND timestamp <= {{ DateTime64(end) }}
+        GROUP BY
+            link_id,
+            country
+        ORDER BY
+            link_id ASC,
+            clicks DESC
+
+
