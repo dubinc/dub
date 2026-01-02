@@ -595,7 +595,6 @@ const partnerImageSchema = z
     storedR2ImageUrlSchema,
     publicHostedImageSchema,
     z
-      .string()
       .url()
       .trim()
       .refine((url) => url.startsWith(GOOGLE_FAVICON_URL), {

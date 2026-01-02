@@ -87,7 +87,6 @@ export const createCustomerBodySchema = z.object({
       "The customer's name. If not provided, the email address will be used, and if email is not provided, a random name will be generated.",
     ),
   avatar: z
-    .string()
     .url()
     .nullish()
     .describe(

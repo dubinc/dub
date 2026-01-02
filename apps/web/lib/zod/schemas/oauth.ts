@@ -37,7 +37,7 @@ export const updateOAuthAppSchema = createOAuthAppSchema.partial();
 // Schema for OAuth2.0 Authorization request
 export const authorizeRequestSchema = z.object({
   client_id: z.string().min(1, "Missing client_id"),
-  redirect_uri: z.string().url({ message: "redirect_uri must be a valid URL" }),
+  redirect_uri: z.url({ message: "redirect_uri must be a valid URL" }),
   response_type: z.string().refine((responseType) => responseType === "code", {
     message: "response_type must be 'code'",
   }),
@@ -78,7 +78,7 @@ export const authCodeExchangeSchema = z.object({
   client_id: z.string().optional(),
   client_secret: z.string().optional(),
   code: z.string().min(1, "Missing code"),
-  redirect_uri: z.string().url({ message: "redirect_uri must be a valid URL" }),
+  redirect_uri: z.url({ message: "redirect_uri must be a valid URL" }),
   code_verifier: z.string().max(190).optional(),
 });
 
