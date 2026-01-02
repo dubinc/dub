@@ -5,7 +5,6 @@ import usePartnerCustomersCount from "@/lib/swr/use-partner-customers-count";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PARTNER_CUSTOMERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/partners";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
-import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import {
@@ -198,62 +197,58 @@ export function ProgramCustomersPageClient() {
     error: error || countError ? "Failed to load customers" : undefined,
   });
 
-  console.log({ customersCount });
-
   return (
-    <PageWidthWrapper className="pb-10">
+    <div className="flex flex-col gap-3">
       <div className="flex flex-col gap-3">
-        <div className="flex flex-col gap-3">
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <Filter.Select
-              className="w-full md:w-fit"
-              filters={filters}
-              activeFilters={activeFilters}
-              onSelect={onSelect}
-              onRemove={onRemove}
-              onSelectedFilterChange={setSelectedFilter}
-            />
-            {Boolean(programEnrollment?.customerDataSharingEnabledAt) && (
-              <SearchBoxPersisted
-                placeholder="Search by email or name"
-                inputClassName="md:w-[16rem]"
-              />
-            )}
-          </div>
-          <AnimatedSizeContainer height>
-            <div>
-              <div className={cn(!isFiltered && "hidden")}>
-                <Filter.List
-                  filters={filters}
-                  activeFilters={activeFilters}
-                  onSelect={onSelect}
-                  onRemove={onRemove}
-                  onRemoveAll={onRemoveAll}
-                />
-              </div>
-            </div>
-          </AnimatedSizeContainer>
-        </div>
-
-        {customers?.length !== 0 ? (
-          <Table {...tableProps} table={table} />
-        ) : (
-          <AnimatedEmptyState
-            title={isFiltered ? "No customers found" : "No customers yet"}
-            description={
-              isFiltered
-                ? "No customers found for the selected filters. Adjust your filters to refine your search results."
-                : "No customers have been recorded for this program yet. Once customers start converting through your links, they'll appear here."
-            }
-            cardContent={() => (
-              <>
-                <User className="size-4 text-neutral-700" />
-                <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
-              </>
-            )}
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <Filter.Select
+            className="w-full md:w-fit"
+            filters={filters}
+            activeFilters={activeFilters}
+            onSelect={onSelect}
+            onRemove={onRemove}
+            onSelectedFilterChange={setSelectedFilter}
           />
-        )}
+          {Boolean(programEnrollment?.customerDataSharingEnabledAt) && (
+            <SearchBoxPersisted
+              placeholder="Search by email or name"
+              inputClassName="md:w-[16rem]"
+            />
+          )}
+        </div>
+        <AnimatedSizeContainer height>
+          <div>
+            <div className={cn(!isFiltered && "hidden")}>
+              <Filter.List
+                filters={filters}
+                activeFilters={activeFilters}
+                onSelect={onSelect}
+                onRemove={onRemove}
+                onRemoveAll={onRemoveAll}
+              />
+            </div>
+          </div>
+        </AnimatedSizeContainer>
       </div>
-    </PageWidthWrapper>
+
+      {customers?.length !== 0 ? (
+        <Table {...tableProps} table={table} />
+      ) : (
+        <AnimatedEmptyState
+          title={isFiltered ? "No customers found" : "No customers yet"}
+          description={
+            isFiltered
+              ? "No customers found for the selected filters. Adjust your filters to refine your search results."
+              : "No customers have been recorded for this program yet. Once customers start converting through your links, they'll appear here."
+          }
+          cardContent={() => (
+            <>
+              <User className="size-4 text-neutral-700" />
+              <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
+            </>
+          )}
+        />
+      )}
+    </div>
   );
 }
