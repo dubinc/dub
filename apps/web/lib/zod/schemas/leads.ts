@@ -61,7 +61,7 @@ export const trackLeadRequestSchema = z.object({
       "The numerical value associated with this lead event (e.g., number of provisioned seats in a free trial). If defined as N, the lead event will be tracked N times.",
     ),
   metadata: z
-    .record(z.unknown())
+    .record(z.string(), z.any())
     .nullish()
     .default(null)
     .refine((val) => !val || JSON.stringify(val).length <= 10000, {

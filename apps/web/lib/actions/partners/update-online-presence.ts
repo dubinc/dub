@@ -58,7 +58,7 @@ const updateOnlinePresenceSchema = z.object({
 const updateOnlinePresenceResponseSchema = updateOnlinePresenceSchema.merge(
   z.object({
     websiteTxtRecord: z.string().nullable(),
-    verificationUrls: z.record(z.string().url()),
+    verificationUrls: z.record(z.string(), z.url()),
   }),
 );
 

@@ -28,7 +28,7 @@ export const leadWebhookEventSchema = z.object({
   click: clickEventSchema,
   link: linkEventSchema,
   partner: WebhookPartnerSchema.nullish(),
-  metadata: z.record(z.unknown()).nullable().default(null),
+  metadata: z.record(z.string(), z.any()).nullable().default(null),
 });
 
 export const saleWebhookEventSchema = z.object({
@@ -38,7 +38,7 @@ export const saleWebhookEventSchema = z.object({
   link: linkEventSchema,
   sale: webhookSaleSchema,
   partner: WebhookPartnerSchema.nullish(),
-  metadata: z.record(z.unknown()).nullable().default(null),
+  metadata: z.record(z.string(), z.any()).nullable().default(null),
 });
 
 // Schema of the payload sent to the webhook endpoint by Dub

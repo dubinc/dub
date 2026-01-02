@@ -98,7 +98,7 @@ export const firstPromoterCustomerSchema = z.object({
   uid: z.string().nullable(),
   created_at: z.string(),
   customer_since: z.string().nullable(),
-  metadata: z.record(z.any()).nullable(),
+  metadata: z.record(z.string(), z.any()).nullable(),
   promoter_campaign: z.object({
     promoter: firstPromoterPartnerSchema.pick({
       email: true,
@@ -109,7 +109,7 @@ export const firstPromoterCustomerSchema = z.object({
 export const firstPromoterCommissionSchema = z.object({
   id: z.number(),
   status: z.enum(["pending", "approved", "denied"]),
-  metadata: z.record(z.any()).nullable(),
+  metadata: z.record(z.string(), z.any()).nullable(),
   is_self_referral: z.boolean(),
   commission_type: z.enum(["sale", "custom"]),
   sale_amount: z.number(),

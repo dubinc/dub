@@ -711,7 +711,7 @@ export const LinkSchema = z
         "The Android destination URL for the short link for Android device targeting.",
       ),
     geo: z
-      .record(z.string(), z.string().url())
+      .record(z.string(), z.url())
       .nullable()
       .describe(
         "Geo targeting information for the short link in JSON format `{[COUNTRY]: https://example.com }`. See https://d.to/geo for more information.",

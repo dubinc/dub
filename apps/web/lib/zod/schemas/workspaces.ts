@@ -116,13 +116,13 @@ export const WorkspaceSchema = z
       )
       .describe("The domains of the workspace."),
     flags: z
-      .record(z.boolean())
+      .record(z.string(), z.boolean())
       .optional()
       .describe(
         "The feature flags of the workspace, indicating which features are enabled.",
       ),
     store: z
-      .record(z.any())
+      .record(z.string(), z.any())
       .nullable()
       .describe("The miscellaneous key-value store of the workspace."),
     allowedHostnames: z
@@ -174,7 +174,7 @@ export const WorkspaceSchemaExtended = WorkspaceSchema.extend({
   defaultProgramId: z.string().nullable(),
   users: z.array(
     WorkspaceSchema.shape.users.element.extend({
-      workspacePreferences: z.record(z.any()).nullish(),
+      workspacePreferences: z.record(z.string(), z.any()).nullish(),
     }),
   ),
   publishableKey: z.string().nullable(),
