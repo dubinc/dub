@@ -7,9 +7,7 @@ import RegisterPageClient from "./page-client";
 export default async function RegisterPage(props: {
   params: Promise<{ programSlug?: string }>;
 }) {
-  const params = await props.params;
-
-  const { programSlug } = params;
+  const { programSlug } = await props.params;
 
   if (programSlug === "framer") {
     redirect("/framer/login");
