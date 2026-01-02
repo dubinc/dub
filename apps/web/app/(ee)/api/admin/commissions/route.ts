@@ -8,12 +8,14 @@ import { z } from "zod";
 import { getCommissionsTimeseries } from "./get-commissions-timeseries";
 import { getTopProgramsByCommissions } from "./get-top-program-by-commissions";
 
-const adminCommissionsQuerySchema = analyticsQuerySchema
-  .pick({ interval: true, start: true, end: true })
-  .extend({
+const adminCommissionsQuerySchema = z
+  .object({
     programId: z.string().optional(),
     timezone: z.string().default("UTC"),
-  });
+  })
+  .extend(
+    analyticsQuerySchema.pick({ interval: true, start: true, end: true }).shape,
+  );
 
 export const GET = withAdmin(async ({ searchParams }) => {
   const { interval, start, end, timezone, programId } =
