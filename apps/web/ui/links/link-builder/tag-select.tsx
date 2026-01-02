@@ -5,6 +5,7 @@ import { TagProps } from "@/lib/types";
 import { TAGS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/tags";
 import { LinkFormData } from "@/ui/links/link-builder/link-builder-provider";
 import TagBadge from "@/ui/links/tag-badge";
+import { useCompletion } from "@ai-sdk/react";
 import {
   AnimatedSizeContainer,
   Combobox,
@@ -14,7 +15,6 @@ import {
   Tooltip,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { useCompletion } from "@ai-sdk/react";
 import posthog from "posthog-js";
 import { memo, useEffect, useMemo, useState } from "react";
 import { useFormContext, useWatch } from "react-hook-form";

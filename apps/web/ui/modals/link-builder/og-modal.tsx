@@ -6,6 +6,7 @@ import {
 import { Link } from "@/ui/shared/icons";
 import { ProBadgeTooltip } from "@/ui/shared/pro-badge-tooltip";
 import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
+import { useCompletion } from "@ai-sdk/react";
 import {
   Button,
   ButtonTooltip,
@@ -16,7 +17,6 @@ import {
 } from "@dub/ui";
 import { LoadingCircle, Magic, Unsplash } from "@dub/ui/icons";
 import { resizeImage } from "@dub/utils";
-import { useCompletion } from "@ai-sdk/react";
 import posthog from "posthog-js";
 import {
   Dispatch,
