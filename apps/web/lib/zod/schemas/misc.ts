@@ -32,7 +32,7 @@ export const booleanQuerySchema = z
 export const getPaginationQuerySchema = ({ pageSize }: { pageSize: number }) =>
   z.object({
     page: z.coerce
-      .number({ invalid_type_error: "Page must be a number." })
+      .number({ error: "Page must be a number." })
       .positive({ message: "Page must be greater than 0." })
       .optional()
       .default(1)
@@ -41,7 +41,7 @@ export const getPaginationQuerySchema = ({ pageSize }: { pageSize: number }) =>
         example: 1,
       }),
     pageSize: z.coerce
-      .number({ invalid_type_error: "Page size must be a number." })
+      .number({ error: "Page size must be a number." })
       .positive({ message: "Page size must be greater than 0." })
       .max(pageSize, {
         message: `Max page size is ${pageSize}.`,
