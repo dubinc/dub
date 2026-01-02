@@ -26,7 +26,7 @@ export const getTagsQuerySchema = z
       .optional()
       .describe("IDs of tags to filter by."),
   })
-  .merge(getPaginationQuerySchema({ pageSize: TAGS_MAX_PAGE_SIZE }));
+  .extend(getPaginationQuerySchema({ pageSize: TAGS_MAX_PAGE_SIZE }));
 
 export const getTagsQuerySchemaExtended = getTagsQuerySchema.merge(
   z.object({
@@ -46,11 +46,7 @@ const tagColors = [...RESOURCE_COLORS, "pink"] as const;
 
 export const tagColorSchema = z
   .enum(tagColors, {
-    errorMap: () => {
-      return {
-        message: `Invalid color. Must be one of: ${tagColors.join(", ")}`,
-      };
-    },
+    error: `Invalid color. Must be one of: ${tagColors.join(", ")}`,
   })
   .describe("The color of the tag");
 
