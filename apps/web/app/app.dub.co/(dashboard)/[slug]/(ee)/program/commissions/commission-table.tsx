@@ -1,5 +1,6 @@
 "use client";
 
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useCommissionsCount from "@/lib/swr/use-commissions-count";
 import { useFraudGroupCount } from "@/lib/swr/use-fraud-groups-count";
 import useGroups from "@/lib/swr/use-groups";
@@ -134,6 +135,8 @@ export function CommissionTable() {
       status: "pending",
     },
   });
+
+  const { canManageFraudEvents } = getPlanCapabilities(workspace?.plan ?? "");
 
   const columns = useMemo(
     () =>
@@ -277,6 +280,7 @@ export function CommissionTable() {
             );
 
             const status =
+              canManageFraudEvents &&
               partnerHasPendingFraud &&
               ["pending", "processed"].includes(row.original.status)
                 ? "hold"
