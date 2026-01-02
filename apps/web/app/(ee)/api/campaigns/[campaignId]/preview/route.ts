@@ -17,9 +17,9 @@ const sendPreviewEmailSchema = CampaignSchema.pick({
   preview: true,
   bodyJson: true,
 }).extend({
-  from: z.string().email().optional(),
+  from: z.email().optional(),
   emailAddresses: z
-    .array(z.string().email())
+    .array(z.email())
     .min(1)
     .max(10, "Maximum 10 email addresses allowed."),
 });

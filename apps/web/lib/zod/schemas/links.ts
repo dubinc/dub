@@ -137,13 +137,13 @@ const LinksQuerySchema = z.object({
     ),
   showArchived: booleanQuerySchema
     .optional()
-    .default("false")
+    .default(false)
     .describe(
       "Whether to include archived links in the response. Defaults to `false` if not provided.",
     ),
   withTags: booleanQuerySchema
     .optional()
-    .default("false")
+    .default(false)
     .describe(
       "DEPRECATED. Filter for links that have at least one tag assigned to them.",
     )
@@ -873,7 +873,7 @@ export const getLinksQuerySchemaExtended = getLinksQuerySchemaBase.merge(
   }),
 );
 
-export const getLinkInfoQuerySchemaExtended = getLinkInfoQuerySchema.merge(
+export const getLinkInfoQuerySchemaExtended = getLinkInfoQuerySchema.extend(
   z.object({
     includeUser: booleanQuerySchema.default(false),
     includeWebhooks: booleanQuerySchema.default(false),
