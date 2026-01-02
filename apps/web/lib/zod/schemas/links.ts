@@ -610,7 +610,7 @@ export const LinkSchema = z
       .describe(
         "The short link slug. If not provided, a random 7-character slug will be generated.",
       ),
-    url: z.string().url().describe("The destination URL of the short link."),
+    url: z.url().describe("The destination URL of the short link."),
     trackConversion: z
       .boolean()
       .default(false)

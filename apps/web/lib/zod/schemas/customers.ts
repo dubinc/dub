@@ -81,7 +81,7 @@ export const getCustomersCountQuerySchema = getCustomersQuerySchema
   .extend({ groupBy: z.enum(["country", "linkId", "partnerId"]).optional() });
 
 export const createCustomerBodySchema = z.object({
-  email: z.string().email().nullish().describe("The customer's email address."),
+  email: z.email().nullish().describe("The customer's email address."),
   name: z
     .string()
     .nullish()

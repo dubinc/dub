@@ -5,7 +5,7 @@ import { z } from "zod";
 export const plainCallbackSchema = z.object({
   customer: z.object({
     id: z.string(),
-    email: z.string().email(),
+    email: z.email(),
     externalId: z.string().nullish(),
   }),
 });

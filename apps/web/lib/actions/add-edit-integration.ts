@@ -12,12 +12,10 @@ import { authActionClient } from "./safe-action";
 
 export const addEditIntegration = authActionClient
   .schema(
-    createIntegrationSchema.merge(
-      z.object({
-        id: z.string().optional(), // if id is provided, we are editing the integration
-        workspaceId: z.string(),
-      }),
-    ),
+    createIntegrationSchema.extend({
+      id: z.string().optional(), // if id is provided, we are editing the integration
+      workspaceId: z.string(),
+    }),
   )
   .action(async ({ parsedInput, ctx }) => {
     const { id, workspaceId, ...integration } = parsedInput;

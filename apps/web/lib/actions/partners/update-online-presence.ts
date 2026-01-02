@@ -55,12 +55,10 @@ const updateOnlinePresenceSchema = z.object({
   source: z.enum(["onboarding", "settings"]).default("onboarding"),
 });
 
-const updateOnlinePresenceResponseSchema = updateOnlinePresenceSchema.merge(
-  z.object({
-    websiteTxtRecord: z.string().nullable(),
-    verificationUrls: z.record(z.string(), z.url()),
-  }),
-);
+const updateOnlinePresenceResponseSchema = updateOnlinePresenceSchema.extend({
+  websiteTxtRecord: z.string().nullable(),
+  verificationUrls: z.record(z.string(), z.url()),
+});
 
 export const updateOnlinePresenceAction = authPartnerActionClient
   .schema(

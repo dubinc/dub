@@ -9,7 +9,7 @@ import { z } from "zod";
 
 const createSAMLConnectionSchema = z
   .object({
-    metadataUrl: z.string().url(),
+    metadataUrl: z.url(),
     encodedRawMetadata: z.string(),
   })
   .partial()

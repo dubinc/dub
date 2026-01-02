@@ -4,7 +4,7 @@ import { z } from "zod";
 export const inviteTeammatesSchema = z.object({
   teammates: z.array(
     z.object({
-      email: z.string().email(),
+      email: z.email(),
       role: z.nativeEnum(WorkspaceRole),
     }),
   ),

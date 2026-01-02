@@ -22,7 +22,7 @@ import { authActionClient } from "../safe-action";
 
 const schema = z.object({
   workspaceId: z.string(),
-  websiteUrl: z.string().url(),
+  websiteUrl: z.url(),
   landerData: programLanderSchema.optional(),
   prompt: z.string().optional(),
 });

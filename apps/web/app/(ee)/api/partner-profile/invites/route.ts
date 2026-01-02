@@ -161,7 +161,7 @@ export const POST = withPartnerProfile(
 );
 
 const updateInviteRoleSchema = z.object({
-  email: z.string().email(),
+  email: z.email(),
   role: z.nativeEnum(PartnerRole),
 });
 
@@ -208,7 +208,7 @@ export const PATCH = withPartnerProfile(
 );
 
 const removeInviteSchema = z.object({
-  email: z.string().email(),
+  email: z.email(),
 });
 
 // DELETE /api/partner-profile/invites?email={email} - remove an invite

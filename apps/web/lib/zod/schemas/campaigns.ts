@@ -86,7 +86,7 @@ export const updateCampaignSchema = z
       .trim()
       .max(100, "Subject must be less than 100 characters."),
     preview: z.string().nullish(),
-    from: z.string().email().trim().toLowerCase(),
+    from: z.email().trim().toLowerCase(),
     bodyJson: z.record(z.string(), z.any()),
     triggerCondition: workflowConditionSchema.nullish(),
     groupIds: z.array(z.string()).nullable(),

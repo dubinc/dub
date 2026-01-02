@@ -164,7 +164,7 @@ export const POST = withWorkspace(
 );
 
 const updateInviteRoleSchema = z.object({
-  email: z.string().email(),
+  email: z.email(),
   role: z.nativeEnum(PartnerRole),
 });
 
@@ -213,7 +213,7 @@ export const DELETE = withWorkspace(
   async ({ searchParams, workspace }) => {
     const { email } = z
       .object({
-        email: z.string().email(),
+        email: z.email(),
       })
       .parse(searchParams);
     const response = await prisma.projectInvite.delete({

@@ -25,7 +25,6 @@ import {
 import { nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
-import { z } from "zod";
 
 interface CustomerResponse extends Customer {
   link: Link & {
@@ -124,11 +123,9 @@ export const GET = withWorkspace(
     });
 
     const responseSchema = includeExpandedFields
-      ? CustomerEnrichedSchema.merge(
-          z.object({
-            discount: DiscountSchemaWithDeprecatedFields,
-          }),
-        )
+      ? CustomerEnrichedSchema.extend({
+          discount: DiscountSchemaWithDeprecatedFields,
+        })
       : CustomerSchema;
 
     const response = responseSchema

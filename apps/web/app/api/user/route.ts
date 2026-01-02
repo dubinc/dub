@@ -18,7 +18,7 @@ import { z } from "zod";
 
 const updateUserSchema = z.object({
   name: z.preprocess(trim, z.string().min(1).max(64)).optional(),
-  email: z.preprocess(trim, z.string().email()).optional(),
+  email: z.preprocess(trim, z.email()).optional(),
   image: uploadedImageSchema.nullish(),
   source: z.preprocess(trim, z.string().min(1).max(32)).optional(),
   defaultWorkspace: z.preprocess(trim, z.string().min(1)).optional(),

@@ -44,7 +44,7 @@ const colorResourceSchema = baseResourceSchema.extend({
 // Schema for link resources
 const linkResourceSchema = baseResourceSchema.extend({
   resourceType: z.literal("link"),
-  url: z.string().url(),
+  url: z.url(),
 });
 
 // Combined schema that can handle any resource type

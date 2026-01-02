@@ -28,7 +28,7 @@ import { authPartnerActionClient } from "../safe-action";
 const updatePartnerProfileSchema = z
   .object({
     name: z.string().optional(),
-    email: z.string().email().optional(),
+    email: z.string().optional(),
     image: uploadedImageSchema.nullish(),
     description: z.string().max(MAX_PARTNER_DESCRIPTION_LENGTH).nullish(),
     country: z.enum(Object.keys(COUNTRIES) as [string, ...string[]]).nullish(),
@@ -36,7 +36,7 @@ const updatePartnerProfileSchema = z
     companyName: z.string().nullish(),
     discoverable: z.boolean().optional(),
   })
-  .merge(PartnerProfileSchema.partial())
+  .extend(PartnerProfileSchema.partial().shape)
   .transform((data) => ({
     ...data,
     companyName: data.profileType === "individual" ? null : data.companyName,
