@@ -19,12 +19,14 @@ interface FormattedTimeseriesPoint extends TimeseriesPoint {
   date: Date;
 }
 
-const adminPayoutsQuerySchema = analyticsQuerySchema
-  .pick({ interval: true, start: true, end: true })
-  .extend({
+const adminPayoutsQuerySchema = z
+  .object({
     programId: z.string().optional(),
     status: z.nativeEnum(InvoiceStatus).optional(),
-  });
+  })
+  .extend(
+    analyticsQuerySchema.pick({ interval: true, start: true, end: true }).shape,
+  );
 
 export const GET = withAdmin(async ({ searchParams }) => {
   const {
