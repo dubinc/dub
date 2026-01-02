@@ -7,6 +7,8 @@ import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import {
+  AnimatedSizeContainer,
+  Filter,
   LinkLogo,
   Table,
   TimestampTooltip,
@@ -16,6 +18,7 @@ import {
 } from "@dub/ui";
 import { User } from "@dub/ui/icons";
 import {
+  cn,
   COUNTRIES,
   currencyFormatter,
   formatDate,
@@ -25,6 +28,7 @@ import {
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useMemo } from "react";
+import { usePartnerCustomerFilters } from "./use-partner-customer-filters";
 
 export function ProgramCustomersPageClient() {
   const { programSlug } = useParams<{ programSlug: string }>();
@@ -33,6 +37,16 @@ export function ProgramCustomersPageClient() {
   const { data: customers, isLoading } = usePartnerCustomers();
 
   const { pagination, setPagination } = usePagination();
+
+  const {
+    filters,
+    activeFilters,
+    onSelect,
+    onRemove,
+    onRemoveAll,
+    isFiltered,
+    setSelectedFilter,
+  } = usePartnerCustomerFilters();
 
   const customersColumns = {
     all: ["customer", "country", "link", "saleAmount", "createdAt"],
@@ -164,19 +178,48 @@ export function ProgramCustomersPageClient() {
   return (
     <PageWidthWrapper className="pb-10">
       <div className="flex flex-col gap-3">
-        {Boolean(programEnrollment?.customerDataSharingEnabledAt) && (
-          <SearchBoxPersisted
-            placeholder="Search by email or name"
-            inputClassName="w-full"
-          />
-        )}
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <Filter.Select
+              className="w-full md:w-fit"
+              filters={filters}
+              activeFilters={activeFilters}
+              onSelect={onSelect}
+              onRemove={onRemove}
+              onSelectedFilterChange={setSelectedFilter}
+            />
+            {Boolean(programEnrollment?.customerDataSharingEnabledAt) && (
+              <SearchBoxPersisted
+                placeholder="Search by email or name"
+                inputClassName="md:w-[16rem]"
+              />
+            )}
+          </div>
+          <AnimatedSizeContainer height>
+            <div>
+              <div className={cn(!isFiltered && "hidden")}>
+                <Filter.List
+                  filters={filters}
+                  activeFilters={activeFilters}
+                  onSelect={onSelect}
+                  onRemove={onRemove}
+                  onRemoveAll={onRemoveAll}
+                />
+              </div>
+            </div>
+          </AnimatedSizeContainer>
+        </div>
 
         {customers?.length !== 0 ? (
           <Table {...tableProps} table={table} />
         ) : (
           <AnimatedEmptyState
-            title="No customers yet"
-            description="No customers have been recorded for this program yet. Once customers start converting through your links, they'll appear here."
+            title={isFiltered ? "No customers found" : "No customers yet"}
+            description={
+              isFiltered
+                ? "No customers found for the selected filters. Adjust your filters to refine your search results."
+                : "No customers have been recorded for this program yet. Once customers start converting through your links, they'll appear here."
+            }
             cardContent={() => (
               <>
                 <User className="size-4 text-neutral-700" />

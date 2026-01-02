@@ -16,7 +16,9 @@ import { z } from "zod";
 export const GET = withPartnerProfile(
   async ({ partner, params, searchParams }) => {
     const { programId } = params;
-    const { search } = searchParams as {
+    const { country, linkId, search } = searchParams as {
+      country?: string;
+      linkId?: string;
       search?: string;
     };
 
@@ -45,6 +47,8 @@ export const GET = withPartnerProfile(
         partnerId: partner.id,
         programId: program.id,
         projectId: program.workspaceId,
+        ...(country && { country }),
+        ...(linkId && { linkId }),
         // Only allow search if customer data sharing is enabled
         ...(search && customerDataSharingEnabledAt
           ? search.includes("@")
