@@ -37,7 +37,7 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
           content: prompt,
         },
       ],
-      maxTokens: 300,
+      maxOutputTokens: 300,
     });
 
     // only count usage for the sonnet model
@@ -54,7 +54,7 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
       );
     }
 
-    return result.toDataStreamResponse();
+    return result.toTextStreamResponse();
   } catch (error) {
     return handleAndReturnErrorResponse(error);
   }

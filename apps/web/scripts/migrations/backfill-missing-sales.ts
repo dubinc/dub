@@ -67,6 +67,7 @@ async function main() {
           if (
             alreadyLogged.some(
               (e) =>
+                e !== null &&
                 "customer" in e &&
                 e.customer?.externalId === customer.externalId,
             )
