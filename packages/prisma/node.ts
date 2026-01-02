@@ -36,6 +36,8 @@ const prismaClientSingleton = () => {
     ssl: {
       rejectUnauthorized: false,
     },
+    socketTimeout: 60000,
+    
   });
 
   return new PrismaClient({
