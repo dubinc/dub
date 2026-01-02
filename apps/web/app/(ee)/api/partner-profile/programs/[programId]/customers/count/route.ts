@@ -88,6 +88,7 @@ export const GET = withPartnerProfile(
             linkId: "desc",
           },
         },
+        take: 10000,
       });
 
       const links = await prisma.link.findMany({
@@ -99,6 +100,7 @@ export const GET = withPartnerProfile(
           domain: true,
           key: true,
           shortLink: true,
+          url: true,
         },
       });
 
@@ -111,6 +113,7 @@ export const GET = withPartnerProfile(
             domain: link.domain,
             key: link.key,
             shortLink: link.shortLink,
+            url: link.url,
           };
         })
         .filter(Boolean);

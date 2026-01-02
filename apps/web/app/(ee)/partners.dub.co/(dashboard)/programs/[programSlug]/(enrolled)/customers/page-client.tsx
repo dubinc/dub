@@ -2,6 +2,7 @@
 
 import usePartnerCustomers from "@/lib/swr/use-partner-customers";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
+import { PARTNER_CUSTOMERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/programs";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
@@ -14,6 +15,7 @@ import {
   TimestampTooltip,
   useColumnVisibility,
   usePagination,
+  useRouterStuff,
   useTable,
 } from "@dub/ui";
 import { User } from "@dub/ui/icons";
@@ -31,12 +33,19 @@ import { useMemo } from "react";
 import { usePartnerCustomerFilters } from "./use-partner-customer-filters";
 
 export function ProgramCustomersPageClient() {
+  const { searchParams, queryParams } = useRouterStuff();
+
   const { programSlug } = useParams<{ programSlug: string }>();
   const { programEnrollment } = useProgramEnrollment();
 
   const { data: customers, isLoading } = usePartnerCustomers();
 
-  const { pagination, setPagination } = usePagination();
+  const { pagination, setPagination } = usePagination(
+    PARTNER_CUSTOMERS_MAX_PAGE_SIZE,
+  );
+
+  const sortBy = searchParams.get("sortBy") || "createdAt";
+  const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
   const {
     filters,
@@ -166,7 +175,18 @@ export function ProgramCustomersPageClient() {
     onPaginationChange: setPagination,
     columnVisibility,
     onColumnVisibilityChange: setColumnVisibility,
-    sortableColumns: [],
+    sortableColumns: ["saleAmount", "createdAt"],
+    sortBy,
+    sortOrder,
+    onSortChange: ({ sortBy, sortOrder }) =>
+      queryParams({
+        set: {
+          ...(sortBy && { sortBy }),
+          ...(sortOrder && { sortOrder }),
+        },
+        del: "page",
+        scroll: false,
+      }),
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (p) => `customer${p ? "s" : ""}`,

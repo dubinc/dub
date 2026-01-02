@@ -17,7 +17,7 @@ import { z } from "zod";
 export const GET = withPartnerProfile(
   async ({ partner, params, searchParams }) => {
     const { programId } = params;
-    const { search, country, linkId } =
+    const { search, country, linkId, sortBy, sortOrder, page, pageSize } =
       getPartnerCustomersQuerySchema.parse(searchParams);
 
     const { program, totalCommissions, customerDataSharingEnabledAt } =
@@ -73,8 +73,10 @@ export const GET = withPartnerProfile(
         },
       },
       orderBy: {
-        createdAt: "desc",
+        [sortBy]: sortOrder,
       },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
     });
 
     // Map customers with their data
