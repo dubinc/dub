@@ -633,7 +633,7 @@ importers:
     dependencies:
       '@hubspot/cli':
         specifier: ^7.6.2
-        version: 7.6.2(@babel/core@7.24.5)(@types/node@18.11.9)(@types/react-dom@19.1.9(@types/react@19.1.15))(@types/react@19.1.15)(encoding@0.1.13)(prettier@3.6.2)(rollup@4.52.5)(styled-components@6.1.19(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(terser@5.27.0)(typescript@5.6.2)(vite@5.4.8(@types/node@18.11.9)(terser@5.27.0))
+        version: 7.6.2(@babel/core@7.28.4)(@types/node@18.11.9)(@types/react-dom@19.1.9(@types/react@19.1.15))(@types/react@19.1.15)(encoding@0.1.13)(prettier@3.6.2)(rollup@4.52.5)(styled-components@6.1.19(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(terser@5.27.0)(typescript@5.6.2)(vite@5.4.8(@types/node@18.11.9)(terser@5.27.0))
     devDependencies:
       '@types/node':
         specifier: 18.11.9
@@ -651,23 +651,23 @@ importers:
   packages/prisma:
     dependencies:
       '@planetscale/database':
-        specifier: 1.19.0
+        specifier: ^1.19.0
         version: 1.19.0
       '@prisma/adapter-mariadb':
-        specifier: ^7.2.0
-        version: 7.2.0
+        specifier: ^6.19.1
+        version: 6.19.1
       '@prisma/adapter-planetscale':
-        specifier: 6.19.1
+        specifier: ^6.19.1
         version: 6.19.1
       '@prisma/client':
-        specifier: 6.19.1
+        specifier: ^6.19.1
         version: 6.19.1(prisma@6.19.1(typescript@5.2.2))(typescript@5.2.2)
     devDependencies:
       '@types/node':
         specifier: 18.11.9
         version: 18.11.9
       prisma:
-        specifier: 6.19.1
+        specifier: ^6.19.1
         version: 6.19.1(typescript@5.2.2)
       tsx:
         specifier: ^4.11.0
@@ -3272,8 +3272,8 @@ packages:
   '@polka/url@1.0.0-next.29':
     resolution: {integrity: sha512-wwQAWhWSuHaag8c4q/KN/vCoeOJYshAIvMQwD4GpSb3OiZklFfvAgmj0VCBBImRpuF/aFgIRzllXlVX93Jevww==}
 
-  '@prisma/adapter-mariadb@7.2.0':
-    resolution: {integrity: sha512-bOCnDgT79dWUW3RMf532ATeaRcDPLtbYoLvuvzg4Cb/KDnzc+yeSJDZTyVFg+C5peR0BN6jYzUnmQSiMyGd1UQ==}
+  '@prisma/adapter-mariadb@6.19.1':
+    resolution: {integrity: sha512-oriphZQVkC3Yym+jNZTHQYc6Wm6APsYHsBzY3N/Oo7NAGf4DUpzpmGUy7MBhPNc9ySofDJsWwOdw6kj2dx37ng==}
 
   '@prisma/adapter-planetscale@6.19.1':
     resolution: {integrity: sha512-5ooI/q9mzBUnomqqx6ADkaE706AukbliH3O8cWujGOYyH/uQbZhlNOMJX7oKLOz1nWEV3BvnxLI9qGK0+fg50Q==}
@@ -3296,14 +3296,8 @@ packages:
   '@prisma/debug@6.19.1':
     resolution: {integrity: sha512-h1JImhlAd/s5nhY/e9qkAzausWldbeT+e4nZF7A4zjDYBF4BZmKDt4y0jK7EZapqOm1kW7V0e9agV/iFDy3fWw==}
 
-  '@prisma/debug@7.2.0':
-    resolution: {integrity: sha512-YSGTiSlBAVJPzX4ONZmMotL+ozJwQjRmZweQNIq/ER0tQJKJynNkRB3kyvt37eOfsbMCXk3gnLF6J9OJ4QWftw==}
-
   '@prisma/driver-adapter-utils@6.19.1':
     resolution: {integrity: sha512-W6Ds1lOZ2H6VGikchhOYs9dfKgPymfS/FJjtgYRqNTxJyHRyHsfTzGG+MOAupeLhZFHPWPA8eX12gNbgAGT8/g==}
-
-  '@prisma/driver-adapter-utils@7.2.0':
-    resolution: {integrity: sha512-gzrUcbI9VmHS24Uf+0+7DNzdIw7keglJsD5m/MHxQOU68OhGVzlphQRobLiDMn8CHNA2XN8uugwKjudVtnfMVQ==}
 
   '@prisma/engines-version@7.1.1-3.c2990dca591cba766e3b7ef5d9e8a84796e47ab7':
     resolution: {integrity: sha512-03bgb1VD5gvuumNf+7fVGBzfpJPjmqV423l/WxsWk2cNQ42JD0/SsFBPhN6z8iAvdHs07/7ei77SKu7aZfq8bA==}
@@ -14429,9 +14423,9 @@ snapshots:
       '@babel/core': 7.24.5
       '@babel/helper-plugin-utils': 7.25.9
 
-  '@babel/plugin-syntax-jsx@7.27.1(@babel/core@7.24.5)':
+  '@babel/plugin-syntax-jsx@7.27.1(@babel/core@7.28.4)':
     dependencies:
-      '@babel/core': 7.24.5
+      '@babel/core': 7.28.4
       '@babel/helper-plugin-utils': 7.27.1
     optional: true
 
@@ -15179,7 +15173,7 @@ snapshots:
       - encoding
       - supports-color
 
-  '@hubspot/cli@7.6.2(@babel/core@7.24.5)(@types/node@18.11.9)(@types/react-dom@19.1.9(@types/react@19.1.15))(@types/react@19.1.15)(encoding@0.1.13)(prettier@3.6.2)(rollup@4.52.5)(styled-components@6.1.19(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(terser@5.27.0)(typescript@5.6.2)(vite@5.4.8(@types/node@18.11.9)(terser@5.27.0))':
+  '@hubspot/cli@7.6.2(@babel/core@7.28.4)(@types/node@18.11.9)(@types/react-dom@19.1.9(@types/react@19.1.15))(@types/react@19.1.15)(encoding@0.1.13)(prettier@3.6.2)(rollup@4.52.5)(styled-components@6.1.19(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(terser@5.27.0)(typescript@5.6.2)(vite@5.4.8(@types/node@18.11.9)(terser@5.27.0))':
     dependencies:
       '@hubspot/local-dev-lib': 3.19.1
       '@hubspot/project-parsing-lib': 0.8.6(@hubspot/local-dev-lib@3.19.1)
@@ -15210,7 +15204,7 @@ snapshots:
       yargs: 17.7.2
       yargs-parser: 21.1.1
     optionalDependencies:
-      '@hubspot/cms-dev-server': 1.0.38(@babel/core@7.24.5)(@types/node@18.11.9)(@types/react-dom@19.1.9(@types/react@19.1.15))(@types/react@19.1.15)(encoding@0.1.13)(prettier@3.6.2)(rollup@4.52.5)(styled-components@6.1.19(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(terser@5.27.0)
+      '@hubspot/cms-dev-server': 1.0.38(@babel/core@7.28.4)(@types/node@18.11.9)(@types/react-dom@19.1.9(@types/react@19.1.15))(@types/react@19.1.15)(encoding@0.1.13)(prettier@3.6.2)(rollup@4.52.5)(styled-components@6.1.19(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(terser@5.27.0)
       '@modelcontextprotocol/sdk': 1.13.3
     transitivePeerDependencies:
       - '@babel/core'
@@ -15248,7 +15242,7 @@ snapshots:
       react-dom: 18.3.1(react@18.3.1)
     optional: true
 
-  '@hubspot/cms-dev-server@1.0.38(@babel/core@7.24.5)(@types/node@18.11.9)(@types/react-dom@19.1.9(@types/react@19.1.15))(@types/react@19.1.15)(encoding@0.1.13)(prettier@3.6.2)(rollup@4.52.5)(styled-components@6.1.19(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(terser@5.27.0)':
+  '@hubspot/cms-dev-server@1.0.38(@babel/core@7.28.4)(@types/node@18.11.9)(@types/react-dom@19.1.9(@types/react@19.1.15))(@types/react@19.1.15)(encoding@0.1.13)(prettier@3.6.2)(rollup@4.52.5)(styled-components@6.1.19(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(terser@5.27.0)':
     dependencies:
       '@babel/code-frame': 7.26.2
       '@babel/parser': 7.26.2
@@ -15275,7 +15269,7 @@ snapshots:
       '@vitejs/plugin-react': 4.7.0(vite@5.4.8(@types/node@18.11.9)(terser@5.27.0))
       ansi-to-html: 0.7.2
       babel-plugin-macros: 3.1.0
-      babel-plugin-styled-components: 2.1.4(@babel/core@7.24.5)(styled-components@6.1.19(react-dom@18.3.1(react@18.3.1))(react@18.3.1))
+      babel-plugin-styled-components: 2.1.4(@babel/core@7.28.4)(styled-components@6.1.19(react-dom@18.3.1(react@18.3.1))(react@18.3.1))
       chalk: 5.4.1
       class-variance-authority: 0.7.0
       cli-progress: 3.12.0
@@ -15294,7 +15288,7 @@ snapshots:
       react-dom: 18.3.1(react@18.3.1)
       request: 2.88.2
       storybook: 8.6.14(prettier@3.6.2)
-      styled-jsx: 5.1.2(@babel/core@7.24.5)(babel-plugin-macros@3.1.0)(react@18.3.1)
+      styled-jsx: 5.1.2(@babel/core@7.28.4)(babel-plugin-macros@3.1.0)(react@18.3.1)
       tailwind-merge: 2.6.0
       tailwindcss-animate: 1.0.7
       typescript: 4.7.4
@@ -16341,9 +16335,9 @@ snapshots:
   '@polka/url@1.0.0-next.29':
     optional: true
 
-  '@prisma/adapter-mariadb@7.2.0':
+  '@prisma/adapter-mariadb@6.19.1':
     dependencies:
-      '@prisma/driver-adapter-utils': 7.2.0
+      '@prisma/driver-adapter-utils': 6.19.1
       mariadb: 3.4.5
 
   '@prisma/adapter-planetscale@6.19.1':
@@ -16373,15 +16367,9 @@ snapshots:
 
   '@prisma/debug@6.19.1': {}
 
-  '@prisma/debug@7.2.0': {}
-
   '@prisma/driver-adapter-utils@6.19.1':
     dependencies:
       '@prisma/debug': 6.19.1
-
-  '@prisma/driver-adapter-utils@7.2.0':
-    dependencies:
-      '@prisma/debug': 7.2.0
 
   '@prisma/engines-version@7.1.1-3.c2990dca591cba766e3b7ef5d9e8a84796e47ab7': {}
 
@@ -20485,11 +20473,11 @@ snapshots:
       resolve: 1.22.6
     optional: true
 
-  babel-plugin-styled-components@2.1.4(@babel/core@7.24.5)(styled-components@6.1.19(react-dom@18.3.1(react@18.3.1))(react@18.3.1)):
+  babel-plugin-styled-components@2.1.4(@babel/core@7.28.4)(styled-components@6.1.19(react-dom@18.3.1(react@18.3.1))(react@18.3.1)):
     dependencies:
       '@babel/helper-annotate-as-pure': 7.27.3
       '@babel/helper-module-imports': 7.25.9
-      '@babel/plugin-syntax-jsx': 7.27.1(@babel/core@7.24.5)
+      '@babel/plugin-syntax-jsx': 7.27.1(@babel/core@7.28.4)
       lodash: 4.17.21
       picomatch: 2.3.1
       styled-components: 6.1.19(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -27409,12 +27397,12 @@ snapshots:
       tslib: 2.6.2
     optional: true
 
-  styled-jsx@5.1.2(@babel/core@7.24.5)(babel-plugin-macros@3.1.0)(react@18.3.1):
+  styled-jsx@5.1.2(@babel/core@7.28.4)(babel-plugin-macros@3.1.0)(react@18.3.1):
     dependencies:
       client-only: 0.0.1
       react: 18.3.1
     optionalDependencies:
-      '@babel/core': 7.24.5
+      '@babel/core': 7.28.4
       babel-plugin-macros: 3.1.0
     optional: true
 
