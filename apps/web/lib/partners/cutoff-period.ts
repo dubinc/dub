@@ -7,7 +7,7 @@ import {
   subQuarters,
   subYears,
 } from "date-fns";
-import z from "../zod";
+import z from "zod";
 
 export const CUTOFF_PERIOD = [
   {

@@ -1,4 +1,4 @@
-import z from "../zod";
+import z from "zod";
 import { leadEventSchemaTB } from "../zod/schemas/leads";
 import { tb } from "./client";
 

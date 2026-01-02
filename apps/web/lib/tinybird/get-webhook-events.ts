@@ -1,4 +1,4 @@
-import z from "../zod";
+import z from "zod";
 import { webhookEventSchemaTB } from "../zod/schemas/webhooks";
 import { tb } from "./client";
 

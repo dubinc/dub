@@ -5,7 +5,7 @@ import { OG_AVATAR_URL } from "@dub/utils";
 import { decodeLinkIfCaseSensitive } from "../api/links/case-sensitivity";
 import { transformLink } from "../api/links/utils/transform-link";
 import { generateRandomName } from "../names";
-import z from "../zod";
+import z from "zod";
 import { eventsFilterTB } from "../zod/schemas/analytics";
 import {
   clickEventResponseSchema,

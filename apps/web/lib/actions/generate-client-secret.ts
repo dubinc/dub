@@ -4,7 +4,7 @@ import { prisma } from "@dub/prisma";
 import { OAUTH_CONFIG } from "../api/oauth/constants";
 import { createToken } from "../api/oauth/utils";
 import { hashToken } from "../auth";
-import z from "../zod";
+import z from "zod";
 import { authActionClient } from "./safe-action";
 
 const schema = z.object({

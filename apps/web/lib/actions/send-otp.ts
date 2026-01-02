@@ -10,7 +10,7 @@ import { flattenValidationErrors } from "next-safe-action";
 import { generateOTP } from "../auth";
 import { EMAIL_OTP_EXPIRY_IN } from "../auth/constants";
 import { isGenericEmail } from "../is-generic-email";
-import z from "../zod";
+import z from "zod";
 import { emailSchema, passwordSchema } from "../zod/schemas/auth";
 import { throwIfAuthenticated } from "./auth/throw-if-authenticated";
 import { actionClient } from "./safe-action";

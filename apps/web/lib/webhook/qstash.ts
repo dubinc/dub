@@ -6,7 +6,7 @@ import { formatEventForSegment } from "../integrations/segment/transform";
 import { createSegmentBasicAuthHeader } from "../integrations/segment/utils";
 import { formatEventForSlack } from "../integrations/slack/transform";
 import { WebhookTrigger } from "../types";
-import z from "../zod";
+import z from "zod";
 import { createWebhookSignature } from "./signature";
 import { prepareWebhookPayload } from "./transform";
 import { WebhookEventPayload } from "./types";

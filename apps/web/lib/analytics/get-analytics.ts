@@ -5,7 +5,7 @@ import { FolderAccessLevel } from "@dub/prisma/client";
 import { linkConstructor, punyEncode } from "@dub/utils";
 import { decodeKeyIfCaseSensitive } from "../api/links/case-sensitivity";
 import { conn } from "../planetscale";
-import z from "../zod";
+import z from "zod";
 import { analyticsFilterTB } from "../zod/schemas/analytics";
 import { analyticsResponse } from "../zod/schemas/analytics-response";
 import {

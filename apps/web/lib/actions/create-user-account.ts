@@ -6,7 +6,7 @@ import { waitUntil } from "@vercel/functions";
 import { flattenValidationErrors } from "next-safe-action";
 import { createId } from "../api/create-id";
 import { hashPassword } from "../auth/password";
-import z from "../zod";
+import z from "zod";
 import { signUpSchema } from "../zod/schemas/auth";
 import { throwIfAuthenticated } from "./auth/throw-if-authenticated";
 import { actionClient } from "./safe-action";
