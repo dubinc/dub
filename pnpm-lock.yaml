@@ -651,23 +651,23 @@ importers:
   packages/prisma:
     dependencies:
       '@planetscale/database':
-        specifier: ^1.19.0
+        specifier: 1.19.0
         version: 1.19.0
       '@prisma/adapter-mariadb':
-        specifier: ^6.19.1
+        specifier: 6.19.1
         version: 6.19.1
       '@prisma/adapter-planetscale':
-        specifier: ^6.19.1
+        specifier: 6.19.1
         version: 6.19.1
       '@prisma/client':
-        specifier: ^6.19.1
+        specifier: 6.19.1
         version: 6.19.1(prisma@6.19.1(typescript@5.2.2))(typescript@5.2.2)
     devDependencies:
       '@types/node':
         specifier: 18.11.9
         version: 18.11.9
       prisma:
-        specifier: ^6.19.1
+        specifier: 6.19.1
         version: 6.19.1(typescript@5.2.2)
       tsx:
         specifier: ^4.11.0
