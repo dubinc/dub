@@ -9,7 +9,7 @@ import {
   LinesY,
   MoneyBills2,
   Msg,
-  User,
+  UserCheck,
 } from "@dub/ui";
 import { useParams, usePathname } from "next/navigation";
 import { useMemo } from "react";
@@ -41,9 +41,9 @@ export function PartnerNav() {
         icon: MoneyBills2,
       },
       {
-        id: "about",
-        label: "About",
-        icon: User,
+        id: "customers",
+        label: "Customers",
+        icon: UserCheck,
       },
       {
         id: "comments",

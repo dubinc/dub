@@ -1,21 +1,25 @@
 import { detectDuplicatePayoutMethodFraud } from "@/lib/api/fraud/detect-duplicate-payout-method-fraud";
 import { qstash } from "@/lib/cron";
-import { stripe } from "@/lib/stripe";
+import { getPartnerBankAccount } from "@/lib/partners/get-partner-bank-account";
 import { sendEmail } from "@dub/email";
 import ConnectedPayoutMethod from "@dub/email/templates/connected-payout-method";
 import DuplicatePayoutMethod from "@dub/email/templates/duplicate-payout-method";
 import { prisma } from "@dub/prisma";
-import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import Stripe from "stripe";
 
-const queue = qstash.queue({
-  queueName: "withdraw-stripe-balance",
+const stripePayoutQueue = qstash.queue({
+  queueName: "send-stripe-payout",
+});
+
+const balanceAvailableQueue = qstash.queue({
+  queueName: "handle-balance-available",
 });
 
 export async function accountUpdated(event: Stripe.Event) {
   const account = event.data.object as Stripe.Account;
 
-  const { country, payouts_enabled: payoutsEnabled } = account;
+  const { country, payouts_enabled: payoutsEnabled, capabilities } = account;
 
   const partner = await prisma.partner.findUnique({
     where: {
@@ -34,37 +38,31 @@ export async function accountUpdated(event: Stripe.Event) {
     return `Partner with stripeConnectId ${account.id} not found, skipping...`;
   }
 
-  if (!payoutsEnabled) {
-    if (partner.payoutsEnabledAt || partner.payoutMethodHash) {
+  if (
+    !payoutsEnabled ||
+    !capabilities?.transfers ||
+    capabilities.transfers === "inactive"
+  ) {
+    if (partner.payoutsEnabledAt) {
       await prisma.partner.update({
         where: {
           id: partner.id,
         },
         data: {
           payoutsEnabledAt: null,
-          payoutMethodHash: null,
         },
       });
-      return `Payouts disabled, updated partner ${partner.email} (${partner.stripeConnectId}) with payoutsEnabledAt and payoutMethodHash null`;
+      // TODO: notify partner about the change
+      return `Payouts disabled, updated partner ${partner.email} (${partner.stripeConnectId}) with payoutsEnabledAt null`;
     }
     return `No change in payout status for ${partner.email} (${partner.stripeConnectId}), skipping...`;
   }
 
-  const { data: externalAccounts } = await stripe.accounts.listExternalAccounts(
-    partner.stripeConnectId!,
-  );
+  const bankAccount = await getPartnerBankAccount(partner.stripeConnectId!);
 
-  const defaultExternalAccount = externalAccounts.find(
-    (account) => account.default_for_currency,
-  );
-
-  if (!defaultExternalAccount) {
-    // this should never happen, but just in case
-    await log({
-      message: `Expected at least 1 external account for partner ${partner.email} (${partner.stripeConnectId}), none found`,
-      type: "errors",
-    });
-    return `Expected at least 1 external account for partner ${partner.email} (${partner.stripeConnectId}), none found`;
+  if (!bankAccount) {
+    // TODO: account for cases where partner connects a debit card instead
+    return `No bank account found for partner ${partner.email} (${partner.stripeConnectId}), skipping...`;
   }
 
   const { payoutMethodHash } = await prisma.partner.update({
@@ -76,7 +74,7 @@ export async function accountUpdated(event: Stripe.Event) {
       payoutsEnabledAt: partner.payoutsEnabledAt
         ? undefined // Don't update if already set
         : new Date(),
-      payoutMethodHash: defaultExternalAccount.fingerprint,
+      payoutMethodHash: bankAccount.fingerprint,
     },
   });
 
@@ -98,8 +96,7 @@ export async function accountUpdated(event: Stripe.Event) {
     if (
       duplicatePartnersCount === 0 &&
       partner.email &&
-      !partner.payoutsEnabledAt &&
-      defaultExternalAccount.object === "bank_account"
+      !partner.payoutsEnabledAt
     ) {
       await sendEmail({
         variant: "notifications",
@@ -107,59 +104,84 @@ export async function accountUpdated(event: Stripe.Event) {
         to: partner.email,
         react: ConnectedPayoutMethod({
           email: partner.email,
-          payoutMethod: {
-            account_holder_name: defaultExternalAccount.account_holder_name,
-            bank_name: defaultExternalAccount.bank_name,
-            last4: defaultExternalAccount.last4,
-            routing_number: defaultExternalAccount.routing_number,
-          },
+          payoutMethod: bankAccount,
         }),
       });
     }
 
     // Notify the partner about duplicate payout method
-    if (
-      duplicatePartnersCount > 0 &&
-      partner.email &&
-      defaultExternalAccount.object === "bank_account"
-    ) {
+    if (duplicatePartnersCount > 0 && partner.email) {
       await sendEmail({
         variant: "notifications",
         subject: "Duplicate payout method detected",
         to: partner.email,
         react: DuplicatePayoutMethod({
           email: partner.email,
-          payoutMethod: {
-            account_holder_name: defaultExternalAccount.account_holder_name,
-            bank_name: defaultExternalAccount.bank_name,
-            last4: defaultExternalAccount.last4,
-            routing_number: defaultExternalAccount.routing_number,
-          },
+          payoutMethod: bankAccount,
         }),
       });
     }
   }
 
-  // Retry payouts that got stuck when the account was restricted (e.g: payout sent but paused
-  // due to verification requirements). Once payouts are re-enabled, queue them for processing.
-  const pendingPayouts = await prisma.payout.count({
-    where: {
-      partnerId: partner.id,
-      status: "sent",
-      mode: "internal",
-    },
-  });
-
-  if (pendingPayouts > 0) {
-    await queue.enqueueJSON({
-      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/balance-available`,
-      deduplicationId: event.id,
-      method: "POST",
-      body: {
-        stripeAccount: partner.stripeConnectId,
+  // Retry payouts that got stuck when the account was restricted
+  // (e.g: previously processed payouts OR payouts that were sent but paused due to verification requirements).
+  // Once payouts are re-enabled, queue them for processing.
+  const [previouslyProcessedPayouts, payoutsToWithdraw] = await Promise.all([
+    prisma.payout.count({
+      where: {
+        partnerId: partner.id,
+        status: "processed",
+        stripeTransferId: null,
       },
-    });
-  }
+    }),
+    prisma.payout.count({
+      where: {
+        partnerId: partner.id,
+        status: "sent",
+        mode: "internal",
+      },
+    }),
+  ]);
+  console.log({ previouslyProcessedPayouts, payoutsToWithdraw });
 
-  return `Updated partner ${partner.email} (${partner.stripeConnectId}) with country ${country}, payoutsEnabledAt set, payoutMethodHash ${defaultExternalAccount.fingerprint}`;
+  await Promise.allSettled([
+    ...(previouslyProcessedPayouts > 0
+      ? [
+          stripePayoutQueue
+            .enqueueJSON({
+              url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/send-stripe-payout`,
+              method: "POST",
+              deduplicationId: `${event.id}-send-stripe-payout`,
+              body: {
+                partnerId: partner.id,
+              },
+            })
+            .then((res) => {
+              console.log(
+                `Enqueued send-stripe-payout queue for partner ${partner.id}: ${res.messageId}`,
+              );
+            }),
+        ]
+      : []),
+    ...(payoutsToWithdraw > 0
+      ? [
+          balanceAvailableQueue
+            .enqueueJSON({
+              url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/balance-available`,
+              deduplicationId: `${event.id}-balance-available`,
+              method: "POST",
+              body: {
+                stripeAccount: partner.stripeConnectId,
+              },
+            })
+            .then((res) => {
+              console.log(
+                `Enqueued balance-available queue for partner ${partner.stripeConnectId}: ${res.messageId}`,
+              );
+            }),
+        ]
+      : []),
+  ]);
+
+  return `Updated partner ${partner.email} (${partner.stripeConnectId}) with country ${country}, payoutsEnabledAt set, payoutMethodHash ${bankAccount.fingerprint}`;
 }

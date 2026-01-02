@@ -8,7 +8,7 @@ model YearInReview {
   topCountries Json
 
   workspaceId String
-  workspace   Project @relation(fields: [workspaceId], references: [id])
+  workspace   Project @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
   createdAt DateTime  @default(now())
   sentAt    DateTime?

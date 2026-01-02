@@ -81,6 +81,16 @@ export const appRedirect = async (path: string) => {
   if (partnerPageRegex.test(path))
     return path.replace(partnerPageRegex, "/$1/program/partners/$2/links");
 
+  // Redirect "/[slug]/program/partners/:partnerId/about" to "/[slug]/program/partners/:partnerId/links?profile=true"
+  // Only applies when partnerId starts with "pn_" (exclude /applications)
+  const partnerAboutPageRegex =
+    /^\/([^\/]+)\/program\/partners\/(pn_[^\/]+)\/about$/;
+  if (partnerAboutPageRegex.test(path))
+    return path.replace(
+      partnerAboutPageRegex,
+      "/$1/program/partners/$2/links?profile=true",
+    );
+
   // Redirect "/[slug]/customers/:customerId" to "/[slug]/customers/:customerId/sales"
   const customersPageRegex = /^\/([^\/]+)\/customers\/([^\/]+)$/;
   if (customersPageRegex.test(path))

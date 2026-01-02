@@ -12,6 +12,7 @@ import { usePartnersUpgradeModal } from "../partners-upgrade-modal";
 import { FraudDisclaimerBanner } from "./fraud-disclaimer-banner";
 import { PartnerApplicationFraudSeverityIndicator } from "./partner-application-fraud-severity-indicator";
 import { usePartnerApplicationRiskSummaryModal } from "./partner-application-risk-summary-modal";
+import { PartnerCrossProgramSummary } from "./partner-cross-program-summary";
 
 interface PartnerApplicationRiskSummaryProps {
   partner: EnrolledPartnerExtendedProps;
@@ -83,6 +84,14 @@ export function PartnerApplicationRiskSummary({
             );
           })}
         </ul>
+      </div>
+
+      <div className="flex flex-col gap-3 p-4">
+        <h3 className="text-content-emphasis text-sm font-semibold">
+          Program owner activity
+        </h3>
+        <PartnerCrossProgramSummary partnerId={partner.id} />
+
         {severity === "high" && (
           <FraudDisclaimerBanner className="gap-2 px-3 py-2" />
         )}
@@ -131,11 +140,9 @@ export function PartnerApplicationRiskSummaryUpsell() {
       <div className="relative flex flex-col gap-4 p-4">
         {/* Blurred dummy risk list */}
         <div className="pointer-events-none flex select-none flex-col gap-4 blur-[3px]">
-          <div className="flex items-center justify-between">
-            <h3 className="text-content-emphasis text-sm font-semibold">
-              Risk analysis
-            </h3>
-          </div>
+          <h3 className="text-content-emphasis text-sm font-semibold">
+            Risk analysis
+          </h3>
 
           <PartnerApplicationFraudSeverityIndicator severity={severity} />
 

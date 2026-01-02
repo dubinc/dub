@@ -70,8 +70,8 @@ export async function queueStripePayouts(
           deduplicationId: `${invoiceId}-${partnerId}`,
           method: "POST",
           body: {
-            invoiceId,
             partnerId,
+            invoiceId,
             // only pass chargeId if payment method is card
             // this is because we're passing chargeId as source_transaction for card payouts since card payouts can take a short time to settle fully
             // we omit chargeId/source_transaction for other payment methods (ACH, SEPA, etc.) since those settle via charge.succeeded webhook after ~4 days

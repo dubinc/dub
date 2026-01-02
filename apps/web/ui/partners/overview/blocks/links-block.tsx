@@ -22,7 +22,7 @@ import { ExceededEventsLimit } from "../exceeded-events-limit";
 import { ProgramOverviewBlock } from "../program-overview-block";
 
 export function LinksBlock() {
-  const { slug: workspaceSlug, exceededClicks } = useWorkspace();
+  const { slug: workspaceSlug, exceededEvents } = useWorkspace();
   const { program } = useProgram();
 
   const { getQueryString } = useRouterStuff();
@@ -39,7 +39,7 @@ export function LinksBlock() {
       saleAmount: number;
     }[]
   >(
-    !exceededClicks &&
+    !exceededEvents &&
       `/api/analytics?${editQueryString(queryString, {
         groupBy: "top_links",
         event: program?.primaryRewardEvent === "lead" ? "leads" : "sales",
@@ -58,7 +58,7 @@ export function LinksBlock() {
       )}`}
     >
       <div className="divide-border-subtle @2xl:h-60 flex h-auto flex-col divide-y">
-        {exceededClicks ? (
+        {exceededEvents ? (
           <ExceededEventsLimit />
         ) : isLoading ? (
           <div className="flex size-full items-center justify-center py-4">

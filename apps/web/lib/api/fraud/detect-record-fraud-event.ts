@@ -1,7 +1,6 @@
 import { CreateFraudEventInput, FraudEventContext } from "@/lib/types";
 import { INACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
 import { prettyPrint } from "@dub/utils";
 import { fraudEventContext } from "../../zod/schemas/schemas";
 import { createFraudEvents } from "./create-fraud-events";
@@ -54,7 +53,7 @@ export async function detectAndRecordFraudEvent(context: FraudEventContext) {
       if (triggered) {
         triggeredRules.push({
           type: rule.type,
-          metadata: metadata as unknown as Prisma.JsonValue,
+          metadata,
         });
       }
     } catch (error) {

@@ -5,7 +5,6 @@ import { toast } from "sonner";
 import { REWIND_STEPS } from "../../../../../../ui/partners/rewind/constants";
 
 type ShareRewindModalInnerProps = {
-  rewindId: string;
   step: string;
 };
 
@@ -22,8 +21,8 @@ function ShareRewindModal(props: ShareRewindModalProps) {
   );
 }
 
-function ShareRewindModalInner({ rewindId, step }: ShareRewindModalInnerProps) {
-  const imageUrl = `/api/og/partner-rewind?${new URLSearchParams({ rewindId, step }).toString()}`;
+function ShareRewindModalInner({ step }: ShareRewindModalInnerProps) {
+  const imageUrl = `/api/og/partner-rewind?${new URLSearchParams({ step }).toString()}`;
 
   const [isLoading, setIsLoading] = useState(false);
   const [blob, setBlob] = useState<Blob | null>(null);
@@ -52,7 +51,7 @@ function ShareRewindModalInner({ rewindId, step }: ShareRewindModalInnerProps) {
             <LoadingSpinner />
           </div>
           <img
-            src={`/api/og/partner-rewind?${new URLSearchParams({ rewindId, step }).toString()}`}
+            src={`/api/og/partner-rewind?${new URLSearchParams({ step }).toString()}`}
             alt="share rewind image"
             className="relative size-full"
           />

@@ -10,6 +10,7 @@ import { payoutPaid } from "./payout-paid";
 
 const relevantEvents = new Set([
   "account.application.deauthorized",
+  "account.external_account.updated",
   "account.updated",
   "balance.available",
   "payout.paid",
@@ -49,6 +50,7 @@ export const POST = async (req: Request) => {
       case "account.updated":
         response = await accountUpdated(event);
         break;
+      case "account.external_account.updated":
       case "balance.available":
         response = await balanceAvailable(event);
         break;
@@ -61,7 +63,7 @@ export const POST = async (req: Request) => {
     }
   } catch (error) {
     await log({
-      message: `Stripe webhook failed (${event.type}). Error: ${error.message}`,
+      message: `Stripe Connect webhook failed (${event.type}). Error: ${error.message}`,
       type: "errors",
     });
 

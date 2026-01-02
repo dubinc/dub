@@ -740,4 +740,8 @@ export type CreateFraudEventInput = Pick<
   FraudEventGroup,
   "programId" | "partnerId" | "type"
 > &
-  Partial<Pick<FraudEvent, "linkId" | "eventId" | "customerId" | "metadata">>;
+  Partial<
+    Pick<FraudEvent, "linkId" | "eventId" | "customerId" | "sourceProgramId">
+  > & {
+    metadata?: Record<string, unknown> | null;
+  };

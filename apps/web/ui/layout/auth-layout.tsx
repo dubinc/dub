@@ -1,12 +1,22 @@
 import { ClientOnly } from "@dub/ui";
+import { cn } from "@dub/utils";
 import { PropsWithChildren, Suspense } from "react";
 
 export const AuthLayout = ({
   showTerms,
+  className,
   children,
-}: PropsWithChildren<{ showTerms?: "app" | "partners" }>) => {
+}: PropsWithChildren<{
+  showTerms?: "app" | "partners";
+  className?: string;
+}>) => {
   return (
-    <div className="flex min-h-screen w-full flex-col items-center justify-between">
+    <div
+      className={cn(
+        "flex min-h-screen w-full flex-col items-center justify-between",
+        className,
+      )}
+    >
       {/* Empty div to help center main content */}
       <div className="grow basis-0">
         <div className="h-24" />

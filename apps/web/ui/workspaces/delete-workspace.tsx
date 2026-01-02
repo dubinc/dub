@@ -19,9 +19,12 @@ export default function DeleteWorkspace() {
 
   return (
     <div
-      className={cn("rounded-xl border border-red-200 bg-white", {
-        "border-neutral-200": permissionsError,
-      })}
+      className={cn(
+        "overflow-hidden rounded-xl border border-red-200 bg-white",
+        {
+          "border-neutral-200": permissionsError,
+        },
+      )}
     >
       <DeleteWorkspaceModal />
       <div className="flex flex-col space-y-1 p-6">
