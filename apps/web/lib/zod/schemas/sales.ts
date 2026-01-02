@@ -82,7 +82,6 @@ export const trackSaleRequestSchema = z.object({
       "[For direct sale tracking]: The name of the customer. If not passed, a random name will be generated (e.g. “Big Red Caribou”).",
     ),
   customerEmail: z
-    .string()
     .email()
     .max(100)
     .nullish()

@@ -638,7 +638,6 @@ export const LinkSchema = z
         "The date and time when the short link will expire in ISO-8601 format.",
       ),
     expiredUrl: z
-      .string()
       .url()
       .nullable()
       .describe("The URL to redirect to when the short link has expired."),
@@ -729,13 +728,11 @@ export const LinkSchema = z
       .nullable()
       .describe("The comments for the short link."),
     shortLink: z
-      .string()
       .url()
       .describe(
         "The full URL of the short link, including the https protocol (e.g. `https://dub.sh/try`).",
       ),
     qrCode: z
-      .string()
       .url()
       .describe(
         "The full URL of the QR code for the short link (e.g. `https://api.dub.co/qr?url=https://dub.sh/try`).",

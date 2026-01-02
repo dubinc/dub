@@ -105,7 +105,6 @@ export const base64ImageAllowSVGSchema = z
   .transform((v) => v || null);
 
 export const storedR2ImageUrlSchema = z
-  .string()
   .url()
   .trim()
   .refine((url) => url.startsWith(R2_URL), {
@@ -123,7 +122,6 @@ export const uploadedImageSchema = z
     base64ImageSchema,
     storedR2ImageUrlSchema,
     z
-      .string()
       .url()
       .trim()
       .refine((url) => url.startsWith(GOOGLE_FAVICON_URL), {
@@ -140,7 +138,6 @@ export const uploadedImageAllowSVGSchema = z
   .transform((v) => v || null);
 
 export const publicHostedImageSchema = z
-  .string()
   .url()
   .trim()
   .refine((url) => url.startsWith("http://") || url.startsWith("https://"), {

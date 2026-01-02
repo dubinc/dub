@@ -31,7 +31,6 @@ export const programLanderFileSchema = z.object({
   name: z.string(),
   description: z.string().optional(),
   url: z
-    .string()
     .url()
     .refine((url) => url.startsWith("http://") || url.startsWith("https://"), {
       message: "Only HTTP and HTTPS URLs are allowed for files.",

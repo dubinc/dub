@@ -511,11 +511,10 @@ export const createPartnerSchema = z.object({
       "The partner's full name. If undefined, the partner's email will be used in lieu of their name (e.g. `john@acme.com`)",
     ),
   email: z
-    .string()
+    .email()
     .trim()
     .min(1)
     .max(190)
-    .email()
     .describe(
       "The partner's email address. Partners will be able to claim their profile by signing up at `partners.dub.co` with this email.",
     ),
