@@ -99,7 +99,7 @@ export const tokenGrantSchema = z.discriminatedUnion(
   "grant_type",
   [authCodeExchangeSchema, refreshTokenSchema],
   {
-    errorMap: () => ({
+    error: () => ({
       message: "grant_type must be 'authorization_code' or 'refresh_token'",
     }),
   },
