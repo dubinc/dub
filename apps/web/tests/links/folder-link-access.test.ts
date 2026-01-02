@@ -1,4 +1,4 @@
-import { Link } from "@dub/prisma/generated/browser";
+import { Link } from "@dub/prisma/types";
 import { IntegrationHarnessMember } from "tests/utils/integration-member";
 import { expectedLink } from "tests/utils/schema";
 import { describe, expect, test } from "vitest";
@@ -10,7 +10,6 @@ import {
   E2E_READ_ONLY_FOLDER_LINK_ID,
   E2E_WRITE_ACCESS_FOLDER_ID,
 } from "../utils/resource";
-
 const { domain, url } = E2E_LINK;
 
 describe.concurrent("Folder access permissions", async () => {
