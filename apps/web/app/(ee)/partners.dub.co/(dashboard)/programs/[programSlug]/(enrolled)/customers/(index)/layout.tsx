@@ -5,6 +5,7 @@ import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { InfoTooltip } from "@dub/ui";
 import { cn } from "@dub/utils";
+import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { CSSProperties, ReactNode } from "react";
 
@@ -52,9 +53,9 @@ export default function PartnerCustomersLayout({
             );
 
             return (
-              <button
+              <Link
                 key={tab.id}
-                type="button"
+                href={`/partners/programs/${programSlug}/customers${tab.href ? `/${tab.href}` : ""}`}
                 className={cn(
                   "border-border-subtle flex flex-col gap-1 rounded-lg border p-4 text-left transition-colors duration-100",
                   isActive
@@ -75,7 +76,7 @@ export default function PartnerCustomersLayout({
                 ) : (
                   <div className="h-6 w-12 animate-pulse rounded-md bg-neutral-200" />
                 )}
-              </button>
+              </Link>
             );
           })}
         </div>
