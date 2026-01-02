@@ -8,7 +8,7 @@ import * as z from "zod/v4";
 export const EmailDomainSchema = z.object({
   id: z.string(),
   slug: z.string(),
-  status: z.nativeEnum(EmailDomainStatus),
+  status: z.enum(EmailDomainStatus),
   resendDomainId: z.string().nullable(),
   lastChecked: z.date(),
   createdAt: z.date(),

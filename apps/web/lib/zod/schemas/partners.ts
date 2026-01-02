@@ -112,7 +112,7 @@ export const exportApplicationsColumnsDefault = [
 export const getPartnersQuerySchema = z
   .object({
     status: z
-      .nativeEnum(ProgramEnrollmentStatus)
+      .enum(ProgramEnrollmentStatus)
       .optional()
       .describe("A filter on the list based on the partner's `status` field.")
       .meta({ example: "approved" }),
@@ -240,24 +240,24 @@ export const MAX_PARTNER_INDUSTRY_INTERESTS = 8;
 
 export const PartnerProfileSchema = z.object({
   monthlyTraffic: z
-    .nativeEnum(MonthlyTraffic)
+    .enum(MonthlyTraffic)
     .nullable()
     .describe("The partner's monthly traffic."),
   industryInterests: z
-    .array(z.nativeEnum(IndustryInterest))
+    .array(z.enum(IndustryInterest))
     .max(MAX_PARTNER_INDUSTRY_INTERESTS)
     .refine((arr) => new Set(arr).size === arr.length, {
       message: "Duplicate industry interests are not allowed.",
     })
     .describe("The partner's industry interests."),
   preferredEarningStructures: z
-    .array(z.nativeEnum(PreferredEarningStructure))
+    .array(z.enum(PreferredEarningStructure))
     .refine((arr) => new Set(arr).size === arr.length, {
       message: "Duplicate preferred earning structures are not allowed.",
     })
     .describe("The partner's preferred earning structures."),
   salesChannels: z
-    .array(z.nativeEnum(SalesChannel))
+    .array(z.enum(SalesChannel))
     .refine((arr) => new Set(arr).size === arr.length, {
       message: "Duplicate sales channels are not allowed.",
     })
@@ -278,7 +278,7 @@ export const PartnerSchema = z
         "If the partner profile type is a company, this is the partner's legal company name.",
       ),
     profileType: z
-      .nativeEnum(PartnerProfileType)
+      .enum(PartnerProfileType)
       .describe("The partner's profile type on Dub."),
     email: z
       .string()
@@ -618,7 +618,7 @@ export const onboardPartnerSchema = createPartnerSchema
     name: z.string().min(1, "Name is required"),
     image: partnerImageSchema,
     country: z.enum(COUNTRY_CODES),
-    profileType: z.nativeEnum(PartnerProfileType).default("individual"),
+    profileType: z.enum(PartnerProfileType).default("individual"),
     companyName: z.string().nullish(),
   })
   .refine(

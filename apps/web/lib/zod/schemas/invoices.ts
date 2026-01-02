@@ -4,8 +4,8 @@ import * as z from "zod/v4";
 export const InvoiceSchema = z.object({
   id: z.string(),
   total: z.number(),
-  status: z.nativeEnum(InvoiceStatus).optional(),
-  paymentMethod: z.nativeEnum(PaymentMethod).nullable().optional(),
+  status: z.enum(InvoiceStatus).optional(),
+  paymentMethod: z.enum(PaymentMethod).nullable().optional(),
   createdAt: z.date(),
   description: z.string().default("Dub payout"),
   pdfUrl: z.string().nullable(),

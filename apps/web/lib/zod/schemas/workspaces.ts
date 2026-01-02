@@ -202,7 +202,7 @@ export const workspaceStoreKeys = z.enum([
 
 export const getWorkspaceUsersQuerySchema = z.object({
   search: z.string().optional(),
-  role: z.nativeEnum(WorkspaceRole).optional(),
+  role: z.enum(WorkspaceRole).optional(),
 });
 
 export const workspaceUserSchema = z.object({
@@ -210,7 +210,7 @@ export const workspaceUserSchema = z.object({
   name: z.string(),
   email: z.string().nullish(),
   image: z.string().nullish(),
-  role: z.nativeEnum(WorkspaceRole),
+  role: z.enum(WorkspaceRole),
   isMachine: z.boolean().default(false),
   createdAt: z.date(),
 });

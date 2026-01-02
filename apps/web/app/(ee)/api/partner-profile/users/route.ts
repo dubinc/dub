@@ -56,7 +56,7 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
 
 const updateRoleSchema = z.object({
   userId: z.string(),
-  role: z.nativeEnum(PartnerRole),
+  role: z.enum(PartnerRole),
 });
 
 // PATCH /api/partner-profile/users - update a user's role

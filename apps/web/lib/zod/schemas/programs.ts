@@ -32,15 +32,15 @@ export const ProgramSchema = z.object({
   domain: z.string().nullable(),
   url: z.string().nullable(),
   description: z.string().nullish(),
-  primaryRewardEvent: z.nativeEnum(EventType).default("sale"),
+  primaryRewardEvent: z.enum(EventType).default("sale"),
   minPayoutAmount: z.number(),
   addedToMarketplaceAt: z.date().nullish(),
   messagingEnabledAt: z.date().nullish(),
   partnerNetworkEnabledAt: z.date().nullish(),
-  payoutMode: z.nativeEnum(ProgramPayoutMode).default("internal"),
+  payoutMode: z.enum(ProgramPayoutMode).default("internal"),
   rewards: z.array(RewardSchema).nullish(),
   discounts: z.array(DiscountSchema).nullish(),
-  categories: z.array(z.nativeEnum(Category)).nullish(),
+  categories: z.array(z.enum(Category)).nullish(),
   defaultFolderId: z.string(),
   defaultGroupId: z.string(),
   supportEmail: z.string().nullish(),
@@ -102,7 +102,7 @@ export const ProgramEnrollmentSchema = z.object({
   program: ProgramSchema,
   createdAt: z.date(),
   status: z
-    .nativeEnum(ProgramEnrollmentStatus)
+    .enum(ProgramEnrollmentStatus)
     .describe("The status of the partner's enrollment in the program."),
   links: z
     .array(ProgramPartnerLinkSchema)

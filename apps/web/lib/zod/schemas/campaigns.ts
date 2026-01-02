@@ -53,8 +53,8 @@ export const CampaignSchema = z.object({
   preview: z.string().nullable().default(null),
   from: z.string().nullable(),
   bodyJson: z.record(z.string(), z.any()),
-  type: z.nativeEnum(CampaignType),
-  status: z.nativeEnum(CampaignStatus),
+  type: z.enum(CampaignType),
+  status: z.enum(CampaignStatus),
   triggerCondition: workflowConditionSchema.nullable().default(null),
   groups: z.array(GroupSchema.pick({ id: true })),
   scheduledAt: z.date().nullable(),
@@ -66,8 +66,8 @@ export const CampaignSchema = z.object({
 export const CampaignListSchema = z.object({
   id: z.string(),
   name: z.string(),
-  type: z.nativeEnum(CampaignType),
-  status: z.nativeEnum(CampaignStatus),
+  type: z.enum(CampaignType),
+  status: z.enum(CampaignStatus),
   scheduledAt: z.date().nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),
@@ -75,7 +75,7 @@ export const CampaignListSchema = z.object({
 });
 
 export const createCampaignSchema = z.object({
-  type: z.nativeEnum(CampaignType),
+  type: z.enum(CampaignType),
 });
 
 export const updateCampaignSchema = z
@@ -103,8 +103,8 @@ export const updateCampaignSchema = z
 
 export const getCampaignsQuerySchema = z
   .object({
-    type: z.nativeEnum(CampaignType).optional(),
-    status: z.nativeEnum(CampaignStatus).optional(),
+    type: z.enum(CampaignType).optional(),
+    status: z.enum(CampaignStatus).optional(),
     search: z.string().optional(),
     triggerCondition: z
       .string()

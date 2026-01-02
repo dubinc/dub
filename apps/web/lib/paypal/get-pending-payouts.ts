@@ -18,7 +18,7 @@ const PaypalPayoutResponseSchema = z.object({
     image: true,
     country: true,
   }),
-  status: z.nativeEnum(PayoutStatus),
+  status: z.enum(PayoutStatus),
   amount: z.number(),
 });
 

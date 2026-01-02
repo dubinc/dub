@@ -285,7 +285,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
         return analyticsResponse.top_folders
           .extend({
             folder: analyticsResponse.top_folders.shape.folder.extend({
-              accessLevel: z.nativeEnum(FolderAccessLevel).nullish(),
+              accessLevel: z.enum(FolderAccessLevel).nullish(),
             }),
           })
           .parse({

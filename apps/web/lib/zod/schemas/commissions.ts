@@ -10,11 +10,11 @@ export const CommissionSchema = z.object({
   id: z.string().describe("The commission's unique ID on Dub.").meta({
     example: "cm_1JVR7XRCSR0EDBAF39FZ4PMYE",
   }),
-  type: z.nativeEnum(CommissionType).optional(),
+  type: z.enum(CommissionType).optional(),
   amount: z.number(),
   earnings: z.number(),
   currency: z.string(),
-  status: z.nativeEnum(CommissionStatus),
+  status: z.enum(CommissionStatus),
   invoiceId: z.string().nullable(),
   description: z.string().nullable(),
   quantity: z.number(),
@@ -50,7 +50,7 @@ export const COMMISSIONS_MAX_PAGE_SIZE = 100;
 
 export const getCommissionsQuerySchema = z
   .object({
-    type: z.nativeEnum(CommissionType).optional(),
+    type: z.enum(CommissionType).optional(),
     customerId: z
       .string()
       .optional()
@@ -84,7 +84,7 @@ export const getCommissionsQuerySchema = z
         "Filter the list of commissions by the associated invoice. Since invoiceId is unique on a per-program basis, this will only return one commission per invoice.",
       ),
     status: z
-      .nativeEnum(CommissionStatus)
+      .enum(CommissionStatus)
       .optional()
       .describe(
         "Filter the list of commissions by their corresponding status.",
@@ -123,7 +123,7 @@ export const getCommissionsCountQuerySchema = getCommissionsQuerySchema.omit({
 export const createCommissionSchema = z.object({
   workspaceId: z.string(),
   partnerId: z.string(),
-  commissionType: z.nativeEnum(CommissionType),
+  commissionType: z.enum(CommissionType),
   useExistingEvents: z.boolean(),
 
   // Custom

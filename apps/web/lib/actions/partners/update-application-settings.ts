@@ -9,7 +9,7 @@ import { authActionClient } from "../safe-action";
 const schema = z.object({
   workspaceId: z.string(),
   description: z.string().optional(),
-  categories: z.array(z.nativeEnum(Category)).optional(),
+  categories: z.array(z.enum(Category)).optional(),
 });
 
 export const updateApplicationSettingsAction = authActionClient

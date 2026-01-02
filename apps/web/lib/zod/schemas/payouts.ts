@@ -26,7 +26,7 @@ export const PAYOUTS_MAX_PAGE_SIZE = 100;
 
 export const payoutsQuerySchema = z
   .object({
-    status: z.nativeEnum(PayoutStatus).optional(),
+    status: z.enum(PayoutStatus).optional(),
     partnerId: z.string().optional(),
     programId: z.string().optional(),
     invoiceId: z.string().optional(),
@@ -53,7 +53,7 @@ export const PayoutSchema = z.object({
   invoiceId: z.string().nullable(),
   amount: z.number(),
   currency: z.string(),
-  status: z.nativeEnum(PayoutStatus),
+  status: z.enum(PayoutStatus),
   description: z.string().nullish(),
   periodStart: z.date().nullable(),
   periodEnd: z.date().nullable(),
@@ -61,7 +61,7 @@ export const PayoutSchema = z.object({
   initiatedAt: z.date().nullable(),
   paidAt: z.date().nullable(),
   failureReason: z.string().nullish(),
-  mode: z.nativeEnum(PayoutMode).nullable(),
+  mode: z.enum(PayoutMode).nullable(),
 });
 
 export const PayoutResponseSchema = PayoutSchema.extend({

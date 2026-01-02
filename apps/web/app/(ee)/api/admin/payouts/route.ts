@@ -22,7 +22,7 @@ interface FormattedTimeseriesPoint extends TimeseriesPoint {
 const adminPayoutsQuerySchema = z
   .object({
     programId: z.string().optional(),
-    status: z.nativeEnum(InvoiceStatus).optional(),
+    status: z.enum(InvoiceStatus).optional(),
   })
   .extend(
     analyticsQuerySchema.pick({ interval: true, start: true, end: true }).shape,

@@ -162,7 +162,7 @@ export const POST = withPartnerProfile(
 
 const updateInviteRoleSchema = z.object({
   email: z.email(),
-  role: z.nativeEnum(PartnerRole),
+  role: z.enum(PartnerRole),
 });
 
 // PATCH /api/partner-profile/invites - update an invite's role

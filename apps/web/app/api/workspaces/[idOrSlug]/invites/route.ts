@@ -165,7 +165,7 @@ export const POST = withWorkspace(
 
 const updateInviteRoleSchema = z.object({
   email: z.email(),
-  role: z.nativeEnum(PartnerRole),
+  role: z.enum(PartnerRole),
 });
 
 // PATCH /api/workspaces/[idOrSlug]/invites - update an invite's role

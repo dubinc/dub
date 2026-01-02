@@ -9,7 +9,7 @@ export const RECURRING_MAX_DURATIONS = [0, 1, 3, 6, 12, 18, 24, 36, 48];
 export const planSchema = z.enum(plans).describe("The plan of the workspace.");
 
 export const roleSchema = z
-  .nativeEnum(WorkspaceRole)
+  .enum(WorkspaceRole)
   .describe("The role of the authenticated user in the workspace.");
 
 const allowedImageTypes = [

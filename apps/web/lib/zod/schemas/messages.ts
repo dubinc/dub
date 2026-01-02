@@ -16,7 +16,7 @@ export const MessageSchema = z.object({
   senderUserId: z.string(),
   text: messageTextSchema,
   subject: z.string().nullable(),
-  type: z.nativeEnum(MessageType),
+  type: z.enum(MessageType),
   readInApp: z.date().nullable(),
   readInEmail: z.date().nullable(),
   createdAt: z.date(),

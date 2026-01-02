@@ -18,7 +18,7 @@ export const NetworkProgramSchema = ProgramSchema.pick({
   termsUrl: true,
 }).extend({
   discount: DiscountSchema.nullish(),
-  categories: z.array(z.nativeEnum(Category)),
+  categories: z.array(z.enum(Category)),
   featuredOnMarketplaceAt: z.date().nullable(),
   marketplaceHeaderImage: z.string().nullable(),
 });
@@ -34,7 +34,7 @@ const rewardTypeSchema = z.enum(rewardTypes);
 
 export const getNetworkProgramsQuerySchema = z
   .object({
-    category: z.nativeEnum(Category).optional(),
+    category: z.enum(Category).optional(),
     rewardType: z
       .union([z.string(), z.array(rewardTypeSchema)])
       .transform((v) =>
@@ -45,7 +45,7 @@ export const getNetworkProgramsQuerySchema = z
       .optional(),
     status: z.preprocess(
       (v) => (v === "null" ? null : v),
-      z.nativeEnum(ProgramEnrollmentStatus).nullish(),
+      z.enum(ProgramEnrollmentStatus).nullish(),
     ),
     featured: z.coerce.boolean().optional(),
     search: z.string().optional(),

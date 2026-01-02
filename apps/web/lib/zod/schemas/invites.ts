@@ -5,7 +5,7 @@ export const inviteTeammatesSchema = z.object({
   teammates: z.array(
     z.object({
       email: z.email(),
-      role: z.nativeEnum(WorkspaceRole),
+      role: z.enum(WorkspaceRole),
     }),
   ),
 });

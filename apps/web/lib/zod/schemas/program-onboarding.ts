@@ -15,14 +15,14 @@ export const programInfoSchema = z.object({
   logo: z.string(),
   domain: z.string(),
   url: parseUrlSchema.nullable(),
-  linkStructure: z.nativeEnum(PartnerLinkStructure).default("short"),
+  linkStructure: z.enum(PartnerLinkStructure).default("short"),
   linkParameter: z.string().nullish(),
 });
 
 // Configure rewards
 export const programRewardSchema = z.object({
   defaultRewardType: z.enum(["lead", "sale"]).default("lead"),
-  type: z.nativeEnum(RewardStructure).nullish(),
+  type: z.enum(RewardStructure).nullish(),
   amountInCents: FLAT_REWARD_AMOUNT_SCHEMA.nullish(),
   amountInPercentage: PERCENTAGE_REWARD_AMOUNT_SCHEMA.nullish(),
   maxDuration: maxDurationSchema,

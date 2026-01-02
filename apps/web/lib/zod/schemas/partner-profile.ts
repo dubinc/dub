@@ -50,7 +50,7 @@ export const getPartnerEarningsQuerySchema = getCommissionsQuerySchema
       .enum(DATE_RANGE_INTERVAL_PRESETS)
       .default(DUB_PARTNERS_ANALYTICS_INTERVAL),
     timezone: z.string().optional(),
-    type: z.nativeEnum(CommissionType).optional(),
+    type: z.enum(CommissionType).optional(),
     linkId: z.string().optional(),
     sortBy: z.enum(["createdAt", "amount", "earnings"]).default("createdAt"),
   });
@@ -64,7 +64,7 @@ export const getPartnerEarningsCountQuerySchema = getCommissionsCountQuerySchema
       .enum(DATE_RANGE_INTERVAL_PRESETS)
       .default(DUB_PARTNERS_ANALYTICS_INTERVAL),
     timezone: z.string().optional(),
-    type: z.nativeEnum(CommissionType).optional(),
+    type: z.enum(CommissionType).optional(),
     linkId: z.string().optional(),
     groupBy: z.enum(["linkId", "customerId", "status", "type"]).optional(),
   });
@@ -122,7 +122,7 @@ export const partnerProfileEventsQuerySchema = eventsQuerySchema.omit({
 
 export const partnerProfileProgramsQuerySchema = z.object({
   includeRewardsDiscounts: z.coerce.boolean().optional(),
-  status: z.nativeEnum(ProgramEnrollmentStatus).optional(),
+  status: z.enum(ProgramEnrollmentStatus).optional(),
 });
 
 export const partnerProfileProgramsCountQuerySchema =
@@ -155,19 +155,19 @@ export const invitePartnerUserSchema = z.object({
     .string()
     .min(1, "Email is required.")
     .email("Please enter a valid email."),
-  role: z.nativeEnum(PartnerRole),
+  role: z.enum(PartnerRole),
 });
 
 export const getPartnerUsersQuerySchema = z.object({
   search: z.string().optional(),
-  role: z.nativeEnum(PartnerRole).optional(),
+  role: z.enum(PartnerRole).optional(),
 });
 
 export const partnerUserSchema = z.object({
   id: z.string().nullable(),
   name: z.string().nullable(),
   email: z.string(),
-  role: z.nativeEnum(PartnerRole),
+  role: z.enum(PartnerRole),
   image: z.string().nullish(),
   createdAt: z.date(),
 });
@@ -182,8 +182,8 @@ export const partnerProfileChangeHistoryLogSchema = z.array(
     }),
     z.object({
       field: z.literal("profileType"),
-      from: z.nativeEnum(PartnerProfileType),
-      to: z.nativeEnum(PartnerProfileType),
+      from: z.enum(PartnerProfileType),
+      to: z.enum(PartnerProfileType),
       changedAt: z.coerce.date(),
     }),
   ]),

@@ -69,7 +69,7 @@ export const GroupSchema = z.object({
   utmTemplate: UTMTemplateSchema.nullish(),
   additionalLinks: z.array(additionalPartnerLinkSchema).nullable(),
   maxPartnerLinks: z.number(),
-  linkStructure: z.nativeEnum(PartnerLinkStructure),
+  linkStructure: z.enum(PartnerLinkStructure),
 });
 
 export const GroupWithFormDataSchema = GroupSchema.extend({
@@ -132,7 +132,7 @@ export const updateGroupSchema = createGroupSchema.partial().extend({
     .optional(),
   maxPartnerLinks: z.number().optional(),
   utmTemplateId: z.string().optional(),
-  linkStructure: z.nativeEnum(PartnerLinkStructure).optional(),
+  linkStructure: z.enum(PartnerLinkStructure).optional(),
   applicationFormData: programApplicationFormSchema.optional(),
   landerData: programLanderSchema.optional(),
   holdingPeriodDays: z.coerce

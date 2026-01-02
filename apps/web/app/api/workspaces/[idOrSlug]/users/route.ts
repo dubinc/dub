@@ -52,7 +52,7 @@ export const GET = withWorkspace(
 
 const updateRoleSchema = z.object({
   userId: z.string().min(1),
-  role: z.nativeEnum(WorkspaceRole, {
+  role: z.enum(WorkspaceRole, {
     error: `Role must be either "owner" or "member".`,
   }),
 });

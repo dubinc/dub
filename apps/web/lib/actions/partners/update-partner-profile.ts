@@ -32,7 +32,7 @@ const updatePartnerProfileSchema = z
     image: uploadedImageSchema.nullish(),
     description: z.string().max(MAX_PARTNER_DESCRIPTION_LENGTH).nullish(),
     country: z.enum(Object.keys(COUNTRIES) as [string, ...string[]]).nullish(),
-    profileType: z.nativeEnum(PartnerProfileType).optional(),
+    profileType: z.enum(PartnerProfileType).optional(),
     companyName: z.string().nullish(),
     discoverable: z.boolean().optional(),
   })
