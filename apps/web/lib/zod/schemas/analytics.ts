@@ -19,14 +19,15 @@ import { parseDateSchema } from "./utils";
 import { UTMTemplateSchema } from "./utm";
 
 const analyticsEvents = z
-  .enum([...EVENT_TYPES, "composite"])
-  .refine((val) => [...EVENT_TYPES, "composite"].includes(val), {
-    message: "Invalid event type. Valid event types are: clicks, leads, sales",
+  .enum([...EVENT_TYPES, "composite"], {
+    error: "Invalid event type. Valid event types are: clicks, leads, sales",
   })
   .default("clicks")
-  .describe(
-    "The type of event to retrieve analytics for. Defaults to `clicks`.",
-  );
+  .meta({
+    description:
+      "The type of event to retrieve analytics for. Defaults to `clicks`.",
+    example: "leads",
+  });
 
 const analyticsGroupBy = z
   .enum(VALID_ANALYTICS_ENDPOINTS)
