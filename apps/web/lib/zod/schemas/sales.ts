@@ -1,4 +1,4 @@
-import z from "zod";
+import { z } from "zod";
 import { clickEventSchema, clickEventSchemaTB } from "./clicks";
 import { CustomerSchema } from "./customers";
 import { commonDeprecatedEventFields } from "./deprecated";

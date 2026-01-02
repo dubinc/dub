@@ -4,7 +4,7 @@ import {
   DEFAULT_MARGIN,
   QR_LEVELS,
 } from "@/lib/qr/constants";
-import z from "zod";
+import { z } from "zod";
 import { booleanQuerySchema } from "./misc";
 import { parseUrlSchema } from "./utils";
 

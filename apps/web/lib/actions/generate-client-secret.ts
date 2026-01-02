@@ -1,7 +1,7 @@
 "use server";
 
 import { prisma } from "@dub/prisma";
-import z from "zod";
+import { z } from "zod";
 import { OAUTH_CONFIG } from "../api/oauth/constants";
 import { createToken } from "../api/oauth/utils";
 import { hashToken } from "../auth";

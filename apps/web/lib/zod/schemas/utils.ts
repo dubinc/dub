@@ -1,5 +1,5 @@
 import { getUrlFromString, isValidUrl, parseDateTime } from "@dub/utils";
-import z from "zod";
+import { z } from "zod";
 
 // This is the default max length for URL validation
 export const DESTINATION_URL_MAX_LENGTH = 32000;

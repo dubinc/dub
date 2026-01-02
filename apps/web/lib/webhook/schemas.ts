@@ -1,4 +1,4 @@
-import z from "zod";
+import { z } from "zod";
 import { clickEventSchema } from "../zod/schemas/clicks";
 import { CommissionWebhookSchema } from "../zod/schemas/commissions";
 import { CustomerSchema } from "../zod/schemas/customers";

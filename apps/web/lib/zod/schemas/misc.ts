@@ -2,7 +2,7 @@ import { plans } from "@/lib/types";
 import { WorkspaceRole } from "@dub/prisma/client";
 import { GOOGLE_FAVICON_URL, R2_URL } from "@dub/utils";
 import { fileTypeFromBuffer } from "file-type";
-import z from "zod";
+import { z } from "zod";
 
 export const RECURRING_MAX_DURATIONS = [0, 1, 3, 6, 12, 18, 24, 36, 48];
 

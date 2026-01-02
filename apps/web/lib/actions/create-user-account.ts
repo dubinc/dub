@@ -4,7 +4,7 @@ import { ratelimit } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { flattenValidationErrors } from "next-safe-action";
-import z from "zod";
+import { z } from "zod";
 import { createId } from "../api/create-id";
 import { hashPassword } from "../auth/password";
 import { signUpSchema } from "../zod/schemas/auth";

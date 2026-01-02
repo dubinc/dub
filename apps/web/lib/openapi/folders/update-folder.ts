@@ -1,6 +1,6 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
 import { FolderSchema, updateFolderSchema } from "@/lib/zod/schemas/folders";
-import z from "zod";
+import { z } from "zod";
 import { ZodOpenApiOperationObject } from "zod-openapi";
 
 export const updateFolder: ZodOpenApiOperationObject = {

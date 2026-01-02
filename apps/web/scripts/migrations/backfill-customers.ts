@@ -1,7 +1,7 @@
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import "dotenv-flow/config";
-import z from "zod";
+import { z } from "zod";
 import { tb } from "../../lib/tinybird/client";
 import { getLeadEvents } from "../../lib/tinybird/get-lead-events";
 

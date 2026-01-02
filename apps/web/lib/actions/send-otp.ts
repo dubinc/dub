@@ -7,7 +7,7 @@ import VerifyEmail from "@dub/email/templates/verify-email";
 import { prisma } from "@dub/prisma";
 import { get } from "@vercel/edge-config";
 import { flattenValidationErrors } from "next-safe-action";
-import z from "zod";
+import { z } from "zod";
 import { generateOTP } from "../auth";
 import { EMAIL_OTP_EXPIRY_IN } from "../auth/constants";
 import { isGenericEmail } from "../is-generic-email";

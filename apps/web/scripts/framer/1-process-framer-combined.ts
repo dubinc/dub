@@ -2,7 +2,7 @@ import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 import * as fs from "fs";
 import * as Papa from "papaparse";
-import z from "zod";
+import { z } from "zod";
 import { tb } from "../../lib/tinybird/client";
 
 /*

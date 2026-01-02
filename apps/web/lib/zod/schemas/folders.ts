@@ -4,7 +4,7 @@ import {
 } from "@/lib/folder/constants";
 import { FolderAccessLevel } from "@/lib/types";
 import { FolderType, FolderUserRole } from "@dub/prisma/client";
-import z from "zod";
+import { z } from "zod";
 import { getPaginationQuerySchema } from "./misc";
 
 const workspaceFolderAccess = z

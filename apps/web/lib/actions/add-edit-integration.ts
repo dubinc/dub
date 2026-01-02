@@ -3,7 +3,7 @@
 import { prisma } from "@dub/prisma";
 import { DUB_WORKSPACE_ID, nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import z from "zod";
+import { z } from "zod";
 import { createId } from "../api/create-id";
 import { deleteScreenshots } from "../integrations/utils";
 import { isStored, storage } from "../storage";

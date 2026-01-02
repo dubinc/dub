@@ -3,7 +3,7 @@ import {
   partnerAnalyticsQuerySchema,
   partnerAnalyticsResponseSchema,
 } from "@/lib/zod/schemas/partners";
-import z from "zod";
+import { z } from "zod";
 import { ZodOpenApiOperationObject } from "zod-openapi";
 
 export const retrievePartnerAnalytics: ZodOpenApiOperationObject = {

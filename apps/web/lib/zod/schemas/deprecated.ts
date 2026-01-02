@@ -1,4 +1,4 @@
-import z from "zod";
+import { z } from "zod";
 
 export const commonDeprecatedEventFields = z.object({
   click_id: z.string().meta({

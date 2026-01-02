@@ -6,7 +6,7 @@ import { anthropic } from "@ai-sdk/anthropic";
 import { createStreamableValue } from "@ai-sdk/rsc";
 import { COUNTRY_CODES } from "@dub/utils";
 import { streamObject } from "ai";
-import z from "zod";
+import { z } from "zod";
 
 export async function generateFilters(prompt: string) {
   const stream = createStreamableValue();

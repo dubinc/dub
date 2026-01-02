@@ -1,6 +1,6 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
 import { getTagsQuerySchema, LinkTagSchema } from "@/lib/zod/schemas/tags";
-import z from "zod";
+import { z } from "zod";
 import { ZodOpenApiOperationObject } from "zod-openapi";
 
 export const getTags: ZodOpenApiOperationObject = {

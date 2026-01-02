@@ -13,7 +13,7 @@ import {
   capitalize,
   formatDate,
 } from "@dub/utils";
-import z from "zod";
+import { z } from "zod";
 import { booleanQuerySchema } from "./misc";
 import { parseDateSchema } from "./utils";
 import { UTMTemplateSchema } from "./utm";

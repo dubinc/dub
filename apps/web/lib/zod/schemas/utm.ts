@@ -1,4 +1,4 @@
-import z from "zod";
+import { z } from "zod";
 
 export const createUTMTemplateBodySchema = z.object({
   name: z.string().trim().min(1, "UTM name is required").max(50),
