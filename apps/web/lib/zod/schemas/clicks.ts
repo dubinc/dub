@@ -1,4 +1,4 @@
-import z from "@/lib/zod";
+import z from "zod";
 import { commonDeprecatedEventFields } from "./deprecated";
 import { linkEventSchema } from "./links";
 
@@ -83,4 +83,4 @@ export const clickEventResponseSchema = z
     link: linkEventSchema,
   })
   .merge(commonDeprecatedEventFields)
-  .openapi({ ref: "ClickEvent", title: "ClickEvent" });
+  .meta({ ref: "ClickEvent", title: "ClickEvent" });

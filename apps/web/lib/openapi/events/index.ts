@@ -1,5 +1,5 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
-import z from "@/lib/zod";
+import z from "zod";
 import { eventsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { clickEventResponseSchema } from "@/lib/zod/schemas/clicks";
 import { leadEventResponseSchema } from "@/lib/zod/schemas/leads";

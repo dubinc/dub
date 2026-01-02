@@ -1,6 +1,6 @@
 import { ZodOpenApiOperationObject, ZodOpenApiPathsObject } from "zod-openapi";
 
-import z from "@/lib/zod";
+import z from "zod";
 import { getQRCodeQuerySchema } from "@/lib/zod/schemas/qr";
 import { openApiErrorResponses } from "../responses";
 

@@ -6,7 +6,7 @@ import {
   TRIGGER_TYPES,
   VALID_ANALYTICS_ENDPOINTS,
 } from "@/lib/analytics/constants";
-import z from "@/lib/zod";
+import z from "zod";
 import {
   CONTINENT_CODES,
   DEFAULT_PAGINATION_LIMIT,
@@ -125,41 +125,41 @@ export const analyticsQuerySchema = z.object({
     .describe(
       "The IANA time zone code for aligning timeseries granularity (e.g. America/New_York). Defaults to UTC.",
     )
-    .openapi({ example: "America/New_York", default: "UTC" }),
+    .meta({ example: "America/New_York", default: "UTC" }),
   country: z
     .string()
     .optional()
     .describe(
       "The country to retrieve analytics for. Must be passed as a 2-letter ISO 3166-1 country code. See https://d.to/geo for more information.",
     )
-    .openapi({ ref: "countryCode" }),
+    .meta({ ref: "countryCode" }),
   city: z
     .string()
     .optional()
     .describe("The city to retrieve analytics for.")
-    .openapi({ example: "New York" }),
+    .meta({ example: "New York" }),
   region: z
     .string()
     .optional()
     .describe("The ISO 3166-2 region code to retrieve analytics for.")
-    .openapi({ ref: "regionCode" }),
+    .meta({ ref: "regionCode" }),
   continent: z
     .enum(CONTINENT_CODES)
     .optional()
     .describe("The continent to retrieve analytics for.")
-    .openapi({ ref: "continentCode" }),
+    .meta({ ref: "continentCode" }),
   device: z
     .string()
     .optional()
     .transform((v) => capitalize(v) as string | undefined)
     .describe("The device to retrieve analytics for.")
-    .openapi({ example: "Desktop" }),
+    .meta({ example: "Desktop" }),
   browser: z
     .string()
     .optional()
     .transform((v) => capitalize(v) as string | undefined)
     .describe("The browser to retrieve analytics for.")
-    .openapi({ example: "Chrome" }),
+    .meta({ example: "Chrome" }),
   os: z
     .string()
     .optional()
@@ -168,7 +168,7 @@ export const analyticsQuerySchema = z.object({
       return capitalize(v) as string | undefined;
     })
     .describe("The OS to retrieve analytics for.")
-    .openapi({ example: "Windows" }),
+    .meta({ example: "Windows" }),
   trigger: z
     .enum(TRIGGER_TYPES)
     .optional()
@@ -179,12 +179,12 @@ export const analyticsQuerySchema = z.object({
     .string()
     .optional()
     .describe("The referer hostname to retrieve analytics for.")
-    .openapi({ example: "google.com" }),
+    .meta({ example: "google.com" }),
   refererUrl: z
     .string()
     .optional()
     .describe("The full referer URL to retrieve analytics for.")
-    .openapi({ example: "https://dub.co/blog" }),
+    .meta({ example: "https://dub.co/blog" }),
   url: z.string().optional().describe("The URL to retrieve analytics for."),
   tagIds: z
     .union([z.string(), z.array(z.string())])
@@ -219,7 +219,7 @@ export const analyticsQuerySchema = z.object({
     .describe(
       "Search the events by a custom metadata value. Only available for lead and sale events.",
     )
-    .openapi({
+    .meta({
       example: "metadata['key']:'value'",
     }),
   // deprecated fields
@@ -229,13 +229,13 @@ export const analyticsQuerySchema = z.object({
     .describe(
       "Deprecated: Use `tagIds` instead. The tag ID to retrieve analytics for.",
     )
-    .openapi({ deprecated: true }),
+    .meta({ deprecated: true }),
   qr: booleanQuerySchema
     .optional()
     .describe(
       "Deprecated: Use the `trigger` field instead. Filter for QR code scans. If true, filter for QR codes only. If false, filter for links only. If undefined, return both.",
     )
-    .openapi({ deprecated: true }),
+    .meta({ deprecated: true }),
 });
 
 // Analytics filter params for Tinybird endpoints
@@ -335,5 +335,5 @@ export const eventsQuerySchema = analyticsQuerySchema
       .describe("The field to sort the events by. The default is `timestamp`."),
     order: sortOrder
       .describe("DEPRECATED. Use `sortOrder` instead.")
-      .openapi({ deprecated: true }),
+      .meta({ deprecated: true }),
   });

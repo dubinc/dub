@@ -13,6 +13,8 @@ import {
   VALID_ANALYTICS_ENDPOINTS,
 } from "./constants";
 
+type Override<T, U> = Omit<T, keyof U> & U;
+
 export type IntervalOptions = (typeof DATE_RANGE_INTERVAL_PRESETS)[number];
 
 export type AnalyticsGroupByOptions =
@@ -35,15 +37,23 @@ export type AnalyticsSaleUnit = (typeof ANALYTICS_SALE_UNIT)[number];
 
 export type DeviceTabs = "devices" | "browsers" | "os" | "triggers";
 
-export type AnalyticsFilters = Partial<z.infer<typeof analyticsQuerySchema>> & {
-  workspaceId?: string;
-  dataAvailableFrom?: Date;
-  isDeprecatedClicksEndpoint?: boolean;
-  linkIds?: string[]; // TODO: remove this once it's been added to the public API
-  folderIds?: string[];
-  start?: Date | null;
-  end?: Date | null;
-};
+export type AnalyticsFilters = Override<
+  z.infer<typeof analyticsQuerySchema>,
+  {
+    workspaceId?: string;
+    dataAvailableFrom?: Date;
+    isDeprecatedClicksEndpoint?: boolean;
+    linkIds?: string[];
+    folderIds?: string[];
+    start?: Date | null;
+    end?: Date | null;
+
+    // TODO: Fix the schema so that we can avoid the override here
+    device?: string | undefined;
+    browser?: string | undefined;
+    os?: string | undefined;
+  }
+>;
 
 export type EventsFilters = z.infer<typeof eventsQuerySchema> & {
   workspaceId?: string;

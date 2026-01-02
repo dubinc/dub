@@ -1,6 +1,6 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
-import z from "@/lib/zod";
 import { WorkspaceSchema } from "@/lib/zod/schemas/workspaces";
+import z from "zod";
 import { ZodOpenApiOperationObject } from "zod-openapi";
 
 export const getWorkspaceInfo: ZodOpenApiOperationObject = {

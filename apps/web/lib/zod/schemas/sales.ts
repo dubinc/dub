@@ -1,4 +1,4 @@
-import z from "@/lib/zod";
+import z from "zod";
 import { clickEventSchema, clickEventSchemaTB } from "./clicks";
 import { CustomerSchema } from "./customers";
 import { commonDeprecatedEventFields } from "./deprecated";
@@ -35,7 +35,7 @@ export const trackSaleRequestSchema = z.object({
     .describe(
       "The name of the sale event. Recommended format: `Invoice paid` or `Subscription created`.",
     )
-    .openapi({ example: "Invoice paid" }),
+    .meta({ example: "Invoice paid" }),
   paymentProcessor: z
     .enum(["stripe", "shopify", "polar", "paddle", "revenuecat", "custom"])
     .default("custom")
@@ -65,7 +65,7 @@ export const trackSaleRequestSchema = z.object({
     .describe(
       "The name of the lead event that occurred before the sale (case-sensitive). This is used to associate the sale event with a particular lead event (instead of the latest lead event for a link-customer combination, which is the default behavior). For direct sale tracking, this field can also be used to specify the lead event name.",
     )
-    .openapi({ example: "Cloned template 1481267" }),
+    .meta({ example: "Cloned template 1481267" }),
   clickId: z
     .string()
     .trim()
@@ -188,15 +188,15 @@ export const saleEventResponseSchema = z
     saleAmount: z
       .number()
       .describe("Deprecated: Use `sale.amount` instead.")
-      .openapi({ deprecated: true }),
+      .meta({ deprecated: true }),
     invoice_id: z
       .string()
       .describe("Deprecated: Use `sale.invoiceId` instead.")
-      .openapi({ deprecated: true }),
+      .meta({ deprecated: true }),
     payment_processor: z
       .string()
       .describe("Deprecated: Use `sale.paymentProcessor` instead.")
-      .openapi({ deprecated: true }),
+      .meta({ deprecated: true }),
   })
   .merge(commonDeprecatedEventFields)
-  .openapi({ ref: "SaleEvent", title: "SaleEvent" });
+  .meta({ ref: "SaleEvent", title: "SaleEvent" });

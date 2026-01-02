@@ -1,5 +1,5 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
-import z from "@/lib/zod";
+import z from "zod";
 import { getTagsQuerySchema, LinkTagSchema } from "@/lib/zod/schemas/tags";
 import { ZodOpenApiOperationObject } from "zod-openapi";
 

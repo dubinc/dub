@@ -1,5 +1,5 @@
 import { TRIGGER_TYPES } from "@/lib/analytics/constants";
-import z from "@/lib/zod";
+import z from "zod";
 import { CONTINENT_CODES } from "@dub/utils";
 import { LinkTagSchema } from "./tags";
 
@@ -25,7 +25,7 @@ const analyticsTriggersResponse = z
       .describe("The total amount of sales from this trigger method, in cents")
       .default(0),
   })
-  .openapi({ ref: "AnalyticsTriggers" });
+  .meta({ ref: "AnalyticsTriggers" });
 
 export const analyticsResponse = {
   count: z
@@ -41,7 +41,7 @@ export const analyticsResponse = {
         .describe("The total amount of sales, in cents")
         .default(0),
     })
-    .openapi({ ref: "AnalyticsCount", title: "AnalyticsCount" }),
+    .meta({ ref: "AnalyticsCount", title: "AnalyticsCount" }),
   timeseries: z
     .object({
       start: z.string().describe("The starting timestamp of the interval"),
@@ -62,7 +62,7 @@ export const analyticsResponse = {
         .describe("The total amount of sales in the interval, in cents")
         .default(0),
     })
-    .openapi({ ref: "AnalyticsTimeseries" }),
+    .meta({ ref: "AnalyticsTimeseries" }),
 
   continents: z
     .object({
@@ -88,7 +88,7 @@ export const analyticsResponse = {
         .describe("The total amount of sales from this continent, in cents")
         .default(0),
     })
-    .openapi({ ref: "AnalyticsContinents" }),
+    .meta({ ref: "AnalyticsContinents" }),
 
   countries: z
     .object({
@@ -116,7 +116,7 @@ export const analyticsResponse = {
         .describe("The total amount of sales from this country, in cents")
         .default(0),
     })
-    .openapi({ ref: "AnalyticsCountries" }),
+    .meta({ ref: "AnalyticsCountries" }),
 
   regions: z
     .object({
@@ -146,7 +146,7 @@ export const analyticsResponse = {
         .describe("The total amount of sales from this region, in cents")
         .default(0),
     })
-    .openapi({ ref: "AnalyticsRegions" }),
+    .meta({ ref: "AnalyticsRegions" }),
 
   cities: z
     .object({
@@ -178,7 +178,7 @@ export const analyticsResponse = {
         .describe("The total amount of sales from this city, in cents")
         .default(0),
     })
-    .openapi({ ref: "AnalyticsCities" }),
+    .meta({ ref: "AnalyticsCities" }),
 
   devices: z
     .object({
@@ -200,7 +200,7 @@ export const analyticsResponse = {
         .describe("The total amount of sales from this device, in cents")
         .default(0),
     })
-    .openapi({ ref: "AnalyticsDevices" }),
+    .meta({ ref: "AnalyticsDevices" }),
 
   browsers: z
     .object({
@@ -222,7 +222,7 @@ export const analyticsResponse = {
         .describe("The total amount of sales from this browser, in cents")
         .default(0),
     })
-    .openapi({ ref: "AnalyticsBrowsers" }),
+    .meta({ ref: "AnalyticsBrowsers" }),
 
   os: z
     .object({
@@ -238,7 +238,7 @@ export const analyticsResponse = {
         .describe("The total amount of sales from this OS, in cents")
         .default(0),
     })
-    .openapi({ ref: "AnalyticsOS" }),
+    .meta({ ref: "AnalyticsOS" }),
 
   triggers: analyticsTriggersResponse,
   trigger: analyticsTriggersResponse, // backwards compatibility
@@ -267,7 +267,7 @@ export const analyticsResponse = {
         .describe("The total amount of sales from this referer, in cents")
         .default(0),
     })
-    .openapi({ ref: "AnalyticsReferers" }),
+    .meta({ ref: "AnalyticsReferers" }),
 
   referer_urls: z
     .object({
@@ -295,14 +295,14 @@ export const analyticsResponse = {
         )
         .default(0),
     })
-    .openapi({ ref: "AnalyticsRefererUrls" }),
+    .meta({ ref: "AnalyticsRefererUrls" }),
 
   top_links: z
     .object({
       link: z
         .string()
         .describe("The unique ID of the short link")
-        .openapi({ deprecated: true }),
+        .meta({ deprecated: true }),
       id: z.string().describe("The unique ID of the short link"),
       domain: z.string().describe("The domain of the short link"),
       key: z.string().describe("The key of the short link"),
@@ -333,7 +333,7 @@ export const analyticsResponse = {
         .describe("The total amount of sales from this link, in cents")
         .default(0),
     })
-    .openapi({ ref: "AnalyticsTopLinks" }),
+    .meta({ ref: "AnalyticsTopLinks" }),
 
   top_urls: z
     .object({
@@ -357,7 +357,7 @@ export const analyticsResponse = {
         .describe("The total amount of sales from this URL, in cents")
         .default(0),
     })
-    .openapi({ ref: "AnalyticsTopUrls" }),
+    .meta({ ref: "AnalyticsTopUrls" }),
 
   top_base_urls: z
     .object({
@@ -381,7 +381,7 @@ export const analyticsResponse = {
         .describe("The total amount of sales from this base URL, in cents")
         .default(0),
     })
-    .openapi({ ref: "AnalyticsTopBaseUrls" }),
+    .meta({ ref: "AnalyticsTopBaseUrls" }),
 
   utm_sources: z
     .object({
@@ -403,7 +403,7 @@ export const analyticsResponse = {
         .describe("The total amount of sales with this UTM source, in cents")
         .default(0),
     })
-    .openapi({ ref: "AnalyticsUTMSources" }),
+    .meta({ ref: "AnalyticsUTMSources" }),
 
   utm_mediums: z
     .object({
@@ -425,7 +425,7 @@ export const analyticsResponse = {
         .describe("The total amount of sales with this UTM medium, in cents")
         .default(0),
     })
-    .openapi({ ref: "AnalyticsUTMMediums" }),
+    .meta({ ref: "AnalyticsUTMMediums" }),
 
   utm_campaigns: z
     .object({
@@ -447,7 +447,7 @@ export const analyticsResponse = {
         .describe("The total amount of sales with this UTM campaign, in cents")
         .default(0),
     })
-    .openapi({ ref: "AnalyticsUTMCampaigns" }),
+    .meta({ ref: "AnalyticsUTMCampaigns" }),
 
   utm_terms: z
     .object({
@@ -469,7 +469,7 @@ export const analyticsResponse = {
         .describe("The total amount of sales with this UTM term, in cents")
         .default(0),
     })
-    .openapi({ ref: "AnalyticsUTMTerms" }),
+    .meta({ ref: "AnalyticsUTMTerms" }),
 
   utm_contents: z
     .object({
@@ -491,7 +491,7 @@ export const analyticsResponse = {
         .describe("The total amount of sales with this UTM content, in cents")
         .default(0),
     })
-    .openapi({ ref: "AnalyticsUTMContents" }),
+    .meta({ ref: "AnalyticsUTMContents" }),
   top_folders: z
     .object({
       folderId: z.string().describe("The ID of the folder"),
@@ -507,7 +507,7 @@ export const analyticsResponse = {
         .describe("The total amount of sales from this link folder, in cents")
         .default(0),
     })
-    .openapi({ ref: "AnalyticsTopFolders" }),
+    .meta({ ref: "AnalyticsTopFolders" }),
   top_link_tags: z
     .object({
       tagId: z.string().describe("The ID of the tag"),
@@ -520,7 +520,7 @@ export const analyticsResponse = {
         .describe("The total amount of sales from this link tag, in cents")
         .default(0),
     })
-    .openapi({ ref: "AnalyticsTopLinkTags" }),
+    .meta({ ref: "AnalyticsTopLinkTags" }),
   top_domains: z
     .object({
       domain: z.string().describe("The unique domain name"),
@@ -532,7 +532,7 @@ export const analyticsResponse = {
         .describe("The total amount of sales from this domain, in cents")
         .default(0),
     })
-    .openapi({ ref: "AnalyticsTopDomains" }),
+    .meta({ ref: "AnalyticsTopDomains" }),
   top_partners: z
     .object({
       partnerId: z.string().describe("The ID of the partner"),
@@ -556,7 +556,7 @@ export const analyticsResponse = {
         )
         .default(0),
     })
-    .openapi({ ref: "AnalyticsTopPartners" }),
+    .meta({ ref: "AnalyticsTopPartners" }),
   top_groups: z
     .object({
       groupId: z.string().describe("The ID of the group"),
@@ -574,5 +574,5 @@ export const analyticsResponse = {
         .describe("The total amount of sales from this group, in cents")
         .default(0),
     })
-    .openapi({ ref: "AnalyticsTopGroups" }),
+    .meta({ ref: "AnalyticsTopGroups" }),
 } as const;

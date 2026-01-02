@@ -1,5 +1,5 @@
 import { normalizeWorkspaceId } from "@/lib/api/workspaces/workspace-id";
-import z from "@/lib/zod";
+import z from "zod";
 import {
   booleanQuerySchema,
   getPaginationQuerySchema,
@@ -23,7 +23,7 @@ export const DomainSchema = z.object({
   slug: z
     .string()
     .describe("The domain name.")
-    .openapi({ example: "acme.com" }),
+    .meta({ example: "acme.com" }),
   verified: z
     .boolean()
     .default(false)
@@ -42,21 +42,21 @@ export const DomainSchema = z.object({
     .describe(
       "Provide context to your teammates in the link creation modal by showing them an example of a link to be shortened.",
     )
-    .openapi({ example: "https://dub.co/help/article/what-is-dub" }),
+    .meta({ example: "https://dub.co/help/article/what-is-dub" }),
   expiredUrl: z
     .string()
     .nullable()
     .describe(
       "The URL to redirect to when a link under this domain has expired.",
     )
-    .openapi({ example: "https://acme.com/expired" }),
+    .meta({ example: "https://acme.com/expired" }),
   notFoundUrl: z
     .string()
     .nullable()
     .describe(
       "The URL to redirect to when a link under this domain doesn't exist.",
     )
-    .openapi({ example: "https://acme.com/not-found" }),
+    .meta({ example: "https://acme.com/not-found" }),
   logo: z.string().nullable().describe("The logo of the domain."),
   assetLinks: z
     .string()
@@ -118,21 +118,21 @@ export const createDomainBodySchema = z.object({
     .max(190, "slug cannot be longer than 190 characters.")
     .trim()
     .describe("Name of the domain.")
-    .openapi({ example: "acme.com" }),
+    .meta({ example: "acme.com" }),
   expiredUrl: parseUrlSchemaAllowEmpty({ trim: true })
     .nullish()
     .transform((v) => v || null)
     .describe(
       "Redirect users to a specific URL when any link under this domain has expired.",
     )
-    .openapi({ example: "https://acme.com/expired" }),
+    .meta({ example: "https://acme.com/expired" }),
   notFoundUrl: parseUrlSchemaAllowEmpty({ trim: true })
     .nullish()
     .transform((v) => v || null)
     .describe(
       "Redirect users to a specific URL when a link under this domain doesn't exist.",
     )
-    .openapi({ example: "https://acme.com/not-found" }),
+    .meta({ example: "https://acme.com/not-found" }),
   archived: z
     .boolean()
     .optional()
@@ -140,14 +140,14 @@ export const createDomainBodySchema = z.object({
     .describe(
       "Whether to archive this domain. `false` will unarchive a previously archived domain.",
     )
-    .openapi({ example: false }),
+    .meta({ example: false }),
   placeholder: parseUrlSchemaAllowEmpty({ maxLength: 100, trim: true })
     .nullish()
     .transform((v) => v || null)
     .describe(
       "Provide context to your teammates in the link creation modal by showing them an example of a link to be shortened.",
     )
-    .openapi({ example: "https://dub.co/help/article/what-is-dub" }),
+    .meta({ example: "https://dub.co/help/article/what-is-dub" }),
   logo: uploadedImageSchema.nullish().describe("The logo of the domain."),
   assetLinks: z
     .string()
@@ -184,7 +184,7 @@ export const registerDomainSchema = z.object({
     .endsWith(".link")
     .transform((domain) => domain.toLowerCase())
     .describe("The domain to claim. We only support .link domains for now.")
-    .openapi({ example: "acme.link" }),
+    .meta({ example: "acme.link" }),
 });
 
 export const searchDomainSchema = z.object({
@@ -197,7 +197,7 @@ export const searchDomainSchema = z.object({
         .filter((domain) => domain.endsWith(".link")),
     )
     .describe("The domains to search. We only support .link domains for now.")
-    .openapi({
+    .meta({
       param: {
         style: "form",
         explode: false,

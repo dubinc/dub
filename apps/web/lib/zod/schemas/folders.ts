@@ -3,7 +3,7 @@ import {
   FOLDER_WORKSPACE_ACCESS,
 } from "@/lib/folder/constants";
 import { FolderAccessLevel } from "@/lib/types";
-import z from "@/lib/zod";
+import z from "zod";
 import { FolderType, FolderUserRole } from "@dub/prisma/client";
 import { getPaginationQuerySchema } from "./misc";
 

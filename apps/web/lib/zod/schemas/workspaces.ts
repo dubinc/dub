@@ -1,7 +1,7 @@
-import z from "@/lib/zod";
 import { WorkspaceRole } from "@dub/prisma/client";
 import { DEFAULT_REDIRECTS, RESERVED_SLUGS, validSlugRegex } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
+import z from "zod";
 import { DomainSchema } from "./domains";
 import { planSchema, roleSchema, uploadedImageSchema } from "./misc";
 
@@ -26,7 +26,6 @@ export const WorkspaceSchema = z
       .string()
       .nullable()
       .describe("The invite code of the workspace."),
-
     plan: planSchema,
     planTier: z
       .number()
@@ -79,7 +78,6 @@ export const WorkspaceSchema = z
     usersLimit: z.number().describe("The users limit of the workspace."),
     aiUsage: z.number().describe("The AI usage of the workspace."),
     aiLimit: z.number().describe("The AI limit of the workspace."),
-
     conversionEnabled: z
       .boolean()
       .describe(
@@ -129,11 +127,11 @@ export const WorkspaceSchema = z
       .array(z.string())
       .nullable()
       .describe("Specifies hostnames permitted for client-side click tracking.")
-      .openapi({ example: ["dub.sh"] }),
+      .meta({ example: ["dub.sh"] }),
     ssoEmailDomain: z.string().nullable(),
     ssoEnforcedAt: z.date().nullable(),
   })
-  .openapi({
+  .meta({
     title: "Workspace",
   });
 

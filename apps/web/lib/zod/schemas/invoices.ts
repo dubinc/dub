@@ -1,4 +1,4 @@
-import z from "@/lib/zod";
+import z from "zod";
 import { InvoiceStatus, PaymentMethod } from "@dub/prisma/client";
 
 export const InvoiceSchema = z.object({

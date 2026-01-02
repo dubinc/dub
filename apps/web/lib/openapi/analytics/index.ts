@@ -1,7 +1,7 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
-import z from "@/lib/zod";
 import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { analyticsResponse } from "@/lib/zod/schemas/analytics-response";
+import z from "zod";
 import { ZodOpenApiOperationObject, ZodOpenApiPathsObject } from "zod-openapi";
 
 const retrieveAnalytics: ZodOpenApiOperationObject = {
@@ -23,41 +23,41 @@ const retrieveAnalytics: ZodOpenApiOperationObject = {
             analyticsResponse.count,
             z
               .array(analyticsResponse.timeseries)
-              .openapi({ title: "AnalyticsTimeseries" }),
+              .meta({ title: "AnalyticsTimeseries" }),
             z
               .array(analyticsResponse.continents)
-              .openapi({ title: "AnalyticsContinents" }),
+              .meta({ title: "AnalyticsContinents" }),
             z
               .array(analyticsResponse.countries)
-              .openapi({ title: "AnalyticsCountries" }),
+              .meta({ title: "AnalyticsCountries" }),
             z
               .array(analyticsResponse.regions)
-              .openapi({ title: "AnalyticsRegions" }),
+              .meta({ title: "AnalyticsRegions" }),
             z
               .array(analyticsResponse.cities)
-              .openapi({ title: "AnalyticsCities" }),
+              .meta({ title: "AnalyticsCities" }),
             z
               .array(analyticsResponse.devices)
-              .openapi({ title: "AnalyticsDevices" }),
+              .meta({ title: "AnalyticsDevices" }),
             z
               .array(analyticsResponse.browsers)
-              .openapi({ title: "AnalyticsBrowsers" }),
-            z.array(analyticsResponse.os).openapi({ title: "AnalyticsOS" }),
+              .meta({ title: "AnalyticsBrowsers" }),
+            z.array(analyticsResponse.os).meta({ title: "AnalyticsOS" }),
             z
               .array(analyticsResponse.triggers)
-              .openapi({ title: "AnalyticsTriggers" }),
+              .meta({ title: "AnalyticsTriggers" }),
             z
               .array(analyticsResponse.referers)
-              .openapi({ title: "AnalyticsReferers" }),
+              .meta({ title: "AnalyticsReferers" }),
             z
               .array(analyticsResponse.referer_urls)
-              .openapi({ title: "AnalyticsRefererUrls" }),
+              .meta({ title: "AnalyticsRefererUrls" }),
             z
               .array(analyticsResponse.top_links)
-              .openapi({ title: "AnalyticsTopLinks" }),
+              .meta({ title: "AnalyticsTopLinks" }),
             z
               .array(analyticsResponse.top_urls)
-              .openapi({ title: "AnalyticsTopUrls" }),
+              .meta({ title: "AnalyticsTopUrls" }),
           ]),
         },
       },

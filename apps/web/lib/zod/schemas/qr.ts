@@ -4,7 +4,7 @@ import {
   DEFAULT_MARGIN,
   QR_LEVELS,
 } from "@/lib/qr/constants";
-import z from "@/lib/zod";
+import z from "zod";
 import { booleanQuerySchema } from "./misc";
 import { parseUrlSchema } from "./utils";
 
@@ -63,5 +63,5 @@ export const getQRCodeQuerySchema = z.object({
     .describe(
       "DEPRECATED: Margin is included by default. Use the `margin` prop to customize the margin size.",
     )
-    .openapi({ deprecated: true }),
+    .meta({ deprecated: true }),
 });

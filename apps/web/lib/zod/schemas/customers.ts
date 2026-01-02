@@ -1,4 +1,4 @@
-import z from "@/lib/zod";
+import z from "zod";
 import { DiscountSchema } from "./discount";
 import { LinkSchema } from "./links";
 import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";

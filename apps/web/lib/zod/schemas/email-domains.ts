@@ -2,7 +2,7 @@ import {
   isValidDomain,
   isValidDomainFormat,
 } from "@/lib/api/domains/is-valid-domain";
-import z from "@/lib/zod";
+import z from "zod";
 import { EmailDomainStatus } from "@dub/prisma/client";
 
 export const EmailDomainSchema = z.object({

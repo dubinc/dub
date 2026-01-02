@@ -1,6 +1,6 @@
 import { ErrorCode } from "@/lib/api/error-codes";
-import z from "@/lib/zod";
 import { DUB_FOUNDING_DATE, formatDate, validDomainRegex } from "@dub/utils";
+import z from "zod";
 import {
   base64ImageSchema,
   booleanQuerySchema,
@@ -44,7 +44,7 @@ export const ABTestVariantsSchema = z
   .describe(
     "An array of A/B test URLs and the percentage of traffic to send to each URL.",
   )
-  .openapi({
+  .meta({
     example: [
       {
         url: "https://example.com/variant-1",
@@ -70,13 +70,13 @@ const LinksQuerySchema = z.object({
     .describe(
       "Deprecated: Use `tagIds` instead. The tag ID to filter the links by.",
     )
-    .openapi({ deprecated: true }),
+    .meta({ deprecated: true }),
   tagIds: z
     .union([z.string(), z.array(z.string())])
     .transform((v) => (Array.isArray(v) ? v : v.split(",")))
     .optional()
     .describe("The tag IDs to filter the links by.")
-    .openapi({
+    .meta({
       param: {
         style: "form",
         explode: false,
@@ -100,7 +100,7 @@ const LinksQuerySchema = z.object({
     .describe(
       "The unique name of the tags assigned to the short link (case insensitive).",
     )
-    .openapi({
+    .meta({
       param: {
         style: "form",
         explode: false,
@@ -147,7 +147,7 @@ const LinksQuerySchema = z.object({
     .describe(
       "DEPRECATED. Filter for links that have at least one tag assigned to them.",
     )
-    .openapi({ deprecated: true }),
+    .meta({ deprecated: true }),
 });
 
 const sortBy = z
@@ -165,7 +165,7 @@ export const getLinksQuerySchemaBase = LinksQuerySchema.merge(
       .default("desc")
       .describe("The sort order. The default is `desc`."),
     sort: sortBy
-      .openapi({ deprecated: true })
+      .meta({ deprecated: true })
       .describe("DEPRECATED. Use `sortBy` instead."),
   }),
 ).merge(getPaginationQuerySchema({ pageSize: 100 }));
@@ -305,7 +305,7 @@ export const domainKeySchema = z.object({
 export const createLinkBodySchema = z.object({
   url: parseUrlSchemaAllowEmpty()
     .describe("The destination URL of the short link.")
-    .openapi({
+    .meta({
       example: "https://google.com",
       maxLength: DESTINATION_URL_MAX_LENGTH,
     }),
@@ -341,7 +341,7 @@ export const createLinkBodySchema = z.object({
     .describe(
       "The ID of the link in your database. If set, it can be used to identify the link in future API requests (must be prefixed with 'ext_' when passed as a query parameter). This key is unique across your workspace.",
     )
-    .openapi({ example: "123456" }),
+    .meta({ example: "123456" }),
   tenantId: z
     .string()
     .max(255)
@@ -380,7 +380,7 @@ export const createLinkBodySchema = z.object({
     .transform((v) => (Array.isArray(v) ? v : v.split(",")))
     .optional()
     .describe("The unique IDs of the tags assigned to the short link.")
-    .openapi({ example: ["clux0rgak00011..."] }),
+    .meta({ example: ["clux0rgak00011..."] }),
   tagNames: z
     .union([z.string(), z.array(z.string())])
     .transform((v) => (Array.isArray(v) ? v : v.split(",")))
@@ -401,7 +401,7 @@ export const createLinkBodySchema = z.object({
   expiredUrl: parseUrlSchema
     .nullish()
     .describe("The URL to redirect to when the short link has expired.")
-    .openapi({
+    .meta({
       maxLength: DESTINATION_URL_MAX_LENGTH,
     }),
   password: z
@@ -462,7 +462,7 @@ export const createLinkBodySchema = z.object({
     .describe(
       "Geo targeting information for the short link in JSON format `{[COUNTRY]: https://example.com }`. See https://d.to/geo for more information.",
     )
-    .openapi({ ref: "linkGeoTargeting" }),
+    .meta({ ref: "linkGeoTargeting" }),
   doIndex: z
     .boolean()
     .optional()
@@ -534,14 +534,14 @@ export const createLinkBodySchema = z.object({
     .describe(
       "Deprecated: Use `dashboard` instead. Whether the short link's stats are publicly accessible. Defaults to `false` if not provided.",
     )
-    .openapi({ deprecated: true }),
+    .meta({ deprecated: true }),
   tagId: z
     .string()
     .nullish()
     .describe(
       "Deprecated: Use `tagIds` instead. The unique ID of the tag assigned to the short link.",
     )
-    .openapi({ deprecated: true }),
+    .meta({ deprecated: true }),
 });
 
 export const createLinkBodySchemaAsync = createLinkBodySchema.extend({
@@ -589,7 +589,7 @@ export const bulkUpdateLinksBodySchema = z.object({
       z.object({
         url: parseUrlSchema
           .describe("The destination URL of the short link.")
-          .openapi({
+          .meta({
             example: "https://google.com",
           })
           .optional(),
@@ -821,15 +821,15 @@ export const LinkSchema = z
       .describe(
         "Deprecated: Use `tags` instead. The unique ID of the tag assigned to the short link.",
       )
-      .openapi({ deprecated: true }),
+      .meta({ deprecated: true }),
     projectId: z
       .string()
       .describe(
         "Deprecated: Use `workspaceId` instead. The project ID of the short link.",
       )
-      .openapi({ deprecated: true }),
+      .meta({ deprecated: true }),
   })
-  .openapi({ title: "Link" });
+  .meta({ title: "Link" });
 
 export const LinkErrorSchema = z
   .object({
@@ -837,22 +837,20 @@ export const LinkErrorSchema = z
     error: z.string().describe("The error message."),
     code: ErrorCode.describe("The error code."),
   })
-  .openapi({ title: "LinkError" });
+  .meta({ title: "LinkError" });
 
-export const getLinkInfoQuerySchema = domainKeySchema.partial().merge(
-  z.object({
-    linkId: z
-      .string()
-      .optional()
-      .describe("The unique ID of the short link.")
-      .openapi({ example: "clux0rgak00011..." }),
-    externalId: z
-      .string()
-      .optional()
-      .describe("This is the ID of the link in the your database.")
-      .openapi({ example: "123456" }),
-  }),
-);
+export const getLinkInfoQuerySchema = domainKeySchema.partial().extend({
+  linkId: z
+    .string()
+    .optional()
+    .describe("The unique ID of the short link.")
+    .meta({ example: "clux0rgak00011..." }),
+  externalId: z
+    .string()
+    .optional()
+    .describe("This is the ID of the link in the your database.")
+    .meta({ example: "123456" }),
+});
 
 export const getLinksQuerySchemaExtended = getLinksQuerySchemaBase.merge(
   z.object({
@@ -873,12 +871,10 @@ export const getLinksQuerySchemaExtended = getLinksQuerySchemaBase.merge(
   }),
 );
 
-export const getLinkInfoQuerySchemaExtended = getLinkInfoQuerySchema.extend(
-  z.object({
-    includeUser: booleanQuerySchema.default(false),
-    includeWebhooks: booleanQuerySchema.default(false),
-  }),
-);
+export const getLinkInfoQuerySchemaExtended = getLinkInfoQuerySchema.extend({
+  includeUser: booleanQuerySchema.default(false),
+  includeWebhooks: booleanQuerySchema.default(false),
+});
 
 export const linkEventSchema = LinkSchema.extend({
   // here we use string because url can be empty

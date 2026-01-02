@@ -1,8 +1,8 @@
 import { plans } from "@/lib/types";
-import z from "@/lib/zod";
 import { WorkspaceRole } from "@dub/prisma/client";
 import { GOOGLE_FAVICON_URL, R2_URL } from "@dub/utils";
 import { fileTypeFromBuffer } from "file-type";
+import z from "zod";
 
 export const RECURRING_MAX_DURATIONS = [0, 1, 3, 6, 12, 18, 24, 36, 48];
 
@@ -24,7 +24,7 @@ const allowedImageTypes = [
 export const booleanQuerySchema = z
   .enum(["true", "false"])
   .transform((value) => value === "true")
-  .openapi({
+  .meta({
     type: "boolean",
   });
 
@@ -37,7 +37,7 @@ export const getPaginationQuerySchema = ({ pageSize }: { pageSize: number }) =>
       .optional()
       .default(1)
       .describe("The page number for pagination.")
-      .openapi({
+      .meta({
         example: 1,
       }),
     pageSize: z.coerce
@@ -49,7 +49,7 @@ export const getPaginationQuerySchema = ({ pageSize }: { pageSize: number }) =>
       .optional()
       .default(pageSize)
       .describe("The number of items per page.")
-      .openapi({
+      .meta({
         example: 50,
       }),
   });

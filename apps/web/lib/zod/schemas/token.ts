@@ -1,5 +1,5 @@
 import { SCOPES } from "@/lib/api/tokens/scopes";
-import z from "@/lib/zod";
+import z from "zod";
 import { createPartnerSchema } from "./partners";
 
 // Schema to validate the request body when creating a new token

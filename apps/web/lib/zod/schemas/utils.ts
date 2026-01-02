@@ -1,4 +1,4 @@
-import z from "@/lib/zod";
+import z from "zod";
 import { getUrlFromString, isValidUrl, parseDateTime } from "@dub/utils";
 
 // This is the default max length for URL validation

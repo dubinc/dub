@@ -1,5 +1,5 @@
 import { DATE_RANGE_INTERVAL_PRESETS } from "@/lib/analytics/constants";
-import z from "@/lib/zod";
+import z from "zod";
 
 export const usageQuerySchema = z.object({
   resource: z.enum(["links", "events", "revenue"]),

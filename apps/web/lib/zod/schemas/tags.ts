@@ -1,4 +1,4 @@
-import z from "@/lib/zod";
+import z from "zod";
 import { RESOURCE_COLORS } from "@/ui/colors";
 import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
 
@@ -66,7 +66,7 @@ export const createTagBodySchema = z
       .trim()
       .min(1)
       .describe("The name of the tag to create.")
-      .openapi({ deprecated: true }),
+      .meta({ deprecated: true }),
   })
   .partial()
   .superRefine((data, ctx) => {
@@ -87,6 +87,6 @@ export const LinkTagSchema = z
     name: z.string().describe("The name of the tag."),
     color: tagColorSchema.describe("The color of the tag."),
   })
-  .openapi({
+  .meta({
     title: "LinkTag",
   });

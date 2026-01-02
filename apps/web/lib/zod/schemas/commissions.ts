@@ -7,7 +7,7 @@ import { EnrolledPartnerSchema, WebhookPartnerSchema } from "./partners";
 import { parseDateSchema } from "./utils";
 
 export const CommissionSchema = z.object({
-  id: z.string().describe("The commission's unique ID on Dub.").openapi({
+  id: z.string().describe("The commission's unique ID on Dub.").meta({
     example: "cm_1JVR7XRCSR0EDBAF39FZ4PMYE",
   }),
   type: z.nativeEnum(CommissionType).optional(),

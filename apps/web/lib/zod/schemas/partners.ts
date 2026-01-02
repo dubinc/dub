@@ -115,12 +115,12 @@ export const getPartnersQuerySchema = z
       .nativeEnum(ProgramEnrollmentStatus)
       .optional()
       .describe("A filter on the list based on the partner's `status` field.")
-      .openapi({ example: "approved" }),
+      .meta({ example: "approved" }),
     country: z
       .string()
       .optional()
       .describe("A filter on the list based on the partner's `country` field.")
-      .openapi({ example: "US" }),
+      .meta({ example: "US" }),
     sortBy: z
       .enum([
         "createdAt",
@@ -141,33 +141,33 @@ export const getPartnersQuerySchema = z
       .describe(
         "The field to sort the partners by. The default is `totalSaleAmount`.",
       )
-      .openapi({ example: "totalSaleAmount" }),
+      .meta({ example: "totalSaleAmount" }),
     sortOrder: z
       .enum(["asc", "desc"])
       .default("desc")
       .describe("The sort order. The default is `desc`.")
-      .openapi({ example: "desc" }),
+      .meta({ example: "desc" }),
     email: z
       .string()
       .optional()
       .describe(
         "Filter the partner list based on the partner's `email`. The value must be a string. Takes precedence over `search`.",
       )
-      .openapi({ example: "panic@thedis.co" }),
+      .meta({ example: "panic@thedis.co" }),
     tenantId: z
       .string()
       .optional()
       .describe(
         "Filter the partner list based on the partner's `tenantId`. The value must be a string. Takes precedence over `email` and `search`.",
       )
-      .openapi({ example: "1K0NM7HCN944PEMZ3CQPH43H8" }),
+      .meta({ example: "1K0NM7HCN944PEMZ3CQPH43H8" }),
     search: z
       .string()
       .optional()
       .describe(
         "A search query to filter partners by ID, name, email, or link.",
       )
-      .openapi({ example: "john" }),
+      .meta({ example: "john" }),
   })
   .merge(getPaginationQuerySchema({ pageSize: PARTNERS_MAX_PAGE_SIZE }));
 
@@ -725,14 +725,14 @@ export const partnersTopLinksSchema =
 export const partnerAnalyticsResponseSchema = {
   count: analyticsResponse["count"]
     .merge(earningsSchema)
-    .openapi({ ref: "PartnerAnalyticsCount", title: "PartnerAnalyticsCount" }),
+    .meta({ ref: "PartnerAnalyticsCount", title: "PartnerAnalyticsCount" }),
 
-  timeseries: analyticsResponse["timeseries"].merge(earningsSchema).openapi({
+  timeseries: analyticsResponse["timeseries"].merge(earningsSchema).meta({
     ref: "PartnerAnalyticsTimeseries",
     title: "PartnerAnalyticsTimeseries",
   }),
 
-  top_links: partnersTopLinksSchema.openapi({
+  top_links: partnersTopLinksSchema.meta({
     ref: "PartnerAnalyticsTopLinks",
     title: "PartnerAnalyticsTopLinks",
   }),

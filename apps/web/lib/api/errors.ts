@@ -1,7 +1,6 @@
-import z from "@/lib/zod";
 import { NextResponse } from "next/server";
 import "server-only";
-import { ZodError } from "zod";
+import z, { ZodError } from "zod";
 import { generateErrorMessage } from "zod-error";
 import { ZodOpenApiResponseObject } from "zod-openapi";
 import { logger } from "../axiom/server";
@@ -37,15 +36,15 @@ const speakeasyErrorOverrides: Record<z.infer<typeof ErrorCode>, string> = {
 
 const ErrorSchema = z.object({
   error: z.object({
-    code: ErrorCode.openapi({
+    code: ErrorCode.meta({
       description: "A short code indicating the error code returned.",
       example: "not_found",
     }),
-    message: z.string().openapi({
+    message: z.string().meta({
       description: "A human readable error message.",
       example: "The requested resource was not found.",
     }),
-    doc_url: z.string().optional().openapi({
+    doc_url: z.string().optional().meta({
       description: "A URL to more information about the error code reported.",
       example: "https://dub.co/docs/api-reference",
     }),

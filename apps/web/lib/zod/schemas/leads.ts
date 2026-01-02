@@ -1,4 +1,4 @@
-import z from "@/lib/zod";
+import z from "zod";
 import { clickEventSchema, clickEventSchemaTB } from "./clicks";
 import { CustomerSchema } from "./customers";
 import { commonDeprecatedEventFields } from "./deprecated";
@@ -19,7 +19,7 @@ export const trackLeadRequestSchema = z.object({
     .describe(
       "The name of the lead event to track. Can also be used as a unique identifier to associate a given lead event for a customer for a subsequent sale event (via the `leadEventName` prop in `/track/sale`).",
     )
-    .openapi({ example: "Sign up" }),
+    .meta({ example: "Sign up" }),
   customerExternalId: z
     .string()
     .trim()
@@ -148,4 +148,4 @@ export const leadEventResponseSchema = z
     customer: CustomerSchema,
   })
   .merge(commonDeprecatedEventFields)
-  .openapi({ ref: "LeadEvent", title: "LeadEvent" });
+  .meta({ ref: "LeadEvent", title: "LeadEvent" });
