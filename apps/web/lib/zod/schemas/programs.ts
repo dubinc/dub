@@ -217,3 +217,27 @@ export const deletePartnerCommentSchema = z.object({
   workspaceId: z.string(),
   commentId: z.string(),
 });
+
+export const getPartnerCustomersQuerySchema = z.object({
+  search: z
+    .string()
+    .optional()
+    .describe(
+      "A search query to filter customers by email or name. Only available if customer data sharing is enabled.",
+    ),
+  country: z
+    .string()
+    .optional()
+    .describe("A filter on the list based on the customer's `country` field."),
+  linkId: z
+    .string()
+    .optional()
+    .describe(
+      "A filter on the list based on the customer's `linkId` field (the referral link ID).",
+    ),
+});
+
+export const getPartnerCustomersCountQuerySchema =
+  getPartnerCustomersQuerySchema.extend({
+    groupBy: z.enum(["country", "linkId"]).optional(),
+  });

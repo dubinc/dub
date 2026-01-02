@@ -8,6 +8,7 @@ import {
 } from "@/lib/constants/partner-profile";
 import { generateRandomName } from "@/lib/names";
 import { PartnerProfileCustomerSchema } from "@/lib/zod/schemas/partner-profile";
+import { getPartnerCustomersQuerySchema } from "@/lib/zod/schemas/programs";
 import { prisma, sanitizeFullTextSearch } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -16,11 +17,8 @@ import { z } from "zod";
 export const GET = withPartnerProfile(
   async ({ partner, params, searchParams }) => {
     const { programId } = params;
-    const { country, linkId, search } = searchParams as {
-      country?: string;
-      linkId?: string;
-      search?: string;
-    };
+    const { search, country, linkId } =
+      getPartnerCustomersQuerySchema.parse(searchParams);
 
     const { program, totalCommissions, customerDataSharingEnabledAt } =
       await getProgramEnrollmentOrThrow({

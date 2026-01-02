@@ -5,7 +5,8 @@ import {
   LARGE_PROGRAM_IDS,
   LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS,
 } from "@/lib/constants/partner-profile";
-import { prisma } from "@dub/prisma";
+import { getPartnerCustomersCountQuerySchema } from "@/lib/zod/schemas/programs";
+import { prisma, sanitizeFullTextSearch } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 
@@ -13,17 +14,17 @@ import { NextResponse } from "next/server";
 export const GET = withPartnerProfile(
   async ({ partner, params, searchParams }) => {
     const { programId } = params;
-    const { groupBy } = searchParams as {
-      groupBy?: "country" | "linkId";
-    };
+    const { search, country, linkId, groupBy } =
+      getPartnerCustomersCountQuerySchema.parse(searchParams);
 
-    const { program, totalCommissions } = await getProgramEnrollmentOrThrow({
-      partnerId: partner.id,
-      programId: programId,
-      include: {
-        program: true,
-      },
-    });
+    const { program, totalCommissions, customerDataSharingEnabledAt } =
+      await getProgramEnrollmentOrThrow({
+        partnerId: partner.id,
+        programId: programId,
+        include: {
+          program: true,
+        },
+      });
 
     if (
       LARGE_PROGRAM_IDS.includes(program.id) &&
@@ -39,6 +40,25 @@ export const GET = withPartnerProfile(
       partnerId: partner.id,
       programId: program.id,
       projectId: program.workspaceId,
+      // Only filter by country if not grouping by country
+      ...(country &&
+        groupBy !== "country" && {
+          country,
+        }),
+      // Only filter by linkId if not grouping by linkId
+      ...(linkId &&
+        groupBy !== "linkId" && {
+          linkId,
+        }),
+      // Only allow search if customer data sharing is enabled
+      ...(search && customerDataSharingEnabledAt
+        ? search.includes("@")
+          ? { email: search }
+          : {
+              email: { search: sanitizeFullTextSearch(search) },
+              name: { search: sanitizeFullTextSearch(search) },
+            }
+        : {}),
     };
 
     // Get customer count by country
