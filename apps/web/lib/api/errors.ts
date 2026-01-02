@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import "server-only";
-import z, { ZodError } from "zod";
 import { generateErrorMessage } from "zod-error";
 import { ZodOpenApiResponseObject } from "zod-openapi";
+import * as z from "zod/v4";
 import { logger } from "../axiom/server";
 import { ErrorCode } from "./error-codes";
 
@@ -75,7 +75,7 @@ export class DubApiError extends Error {
 
 const docErrorUrl = "https://dub.co/docs/api-reference/errors";
 
-export function fromZodError(error: ZodError): ErrorResponse {
+export function fromZodError(error: z.ZodError): ErrorResponse {
   return {
     error: {
       code: "unprocessable_entity",
@@ -111,7 +111,7 @@ function handleApiError(error: any): ErrorResponse & { status: number } {
   logger.flush();
 
   // Zod errors
-  if (error instanceof ZodError) {
+  if (error instanceof z.ZodError) {
     return {
       ...fromZodError(error),
       status: errorCodeToHttpStatus.unprocessable_entity,
