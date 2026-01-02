@@ -1,5 +1,5 @@
 import { DubPartnersLogo } from "@/ui/dub-partners-logo";
-import { Program } from "@dub/prisma/client";
+import { Program } from "@dub/prisma/types";
 import Link from "next/link";
 import { ProgramLogos } from "./program-logos";
 
