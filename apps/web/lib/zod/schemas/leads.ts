@@ -97,14 +97,12 @@ export const trackLeadResponseSchema = z.object({
 
 export const leadEventSchemaTB = clickEventSchemaTB
   .omit({ timestamp: true }) // remove timestamp from lead data because tinybird will generate its own at ingestion time
-  .merge(
-    z.object({
-      event_id: z.string(),
-      event_name: z.string(),
-      customer_id: z.string().default(""),
-      metadata: z.string().default(""),
-    }),
-  );
+  .extend({
+    event_id: z.string(),
+    event_name: z.string(),
+    customer_id: z.string().default(""),
+    metadata: z.string().default(""),
+  });
 
 // response from tinybird endpoint
 export const leadEventSchemaTBEndpoint = z.object({
@@ -147,5 +145,5 @@ export const leadEventResponseSchema = z
     link: linkEventSchema,
     customer: CustomerSchema,
   })
-  .merge(commonDeprecatedEventFields)
+  .extend(commonDeprecatedEventFields.shape)
   .meta({ ref: "LeadEvent", title: "LeadEvent" });

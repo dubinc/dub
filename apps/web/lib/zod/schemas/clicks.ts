@@ -82,5 +82,5 @@ export const clickEventResponseSchema = z
     click: clickEventSchema,
     link: linkEventSchema,
   })
-  .merge(commonDeprecatedEventFields)
+  .extend(commonDeprecatedEventFields.shape)
   .meta({ ref: "ClickEvent", title: "ClickEvent" });

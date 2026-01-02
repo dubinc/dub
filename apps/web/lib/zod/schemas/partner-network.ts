@@ -87,17 +87,15 @@ export const NetworkPartnerSchema = PartnerSchema.pick({
   instagramVerifiedAt: true,
   tiktok: true,
   tiktokVerifiedAt: true,
-}).merge(
-  z.object({
-    lastConversionAt: z.date().nullable(),
-    conversionScore: PartnerConversionScoreSchema,
-    starredAt: z.date().nullable(),
-    invitedAt: z.date().nullable(),
-    ignoredAt: z.date().nullable(),
-    recruitedAt: z.date().nullable(),
-    categories: z.array(z.string()),
-  }),
-);
+}).extend({
+  lastConversionAt: z.date().nullable(),
+  conversionScore: PartnerConversionScoreSchema,
+  starredAt: z.date().nullable(),
+  invitedAt: z.date().nullable(),
+  ignoredAt: z.date().nullable(),
+  recruitedAt: z.date().nullable(),
+  categories: z.array(z.string()),
+});
 
 export const updateDiscoveredPartnerSchema = z.object({
   workspaceId: z.string(),

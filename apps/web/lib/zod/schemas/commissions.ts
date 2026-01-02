@@ -27,28 +27,24 @@ export const CommissionSchema = z.object({
 });
 
 // Represents the commission object used in webhook and API responses (/api/commissions/**)
-export const CommissionEnrichedSchema = CommissionSchema.merge(
-  z.object({
-    partner: EnrolledPartnerSchema.pick({
-      id: true,
-      name: true,
-      email: true,
-      image: true,
-      payoutsEnabledAt: true,
-      country: true,
-      groupId: true,
-    }),
-    customer: CustomerSchema.nullish(), // customer can be null for click-based / custom commissions
+export const CommissionEnrichedSchema = CommissionSchema.extend({
+  partner: EnrolledPartnerSchema.pick({
+    id: true,
+    name: true,
+    email: true,
+    image: true,
+    payoutsEnabledAt: true,
+    country: true,
+    groupId: true,
   }),
-);
+  customer: CustomerSchema.nullish(), // customer can be null for click-based / custom commissions
+});
 
 // "commission.created" webhook event schema
-export const CommissionWebhookSchema = CommissionSchema.merge(
-  z.object({
-    partner: WebhookPartnerSchema,
-    customer: CustomerSchema.nullish(), // customer can be null for click-based / custom commissions
-  }),
-);
+export const CommissionWebhookSchema = CommissionSchema.extend({
+  partner: WebhookPartnerSchema,
+  customer: CustomerSchema.nullish(), // customer can be null for click-based / custom commissions
+});
 
 export const COMMISSIONS_MAX_PAGE_SIZE = 100;
 
@@ -289,26 +285,22 @@ export const DEFAULT_COMMISSION_EXPORT_COLUMNS =
 
 export const commissionsExportQuerySchema = getCommissionsQuerySchema
   .omit({ page: true, pageSize: true })
-  .merge(
-    z.object({
-      columns: z
-        .string()
-        .default(DEFAULT_COMMISSION_EXPORT_COLUMNS.join(","))
-        .transform((v) => v.split(","))
-        .refine(
-          (columns): columns is CommissionExportColumnId[] => {
-            const validColumnIds = COMMISSION_EXPORT_COLUMNS.map(
-              (col) => col.id,
-            );
+  .extend({
+    columns: z
+      .string()
+      .default(DEFAULT_COMMISSION_EXPORT_COLUMNS.join(","))
+      .transform((v) => v.split(","))
+      .refine(
+        (columns): columns is CommissionExportColumnId[] => {
+          const validColumnIds = COMMISSION_EXPORT_COLUMNS.map((col) => col.id);
 
-            return columns.every((column): column is CommissionExportColumnId =>
-              validColumnIds.includes(column as CommissionExportColumnId),
-            );
-          },
-          {
-            message:
-              "Invalid column IDs provided. Please check the available columns.",
-          },
-        ),
-    }),
-  );
+          return columns.every((column): column is CommissionExportColumnId =>
+            validColumnIds.includes(column as CommissionExportColumnId),
+          );
+        },
+        {
+          message:
+            "Invalid column IDs provided. Please check the available columns.",
+        },
+      ),
+  });

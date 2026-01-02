@@ -28,12 +28,10 @@ export const getTagsQuerySchema = z
   })
   .extend(getPaginationQuerySchema({ pageSize: TAGS_MAX_PAGE_SIZE }));
 
-export const getTagsQuerySchemaExtended = getTagsQuerySchema.merge(
-  z.object({
-    // Only Dub UI uses the following query parameters
-    includeLinksCount: booleanQuerySchema.default(false),
-  }),
-);
+export const getTagsQuerySchemaExtended = getTagsQuerySchema.extend({
+  // Only Dub UI uses the following query parameters
+  includeLinksCount: booleanQuerySchema.default(false),
+});
 
 export const getTagsCountQuerySchema = getTagsQuerySchema.omit({
   ids: true,

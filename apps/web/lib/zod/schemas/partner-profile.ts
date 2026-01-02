@@ -25,55 +25,49 @@ import { workflowConditionSchema } from "./workflows";
 export const PartnerEarningsSchema = CommissionSchema.omit({
   userId: true,
   invoiceId: true,
-}).merge(
-  z.object({
-    customer: z
-      .object({
-        id: z.string(),
-        email: z.string(),
-        country: z.string().nullish(),
-      })
-      .nullable(),
-    link: LinkSchema.pick({
-      id: true,
-      shortLink: true,
-      url: true,
-    }).nullish(),
-  }),
-);
+}).extend({
+  customer: z
+    .object({
+      id: z.string(),
+      email: z.string(),
+      country: z.string().nullish(),
+    })
+    .nullable(),
+  link: LinkSchema.pick({
+    id: true,
+    shortLink: true,
+    url: true,
+  }).nullish(),
+});
 
 export const getPartnerEarningsQuerySchema = getCommissionsQuerySchema
   .omit({
     partnerId: true,
     sortBy: true,
   })
-  .merge(
-    z.object({
-      interval: z
-        .enum(DATE_RANGE_INTERVAL_PRESETS)
-        .default(DUB_PARTNERS_ANALYTICS_INTERVAL),
-      timezone: z.string().optional(),
-      type: z.nativeEnum(CommissionType).optional(),
-      linkId: z.string().optional(),
-      sortBy: z.enum(["createdAt", "amount", "earnings"]).default("createdAt"),
-    }),
-  );
+  .extend({
+    interval: z
+      .enum(DATE_RANGE_INTERVAL_PRESETS)
+      .default(DUB_PARTNERS_ANALYTICS_INTERVAL),
+    timezone: z.string().optional(),
+    type: z.nativeEnum(CommissionType).optional(),
+    linkId: z.string().optional(),
+    sortBy: z.enum(["createdAt", "amount", "earnings"]).default("createdAt"),
+  });
 
 export const getPartnerEarningsCountQuerySchema = getCommissionsCountQuerySchema
   .omit({
     partnerId: true,
   })
-  .merge(
-    z.object({
-      interval: z
-        .enum(DATE_RANGE_INTERVAL_PRESETS)
-        .default(DUB_PARTNERS_ANALYTICS_INTERVAL),
-      timezone: z.string().optional(),
-      type: z.nativeEnum(CommissionType).optional(),
-      linkId: z.string().optional(),
-      groupBy: z.enum(["linkId", "customerId", "status", "type"]).optional(),
-    }),
-  );
+  .extend({
+    interval: z
+      .enum(DATE_RANGE_INTERVAL_PRESETS)
+      .default(DUB_PARTNERS_ANALYTICS_INTERVAL),
+    timezone: z.string().optional(),
+    type: z.nativeEnum(CommissionType).optional(),
+    linkId: z.string().optional(),
+    groupBy: z.enum(["linkId", "customerId", "status", "type"]).optional(),
+  });
 
 export const getPartnerEarningsTimeseriesSchema =
   getPartnerEarningsCountQuerySchema.extend({

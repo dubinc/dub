@@ -156,33 +156,29 @@ const sortBy = z
   .default("createdAt")
   .describe("The field to sort the links by. The default is `createdAt`.");
 
-export const getLinksQuerySchemaBase = LinksQuerySchema.merge(
-  z.object({
-    sortBy,
-    sortOrder: z
-      .enum(["asc", "desc"])
-      .optional()
-      .default("desc")
-      .describe("The sort order. The default is `desc`."),
-    sort: sortBy
-      .meta({ deprecated: true })
-      .describe("DEPRECATED. Use `sortBy` instead."),
-  }),
-).extend(getPaginationQuerySchema({ pageSize: 100 }));
+export const getLinksQuerySchemaBase = LinksQuerySchema.extend({
+  sortBy,
+  sortOrder: z
+    .enum(["asc", "desc"])
+    .optional()
+    .default("desc")
+    .describe("The sort order. The default is `desc`."),
+  sort: sortBy
+    .meta({ deprecated: true })
+    .describe("DEPRECATED. Use `sortBy` instead."),
+}).extend(getPaginationQuerySchema({ pageSize: 100 }));
 
-export const getLinksCountQuerySchema = LinksQuerySchema.merge(
-  z.object({
-    groupBy: z
-      .union([
-        z.literal("domain"),
-        z.literal("tagId"),
-        z.literal("userId"),
-        z.literal("folderId"),
-      ])
-      .optional()
-      .describe("The field to group the links by."),
-  }),
-);
+export const getLinksCountQuerySchema = LinksQuerySchema.extend({
+  groupBy: z
+    .union([
+      z.literal("domain"),
+      z.literal("tagId"),
+      z.literal("userId"),
+      z.literal("folderId"),
+    ])
+    .optional()
+    .describe("The field to group the links by."),
+});
 
 export const exportLinksColumns = [
   {
@@ -264,25 +260,23 @@ export const exportLinksColumnsDefault = exportLinksColumns
 
 export const linksExportQuerySchema = getLinksQuerySchemaBase
   .omit({ page: true, pageSize: true })
-  .merge(
-    z.object({
-      columns: z
-        .string()
-        .default(exportLinksColumnsDefault.join(","))
-        .transform((v) => v.split(","))
-        .describe("The columns to export."),
-      start: parseDateSchema
-        .refine((value: Date) => value >= DUB_FOUNDING_DATE, {
-          message: `The start date cannot be earlier than ${formatDate(DUB_FOUNDING_DATE)}.`,
-        })
-        .optional()
-        .describe("The start date of creation to retrieve links from."),
-      end: parseDateSchema
-        .describe("The end date of creation to retrieve links from.")
-        .optional(),
-      interval: z.string().optional().describe("The interval for the export."),
-    }),
-  );
+  .extend({
+    columns: z
+      .string()
+      .default(exportLinksColumnsDefault.join(","))
+      .transform((v) => v.split(","))
+      .describe("The columns to export."),
+    start: parseDateSchema
+      .refine((value: Date) => value >= DUB_FOUNDING_DATE, {
+        message: `The start date cannot be earlier than ${formatDate(DUB_FOUNDING_DATE)}.`,
+      })
+      .optional()
+      .describe("The start date of creation to retrieve links from."),
+    end: parseDateSchema
+      .describe("The end date of creation to retrieve links from.")
+      .optional(),
+    interval: z.string().optional().describe("The interval for the export."),
+  });
 
 export const domainKeySchema = z.object({
   domain: z
@@ -585,16 +579,14 @@ export const bulkUpdateLinksBodySchema = z.object({
       keyLength: true,
       prefix: true,
     })
-    .merge(
-      z.object({
-        url: parseUrlSchema
-          .describe("The destination URL of the short link.")
-          .meta({
-            example: "https://google.com",
-          })
-          .optional(),
-      }),
-    ),
+    .extend({
+      url: parseUrlSchema
+        .describe("The destination URL of the short link.")
+        .meta({
+          example: "https://google.com",
+        })
+        .optional(),
+    }),
 });
 
 export const LinkSchema = z
@@ -852,24 +844,22 @@ export const getLinkInfoQuerySchema = domainKeySchema.partial().extend({
     .meta({ example: "123456" }),
 });
 
-export const getLinksQuerySchemaExtended = getLinksQuerySchemaBase.merge(
-  z.object({
-    // Only Dub UI uses the following query parameters
-    includeUser: booleanQuerySchema.default(false),
-    includeWebhooks: booleanQuerySchema.default(false),
-    includeDashboard: booleanQuerySchema.default(false),
-    linkIds: z
-      .union([z.string(), z.array(z.string())])
-      .transform((v) => (Array.isArray(v) ? v : v.split(",")))
-      .optional()
-      .describe("Link IDs to filter by."),
-    partnerId: z.string().optional().describe("Partner ID to filter by."),
-    searchMode: z
-      .enum(["fuzzy", "exact"])
-      .default("fuzzy")
-      .describe("Search mode to filter by."),
-  }),
-);
+export const getLinksQuerySchemaExtended = getLinksQuerySchemaBase.extend({
+  // Only Dub UI uses the following query parameters
+  includeUser: booleanQuerySchema.default(false),
+  includeWebhooks: booleanQuerySchema.default(false),
+  includeDashboard: booleanQuerySchema.default(false),
+  linkIds: z
+    .union([z.string(), z.array(z.string())])
+    .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+    .optional()
+    .describe("Link IDs to filter by."),
+  partnerId: z.string().optional().describe("Partner ID to filter by."),
+  searchMode: z
+    .enum(["fuzzy", "exact"])
+    .default("fuzzy")
+    .describe("Search mode to filter by."),
+});
 
 export const getLinkInfoQuerySchemaExtended = getLinkInfoQuerySchema.extend({
   includeUser: booleanQuerySchema.default(false),

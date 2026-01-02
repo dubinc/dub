@@ -60,15 +60,13 @@ export const getCustomersQuerySchema = z
   })
   .extend(getPaginationQuerySchema({ pageSize: CUSTOMERS_MAX_PAGE_SIZE }));
 
-export const getCustomersQuerySchemaExtended = getCustomersQuerySchema.merge(
-  z.object({
-    customerIds: z
-      .union([z.string(), z.array(z.string())])
-      .transform((v) => (Array.isArray(v) ? v : v.split(",")))
-      .nullish()
-      .describe("Customer IDs to filter by."),
-  }),
-);
+export const getCustomersQuerySchemaExtended = getCustomersQuerySchema.extend({
+  customerIds: z
+    .union([z.string(), z.array(z.string())])
+    .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+    .nullish()
+    .describe("Customer IDs to filter by."),
+});
 
 export const getCustomersCountQuerySchema = getCustomersQuerySchema
   .omit({

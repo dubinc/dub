@@ -18,17 +18,15 @@ export async function generateFilters(prompt: string) {
         return acc;
       }, {}) as any),
     })
-    .merge(
-      z.object({
-        // polyfilling this here cause we're removing it from the main Analytics schema (to save space for our OpenAPI spec)
-        country: z
-          .enum(COUNTRY_CODES)
-          .optional()
-          .describe(
-            "The country to retrieve analytics for. Must be passed as a 2-letter ISO 3166-1 country code. See https://d.to/geo for more information.",
-          ),
-      }),
-    );
+    .extend({
+      // polyfilling this here cause we're removing it from the main Analytics schema (to save space for our OpenAPI spec)
+      country: z
+        .enum(COUNTRY_CODES)
+        .optional()
+        .describe(
+          "The country to retrieve analytics for. Must be passed as a 2-letter ISO 3166-1 country code. See https://d.to/geo for more information.",
+        ),
+    });
 
   (async () => {
     const { partialObjectStream } = await streamObject({

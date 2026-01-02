@@ -64,16 +64,12 @@ export const PayoutSchema = z.object({
   mode: z.nativeEnum(PayoutMode).nullable(),
 });
 
-export const PayoutResponseSchema = PayoutSchema.merge(
-  z.object({
-    partner: PartnerSchema.merge(
-      z.object({
-        tenantId: z.string().nullable(),
-      }),
-    ),
-    user: UserSchema.nullish(),
+export const PayoutResponseSchema = PayoutSchema.extend({
+  partner: PartnerSchema.extend({
+    tenantId: z.string().nullable(),
   }),
-);
+  user: UserSchema.nullish(),
+});
 
 export const PartnerPayoutResponseSchema = PayoutResponseSchema.omit({
   partner: true,

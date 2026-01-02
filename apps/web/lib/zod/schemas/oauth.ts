@@ -2,39 +2,35 @@ import { OAUTH_SCOPES } from "@/lib/api/oauth/constants";
 import * as z from "zod/v4";
 import { createIntegrationSchema, integrationSchema } from "./integration";
 
-export const oAuthAppSchema = integrationSchema.merge(
-  z.object({
-    clientId: z.string(),
-    partialClientSecret: z.string(),
-    redirectUris: z.array(z.string()),
-    pkce: z.boolean(),
-  }),
-);
+export const oAuthAppSchema = integrationSchema.extend({
+  clientId: z.string(),
+  partialClientSecret: z.string(),
+  redirectUris: z.array(z.string()),
+  pkce: z.boolean(),
+});
 
-export const createOAuthAppSchema = createIntegrationSchema.merge(
-  z.object({
-    redirectUris: z
-      .string()
-      .array()
-      .min(1, {
-        message: "At least one redirect URI is required",
-      })
-      .max(5, {
-        message: "only 5 redirect URIs are allowed",
-      })
-      .transform((urls) => urls.filter((url) => url.trim().length > 0))
-      .refine(
-        (urls) => {
-          return urls.every((url) => /^(https?:\/\/)/i.test(url));
-        },
-        {
-          message:
-            "redirect_uri must be a valid URL starting with 'https://' or 'http://'",
-        },
-      ),
-    pkce: z.boolean().default(false),
-  }),
-);
+export const createOAuthAppSchema = createIntegrationSchema.extend({
+  redirectUris: z
+    .string()
+    .array()
+    .min(1, {
+      message: "At least one redirect URI is required",
+    })
+    .max(5, {
+      message: "only 5 redirect URIs are allowed",
+    })
+    .transform((urls) => urls.filter((url) => url.trim().length > 0))
+    .refine(
+      (urls) => {
+        return urls.every((url) => /^(https?:\/\/)/i.test(url));
+      },
+      {
+        message:
+          "redirect_uri must be a valid URL starting with 'https://' or 'http://'",
+      },
+    ),
+  pkce: z.boolean().default(false),
+});
 
 export const updateOAuthAppSchema = createOAuthAppSchema.partial();
 

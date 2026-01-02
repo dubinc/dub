@@ -93,12 +93,10 @@ export const getDomainsQuerySchema = z
   })
   .extend(getPaginationQuerySchema({ pageSize: DOMAINS_MAX_PAGE_SIZE }));
 
-export const getDomainsQuerySchemaExtended = getDomainsQuerySchema.merge(
-  z.object({
-    // only Dub UI uses the following query parameters
-    includeLink: booleanQuerySchema.default(false),
-  }),
-);
+export const getDomainsQuerySchemaExtended = getDomainsQuerySchema.extend({
+  // only Dub UI uses the following query parameters
+  includeLink: booleanQuerySchema.default(false),
+});
 
 export const getDomainsCountQuerySchema = getDomainsQuerySchema.omit({
   page: true,
