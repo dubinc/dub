@@ -1,9 +1,9 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
-import z from "zod";
 import {
   WorkspaceSchema,
   createWorkspaceSchema,
 } from "@/lib/zod/schemas/workspaces";
+import z from "zod";
 import { ZodOpenApiOperationObject } from "zod-openapi";
 
 export const updateWorkspace: ZodOpenApiOperationObject = {

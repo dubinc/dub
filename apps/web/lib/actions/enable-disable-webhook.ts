@@ -2,9 +2,9 @@
 
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
+import z from "zod";
 import { webhookCache } from "../webhook/cache";
 import { toggleWebhooksForWorkspace } from "../webhook/update-webhook";
-import z from "zod";
 import { authActionClient } from "./safe-action";
 
 const schema = z.object({

@@ -1,5 +1,5 @@
-import z from "zod";
 import { RESOURCE_COLORS } from "@/ui/colors";
+import z from "zod";
 import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
 
 export const TAGS_MAX_PAGE_SIZE = 100;

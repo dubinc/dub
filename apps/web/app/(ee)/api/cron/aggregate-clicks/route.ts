@@ -108,8 +108,6 @@ async function handler(req: Request) {
         linkIds: linksWithClickRewards.map(({ id }) => id),
         start,
         end,
-
-        
       });
     console.timeEnd("getAnalytics");
 

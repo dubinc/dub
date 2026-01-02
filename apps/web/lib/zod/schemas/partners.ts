@@ -107,7 +107,7 @@ export const exportApplicationsColumnsDefault = [
   "website",
   "youtube",
   "linkedin",
-]
+];
 
 export const getPartnersQuerySchema = z
   .object({

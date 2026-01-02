@@ -1,6 +1,6 @@
 import { TRIGGER_TYPES } from "@/lib/analytics/constants";
-import z from "zod";
 import { CONTINENT_CODES } from "@dub/utils";
+import z from "zod";
 import { LinkTagSchema } from "./tags";
 
 const analyticsTriggersResponse = z

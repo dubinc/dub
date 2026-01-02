@@ -1,9 +1,9 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
-import z from "zod";
 import {
   EnrolledPartnerSchema,
   getPartnersQuerySchema,
 } from "@/lib/zod/schemas/partners";
+import z from "zod";
 import { ZodOpenApiOperationObject } from "zod-openapi";
 
 export const listPartners: ZodOpenApiOperationObject = {

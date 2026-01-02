@@ -20,12 +20,7 @@ import {
 import { Users6 } from "@dub/ui/icons";
 import { formatDate, nFormatter, pluralize } from "@dub/utils";
 import { cn } from "@dub/utils/src";
-import {
-  Dispatch,
-  SetStateAction,
-  useMemo,
-  useState,
-} from "react";
+import { Dispatch, SetStateAction, useMemo, useState } from "react";
 
 type ConfirmCreateBountyModalProps = {
   bounty?: Pick<
@@ -146,7 +141,10 @@ function ConfirmCreateBountyModal({
                       content={
                         <ScrollableTooltipContent>
                           {eligibleGroups.map((group) => (
-                            <div key={group.id} className="flex items-center gap-2">
+                            <div
+                              key={group.id}
+                              className="flex items-center gap-2"
+                            >
                               <GroupColorCircle group={group} />
                               <span className="font-regular text-sm text-neutral-700">
                                 {group.name}

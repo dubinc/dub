@@ -1,9 +1,9 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
-import z from "zod";
 import {
   DomainStatusSchema,
   searchDomainSchema,
 } from "@/lib/zod/schemas/domains";
+import z from "zod";
 import { ZodOpenApiOperationObject } from "zod-openapi";
 
 export const checkDomainStatus: ZodOpenApiOperationObject = {

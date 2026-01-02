@@ -1,6 +1,6 @@
+import z from "zod";
 import { ClickEventTB } from "../types";
 import { redis } from "../upstash";
-import z from "zod";
 import { clickEventSchemaTB } from "../zod/schemas/clicks";
 import { tb } from "./client";
 

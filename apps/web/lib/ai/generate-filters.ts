@@ -3,9 +3,9 @@
 import { VALID_ANALYTICS_FILTERS } from "@/lib/analytics/constants";
 import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { anthropic } from "@ai-sdk/anthropic";
+import { createStreamableValue } from "@ai-sdk/rsc";
 import { COUNTRY_CODES } from "@dub/utils";
 import { streamObject } from "ai";
-import { createStreamableValue } from "@ai-sdk/rsc";
 import z from "zod";
 
 export async function generateFilters(prompt: string) {

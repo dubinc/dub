@@ -1,9 +1,9 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
-import z from "zod";
 import {
   FolderSchema,
   listFoldersQuerySchema,
 } from "@/lib/zod/schemas/folders";
+import z from "zod";
 import { ZodOpenApiOperationObject } from "zod-openapi";
 
 export const listFolders: ZodOpenApiOperationObject = {
