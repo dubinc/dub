@@ -62,56 +62,44 @@ export const onboardingStepSchema = z.enum([
 ]);
 
 export const programDataSchema = programInfoSchema
-  .merge(programRewardSchema)
-  .merge(programInvitePartnersSchema)
-  .merge(programSupportSchema)
-  .merge(
-    z.object({
-      lastCompletedStep: onboardingStepSchema.nullish(), // The last step that was completed
-      currentStep: onboardingStepSchema.nullish(), // The current step when saving and exiting
-    }),
-  );
+  .extend(programRewardSchema.shape)
+  .extend(programInvitePartnersSchema.shape)
+  .extend(programSupportSchema.shape)
+  .extend({
+    lastCompletedStep: onboardingStepSchema.nullish(), // The last step that was completed
+    currentStep: onboardingStepSchema.nullish(), // The current step when saving and exiting
+  });
 
 export const onboardProgramSchema = z.discriminatedUnion("step", [
-  programInfoSchema.merge(
-    z.object({
-      step: z.literal("get-started"),
-      workspaceId: z.string(),
-    }),
-  ),
+  programInfoSchema.extend({
+    step: z.literal("get-started"),
+    workspaceId: z.string(),
+  }),
 
-  programRewardSchema.merge(
-    z.object({
-      step: z.literal("configure-reward"),
-      workspaceId: z.string(),
-    }),
-  ),
+  programRewardSchema.extend({
+    step: z.literal("configure-reward"),
+    workspaceId: z.string(),
+  }),
 
-  programInvitePartnersSchema.merge(
-    z.object({
-      step: z.literal("invite-partners"),
-      workspaceId: z.string(),
-    }),
-  ),
+  programInvitePartnersSchema.extend({
+    step: z.literal("invite-partners"),
+    workspaceId: z.string(),
+  }),
 
-  programSupportSchema.merge(
-    z.object({
-      step: z.literal("help-and-support"),
-      workspaceId: z.string(),
-    }),
-  ),
+  programSupportSchema.extend({
+    step: z.literal("help-and-support"),
+    workspaceId: z.string(),
+  }),
 
   z.object({
     step: z.literal("create-program"),
     workspaceId: z.string(),
   }),
 
-  programDataSchema.partial().merge(
-    z.object({
-      step: z.literal("save-and-exit"),
-      workspaceId: z.string(),
-    }),
-  ),
+  programDataSchema.partial().extend({
+    step: z.literal("save-and-exit"),
+    workspaceId: z.string(),
+  }),
 ]);
 
 export const PROGRAM_ONBOARDING_STEPS = [
