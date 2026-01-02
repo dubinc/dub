@@ -46,7 +46,7 @@ export const getQRCodeQuerySchema = z.object({
     ),
   hideLogo: booleanQuerySchema
     .optional()
-    .default("false")
+    .default(false)
     .describe(
       "Whether to hide the logo in the QR code. Can only be used with a paid plan on Dub.",
     ),
@@ -59,7 +59,7 @@ export const getQRCodeQuerySchema = z.object({
     ),
   includeMargin: booleanQuerySchema
     .optional()
-    .default("true")
+    .default(true)
     .describe(
       "DEPRECATED: Margin is included by default. Use the `margin` prop to customize the margin size.",
     )

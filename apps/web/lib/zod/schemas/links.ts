@@ -857,9 +857,9 @@ export const getLinkInfoQuerySchema = domainKeySchema.partial().merge(
 export const getLinksQuerySchemaExtended = getLinksQuerySchemaBase.merge(
   z.object({
     // Only Dub UI uses the following query parameters
-    includeUser: booleanQuerySchema.default("false"),
-    includeWebhooks: booleanQuerySchema.default("false"),
-    includeDashboard: booleanQuerySchema.default("false"),
+    includeUser: booleanQuerySchema.default(false),
+    includeWebhooks: booleanQuerySchema.default(false),
+    includeDashboard: booleanQuerySchema.default(false),
     linkIds: z
       .union([z.string(), z.array(z.string())])
       .transform((v) => (Array.isArray(v) ? v : v.split(",")))
@@ -875,8 +875,8 @@ export const getLinksQuerySchemaExtended = getLinksQuerySchemaBase.merge(
 
 export const getLinkInfoQuerySchemaExtended = getLinkInfoQuerySchema.merge(
   z.object({
-    includeUser: booleanQuerySchema.default("false"),
-    includeWebhooks: booleanQuerySchema.default("false"),
+    includeUser: booleanQuerySchema.default(false),
+    includeWebhooks: booleanQuerySchema.default(false),
   }),
 );
 

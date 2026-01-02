@@ -85,7 +85,7 @@ export const getDomainsQuerySchema = z
   .object({
     archived: booleanQuerySchema
       .optional()
-      .default("false")
+      .default(false)
       .describe(
         "Whether to include archived domains in the response. Defaults to `false` if not provided.",
       ),
@@ -99,7 +99,7 @@ export const getDomainsQuerySchema = z
 export const getDomainsQuerySchemaExtended = getDomainsQuerySchema.merge(
   z.object({
     // only Dub UI uses the following query parameters
-    includeLink: booleanQuerySchema.default("false"),
+    includeLink: booleanQuerySchema.default(false),
   }),
 );
 

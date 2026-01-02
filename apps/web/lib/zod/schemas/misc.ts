@@ -23,7 +23,7 @@ const allowedImageTypes = [
 // A boolean query schema that coerces the value to a boolean
 export const booleanQuerySchema = z
   .enum(["true", "false"])
-  .transform((value) => value == "true")
+  .transform((value) => value === "true")
   .openapi({
     type: "boolean",
   });

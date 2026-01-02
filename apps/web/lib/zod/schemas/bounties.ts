@@ -105,7 +105,7 @@ export const BountySchema = z.object({
 
 export const getBountiesQuerySchema = z.object({
   partnerId: z.string().optional(),
-  includeSubmissionsCount: booleanQuerySchema.optional().default("false"),
+  includeSubmissionsCount: booleanQuerySchema.optional().default(false),
 });
 
 // used in GET /bounties

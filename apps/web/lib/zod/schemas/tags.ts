@@ -31,7 +31,7 @@ export const getTagsQuerySchema = z
 export const getTagsQuerySchemaExtended = getTagsQuerySchema.merge(
   z.object({
     // Only Dub UI uses the following query parameters
-    includeLinksCount: booleanQuerySchema.default("false"),
+    includeLinksCount: booleanQuerySchema.default(false),
   }),
 );
 
