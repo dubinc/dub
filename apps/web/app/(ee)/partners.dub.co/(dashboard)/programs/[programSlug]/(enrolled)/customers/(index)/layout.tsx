@@ -55,7 +55,7 @@ export default function PartnerCustomersLayout({
             return (
               <Link
                 key={tab.id}
-                href={`/partners/programs/${programSlug}/customers${tab.href ? `/${tab.href}` : ""}`}
+                href={`/programs/${programSlug}/customers${tab.href ? `/${tab.href}` : ""}`}
                 className={cn(
                   "border-border-subtle flex flex-col gap-1 rounded-lg border p-4 text-left transition-colors duration-100",
                   isActive
