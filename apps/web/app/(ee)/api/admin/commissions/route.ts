@@ -11,15 +11,20 @@ import { getTopProgramsByCommissions } from "./get-top-program-by-commissions";
 const adminCommissionsQuerySchema = z
   .object({
     programId: z.string().optional(),
-    timezone: z.string().default("UTC"),
+    timezone: z.string().optional().default("UTC"),
   })
   .extend(
     analyticsQuerySchema.pick({ interval: true, start: true, end: true }).shape,
   );
 
 export const GET = withAdmin(async ({ searchParams }) => {
-  const { interval, start, end, timezone, programId } =
-    adminCommissionsQuerySchema.parse(searchParams);
+  const {
+    programId,
+    interval = "mtd",
+    start,
+    end,
+    timezone = "UTC",
+  } = adminCommissionsQuerySchema.parse(searchParams);
 
   const { startDate, endDate, granularity } = getStartEndDates({
     interval,
