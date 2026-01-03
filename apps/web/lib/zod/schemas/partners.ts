@@ -378,6 +378,7 @@ export const EnrolledPartnerSchema = PartnerSchema.pick({
       rewards: true,
       discount: true,
       group: true,
+      customerDataSharingEnabledAt: true,
     }),
   )
   .extend({
@@ -499,12 +500,6 @@ export const LeaderboardPartnerSchema = z.object({
   image: z.string(),
   totalCommissions: z.number().default(0),
 });
-
-export const getPartnerCustomersQuerySchema = z
-  .object({
-    search: z.string().optional(),
-  })
-  .merge(getPaginationQuerySchema({ pageSize: 100 }));
 
 export const createPartnerSchema = z.object({
   name: z
