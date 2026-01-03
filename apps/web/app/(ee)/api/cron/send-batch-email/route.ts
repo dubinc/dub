@@ -6,7 +6,7 @@ import { ResendEmailOptions } from "@dub/email/resend/types";
 import { log } from "@dub/utils";
 import { NextResponse } from "next/server";
 import React from "react";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 export const dynamic = "force-dynamic";
 
@@ -15,14 +15,14 @@ const batchEmailPayloadSchema = z.array(
     templateName: z.enum(
       Object.keys(EMAIL_TEMPLATES_MAP) as [string, ...string[]],
     ),
-    templateProps: z.record(z.any()),
-    to: z.string().email(),
+    templateProps: z.record(z.string(), z.any()),
+    to: z.email(),
     from: z.string().optional(),
     subject: z.string(),
     bcc: z.union([z.string(), z.array(z.string())]).optional(),
     replyTo: z.string().optional(),
     variant: z.enum(["primary", "notifications", "marketing"]).optional(),
-    headers: z.record(z.string()).optional(),
+    headers: z.record(z.string(), z.string()).optional(),
     tags: z.array(z.object({ name: z.string(), value: z.string() })).optional(),
     scheduledAt: z.string().optional(),
   }),

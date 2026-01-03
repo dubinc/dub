@@ -7,7 +7,7 @@ import {
 } from "@/lib/zod/schemas/program-network";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 // GET /api/network/programs - get all available programs in the network
 export const GET = withPartnerProfile(async ({ partner, searchParams }) => {

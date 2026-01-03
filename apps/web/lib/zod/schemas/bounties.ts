@@ -8,7 +8,7 @@ import {
   BountySubmissionStatus,
   BountyType,
 } from "@dub/prisma/client";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { CommissionSchema } from "./commissions";
 import { GroupSchema } from "./groups";
 import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
@@ -51,7 +51,7 @@ export const createBountySchema = z.object({
       `Description must be less than ${BOUNTY_DESCRIPTION_MAX_LENGTH} characters`,
     )
     .nullish(),
-  type: z.nativeEnum(BountyType),
+  type: z.enum(BountyType),
   startsAt: parseDateSchema.nullish(),
   endsAt: parseDateSchema.nullish(),
   submissionsOpenAt: parseDateSchema.nullish(),
@@ -68,7 +68,7 @@ export const createBountySchema = z.object({
   submissionRequirements: submissionRequirementsSchema.nullish(),
   groupIds: z.array(z.string()).nullable(),
   performanceCondition: workflowConditionSchema.nullish(),
-  performanceScope: z.nativeEnum(BountyPerformanceScope).nullish(),
+  performanceScope: z.enum(BountyPerformanceScope).nullish(),
   sendNotificationEmails: z.boolean().optional(),
 });
 
@@ -91,21 +91,21 @@ export const BountySchema = z.object({
   id: z.string(),
   name: z.string().nullable(),
   description: z.string().nullable(),
-  type: z.nativeEnum(BountyType),
+  type: z.enum(BountyType),
   startsAt: z.date(),
   endsAt: z.date().nullable(),
   submissionsOpenAt: z.date().nullable(),
   rewardAmount: z.number().nullable(),
   rewardDescription: z.string().nullable(),
   performanceCondition: workflowConditionSchema.nullable().default(null),
-  performanceScope: z.nativeEnum(BountyPerformanceScope).nullable(),
+  performanceScope: z.enum(BountyPerformanceScope).nullable(),
   submissionRequirements: submissionRequirementsSchema.nullable().default(null),
   groups: z.array(GroupSchema.pick({ id: true })),
 });
 
 export const getBountiesQuerySchema = z.object({
   partnerId: z.string().optional(),
-  includeSubmissionsCount: booleanQuerySchema.optional().default("false"),
+  includeSubmissionsCount: booleanQuerySchema.optional().default(false),
 });
 
 // used in GET /bounties
@@ -124,7 +124,7 @@ export const BountySubmissionSchema = z.object({
   description: z.string().nullable(),
   urls: z.array(z.string()).nullable(),
   files: z.array(BountySubmissionFileSchema).nullable(),
-  status: z.nativeEnum(BountySubmissionStatus),
+  status: z.enum(BountySubmissionStatus),
   performanceCount: z.number().nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),
@@ -164,7 +164,7 @@ export const BountySubmissionExtendedSchema = BountySubmissionSchema.extend({
 export const rejectBountySubmissionSchema = z.object({
   workspaceId: z.string(),
   submissionId: z.string(),
-  rejectionReason: z.nativeEnum(BountySubmissionRejectionReason),
+  rejectionReason: z.enum(BountySubmissionRejectionReason),
   rejectionNote: z
     .string()
     .trim()
@@ -174,10 +174,10 @@ export const rejectBountySubmissionSchema = z.object({
 
 export const getBountySubmissionsQuerySchema = z
   .object({
-    status: z.nativeEnum(BountySubmissionStatus).optional(),
+    status: z.enum(BountySubmissionStatus).optional(),
     groupId: z.string().optional(),
     partnerId: z.string().optional(),
     sortBy: z.enum(["completedAt", "performanceCount"]).default("completedAt"),
     sortOrder: z.enum(["asc", "desc"]).default("asc"),
   })
-  .merge(getPaginationQuerySchema({ pageSize: 100 }));
+  .extend(getPaginationQuerySchema({ pageSize: 100 }));

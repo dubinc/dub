@@ -7,7 +7,7 @@ import {
 import { prisma } from "@dub/prisma";
 import { FraudRuleType, Prisma } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 // GET /api/fraud/groups/count - get the count of fraud event groups for a program
 export const GET = withWorkspace(

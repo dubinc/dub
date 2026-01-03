@@ -1,6 +1,6 @@
 import { prisma } from "@dub/prisma";
 import { WorkspaceRole } from "@dub/prisma/client";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { notificationTypes } from "../zod/schemas/workspaces";
 
 type GetWorkspaceUsersParams =

@@ -3,7 +3,7 @@ import {
   workflowConditionSchema,
 } from "@/lib/zod/schemas/workflows";
 import { Workflow } from "@dub/prisma/client";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 export function parseWorkflowConfig(
   workflow: Pick<Workflow, "id" | "triggerConditions" | "actions">,

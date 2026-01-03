@@ -49,7 +49,7 @@ import {
 import { FormProvider, useForm, useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
-import { z } from "zod";
+import * as z from "zod/v4";
 import {
   InlineBadgePopover,
   InlineBadgePopoverContext,

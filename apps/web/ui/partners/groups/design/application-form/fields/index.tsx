@@ -1,5 +1,5 @@
 import { programApplicationFormFieldSchema } from "@/lib/zod/schemas/program-application-form";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { LongTextField } from "./long-text-field";
 import { MultipleChoiceField } from "./multiple-choice-field";
 import { SelectField } from "./select-field";

@@ -1,7 +1,7 @@
 import { FolderSchema } from "@/lib/zod/schemas/folders";
 import { randomId } from "tests/utils/helpers";
 import { describe, expect, test } from "vitest";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { IntegrationHarness } from "../utils/integration";
 
 type FolderRecord = z.infer<typeof FolderSchema>;

@@ -10,16 +10,16 @@ import { CampaignSchema } from "@/lib/zod/schemas/campaigns";
 import { sendBatchEmail } from "@dub/email";
 import CampaignEmail from "@dub/email/templates/campaign-email";
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 const sendPreviewEmailSchema = CampaignSchema.pick({
   subject: true,
   preview: true,
   bodyJson: true,
 }).extend({
-  from: z.string().email().optional(),
+  from: z.email().optional(),
   emailAddresses: z
-    .array(z.string().email())
+    .array(z.email())
     .min(1)
     .max(10, "Maximum 10 email addresses allowed."),
 });

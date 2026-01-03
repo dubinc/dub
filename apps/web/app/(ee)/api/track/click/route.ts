@@ -20,11 +20,11 @@ import { PartnerSchema } from "@/lib/zod/schemas/partners";
 import { isValidUrl, nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 const trackClickSchema = z.object({
-  domain: z.string({ required_error: "domain is required." }),
-  key: z.string({ required_error: "key is required." }),
+  domain: z.string({ error: "domain is required." }),
+  key: z.string({ error: "key is required." }),
   url: z.string().nullish(),
   referrer: z.string().nullish(),
 });

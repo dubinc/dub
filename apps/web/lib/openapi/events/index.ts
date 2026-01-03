@@ -1,10 +1,10 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
-import z from "@/lib/zod";
 import { eventsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { clickEventResponseSchema } from "@/lib/zod/schemas/clicks";
 import { leadEventResponseSchema } from "@/lib/zod/schemas/leads";
 import { saleEventResponseSchema } from "@/lib/zod/schemas/sales";
 import { ZodOpenApiOperationObject, ZodOpenApiPathsObject } from "zod-openapi";
+import * as z from "zod/v4";
 
 export const listEvents: ZodOpenApiOperationObject = {
   operationId: "listEvents",

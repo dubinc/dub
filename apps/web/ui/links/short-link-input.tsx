@@ -3,6 +3,7 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkProps } from "@/lib/types";
 import { DOMAINS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/domains";
+import { useCompletion } from "@ai-sdk/react";
 import {
   AnimatedSizeContainer,
   ArrowTurnRight2,
@@ -26,7 +27,6 @@ import {
   punycode,
   truncate,
 } from "@dub/utils";
-import { useCompletion } from "ai/react";
 import { TriangleAlert } from "lucide-react";
 import { useParams, usePathname } from "next/navigation";
 import posthog from "posthog-js";
@@ -152,6 +152,7 @@ export const ShortLinkInput = forwardRef<HTMLInputElement, ShortLinkInputProps>(
       complete,
     } = useCompletion({
       api: `/api/ai/completion?workspaceId=${workspaceId}`,
+      streamProtocol: "text",
       onError: (error) => {
         if (error.message.includes("Upgrade to Pro")) {
           toast.custom(() => (

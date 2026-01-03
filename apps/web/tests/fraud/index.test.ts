@@ -9,7 +9,7 @@ import {
   E2E_TRACK_CLICK_HEADERS,
 } from "tests/utils/resource";
 import { describe, expect, test } from "vitest";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { IntegrationHarness } from "../utils/integration";
 
 describe.concurrent("/fraud/**", async () => {

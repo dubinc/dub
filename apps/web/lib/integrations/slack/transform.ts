@@ -1,7 +1,7 @@
 import { getBountyRewardDescription } from "@/lib/partners/get-bounty-reward-description";
 import { APP_DOMAIN, currencyFormatter, truncate } from "@dub/utils";
 import { LinkWebhookEvent } from "dub/models/components";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { WebhookTrigger } from "../../types";
 import { webhookPayloadSchema } from "../../webhook/schemas";
 import {

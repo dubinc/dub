@@ -13,7 +13,7 @@ import { cn } from "@dub/utils";
 import { Dispatch, SetStateAction, useId, useRef } from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { v4 as uuid } from "uuid";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 type SelectFieldData = z.infer<typeof programApplicationFormSelectFieldSchema>;
 

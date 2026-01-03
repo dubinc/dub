@@ -1,4 +1,4 @@
-import { z } from "zod";
+import * as z from "zod/v4";
 import {
   HUBSPOT_OBJECT_TYPE_IDS,
   LEAD_TRIGGER_EVENT_OPTIONS,

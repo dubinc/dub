@@ -3,7 +3,7 @@ import { FolderSchema } from "@/lib/zod/schemas/folders";
 import { Link, Tag } from "@dub/prisma/client";
 import { IntegrationHarnessOld } from "tests/utils/integration-old";
 import { describe, expect, onTestFinished, test } from "vitest";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { randomId, randomTagName } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 import { E2E_LINK, E2E_WEBHOOK_ID } from "../utils/resource";

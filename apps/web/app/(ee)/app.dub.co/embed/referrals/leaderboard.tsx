@@ -12,7 +12,7 @@ import { currencyFormatter, fetcher } from "@dub/utils";
 import { cn } from "@dub/utils/src/functions";
 import { motion } from "motion/react";
 import useSWR from "swr";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { useEmbedToken } from "../../embed/use-embed-token";
 
 export function ReferralsEmbedLeaderboard() {

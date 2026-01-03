@@ -4,7 +4,7 @@ import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { DUB_FOUNDING_DATE } from "@dub/utils";
 import { endOfDay, startOfDay } from "date-fns";
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { getCommissionsTimeseries } from "./get-commissions-timeseries";
 import { getTopProgramsByCommissions } from "./get-top-program-by-commissions";
 
@@ -13,7 +13,9 @@ const adminCommissionsQuerySchema = z
     programId: z.string().optional(),
     timezone: z.string().optional().default("UTC"),
   })
-  .merge(analyticsQuerySchema.pick({ interval: true, start: true, end: true }));
+  .extend(
+    analyticsQuerySchema.pick({ interval: true, start: true, end: true }).shape,
+  );
 
 export const GET = withAdmin(async ({ searchParams }) => {
   const {

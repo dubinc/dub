@@ -2,7 +2,7 @@ import { withWorkspace } from "@/lib/auth";
 import { storage } from "@/lib/storage";
 import { nanoid, R2_URL } from "@dub/utils";
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 const schema = z.object({
   folder: z.enum(["integration-screenshots", "program-logos"]),

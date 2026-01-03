@@ -19,7 +19,7 @@ import { prisma } from "@dub/prisma";
 import { Link, WorkflowTrigger } from "@dub/prisma/client";
 import { nanoid, pick, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { syncPartnerLinksStats } from "../partners/sync-partner-links-stats";
 import { executeWorkflows } from "../workflows/execute-workflows";
 

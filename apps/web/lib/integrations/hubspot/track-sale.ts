@@ -1,7 +1,7 @@
 import { trackSale } from "@/lib/api/conversions/track-sale";
 import { WorkspaceProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { HubSpotAuthToken } from "../types";
 import { HubSpotApi } from "./api";
 import { hubSpotSaleEventSchema, hubSpotSettingsSchema } from "./schema";

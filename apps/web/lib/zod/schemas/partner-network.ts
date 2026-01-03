@@ -1,4 +1,4 @@
-import { z } from "zod";
+import * as z from "zod/v4";
 import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
 import { PartnerSchema } from "./partners";
 
@@ -43,10 +43,8 @@ export const getNetworkPartnersQuerySchema = z
       .transform((v) => (Array.isArray(v) ? v : v.split(",")))
       .optional(),
   })
-  .merge(
-    getPaginationQuerySchema({
-      pageSize: PARTNER_NETWORK_MAX_PAGE_SIZE,
-    }),
+  .extend(
+    getPaginationQuerySchema({ pageSize: PARTNER_NETWORK_MAX_PAGE_SIZE }),
   );
 
 export const getNetworkPartnersCountQuerySchema = getNetworkPartnersQuerySchema
@@ -89,17 +87,15 @@ export const NetworkPartnerSchema = PartnerSchema.pick({
   instagramVerifiedAt: true,
   tiktok: true,
   tiktokVerifiedAt: true,
-}).merge(
-  z.object({
-    lastConversionAt: z.date().nullable(),
-    conversionScore: PartnerConversionScoreSchema,
-    starredAt: z.date().nullable(),
-    invitedAt: z.date().nullable(),
-    ignoredAt: z.date().nullable(),
-    recruitedAt: z.date().nullable(),
-    categories: z.array(z.string()),
-  }),
-);
+}).extend({
+  lastConversionAt: z.date().nullable(),
+  conversionScore: PartnerConversionScoreSchema,
+  starredAt: z.date().nullable(),
+  invitedAt: z.date().nullable(),
+  ignoredAt: z.date().nullable(),
+  recruitedAt: z.date().nullable(),
+  categories: z.array(z.string()),
+});
 
 export const updateDiscoveredPartnerSchema = z.object({
   workspaceId: z.string(),

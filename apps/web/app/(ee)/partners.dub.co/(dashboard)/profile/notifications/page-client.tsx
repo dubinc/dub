@@ -11,7 +11,7 @@ import {
   useOptimisticUpdate,
 } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 type PreferenceType = z.infer<typeof partnerNotificationTypes>;
 type Preferences = Record<PreferenceType, boolean>;

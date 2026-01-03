@@ -4,7 +4,7 @@ import { sendEmail } from "@dub/email";
 import PartnerPayoutWithdrawalCompleted from "@dub/email/templates/partner-payout-withdrawal-completed";
 import { prisma } from "@dub/prisma";
 import { currencyFormatter, log, pluralize, prettyPrint } from "@dub/utils";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 
 const payloadSchema = z.object({

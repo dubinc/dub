@@ -6,7 +6,7 @@ import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { PartnerStackApi } from "@/lib/partnerstack/api";
 import { partnerStackImporter } from "@/lib/partnerstack/importer";
 import { partnerStackCredentialsSchema } from "@/lib/partnerstack/schemas";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
 
 const schema = partnerStackCredentialsSchema.extend({

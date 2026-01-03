@@ -9,7 +9,7 @@ import {
 import { prisma } from "@dub/prisma";
 import { WorkspaceRole } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 // GET /api/workspaces/[idOrSlug]/users – get users for a specific workspace
 export const GET = withWorkspace(
@@ -52,10 +52,8 @@ export const GET = withWorkspace(
 
 const updateRoleSchema = z.object({
   userId: z.string().min(1),
-  role: z.nativeEnum(WorkspaceRole, {
-    errorMap: () => ({
-      message: `Role must be either "owner" or "member".`,
-    }),
+  role: z.enum(WorkspaceRole, {
+    error: `Role must be either "owner" or "member".`,
   }),
 });
 

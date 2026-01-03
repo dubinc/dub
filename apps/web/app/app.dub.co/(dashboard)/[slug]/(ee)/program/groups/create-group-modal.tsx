@@ -11,7 +11,7 @@ import { useRouter } from "next/navigation";
 import { Dispatch, SetStateAction, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 interface CreateGroupModalProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;

@@ -1,6 +1,6 @@
 import { fetcher } from "@dub/utils";
 import useSWR from "swr";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { GroupProps } from "../types";
 import { getGroupsQuerySchema } from "../zod/schemas/groups";
 import useWorkspace from "./use-workspace";

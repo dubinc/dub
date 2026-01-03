@@ -1,5 +1,5 @@
 import { redis } from "@/lib/upstash";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 const CACHE_EXPIRATION = 60 * 60 * 24; // 24 hours
 const CACHE_KEY_PREFIX = "dubTokenCache";

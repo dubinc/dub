@@ -1,13 +1,11 @@
 import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
+import { prisma } from "@dub/prisma";
 import { Reward } from "@dub/prisma/client";
-import { prismaEdge } from "@dub/prisma/edge";
 import { ImageResponse } from "next/og";
 import { NextRequest } from "next/server";
 import { SVGProps } from "react";
-
-export const runtime = "edge";
 
 const DARK_CELLS = [
   [2, 3],
@@ -31,7 +29,7 @@ export async function GET(req: NextRequest) {
     });
   }
 
-  const program = await prismaEdge.program.findUnique({
+  const program = await prisma.program.findUnique({
     where: {
       slug,
     },

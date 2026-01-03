@@ -1,4 +1,4 @@
-import { z } from "zod";
+import * as z from "zod/v4";
 
 const programLanderBlockTitleSchema = z.string().optional();
 
@@ -10,7 +10,7 @@ export const programLanderImageBlockSchema =
   programLanderBlockCommonSchema.extend({
     type: z.literal("image"),
     data: z.object({
-      url: z.string().url(),
+      url: z.url(),
       alt: z.string().optional(),
       width: z.number().optional(),
       height: z.number().optional(),
@@ -31,7 +31,6 @@ export const programLanderFileSchema = z.object({
   name: z.string(),
   description: z.string().optional(),
   url: z
-    .string()
     .url()
     .refine((url) => url.startsWith("http://") || url.startsWith("https://"), {
       message: "Only HTTP and HTTPS URLs are allowed for files.",

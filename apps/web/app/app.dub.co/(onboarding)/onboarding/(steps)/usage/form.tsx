@@ -8,7 +8,7 @@ import { Button } from "@dub/ui";
 import { LayoutGroup, motion } from "motion/react";
 import { useId } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { useOnboardingProgress } from "../../use-onboarding-progress";
 import { getRecommendedPlan } from "./get-recommended-plan";
 

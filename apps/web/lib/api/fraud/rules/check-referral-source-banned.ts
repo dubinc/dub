@@ -1,7 +1,7 @@
 import { FraudEventContext } from "@/lib/types";
 import { getDomainWithoutWWW } from "@dub/utils";
 import { minimatch } from "minimatch";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { defineFraudRule } from "../define-fraud-rule";
 
 const configSchema = z.object({

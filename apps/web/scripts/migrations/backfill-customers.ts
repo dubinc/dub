@@ -1,9 +1,9 @@
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import "dotenv-flow/config";
+import * as z from "zod/v4";
 import { tb } from "../../lib/tinybird/client";
 import { getLeadEvents } from "../../lib/tinybird/get-lead-events";
-import z from "../../lib/zod";
 
 export const getClickEvents = tb.buildPipe({
   pipe: "get_click_events",

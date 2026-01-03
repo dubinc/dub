@@ -13,7 +13,7 @@ import {
 } from "@/lib/zod/schemas/partner-profile";
 import { prisma, sanitizeFullTextSearch } from "@dub/prisma";
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 // GET /api/partner-profile/programs/:programId/customers – Get all customers for a partner program
 export const GET = withPartnerProfile(

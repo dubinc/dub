@@ -8,7 +8,7 @@ import { authCodeExchangeSchema } from "@/lib/zod/schemas/oauth";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { NextRequest } from "next/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 // Exchange authorization code with access token
 export const exchangeAuthCodeForToken = async (

@@ -2,7 +2,7 @@ import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { processOrder } from "@/lib/integrations/shopify/process-order";
 import { redis } from "@/lib/upstash";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 export const dynamic = "force-dynamic";
 

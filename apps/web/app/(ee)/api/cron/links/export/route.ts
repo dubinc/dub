@@ -15,7 +15,7 @@ import ExportReady from "@dub/email/templates/export-ready";
 import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
 import { endOfDay, startOfDay } from "date-fns";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 import { fetchLinksBatch } from "./fetch-links-batch";
 

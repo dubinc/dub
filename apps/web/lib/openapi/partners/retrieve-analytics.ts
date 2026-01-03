@@ -1,10 +1,10 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
-import z from "@/lib/zod";
 import {
   partnerAnalyticsQuerySchema,
   partnerAnalyticsResponseSchema,
 } from "@/lib/zod/schemas/partners";
 import { ZodOpenApiOperationObject } from "zod-openapi";
+import * as z from "zod/v4";
 
 export const retrievePartnerAnalytics: ZodOpenApiOperationObject = {
   operationId: "retrievePartnerAnalytics",

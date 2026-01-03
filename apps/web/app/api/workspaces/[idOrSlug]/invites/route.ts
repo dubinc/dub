@@ -12,7 +12,7 @@ import { prisma } from "@dub/prisma";
 import { PartnerRole } from "@dub/prisma/client";
 import { pluralize } from "@dub/utils";
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 // GET /api/workspaces/[idOrSlug]/invites – get invites for a specific workspace
 export const GET = withWorkspace(
@@ -164,8 +164,8 @@ export const POST = withWorkspace(
 );
 
 const updateInviteRoleSchema = z.object({
-  email: z.string().email(),
-  role: z.nativeEnum(PartnerRole),
+  email: z.email(),
+  role: z.enum(PartnerRole),
 });
 
 // PATCH /api/workspaces/[idOrSlug]/invites - update an invite's role
@@ -213,7 +213,7 @@ export const DELETE = withWorkspace(
   async ({ searchParams, workspace }) => {
     const { email } = z
       .object({
-        email: z.string().email(),
+        email: z.email(),
       })
       .parse(searchParams);
     const response = await prisma.projectInvite.delete({

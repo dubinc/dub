@@ -1,6 +1,6 @@
 import { PartnerEarningsSchema } from "@/lib/zod/schemas/partner-profile";
 import { capitalize } from "@dub/utils";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { CommissionTypeIcon } from "./comission-type-icon";
 
 export const CommissionTypeBadge = ({

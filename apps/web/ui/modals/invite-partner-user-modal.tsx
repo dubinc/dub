@@ -15,7 +15,7 @@ import {
 } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 type FormData = {
   invites: z.infer<typeof invitePartnerUserSchema>[];

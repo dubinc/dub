@@ -1,5 +1,4 @@
 import { ZodOpenApiPathsObject } from "zod-openapi";
-
 import { getWorkspaceInfo } from "./get-workspace-info";
 import { updateWorkspace } from "./update-workspace";
 

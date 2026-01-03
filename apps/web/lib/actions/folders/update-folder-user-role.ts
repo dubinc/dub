@@ -4,7 +4,7 @@ import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { PlanProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { verifyFolderAccess } from "../../folder/permissions";
 import { folderUserRoleSchema } from "../../zod/schemas/folders";
 import { authActionClient } from "../safe-action";

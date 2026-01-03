@@ -6,7 +6,7 @@ import { isLinkLevelWebhook } from "@/lib/webhook/utils";
 import { prisma } from "@dub/prisma";
 import { Project, WebhookReceiver } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { createWebhookSchema } from "../zod/schemas/webhooks";
 import { createWebhookSecret } from "./secret";
 

@@ -5,7 +5,7 @@ import { Icon, Modal } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Dispatch, Fragment, ReactNode, SetStateAction, useState } from "react";
 import { useWatch } from "react-hook-form";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { useBrandingFormContext } from "../../branding-form";
 import {
   LongTextFieldModal,

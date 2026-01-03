@@ -4,7 +4,7 @@ import {
   WorkflowConditionAttribute,
 } from "@/lib/types";
 import { WorkflowTrigger } from "@dub/prisma/client";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 export const WORKFLOW_ATTRIBUTES = [
   // "totalClicks",
@@ -96,14 +96,14 @@ export const workflowActionSchema = z.discriminatedUnion("type", [
 export const workflowActionsSchema = z.array(workflowActionSchema);
 
 export const createWorkflowSchema = z.object({
-  trigger: z.nativeEnum(WorkflowTrigger),
+  trigger: z.enum(WorkflowTrigger),
   triggerConditions: workflowConditionsSchema,
   actions: workflowActionsSchema,
 });
 
 export const workflowSchema = z.object({
   name: z.string(),
-  trigger: z.nativeEnum(WorkflowTrigger),
+  trigger: z.enum(WorkflowTrigger),
   triggerConditions: workflowConditionsSchema,
   actions: workflowActionsSchema,
 });

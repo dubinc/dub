@@ -3,7 +3,7 @@ import { AccordionBlock } from "@/ui/partners/lander/blocks/accordion-block";
 import { FilesBlock } from "@/ui/partners/lander/blocks/files-block";
 import { ImageBlock } from "@/ui/partners/lander/blocks/image-block";
 import { TextBlock } from "@/ui/partners/lander/blocks/text-block";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { EarningsCalculatorBlock } from "./earnings-calculator-block";
 
 export const BLOCK_COMPONENTS: Record<

@@ -1,4 +1,4 @@
-import { z } from "zod";
+import * as z from "zod/v4";
 import { EnrolledPartnerSchema, PartnerOnlinePresenceSchema } from "./partners";
 import { ProgramEnrollmentSchema } from "./programs";
 
@@ -14,13 +14,13 @@ export const partnerApplicationWebhookSchema = z.object({
     description: true,
     country: true,
   })
-    .merge(
+    .extend(
       ProgramEnrollmentSchema.pick({
         groupId: true,
         status: true,
-      }),
+      }).shape,
     )
-    .merge(
+    .extend(
       PartnerOnlinePresenceSchema.pick({
         website: true,
         youtube: true,
@@ -28,7 +28,7 @@ export const partnerApplicationWebhookSchema = z.object({
         linkedin: true,
         instagram: true,
         tiktok: true,
-      }),
+      }).shape,
     ),
   applicationFormData: z
     .array(

@@ -1,3 +1,4 @@
+import { SaleEvent } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { EventType, Prisma } from "@dub/prisma/client";
 import "dotenv-flow/config";
@@ -6,7 +7,6 @@ import { createId } from "../../lib/api/create-id";
 import { syncTotalCommissions } from "../../lib/api/partners/sync-total-commissions";
 import { calculateSaleEarnings } from "../../lib/api/sales/calculate-sale-earnings";
 import { determinePartnerReward } from "../../lib/partners/determine-partner-reward";
-import { SaleEvent } from "../../lib/types";
 
 // script to backfill link commissions
 // NOTE: need to remove "server-only" from serialize-reward.ts to run this script
@@ -31,6 +31,9 @@ async function main() {
     limit: 5000,
     sortOrder: "desc",
     sortBy: "timestamp",
+    os: undefined,
+    device: undefined,
+    browser: undefined,
   })) as SaleEvent[];
 
   const programEnrollment = await prisma.programEnrollment.findUniqueOrThrow({

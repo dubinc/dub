@@ -7,7 +7,7 @@ import { InvoiceStatus, Prisma } from "@dub/prisma/client";
 import { ACME_PROGRAM_ID } from "@dub/utils";
 import { format } from "date-fns";
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 interface TimeseriesPoint {
   payouts: number;
@@ -22,9 +22,11 @@ interface FormattedTimeseriesPoint extends TimeseriesPoint {
 const adminPayoutsQuerySchema = z
   .object({
     programId: z.string().optional(),
-    status: z.nativeEnum(InvoiceStatus).optional(),
+    status: z.enum(InvoiceStatus).optional(),
   })
-  .merge(analyticsQuerySchema.pick({ interval: true, start: true, end: true }));
+  .extend(
+    analyticsQuerySchema.pick({ interval: true, start: true, end: true }).shape,
+  );
 
 export const GET = withAdmin(async ({ searchParams }) => {
   const {

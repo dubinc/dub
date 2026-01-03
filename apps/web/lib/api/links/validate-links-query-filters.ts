@@ -2,7 +2,7 @@ import { getFolderIdsToFilter } from "@/lib/analytics/get-folder-ids-to-filter";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
 import { WorkspaceProps } from "@/lib/types";
 import { getLinksQuerySchemaExtended } from "@/lib/zod/schemas/links";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { getDomainOrThrow } from "../domains/get-domain-or-throw";
 
 interface LinksQueryFilters

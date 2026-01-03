@@ -1,7 +1,7 @@
 import { VALID_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
 import { analyticsResponse } from "@/lib/zod/schemas/analytics-response";
 import { describe, expect, test } from "vitest";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { env } from "../utils/env";
 import { IntegrationHarness } from "../utils/integration";
 

@@ -13,7 +13,7 @@ import {
   partnerProfileEventsQuerySchema,
 } from "@/lib/zod/schemas/partner-profile";
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 // GET /api/partner-profile/programs/[programId]/events – get events for a program enrollment link
 export const GET = withPartnerProfile(

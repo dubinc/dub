@@ -1,4 +1,4 @@
-import z from "../zod";
+import * as z from "zod/v4";
 import {
   analyticsQuerySchema,
   eventsQuerySchema,
@@ -12,6 +12,8 @@ import {
   EVENT_TYPES,
   VALID_ANALYTICS_ENDPOINTS,
 } from "./constants";
+
+type Override<T, U> = Omit<T, keyof U> & U;
 
 export type IntervalOptions = (typeof DATE_RANGE_INTERVAL_PRESETS)[number];
 
@@ -35,13 +37,23 @@ export type AnalyticsSaleUnit = (typeof ANALYTICS_SALE_UNIT)[number];
 
 export type DeviceTabs = "devices" | "browsers" | "os" | "triggers";
 
-export type AnalyticsFilters = z.infer<typeof analyticsQuerySchema> & {
-  workspaceId?: string;
-  dataAvailableFrom?: Date;
-  isDeprecatedClicksEndpoint?: boolean;
-  linkIds?: string[]; // TODO: remove this once it's been added to the public API
-  folderIds?: string[];
-};
+export type AnalyticsFilters = Override<
+  z.infer<typeof analyticsQuerySchema>,
+  {
+    workspaceId?: string;
+    dataAvailableFrom?: Date;
+    isDeprecatedClicksEndpoint?: boolean;
+    linkIds?: string[];
+    folderIds?: string[]; // TODO: remove this once it's been added to the public API
+    start?: Date | null;
+    end?: Date | null;
+
+    // TODO: Fix the schema so that we can avoid the override here
+    device?: string | undefined;
+    browser?: string | undefined;
+    os?: string | undefined;
+  }
+>;
 
 export type EventsFilters = z.infer<typeof eventsQuerySchema> & {
   workspaceId?: string;
@@ -65,18 +77,3 @@ export type PartnerAnalyticsFilters = z.infer<typeof partnerAnalyticsSchema>;
 export type PartnerEarningsTimeseriesFilters = z.infer<
   typeof getPartnerEarningsTimeseriesSchema
 >;
-
-const partnerEventsSchema = eventsQuerySchema
-  .pick({
-    event: true,
-    interval: true,
-    start: true,
-    end: true,
-    groupBy: true,
-    page: true,
-    limit: true,
-    order: true,
-    sortOrder: true,
-    sortBy: true,
-  })
-  .partial();

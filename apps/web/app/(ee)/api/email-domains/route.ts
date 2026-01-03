@@ -14,7 +14,7 @@ import { Prisma } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 // GET /api/email-domains - get all email domains for a program
 export const GET = withWorkspace(

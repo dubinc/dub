@@ -6,7 +6,7 @@ import {
   exportApplicationsColumnsDefault,
 } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 const columnIdToLabel = exportApplicationColumns.reduce((acc, column) => {
   acc[column.id] = column.label;
@@ -16,9 +16,8 @@ const columnIdToLabel = exportApplicationColumns.reduce((acc, column) => {
 const applicationsExportQuerySchema = z.object({
   columns: z
     .string()
-    .optional()
-    .transform((v) => v?.split(",") || exportApplicationsColumnsDefault)
-    .default(exportApplicationsColumnsDefault.join(",")),
+    .default(exportApplicationsColumnsDefault.join(","))
+    .transform((v) => v?.split(",")),
 });
 
 // GET /api/programs/[programId]/applications/export – export applications to CSV

@@ -4,7 +4,7 @@ import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-lin
 import { PartnerBountySchema } from "@/lib/zod/schemas/partner-profile";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 // GET /api/partner-profile/programs/[programId]/bounties – get available bounties for an enrolled program
 export const GET = withPartnerProfile(

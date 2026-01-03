@@ -3,8 +3,8 @@ import {
   FOLDER_WORKSPACE_ACCESS,
 } from "@/lib/folder/constants";
 import { FolderAccessLevel } from "@/lib/types";
-import z from "@/lib/zod";
 import { FolderType, FolderUserRole } from "@dub/prisma/client";
+import * as z from "zod/v4";
 import { getPaginationQuerySchema } from "./misc";
 
 const workspaceFolderAccess = z
@@ -53,6 +53,6 @@ export const listFoldersQuerySchema = z
       .optional()
       .describe("The search term to filter the folders by."),
   })
-  .merge(getPaginationQuerySchema({ pageSize: FOLDERS_MAX_PAGE_SIZE }));
+  .extend(getPaginationQuerySchema({ pageSize: FOLDERS_MAX_PAGE_SIZE }));
 
 export const updateFolderSchema = createFolderSchema.partial();

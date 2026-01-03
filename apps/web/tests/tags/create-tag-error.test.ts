@@ -15,7 +15,7 @@ const cases = [
         error: {
           code: "unprocessable_entity",
           message:
-            "invalid_enum_value: color: Invalid color. Must be one of: red, yellow, green, blue, purple, brown, pink",
+            "invalid_value: color: Invalid color. Must be one of: red, yellow, green, blue, purple, brown, pink",
           doc_url:
             "https://dub.co/docs/api-reference/errors#unprocessable-entity",
         },

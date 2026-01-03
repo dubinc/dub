@@ -21,22 +21,22 @@ import {
   PARTNERS_DOMAIN,
 } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import z from "../../zod";
+import * as z from "zod/v4";
 import { uploadedImageSchema } from "../../zod/schemas/misc";
 import { authPartnerActionClient } from "../safe-action";
 
 const updatePartnerProfileSchema = z
   .object({
     name: z.string().optional(),
-    email: z.string().email().optional(),
+    email: z.email().optional(),
     image: uploadedImageSchema.nullish(),
     description: z.string().max(MAX_PARTNER_DESCRIPTION_LENGTH).nullish(),
     country: z.enum(Object.keys(COUNTRIES) as [string, ...string[]]).nullish(),
-    profileType: z.nativeEnum(PartnerProfileType).optional(),
+    profileType: z.enum(PartnerProfileType).optional(),
     companyName: z.string().nullish(),
     discoverable: z.boolean().optional(),
   })
-  .merge(PartnerProfileSchema.partial())
+  .extend(PartnerProfileSchema.partial().shape)
   .transform((data) => ({
     ...data,
     companyName: data.profileType === "individual" ? null : data.companyName,

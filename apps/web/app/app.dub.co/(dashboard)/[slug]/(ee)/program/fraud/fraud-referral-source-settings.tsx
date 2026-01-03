@@ -5,7 +5,7 @@ import { X } from "@/ui/shared/icons";
 import { Button, Switch } from "@dub/ui";
 import { cn } from "@dub/utils/src";
 import { useFormContext } from "react-hook-form";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 type FormData = z.infer<
   typeof updateFraudRuleSettingsSchema.shape.referralSourceBanned

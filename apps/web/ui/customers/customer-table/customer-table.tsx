@@ -45,7 +45,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { EXAMPLE_CUSTOMER_DATA } from "./example-data";
 import { useCustomerFilters } from "./use-customer-filters";
 

@@ -1,4 +1,4 @@
-import { z } from "zod";
+import * as z from "zod/v4";
 import { ExpandedLink } from "../api/links";
 import { decodeKeyIfCaseSensitive } from "../api/links/case-sensitivity";
 import { tb } from "./client";

@@ -16,7 +16,7 @@ import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
 import { payoutWebhookEventSchema } from "@/lib/zod/schemas/payouts";
 import { partnerApplicationWebhookSchema } from "@/lib/zod/schemas/program-application";
 import { describe, expect, test } from "vitest";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 const webhook = {
   id: "wh_IFL4j0toU6RAMz4R7mXjJ6C5", // dummy id

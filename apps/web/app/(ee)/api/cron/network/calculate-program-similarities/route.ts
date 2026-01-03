@@ -5,7 +5,7 @@ import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { prisma } from "@dub/prisma";
 import { ProgramSimilarity } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 import { calculateCategorySimilarity } from "./calculate-category-similarity";
 import { calculatePartnerSimilarity } from "./calculate-partner-similarity";

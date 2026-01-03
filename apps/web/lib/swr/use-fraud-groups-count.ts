@@ -2,7 +2,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import useSWR from "swr";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { fraudGroupCountQuerySchema } from "../zod/schemas/fraud";
 
 export function useFraudGroupCount<T>({

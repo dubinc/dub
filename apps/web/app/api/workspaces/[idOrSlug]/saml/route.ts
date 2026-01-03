@@ -5,11 +5,11 @@ import { jackson, samlAudience } from "@/lib/jackson";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 const createSAMLConnectionSchema = z
   .object({
-    metadataUrl: z.string().url(),
+    metadataUrl: z.url(),
     encodedRawMetadata: z.string(),
   })
   .partial()

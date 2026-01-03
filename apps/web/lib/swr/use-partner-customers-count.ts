@@ -2,7 +2,7 @@ import { useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
-import z from "../zod";
+import * as z from "zod/v4";
 import { getPartnerCustomersCountQuerySchema } from "../zod/schemas/partner-profile";
 
 export default function usePartnerCustomersCount<T = number>({

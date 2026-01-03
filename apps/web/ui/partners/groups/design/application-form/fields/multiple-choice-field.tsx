@@ -1,7 +1,7 @@
 import { programApplicationFormMultipleChoiceFieldSchema } from "@/lib/zod/schemas/program-application-form";
 import { Checkbox, RadioGroup, RadioGroupItem } from "@dub/ui";
 import { Controller, useFormContext } from "react-hook-form";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { FormControl } from "./form-control";
 
 type MultipleChoiceFieldData = z.infer<

@@ -1,4 +1,4 @@
-import z from "../zod";
+import * as z from "zod/v4";
 import { BountySchema } from "../zod/schemas/bounties";
 import { CommissionWebhookSchema } from "../zod/schemas/commissions";
 import { linkEventSchema } from "../zod/schemas/links";

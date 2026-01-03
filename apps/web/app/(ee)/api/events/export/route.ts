@@ -10,7 +10,7 @@ import { verifyFolderAccess } from "@/lib/folder/permissions";
 import { ClickEvent, LeadEvent, SaleEvent } from "@/lib/types";
 import { eventsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { COUNTRIES, capitalize } from "@dub/utils";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 type Row = ClickEvent | LeadEvent | SaleEvent;
 

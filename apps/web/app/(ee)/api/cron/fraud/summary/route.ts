@@ -9,7 +9,7 @@ import type UnresolvedFraudEventsSummary from "@dub/email/templates/unresolved-f
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { format, startOfDay } from "date-fns";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";

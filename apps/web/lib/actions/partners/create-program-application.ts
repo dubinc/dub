@@ -31,7 +31,7 @@ import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { addDays } from "date-fns";
 import { cookies } from "next/headers";
-import z from "../../zod";
+import * as z from "zod/v4";
 import { actionClient } from "../safe-action";
 
 export type PartnerData = { name: string; country: string };

@@ -1,5 +1,5 @@
-import z from "@/lib/zod";
 import { RESOURCE_COLORS } from "@/ui/colors";
+import * as z from "zod/v4";
 import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
 
 export const TAGS_MAX_PAGE_SIZE = 100;
@@ -26,14 +26,12 @@ export const getTagsQuerySchema = z
       .optional()
       .describe("IDs of tags to filter by."),
   })
-  .merge(getPaginationQuerySchema({ pageSize: TAGS_MAX_PAGE_SIZE }));
+  .extend(getPaginationQuerySchema({ pageSize: TAGS_MAX_PAGE_SIZE }));
 
-export const getTagsQuerySchemaExtended = getTagsQuerySchema.merge(
-  z.object({
-    // Only Dub UI uses the following query parameters
-    includeLinksCount: booleanQuerySchema.default("false"),
-  }),
-);
+export const getTagsQuerySchemaExtended = getTagsQuerySchema.extend({
+  // Only Dub UI uses the following query parameters
+  includeLinksCount: booleanQuerySchema.default(false),
+});
 
 export const getTagsCountQuerySchema = getTagsQuerySchema.omit({
   ids: true,
@@ -46,11 +44,7 @@ const tagColors = [...RESOURCE_COLORS, "pink"] as const;
 
 export const tagColorSchema = z
   .enum(tagColors, {
-    errorMap: () => {
-      return {
-        message: `Invalid color. Must be one of: ${tagColors.join(", ")}`,
-      };
-    },
+    error: `Invalid color. Must be one of: ${tagColors.join(", ")}`,
   })
   .describe("The color of the tag");
 
@@ -70,7 +64,7 @@ export const createTagBodySchema = z
       .trim()
       .min(1)
       .describe("The name of the tag to create.")
-      .openapi({ deprecated: true }),
+      .meta({ deprecated: true }),
   })
   .partial()
   .superRefine((data, ctx) => {
@@ -91,6 +85,6 @@ export const LinkTagSchema = z
     name: z.string().describe("The name of the tag."),
     color: tagColorSchema.describe("The color of the tag."),
   })
-  .openapi({
+  .meta({
     title: "LinkTag",
   });

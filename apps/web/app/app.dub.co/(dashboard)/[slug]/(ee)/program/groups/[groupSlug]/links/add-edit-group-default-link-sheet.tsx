@@ -23,7 +23,7 @@ import {
 } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { useChangeProgramDomainModal } from "./change-program-domain-modal";
 import { PartnerLinkPreview } from "./partner-link-preview";
 

@@ -10,7 +10,7 @@ import { stripe } from "@/lib/stripe";
 import { APP_DOMAIN } from "@dub/utils";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 const addPaymentMethodSchema = z.object({
   method: z.enum(PAYMENT_METHOD_TYPES as [string, ...string[]]).optional(),

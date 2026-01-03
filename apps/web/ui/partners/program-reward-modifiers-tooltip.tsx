@@ -18,7 +18,7 @@ import {
   pluralize,
 } from "@dub/utils";
 import { useRef } from "react";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 const REWARD_MODIFIER_LABELS = {
   ...ATTRIBUTE_LABELS,

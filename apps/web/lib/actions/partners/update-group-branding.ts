@@ -15,7 +15,7 @@ import { prisma } from "@dub/prisma";
 import { isFulfilled, isRejected, nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { revalidatePath } from "next/cache";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
 
 const schema = z.object({

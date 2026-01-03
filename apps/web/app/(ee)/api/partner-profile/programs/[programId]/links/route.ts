@@ -12,7 +12,7 @@ import {
 } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 // GET /api/partner-profile/programs/[programId]/links - get a partner's links in a program
 export const GET = withPartnerProfile(async ({ partner, params }) => {

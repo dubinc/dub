@@ -1,7 +1,7 @@
 import { withCron } from "@/lib/cron/with-cron";
 import { resend } from "@dub/email/resend/client";
 import { prisma } from "@dub/prisma";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 
 const schema = z.object({

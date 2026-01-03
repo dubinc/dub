@@ -8,7 +8,7 @@ import { fetcher, nFormatter } from "@dub/utils";
 import { useParams } from "next/navigation";
 import { useMemo } from "react";
 import useSWR from "swr";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 export function CampaignMetrics() {
   const { id: workspaceId } = useWorkspace();

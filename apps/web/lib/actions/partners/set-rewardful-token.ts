@@ -2,7 +2,7 @@
 
 import { RewardfulApi } from "@/lib/rewardful/api";
 import { rewardfulImporter } from "@/lib/rewardful/importer";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
 
 const schema = z.object({

@@ -1,4 +1,4 @@
-import z from "../zod";
+import * as z from "zod/v4";
 import { saleEventSchemaTB } from "../zod/schemas/sales";
 import { tb } from "./client";
 

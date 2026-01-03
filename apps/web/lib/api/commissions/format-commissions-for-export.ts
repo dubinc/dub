@@ -1,5 +1,5 @@
 import { COMMISSION_EXPORT_COLUMNS } from "@/lib/zod/schemas/commissions";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { getCommissions } from "./get-commissions";
 
 const COLUMN_LOOKUP: Map<

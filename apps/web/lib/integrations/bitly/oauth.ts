@@ -1,5 +1,5 @@
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { OAuthProvider } from "../oauth-provider";
 
 export const bitlyOAuthProvider = new OAuthProvider({

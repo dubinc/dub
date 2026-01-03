@@ -1,6 +1,6 @@
 import { stripe } from "@/lib/stripe";
 import Stripe from "stripe";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 export const bankAccountSchema = z
   .object({

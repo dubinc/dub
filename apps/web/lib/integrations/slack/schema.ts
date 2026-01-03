@@ -1,4 +1,4 @@
-import { z } from "zod";
+import * as z from "zod/v4";
 
 export const slackAuthTokenSchema = z.object({
   app_id: z.string(),

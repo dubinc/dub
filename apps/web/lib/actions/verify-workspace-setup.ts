@@ -2,7 +2,7 @@
 
 import { prisma } from "@dub/prisma";
 import FirecrawlApp from "@mendable/firecrawl-js";
-import z from "../zod";
+import * as z from "zod/v4";
 import { authActionClient } from "./safe-action";
 
 const getExpectedScriptForWorkspace = (store: Record<string, any>) => {

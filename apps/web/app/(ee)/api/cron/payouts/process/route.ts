@@ -3,7 +3,7 @@ import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { CUTOFF_PERIOD_ENUM } from "@/lib/partners/cutoff-period";
 import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 import { processPayouts } from "./process-payouts";
 import { splitPayouts } from "./split-payouts";

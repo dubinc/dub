@@ -10,7 +10,7 @@ import {
 import { cn } from "@dub/utils";
 import { useCallback } from "react";
 import { useFormContext } from "react-hook-form";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { FormControl } from "./form-control";
 
 type WebsiteAndSocialsFieldData = z.infer<

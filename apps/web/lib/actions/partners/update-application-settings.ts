@@ -3,13 +3,13 @@
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { prisma } from "@dub/prisma";
 import { Category } from "@dub/prisma/client";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
 
 const schema = z.object({
   workspaceId: z.string(),
   description: z.string().optional(),
-  categories: z.array(z.nativeEnum(Category)).optional(),
+  categories: z.array(z.enum(Category)).optional(),
 });
 
 export const updateApplicationSettingsAction = authActionClient

@@ -1,5 +1,5 @@
 import { parseUrlSchema } from "@/lib/zod/schemas/utils";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 export const trackOpenRequestSchema = z
   .object({
@@ -34,16 +34,16 @@ export const trackOpenResponseSchema = z.object({
     ),
   link: z
     .object({
-      id: z.string().describe("The ID of the deep link.").openapi({
+      id: z.string().describe("The ID of the deep link.").meta({
         example: "link_xxx",
       }),
-      domain: z.string().describe("The domain of the deep link.").openapi({
+      domain: z.string().describe("The domain of the deep link.").meta({
         example: "acme.link",
       }),
-      key: z.string().describe("The key of the deep link.").openapi({
+      key: z.string().describe("The key of the deep link.").meta({
         example: "fb-promo",
       }),
-      url: z.string().describe("The URL of the deep link.").openapi({
+      url: z.string().describe("The URL of the deep link.").meta({
         example: "https://acme.com/product/123",
       }),
     })

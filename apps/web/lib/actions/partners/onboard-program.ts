@@ -7,7 +7,7 @@ import { prisma } from "@dub/prisma";
 import { Project } from "@dub/prisma/client";
 import { isLegacyBusinessPlan } from "@dub/utils";
 import { redirect } from "next/navigation";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
 import { createProgram } from "./create-program";
 

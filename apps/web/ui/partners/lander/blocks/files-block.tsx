@@ -1,7 +1,7 @@
 import { GroupProps } from "@/lib/types";
 import { programLanderFilesBlockSchema } from "@/lib/zod/schemas/program-lander";
 import { ArrowUpRight, Download } from "@dub/ui/icons";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { BlockTitle } from "./block-title";
 
 export function FilesBlock({

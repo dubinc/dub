@@ -2,7 +2,7 @@
 
 import { sendEmail } from "@dub/email";
 import ReferralInvite from "@dub/email/templates/referral-invite";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { ratelimit } from "../upstash";
 import { emailSchema } from "../zod/schemas/auth";
 import { authActionClient } from "./safe-action";

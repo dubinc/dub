@@ -6,7 +6,7 @@ import { programLanderEarningsCalculatorBlockSchema } from "@/lib/zod/schemas/pr
 import { InvoiceDollar } from "@dub/ui";
 import NumberFlow from "@number-flow/react";
 import { useId, useState } from "react";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { formatRewardDescription } from "../../format-reward-description";
 import { BlockDescription } from "./block-description";
 import { BlockTitle } from "./block-title";

@@ -7,7 +7,7 @@ import { chunk, nanoid, prettyPrint } from "@dub/utils";
 import "dotenv-flow/config";
 import * as fs from "fs";
 import * as Papa from "papaparse";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { syncTotalCommissions } from "../../lib/api/partners/sync-total-commissions";
 import { recordSaleWithTimestamp } from "../../lib/tinybird";
 

@@ -8,7 +8,7 @@ import { prisma } from "@dub/prisma";
 import { NotificationEmailType } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
 import { differenceInMinutes } from "date-fns";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";

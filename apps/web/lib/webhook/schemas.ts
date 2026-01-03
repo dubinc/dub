@@ -1,4 +1,4 @@
-import z from "@/lib/zod";
+import * as z from "zod/v4";
 import { clickEventSchema } from "../zod/schemas/clicks";
 import { CommissionWebhookSchema } from "../zod/schemas/commissions";
 import { CustomerSchema } from "../zod/schemas/customers";
@@ -28,7 +28,7 @@ export const leadWebhookEventSchema = z.object({
   click: clickEventSchema,
   link: linkEventSchema,
   partner: WebhookPartnerSchema.nullish(),
-  metadata: z.record(z.unknown()).nullable().default(null),
+  metadata: z.record(z.string(), z.any()).nullable().default(null),
 });
 
 export const saleWebhookEventSchema = z.object({
@@ -38,7 +38,7 @@ export const saleWebhookEventSchema = z.object({
   link: linkEventSchema,
   sale: webhookSaleSchema,
   partner: WebhookPartnerSchema.nullish(),
-  metadata: z.record(z.unknown()).nullable().default(null),
+  metadata: z.record(z.string(), z.any()).nullable().default(null),
 });
 
 // Schema of the payload sent to the webhook endpoint by Dub
@@ -67,7 +67,7 @@ export const webhookEventSchema = z
         createdAt: z.string(),
         data: linkEventSchema,
       })
-      .openapi({
+      .meta({
         ref: "LinkWebhookEvent",
         description: "Triggered when a link is created, updated, or deleted.",
       }),
@@ -79,7 +79,7 @@ export const webhookEventSchema = z
         createdAt: z.string(),
         data: clickWebhookEventSchema,
       })
-      .openapi({
+      .meta({
         ref: "LinkClickedEvent",
         description: "Triggered when a link is clicked.",
       }),
@@ -91,7 +91,7 @@ export const webhookEventSchema = z
         createdAt: z.string(),
         data: leadWebhookEventSchema,
       })
-      .openapi({
+      .meta({
         ref: "LeadCreatedEvent",
         description: "Triggered when a lead is created.",
       }),
@@ -103,7 +103,7 @@ export const webhookEventSchema = z
         createdAt: z.string(),
         data: saleWebhookEventSchema,
       })
-      .openapi({
+      .meta({
         ref: "SaleCreatedEvent",
         description: "Triggered when a sale is created.",
       }),
@@ -115,7 +115,7 @@ export const webhookEventSchema = z
         createdAt: z.string(),
         data: EnrolledPartnerSchema,
       })
-      .openapi({
+      .meta({
         ref: "PartnerEnrolledEvent",
         description: "Triggered when a partner is enrolled.",
       }),
@@ -127,7 +127,7 @@ export const webhookEventSchema = z
         createdAt: z.string(),
         data: partnerApplicationWebhookSchema,
       })
-      .openapi({
+      .meta({
         ref: "PartnerApplicationSubmittedEvent",
         description:
           "Triggered when a partner submits an application to join a program.",
@@ -140,12 +140,12 @@ export const webhookEventSchema = z
         createdAt: z.string(),
         data: CommissionWebhookSchema,
       })
-      .openapi({
+      .meta({
         ref: "CommissionCreatedEvent",
         description: "Triggered when a commission is created for a partner.",
       }),
   ])
-  .openapi({
+  .meta({
     ref: "WebhookEvent",
     description: "Webhook event schema",
     "x-speakeasy-include": true,

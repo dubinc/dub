@@ -1,6 +1,6 @@
 import { getPartners } from "@/lib/api/partners/get-partners";
 import { partnersExportQuerySchema } from "@/lib/zod/schemas/partners";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 type PartnerFilters = Omit<
   z.infer<typeof partnersExportQuerySchema>,

@@ -2,7 +2,7 @@ import { programApplicationFormSelectFieldSchema } from "@/lib/zod/schemas/progr
 import { Combobox } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Controller, useFormContext } from "react-hook-form";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { FormControl } from "./form-control";
 
 type SelectFieldData = z.infer<typeof programApplicationFormSelectFieldSchema>;

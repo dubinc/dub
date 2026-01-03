@@ -23,7 +23,7 @@ import { cn } from "@dub/utils";
 import { PropsWithChildren, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { useAddDestinationUrlModal } from "./add-edit-group-additional-link-modal";
 
 type FormData = Pick<

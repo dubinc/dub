@@ -7,7 +7,7 @@ import { paypalEnv } from "./env";
 import { paypalAuthTokenSchema, paypalUserInfoSchema } from "./schema";
 
 class PayPalOAuthProvider extends OAuthProvider<typeof paypalAuthTokenSchema> {
-  constructor(provider: OAuthProviderConfig) {
+  constructor(provider: OAuthProviderConfig<typeof paypalAuthTokenSchema>) {
     super(provider);
   }
 
