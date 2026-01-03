@@ -20,10 +20,11 @@ const allowedImageTypes = [
   "image/webp",
 ];
 
-// A boolean query schema that coerces the value to a boolean
 export const booleanQuerySchema = z
-  .enum(["true", "false"])
-  .transform((value) => value === "true")
+  .stringbool({
+    truthy: ["true"],
+    falsy: ["false"],
+  })
   .meta({
     type: "boolean",
   });
