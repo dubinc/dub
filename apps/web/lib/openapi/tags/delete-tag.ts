@@ -1,6 +1,6 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
-import * as z from "zod/v4";
 import { ZodOpenApiOperationObject } from "zod-openapi";
+import * as z from "zod/v4";
 
 export const deleteTag: ZodOpenApiOperationObject = {
   operationId: "deleteTag",

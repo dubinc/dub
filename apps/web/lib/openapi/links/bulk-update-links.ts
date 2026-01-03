@@ -1,7 +1,7 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
 import { LinkSchema, bulkUpdateLinksBodySchema } from "@/lib/zod/schemas/links";
-import * as z from "zod/v4";
 import { ZodOpenApiOperationObject } from "zod-openapi";
+import * as z from "zod/v4";
 
 export const bulkUpdateLinks: ZodOpenApiOperationObject = {
   operationId: "bulkUpdateLinks",

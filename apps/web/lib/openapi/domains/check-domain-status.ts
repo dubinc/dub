@@ -3,8 +3,8 @@ import {
   DomainStatusSchema,
   searchDomainSchema,
 } from "@/lib/zod/schemas/domains";
-import * as z from "zod/v4";
 import { ZodOpenApiOperationObject } from "zod-openapi";
+import * as z from "zod/v4";
 
 export const checkDomainStatus: ZodOpenApiOperationObject = {
   operationId: "checkDomainStatus",

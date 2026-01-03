@@ -3,8 +3,8 @@ import {
   FolderSchema,
   listFoldersQuerySchema,
 } from "@/lib/zod/schemas/folders";
-import * as z from "zod/v4";
 import { ZodOpenApiOperationObject } from "zod-openapi";
+import * as z from "zod/v4";
 
 export const listFolders: ZodOpenApiOperationObject = {
   operationId: "listFolders",

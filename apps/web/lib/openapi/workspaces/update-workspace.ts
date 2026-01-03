@@ -3,8 +3,8 @@ import {
   WorkspaceSchema,
   createWorkspaceSchema,
 } from "@/lib/zod/schemas/workspaces";
-import * as z from "zod/v4";
 import { ZodOpenApiOperationObject } from "zod-openapi";
+import * as z from "zod/v4";
 
 export const updateWorkspace: ZodOpenApiOperationObject = {
   operationId: "updateWorkspace",
