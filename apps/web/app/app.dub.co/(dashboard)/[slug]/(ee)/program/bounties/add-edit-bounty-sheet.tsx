@@ -11,8 +11,10 @@ import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountyProps } from "@/lib/types";
-import { createBountySchema } from "@/lib/zod/schemas/bounties";
-import { workflowConditionSchema } from "@/lib/zod/schemas/workflows";
+import {
+  bountyPerformanceConditionSchema,
+  createBountySchema,
+} from "@/lib/zod/schemas/bounties";
 import { BountyLogic } from "@/ui/partners/bounties/bounty-logic";
 import { GroupsMultiSelect } from "@/ui/partners/groups/groups-multi-select";
 import {
@@ -119,12 +121,12 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     originalSubmissionWindow,
   );
 
-  const [requireImage, setRequireImage] = useState(() =>
-    !!bounty?.submissionRequirements?.image,
+  const [requireImage, setRequireImage] = useState(
+    () => !!bounty?.submissionRequirements?.image,
   );
 
-  const [requireUrl, setRequireUrl] = useState(() =>
-    !!bounty?.submissionRequirements?.url,
+  const [requireUrl, setRequireUrl] = useState(
+    () => !!bounty?.submissionRequirements?.url,
   );
 
   const [imageMax, setImageMax] = useState<number | undefined>(() => {
@@ -547,7 +549,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
 
     // Parse performance logic
     if (data.type === "performance") {
-      const result = workflowConditionSchema.safeParse(
+      const result = bountyPerformanceConditionSchema.safeParse(
         data.performanceCondition,
       );
 

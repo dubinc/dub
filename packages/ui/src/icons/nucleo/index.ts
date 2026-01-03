@@ -238,6 +238,7 @@ export * from "./trophy";
 export * from "./tv";
 export * from "./ui-card";
 export * from "./user";
+export * from "./user-arrow-right";
 export * from "./user-check";
 export * from "./user-crown";
 export * from "./user-delete";

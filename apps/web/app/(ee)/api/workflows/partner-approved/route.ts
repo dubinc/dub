@@ -322,7 +322,7 @@ export const { POST } = serve<Payload>(
 
       await executeWorkflows({
         trigger: "partnerEnrolled",
-        context: {
+        identity: {
           programId,
           partnerId,
         },
