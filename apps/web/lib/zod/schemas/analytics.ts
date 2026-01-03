@@ -30,9 +30,8 @@ const analyticsEvents = z
   });
 
 const analyticsGroupBy = z
-  .enum(VALID_ANALYTICS_ENDPOINTS)
-  .refine(() => true, {
-    message: `Invalid type value. Valid values are: ${VALID_ANALYTICS_ENDPOINTS.filter((v) => v !== "trigger").join(", ")}.`,
+  .enum(VALID_ANALYTICS_ENDPOINTS, {
+    error: `Invalid type value. Valid values are: ${VALID_ANALYTICS_ENDPOINTS.filter((v) => v !== "trigger").join(", ")}.`,
   })
   .default("count")
   .describe(
@@ -40,9 +39,8 @@ const analyticsGroupBy = z
   );
 
 const oldAnalyticsEndpoints = z
-  .enum(OLD_ANALYTICS_ENDPOINTS)
-  .refine(() => true, {
-    message: `Invalid type value. Valid values are: ${OLD_ANALYTICS_ENDPOINTS.join(", ")}`,
+  .enum(OLD_ANALYTICS_ENDPOINTS, {
+    error: `Invalid type value. Valid values are: ${OLD_ANALYTICS_ENDPOINTS.join(", ")}`,
   })
   .transform((v) => OLD_TO_NEW_ANALYTICS_ENDPOINTS[v] || v);
 
