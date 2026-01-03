@@ -153,10 +153,7 @@ export const PartnerBountySchema = BountySchema.omit({
 });
 
 export const invitePartnerUserSchema = z.object({
-  email: z
-    .string()
-    .min(1, "Email is required.")
-    .email("Please enter a valid email."),
+  email: z.email({ error: "Please enter a valid email." }),
   role: z.enum(PartnerRole),
 });
 
