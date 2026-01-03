@@ -228,7 +228,7 @@ export const getPartnerCustomersQuerySchema = z
       .default("desc")
       .describe("The sort order. The default is `desc`."),
   })
-  .merge(
+  .extend(
     getPaginationQuerySchema({ pageSize: PARTNER_CUSTOMERS_MAX_PAGE_SIZE }),
   );
 
