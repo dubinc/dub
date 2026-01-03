@@ -116,8 +116,12 @@ export function PartnersTable() {
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
   const { program } = useProgram();
 
-  const status = (searchParams.get("status") ||
-    "approved") as ProgramEnrollmentStatus;
+  const status = (
+    searchParams.get("status") || searchParams.get("search")
+      ? undefined
+      : "approved"
+  ) as ProgramEnrollmentStatus;
+
   const sortBy =
     searchParams.get("sortBy") ||
     (program?.primaryRewardEvent === "lead" ? "totalLeads" : "totalSaleAmount");
@@ -133,7 +137,7 @@ export function PartnersTable() {
   } = usePartnerFilters({ sortBy, sortOrder, status });
 
   const { partnersCount, error: countError } = usePartnersCount<number>({
-    status,
+    ...(status ? { status } : {}),
   });
 
   const {
@@ -143,7 +147,7 @@ export function PartnersTable() {
   } = useSWR<EnrolledPartnerProps[]>(
     `/api/partners${getQueryString({
       workspaceId,
-      status,
+      ...(status ? { status } : {}),
       sortBy,
       sortOrder,
     })}`,
