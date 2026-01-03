@@ -14,27 +14,9 @@ import {
 } from "@/lib/zod/schemas/customers";
 import { DiscountSchemaWithDeprecatedFields } from "@/lib/zod/schemas/discount";
 import { prisma, sanitizeFullTextSearch } from "@dub/prisma";
-import {
-  Customer,
-  Discount,
-  Link,
-  Partner,
-  Program,
-  ProgramEnrollment,
-} from "@dub/prisma/client";
 import { nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
-
-interface CustomerResponse extends Customer {
-  link: Link & {
-    programEnrollment: ProgramEnrollment & {
-      program: Program;
-      partner: Partner;
-      discount: Discount | null;
-    };
-  };
-}
 
 // GET /api/customers – Get all customers
 export const GET = withWorkspace(
