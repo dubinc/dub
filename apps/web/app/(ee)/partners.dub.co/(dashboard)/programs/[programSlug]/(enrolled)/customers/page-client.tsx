@@ -197,8 +197,6 @@ export function ProgramCustomersPageClient() {
     error: error || countError ? "Failed to load customers" : undefined,
   });
 
-  console.log({ customersCount });
-
   return (
     <PageWidthWrapper className="pb-10">
       <div className="flex flex-col gap-3">
