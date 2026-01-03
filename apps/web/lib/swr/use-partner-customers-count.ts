@@ -3,7 +3,7 @@ import { fetcher } from "@dub/utils";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
 import z from "../zod";
-import { getPartnerCustomersCountQuerySchema } from "../zod/schemas/partners";
+import { getPartnerCustomersCountQuerySchema } from "../zod/schemas/partner-profile";
 
 export default function usePartnerCustomersCount<T = number>({
   query,

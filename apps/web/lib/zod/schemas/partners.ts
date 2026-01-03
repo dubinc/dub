@@ -378,6 +378,7 @@ export const EnrolledPartnerSchema = PartnerSchema.pick({
       rewards: true,
       discount: true,
       group: true,
+      customerDataSharingEnabledAt: true,
     }),
   )
   .extend({
@@ -499,57 +500,6 @@ export const LeaderboardPartnerSchema = z.object({
   image: z.string(),
   totalCommissions: z.number().default(0),
 });
-
-export const PARTNER_CUSTOMERS_MAX_PAGE_SIZE = 100;
-
-export const getPartnerCustomersQuerySchema = z
-  .object({
-    search: z
-      .string()
-      .optional()
-      .describe(
-        "A search query to filter customers by email or name. Only available if customer data sharing is enabled.",
-      ),
-    country: z
-      .string()
-      .optional()
-      .describe(
-        "A filter on the list based on the customer's `country` field.",
-      ),
-    linkId: z
-      .string()
-      .optional()
-      .describe(
-        "A filter on the list based on the customer's `linkId` field (the referral link ID).",
-      ),
-    sortBy: z
-      .enum(["createdAt", "saleAmount"])
-      .optional()
-      .default("createdAt")
-      .describe(
-        "The field to sort the customers by. The default is `createdAt`.",
-      ),
-    sortOrder: z
-      .enum(["asc", "desc"])
-      .optional()
-      .default("desc")
-      .describe("The sort order. The default is `desc`."),
-  })
-  .merge(
-    getPaginationQuerySchema({ pageSize: PARTNER_CUSTOMERS_MAX_PAGE_SIZE }),
-  );
-
-export const getPartnerCustomersCountQuerySchema =
-  getPartnerCustomersQuerySchema
-    .omit({
-      sortBy: true,
-      sortOrder: true,
-      page: true,
-      pageSize: true,
-    })
-    .extend({
-      groupBy: z.enum(["country", "linkId"]).optional(),
-    });
 
 export const createPartnerSchema = z.object({
   name: z

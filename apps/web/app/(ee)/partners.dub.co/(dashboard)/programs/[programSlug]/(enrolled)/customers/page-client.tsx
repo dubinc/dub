@@ -1,9 +1,9 @@
 "use client";
 
+import { PARTNER_CUSTOMERS_MAX_PAGE_SIZE } from "@/lib/constants/partner-profile";
 import usePartnerCustomers from "@/lib/swr/use-partner-customers";
 import usePartnerCustomersCount from "@/lib/swr/use-partner-customers-count";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
-import { PARTNER_CUSTOMERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/partners";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";

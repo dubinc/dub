@@ -7,8 +7,10 @@ import {
   LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS,
 } from "@/lib/constants/partner-profile";
 import { generateRandomName } from "@/lib/names";
-import { PartnerProfileCustomerSchema } from "@/lib/zod/schemas/partner-profile";
-import { getPartnerCustomersQuerySchema } from "@/lib/zod/schemas/partners";
+import {
+  PartnerProfileCustomerSchema,
+  getPartnerCustomersQuerySchema,
+} from "@/lib/zod/schemas/partner-profile";
 import { prisma, sanitizeFullTextSearch } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import { z } from "zod";
