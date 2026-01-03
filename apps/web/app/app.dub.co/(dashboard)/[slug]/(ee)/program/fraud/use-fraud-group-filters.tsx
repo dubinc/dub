@@ -2,7 +2,6 @@ import { FRAUD_RULES_BY_TYPE } from "@/lib/api/fraud/constants";
 import { useFraudGroupCount } from "@/lib/swr/use-fraud-groups-count";
 import usePartners from "@/lib/swr/use-partners";
 import { EnrolledPartnerProps, FraudGroupCountByType } from "@/lib/types";
-
 import { fraudGroupCountQuerySchema } from "@/lib/zod/schemas/fraud";
 import { useRouterStuff } from "@dub/ui";
 import { ShieldKeyhole, Users } from "@dub/ui/icons";
