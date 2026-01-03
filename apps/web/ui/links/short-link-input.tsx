@@ -152,6 +152,7 @@ export const ShortLinkInput = forwardRef<HTMLInputElement, ShortLinkInputProps>(
       complete,
     } = useCompletion({
       api: `/api/ai/completion?workspaceId=${workspaceId}`,
+      streamProtocol: "text",
       onError: (error) => {
         if (error.message.includes("Upgrade to Pro")) {
           toast.custom(() => (

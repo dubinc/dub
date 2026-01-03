@@ -107,6 +107,7 @@ function OGModalInner({
     complete: completeTitle,
   } = useCompletion({
     api: `/api/ai/completion?workspaceId=${workspaceId}`,
+    streamProtocol: "text",
     onError: (error) => {
       if (error.message.includes("Upgrade to Pro")) {
         toast.custom(() => (
@@ -156,6 +157,7 @@ function OGModalInner({
     complete: completeDescription,
   } = useCompletion({
     api: `/api/ai/completion?workspaceId=${workspaceId}`,
+    streamProtocol: "text",
     onError: (error) => {
       if (error.message.includes("Upgrade to Pro")) {
         toast.custom(() => (
