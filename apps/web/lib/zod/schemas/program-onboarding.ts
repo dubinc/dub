@@ -61,14 +61,13 @@ export const onboardingStepSchema = z.enum([
   "create-program",
 ]);
 
-export const programDataSchema = programInfoSchema
-  .extend(programRewardSchema.shape)
-  .extend(programInvitePartnersSchema.shape)
-  .extend(programSupportSchema.shape)
-  .extend({
-    lastCompletedStep: onboardingStepSchema.nullish(), // The last step that was completed
-    currentStep: onboardingStepSchema.nullish(), // The current step when saving and exiting
-  });
+export const programDataSchema = programInfoSchema.extend({
+  ...programRewardSchema.shape,
+  ...programInvitePartnersSchema.shape,
+  ...programSupportSchema.shape,
+  lastCompletedStep: onboardingStepSchema.nullish(), // The last step that was completed
+  currentStep: onboardingStepSchema.nullish(), // The current step when saving and exiting
+});
 
 export const onboardProgramSchema = z.discriminatedUnion("step", [
   programInfoSchema.extend({
