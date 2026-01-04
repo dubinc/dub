@@ -87,4 +87,6 @@ export const LinkTagSchema = z
   })
   .meta({
     title: "LinkTag",
+    id: "LinkTagSchema",
+    outputId: "LinkTagSchema",
   });
