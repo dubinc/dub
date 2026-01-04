@@ -456,7 +456,7 @@ export const createLinkBodySchema = z.object({
     .describe(
       "Geo targeting information for the short link in JSON format `{[COUNTRY]: https://example.com }`. See https://d.to/geo for more information.",
     )
-    .meta({ ref: "linkGeoTargeting" }),
+    .meta({ id: "linkGeoTargeting" }),
   doIndex: z
     .boolean()
     .optional()

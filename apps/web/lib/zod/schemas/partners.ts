@@ -711,19 +711,20 @@ export const partnersTopLinksSchema = analyticsResponse["top_links"].extend(
 );
 
 export const partnerAnalyticsResponseSchema = {
-  count: analyticsResponse["count"]
-    .extend(earningsSchema.shape)
-    .meta({ ref: "PartnerAnalyticsCount", title: "PartnerAnalyticsCount" }),
+  count: analyticsResponse["count"].extend(earningsSchema.shape).meta({
+    id: "PartnerAnalyticsCount",
+    title: "PartnerAnalyticsCount",
+  }),
 
   timeseries: analyticsResponse["timeseries"]
     .extend(earningsSchema.shape)
     .meta({
-      ref: "PartnerAnalyticsTimeseries",
+      id: "PartnerAnalyticsTimeseries",
       title: "PartnerAnalyticsTimeseries",
     }),
 
   top_links: partnersTopLinksSchema.meta({
-    ref: "PartnerAnalyticsTopLinks",
+    id: "PartnerAnalyticsTopLinks",
     title: "PartnerAnalyticsTopLinks",
   }),
 } as const;

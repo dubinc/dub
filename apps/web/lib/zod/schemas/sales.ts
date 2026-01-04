@@ -196,4 +196,4 @@ export const saleEventResponseSchema = z
       .meta({ deprecated: true }),
   })
   .extend(commonDeprecatedEventFields.shape)
-  .meta({ ref: "SaleEvent", title: "SaleEvent" });
+  .meta({ id: "SaleEvent", title: "SaleEvent" });

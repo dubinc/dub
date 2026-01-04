@@ -21,43 +21,19 @@ const retrieveAnalytics: ZodOpenApiOperationObject = {
         "application/json": {
           schema: z.union([
             analyticsResponse.count,
-            z
-              .array(analyticsResponse.timeseries)
-              .meta({ title: "AnalyticsTimeseries" }),
-            z
-              .array(analyticsResponse.continents)
-              .meta({ title: "AnalyticsContinents" }),
-            z
-              .array(analyticsResponse.countries)
-              .meta({ title: "AnalyticsCountries" }),
-            z
-              .array(analyticsResponse.regions)
-              .meta({ title: "AnalyticsRegions" }),
-            z
-              .array(analyticsResponse.cities)
-              .meta({ title: "AnalyticsCities" }),
-            z
-              .array(analyticsResponse.devices)
-              .meta({ title: "AnalyticsDevices" }),
-            z
-              .array(analyticsResponse.browsers)
-              .meta({ title: "AnalyticsBrowsers" }),
-            z.array(analyticsResponse.os).meta({ title: "AnalyticsOS" }),
-            z
-              .array(analyticsResponse.triggers)
-              .meta({ title: "AnalyticsTriggers" }),
-            z
-              .array(analyticsResponse.referers)
-              .meta({ title: "AnalyticsReferers" }),
-            z
-              .array(analyticsResponse.referer_urls)
-              .meta({ title: "AnalyticsRefererUrls" }),
-            z
-              .array(analyticsResponse.top_links)
-              .meta({ title: "AnalyticsTopLinks" }),
-            z
-              .array(analyticsResponse.top_urls)
-              .meta({ title: "AnalyticsTopUrls" }),
+            z.array(analyticsResponse.timeseries),
+            z.array(analyticsResponse.continents),
+            z.array(analyticsResponse.countries),
+            z.array(analyticsResponse.regions),
+            z.array(analyticsResponse.cities),
+            z.array(analyticsResponse.devices),
+            z.array(analyticsResponse.browsers),
+            z.array(analyticsResponse.os),
+            z.array(analyticsResponse.triggers),
+            z.array(analyticsResponse.referers),
+            z.array(analyticsResponse.referer_urls),
+            z.array(analyticsResponse.top_links),
+            z.array(analyticsResponse.top_urls),
           ]),
         },
       },

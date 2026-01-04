@@ -145,4 +145,4 @@ export const leadEventResponseSchema = z
     customer: CustomerSchema,
   })
   .extend(commonDeprecatedEventFields.shape)
-  .meta({ ref: "LeadEvent", title: "LeadEvent" });
+  .meta({ id: "LeadEvent", title: "LeadEvent" });

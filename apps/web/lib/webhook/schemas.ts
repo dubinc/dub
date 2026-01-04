@@ -68,7 +68,8 @@ export const webhookEventSchema = z
         data: linkEventSchema,
       })
       .meta({
-        ref: "LinkWebhookEvent",
+        id: "LinkWebhookEvent",
+        outputId: "LinkWebhookEvent",
         description: "Triggered when a link is created, updated, or deleted.",
       }),
 
@@ -80,7 +81,8 @@ export const webhookEventSchema = z
         data: clickWebhookEventSchema,
       })
       .meta({
-        ref: "LinkClickedEvent",
+        id: "LinkClickedEvent",
+        outputId: "LinkClickedEvent",
         description: "Triggered when a link is clicked.",
       }),
 
@@ -92,7 +94,8 @@ export const webhookEventSchema = z
         data: leadWebhookEventSchema,
       })
       .meta({
-        ref: "LeadCreatedEvent",
+        id: "LeadCreatedEvent",
+        outputId: "LeadCreatedEvent",
         description: "Triggered when a lead is created.",
       }),
 
@@ -104,7 +107,8 @@ export const webhookEventSchema = z
         data: saleWebhookEventSchema,
       })
       .meta({
-        ref: "SaleCreatedEvent",
+        id: "SaleCreatedEvent",
+        outputId: "SaleCreatedEvent",
         description: "Triggered when a sale is created.",
       }),
 
@@ -116,7 +120,8 @@ export const webhookEventSchema = z
         data: EnrolledPartnerSchema,
       })
       .meta({
-        ref: "PartnerEnrolledEvent",
+        id: "PartnerEnrolledEvent",
+        outputId: "PartnerEnrolledEvent",
         description: "Triggered when a partner is enrolled.",
       }),
 
@@ -128,7 +133,8 @@ export const webhookEventSchema = z
         data: partnerApplicationWebhookSchema,
       })
       .meta({
-        ref: "PartnerApplicationSubmittedEvent",
+        id: "PartnerApplicationSubmittedEvent",
+        outputId: "PartnerApplicationSubmittedEvent",
         description:
           "Triggered when a partner submits an application to join a program.",
       }),
@@ -141,12 +147,13 @@ export const webhookEventSchema = z
         data: CommissionWebhookSchema,
       })
       .meta({
-        ref: "CommissionCreatedEvent",
+        id: "CommissionCreatedEvent",
+        outputId: "CommissionCreatedEvent",
         description: "Triggered when a commission is created for a partner.",
       }),
   ])
   .meta({
-    ref: "WebhookEvent",
+    id: "WebhookEvent",
     description: "Webhook event schema",
     "x-speakeasy-include": true,
   });

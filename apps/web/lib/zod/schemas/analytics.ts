@@ -138,7 +138,7 @@ export const analyticsQuerySchema = z
       .describe(
         "The country to retrieve analytics for. Must be passed as a 2-letter ISO 3166-1 country code. See https://d.to/geo for more information.",
       )
-      .meta({ ref: "countryCode" }),
+      .meta({ id: "countryCode" }),
     city: z
       .string()
       .optional()
@@ -148,12 +148,12 @@ export const analyticsQuerySchema = z
       .string()
       .optional()
       .describe("The ISO 3166-2 region code to retrieve analytics for.")
-      .meta({ ref: "regionCode" }),
+      .meta({ id: "regionCode" }),
     continent: z
       .enum(CONTINENT_CODES)
       .optional()
       .describe("The continent to retrieve analytics for.")
-      .meta({ ref: "continentCode" }),
+      .meta({ id: "continentCode" }),
     device: z
       .string()
       .optional()
