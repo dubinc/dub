@@ -33,7 +33,7 @@
     "@dub/ui": "workspace:*",
     "@dub/utils": "workspace:*",
     "@floating-ui/react": "^0.26.20",
-    "@mendable/firecrawl-js": "^4.10.0",
+    "@mendable/firecrawl-js": "^1.29.1",
     "@next-auth/prisma-adapter": "^1.0.7",
     "@number-flow/react": "^0.4.1",
     "@planetscale/database": "^1.18.0",
