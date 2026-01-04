@@ -15,7 +15,7 @@ import { foldersPaths } from "./folders";
 import { linksPaths } from "./links";
 import { partnersPaths } from "./partners";
 import { qrCodePaths } from "./qr";
-import { openApiErrorResponses } from "./responses";
+import { openApiErrorResponsesComponents } from "./responses";
 import { tagsPaths } from "./tags";
 import { trackPaths } from "./track";
 import { workspacesPaths } from "./workspaces";
@@ -77,7 +77,7 @@ export const document = createDocument({
       },
     },
     responses: {
-      ...openApiErrorResponses,
+      ...openApiErrorResponsesComponents,
     },
   },
 });
