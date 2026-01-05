@@ -108,7 +108,6 @@ export const ProgramEnrollmentSchema = z.object({
     .array(ProgramPartnerLinkSchema)
     .nullable()
     .describe("The partner's referral links in this program."),
-  customerDataSharingEnabledAt: z.date().nullable(),
   totalCommissions: z.number().default(0),
   rewards: z.array(RewardSchema).nullish(),
   clickRewardId: z.string().nullish(),

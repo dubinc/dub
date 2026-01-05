@@ -1,7 +1,6 @@
 import { EnrolledPartnerProps } from "@/lib/types";
 import { EnrolledPartnerSchema as EnrolledPartnerSchemaDate } from "@/lib/zod/schemas/partners";
 import { describe, expect, test } from "vitest";
-import { z } from "zod";
 import { IntegrationHarness } from "../utils/integration";
 import { E2E_PARTNER } from "../utils/resource";
 import { normalizedPartnerDateFields } from "./resource";
@@ -9,10 +8,6 @@ import { normalizedPartnerDateFields } from "./resource";
 // type coercion for date fields
 const EnrolledPartnerSchema = EnrolledPartnerSchemaDate.merge(
   normalizedPartnerDateFields,
-).merge(
-  z.object({
-    customerDataSharingEnabledAt: z.string().nullish(),
-  }),
 );
 
 describe.sequential("GET /partners", async () => {
