@@ -5,7 +5,7 @@ import {
   LARGE_PROGRAM_IDS,
   LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS,
 } from "@/lib/constants/partner-profile";
-import { getPartnerCustomersCountQuerySchema } from "@/lib/zod/schemas/partners";
+import { getPartnerCustomersCountQuerySchema } from "@/lib/zod/schemas/partner-profile";
 import { prisma, sanitizeFullTextSearch } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { NextResponse } from "next/server";

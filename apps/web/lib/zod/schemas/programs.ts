@@ -144,6 +144,7 @@ export const ProgramEnrollmentSchema = z.object({
     maxPartnerLinks: true,
     linkStructure: true,
   }).nullish(),
+  customerDataSharingEnabledAt: z.date().nullable(),
 });
 
 export const ProgramInviteSchema = z.object({

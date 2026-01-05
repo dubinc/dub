@@ -3,15 +3,13 @@ import { fetcher } from "@dub/utils";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
 import z from "../zod";
-import { getPartnerCustomersCountQuerySchema } from "../zod/schemas/partners";
+import { getPartnerCustomersCountQuerySchema } from "../zod/schemas/partner-profile";
 
 export default function usePartnerCustomersCount<T = number>({
   query,
-  includeParams = ["country", "linkId", "search"],
   enabled = true,
 }: {
-  query?: Partial<z.infer<typeof getPartnerCustomersCountQuerySchema>>;
-  includeParams?: string[];
+  query?: z.infer<typeof getPartnerCustomersCountQuerySchema>;
   enabled?: boolean;
 } = {}) {
   const { programSlug } = useParams<{ programSlug: string }>();
@@ -22,7 +20,7 @@ export default function usePartnerCustomersCount<T = number>({
       `/api/partner-profile/programs/${programSlug}/customers/count${getQueryString(
         query,
         {
-          include: includeParams,
+          include: ["country", "linkId", "search"],
         },
       )}`,
     fetcher,
