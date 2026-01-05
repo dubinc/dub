@@ -68,8 +68,6 @@ export const webhookEventSchema = z
         data: linkEventSchema,
       })
       .meta({
-        id: "LinkWebhookEvent",
-        outputId: "LinkWebhookEvent",
         description: "Triggered when a link is created, updated, or deleted.",
       }),
 
@@ -81,8 +79,6 @@ export const webhookEventSchema = z
         data: clickWebhookEventSchema,
       })
       .meta({
-        id: "LinkClickedEvent",
-        outputId: "LinkClickedEvent",
         description: "Triggered when a link is clicked.",
       }),
 
@@ -94,8 +90,6 @@ export const webhookEventSchema = z
         data: leadWebhookEventSchema,
       })
       .meta({
-        id: "LeadCreatedEvent",
-        outputId: "LeadCreatedEvent",
         description: "Triggered when a lead is created.",
       }),
 
@@ -107,8 +101,6 @@ export const webhookEventSchema = z
         data: saleWebhookEventSchema,
       })
       .meta({
-        id: "SaleCreatedEvent",
-        outputId: "SaleCreatedEvent",
         description: "Triggered when a sale is created.",
       }),
 
@@ -120,8 +112,6 @@ export const webhookEventSchema = z
         data: EnrolledPartnerSchema,
       })
       .meta({
-        id: "PartnerEnrolledEvent",
-        outputId: "PartnerEnrolledEvent",
         description: "Triggered when a partner is enrolled.",
       }),
 
@@ -133,8 +123,6 @@ export const webhookEventSchema = z
         data: partnerApplicationWebhookSchema,
       })
       .meta({
-        id: "PartnerApplicationSubmittedEvent",
-        outputId: "PartnerApplicationSubmittedEvent",
         description:
           "Triggered when a partner submits an application to join a program.",
       }),
@@ -147,13 +135,10 @@ export const webhookEventSchema = z
         data: CommissionWebhookSchema,
       })
       .meta({
-        id: "CommissionCreatedEvent",
-        outputId: "CommissionCreatedEvent",
         description: "Triggered when a commission is created for a partner.",
       }),
   ])
   .meta({
-    id: "WebhookEvent",
     description: "Webhook event schema",
     "x-speakeasy-include": true,
   });

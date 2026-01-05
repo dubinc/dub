@@ -83,4 +83,4 @@ export const clickEventResponseSchema = z
     link: linkEventSchema,
   })
   .extend(commonDeprecatedEventFields.shape)
-  .meta({ id: "ClickEvent", title: "ClickEvent" });
+  .meta({ title: "ClickEvent" });
