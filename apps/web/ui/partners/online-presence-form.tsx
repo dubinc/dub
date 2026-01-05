@@ -1,6 +1,7 @@
 "use client";
 
 import { parseActionError } from "@/lib/actions/parse-action-errors";
+import { startSocialVerificationAction } from "@/lib/actions/partners/start-social-verification";
 import { updateOnlinePresenceAction } from "@/lib/actions/partners/update-online-presence";
 import { hasPermission } from "@/lib/auth/partner-users/partner-user-permissions";
 import {
@@ -11,6 +12,7 @@ import {
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { parseUrlSchemaAllowEmpty } from "@/lib/zod/schemas/utils";
 import { DomainVerificationModal } from "@/ui/modals/domain-verification-modal";
+import { SocialVerificationModal } from "@/ui/modals/social-verification-modal";
 import {
   AnimatedSizeContainer,
   Button,
@@ -139,6 +141,32 @@ export const OnlinePresenceForm = forwardRef<
       txtRecord: string;
     } | null>(null);
 
+    const [socialVerificationData, setSocialVerificationData] = useState<{
+      platform: "youtube" | "instagram" | "tiktok" | "linkedin";
+      handle: string;
+      verificationCode: string;
+    } | null>(null);
+
+    const {
+      executeAsync: startSocialVerification,
+      isPending: isStartingSocialVerification,
+    } = useAction(startSocialVerificationAction, {
+      onSuccess: ({ input, data }) => {
+        if (!input || !data) {
+          return;
+        }
+
+        setSocialVerificationData({
+          platform: input.platform,
+          handle: input.handle,
+          verificationCode: data.verificationCode,
+        });
+      },
+      onError: ({ error }) => {
+        toast.error(parseActionError(error, "Failed to start verification."));
+      },
+    });
+
     const startVerification = useOAuthVerification(variant);
 
     const onPasteWebsite = useCallback(
@@ -175,6 +203,17 @@ export const OnlinePresenceForm = forwardRef<
           domain={domainVerificationData?.domain || ""}
           txtRecord={domainVerificationData?.txtRecord || ""}
         />
+        {socialVerificationData && (
+          <SocialVerificationModal
+            showSocialVerificationModal={socialVerificationData !== null}
+            setShowSocialVerificationModal={(show) => {
+              if (!show) setSocialVerificationData(null);
+            }}
+            platform={socialVerificationData.platform}
+            handle={socialVerificationData.handle}
+            verificationCode={socialVerificationData.verificationCode}
+          />
+        )}
         <FormProvider {...form}>
           <form
             ref={ref}
@@ -250,10 +289,18 @@ export const OnlinePresenceForm = forwardRef<
                 verifiedAtField="youtubeVerifiedAt"
                 icon={YouTube}
                 disabled={disabled}
-                onVerifyClick={() =>
-                  startVerification("youtube", getValues("youtube"))
-                }
-                verifyDisabledTooltip="YouTube verification is coming soon."
+                onVerifyClick={async () => {
+                  const handle = getValues("youtube");
+
+                  if (handle) {
+                    await startSocialVerification({
+                      platform: "youtube",
+                      handle,
+                    });
+                  }
+
+                  return isStartingSocialVerification;
+                }}
                 input={
                   <div className="flex rounded-md">
                     <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
@@ -324,10 +371,18 @@ export const OnlinePresenceForm = forwardRef<
                 verifiedAtField="linkedinVerifiedAt"
                 icon={LinkedIn}
                 disabled={disabled}
-                onVerifyClick={() =>
-                  startVerification("linkedin", getValues("linkedin"))
-                }
-                verifyDisabledTooltip="LinkedIn verification is coming soon."
+                onVerifyClick={async () => {
+                  const handle = getValues("linkedin");
+
+                  if (handle) {
+                    await startSocialVerification({
+                      platform: "linkedin",
+                      handle,
+                    });
+                  }
+
+                  return isStartingSocialVerification;
+                }}
                 input={
                   <div className="flex rounded-md">
                     <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
@@ -360,10 +415,18 @@ export const OnlinePresenceForm = forwardRef<
                 verifiedAtField="instagramVerifiedAt"
                 icon={Instagram}
                 disabled={disabled}
-                onVerifyClick={() =>
-                  startVerification("instagram", getValues("instagram"))
-                }
-                verifyDisabledTooltip="Instagram verification is coming soon."
+                onVerifyClick={async () => {
+                  const handle = getValues("instagram");
+
+                  if (handle) {
+                    await startSocialVerification({
+                      platform: "instagram",
+                      handle,
+                    });
+                  }
+
+                  return isStartingSocialVerification;
+                }}
                 input={
                   <div className="flex rounded-md">
                     <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
@@ -396,9 +459,18 @@ export const OnlinePresenceForm = forwardRef<
                 verifiedAtField="tiktokVerifiedAt"
                 icon={TikTok}
                 disabled={disabled}
-                onVerifyClick={() =>
-                  startVerification("tiktok", getValues("tiktok"))
-                }
+                onVerifyClick={async () => {
+                  const handle = getValues("tiktok");
+
+                  if (handle) {
+                    await startSocialVerification({
+                      platform: "tiktok",
+                      handle,
+                    });
+                  }
+
+                  return isStartingSocialVerification;
+                }}
                 input={
                   <div className="flex rounded-md">
                     <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">

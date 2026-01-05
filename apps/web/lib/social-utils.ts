@@ -9,9 +9,13 @@ interface SocialPlatformConfig {
   patterns: RegExp[];
   allowedChars: RegExp;
   maxLength?: number;
+  name: string;
 }
 
-const PLATFORM_CONFIGS: Record<SocialPlatform, SocialPlatformConfig> = {
+export const SOCIAL_PLATFORM_CONFIGS: Record<
+  SocialPlatform,
+  SocialPlatformConfig
+> = {
   youtube: {
     patterns: [
       /^(?:.*\.)?(?:youtube\.com|youtu\.be)\/(?:channel\/|c\/|user\/|@)?([^\/\?]+)/i,
@@ -19,6 +23,7 @@ const PLATFORM_CONFIGS: Record<SocialPlatform, SocialPlatformConfig> = {
     ],
     allowedChars: /[^\w.-]/g,
     maxLength: 30,
+    name: "YouTube",
   },
   twitter: {
     patterns: [
@@ -27,21 +32,25 @@ const PLATFORM_CONFIGS: Record<SocialPlatform, SocialPlatformConfig> = {
     ],
     allowedChars: /[^\w]/g,
     maxLength: 15,
+    name: "Twitter",
   },
   linkedin: {
     patterns: [/^(?:.*\.)?linkedin\.com\/(?:in\/)?([^\/\?]+)/i],
     allowedChars: /[^\w-]/g,
     maxLength: 30,
+    name: "LinkedIn",
   },
   instagram: {
     patterns: [/^(?:.*\.)?instagram\.com\/([^\/\?]+)/i, /^@([^\/\?]+)/i],
     allowedChars: /[^\w.]/g,
     maxLength: 30,
+    name: "Instagram",
   },
   tiktok: {
     patterns: [/^(?:.*\.)?tiktok\.com\/(?:@)?([^\/\?]+)/i, /^@([^\/\?]+)/i],
     allowedChars: /[^\w.]/g,
     maxLength: 24,
+    name: "TikTok",
   },
 };
 
@@ -78,7 +87,8 @@ export const sanitizeSocialHandle = (
 
   handle = handle.replace(/^https?:\/\//i, "").replace(/^www\./i, "");
 
-  const { patterns, allowedChars, maxLength } = PLATFORM_CONFIGS[platform];
+  const { patterns, allowedChars, maxLength } =
+    SOCIAL_PLATFORM_CONFIGS[platform];
 
   for (const pattern of patterns) {
     const match = handle.match(pattern);

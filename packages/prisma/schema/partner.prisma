@@ -82,6 +82,7 @@ model Partner {
   fraudEventGroups           FraudEventGroup[]
   fraudEvents                FraudEvent[]
   partnerRewinds             PartnerRewind[]
+  platforms                  PartnerPlatform[]
 
   @@index(country)
   @@index(discoverableAt)
@@ -163,4 +164,32 @@ model PartnerSalesChannel {
   partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
 
   @@unique([partnerId, salesChannel])
+}
+
+enum SocialPlatform {
+  website
+  youtube
+  twitter
+  linkedin
+  instagram
+  tiktok
+}
+
+model PartnerPlatform {
+  id         String         @id @default(cuid())
+  partnerId  String
+  platform   SocialPlatform
+  handle     String? // The username/handle/URL for the platform
+  platformId String? // Platform-specific ID (e.g., YouTube channel ID)
+  verifiedAt DateTime?
+  followers  Int            @default(0)
+  posts      Int            @default(0)
+  views      Int            @default(0)
+  metadata   Json?
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+
+  @@unique([partnerId, platform])
 }
