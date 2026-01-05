@@ -1,18 +1,13 @@
 "use server";
 
-import {
-  generateCodeChallengeHash,
-  generateCodeVerifier,
-} from "@/lib/api/oauth/utils";
 import { sanitizeSocialHandle, sanitizeWebsite } from "@/lib/social-utils";
+import { partnerSocialPlatformSchema } from "@/lib/zod/schemas/partners";
 import { parseUrlSchemaAllowEmpty } from "@/lib/zod/schemas/utils";
 import { prisma } from "@dub/prisma";
-import { isValidUrl, PARTNERS_DOMAIN_WITH_NGROK } from "@dub/utils";
-import { cookies } from "next/headers";
-import { v4 as uuid } from "uuid";
+import { PartnerPlatform } from "@dub/prisma/client";
+import { isValidUrl } from "@dub/utils";
 import { z } from "zod";
 import { authPartnerActionClient } from "../safe-action";
-import { ONLINE_PRESENCE_PROVIDERS } from "./online-presence-providers";
 
 const updateOnlinePresenceSchema = z.object({
   website: parseUrlSchemaAllowEmpty()
@@ -55,13 +50,6 @@ const updateOnlinePresenceSchema = z.object({
   source: z.enum(["onboarding", "settings"]).default("onboarding"),
 });
 
-const updateOnlinePresenceResponseSchema = updateOnlinePresenceSchema.merge(
-  z.object({
-    websiteTxtRecord: z.string().nullable(),
-    verificationUrls: z.record(z.string().url()),
-  }),
-);
-
 export const updateOnlinePresenceAction = authPartnerActionClient
   .schema(
     updateOnlinePresenceSchema.refine(
@@ -76,123 +64,198 @@ export const updateOnlinePresenceAction = authPartnerActionClient
   .action(async ({ ctx, parsedInput }) => {
     const { partner } = ctx;
 
-    let domainChanged = false;
-
-    try {
-      let oldDomain = partner.website
-        ? new URL(partner.website).hostname
-        : null;
-      let newDomain = parsedInput.website
-        ? new URL(parsedInput.website).hostname
-        : null;
-      domainChanged = oldDomain !== newDomain;
-    } catch (e) {
-      console.error(
-        "Failed to get domain from partner website",
-        { old: partner.website, new: parsedInput.website },
-        e,
-      );
-      domainChanged = true;
-    }
-
-    const updateData = {
-      ...(parsedInput.website !== undefined && {
-        website: parsedInput.website,
-        ...(domainChanged && {
-          websiteVerifiedAt: null,
-          websiteTxtRecord: `dub-domain-verification=${uuid()}`,
-        }),
-      }),
-      ...(parsedInput.youtube !== undefined && {
-        youtube: parsedInput.youtube,
-        youtubeVerifiedAt:
-          parsedInput.youtube !== partner.youtube ? null : undefined,
-      }),
-      ...(parsedInput.twitter !== undefined && {
-        twitter: parsedInput.twitter,
-        twitterVerifiedAt:
-          parsedInput.twitter !== partner.twitter ? null : undefined,
-      }),
-      ...(parsedInput.linkedin !== undefined && {
-        linkedin: parsedInput.linkedin,
-        linkedinVerifiedAt:
-          parsedInput.linkedin !== partner.linkedin ? null : undefined,
-      }),
-      ...(parsedInput.instagram !== undefined && {
-        instagram: parsedInput.instagram,
-        instagramVerifiedAt:
-          parsedInput.instagram !== partner.instagram ? null : undefined,
-      }),
-      ...(parsedInput.tiktok !== undefined && {
-        tiktok: parsedInput.tiktok,
-        tiktokVerifiedAt:
-          parsedInput.tiktok !== partner.tiktok ? null : undefined,
-      }),
-    };
-
-    const updatedPartner = await prisma.partner.update({
+    let partnerPlatform = await prisma.partnerPlatform.findMany({
       where: {
-        id: partner.id,
+        partnerId: partner.id,
       },
-      data: updateData,
     });
 
-    return {
-      success: true,
-      ...updateOnlinePresenceResponseSchema.parse({
-        ...updatedPartner,
-        verificationUrls: Object.fromEntries(
-          await Promise.all(
-            Object.entries(ONLINE_PRESENCE_PROVIDERS)
-              .filter(
-                ([key, data]) =>
-                  updatedPartner[key] && !updatedPartner[data.verifiedColumn],
-              )
-              .map(async ([key, data]) => {
-                if (!data.clientId) return [key, null];
+    const platforms = partnerPlatform.map((p) => ({
+      platform: p.platform,
+      handle: p.handle,
+      verifiedAt: p.verifiedAt,
+    }));
 
-                const params: Record<string, string> = {
-                  [data.clientIdParam ?? "client_id"]: data.clientId,
-                  redirect_uri: `${PARTNERS_DOMAIN_WITH_NGROK}/api/partners/online-presence/callback`,
-                  scope: data.scopes,
-                  response_type: "code",
-                  state: Buffer.from(
-                    JSON.stringify({
-                      provider: key,
-                      partnerId: partner.id,
-                      source: parsedInput.source,
-                    }),
-                  ).toString("base64"),
-                };
+    const platformHandles = new Map(
+      platforms.map((p) => [p.platform, p.handle]),
+    );
 
-                if (data.pkce) {
-                  const codeVerifier = generateCodeVerifier();
-                  const codeChallenge =
-                    await generateCodeChallengeHash(codeVerifier);
+    // create an array of data to upsert using foreach
+    const socialPlatformsData: Pick<
+      PartnerPlatform,
+      "platform" | "handle" | "verifiedAt"
+    >[] = [];
 
-                  // Store code verifier in cookie
-                  (await cookies()).set(
-                    "online_presence_code_verifier",
-                    codeVerifier,
-                    {
-                      httpOnly: true,
-                      secure: process.env.NODE_ENV === "production",
-                      sameSite: "lax",
-                      maxAge: 60 * 5, // 5 minutes
-                    },
-                  );
+    if (
+      parsedInput.youtube &&
+      parsedInput.youtube !== platformHandles.get("youtube")
+    ) {
+      socialPlatformsData.push({
+        platform: "youtube",
+        handle: parsedInput.youtube,
+        verifiedAt: null,
+      });
+    }
 
-                  params.code_challenge = codeChallenge;
-                  params.code_challenge_method = "S256";
-                }
+    if (
+      parsedInput.twitter &&
+      parsedInput.twitter !== platformHandles.get("twitter")
+    ) {
+      socialPlatformsData.push({
+        platform: "twitter",
+        handle: parsedInput.twitter,
+        verifiedAt: null,
+      });
+    }
 
-                return [
-                  key,
-                  `${data.authUrl}?${new URLSearchParams(params).toString()}`,
-                ];
-              }),
-          ),
-        ),
-      }),
-    };
+    if (
+      parsedInput.linkedin &&
+      parsedInput.linkedin !== platformHandles.get("linkedin")
+    ) {
+      socialPlatformsData.push({
+        platform: "linkedin",
+        handle: parsedInput.linkedin,
+        verifiedAt: null,
+      });
+    }
+
+    if (
+      parsedInput.instagram &&
+      parsedInput.instagram !== platformHandles.get("instagram")
+    ) {
+      socialPlatformsData.push({
+        platform: "instagram",
+        handle: parsedInput.instagram,
+        verifiedAt: null,
+      });
+    }
+
+    if (
+      parsedInput.tiktok &&
+      parsedInput.tiktok !== platformHandles.get("tiktok")
+    ) {
+      socialPlatformsData.push({
+        platform: "tiktok",
+        handle: parsedInput.tiktok,
+        verifiedAt: null,
+      });
+    }
+
+    if (
+      parsedInput.website &&
+      parsedInput.website !== platformHandles.get("website")
+    ) {
+      let domainChanged = false;
+
+      try {
+        const website = platformHandles.get("website");
+        const oldDomain = website ? new URL(website).hostname : null;
+        const newDomain = parsedInput.website
+          ? new URL(parsedInput.website).hostname
+          : null;
+
+        domainChanged = oldDomain?.toLowerCase() !== newDomain?.toLowerCase();
+      } catch (error) {
+        console.error("Failed to get domain from partner website", error);
+        domainChanged = true;
+      }
+
+      if (domainChanged) {
+        socialPlatformsData.push({
+          platform: "website",
+          handle: parsedInput.website,
+          verifiedAt: null,
+        });
+      }
+    }
+
+    if (socialPlatformsData.length === 0) {
+      return;
+    }
+
+    await Promise.all(
+      socialPlatformsData.map((item) =>
+        prisma.partnerPlatform.upsert({
+          where: {
+            partnerId_platform: {
+              partnerId: partner.id,
+              platform: item.platform,
+            },
+          },
+          create: {
+            partnerId: partner.id,
+            platform: item.platform,
+            handle: item.handle,
+            verifiedAt: item.verifiedAt,
+          },
+          update: {
+            handle: item.handle,
+            verifiedAt: item.verifiedAt,
+          },
+        }),
+      ),
+    );
+
+    partnerPlatform = await prisma.partnerPlatform.findMany({
+      where: {
+        partnerId: partner.id,
+      },
+    });
+
+    return z.array(partnerSocialPlatformSchema).parse(partnerPlatform);
+
+    // const verificationUrls = Object.fromEntries(
+    //   await Promise.all(
+    //     Object.entries(ONLINE_PRESENCE_PROVIDERS)
+    //       .filter(
+    //         ([key, data]) =>
+    //           socialPlatformsData.some((p) => p.platform === key && !p.verifiedAt),
+    //       )
+    //       .map(async ([key, data]) => {
+    //         if (!data.clientId) {
+    //           return [key, null];
+    //         }
+
+    //         const params: Record<string, string> = {
+    //           [data.clientIdParam ?? "client_id"]: data.clientId,
+    //           redirect_uri: `${PARTNERS_DOMAIN_WITH_NGROK}/api/partners/online-presence/callback`,
+    //           scope: data.scopes,
+    //           response_type: "code",
+    //           state: Buffer.from(
+    //             JSON.stringify({
+    //               provider: key,
+    //               partnerId: partner.id,
+    //               source: parsedInput.source,
+    //             }),
+    //           ).toString("base64"),
+    //         };
+
+    //         if (data.pkce) {
+    //           const codeVerifier = generateCodeVerifier();
+    //           const codeChallenge =
+    //             await generateCodeChallengeHash(codeVerifier);
+
+    //           // Store code verifier in cookie
+    //           (await cookies()).set(
+    //             "online_presence_code_verifier",
+    //             codeVerifier,
+    //             {
+    //               httpOnly: true,
+    //               secure: process.env.NODE_ENV === "production",
+    //               sameSite: "lax",
+    //               maxAge: 60 * 5, // 5 minutes
+    //             },
+    //           );
+
+    //           params.code_challenge = codeChallenge;
+    //           params.code_challenge_method = "S256";
+    //         }
+
+    //         return [
+    //           key,
+    //           `${data.authUrl}?${new URLSearchParams(params).toString()}`,
+    //         ];
+    //       }),
+    //   ),
+    // ),
   });

@@ -6,6 +6,7 @@ import {
   PreferredEarningStructure,
   ProgramEnrollmentStatus,
   SalesChannel,
+  SocialPlatform,
 } from "@dub/prisma/client";
 import { COUNTRY_CODES, GOOGLE_FAVICON_URL } from "@dub/utils";
 import { z } from "zod";
@@ -204,6 +205,7 @@ export const partnersCountQuerySchema = getPartnersQuerySchemaExtended
     groupBy: z.enum(["status", "country", "groupId"]).optional(),
   });
 
+// TODO: Remove
 export const PartnerOnlinePresenceSchema = z.object({
   website: z
     .string()
@@ -846,4 +848,15 @@ export const partnerCrossProgramSummarySchema = z.object({
   totalPrograms: z.number(),
   trustedPrograms: z.number(),
   removedPrograms: z.number(),
+});
+
+export const partnerSocialPlatformSchema = z.object({
+  platform: z.nativeEnum(SocialPlatform),
+  handle: z.string(),
+  verifiedAt: z.date().nullable(),
+  platformId: z.string().nullable(),
+  followers: z.number().default(0),
+  posts: z.number().default(0),
+  views: z.number().default(0),
+  metadata: z.record(z.string(), z.string()).nullable(),
 });

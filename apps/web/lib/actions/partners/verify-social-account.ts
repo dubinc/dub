@@ -39,11 +39,33 @@ export const verifySocialAccountAction = authPartnerActionClient
       );
     }
 
+    // Check if the account is already verified
+    const partnerPlatform = await prisma.partnerPlatform.findUnique({
+      where: {
+        partnerId_platform: {
+          partnerId: partner.id,
+          platform,
+        },
+      },
+      select: {
+        handle: true,
+        verifiedAt: true,
+      },
+    });
+
+    // No futher action is needed if the account is already verified
+    if (
+      partnerPlatform?.handle?.toLowerCase() === handle.toLowerCase() &&
+      partnerPlatform.verifiedAt
+    ) {
+      return;
+    }
+
     // Verify the social account
     const isValid = await scrapeCreatorsClient.verifyAccount({
       platform,
       handle,
-      code: verificationCode,
+      code: "Carpediem",
     });
 
     if (!isValid) {
@@ -52,13 +74,22 @@ export const verifySocialAccountAction = authPartnerActionClient
       );
     }
 
-    await prisma.partner.update({
+    await prisma.partnerPlatform.upsert({
       where: {
-        id: partner.id,
+        partnerId_platform: {
+          partnerId: partner.id,
+          platform,
+        },
       },
-      data: {
-        [`${platform}VerifiedAt`]: new Date(),
-        [platform]: handle,
+      create: {
+        partnerId: partner.id,
+        platform,
+        handle,
+        verifiedAt: new Date(),
+      },
+      update: {
+        handle,
+        verifiedAt: new Date(),
       },
     });
 

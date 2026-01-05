@@ -4,15 +4,12 @@ import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { startSocialVerificationAction } from "@/lib/actions/partners/start-social-verification";
 import { updateOnlinePresenceAction } from "@/lib/actions/partners/update-online-presence";
 import { hasPermission } from "@/lib/auth/partner-users/partner-user-permissions";
-import {
-  sanitizeSocialHandle,
-  sanitizeWebsite,
-  SocialPlatform,
-} from "@/lib/social-utils";
+import { sanitizeSocialHandle, sanitizeWebsite } from "@/lib/social-utils";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { parseUrlSchemaAllowEmpty } from "@/lib/zod/schemas/utils";
 import { DomainVerificationModal } from "@/ui/modals/domain-verification-modal";
 import { SocialVerificationModal } from "@/ui/modals/social-verification-modal";
+import { SocialPlatform } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
   Button,
@@ -28,7 +25,6 @@ import {
 import { getPrettyUrl, nFormatter } from "@dub/utils";
 import { cn } from "@dub/utils/src/functions";
 import { useAction } from "next-safe-action/hooks";
-import { useRouter } from "next/navigation";
 import { forwardRef, ReactNode, useCallback, useMemo, useState } from "react";
 import {
   FormProvider,
@@ -120,12 +116,8 @@ export const OnlinePresenceForm = forwardRef<
     } = form;
 
     const { executeAsync } = useAction(updateOnlinePresenceAction, {
-      onSuccess: (result) => {
-        if (!result?.data?.success)
-          setError("root.serverError", {
-            message: "Failed to update online presence",
-          });
-        else mutate("/api/partner-profile");
+      onSuccess: async () => {
+        await mutate("/api/partner-profile");
       },
       onError: ({ error }) => {
         toast.error(
@@ -142,7 +134,7 @@ export const OnlinePresenceForm = forwardRef<
     } | null>(null);
 
     const [socialVerificationData, setSocialVerificationData] = useState<{
-      platform: "youtube" | "instagram" | "tiktok" | "linkedin";
+      platform: SocialPlatform;
       handle: string;
       verificationCode: string;
     } | null>(null);
@@ -156,18 +148,32 @@ export const OnlinePresenceForm = forwardRef<
           return;
         }
 
-        setSocialVerificationData({
-          platform: input.platform,
-          handle: input.handle,
-          verificationCode: data.verificationCode,
-        });
+        // For website
+        if (data.websiteTxtRecord) {
+          // Ensure the website has a protocol before creating URL object
+          const websiteUrl = input.handle.startsWith("http")
+            ? input.handle
+            : `https://${input.handle}`;
+
+          setDomainVerificationData({
+            domain: new URL(websiteUrl).hostname,
+            txtRecord: data.websiteTxtRecord,
+          });
+        }
+
+        // For all other social platforms
+        if (data.verificationCode) {
+          setSocialVerificationData({
+            platform: input.platform,
+            handle: input.handle,
+            verificationCode: data.verificationCode,
+          });
+        }
       },
       onError: ({ error }) => {
         toast.error(parseActionError(error, "Failed to start verification."));
       },
     });
-
-    const startVerification = useOAuthVerification(variant);
 
     const onPasteWebsite = useCallback(
       (e: React.ClipboardEvent<HTMLInputElement>) => {
@@ -197,30 +203,36 @@ export const OnlinePresenceForm = forwardRef<
 
     return (
       <>
-        <DomainVerificationModal
-          showDomainVerificationModal={domainVerificationData !== null}
-          setShowDomainVerificationModal={() => setDomainVerificationData(null)}
-          domain={domainVerificationData?.domain || ""}
-          txtRecord={domainVerificationData?.txtRecord || ""}
-        />
-        {socialVerificationData && (
-          <SocialVerificationModal
-            showSocialVerificationModal={socialVerificationData !== null}
-            setShowSocialVerificationModal={(show) => {
-              if (!show) setSocialVerificationData(null);
-            }}
-            platform={socialVerificationData.platform}
-            handle={socialVerificationData.handle}
-            verificationCode={socialVerificationData.verificationCode}
+        {domainVerificationData && (
+          <DomainVerificationModal
+            domain={domainVerificationData.domain}
+            txtRecord={domainVerificationData.txtRecord}
+            showDomainVerificationModal={domainVerificationData !== null}
+            setShowDomainVerificationModal={() =>
+              setDomainVerificationData(null)
+            }
           />
         )}
+
+        {socialVerificationData &&
+          !["website", "twitter"].includes(socialVerificationData.platform) && (
+            <SocialVerificationModal
+              platform={socialVerificationData.platform}
+              handle={socialVerificationData.handle}
+              verificationCode={socialVerificationData.verificationCode}
+              showSocialVerificationModal={socialVerificationData !== null}
+              setShowSocialVerificationModal={(show) => {
+                if (!show) setSocialVerificationData(null);
+              }}
+            />
+          )}
+
         <FormProvider {...form}>
           <form
             ref={ref}
             onSubmit={handleSubmit(async (data) => {
               const result = await executeAsync(data);
-
-              if (result?.data?.success) onSubmitSuccessful?.();
+              if (result) onSubmitSuccessful?.();
             })}
           >
             <div
@@ -236,31 +248,16 @@ export const OnlinePresenceForm = forwardRef<
                 icon={Globe}
                 disabled={disabled}
                 onVerifyClick={async () => {
-                  try {
-                    const result =
-                      await updateOnlinePresenceAction(getValues());
+                  const website = getValues("website");
 
-                    if (
-                      !result?.data?.website ||
-                      !result?.data?.websiteTxtRecord
-                    ) {
-                      throw new Error(
-                        "Missing website or TXT record in update result",
-                      );
-                    }
-
-                    setDomainVerificationData({
-                      domain: new URL(result.data.website).hostname,
-                      txtRecord: result.data.websiteTxtRecord,
+                  if (website) {
+                    await startSocialVerification({
+                      platform: "website",
+                      handle: website,
                     });
-
-                    mutate("/api/partner-profile");
-                  } catch (e) {
-                    toast.error("Failed to start website verification");
-                    console.error("Failed to start website verification", e);
                   }
 
-                  return false;
+                  return isStartingSocialVerification;
                 }}
                 input={
                   <input
@@ -336,9 +333,9 @@ export const OnlinePresenceForm = forwardRef<
                 verifiedAtField="twitterVerifiedAt"
                 icon={Twitter}
                 disabled={disabled}
-                onVerifyClick={() =>
-                  startVerification("twitter", getValues("twitter"))
-                }
+                onVerifyClick={() => {
+                  return Promise.resolve(false);
+                }}
                 input={
                   <div className="flex rounded-md">
                     <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
@@ -516,37 +513,37 @@ export const OnlinePresenceForm = forwardRef<
   },
 );
 
-function useOAuthVerification(source: "onboarding" | "settings") {
-  const router = useRouter();
+// function useOAuthVerification(source: "onboarding" | "settings") {
+//   const router = useRouter();
 
-  return useCallback(
-    async (provider: string, value?: string) => {
-      if (!value) return false;
+//   return useCallback(
+//     async (provider: string, value?: string) => {
+//       if (!value) return false;
 
-      try {
-        const result = await updateOnlinePresenceAction({
-          [provider]: value,
-          source,
-        });
+//       try {
+//         const result = await updateOnlinePresenceAction({
+//           [provider]: value,
+//           source,
+//         });
 
-        if (
-          result?.data?.success &&
-          result?.data?.verificationUrls?.[provider]
-        ) {
-          window.location.href = result.data.verificationUrls[provider];
-        }
+//         if (
+//           result?.data?.success &&
+//           result?.data?.verificationUrls?.[provider]
+//         ) {
+//           window.location.href = result.data.verificationUrls[provider];
+//         }
 
-        return true;
-      } catch (e) {
-        toast.error("Failed to start verification");
-        console.error("Failed to start verification", e);
-      }
+//         return true;
+//       } catch (e) {
+//         toast.error("Failed to start verification");
+//         console.error("Failed to start verification", e);
+//       }
 
-      return false;
-    },
-    [source, router],
-  );
-}
+//       return false;
+//     },
+//     [source, router],
+//   );
+// }
 
 function useVerifiedState({
   property,

@@ -1,9 +1,4 @@
-export type SocialPlatform =
-  | "youtube"
-  | "twitter"
-  | "linkedin"
-  | "instagram"
-  | "tiktok";
+import { SocialPlatform } from "@dub/prisma/client";
 
 interface SocialPlatformConfig {
   patterns: RegExp[];
@@ -13,7 +8,7 @@ interface SocialPlatformConfig {
 }
 
 export const SOCIAL_PLATFORM_CONFIGS: Record<
-  SocialPlatform,
+  Exclude<SocialPlatform, "website">,
   SocialPlatformConfig
 > = {
   youtube: {

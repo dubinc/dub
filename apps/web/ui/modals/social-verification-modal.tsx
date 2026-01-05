@@ -1,5 +1,6 @@
 import { verifySocialAccountAction } from "@/lib/actions/partners/verify-social-account";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
+import { SocialPlatform } from "@dub/prisma/client";
 import { Button, buttonVariants, CopyButton, Modal } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { X } from "lucide-react";
@@ -8,12 +9,10 @@ import { Dispatch, ReactNode, SetStateAction } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
 
-type Platform = "youtube" | "instagram" | "tiktok" | "linkedin";
-
 interface SocialVerificationModalProps {
   showSocialVerificationModal: boolean;
   setShowSocialVerificationModal: Dispatch<SetStateAction<boolean>>;
-  platform: Platform;
+  platform: SocialPlatform;
   handle: string;
   verificationCode: string;
 }
@@ -25,7 +24,10 @@ interface PlatformInfo {
   getProfileUrl: (handle: string) => string;
 }
 
-const PLATFORM_INFO: Record<Platform, PlatformInfo> = {
+const PLATFORM_INFO: Record<
+  Exclude<SocialPlatform, "website" | "twitter">,
+  PlatformInfo
+> = {
   youtube: {
     name: "YouTube",
     title: "Edit your YouTube channel",
@@ -83,29 +85,37 @@ function SocialVerificationModalInner({
     | "tiktokVerifiedAt"
     | "linkedinVerifiedAt";
 
-  const { executeAsync: handleVerify, isPending } = useAction(
-    verifySocialAccountAction,
-    {
-      onSuccess: async ({ data }) => {
-        toast.success(`${platformInfo.name} account verified successfully!`);
+  const { executeAsync, isPending } = useAction(verifySocialAccountAction, {
+    onSuccess: async ({ data }) => {
+      toast.success(`${platformInfo.name} account verified successfully!`);
 
-        if (partner && data?.verifiedAt) {
-          await mutatePartner({
-            ...partner,
-            [verifiedAtField]: new Date(data.verifiedAt),
-          });
-        }
+      if (partner && data?.verifiedAt) {
+        await mutatePartner({
+          ...partner,
+          [verifiedAtField]: new Date(data.verifiedAt),
+        });
+      }
 
-        await mutate("/api/partner-profile");
-        setShowSocialVerificationModal(false);
-      },
-      onError: ({ error }) => {
-        toast.error(
-          error.serverError || "Failed to verify account. Please try again.",
-        );
-      },
+      setShowSocialVerificationModal(false);
+      await mutate("/api/partner-profile");
     },
-  );
+    onError: ({ error }) => {
+      toast.error(
+        error.serverError || "Failed to verify account. Please try again.",
+      );
+    },
+  });
+
+  const handleVerify = async () => {
+    if (platform === "website" || platform === "twitter") {
+      return;
+    }
+
+    await executeAsync({
+      platform,
+      handle,
+    });
+  };
 
   return (
     <>
@@ -163,12 +173,7 @@ function SocialVerificationModalInner({
             text="Verify account"
             className="h-8 w-full px-3"
             loading={isPending}
-            onClick={async () => {
-              await handleVerify({
-                platform,
-                handle,
-              });
-            }}
+            onClick={handleVerify}
           />
         </Step>
       </div>

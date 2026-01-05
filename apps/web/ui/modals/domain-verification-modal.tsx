@@ -1,3 +1,4 @@
+import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { verifyDomainAction } from "@/lib/actions/partners/verify-domain";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { Button, CopyButton, Modal } from "@dub/ui";
@@ -38,8 +39,20 @@ function DomainVerificationModalInner({
   const { partner, mutate: mutatePartner } = usePartnerProfile();
 
   const { executeAsync, status } = useAction(verifyDomainAction, {
+    onSuccess: ({ data }) => {
+      toast.success("Your domain verified successfully!");
+
+      if (partner && data) {
+        mutatePartner({
+          ...partner,
+          websiteVerifiedAt: new Date(data.verifiedAt),
+        });
+      }
+
+      setShowDomainVerificationModal(false);
+    },
     onError: ({ error }) => {
-      console.warn("Failed to verify domain", error.serverError);
+      toast.error(parseActionError(error));
     },
   });
 
@@ -86,22 +99,7 @@ function DomainVerificationModalInner({
           text="Verify"
           className="h-8 w-fit px-3"
           loading={status === "executing" || status === "hasSucceeded"}
-          onClick={async () => {
-            const result = await executeAsync();
-
-            if (!result?.data?.success || !result.data.websiteVerifiedAt) {
-              toast.error(`Failed to verify domain: ${result?.serverError}`);
-              return;
-            }
-
-            toast.success("Domain verified successfully!");
-            if (partner)
-              mutatePartner({
-                ...partner,
-                websiteVerifiedAt: new Date(result.data.websiteVerifiedAt),
-              });
-            setShowDomainVerificationModal(false);
-          }}
+          onClick={async () => await executeAsync()}
         />
       </div>
     </>
