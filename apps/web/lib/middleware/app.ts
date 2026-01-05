@@ -115,7 +115,7 @@ export async function AppMiddleware(req: NextRequest) {
       );
     }
 
-    if (path.startsWith("/onboarding")) {
+    if (path === "/onboarding/workspace") {
       // Redirect users with pending workspace invites away from onboarding
       // to accept their invitation instead of creating a new workspace
       const pendingInvite = await prismaEdge.projectInvite.findFirst({

@@ -207,7 +207,7 @@ async function createCustomer({
 
   const customerId = createId({ prefix: "cus_" });
 
-  await prisma.customer.create({
+  const customer = await prisma.customer.create({
     data: {
       id: customerId,
       name:
@@ -229,6 +229,10 @@ async function createCustomer({
       stripeCustomerId: referral.stripe_customer_id,
     },
   });
+
+  console.log(
+    `Created customer ${customer.email} for referral ${link.shortLink}`,
+  );
 
   await Promise.allSettled([
     recordLeadWithTimestamp({
