@@ -252,7 +252,6 @@ function BrandingFormInner({
         landerData: group.landerData,
         unpublish: true,
       });
-      setDraft(null);
     },
   });
 
