@@ -1,11 +1,11 @@
-import { ONLINE_PRESENCE_PROVIDERS } from "@/lib/actions/partners/online-presence-providers";
+import { ONLINE_PRESENCE_PROVIDERS } from "@/lib/api/partner-profile/online-presence-providers";
 import { upsertPartnerPlatform } from "@/lib/api/partner-profile/upsert-partner-platform";
 import { prisma } from "@dub/prisma";
 import { PARTNERS_DOMAIN, PARTNERS_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
-// GET - /api/partners/online-presence/callback
+// GET /api/partners/online-presence/callback
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
 

@@ -1,10 +1,10 @@
 "use server";
 
-import { ONLINE_PRESENCE_PROVIDERS } from "@/lib/actions/partners/online-presence-providers";
 import {
   generateCodeChallengeHash,
   generateCodeVerifier,
 } from "@/lib/api/oauth/utils";
+import { ONLINE_PRESENCE_PROVIDERS } from "@/lib/api/partner-profile/online-presence-providers";
 import { upsertPartnerPlatform } from "@/lib/api/partner-profile/upsert-partner-platform";
 import { generateOTP } from "@/lib/auth/utils";
 import {
