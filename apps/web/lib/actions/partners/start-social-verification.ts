@@ -42,7 +42,7 @@ export const startSocialVerificationAction = authPartnerActionClient
   .schema(startSocialVerificationSchema)
   .action(async ({ ctx, parsedInput }) => {
     const { partner } = ctx;
-    const { platform, handle: rawHandle, source } = parsedInput;
+    const { platform, handle, source } = parsedInput;
 
     // Rate limit check
     const { success } = await ratelimit(5, "1 h").limit(
@@ -58,7 +58,7 @@ export const startSocialVerificationAction = authPartnerActionClient
     const params: VerificationParams = {
       partnerId: partner.id,
       platform,
-      handle: rawHandle,
+      handle,
       source,
     };
 
@@ -67,11 +67,10 @@ export const startSocialVerificationAction = authPartnerActionClient
     }
 
     const oauthProvider = ONLINE_PRESENCE_PROVIDERS[platform];
-    if (oauthProvider && oauthProvider.clientId) {
+    if (oauthProvider) {
       return startOAuthVerification(params);
     }
 
-    // Default to verification code flow
     return startCodeVerification(params);
   });
 
@@ -99,7 +98,7 @@ async function startWebsiteVerification({
   });
 
   return {
-    type: "txt_record" as const,
+    type: "txt_record",
     websiteTxtRecord,
   };
 }
@@ -174,7 +173,7 @@ async function startOAuthVerification({
   const oauthUrl = `${oauthProvider.authUrl}?${new URLSearchParams(params).toString()}`;
 
   return {
-    type: "oauth" as const,
+    type: "oauth",
     oauthUrl,
   };
 }
@@ -212,7 +211,7 @@ async function startCodeVerification({
   });
 
   return {
-    type: "verification_code" as const,
+    type: "verification_code",
     verificationCode,
   };
 }
