@@ -20,20 +20,74 @@ const retrieveAnalytics: ZodOpenApiOperationObject = {
       content: {
         "application/json": {
           schema: z.union([
-            analyticsResponse.count,
-            z.array(analyticsResponse.timeseries),
-            z.array(analyticsResponse.continents),
-            z.array(analyticsResponse.countries),
-            z.array(analyticsResponse.regions),
-            z.array(analyticsResponse.cities),
-            z.array(analyticsResponse.devices),
-            z.array(analyticsResponse.browsers),
-            z.array(analyticsResponse.os),
-            z.array(analyticsResponse.triggers),
-            z.array(analyticsResponse.referers),
-            z.array(analyticsResponse.referer_urls),
-            z.array(analyticsResponse.top_links),
-            z.array(analyticsResponse.top_urls),
+            analyticsResponse.count.meta({
+              id: "AnalyticsCount",
+            }),
+            z.array(
+              analyticsResponse.timeseries.meta({
+                id: "AnalyticsTimeseries",
+              }),
+            ),
+            z.array(
+              analyticsResponse.continents.meta({
+                id: "AnalyticsContinents",
+              }),
+            ),
+            z.array(
+              analyticsResponse.countries.meta({
+                id: "AnalyticsCountries",
+              }),
+            ),
+            z.array(
+              analyticsResponse.regions.meta({
+                id: "AnalyticsRegions",
+              }),
+            ),
+            z.array(
+              analyticsResponse.cities.meta({
+                id: "AnalyticsCities",
+              }),
+            ),
+            z.array(
+              analyticsResponse.devices.meta({
+                id: "AnalyticsDevices",
+              }),
+            ),
+            z.array(
+              analyticsResponse.browsers.meta({
+                id: "AnalyticsBrowsers",
+              }),
+            ),
+            z.array(
+              analyticsResponse.os.meta({
+                id: "AnalyticsOS",
+              }),
+            ),
+            z.array(
+              analyticsResponse.triggers.meta({
+                id: "AnalyticsTriggers",
+              }),
+            ),
+            z.array(
+              analyticsResponse.referers.meta({
+                id: "AnalyticsReferers",
+              }),
+            ),
+            z.array(
+              analyticsResponse.referer_urls.meta({
+                id: "AnalyticsRefererUrls",
+              }),
+            ),
+            z.array(
+              analyticsResponse.top_links.meta({
+                id: "AnalyticsTopLinks",
+              }),
+            ),
+            z.array(
+              analyticsResponse.top_urls.meta({
+                id: "AnalyticsTopUrls",
+              }),
+            ),
           ]),
         },
       },
