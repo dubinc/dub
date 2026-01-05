@@ -19,51 +19,34 @@ const errorResponseSchema = z.object({
 
 type ProfileResponse = z.infer<typeof profileResponseSchema>;
 
-type PlatformConfig = {
+type PlatformRequestConfig = {
   path: string;
-  searchParams: (handle: string) => URLSearchParams;
+  buildSearchParams: (handle: string) => URLSearchParams;
 };
 
-const platformConfig: Record<SocialPlatform, PlatformConfig> = {
+const PLATFORM_REQUEST_CONFIG: Record<SocialPlatform, PlatformRequestConfig> = {
   youtube: {
     path: "/v1/youtube/channel",
-    searchParams: (handle: string) => {
-      return new URLSearchParams({
-        handle,
-      });
-    },
+    buildSearchParams: (handle) => new URLSearchParams({ handle }),
   },
   linkedin: {
     path: "/v1/linkedin/profile",
-    searchParams: (handle: string) => {
-      return new URLSearchParams({
+    buildSearchParams: (handle) =>
+      new URLSearchParams({
         url: `https://www.linkedin.com/in/${handle}`,
-      });
-    },
+      }),
   },
   instagram: {
     path: "/v1/instagram/profile",
-    searchParams: (handle: string) => {
-      return new URLSearchParams({
-        handle,
-      });
-    },
+    buildSearchParams: (handle) => new URLSearchParams({ handle }),
   },
   tiktok: {
     path: "/v1/tiktok/profile",
-    searchParams: (handle: string) => {
-      return new URLSearchParams({
-        handle,
-      });
-    },
+    buildSearchParams: (handle) => new URLSearchParams({ handle }),
   },
   twitter: {
     path: "/v1/twitter/profile",
-    searchParams: (handle: string) => {
-      return new URLSearchParams({
-        handle,
-      });
-    },
+    buildSearchParams: (handle) => new URLSearchParams({ handle }),
   },
 };
 
@@ -88,13 +71,14 @@ export class ScrapeCreatorsClient {
       throw new Error("SCRAPECREATORS_API_KEY is not configured.");
     }
 
-    const config = platformConfig[platform];
+    const config = PLATFORM_REQUEST_CONFIG[platform];
+
     if (!config) {
       throw new Error(`Unsupported platform: ${platform}`);
     }
 
     const endpoint = `${this.baseUrl}${config.path}`;
-    const searchParams = config.searchParams(handle);
+    const searchParams = config.buildSearchParams(handle);
 
     const response = await fetch(`${endpoint}?${searchParams.toString()}`, {
       headers: {
@@ -122,8 +106,7 @@ export class ScrapeCreatorsClient {
 
   // Verifies that a verification code exists in the account's profile bio/description.
   // Fetches the account profile and checks if the provided code appears in any of the
-  // profile text fields (description, about, bio, summary). This is used to verify
-  // account ownership by requiring users to add a verification code to their profile.
+  // profile text fields (description, about, bio, summary).
   async verifyAccount({
     platform,
     handle,
