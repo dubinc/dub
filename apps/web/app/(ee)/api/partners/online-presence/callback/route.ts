@@ -1,12 +1,14 @@
 import { ONLINE_PRESENCE_PROVIDERS } from "@/lib/actions/partners/online-presence-providers";
+import { upsertPartnerPlatform } from "@/lib/api/partner-profile/upsert-partner-platform";
 import { prisma } from "@dub/prisma";
 import { PARTNERS_DOMAIN, PARTNERS_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
+// GET - /api/partners/online-presence/callback
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
-  // get code and workspace id from query params
+
   const code = searchParams.get("code") as string;
   const state = searchParams.get("state") as string;
 
@@ -14,8 +16,6 @@ export async function GET(req: Request) {
     console.warn("No state found in OAuth callback");
     return NextResponse.redirect(PARTNERS_DOMAIN);
   }
-
-  let redirectUrl = getRedirectUrl("onboarding");
 
   let stateObject: any = {};
 
@@ -27,8 +27,7 @@ export async function GET(req: Request) {
   }
 
   const { provider, partnerId, source } = stateObject;
-
-  redirectUrl = getRedirectUrl(source);
+  const redirectUrl = getRedirectUrl(source);
 
   if (!code) {
     console.warn("No code found in OAuth callback");
@@ -46,17 +45,9 @@ export async function GET(req: Request) {
       return NextResponse.redirect(redirectUrl);
     }
 
-    const {
-      tokenUrl,
-      clientId,
-      clientSecret,
-      verify,
-      verifiedColumn,
-      pkce,
-      clientIdParam,
-    } = ONLINE_PRESENCE_PROVIDERS[provider];
+    const { tokenUrl, clientId, clientSecret, verify, pkce, clientIdParam } =
+      ONLINE_PRESENCE_PROVIDERS[provider];
 
-    // Get code verifier from cookie if this is X/Twitter
     const codeVerifier = pkce
       ? (await cookies()).get("online_presence_code_verifier")?.value
       : null;
@@ -102,31 +93,44 @@ export async function GET(req: Request) {
       where: {
         id: partnerId,
       },
+      include: {
+        platforms: true,
+      },
     });
 
+    // Get the handle from PartnerPlatform
+    const partnerPlatform = partner.platforms.find(
+      (p) => p.platform === provider,
+    );
+    const handle = partnerPlatform?.handle;
+
+    if (!handle) {
+      console.error("No handle found for platform in OAuth callback");
+      return NextResponse.redirect(redirectUrl);
+    }
+
+    // Create a partner object with the handle for the verify function
+    // The verify function expects the old partner model structure
+    const partnerForVerify = {
+      ...partner,
+      [provider]: handle,
+    } as typeof partner & { [key: string]: string | null };
+
     const { verified: isVerified, metadata } = await verify({
-      partner,
+      partner: partnerForVerify,
       accessToken: result.access_token,
     });
 
     if (isVerified) {
-      await prisma.partner.update({
+      await upsertPartnerPlatform({
         where: {
-          id: partnerId,
+          partnerId: partner.id,
+          platform: provider,
         },
         data: {
-          [provider]: partner[provider],
-          [verifiedColumn]: new Date(),
-          ...(provider === "youtube" &&
-            metadata && {
-              youtubeChannelId: metadata.channelId,
-              youtubeSubscriberCount: parseInt(
-                metadata.subscriberCount || "0",
-                10,
-              ),
-              youtubeVideoCount: parseInt(metadata.videoCount || "0", 10),
-              youtubeViewCount: parseInt(metadata.viewCount || "0", 10),
-            }),
+          handle,
+          verifiedAt: new Date(),
+          metadata: metadata || undefined,
         },
       });
     }

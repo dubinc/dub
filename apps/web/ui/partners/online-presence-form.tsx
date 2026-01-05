@@ -6,6 +6,7 @@ import { updateOnlinePresenceAction } from "@/lib/actions/partners/update-online
 import { hasPermission } from "@/lib/auth/partner-users/partner-user-permissions";
 import { sanitizeSocialHandle, sanitizeWebsite } from "@/lib/social-utils";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
+import { partnerSocialPlatformSchema } from "@/lib/zod/schemas/partners";
 import { parseUrlSchemaAllowEmpty } from "@/lib/zod/schemas/utils";
 import { DomainVerificationModal } from "@/ui/modals/domain-verification-modal";
 import { SocialVerificationModal } from "@/ui/modals/social-verification-modal";
@@ -48,18 +49,31 @@ const onlinePresenceSchema = z.object({
 
 type OnlinePresenceFormData = z.infer<typeof onlinePresenceSchema>;
 
+type PartnerPlatform = z.infer<typeof partnerSocialPlatformSchema>;
+
 interface OnlinePresenceFormProps {
   variant?: "onboarding" | "settings";
   partner?: {
     email: string | null;
-    website?: string | null;
-    youtube?: string | null;
-    twitter?: string | null;
-    linkedin?: string | null;
-    instagram?: string | null;
-    tiktok?: string | null;
+    platforms?: PartnerPlatform[];
   } | null;
   onSubmitSuccessful?: () => void;
+}
+
+// Helper function to get platform data from platforms array
+function getPlatformData(
+  platforms: PartnerPlatform[] | undefined,
+  platform: SocialPlatform,
+): PartnerPlatform | undefined {
+  return platforms?.find((p) => p.platform === platform);
+}
+
+// Helper function to get handle from platforms array
+function getPlatformHandle(
+  partner: OnlinePresenceFormProps["partner"],
+  platform: SocialPlatform,
+): string | undefined {
+  return getPlatformData(partner?.platforms, platform)?.handle;
 }
 
 /**
@@ -71,12 +85,14 @@ export function useOnlinePresenceForm({
 }: Pick<OnlinePresenceFormProps, "partner">) {
   return useForm<OnlinePresenceFormData>({
     defaultValues: {
-      website: partner?.website ? getPrettyUrl(partner.website) : undefined,
-      youtube: partner?.youtube || undefined,
-      twitter: partner?.twitter || undefined,
-      linkedin: partner?.linkedin || undefined,
-      instagram: partner?.instagram || undefined,
-      tiktok: partner?.tiktok || undefined,
+      website: getPlatformHandle(partner, "website")
+        ? getPrettyUrl(getPlatformHandle(partner, "website")!)
+        : undefined,
+      youtube: getPlatformHandle(partner, "youtube") || undefined,
+      twitter: getPlatformHandle(partner, "twitter") || undefined,
+      linkedin: getPlatformHandle(partner, "linkedin") || undefined,
+      instagram: getPlatformHandle(partner, "instagram") || undefined,
+      tiktok: getPlatformHandle(partner, "tiktok") || undefined,
     },
   });
 }
@@ -107,7 +123,6 @@ export const OnlinePresenceForm = forwardRef<
 
     const {
       register,
-      setError,
       getValues,
       handleSubmit,
       reset,
@@ -148,9 +163,9 @@ export const OnlinePresenceForm = forwardRef<
           return;
         }
 
-        // For website
-        if (data.websiteTxtRecord) {
-          // Ensure the website has a protocol before creating URL object
+        // Handle different verification types
+        if (data.type === "txt_record") {
+          // For website verification (TXT record)
           const websiteUrl = input.handle.startsWith("http")
             ? input.handle
             : `https://${input.handle}`;
@@ -159,10 +174,11 @@ export const OnlinePresenceForm = forwardRef<
             domain: new URL(websiteUrl).hostname,
             txtRecord: data.websiteTxtRecord,
           });
-        }
-
-        // For all other social platforms
-        if (data.verificationCode) {
+        } else if (data.type === "oauth") {
+          // For OAuth platforms (Twitter, TikTok) - redirect to OAuth URL
+          window.location.href = data.oauthUrl;
+        } else if (data.type === "verification_code") {
+          // For verification code platforms (YouTube, Instagram, LinkedIn)
           setSocialVerificationData({
             platform: input.platform,
             handle: input.handle,
@@ -215,7 +231,9 @@ export const OnlinePresenceForm = forwardRef<
         )}
 
         {socialVerificationData &&
-          !["website", "twitter"].includes(socialVerificationData.platform) && (
+          !["website", "twitter", "tiktok"].includes(
+            socialVerificationData.platform,
+          ) && (
             <SocialVerificationModal
               platform={socialVerificationData.platform}
               handle={socialVerificationData.handle}
@@ -244,7 +262,6 @@ export const OnlinePresenceForm = forwardRef<
               <FormRow
                 label="Website"
                 property="website"
-                verifiedAtField="websiteVerifiedAt"
                 icon={Globe}
                 disabled={disabled}
                 onVerifyClick={async () => {
@@ -254,6 +271,7 @@ export const OnlinePresenceForm = forwardRef<
                     await startSocialVerification({
                       platform: "website",
                       handle: website,
+                      source: variant,
                     });
                   }
 
@@ -283,7 +301,6 @@ export const OnlinePresenceForm = forwardRef<
                 label="YouTube"
                 property="youtube"
                 prefix="@"
-                verifiedAtField="youtubeVerifiedAt"
                 icon={YouTube}
                 disabled={disabled}
                 onVerifyClick={async () => {
@@ -293,6 +310,7 @@ export const OnlinePresenceForm = forwardRef<
                     await startSocialVerification({
                       platform: "youtube",
                       handle,
+                      source: variant,
                     });
                   }
 
@@ -330,11 +348,20 @@ export const OnlinePresenceForm = forwardRef<
                 label="X/Twitter"
                 property="twitter"
                 prefix="@"
-                verifiedAtField="twitterVerifiedAt"
                 icon={Twitter}
                 disabled={disabled}
-                onVerifyClick={() => {
-                  return Promise.resolve(false);
+                onVerifyClick={async () => {
+                  const handle = getValues("twitter");
+
+                  if (handle) {
+                    await startSocialVerification({
+                      platform: "twitter",
+                      handle,
+                      source: variant,
+                    });
+                  }
+
+                  return isStartingSocialVerification;
                 }}
                 input={
                   <div className="flex rounded-md">
@@ -365,7 +392,6 @@ export const OnlinePresenceForm = forwardRef<
                 label="LinkedIn"
                 property="linkedin"
                 prefix="in/"
-                verifiedAtField="linkedinVerifiedAt"
                 icon={LinkedIn}
                 disabled={disabled}
                 onVerifyClick={async () => {
@@ -375,6 +401,7 @@ export const OnlinePresenceForm = forwardRef<
                     await startSocialVerification({
                       platform: "linkedin",
                       handle,
+                      source: variant,
                     });
                   }
 
@@ -409,7 +436,6 @@ export const OnlinePresenceForm = forwardRef<
                 label="Instagram"
                 property="instagram"
                 prefix="@"
-                verifiedAtField="instagramVerifiedAt"
                 icon={Instagram}
                 disabled={disabled}
                 onVerifyClick={async () => {
@@ -419,6 +445,7 @@ export const OnlinePresenceForm = forwardRef<
                     await startSocialVerification({
                       platform: "instagram",
                       handle,
+                      source: variant,
                     });
                   }
 
@@ -453,7 +480,6 @@ export const OnlinePresenceForm = forwardRef<
                 label="TikTok"
                 property="tiktok"
                 prefix="@"
-                verifiedAtField="tiktokVerifiedAt"
                 icon={TikTok}
                 disabled={disabled}
                 onVerifyClick={async () => {
@@ -463,6 +489,7 @@ export const OnlinePresenceForm = forwardRef<
                     await startSocialVerification({
                       platform: "tiktok",
                       handle,
+                      source: variant,
                     });
                   }
 
@@ -547,10 +574,8 @@ export const OnlinePresenceForm = forwardRef<
 
 function useVerifiedState({
   property,
-  verifiedAtField,
 }: {
   property: keyof OnlinePresenceFormData;
-  verifiedAtField: string;
 }) {
   const { partner: partnerProfile } = usePartnerProfile();
 
@@ -561,12 +586,34 @@ function useVerifiedState({
 
   const loading = !partnerProfile && isValid;
 
+  // Map form property to SocialPlatform enum
+  const platformMap: Record<keyof OnlinePresenceFormData, SocialPlatform> = {
+    website: "website",
+    youtube: "youtube",
+    twitter: "twitter",
+    linkedin: "linkedin",
+    instagram: "instagram",
+    tiktok: "tiktok",
+  };
+
+  const platform = platformMap[property];
+  // Type assertion for platforms array that exists at runtime but not in type
+  const partnerWithPlatforms = partnerProfile as typeof partnerProfile & {
+    platforms?: PartnerPlatform[];
+  };
+  const currentHandle = getPlatformHandle(partnerWithPlatforms, platform);
+
   const noChange =
     property === "website"
-      ? getPrettyUrl(partnerProfile?.[property] ?? "") === getPrettyUrl(value)
-      : partnerProfile?.[property] === value;
+      ? getPrettyUrl(currentHandle ?? "") === getPrettyUrl(value ?? "")
+      : currentHandle === value;
 
-  const isVerified = noChange && Boolean(partnerProfile?.[verifiedAtField]);
+  // Check verifiedAt from platforms array
+  const platformData = getPlatformData(
+    partnerWithPlatforms?.platforms,
+    platform,
+  );
+  const isVerified = noChange && Boolean(platformData?.verifiedAt);
 
   return {
     isVerified,
@@ -576,14 +623,12 @@ function useVerifiedState({
 
 function VerifyButton({
   property,
-  verifiedAtField,
   icon: Icon,
   onClick,
   disabledTooltip,
   disabled: formDisabled = false,
 }: {
   property: keyof OnlinePresenceFormData;
-  verifiedAtField: string;
   icon: Icon;
   onClick: () => Promise<boolean>;
   disabledTooltip?: string;
@@ -594,7 +639,6 @@ function VerifyButton({
 
   const { isVerified, loading } = useVerifiedState({
     property,
-    verifiedAtField,
   });
 
   const [isSaving, setIsSaving] = useState(false);
@@ -637,7 +681,6 @@ function FormRow({
   input,
   property,
   prefix,
-  verifiedAtField,
   icon: Icon,
   onVerifyClick,
   verifyDisabledTooltip,
@@ -649,7 +692,6 @@ function FormRow({
 
   property: keyof OnlinePresenceFormData;
   prefix?: string;
-  verifiedAtField: string;
   icon: Icon;
   onVerifyClick: () => Promise<boolean>;
   verifyDisabledTooltip?: string;
@@ -660,17 +702,24 @@ function FormRow({
   const { control, setValue } = useFormContext<OnlinePresenceFormData>();
   const value = useWatch({ control, name: property });
 
-  const { isVerified } = useVerifiedState({ property, verifiedAtField });
+  const { isVerified } = useVerifiedState({ property });
 
   const info = useMemo(() => {
     if (partner && property === "youtube" && isVerified) {
+      // Type assertion for platforms array that exists at runtime but not in type
+      const partnerWithPlatforms = partner as typeof partner & {
+        platforms?: PartnerPlatform[];
+      };
+      const youtubePlatform = getPlatformData(
+        partnerWithPlatforms.platforms,
+        "youtube",
+      );
+      const followers = youtubePlatform?.followers ?? 0;
+      const views = youtubePlatform?.views ?? 0;
+
       return [
-        partner.youtubeSubscriberCount && partner.youtubeSubscriberCount > 0
-          ? `${nFormatter(partner.youtubeSubscriberCount)} subscribers`
-          : null,
-        partner.youtubeViewCount && partner.youtubeViewCount > 0
-          ? `${nFormatter(partner.youtubeViewCount)} views`
-          : null,
+        followers > 0 ? `${nFormatter(followers)} subscribers` : null,
+        views > 0 ? `${nFormatter(views)} views` : null,
       ].filter(Boolean) as string[];
     }
     return null;
@@ -717,7 +766,6 @@ function FormRow({
                 {input}
                 <VerifyButton
                   property={property}
-                  verifiedAtField={verifiedAtField}
                   icon={Icon}
                   onClick={onVerifyClick}
                   disabledTooltip={verifyDisabledTooltip}
