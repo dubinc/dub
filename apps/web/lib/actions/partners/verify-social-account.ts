@@ -1,5 +1,6 @@
 "use server";
 
+import { upsertPartnerPlatform } from "@/lib/api/partner-profile/upsert-partner-platform";
 import { scrapeCreatorsClient } from "@/lib/api/scrapecreators/client";
 import { ratelimit } from "@/lib/upstash";
 import { redis } from "@/lib/upstash/redis";
@@ -74,20 +75,12 @@ export const verifySocialAccountAction = authPartnerActionClient
       );
     }
 
-    await prisma.partnerPlatform.upsert({
+    await upsertPartnerPlatform({
       where: {
-        partnerId_platform: {
-          partnerId: partner.id,
-          platform,
-        },
-      },
-      create: {
         partnerId: partner.id,
         platform,
-        handle,
-        verifiedAt: new Date(),
       },
-      update: {
+      data: {
         handle,
         verifiedAt: new Date(),
       },
