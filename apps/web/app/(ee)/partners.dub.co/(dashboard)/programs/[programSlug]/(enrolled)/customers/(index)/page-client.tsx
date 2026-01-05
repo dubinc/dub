@@ -29,7 +29,7 @@ import {
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useMemo } from "react";
-import { usePartnerCustomerFilters } from "../use-partner-customer-filters";
+import { usePartnerCustomerFilters } from "./use-partner-customer-filters";
 
 export function ProgramCustomersPageClient() {
   const { searchParams, queryParams } = useRouterStuff();
