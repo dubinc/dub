@@ -1,9 +1,9 @@
 "use client";
 
+import { PARTNER_CUSTOMERS_MAX_PAGE_SIZE } from "@/lib/constants/partner-profile";
 import usePartnerCustomers from "@/lib/swr/use-partner-customers";
 import usePartnerCustomersCount from "@/lib/swr/use-partner-customers-count";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
-import { PARTNER_CUSTOMERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/partners";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
@@ -29,7 +29,7 @@ import {
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useMemo } from "react";
-import { usePartnerCustomerFilters } from "./use-partner-customer-filters";
+import { usePartnerCustomerFilters } from "../use-partner-customer-filters";
 
 export function ProgramCustomersPageClient() {
   const { searchParams, queryParams } = useRouterStuff();
