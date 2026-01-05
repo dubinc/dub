@@ -1,4 +1,3 @@
-import { prismaEdge } from "@dub/prisma/edge";
 import { NextRequest, NextResponse } from "next/server";
 import {
   ONBOARDING_WINDOW_SECONDS,
@@ -9,6 +8,7 @@ import { NewLinkMiddleware } from "./new-link";
 import { appRedirect } from "./utils/app-redirect";
 import { getDefaultWorkspace } from "./utils/get-default-workspace";
 import { getUserViaToken } from "./utils/get-user-via-token";
+import { hasPendingInvites } from "./utils/has-pending-invites";
 import { isTopLevelSettingsRedirect } from "./utils/is-top-level-settings-redirect";
 import { parse } from "./utils/parse";
 import { WorkspacesMiddleware } from "./workspaces";
@@ -21,8 +21,6 @@ export async function AppMiddleware(req: NextRequest) {
   }
 
   const user = await getUserViaToken(req);
-  const isWorkspaceInvite =
-    req.nextUrl.searchParams.get("invite") || path.startsWith("/invites/");
 
   // if there's no user and the path isn't /login or /register, redirect to /login
   if (
@@ -59,9 +57,9 @@ export async function AppMiddleware(req: NextRequest) {
     } else if (
       new Date(user.createdAt).getTime() >
         Date.now() - ONBOARDING_WINDOW_SECONDS * 1000 &&
-      !isWorkspaceInvite &&
       !["/onboarding", "/account"].some((p) => path.startsWith(p)) &&
       !(await getDefaultWorkspace(user)) &&
+      !(await hasPendingInvites({ req, user })) &&
       (await onboardingStepCache.get({ userId: user.id })) !== "completed"
     ) {
       let step = await onboardingStepCache.get({ userId: user.id });
@@ -113,48 +111,6 @@ export async function AppMiddleware(req: NextRequest) {
       return NextResponse.redirect(
         new URL(`${appRedirectPath}${searchParamsString}`, req.url),
       );
-    }
-
-    if (path === "/onboarding/workspace") {
-      // Redirect users with pending workspace invites away from onboarding
-      // to accept their invitation instead of creating a new workspace
-      const pendingInvite = await prismaEdge.projectInvite.findFirst({
-        where: {
-          email: user.email,
-          expires: {
-            gte: new Date(),
-          },
-        },
-        select: {
-          project: {
-            select: {
-              slug: true,
-            },
-          },
-        },
-      });
-
-      if (pendingInvite) {
-        return NextResponse.redirect(
-          new URL(`/${pendingInvite.project.slug}?invite=1`, req.url),
-        );
-      }
-
-      // If user already has a workspace, redirect them away from onboarding
-      // to their workspaces page instead of allowing them to create a new one
-      const existingWorkspace = await prismaEdge.project.findFirst({
-        where: {
-          users: {
-            some: {
-              userId: user.id,
-            },
-          },
-        },
-      });
-
-      if (existingWorkspace) {
-        return NextResponse.redirect(new URL("/workspaces", req.url));
-      }
     }
   }
 
