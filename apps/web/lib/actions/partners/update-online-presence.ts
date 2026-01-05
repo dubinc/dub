@@ -1,5 +1,6 @@
 "use server";
 
+import { upsertPartnerPlatform } from "@/lib/api/partner-profile/upsert-partner-platform";
 import { sanitizeSocialHandle, sanitizeWebsite } from "@/lib/social-utils";
 import { partnerSocialPlatformSchema } from "@/lib/zod/schemas/partners";
 import { parseUrlSchemaAllowEmpty } from "@/lib/zod/schemas/utils";
@@ -175,20 +176,12 @@ export const updateOnlinePresenceAction = authPartnerActionClient
 
     await Promise.all(
       socialPlatformsData.map((item) =>
-        prisma.partnerPlatform.upsert({
+        upsertPartnerPlatform({
           where: {
-            partnerId_platform: {
-              partnerId: partner.id,
-              platform: item.platform,
-            },
-          },
-          create: {
             partnerId: partner.id,
             platform: item.platform,
-            handle: item.handle,
-            verifiedAt: item.verifiedAt,
           },
-          update: {
+          data: {
             handle: item.handle,
             verifiedAt: item.verifiedAt,
           },

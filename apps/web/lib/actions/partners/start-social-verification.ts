@@ -1,5 +1,6 @@
 "use server";
 
+import { upsertPartnerPlatform } from "@/lib/api/partner-profile/upsert-partner-platform";
 import { generateOTP } from "@/lib/auth/utils";
 import {
   sanitizeSocialHandle,
@@ -7,7 +8,6 @@ import {
 } from "@/lib/social-utils";
 import { ratelimit } from "@/lib/upstash/ratelimit";
 import { redis } from "@/lib/upstash/redis";
-import { prisma } from "@dub/prisma";
 import { SocialPlatform } from "@dub/prisma/client";
 import { v4 as uuid } from "uuid";
 import { z } from "zod";
@@ -24,27 +24,29 @@ export const startSocialVerificationAction = authPartnerActionClient
     const { partner } = ctx;
     const { platform, handle: rawHandle } = parsedInput;
 
+    // Rate limit check
+    const { success } = await ratelimit(5, "1 h").limit(
+      `social-verification:${partner.id}:${platform}`,
+    );
+
+    if (!success) {
+      throw new Error(
+        "Too many verification attempts. Please try again later.",
+      );
+    }
+
     // When the platform is website
     if (platform === "website") {
       const websiteTxtRecord = `dub-domain-verification=${uuid()}`;
 
-      await prisma.partnerPlatform.upsert({
+      await upsertPartnerPlatform({
         where: {
-          partnerId_platform: {
-            partnerId: partner.id,
-            platform: "website",
-          },
-        },
-        create: {
           partnerId: partner.id,
           platform: "website",
-          handle: rawHandle,
-          metadata: {
-            websiteTxtRecord,
-          },
         },
-        update: {
+        data: {
           handle: rawHandle,
+          verifiedAt: null,
           metadata: {
             websiteTxtRecord,
           },
@@ -58,16 +60,6 @@ export const startSocialVerificationAction = authPartnerActionClient
 
     // For all other social platforms
     const platformConfig = SOCIAL_PLATFORM_CONFIGS[platform];
-
-    if (
-      rawHandle.toLowerCase() === partner[platform]?.toLowerCase() &&
-      partner[`${platform}VerifiedAt`]
-    ) {
-      throw new Error(
-        `Your ${platformConfig.name} account already verified. No further verification needed.`,
-      );
-    }
-
     const handle = sanitizeSocialHandle(rawHandle, platform);
 
     if (!handle) {
@@ -76,22 +68,21 @@ export const startSocialVerificationAction = authPartnerActionClient
       );
     }
 
-    // Rate limit check
-    const { success } = await ratelimit(5, "1 h").limit(
-      `social-verification:${partner.id}:${platform}`,
-    );
-
-    if (!success) {
-      throw new Error(
-        "Too many verification attempts. Please try again later.",
-      );
-    }
-
     const verificationCode = generateOTP();
-
     const cacheKey = `social-verification:${partner.id}:${platform}:${handle}`;
     await redis.set(cacheKey, verificationCode, {
-      ex: 60 * 10, // 10 minutes,
+      ex: 60 * 60 * 24, // 24 hours,
+    });
+
+    await upsertPartnerPlatform({
+      where: {
+        partnerId: partner.id,
+        platform,
+      },
+      data: {
+        handle,
+        verifiedAt: null,
+      },
     });
 
     return {

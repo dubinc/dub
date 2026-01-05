@@ -65,7 +65,7 @@ export const verifySocialAccountAction = authPartnerActionClient
     const isValid = await scrapeCreatorsClient.verifyAccount({
       platform,
       handle,
-      code: "Carpediem",
+      code: verificationCode,
     });
 
     if (!isValid) {
