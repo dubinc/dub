@@ -4,9 +4,8 @@ import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
 import { getRewardAmount } from "@/lib/partners/get-reward-amount";
 import { RewardProps } from "@/lib/types";
 import {
-  ATTRIBUTE_LABELS,
   CONDITION_OPERATOR_LABELS,
-  ENTITY_ATTRIBUTE_TYPES,
+  REWARD_CONDITION_ATTRIBUTES,
   rewardConditionsArraySchema,
   rewardConditionsSchema,
 } from "@/lib/zod/schemas/rewards";
@@ -20,10 +19,10 @@ import {
 import { useRef } from "react";
 import { z } from "zod";
 
-const REWARD_MODIFIER_LABELS = {
-  ...ATTRIBUTE_LABELS,
-  productId: "Product",
-};
+// const REWARD_MODIFIER_LABELS = {
+//   ...ATTRIBUTE_LABELS,
+//   productId: "Product",
+// };
 
 type ProgramRewardModifiersTooltipProps = {
   reward?: Omit<RewardProps, "id"> | null;
@@ -148,7 +147,11 @@ const RewardItem = ({
                 <span className="min-w-0">
                   {idx === 0 ? "If" : capitalize(operator.toLowerCase())}{" "}
                   {condition.entity}{" "}
-                  {REWARD_MODIFIER_LABELS[condition.attribute].toLowerCase()}{" "}
+                  {(
+                    REWARD_CONDITION_ATTRIBUTES.find(
+                      (a) => a.id === condition.attribute,
+                    )?.label ?? condition.attribute
+                  )?.toLowerCase()}{" "}
                   {CONDITION_OPERATOR_LABELS[condition.operator]}{" "}
                   {condition.value &&
                     (condition.attribute === "country"
@@ -166,9 +169,9 @@ const RewardItem = ({
                         : condition.attribute === "productId" && condition.label
                           ? // Product label
                             condition.label
-                          : ENTITY_ATTRIBUTE_TYPES[condition.entity]?.[
-                                condition.attribute
-                              ] === "currency"
+                          : REWARD_CONDITION_ATTRIBUTES.find(
+                                (a) => a.id === condition.attribute,
+                              )?.type === "currency"
                             ? // Currency value
                               currencyFormatter(Number(condition.value))
                             : // Everything else

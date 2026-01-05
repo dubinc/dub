@@ -6,19 +6,14 @@ import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
 import {
-  ATTRIBUTE_LABELS,
-  CONDITION_ATTRIBUTES,
-  CONDITION_CUSTOMER_ATTRIBUTES,
   CONDITION_OPERATOR_LABELS,
   CONDITION_OPERATORS,
-  CONDITION_PARTNER_ATTRIBUTES,
-  CONDITION_SALE_ATTRIBUTES,
-  ENTITY_ATTRIBUTE_TYPES,
   NUMBER_CONDITION_OPERATORS,
+  REWARD_CONDITIONS,
   STRING_CONDITION_OPERATORS,
 } from "@/lib/zod/schemas/rewards";
 import { X } from "@/ui/shared/icons";
-import { EventType, RewardStructure } from "@dub/prisma/client";
+import { RewardStructure } from "@dub/prisma/client";
 import {
   ArrowTurnRight2,
   Button,
@@ -215,23 +210,23 @@ function ConditionalGroup({
   );
 }
 
-const ENTITIES = {
-  customer: {
-    attributes: CONDITION_CUSTOMER_ATTRIBUTES,
-  },
-  sale: {
-    attributes: CONDITION_SALE_ATTRIBUTES,
-  },
-  partner: {
-    attributes: CONDITION_PARTNER_ATTRIBUTES,
-  },
-} as const;
+// const ENTITIES = {
+//   customer: {
+//     attributes: CONDITION_CUSTOMER_ATTRIBUTES,
+//   },
+//   sale: {
+//     attributes: CONDITION_SALE_ATTRIBUTES,
+//   },
+//   partner: {
+//     attributes: CONDITION_PARTNER_ATTRIBUTES,
+//   },
+// } as const;
 
-const EVENT_ENTITIES: Record<EventType, (keyof typeof ENTITIES)[]> = {
-  sale: ["sale", "customer", "partner"],
-  lead: ["customer", "partner"],
-  click: ["customer"],
-};
+// const EVENT_ENTITIES: Record<EventType, (keyof typeof ENTITIES)[]> = {
+//   sale: ["sale", "customer", "partner"],
+//   lead: ["customer", "partner"],
+//   click: ["customer"],
+// };
 
 const formatValue = (
   value: string | number | string[] | number[] | undefined,
@@ -288,14 +283,19 @@ function ConditionLogic({
     name: ["event", conditionKey, `${modifierKey}.operator`],
   });
 
+  const entities = REWARD_CONDITIONS[event].entities;
+  const entity = condition.entity
+    ? entities.find((e) => e.id === condition.entity)
+    : undefined;
+
   const attributeType =
-    condition.entity && condition.attribute
-      ? ENTITY_ATTRIBUTE_TYPES[condition.entity]?.[condition.attribute] ??
+    entity && condition.attribute
+      ? entity.attributes.find((a) => a.id === condition.attribute)?.type ??
         "string"
       : "string";
 
-  const icon = condition.entity
-    ? { customer: User, sale: InvoiceDollar, partner: Users }[condition.entity]
+  const icon = entity
+    ? { customer: User, sale: InvoiceDollar, partner: Users }[entity.id] ?? User
     : ArrowTurnRight2;
 
   const isArrayValue =
@@ -320,7 +320,7 @@ function ConditionLogic({
                   setValue(
                     conditionKey,
                     {
-                      entity: value as keyof typeof ENTITIES,
+                      entity: value,
                       // Clear dependent fields when entity changes
                       attribute: undefined,
                       operator: undefined,
@@ -331,23 +331,20 @@ function ConditionLogic({
                     },
                   )
                 }
-                items={Object.keys(ENTITIES)
-                  .filter((e) =>
-                    EVENT_ENTITIES[event]?.includes(e as keyof typeof ENTITIES),
-                  )
-                  .map((entity) => ({
-                    text: capitalize(entity) || entity,
-                    value: entity,
-                  }))}
+                items={entities.map((entity) => ({
+                  text: entity.label,
+                  value: entity.id,
+                }))}
               />
             </InlineBadgePopover>{" "}
-            {condition.entity && (
+            {entity && (
               <>
                 <InlineBadgePopover
                   text={
                     condition.attribute
-                      ? ATTRIBUTE_LABELS?.[condition.attribute] ||
-                        capitalize(condition.attribute)
+                      ? entity.attributes.find(
+                          (a) => a.id === condition.attribute,
+                        )?.label || capitalize(condition.attribute)
                       : "Detail"
                   }
                   invalid={!condition.attribute}
@@ -359,23 +356,17 @@ function ConditionLogic({
                         conditionKey,
                         {
                           entity: condition.entity,
-                          attribute:
-                            value as (typeof CONDITION_ATTRIBUTES)[number],
+                          attribute: value,
                         },
                         {
                           shouldDirty: true,
                         },
                       )
                     }
-                    items={ENTITIES[condition.entity].attributes.map(
-                      (attribute) => ({
-                        text:
-                          ATTRIBUTE_LABELS?.[attribute] ||
-                          capitalize(attribute) ||
-                          attribute,
-                        value: attribute,
-                      }),
-                    )}
+                    items={entity.attributes.map((attribute) => ({
+                      text: attribute.label,
+                      value: attribute.id,
+                    }))}
                   />
                 </InlineBadgePopover>{" "}
                 <InlineBadgePopover
