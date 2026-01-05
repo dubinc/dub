@@ -26,6 +26,7 @@ const schema = z.object({
   brandColor: z.string().nullish(),
   applicationFormData: programApplicationFormSchema.nullish(),
   landerData: programLanderSchema.nullish(),
+  unpublish: z.boolean().optional(),
 });
 
 export const updateGroupBrandingAction = authActionClient
@@ -39,6 +40,7 @@ export const updateGroupBrandingAction = authActionClient
       brandColor,
       applicationFormData: applicationFormDataInput,
       landerData: landerDataInputRaw,
+      unpublish,
     } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
@@ -90,11 +92,17 @@ export const updateGroupBrandingAction = authActionClient
         applicationFormData: applicationFormDataInput
           ? applicationFormDataInput
           : undefined,
-        applicationFormPublishedAt: applicationFormDataInput
-          ? new Date()
-          : undefined,
+        applicationFormPublishedAt: unpublish
+          ? null
+          : applicationFormDataInput
+            ? new Date()
+            : undefined,
         landerData: landerDataInput ? landerDataInput : undefined,
-        landerPublishedAt: landerDataInput ? new Date() : undefined,
+        landerPublishedAt: unpublish
+          ? null
+          : landerDataInput
+            ? new Date()
+            : undefined,
       },
     });
 
@@ -106,7 +114,7 @@ export const updateGroupBrandingAction = authActionClient
          - lander data
          - application form data
         */
-          ...(landerDataInput || applicationFormDataInput
+          ...(landerDataInput || applicationFormDataInput || unpublish
             ? [
                 revalidatePath(`/partners.dub.co/${program.slug}`),
                 revalidatePath(`/partners.dub.co/${program.slug}/apply`),
