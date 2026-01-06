@@ -8,14 +8,14 @@ import { SocialPlatform } from "@dub/prisma/client";
 import { z } from "zod";
 import { authPartnerActionClient } from "../safe-action";
 
-const verifySocialAccountSchema = z.object({
+const schema = z.object({
   platform: z.nativeEnum(SocialPlatform),
   handle: z.string().min(1),
 });
 
 // Verify social accounts using the verification code
-export const verifySocialAccountAction = authPartnerActionClient
-  .schema(verifySocialAccountSchema)
+export const verifySocialAccountByCodeAction = authPartnerActionClient
+  .schema(schema)
   .action(async ({ ctx, parsedInput }) => {
     const { partner } = ctx;
     const { platform, handle } = parsedInput;

@@ -1,4 +1,4 @@
-import { verifySocialAccountAction } from "@/lib/actions/partners/verify-social-account";
+import { verifySocialAccountByCodeAction } from "@/lib/actions/partners/verify-social-account-by-code";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { SocialPlatform } from "@dub/prisma/client";
 import { Button, buttonVariants, CopyButton, Modal } from "@dub/ui";
@@ -62,7 +62,7 @@ function SocialVerificationModalInner({
   const platformInfo: PlatformInfo = PLATFORM_INFO[platform];
   const profileUrl = platformInfo.getProfileUrl(handle);
 
-  const { executeAsync, isPending } = useAction(verifySocialAccountAction, {
+  const { executeAsync, isPending } = useAction(verifySocialAccountByCodeAction, {
     onSuccess: async () => {
       toast.success(`${platformInfo.name} account verified successfully!`);
       setShowSocialVerificationModal(false);

@@ -62,15 +62,18 @@ export const startSocialVerificationAction = authPartnerActionClient
       source,
     };
 
+    // For website
     if (platform === "website") {
       return startWebsiteVerification(params);
     }
 
+    // For OAuth based verification
     const oauthProvider = ONLINE_PRESENCE_PROVIDERS[platform];
     if (oauthProvider) {
       return startOAuthVerification(params);
     }
 
+    // For code based verification
     return startCodeVerification(params);
   });
 
