@@ -21,9 +21,19 @@ export const retrievePartnerAnalytics: ZodOpenApiOperationObject = {
       content: {
         "application/json": {
           schema: z.union([
-            partnerAnalyticsResponseSchema.count,
-            z.array(partnerAnalyticsResponseSchema.timeseries),
-            z.array(partnerAnalyticsResponseSchema.top_links),
+            partnerAnalyticsResponseSchema.count.meta({
+              id: "PartnerAnalyticsCount",
+            }),
+            z.array(
+              partnerAnalyticsResponseSchema.timeseries.meta({
+                id: "PartnerAnalyticsTimeseries",
+              }),
+            ),
+            z.array(
+              partnerAnalyticsResponseSchema.top_links.meta({
+                id: "PartnerAnalyticsTopLinks",
+              }),
+            ),
           ]),
         },
       },
