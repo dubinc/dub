@@ -244,10 +244,12 @@ export function ProgramPartnersApplicationsPageClient() {
         minSize: 150,
         cell: ({ row }: { row: Row<EnrolledPartnerProps> }) => {
           const platformsMap = platformsMapByPartnerId.get(row.original.id);
-          const platform = platformsMap?.website ?? null;
 
           return (
-            <PartnerSocialColumn platform={platform} platformName="website" />
+            <PartnerSocialColumn
+              platform={platformsMap?.website}
+              platformName="website"
+            />
           );
         },
       },
@@ -257,10 +259,12 @@ export function ProgramPartnersApplicationsPageClient() {
         minSize: 150,
         cell: ({ row }: { row: Row<EnrolledPartnerProps> }) => {
           const platformsMap = platformsMapByPartnerId.get(row.original.id);
-          const platform = platformsMap?.youtube ?? null;
 
           return (
-            <PartnerSocialColumn platform={platform} platformName="youtube" />
+            <PartnerSocialColumn
+              platform={platformsMap?.youtube}
+              platformName="youtube"
+            />
           );
         },
       },
@@ -270,10 +274,12 @@ export function ProgramPartnersApplicationsPageClient() {
         minSize: 150,
         cell: ({ row }: { row: Row<EnrolledPartnerProps> }) => {
           const platformsMap = platformsMapByPartnerId.get(row.original.id);
-          const platform = platformsMap?.twitter ?? null;
 
           return (
-            <PartnerSocialColumn platform={platform} platformName="twitter" />
+            <PartnerSocialColumn
+              platform={platformsMap?.twitter}
+              platformName="twitter"
+            />
           );
         },
       },
@@ -283,10 +289,12 @@ export function ProgramPartnersApplicationsPageClient() {
         minSize: 150,
         cell: ({ row }: { row: Row<EnrolledPartnerProps> }) => {
           const platformsMap = platformsMapByPartnerId.get(row.original.id);
-          const platform = platformsMap?.linkedin ?? null;
 
           return (
-            <PartnerSocialColumn platform={platform} platformName="linkedin" />
+            <PartnerSocialColumn
+              platform={platformsMap?.linkedin}
+              platformName="linkedin"
+            />
           );
         },
       },
@@ -296,10 +304,12 @@ export function ProgramPartnersApplicationsPageClient() {
         minSize: 150,
         cell: ({ row }: { row: Row<EnrolledPartnerProps> }) => {
           const platformsMap = platformsMapByPartnerId.get(row.original.id);
-          const platform = platformsMap?.instagram ?? null;
 
           return (
-            <PartnerSocialColumn platform={platform} platformName="instagram" />
+            <PartnerSocialColumn
+              platform={platformsMap?.instagram}
+              platformName="instagram"
+            />
           );
         },
       },
@@ -309,10 +319,12 @@ export function ProgramPartnersApplicationsPageClient() {
         minSize: 150,
         cell: ({ row }: { row: Row<EnrolledPartnerProps> }) => {
           const platformsMap = platformsMapByPartnerId.get(row.original.id);
-          const platform = platformsMap?.tiktok ?? null;
 
           return (
-            <PartnerSocialColumn platform={platform} platformName="tiktok" />
+            <PartnerSocialColumn
+              platform={platformsMap?.tiktok}
+              platformName="tiktok"
+            />
           );
         },
       },
