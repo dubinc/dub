@@ -59,7 +59,7 @@ export const verifyDomainAction = authPartnerActionClient.action(
       );
     }
 
-    const updatedPartnerPlatform = await prisma.partnerPlatform.update({
+    await prisma.partnerPlatform.update({
       where: {
         partnerId_platform: {
           partnerId: partner.id,
@@ -70,9 +70,5 @@ export const verifyDomainAction = authPartnerActionClient.action(
         verifiedAt: new Date(),
       },
     });
-
-    return {
-      verifiedAt: updatedPartnerPlatform.verifiedAt!,
-    };
   },
 );

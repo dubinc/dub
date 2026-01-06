@@ -7,8 +7,13 @@ import { prisma } from "@dub/prisma";
 import { z } from "zod";
 import { authPartnerActionClient } from "../safe-action";
 
+export const CODE_VERIFIABLE_SOCIAL_PLATFORMS = [
+  "youtube",
+  "instagram",
+] as const;
+
 const verifySocialAccountSchema = z.object({
-  platform: z.enum(["youtube", "instagram"]),
+  platform: z.enum(CODE_VERIFIABLE_SOCIAL_PLATFORMS),
   handle: z.string().min(1),
 });
 

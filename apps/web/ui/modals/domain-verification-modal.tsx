@@ -1,4 +1,3 @@
-import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { verifyDomainAction } from "@/lib/actions/partners/verify-domain";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { Button, CopyButton, Modal } from "@dub/ui";
@@ -45,7 +44,7 @@ function DomainVerificationModalInner({
       await mutatePartner();
     },
     onError: ({ error }) => {
-      toast.error(parseActionError(error));
+      toast.error(error.serverError || "Failed to verify domain.");
     },
   });
 

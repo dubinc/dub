@@ -106,9 +106,9 @@ async function OnlinePresenceFormRSC() {
           handle,
           platformId: null,
           verifiedAt: null,
-          followers: 0,
-          views: 0,
-          posts: 0,
+          followers: BigInt(0),
+          views: BigInt(0),
+          posts: BigInt(0),
         });
       }
     }

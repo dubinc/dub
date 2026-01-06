@@ -45,10 +45,10 @@ export const ONLINE_PRESENCE_FIELDS: {
         href: `https://youtube.com/@${youtube?.handle}`,
         info: [
           youtube?.followers && youtube.followers > 0
-            ? `${nFormatter(youtube.followers)} subscribers`
+            ? `${nFormatter(Number(youtube.followers))} subscribers`
             : null,
           youtube?.views && youtube.views > 0
-            ? `${nFormatter(youtube.views)} views`
+            ? `${nFormatter(Number(youtube.views))} views`
             : null,
         ].filter(Boolean),
       };

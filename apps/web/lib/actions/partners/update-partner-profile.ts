@@ -142,6 +142,7 @@ export const updatePartnerProfileAction = authPartnerActionClient
           preferredEarningStructures: true,
           salesChannels: true,
           programs: true,
+          platforms: true,
         },
       });
 

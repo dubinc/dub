@@ -4,11 +4,7 @@ import {
   PARTNER_NETWORK_MIN_COMMISSIONS_CENTS,
 } from "../constants/partner-profile";
 import { ONLINE_PRESENCE_FIELDS } from "../partners/online-presence";
-import {
-  EnrolledPartnerProps,
-  PartnerProps,
-  PartnerSocialPlatform,
-} from "../types";
+import { EnrolledPartnerProps, PartnerProps } from "../types";
 
 export const partnerHasEarnedCommissions = (
   programEnrollments: Pick<
@@ -61,9 +57,8 @@ export function getDiscoverabilityRequirements({
     | "monthlyTraffic"
     | "preferredEarningStructures"
     | "salesChannels"
-  > & {
-    platforms: PartnerSocialPlatform[];
-  };
+    | "platforms"
+  >;
   programEnrollments: Pick<
     EnrolledPartnerProps,
     "programId" | "status" | "totalCommissions"

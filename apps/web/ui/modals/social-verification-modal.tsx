@@ -1,6 +1,8 @@
-import { verifySocialAccountAction } from "@/lib/actions/partners/verify-social-account";
+import {
+  CODE_VERIFIABLE_SOCIAL_PLATFORMS,
+  verifySocialAccountAction,
+} from "@/lib/actions/partners/verify-social-account";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
-import { SocialPlatform } from "@dub/prisma/client";
 import { Button, buttonVariants, CopyButton, Modal } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { X } from "lucide-react";
@@ -8,10 +10,13 @@ import { useAction } from "next-safe-action/hooks";
 import { Dispatch, ReactNode, SetStateAction } from "react";
 import { toast } from "sonner";
 
+type CodeVerifiableSocialPlatform =
+  (typeof CODE_VERIFIABLE_SOCIAL_PLATFORMS)[number];
+
 interface SocialVerificationModalProps {
   showSocialVerificationModal: boolean;
   setShowSocialVerificationModal: Dispatch<SetStateAction<boolean>>;
-  platform: SocialPlatform;
+  platform: CodeVerifiableSocialPlatform;
   handle: string;
   verificationCode: string;
 }
@@ -23,10 +28,7 @@ interface PlatformInfo {
   getProfileUrl: (handle: string) => string;
 }
 
-const PLATFORM_INFO: Record<
-  Exclude<SocialPlatform, "website" | "twitter">,
-  PlatformInfo
-> = {
+const PLATFORM_INFO: Record<CodeVerifiableSocialPlatform, PlatformInfo> = {
   youtube: {
     name: "YouTube",
     title: "Edit your YouTube channel",
@@ -40,20 +42,6 @@ const PLATFORM_INFO: Record<
     instruction:
       "Navigate to your profile settings and add the 6 digit code above to your bio temporarily.",
     getProfileUrl: (handle) => `https://www.instagram.com/${handle}/`,
-  },
-  tiktok: {
-    name: "TikTok",
-    title: "Edit your TikTok profile",
-    instruction:
-      "Navigate to your profile settings and add the 6 digit code above to your bio temporarily.",
-    getProfileUrl: (handle) => `https://www.tiktok.com/@${handle}`,
-  },
-  linkedin: {
-    name: "LinkedIn",
-    title: "Edit your LinkedIn profile",
-    instruction:
-      "Navigate to your profile settings and add the 6 digit code above to your summary/about section temporarily.",
-    getProfileUrl: (handle) => `https://www.linkedin.com/in/${handle}/edit/`,
   },
 };
 
@@ -93,10 +81,6 @@ function SocialVerificationModalInner({
   });
 
   const handleVerify = async () => {
-    if (platform === "website" || platform === "twitter") {
-      return;
-    }
-
     await executeAsync({
       platform,
       handle,
