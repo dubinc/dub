@@ -96,6 +96,7 @@ import {
   EnrolledPartnerSchemaExtended,
   PartnerRewindSchema,
   PartnerSchema,
+  partnerSocialPlatformSchema,
   WebhookPartnerSchema,
 } from "./zod/schemas/partners";
 import {
@@ -468,7 +469,9 @@ export type PartnerProfileCustomerProps = z.infer<
 
 export type PartnerProfileLinkProps = z.infer<typeof PartnerProfileLinkSchema>;
 
-export type EnrolledPartnerProps = z.infer<typeof EnrolledPartnerSchema>;
+export type EnrolledPartnerProps = z.infer<typeof EnrolledPartnerSchema> & {
+  platforms: PartnerSocialPlatform[]; // only present when includeSocialPlatforms is true
+};
 
 export type NetworkPartnerProps = z.infer<typeof NetworkPartnerSchema>;
 
@@ -484,7 +487,9 @@ export type NetworkProgramExtendedProps = z.infer<
 
 export type EnrolledPartnerExtendedProps = z.infer<
   typeof EnrolledPartnerSchemaExtended
->;
+> & {
+  platforms?: PartnerSocialPlatform[]; // only present when includeSocialPlatforms is true
+};
 
 export type DiscountProps = z.infer<typeof DiscountSchema>;
 
@@ -745,3 +750,5 @@ export type CreateFraudEventInput = Pick<
   > & {
     metadata?: Record<string, unknown> | null;
   };
+
+export type PartnerSocialPlatform = z.infer<typeof partnerSocialPlatformSchema>;

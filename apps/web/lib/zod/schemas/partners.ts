@@ -205,7 +205,17 @@ export const partnersCountQuerySchema = getPartnersQuerySchemaExtended
     groupBy: z.enum(["status", "country", "groupId"]).optional(),
   });
 
-// TODO: Remove
+export const partnerSocialPlatformSchema = z.object({
+  platform: z.nativeEnum(SocialPlatform),
+  handle: z.string(),
+  verifiedAt: z.date().nullable(),
+  platformId: z.string().nullable(),
+  followers: z.number().default(0),
+  posts: z.number().default(0),
+  views: z.number().default(0),
+  metadata: z.record(z.string(), z.string()).nullable(),
+});
+
 export const PartnerOnlinePresenceSchema = z.object({
   website: z
     .string()
@@ -459,6 +469,7 @@ export const EnrolledPartnerSchemaExtended = EnrolledPartnerSchema.extend({
   lastLeadAt: z.date().nullish(),
   lastConversionAt: z.date().nullish(),
   customerDataSharingEnabledAt: z.date().nullish(),
+  platforms: z.array(partnerSocialPlatformSchema).nullable(),
 }).merge(
   PartnerSchema.pick({
     monthlyTraffic: true,
@@ -839,15 +850,4 @@ export const partnerCrossProgramSummarySchema = z.object({
   totalPrograms: z.number(),
   trustedPrograms: z.number(),
   removedPrograms: z.number(),
-});
-
-export const partnerSocialPlatformSchema = z.object({
-  platform: z.nativeEnum(SocialPlatform),
-  handle: z.string(),
-  verifiedAt: z.date().nullable(),
-  platformId: z.string().nullable(),
-  followers: z.number().default(0),
-  posts: z.number().default(0),
-  views: z.number().default(0),
-  metadata: z.record(z.string(), z.string()).nullable(),
 });

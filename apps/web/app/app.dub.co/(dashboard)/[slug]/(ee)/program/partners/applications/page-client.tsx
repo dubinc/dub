@@ -1,11 +1,12 @@
 "use client";
 
+import { socialPlatformsToMap } from "@/lib/social-utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useGroups from "@/lib/swr/use-groups";
 import usePartner from "@/lib/swr/use-partner";
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { EnrolledPartnerProps } from "@/lib/types";
+import { EnrolledPartnerProps, PartnerSocialPlatform } from "@/lib/types";
 import { useBulkApprovePartnersModal } from "@/ui/modals/bulk-approve-partners-modal";
 import { useBulkRejectPartnersModal } from "@/ui/modals/bulk-reject-partners-modal";
 import { useRejectPartnerApplicationModal } from "@/ui/modals/reject-partner-application-modal";
@@ -15,6 +16,7 @@ import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PartnerSocialColumn } from "@/ui/partners/partner-social-column";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
+import { SocialPlatform } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
   Button,
@@ -110,6 +112,21 @@ export function ProgramPartnersApplicationsPageClient() {
   );
 
   const { groups } = useGroups();
+
+  // Create a separate map for platform lookups by partner ID
+  const platformsMapByPartnerId = useMemo(() => {
+    const map = new Map<
+      string,
+      Record<SocialPlatform, PartnerSocialPlatform | null>
+    >();
+
+    partners?.forEach((partner) => {
+      if (partner.platforms) {
+        map.set(partner.id, socialPlatformsToMap(partner.platforms));
+      }
+    });
+    return map;
+  }, [partners]);
 
   const [detailsSheetState, setDetailsSheetState] = useState<
     | { open: false; partnerId: string | null }
@@ -230,12 +247,21 @@ export function ProgramPartnersApplicationsPageClient() {
         id: "website",
         header: "Website",
         minSize: 150,
-        cell: ({ row }) => {
-          return (
+        cell: ({ row }: { row: Row<EnrolledPartnerProps> }) => {
+          const platformsMap = platformsMapByPartnerId.get(row.original.id);
+          const platform = platformsMap?.website ?? null;
+
+          return platform ? (
             <PartnerSocialColumn
-              value={getDomainWithoutWWW(row.original.website) ?? "-"}
-              verified={!!row.original.websiteVerifiedAt}
+              value={
+                platform?.handle
+                  ? getDomainWithoutWWW(platform.handle) ?? "-"
+                  : "-"
+              }
+              verified={!!platform?.verifiedAt}
             />
+          ) : (
+            "-"
           );
         },
       },
@@ -243,13 +269,18 @@ export function ProgramPartnersApplicationsPageClient() {
         id: "youtube",
         header: "YouTube",
         minSize: 150,
-        cell: ({ row }) => {
-          return (
+        cell: ({ row }: { row: Row<EnrolledPartnerProps> }) => {
+          const platformsMap = platformsMapByPartnerId.get(row.original.id);
+          const platform = platformsMap?.youtube ?? null;
+
+          return platform ? (
             <PartnerSocialColumn
               at
-              value={row.original.youtube}
-              verified={!!row.original.youtubeVerifiedAt}
+              value={platform?.handle ?? "-"}
+              verified={!!platform?.verifiedAt}
             />
+          ) : (
+            "-"
           );
         },
       },
@@ -257,13 +288,18 @@ export function ProgramPartnersApplicationsPageClient() {
         id: "twitter",
         header: "X/Twitter",
         minSize: 150,
-        cell: ({ row }) => {
-          return (
+        cell: ({ row }: { row: Row<EnrolledPartnerProps> }) => {
+          const platformsMap = platformsMapByPartnerId.get(row.original.id);
+          const platform = platformsMap?.twitter ?? null;
+
+          return platform ? (
             <PartnerSocialColumn
               at
-              value={row.original.twitter}
-              verified={!!row.original.twitterVerifiedAt}
+              value={platform?.handle ?? "-"}
+              verified={!!platform?.verifiedAt}
             />
+          ) : (
+            "-"
           );
         },
       },
@@ -271,12 +307,17 @@ export function ProgramPartnersApplicationsPageClient() {
         id: "linkedin",
         header: "LinkedIn",
         minSize: 150,
-        cell: ({ row }) => {
-          return (
+        cell: ({ row }: { row: Row<EnrolledPartnerProps> }) => {
+          const platformsMap = platformsMapByPartnerId.get(row.original.id);
+          const platform = platformsMap?.linkedin ?? null;
+
+          return platform ? (
             <PartnerSocialColumn
-              value={row.original.linkedin}
-              verified={!!row.original.linkedinVerifiedAt}
+              value={platform?.handle ?? "-"}
+              verified={!!platform?.verifiedAt}
             />
+          ) : (
+            "-"
           );
         },
       },
@@ -284,13 +325,18 @@ export function ProgramPartnersApplicationsPageClient() {
         id: "instagram",
         header: "Instagram",
         minSize: 150,
-        cell: ({ row }) => {
-          return (
+        cell: ({ row }: { row: Row<EnrolledPartnerProps> }) => {
+          const platformsMap = platformsMapByPartnerId.get(row.original.id);
+          const platform = platformsMap?.instagram ?? null;
+
+          return platform ? (
             <PartnerSocialColumn
               at
-              value={row.original.instagram}
-              verified={!!row.original.instagramVerifiedAt}
+              value={platform?.handle ?? "-"}
+              verified={!!platform?.verifiedAt}
             />
+          ) : (
+            "-"
           );
         },
       },
@@ -298,13 +344,18 @@ export function ProgramPartnersApplicationsPageClient() {
         id: "tiktok",
         header: "TikTok",
         minSize: 150,
-        cell: ({ row }) => {
-          return (
+        cell: ({ row }: { row: Row<EnrolledPartnerProps> }) => {
+          const platformsMap = platformsMapByPartnerId.get(row.original.id);
+          const platform = platformsMap?.tiktok ?? null;
+
+          return platform ? (
             <PartnerSocialColumn
               at
-              value={row.original.tiktok}
-              verified={!!row.original.tiktokVerifiedAt}
+              value={platform?.handle ?? "-"}
+              verified={!!platform?.verifiedAt}
             />
+          ) : (
+            "-"
           );
         },
       },
@@ -322,7 +373,7 @@ export function ProgramPartnersApplicationsPageClient() {
         ),
       },
     ],
-    [workspaceId, groups],
+    [workspaceId, groups, platformsMapByPartnerId],
   );
 
   const { table, ...tableProps } = useTable<EnrolledPartnerProps>({
