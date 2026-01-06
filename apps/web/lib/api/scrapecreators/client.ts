@@ -1,4 +1,4 @@
-import { SocialPlatform } from "@/lib/social-utils";
+import { SocialPlatform } from "@dub/prisma/client";
 import { z } from "zod";
 
 const SCRAPECREATORS_API_BASE_URL = "https://api.scrapecreators.com";
@@ -9,28 +9,12 @@ const youtubeResponseSchema = z.object({
   description: z.string().optional(),
 });
 
-const linkedinResponseSchema = z.object({
-  about: z.string().optional(),
-  summary: z.string().optional(),
-});
-
 const instagramResponseSchema = z.object({
   data: z.object({
     user: z.object({
       biography: z.string().optional(),
     }),
   }),
-});
-
-const tiktokResponseSchema = z.object({
-  user: z.object({
-    signature: z.string().optional(),
-  }),
-});
-
-const twitterResponseSchema = z.object({
-  description: z.string().optional(),
-  bio: z.string().optional(),
 });
 
 const errorResponseSchema = z.object({
@@ -52,19 +36,14 @@ type PlatformRequestConfig = {
   parseResponse: (data: unknown) => ProfileTextFields;
 };
 
-const PLATFORM_CONFIG: Record<SocialPlatform, PlatformRequestConfig> = {
+const PLATFORM_CONFIG: Record<
+  Exclude<SocialPlatform, "linkedin" | "tiktok" | "twitter" | "website">,
+  PlatformRequestConfig
+> = {
   youtube: {
     path: "/v1/youtube/channel",
     buildSearchParams: (handle) => new URLSearchParams({ handle }),
     parseResponse: (data) => youtubeResponseSchema.parse(data),
-  },
-  linkedin: {
-    path: "/v1/linkedin/profile",
-    buildSearchParams: (handle) =>
-      new URLSearchParams({
-        url: `https://www.linkedin.com/in/${handle}`,
-      }),
-    parseResponse: (data) => linkedinResponseSchema.parse(data),
   },
   instagram: {
     path: "/v1/instagram/profile",
@@ -76,22 +55,6 @@ const PLATFORM_CONFIG: Record<SocialPlatform, PlatformRequestConfig> = {
         biography: parsed.data.user.biography,
       };
     },
-  },
-  tiktok: {
-    path: "/v1/tiktok/profile",
-    buildSearchParams: (handle) => new URLSearchParams({ handle }),
-    parseResponse: (data) => {
-      const parsed = tiktokResponseSchema.parse(data);
-
-      return {
-        bio: parsed.user.signature,
-      };
-    },
-  },
-  twitter: {
-    path: "/v1/twitter/profile",
-    buildSearchParams: (handle) => new URLSearchParams({ handle }),
-    parseResponse: (data) => twitterResponseSchema.parse(data),
   },
 };
 
@@ -143,8 +106,6 @@ export class ScrapeCreatorsClient {
       const { message } = errorResponseSchema.parse(jsonResponse);
       throw new Error(message);
     }
-
-    console.log(jsonResponse);
 
     return config.parseResponse(jsonResponse);
   }

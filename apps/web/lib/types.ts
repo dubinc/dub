@@ -458,6 +458,7 @@ export type CustomerProps = z.infer<typeof CustomerSchema>;
 export type PartnerProps = z.infer<typeof PartnerSchema> & {
   role: PartnerRole;
   userId: string;
+  platforms: PartnerSocialPlatform[];
 };
 
 export type PartnerRewindProps = z.infer<typeof PartnerRewindSchema>;

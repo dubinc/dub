@@ -1,10 +1,11 @@
 import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { Prisma, SocialPlatform } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { createId } from "../api/create-id";
 import { detectAndRecordFraudApplication } from "../api/fraud/detect-record-fraud-application";
 import { notifyPartnerApplication } from "../api/partners/notify-partner-application";
 import { qstash } from "../cron";
+import { socialPlatformsToMap } from "../social-utils";
 import { sendWorkspaceWebhook } from "../webhook/publish";
 import { partnerApplicationWebhookSchema } from "../zod/schemas/program-application";
 import {
@@ -26,6 +27,7 @@ export async function completeProgramApplications(userEmail: string) {
             partnerId: true,
             partner: {
               include: {
+                platforms: true,
                 programs: {
                   select: {
                     programId: true,
@@ -130,29 +132,31 @@ export async function completeProgramApplications(userEmail: string) {
         (p) => p.programId === programApplication.programId,
       );
 
+      const socialPlatforms = socialPlatformsToMap(partner.platforms);
+
       const missingSocialFields = {
         website:
-          application.website && !partner.website
+          application.website && !socialPlatforms.website?.handle
             ? application.website
             : undefined,
         youtube:
-          application.youtube && !partner.youtube
+          application.youtube && !socialPlatforms.youtube?.handle
             ? application.youtube
             : undefined,
         twitter:
-          application.twitter && !partner.twitter
+          application.twitter && !socialPlatforms.twitter?.handle
             ? application.twitter
             : undefined,
         linkedin:
-          application.linkedin && !partner.linkedin
+          application.linkedin && !socialPlatforms.linkedin?.handle
             ? application.linkedin
             : undefined,
         instagram:
-          application.instagram && !partner.instagram
+          application.instagram && !socialPlatforms.instagram?.handle
             ? application.instagram
             : undefined,
         tiktok:
-          application.tiktok && !partner.tiktok
+          application.tiktok && !socialPlatforms.tiktok?.handle
             ? application.tiktok
             : undefined,
       };
@@ -179,9 +183,14 @@ export async function completeProgramApplications(userEmail: string) {
         // if the application has any website or social fields but the partner doesn't have the corresponding one (maybe they forgot to add during onboarding)
         // update the partner to use the website they applied with
         hasMissingSocialFields &&
-          prisma.partner.update({
-            where: { id: partner.id },
-            data: missingSocialFields,
+          prisma.partnerPlatform.createMany({
+            data: Object.entries(missingSocialFields)
+              .filter(([, handle]) => handle !== undefined)
+              .map(([platform, handle]) => ({
+                partnerId: partner.id,
+                platform: platform as SocialPlatform,
+                handle: handle as string,
+              })),
           }),
 
         // Auto-approve the partner if the group has auto-approval enabled

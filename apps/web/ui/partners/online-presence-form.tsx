@@ -6,7 +6,7 @@ import { updateOnlinePresenceAction } from "@/lib/actions/partners/update-online
 import { hasPermission } from "@/lib/auth/partner-users/partner-user-permissions";
 import { sanitizeSocialHandle, sanitizeWebsite } from "@/lib/social-utils";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
-import { partnerSocialPlatformSchema } from "@/lib/zod/schemas/partners";
+import { PartnerProps, PartnerSocialPlatform } from "@/lib/types";
 import { parseUrlSchemaAllowEmpty } from "@/lib/zod/schemas/utils";
 import { DomainVerificationModal } from "@/ui/modals/domain-verification-modal";
 import { SocialVerificationModal } from "@/ui/modals/social-verification-modal";
@@ -49,22 +49,17 @@ const onlinePresenceSchema = z.object({
 
 type OnlinePresenceFormData = z.infer<typeof onlinePresenceSchema>;
 
-type PartnerPlatform = z.infer<typeof partnerSocialPlatformSchema>;
-
 interface OnlinePresenceFormProps {
   variant?: "onboarding" | "settings";
-  partner?: {
-    email: string | null;
-    platforms?: PartnerPlatform[];
-  } | null;
+  partner?: Pick<PartnerProps, "platforms"> | null;
   onSubmitSuccessful?: () => void;
 }
 
 // Helper function to get platform data from platforms array
 function getPlatformData(
-  platforms: PartnerPlatform[] | undefined,
+  platforms: PartnerSocialPlatform[] | undefined,
   platform: SocialPlatform,
-): PartnerPlatform | undefined {
+): PartnerSocialPlatform | undefined {
   return platforms?.find((p) => p.platform === platform);
 }
 
@@ -544,38 +539,6 @@ export const OnlinePresenceForm = forwardRef<
   },
 );
 
-// function useOAuthVerification(source: "onboarding" | "settings") {
-//   const router = useRouter();
-
-//   return useCallback(
-//     async (provider: string, value?: string) => {
-//       if (!value) return false;
-
-//       try {
-//         const result = await updateOnlinePresenceAction({
-//           [provider]: value,
-//           source,
-//         });
-
-//         if (
-//           result?.data?.success &&
-//           result?.data?.verificationUrls?.[provider]
-//         ) {
-//           window.location.href = result.data.verificationUrls[provider];
-//         }
-
-//         return true;
-//       } catch (e) {
-//         toast.error("Failed to start verification");
-//         console.error("Failed to start verification", e);
-//       }
-
-//       return false;
-//     },
-//     [source, router],
-//   );
-// }
-
 function useVerifiedState({
   property,
 }: {
@@ -603,7 +566,7 @@ function useVerifiedState({
   const platform = platformMap[property];
   // Type assertion for platforms array that exists at runtime but not in type
   const partnerWithPlatforms = partnerProfile as typeof partnerProfile & {
-    platforms?: PartnerPlatform[];
+    platforms?: PartnerSocialPlatform[];
   };
   const currentHandle = getPlatformHandle(partnerWithPlatforms, platform);
 
@@ -712,7 +675,7 @@ function FormRow({
     if (partner && property === "youtube" && isVerified) {
       // Type assertion for platforms array that exists at runtime but not in type
       const partnerWithPlatforms = partner as typeof partner & {
-        platforms?: PartnerPlatform[];
+        platforms?: PartnerSocialPlatform[];
       };
       const youtubePlatform = getPlatformData(
         partnerWithPlatforms.platforms,
