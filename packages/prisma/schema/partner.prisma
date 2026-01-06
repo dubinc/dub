@@ -179,7 +179,7 @@ model PartnerPlatform {
   id         String         @id @default(cuid())
   partnerId  String
   platform   SocialPlatform
-  handle     String? // The username/handle/URL for the platform
+  handle     String // The username/handle/URL for the platform
   platformId String? // Platform-specific ID (e.g., YouTube channel ID)
   verifiedAt DateTime?
   followers  BigInt         @default(0)
