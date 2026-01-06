@@ -14,7 +14,7 @@ export function PartnerSocialColumn({
   platform,
   platformName,
 }: {
-  platform: PartnerSocialPlatform | null;
+  platform: PartnerSocialPlatform | null | undefined;
   platformName: SocialPlatform;
 }) {
   if (!platform?.handle) {
