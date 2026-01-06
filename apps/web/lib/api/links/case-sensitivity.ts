@@ -7,6 +7,7 @@ export const CASE_SENSITIVE_DOMAINS = [
   "go.homeserve.fr",
   "go.homeserve.be",
   "jbbr.pro",
+  "new.biltapp.link",
 ];
 
 export const encodeKey = (text: string): string => {
