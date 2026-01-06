@@ -475,11 +475,7 @@ export function ProgramPartnersApplicationsPageClient() {
       ) : (
         <AnimatedEmptyState
           title="No applications found"
-          description={
-            isFiltered || search
-              ? "No applications found for the selected filters."
-              : "No applications have been submitted for this program."
-          }
+          description={`No applications found${isFiltered || search ? " for the selected filters" : " for this program"}.`}
           cardContent={() => (
             <>
               <Users className="size-4 text-neutral-700" />

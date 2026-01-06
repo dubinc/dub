@@ -2,13 +2,15 @@ NODE mv
 SQL >
 
     SELECT
-        customer_id,
+        workspace_id,
         link_id,
-        minState(timestamp) AS first_sale_state
-    FROM dub_sale_events
-    GROUP BY
         customer_id,
-        link_id
+        minState(timestamp) AS first_sale_state
+    FROM dub_sale_events_mv
+    GROUP BY
+        workspace_id,
+        link_id,
+        customer_id
 
 TYPE materialized
 DATASOURCE dub_first_sale_mv

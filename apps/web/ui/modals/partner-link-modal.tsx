@@ -162,8 +162,8 @@ function PartnerLinkModalContent({
   link?: PartnerProfileLinkProps;
   setShowPartnerLinkModal: Dispatch<SetStateAction<boolean>>;
 }) {
-  const isEditingLink = Boolean(link?.id); // When duplicating the id will be empty
   const isCreatingLink = !link;
+  const isEditingLink = Boolean(link?.id); // When duplicating the id will be empty
 
   const { programSlug } = useParams();
   const { isMobile } = useMediaQuery();
@@ -251,16 +251,6 @@ function PartnerLinkModalContent({
           (isEditingLink ? !isDirty : destinationDomains.length === 0),
       ),
     [isLoading, isEditingLink, isDirty, destinationDomains],
-  );
-
-  // we hide the destination URL input if:
-  // 1. the link is a partner group default link
-  // 2. there is only one destination domain and we are in exact mode
-  const hideDestinationUrl = useMemo(
-    () =>
-      link?.partnerGroupDefaultLinkId ||
-      (destinationDomains.length === 1 && isExactMode),
-    [destinationDomains.length, isExactMode, link?.partnerGroupDefaultLinkId],
   );
 
   const shortLink = useMemo(
@@ -378,7 +368,9 @@ function PartnerLinkModalContent({
                 })}
                 type="text"
                 id="key"
-                autoFocus={Boolean(hideDestinationUrl && !isMobile)}
+                autoFocus={Boolean(
+                  link?.partnerGroupDefaultLinkId && !isMobile,
+                )}
                 onFocus={() => setKeyInputFocused(true)}
                 onBlur={() => setKeyInputFocused(false)}
                 disabled={lockKey}
@@ -401,60 +393,79 @@ function PartnerLinkModalContent({
             )}
           </div>
 
-          {!hideDestinationUrl && (
-            <div>
-              <div className="flex items-center gap-2">
-                <label
-                  htmlFor="url"
-                  className="block text-sm font-medium text-neutral-700"
-                >
-                  Destination URL
-                </label>
-                <InfoTooltip content="The URL your users will get redirected to when they visit your short link. [Learn more.](https://dub.co/help/article/how-to-create-link)" />
-              </div>
-              <div className="relative mt-1 flex rounded-md shadow-sm">
-                <div className="z-[1]">
+          <div>
+            <div className="flex items-center gap-2">
+              <label
+                htmlFor="url"
+                className="block text-sm font-medium text-neutral-700"
+              >
+                Destination URL
+              </label>
+              <InfoTooltip content="The URL your users will get redirected to when they visit your short link. [Learn more.](https://dub.co/help/article/how-to-create-link)" />
+            </div>
+            <div className="relative mt-1 flex rounded-md shadow-sm">
+              <div className="z-[1]">
+                {destinationDomains.length === 1 ||
+                link?.partnerGroupDefaultLinkId ? (
+                  <div
+                    className={cn(
+                      "flex h-full w-fit items-center justify-start rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-2.5 text-sm text-neutral-700",
+                      {
+                        "cursor-not-allowed bg-neutral-100 text-neutral-500":
+                          link?.partnerGroupDefaultLinkId,
+                      },
+                    )}
+                  >
+                    {punycode(destinationDomains[0])}
+                  </div>
+                ) : (
                   <DestinationDomainCombobox
                     selectedDomain={destinationDomain}
                     setSelectedDomain={setDestinationDomain}
                     destinationDomains={destinationDomains}
-                    disabled={isEditingLink}
+                    disabled={Boolean(
+                      isEditingLink || link?.partnerGroupDefaultLinkId,
+                    )}
                   />
-                </div>
-                <input
-                  {...register("pathname", { required: false })}
-                  type="text"
-                  placeholder="(optional)"
-                  autoFocus={Boolean(!hideDestinationUrl && !isMobile)}
-                  disabled={isExactMode}
-                  onPaste={(e: React.ClipboardEvent<HTMLInputElement>) => {
-                    if (isExactMode) return;
-
-                    e.preventDefault();
-                    // if pasting in a URL, extract the pathname + query params
-                    const text = e.clipboardData.getData("text/plain");
-                    let newValue: string;
-                    try {
-                      const url = new URL(text);
-                      newValue = url.pathname.slice(1) + url.search;
-                    } catch (err) {
-                      newValue = text;
-                    }
-
-                    // Use setValue to properly dirty the form
-                    setValue("pathname", newValue, { shouldDirty: true });
-                  }}
-                  className={cn(
-                    "z-0 block w-full rounded-r-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:z-[1] focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-                    {
-                      "cursor-not-allowed border bg-neutral-100 text-neutral-500":
-                        isExactMode,
-                    },
-                  )}
-                />
+                )}
               </div>
+              <input
+                {...register("pathname", { required: false })}
+                type="text"
+                placeholder="(optional)"
+                autoFocus={Boolean(
+                  !link?.partnerGroupDefaultLinkId && !isMobile,
+                )}
+                disabled={Boolean(
+                  isExactMode || link?.partnerGroupDefaultLinkId,
+                )}
+                onPaste={(e: React.ClipboardEvent<HTMLInputElement>) => {
+                  if (isExactMode || link?.partnerGroupDefaultLinkId) return;
+
+                  e.preventDefault();
+                  // if pasting in a URL, extract the pathname + query params
+                  const text = e.clipboardData.getData("text/plain");
+                  let newValue: string;
+                  try {
+                    const url = new URL(text);
+                    newValue = url.pathname.slice(1) + url.search;
+                  } catch (err) {
+                    newValue = text;
+                  }
+
+                  // Use setValue to properly dirty the form
+                  setValue("pathname", newValue, { shouldDirty: true });
+                }}
+                className={cn(
+                  "z-0 block w-full rounded-r-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:z-[1] focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                  {
+                    "cursor-not-allowed border bg-neutral-100 text-neutral-500":
+                      isExactMode || link?.partnerGroupDefaultLinkId,
+                  },
+                )}
+              />
             </div>
-          )}
+          </div>
 
           <div>
             <div className="flex items-center gap-2">

@@ -162,7 +162,7 @@ export function OverviewChart() {
               {
                 id: "amount",
                 valueAccessor: (d) => d.values.amount,
-                colorClassName: "text-[#8B5CF6]",
+                colorClassName: "text-violet-500",
                 isActive: true,
               },
             ]}

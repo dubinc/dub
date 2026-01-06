@@ -18,10 +18,6 @@ SQL >
         se.payment_processor,
         se.invoice_id,
         se.amount,
-        -- correct sale_type classification using summary table
-        if(
-            dateDiff('millisecond', fs.first_sale_ts, se.timestamp) < 1, 'new', 'recurring'
-        ) AS sale_type,
         se.metadata,
         -- geolocation fields
         toLowCardinality(se.continent) AS continent,
@@ -52,13 +48,6 @@ SQL >
         se.qr,
         se.bot
     FROM dub_sale_events AS se
-    -- join pre-aggregated first-sale timestamps
-    LEFT JOIN
-        (
-            SELECT customer_id, link_id, minMerge(first_sale_state) AS first_sale_ts
-            FROM dub_first_sale_mv
-            GROUP BY customer_id, link_id
-        ) AS fs USING (customer_id, link_id)
     -- join link metadata for workspace/domain/key enrichment
     LEFT JOIN
         (

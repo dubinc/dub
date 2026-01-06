@@ -1,3 +1,7 @@
+DESCRIPTION >
+	Only used for `/cron/aggregate-clicks` for now
+
+
 NODE endpoint
 SQL >
 
