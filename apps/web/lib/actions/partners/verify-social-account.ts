@@ -9,10 +9,11 @@ import { z } from "zod";
 import { authPartnerActionClient } from "../safe-action";
 
 const verifySocialAccountSchema = z.object({
-  platform: z.enum(["youtube", "instagram", "tiktok", "linkedin"]),
+  platform: z.enum(["youtube", "instagram"]),
   handle: z.string().min(1),
 });
 
+// Verify social accounts using the verification code
 export const verifySocialAccountAction = authPartnerActionClient
   .schema(verifySocialAccountSchema)
   .action(async ({ ctx, parsedInput }) => {
