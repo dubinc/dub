@@ -15,70 +15,70 @@ export const COMMISSION_TYPES = [
   },
 ] as const;
 
-type RewardConditionEntity = {
+export type RewardConditionEntityAttribute = {
   id: string;
   label: string;
-  attributes: {
+  type: "string" | "number" | "currency";
+  options?: {
     id: string;
     label: string;
-    type: "string" | "number" | "currency";
   }[];
 };
 
-const LEAD_ENTITIES: RewardConditionEntity[] = [
-  {
-    id: "customer",
-    label: "Customer",
-    attributes: [
-      {
-        id: "country",
-        label: "Country",
-        type: "string",
-      },
-      {
-        id: "source",
-        label: "Source",
-        type: "string",
-      },
-    ],
-  },
-  {
-    id: "partner",
-    label: "Partner",
-    attributes: [
-      {
-        id: "country",
-        label: "Country",
-        type: "string",
-      },
-      {
-        id: "totalClicks",
-        label: "Total clicks",
-        type: "number",
-      },
-      {
-        id: "totalLeads",
-        label: "Total leads",
-        type: "number",
-      },
-      {
-        id: "totalConversions",
-        label: "Total conversions",
-        type: "number",
-      },
-      {
-        id: "totalSaleAmount",
-        label: "Total revenue",
-        type: "currency",
-      },
-      {
-        id: "totalCommissions",
-        label: "Total commissions",
-        type: "currency",
-      },
-    ],
-  },
-];
+export type RewardConditionEntity = {
+  id: string;
+  label: string;
+  attributes: RewardConditionEntityAttribute[];
+};
+
+const PARTNER_ENTITY: RewardConditionEntity = {
+  id: "partner",
+  label: "Partner",
+  attributes: [
+    {
+      id: "country",
+      label: "Country",
+      type: "string",
+    },
+    {
+      id: "totalClicks",
+      label: "Total clicks",
+      type: "number",
+    },
+    {
+      id: "totalLeads",
+      label: "Total leads",
+      type: "number",
+    },
+    {
+      id: "totalConversions",
+      label: "Total conversions",
+      type: "number",
+    },
+    {
+      id: "totalSaleAmount",
+      label: "Total revenue",
+      type: "currency",
+    },
+    {
+      id: "totalCommissions",
+      label: "Total commissions",
+      type: "currency",
+    },
+  ],
+};
+
+const CUSTOMER_ENTITY: RewardConditionEntity = {
+  id: "customer",
+  label: "Customer",
+  attributes: [
+    {
+      id: "country",
+      label: "Country",
+      type: "string",
+    },
+  ],
+};
 
 export const REWARD_CONDITIONS: Record<
   EventType,
@@ -87,26 +87,58 @@ export const REWARD_CONDITIONS: Record<
   }
 > = {
   click: {
+    entities: [CUSTOMER_ENTITY],
+  },
+  lead: {
     entities: [
       {
-        id: "customer",
-        label: "Customer",
+        ...CUSTOMER_ENTITY,
         attributes: [
+          ...CUSTOMER_ENTITY.attributes,
           {
-            id: "country",
-            label: "Country",
+            id: "source",
+            label: "Source",
             type: "string",
+            options: [
+              {
+                id: "tracked",
+                label: "tracked lead",
+              },
+              {
+                id: "submitted",
+                label: "qualified lead",
+              },
+            ],
           },
         ],
       },
+      PARTNER_ENTITY,
     ],
-  },
-  lead: {
-    entities: LEAD_ENTITIES,
   },
   sale: {
     entities: [
-      ...LEAD_ENTITIES,
+      {
+        ...CUSTOMER_ENTITY,
+        attributes: [
+          ...CUSTOMER_ENTITY.attributes,
+          {
+            id: "source",
+            label: "Source",
+            type: "string",
+            options: [
+              {
+                id: "tracked",
+                label: "tracked sale",
+              },
+              {
+                id: "submitted",
+                label: "closed won deal",
+              },
+            ],
+          },
+        ],
+      },
+      PARTNER_ENTITY,
       {
         id: "sale",
         label: "Sale",

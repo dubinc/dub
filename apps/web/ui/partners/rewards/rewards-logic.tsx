@@ -10,6 +10,7 @@ import {
   CONDITION_OPERATORS,
   NUMBER_CONDITION_OPERATORS,
   REWARD_CONDITIONS,
+  RewardConditionEntityAttribute,
   STRING_CONDITION_OPERATORS,
 } from "@/lib/zod/schemas/rewards";
 import { X } from "@/ui/shared/icons";
@@ -210,28 +211,12 @@ function ConditionalGroup({
   );
 }
 
-// const ENTITIES = {
-//   customer: {
-//     attributes: CONDITION_CUSTOMER_ATTRIBUTES,
-//   },
-//   sale: {
-//     attributes: CONDITION_SALE_ATTRIBUTES,
-//   },
-//   partner: {
-//     attributes: CONDITION_PARTNER_ATTRIBUTES,
-//   },
-// } as const;
-
-// const EVENT_ENTITIES: Record<EventType, (keyof typeof ENTITIES)[]> = {
-//   sale: ["sale", "customer", "partner"],
-//   lead: ["customer", "partner"],
-//   click: ["customer"],
-// };
-
 const formatValue = (
   value: string | number | string[] | number[] | undefined,
-  type: "number" | "currency" | "string" = "string",
+  attribute?: Pick<RewardConditionEntityAttribute, "type" | "options">,
 ) => {
+  const type = attribute?.type ?? "string";
+
   if (
     ["number", "currency"].includes(type)
       ? value === "" || isNaN(Number(value))
@@ -246,10 +231,23 @@ const formatValue = (
 
     return (
       filtered
-        .map((v) => truncate(v.toString(), 16))
+        .map((v) =>
+          truncate(
+            attribute?.options
+              ? attribute.options.find((o) => o.id === v)?.label ?? v.toString()
+              : v.toString(),
+            16,
+          ),
+        )
         .slice(0, 2)
         .join(", ") + (filtered.length > 2 ? ` +${filtered.length - 2}` : "")
     );
+  }
+
+  // Return matching option label
+  if (attribute?.options) {
+    const option = attribute.options.find((o) => o.id === value);
+    if (option) return option.label;
   }
 
   // For numeric values, show the number as is
@@ -288,11 +286,12 @@ function ConditionLogic({
     ? entities.find((e) => e.id === condition.entity)
     : undefined;
 
-  const attributeType =
+  const attribute =
     entity && condition.attribute
-      ? entity.attributes.find((a) => a.id === condition.attribute)?.type ??
-        "string"
-      : "string";
+      ? entity.attributes.find((a) => a.id === condition.attribute)
+      : undefined;
+
+  const attributeType = attribute?.type ?? "string";
 
   const icon = entity
     ? { customer: User, sale: InvoiceDollar, partner: Users }[entity.id] ?? User
@@ -416,7 +415,7 @@ function ConditionLogic({
                 {condition.operator && (
                   <>
                     <InlineBadgePopover
-                      text={formatValue(condition.value, attributeType)}
+                      text={formatValue(condition.value, attribute)}
                       invalid={
                         Array.isArray(condition.value)
                           ? condition.value.filter(Boolean).length === 0
@@ -434,6 +433,7 @@ function ConditionLogic({
                       !["starts_with", "ends_with"].includes(
                         condition.operator,
                       ) ? (
+                        // Country selector
                         <InlineBadgePopoverMenu
                           search
                           selectedValue={
@@ -470,6 +470,38 @@ function ConditionLogic({
                             });
                           }}
                         />
+                      ) : attribute?.options &&
+                        !["starts_with", "ends_with"].includes(
+                          condition.operator,
+                        ) ? (
+                        // Select option selector
+                        <InlineBadgePopoverMenu
+                          search={attribute.options.length > 4}
+                          selectedValue={
+                            (condition.value as string[] | undefined) ??
+                            (isArrayValue ? [] : undefined)
+                          }
+                          items={attribute.options.map(({ id, label }) => ({
+                            text: label,
+                            value: id,
+                          }))}
+                          onSelect={(value) => {
+                            setValue(conditionKey, {
+                              ...condition,
+                              value: isArrayValue
+                                ? Array.isArray(condition.value)
+                                  ? (condition.value as string[]).includes(
+                                      value,
+                                    )
+                                    ? (condition.value.filter(
+                                        (v) => v !== value,
+                                      ) as string[])
+                                    : ([...condition.value, value] as string[])
+                                  : [value]
+                                : value,
+                            });
+                          }}
+                        />
                       ) : isArrayValue ? (
                         // String array input
                         <InlineBadgePopoverInputs
@@ -488,6 +520,7 @@ function ConditionLogic({
                           }}
                         />
                       ) : ["number", "currency"].includes(attributeType) ? (
+                        // Number/currency input
                         <AmountInput
                           fieldKey={`${conditionKey}.value`}
                           type={attributeType as "number" | "currency"}
