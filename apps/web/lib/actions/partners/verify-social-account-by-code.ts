@@ -102,8 +102,4 @@ export const verifySocialAccountByCodeAction = authPartnerActionClient
 
     // Delete the verification code from Redis
     await redis.del(cacheKey);
-
-    return {
-      verifiedAt: new Date(),
-    };
   });
