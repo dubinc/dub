@@ -45,10 +45,8 @@ export const verifyDomainAction = authPartnerActionClient.action(
           reject(err);
         } else {
           resolve(
-            addresses.some(
-              (address) =>
-                partner.websiteTxtRecord &&
-                address.includes(partner.websiteTxtRecord),
+            addresses.some((address) =>
+              address.includes(metadata.websiteTxtRecord),
             ),
           );
         }

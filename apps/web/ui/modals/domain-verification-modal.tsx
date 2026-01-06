@@ -36,20 +36,13 @@ function DomainVerificationModalInner({
   domain,
   txtRecord,
 }: DomainVerificationModalProps) {
-  const { partner, mutate: mutatePartner } = usePartnerProfile();
+  const { mutate: mutatePartner } = usePartnerProfile();
 
   const { executeAsync, status } = useAction(verifyDomainAction, {
-    onSuccess: ({ data }) => {
+    onSuccess: async () => {
       toast.success("Your domain verified successfully!");
-
-      if (partner && data) {
-        mutatePartner({
-          ...partner,
-          websiteVerifiedAt: new Date(data.verifiedAt),
-        });
-      }
-
       setShowDomainVerificationModal(false);
+      await mutatePartner();
     },
     onError: ({ error }) => {
       toast.error(parseActionError(error));

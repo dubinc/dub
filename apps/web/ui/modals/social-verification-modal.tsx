@@ -7,7 +7,6 @@ import { X } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { Dispatch, ReactNode, SetStateAction } from "react";
 import { toast } from "sonner";
-import { mutate } from "swr";
 
 interface SocialVerificationModalProps {
   showSocialVerificationModal: boolean;
@@ -75,29 +74,16 @@ function SocialVerificationModalInner({
   handle,
   verificationCode,
 }: SocialVerificationModalProps) {
-  const { partner, mutate: mutatePartner } = usePartnerProfile();
+  const { mutate: mutatePartner } = usePartnerProfile();
 
-  const platformInfo = PLATFORM_INFO[platform];
+  const platformInfo: PlatformInfo = PLATFORM_INFO[platform];
   const profileUrl = platformInfo.getProfileUrl(handle);
-  const verifiedAtField = `${platform}VerifiedAt` as
-    | "youtubeVerifiedAt"
-    | "instagramVerifiedAt"
-    | "tiktokVerifiedAt"
-    | "linkedinVerifiedAt";
 
   const { executeAsync, isPending } = useAction(verifySocialAccountAction, {
-    onSuccess: async ({ data }) => {
+    onSuccess: async () => {
       toast.success(`${platformInfo.name} account verified successfully!`);
-
-      if (partner && data?.verifiedAt) {
-        await mutatePartner({
-          ...partner,
-          [verifiedAtField]: new Date(data.verifiedAt),
-        });
-      }
-
       setShowSocialVerificationModal(false);
-      await mutate("/api/partner-profile");
+      await mutatePartner();
     },
     onError: ({ error }) => {
       toast.error(

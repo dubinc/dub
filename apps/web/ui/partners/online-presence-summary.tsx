@@ -35,6 +35,7 @@ export function OnlinePresenceSummary({
     ...field.data(platforms),
   })).filter((field) => field.value && field.href);
 
+
   return (
     <div
       className={cn(
