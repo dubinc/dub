@@ -4,15 +4,21 @@ import { z } from "zod";
 const SCRAPECREATORS_API_BASE_URL = "https://api.scrapecreators.com";
 const SCRAPECREATORS_API_KEY = process.env.SCRAPECREATORS_API_KEY || "";
 
+export type ProfileFields = {
+  description: string;
+  platformId: string | null; // Eg. YouTube channel Id
+};
+
 // Platform-specific response schemas
 const youtubeResponseSchema = z.object({
-  description: z.string().optional(),
+  description: z.string(),
+  channelId: z.string(),
 });
 
 const instagramResponseSchema = z.object({
   data: z.object({
     user: z.object({
-      biography: z.string().optional(),
+      biography: z.string(),
     }),
   }),
 });
@@ -21,19 +27,10 @@ const errorResponseSchema = z.object({
   message: z.string(),
 });
 
-// Unified return type for profile text fields
-export type ProfileTextFields = {
-  description?: string;
-  about?: string;
-  biography?: string;
-  bio?: string;
-  summary?: string;
-};
-
 type PlatformRequestConfig = {
   path: string;
   buildSearchParams: (handle: string) => URLSearchParams;
-  parseResponse: (data: unknown) => ProfileTextFields;
+  parseResponse: (data: unknown) => ProfileFields;
 };
 
 const PLATFORM_CONFIG: Record<
@@ -43,7 +40,14 @@ const PLATFORM_CONFIG: Record<
   youtube: {
     path: "/v1/youtube/channel",
     buildSearchParams: (handle) => new URLSearchParams({ handle }),
-    parseResponse: (data) => youtubeResponseSchema.parse(data),
+    parseResponse: (data) => {
+      const parsed = youtubeResponseSchema.parse(data);
+
+      return {
+        description: parsed.description,
+        platformId: parsed.channelId,
+      };
+    },
   },
   instagram: {
     path: "/v1/instagram/profile",
@@ -52,7 +56,8 @@ const PLATFORM_CONFIG: Record<
       const parsed = instagramResponseSchema.parse(data);
 
       return {
-        biography: parsed.data.user.biography,
+        description: parsed.data.user.biography,
+        platformId: null,
       };
     },
   },
@@ -63,22 +68,22 @@ export class ScrapeCreatorsClient {
   private baseUrl: string;
 
   constructor() {
+    if (!SCRAPECREATORS_API_KEY) {
+      throw new Error("SCRAPECREATORS_API_KEY is not configured.");
+    }
+
     this.apiKey = SCRAPECREATORS_API_KEY;
     this.baseUrl = SCRAPECREATORS_API_BASE_URL;
   }
 
-  // Fetches account profile data from the ScrapeCreators API for a given social platform.
-  public async fetchAccount({
+  // Fetches public profile text data for a supported social platform
+  public async fetchSocialProfile({
     platform,
     handle,
   }: {
     platform: SocialPlatform;
     handle: string;
-  }) {
-    if (!this.apiKey) {
-      throw new Error("SCRAPECREATORS_API_KEY is not configured.");
-    }
-
+  }): Promise<ProfileFields> {
     const config = PLATFORM_CONFIG[platform];
 
     if (!config) {
@@ -96,6 +101,8 @@ export class ScrapeCreatorsClient {
 
     const jsonResponse = await response.json();
 
+    console.log(jsonResponse)
+
     if (!response.ok) {
       console.error("[ScrapeCreators] Failed to fetch account", {
         ...jsonResponse,
@@ -103,41 +110,16 @@ export class ScrapeCreatorsClient {
         handle,
       });
 
-      const { message } = errorResponseSchema.parse(jsonResponse);
-      throw new Error(message);
+      const parsedError = errorResponseSchema.safeParse(jsonResponse);
+
+      throw new Error(
+        parsedError.success
+          ? parsedError.data.message
+          : "Failed to fetch account profile.",
+      );
     }
 
     return config.parseResponse(jsonResponse);
-  }
-
-  // Verifies that a verification code exists in the account's profile bio/description.
-  // Fetches the account profile and checks if the provided code appears in any of the
-  // profile text fields (description, about, bio, summary).
-  async verifyAccount({
-    platform,
-    handle,
-    code,
-  }: {
-    platform: SocialPlatform;
-    handle: string;
-    code: string;
-  }): Promise<boolean> {
-    const profile = await this.fetchAccount({
-      platform,
-      handle,
-    });
-
-    const textToCheck = [
-      profile.description,
-      profile.about,
-      profile.biography,
-      profile.bio,
-      profile.summary,
-    ]
-      .filter(Boolean)
-      .join(" ");
-
-    return textToCheck.includes(code);
   }
 }
 

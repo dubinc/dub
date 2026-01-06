@@ -1,6 +1,5 @@
 "use server";
 
-import { upsertPartnerPlatform } from "@/lib/api/partner-profile/upsert-partner-platform";
 import { scrapeCreatorsClient } from "@/lib/api/scrapecreators/client";
 import { ratelimit } from "@/lib/upstash";
 import { redis } from "@/lib/upstash/redis";
@@ -63,12 +62,19 @@ export const verifySocialAccountAction = authPartnerActionClient
       return;
     }
 
-    // Verify the social account
-    const isValid = await scrapeCreatorsClient.verifyAccount({
+    // Verifies that a verification code exists in the account's profile bio/description.
+    // Fetches the account profile and checks if the provided code appears in any of the
+    // profile text fields (description, about, bio, summary).
+    const socialProfile = await scrapeCreatorsClient.fetchSocialProfile({
       platform,
       handle,
-      code: verificationCode,
     });
+
+    if (!socialProfile) {
+      throw new Error("Social media verification failed. Please try again.");
+    }
+
+    const isValid = socialProfile.description.includes(verificationCode);
 
     if (!isValid) {
       throw new Error(
@@ -76,14 +82,16 @@ export const verifySocialAccountAction = authPartnerActionClient
       );
     }
 
-    await upsertPartnerPlatform({
+    await prisma.partnerPlatform.update({
       where: {
-        partnerId: partner.id,
-        platform,
+        partnerId_platform: {
+          partnerId: partner.id,
+          platform,
+        },
       },
       data: {
-        handle,
         verifiedAt: new Date(),
+        platformId: socialProfile.platformId,
       },
     });
 

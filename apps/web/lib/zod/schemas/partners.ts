@@ -210,10 +210,9 @@ export const partnerSocialPlatformSchema = z.object({
   handle: z.string(),
   verifiedAt: z.date().nullable(),
   platformId: z.string().nullable(),
-  followers: z.number().default(0),
-  posts: z.number().default(0),
-  views: z.number().default(0),
-  // metadata: z.record(z.string(), z.string()).nullish(),
+  followers: z.bigint().default(BigInt(0)),
+  posts: z.bigint().default(BigInt(0)),
+  views: z.bigint().default(BigInt(0)),
 });
 
 export const PartnerOnlinePresenceSchema = z.object({
