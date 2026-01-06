@@ -1,9 +1,5 @@
 import { getHighestSeverity } from "@/lib/get-highest-severity";
-import {
-  EnrolledPartnerProps,
-  ExtendedFraudRuleType,
-  PartnerSocialPlatform,
-} from "@/lib/types";
+import { ExtendedFraudRuleType, PartnerProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { Program } from "@dub/prisma/client";
 import { FRAUD_RULES } from "./constants";
@@ -17,9 +13,7 @@ export async function getPartnerApplicationRisks({
   partner,
 }: {
   program: Pick<Program, "id">;
-  partner: Pick<EnrolledPartnerProps, "id" | "email" | "country"> & {
-    platforms: PartnerSocialPlatform[];
-  };
+  partner: Pick<PartnerProps, "id" | "email" | "country" | "platforms">;
 }) {
   const fraudGroups = await prisma.fraudEventGroup.findMany({
     where: {
@@ -45,10 +39,8 @@ export async function getPartnerApplicationRisks({
     partnerDuplicatePayoutMethod: hasDuplicatePayoutMethod,
     partnerEmailDomainMismatch: checkPartnerEmailDomainMismatch(partner),
     partnerEmailMasked: checkPartnerEmailMasked(partner),
-    partnerNoSocialLinks: checkPartnerNoSocialLinks(partner.platforms),
-    partnerNoVerifiedSocialLinks: checkPartnerNoVerifiedSocialLinks(
-      partner.platforms,
-    ),
+    partnerNoSocialLinks: checkPartnerNoSocialLinks(partner),
+    partnerNoVerifiedSocialLinks: checkPartnerNoVerifiedSocialLinks(partner),
   };
 
   const triggeredRules = FRAUD_RULES.filter(
