@@ -42,7 +42,7 @@ export async function importCustomers(payload: RewardfulImportPayload) {
       break;
     }
 
-    await Promise.all(
+    await Promise.allSettled(
       referrals.map((referral) =>
         createCustomer({
           referral,
