@@ -1,8 +1,6 @@
-import {
-  CODE_VERIFIABLE_SOCIAL_PLATFORMS,
-  verifySocialAccountAction,
-} from "@/lib/actions/partners/verify-social-account";
+import { verifySocialAccountAction } from "@/lib/actions/partners/verify-social-account";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
+import { SocialPlatform } from "@dub/prisma/client";
 import { Button, buttonVariants, CopyButton, Modal } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { X } from "lucide-react";
@@ -10,13 +8,10 @@ import { useAction } from "next-safe-action/hooks";
 import { Dispatch, ReactNode, SetStateAction } from "react";
 import { toast } from "sonner";
 
-type CodeVerifiableSocialPlatform =
-  (typeof CODE_VERIFIABLE_SOCIAL_PLATFORMS)[number];
-
 interface SocialVerificationModalProps {
   showSocialVerificationModal: boolean;
   setShowSocialVerificationModal: Dispatch<SetStateAction<boolean>>;
-  platform: CodeVerifiableSocialPlatform;
+  platform: SocialPlatform;
   handle: string;
   verificationCode: string;
 }
@@ -28,7 +23,7 @@ interface PlatformInfo {
   getProfileUrl: (handle: string) => string;
 }
 
-const PLATFORM_INFO: Record<CodeVerifiableSocialPlatform, PlatformInfo> = {
+const PLATFORM_INFO: Record<"youtube" | "instagram", PlatformInfo> = {
   youtube: {
     name: "YouTube",
     title: "Edit your YouTube channel",

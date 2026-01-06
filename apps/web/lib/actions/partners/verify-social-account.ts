@@ -4,16 +4,12 @@ import { scrapeCreatorsClient } from "@/lib/api/scrapecreators/client";
 import { ratelimit } from "@/lib/upstash";
 import { redis } from "@/lib/upstash/redis";
 import { prisma } from "@dub/prisma";
+import { SocialPlatform } from "@dub/prisma/client";
 import { z } from "zod";
 import { authPartnerActionClient } from "../safe-action";
 
-export const CODE_VERIFIABLE_SOCIAL_PLATFORMS = [
-  "youtube",
-  "instagram",
-] as const;
-
 const verifySocialAccountSchema = z.object({
-  platform: z.enum(CODE_VERIFIABLE_SOCIAL_PLATFORMS),
+  platform: z.nativeEnum(SocialPlatform),
   handle: z.string().min(1),
 });
 
@@ -23,6 +19,10 @@ export const verifySocialAccountAction = authPartnerActionClient
   .action(async ({ ctx, parsedInput }) => {
     const { partner } = ctx;
     const { platform, handle } = parsedInput;
+
+    if (!["youtube", "instagram"].includes(platform)) {
+      throw new Error("Only YouTube and Instagram are supported.");
+    }
 
     // Rate limit check
     const { success } = await ratelimit(5, "1 h").limit(

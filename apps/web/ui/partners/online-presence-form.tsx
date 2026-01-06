@@ -228,20 +228,17 @@ export const OnlinePresenceForm = forwardRef<
           />
         )}
 
-        {socialVerificationData &&
-          !["website", "twitter", "tiktok"].includes(
-            socialVerificationData.platform,
-          ) && (
-            <SocialVerificationModal
-              platform={socialVerificationData.platform}
-              handle={socialVerificationData.handle}
-              verificationCode={socialVerificationData.verificationCode}
-              showSocialVerificationModal={socialVerificationData !== null}
-              setShowSocialVerificationModal={(show) => {
-                if (!show) setSocialVerificationData(null);
-              }}
-            />
-          )}
+        {socialVerificationData && (
+          <SocialVerificationModal
+            platform={socialVerificationData.platform}
+            handle={socialVerificationData.handle}
+            verificationCode={socialVerificationData.verificationCode}
+            showSocialVerificationModal={socialVerificationData !== null}
+            setShowSocialVerificationModal={(show) => {
+              if (!show) setSocialVerificationData(null);
+            }}
+          />
+        )}
 
         <FormProvider {...form}>
           <form
@@ -685,8 +682,8 @@ function FormRow({
       const views = youtubePlatform?.views ?? 0;
 
       return [
-        followers > 0 ? `${nFormatter(followers)} subscribers` : null,
-        views > 0 ? `${nFormatter(views)} views` : null,
+        followers > 0 ? `${nFormatter(Number(followers))} subscribers` : null,
+        views > 0 ? `${nFormatter(Number(views))} views` : null,
       ].filter(Boolean) as string[];
     }
     return null;
