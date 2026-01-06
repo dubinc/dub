@@ -97,11 +97,12 @@ export class ScrapeCreatorsClient {
       headers: {
         "x-api-key": this.apiKey,
       },
+      signal: AbortSignal.timeout(10000), // 10 second timeout
     });
 
     const jsonResponse = await response.json();
 
-    console.log(jsonResponse)
+    console.log(jsonResponse);
 
     if (!response.ok) {
       console.error("[ScrapeCreators] Failed to fetch account", {
