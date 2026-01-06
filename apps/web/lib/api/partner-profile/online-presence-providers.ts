@@ -116,4 +116,43 @@ export const ONLINE_PRESENCE_PROVIDERS: Record<string, OnlinePresenceProvider> =
         };
       },
     },
+
+    linkedin: {
+      authUrl: "https://www.linkedin.com/oauth/v2/authorization",
+      tokenUrl: "https://www.linkedin.com/oauth/v2/accessToken",
+      clientId: process.env.LINKEDIN_CLIENT_ID ?? null,
+      clientSecret: process.env.LINKEDIN_CLIENT_SECRET ?? null,
+      scopes: "openid profile",
+      verify: async ({ handle, accessToken }) => {
+        if (!handle) {
+          return {
+            verified: false,
+          };
+        }
+
+        // Fetch user info using OpenID Connect userinfo endpoint
+        const response = await fetch("https://api.linkedin.com/v2/userinfo", {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+
+        const userResponse = await response.json();
+
+        if (!response.ok) {
+          console.error("Failed to verify LinkedIn handle", userResponse);
+
+          return {
+            verified: false,
+          };
+        }
+
+        // TODO:
+        // We can't verify the handle because the LinkedIn API doesn't return the vanity name in the response
+
+        return {
+          verified: false,
+        };
+      },
+    },
   };

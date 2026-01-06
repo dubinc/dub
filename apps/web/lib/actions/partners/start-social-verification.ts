@@ -103,7 +103,7 @@ async function startWebsiteVerification({
   };
 }
 
-// Start OAuth verification for platforms like Twitter and TikTok
+// Start OAuth verification for platforms Twitter, TikTok and LinkedIn
 async function startOAuthVerification({
   partnerId,
   platform,
@@ -178,7 +178,7 @@ async function startOAuthVerification({
   };
 }
 
-// Start verification code flow for platforms like YouTube, Instagram, LinkedIn
+// Start verification code flow for platforms like YouTube, Instagram
 async function startCodeVerification({
   partnerId,
   platform,
