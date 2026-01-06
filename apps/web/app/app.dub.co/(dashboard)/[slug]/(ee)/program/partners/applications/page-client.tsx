@@ -31,12 +31,7 @@ import {
   useTable,
 } from "@dub/ui";
 import { Dots, Users, UserXmark } from "@dub/ui/icons";
-import {
-  COUNTRIES,
-  fetcher,
-  formatDate,
-  getDomainWithoutWWW,
-} from "@dub/utils";
+import { COUNTRIES, fetcher, formatDate } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { useEffect, useMemo, useState } from "react";
@@ -251,17 +246,8 @@ export function ProgramPartnersApplicationsPageClient() {
           const platformsMap = platformsMapByPartnerId.get(row.original.id);
           const platform = platformsMap?.website ?? null;
 
-          return platform ? (
-            <PartnerSocialColumn
-              value={
-                platform?.handle
-                  ? getDomainWithoutWWW(platform.handle) ?? "-"
-                  : "-"
-              }
-              verified={!!platform?.verifiedAt}
-            />
-          ) : (
-            "-"
+          return (
+            <PartnerSocialColumn platform={platform} platformName="website" />
           );
         },
       },
@@ -273,14 +259,8 @@ export function ProgramPartnersApplicationsPageClient() {
           const platformsMap = platformsMapByPartnerId.get(row.original.id);
           const platform = platformsMap?.youtube ?? null;
 
-          return platform ? (
-            <PartnerSocialColumn
-              at
-              value={platform?.handle ?? "-"}
-              verified={!!platform?.verifiedAt}
-            />
-          ) : (
-            "-"
+          return (
+            <PartnerSocialColumn platform={platform} platformName="youtube" />
           );
         },
       },
@@ -292,14 +272,8 @@ export function ProgramPartnersApplicationsPageClient() {
           const platformsMap = platformsMapByPartnerId.get(row.original.id);
           const platform = platformsMap?.twitter ?? null;
 
-          return platform ? (
-            <PartnerSocialColumn
-              at
-              value={platform?.handle ?? "-"}
-              verified={!!platform?.verifiedAt}
-            />
-          ) : (
-            "-"
+          return (
+            <PartnerSocialColumn platform={platform} platformName="twitter" />
           );
         },
       },
@@ -311,13 +285,8 @@ export function ProgramPartnersApplicationsPageClient() {
           const platformsMap = platformsMapByPartnerId.get(row.original.id);
           const platform = platformsMap?.linkedin ?? null;
 
-          return platform ? (
-            <PartnerSocialColumn
-              value={platform?.handle ?? "-"}
-              verified={!!platform?.verifiedAt}
-            />
-          ) : (
-            "-"
+          return (
+            <PartnerSocialColumn platform={platform} platformName="linkedin" />
           );
         },
       },
@@ -329,14 +298,8 @@ export function ProgramPartnersApplicationsPageClient() {
           const platformsMap = platformsMapByPartnerId.get(row.original.id);
           const platform = platformsMap?.instagram ?? null;
 
-          return platform ? (
-            <PartnerSocialColumn
-              at
-              value={platform?.handle ?? "-"}
-              verified={!!platform?.verifiedAt}
-            />
-          ) : (
-            "-"
+          return (
+            <PartnerSocialColumn platform={platform} platformName="instagram" />
           );
         },
       },
@@ -348,14 +311,8 @@ export function ProgramPartnersApplicationsPageClient() {
           const platformsMap = platformsMapByPartnerId.get(row.original.id);
           const platform = platformsMap?.tiktok ?? null;
 
-          return platform ? (
-            <PartnerSocialColumn
-              at
-              value={platform?.handle ?? "-"}
-              verified={!!platform?.verifiedAt}
-            />
-          ) : (
-            "-"
+          return (
+            <PartnerSocialColumn platform={platform} platformName="tiktok" />
           );
         },
       },

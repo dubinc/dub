@@ -470,7 +470,7 @@ export type PartnerProfileCustomerProps = z.infer<
 export type PartnerProfileLinkProps = z.infer<typeof PartnerProfileLinkSchema>;
 
 export type EnrolledPartnerProps = z.infer<typeof EnrolledPartnerSchema> & {
-  platforms: PartnerSocialPlatform[]; // only present when includeSocialPlatforms is true
+  platforms: PartnerSocialPlatform[];
 };
 
 export type NetworkPartnerProps = z.infer<typeof NetworkPartnerSchema>;
@@ -488,7 +488,7 @@ export type NetworkProgramExtendedProps = z.infer<
 export type EnrolledPartnerExtendedProps = z.infer<
   typeof EnrolledPartnerSchemaExtended
 > & {
-  platforms?: PartnerSocialPlatform[]; // only present when includeSocialPlatforms is true
+  platforms: PartnerSocialPlatform[];
 };
 
 export type DiscountProps = z.infer<typeof DiscountSchema>;
