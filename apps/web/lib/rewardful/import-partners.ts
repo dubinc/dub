@@ -222,6 +222,10 @@ async function createPartnerAndLinks({
     });
   }
 
+  console.log(
+    `Imported partner ${partner.email} and created ${affiliate.links.length} partner links`,
+  );
+
   return {
     rewardfulAffiliateId: affiliate.id,
     dubPartnerId: partner.id,

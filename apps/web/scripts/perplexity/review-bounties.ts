@@ -7,13 +7,13 @@ import "dotenv-flow/config";
 import { syncTotalCommissions } from "../../lib/api/partners/sync-total-commissions";
 import { queueBatchEmail } from "../../lib/email/queue-batch-email";
 
-const userId = "xxx";
+const userId = "user_xxx";
 
-// reject invalid bounty submissions
+// approve bounty submissions
 async function main() {
   const bounty = await prisma.bounty.findUniqueOrThrow({
     where: {
-      id: "xxx",
+      id: "bnty_xxx",
     },
   });
 
