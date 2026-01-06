@@ -1,25 +1,8 @@
-import { EnrolledPartnerExtendedProps } from "@/lib/types";
+import { PartnerSocialPlatform } from "@/lib/types";
 
 // Checks if the partner has no verified website or social media links
 export function checkPartnerNoVerifiedSocialLinks(
-  partner: Pick<
-    EnrolledPartnerExtendedProps,
-    | "websiteVerifiedAt"
-    | "youtubeVerifiedAt"
-    | "twitterVerifiedAt"
-    | "linkedinVerifiedAt"
-    | "instagramVerifiedAt"
-    | "tiktokVerifiedAt"
-  >,
+  platforms: PartnerSocialPlatform[],
 ) {
-  const hasVerifiedWebsite = partner.websiteVerifiedAt != null;
-
-  const hasVerifiedSocialLinks =
-    partner.youtubeVerifiedAt != null ||
-    partner.twitterVerifiedAt != null ||
-    partner.linkedinVerifiedAt != null ||
-    partner.instagramVerifiedAt != null ||
-    partner.tiktokVerifiedAt != null;
-
-  return !hasVerifiedWebsite && !hasVerifiedSocialLinks;
+  return !platforms.some((p) => p.verifiedAt != null);
 }
