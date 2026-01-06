@@ -179,7 +179,7 @@ export const getPartnersQuerySchemaExtended = getPartnersQuerySchema.merge(
       .transform((v) => (Array.isArray(v) ? v : v.split(",")))
       .optional(),
     groupId: z.string().optional(),
-    includeOnlinePresenceVerification: booleanQuerySchema.optional(),
+    includeSocialPlatforms: booleanQuerySchema.optional(),
   }),
 );
 
@@ -211,35 +211,26 @@ export const PartnerOnlinePresenceSchema = z.object({
     .string()
     .nullish()
     .describe("The partner's website URL (including the https protocol)."),
-  websiteTxtRecord: z.string().nullish(),
-  websiteVerifiedAt: z.date().nullish(),
   youtube: z
     .string()
     .nullish()
     .describe("The partner's YouTube channel username (e.g. `johndoe`)."),
-  youtubeVerifiedAt: z.date().nullish(),
-  youtubeSubscriberCount: z.number().nullish(),
-  youtubeViewCount: z.number().nullish(),
   twitter: z
     .string()
     .nullish()
     .describe("The partner's Twitter username (e.g. `johndoe`)."),
-  twitterVerifiedAt: z.date().nullish(),
   linkedin: z
     .string()
     .nullish()
     .describe("The partner's LinkedIn username (e.g. `johndoe`)."),
-  linkedinVerifiedAt: z.date().nullish(),
   instagram: z
     .string()
     .nullish()
     .describe("The partner's Instagram username (e.g. `johndoe`)."),
-  instagramVerifiedAt: z.date().nullish(),
   tiktok: z
     .string()
     .nullish()
     .describe("The partner's TikTok username (e.g. `johndoe`)."),
-  tiktokVerifiedAt: z.date().nullish(),
 });
 
 export const MAX_PARTNER_INDUSTRY_INTERESTS = 8;

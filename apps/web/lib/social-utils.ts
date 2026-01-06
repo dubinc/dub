@@ -105,3 +105,40 @@ export const sanitizeSocialHandle = (
 
   return handle || null;
 };
+
+// Converts an array of platform objects into a key-value object
+// for easy lookup by platform name. Returns null for platforms not found.
+export function socialPlatformsToMap<T extends { platform: SocialPlatform }>(
+  platforms: T[],
+): Record<SocialPlatform, T | null> {
+  const result = {
+    website: null,
+    youtube: null,
+    twitter: null,
+    linkedin: null,
+    instagram: null,
+    tiktok: null,
+  } as Record<SocialPlatform, T | null>;
+
+  for (const platform of platforms) {
+    result[platform.platform] = platform;
+  }
+
+  return result;
+}
+
+// Polyfills social media fields from platforms array for backward compatibility
+export function polyfillSocialMediaFields<
+  T extends { platform: SocialPlatform; handle: string | null },
+>(platforms: T[]) {
+  const platformsMap = socialPlatformsToMap(platforms);
+
+  return {
+    website: platformsMap["website"]?.handle ?? null,
+    youtube: platformsMap["youtube"]?.handle ?? null,
+    twitter: platformsMap["twitter"]?.handle ?? null,
+    linkedin: platformsMap["linkedin"]?.handle ?? null,
+    instagram: platformsMap["instagram"]?.handle ?? null,
+    tiktok: platformsMap["tiktok"]?.handle ?? null,
+  };
+}
