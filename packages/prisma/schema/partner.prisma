@@ -182,9 +182,9 @@ model PartnerPlatform {
   handle     String? // The username/handle/URL for the platform
   platformId String? // Platform-specific ID (e.g., YouTube channel ID)
   verifiedAt DateTime?
-  followers  Int            @default(0)
-  posts      Int            @default(0)
-  views      Int            @default(0)
+  followers  BigInt         @default(0)
+  posts      BigInt         @default(0)
+  views      BigInt         @default(0)
   metadata   Json?
   createdAt  DateTime       @default(now())
   updatedAt  DateTime       @updatedAt
