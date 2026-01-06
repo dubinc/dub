@@ -13,7 +13,7 @@ export default defineConfig((options: Options) => ({
       js: '"use client"',
     };
   },
-  dts: false, // TODO: Re-enable after TipTap version conflict is resolved
+  dts: true,
   minify: true,
   external: ["react"],
   ...options,
