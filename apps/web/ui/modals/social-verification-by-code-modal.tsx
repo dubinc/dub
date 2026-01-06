@@ -8,7 +8,7 @@ import { useAction } from "next-safe-action/hooks";
 import { Dispatch, ReactNode, SetStateAction } from "react";
 import { toast } from "sonner";
 
-interface SocialVerificationModalProps {
+interface SocialVerificationByCodeModalProps {
   showSocialVerificationModal: boolean;
   setShowSocialVerificationModal: Dispatch<SetStateAction<boolean>>;
   platform: SocialPlatform;
@@ -40,23 +40,25 @@ const PLATFORM_INFO: Record<"youtube" | "instagram", PlatformInfo> = {
   },
 };
 
-export function SocialVerificationModal(props: SocialVerificationModalProps) {
+export function SocialVerificationByCodeModal(
+  props: SocialVerificationByCodeModalProps,
+) {
   return (
     <Modal
       showModal={props.showSocialVerificationModal}
       setShowModal={props.setShowSocialVerificationModal}
     >
-      <SocialVerificationModalInner {...props} />
+      <SocialVerificationByCodeModalInner {...props} />
     </Modal>
   );
 }
 
-function SocialVerificationModalInner({
+function SocialVerificationByCodeModalInner({
   setShowSocialVerificationModal,
   platform,
   handle,
   verificationCode,
-}: SocialVerificationModalProps) {
+}: SocialVerificationByCodeModalProps) {
   const { mutate: mutatePartner } = usePartnerProfile();
 
   const platformInfo: PlatformInfo = PLATFORM_INFO[platform];
@@ -172,3 +174,4 @@ function Step({
     </div>
   );
 }
+

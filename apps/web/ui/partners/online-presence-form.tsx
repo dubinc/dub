@@ -9,7 +9,7 @@ import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PartnerProps, PartnerSocialPlatform } from "@/lib/types";
 import { parseUrlSchemaAllowEmpty } from "@/lib/zod/schemas/utils";
 import { DomainVerificationModal } from "@/ui/modals/domain-verification-modal";
-import { SocialVerificationModal } from "@/ui/modals/social-verification-modal";
+import { SocialVerificationByCodeModal } from "@/ui/modals/social-verification-by-code-modal";
 import { SocialPlatform } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
@@ -229,7 +229,7 @@ export const OnlinePresenceForm = forwardRef<
         )}
 
         {socialVerificationData && (
-          <SocialVerificationModal
+          <SocialVerificationByCodeModal
             platform={socialVerificationData.platform}
             handle={socialVerificationData.handle}
             verificationCode={socialVerificationData.verificationCode}
