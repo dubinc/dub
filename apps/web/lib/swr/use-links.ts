@@ -46,6 +46,7 @@ export default function useLinks(
               "tagIds",
               "domain",
               "userId",
+              "linkFeatures",
               "search",
               "page",
               "sortBy",
