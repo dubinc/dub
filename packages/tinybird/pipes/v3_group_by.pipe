@@ -276,6 +276,26 @@ SQL >
 
 
 
+NODE first_sale_by_link_customer
+SQL >
+
+    %
+    SELECT workspace_id, link_id, customer_id, minMerge(first_sale_state) AS first_sale_ts
+    FROM dub_first_sale_mv
+    WHERE
+        workspace_id
+        = {{
+            String(
+                workspaceId,
+                'cl7pj5kq4006835rbjlt2ofka',
+                description="The unique ID for the workspace",
+                required=True,
+            )
+        }}
+    GROUP BY workspace_id, link_id, customer_id
+
+
+
 NODE group_by_sales
 SQL >
 
@@ -327,72 +347,90 @@ SQL >
         {% end %}
         COUNT(*) AS sales,
         SUM(amount) AS saleAmount
-    FROM dub_sale_events_mv
-    WHERE
-        groupByField != '' AND groupByField != 'Unknown'
-        {% if defined(workspaceId) %} AND workspace_id = {{ workspaceId }} {% end %}
-        {% if defined(linkIds) %} AND link_id IN {{ Array(linkIds, 'String') }}
-        {% elif defined(linkId) %} AND link_id = {{ linkId }}
-        {% elif defined(programId) or defined(partnerId) or defined(groupId) or defined(
-            tenantId
-        ) or defined(folderIds) or defined(folderId) or defined(domain) or defined(
-            tagIds
-        ) or defined(
-            root
-        ) %} AND link_id in (SELECT link_id from workspace_links)
-        {% end %}
-        {% if defined(customerId) %} AND customer_id = {{ String(customerId) }} {% end %}
-        {% if defined(saleType) %} AND sale_type = {{ String(saleType) }} {% end %}
-        {% if defined(continent) %} AND continent = {{ continent }} {% end %}
-        {% if defined(country) %} AND country = {{ country }} {% end %}
-        {% if defined(region) %} AND region = {{ region }} {% end %}
-        {% if defined(city) %} AND city = {{ city }} {% end %}
-        {% if defined(device) %} AND device = {{ device }} {% end %}
-        {% if defined(browser) %} AND browser = {{ browser }} {% end %}
-        {% if defined(os) %} AND os = {{ os }} {% end %}
-        {% if defined(referer) %} AND referer = {{ referer }} {% end %}
-        {% if defined(refererUrl) %} AND splitByString('?', referer_url)[1] = {{ refererUrl }} {% end %}
-        {% if defined(utm_source) %}
-            AND url LIKE concat('%utm_source=', encodeURLFormComponent({{ String(utm_source) }}), '%')
-        {% end %}
-        {% if defined(utm_medium) %}
-            AND url LIKE concat('%utm_medium=', encodeURLFormComponent({{ String(utm_medium) }}), '%')
-        {% end %}
-        {% if defined(utm_campaign) %}
-            AND url
-            LIKE concat('%utm_campaign=', encodeURLFormComponent({{ String(utm_campaign) }}), '%')
-        {% end %}
-        {% if defined(utm_term) %}
-            AND url LIKE concat('%utm_term=', encodeURLFormComponent({{ String(utm_term) }}), '%')
-        {% end %}
-        {% if defined(utm_content) %}
-            AND url LIKE concat('%utm_content=', encodeURLFormComponent({{ String(utm_content) }}), '%')
-        {% end %}
-        {% if defined(url) %} AND splitByString('?', url)[1] = {{ url }} {% end %}
-        {% if defined(start) %} AND timestamp >= {{ DateTime(start) }} {% end %}
-        {% if defined(end) %} AND timestamp <= {{ DateTime(end) }} {% end %}
-        {% if defined(filters) %}
-            {% for item in JSON(filters, '[]') %}
-                {% if item.get('operand', '').startswith('metadata.') %}
-                    {% set metadataKey = item.get('operand', '').split('.')[1] %}
-                    {% set operator = item.get('operator', 'equals') %}
-                    {% set value = item.get('value', '') %}
-                    {% if operator == 'equals' %}
-                        AND JSONExtractString(metadata, {{ metadataKey }}) = {{ value }}
-                    {% elif operator == 'notEquals' %}
-                        AND JSONExtractString(metadata, {{ metadataKey }}) != {{ value }}
-                    {% elif operator == 'greaterThan' %}
-                        AND JSONExtractString(metadata, {{ metadataKey }}) > {{ value }}
-                    {% elif operator == 'lessThan' %}
-                        AND JSONExtractString(metadata, {{ metadataKey }}) < {{ value }}
-                    {% elif operator == 'greaterThanOrEqual' %}
-                        AND JSONExtractString(metadata, {{ metadataKey }}) >= {{ value }}
-                    {% elif operator == 'lessThanOrEqual' %}
-                        AND JSONExtractString(metadata, {{ metadataKey }}) <= {{ value }}
+    FROM
+    (
+        SELECT
+            se.*,
+            if(
+                isNull(fs.first_sale_ts),
+                'new',
+                if(
+                    toUnixTimestamp64Milli(se.timestamp) = toUnixTimestamp64Milli(fs.first_sale_ts),
+                    'new',
+                    'recurring'
+                )
+            ) AS sale_type
+        FROM dub_sale_events_mv AS se
+        LEFT JOIN first_sale_by_link_customer AS fs
+            USING (workspace_id, link_id, customer_id)
+        WHERE
+            true
+            {% if defined(workspaceId) %} AND se.workspace_id = {{ workspaceId }} {% end %}
+            {% if defined(linkIds) %} AND se.link_id IN {{ Array(linkIds, 'String') }}
+            {% elif defined(linkId) %} AND se.link_id = {{ linkId }}
+            {% elif defined(programId) or defined(partnerId) or defined(groupId) or defined(
+                tenantId
+            ) or defined(folderIds) or defined(folderId) or defined(domain) or defined(
+                tagIds
+            ) or defined(
+                root
+            ) %} AND se.link_id in (SELECT link_id from workspace_links)
+            {% end %}
+            {% if defined(customerId) %} AND se.customer_id = {{ String(customerId) }} {% end %}
+            {% if defined(continent) %} AND se.continent = {{ continent }} {% end %}
+            {% if defined(country) %} AND se.country = {{ country }} {% end %}
+            {% if defined(region) %} AND se.region = {{ region }} {% end %}
+            {% if defined(city) %} AND se.city = {{ city }} {% end %}
+            {% if defined(device) %} AND se.device = {{ device }} {% end %}
+            {% if defined(browser) %} AND se.browser = {{ browser }} {% end %}
+            {% if defined(os) %} AND se.os = {{ os }} {% end %}
+            {% if defined(referer) %} AND se.referer = {{ referer }} {% end %}
+            {% if defined(refererUrl) %} AND splitByString('?', se.referer_url)[1] = {{ refererUrl }} {% end %}
+            {% if defined(utm_source) %}
+                AND se.url LIKE concat('%utm_source=', encodeURLFormComponent({{ String(utm_source) }}), '%')
+            {% end %}
+            {% if defined(utm_medium) %}
+                AND se.url LIKE concat('%utm_medium=', encodeURLFormComponent({{ String(utm_medium) }}), '%')
+            {% end %}
+            {% if defined(utm_campaign) %}
+                AND se.url
+                LIKE concat('%utm_campaign=', encodeURLFormComponent({{ String(utm_campaign) }}), '%')
+            {% end %}
+            {% if defined(utm_term) %}
+                AND se.url LIKE concat('%utm_term=', encodeURLFormComponent({{ String(utm_term) }}), '%')
+            {% end %}
+            {% if defined(utm_content) %}
+                AND se.url LIKE concat('%utm_content=', encodeURLFormComponent({{ String(utm_content) }}), '%')
+            {% end %}
+            {% if defined(url) %} AND splitByString('?', se.url)[1] = {{ url }} {% end %}
+            {% if defined(start) %} AND se.timestamp >= {{ DateTime(start) }} {% end %}
+            {% if defined(end) %} AND se.timestamp <= {{ DateTime(end) }} {% end %}
+            {% if defined(filters) %}
+                {% for item in JSON(filters, '[]') %}
+                    {% if item.get('operand', '').startswith('metadata.') %}
+                        {% set metadataKey = item.get('operand', '').split('.')[1] %}
+                        {% set operator = item.get('operator', 'equals') %}
+                        {% set value = item.get('value', '') %}
+                        {% if operator == 'equals' %}
+                            AND JSONExtractString(se.metadata, {{ metadataKey }}) = {{ value }}
+                        {% elif operator == 'notEquals' %}
+                            AND JSONExtractString(se.metadata, {{ metadataKey }}) != {{ value }}
+                        {% elif operator == 'greaterThan' %}
+                            AND JSONExtractString(se.metadata, {{ metadataKey }}) > {{ value }}
+                        {% elif operator == 'lessThan' %}
+                            AND JSONExtractString(se.metadata, {{ metadataKey }}) < {{ value }}
+                        {% elif operator == 'greaterThanOrEqual' %}
+                            AND JSONExtractString(se.metadata, {{ metadataKey }}) >= {{ value }}
+                        {% elif operator == 'lessThanOrEqual' %}
+                            AND JSONExtractString(se.metadata, {{ metadataKey }}) <= {{ value }}
+                        {% end %}
                     {% end %}
                 {% end %}
             {% end %}
-        {% end %}
+    ) AS typed
+    WHERE
+        groupByField != '' AND groupByField != 'Unknown'
+        {% if defined(saleType) %} AND typed.sale_type = {{ String(saleType) }} {% end %}
     GROUP BY
         groupByField
         {% if String(groupBy) == 'cities' %}, country, region

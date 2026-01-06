@@ -7,10 +7,7 @@ import { encodeKeyIfCaseSensitive } from "../lib/api/links/case-sensitivity";
 // script to convert existing links for a domain to case sensitive (encoded) setup
 async function main() {
   const where: Prisma.LinkWhereInput = {
-    domain: "domain.com",
-    createdAt: {
-      lt: new Date("2025-06-30T23:59:59.999Z"),
-    },
+    domain: "xxx",
     NOT: {
       key: {
         endsWith: "=",
@@ -35,13 +32,6 @@ async function main() {
 
   await Promise.all(
     links.map(async (link) => {
-      if (link.key.length > 7) {
-        console.log(
-          `Skipping link ${link.id} because key length is greater than 7 (already encoded)`,
-        );
-        return;
-      }
-
       const newKey = encodeKeyIfCaseSensitive({
         domain: link.domain,
         key: link.key,

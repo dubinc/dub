@@ -1,9 +1,4 @@
-import {
-  currencyFormatter,
-  DUB_WORDMARK,
-  formatDate,
-  formatDateTimeSmart,
-} from "@dub/utils";
+import { currencyFormatter, DUB_WORDMARK, formatDate } from "@dub/utils";
 import {
   Body,
   Container,
@@ -134,9 +129,7 @@ export default function PartnerPayoutConfirmed({
                 <span className="text-sm text-neutral-500">
                   Estimated arrival date:{" "}
                   <strong className="text-black">
-                    {formatDateTimeSmart(
-                      addBusinessDays(payout.initiatedAt, etaDays),
-                    )}
+                    {formatDate(addBusinessDays(payout.initiatedAt, etaDays))}
                   </strong>
                   .
                 </span>

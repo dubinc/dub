@@ -417,12 +417,8 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
         <Table {...tableProps} table={table} />
       ) : (
         <AnimatedEmptyState
-          title="No applications found"
-          description={
-            isFiltered || search
-              ? "No applications found for the selected filters."
-              : "No applications have been submitted for this program."
-          }
+          title="No rejected applications found"
+          description={`No rejected applications found${isFiltered || search ? " for the selected filters" : " for this program"}.`}
           cardContent={() => (
             <>
               <Users className="size-4 text-neutral-700" />

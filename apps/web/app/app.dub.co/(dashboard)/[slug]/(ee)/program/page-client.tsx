@@ -10,6 +10,7 @@ import { ConversionBlock } from "@/ui/partners/overview/blocks/conversion-block"
 import { CountriesBlock } from "@/ui/partners/overview/blocks/countries-block";
 import { LinksBlock } from "@/ui/partners/overview/blocks/links-block";
 import { PartnersBlock } from "@/ui/partners/overview/blocks/partners-block";
+import { SaleTypeBlock } from "@/ui/partners/overview/blocks/sale-type-block";
 import { TrafficSourcesBlock } from "@/ui/partners/overview/blocks/traffic-sources-block";
 import { ProgramOverviewCard } from "@/ui/partners/overview/program-overview-card";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
@@ -28,7 +29,7 @@ const BLOCKS = [
   ConversionBlock,
   CountriesBlock,
   LinksBlock,
-  // SaleTypeBlock, // TODO: Add this back once we fix sales by type
+  SaleTypeBlock,
 ];
 
 export default function ProgramOverviewPageClient() {
@@ -58,7 +59,7 @@ export default function ProgramOverviewPageClient() {
     !exceededEvents &&
       `/api/analytics?${editQueryString(queryString, {
         event: "composite",
-        // saleType: "new", // TODO: Add this back once we fix sales by type
+        saleType: "new",
       })}`,
     fetcher,
     {
