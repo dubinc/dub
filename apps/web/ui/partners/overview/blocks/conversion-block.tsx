@@ -51,7 +51,7 @@ export function ConversionBlock() {
       title="Conversion rate"
       viewAllHref={`/${workspaceSlug}/program/analytics${getQueryString(
         {
-          // saleType: "new", // TODO: Add this back once we fix sales by type
+          saleType: "new",
           view: "funnel",
         },
         {
