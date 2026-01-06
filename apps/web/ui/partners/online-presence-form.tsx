@@ -163,9 +163,8 @@ export const OnlinePresenceForm = forwardRef<
           return;
         }
 
-        // Handle different verification types
+        // For website verification (TXT record)
         if (data.type === "txt_record") {
-          // For website verification (TXT record)
           const websiteUrl = input.handle.startsWith("http")
             ? input.handle
             : `https://${input.handle}`;
@@ -174,11 +173,15 @@ export const OnlinePresenceForm = forwardRef<
             domain: new URL(websiteUrl).hostname,
             txtRecord: data.websiteTxtRecord,
           });
-        } else if (data.type === "oauth") {
-          // For OAuth platforms (Twitter, TikTok) - redirect to OAuth URL
+        }
+
+        // For OAuth flow
+        else if (data.type === "oauth") {
           window.location.href = data.oauthUrl;
-        } else if (data.type === "verification_code") {
-          // For verification code platforms (YouTube, Instagram, LinkedIn)
+        }
+
+        // For verification code flow
+        else if (data.type === "verification_code") {
           setSocialVerificationData({
             platform: input.platform,
             handle: input.handle,
@@ -394,6 +397,7 @@ export const OnlinePresenceForm = forwardRef<
                 prefix="in/"
                 icon={LinkedIn}
                 disabled={disabled}
+                verifyDisabledTooltip="LinkedIn verification is coming soon."
                 onVerifyClick={async () => {
                   const handle = getValues("linkedin");
 
