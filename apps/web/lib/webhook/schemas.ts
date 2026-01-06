@@ -69,6 +69,8 @@ export const webhookEventSchema = z
       })
       .meta({
         description: "Triggered when a link is created, updated, or deleted.",
+        id: "LinkWebhookEvent",
+        outputId: "LinkWebhookEvent",
       }),
 
     z
@@ -80,6 +82,8 @@ export const webhookEventSchema = z
       })
       .meta({
         description: "Triggered when a link is clicked.",
+        id: "LinkClickedEvent",
+        outputId: "LinkClickedEvent",
       }),
 
     z
@@ -91,6 +95,8 @@ export const webhookEventSchema = z
       })
       .meta({
         description: "Triggered when a lead is created.",
+        id: "LeadCreatedEvent",
+        outputId: "LeadCreatedEvent",
       }),
 
     z
@@ -102,6 +108,8 @@ export const webhookEventSchema = z
       })
       .meta({
         description: "Triggered when a sale is created.",
+        id: "SaleCreatedEvent",
+        outputId: "SaleCreatedEvent",
       }),
 
     z
@@ -113,6 +121,8 @@ export const webhookEventSchema = z
       })
       .meta({
         description: "Triggered when a partner is enrolled.",
+        id: "PartnerEnrolledEvent",
+        outputId: "PartnerEnrolledEvent",
       }),
 
     z
@@ -125,6 +135,8 @@ export const webhookEventSchema = z
       .meta({
         description:
           "Triggered when a partner submits an application to join a program.",
+        id: "PartnerApplicationSubmittedEvent",
+        outputId: "PartnerApplicationSubmittedEvent",
       }),
 
     z
@@ -136,9 +148,12 @@ export const webhookEventSchema = z
       })
       .meta({
         description: "Triggered when a commission is created for a partner.",
+        id: "CommissionCreatedEvent",
+        outputId: "CommissionCreatedEvent",
       }),
   ])
   .meta({
     description: "Webhook event schema",
     "x-speakeasy-include": true,
+    id: "WebhookEvent",
   });
