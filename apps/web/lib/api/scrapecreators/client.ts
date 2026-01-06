@@ -102,8 +102,6 @@ export class ScrapeCreatorsClient {
 
     const jsonResponse = await response.json();
 
-    console.log(jsonResponse);
-
     if (!response.ok) {
       console.error("[ScrapeCreators] Failed to fetch account", {
         ...jsonResponse,
