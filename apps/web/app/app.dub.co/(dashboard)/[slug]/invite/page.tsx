@@ -1,14 +1,33 @@
-"use client";
-
-import useWorkspace from "@/lib/swr/use-workspace";
+import { getSession } from "@/lib/auth";
+import { prisma } from "@dub/prisma";
 import { redirect } from "next/navigation";
 
-export default function WorkspaceInvitePage() {
-  const { loading, error, slug } = useWorkspace();
+export default async function WorkspaceInvitePage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
 
-  if (!loading && !error && slug) redirect(`/${slug}`);
+  const session = await getSession();
 
-  return <div>invite page WIP</div>;
+  if (!session) redirect(`/login?next=/${slug}/invite`);
+
+  const invite = await prisma.projectInvite.findFirst({
+    where: {
+      email: session.user.email,
+      project: {
+        slug,
+      },
+      expires: {
+        gte: new Date(),
+      },
+    },
+  });
+
+  if (!invite) redirect(`/${slug}`);
+
+  return <div>invite page WIP {invite.role}</div>;
 }
 
 // function AcceptInviteModal({
