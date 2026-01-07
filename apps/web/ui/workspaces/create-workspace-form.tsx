@@ -62,6 +62,8 @@ export function CreateWorkspaceForm({
           // Don't set the logo if fetch fails
           console.log("Failed to check favicon:", error);
         });
+      // } else if (session?.user?.image) {
+      //   setValue("logo", session.user.image);
     }
     // Note: We intentionally don't set the logo to session.user.image (e.g., Google profile picture)
     // because those URLs are not accepted by the uploadedImageSchema which only allows
@@ -151,10 +153,11 @@ export function CreateWorkspaceForm({
             type="text"
             required
             autoComplete="off"
-            className={`${errors.slug
+            className={`${
+              errors.slug
                 ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
                 : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500"
-              } block w-full rounded-r-md focus:outline-none sm:text-sm`}
+            } block w-full rounded-r-md focus:outline-none sm:text-sm`}
             placeholder="acme"
             {...register("slug", {
               required: true,
