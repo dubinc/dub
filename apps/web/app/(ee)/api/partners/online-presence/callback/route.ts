@@ -28,14 +28,14 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
 
   // Validate the request
-  const parsedSeachParams = requestSchema.safeParse(getSearchParams(req.url));
+  const parsedSearchParams = requestSchema.safeParse(getSearchParams(req.url));
 
-  if (!parsedSeachParams.success) {
+  if (!parsedSearchParams.success) {
     console.warn("Missing required search params in OAuth callback.");
     return NextResponse.redirect(PARTNERS_DOMAIN);
   }
 
-  const { code, state } = parsedSeachParams.data;
+  const { code, state } = parsedSearchParams.data;
 
   // Get current user
   const session = await getSession();
