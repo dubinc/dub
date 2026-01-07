@@ -59,7 +59,7 @@ export const verifySocialAccountByCodeAction = authPartnerActionClient
       },
     });
 
-    // No futher action is needed if the account is already verified
+    // No further action is needed if the account is already verified
     if (
       partnerPlatform?.handle?.toLowerCase() === handle.toLowerCase() &&
       partnerPlatform.verifiedAt
