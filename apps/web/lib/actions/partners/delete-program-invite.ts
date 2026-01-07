@@ -13,7 +13,7 @@ const deleteProgramInviteSchema = z.object({
 });
 
 export const deleteProgramInviteAction = authActionClient
-  .schema(deleteProgramInviteSchema)
+  .inputSchema(deleteProgramInviteSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { partnerId } = parsedInput;
     const { workspace, user } = ctx;

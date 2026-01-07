@@ -13,7 +13,7 @@ const schema = z.object({
 });
 
 export const startToltImportAction = authActionClient
-  .schema(schema)
+  .inputSchema(schema)
   .action(async ({ ctx, parsedInput }) => {
     const { workspace, user } = ctx;
     const { toltProgramId } = parsedInput;

@@ -13,7 +13,7 @@ const schema = z.object({
 });
 
 export const setToltTokenAction = authActionClient
-  .schema(schema)
+  .inputSchema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
     const { token, toltProgramId } = parsedInput;

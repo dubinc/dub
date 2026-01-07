@@ -19,7 +19,7 @@ const deleteProgramResourceSchema = z.object({
 });
 
 export const deleteProgramResourceAction = authActionClient
-  .schema(deleteProgramResourceSchema)
+  .inputSchema(deleteProgramResourceSchema)
   .action(async ({ ctx, parsedInput }) => {
     const { workspace } = ctx;
     const { resourceType, resourceId } = parsedInput;

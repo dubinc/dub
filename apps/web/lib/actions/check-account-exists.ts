@@ -15,7 +15,7 @@ const schema = z.object({
 
 // Check if account exists
 export const checkAccountExistsAction = actionClient
-  .schema(schema)
+  .inputSchema(schema)
   .use(throwIfAuthenticated)
   .action(async ({ parsedInput }) => {
     const { email } = parsedInput;

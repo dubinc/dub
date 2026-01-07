@@ -37,7 +37,7 @@ const schema = z.discriminatedUnion("step", [
 ]);
 
 export const mergePartnerAccountsAction = authPartnerActionClient
-  .schema(schema)
+  .inputSchema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { user } = ctx;
     const { step } = parsedInput;

@@ -12,7 +12,7 @@ const acceptProgramInviteSchema = z.object({
 });
 
 export const acceptProgramInviteAction = authPartnerActionClient
-  .schema(acceptProgramInviteSchema)
+  .inputSchema(acceptProgramInviteSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { partner } = ctx;
     const { programId } = parsedInput;

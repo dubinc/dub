@@ -14,7 +14,7 @@ const retryFailedPaypalPayoutSchema = z.object({
 
 // Retry a failed PayPal payout for a partner
 export const retryFailedPaypalPayoutsAction = authPartnerActionClient
-  .schema(retryFailedPaypalPayoutSchema)
+  .inputSchema(retryFailedPaypalPayoutSchema)
   .action(async ({ ctx, parsedInput }) => {
     const { partner, partnerUser } = ctx;
     const { payoutId } = parsedInput;

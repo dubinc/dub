@@ -19,7 +19,7 @@ const schema = z.object({
 
 // Approve a submission for a bounty
 export const approveBountySubmissionAction = authActionClient
-  .schema(schema)
+  .inputSchema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { submissionId, rewardAmount } = parsedInput;

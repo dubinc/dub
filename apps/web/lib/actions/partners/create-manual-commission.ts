@@ -39,7 +39,7 @@ const saleEventSchemaTBWithTimestamp = saleEventSchemaTB.extend({
 });
 
 export const createManualCommissionAction = authActionClient
-  .schema(createCommissionSchema)
+  .inputSchema(createCommissionSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
 

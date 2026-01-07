@@ -16,7 +16,7 @@ const schema = z.object({
 
 // Request edit access to a folder
 export const requestFolderEditAccessAction = authActionClient
-  .schema(schema)
+  .inputSchema(schema)
   .action(async ({ ctx, parsedInput }) => {
     const { workspace, user } = ctx;
     const { folderId } = parsedInput;

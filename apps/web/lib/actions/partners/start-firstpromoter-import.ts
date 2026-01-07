@@ -14,7 +14,7 @@ const schema = firstPromoterCredentialsSchema.extend({
 });
 
 export const startFirstPromoterImportAction = authActionClient
-  .schema(schema)
+  .inputSchema(schema)
   .action(async ({ ctx, parsedInput }) => {
     const { workspace, user } = ctx;
     const { apiKey, accountId } = parsedInput;

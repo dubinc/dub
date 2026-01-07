@@ -13,7 +13,7 @@ const schema = z.object({
 
 // Update a user's preferences for a workspace
 export const updateWorkspacePreferences = authActionClient
-  .schema(schema)
+  .inputSchema(schema)
   .action(async ({ ctx, parsedInput }) => {
     const { workspace } = ctx;
     const { key, value } = parsedInput;

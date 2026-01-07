@@ -14,7 +14,7 @@ const schema = z.object({
 });
 
 export const installSegmentAction = authActionClient
-  .schema(schema)
+  .inputSchema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { writeKey } = parsedInput;

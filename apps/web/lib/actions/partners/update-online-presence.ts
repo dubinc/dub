@@ -61,7 +61,7 @@ const updateOnlinePresenceResponseSchema = updateOnlinePresenceSchema.extend({
 });
 
 export const updateOnlinePresenceAction = authPartnerActionClient
-  .schema(
+  .inputSchema(
     updateOnlinePresenceSchema.refine(
       async (data) => {
         return !data.website || isValidUrl(data.website);

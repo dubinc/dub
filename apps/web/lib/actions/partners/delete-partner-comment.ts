@@ -7,7 +7,7 @@ import { authActionClient } from "../safe-action";
 
 // Delete a partner comment
 export const deletePartnerCommentAction = authActionClient
-  .schema(deletePartnerCommentSchema)
+  .inputSchema(deletePartnerCommentSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { commentId } = parsedInput;

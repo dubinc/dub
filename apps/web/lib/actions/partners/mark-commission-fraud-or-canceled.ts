@@ -16,7 +16,7 @@ const markCommissionFraudOrCanceledSchema = z.object({
 
 // Mark a commission as fraud or canceled for a partner + customer for all historical commissions
 export const markCommissionFraudOrCanceledAction = authActionClient
-  .schema(markCommissionFraudOrCanceledSchema)
+  .inputSchema(markCommissionFraudOrCanceledSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { commissionId, status } = parsedInput;

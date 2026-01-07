@@ -12,7 +12,7 @@ import { authActionClient } from "../safe-action";
 import { createProgram } from "./create-program";
 
 export const onboardProgramAction = authActionClient
-  .schema(onboardProgramSchema)
+  .inputSchema(onboardProgramSchema)
   .action(async ({ ctx, parsedInput: data }) => {
     const { workspace, user } = ctx;
 

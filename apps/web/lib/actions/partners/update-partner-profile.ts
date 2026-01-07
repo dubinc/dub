@@ -44,7 +44,7 @@ const updatePartnerProfileSchema = z
 
 // Update a partner profile
 export const updatePartnerProfileAction = authPartnerActionClient
-  .schema(updatePartnerProfileSchema)
+  .inputSchema(updatePartnerProfileSchema)
   .action(async ({ ctx, parsedInput }) => {
     const { partner, partnerUser } = ctx;
 

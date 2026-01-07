@@ -10,7 +10,7 @@ const schema = z.object({
 
 // Mark program messages as read
 export const markProgramMessagesReadAction = authPartnerActionClient
-  .schema(schema)
+  .inputSchema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { partner } = ctx;
     const { programSlug } = parsedInput;

@@ -12,7 +12,7 @@ const schema = hubSpotSettingsSchema.extend({
 });
 
 export const updateHubSpotSettingsAction = authActionClient
-  .schema(schema)
+  .inputSchema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
     const { leadTriggerEvent, leadLifecycleStageId, closedWonDealStageId } =

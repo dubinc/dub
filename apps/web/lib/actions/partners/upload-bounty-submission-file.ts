@@ -18,7 +18,7 @@ const MAX_ATTEMPTS = 5;
 const CACHE_KEY_PREFIX = "bounty:submission:file:upload";
 
 export const uploadBountySubmissionFileAction = authPartnerActionClient
-  .schema(schema)
+  .inputSchema(schema)
   .action(async ({ ctx, parsedInput }) => {
     const { partner } = ctx;
     const { programId, bountyId } = parsedInput;

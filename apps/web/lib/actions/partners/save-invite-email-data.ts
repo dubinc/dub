@@ -14,7 +14,7 @@ const saveInviteEmailDataSchema = z.object({
 });
 
 export const saveInviteEmailDataAction = authActionClient
-  .schema(saveInviteEmailDataSchema)
+  .inputSchema(saveInviteEmailDataSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
     const { subject, title, body } = parsedInput;

@@ -7,7 +7,7 @@ import { authUserActionClient } from "./safe-action";
 
 // Generate a new client secret for an integration
 export const setOnboardingProgress = authUserActionClient
-  .schema(
+  .inputSchema(
     z.object({
       onboardingStep: z.enum(ONBOARDING_STEPS).nullable(),
     }),

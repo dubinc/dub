@@ -15,7 +15,7 @@ const resendProgramInviteSchema = z.object({
 });
 
 export const resendProgramInviteAction = authActionClient
-  .schema(resendProgramInviteSchema)
+  .inputSchema(resendProgramInviteSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { partnerId } = parsedInput;
     const { workspace, user } = ctx;

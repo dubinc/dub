@@ -14,7 +14,7 @@ const schema = partnerStackCredentialsSchema.extend({
 });
 
 export const startPartnerStackImportAction = authActionClient
-  .schema(schema)
+  .inputSchema(schema)
   .action(async ({ ctx, parsedInput }) => {
     const { workspace, user } = ctx;
     const { publicKey, secretKey } = parsedInput;

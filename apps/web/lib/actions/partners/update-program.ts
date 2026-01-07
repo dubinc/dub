@@ -16,7 +16,7 @@ const schema = updateProgramSchema.partial().extend({
 });
 
 export const updateProgramAction = authActionClient
-  .schema(schema)
+  .inputSchema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const {

@@ -15,7 +15,7 @@ const deleteRewardSchema = z.object({
 });
 
 export const deleteRewardAction = authActionClient
-  .schema(deleteRewardSchema)
+  .inputSchema(deleteRewardSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { rewardId } = parsedInput;

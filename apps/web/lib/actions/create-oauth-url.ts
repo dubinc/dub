@@ -13,7 +13,7 @@ const schema = z.object({
 
 // Generate the OAuth sigin URL based on the provider
 export const createOAuthUrl = authActionClient
-  .schema(schema)
+  .inputSchema(schema)
   .action(async ({ ctx, parsedInput }) => {
     const { workspace, user } = ctx;
     const { provider, folderId } = parsedInput;

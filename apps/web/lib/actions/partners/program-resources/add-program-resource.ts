@@ -56,7 +56,7 @@ const addResourceSchema = z.discriminatedUnion("resourceType", [
 ]);
 
 export const addProgramResourceAction = authActionClient
-  .schema(addResourceSchema)
+  .inputSchema(addResourceSchema)
   .action(async ({ ctx, parsedInput }) => {
     const { workspace } = ctx;
     const { name, resourceType } = parsedInput;
