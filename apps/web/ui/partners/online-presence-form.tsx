@@ -39,12 +39,12 @@ import { z } from "zod";
 import { OnlinePresenceCard } from "./online-presence-card";
 
 const onlinePresenceSchema = z.object({
-  website: parseUrlSchemaAllowEmpty().optional(),
-  youtube: z.string().optional(),
-  twitter: z.string().optional(),
-  linkedin: z.string().optional(),
-  instagram: z.string().optional(),
-  tiktok: z.string().optional(),
+  website: parseUrlSchemaAllowEmpty().nullish(),
+  youtube: z.string().nullish(),
+  twitter: z.string().nullish(),
+  linkedin: z.string().nullish(),
+  instagram: z.string().nullish(),
+  tiktok: z.string().nullish(),
 });
 
 type OnlinePresenceFormData = z.infer<typeof onlinePresenceSchema>;
@@ -713,7 +713,7 @@ function FormRow({
                 value={value ?? ""}
                 verified
                 info={info ?? undefined}
-                onRemove={() => setValue(property, "", { shouldDirty: true })}
+                onRemove={() => setValue(property, null, { shouldDirty: true })}
               />
             </div>
           ) : (
