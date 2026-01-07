@@ -23,11 +23,40 @@ export default async function WorkspaceInvitePage({
         gte: new Date(),
       },
     },
+    include: {
+      project: {
+        select: {
+          name: true,
+          logo: true,
+          defaultProgramId: true,
+          users: {
+            select: {
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                  image: true,
+                },
+              },
+            },
+            where: {
+              user: {
+                isMachine: false,
+              },
+            },
+          },
+        },
+      },
+    },
   });
 
   if (!invite) redirect(`/${slug}`);
 
-  return <div>invite page WIP {invite.role}</div>;
+  return (
+    <div>
+      invite page WIP {invite.role} {JSON.stringify(invite)}
+    </div>
+  );
 }
 
 // function AcceptInviteModal({
