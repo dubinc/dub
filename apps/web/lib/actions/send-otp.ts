@@ -22,7 +22,7 @@ const schema = z.object({
 
 // Send OTP to email to verify account
 export const sendOtpAction = actionClient
-  .schema(schema, {
+  .inputSchema(schema, {
     handleValidationErrorsShape: async (ve) =>
       flattenValidationErrors(ve).fieldErrors,
   })
