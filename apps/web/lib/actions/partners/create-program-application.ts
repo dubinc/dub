@@ -111,7 +111,7 @@ function sanitizeData(rawData: ProgramApplicationData, group: PartnerGroup) {
 
 // Create a program application (or enrollment if a partner is already logged in)
 export const createProgramApplicationAction = actionClient
-  .schema(createProgramApplicationSchema)
+  .inputSchema(createProgramApplicationSchema)
   .action(async ({ parsedInput }): Promise<Response> => {
     const { programId, groupId } = parsedInput;
 

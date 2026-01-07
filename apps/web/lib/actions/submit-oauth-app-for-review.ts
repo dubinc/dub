@@ -15,7 +15,7 @@ const schema = z.object({
 
 // Submit an OAuth app for review
 export const submitOAuthAppForReview = authActionClient
-  .schema(schema)
+  .inputSchema(schema)
   .action(async ({ ctx, parsedInput }) => {
     const { user, workspace } = ctx;
     const { message, integrationId } = parsedInput;

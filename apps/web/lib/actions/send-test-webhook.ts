@@ -15,7 +15,7 @@ const schema = z.object({
 
 // Test send webhook event
 export const sendTestWebhookEvent = authActionClient
-  .schema(schema)
+  .inputSchema(schema)
   .action(async ({ ctx, parsedInput }) => {
     const { workspace } = ctx;
     const { webhookId, trigger } = parsedInput;

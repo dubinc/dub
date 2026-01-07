@@ -11,7 +11,7 @@ const schema = z.object({
 });
 
 export const uploadEmailImageAction = authActionClient
-  .schema(schema)
+  .inputSchema(schema)
   .action(async ({ ctx }) => {
     const { workspace } = ctx;
     const programId = getDefaultProgramIdOrThrow(workspace);

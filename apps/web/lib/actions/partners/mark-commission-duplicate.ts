@@ -16,7 +16,7 @@ const markCommissionDuplicateSchema = z.object({
 
 // Mark a commission as duplicate
 export const markCommissionDuplicateAction = authActionClient
-  .schema(markCommissionDuplicateSchema)
+  .inputSchema(markCommissionDuplicateSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { commissionId } = parsedInput;

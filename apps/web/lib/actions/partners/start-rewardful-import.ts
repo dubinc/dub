@@ -15,7 +15,7 @@ const schema = z.object({
 });
 
 export const startRewardfulImportAction = authActionClient
-  .schema(schema)
+  .inputSchema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { campaignIds } = parsedInput;

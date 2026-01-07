@@ -12,7 +12,7 @@ const schema = z.object({
 
 // Update the notification preference for a partner+user
 export const updatePartnerNotificationPreference = authPartnerActionClient
-  .schema(schema)
+  .inputSchema(schema)
   .action(async ({ ctx, parsedInput }) => {
     const { user, partner } = ctx;
     const { type, value } = parsedInput;

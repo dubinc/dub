@@ -14,7 +14,7 @@ const schema = z.object({
 
 // Enable or disable a webhook
 export const enableOrDisableWebhook = authActionClient
-  .schema(schema)
+  .inputSchema(schema)
   .action(async ({ ctx, parsedInput }) => {
     const { workspace } = ctx;
     const { webhookId } = parsedInput;

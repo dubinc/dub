@@ -11,7 +11,7 @@ import { createIntegrationSchema } from "../zod/schemas/integration";
 import { authActionClient } from "./safe-action";
 
 export const addEditIntegration = authActionClient
-  .schema(
+  .inputSchema(
     createIntegrationSchema.extend({
       id: z.string().optional(), // if id is provided, we are editing the integration
       workspaceId: z.string(),

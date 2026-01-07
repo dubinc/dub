@@ -28,7 +28,7 @@ const schema = z.object({
 });
 
 export const generateLanderAction = authActionClient
-  .schema(schema)
+  .inputSchema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
     const { websiteUrl, landerData, prompt } = parsedInput;

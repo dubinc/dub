@@ -12,7 +12,7 @@ const schema = z.object({
 
 // Get the installation URL for an integration
 export const getIntegrationInstallUrl = authActionClient
-  .schema(schema)
+  .inputSchema(schema)
   .action(async ({ ctx, parsedInput }) => {
     const { workspace } = ctx;
     const { integrationSlug } = parsedInput;

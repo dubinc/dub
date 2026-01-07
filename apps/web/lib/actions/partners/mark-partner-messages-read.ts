@@ -12,7 +12,7 @@ const schema = z.object({
 
 // Mark partner messages as read
 export const markPartnerMessagesReadAction = authActionClient
-  .schema(schema)
+  .inputSchema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
     const { partnerId } = parsedInput;

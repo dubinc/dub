@@ -12,7 +12,7 @@ const setDefaultFolderSchema = z.object({
 
 // Set the default folder for a workspace for a user
 export const setDefaultFolderAction = authActionClient
-  .schema(setDefaultFolderSchema)
+  .inputSchema(setDefaultFolderSchema)
   .action(async ({ ctx, parsedInput }) => {
     const { user, workspace } = ctx;
     const { folderId } = parsedInput;

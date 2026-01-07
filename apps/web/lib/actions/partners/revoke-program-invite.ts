@@ -16,7 +16,7 @@ const revokeProgramInviteSchema = z.object({
 });
 
 export const revokeProgramInviteAction = authActionClient
-  .schema(revokeProgramInviteSchema)
+  .inputSchema(revokeProgramInviteSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { partnerId } = parsedInput;
     const { workspace } = ctx;

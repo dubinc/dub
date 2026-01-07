@@ -11,7 +11,7 @@ const schema = z.object({
 });
 
 export const setRewardfulTokenAction = authActionClient
-  .schema(schema)
+  .inputSchema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
     const { token } = parsedInput;

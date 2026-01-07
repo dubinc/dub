@@ -14,7 +14,7 @@ const schema = z.object({
 
 // Generate a new client secret for an integration
 export const generateClientSecret = authActionClient
-  .schema(schema)
+  .inputSchema(schema)
   .action(async ({ ctx, parsedInput }) => {
     const { workspace } = ctx;
     const { appId } = parsedInput;

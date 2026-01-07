@@ -13,7 +13,7 @@ const schema = z.object({
 });
 
 export const updateApplicationSettingsAction = authActionClient
-  .schema(schema)
+  .inputSchema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
     const { description, categories } = parsedInput;

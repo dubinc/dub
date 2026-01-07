@@ -11,7 +11,7 @@ import { authActionClient } from "../safe-action";
 
 // Approve partners applications in bulk
 export const bulkApprovePartnersAction = authActionClient
-  .schema(bulkApprovePartnersSchema)
+  .inputSchema(bulkApprovePartnersSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { partnerIds, groupId } = parsedInput;

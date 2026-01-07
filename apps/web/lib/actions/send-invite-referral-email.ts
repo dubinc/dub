@@ -9,7 +9,7 @@ import { authActionClient } from "./safe-action";
 
 // send invite referral email for Dub Referrals (soon to be deprecated?)
 export const sendInviteReferralEmail = authActionClient
-  .schema(
+  .inputSchema(
     z.object({
       workspaceId: z.string(),
       email: emailSchema,

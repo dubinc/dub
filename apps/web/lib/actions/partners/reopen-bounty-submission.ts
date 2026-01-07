@@ -16,7 +16,7 @@ const schema = z.object({
 
 // Reopen a bounty submission that was previously submitted
 export const reopenBountySubmissionAction = authActionClient
-  .schema(schema)
+  .inputSchema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { submissionId } = parsedInput;

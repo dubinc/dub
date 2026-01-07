@@ -22,7 +22,7 @@ const schema = messagePartnerSchema.extend({
 
 // Message a partner
 export const messagePartnerAction = authActionClient
-  .schema(schema)
+  .inputSchema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { partnerId, text } = parsedInput;

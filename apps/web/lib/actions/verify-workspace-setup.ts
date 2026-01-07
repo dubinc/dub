@@ -28,7 +28,7 @@ const schema = z.object({
 
 // Attempt to verify the workspace setup
 export const verifyWorkspaceSetup = authActionClient
-  .schema(schema)
+  .inputSchema(schema)
   .action(async ({ ctx }) => {
     const { workspace } = ctx;
 

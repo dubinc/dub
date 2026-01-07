@@ -43,7 +43,7 @@ const schema = z.object({
 });
 
 export const createBountySubmissionAction = authPartnerActionClient
-  .schema(schema)
+  .inputSchema(schema)
   .action(async ({ ctx, parsedInput }) => {
     const { partner } = ctx;
     const { programId, bountyId, files, urls, description, isDraft } =

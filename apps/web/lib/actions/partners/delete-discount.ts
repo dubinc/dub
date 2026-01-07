@@ -17,7 +17,7 @@ const deleteDiscountSchema = z.object({
 });
 
 export const deleteDiscountAction = authActionClient
-  .schema(deleteDiscountSchema)
+  .inputSchema(deleteDiscountSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { discountId } = parsedInput;

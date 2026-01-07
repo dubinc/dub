@@ -35,7 +35,7 @@ const confirmPayoutsSchema = z.object({
 
 // Confirm payouts
 export const confirmPayoutsAction = authActionClient
-  .schema(confirmPayoutsSchema)
+  .inputSchema(confirmPayoutsSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const {
