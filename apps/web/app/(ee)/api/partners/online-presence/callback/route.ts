@@ -62,6 +62,13 @@ export async function GET(req: Request) {
     return NextResponse.redirect(PARTNERS_DOMAIN);
   }
 
+  // Validate platform exists in providers
+  const provider = ONLINE_PRESENCE_PROVIDERS[platform];
+  if (!provider) {
+    console.error(`Invalid platform: ${platform}`);
+    return NextResponse.redirect(PARTNERS_DOMAIN);
+  }
+
   // Redirect user based on source
   const redirectUrl =
     source === "onboarding"
@@ -69,10 +76,11 @@ export async function GET(req: Request) {
       : `${PARTNERS_DOMAIN}/profile`;
 
   const { tokenUrl, clientId, clientSecret, verify, pkce, clientIdParam } =
-    ONLINE_PRESENCE_PROVIDERS[platform];
+    provider;
 
+  const cookieStore = await cookies();
   const codeVerifier = pkce
-    ? (await cookies()).get("online_presence_code_verifier")?.value
+    ? cookieStore.get("online_presence_code_verifier")?.value
     : null;
 
   // Local development redirect since the verifier cookie won't be present on ngrok
@@ -81,6 +89,9 @@ export async function GET(req: Request) {
       `http://partners.localhost:8888/api/partners/online-presence/callback?${searchParams.toString()}`,
     );
   }
+
+  // Remove the state from Redis
+  await redis.del(`partnerSocialVerification:${state}`);
 
   // Get access token
   const urlParams = new URLSearchParams({
@@ -149,6 +160,11 @@ export async function GET(req: Request) {
       metadata: metadata || undefined,
     },
   });
+
+  // Delete PKCE code verifier cookie after successful use
+  if (pkce && codeVerifier) {
+    cookieStore.delete("online_presence_code_verifier");
+  }
 
   return NextResponse.redirect(redirectUrl);
 }
