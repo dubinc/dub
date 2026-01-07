@@ -128,6 +128,11 @@ async function startOAuthVerification({
   }
 
   const platformConfig = SOCIAL_PLATFORM_CONFIGS[platform];
+
+  if (!platformConfig) {
+    throw new Error(`Invalid platform: ${platform}`);
+  }
+
   const handle = sanitizeSocialHandle(rawHandle, platform);
 
   if (!handle) {
@@ -202,6 +207,11 @@ async function startCodeVerification({
   Extract<VerificationResult, { type: "verification_code" }>
 > {
   const platformConfig = SOCIAL_PLATFORM_CONFIGS[platform];
+
+  if (!platformConfig) {
+    throw new Error(`Invalid platform: ${platform}`);
+  }
+
   const handle = sanitizeSocialHandle(rawHandle, platform);
 
   if (!handle) {
