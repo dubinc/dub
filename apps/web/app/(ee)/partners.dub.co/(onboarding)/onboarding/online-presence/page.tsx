@@ -1,5 +1,5 @@
 import { getSession } from "@/lib/auth";
-import { socialPlatformsToMap } from "@/lib/social-utils";
+import { buildSocialPlatformLookup } from "@/lib/social-utils";
 import { PartnerSocialPlatform } from "@/lib/types";
 import { partnerSocialPlatformSchema } from "@/lib/zod/schemas/partners";
 import { OnlinePresenceForm } from "@/ui/partners/online-presence-form";
@@ -85,7 +85,7 @@ async function OnlinePresenceFormRSC() {
     .parse(partner.platforms);
 
   if (application) {
-    const socialPlatformsMap = socialPlatformsToMap(platforms);
+    const socialPlatformsMap = buildSocialPlatformLookup(platforms);
 
     const APPLICATION_SOCIAL_PLATFORMS = [
       "website",

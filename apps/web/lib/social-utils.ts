@@ -108,9 +108,9 @@ export const sanitizeSocialHandle = (
 
 // Converts an array of platform objects into a key-value object
 // for easy lookup by platform name. Returns null for platforms not found.
-export function socialPlatformsToMap<T extends { platform: SocialPlatform }>(
-  platforms: T[],
-): Record<SocialPlatform, T | null> {
+export function buildSocialPlatformLookup<
+  T extends { platform: SocialPlatform },
+>(platforms: T[]): Record<SocialPlatform, T | null> {
   const result = {
     website: null,
     youtube: null,
@@ -131,7 +131,7 @@ export function socialPlatformsToMap<T extends { platform: SocialPlatform }>(
 export function polyfillSocialMediaFields<
   T extends { platform: SocialPlatform; handle: string | null },
 >(platforms: T[]) {
-  const platformsMap = socialPlatformsToMap(platforms);
+  const platformsMap = buildSocialPlatformLookup(platforms);
 
   return {
     website: platformsMap["website"]?.handle ?? null,

@@ -1,4 +1,4 @@
-import { socialPlatformsToMap } from "@/lib/social-utils";
+import { buildSocialPlatformLookup } from "@/lib/social-utils";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { ACME_PROGRAM_ID } from "@dub/utils";
@@ -34,7 +34,7 @@ async function main() {
 
   // Format partners for display with platform handles
   const partnersForDisplay = partners.map((partner) => {
-    const platformsMap = socialPlatformsToMap(partner.platforms);
+    const platformsMap = buildSocialPlatformLookup(partner.platforms);
 
     return {
       name: partner.name,

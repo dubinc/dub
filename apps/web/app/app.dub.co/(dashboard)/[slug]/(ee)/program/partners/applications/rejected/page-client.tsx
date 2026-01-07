@@ -1,7 +1,7 @@
 "use client";
 
 import { approvePartnerAction } from "@/lib/actions/partners/approve-partner";
-import { socialPlatformsToMap } from "@/lib/social-utils";
+import { buildSocialPlatformLookup } from "@/lib/social-utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useGroups from "@/lib/swr/use-groups";
 import usePartner from "@/lib/swr/use-partner";
@@ -115,7 +115,7 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
 
     partners?.forEach((partner) => {
       if (partner.platforms) {
-        map.set(partner.id, socialPlatformsToMap(partner.platforms));
+        map.set(partner.id, buildSocialPlatformLookup(partner.platforms));
       }
     });
     return map;

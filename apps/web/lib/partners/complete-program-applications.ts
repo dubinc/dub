@@ -5,7 +5,7 @@ import { createId } from "../api/create-id";
 import { detectAndRecordFraudApplication } from "../api/fraud/detect-record-fraud-application";
 import { notifyPartnerApplication } from "../api/partners/notify-partner-application";
 import { qstash } from "../cron";
-import { socialPlatformsToMap } from "../social-utils";
+import { buildSocialPlatformLookup } from "../social-utils";
 import { sendWorkspaceWebhook } from "../webhook/publish";
 import { partnerApplicationWebhookSchema } from "../zod/schemas/program-application";
 import {
@@ -132,7 +132,7 @@ export async function completeProgramApplications(userEmail: string) {
         (p) => p.programId === programApplication.programId,
       );
 
-      const socialPlatforms = socialPlatformsToMap(partner.platforms);
+      const socialPlatforms = buildSocialPlatformLookup(partner.platforms);
 
       const missingSocialFields = {
         website:
