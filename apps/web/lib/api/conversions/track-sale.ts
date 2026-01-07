@@ -345,22 +345,6 @@ const _trackLead = async ({
 
       // Create partner commission and execute workflows
       if (link.programId && link.partnerId && customer) {
-        const { webhookPartner, programEnrollment } =
-          await createPartnerCommission({
-            event: "lead",
-            programId: link.programId,
-            partnerId: link.partnerId,
-            linkId: link.id,
-            eventId: leadEventData.event_id,
-            customerId: customer.id,
-            quantity: 1,
-            context: {
-              customer: {
-                country: customer.country,
-              },
-            },
-          });
-
         await Promise.allSettled([
           executeWorkflows({
             trigger: WorkflowTrigger.leadRecorded,
@@ -378,17 +362,6 @@ const _trackLead = async ({
             programId: link.programId,
             eventType: "lead",
           }),
-
-          webhookPartner &&
-            detectAndRecordFraudEvent({
-              program: { id: link.programId },
-              partner: pick(webhookPartner, ["id", "email", "name"]),
-              programEnrollment: pick(programEnrollment, ["status"]),
-              customer: pick(customer, ["id", "email", "name"]),
-              link: pick(link, ["id"]),
-              click: pick(leadEventData, ["url", "referer"]),
-              event: { id: leadEventData.event_id },
-            }),
         ]);
       }
 
