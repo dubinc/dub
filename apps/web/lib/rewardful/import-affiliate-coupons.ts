@@ -136,6 +136,7 @@ export async function importAffiliateCoupons(payload: RewardfulImportPayload) {
             };
           })
           .filter((code): code is NonNullable<typeof code> => code !== null),
+        skipDuplicates: true,
       });
 
       console.log(`Created ${createdDiscountCodes.count} discount codes`);
