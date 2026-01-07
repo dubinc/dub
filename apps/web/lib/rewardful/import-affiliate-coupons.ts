@@ -46,7 +46,10 @@ export async function importAffiliateCoupons(payload: RewardfulImportPayload) {
     );
 
     const results = await redis.hmget<
-      Record<string, { partnerId: string; groupId: string; discountId: string }>
+      Record<
+        string,
+        { partnerId: string; groupId: string | null; discountId: string | null }
+      >
     >(`rewardful:affiliates:${program.id}`, ...affiliateIds);
 
     const filteredPartners = Object.fromEntries(
@@ -112,12 +115,16 @@ export async function importAffiliateCoupons(payload: RewardfulImportPayload) {
         data: filteredCoupons.map((coupon) => {
           const { partnerId, discountId } =
             filteredPartners[coupon.affiliate_id];
+
           return {
             id: createId({ prefix: "dcode_" }),
             code: coupon.token,
             programId,
             partnerId,
-            linkId: createdLinks.find((link) => link.key === coupon.token)?.id!,
+            // this should always be created since we return all links (including duplicates) from bulkCreateLinks
+            linkId: createdLinks.find(
+              (link) => link.key.toLowerCase() === coupon.token.toLowerCase(),
+            )?.id!,
             discountId,
           };
         }),

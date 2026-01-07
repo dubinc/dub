@@ -166,18 +166,28 @@ export async function importCampaigns(payload: RewardfulImportPayload) {
       let dubDiscountAttrs: DubDiscountAttributes | undefined;
 
       if (program.workspace.stripeConnectId) {
-        const stripeCoupon = await stripe.coupons.retrieve(
-          campaign.stripe_coupon_id,
-          {
-            stripeAccount: program.workspace.stripeConnectId,
-          },
-        );
+        try {
+          const stripeCoupon = await stripe.coupons.retrieve(
+            campaign.stripe_coupon_id,
+            {
+              stripeAccount: program.workspace.stripeConnectId,
+            },
+          );
 
-        // Validate the Stripe coupon can be converted to a Dub discount
-        const validation = validateStripeCouponForDubDiscount(stripeCoupon);
-        if (validation.isValid) {
-          // Convert Stripe coupon to Dub discount attributes
-          dubDiscountAttrs = stripeCouponToDubDiscount(stripeCoupon);
+          // Validate the Stripe coupon can be converted to a Dub discount
+          const validation = validateStripeCouponForDubDiscount(stripeCoupon);
+          if (validation.isValid) {
+            // Convert Stripe coupon to Dub discount attributes
+            dubDiscountAttrs = stripeCouponToDubDiscount(stripeCoupon);
+          } else {
+            console.error(
+              `Invalid Stripe coupon ${campaign.stripe_coupon_id}: ${validation.errors.join(", ")}`,
+            );
+          }
+        } catch (error) {
+          console.error(
+            `Error retrieving Stripe coupon ${campaign.stripe_coupon_id}: ${error}`,
+          );
         }
       }
 
