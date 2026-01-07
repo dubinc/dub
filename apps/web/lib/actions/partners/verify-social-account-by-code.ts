@@ -60,9 +60,7 @@ export const verifySocialAccountByCodeAction = authPartnerActionClient
     });
 
     if (!partnerPlatform) {
-      throw new Error(
-        "Social account not found. Please restart verification.",
-      );
+      throw new Error("Social account not found. Please restart verification.");
     }
 
     // No further action is needed if the account is already verified
@@ -82,14 +80,26 @@ export const verifySocialAccountByCodeAction = authPartnerActionClient
     });
 
     if (!socialProfile) {
-      throw new Error("Social media verification failed. Please try again.");
+      throw new Error(
+        "We were unable to retrieve your social media profile. Please try again.",
+      );
+    }
+
+    if (!socialProfile.description) {
+      throw new Error(
+        `We could not find a public ${
+          platform === "youtube" ? "channel description" : "bio"
+        } for this account. Please ensure it is visible and try again.`,
+      );
     }
 
     const isValid = socialProfile.description.includes(verificationCode);
 
     if (!isValid) {
       throw new Error(
-        `Verification code not found in your ${platform} ${platform === "youtube" ? "channel description" : "bio"}. Please make sure you've added the code and try again.`,
+        `The verification code was not found in your ${
+          platform === "youtube" ? "channel description" : "bio"
+        }. Please add the code exactly as provided, save your changes, and try again.`,
       );
     }
 
