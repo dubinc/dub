@@ -59,6 +59,12 @@ export const verifySocialAccountByCodeAction = authPartnerActionClient
       },
     });
 
+    if (!partnerPlatform) {
+      throw new Error(
+        "Social account not found. Please restart verification.",
+      );
+    }
+
     // No further action is needed if the account is already verified
     if (
       partnerPlatform?.handle?.toLowerCase() === handle.toLowerCase() &&
