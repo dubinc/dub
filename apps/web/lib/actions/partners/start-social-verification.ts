@@ -14,7 +14,7 @@ import {
 import { ratelimit } from "@/lib/upstash/ratelimit";
 import { redis } from "@/lib/upstash/redis";
 import { SocialPlatform } from "@dub/prisma/client";
-import { PARTNERS_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { nanoid, PARTNERS_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { cookies } from "next/headers";
 import { v4 as uuid } from "uuid";
 import { z } from "zod";
@@ -147,21 +147,26 @@ async function startOAuthVerification({
   });
 
   // Generate OAuth authorization URL
-  const state = Buffer.from(
-    JSON.stringify({
-      provider: platform,
+  const state = nanoid(16);
+  await redis.set(
+    `partnerSocialVerification:${state}`,
+    {
+      platform,
       partnerId,
       source,
-    }),
-  ).toString("base64");
+    },
+    {
+      ex: 5 * 60, // 5 minutes
+    },
+  );
 
-  const params: Record<string, string> = {
+  const searchParams = new URLSearchParams({
     [oauthProvider.clientIdParam ?? "client_id"]: oauthProvider.clientId,
     redirect_uri: `${PARTNERS_DOMAIN_WITH_NGROK}/api/partners/online-presence/callback`,
     scope: oauthProvider.scopes,
     response_type: "code",
     state,
-  };
+  });
 
   // Handle PKCE for platforms that require it (e.g., Twitter)
   if (oauthProvider.pkce) {
@@ -176,11 +181,11 @@ async function startOAuthVerification({
       maxAge: 60 * 5, // 5 minutes
     });
 
-    params.code_challenge = codeChallenge;
-    params.code_challenge_method = "S256";
+    searchParams.set("code_challenge", codeChallenge);
+    searchParams.set("code_challenge_method", "S256");
   }
 
-  const oauthUrl = `${oauthProvider.authUrl}?${new URLSearchParams(params).toString()}`;
+  const oauthUrl = `${oauthProvider.authUrl}?${searchParams.toString()}`;
 
   return {
     type: "oauth",

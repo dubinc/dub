@@ -1,50 +1,75 @@
 import { ONLINE_PRESENCE_PROVIDERS } from "@/lib/api/partner-profile/online-presence-providers";
+import { getSession } from "@/lib/auth/utils";
+import { redis } from "@/lib/upstash/redis";
 import { prisma } from "@dub/prisma";
-import { PARTNERS_DOMAIN, PARTNERS_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { SocialPlatform } from "@dub/prisma/client";
+import {
+  getSearchParams,
+  PARTNERS_DOMAIN,
+  PARTNERS_DOMAIN_WITH_NGROK,
+} from "@dub/utils";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import { z } from "zod";
+
+const requestSchema = z.object({
+  code: z.string(),
+  state: z.string(),
+});
+
+interface State {
+  platform: SocialPlatform;
+  partnerId: string;
+  source: "onboarding" | "settings";
+}
 
 // GET /api/partners/online-presence/callback
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
 
-  const code = searchParams.get("code") as string;
-  const state = searchParams.get("state") as string;
+  // Validate the request
+  const parsedSeachParams = requestSchema.safeParse(getSearchParams(req.url));
 
-  if (!state) {
-    console.warn("No state found in OAuth callback");
+  if (!parsedSeachParams.success) {
+    console.warn("Missing required search params in OAuth callback.");
     return NextResponse.redirect(PARTNERS_DOMAIN);
   }
 
-  let stateObject: any = {};
+  const { code, state } = parsedSeachParams.data;
 
-  try {
-    stateObject = JSON.parse(Buffer.from(state, "base64").toString("ascii"));
-  } catch (e) {
-    console.warn("Failed to parse state in OAuth callback");
+  // Get current user
+  const session = await getSession();
+
+  if (!session?.user?.id) {
+    console.warn("Unauthorized: Login required.");
     return NextResponse.redirect(PARTNERS_DOMAIN);
   }
 
-  const { provider, partnerId, source } = stateObject;
-  const redirectUrl = getRedirectUrl(source);
+  // Find the state from Redis
+  const stateFromRedis = await redis.get<State>(
+    `partnerSocialVerification:${state}`,
+  );
 
-  if (!code) {
-    console.warn("No code found in OAuth callback");
-    return NextResponse.redirect(redirectUrl);
+  if (!stateFromRedis) {
+    console.warn("State is invalid or expired.");
+    return NextResponse.redirect(PARTNERS_DOMAIN);
   }
 
-  if (!provider || !ONLINE_PRESENCE_PROVIDERS?.[provider]) {
-    console.error("No provider found in OAuth callback state");
-    return NextResponse.redirect(redirectUrl);
+  const { platform, partnerId, source } = stateFromRedis;
+
+  if (session.user.defaultPartnerId !== partnerId) {
+    console.warn("Unauthorized: User is not the default partner.");
+    return NextResponse.redirect(PARTNERS_DOMAIN);
   }
 
-  if (!partnerId) {
-    console.error("No partnerId found in OAuth callback state");
-    return NextResponse.redirect(redirectUrl);
-  }
+  // Redirect user based on source
+  const redirectUrl =
+    source === "onboarding"
+      ? `${PARTNERS_DOMAIN}/onboarding/online-presence`
+      : `${PARTNERS_DOMAIN}/profile`;
 
   const { tokenUrl, clientId, clientSecret, verify, pkce, clientIdParam } =
-    ONLINE_PRESENCE_PROVIDERS[provider];
+    ONLINE_PRESENCE_PROVIDERS[platform];
 
   const codeVerifier = pkce
     ? (await cookies()).get("online_presence_code_verifier")?.value
@@ -58,20 +83,22 @@ export async function GET(req: Request) {
   }
 
   // Get access token
+  const urlParams = new URLSearchParams({
+    [clientIdParam ?? "client_id"]: clientId!,
+    client_secret: clientSecret!,
+    code,
+    redirect_uri: `${PARTNERS_DOMAIN_WITH_NGROK}/api/partners/online-presence/callback`,
+    grant_type: "authorization_code",
+    ...(codeVerifier && { code_verifier: codeVerifier }),
+  });
+
   const response = await fetch(tokenUrl, {
-    method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
       Authorization: `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString("base64")}`,
     },
-    body: new URLSearchParams({
-      [clientIdParam ?? "client_id"]: clientId!,
-      client_secret: clientSecret!,
-      code,
-      redirect_uri: `${PARTNERS_DOMAIN_WITH_NGROK}/api/partners/online-presence/callback`,
-      grant_type: "authorization_code",
-      ...(codeVerifier && { code_verifier: codeVerifier }),
-    }).toString(),
+    method: "POST",
+    body: urlParams.toString(),
   });
 
   const tokenResponse = await response.json();
@@ -90,7 +117,7 @@ export async function GET(req: Request) {
     where: {
       partnerId_platform: {
         partnerId,
-        platform: provider,
+        platform,
       },
     },
   });
@@ -114,7 +141,7 @@ export async function GET(req: Request) {
     where: {
       partnerId_platform: {
         partnerId,
-        platform: provider,
+        platform,
       },
     },
     data: {
@@ -125,8 +152,3 @@ export async function GET(req: Request) {
 
   return NextResponse.redirect(redirectUrl);
 }
-
-const getRedirectUrl = (source: string) =>
-  source === "onboarding"
-    ? `${PARTNERS_DOMAIN}/onboarding/online-presence`
-    : `${PARTNERS_DOMAIN}/profile`;
