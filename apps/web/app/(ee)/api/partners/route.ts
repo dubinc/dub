@@ -76,17 +76,15 @@ export const GET = withWorkspace(
 
     return NextResponse.json(
       z.array(responseSchema).parse(
-        partners.map((partner) => {
-          return {
-            ...partner,
-            clicks: partner.totalClicks,
-            leads: partner.totalLeads,
-            conversions: partner.totalConversions,
-            sales: partner.totalSales,
-            saleAmount: partner.totalSaleAmount,
-            ...polyfillSocialMediaFields(partner.platforms),
-          };
-        }),
+        partners.map((partner) => ({
+          ...partner,
+          clicks: partner.totalClicks,
+          leads: partner.totalLeads,
+          conversions: partner.totalConversions,
+          sales: partner.totalSales,
+          saleAmount: partner.totalSaleAmount,
+          ...polyfillSocialMediaFields(partner.platforms),
+        })),
       ),
     );
   },
