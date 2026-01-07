@@ -1,5 +1,7 @@
 import { getSession } from "@/lib/auth";
 import { prisma } from "@dub/prisma";
+import { CircleCheckFill, Tooltip, Wordmark } from "@dub/ui";
+import { OG_AVATAR_URL, cn } from "@dub/utils";
 import { redirect } from "next/navigation";
 
 export default async function WorkspaceInvitePage({
@@ -13,48 +15,113 @@ export default async function WorkspaceInvitePage({
 
   if (!session) redirect(`/login?next=/${slug}/invite`);
 
-  const invite = await prisma.projectInvite.findFirst({
-    where: {
-      email: session.user.email,
-      project: {
-        slug,
+  const [user, invite] = await Promise.all([
+    prisma.user.findUniqueOrThrow({
+      select: {
+        id: true,
+        name: true,
+        image: true,
       },
-      expires: {
-        gte: new Date(),
+      where: {
+        id: session.user.id,
       },
-    },
-    include: {
-      project: {
-        select: {
-          name: true,
-          logo: true,
-          defaultProgramId: true,
-          users: {
-            select: {
-              user: {
-                select: {
-                  id: true,
-                  name: true,
-                  image: true,
+    }),
+    prisma.projectInvite.findFirst({
+      where: {
+        email: session.user.email,
+        project: {
+          slug,
+        },
+        expires: {
+          gte: new Date(),
+        },
+      },
+      include: {
+        project: {
+          select: {
+            name: true,
+            logo: true,
+            defaultProgramId: true,
+            users: {
+              select: {
+                user: {
+                  select: {
+                    id: true,
+                    name: true,
+                    image: true,
+                  },
                 },
               },
-            },
-            where: {
-              user: {
-                isMachine: false,
+              where: {
+                user: {
+                  isMachine: false,
+                },
               },
             },
           },
         },
       },
-    },
-  });
+    }),
+  ]);
 
   if (!invite) redirect(`/${slug}`);
 
   return (
-    <div>
-      invite page WIP {invite.role} {JSON.stringify(invite)}
+    <div className="rounded-t-[inherit] bg-white">
+      <div className="flex justify-end pr-2 pt-2"></div>
+      <div className="flex min-h-[calc(100vh-10rem)] flex-col items-center justify-center px-4 py-10">
+        <div className="flex flex-col items-center text-center">
+          <div className="animate-slide-up-fade motion-reduce:animate-fade-in [--offset:10px] [animation-duration:0.5s] [animation-fill-mode:both]">
+            <Wordmark className="h-8" />
+          </div>
+          <div
+            className={cn(
+              "relative z-0 mt-8 flex items-center",
+              "animate-slide-up-fade motion-reduce:animate-fade-in [--offset:10px] [animation-delay:0.1s] [animation-duration:0.5s] [animation-fill-mode:both]",
+            )}
+          >
+            <img
+              src={
+                invite.project.logo || `${OG_AVATAR_URL}${invite.project.name}`
+              }
+              alt={invite.project.name}
+              className="z-10 size-20 rotate-[-15deg] rounded-full drop-shadow-md"
+            />
+            <img
+              src={user?.image || `${OG_AVATAR_URL}${user?.id}`}
+              alt={user?.name || "Your avatar"}
+              className="-ml-4 size-20 rotate-[15deg] rounded-full drop-shadow-md"
+            />
+            <div className="absolute -bottom-2 left-1/2 z-10 -translate-x-1/2 rounded-full bg-white p-0.5">
+              <CircleCheckFill className="size-8 text-green-500" />
+            </div>
+          </div>
+          <div
+            className={cn(
+              "flex flex-col items-center text-center",
+              "animate-slide-up-fade motion-reduce:animate-fade-in [--offset:10px] [animation-delay:0.2s] [animation-duration:0.5s] [animation-fill-mode:both]",
+            )}
+          >
+            <h2 className="text-content-default mt-4 text-lg font-semibold">
+              Welcome to the {invite.project.name} workspace
+            </h2>
+            <p className="text-content-subtle text-base font-medium">
+              You've been added as a{invite.role === "owner" ? "n" : ""}{" "}
+              <Tooltip
+                content={
+                  invite.role === "owner"
+                    ? "You have the highest workspace permissions. [Learn more](https://dub.co/help/article/workspace-roles#member-role)"
+                    : "You have limited workspace permissions. [Learn more](https://dub.co/help/article/workspace-roles#member-role)"
+                }
+              >
+                <span className="underline decoration-dotted underline-offset-2">
+                  {invite.role}
+                </span>
+              </Tooltip>
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
