@@ -2,6 +2,7 @@ import { createId } from "@/lib/api/create-id";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { ACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { sendBatchEmail } from "@dub/email";
 import NewBountyAvailable from "@dub/email/templates/new-bounty-available";
 import { prisma } from "@dub/prisma";
@@ -93,7 +94,7 @@ export async function POST(req: Request) {
           },
         }),
         status: {
-          in: ["approved", "invited"],
+          in: ACTIVE_ENROLLMENT_STATUSES,
         },
         partner: {
           email: {
