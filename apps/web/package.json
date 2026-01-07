@@ -164,8 +164,7 @@
   "pnpm": {
     "overrides": {
       "@types/react": "19.1.14",
-      "@types/react-dom": "19.1.9",
-      "zod-to-json-schema": "^3.25.0"
+      "@types/react-dom": "19.1.9"
     }
   }
 }
