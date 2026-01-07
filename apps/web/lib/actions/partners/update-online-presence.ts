@@ -2,7 +2,6 @@
 
 import { upsertPartnerPlatform } from "@/lib/api/partner-profile/upsert-partner-platform";
 import { sanitizeSocialHandle, sanitizeWebsite } from "@/lib/social-utils";
-import { partnerSocialPlatformSchema } from "@/lib/zod/schemas/partners";
 import { parseUrlSchemaAllowEmpty } from "@/lib/zod/schemas/utils";
 import { prisma } from "@dub/prisma";
 import { PartnerPlatform } from "@dub/prisma/client";
@@ -65,23 +64,16 @@ export const updateOnlinePresenceAction = authPartnerActionClient
   .action(async ({ ctx, parsedInput }) => {
     const { partner } = ctx;
 
-    let partnerPlatform = await prisma.partnerPlatform.findMany({
+    const partnerPlatform = await prisma.partnerPlatform.findMany({
       where: {
         partnerId: partner.id,
       },
     });
 
-    const platforms = partnerPlatform.map((p) => ({
-      platform: p.platform,
-      handle: p.handle,
-      verifiedAt: p.verifiedAt,
-    }));
-
     const platformHandles = new Map(
-      platforms.map((p) => [p.platform, p.handle]),
+      partnerPlatform.map((p) => [p.platform, p.handle]),
     );
 
-    // create an array of data to upsert using foreach
     const socialPlatformsData: Pick<
       PartnerPlatform,
       "platform" | "handle" | "verifiedAt"
@@ -188,12 +180,4 @@ export const updateOnlinePresenceAction = authPartnerActionClient
         }),
       ),
     );
-
-    partnerPlatform = await prisma.partnerPlatform.findMany({
-      where: {
-        partnerId: partner.id,
-      },
-    });
-
-    return z.array(partnerSocialPlatformSchema).parse(partnerPlatform);
   });
