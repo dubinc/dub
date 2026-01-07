@@ -61,7 +61,7 @@ export async function WorkspacesMiddleware(req: NextRequest, user: UserProps) {
 
   if (projectInvite) {
     return NextResponse.redirect(
-      new URL(`/${projectInvite.project.slug}?invite=1`, req.url),
+      new URL(`/${projectInvite.project.slug}/invite`, req.url),
     );
   }
 
