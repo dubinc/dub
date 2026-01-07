@@ -112,22 +112,30 @@ export async function importAffiliateCoupons(payload: RewardfulImportPayload) {
       console.log(`Created ${createdLinks.length} links`);
 
       const createdDiscountCodes = await prisma.discountCode.createMany({
-        data: filteredCoupons.map((coupon) => {
-          const { partnerId, discountId } =
-            filteredPartners[coupon.affiliate_id];
+        data: filteredCoupons
+          .map((coupon) => {
+            const { partnerId, discountId } =
+              filteredPartners[coupon.affiliate_id];
 
-          return {
-            id: createId({ prefix: "dcode_" }),
-            code: coupon.token,
-            programId,
-            partnerId,
-            // this should always be created since we return all links (including duplicates) from bulkCreateLinks
-            linkId: createdLinks.find(
+            // link should always exist since we return all links (including duplicates) from bulkCreateLinks
+            const link = createdLinks.find(
               (link) => link.key.toLowerCase() === coupon.token.toLowerCase(),
-            )?.id!,
-            discountId,
-          };
-        }),
+            );
+            if (!link) {
+              console.error(`Link not found for coupon ${coupon.token}`);
+              return null;
+            }
+
+            return {
+              id: createId({ prefix: "dcode_" }),
+              code: coupon.token,
+              programId,
+              partnerId,
+              linkId: link.id,
+              discountId,
+            };
+          })
+          .filter((code): code is NonNullable<typeof code> => code !== null),
       });
 
       console.log(`Created ${createdDiscountCodes.count} discount codes`);
