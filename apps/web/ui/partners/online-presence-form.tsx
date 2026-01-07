@@ -561,22 +561,14 @@ function useVerifiedState({
   };
 
   const platform = platformMap[property];
-  // Type assertion for platforms array that exists at runtime but not in type
-  const partnerWithPlatforms = partnerProfile as typeof partnerProfile & {
-    platforms?: PartnerSocialPlatform[];
-  };
-  const currentHandle = getPlatformHandle(partnerWithPlatforms, platform);
+  const currentHandle = getPlatformHandle(partnerProfile, platform);
 
   const noChange =
     property === "website"
       ? getPrettyUrl(currentHandle ?? "") === getPrettyUrl(value ?? "")
       : currentHandle === value;
 
-  // Check verifiedAt from platforms array
-  const platformData = getPlatformData(
-    partnerWithPlatforms?.platforms,
-    platform,
-  );
+  const platformData = getPlatformData(partnerProfile?.platforms, platform);
   const isVerified = noChange && Boolean(platformData?.verifiedAt);
 
   return {
