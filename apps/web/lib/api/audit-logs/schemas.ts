@@ -99,13 +99,10 @@ export const auditLogTarget = z.union([
     metadata: ProgramSchema.pick({
       domain: true,
       url: true,
-      linkStructure: true,
       supportEmail: true,
       helpUrl: true,
       termsUrl: true,
-      holdingPeriodDays: true,
       minPayoutAmount: true,
-      autoApprovePartnersEnabledAt: true,
       messagingEnabledAt: true,
     }).optional(),
   }),
