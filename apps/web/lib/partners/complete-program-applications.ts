@@ -191,6 +191,7 @@ export async function completeProgramApplications(userEmail: string) {
                 platform: platform as SocialPlatform,
                 handle: handle as string,
               })),
+            skipDuplicates: true,
           }),
 
         // Auto-approve the partner if the group has auto-approval enabled
