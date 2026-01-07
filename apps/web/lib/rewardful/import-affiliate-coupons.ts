@@ -1,4 +1,5 @@
 import { prisma } from "@dub/prisma";
+import { createId } from "../api/create-id";
 import { bulkCreateLinks } from "../api/links";
 import { ProcessedLinkProps } from "../types";
 import { redis } from "../upstash";
@@ -44,10 +45,9 @@ export async function importAffiliateCoupons(payload: RewardfulImportPayload) {
       (affiliateCoupon) => affiliateCoupon.affiliate_id,
     );
 
-    const results = await redis.hmget<Record<string, string>>(
-      `rewardful:affiliates:${program.id}`,
-      ...affiliateIds,
-    );
+    const results = await redis.hmget<
+      Record<string, { partnerId: string; groupId: string; discountId: string }>
+    >(`rewardful:affiliates:${program.id}`, ...affiliateIds);
 
     const filteredPartners = Object.fromEntries(
       Object.entries(results ?? {}).filter(
@@ -79,7 +79,7 @@ export async function importAffiliateCoupons(payload: RewardfulImportPayload) {
       for (const [affiliateId, coupons] of Object.entries(
         affiliateIdToCouponsMap,
       )) {
-        const partnerId = filteredPartners[affiliateId];
+        const { partnerId } = filteredPartners[affiliateId];
 
         if (!partnerId) {
           continue;
@@ -103,9 +103,27 @@ export async function importAffiliateCoupons(payload: RewardfulImportPayload) {
     }
 
     if (linksToCreate.length > 0) {
-      await bulkCreateLinks({
+      const createdLinks = await bulkCreateLinks({
         links: linksToCreate as ProcessedLinkProps[],
       });
+      console.log(`Created ${createdLinks.length} links`);
+
+      const createdDiscountCodes = await prisma.discountCode.createMany({
+        data: filteredCoupons.map((coupon) => {
+          const { partnerId, discountId } =
+            filteredPartners[coupon.affiliate_id];
+          return {
+            id: createId({ prefix: "dcode_" }),
+            code: coupon.token,
+            programId,
+            partnerId,
+            linkId: createdLinks.find((link) => link.key === coupon.token)?.id!,
+            discountId,
+          };
+        }),
+      });
+
+      console.log(`Created ${createdDiscountCodes.count} discount codes`);
     }
 
     currentPage++;
