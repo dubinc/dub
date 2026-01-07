@@ -4,7 +4,7 @@ import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { authPartnerActionClient } from "../safe-action";
 
 const acceptProgramInviteSchema = z.object({

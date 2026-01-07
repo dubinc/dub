@@ -3,21 +3,19 @@
 import { prisma } from "@dub/prisma";
 import { DUB_WORKSPACE_ID, nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
+import * as z from "zod/v4";
 import { createId } from "../api/create-id";
 import { deleteScreenshots } from "../integrations/utils";
 import { isStored, storage } from "../storage";
-import z from "../zod";
 import { createIntegrationSchema } from "../zod/schemas/integration";
 import { authActionClient } from "./safe-action";
 
 export const addEditIntegration = authActionClient
   .schema(
-    createIntegrationSchema.merge(
-      z.object({
-        id: z.string().optional(), // if id is provided, we are editing the integration
-        workspaceId: z.string(),
-      }),
-    ),
+    createIntegrationSchema.extend({
+      id: z.string().optional(), // if id is provided, we are editing the integration
+      workspaceId: z.string(),
+    }),
   )
   .action(async ({ parsedInput, ctx }) => {
     const { id, workspaceId, ...integration } = parsedInput;

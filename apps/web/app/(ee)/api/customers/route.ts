@@ -14,28 +14,9 @@ import {
 } from "@/lib/zod/schemas/customers";
 import { DiscountSchemaWithDeprecatedFields } from "@/lib/zod/schemas/discount";
 import { prisma, sanitizeFullTextSearch } from "@dub/prisma";
-import {
-  Customer,
-  Discount,
-  Link,
-  Partner,
-  Program,
-  ProgramEnrollment,
-} from "@dub/prisma/client";
 import { nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
-import { z } from "zod";
-
-interface CustomerResponse extends Customer {
-  link: Link & {
-    programEnrollment: ProgramEnrollment & {
-      program: Program;
-      partner: Partner;
-      discount: Discount | null;
-    };
-  };
-}
 
 // GET /api/customers – Get all customers
 export const GET = withWorkspace(
@@ -124,11 +105,9 @@ export const GET = withWorkspace(
     });
 
     const responseSchema = includeExpandedFields
-      ? CustomerEnrichedSchema.merge(
-          z.object({
-            discount: DiscountSchemaWithDeprecatedFields,
-          }),
-        )
+      ? CustomerEnrichedSchema.extend({
+          discount: DiscountSchemaWithDeprecatedFields,
+        })
       : CustomerSchema;
 
     const response = responseSchema

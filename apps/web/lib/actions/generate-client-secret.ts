@@ -1,10 +1,10 @@
 "use server";
 
 import { prisma } from "@dub/prisma";
+import * as z from "zod/v4";
 import { OAUTH_CONFIG } from "../api/oauth/constants";
 import { createToken } from "../api/oauth/utils";
 import { hashToken } from "../auth";
-import z from "../zod";
 import { authActionClient } from "./safe-action";
 
 const schema = z.object({

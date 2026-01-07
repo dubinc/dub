@@ -6,8 +6,8 @@ import { E2E_PARTNER } from "../utils/resource";
 import { normalizedPartnerDateFields } from "./resource";
 
 // type coercion for date fields
-const EnrolledPartnerSchema = EnrolledPartnerSchemaDate.merge(
-  normalizedPartnerDateFields,
+const EnrolledPartnerSchema = EnrolledPartnerSchemaDate.extend(
+  normalizedPartnerDateFields.shape,
 );
 
 describe.sequential("GET /partners", async () => {

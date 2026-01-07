@@ -2,9 +2,9 @@
 
 import { prisma } from "@dub/prisma";
 import { ComponentDividerSpacingSize } from "@team-plain/typescript-sdk";
+import * as z from "zod/v4";
 import { createPlainThread } from "../plain/create-plain-thread";
 import { ratelimit } from "../upstash";
-import z from "../zod";
 import { authActionClient } from "./safe-action";
 
 const schema = z.object({

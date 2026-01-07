@@ -3,7 +3,7 @@ import {
   WorkflowAttribute,
 } from "@/lib/types";
 import { CampaignStatus, CampaignType } from "@dub/prisma/client";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { GroupSchema } from "./groups";
 import { getPaginationQuerySchema } from "./misc";
 import { EnrolledPartnerSchema } from "./partners";
@@ -53,8 +53,8 @@ export const CampaignSchema = z.object({
   preview: z.string().nullable().default(null),
   from: z.string().nullable(),
   bodyJson: z.record(z.string(), z.any()),
-  type: z.nativeEnum(CampaignType),
-  status: z.nativeEnum(CampaignStatus),
+  type: z.enum(CampaignType),
+  status: z.enum(CampaignStatus),
   triggerCondition: workflowConditionSchema.nullable().default(null),
   groups: z.array(GroupSchema.pick({ id: true })),
   scheduledAt: z.date().nullable(),
@@ -66,8 +66,8 @@ export const CampaignSchema = z.object({
 export const CampaignListSchema = z.object({
   id: z.string(),
   name: z.string(),
-  type: z.nativeEnum(CampaignType),
-  status: z.nativeEnum(CampaignStatus),
+  type: z.enum(CampaignType),
+  status: z.enum(CampaignStatus),
   scheduledAt: z.date().nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),
@@ -75,7 +75,7 @@ export const CampaignListSchema = z.object({
 });
 
 export const createCampaignSchema = z.object({
-  type: z.nativeEnum(CampaignType),
+  type: z.enum(CampaignType),
 });
 
 export const updateCampaignSchema = z
@@ -86,7 +86,7 @@ export const updateCampaignSchema = z
       .trim()
       .max(100, "Subject must be less than 100 characters."),
     preview: z.string().nullish(),
-    from: z.string().email().trim().toLowerCase(),
+    from: z.email().trim().toLowerCase(),
     bodyJson: z.record(z.string(), z.any()),
     triggerCondition: workflowConditionSchema.nullish(),
     groupIds: z.array(z.string()).nullable(),
@@ -103,8 +103,8 @@ export const updateCampaignSchema = z
 
 export const getCampaignsQuerySchema = z
   .object({
-    type: z.nativeEnum(CampaignType).optional(),
-    status: z.nativeEnum(CampaignStatus).optional(),
+    type: z.enum(CampaignType).optional(),
+    status: z.enum(CampaignStatus).optional(),
     search: z.string().optional(),
     triggerCondition: z
       .string()
@@ -116,7 +116,7 @@ export const getCampaignsQuerySchema = z
       )
       .optional(),
   })
-  .merge(getPaginationQuerySchema({ pageSize: 100 }));
+  .extend(getPaginationQuerySchema({ pageSize: 100 }));
 
 export const getCampaignsCountQuerySchema = getCampaignsQuerySchema
   .pick({
@@ -133,7 +133,7 @@ export const getCampaignsEventsQuerySchema = z
     status: z.enum(["delivered", "opened", "bounced"]).default("delivered"),
     search: z.string().optional(),
   })
-  .merge(getPaginationQuerySchema({ pageSize: 100 }));
+  .extend(getPaginationQuerySchema({ pageSize: 100 }));
 
 export const getCampaignEventsCountQuerySchema =
   getCampaignsEventsQuerySchema.pick({

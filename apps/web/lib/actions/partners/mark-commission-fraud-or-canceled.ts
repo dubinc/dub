@@ -5,7 +5,7 @@ import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions"
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
 
 const markCommissionFraudOrCanceledSchema = z.object({

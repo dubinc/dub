@@ -14,7 +14,7 @@ import { useAction } from "next-safe-action/hooks";
 import { useCallback, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 type FormData = Pick<
   z.infer<typeof rejectBountySubmissionSchema>,

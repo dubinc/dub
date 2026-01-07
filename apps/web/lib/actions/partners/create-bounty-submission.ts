@@ -20,7 +20,7 @@ import { BountySubmission, WorkspaceRole } from "@dub/prisma/client";
 import { getDomainWithoutWWW } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { formatDistanceToNow } from "date-fns";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { authPartnerActionClient } from "../safe-action";
 
 const schema = z.object({
@@ -30,7 +30,7 @@ const schema = z.object({
     .array(BountySubmissionFileSchema)
     .max(BOUNTY_MAX_SUBMISSION_FILES)
     .default([]),
-  urls: z.array(z.string().url()).max(BOUNTY_MAX_SUBMISSION_URLS).default([]),
+  urls: z.array(z.url()).max(BOUNTY_MAX_SUBMISSION_URLS).default([]),
   description: z
     .string()
     .trim()

@@ -7,7 +7,7 @@ import { WorkspaceProps } from "@/lib/types";
 import { MAX_DEFAULT_LINKS_PER_GROUP } from "@/lib/zod/schemas/groups";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, isFulfilled, log } from "@dub/utils";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 import { remapPartnerGroupDefaultLinks } from "./utils";
 export const dynamic = "force-dynamic";

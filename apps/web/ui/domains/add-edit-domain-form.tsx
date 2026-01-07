@@ -35,7 +35,7 @@ import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useDebouncedCallback } from "use-debounce";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { QRCode } from "../shared/qr-code";
 
 const sanitizeJson = (string: string | null) => {

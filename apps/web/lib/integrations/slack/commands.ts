@@ -4,7 +4,7 @@ import { createLinkBodySchema } from "@/lib/zod/schemas/links";
 import { prisma } from "@dub/prisma";
 import { User } from "@dub/prisma/client";
 import { APP_DOMAIN, SLACK_INTEGRATION_ID } from "@dub/utils";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { SlackAuthToken } from "../types";
 import { slackSlashCommandSchema } from "./schema";
 import { verifySlackSignature } from "./verify-request";
