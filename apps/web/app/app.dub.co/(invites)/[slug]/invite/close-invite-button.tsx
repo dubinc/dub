@@ -14,7 +14,7 @@ export function CloseInviteButton({
   return (
     <Button
       variant="outline"
-      icon={<X className="size-5" />}
+      icon={<X className="text-content-subtle size-5" />}
       className="size-8 p-0 active:scale-95"
       onClick={() => router.push(goToOnboarding ? "/onboarding" : "/")}
     />
