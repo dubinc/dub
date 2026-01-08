@@ -50,7 +50,9 @@ export function AcceptInviteButton() {
     }
   };
 
-  useKeyboardShortcut("a", acceptInvite);
+  useKeyboardShortcut("a", acceptInvite, {
+    enabled: !isAccepting,
+  });
 
   return (
     <Button
