@@ -6,7 +6,7 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { REWARD_EVENT_COLUMN_MAPPING } from "@/lib/zod/schemas/rewards";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
 
 const deleteRewardSchema = z.object({
@@ -15,7 +15,7 @@ const deleteRewardSchema = z.object({
 });
 
 export const deleteRewardAction = authActionClient
-  .schema(deleteRewardSchema)
+  .inputSchema(deleteRewardSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { rewardId } = parsedInput;

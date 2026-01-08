@@ -1,5 +1,5 @@
 import slugify from "@sindresorhus/slugify";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 export const toltImportSteps = z.enum([
   "import-partners",

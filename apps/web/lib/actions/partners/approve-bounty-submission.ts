@@ -8,7 +8,7 @@ import { sendEmail } from "@dub/email";
 import BountyApproved from "@dub/email/templates/bounty-approved";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
 
 const schema = z.object({
@@ -19,7 +19,7 @@ const schema = z.object({
 
 // Approve a submission for a bounty
 export const approveBountySubmissionAction = authActionClient
-  .schema(schema)
+  .inputSchema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { submissionId, rewardAmount } = parsedInput;

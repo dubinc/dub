@@ -1,11 +1,11 @@
 "use server";
 
 import { prisma } from "@dub/prisma";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { authPartnerActionClient } from "../safe-action";
 
 export const withdrawPartnerApplicationAction = authPartnerActionClient
-  .schema(
+  .inputSchema(
     z.object({
       programId: z.string(),
     }),

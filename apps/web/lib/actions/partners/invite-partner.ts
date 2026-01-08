@@ -13,7 +13,7 @@ import { getProgramOrThrow } from "../../api/programs/get-program-or-throw";
 import { authActionClient } from "../safe-action";
 
 export const invitePartnerAction = authActionClient
-  .schema(invitePartnerSchema)
+  .inputSchema(invitePartnerSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { email, username, name, groupId } = parsedInput;

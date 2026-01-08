@@ -10,7 +10,7 @@ import {
   getPartnersQuerySchemaExtended,
 } from "@/lib/zod/schemas/partners";
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 // GET /api/partners - get all partners for a program
 export const GET = withWorkspace(
@@ -21,21 +21,19 @@ export const GET = withWorkspace(
       includeOnlinePresenceVerification,
       ...parsedParams
     } = getPartnersQuerySchemaExtended
-      .merge(
-        z.object({
-          // add old fields for backward compatibility
-          sortBy: getPartnersQuerySchemaExtended.shape.sortBy.or(
-            z.enum([
-              "clicks",
-              "leads",
-              "conversions",
-              "sales",
-              "saleAmount",
-              "totalSales",
-            ]),
-          ),
-        }),
-      )
+      .extend({
+        // add old fields for backward compatibility
+        sortBy: getPartnersQuerySchemaExtended.shape.sortBy.or(
+          z.enum([
+            "clicks",
+            "leads",
+            "conversions",
+            "sales",
+            "saleAmount",
+            "totalSales",
+          ]),
+        ),
+      })
       .parse(searchParams);
 
     // get the final sortBy field (replace old fields with new fields)

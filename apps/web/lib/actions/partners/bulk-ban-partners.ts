@@ -12,7 +12,7 @@ import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 
 export const bulkBanPartnersAction = authActionClient
-  .schema(bulkBanPartnersSchema)
+  .inputSchema(bulkBanPartnersSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { partnerIds, reason } = parsedInput;

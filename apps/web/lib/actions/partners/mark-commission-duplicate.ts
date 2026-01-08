@@ -6,7 +6,7 @@ import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions"
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
 
 const markCommissionDuplicateSchema = z.object({
@@ -16,7 +16,7 @@ const markCommissionDuplicateSchema = z.object({
 
 // Mark a commission as duplicate
 export const markCommissionDuplicateAction = authActionClient
-  .schema(markCommissionDuplicateSchema)
+  .inputSchema(markCommissionDuplicateSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { commissionId } = parsedInput;

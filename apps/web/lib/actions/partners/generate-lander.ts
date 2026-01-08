@@ -17,18 +17,18 @@ import FireCrawlApp, {
   ScrapeResponse,
 } from "@mendable/firecrawl-js";
 import { generateObject } from "ai";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
 
 const schema = z.object({
   workspaceId: z.string(),
-  websiteUrl: z.string().url(),
+  websiteUrl: z.url(),
   landerData: programLanderSchema.optional(),
   prompt: z.string().optional(),
 });
 
 export const generateLanderAction = authActionClient
-  .schema(schema)
+  .inputSchema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
     const { websiteUrl, landerData, prompt } = parsedInput;

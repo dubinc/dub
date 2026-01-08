@@ -8,7 +8,7 @@ import { Button } from "@dub/ui";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 export const AuthorizeForm = ({
   client_id,

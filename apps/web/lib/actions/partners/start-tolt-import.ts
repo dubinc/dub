@@ -3,7 +3,7 @@
 import { createId } from "@/lib/api/create-id";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { toltImporter } from "@/lib/tolt/importer";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { getProgramOrThrow } from "../../api/programs/get-program-or-throw";
 import { authActionClient } from "../safe-action";
 
@@ -13,7 +13,7 @@ const schema = z.object({
 });
 
 export const startToltImportAction = authActionClient
-  .schema(schema)
+  .inputSchema(schema)
   .action(async ({ ctx, parsedInput }) => {
     const { workspace, user } = ctx;
     const { toltProgramId } = parsedInput;

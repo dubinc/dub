@@ -5,7 +5,7 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 const addPartnersToGroupSchema = z.object({
   partnerIds: z.array(z.string()).min(1).max(100), // max move 100 partners at a time

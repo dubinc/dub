@@ -25,7 +25,7 @@ import {
   WorkflowTrigger,
   WorkspaceRole,
 } from "@dub/prisma/client";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { RESOURCE_COLORS } from "../ui/colors";
 import { PAID_TRAFFIC_PLATFORMS } from "./api/fraud/constants";
 import { BOUNTY_SUBMISSION_REQUIREMENTS } from "./constants/bounties";

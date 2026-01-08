@@ -2,7 +2,7 @@ import { trackLead } from "@/lib/api/conversions/track-lead";
 import { TrackLeadResponse, WorkspaceProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { HubSpotAuthToken, HubSpotContact } from "../types";
 import { HubSpotApi } from "./api";
 import { hubSpotLeadEventSchema, hubSpotSettingsSchema } from "./schema";

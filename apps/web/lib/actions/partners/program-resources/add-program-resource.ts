@@ -12,7 +12,7 @@ import {
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { authActionClient } from "../../safe-action";
 
 // Base schema for all resource types
@@ -44,7 +44,7 @@ const colorResourceSchema = baseResourceSchema.extend({
 // Schema for link resources
 const linkResourceSchema = baseResourceSchema.extend({
   resourceType: z.literal("link"),
-  url: z.string().url(),
+  url: z.url(),
 });
 
 // Combined schema that can handle any resource type
@@ -56,7 +56,7 @@ const addResourceSchema = z.discriminatedUnion("resourceType", [
 ]);
 
 export const addProgramResourceAction = authActionClient
-  .schema(addResourceSchema)
+  .inputSchema(addResourceSchema)
   .action(async ({ ctx, parsedInput }) => {
     const { workspace } = ctx;
     const { name, resourceType } = parsedInput;

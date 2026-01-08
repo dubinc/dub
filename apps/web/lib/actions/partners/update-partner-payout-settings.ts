@@ -8,7 +8,7 @@ import { authPartnerActionClient } from "../safe-action";
 
 // Update a partner payout & invoice settings
 export const updatePartnerPayoutSettingsAction = authPartnerActionClient
-  .schema(partnerPayoutSettingsSchema)
+  .inputSchema(partnerPayoutSettingsSchema)
   .action(async ({ ctx, parsedInput }) => {
     const { partner, partnerUser } = ctx;
     const { companyName, address, taxId } = parsedInput;

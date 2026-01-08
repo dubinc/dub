@@ -10,7 +10,7 @@ import { authActionClient } from "../safe-action";
 
 // Archive a partner
 export const archivePartnerAction = authActionClient
-  .schema(archivePartnerSchema)
+  .inputSchema(archivePartnerSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { partnerId } = parsedInput;

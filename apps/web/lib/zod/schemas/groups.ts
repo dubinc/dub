@@ -4,7 +4,7 @@ import { RESOURCE_COLORS } from "@/ui/colors";
 import { PartnerLinkStructure } from "@dub/prisma/client";
 import { validSlugRegex } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { DiscountSchema } from "./discount";
 import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
 import { programApplicationFormSchema } from "./program-application-form";
@@ -70,7 +70,7 @@ export const GroupSchema = z.object({
   utmTemplate: UTMTemplateSchema.nullish(),
   additionalLinks: z.array(additionalPartnerLinkSchema).nullable(),
   maxPartnerLinks: z.number(),
-  linkStructure: z.nativeEnum(PartnerLinkStructure),
+  linkStructure: z.enum(PartnerLinkStructure),
   moveRules: z.array(workflowConditionSchema).nullish().default(null),
 });
 
@@ -134,7 +134,7 @@ export const updateGroupSchema = createGroupSchema.partial().extend({
     .optional(),
   maxPartnerLinks: z.number().optional(),
   utmTemplateId: z.string().optional(),
-  linkStructure: z.nativeEnum(PartnerLinkStructure).optional(),
+  linkStructure: z.enum(PartnerLinkStructure).optional(),
   applicationFormData: programApplicationFormSchema.optional(),
   landerData: programLanderSchema.optional(),
   holdingPeriodDays: z.coerce
@@ -181,7 +181,7 @@ export const getGroupsQuerySchema = z
     sortOrder: z.enum(["asc", "desc"]).default("desc"),
     includeExpandedFields: booleanQuerySchema.optional(),
   })
-  .merge(getPaginationQuerySchema({ pageSize: GROUPS_MAX_PAGE_SIZE }));
+  .extend(getPaginationQuerySchema({ pageSize: GROUPS_MAX_PAGE_SIZE }));
 
 export const getGroupsCountQuerySchema = z.object({
   search: z.string().optional(),
