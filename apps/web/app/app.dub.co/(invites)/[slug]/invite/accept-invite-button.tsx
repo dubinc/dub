@@ -27,6 +27,7 @@ export function AcceptInviteButton() {
       if (!response.ok) {
         const error = await response.json();
         toast.error(error.message || "Failed to accept invite.");
+        setIsAccepting(false);
         return;
       }
 

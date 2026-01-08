@@ -42,7 +42,7 @@ export async function WorkspacesMiddleware(req: NextRequest, user: UserProps) {
     );
   }
 
-  // Redirect user to the accept invite modal if they have a pending invite
+  // Redirect user to the accept invite page if they have a pending invite
   const projectInvite = await prismaEdge.projectInvite.findFirst({
     where: {
       email: user.email,
