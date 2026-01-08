@@ -1,33 +1,24 @@
 import { fetchSocialProfile } from "@/lib/api/scrape-creators/fetch-social-profile";
 import { withCron } from "@/lib/cron/with-cron";
 import { prisma } from "@dub/prisma";
-import { SocialPlatform } from "@dub/prisma/client";
+import { PartnerPlatform, SocialPlatform } from "@dub/prisma/client";
 import { deepEqual } from "@dub/utils";
 import { logAndRespond } from "../utils";
 
 export const dynamic = "force-dynamic";
 
-/*
-    This route is used to update social platform stats for verified Instagram, TikTok, and Twitter partners
-    Runs once a day at 06:00 AM UTC (cron expression: 0 6 * * *)
-*/
-
+// This route is used to update social platform stats for verified Instagram, TikTok, and Twitter partners
+// Runs once a day at 06:00 AM UTC (cron expression: 0 6 * * *)
 // POST /api/cron/online-presence
 export const POST = withCron(async () => {
   if (!process.env.SCRAPECREATORS_API_KEY) {
     throw new Error("SCRAPECREATORS_API_KEY is not defined");
   }
 
-  const platforms: SocialPlatform[] = [
-    SocialPlatform.instagram,
-    SocialPlatform.tiktok,
-    SocialPlatform.twitter,
-  ];
-
-  const allProfiles = await prisma.partnerPlatform.findMany({
+  const verifiedProfiles = await prisma.partnerPlatform.findMany({
     where: {
       platform: {
-        in: platforms,
+        in: ["instagram", "tiktok", "twitter"],
       },
       verifiedAt: {
         not: null,
@@ -35,53 +26,61 @@ export const POST = withCron(async () => {
     },
   });
 
-  if (allProfiles.length === 0) {
+  if (verifiedProfiles.length === 0) {
     return logAndRespond(
-      "No social platforms found. Skipping social platform stats update.",
+      "No verified social profiles found. Skipping social platform stats update.",
     );
   }
 
-  const results = {
-    instagram: { updated: 0, errors: 0 },
-    tiktok: { updated: 0, errors: 0 },
-    twitter: { updated: 0, errors: 0 },
-  };
-
-  for (const partnerPlatform of allProfiles) {
-    if (!partnerPlatform.handle) {
+  for (const verifiedProfile of verifiedProfiles) {
+    if (!verifiedProfile.handle) {
       continue;
     }
 
     try {
       const socialProfile = await fetchSocialProfile({
-        platform: partnerPlatform.platform,
-        handle: partnerPlatform.handle,
+        platform: verifiedProfile.platform,
+        handle: verifiedProfile.handle,
       });
 
-      // TikTok includes views, others don't
-      const currentStats =
-        partnerPlatform.platform === SocialPlatform.tiktok
-          ? {
-              followers: partnerPlatform.followers,
-              posts: partnerPlatform.posts,
-              views: partnerPlatform.views,
-            }
-          : {
-              followers: partnerPlatform.followers,
-              posts: partnerPlatform.posts,
-            };
+      let currentStats: Pick<PartnerPlatform, "followers" | "posts"> &
+        Partial<Pick<PartnerPlatform, "views">>;
+      let newStats: Pick<PartnerPlatform, "followers" | "posts"> &
+        Partial<Pick<PartnerPlatform, "views">>;
 
-      const newStats =
-        partnerPlatform.platform === SocialPlatform.tiktok
-          ? {
-              followers: socialProfile.followers,
-              posts: socialProfile.posts,
-              views: socialProfile.views,
-            }
-          : {
-              followers: socialProfile.followers,
-              posts: socialProfile.posts,
-            };
+      switch (verifiedProfile.platform) {
+        case SocialPlatform.tiktok:
+          currentStats = {
+            followers: verifiedProfile.followers,
+            posts: verifiedProfile.posts,
+            views: verifiedProfile.views,
+          };
+
+          newStats = {
+            followers: socialProfile.followers,
+            posts: socialProfile.posts,
+            views: socialProfile.views,
+          };
+
+          break;
+
+        case SocialPlatform.instagram:
+        case SocialPlatform.twitter:
+          currentStats = {
+            followers: verifiedProfile.followers,
+            posts: verifiedProfile.posts,
+          };
+
+          newStats = {
+            followers: socialProfile.followers,
+            posts: socialProfile.posts,
+          };
+
+          break;
+
+        default:
+          continue;
+      }
 
       if (deepEqual(currentStats, newStats)) {
         continue;
@@ -89,50 +88,24 @@ export const POST = withCron(async () => {
 
       await prisma.partnerPlatform.update({
         where: {
-          id: partnerPlatform.id,
+          id: verifiedProfile.id,
         },
         data: newStats,
       });
 
-      const platformKey = partnerPlatform.platform as keyof typeof results;
-      results[platformKey].updated++;
-
-      const logData =
-        partnerPlatform.platform === SocialPlatform.tiktok
-          ? {
-              followers: Number(newStats.followers),
-              posts: Number(newStats.posts),
-              views: Number(newStats.views),
-            }
-          : {
-              followers: Number(newStats.followers),
-              posts: Number(newStats.posts),
-            };
-
       console.log(
-        `Updated ${partnerPlatform.platform} stats for @${partnerPlatform.handle}`,
-        logData,
+        `Updated ${verifiedProfile.platform} stats for @${verifiedProfile.handle}`,
       );
     } catch (error) {
-      const platformKey = partnerPlatform.platform as keyof typeof results;
-      results[platformKey].errors++;
-
       console.error(
-        `Error updating ${partnerPlatform.platform} stats for @${partnerPlatform.handle}:`,
+        `Error updating ${verifiedProfile.platform} stats for @${verifiedProfile.handle}:`,
         error,
       );
       continue;
     }
   }
 
-  const totalUpdated =
-    results.instagram.updated +
-    results.tiktok.updated +
-    results.twitter.updated;
-  const totalErrors =
-    results.instagram.errors + results.tiktok.errors + results.twitter.errors;
-
   return logAndRespond(
-    `Social platform stats updated: ${totalUpdated} updated, ${totalErrors} errors (Instagram: ${results.instagram.updated}, TikTok: ${results.tiktok.updated}, Twitter: ${results.twitter.updated})`,
+    `Social platform stats updated for ${verifiedProfiles.length} verified profiles.`,
   );
 });
