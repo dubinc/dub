@@ -13,6 +13,7 @@ import {
 import { OG_AVATAR_URL, cn } from "@dub/utils";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { AcceptInviteButton } from "./accept-invite-button";
 
 export default async function WorkspaceInvitePage({
   params,
@@ -109,7 +110,7 @@ export default async function WorkspaceInvitePage({
 
           <div
             className={cn(
-              "flex flex-col items-center text-center",
+              "flex w-full max-w-[400px] flex-col items-center text-center",
               "animate-slide-up-fade motion-reduce:animate-fade-in [--offset:10px] [animation-delay:100ms] [animation-duration:0.5s] [animation-fill-mode:both]",
             )}
           >
@@ -130,6 +131,10 @@ export default async function WorkspaceInvitePage({
                 </span>
               </Tooltip>
             </p>
+
+            <div className="mt-4 w-full">
+              <AcceptInviteButton />
+            </div>
           </div>
 
           <div
@@ -151,8 +156,8 @@ export default async function WorkspaceInvitePage({
                     </div>
                   ),
                   title: "Dub Links",
-                  href: `/${slug}/links`,
-                  cta: "View links",
+                  href: "https://dub.co/links",
+                  cta: "Learn more",
                 },
                 {
                   icon: (
@@ -161,8 +166,8 @@ export default async function WorkspaceInvitePage({
                     </div>
                   ),
                   title: "Dub Partners",
-                  href: `/${slug}/program`,
-                  cta: "View program",
+                  href: "https://dub.co/partners",
+                  cta: "Learn more",
                 },
               ].map(({ icon, title, href, cta }) => (
                 <div
@@ -179,7 +184,7 @@ export default async function WorkspaceInvitePage({
                   <Link
                     href={href}
                     target="_blank"
-                    className="border-subtle bg-bg-inverted hover:bg-bg-inverted/90 flex h-7 items-center rounded-lg border px-2.5 text-sm font-medium text-white transition-transform active:scale-[0.98]"
+                    className="border-subtle bg-bg-inverted hover:bg-bg-inverted/90 flex h-7 items-center rounded-lg border px-2.5 text-sm text-white transition-transform active:scale-[0.98]"
                   >
                     {cta}
                   </Link>
@@ -256,140 +261,3 @@ export default async function WorkspaceInvitePage({
     </div>
   );
 }
-
-// function AcceptInviteModal({
-//   showAcceptInviteModal,
-//   setShowAcceptInviteModal,
-// }: {
-//   showAcceptInviteModal: boolean;
-//   setShowAcceptInviteModal: Dispatch<SetStateAction<boolean>>;
-// }) {
-//   const { slug } = useParams<{ slug: string }>();
-//   const { error } = useWorkspace();
-//   const { data: session } = useSession();
-//   const router = useRouter();
-
-//   const [accepting, setAccepting] = useState(false);
-//   const [declining, setDeclining] = useState(false);
-
-//   const acceptInvite = async () => {
-//     setAccepting(true);
-
-//     try {
-//       const response = await fetch(`/api/workspaces/${slug}/invites/accept`, {
-//         method: "POST",
-//         headers: { "Content-Type": "application/json" },
-//       });
-
-//       if (!response.ok) {
-//         const error = await response.json();
-//         toast.error(error.message || "Failed to accept invite.");
-//         return;
-//       }
-
-//       if (session?.user) {
-//         posthog.identify(session.user["id"], {
-//           email: session.user.email,
-//           name: session.user.name,
-//         });
-//       }
-
-//       posthog.capture("accepted_workspace_invite", {
-//         workspace: slug,
-//       });
-
-//       await mutatePrefix(["/api/workspaces", "/api/programs"]);
-//       router.replace(`/${slug}`);
-//       setShowAcceptInviteModal(false);
-//       toast.success("You now are a part of this workspace!");
-//     } finally {
-//       setAccepting(false);
-//     }
-//   };
-
-//   const declineInvite = async () => {
-//     setDeclining(true);
-
-//     try {
-//       const response = await fetch(`/api/workspaces/${slug}/invites/decline`, {
-//         method: "POST",
-//         headers: { "Content-Type": "application/json" },
-//       });
-
-//       if (!response.ok) {
-//         const error = await response.json();
-//         toast.error(error.message || "Failed to decline invite.");
-//         return;
-//       }
-
-//       await mutatePrefix("/api/workspaces");
-//       router.replace("/workspaces");
-//       setShowAcceptInviteModal(false);
-//       toast.success("You have declined the invite.");
-//     } finally {
-//       setDeclining(false);
-//     }
-//   };
-
-//   return (
-//     <Modal
-//       showModal={showAcceptInviteModal}
-//       setShowModal={setShowAcceptInviteModal}
-//       preventDefaultClose
-//     >
-//       {error?.status === 409 ? (
-//         <>
-//           <div className="flex flex-col items-center justify-center space-y-3 border-b border-neutral-200 px-4 py-4 pt-8 sm:px-16">
-//             <Logo />
-//             <h3 className="text-lg font-medium">Workspace Invitation</h3>
-//             <p className="text-center text-sm text-neutral-500">
-//               You've been invited to join and collaborate on the{" "}
-//               <span className="font-mono text-purple-600">
-//                 {slug || "......"}
-//               </span>{" "}
-//               workspace on {process.env.NEXT_PUBLIC_APP_NAME}
-//             </p>
-//           </div>
-//           <div className="flex gap-2 bg-neutral-50 px-4 py-8 text-left sm:px-16">
-//             <Button
-//               variant="secondary"
-//               onClick={declineInvite}
-//               loading={declining}
-//               text="Decline invite"
-//               disabled={accepting}
-//               className="w-fit"
-//             />
-
-//             <Button
-//               onClick={acceptInvite}
-//               loading={accepting}
-//               text="Accept invite"
-//               disabled={declining}
-//             />
-//           </div>
-//         </>
-//       ) : (
-//         <>
-//           <div className="flex flex-col items-center justify-center space-y-3 border-b border-neutral-200 px-4 py-4 pt-8 sm:px-16">
-//             <Logo />
-//             <h3 className="text-lg font-medium">
-//               Workspace Invitation Expired
-//             </h3>
-//             <p className="text-center text-sm text-neutral-500">
-//               This invite has expired or is no longer valid.
-//             </p>
-//           </div>
-//           <div className="flex flex-col space-y-6 bg-neutral-50 px-4 py-8 text-left sm:px-16">
-//             <Button
-//               text="Back to dashboard"
-//               onClick={() => {
-//                 router.push("/");
-//                 setShowAcceptInviteModal(false);
-//               }}
-//             />
-//           </div>
-//         </>
-//       )}
-//     </Modal>
-//   );
-// }
