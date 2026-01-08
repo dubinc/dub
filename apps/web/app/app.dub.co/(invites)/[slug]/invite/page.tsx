@@ -1,9 +1,11 @@
 import { getSession } from "@/lib/auth";
 import { prisma } from "@dub/prisma";
+import { Project, ProjectInvite, User } from "@dub/prisma/client";
 import {
   Avatar,
   Book2Fill,
   CircleCheckFill,
+  CircleHalfDottedClock,
   DubLinksIcon,
   DubPartnersIcon,
   LifeRingFill,
@@ -53,9 +55,6 @@ export default async function WorkspaceInvitePage({
         project: {
           slug,
         },
-        expires: {
-          gte: new Date(),
-        },
       },
       include: {
         project: {
@@ -91,69 +90,28 @@ export default async function WorkspaceInvitePage({
 
   if (!invite) redirect(`/${slug}`);
 
+  if (invite.expires < new Date()) {
+    // Expired invite
+    return (
+      <>
+        <div className="flex items-center justify-end p-4">
+          <CloseInviteButton goToOnboarding={!user.projects.length} />
+        </div>
+        <div className="-mt-16 flex grow flex-col items-center justify-center">
+          <Hero isExpired invite={invite} user={user} />
+        </div>
+      </>
+    );
+  }
+
   return (
     <div>
       <div className="flex items-center justify-end p-4">
         <CloseInviteButton goToOnboarding={!user.projects.length} />
       </div>
       <div className="flex w-full flex-col items-center justify-center px-4 py-10">
+        <Hero invite={invite} user={user} isExpired={false} />
         <div className="flex w-full flex-col items-center">
-          <div className="animate-slide-up-fade motion-reduce:animate-fade-in [--offset:10px] [animation-duration:0.5s] [animation-fill-mode:both]">
-            <Wordmark className="h-8" />
-          </div>
-
-          <div
-            className={cn(
-              "relative z-0 mt-8 flex items-center",
-              "animate-slide-up-fade motion-reduce:animate-fade-in [--offset:10px] [animation-delay:50ms] [animation-duration:0.5s] [animation-fill-mode:both]",
-            )}
-          >
-            <img
-              src={
-                invite.project.logo || `${OG_AVATAR_URL}${invite.project.name}`
-              }
-              alt={invite.project.name}
-              className="z-10 size-20 rotate-[-15deg] rounded-full drop-shadow-md"
-            />
-            <img
-              src={user?.image || `${OG_AVATAR_URL}${user?.id}`}
-              alt={user?.name || "Your avatar"}
-              className="-ml-4 size-20 rotate-[15deg] rounded-full drop-shadow-md"
-            />
-            <div className="absolute -bottom-2 left-1/2 z-10 -translate-x-1/2 rounded-full bg-white p-0.5">
-              <CircleCheckFill className="size-8 text-green-500" />
-            </div>
-          </div>
-
-          <div
-            className={cn(
-              "flex w-full max-w-[400px] flex-col items-center text-center",
-              "animate-slide-up-fade motion-reduce:animate-fade-in [--offset:10px] [animation-delay:100ms] [animation-duration:0.5s] [animation-fill-mode:both]",
-            )}
-          >
-            <h2 className="text-content-default mt-4 text-lg font-semibold">
-              Welcome to the {invite.project.name} workspace
-            </h2>
-            <p className="text-content-subtle text-base font-medium">
-              You've been added as a{invite.role === "owner" ? "n" : ""}{" "}
-              <Tooltip
-                content={
-                  invite.role === "owner"
-                    ? "You have the highest workspace permissions. [Learn more](https://dub.co/help/article/workspace-roles#member-role)"
-                    : "You have limited workspace permissions. [Learn more](https://dub.co/help/article/workspace-roles#member-role)"
-                }
-              >
-                <span className="underline decoration-dotted underline-offset-2">
-                  {invite.role}
-                </span>
-              </Tooltip>
-            </p>
-
-            <div className="mt-4 w-full">
-              <AcceptInviteButton />
-            </div>
-          </div>
-
           <div
             className={cn(
               "mt-8 flex w-full max-w-[400px] flex-col gap-3",
@@ -324,5 +282,96 @@ export default async function WorkspaceInvitePage({
       </div>
       <InviteConfetti />
     </div>
+  );
+}
+
+function Hero({
+  invite,
+  user,
+  isExpired,
+}: {
+  invite: Pick<ProjectInvite, "role" | "expires"> & {
+    project: Pick<Project, "logo" | "name">;
+  };
+  user: Pick<User, "id" | "image" | "name">;
+  isExpired: boolean;
+}) {
+  return (
+    <>
+      <div className="animate-slide-up-fade motion-reduce:animate-fade-in [--offset:10px] [animation-duration:0.5s] [animation-fill-mode:both]">
+        <Wordmark className="h-8" />
+      </div>
+
+      <div
+        className={cn(
+          "relative z-0 mt-8 flex items-center",
+          "animate-slide-up-fade motion-reduce:animate-fade-in [--offset:10px] [animation-delay:50ms] [animation-duration:0.5s] [animation-fill-mode:both]",
+        )}
+      >
+        <img
+          src={invite.project.logo || `${OG_AVATAR_URL}${invite.project.name}`}
+          alt={invite.project.name}
+          className="z-10 size-20 rotate-[-15deg] rounded-full drop-shadow-md"
+        />
+        <img
+          src={user?.image || `${OG_AVATAR_URL}${user?.id}`}
+          alt={user?.name || "Your avatar"}
+          className="-ml-4 size-20 rotate-[15deg] rounded-full drop-shadow-md"
+        />
+        <div className="absolute -bottom-2 left-1/2 z-10 -translate-x-1/2 rounded-full bg-white p-0.5">
+          {isExpired ? (
+            <div className="rounded-full bg-neutral-200 p-1">
+              <CircleHalfDottedClock className="size-5 text-neutral-500" />
+            </div>
+          ) : (
+            <CircleCheckFill className="size-8 text-green-500" />
+          )}
+        </div>
+      </div>
+
+      <div
+        className={cn(
+          "flex w-full flex-col items-center text-center",
+          "animate-slide-up-fade motion-reduce:animate-fade-in [--offset:10px] [animation-delay:100ms] [animation-duration:0.5s] [animation-fill-mode:both]",
+          !isExpired ? "max-w-[400px]" : "max-w-[440px]",
+        )}
+      >
+        <h2 className="text-content-default mt-4 text-pretty text-lg font-semibold">
+          {!isExpired ? (
+            <>Welcome to the {invite.project.name} workspace</>
+          ) : (
+            <>Your invite to the {invite.project.name} workspace has expired</>
+          )}
+        </h2>
+        <p className="text-content-subtle text-pretty text-base font-medium">
+          {!isExpired ? (
+            <>
+              You've been added as a{invite.role === "owner" ? "n" : ""}{" "}
+              <Tooltip
+                content={
+                  invite.role === "owner"
+                    ? "You have the highest workspace permissions. [Learn more](https://dub.co/help/article/workspace-roles#member-role)"
+                    : "You have limited workspace permissions. [Learn more](https://dub.co/help/article/workspace-roles#member-role)"
+                }
+              >
+                <span className="underline decoration-dotted underline-offset-2">
+                  {invite.role}
+                </span>
+              </Tooltip>
+            </>
+          ) : (
+            <>Please contact the owner to request another invite.</>
+          )}
+        </p>
+
+        <div className="mt-4 flex w-full justify-center">
+          {!isExpired ? (
+            <AcceptInviteButton />
+          ) : (
+            <CloseInviteButton variant="full" />
+          )}
+        </div>
+      </div>
+    </>
   );
 }
