@@ -9,7 +9,7 @@ import { storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird/record-link";
 import { prisma } from "@dub/prisma";
 import { R2_URL } from "@dub/utils";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 export const dynamic = "force-dynamic";
 

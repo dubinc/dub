@@ -80,7 +80,7 @@ export function BountySubmissionRowMenu({
                   }}
                 />
 
-                {submission.status === "submitted" && (
+                {["submitted", "rejected"].includes(submission.status) && (
                   <MenuItem
                     icon={ArrowsOppositeDirectionX}
                     label="Reopen submission"

@@ -9,17 +9,13 @@ import {
   rejectPartnerSchema,
 } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
-import {
-  FraudRuleType,
-  ProgramEnrollment,
-  ProgramEnrollmentStatus,
-} from "@prisma/client";
+import { FraudRuleType, ProgramEnrollmentStatus } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 
 // Reject a pending partner application
 export const rejectPartnerApplicationAction = authActionClient
-  .schema(rejectPartnerSchema)
+  .inputSchema(rejectPartnerSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { partnerId, reportFraud } = parsedInput;
@@ -54,25 +50,23 @@ export const rejectPartnerApplicationAction = authActionClient
 
     waitUntil(
       (async () => {
-        let otherProgramEnrollments: Pick<ProgramEnrollment, "programId">[] =
-          [];
-
-        if (reportFraud) {
-          otherProgramEnrollments = await prisma.programEnrollment.findMany({
-            where: {
-              partnerId,
-              programId: {
-                not: programId,
+        const affectedProgramEnrollments = reportFraud
+          ? await prisma.programEnrollment.findMany({
+              where: {
+                partnerId,
+                programId: {
+                  not: programId,
+                },
+                status: {
+                  notIn: INACTIVE_ENROLLMENT_STATUSES,
+                },
               },
-              status: {
-                notIn: INACTIVE_ENROLLMENT_STATUSES,
+              select: {
+                programId: true,
+                partnerId: true,
               },
-            },
-            select: {
-              programId: true,
-            },
-          });
-        }
+            })
+          : [];
 
         await Promise.allSettled([
           recordAuditLog({
@@ -104,10 +98,11 @@ export const rejectPartnerApplicationAction = authActionClient
           // Create fraud report events in other programs where this partner is enrolled
           // to help keep the network safe by alerting other programs about suspected fraud
           createFraudEvents(
-            otherProgramEnrollments.map(({ programId }) => ({
-              programId,
-              partnerId,
+            affectedProgramEnrollments.map((affectedEnrollment) => ({
+              programId: affectedEnrollment.programId,
+              partnerId: affectedEnrollment.partnerId,
               type: FraudRuleType.partnerFraudReport,
+              sourceProgramId: programId, // The program that reported the fraud,
             })),
           ),
         ]);

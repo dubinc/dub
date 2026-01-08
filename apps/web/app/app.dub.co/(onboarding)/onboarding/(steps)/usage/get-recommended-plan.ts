@@ -1,5 +1,5 @@
 import { OnboardingUsageSchema } from "@/lib/zod/schemas/workspaces";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { PLAN_SELECTOR_PLANS } from "../plan/plan-selector";
 
 export function getRecommendedPlan({

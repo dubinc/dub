@@ -1,6 +1,6 @@
 "use client";
 
-import { updateNotificationPreference } from "@/lib/actions/update-notification-preference";
+import { updateWorkspaceNotificationPreference } from "@/lib/actions/update-workspace-notification-preference";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { notificationTypes } from "@/lib/zod/schemas/workspaces";
 import { Switch, useOptimisticUpdate } from "@dub/ui";
@@ -9,14 +9,14 @@ import { isClickOnInteractiveChild } from "@dub/utils";
 import { DollarSign, Trophy } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import React from "react";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 type PreferenceType = z.infer<typeof notificationTypes>;
 type Preferences = Record<PreferenceType, boolean>;
 
 export default function NotificationsSettingsPageClient() {
   const { id: workspaceId } = useWorkspace();
-  const { executeAsync } = useAction(updateNotificationPreference);
+  const { executeAsync } = useAction(updateWorkspaceNotificationPreference);
 
   const workspaceNotifications = [
     {

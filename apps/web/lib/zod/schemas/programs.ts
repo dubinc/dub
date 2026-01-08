@@ -7,17 +7,19 @@ import {
   PAYOUT_HOLDING_PERIOD_DAYS,
 } from "@/lib/constants/payouts";
 import {
+  Category,
   EventType,
   PartnerBannedReason,
   ProgramEnrollmentStatus,
   ProgramPayoutMode,
 } from "@dub/prisma/client";
 import { COUNTRY_CODES } from "@dub/utils";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { DiscountSchema } from "./discount";
 import { GroupSchema } from "./groups";
 import { LinkSchema } from "./links";
 import { programApplicationFormDataWithValuesSchema } from "./program-application-form";
+import { programInviteEmailDataSchema } from "./program-invite-email";
 import { RewardSchema } from "./rewards";
 import { UserSchema } from "./users";
 import { parseDateSchema } from "./utils";
@@ -29,13 +31,16 @@ export const ProgramSchema = z.object({
   logo: z.string().nullable(),
   domain: z.string().nullable(),
   url: z.string().nullable(),
-  primaryRewardEvent: z.nativeEnum(EventType).default("sale"),
+  description: z.string().nullish(),
+  primaryRewardEvent: z.enum(EventType).default("sale"),
   minPayoutAmount: z.number(),
+  addedToMarketplaceAt: z.date().nullish(),
   messagingEnabledAt: z.date().nullish(),
   partnerNetworkEnabledAt: z.date().nullish(),
-  payoutMode: z.nativeEnum(ProgramPayoutMode).default("internal"),
+  payoutMode: z.enum(ProgramPayoutMode).default("internal"),
   rewards: z.array(RewardSchema).nullish(),
   discounts: z.array(DiscountSchema).nullish(),
+  categories: z.array(z.enum(Category)).nullish(),
   defaultFolderId: z.string(),
   defaultGroupId: z.string(),
   supportEmail: z.string().nullish(),
@@ -44,6 +49,11 @@ export const ProgramSchema = z.object({
   createdAt: z.date(),
   updatedAt: z.date(),
   startedAt: z.date().nullish(),
+});
+
+// TODO: move to group-level soon
+export const ProgramSchemaWithInviteEmailData = ProgramSchema.extend({
+  inviteEmailData: programInviteEmailDataSchema,
 });
 
 export const updateProgramSchema = z.object({
@@ -60,9 +70,9 @@ export const updateProgramSchema = z.object({
     .refine((val) => ALLOWED_MIN_PAYOUT_AMOUNTS.includes(val), {
       message: `Minimum payout amount must be one of ${ALLOWED_MIN_PAYOUT_AMOUNTS.join(", ")}`,
     }),
-  supportEmail: z.string().email().max(255).nullish(),
-  helpUrl: z.string().url().max(500).nullish(),
-  termsUrl: z.string().url().max(500).nullish(),
+  supportEmail: z.email().max(255).nullish(),
+  helpUrl: z.url().max(500).nullish(),
+  termsUrl: z.url().max(500).nullish(),
   messagingEnabledAt: z.coerce.date().nullish(),
 });
 
@@ -92,7 +102,7 @@ export const ProgramEnrollmentSchema = z.object({
   program: ProgramSchema,
   createdAt: z.date(),
   status: z
-    .nativeEnum(ProgramEnrollmentStatus)
+    .enum(ProgramEnrollmentStatus)
     .describe("The status of the partner's enrollment in the program."),
   links: z
     .array(ProgramPartnerLinkSchema)
@@ -133,6 +143,7 @@ export const ProgramEnrollmentSchema = z.object({
     maxPartnerLinks: true,
     linkStructure: true,
   }).nullish(),
+  customerDataSharingEnabledAt: z.date().nullable(),
 });
 
 export const ProgramInviteSchema = z.object({
@@ -168,7 +179,7 @@ export const createProgramApplicationSchema = z.object({
   programId: z.string(),
   groupId: z.string().optional(),
   name: z.string().trim().min(1).max(100),
-  email: z.string().trim().email().min(1).max(100),
+  email: z.email().trim().min(1).max(100),
   country: z.enum(COUNTRY_CODES),
   formData: programApplicationFormDataWithValuesSchema,
 });

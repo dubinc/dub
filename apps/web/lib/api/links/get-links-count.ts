@@ -1,7 +1,7 @@
 import { combineTagIds } from "@/lib/api/tags/combine-tag-ids";
 import { getLinksCountQuerySchema } from "@/lib/zod/schemas/links";
 import { prisma } from "@dub/prisma";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 interface GetLinksCountParams extends z.infer<typeof getLinksCountQuerySchema> {
   workspaceId: string;

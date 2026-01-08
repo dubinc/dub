@@ -5,33 +5,15 @@ import { BlurImage, Link4, MiniAreaChart } from "@dub/ui";
 import { formatDate, getPrettyUrl, OG_AVATAR_URL } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useMemo } from "react";
-
-export const ProgramEnrollmentStatusBadges = {
-  approved: {
-    label: "Enrolled",
-    variant: "success",
-    className: "text-green-600 bg-green-100",
-  },
-  pending: {
-    label: "Pending",
-    variant: "pending",
-  },
-  rejected: {
-    label: "Rejected",
-    variant: "error",
-  },
-  banned: {
-    label: "Banned",
-    variant: "error",
-  },
-};
 
 export function ProgramCard({
   programEnrollment,
 }: {
   programEnrollment: ProgramEnrollmentProps;
 }) {
+  const router = useRouter();
   const { program, status, createdAt, group } = programEnrollment;
 
   const defaultLink = programEnrollment.links?.[0];
@@ -61,8 +43,8 @@ export function ProgramCard({
             {program.name}
           </span>
           <div className="flex items-center gap-1 text-neutral-500">
-            <Link4 className="size-3" />
-            <span className="text-sm font-medium">
+            <Link4 className="size-3 shrink-0" />
+            <span className="min-w-0 truncate text-sm font-medium">
               {getPrettyUrl(
                 constructPartnerLink({
                   group,
@@ -79,15 +61,21 @@ export function ProgramCard({
         <div className="mt-4 flex h-20 items-center justify-center text-balance rounded-md border border-neutral-200 bg-neutral-50 p-5 text-center text-sm text-neutral-500">
           {status === "pending" ? (
             `Applied ${formatDate(createdAt)}`
+          ) : status === "rejected" ? (
+            `${statusDescription} You can re-apply in 30 days.`
           ) : statusDescription ? (
             <p>
-              {` ${statusDescription} `}
-              <Link
-                href={`/messages/${program.slug}`}
+              {statusDescription}{" "}
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  router.push(`/messages/${program.slug}`);
+                }}
                 className="text-neutral-400 underline decoration-dotted underline-offset-2 hover:text-neutral-700"
               >
                 Reach out to the {program.name} team
-              </Link>{" "}
+              </button>{" "}
               if you have any questions.
             </p>
           ) : null}

@@ -10,11 +10,11 @@ import {
 } from "@/lib/zod/schemas/email-domains";
 import { resend } from "@dub/email/resend";
 import { prisma } from "@dub/prisma";
+import { Prisma } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
-import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 // GET /api/email-domains - get all email domains for a program
 export const GET = withWorkspace(

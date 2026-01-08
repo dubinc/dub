@@ -52,7 +52,17 @@ export default function DuplicatePayoutMethod({
 
             <Text className="mb-6 text-sm leading-6 text-neutral-600">
               We've detected that the payout method you're trying to connect is
-              already associated with another Dub Partners account.
+              already associated with another Dub partner account,{" "}
+              <strong>
+                which is against our{" "}
+                <Link
+                  href="https://dub.co/legal/partners"
+                  className="font-semibold text-black underline"
+                >
+                  terms of service
+                </Link>
+                .
+              </strong>
             </Text>
 
             {/* Payout Method Details Card */}
@@ -106,7 +116,7 @@ export default function DuplicatePayoutMethod({
 
             {/* What This Means Section */}
             <Section className="mb-6 rounded-lg border border-solid border-blue-200 bg-blue-50 px-4 py-2">
-              <Text className="mb-3 text-sm font-semibold text-blue-800">
+              <Text className="text-sm font-semibold text-blue-800">
                 What does this mean?
               </Text>
               <Text className="text-sm leading-6 text-blue-700">
@@ -117,7 +127,7 @@ export default function DuplicatePayoutMethod({
             </Section>
 
             {/* Next Steps */}
-            <Section className="mb-6">
+            <Section className="mb-4">
               <Text className="mb-3 text-base font-semibold text-neutral-800">
                 Next Steps
               </Text>
@@ -128,15 +138,15 @@ export default function DuplicatePayoutMethod({
               </Text>
               <Text className="mb-3 text-sm leading-6 text-neutral-600">
                 <strong>2. Merge your partner accounts:</strong> If you have
-                multiple partner accounts and need to consolidate them, you can
-                easily{" "}
+                multiple partner accounts and need to consolidate them, we
+                recommend{" "}
                 <Link
                   href="https://dub.co/help/article/merging-partner-accounts"
                   className="font-semibold text-black underline"
                 >
-                  merge them in your Profile Settings
-                </Link>
-                .
+                  merging them in your Profile Settings
+                </Link>{" "}
+                as soon as possible.
               </Text>
             </Section>
 
@@ -148,11 +158,6 @@ export default function DuplicatePayoutMethod({
               >
                 Update payout method
               </Link>
-              {/* Additional Info */}
-              <Text className="text-xs leading-5 text-neutral-500">
-                If you believe this is an error or need help resolving this
-                issue, simply reply to this email and we'd be happy to help.
-              </Text>
             </Section>
 
             <Footer email={email} />

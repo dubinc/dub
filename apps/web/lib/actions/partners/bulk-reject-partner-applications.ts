@@ -9,13 +9,13 @@ import {
   INACTIVE_ENROLLMENT_STATUSES,
 } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
-import { FraudRuleType, ProgramEnrollmentStatus } from "@prisma/client";
+import { FraudRuleType, ProgramEnrollmentStatus } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 
 // Reject a list of pending partners
 export const bulkRejectPartnerApplicationsAction = authActionClient
-  .schema(bulkRejectPartnersSchema)
+  .inputSchema(bulkRejectPartnersSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { partnerIds, reportFraud } = parsedInput;
@@ -70,7 +70,7 @@ export const bulkRejectPartnerApplicationsAction = authActionClient
 
     waitUntil(
       (async () => {
-        const otherProgramEnrollments = reportFraud
+        const affectedProgramEnrollments = reportFraud
           ? await prisma.programEnrollment.findMany({
               where: {
                 partnerId: {
@@ -111,10 +111,11 @@ export const bulkRejectPartnerApplicationsAction = authActionClient
           // Create fraud report events in other programs where these partners are enrolled
           // to help keep the network safe by alerting other programs about suspected fraud
           createFraudEvents(
-            otherProgramEnrollments.map(({ programId, partnerId }) => ({
-              programId,
-              partnerId,
+            affectedProgramEnrollments.map((affectedEnrollment) => ({
+              programId: affectedEnrollment.programId,
+              partnerId: affectedEnrollment.partnerId,
               type: FraudRuleType.partnerFraudReport,
+              sourceProgramId: programId, // The program that reported the fraud,
             })),
           ),
         ]);

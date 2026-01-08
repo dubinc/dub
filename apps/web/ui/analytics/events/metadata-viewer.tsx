@@ -6,7 +6,7 @@ import { Fragment } from "react";
 // Display the event metadata
 export function MetadataViewer({
   metadata,
-  previewItems = 3,
+  previewItems = 2,
 }: {
   metadata: Record<string, any>;
   previewItems?: number;

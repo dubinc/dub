@@ -1,7 +1,7 @@
 import { useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import useSWR from "swr";
-import z from "../zod";
+import * as z from "zod/v4";
 import { getCustomersCountQuerySchema } from "../zod/schemas/customers";
 import useWorkspace from "./use-workspace";
 
@@ -21,7 +21,7 @@ export default function useCustomersCount<T = number>({
       `/api/customers/count${getQueryString(
         { workspaceId, ...query },
         {
-          include: ["linkId", "country", "search", "externalId"],
+          include: ["country", "partnerId", "linkId", "externalId", "search"],
         },
       )}`,
     fetcher,

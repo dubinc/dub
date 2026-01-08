@@ -16,10 +16,11 @@ import { sendBatchEmail, sendEmail } from "@dub/email";
 import NewBountySubmission from "@dub/email/templates/bounty-new-submission";
 import BountySubmitted from "@dub/email/templates/bounty-submitted";
 import { prisma } from "@dub/prisma";
-import { BountySubmission, WorkspaceRole } from "@prisma/client";
+import { BountySubmission, WorkspaceRole } from "@dub/prisma/client";
+import { getDomainWithoutWWW } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { formatDistanceToNow } from "date-fns";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { authPartnerActionClient } from "../safe-action";
 
 const schema = z.object({
@@ -29,7 +30,7 @@ const schema = z.object({
     .array(BountySubmissionFileSchema)
     .max(BOUNTY_MAX_SUBMISSION_FILES)
     .default([]),
-  urls: z.array(z.string().url()).max(BOUNTY_MAX_SUBMISSION_URLS).default([]),
+  urls: z.array(z.url()).max(BOUNTY_MAX_SUBMISSION_URLS).default([]),
   description: z
     .string()
     .trim()
@@ -42,7 +43,7 @@ const schema = z.object({
 });
 
 export const createBountySubmissionAction = authPartnerActionClient
-  .schema(schema)
+  .inputSchema(schema)
   .action(async ({ ctx, parsedInput }) => {
     const { partner } = ctx;
     const { programId, bountyId, files, urls, description, isDraft } =
@@ -137,12 +138,14 @@ export const createBountySubmissionAction = authPartnerActionClient
     }
 
     // Validate the submission requirements
-    const submissionRequirements = submissionRequirementsSchema.parse(
-      bounty.submissionRequirements || [],
-    );
+    const submissionRequirements = bounty.submissionRequirements
+      ? submissionRequirementsSchema.parse(bounty.submissionRequirements)
+      : null;
 
-    const requireImage = submissionRequirements.includes("image");
-    const requireUrl = submissionRequirements.includes("url");
+    const requireImage = !!submissionRequirements?.image;
+    const requireUrl = !!submissionRequirements?.url;
+    const urlRequirement = submissionRequirements?.url || null;
+    const imageRequirement = submissionRequirements?.image || null;
 
     if (!isDraft) {
       if (requireImage && files.length === 0) {
@@ -151,6 +154,51 @@ export const createBountySubmissionAction = authPartnerActionClient
 
       if (requireUrl && urls.length === 0) {
         throw new Error("You must submit a URL.");
+      }
+
+      // Validate URL domain restrictions
+      if (
+        urlRequirement?.domains &&
+        urlRequirement.domains.length > 0 &&
+        urls.length > 0
+      ) {
+        const allowedDomains = urlRequirement.domains
+          .map((domain) => getDomainWithoutWWW(domain)?.toLowerCase())
+          .filter((domain): domain is string => !!domain);
+
+        if (allowedDomains.length > 0) {
+          const invalidUrls = urls.filter((url) => {
+            const urlDomain = getDomainWithoutWWW(url)?.toLowerCase();
+            if (!urlDomain) return true;
+            // Check if URL domain matches any allowed domain or is a subdomain
+            return !allowedDomains.some(
+              (allowedDomain) =>
+                urlDomain === allowedDomain ||
+                urlDomain.endsWith(`.${allowedDomain}`),
+            );
+          });
+
+          if (invalidUrls.length > 0) {
+            const domainsList = allowedDomains.join(", ");
+            throw new Error(
+              `All URLs must be from one of the following domains: ${domainsList}. Please check your submission.`,
+            );
+          }
+        }
+      }
+
+      // Validate max count for URLs
+      if (urlRequirement?.max && urls.length > urlRequirement.max) {
+        throw new Error(
+          `You can submit at most ${urlRequirement.max} URL${urlRequirement.max === 1 ? "" : "s"}.`,
+        );
+      }
+
+      // Validate max count for images
+      if (imageRequirement?.max && files.length > imageRequirement.max) {
+        throw new Error(
+          `You can submit at most ${imageRequirement.max} image${imageRequirement.max === 1 ? "" : "s"}.`,
+        );
       }
     }
 

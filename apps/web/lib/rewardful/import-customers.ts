@@ -1,6 +1,6 @@
 import { prisma } from "@dub/prisma";
+import { Program, Project } from "@dub/prisma/client";
 import { nanoid } from "@dub/utils";
-import { Program, Project } from "@prisma/client";
 import { createId } from "../api/create-id";
 import { updateLinkStatsForImporter } from "../api/links/update-link-stats-for-importer";
 import { syncPartnerLinksStats } from "../api/partners/sync-partner-links-stats";
@@ -42,7 +42,7 @@ export async function importCustomers(payload: RewardfulImportPayload) {
       break;
     }
 
-    await Promise.all(
+    await Promise.allSettled(
       referrals.map((referral) =>
         createCustomer({
           referral,
@@ -207,7 +207,7 @@ async function createCustomer({
 
   const customerId = createId({ prefix: "cus_" });
 
-  await prisma.customer.create({
+  const customer = await prisma.customer.create({
     data: {
       id: customerId,
       name:
@@ -220,6 +220,8 @@ async function createCustomer({
       projectConnectId: workspace.stripeConnectId,
       clickId: clickEvent.click_id,
       linkId: link.id,
+      programId: link.programId,
+      partnerId: link.partnerId,
       country: clickEvent.country,
       clickedAt: new Date(referral.created_at),
       createdAt: new Date(referral.became_lead_at),
@@ -227,6 +229,10 @@ async function createCustomer({
       stripeCustomerId: referral.stripe_customer_id,
     },
   });
+
+  console.log(
+    `Created customer ${customer.email} for referral ${link.shortLink}`,
+  );
 
   await Promise.allSettled([
     recordLeadWithTimestamp({

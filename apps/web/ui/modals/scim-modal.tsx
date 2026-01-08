@@ -2,6 +2,7 @@ import useSCIM from "@/lib/swr/use-scim";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { SAMLProviderProps } from "@/lib/types";
 import {
+  BlurImage,
   Button,
   Copy,
   InfoTooltip,
@@ -29,7 +30,7 @@ function SCIMModal({
   showSCIMModal: boolean;
   setShowSCIMModal: Dispatch<SetStateAction<boolean>>;
 }) {
-  const { id } = useWorkspace();
+  const { id, logo } = useWorkspace();
   const [submitting, setSubmitting] = useState(false);
   const { scim, provider, configured, mutate } = useSCIM();
   const [selectedProvider, setSelectedProvider] = useState<
@@ -52,10 +53,20 @@ function SCIMModal({
             <img
               src={currentProvider.logo}
               alt={`${provider} logo`}
-              className="h-10 w-10"
+              className="size-10"
             />
             <Refresh2 className="h-5 w-5 text-neutral-600" />
-            <Logo />
+            {logo ? (
+              <BlurImage
+                src={logo}
+                alt="Workspace logo"
+                className="size-10 rounded-full"
+                width={20}
+                height={20}
+              />
+            ) : (
+              <Logo className="size-10 text-neutral-500" />
+            )}
           </div>
         ) : (
           <div className="rounded-full border border-neutral-200 p-3">

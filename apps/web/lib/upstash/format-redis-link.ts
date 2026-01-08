@@ -1,4 +1,4 @@
-import { z } from "zod";
+import * as z from "zod/v4";
 import { ExpandedLink } from "../api/links/utils/transform-link";
 import { RedisLinkProps } from "../types";
 import { ABTestVariantsSchema } from "../zod/schemas/links";
@@ -56,6 +56,8 @@ export function formatRedisLink(link: ExpandedLink): RedisLinkProps {
         id: partner.id,
         name: partner.name,
         image: partner.image || `https://api.dub.co/og/avatar/${partner.id}`,
+        ...(partner.groupId && { groupId: partner.groupId }),
+        ...(partner.tenantId && { tenantId: partner.tenantId }),
       },
     }),
     ...(discount && {

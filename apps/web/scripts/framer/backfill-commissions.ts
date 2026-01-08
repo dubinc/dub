@@ -1,6 +1,6 @@
 import { createId } from "@/lib/api/create-id";
 import { prisma } from "@dub/prisma";
-import { CommissionStatus, CommissionType } from "@prisma/client";
+import { CommissionStatus, CommissionType } from "@dub/prisma/client";
 import "dotenv-flow/config";
 import * as fs from "fs";
 import * as Papa from "papaparse";

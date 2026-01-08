@@ -40,8 +40,7 @@ export default function ProgramPayoutThankYou({
   };
 }) {
   const formattedAmount = currencyFormatter(payout.amount, {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
+    trailingZeroDisplay: "stripIfInteger",
   });
 
   return (

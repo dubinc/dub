@@ -1,6 +1,6 @@
 import { DATE_RANGE_INTERVAL_PRESETS } from "@/lib/analytics/constants";
 import { CommissionStatus, CommissionType } from "@dub/prisma/client";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { CustomerSchema } from "./customers";
 import {
   getCursorPaginationQuerySchema,
@@ -10,14 +10,14 @@ import { EnrolledPartnerSchema, WebhookPartnerSchema } from "./partners";
 import { parseDateSchema } from "./utils";
 
 export const CommissionSchema = z.object({
-  id: z.string().describe("The commission's unique ID on Dub.").openapi({
+  id: z.string().describe("The commission's unique ID on Dub.").meta({
     example: "cm_1JVR7XRCSR0EDBAF39FZ4PMYE",
   }),
-  type: z.nativeEnum(CommissionType).optional(),
+  type: z.enum(CommissionType).optional(),
   amount: z.number(),
   earnings: z.number(),
   currency: z.string(),
-  status: z.nativeEnum(CommissionStatus),
+  status: z.enum(CommissionStatus),
   invoiceId: z.string().nullable(),
   description: z.string().nullable(),
   quantity: z.number(),
@@ -30,34 +30,30 @@ export const CommissionSchema = z.object({
 });
 
 // Represents the commission object used in webhook and API responses (/api/commissions/**)
-export const CommissionEnrichedSchema = CommissionSchema.merge(
-  z.object({
-    partner: EnrolledPartnerSchema.pick({
-      id: true,
-      name: true,
-      email: true,
-      image: true,
-      payoutsEnabledAt: true,
-      country: true,
-      groupId: true,
-    }),
-    customer: CustomerSchema.nullish(), // customer can be null for click-based / custom commissions
+export const CommissionEnrichedSchema = CommissionSchema.extend({
+  partner: EnrolledPartnerSchema.pick({
+    id: true,
+    name: true,
+    email: true,
+    image: true,
+    payoutsEnabledAt: true,
+    country: true,
+    groupId: true,
   }),
-);
+  customer: CustomerSchema.nullish(), // customer can be null for click-based / custom commissions
+});
 
 // "commission.created" webhook event schema
-export const CommissionWebhookSchema = CommissionSchema.merge(
-  z.object({
-    partner: WebhookPartnerSchema,
-    customer: CustomerSchema.nullish(), // customer can be null for click-based / custom commissions
-  }),
-);
+export const CommissionWebhookSchema = CommissionSchema.extend({
+  partner: WebhookPartnerSchema,
+  customer: CustomerSchema.nullish(), // customer can be null for click-based / custom commissions
+});
 
 export const COMMISSIONS_MAX_PAGE_SIZE = 100;
 
 export const getCommissionsQuerySchema = z
   .object({
-    type: z.nativeEnum(CommissionType).optional(),
+    type: z.enum(CommissionType).optional(),
     customerId: z
       .string()
       .optional()
@@ -91,7 +87,7 @@ export const getCommissionsQuerySchema = z
         "Filter the list of commissions by the associated invoice. Since invoiceId is unique on a per-program basis, this will only return one commission per invoice.",
       ),
     status: z
-      .nativeEnum(CommissionStatus)
+      .enum(CommissionStatus)
       .optional()
       .describe(
         "Filter the list of commissions by their corresponding status.",
@@ -118,15 +114,15 @@ export const getCommissionsQuerySchema = z
       .describe("The end date of the date range to filter the commissions by."),
     timezone: z.string().optional(),
   })
-  .merge(
-    getCursorPaginationQuerySchema({ example: "cm_1KAP4CGN2Z5TPYYQ1W4JEYD56" }),
-  )
-  .merge(
-    getPaginationQuerySchema({
+  .extend({
+    ...getCursorPaginationQuerySchema({
+      example: "cm_1KAP4CGN2Z5TPYYQ1W4JEYD56",
+    }),
+    ...getPaginationQuerySchema({
       pageSize: COMMISSIONS_MAX_PAGE_SIZE,
       deprecated: true,
     }),
-  );
+  });
 
 export const getCommissionsCountQuerySchema = getCommissionsQuerySchema.omit({
   page: true,
@@ -138,7 +134,7 @@ export const getCommissionsCountQuerySchema = getCommissionsQuerySchema.omit({
 export const createCommissionSchema = z.object({
   workspaceId: z.string(),
   partnerId: z.string(),
-  commissionType: z.nativeEnum(CommissionType),
+  commissionType: z.enum(CommissionType),
   useExistingEvents: z.boolean(),
 
   // Custom
@@ -300,26 +296,22 @@ export const DEFAULT_COMMISSION_EXPORT_COLUMNS =
 
 export const commissionsExportQuerySchema = getCommissionsQuerySchema
   .omit({ page: true, pageSize: true })
-  .merge(
-    z.object({
-      columns: z
-        .string()
-        .default(DEFAULT_COMMISSION_EXPORT_COLUMNS.join(","))
-        .transform((v) => v.split(","))
-        .refine(
-          (columns): columns is CommissionExportColumnId[] => {
-            const validColumnIds = COMMISSION_EXPORT_COLUMNS.map(
-              (col) => col.id,
-            );
+  .extend({
+    columns: z
+      .string()
+      .default(DEFAULT_COMMISSION_EXPORT_COLUMNS.join(","))
+      .transform((v) => v.split(","))
+      .refine(
+        (columns): columns is CommissionExportColumnId[] => {
+          const validColumnIds = COMMISSION_EXPORT_COLUMNS.map((col) => col.id);
 
-            return columns.every((column): column is CommissionExportColumnId =>
-              validColumnIds.includes(column as CommissionExportColumnId),
-            );
-          },
-          {
-            message:
-              "Invalid column IDs provided. Please check the available columns.",
-          },
-        ),
-    }),
-  );
+          return columns.every((column): column is CommissionExportColumnId =>
+            validColumnIds.includes(column as CommissionExportColumnId),
+          );
+        },
+        {
+          message:
+            "Invalid column IDs provided. Please check the available columns.",
+        },
+      ),
+  });

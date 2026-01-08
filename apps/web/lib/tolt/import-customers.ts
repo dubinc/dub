@@ -1,6 +1,6 @@
 import { prisma } from "@dub/prisma";
+import { Link, Project } from "@dub/prisma/client";
 import { nanoid } from "@dub/utils";
-import { Link, Project } from "@prisma/client";
 import { createId } from "../api/create-id";
 import { updateLinkStatsForImporter } from "../api/links/update-link-stats-for-importer";
 import { syncPartnerLinksStats } from "../api/partners/sync-partner-links-stats";
@@ -234,6 +234,8 @@ async function createReferral({
         projectConnectId: workspace.stripeConnectId,
         clickId: clickEvent.click_id,
         linkId: link.id,
+        programId: link.programId,
+        partnerId: link.partnerId,
         country: clickEvent.country,
         clickedAt: new Date(customer.created_at),
         createdAt: new Date(customer.created_at),

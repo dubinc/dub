@@ -14,6 +14,7 @@ import {
   ProgramSheetAccordionTrigger,
 } from "@/ui/partners/program-sheet-accordion";
 import { X } from "@/ui/shared/icons";
+import { CommissionType } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
   Button,
@@ -32,7 +33,6 @@ import {
   formatDateTime,
   pluralize,
 } from "@dub/utils";
-import { CommissionType } from "@prisma/client";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -40,7 +40,7 @@ import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import useSWR from "swr";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 interface CreateCommissionSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;

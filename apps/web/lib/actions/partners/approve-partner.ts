@@ -7,7 +7,7 @@ import { authActionClient } from "../safe-action";
 
 // Approve a partner application
 export const approvePartnerAction = authActionClient
-  .schema(approvePartnerSchema)
+  .inputSchema(approvePartnerSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { partnerId, groupId } = parsedInput;

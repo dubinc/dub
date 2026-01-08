@@ -1,11 +1,10 @@
-import { openApiErrorResponses } from "@/lib/openapi/responses";
-import { DomainSchema } from "@/lib/zod/schemas/domains";
-import { LinkErrorSchema, LinkSchema } from "@/lib/zod/schemas/links";
-import { LinkTagSchema } from "@/lib/zod/schemas/tags";
-import { WorkspaceSchema } from "@/lib/zod/schemas/workspaces";
 import { createDocument } from "zod-openapi";
 import { webhookEventSchema } from "../webhook/schemas";
+import { DomainSchema } from "../zod/schemas/domains";
 import { FolderSchema } from "../zod/schemas/folders";
+import { LinkErrorSchema, LinkSchema } from "../zod/schemas/links";
+import { LinkTagSchema } from "../zod/schemas/tags";
+import { WorkspaceSchema } from "../zod/schemas/workspaces";
 import { analyticsPath } from "./analytics";
 import { commissionsPaths } from "./commissions";
 import { customersPaths } from "./customers";
@@ -16,6 +15,7 @@ import { foldersPaths } from "./folders";
 import { linksPaths } from "./links";
 import { partnersPaths } from "./partners";
 import { qrCodePaths } from "./qr";
+import { openApiErrorResponsesComponents } from "./responses";
 import { tagsPaths } from "./tags";
 import { trackPaths } from "./track";
 import { workspacesPaths } from "./workspaces";
@@ -77,7 +77,7 @@ export const document = createDocument({
       },
     },
     responses: {
-      ...openApiErrorResponses,
+      ...openApiErrorResponsesComponents,
     },
   },
 });

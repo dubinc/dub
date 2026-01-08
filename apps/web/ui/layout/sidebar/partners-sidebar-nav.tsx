@@ -1,9 +1,13 @@
 "use client";
 
+import { partnerCanViewMarketplace } from "@/lib/network/get-discoverability-requirements";
+import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import usePartnerProgramBounties from "@/lib/swr/use-partner-program-bounties";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
+import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
 import useProgramEnrollmentsCount from "@/lib/swr/use-program-enrollments-count";
 import { useProgramMessagesCount } from "@/lib/swr/use-program-messages-count";
+import { ProgramMarketplaceCard } from "@/ui/partners/program-marketplace/program-marketplace-card";
 import { useRouterStuff } from "@dub/ui";
 import {
   Bell,
@@ -15,6 +19,7 @@ import {
   MoneyBills2,
   Msgs,
   ShieldCheck,
+  Shop,
   SquareUserSparkle2,
   Trophy,
   UserCheck,
@@ -39,6 +44,7 @@ type SidebarNavData = {
   unreadMessagesCount?: number;
   programBountiesCount?: number;
   showDetailedAnalytics?: boolean;
+  showMarketplace?: boolean;
 };
 
 const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
@@ -81,7 +87,7 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
 
 const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
   // Top-level
-  programs: ({ invitationsCount }) => ({
+  programs: ({ invitationsCount, showMarketplace }) => ({
     title: (
       <div className="mb-3">
         <PartnerProgramDropdown />
@@ -98,8 +104,20 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             href: "/programs",
             isActive: (pathname, href) =>
               pathname.startsWith(href) &&
-              !pathname.startsWith(`${href}/invitations`),
+              ["invitations", "marketplace"].every(
+                (k) => !pathname.startsWith(`${href}/${k}`),
+              ),
           },
+          ...(showMarketplace
+            ? [
+                {
+                  name: "Marketplace",
+                  icon: Shop,
+                  href: "/programs/marketplace" as `/${string}`,
+                  badge: "New",
+                },
+              ]
+            : []),
           {
             name: "Invitations",
             icon: UserCheck,
@@ -202,6 +220,12 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
                   href: `/programs/${programSlug}/events` as `/${string}`,
                   locked: isUnapproved,
                 },
+                {
+                  name: "Customers",
+                  icon: UserCheck,
+                  href: `/programs/${programSlug}/customers` as `/${string}`,
+                  locked: isUnapproved,
+                },
               ]
             : []),
         ],
@@ -268,6 +292,8 @@ export function PartnersSidebarNav({
   const pathname = usePathname();
   const { getQueryString } = useRouterStuff();
 
+  const { partner } = usePartnerProfile();
+
   const isEnrolledProgramPage =
     pathname.startsWith(`/programs/${programSlug}`) &&
     pathname !== `/programs/${programSlug}/apply`;
@@ -288,12 +314,25 @@ export function PartnersSidebarNav({
             : "programs";
   }, [pathname, programSlug, isEnrolledProgramPage]);
 
+  const { programEnrollments } = useProgramEnrollments();
   const { count: invitationsCount } = useProgramEnrollmentsCount({
     status: "invited",
   });
 
+  const isUnapproved = useMemo(
+    () =>
+      !!programEnrollment &&
+      !["approved", "deactivated", "archived"].includes(
+        programEnrollment.status,
+      ),
+    [programEnrollment],
+  );
+
   const { bountiesCount } = usePartnerProgramBounties({
-    enabled: isEnrolledProgramPage,
+    enabled:
+      isEnrolledProgramPage && programEnrollment && !isUnapproved
+        ? true
+        : false,
   });
 
   const { count: unreadMessagesCount } = useProgramMessagesCount({
@@ -312,19 +351,28 @@ export function PartnersSidebarNav({
         pathname,
         queryString: getQueryString(),
         programSlug: programSlug || "",
-        isUnapproved:
-          !!programEnrollment &&
-          !["approved", "deactivated", "archived"].includes(
-            programEnrollment.status,
-          ),
+        isUnapproved,
         invitationsCount,
         unreadMessagesCount,
         programBountiesCount: bountiesCount.active,
         showDetailedAnalytics,
+        showMarketplace: partnerCanViewMarketplace({
+          partner,
+          programEnrollments: programEnrollments || [],
+        }),
       }}
       toolContent={toolContent}
       newsContent={newsContent}
-      bottom={isEnrolledProgramPage ? <ProgramHelpSupport /> : <PayoutStats />}
+      bottom={
+        isEnrolledProgramPage ? (
+          <ProgramHelpSupport />
+        ) : (
+          <>
+            <ProgramMarketplaceCard />
+            <PayoutStats />
+          </>
+        )
+      }
     />
   );
 }

@@ -9,7 +9,7 @@ import { ExceededEventsLimit } from "../exceeded-events-limit";
 import { ProgramOverviewBlock } from "../program-overview-block";
 
 export function ConversionBlock() {
-  const { slug: workspaceSlug, exceededClicks } = useWorkspace();
+  const { slug: workspaceSlug, exceededEvents } = useWorkspace();
   const { program } = useProgram();
 
   const { getQueryString } = useRouterStuff();
@@ -51,7 +51,7 @@ export function ConversionBlock() {
       title="Conversion rate"
       viewAllHref={`/${workspaceSlug}/program/analytics${getQueryString(
         {
-          // saleType: "new", // TODO: Add this back once we fix sales by type
+          saleType: "new",
           view: "funnel",
         },
         {
@@ -62,7 +62,7 @@ export function ConversionBlock() {
       contentClassName="px-0 mt-1"
     >
       <div className="h-full min-h-48">
-        {exceededClicks ? (
+        {exceededEvents ? (
           <ExceededEventsLimit />
         ) : totalEventsLoading ? (
           <div className="flex size-full items-center justify-center py-4">

@@ -237,7 +237,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
               ? unreadMessagesCount > 99
                 ? "99+"
                 : unreadMessagesCount
-              : "New",
+              : undefined,
           },
         ],
       },
@@ -288,6 +288,11 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             href: `/${slug}/program/analytics`,
           },
           {
+            name: "Customers",
+            icon: UserCheck,
+            href: `/${slug}/program/customers`,
+          },
+          {
             name: "Commissions",
             icon: InvoiceDollar,
             href: `/${slug}/program/commissions`,
@@ -321,7 +326,6 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "Email Campaigns",
             icon: PaperPlane,
             href: `/${slug}/program/campaigns` as `/${string}`,
-            badge: "New",
           },
           {
             name: "Resources",

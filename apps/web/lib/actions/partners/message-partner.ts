@@ -9,7 +9,7 @@ import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import { z } from "zod";
+import * as z from "zod/v4";
 import {
   MessageSchema,
   messagePartnerSchema,
@@ -22,7 +22,7 @@ const schema = messagePartnerSchema.extend({
 
 // Message a partner
 export const messagePartnerAction = authActionClient
-  .schema(schema)
+  .inputSchema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { partnerId, text } = parsedInput;

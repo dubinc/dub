@@ -11,7 +11,7 @@ import { authActionClient } from "../safe-action";
 
 // Reactivate a partner
 export const reactivatePartnerAction = authActionClient
-  .schema(deactivatePartnerSchema)
+  .inputSchema(deactivatePartnerSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { partnerId } = parsedInput;
@@ -39,7 +39,8 @@ export const reactivatePartnerAction = authActionClient
 
     const defaultGroup = await getGroupOrThrow({
       programId,
-      groupId: programEnrollment.program.defaultGroupId,
+      groupId:
+        programEnrollment.groupId || programEnrollment.program.defaultGroupId,
     });
 
     await prisma.$transaction([

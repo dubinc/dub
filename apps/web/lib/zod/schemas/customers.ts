@@ -1,4 +1,4 @@
-import z from "@/lib/zod";
+import * as z from "zod/v4";
 import { DiscountSchema } from "./discount";
 import { LinkSchema } from "./links";
 import {
@@ -42,6 +42,8 @@ export const getCustomersQuerySchema = z
       .describe(
         "A filter on the list based on the customer's `linkId` field (the referral link ID).",
       ),
+    programId: z.string().optional().describe("Program ID to filter by."),
+    partnerId: z.string().optional().describe("Partner ID to filter by."),
     includeExpandedFields: booleanQuerySchema
       .optional()
       .describe(
@@ -60,27 +62,23 @@ export const getCustomersQuerySchema = z
       .default("desc")
       .describe("The sort order. The default is `desc`."),
   })
-  .merge(
-    getCursorPaginationQuerySchema({
+  .extend({
+    ...getCursorPaginationQuerySchema({
       example: "cus_1KAP4CDPBSVMMBMH9XX3YZZ0Z",
     }),
-  )
-  .merge(
-    getPaginationQuerySchema({
+    ...getPaginationQuerySchema({
       pageSize: CUSTOMERS_MAX_PAGE_SIZE,
       deprecated: true,
     }),
-  );
+  });
 
-export const getCustomersQuerySchemaExtended = getCustomersQuerySchema.merge(
-  z.object({
-    customerIds: z
-      .union([z.string(), z.array(z.string())])
-      .transform((v) => (Array.isArray(v) ? v : v.split(",")))
-      .nullish()
-      .describe("Customer IDs to filter by."),
-  }),
-);
+export const getCustomersQuerySchemaExtended = getCustomersQuerySchema.extend({
+  customerIds: z
+    .union([z.string(), z.array(z.string())])
+    .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+    .nullish()
+    .describe("Customer IDs to filter by."),
+});
 
 export const getCustomersCountQuerySchema = getCustomersQuerySchema
   .omit({
@@ -90,10 +88,10 @@ export const getCustomersCountQuerySchema = getCustomersQuerySchema
     sortBy: true,
     sortOrder: true,
   })
-  .extend({ groupBy: z.enum(["country", "linkId"]).optional() });
+  .extend({ groupBy: z.enum(["country", "linkId", "partnerId"]).optional() });
 
 export const createCustomerBodySchema = z.object({
-  email: z.string().email().nullish().describe("The customer's email address."),
+  email: z.email().nullish().describe("The customer's email address."),
   name: z
     .string()
     .nullish()
@@ -101,7 +99,6 @@ export const createCustomerBodySchema = z.object({
       "The customer's name. If not provided, the email address will be used, and if email is not provided, a random name will be generated.",
     ),
   avatar: z
-    .string()
     .url()
     .nullish()
     .describe(

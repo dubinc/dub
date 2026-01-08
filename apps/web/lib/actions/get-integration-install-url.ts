@@ -1,8 +1,8 @@
 "use server";
 
+import * as z from "zod/v4";
 import { hubSpotOAuthProvider } from "../integrations/hubspot/oauth";
 import { slackOAuthProvider } from "../integrations/slack/oauth";
-import z from "../zod";
 import { authActionClient } from "./safe-action";
 
 const schema = z.object({
@@ -12,7 +12,7 @@ const schema = z.object({
 
 // Get the installation URL for an integration
 export const getIntegrationInstallUrl = authActionClient
-  .schema(schema)
+  .inputSchema(schema)
   .action(async ({ ctx, parsedInput }) => {
     const { workspace } = ctx;
     const { integrationSlug } = parsedInput;

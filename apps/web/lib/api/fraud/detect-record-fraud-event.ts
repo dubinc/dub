@@ -1,6 +1,7 @@
 import { CreateFraudEventInput, FraudEventContext } from "@/lib/types";
+import { INACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { prettyPrint } from "@dub/utils";
 import { fraudEventContext } from "../../zod/schemas/schemas";
 import { createFraudEvents } from "./create-fraud-events";
 import { executeFraudRule } from "./execute-fraud-rule";
@@ -17,6 +18,15 @@ export async function detectAndRecordFraudEvent(context: FraudEventContext) {
   }
 
   const validatedContext = result.data;
+  const { programEnrollment } = validatedContext;
+
+  // Skip if program enrollment is inactive
+  if (INACTIVE_ENROLLMENT_STATUSES.includes(programEnrollment.status)) {
+    console.info(
+      `[detectAndRecordFraudEvent] Program enrollment is ${programEnrollment.status}, skipping...`,
+    );
+    return;
+  }
 
   // Get program-specific rule overrides
   const programRules = await prisma.fraudRule.findMany({
@@ -43,7 +53,7 @@ export async function detectAndRecordFraudEvent(context: FraudEventContext) {
       if (triggered) {
         triggeredRules.push({
           type: rule.type,
-          metadata: metadata as unknown as Prisma.JsonValue,
+          metadata,
         });
       }
     } catch (error) {
@@ -57,6 +67,11 @@ export async function detectAndRecordFraudEvent(context: FraudEventContext) {
   if (triggeredRules.length === 0) {
     return;
   }
+
+  console.log(
+    `[detectAndRecordFraudEvent] Found ${triggeredRules.length} triggered rules`,
+    prettyPrint(triggeredRules),
+  );
 
   await createFraudEvents(
     triggeredRules.map((rule) => ({

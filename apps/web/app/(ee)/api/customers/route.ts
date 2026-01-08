@@ -2,6 +2,7 @@ import { createId } from "@/lib/api/create-id";
 import { transformCustomer } from "@/lib/api/customers/transform-customer";
 import { DubApiError } from "@/lib/api/errors";
 import { getPaginationOptions } from "@/lib/api/pagination";
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
@@ -15,50 +16,43 @@ import {
 import { DiscountSchemaWithDeprecatedFields } from "@/lib/zod/schemas/discount";
 import { prisma, sanitizeFullTextSearch } from "@dub/prisma";
 import { nanoid, R2_URL } from "@dub/utils";
-import {
-  Customer,
-  Discount,
-  Link,
-  Partner,
-  Program,
-  ProgramEnrollment,
-} from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
-import { z } from "zod";
-
-interface CustomerResponse extends Customer {
-  link: Link & {
-    programEnrollment: ProgramEnrollment & {
-      program: Program;
-      partner: Partner;
-      discount: Discount | null;
-    };
-  };
-}
 
 // GET /api/customers – Get all customers
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const filters = getCustomersQuerySchemaExtended.parse(searchParams);
 
-    const {
+    let {
       email,
       externalId,
       search,
       country,
       linkId,
+      programId,
+      partnerId,
       includeExpandedFields,
       customerIds,
     } = filters;
 
-    const customers = (await prisma.customer.findMany({
+    if (programId || partnerId) {
+      programId = getDefaultProgramIdOrThrow(workspace);
+    }
+
+    const customers = await prisma.customer.findMany({
       where: {
         ...(customerIds
           ? {
               id: { in: customerIds },
             }
           : {}),
+        ...(programId && {
+          programId,
+        }),
+        ...(partnerId && {
+          partnerId,
+        }),
         projectId: workspace.id,
         ...(email
           ? { email }
@@ -103,14 +97,12 @@ export const GET = withWorkspace(
             },
           }
         : {}),
-    })) as CustomerResponse[];
+    });
 
     const responseSchema = includeExpandedFields
-      ? CustomerEnrichedSchema.merge(
-          z.object({
-            discount: DiscountSchemaWithDeprecatedFields,
-          }),
-        )
+      ? CustomerEnrichedSchema.extend({
+          discount: DiscountSchemaWithDeprecatedFields,
+        })
       : CustomerSchema;
 
     const response = responseSchema

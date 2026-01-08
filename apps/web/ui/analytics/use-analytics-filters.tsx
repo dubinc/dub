@@ -4,6 +4,7 @@ import useCustomer from "@/lib/swr/use-customer";
 import usePartner from "@/lib/swr/use-partner";
 import usePartnerCustomer from "@/lib/swr/use-partner-customer";
 import { LinkProps } from "@/lib/types";
+import { readStreamableValue } from "@ai-sdk/rsc";
 import {
   BlurImage,
   Filter,
@@ -48,7 +49,6 @@ import {
   OG_AVATAR_URL,
   REGIONS,
 } from "@dub/utils";
-import { readStreamableValue } from "ai/rsc";
 import { useParams } from "next/navigation";
 import posthog from "posthog-js";
 import {
@@ -763,8 +763,8 @@ export function useAnalyticsFilters({
           ) : null;
         },
         getOptionPermalink: () => {
-          return programSlug
-            ? `/programs/${programSlug}/customers/${selectedCustomerId}`
+          return programPage
+            ? `/${slug}/program/customers/${selectedCustomerId}`
             : slug
               ? `/${slug}/customers/${selectedCustomerId}`
               : null;

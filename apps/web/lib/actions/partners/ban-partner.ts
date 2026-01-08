@@ -9,8 +9,11 @@ import { qstash } from "@/lib/cron";
 import { UserProps, WorkspaceProps } from "@/lib/types";
 import { banPartnerSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
+import {
+  PartnerBannedReason,
+  ProgramEnrollmentStatus,
+} from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
-import { PartnerBannedReason, ProgramEnrollmentStatus } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 
@@ -20,7 +23,7 @@ const queue = qstash.queue({
 
 // Ban a partner
 export const banPartnerAction = authActionClient
-  .schema(banPartnerSchema)
+  .inputSchema(banPartnerSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { partnerId, reason } = parsedInput;
@@ -119,7 +122,6 @@ export const banPartner = async ({
         body: {
           programId,
           partnerId,
-          userId: user.id,
         },
       }),
     ]),

@@ -24,7 +24,7 @@ import {
   Webhook,
   WorkspaceRole,
 } from "@dub/prisma/client";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { RESOURCE_COLORS } from "../ui/colors";
 import { PAID_TRAFFIC_PLATFORMS } from "./api/fraud/constants";
 import { BOUNTY_SUBMISSION_REQUIREMENTS } from "./constants/bounties";
@@ -94,6 +94,7 @@ import {
   createPartnerSchema,
   EnrolledPartnerSchema,
   EnrolledPartnerSchemaExtended,
+  PartnerRewindSchema,
   PartnerSchema,
   WebhookPartnerSchema,
 } from "./zod/schemas/partners";
@@ -108,6 +109,10 @@ import {
 } from "./zod/schemas/program-application-form";
 import { programInviteEmailDataSchema } from "./zod/schemas/program-invite-email";
 import { programLanderSchema } from "./zod/schemas/program-lander";
+import {
+  NetworkProgramExtendedSchema,
+  NetworkProgramSchema,
+} from "./zod/schemas/program-network";
 import { programDataSchema } from "./zod/schemas/program-onboarding";
 import {
   PartnerCommentSchema,
@@ -183,7 +188,10 @@ export interface RedisLinkProps {
   webhookIds?: string[];
   programId?: string;
   partnerId?: string;
-  partner?: Pick<PartnerProps, "id" | "name" | "image">;
+  partner?: Pick<PartnerProps, "id" | "name" | "image"> & {
+    groupId?: string | null;
+    tenantId?: string | null;
+  };
   discount?: Pick<
     DiscountProps,
     "id" | "amount" | "type" | "maxDuration" | "couponId" | "couponTestId"
@@ -451,6 +459,8 @@ export type PartnerProps = z.infer<typeof PartnerSchema> & {
   userId: string;
 };
 
+export type PartnerRewindProps = z.infer<typeof PartnerRewindSchema>;
+
 export type PartnerUserProps = z.infer<typeof partnerUserSchema>;
 export type PartnerProfileCustomerProps = z.infer<
   typeof PartnerProfileCustomerSchema
@@ -464,6 +474,12 @@ export type NetworkPartnerProps = z.infer<typeof NetworkPartnerSchema>;
 
 export type PartnerConversionScore = z.infer<
   typeof PartnerConversionScoreSchema
+>;
+
+export type NetworkProgramProps = z.infer<typeof NetworkProgramSchema>;
+
+export type NetworkProgramExtendedProps = z.infer<
+  typeof NetworkProgramExtendedSchema
 >;
 
 export type EnrolledPartnerExtendedProps = z.infer<
@@ -724,4 +740,8 @@ export type CreateFraudEventInput = Pick<
   FraudEventGroup,
   "programId" | "partnerId" | "type"
 > &
-  Partial<Pick<FraudEvent, "linkId" | "eventId" | "customerId" | "metadata">>;
+  Partial<
+    Pick<FraudEvent, "linkId" | "eventId" | "customerId" | "sourceProgramId">
+  > & {
+    metadata?: Record<string, unknown> | null;
+  };

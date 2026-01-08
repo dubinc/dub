@@ -7,7 +7,7 @@ import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import { Button, Table, TimestampTooltip, useTable } from "@dub/ui";
 import { formatDateTimeSmart } from "@dub/utils";
 import Link from "next/link";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 type EventDataProps = z.infer<(typeof fraudEventSchemas)["customerEmailMatch"]>;
 
@@ -72,7 +72,7 @@ export function FraudMatchingCustomerEmailTable() {
 
           return (
             <Link
-              href={`/${workspaceSlug}/customers/${row.original.customer.id}`}
+              href={`/${workspaceSlug}/program/customers/${row.original.customer.id}`}
               target="_blank"
             >
               <Button

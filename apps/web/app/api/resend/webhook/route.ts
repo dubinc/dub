@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { Webhook } from "svix";
-import { contactUpdated } from "./contact-updated";
 import { emailBounced } from "./email-bounced";
 import { emailDelivered } from "./email-delivered";
 import { emailOpened } from "./email-opened";
@@ -22,9 +21,6 @@ export const POST = async (req: Request) => {
   const { type, data } = JSON.parse(rawBody) || {};
 
   switch (type) {
-    case "contact.updated":
-      await contactUpdated(data);
-      break;
     case "email.opened":
       await emailOpened(data);
       break;

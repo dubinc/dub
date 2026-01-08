@@ -2,13 +2,13 @@
 
 import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
 import { prisma } from "@dub/prisma";
-import { Prisma } from "@prisma/client";
+import { Prisma } from "@dub/prisma/client";
 import { partnerPayoutSettingsSchema } from "../../zod/schemas/partners";
 import { authPartnerActionClient } from "../safe-action";
 
 // Update a partner payout & invoice settings
 export const updatePartnerPayoutSettingsAction = authPartnerActionClient
-  .schema(partnerPayoutSettingsSchema)
+  .inputSchema(partnerPayoutSettingsSchema)
   .action(async ({ ctx, parsedInput }) => {
     const { partner, partnerUser } = ctx;
     const { companyName, address, taxId } = parsedInput;

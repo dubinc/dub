@@ -6,6 +6,7 @@ import {
   DUB_DOMAINS_ARRAY,
   LEGAL_USER_ID,
   LEGAL_WORKSPACE_ID,
+  prettyPrint,
   R2_URL,
 } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -34,10 +35,12 @@ export async function deleteWorkspace(
         defaultWorkspace: null,
       },
     }),
-  ]);
+  ]).then((results) => {
+    console.log(prettyPrint(results));
+  });
 
   waitUntil(
-    Promise.all([
+    Promise.allSettled([
       // Remove the API keys
       prisma.restrictedToken.deleteMany({
         where: {
@@ -45,7 +48,7 @@ export async function deleteWorkspace(
         },
       }),
 
-      // Cancel the workspace's Stripe subscription
+      // Cancel the workspace's Stripe subscription if exists
       workspace.stripeId && cancelSubscription(workspace.stripeId),
 
       // Delete workspace logo if it's a custom logo stored in R2
@@ -53,11 +56,16 @@ export async function deleteWorkspace(
         workspace.logo.startsWith(`${R2_URL}/logos/${workspace.id}`) &&
         storage.delete({ key: workspace.logo.replace(`${R2_URL}/`, "") }),
 
-      // queue the workspace for deletion
-      queueWorkspaceDeletion({
-        workspaceId: workspace.id,
+      // Queue the workspace for deletion
+      qstash.publishJSON({
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/workspaces/delete`,
+        body: {
+          workspaceId: workspace.id,
+        },
       }),
-    ]),
+    ]).then((results) => {
+      console.log(prettyPrint(results));
+    }),
   );
 }
 
@@ -129,6 +137,28 @@ export async function deleteWorkspaceAdmin(
     deleteDomainsLinksResponse,
   );
 
+  // Delete folders
+  const deleteFoldersResponse = await prisma.folder.deleteMany({
+    where: {
+      projectId: workspace.id,
+    },
+  });
+
+  console.log(
+    `Deleted ${deleteFoldersResponse.count} folders for ${workspace.slug}`,
+  );
+
+  // Delete customers
+  const deleteCustomersResponse = await prisma.customer.deleteMany({
+    where: {
+      projectId: workspace.id,
+    },
+  });
+
+  console.log(
+    `Deleted ${deleteCustomersResponse.count} customers for ${workspace.slug}`,
+  );
+
   const deleteWorkspaceResponse = await Promise.allSettled([
     // delete workspace logo if it's a custom logo stored in R2
     workspace.logo &&
@@ -150,20 +180,4 @@ export async function deleteWorkspaceAdmin(
     deleteDomainsLinksResponse,
     deleteWorkspaceResponse,
   };
-}
-
-export async function queueWorkspaceDeletion({
-  workspaceId,
-  delay,
-}: {
-  workspaceId: string;
-  delay?: number;
-}) {
-  return await qstash.publishJSON({
-    url: `${APP_DOMAIN_WITH_NGROK}/api/cron/workspaces/delete`,
-    ...(delay && { delay }),
-    body: {
-      workspaceId,
-    },
-  });
 }

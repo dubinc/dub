@@ -1,24 +1,20 @@
 import { CreateFraudEventInput } from "@/lib/types";
-import { FraudEventGroup, FraudRuleType, Prisma } from "@dub/prisma/client";
 import { createHash } from "crypto";
 
-interface CreateGroupKeyInput {
-  type: FraudRuleType;
-  programId: string;
-  groupingKey: string;
-}
+type CreateEventHashInput = Pick<
+  CreateFraudEventInput,
+  | "type"
+  | "programId"
+  | "partnerId"
+  | "customerId"
+  | "sourceProgramId"
+  | "metadata"
+>;
 
-interface CreateEventHashInput
-  extends Pick<
-    CreateFraudEventInput,
-    "type" | "programId" | "partnerId" | "customerId" | "metadata"
-  > {}
-
-interface GetIdentityFieldsForFraudEventInput
-  extends Pick<FraudEventGroup, "partnerId" | "type"> {
-  customerId?: string | null | undefined;
-  metadata?: Prisma.JsonValue | undefined;
-}
+type GetIdentityFieldsForFraudEventInput = Pick<
+  CreateFraudEventInput,
+  "type" | "partnerId" | "customerId" | "sourceProgramId" | "metadata"
+>;
 
 // Normalize email for comparison
 export function normalizeEmail(email: string): string {
@@ -49,17 +45,6 @@ function createHashKey(value: string): string {
   return createHash("sha256").update(value).digest("base64url").slice(0, 24);
 }
 
-// Create a unique group key to identify and deduplicate fraud events of the same type
-// based on programId and groupingKey
-// Deprecated: Use createGroupHash instead (Should be removed)
-export function createFraudEventGroupKey(input: CreateGroupKeyInput): string {
-  const parts = [input.programId, input.type, input.groupingKey].map((p) =>
-    p!.toLowerCase(),
-  );
-
-  return createHashKey(parts.join("|"));
-}
-
 // Creates a unique hash for a fraud event to enable deduplication.
 export function createFraudEventHash(fraudEvent: CreateEventHashInput) {
   const identityFields = getIdentityFieldsForFraudEvent(fraudEvent);
@@ -87,6 +72,7 @@ function getIdentityFieldsForFraudEvent({
   type,
   customerId,
   metadata,
+  sourceProgramId,
 }: GetIdentityFieldsForFraudEventInput): Record<string, string> {
   const eventMetadata = metadata as Record<string, string>;
 
@@ -109,6 +95,14 @@ function getIdentityFieldsForFraudEvent({
       };
 
     case "partnerCrossProgramBan":
+      if (!sourceProgramId) {
+        throw new Error(`sourceProgramId is required for ${type} fraud rule.`);
+      }
+
+      return {
+        sourceProgramId,
+      };
+
     case "partnerFraudReport":
       return {};
   }
@@ -116,7 +110,7 @@ function getIdentityFieldsForFraudEvent({
 
 // Sanitize metadata by removing fields that are stored separately or shouldn't be persisted
 export function sanitizeFraudEventMetadata(
-  metadata: Prisma.JsonValue | undefined,
+  metadata: Record<string, unknown> | undefined,
 ) {
   if (!metadata) {
     return undefined;
