@@ -27,7 +27,6 @@ export const getPartnerEnrollmentInfo = async ({
     return {
       partner: null,
       discount: null,
-      partnerTagIds: [],
     };
   }
 
@@ -45,7 +44,7 @@ export const getPartnerEnrollmentInfo = async ({
       ProgramEnrollment.groupId,
       ProgramEnrollment.tenantId,
       (
-        SELECT JSON_ARRAYAGG(DISTINCT partnerTagId)
+        SELECT GROUP_CONCAT(DISTINCT partnerTagId)
         FROM ProgramPartnerTag
         WHERE ProgramPartnerTag.programId = ProgramEnrollment.programId
         AND ProgramPartnerTag.partnerId = ProgramEnrollment.partnerId
@@ -67,11 +66,8 @@ export const getPartnerEnrollmentInfo = async ({
     return {
       partner: null,
       discount: null,
-      partnerTagIds: [],
     };
   }
-
-  console.log(result)
 
   return {
     partner: {
@@ -80,6 +76,9 @@ export const getPartnerEnrollmentInfo = async ({
       image: result.image,
       groupId: result.groupId,
       tenantId: result.tenantId,
+      tagIds: result.partnerTagIds
+        ? result.partnerTagIds.split(",").filter(Boolean)
+        : [],
     },
     discount: result.discountId
       ? {
@@ -90,9 +89,6 @@ export const getPartnerEnrollmentInfo = async ({
           couponId: result.couponId,
           couponTestId: result.couponTestId,
         }
-      : null,
-    partnerTagIds: result.partnerTagIds
-      ? (result.partnerTagIds.split(",").filter(Boolean))
       : null,
   };
 };

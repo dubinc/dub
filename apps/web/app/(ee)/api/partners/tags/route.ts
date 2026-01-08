@@ -6,7 +6,7 @@ import {
 } from "@/lib/zod/schemas/partner-tags";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 // GET /api/partners/tags - get all partner tags
 export const GET = withWorkspace(

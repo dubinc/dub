@@ -134,8 +134,8 @@ model ProgramEnrollment {
   partner            Partner             @relation(fields: [partnerId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   program            Program             @relation(fields: [programId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   links              Link[]
+  customers          Customer[]
   partnerGroup       PartnerGroup?       @relation(fields: [groupId], references: [id])
-  programPartnerTags ProgramPartnerTag[]
   application        ProgramApplication? @relation(fields: [applicationId], references: [id])
   clickReward        Reward?             @relation("ClickRewardEnrollments", fields: [clickRewardId], references: [id])
   leadReward         Reward?             @relation("LeadRewardEnrollments", fields: [leadRewardId], references: [id])
@@ -145,10 +145,9 @@ model ProgramEnrollment {
   discountCodes      DiscountCode[]
   commissions        Commission[]
   payouts            Payout[]
-  fraudEvents        FraudEvent[]
-  customers          Customer[]
-  fraudEventGroups   FraudEventGroup[]
   messages           Message[]
+  fraudEventGroups   FraudEventGroup[]
+  programPartnerTags ProgramPartnerTag[]
 
   // unique constraints
   @@unique([partnerId, programId])

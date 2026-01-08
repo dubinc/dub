@@ -1,4 +1,4 @@
-import { z } from "zod";
+import * as z from "zod/v4";
 import { getPaginationQuerySchema } from "./misc";
 
 export const PARTNER_TAGS_MAX_PAGE_SIZE = 100;
@@ -25,7 +25,7 @@ export const getPartnerTagsQuerySchema = z
       .optional()
       .describe("IDs of partner tags to filter by."),
   })
-  .merge(getPaginationQuerySchema({ pageSize: PARTNER_TAGS_MAX_PAGE_SIZE }));
+  .extend(getPaginationQuerySchema({ pageSize: PARTNER_TAGS_MAX_PAGE_SIZE }));
 
 export const getPartnerTagsCountQuerySchema = getPartnerTagsQuerySchema.omit({
   page: true,

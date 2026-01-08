@@ -170,11 +170,10 @@ export async function updateLink({
 
   waitUntil(
     (async () => {
-      const { partner, discount, partnerTagIds } =
-        await getPartnerEnrollmentInfo({
-          programId: response.programId,
-          partnerId: response.partnerId,
-        });
+      const { partner, discount } = await getPartnerEnrollmentInfo({
+        programId: response.programId,
+        partnerId: response.partnerId,
+      });
 
       await Promise.allSettled([
         // Record link in Redis
@@ -187,18 +186,16 @@ export async function updateLink({
         // Record link in Tinybird
         recordLink({
           ...response,
-          ...((partner?.groupId || partnerTagIds) && {
+          ...((partner?.groupId || partner?.tagIds) && {
             programEnrollment: {
               ...(partner?.groupId && {
                 groupId: partner.groupId,
               }),
-              programPartnerTags: partnerTagIds
-                ? partnerTagIds.map((id: string) => ({
-                    partnerTag: {
-                      id,
-                    },
-                  }))
-                : null,
+              programPartnerTags: partner?.tagIds.map((id: string) => ({
+                partnerTag: {
+                  id,
+                },
+              })),
             },
           }),
         }),
