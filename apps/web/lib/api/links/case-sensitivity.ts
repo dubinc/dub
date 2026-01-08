@@ -37,11 +37,14 @@ export const decodeKey = (hash: string): string => {
   let xored: string;
 
   // Backwards compatibility: detect format by prefix
-  // New format: "h:" prefix indicates hex encoding
+  // New format: "h:" prefix (case-insensitive) indicates hex encoding
   // Old format: no prefix, base64 encoding
-  if (hash.startsWith("h:")) {
+  // Normalize prefix check to handle case-insensitive databases
+  const normalizedHash = hash.toLowerCase();
+  if (normalizedHash.startsWith("h:")) {
     // New hex format - remove prefix and decode as hex
-    const hexPart = hash.slice(2).toLowerCase();
+    // Normalize to lowercase to handle case-insensitive database storage
+    const hexPart = normalizedHash.slice(2);
     xored = Buffer.from(hexPart, "hex").toString("utf8");
   } else {
     // Old base64 format - decode as base64
