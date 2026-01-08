@@ -1,6 +1,6 @@
 "use server";
 
-import { scrapeCreatorsClient } from "@/lib/api/scrapecreators/client";
+import { fetchSocialProfile } from "@/lib/api/scrape-creators/fetch-social-profile";
 import { ratelimit } from "@/lib/upstash";
 import { redis } from "@/lib/upstash/redis";
 import { prisma } from "@dub/prisma";
@@ -8,14 +8,14 @@ import { SocialPlatform } from "@dub/prisma/client";
 import * as z from "zod/v4";
 import { authPartnerActionClient } from "../safe-action";
 
-const schema = z.object({
-  platform: z.nativeEnum(SocialPlatform),
+const inputSchema = z.object({
+  platform: z.enum(SocialPlatform),
   handle: z.string().min(1),
 });
 
 // Verify social accounts using the verification code
 export const verifySocialAccountByCodeAction = authPartnerActionClient
-  .schema(schema)
+  .inputSchema(inputSchema)
   .action(async ({ ctx, parsedInput }) => {
     const { partner } = ctx;
     const { platform, handle } = parsedInput;
@@ -74,18 +74,12 @@ export const verifySocialAccountByCodeAction = authPartnerActionClient
     // Verifies that a verification code exists in the account's profile bio/description.
     // Fetches the account profile and checks if the provided code appears in any of the
     // profile text fields (description, about, bio, summary).
-    const socialProfile = await scrapeCreatorsClient.fetchSocialProfile({
+    const socialProfile = await fetchSocialProfile({
       platform,
       handle,
     });
 
-    if (!socialProfile) {
-      throw new Error(
-        "We were unable to retrieve your social media profile. Please try again.",
-      );
-    }
-
-    if (!socialProfile.description) {
+    if (!socialProfile.description || socialProfile.description.length === 0) {
       throw new Error(
         `We could not find a public ${
           platform === "youtube" ? "channel description" : "bio"
@@ -113,9 +107,11 @@ export const verifySocialAccountByCodeAction = authPartnerActionClient
       data: {
         verifiedAt: new Date(),
         platformId: socialProfile.platformId,
+        followers: socialProfile.followers,
+        posts: socialProfile.posts,
+        views: socialProfile.views,
       },
     });
 
-    // Delete the verification code from Redis
     await redis.del(cacheKey);
   });

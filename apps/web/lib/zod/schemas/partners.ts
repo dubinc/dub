@@ -208,7 +208,7 @@ export const partnersCountQuerySchema = getPartnersQuerySchemaExtended
   });
 
 export const partnerSocialPlatformSchema = z.object({
-  platform: z.nativeEnum(SocialPlatform),
+  platform: z.enum(SocialPlatform),
   handle: z.string(),
   verifiedAt: z.date().nullable(),
   platformId: z.string().nullable(),
