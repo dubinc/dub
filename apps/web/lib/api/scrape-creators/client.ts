@@ -33,12 +33,12 @@ export const scrapeCreatorsFetch = createFetch({
   onError: ({ error }) => {
     console.error("[ScrapeCreators] Error", error);
   },
-  onResponse: async ({ response }) => {
-    if (process.env.NODE_ENV === "development") {
-      console.log(
-        "[ScrapeCreators] Response",
-        prettyPrint(await response.clone().json()),
-      );
-    }
-  },
+  // onResponse: async ({ response }) => {
+  //   if (process.env.NODE_ENV === "development") {
+  //     console.log(
+  //       "[ScrapeCreators] Response",
+  //       prettyPrint(await response.clone().json()),
+  //     );
+  //   }
+  // },
 });
