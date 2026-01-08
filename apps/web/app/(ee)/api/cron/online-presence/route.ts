@@ -106,6 +106,6 @@ export const POST = withCron(async () => {
   }
 
   return logAndRespond(
-    `Social platform stats updated for ${verifiedProfiles.length} verified profiles.`,
+    "Finished updating social platform stats for the verified profiles.",
   );
 });
