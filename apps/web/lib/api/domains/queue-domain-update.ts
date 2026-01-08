@@ -1,6 +1,6 @@
 import { qstash } from "@/lib/cron";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 export const linkDomainUpdateSchema = z.object({
   newDomain: z.string(),

@@ -1,47 +1,43 @@
 import { OAUTH_SCOPES } from "@/lib/api/oauth/constants";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { createIntegrationSchema, integrationSchema } from "./integration";
 
-export const oAuthAppSchema = integrationSchema.merge(
-  z.object({
-    clientId: z.string(),
-    partialClientSecret: z.string(),
-    redirectUris: z.array(z.string()),
-    pkce: z.boolean(),
-  }),
-);
+export const oAuthAppSchema = integrationSchema.extend({
+  clientId: z.string(),
+  partialClientSecret: z.string(),
+  redirectUris: z.array(z.string()),
+  pkce: z.boolean(),
+});
 
-export const createOAuthAppSchema = createIntegrationSchema.merge(
-  z.object({
-    redirectUris: z
-      .string()
-      .array()
-      .min(1, {
-        message: "At least one redirect URI is required",
-      })
-      .max(5, {
-        message: "only 5 redirect URIs are allowed",
-      })
-      .transform((urls) => urls.filter((url) => url.trim().length > 0))
-      .refine(
-        (urls) => {
-          return urls.every((url) => /^(https?:\/\/)/i.test(url));
-        },
-        {
-          message:
-            "redirect_uri must be a valid URL starting with 'https://' or 'http://'",
-        },
-      ),
-    pkce: z.boolean().default(false),
-  }),
-);
+export const createOAuthAppSchema = createIntegrationSchema.extend({
+  redirectUris: z
+    .string()
+    .array()
+    .min(1, {
+      message: "At least one redirect URI is required",
+    })
+    .max(5, {
+      message: "only 5 redirect URIs are allowed",
+    })
+    .transform((urls) => urls.filter((url) => url.trim().length > 0))
+    .refine(
+      (urls) => {
+        return urls.every((url) => /^(https?:\/\/)/i.test(url));
+      },
+      {
+        message:
+          "redirect_uri must be a valid URL starting with 'https://' or 'http://'",
+      },
+    ),
+  pkce: z.boolean().default(false),
+});
 
 export const updateOAuthAppSchema = createOAuthAppSchema.partial();
 
 // Schema for OAuth2.0 Authorization request
 export const authorizeRequestSchema = z.object({
   client_id: z.string().min(1, "Missing client_id"),
-  redirect_uri: z.string().url({ message: "redirect_uri must be a valid URL" }),
+  redirect_uri: z.url({ message: "redirect_uri must be a valid URL" }),
   response_type: z.string().refine((responseType) => responseType === "code", {
     message: "response_type must be 'code'",
   }),
@@ -82,7 +78,7 @@ export const authCodeExchangeSchema = z.object({
   client_id: z.string().optional(),
   client_secret: z.string().optional(),
   code: z.string().min(1, "Missing code"),
-  redirect_uri: z.string().url({ message: "redirect_uri must be a valid URL" }),
+  redirect_uri: z.url({ message: "redirect_uri must be a valid URL" }),
   code_verifier: z.string().max(190).optional(),
 });
 
@@ -99,7 +95,7 @@ export const tokenGrantSchema = z.discriminatedUnion(
   "grant_type",
   [authCodeExchangeSchema, refreshTokenSchema],
   {
-    errorMap: () => ({
+    error: () => ({
       message: "grant_type must be 'authorization_code' or 'refresh_token'",
     }),
   },

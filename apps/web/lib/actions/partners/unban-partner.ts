@@ -19,7 +19,7 @@ const unbanPartnerSchema = banPartnerSchema.omit({
 
 // Unban a partner
 export const unbanPartnerAction = authActionClient
-  .schema(unbanPartnerSchema)
+  .inputSchema(unbanPartnerSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { partnerId } = parsedInput;

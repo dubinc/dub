@@ -1,8 +1,7 @@
-import z from "@/lib/zod";
 import { Prisma } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 import "server-only";
-import { ZodError } from "zod";
+import z from "zod";
 import { generateErrorMessage } from "zod-error";
 import { ZodOpenApiResponseObject } from "zod-openapi";
 import { logger } from "../axiom/server";
@@ -38,15 +37,15 @@ const speakeasyErrorOverrides: Record<z.infer<typeof ErrorCode>, string> = {
 
 const ErrorSchema = z.object({
   error: z.object({
-    code: ErrorCode.openapi({
+    code: ErrorCode.meta({
       description: "A short code indicating the error code returned.",
       example: "not_found",
     }),
-    message: z.string().openapi({
+    message: z.string().meta({
       description: "A human readable error message.",
       example: "The requested resource was not found.",
     }),
-    doc_url: z.string().optional().openapi({
+    doc_url: z.string().optional().meta({
       description: "A URL to more information about the error code reported.",
       example: "https://dub.co/docs/api-reference",
     }),
@@ -83,7 +82,7 @@ export class DubApiError extends Error {
 
 const docErrorUrl = "https://dub.co/docs/api-reference/errors";
 
-export function fromZodError(error: ZodError): ErrorResponse {
+export function fromZodError(error: z.ZodError): ErrorResponse {
   return {
     error: {
       code: "unprocessable_entity",
@@ -119,7 +118,7 @@ export function handleApiError(error: any): ErrorResponse & { status: number } {
   logger.flush();
 
   // Zod errors
-  if (error instanceof ZodError) {
+  if (error instanceof z.ZodError) {
     return {
       ...fromZodError(error),
       status: errorCodeToHttpStatus.unprocessable_entity,

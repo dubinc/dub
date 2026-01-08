@@ -1,7 +1,7 @@
 "use server";
 
 import { prisma } from "@dub/prisma";
-import z from "../zod";
+import * as z from "zod/v4";
 import { notificationTypes } from "../zod/schemas/workspaces";
 import { authActionClient } from "./safe-action";
 
@@ -13,7 +13,7 @@ const schema = z.object({
 
 // Update the notification preference for a user in a workspace
 export const updateWorkspaceNotificationPreference = authActionClient
-  .schema(schema)
+  .inputSchema(schema)
   .action(async ({ ctx, parsedInput }) => {
     const { user, workspace } = ctx;
     const { type, value } = parsedInput;

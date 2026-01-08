@@ -8,7 +8,7 @@ import { prisma } from "@dub/prisma";
 import { authActionClient } from "../safe-action";
 
 export const resolveFraudGroupAction = authActionClient
-  .schema(resolveFraudGroupSchema)
+  .inputSchema(resolveFraudGroupSchema)
   .action(async ({ ctx, parsedInput }) => {
     const { workspace, user } = ctx;
     const { groupId, resolutionReason } = parsedInput;

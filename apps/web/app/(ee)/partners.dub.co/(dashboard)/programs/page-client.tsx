@@ -3,7 +3,7 @@
 import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { ProgramCard, ProgramCardSkeleton } from "@/ui/partners/program-card";
-import { PartnerRewindBanner } from "@/ui/partners/rewind/partner-rewind-banner";
+import { ProgramMarketplaceBanner } from "@/ui/partners/program-marketplace/program-marketplace-banner";
 import { SimpleEmptyState } from "@/ui/shared/simple-empty-state";
 import { HexadecagonStar } from "@dub/ui/icons";
 import { useId } from "react";
@@ -20,8 +20,7 @@ export function PartnersDashboardPageClient() {
 
   return (
     <PageWidthWrapper className="pb-10">
-      {/* <ProgramMarketplaceBanner /> // TODO: Add back after rewind is over  */}
-      <PartnerRewindBanner />
+      <ProgramMarketplaceBanner />
 
       {programEnrollments?.length == 0 ? (
         <SimpleEmptyState

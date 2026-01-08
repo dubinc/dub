@@ -1,5 +1,5 @@
 import { EventType, RewardStructure } from "@dub/prisma/client";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { getPaginationQuerySchema, maxDurationSchema } from "./misc";
 
 export const COMMISSION_TYPES = [
@@ -149,7 +149,7 @@ export const rewardConditionsSchema = z.object({
   conditions: z.array(rewardConditionSchema).min(1),
   amountInCents: FLAT_REWARD_AMOUNT_SCHEMA.optional(),
   amountInPercentage: PERCENTAGE_REWARD_AMOUNT_SCHEMA.optional(),
-  type: z.nativeEnum(RewardStructure).optional(),
+  type: z.enum(RewardStructure).optional(),
   maxDuration: maxDurationSchema,
 });
 
@@ -165,10 +165,10 @@ const decimalToNumber = z
 
 export const RewardSchema = z.object({
   id: z.string(),
-  event: z.nativeEnum(EventType),
+  event: z.enum(EventType),
   description: z.string().nullish(),
   tooltipDescription: z.string().nullish(),
-  type: z.nativeEnum(RewardStructure),
+  type: z.enum(RewardStructure),
   amountInCents: z.number().int().nullable().optional(),
   amountInPercentage: decimalToNumber,
   maxDuration: z.number().nullish(),
@@ -180,8 +180,8 @@ export const REWARD_TOOLTIP_DESCRIPTION_MAX_LENGTH = 2000;
 
 export const createOrUpdateRewardSchema = z.object({
   workspaceId: z.string(),
-  event: z.nativeEnum(EventType),
-  type: z.nativeEnum(RewardStructure).default(RewardStructure.flat),
+  event: z.enum(EventType),
+  type: z.enum(RewardStructure).default(RewardStructure.flat),
   amountInCents: FLAT_REWARD_AMOUNT_SCHEMA.optional(),
   amountInPercentage: PERCENTAGE_REWARD_AMOUNT_SCHEMA.optional(),
   maxDuration: maxDurationSchema,
@@ -208,21 +208,15 @@ export const updateRewardSchema = createOrUpdateRewardSchema
     event: true,
     groupId: true,
   })
-  .merge(
-    z.object({
-      rewardId: z.string(),
-    }),
-  );
+  .extend({
+    rewardId: z.string(),
+  });
 
 export const rewardPartnersQuerySchema = z
   .object({
     rewardId: z.string(),
   })
-  .merge(
-    getPaginationQuerySchema({
-      pageSize: 25,
-    }),
-  );
+  .extend(getPaginationQuerySchema({ pageSize: 25 }));
 
 export const REWARD_EVENT_COLUMN_MAPPING = Object.freeze({
   click: "clickRewardId",

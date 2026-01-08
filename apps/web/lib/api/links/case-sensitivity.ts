@@ -2,11 +2,13 @@
 const XOR_SECRET_KEY = "58ff90c0dc372ded858cbf8fb2306066";
 
 export const CASE_SENSITIVE_DOMAINS = [
+  "biltapp.link",
   "buff.ly",
   "dub-internal-test.com",
   "go.homeserve.fr",
   "go.homeserve.be",
   "jbbr.pro",
+  "new.biltapp.link",
 ];
 
 export const encodeKey = (text: string): string => {

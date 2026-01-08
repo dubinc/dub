@@ -5,7 +5,7 @@ import { cn } from "@dub/utils";
 import { useFormStatus } from "react-dom";
 import { toast } from "sonner";
 
-export default function DeletePartnerAccount() {
+export function DeletePartnerAccount() {
   return (
     <div className="flex flex-col space-y-5">
       <form

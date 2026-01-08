@@ -1,6 +1,7 @@
 import { createId } from "@/lib/api/create-id";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { ACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { sendBatchEmail } from "@dub/email";
 import NewBountyAvailable from "@dub/email/templates/new-bounty-available";
 import { prisma } from "@dub/prisma";
@@ -51,7 +52,11 @@ export async function POST(req: Request) {
         groups: true,
         program: {
           include: {
-            emailDomains: true,
+            emailDomains: {
+              where: {
+                status: "verified",
+              },
+            },
           },
         },
       },
@@ -88,7 +93,7 @@ export async function POST(req: Request) {
           },
         }),
         status: {
-          in: ["approved", "invited"],
+          in: ACTIVE_ENROLLMENT_STATUSES,
         },
         partner: {
           email: {
@@ -131,16 +136,13 @@ export async function POST(req: Request) {
       `Sending emails to ${programEnrollments.length} partners: ${programEnrollments.map(({ partner }) => partner.email).join(", ")}`,
     );
 
-    const verifiedEmailDomain = bounty.program.emailDomains.find(
-      ({ status }) => status === "verified",
-    )?.slug;
-
     const { data } = await sendBatchEmail(
       programEnrollments.map(({ partner }) => ({
         variant: "notifications",
-        from: verifiedEmailDomain
-          ? `${bounty.program.name} <bounties@${verifiedEmailDomain}>`
-          : undefined,
+        from:
+          bounty.program.emailDomains.length > 0
+            ? `${bounty.program.name} <bounties@${bounty.program.emailDomains[0].slug}>`
+            : undefined,
         to: partner.email!, // coerce the type here because we've already filtered out partners with no email in the prisma query
         subject: `New bounty available for ${bounty.program.name}`,
         replyTo: bounty.program.supportEmail || "noreply",

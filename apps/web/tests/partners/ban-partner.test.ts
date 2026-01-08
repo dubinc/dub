@@ -7,8 +7,8 @@ import { IntegrationHarness } from "../utils/integration";
 import { E2E_PARTNER_GROUP } from "../utils/resource";
 import { normalizedPartnerDateFields } from "./resource";
 
-const EnrolledPartnerSchema = EnrolledPartnerSchemaDate.merge(
-  normalizedPartnerDateFields,
+const EnrolledPartnerSchema = EnrolledPartnerSchemaDate.extend(
+  normalizedPartnerDateFields.shape,
 );
 
 describe.sequential("POST /partners/ban", async () => {

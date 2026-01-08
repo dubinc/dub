@@ -17,6 +17,7 @@ import {
 } from "@dub/utils";
 import { useState } from "react";
 import useSWR from "swr";
+import { CommissionRowMenu } from "../commission-row-menu";
 import { CommissionTypeBadge } from "../commission-type-badge";
 
 const COMMISSIONS_ON_HOLD_PAGE_SIZE = 10;
@@ -130,6 +131,15 @@ export function CommissionsOnHoldTable({
           </span>
         ),
       },
+      // Menu
+      {
+        id: "menu",
+        enableHiding: false,
+        minSize: 43,
+        size: 43,
+        maxSize: 43,
+        cell: ({ row }) => <CommissionRowMenu row={row} />,
+      },
     ],
     ...((commissionsCount?.all.count || 0) > COMMISSIONS_ON_HOLD_PAGE_SIZE
       ? {
@@ -139,6 +149,7 @@ export function CommissionsOnHoldTable({
       : {
           className: "[&_tr:last-child>td]:border-b-transparent",
         }),
+    columnPinning: { right: ["menu"] },
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     scrollWrapperClassName: "min-h-0",

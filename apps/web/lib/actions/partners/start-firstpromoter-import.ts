@@ -6,7 +6,7 @@ import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { FirstPromoterApi } from "@/lib/firstpromoter/api";
 import { firstPromoterImporter } from "@/lib/firstpromoter/importer";
 import { firstPromoterCredentialsSchema } from "@/lib/firstpromoter/schemas";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
 
 const schema = firstPromoterCredentialsSchema.extend({
@@ -14,7 +14,7 @@ const schema = firstPromoterCredentialsSchema.extend({
 });
 
 export const startFirstPromoterImportAction = authActionClient
-  .schema(schema)
+  .inputSchema(schema)
   .action(async ({ ctx, parsedInput }) => {
     const { workspace, user } = ctx;
     const { apiKey, accountId } = parsedInput;

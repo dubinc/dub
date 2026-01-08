@@ -1,8 +1,8 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
-import z from "@/lib/zod";
 import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { analyticsResponse } from "@/lib/zod/schemas/analytics-response";
 import { ZodOpenApiOperationObject, ZodOpenApiPathsObject } from "zod-openapi";
+import * as z from "zod/v4";
 
 const retrieveAnalytics: ZodOpenApiOperationObject = {
   operationId: "retrieveAnalytics",
@@ -20,44 +20,74 @@ const retrieveAnalytics: ZodOpenApiOperationObject = {
       content: {
         "application/json": {
           schema: z.union([
-            analyticsResponse.count,
-            z
-              .array(analyticsResponse.timeseries)
-              .openapi({ title: "AnalyticsTimeseries" }),
-            z
-              .array(analyticsResponse.continents)
-              .openapi({ title: "AnalyticsContinents" }),
-            z
-              .array(analyticsResponse.countries)
-              .openapi({ title: "AnalyticsCountries" }),
-            z
-              .array(analyticsResponse.regions)
-              .openapi({ title: "AnalyticsRegions" }),
-            z
-              .array(analyticsResponse.cities)
-              .openapi({ title: "AnalyticsCities" }),
-            z
-              .array(analyticsResponse.devices)
-              .openapi({ title: "AnalyticsDevices" }),
-            z
-              .array(analyticsResponse.browsers)
-              .openapi({ title: "AnalyticsBrowsers" }),
-            z.array(analyticsResponse.os).openapi({ title: "AnalyticsOS" }),
-            z
-              .array(analyticsResponse.triggers)
-              .openapi({ title: "AnalyticsTriggers" }),
-            z
-              .array(analyticsResponse.referers)
-              .openapi({ title: "AnalyticsReferers" }),
-            z
-              .array(analyticsResponse.referer_urls)
-              .openapi({ title: "AnalyticsRefererUrls" }),
-            z
-              .array(analyticsResponse.top_links)
-              .openapi({ title: "AnalyticsTopLinks" }),
-            z
-              .array(analyticsResponse.top_urls)
-              .openapi({ title: "AnalyticsTopUrls" }),
+            analyticsResponse.count.meta({
+              id: "AnalyticsCount",
+            }),
+            z.array(
+              analyticsResponse.timeseries.meta({
+                id: "AnalyticsTimeseries",
+              }),
+            ),
+            z.array(
+              analyticsResponse.continents.meta({
+                id: "AnalyticsContinents",
+              }),
+            ),
+            z.array(
+              analyticsResponse.countries.meta({
+                id: "AnalyticsCountries",
+              }),
+            ),
+            z.array(
+              analyticsResponse.regions.meta({
+                id: "AnalyticsRegions",
+              }),
+            ),
+            z.array(
+              analyticsResponse.cities.meta({
+                id: "AnalyticsCities",
+              }),
+            ),
+            z.array(
+              analyticsResponse.devices.meta({
+                id: "AnalyticsDevices",
+              }),
+            ),
+            z.array(
+              analyticsResponse.browsers.meta({
+                id: "AnalyticsBrowsers",
+              }),
+            ),
+            z.array(
+              analyticsResponse.os.meta({
+                id: "AnalyticsOS",
+              }),
+            ),
+            z.array(
+              analyticsResponse.triggers.meta({
+                id: "AnalyticsTriggers",
+              }),
+            ),
+            z.array(
+              analyticsResponse.referers.meta({
+                id: "AnalyticsReferers",
+              }),
+            ),
+            z.array(
+              analyticsResponse.referer_urls.meta({
+                id: "AnalyticsRefererUrls",
+              }),
+            ),
+            z.array(
+              analyticsResponse.top_links.meta({
+                id: "AnalyticsTopLinks",
+              }),
+            ),
+            z.array(
+              analyticsResponse.top_urls.meta({
+                id: "AnalyticsTopUrls",
+              }),
+            ),
           ]),
         },
       },

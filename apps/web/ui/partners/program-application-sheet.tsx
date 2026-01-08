@@ -27,7 +27,7 @@ import { Dispatch, SetStateAction, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import useSWR, { mutate } from "swr";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { ProgramApplicationFormField } from "./groups/design/application-form/fields";
 import { formDataForApplicationFormData } from "./groups/design/application-form/form-data-for-application-form-data";
 

@@ -230,7 +230,7 @@ const ENTITIES = {
 const EVENT_ENTITIES: Record<EventType, (keyof typeof ENTITIES)[]> = {
   sale: ["sale", "customer", "partner"],
   lead: ["customer", "partner"],
-  click: [],
+  click: ["customer"],
 };
 
 const formatValue = (

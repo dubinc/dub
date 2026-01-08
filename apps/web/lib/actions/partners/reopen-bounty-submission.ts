@@ -6,7 +6,7 @@ import { BountySubmissionSchema } from "@/lib/zod/schemas/bounties";
 // Email notification can be added later if needed
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
 
 const schema = z.object({
@@ -16,7 +16,7 @@ const schema = z.object({
 
 // Reopen a bounty submission that was previously submitted
 export const reopenBountySubmissionAction = authActionClient
-  .schema(schema)
+  .inputSchema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { submissionId } = parsedInput;
@@ -40,8 +40,8 @@ export const reopenBountySubmissionAction = authActionClient
       throw new Error("Bounty submission does not belong to this program.");
     }
 
-    if (bountySubmission.status !== "submitted") {
-      throw new Error("Bounty submission is not submitted yet.");
+    if (bountySubmission.status === "approved") {
+      throw new Error("Bounty submission has already been approved.");
     }
 
     await prisma.bountySubmission.update({
@@ -50,6 +50,10 @@ export const reopenBountySubmissionAction = authActionClient
       },
       data: {
         status: "draft",
+        completedAt: null,
+        reviewedAt: null,
+        rejectionNote: null,
+        rejectionReason: null,
       },
     });
 

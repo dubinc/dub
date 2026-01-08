@@ -6,7 +6,7 @@ import {
 } from "@/lib/zod/schemas/fraud";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 // GET /api/fraud/groups - Get the fraud event groups for a program
 export const GET = withWorkspace(

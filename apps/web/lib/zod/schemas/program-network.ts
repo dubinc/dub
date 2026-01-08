@@ -1,5 +1,5 @@
 import { Category, ProgramEnrollmentStatus } from "@dub/prisma/client";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { DiscountSchema } from "./discount";
 import { getPaginationQuerySchema } from "./misc";
 import { programLanderSchema } from "./program-lander";
@@ -18,7 +18,7 @@ export const NetworkProgramSchema = ProgramSchema.pick({
   termsUrl: true,
 }).extend({
   discount: DiscountSchema.nullish(),
-  categories: z.array(z.nativeEnum(Category)),
+  categories: z.array(z.enum(Category)),
   featuredOnMarketplaceAt: z.date().nullable(),
   marketplaceHeaderImage: z.string().nullable(),
 });
@@ -34,7 +34,7 @@ const rewardTypeSchema = z.enum(rewardTypes);
 
 export const getNetworkProgramsQuerySchema = z
   .object({
-    category: z.nativeEnum(Category).optional(),
+    category: z.enum(Category).optional(),
     rewardType: z
       .union([z.string(), z.array(rewardTypeSchema)])
       .transform((v) =>
@@ -45,17 +45,15 @@ export const getNetworkProgramsQuerySchema = z
       .optional(),
     status: z.preprocess(
       (v) => (v === "null" ? null : v),
-      z.nativeEnum(ProgramEnrollmentStatus).nullish(),
+      z.enum(ProgramEnrollmentStatus).nullish(),
     ),
     featured: z.coerce.boolean().optional(),
     search: z.string().optional(),
     sortBy: z.enum(["name", "createdAt", "popularity"]).default("popularity"),
     sortOrder: z.enum(["asc", "desc"]).default("desc"),
   })
-  .merge(
-    getPaginationQuerySchema({
-      pageSize: PROGRAM_NETWORK_MAX_PAGE_SIZE,
-    }),
+  .extend(
+    getPaginationQuerySchema({ pageSize: PROGRAM_NETWORK_MAX_PAGE_SIZE }),
   );
 
 export const getNetworkProgramsCountQuerySchema = getNetworkProgramsQuerySchema

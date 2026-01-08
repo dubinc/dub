@@ -2,7 +2,7 @@
 
 import { verifyFolderAccess } from "@/lib/folder/permissions";
 import { prisma } from "@dub/prisma";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
 
 const setDefaultFolderSchema = z.object({
@@ -12,7 +12,7 @@ const setDefaultFolderSchema = z.object({
 
 // Set the default folder for a workspace for a user
 export const setDefaultFolderAction = authActionClient
-  .schema(setDefaultFolderSchema)
+  .inputSchema(setDefaultFolderSchema)
   .action(async ({ ctx, parsedInput }) => {
     const { user, workspace } = ctx;
     const { folderId } = parsedInput;

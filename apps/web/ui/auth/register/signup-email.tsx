@@ -8,7 +8,7 @@ import { useAction } from "next-safe-action/hooks";
 import { FormEvent, useCallback, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { useRegisterContext } from "./context";
 
 type SignUpProps = z.infer<typeof signUpSchema>;
