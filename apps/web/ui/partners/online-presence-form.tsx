@@ -661,22 +661,39 @@ function FormRow({
   const { isVerified } = useVerifiedState({ property });
 
   const info = useMemo(() => {
-    if (partner && property === "youtube" && isVerified) {
+    if (partner && isVerified) {
       // Type assertion for platforms array that exists at runtime but not in type
       const partnerWithPlatforms = partner as typeof partner & {
         platforms?: PartnerSocialPlatform[];
       };
-      const youtubePlatform = getPlatformData(
-        partnerWithPlatforms.platforms,
-        "youtube",
-      );
-      const followers = youtubePlatform?.followers ?? 0;
-      const views = youtubePlatform?.views ?? 0;
 
-      return [
-        followers > 0 ? `${nFormatter(Number(followers))} subscribers` : null,
-        views > 0 ? `${nFormatter(Number(views))} views` : null,
-      ].filter(Boolean) as string[];
+      if (property === "youtube") {
+        const youtubePlatform = getPlatformData(
+          partnerWithPlatforms.platforms,
+          "youtube",
+        );
+        const followers = youtubePlatform?.followers ?? 0;
+        const views = youtubePlatform?.views ?? 0;
+
+        return [
+          followers > 0 ? `${nFormatter(Number(followers))} subscribers` : null,
+          views > 0 ? `${nFormatter(Number(views))} views` : null,
+        ].filter(Boolean) as string[];
+      }
+
+      if (property === "instagram") {
+        const instagramPlatform = getPlatformData(
+          partnerWithPlatforms.platforms,
+          "instagram",
+        );
+        const followers = instagramPlatform?.followers ?? 0;
+        const posts = instagramPlatform?.posts ?? 0;
+
+        return [
+          followers > 0 ? `${nFormatter(Number(followers))} followers` : null,
+          posts > 0 ? `${nFormatter(Number(posts))} posts` : null,
+        ].filter(Boolean) as string[];
+      }
     }
     return null;
   }, [partner, property, isVerified]);
