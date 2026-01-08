@@ -1,5 +1,5 @@
 import { DubApiError } from "@/lib/api/errors";
-import { Prisma } from "@prisma/client";
+import { Prisma } from "@dub/prisma/client";
 
 interface Filters {
   page: number;
