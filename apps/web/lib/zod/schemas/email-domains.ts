@@ -2,13 +2,13 @@ import {
   isValidDomain,
   isValidDomainFormat,
 } from "@/lib/api/domains/is-valid-domain";
-import z from "@/lib/zod";
 import { EmailDomainStatus } from "@dub/prisma/client";
+import * as z from "zod/v4";
 
 export const EmailDomainSchema = z.object({
   id: z.string(),
   slug: z.string(),
-  status: z.nativeEnum(EmailDomainStatus),
+  status: z.enum(EmailDomainStatus),
   resendDomainId: z.string().nullable(),
   lastChecked: z.date(),
   createdAt: z.date(),
@@ -17,7 +17,7 @@ export const EmailDomainSchema = z.object({
 
 export const createEmailDomainBodySchema = z.object({
   slug: z
-    .string({ required_error: "Email domain is required" })
+    .string({ error: "Email domain is required" })
     .min(5, "Email domain is too short")
     .max(50, "Email domain is too long")
     .refine(isValidDomainFormat, { message: "Please use a valid domain name." })

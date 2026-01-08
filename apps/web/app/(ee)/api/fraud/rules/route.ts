@@ -1,12 +1,12 @@
 import { createId } from "@/lib/api/create-id";
 import { CONFIGURABLE_FRAUD_RULES } from "@/lib/api/fraud/constants";
-import { resolveFraudEvents } from "@/lib/api/fraud/resolve-fraud-events";
+import { resolveFraudGroups } from "@/lib/api/fraud/resolve-fraud-groups";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { updateFraudRuleSettingsSchema } from "@/lib/zod/schemas/fraud";
 import { prisma } from "@dub/prisma";
-import { FraudRuleType, Prisma } from "@prisma/client";
+import { FraudRuleType, Prisma } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -101,7 +101,7 @@ export const PATCH = withWorkspace(
           .map((r) => r.type);
 
         if (ruleTypesToResolve.length > 0) {
-          await resolveFraudEvents({
+          await resolveFraudGroups({
             where: {
               programId,
               type: {

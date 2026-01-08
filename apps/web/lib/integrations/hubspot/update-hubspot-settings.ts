@@ -4,7 +4,7 @@ import { authActionClient } from "@/lib/actions/safe-action";
 import { prisma } from "@dub/prisma";
 import { HUBSPOT_INTEGRATION_ID } from "@dub/utils";
 import { revalidatePath } from "next/cache";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { hubSpotSettingsSchema } from "./schema";
 
 const schema = hubSpotSettingsSchema.extend({
@@ -12,7 +12,7 @@ const schema = hubSpotSettingsSchema.extend({
 });
 
 export const updateHubSpotSettingsAction = authActionClient
-  .schema(schema)
+  .inputSchema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
     const { leadTriggerEvent, leadLifecycleStageId, closedWonDealStageId } =

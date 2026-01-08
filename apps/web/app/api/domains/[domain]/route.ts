@@ -12,11 +12,11 @@ import { setRenewOption } from "@/lib/dynadot/set-renew-option";
 import { storage } from "@/lib/storage";
 import { updateDomainBodySchema } from "@/lib/zod/schemas/domains";
 import { prisma } from "@dub/prisma";
+import { Prisma } from "@dub/prisma/client";
 import { combineWords, nanoid, R2_URL } from "@dub/utils";
-import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 const updateDomainBodySchemaExtended = updateDomainBodySchema.extend({
   deepviewData: z.string().nullish(),
@@ -223,7 +223,11 @@ export const PATCH = withWorkspace(
 // DELETE /api/domains/[domain] - delete a workspace's domain
 export const DELETE = withWorkspace(
   async ({ params, workspace }) => {
-    const { slug: domain, registeredDomain } = await getDomainOrThrow({
+    const {
+      slug: domain,
+      registeredDomain,
+      partnerProgram,
+    } = await getDomainOrThrow({
       workspace,
       domain: params.domain,
       dubDomainChecks: true,
@@ -233,6 +237,14 @@ export const DELETE = withWorkspace(
       throw new DubApiError({
         code: "forbidden",
         message: "You cannot delete a Dub-provisioned domain.",
+      });
+    }
+
+    if (partnerProgram) {
+      throw new DubApiError({
+        code: "forbidden",
+        message:
+          "You cannot delete a domain that is actively in use in a partner program.",
       });
     }
 

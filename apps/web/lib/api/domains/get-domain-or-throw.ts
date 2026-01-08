@@ -1,6 +1,6 @@
 import { prisma } from "@dub/prisma";
+import { Project } from "@dub/prisma/client";
 import { DUB_WORKSPACE_ID, isDubDomain } from "@dub/utils";
-import { Project } from "@prisma/client";
 import { DubApiError } from "../errors";
 import { prefixWorkspaceId } from "../workspaces/workspace-id";
 
@@ -17,6 +17,7 @@ export const getDomainOrThrow = async ({
     where: { slug: domain },
     include: {
       registeredDomain: true,
+      partnerProgram: true,
     },
   });
 

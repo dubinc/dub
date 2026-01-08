@@ -12,6 +12,7 @@ import { waitUntil } from "@vercel/functions";
 import { DubApiError } from "../errors";
 import { getGroupOrThrow } from "../groups/get-group-or-throw";
 import { createPartnerDefaultLinks } from "./create-partner-default-links";
+import { throwIfExistingTenantEnrollmentExists } from "./throw-if-existing-tenant-id-exists";
 
 interface CreateAndEnrollPartnerInput {
   workspace: Pick<WorkspaceProps, "id" | "webhookEnabled" | "plan">;
@@ -35,13 +36,24 @@ export const createAndEnrollPartner = async ({
   userId,
 }: CreateAndEnrollPartnerInput) => {
   if (!skipEnrollmentCheck) {
-    // Check if the partner is already enrolled in the program by email
+    // Check if the partner is already enrolled in the program by tenantId or email
     const programEnrollment = await prisma.programEnrollment.findFirst({
       where: {
         programId: program.id,
-        partner: {
-          email: partner.email,
-        },
+        OR: [
+          ...(partner.tenantId
+            ? [
+                {
+                  tenantId: partner.tenantId,
+                },
+              ]
+            : []),
+          {
+            partner: {
+              email: partner.email,
+            },
+          },
+        ],
       },
       include: {
         partner: true,
@@ -65,24 +77,10 @@ export const createAndEnrollPartner = async ({
         });
         // else, if the passed tenantId is different from the existing enrollment...
       } else if (partner.tenantId) {
-        const existingTenantEnrollment =
-          await prisma.programEnrollment.findUnique({
-            where: {
-              tenantId_programId: {
-                tenantId: partner.tenantId,
-                programId: program.id,
-              },
-            },
-          });
-
-        // check if the tenantId already exists for a different enrolled partner
-        // if so, throw an error
-        if (existingTenantEnrollment) {
-          throw new DubApiError({
-            message: `Partner with tenantId '${partner.tenantId}' already enrolled in this program.`,
-            code: "conflict",
-          });
-        }
+        await throwIfExistingTenantEnrollmentExists({
+          tenantId: partner.tenantId,
+          programId: program.id,
+        });
 
         // else, update the existing enrollment with the new tenantId
         const updatedProgramEnrollment = await prisma.programEnrollment.update({
@@ -105,6 +103,11 @@ export const createAndEnrollPartner = async ({
           links: updatedProgramEnrollment.links,
         });
       }
+    } else if (partner.tenantId) {
+      await throwIfExistingTenantEnrollmentExists({
+        tenantId: partner.tenantId,
+        programId: program.id,
+      });
     }
   }
 

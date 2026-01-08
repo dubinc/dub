@@ -13,7 +13,7 @@ import { getProgramOrThrow } from "../../api/programs/get-program-or-throw";
 import { authActionClient } from "../safe-action";
 
 export const invitePartnerAction = authActionClient
-  .schema(invitePartnerSchema)
+  .inputSchema(invitePartnerSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { email, username, name, groupId } = parsedInput;
@@ -24,6 +24,13 @@ export const invitePartnerAction = authActionClient
       getProgramOrThrow({
         workspaceId: workspace.id,
         programId,
+        include: {
+          emailDomains: {
+            where: {
+              status: "verified",
+            },
+          },
+        },
       }),
 
       prisma.programEnrollment.findFirst({
@@ -85,6 +92,11 @@ export const invitePartnerAction = authActionClient
             inviteEmailData?.subject ||
             `${program.name} invited you to join Dub Partners`,
           variant: "notifications",
+          // use the first verified email domain as the from email address
+          from:
+            program.emailDomains.length > 0
+              ? `${program.name} <partners@${program.emailDomains[0].slug}>`
+              : undefined,
           to: email,
           replyTo: program.supportEmail || "noreply",
           react: ProgramInvite({

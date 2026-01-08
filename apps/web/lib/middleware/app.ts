@@ -1,4 +1,3 @@
-import { parse } from "@/lib/middleware/utils";
 import { NextRequest, NextResponse } from "next/server";
 import {
   ONBOARDING_WINDOW_SECONDS,
@@ -9,7 +8,9 @@ import { NewLinkMiddleware } from "./new-link";
 import { appRedirect } from "./utils/app-redirect";
 import { getDefaultWorkspace } from "./utils/get-default-workspace";
 import { getUserViaToken } from "./utils/get-user-via-token";
+import { hasPendingInvites } from "./utils/has-pending-invites";
 import { isTopLevelSettingsRedirect } from "./utils/is-top-level-settings-redirect";
+import { parse } from "./utils/parse";
 import { WorkspacesMiddleware } from "./workspaces";
 
 export async function AppMiddleware(req: NextRequest) {
@@ -20,8 +21,6 @@ export async function AppMiddleware(req: NextRequest) {
   }
 
   const user = await getUserViaToken(req);
-  const isWorkspaceInvite =
-    req.nextUrl.searchParams.get("invite") || path.startsWith("/invites/");
 
   // if there's no user and the path isn't /login or /register, redirect to /login
   if (
@@ -58,9 +57,9 @@ export async function AppMiddleware(req: NextRequest) {
     } else if (
       new Date(user.createdAt).getTime() >
         Date.now() - ONBOARDING_WINDOW_SECONDS * 1000 &&
-      !isWorkspaceInvite &&
       !["/onboarding", "/account"].some((p) => path.startsWith(p)) &&
       !(await getDefaultWorkspace(user)) &&
+      !(await hasPendingInvites({ req, user })) &&
       (await onboardingStepCache.get({ userId: user.id })) !== "completed"
     ) {
       let step = await onboardingStepCache.get({ userId: user.id });

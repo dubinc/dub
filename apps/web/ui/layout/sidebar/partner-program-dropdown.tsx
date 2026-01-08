@@ -1,5 +1,6 @@
 "use client";
 
+import { partnerCanViewMarketplace } from "@/lib/network/get-discoverability-requirements";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
 import { ProgramProps } from "@/lib/types";
@@ -9,7 +10,7 @@ import {
   Popover,
   ScrollContainer,
 } from "@dub/ui";
-import { Check2, GridIcon, Magnifier } from "@dub/ui/icons";
+import { Check2, GridIcon, Magnifier, Shop } from "@dub/ui/icons";
 import { cn, OG_AVATAR_URL } from "@dub/utils";
 import { Command } from "cmdk";
 import { ChevronsUpDown } from "lucide-react";
@@ -42,6 +43,10 @@ export function PartnerProgramDropdown() {
         }
       : undefined;
   }, [programSlug, programEnrollments]);
+
+  const canViewMarketplace =
+    programEnrollments &&
+    partnerCanViewMarketplace({ partner, programEnrollments });
 
   const [openPopover, setOpenPopover] = useState(false);
 
@@ -76,16 +81,31 @@ export function PartnerProgramDropdown() {
                 <Link
                   href="/programs"
                   className={cn(
-                    "flex items-center gap-x-2.5 rounded-md px-2.5 py-2 text-sm transition-all duration-75 hover:bg-neutral-200/50 active:bg-neutral-200/80",
+                    "flex items-center gap-x-2.5 rounded-md px-2.5 py-2 text-base transition-all duration-75 hover:bg-neutral-200/50 active:bg-neutral-200/80 sm:text-sm",
                     "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
                   )}
                   onClick={() => setOpenPopover(false)}
                 >
-                  <GridIcon className="size-4 text-neutral-500" />
+                  <GridIcon className="size-5 text-neutral-500 sm:size-4" />
                   <span className="text-content-default block truncate">
                     All programs
                   </span>
                 </Link>
+                {canViewMarketplace && (
+                  <Link
+                    href="/programs/marketplace"
+                    className={cn(
+                      "flex items-center gap-x-2.5 rounded-md px-2.5 py-2 text-base transition-all duration-75 hover:bg-neutral-200/50 active:bg-neutral-200/80 sm:text-sm",
+                      "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
+                    )}
+                    onClick={() => setOpenPopover(false)}
+                  >
+                    <Shop className="size-5 text-neutral-500 sm:size-4" />
+                    <span className="text-content-default block truncate">
+                      Marketplace
+                    </span>
+                  </Link>
+                )}
               </div>
             </div>
           </div>
@@ -172,7 +192,7 @@ function ProgramList({
         <ScrollContainer className="max-h-[min(260px,calc(100vh-300px))]">
           <div className="p-2">
             <div className="flex items-center justify-between py-2">
-              <p className="px-1 text-xs font-medium text-neutral-500">
+              <p className="px-1 text-sm font-medium text-neutral-500 sm:text-xs">
                 Programs
               </p>
             </div>
@@ -196,7 +216,7 @@ function ProgramList({
                       <Link
                         key={slug}
                         className={cn(
-                          "relative flex w-full items-center gap-x-2.5 rounded-md px-2 py-2.5 transition-all duration-75",
+                          "relative flex w-full items-center gap-x-2.5 rounded-md py-2.5 pl-2 pr-3 transition-all duration-75",
                           "active:bg-neutral-200/80 data-[selected=true]:bg-neutral-200/50",
                           "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
                         )}
@@ -212,7 +232,7 @@ function ProgramList({
                           alt={name}
                           className="size-5 shrink-0 overflow-hidden rounded-full border border-black/10"
                         />
-                        <span className="block min-w-0 grow truncate text-sm leading-5 text-neutral-800">
+                        <span className="block min-w-0 grow truncate text-base leading-5 text-neutral-800 sm:text-sm">
                           {name}
                         </span>
                         {selectedProgram?.slug === slug ? (
@@ -224,7 +244,7 @@ function ProgramList({
                       </Link>
                     </Command.Item>
                   ))}
-                  <Command.Empty className="p-1 text-xs text-neutral-400">
+                  <Command.Empty className="p-1 text-sm text-neutral-400">
                     No programs found
                   </Command.Empty>
                 </Command.List>

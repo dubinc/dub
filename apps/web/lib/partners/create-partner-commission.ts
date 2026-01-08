@@ -1,5 +1,6 @@
 import { prisma } from "@dub/prisma";
 import {
+  Commission,
   CommissionStatus,
   CommissionType,
   EventType,
@@ -8,7 +9,7 @@ import {
   ProgramEnrollment,
   WorkflowTrigger,
 } from "@dub/prisma/client";
-import { currencyFormatter, log } from "@dub/utils";
+import { currencyFormatter, log, prettyPrint } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { differenceInMonths } from "date-fns";
 import { recordAuditLog } from "../api/audit-logs/record-audit-log";
@@ -22,6 +23,7 @@ import { Session } from "../auth";
 import { RewardContext, RewardProps } from "../types";
 import { sendWorkspaceWebhook } from "../webhook/publish";
 import { CommissionWebhookSchema } from "../zod/schemas/commissions";
+import { DEFAULT_PARTNER_GROUP } from "../zod/schemas/groups";
 import { aggregatePartnerLinksStats } from "./aggregate-partner-links-stats";
 import { determinePartnerReward } from "./determine-partner-reward";
 import { getRewardAmount } from "./get-reward-amount";
@@ -90,6 +92,11 @@ export const createPartnerCommission = async ({
     },
   });
 
+  let firstCommission: Pick<
+    Commission,
+    "rewardId" | "status" | "createdAt"
+  > | null = null;
+
   if (event === "custom") {
     earnings = amount;
     amount = 0;
@@ -107,6 +114,7 @@ export const createPartnerCommission = async ({
       );
       return {
         commission: null,
+        programEnrollment,
         webhookPartner: constructWebhookPartner(programEnrollment),
       };
     }
@@ -120,7 +128,7 @@ export const createPartnerCommission = async ({
       // 1. if the partner has reached the max duration for the reward (if applicable)
       // 2. if the previous commission were marked as fraud or canceled
     } else {
-      const firstCommission = await prisma.commission.findFirst({
+      firstCommission = await prisma.commission.findFirst({
         where: {
           partnerId,
           customerId,
@@ -144,6 +152,7 @@ export const createPartnerCommission = async ({
           );
           return {
             commission: null,
+            programEnrollment,
             webhookPartner: constructWebhookPartner(programEnrollment),
           };
         }
@@ -156,6 +165,7 @@ export const createPartnerCommission = async ({
 
           return {
             commission: null,
+            programEnrollment,
             webhookPartner: constructWebhookPartner(programEnrollment),
           };
 
@@ -185,6 +195,7 @@ export const createPartnerCommission = async ({
               );
               return {
                 commission: null,
+                programEnrollment,
                 webhookPartner: constructWebhookPartner(programEnrollment),
               };
             }
@@ -200,6 +211,7 @@ export const createPartnerCommission = async ({
               );
               return {
                 commission: null,
+                programEnrollment,
                 webhookPartner: constructWebhookPartner(programEnrollment),
               };
             }
@@ -217,6 +229,7 @@ export const createPartnerCommission = async ({
                 );
                 return {
                   commission: null,
+                  programEnrollment,
                   webhookPartner: constructWebhookPartner(programEnrollment),
                 };
               }
@@ -265,7 +278,7 @@ export const createPartnerCommission = async ({
     });
 
     console.log(
-      `Created a ${event} commission ${commission.id} (${currencyFormatter(commission.earnings, { currency: commission.currency })}) for ${partnerId}: ${JSON.stringify(commission)}`,
+      `Created a ${event} commission ${commission.id} (${currencyFormatter(commission.earnings, { currency: commission.currency })}) for ${partnerId}: ${prettyPrint(commission)}`,
     );
 
     const webhookPartner = constructWebhookPartner(programEnrollment, {
@@ -285,7 +298,6 @@ export const createPartnerCommission = async ({
             name: true,
             slug: true,
             logo: true,
-            holdingPeriodDays: true,
             supportEmail: true,
             workspace: {
               select: {
@@ -295,11 +307,21 @@ export const createPartnerCommission = async ({
                 webhookEnabled: true,
               },
             },
+            // if no partner group is found, need to fetch default group to fallback to
+            ...(!programEnrollment.partnerGroup && {
+              groups: {
+                select: {
+                  holdingPeriodDays: true,
+                },
+                where: {
+                  slug: DEFAULT_PARTNER_GROUP.slug,
+                },
+              },
+            }),
           },
         });
 
         const { workspace } = program;
-
         const isClawback = earnings < 0;
         const shouldTriggerWorkflow = !isClawback && !skipWorkflow;
 
@@ -321,9 +343,11 @@ export const createPartnerCommission = async ({
           !isClawback &&
             notifyPartnerCommission({
               program,
-              group: programEnrollment.partnerGroup ?? { holdingPeriodDays: 0 },
+              // fallback to default group if no partner group is found
+              group: programEnrollment.partnerGroup ?? program.groups[0],
               workspace,
               commission,
+              isFirstCommission: firstCommission === null,
             }),
 
           // We only capture audit logs for manual commissions
@@ -362,6 +386,7 @@ export const createPartnerCommission = async ({
 
     return {
       commission,
+      programEnrollment,
       webhookPartner,
     };
   } catch (error) {
@@ -375,6 +400,7 @@ export const createPartnerCommission = async ({
 
     return {
       commission: null,
+      programEnrollment,
       webhookPartner: constructWebhookPartner(programEnrollment),
     };
   }

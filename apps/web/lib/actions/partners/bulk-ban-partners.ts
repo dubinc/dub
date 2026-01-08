@@ -1,17 +1,18 @@
 "use server";
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { resolveFraudGroups } from "@/lib/api/fraud/resolve-fraud-groups";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { enqueueBatchJobs } from "@/lib/cron/enqueue-batch-jobs";
 import { bulkBanPartnersSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
+import { ProgramEnrollmentStatus } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
-import { ProgramEnrollmentStatus } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 
 export const bulkBanPartnersAction = authActionClient
-  .schema(bulkBanPartnersSchema)
+  .inputSchema(bulkBanPartnersSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { partnerIds, reason } = parsedInput;
@@ -64,6 +65,19 @@ export const bulkBanPartnersAction = authActionClient
       },
     });
 
+    await resolveFraudGroups({
+      where: {
+        programEnrollment: {
+          id: {
+            in: programEnrollments.map(({ id }) => id),
+          },
+        },
+      },
+      userId: user.id,
+      resolutionReason:
+        "Resolved automatically because the partner was banned.",
+    });
+
     waitUntil(
       Promise.allSettled([
         recordAuditLog(
@@ -91,7 +105,6 @@ export const bulkBanPartnersAction = authActionClient
             body: {
               programId,
               partnerId,
-              userId: user.id,
             },
           })),
         ),

@@ -1,5 +1,4 @@
 import { banPartnerAction } from "@/lib/actions/partners/ban-partner";
-import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PartnerProps } from "@/lib/types";
 import {
@@ -18,7 +17,7 @@ import {
 } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 type BanPartnerFormData = z.infer<typeof banPartnerSchema> & {
   confirm: string;
@@ -33,7 +32,7 @@ function BanPartnerModal({
   showBanPartnerModal: boolean;
   setShowBanPartnerModal: Dispatch<SetStateAction<boolean>>;
   partner: Pick<PartnerProps, "id" | "name" | "email" | "image">;
-  onConfirm?: () => void;
+  onConfirm?: () => Promise<void>;
 }) {
   const { id: workspaceId } = useWorkspace();
 
@@ -41,7 +40,7 @@ function BanPartnerModal({
     register,
     handleSubmit,
     watch,
-    formState: { errors },
+    formState: { errors, isSubmitting, isSubmitSuccessful },
   } = useForm<BanPartnerFormData>({
     defaultValues: {
       reason: "tos_violation",
@@ -49,14 +48,13 @@ function BanPartnerModal({
     },
   });
 
-  const [reason, confirm] = watch(["reason", "confirm"]);
+  const confirm = watch("confirm");
 
   const { executeAsync, isPending } = useAction(banPartnerAction, {
     onSuccess: async () => {
+      await onConfirm?.();
       toast.success("Partner banned successfully!");
       setShowBanPartnerModal(false);
-      mutatePrefix("/api/partners");
-      onConfirm?.();
     },
     onError({ error }) {
       toast.error(error.serverError);
@@ -96,8 +94,8 @@ function BanPartnerModal({
           <div className="rounded-lg border border-neutral-200 bg-neutral-100 p-3">
             <div className="flex items-center gap-4">
               <img
-                src={partner.image || `${OG_AVATAR_URL}${partner.name}`}
-                alt={partner.name}
+                src={partner.image || `${OG_AVATAR_URL}${partner.id}`}
+                alt={partner.id}
                 className="size-10 rounded-full bg-white"
               />
               <div className="flex min-w-0 flex-col">
@@ -176,7 +174,7 @@ function BanPartnerModal({
             variant="danger"
             text="Ban partner"
             disabled={isDisabled}
-            loading={isPending}
+            loading={isPending || isSubmitting || isSubmitSuccessful}
             className="h-8 w-fit px-3"
           />
         </div>
@@ -190,7 +188,7 @@ export function useBanPartnerModal({
   onConfirm,
 }: {
   partner: Pick<PartnerProps, "id" | "name" | "email" | "image">;
-  onConfirm?: () => void;
+  onConfirm?: () => Promise<void>;
 }) {
   const [showBanPartnerModal, setShowBanPartnerModal] = useState(false);
 

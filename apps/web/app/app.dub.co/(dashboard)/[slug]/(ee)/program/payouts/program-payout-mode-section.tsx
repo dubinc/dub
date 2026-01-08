@@ -72,7 +72,7 @@ function WebhookInfo() {
   return (
     <div className="flex items-start gap-2 rounded-md border border-amber-100 bg-amber-50 p-2.5">
       <Webhook className="mt-0.5 size-3.5 shrink-0 text-amber-600" />
-      <p className="text-xs font-medium leading-4 text-amber-800">
+      <p className="text-xs font-medium leading-4 text-amber-900">
         Ensure webhooks are configured to listen for the{" "}
         <code className="rounded bg-amber-200 px-1 py-0.5 font-mono text-xs text-amber-900">
           payout.confirmed

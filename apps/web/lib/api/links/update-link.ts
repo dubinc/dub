@@ -170,7 +170,7 @@ export async function updateLink({
 
   waitUntil(
     (async () => {
-      const { partner, discount, group, partnerTagIds } =
+      const { partner, discount, partnerTagIds } =
         await getPartnerEnrollmentInfo({
           programId: response.programId,
           partnerId: response.partnerId,
@@ -187,11 +187,20 @@ export async function updateLink({
         // Record link in Tinybird
         recordLink({
           ...response,
-          programEnrollment: {
-            groupId: group?.id,
-            programPartnerTags:
-              partnerTagIds?.map((id) => ({ partnerTag: { id } })) ?? null,
-          },
+          ...((partner?.groupId || partnerTagIds) && {
+            programEnrollment: {
+              ...(partner?.groupId && {
+                groupId: partner.groupId,
+              }),
+              programPartnerTags: partnerTagIds
+                ? partnerTagIds.map((id: string) => ({
+                    partnerTag: {
+                      id,
+                    },
+                  }))
+                : null,
+            },
+          }),
         }),
 
         // If key is changed: delete the old key in Redis

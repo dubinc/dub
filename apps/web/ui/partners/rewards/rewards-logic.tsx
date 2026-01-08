@@ -230,7 +230,7 @@ const ENTITIES = {
 const EVENT_ENTITIES: Record<EventType, (keyof typeof ENTITIES)[]> = {
   sale: ["sale", "customer", "partner"],
   lead: ["customer", "partner"],
-  click: [],
+  click: ["customer"],
 };
 
 const formatValue = (
@@ -261,7 +261,8 @@ const formatValue = (
   if (["number", "currency"].includes(type)) {
     return type === "number"
       ? value!.toString()
-      : currencyFormatter(Number(value), {
+      : // value is represented in dollars, so need to convert to cents (because currencyFormatter expects cents)
+        currencyFormatter(Number(value) * 100, {
           trailingZeroDisplay: "stripIfInteger",
         });
   }

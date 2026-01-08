@@ -22,7 +22,6 @@ export function getOAuthUrl({
     response_type: "code",
     code_challenge: challenge,
     code_challenge_method: "S256",
-    scope: "workspaces.write",
     state,
   };
 

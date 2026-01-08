@@ -8,7 +8,10 @@
   "submissionsOpenAt": null,
   "rewardAmount": 50000,
   "rewardDescription": null,
-  "submissionRequirements": ["image", "url"],
+  "submissionRequirements": {
+    "image": {},
+    "url": {}
+  },
   "performanceCondition": null,
   "performanceScope": null,
   "groups": [

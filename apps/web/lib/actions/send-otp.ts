@@ -7,10 +7,10 @@ import VerifyEmail from "@dub/email/templates/verify-email";
 import { prisma } from "@dub/prisma";
 import { get } from "@vercel/edge-config";
 import { flattenValidationErrors } from "next-safe-action";
+import * as z from "zod/v4";
 import { generateOTP } from "../auth";
 import { EMAIL_OTP_EXPIRY_IN } from "../auth/constants";
 import { isGenericEmail } from "../is-generic-email";
-import z from "../zod";
 import { emailSchema, passwordSchema } from "../zod/schemas/auth";
 import { throwIfAuthenticated } from "./auth/throw-if-authenticated";
 import { actionClient } from "./safe-action";
@@ -22,7 +22,7 @@ const schema = z.object({
 
 // Send OTP to email to verify account
 export const sendOtpAction = actionClient
-  .schema(schema, {
+  .inputSchema(schema, {
     handleValidationErrorsShape: async (ve) =>
       flattenValidationErrors(ve).fieldErrors,
   })

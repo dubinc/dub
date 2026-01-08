@@ -1,11 +1,3 @@
-import {
-  createResponseWithCookies,
-  detectBot,
-  getFinalUrl,
-  getIdentityHash,
-  isSupportedCustomURIScheme,
-  parse,
-} from "@/lib/middleware/utils";
 import { recordClick } from "@/lib/tinybird";
 import { formatRedisLink } from "@/lib/upstash";
 import {
@@ -33,9 +25,15 @@ import { getLinkViaEdge } from "../planetscale";
 import { getPartnerEnrollmentInfo } from "../planetscale/get-partner-enrollment-info";
 import { cacheDeepLinkClickData } from "./utils/cache-deeplink-click-data";
 import { crawlBitly } from "./utils/crawl-bitly";
+import { createResponseWithCookies } from "./utils/create-response-with-cookies";
+import { detectBot } from "./utils/detect-bot";
+import { getFinalUrl } from "./utils/get-final-url";
+import { getIdentityHash } from "./utils/get-identity-hash";
 import { handleNotFoundLink } from "./utils/handle-not-found-link";
 import { isIosAppStoreUrl } from "./utils/is-ios-app-store-url";
 import { isSingularTrackingUrl } from "./utils/is-singular-tracking-url";
+import { isSupportedCustomURIScheme } from "./utils/is-supported-custom-uri-scheme";
+import { parse } from "./utils/parse";
 import { resolveABTestURL } from "./utils/resolve-ab-test-url";
 
 export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {

@@ -5,9 +5,9 @@ import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { prisma } from "@dub/prisma";
 import { InvoiceStatus, Prisma } from "@dub/prisma/client";
 import { ACME_PROGRAM_ID } from "@dub/utils";
-import { DateTime } from "luxon";
+import { format } from "date-fns";
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 interface TimeseriesPoint {
   payouts: number;
@@ -22,9 +22,11 @@ interface FormattedTimeseriesPoint extends TimeseriesPoint {
 const adminPayoutsQuerySchema = z
   .object({
     programId: z.string().optional(),
-    status: z.nativeEnum(InvoiceStatus).optional(),
+    status: z.enum(InvoiceStatus).optional(),
   })
-  .merge(analyticsQuerySchema.pick({ interval: true, start: true, end: true }));
+  .extend(
+    analyticsQuerySchema.pick({ interval: true, start: true, end: true }).shape,
+  );
 
 export const GET = withAdmin(async ({ searchParams }) => {
   const {
@@ -35,25 +37,13 @@ export const GET = withAdmin(async ({ searchParams }) => {
     end,
   } = adminPayoutsQuerySchema.parse(searchParams);
 
-  let { startDate, endDate, granularity } = getStartEndDates({
+  const timezone = "UTC";
+  const { startDate, endDate, granularity } = getStartEndDates({
     interval,
     start,
     end,
+    timezone,
   });
-
-  const timezone = "UTC";
-  // convert to UTC
-  startDate = DateTime.fromJSDate(startDate)
-    .setZone(timezone)
-    .startOf("day")
-    .toUTC()
-    .toJSDate();
-
-  endDate = DateTime.fromJSDate(endDate)
-    .setZone(timezone)
-    .endOf("day")
-    .toUTC()
-    .toJSDate();
 
   // Fetch invoices
   const invoices = await prisma.invoice.findMany({
@@ -142,17 +132,15 @@ export const GET = withAdmin(async ({ searchParams }) => {
   );
 
   // Backfill missing dates with 0 values
-  let currentDate = startFunction(
-    DateTime.fromJSDate(startDate).setZone(timezone),
-  );
+  let currentDate = startFunction(startDate);
 
   const formattedTimeseriesData: FormattedTimeseriesPoint[] = [];
 
-  while (currentDate.toJSDate() < endDate) {
-    const periodKey = currentDate.toFormat(formatString);
+  while (currentDate < endDate) {
+    const periodKey = format(currentDate, formatString);
 
     formattedTimeseriesData.push({
-      date: currentDate.toJSDate(),
+      date: currentDate,
       ...(timeseriesLookup[periodKey] || {
         payouts: 0,
         fees: 0,

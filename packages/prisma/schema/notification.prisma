@@ -31,6 +31,19 @@ model NotificationEmail {
   @@index(partnerId)
 }
 
+model UserNotificationPreferences {
+  id             String  @id @default(cuid())
+  userId         String  @unique
+  dubLinks       Boolean @default(true)
+  dubPartners    Boolean @default(true)
+  partnerAccount Boolean @default(true)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index(userId)
+}
+
+// TODO: update this to WorkspaceNotificationPreferences
 model NotificationPreference {
   id                         String  @id @default(cuid())
   projectUserId              String  @unique

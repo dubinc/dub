@@ -2,10 +2,10 @@ import { tb } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
 import { Link } from "@dub/prisma/client";
 import { OG_AVATAR_URL } from "@dub/utils";
+import * as z from "zod/v4";
 import { decodeLinkIfCaseSensitive } from "../api/links/case-sensitivity";
 import { transformLink } from "../api/links/utils/transform-link";
 import { generateRandomName } from "../names";
-import z from "../zod";
 import { eventsFilterTB } from "../zod/schemas/analytics";
 import {
   clickEventResponseSchema,
@@ -23,6 +23,7 @@ import {
 } from "../zod/schemas/sales";
 import { queryParser } from "./query-parser";
 import { EventsFilters } from "./types";
+import { formatUTCDateTimeClickhouse } from "./utils/format-utc-datetime-clickhouse";
 import { getStartEndDates } from "./utils/get-start-end-dates";
 
 // Fetch data for /api/events
@@ -33,7 +34,7 @@ export const getEvents = async (params: EventsFilters) => {
     interval,
     start,
     end,
-    timezone,
+    timezone = "UTC",
     qr,
     trigger,
     region,
@@ -89,8 +90,8 @@ export const getEvents = async (params: EventsFilters) => {
     region,
     order: sortOrder,
     offset: (params.page - 1) * params.limit,
-    start: startDate.toISOString().replace("T", " ").replace("Z", ""),
-    end: endDate.toISOString().replace("T", " ").replace("Z", ""),
+    start: formatUTCDateTimeClickhouse(startDate),
+    end: formatUTCDateTimeClickhouse(endDate),
     filters: filters ? JSON.stringify(filters) : undefined,
   });
 

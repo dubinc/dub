@@ -1,7 +1,7 @@
 "use server";
 
 import { prisma } from "@dub/prisma";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { authPartnerActionClient } from "../safe-action";
 
 const schema = z.object({
@@ -10,7 +10,7 @@ const schema = z.object({
 
 // Mark program messages as read
 export const markProgramMessagesReadAction = authPartnerActionClient
-  .schema(schema)
+  .inputSchema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { partner } = ctx;
     const { programSlug } = parsedInput;

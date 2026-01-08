@@ -1,4 +1,4 @@
-import { z } from "zod";
+import * as z from "zod/v4";
 import { rewardfulImportPayloadSchema } from "./schemas";
 
 // TODO:
@@ -20,6 +20,7 @@ export interface RewardfulCampaign {
   default: boolean;
   reward_type: "amount" | "percent";
   commission_percent: number;
+  stripe_coupon_id?: string | null;
   created_at: string;
   updated_at: string;
 }

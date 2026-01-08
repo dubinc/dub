@@ -10,16 +10,16 @@ import { CampaignSchema } from "@/lib/zod/schemas/campaigns";
 import { sendBatchEmail } from "@dub/email";
 import CampaignEmail from "@dub/email/templates/campaign-email";
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 const sendPreviewEmailSchema = CampaignSchema.pick({
   subject: true,
   preview: true,
   bodyJson: true,
 }).extend({
-  from: z.string().email().optional(),
+  from: z.email().optional(),
   emailAddresses: z
-    .array(z.string().email())
+    .array(z.email())
     .min(1)
     .max(10, "Maximum 10 email addresses allowed."),
 });
@@ -38,6 +38,13 @@ export const POST = withWorkspace(
       getProgramOrThrow({
         programId,
         workspaceId: workspace.id,
+        include: {
+          emailDomains: {
+            where: {
+              status: "verified",
+            },
+          },
+        },
       }),
 
       getCampaignOrThrow({
@@ -46,7 +53,20 @@ export const POST = withWorkspace(
       }),
     ]);
 
-    const { error } = await sendBatchEmail(
+    // check if from email is a valid email domain
+    if (
+      from &&
+      !program.emailDomains.some(
+        ({ slug: emailDomain }) => from.split("@")[1] === emailDomain,
+      )
+    ) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "Invalid `from` email address.",
+      });
+    }
+
+    const { data, error } = await sendBatchEmail(
       emailAddresses.map((email) => ({
         variant: campaign.type === "marketing" ? "marketing" : "notifications",
         to: email,
@@ -74,6 +94,7 @@ export const POST = withWorkspace(
         }),
       })),
     );
+    console.log("Resend response:", data);
 
     if (error) {
       throw new DubApiError({

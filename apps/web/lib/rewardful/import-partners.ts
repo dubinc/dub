@@ -115,7 +115,11 @@ export async function importPartners(payload: RewardfulImportPayload) {
           Object.fromEntries(
             filteredPartners.map((p) => [
               p.rewardfulAffiliateId,
-              p.dubPartnerId,
+              {
+                partnerId: p.dubPartnerId,
+                groupId: p.dubPartnerGroupId,
+                discountId: p.dubDiscountId,
+              },
             ]),
           ),
         );
@@ -222,8 +226,14 @@ async function createPartnerAndLinks({
     });
   }
 
+  console.log(
+    `Imported partner ${partner.email} and created ${affiliate.links.length} partner links`,
+  );
+
   return {
     rewardfulAffiliateId: affiliate.id,
     dubPartnerId: partner.id,
+    dubPartnerGroupId: programEnrollment.groupId,
+    dubDiscountId: programEnrollment.discountId,
   };
 }

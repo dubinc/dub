@@ -24,10 +24,11 @@ model Folder {
   createdAt   DateTime           @default(now())
   updatedAt   DateTime           @updatedAt
 
-  project        Project               @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project        Project               @relation(fields: [projectId], references: [id])
   links          Link[]
   users          FolderUser[]
   accessRequests FolderAccessRequest[]
+  dashboard      Dashboard?
 
   @@unique([name, projectId])
   @@index(projectId)

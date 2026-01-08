@@ -1,9 +1,11 @@
 import { UserProps } from "@/lib/types";
+import { prismaEdge } from "@dub/prisma/edge";
 import { NextRequest, NextResponse } from "next/server";
-import { isValidInternalRedirect, parse } from "./utils";
 import { getDefaultWorkspace } from "./utils/get-default-workspace";
 import { getWorkspaceProduct } from "./utils/get-workspace-product";
 import { isTopLevelSettingsRedirect } from "./utils/is-top-level-settings-redirect";
+import { isValidInternalRedirect } from "./utils/is-valid-internal-redirect";
+import { parse } from "./utils/parse";
 
 export async function WorkspacesMiddleware(req: NextRequest, user: UserProps) {
   const { path, searchParamsObj, searchParamsString } = parse(req);
@@ -18,6 +20,7 @@ export async function WorkspacesMiddleware(req: NextRequest, user: UserProps) {
 
   const defaultWorkspace = await getDefaultWorkspace(user);
 
+  // If user has a default workspace, redirect them to it
   if (defaultWorkspace) {
     let redirectPath = path;
     if (["/", "/login", "/register", "/workspaces"].includes(path)) {
@@ -37,7 +40,31 @@ export async function WorkspacesMiddleware(req: NextRequest, user: UserProps) {
         req.url,
       ),
     );
-  } else {
-    return NextResponse.redirect(new URL("/onboarding/workspace", req.url));
   }
+
+  // Redirect user to the accept invite modal if they have a pending invite
+  const projectInvite = await prismaEdge.projectInvite.findFirst({
+    where: {
+      email: user.email,
+      expires: {
+        gte: new Date(),
+      },
+    },
+    select: {
+      project: {
+        select: {
+          slug: true,
+        },
+      },
+    },
+  });
+
+  if (projectInvite) {
+    return NextResponse.redirect(
+      new URL(`/${projectInvite.project.slug}?invite=1`, req.url),
+    );
+  }
+
+  // No default workspace or invite found, redirect to workspace onboarding
+  return NextResponse.redirect(new URL("/onboarding/workspace", req.url));
 }

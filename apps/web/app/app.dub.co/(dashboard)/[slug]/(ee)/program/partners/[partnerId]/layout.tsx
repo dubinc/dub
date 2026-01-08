@@ -1,8 +1,14 @@
 "use client";
 
+import { deleteProgramInviteAction } from "@/lib/actions/partners/delete-program-invite";
+import { resendProgramInviteAction } from "@/lib/actions/partners/resend-program-invite";
+import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartner from "@/lib/swr/use-partner";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { EnrolledPartnerProps } from "@/lib/types";
+import {
+  EnrolledPartnerExtendedProps,
+  EnrolledPartnerProps,
+} from "@/lib/types";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { useArchivePartnerModal } from "@/ui/modals/archive-partner-modal";
@@ -12,22 +18,34 @@ import { useReactivatePartnerModal } from "@/ui/modals/reactivate-partner-modal"
 import { useUnbanPartnerModal } from "@/ui/modals/unban-partner-modal";
 import { usePartnerAdvancedSettingsModal } from "@/ui/partners/partner-advanced-settings-modal";
 import { PartnerInfoCards } from "@/ui/partners/partner-info-cards";
+import { PartnerProfileSheet } from "@/ui/partners/partner-profile-sheet";
 import { PartnerSelector } from "@/ui/partners/partner-selector";
 import { ThreeDots } from "@/ui/shared/icons";
-import { Button, MenuItem, Popover, useKeyboardShortcut } from "@dub/ui";
+import {
+  Button,
+  MenuItem,
+  Popover,
+  useKeyboardShortcut,
+  useRouterStuff,
+} from "@dub/ui";
 import {
   BoxArchive,
   ChevronRight,
   CircleXmark,
+  EnvelopeArrowRight,
   InvoiceDollar,
+  LoadingSpinner,
   Msgs,
   PenWriting,
   Refresh2,
+  SquareUserSparkle2,
+  Trash,
   UserCheck,
   UserDelete,
   Users,
 } from "@dub/ui/icons";
 import { LockOpen } from "lucide-react";
+import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import {
   redirect,
@@ -37,6 +55,7 @@ import {
   useSearchParams,
 } from "next/navigation";
 import { ReactNode, useState } from "react";
+import { toast } from "sonner";
 import { useCreateClawbackSheet } from "../../commissions/create-clawback-sheet";
 import { useCreateCommissionSheet } from "../../commissions/create-commission-sheet";
 import { PartnerNav } from "./partner-nav";
@@ -53,11 +72,7 @@ export default function ProgramPartnerLayout({
   const searchParams = useSearchParams();
 
   const params = useParams() as { slug: string; partnerId: string };
-  const {
-    partner,
-    loading: isPartnerLoading,
-    error: partnerError,
-  } = usePartner({
+  const { partner, error: partnerError } = usePartner({
     partnerId: params.partnerId,
   });
 
@@ -97,7 +112,13 @@ export default function ProgramPartnerLayout({
         <PartnerStats partner={partner} error={Boolean(partnerError)} />
         <div className="@3xl/page:grid-cols-[minmax(440px,1fr)_minmax(0,360px)] mt-6 grid grid-cols-1 gap-x-6 gap-y-4">
           <div className="@3xl/page:order-2">
-            <PartnerInfoCards partner={partner} hideStatuses={["approved"]} />
+            <PartnerInfoCards
+              partner={partner}
+              hideStatuses={["approved"]}
+              controls={
+                partner ? <PartnerProfileButton partner={partner} /> : undefined
+              }
+            />
           </div>
           <div className="@3xl/page:order-1">
             <div className="border-border-subtle overflow-hidden rounded-xl border bg-neutral-100">
@@ -113,8 +134,41 @@ export default function ProgramPartnerLayout({
   );
 }
 
+function PartnerProfileButton({
+  partner,
+}: {
+  partner: EnrolledPartnerExtendedProps;
+}) {
+  const { searchParams, queryParams } = useRouterStuff();
+
+  const isOpen = searchParams.has("profile");
+
+  const setIsOpen = (isOpen: boolean) =>
+    isOpen
+      ? queryParams({ set: { profile: "true" } })
+      : queryParams({ del: "profile" });
+
+  return (
+    <>
+      <PartnerProfileSheet
+        partner={partner}
+        isOpen={isOpen}
+        setIsOpen={setIsOpen}
+      />
+      <Button
+        variant="secondary"
+        icon={<SquareUserSparkle2 className="size-4" />}
+        text="Profile"
+        className="h-7 rounded-lg px-2"
+        onClick={() => setIsOpen(true)}
+      />
+    </>
+  );
+}
+
 function PageControls({ partner }: { partner: EnrolledPartnerProps }) {
-  const { slug: workspaceSlug } = useWorkspace();
+  const { slug: workspaceSlug, id: workspaceId } = useWorkspace();
+  const router = useRouter();
 
   const { createCommissionSheet, setIsOpen: setCreateCommissionSheetOpen } =
     useCreateCommissionSheet({
@@ -127,6 +181,31 @@ function PageControls({ partner }: { partner: EnrolledPartnerProps }) {
     useCreateClawbackSheet({});
 
   const [isOpen, setIsOpen] = useState(false);
+
+  const { executeAsync: resendInvite, isPending: isResendingInvite } =
+    useAction(resendProgramInviteAction, {
+      onSuccess: async () => {
+        toast.success("Resent the partner invite.");
+      },
+      onError: ({ error }) => {
+        toast.error(error.serverError);
+      },
+    });
+
+  const { executeAsync: deleteInvite, isPending: isDeletingInvite } = useAction(
+    deleteProgramInviteAction,
+    {
+      onSuccess: async () => {
+        await mutatePrefix("/api/partners");
+        setIsOpen(false);
+        toast.success("Deleted the partner invite.");
+        router.push(`/${workspaceSlug}/program/partners?status=invited`);
+      },
+      onError: ({ error }) => {
+        toast.error(error.serverError);
+      },
+    },
+  );
 
   const { PartnerAdvancedSettingsModal, setShowPartnerAdvancedSettingsModal } =
     usePartnerAdvancedSettingsModal({
@@ -162,121 +241,176 @@ function PageControls({ partner }: { partner: EnrolledPartnerProps }) {
       <ReactivatePartnerModal />
       <ArchivePartnerModal />
 
-      <Button
-        variant="primary"
-        text="Create commission"
-        shortcut="C"
-        onClick={() => setCreateCommissionSheetOpen(true)}
-        className="hidden h-8 w-fit px-3 sm:h-9 md:flex"
-      />
-
-      <Link href={`/${workspaceSlug}/program/messages/${partner.id}`}>
+      {partner.status === "invited" ? (
         <Button
-          variant="secondary"
-          text="Message"
-          icon={<Msgs className="size-4 shrink-0" />}
-          onClick={() => setIsOpen(false)}
+          variant="primary"
+          text="Resend invite"
+          icon={
+            isResendingInvite ? (
+              <LoadingSpinner className="size-4 shrink-0" />
+            ) : (
+              <EnvelopeArrowRight className="size-4 shrink-0" />
+            )
+          }
+          loading={isResendingInvite}
+          onClick={async () => {
+            if (partner.status !== "invited" || !workspaceId) {
+              return;
+            }
+            await resendInvite({
+              workspaceId,
+              partnerId: partner.id,
+            });
+          }}
           className="hidden h-8 w-fit px-3 sm:h-9 md:flex"
         />
-      </Link>
+      ) : (
+        <>
+          <Button
+            variant="primary"
+            text="Create commission"
+            shortcut="C"
+            onClick={() => setCreateCommissionSheetOpen(true)}
+            className="hidden h-8 w-fit px-3 sm:h-9 md:flex"
+          />
+
+          <Link href={`/${workspaceSlug}/program/messages/${partner.id}`}>
+            <Button
+              variant="secondary"
+              text="Message"
+              icon={<Msgs className="size-4 shrink-0" />}
+              onClick={() => setIsOpen(false)}
+              className="hidden h-8 w-fit px-3 sm:h-9 md:flex"
+            />
+          </Link>
+        </>
+      )}
 
       <Popover
         openPopover={isOpen}
         setOpenPopover={setIsOpen}
         content={
           <div className="grid w-full grid-cols-1 gap-px p-2 md:w-48">
-            <MenuItem
-              as={Link}
-              href={`/${workspaceSlug}/program/messages/${partner.id}`}
-              target="_blank"
-              icon={Msgs}
-              onClick={() => setIsOpen(false)}
-              className="md:hidden"
-            >
-              Message
-            </MenuItem>
-            <MenuItem
-              icon={InvoiceDollar}
-              onClick={() => {
-                setCreateCommissionSheetOpen(true);
-                setIsOpen(false);
-              }}
-              className="md:hidden"
-            >
-              Create commission
-            </MenuItem>
-            <MenuItem
-              icon={Refresh2}
-              onClick={() => {
-                setClawbackSheetOpen(true);
-                setIsOpen(false);
-              }}
-            >
-              Create clawback
-            </MenuItem>
-            <MenuItem
-              icon={PenWriting}
-              onClick={() => {
-                setShowPartnerAdvancedSettingsModal(true);
-                setIsOpen(false);
-              }}
-            >
-              Advanced settings
-            </MenuItem>
-            {!["banned", "deactivated"].includes(partner.status) && (
+            {partner.status === "invited" ? (
               <MenuItem
-                icon={BoxArchive}
-                onClick={() => {
-                  setShowArchivePartnerModal(true);
-                  setIsOpen(false);
+                icon={isDeletingInvite ? LoadingSpinner : Trash}
+                onClick={async () => {
+                  if (partner.status !== "invited" || !workspaceId) {
+                    return;
+                  }
+                  if (
+                    !window.confirm(
+                      "Are you sure you want to delete this invite? This action cannot be undone.",
+                    )
+                  ) {
+                    return;
+                  }
+
+                  await deleteInvite({
+                    workspaceId,
+                    partnerId: partner.id,
+                  });
                 }}
+                variant="danger"
               >
-                {partner.status === "archived" ? "Unarchive" : "Archive"}{" "}
-                partner
-              </MenuItem>
-            )}
-            {partner.status === "deactivated" ? (
-              <MenuItem
-                icon={LockOpen}
-                onClick={() => {
-                  setShowReactivatePartnerModal(true);
-                  setIsOpen(false);
-                }}
-              >
-                Reactivate partner
-              </MenuItem>
-            ) : partner.status !== "banned" ? (
-              <MenuItem
-                icon={CircleXmark}
-                onClick={() => {
-                  setShowDeactivatePartnerModal(true);
-                  setIsOpen(false);
-                }}
-              >
-                Deactivate partner
-              </MenuItem>
-            ) : null}
-            {partner.status === "banned" ? (
-              <MenuItem
-                icon={UserCheck}
-                onClick={() => {
-                  setShowUnbanPartnerModal(true);
-                  setIsOpen(false);
-                }}
-              >
-                Unban partner
+                Delete invite
               </MenuItem>
             ) : (
-              <MenuItem
-                icon={UserDelete}
-                variant="danger"
-                onClick={() => {
-                  setShowBanPartnerModal(true);
-                  setIsOpen(false);
-                }}
-              >
-                Ban partner
-              </MenuItem>
+              <>
+                <MenuItem
+                  as={Link}
+                  href={`/${workspaceSlug}/program/messages/${partner.id}`}
+                  target="_blank"
+                  icon={Msgs}
+                  onClick={() => setIsOpen(false)}
+                  className="md:hidden"
+                >
+                  Message
+                </MenuItem>
+                <MenuItem
+                  icon={InvoiceDollar}
+                  onClick={() => {
+                    setCreateCommissionSheetOpen(true);
+                    setIsOpen(false);
+                  }}
+                  className="md:hidden"
+                >
+                  Create commission
+                </MenuItem>
+                <MenuItem
+                  icon={Refresh2}
+                  onClick={() => {
+                    setClawbackSheetOpen(true);
+                    setIsOpen(false);
+                  }}
+                >
+                  Create clawback
+                </MenuItem>
+                <MenuItem
+                  icon={PenWriting}
+                  onClick={() => {
+                    setShowPartnerAdvancedSettingsModal(true);
+                    setIsOpen(false);
+                  }}
+                >
+                  Advanced settings
+                </MenuItem>
+                {!["banned", "deactivated"].includes(partner.status) && (
+                  <MenuItem
+                    icon={BoxArchive}
+                    onClick={() => {
+                      setShowArchivePartnerModal(true);
+                      setIsOpen(false);
+                    }}
+                  >
+                    {partner.status === "archived" ? "Unarchive" : "Archive"}{" "}
+                    partner
+                  </MenuItem>
+                )}
+                {partner.status === "deactivated" ? (
+                  <MenuItem
+                    icon={LockOpen}
+                    onClick={() => {
+                      setShowReactivatePartnerModal(true);
+                      setIsOpen(false);
+                    }}
+                  >
+                    Reactivate partner
+                  </MenuItem>
+                ) : partner.status !== "banned" ? (
+                  <MenuItem
+                    icon={CircleXmark}
+                    onClick={() => {
+                      setShowDeactivatePartnerModal(true);
+                      setIsOpen(false);
+                    }}
+                  >
+                    Deactivate partner
+                  </MenuItem>
+                ) : null}
+                {partner.status === "banned" ? (
+                  <MenuItem
+                    icon={UserCheck}
+                    onClick={() => {
+                      setShowUnbanPartnerModal(true);
+                      setIsOpen(false);
+                    }}
+                  >
+                    Unban partner
+                  </MenuItem>
+                ) : (
+                  <MenuItem
+                    icon={UserDelete}
+                    variant="danger"
+                    onClick={() => {
+                      setShowBanPartnerModal(true);
+                      setIsOpen(false);
+                    }}
+                  >
+                    Ban partner
+                  </MenuItem>
+                )}
+              </>
             )}
           </div>
         }

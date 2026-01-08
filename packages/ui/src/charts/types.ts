@@ -34,6 +34,11 @@ type ChartOptionalProps<T extends Datum = any> = {
   tooltipContent?: (datum: TimeSeriesDatum<T>) => ReactElement<any> | string;
   tooltipClassName?: string;
   defaultTooltipIndex?: number | null;
+  /**
+   * Called when the hovered x-value (date) changes, or when hover is cleared.
+   * Useful for syncing external UI to the currently hovered datum.
+   */
+  onHoverDateChange?: (date: Date | null) => void;
 
   /**
    * Absolute pixel values for margins around the chart area.
@@ -58,7 +63,9 @@ type ChartOptionalProps<T extends Datum = any> = {
 export type ChartProps<T extends Datum = any> = ChartRequiredProps<T> &
   ChartOptionalProps<T>;
 
-export type ChartContext<T extends Datum = any> = Required<ChartProps<T>> & {
+export type ChartContext<T extends Datum = any> = Required<
+  Omit<ChartProps<T>, "onHoverDateChange">
+> & {
   width: number;
   height: number;
   startDate: Date;
@@ -71,6 +78,10 @@ export type ChartContext<T extends Datum = any> = Required<ChartProps<T>> & {
   maxY: number;
   leftAxisMargin?: number;
   setLeftAxisMargin: Dispatch<SetStateAction<number | undefined>>;
+  /**
+   * Optional callback invoked when the hovered x-value (date) changes.
+   */
+  onHoverDateChange?: (date: Date | null) => void;
 };
 
 export type ChartTooltipContext<T extends Datum = any> = {

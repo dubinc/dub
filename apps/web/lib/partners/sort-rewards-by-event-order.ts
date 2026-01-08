@@ -1,4 +1,4 @@
-import { EventType, Reward } from "@prisma/client";
+import { EventType, Reward } from "@dub/prisma/client";
 
 const DEFAULT_REWARD_EVENT_ORDER = [
   EventType.click,

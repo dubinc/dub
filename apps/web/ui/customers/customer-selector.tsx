@@ -4,7 +4,7 @@ import { Combobox } from "@dub/ui";
 import { cn, OG_AVATAR_URL } from "@dub/utils";
 import { useEffect, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
-import { useAddCustomerModal } from "../modals/add-customer-modal";
+import { AddCustomerModal } from "../modals/add-customer-modal";
 
 interface CustomerSelectorProps {
   selectedCustomerId: string;
@@ -37,11 +37,8 @@ export function CustomerSelector({
     }
   }, [customers, useAsync]);
 
-  const { AddCustomerModal, setShowAddCustomerModal } = useAddCustomerModal({
-    onSuccess: (customer) => {
-      setSelectedCustomerId(customer.id);
-    },
-  });
+  const [showAddCustomerModal, setShowAddCustomerModal] = useState(false);
+  const [newCustomerName, setNewCustomerName] = useState<string | undefined>();
 
   const customerOptions = useMemo(() => {
     return (
@@ -101,7 +98,14 @@ export function CustomerSelector({
 
   return (
     <>
-      <AddCustomerModal />
+      <AddCustomerModal
+        showModal={showAddCustomerModal}
+        setShowModal={setShowAddCustomerModal}
+        initialName={newCustomerName}
+        onSuccess={(customer) => {
+          setSelectedCustomerId(customer.id);
+        }}
+      />
       <Combobox
         options={loading ? undefined : customerOptions}
         setSelected={(option) => {
@@ -116,7 +120,8 @@ export function CustomerSelector({
         createLabel={(search) =>
           `Create ${search ? `"${search}"` : "new customer"}`
         }
-        onCreate={async () => {
+        onCreate={async (search) => {
+          setNewCustomerName(search);
           setShowAddCustomerModal(true);
           return true;
         }}

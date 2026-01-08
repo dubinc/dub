@@ -1,5 +1,5 @@
-import { z } from "zod";
 import { ZodOpenApiOperationObject } from "zod-openapi";
+import * as z from "zod/v4";
 import {
   CommissionEnrichedSchema,
   getCommissionsQuerySchema,

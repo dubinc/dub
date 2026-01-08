@@ -23,6 +23,7 @@ import { PartnerTagsList } from "@/ui/partners/partner-tags-list";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { ThreeDots } from "@/ui/shared/icons";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
+import { ProgramEnrollmentStatus } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
   Button,
@@ -59,7 +60,6 @@ import {
   formatDate,
 } from "@dub/utils";
 import { nFormatter } from "@dub/utils/src/functions";
-import { ProgramEnrollmentStatus } from "@prisma/client";
 import { Row, Table as TableType } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { LockOpen } from "lucide-react";
@@ -121,8 +121,12 @@ export function PartnersTable() {
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
   const { program } = useProgram();
 
-  const status = (searchParams.get("status") ||
-    "approved") as ProgramEnrollmentStatus;
+  const status = (
+    searchParams.get("status") || searchParams.get("search")
+      ? undefined
+      : "approved"
+  ) as ProgramEnrollmentStatus;
+
   const sortBy =
     searchParams.get("sortBy") ||
     (program?.primaryRewardEvent === "lead" ? "totalLeads" : "totalSaleAmount");
@@ -138,7 +142,7 @@ export function PartnersTable() {
   } = usePartnerFilters({ sortBy, sortOrder, status });
 
   const { partnersCount, error: countError } = usePartnersCount<number>({
-    status,
+    ...(status ? { status } : {}),
   });
 
   const {
@@ -148,7 +152,7 @@ export function PartnersTable() {
   } = useSWR<EnrolledPartnerProps[]>(
     `/api/partners${getQueryString({
       workspaceId,
-      status,
+      ...(status ? { status } : {}),
       sortBy,
       sortOrder,
     })}`,
@@ -184,6 +188,9 @@ export function PartnersTable() {
   const { BulkBanPartnersModal, setShowBulkBanPartnersModal } =
     useBulkBanPartnersModal({
       partners: pendingBanPartners,
+      onConfirm: async () => {
+        await mutatePrefix("/api/partners");
+      },
     });
 
   const { columnVisibility, setColumnVisibility } = useColumnVisibility(
@@ -681,6 +688,9 @@ function RowMenuButton({
 
   const { BanPartnerModal, setShowBanPartnerModal } = useBanPartnerModal({
     partner: row.original,
+    onConfirm: async () => {
+      mutatePrefix("/api/partners");
+    },
   });
 
   const { UnbanPartnerModal, setShowUnbanPartnerModal } = useUnbanPartnerModal({

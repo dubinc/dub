@@ -4,9 +4,9 @@ import { Category } from "@dub/prisma/client";
 import FireCrawlApp from "@mendable/firecrawl-js";
 import { generateObject } from "ai";
 import "dotenv-flow/config";
-import { z } from "zod";
+import * as z from "zod/v4";
 
-const CategoryEnum = z.nativeEnum(Category);
+const CategoryEnum = z.enum(Category);
 
 // AI response schema
 const categorizationSchema = z.object({
@@ -104,7 +104,7 @@ Meta Description: ${description}
 Website Content Preview: ${content.slice(0, 300)}...`;
 
     const { object } = await generateObject({
-      model: anthropic("claude-3-5-haiku-latest"),
+      model: anthropic("claude-sonnet-4-20250514"),
       schema: categorizationSchema,
       prompt,
     });
@@ -145,10 +145,8 @@ async function main() {
       categories: {
         none: {},
       },
-      workspace: {
-        plan: {
-          in: ["advanced", "enterprise"],
-        },
+      addedToMarketplaceAt: {
+        not: null,
       },
     },
     take: 10,

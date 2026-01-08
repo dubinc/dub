@@ -6,7 +6,7 @@ import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions"
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
 
 const markCommissionDuplicateSchema = z.object({
@@ -16,7 +16,7 @@ const markCommissionDuplicateSchema = z.object({
 
 // Mark a commission as duplicate
 export const markCommissionDuplicateAction = authActionClient
-  .schema(markCommissionDuplicateSchema)
+  .inputSchema(markCommissionDuplicateSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { commissionId } = parsedInput;
@@ -43,30 +43,31 @@ export const markCommissionDuplicateAction = authActionClient
       throw new Error("You cannot mark a paid commission as duplicate.");
     }
 
-    // there is a payout associated with this sale
-    // we need to update the payout amount if the sale is being marked as duplicate
-    if (commission.payout) {
-      const earnings = commission.earnings;
-      const revisedAmount = commission.payout.amount - earnings;
-
-      await prisma.payout.update({
+    await prisma.$transaction(async (tx) => {
+      await tx.commission.update({
         where: {
-          id: commission.payout.id,
+          id: commission.id,
         },
         data: {
-          amount: revisedAmount,
+          status: "duplicate",
+          payoutId: null,
         },
       });
-    }
 
-    await prisma.commission.update({
-      where: {
-        id: commission.id,
-      },
-      data: {
-        status: "duplicate",
-        payoutId: null,
-      },
+      // if there is a payout associated with this commission
+      // we need to update the payout amount if the commission is being marked as duplicate
+      if (commission.payout) {
+        const earnings = commission.earnings;
+        const revisedAmount = commission.payout.amount - earnings;
+
+        if (revisedAmount === 0) {
+          return tx.payout.delete({ where: { id: commission.payout.id } });
+        }
+        return tx.payout.update({
+          where: { id: commission.payout.id },
+          data: { amount: revisedAmount },
+        });
+      }
     });
 
     waitUntil(

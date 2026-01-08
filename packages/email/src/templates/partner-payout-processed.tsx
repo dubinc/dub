@@ -104,15 +104,7 @@ export default function PartnerPayoutProcessed({
               )}
             </Text>
 
-            <Text className="text-sm leading-6 text-neutral-600">
-              {variant === "stripe"
-                ? payout.amount >= 1000
-                  ? "The funds will begin transferring to your connected bank account shortly. You will receive another email when the funds are on their way."
-                  : "Since this payout is below the minimum withdrawal amount of $10, it will remain in processed status. If you'd like to receive your payout now, you can do so with a $0.50 withdrawal fee."
-                : "Your payout is on its way to your PayPal account. You'll receive an email from PayPal when it's complete."}
-            </Text>
-
-            <Section className="mb-12 mt-8">
+            <Section className="my-8">
               <Link
                 className="rounded-lg bg-neutral-900 px-4 py-3 text-[12px] font-semibold text-white no-underline"
                 href={`https://partners.dub.co/payouts?payoutId=${payout.id}`}
@@ -120,6 +112,28 @@ export default function PartnerPayoutProcessed({
                 View payout
               </Link>
             </Section>
+
+            <Text className="text-sm leading-6 text-neutral-600">
+              {variant === "stripe"
+                ? payout.amount >= 1000
+                  ? "The funds will begin transferring to your connected bank account shortly. You will receive another email when the funds are on their way."
+                  : "Since this payout is below the minimum withdrawal amount of $10, it will remain in processed status."
+                : "Your payout is on its way to your PayPal account. You'll receive an email from PayPal when it's complete."}
+            </Text>
+
+            {variant === "stripe" && payout.amount < 1000 && (
+              <Text className="text-sm leading-6 text-neutral-600">
+                If you'd like to receive your payout right away, please{" "}
+                <Link
+                  href="https://partners.dub.co/payouts"
+                  className="font-medium text-black underline"
+                >
+                  go to your Payouts page
+                </Link>{" "}
+                and select <strong className="text-black">"Pay out now"</strong>{" "}
+                to receive your payout with a $0.50 withdrawal fee.
+              </Text>
+            )}
             <Footer email={email} />
           </Container>
         </Body>

@@ -1,6 +1,6 @@
 import { FraudEventContext, PaidTrafficPlatform } from "@/lib/types";
 import { getSearchParams } from "@dub/utils";
-import { z } from "zod";
+import * as z from "zod/v4";
 import {
   PAID_TRAFFIC_PLATFORMS,
   PAID_TRAFFIC_PLATFORMS_CONFIG,
@@ -73,6 +73,7 @@ export const checkPaidTrafficDetected = defineFraudRule({
         triggered: true,
         metadata: {
           source,
+          url: click.url,
         },
       };
     }

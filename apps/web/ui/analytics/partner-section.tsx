@@ -1,7 +1,7 @@
 import { AnalyticsGroupByOptions } from "@/lib/analytics/types";
 import { useWorkspacePreferences } from "@/lib/swr/use-workspace-preferences";
 import { LinkLogo, useRouterStuff } from "@dub/ui";
-import { Globe, Hyperlink, Users6 } from "@dub/ui/icons";
+import { Hyperlink, Users6 } from "@dub/ui/icons";
 import { getApexDomain } from "@dub/utils";
 import { useCallback, useContext, useMemo, useState } from "react";
 import TagBadge from "../links/tag-badge";
@@ -49,7 +49,7 @@ const TAB_CONFIG: Record<
     },
     getGroupBy: (subtab): { groupBy: AnalyticsGroupByOptions } => {
       if (subtab === "short_links") return { groupBy: "top_links" };
-      return { groupBy: "top_urls" };
+      return { groupBy: "top_base_urls" };
     },
   },
 };

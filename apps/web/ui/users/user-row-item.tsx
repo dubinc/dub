@@ -1,7 +1,7 @@
 import { UserSchema } from "@/lib/zod/schemas/users";
 import { Tooltip } from "@dub/ui";
 import { formatDate, formatDateTime, OG_AVATAR_URL } from "@dub/utils";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 type UserProps = z.infer<typeof UserSchema>;
 
@@ -10,12 +10,12 @@ export function UserRowItem({
   date,
   label,
 }: {
-  user: Pick<UserProps, "id" | "name" | "image">;
+  user: UserProps;
   date: Date;
   label: string;
 }) {
-  const image = user.image || `${OG_AVATAR_URL}${user.name}`;
-  const name = user.name ?? user.id;
+  const image = user.image || `${OG_AVATAR_URL}${user.id}`;
+  const name = user.name ?? user.email ?? user.id;
 
   return (
     <Tooltip

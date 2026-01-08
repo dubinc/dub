@@ -7,7 +7,7 @@
     "build:packages": "pnpm -r --filter \"./packages/**\" build",
     "dev": "turbo dev",
     "lint": "turbo lint",
-    "clean": "turbo clean && find . -name '.next' -type d -prune -exec rm -rf {} + 2>/dev/null || true",
+    "clean": "turbo clean",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "prettier-check": "prettier --check \"**/*.{ts,tsx,md}\"",
     "publish-cli": "turbo build --filter='@dub/cli' && cd packages/cli && npm publish && cd ../../",

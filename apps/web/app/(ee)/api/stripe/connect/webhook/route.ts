@@ -5,13 +5,16 @@ import Stripe from "stripe";
 import { accountApplicationDeauthorized } from "./account-application-deauthorized";
 import { accountUpdated } from "./account-updated";
 import { balanceAvailable } from "./balance-available";
+import { payoutFailed } from "./payout-failed";
 import { payoutPaid } from "./payout-paid";
 
 const relevantEvents = new Set([
   "account.application.deauthorized",
+  "account.external_account.updated",
   "account.updated",
   "balance.available",
   "payout.paid",
+  "payout.failed",
 ]);
 
 // POST /api/stripe/connect/webhook – listen to Stripe Connect webhooks (for connected accounts)
@@ -47,16 +50,20 @@ export const POST = async (req: Request) => {
       case "account.updated":
         response = await accountUpdated(event);
         break;
+      case "account.external_account.updated":
       case "balance.available":
         response = await balanceAvailable(event);
         break;
       case "payout.paid":
         response = await payoutPaid(event);
         break;
+      case "payout.failed":
+        response = await payoutFailed(event);
+        break;
     }
   } catch (error) {
     await log({
-      message: `Stripe webhook failed (${event.type}). Error: ${error.message}`,
+      message: `Stripe Connect webhook failed (${event.type}). Error: ${error.message}`,
       type: "errors",
     });
 

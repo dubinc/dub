@@ -2,6 +2,19 @@ import { OG_AVATAR_URL, cn, timeAgo } from "@dub/utils";
 import Link from "next/link";
 import { useMessagesContext } from "./messages-context";
 
+function stripMarkdown(text: string): string {
+  return text
+    .replace(/\*\*([^*]+)\*\*/g, "$1") // Bold **text**
+    .replace(/\*([^*]+)\*/g, "$1") // Italic *text*
+    .replace(/__([^_]+)__/g, "$1") // Bold __text__
+    .replace(/_([^_]+)_/g, "$1") // Italic _text_
+    .replace(/\[([^\]]+)\]\([^\)]+\)/g, "$1") // Links [text](url)
+    .replace(/`([^`]+)`/g, "$1") // Inline code `code`
+    .replace(/#+\s+/g, "") // Headers
+    .replace(/\n+/g, " ") // Newlines to spaces
+    .trim();
+}
+
 export function MessagesList({
   groupedMessages,
   activeId,
@@ -58,7 +71,10 @@ export function MessagesList({
                     )}
                   </div>
                   <span className="text-content-subtle block truncate text-sm font-medium">
-                    {lastMessage?.subject || lastMessage?.text}
+                    {lastMessage?.subject ||
+                      (lastMessage?.text
+                        ? stripMarkdown(lastMessage.text)
+                        : null)}
                   </span>
                 </div>
               </Link>

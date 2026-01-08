@@ -1,7 +1,7 @@
 import {
   LARGE_PROGRAM_IDS,
   LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS,
-} from "@/lib/constants/program";
+} from "@/lib/constants/partner-profile";
 import { fetcher } from "@dub/utils";
 import { useSession } from "next-auth/react";
 import { useParams } from "next/navigation";

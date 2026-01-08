@@ -12,8 +12,8 @@ import { WorkflowCondition } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { BountySchema, updateBountySchema } from "@/lib/zod/schemas/bounties";
 import { prisma } from "@dub/prisma";
+import { PartnerGroup, Prisma } from "@dub/prisma/client";
 import { arrayEqual } from "@dub/utils";
-import { PartnerGroup, Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 

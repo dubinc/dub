@@ -7,10 +7,10 @@ import { PartnerTagProps } from "@/lib/types";
 import { PARTNER_TAGS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/partner-tags";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
+import { ProgramEnrollmentStatus } from "@dub/prisma/client";
 import { useRouterStuff } from "@dub/ui";
 import { CircleDotted, FlagWavy, Tag, Users6 } from "@dub/ui/icons";
 import { cn, COUNTRIES, nFormatter } from "@dub/utils";
-import { ProgramEnrollmentStatus } from "@prisma/client";
 import { useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 

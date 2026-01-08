@@ -7,13 +7,13 @@ import { PartnerEarningsResponse } from "@/lib/types";
 import { CustomerActivityList } from "@/ui/customers/customer-activity-list";
 import { CustomerDetailsColumn } from "@/ui/customers/customer-details-column";
 import { CustomerSalesTable } from "@/ui/customers/customer-sales-table";
+import { PageContent } from "@/ui/layout/page-content";
+import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { ProgramRewardList } from "@/ui/partners/program-reward-list";
-import { BackLink } from "@/ui/shared/back-link";
-import { Button, MoneyBill2, Tooltip } from "@dub/ui";
-import { fetcher, formatDate, OG_AVATAR_URL } from "@dub/utils";
+import { ChevronRight, MoneyBill2, Tooltip, UserCheck } from "@dub/ui";
+import { cn, fetcher, formatDate } from "@dub/utils";
 import { addMonths, isBefore } from "date-fns";
 import { AlertCircle } from "lucide-react";
-import Link from "next/link";
 import { redirect, useParams } from "next/navigation";
 import { memo, useMemo } from "react";
 import useSWR from "swr";
@@ -50,109 +50,97 @@ export function ProgramCustomerPageClient() {
   }
 
   return (
-    <div className="mb-10 mt-2">
-      <BackLink href={`/programs/${programSlug}/earnings`}>Earnings</BackLink>
-      <div className="mt-5 flex items-center gap-4">
-        {customer ? (
-          <img
-            src={`${OG_AVATAR_URL}${customer.id}`}
-            alt={customer.email ?? customer.id}
-            className="size-8 rounded-full"
-          />
-        ) : (
-          <div className="size-8 animate-pulse rounded-full bg-neutral-200" />
-        )}
-
-        <div className="flex flex-col gap-1">
-          {customer ? (
-            <>
-              {customer["name"] && (
-                <h1 className="text-base font-semibold leading-tight text-neutral-900">
-                  {customer["name"]}
-                </h1>
-              )}
-              {customer.email && (
-                <span className="text-sm font-medium text-neutral-500">
-                  {customer.email}
-                </span>
-              )}
-            </>
-          ) : (
-            <div className="h-5 w-24 animate-pulse rounded-md bg-neutral-200" />
-          )}
+    <PageContent
+      title={
+        <div className="flex items-center gap-1.5">
+          <div
+            // href={`/programs/${programSlug}/customers`}
+            // aria-label="Back to customers"
+            // title="Back to customers"
+            className={cn(
+              "bg-bg-subtle flex size-8 shrink-0 items-center justify-center rounded-lg",
+              // "hover:bg-bg-emphasis transition-[transform,background-color] duration-150 active:scale-95",
+            )}
+          >
+            <UserCheck className="size-4" />
+          </div>
+          <ChevronRight className="text-content-muted size-2.5 shrink-0 [&_*]:stroke-2" />
+          <div>
+            {customer ? (
+              customer.name || customer.email
+            ) : (
+              <div className="h-6 w-32 animate-pulse rounded-md bg-neutral-200" />
+            )}
+          </div>
         </div>
-      </div>
-      <div className="mt-8 grid grid-cols-1 items-start gap-x-16 gap-y-10 lg:grid-cols-[minmax(0,1fr)_240px]">
-        {/* Main content */}
-        <div className="flex flex-col gap-10">
-          <section className="flex flex-col gap-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-neutral-900">
-                Earnings
-              </h2>
-              {programEnrollment?.rewards && (
-                <Tooltip
-                  content={
-                    <ProgramRewardList
-                      rewards={programEnrollment?.rewards}
-                      className="gap-2 border-none p-3"
-                      showModifiersTooltip={false}
-                    />
-                  }
-                >
-                  <div className="border-border-subtle flex cursor-default items-center justify-center gap-1.5 rounded-md border px-2 py-1 transition-all hover:bg-neutral-50">
-                    <MoneyBill2 className="size-4" />
-                    <span className="text-sm">Eligible rewards</span>
-                  </div>
-                </Tooltip>
-              )}
-            </div>
-            {rewardPeriodEndDate &&
-              isBefore(rewardPeriodEndDate, new Date()) && (
-                <div className="flex items-center gap-2 rounded-lg border border-amber-100 bg-amber-50 px-3 py-2">
-                  <AlertCircle className="size-4 shrink-0 text-amber-600" />
-                  <p className="text-sm text-amber-900">
-                    The earning period for this customer has ended as of{" "}
-                    {formatDate(rewardPeriodEndDate)}. No future conversions
-                    will be rewarded.
-                  </p>
-                </div>
-              )}
-            <EarningsTable customerId={customerId} />
-          </section>
-
-          <section className="flex flex-col">
-            <div className="flex items-center justify-between">
-              <h2 className="py-3 text-lg font-semibold text-neutral-900">
-                Activity
-              </h2>
-              <Link
-                href={`/programs/${programSlug}/events?interval=all&customerId=${customerId}`}
-              >
-                <Button
-                  variant="secondary"
-                  text="View all"
-                  className="h-7 px-2"
-                />
-              </Link>
-            </div>
-            <CustomerActivityList
-              activity={customer?.activity}
-              isLoading={!customer}
+      }
+    >
+      <PageWidthWrapper className="flex flex-col gap-6 pb-10">
+        <div className="@3xl/page:grid-cols-[minmax(440px,1fr)_minmax(0,360px)] grid grid-cols-1 gap-6">
+          <div className="@3xl/page:order-2">
+            <CustomerDetailsColumn
+              customer={customer}
+              customerActivity={customer?.activity}
+              isCustomerActivityLoading={!customer}
             />
-          </section>
-        </div>
+          </div>
+          <div className="@3xl/page:order-1">
+            <div className="border-border-subtle overflow-hidden rounded-xl border p-4">
+              <section className="flex flex-col gap-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-semibold text-neutral-900">
+                    Earnings
+                  </h2>
+                  {programEnrollment?.rewards && (
+                    <Tooltip
+                      content={
+                        <ProgramRewardList
+                          rewards={programEnrollment?.rewards}
+                          className="gap-2 border-none p-3"
+                          showModifiersTooltip={false}
+                        />
+                      }
+                    >
+                      <div className="border-border-subtle flex cursor-default items-center justify-center gap-1.5 rounded-md border px-2 py-1 transition-all hover:bg-neutral-50">
+                        <MoneyBill2 className="size-4" />
+                        <span className="text-sm">Eligible rewards</span>
+                      </div>
+                    </Tooltip>
+                  )}
+                </div>
+                {rewardPeriodEndDate &&
+                  isBefore(rewardPeriodEndDate, new Date()) && (
+                    <div className="flex items-center gap-2 rounded-lg border border-amber-100 bg-amber-50 px-3 py-2">
+                      <AlertCircle className="size-4 shrink-0 text-amber-600" />
+                      <p className="text-sm text-amber-900">
+                        The earning period for this customer has ended as of{" "}
+                        {formatDate(rewardPeriodEndDate)}. No future conversions
+                        will be rewarded.
+                      </p>
+                    </div>
+                  )}
 
-        {/* Right side details */}
-        <div className="-order-1 lg:order-1">
-          <CustomerDetailsColumn
-            customer={customer}
-            customerActivity={customer?.activity}
-            isCustomerActivityLoading={!customer}
-          />
+                <div className="border-border-subtle overflow-hidden rounded-lg border">
+                  <EarningsTable customerId={customerId} />
+                </div>
+              </section>
+            </div>
+
+            <section className="mt-3 flex flex-col px-4">
+              <div className="flex items-center justify-between">
+                <h2 className="py-3 text-lg font-semibold text-neutral-900">
+                  Activity
+                </h2>
+              </div>
+              <CustomerActivityList
+                activity={customer?.activity}
+                isLoading={!customer}
+              />
+            </section>
+          </div>
         </div>
-      </div>
-    </div>
+      </PageWidthWrapper>
+    </PageContent>
   );
 }
 

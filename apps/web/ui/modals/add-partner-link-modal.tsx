@@ -4,6 +4,7 @@ import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps, LinkProps } from "@/lib/types";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
+import { UtmTemplate } from "@dub/prisma/client";
 import {
   ArrowTurnLeft,
   Button,
@@ -20,7 +21,6 @@ import {
   linkConstructor,
   punycode,
 } from "@dub/utils";
-import { UtmTemplate } from "@prisma/client";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";

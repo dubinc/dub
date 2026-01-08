@@ -9,7 +9,7 @@ import { handleExternalPayoutEvent } from "@/lib/webhook/handle-external-payout-
 import { webhookCallbackSchema } from "@/lib/zod/schemas/webhooks";
 import { prisma } from "@dub/prisma";
 import { getSearchParams } from "@dub/utils";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 const searchParamsSchema = z.object({
   webhookId: z.string(),

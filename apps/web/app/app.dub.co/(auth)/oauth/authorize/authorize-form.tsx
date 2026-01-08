@@ -8,11 +8,7 @@ import { Button } from "@dub/ui";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { z } from "zod";
-
-interface AuthorizeFormProps extends z.infer<typeof authorizeRequestSchema> {
-  //
-}
+import * as z from "zod/v4";
 
 export const AuthorizeForm = ({
   client_id,
@@ -22,7 +18,7 @@ export const AuthorizeForm = ({
   scope,
   code_challenge,
   code_challenge_method,
-}: AuthorizeFormProps) => {
+}: z.infer<typeof authorizeRequestSchema>) => {
   const { data: session } = useSession();
   const { workspaces } = useWorkspaces();
   const [submitting, setSubmitting] = useState(false);

@@ -27,17 +27,13 @@ model FraudRule {
   @@unique([programId, type])
 }
 
-model FraudEvent {
+model FraudEventGroup {
   id               String           @id @default(cuid())
   programId        String
   partnerId        String
-  linkId           String?
-  customerId       String?
-  eventId          String?
-  commissionId     String?
   type             FraudRuleType
-  groupKey         String
-  metadata         Json?            @db.Json
+  lastEventAt      DateTime?
+  eventCount       Int              @default(0)
   userId           String?
   resolutionReason String?          @db.Text
   resolvedAt       DateTime?
@@ -48,17 +44,39 @@ model FraudEvent {
   program           Program           @relation(fields: [programId], references: [id], onDelete: Cascade)
   partner           Partner           @relation(fields: [partnerId], references: [id], onDelete: Cascade)
   programEnrollment ProgramEnrollment @relation(fields: [programId, partnerId], references: [programId, partnerId], onDelete: Cascade)
-  customer          Customer?         @relation(fields: [customerId], references: [id])
-  link              Link?             @relation(fields: [linkId], references: [id])
-  commission        Commission?       @relation(fields: [commissionId], references: [id])
+  fraudEvents       FraudEvent[]
   user              User?             @relation(fields: [userId], references: [id])
+
+  @@index([programId, partnerId, type, status])
+  @@index(partnerId)
+  @@index(userId)
+}
+
+model FraudEvent {
+  id                String   @id @default(cuid())
+  fraudEventGroupId String
+  programId         String
+  partnerId         String
+  linkId            String?
+  customerId        String?
+  eventId           String?
+  sourceProgramId   String? // The program that originated the ban/fraud report
+  hash              String
+  metadata          Json?    @db.Json
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  fraudEventGroup FraudEventGroup @relation(fields: [fraudEventGroupId], references: [id], onDelete: Cascade)
+  partner         Partner         @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  customer        Customer?       @relation(fields: [customerId], references: [id])
+  link            Link?           @relation(fields: [linkId], references: [id])
+  sourceProgram   Program?        @relation("SourceFraudEvents", fields: [sourceProgramId], references: [id])
 
   @@index([programId, partnerId, customerId])
   @@index(partnerId)
   @@index(customerId)
   @@index(linkId)
   @@index(eventId)
-  @@index(userId)
-  @@index(commissionId)
-  @@index(groupKey)
+  @@index(hash)
+  @@index(sourceProgramId)
 }

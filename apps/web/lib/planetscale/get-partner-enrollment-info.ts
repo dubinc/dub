@@ -11,6 +11,7 @@ interface QueryResult {
   couponId: string | null;
   couponTestId: string | null;
   groupId: string | null;
+  tenantId: string | null;
   partnerTagIds: string | null;
 }
 
@@ -25,8 +26,8 @@ export const getPartnerEnrollmentInfo = async ({
   if (!partnerId || !programId) {
     return {
       partner: null,
-      group: null,
       discount: null,
+      partnerTagIds: [],
     };
   }
 
@@ -42,17 +43,20 @@ export const getPartnerEnrollmentInfo = async ({
       Discount.couponId,
       Discount.couponTestId,
       ProgramEnrollment.groupId,
-      GROUP_CONCAT(DISTINCT ProgramPartnerTag.partnerTagId SEPARATOR ',') as partnerTagIds
+      ProgramEnrollment.tenantId,
+      (
+        SELECT JSON_ARRAYAGG(DISTINCT partnerTagId)
+        FROM ProgramPartnerTag
+        WHERE ProgramPartnerTag.programId = ProgramEnrollment.programId
+        AND ProgramPartnerTag.partnerId = ProgramEnrollment.partnerId
+      ) as partnerTagIds
     FROM
       ProgramEnrollment
       LEFT JOIN Partner ON Partner.id = ProgramEnrollment.partnerId
       LEFT JOIN Discount ON Discount.id = ProgramEnrollment.discountId
-      LEFT JOIN ProgramPartnerTag ON ProgramPartnerTag.programId = ProgramEnrollment.programId
-      AND ProgramPartnerTag.partnerId = ProgramEnrollment.partnerId
     WHERE
       ProgramEnrollment.partnerId = ?
-      AND ProgramEnrollment.programId = ?
-    GROUP BY ProgramEnrollment.programId, ProgramEnrollment.partnerId`,
+      AND ProgramEnrollment.programId = ?`,
     [partnerId, programId],
   );
 
@@ -62,20 +66,20 @@ export const getPartnerEnrollmentInfo = async ({
   if (!result) {
     return {
       partner: null,
-      group: null,
       discount: null,
-      partnerTagIds: null,
+      partnerTagIds: [],
     };
   }
+
+  console.log(result)
 
   return {
     partner: {
       id: result.id,
       name: result.name,
       image: result.image,
-    },
-    group: {
-      id: result.groupId,
+      groupId: result.groupId,
+      tenantId: result.tenantId,
     },
     discount: result.discountId
       ? {
@@ -88,7 +92,7 @@ export const getPartnerEnrollmentInfo = async ({
         }
       : null,
     partnerTagIds: result.partnerTagIds
-      ? (result.partnerTagIds.split(",").filter(Boolean) as string[])
+      ? (result.partnerTagIds.split(",").filter(Boolean))
       : null,
   };
 };

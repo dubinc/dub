@@ -72,7 +72,6 @@ export function PartnerComments({ partnerId }: { partnerId: string }) {
                 workspaceId: workspaceId!,
                 partnerId,
                 text,
-                createdAt,
               });
 
               if (!result?.data?.comment)
@@ -357,8 +356,7 @@ function CommentCard({
               ) : (
                 <ReactMarkdown
                   className={cn(
-                    "text-content-subtle font-medium",
-                    "prose prose-sm break-words",
+                    "prose prose-sm text-content-default break-words font-normal",
                     PROSE_STYLES.condensed,
                     "prose-a:font-medium prose-a:underline-offset-4",
                   )}

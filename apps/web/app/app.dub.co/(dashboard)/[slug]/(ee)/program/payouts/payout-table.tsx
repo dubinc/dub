@@ -1,10 +1,11 @@
 "use client";
 
-import { useFraudEventsCount } from "@/lib/swr/use-fraud-events-count";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { useFraudGroupCount } from "@/lib/swr/use-fraud-groups-count";
 import usePayoutsCount from "@/lib/swr/use-payouts-count";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { FraudEventsCountByPartner, PayoutResponse } from "@/lib/types";
+import { FraudGroupCountByPartner, PayoutResponse } from "@/lib/types";
 import { ExternalPayoutsIndicator } from "@/ui/partners/external-payouts-indicator";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
@@ -49,7 +50,7 @@ const PayoutTableInner = memo(
     setSearch,
     setSelectedFilter,
   }: ReturnType<typeof usePayoutFilters>) => {
-    const { id: workspaceId, defaultProgramId } = useWorkspace();
+    const { id: workspaceId, plan, defaultProgramId } = useWorkspace();
     const { queryParams, searchParams, getQueryString } = useRouterStuff();
 
     const sortBy = searchParams.get("sortBy") || "amount";
@@ -95,9 +96,9 @@ const PayoutTableInner = memo(
 
     const { pagination, setPagination } = usePagination();
 
-    const { fraudEventsCount } = useFraudEventsCount<
-      FraudEventsCountByPartner[]
-    >({
+    const { canManageFraudEvents } = getPlanCapabilities(plan);
+
+    const { fraudGroupCount } = useFraudGroupCount<FraudGroupCountByPartner[]>({
       query: {
         groupBy: "partnerId",
         status: "pending",
@@ -105,13 +106,13 @@ const PayoutTableInner = memo(
     });
 
     // Memoized map of partner IDs with pending fraud events
-    const fraudEventsCountMap = useMemo(() => {
-      if (!fraudEventsCount) {
+    const fraudGroupCountMap = useMemo(() => {
+      if (!fraudGroupCount) {
         return new Set<string>();
       }
 
-      return new Set(fraudEventsCount.map(({ partnerId }) => partnerId));
-    }, [fraudEventsCount]);
+      return new Set(fraudGroupCount.map(({ partnerId }) => partnerId));
+    }, [fraudGroupCount]);
 
     const table = useTable({
       data: payouts || [],
@@ -132,12 +133,12 @@ const PayoutTableInner = memo(
         {
           header: "Status",
           cell: ({ row }) => {
-            const hasFraudPending = fraudEventsCountMap.has(
-              row.original.partner.id,
-            );
+            const hasPendingFraudEvents =
+              canManageFraudEvents &&
+              fraudGroupCountMap.has(row.original.partner.id);
 
             const status =
-              hasFraudPending && row.original.status === "pending"
+              hasPendingFraudEvents && row.original.status === "pending"
                 ? "hold"
                 : row.original.status;
 
@@ -180,7 +181,10 @@ const PayoutTableInner = memo(
           cell: ({ row }) => (
             <AmountRowItem
               payout={row.original}
-              hasFraudPending={fraudEventsCountMap.has(row.original.partner.id)}
+              hasPendingFraudEvents={
+                canManageFraudEvents &&
+                fraudGroupCountMap.has(row.original.partner.id)
+              }
             />
           ),
         },
@@ -278,10 +282,10 @@ const PayoutTableInner = memo(
 
 function AmountRowItem({
   payout,
-  hasFraudPending,
+  hasPendingFraudEvents,
 }: {
   payout: Pick<PayoutResponse, "amount" | "status" | "mode" | "partner">;
-  hasFraudPending: boolean;
+  hasPendingFraudEvents: boolean;
 }) {
   const { slug } = useParams();
   const { program } = useProgram();
@@ -344,7 +348,7 @@ function AmountRowItem({
 
     if (payout.mode === "internal" && !payout.partner?.payoutsEnabledAt) {
       return (
-        <Tooltip content="This partner does not have payouts enabled, which means they will not be able to receive any payouts from this program.">
+        <Tooltip content="This partner has not [connected a bank account](https://dub.co/help/article/receiving-payouts) to receive payouts yet, which means they won't be able to receive payouts from your program.">
           <span className="cursor-help truncate text-neutral-400 underline decoration-dotted underline-offset-2">
             {display}
           </span>
@@ -352,7 +356,7 @@ function AmountRowItem({
       );
     }
 
-    if (hasFraudPending) {
+    if (hasPendingFraudEvents) {
       return (
         <Tooltip
           content={`This partner's payouts are on hold due to [unresolved fraud events](${`/${slug}/program/fraud?partnerId=${payout.partner.id}`}). They cannot be paid out until resolved.`}

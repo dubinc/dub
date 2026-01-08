@@ -5,16 +5,23 @@ import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, chunk, log } from "@dub/utils";
+import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";
 
 const BATCH_SIZE = 1000;
 
+const schema = z.object({
+  programId: z.string().optional().describe("Optional program ID to filter by"),
+});
+
 // This cron job aggregates due commissions (pending commissions that are past the partner group's holding period) into payouts.
 // Runs once every hour (0 * * * *) + calls itself recursively to look through all pending commissions available.
 async function handler(req: Request) {
   try {
+    let programId: string | undefined = undefined;
+
     if (req.method === "GET") {
       await verifyVercelSignature(req);
     } else if (req.method === "POST") {
@@ -23,10 +30,13 @@ async function handler(req: Request) {
         req,
         rawBody,
       });
+
+      ({ programId } = schema.parse(JSON.parse(rawBody)));
     }
 
     const partnerGroupsByHoldingPeriod = await prisma.partnerGroup.groupBy({
       by: ["holdingPeriodDays"],
+      ...(programId ? { where: { programId } } : {}),
       _count: {
         id: true,
       },
@@ -44,6 +54,7 @@ async function handler(req: Request) {
       const partnerGroups = await prisma.partnerGroup.findMany({
         where: {
           holdingPeriodDays,
+          ...(programId ? { programId } : {}),
         },
         select: {
           id: true,
@@ -243,6 +254,7 @@ async function handler(req: Request) {
 
       const qstashResponse = await qstash.publishJSON({
         url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/aggregate-due-commissions`,
+        body: programId ? { programId } : {}, // pass programId if defined, else pass an empty object
       });
       if (qstashResponse.messageId) {
         console.log(

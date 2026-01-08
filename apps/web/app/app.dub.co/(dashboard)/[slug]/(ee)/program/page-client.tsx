@@ -10,6 +10,7 @@ import { ConversionBlock } from "@/ui/partners/overview/blocks/conversion-block"
 import { CountriesBlock } from "@/ui/partners/overview/blocks/countries-block";
 import { LinksBlock } from "@/ui/partners/overview/blocks/links-block";
 import { PartnersBlock } from "@/ui/partners/overview/blocks/partners-block";
+import { SaleTypeBlock } from "@/ui/partners/overview/blocks/sale-type-block";
 import { TrafficSourcesBlock } from "@/ui/partners/overview/blocks/traffic-sources-block";
 import { ProgramOverviewCard } from "@/ui/partners/overview/program-overview-card";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
@@ -28,11 +29,11 @@ const BLOCKS = [
   ConversionBlock,
   CountriesBlock,
   LinksBlock,
-  // SaleTypeBlock, // TODO: figure out how to best show sales by type
+  SaleTypeBlock,
 ];
 
 export default function ProgramOverviewPageClient() {
-  const { defaultProgramId, id: workspaceId } = useWorkspace();
+  const { defaultProgramId, id: workspaceId, exceededEvents } = useWorkspace();
 
   const { searchParamsObj } = useRouterStuff();
 
@@ -47,11 +48,7 @@ export default function ProgramOverviewPageClient() {
   const queryString = new URLSearchParams({
     programId: defaultProgramId ?? "",
     workspaceId: workspaceId ?? "",
-    ...(start &&
-      end && {
-        start: new Date(start).toISOString(),
-        end: new Date(end).toISOString(),
-      }),
+    ...(start && end && { start, end }),
     ...(interval && { interval: interval.toString() }),
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
   }).toString();
@@ -59,10 +56,11 @@ export default function ProgramOverviewPageClient() {
   const { data: totalEvents, isLoading: totalEventsLoading } = useSWR<{
     [key in AnalyticsResponseOptions]: number;
   }>(
-    `/api/analytics?${editQueryString(queryString, {
-      event: "composite",
-      saleType: "new",
-    })}`,
+    !exceededEvents &&
+      `/api/analytics?${editQueryString(queryString, {
+        event: "composite",
+        saleType: "new",
+      })}`,
     fetcher,
     {
       keepPreviousData: true,

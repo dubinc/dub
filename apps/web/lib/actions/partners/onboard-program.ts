@@ -4,15 +4,15 @@ import { createId } from "@/lib/api/create-id";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { onboardProgramSchema } from "@/lib/zod/schemas/program-onboarding";
 import { prisma } from "@dub/prisma";
+import { Project } from "@dub/prisma/client";
 import { isLegacyBusinessPlan } from "@dub/utils";
-import { Project } from "@prisma/client";
 import { redirect } from "next/navigation";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
 import { createProgram } from "./create-program";
 
 export const onboardProgramAction = authActionClient
-  .schema(onboardProgramSchema)
+  .inputSchema(onboardProgramSchema)
   .action(async ({ ctx, parsedInput: data }) => {
     const { workspace, user } = ctx;
 

@@ -1,1 +1,1 @@
-export { default } from "../../../settings/domains/email/page";
+export { default } from "../../../(ee)/settings/domains/email/page";

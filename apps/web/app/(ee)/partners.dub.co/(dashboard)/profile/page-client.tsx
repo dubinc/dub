@@ -53,9 +53,7 @@ export function ProfileSettingsPageClient() {
       }
     >
       <PageWidthWrapper className="mb-20 flex flex-col gap-6">
-        {partner && !allTasksCompleted && (
-          <ProfileDiscoveryGuide partner={partner} />
-        )}
+        {partner && !allTasksCompleted && <ProfileDiscoveryGuide />}
         <ProfileDetailsForm partner={partner} />
         <AboutYouForm partner={partner} />
         <HowYouWorkForm partner={partner} />

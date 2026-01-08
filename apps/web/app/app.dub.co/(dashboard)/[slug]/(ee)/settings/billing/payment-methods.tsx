@@ -45,7 +45,7 @@ export default function PaymentMethods() {
   }
 
   return (
-    <div className="rounded-lg border border-neutral-200 bg-white">
+    <div className="mb-8 rounded-xl border border-neutral-200 bg-white">
       <div className="flex flex-col items-start justify-between gap-y-4 p-6 md:flex-row md:items-center md:p-8">
         <div>
           <h2 className="text-xl font-medium">Payment methods</h2>
@@ -63,7 +63,7 @@ export default function PaymentMethods() {
           />
         )}
       </div>
-      <div className="grid gap-4 border-t border-neutral-200 bg-neutral-100 p-6">
+      <div className="grid gap-4 rounded-b-xl border-t border-neutral-200 bg-neutral-100 p-6">
         {regularPaymentMethods ? (
           regularPaymentMethods.length > 0 ? (
             regularPaymentMethods.map((paymentMethod) => (

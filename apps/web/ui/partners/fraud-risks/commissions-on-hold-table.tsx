@@ -1,6 +1,5 @@
 import useWorkspace from "@/lib/swr/use-workspace";
-import { CommissionResponse, fraudEventGroupProps } from "@/lib/types";
-import { COMMISSIONS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/commissions";
+import { CommissionResponse, FraudGroupProps } from "@/lib/types";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import {
   LoadingSpinner,
@@ -18,20 +17,21 @@ import {
 } from "@dub/utils";
 import { useState } from "react";
 import useSWR from "swr";
+import { CommissionRowMenu } from "../commission-row-menu";
 import { CommissionTypeBadge } from "../commission-type-badge";
 
-export function CommissionsOnHoldTable({
-  fraudEventGroup,
-}: {
-  fraudEventGroup: fraudEventGroupProps;
-}) {
-  const workspace = useWorkspace();
-  const { id: workspaceId, slug } = workspace;
+const COMMISSIONS_ON_HOLD_PAGE_SIZE = 10;
 
+export function CommissionsOnHoldTable({
+  fraudGroup,
+}: {
+  fraudGroup: FraudGroupProps;
+}) {
+  const { id: workspaceId, slug } = useWorkspace();
   const [page, setPage] = useState(1);
 
   const { pagination, setPagination } = useTablePagination({
-    pageSize: COMMISSIONS_MAX_PAGE_SIZE,
+    pageSize: COMMISSIONS_ON_HOLD_PAGE_SIZE,
     page,
     onPageChange: setPage,
   });
@@ -39,8 +39,7 @@ export function CommissionsOnHoldTable({
   const query = {
     workspaceId: workspaceId!,
     status: "pending",
-    partnerId: fraudEventGroup.partner.id,
-    page: page.toString(),
+    partnerId: fraudGroup.partner.id,
   };
 
   const {
@@ -48,7 +47,11 @@ export function CommissionsOnHoldTable({
     error,
     isLoading,
   } = useSWR<CommissionResponse[]>(
-    `/api/commissions?${new URLSearchParams(query).toString()}`,
+    `/api/commissions?${new URLSearchParams({
+      ...query,
+      page: page.toString(),
+      pageSize: COMMISSIONS_ON_HOLD_PAGE_SIZE.toString(),
+    }).toString()}`,
     fetcher,
     {
       keepPreviousData: true,
@@ -87,7 +90,7 @@ export function CommissionsOnHoldTable({
           row.original.customer ? (
             <CustomerRowItem
               customer={row.original.customer}
-              href={`/${slug}/customers/${row.original.customer.id}`}
+              href={`/${slug}/program/customers/${row.original.customer.id}`}
             />
           ) : (
             "-"
@@ -128,8 +131,17 @@ export function CommissionsOnHoldTable({
           </span>
         ),
       },
+      // Menu
+      {
+        id: "menu",
+        enableHiding: false,
+        minSize: 43,
+        size: 43,
+        maxSize: 43,
+        cell: ({ row }) => <CommissionRowMenu row={row} />,
+      },
     ],
-    ...((commissionsCount?.all.count || 0) > COMMISSIONS_MAX_PAGE_SIZE
+    ...((commissionsCount?.all.count || 0) > COMMISSIONS_ON_HOLD_PAGE_SIZE
       ? {
           pagination,
           onPaginationChange: setPagination,
@@ -137,6 +149,7 @@ export function CommissionsOnHoldTable({
       : {
           className: "[&_tr:last-child>td]:border-b-transparent",
         }),
+    columnPinning: { right: ["menu"] },
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     scrollWrapperClassName: "min-h-0",

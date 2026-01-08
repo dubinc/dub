@@ -7,7 +7,7 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { recordLink } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
-import z from "../../zod";
+import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
 
 const revokeProgramInviteSchema = z.object({
@@ -16,7 +16,7 @@ const revokeProgramInviteSchema = z.object({
 });
 
 export const revokeProgramInviteAction = authActionClient
-  .schema(revokeProgramInviteSchema)
+  .inputSchema(revokeProgramInviteSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { partnerId } = parsedInput;
     const { workspace } = ctx;

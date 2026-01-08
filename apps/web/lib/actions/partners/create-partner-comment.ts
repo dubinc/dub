@@ -11,10 +11,10 @@ import { authActionClient } from "../safe-action";
 
 // Create a partner comment
 export const createPartnerCommentAction = authActionClient
-  .schema(createPartnerCommentSchema)
+  .inputSchema(createPartnerCommentSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const { partnerId, text, createdAt } = parsedInput;
+    const { partnerId, text } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -30,7 +30,6 @@ export const createPartnerCommentAction = authActionClient
         partnerId,
         userId: user.id,
         text,
-        createdAt,
       },
       include: {
         user: true,

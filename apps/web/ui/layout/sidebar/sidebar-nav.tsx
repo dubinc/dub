@@ -119,9 +119,9 @@ export function SidebarNav<T extends Record<any, any>>({
               <div className="pb-1 pt-2">
                 <Link
                   href="/"
-                  className="block rounded-lg px-1 py-4 outline-none transition-opacity focus-visible:ring-2 focus-visible:ring-black/50"
+                  className="block overflow-visible rounded-lg px-1 py-4 outline-none transition-opacity focus-visible:ring-2 focus-visible:ring-black/50"
                 >
-                  <NavWordmark className="h-5" isInApp />
+                  <NavWordmark className="h-5 overflow-visible" isInApp />
                 </Link>
               </div>
               {(!currentArea ||

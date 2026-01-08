@@ -2,18 +2,18 @@ import { getEvents } from "@/lib/analytics/get-events";
 import { DubApiError } from "@/lib/api/errors";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
-import { MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING } from "@/lib/constants/partner-profile";
 import {
   LARGE_PROGRAM_IDS,
   LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS,
-} from "@/lib/constants/program";
+  MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING,
+} from "@/lib/constants/partner-profile";
 import { generateRandomName } from "@/lib/names";
 import {
   PartnerProfileLinkSchema,
   partnerProfileEventsQuerySchema,
 } from "@/lib/zod/schemas/partner-profile";
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 // GET /api/partner-profile/programs/[programId]/events – get events for a program enrollment link
 export const GET = withPartnerProfile(

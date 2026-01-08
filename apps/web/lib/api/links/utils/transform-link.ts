@@ -14,7 +14,12 @@ export type ExpandedLink = Link & {
   tags?: { tag: Pick<Tag, "id" | "name" | "color"> }[];
   webhooks?: { webhookId: string }[];
   dashboard?: Dashboard | null;
-  partner?: Pick<PartnerProps, "id" | "name" | "image"> | null;
+  partner?:
+    | (Pick<PartnerProps, "id" | "name" | "image"> & {
+        groupId?: string | null;
+        tenantId?: string | null;
+      })
+    | null;
   discount?: Pick<
     DiscountProps,
     "id" | "amount" | "type" | "maxDuration" | "couponId" | "couponTestId"

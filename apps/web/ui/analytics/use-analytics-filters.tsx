@@ -4,6 +4,7 @@ import useCustomer from "@/lib/swr/use-customer";
 import usePartner from "@/lib/swr/use-partner";
 import usePartnerCustomer from "@/lib/swr/use-partner-customer";
 import { LinkProps } from "@/lib/types";
+import { readStreamableValue } from "@ai-sdk/rsc";
 import {
   BlurImage,
   Filter,
@@ -48,7 +49,6 @@ import {
   OG_AVATAR_URL,
   REGIONS,
 } from "@dub/utils";
-import { readStreamableValue } from "ai/rsc";
 import { useParams } from "next/navigation";
 import posthog from "posthog-js";
 import {
@@ -292,7 +292,7 @@ export function useAnalyticsFilters({
     omitGroupByFilterKey: true,
     context,
   });
-  const { data: urls } = useAnalyticsFilterOption("top_urls", {
+  const { data: baseUrls } = useAnalyticsFilterOption("top_base_urls", {
     disabled: !isRequested("url"),
     omitGroupByFilterKey: true,
     context,
@@ -390,6 +390,27 @@ export function useAnalyticsFilters({
       ) ?? null,
   };
 
+  const DomainFilterItem = {
+    key: "domain",
+    icon: Globe2,
+    label: "Domain",
+    getOptionIcon: (value) => (
+      <BlurImage
+        src={`${GOOGLE_FAVICON_URL}${value}`}
+        alt={value}
+        className="h-4 w-4 rounded-full"
+        width={16}
+        height={16}
+      />
+    ),
+    options:
+      domains?.map(({ domain, ...rest }) => ({
+        value: domain,
+        label: domain,
+        right: getFilterOptionTotal(rest),
+      })) ?? null,
+  };
+
   const SaleTypeFilterItem = {
     key: "saleType",
     icon: Receipt2,
@@ -424,7 +445,9 @@ export function useAnalyticsFilters({
           })) ?? null,
       },
       ...(dashboardProps
-        ? []
+        ? dashboardProps.key
+          ? []
+          : [DomainFilterItem, LinkFilterItem]
         : programPage
           ? [
               {
@@ -466,10 +489,8 @@ export function useAnalyticsFilters({
                       label: partner.name,
                       icon: (
                         <img
-                          src={
-                            partner.image || `${OG_AVATAR_URL}${partner.name}`
-                          }
-                          alt={`${partner.name} image`}
+                          src={partner.image || `${OG_AVATAR_URL}${partner.id}`}
+                          alt={partner.id}
                           className="size-4 rounded-full"
                         />
                       ),
@@ -533,26 +554,7 @@ export function useAnalyticsFilters({
                       right: getFilterOptionTotal(rest),
                     })) ?? null,
                 },
-                {
-                  key: "domain",
-                  icon: Globe2,
-                  label: "Domain",
-                  getOptionIcon: (value) => (
-                    <BlurImage
-                      src={`${GOOGLE_FAVICON_URL}${value}`}
-                      alt={value}
-                      className="h-4 w-4 rounded-full"
-                      width={16}
-                      height={16}
-                    />
-                  ),
-                  options:
-                    domains?.map(({ domain, ...rest }) => ({
-                      value: domain,
-                      label: domain,
-                      right: getFilterOptionTotal(rest),
-                    })) ?? null,
-                },
+                DomainFilterItem,
                 LinkFilterItem,
                 {
                   key: "root",
@@ -751,7 +753,7 @@ export function useAnalyticsFilters({
                 />
               ),
               options:
-                urls?.map(({ url, ...rest }) => ({
+                baseUrls?.map(({ url, ...rest }) => ({
                   value: url,
                   label: url.replace(/^https?:\/\//, "").replace(/\/$/, ""),
                   right: getFilterOptionTotal(rest),
@@ -793,8 +795,8 @@ export function useAnalyticsFilters({
           ) : null;
         },
         getOptionPermalink: () => {
-          return programSlug
-            ? `/programs/${programSlug}/customers/${selectedCustomerId}`
+          return programPage
+            ? `/${slug}/program/customers/${selectedCustomerId}`
             : slug
               ? `/${slug}/customers/${selectedCustomerId}`
               : null;
@@ -845,7 +847,7 @@ export function useAnalyticsFilters({
       os,
       referers,
       refererUrls,
-      urls,
+      baseUrls,
       utmData,
       searchParamsObj.tagIds,
       searchParamsObj.domain,

@@ -1,59 +1,68 @@
+import { tz, TZDate } from "@date-fns/tz";
 import { DUB_FOUNDING_DATE } from "@dub/utils";
-import { DateTime } from "luxon";
+import {
+  endOfToday,
+  startOfMonth,
+  startOfQuarter,
+  startOfYear,
+  subDays,
+  subHours,
+  subMonths,
+} from "date-fns";
 
-export const INTERVAL_DATA: Record<
+const INTERVAL_DATA: Record<
   string,
   ({ timezone }: { timezone?: string }) => {
-    startDate: Date;
+    startDate: TZDate;
+    endDate: TZDate;
     granularity: "minute" | "hour" | "day" | "month";
   }
 > = {
-  "24h": () => ({
-    startDate: new Date(Date.now() - 86400000),
+  "24h": ({ timezone }) => ({
+    startDate: subHours(new TZDate(Date.now(), timezone), 24),
+    endDate: new TZDate(Date.now(), timezone),
     granularity: "hour",
   }),
-  "7d": () => ({
-    startDate: new Date(Date.now() - 604800000),
+  "7d": ({ timezone }) => ({
+    startDate: subDays(new TZDate(Date.now(), timezone), 7),
+    endDate: endOfToday({ in: timezone ? tz(timezone) : undefined }),
     granularity: "day",
   }),
-  "30d": () => ({
-    startDate: new Date(Date.now() - 2592000000),
+  "30d": ({ timezone }) => ({
+    startDate: subDays(new TZDate(Date.now(), timezone), 30),
+    endDate: endOfToday({ in: timezone ? tz(timezone) : undefined }),
     granularity: "day",
   }),
-  "90d": () => ({
-    startDate: new Date(Date.now() - 7776000000),
+  "90d": ({ timezone }) => ({
+    startDate: subDays(new TZDate(Date.now(), timezone), 90),
+    endDate: endOfToday({ in: timezone ? tz(timezone) : undefined }),
     granularity: "day",
   }),
-  "1y": () => ({
-    startDate: new Date(Date.now() - 31556952000),
+  "1y": ({ timezone }) => ({
+    startDate: subMonths(new TZDate(Date.now(), timezone), 12),
+    endDate: endOfToday({ in: timezone ? tz(timezone) : undefined }),
     granularity: "month",
   }),
   mtd: ({ timezone }) => {
     return {
-      startDate: timezone
-        ? DateTime.now().setZone(timezone).startOf("month").toJSDate()
-        : new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+      startDate: startOfMonth(new TZDate(Date.now(), timezone)),
+      endDate: endOfToday({ in: timezone ? tz(timezone) : undefined }),
       granularity: "day",
     };
   },
   qtd: ({ timezone }) => ({
-    startDate: timezone
-      ? DateTime.now().setZone(timezone).startOf("quarter").toJSDate()
-      : new Date(
-          new Date().getFullYear(),
-          Math.floor(new Date().getMonth() / 3) * 3,
-          1,
-        ),
+    startDate: startOfQuarter(new TZDate(Date.now(), timezone)),
+    endDate: endOfToday({ in: timezone ? tz(timezone) : undefined }),
     granularity: "day",
   }),
   ytd: ({ timezone }) => ({
-    startDate: timezone
-      ? DateTime.now().setZone(timezone).startOf("year").toJSDate()
-      : new Date(new Date().getFullYear(), 0, 1),
+    startDate: startOfYear(new TZDate(Date.now(), timezone)),
+    endDate: endOfToday({ in: timezone ? tz(timezone) : undefined }),
     granularity: "month",
   }),
-  all: () => ({
-    startDate: DUB_FOUNDING_DATE,
+  all: ({ timezone }) => ({
+    startDate: new TZDate(DUB_FOUNDING_DATE, timezone),
+    endDate: endOfToday({ in: timezone ? tz(timezone) : undefined }),
     granularity: "month",
   }),
 };

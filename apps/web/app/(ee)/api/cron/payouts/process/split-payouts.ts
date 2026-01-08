@@ -5,16 +5,18 @@ import {
   CUTOFF_PERIOD_TYPES,
 } from "@/lib/partners/cutoff-period";
 import { prisma } from "@dub/prisma";
-import { Program } from "@prisma/client";
+import { Program, Project } from "@dub/prisma/client";
 import { endOfMonth } from "date-fns";
 
 export async function splitPayouts({
   program,
+  workspace,
   cutoffPeriod,
   selectedPayoutId,
   excludedPayoutIds,
 }: {
   program: Pick<Program, "id" | "name" | "minPayoutAmount" | "payoutMode">;
+  workspace: Pick<Project, "plan">;
   cutoffPeriod: CUTOFF_PERIOD_TYPES;
   selectedPayoutId?: string;
   excludedPayoutIds?: string[];
@@ -26,10 +28,7 @@ export async function splitPayouts({
         : excludedPayoutIds && excludedPayoutIds.length > 0
           ? { id: { notIn: excludedPayoutIds } }
           : {}),
-      periodStart: {
-        not: null, // exclude the manual payouts
-      },
-      ...getPayoutEligibilityFilter(program),
+      ...getPayoutEligibilityFilter({ program, workspace }),
     },
     include: {
       commissions: true,
@@ -90,9 +89,8 @@ export async function splitPayouts({
             programId: program.id,
             partnerId: payout.partnerId,
             periodStart: currentCommissions[0].createdAt,
-            periodEnd: endOfMonth(
+            periodEnd:
               currentCommissions[currentCommissions.length - 1].createdAt,
-            ),
             amount: currentCommissions.reduce(
               (total, commission) => total + commission.earnings,
               0,

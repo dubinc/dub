@@ -18,8 +18,8 @@ import { sendEmail } from "@dub/email";
 import ProgramInvite from "@dub/email/templates/program-invite";
 import ProgramWelcome from "@dub/email/templates/program-welcome";
 import { prisma } from "@dub/prisma";
+import { Program, Project, User } from "@dub/prisma/client";
 import { getDomainWithoutWWW, nanoid, R2_URL } from "@dub/utils";
-import { Program, Project, User } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { redirect } from "next/navigation";
 

@@ -9,6 +9,7 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { recordLink } from "@/lib/tinybird";
 import { banPartnerSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
+import { FraudRuleType } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 
@@ -18,7 +19,7 @@ const unbanPartnerSchema = banPartnerSchema.omit({
 
 // Unban a partner
 export const unbanPartnerAction = authActionClient
-  .schema(unbanPartnerSchema)
+  .inputSchema(unbanPartnerSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { partnerId } = parsedInput;
@@ -44,16 +45,10 @@ export const unbanPartnerAction = authActionClient
       throw new Error("This partner is not banned.");
     }
 
-    if (!programEnrollment.program.defaultGroupId) {
-      // this should never happen
-      throw new Error(
-        "Program does not have a default group ID. Please contact support.",
-      );
-    }
-
-    const defaultGroup = await getGroupOrThrow({
+    const partnerGroup = await getGroupOrThrow({
       programId,
-      groupId: programEnrollment.program.defaultGroupId,
+      groupId:
+        programEnrollment.groupId || programEnrollment.program.defaultGroupId,
     });
 
     await prisma.$transaction([
@@ -73,11 +68,10 @@ export const unbanPartnerAction = authActionClient
           status: "approved",
           bannedAt: null,
           bannedReason: null,
-          groupId: defaultGroup.id,
-          clickRewardId: defaultGroup.clickRewardId,
-          leadRewardId: defaultGroup.leadRewardId,
-          saleRewardId: defaultGroup.saleRewardId,
-          discountId: defaultGroup.discountId,
+          clickRewardId: partnerGroup.clickRewardId,
+          leadRewardId: partnerGroup.leadRewardId,
+          saleRewardId: partnerGroup.saleRewardId,
+          discountId: partnerGroup.discountId,
         },
       }),
 
@@ -142,6 +136,31 @@ export const unbanPartnerAction = authActionClient
                 metadata: programEnrollment.partner,
               },
             ],
+          }),
+        ]);
+
+        await prisma.$transaction([
+          // Since we're unbanning the partner, we need to
+          // clean up any pending cross-program ban alerts that originated from this program.
+          prisma.fraudEvent.deleteMany({
+            where: {
+              partnerId,
+              sourceProgramId: programId,
+              fraudEventGroup: {
+                type: FraudRuleType.partnerCrossProgramBan,
+              },
+            },
+          }),
+
+          // Delete the fraud group if it has no more fraud events
+          prisma.fraudEventGroup.deleteMany({
+            where: {
+              partnerId,
+              type: FraudRuleType.partnerCrossProgramBan,
+              fraudEvents: {
+                none: {},
+              },
+            },
           }),
         ]);
 

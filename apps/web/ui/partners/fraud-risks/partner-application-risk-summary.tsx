@@ -9,8 +9,10 @@ import { Button, ShieldKeyhole } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Link from "next/link";
 import { usePartnersUpgradeModal } from "../partners-upgrade-modal";
+import { FraudDisclaimerBanner } from "./fraud-disclaimer-banner";
 import { PartnerApplicationFraudSeverityIndicator } from "./partner-application-fraud-severity-indicator";
 import { usePartnerApplicationRiskSummaryModal } from "./partner-application-risk-summary-modal";
+import { PartnerCrossProgramSummary } from "./partner-cross-program-summary";
 
 interface PartnerApplicationRiskSummaryProps {
   partner: EnrolledPartnerExtendedProps;
@@ -37,7 +39,7 @@ export function PartnerApplicationRiskSummary({
   const { canManageFraudEvents } = getPlanCapabilities(plan);
 
   if (!canManageFraudEvents && !isLoading) {
-    return <PartnerApplicationRiskSummaryUpsell severity={severity} />;
+    return <PartnerApplicationRiskSummaryUpsell />;
   }
 
   if (isLoading || triggeredFraudRules.length === 0) {
@@ -84,6 +86,17 @@ export function PartnerApplicationRiskSummary({
         </ul>
       </div>
 
+      <div className="flex flex-col gap-3 p-4">
+        <h3 className="text-content-emphasis text-sm font-semibold">
+          Program owner activity
+        </h3>
+        <PartnerCrossProgramSummary partnerId={partner.id} />
+
+        {severity === "high" && (
+          <FraudDisclaimerBanner className="gap-2 px-3 py-2" />
+        )}
+      </div>
+
       <PartnerApplicationRiskSummaryModal />
     </>
   );
@@ -107,19 +120,9 @@ const APPLICATION_RISK_CONFIG = {
   },
 };
 
-export function PartnerApplicationRiskSummaryUpsell({
-  severity,
-}: {
-  severity: FraudSeverity | null | undefined;
-}) {
+export function PartnerApplicationRiskSummaryUpsell() {
   const { partnersUpgradeModal, setShowPartnersUpgradeModal } =
     usePartnersUpgradeModal();
-
-  const severityConfig = severity ? APPLICATION_RISK_CONFIG[severity] : null;
-
-  if (!severityConfig) {
-    return null;
-  }
 
   // Dummy risk items for blur effect
   const dummyRisks: Array<{ severity: FraudSeverity; text: string }> = [
@@ -128,17 +131,18 @@ export function PartnerApplicationRiskSummaryUpsell({
     { severity: "low", text: "Low risk reason to unlock" },
   ];
 
+  const severity: FraudSeverity = "high";
+  const severityConfig = APPLICATION_RISK_CONFIG[severity];
+
   return (
     <>
       {partnersUpgradeModal}
       <div className="relative flex flex-col gap-4 p-4">
         {/* Blurred dummy risk list */}
         <div className="pointer-events-none flex select-none flex-col gap-4 blur-[3px]">
-          <div className="flex items-center justify-between">
-            <h3 className="text-content-emphasis text-sm font-semibold">
-              Risk analysis
-            </h3>
-          </div>
+          <h3 className="text-content-emphasis text-sm font-semibold">
+            Risk analysis
+          </h3>
 
           <PartnerApplicationFraudSeverityIndicator severity={severity} />
 
@@ -177,11 +181,11 @@ export function PartnerApplicationRiskSummaryUpsell({
             </div>
 
             <p className="text-content-default max-w-72 text-center text-xs font-medium">
-              Application risk review and event detection are Advanced plan{" "}
+              Application risk review and event detection are available on the
+              Advanced plan{" "}
               <Link
-                href="https://dub.co/help"
+                href="https://dub.co/help/article/fraud-detection"
                 target="_blank"
-                rel="noopener noreferrer"
                 className="underline underline-offset-2 hover:text-neutral-800"
               >
                 Learn more

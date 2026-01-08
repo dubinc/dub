@@ -12,7 +12,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
-import { FolderIcon } from "../folders/folder-icon";
+import { SimpleFolderCard } from "../folders/simple-folder-card";
 
 function SetDefaultFolderModal({
   showDefaultFolderModal,
@@ -53,26 +53,38 @@ function SetDefaultFolderModal({
       showModal={showDefaultFolderModal}
       setShowModal={setShowDefaultFolderModal}
     >
-      <div className="flex flex-col items-center justify-center space-y-3 border-b border-neutral-200 px-4 py-4 pt-8 text-center sm:px-16">
-        <FolderIcon folder={folder} />
-        <h3 className="text-lg font-medium">
+      <div className="space-y-2 border-b border-neutral-200 p-4 sm:p-6">
+        <h3 className="text-lg font-medium leading-none">
           Set "{folder.name}" as your default folder
         </h3>
-        <p className="text-sm text-neutral-500">
+      </div>
+
+      <div className="bg-neutral-50 p-4 sm:p-6">
+        <p className="text-sm text-neutral-800">
           This will make this folder the default folder for your links
           dashboard.{" "}
           <a
             href="https://dub.co/help/article/link-folders#setting-a-default-folder"
-            className="underline"
+            className="cursor-help text-neutral-700 underline decoration-dotted underline-offset-2 hover:text-neutral-900"
             target="_blank"
             rel="noreferrer"
           >
-            Learn more ↗
+            Learn more.
           </a>
         </p>
+
+        <div className="scrollbar-hide mt-4 flex max-h-[190px] flex-col gap-2 overflow-y-auto rounded-2xl border border-neutral-200 p-2">
+          <SimpleFolderCard folder={folder} />
+        </div>
       </div>
 
-      <div className="flex flex-col space-y-6 bg-neutral-50 px-4 py-8 text-left sm:px-16">
+      <div className="flex items-center justify-end gap-2 border-t border-neutral-200 bg-neutral-50 px-4 py-5 sm:px-6">
+        <Button
+          onClick={() => setShowDefaultFolderModal(false)}
+          variant="secondary"
+          text="Cancel"
+          className="h-8 w-fit px-3"
+        />
         <Button
           onClick={() =>
             toast.promise(setDefaultFolder, {
@@ -86,6 +98,7 @@ function SetDefaultFolderModal({
           autoFocus
           loading={isPending}
           text="Set as default folder"
+          className="h-8 w-fit px-3"
         />
       </div>
     </Modal>

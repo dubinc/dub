@@ -1,11 +1,11 @@
-import { FraudEventContext } from "@/lib/types";
+import { CreateFraudEventInput, FraudEventContext } from "@/lib/types";
+import { INACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
-import { FraudEvent, Prisma } from "@dub/prisma/client";
+import { prettyPrint } from "@dub/utils";
 import { fraudEventContext } from "../../zod/schemas/schemas";
-import { createId } from "../create-id";
+import { createFraudEvents } from "./create-fraud-events";
 import { executeFraudRule } from "./execute-fraud-rule";
 import { getMergedFraudRules } from "./get-merged-fraud-rules";
-import { createFraudEventGroupKey } from "./utils";
 
 export async function detectAndRecordFraudEvent(context: FraudEventContext) {
   const result = fraudEventContext.safeParse(context);
@@ -18,6 +18,15 @@ export async function detectAndRecordFraudEvent(context: FraudEventContext) {
   }
 
   const validatedContext = result.data;
+  const { programEnrollment } = validatedContext;
+
+  // Skip if program enrollment is inactive
+  if (INACTIVE_ENROLLMENT_STATUSES.includes(programEnrollment.status)) {
+    console.info(
+      `[detectAndRecordFraudEvent] Program enrollment is ${programEnrollment.status}, skipping...`,
+    );
+    return;
+  }
 
   // Get program-specific rule overrides
   const programRules = await prisma.fraudRule.findMany({
@@ -30,7 +39,7 @@ export async function detectAndRecordFraudEvent(context: FraudEventContext) {
   const mergedRules = getMergedFraudRules(programRules);
   const activeRules = mergedRules.filter((rule) => rule.enabled);
 
-  const triggeredRules: Pick<FraudEvent, "type" | "metadata">[] = [];
+  const triggeredRules: Pick<CreateFraudEventInput, "type" | "metadata">[] = [];
 
   // Evaluate each rule
   for (const rule of activeRules) {
@@ -44,7 +53,7 @@ export async function detectAndRecordFraudEvent(context: FraudEventContext) {
       if (triggered) {
         triggeredRules.push({
           type: rule.type,
-          metadata: metadata as unknown as Prisma.JsonValue,
+          metadata,
         });
       }
     } catch (error) {
@@ -59,57 +68,20 @@ export async function detectAndRecordFraudEvent(context: FraudEventContext) {
     return;
   }
 
-  try {
-    // Deduplicate events: prevent duplicate fraud events for the same
-    // program + partner + customer + type + status combination by filtering out
-    // triggered rules that already have a corresponding pending event.
-    const previousEvents = await prisma.fraudEvent.findMany({
-      where: {
-        programId: validatedContext.program.id,
-        partnerId: validatedContext.partner.id,
-        customerId: validatedContext.customer.id,
-        status: "pending",
-        type: {
-          in: triggeredRules.map((rule) => rule.type),
-        },
-      },
-    });
+  console.log(
+    `[detectAndRecordFraudEvent] Found ${triggeredRules.length} triggered rules`,
+    prettyPrint(triggeredRules),
+  );
 
-    const existingEventTypes =
-      previousEvents.length > 0
-        ? new Set(previousEvents.map((e) => e.type))
-        : new Set<string>();
-
-    const newEvents = triggeredRules.filter(
-      (rule) => !existingEventTypes.has(rule.type),
-    );
-
-    if (newEvents.length === 0) {
-      return;
-    }
-
-    await prisma.fraudEvent.createMany({
-      data: newEvents.map((event) => ({
-        id: createId({ prefix: "fre_" }),
-        programId: validatedContext.program.id,
-        partnerId: validatedContext.partner.id,
-        linkId: validatedContext.link.id,
-        customerId: validatedContext.customer.id,
-        eventId: validatedContext.event.id,
-        commissionId: validatedContext.commission.id,
-        type: event.type,
-        metadata: event.metadata as Prisma.InputJsonValue,
-        groupKey: createFraudEventGroupKey({
-          programId: validatedContext.program.id,
-          partnerId: validatedContext.partner.id,
-          type: event.type,
-        }),
-      })),
-    });
-  } catch (error) {
-    console.error(
-      "[detectAndRecordFraudEvents] Error recording fraud event",
-      error,
-    );
-  }
+  await createFraudEvents(
+    triggeredRules.map((rule) => ({
+      programId: validatedContext.program.id,
+      partnerId: validatedContext.partner.id,
+      linkId: validatedContext.link.id,
+      customerId: validatedContext.customer.id,
+      eventId: validatedContext.event.id,
+      type: rule.type,
+      metadata: rule.metadata,
+    })),
+  );
 }

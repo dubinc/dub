@@ -62,7 +62,6 @@ export function WorkspaceDropdown() {
     } else {
       return {
         name: session?.user?.name || session?.user?.email,
-        slug: "/",
         image: getUserAvatarUrl(session?.user),
         plan: "free",
       };
@@ -132,7 +131,7 @@ function WorkspaceList({
 }: {
   selected: {
     name: string;
-    slug: string;
+    slug?: string; // undefined if the user is on the personal account
     image: string;
     plan: PlanProps;
   };
@@ -157,9 +156,11 @@ function WorkspaceList({
       if (link) {
         // if we're on a link page, navigate back to the workspace root
         return `/${slug}/links`;
-      } else {
+      } else if (selected.slug) {
         // else, we keep the path but remove all query params
         return pathname.replace(selected.slug, slug).split("?")[0] || "/";
+      } else {
+        return "/";
       }
     },
     [link, programId, pathname, selected.slug],
@@ -173,24 +174,24 @@ function WorkspaceList({
         className="w-xs max-h-84 relative w-full overflow-auto rounded-xl bg-white text-base sm:w-72 sm:text-sm"
       >
         {/* Current workspace section */}
-        <div className="flex flex-col gap-2.5 border-b border-neutral-200 p-3">
+        <div className="flex flex-col gap-2.5 border-b border-neutral-200 px-3 pb-3 sm:p-3">
           <div className="flex items-center gap-x-2.5">
             <BlurImage
               src={selected.image}
               width={28}
               height={28}
               alt={selected.name}
-              className="size-8 shrink-0 overflow-hidden rounded-full"
+              className="size-9 shrink-0 overflow-hidden rounded-full sm:size-8"
               draggable={false}
             />
             <div className="min-w-0">
-              <div className="truncate text-sm font-medium leading-5 text-neutral-900">
+              <div className="truncate text-base font-medium leading-5 text-neutral-900 sm:text-sm">
                 {selected.name}
               </div>
-              {selected.slug !== "/" && (
+              {selected.slug && (
                 <div
                   className={cn(
-                    "truncate text-xs capitalize leading-tight",
+                    "truncate text-sm capitalize leading-tight sm:text-xs",
                     getPlanColor(selected.plan),
                   )}
                 >
@@ -204,21 +205,23 @@ function WorkspaceList({
           {/* Settings and Invite members options */}
           <div className="flex flex-row gap-1">
             <Link
-              href={`/${selected.slug}/settings`}
+              href={`/${selected.slug ? selected.slug : "account"}/settings`}
               className="flex items-center justify-start gap-x-2 rounded-lg border border-neutral-200 px-2 py-1 text-neutral-700 outline-none transition-all duration-75 hover:bg-neutral-100/50 focus-visible:ring-2 focus-visible:ring-black/50 active:bg-neutral-200/80"
               onClick={() => setOpenPopover(false)}
             >
               <Gear className="size-4 text-neutral-800" />
               <span className="block truncate text-sm">Settings</span>
             </Link>
-            <Link
-              href={`/${selected.slug}/settings/people`}
-              className="flex items-center justify-start gap-x-2 rounded-lg border border-neutral-200 px-2 py-1 text-neutral-700 outline-none transition-all duration-75 hover:bg-neutral-100/50 focus-visible:ring-2 focus-visible:ring-black/50 active:bg-neutral-200/80"
-              onClick={() => setOpenPopover(false)}
-            >
-              <UserPlus className="size-4 text-neutral-800" />
-              <span className="block truncate text-sm">Invite members</span>
-            </Link>
+            {selected.slug && (
+              <Link
+                href={`/${selected.slug}/settings/people`}
+                className="flex items-center justify-start gap-x-2 rounded-lg border border-neutral-200 px-2 py-1 text-neutral-700 outline-none transition-all duration-75 hover:bg-neutral-100/50 focus-visible:ring-2 focus-visible:ring-black/50 active:bg-neutral-200/80"
+                onClick={() => setOpenPopover(false)}
+              >
+                <UserPlus className="size-4 text-neutral-800" />
+                <span className="block truncate text-sm">Invite members</span>
+              </Link>
+            )}
           </div>
         </div>
 
@@ -251,7 +254,7 @@ function WorkspaceList({
                     className="size-5 shrink-0 overflow-hidden rounded-full"
                     draggable={false}
                   />
-                  <span className="block truncate text-sm leading-5 text-neutral-900 sm:max-w-[140px]">
+                  <span className="block truncate text-base leading-5 text-neutral-900 sm:max-w-[140px] sm:text-sm">
                     {name}
                   </span>
                   {selected.slug === slug ? (

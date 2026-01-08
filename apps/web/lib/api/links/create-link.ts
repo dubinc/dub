@@ -141,7 +141,7 @@ export async function createLink(link: ProcessedLinkProps) {
 
   waitUntil(
     (async () => {
-      const { partner, discount, group, partnerTagIds } =
+      const { partner, discount, partnerTagIds } =
         await getPartnerEnrollmentInfo({
           programId: response.programId,
           partnerId: response.partnerId,
@@ -158,12 +158,16 @@ export async function createLink(link: ProcessedLinkProps) {
         // Record link in Tinybird
         recordLink({
           ...response,
-          ...(group && {
+          ...((partner?.groupId || partnerTagIds) && {
             programEnrollment: {
-              groupId: group.id,
+              ...(partner?.groupId && {
+                groupId: partner.groupId,
+              }),
               programPartnerTags: partnerTagIds
-                ? partnerTagIds.map((id) => ({
-                    partnerTag: { id },
+                ? partnerTagIds.map((id: string) => ({
+                    partnerTag: {
+                      id,
+                    },
                   }))
                 : null,
             },

@@ -1,7 +1,7 @@
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { ProgramApplication } from "@dub/prisma/client";
 import { fetcher } from "@dub/utils";
-import { ProgramApplication } from "@prisma/client";
 import Linkify from "linkify-react";
 import useSWRImmutable from "swr/immutable";
 import { formatApplicationFormData } from "../../lib/partners/format-application-form-data";

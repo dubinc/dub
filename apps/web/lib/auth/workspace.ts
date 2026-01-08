@@ -41,6 +41,7 @@ interface WithWorkspaceHandler {
     session,
     workspace,
     permissions,
+    token,
   }: {
     req: Request;
     params: Record<string, string>;
@@ -49,6 +50,7 @@ interface WithWorkspaceHandler {
     session: Session;
     permissions: PermissionAction[];
     workspace: WorkspaceWithUsers;
+    token: TokenCacheItem | null;
   }): Promise<Response>;
 }
 
@@ -464,6 +466,7 @@ export const withWorkspace = (
           session,
           workspace,
           permissions,
+          token,
         });
       } catch (error) {
         // Log the conversion events for debugging purposes

@@ -1,5 +1,6 @@
+import { formatUTCDateTimeClickhouse } from "@/lib/analytics/utils/format-utc-datetime-clickhouse";
 import { tb } from "@/lib/tinybird";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { prefixWorkspaceId } from "../workspaces/workspace-id";
 
 export const auditLogFilterSchemaTB = z.object({
@@ -43,8 +44,8 @@ export const getAuditLogs = async ({
   const events = await pipe({
     workspaceId,
     programId,
-    start: start.toISOString().replace("T", " ").replace("Z", ""),
-    end: end.toISOString().replace("T", " ").replace("Z", ""),
+    start: formatUTCDateTimeClickhouse(start),
+    end: formatUTCDateTimeClickhouse(end),
   });
 
   return events.data;
