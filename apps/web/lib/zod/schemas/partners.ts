@@ -7,7 +7,7 @@ import {
   ProgramEnrollmentStatus,
   SalesChannel,
 } from "@dub/prisma/client";
-import { COUNTRY_CODES, GOOGLE_FAVICON_URL } from "@dub/utils";
+import { COUNTRY_CODES } from "@dub/utils";
 import * as z from "zod/v4";
 import { analyticsQuerySchema } from "./analytics";
 import { analyticsResponse } from "./analytics-response";
@@ -16,6 +16,7 @@ import {
   base64ImageSchema,
   booleanQuerySchema,
   getPaginationQuerySchema,
+  googleFaviconUrlSchema,
   publicHostedImageSchema,
   storedR2ImageUrlSchema,
 } from "./misc";
@@ -600,12 +601,7 @@ const partnerImageSchema = z
     base64ImageSchema,
     storedR2ImageUrlSchema,
     publicHostedImageSchema,
-    z
-      .url()
-      .trim()
-      .refine((url) => url.startsWith(GOOGLE_FAVICON_URL), {
-        message: `Image URL must start with ${GOOGLE_FAVICON_URL}`,
-      }),
+    googleFaviconUrlSchema,
   ])
   .transform((v) => v || "")
   .refine((v) => v !== "", {
