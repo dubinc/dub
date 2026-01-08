@@ -1,6 +1,7 @@
 import { getSession } from "@/lib/auth";
 import { prisma } from "@dub/prisma";
 import {
+  Avatar,
   Book2Fill,
   CircleCheckFill,
   DubLinksIcon,
@@ -14,6 +15,8 @@ import { OG_AVATAR_URL, cn } from "@dub/utils";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AcceptInviteButton } from "./accept-invite-button";
+
+const MAX_TEAM_DISPLAY = 4;
 
 export default async function WorkspaceInvitePage({
   params,
@@ -59,6 +62,7 @@ export default async function WorkspaceInvitePage({
                   select: {
                     id: true,
                     name: true,
+                    email: true,
                     image: true,
                   },
                 },
@@ -67,6 +71,9 @@ export default async function WorkspaceInvitePage({
                 user: {
                   isMachine: false,
                 },
+              },
+              orderBy: {
+                createdAt: "asc",
               },
             },
           },
@@ -196,7 +203,50 @@ export default async function WorkspaceInvitePage({
           <div
             className={cn(
               "mt-8 flex w-full max-w-[400px] flex-col gap-3",
-              "animate-slide-up-fade motion-reduce:animate-fade-in [--offset:10px] [animation-delay:200ms] [animation-duration:0.5s] [animation-fill-mode:both]",
+              "animate-slide-up-fade motion-reduce:animate-fade-in [--offset:10px] [animation-delay:150ms] [animation-duration:0.5s] [animation-fill-mode:both]",
+            )}
+          >
+            <h3 className="text-content-default font-semibold">The team</h3>
+
+            <div className="relative overflow-hidden">
+              <div
+                className={cn(
+                  "border-border-subtle bg-bg-muted divide-border-subtle relative flex flex-col divide-y rounded-lg border",
+                  invite.project.users.length > MAX_TEAM_DISPLAY &&
+                    "[mask-image:linear-gradient(0deg,transparent,black_45px)]",
+                )}
+              >
+                {invite.project.users
+                  .slice(0, MAX_TEAM_DISPLAY)
+                  .map(({ user: { id, name, email, image } }) => (
+                    <div
+                      key={id}
+                      className="flex items-center justify-between gap-2 px-2.5 py-2"
+                    >
+                      <div className="flex min-w-0 items-center gap-2">
+                        <Avatar user={{ id, name, image }} className="size-6" />
+                        <span className="text-content-default min-w-0 truncate text-sm font-medium">
+                          {name || email}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+
+              {invite.project.users.length > MAX_TEAM_DISPLAY && (
+                <div className="absolute inset-x-0 bottom-0 flex items-center justify-center">
+                  <span className="text-content-subtle select-none text-xs font-medium">
+                    +{invite.project.users.length - MAX_TEAM_DISPLAY} more
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div
+            className={cn(
+              "mt-8 flex w-full max-w-[400px] flex-col gap-3",
+              "animate-slide-up-fade motion-reduce:animate-fade-in [--offset:10px] [animation-delay:250ms] [animation-duration:0.5s] [animation-fill-mode:both]",
             )}
           >
             <h3 className="text-content-default font-semibold">
