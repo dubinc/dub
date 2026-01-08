@@ -213,4 +213,5 @@ export const workspaceUserSchema = z.object({
   role: z.enum(WorkspaceRole),
   isMachine: z.boolean().default(false),
   createdAt: z.date(),
+  lastLoginAt: z.date().nullish(),
 });
