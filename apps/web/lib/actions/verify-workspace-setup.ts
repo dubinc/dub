@@ -2,7 +2,7 @@
 
 import { prisma } from "@dub/prisma";
 import FirecrawlApp from "@mendable/firecrawl-js";
-import z from "../zod";
+import * as z from "zod/v4";
 import { authActionClient } from "./safe-action";
 
 const getExpectedScriptForWorkspace = (store: Record<string, any>) => {
@@ -28,7 +28,7 @@ const schema = z.object({
 
 // Attempt to verify the workspace setup
 export const verifyWorkspaceSetup = authActionClient
-  .schema(schema)
+  .inputSchema(schema)
   .action(async ({ ctx }) => {
     const { workspace } = ctx;
 

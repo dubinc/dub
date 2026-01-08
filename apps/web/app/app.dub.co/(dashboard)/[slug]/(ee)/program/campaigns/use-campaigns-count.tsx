@@ -3,7 +3,7 @@ import { getCampaignsCountQuerySchema } from "@/lib/zod/schemas/campaigns";
 import { useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import useSWR from "swr";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 interface UseCampaignsCountProps
   extends z.infer<typeof getCampaignsCountQuerySchema> {

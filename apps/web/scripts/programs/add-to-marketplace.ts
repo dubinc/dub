@@ -4,9 +4,9 @@ import { Category } from "@dub/prisma/client";
 import FireCrawlApp from "@mendable/firecrawl-js";
 import { generateObject } from "ai";
 import "dotenv-flow/config";
-import { z } from "zod";
+import * as z from "zod/v4";
 
-const CategoryEnum = z.nativeEnum(Category);
+const CategoryEnum = z.enum(Category);
 
 // AI response schema
 const categorizationSchema = z.object({

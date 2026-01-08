@@ -10,7 +10,7 @@ import { authActionClient } from "../safe-action";
 
 // Update a partner comment
 export const updatePartnerCommentAction = authActionClient
-  .schema(updatePartnerCommentSchema)
+  .inputSchema(updatePartnerCommentSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { id, text } = parsedInput;

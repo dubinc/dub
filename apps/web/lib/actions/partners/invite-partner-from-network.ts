@@ -15,7 +15,7 @@ import { getProgramOrThrow } from "../../api/programs/get-program-or-throw";
 import { authActionClient } from "../safe-action";
 
 export const invitePartnerFromNetworkAction = authActionClient
-  .schema(invitePartnerFromNetworkSchema)
+  .inputSchema(invitePartnerFromNetworkSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
 

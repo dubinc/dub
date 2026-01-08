@@ -1,6 +1,6 @@
 import { PAID_TRAFFIC_PLATFORMS } from "@/lib/api/fraud/constants";
 import { FraudEventStatus, FraudRuleType } from "@dub/prisma/client";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { CustomerSchema } from "./customers";
 import { getPaginationQuerySchema } from "./misc";
 import { EnrolledPartnerSchema, PartnerSchema } from "./partners";
@@ -10,8 +10,8 @@ export const MAX_RESOLUTION_REASON_LENGTH = 200;
 
 export const fraudGroupSchema = z.object({
   id: z.string(),
-  type: z.nativeEnum(FraudRuleType),
-  status: z.nativeEnum(FraudEventStatus),
+  type: z.enum(FraudRuleType),
+  status: z.enum(FraudEventStatus),
   resolutionReason: z.string().nullable(),
   resolvedAt: z.coerce.date().nullable(),
   lastEventAt: z.coerce.date(),
@@ -28,8 +28,8 @@ export const fraudGroupSchema = z.object({
 
 export const fraudGroupQuerySchema = z
   .object({
-    status: z.nativeEnum(FraudEventStatus).optional().default("pending"),
-    type: z.nativeEnum(FraudRuleType).optional(),
+    status: z.enum(FraudEventStatus).optional().default("pending"),
+    type: z.enum(FraudRuleType).optional(),
     partnerId: z.string().optional(),
     sortBy: z
       .enum(["lastEventAt", "type", "resolvedAt"])
@@ -37,7 +37,7 @@ export const fraudGroupQuerySchema = z
     sortOrder: z.enum(["asc", "desc"]).default("desc"),
     groupId: z.string().optional(),
   })
-  .merge(getPaginationQuerySchema({ pageSize: 100 }));
+  .extend(getPaginationQuerySchema({ pageSize: 100 }));
 
 export const fraudGroupCountQuerySchema = fraudGroupQuerySchema
   .omit({
@@ -52,7 +52,7 @@ export const fraudGroupCountQuerySchema = fraudGroupQuerySchema
 
 export const fraudGroupCountSchema = z.union([
   z.object({
-    type: z.nativeEnum(FraudRuleType),
+    type: z.enum(FraudRuleType),
     _count: z.number(),
   }),
 
@@ -69,14 +69,14 @@ export const fraudEventQuerySchema = z.union([
     .object({
       groupId: z.string(),
     })
-    .merge(getPaginationQuerySchema({ pageSize: 25 })),
+    .extend(getPaginationQuerySchema({ pageSize: 25 })),
 
   z
     .object({
       customerId: z.string(),
-      type: z.nativeEnum(FraudRuleType),
+      type: z.enum(FraudRuleType),
     })
-    .merge(getPaginationQuerySchema({ pageSize: 25 })),
+    .extend(getPaginationQuerySchema({ pageSize: 25 })),
 ]);
 
 export const fraudEventCountQuerySchema = z.object({
@@ -114,7 +114,7 @@ export const bulkResolveFraudGroupsSchema = z.object({
 
 export const fraudRuleSchema = z.object({
   id: z.string().optional(),
-  type: z.nativeEnum(FraudRuleType),
+  type: z.enum(FraudRuleType),
   name: z.string(),
   description: z.string(),
   enabled: z.boolean(),

@@ -9,7 +9,7 @@ import {
   PartnerRole,
   ProgramEnrollmentStatus,
 } from "@dub/prisma/client";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { analyticsQuerySchema, eventsQuerySchema } from "./analytics";
 import { BountySchema, BountySubmissionSchema } from "./bounties";
 import {
@@ -27,55 +27,49 @@ import { workflowConditionSchema } from "./workflows";
 export const PartnerEarningsSchema = CommissionSchema.omit({
   userId: true,
   invoiceId: true,
-}).merge(
-  z.object({
-    customer: z
-      .object({
-        id: z.string(),
-        email: z.string(),
-        country: z.string().nullish(),
-      })
-      .nullable(),
-    link: LinkSchema.pick({
-      id: true,
-      shortLink: true,
-      url: true,
-    }).nullish(),
-  }),
-);
+}).extend({
+  customer: z
+    .object({
+      id: z.string(),
+      email: z.string(),
+      country: z.string().nullish(),
+    })
+    .nullable(),
+  link: LinkSchema.pick({
+    id: true,
+    shortLink: true,
+    url: true,
+  }).nullish(),
+});
 
 export const getPartnerEarningsQuerySchema = getCommissionsQuerySchema
   .omit({
     partnerId: true,
     sortBy: true,
   })
-  .merge(
-    z.object({
-      interval: z
-        .enum(DATE_RANGE_INTERVAL_PRESETS)
-        .default(DUB_PARTNERS_ANALYTICS_INTERVAL),
-      timezone: z.string().optional(),
-      type: z.nativeEnum(CommissionType).optional(),
-      linkId: z.string().optional(),
-      sortBy: z.enum(["createdAt", "amount", "earnings"]).default("createdAt"),
-    }),
-  );
+  .extend({
+    interval: z
+      .enum(DATE_RANGE_INTERVAL_PRESETS)
+      .default(DUB_PARTNERS_ANALYTICS_INTERVAL),
+    timezone: z.string().optional(),
+    type: z.enum(CommissionType).optional(),
+    linkId: z.string().optional(),
+    sortBy: z.enum(["createdAt", "amount", "earnings"]).default("createdAt"),
+  });
 
 export const getPartnerEarningsCountQuerySchema = getCommissionsCountQuerySchema
   .omit({
     partnerId: true,
   })
-  .merge(
-    z.object({
-      interval: z
-        .enum(DATE_RANGE_INTERVAL_PRESETS)
-        .default(DUB_PARTNERS_ANALYTICS_INTERVAL),
-      timezone: z.string().optional(),
-      type: z.nativeEnum(CommissionType).optional(),
-      linkId: z.string().optional(),
-      groupBy: z.enum(["linkId", "customerId", "status", "type"]).optional(),
-    }),
-  );
+  .extend({
+    interval: z
+      .enum(DATE_RANGE_INTERVAL_PRESETS)
+      .default(DUB_PARTNERS_ANALYTICS_INTERVAL),
+    timezone: z.string().optional(),
+    type: z.enum(CommissionType).optional(),
+    linkId: z.string().optional(),
+    groupBy: z.enum(["linkId", "customerId", "status", "type"]).optional(),
+  });
 
 export const getPartnerEarningsTimeseriesSchema =
   getPartnerEarningsCountQuerySchema.extend({
@@ -130,7 +124,7 @@ export const partnerProfileEventsQuerySchema = eventsQuerySchema.omit({
 
 export const partnerProfileProgramsQuerySchema = z.object({
   includeRewardsDiscounts: z.coerce.boolean().optional(),
-  status: z.nativeEnum(ProgramEnrollmentStatus).optional(),
+  status: z.enum(ProgramEnrollmentStatus).optional(),
 });
 
 export const partnerProfileProgramsCountQuerySchema =
@@ -159,23 +153,20 @@ export const PartnerBountySchema = BountySchema.omit({
 });
 
 export const invitePartnerUserSchema = z.object({
-  email: z
-    .string()
-    .min(1, "Email is required.")
-    .email("Please enter a valid email."),
-  role: z.nativeEnum(PartnerRole),
+  email: z.email({ error: "Please enter a valid email." }),
+  role: z.enum(PartnerRole),
 });
 
 export const getPartnerUsersQuerySchema = z.object({
   search: z.string().optional(),
-  role: z.nativeEnum(PartnerRole).optional(),
+  role: z.enum(PartnerRole).optional(),
 });
 
 export const partnerUserSchema = z.object({
   id: z.string().nullable(),
   name: z.string().nullable(),
   email: z.string(),
-  role: z.nativeEnum(PartnerRole),
+  role: z.enum(PartnerRole),
   image: z.string().nullish(),
   createdAt: z.date(),
 });
@@ -190,8 +181,8 @@ export const partnerProfileChangeHistoryLogSchema = z.array(
     }),
     z.object({
       field: z.literal("profileType"),
-      from: z.nativeEnum(PartnerProfileType),
-      to: z.nativeEnum(PartnerProfileType),
+      from: z.enum(PartnerProfileType),
+      to: z.enum(PartnerProfileType),
       changedAt: z.coerce.date(),
     }),
   ]),
@@ -234,7 +225,7 @@ export const getPartnerCustomersQuerySchema = z
       .default("desc")
       .describe("The sort order. The default is `desc`."),
   })
-  .merge(
+  .extend(
     getPaginationQuerySchema({ pageSize: PARTNER_CUSTOMERS_MAX_PAGE_SIZE }),
   );
 

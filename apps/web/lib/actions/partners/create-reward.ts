@@ -17,7 +17,7 @@ import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 
 export const createRewardAction = authActionClient
-  .schema(createRewardSchema)
+  .inputSchema(createRewardSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const {

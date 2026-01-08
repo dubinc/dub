@@ -2,7 +2,7 @@ import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { getCommissionsQuerySchema } from "@/lib/zod/schemas/commissions";
 import { prisma } from "@dub/prisma";
 import { CommissionStatus } from "@dub/prisma/client";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 type CommissionsFilters = z.infer<typeof getCommissionsQuerySchema> & {
   programId: string;

@@ -69,14 +69,14 @@ export default function PartnerPayoutWithdrawalInitiated({
                   },
                 )}
               </span>
-              . If there are any delays, please contact{" "}
+              . If there are any delays, please{" "}
               <Link
-                href="https://support.stripe.com/express"
+                href="https://dub.co/contact/support"
                 className="font-medium text-black underline"
               >
-                Stripe support
-              </Link>
-              .
+                reach out to us
+              </Link>{" "}
+              and we'd be happy to help.
             </Text>
 
             <Section className="mb-12 mt-8">

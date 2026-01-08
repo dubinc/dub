@@ -23,7 +23,7 @@ const queue = qstash.queue({
 
 // Ban a partner
 export const banPartnerAction = authActionClient
-  .schema(banPartnerSchema)
+  .inputSchema(banPartnerSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { partnerId, reason } = parsedInput;

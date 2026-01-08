@@ -8,7 +8,7 @@ import { constructMetadata } from "@dub/utils";
 import { ArrowLeftRight } from "lucide-react";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { AuthorizeForm } from "./authorize-form";
 import { ScopesRequested } from "./scopes-requested";
 

@@ -27,7 +27,7 @@ import { WorkflowTrigger } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK, nanoid, prettyPrint } from "@dub/utils";
 import { COUNTRIES_TO_CONTINENTS } from "@dub/utils/src";
 import { waitUntil } from "@vercel/functions";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
 
 const leadEventSchemaTBWithTimestamp = leadEventSchemaTB.extend({
@@ -39,7 +39,7 @@ const saleEventSchemaTBWithTimestamp = saleEventSchemaTB.extend({
 });
 
 export const createManualCommissionAction = authActionClient
-  .schema(createCommissionSchema)
+  .inputSchema(createCommissionSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
 

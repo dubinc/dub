@@ -8,7 +8,7 @@ import { ShieldKeyhole, Users } from "@dub/ui/icons";
 import { nFormatter, OG_AVATAR_URL } from "@dub/utils";
 import { useCallback, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 export function useFraudGroupFilters({
   status,

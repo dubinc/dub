@@ -7,7 +7,7 @@ import { ReferralsEmbedLinkSchema } from "@/lib/zod/schemas/referrals-embed";
 import { prisma } from "@dub/prisma";
 import { Reward } from "@dub/prisma/client";
 import { notFound } from "next/navigation";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 export const getReferralsEmbedData = async (token: string) => {
   const { programId, partnerId } = (await referralsEmbedToken.get(token)) ?? {};

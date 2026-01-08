@@ -8,7 +8,7 @@ import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 
 export const bulkArchivePartnersAction = authActionClient
-  .schema(bulkArchivePartnersSchema)
+  .inputSchema(bulkArchivePartnersSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { partnerIds } = parsedInput;

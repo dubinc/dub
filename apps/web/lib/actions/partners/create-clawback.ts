@@ -7,7 +7,7 @@ import { createClawbackSchema } from "@/lib/zod/schemas/commissions";
 import { authActionClient } from "../safe-action";
 
 export const createClawbackAction = authActionClient
-  .schema(createClawbackSchema)
+  .inputSchema(createClawbackSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const programId = getDefaultProgramIdOrThrow(workspace);

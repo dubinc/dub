@@ -23,7 +23,7 @@ const stripe = stripeAppClient({
 });
 
 export const createDiscountAction = authActionClient
-  .schema(createDiscountSchema)
+  .inputSchema(createDiscountSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     let { amount, type, maxDuration, couponId, couponTestId, groupId } =

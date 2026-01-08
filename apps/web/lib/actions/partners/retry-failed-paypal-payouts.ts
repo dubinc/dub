@@ -5,7 +5,7 @@ import { createPayPalBatchPayout } from "@/lib/paypal/create-batch-payout";
 import { ratelimit } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { authPartnerActionClient } from "../safe-action";
 
 const retryFailedPaypalPayoutSchema = z.object({
@@ -14,7 +14,7 @@ const retryFailedPaypalPayoutSchema = z.object({
 
 // Retry a failed PayPal payout for a partner
 export const retryFailedPaypalPayoutsAction = authPartnerActionClient
-  .schema(retryFailedPaypalPayoutSchema)
+  .inputSchema(retryFailedPaypalPayoutSchema)
   .action(async ({ ctx, parsedInput }) => {
     const { partner, partnerUser } = ctx;
     const { payoutId } = parsedInput;

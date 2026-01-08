@@ -6,7 +6,7 @@ import { generateRandomName } from "@/lib/names";
 import { refreshTokenSchema } from "@/lib/zod/schemas/oauth";
 import { prisma } from "@dub/prisma";
 import { NextRequest } from "next/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 // Get new access token using refresh token
 export const refreshAccessToken = async (
