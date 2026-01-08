@@ -15,6 +15,7 @@ import { OG_AVATAR_URL, cn } from "@dub/utils";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AcceptInviteButton } from "./accept-invite-button";
+import { InviteConfetti } from "./invite-confetti";
 
 const MAX_TEAM_DISPLAY = 4;
 
@@ -308,6 +309,7 @@ export default async function WorkspaceInvitePage({
           </div>
         </div>
       </div>
+      <InviteConfetti />
     </div>
   );
 }
