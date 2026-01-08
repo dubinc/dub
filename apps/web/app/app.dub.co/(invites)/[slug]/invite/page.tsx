@@ -15,6 +15,7 @@ import { OG_AVATAR_URL, cn } from "@dub/utils";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AcceptInviteButton } from "./accept-invite-button";
+import { CloseInviteButton } from "./close-invite-button";
 import { InviteConfetti } from "./invite-confetti";
 
 const MAX_TEAM_DISPLAY = 4;
@@ -36,6 +37,11 @@ export default async function WorkspaceInvitePage({
         id: true,
         name: true,
         image: true,
+        projects: {
+          select: {
+            projectId: true,
+          },
+        },
       },
       where: {
         id: session.user.id,
@@ -86,8 +92,11 @@ export default async function WorkspaceInvitePage({
   if (!invite) redirect(`/${slug}`);
 
   return (
-    <div className="rounded-t-[inherit] bg-white px-4">
-      <div className="flex min-h-[calc(100vh-10rem)] w-full flex-col items-center justify-center px-4 py-10">
+    <div>
+      <div className="flex items-center justify-end p-4">
+        <CloseInviteButton goToOnboarding={!user.projects.length} />
+      </div>
+      <div className="flex w-full flex-col items-center justify-center px-4 py-10">
         <div className="flex w-full flex-col items-center">
           <div className="animate-slide-up-fade motion-reduce:animate-fade-in [--offset:10px] [animation-duration:0.5s] [animation-fill-mode:both]">
             <Wordmark className="h-8" />
@@ -167,16 +176,20 @@ export default async function WorkspaceInvitePage({
                   href: "https://dub.co/links",
                   cta: "Learn more",
                 },
-                {
-                  icon: (
-                    <div className="flex size-5 items-center justify-center rounded bg-violet-400">
-                      <DubPartnersIcon className="size-3 text-violet-900" />
-                    </div>
-                  ),
-                  title: "Dub Partners",
-                  href: "https://dub.co/partners",
-                  cta: "Learn more",
-                },
+                ...(invite.project.defaultProgramId
+                  ? [
+                      {
+                        icon: (
+                          <div className="flex size-5 items-center justify-center rounded bg-violet-400">
+                            <DubPartnersIcon className="size-3 text-violet-900" />
+                          </div>
+                        ),
+                        title: "Dub Partners",
+                        href: "https://dub.co/partners",
+                        cta: "Learn more",
+                      },
+                    ]
+                  : []),
               ].map(({ icon, title, href, cta }) => (
                 <div
                   key={href}
