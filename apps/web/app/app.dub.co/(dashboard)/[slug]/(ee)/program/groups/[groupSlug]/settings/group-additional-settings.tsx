@@ -16,7 +16,7 @@ import { useEffect, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { GroupMoveRules } from "./group-move-rules";
 import { SettingsRow } from "./settings-row";
 

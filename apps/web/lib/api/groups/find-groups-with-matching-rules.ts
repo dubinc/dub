@@ -1,6 +1,6 @@
 import { WorkflowCondition } from "@/lib/types";
 import { groupRulesSchema } from "@/lib/zod/schemas/groups";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 export const findGroupsWithMatchingRules = ({
   groups,
