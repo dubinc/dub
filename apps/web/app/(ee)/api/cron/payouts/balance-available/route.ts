@@ -15,7 +15,7 @@ import {
   log,
   prettyPrint,
 } from "@dub/utils";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 export const dynamic = "force-dynamic";
 

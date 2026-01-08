@@ -6,7 +6,7 @@ import { parseUrlSchemaAllowEmpty } from "@/lib/zod/schemas/utils";
 import { prisma } from "@dub/prisma";
 import { PartnerPlatform, SocialPlatform } from "@dub/prisma/client";
 import { isValidUrl } from "@dub/utils";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { authPartnerActionClient } from "../safe-action";
 
 /**
@@ -57,7 +57,7 @@ const updateOnlinePresenceSchema = z.object({
 });
 
 export const updateOnlinePresenceAction = authPartnerActionClient
-  .schema(updateOnlinePresenceSchema)
+  .inputSchema(updateOnlinePresenceSchema)
   .action(async ({ ctx, parsedInput }) => {
     const { partner } = ctx;
 

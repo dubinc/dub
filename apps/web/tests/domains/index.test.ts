@@ -1,7 +1,7 @@
 import { DomainStatusSchema } from "@/lib/zod/schemas/domains";
 import { Domain } from "@dub/prisma/client";
 import { describe, expect, onTestFinished, test } from "vitest";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { randomId } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 

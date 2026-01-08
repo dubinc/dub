@@ -9,7 +9,7 @@ import { PartnerSchema } from "@/lib/zod/schemas/partners";
 import { PayoutSchema } from "@/lib/zod/schemas/payouts";
 import { ProgramSchema } from "@/lib/zod/schemas/programs";
 import { RewardSchema } from "@/lib/zod/schemas/rewards";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 // Schema that represents the audit log schema in Tinybird
 export const auditLogSchemaTB = z.object({
@@ -99,13 +99,10 @@ export const auditLogTarget = z.union([
     metadata: ProgramSchema.pick({
       domain: true,
       url: true,
-      linkStructure: true,
       supportEmail: true,
       helpUrl: true,
       termsUrl: true,
-      holdingPeriodDays: true,
       minPayoutAmount: true,
-      autoApprovePartnersEnabledAt: true,
       messagingEnabledAt: true,
     }).optional(),
   }),

@@ -15,7 +15,7 @@ import {
 } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 type AddLinkModalProps = {
   showAddLinkModal: boolean;
@@ -24,7 +24,7 @@ type AddLinkModalProps = {
 
 const linkFormSchema = z.object({
   name: z.string().min(1, "Display name is required"),
-  url: z.string().url("Please enter a valid URL"),
+  url: z.url("Please enter a valid URL"),
 });
 
 type LinkFormData = z.infer<typeof linkFormSchema>;

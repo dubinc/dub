@@ -137,10 +137,8 @@ export function PayoutStats() {
                 }
               >
                 <span className="underline decoration-dotted underline-offset-2">
-                  {currencyFormatter(
-                    eligiblePendingPayouts?.amount ?? 0,
-                    {},
-                  ) + " USD"}
+                  {currencyFormatter(eligiblePendingPayouts?.amount ?? 0, {}) +
+                    " USD"}
                 </span>
               </Tooltip>
             )}

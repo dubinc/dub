@@ -1,7 +1,7 @@
 "use server";
 
 import { prisma } from "@dub/prisma";
-import z from "../zod";
+import * as z from "zod/v4";
 import { workspaceStoreKeys } from "../zod/schemas/workspaces";
 import { authActionClient } from "./safe-action";
 
@@ -17,7 +17,7 @@ const updateWorkspaceStoreSchema = z.object({
 
 // Update a workspace store item
 export const updateWorkspaceStore = authActionClient
-  .schema(updateWorkspaceStoreSchema)
+  .inputSchema(updateWorkspaceStoreSchema)
   .action(async ({ ctx, parsedInput }) => {
     const { workspace } = ctx;
     const { key, value } = parsedInput;

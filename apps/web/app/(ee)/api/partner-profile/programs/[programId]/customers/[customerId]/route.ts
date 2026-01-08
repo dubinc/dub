@@ -11,7 +11,7 @@ import { generateRandomName } from "@/lib/names";
 import { PartnerProfileCustomerSchema } from "@/lib/zod/schemas/partner-profile";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 // GET /api/partner-profile/programs/:programId/customers/:customerId – Get a customer by ID
 export const GET = withPartnerProfile(async ({ partner, params }) => {

@@ -3,7 +3,7 @@ import {
   linksSortOptions,
   linksViewModes,
 } from "@/lib/links/links-display";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 export const linksDisplaySchema = z.object({
   viewMode: z.enum(linksViewModes),

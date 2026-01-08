@@ -9,7 +9,7 @@ import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enro
 import { recordLink } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
 
 const updatePartnerEnrollmentSchema = z.object({
@@ -21,7 +21,7 @@ const updatePartnerEnrollmentSchema = z.object({
 
 // Update a partner's program enrollment data
 export const updatePartnerEnrollmentAction = authActionClient
-  .schema(updatePartnerEnrollmentSchema)
+  .inputSchema(updatePartnerEnrollmentSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { partnerId, tenantId, customerDataSharingEnabledAt } = parsedInput;

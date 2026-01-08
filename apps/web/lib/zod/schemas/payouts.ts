@@ -1,7 +1,7 @@
 import { ELIGIBLE_PAYOUTS_MAX_PAGE_SIZE } from "@/lib/constants/payouts";
 import { CUTOFF_PERIOD_ENUM } from "@/lib/partners/cutoff-period";
 import { PayoutMode, PayoutStatus } from "@dub/prisma/client";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { getPaginationQuerySchema } from "./misc";
 import { EnrolledPartnerSchema, PartnerSchema } from "./partners";
 import { ProgramSchema } from "./programs";
@@ -9,7 +9,7 @@ import { UserSchema } from "./users";
 
 export const createManualPayoutSchema = z.object({
   workspaceId: z.string(),
-  partnerId: z.string({ required_error: "Please select a partner" }),
+  partnerId: z.string({ error: "Please select a partner" }),
   amount: z
     .preprocess((val) => {
       const parsed = parseFloat(val as string);
@@ -26,7 +26,7 @@ export const PAYOUTS_MAX_PAGE_SIZE = 100;
 
 export const payoutsQuerySchema = z
   .object({
-    status: z.nativeEnum(PayoutStatus).optional(),
+    status: z.enum(PayoutStatus).optional(),
     partnerId: z.string().optional(),
     programId: z.string().optional(),
     invoiceId: z.string().optional(),
@@ -34,7 +34,7 @@ export const payoutsQuerySchema = z
     sortBy: z.enum(["amount", "initiatedAt", "paidAt"]).default("amount"),
     sortOrder: z.enum(["asc", "desc"]).default("desc"),
   })
-  .merge(getPaginationQuerySchema({ pageSize: PAYOUTS_MAX_PAGE_SIZE }));
+  .extend(getPaginationQuerySchema({ pageSize: PAYOUTS_MAX_PAGE_SIZE }));
 
 export const payoutsCountQuerySchema = payoutsQuerySchema
   .pick({
@@ -44,18 +44,16 @@ export const payoutsCountQuerySchema = payoutsQuerySchema
     eligibility: true,
     invoiceId: true,
   })
-  .merge(
-    z.object({
-      groupBy: z.enum(["status"]).optional(),
-    }),
-  );
+  .extend({
+    groupBy: z.enum(["status"]).optional(),
+  });
 
 export const PayoutSchema = z.object({
   id: z.string(),
   invoiceId: z.string().nullable(),
   amount: z.number(),
   currency: z.string(),
-  status: z.nativeEnum(PayoutStatus),
+  status: z.enum(PayoutStatus),
   description: z.string().nullish(),
   periodStart: z.date().nullable(),
   periodEnd: z.date().nullable(),
@@ -63,35 +61,29 @@ export const PayoutSchema = z.object({
   initiatedAt: z.date().nullable(),
   paidAt: z.date().nullable(),
   failureReason: z.string().nullish(),
-  mode: z.nativeEnum(PayoutMode).nullable(),
+  mode: z.enum(PayoutMode).nullable(),
 });
 
-export const PayoutResponseSchema = PayoutSchema.merge(
-  z.object({
-    partner: PartnerSchema.merge(
-      z.object({
-        tenantId: z.string().nullable(),
-      }),
-    ),
-    user: UserSchema.nullish(),
+export const PayoutResponseSchema = PayoutSchema.extend({
+  partner: PartnerSchema.extend({
+    tenantId: z.string().nullable(),
   }),
-);
+  user: UserSchema.nullish(),
+});
 
 export const PartnerPayoutResponseSchema = PayoutResponseSchema.omit({
   partner: true,
-}).merge(
-  z.object({
-    program: ProgramSchema.pick({
-      id: true,
-      name: true,
-      slug: true,
-      logo: true,
-      minPayoutAmount: true,
-      payoutMode: true,
-    }),
-    traceId: z.string().nullish(),
+}).extend({
+  program: ProgramSchema.pick({
+    id: true,
+    name: true,
+    slug: true,
+    logo: true,
+    minPayoutAmount: true,
+    payoutMode: true,
   }),
-);
+  traceId: z.string().nullish(),
+});
 
 export const payoutWebhookEventSchema = PayoutSchema.omit({
   failureReason: true,
@@ -112,7 +104,7 @@ export const eligiblePayoutsQuerySchema = z
     cutoffPeriod: CUTOFF_PERIOD_ENUM,
     selectedPayoutId: z.string().optional(),
   })
-  .merge(
+  .extend(
     getPaginationQuerySchema({ pageSize: ELIGIBLE_PAYOUTS_MAX_PAGE_SIZE }),
   );
 

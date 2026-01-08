@@ -11,7 +11,7 @@ import {
 import { cn } from "@dub/utils";
 import { Dispatch, SetStateAction, useId } from "react";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 type TextBlockData = z.infer<typeof programLanderTextBlockSchema>["data"];
 

@@ -5,7 +5,7 @@ import { fraudEventSchemas } from "@/lib/zod/schemas/fraud";
 import { BAN_PARTNER_REASONS } from "@/lib/zod/schemas/partners";
 import { Table, TimestampTooltip, useTable } from "@dub/ui";
 import { formatDateTimeSmart } from "@dub/utils";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 type EventDataProps = z.infer<
   (typeof fraudEventSchemas)["partnerCrossProgramBan"]

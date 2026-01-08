@@ -15,7 +15,7 @@ import { authActionClient } from "../safe-action";
 
 // Reject a bounty submission
 export const rejectBountySubmissionAction = authActionClient
-  .schema(rejectBountySubmissionSchema)
+  .inputSchema(rejectBountySubmissionSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { submissionId, rejectionReason, rejectionNote } = parsedInput;

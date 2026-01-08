@@ -1,6 +1,6 @@
 import { polyfillSocialMediaFields } from "@/lib/social-utils";
 import { exportPartnerColumns } from "@/lib/zod/schemas/partners";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 const columnIdToLabel = exportPartnerColumns.reduce(
   (acc, column) => {

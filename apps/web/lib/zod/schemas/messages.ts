@@ -1,5 +1,5 @@
 import { MessageType } from "@dub/prisma/client";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { PartnerSchema } from "./partners";
 import { ProgramSchema } from "./programs";
 import { UserSchema } from "./users";
@@ -16,7 +16,7 @@ export const MessageSchema = z.object({
   senderUserId: z.string(),
   text: messageTextSchema,
   subject: z.string().nullable(),
-  type: z.nativeEnum(MessageType),
+  type: z.enum(MessageType),
   readInApp: z.date().nullable(),
   readInEmail: z.date().nullable(),
   createdAt: z.date(),

@@ -1,5 +1,5 @@
 import { programLanderTextBlockSchema } from "@/lib/zod/schemas/program-lander";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { BlockMarkdown } from "./block-markdown";
 import { BlockTitle } from "./block-title";
 

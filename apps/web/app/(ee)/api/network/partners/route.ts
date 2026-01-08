@@ -11,7 +11,7 @@ import {
 import { prisma } from "@dub/prisma";
 import { PreferredEarningStructure, SalesChannel } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 // GET /api/network/partners - get all available partners in the network
 export const GET = withWorkspace(

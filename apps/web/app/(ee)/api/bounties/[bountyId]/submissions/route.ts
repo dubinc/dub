@@ -8,7 +8,7 @@ import {
 } from "@/lib/zod/schemas/bounties";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 // GET /api/bounties/[bountyId]/submissions - get all submissions for a bounty
 export const GET = withWorkspace(

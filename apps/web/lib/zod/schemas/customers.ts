@@ -1,4 +1,4 @@
-import z from "@/lib/zod";
+import * as z from "zod/v4";
 import { DiscountSchema } from "./discount";
 import { LinkSchema } from "./links";
 import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
@@ -58,17 +58,15 @@ export const getCustomersQuerySchema = z
       .default("desc")
       .describe("The sort order. The default is `desc`."),
   })
-  .merge(getPaginationQuerySchema({ pageSize: CUSTOMERS_MAX_PAGE_SIZE }));
+  .extend(getPaginationQuerySchema({ pageSize: CUSTOMERS_MAX_PAGE_SIZE }));
 
-export const getCustomersQuerySchemaExtended = getCustomersQuerySchema.merge(
-  z.object({
-    customerIds: z
-      .union([z.string(), z.array(z.string())])
-      .transform((v) => (Array.isArray(v) ? v : v.split(",")))
-      .nullish()
-      .describe("Customer IDs to filter by."),
-  }),
-);
+export const getCustomersQuerySchemaExtended = getCustomersQuerySchema.extend({
+  customerIds: z
+    .union([z.string(), z.array(z.string())])
+    .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+    .nullish()
+    .describe("Customer IDs to filter by."),
+});
 
 export const getCustomersCountQuerySchema = getCustomersQuerySchema
   .omit({
@@ -81,7 +79,7 @@ export const getCustomersCountQuerySchema = getCustomersQuerySchema
   .extend({ groupBy: z.enum(["country", "linkId", "partnerId"]).optional() });
 
 export const createCustomerBodySchema = z.object({
-  email: z.string().email().nullish().describe("The customer's email address."),
+  email: z.email().nullish().describe("The customer's email address."),
   name: z
     .string()
     .nullish()
@@ -89,7 +87,6 @@ export const createCustomerBodySchema = z.object({
       "The customer's name. If not provided, the email address will be used, and if email is not provided, a random name will be generated.",
     ),
   avatar: z
-    .string()
     .url()
     .nullish()
     .describe(

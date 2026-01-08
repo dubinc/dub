@@ -3,7 +3,7 @@ import { tb } from "@/lib/tinybird";
 import { log } from "@dub/utils";
 import { ipAddress as getIPAddress } from "@vercel/functions";
 import { headers } from "next/headers";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { createId } from "../create-id";
 import { prefixWorkspaceId } from "../workspaces/workspace-id";
 import { auditLogSchemaTB, recordAuditLogInputSchema } from "./schemas";
