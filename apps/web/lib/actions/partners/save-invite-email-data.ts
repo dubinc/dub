@@ -3,7 +3,7 @@
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { sanitizeMarkdown } from "@/lib/partners/sanitize-markdown";
 import { prisma } from "@dub/prisma";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
 
 const saveInviteEmailDataSchema = z.object({
@@ -14,7 +14,7 @@ const saveInviteEmailDataSchema = z.object({
 });
 
 export const saveInviteEmailDataAction = authActionClient
-  .schema(saveInviteEmailDataSchema)
+  .inputSchema(saveInviteEmailDataSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
     const { subject, title, body } = parsedInput;

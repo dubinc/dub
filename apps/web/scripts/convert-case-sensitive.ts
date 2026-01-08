@@ -15,44 +15,54 @@ async function main() {
     },
   };
 
-  const links = await prisma.link.findMany({
-    where,
-    orderBy: {
-      createdAt: "desc",
-    },
-    take: 100,
-  });
+  while (true) {
+    const links = await prisma.link.findMany({
+      where,
+      orderBy: {
+        createdAt: "desc",
+      },
+      take: 100,
+    });
+    if (!links.length) {
+      console.log("No more links to convert.");
+      break;
+    }
 
-  const remainingLinks = await prisma.link.count({
-    where,
-    skip: 100,
-  });
+    await Promise.all(
+      links.map(async (link) => {
+        const newKey = encodeKeyIfCaseSensitive({
+          domain: link.domain,
+          key: link.key,
+        });
 
-  console.log(`Remaining links: ${remainingLinks}`);
+        try {
+          const newLink = await prisma.link.update({
+            where: { id: link.id },
+            data: {
+              key: newKey,
+              shortLink: linkConstructorSimple({
+                domain: link.domain,
+                key: newKey,
+              }),
+            },
+          });
 
-  await Promise.all(
-    links.map(async (link) => {
-      const newKey = encodeKeyIfCaseSensitive({
-        domain: link.domain,
-        key: link.key,
-      });
+          console.log(
+            `Updated link ${link.id} from key ${link.key} to ${newLink.key} (shortLink: ${newLink.shortLink})`,
+          );
+        } catch (error) {
+          console.error(`Error updating link ${link.id}: ${error}`);
+        }
+      }),
+    );
 
-      const newLink = await prisma.link.update({
-        where: { id: link.id },
-        data: {
-          key: newKey,
-          shortLink: linkConstructorSimple({
-            domain: link.domain,
-            key: newKey,
-          }),
-        },
-      });
+    const remainingLinks = await prisma.link.count({
+      where,
+      skip: 100,
+    });
 
-      console.log(
-        `Updated link ${link.id} from key ${link.key} to ${newLink.key} (shortLink: ${newLink.shortLink})`,
-      );
-    }),
-  );
+    console.log(`Remaining links: ${remainingLinks}`);
+  }
 }
 
 main();

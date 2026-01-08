@@ -3,7 +3,7 @@
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { storage } from "@/lib/storage";
 import { nanoid, R2_URL } from "@dub/utils";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
 
 const schema = z.object({
@@ -11,7 +11,7 @@ const schema = z.object({
 });
 
 export const uploadLanderImageAction = authActionClient
-  .schema(schema)
+  .inputSchema(schema)
   .action(async ({ ctx }) => {
     const { workspace } = ctx;
     const programId = getDefaultProgramIdOrThrow(workspace);

@@ -5,7 +5,7 @@ import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions"
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
 
 const markCommissionFraudOrCanceledSchema = z.object({
@@ -16,7 +16,7 @@ const markCommissionFraudOrCanceledSchema = z.object({
 
 // Mark a commission as fraud or canceled for a partner + customer for all historical commissions
 export const markCommissionFraudOrCanceledAction = authActionClient
-  .schema(markCommissionFraudOrCanceledSchema)
+  .inputSchema(markCommissionFraudOrCanceledSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { commissionId, status } = parsedInput;

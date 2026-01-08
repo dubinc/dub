@@ -12,7 +12,7 @@ import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 const addPartnersToGroupSchema = z.object({
   partnerIds: z.array(z.string()).min(1).max(100), // max move 100 partners at a time

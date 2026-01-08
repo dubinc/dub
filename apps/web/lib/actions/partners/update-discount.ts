@@ -13,7 +13,7 @@ import { revalidatePath } from "next/cache";
 import { authActionClient } from "../safe-action";
 
 export const updateDiscountAction = authActionClient
-  .schema(updateDiscountSchema)
+  .inputSchema(updateDiscountSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { discountId, couponTestId } = parsedInput;

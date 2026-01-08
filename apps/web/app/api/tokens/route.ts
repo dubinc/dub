@@ -13,7 +13,7 @@ import { Prisma, User } from "@dub/prisma/client";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 const MAX_WORKSPACE_TOKENS = 100;
 

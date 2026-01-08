@@ -15,7 +15,7 @@ import { authActionClient } from "../safe-action";
 
 // Reject a list of pending partners
 export const bulkRejectPartnerApplicationsAction = authActionClient
-  .schema(bulkRejectPartnersSchema)
+  .inputSchema(bulkRejectPartnersSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { partnerIds, reportFraud } = parsedInput;

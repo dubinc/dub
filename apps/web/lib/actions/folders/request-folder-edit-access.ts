@@ -5,7 +5,7 @@ import FolderEditAccessRequested from "@dub/email/templates/folder-edit-access-r
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { verifyFolderAccess } from "../../folder/permissions";
 import { authActionClient } from "../safe-action";
 
@@ -16,7 +16,7 @@ const schema = z.object({
 
 // Request edit access to a folder
 export const requestFolderEditAccessAction = authActionClient
-  .schema(schema)
+  .inputSchema(schema)
   .action(async ({ ctx, parsedInput }) => {
     const { workspace, user } = ctx;
     const { folderId } = parsedInput;

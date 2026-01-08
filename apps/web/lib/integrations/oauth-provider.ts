@@ -1,8 +1,8 @@
 import { getSearchParams, nanoid } from "@dub/utils";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { redis } from "../upstash";
 
-export interface OAuthProviderConfig {
+export interface OAuthProviderConfig<T extends z.ZodSchema = z.ZodSchema> {
   name: string;
   clientId: string;
   clientSecret: string;
@@ -11,7 +11,7 @@ export interface OAuthProviderConfig {
   redirectUri: string;
   scopes?: string;
   redisStatePrefix: string;
-  tokenSchema: z.ZodSchema;
+  tokenSchema: T;
   bodyFormat: "form" | "json";
   responseFormat?: "json" | "text";
   authorizationMethod: "header" | "body";
@@ -23,7 +23,7 @@ const codeExchangeSchema = z.object({
 });
 
 export class OAuthProvider<T extends z.ZodSchema> {
-  constructor(private provider: OAuthProviderConfig) {}
+  constructor(private provider: OAuthProviderConfig<T>) {}
 
   // Generate the authorization URL for the OAuth provider
   async generateAuthUrl(contextId: string | Record<string, string>) {

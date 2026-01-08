@@ -8,7 +8,7 @@ import { sendBatchEmail } from "@dub/email";
 import VerifyEmailForAccountMerge from "@dub/email/templates/verify-email-for-account-merge";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { authPartnerActionClient } from "../safe-action";
 
 const CACHE_KEY_PREFIX = "merge-partner-accounts";
@@ -37,7 +37,7 @@ const schema = z.discriminatedUnion("step", [
 ]);
 
 export const mergePartnerAccountsAction = authPartnerActionClient
-  .schema(schema)
+  .inputSchema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { user } = ctx;
     const { step } = parsedInput;

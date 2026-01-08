@@ -2,7 +2,7 @@ import { formatUTCDateTimeClickhouse } from "@/lib/analytics/utils/format-utc-da
 import { tb } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
 import { ACME_PROGRAM_ID } from "@dub/utils";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 export async function getTopProgramsBySales({
   startDate,

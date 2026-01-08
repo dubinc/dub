@@ -8,7 +8,7 @@ import { authActionClient } from "../safe-action";
 
 // Star or dismiss a partner in the partner network
 export const updateDiscoveredPartnerAction = authActionClient
-  .schema(updateDiscoveredPartnerSchema)
+  .inputSchema(updateDiscoveredPartnerSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
     const { partnerId, starred, ignored } = parsedInput;

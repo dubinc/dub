@@ -17,7 +17,7 @@ import { prisma } from "@dub/prisma";
 import { nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 const updateWorkspaceSchema = createWorkspaceSchema
   .extend({

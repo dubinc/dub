@@ -4,10 +4,10 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { NetworkPartnerProps } from "@/lib/types";
 import { Button } from "@dub/ui";
 import { Star, StarFill } from "@dub/ui/icons";
+import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { toast } from "sonner";
 import { mutate } from "swr";
-import { cn } from "@dub/utils";
 
 type PartnerStarButtonProps = {
   partner: NetworkPartnerProps;
@@ -104,4 +104,3 @@ export function PartnerStarButton({
     />
   );
 }
-

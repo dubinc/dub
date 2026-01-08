@@ -28,7 +28,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import useSWR from "swr";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 type ShareDashboardModalInnerProps =
   | {

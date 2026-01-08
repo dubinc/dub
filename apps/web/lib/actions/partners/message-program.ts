@@ -13,7 +13,7 @@ import { authPartnerActionClient } from "../safe-action";
 
 // Message a program
 export const messageProgramAction = authPartnerActionClient
-  .schema(messageProgramSchema)
+  .inputSchema(messageProgramSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { partner, user } = ctx;
     const { programSlug, text } = parsedInput;
