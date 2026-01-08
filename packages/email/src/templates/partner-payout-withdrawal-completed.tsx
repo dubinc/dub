@@ -94,14 +94,14 @@ export default function PartnerPayoutWithdrawalCompleted({
             )}
 
             <Text className="text-sm leading-6 text-neutral-600">
-              If you still have any questions, contact{" "}
+              If you still have any questions, please{" "}
               <Link
-                href="https://support.stripe.com/express"
+                href="https://dub.co/contact/support"
                 className="font-medium text-black underline"
               >
-                Stripe support
-              </Link>
-              .
+                reach out to us
+              </Link>{" "}
+              and we'd be happy to help.
             </Text>
             <Footer email={email} />
           </Container>
