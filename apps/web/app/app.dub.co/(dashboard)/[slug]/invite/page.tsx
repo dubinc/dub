@@ -3,6 +3,8 @@ import { prisma } from "@dub/prisma";
 import {
   Book2Fill,
   CircleCheckFill,
+  DubLinksIcon,
+  DubPartnersIcon,
   LifeRingFill,
   MsgsFill,
   Tooltip,
@@ -85,7 +87,7 @@ export default async function WorkspaceInvitePage({
           <div
             className={cn(
               "relative z-0 mt-8 flex items-center",
-              "animate-slide-up-fade motion-reduce:animate-fade-in [--offset:10px] [animation-delay:0.1s] [animation-duration:0.5s] [animation-fill-mode:both]",
+              "animate-slide-up-fade motion-reduce:animate-fade-in [--offset:10px] [animation-delay:50ms] [animation-duration:0.5s] [animation-fill-mode:both]",
             )}
           >
             <img
@@ -108,7 +110,7 @@ export default async function WorkspaceInvitePage({
           <div
             className={cn(
               "flex flex-col items-center text-center",
-              "animate-slide-up-fade motion-reduce:animate-fade-in [--offset:10px] [animation-delay:0.2s] [animation-duration:0.5s] [animation-fill-mode:both]",
+              "animate-slide-up-fade motion-reduce:animate-fade-in [--offset:10px] [animation-delay:100ms] [animation-duration:0.5s] [animation-fill-mode:both]",
             )}
           >
             <h2 className="text-content-default mt-4 text-lg font-semibold">
@@ -133,7 +135,63 @@ export default async function WorkspaceInvitePage({
           <div
             className={cn(
               "mt-8 flex w-full max-w-[400px] flex-col gap-3",
-              "animate-slide-up-fade motion-reduce:animate-fade-in [--offset:10px] [animation-delay:0.1s] [animation-duration:0.5s] [animation-fill-mode:both]",
+              "animate-slide-up-fade motion-reduce:animate-fade-in [--offset:10px] [animation-delay:150ms] [animation-duration:0.5s] [animation-fill-mode:both]",
+            )}
+          >
+            <h3 className="text-content-default font-semibold">
+              Products {invite.project.name} uses
+            </h3>
+
+            <div className="divide-border-subtle border-border-subtle bg-bg-muted flex flex-col divide-y rounded-lg border">
+              {[
+                {
+                  icon: (
+                    <div className="flex size-5 items-center justify-center rounded bg-orange-400">
+                      <DubLinksIcon className="size-3 text-orange-900" />
+                    </div>
+                  ),
+                  title: "Dub Links",
+                  href: `/${slug}/links`,
+                  cta: "View links",
+                },
+                {
+                  icon: (
+                    <div className="flex size-5 items-center justify-center rounded bg-violet-400">
+                      <DubPartnersIcon className="size-3 text-violet-900" />
+                    </div>
+                  ),
+                  title: "Dub Partners",
+                  href: `/${slug}/program`,
+                  cta: "View program",
+                },
+              ].map(({ icon, title, href, cta }) => (
+                <div
+                  key={href}
+                  className="flex items-center justify-between gap-2 px-2.5 py-2"
+                >
+                  <div className="flex min-w-0 items-center gap-2">
+                    {icon}
+                    <div className="text-content-default text-sm font-medium">
+                      {title}
+                    </div>
+                  </div>
+
+                  <Link
+                    href={href}
+                    target="_blank"
+                    className="border-subtle bg-bg-inverted hover:bg-bg-inverted/90 flex h-7 items-center rounded-lg border px-2.5 text-sm font-medium text-white transition-transform active:scale-[0.98]"
+                  >
+                    {cta}
+                  </Link>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div
+            className={cn(
+              "mt-8 flex w-full max-w-[400px] flex-col gap-3",
+              "animate-slide-up-fade motion-reduce:animate-fade-in [--offset:10px] [animation-delay:200ms] [animation-duration:0.5s] [animation-fill-mode:both]",
             )}
           >
             <h3 className="text-content-default font-semibold">
