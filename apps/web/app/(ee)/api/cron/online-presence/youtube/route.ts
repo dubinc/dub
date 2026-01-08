@@ -2,7 +2,7 @@ import { withCron } from "@/lib/cron/with-cron";
 import { prisma } from "@dub/prisma";
 import { SocialPlatform } from "@dub/prisma/client";
 import { chunk, deepEqual } from "@dub/utils";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 
 const youtubeChannelSchema = z.object({

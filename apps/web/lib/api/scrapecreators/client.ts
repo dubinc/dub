@@ -1,5 +1,5 @@
 import { SocialPlatform } from "@dub/prisma/client";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 const SCRAPECREATORS_API_BASE_URL = "https://api.scrapecreators.com";
 const SCRAPECREATORS_API_KEY = process.env.SCRAPECREATORS_API_KEY || "";
