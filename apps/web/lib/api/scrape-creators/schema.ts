@@ -14,6 +14,14 @@ export const profileResponseSchema = z.preprocess(
       ) {
         return { platform: "instagram", ...data };
       }
+
+      if ("user" in data && "stats" in data) {
+        return { platform: "tiktok", ...data };
+      }
+
+      if ("is_blue_verified" in data) {
+        return { platform: "twitter", ...data };
+      }
     }
 
     return data;
@@ -37,6 +45,30 @@ export const profileResponseSchema = z.preprocess(
           edge_followed_by: z.object({ count: z.number() }),
           edge_owner_to_timeline_media: z.object({ count: z.number() }),
         }),
+      }),
+    }),
+
+    z.object({
+      platform: z.literal("tiktok"),
+      user: z.object({
+        id: z.string(),
+        signature: z.string(),
+        uniqueId: z.string(),
+      }),
+      stats: z.object({
+        followerCount: z.number(),
+        videoCount: z.number(),
+        heartCount: z.number(),
+      }),
+    }),
+
+    z.object({
+      platform: z.literal("twitter"),
+      rest_id: z.string(),
+      legacy: z.object({
+        description: z.string(),
+        followers_count: z.number(),
+        statuses_count: z.number(),
       }),
     }),
   ]),

@@ -64,6 +64,14 @@ export const ONLINE_PRESENCE_FIELDS: {
         value: twitter ? `@${twitter.handle}` : null,
         verified: !!twitter?.verifiedAt,
         href: twitter?.handle ? `https://x.com/${twitter.handle}` : null,
+        info: [
+          twitter?.followers && twitter.followers > 0
+            ? `${nFormatter(Number(twitter.followers))} followers`
+            : null,
+          twitter?.posts && twitter.posts > 0
+            ? `${nFormatter(Number(twitter.posts))} tweets`
+            : null,
+        ].filter(Boolean),
       };
     },
   },
@@ -94,6 +102,14 @@ export const ONLINE_PRESENCE_FIELDS: {
         href: instagram?.handle
           ? `https://instagram.com/${instagram.handle}`
           : null,
+        info: [
+          instagram?.followers && instagram.followers > 0
+            ? `${nFormatter(Number(instagram.followers))} followers`
+            : null,
+          instagram?.posts && instagram.posts > 0
+            ? `${nFormatter(Number(instagram.posts))} posts`
+            : null,
+        ].filter(Boolean),
       };
     },
   },
@@ -107,6 +123,14 @@ export const ONLINE_PRESENCE_FIELDS: {
         value: tiktok ? `@${tiktok.handle}` : null,
         verified: !!tiktok?.verifiedAt,
         href: tiktok?.handle ? `https://tiktok.com/@${tiktok.handle}` : null,
+        info: [
+          tiktok?.followers && tiktok.followers > 0
+            ? `${nFormatter(Number(tiktok.followers))} followers`
+            : null,
+          tiktok?.posts && tiktok.posts > 0
+            ? `${nFormatter(Number(tiktok.posts))} posts`
+            : null,
+        ].filter(Boolean),
       };
     },
   },

@@ -694,6 +694,34 @@ function FormRow({
           posts > 0 ? `${nFormatter(Number(posts))} posts` : null,
         ].filter(Boolean) as string[];
       }
+
+      if (property === "tiktok") {
+        const tiktokPlatform = getPlatformData(
+          partnerWithPlatforms.platforms,
+          "tiktok",
+        );
+        const followers = tiktokPlatform?.followers ?? 0;
+        const posts = tiktokPlatform?.posts ?? 0;
+
+        return [
+          followers > 0 ? `${nFormatter(Number(followers))} followers` : null,
+          posts > 0 ? `${nFormatter(Number(posts))} posts` : null,
+        ].filter(Boolean) as string[];
+      }
+
+      if (property === "twitter") {
+        const twitterPlatform = getPlatformData(
+          partnerWithPlatforms.platforms,
+          "twitter",
+        );
+        const followers = twitterPlatform?.followers ?? 0;
+        const posts = twitterPlatform?.posts ?? 0;
+
+        return [
+          followers > 0 ? `${nFormatter(Number(followers))} followers` : null,
+          posts > 0 ? `${nFormatter(Number(posts))} tweets` : null,
+        ].filter(Boolean) as string[];
+      }
     }
     return null;
   }, [partner, property, isVerified]);

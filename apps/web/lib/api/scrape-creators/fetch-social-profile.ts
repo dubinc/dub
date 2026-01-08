@@ -62,6 +62,22 @@ export async function fetchSocialProfile({
       );
       break;
     }
+
+    case "tiktok": {
+      socialProfile.description = data.user.signature;
+      socialProfile.platformId = data.user.id;
+      socialProfile.followers = BigInt(data.stats.followerCount);
+      socialProfile.posts = BigInt(data.stats.videoCount);
+      break;
+    }
+
+    case "twitter": {
+      socialProfile.description = data.legacy.description;
+      socialProfile.platformId = data.rest_id;
+      socialProfile.followers = BigInt(data.legacy.followers_count);
+      socialProfile.posts = BigInt(data.legacy.statuses_count);
+      break;
+    }
   }
 
   return socialProfile;
