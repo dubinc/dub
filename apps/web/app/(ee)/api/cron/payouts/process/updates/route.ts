@@ -5,7 +5,7 @@ import { sendBatchEmail } from "@dub/email";
 import PartnerPayoutConfirmed from "@dub/email/templates/partner-payout-confirmed";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, currencyFormatter, log } from "@dub/utils";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { handleCronErrorResponse, logAndRespond } from "../../../utils";
 
 export const dynamic = "force-dynamic";

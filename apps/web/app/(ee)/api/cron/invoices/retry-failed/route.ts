@@ -1,7 +1,7 @@
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { createPaymentIntent } from "@/lib/stripe/create-payment-intent";
 import { prisma } from "@dub/prisma";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { handleCronErrorResponse } from "../../utils";
 
 export const dynamic = "force-dynamic";

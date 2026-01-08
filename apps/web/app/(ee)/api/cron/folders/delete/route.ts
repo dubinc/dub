@@ -4,7 +4,7 @@ import { includeTags } from "@/lib/api/links/include-tags";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { recordLink } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { handleCronErrorResponse } from "../../utils";
 
 export const dynamic = "force-dynamic";

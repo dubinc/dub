@@ -9,7 +9,7 @@ import { sendEmail } from "@dub/email";
 import ExportReady from "@dub/email/templates/export-ready";
 import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { handleCronErrorResponse, logAndRespond } from "../../utils";
 import { fetchCommissionsBatch } from "./fetch-commissions-batch";
 

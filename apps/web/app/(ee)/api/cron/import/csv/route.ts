@@ -20,7 +20,7 @@ import {
 } from "@dub/utils";
 import { getUrlObjFromString } from "@dub/utils/src";
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { handleCronErrorResponse } from "../../utils";
 import { sendCsvImportEmails } from "./utils";
 

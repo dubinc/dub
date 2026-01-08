@@ -8,7 +8,7 @@ import {
   constructURLFromUTMParams,
   log,
 } from "@dub/utils";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { handleCronErrorResponse, logAndRespond } from "../../utils";
 export const dynamic = "force-dynamic";
 
