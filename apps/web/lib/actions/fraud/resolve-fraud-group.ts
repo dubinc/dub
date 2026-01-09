@@ -6,12 +6,19 @@ import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { resolveFraudGroupSchema } from "@/lib/zod/schemas/fraud";
 import { prisma } from "@dub/prisma";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 export const resolveFraudGroupAction = authActionClient
   .inputSchema(resolveFraudGroupSchema)
   .action(async ({ ctx, parsedInput }) => {
     const { workspace, user } = ctx;
     const { groupId, resolutionReason } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredPermissions: ["workspaces.write"],
+      customMessage: "You don't have permission to resolve fraud events.",
+    });
 
     const { canManageFraudEvents } = getPlanCapabilities(workspace.plan);
 
