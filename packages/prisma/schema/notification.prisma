@@ -51,6 +51,7 @@ model NotificationPreference {
   domainConfigurationUpdates Boolean @default(true)
   newPartnerSale             Boolean @default(true)
   newPartnerApplication      Boolean @default(true)
+  pendingApplicationsSummary Boolean @default(true)
   newBountySubmitted         Boolean @default(true)
   newMessageFromPartner      Boolean @default(true)
   fraudEventsSummary         Boolean @default(true)

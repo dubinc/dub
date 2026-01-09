@@ -10,6 +10,7 @@ export const GET = withWorkspace(async ({ workspace, session }) => {
       linkUsageSummary: true,
       newPartnerSale: true,
       newPartnerApplication: true,
+      pendingApplicationsSummary: true,
       newBountySubmitted: true,
       newMessageFromPartner: true,
     },
