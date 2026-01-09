@@ -162,7 +162,7 @@ export function RegisterDomainForm({
                 "-m-1 rounded-[0.625rem] p-1",
                 searchedDomain
                   ? searchedDomain.available
-                    ? "bg-[#def5c6]"
+                    ? "bg-green-100"
                     : "bg-orange-100"
                   : "bg-neutral-100",
               )}
@@ -178,7 +178,7 @@ export function RegisterDomainForm({
                   aria-invalid="true"
                   autoFocus={!isMobile}
                   placeholder={workspace.slug}
-                  value={slug}
+                  value={slug || ""}
                   onChange={(e) => {
                     setSlug(e.target.value);
                   }}
@@ -289,25 +289,10 @@ export function RegisterDomainForm({
               </div>
             </div>
           )}
-
-        {searchedDomain && showTerms && (
-          <p className="-my-2 text-pretty text-center text-xs text-neutral-500">
-            By claiming your .link domain, you agree to our{" "}
-            <a
-              href="https://dub.co/help/article/free-dot-link-domain#terms-and-conditions"
-              target="_blank"
-              className="underline transition-colors hover:text-neutral-700"
-            >
-              terms
-            </a>
-            .<br />
-            After the first year, your renewal is $12/year.
-          </p>
-        )}
       </div>
       <div
         className={cn(
-          "mt-4 flex justify-end gap-2",
+          "mt-6 flex justify-end gap-2",
           variant === "modal" && "border-t border-neutral-200 p-4 sm:px-6",
         )}
       >
@@ -347,6 +332,20 @@ export function RegisterDomainForm({
           />
         )}
       </div>
+      {searchedDomain && showTerms && (
+        <p className="mt-4 text-pretty text-center text-xs text-neutral-500">
+          By claiming your .link domain, you agree to our{" "}
+          <a
+            href="https://dub.co/help/article/free-dot-link-domain#terms-and-conditions"
+            target="_blank"
+            className="underline transition-colors hover:text-neutral-700"
+          >
+            terms
+          </a>
+          .<br />
+          After the first year, your renewal is $12/year.
+        </p>
+      )}
     </form>
   );
 }
