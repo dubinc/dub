@@ -16,7 +16,7 @@ export const updateDiscoveredPartnerAction = authActionClient
 
     throwIfNoPermission({
       role: workspace.role,
-      requiredPermissions: ["workspaces.read"],
+      requiredPermissions: ["workspaces.write"],
     });
 
     const programId = getDefaultProgramIdOrThrow(workspace);
