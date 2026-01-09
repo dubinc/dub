@@ -45,7 +45,7 @@ export const GET = withWorkspace(
     }
   },
   {
-    requiredPermissions: ["payment_methods.read"],
+    requiredPermissions: ["workspaces.read"],
   },
 );
 

@@ -25,7 +25,6 @@ export const PERMISSION_ACTIONS = [
   "groups.read",
   "messages.read",
   "messages.write",
-  "payment_methods.read",
   "payment_methods.write",
 ] as const;
 
@@ -154,11 +153,6 @@ export const ROLE_PERMISSIONS: {
   {
     action: "messages.read",
     description: "access messages",
-    roles: ["owner", "member", "viewer", "billing"],
-  },
-  {
-    action: "payment_methods.read",
-    description: "access payment methods",
     roles: ["owner", "member", "viewer", "billing"],
   },
   {
