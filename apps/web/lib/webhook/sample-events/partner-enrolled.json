@@ -32,15 +32,15 @@
   "bannedReason": null,
   "totalClicks": 100,
   "totalLeads": 70,
-  "totalConversions": 95,
-  "totalSales": 25,
+  "totalConversions": 70,
+  "totalSales": 10,
   "totalSaleAmount": 2500,
-  "netRevenue": 0,
-  "earningsPerClick": 0,
+  "netRevenue": 2500,
+  "earningsPerClick": 25,
   "averageLifetimeValue": null,
-  "clickToLeadRate": null,
-  "clickToConversionRate": null,
-  "leadToConversionRate": null,
+  "clickToLeadRate": 0.7,
+  "clickToConversionRate": 0.7,
+  "leadToConversionRate": 1.0,
   "returnOnAdSpend": null,
   "links": [
     {
@@ -52,7 +52,7 @@
       "clicks": 100,
       "leads": 70,
       "conversions": 10,
-      "sales": 25,
+      "sales": 10,
       "saleAmount": 2500
     }
   ]
