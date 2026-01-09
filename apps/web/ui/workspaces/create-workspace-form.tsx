@@ -133,6 +133,9 @@ export function CreateWorkspaceForm({
             })}
           />
         </div>
+        <p className="text-content-subtle mt-1.5 text-xs">
+          This is the name of your company or product.
+        </p>
       </div>
 
       <div>
@@ -195,8 +198,8 @@ export function CreateWorkspaceForm({
             {errors.slug.message}
           </p>
         ) : (
-          <p className="mt-1.5 text-xs text-neutral-500">
-            You can change this later in your workspace settings.
+          <p className="text-content-subtle mt-1.5 text-xs">
+            This is used for your workspace and partner program.
           </p>
         )}
       </div>

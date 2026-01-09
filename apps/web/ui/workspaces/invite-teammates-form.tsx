@@ -9,8 +9,6 @@ import { Plus } from "lucide-react";
 import posthog from "posthog-js";
 import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { CustomToast } from "../shared/custom-toast";
-import { CheckCircleFill } from "../shared/icons";
 import { UpgradeRequiredToast } from "../shared/upgrade-required-toast";
 
 type FormData = {
@@ -22,12 +20,10 @@ type FormData = {
 
 export function InviteTeammatesForm({
   onSuccess,
-  saveOnly = false,
   invites = [],
   className,
 }: {
   onSuccess?: () => void;
-  saveOnly?: boolean; // Whether to only save the data without actually sending invites
   invites?: Invite[];
   className?: string;
 }) {
@@ -35,7 +31,7 @@ export function InviteTeammatesForm({
   const { isMobile } = useMediaQuery();
   const { queryParams } = useRouterStuff();
 
-  const maxTeammates = saveOnly ? 4 : 10;
+  const maxTeammates = 10;
 
   const {
     control,
@@ -56,42 +52,28 @@ export function InviteTeammatesForm({
     <form
       onSubmit={handleSubmit(async (data) => {
         const teammates = data.teammates.filter(({ email }) => email);
-        const res = await fetch(
-          `/api/workspaces/${id}/invites${saveOnly ? "/saved" : ""}`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ teammates }),
-          },
-        );
+        const res = await fetch(`/api/workspaces/${id}/invites`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ teammates }),
+        });
 
         if (res.ok) {
           await mutatePrefix(`/api/workspaces/${id}/invites`);
 
-          if (saveOnly) {
-            toast.custom(
-              () => (
-                <CustomToast icon={CheckCircleFill}>
-                  {`${pluralize("Invitation", teammates.length)} saved. You'll need a pro plan to invite teammates. [Learn more](https://dub.co/help/article/how-to-invite-teammates)`}
-                </CustomToast>
-              ),
-              { duration: 7000 },
-            );
-          } else {
-            toast.success(`${pluralize("Invitation", teammates.length)} sent!`);
-            queryParams({
-              set: {
-                status: "invited",
-              },
-            });
+          toast.success(`${pluralize("Invitation", teammates.length)} sent!`);
+          queryParams({
+            set: {
+              status: "invited",
+            },
+          });
 
-            teammates.forEach(({ email }) =>
-              posthog.capture("teammate_invited", {
-                workspace: slug,
-                invitee_email: email,
-              }),
-            );
-          }
+          teammates.forEach(({ email }) =>
+            posthog.capture("teammate_invited", {
+              workspace: slug,
+              invitee_email: email,
+            }),
+          );
           onSuccess?.();
         } else {
           const { error } = await res.json();
@@ -171,9 +153,7 @@ export function InviteTeammatesForm({
       </div>
       <Button
         loading={isSubmitting || isSubmitSuccessful}
-        text={
-          saveOnly ? "Continue" : `Send ${pluralize("invite", fields.length)}`
-        }
+        text={`Send ${pluralize("invite", fields.length)}`}
       />
     </form>
   );

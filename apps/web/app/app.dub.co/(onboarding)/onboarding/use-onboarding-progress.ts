@@ -13,6 +13,7 @@ export function useOnboardingProgress() {
   const searchParams = useSearchParams();
   const { slug: workspaceSlug } = useWorkspace();
   const slug = workspaceSlug || searchParams.get("workspace");
+  const product = searchParams.get("product");
 
   const { execute, executeAsync, isPending, hasSucceeded } = useAction(
     setOnboardingProgress,
@@ -40,6 +41,9 @@ export function useOnboardingProgress() {
       });
 
       const queryParams = new URLSearchParams({
+        ...(product && ["links", "partners"].includes(product)
+          ? { product }
+          : {}),
         ...(params || {}),
         ...(PRE_WORKSPACE_STEPS.includes(step)
           ? {}
@@ -48,7 +52,7 @@ export function useOnboardingProgress() {
 
       router.push(`/onboarding/${step}?${queryParams}`);
     },
-    [execute, router, slug],
+    [execute, router, slug, product],
   );
 
   const finish = useCallback(async () => {
