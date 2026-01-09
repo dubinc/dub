@@ -10,6 +10,7 @@ import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 const schema = z.object({
   workspaceId: z.string(),
@@ -23,6 +24,12 @@ export const approveBountySubmissionAction = authActionClient
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { submissionId, rewardAmount } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredPermissions: ["workspaces.write"],
+      customMessage: "You don't have permission to approve bounty submissions.",
+    });
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 

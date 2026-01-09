@@ -5,6 +5,7 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { bulkArchivePartnersSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 import { authActionClient } from "../safe-action";
 
 export const bulkArchivePartnersAction = authActionClient
@@ -12,6 +13,12 @@ export const bulkArchivePartnersAction = authActionClient
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { partnerIds } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredPermissions: ["workspaces.write"],
+      customMessage: "You don't have permission to archive partners.",
+    });
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 

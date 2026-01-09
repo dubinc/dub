@@ -15,6 +15,7 @@ import {
 } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 import { authActionClient } from "../safe-action";
 
 const queue = qstash.queue({
@@ -27,6 +28,12 @@ export const banPartnerAction = authActionClient
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { partnerId, reason } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredPermissions: ["workspaces.write"],
+      customMessage: "You don't have permission to ban partners.",
+    });
 
     await banPartner({
       workspace,

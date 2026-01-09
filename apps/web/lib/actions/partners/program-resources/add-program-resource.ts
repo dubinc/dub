@@ -13,6 +13,7 @@ import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import * as z from "zod/v4";
+import { throwIfNoPermission } from "../../throw-if-no-permission";
 import { authActionClient } from "../../safe-action";
 
 // Base schema for all resource types
@@ -60,6 +61,14 @@ export const addProgramResourceAction = authActionClient
   .action(async ({ ctx, parsedInput }) => {
     const { workspace } = ctx;
     const { name, resourceType } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredPermissions: ["workspaces.write"],
+      customMessage:
+        "You don't have permission to add program resources.",
+    });
+
     const programId = getDefaultProgramIdOrThrow(workspace);
 
     // Verify the program exists and belongs to the workspace

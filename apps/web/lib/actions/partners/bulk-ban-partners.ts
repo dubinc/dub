@@ -9,6 +9,7 @@ import { prisma } from "@dub/prisma";
 import { ProgramEnrollmentStatus } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 import { authActionClient } from "../safe-action";
 
 export const bulkBanPartnersAction = authActionClient
@@ -16,6 +17,12 @@ export const bulkBanPartnersAction = authActionClient
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { partnerIds, reason } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredPermissions: ["workspaces.write"],
+      customMessage: "You don't have permission to ban partners.",
+    });
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
