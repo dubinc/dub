@@ -9,8 +9,8 @@ import {
 import { prisma } from "@dub/prisma";
 import { R2_URL } from "@dub/utils";
 import * as z from "zod/v4";
-import { throwIfNoPermission } from "../../throw-if-no-permission";
 import { authActionClient } from "../../safe-action";
+import { throwIfNoPermission } from "../../throw-if-no-permission";
 
 // Schema for deleting a program resource
 const deleteProgramResourceSchema = z.object({

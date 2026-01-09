@@ -9,8 +9,8 @@ import { prisma } from "@dub/prisma";
 import { ProgramEnrollmentStatus } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import { throwIfNoPermission } from "../throw-if-no-permission";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 export const bulkBanPartnersAction = authActionClient
   .inputSchema(bulkBanPartnersSchema)

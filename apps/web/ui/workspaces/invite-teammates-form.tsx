@@ -1,6 +1,6 @@
-import { WORKSPACE_ROLES } from "@/lib/workspace-roles";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { WORKSPACE_ROLES } from "@/lib/workspace-roles";
 import { Invite } from "@/lib/zod/schemas/invites";
 import { WorkspaceRole } from "@dub/prisma/client";
 import { Button, useMediaQuery, useRouterStuff } from "@dub/ui";

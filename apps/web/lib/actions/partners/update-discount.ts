@@ -10,8 +10,8 @@ import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { revalidatePath } from "next/cache";
-import { throwIfNoPermission } from "../throw-if-no-permission";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 export const updateDiscountAction = authActionClient
   .inputSchema(updateDiscountSchema)

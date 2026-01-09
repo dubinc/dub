@@ -5,8 +5,8 @@ import * as z from "zod/v4";
 import { OAUTH_CONFIG } from "../api/oauth/constants";
 import { createToken } from "../api/oauth/utils";
 import { hashToken } from "../auth";
-import { throwIfNoPermission } from "./throw-if-no-permission";
 import { authActionClient } from "./safe-action";
+import { throwIfNoPermission } from "./throw-if-no-permission";
 
 const schema = z.object({
   workspaceId: z.string(),

@@ -10,8 +10,8 @@ import ProgramInvite from "@dub/email/templates/program-invite";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { getProgramOrThrow } from "../../api/programs/get-program-or-throw";
-import { throwIfNoPermission } from "../throw-if-no-permission";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 export const invitePartnerAction = authActionClient
   .inputSchema(invitePartnerSchema)

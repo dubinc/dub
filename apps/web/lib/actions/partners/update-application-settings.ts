@@ -4,8 +4,8 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { prisma } from "@dub/prisma";
 import { Category } from "@dub/prisma/client";
 import * as z from "zod/v4";
-import { throwIfNoPermission } from "../throw-if-no-permission";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 const schema = z.object({
   workspaceId: z.string(),

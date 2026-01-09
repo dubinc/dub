@@ -4,8 +4,8 @@ import { ToltApi } from "@/lib/tolt/api";
 import { toltImporter } from "@/lib/tolt/importer";
 import { ToltProgram } from "@/lib/tolt/types";
 import * as z from "zod/v4";
-import { throwIfNoPermission } from "../throw-if-no-permission";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 const schema = z.object({
   workspaceId: z.string(),

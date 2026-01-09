@@ -7,8 +7,8 @@ import { triggerWorkflows } from "@/lib/cron/qstash-workflow";
 import { bulkApprovePartnersSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
-import { throwIfNoPermission } from "../throw-if-no-permission";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 // Approve partners applications in bulk
 export const bulkApprovePartnersAction = authActionClient

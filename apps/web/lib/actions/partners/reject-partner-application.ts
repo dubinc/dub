@@ -11,8 +11,8 @@ import {
 import { prisma } from "@dub/prisma";
 import { FraudRuleType, ProgramEnrollmentStatus } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
-import { throwIfNoPermission } from "../throw-if-no-permission";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 // Reject a pending partner application
 export const rejectPartnerApplicationAction = authActionClient

@@ -5,8 +5,8 @@ import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { webhookCache } from "../webhook/cache";
 import { toggleWebhooksForWorkspace } from "../webhook/update-webhook";
-import { throwIfNoPermission } from "./throw-if-no-permission";
 import { authActionClient } from "./safe-action";
+import { throwIfNoPermission } from "./throw-if-no-permission";
 
 const schema = z.object({
   workspaceId: z.string(),

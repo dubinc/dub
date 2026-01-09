@@ -5,8 +5,8 @@ import { ComponentDividerSpacingSize } from "@team-plain/typescript-sdk";
 import * as z from "zod/v4";
 import { createPlainThread } from "../plain/create-plain-thread";
 import { ratelimit } from "../upstash";
-import { throwIfNoPermission } from "./throw-if-no-permission";
 import { authActionClient } from "./safe-action";
+import { throwIfNoPermission } from "./throw-if-no-permission";
 
 const schema = z.object({
   message: z.string().max(1000),

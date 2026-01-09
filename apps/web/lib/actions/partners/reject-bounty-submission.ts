@@ -11,8 +11,8 @@ import { sendEmail } from "@dub/email";
 import BountyRejected from "@dub/email/templates/bounty-rejected";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
-import { throwIfNoPermission } from "../throw-if-no-permission";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 // Reject a bounty submission
 export const rejectBountySubmissionAction = authActionClient

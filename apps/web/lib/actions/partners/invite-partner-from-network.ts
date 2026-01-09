@@ -12,8 +12,8 @@ import ProgramNetworkInvite from "@dub/email/templates/program-network-invite";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { getProgramOrThrow } from "../../api/programs/get-program-or-throw";
-import { throwIfNoPermission } from "../throw-if-no-permission";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 export const invitePartnerFromNetworkAction = authActionClient
   .inputSchema(invitePartnerFromNetworkSchema)

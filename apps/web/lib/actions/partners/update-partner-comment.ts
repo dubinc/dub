@@ -6,8 +6,8 @@ import {
   PartnerCommentSchema,
   updatePartnerCommentSchema,
 } from "../../zod/schemas/programs";
-import { throwIfNoPermission } from "../throw-if-no-permission";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 // Update a partner comment
 export const updatePartnerCommentAction = authActionClient

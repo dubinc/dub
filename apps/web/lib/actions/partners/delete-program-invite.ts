@@ -5,8 +5,8 @@ import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { prisma } from "@dub/prisma";
 import * as z from "zod/v4";
-import { throwIfNoPermission } from "../throw-if-no-permission";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 const deleteProgramInviteSchema = z.object({
   workspaceId: z.string(),

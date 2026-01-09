@@ -28,8 +28,8 @@ import { APP_DOMAIN_WITH_NGROK, nanoid, prettyPrint } from "@dub/utils";
 import { COUNTRIES_TO_CONTINENTS } from "@dub/utils/src";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
-import { throwIfNoPermission } from "../throw-if-no-permission";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 const leadEventSchemaTBWithTimestamp = leadEventSchemaTB.extend({
   timestamp: z.string(),

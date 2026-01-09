@@ -3,8 +3,8 @@
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { prisma } from "@dub/prisma";
 import { deletePartnerCommentSchema } from "../../zod/schemas/programs";
-import { throwIfNoPermission } from "../throw-if-no-permission";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 // Delete a partner comment
 export const deletePartnerCommentAction = authActionClient

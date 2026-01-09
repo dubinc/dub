@@ -3,8 +3,8 @@
 import { prisma } from "@dub/prisma";
 import FirecrawlApp from "@mendable/firecrawl-js";
 import * as z from "zod/v4";
-import { throwIfNoPermission } from "./throw-if-no-permission";
 import { authActionClient } from "./safe-action";
+import { throwIfNoPermission } from "./throw-if-no-permission";
 
 const getExpectedScriptForWorkspace = (store: Record<string, any>) => {
   const {

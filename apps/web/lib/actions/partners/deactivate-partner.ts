@@ -11,8 +11,8 @@ import PartnerDeactivated from "@dub/email/templates/partner-deactivated";
 import { prisma } from "@dub/prisma";
 import { ProgramEnrollmentStatus } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
-import { throwIfNoPermission } from "../throw-if-no-permission";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 // Deactivate a partner
 export const deactivatePartnerAction = authActionClient

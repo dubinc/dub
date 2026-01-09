@@ -7,8 +7,8 @@ import { PartnerStackApi } from "@/lib/partnerstack/api";
 import { partnerStackImporter } from "@/lib/partnerstack/importer";
 import { partnerStackCredentialsSchema } from "@/lib/partnerstack/schemas";
 import * as z from "zod/v4";
-import { throwIfNoPermission } from "../throw-if-no-permission";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 const schema = partnerStackCredentialsSchema.extend({
   workspaceId: z.string(),

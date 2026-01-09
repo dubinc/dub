@@ -1,7 +1,6 @@
 import { prisma } from "@dub/prisma";
 import { createSafeActionClient } from "next-safe-action";
 import { after } from "next/server";
-import * as z from "zod/v4";
 import { normalizeWorkspaceId } from "../api/workspaces/workspace-id";
 import { getSession } from "../auth";
 import { logger } from "../axiom/server";

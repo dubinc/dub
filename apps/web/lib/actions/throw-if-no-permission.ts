@@ -1,5 +1,8 @@
 import { WorkspaceRole } from "@dub/prisma/client";
-import { getPermissionsByRole, PermissionAction } from "../api/rbac/permissions";
+import {
+  getPermissionsByRole,
+  PermissionAction,
+} from "../api/rbac/permissions";
 
 /**
  * Server action variant: Throws an error if the user's role doesn't have the required permission(s)

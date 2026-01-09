@@ -1,9 +1,9 @@
 "use client";
 
-import { WORKSPACE_ROLES } from "@/lib/workspace-roles";
 import { clientAccessCheck } from "@/lib/client-access-check";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { WorkspaceUserProps } from "@/lib/types";
+import { WORKSPACE_ROLES } from "@/lib/workspace-roles";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { useInviteCodeModal } from "@/ui/modals/invite-code-modal";

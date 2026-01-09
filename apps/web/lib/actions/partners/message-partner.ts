@@ -14,8 +14,8 @@ import {
   MessageSchema,
   messagePartnerSchema,
 } from "../../zod/schemas/messages";
-import { throwIfNoPermission } from "../throw-if-no-permission";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 const schema = messagePartnerSchema.extend({
   workspaceId: z.string(),

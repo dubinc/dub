@@ -16,8 +16,8 @@ import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, truncate } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { Stripe } from "stripe";
-import { throwIfNoPermission } from "../throw-if-no-permission";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 const stripe = stripeAppClient({
   ...(process.env.VERCEL_ENV && { mode: "live" }),

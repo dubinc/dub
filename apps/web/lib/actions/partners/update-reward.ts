@@ -11,8 +11,8 @@ import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { revalidatePath } from "next/cache";
-import { throwIfNoPermission } from "../throw-if-no-permission";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 export const updateRewardAction = authActionClient
   .inputSchema(updateRewardSchema)

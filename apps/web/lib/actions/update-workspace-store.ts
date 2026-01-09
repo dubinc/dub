@@ -3,8 +3,8 @@
 import { prisma } from "@dub/prisma";
 import * as z from "zod/v4";
 import { workspaceStoreKeys } from "../zod/schemas/workspaces";
-import { throwIfNoPermission } from "./throw-if-no-permission";
 import { authActionClient } from "./safe-action";
+import { throwIfNoPermission } from "./throw-if-no-permission";
 
 const updateWorkspaceStoreSchema = z.object({
   workspaceId: z.string(),

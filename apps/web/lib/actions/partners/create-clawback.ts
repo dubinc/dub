@@ -4,8 +4,8 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import { createClawbackSchema } from "@/lib/zod/schemas/commissions";
-import { throwIfNoPermission } from "../throw-if-no-permission";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 export const createClawbackAction = authActionClient
   .inputSchema(createClawbackSchema)
