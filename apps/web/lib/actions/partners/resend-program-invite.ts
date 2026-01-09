@@ -7,6 +7,7 @@ import { sendEmail } from "@dub/email";
 import ProgramInvite from "@dub/email/templates/program-invite";
 import { prisma } from "@dub/prisma";
 import * as z from "zod/v4";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 import { authActionClient } from "../safe-action";
 
 const resendProgramInviteSchema = z.object({
@@ -19,6 +20,12 @@ export const resendProgramInviteAction = authActionClient
   .action(async ({ parsedInput, ctx }) => {
     const { partnerId } = parsedInput;
     const { workspace, user } = ctx;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredPermissions: ["workspaces.write"],
+      customMessage: "You don't have permission to resend program invites.",
+    });
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 

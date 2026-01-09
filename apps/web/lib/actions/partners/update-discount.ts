@@ -10,6 +10,7 @@ import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { revalidatePath } from "next/cache";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 import { authActionClient } from "../safe-action";
 
 export const updateDiscountAction = authActionClient
@@ -17,6 +18,12 @@ export const updateDiscountAction = authActionClient
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { discountId, couponTestId } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredPermissions: ["workspaces.write"],
+      customMessage: "You don't have permission to update discounts.",
+    });
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 

@@ -10,6 +10,7 @@ import { recordLink } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 import { authActionClient } from "../safe-action";
 
 const updatePartnerEnrollmentSchema = z.object({
@@ -25,6 +26,12 @@ export const updatePartnerEnrollmentAction = authActionClient
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { partnerId, tenantId, customerDataSharingEnabledAt } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredPermissions: ["workspaces.write"],
+      customMessage: "You don't have permission to update partner enrollment.",
+    });
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 

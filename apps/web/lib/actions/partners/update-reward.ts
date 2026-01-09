@@ -11,6 +11,7 @@ import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { revalidatePath } from "next/cache";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 import { authActionClient } from "../safe-action";
 
 export const updateRewardAction = authActionClient
@@ -27,6 +28,12 @@ export const updateRewardAction = authActionClient
       modifiers,
       rewardId,
     } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredPermissions: ["workspaces.write"],
+      customMessage: "You don't have permission to update rewards.",
+    });
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 

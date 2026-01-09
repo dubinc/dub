@@ -11,6 +11,7 @@ import { banPartnerSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { FraudRuleType } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 import { authActionClient } from "../safe-action";
 
 const unbanPartnerSchema = banPartnerSchema.omit({
@@ -23,6 +24,12 @@ export const unbanPartnerAction = authActionClient
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { partnerId } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredPermissions: ["workspaces.write"],
+      customMessage: "You don't have permission to unban partners.",
+    });
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 

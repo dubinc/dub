@@ -8,6 +8,7 @@ import { recordLink } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 import { authActionClient } from "../safe-action";
 
 const revokeProgramInviteSchema = z.object({
@@ -20,6 +21,12 @@ export const revokeProgramInviteAction = authActionClient
   .action(async ({ parsedInput, ctx }) => {
     const { partnerId } = parsedInput;
     const { workspace } = ctx;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredPermissions: ["workspaces.write"],
+      customMessage: "You don't have permission to revoke program invites.",
+    });
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 

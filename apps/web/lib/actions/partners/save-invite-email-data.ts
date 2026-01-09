@@ -4,6 +4,7 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { sanitizeMarkdown } from "@/lib/partners/sanitize-markdown";
 import { prisma } from "@dub/prisma";
 import * as z from "zod/v4";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 import { authActionClient } from "../safe-action";
 
 const saveInviteEmailDataSchema = z.object({
@@ -18,6 +19,12 @@ export const saveInviteEmailDataAction = authActionClient
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
     const { subject, title, body } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredPermissions: ["workspaces.write"],
+      customMessage: "You don't have permission to save invite email data.",
+    });
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 

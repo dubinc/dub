@@ -16,6 +16,7 @@ import { isFulfilled, isRejected, nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { revalidatePath } from "next/cache";
 import * as z from "zod/v4";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 import { authActionClient } from "../safe-action";
 
 const schema = z.object({
@@ -42,6 +43,12 @@ export const updateGroupBrandingAction = authActionClient
       landerData: landerDataInputRaw,
       unpublish,
     } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredPermissions: ["workspaces.write"],
+      customMessage: "You don't have permission to update group branding.",
+    });
 
     const programId = getDefaultProgramIdOrThrow(workspace);
     const group = await getGroupOrThrow({

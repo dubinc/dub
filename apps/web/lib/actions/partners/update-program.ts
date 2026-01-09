@@ -8,6 +8,7 @@ import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { getProgramOrThrow } from "../../api/programs/get-program-or-throw";
 import { ProgramSchema, updateProgramSchema } from "../../zod/schemas/programs";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 import { authActionClient } from "../safe-action";
 
 const schema = updateProgramSchema.partial().extend({
@@ -26,6 +27,12 @@ export const updateProgramAction = authActionClient
       minPayoutAmount,
       messagingEnabledAt,
     } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredPermissions: ["workspaces.write"],
+      customMessage: "You don't have permission to update programs.",
+    });
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 

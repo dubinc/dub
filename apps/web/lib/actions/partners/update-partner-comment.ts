@@ -6,6 +6,7 @@ import {
   PartnerCommentSchema,
   updatePartnerCommentSchema,
 } from "../../zod/schemas/programs";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 import { authActionClient } from "../safe-action";
 
 // Update a partner comment
@@ -14,6 +15,12 @@ export const updatePartnerCommentAction = authActionClient
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { id, text } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredPermissions: ["messages.write"],
+      customMessage: "You don't have permission to update partner comments.",
+    });
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
