@@ -1,7 +1,6 @@
 "use client";
 
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
-import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
@@ -41,11 +40,11 @@ import {
 import { Command } from "cmdk";
 import { Package } from "lucide-react";
 import { motion } from "motion/react";
-import { Fragment, useContext, useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { useFieldArray, useWatch } from "react-hook-form";
 import {
   InlineBadgePopover,
-  InlineBadgePopoverContext,
+  InlineBadgePopoverAmountInput,
   InlineBadgePopoverInput,
   InlineBadgePopoverInputs,
   InlineBadgePopoverMenu,
@@ -797,43 +796,17 @@ function AmountInput({
   type: "currency" | "percentage" | "number";
 }) {
   const { register } = useAddEditRewardForm();
-  const { setIsOpen } = useContext(InlineBadgePopoverContext);
 
   return (
-    <div className="relative rounded-md shadow-sm">
-      {type === "currency" && (
-        <span className="absolute inset-y-0 left-0 flex items-center pl-1.5 text-sm text-neutral-400">
-          $
-        </span>
-      )}
-      <input
-        className={cn(
-          "block w-full rounded-md border-neutral-300 px-1.5 py-1 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:w-32 sm:text-sm",
-          type === "currency" && "pl-4 pr-12",
-          type === "percentage" && "pr-7",
-        )}
-        {...register(fieldKey, {
-          required: true,
-          setValueAs: (value: string) => (value === "" ? undefined : +value),
-          min: 0,
-          max: type === "percentage" ? 100 : undefined,
-          onChange: handleMoneyInputChange,
-        })}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            e.preventDefault();
-            setIsOpen(false);
-          }
-
-          handleMoneyKeyDown(e);
-        }}
-      />
-      {["currency", "percentage"].includes(type) && (
-        <span className="absolute inset-y-0 right-0 flex items-center pr-1.5 text-sm text-neutral-400">
-          {type === "currency" ? "USD" : "%"}
-        </span>
-      )}
-    </div>
+    <InlineBadgePopoverAmountInput
+      type={type}
+      {...register(fieldKey, {
+        required: true,
+        setValueAs: (value: string) => (value === "" ? undefined : +value),
+        min: 0,
+        max: type === "percentage" ? 100 : undefined,
+      })}
+    />
   );
 }
 

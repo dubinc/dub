@@ -1,54 +1,131 @@
-import {
-  WorkflowCondition,
-  WorkflowConditionAttribute,
-  WorkflowContext,
-} from "@/lib/types";
-import {
-  OPERATOR_FUNCTIONS,
-  WORKFLOW_ACTION_TYPES,
-} from "@/lib/zod/schemas/workflows";
+import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
+import { WorkflowConditionAttribute, WorkflowContext } from "@/lib/types";
+import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
 import { prisma } from "@dub/prisma";
-import { WorkflowTrigger } from "@dub/prisma/client";
+import { Workflow } from "@dub/prisma/client";
 import { executeCompleteBountyWorkflow } from "./execute-complete-bounty-workflow";
+import { executeMoveGroupWorkflow } from "./execute-move-group-workflow";
 import { executeSendCampaignWorkflow } from "./execute-send-campaign-workflow";
 import { parseWorkflowConfig } from "./parse-workflow-config";
-import { isScheduledWorkflow } from "./utils";
+
+interface WorkflowActionHandler {
+  execute(params: {
+    workflow: Workflow;
+    context: WorkflowContext;
+  }): Promise<void>;
+}
+
+const ACTION_HANDLERS: Record<WORKFLOW_ACTION_TYPES, WorkflowActionHandler> = {
+  [WORKFLOW_ACTION_TYPES.AwardBounty]: {
+    execute: executeCompleteBountyWorkflow,
+  },
+
+  [WORKFLOW_ACTION_TYPES.SendCampaign]: {
+    execute: executeSendCampaignWorkflow,
+  },
+
+  [WORKFLOW_ACTION_TYPES.MoveGroup]: {
+    execute: executeMoveGroupWorkflow,
+  },
+};
+
+// Map reason to expected attributes for early filtering optimization.
+// This prevents workflows from executing unnecessarily
+const REASON_TO_ATTRIBUTES: Record<
+  NonNullable<WorkflowContext["reason"]>,
+  WorkflowConditionAttribute[]
+> = {
+  lead: ["totalLeads"],
+  sale: ["totalConversions", "totalSaleAmount"],
+  commission: ["totalCommissions"],
+};
 
 export async function executeWorkflows({
   trigger,
-  context,
-}: {
-  trigger: WorkflowTrigger;
-  context: WorkflowContext;
-}) {
-  const { programId, partnerId } = context;
+  reason,
+  identity,
+  metrics,
+}: WorkflowContext) {
+  const { programId, partnerId } = identity;
 
-  // Find the workflows for the program
-  const workflows = await prisma.workflow.findMany({
+  let workflows = await prisma.workflow.findMany({
     where: {
       programId,
-      trigger,
       disabledAt: null,
+      trigger,
     },
   });
 
   if (workflows.length === 0) {
+    console.log(
+      `No workflows found to execute for trigger ${trigger} and reason ${reason}.`,
+    );
     return;
   }
 
-  // Find the program enrollment for the partner
-  const programEnrollment = await prisma.programEnrollment.findUnique({
-    where: {
-      partnerId_programId: {
-        partnerId,
-        programId,
-      },
-    },
-    select: {
-      partnerId: true,
-      groupId: true,
-    },
+  if (reason) {
+    workflows = workflows.filter((workflow) => {
+      const { conditions } = parseWorkflowConfig(workflow);
+      const expectedAttributes = REASON_TO_ATTRIBUTES[reason];
+      return conditions.some(({ attribute }) =>
+        expectedAttributes.includes(attribute),
+      );
+    });
+
+    if (workflows.length === 0) {
+      console.log(
+        `No relevant workflows found to execute for trigger ${trigger} and reason ${reason}.`,
+      );
+      return;
+    }
+  }
+
+  // Commissions require a separate expensive aggregate query.
+  // We only fetch if needed to avoid unnecessary database queries.
+  const shouldFetchCommissions = workflows.some((w) => {
+    const { conditions } = parseWorkflowConfig(w);
+    return conditions.some((c) => c.attribute === "totalCommissions");
   });
+
+  const [programEnrollment, totalCommissions] = await Promise.all([
+    prisma.programEnrollment.findUnique({
+      where: {
+        partnerId_programId: {
+          partnerId,
+          programId,
+        },
+      },
+      select: {
+        partnerId: true,
+        groupId: true,
+        links: {
+          select: {
+            clicks: true,
+            leads: true,
+            conversions: true,
+            sales: true,
+            saleAmount: true,
+          },
+        },
+      },
+    }),
+
+    shouldFetchCommissions
+      ? prisma.commission.aggregate({
+          where: {
+            earnings: { not: 0 },
+            programId,
+            partnerId,
+            status: {
+              in: ["pending", "processed", "paid"],
+            },
+          },
+          _sum: {
+            earnings: true,
+          },
+        })
+      : Promise.resolve({ _sum: { earnings: null } }),
+  ]);
 
   if (!programEnrollment) {
     console.error(
@@ -64,67 +141,48 @@ export async function executeWorkflows({
     return;
   }
 
-  // Final context for the workflow
+  const { totalLeads, totalSaleAmount, totalConversions } =
+    aggregatePartnerLinksStats(programEnrollment.links);
+
   const workflowContext: WorkflowContext = {
-    ...context,
-    groupId: programEnrollment.groupId,
+    trigger,
+    reason,
+    identity: {
+      ...identity,
+      groupId: programEnrollment.groupId,
+    },
+    metrics: {
+      ...metrics,
+      aggregated: {
+        leads: totalLeads,
+        conversions: totalConversions,
+        saleAmount: totalSaleAmount,
+        commissions: totalCommissions._sum.earnings ?? 0,
+      },
+    },
   };
 
-  // Execute each workflow for the program
   for (const workflow of workflows) {
-    const { action } = parseWorkflowConfig(workflow);
+    try {
+      const { action } = parseWorkflowConfig(workflow);
 
-    switch (action.type) {
-      case WORKFLOW_ACTION_TYPES.AwardBounty: {
-        await executeCompleteBountyWorkflow({
-          workflow,
-          context: workflowContext,
-        });
-
-        break;
+      if (!action) {
+        continue;
       }
 
-      case WORKFLOW_ACTION_TYPES.SendCampaign: {
-        if (!isScheduledWorkflow(workflow)) {
-          await executeSendCampaignWorkflow({
-            workflow,
-            context: workflowContext,
-          });
-        }
+      const handler = ACTION_HANDLERS[action.type];
 
-        break;
+      if (!handler) {
+        throw new Error(`Unsupported workflow action ${action.type}`);
       }
+
+      await handler.execute({
+        workflow,
+        context: workflowContext,
+      });
+    } catch (error) {
+      console.error(`Failed to execute workflow ${workflow.id}:`, error);
+      continue;
     }
   }
-}
-
-export function evaluateWorkflowCondition({
-  condition,
-  attributes,
-}: {
-  condition: WorkflowCondition;
-  attributes: Partial<Record<WorkflowConditionAttribute, number | null>>;
-}) {
-  console.log("Evaluating the workflow condition:", {
-    condition,
-    attributes,
-  });
-
-  const operatorFn = OPERATOR_FUNCTIONS[condition.operator];
-
-  if (!operatorFn) {
-    throw new Error(
-      `Operator ${condition.operator} is not supported in the workflow trigger condition.`,
-    );
-  }
-
-  const attributeValue = attributes[condition.attribute];
-
-  // If the attribute is not provided in context, return false
-  if (attributeValue === undefined || attributeValue === null) {
-    console.error(`${condition.attribute} doesn't exist in the context.`);
-    return false;
-  }
-
-  return operatorFn(attributeValue, condition.value);
 }
