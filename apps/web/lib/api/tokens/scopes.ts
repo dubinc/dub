@@ -34,7 +34,7 @@ export const RESOURCE_SCOPES: {
 }[] = [
   {
     scope: "links.read",
-    roles: ["owner", "member"],
+    roles: ["owner", "member", "viewer", "billing"],
     permissions: ["links.read"],
     type: "read",
     resource: "links",
@@ -48,7 +48,7 @@ export const RESOURCE_SCOPES: {
   },
   {
     scope: "tags.read",
-    roles: ["owner", "member"],
+    roles: ["owner", "member", "viewer", "billing"],
     permissions: ["tags.read"],
     type: "read",
     resource: "tags",
@@ -62,7 +62,7 @@ export const RESOURCE_SCOPES: {
   },
   {
     scope: "folders.read",
-    roles: ["owner", "member"],
+    roles: ["owner", "member", "viewer", "billing"],
     permissions: ["folders.read"],
     type: "read",
     resource: "folders",
@@ -76,7 +76,7 @@ export const RESOURCE_SCOPES: {
   },
   {
     scope: "domains.read",
-    roles: ["owner", "member"],
+    roles: ["owner", "member", "viewer", "billing"],
     permissions: ["domains.read"],
     type: "read",
     resource: "domains",
@@ -90,7 +90,7 @@ export const RESOURCE_SCOPES: {
   },
   {
     scope: "groups.read",
-    roles: ["owner", "member"],
+    roles: ["owner", "member", "viewer", "billing"],
     permissions: ["groups.read"],
     type: "read",
     resource: "groups",
@@ -104,7 +104,7 @@ export const RESOURCE_SCOPES: {
   },
   {
     scope: "workspaces.read",
-    roles: ["owner", "member"],
+    roles: ["owner", "member", "viewer", "billing"],
     permissions: ["workspaces.read"],
     type: "read",
     resource: "workspaces",
@@ -118,14 +118,14 @@ export const RESOURCE_SCOPES: {
   },
   {
     scope: "analytics.read",
-    roles: ["owner", "member"],
+    roles: ["owner", "member", "viewer", "billing"],
     permissions: ["analytics.read"],
     type: "read",
     resource: "analytics",
   },
   {
     scope: "webhooks.read",
-    roles: ["owner", "member"],
+    roles: ["owner", "member", "viewer", "billing"],
     permissions: ["webhooks.read"],
     type: "read",
     resource: "webhooks",
@@ -139,7 +139,7 @@ export const RESOURCE_SCOPES: {
   },
   {
     scope: "apis.read",
-    roles: ["owner", "member"],
+    roles: ["owner", "member", "viewer", "billing"],
     permissions: [
       "links.read",
       "tags.read",

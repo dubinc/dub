@@ -8,6 +8,7 @@ export const RESOURCE_KEYS = [
   "tokens",
   "webhooks",
   "groups",
+  "payment_methods",
 ] as const;
 
 export type ResourceKey = (typeof RESOURCE_KEYS)[number];
@@ -46,5 +47,10 @@ export const RESOURCES: {
     name: "Folders",
     key: "folders",
     description: "Create, read, update, and delete folders",
+  },
+  {
+    name: "Payment Methods",
+    key: "payment_methods",
+    description: "Read and manage payment methods",
   },
 ];

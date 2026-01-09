@@ -5,6 +5,7 @@ import { getEligiblePayouts } from "@/lib/api/payouts/get-eligible-payouts";
 import { getPayoutEligibilityFilter } from "@/lib/api/payouts/payout-eligibility-filter";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
+import { getPermissionsByRole } from "@/lib/api/rbac/permissions";
 import {
   CUTOFF_PERIOD_MAX_PAYOUTS,
   INVOICE_MIN_PAYOUT_AMOUNT_CENTS,
@@ -56,8 +57,9 @@ export const confirmPayoutsAction = authActionClient
       programId,
     });
 
-    if (workspace.role !== "owner") {
-      throw new Error("Only workspace owners can confirm payouts.");
+    const permissions = getPermissionsByRole(workspace.role);
+    if (!permissions.includes("payouts.write")) {
+      throw new Error("You don't have permission to confirm payouts.");
     }
 
     if (!workspace.stripeId) {

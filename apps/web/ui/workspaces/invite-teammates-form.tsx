@@ -1,10 +1,11 @@
+import { WORKSPACE_ROLES } from "@/lib/workspace-roles";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Invite } from "@/lib/zod/schemas/invites";
 import { WorkspaceRole } from "@dub/prisma/client";
 import { Button, useMediaQuery, useRouterStuff } from "@dub/ui";
 import { Trash } from "@dub/ui/icons";
-import { capitalize, cn, pluralize } from "@dub/utils";
+import { cn, pluralize } from "@dub/utils";
 import { Plus } from "lucide-react";
 import posthog from "posthog-js";
 import { useFieldArray, useForm } from "react-hook-form";
@@ -140,9 +141,9 @@ export function InviteTeammatesForm({
                   defaultValue="member"
                   className="rounded-r-md border border-l-0 border-neutral-300 bg-white pl-4 pr-8 text-neutral-600 focus:border-neutral-300 focus:outline-none focus:ring-0 sm:text-sm"
                 >
-                  {["owner", "member"].map((role) => (
-                    <option key={role} value={role}>
-                      {capitalize(role)}
+                  {WORKSPACE_ROLES.map(({ value, label }) => (
+                    <option key={value} value={value}>
+                      {label}
                     </option>
                   ))}
                 </select>

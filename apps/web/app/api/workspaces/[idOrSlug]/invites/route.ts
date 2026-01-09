@@ -9,7 +9,7 @@ import {
   workspaceUserSchema,
 } from "@/lib/zod/schemas/workspaces";
 import { prisma } from "@dub/prisma";
-import { PartnerRole } from "@dub/prisma/client";
+import { WorkspaceRole } from "@dub/prisma/client";
 import { pluralize } from "@dub/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
@@ -165,7 +165,7 @@ export const POST = withWorkspace(
 
 const updateInviteRoleSchema = z.object({
   email: z.email(),
-  role: z.enum(PartnerRole),
+  role: z.enum(WorkspaceRole),
 });
 
 // PATCH /api/workspaces/[idOrSlug]/invites - update an invite's role

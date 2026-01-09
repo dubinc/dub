@@ -52,9 +52,7 @@ export const GET = withWorkspace(
 
 const updateRoleSchema = z.object({
   userId: z.string().min(1),
-  role: z.enum(WorkspaceRole, {
-    error: `Role must be either "owner" or "member".`,
-  }),
+  role: z.enum(WorkspaceRole),
 });
 
 // PATCH /api/workspaces/[idOrSlug]/users – update a user's role for a specific workspace

@@ -1,5 +1,6 @@
 "use client";
 
+import { WORKSPACE_ROLES } from "@/lib/workspace-roles";
 import { clientAccessCheck } from "@/lib/client-access-check";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { WorkspaceUserProps } from "@/lib/types";
@@ -10,7 +11,7 @@ import { useInviteWorkspaceUserModal } from "@/ui/modals/invite-workspace-user-m
 import { useRemoveWorkspaceUserModal } from "@/ui/modals/remove-workspace-user-modal";
 import { useWorkspaceUserRoleModal } from "@/ui/modals/update-workspace-user-role";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
-import { PartnerRole } from "@dub/prisma/client";
+import { WorkspaceRole } from "@dub/prisma/client";
 import {
   Avatar,
   Button,
@@ -29,9 +30,7 @@ import {
   EnvelopeArrowRight,
   Icon,
   Link4 as LinkIcon,
-  User,
   UserCheck,
-  UserCrown,
 } from "@dub/ui/icons";
 import { cn, fetcher, timeAgo } from "@dub/utils";
 import { ColumnDef, Row } from "@tanstack/react-table";
@@ -56,7 +55,7 @@ export default function WorkspacePeopleClient() {
   const { pagination, setPagination } = usePagination();
 
   const status = searchParams.get("status") as "active" | "invited" | null;
-  const roleFilter = searchParams.get("role") as PartnerRole | null;
+  const roleFilter = searchParams.get("role") as WorkspaceRole | null;
   const search = searchParams.get("search");
 
   const {
@@ -86,10 +85,11 @@ export default function WorkspacePeopleClient() {
         key: "role",
         icon: UserCheck,
         label: "Role",
-        options: [
-          { value: "owner", label: "Owner", icon: UserCrown },
-          { value: "member", label: "Member", icon: User },
-        ],
+        options: WORKSPACE_ROLES.map(({ value, label, icon }) => ({
+          value,
+          label,
+          icon,
+        })),
       },
       {
         key: "status",
@@ -305,7 +305,7 @@ function RoleCell({
   isCurrentUser: boolean;
   isCurrentUserOwner: boolean;
 }) {
-  const [role, setRole] = useState<PartnerRole>(user.role);
+  const [role, setRole] = useState<WorkspaceRole>(user.role);
 
   useEffect(() => {
     setRole(user.role);
@@ -324,7 +324,7 @@ function RoleCell({
         hasPassword: false,
         provider: null,
       },
-      role: role as "owner" | "member",
+      role,
     });
 
   const isDisabled =
@@ -344,7 +344,7 @@ function RoleCell({
         value={role}
         disabled={isDisabled}
         onChange={(e) => {
-          const newRole = e.target.value as PartnerRole;
+          const newRole = e.target.value as WorkspaceRole;
           setRole(newRole);
           setShowWorkspaceUserRoleModal(true);
         }}
@@ -356,8 +356,11 @@ function RoleCell({
               : undefined
         }
       >
-        <option value="owner">Owner</option>
-        <option value="member">Member</option>
+        {WORKSPACE_ROLES.map(({ value, label }) => (
+          <option key={value} value={value}>
+            {label}
+          </option>
+        ))}
       </select>
     </>
   );
