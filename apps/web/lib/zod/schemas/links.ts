@@ -4,6 +4,7 @@ import * as z from "zod/v4";
 import {
   base64ImageSchema,
   booleanQuerySchema,
+  getCursorPaginationQuerySchema,
   getPaginationQuerySchema,
   publicHostedImageSchema,
 } from "./misc";
@@ -28,6 +29,7 @@ export const getDomainQuerySchema = z.object({
 
 export const MIN_TEST_PERCENTAGE = 10;
 export const MAX_TEST_COUNT = 4;
+export const LINKS_MAX_PAGE_SIZE = 100;
 
 export const ABTestVariantsSchema = z
   .array(
@@ -166,7 +168,15 @@ export const getLinksQuerySchemaBase = LinksQuerySchema.extend({
   sort: sortBy
     .meta({ deprecated: true })
     .describe("DEPRECATED. Use `sortBy` instead."),
-}).extend(getPaginationQuerySchema({ pageSize: 100 }));
+}).extend({
+  ...getCursorPaginationQuerySchema({
+    example: "link_1KAP4CDPBSVMMBMH9XX3YZZ0Z...",
+  }),
+  ...getPaginationQuerySchema({
+    pageSize: LINKS_MAX_PAGE_SIZE,
+    deprecated: true,
+  }),
+});
 
 export const getLinksCountQuerySchema = LinksQuerySchema.extend({
   groupBy: z

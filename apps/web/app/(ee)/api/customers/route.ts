@@ -1,6 +1,7 @@
 import { createId } from "@/lib/api/create-id";
 import { transformCustomer } from "@/lib/api/customers/transform-customer";
 import { DubApiError } from "@/lib/api/errors";
+import { getPaginationOptions } from "@/lib/api/pagination";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
@@ -21,6 +22,8 @@ import { NextResponse } from "next/server";
 // GET /api/customers – Get all customers
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
+    const filters = getCustomersQuerySchemaExtended.parse(searchParams);
+
     let {
       email,
       externalId,
@@ -30,12 +33,8 @@ export const GET = withWorkspace(
       programId,
       partnerId,
       includeExpandedFields,
-      page,
-      pageSize,
       customerIds,
-      sortBy,
-      sortOrder,
-    } = getCustomersQuerySchemaExtended.parse(searchParams);
+    } = filters;
 
     if (programId || partnerId) {
       programId = getDefaultProgramIdOrThrow(workspace);
@@ -74,11 +73,7 @@ export const GET = withWorkspace(
           linkId,
         }),
       },
-      orderBy: {
-        [sortBy]: sortOrder,
-      },
-      skip: (page - 1) * pageSize,
-      take: pageSize,
+      ...getPaginationOptions(filters),
       ...(includeExpandedFields
         ? {
             include: {
