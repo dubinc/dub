@@ -39,8 +39,8 @@
   "earningsPerClick": 25,
   "averageLifetimeValue": null,
   "clickToLeadRate": 0.7,
-  "clickToConversionRate": 0.7,
-  "leadToConversionRate": 1.0,
+  "clickToConversionRate": 0.1,
+  "leadToConversionRate": 0.142857,
   "returnOnAdSpend": null,
   "links": [
     {
