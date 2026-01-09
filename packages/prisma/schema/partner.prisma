@@ -79,6 +79,7 @@ model Partner {
   preferredEarningStructures PartnerPreferredEarningStructure[]
   salesChannels              PartnerSalesChannel[]
   discoveredByPrograms       DiscoveredPartner[]
+  programPartnerTags         ProgramPartnerTag[]
   fraudEventGroups           FraudEventGroup[]
   fraudEvents                FraudEvent[]
   partnerRewinds             PartnerRewind[]
