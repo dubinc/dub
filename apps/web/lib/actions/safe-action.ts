@@ -1,6 +1,7 @@
 import { prisma } from "@dub/prisma";
 import { createSafeActionClient } from "next-safe-action";
 import { after } from "next/server";
+import * as z from "zod/v4";
 import { normalizeWorkspaceId } from "../api/workspaces/workspace-id";
 import { getSession } from "../auth";
 import { logger } from "../axiom/server";
@@ -36,6 +37,7 @@ export const authUserActionClient = actionClient.use(async ({ next }) => {
   });
 });
 
+// Workspace users
 export const authActionClient = actionClient.use(
   async ({ next, clientInput }) => {
     const session = await getSession();
@@ -87,6 +89,7 @@ export const authActionClient = actionClient.use(
   },
 );
 
+// Partner users
 export const authPartnerActionClient = actionClient.use(async ({ next }) => {
   const session = await getSession();
 

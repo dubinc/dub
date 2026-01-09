@@ -6,6 +6,7 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 import { authActionClient } from "../safe-action";
 
 const markCommissionFraudOrCanceledSchema = z.object({
@@ -20,6 +21,13 @@ export const markCommissionFraudOrCanceledAction = authActionClient
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { commissionId, status } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredPermissions: ["workspaces.write"],
+      customMessage:
+        "You don't have permission to mark commissions as fraud or canceled.",
+    });
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 

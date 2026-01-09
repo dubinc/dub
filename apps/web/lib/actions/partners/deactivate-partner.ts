@@ -11,6 +11,7 @@ import PartnerDeactivated from "@dub/email/templates/partner-deactivated";
 import { prisma } from "@dub/prisma";
 import { ProgramEnrollmentStatus } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 import { authActionClient } from "../safe-action";
 
 // Deactivate a partner
@@ -19,6 +20,12 @@ export const deactivatePartnerAction = authActionClient
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { partnerId } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredPermissions: ["workspaces.write"],
+      customMessage: "You don't have permission to deactivate partners.",
+    });
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 

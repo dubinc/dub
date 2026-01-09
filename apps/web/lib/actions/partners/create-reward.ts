@@ -14,6 +14,7 @@ import {
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 import { authActionClient } from "../safe-action";
 
 export const createRewardAction = authActionClient
@@ -31,6 +32,12 @@ export const createRewardAction = authActionClient
       modifiers,
       groupId,
     } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredPermissions: ["workspaces.write"],
+      customMessage: "You don't have permission to create rewards.",
+    });
 
     const programId = getDefaultProgramIdOrThrow(workspace);
     const { canUseAdvancedRewardLogic } = getPlanCapabilities(workspace.plan);

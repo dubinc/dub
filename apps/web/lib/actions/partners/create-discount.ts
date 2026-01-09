@@ -16,6 +16,7 @@ import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, truncate } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { Stripe } from "stripe";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 import { authActionClient } from "../safe-action";
 
 const stripe = stripeAppClient({
@@ -28,6 +29,12 @@ export const createDiscountAction = authActionClient
     const { workspace, user } = ctx;
     let { amount, type, maxDuration, couponId, couponTestId, groupId } =
       parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredPermissions: ["workspaces.write"],
+      customMessage: "You don't have permission to create discounts.",
+    });
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 

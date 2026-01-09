@@ -9,12 +9,19 @@ import { isLegacyBusinessPlan } from "@dub/utils";
 import { redirect } from "next/navigation";
 import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 import { createProgram } from "./create-program";
 
 export const onboardProgramAction = authActionClient
   .inputSchema(onboardProgramSchema)
   .action(async ({ ctx, parsedInput: data }) => {
     const { workspace, user } = ctx;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredPermissions: ["workspaces.write"],
+      customMessage: "You don't have permission to create programs.",
+    });
 
     if (workspace.defaultProgramId) {
       throw new Error(
