@@ -39,9 +39,9 @@ export default async function WorkspaceInvitePage({
         id: true,
         name: true,
         image: true,
-        projects: {
+        _count: {
           select: {
-            projectId: true,
+            projects: true,
           },
         },
       },
@@ -94,8 +94,8 @@ export default async function WorkspaceInvitePage({
     // Expired invite
     return (
       <>
-        <div className="flex items-center justify-end p-4">
-          <CloseInviteButton goToOnboarding={!user.projects.length} />
+        <div className="z-10 flex items-center justify-end p-4">
+          <CloseInviteButton goToOnboarding={user._count.projects === 0} />
         </div>
         <div className="-mt-16 flex grow flex-col items-center justify-center">
           <Hero isExpired invite={invite} user={user} />
@@ -107,7 +107,7 @@ export default async function WorkspaceInvitePage({
   return (
     <div>
       <div className="flex items-center justify-end p-4">
-        <CloseInviteButton goToOnboarding={!user.projects.length} />
+        <CloseInviteButton goToOnboarding={user._count.projects === 0} />
       </div>
       <div className="flex w-full flex-col items-center justify-center px-4 py-10">
         <Hero invite={invite} user={user} isExpired={false} />
@@ -293,7 +293,7 @@ function Hero({
   invite: Pick<ProjectInvite, "role" | "expires"> & {
     project: Pick<Project, "logo" | "name">;
   };
-  user: Pick<User, "id" | "image" | "name">;
+  user: Pick<User, "id" | "image" | "name"> & { _count: { projects: number } };
   isExpired: boolean;
 }) {
   return (
@@ -368,7 +368,10 @@ function Hero({
           {!isExpired ? (
             <AcceptInviteButton />
           ) : (
-            <CloseInviteButton variant="full" />
+            <CloseInviteButton
+              goToOnboarding={user._count.projects === 0}
+              variant="full"
+            />
           )}
         </div>
       </div>
