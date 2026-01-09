@@ -5,6 +5,7 @@ import * as z from "zod/v4";
 import { OAUTH_CONFIG } from "../api/oauth/constants";
 import { createToken } from "../api/oauth/utils";
 import { hashToken } from "../auth";
+import { throwIfNoPermission } from "./throw-if-no-permission";
 import { authActionClient } from "./safe-action";
 
 const schema = z.object({
@@ -19,9 +20,11 @@ export const generateClientSecret = authActionClient
     const { workspace } = ctx;
     const { appId } = parsedInput;
 
-    if (workspace.role !== "owner") {
-      throw new Error("You don't have permission to generate a client secret.");
-    }
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredPermissions: ["oauth_apps.write"],
+      customMessage: "You don't have permission to generate a client secret.",
+    });
 
     await prisma.integration.findFirstOrThrow({
       where: {

@@ -3,6 +3,7 @@
 import { prisma } from "@dub/prisma";
 import FirecrawlApp from "@mendable/firecrawl-js";
 import * as z from "zod/v4";
+import { throwIfNoPermission } from "./throw-if-no-permission";
 import { authActionClient } from "./safe-action";
 
 const getExpectedScriptForWorkspace = (store: Record<string, any>) => {
@@ -31,6 +32,12 @@ export const verifyWorkspaceSetup = authActionClient
   .inputSchema(schema)
   .action(async ({ ctx }) => {
     const { workspace } = ctx;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredPermissions: ["workspaces.read"],
+      customMessage: "You don't have permission to verify workspace setup.",
+    });
 
     const domains = await prisma.domain.findMany({
       where: { projectId: workspace.id },

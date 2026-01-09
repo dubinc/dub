@@ -5,6 +5,7 @@ import { ComponentDividerSpacingSize } from "@team-plain/typescript-sdk";
 import * as z from "zod/v4";
 import { createPlainThread } from "../plain/create-plain-thread";
 import { ratelimit } from "../upstash";
+import { throwIfNoPermission } from "./throw-if-no-permission";
 import { authActionClient } from "./safe-action";
 
 const schema = z.object({
@@ -19,6 +20,12 @@ export const submitOAuthAppForReview = authActionClient
   .action(async ({ ctx, parsedInput }) => {
     const { user, workspace } = ctx;
     const { message, integrationId } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredPermissions: ["oauth_apps.write"],
+      customMessage: "You don't have permission to submit OAuth apps for review.",
+    });
 
     const integration = await prisma.integration.findFirstOrThrow({
       where: {

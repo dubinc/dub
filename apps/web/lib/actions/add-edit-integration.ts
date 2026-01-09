@@ -9,6 +9,7 @@ import { deleteScreenshots } from "../integrations/utils";
 import { isStored, storage } from "../storage";
 import { createIntegrationSchema } from "../zod/schemas/integration";
 import { authActionClient } from "./safe-action";
+import { throwIfNoPermission } from "./throw-if-no-permission";
 
 export const addEditIntegration = authActionClient
   .inputSchema(
@@ -19,6 +20,14 @@ export const addEditIntegration = authActionClient
   )
   .action(async ({ parsedInput, ctx }) => {
     const { id, workspaceId, ...integration } = parsedInput;
+    const { workspace } = ctx;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredPermissions: ["oauth_apps.write"],
+      customMessage:
+        "You don't have permission to create or update OAuth integrations.",
+    });
 
     // this is only available for Dub workspace for now
     // we might open this up to other workspaces in the future

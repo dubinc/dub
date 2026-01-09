@@ -3,6 +3,7 @@
 import { prisma } from "@dub/prisma";
 import * as z from "zod/v4";
 import { workspaceStoreKeys } from "../zod/schemas/workspaces";
+import { throwIfNoPermission } from "./throw-if-no-permission";
 import { authActionClient } from "./safe-action";
 
 const updateWorkspaceStoreSchema = z.object({
@@ -21,6 +22,12 @@ export const updateWorkspaceStore = authActionClient
   .action(async ({ ctx, parsedInput }) => {
     const { workspace } = ctx;
     const { key, value } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredPermissions: ["workspaces.write"],
+      customMessage: "You don't have permission to modify workspace settings.",
+    });
 
     const store = workspace.store;
 
