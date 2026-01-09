@@ -30,11 +30,11 @@
   "discountId": "disc_1KEC01MXC5H50XQMSN83VCW65",
   "bannedAt": null,
   "bannedReason": null,
-  "totalClicks": 0,
-  "totalLeads": 0,
-  "totalConversions": 0,
-  "totalSales": 0,
-  "totalSaleAmount": 0,
+  "totalClicks": 100,
+  "totalLeads": 70,
+  "totalConversions": 95,
+  "totalSales": 25,
+  "totalSaleAmount": 2500,
   "netRevenue": 0,
   "earningsPerClick": 0,
   "averageLifetimeValue": null,
@@ -51,9 +51,9 @@
       "url": "https://refer.dub.co",
       "clicks": 100,
       "leads": 70,
+      "conversions": 10,
       "sales": 25,
-      "saleAmount": 2500,
-      "conversions": 10
+      "saleAmount": 2500
     }
   ]
 }
