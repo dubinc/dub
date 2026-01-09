@@ -35,7 +35,7 @@
   "totalConversions": 10,
   "totalSales": 10,
   "totalSaleAmount": 2500,
-  "netRevenue": 2500,
+  "netRevenue": 0,
   "earningsPerClick": 25,
   "averageLifetimeValue": null,
   "clickToLeadRate": 0.7,
