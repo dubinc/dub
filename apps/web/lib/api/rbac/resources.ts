@@ -48,9 +48,4 @@ export const RESOURCES: {
     key: "folders",
     description: "Create, read, update, and delete folders",
   },
-  {
-    name: "Payment Methods",
-    key: "payment_methods",
-    description: "Read and manage payment methods",
-  },
 ];
