@@ -24,13 +24,32 @@ export const encodeKey = (text: string): string => {
     )
     .join("");
 
-  return Buffer.from(xored).toString("base64");
+  // Use hex encoding instead of base64 to avoid case-sensitivity collisions
+  // Hex is case-insensitive, so we normalize to lowercase for consistency
+  // Prefix with "h:" to distinguish from old base64 format (":" is not in base64 alphabet)
+  const hexEncoded = Buffer.from(xored).toString("hex").toLowerCase();
+  return `h:${hexEncoded}`;
 };
 
 export const decodeKey = (hash: string): string => {
   if (!hash) return "";
 
-  const xored = Buffer.from(hash, "base64").toString();
+  let xored: string;
+
+  // Backwards compatibility: detect format by prefix
+  // New format: "h:" prefix (case-insensitive) indicates hex encoding
+  // Old format: no prefix, base64 encoding
+  // Normalize prefix check to handle case-insensitive databases
+  const normalizedHash = hash.toLowerCase();
+  if (normalizedHash.startsWith("h:")) {
+    // New hex format - remove prefix and decode as hex
+    // Normalize to lowercase to handle case-insensitive database storage
+    const hexPart = normalizedHash.slice(2);
+    xored = Buffer.from(hexPart, "hex").toString("utf8");
+  } else {
+    // Old base64 format - decode as base64
+    xored = Buffer.from(hash, "base64").toString("utf8");
+  }
 
   return xored
     .split("")
