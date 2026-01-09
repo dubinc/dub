@@ -11,11 +11,11 @@ export function Form() {
     <div>
       <AddEditDomainForm
         onSuccess={() => {
-          continueTo("invite");
+          continueTo("plan");
         }}
         enableDomainConfig={false}
       />
-      <LaterButton next="invite" className="mt-4" />
+      <LaterButton next="plan" className="mt-4" />
     </div>
   );
 }
