@@ -1,8 +1,8 @@
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { prisma } from "@dub/prisma";
 import * as z from "zod/v4";
+import { handleCronErrorResponse } from "../../utils";
 
 export const dynamic = "force-dynamic";
 
@@ -49,6 +49,6 @@ export async function POST(req: Request) {
 
     return new Response(`Invalidated ${links.length} links.`);
   } catch (error) {
-    return handleAndReturnErrorResponse(error);
+    return handleCronErrorResponse({ error });
   }
 }

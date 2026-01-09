@@ -1,4 +1,3 @@
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { recordLink } from "@/lib/tinybird";
@@ -7,6 +6,7 @@ import { Domain } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
+import { handleCronErrorResponse } from "../../utils";
 
 export const dynamic = "force-dynamic";
 
@@ -49,7 +49,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json("OK");
   } catch (error) {
-    return handleAndReturnErrorResponse(error);
+    return handleCronErrorResponse({ error });
   }
 }
 

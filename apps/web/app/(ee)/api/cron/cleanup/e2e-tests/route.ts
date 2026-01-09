@@ -1,5 +1,4 @@
 import { markDomainAsDeleted } from "@/lib/api/domains/mark-domain-deleted";
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
 import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
 import { includeTags } from "@/lib/api/links/include-tags";
@@ -8,6 +7,7 @@ import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
 import { NextResponse } from "next/server";
+import { handleCronErrorResponse } from "../../utils";
 
 export const dynamic = "force-dynamic";
 
@@ -165,6 +165,6 @@ export async function POST(req: Request) {
       type: "errors",
     });
 
-    return handleAndReturnErrorResponse(error);
+    return handleCronErrorResponse({ error });
   }
 }

@@ -1,9 +1,8 @@
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@dub/prisma";
 import { currencyFormatter } from "@dub/utils";
-import { logAndRespond } from "../utils";
+import { handleCronErrorResponse, logAndRespond } from "../utils";
 
 export const dynamic = "force-dynamic";
 
@@ -68,6 +67,6 @@ export async function POST(req: Request) {
       `Created payout: ${createdPayout.id} (${currencyFormatter(createdPayout.amount)})`,
     );
   } catch (error) {
-    return handleAndReturnErrorResponse(error);
+    return handleCronErrorResponse({ error });
   }
 }

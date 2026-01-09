@@ -1,10 +1,9 @@
 import { isDiscountEquivalent } from "@/lib/api/discounts/is-discount-equivalent";
 import { queueDiscountCodeDeletion } from "@/lib/api/discounts/queue-discount-code-deletion";
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { prisma } from "@dub/prisma";
 import * as z from "zod/v4";
-import { logAndRespond } from "../../utils";
+import { handleCronErrorResponse, logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";
 
@@ -108,6 +107,6 @@ export async function POST(req: Request) {
       `Updated ${discountCodesToUpdate.length} discount codes and removed ${discountCodesToRemove.length} discount codes.`,
     );
   } catch (error) {
-    return handleAndReturnErrorResponse(error);
+    return handleCronErrorResponse({ error });
   }
 }

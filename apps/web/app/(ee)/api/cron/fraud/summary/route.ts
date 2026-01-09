@@ -1,4 +1,3 @@
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { FRAUD_RULES_BY_TYPE } from "@/lib/api/fraud/constants";
 import { getWorkspaceUsers } from "@/lib/api/get-workspace-users";
 import { qstash } from "@/lib/cron";
@@ -10,7 +9,7 @@ import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { format, startOfDay } from "date-fns";
 import * as z from "zod/v4";
-import { logAndRespond } from "../../utils";
+import { handleCronErrorResponse, logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";
 
@@ -173,7 +172,7 @@ async function handler(req: Request) {
 
     return logAndRespond("Finished sending fraud events summary.");
   } catch (error) {
-    return handleAndReturnErrorResponse(error);
+    return handleCronErrorResponse({ error });
   }
 }
 

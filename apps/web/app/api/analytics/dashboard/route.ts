@@ -167,6 +167,6 @@ export const GET = async (req: Request) => {
 
     return NextResponse.json(response);
   } catch (error) {
-    return handleAndReturnErrorResponse(error);
+    return handleAndReturnErrorResponse({ error });
   }
 };

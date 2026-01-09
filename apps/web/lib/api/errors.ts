@@ -1,8 +1,9 @@
+import { Prisma } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 import "server-only";
+import z from "zod";
 import { generateErrorMessage } from "zod-error";
 import { ZodOpenApiResponseObject } from "zod-openapi";
-import * as z from "zod/v4";
 import { logger } from "../axiom/server";
 import { ErrorCode, ErrorCodes } from "./error-codes";
 
@@ -39,6 +40,12 @@ const ErrorSchema = z.object({
 
 type ErrorResponse = z.infer<typeof ErrorSchema>;
 export type ErrorCodes = z.infer<typeof ErrorCode>;
+
+interface ErrorHandlerOptions {
+  error: unknown;
+  responseHeaders?: Headers;
+  requestHeaders?: Headers;
+}
 
 export class DubApiError extends Error {
   public readonly code: z.infer<typeof ErrorCode>;
@@ -89,7 +96,7 @@ export function fromZodError(error: z.ZodError): ErrorResponse {
   };
 }
 
-function handleApiError(error: any): ErrorResponse & { status: number } {
+export function handleApiError(error: any): ErrorResponse & { status: number } {
   console.error(error.message);
 
   // Send error to Axiom
@@ -144,9 +151,35 @@ function handleApiError(error: any): ErrorResponse & { status: number } {
   };
 }
 
-export function handleAndReturnErrorResponse(err: unknown, headers?: Headers) {
-  const { error, status } = handleApiError(err);
-  return NextResponse.json<ErrorResponse>({ error }, { headers, status });
+export function handleAndReturnErrorResponse({
+  error,
+  responseHeaders,
+  requestHeaders,
+}: ErrorHandlerOptions) {
+  let { error: apiError, status } = handleApiError(error);
+
+  // Build final response headers & status code
+  const headers = new Headers(responseHeaders);
+
+  // Allow QStash retries only for transient DB errors. For invalid payloads or
+  // other non-recoverable errors, do not retry QStash callbacks.
+  const isQStashCallback = requestHeaders?.get("upstash-signature") != null;
+  const shouldRetry = error instanceof Prisma.PrismaClientUnknownRequestError;
+
+  if (isQStashCallback && !shouldRetry) {
+    headers.set("Upstash-NonRetryable-Error", "true");
+    status = 489;
+  }
+
+  return NextResponse.json<ErrorResponse>(
+    {
+      error: apiError,
+    },
+    {
+      headers,
+      status,
+    },
+  );
 }
 
 export const errorSchemaFactory = (

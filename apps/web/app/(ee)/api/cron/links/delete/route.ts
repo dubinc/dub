@@ -1,7 +1,7 @@
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { deleteLink } from "@/lib/api/links";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { prisma } from "@dub/prisma";
+import { handleCronErrorResponse } from "../../utils";
 
 export const dynamic = "force-dynamic";
 
@@ -34,6 +34,6 @@ export async function POST(req: Request) {
 
     return new Response("Link deleted.", { status: 200 });
   } catch (error) {
-    return handleAndReturnErrorResponse(error);
+    return handleCronErrorResponse({ error });
   }
 }

@@ -1,10 +1,9 @@
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { prisma } from "@dub/prisma";
 import { chunk } from "@dub/utils";
 import * as z from "zod/v4";
-import { logAndRespond } from "../../utils";
+import { handleCronErrorResponse, logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";
 
@@ -84,6 +83,6 @@ export async function POST(req: Request) {
 
     return logAndRespond(`Expired cache for ${links.length} links.`);
   } catch (error) {
-    return handleAndReturnErrorResponse(error);
+    return handleCronErrorResponse({ error });
   }
 }

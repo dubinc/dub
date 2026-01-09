@@ -1,6 +1,5 @@
 import { convertToCSV } from "@/lib/analytics/utils/convert-to-csv";
 import { createDownloadableExport } from "@/lib/api/create-downloadable-export";
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { formatPartnersForExport } from "@/lib/api/partners/format-partners-for-export";
 import { generateExportFilename } from "@/lib/api/utils/generate-export-filename";
 import { generateRandomString } from "@/lib/api/utils/generate-random-string";
@@ -11,7 +10,7 @@ import ExportReady from "@dub/email/templates/export-ready";
 import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
 import * as z from "zod/v4";
-import { logAndRespond } from "../../utils";
+import { handleCronErrorResponse, logAndRespond } from "../../utils";
 import { fetchPartnersBatch } from "./fetch-partners-batch";
 
 const payloadSchema = partnersExportQuerySchema.extend({
@@ -107,6 +106,6 @@ export async function POST(req: Request) {
       type: "cron",
     });
 
-    return handleAndReturnErrorResponse(error);
+    return handleCronErrorResponse({ error });
   }
 }

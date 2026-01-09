@@ -1,5 +1,5 @@
 import { createId } from "@/lib/api/create-id";
-import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
@@ -17,6 +17,7 @@ import { linkConstructorSimple, nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
+import { handleCronErrorResponse } from "../../utils";
 
 const schema = z.array(
   z.object({
@@ -388,6 +389,6 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
       errors: invalidEntries,
     });
   } catch (error) {
-    return handleAndReturnErrorResponse(error);
+    return handleCronErrorResponse({ error });
   }
 });

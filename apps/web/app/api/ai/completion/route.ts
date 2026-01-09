@@ -54,6 +54,6 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
 
     return result.toTextStreamResponse();
   } catch (error) {
-    return handleAndReturnErrorResponse(error);
+    return handleAndReturnErrorResponse({ error });
   }
 });

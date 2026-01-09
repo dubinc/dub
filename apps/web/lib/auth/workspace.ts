@@ -6,6 +6,7 @@ import { API_DOMAIN, getSearchParams } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { headers } from "next/headers";
 import { getRatelimitForPlan } from "../api/get-ratelimit-for-plan";
+import { queueFailedRequestForRetry } from "../api/queue-failed-request-for-retry";
 import {
   PermissionAction,
   getPermissionsByRole,
@@ -426,7 +427,7 @@ export const withWorkspace = (
 
         // beta feature checks
         if (featureFlag) {
-          let flags = await getFeatureFlags({
+          const flags = await getFeatureFlags({
             workspaceId: workspace.id,
           });
 
@@ -469,13 +470,22 @@ export const withWorkspace = (
           token,
         });
       } catch (error) {
-        // Log the conversion events for debugging purposes
         waitUntil(
           (async () => {
-            const paths = ["/track/lead", "/track/sale"];
+            await queueFailedRequestForRetry({
+              req,
+              error,
+              apiKey,
+            });
 
-            if (workspace && paths.includes(req.nextUrl.pathname)) {
-              logConversionEvent({
+            // Log the conversion events for debugging purposes
+            if (
+              workspace &&
+              ["/api/track/lead", "/api/track/sale"].includes(
+                req.nextUrl.pathname,
+              )
+            ) {
+              await logConversionEvent({
                 workspace_id: workspace.id,
                 path: req.nextUrl.pathname,
                 error: error.message,
@@ -484,7 +494,11 @@ export const withWorkspace = (
           })(),
         );
 
-        return handleAndReturnErrorResponse(error, responseHeaders);
+        return handleAndReturnErrorResponse({
+          error,
+          requestHeaders,
+          responseHeaders,
+        });
       }
     },
   );

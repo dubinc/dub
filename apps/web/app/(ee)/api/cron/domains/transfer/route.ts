@@ -1,4 +1,3 @@
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
@@ -7,6 +6,7 @@ import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
+import { handleCronErrorResponse } from "../../utils";
 import { sendDomainTransferredEmail } from "./utils";
 
 const schema = z.object({
@@ -124,6 +124,6 @@ export async function POST(req: Request) {
       type: "cron",
     });
 
-    return handleAndReturnErrorResponse(error);
+    return handleCronErrorResponse({ error });
   }
 }

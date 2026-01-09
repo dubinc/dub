@@ -1,9 +1,10 @@
-import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { DubApiError } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { redis } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
 import { NextResponse } from "next/server";
+import { handleCronErrorResponse } from "../../utils";
 import { importLinksFromRebrandly, importTagsFromRebrandly } from "./utils";
 
 export const dynamic = "force-dynamic";
@@ -80,7 +81,7 @@ export async function POST(req: Request) {
       });
       throw new DubApiError({
         code: "bad_request",
-        message: `Workspace: ${workspace?.slug || workspaceId}$. Error: ${error.message}`,
+        message: `Workspace: ${workspace?.slug || workspaceId}. Error: ${error.message}`,
       });
     }
   } catch (error) {
@@ -89,6 +90,6 @@ export async function POST(req: Request) {
       type: "cron",
     });
 
-    return handleAndReturnErrorResponse(error);
+    return handleCronErrorResponse({ error });
   }
 }

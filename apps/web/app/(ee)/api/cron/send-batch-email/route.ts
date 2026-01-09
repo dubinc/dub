@@ -1,4 +1,3 @@
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { EMAIL_TEMPLATES_MAP } from "@/lib/email/email-templates-map";
 import { sendBatchEmail } from "@dub/email";
@@ -7,6 +6,7 @@ import { log } from "@dub/utils";
 import { NextResponse } from "next/server";
 import React from "react";
 import * as z from "zod/v4";
+import { handleCronErrorResponse } from "../utils";
 
 export const dynamic = "force-dynamic";
 
@@ -191,6 +191,6 @@ export async function POST(req: Request) {
       mention: true,
     });
 
-    return handleAndReturnErrorResponse(error);
+    return handleCronErrorResponse({ error });
   }
 }

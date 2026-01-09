@@ -1,5 +1,4 @@
 import { createId } from "@/lib/api/create-id";
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
@@ -14,7 +13,7 @@ import {
   nFormatter,
 } from "@dub/utils";
 import * as z from "zod/v4";
-import { logAndRespond } from "../utils";
+import { handleCronErrorResponse, logAndRespond } from "../utils";
 import { resolveClickRewardAmount } from "./resolve-click-reward-amount";
 
 export const dynamic = "force-dynamic";
@@ -239,7 +238,7 @@ async function handler(req: Request) {
 
     return logAndRespond(endMessage);
   } catch (error) {
-    return handleAndReturnErrorResponse(error);
+    return handleCronErrorResponse({ error });
   }
 }
 

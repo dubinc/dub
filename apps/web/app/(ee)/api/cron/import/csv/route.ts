@@ -1,6 +1,5 @@
 import { createId } from "@/lib/api/create-id";
 import { addDomainToVercel } from "@/lib/api/domains/add-domain-vercel";
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { bulkCreateLinks, createLink, processLink } from "@/lib/api/links";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
@@ -22,6 +21,7 @@ import {
 import { getUrlObjFromString } from "@dub/utils/src";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
+import { handleCronErrorResponse } from "../../utils";
 import { sendCsvImportEmails } from "./utils";
 
 export const dynamic = "force-dynamic";
@@ -128,7 +128,7 @@ export async function POST(req: Request) {
       type: "cron",
     });
 
-    return handleAndReturnErrorResponse(error);
+    return handleCronErrorResponse({ error });
   }
 }
 

@@ -1,7 +1,6 @@
 import { convertToCSV } from "@/lib/analytics/utils/convert-to-csv";
 import { formatCommissionsForExport } from "@/lib/api/commissions/format-commissions-for-export";
 import { createDownloadableExport } from "@/lib/api/create-downloadable-export";
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { generateExportFilename } from "@/lib/api/utils/generate-export-filename";
 import { generateRandomString } from "@/lib/api/utils/generate-random-string";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
@@ -11,7 +10,7 @@ import ExportReady from "@dub/email/templates/export-ready";
 import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
 import * as z from "zod/v4";
-import { logAndRespond } from "../../utils";
+import { handleCronErrorResponse, logAndRespond } from "../../utils";
 import { fetchCommissionsBatch } from "./fetch-commissions-batch";
 
 const payloadSchema = commissionsExportQuerySchema.extend({
@@ -109,6 +108,6 @@ export async function POST(req: Request) {
       type: "cron",
     });
 
-    return handleAndReturnErrorResponse(error);
+    return handleCronErrorResponse({ error });
   }
 }

@@ -1,8 +1,8 @@
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { createPaymentIntent } from "@/lib/stripe/create-payment-intent";
 import { prisma } from "@dub/prisma";
 import * as z from "zod/v4";
+import { handleCronErrorResponse } from "../../utils";
 
 export const dynamic = "force-dynamic";
 
@@ -79,6 +79,6 @@ export async function POST(req: Request) {
 
     return new Response(`Retrying invoice charge ${invoice.id}...`);
   } catch (error) {
-    return handleAndReturnErrorResponse(error);
+    return handleCronErrorResponse({ error });
   }
 }

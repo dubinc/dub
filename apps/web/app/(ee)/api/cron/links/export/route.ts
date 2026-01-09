@@ -1,7 +1,6 @@
 import { convertToCSV } from "@/lib/analytics/utils/convert-to-csv";
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { createDownloadableExport } from "@/lib/api/create-downloadable-export";
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { formatLinksForExport } from "@/lib/api/links/format-links-for-export";
 import { validateLinksQueryFilters } from "@/lib/api/links/validate-links-query-filters";
 import { generateExportFilename } from "@/lib/api/utils/generate-export-filename";
@@ -16,7 +15,7 @@ import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
 import { endOfDay, startOfDay } from "date-fns";
 import * as z from "zod/v4";
-import { logAndRespond } from "../../utils";
+import { handleCronErrorResponse, logAndRespond } from "../../utils";
 import { fetchLinksBatch } from "./fetch-links-batch";
 
 const payloadSchema = linksExportQuerySchema.extend({
@@ -151,6 +150,6 @@ export async function POST(req: Request) {
       type: "cron",
     });
 
-    return handleAndReturnErrorResponse(error);
+    return handleCronErrorResponse({ error });
   }
 }

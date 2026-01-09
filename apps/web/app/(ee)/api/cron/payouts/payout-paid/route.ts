@@ -1,11 +1,10 @@
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { sendEmail } from "@dub/email";
 import PartnerPayoutWithdrawalCompleted from "@dub/email/templates/partner-payout-withdrawal-completed";
 import { prisma } from "@dub/prisma";
 import { currencyFormatter, log, pluralize, prettyPrint } from "@dub/utils";
 import * as z from "zod/v4";
-import { logAndRespond } from "../../utils";
+import { handleCronErrorResponse, logAndRespond } from "../../utils";
 
 const payloadSchema = z.object({
   stripeAccount: z.string(),
@@ -83,6 +82,6 @@ export async function POST(req: Request) {
       type: "errors",
     });
 
-    return handleAndReturnErrorResponse(error);
+    return handleCronErrorResponse({ error });
   }
 }

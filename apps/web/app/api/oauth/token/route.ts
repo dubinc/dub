@@ -25,7 +25,10 @@ export async function POST(req: NextRequest) {
       });
     }
   } catch (error) {
-    return handleAndReturnErrorResponse(error, COMMON_CORS_HEADERS);
+    return handleAndReturnErrorResponse({
+      error,
+      responseHeaders: COMMON_CORS_HEADERS,
+    });
   }
 }
 

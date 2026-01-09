@@ -1,4 +1,3 @@
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { bulkCreateLinks } from "@/lib/api/links";
 import { generatePartnerLink } from "@/lib/api/partners/generate-partner-link";
 import { qstash } from "@/lib/cron";
@@ -8,7 +7,7 @@ import { MAX_DEFAULT_LINKS_PER_GROUP } from "@/lib/zod/schemas/groups";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, isFulfilled, log } from "@dub/utils";
 import * as z from "zod/v4";
-import { logAndRespond } from "../../utils";
+import { handleCronErrorResponse, logAndRespond } from "../../utils";
 import { remapPartnerGroupDefaultLinks } from "./utils";
 export const dynamic = "force-dynamic";
 
@@ -235,6 +234,6 @@ export async function POST(req: Request) {
       type: "errors",
     });
 
-    return handleAndReturnErrorResponse(error);
+    return handleCronErrorResponse({ error });
   }
 }

@@ -1,4 +1,3 @@
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
 import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
 import { qstash } from "@/lib/cron";
@@ -10,7 +9,7 @@ import {
   log,
 } from "@dub/utils";
 import * as z from "zod/v4";
-import { logAndRespond } from "../../utils";
+import { handleCronErrorResponse, logAndRespond } from "../../utils";
 export const dynamic = "force-dynamic";
 
 const PAGE_SIZE = 50;
@@ -148,6 +147,6 @@ export async function POST(req: Request) {
       type: "errors",
     });
 
-    return handleAndReturnErrorResponse(error);
+    return handleCronErrorResponse({ error });
   }
 }
