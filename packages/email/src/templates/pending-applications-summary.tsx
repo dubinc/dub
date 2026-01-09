@@ -1,13 +1,14 @@
 import { DUB_WORDMARK, OG_AVATAR_URL } from "@dub/utils";
 import {
   Body,
+  Column,
   Container,
-  Head,
   Heading,
   Html,
   Img,
   Link,
   Preview,
+  Row,
   Section,
   Tailwind,
   Text,
@@ -26,21 +27,18 @@ export default function PendingApplicationsSummary({
       name: "Sarah Charpentier",
       email: "sarah@floridaman.org",
       image: `${OG_AVATAR_URL}pn_1JPBEGP7EXF76CXT1W99VERW5`,
-      country: "US",
     },
     {
       id: "pn_1JPBEGP7EXF76CXT1W99VERW6",
       name: "Derek Forbes",
       email: "d.forbes@gmail.com",
       image: `${OG_AVATAR_URL}pn_1JPBEGP7EXF76CXT1W99VERW6`,
-      country: "GB",
     },
     {
       id: "pn_1JPBEGP7EXF76CXT1W99VERW7",
       name: "Marvin Ta",
       email: "marvin@email.com",
       image: `${OG_AVATAR_URL}pn_1JPBEGP7EXF76CXT1W99VERW7`,
-      country: "AU",
     },
   ],
   totalCount = 12,
@@ -55,7 +53,6 @@ export default function PendingApplicationsSummary({
     name: string;
     email: string;
     image: string | null;
-    country: string | null;
   }[];
   totalCount: number;
   date: Date;
@@ -65,7 +62,6 @@ export default function PendingApplicationsSummary({
 
   return (
     <Html>
-      <Head />
       <Preview>
         You have {totalCount} new pending applications to review on Dub for{" "}
         {formattedDate}
@@ -97,11 +93,11 @@ export default function PendingApplicationsSummary({
                 return (
                   <Section
                     key={partner.id}
-                    className={`rounded-xl border border-solid border-neutral-200 bg-neutral-50 p-4 ${index < partners.length - 1 ? "mb-4" : ""}`}
+                    className={`rounded-lg border border-solid border-neutral-200 bg-neutral-50 p-4 ${index < partners.length - 1 ? "mb-3" : ""}`}
                   >
-                    <div className="flex items-center justify-between">
-                      <div className="flex min-w-0 flex-1 items-center gap-4">
-                        <div className="relative shrink-0">
+                    <Row>
+                      <Column width="auto" className="pr-3" valign="middle">
+                        <div className="flex items-center">
                           <Img
                             src={
                               partner.image || `${OG_AVATAR_URL}${partner.id}`
@@ -109,37 +105,32 @@ export default function PendingApplicationsSummary({
                             width="40"
                             height="40"
                             alt={partner.name}
-                            className="rounded-full border border-solid border-neutral-100"
+                            className="rounded-full"
                           />
-                          {partner.country && (
-                            <div className="absolute -right-1 top-0 overflow-hidden rounded-full bg-white p-0.5">
-                              <Img
-                                src={`https://flag.vercel.app/m/${partner.country}.svg`}
-                                width="12"
-                                height="12"
-                                alt={partner.country}
-                                className="size-3 rounded-full"
-                              />
-                            </div>
-                          )}
+                          <div className="ml-3">
+                            <Text className="m-0 p-0 text-sm font-semibold text-neutral-900">
+                              {partner.name}
+                            </Text>
+                            <Text className="m-0 p-0 text-sm font-medium text-neutral-500 no-underline">
+                              {partner.email}
+                            </Text>
+                          </div>
                         </div>
-                        <div className="min-w-0 flex-1" style={{ maxWidth: "calc(100% - 120px)" }}>
-                          <Text className="m-0 p-0 text-sm font-semibold text-black" style={{ wordBreak: "break-word", overflowWrap: "break-word" }}>
-                            {partner.name}
-                          </Text>
-                          <Text className="m-0 p-0 text-sm font-medium text-gray-500" style={{ wordBreak: "break-word", overflowWrap: "break-word" }}>
-                            {partner.email}
-                          </Text>
-                        </div>
-                      </div>
-                      <Link
-                        href={`${applicationsUrl}?partnerId=${partner.id}`}
-                        className="box-border shrink-0 rounded-md border border-solid border-neutral-200 bg-white px-3 py-2 text-center text-sm font-medium leading-none text-black no-underline whitespace-nowrap"
-                        style={{ flexShrink: 0 }}
+                      </Column>
+                      <Column
+                        width="auto"
+                        align="right"
+                        valign="middle"
+                        className="whitespace-nowrap"
                       >
-                        Review
-                      </Link>
-                    </div>
+                        <Link
+                          href={`${applicationsUrl}?partnerId=${partner.id}`}
+                          className="box-border inline-block rounded-md border border-solid border-neutral-200 bg-white px-4 py-2 text-center text-sm font-medium leading-none text-black no-underline"
+                        >
+                          Review
+                        </Link>
+                      </Column>
+                    </Row>
                   </Section>
                 );
               })}
