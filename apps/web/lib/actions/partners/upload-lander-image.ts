@@ -4,6 +4,7 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { storage } from "@/lib/storage";
 import { nanoid, R2_URL } from "@dub/utils";
 import * as z from "zod/v4";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 import { authActionClient } from "../safe-action";
 
 const schema = z.object({
@@ -14,6 +15,13 @@ export const uploadLanderImageAction = authActionClient
   .inputSchema(schema)
   .action(async ({ ctx }) => {
     const { workspace } = ctx;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredPermissions: ["workspaces.write"],
+      customMessage: "You don't have permission to upload lander images.",
+    });
+
     const programId = getDefaultProgramIdOrThrow(workspace);
 
     try {

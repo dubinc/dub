@@ -5,15 +5,23 @@ import { storage } from "@/lib/storage";
 import { nanoid, R2_URL } from "@dub/utils";
 import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 const schema = z.object({
   workspaceId: z.string(),
 });
 
-export const uploadEmailImageAction = authActionClient
+export const uploadCampaignImageAction = authActionClient
   .inputSchema(schema)
   .action(async ({ ctx }) => {
     const { workspace } = ctx;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredPermissions: ["workspaces.write"],
+      customMessage: "You don't have permission to upload campaign images.",
+    });
+
     const programId = getDefaultProgramIdOrThrow(workspace);
 
     try {

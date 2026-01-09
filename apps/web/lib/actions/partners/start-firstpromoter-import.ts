@@ -7,6 +7,7 @@ import { FirstPromoterApi } from "@/lib/firstpromoter/api";
 import { firstPromoterImporter } from "@/lib/firstpromoter/importer";
 import { firstPromoterCredentialsSchema } from "@/lib/firstpromoter/schemas";
 import * as z from "zod/v4";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 import { authActionClient } from "../safe-action";
 
 const schema = firstPromoterCredentialsSchema.extend({
@@ -18,6 +19,12 @@ export const startFirstPromoterImportAction = authActionClient
   .action(async ({ ctx, parsedInput }) => {
     const { workspace, user } = ctx;
     const { apiKey, accountId } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredPermissions: ["workspaces.write"],
+      customMessage: "You don't have permission to start imports.",
+    });
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
