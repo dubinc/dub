@@ -17,11 +17,11 @@ import { SocialPlatform } from "@dub/prisma/client";
 import { nanoid, PARTNERS_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { cookies } from "next/headers";
 import { v4 as uuid } from "uuid";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { authPartnerActionClient } from "../safe-action";
 
-const startSocialVerificationSchema = z.object({
-  platform: z.nativeEnum(SocialPlatform),
+const inputSchema = z.object({
+  platform: z.enum(SocialPlatform),
   handle: z.string().min(1).max(50),
   source: z.enum(["onboarding", "settings"]).default("onboarding"),
 });
@@ -46,7 +46,7 @@ type VerificationParams = {
  * - TXT Record: For website verification (returns DNS TXT record)
  */
 export const startSocialVerificationAction = authPartnerActionClient
-  .schema(startSocialVerificationSchema)
+  .inputSchema(inputSchema)
   .action(async ({ ctx, parsedInput }) => {
     const { partner } = ctx;
     const { platform, handle, source } = parsedInput;

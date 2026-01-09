@@ -10,7 +10,7 @@ import {
 } from "@dub/utils";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 const requestSchema = z.object({
   code: z.string(),
