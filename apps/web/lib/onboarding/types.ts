@@ -4,7 +4,6 @@ export const ONBOARDING_STEPS = [
   "domain",
   "domain/custom",
   "domain/register",
-  "usage",
   "plan",
   "completed",
 ] as const;

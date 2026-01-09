@@ -53,7 +53,7 @@ export function DefaultDomainSelector() {
       </div>
       {product === "links" && (
         <div className="mx-auto mt-8 w-full max-w-sm">
-          <LaterButton next="usage" className="mt-4" />
+          <LaterButton next="plan" className="mt-4" />
         </div>
       )}
     </>

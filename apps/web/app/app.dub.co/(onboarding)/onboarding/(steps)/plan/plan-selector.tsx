@@ -6,7 +6,6 @@ import { Badge, ToggleGroup } from "@dub/ui";
 import { ADVANCED_PLAN, BUSINESS_PLAN, cn, PRO_PLAN } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useSearchParams } from "next/navigation";
 import { CSSProperties, useState } from "react";
 
 export const PLAN_SELECTOR_PLANS = [PRO_PLAN, BUSINESS_PLAN, ADVANCED_PLAN];
@@ -14,9 +13,6 @@ export const PLAN_SELECTOR_PLANS = [PRO_PLAN, BUSINESS_PLAN, ADVANCED_PLAN];
 export function PlanSelector() {
   const [period, setPeriod] = useState<"monthly" | "yearly">("monthly");
   const [mobilePlanIndex, setMobilePlanIndex] = useState(0);
-
-  const searchParams = useSearchParams();
-  const recommendedPlan = searchParams.get("plan");
 
   return (
     <div>
@@ -53,28 +49,15 @@ export function PlanSelector() {
           {PLAN_SELECTOR_PLANS.map((plan) => (
             <div
               key={plan.name}
-              className={cn(
-                "flex flex-col border-y border-l border-neutral-200 bg-white p-6 pb-8 first:rounded-l-lg last:rounded-r-lg last:border-r",
-                recommendedPlan === plan.name.toLowerCase() &&
-                  "bg-gradient-to-b from-[#eef9ff] to-white to-40%",
-              )}
+              className="flex flex-col border-y border-l border-neutral-200 bg-white p-6 pb-8 first:rounded-l-lg last:rounded-r-lg last:border-r"
             >
               <div className="flex items-center justify-between gap-2">
                 <h2 className="text-xl font-semibold text-neutral-800">
                   {plan.name}
                 </h2>
-                {recommendedPlan
-                  ? recommendedPlan === plan.name.toLowerCase() && (
-                      <Badge
-                        variant="sky"
-                        className="px-1.5 py-0.5 text-[0.5rem] uppercase"
-                      >
-                        Recommended
-                      </Badge>
-                    )
-                  : plan.name === "Business" && (
-                      <Badge variant="sky">Most popular</Badge>
-                    )}
+                {plan.name === "Business" && (
+                  <Badge variant="sky">Most popular</Badge>
+                )}
               </div>
               <div className="mt-1 text-base font-medium text-neutral-400">
                 <NumberFlow

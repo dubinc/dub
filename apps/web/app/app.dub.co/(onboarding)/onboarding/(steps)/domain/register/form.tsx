@@ -15,11 +15,11 @@ export function Form() {
       <RegisterDomainForm
         saveOnly
         onSuccess={() => {
-          continueTo("usage");
+          continueTo("plan");
         }}
       />
 
-      {product !== "partners" && <LaterButton next="usage" className="mt-4" />}
+      {product !== "partners" && <LaterButton next="plan" className="mt-4" />}
     </div>
   );
 }
