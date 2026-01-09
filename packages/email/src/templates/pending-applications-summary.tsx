@@ -50,8 +50,8 @@ export default function PendingApplicationsSummary({
   };
   partners: {
     id: string;
-    name: string;
-    email: string;
+    name: string | null;
+    email: string | null;
     image: string | null;
   }[];
   totalCount: number;
@@ -104,12 +104,12 @@ export default function PendingApplicationsSummary({
                             }
                             width="40"
                             height="40"
-                            alt={partner.name}
+                            alt={partner.name || "partner avatar"}
                             className="rounded-full"
                           />
                           <div className="ml-3">
                             <Text className="m-0 p-0 text-sm font-semibold text-neutral-900">
-                              {partner.name}
+                              {partner.name || ""}
                             </Text>
                             <Text className="m-0 p-0 text-sm font-medium text-neutral-500 no-underline">
                               {partner.email}

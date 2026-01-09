@@ -12,7 +12,7 @@ import { logAndRespond } from "../utils";
 
 export const dynamic = "force-dynamic";
 
-const PROGRAMS_BATCH_SIZE = 100;
+const PROGRAMS_BATCH_SIZE = 1;
 
 const schema = z.object({
   startingAfter: z.string().optional(),
@@ -21,7 +21,7 @@ const schema = z.object({
 // GET/POST /api/cron/pending-applications-summary
 // This route sends a daily summary of pending partner applications to program owners
 // Runs daily at 9:00 AM UTC
-export const GET = withCron(async ({ searchParams, rawBody }) => {
+export const GET = withCron(async ({ rawBody }) => {
   let { startingAfter } = schema.parse(
     rawBody ? JSON.parse(rawBody) : { startingAfter: undefined },
   );
@@ -63,6 +63,55 @@ export const GET = withCron(async ({ searchParams, rawBody }) => {
 
   const programIds = programs.map((p) => p.id);
 
+  // Get top 3 pending enrollments per program in parallel
+  // This ensures we get the top 3 from each program regardless of how many pending enrollments they have
+  const enrollmentsByProgramMap = new Map<
+    string,
+    Array<{
+      id: string;
+      name: string | null;
+      email: string | null;
+      image: string | null;
+    }>
+  >();
+
+  await Promise.all(
+    programIds.map(async (programId) => {
+      const enrollments = await prisma.programEnrollment.findMany({
+        where: {
+          programId,
+          status: "pending",
+        },
+        select: {
+          partner: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              image: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+        take: 3,
+      });
+
+      if (enrollments.length > 0) {
+        enrollmentsByProgramMap.set(
+          programId,
+          enrollments.map((e) => ({
+            id: e.partner.id,
+            name: e.partner.name,
+            email: e.partner.email,
+            image: e.partner.image,
+          })),
+        );
+      }
+    }),
+  );
+
   // Get counts of pending enrollments per program
   const pendingCounts = await prisma.programEnrollment.groupBy({
     by: ["programId"],
@@ -80,56 +129,14 @@ export const GET = withCron(async ({ searchParams, rawBody }) => {
     pendingCounts.map((pc) => [pc.programId, pc._count]),
   );
 
-  // Get pending enrollments for all programs (we'll take top 3 per program)
-  // Limit to a reasonable number to avoid fetching too many records
-  // (worst case: 100 programs × 3 enrollments = 300, so 500 should be safe)
-  const allPendingEnrollments = await prisma.programEnrollment.findMany({
-    where: {
-      programId: {
-        in: programIds,
-      },
-      status: "pending",
-    },
-    include: {
-      partner: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          image: true,
-          country: true,
-        },
-      },
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-    take: 500, // Safety limit - should cover 100 programs with top 3 each
-  });
-
-  // Group enrollments by programId, taking only top 3 per program
-  const enrollmentsByProgramMap = new Map<
-    string,
-    typeof allPendingEnrollments
-  >();
-  for (const enrollment of allPendingEnrollments) {
-    if (!enrollmentsByProgramMap.has(enrollment.programId)) {
-      enrollmentsByProgramMap.set(enrollment.programId, []);
-    }
-    const enrollments = enrollmentsByProgramMap.get(enrollment.programId)!;
-    if (enrollments.length < 3) {
-      enrollments.push(enrollment);
-    }
-  }
-
   // Process each program
   const emailsToSend: ResendBulkEmailOptions = [];
 
   for (const program of programs) {
-    const totalPendingCount = pendingCountMap.get(program.id) || 0;
+    const totalPendingApplications = pendingCountMap.get(program.id) || 0;
 
-    if (totalPendingCount === 0) {
-      continue; // Skip if no pending applications
+    if (totalPendingApplications === 0) {
+      continue;
     }
 
     const pendingEnrollments = enrollmentsByProgramMap.get(program.id) || [];
@@ -142,32 +149,23 @@ export const GET = withCron(async ({ searchParams, rawBody }) => {
     });
 
     if (!users.length) {
-      continue; // Skip if no owners with preference enabled
+      continue;
     }
-
-    // Prepare applications data for email template
-    const applications = pendingEnrollments.map((enrollment) => ({
-      id: enrollment.partner.id,
-      name: enrollment.partner.name,
-      email: enrollment.partner.email || "",
-      image: enrollment.partner.image,
-      country: enrollment.partner.country,
-    }));
 
     // Create email for each owner
     for (const user of users) {
       emailsToSend.push({
-        variant: "notifications" as const,
+        variant: "notifications",
         to: user.email,
-        subject: `You have ${totalPendingCount} new pending application${totalPendingCount === 1 ? "" : "s"} to review`,
+        subject: `You have ${totalPendingApplications} new pending application${totalPendingApplications === 1 ? "" : "s"} to review`,
         react: PendingApplicationsSummary({
           email: user.email,
+          partners: pendingEnrollments,
+          totalCount: totalPendingApplications,
+          date: new Date(),
           workspace: {
             slug: workspace.slug,
           },
-          partners: applications,
-          totalCount: totalPendingCount,
-          date: new Date(),
         }),
       });
     }
@@ -179,17 +177,10 @@ export const GET = withCron(async ({ searchParams, rawBody }) => {
     );
   }
 
-  console.log(
-    `Sending ${emailsToSend.length} pending applications summary email(s)`,
-  );
-
-  // Send emails in batches
+  // Send email in batches
   const emailChunks = chunk(emailsToSend, 100);
-
   for (const emailChunk of emailChunks) {
-    const res = await sendBatchEmail(emailChunk);
-
-    console.log(`Sent ${emailChunk.length} emails`, res);
+    await sendBatchEmail(emailChunk);
   }
 
   // Schedule the next batch if there are more programs to process
