@@ -29,8 +29,9 @@ export default function PartnerPayoutConfirmed({
     initiatedAt: new Date("2024-11-22"),
     startDate: new Date("2024-11-01"),
     endDate: new Date("2024-11-30"),
-    paymentMethod: "ach",
     mode: "internal",
+    paymentMethod: "ach",
+    payoutMethod: "stripe",
   },
 }: {
   email: string;
@@ -45,8 +46,9 @@ export default function PartnerPayoutConfirmed({
     initiatedAt: Date | null;
     startDate?: Date | null;
     endDate?: Date | null;
-    paymentMethod: string;
     mode: "internal" | "external" | null;
+    paymentMethod: string;
+    payoutMethod: "stripe" | "paypal";
   };
 }) {
   const payoutAmountInDollars = currencyFormatter(payout.amount);
@@ -117,7 +119,11 @@ export default function PartnerPayoutConfirmed({
               The payout is currently being processed and is expected to be
               transferred to your{" "}
               <strong className="text-black">
-                {payout.mode === "external" ? program.name : "Stripe Express"}
+                {payout.mode === "external"
+                  ? program.name
+                  : payout.payoutMethod === "paypal"
+                    ? "PayPal"
+                    : "Stripe Express"}
               </strong>{" "}
               account in{" "}
               <strong className="text-black">{etaDays} business days</strong>{" "}
