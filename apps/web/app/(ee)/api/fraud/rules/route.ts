@@ -120,5 +120,6 @@ export const PATCH = withWorkspace(
   },
   {
     requiredPlan: ["advanced", "enterprise"],
+    requiredPermissions: ["workspaces.write"],
   },
 );

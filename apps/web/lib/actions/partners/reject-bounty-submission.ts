@@ -12,6 +12,7 @@ import BountyRejected from "@dub/email/templates/bounty-rejected";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 // Reject a bounty submission
 export const rejectBountySubmissionAction = authActionClient
@@ -19,6 +20,11 @@ export const rejectBountySubmissionAction = authActionClient
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { submissionId, rejectionReason, rejectionNote } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredPermissions: ["workspaces.write"],
+    });
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 

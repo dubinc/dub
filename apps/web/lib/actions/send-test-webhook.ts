@@ -6,6 +6,7 @@ import { WEBHOOK_TRIGGERS } from "../webhook/constants";
 import { sendWebhooks } from "../webhook/qstash";
 import { samplePayload } from "../webhook/sample-events/payload";
 import { authActionClient } from "./safe-action";
+import { throwIfNoPermission } from "./throw-if-no-permission";
 
 const schema = z.object({
   workspaceId: z.string(),
@@ -19,6 +20,11 @@ export const sendTestWebhookEvent = authActionClient
   .action(async ({ ctx, parsedInput }) => {
     const { workspace } = ctx;
     const { webhookId, trigger } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredPermissions: ["webhooks.write"],
+    });
 
     const webhook = await prisma.webhook.findUniqueOrThrow({
       where: {

@@ -1,5 +1,6 @@
 "use client";
 
+import { clientAccessCheck } from "@/lib/client-access-check";
 import { DIRECT_DEBIT_PAYMENT_METHOD_TYPES } from "@/lib/constants/payouts";
 import usePaymentMethods from "@/lib/swr/use-payment-methods";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -17,7 +18,7 @@ export default function PaymentMethods() {
   const router = useRouter();
   const { paymentMethods } = usePaymentMethods();
   const [isLoading, setIsLoading] = useState(false);
-  const { slug, stripeId, plan } = useWorkspace();
+  const { slug, stripeId, plan, role } = useWorkspace();
 
   const regularPaymentMethods = paymentMethods?.filter(
     (pm) => !DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(pm.type),
@@ -60,6 +61,13 @@ export default function PaymentMethods() {
             className="h-9 w-fit"
             onClick={() => managePaymentMethods()}
             loading={isLoading}
+            disabledTooltip={
+              clientAccessCheck({
+                action: "payment_methods.write",
+                role,
+                customPermissionDescription: "manage payment methods",
+              }).error || undefined
+            }
           />
         )}
       </div>
@@ -165,6 +173,7 @@ const PaymentMethodCard = ({
 const NoPartnerPaymentMethods = () => {
   const { setShowAddPaymentMethodModal, AddPaymentMethodModal } =
     useAddPaymentMethodModal();
+  const { role } = useWorkspace();
 
   return (
     <>
@@ -193,6 +202,13 @@ const NoPartnerPaymentMethods = () => {
             className="h-9 w-fit"
             text="Connect"
             onClick={() => setShowAddPaymentMethodModal(true)}
+            disabledTooltip={
+              clientAccessCheck({
+                action: "payment_methods.write",
+                role,
+                customPermissionDescription: "connect payment methods",
+              }).error || undefined
+            }
           />
         </div>
       </RecommendedForPayoutsWrapper>

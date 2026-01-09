@@ -15,6 +15,7 @@ import {
   messagePartnerSchema,
 } from "../../zod/schemas/messages";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 const schema = messagePartnerSchema.extend({
   workspaceId: z.string(),
@@ -26,6 +27,11 @@ export const messagePartnerAction = authActionClient
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { partnerId, text } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredPermissions: ["messages.write"],
+    });
 
     const programId = getDefaultProgramIdOrThrow(workspace);
     if (!getPlanCapabilities(workspace.plan).canMessagePartners) {

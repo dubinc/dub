@@ -20,6 +20,7 @@ const MAX_WORKSPACE_TOKENS = 100;
 const getTokensQuerySchema = z.object({
   userId: z.string().optional(),
 });
+
 // GET /api/tokens - get all tokens for a workspace
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
@@ -79,19 +80,7 @@ export const POST = withWorkspace(
       await parseRequestBody(req),
     );
 
-    let machineUser: Pick<User, "id"> | null = null;
-
-    const { role } = await prisma.projectUsers.findUniqueOrThrow({
-      where: {
-        userId_projectId: {
-          userId: session.user.id,
-          projectId: workspace.id,
-        },
-      },
-      select: {
-        role: true,
-      },
-    });
+    const role = workspace.users[0].role;
 
     // Only workspace owners can create machine users
     if (isMachine && role !== "owner") {
@@ -128,6 +117,8 @@ export const POST = withWorkspace(
             message: `You've reached your limit of ${MAX_WORKSPACE_TOKENS} API keys for this workspace. Please contact support to increase this limit.`,
           });
         }
+
+        let machineUser: Pick<User, "id"> | null = null;
 
         // Create machine user if needed
         if (isMachine) {

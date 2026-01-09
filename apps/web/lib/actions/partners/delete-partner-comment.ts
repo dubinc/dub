@@ -4,6 +4,7 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { prisma } from "@dub/prisma";
 import { deletePartnerCommentSchema } from "../../zod/schemas/programs";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 // Delete a partner comment
 export const deletePartnerCommentAction = authActionClient
@@ -11,6 +12,11 @@ export const deletePartnerCommentAction = authActionClient
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { commentId } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredPermissions: ["messages.write"],
+    });
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
