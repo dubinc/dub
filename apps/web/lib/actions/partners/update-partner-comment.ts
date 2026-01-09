@@ -19,7 +19,6 @@ export const updatePartnerCommentAction = authActionClient
     throwIfNoPermission({
       role: workspace.role,
       requiredPermissions: ["messages.write"],
-      customMessage: "You don't have permission to update partner comments.",
     });
 
     const programId = getDefaultProgramIdOrThrow(workspace);

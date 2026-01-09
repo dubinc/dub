@@ -25,7 +25,6 @@ export const revokeProgramInviteAction = authActionClient
     throwIfNoPermission({
       role: workspace.role,
       requiredPermissions: ["workspaces.write"],
-      customMessage: "You don't have permission to revoke program invites.",
     });
 
     const programId = getDefaultProgramIdOrThrow(workspace);

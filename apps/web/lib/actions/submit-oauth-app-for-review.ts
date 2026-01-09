@@ -24,7 +24,6 @@ export const submitOAuthAppForReview = authActionClient
     throwIfNoPermission({
       role: workspace.role,
       requiredPermissions: ["oauth_apps.write"],
-      customMessage: "You don't have permission to submit OAuth apps for review.",
     });
 
     const integration = await prisma.integration.findFirstOrThrow({

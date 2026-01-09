@@ -17,8 +17,6 @@ export const updateDiscoveredPartnerAction = authActionClient
     throwIfNoPermission({
       role: workspace.role,
       requiredPermissions: ["workspaces.read"],
-      customMessage:
-        "You don't have permission to update discovered partner preferences.",
     });
 
     const programId = getDefaultProgramIdOrThrow(workspace);

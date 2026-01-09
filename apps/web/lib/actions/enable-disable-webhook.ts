@@ -23,7 +23,6 @@ export const enableOrDisableWebhook = authActionClient
     throwIfNoPermission({
       role: workspace.role,
       requiredPermissions: ["webhooks.write"],
-      customMessage: "You don't have permission to enable or disable webhooks.",
     });
 
     if (["free", "pro"].includes(workspace.plan)) {

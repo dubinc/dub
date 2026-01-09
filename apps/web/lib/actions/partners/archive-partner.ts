@@ -19,7 +19,6 @@ export const archivePartnerAction = authActionClient
     throwIfNoPermission({
       role: workspace.role,
       requiredPermissions: ["workspaces.write"],
-      customMessage: "You don't have permission to archive partners.",
     });
 
     const programId = getDefaultProgramIdOrThrow(workspace);

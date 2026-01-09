@@ -22,7 +22,6 @@ export const deleteProgramInviteAction = authActionClient
     throwIfNoPermission({
       role: workspace.role,
       requiredPermissions: ["workspaces.write"],
-      customMessage: "You don't have permission to delete program invites.",
     });
 
     const programId = getDefaultProgramIdOrThrow(workspace);

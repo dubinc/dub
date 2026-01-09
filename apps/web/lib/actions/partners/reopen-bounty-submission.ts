@@ -24,7 +24,6 @@ export const reopenBountySubmissionAction = authActionClient
     throwIfNoPermission({
       role: workspace.role,
       requiredPermissions: ["workspaces.write"],
-      customMessage: "You don't have permission to reopen bounty submissions.",
     });
 
     const programId = getDefaultProgramIdOrThrow(workspace);

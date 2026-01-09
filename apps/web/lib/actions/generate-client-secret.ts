@@ -23,7 +23,6 @@ export const generateClientSecret = authActionClient
     throwIfNoPermission({
       role: workspace.role,
       requiredPermissions: ["oauth_apps.write"],
-      customMessage: "You don't have permission to generate a client secret.",
     });
 
     await prisma.integration.findFirstOrThrow({

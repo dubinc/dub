@@ -32,7 +32,6 @@ export const updateRewardAction = authActionClient
     throwIfNoPermission({
       role: workspace.role,
       requiredPermissions: ["workspaces.write"],
-      customMessage: "You don't have permission to update rewards.",
     });
 
     const programId = getDefaultProgramIdOrThrow(workspace);

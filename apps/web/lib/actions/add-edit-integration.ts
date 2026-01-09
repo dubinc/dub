@@ -25,8 +25,6 @@ export const addEditIntegration = authActionClient
     throwIfNoPermission({
       role: workspace.role,
       requiredPermissions: ["oauth_apps.write"],
-      customMessage:
-        "You don't have permission to create or update OAuth integrations.",
     });
 
     // this is only available for Dub workspace for now

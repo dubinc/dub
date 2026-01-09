@@ -21,7 +21,6 @@ export const markPartnerMessagesReadAction = authActionClient
     throwIfNoPermission({
       role: workspace.role,
       requiredPermissions: ["messages.read"],
-      customMessage: "You don't have permission to mark messages as read.",
     });
 
     const programId = getDefaultProgramIdOrThrow(workspace);

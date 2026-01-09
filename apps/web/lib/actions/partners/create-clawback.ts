@@ -16,7 +16,6 @@ export const createClawbackAction = authActionClient
     throwIfNoPermission({
       role: workspace.role,
       requiredPermissions: ["workspaces.write"],
-      customMessage: "You don't have permission to create clawbacks.",
     });
 
     const { partnerId, amount, description } = parsedInput;

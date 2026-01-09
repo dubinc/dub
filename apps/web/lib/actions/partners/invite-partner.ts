@@ -22,7 +22,6 @@ export const invitePartnerAction = authActionClient
     throwIfNoPermission({
       role: workspace.role,
       requiredPermissions: ["workspaces.write"],
-      customMessage: "You don't have permission to invite partners.",
     });
 
     const programId = getDefaultProgramIdOrThrow(workspace);

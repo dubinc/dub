@@ -22,7 +22,6 @@ export const setToltTokenAction = authActionClient
     throwIfNoPermission({
       role: workspace.role,
       requiredPermissions: ["workspaces.write"],
-      customMessage: "You don't have permission to set import credentials.",
     });
 
     const toltApi = new ToltApi({ token });

@@ -25,8 +25,6 @@ export const markCommissionFraudOrCanceledAction = authActionClient
     throwIfNoPermission({
       role: workspace.role,
       requiredPermissions: ["workspaces.write"],
-      customMessage:
-        "You don't have permission to mark commissions as fraud or canceled.",
     });
 
     const programId = getDefaultProgramIdOrThrow(workspace);

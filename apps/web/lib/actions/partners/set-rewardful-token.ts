@@ -20,7 +20,6 @@ export const setRewardfulTokenAction = authActionClient
     throwIfNoPermission({
       role: workspace.role,
       requiredPermissions: ["workspaces.write"],
-      customMessage: "You don't have permission to import partners.",
     });
 
     const rewardfulApi = new RewardfulApi({ token });

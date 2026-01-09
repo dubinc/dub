@@ -22,7 +22,6 @@ export const startToltImportAction = authActionClient
     throwIfNoPermission({
       role: workspace.role,
       requiredPermissions: ["workspaces.write"],
-      customMessage: "You don't have permission to start imports.",
     });
 
     const programId = getDefaultProgramIdOrThrow(workspace);

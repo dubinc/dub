@@ -23,7 +23,6 @@ export const saveInviteEmailDataAction = authActionClient
     throwIfNoPermission({
       role: workspace.role,
       requiredPermissions: ["workspaces.write"],
-      customMessage: "You don't have permission to save invite email data.",
     });
 
     const programId = getDefaultProgramIdOrThrow(workspace);

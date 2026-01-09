@@ -20,7 +20,6 @@ export const createPartnerCommentAction = authActionClient
     throwIfNoPermission({
       role: workspace.role,
       requiredPermissions: ["messages.write"],
-      customMessage: "You don't have permission to create partner comments.",
     });
 
     const programId = getDefaultProgramIdOrThrow(workspace);

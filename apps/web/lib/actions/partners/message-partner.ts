@@ -31,7 +31,6 @@ export const messagePartnerAction = authActionClient
     throwIfNoPermission({
       role: workspace.role,
       requiredPermissions: ["messages.write"],
-      customMessage: "You don't have permission to message partners.",
     });
 
     const programId = getDefaultProgramIdOrThrow(workspace);

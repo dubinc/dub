@@ -16,7 +16,6 @@ export const deletePartnerCommentAction = authActionClient
     throwIfNoPermission({
       role: workspace.role,
       requiredPermissions: ["messages.write"],
-      customMessage: "You don't have permission to delete partner comments.",
     });
 
     const programId = getDefaultProgramIdOrThrow(workspace);

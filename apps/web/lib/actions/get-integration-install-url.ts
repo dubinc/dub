@@ -21,7 +21,6 @@ export const getIntegrationInstallUrl = authActionClient
     throwIfNoPermission({
       role: workspace.role,
       requiredPermissions: ["integrations.read"],
-      customMessage: "You don't have permission to install integrations.",
     });
 
     let url: string | null = null;

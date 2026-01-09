@@ -28,7 +28,6 @@ export const approveBountySubmissionAction = authActionClient
     throwIfNoPermission({
       role: workspace.role,
       requiredPermissions: ["workspaces.write"],
-      customMessage: "You don't have permission to approve bounty submissions.",
     });
 
     const programId = getDefaultProgramIdOrThrow(workspace);

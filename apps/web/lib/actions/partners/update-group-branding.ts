@@ -47,7 +47,6 @@ export const updateGroupBrandingAction = authActionClient
     throwIfNoPermission({
       role: workspace.role,
       requiredPermissions: ["workspaces.write"],
-      customMessage: "You don't have permission to update group branding.",
     });
 
     const programId = getDefaultProgramIdOrThrow(workspace);

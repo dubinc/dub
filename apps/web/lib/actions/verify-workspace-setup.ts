@@ -36,7 +36,6 @@ export const verifyWorkspaceSetup = authActionClient
     throwIfNoPermission({
       role: workspace.role,
       requiredPermissions: ["workspaces.read"],
-      customMessage: "You don't have permission to verify workspace setup.",
     });
 
     const domains = await prisma.domain.findMany({

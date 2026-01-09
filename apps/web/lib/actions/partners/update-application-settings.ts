@@ -22,7 +22,6 @@ export const updateApplicationSettingsAction = authActionClient
     throwIfNoPermission({
       role: workspace.role,
       requiredPermissions: ["workspaces.write"],
-      customMessage: "You don't have permission to update application settings.",
     });
 
     const programId = getDefaultProgramIdOrThrow(workspace);

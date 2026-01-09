@@ -19,7 +19,6 @@ export const uploadLanderImageAction = authActionClient
     throwIfNoPermission({
       role: workspace.role,
       requiredPermissions: ["workspaces.write"],
-      customMessage: "You don't have permission to upload lander images.",
     });
 
     const programId = getDefaultProgramIdOrThrow(workspace);

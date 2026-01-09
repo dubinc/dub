@@ -24,7 +24,6 @@ export const sendTestWebhookEvent = authActionClient
     throwIfNoPermission({
       role: workspace.role,
       requiredPermissions: ["webhooks.write"],
-      customMessage: "You don't have permission to send test webhooks.",
     });
 
     const webhook = await prisma.webhook.findUniqueOrThrow({

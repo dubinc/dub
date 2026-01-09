@@ -30,7 +30,6 @@ export const updatePartnerEnrollmentAction = authActionClient
     throwIfNoPermission({
       role: workspace.role,
       requiredPermissions: ["workspaces.write"],
-      customMessage: "You don't have permission to update partner enrollment.",
     });
 
     const programId = getDefaultProgramIdOrThrow(workspace);

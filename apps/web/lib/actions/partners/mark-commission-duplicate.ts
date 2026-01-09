@@ -25,7 +25,6 @@ export const markCommissionDuplicateAction = authActionClient
     throwIfNoPermission({
       role: workspace.role,
       requiredPermissions: ["workspaces.write"],
-      customMessage: "You don't have permission to mark commissions as duplicate.",
     });
 
     const programId = getDefaultProgramIdOrThrow(workspace);

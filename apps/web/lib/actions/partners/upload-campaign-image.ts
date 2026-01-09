@@ -19,7 +19,6 @@ export const uploadCampaignImageAction = authActionClient
     throwIfNoPermission({
       role: workspace.role,
       requiredPermissions: ["workspaces.write"],
-      customMessage: "You don't have permission to upload campaign images.",
     });
 
     const programId = getDefaultProgramIdOrThrow(workspace);

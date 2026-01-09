@@ -60,7 +60,6 @@ export const confirmPayoutsAction = authActionClient
     throwIfNoPermission({
       role: workspace.role,
       requiredPermissions: ["payouts.write"],
-      customMessage: "You don't have permission to confirm payouts.",
     });
 
     if (!workspace.stripeId) {

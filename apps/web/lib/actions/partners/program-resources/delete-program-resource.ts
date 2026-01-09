@@ -28,8 +28,6 @@ export const deleteProgramResourceAction = authActionClient
     throwIfNoPermission({
       role: workspace.role,
       requiredPermissions: ["workspaces.write"],
-      customMessage:
-        "You don't have permission to delete program resources.",
     });
 
     const programId = getDefaultProgramIdOrThrow(workspace);

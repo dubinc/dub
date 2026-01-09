@@ -26,7 +26,6 @@ export const updateWorkspaceStore = authActionClient
     throwIfNoPermission({
       role: workspace.role,
       requiredPermissions: ["workspaces.write"],
-      customMessage: "You don't have permission to modify workspace settings.",
     });
 
     const store = workspace.store;

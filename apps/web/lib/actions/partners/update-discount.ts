@@ -22,7 +22,6 @@ export const updateDiscountAction = authActionClient
     throwIfNoPermission({
       role: workspace.role,
       requiredPermissions: ["workspaces.write"],
-      customMessage: "You don't have permission to update discounts.",
     });
 
     const programId = getDefaultProgramIdOrThrow(workspace);

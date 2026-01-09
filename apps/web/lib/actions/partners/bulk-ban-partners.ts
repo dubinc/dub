@@ -21,7 +21,6 @@ export const bulkBanPartnersAction = authActionClient
     throwIfNoPermission({
       role: workspace.role,
       requiredPermissions: ["workspaces.write"],
-      customMessage: "You don't have permission to ban partners.",
     });
 
     const programId = getDefaultProgramIdOrThrow(workspace);

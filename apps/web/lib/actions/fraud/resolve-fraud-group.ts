@@ -17,7 +17,6 @@ export const resolveFraudGroupAction = authActionClient
     throwIfNoPermission({
       role: workspace.role,
       requiredPermissions: ["workspaces.write"],
-      customMessage: "You don't have permission to resolve fraud events.",
     });
 
     const { canManageFraudEvents } = getPlanCapabilities(workspace.plan);

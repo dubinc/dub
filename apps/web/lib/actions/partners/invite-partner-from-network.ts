@@ -23,8 +23,6 @@ export const invitePartnerFromNetworkAction = authActionClient
     throwIfNoPermission({
       role: workspace.role,
       requiredPermissions: ["workspaces.write"],
-      customMessage:
-        "You don't have permission to invite partners from the network.",
     });
 
     const networkInvitesUsage = await getNetworkInvitesUsage(workspace);

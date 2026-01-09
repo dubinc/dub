@@ -31,7 +31,6 @@ export const updateProgramAction = authActionClient
     throwIfNoPermission({
       role: workspace.role,
       requiredPermissions: ["workspaces.write"],
-      customMessage: "You don't have permission to update programs.",
     });
 
     const programId = getDefaultProgramIdOrThrow(workspace);
