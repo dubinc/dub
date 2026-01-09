@@ -18,6 +18,7 @@ export function AnimatedEmptyState({
   learnMoreText,
   className,
   cardClassName,
+  cardContainerClassName,
 }: {
   title: string;
   description: ReactNode;
@@ -31,6 +32,7 @@ export function AnimatedEmptyState({
   learnMoreText?: string;
   className?: string;
   cardClassName?: string;
+  cardContainerClassName?: string;
 }) {
   return (
     <div
@@ -39,7 +41,12 @@ export function AnimatedEmptyState({
         className,
       )}
     >
-      <div className="animate-fade-in h-36 w-full max-w-64 overflow-hidden px-4 [mask-image:linear-gradient(transparent,black_10%,black_90%,transparent)]">
+      <div
+        className={cn(
+          "animate-fade-in h-36 w-full max-w-64 overflow-hidden px-4 [mask-image:linear-gradient(transparent,black_10%,black_90%,transparent)]",
+          cardContainerClassName,
+        )}
+      >
         <div
           style={{ "--scroll": "-50%" } as CSSProperties}
           className="animate-infinite-scroll-y flex flex-col [animation-duration:10s]"

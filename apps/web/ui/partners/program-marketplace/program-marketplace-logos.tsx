@@ -27,7 +27,7 @@ const LOGOS = [
   // Granola
   { x: 26, y: 70, r: 4, s: 0.8 },
 ];
-const LOGO_COUNT = LOGOS.length;
+export const PROGRAM_MARKETPLACE_LOGO_COUNT = LOGOS.length;
 
 export function ProgramMarketplaceLogos({ className }: { className?: string }) {
   return (
@@ -60,9 +60,12 @@ export function ProgramMarketplaceLogos({ className }: { className?: string }) {
                 zIndex: z,
                 backgroundImage:
                   "url(https://assets.dub.co/misc/program-marketplace-logos.png)",
-                backgroundSize: `${LOGO_COUNT * 100}%`,
+                backgroundSize: `${PROGRAM_MARKETPLACE_LOGO_COUNT * 100}%`,
                 backgroundPositionX:
-                  (LOGO_COUNT - (index % LOGO_COUNT)) * 100 + "%",
+                  (PROGRAM_MARKETPLACE_LOGO_COUNT -
+                    (index % PROGRAM_MARKETPLACE_LOGO_COUNT)) *
+                    100 +
+                  "%",
               }}
             />
           </div>

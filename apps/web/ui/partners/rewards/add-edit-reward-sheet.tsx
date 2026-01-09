@@ -14,7 +14,7 @@ import { RewardConditionsArray, RewardProps } from "@/lib/types";
 import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
 import {
   createOrUpdateRewardSchema,
-  ENTITY_ATTRIBUTE_TYPES,
+  REWARD_CONDITION_ATTRIBUTES,
   REWARD_DESCRIPTION_MAX_LENGTH,
   REWARD_TOOLTIP_DESCRIPTION_MAX_LENGTH,
   rewardConditionsArraySchema,
@@ -101,7 +101,8 @@ export const getRewardPayload = ({ data }: { data: FormData }) => {
             value:
               c.entity &&
               c.attribute &&
-              ENTITY_ATTRIBUTE_TYPES[c.entity]?.[c.attribute] === "currency"
+              REWARD_CONDITION_ATTRIBUTES.find((a) => a.id === c.attribute)
+                ?.type === "currency"
                 ? c.value === "" ||
                   c.value == null ||
                   Number.isNaN(Number(c.value))
@@ -191,7 +192,8 @@ function RewardSheetContent({
           conditions: m.conditions.map((c) => ({
             ...c,
             value:
-              ENTITY_ATTRIBUTE_TYPES[c.entity]?.[c.attribute] === "currency" &&
+              REWARD_CONDITION_ATTRIBUTES.find((a) => a.id === c.attribute)
+                ?.type === "currency" &&
               c.value !== "" &&
               c.value != null &&
               !Number.isNaN(Number(c.value))

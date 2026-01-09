@@ -8,9 +8,11 @@ import useWorkspace from "./use-workspace";
 export default function useCustomersCount<T = number>({
   query,
   enabled = true,
+  includeParams = ["country", "partnerId", "linkId", "externalId", "search"],
 }: {
   query?: z.infer<typeof getCustomersCountQuerySchema>;
   enabled?: boolean;
+  includeParams?: string[];
 } = {}) {
   const { id: workspaceId } = useWorkspace();
   const { getQueryString } = useRouterStuff();
@@ -21,7 +23,7 @@ export default function useCustomersCount<T = number>({
       `/api/customers/count${getQueryString(
         { workspaceId, ...query },
         {
-          include: ["country", "partnerId", "linkId", "externalId", "search"],
+          include: includeParams,
         },
       )}`,
     fetcher,
