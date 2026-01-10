@@ -3,10 +3,7 @@ import {
   EXCLUDED_PROGRAM_IDS,
   PARTNER_NETWORK_MIN_COMMISSIONS_CENTS,
 } from "../constants/partner-profile";
-import {
-  ONLINE_PRESENCE_FIELDS,
-  PartnerOnlinePresenceFields,
-} from "../partners/online-presence";
+import { ONLINE_PRESENCE_FIELDS } from "../partners/online-presence";
 import { EnrolledPartnerProps, PartnerProps } from "../types";
 
 export const partnerHasEarnedCommissions = (
@@ -56,11 +53,11 @@ export function getDiscoverabilityRequirements({
 }: {
   partner: Pick<
     PartnerProps,
-    | PartnerOnlinePresenceFields
     | "description"
     | "monthlyTraffic"
     | "preferredEarningStructures"
     | "salesChannels"
+    | "platforms"
   >;
   programEnrollments: Pick<
     EnrolledPartnerProps,
@@ -76,7 +73,7 @@ export function getDiscoverabilityRequirements({
       label: "Connect your website or social account",
       href: "#sites",
       completed: ONLINE_PRESENCE_FIELDS.some(
-        (field) => field.data(partner).value, // TODO: update this to also check for "verified" in the future
+        (field) => field.data(partner.platforms).value, // TODO: update this to also check for "verified" in the future
       ),
     },
     {

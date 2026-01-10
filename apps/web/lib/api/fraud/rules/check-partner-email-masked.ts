@@ -1,9 +1,7 @@
-import { EnrolledPartnerExtendedProps } from "@/lib/types";
+import { PartnerProps } from "@/lib/types";
 
 // Checks if the partner is using an Apple private relay email address
-export function checkPartnerEmailMasked(
-  partner: Pick<EnrolledPartnerExtendedProps, "email">,
-) {
+export function checkPartnerEmailMasked(partner: Pick<PartnerProps, "email">) {
   if (!partner.email) {
     return false;
   }

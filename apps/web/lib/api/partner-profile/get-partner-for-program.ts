@@ -20,6 +20,7 @@ export async function getPartnerForProgram({
           industryInterests: true,
           preferredEarningStructures: true,
           salesChannels: true,
+          platforms: true,
         },
       },
       links: true,

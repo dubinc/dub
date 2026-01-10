@@ -48,6 +48,7 @@ function PartnerProfileSheetContent({ partner }: PartnerProfileSheetProps) {
     </div>
   );
 }
+
 export function PartnerProfileSheet({
   isOpen,
   nested,

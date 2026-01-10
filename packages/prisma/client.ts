@@ -32,6 +32,7 @@ export {
   ProgramPayoutMode,
   RewardStructure,
   SalesChannel,
+  SocialPlatform,
   WebhookReceiver,
   WorkflowTrigger,
   WorkspaceRole,
