@@ -9,7 +9,7 @@ import {
   createPartnerSchema,
   EnrolledPartnerSchema,
   getPartnersQuerySchemaExtended,
-  partnerSocialPlatformSchema,
+  partnerPlatformSchema,
 } from "@/lib/zod/schemas/partners";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
@@ -68,7 +68,7 @@ export const GET = withWorkspace(
 
     const responseSchema = includeSocialPlatforms
       ? baseSchema.extend({
-          platforms: z.array(partnerSocialPlatformSchema),
+          platforms: z.array(partnerPlatformSchema),
         })
       : baseSchema;
 

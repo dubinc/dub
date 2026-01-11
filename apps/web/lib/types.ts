@@ -94,9 +94,9 @@ import {
   createPartnerSchema,
   EnrolledPartnerSchema,
   EnrolledPartnerSchemaExtended,
+  partnerPlatformSchema,
   PartnerRewindSchema,
   PartnerSchema,
-  partnerSocialPlatformSchema,
   WebhookPartnerSchema,
 } from "./zod/schemas/partners";
 import {
@@ -752,4 +752,4 @@ export type CreateFraudEventInput = Pick<
     metadata?: Record<string, unknown> | null;
   };
 
-export type PartnerSocialPlatform = z.infer<typeof partnerSocialPlatformSchema>;
+export type PartnerSocialPlatform = z.infer<typeof partnerPlatformSchema>;

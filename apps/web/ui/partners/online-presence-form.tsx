@@ -1,7 +1,7 @@
 "use client";
 
 import { parseActionError } from "@/lib/actions/parse-action-errors";
-import { startSocialVerificationAction } from "@/lib/actions/partners/start-social-verification";
+import { startPartnerPlatformVerificationAction } from "@/lib/actions/partners/start-partner-platform-verification";
 import { updateOnlinePresenceAction } from "@/lib/actions/partners/update-online-presence";
 import { hasPermission } from "@/lib/auth/partner-users/partner-user-permissions";
 import { sanitizeSocialHandle, sanitizeWebsite } from "@/lib/social-utils";
@@ -152,7 +152,7 @@ export const OnlinePresenceForm = forwardRef<
     const {
       executeAsync: startSocialVerification,
       isPending: isStartingSocialVerification,
-    } = useAction(startSocialVerificationAction, {
+    } = useAction(startPartnerPlatformVerificationAction, {
       onSuccess: ({ input, data }) => {
         if (!input || !data) {
           return;
@@ -674,7 +674,9 @@ function FormRow({
       const views = youtubePlatform?.views ?? 0;
 
       return [
-        subscribers > 0 ? `${nFormatter(Number(subscribers))} subscribers` : null,
+        subscribers > 0
+          ? `${nFormatter(Number(subscribers))} subscribers`
+          : null,
         views > 0 ? `${nFormatter(Number(views))} views` : null,
       ].filter(Boolean) as string[];
     }

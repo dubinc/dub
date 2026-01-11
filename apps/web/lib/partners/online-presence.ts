@@ -40,9 +40,11 @@ export const ONLINE_PRESENCE_FIELDS: {
       const youtube = platforms.find((p) => p.type === "youtube");
 
       return {
-        value: youtube ? `@${youtube.identifier}` : null,
+        value: youtube?.identifier ? `@${youtube.identifier}` : null,
         verified: !!youtube?.verifiedAt,
-        href: `https://youtube.com/@${youtube?.identifier}`,
+        href: youtube?.identifier
+          ? `https://youtube.com/@${youtube.identifier}`
+          : null,
         info: [
           youtube?.subscribers && youtube.subscribers > 0
             ? `${nFormatter(Number(youtube.subscribers))} subscribers`
@@ -63,7 +65,9 @@ export const ONLINE_PRESENCE_FIELDS: {
       return {
         value: twitter ? `@${twitter.identifier}` : null,
         verified: !!twitter?.verifiedAt,
-        href: twitter?.identifier ? `https://x.com/${twitter.identifier}` : null,
+        href: twitter?.identifier
+          ? `https://x.com/${twitter.identifier}`
+          : null,
       };
     },
   },
@@ -106,7 +110,9 @@ export const ONLINE_PRESENCE_FIELDS: {
       return {
         value: tiktok ? `@${tiktok.identifier}` : null,
         verified: !!tiktok?.verifiedAt,
-        href: tiktok?.identifier ? `https://tiktok.com/@${tiktok.identifier}` : null,
+        href: tiktok?.identifier
+          ? `https://tiktok.com/@${tiktok.identifier}`
+          : null,
       };
     },
   },

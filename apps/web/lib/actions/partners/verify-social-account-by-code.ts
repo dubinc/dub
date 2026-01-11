@@ -15,7 +15,7 @@ const schema = z.object({
 
 // Verify social accounts using the verification code
 export const verifySocialAccountByCodeAction = authPartnerActionClient
-  .schema(schema)
+  .inputSchema(schema)
   .action(async ({ ctx, parsedInput }) => {
     const { partner } = ctx;
     const { platform, handle } = parsedInput;

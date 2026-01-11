@@ -207,7 +207,7 @@ export const partnersCountQuerySchema = getPartnersQuerySchemaExtended
     groupBy: z.enum(["status", "country", "groupId"]).optional(),
   });
 
-export const partnerSocialPlatformSchema = z.object({
+export const partnerPlatformSchema = z.object({
   type: z.enum(PlatformType),
   identifier: z.string(),
   verifiedAt: z.date().nullable(),
@@ -471,7 +471,7 @@ export const EnrolledPartnerSchemaExtended = EnrolledPartnerSchema.extend({
   lastLeadAt: z.date().nullish(),
   lastConversionAt: z.date().nullish(),
   customerDataSharingEnabledAt: z.date().nullish(),
-  platforms: z.array(partnerSocialPlatformSchema).nullable(),
+  platforms: z.array(partnerPlatformSchema).nullable(),
 })
   .extend(
     PartnerSchema.pick({

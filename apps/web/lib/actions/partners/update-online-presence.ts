@@ -67,11 +67,13 @@ export const updateOnlinePresenceAction = authPartnerActionClient
       },
     });
 
-    const platformHandles = new Map(
+    const platformIdentifiers = new Map(
       partnerPlatform.map((p) => [p.type, p.identifier]),
     );
 
-    const socialPlatformsData: Pick<
+    const platformMap = new Map(partnerPlatform.map((p) => [p.type, p]));
+
+    const partnerPlatformsData: Pick<
       PartnerPlatform,
       "type" | "identifier" | "verifiedAt"
     >[] = [];
@@ -96,10 +98,10 @@ export const updateOnlinePresenceAction = authPartnerActionClient
     ];
 
     for (const { platform, inputValue } of platformConfigs) {
-      const currentHandle = platformHandles.get(platform);
+      const currentIdentifier = platformIdentifiers.get(platform);
 
       // Handle deletion: null = remove
-      if (inputValue === null && currentHandle !== undefined) {
+      if (inputValue === null && currentIdentifier !== undefined) {
         platformsToDelete.push({
           partnerId: partner.id,
           type: platform,
@@ -111,15 +113,15 @@ export const updateOnlinePresenceAction = authPartnerActionClient
       if (
         inputValue !== undefined &&
         inputValue !== null &&
-        inputValue !== currentHandle
+        inputValue !== currentIdentifier
       ) {
         // Special handling for website: check domain change
         if (platform === "website") {
           let domainChanged = false;
 
           try {
-            const oldDomain = currentHandle
-              ? new URL(currentHandle).hostname
+            const oldDomain = currentIdentifier
+              ? new URL(currentIdentifier).hostname
               : null;
             const newDomain = inputValue ? new URL(inputValue).hostname : null;
 
@@ -131,7 +133,7 @@ export const updateOnlinePresenceAction = authPartnerActionClient
           }
 
           if (domainChanged) {
-            socialPlatformsData.push({
+            partnerPlatformsData.push({
               type: "website",
               identifier: inputValue,
               verifiedAt: null,
@@ -139,7 +141,7 @@ export const updateOnlinePresenceAction = authPartnerActionClient
           }
         } else {
           // For all other platforms, update if value changed
-          socialPlatformsData.push({
+          partnerPlatformsData.push({
             type: platform,
             identifier: inputValue,
             verifiedAt: null,
@@ -166,9 +168,9 @@ export const updateOnlinePresenceAction = authPartnerActionClient
       );
     }
 
-    if (socialPlatformsData.length > 0) {
+    if (partnerPlatformsData.length > 0) {
       operations.push(
-        ...socialPlatformsData.map((item) =>
+        ...partnerPlatformsData.map((item) =>
           upsertPartnerPlatform({
             where: {
               partnerId: partner.id,

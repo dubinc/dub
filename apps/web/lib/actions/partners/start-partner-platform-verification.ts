@@ -20,7 +20,7 @@ import { v4 as uuid } from "uuid";
 import { z } from "zod";
 import { authPartnerActionClient } from "../safe-action";
 
-const startSocialVerificationSchema = z.object({
+const startPartnerPlatformVerificationSchema = z.object({
   platform: z.enum(PlatformType),
   handle: z.string().min(1).max(50),
   source: z.enum(["onboarding", "settings"]).default("onboarding"),
@@ -45,8 +45,8 @@ type VerificationParams = {
  * - Verification Code: For platforms like YouTube and Instagram (returns code to display)
  * - TXT Record: For website verification (returns DNS TXT record)
  */
-export const startSocialVerificationAction = authPartnerActionClient
-  .schema(startSocialVerificationSchema)
+export const startPartnerPlatformVerificationAction = authPartnerActionClient
+  .inputSchema(startPartnerPlatformVerificationSchema)
   .action(async ({ ctx, parsedInput }) => {
     const { partner } = ctx;
     const { platform, handle, source } = parsedInput;
