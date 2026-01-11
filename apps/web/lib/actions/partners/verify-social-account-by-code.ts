@@ -4,12 +4,12 @@ import { scrapeCreatorsClient } from "@/lib/api/scrapecreators/client";
 import { ratelimit } from "@/lib/upstash";
 import { redis } from "@/lib/upstash/redis";
 import { prisma } from "@dub/prisma";
-import { SocialPlatform } from "@dub/prisma/client";
+import { PlatformType } from "@dub/prisma/client";
 import { z } from "zod";
 import { authPartnerActionClient } from "../safe-action";
 
 const schema = z.object({
-  platform: z.enum(SocialPlatform),
+  platform: z.enum(PlatformType),
   handle: z.string().min(1),
 });
 
@@ -48,13 +48,13 @@ export const verifySocialAccountByCodeAction = authPartnerActionClient
     // Check if the account is already verified
     const partnerPlatform = await prisma.partnerPlatform.findUnique({
       where: {
-        partnerId_platform: {
+        partnerId_type: {
           partnerId: partner.id,
-          platform,
+          type: platform,
         },
       },
       select: {
-        handle: true,
+        identifier: true,
         verifiedAt: true,
       },
     });
@@ -65,7 +65,7 @@ export const verifySocialAccountByCodeAction = authPartnerActionClient
 
     // No further action is needed if the account is already verified
     if (
-      partnerPlatform?.handle?.toLowerCase() === handle.toLowerCase() &&
+      partnerPlatform?.identifier?.toLowerCase() === handle.toLowerCase() &&
       partnerPlatform.verifiedAt
     ) {
       return;
@@ -105,9 +105,9 @@ export const verifySocialAccountByCodeAction = authPartnerActionClient
 
     await prisma.partnerPlatform.update({
       where: {
-        partnerId_platform: {
+        partnerId_type: {
           partnerId: partner.id,
-          platform,
+          type: platform,
         },
       },
       data: {

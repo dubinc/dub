@@ -45,7 +45,7 @@ async function main() {
           },
         ],
       },
-      take: 100,
+      take: 1000,
       orderBy: {
         id: "asc",
       },
@@ -74,7 +74,7 @@ async function main() {
         partnerId: partner.id,
         posts: BigInt(0),
         views: BigInt(0),
-        followers: BigInt(0),
+        subscribers: BigInt(0),
         metadata: Prisma.DbNull,
         platformId: null,
       };
@@ -82,8 +82,8 @@ async function main() {
       if (partner.website) {
         partnerPlatforms.push({
           ...commonFields,
-          platform: "website",
-          handle: partner.website,
+          type: "website",
+          identifier: partner.website,
           verifiedAt: partner.websiteVerifiedAt,
           metadata: partner.websiteTxtRecord
             ? { websiteTxtRecord: partner.websiteTxtRecord }
@@ -94,21 +94,21 @@ async function main() {
       if (partner.youtube) {
         partnerPlatforms.push({
           ...commonFields,
-          platform: "youtube",
-          handle: partner.youtube,
+          type: "youtube",
+          identifier: partner.youtube,
           platformId: partner.youtubeChannelId,
           verifiedAt: partner.youtubeVerifiedAt,
           posts: BigInt(partner.youtubeVideoCount),
           views: BigInt(partner.youtubeViewCount),
-          followers: BigInt(partner.youtubeSubscriberCount),
+          subscribers: BigInt(partner.youtubeSubscriberCount),
         });
       }
 
       if (partner.twitter) {
         partnerPlatforms.push({
           ...commonFields,
-          platform: "twitter",
-          handle: partner.twitter,
+          type: "twitter",
+          identifier: partner.twitter,
           verifiedAt: partner.twitterVerifiedAt,
         });
       }
@@ -116,8 +116,8 @@ async function main() {
       if (partner.linkedin) {
         partnerPlatforms.push({
           ...commonFields,
-          platform: "linkedin",
-          handle: partner.linkedin,
+          type: "linkedin",
+          identifier: partner.linkedin,
           verifiedAt: partner.linkedinVerifiedAt,
         });
       }
@@ -125,8 +125,8 @@ async function main() {
       if (partner.instagram) {
         partnerPlatforms.push({
           ...commonFields,
-          platform: "instagram",
-          handle: partner.instagram,
+          type: "instagram",
+          identifier: partner.instagram,
           verifiedAt: partner.instagramVerifiedAt,
         });
       }
@@ -134,8 +134,8 @@ async function main() {
       if (partner.tiktok) {
         partnerPlatforms.push({
           ...commonFields,
-          platform: "tiktok",
-          handle: partner.tiktok,
+          type: "tiktok",
+          identifier: partner.tiktok,
           verifiedAt: partner.tiktokVerifiedAt,
         });
       }

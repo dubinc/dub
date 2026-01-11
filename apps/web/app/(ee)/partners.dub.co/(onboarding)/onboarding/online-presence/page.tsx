@@ -4,7 +4,7 @@ import { PartnerSocialPlatform } from "@/lib/types";
 import { partnerSocialPlatformSchema } from "@/lib/zod/schemas/partners";
 import { OnlinePresenceForm } from "@/ui/partners/online-presence-form";
 import { prisma } from "@dub/prisma";
-import { SocialPlatform } from "@dub/prisma/client";
+import { PlatformType } from "@dub/prisma/client";
 import { Suspense } from "react";
 import { z } from "zod";
 import { OnlinePresencePageClient } from "./page-client";
@@ -94,7 +94,7 @@ async function OnlinePresenceFormRSC() {
       "linkedin",
       "instagram",
       "tiktok",
-    ] as const satisfies readonly SocialPlatform[];
+    ] as const satisfies readonly PlatformType[];
 
     for (const platform of APPLICATION_SOCIAL_PLATFORMS) {
       const handle = application[platform];
@@ -102,11 +102,11 @@ async function OnlinePresenceFormRSC() {
       // Application-provided handles are added only if the partner does not already have that platform.
       if (handle && !socialPlatformsMap[platform]) {
         platforms.push({
-          platform,
-          handle,
+          type: platform,
+          identifier: handle,
           platformId: null,
           verifiedAt: null,
-          followers: BigInt(0),
+          subscribers: BigInt(0),
           views: BigInt(0),
           posts: BigInt(0),
         });

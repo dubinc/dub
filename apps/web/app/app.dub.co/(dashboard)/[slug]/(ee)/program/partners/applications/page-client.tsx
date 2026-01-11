@@ -16,7 +16,7 @@ import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PartnerSocialColumn } from "@/ui/partners/partner-social-column";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
-import { SocialPlatform } from "@dub/prisma/client";
+import { PlatformType } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
   Button,
@@ -112,7 +112,7 @@ export function ProgramPartnersApplicationsPageClient() {
   const platformsMapByPartnerId = useMemo(() => {
     const map = new Map<
       string,
-      Record<SocialPlatform, PartnerSocialPlatform | null>
+      Record<PlatformType, PartnerSocialPlatform | null>
     >();
 
     partners?.forEach((partner) => {

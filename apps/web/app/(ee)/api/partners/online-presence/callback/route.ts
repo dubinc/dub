@@ -2,7 +2,7 @@ import { ONLINE_PRESENCE_PROVIDERS } from "@/lib/api/partner-profile/online-pres
 import { getSession } from "@/lib/auth/utils";
 import { redis } from "@/lib/upstash/redis";
 import { prisma } from "@dub/prisma";
-import { SocialPlatform } from "@dub/prisma/client";
+import { PlatformType } from "@dub/prisma/client";
 import {
   getSearchParams,
   PARTNERS_DOMAIN,
@@ -18,7 +18,7 @@ const requestSchema = z.object({
 });
 
 interface State {
-  platform: SocialPlatform;
+  platform: PlatformType;
   partnerId: string;
   source: "onboarding" | "settings";
 }
@@ -126,20 +126,20 @@ export async function GET(req: Request) {
 
   const partnerPlatform = await prisma.partnerPlatform.findUnique({
     where: {
-      partnerId_platform: {
+      partnerId_type: {
         partnerId,
-        platform,
+        type: platform,
       },
     },
   });
 
-  if (!partnerPlatform || !partnerPlatform.handle) {
+  if (!partnerPlatform || !partnerPlatform.identifier) {
     console.error("No partner platform found in OAuth callback");
     return NextResponse.redirect(redirectUrl);
   }
 
   const { verified, metadata } = await verify({
-    handle: partnerPlatform.handle,
+    handle: partnerPlatform.identifier,
     accessToken: tokenResponse.access_token,
   });
 
@@ -150,9 +150,9 @@ export async function GET(req: Request) {
 
   await prisma.partnerPlatform.update({
     where: {
-      partnerId_platform: {
+      partnerId_type: {
         partnerId,
-        platform,
+        type: platform,
       },
     },
     data: {

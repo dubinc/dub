@@ -4,7 +4,7 @@ import { upsertPartnerPlatform } from "@/lib/api/partner-profile/upsert-partner-
 import { sanitizeSocialHandle, sanitizeWebsite } from "@/lib/social-utils";
 import { parseUrlSchemaAllowEmpty } from "@/lib/zod/schemas/utils";
 import { prisma } from "@dub/prisma";
-import { PartnerPlatform, SocialPlatform } from "@dub/prisma/client";
+import { PartnerPlatform, PlatformType } from "@dub/prisma/client";
 import { isValidUrl } from "@dub/utils";
 import * as z from "zod/v4";
 import { authPartnerActionClient } from "../safe-action";
@@ -13,7 +13,7 @@ import { authPartnerActionClient } from "../safe-action";
  * Helper function to create a schema for social platform handles.
  * Preserves undefined (ignore) and null (remove), sanitizes string values.
  */
-const createSocialPlatformSchema = (platform: SocialPlatform) => {
+const createSocialPlatformSchema = (platform: PlatformType) => {
   return z
     .string()
     .nullish()
@@ -68,23 +68,23 @@ export const updateOnlinePresenceAction = authPartnerActionClient
     });
 
     const platformHandles = new Map(
-      partnerPlatform.map((p) => [p.platform, p.handle]),
+      partnerPlatform.map((p) => [p.type, p.identifier]),
     );
 
     const socialPlatformsData: Pick<
       PartnerPlatform,
-      "platform" | "handle" | "verifiedAt"
+      "type" | "identifier" | "verifiedAt"
     >[] = [];
 
     const platformsToDelete: Array<{
       partnerId: string;
-      platform: SocialPlatform;
+      type: PlatformType;
     }> = [];
 
     // Define platform configurations
     // null = remove, undefined = ignore (no changes)
     const platformConfigs: Array<{
-      platform: SocialPlatform;
+      platform: PlatformType;
       inputValue: string | null | undefined;
     }> = [
       { platform: "youtube", inputValue: parsedInput.youtube },
@@ -132,16 +132,16 @@ export const updateOnlinePresenceAction = authPartnerActionClient
 
           if (domainChanged) {
             socialPlatformsData.push({
-              platform: "website",
-              handle: inputValue,
+              type: "website",
+              identifier: inputValue,
               verifiedAt: null,
             });
           }
         } else {
           // For all other platforms, update if value changed
           socialPlatformsData.push({
-            platform,
-            handle: inputValue,
+            type: platform,
+            identifier: inputValue,
             verifiedAt: null,
           });
         }
@@ -153,12 +153,12 @@ export const updateOnlinePresenceAction = authPartnerActionClient
 
     if (platformsToDelete.length > 0) {
       operations.push(
-        ...platformsToDelete.map(({ partnerId, platform }) =>
+        ...platformsToDelete.map(({ partnerId, type }) =>
           prisma.partnerPlatform.delete({
             where: {
-              partnerId_platform: {
+              partnerId_type: {
                 partnerId,
-                platform,
+                type,
               },
             },
           }),
@@ -172,10 +172,10 @@ export const updateOnlinePresenceAction = authPartnerActionClient
           upsertPartnerPlatform({
             where: {
               partnerId: partner.id,
-              platform: item.platform,
+              type: item.type,
             },
             data: {
-              handle: item.handle,
+              identifier: item.identifier,
               verifiedAt: item.verifiedAt,
             },
           }),

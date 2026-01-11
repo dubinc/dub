@@ -39,12 +39,12 @@ async function main() {
     return {
       name: partner.name,
       email: partner.email,
-      website: platformsMap.website?.handle || null,
-      youtube: platformsMap.youtube?.handle || null,
-      twitter: platformsMap.twitter?.handle || null,
-      linkedin: platformsMap.linkedin?.handle || null,
-      instagram: platformsMap.instagram?.handle || null,
-      tiktok: platformsMap.tiktok?.handle || null,
+      website: platformsMap.website?.identifier || null,
+      youtube: platformsMap.youtube?.identifier || null,
+      twitter: platformsMap.twitter?.identifier || null,
+      linkedin: platformsMap.linkedin?.identifier || null,
+      instagram: platformsMap.instagram?.identifier || null,
+      tiktok: platformsMap.tiktok?.identifier || null,
     };
   });
 

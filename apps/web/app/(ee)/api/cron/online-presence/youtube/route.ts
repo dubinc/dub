@@ -1,6 +1,6 @@
 import { withCron } from "@/lib/cron/with-cron";
 import { prisma } from "@dub/prisma";
-import { SocialPlatform } from "@dub/prisma/client";
+import { PlatformType } from "@dub/prisma/client";
 import { chunk, deepEqual } from "@dub/utils";
 import { z } from "zod";
 import { logAndRespond } from "../../utils";
@@ -27,7 +27,7 @@ export const POST = withCron(async () => {
 
   const youtubeChannels = await prisma.partnerPlatform.findMany({
     where: {
-      platform: SocialPlatform.youtube,
+      type: PlatformType.youtube,
       verifiedAt: {
         not: null,
       },
@@ -77,13 +77,13 @@ export const POST = withCron(async () => {
       }
 
       const currentStats = {
-        followers: partnerPlatform.followers,
+        subscribers: partnerPlatform.subscribers,
         posts: partnerPlatform.posts,
         views: partnerPlatform.views,
       };
 
       const newStats = {
-        followers: channel.statistics.subscriberCount,
+        subscribers: channel.statistics.subscriberCount,
         posts: channel.statistics.videoCount,
         views: channel.statistics.viewCount,
       };
@@ -100,7 +100,7 @@ export const POST = withCron(async () => {
       });
 
       console.log(
-        `Updated YouTube stats for @${partnerPlatform.handle}`,
+        `Updated YouTube stats for @${partnerPlatform.identifier}`,
         newStats,
       );
     }

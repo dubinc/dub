@@ -5,6 +5,6 @@ export function checkPartnerNoSocialLinks(
   partner: Pick<PartnerProps, "platforms">,
 ) {
   return !partner.platforms.some(
-    (p) => typeof p.handle === "string" && p.handle.trim().length > 0,
+    (p) => typeof p.identifier === "string" && p.identifier.trim().length > 0,
   );
 }

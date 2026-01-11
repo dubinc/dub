@@ -1,9 +1,9 @@
 import { PartnerSocialPlatform } from "@/lib/types";
-import { SocialPlatform } from "@dub/prisma/client";
+import { PlatformType } from "@dub/prisma/client";
 import { BadgeCheck2Fill, Tooltip } from "@dub/ui";
 import { getDomainWithoutWWW } from "@dub/utils";
 
-const PLATFORMS_WITH_AT: SocialPlatform[] = [
+const PLATFORMS_WITH_AT: PlatformType[] = [
   "youtube",
   "twitter",
   "instagram",
@@ -15,17 +15,17 @@ export function PartnerSocialColumn({
   platformName,
 }: {
   platform: PartnerSocialPlatform | null | undefined;
-  platformName: SocialPlatform;
+  platformName: PlatformType;
 }) {
-  if (!platform?.handle) {
+  if (!platform?.identifier) {
     return "-";
   }
 
   const needsAt = PLATFORMS_WITH_AT.includes(platformName);
   const value =
     platformName === "website"
-      ? getDomainWithoutWWW(platform.handle) ?? "-"
-      : platform.handle;
+      ? getDomainWithoutWWW(platform.identifier) ?? "-"
+      : platform.identifier;
   const verified = !!platform.verifiedAt;
 
   return (

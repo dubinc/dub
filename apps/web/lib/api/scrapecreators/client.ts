@@ -1,4 +1,4 @@
-import { SocialPlatform } from "@dub/prisma/client";
+import { PlatformType } from "@dub/prisma/client";
 import { z } from "zod";
 
 const SCRAPECREATORS_API_BASE_URL = "https://api.scrapecreators.com";
@@ -34,7 +34,7 @@ type PlatformRequestConfig = {
 };
 
 const PLATFORM_CONFIG: Record<
-  Exclude<SocialPlatform, "linkedin" | "tiktok" | "twitter" | "website">,
+  Exclude<PlatformType, "linkedin" | "tiktok" | "twitter" | "website">,
   PlatformRequestConfig
 > = {
   youtube: {
@@ -81,7 +81,7 @@ export class ScrapeCreatorsClient {
     platform,
     handle,
   }: {
-    platform: SocialPlatform;
+    platform: PlatformType;
     handle: string;
   }): Promise<ProfileFields> {
     const config = PLATFORM_CONFIG[platform];

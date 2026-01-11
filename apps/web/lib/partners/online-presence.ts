@@ -24,12 +24,12 @@ export const ONLINE_PRESENCE_FIELDS: {
     label: "Website",
     icon: Globe,
     data: (platforms) => {
-      const website = platforms.find((p) => p.platform === "website");
+      const website = platforms.find((p) => p.type === "website");
 
       return {
-        value: website ? getPrettyUrl(website.handle) : null,
+        value: website ? getPrettyUrl(website.identifier) : null,
         verified: !!website?.verifiedAt,
-        href: website?.handle,
+        href: website?.identifier,
       };
     },
   },
@@ -37,15 +37,15 @@ export const ONLINE_PRESENCE_FIELDS: {
     label: "YouTube",
     icon: YouTube,
     data: (platforms) => {
-      const youtube = platforms.find((p) => p.platform === "youtube");
+      const youtube = platforms.find((p) => p.type === "youtube");
 
       return {
-        value: youtube ? `@${youtube.handle}` : null,
+        value: youtube ? `@${youtube.identifier}` : null,
         verified: !!youtube?.verifiedAt,
-        href: `https://youtube.com/@${youtube?.handle}`,
+        href: `https://youtube.com/@${youtube?.identifier}`,
         info: [
-          youtube?.followers && youtube.followers > 0
-            ? `${nFormatter(Number(youtube.followers))} subscribers`
+          youtube?.subscribers && youtube.subscribers > 0
+            ? `${nFormatter(Number(youtube.subscribers))} subscribers`
             : null,
           youtube?.views && youtube.views > 0
             ? `${nFormatter(Number(youtube.views))} views`
@@ -58,12 +58,12 @@ export const ONLINE_PRESENCE_FIELDS: {
     label: "X/Twitter",
     icon: Twitter,
     data: (platforms) => {
-      const twitter = platforms.find((p) => p.platform === "twitter");
+      const twitter = platforms.find((p) => p.type === "twitter");
 
       return {
-        value: twitter ? `@${twitter.handle}` : null,
+        value: twitter ? `@${twitter.identifier}` : null,
         verified: !!twitter?.verifiedAt,
-        href: twitter?.handle ? `https://x.com/${twitter.handle}` : null,
+        href: twitter?.identifier ? `https://x.com/${twitter.identifier}` : null,
       };
     },
   },
@@ -71,13 +71,13 @@ export const ONLINE_PRESENCE_FIELDS: {
     label: "LinkedIn",
     icon: LinkedIn,
     data: (platforms) => {
-      const linkedin = platforms.find((p) => p.platform === "linkedin");
+      const linkedin = platforms.find((p) => p.type === "linkedin");
 
       return {
-        value: linkedin ? linkedin.handle : null,
+        value: linkedin ? linkedin.identifier : null,
         verified: !!linkedin?.verifiedAt,
-        href: linkedin?.handle
-          ? `https://linkedin.com/in/${linkedin.handle}`
+        href: linkedin?.identifier
+          ? `https://linkedin.com/in/${linkedin.identifier}`
           : null,
       };
     },
@@ -86,13 +86,13 @@ export const ONLINE_PRESENCE_FIELDS: {
     label: "Instagram",
     icon: Instagram,
     data: (platforms) => {
-      const instagram = platforms.find((p) => p.platform === "instagram");
+      const instagram = platforms.find((p) => p.type === "instagram");
 
       return {
-        value: instagram ? `@${instagram.handle}` : null,
+        value: instagram ? `@${instagram.identifier}` : null,
         verified: !!instagram?.verifiedAt,
-        href: instagram?.handle
-          ? `https://instagram.com/${instagram.handle}`
+        href: instagram?.identifier
+          ? `https://instagram.com/${instagram.identifier}`
           : null,
       };
     },
@@ -101,12 +101,12 @@ export const ONLINE_PRESENCE_FIELDS: {
     label: "Tiktok",
     icon: TikTok,
     data: (platforms) => {
-      const tiktok = platforms.find((p) => p.platform === "tiktok");
+      const tiktok = platforms.find((p) => p.type === "tiktok");
 
       return {
-        value: tiktok ? `@${tiktok.handle}` : null,
+        value: tiktok ? `@${tiktok.identifier}` : null,
         verified: !!tiktok?.verifiedAt,
-        href: tiktok?.handle ? `https://tiktok.com/@${tiktok.handle}` : null,
+        href: tiktok?.identifier ? `https://tiktok.com/@${tiktok.identifier}` : null,
       };
     },
   },

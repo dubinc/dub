@@ -3,10 +3,10 @@ import {
   MonthlyTraffic,
   PartnerBannedReason,
   PartnerProfileType,
+  PlatformType,
   PreferredEarningStructure,
   ProgramEnrollmentStatus,
   SalesChannel,
-  SocialPlatform,
 } from "@dub/prisma/client";
 import { COUNTRY_CODES } from "@dub/utils";
 import * as z from "zod/v4";
@@ -208,11 +208,11 @@ export const partnersCountQuerySchema = getPartnersQuerySchemaExtended
   });
 
 export const partnerSocialPlatformSchema = z.object({
-  platform: z.enum(SocialPlatform),
-  handle: z.string(),
+  type: z.enum(PlatformType),
+  identifier: z.string(),
   verifiedAt: z.date().nullable(),
   platformId: z.string().nullable(),
-  followers: z.bigint().default(BigInt(0)),
+  subscribers: z.bigint().default(BigInt(0)),
   posts: z.bigint().default(BigInt(0)),
   views: z.bigint().default(BigInt(0)),
 });
