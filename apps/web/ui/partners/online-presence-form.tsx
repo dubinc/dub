@@ -6,7 +6,7 @@ import { updateOnlinePresenceAction } from "@/lib/actions/partners/update-online
 import { hasPermission } from "@/lib/auth/partner-users/partner-user-permissions";
 import { sanitizeSocialHandle, sanitizeWebsite } from "@/lib/social-utils";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
-import { PartnerProps, PartnerSocialPlatform } from "@/lib/types";
+import { PartnerPlatformProps, PartnerProps } from "@/lib/types";
 import { parseUrlSchemaAllowEmpty } from "@/lib/zod/schemas/utils";
 import { DomainVerificationModal } from "@/ui/modals/domain-verification-modal";
 import { SocialVerificationByCodeModal } from "@/ui/modals/social-verification-by-code-modal";
@@ -57,9 +57,9 @@ interface OnlinePresenceFormProps {
 
 // Helper function to get platform data from platforms array
 function getPlatformData(
-  platforms: PartnerSocialPlatform[] | undefined,
+  platforms: PartnerPlatformProps[] | undefined,
   platform: PlatformType,
-): PartnerSocialPlatform | undefined {
+): PartnerPlatformProps | undefined {
   return platforms?.find((p) => p.type === platform);
 }
 
@@ -664,7 +664,7 @@ function FormRow({
     if (partner && property === "youtube" && isVerified) {
       // Type assertion for platforms array that exists at runtime but not in type
       const partnerWithPlatforms = partner as typeof partner & {
-        platforms?: PartnerSocialPlatform[];
+        platforms?: PartnerPlatformProps[];
       };
       const youtubePlatform = getPlatformData(
         partnerWithPlatforms.platforms,

@@ -1,5 +1,5 @@
 import { ONLINE_PRESENCE_FIELDS } from "@/lib/partners/online-presence";
-import { PartnerSocialPlatform } from "@/lib/types";
+import { PartnerPlatformProps } from "@/lib/types";
 import { cn } from "@dub/utils";
 import { Fragment } from "react";
 import { OnlinePresenceCard } from "./online-presence-card";
@@ -10,7 +10,7 @@ export function OnlinePresenceSummary({
   className,
   emptyClassName,
 }: {
-  platforms: PartnerSocialPlatform[] | undefined;
+  platforms: PartnerPlatformProps[] | undefined;
   showLabels?: boolean;
   className?: string;
   emptyClassName?: string;
@@ -34,7 +34,6 @@ export function OnlinePresenceSummary({
     icon: field.icon,
     ...field.data(platforms),
   })).filter((field) => field.value && field.href);
-
 
   return (
     <div

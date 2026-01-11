@@ -6,7 +6,7 @@ import useGroups from "@/lib/swr/use-groups";
 import usePartner from "@/lib/swr/use-partner";
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { EnrolledPartnerProps, PartnerSocialPlatform } from "@/lib/types";
+import { EnrolledPartnerProps, PartnerPlatform } from "@/lib/types";
 import { useBulkApprovePartnersModal } from "@/ui/modals/bulk-approve-partners-modal";
 import { useBulkRejectPartnersModal } from "@/ui/modals/bulk-reject-partners-modal";
 import { useRejectPartnerApplicationModal } from "@/ui/modals/reject-partner-application-modal";
@@ -95,7 +95,7 @@ export function ProgramPartnersApplicationsPageClient() {
         status: "pending",
         sortBy,
         sortOrder,
-        includeSocialPlatforms: true,
+        includePartnerPlatforms: true,
       },
       { exclude: ["partnerId"] },
     )}`,
@@ -110,10 +110,7 @@ export function ProgramPartnersApplicationsPageClient() {
 
   // Create a separate map for platform lookups by partner ID
   const platformsMapByPartnerId = useMemo(() => {
-    const map = new Map<
-      string,
-      Record<PlatformType, PartnerSocialPlatform | null>
-    >();
+    const map = new Map<string, Record<PlatformType, PartnerPlatform | null>>();
 
     partners?.forEach((partner) => {
       if (partner.platforms) {

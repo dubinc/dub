@@ -7,7 +7,7 @@ import useGroups from "@/lib/swr/use-groups";
 import usePartner from "@/lib/swr/use-partner";
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { EnrolledPartnerProps, PartnerSocialPlatform } from "@/lib/types";
+import { EnrolledPartnerProps, PartnerPlatformProps } from "@/lib/types";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerApplicationSheet } from "@/ui/partners/partner-application-sheet";
@@ -93,7 +93,7 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
         status: "rejected",
         sortBy,
         sortOrder,
-        includeSocialPlatforms: true,
+        includePartnerPlatformPropss: true,
       },
       { exclude: ["partnerId"] },
     )}`,
@@ -110,7 +110,7 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
   const platformsMapByPartnerId = useMemo(() => {
     const map = new Map<
       string,
-      Record<PlatformType, PartnerSocialPlatform | null>
+      Record<PlatformType, PartnerPlatformProps | null>
     >();
 
     partners?.forEach((partner) => {

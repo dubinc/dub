@@ -20,7 +20,7 @@ export const GET = withWorkspace(
     const programId = getDefaultProgramIdOrThrow(workspace);
     const {
       sortBy: sortByWithOldFields,
-      includeSocialPlatforms,
+      includePartnerPlatforms,
       ...parsedParams
     } = getPartnersQuerySchemaExtended
       .extend({
@@ -66,7 +66,7 @@ export const GET = withWorkspace(
       saleAmount: z.number().default(0),
     });
 
-    const responseSchema = includeSocialPlatforms
+    const responseSchema = includePartnerPlatforms
       ? baseSchema.extend({
           platforms: z.array(partnerPlatformSchema),
         })

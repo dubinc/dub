@@ -1,4 +1,4 @@
-import { PartnerSocialPlatform } from "@/lib/types";
+import { PartnerPlatformProps } from "@/lib/types";
 import { PlatformType } from "@dub/prisma/client";
 import { BadgeCheck2Fill, Tooltip } from "@dub/ui";
 import { getDomainWithoutWWW } from "@dub/utils";
@@ -14,7 +14,7 @@ export function PartnerSocialColumn({
   platform,
   platformName,
 }: {
-  platform: PartnerSocialPlatform | null | undefined;
+  platform: PartnerPlatformProps | null | undefined;
   platformName: PlatformType;
 }) {
   if (!platform?.identifier) {

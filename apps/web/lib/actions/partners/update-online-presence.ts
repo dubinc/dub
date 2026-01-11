@@ -71,8 +71,6 @@ export const updateOnlinePresenceAction = authPartnerActionClient
       partnerPlatform.map((p) => [p.type, p.identifier]),
     );
 
-    const platformMap = new Map(partnerPlatform.map((p) => [p.type, p]));
-
     const partnerPlatformsData: Pick<
       PartnerPlatform,
       "type" | "identifier" | "verifiedAt"

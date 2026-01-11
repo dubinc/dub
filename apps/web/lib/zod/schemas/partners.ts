@@ -184,7 +184,7 @@ export const getPartnersQuerySchemaExtended = getPartnersQuerySchema.extend({
     .transform((v) => (Array.isArray(v) ? v : v.split(",")))
     .optional(),
   groupId: z.string().optional(),
-  includeSocialPlatforms: booleanQuerySchema.optional(),
+  includePartnerPlatforms: booleanQuerySchema.optional(),
 });
 
 export const partnersExportQuerySchema = getPartnersQuerySchemaExtended

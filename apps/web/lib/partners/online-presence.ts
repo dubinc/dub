@@ -8,12 +8,12 @@ import {
   YouTube,
 } from "@dub/ui/icons";
 import { getPrettyUrl, nFormatter } from "@dub/utils";
-import { PartnerSocialPlatform } from "../types";
+import { PartnerPlatformProps } from "../types";
 
 export const ONLINE_PRESENCE_FIELDS: {
   label: string;
   icon: Icon;
-  data: (platforms: PartnerSocialPlatform[]) => {
+  data: (platforms: PartnerPlatformProps[]) => {
     value?: string | null;
     verified: boolean;
     href?: string | null;
