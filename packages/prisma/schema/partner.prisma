@@ -165,31 +165,3 @@ model PartnerSalesChannel {
 
   @@unique([partnerId, salesChannel])
 }
-
-enum SocialPlatform {
-  website
-  youtube
-  twitter
-  linkedin
-  instagram
-  tiktok
-}
-
-model PartnerPlatform {
-  id         String         @id @default(cuid())
-  partnerId  String
-  platform   SocialPlatform
-  handle     String // The username/handle/URL for the platform
-  platformId String? // Platform-specific ID (e.g., YouTube channel ID)
-  verifiedAt DateTime?
-  followers  BigInt         @default(0)
-  posts      BigInt         @default(0)
-  views      BigInt         @default(0)
-  metadata   Json?
-  createdAt  DateTime       @default(now())
-  updatedAt  DateTime       @updatedAt
-
-  partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
-
-  @@unique([partnerId, platform])
-}

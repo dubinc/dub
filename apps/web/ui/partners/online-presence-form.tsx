@@ -1,16 +1,16 @@
 "use client";
 
 import { parseActionError } from "@/lib/actions/parse-action-errors";
-import { startSocialVerificationAction } from "@/lib/actions/partners/start-social-verification";
+import { startPartnerPlatformVerificationAction } from "@/lib/actions/partners/start-partner-platform-verification";
 import { updateOnlinePresenceAction } from "@/lib/actions/partners/update-online-presence";
 import { hasPermission } from "@/lib/auth/partner-users/partner-user-permissions";
 import { sanitizeSocialHandle, sanitizeWebsite } from "@/lib/social-utils";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
-import { PartnerProps, PartnerSocialPlatform } from "@/lib/types";
+import { PartnerPlatformProps, PartnerProps } from "@/lib/types";
 import { parseUrlSchemaAllowEmpty } from "@/lib/zod/schemas/utils";
 import { DomainVerificationModal } from "@/ui/modals/domain-verification-modal";
 import { SocialVerificationByCodeModal } from "@/ui/modals/social-verification-by-code-modal";
-import { SocialPlatform } from "@dub/prisma/client";
+import { PlatformType } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
   Button,
@@ -57,18 +57,18 @@ interface OnlinePresenceFormProps {
 
 // Helper function to get platform data from platforms array
 function getPlatformData(
-  platforms: PartnerSocialPlatform[] | undefined,
-  platform: SocialPlatform,
-): PartnerSocialPlatform | undefined {
-  return platforms?.find((p) => p.platform === platform);
+  platforms: PartnerPlatformProps[] | undefined,
+  platform: PlatformType,
+): PartnerPlatformProps | undefined {
+  return platforms?.find((p) => p.type === platform);
 }
 
-// Helper function to get handle from platforms array
-function getPlatformHandle(
+// Helper function to get identifier from platforms array
+function getPlatformIdentifier(
   partner: OnlinePresenceFormProps["partner"],
-  platform: SocialPlatform,
+  platform: PlatformType,
 ): string | undefined {
-  return getPlatformData(partner?.platforms, platform)?.handle;
+  return getPlatformData(partner?.platforms, platform)?.identifier;
 }
 
 /**
@@ -80,14 +80,14 @@ export function useOnlinePresenceForm({
 }: Pick<OnlinePresenceFormProps, "partner">) {
   return useForm<OnlinePresenceFormData>({
     defaultValues: {
-      website: getPlatformHandle(partner, "website")
-        ? getPrettyUrl(getPlatformHandle(partner, "website")!)
+      website: getPlatformIdentifier(partner, "website")
+        ? getPrettyUrl(getPlatformIdentifier(partner, "website")!)
         : undefined,
-      youtube: getPlatformHandle(partner, "youtube") || undefined,
-      twitter: getPlatformHandle(partner, "twitter") || undefined,
-      linkedin: getPlatformHandle(partner, "linkedin") || undefined,
-      instagram: getPlatformHandle(partner, "instagram") || undefined,
-      tiktok: getPlatformHandle(partner, "tiktok") || undefined,
+      youtube: getPlatformIdentifier(partner, "youtube") || undefined,
+      twitter: getPlatformIdentifier(partner, "twitter") || undefined,
+      linkedin: getPlatformIdentifier(partner, "linkedin") || undefined,
+      instagram: getPlatformIdentifier(partner, "instagram") || undefined,
+      tiktok: getPlatformIdentifier(partner, "tiktok") || undefined,
     },
   });
 }
@@ -144,7 +144,7 @@ export const OnlinePresenceForm = forwardRef<
     } | null>(null);
 
     const [socialVerificationData, setSocialVerificationData] = useState<{
-      platform: SocialPlatform;
+      platform: PlatformType;
       handle: string;
       verificationCode: string;
     } | null>(null);
@@ -152,7 +152,7 @@ export const OnlinePresenceForm = forwardRef<
     const {
       executeAsync: startSocialVerification,
       isPending: isStartingSocialVerification,
-    } = useAction(startSocialVerificationAction, {
+    } = useAction(startPartnerPlatformVerificationAction, {
       onSuccess: ({ input, data }) => {
         if (!input || !data) {
           return;
@@ -203,7 +203,7 @@ export const OnlinePresenceForm = forwardRef<
     );
 
     const onPasteSocial = useCallback(
-      (e: React.ClipboardEvent<HTMLInputElement>, platform: SocialPlatform) => {
+      (e: React.ClipboardEvent<HTMLInputElement>, platform: PlatformType) => {
         const text = e.clipboardData.getData("text/plain");
         const sanitized = sanitizeSocialHandle(text, platform);
 
@@ -550,8 +550,8 @@ function useVerifiedState({
 
   const loading = !partnerProfile && isValid;
 
-  // Map form property to SocialPlatform enum
-  const platformMap: Record<keyof OnlinePresenceFormData, SocialPlatform> = {
+  // Map form property to PlatformType enum
+  const platformMap: Record<keyof OnlinePresenceFormData, PlatformType> = {
     website: "website",
     youtube: "youtube",
     twitter: "twitter",
@@ -561,7 +561,7 @@ function useVerifiedState({
   };
 
   const platform = platformMap[property];
-  const currentHandle = getPlatformHandle(partnerProfile, platform);
+  const currentHandle = getPlatformIdentifier(partnerProfile, platform);
 
   const noChange =
     property === "website"
@@ -664,7 +664,7 @@ function FormRow({
     if (partner && isVerified) {
       // Type assertion for platforms array that exists at runtime but not in type
       const partnerWithPlatforms = partner as typeof partner & {
-        platforms?: PartnerSocialPlatform[];
+        platforms?: PartnerPlatformProps[];
       };
 
       if (property === "youtube") {
@@ -672,11 +672,13 @@ function FormRow({
           partnerWithPlatforms.platforms,
           "youtube",
         );
-        const followers = youtubePlatform?.followers ?? 0;
+        const subscribers = youtubePlatform?.subscribers ?? 0;
         const views = youtubePlatform?.views ?? 0;
 
         return [
-          followers > 0 ? `${nFormatter(Number(followers))} subscribers` : null,
+          subscribers > 0
+            ? `${nFormatter(Number(subscribers))} subscribers`
+            : null,
           views > 0 ? `${nFormatter(Number(views))} views` : null,
         ].filter(Boolean) as string[];
       }
@@ -686,11 +688,13 @@ function FormRow({
           partnerWithPlatforms.platforms,
           "instagram",
         );
-        const followers = instagramPlatform?.followers ?? 0;
+        const subscribers = instagramPlatform?.subscribers ?? 0;
         const posts = instagramPlatform?.posts ?? 0;
 
         return [
-          followers > 0 ? `${nFormatter(Number(followers))} followers` : null,
+          subscribers > 0
+            ? `${nFormatter(Number(subscribers))} followers`
+            : null,
           posts > 0 ? `${nFormatter(Number(posts))} posts` : null,
         ].filter(Boolean) as string[];
       }
@@ -700,11 +704,13 @@ function FormRow({
           partnerWithPlatforms.platforms,
           "tiktok",
         );
-        const followers = tiktokPlatform?.followers ?? 0;
+        const subscribers = tiktokPlatform?.subscribers ?? 0;
         const posts = tiktokPlatform?.posts ?? 0;
 
         return [
-          followers > 0 ? `${nFormatter(Number(followers))} followers` : null,
+          subscribers > 0
+            ? `${nFormatter(Number(subscribers))} followers`
+            : null,
           posts > 0 ? `${nFormatter(Number(posts))} posts` : null,
         ].filter(Boolean) as string[];
       }
@@ -714,11 +720,13 @@ function FormRow({
           partnerWithPlatforms.platforms,
           "twitter",
         );
-        const followers = twitterPlatform?.followers ?? 0;
+        const subscribers = twitterPlatform?.subscribers ?? 0;
         const posts = twitterPlatform?.posts ?? 0;
 
         return [
-          followers > 0 ? `${nFormatter(Number(followers))} followers` : null,
+          subscribers > 0
+            ? `${nFormatter(Number(subscribers))} followers`
+            : null,
           posts > 0 ? `${nFormatter(Number(posts))} tweets` : null,
         ].filter(Boolean) as string[];
       }

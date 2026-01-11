@@ -2,8 +2,8 @@ import { prisma } from "@dub/prisma";
 import {
   PartnerGroup,
   PartnerGroupDefaultLink,
+  PlatformType,
   Program,
-  SocialPlatform,
 } from "@dub/prisma/client";
 import { isRejected, nanoid } from "@dub/utils";
 import { createId } from "../api/create-id";
@@ -135,7 +135,7 @@ async function createPartnerAndLinks({
     update: {},
   });
 
-  const socialPlatformFields: Record<SocialPlatform, string | null> = {
+  const socialPlatformFields: Record<PlatformType, string | null> = {
     website: affiliate.profile.website,
     youtube: affiliate.profile.youtube_url,
     twitter: affiliate.profile.twitter_url,
@@ -145,24 +145,24 @@ async function createPartnerAndLinks({
   };
 
   const socialPlatformEntries = Object.entries(socialPlatformFields) as [
-    SocialPlatform,
+    PlatformType,
     string | null,
   ][];
 
   const entriesWithHandles = socialPlatformEntries.filter(
-    ([, handle]) => typeof handle === "string" && handle.trim().length > 0,
+    ([, identifier]) => typeof identifier === "string" && identifier.trim().length > 0,
   );
 
   if (entriesWithHandles.length > 0) {
     await Promise.allSettled(
-      entriesWithHandles.map(([platform, handle]) =>
+      entriesWithHandles.map(([platform, identifier]) =>
         upsertPartnerPlatform({
           where: {
             partnerId: partner.id,
-            platform,
+            type: platform,
           },
           data: {
-            handle: handle!.trim(),
+            identifier: identifier!.trim(),
           },
         }),
       ),

@@ -10,14 +10,14 @@ export const verifyDomainAction = authPartnerActionClient.action(
 
     const partnerPlatform = await prisma.partnerPlatform.findUnique({
       where: {
-        partnerId_platform: {
+        partnerId_type: {
           partnerId: partner.id,
-          platform: "website",
+          type: "website",
         },
       },
     });
 
-    if (!partnerPlatform || !partnerPlatform.handle) {
+    if (!partnerPlatform || !partnerPlatform.identifier) {
       throw new Error(
         "Website not found on your partner profile. Please restart the verification process.",
       );
@@ -34,7 +34,7 @@ export const verifyDomainAction = authPartnerActionClient.action(
     let domain: string | null = null;
 
     try {
-      domain = new URL(partnerPlatform.handle).hostname;
+      domain = new URL(partnerPlatform.identifier).hostname;
     } catch (e) {
       throw new Error("Please make sure the website is a valid URL.");
     }
@@ -61,9 +61,9 @@ export const verifyDomainAction = authPartnerActionClient.action(
 
     await prisma.partnerPlatform.update({
       where: {
-        partnerId_platform: {
+        partnerId_type: {
           partnerId: partner.id,
-          platform: "website",
+          type: "website",
         },
       },
       data: {

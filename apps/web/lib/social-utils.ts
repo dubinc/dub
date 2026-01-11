@@ -1,4 +1,4 @@
-import { SocialPlatform } from "@dub/prisma/client";
+import { PlatformType } from "@dub/prisma/client";
 
 interface SocialPlatformConfig {
   patterns: RegExp[];
@@ -8,7 +8,7 @@ interface SocialPlatformConfig {
 }
 
 export const SOCIAL_PLATFORM_CONFIGS: Record<
-  Exclude<SocialPlatform, "website">,
+  Exclude<PlatformType, "website">,
   SocialPlatformConfig
 > = {
   youtube: {
@@ -69,7 +69,7 @@ export const sanitizeWebsite = (input: string | null | undefined) => {
 
 export const sanitizeSocialHandle = (
   input: string | null | undefined,
-  platform: SocialPlatform,
+  platform: PlatformType,
 ) => {
   if (!input || typeof input !== "string") {
     return null;
@@ -109,8 +109,8 @@ export const sanitizeSocialHandle = (
 // Converts an array of platform objects into a key-value object
 // for easy lookup by platform name. Returns null for platforms not found.
 export function buildSocialPlatformLookup<
-  T extends { platform: SocialPlatform },
->(platforms: T[]): Record<SocialPlatform, T | null> {
+  T extends { type: PlatformType },
+>(platforms: T[]): Record<PlatformType, T | null> {
   const result = {
     website: null,
     youtube: null,
@@ -118,10 +118,10 @@ export function buildSocialPlatformLookup<
     linkedin: null,
     instagram: null,
     tiktok: null,
-  } as Record<SocialPlatform, T | null>;
+  } as Record<PlatformType, T | null>;
 
   for (const platform of platforms) {
-    result[platform.platform] = platform;
+    result[platform.type] = platform;
   }
 
   return result;
@@ -129,16 +129,16 @@ export function buildSocialPlatformLookup<
 
 // Polyfills social media fields from platforms array for backward compatibility
 export function polyfillSocialMediaFields<
-  T extends { platform: SocialPlatform; handle: string | null },
+  T extends { type: PlatformType; identifier: string | null },
 >(platforms: T[]) {
   const platformsMap = buildSocialPlatformLookup(platforms);
 
   return {
-    website: platformsMap["website"]?.handle ?? null,
-    youtube: platformsMap["youtube"]?.handle ?? null,
-    twitter: platformsMap["twitter"]?.handle ?? null,
-    linkedin: platformsMap["linkedin"]?.handle ?? null,
-    instagram: platformsMap["instagram"]?.handle ?? null,
-    tiktok: platformsMap["tiktok"]?.handle ?? null,
+    website: platformsMap["website"]?.identifier ?? null,
+    youtube: platformsMap["youtube"]?.identifier ?? null,
+    twitter: platformsMap["twitter"]?.identifier ?? null,
+    linkedin: platformsMap["linkedin"]?.identifier ?? null,
+    instagram: platformsMap["instagram"]?.identifier ?? null,
+    tiktok: platformsMap["tiktok"]?.identifier ?? null,
   };
 }

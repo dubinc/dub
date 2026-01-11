@@ -1,14 +1,14 @@
 import { prisma } from "@dub/prisma";
-import { Prisma, SocialPlatform } from "@dub/prisma/client";
+import { PlatformType, Prisma } from "@dub/prisma/client";
 
 type UpsertPartnerPlatformParams = {
   where: {
     partnerId: string;
-    platform: SocialPlatform;
+    type: PlatformType;
   };
   data: Pick<
     Prisma.PartnerPlatformCreateInput,
-    "handle" | "verifiedAt" | "metadata"
+    "identifier" | "verifiedAt" | "metadata"
   >;
 };
 
@@ -16,24 +16,24 @@ export async function upsertPartnerPlatform({
   where,
   data,
 }: UpsertPartnerPlatformParams) {
-  const { partnerId, platform } = where;
+  const { partnerId, type } = where;
 
   return await prisma.partnerPlatform.upsert({
     where: {
-      partnerId_platform: {
+      partnerId_type: {
         partnerId,
-        platform,
+        type,
       },
     },
     create: {
       partnerId,
-      platform,
-      handle: data.handle,
+      type,
+      identifier: data.identifier,
       verifiedAt: data.verifiedAt,
       metadata: data.metadata,
     },
     update: {
-      handle: data.handle,
+      identifier: data.identifier,
       verifiedAt: data.verifiedAt,
       metadata: data.metadata,
     },

@@ -1,6 +1,6 @@
 import * as z from "zod/v4";
 import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
-import { PartnerSchema, partnerSocialPlatformSchema } from "./partners";
+import { PartnerSchema, partnerPlatformSchema } from "./partners";
 
 export const PARTNER_CONVERSION_SCORES = [
   "unknown",
@@ -79,7 +79,7 @@ export const NetworkPartnerSchema = PartnerSchema.pick({
   ignoredAt: z.date().nullable(),
   recruitedAt: z.date().nullable(),
   categories: z.array(z.string()),
-  platforms: z.array(partnerSocialPlatformSchema),
+  platforms: z.array(partnerPlatformSchema),
 });
 
 export const updateDiscoveredPartnerSchema = z.object({

@@ -3,10 +3,10 @@ import {
   MonthlyTraffic,
   PartnerBannedReason,
   PartnerProfileType,
+  PlatformType,
   PreferredEarningStructure,
   ProgramEnrollmentStatus,
   SalesChannel,
-  SocialPlatform,
 } from "@dub/prisma/client";
 import { COUNTRY_CODES } from "@dub/utils";
 import * as z from "zod/v4";
@@ -184,7 +184,7 @@ export const getPartnersQuerySchemaExtended = getPartnersQuerySchema.extend({
     .transform((v) => (Array.isArray(v) ? v : v.split(",")))
     .optional(),
   groupId: z.string().optional(),
-  includeSocialPlatforms: booleanQuerySchema.optional(),
+  includePartnerPlatforms: booleanQuerySchema.optional(),
 });
 
 export const partnersExportQuerySchema = getPartnersQuerySchemaExtended
@@ -207,12 +207,12 @@ export const partnersCountQuerySchema = getPartnersQuerySchemaExtended
     groupBy: z.enum(["status", "country", "groupId"]).optional(),
   });
 
-export const partnerSocialPlatformSchema = z.object({
-  platform: z.enum(SocialPlatform),
-  handle: z.string(),
+export const partnerPlatformSchema = z.object({
+  type: z.enum(PlatformType),
+  identifier: z.string(),
   verifiedAt: z.date().nullable(),
   platformId: z.string().nullable(),
-  followers: z.bigint().default(BigInt(0)),
+  subscribers: z.bigint().default(BigInt(0)),
   posts: z.bigint().default(BigInt(0)),
   views: z.bigint().default(BigInt(0)),
 });
@@ -471,7 +471,7 @@ export const EnrolledPartnerSchemaExtended = EnrolledPartnerSchema.extend({
   lastLeadAt: z.date().nullish(),
   lastConversionAt: z.date().nullish(),
   customerDataSharingEnabledAt: z.date().nullish(),
-  platforms: z.array(partnerSocialPlatformSchema).nullable(),
+  platforms: z.array(partnerPlatformSchema).nullable(),
 })
   .extend(
     PartnerSchema.pick({

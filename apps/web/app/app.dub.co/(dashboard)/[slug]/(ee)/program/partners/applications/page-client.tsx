@@ -6,7 +6,7 @@ import useGroups from "@/lib/swr/use-groups";
 import usePartner from "@/lib/swr/use-partner";
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { EnrolledPartnerProps, PartnerSocialPlatform } from "@/lib/types";
+import { EnrolledPartnerProps, PartnerPlatformProps } from "@/lib/types";
 import { useBulkApprovePartnersModal } from "@/ui/modals/bulk-approve-partners-modal";
 import { useBulkRejectPartnersModal } from "@/ui/modals/bulk-reject-partners-modal";
 import { useRejectPartnerApplicationModal } from "@/ui/modals/reject-partner-application-modal";
@@ -16,7 +16,7 @@ import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PartnerSocialColumn } from "@/ui/partners/partner-social-column";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
-import { SocialPlatform } from "@dub/prisma/client";
+import { PlatformType } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
   Button,
@@ -95,7 +95,7 @@ export function ProgramPartnersApplicationsPageClient() {
         status: "pending",
         sortBy,
         sortOrder,
-        includeSocialPlatforms: true,
+        includePartnerPlatforms: true,
       },
       { exclude: ["partnerId"] },
     )}`,
@@ -112,7 +112,7 @@ export function ProgramPartnersApplicationsPageClient() {
   const platformsMapByPartnerId = useMemo(() => {
     const map = new Map<
       string,
-      Record<SocialPlatform, PartnerSocialPlatform | null>
+      Record<PlatformType, PartnerPlatformProps | null>
     >();
 
     partners?.forEach((partner) => {

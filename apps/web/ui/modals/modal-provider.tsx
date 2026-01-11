@@ -4,7 +4,6 @@ import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import useWorkspaces from "@/lib/swr/use-workspaces";
 import { SimpleLinkProps } from "@/lib/types";
-import { useAcceptInviteModal } from "@/ui/modals/accept-invite-modal";
 import { useAddEditDomainModal } from "@/ui/modals/add-edit-domain-modal";
 import { useAddWorkspaceModal } from "@/ui/modals/add-workspace-modal";
 import { useImportBitlyModal } from "@/ui/modals/import-bitly-modal";
@@ -84,8 +83,6 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
 
   const { AddWorkspaceModal, setShowAddWorkspaceModal } =
     useAddWorkspaceModal();
-  const { AcceptInviteModal, setShowAcceptInviteModal } =
-    useAcceptInviteModal();
   const { setShowAddEditDomainModal, AddEditDomainModal } =
     useAddEditDomainModal();
   const { setShowLinkBuilder, LinkBuilder } = useLinkBuilder(
@@ -153,13 +150,6 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
     }
   }, [hashes, workspaceId]);
 
-  // handle invite and oauth modals
-  useEffect(() => {
-    if (error && (error.status === 409 || error.status === 410)) {
-      setShowAcceptInviteModal(true);
-    }
-  }, [error]);
-
   // handle ?newWorkspace and ?newLink query params
   useEffect(() => {
     if (searchParams.has("newWorkspace")) {
@@ -210,7 +200,6 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
       }}
     >
       <AddWorkspaceModal />
-      <AcceptInviteModal />
       <AddEditDomainModal />
       <LinkBuilder />
       <AddEditTagModal />

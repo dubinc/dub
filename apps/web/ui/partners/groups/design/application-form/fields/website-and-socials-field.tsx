@@ -3,7 +3,7 @@ import {
   programApplicationFormSiteSchema,
   programApplicationFormWebsiteAndSocialsFieldSchema,
 } from "@/lib/zod/schemas/program-application-form";
-import { SocialPlatform } from "@dub/prisma/client";
+import { PlatformType } from "@dub/prisma/client";
 import { cn } from "@dub/utils";
 import { useCallback } from "react";
 import { useFormContext } from "react-hook-form";
@@ -33,7 +33,7 @@ const Field = ({
   const error = !!state.error;
 
   const onPasteSocial = useCallback(
-    (e: React.ClipboardEvent<HTMLInputElement>, platform: SocialPlatform) => {
+    (e: React.ClipboardEvent<HTMLInputElement>, platform: PlatformType) => {
       const text = e.clipboardData.getData("text/plain");
       const sanitized = sanitizeSocialHandle(text, platform);
 

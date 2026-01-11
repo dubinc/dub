@@ -1,5 +1,5 @@
 import { prisma } from "@dub/prisma";
-import { Prisma, SocialPlatform } from "@dub/prisma/client";
+import { Prisma, PlatformType } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { createId } from "../api/create-id";
 import { detectAndRecordFraudApplication } from "../api/fraud/detect-record-fraud-application";
@@ -136,27 +136,27 @@ export async function completeProgramApplications(userEmail: string) {
 
       const missingSocialFields = {
         website:
-          application.website && !socialPlatforms.website?.handle
+          application.website && !socialPlatforms.website?.identifier
             ? application.website
             : undefined,
         youtube:
-          application.youtube && !socialPlatforms.youtube?.handle
+          application.youtube && !socialPlatforms.youtube?.identifier
             ? application.youtube
             : undefined,
         twitter:
-          application.twitter && !socialPlatforms.twitter?.handle
+          application.twitter && !socialPlatforms.twitter?.identifier
             ? application.twitter
             : undefined,
         linkedin:
-          application.linkedin && !socialPlatforms.linkedin?.handle
+          application.linkedin && !socialPlatforms.linkedin?.identifier
             ? application.linkedin
             : undefined,
         instagram:
-          application.instagram && !socialPlatforms.instagram?.handle
+          application.instagram && !socialPlatforms.instagram?.identifier
             ? application.instagram
             : undefined,
         tiktok:
-          application.tiktok && !socialPlatforms.tiktok?.handle
+          application.tiktok && !socialPlatforms.tiktok?.identifier
             ? application.tiktok
             : undefined,
       };
@@ -185,11 +185,11 @@ export async function completeProgramApplications(userEmail: string) {
         hasMissingSocialFields &&
           prisma.partnerPlatform.createMany({
             data: Object.entries(missingSocialFields)
-              .filter(([, handle]) => handle !== undefined)
-              .map(([platform, handle]) => ({
+              .filter(([, identifier]) => identifier !== undefined)
+              .map(([platform, identifier]) => ({
                 partnerId: partner.id,
-                platform: platform as SocialPlatform,
-                handle: handle as string,
+                type: platform as PlatformType,
+                identifier: identifier as string,
               })),
             skipDuplicates: true,
           }),

@@ -4,18 +4,18 @@ import { fetchSocialProfile } from "@/lib/api/scrape-creators/fetch-social-profi
 import { ratelimit } from "@/lib/upstash";
 import { redis } from "@/lib/upstash/redis";
 import { prisma } from "@dub/prisma";
-import { SocialPlatform } from "@dub/prisma/client";
-import * as z from "zod/v4";
+import { PlatformType } from "@dub/prisma/client";
+import { z } from "zod";
 import { authPartnerActionClient } from "../safe-action";
 
-const inputSchema = z.object({
-  platform: z.enum(SocialPlatform),
+const schema = z.object({
+  platform: z.enum(PlatformType),
   handle: z.string().min(1),
 });
 
 // Verify social accounts using the verification code
 export const verifySocialAccountByCodeAction = authPartnerActionClient
-  .inputSchema(inputSchema)
+  .inputSchema(schema)
   .action(async ({ ctx, parsedInput }) => {
     const { partner } = ctx;
     const { platform, handle } = parsedInput;
@@ -47,13 +47,13 @@ export const verifySocialAccountByCodeAction = authPartnerActionClient
 
     const partnerPlatform = await prisma.partnerPlatform.findUnique({
       where: {
-        partnerId_platform: {
+        partnerId_type: {
           partnerId: partner.id,
-          platform,
+          type: platform,
         },
       },
       select: {
-        handle: true,
+        identifier: true,
         verifiedAt: true,
       },
     });
@@ -64,7 +64,7 @@ export const verifySocialAccountByCodeAction = authPartnerActionClient
 
     // No further action is needed if the account is already verified
     if (
-      partnerPlatform?.handle?.toLowerCase() === handle.toLowerCase() &&
+      partnerPlatform?.identifier?.toLowerCase() === handle.toLowerCase() &&
       partnerPlatform.verifiedAt
     ) {
       return;
@@ -98,15 +98,15 @@ export const verifySocialAccountByCodeAction = authPartnerActionClient
 
     await prisma.partnerPlatform.update({
       where: {
-        partnerId_platform: {
+        partnerId_type: {
           partnerId: partner.id,
-          platform,
+          type: platform,
         },
       },
       data: {
         verifiedAt: new Date(),
         platformId: socialProfile.platformId,
-        followers: socialProfile.followers,
+        subscribers: socialProfile.followers,
         posts: socialProfile.posts,
         views: socialProfile.views,
       },

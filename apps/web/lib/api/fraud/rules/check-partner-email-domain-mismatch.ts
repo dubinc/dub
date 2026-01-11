@@ -15,9 +15,9 @@ export function checkPartnerEmailDomainMismatch(
     return false;
   }
 
-  const website = partner.platforms.find((p) => p.platform === "website");
+  const website = partner.platforms.find((p) => p.type === "website");
 
-  if (!website || !website.handle) {
+  if (!website || !website.identifier) {
     return false;
   }
 
@@ -30,7 +30,7 @@ export function checkPartnerEmailDomainMismatch(
   let websiteDomain: string;
 
   try {
-    const websiteUrl = new URL(website.handle);
+    const websiteUrl = new URL(website.identifier);
     websiteDomain = normalizeDomain(websiteUrl.hostname);
   } catch (error) {
     return false;

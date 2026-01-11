@@ -13,15 +13,15 @@ import {
 } from "@/lib/social-utils";
 import { ratelimit } from "@/lib/upstash/ratelimit";
 import { redis } from "@/lib/upstash/redis";
-import { SocialPlatform } from "@dub/prisma/client";
+import { PlatformType } from "@dub/prisma/client";
 import { nanoid, PARTNERS_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { cookies } from "next/headers";
 import { v4 as uuid } from "uuid";
 import * as z from "zod/v4";
 import { authPartnerActionClient } from "../safe-action";
 
-const inputSchema = z.object({
-  platform: z.enum(SocialPlatform),
+const startPartnerPlatformVerificationSchema = z.object({
+  platform: z.enum(PlatformType),
   handle: z.string().min(1).max(50),
   source: z.enum(["onboarding", "settings"]).default("onboarding"),
 });
@@ -33,7 +33,7 @@ type VerificationResult =
 
 type VerificationParams = {
   partnerId: string;
-  platform: SocialPlatform;
+  platform: PlatformType;
   handle: string;
   source: "onboarding" | "settings";
 };
@@ -45,8 +45,8 @@ type VerificationParams = {
  * - Verification Code: For platforms like YouTube and Instagram (returns code to display)
  * - TXT Record: For website verification (returns DNS TXT record)
  */
-export const startSocialVerificationAction = authPartnerActionClient
-  .inputSchema(inputSchema)
+export const startPartnerPlatformVerificationAction = authPartnerActionClient
+  .inputSchema(startPartnerPlatformVerificationSchema)
   .action(async ({ ctx, parsedInput }) => {
     const { partner } = ctx;
     const { platform, handle, source } = parsedInput;
@@ -96,10 +96,10 @@ async function startWebsiteVerification({
   await upsertPartnerPlatform({
     where: {
       partnerId,
-      platform: "website",
+      type: "website",
     },
     data: {
-      handle,
+      identifier: handle,
       verifiedAt: null,
       metadata: {
         websiteTxtRecord,
@@ -143,10 +143,10 @@ async function startOAuthVerification({
   await upsertPartnerPlatform({
     where: {
       partnerId,
-      platform,
+      type: platform,
     },
     data: {
-      handle,
+      identifier: handle,
       verifiedAt: null,
     },
   });
@@ -227,10 +227,10 @@ async function startCodeVerification({
   await upsertPartnerPlatform({
     where: {
       partnerId,
-      platform,
+      type: platform,
     },
     data: {
-      handle,
+      identifier: handle,
       verifiedAt: null,
     },
   });

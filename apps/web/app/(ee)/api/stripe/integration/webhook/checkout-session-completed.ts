@@ -287,11 +287,15 @@ export async function checkoutSessionCompleted(
 
   // should never be below 0, but just in case
   if (chargeAmountTotal <= 0) {
-    return `Checkout session completed for Stripe customer ${stripeCustomerId} with invoice ID ${invoiceId} but amount is 0, skipping...`;
+    return `Checkout session completed for Stripe customer ${stripeCustomerId} but amount is 0, skipping...`;
   }
 
   if (charge.mode === "setup") {
-    return `Checkout session completed for Stripe customer ${stripeCustomerId} but mode is setup, skipping...`;
+    return `Checkout session completed for Stripe customer ${stripeCustomerId} but mode is "setup", skipping...`;
+  }
+
+  if (charge.payment_status !== "paid") {
+    return `Checkout session completed for Stripe customer ${stripeCustomerId} but payment_status is not "paid", skipping...`;
   }
 
   if (invoiceId) {

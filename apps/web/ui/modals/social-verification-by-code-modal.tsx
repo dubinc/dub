@@ -1,6 +1,6 @@
 import { verifySocialAccountByCodeAction } from "@/lib/actions/partners/verify-social-account-by-code";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
-import { SocialPlatform } from "@dub/prisma/client";
+import { PlatformType } from "@dub/prisma/client";
 import { Button, buttonVariants, CopyButton, Modal } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { X } from "lucide-react";
@@ -11,7 +11,7 @@ import { toast } from "sonner";
 interface SocialVerificationByCodeModalProps {
   showSocialVerificationModal: boolean;
   setShowSocialVerificationModal: Dispatch<SetStateAction<boolean>>;
-  platform: SocialPlatform;
+  platform: PlatformType;
   handle: string;
   verificationCode: string;
 }
