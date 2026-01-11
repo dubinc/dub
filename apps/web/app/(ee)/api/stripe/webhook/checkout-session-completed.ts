@@ -17,7 +17,10 @@ import Stripe from "stripe";
 export async function checkoutSessionCompleted(event: Stripe.Event) {
   const checkoutSession = event.data.object as Stripe.Checkout.Session;
 
-  if (checkoutSession.mode === "setup") {
+  if (
+    checkoutSession.mode === "setup" ||
+    checkoutSession.payment_status !== "paid"
+  ) {
     return;
   }
 
