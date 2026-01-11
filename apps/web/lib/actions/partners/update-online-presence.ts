@@ -102,7 +102,7 @@ export const updateOnlinePresenceAction = authPartnerActionClient
       if (inputValue === null && currentHandle !== undefined) {
         platformsToDelete.push({
           partnerId: partner.id,
-          platform,
+          type: platform,
         });
         continue;
       }

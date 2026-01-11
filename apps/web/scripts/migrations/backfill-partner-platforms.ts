@@ -7,7 +7,7 @@ async function main() {
 
   while (true) {
     console.log(
-      `Fetching partners starting after ${startingAfter ?? "beginning"}...`,
+      `Fetching partners${startingAfter ? ` starting after ${startingAfter}` : ""}...`,
     );
 
     const partners = await prisma.partner.findMany({
