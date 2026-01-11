@@ -1,6 +1,6 @@
 import { getSession } from "@/lib/auth";
 import { buildSocialPlatformLookup } from "@/lib/social-utils";
-import { PartnerPlatform } from "@/lib/types";
+import { PartnerPlatformProps } from "@/lib/types";
 import { partnerPlatformSchema } from "@/lib/zod/schemas/partners";
 import { OnlinePresenceForm } from "@/ui/partners/online-presence-form";
 import { prisma } from "@dub/prisma";
@@ -80,7 +80,7 @@ async function OnlinePresenceFormRSC() {
   }
 
   // Merge social handles from a partner application into the partner platforms list.
-  const platforms: PartnerPlatform[] = z
+  const platforms: PartnerPlatformProps[] = z
     .array(partnerPlatformSchema)
     .parse(partner.platforms);
 
