@@ -21,7 +21,7 @@ import { z } from "zod";
 import { authPartnerActionClient } from "../safe-action";
 
 const startSocialVerificationSchema = z.object({
-  platform: z.nativeEnum(SocialPlatform),
+  platform: z.enum(SocialPlatform),
   handle: z.string().min(1).max(50),
   source: z.enum(["onboarding", "settings"]).default("onboarding"),
 });

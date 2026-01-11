@@ -9,7 +9,7 @@ import { z } from "zod";
 import { authPartnerActionClient } from "../safe-action";
 
 const schema = z.object({
-  platform: z.nativeEnum(SocialPlatform),
+  platform: z.enum(SocialPlatform),
   handle: z.string().min(1),
 });
 
