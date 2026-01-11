@@ -106,7 +106,7 @@ export const verifySocialAccountByCodeAction = authPartnerActionClient
       data: {
         verifiedAt: new Date(),
         platformId: socialProfile.platformId,
-        subscribers: socialProfile.followers,
+        subscribers: socialProfile.subscribers,
         posts: socialProfile.posts,
         views: socialProfile.views,
       },

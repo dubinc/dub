@@ -1,14 +1,14 @@
-import { PartnerPlatform, SocialPlatform } from "@dub/prisma/client";
+import { PartnerPlatform, PlatformType } from "@dub/prisma/client";
 import { scrapeCreatorsFetch } from "./client";
 
 type FetchSocialProfileParams = {
-  platform: SocialPlatform;
+  platform: PlatformType;
   handle: string;
 };
 
 type SocialProfile = Pick<
   PartnerPlatform,
-  "platformId" | "followers" | "posts" | "views"
+  "platformId" | "subscribers" | "posts" | "views"
 > & {
   description: string | null;
 };
@@ -39,7 +39,7 @@ export async function fetchSocialProfile({
   let socialProfile: SocialProfile = {
     description: null,
     platformId: null,
-    followers: BigInt(0),
+    subscribers: BigInt(0),
     posts: BigInt(0),
     views: BigInt(0),
   };
@@ -48,7 +48,7 @@ export async function fetchSocialProfile({
     case "youtube": {
       socialProfile.description = data.description;
       socialProfile.platformId = data.channelId;
-      socialProfile.followers = BigInt(data.subscriberCount);
+      socialProfile.subscribers = BigInt(data.subscriberCount);
       socialProfile.posts = BigInt(data.videoCount);
       socialProfile.views = BigInt(data.viewCount);
       break;
@@ -56,7 +56,7 @@ export async function fetchSocialProfile({
 
     case "instagram": {
       socialProfile.description = data.data.user.biography;
-      socialProfile.followers = BigInt(data.data.user.edge_followed_by.count);
+      socialProfile.subscribers = BigInt(data.data.user.edge_followed_by.count);
       socialProfile.posts = BigInt(
         data.data.user.edge_owner_to_timeline_media.count,
       );
@@ -66,7 +66,7 @@ export async function fetchSocialProfile({
     case "tiktok": {
       socialProfile.description = data.user.signature;
       socialProfile.platformId = data.user.id;
-      socialProfile.followers = BigInt(data.stats.followerCount);
+      socialProfile.subscribers = BigInt(data.stats.followerCount);
       socialProfile.posts = BigInt(data.stats.videoCount);
       break;
     }
@@ -74,7 +74,7 @@ export async function fetchSocialProfile({
     case "twitter": {
       socialProfile.description = data.legacy.description;
       socialProfile.platformId = data.rest_id;
-      socialProfile.followers = BigInt(data.legacy.followers_count);
+      socialProfile.subscribers = BigInt(data.legacy.followers_count);
       socialProfile.posts = BigInt(data.legacy.statuses_count);
       break;
     }

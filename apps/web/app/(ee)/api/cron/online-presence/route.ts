@@ -2,7 +2,7 @@ import { fetchSocialProfile } from "@/lib/api/scrape-creators/fetch-social-profi
 import { qstash } from "@/lib/cron";
 import { withCron } from "@/lib/cron/with-cron";
 import { prisma } from "@dub/prisma";
-import { PartnerPlatform, SocialPlatform } from "@dub/prisma/client";
+import { PartnerPlatform, PlatformType } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK, deepEqual } from "@dub/utils";
 import * as z from "zod/v4";
 import { logAndRespond } from "../utils";
@@ -29,7 +29,7 @@ export const POST = withCron(async ({ rawBody, searchParams }) => {
 
   const verifiedProfiles = await prisma.partnerPlatform.findMany({
     where: {
-      platform: {
+      type: {
         in: ["instagram", "tiktok", "twitter"],
       },
       verifiedAt: {
@@ -55,32 +55,32 @@ export const POST = withCron(async ({ rawBody, searchParams }) => {
   }
 
   for (const verifiedProfile of verifiedProfiles) {
-    if (!verifiedProfile.handle) {
+    if (!verifiedProfile.identifier) {
       continue;
     }
 
     try {
       const socialProfile = await fetchSocialProfile({
-        platform: verifiedProfile.platform,
-        handle: verifiedProfile.handle,
+        platform: verifiedProfile.type,
+        handle: verifiedProfile.identifier,
       });
 
-      let currentStats: Pick<PartnerPlatform, "followers" | "posts"> &
+      let currentStats: Pick<PartnerPlatform, "subscribers" | "posts"> &
         Partial<Pick<PartnerPlatform, "views">>;
-      let newStats: Pick<PartnerPlatform, "followers" | "posts"> &
+      let newStats: Pick<PartnerPlatform, "subscribers" | "posts"> &
         Partial<Pick<PartnerPlatform, "views">>;
 
-      switch (verifiedProfile.platform) {
+      switch (verifiedProfile.type) {
         // TikTok
-        case SocialPlatform.tiktok:
+        case PlatformType.tiktok:
           currentStats = {
-            followers: verifiedProfile.followers,
+            subscribers: verifiedProfile.subscribers,
             posts: verifiedProfile.posts,
             views: verifiedProfile.views,
           };
 
           newStats = {
-            followers: socialProfile.followers,
+            subscribers: socialProfile.subscribers,
             posts: socialProfile.posts,
             views: socialProfile.views,
           };
@@ -88,15 +88,15 @@ export const POST = withCron(async ({ rawBody, searchParams }) => {
           break;
 
         // Instagram, Twitter
-        case SocialPlatform.instagram:
-        case SocialPlatform.twitter:
+        case PlatformType.instagram:
+        case PlatformType.twitter:
           currentStats = {
-            followers: verifiedProfile.followers,
+            subscribers: verifiedProfile.subscribers,
             posts: verifiedProfile.posts,
           };
 
           newStats = {
-            followers: socialProfile.followers,
+            subscribers: socialProfile.subscribers,
             posts: socialProfile.posts,
           };
 
@@ -118,11 +118,11 @@ export const POST = withCron(async ({ rawBody, searchParams }) => {
       });
 
       console.log(
-        `Updated ${verifiedProfile.platform} stats for @${verifiedProfile.handle}`,
+        `Updated ${verifiedProfile.type} stats for @${verifiedProfile.identifier}`,
       );
     } catch (error) {
       console.error(
-        `Error updating ${verifiedProfile.platform} stats for @${verifiedProfile.handle}:`,
+        `Error updating ${verifiedProfile.type} stats for @${verifiedProfile.identifier}:`,
         error,
       );
       continue;
