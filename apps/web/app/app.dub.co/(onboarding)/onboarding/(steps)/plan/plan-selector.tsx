@@ -6,13 +6,22 @@ import { Badge, ToggleGroup } from "@dub/ui";
 import { ADVANCED_PLAN, BUSINESS_PLAN, cn, PRO_PLAN } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import { CSSProperties, useState } from "react";
 
-export const PLAN_SELECTOR_PLANS = [PRO_PLAN, BUSINESS_PLAN, ADVANCED_PLAN];
-
 export function PlanSelector() {
+  const searchParams = useSearchParams();
+  const product = searchParams.get("product");
+
+  const plans =
+    product === "partners"
+      ? [BUSINESS_PLAN, ADVANCED_PLAN]
+      : [PRO_PLAN, BUSINESS_PLAN, ADVANCED_PLAN];
+
   const [period, setPeriod] = useState<"monthly" | "yearly">("monthly");
   const [mobilePlanIndex, setMobilePlanIndex] = useState(0);
+
+  if (mobilePlanIndex > plans.length - 1) setMobilePlanIndex(plans.length - 1);
 
   return (
     <div>
@@ -35,18 +44,19 @@ export function PlanSelector() {
       <div className="mt-5 overflow-hidden [container-type:inline-size]">
         <div
           className={cn(
-            "grid grid-cols-3",
+            "mx-auto grid max-w-[calc(var(--cols)*342px)] grid-cols-[repeat(var(--cols),1fr)]",
 
             // Mobile
-            "max-lg:w-[calc(300cqw+2*32px)] max-lg:translate-x-[calc(-1*var(--index)*(100cqw+32px))] max-lg:gap-x-8 max-lg:transition-transform",
+            "max-lg:w-[calc(var(--cols)*100cqw+(var(--cols)-1)*32px)] max-lg:max-w-none max-lg:translate-x-[calc(-1*var(--index)*(100cqw+32px))] max-lg:gap-x-8 max-lg:transition-transform",
           )}
           style={
             {
+              "--cols": plans.length,
               "--index": mobilePlanIndex,
             } as CSSProperties
           }
         >
-          {PLAN_SELECTOR_PLANS.map((plan) => (
+          {plans.map((plan) => (
             <div
               key={plan.name}
               className="flex flex-col border-y border-l border-neutral-200 bg-white p-6 pb-8 first:rounded-l-lg last:rounded-r-lg last:border-r"
@@ -93,7 +103,7 @@ export function PlanSelector() {
                 <button
                   type="button"
                   className="h-full w-fit rounded-lg bg-neutral-100 px-2.5 transition-colors duration-75 hover:bg-neutral-200/80 active:bg-neutral-200 disabled:opacity-30 lg:hidden"
-                  disabled={mobilePlanIndex >= PLAN_SELECTOR_PLANS.length - 1}
+                  disabled={mobilePlanIndex >= plans.length - 1}
                   onClick={() => setMobilePlanIndex(mobilePlanIndex + 1)}
                 >
                   <ChevronRight className="size-5 text-neutral-800" />
