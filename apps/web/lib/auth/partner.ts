@@ -4,6 +4,7 @@ import { PartnerProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { PartnerUser } from "@dub/prisma/client";
 import { getSearchParams, PARTNERS_DOMAIN } from "@dub/utils";
+import { partnerPlatformSchema } from "../zod/schemas/partners";
 import { Permission } from "./partner-users/partner-user-permissions";
 import { throwIfNoPermission } from "./partner-users/throw-if-no-permission";
 import { rateLimitRequest } from "./rate-limit-request";
@@ -117,6 +118,7 @@ export const withPartnerProfile = (
                 industryInterests: true,
                 preferredEarningStructures: true,
                 salesChannels: true,
+                platforms: true,
               },
             },
           },
@@ -141,6 +143,7 @@ export const withPartnerProfile = (
           industryInterests,
           preferredEarningStructures,
           salesChannels,
+          platforms,
           ...partner
         } = partnerUser.partner;
 
@@ -160,6 +163,7 @@ export const withPartnerProfile = (
             salesChannels: salesChannels.map(
               ({ salesChannel }) => salesChannel,
             ),
+            platforms: partnerPlatformSchema.array().parse(platforms),
           } as Omit<PartnerProps, "role" | "userId">,
           partnerUser: {
             userId: partnerUser.userId,

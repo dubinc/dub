@@ -21,20 +21,7 @@ export function PartnerAbout({
     | "salesChannels"
     | "preferredEarningStructures"
     | "monthlyTraffic"
-    | "website"
-    | "websiteVerifiedAt"
-    | "youtube"
-    | "youtubeSubscriberCount"
-    | "youtubeVerifiedAt"
-    | "youtubeViewCount"
-    | "twitter"
-    | "twitterVerifiedAt"
-    | "linkedin"
-    | "linkedinVerifiedAt"
-    | "instagram"
-    | "instagramVerifiedAt"
-    | "tiktok"
-    | "tiktokVerifiedAt"
+    | "platforms"
   >;
   error?: any;
 }) {
@@ -58,7 +45,7 @@ export function PartnerAbout({
           Website and socials
         </h3>
         <OnlinePresenceSummary
-          partner={partner}
+          platforms={partner.platforms}
           showLabels={false}
           className="gap-y-2"
         />

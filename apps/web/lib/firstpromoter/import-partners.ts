@@ -2,11 +2,13 @@ import { prisma } from "@dub/prisma";
 import {
   PartnerGroup,
   PartnerGroupDefaultLink,
+  PlatformType,
   Program,
 } from "@dub/prisma/client";
 import { isRejected, nanoid } from "@dub/utils";
 import { createId } from "../api/create-id";
 import { bulkCreateLinks } from "../api/links";
+import { upsertPartnerPlatform } from "../api/partner-profile/upsert-partner-platform";
 import { DEFAULT_PARTNER_GROUP } from "../zod/schemas/groups";
 import { FirstPromoterApi } from "./api";
 import { firstPromoterImporter, MAX_BATCHES } from "./importer";
@@ -123,12 +125,6 @@ async function createPartnerAndLinks({
       image: affiliate.profile.avatar,
       description: affiliate.profile.description,
       country: affiliate.profile.country,
-      website: affiliate.profile.website,
-      youtube: affiliate.profile.youtube_url,
-      twitter: affiliate.profile.twitter_url,
-      linkedin: affiliate.profile.linkedin_url,
-      instagram: affiliate.profile.instagram_url,
-      tiktok: affiliate.profile.tiktok_url,
       companyName: affiliate.profile.company_name,
       invoiceSettings: {
         ...(affiliate.profile.address && {
@@ -138,6 +134,40 @@ async function createPartnerAndLinks({
     },
     update: {},
   });
+
+  const socialPlatformFields: Record<PlatformType, string | null> = {
+    website: affiliate.profile.website,
+    youtube: affiliate.profile.youtube_url,
+    twitter: affiliate.profile.twitter_url,
+    linkedin: affiliate.profile.linkedin_url,
+    instagram: affiliate.profile.instagram_url,
+    tiktok: affiliate.profile.tiktok_url,
+  };
+
+  const socialPlatformEntries = Object.entries(socialPlatformFields) as [
+    PlatformType,
+    string | null,
+  ][];
+
+  const entriesWithHandles = socialPlatformEntries.filter(
+    ([, identifier]) => typeof identifier === "string" && identifier.trim().length > 0,
+  );
+
+  if (entriesWithHandles.length > 0) {
+    await Promise.allSettled(
+      entriesWithHandles.map(([platform, identifier]) =>
+        upsertPartnerPlatform({
+          where: {
+            partnerId: partner.id,
+            type: platform,
+          },
+          data: {
+            identifier: identifier!.trim(),
+          },
+        }),
+      ),
+    );
+  }
 
   const programEnrollment = await prisma.programEnrollment.upsert({
     where: {
