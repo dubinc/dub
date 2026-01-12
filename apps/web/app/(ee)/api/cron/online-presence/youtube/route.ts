@@ -20,8 +20,6 @@ export const dynamic = "force-dynamic";
     This route is used to update youtube stats for youtubeVerified partners
     Runs once a day at 06:00 AM UTC (cron expression: 0 6 * * *)
 */
-
-// POST /api/cron/online-presence/youtube
 export const POST = withCron(async () => {
   if (!process.env.YOUTUBE_API_KEY) {
     throw new Error("YOUTUBE_API_KEY is not defined");

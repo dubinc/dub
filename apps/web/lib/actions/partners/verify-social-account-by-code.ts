@@ -45,6 +45,7 @@ export const verifySocialAccountByCodeAction = authPartnerActionClient
       );
     }
 
+    // Check if the account is already verified
     const partnerPlatform = await prisma.partnerPlatform.findUnique({
       where: {
         partnerId_type: {

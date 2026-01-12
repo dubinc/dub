@@ -65,10 +65,12 @@ export const ONLINE_PRESENCE_FIELDS: {
       return {
         value: twitter ? `@${twitter.identifier}` : null,
         verified: !!twitter?.verifiedAt,
-        href: twitter?.handle ? `https://x.com/${twitter.handle}` : null,
+        href: twitter?.identifier
+          ? `https://x.com/${twitter.identifier}`
+          : null,
         info: [
-          twitter?.followers && twitter.followers > 0
-            ? `${nFormatter(Number(twitter.followers))} followers`
+          twitter?.subscribers && twitter.subscribers > 0
+            ? `${nFormatter(Number(twitter.subscribers))} followers`
             : null,
           twitter?.posts && twitter.posts > 0
             ? `${nFormatter(Number(twitter.posts))} tweets`
@@ -105,8 +107,8 @@ export const ONLINE_PRESENCE_FIELDS: {
           ? `https://instagram.com/${instagram.identifier}`
           : null,
         info: [
-          instagram?.followers && instagram.followers > 0
-            ? `${nFormatter(Number(instagram.followers))} followers`
+          instagram?.subscribers && instagram.subscribers > 0
+            ? `${nFormatter(Number(instagram.subscribers))} followers`
             : null,
           instagram?.posts && instagram.posts > 0
             ? `${nFormatter(Number(instagram.posts))} posts`
@@ -124,10 +126,12 @@ export const ONLINE_PRESENCE_FIELDS: {
       return {
         value: tiktok ? `@${tiktok.identifier}` : null,
         verified: !!tiktok?.verifiedAt,
-        href: tiktok?.handle ? `https://tiktok.com/@${tiktok.handle}` : null,
+        href: tiktok?.identifier
+          ? `https://tiktok.com/@${tiktok.identifier}`
+          : null,
         info: [
-          tiktok?.followers && tiktok.followers > 0
-            ? `${nFormatter(Number(tiktok.followers))} followers`
+          tiktok?.subscribers && tiktok.subscribers > 0
+            ? `${nFormatter(Number(tiktok.subscribers))} followers`
             : null,
           tiktok?.posts && tiktok.posts > 0
             ? `${nFormatter(Number(tiktok.posts))} posts`
