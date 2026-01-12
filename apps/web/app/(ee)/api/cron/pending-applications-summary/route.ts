@@ -5,7 +5,12 @@ import { ResendBulkEmailOptions } from "@dub/email/resend/types";
 import PendingApplicationsSummary from "@dub/email/templates/pending-applications-summary";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
-import { APP_DOMAIN_WITH_NGROK, chunk } from "@dub/utils";
+import {
+  APP_DOMAIN_WITH_NGROK,
+  chunk,
+  nFormatter,
+  pluralize,
+} from "@dub/utils";
 import * as z from "zod/v4";
 import { logAndRespond } from "../utils";
 
@@ -225,7 +230,7 @@ export const GET = withCron(async ({ rawBody }) => {
       emailsToSend.push({
         variant: "notifications",
         to: user.email,
-        subject: `You have ${totalPendingApplications} partner application${totalPendingApplications === 1 ? "" : "s"} pending review`,
+        subject: `You have ${nFormatter(totalPendingApplications, { full: true })} partner ${pluralize("application", totalPendingApplications)} pending review`,
         react: PendingApplicationsSummary({
           email: user.email,
           partners: pendingEnrollments,

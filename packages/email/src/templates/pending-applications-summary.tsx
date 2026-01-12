@@ -1,4 +1,4 @@
-import { DUB_WORDMARK, OG_AVATAR_URL } from "@dub/utils";
+import { DUB_WORDMARK, OG_AVATAR_URL, pluralize } from "@dub/utils";
 import { nFormatter } from "@dub/utils/src";
 import {
   Body,
@@ -75,20 +75,21 @@ export default function PendingApplicationsSummary({
             </Section>
 
             <Heading className="mx-0 mb-5 mt-10 p-0 text-lg font-medium text-black">
-              {nFormatter(totalCount, { full: true })} partner applications
+              {nFormatter(totalCount, { full: true })}{" "}
+              {pluralize("partner application", totalCount)}
               pending review
             </Heading>
 
             <Text className="text-sm leading-6 text-gray-600">
               You have <strong>{nFormatter(totalCount, { full: true })}</strong>{" "}
-              pending applications to{" "}
+              pending {pluralize("application", totalCount)} to{" "}
               <Link
                 href={applicationsUrl}
                 className="text-gray-600 underline underline-offset-4"
               >
                 review on Dub
               </Link>
-              . Reviewing these on time will keep your program running smooth
+              . Reviewing these on time will keep your program running smoothly
               and provide a better partner experience.
             </Text>
 
