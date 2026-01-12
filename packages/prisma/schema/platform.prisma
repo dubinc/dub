@@ -1,0 +1,28 @@
+enum PlatformType {
+  website
+  youtube
+  twitter
+  linkedin
+  instagram
+  tiktok
+}
+
+model PartnerPlatform {
+  id          String       @id @default(cuid())
+  partnerId   String
+  type        PlatformType
+  identifier  String // The unique identifier for the platform (e.g., username for social platforms, domain for websites)
+  platformId  String? // Platform-specific immutable ID (e.g., YouTube channel ID)
+  verifiedAt  DateTime?
+  subscribers BigInt       @default(0) // Subscribers/followers for social platforms, also for newsletter subscribers
+  posts       BigInt       @default(0)
+  views       BigInt       @default(0) // Video views for YouTube, impressions for social platforms, pageviews for websites
+  metadata    Json?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+
+  @@unique([partnerId, type])
+  @@index(type)
+}

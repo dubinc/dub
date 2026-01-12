@@ -1,16 +1,16 @@
 "use client";
 
 import { parseActionError } from "@/lib/actions/parse-action-errors";
+import { startPartnerPlatformVerificationAction } from "@/lib/actions/partners/start-partner-platform-verification";
 import { updateOnlinePresenceAction } from "@/lib/actions/partners/update-online-presence";
 import { hasPermission } from "@/lib/auth/partner-users/partner-user-permissions";
-import {
-  sanitizeSocialHandle,
-  sanitizeWebsite,
-  SocialPlatform,
-} from "@/lib/social-utils";
+import { sanitizeSocialHandle, sanitizeWebsite } from "@/lib/social-utils";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
+import { PartnerPlatformProps, PartnerProps } from "@/lib/types";
 import { parseUrlSchemaAllowEmpty } from "@/lib/zod/schemas/utils";
 import { DomainVerificationModal } from "@/ui/modals/domain-verification-modal";
+import { SocialVerificationByCodeModal } from "@/ui/modals/social-verification-by-code-modal";
+import { PlatformType } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
   Button,
@@ -26,7 +26,6 @@ import {
 import { getPrettyUrl, nFormatter } from "@dub/utils";
 import { cn } from "@dub/utils/src/functions";
 import { useAction } from "next-safe-action/hooks";
-import { useRouter } from "next/navigation";
 import { forwardRef, ReactNode, useCallback, useMemo, useState } from "react";
 import {
   FormProvider,
@@ -40,28 +39,36 @@ import * as z from "zod/v4";
 import { OnlinePresenceCard } from "./online-presence-card";
 
 const onlinePresenceSchema = z.object({
-  website: parseUrlSchemaAllowEmpty().optional(),
-  youtube: z.string().optional(),
-  twitter: z.string().optional(),
-  linkedin: z.string().optional(),
-  instagram: z.string().optional(),
-  tiktok: z.string().optional(),
+  website: parseUrlSchemaAllowEmpty().nullish(),
+  youtube: z.string().nullish(),
+  twitter: z.string().nullish(),
+  linkedin: z.string().nullish(),
+  instagram: z.string().nullish(),
+  tiktok: z.string().nullish(),
 });
 
 type OnlinePresenceFormData = z.infer<typeof onlinePresenceSchema>;
 
 interface OnlinePresenceFormProps {
   variant?: "onboarding" | "settings";
-  partner?: {
-    email: string | null;
-    website?: string | null;
-    youtube?: string | null;
-    twitter?: string | null;
-    linkedin?: string | null;
-    instagram?: string | null;
-    tiktok?: string | null;
-  } | null;
+  partner?: Pick<PartnerProps, "platforms"> | null;
   onSubmitSuccessful?: () => void;
+}
+
+// Helper function to get platform data from platforms array
+function getPlatformData(
+  platforms: PartnerPlatformProps[] | undefined,
+  platform: PlatformType,
+): PartnerPlatformProps | undefined {
+  return platforms?.find((p) => p.type === platform);
+}
+
+// Helper function to get identifier from platforms array
+function getPlatformIdentifier(
+  partner: OnlinePresenceFormProps["partner"],
+  platform: PlatformType,
+): string | undefined {
+  return getPlatformData(partner?.platforms, platform)?.identifier;
 }
 
 /**
@@ -73,12 +80,14 @@ export function useOnlinePresenceForm({
 }: Pick<OnlinePresenceFormProps, "partner">) {
   return useForm<OnlinePresenceFormData>({
     defaultValues: {
-      website: partner?.website ? getPrettyUrl(partner.website) : undefined,
-      youtube: partner?.youtube || undefined,
-      twitter: partner?.twitter || undefined,
-      linkedin: partner?.linkedin || undefined,
-      instagram: partner?.instagram || undefined,
-      tiktok: partner?.tiktok || undefined,
+      website: getPlatformIdentifier(partner, "website")
+        ? getPrettyUrl(getPlatformIdentifier(partner, "website")!)
+        : undefined,
+      youtube: getPlatformIdentifier(partner, "youtube") || undefined,
+      twitter: getPlatformIdentifier(partner, "twitter") || undefined,
+      linkedin: getPlatformIdentifier(partner, "linkedin") || undefined,
+      instagram: getPlatformIdentifier(partner, "instagram") || undefined,
+      tiktok: getPlatformIdentifier(partner, "tiktok") || undefined,
     },
   });
 }
@@ -109,7 +118,6 @@ export const OnlinePresenceForm = forwardRef<
 
     const {
       register,
-      setError,
       getValues,
       handleSubmit,
       reset,
@@ -118,12 +126,8 @@ export const OnlinePresenceForm = forwardRef<
     } = form;
 
     const { executeAsync } = useAction(updateOnlinePresenceAction, {
-      onSuccess: (result) => {
-        if (!result?.data?.success)
-          setError("root.serverError", {
-            message: "Failed to update online presence",
-          });
-        else mutate("/api/partner-profile");
+      onSuccess: async () => {
+        await mutate("/api/partner-profile");
       },
       onError: ({ error }) => {
         toast.error(
@@ -139,7 +143,51 @@ export const OnlinePresenceForm = forwardRef<
       txtRecord: string;
     } | null>(null);
 
-    const startVerification = useOAuthVerification(variant);
+    const [socialVerificationData, setSocialVerificationData] = useState<{
+      platform: PlatformType;
+      handle: string;
+      verificationCode: string;
+    } | null>(null);
+
+    const {
+      executeAsync: startSocialVerification,
+      isPending: isStartingSocialVerification,
+    } = useAction(startPartnerPlatformVerificationAction, {
+      onSuccess: ({ input, data }) => {
+        if (!input || !data) {
+          return;
+        }
+
+        // For website verification (TXT record)
+        if (data.type === "txt_record") {
+          const websiteUrl = input.handle.startsWith("http")
+            ? input.handle
+            : `https://${input.handle}`;
+
+          setDomainVerificationData({
+            domain: new URL(websiteUrl).hostname,
+            txtRecord: data.websiteTxtRecord,
+          });
+        }
+
+        // For OAuth flow
+        else if (data.type === "oauth") {
+          window.location.href = data.oauthUrl;
+        }
+
+        // For verification code flow
+        else if (data.type === "verification_code") {
+          setSocialVerificationData({
+            platform: input.platform,
+            handle: input.handle,
+            verificationCode: data.verificationCode,
+          });
+        }
+      },
+      onError: ({ error }) => {
+        toast.error(parseActionError(error, "Failed to start verification."));
+      },
+    });
 
     const onPasteWebsite = useCallback(
       (e: React.ClipboardEvent<HTMLInputElement>) => {
@@ -155,7 +203,7 @@ export const OnlinePresenceForm = forwardRef<
     );
 
     const onPasteSocial = useCallback(
-      (e: React.ClipboardEvent<HTMLInputElement>, platform: SocialPlatform) => {
+      (e: React.ClipboardEvent<HTMLInputElement>, platform: PlatformType) => {
         const text = e.clipboardData.getData("text/plain");
         const sanitized = sanitizeSocialHandle(text, platform);
 
@@ -169,19 +217,35 @@ export const OnlinePresenceForm = forwardRef<
 
     return (
       <>
-        <DomainVerificationModal
-          showDomainVerificationModal={domainVerificationData !== null}
-          setShowDomainVerificationModal={() => setDomainVerificationData(null)}
-          domain={domainVerificationData?.domain || ""}
-          txtRecord={domainVerificationData?.txtRecord || ""}
-        />
+        {domainVerificationData && (
+          <DomainVerificationModal
+            domain={domainVerificationData.domain}
+            txtRecord={domainVerificationData.txtRecord}
+            showDomainVerificationModal={domainVerificationData !== null}
+            setShowDomainVerificationModal={() =>
+              setDomainVerificationData(null)
+            }
+          />
+        )}
+
+        {socialVerificationData && (
+          <SocialVerificationByCodeModal
+            platform={socialVerificationData.platform}
+            handle={socialVerificationData.handle}
+            verificationCode={socialVerificationData.verificationCode}
+            showSocialVerificationModal={socialVerificationData !== null}
+            setShowSocialVerificationModal={(show) => {
+              if (!show) setSocialVerificationData(null);
+            }}
+          />
+        )}
+
         <FormProvider {...form}>
           <form
             ref={ref}
             onSubmit={handleSubmit(async (data) => {
               const result = await executeAsync(data);
-
-              if (result?.data?.success) onSubmitSuccessful?.();
+              if (result) onSubmitSuccessful?.();
             })}
           >
             <div
@@ -193,35 +257,20 @@ export const OnlinePresenceForm = forwardRef<
               <FormRow
                 label="Website"
                 property="website"
-                verifiedAtField="websiteVerifiedAt"
                 icon={Globe}
                 disabled={disabled}
                 onVerifyClick={async () => {
-                  try {
-                    const result =
-                      await updateOnlinePresenceAction(getValues());
+                  const website = getValues("website");
 
-                    if (
-                      !result?.data?.website ||
-                      !result?.data?.websiteTxtRecord
-                    ) {
-                      throw new Error(
-                        "Missing website or TXT record in update result",
-                      );
-                    }
-
-                    setDomainVerificationData({
-                      domain: new URL(result.data.website).hostname,
-                      txtRecord: result.data.websiteTxtRecord,
+                  if (website) {
+                    await startSocialVerification({
+                      platform: "website",
+                      handle: website,
+                      source: variant,
                     });
-
-                    mutate("/api/partner-profile");
-                  } catch (e) {
-                    toast.error("Failed to start website verification");
-                    console.error("Failed to start website verification", e);
                   }
 
-                  return false;
+                  return isStartingSocialVerification;
                 }}
                 input={
                   <input
@@ -247,13 +296,21 @@ export const OnlinePresenceForm = forwardRef<
                 label="YouTube"
                 property="youtube"
                 prefix="@"
-                verifiedAtField="youtubeVerifiedAt"
                 icon={YouTube}
                 disabled={disabled}
-                onVerifyClick={() =>
-                  startVerification("youtube", getValues("youtube"))
-                }
-                verifyDisabledTooltip="YouTube verification is coming soon."
+                onVerifyClick={async () => {
+                  const handle = getValues("youtube");
+
+                  if (handle) {
+                    await startSocialVerification({
+                      platform: "youtube",
+                      handle,
+                      source: variant,
+                    });
+                  }
+
+                  return isStartingSocialVerification;
+                }}
                 input={
                   <div className="flex rounded-md">
                     <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
@@ -286,12 +343,21 @@ export const OnlinePresenceForm = forwardRef<
                 label="X/Twitter"
                 property="twitter"
                 prefix="@"
-                verifiedAtField="twitterVerifiedAt"
                 icon={Twitter}
                 disabled={disabled}
-                onVerifyClick={() =>
-                  startVerification("twitter", getValues("twitter"))
-                }
+                onVerifyClick={async () => {
+                  const handle = getValues("twitter");
+
+                  if (handle) {
+                    await startSocialVerification({
+                      platform: "twitter",
+                      handle,
+                      source: variant,
+                    });
+                  }
+
+                  return isStartingSocialVerification;
+                }}
                 input={
                   <div className="flex rounded-md">
                     <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
@@ -321,13 +387,22 @@ export const OnlinePresenceForm = forwardRef<
                 label="LinkedIn"
                 property="linkedin"
                 prefix="in/"
-                verifiedAtField="linkedinVerifiedAt"
                 icon={LinkedIn}
                 disabled={disabled}
-                onVerifyClick={() =>
-                  startVerification("linkedin", getValues("linkedin"))
-                }
                 verifyDisabledTooltip="LinkedIn verification is coming soon."
+                onVerifyClick={async () => {
+                  const handle = getValues("linkedin");
+
+                  if (handle) {
+                    await startSocialVerification({
+                      platform: "linkedin",
+                      handle,
+                      source: variant,
+                    });
+                  }
+
+                  return isStartingSocialVerification;
+                }}
                 input={
                   <div className="flex rounded-md">
                     <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
@@ -357,13 +432,21 @@ export const OnlinePresenceForm = forwardRef<
                 label="Instagram"
                 property="instagram"
                 prefix="@"
-                verifiedAtField="instagramVerifiedAt"
                 icon={Instagram}
                 disabled={disabled}
-                onVerifyClick={() =>
-                  startVerification("instagram", getValues("instagram"))
-                }
-                verifyDisabledTooltip="Instagram verification is coming soon."
+                onVerifyClick={async () => {
+                  const handle = getValues("instagram");
+
+                  if (handle) {
+                    await startSocialVerification({
+                      platform: "instagram",
+                      handle,
+                      source: variant,
+                    });
+                  }
+
+                  return isStartingSocialVerification;
+                }}
                 input={
                   <div className="flex rounded-md">
                     <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
@@ -393,12 +476,21 @@ export const OnlinePresenceForm = forwardRef<
                 label="TikTok"
                 property="tiktok"
                 prefix="@"
-                verifiedAtField="tiktokVerifiedAt"
                 icon={TikTok}
                 disabled={disabled}
-                onVerifyClick={() =>
-                  startVerification("tiktok", getValues("tiktok"))
-                }
+                onVerifyClick={async () => {
+                  const handle = getValues("tiktok");
+
+                  if (handle) {
+                    await startSocialVerification({
+                      platform: "tiktok",
+                      handle,
+                      source: variant,
+                    });
+                  }
+
+                  return isStartingSocialVerification;
+                }}
                 input={
                   <div className="flex rounded-md">
                     <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
@@ -444,44 +536,10 @@ export const OnlinePresenceForm = forwardRef<
   },
 );
 
-function useOAuthVerification(source: "onboarding" | "settings") {
-  const router = useRouter();
-
-  return useCallback(
-    async (provider: string, value?: string) => {
-      if (!value) return false;
-
-      try {
-        const result = await updateOnlinePresenceAction({
-          [provider]: value,
-          source,
-        });
-
-        if (
-          result?.data?.success &&
-          result?.data?.verificationUrls?.[provider]
-        ) {
-          window.location.href = result.data.verificationUrls[provider];
-        }
-
-        return true;
-      } catch (e) {
-        toast.error("Failed to start verification");
-        console.error("Failed to start verification", e);
-      }
-
-      return false;
-    },
-    [source, router],
-  );
-}
-
 function useVerifiedState({
   property,
-  verifiedAtField,
 }: {
   property: keyof OnlinePresenceFormData;
-  verifiedAtField: string;
 }) {
   const { partner: partnerProfile } = usePartnerProfile();
 
@@ -492,12 +550,26 @@ function useVerifiedState({
 
   const loading = !partnerProfile && isValid;
 
+  // Map form property to PlatformType enum
+  const platformMap: Record<keyof OnlinePresenceFormData, PlatformType> = {
+    website: "website",
+    youtube: "youtube",
+    twitter: "twitter",
+    linkedin: "linkedin",
+    instagram: "instagram",
+    tiktok: "tiktok",
+  };
+
+  const platform = platformMap[property];
+  const currentHandle = getPlatformIdentifier(partnerProfile, platform);
+
   const noChange =
     property === "website"
-      ? getPrettyUrl(partnerProfile?.[property] ?? "") === getPrettyUrl(value)
-      : partnerProfile?.[property] === value;
+      ? getPrettyUrl(currentHandle ?? "") === getPrettyUrl(value ?? "")
+      : currentHandle === value;
 
-  const isVerified = noChange && Boolean(partnerProfile?.[verifiedAtField]);
+  const platformData = getPlatformData(partnerProfile?.platforms, platform);
+  const isVerified = noChange && Boolean(platformData?.verifiedAt);
 
   return {
     isVerified,
@@ -507,14 +579,12 @@ function useVerifiedState({
 
 function VerifyButton({
   property,
-  verifiedAtField,
   icon: Icon,
   onClick,
   disabledTooltip,
   disabled: formDisabled = false,
 }: {
   property: keyof OnlinePresenceFormData;
-  verifiedAtField: string;
   icon: Icon;
   onClick: () => Promise<boolean>;
   disabledTooltip?: string;
@@ -525,7 +595,6 @@ function VerifyButton({
 
   const { isVerified, loading } = useVerifiedState({
     property,
-    verifiedAtField,
   });
 
   const [isSaving, setIsSaving] = useState(false);
@@ -568,7 +637,6 @@ function FormRow({
   input,
   property,
   prefix,
-  verifiedAtField,
   icon: Icon,
   onVerifyClick,
   verifyDisabledTooltip,
@@ -580,7 +648,6 @@ function FormRow({
 
   property: keyof OnlinePresenceFormData;
   prefix?: string;
-  verifiedAtField: string;
   icon: Icon;
   onVerifyClick: () => Promise<boolean>;
   verifyDisabledTooltip?: string;
@@ -591,17 +658,26 @@ function FormRow({
   const { control, setValue } = useFormContext<OnlinePresenceFormData>();
   const value = useWatch({ control, name: property });
 
-  const { isVerified } = useVerifiedState({ property, verifiedAtField });
+  const { isVerified } = useVerifiedState({ property });
 
   const info = useMemo(() => {
     if (partner && property === "youtube" && isVerified) {
+      // Type assertion for platforms array that exists at runtime but not in type
+      const partnerWithPlatforms = partner as typeof partner & {
+        platforms?: PartnerPlatformProps[];
+      };
+      const youtubePlatform = getPlatformData(
+        partnerWithPlatforms.platforms,
+        "youtube",
+      );
+      const subscribers = youtubePlatform?.subscribers ?? 0;
+      const views = youtubePlatform?.views ?? 0;
+
       return [
-        partner.youtubeSubscriberCount && partner.youtubeSubscriberCount > 0
-          ? `${nFormatter(partner.youtubeSubscriberCount)} subscribers`
+        subscribers > 0
+          ? `${nFormatter(Number(subscribers))} subscribers`
           : null,
-        partner.youtubeViewCount && partner.youtubeViewCount > 0
-          ? `${nFormatter(partner.youtubeViewCount)} views`
-          : null,
+        views > 0 ? `${nFormatter(Number(views))} views` : null,
       ].filter(Boolean) as string[];
     }
     return null;
@@ -631,7 +707,7 @@ function FormRow({
                 value={value ?? ""}
                 verified
                 info={info ?? undefined}
-                onRemove={() => setValue(property, "", { shouldDirty: true })}
+                onRemove={() => setValue(property, null, { shouldDirty: true })}
               />
             </div>
           ) : (
@@ -648,7 +724,6 @@ function FormRow({
                 {input}
                 <VerifyButton
                   property={property}
-                  verifiedAtField={verifiedAtField}
                   icon={Icon}
                   onClick={onVerifyClick}
                   disabledTooltip={verifyDisabledTooltip}

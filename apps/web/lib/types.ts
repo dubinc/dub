@@ -94,6 +94,7 @@ import {
   createPartnerSchema,
   EnrolledPartnerSchema,
   EnrolledPartnerSchemaExtended,
+  partnerPlatformSchema,
   PartnerRewindSchema,
   PartnerSchema,
   WebhookPartnerSchema,
@@ -454,9 +455,12 @@ export type PartnerEarningsResponse = z.infer<typeof PartnerEarningsSchema>;
 
 export type CustomerProps = z.infer<typeof CustomerSchema>;
 
+export type PartnerPlatformProps = z.infer<typeof partnerPlatformSchema>;
+
 export type PartnerProps = z.infer<typeof PartnerSchema> & {
   role: PartnerRole;
   userId: string;
+  platforms: PartnerPlatformProps[];
 };
 
 export type PartnerRewindProps = z.infer<typeof PartnerRewindSchema>;
@@ -468,7 +472,9 @@ export type PartnerProfileCustomerProps = z.infer<
 
 export type PartnerProfileLinkProps = z.infer<typeof PartnerProfileLinkSchema>;
 
-export type EnrolledPartnerProps = z.infer<typeof EnrolledPartnerSchema>;
+export type EnrolledPartnerProps = z.infer<typeof EnrolledPartnerSchema> & {
+  platforms: PartnerPlatformProps[];
+};
 
 export type NetworkPartnerProps = z.infer<typeof NetworkPartnerSchema>;
 
@@ -484,7 +490,9 @@ export type NetworkProgramExtendedProps = z.infer<
 
 export type EnrolledPartnerExtendedProps = z.infer<
   typeof EnrolledPartnerSchemaExtended
->;
+> & {
+  platforms: PartnerPlatformProps[];
+};
 
 export type DiscountProps = z.infer<typeof DiscountSchema>;
 
