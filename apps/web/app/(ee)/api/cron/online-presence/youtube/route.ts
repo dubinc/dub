@@ -1,8 +1,18 @@
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { withCron } from "@/lib/cron/with-cron";
 import { prisma } from "@dub/prisma";
+import { PlatformType } from "@dub/prisma/client";
 import { chunk, deepEqual } from "@dub/utils";
-import { NextResponse } from "next/server";
+import { z } from "zod";
+import { logAndRespond } from "../../utils";
+
+const youtubeChannelSchema = z.object({
+  id: z.string(),
+  statistics: z.object({
+    videoCount: z.string().transform((val) => parseInt(val, 10)),
+    subscriberCount: z.string().transform((val) => parseInt(val, 10)),
+    viewCount: z.string().transform((val) => parseInt(val, 10)),
+  }),
+});
 
 export const dynamic = "force-dynamic";
 
@@ -10,105 +20,93 @@ export const dynamic = "force-dynamic";
     This route is used to update youtube stats for youtubeVerified partners
     Runs once a day at 06:00 AM UTC (cron expression: 0 6 * * *)
 */
-export async function POST(req: Request) {
-  try {
-    const rawBody = await req.text();
+export const POST = withCron(async () => {
+  if (!process.env.YOUTUBE_API_KEY) {
+    throw new Error("YOUTUBE_API_KEY is not defined");
+  }
 
-    await verifyQstashSignature({
-      req,
-      rawBody,
-    });
+  const youtubeChannels = await prisma.partnerPlatform.findMany({
+    where: {
+      type: PlatformType.youtube,
+      verifiedAt: {
+        not: null,
+      },
+      platformId: {
+        not: null,
+      },
+    },
+  });
 
-    if (!process.env.YOUTUBE_API_KEY) {
-      throw new Error("YOUTUBE_API_KEY is not defined");
+  if (youtubeChannels.length === 0) {
+    return logAndRespond(
+      "No YouTube platforms found. Skipping YouTube stats update.",
+    );
+  }
+
+  const chunks = chunk(youtubeChannels, 50);
+
+  for (const chunk of chunks) {
+    const channelIds = chunk.map((channel) => channel.platformId);
+
+    if (channelIds.length === 0) {
+      continue;
     }
 
-    const youtubeVerifiedPartners = await prisma.partner.findMany({
-      where: {
-        youtubeChannelId: {
-          not: null,
-        },
-        youtubeVerifiedAt: {
-          not: null,
+    const response = await fetch(
+      `https://www.googleapis.com/youtube/v3/channels?part=statistics,snippet&id=${channelIds.join(",")}`,
+      {
+        headers: {
+          "X-Goog-Api-Key": process.env.YOUTUBE_API_KEY,
         },
       },
-      select: {
-        id: true,
-        email: true,
-        youtube: true,
-        youtubeChannelId: true,
-        youtubeSubscriberCount: true,
-        youtubeVideoCount: true,
-        youtubeViewCount: true,
-      },
-    });
+    );
 
-    const chunks = chunk(youtubeVerifiedPartners, 50);
+    if (!response.ok) {
+      console.error("Failed to fetch YouTube data:", await response.text());
+      continue;
+    }
 
-    for (const chunk of chunks) {
-      const channelIds = chunk.map(
-        (partner) => partner.youtubeChannelId as string,
-      );
+    const data = await response.json().then((r) => r.items);
+    const channels = z.array(youtubeChannelSchema).parse(data);
 
-      if (channelIds.length === 0) continue;
+    for (const channel of channels) {
+      const partnerPlatform = chunk.find((p) => p.platformId === channel.id);
 
-      const response = await fetch(
-        `https://www.googleapis.com/youtube/v3/channels?part=statistics,snippet&id=${channelIds.join(",")}`,
-        {
-          headers: {
-            "X-Goog-Api-Key": process.env.YOUTUBE_API_KEY,
-          },
-        },
-      );
-
-      if (!response.ok) {
-        console.error("Failed to fetch YouTube data:", await response.text());
+      if (!partnerPlatform) {
         continue;
       }
 
-      const data = await response.json().then((r) => r.items);
+      const currentStats = {
+        subscribers: partnerPlatform.subscribers,
+        posts: partnerPlatform.posts,
+        views: partnerPlatform.views,
+      };
 
-      for (const d of data) {
-        const partner = chunk.find((p) => p.youtubeChannelId === d.id);
+      const newStats = {
+        subscribers: channel.statistics.subscriberCount,
+        posts: channel.statistics.videoCount,
+        views: channel.statistics.viewCount,
+      };
 
-        if (!partner || !d.statistics) {
-          continue;
-        }
-
-        const { viewCount, subscriberCount, videoCount } = d.statistics;
-
-        // Only compare the YouTube stats
-        const currentStats = {
-          youtubeSubscriberCount: partner.youtubeSubscriberCount,
-          youtubeVideoCount: partner.youtubeVideoCount,
-          youtubeViewCount: partner.youtubeViewCount,
-        };
-
-        const newStats = {
-          youtubeSubscriberCount: parseInt(subscriberCount || "0", 10),
-          youtubeVideoCount: parseInt(videoCount || "0", 10),
-          youtubeViewCount: parseInt(viewCount || "0", 10),
-        };
-
-        if (deepEqual(currentStats, newStats)) {
-          continue;
-        }
-
-        await prisma.partner.update({
-          where: { id: partner.id },
-          data: newStats,
-        });
-        console.log(
-          `Updated YouTube stats for ${partner.email} (@${partner.youtube})`,
-          newStats,
-        );
+      if (deepEqual(currentStats, newStats)) {
+        continue;
       }
-    }
 
-    return NextResponse.json({
-      message: `YouTube stats updated for ${youtubeVerifiedPartners.length} partners`,
-    });
-  } catch (error) {
-    return handleAndReturnErrorResponse(error);
+      await prisma.partnerPlatform.update({
+        where: {
+          id: partnerPlatform.id,
+        },
+        data: newStats,
+      });
+
+      console.log(
+        `Updated YouTube stats for @${partnerPlatform.identifier}`,
+        newStats,
+      );
+    }
   }
-}
+
+  return logAndRespond(
+    `YouTube stats updated for ${youtubeChannels.length} partners`,
+  );
+});
