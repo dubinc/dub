@@ -168,7 +168,6 @@ export const POST = withWorkspace(
   },
   {
     requiredPermissions: ["workspaces.write"],
-    allowedRoles: ["owner", "member"],
   },
 );
 
@@ -219,7 +218,6 @@ export const PATCH = withWorkspace(
   },
   {
     requiredPermissions: ["workspaces.write"],
-    allowedRoles: ["owner", "member"],
   },
 );
 
@@ -245,6 +243,5 @@ export const DELETE = withWorkspace(
   },
   {
     requiredPermissions: ["workspaces.write"],
-    allowedRoles: ["owner", "member"],
   },
 );
