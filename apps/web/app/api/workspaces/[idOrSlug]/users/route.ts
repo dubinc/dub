@@ -193,7 +193,4 @@ export const DELETE = withWorkspace(
 
     return NextResponse.json(response);
   },
-  {
-    skipPermissionChecks: true,
-  },
 );

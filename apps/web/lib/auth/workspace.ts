@@ -70,14 +70,12 @@ export const withWorkspace = (
     ], // if the action needs a specific plan
     featureFlag, // if the action needs a specific feature flag
     requiredPermissions = [],
-    requiredRoles = [], // if the action needs a specific role(s)
-    skipPermissionChecks, // if the action doesn't need to check for required permission(s)
+    allowedRoles = [],
   }: {
     requiredPlan?: Array<PlanProps>;
     featureFlag?: BetaFeatures;
     requiredPermissions?: PermissionAction[];
-    requiredRoles?: WorkspaceRole[];
-    skipPermissionChecks?: boolean;
+    allowedRoles?: WorkspaceRole[];
   } = {},
 ) => {
   return withAxiomBodyLog(
@@ -418,7 +416,7 @@ export const withWorkspace = (
         }
 
         // Check user has permission to make the action
-        if (!skipPermissionChecks) {
+        if (requiredPermissions.length > 0) {
           throwIfNoAccess({
             permissions,
             requiredPermissions,
@@ -429,12 +427,12 @@ export const withWorkspace = (
 
         // role checks
         if (
-          requiredRoles.length > 0 &&
-          !requiredRoles.includes(workspace.users[0].role)
+          allowedRoles.length > 0 &&
+          !allowedRoles.includes(workspace.users[0].role)
         ) {
           throw new DubApiError({
             code: "forbidden",
-            message: `You don't have the required role to access this endpoint. Required role(s): ${requiredRoles.join(", ")}.`,
+            message: `You don't have the required role to access this endpoint. Required role(s): ${allowedRoles.join(", ")}.`,
           });
         }
 

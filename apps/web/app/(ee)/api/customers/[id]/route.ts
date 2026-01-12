@@ -158,7 +158,7 @@ export const PATCH = withWorkspace(
       "advanced",
       "enterprise",
     ],
-    requiredRoles: ["owner", "member"],
+    allowedRoles: ["owner", "member"],
   },
 );
 
@@ -195,6 +195,6 @@ export const DELETE = withWorkspace(
       "advanced",
       "enterprise",
     ],
-    requiredRoles: ["owner", "member"],
+    allowedRoles: ["owner", "member"],
   },
 );
