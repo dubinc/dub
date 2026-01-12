@@ -63,7 +63,7 @@ export default function PendingApplicationsSummary({
   return (
     <Html>
       <Preview>
-        You have {totalCount} new pending applications to review on Dub for{" "}
+        You have {totalCount} pending applications to review on Dub for{" "}
         {formattedDate}
       </Preview>
       <Tailwind>
