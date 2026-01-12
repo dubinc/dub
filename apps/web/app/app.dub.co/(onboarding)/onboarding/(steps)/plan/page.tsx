@@ -1,5 +1,7 @@
 "use client";
 
+import { DubProductIcon } from "@dub/ui";
+import { capitalize } from "@dub/utils";
 import { LaterButton } from "../../later-button";
 import { useOnboardingProduct } from "../../use-onboarding-product";
 import { StepPage } from "../step-page";
@@ -12,16 +14,32 @@ export default function Plan() {
 
   return (
     <StepPage
-      title="Choose your plan"
-      description={
+      title={
         <>
-          <span className="inline-block">
-            Find a plan that fits your needs, or
-          </span>{" "}
-          <FreePlanButton className="text-base underline underline-offset-2">
-            stay on the free plan.
-          </FreePlanButton>
+          Choose your{" "}
+          <DubProductIcon
+            product={product}
+            className="mb-0.5 ml-1 inline-flex size-5 align-middle"
+            iconClassName="size-3"
+          />{" "}
+          Dub {capitalize(product)} plan
         </>
+      }
+      description={
+        product === "partners" ? (
+          <span className="inline-block">
+            Find a plan that fits your needs.
+          </span>
+        ) : (
+          <>
+            <span className="inline-block">
+              Find a plan that fits your needs, or start on the
+            </span>{" "}
+            <FreePlanButton className="text-base underline underline-offset-2">
+              free plan.
+            </FreePlanButton>
+          </>
+        )
       }
       className="max-w-screen-lg"
     >
