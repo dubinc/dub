@@ -14,7 +14,7 @@ export function Form() {
     <div>
       <AddEditDomainForm
         onSuccess={() => {
-          continueTo("plan");
+          continueTo(product === "partners" ? "program" : "plan");
         }}
         enableDomainConfig={false}
       />
