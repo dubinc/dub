@@ -166,6 +166,7 @@ export const notificationTypes = z.enum([
   "domainConfigurationUpdates",
   "newPartnerSale",
   "newPartnerApplication",
+  "pendingApplicationsSummary",
   "newBountySubmitted",
   "newMessageFromPartner",
   "fraudEventsSummary",

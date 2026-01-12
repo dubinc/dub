@@ -7,13 +7,13 @@ type GetWorkspaceUsersParams =
   | {
       workspaceId: string;
       programId?: never;
-      role: WorkspaceRole;
+      role: WorkspaceRole | WorkspaceRole[];
       notificationPreference?: z.infer<typeof notificationTypes>;
     }
   | {
       programId: string;
       workspaceId?: never;
-      role: WorkspaceRole;
+      role: WorkspaceRole | WorkspaceRole[];
       notificationPreference?: z.infer<typeof notificationTypes>;
     };
 
@@ -50,7 +50,11 @@ export async function getWorkspaceUsers({
       },
       users: {
         where: {
-          role,
+          role: Array.isArray(role)
+            ? {
+                in: role,
+              }
+            : role,
           ...(notificationPreference && {
             notificationPreference: {
               [notificationPreference]: true,
