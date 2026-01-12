@@ -225,7 +225,7 @@ export const GET = withCron(async ({ rawBody }) => {
       emailsToSend.push({
         variant: "notifications",
         to: user.email,
-        subject: `You have ${totalPendingApplications} new pending application${totalPendingApplications === 1 ? "" : "s"} to review`,
+        subject: `You have ${totalPendingApplications} partner application${totalPendingApplications === 1 ? "" : "s"} pending review`,
         react: PendingApplicationsSummary({
           email: user.email,
           partners: pendingEnrollments,

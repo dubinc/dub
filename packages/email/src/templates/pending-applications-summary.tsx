@@ -1,4 +1,5 @@
 import { DUB_WORDMARK, OG_AVATAR_URL } from "@dub/utils";
+import { nFormatter } from "@dub/utils/src";
 import {
   Body,
   Column,
@@ -41,7 +42,7 @@ export default function PendingApplicationsSummary({
       image: `${OG_AVATAR_URL}pn_1JPBEGP7EXF76CXT1W99VERW7`,
     },
   ],
-  totalCount = 12,
+  totalCount = 1234,
   date = new Date(),
 }: {
   email: string;
@@ -63,8 +64,8 @@ export default function PendingApplicationsSummary({
   return (
     <Html>
       <Preview>
-        You have {totalCount} pending applications to review on Dub for{" "}
-        {formattedDate}
+        You have {nFormatter(totalCount, { full: true })} pending applications
+        to review on Dub for {formattedDate}
       </Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
@@ -74,20 +75,21 @@ export default function PendingApplicationsSummary({
             </Section>
 
             <Heading className="mx-0 mb-5 mt-10 p-0 text-lg font-medium text-black">
-              New partner applications
+              {nFormatter(totalCount, { full: true })} partner applications
+              pending review
             </Heading>
 
             <Text className="text-sm leading-6 text-gray-600">
-              You have <strong>{totalCount}</strong> pending applications to{" "}
+              You have <strong>{nFormatter(totalCount, { full: true })}</strong>{" "}
+              pending applications to{" "}
               <Link
                 href={applicationsUrl}
                 className="text-gray-600 underline underline-offset-4"
               >
                 review on Dub
-              </Link>{" "}
-              for <strong>{formattedDate}</strong>. Reviewing these on time will
-              keep your program running smooth and provide a better partner
-              experience.
+              </Link>
+              . Reviewing these on time will keep your program running smooth
+              and provide a better partner experience.
             </Text>
 
             <Section className="my-6">
