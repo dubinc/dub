@@ -5,7 +5,13 @@ export default function ProgramReward() {
   return (
     <StepPage
       title="Create your default reward"
-      description="The default reward offered to your partners"
+      description={
+        <>
+          The default reward offered to your partners.
+          <br />
+          You can change this at any time.
+        </>
+      }
     >
       <NextButton step="plan" />
     </StepPage>
