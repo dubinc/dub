@@ -390,4 +390,6 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
   } catch (error) {
     return handleAndReturnErrorResponse(error);
   }
+}, {
+  requiredRoles: ["owner", "member"],
 });
