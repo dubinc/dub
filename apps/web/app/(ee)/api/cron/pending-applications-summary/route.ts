@@ -11,7 +11,7 @@ import { logAndRespond } from "../utils";
 
 export const dynamic = "force-dynamic";
 
-const PROGRAMS_BATCH_SIZE = 1;
+const PROGRAMS_BATCH_SIZE = 50;
 
 const schema = z.object({
   startingAfter: z.string().optional(),
