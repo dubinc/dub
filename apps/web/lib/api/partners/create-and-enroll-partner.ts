@@ -1,6 +1,7 @@
 "use server";
 
 import { createId } from "@/lib/api/create-id";
+import { polyfillSocialMediaFields } from "@/lib/social-utils";
 import { isStored, storage } from "@/lib/storage";
 import { CreatePartnerProps, ProgramProps, WorkspaceProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
@@ -56,7 +57,11 @@ export const createAndEnrollPartner = async ({
         ],
       },
       include: {
-        partner: true,
+        partner: {
+          include: {
+            platforms: true,
+          },
+        },
         links: true,
       },
     });
@@ -74,6 +79,7 @@ export const createAndEnrollPartner = async ({
           ...programEnrollment,
           id: programEnrollment.partner.id,
           links: programEnrollment.links,
+          ...polyfillSocialMediaFields(programEnrollment.partner.platforms),
         });
         // else, if the passed tenantId is different from the existing enrollment...
       } else if (partner.tenantId) {
@@ -91,7 +97,11 @@ export const createAndEnrollPartner = async ({
             tenantId: partner.tenantId,
           },
           include: {
-            partner: true,
+            partner: {
+              include: {
+                platforms: true,
+              },
+            },
             links: true,
           },
         });
@@ -101,6 +111,9 @@ export const createAndEnrollPartner = async ({
           ...updatedProgramEnrollment,
           id: updatedProgramEnrollment.partner.id,
           links: updatedProgramEnrollment.links,
+          ...polyfillSocialMediaFields(
+            updatedProgramEnrollment.partner.platforms,
+          ),
         });
       }
     } else if (partner.tenantId) {
@@ -162,6 +175,7 @@ export const createAndEnrollPartner = async ({
       description: partner.description,
     },
     include: {
+      platforms: true,
       programs: {
         where: {
           programId: program.id,
@@ -200,6 +214,7 @@ export const createAndEnrollPartner = async ({
     ...upsertedPartner.programs[0],
     id: upsertedPartner.id,
     links,
+    ...polyfillSocialMediaFields(upsertedPartner.platforms),
   });
 
   waitUntil(

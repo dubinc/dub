@@ -386,7 +386,7 @@ function PartnerCard({
         ? ONLINE_PRESENCE_FIELDS.map((field) => ({
             label: field.label,
             icon: field.icon,
-            ...field.data(partner),
+            ...field.data(partner.platforms),
           })).filter((field) => field.value && field.href)
         : null,
     [partner],
