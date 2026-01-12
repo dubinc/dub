@@ -1,5 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
 import { onboardingStepCache } from "@/lib/api/workspaces/onboarding-step-cache";
+import { throwIfRoleNotAvailableForPlan } from "@/lib/api/workspaces/throw-if-role-not-available-for-plan";
 import { withSession } from "@/lib/auth";
 import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import { PlanProps } from "@/lib/types";
@@ -81,6 +82,11 @@ export const POST = withSession(async ({ session, params }) => {
         }),
       });
     }
+
+    throwIfRoleNotAvailableForPlan({
+      role: invite.role,
+      plan: workspace.plan,
+    });
 
     await tx.projectUsers.create({
       data: {

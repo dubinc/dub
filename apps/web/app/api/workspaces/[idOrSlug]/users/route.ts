@@ -1,5 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
 import { throwIfNoAccess } from "@/lib/api/tokens/throw-if-no-access";
+import { throwIfRoleNotAvailableForPlan } from "@/lib/api/workspaces/throw-if-role-not-available-for-plan";
 import { withWorkspace } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
 import {
@@ -55,10 +56,16 @@ const updateRoleSchema = z.object({
   role: z.enum(WorkspaceRole),
 });
 
-// PATCH /api/workspaces/[idOrSlug]/users – update a user's role for a specific workspace
+// PATCH /api/workspaces/[idOrSlug]/users – update a user's role for a specific workspace
 export const PATCH = withWorkspace(
   async ({ req, workspace }) => {
     const { userId, role } = updateRoleSchema.parse(await req.json());
+
+    throwIfRoleNotAvailableForPlan({
+      role,
+      plan: workspace.plan,
+    });
+
     const response = await prisma.projectUsers.update({
       where: {
         userId_projectId: {

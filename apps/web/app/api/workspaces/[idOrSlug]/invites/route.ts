@@ -1,5 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
 import { inviteUser } from "@/lib/api/users";
+import { throwIfRoleNotAvailableForPlan } from "@/lib/api/workspaces/throw-if-role-not-available-for-plan";
 import { withWorkspace } from "@/lib/auth";
 import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import { ratelimit, redis } from "@/lib/upstash";
@@ -48,6 +49,13 @@ export const GET = withWorkspace(
 export const POST = withWorkspace(
   async ({ req, workspace, session }) => {
     const { teammates } = inviteTeammatesSchema.parse(await req.json());
+
+    for (const teammate of teammates) {
+      throwIfRoleNotAvailableForPlan({
+        role: teammate.role,
+        plan: workspace.plan,
+      });
+    }
 
     const { success } = await ratelimit(1, "1 s").limit(
       `workspace-invites:${workspace.id}`,
@@ -172,6 +180,11 @@ const updateInviteRoleSchema = z.object({
 export const PATCH = withWorkspace(
   async ({ req, workspace }) => {
     const { email, role } = updateInviteRoleSchema.parse(await req.json());
+
+    throwIfRoleNotAvailableForPlan({
+      role,
+      plan: workspace.plan,
+    });
 
     const invite = await prisma.projectInvite.findUnique({
       where: {

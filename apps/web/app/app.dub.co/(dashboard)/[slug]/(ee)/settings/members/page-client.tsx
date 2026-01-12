@@ -3,7 +3,10 @@
 import { clientAccessCheck } from "@/lib/client-access-check";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { WorkspaceUserProps } from "@/lib/types";
-import { WORKSPACE_ROLES } from "@/lib/workspace-roles";
+import {
+  getAvailableRolesForPlan,
+  WORKSPACE_ROLES,
+} from "@/lib/workspace-roles";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { useInviteCodeModal } from "@/ui/modals/invite-code-modal";
@@ -47,7 +50,7 @@ export default function WorkspacePeopleClient() {
 
   const { setShowInviteCodeModal, InviteCodeModal } = useInviteCodeModal();
 
-  const { role } = useWorkspace();
+  const { role, plan } = useWorkspace();
   const { data: session } = useSession();
   const { id: workspaceId } = useWorkspace();
 
@@ -76,16 +79,21 @@ export default function WorkspacePeopleClient() {
     },
   );
 
+  const availableRolesForPlan = useMemo(() => {
+    return getAvailableRolesForPlan(plan);
+  }, [plan]);
+
   const isCurrentUserOwner = role === "owner";
 
-  // Combined filter configuration
   const filters = useMemo(
     () => [
       {
         key: "role",
         icon: UserCheck,
         label: "Role",
-        options: WORKSPACE_ROLES.map(({ value, label, icon }) => ({
+        options: WORKSPACE_ROLES.filter(({ value }) =>
+          availableRolesForPlan.includes(value),
+        ).map(({ value, label, icon }) => ({
           value,
           label,
           icon,
@@ -113,7 +121,7 @@ export default function WorkspacePeopleClient() {
         ],
       },
     ],
-    [],
+    [availableRolesForPlan],
   );
 
   // Active filters state
@@ -305,11 +313,17 @@ function RoleCell({
   isCurrentUser: boolean;
   isCurrentUserOwner: boolean;
 }) {
+  const { plan } = useWorkspace();
   const [role, setRole] = useState<WorkspaceRole>(user.role);
 
   useEffect(() => {
     setRole(user.role);
   }, [user.role]);
+
+  // Get available roles for plan to determine which to disable
+  const availableRolesForPlan = useMemo(() => {
+    return getAvailableRolesForPlan(plan);
+  }, [plan]);
 
   const { WorkspaceUserRoleModal, setShowWorkspaceUserRoleModal } =
     useWorkspaceUserRoleModal({
@@ -356,11 +370,17 @@ function RoleCell({
               : undefined
         }
       >
-        {WORKSPACE_ROLES.map(({ value, label }) => (
-          <option key={value} value={value}>
-            {label}
-          </option>
-        ))}
+        {WORKSPACE_ROLES.map(({ value, label }) => {
+          return (
+            <option
+              key={value}
+              value={value}
+              disabled={!availableRolesForPlan.includes(value)}
+            >
+              {label}
+            </option>
+          );
+        })}
       </select>
     </>
   );
