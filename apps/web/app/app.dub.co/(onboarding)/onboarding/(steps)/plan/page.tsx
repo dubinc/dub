@@ -19,7 +19,7 @@ export default function Plan() {
           Choose your{" "}
           <DubProductIcon
             product={product}
-            className="mb-0.5 ml-1 inline-flex size-5 align-middle"
+            className="mb-[3px] ml-1 inline-flex size-5 align-middle"
             iconClassName="size-3"
           />{" "}
           Dub {capitalize(product)} plan
@@ -46,14 +46,16 @@ export default function Plan() {
       <PlanSelector key={product} product={product} />
       <div className="mx-auto mt-8 flex w-fit flex-col items-center justify-center gap-6 text-sm md:flex-row">
         <EnterpriseLink />
-        <LaterButton
-          next="finish"
-          className="underline-offset-4 hover:underline"
-        >
-          Start for free, pick a plan later
-        </LaterButton>
+        {product === "links" && (
+          <LaterButton
+            next="finish"
+            className="underline-offset-4 hover:underline"
+          >
+            Start for free, pick a plan later
+          </LaterButton>
+        )}
         <a
-          href="https://dub.co/pricing"
+          href={`https://dub.co/pricing/${product}`}
           target="_blank"
           className="flex items-center text-neutral-500 underline-offset-4 transition-colors hover:text-neutral-800 hover:underline"
         >
