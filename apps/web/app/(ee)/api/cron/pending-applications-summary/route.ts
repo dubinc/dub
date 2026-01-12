@@ -1,4 +1,3 @@
-import { getWorkspaceUsers } from "@/lib/api/get-workspace-users";
 import { qstash } from "@/lib/cron";
 import { withCron } from "@/lib/cron/with-cron";
 import { sendBatchEmail } from "@dub/email";
@@ -137,6 +136,72 @@ export const GET = withCron(async ({ rawBody }) => {
     pendingCounts.map((pc) => [pc.programId, pc._count]),
   );
 
+  const workspaceUsers = await prisma.projectUsers.findMany({
+    where: {
+      project: {
+        defaultProgramId: {
+          in: programIds,
+        },
+      },
+      notificationPreference: {
+        pendingApplicationsSummary: true,
+      },
+      user: {
+        email: {
+          not: null,
+        },
+      },
+    },
+    select: {
+      project: {
+        select: {
+          slug: true,
+          defaultProgramId: true,
+        },
+      },
+      user: {
+        select: {
+          email: true,
+        },
+      },
+    },
+  });
+
+  // create a map of programId -> workspace users
+  const programWorkspaceUsersMap = new Map<
+    string,
+    {
+      users: {
+        email: string;
+      }[];
+      workspace: {
+        slug: string;
+      };
+    }
+  >();
+
+  for (const workspaceUser of workspaceUsers) {
+    const programId = workspaceUser.project.defaultProgramId!; // coerce since we filtered above
+    const workspaceUserEmail = workspaceUser.user.email!; // coerce since we filtered above
+    const existingData = programWorkspaceUsersMap.get(programId);
+    if (existingData) {
+      existingData.users.push({
+        email: workspaceUserEmail,
+      });
+    } else {
+      programWorkspaceUsersMap.set(programId, {
+        users: [
+          {
+            email: workspaceUserEmail,
+          },
+        ],
+        workspace: {
+          slug: workspaceUser.project.slug,
+        },
+      });
+    }
+  }
+
   // Process each program
   const emailsToSend: ResendBulkEmailOptions = [];
 
@@ -149,14 +214,9 @@ export const GET = withCron(async ({ rawBody }) => {
 
     const pendingEnrollments = enrollmentsByProgramMap.get(program.id) || [];
 
-    // Get program owners with notification preference enabled
-    const { users, ...workspace } = await getWorkspaceUsers({
-      programId: program.id,
-      role: ["owner", "member"],
-      notificationPreference: "pendingApplicationsSummary",
-    });
+    const { users, workspace } = programWorkspaceUsersMap.get(program.id) || {};
 
-    if (!users.length) {
+    if (!users || !workspace) {
       continue;
     }
 
