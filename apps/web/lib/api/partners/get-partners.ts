@@ -52,7 +52,11 @@ export async function getPartners(filters: PartnerFilters) {
         : {}),
     },
     include: {
-      partner: true,
+      partner: {
+        include: {
+          platforms: true,
+        },
+      },
       links: true,
     },
     take: pageSize,

@@ -1,196 +1,191 @@
 "use server";
 
-import {
-  generateCodeChallengeHash,
-  generateCodeVerifier,
-} from "@/lib/api/oauth/utils";
+import { upsertPartnerPlatform } from "@/lib/api/partner-profile/upsert-partner-platform";
 import { sanitizeSocialHandle, sanitizeWebsite } from "@/lib/social-utils";
 import { parseUrlSchemaAllowEmpty } from "@/lib/zod/schemas/utils";
 import { prisma } from "@dub/prisma";
-import { isValidUrl, PARTNERS_DOMAIN_WITH_NGROK } from "@dub/utils";
-import { cookies } from "next/headers";
-import { v4 as uuid } from "uuid";
+import { PartnerPlatform, PlatformType } from "@dub/prisma/client";
+import { isValidUrl } from "@dub/utils";
 import * as z from "zod/v4";
 import { authPartnerActionClient } from "../safe-action";
-import { ONLINE_PRESENCE_PROVIDERS } from "./online-presence-providers";
 
-const updateOnlinePresenceSchema = z.object({
-  website: parseUrlSchemaAllowEmpty()
-    .nullish()
-    .transform((input) =>
-      input === undefined ? undefined : sanitizeWebsite(input),
-    ),
-  youtube: z
+/**
+ * Helper function to create a schema for social platform handles.
+ * Preserves undefined (ignore) and null (remove), sanitizes string values.
+ */
+const createSocialPlatformSchema = (platform: PlatformType) => {
+  return z
     .string()
     .nullish()
-    .transform((input) =>
-      input === undefined ? undefined : sanitizeSocialHandle(input, "youtube"),
-    ),
-  twitter: z
-    .string()
-    .nullish()
-    .transform((input) =>
-      input === undefined ? undefined : sanitizeSocialHandle(input, "twitter"),
-    ),
-  linkedin: z
-    .string()
-    .nullish()
-    .transform((input) =>
-      input === undefined ? undefined : sanitizeSocialHandle(input, "linkedin"),
-    ),
-  instagram: z
-    .string()
-    .nullish()
-    .transform((input) =>
-      input === undefined
-        ? undefined
-        : sanitizeSocialHandle(input, "instagram"),
-    ),
-  tiktok: z
-    .string()
-    .nullish()
-    .transform((input) =>
-      input === undefined ? undefined : sanitizeSocialHandle(input, "tiktok"),
-    ),
-  source: z.enum(["onboarding", "settings"]).default("onboarding"),
-});
+    .transform((input) => {
+      if (input === undefined) return undefined;
+      if (input === null) return null;
+      return sanitizeSocialHandle(input, platform);
+    });
+};
 
-const updateOnlinePresenceResponseSchema = updateOnlinePresenceSchema.extend({
-  websiteTxtRecord: z.string().nullable(),
-  verificationUrls: z.record(z.string(), z.url()),
-});
-
-export const updateOnlinePresenceAction = authPartnerActionClient
-  .inputSchema(
-    updateOnlinePresenceSchema.refine(
-      async (data) => {
-        return !data.website || isValidUrl(data.website);
+/**
+ * Helper function to create a schema for website URLs.
+ * Preserves undefined (ignore) and null (remove), sanitizes string values.
+ */
+const createWebsiteSchema = () => {
+  return parseUrlSchemaAllowEmpty()
+    .nullish()
+    .transform((input) => {
+      if (input === undefined) return undefined;
+      if (input === null) return null;
+      return sanitizeWebsite(input);
+    })
+    .refine(
+      (value) => {
+        return !value || isValidUrl(value);
       },
       {
         message: "Invalid website URL.",
       },
-    ),
-  )
+    );
+};
+
+const updateOnlinePresenceSchema = z.object({
+  website: createWebsiteSchema(),
+  youtube: createSocialPlatformSchema("youtube"),
+  twitter: createSocialPlatformSchema("twitter"),
+  linkedin: createSocialPlatformSchema("linkedin"),
+  instagram: createSocialPlatformSchema("instagram"),
+  tiktok: createSocialPlatformSchema("tiktok"),
+  source: z.enum(["onboarding", "settings"]).default("onboarding"),
+});
+
+export const updateOnlinePresenceAction = authPartnerActionClient
+  .inputSchema(updateOnlinePresenceSchema)
   .action(async ({ ctx, parsedInput }) => {
     const { partner } = ctx;
 
-    let domainChanged = false;
-
-    try {
-      let oldDomain = partner.website
-        ? new URL(partner.website).hostname
-        : null;
-      let newDomain = parsedInput.website
-        ? new URL(parsedInput.website).hostname
-        : null;
-      domainChanged = oldDomain !== newDomain;
-    } catch (e) {
-      console.error(
-        "Failed to get domain from partner website",
-        { old: partner.website, new: parsedInput.website },
-        e,
-      );
-      domainChanged = true;
-    }
-
-    const updateData = {
-      ...(parsedInput.website !== undefined && {
-        website: parsedInput.website,
-        ...(domainChanged && {
-          websiteVerifiedAt: null,
-          websiteTxtRecord: `dub-domain-verification=${uuid()}`,
-        }),
-      }),
-      ...(parsedInput.youtube !== undefined && {
-        youtube: parsedInput.youtube,
-        youtubeVerifiedAt:
-          parsedInput.youtube !== partner.youtube ? null : undefined,
-      }),
-      ...(parsedInput.twitter !== undefined && {
-        twitter: parsedInput.twitter,
-        twitterVerifiedAt:
-          parsedInput.twitter !== partner.twitter ? null : undefined,
-      }),
-      ...(parsedInput.linkedin !== undefined && {
-        linkedin: parsedInput.linkedin,
-        linkedinVerifiedAt:
-          parsedInput.linkedin !== partner.linkedin ? null : undefined,
-      }),
-      ...(parsedInput.instagram !== undefined && {
-        instagram: parsedInput.instagram,
-        instagramVerifiedAt:
-          parsedInput.instagram !== partner.instagram ? null : undefined,
-      }),
-      ...(parsedInput.tiktok !== undefined && {
-        tiktok: parsedInput.tiktok,
-        tiktokVerifiedAt:
-          parsedInput.tiktok !== partner.tiktok ? null : undefined,
-      }),
-    };
-
-    const updatedPartner = await prisma.partner.update({
+    const partnerPlatform = await prisma.partnerPlatform.findMany({
       where: {
-        id: partner.id,
+        partnerId: partner.id,
       },
-      data: updateData,
     });
 
-    return {
-      success: true,
-      ...updateOnlinePresenceResponseSchema.parse({
-        ...updatedPartner,
-        verificationUrls: Object.fromEntries(
-          await Promise.all(
-            Object.entries(ONLINE_PRESENCE_PROVIDERS)
-              .filter(
-                ([key, data]) =>
-                  updatedPartner[key] && !updatedPartner[data.verifiedColumn],
-              )
-              .map(async ([key, data]) => {
-                if (!data.clientId) return [key, null];
+    const platformIdentifiers = new Map(
+      partnerPlatform.map((p) => [p.type, p.identifier]),
+    );
 
-                const params: Record<string, string> = {
-                  [data.clientIdParam ?? "client_id"]: data.clientId,
-                  redirect_uri: `${PARTNERS_DOMAIN_WITH_NGROK}/api/partners/online-presence/callback`,
-                  scope: data.scopes,
-                  response_type: "code",
-                  state: Buffer.from(
-                    JSON.stringify({
-                      provider: key,
-                      partnerId: partner.id,
-                      source: parsedInput.source,
-                    }),
-                  ).toString("base64"),
-                };
+    const partnerPlatformsData: Pick<
+      PartnerPlatform,
+      "type" | "identifier" | "verifiedAt"
+    >[] = [];
 
-                if (data.pkce) {
-                  const codeVerifier = generateCodeVerifier();
-                  const codeChallenge =
-                    await generateCodeChallengeHash(codeVerifier);
+    const platformsToDelete: Array<{
+      partnerId: string;
+      type: PlatformType;
+    }> = [];
 
-                  // Store code verifier in cookie
-                  (await cookies()).set(
-                    "online_presence_code_verifier",
-                    codeVerifier,
-                    {
-                      httpOnly: true,
-                      secure: process.env.NODE_ENV === "production",
-                      sameSite: "lax",
-                      maxAge: 60 * 5, // 5 minutes
-                    },
-                  );
+    // Define platform configurations
+    // null = remove, undefined = ignore (no changes)
+    const platformConfigs: Array<{
+      platform: PlatformType;
+      inputValue: string | null | undefined;
+    }> = [
+      { platform: "youtube", inputValue: parsedInput.youtube },
+      { platform: "twitter", inputValue: parsedInput.twitter },
+      { platform: "linkedin", inputValue: parsedInput.linkedin },
+      { platform: "instagram", inputValue: parsedInput.instagram },
+      { platform: "tiktok", inputValue: parsedInput.tiktok },
+      { platform: "website", inputValue: parsedInput.website },
+    ];
 
-                  params.code_challenge = codeChallenge;
-                  params.code_challenge_method = "S256";
-                }
+    for (const { platform, inputValue } of platformConfigs) {
+      const currentIdentifier = platformIdentifiers.get(platform);
 
-                return [
-                  key,
-                  `${data.authUrl}?${new URLSearchParams(params).toString()}`,
-                ];
-              }),
-          ),
+      // Handle deletion: null = remove
+      if (inputValue === null && currentIdentifier !== undefined) {
+        platformsToDelete.push({
+          partnerId: partner.id,
+          type: platform,
+        });
+        continue;
+      }
+
+      // Handle update: non-null, non-undefined value that differs from current
+      if (
+        inputValue !== undefined &&
+        inputValue !== null &&
+        inputValue !== currentIdentifier
+      ) {
+        // Special handling for website: check domain change
+        if (platform === "website") {
+          let domainChanged = false;
+
+          try {
+            const oldDomain = currentIdentifier
+              ? new URL(currentIdentifier).hostname
+              : null;
+            const newDomain = inputValue ? new URL(inputValue).hostname : null;
+
+            domainChanged =
+              oldDomain?.toLowerCase() !== newDomain?.toLowerCase();
+          } catch (error) {
+            console.error("Failed to get domain from partner website", error);
+            domainChanged = true;
+          }
+
+          if (domainChanged) {
+            partnerPlatformsData.push({
+              type: "website",
+              identifier: inputValue,
+              verifiedAt: null,
+            });
+          }
+        } else {
+          // For all other platforms, update if value changed
+          partnerPlatformsData.push({
+            type: platform,
+            identifier: inputValue,
+            verifiedAt: null,
+          });
+        }
+      }
+    }
+
+    // Execute deletions and updates in parallel
+    const operations: Promise<unknown>[] = [];
+
+    if (platformsToDelete.length > 0) {
+      operations.push(
+        ...platformsToDelete.map(({ partnerId, type }) =>
+          prisma.partnerPlatform.delete({
+            where: {
+              partnerId_type: {
+                partnerId,
+                type,
+              },
+            },
+          }),
         ),
-      }),
-    };
+      );
+    }
+
+    if (partnerPlatformsData.length > 0) {
+      operations.push(
+        ...partnerPlatformsData.map((item) =>
+          upsertPartnerPlatform({
+            where: {
+              partnerId: partner.id,
+              type: item.type,
+            },
+            data: {
+              identifier: item.identifier,
+              verifiedAt: item.verifiedAt,
+            },
+          }),
+        ),
+      );
+    }
+
+    if (operations.length === 0) {
+      return;
+    }
+
+    await Promise.all(operations);
   });

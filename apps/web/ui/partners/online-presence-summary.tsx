@@ -1,30 +1,41 @@
-import {
-  ONLINE_PRESENCE_FIELDS,
-  PartnerOnlinePresenceFields,
-} from "@/lib/partners/online-presence";
-import { EnrolledPartnerExtendedProps } from "@/lib/types";
+import { ONLINE_PRESENCE_FIELDS } from "@/lib/partners/online-presence";
+import { PartnerPlatformProps } from "@/lib/types";
 import { cn } from "@dub/utils";
 import { Fragment } from "react";
 import { OnlinePresenceCard } from "./online-presence-card";
 
 export function OnlinePresenceSummary({
-  partner,
+  platforms,
   showLabels = true,
   className,
   emptyClassName,
 }: {
-  partner: Pick<EnrolledPartnerExtendedProps, PartnerOnlinePresenceFields>;
+  platforms: PartnerPlatformProps[] | undefined;
   showLabels?: boolean;
   className?: string;
   emptyClassName?: string;
 }) {
+  if (!platforms || platforms.length === 0) {
+    return (
+      <div
+        className={cn(
+          "text-sm italic text-neutral-400",
+          className,
+          emptyClassName,
+        )}
+      >
+        No online presence provided
+      </div>
+    );
+  }
+
   const fieldData = ONLINE_PRESENCE_FIELDS.map((field) => ({
     label: field.label,
     icon: field.icon,
-    ...field.data(partner),
+    ...field.data(platforms),
   })).filter((field) => field.value && field.href);
 
-  return fieldData.length ? (
+  return (
     <div
       className={cn(
         "grid items-center gap-x-4 gap-y-5 text-sm md:gap-x-16",
@@ -50,16 +61,6 @@ export function OnlinePresenceSummary({
           </Fragment>
         );
       })}
-    </div>
-  ) : (
-    <div
-      className={cn(
-        "text-sm italic text-neutral-400",
-        className,
-        emptyClassName,
-      )}
-    >
-      No online presence provided
     </div>
   );
 }

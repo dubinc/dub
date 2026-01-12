@@ -1,18 +1,37 @@
+import { PartnerPlatformProps } from "@/lib/types";
+import { PlatformType } from "@dub/prisma/client";
 import { BadgeCheck2Fill, Tooltip } from "@dub/ui";
+import { getDomainWithoutWWW } from "@dub/utils";
+
+const PLATFORMS_WITH_AT: PlatformType[] = [
+  "youtube",
+  "twitter",
+  "instagram",
+  "tiktok",
+];
 
 export function PartnerSocialColumn({
-  at,
-  value,
-  verified,
+  platform,
+  platformName,
 }: {
-  at?: boolean;
-  value: string;
-  verified: boolean;
+  platform: PartnerPlatformProps | null | undefined;
+  platformName: PlatformType;
 }) {
-  return value ? (
+  if (!platform?.identifier) {
+    return "-";
+  }
+
+  const needsAt = PLATFORMS_WITH_AT.includes(platformName);
+  const value =
+    platformName === "website"
+      ? getDomainWithoutWWW(platform.identifier) ?? "-"
+      : platform.identifier;
+  const verified = !!platform.verifiedAt;
+
+  return (
     <div className="flex items-center gap-2">
       <span className="min-w-0 truncate">
-        {at && "@"}
+        {needsAt && "@"}
         {value}
       </span>
       {verified && (
@@ -23,7 +42,5 @@ export function PartnerSocialColumn({
         </Tooltip>
       )}
     </div>
-  ) : (
-    "-"
   );
 }

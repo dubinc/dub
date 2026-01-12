@@ -8,30 +8,12 @@ import {
   YouTube,
 } from "@dub/ui/icons";
 import { getPrettyUrl, nFormatter } from "@dub/utils";
-import { EnrolledPartnerExtendedProps } from "../types";
-
-export type PartnerOnlinePresenceFields =
-  | "website"
-  | "websiteVerifiedAt"
-  | "youtube"
-  | "youtubeSubscriberCount"
-  | "youtubeVerifiedAt"
-  | "youtubeViewCount"
-  | "twitter"
-  | "twitterVerifiedAt"
-  | "linkedin"
-  | "linkedinVerifiedAt"
-  | "instagram"
-  | "instagramVerifiedAt"
-  | "tiktok"
-  | "tiktokVerifiedAt";
+import { PartnerPlatformProps } from "../types";
 
 export const ONLINE_PRESENCE_FIELDS: {
   label: string;
   icon: Icon;
-  data: (
-    partner: Pick<EnrolledPartnerExtendedProps, PartnerOnlinePresenceFields>,
-  ) => {
+  data: (platforms: PartnerPlatformProps[]) => {
     value?: string | null;
     verified: boolean;
     href?: string | null;
@@ -41,63 +23,97 @@ export const ONLINE_PRESENCE_FIELDS: {
   {
     label: "Website",
     icon: Globe,
-    data: (partner) => ({
-      value: partner.website ? getPrettyUrl(partner.website) : null,
-      verified: !!partner.websiteVerifiedAt,
-      href: partner.website,
-    }),
+    data: (platforms) => {
+      const website = platforms.find((p) => p.type === "website");
+
+      return {
+        value: website ? getPrettyUrl(website.identifier) : null,
+        verified: !!website?.verifiedAt,
+        href: website?.identifier,
+      };
+    },
   },
   {
     label: "YouTube",
     icon: YouTube,
-    data: (partner) => ({
-      value: partner.youtube ? `@${partner.youtube}` : null,
-      verified: !!partner.youtubeVerifiedAt,
-      href: `https://youtube.com/@${partner.youtube}`,
-      info: [
-        partner.youtubeSubscriberCount && partner.youtubeSubscriberCount > 0
-          ? `${nFormatter(partner.youtubeSubscriberCount)} subscribers`
+    data: (platforms) => {
+      const youtube = platforms.find((p) => p.type === "youtube");
+
+      return {
+        value: youtube?.identifier ? `@${youtube.identifier}` : null,
+        verified: !!youtube?.verifiedAt,
+        href: youtube?.identifier
+          ? `https://youtube.com/@${youtube.identifier}`
           : null,
-        partner.youtubeViewCount && partner.youtubeViewCount > 0
-          ? `${nFormatter(partner.youtubeViewCount)} views`
-          : null,
-      ].filter(Boolean),
-    }),
+        info: [
+          youtube?.subscribers && youtube.subscribers > 0
+            ? `${nFormatter(Number(youtube.subscribers))} subscribers`
+            : null,
+          youtube?.views && youtube.views > 0
+            ? `${nFormatter(Number(youtube.views))} views`
+            : null,
+        ].filter(Boolean),
+      };
+    },
   },
   {
     label: "X/Twitter",
     icon: Twitter,
-    data: (partner) => ({
-      value: partner.twitter ? `@${partner.twitter}` : null,
-      verified: !!partner.twitterVerifiedAt,
-      href: `https://x.com/${partner.twitter}`,
-    }),
+    data: (platforms) => {
+      const twitter = platforms.find((p) => p.type === "twitter");
+
+      return {
+        value: twitter ? `@${twitter.identifier}` : null,
+        verified: !!twitter?.verifiedAt,
+        href: twitter?.identifier
+          ? `https://x.com/${twitter.identifier}`
+          : null,
+      };
+    },
   },
   {
     label: "LinkedIn",
     icon: LinkedIn,
-    data: (partner) => ({
-      value: partner.linkedin,
-      verified: !!partner.linkedinVerifiedAt,
-      href: `https://linkedin.com/in/${partner.linkedin}`,
-    }),
+    data: (platforms) => {
+      const linkedin = platforms.find((p) => p.type === "linkedin");
+
+      return {
+        value: linkedin ? linkedin.identifier : null,
+        verified: !!linkedin?.verifiedAt,
+        href: linkedin?.identifier
+          ? `https://linkedin.com/in/${linkedin.identifier}`
+          : null,
+      };
+    },
   },
   {
     label: "Instagram",
     icon: Instagram,
-    data: (partner) => ({
-      value: partner.instagram ? `@${partner.instagram}` : null,
-      verified: !!partner.instagramVerifiedAt,
-      href: `https://instagram.com/${partner.instagram}`,
-    }),
+    data: (platforms) => {
+      const instagram = platforms.find((p) => p.type === "instagram");
+
+      return {
+        value: instagram ? `@${instagram.identifier}` : null,
+        verified: !!instagram?.verifiedAt,
+        href: instagram?.identifier
+          ? `https://instagram.com/${instagram.identifier}`
+          : null,
+      };
+    },
   },
   {
     label: "Tiktok",
     icon: TikTok,
-    data: (partner) => ({
-      value: partner.tiktok ? `@${partner.tiktok}` : null,
-      verified: !!partner.tiktokVerifiedAt,
-      href: `https://tiktok.com/@${partner.tiktok}`,
-    }),
+    data: (platforms) => {
+      const tiktok = platforms.find((p) => p.type === "tiktok");
+
+      return {
+        value: tiktok ? `@${tiktok.identifier}` : null,
+        verified: !!tiktok?.verifiedAt,
+        href: tiktok?.identifier
+          ? `https://tiktok.com/@${tiktok.identifier}`
+          : null,
+      };
+    },
   },
 ];

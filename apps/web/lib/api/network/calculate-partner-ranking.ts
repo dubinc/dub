@@ -90,13 +90,10 @@ export async function calculatePartnerRanking({
   const whereClause = Prisma.join(conditions, " AND ");
 
   // Rank partners with no online presence lower
-  const hasProfileCheck = Prisma.sql`(
-    p.website IS NOT NULL OR
-    p.youtube IS NOT NULL OR
-    p.twitter IS NOT NULL OR
-    p.linkedin IS NOT NULL OR
-    p.instagram IS NOT NULL OR
-    p.tiktok IS NOT NULL
+  const hasProfileCheck = Prisma.sql`EXISTS (
+    SELECT 1 
+    FROM PartnerPlatform pp 
+    WHERE pp.partnerId = p.id
   )`;
 
   const orderByClause =

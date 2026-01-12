@@ -1,7 +1,12 @@
 import { getSession } from "@/lib/auth";
+import { buildSocialPlatformLookup } from "@/lib/social-utils";
+import { PartnerPlatformProps } from "@/lib/types";
+import { partnerPlatformSchema } from "@/lib/zod/schemas/partners";
 import { OnlinePresenceForm } from "@/ui/partners/online-presence-form";
 import { prisma } from "@dub/prisma";
+import { PlatformType } from "@dub/prisma/client";
 import { Suspense } from "react";
+import { z } from "zod";
 import { OnlinePresencePageClient } from "./page-client";
 
 export default function OnlinePresencePage() {
@@ -40,14 +45,10 @@ async function OnlinePresenceFormRSC() {
       select: {
         email: true,
         country: true,
-        website: true,
-        youtube: true,
-        twitter: true,
-        linkedin: true,
-        instagram: true,
-        tiktok: true,
+        platforms: true,
       },
     }),
+
     prisma.programApplication.findFirst({
       where: {
         enrollment: {
@@ -78,30 +79,40 @@ async function OnlinePresenceFormRSC() {
     throw new Error("Partner not found");
   }
 
-  return (
-    <OnlinePresencePageClient
-      country={partner.country}
-      partner={{
-        ...partner,
-        ...(application?.website && !partner.website
-          ? { website: application?.website }
-          : {}),
-        ...(application?.tiktok && !partner.tiktok
-          ? { tiktok: application?.tiktok }
-          : {}),
-        ...(application?.youtube && !partner.youtube
-          ? { youtube: application?.youtube }
-          : {}),
-        ...(application?.twitter && !partner.twitter
-          ? { twitter: application?.twitter }
-          : {}),
-        ...(application?.linkedin && !partner.linkedin
-          ? { linkedin: application?.linkedin }
-          : {}),
-        ...(application?.instagram && !partner.instagram
-          ? { instagram: application?.instagram }
-          : {}),
-      }}
-    />
-  );
+  // Merge social handles from a partner application into the partner platforms list.
+  const platforms: PartnerPlatformProps[] = z
+    .array(partnerPlatformSchema)
+    .parse(partner.platforms);
+
+  if (application) {
+    const socialPlatformsMap = buildSocialPlatformLookup(platforms);
+
+    const APPLICATION_SOCIAL_PLATFORMS = [
+      "website",
+      "youtube",
+      "twitter",
+      "linkedin",
+      "instagram",
+      "tiktok",
+    ] as const satisfies readonly PlatformType[];
+
+    for (const platform of APPLICATION_SOCIAL_PLATFORMS) {
+      const handle = application[platform];
+
+      // Application-provided handles are added only if the partner does not already have that platform.
+      if (handle && !socialPlatformsMap[platform]) {
+        platforms.push({
+          type: platform,
+          identifier: handle,
+          platformId: null,
+          verifiedAt: null,
+          subscribers: BigInt(0),
+          views: BigInt(0),
+          posts: BigInt(0),
+        });
+      }
+    }
+  }
+
+  return <OnlinePresencePageClient partner={{ ...partner, platforms }} />;
 }
