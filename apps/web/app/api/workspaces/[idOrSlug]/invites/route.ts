@@ -1,6 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
 import { inviteUser } from "@/lib/api/users";
-import { throwIfRoleNotAvailableForPlan } from "@/lib/api/workspaces/throw-if-role-not-available-for-plan";
+import { requireWorkspaceRole } from "@/lib/api/workspaces/require-workspace-role";
 import { withWorkspace } from "@/lib/auth";
 import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import { ratelimit, redis } from "@/lib/upstash";
@@ -51,7 +51,7 @@ export const POST = withWorkspace(
     const { teammates } = inviteTeammatesSchema.parse(await req.json());
 
     for (const teammate of teammates) {
-      throwIfRoleNotAvailableForPlan({
+      requireWorkspaceRole({
         role: teammate.role,
         plan: workspace.plan,
       });
@@ -181,7 +181,7 @@ export const PATCH = withWorkspace(
   async ({ req, workspace }) => {
     const { email, role } = updateInviteRoleSchema.parse(await req.json());
 
-    throwIfRoleNotAvailableForPlan({
+    requireWorkspaceRole({
       role,
       plan: workspace.plan,
     });

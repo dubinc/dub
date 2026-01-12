@@ -1,6 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
 import { throwIfNoAccess } from "@/lib/api/tokens/throw-if-no-access";
-import { throwIfRoleNotAvailableForPlan } from "@/lib/api/workspaces/throw-if-role-not-available-for-plan";
+import { requireWorkspaceRole } from "@/lib/api/workspaces/require-workspace-role";
 import { withWorkspace } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
 import {
@@ -61,7 +61,7 @@ export const PATCH = withWorkspace(
   async ({ req, workspace }) => {
     const { userId, role } = updateRoleSchema.parse(await req.json());
 
-    throwIfRoleNotAvailableForPlan({
+    requireWorkspaceRole({
       role,
       plan: workspace.plan,
     });

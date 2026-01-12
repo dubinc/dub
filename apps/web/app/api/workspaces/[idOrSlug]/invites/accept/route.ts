@@ -1,6 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
 import { onboardingStepCache } from "@/lib/api/workspaces/onboarding-step-cache";
-import { throwIfRoleNotAvailableForPlan } from "@/lib/api/workspaces/throw-if-role-not-available-for-plan";
+import { requireWorkspaceRole } from "@/lib/api/workspaces/require-workspace-role";
 import { withSession } from "@/lib/auth";
 import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import { PlanProps } from "@/lib/types";
@@ -83,7 +83,7 @@ export const POST = withSession(async ({ session, params }) => {
       });
     }
 
-    throwIfRoleNotAvailableForPlan({
+    requireWorkspaceRole({
       role: invite.role,
       plan: workspace.plan,
     });

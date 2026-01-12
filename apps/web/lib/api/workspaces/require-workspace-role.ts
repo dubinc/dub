@@ -5,7 +5,7 @@ import { WorkspaceRole } from "@dub/prisma/client";
 import { DubApiError } from "../errors";
 
 // Throws an error if the role is not available for the given plan
-export function throwIfRoleNotAvailableForPlan({
+export function requireWorkspaceRole({
   role,
   plan,
 }: {
