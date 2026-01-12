@@ -78,14 +78,16 @@ export default function PendingApplicationsSummary({
             </Heading>
 
             <Text className="text-sm leading-6 text-gray-600">
-              You have <strong>{totalCount}</strong> new pending applications to{" "}
+              You have <strong>{totalCount}</strong> pending applications to{" "}
               <Link
                 href={applicationsUrl}
                 className="text-gray-600 underline underline-offset-4"
               >
                 review on Dub
               </Link>{" "}
-              for {formattedDate}. Here are the most recent applications.
+              for <strong>{formattedDate}</strong>. Reviewing these on time will
+              keep your program running smooth and provide a better partner
+              experience.
             </Text>
 
             <Section className="my-6">

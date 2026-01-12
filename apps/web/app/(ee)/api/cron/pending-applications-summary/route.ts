@@ -5,6 +5,7 @@ import { sendBatchEmail } from "@dub/email";
 import { ResendBulkEmailOptions } from "@dub/email/resend/types";
 import PendingApplicationsSummary from "@dub/email/templates/pending-applications-summary";
 import { prisma } from "@dub/prisma";
+import { Prisma } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK, chunk } from "@dub/utils";
 import * as z from "zod/v4";
 import { logAndRespond } from "../utils";
@@ -62,8 +63,40 @@ export const GET = withCron(async ({ rawBody }) => {
 
   const programIds = programs.map((p) => p.id);
 
-  // Get top 3 pending enrollments per program in parallel
-  // This ensures we get the top 3 from each program regardless of how many pending enrollments they have
+  // Get top 3 pending enrollments per program using SQL window function
+  // This efficiently gets only the top 3 from each program directly from the database
+  const topEnrollments = await prisma.$queryRaw<
+    Array<{
+      programId: string;
+      partnerId: string;
+      partnerName: string | null;
+      partnerEmail: string | null;
+      partnerImage: string | null;
+    }>
+  >(Prisma.sql`
+    SELECT 
+      pe.programId,
+      p.id as partnerId,
+      p.name as partnerName,
+      p.email as partnerEmail,
+      p.image as partnerImage
+    FROM (
+      SELECT 
+        id,
+        programId,
+        partnerId,
+        ROW_NUMBER() OVER (PARTITION BY programId ORDER BY createdAt DESC) as rn
+      FROM ProgramEnrollment
+      WHERE programId IN (${Prisma.join(programIds)})
+        AND status = 'pending'
+    ) ranked
+    INNER JOIN ProgramEnrollment pe ON pe.id = ranked.id
+    INNER JOIN Partner p ON p.id = pe.partnerId
+    WHERE ranked.rn <= 3
+    ORDER BY pe.programId, pe.createdAt DESC
+  `);
+
+  // Group enrollments by programId
   const enrollmentsByProgramMap = new Map<
     string,
     Array<{
@@ -74,42 +107,18 @@ export const GET = withCron(async ({ rawBody }) => {
     }>
   >();
 
-  await Promise.all(
-    programIds.map(async (programId) => {
-      const enrollments = await prisma.programEnrollment.findMany({
-        where: {
-          programId,
-          status: "pending",
-        },
-        select: {
-          partner: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-              image: true,
-            },
-          },
-        },
-        orderBy: {
-          createdAt: "desc",
-        },
-        take: 3,
-      });
-
-      if (enrollments.length > 0) {
-        enrollmentsByProgramMap.set(
-          programId,
-          enrollments.map((e) => ({
-            id: e.partner.id,
-            name: e.partner.name,
-            email: e.partner.email,
-            image: e.partner.image,
-          })),
-        );
-      }
-    }),
-  );
+  for (const enrollment of topEnrollments) {
+    const existing = enrollmentsByProgramMap.get(enrollment.programId) || [];
+    enrollmentsByProgramMap.set(enrollment.programId, [
+      ...existing,
+      {
+        id: enrollment.partnerId,
+        name: enrollment.partnerName,
+        email: enrollment.partnerEmail,
+        image: enrollment.partnerImage,
+      },
+    ]);
+  }
 
   // Get counts of pending enrollments per program
   const pendingCounts = await prisma.programEnrollment.groupBy({

@@ -36,19 +36,6 @@ export default function NotificationsSettingsPageClient() {
 
   const partnerProgramNotifications = [
     {
-      type: "newPartnerApplication",
-      icon: UserPlus,
-      title: "New partner application",
-      description:
-        "Alert when a new partner application is made in your partner program.",
-    },
-    {
-      type: "pendingApplicationsSummary",
-      icon: ListChecks,
-      title: "Pending applications summary",
-      description: "Daily summary email of pending partner applications.",
-    },
-    {
       type: "newPartnerSale",
       icon: DollarSign,
       title: "New partner sale",
@@ -67,6 +54,19 @@ export default function NotificationsSettingsPageClient() {
       title: "New message from partner",
       description:
         "Alert when a new message is received from a partner in your partner program.",
+    },
+    {
+      type: "newPartnerApplication",
+      icon: UserPlus,
+      title: "New partner application",
+      description:
+        "Alert when a new partner application is made in your partner program.",
+    },
+    {
+      type: "pendingApplicationsSummary",
+      icon: ListChecks,
+      title: "Pending applications summary",
+      description: "Daily summary email of pending partner applications.",
     },
     // {
     //   type: "fraudEventsSummary",
