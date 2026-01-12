@@ -136,6 +136,11 @@ export const ROLE_PERMISSIONS: {
     roles: ["owner", "billing"],
   },
   {
+    action: "billing.write",
+    description: "create, update, or delete payment methods",
+    roles: ["owner", "billing"],
+  },
+  {
     action: "groups.write",
     description: "create, update, or delete groups",
     roles: ["owner", "member"],
@@ -154,11 +159,6 @@ export const ROLE_PERMISSIONS: {
     action: "messages.read",
     description: "access messages",
     roles: ["owner", "member", "viewer", "billing"],
-  },
-  {
-    action: "billing.write",
-    description: "create, update, or delete payment methods",
-    roles: ["owner", "billing"],
   },
 ];
 
