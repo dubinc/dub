@@ -1,6 +1,5 @@
 import { createFetch, createSchema } from "@better-fetch/fetch";
-import { SocialPlatform } from "@dub/prisma/client";
-import { prettyPrint } from "@dub/utils";
+import { PlatformType } from "@dub/prisma/client";
 import * as z from "zod/v4";
 import { profileResponseSchema } from "./schema";
 
@@ -19,7 +18,7 @@ export const scrapeCreatorsFetch = createFetch({
       "/v1/:platform/:handleType": {
         method: "get",
         params: z.object({
-          platform: z.enum(SocialPlatform),
+          platform: z.enum(PlatformType),
           handleType: z.enum(["channel", "profile"]),
         }),
         query: z.object({
