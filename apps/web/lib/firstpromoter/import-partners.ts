@@ -150,7 +150,8 @@ async function createPartnerAndLinks({
   ][];
 
   const entriesWithHandles = socialPlatformEntries.filter(
-    ([, identifier]) => typeof identifier === "string" && identifier.trim().length > 0,
+    ([, identifier]) =>
+      typeof identifier === "string" && identifier.trim().length > 0,
   );
 
   if (entriesWithHandles.length > 0) {
