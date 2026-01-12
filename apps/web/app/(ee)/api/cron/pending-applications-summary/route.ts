@@ -5,7 +5,6 @@ import { sendBatchEmail } from "@dub/email";
 import { ResendBulkEmailOptions } from "@dub/email/resend/types";
 import PendingApplicationsSummary from "@dub/email/templates/pending-applications-summary";
 import { prisma } from "@dub/prisma";
-import { WorkspaceRole } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK, chunk } from "@dub/utils";
 import * as z from "zod/v4";
 import { logAndRespond } from "../utils";
@@ -144,7 +143,7 @@ export const GET = withCron(async ({ rawBody }) => {
     // Get program owners with notification preference enabled
     const { users, ...workspace } = await getWorkspaceUsers({
       programId: program.id,
-      role: WorkspaceRole.owner,
+      role: ["owner", "member"],
       notificationPreference: "pendingApplicationsSummary",
     });
 
@@ -187,7 +186,7 @@ export const GET = withCron(async ({ rawBody }) => {
   if (programs.length === PROGRAMS_BATCH_SIZE) {
     startingAfter = programs[programs.length - 1].id;
 
-    await qstash.publishJSON({
+    const response = await qstash.publishJSON({
       url: `${APP_DOMAIN_WITH_NGROK}/api/cron/pending-applications-summary`,
       method: "POST",
       body: {
@@ -196,7 +195,7 @@ export const GET = withCron(async ({ rawBody }) => {
     });
 
     return logAndRespond(
-      `Sent ${emailsToSend.length} emails and scheduled next batch (startingAfter: ${startingAfter}).`,
+      `Sent ${emailsToSend.length} emails and scheduled next batch (startingAfter: ${startingAfter}, messageId: ${response.messageId}).`,
     );
   }
 
