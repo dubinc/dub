@@ -208,7 +208,7 @@ export const ROLE_SCOPES_MAP = RESOURCE_SCOPES.reduce((acc, scope) => {
   return acc;
 }, {});
 
-// // For each scope, get the permissions it grants access to and return array of permissions
+// For each scope, get the permissions it grants access to and return array of permissions
 export const mapScopesToPermissions = (scopes: Scope[]) => {
   const permissions: PermissionAction[] = [];
 
