@@ -37,6 +37,7 @@ function BulkDeactivatePartnersModal({
     register,
     handleSubmit,
     watch,
+    reset,
     formState: { errors, isSubmitting, isSubmitSuccessful },
   } = useForm<BulkDeactivatePartnersFormData>({
     defaultValues: {
@@ -70,6 +71,7 @@ function BulkDeactivatePartnersModal({
     }
 
     setShowBulkDeactivatePartnersModal(false);
+    reset({ confirm: "" });
     await onConfirm?.();
     toast.success(
       `${partners.length} ${partnerWord} deactivated successfully!`,
@@ -79,6 +81,7 @@ function BulkDeactivatePartnersModal({
     partners,
     workspaceId,
     setShowBulkDeactivatePartnersModal,
+    reset,
     onConfirm,
     partnerWord,
   ]);
@@ -174,7 +177,10 @@ function BulkDeactivatePartnersModal({
 
         <div className="flex items-center justify-end gap-2 bg-neutral-50 px-4 pb-5 sm:px-6">
           <Button
-            onClick={() => setShowBulkDeactivatePartnersModal(false)}
+            onClick={() => {
+              setShowBulkDeactivatePartnersModal(false);
+              reset({ confirm: "" });
+            }}
             variant="secondary"
             text="Cancel"
             className="h-8 w-fit px-3"

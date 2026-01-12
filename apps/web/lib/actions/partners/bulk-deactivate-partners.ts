@@ -27,13 +27,24 @@ export const bulkDeactivatePartnersAction = authActionClient
         },
         programId,
         status: {
-          notIn: ["deactivated", "banned"],
+          in: ["approved", "archived"],
         },
       },
       include: {
         program: true,
-        partner: true,
-        links: true,
+        partner: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+        links: {
+          select: {
+            domain: true,
+            key: true,
+          },
+        },
         discountCodes: true,
       },
     });
@@ -43,6 +54,7 @@ export const bulkDeactivatePartnersAction = authActionClient
     }
 
     const partnerIdsToDeactivate = programEnrollments.map((pe) => pe.partnerId);
+    const now = new Date();
 
     await prisma.$transaction([
       prisma.link.updateMany({
@@ -53,7 +65,7 @@ export const bulkDeactivatePartnersAction = authActionClient
           },
         },
         data: {
-          expiresAt: new Date(),
+          expiresAt: now,
         },
       }),
 
@@ -63,6 +75,9 @@ export const bulkDeactivatePartnersAction = authActionClient
             in: partnerIdsToDeactivate,
           },
           programId,
+          status: {
+            in: ["approved", "archived"],
+          },
         },
         data: {
           status: ProgramEnrollmentStatus.deactivated,
@@ -122,7 +137,10 @@ export const bulkDeactivatePartnersAction = authActionClient
                 {
                   type: "partner",
                   id: partner.id,
-                  metadata: partner,
+                  metadata: {
+                    id: partner.id,
+                    name: partner.name,
+                  },
                 },
               ],
             })),
