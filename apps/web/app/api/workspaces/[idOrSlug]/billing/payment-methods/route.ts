@@ -103,6 +103,6 @@ export const POST = withWorkspace(
     return NextResponse.json({ url });
   },
   {
-    requiredPermissions: ["payment_methods.write"],
+    requiredPermissions: ["billing.write"],
   },
 );

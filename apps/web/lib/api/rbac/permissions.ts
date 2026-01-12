@@ -25,7 +25,7 @@ export const PERMISSION_ACTIONS = [
   "groups.read",
   "messages.read",
   "messages.write",
-  "payment_methods.write",
+  "billing.write",
 ] as const;
 
 export type PermissionAction = (typeof PERMISSION_ACTIONS)[number];
@@ -156,7 +156,7 @@ export const ROLE_PERMISSIONS: {
     roles: ["owner", "member", "viewer", "billing"],
   },
   {
-    action: "payment_methods.write",
+    action: "billing.write",
     description: "create, update, or delete payment methods",
     roles: ["owner", "billing"],
   },

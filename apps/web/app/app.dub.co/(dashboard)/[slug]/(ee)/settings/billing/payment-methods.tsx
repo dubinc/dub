@@ -63,7 +63,7 @@ export default function PaymentMethods() {
             loading={isLoading}
             disabledTooltip={
               clientAccessCheck({
-                action: "payment_methods.write",
+                action: "billing.write",
                 role,
                 customPermissionDescription: "manage payment methods",
               }).error || undefined
@@ -204,7 +204,7 @@ const NoPartnerPaymentMethods = () => {
             onClick={() => setShowAddPaymentMethodModal(true)}
             disabledTooltip={
               clientAccessCheck({
-                action: "payment_methods.write",
+                action: "billing.write",
                 role,
                 customPermissionDescription: "connect payment methods",
               }).error || undefined
