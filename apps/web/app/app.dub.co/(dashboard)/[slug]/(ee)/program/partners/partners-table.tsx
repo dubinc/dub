@@ -524,7 +524,8 @@ export function PartnersTable() {
           }}
         />
 
-        {status === "approved" && (
+        {(status === "approved" ||
+          searchParams.get("status") === "approved") && (
           <BulkActionsMenu
             table={table}
             onArchivePartners={(partners) => {
