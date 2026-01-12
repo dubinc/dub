@@ -1,13 +1,12 @@
 "use client";
 
 import { AddEditDomainForm } from "@/ui/domains/add-edit-domain-form";
-import { useSearchParams } from "next/navigation";
 import { LaterButton } from "../../../later-button";
+import { useOnboardingProduct } from "../../../use-onboarding-product";
 import { useOnboardingProgress } from "../../../use-onboarding-progress";
 
 export function Form() {
-  const searchParams = useSearchParams();
-  const product = searchParams.get("product");
+  const product = useOnboardingProduct();
 
   const { continueTo } = useOnboardingProgress();
 

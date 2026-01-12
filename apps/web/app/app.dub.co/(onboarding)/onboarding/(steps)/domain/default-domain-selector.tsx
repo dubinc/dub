@@ -6,12 +6,13 @@ import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { ReactNode } from "react";
 import { LaterButton } from "../../later-button";
+import { useOnboardingProduct } from "../../use-onboarding-product";
 import { useOnboardingProgress } from "../../use-onboarding-progress";
 
 export function DefaultDomainSelector() {
   const searchParams = useSearchParams();
   const workspaceSlug = searchParams.get("workspace");
-  const product = searchParams.get("product");
+  const product = useOnboardingProduct();
 
   return (
     <>

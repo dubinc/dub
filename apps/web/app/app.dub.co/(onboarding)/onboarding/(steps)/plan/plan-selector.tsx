@@ -6,13 +6,10 @@ import { Badge, ToggleGroup } from "@dub/ui";
 import { ADVANCED_PLAN, BUSINESS_PLAN, cn, PRO_PLAN } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useSearchParams } from "next/navigation";
 import { CSSProperties, useState } from "react";
+import { OnboardingProduct } from "../../use-onboarding-product";
 
-export function PlanSelector() {
-  const searchParams = useSearchParams();
-  const product = searchParams.get("product");
-
+export function PlanSelector({ product }: { product: OnboardingProduct }) {
   const plans =
     product === "partners"
       ? [BUSINESS_PLAN, ADVANCED_PLAN]
@@ -20,8 +17,6 @@ export function PlanSelector() {
 
   const [period, setPeriod] = useState<"monthly" | "yearly">("monthly");
   const [mobilePlanIndex, setMobilePlanIndex] = useState(0);
-
-  if (mobilePlanIndex > plans.length - 1) setMobilePlanIndex(plans.length - 1);
 
   return (
     <div>

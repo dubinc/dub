@@ -1,13 +1,12 @@
 "use client";
 
 import { BoltFill } from "@dub/ui";
-import { useSearchParams } from "next/navigation";
+import { useOnboardingProduct } from "../../../use-onboarding-product";
 import { StepPage } from "../../step-page";
 import { Form } from "./form";
 
 export default function Register() {
-  const searchParams = useSearchParams();
-  const product = searchParams.get("product");
+  const product = useOnboardingProduct();
 
   return (
     <StepPage
