@@ -1,6 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
 import { onboardingStepCache } from "@/lib/api/workspaces/onboarding-step-cache";
-import { requireWorkspaceRole } from "@/lib/api/workspaces/require-workspace-role";
+import { assertRoleAllowedForPlan } from "@/lib/api/workspaces/assert-role-plan";
 import { withSession } from "@/lib/auth";
 import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import { PlanProps } from "@/lib/types";
@@ -83,7 +83,7 @@ export const POST = withSession(async ({ session, params }) => {
       });
     }
 
-    requireWorkspaceRole({
+    assertRoleAllowedForPlan({
       role: invite.role,
       plan: workspace.plan,
     });

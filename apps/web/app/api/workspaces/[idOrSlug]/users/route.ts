@@ -1,6 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
 import { throwIfNoAccess } from "@/lib/api/tokens/throw-if-no-access";
-import { requireWorkspaceRole } from "@/lib/api/workspaces/require-workspace-role";
+import { assertRoleAllowedForPlan } from "@/lib/api/workspaces/assert-role-plan";
 import { withWorkspace } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
 import {
@@ -61,7 +61,7 @@ export const PATCH = withWorkspace(
   async ({ req, workspace }) => {
     const { userId, role } = updateRoleSchema.parse(await req.json());
 
-    requireWorkspaceRole({
+    assertRoleAllowedForPlan({
       role,
       plan: workspace.plan,
     });
@@ -84,6 +84,7 @@ export const PATCH = withWorkspace(
   },
   {
     requiredPermissions: ["workspaces.write"],
+    allowedRoles: ["owner", "member"],
   },
 );
 

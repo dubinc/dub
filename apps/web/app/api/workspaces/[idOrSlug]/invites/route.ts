@@ -1,6 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
 import { inviteUser } from "@/lib/api/users";
-import { requireWorkspaceRole } from "@/lib/api/workspaces/require-workspace-role";
+import { assertRoleAllowedForPlan } from "@/lib/api/workspaces/assert-role-plan";
 import { withWorkspace } from "@/lib/auth";
 import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import { ratelimit, redis } from "@/lib/upstash";
@@ -51,7 +51,7 @@ export const POST = withWorkspace(
     const { teammates } = inviteTeammatesSchema.parse(await req.json());
 
     for (const teammate of teammates) {
-      requireWorkspaceRole({
+      assertRoleAllowedForPlan({
         role: teammate.role,
         plan: workspace.plan,
       });
@@ -168,6 +168,7 @@ export const POST = withWorkspace(
   },
   {
     requiredPermissions: ["workspaces.write"],
+    allowedRoles: ["owner", "member"],
   },
 );
 
@@ -181,7 +182,7 @@ export const PATCH = withWorkspace(
   async ({ req, workspace }) => {
     const { email, role } = updateInviteRoleSchema.parse(await req.json());
 
-    requireWorkspaceRole({
+    assertRoleAllowedForPlan({
       role,
       plan: workspace.plan,
     });
@@ -218,6 +219,7 @@ export const PATCH = withWorkspace(
   },
   {
     requiredPermissions: ["workspaces.write"],
+    allowedRoles: ["owner", "member"],
   },
 );
 
@@ -229,6 +231,7 @@ export const DELETE = withWorkspace(
         email: z.email(),
       })
       .parse(searchParams);
+
     const response = await prisma.projectInvite.delete({
       where: {
         email_projectId: {
@@ -237,9 +240,11 @@ export const DELETE = withWorkspace(
         },
       },
     });
+
     return NextResponse.json(response);
   },
   {
     requiredPermissions: ["workspaces.write"],
+    allowedRoles: ["owner", "member"],
   },
 );
