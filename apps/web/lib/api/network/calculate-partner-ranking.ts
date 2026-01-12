@@ -1,6 +1,6 @@
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
-import { ACME_PROGRAM_ID } from "@dub/utils";
+import { ACME_PROGRAM_ID, groupBy } from "@dub/utils";
 
 export interface PartnerRankingFilters {
   partnerIds?: string[];
@@ -298,5 +298,33 @@ export async function calculatePartnerRanking({
     LIMIT ${pageSize} OFFSET ${offset}
   `;
 
-  return partners;
+  // Fetch partner platforms
+  const resultPartnerIds = partners.map((p: any) => p.id);
+  const partnerPlatforms = await prisma.partnerPlatform.findMany({
+    where: {
+      partnerId: {
+        in: resultPartnerIds,
+      },
+    },
+    select: {
+      partnerId: true,
+      type: true,
+      identifier: true,
+      verifiedAt: true,
+      platformId: true,
+      subscribers: true,
+      posts: true,
+      views: true,
+    },
+  });
+
+  const platformsByPartnerId = groupBy(
+    partnerPlatforms,
+    (platform) => platform.partnerId,
+  );
+
+  return partners.map((partner: any) => ({
+    ...partner,
+    platforms: platformsByPartnerId[partner.id] || [],
+  }));
 }
