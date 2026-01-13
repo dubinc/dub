@@ -1,4 +1,4 @@
-import { isValidDomainFormat } from "@/lib/api/domains/is-valid-domain";
+import { isValidDomainFormatWithLocalhost } from "@/lib/api/domains/is-valid-domain";
 import { PAYOUT_HOLDING_PERIOD_DAYS } from "@/lib/constants/payouts";
 import { RESOURCE_COLORS } from "@/ui/colors";
 import { PartnerLinkStructure } from "@dub/prisma/client";
@@ -31,8 +31,8 @@ export const GROUPS_MAX_PAGE_SIZE = 100;
 export const additionalPartnerLinkSchema = z.object({
   domain: z
     .string()
-    .refine((v) => isValidDomainFormat(v), {
-      message: "Please enter a valid domain (eg: acme.com).",
+    .refine((v) => isValidDomainFormatWithLocalhost(v), {
+      message: "Please enter a valid domain (eg: acme.com or localhost:3000).",
     })
     .transform((v) => v.toLowerCase()),
   path: z
