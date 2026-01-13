@@ -1,4 +1,7 @@
-import { fetchSocialProfile } from "@/lib/api/scrape-creators/fetch-social-profile";
+import {
+  AccountNotFoundError,
+  fetchSocialProfile,
+} from "@/lib/api/scrape-creators/fetch-social-profile";
 import { qstash } from "@/lib/cron";
 import { withCron } from "@/lib/cron/with-cron";
 import { prisma } from "@dub/prisma";
@@ -149,6 +152,24 @@ export const POST = withCron(async ({ rawBody }) => {
           newStats,
         );
       } catch (error) {
+        // If account doesn't exist, unverify the platform
+        if (error instanceof AccountNotFoundError) {
+          await prisma.partnerPlatform.update({
+            where: {
+              id: verifiedProfile.id,
+            },
+            data: {
+              verifiedAt: null,
+              lastCheckedAt: new Date(),
+            },
+          });
+
+          console.log(
+            `Account @${verifiedProfile.identifier} on ${verifiedProfile.type} no longer exists. Unverified platform.`,
+          );
+          return;
+        }
+
         console.error(
           `Error updating ${verifiedProfile.type} stats for @${verifiedProfile.identifier}:`,
           error,

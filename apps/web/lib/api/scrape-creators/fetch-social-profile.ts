@@ -13,6 +13,13 @@ type SocialProfile = Pick<
   description: string | null;
 };
 
+export class AccountNotFoundError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "AccountNotFoundError";
+  }
+}
+
 export async function fetchSocialProfile({
   platform,
   handle,
@@ -33,6 +40,13 @@ export async function fetchSocialProfile({
   if (error) {
     throw new Error(
       "We were unable to retrieve your social media profile. Please try again.",
+    );
+  }
+
+  // Check if account doesn't exist
+  if (data.platform === "account_not_found") {
+    throw new AccountNotFoundError(
+      (data as { message?: string }).message || "Account doesn't exist",
     );
   }
 
