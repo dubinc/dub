@@ -1,5 +1,5 @@
 import { DubApiError, ErrorCodes } from "@/lib/api/errors";
-import { processLink, updateLink } from "@/lib/api/links";
+import { deleteLink, processLink, updateLink } from "@/lib/api/links";
 import { validatePartnerLinkUrl } from "@/lib/api/links/validate-partner-link-url";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
@@ -154,3 +154,46 @@ export const PATCH = withPartnerProfile(
     return NextResponse.json(PartnerProfileLinkSchema.parse(partnerLink));
   },
 );
+
+// DELETE /api/partner-profile/[programId]/links/[linkId] - delete a link for a partner
+export const DELETE = withPartnerProfile(async ({ partner, params }) => {
+  const { programId, linkId } = params;
+
+  const { links, status } = await getProgramEnrollmentOrThrow({
+    partnerId: partner.id,
+    programId,
+    include: {
+      links: true,
+    },
+  });
+
+  if (["banned", "deactivated"].includes(status)) {
+    throw new DubApiError({
+      code: "forbidden",
+      message: "You are banned from this program.",
+    });
+  }
+
+  const link = links.find((link) => link.id === linkId);
+
+  if (!link) {
+    throw new DubApiError({
+      code: "not_found",
+      message: "Link not found.",
+    });
+  }
+
+  // Check if link has any clicks, leads, or sales
+  if (link.clicks > 0 || link.leads > 0 || link.saleAmount > 0) {
+    throw new DubApiError({
+      code: "bad_request",
+      message:
+        "You can only delete links with 0 clicks, 0 leads, and $0 in sales.",
+    });
+  }
+
+  // Delete the link
+  await deleteLink(link.id);
+
+  return NextResponse.json({ id: link.id });
+});

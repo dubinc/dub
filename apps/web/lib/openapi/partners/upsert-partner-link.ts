@@ -1,6 +1,6 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
 import { LinkSchema } from "@/lib/zod/schemas/links";
-import { createPartnerLinkSchema } from "@/lib/zod/schemas/partners";
+import { upsertPartnerLinkSchema } from "@/lib/zod/schemas/partners";
 import { ZodOpenApiOperationObject } from "zod-openapi";
 
 export const upsertPartnerLink: ZodOpenApiOperationObject = {
@@ -12,7 +12,7 @@ export const upsertPartnerLink: ZodOpenApiOperationObject = {
   requestBody: {
     content: {
       "application/json": {
-        schema: createPartnerLinkSchema,
+        schema: upsertPartnerLinkSchema,
       },
     },
   },
