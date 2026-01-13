@@ -183,9 +183,9 @@ export function ActivityRing({
     }
   }, [state]);
 
-  // Leading side shows its color, non-leading side is gray
-  const positiveColor = state === "positive" ? COLORS.positive : COLORS.neutral;
-  const negativeColor = state === "negative" ? COLORS.negative : COLORS.neutral;
+  // Always use green and red colors
+  const positiveColor = COLORS.positive;
+  const negativeColor = COLORS.negative;
 
   return (
     <div
@@ -193,8 +193,8 @@ export function ActivityRing({
       style={{ width: size, height: size }}
     >
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-        {/* Filled arc for positive when leading (behind stroke) */}
-        {state === "positive" && (
+        {/* Filled arc for positive (behind stroke) */}
+        {positiveValue > 0 && (
           <path
             d={describeFilledArc(
               center,
@@ -209,8 +209,8 @@ export function ActivityRing({
           />
         )}
 
-        {/* Filled arc for negative when leading (behind stroke) */}
-        {state === "negative" && (
+        {/* Filled arc for negative (behind stroke) */}
+        {negativeValue > 0 && (
           <path
             d={describeFilledArc(
               center,
@@ -223,36 +223,6 @@ export function ActivityRing({
             fill={COLORS.negative}
             opacity={0.1}
           />
-        )}
-
-        {/* Filled arcs for neutral state (both sides) */}
-        {state === "neutral" && (
-          <>
-            <path
-              d={describeFilledArc(
-                center,
-                center,
-                fillOuterRadius,
-                fillInnerRadius,
-                positiveArc.start,
-                positiveArc.end,
-              )}
-              fill={COLORS.neutral}
-              opacity={0.25}
-            />
-            <path
-              d={describeFilledArc(
-                center,
-                center,
-                fillOuterRadius,
-                fillInnerRadius,
-                negativeArc.start,
-                negativeArc.end,
-              )}
-              fill={COLORS.neutral}
-              opacity={0.25}
-            />
-          </>
         )}
 
         {/* Positive arc stroke (right side) */}

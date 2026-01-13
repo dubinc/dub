@@ -20,7 +20,7 @@ export function PartnerCrossProgramSummary({
     crossProgramSummary;
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-3">
       <ActivityRing
         positiveValue={trustedPrograms}
         negativeValue={removedPrograms}
@@ -54,9 +54,9 @@ function StatRow({
   total: number;
 }) {
   return (
-    <div className="flex items-center justify-between">
+    <div className="flex items-center justify-between gap-6">
       <span className="text-xs font-medium text-neutral-700">{label}</span>
-      <div className="flex items-center gap-0.5 text-xs">
+      <div className="flex items-center gap-1 text-xs">
         <span className="font-semibold text-neutral-800">{value}</span>
         <span className="font-medium text-neutral-500">of {total}</span>
       </div>
@@ -66,16 +66,22 @@ function StatRow({
 
 function LoadingSkeleton() {
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-3">
       <div className="size-10 shrink-0 animate-pulse rounded-full bg-neutral-200" />
       <div className="flex min-w-0 grow flex-col gap-[5px]">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-6">
           <div className="h-4 w-28 animate-pulse rounded bg-neutral-200" />
-          <div className="h-4 w-10 animate-pulse rounded bg-neutral-200" />
+          <div className="flex items-center gap-1">
+            <div className="h-4 w-4 animate-pulse rounded bg-neutral-200" />
+            <div className="h-4 w-7 animate-pulse rounded bg-neutral-200" />
+          </div>
         </div>
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-6">
           <div className="h-4 w-32 animate-pulse rounded bg-neutral-200" />
-          <div className="h-4 w-10 animate-pulse rounded bg-neutral-200" />
+          <div className="flex items-center gap-1">
+            <div className="h-4 w-4 animate-pulse rounded bg-neutral-200" />
+            <div className="h-4 w-7 animate-pulse rounded bg-neutral-200" />
+          </div>
         </div>
       </div>
     </div>
