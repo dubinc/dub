@@ -60,6 +60,18 @@ export const GET = withPartnerProfile(
       linkId = foundLink.id;
     }
 
+    // Early return if there are no links and no linkId specified
+    if (links.length === 0 && !linkId) {
+      const zip = new JSZip();
+      const zipData = await zip.generateAsync({ type: "nodebuffer" });
+      return new Response(zipData as unknown as BodyInit, {
+        headers: {
+          "Content-Type": "application/zip",
+          "Content-Disposition": "attachment; filename=analytics_export.zip",
+        },
+      });
+    }
+
     const zip = new JSZip();
 
     await Promise.all(
