@@ -41,7 +41,10 @@ export function PartnerLinkControls({
   });
 
   const canDelete =
-    link.clicks === 0 && link.leads === 0 && link.saleAmount === 0;
+    !link.partnerGroupDefaultLinkId &&
+    link.clicks === 0 &&
+    link.leads === 0 &&
+    link.saleAmount === 0;
 
   const { setShowDeletePartnerLinkModal, DeletePartnerLinkModal } =
     useDeletePartnerLinkModal({
@@ -133,9 +136,11 @@ export function PartnerLinkControls({
                 className="h-9 px-2 font-medium"
                 disabled={!canDelete}
                 disabledTooltip={
-                  !canDelete
-                    ? "You can only delete links with 0 clicks, 0 leads, and $0 in sales."
-                    : undefined
+                  link.partnerGroupDefaultLinkId
+                    ? "You cannot delete your default link."
+                    : !canDelete
+                      ? "You can only delete links with 0 clicks, 0 leads, and $0 in sales."
+                      : undefined
                 }
               />
             </div>

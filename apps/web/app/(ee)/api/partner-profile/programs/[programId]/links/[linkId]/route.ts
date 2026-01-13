@@ -183,6 +183,14 @@ export const DELETE = withPartnerProfile(async ({ partner, params }) => {
     });
   }
 
+  // Check if this is a default link
+  if (link.partnerGroupDefaultLinkId) {
+    throw new DubApiError({
+      code: "forbidden",
+      message: "You cannot delete your default link.",
+    });
+  }
+
   // Check if link has any clicks, leads, or sales
   if (link.clicks > 0 || link.leads > 0 || link.saleAmount > 0) {
     throw new DubApiError({
