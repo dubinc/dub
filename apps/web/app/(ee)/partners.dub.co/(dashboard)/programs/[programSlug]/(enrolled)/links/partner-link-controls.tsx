@@ -1,9 +1,10 @@
 import { PartnerProfileLinkProps } from "@/lib/types";
+import { useDeletePartnerLinkModal } from "@/ui/modals/delete-partner-link-modal";
 import { usePartnerLinkModal } from "@/ui/modals/partner-link-modal";
 import { usePartnerLinkQRModal } from "@/ui/modals/partner-link-qr-modal";
 import { ThreeDots } from "@/ui/shared/icons";
 import { Button, PenWriting, Popover, useKeyboardShortcut } from "@dub/ui";
-import { QRCode } from "@dub/ui/icons";
+import { QRCode, Trash } from "@dub/ui/icons";
 import { CopyPlus } from "lucide-react";
 
 export function PartnerLinkControls({
@@ -39,8 +40,19 @@ export function PartnerLinkControls({
     },
   });
 
+  const canDelete =
+    link.clicks === 0 && link.leads === 0 && link.saleAmount === 0;
+
+  const { setShowDeletePartnerLinkModal, DeletePartnerLinkModal } =
+    useDeletePartnerLinkModal({
+      link,
+      onSuccess: () => {
+        setOpenPopover(false);
+      },
+    });
+
   useKeyboardShortcut(
-    ["e", "q", "d"],
+    ["e", "q", "d", "x"],
     (e) => {
       setOpenPopover(false);
       switch (e.key) {
@@ -53,6 +65,11 @@ export function PartnerLinkControls({
         case "d":
           setShowDuplicateLinkModal(true);
           break;
+        case "x":
+          if (canDelete) {
+            setShowDeletePartnerLinkModal(true);
+          }
+          break;
       }
     },
     {
@@ -63,6 +80,7 @@ export function PartnerLinkControls({
 
   return (
     <div className="flex justify-end">
+      <DeletePartnerLinkModal />
       <LinkQRModal />
       <PartnerLinkModal />
       <DuplicateLinkModal />
@@ -102,6 +120,23 @@ export function PartnerLinkControls({
                 icon={<CopyPlus className="size-4" />}
                 shortcut="D"
                 className="h-9 px-2 font-medium"
+              />
+              <Button
+                text="Delete"
+                variant="danger-outline"
+                onClick={() => {
+                  setOpenPopover(false);
+                  setShowDeletePartnerLinkModal(true);
+                }}
+                icon={<Trash className="size-4" />}
+                shortcut="X"
+                className="h-9 px-2 font-medium"
+                disabled={!canDelete}
+                disabledTooltip={
+                  !canDelete
+                    ? "You can only delete links with 0 clicks, 0 leads, and $0 in sales."
+                    : undefined
+                }
               />
             </div>
           </div>
