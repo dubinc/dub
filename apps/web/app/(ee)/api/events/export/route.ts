@@ -48,15 +48,15 @@ export const GET = withWorkspace(
     throwIfClicksUsageExceeded(workspace);
 
     const parsedParams = eventsQuerySchema
-      .and(
-        z.object({
-          columns: z
-            .string()
-            .transform((c) => c.split(","))
-            .pipe(z.string().array()),
-        }),
-      )
+      .extend({
+        columns: z
+          .string()
+          .transform((c) => c.split(","))
+          .pipe(z.string().array()),
+      })
       .parse(searchParams);
+
+    console.log("parsedParams", parsedParams);
 
     const { event, domain, interval, start, end, columns, key, folderId } =
       parsedParams;
