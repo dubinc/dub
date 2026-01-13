@@ -1,7 +1,7 @@
 import { withCron } from "@/lib/cron/with-cron";
 import { prisma } from "@dub/prisma";
 import { PlatformType } from "@dub/prisma/client";
-import { chunk, deepEqual } from "@dub/utils";
+import { chunk } from "@dub/utils";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 
@@ -88,10 +88,6 @@ export const POST = withCron(async () => {
         posts: channel.statistics.videoCount,
         views: channel.statistics.viewCount,
       };
-
-      if (deepEqual(currentStats, newStats)) {
-        continue;
-      }
 
       await prisma.partnerPlatform.update({
         where: {

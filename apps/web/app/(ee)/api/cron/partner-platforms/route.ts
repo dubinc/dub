@@ -6,7 +6,7 @@ import { qstash } from "@/lib/cron";
 import { withCron } from "@/lib/cron/with-cron";
 import { prisma } from "@dub/prisma";
 import { PartnerPlatform, PlatformType } from "@dub/prisma/client";
-import { APP_DOMAIN_WITH_NGROK, deepEqual } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { subDays } from "date-fns";
 import * as z from "zod/v4";
 import { logAndRespond } from "../utils";
@@ -128,13 +128,6 @@ export const POST = withCron(async ({ rawBody }) => {
 
           default:
             return;
-        }
-
-        if (deepEqual(currentStats, newStats)) {
-          console.log(
-            `No changes to ${verifiedProfile.type} stats for @${verifiedProfile.identifier}`,
-          );
-          return;
         }
 
         await prisma.partnerPlatform.update({
