@@ -68,7 +68,7 @@ const RejectBountySubmissionModal = ({
 
     await rejectBountySubmission({
       ...formData,
-      rejectionReason: formData.rejectionReason || "other",
+      rejectionReason: formData.rejectionReason,
       workspaceId: workspace.id,
       submissionId: submission.id,
     });

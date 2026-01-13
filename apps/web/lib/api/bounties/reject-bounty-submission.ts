@@ -25,7 +25,7 @@ export async function rejectBountySubmission({
   programId,
   bountyId,
   submissionId,
-  rejectionReason,
+  rejectionReason = "other",
   rejectionNote,
   user,
 }: RejectBountySubmissionParams) {
