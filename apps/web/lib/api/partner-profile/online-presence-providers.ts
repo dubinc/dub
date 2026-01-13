@@ -117,6 +117,7 @@ export const ONLINE_PRESENCE_PROVIDERS: Record<string, OnlinePresenceProvider> =
       },
     },
 
+    // We don't support LinkedIn verification yet
     linkedin: {
       authUrl: "https://www.linkedin.com/oauth/v2/authorization",
       tokenUrl: "https://www.linkedin.com/oauth/v2/accessToken",

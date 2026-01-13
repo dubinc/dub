@@ -1,8 +1,8 @@
 import { withCron } from "@/lib/cron/with-cron";
 import { prisma } from "@dub/prisma";
 import { PlatformType } from "@dub/prisma/client";
-import { chunk, deepEqual } from "@dub/utils";
-import { z } from "zod";
+import { chunk } from "@dub/utils";
+import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 
 const youtubeChannelSchema = z.object({
@@ -16,10 +16,11 @@ const youtubeChannelSchema = z.object({
 
 export const dynamic = "force-dynamic";
 
-/*
-    This route is used to update youtube stats for youtubeVerified partners
-    Runs once a day at 06:00 AM UTC (cron expression: 0 6 * * *)
-*/
+/**
+ * This route is used to update stats for YouTube verified partners using the YouTube API
+ * Runs once a day at 06:00 AM UTC (cron expression: 0 6 * * *)
+ * POST /api/cron/partner-platforms/youtube
+ */
 export const POST = withCron(async () => {
   if (!process.env.YOUTUBE_API_KEY) {
     throw new Error("YOUTUBE_API_KEY is not defined");
@@ -88,15 +89,14 @@ export const POST = withCron(async () => {
         views: channel.statistics.viewCount,
       };
 
-      if (deepEqual(currentStats, newStats)) {
-        continue;
-      }
-
       await prisma.partnerPlatform.update({
         where: {
           id: partnerPlatform.id,
         },
-        data: newStats,
+        data: {
+          ...newStats,
+          lastCheckedAt: new Date(),
+        },
       });
 
       console.log(
