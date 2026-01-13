@@ -5,7 +5,6 @@ import {
 import { qstash } from "@/lib/cron";
 import { withCron } from "@/lib/cron/with-cron";
 import { prisma } from "@dub/prisma";
-import { PartnerPlatform, PlatformType } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { subDays } from "date-fns";
 import * as z from "zod/v4";
@@ -89,46 +88,10 @@ export const POST = withCron(async ({ rawBody }) => {
           handle: verifiedProfile.identifier,
         });
 
-        let currentStats: Pick<PartnerPlatform, "subscribers" | "posts"> &
-          Partial<Pick<PartnerPlatform, "views">>;
-        let newStats: Pick<PartnerPlatform, "subscribers" | "posts"> &
-          Partial<Pick<PartnerPlatform, "views">>;
-
-        switch (verifiedProfile.type) {
-          // TikTok
-          case PlatformType.tiktok:
-            currentStats = {
-              subscribers: verifiedProfile.subscribers,
-              posts: verifiedProfile.posts,
-              views: verifiedProfile.views,
-            };
-
-            newStats = {
-              subscribers: socialProfile.subscribers,
-              posts: socialProfile.posts,
-              views: socialProfile.views,
-            };
-
-            break;
-
-          // Instagram, Twitter
-          case PlatformType.instagram:
-          case PlatformType.twitter:
-            currentStats = {
-              subscribers: verifiedProfile.subscribers,
-              posts: verifiedProfile.posts,
-            };
-
-            newStats = {
-              subscribers: socialProfile.subscribers,
-              posts: socialProfile.posts,
-            };
-
-            break;
-
-          default:
-            return;
-        }
+        const newStats = {
+          subscribers: socialProfile.subscribers,
+          posts: socialProfile.posts,
+        };
 
         await prisma.partnerPlatform.update({
           where: {
