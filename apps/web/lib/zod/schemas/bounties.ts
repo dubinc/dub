@@ -166,7 +166,7 @@ export const approveBountySubmissionBodySchema = z.object({
 });
 
 export const rejectBountySubmissionBodySchema = z.object({
-  rejectionReason: z.enum(BountySubmissionRejectionReason).meta({
+  rejectionReason: z.enum(BountySubmissionRejectionReason).optional().meta({
     description: "The reason for rejecting the submission.",
   }),
   rejectionNote: z

@@ -21,7 +21,7 @@ export const rejectBountySubmission: ZodOpenApiOperationObject = {
   requestBody: {
     content: {
       "application/json": {
-        schema: rejectBountySubmissionBodySchema,
+        schema: rejectBountySubmissionBodySchema.optional(),
       },
     },
   },
