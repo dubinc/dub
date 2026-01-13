@@ -51,14 +51,6 @@
     {
       "path": "/api/cron/payouts/reminders/program-owners",
       "schedule": "0 13 25-31,1-5 * *"
-    },
-    {
-      "path": "/api/cron/partner-platforms",
-      "schedule": "0 6 * * *"
-    },
-    {
-      "path": "/api/cron/partner-platforms/youtube",
-      "schedule": "0 6 * * *"
     }
   ],
   "functions": {

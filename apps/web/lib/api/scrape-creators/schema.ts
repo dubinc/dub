@@ -19,7 +19,8 @@ export const profileResponseSchema = z.preprocess(
         return { platform: "tiktok", ...data };
       }
 
-      if ("is_blue_verified" in data) {
+      // Twitter detection: check for rest_id and legacy fields (more reliable than is_blue_verified)
+      if ("rest_id" in data && "legacy" in data) {
         return { platform: "twitter", ...data };
       }
     }

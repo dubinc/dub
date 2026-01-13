@@ -39,9 +39,16 @@ export const POST = withCron(async ({ rawBody }) => {
         not: null,
       },
       // only check platforms that haven't been checked in the last 7 days
-      lastCheckedAt: {
-        lt: subDays(new Date(), 7),
-      },
+      OR: [
+        {
+          lastCheckedAt: {
+            lt: subDays(new Date(), 7),
+          },
+        },
+        {
+          lastCheckedAt: null,
+        },
+      ],
       // only check partners that are discoverable in the partner network
       partner: {
         discoverableAt: {
@@ -67,90 +74,94 @@ export const POST = withCron(async ({ rawBody }) => {
     );
   }
 
-  for (const verifiedProfile of verifiedProfiles) {
-    if (!verifiedProfile.identifier) {
-      continue;
-    }
-
-    try {
-      const socialProfile = await fetchSocialProfile({
-        platform: verifiedProfile.type,
-        handle: verifiedProfile.identifier,
-      });
-
-      let currentStats: Pick<PartnerPlatform, "subscribers" | "posts"> &
-        Partial<Pick<PartnerPlatform, "views">>;
-      let newStats: Pick<PartnerPlatform, "subscribers" | "posts"> &
-        Partial<Pick<PartnerPlatform, "views">>;
-
-      switch (verifiedProfile.type) {
-        // TikTok
-        case PlatformType.tiktok:
-          currentStats = {
-            subscribers: verifiedProfile.subscribers,
-            posts: verifiedProfile.posts,
-            views: verifiedProfile.views,
-          };
-
-          newStats = {
-            subscribers: socialProfile.subscribers,
-            posts: socialProfile.posts,
-            views: socialProfile.views,
-          };
-
-          break;
-
-        // Instagram, Twitter
-        case PlatformType.instagram:
-        case PlatformType.twitter:
-          currentStats = {
-            subscribers: verifiedProfile.subscribers,
-            posts: verifiedProfile.posts,
-          };
-
-          newStats = {
-            subscribers: socialProfile.subscribers,
-            posts: socialProfile.posts,
-          };
-
-          break;
-
-        default:
-          continue;
+  await Promise.allSettled(
+    verifiedProfiles.map(async (verifiedProfile) => {
+      if (!verifiedProfile.identifier || !verifiedProfile.type) {
+        return;
       }
 
-      if (deepEqual(currentStats, newStats)) {
-        continue;
+      try {
+        const socialProfile = await fetchSocialProfile({
+          platform: verifiedProfile.type,
+          handle: verifiedProfile.identifier,
+        });
+
+        let currentStats: Pick<PartnerPlatform, "subscribers" | "posts"> &
+          Partial<Pick<PartnerPlatform, "views">>;
+        let newStats: Pick<PartnerPlatform, "subscribers" | "posts"> &
+          Partial<Pick<PartnerPlatform, "views">>;
+
+        switch (verifiedProfile.type) {
+          // TikTok
+          case PlatformType.tiktok:
+            currentStats = {
+              subscribers: verifiedProfile.subscribers,
+              posts: verifiedProfile.posts,
+              views: verifiedProfile.views,
+            };
+
+            newStats = {
+              subscribers: socialProfile.subscribers,
+              posts: socialProfile.posts,
+              views: socialProfile.views,
+            };
+
+            break;
+
+          // Instagram, Twitter
+          case PlatformType.instagram:
+          case PlatformType.twitter:
+            currentStats = {
+              subscribers: verifiedProfile.subscribers,
+              posts: verifiedProfile.posts,
+            };
+
+            newStats = {
+              subscribers: socialProfile.subscribers,
+              posts: socialProfile.posts,
+            };
+
+            break;
+
+          default:
+            return;
+        }
+
+        if (deepEqual(currentStats, newStats)) {
+          console.log(
+            `No changes to ${verifiedProfile.type} stats for @${verifiedProfile.identifier}`,
+          );
+          return;
+        }
+
+        await prisma.partnerPlatform.update({
+          where: {
+            id: verifiedProfile.id,
+          },
+          data: {
+            ...newStats,
+            lastCheckedAt: new Date(),
+          },
+        });
+
+        console.log(
+          `Updated ${verifiedProfile.type} stats for @${verifiedProfile.identifier}`,
+          newStats,
+        );
+      } catch (error) {
+        console.error(
+          `Error updating ${verifiedProfile.type} stats for @${verifiedProfile.identifier}:`,
+          error,
+        );
       }
-
-      await prisma.partnerPlatform.update({
-        where: {
-          id: verifiedProfile.id,
-        },
-        data: {
-          ...newStats,
-          lastCheckedAt: new Date(),
-        },
-      });
-
-      console.log(
-        `Updated ${verifiedProfile.type} stats for @${verifiedProfile.identifier}`,
-        newStats,
-      );
-    } catch (error) {
-      console.error(
-        `Error updating ${verifiedProfile.type} stats for @${verifiedProfile.identifier}:`,
-        error,
-      );
-      continue;
-    }
-  }
+    }),
+  );
 
   if (verifiedProfiles.length === BATCH_SIZE) {
     startingAfter = verifiedProfiles[verifiedProfiles.length - 1].id;
 
     await qstash.publishJSON({
-      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/online-presence`,
+      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partner-platforms`,
       method: "POST",
       body: {
         startingAfter,
