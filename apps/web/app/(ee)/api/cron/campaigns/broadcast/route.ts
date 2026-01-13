@@ -5,6 +5,7 @@ import { renderCampaignEmailHTML } from "@/lib/api/workflows/render-campaign-ema
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { TiptapNode } from "@/lib/types";
+import { ACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { sendBatchEmail } from "@dub/email";
 import CampaignEmail from "@dub/email/templates/campaign-email";
 import { prisma } from "@dub/prisma";
@@ -12,7 +13,7 @@ import { NotificationEmailType } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK, chunk, log } from "@dub/utils";
 import { differenceInMinutes } from "date-fns";
 import { headers } from "next/headers";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";
@@ -142,7 +143,9 @@ export async function POST(req: Request) {
     const programEnrollments = await prisma.programEnrollment.findMany({
       where: {
         programId: campaign.programId,
-        status: "approved",
+        status: {
+          in: ACTIVE_ENROLLMENT_STATUSES,
+        },
         ...(campaignGroupIds.length > 0 && {
           groupId: {
             in: campaignGroupIds,

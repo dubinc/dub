@@ -3,7 +3,7 @@ import {
   getCampaignsEventsQuerySchema,
 } from "@/lib/zod/schemas/campaigns";
 import { prisma } from "@dub/prisma";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 interface GetCampaignEventsParams
   extends z.infer<typeof getCampaignsEventsQuerySchema> {

@@ -1,11 +1,11 @@
 import { RewardStructure } from "@dub/prisma/client";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { getPaginationQuerySchema, maxDurationSchema } from "./misc";
 
 export const DiscountSchema = z.object({
   id: z.string(),
   amount: z.number(),
-  type: z.nativeEnum(RewardStructure),
+  type: z.enum(RewardStructure),
   maxDuration: z.number().nullable(),
   couponId: z.string().nullable(),
   couponTestId: z.string().nullable(),
@@ -24,7 +24,7 @@ export const DiscountSchemaWithDeprecatedFields = DiscountSchema.extend({
 export const createDiscountSchema = z.object({
   workspaceId: z.string(),
   amount: z.number().min(0),
-  type: z.nativeEnum(RewardStructure).default("flat"),
+  type: z.enum(RewardStructure).default("flat"),
   maxDuration: maxDurationSchema,
   couponId: z.string(),
   couponTestId: z.string().nullish(),
@@ -44,11 +44,7 @@ export const discountPartnersQuerySchema = z
   .object({
     discountId: z.string(),
   })
-  .merge(
-    getPaginationQuerySchema({
-      pageSize: 25,
-    }),
-  );
+  .extend(getPaginationQuerySchema({ pageSize: 25 }));
 
 export const DiscountCodeSchema = z.object({
   id: z.string(),

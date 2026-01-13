@@ -2,9 +2,9 @@
 
 import { prisma } from "@dub/prisma";
 import { ComponentDividerSpacingSize } from "@team-plain/typescript-sdk";
+import * as z from "zod/v4";
 import { createPlainThread } from "../plain/create-plain-thread";
 import { ratelimit } from "../upstash";
-import z from "../zod";
 import { authActionClient } from "./safe-action";
 
 const schema = z.object({
@@ -15,7 +15,7 @@ const schema = z.object({
 
 // Submit an OAuth app for review
 export const submitOAuthAppForReview = authActionClient
-  .schema(schema)
+  .inputSchema(schema)
   .action(async ({ ctx, parsedInput }) => {
     const { user, workspace } = ctx;
     const { message, integrationId } = parsedInput;

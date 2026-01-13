@@ -1,5 +1,4 @@
 import { ZodOpenApiPathsObject } from "zod-openapi";
-
 import { bulkCreateLinks } from "./bulk-create-links";
 import { bulkDeleteLinks } from "./bulk-delete-links";
 import { bulkUpdateLinks } from "./bulk-update-links";

@@ -3,9 +3,9 @@ import { tb } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
 import { FolderAccessLevel } from "@dub/prisma/client";
 import { linkConstructor, punyEncode } from "@dub/utils";
+import * as z from "zod/v4";
 import { decodeKeyIfCaseSensitive } from "../api/links/case-sensitivity";
 import { conn } from "../planetscale";
-import z from "../zod";
 import { analyticsFilterTB } from "../zod/schemas/analytics";
 import { analyticsResponse } from "../zod/schemas/analytics-response";
 import {
@@ -285,7 +285,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
         return analyticsResponse.top_folders
           .extend({
             folder: analyticsResponse.top_folders.shape.folder.extend({
-              accessLevel: z.nativeEnum(FolderAccessLevel).nullish(),
+              accessLevel: z.enum(FolderAccessLevel).nullish(),
             }),
           })
           .parse({

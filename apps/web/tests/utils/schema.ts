@@ -1,7 +1,7 @@
 import { LinkSchema as LinkSchemaOld } from "@/lib/zod/schemas/links";
 import { Link, Project, Tag } from "@dub/prisma/client";
 import { expect } from "vitest";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 export const LinkSchema = LinkSchemaOld.extend({
   identifier: z.null(),

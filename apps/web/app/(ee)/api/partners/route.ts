@@ -4,13 +4,15 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { polyfillSocialMediaFields } from "@/lib/social-utils";
 import {
   createPartnerSchema,
   EnrolledPartnerSchema,
   getPartnersQuerySchemaExtended,
+  partnerPlatformSchema,
 } from "@/lib/zod/schemas/partners";
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 // GET /api/partners - get all partners for a program
 export const GET = withWorkspace(
@@ -18,24 +20,22 @@ export const GET = withWorkspace(
     const programId = getDefaultProgramIdOrThrow(workspace);
     const {
       sortBy: sortByWithOldFields,
-      includeOnlinePresenceVerification,
+      includePartnerPlatforms,
       ...parsedParams
     } = getPartnersQuerySchemaExtended
-      .merge(
-        z.object({
-          // add old fields for backward compatibility
-          sortBy: getPartnersQuerySchemaExtended.shape.sortBy.or(
-            z.enum([
-              "clicks",
-              "leads",
-              "conversions",
-              "sales",
-              "saleAmount",
-              "totalSales",
-            ]),
-          ),
-        }),
-      )
+      .extend({
+        // add old fields for backward compatibility
+        sortBy: getPartnersQuerySchemaExtended.shape.sortBy.or(
+          z.enum([
+            "clicks",
+            "leads",
+            "conversions",
+            "sales",
+            "saleAmount",
+            "totalSales",
+          ]),
+        ),
+      })
       .parse(searchParams);
 
     // get the final sortBy field (replace old fields with new fields)
@@ -66,15 +66,9 @@ export const GET = withWorkspace(
       saleAmount: z.number().default(0),
     });
 
-    // Whether to include online presence verification fields (websiteVerifiedAt, youtubeVerifiedAt, etc.) in the response.
-    const responseSchema = includeOnlinePresenceVerification
+    const responseSchema = includePartnerPlatforms
       ? baseSchema.extend({
-          websiteVerifiedAt: z.date().nullish(),
-          youtubeVerifiedAt: z.date().nullish(),
-          twitterVerifiedAt: z.date().nullish(),
-          linkedinVerifiedAt: z.date().nullish(),
-          instagramVerifiedAt: z.date().nullish(),
-          tiktokVerifiedAt: z.date().nullish(),
+          platforms: z.array(partnerPlatformSchema),
         })
       : baseSchema;
 
@@ -87,6 +81,7 @@ export const GET = withWorkspace(
           conversions: partner.totalConversions,
           sales: partner.totalSales,
           saleAmount: partner.totalSaleAmount,
+          ...polyfillSocialMediaFields(partner.platforms),
         })),
       ),
     );

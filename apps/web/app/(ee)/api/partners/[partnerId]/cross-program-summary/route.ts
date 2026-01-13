@@ -1,7 +1,10 @@
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withWorkspace } from "@/lib/auth";
-import { partnerCrossProgramSummarySchema } from "@/lib/zod/schemas/partners";
+import {
+  ACTIVE_ENROLLMENT_STATUSES,
+  partnerCrossProgramSummarySchema,
+} from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
@@ -39,7 +42,7 @@ export const GET = withWorkspace(
     // approved and archived statuses
     const trustedPrograms = programEnrollments
       .filter((enrollment) =>
-        ["approved", "archived"].includes(enrollment.status),
+        ACTIVE_ENROLLMENT_STATUSES.includes(enrollment.status),
       )
       .reduce((acc, enrollment) => acc + enrollment._count, 0);
 

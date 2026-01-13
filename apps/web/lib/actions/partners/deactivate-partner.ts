@@ -15,7 +15,7 @@ import { authActionClient } from "../safe-action";
 
 // Deactivate a partner
 export const deactivatePartnerAction = authActionClient
-  .schema(deactivatePartnerSchema)
+  .inputSchema(deactivatePartnerSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { partnerId } = parsedInput;

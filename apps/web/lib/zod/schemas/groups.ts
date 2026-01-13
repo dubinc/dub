@@ -1,10 +1,10 @@
-import { isValidDomainFormat } from "@/lib/api/domains/is-valid-domain";
+import { isValidDomainFormatWithLocalhost } from "@/lib/api/domains/is-valid-domain";
 import { PAYOUT_HOLDING_PERIOD_DAYS } from "@/lib/constants/payouts";
 import { RESOURCE_COLORS } from "@/ui/colors";
 import { PartnerLinkStructure } from "@dub/prisma/client";
 import { validSlugRegex } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { DiscountSchema } from "./discount";
 import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
 import { programApplicationFormSchema } from "./program-application-form";
@@ -31,8 +31,8 @@ export const GROUPS_MAX_PAGE_SIZE = 100;
 export const additionalPartnerLinkSchema = z.object({
   domain: z
     .string()
-    .refine((v) => isValidDomainFormat(v), {
-      message: "Please enter a valid domain (eg: acme.com).",
+    .refine((v) => isValidDomainFormatWithLocalhost(v), {
+      message: "Please enter a valid domain (eg: acme.com or localhost:3000).",
     })
     .transform((v) => v.toLowerCase()),
   path: z
@@ -69,7 +69,7 @@ export const GroupSchema = z.object({
   utmTemplate: UTMTemplateSchema.nullish(),
   additionalLinks: z.array(additionalPartnerLinkSchema).nullable(),
   maxPartnerLinks: z.number(),
-  linkStructure: z.nativeEnum(PartnerLinkStructure),
+  linkStructure: z.enum(PartnerLinkStructure),
 });
 
 export const GroupWithFormDataSchema = GroupSchema.extend({
@@ -132,7 +132,7 @@ export const updateGroupSchema = createGroupSchema.partial().extend({
     .optional(),
   maxPartnerLinks: z.number().optional(),
   utmTemplateId: z.string().optional(),
-  linkStructure: z.nativeEnum(PartnerLinkStructure).optional(),
+  linkStructure: z.enum(PartnerLinkStructure).optional(),
   applicationFormData: programApplicationFormSchema.optional(),
   landerData: programLanderSchema.optional(),
   holdingPeriodDays: z.coerce
@@ -178,7 +178,7 @@ export const getGroupsQuerySchema = z
     sortOrder: z.enum(["asc", "desc"]).default("desc"),
     includeExpandedFields: booleanQuerySchema.optional(),
   })
-  .merge(getPaginationQuerySchema({ pageSize: GROUPS_MAX_PAGE_SIZE }));
+  .extend(getPaginationQuerySchema({ pageSize: GROUPS_MAX_PAGE_SIZE }));
 
 export const getGroupsCountQuerySchema = z.object({
   search: z.string().optional(),

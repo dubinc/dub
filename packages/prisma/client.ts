@@ -26,6 +26,7 @@ export {
   PartnerRole,
   PayoutMode,
   PayoutStatus,
+  PlatformType,
   PreferredEarningStructure,
   Prisma,
   ProgramEnrollmentStatus,

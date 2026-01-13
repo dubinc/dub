@@ -8,7 +8,7 @@ import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 
 export const bulkArchivePartnersAction = authActionClient
-  .schema(bulkArchivePartnersSchema)
+  .inputSchema(bulkArchivePartnersSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { partnerIds } = parsedInput;
@@ -54,24 +54,21 @@ export const bulkArchivePartnersAction = authActionClient
     });
 
     waitUntil(
-      (async () => {
-        // Record audit log for each partner
-        await recordAuditLog(
-          programEnrollments.map(({ partner }) => ({
-            workspaceId: workspace.id,
-            programId,
-            action: "partner.archived",
-            description: `Partner ${partner.id} archived`,
-            actor: user,
-            targets: [
-              {
-                type: "partner",
-                id: partner.id,
-                metadata: partner,
-              },
-            ],
-          })),
-        );
-      })(),
+      recordAuditLog(
+        programEnrollments.map(({ partner }) => ({
+          workspaceId: workspace.id,
+          programId,
+          action: "partner.archived",
+          description: `Partner ${partner.id} archived`,
+          actor: user,
+          targets: [
+            {
+              type: "partner",
+              id: partner.id,
+              metadata: partner,
+            },
+          ],
+        })),
+      ),
     );
   });

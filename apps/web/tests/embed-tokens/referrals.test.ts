@@ -161,7 +161,7 @@ describe.sequential("POST /api/tokens/embed/referrals", async () => {
     expect(status).toEqual(422);
     expect(data).toMatchObject({
       error: {
-        message: expect.stringContaining("Required"),
+        message: expect.stringContaining("invalid_type: partner.email:"),
       },
     });
   });

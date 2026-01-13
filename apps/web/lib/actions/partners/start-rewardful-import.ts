@@ -3,7 +3,7 @@
 import { createId } from "@/lib/api/create-id";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { rewardfulImporter } from "@/lib/rewardful/importer";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { getProgramOrThrow } from "../../api/programs/get-program-or-throw";
 import { authActionClient } from "../safe-action";
 
@@ -15,7 +15,7 @@ const schema = z.object({
 });
 
 export const startRewardfulImportAction = authActionClient
-  .schema(schema)
+  .inputSchema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { campaignIds } = parsedInput;

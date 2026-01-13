@@ -6,7 +6,6 @@ import {
   TRIGGER_TYPES,
   VALID_ANALYTICS_ENDPOINTS,
 } from "@/lib/analytics/constants";
-import z from "@/lib/zod";
 import {
   CONTINENT_CODES,
   DEFAULT_PAGINATION_LIMIT,
@@ -14,31 +13,25 @@ import {
   capitalize,
   formatDate,
 } from "@dub/utils";
+import * as z from "zod/v4";
 import { booleanQuerySchema } from "./misc";
 import { parseDateSchema } from "./utils";
 import { UTMTemplateSchema } from "./utm";
 
 const analyticsEvents = z
   .enum([...EVENT_TYPES, "composite"], {
-    errorMap: (_issue, _ctx) => {
-      return {
-        message:
-          "Invalid event type. Valid event types are: clicks, leads, sales",
-      };
-    },
+    error: "Invalid event type. Valid event types are: clicks, leads, sales",
   })
   .default("clicks")
-  .describe(
-    "The type of event to retrieve analytics for. Defaults to `clicks`.",
-  );
+  .meta({
+    description:
+      "The type of event to retrieve analytics for. Defaults to `clicks`.",
+    example: "leads",
+  });
 
 const analyticsGroupBy = z
   .enum(VALID_ANALYTICS_ENDPOINTS, {
-    errorMap: (_issue, _ctx) => {
-      return {
-        message: `Invalid type value. Valid values are: ${VALID_ANALYTICS_ENDPOINTS.filter((v) => v !== "trigger").join(", ")}.`,
-      };
-    },
+    error: `Invalid type value. Valid values are: ${VALID_ANALYTICS_ENDPOINTS.filter((v) => v !== "trigger").join(", ")}.`,
   })
   .default("count")
   .describe(
@@ -47,11 +40,7 @@ const analyticsGroupBy = z
 
 const oldAnalyticsEndpoints = z
   .enum(OLD_ANALYTICS_ENDPOINTS, {
-    errorMap: (_issue, _ctx) => {
-      return {
-        message: `Invalid type value. Valid values are: ${OLD_ANALYTICS_ENDPOINTS.join(", ")}`,
-      };
-    },
+    error: `Invalid type value. Valid values are: ${OLD_ANALYTICS_ENDPOINTS.join(", ")}`,
   })
   .transform((v) => OLD_TO_NEW_ANALYTICS_ENDPOINTS[v] || v);
 
@@ -142,41 +131,38 @@ export const analyticsQuerySchema = z
       .describe(
         "The IANA time zone code for aligning timeseries granularity (e.g. America/New_York). Defaults to UTC.",
       )
-      .openapi({ example: "America/New_York", default: "UTC" }),
+      .meta({ example: "America/New_York", default: "UTC" }),
     country: z
       .string()
       .optional()
       .describe(
         "The country to retrieve analytics for. Must be passed as a 2-letter ISO 3166-1 country code. See https://d.to/geo for more information.",
-      )
-      .openapi({ ref: "countryCode" }),
+      ),
     city: z
       .string()
       .optional()
       .describe("The city to retrieve analytics for.")
-      .openapi({ example: "New York" }),
+      .meta({ example: "New York" }),
     region: z
       .string()
       .optional()
-      .describe("The ISO 3166-2 region code to retrieve analytics for.")
-      .openapi({ ref: "regionCode" }),
+      .describe("The ISO 3166-2 region code to retrieve analytics for."),
     continent: z
       .enum(CONTINENT_CODES)
       .optional()
-      .describe("The continent to retrieve analytics for.")
-      .openapi({ ref: "continentCode" }),
+      .describe("The continent to retrieve analytics for."),
     device: z
       .string()
       .optional()
       .transform((v) => capitalize(v) as string | undefined)
       .describe("The device to retrieve analytics for.")
-      .openapi({ example: "Desktop" }),
+      .meta({ example: "Desktop" }),
     browser: z
       .string()
       .optional()
       .transform((v) => capitalize(v) as string | undefined)
       .describe("The browser to retrieve analytics for.")
-      .openapi({ example: "Chrome" }),
+      .meta({ example: "Chrome" }),
     os: z
       .string()
       .optional()
@@ -185,7 +171,7 @@ export const analyticsQuerySchema = z
         return capitalize(v) as string | undefined;
       })
       .describe("The OS to retrieve analytics for.")
-      .openapi({ example: "Windows" }),
+      .meta({ example: "Windows" }),
     trigger: z
       .enum(TRIGGER_TYPES)
       .optional()
@@ -196,12 +182,12 @@ export const analyticsQuerySchema = z
       .string()
       .optional()
       .describe("The referer hostname to retrieve analytics for.")
-      .openapi({ example: "google.com" }),
+      .meta({ example: "google.com" }),
     refererUrl: z
       .string()
       .optional()
       .describe("The full referer URL to retrieve analytics for.")
-      .openapi({ example: "https://dub.co/blog" }),
+      .meta({ example: "https://dub.co/blog" }),
     url: z.string().optional().describe("The URL to retrieve analytics for."),
     tagIds: z
       .union([z.string(), z.array(z.string())])
@@ -236,7 +222,7 @@ export const analyticsQuerySchema = z
       .describe(
         "Search the events by a custom metadata value. Only available for lead and sale events.",
       )
-      .openapi({
+      .meta({
         example: "metadata['key']:'value'",
       }),
     // deprecated fields
@@ -246,15 +232,15 @@ export const analyticsQuerySchema = z
       .describe(
         "Deprecated: Use `tagIds` instead. The tag ID to retrieve analytics for.",
       )
-      .openapi({ deprecated: true }),
+      .meta({ deprecated: true }),
     qr: booleanQuerySchema
       .optional()
       .describe(
         "Deprecated: Use the `trigger` field instead. Filter for QR code scans. If true, filter for QR codes only. If false, filter for links only. If undefined, return both.",
       )
-      .openapi({ deprecated: true }),
+      .meta({ deprecated: true }),
   })
-  .merge(UTMTemplateSchema.omit({ id: true, name: true }));
+  .extend(UTMTemplateSchema.omit({ id: true, name: true }).shape);
 
 // Analytics filter params for Tinybird endpoints
 export const analyticsFilterTB = z
@@ -285,7 +271,7 @@ export const analyticsFilterTB = z
       .optional()
       .describe("The filters to apply to the analytics."),
   })
-  .merge(
+  .extend(
     analyticsQuerySchema.pick({
       groupBy: true,
       browser: true,
@@ -311,7 +297,7 @@ export const analyticsFilterTB = z
       tenantId: true,
       folderId: true,
       groupId: true,
-    }),
+    }).shape,
   );
 
 export const eventsFilterTB = analyticsFilterTB
@@ -353,5 +339,5 @@ export const eventsQuerySchema = analyticsQuerySchema
       .describe("The field to sort the events by. The default is `timestamp`."),
     order: sortOrder
       .describe("DEPRECATED. Use `sortOrder` instead.")
-      .openapi({ deprecated: true }),
+      .meta({ deprecated: true }),
   });

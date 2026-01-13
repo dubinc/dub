@@ -4,7 +4,6 @@ import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import "dotenv-flow/config";
-import { SaleEvent } from "dub/models/components";
 import * as fs from "fs";
 import * as Papa from "papaparse";
 
@@ -47,7 +46,7 @@ async function main() {
       });
     },
     complete: async () => {
-      const alreadyLogged = (await getEvents({
+      const alreadyLogged = await getEvents({
         workspaceId,
         event: "sales",
         interval: "all",
@@ -55,7 +54,10 @@ async function main() {
         limit: 1000,
         sortOrder: "desc",
         sortBy: "timestamp",
-      })) as unknown as SaleEvent[];
+        os: undefined,
+        device: undefined,
+        browser: undefined,
+      });
 
       const toBackfill = await Promise.all(
         customerSpend.map(async (cs) => {
@@ -64,7 +66,10 @@ async function main() {
           // if the sale has already been logged, skip
           if (
             alreadyLogged.some(
-              (e) => e.customer["externalId"] === customer.externalId,
+              (e) =>
+                e !== null &&
+                "customer" in e &&
+                e.customer?.externalId === customer.externalId,
             )
           )
             return null;

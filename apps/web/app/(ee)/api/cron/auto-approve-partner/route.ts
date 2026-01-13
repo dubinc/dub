@@ -3,7 +3,7 @@ import { withCron } from "@/lib/cron/with-cron";
 import { approvePartnerEnrollment } from "@/lib/partners/approve-partner-enrollment";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@dub/prisma";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { logAndRespond } from "../utils";
 
 export const dynamic = "force-dynamic";
@@ -18,36 +18,22 @@ const schema = z.object({
 export const POST = withCron(async ({ rawBody }) => {
   const { programId, partnerId } = schema.parse(JSON.parse(rawBody));
 
-  const program = await prisma.program.findUniqueOrThrow({
+  const programEnrollment = await prisma.programEnrollment.findUnique({
     where: {
-      id: programId,
+      partnerId_programId: {
+        partnerId,
+        programId,
+      },
     },
     include: {
-      workspace: {
+      partnerGroup: true,
+      partner: {
         include: {
-          users: {
-            where: {
-              role: "owner",
-            },
-            take: 1,
-          },
-        },
-      },
-      partners: {
-        where: {
-          partnerId,
-        },
-        select: {
-          partnerGroup: true,
-          groupId: true,
-          status: true,
-          partner: true,
+          platforms: true,
         },
       },
     },
   });
-
-  const programEnrollment = program.partners[0];
 
   if (!programEnrollment) {
     return logAndRespond(
@@ -77,6 +63,24 @@ export const POST = withCron(async ({ rawBody }) => {
 
   // Check if the workspace plan has fraud event management capabilities
   // If enabled, we'll evaluate risk signals before auto-approving
+  const program = await prisma.program.findUniqueOrThrow({
+    where: {
+      id: programId,
+    },
+    include: {
+      workspace: {
+        include: {
+          users: {
+            where: {
+              role: "owner",
+            },
+            take: 1,
+          },
+        },
+      },
+    },
+  });
+
   const { canManageFraudEvents } = getPlanCapabilities(program.workspace.plan);
 
   if (canManageFraudEvents) {

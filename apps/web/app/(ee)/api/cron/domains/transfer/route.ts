@@ -6,7 +6,7 @@ import { recordLink } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { sendDomainTransferredEmail } from "./utils";
 
 const schema = z.object({

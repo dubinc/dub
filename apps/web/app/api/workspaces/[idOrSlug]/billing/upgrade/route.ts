@@ -5,7 +5,7 @@ import { stripe } from "@/lib/stripe";
 import { booleanQuerySchema } from "@/lib/zod/schemas/misc";
 import { APP_DOMAIN } from "@dub/utils";
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 const upgradePlanSchema = z.object({
   plan: z.enum(["pro", "business", "advanced"]),

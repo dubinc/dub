@@ -6,7 +6,7 @@ import { SlackAuthToken } from "../types";
 import { slackAuthTokenSchema } from "./schema";
 
 class SlackOAuthProvider extends OAuthProvider<typeof slackAuthTokenSchema> {
-  constructor(provider: OAuthProviderConfig) {
+  constructor(provider: OAuthProviderConfig<typeof slackAuthTokenSchema>) {
     super(provider);
   }
 

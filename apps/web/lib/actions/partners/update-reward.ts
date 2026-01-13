@@ -14,7 +14,7 @@ import { revalidatePath } from "next/cache";
 import { authActionClient } from "../safe-action";
 
 export const updateRewardAction = authActionClient
-  .schema(updateRewardSchema)
+  .inputSchema(updateRewardSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const {

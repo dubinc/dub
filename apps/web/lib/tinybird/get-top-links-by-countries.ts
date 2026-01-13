@@ -1,6 +1,6 @@
+import * as z from "zod/v4";
 import { formatUTCDateTimeClickhouse } from "../analytics/utils/format-utc-datetime-clickhouse";
 import { getStartEndDates } from "../analytics/utils/get-start-end-dates";
-import z from "../zod";
 import { tb } from "./client";
 
 const inputSchema = z.object({
