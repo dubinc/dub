@@ -1,19 +1,23 @@
 import { Session } from "@/lib/auth";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
-import { BountySubmissionSchema } from "@/lib/zod/schemas/bounties";
+import {
+  approveBountySubmissionBodySchema,
+  BountySubmissionSchema,
+} from "@/lib/zod/schemas/bounties";
 import { sendEmail } from "@dub/email";
 import BountyApproved from "@dub/email/templates/bounty-approved";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
+import * as z from "zod/v4";
 import { recordAuditLog } from "../audit-logs/record-audit-log";
 import { DubApiError } from "../errors";
 import { transformBountySubmission } from "./transform-bounty-submission";
 
-interface ApproveBountySubmissionParams {
+interface ApproveBountySubmissionParams
+  extends z.infer<typeof approveBountySubmissionBodySchema> {
   programId: string;
   bountyId?: string;
   submissionId: string;
-  rewardAmount: number | null | undefined;
   user: Session["user"];
 }
 

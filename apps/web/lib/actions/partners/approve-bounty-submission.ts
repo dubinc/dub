@@ -11,9 +11,6 @@ const inputSchema = approveBountySubmissionBodySchema.extend({
   submissionId: z.string(),
 });
 
-// TODO:
-// Replace with /api/bounties/[bountyId]/submissions/[submissionId]/approve
-
 // Approve a submission for a bounty
 export const approveBountySubmissionAction = authActionClient
   .inputSchema(inputSchema)

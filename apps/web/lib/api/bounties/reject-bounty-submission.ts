@@ -1,21 +1,23 @@
 import { Session } from "@/lib/auth";
 import { REJECT_BOUNTY_SUBMISSION_REASONS } from "@/lib/constants/bounties";
-import { BountySubmissionSchema } from "@/lib/zod/schemas/bounties";
+import {
+  BountySubmissionSchema,
+  rejectBountySubmissionBodySchema,
+} from "@/lib/zod/schemas/bounties";
 import { sendEmail } from "@dub/email";
 import BountyRejected from "@dub/email/templates/bounty-rejected";
 import { prisma } from "@dub/prisma";
-import { BountySubmissionRejectionReason } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
+import * as z from "zod/v4";
 import { recordAuditLog } from "../audit-logs/record-audit-log";
 import { DubApiError } from "../errors";
 import { transformBountySubmission } from "./transform-bounty-submission";
 
-interface RejectBountySubmissionParams {
+interface RejectBountySubmissionParams
+  extends z.infer<typeof rejectBountySubmissionBodySchema> {
   bountyId?: string;
   programId: string;
   submissionId: string;
-  rejectionReason: BountySubmissionRejectionReason;
-  rejectionNote?: string;
   user: Session["user"];
 }
 

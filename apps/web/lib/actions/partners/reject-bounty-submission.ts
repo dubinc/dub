@@ -6,9 +6,6 @@ import { rejectBountySubmissionBodySchema } from "@/lib/zod/schemas/bounties";
 import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
 
-// TODO
-// Replace with /api/bounties/[bountyId]/submissions/[submissionId]/reject
-
 const inputSchema = rejectBountySubmissionBodySchema.extend({
   workspaceId: z.string(),
   submissionId: z.string(),
