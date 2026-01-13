@@ -37,6 +37,10 @@
       "schedule": "0 13 1 * *"
     },
     {
+      "path": "/api/cron/pending-applications-summary",
+      "schedule": "0 9 * * *"
+    },
+    {
       "path": "/api/cron/payouts/aggregate-due-commissions",
       "schedule": "0 * * * *"
     },

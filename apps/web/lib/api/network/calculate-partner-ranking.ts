@@ -213,6 +213,7 @@ export async function calculatePartnerRanking({
       CASE WHEN enrolled.status = 'approved' THEN enrolled.createdAt ELSE NULL END as recruitedAt,
       preferredEarningStructuresData.preferredEarningStructures as preferredEarningStructures,
       salesChannelsData.salesChannels as salesChannels,
+      partnerPlatformsData.platforms as platforms,
       
       -- Pre-compute hasProfileCheck for faster sorting
       ${hasProfileCheck} as hasProfile,
@@ -293,10 +294,68 @@ export async function calculatePartnerRanking({
       GROUP BY psc.partnerId
     ) salesChannelsData ON salesChannelsData.partnerId = p.id
 
+    -- OPTIMIZATION: Only get platforms for discoverable partners
+    LEFT JOIN (
+      SELECT 
+        pp.partnerId,
+        JSON_ARRAYAGG(
+          JSON_OBJECT(
+            'partnerId', pp.partnerId,
+            'type', pp.type,
+            'identifier', pp.identifier,
+            'verifiedAt', pp.verifiedAt,
+            'platformId', pp.platformId,
+            'subscribers', pp.subscribers,
+            'posts', pp.posts,
+            'views', pp.views
+          )
+        ) as platforms
+      FROM PartnerPlatform pp
+      WHERE pp.partnerId IN (
+        SELECT p_filter.id
+        FROM Partner p_filter
+        WHERE ${buildDiscoverablePartnersFilter("p_filter")}
+      )
+      GROUP BY pp.partnerId
+    ) partnerPlatformsData ON partnerPlatformsData.partnerId = p.id
+
     WHERE ${whereClause}
     ORDER BY ${orderByClause}
     LIMIT ${pageSize} OFFSET ${offset}
   `;
 
-  return partners;
+  return partners.map((partner: any) => {
+    let platforms: any[] = [];
+    if (partner.platforms) {
+      try {
+        // Handle both string and already-parsed JSON
+        const parsedPlatforms =
+          typeof partner.platforms === "string"
+            ? JSON.parse(partner.platforms)
+            : partner.platforms;
+
+        // Transform platforms to match Prisma types
+        // MySQL JSON returns BigInt as numbers and DateTime as strings
+        platforms = (Array.isArray(parsedPlatforms) ? parsedPlatforms : []).map(
+          (platform: any) => ({
+            ...platform,
+            subscribers: platform.subscribers
+              ? BigInt(platform.subscribers)
+              : BigInt(0),
+            posts: platform.posts ? BigInt(platform.posts) : BigInt(0),
+            views: platform.views ? BigInt(platform.views) : BigInt(0),
+            verifiedAt: platform.verifiedAt
+              ? new Date(platform.verifiedAt)
+              : null,
+          }),
+        );
+      } catch {
+        platforms = [];
+      }
+    }
+    return {
+      ...partner,
+      platforms,
+    };
+  });
 }
