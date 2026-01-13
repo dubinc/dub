@@ -16,8 +16,6 @@ export function EventsExportButton({
 
   const needsHigherPlan = plan === "free" || plan === "pro";
 
-  console.log({ exportQueryString });
-
   async function exportData() {
     const response = await fetch(
       `${eventsApiPath}/export?${exportQueryString}`,

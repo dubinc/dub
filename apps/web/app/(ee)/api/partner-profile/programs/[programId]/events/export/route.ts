@@ -80,8 +80,6 @@ export const GET = withPartnerProfile(
       })
       .parse(searchParams);
 
-    console.log("parsedParams", parsedParams);
-
     const { event, columns: columnsParam } = parsedParams;
     let { linkId, domain, key, ...rest } = parsedParams;
 

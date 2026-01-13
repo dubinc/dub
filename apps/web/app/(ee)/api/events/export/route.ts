@@ -56,8 +56,6 @@ export const GET = withWorkspace(
       })
       .parse(searchParams);
 
-    console.log("parsedParams", parsedParams);
-
     const { event, domain, interval, start, end, columns, key, folderId } =
       parsedParams;
 
