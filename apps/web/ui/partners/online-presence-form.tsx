@@ -661,24 +661,75 @@ function FormRow({
   const { isVerified } = useVerifiedState({ property });
 
   const info = useMemo(() => {
-    if (partner && property === "youtube" && isVerified) {
+    if (partner && isVerified) {
       // Type assertion for platforms array that exists at runtime but not in type
       const partnerWithPlatforms = partner as typeof partner & {
         platforms?: PartnerPlatformProps[];
       };
-      const youtubePlatform = getPlatformData(
-        partnerWithPlatforms.platforms,
-        "youtube",
-      );
-      const subscribers = youtubePlatform?.subscribers ?? 0;
-      const views = youtubePlatform?.views ?? 0;
 
-      return [
-        subscribers > 0
-          ? `${nFormatter(Number(subscribers))} subscribers`
-          : null,
-        views > 0 ? `${nFormatter(Number(views))} views` : null,
-      ].filter(Boolean) as string[];
+      if (property === "youtube") {
+        const youtubePlatform = getPlatformData(
+          partnerWithPlatforms.platforms,
+          "youtube",
+        );
+        const subscribers = youtubePlatform?.subscribers ?? 0;
+        const views = youtubePlatform?.views ?? 0;
+
+        return [
+          subscribers > 0
+            ? `${nFormatter(Number(subscribers))} subscribers`
+            : null,
+          views > 0 ? `${nFormatter(Number(views))} views` : null,
+        ].filter(Boolean) as string[];
+      }
+
+      if (property === "instagram") {
+        const instagramPlatform = getPlatformData(
+          partnerWithPlatforms.platforms,
+          "instagram",
+        );
+        const subscribers = instagramPlatform?.subscribers ?? 0;
+        const posts = instagramPlatform?.posts ?? 0;
+
+        return [
+          subscribers > 0
+            ? `${nFormatter(Number(subscribers))} followers`
+            : null,
+          posts > 0 ? `${nFormatter(Number(posts))} posts` : null,
+        ].filter(Boolean) as string[];
+      }
+
+      if (property === "tiktok") {
+        const tiktokPlatform = getPlatformData(
+          partnerWithPlatforms.platforms,
+          "tiktok",
+        );
+        const subscribers = tiktokPlatform?.subscribers ?? 0;
+        const posts = tiktokPlatform?.posts ?? 0;
+
+        return [
+          subscribers > 0
+            ? `${nFormatter(Number(subscribers))} followers`
+            : null,
+          posts > 0 ? `${nFormatter(Number(posts))} posts` : null,
+        ].filter(Boolean) as string[];
+      }
+
+      if (property === "twitter") {
+        const twitterPlatform = getPlatformData(
+          partnerWithPlatforms.platforms,
+          "twitter",
+        );
+        const subscribers = twitterPlatform?.subscribers ?? 0;
+        const posts = twitterPlatform?.posts ?? 0;
+
+        return [
+          subscribers > 0
+            ? `${nFormatter(Number(subscribers))} followers`
+            : null,
+          posts > 0 ? `${nFormatter(Number(posts))} tweets` : null,
+        ].filter(Boolean) as string[];
+      }
     }
     return null;
   }, [partner, property, isVerified]);

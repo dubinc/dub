@@ -1,8 +1,9 @@
 import { ONLINE_PRESENCE_PROVIDERS } from "@/lib/api/partner-profile/online-presence-providers";
+import { fetchSocialProfile } from "@/lib/api/scrape-creators/fetch-social-profile";
 import { getSession } from "@/lib/auth/utils";
 import { redis } from "@/lib/upstash/redis";
 import { prisma } from "@dub/prisma";
-import { PlatformType } from "@dub/prisma/client";
+import { PartnerPlatform, PlatformType } from "@dub/prisma/client";
 import {
   getSearchParams,
   PARTNERS_DOMAIN,
@@ -10,7 +11,7 @@ import {
 } from "@dub/utils";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 const requestSchema = z.object({
   code: z.string(),
@@ -148,6 +149,33 @@ export async function GET(req: Request) {
     return NextResponse.redirect(redirectUrl);
   }
 
+  // Sync social stats for platforms
+  let socialStats: Pick<PartnerPlatform, "subscribers" | "posts" | "views"> = {
+    subscribers: BigInt(0),
+    posts: BigInt(0),
+    views: BigInt(0),
+  };
+
+  if (["tiktok", "twitter"].includes(platform)) {
+    try {
+      const socialProfile = await fetchSocialProfile({
+        platform,
+        handle: partnerPlatform.identifier,
+      });
+
+      socialStats = {
+        subscribers: socialProfile.subscribers,
+        posts: socialProfile.posts,
+        views: socialProfile.views,
+      };
+    } catch (error) {
+      console.error(
+        `Failed to fetch social stats for ${platform} handle @${partnerPlatform.identifier}:`,
+        error,
+      );
+    }
+  }
+
   await prisma.partnerPlatform.update({
     where: {
       partnerId_type: {
@@ -157,7 +185,8 @@ export async function GET(req: Request) {
     },
     data: {
       verifiedAt: new Date(),
-      metadata: metadata || undefined,
+      ...(metadata && { metadata }),
+      ...socialStats,
     },
   });
 

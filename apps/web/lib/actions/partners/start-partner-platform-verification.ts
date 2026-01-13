@@ -17,7 +17,7 @@ import { PlatformType } from "@dub/prisma/client";
 import { nanoid, PARTNERS_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { cookies } from "next/headers";
 import { v4 as uuid } from "uuid";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { authPartnerActionClient } from "../safe-action";
 
 const startPartnerPlatformVerificationSchema = z.object({
