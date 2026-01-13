@@ -80,6 +80,14 @@ export async function rejectBountySubmission({
     });
   }
 
+  if (submission.status === "approved") {
+    throw new DubApiError({
+      code: "bad_request",
+      message:
+        "This bounty submission has already been approved and cannot be rejected.",
+    });
+  }
+
   const bounty = submission.bounty;
 
   const rejectedSubmission = await prisma.bountySubmission.update({
