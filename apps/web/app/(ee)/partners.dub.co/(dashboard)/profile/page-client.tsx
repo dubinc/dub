@@ -24,16 +24,16 @@ import { toast } from "sonner";
 import { AboutYouForm } from "./about-you-form";
 import { HowYouWorkForm } from "./how-you-work-form";
 import { ProfileDetailsForm } from "./profile-details-form";
-import { ProfileDiscoveryGuide } from "./profile-discovery-guide";
-import { usePartnerDiscoveryRequirements } from "./use-partner-discovery-requirements";
+import { ProfileUnlocksGuide } from "./profile-unlocks-guide";
+import { usePartnerUnlocks } from "./use-partner-unlocks";
 
 export function ProfileSettingsPageClient() {
   const { partner } = usePartnerProfile();
-  const tasks = usePartnerDiscoveryRequirements();
+  const unlocks = usePartnerUnlocks();
 
   const allTasksCompleted = useMemo(
-    () => tasks?.every(({ completed }) => completed) ?? false,
-    [tasks],
+    () => unlocks?.completedTasks === unlocks?.totalTasks,
+    [unlocks],
   );
 
   return (
@@ -53,7 +53,7 @@ export function ProfileSettingsPageClient() {
       }
     >
       <PageWidthWrapper className="mb-20 flex flex-col gap-6">
-        {partner && !allTasksCompleted && <ProfileDiscoveryGuide />}
+        {partner && unlocks && <ProfileUnlocksGuide />}
         <ProfileDetailsForm partner={partner} />
         <AboutYouForm partner={partner} />
         <HowYouWorkForm partner={partner} />
