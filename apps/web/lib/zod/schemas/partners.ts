@@ -341,6 +341,12 @@ export const PartnerSchema = z
       .describe(
         "The date when the partner received the trusted badge in the partner network.",
       ),
+    unlocksCompletedAt: z
+      .date()
+      .nullable()
+      .describe(
+        "The date when the partner dismissed the unlocks guide on their profile.",
+      ),
   })
   .extend(PartnerOnlinePresenceSchema.shape)
   .extend(PartnerProfileSchema.partial().shape);

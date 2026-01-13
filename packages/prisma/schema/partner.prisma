@@ -34,10 +34,11 @@ model Partner {
   connectPayoutsLastRemindedAt DateTime?
 
   // timestamp fields
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-  discoverableAt DateTime?
-  trustedAt      DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  discoverableAt      DateTime?
+  trustedAt           DateTime?
+  unlocksCompletedAt  DateTime?
 
   // online presence fields
   website                String?
