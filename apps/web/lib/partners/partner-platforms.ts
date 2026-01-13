@@ -10,7 +10,7 @@ import {
 import { getPrettyUrl, nFormatter } from "@dub/utils";
 import { PartnerPlatformProps } from "../types";
 
-export const ONLINE_PRESENCE_FIELDS: {
+export const PARTNER_PLATFORM_FIELDS: {
   label: string;
   icon: Icon;
   data: (platforms: PartnerPlatformProps[]) => {
@@ -68,6 +68,14 @@ export const ONLINE_PRESENCE_FIELDS: {
         href: twitter?.identifier
           ? `https://x.com/${twitter.identifier}`
           : null,
+        info: [
+          twitter?.subscribers && twitter.subscribers > 0
+            ? `${nFormatter(Number(twitter.subscribers))} followers`
+            : null,
+          twitter?.posts && twitter.posts > 0
+            ? `${nFormatter(Number(twitter.posts))} tweets`
+            : null,
+        ].filter(Boolean),
       };
     },
   },
@@ -98,6 +106,14 @@ export const ONLINE_PRESENCE_FIELDS: {
         href: instagram?.identifier
           ? `https://instagram.com/${instagram.identifier}`
           : null,
+        info: [
+          instagram?.subscribers && instagram.subscribers > 0
+            ? `${nFormatter(Number(instagram.subscribers))} followers`
+            : null,
+          instagram?.posts && instagram.posts > 0
+            ? `${nFormatter(Number(instagram.posts))} posts`
+            : null,
+        ].filter(Boolean),
       };
     },
   },
@@ -113,6 +129,14 @@ export const ONLINE_PRESENCE_FIELDS: {
         href: tiktok?.identifier
           ? `https://tiktok.com/@${tiktok.identifier}`
           : null,
+        info: [
+          tiktok?.subscribers && tiktok.subscribers > 0
+            ? `${nFormatter(Number(tiktok.subscribers))} followers`
+            : null,
+          tiktok?.posts && tiktok.posts > 0
+            ? `${nFormatter(Number(tiktok.posts))} posts`
+            : null,
+        ].filter(Boolean),
       };
     },
   },

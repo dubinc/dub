@@ -1,4 +1,4 @@
-import { ONLINE_PRESENCE_FIELDS } from "@/lib/partners/online-presence";
+import { PARTNER_PLATFORM_FIELDS } from "@/lib/partners/partner-platforms";
 import { PartnerPlatformProps } from "@/lib/types";
 import { cn } from "@dub/utils";
 import { Fragment } from "react";
@@ -29,7 +29,7 @@ export function OnlinePresenceSummary({
     );
   }
 
-  const fieldData = ONLINE_PRESENCE_FIELDS.map((field) => ({
+  const fieldData = PARTNER_PLATFORM_FIELDS.map((field) => ({
     label: field.label,
     icon: field.icon,
     ...field.data(platforms),

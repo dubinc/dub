@@ -1,7 +1,7 @@
 "use client";
 
 import { updateDiscoveredPartnerAction } from "@/lib/actions/partners/update-discovered-partner";
-import { ONLINE_PRESENCE_FIELDS } from "@/lib/partners/online-presence";
+import { PARTNER_PLATFORM_FIELDS } from "@/lib/partners/partner-platforms";
 import useNetworkPartnersCount from "@/lib/swr/use-network-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { NetworkPartnerProps } from "@/lib/types";
@@ -383,7 +383,7 @@ function PartnerCard({
   const onlinePresenceData = useMemo(
     () =>
       partner
-        ? ONLINE_PRESENCE_FIELDS.map((field) => ({
+        ? PARTNER_PLATFORM_FIELDS.map((field) => ({
             label: field.label,
             icon: field.icon,
             ...field.data(partner.platforms),

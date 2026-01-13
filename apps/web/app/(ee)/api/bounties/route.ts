@@ -52,20 +52,29 @@ export const GET = withWorkspace(
           programId,
           // Filter only bounties the specified partner is eligible for
           ...(programEnrollment && {
-            OR: [
+            AND: [
+              // Filter out expired bounties
               {
-                groups: {
-                  none: {},
-                },
+                OR: [{ endsAt: null }, { endsAt: { gt: new Date() } }],
               },
+              // Filter by partner's group eligibility
               {
-                groups: {
-                  some: {
-                    groupId:
-                      programEnrollment.groupId ||
-                      programEnrollment.program.defaultGroupId,
+                OR: [
+                  {
+                    groups: {
+                      none: {},
+                    },
                   },
-                },
+                  {
+                    groups: {
+                      some: {
+                        groupId:
+                          programEnrollment.groupId ||
+                          programEnrollment.program.defaultGroupId,
+                      },
+                    },
+                  },
+                ],
               },
             ],
           }),
