@@ -46,6 +46,26 @@ export function isPartnerProfileComplete(
   );
 }
 
+export function canAccessMarketplace(
+  partner: Pick<
+    PartnerProps,
+    | "name"
+    | "country"
+    | "profileType"
+    | "description"
+    | "monthlyTraffic"
+    | "preferredEarningStructures"
+    | "salesChannels"
+    | "industryInterests"
+    | "platforms"
+  >,
+): boolean {
+  return (
+    hasVerifiedSocialAccount(partner.platforms) &&
+    isPartnerProfileComplete(partner)
+  );
+}
+
 export function getMarketplaceRequirements({
   partner,
 }: {
@@ -65,12 +85,12 @@ export function getMarketplaceRequirements({
   return [
     {
       label: "Verify a social account",
-      href: "#sites",
+      href: "/profile#sites",
       completed: hasVerifiedSocialAccount(partner.platforms),
     },
     {
       label: "Complete your partner profile",
-      href: "#about",
+      href: "/profile#about",
       completed: isPartnerProfileComplete(partner),
     },
   ];

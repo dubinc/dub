@@ -1,7 +1,5 @@
 "use client";
 
-import { partnerCanViewMarketplace } from "@/lib/network/get-discoverability-requirements";
-import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import usePartnerProgramBounties from "@/lib/swr/use-partner-program-bounties";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
@@ -44,7 +42,6 @@ type SidebarNavData = {
   unreadMessagesCount?: number;
   programBountiesCount?: number;
   showDetailedAnalytics?: boolean;
-  showMarketplace?: boolean;
 };
 
 const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
@@ -87,7 +84,7 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
 
 const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
   // Top-level
-  programs: ({ invitationsCount, showMarketplace }) => ({
+  programs: ({ invitationsCount }) => ({
     title: (
       <div className="mb-3">
         <PartnerProgramDropdown />
@@ -108,16 +105,12 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
                 (k) => !pathname.startsWith(`${href}/${k}`),
               ),
           },
-          ...(showMarketplace
-            ? [
-                {
-                  name: "Marketplace",
-                  icon: Shop,
-                  href: "/programs/marketplace" as `/${string}`,
-                  badge: "New",
-                },
-              ]
-            : []),
+          {
+            name: "Marketplace",
+            icon: Shop,
+            href: "/programs/marketplace",
+            badge: "New",
+          },
           {
             name: "Invitations",
             icon: UserCheck,
@@ -292,8 +285,6 @@ export function PartnersSidebarNav({
   const pathname = usePathname();
   const { getQueryString } = useRouterStuff();
 
-  const { partner } = usePartnerProfile();
-
   const isEnrolledProgramPage =
     pathname.startsWith(`/programs/${programSlug}`) &&
     pathname !== `/programs/${programSlug}/apply`;
@@ -356,10 +347,6 @@ export function PartnersSidebarNav({
         unreadMessagesCount,
         programBountiesCount: bountiesCount.active,
         showDetailedAnalytics,
-        showMarketplace: partnerCanViewMarketplace({
-          partner,
-          programEnrollments: programEnrollments || [],
-        }),
       }}
       toolContent={toolContent}
       newsContent={newsContent}

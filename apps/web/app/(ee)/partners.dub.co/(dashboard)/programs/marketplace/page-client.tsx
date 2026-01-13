@@ -1,8 +1,11 @@
 "use client";
 
+import { canAccessMarketplace } from "@/lib/network/get-marketplace-requirements";
 import useNetworkProgramsCount from "@/lib/swr/use-network-programs-count";
+import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { NetworkProgramProps } from "@/lib/types";
 import { PROGRAM_NETWORK_MAX_PAGE_SIZE } from "@/lib/zod/schemas/program-network";
+import { MarketplaceUnlockGate } from "@/ui/partners/program-marketplace/marketplace-unlock-gate";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import {
   AnimatedSizeContainer,
@@ -20,8 +23,9 @@ import ProgramSort from "./program-sort";
 import { useProgramNetworkFilters } from "./use-program-network-filters";
 
 export function ProgramMarketplacePageClient() {
+  // All hooks must be called before any conditional returns
+  const { partner } = usePartnerProfile();
   const { getQueryString } = useRouterStuff();
-
   const { data: programsCount, error: countError } = useNetworkProgramsCount();
 
   const {
@@ -46,6 +50,14 @@ export function ProgramMarketplacePageClient() {
     onRemove,
     onRemoveAll,
   } = useProgramNetworkFilters();
+
+  // Check access after all hooks
+  const hasAccess = partner ? canAccessMarketplace(partner) : true;
+
+  // Show unlock gate if partner loaded and doesn't have access
+  if (partner && !hasAccess) {
+    return <MarketplaceUnlockGate />;
+  }
 
   return (
     <div className="flex flex-col gap-6">

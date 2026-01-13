@@ -21,7 +21,6 @@ import { usePartnerUnlocks } from "./use-partner-unlocks";
 
 export function ProfileUnlocksGuide() {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [simulateComplete, setSimulateComplete] = useState(false);
   const unlocks = usePartnerUnlocks();
 
   const { executeAsync: dismissBanner, isPending: isDismissing } = useAction(
@@ -40,26 +39,16 @@ export function ProfileUnlocksGuide() {
   if (!unlocks) return null;
 
   const { categories, totalTasks, completedTasks } = unlocks;
-  const allTasksCompleted = simulateComplete || completedTasks === totalTasks;
+  const allTasksCompleted = completedTasks === totalTasks;
 
   return (
-    <>
-      {process.env.NODE_ENV === "development" && (
-        <button
-          type="button"
-          className="fixed bottom-4 right-4 z-50 rounded-md bg-neutral-800 px-3 py-1.5 text-xs text-white shadow-lg"
-          onClick={() => setSimulateComplete((s) => !s)}
-        >
-          {simulateComplete ? "Simulating ✓" : "Simulate Unlock"}
-        </button>
-      )}
-      <motion.div
-        initial={{ opacity: 0, height: 0 }}
-        animate={{ opacity: 1, height: "auto" }}
-        transition={{ duration: 0.2, ease: "easeOut" }}
-        className="overflow-hidden"
-      >
-        <div className="text-content-inverted rounded-xl bg-neutral-900">
+    <motion.div
+      initial={{ opacity: 0, height: 0 }}
+      animate={{ opacity: 1, height: "auto" }}
+      transition={{ duration: 0.2, ease: "easeOut" }}
+      className="overflow-hidden"
+    >
+      <div className="text-content-inverted rounded-xl bg-neutral-900">
           {/* Collapsed Header */}
           <div
             className="flex cursor-pointer select-none items-center gap-4 p-3 pr-6"
@@ -188,9 +177,8 @@ export function ProfileUnlocksGuide() {
               ))}
             </div>
           </motion.div>
-        </div>
-      </motion.div>
-    </>
+      </div>
+    </motion.div>
   );
 }
 
