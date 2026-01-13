@@ -2,12 +2,21 @@
 
 import { rejectBountySubmission } from "@/lib/api/bounties/reject-bounty-submission";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { rejectBountySubmissionSchema } from "@/lib/zod/schemas/bounties";
+import { rejectBountySubmissionBodySchema } from "@/lib/zod/schemas/bounties";
+import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
+
+// TODO
+// Replace with /api/bounties/[bountyId]/submissions/[submissionId]/reject
+
+const inputSchema = rejectBountySubmissionBodySchema.extend({
+  workspaceId: z.string(),
+  submissionId: z.string(),
+});
 
 // Reject a bounty submission
 export const rejectBountySubmissionAction = authActionClient
-  .inputSchema(rejectBountySubmissionSchema)
+  .inputSchema(inputSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { submissionId, rejectionReason, rejectionNote } = parsedInput;

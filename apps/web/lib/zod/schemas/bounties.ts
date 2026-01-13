@@ -161,9 +161,11 @@ export const BountySubmissionExtendedSchema = BountySubmissionSchema.extend({
   }).nullable(),
 });
 
-export const rejectBountySubmissionSchema = z.object({
-  workspaceId: z.string(),
-  submissionId: z.string(),
+export const approveBountySubmissionBodySchema = z.object({
+  rewardAmount: z.number().nullable().optional(),
+});
+
+export const rejectBountySubmissionBodySchema = z.object({
   rejectionReason: z.enum(BountySubmissionRejectionReason),
   rejectionNote: z
     .string()

@@ -3,12 +3,8 @@ import { getBountyOrThrow } from "@/lib/api/bounties/get-bounty-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { approveBountySubmissionBodySchema } from "@/lib/zod/schemas/bounties";
 import { NextResponse } from "next/server";
-import * as z from "zod/v4";
-
-const approveBountySubmissionBodySchema = z.object({
-  rewardAmount: z.number().nullable().optional(),
-});
 
 // POST /api/bounties/[bountyId]/submissions/[submissionId]/approve - approve a submission
 export const POST = withWorkspace(
