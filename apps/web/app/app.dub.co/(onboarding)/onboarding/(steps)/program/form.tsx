@@ -6,25 +6,22 @@ import { ProgramData } from "@/lib/types";
 import { Button, FileUpload, Input, useMediaQuery } from "@dub/ui";
 import { Plus } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 import { useOnboardingProgress } from "../../use-onboarding-progress";
 
 export function Form() {
-  const router = useRouter();
   const { isMobile } = useMediaQuery();
   const [isUploading, setIsUploading] = useState(false);
   const [hasSubmitted, setHasSubmitted] = useState(false);
-  const { id: workspaceId, slug: workspaceSlug, mutate } = useWorkspace();
+  const { id: workspaceId, mutate } = useWorkspace();
 
   const { continueTo } = useOnboardingProgress();
 
   const {
     register,
     handleSubmit,
-    watch,
     control,
     setValue,
     formState: { isSubmitting, errors },
