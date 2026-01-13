@@ -10,7 +10,7 @@ import {
 import { getPrettyUrl, nFormatter } from "@dub/utils";
 import { PartnerPlatformProps } from "../types";
 
-export const ONLINE_PRESENCE_FIELDS: {
+export const PARTNER_PLATFORM_FIELDS: {
   label: string;
   icon: Icon;
   data: (platforms: PartnerPlatformProps[]) => {

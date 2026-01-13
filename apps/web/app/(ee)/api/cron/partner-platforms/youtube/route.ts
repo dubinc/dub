@@ -16,10 +16,11 @@ const youtubeChannelSchema = z.object({
 
 export const dynamic = "force-dynamic";
 
-/*
-    This route is used to update youtube stats for youtubeVerified partners
-    Runs once a day at 06:00 AM UTC (cron expression: 0 6 * * *)
-*/
+/**
+ * This route is used to update stats for YouTube verified partners using the YouTube API
+ * Runs once a day at 06:00 AM UTC (cron expression: 0 6 * * *)
+ * POST /api/cron/partner-platforms/youtube
+ */
 export const POST = withCron(async () => {
   if (!process.env.YOUTUBE_API_KEY) {
     throw new Error("YOUTUBE_API_KEY is not defined");
@@ -96,7 +97,10 @@ export const POST = withCron(async () => {
         where: {
           id: partnerPlatform.id,
         },
-        data: newStats,
+        data: {
+          ...newStats,
+          lastCheckedAt: new Date(),
+        },
       });
 
       console.log(

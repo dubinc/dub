@@ -4,6 +4,7 @@ import { withCron } from "@/lib/cron/with-cron";
 import { prisma } from "@dub/prisma";
 import { PartnerPlatform, PlatformType } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK, deepEqual } from "@dub/utils";
+import { subDays } from "date-fns";
 import * as z from "zod/v4";
 import { logAndRespond } from "../utils";
 
@@ -15,10 +16,12 @@ const schema = z.object({
   startingAfter: z.string().optional(),
 });
 
-// This route is used to update social platform stats for verified Instagram, TikTok, and Twitter partners
-// Runs once a day at 06:00 AM UTC (cron expression: 0 6 * * *)
-// POST /api/cron/online-presence
-export const POST = withCron(async ({ rawBody, searchParams }) => {
+/**
+ * This route is used to update stats for verified Instagram, TikTok, and Twitter partners using the ScrapeCreators API
+ * Runs once a day at 06:00 AM UTC (cron expression: 0 6 * * *)
+ * POST /api/cron/partner-platforms
+ */
+export const POST = withCron(async ({ rawBody }) => {
   if (!process.env.SCRAPECREATORS_API_KEY) {
     throw new Error("SCRAPECREATORS_API_KEY is not defined");
   }
@@ -34,6 +37,16 @@ export const POST = withCron(async ({ rawBody, searchParams }) => {
       },
       verifiedAt: {
         not: null,
+      },
+      // only check platforms that haven't been checked in the last 7 days
+      lastCheckedAt: {
+        lt: subDays(new Date(), 7),
+      },
+      // only check partners that are discoverable in the partner network
+      partner: {
+        discoverableAt: {
+          not: null,
+        },
       },
     },
     take: BATCH_SIZE,
@@ -114,11 +127,15 @@ export const POST = withCron(async ({ rawBody, searchParams }) => {
         where: {
           id: verifiedProfile.id,
         },
-        data: newStats,
+        data: {
+          ...newStats,
+          lastCheckedAt: new Date(),
+        },
       });
 
       console.log(
         `Updated ${verifiedProfile.type} stats for @${verifiedProfile.identifier}`,
+        newStats,
       );
     } catch (error) {
       console.error(
