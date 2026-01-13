@@ -148,12 +148,12 @@ export function Form() {
         </div>
       </div>
 
-      <div className="-mx-1">
+      <div className="-m-1">
         <AnimatedSizeContainer
           height
           transition={{ duration: 0.2, ease: "easeOut" }}
         >
-          <div className="flex flex-col gap-6 px-1">
+          <div className="flex flex-col gap-6 p-1">
             {defaultRewardType === "sale" && (
               <div className="space-y-2">
                 <h2 className="text-content-emphasis text-sm font-semibold">
