@@ -6,7 +6,7 @@ import { OnlinePresenceForm } from "@/ui/partners/online-presence-form";
 import { prisma } from "@dub/prisma";
 import { PlatformType } from "@dub/prisma/client";
 import { Suspense } from "react";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { OnlinePresencePageClient } from "./page-client";
 
 export default function OnlinePresencePage() {

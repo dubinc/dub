@@ -41,7 +41,7 @@ export const PUT = withWorkspace(
       throw new DubApiError({
         code: "bad_request",
         message:
-          "You need to set a domain and url for this program before creating a partner.",
+          "You need to set a domain and url for this program before upserting a partner link.",
       });
     }
 
