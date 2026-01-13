@@ -95,7 +95,7 @@ export function Form() {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
       <label className="space-y-2">
-        <span className="block text-sm font-medium text-neutral-800">
+        <span className="text-content-emphasis block text-sm font-semibold">
           Company name
         </span>
 
@@ -113,7 +113,9 @@ export function Form() {
       </label>
 
       <label className="space-y-2">
-        <span className="block text-sm font-medium text-neutral-800">Logo</span>
+        <span className="text-content-emphasis block text-sm font-semibold">
+          Logo
+        </span>
 
         <div className="flex w-full items-center justify-center gap-2 rounded-lg border border-neutral-200 p-1">
           <Controller
@@ -144,7 +146,7 @@ export function Form() {
       </label>
 
       <label className="space-y-2">
-        <span className="block text-sm font-medium text-neutral-800">
+        <span className="text-content-emphasis block text-sm font-semibold">
           Destination URL
         </span>
 
@@ -170,7 +172,7 @@ export function Form() {
       </label>
 
       <label className="space-y-2">
-        <span className="block text-sm font-medium text-neutral-800">
+        <span className="text-content-emphasis block text-sm font-semibold">
           Support email
         </span>
 
