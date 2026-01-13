@@ -8,30 +8,37 @@ const SOCIAL_PLATFORM_TYPES = [
   "tiktok",
 ] as const;
 
+type MarketplacePartnerFields = Pick<
+  PartnerProps,
+  | "name"
+  | "country"
+  | "profileType"
+  | "description"
+  | "monthlyTraffic"
+  | "preferredEarningStructures"
+  | "salesChannels"
+  | "industryInterests"
+  | "platforms"
+>;
+
+function isSocialPlatformType(
+  type: string,
+): type is (typeof SOCIAL_PLATFORM_TYPES)[number] {
+  return SOCIAL_PLATFORM_TYPES.includes(
+    type as (typeof SOCIAL_PLATFORM_TYPES)[number],
+  );
+}
+
 export function hasVerifiedSocialAccount(
   platforms: PartnerPlatformProps[],
 ): boolean {
   return platforms.some(
-    (p) =>
-      SOCIAL_PLATFORM_TYPES.includes(
-        p.type as (typeof SOCIAL_PLATFORM_TYPES)[number],
-      ) && p.verifiedAt !== null,
+    (p) => isSocialPlatformType(p.type) && p.verifiedAt !== null,
   );
 }
 
 export function isPartnerProfileComplete(
-  partner: Pick<
-    PartnerProps,
-    | "name"
-    | "country"
-    | "profileType"
-    | "description"
-    | "monthlyTraffic"
-    | "preferredEarningStructures"
-    | "salesChannels"
-    | "industryInterests"
-    | "platforms"
-  >,
+  partner: MarketplacePartnerFields,
 ): boolean {
   return Boolean(
     partner.name &&
@@ -47,18 +54,7 @@ export function isPartnerProfileComplete(
 }
 
 export function canAccessMarketplace(
-  partner: Pick<
-    PartnerProps,
-    | "name"
-    | "country"
-    | "profileType"
-    | "description"
-    | "monthlyTraffic"
-    | "preferredEarningStructures"
-    | "salesChannels"
-    | "industryInterests"
-    | "platforms"
-  >,
+  partner: MarketplacePartnerFields,
 ): boolean {
   return (
     hasVerifiedSocialAccount(partner.platforms) &&
@@ -69,18 +65,7 @@ export function canAccessMarketplace(
 export function getMarketplaceRequirements({
   partner,
 }: {
-  partner: Pick<
-    PartnerProps,
-    | "name"
-    | "country"
-    | "profileType"
-    | "description"
-    | "monthlyTraffic"
-    | "preferredEarningStructures"
-    | "salesChannels"
-    | "industryInterests"
-    | "platforms"
-  >;
+  partner: MarketplacePartnerFields;
 }) {
   return [
     {

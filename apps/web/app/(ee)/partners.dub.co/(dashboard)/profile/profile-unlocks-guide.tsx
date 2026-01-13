@@ -15,7 +15,7 @@ import { cn, isClickOnInteractiveChild } from "@dub/utils";
 import { motion } from "motion/react";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
-import { HTMLProps, useState } from "react";
+import { ComponentProps, ReactNode, useState } from "react";
 import { toast } from "sonner";
 import { usePartnerUnlocks } from "./use-partner-unlocks";
 
@@ -51,10 +51,19 @@ export function ProfileUnlocksGuide() {
       <div className="text-content-inverted rounded-xl bg-neutral-900">
           {/* Collapsed Header */}
           <div
+            role="button"
+            tabIndex={0}
+            aria-expanded={isExpanded}
             className="flex cursor-pointer select-none items-center gap-4 p-3 pr-6"
             onClick={(e) => {
               if (isClickOnInteractiveChild(e)) return;
-              setIsExpanded((e) => !e);
+              setIsExpanded((prev) => !prev);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                setIsExpanded((prev) => !prev);
+              }
             }}
           >
             {/* Lock Icon */}
@@ -71,7 +80,7 @@ export function ProfileUnlocksGuide() {
               <h2 className="text-sm font-semibold">Dub unlocks</h2>
               <div className="flex items-center gap-1.5">
                 <ProgressCircle
-                  progress={completedTasks / totalTasks}
+                  progress={totalTasks === 0 ? 0 : completedTasks / totalTasks}
                   className="text-green-500 [--track-color:#fff3]"
                 />
                 <span className="text-content-inverted/60 text-sm">
@@ -182,12 +191,18 @@ export function ProfileUnlocksGuide() {
   );
 }
 
+type ConditionalLinkProps = {
+  href?: string;
+  className?: string;
+  children?: ReactNode;
+} & Omit<ComponentProps<typeof Link>, "href">;
+
 function ConditionalLink({
   href,
   className,
   children,
   ...rest
-}: Partial<HTMLProps<HTMLAnchorElement>>) {
+}: ConditionalLinkProps) {
   return href ? (
     <Link href={href} className={className} {...rest}>
       {children}
