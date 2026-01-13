@@ -69,7 +69,7 @@ export function getDiscoverabilityRequirements({
       completed: true,
     },
     {
-      label: "Verify a connected website",
+      label: "Verify your website",
       href: "#sites",
       completed: partner.platforms.some(
         (p) => p.type === "website" && p.verifiedAt !== null,
@@ -101,6 +101,7 @@ export function getDiscoverabilityRequirements({
     },
     {
       label: `Earn ${currencyFormatter(PARTNER_NETWORK_MIN_COMMISSIONS_CENTS, { trailingZeroDisplay: "stripIfInteger" })} in commissions`,
+      href: "/payouts",
       completed: partnerHasEarnedCommissions(programEnrollments),
     },
   ];

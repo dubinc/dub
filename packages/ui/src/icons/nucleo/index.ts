@@ -161,6 +161,7 @@ export * from "./link4";
 export * from "./location-pin";
 export * from "./lock";
 export * from "./lock-fill";
+export * from "./lock-open-2";
 export * from "./magnifier";
 export * from "./map-position";
 export * from "./marketing-target";

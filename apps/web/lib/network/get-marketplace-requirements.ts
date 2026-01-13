@@ -13,8 +13,9 @@ export function hasVerifiedSocialAccount(
 ): boolean {
   return platforms.some(
     (p) =>
-      SOCIAL_PLATFORM_TYPES.includes(p.type as (typeof SOCIAL_PLATFORM_TYPES)[number]) &&
-      p.verifiedAt !== null,
+      SOCIAL_PLATFORM_TYPES.includes(
+        p.type as (typeof SOCIAL_PLATFORM_TYPES)[number],
+      ) && p.verifiedAt !== null,
   );
 }
 
@@ -63,7 +64,7 @@ export function getMarketplaceRequirements({
 }) {
   return [
     {
-      label: "Verify a connected social account",
+      label: "Verify a social account",
       href: "#sites",
       completed: hasVerifiedSocialAccount(partner.platforms),
     },
