@@ -105,55 +105,79 @@ export function ActivityRing({
   }, [positiveValue, negativeValue]);
 
   // Calculate arc angles based on ratio
-  const { positiveArc, negativeArc } = useMemo(() => {
-    const total = positiveValue + negativeValue;
+  const { positiveArc, negativeArc, showOnlyPositive, showOnlyNegative } =
+    useMemo(() => {
+      const total = positiveValue + negativeValue;
 
-    // Available sweep angle (360 - 2 gaps)
-    const availableSweep = 360 - GAP_ANGLE * 2;
+      // Available sweep angle (360 - 2 gaps)
+      const availableSweep = 360 - GAP_ANGLE * 2;
 
-    if (total === 0) {
-      // Neutral: equal arcs at 50% each
-      const halfSweep = availableSweep / 2;
+      if (total === 0) {
+        // Neutral: equal arcs at 50% each
+        const halfSweep = availableSweep / 2;
+        return {
+          // Right side: from top going clockwise to bottom
+          positiveArc: { start: GAP_ANGLE / 2, end: GAP_ANGLE / 2 + halfSweep },
+          // Left side: from bottom going clockwise to top
+          negativeArc: {
+            start: 180 + GAP_ANGLE / 2,
+            end: 180 + GAP_ANGLE / 2 + halfSweep,
+          },
+          showOnlyPositive: false,
+          showOnlyNegative: false,
+        };
+      }
+
+      // When one value is 0, show full circle of the other color (no gaps)
+      if (positiveValue === 0) {
+        return {
+          positiveArc: { start: 0, end: 0 },
+          negativeArc: { start: 0, end: 360 },
+          showOnlyPositive: false,
+          showOnlyNegative: true,
+        };
+      }
+
+      if (negativeValue === 0) {
+        return {
+          positiveArc: { start: 0, end: 360 },
+          negativeArc: { start: 0, end: 0 },
+          showOnlyPositive: true,
+          showOnlyNegative: false,
+        };
+      }
+
+      const positiveRatio = positiveValue / total;
+
+      // Calculate sweeps with minimum visibility
+      let positiveSweep = positiveRatio * availableSweep;
+      let negativeSweep = (1 - positiveRatio) * availableSweep;
+
+      // Ensure minimum visibility for non-zero values
+      if (positiveValue > 0 && positiveSweep < MIN_ARC_DEGREES) {
+        positiveSweep = MIN_ARC_DEGREES;
+        negativeSweep = availableSweep - MIN_ARC_DEGREES;
+      }
+      if (negativeValue > 0 && negativeSweep < MIN_ARC_DEGREES) {
+        negativeSweep = MIN_ARC_DEGREES;
+        positiveSweep = availableSweep - MIN_ARC_DEGREES;
+      }
+
       return {
-        // Right side: from top going clockwise to bottom
-        positiveArc: { start: GAP_ANGLE / 2, end: GAP_ANGLE / 2 + halfSweep },
-        // Left side: from bottom going clockwise to top
-        negativeArc: {
-          start: 180 + GAP_ANGLE / 2,
-          end: 180 + GAP_ANGLE / 2 + halfSweep,
+        // Right side: from top going clockwise
+        positiveArc: {
+          start: GAP_ANGLE / 2,
+          end: GAP_ANGLE / 2 + positiveSweep,
         },
+        // Left side: from where positive ends + gap, going clockwise
+        negativeArc: {
+          start: GAP_ANGLE / 2 + positiveSweep + GAP_ANGLE,
+          end: GAP_ANGLE / 2 + positiveSweep + GAP_ANGLE + negativeSweep,
+        },
+        showOnlyPositive: false,
+        showOnlyNegative: false,
       };
-    }
-
-    const positiveRatio = positiveValue / total;
-
-    // Calculate sweeps with minimum visibility
-    let positiveSweep = positiveRatio * availableSweep;
-    let negativeSweep = (1 - positiveRatio) * availableSweep;
-
-    // Ensure minimum visibility for non-zero values
-    if (positiveValue > 0 && positiveSweep < MIN_ARC_DEGREES) {
-      positiveSweep = MIN_ARC_DEGREES;
-      negativeSweep = availableSweep - MIN_ARC_DEGREES;
-    }
-    if (negativeValue > 0 && negativeSweep < MIN_ARC_DEGREES) {
-      negativeSweep = MIN_ARC_DEGREES;
-      positiveSweep = availableSweep - MIN_ARC_DEGREES;
-    }
-
-    return {
-      // Right side: from top going clockwise
-      positiveArc: {
-        start: GAP_ANGLE / 2,
-        end: GAP_ANGLE / 2 + positiveSweep,
-      },
-      // Left side: from where positive ends + gap, going clockwise
-      negativeArc: {
-        start: GAP_ANGLE / 2 + positiveSweep + GAP_ANGLE,
-        end: GAP_ANGLE / 2 + positiveSweep + GAP_ANGLE + negativeSweep,
-      },
-    };
-  }, [positiveValue, negativeValue]);
+    }, [positiveValue, negativeValue]);
 
   const center = size / 2;
   const strokeWidth = 3;
@@ -193,8 +217,34 @@ export function ActivityRing({
       style={{ width: size, height: size }}
     >
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-        {/* Filled arc for positive (behind stroke) */}
-        {positiveValue > 0 && (
+        {/* Full circle fill for 100% positive */}
+        {showOnlyPositive && (
+          <circle
+            cx={center}
+            cy={center}
+            r={(fillOuterRadius + fillInnerRadius) / 2}
+            fill="none"
+            stroke={COLORS.positive}
+            strokeWidth={fillOuterRadius - fillInnerRadius}
+            opacity={0.1}
+          />
+        )}
+
+        {/* Full circle fill for 100% negative */}
+        {showOnlyNegative && (
+          <circle
+            cx={center}
+            cy={center}
+            r={(fillOuterRadius + fillInnerRadius) / 2}
+            fill="none"
+            stroke={COLORS.negative}
+            strokeWidth={fillOuterRadius - fillInnerRadius}
+            opacity={0.1}
+          />
+        )}
+
+        {/* Filled arc for positive (behind stroke) - only when not full circle */}
+        {positiveValue > 0 && !showOnlyPositive && (
           <path
             d={describeFilledArc(
               center,
@@ -209,8 +259,8 @@ export function ActivityRing({
           />
         )}
 
-        {/* Filled arc for negative (behind stroke) */}
-        {negativeValue > 0 && (
+        {/* Filled arc for negative (behind stroke) - only when not full circle */}
+        {negativeValue > 0 && !showOnlyNegative && (
           <path
             d={describeFilledArc(
               center,
@@ -225,35 +275,63 @@ export function ActivityRing({
           />
         )}
 
-        {/* Positive arc stroke (right side) */}
-        <path
-          d={describeArc(
-            center,
-            center,
-            outerRadius,
-            positiveArc.start,
-            positiveArc.end,
-          )}
-          stroke={positiveColor}
-          strokeWidth={strokeWidth}
-          fill="none"
-          strokeLinecap="round"
-        />
+        {/* Full circle stroke for 100% positive */}
+        {showOnlyPositive && (
+          <circle
+            cx={center}
+            cy={center}
+            r={outerRadius}
+            fill="none"
+            stroke={positiveColor}
+            strokeWidth={strokeWidth}
+          />
+        )}
 
-        {/* Negative arc stroke (left side) */}
-        <path
-          d={describeArc(
-            center,
-            center,
-            outerRadius,
-            negativeArc.start,
-            negativeArc.end,
-          )}
-          stroke={negativeColor}
-          strokeWidth={strokeWidth}
-          fill="none"
-          strokeLinecap="round"
-        />
+        {/* Full circle stroke for 100% negative */}
+        {showOnlyNegative && (
+          <circle
+            cx={center}
+            cy={center}
+            r={outerRadius}
+            fill="none"
+            stroke={negativeColor}
+            strokeWidth={strokeWidth}
+          />
+        )}
+
+        {/* Positive arc stroke (right side) - only when not full circle */}
+        {!showOnlyPositive && !showOnlyNegative && (
+          <path
+            d={describeArc(
+              center,
+              center,
+              outerRadius,
+              positiveArc.start,
+              positiveArc.end,
+            )}
+            stroke={positiveColor}
+            strokeWidth={strokeWidth}
+            fill="none"
+            strokeLinecap="round"
+          />
+        )}
+
+        {/* Negative arc stroke (left side) - only when not full circle */}
+        {!showOnlyPositive && !showOnlyNegative && (
+          <path
+            d={describeArc(
+              center,
+              center,
+              outerRadius,
+              negativeArc.start,
+              negativeArc.end,
+            )}
+            stroke={negativeColor}
+            strokeWidth={strokeWidth}
+            fill="none"
+            strokeLinecap="round"
+          />
+        )}
       </svg>
 
       {/* Centered icon */}
