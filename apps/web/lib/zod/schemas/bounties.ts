@@ -166,20 +166,38 @@ export const approveBountySubmissionBodySchema = z.object({
 });
 
 export const rejectBountySubmissionBodySchema = z.object({
-  rejectionReason: z.enum(BountySubmissionRejectionReason),
+  rejectionReason: z.enum(BountySubmissionRejectionReason).meta({
+    description: "The reason for rejecting the submission.",
+  }),
   rejectionNote: z
     .string()
     .trim()
     .max(BOUNTY_MAX_SUBMISSION_REJECTION_NOTE_LENGTH)
-    .optional(),
+    .optional()
+    .meta({
+      description: "The note for rejecting the submission.",
+    }),
 });
 
 export const getBountySubmissionsQuerySchema = z
   .object({
-    status: z.enum(BountySubmissionStatus).optional(),
-    groupId: z.string().optional(),
-    partnerId: z.string().optional(),
-    sortBy: z.enum(["completedAt", "performanceCount"]).default("completedAt"),
-    sortOrder: z.enum(["asc", "desc"]).default("asc"),
+    status: z.enum(BountySubmissionStatus).optional().meta({
+      description: "The status of the submissions to list.",
+    }),
+    groupId: z.string().optional().meta({
+      description: "The ID of the group to list submissions for.",
+    }),
+    partnerId: z.string().optional().meta({
+      description: "The ID of the partner to list submissions for.",
+    }),
+    sortBy: z
+      .enum(["completedAt", "performanceCount"])
+      .default("completedAt")
+      .meta({
+        description: "The field to sort the submissions by.",
+      }),
+    sortOrder: z.enum(["asc", "desc"]).default("asc").meta({
+      description: "The order to sort the submissions by.",
+    }),
   })
   .extend(getPaginationQuerySchema({ pageSize: 100 }));
