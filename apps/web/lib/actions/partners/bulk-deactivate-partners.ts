@@ -5,7 +5,7 @@ import { queueDiscountCodeDeletion } from "@/lib/api/discounts/queue-discount-co
 import { linkCache } from "@/lib/api/links/cache";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { bulkDeactivatePartnersSchema } from "@/lib/zod/schemas/partners";
-import { sendEmail } from "@dub/email";
+import { sendBatchEmail } from "@dub/email";
 import PartnerDeactivated from "@dub/email/templates/partner-deactivated";
 import { prisma } from "@dub/prisma";
 import { ProgramEnrollmentStatus } from "@dub/prisma/client";
@@ -31,7 +31,6 @@ export const bulkDeactivatePartnersAction = authActionClient
         },
       },
       include: {
-        program: true,
         partner: {
           select: {
             id: true,
@@ -96,34 +95,23 @@ export const bulkDeactivatePartnersAction = authActionClient
           pe.discountCodes.map((dc) => dc.id),
         );
 
+        const program = await prisma.program.findUniqueOrThrow({
+          where: {
+            id: programId,
+          },
+          select: {
+            name: true,
+            supportEmail: true,
+            slug: true,
+          },
+        });
+
         await Promise.allSettled([
           // Expire all links in cache
           linkCache.expireMany(allLinks),
 
           // Queue discount code deletions
           queueDiscountCodeDeletion(allDiscountCodeIds),
-
-          // Send notification emails
-          ...programEnrollments.map(({ program, partner }) =>
-            partner.email
-              ? sendEmail({
-                  subject: `Your partnership with ${program.name} has been deactivated`,
-                  to: partner.email,
-                  replyTo: program.supportEmail || "noreply",
-                  react: PartnerDeactivated({
-                    partner: {
-                      name: partner.name,
-                      email: partner.email,
-                    },
-                    program: {
-                      name: program.name,
-                      slug: program.slug,
-                    },
-                  }),
-                  variant: "notifications",
-                })
-              : Promise.resolve(),
-          ),
 
           // Record audit logs
           recordAuditLog(
@@ -138,14 +126,34 @@ export const bulkDeactivatePartnersAction = authActionClient
                   type: "partner",
                   id: partner.id,
                   metadata: {
-                    id: partner.id,
                     name: partner.name,
+                    email: partner.email ?? null,
                   },
                 },
               ],
             })),
           ),
         ]);
+
+        // Send notification emails
+        await sendBatchEmail(
+          programEnrollments.map(({ partner }) => ({
+            variant: "notifications",
+            subject: `Your partnership with ${program.name} has been deactivated`,
+            to: partner.email!,
+            replyTo: program.supportEmail || "noreply",
+            react: PartnerDeactivated({
+              partner: {
+                name: partner.name,
+                email: partner.email!,
+              },
+              program: {
+                name: program.name,
+                slug: program.slug,
+              },
+            }),
+          })),
+        );
       })(),
     );
   });
