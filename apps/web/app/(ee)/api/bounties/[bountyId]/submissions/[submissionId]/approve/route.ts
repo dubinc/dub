@@ -1,0 +1,48 @@
+import { approveBountySubmission } from "@/lib/api/bounties/approve-bounty-submission";
+import { getBountyOrThrow } from "@/lib/api/bounties/get-bounty-or-throw";
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { parseRequestBody } from "@/lib/api/utils";
+import { withWorkspace } from "@/lib/auth";
+import { NextResponse } from "next/server";
+import * as z from "zod/v4";
+
+const approveBountySubmissionBodySchema = z.object({
+  rewardAmount: z.number().nullable().optional(),
+});
+
+// POST /api/bounties/[bountyId]/submissions/[submissionId]/approve - approve a submission
+export const POST = withWorkspace(
+  async ({ workspace, params, req, session }) => {
+    const { bountyId, submissionId } = params;
+    const programId = getDefaultProgramIdOrThrow(workspace);
+
+    const { rewardAmount } = approveBountySubmissionBodySchema.parse(
+      await parseRequestBody(req),
+    );
+
+    await getBountyOrThrow({
+      bountyId,
+      programId,
+    });
+
+    const approvedSubmission = await approveBountySubmission({
+      programId,
+      bountyId,
+      submissionId,
+      rewardAmount,
+      user: session.user,
+    });
+
+    return NextResponse.json(approvedSubmission);
+  },
+  {
+    requiredPlan: [
+      "business",
+      "business plus",
+      "business extra",
+      "business max",
+      "advanced",
+      "enterprise",
+    ],
+  },
+);

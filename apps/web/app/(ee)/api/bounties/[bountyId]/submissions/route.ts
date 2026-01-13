@@ -1,12 +1,11 @@
+import { getBountyOrThrow } from "@/lib/api/bounties/get-bounty-or-throw";
 import { getBountySubmissions } from "@/lib/api/bounties/get-bounty-submissions";
-import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import {
   BountySubmissionExtendedSchema,
   getBountySubmissionsQuerySchema,
 } from "@/lib/zod/schemas/bounties";
-import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -16,21 +15,13 @@ export const GET = withWorkspace(
     const { bountyId } = params;
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const bounty = await prisma.bounty.findUniqueOrThrow({
-      where: {
-        id: bountyId,
-      },
+    const bounty = await getBountyOrThrow({
+      bountyId,
+      programId,
       include: {
         groups: true,
       },
     });
-
-    if (bounty.programId !== programId) {
-      throw new DubApiError({
-        code: "not_found",
-        message: `Bounty ${bountyId} not found.`,
-      });
-    }
 
     const filters = getBountySubmissionsQuerySchema.parse(searchParams);
 

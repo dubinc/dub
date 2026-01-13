@@ -1,5 +1,6 @@
 import { BountySubmissionsQueryFilters } from "@/lib/types";
 import { prisma } from "@dub/prisma";
+import { transformBountySubmission } from "./transform-bounty-submission";
 
 interface GetBountySubmissionsParams extends BountySubmissionsQueryFilters {
   bountyId: string;
@@ -45,19 +46,5 @@ export async function getBountySubmissions({
     take: pageSize,
   });
 
-  return submissions.map(
-    ({ partner, programEnrollment, commission, user, ...submission }) => {
-      return {
-        ...submission,
-        partner: {
-          ...partner,
-          ...programEnrollment,
-          id: partner.id,
-          status: programEnrollment?.status,
-        },
-        commission,
-        user,
-      };
-    },
-  );
+  return submissions.map(transformBountySubmission);
 }
