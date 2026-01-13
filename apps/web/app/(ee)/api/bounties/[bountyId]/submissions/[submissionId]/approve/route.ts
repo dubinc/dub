@@ -12,9 +12,15 @@ export const POST = withWorkspace(
     const { bountyId, submissionId } = params;
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const { rewardAmount } = approveBountySubmissionBodySchema.parse(
-      await parseRequestBody(req),
-    );
+    let body;
+    try {
+      body = await parseRequestBody(req);
+    } catch (e) {
+      // If body is empty or invalid, use empty object since body is optional
+      body = {};
+    }
+
+    const { rewardAmount } = approveBountySubmissionBodySchema.parse(body);
 
     await getBountyOrThrow({
       bountyId,

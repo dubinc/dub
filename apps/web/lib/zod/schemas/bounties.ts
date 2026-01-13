@@ -162,7 +162,7 @@ export const BountySubmissionExtendedSchema = BountySubmissionSchema.extend({
 });
 
 export const approveBountySubmissionBodySchema = z.object({
-  rewardAmount: z.number().nullable().optional(),
+  rewardAmount: z.number().nullish(),
 });
 
 export const rejectBountySubmissionBodySchema = z.object({
