@@ -34,7 +34,7 @@ model Customer {
   @@unique([projectId, externalId])
   @@unique([projectConnectId, externalId])
   @@index([projectId, email])
-  @@index([projectId, createdAt])
+  @@index([projectId, createdAt, id])
   @@index([projectId, saleAmount])
   @@index([programId, partnerId])
   @@index(linkId)

@@ -3,6 +3,7 @@ import { getCommissionsQuerySchema } from "@/lib/zod/schemas/commissions";
 import { prisma } from "@dub/prisma";
 import { CommissionStatus } from "@dub/prisma/client";
 import * as z from "zod/v4";
+import { getPaginationOptions } from "../pagination";
 
 type CommissionsFilters = z.infer<typeof getCommissionsQuerySchema> & {
   programId: string;
@@ -22,10 +23,6 @@ export async function getCommissions(filters: CommissionsFilters) {
     end,
     interval,
     timezone,
-    page,
-    pageSize,
-    sortBy,
-    sortOrder,
   } = filters;
 
   const { startDate, endDate } = getStartEndDates({
@@ -72,8 +69,6 @@ export async function getCommissions(filters: CommissionsFilters) {
       partner: true,
       programEnrollment: true,
     },
-    skip: (page - 1) * pageSize,
-    take: pageSize,
-    orderBy: { [sortBy]: sortOrder },
+    ...getPaginationOptions(filters),
   });
 }

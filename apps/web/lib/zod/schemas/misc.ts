@@ -32,17 +32,24 @@ export const booleanQuerySchema = z
 // Pagination
 export const getPaginationQuerySchema = ({
   pageSize,
+  deprecated = false,
 }: {
   pageSize: number;
+  deprecated?: boolean;
 }) => ({
   page: z.coerce
     .number({ error: "Page must be a number." })
     .positive({ message: "Page must be greater than 0." })
     .optional()
     .default(1)
-    .describe("The page number for pagination.")
+    .describe(
+      deprecated
+        ? "DEPRECATED. Use `startingAfter` instead."
+        : "The page number for pagination.",
+    )
     .meta({
       example: 1,
+      deprecated,
     }),
   pageSize: z.coerce
     .number({ error: "Page size must be a number." })
@@ -55,6 +62,32 @@ export const getPaginationQuerySchema = ({
     .describe("The number of items per page.")
     .meta({
       example: 50,
+    }),
+});
+
+// Cursor-based pagination
+export const getCursorPaginationQuerySchema = ({
+  example,
+}: {
+  example: string;
+}) => ({
+  endingBefore: z
+    .string()
+    .optional()
+    .describe(
+      "If specified, the query only searches for results before this cursor. Mutually exclusive with `startingAfter`.",
+    )
+    .meta({
+      example,
+    }),
+  startingAfter: z
+    .string()
+    .optional()
+    .describe(
+      "If specified, the query only searches for results after this cursor. Mutually exclusive with `endingBefore`.",
+    )
+    .meta({
+      example,
     }),
 });
 
