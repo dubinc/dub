@@ -1,33 +1,49 @@
-"use client";
+import { getSession } from "@/lib/auth";
+import { redis } from "@/lib/upstash";
+import { prisma } from "@dub/prisma";
+import { redirect } from "next/navigation";
+import { ProgramPageClient } from "./page-client";
 
-import { ProgramOnboardingFormWrapper } from "@/ui/partners/program-onboarding-form-wrapper";
-import { cn } from "@dub/utils/src";
-import { StepPage } from "../step-page";
-import { Form } from "./form";
-import { useOnboardingProgram } from "./use-onboarding-program";
+export default async function ProgramPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ workspace?: string }>;
+}) {
+  const { workspace: slug } = await searchParams;
 
-export default function Program() {
-  const { isLoading, formWrapperProps } = useOnboardingProgram();
+  if (!slug) redirect("/onboarding");
 
-  return (
-    <StepPage
-      title="Create your partner program"
-      description="Set up your program in a few steps"
-    >
-      <div
-        className={cn(
-          "transition-opacity",
-          isLoading && "pointer-events-none opacity-50",
-        )}
-        inert={isLoading}
-      >
-        <ProgramOnboardingFormWrapper
-          key={isLoading ? "loading" : "loaded"}
-          {...formWrapperProps}
-        >
-          <Form />
-        </ProgramOnboardingFormWrapper>
-      </div>
-    </StepPage>
+  const { user } = await getSession();
+
+  const workspace = await prisma.project.findUniqueOrThrow({
+    where: {
+      slug,
+    },
+    select: {
+      id: true,
+      domains: {
+        where: {
+          archived: false,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+        take: 1,
+      },
+    },
+  });
+
+  const data = await redis.get<{ domain: string; userId: string }>(
+    `onboarding-domain:${workspace.id}`,
   );
+
+  const onboardingDomain =
+    data && data.domain && data.userId === user.id ? data.domain : null;
+
+  const domain = onboardingDomain || workspace.domains[0]?.slug;
+
+  if (!domain)
+    redirect(`/onboarding/domain?workspace=${slug}&product=partners`);
+
+  return <ProgramPageClient domain={domain} />;
 }

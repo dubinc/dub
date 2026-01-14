@@ -1,12 +1,11 @@
+import { createProgram } from "@/lib/actions/partners/create-program";
 import { claimDotLinkDomain } from "@/lib/api/domains/claim-dot-link-domain";
-import { inviteUser } from "@/lib/api/users";
 import { onboardingStepCache } from "@/lib/api/workspaces/onboarding-step-cache";
 import { tokenCache } from "@/lib/auth/token-cache";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { stripe } from "@/lib/stripe";
-import { WorkspaceProps } from "@/lib/types";
+import { ProgramData, WorkspaceProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
-import { Invite } from "@/lib/zod/schemas/invites";
 import { sendBatchEmail } from "@dub/email";
 import UpgradeEmail from "@dub/email/templates/upgrade-email";
 import { prisma } from "@dub/prisma";
@@ -162,7 +161,7 @@ async function completeOnboarding({
   users,
   workspaceId,
 }: {
-  users: Pick<User, "id">[];
+  users: Pick<User, "id" | "email">[];
   workspaceId: string;
 }) {
   const workspace = (await prisma.project.findUnique({
@@ -186,48 +185,54 @@ async function completeOnboarding({
       step: "completed",
     }),
 
-    // Send saved invite emails
     (async () => {
-      const invites = await redis.get<Invite[]>(`invites:${workspaceId}`);
-
-      if (!invites?.length) return;
-
-      if (!workspace) return;
-
-      await Promise.allSettled(
-        invites.map(({ email, role }) =>
-          inviteUser({
-            email,
-            role,
-            workspace,
-          }),
-        ),
-      );
-
-      await redis.del(`invites:${workspaceId}`);
-    })(),
-
-    // Register saved domain
-    (async () => {
+      // Register saved domain
       const data = await redis.get<{ domain: string; userId: string }>(
         `onboarding-domain:${workspaceId}`,
       );
-      if (!data || !data.domain || !data.userId) return;
-      const { domain, userId } = data;
+      if (data && data.domain && data.userId) {
+        const { domain, userId } = data;
 
-      try {
-        await claimDotLinkDomain({
-          domain,
-          userId,
-          workspace,
-        });
-        await redis.del(`onboarding-domain:${workspaceId}`);
-      } catch (e) {
-        console.error(
-          "Failed to register saved domain from onboarding",
-          { domain, userId, workspace },
-          e,
-        );
+        try {
+          await claimDotLinkDomain({
+            domain,
+            userId,
+            workspace,
+          });
+          await redis.del(`onboarding-domain:${workspaceId}`);
+        } catch (e) {
+          console.error(
+            "Failed to register saved domain from onboarding",
+            { domain, userId, workspace },
+            e,
+          );
+        }
+      }
+
+      console.log("CREATING PROGRAM?", {
+        store: workspace.store,
+        programOnboarding: workspace.store?.programOnboarding,
+      });
+
+      // Create program
+      if (
+        workspace.store?.programOnboarding &&
+        (workspace.store.programOnboarding as ProgramData).lastCompletedStep ===
+          "configure-reward"
+      ) {
+        console.log("CREATING PROGRAM...");
+        try {
+          await createProgram({
+            workspace,
+            user: users[0],
+          });
+        } catch (e) {
+          console.error(
+            "Failed to create program from onboarding",
+            { workspace, user: users[0] },
+            e,
+          );
+        }
       }
     })(),
   ]);
