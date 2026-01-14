@@ -48,7 +48,7 @@ export default function Plan() {
         <EnterpriseLink />
         {product === "links" && (
           <LaterButton
-            next="finish"
+            next="completed"
             className="underline-offset-4 hover:underline"
           >
             Start for free, pick a plan later

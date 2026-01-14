@@ -18,6 +18,11 @@ export default async function ProgramPage({
   const workspace = await prisma.project.findUniqueOrThrow({
     where: {
       slug,
+      users: {
+        some: {
+          userId: user.id,
+        },
+      },
     },
     select: {
       id: true,

@@ -93,7 +93,7 @@ export const POST = withWorkspace(async ({ req, workspace, session }) => {
           }),
       billing_address_collection: "required",
       success_url: onboarding
-        ? `${APP_DOMAIN}/onboarding/success?workspace=${workspace.slug}&plan=${plan}&period=${period}`
+        ? `${APP_DOMAIN}/onboarding/completed?workspace=${workspace.slug}&plan=${plan}&period=${period}`
         : `${APP_DOMAIN}/${workspace.slug}?upgraded=true&plan=${plan}&period=${period}`,
       cancel_url: baseUrl,
       line_items: [{ price: prices.data[0].id, quantity: 1 }],
