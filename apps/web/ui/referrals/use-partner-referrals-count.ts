@@ -7,19 +7,16 @@ import * as z from "zod/v4";
 
 export function usePartnerReferralsCount<T = number>({
   query,
-  enabled = true,
   includeParams = ["partnerId", "status", "search"],
 }: {
   query?: z.infer<typeof getPartnerReferralsCountQuerySchema>;
-  enabled?: boolean;
   includeParams?: string[];
 } = {}) {
   const { id: workspaceId } = useWorkspace();
   const { getQueryString } = useRouterStuff();
 
   const { data, error, isLoading } = useSWR<T>(
-    enabled &&
-      workspaceId &&
+    workspaceId &&
       `/api/programs/partner-referrals/count${getQueryString(
         { workspaceId, ...query },
         {

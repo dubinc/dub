@@ -5,7 +5,7 @@ import {
   partnerReferralsCountResponseSchema,
 } from "@/lib/zod/schemas/partner-referrals";
 import { prisma, sanitizeFullTextSearch } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { Prisma, ReferralStatus } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 
 // GET /api/programs/partner-referrals/count - get the count of partner referrals for a program
@@ -41,6 +41,13 @@ export const GET = withWorkspace(
             status: "desc",
           },
         },
+      });
+
+      // Fill in missing statuses with zero counts
+      Object.values(ReferralStatus).forEach((status) => {
+        if (!data.some((d) => d.status === status)) {
+          data.push({ _count: 0, status });
+        }
       });
 
       return NextResponse.json(partnerReferralsCountResponseSchema.parse(data));

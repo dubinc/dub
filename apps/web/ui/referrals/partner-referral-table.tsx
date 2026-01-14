@@ -9,7 +9,9 @@ import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import {
+  AnimatedSizeContainer,
   EditColumnsButton,
+  Filter,
   StatusBadge,
   Table,
   TimestampTooltip,
@@ -25,6 +27,7 @@ import { useMemo } from "react";
 import useSWR from "swr";
 import * as z from "zod/v4";
 import { PartnerReferralStatusBadges } from "./partner-referral-status-badges";
+import { usePartnerReferralFilters } from "./use-partner-referral-filters";
 import { usePartnerReferralsCount } from "./use-partner-referrals-count";
 
 type PartnerReferralProps = z.infer<typeof partnerReferralSchema>;
@@ -34,12 +37,21 @@ export function PartnerReferralTable({
 }: {
   query?: Partial<z.infer<typeof getPartnerReferralsQuerySchema>>;
 }) {
+  const { getQueryString } = useRouterStuff();
+  const { pagination, setPagination } = usePagination();
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
 
-  const { queryParams, searchParams, getQueryString } = useRouterStuff();
+  const {
+    filters,
+    activeFilters,
+    onSelect,
+    onRemove,
+    onRemoveAll,
+    setSearch,
+    setSelectedFilter,
+  } = usePartnerReferralFilters({});
 
   const { data: referralsCount, error: countError } = usePartnerReferralsCount({
-    enabled: true,
     query,
   });
 
@@ -67,8 +79,6 @@ export function PartnerReferralTable({
     "partner-referrals-table-columns",
     referralsColumns,
   );
-
-  const { pagination, setPagination } = usePagination();
 
   const columns = useMemo(
     () =>
@@ -144,6 +154,7 @@ export function PartnerReferralTable({
           cell: ({ row }: { row: Row<PartnerReferralProps> }) => {
             const status = row.original.status;
             const badge = PartnerReferralStatusBadges[status];
+
             return (
               <StatusBadge
                 variant={badge.variant}
@@ -191,11 +202,35 @@ export function PartnerReferralTable({
     <div className="flex flex-col gap-3">
       <div>
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <Filter.Select
+            className="w-full md:w-fit"
+            filters={filters}
+            activeFilters={activeFilters}
+            onSelect={onSelect}
+            onRemove={onRemove}
+            onSearchChange={setSearch}
+            onSelectedFilterChange={setSelectedFilter}
+          />
           <SearchBoxPersisted
             placeholder="Search by email or name"
             inputClassName="md:w-[16rem]"
           />
         </div>
+        <AnimatedSizeContainer height>
+          <div>
+            {activeFilters.length > 0 && (
+              <div className="pt-3">
+                <Filter.List
+                  filters={filters}
+                  activeFilters={activeFilters}
+                  onSelect={onSelect}
+                  onRemove={onRemove}
+                  onRemoveAll={onRemoveAll}
+                />
+              </div>
+            )}
+          </div>
+        </AnimatedSizeContainer>
       </div>
       {referrals?.length !== 0 ? (
         <Table {...tableProps} table={table} />
