@@ -89,7 +89,7 @@ export async function POST(req: Request) {
 
     await sendEmail({
       to: user.email,
-      subject: "Your commission export is ready",
+      subject: "Your commissions export is ready",
       react: ExportReady({
         email: user.email,
         exportType: "commissions",
