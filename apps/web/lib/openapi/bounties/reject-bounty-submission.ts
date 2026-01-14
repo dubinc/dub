@@ -1,6 +1,6 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
 import {
-  BountySubmissionExtendedSchema,
+  BountySubmissionSchema,
   rejectBountySubmissionBodySchema,
 } from "@/lib/zod/schemas/bounties";
 import { ZodOpenApiOperationObject } from "zod-openapi";
@@ -30,7 +30,7 @@ export const rejectBountySubmission: ZodOpenApiOperationObject = {
       description: "The rejected bounty submission.",
       content: {
         "application/json": {
-          schema: BountySubmissionExtendedSchema,
+          schema: BountySubmissionSchema,
         },
       },
     },

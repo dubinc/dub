@@ -1,13 +1,12 @@
 import { getBountyOrThrow } from "@/lib/api/bounties/get-bounty-or-throw";
-import { getBountySubmissions } from "@/lib/api/bounties/get-bounty-submissions";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import {
   BountySubmissionExtendedSchema,
   getBountySubmissionsQuerySchema,
 } from "@/lib/zod/schemas/bounties";
+import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
-import * as z from "zod/v4";
 
 // GET /api/bounties/[bountyId]/submissions - get all submissions for a bounty
 export const GET = withWorkspace(
@@ -23,16 +22,54 @@ export const GET = withWorkspace(
       },
     });
 
-    const filters = getBountySubmissionsQuerySchema.parse(searchParams);
+    const { status, groupId, partnerId, sortOrder, sortBy, page, pageSize } =
+      getBountySubmissionsQuerySchema.parse(searchParams);
 
-    const bountySubmissions = await getBountySubmissions({
-      ...filters,
-      bountyId: bounty.id,
+    const submissions = await prisma.bountySubmission.findMany({
+      where: {
+        bountyId,
+        status: status ?? {
+          in: ["draft", "submitted", "approved"],
+        },
+        ...(groupId && {
+          programEnrollment: {
+            groupId,
+          },
+        }),
+        ...(partnerId && {
+          partnerId,
+        }),
+      },
+      include: {
+        user: true,
+        commission: true,
+        partner: true,
+        programEnrollment: true,
+      },
+      orderBy: {
+        [sortBy === "completedAt" ? "completedAt" : "performanceCount"]:
+          sortOrder,
+      },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
     });
 
-    return NextResponse.json(
-      z.array(BountySubmissionExtendedSchema).parse(bountySubmissions),
+    const bountySubmissions = submissions.map(
+      ({ partner, programEnrollment, commission, user, ...submissionData }) =>
+        BountySubmissionExtendedSchema.parse({
+          ...submissionData,
+          partner: {
+            ...partner,
+            ...(programEnrollment || {}),
+            id: partner.id,
+            status: programEnrollment?.status ?? null,
+          },
+          commission,
+          user,
+        }),
     );
+
+    return NextResponse.json(bountySubmissions);
   },
   {
     requiredPlan: [

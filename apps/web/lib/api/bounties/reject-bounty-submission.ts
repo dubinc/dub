@@ -11,7 +11,6 @@ import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { recordAuditLog } from "../audit-logs/record-audit-log";
 import { DubApiError } from "../errors";
-import { transformBountySubmission } from "./transform-bounty-submission";
 
 interface RejectBountySubmissionParams
   extends z.infer<typeof rejectBountySubmissionBodySchema> {
@@ -103,10 +102,12 @@ export async function rejectBountySubmission({
       commissionId: null,
     },
     include: {
-      user: true,
-      commission: true,
-      partner: true,
-      programEnrollment: true,
+      partner: {
+        select: {
+          id: true,
+          email: true,
+        },
+      },
       program: {
         select: {
           workspaceId: true,
@@ -163,5 +164,5 @@ export async function rejectBountySubmission({
     ]),
   );
 
-  return transformBountySubmission(rejectedSubmission);
+  return BountySubmissionSchema.parse(rejectedSubmission);
 }

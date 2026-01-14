@@ -1,8 +1,8 @@
 import { getBountyOrThrow } from "@/lib/api/bounties/get-bounty-or-throw";
-import { transformBountySubmission } from "@/lib/api/bounties/transform-bounty-submission";
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
+import { BountySubmissionSchema } from "@/lib/zod/schemas/bounties";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
@@ -43,7 +43,7 @@ export const GET = withWorkspace(
       });
     }
 
-    return NextResponse.json(transformBountySubmission(submission));
+    return NextResponse.json(BountySubmissionSchema.parse(submission));
   },
   {
     requiredPlan: ["advanced", "enterprise"],

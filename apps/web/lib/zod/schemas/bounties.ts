@@ -119,6 +119,7 @@ export const BountyListSchema = BountySchema.extend({
     .optional(),
 });
 
+// used in GET /bounties/{bountyId}/submissions
 export const BountySubmissionSchema = z.object({
   id: z.string(),
   description: z.string().nullable(),
@@ -166,12 +167,9 @@ export const approveBountySubmissionBodySchema = z.object({
 });
 
 export const rejectBountySubmissionBodySchema = z.object({
-  rejectionReason: z
-    .enum(BountySubmissionRejectionReason)
-    .optional()
-    .meta({
-      description: "The reason for rejecting the submission.",
-    }),
+  rejectionReason: z.enum(BountySubmissionRejectionReason).optional().meta({
+    description: "The reason for rejecting the submission.",
+  }),
   rejectionNote: z
     .string()
     .trim()
