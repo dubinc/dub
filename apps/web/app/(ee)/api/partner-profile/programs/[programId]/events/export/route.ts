@@ -1,3 +1,8 @@
+import {
+  eventsExportColumnAccessors,
+  eventsExportColumnNames,
+} from "@/lib/analytics/events-export-helpers";
+import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { getEvents } from "@/lib/analytics/get-events";
 import { convertToCSV } from "@/lib/analytics/utils";
 import { DubApiError } from "@/lib/api/errors";
@@ -8,48 +13,21 @@ import {
   LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS,
   MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING,
 } from "@/lib/constants/partner-profile";
+import { qstash } from "@/lib/cron";
 import { generateRandomName } from "@/lib/names";
-import { ClickEvent, LeadEvent, SaleEvent } from "@/lib/types";
 import {
   PartnerProfileLinkSchema,
   partnerProfileEventsQuerySchema,
 } from "@/lib/zod/schemas/partner-profile";
-import { COUNTRIES, capitalize } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, capitalize } from "@dub/utils";
+import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
-type Row = ClickEvent | LeadEvent | SaleEvent;
-
-const columnNames: Record<string, string> = {
-  trigger: "Event",
-  url: "Destination URL",
-  os: "OS",
-  referer: "Referrer",
-  refererUrl: "Referrer URL",
-  timestamp: "Date",
-  invoiceId: "Invoice ID",
-  saleAmount: "Sale Amount",
-  clickId: "Click ID",
-};
-
-const columnAccessors = {
-  trigger: (r: Row) => r.click.trigger,
-  event: (r: LeadEvent | SaleEvent) => r.eventName,
-  url: (r: ClickEvent) => r.click.url,
-  link: (r: Row) => r.domain + (r.key === "_root" ? "" : `/${r.key}`),
-  country: (r: Row) =>
-    r.country ? COUNTRIES[r.country] ?? r.country : r.country,
-  referer: (r: ClickEvent) => r.click.referer,
-  refererUrl: (r: ClickEvent) => r.click.refererUrl,
-  customer: (r: LeadEvent | SaleEvent) =>
-    r.customer.name + (r.customer.email ? ` <${r.customer.email}>` : ""),
-  invoiceId: (r: SaleEvent) => r.sale.invoiceId,
-  saleAmount: (r: SaleEvent) => "$" + (r.sale.amount / 100).toFixed(2),
-  clickId: (r: ClickEvent) => r.click.id,
-};
+const MAX_EVENTS_TO_EXPORT = 1000;
 
 // GET /api/partner-profile/programs/[programId]/events/export – get export data for partner profile events
 export const GET = withPartnerProfile(
-  async ({ partner, params, searchParams }) => {
+  async ({ partner, params, searchParams, session }) => {
     const { program, links, totalCommissions, customerDataSharingEnabledAt } =
       await getProgramEnrollmentOrThrow({
         partnerId: partner.id,
@@ -132,6 +110,51 @@ export const GET = withPartnerProfile(
       });
     }
 
+    // Count events using getAnalytics with groupBy: "count"
+    const countResponse = await getAnalytics({
+      ...rest,
+      event,
+      groupBy: "count",
+      workspaceId: program.workspaceId,
+      ...(linkId
+        ? { linkId }
+        : links.length > MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING
+          ? { partnerId: partner.id }
+          : { linkIds: links.map((link) => link.id) }),
+      dataAvailableFrom: program.startedAt ?? program.createdAt,
+    });
+
+    // Extract the count based on event type
+    // getAnalytics with groupBy: "count" returns an object like { clicks: 123 } or { leads: 45 } or { sales: 10, saleAmount: 5000 }
+    const eventsCount =
+      typeof countResponse === "object" && countResponse !== null
+        ? (countResponse[event as keyof typeof countResponse] as number) ?? 0
+        : typeof countResponse === "number"
+          ? countResponse
+          : 0;
+
+    // Process the export in the background if the number of events is greater than MAX_EVENTS_TO_EXPORT
+    if (eventsCount > MAX_EVENTS_TO_EXPORT) {
+      await qstash.publishJSON({
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/export/events/partner`,
+        body: {
+          ...searchParams,
+          columns: columns.join(","),
+          partnerId: partner.id,
+          programId: params.programId,
+          userId: session.user.id,
+          ...(linkId && { linkId }),
+          ...(domain && { domain }),
+          ...(key && { key }),
+          dataAvailableFrom: (
+            program.startedAt ?? program.createdAt
+          ).toISOString(),
+        },
+      });
+
+      return NextResponse.json({}, { status: 202 });
+    }
+
     const events = await getEvents({
       ...rest,
       workspaceId: program.workspaceId,
@@ -141,7 +164,7 @@ export const GET = withPartnerProfile(
           ? { partnerId: partner.id }
           : { linkIds: links.map((link) => link.id) }),
       dataAvailableFrom: program.startedAt ?? program.createdAt,
-      limit: 100000,
+      limit: MAX_EVENTS_TO_EXPORT,
     });
 
     // Apply partner profile data transformations similar to the main events route
@@ -180,8 +203,8 @@ export const GET = withPartnerProfile(
     const data = transformedEvents.map((row) =>
       Object.fromEntries(
         columns.map((c) => [
-          columnNames?.[c] ?? capitalize(c),
-          columnAccessors[c]?.(row) ?? row?.[c],
+          eventsExportColumnNames?.[c] ?? capitalize(c),
+          eventsExportColumnAccessors[c]?.(row) ?? row?.[c],
         ]),
       ),
     );

@@ -1,25 +1,25 @@
 import { convertToCSV } from "@/lib/analytics/utils/convert-to-csv";
-import { formatCommissionsForExport } from "@/lib/api/commissions/format-commissions-for-export";
 import { createDownloadableExport } from "@/lib/api/create-downloadable-export";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { formatPartnersForExport } from "@/lib/api/partners/format-partners-for-export";
 import { generateExportFilename } from "@/lib/api/utils/generate-export-filename";
 import { generateRandomString } from "@/lib/api/utils/generate-random-string";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
-import { commissionsExportQuerySchema } from "@/lib/zod/schemas/commissions";
+import { partnersExportQuerySchema } from "@/lib/zod/schemas/partners";
 import { sendEmail } from "@dub/email";
 import ExportReady from "@dub/email/templates/export-ready";
 import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
-import { fetchCommissionsBatch } from "./fetch-commissions-batch";
+import { fetchPartnersBatch } from "./fetch-partners-batch";
 
-const payloadSchema = commissionsExportQuerySchema.extend({
+const payloadSchema = partnersExportQuerySchema.extend({
   programId: z.string(),
   userId: z.string(),
 });
 
-// POST /api/cron/commissions/export - QStash worker for processing large commission exports
+// POST /api/cron/export/partners - QStash worker for processing large partner exports
 export async function POST(req: Request) {
   try {
     const rawBody = await req.text();
@@ -65,34 +65,32 @@ export async function POST(req: Request) {
       );
     }
 
-    // Fetch commissions in batches and build CSV
-    const allCommissions: any[] = [];
-    const commissionsFilters = {
+    // Fetch partners in batches and build CSV
+    const allPartners: any[] = [];
+    const partnersFilters = {
       ...filters,
       programId,
     };
 
-    for await (const { commissions } of fetchCommissionsBatch(
-      commissionsFilters,
-    )) {
-      allCommissions.push(...formatCommissionsForExport(commissions, columns));
+    for await (const { partners } of fetchPartnersBatch(partnersFilters)) {
+      allPartners.push(...formatPartnersForExport(partners, columns));
     }
 
-    const csvData = convertToCSV(allCommissions);
+    const csvData = convertToCSV(allPartners);
 
     const { downloadUrl } = await createDownloadableExport({
-      fileKey: `exports/commissions/${generateRandomString(16)}.csv`,
-      fileName: generateExportFilename("commissions"),
+      fileKey: `exports/partners/${generateRandomString(16)}.csv`,
+      fileName: generateExportFilename("partners"),
       body: csvData,
       contentType: "text/csv",
     });
 
     await sendEmail({
       to: user.email,
-      subject: "Your commission export is ready",
+      subject: "Your partners export is ready",
       react: ExportReady({
         email: user.email,
-        exportType: "commissions",
+        exportType: "partners",
         downloadUrl,
         program: {
           name: program.name,
@@ -101,11 +99,11 @@ export async function POST(req: Request) {
     });
 
     return logAndRespond(
-      `Export (${allCommissions.length} commissions) generated and email sent to user.`,
+      `Export (${allPartners.length} partners) generated and email sent to user.`,
     );
   } catch (error) {
     await log({
-      message: `Error exporting commissions: ${error.message}`,
+      message: `Error exporting partners: ${error.message}`,
       type: "cron",
     });
 
