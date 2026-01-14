@@ -27,7 +27,7 @@ export function SuccessPageClient({
     "name" | "slug" | "logo" | "defaultProgramId"
   >;
 }) {
-  const { finish, isPending, hasSucceeded } = useOnboardingProgress();
+  const { finish, isLoading, isSuccessful } = useOnboardingProgress();
 
   const { allWorkspaceDomains } = useDomains();
   const domainConnected = Boolean(allWorkspaceDomains?.length);
@@ -67,7 +67,7 @@ export function SuccessPageClient({
         <div className="mt-4 w-full">
           <Button
             onClick={() => finish({ hasProgram })}
-            loading={isPending || hasSucceeded}
+            loading={isLoading || isSuccessful}
             text="Go to your dashboard"
             className="h-9 rounded-lg"
           />
