@@ -1,0 +1,83 @@
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { withWorkspace } from "@/lib/auth";
+import {
+  getPartnerReferralsCountQuerySchema,
+  PartnerReferralsCountResponseSchema,
+} from "@/lib/zod/schemas/partner-referrals";
+import { prisma, sanitizeFullTextSearch } from "@dub/prisma";
+import { Prisma } from "@dub/prisma/client";
+import { NextResponse } from "next/server";
+
+// GET /api/programs/partner-referrals/count - get the count of partner referrals for a program
+export const GET = withWorkspace(
+  async ({ workspace, searchParams }) => {
+    const programId = getDefaultProgramIdOrThrow(workspace);
+
+    const { partnerId, status, search, groupBy } =
+      getPartnerReferralsCountQuerySchema.parse(searchParams);
+
+    const commonWhere: Prisma.PartnerReferralWhereInput = {
+      programId,
+      ...(partnerId && groupBy !== "partnerId" && { partnerId }),
+      ...(status && groupBy !== "status" && { status }),
+      ...(search
+        ? search.includes("@")
+          ? { email: search }
+          : {
+              email: { search: sanitizeFullTextSearch(search) },
+              name: { search: sanitizeFullTextSearch(search) },
+            }
+        : {}),
+    };
+
+    // Get referral count by status
+    if (groupBy === "status") {
+      const data = await prisma.partnerReferral.groupBy({
+        by: ["status"],
+        where: commonWhere,
+        _count: true,
+        orderBy: {
+          _count: {
+            status: "desc",
+          },
+        },
+      });
+
+      return NextResponse.json(PartnerReferralsCountResponseSchema.parse(data));
+    }
+
+    // Get referral count by partnerId
+    if (groupBy === "partnerId") {
+      const data = await prisma.partnerReferral.groupBy({
+        by: ["partnerId"],
+        where: commonWhere,
+        _count: true,
+        orderBy: {
+          _count: {
+            partnerId: "desc",
+          },
+        },
+        take: 10000,
+      });
+
+      return NextResponse.json(PartnerReferralsCountResponseSchema.parse(data));
+    }
+
+    // Get referral count
+    const count = await prisma.partnerReferral.count({
+      where: commonWhere,
+    });
+
+    return NextResponse.json(PartnerReferralsCountResponseSchema.parse(count));
+  },
+  {
+    requiredPlan: [
+      "business",
+      "business plus",
+      "business extra",
+      "business max",
+      "advanced",
+      "enterprise",
+    ],
+  },
+);
