@@ -15,7 +15,9 @@ export default async function SuccessPage({
 
   const workspace = await prisma.project.findUnique({
     select: {
+      slug: true,
       name: true,
+      logo: true,
       defaultProgramId: true,
     },
     where: {
