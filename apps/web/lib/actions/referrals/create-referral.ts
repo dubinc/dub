@@ -10,6 +10,7 @@ import {
 } from "@/lib/zod/schemas/referral-form";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
+import { COUNTRIES } from "@dub/utils";
 import * as z from "zod/v4";
 import { authPartnerActionClient } from "../safe-action";
 
@@ -20,6 +21,43 @@ const requiredFieldsSchema = z.object({
   email: z.email("Invalid email address"),
   company: z.string().min(1, "Company is required"),
 });
+
+/**
+ * Converts field values based on field type:
+ * - country: converts country code to country name
+ * - select: converts option value to option label
+ * - multiSelect: converts array of option values to array of option labels
+ */
+function convertFieldValue(
+  value: unknown,
+  fieldSchema?: z.infer<typeof formFieldSchema>,
+): unknown {
+  if (!fieldSchema) return value;
+
+  switch (fieldSchema.type) {
+    case "country":
+      return typeof value === "string" && value in COUNTRIES
+        ? COUNTRIES[value]
+        : value;
+
+    case "select": {
+      const option = fieldSchema.options.find((opt) => opt.value === value);
+      return option?.label ?? value;
+    }
+
+    case "multiSelect":
+      return Array.isArray(value)
+        ? value.map(
+            (val) =>
+              fieldSchema.options.find((opt) => opt.value === val)?.label ??
+              val,
+          )
+        : value;
+
+    default:
+      return value;
+  }
+}
 
 // Create a partner referral
 export const createReferralAction = authPartnerActionClient
@@ -82,14 +120,14 @@ export const createReferralAction = authPartnerActionClient
         continue;
       }
 
-      // Get label from form schema, fallback to key if not found
+      // Get field schema to extract label and handle value conversion
       const fieldSchema = fieldMap.get(key);
       const label = fieldSchema?.label || key;
 
       customFormData.push({
         key,
-        value,
         label,
+        value: convertFieldValue(value, fieldSchema),
       });
     }
 
