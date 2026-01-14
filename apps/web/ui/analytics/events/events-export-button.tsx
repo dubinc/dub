@@ -2,6 +2,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { Button, Download, TooltipContent } from "@dub/ui";
 import { Dispatch, SetStateAction, useContext } from "react";
 import { toast } from "sonner";
+import { AnalyticsContext } from "../analytics-provider";
 import { EventsContext } from "./events-provider";
 
 export function EventsExportButton({
@@ -10,17 +11,21 @@ export function EventsExportButton({
   setOpenPopover: Dispatch<SetStateAction<boolean>>;
 }) {
   const { exportQueryString } = useContext(EventsContext);
+  const { eventsApiPath } = useContext(AnalyticsContext);
   const { slug, plan } = useWorkspace();
 
   const needsHigherPlan = plan === "free" || plan === "pro";
 
   async function exportData() {
-    const response = await fetch(`/api/events/export?${exportQueryString}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
+    const response = await fetch(
+      `${eventsApiPath}/export?${exportQueryString}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
       },
-    });
+    );
 
     if (!response.ok) {
       throw new Error(response.statusText);

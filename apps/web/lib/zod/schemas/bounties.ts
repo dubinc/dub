@@ -119,15 +119,17 @@ export const BountyListSchema = BountySchema.extend({
     .optional(),
 });
 
+// used in GET /bounties/{bountyId}/submissions
 export const BountySubmissionSchema = z.object({
   id: z.string(),
+  bountyId: z.string(),
+  partnerId: z.string(),
   description: z.string().nullable(),
   urls: z.array(z.string()).nullable(),
   files: z.array(BountySubmissionFileSchema).nullable(),
   status: z.enum(BountySubmissionStatus),
   performanceCount: z.number().nullable(),
   createdAt: z.date(),
-  updatedAt: z.date(),
   completedAt: z.date().nullable(),
   reviewedAt: z.date().nullable(),
   rejectionReason: z.string().nullable(),
@@ -161,23 +163,43 @@ export const BountySubmissionExtendedSchema = BountySubmissionSchema.extend({
   }).nullable(),
 });
 
-export const rejectBountySubmissionSchema = z.object({
-  workspaceId: z.string(),
-  submissionId: z.string(),
-  rejectionReason: z.enum(BountySubmissionRejectionReason),
+export const approveBountySubmissionBodySchema = z.object({
+  rewardAmount: z.number().nullish(),
+});
+
+export const rejectBountySubmissionBodySchema = z.object({
+  rejectionReason: z.enum(BountySubmissionRejectionReason).optional().meta({
+    description: "The reason for rejecting the submission.",
+  }),
   rejectionNote: z
     .string()
     .trim()
     .max(BOUNTY_MAX_SUBMISSION_REJECTION_NOTE_LENGTH)
-    .optional(),
+    .optional()
+    .meta({
+      description: "The note for rejecting the submission.",
+    }),
 });
 
 export const getBountySubmissionsQuerySchema = z
   .object({
-    status: z.enum(BountySubmissionStatus).optional(),
-    groupId: z.string().optional(),
-    partnerId: z.string().optional(),
-    sortBy: z.enum(["completedAt", "performanceCount"]).default("completedAt"),
-    sortOrder: z.enum(["asc", "desc"]).default("asc"),
+    status: z.enum(BountySubmissionStatus).optional().meta({
+      description: "The status of the submissions to list.",
+    }),
+    groupId: z.string().optional().meta({
+      description: "The ID of the group to list submissions for.",
+    }),
+    partnerId: z.string().optional().meta({
+      description: "The ID of the partner to list submissions for.",
+    }),
+    sortBy: z
+      .enum(["completedAt", "performanceCount"])
+      .default("completedAt")
+      .meta({
+        description: "The field to sort the submissions by.",
+      }),
+    sortOrder: z.enum(["asc", "desc"]).default("asc").meta({
+      description: "The order to sort the submissions by.",
+    }),
   })
   .extend(getPaginationQuerySchema({ pageSize: 100 }));

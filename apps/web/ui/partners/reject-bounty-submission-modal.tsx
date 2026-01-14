@@ -7,7 +7,7 @@ import { mutatePrefix } from "@/lib/swr/mutate";
 import useBounty from "@/lib/swr/use-bounty";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountySubmissionProps } from "@/lib/types";
-import { rejectBountySubmissionSchema } from "@/lib/zod/schemas/bounties";
+import { rejectBountySubmissionBodySchema } from "@/lib/zod/schemas/bounties";
 import { Button, Modal, useKeyboardShortcut } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
@@ -15,11 +15,6 @@ import { useCallback, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod/v4";
-
-type FormData = Pick<
-  z.infer<typeof rejectBountySubmissionSchema>,
-  "rejectionReason" | "rejectionNote"
->;
 
 interface RejectBountySubmissionModalProps {
   submission: BountySubmissionProps;
@@ -42,7 +37,7 @@ const RejectBountySubmissionModal = ({
     watch,
     getValues,
     formState: { errors },
-  } = useForm<FormData>({
+  } = useForm<z.infer<typeof rejectBountySubmissionBodySchema>>({
     defaultValues: {
       rejectionReason: undefined,
       rejectionNote: "",
@@ -73,7 +68,7 @@ const RejectBountySubmissionModal = ({
 
     await rejectBountySubmission({
       ...formData,
-      rejectionReason: formData.rejectionReason || "other",
+      rejectionReason: formData.rejectionReason,
       workspaceId: workspace.id,
       submissionId: submission.id,
     });

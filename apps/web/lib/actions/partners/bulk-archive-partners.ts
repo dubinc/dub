@@ -54,24 +54,21 @@ export const bulkArchivePartnersAction = authActionClient
     });
 
     waitUntil(
-      (async () => {
-        // Record audit log for each partner
-        await recordAuditLog(
-          programEnrollments.map(({ partner }) => ({
-            workspaceId: workspace.id,
-            programId,
-            action: "partner.archived",
-            description: `Partner ${partner.id} archived`,
-            actor: user,
-            targets: [
-              {
-                type: "partner",
-                id: partner.id,
-                metadata: partner,
-              },
-            ],
-          })),
-        );
-      })(),
+      recordAuditLog(
+        programEnrollments.map(({ partner }) => ({
+          workspaceId: workspace.id,
+          programId,
+          action: "partner.archived",
+          description: `Partner ${partner.id} archived`,
+          actor: user,
+          targets: [
+            {
+              type: "partner",
+              id: partner.id,
+              metadata: partner,
+            },
+          ],
+        })),
+      ),
     );
   });
