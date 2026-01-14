@@ -18,18 +18,15 @@ export function useUnqualifyPartnerReferralModal({
 }) {
   const { id: workspaceId } = useWorkspace();
 
-  const { executeAsync, isPending } = useAction(
-    markReferralUnqualifiedAction,
-    {
-      onSuccess: async () => {
-        toast.success("Partner referral unqualified successfully!");
-        mutatePrefix("/api/programs/partner-referrals");
-      },
-      onError({ error }) {
-        toast.error(error.serverError);
-      },
+  const { executeAsync, isPending } = useAction(markReferralUnqualifiedAction, {
+    onSuccess: async () => {
+      toast.success("Partner referral unqualified successfully!");
+      mutatePrefix("/api/programs/partner-referrals");
     },
-  );
+    onError({ error }) {
+      toast.error(error.serverError);
+    },
+  });
 
   const { setShowConfirmModal, confirmModal } = useConfirmModal({
     title: "Unqualify lead",

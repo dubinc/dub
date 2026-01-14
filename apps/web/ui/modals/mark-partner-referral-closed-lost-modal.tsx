@@ -18,18 +18,15 @@ export function useMarkPartnerReferralClosedLostModal({
 }) {
   const { id: workspaceId } = useWorkspace();
 
-  const { executeAsync, isPending } = useAction(
-    markReferralClosedLostAction,
-    {
-      onSuccess: async () => {
-        toast.success("Partner referral marked as closed lost successfully!");
-        mutatePrefix("/api/programs/partner-referrals");
-      },
-      onError({ error }) {
-        toast.error(error.serverError);
-      },
+  const { executeAsync, isPending } = useAction(markReferralClosedLostAction, {
+    onSuccess: async () => {
+      toast.success("Partner referral marked as closed lost successfully!");
+      mutatePrefix("/api/programs/partner-referrals");
     },
-  );
+    onError({ error }) {
+      toast.error(error.serverError);
+    },
+  });
 
   const { setShowConfirmModal, confirmModal } = useConfirmModal({
     title: "Lead closed lost",

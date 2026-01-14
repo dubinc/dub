@@ -40,20 +40,17 @@ export function useMarkPartnerReferralClosedWonModal({
     },
   });
 
-  const { executeAsync, isPending } = useAction(
-    markReferralClosedWonAction,
-    {
-      onSuccess: async () => {
-        toast.success("Partner referral marked as closed won successfully!");
-        mutatePrefix("/api/programs/partner-referrals");
-        setShowModal(false);
-        reset();
-      },
-      onError({ error }) {
-        toast.error(error.serverError);
-      },
+  const { executeAsync, isPending } = useAction(markReferralClosedWonAction, {
+    onSuccess: async () => {
+      toast.success("Partner referral marked as closed won successfully!");
+      mutatePrefix("/api/programs/partner-referrals");
+      setShowModal(false);
+      reset();
     },
-  );
+    onError({ error }) {
+      toast.error(error.serverError);
+    },
+  });
 
   const onSubmit = useCallback(
     async (data: MarkPartnerReferralClosedWonFormData) => {
