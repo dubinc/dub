@@ -6,6 +6,7 @@ import { LinkErrorSchema, LinkSchema } from "../zod/schemas/links";
 import { LinkTagSchema } from "../zod/schemas/tags";
 import { WorkspaceSchema } from "../zod/schemas/workspaces";
 import { analyticsPath } from "./analytics";
+import { bountiesPaths } from "./bounties";
 import { commissionsPaths } from "./commissions";
 import { customersPaths } from "./customers";
 import { domainsPaths } from "./domains";
@@ -57,6 +58,7 @@ export const document = createDocument({
     ...workspacesPaths,
     ...embedTokensPaths,
     ...qrCodePaths,
+    ...bountiesPaths,
   },
   components: {
     schemas: {

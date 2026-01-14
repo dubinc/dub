@@ -447,6 +447,9 @@ function RewardSheetContent({
                           </InlineBadgePopover>
                         </>
                       )}
+                      {modifiers?.length ? (
+                        <> for all other {selectedEvent}s</>
+                      ) : null}
                     </span>
                   </div>
                   <Tooltip

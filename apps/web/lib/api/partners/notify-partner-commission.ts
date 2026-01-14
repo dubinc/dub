@@ -151,7 +151,7 @@ export async function notifyPartnerCommission({
       ? workspaceUsers.map(
           ({ user }) =>
             ({
-              subject: `New commission for ${partner.name}`,
+              subject: `New customer referred by ${partner.name}`,
               variant: "notifications",
               to: user.email!,
               react: NewSaleAlertProgramOwner({
