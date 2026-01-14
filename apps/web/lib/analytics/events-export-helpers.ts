@@ -26,7 +26,8 @@ export const eventsExportColumnAccessors = {
   refererUrl: (r: ClickEvent) => r.click.refererUrl,
   customer: (r: LeadEvent | SaleEvent) =>
     r.customer.name + (r.customer.email ? ` <${r.customer.email}>` : ""),
-  invoiceId: (r: SaleEvent) => r.sale.invoiceId,
-  saleAmount: (r: SaleEvent) => "$" + (r.sale.amount / 100).toFixed(2),
+  invoiceId: (r: Row) => ("sale" in r ? r.sale.invoiceId : ""),
+  saleAmount: (r: Row) =>
+    "sale" in r ? "$" + (r.sale.amount / 100).toFixed(2) : "",
   clickId: (r: ClickEvent) => r.click.id,
 };

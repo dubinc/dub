@@ -15,7 +15,7 @@ import { prisma } from "@dub/prisma";
 import { capitalize, log } from "@dub/utils";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../../utils";
-import { fetchEventsBatch } from "./fetch-events-batch";
+import { fetchEventsBatch } from "../fetch-events-batch";
 
 const payloadSchema = eventsQuerySchema.extend({
   columns: z
@@ -110,7 +110,7 @@ export async function POST(req: Request) {
     const csvData = convertToCSV(allEvents);
 
     const { downloadUrl } = await createDownloadableExport({
-      fileKey: `exports/events/${generateRandomString(16)}.csv`,
+      fileKey: `exports/events/workspace/${generateRandomString(16)}.csv`,
       fileName: generateExportFilename("events"),
       body: csvData,
       contentType: "text/csv",
