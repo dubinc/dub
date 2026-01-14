@@ -34,11 +34,6 @@ type PartnerReferralSheetProps = {
 
 function ReferralDetails({ referral }: { referral: PartnerReferralProps }) {
   const formData = referral.formData as Record<string, unknown> | null;
-  const country = formData?.country as string | undefined;
-  const phoneNumber = formData?.phoneNumber as string | undefined;
-  const region = formData?.region as string | undefined;
-  const numberOfUsers = formData?.numberOfUsers as string | undefined;
-  const details = formData?.details as string | undefined;
 
   return (
     <div className="@3xl/sheet:order-1">
@@ -65,64 +60,13 @@ function ReferralDetails({ referral }: { referral: PartnerReferralProps }) {
             </div>
             <div className="text-content-emphasis">{referral.company}</div>
           </div>
-          {country && (
-            <div>
-              <div className="text-content-subtle mb-1 text-xs font-medium">
-                Country
-              </div>
-              <div className="text-content-emphasis flex items-center gap-2">
-                {country && (
-                  <img
-                    alt={`Flag of ${COUNTRIES[country] || country}`}
-                    src={`https://flag.vercel.app/m/${country}.svg`}
-                    className="size-4 rounded-full"
-                  />
-                )}
-                {COUNTRIES[country] || country}
-              </div>
-            </div>
-          )}
-          {phoneNumber && (
-            <div>
-              <div className="text-content-subtle mb-1 text-xs font-medium">
-                Phone number
-              </div>
-              <div className="text-content-emphasis">{phoneNumber}</div>
-            </div>
-          )}
-          {region && (
-            <div>
-              <div className="text-content-subtle mb-1 text-xs font-medium">
-                Region
-              </div>
-              <div className="text-content-emphasis">{region}</div>
-            </div>
-          )}
-          {numberOfUsers && (
-            <div>
-              <div className="text-content-subtle mb-1 text-xs font-medium">
-                Number of users
-              </div>
-              <div className="text-content-emphasis">{numberOfUsers}</div>
-            </div>
-          )}
-          {details && (
-            <div>
-              <div className="text-content-subtle mb-1 text-xs font-medium">
-                Details
-              </div>
-              <div className="text-content-emphasis whitespace-pre-wrap">
-                {details}
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </div>
   );
 }
 
-function ReferredCustomer({ referral }: { referral: PartnerReferralProps }) {
+function CustomerDetails({ referral }: { referral: PartnerReferralProps }) {
   const formData = referral.formData as Record<string, unknown> | null;
   const country = formData?.country as string | undefined;
 
@@ -200,7 +144,7 @@ function ReferredCustomer({ referral }: { referral: PartnerReferralProps }) {
   );
 }
 
-function ReferralPartner({ referral }: { referral: PartnerReferralProps }) {
+function PartnerDetails({ referral }: { referral: PartnerReferralProps }) {
   return (
     <div className="border-border-subtle overflow-hidden rounded-xl border bg-white p-4">
       <h3 className="text-content-emphasis mb-4 text-sm font-semibold">
@@ -318,12 +262,11 @@ function PartnerReferralSheetContent({
 
           {/* Right side - Two cards */}
           <div className="@3xl/sheet:order-2 flex flex-col gap-4">
-            <ReferredCustomer referral={referral} />
-            <ReferralPartner referral={referral} />
+            <CustomerDetails referral={referral} />
+            <PartnerDetails referral={referral} />
           </div>
         </div>
 
-        {/* Footer with action buttons based on status */}
         {!showNoActions && (
           <div className="shrink-0 border-t border-neutral-200 p-5">
             <div className="flex justify-end gap-2">
@@ -349,6 +292,7 @@ function PartnerReferralSheetContent({
                   />
                 </>
               )}
+
               {showClosedButtons && (
                 <>
                   <Button
