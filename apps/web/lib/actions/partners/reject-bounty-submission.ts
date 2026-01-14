@@ -1,105 +1,30 @@
 "use server";
 
-import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { rejectBountySubmission } from "@/lib/api/bounties/reject-bounty-submission";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { REJECT_BOUNTY_SUBMISSION_REASONS } from "@/lib/constants/bounties";
-import {
-  BountySubmissionSchema,
-  rejectBountySubmissionSchema,
-} from "@/lib/zod/schemas/bounties";
-import { sendEmail } from "@dub/email";
-import BountyRejected from "@dub/email/templates/bounty-rejected";
-import { prisma } from "@dub/prisma";
-import { waitUntil } from "@vercel/functions";
+import { rejectBountySubmissionBodySchema } from "@/lib/zod/schemas/bounties";
+import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
+
+const inputSchema = rejectBountySubmissionBodySchema.extend({
+  workspaceId: z.string(),
+  submissionId: z.string(),
+});
 
 // Reject a bounty submission
 export const rejectBountySubmissionAction = authActionClient
-  .inputSchema(rejectBountySubmissionSchema)
+  .inputSchema(inputSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { submissionId, rejectionReason, rejectionNote } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const { program, bounty, partner, ...bountySubmission } =
-      await prisma.bountySubmission.findUniqueOrThrow({
-        where: {
-          id: submissionId,
-        },
-        include: {
-          program: true,
-          bounty: true,
-          partner: true,
-        },
-      });
-
-    if (bountySubmission.programId !== programId) {
-      throw new Error("Bounty submission does not belong to this program.");
-    }
-
-    if (bountySubmission.status === "draft") {
-      throw new Error(
-        "Bounty submission is in progress and cannot be rejected.",
-      );
-    }
-
-    if (bountySubmission.status === "rejected") {
-      throw new Error("Bounty submission already rejected.");
-    }
-
-    await prisma.bountySubmission.update({
-      where: {
-        id: submissionId,
-      },
-      data: {
-        status: "rejected",
-        reviewedAt: new Date(),
-        userId: user.id,
-        rejectionReason,
-        rejectionNote,
-        commissionId: null,
-      },
+    await rejectBountySubmission({
+      programId,
+      submissionId,
+      rejectionReason,
+      rejectionNote,
+      user,
     });
-
-    waitUntil(
-      Promise.allSettled([
-        recordAuditLog({
-          workspaceId: workspace.id,
-          programId: program.id,
-          action: "bounty_submission.rejected",
-          description: `Bounty submission rejected for ${partner.id}`,
-          actor: user,
-          targets: [
-            {
-              type: "bounty_submission",
-              id: submissionId,
-              metadata: BountySubmissionSchema.parse(bountySubmission),
-            },
-          ],
-        }),
-        partner.email &&
-          sendEmail({
-            subject: "Bounty rejected",
-            to: partner.email,
-            variant: "notifications",
-            replyTo: program.supportEmail || "noreply",
-            react: BountyRejected({
-              email: partner.email,
-              program: {
-                name: program.name,
-                slug: program.slug,
-              },
-              bounty: {
-                name: bounty.name,
-              },
-              submission: {
-                rejectionReason:
-                  REJECT_BOUNTY_SUBMISSION_REASONS[rejectionReason],
-                rejectionNote,
-              },
-            }),
-          }),
-      ]),
-    );
   });
