@@ -96,7 +96,7 @@ export function ConnectPayoutButton(props: ButtonProps) {
 
   return (
     <>
-      <BankAccountRequirementsModal />
+      {BankAccountRequirementsModal}
       <Button
         onClick={onClick}
         loading={isStripePending || isPaypalPending}

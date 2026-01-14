@@ -3,7 +3,6 @@
 import { X } from "@/ui/shared/icons";
 import { Button, Modal } from "@dub/ui";
 import { TriangleWarning } from "@dub/ui/icons";
-import { cn } from "@dub/utils";
 import {
   Dispatch,
   SetStateAction,
@@ -85,9 +84,7 @@ function BankAccountRequirementsModal({
               type="checkbox"
               checked={acknowledged}
               onChange={(e) => setAcknowledged(e.target.checked)}
-              className={cn(
-                "h-4 w-4 rounded border-neutral-300 text-neutral-900 focus:ring-neutral-900",
-              )}
+              className="h-4 w-4 rounded border-neutral-300 text-neutral-900 focus:ring-neutral-900"
             />
           </div>
           <span className="text-sm leading-5 text-neutral-900">
@@ -118,21 +115,22 @@ export function useBankAccountRequirementsModal({
 }) {
   const [showModal, setShowModal] = useState(false);
 
-  const BankAccountRequirementsModalCallback = useCallback(() => {
-    return (
+  const BankAccountRequirementsModalElement = useMemo(
+    () => (
       <BankAccountRequirementsModal
         showModal={showModal}
         setShowModal={setShowModal}
         onContinue={onContinue}
       />
-    );
-  }, [showModal, onContinue]);
+    ),
+    [showModal, onContinue],
+  );
 
   return useMemo(
     () => ({
       setShowBankAccountRequirementsModal: setShowModal,
-      BankAccountRequirementsModal: BankAccountRequirementsModalCallback,
+      BankAccountRequirementsModal: BankAccountRequirementsModalElement,
     }),
-    [BankAccountRequirementsModalCallback],
+    [BankAccountRequirementsModalElement],
   );
 }
