@@ -26,7 +26,7 @@ export type RewardConditionEntityAttribute = {
 };
 
 export type RewardConditionEntity = {
-  id: string;
+  id: "partner" | "customer" | "sale";
   label: string;
   attributes: RewardConditionEntityAttribute[];
 };
@@ -86,9 +86,12 @@ export const REWARD_CONDITIONS: Record<
     entities: RewardConditionEntity[];
   }
 > = {
+  // Click reward
   click: {
     entities: [CUSTOMER_ENTITY],
   },
+
+  // Lead reward
   lead: {
     entities: [
       {
@@ -115,6 +118,8 @@ export const REWARD_CONDITIONS: Record<
       PARTNER_ENTITY,
     ],
   },
+
+  // Sale reward
   sale: {
     entities: [
       {
