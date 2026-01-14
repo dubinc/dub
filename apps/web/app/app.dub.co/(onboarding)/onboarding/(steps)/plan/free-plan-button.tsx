@@ -15,7 +15,7 @@ export function FreePlanButton({
   return (
     <button
       type="button"
-      onClick={() => continueTo("completed")}
+      onClick={() => continueTo("success")}
       className={cn(
         "inline-block text-neutral-500 transition-colors enabled:hover:text-neutral-700",
         className,

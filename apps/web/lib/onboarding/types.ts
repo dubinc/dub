@@ -7,6 +7,7 @@ export const ONBOARDING_STEPS = [
   "program",
   "program/reward",
   "plan",
+  "success",
   "completed",
 ] as const;
 

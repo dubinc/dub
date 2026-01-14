@@ -3,7 +3,7 @@ import { prisma } from "@dub/prisma";
 import { cn } from "@dub/utils";
 import { redirect } from "next/navigation";
 
-export default async function CompletedPage({
+export default async function SuccessPage({
   searchParams,
 }: {
   searchParams: Promise<{ workspace: string }>;
@@ -42,7 +42,7 @@ export default async function CompletedPage({
           ? "Now you can manage your partner program and short links in one place"
           : "Now you have one central, organized place to build and manage all your short links."}
       </p>
-      <div className="mt-8 w-full">WIP</div>
+      <div className="mt-8 w-full"></div>
     </div>
   );
 }
