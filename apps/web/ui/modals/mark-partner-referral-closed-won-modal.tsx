@@ -8,13 +8,7 @@ import { partnerReferralSchema } from "@/lib/zod/schemas/partner-referrals";
 import { Button, Modal } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
-import {
-  Dispatch,
-  SetStateAction,
-  useCallback,
-  useMemo,
-  useState,
-} from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod/v4";
@@ -80,25 +74,25 @@ export function useMarkPartnerReferralClosedWonModal({
     [executeAsync, referral.id, workspaceId],
   );
 
-  const ModalComponent = useCallback(() => {
-    return (
+  const closedWonModal = useMemo(
+    () => (
       <Modal showModal={showModal} setShowModal={setShowModal}>
         <form onSubmit={handleSubmit(onSubmit)}>
-          <div className="p-5 text-left">
+          <div className="flex flex-col gap-1 border-b border-neutral-200 px-[18px] py-5 text-left">
             <h3 className="text-content-emphasis text-base font-semibold">
               Lead closed won
             </h3>
-            <div className="text-content-subtle mt-1 text-sm">
+            <p className="text-content-subtle text-sm">
               Are you sure you want to mark this partner referral as closed won?
-            </div>
+            </p>
           </div>
 
-          <div className="flex flex-col gap-4 bg-neutral-50 px-5 pb-4">
-            <div>
-              <label className="block text-sm font-medium text-neutral-900">
+          <div className="flex flex-col gap-5 p-5">
+            <div className="flex flex-col gap-2">
+              <label className="text-content-emphasis block text-sm font-medium">
                 Sale Amount (required)
               </label>
-              <div className="relative mt-1.5 rounded-md shadow-sm">
+              <div className="relative rounded-md shadow-sm">
                 <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
                   $
                 </span>
@@ -111,7 +105,7 @@ export function useMarkPartnerReferralClosedWonModal({
                     errors.saleAmount &&
                       "border-red-600 focus:border-red-500 focus:ring-red-600",
                   )}
-                  placeholder="0.00"
+                  placeholder="50000"
                   {...register("saleAmount", {
                     required: "Sale amount is required",
                     min: {
@@ -127,21 +121,23 @@ export function useMarkPartnerReferralClosedWonModal({
                   USD
                 </span>
               </div>
+
               {errors.saleAmount && (
-                <p className="mt-1 text-xs text-red-600">
+                <p className="text-xs text-red-600">
                   {errors.saleAmount.message}
                 </p>
               )}
-              <p className="mt-1 text-xs text-neutral-500">
+
+              <p className="text-xs text-neutral-500">
                 This will be also recorded as a sale commission (if applicable)
               </p>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-neutral-900">
+            <div className="flex flex-col gap-2">
+              <label className="text-content-emphasis block text-sm font-medium">
                 Stripe Customer ID
               </label>
-              <div className="relative mt-1.5 rounded-md shadow-sm">
+              <div className="relative rounded-md shadow-sm">
                 <input
                   type="text"
                   className={cn(
@@ -155,12 +151,14 @@ export function useMarkPartnerReferralClosedWonModal({
                   })}
                 />
               </div>
+
               {errors.stripeCustomerId && (
-                <p className="mt-1 text-xs text-red-600">
+                <p className="text-xs text-red-600">
                   {errors.stripeCustomerId.message}
                 </p>
               )}
-              <p className="mt-1 text-xs text-neutral-500">
+
+              <p className="text-xs text-neutral-500">
                 The customer's Stripe Customer ID (optional)
               </p>
             </div>
@@ -188,15 +186,22 @@ export function useMarkPartnerReferralClosedWonModal({
           </div>
         </form>
       </Modal>
-    );
-  }, [showModal, handleSubmit, onSubmit, register, errors, isPending, isSubmitting, reset]);
-
-  return useMemo(
-    () => ({
-      setShowModal,
-      ClosedWonModal: ModalComponent,
-      isMarkingClosedWon: isPending || isSubmitting,
-    }),
-    [setShowModal, ModalComponent, isPending, isSubmitting],
+    ),
+    [
+      showModal,
+      handleSubmit,
+      onSubmit,
+      register,
+      errors,
+      isPending,
+      isSubmitting,
+      reset,
+    ],
   );
+
+  return {
+    setShowModal,
+    ClosedWonModal: closedWonModal,
+    isMarkingClosedWon: isPending || isSubmitting,
+  };
 }
