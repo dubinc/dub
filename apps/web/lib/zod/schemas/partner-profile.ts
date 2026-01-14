@@ -8,6 +8,7 @@ import {
   PartnerProfileType,
   PartnerRole,
   ProgramEnrollmentStatus,
+  ReferralStatus,
 } from "@dub/prisma/client";
 import * as z from "zod/v4";
 import { analyticsQuerySchema, eventsQuerySchema } from "./analytics";
@@ -240,3 +241,41 @@ export const getPartnerCustomersCountQuerySchema =
     .extend({
       groupBy: z.enum(["country", "linkId"]).optional(),
     });
+
+export const partnerProfileReferralSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  email: z.email(),
+  company: z.string(),
+  status: z.enum(ReferralStatus),
+  formData: z.record(z.string(), z.unknown()).nullable().optional(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
+
+export const getPartnerReferralsQuerySchema = z
+  .object({
+    status: z.enum(ReferralStatus).optional(),
+    search: z.string().optional(),
+  })
+  .extend(getPaginationQuerySchema({ pageSize: 100 }));
+
+export const getPartnerReferralsCountQuerySchema =
+  getPartnerReferralsQuerySchema
+    .omit({
+      page: true,
+      pageSize: true,
+    })
+    .extend({
+      groupBy: z.enum(["status"]).optional(),
+    });
+
+export const partnerReferralsCountByStatusSchema = z.object({
+  status: z.enum(ReferralStatus),
+  _count: z.number(),
+});
+
+export const partnerReferralsCountResponseSchema = z.union([
+  z.array(partnerReferralsCountByStatusSchema),
+  z.number(),
+]);
