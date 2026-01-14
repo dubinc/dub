@@ -1,6 +1,6 @@
 "use client";
 
-import { unqualifyPartnerReferralAction } from "@/lib/actions/referrals/unqualify-partner-referral";
+import { markPartnerReferralClosedLostAction } from "@/lib/actions/referrals/mark-partner-referral-closed-lost";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { partnerReferralSchema } from "@/lib/zod/schemas/partner-referrals";
@@ -11,7 +11,7 @@ import * as z from "zod/v4";
 
 type PartnerReferralProps = z.infer<typeof partnerReferralSchema>;
 
-export function useUnqualifyPartnerReferralModal({
+export function useMarkPartnerReferralClosedLostModal({
   referral,
 }: {
   referral: PartnerReferralProps;
@@ -19,10 +19,10 @@ export function useUnqualifyPartnerReferralModal({
   const { id: workspaceId } = useWorkspace();
 
   const { executeAsync, isPending } = useAction(
-    unqualifyPartnerReferralAction,
+    markPartnerReferralClosedLostAction,
     {
       onSuccess: async () => {
-        toast.success("Partner referral unqualified successfully!");
+        toast.success("Partner referral marked as closed lost successfully!");
         mutatePrefix("/api/programs/partner-referrals");
       },
       onError({ error }) {
@@ -32,11 +32,12 @@ export function useUnqualifyPartnerReferralModal({
   );
 
   const { setShowConfirmModal, confirmModal } = useConfirmModal({
-    title: "Unqualify lead",
-    description: "Are you sure you want to unqualify this partner referral?",
-    confirmText: "Unqualify",
+    title: "Lead closed lost",
+    description:
+      "Are you sure you want to mark this partner referral as closed lost?",
+    confirmText: "Closed lost",
     cancelText: "Cancel",
-    confirmShortcut: "U",
+    confirmShortcut: "L",
     confirmShortcutOptions: { modal: true },
     onConfirm: async () => {
       if (!workspaceId || !referral.id) {
@@ -51,8 +52,8 @@ export function useUnqualifyPartnerReferralModal({
   });
 
   return {
-    setShowUnqualifyModal: setShowConfirmModal,
-    UnqualifyModal: confirmModal,
-    isUnqualifying: isPending,
+    setShowClosedLostModal: setShowConfirmModal,
+    ClosedLostModal: confirmModal,
+    isMarkingClosedLost: isPending,
   };
 }

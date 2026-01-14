@@ -1,6 +1,6 @@
 "use client";
 
-import { qualifyPartnerReferralAction } from "@/lib/actions/partners/qualify-partner-referral";
+import { qualifyPartnerReferralAction } from "@/lib/actions/referrals/qualify-partner-referral";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { partnerReferralSchema } from "@/lib/zod/schemas/partner-referrals";

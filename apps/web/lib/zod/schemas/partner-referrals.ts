@@ -78,3 +78,17 @@ export const unqualifyPartnerReferralSchema = z.object({
   referralId: z.string(),
   workspaceId: z.string(),
 });
+
+export const markPartnerReferralClosedWonSchema = z.object({
+  referralId: z.string(),
+  workspaceId: z.string(),
+  saleAmount: z
+    .number()
+    .min(0, "Sale amount must be greater than or equal to 0"),
+  stripeCustomerId: z.string().optional(),
+});
+
+export const markPartnerReferralClosedLostSchema = z.object({
+  referralId: z.string(),
+  workspaceId: z.string(),
+});

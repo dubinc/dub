@@ -95,6 +95,8 @@ const actionSchema = z.enum([
   // Partner referrals
   "partner_referral.qualified",
   "partner_referral.unqualified",
+  "partner_referral.closed_won",
+  "partner_referral.closed_lost",
 ]);
 
 export const auditLogTarget = z.union([

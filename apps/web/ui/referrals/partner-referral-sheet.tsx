@@ -1,4 +1,6 @@
 import { partnerReferralSchema } from "@/lib/zod/schemas/partner-referrals";
+import { useMarkPartnerReferralClosedLostModal } from "@/ui/modals/mark-partner-referral-closed-lost-modal";
+import { useMarkPartnerReferralClosedWonModal } from "@/ui/modals/mark-partner-referral-closed-won-modal";
 import { useQualifyPartnerReferralModal } from "@/ui/modals/qualify-partner-referral-modal";
 import { useUnqualifyPartnerReferralModal } from "@/ui/modals/unqualify-partner-referral-modal";
 import { X } from "@/ui/shared/icons";
@@ -232,6 +234,15 @@ function PartnerReferralSheetContent({
   const { setShowUnqualifyModal, UnqualifyModal, isUnqualifying } =
     useUnqualifyPartnerReferralModal({ referral });
 
+  const {
+    setShowModal: setShowClosedWonModal,
+    ClosedWonModal,
+    isMarkingClosedWon,
+  } = useMarkPartnerReferralClosedWonModal({ referral });
+
+  const { setShowClosedLostModal, ClosedLostModal, isMarkingClosedLost } =
+    useMarkPartnerReferralClosedLostModal({ referral });
+
   // right arrow key onNext
   useKeyboardShortcut(
     "ArrowRight",
@@ -254,10 +265,19 @@ function PartnerReferralSheetContent({
     { sheet: true },
   );
 
+  // Determine which buttons to show based on status
+  const showQualifyButtons = referral.status === "pending";
+  const showClosedButtons = referral.status === "qualified";
+  const showNoActions = ["unqualified", "closedWon", "closedLost"].includes(
+    referral.status,
+  );
+
   return (
     <>
       {QualifyModal}
       {UnqualifyModal}
+      {ClosedWonModal}
+      {ClosedLostModal}
       <div className="flex size-full flex-col">
         <div className="flex h-16 shrink-0 items-center justify-between border-b border-neutral-200 px-6 py-4">
           <Sheet.Title className="text-lg font-semibold">
@@ -303,29 +323,57 @@ function PartnerReferralSheetContent({
           </div>
         </div>
 
-        {/* Footer with Qualify and Unqualify buttons */}
-        <div className="shrink-0 border-t border-neutral-200 p-5">
-          <div className="flex justify-end gap-2">
-            <Button
-              type="button"
-              variant="secondary"
-              text="Unqualify"
-              shortcut="U"
-              onClick={() => setShowUnqualifyModal(true)}
-              disabled={isUnqualifying}
-              className="w-fit shrink-0"
-            />
-            <Button
-              type="button"
-              variant="primary"
-              text="Qualify"
-              shortcut="Q"
-              onClick={() => setShowQualifyModal(true)}
-              disabled={isQualifying}
-              className="w-fit shrink-0"
-            />
+        {/* Footer with action buttons based on status */}
+        {!showNoActions && (
+          <div className="shrink-0 border-t border-neutral-200 p-5">
+            <div className="flex justify-end gap-2">
+              {showQualifyButtons && (
+                <>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    text="Unqualify"
+                    shortcut="U"
+                    onClick={() => setShowUnqualifyModal(true)}
+                    disabled={isUnqualifying}
+                    className="w-fit shrink-0"
+                  />
+                  <Button
+                    type="button"
+                    variant="primary"
+                    text="Qualify"
+                    shortcut="Q"
+                    onClick={() => setShowQualifyModal(true)}
+                    disabled={isQualifying}
+                    className="w-fit shrink-0"
+                  />
+                </>
+              )}
+              {showClosedButtons && (
+                <>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    text="Closed lost"
+                    shortcut="L"
+                    onClick={() => setShowClosedLostModal(true)}
+                    disabled={isMarkingClosedLost}
+                    className="w-fit shrink-0"
+                  />
+                  <Button
+                    type="button"
+                    variant="primary"
+                    text="Closed won"
+                    shortcut="W"
+                    onClick={() => setShowClosedWonModal(true)}
+                    disabled={isMarkingClosedWon}
+                    className="w-fit shrink-0"
+                  />
+                </>
+              )}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </>
   );
