@@ -2,7 +2,7 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { withWorkspace } from "@/lib/auth";
 import {
   getPartnerReferralsQuerySchema,
-  PartnerReferralSchema,
+  partnerReferralSchema,
 } from "@/lib/zod/schemas/partner-referrals";
 import { prisma, sanitizeFullTextSearch } from "@dub/prisma";
 import { NextResponse } from "next/server";
@@ -48,7 +48,7 @@ export const GET = withWorkspace(
     });
 
     return NextResponse.json(
-      z.array(PartnerReferralSchema).parse(partnerReferrals),
+      z.array(partnerReferralSchema).parse(partnerReferrals),
     );
   },
   {

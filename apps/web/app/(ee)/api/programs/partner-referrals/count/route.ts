@@ -2,7 +2,7 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { withWorkspace } from "@/lib/auth";
 import {
   getPartnerReferralsCountQuerySchema,
-  PartnerReferralsCountResponseSchema,
+  partnerReferralsCountResponseSchema,
 } from "@/lib/zod/schemas/partner-referrals";
 import { prisma, sanitizeFullTextSearch } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
@@ -43,7 +43,7 @@ export const GET = withWorkspace(
         },
       });
 
-      return NextResponse.json(PartnerReferralsCountResponseSchema.parse(data));
+      return NextResponse.json(partnerReferralsCountResponseSchema.parse(data));
     }
 
     // Get referral count by partnerId
@@ -60,7 +60,7 @@ export const GET = withWorkspace(
         take: 10000,
       });
 
-      return NextResponse.json(PartnerReferralsCountResponseSchema.parse(data));
+      return NextResponse.json(partnerReferralsCountResponseSchema.parse(data));
     }
 
     // Get referral count
@@ -68,7 +68,7 @@ export const GET = withWorkspace(
       where: commonWhere,
     });
 
-    return NextResponse.json(PartnerReferralsCountResponseSchema.parse(count));
+    return NextResponse.json(partnerReferralsCountResponseSchema.parse(count));
   },
   {
     requiredPlan: [
