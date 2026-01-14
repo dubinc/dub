@@ -16,14 +16,14 @@ export function PartnerCrossProgramSummary({
     return <LoadingSkeleton />;
   }
 
-  const { totalPrograms, trustedPrograms, removedPrograms } =
+  const { totalPrograms, trustedPrograms, bannedPrograms } =
     crossProgramSummary;
 
   return (
     <div className="flex items-center gap-3">
       <ActivityRing
         positiveValue={trustedPrograms}
-        negativeValue={removedPrograms}
+        negativeValue={bannedPrograms}
         positiveIcon={UserCheck}
         negativeIcon={UserXmark}
         neutralIcon={User}
@@ -35,8 +35,8 @@ export function PartnerCrossProgramSummary({
           total={totalPrograms}
         />
         <StatRow
-          label="Removed from programs"
-          value={removedPrograms}
+          label="Banned from programs"
+          value={bannedPrograms}
           total={totalPrograms}
         />
       </div>
