@@ -113,7 +113,7 @@ function ManageUsageModalContent({ type }: ManageUsageModalProps) {
               { value: "monthly", label: "Monthly" },
               {
                 value: "yearly",
-                label: "Yearly (2 months free)",
+                label: "Yearly (Save 17%)",
               },
             ]}
             className="flex overflow-hidden rounded-lg bg-transparent p-0.5"
