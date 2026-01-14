@@ -14,9 +14,6 @@ export const getReferralOrThrow = async ({
     where: {
       id: referralId,
     },
-    include: {
-      partner: true,
-    },
   });
 
   if (!referral) {
