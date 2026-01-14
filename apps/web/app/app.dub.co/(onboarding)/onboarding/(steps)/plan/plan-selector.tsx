@@ -115,7 +115,7 @@ export function PlanSelector({ product }: { product: OnboardingProduct }) {
                         period === "monthly" && "-translate-x-2 opacity-0",
                       )}
                     >
-                      2 months free
+                      Save 17%
                     </Badge>
                   </div>
                 </label>
