@@ -10,7 +10,6 @@ import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import {
   AnimatedSizeContainer,
-  EditColumnsButton,
   Filter,
   StatusBadge,
   Table,
@@ -23,9 +22,10 @@ import {
 import { Dots } from "@dub/ui/icons";
 import { cn, fetcher, formatDate, OG_AVATAR_URL } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 import * as z from "zod/v4";
+import { PartnerReferralSheet } from "./partner-referral-sheet";
 import { PartnerReferralStatusBadges } from "./partner-referral-status-badges";
 import { usePartnerReferralFilters } from "./use-partner-referral-filters";
 import { usePartnerReferralsCount } from "./use-partner-referrals-count";
@@ -37,9 +37,19 @@ export function PartnerReferralTable({
 }: {
   query?: Partial<z.infer<typeof getPartnerReferralsQuerySchema>>;
 }) {
-  const { getQueryString } = useRouterStuff();
+  const { getQueryString, queryParams, searchParams } = useRouterStuff();
   const { pagination, setPagination } = usePagination();
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
+
+  const referralIdFromUrl = searchParams.get("referralId");
+
+  const [detailsSheetState, setDetailsSheetState] = useState<{
+    referralId: string | null;
+    open: boolean;
+  }>({
+    referralId: referralIdFromUrl,
+    open: !!referralIdFromUrl,
+  });
 
   const {
     filters,
@@ -173,7 +183,7 @@ export function PartnerReferralTable({
           minSize: 43,
           size: 43,
           maxSize: 43,
-          header: () => <EditColumnsButton table={table} />,
+          header: () => null,
           cell: ({ row }: { row: Row<PartnerReferralProps> }) => (
             <RowMenuButton row={row} />
           ),
@@ -196,10 +206,94 @@ export function PartnerReferralTable({
     rowCount: referralsCount || 0,
     loading: isLoading,
     error: error || countError ? "Failed to load referrals" : undefined,
+    onRowClick: (row) => {
+      queryParams({
+        set: { referralId: row.original.id },
+        scroll: false,
+      });
+      setDetailsSheetState({
+        referralId: row.original.id,
+        open: true,
+      });
+    },
   });
+
+  const currentReferral = useMemo(() => {
+    if (!referrals || !detailsSheetState.referralId) return null;
+    return referrals.find((r) => r.id === detailsSheetState.referralId) || null;
+  }, [referrals, detailsSheetState.referralId]);
+
+  const [previousReferralId, nextReferralId] = useMemo(() => {
+    if (!referrals || !detailsSheetState.referralId) return [null, null];
+
+    const currentIndex = referrals.findIndex(
+      ({ id }) => id === detailsSheetState.referralId,
+    );
+    if (currentIndex === -1) return [null, null];
+
+    return [
+      currentIndex > 0 ? referrals[currentIndex - 1].id : null,
+      currentIndex < referrals.length - 1
+        ? referrals[currentIndex + 1].id
+        : null,
+    ];
+  }, [referrals, detailsSheetState.referralId]);
+
+  // Sync state with URL params
+  useEffect(() => {
+    const urlReferralId = searchParams.get("referralId");
+    if (urlReferralId && urlReferralId !== detailsSheetState.referralId) {
+      setDetailsSheetState({
+        referralId: urlReferralId,
+        open: true,
+      });
+    } else if (!urlReferralId && detailsSheetState.referralId) {
+      setDetailsSheetState({
+        referralId: null,
+        open: false,
+      });
+    }
+  }, [searchParams, detailsSheetState.referralId]);
 
   return (
     <div className="flex flex-col gap-3">
+      {detailsSheetState.referralId && currentReferral && (
+        <PartnerReferralSheet
+          isOpen={detailsSheetState.open}
+          setIsOpen={(open) =>
+            setDetailsSheetState((s) => ({ ...s, open }) as any)
+          }
+          referral={currentReferral}
+          onPrevious={
+            previousReferralId
+              ? () => {
+                  queryParams({
+                    set: { referralId: previousReferralId },
+                    scroll: false,
+                  });
+                  setDetailsSheetState({
+                    referralId: previousReferralId,
+                    open: true,
+                  });
+                }
+              : undefined
+          }
+          onNext={
+            nextReferralId
+              ? () => {
+                  queryParams({
+                    set: { referralId: nextReferralId },
+                    scroll: false,
+                  });
+                  setDetailsSheetState({
+                    referralId: nextReferralId,
+                    open: true,
+                  });
+                }
+              : undefined
+          }
+        />
+      )}
       <div>
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <Filter.Select

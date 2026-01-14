@@ -68,3 +68,13 @@ export const partnerReferralsCountResponseSchema = z.union([
   z.array(partnerReferralsCountByPartnerIdSchema),
   z.number(),
 ]);
+
+export const qualifyPartnerReferralSchema = z.object({
+  referralId: z.string(),
+  workspaceId: z.string(),
+});
+
+export const unqualifyPartnerReferralSchema = z.object({
+  referralId: z.string(),
+  workspaceId: z.string(),
+});

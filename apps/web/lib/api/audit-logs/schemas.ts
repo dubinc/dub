@@ -5,6 +5,7 @@ import {
 import { CommissionSchema } from "@/lib/zod/schemas/commissions";
 import { DiscountCodeSchema, DiscountSchema } from "@/lib/zod/schemas/discount";
 import { GroupSchema } from "@/lib/zod/schemas/groups";
+import { partnerReferralSchema } from "@/lib/zod/schemas/partner-referrals";
 import { PartnerSchema } from "@/lib/zod/schemas/partners";
 import { PayoutSchema } from "@/lib/zod/schemas/payouts";
 import { ProgramSchema } from "@/lib/zod/schemas/programs";
@@ -90,6 +91,10 @@ const actionSchema = z.enum([
   "bounty_submission.approved",
   "bounty_submission.rejected",
   "bounty_submission.reopened",
+
+  // Partner referrals
+  "partner_referral.qualified",
+  "partner_referral.unqualified",
 ]);
 
 export const auditLogTarget = z.union([
@@ -189,6 +194,16 @@ export const auditLogTarget = z.union([
     type: z.literal("bounty_submission"),
     id: z.string(),
     metadata: BountySubmissionSchema,
+  }),
+
+  z.object({
+    type: z.literal("partner_referral"),
+    id: z.string(),
+    metadata: partnerReferralSchema.pick({
+      email: true,
+      name: true,
+      company: true,
+    }),
   }),
 ]);
 
