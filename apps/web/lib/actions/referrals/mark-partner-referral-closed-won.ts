@@ -3,6 +3,7 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { getReferralOrThrow } from "@/lib/api/referrals/get-referral-or-throw";
 import { markPartnerReferralClosedWonSchema } from "@/lib/zod/schemas/partner-referrals";
 import { prisma } from "@dub/prisma";
 import { ReferralStatus } from "@dub/prisma/client";
@@ -17,28 +18,10 @@ export const markPartnerReferralClosedWonAction = authActionClient
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const partnerReferral = await prisma.partnerReferral.findUnique({
-      where: {
-        id: referralId,
-      },
-      include: {
-        partner: true,
-      },
+    const partnerReferral = await getReferralOrThrow({
+      referralId,
+      programId,
     });
-
-    if (!partnerReferral) {
-      throw new DubApiError({
-        code: "not_found",
-        message: "Partner referral not found.",
-      });
-    }
-
-    if (partnerReferral.programId !== programId) {
-      throw new DubApiError({
-        code: "forbidden",
-        message: "You don't have access to this partner referral.",
-      });
-    }
 
     if (partnerReferral.status === ReferralStatus.closedWon) {
       throw new DubApiError({
