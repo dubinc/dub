@@ -69,12 +69,12 @@ export const partnerReferralsCountResponseSchema = z.union([
   z.number(),
 ]);
 
-export const qualifyPartnerReferralSchema = z.object({
+export const markPartnerReferralQualifiedSchema = z.object({
   referralId: z.string(),
   workspaceId: z.string(),
 });
 
-export const unqualifyPartnerReferralSchema = z.object({
+export const markPartnerReferralUnqualifiedSchema = z.object({
   referralId: z.string(),
   workspaceId: z.string(),
 });
