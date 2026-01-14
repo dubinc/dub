@@ -1,6 +1,7 @@
 "use client";
 
 import useDomainsCount from "@/lib/swr/use-domains-count";
+import usePaymentMethods from "@/lib/swr/use-payment-methods";
 import useWorkspace from "@/lib/swr/use-workspace";
 import useWorkspaceUsers from "@/lib/swr/use-workspace-users";
 import { CheckCircleFill, ThreeDots } from "@/ui/shared/icons";
@@ -10,6 +11,7 @@ import { ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { forwardRef, HTMLAttributes, Ref, useMemo, useState } from "react";
+import { useAnalyticsConnectedStatus } from "./use-analytics-connected-status";
 
 export function OnboardingButton() {
   const { isMobile } = useMediaQuery();
@@ -29,7 +31,7 @@ function OnboardingButtonInner({
   onHideForever: () => void;
 }) {
   const { slug } = useParams() as { slug: string };
-  const { totalLinks } = useWorkspace();
+  const { totalLinks, defaultProgramId } = useWorkspace();
 
   const { data: domainsCount, loading: domainsLoading } = useDomainsCount({
     ignoreParams: true,
@@ -39,30 +41,69 @@ function OnboardingButtonInner({
     invites: true,
   });
 
-  const loading = domainsLoading || usersLoading || invitesLoading;
+  const { isConnected } = useAnalyticsConnectedStatus();
+  const { paymentMethods, loading: paymentMethodsLoading } = usePaymentMethods({
+    enabled: Boolean(defaultProgramId),
+  });
+
+  const loading =
+    domainsLoading || usersLoading || invitesLoading || paymentMethodsLoading;
 
   const tasks = useMemo(() => {
     return [
       {
-        display: "Create your first short link",
-        cta: `/${slug}/links`,
-        checked: totalLinks === 0 ? false : true,
-        recommended: true,
-      },
-      {
-        display: "Set up your custom domain",
+        display: "Connect a domain",
         cta: `/${slug}/settings/domains`,
         checked: domainsCount && domainsCount > 0,
         recommended: true,
       },
-      {
-        display: "Invite your teammates",
-        cta: `/${slug}/settings/people`,
-        checked: (users && users.length > 1) || (invites && invites.length > 0),
-        recommended: false,
-      },
+      ...(defaultProgramId
+        ? [
+            {
+              display: "Create a program",
+              cta: `/${slug}/program`,
+              checked: true,
+              recommended: true,
+            },
+            {
+              display: "Connect to Dub",
+              cta: `/${slug}/settings/analytics`,
+              checked: isConnected,
+              recommended: true,
+            },
+            {
+              display: "Connect payout method",
+              cta: `/${slug}/program/payouts`,
+              checked: paymentMethods && paymentMethods.length > 0,
+              recommended: true,
+            },
+          ]
+        : [
+            {
+              display: "Create a short link",
+              cta: `/${slug}/links`,
+              checked: totalLinks === 0 ? false : true,
+              recommended: true,
+            },
+            {
+              display: "Invite your team",
+              cta: `/${slug}/settings/people`,
+              checked:
+                (users && users.length > 1) || (invites && invites.length > 0),
+              recommended: false,
+            },
+          ]),
     ];
-  }, [slug, domainsCount, totalLinks, users, invites]);
+  }, [
+    slug,
+    defaultProgramId,
+    isConnected,
+    paymentMethods,
+    domainsCount,
+    totalLinks,
+    users,
+    invites,
+  ]);
 
   const [isOpen, setIsOpen] = useState(false);
 
@@ -79,11 +120,11 @@ function OnboardingButtonInner({
           <div className="rounded-t-xl bg-black p-4 text-white">
             <div className="flex items-start justify-between gap-2">
               <div>
-                <span className="text-base font-medium">Getting Started</span>
+                <span className="text-base font-medium">Complete setup</span>
                 <p className="mt-1 text-sm text-neutral-300">
-                  Get familiar with Dub by completing the{" "}
+                  Finish setting up your workspace
                   <br className="hidden sm:block" />
-                  following tasks
+                  to get the most out of Dub
                 </p>
               </div>
               <div className="flex items-center gap-1">
