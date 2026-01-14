@@ -410,6 +410,9 @@ function RewardSheetContent({
                         <AmountInput />
                       </InlineBadgePopover>{" "}
                       per {selectedEvent}
+                      {modifiers?.length && (
+                        <> for all other {selectedEvent}s</>
+                      )}
                       {selectedEvent === "sale" && (
                         <>
                           {" "}

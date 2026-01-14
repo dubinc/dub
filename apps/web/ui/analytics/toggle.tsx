@@ -268,7 +268,7 @@ export function AnalyticsToggle({
                         </Link>
                       </>
                     )}
-                    {!partnerPage && <AnalyticsOptions page={page} />}
+                    <AnalyticsOptions page={page} />
                   </div>
                 )}
               </div>
