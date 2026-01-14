@@ -243,6 +243,7 @@ export function CustomerDetailsColumn({
                         <ConditionalLink
                           href={`https://dashboard.stripe.com/customers/${customer.stripeCustomerId}`}
                           target="_blank"
+                          rel="noopener noreferrer"
                           className="truncate text-xs"
                         >
                           {customer.stripeCustomerId}
