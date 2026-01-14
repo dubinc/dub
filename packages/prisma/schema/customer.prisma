@@ -41,3 +41,7 @@ model Customer {
   @@index(country)
   @@fulltext([email, name]) // For full-text search
 }
+
+model PartnerReferral {
+  id String @id @default(cuid())
+}
