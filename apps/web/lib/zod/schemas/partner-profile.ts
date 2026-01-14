@@ -248,7 +248,7 @@ export const partnerProfileReferralSchema = z.object({
   email: z.email(),
   company: z.string(),
   status: z.enum(ReferralStatus),
-  formData: z.record(z.string(), z.unknown()).nullable().optional(),
+  formData: z.array(z.record(z.string(), z.unknown())).nullable().optional(),
   createdAt: z.date(),
   updatedAt: z.date(),
 });
