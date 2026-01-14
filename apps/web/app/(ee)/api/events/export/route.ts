@@ -20,7 +20,7 @@ import * as z from "zod/v4";
 
 const MAX_EVENTS_TO_EXPORT = 1000;
 
-// GET /api/events/export – get export data for analytics
+// GET /api/events/export – export events to CSV (with async support if >1000 events)
 export const GET = withWorkspace(
   async ({ searchParams, workspace, session }) => {
     throwIfClicksUsageExceeded(workspace);
@@ -93,7 +93,7 @@ export const GET = withWorkspace(
     // Process the export in the background if the number of events is greater than MAX_EVENTS_TO_EXPORT
     if (eventsCount > MAX_EVENTS_TO_EXPORT) {
       await qstash.publishJSON({
-        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/events/export`,
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/export/events/workspace`,
         body: {
           ...searchParams,
           workspaceId: workspace.id,

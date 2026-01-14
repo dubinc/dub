@@ -14,7 +14,7 @@ import ExportReady from "@dub/email/templates/export-ready";
 import { prisma } from "@dub/prisma";
 import { capitalize, log } from "@dub/utils";
 import * as z from "zod/v4";
-import { logAndRespond } from "../../utils";
+import { logAndRespond } from "../../../utils";
 import { fetchEventsBatch } from "./fetch-events-batch";
 
 const payloadSchema = eventsQuerySchema.extend({
@@ -30,7 +30,7 @@ const payloadSchema = eventsQuerySchema.extend({
   dataAvailableFrom: z.string().optional(),
 });
 
-// POST /api/cron/events/export - QStash worker for processing large event exports
+// POST /api/cron/export/events/workspace - QStash worker for processing large event exports
 export async function POST(req: Request) {
   try {
     const rawBody = await req.text();

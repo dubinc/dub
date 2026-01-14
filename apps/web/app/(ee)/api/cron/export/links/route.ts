@@ -24,7 +24,7 @@ const payloadSchema = linksExportQuerySchema.extend({
   userId: z.string(),
 });
 
-// POST /api/cron/links/export - QStash worker for processing large link exports
+// POST /api/cron/export/links - QStash worker for processing large link exports
 export async function POST(req: Request) {
   try {
     const rawBody = await req.text();
