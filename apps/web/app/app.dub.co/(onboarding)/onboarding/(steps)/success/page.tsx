@@ -1,7 +1,7 @@
 import { getSession } from "@/lib/auth";
 import { prisma } from "@dub/prisma";
-import { cn } from "@dub/utils";
 import { redirect } from "next/navigation";
+import { SuccessPageClient } from "./page-client";
 
 export default async function SuccessPage({
   searchParams,
@@ -14,6 +14,10 @@ export default async function SuccessPage({
   const { user } = await getSession();
 
   const workspace = await prisma.project.findUnique({
+    select: {
+      name: true,
+      defaultProgramId: true,
+    },
     where: {
       slug,
       users: {
@@ -27,22 +31,5 @@ export default async function SuccessPage({
 
   const hasProgram = Boolean(workspace.defaultProgramId);
 
-  return (
-    <div
-      className={cn(
-        "mx-auto flex w-full max-w-sm flex-col items-center",
-        "animate-slide-up-fade [--offset:10px] [animation-duration:1s] [animation-fill-mode:both]",
-      )}
-    >
-      <h1 className="text-pretty text-center text-xl font-semibold">
-        The {workspace.name} workspace has been created
-      </h1>
-      <p className="mt-2 text-pretty text-center text-base text-neutral-500">
-        {hasProgram
-          ? "Now you can manage your partner program and short links in one place"
-          : "Now you have one central, organized place to build and manage all your short links."}
-      </p>
-      <div className="mt-8 w-full"></div>
-    </div>
-  );
+  return <SuccessPageClient workspace={workspace} />;
 }

@@ -56,13 +56,16 @@ export function useOnboardingProgress() {
     [execute, router, slug, product],
   );
 
-  const finish = useCallback(async () => {
-    await executeAsync({
-      onboardingStep: "completed",
-    });
+  const finish = useCallback(
+    async ({ hasProgram }: { hasProgram?: boolean } = {}) => {
+      await executeAsync({
+        onboardingStep: "completed",
+      });
 
-    router.push(slug ? `/${slug}?onboarded=true` : "/");
-  }, [execute, router, slug]);
+      router.push(slug ? (hasProgram ? `/${slug}/program` : `/${slug}`) : "/");
+    },
+    [execute, router, slug],
+  );
 
   return {
     continueTo,
