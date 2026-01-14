@@ -408,9 +408,6 @@ function RewardSheetContent({
                         <AmountInput />
                       </InlineBadgePopover>{" "}
                       per {selectedEvent}
-                      {modifiers?.length && (
-                        <> for all other {selectedEvent}s</>
-                      )}
                       {selectedEvent === "sale" && (
                         <>
                           {" "}
@@ -450,6 +447,9 @@ function RewardSheetContent({
                           </InlineBadgePopover>
                         </>
                       )}
+                      {modifiers?.length ? (
+                        <> for all other {selectedEvent}s</>
+                      ) : null}
                     </span>
                   </div>
                   <Tooltip
