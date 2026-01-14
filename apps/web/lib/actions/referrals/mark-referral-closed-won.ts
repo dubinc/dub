@@ -1,6 +1,5 @@
 "use server";
 
-import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getReferralOrThrow } from "@/lib/api/referrals/get-referral-or-throw";
@@ -13,69 +12,54 @@ import { authActionClient } from "../safe-action";
 export const markReferralClosedWonAction = authActionClient
   .inputSchema(markReferralClosedWonSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { workspace, user } = ctx;
+    const { workspace } = ctx;
     const { referralId, saleAmount, stripeCustomerId } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const partnerReferral = await getReferralOrThrow({
+    const referral = await getReferralOrThrow({
       referralId,
       programId,
     });
 
-    if (partnerReferral.status === ReferralStatus.closedWon) {
+    // This should never happen
+    if (!referral.customerId) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "This referral does not have a customer associated with it.",
+      });
+    }
+
+    if (referral.status === ReferralStatus.closedWon) {
       throw new DubApiError({
         code: "bad_request",
         message: "This partner referral is already marked as closed won.",
       });
     }
 
-    // Update formData to include sale amount and Stripe customer ID
-    const formData =
-      (partnerReferral.formData as Record<string, unknown>) || {};
-    const updatedFormData = {
-      ...formData,
-      saleAmount,
-      stripeCustomerId: stripeCustomerId || null,
-    };
-
-    const updatedReferral = await prisma.partnerReferral.update({
+    await prisma.partnerReferral.update({
       where: {
         id: referralId,
       },
       data: {
         status: ReferralStatus.closedWon,
-        formData: updatedFormData,
       },
     });
 
-    await recordAuditLog({
-      workspaceId: workspace.id,
-      programId,
-      action: "partner_referral.closed_won",
-      description: `Partner referral ${referralId} marked as closed won with sale amount $${(saleAmount / 100).toFixed(2)}`,
-      actor: user,
-      targets: [
-        {
-          type: "partner_referral",
-          id: referralId,
-          metadata: {
-            email: partnerReferral.email,
-            name: partnerReferral.name,
-            company: partnerReferral.company,
-          },
+    await prisma.customer.update({
+      where: {
+        id: referral.customerId,
+      },
+      data: {
+        ...(stripeCustomerId && {
+          stripeCustomerId,
+        }),
+        sales: {
+          increment: 1,
         },
-        {
-          type: "partner",
-          id: partnerReferral.partnerId,
-          metadata: partnerReferral.partner,
+        saleAmount: {
+          increment: saleAmount,
         },
-      ],
-      metadata: {
-        saleAmount,
-        stripeCustomerId: stripeCustomerId || null,
       },
     });
-
-    return updatedReferral;
   });

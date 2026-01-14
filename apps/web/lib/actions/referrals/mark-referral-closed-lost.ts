@@ -1,6 +1,5 @@
 "use server";
 
-import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getReferralOrThrow } from "@/lib/api/referrals/get-referral-or-throw";
@@ -13,7 +12,7 @@ import { authActionClient } from "../safe-action";
 export const markReferralClosedLostAction = authActionClient
   .inputSchema(markReferralClosedLostSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { workspace, user } = ctx;
+    const { workspace } = ctx;
     const { referralId } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
@@ -30,7 +29,7 @@ export const markReferralClosedLostAction = authActionClient
       });
     }
 
-    const updatedReferral = await prisma.partnerReferral.update({
+    await prisma.partnerReferral.update({
       where: {
         id: referralId,
       },
@@ -38,30 +37,4 @@ export const markReferralClosedLostAction = authActionClient
         status: ReferralStatus.closedLost,
       },
     });
-
-    await recordAuditLog({
-      workspaceId: workspace.id,
-      programId,
-      action: "partner_referral.closed_lost",
-      description: `Partner referral ${referralId} marked as closed lost`,
-      actor: user,
-      targets: [
-        {
-          type: "partner_referral",
-          id: referralId,
-          metadata: {
-            email: partnerReferral.email,
-            name: partnerReferral.name,
-            company: partnerReferral.company,
-          },
-        },
-        {
-          type: "partner",
-          id: partnerReferral.partnerId,
-          metadata: partnerReferral.partner,
-        },
-      ],
-    });
-
-    return updatedReferral;
   });
