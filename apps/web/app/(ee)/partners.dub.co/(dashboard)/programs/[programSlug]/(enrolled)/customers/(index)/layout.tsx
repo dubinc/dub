@@ -1,13 +1,15 @@
 "use client";
 
 import usePartnerCustomersCount from "@/lib/swr/use-partner-customers-count";
+import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
+import { SubmitReferralSheet } from "@/ui/referrals/submit-referral-sheet";
 import { Button, InfoTooltip } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
-import { CSSProperties, ReactNode } from "react";
+import { CSSProperties, ReactNode, useState } from "react";
 
 export default function PartnerCustomersLayout({
   children,
@@ -16,10 +18,16 @@ export default function PartnerCustomersLayout({
 }) {
   const { programSlug } = useParams<{ programSlug: string }>();
   const pathname = usePathname();
+  const [showReferralSheet, setShowReferralSheet] = useState(false);
 
+  const { programEnrollment } = useProgramEnrollment();
   const { data: customersCount } = usePartnerCustomersCount<number>({
     includeParams: [],
   });
+
+  const referralFormData = programEnrollment?.program?.referralFormData;
+  const hasReferralForm =
+    referralFormData?.fields && referralFormData.fields.length > 0;
 
   const tabs = [
     {
@@ -42,15 +50,27 @@ export default function PartnerCustomersLayout({
     <PageContent
       title="Customers"
       controls={
-        <Button
-          text="Submit Referral"
-          className="h-9 w-fit rounded-lg"
-          onClick={() => {
-            // TODO: Implement submit referral action
-          }}
-        />
+        <>
+          <Button
+            text="Submit Referral"
+            className="h-9 w-fit rounded-lg"
+            disabled={!hasReferralForm}
+            onClick={() => {
+              setShowReferralSheet(true);
+            }}
+          />
+        </>
       }
     >
+      {hasReferralForm && programEnrollment?.programId && referralFormData && (
+        <SubmitReferralSheet
+          isOpen={showReferralSheet}
+          setIsOpen={setShowReferralSheet}
+          programId={programEnrollment.programId}
+          referralFormData={referralFormData}
+        />
+      )}
+
       <PageWidthWrapper className="flex flex-col gap-3 pb-10">
         <div
           className={cn(

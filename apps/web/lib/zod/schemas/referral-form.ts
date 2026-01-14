@@ -1,14 +1,5 @@
 import * as z from "zod/v4";
 
-// export const FIELD_TYPES = [
-//   "text",
-//   "textarea",
-//   "select",
-//   "country",
-// ] as const;
-
-// export type FieldType = (typeof FIELD_TYPES)[number];
-
 export const fieldCommonSchema = z.object({
   key: z.string().min(1),
   label: z.string().min(1),
@@ -54,11 +45,36 @@ export const countryFieldSchema = fieldCommonSchema.extend({
   type: z.literal("country"),
 });
 
+// Date
+export const dateFieldSchema = fieldCommonSchema.extend({
+  type: z.literal("date"),
+});
+
+// Multiple Choices (Multi-select)
+export const multiSelectFieldSchema = fieldCommonSchema.extend({
+  type: z.literal("multiSelect"),
+  options: z.array(selectOptionSchema).min(2),
+});
+
+// Number
+export const numberFieldSchema = fieldCommonSchema.extend({
+  type: z.literal("number"),
+});
+
+// Phone Number
+export const phoneFieldSchema = fieldCommonSchema.extend({
+  type: z.literal("phone"),
+});
+
 export const formFieldSchema = z.discriminatedUnion("type", [
   textFieldSchema,
   textareaFieldSchema,
   selectFieldSchema,
   countryFieldSchema,
+  dateFieldSchema,
+  multiSelectFieldSchema,
+  numberFieldSchema,
+  phoneFieldSchema,
 ]);
 
 export const formFieldsSchema = z

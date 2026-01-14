@@ -69,6 +69,11 @@ export const partnerReferralsCountResponseSchema = z.union([
   z.number(),
 ]);
 
+export const createPartnerReferralSchema = z.object({
+  programId: z.string(),
+  formData: z.record(z.string(), z.unknown()), // Contains all form fields including name, email, company
+});
+
 export const markReferralQualifiedSchema = z.object({
   referralId: z.string(),
   workspaceId: z.string(),
