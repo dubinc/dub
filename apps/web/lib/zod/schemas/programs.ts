@@ -76,6 +76,7 @@ export const updateProgramSchema = z.object({
   helpUrl: z.url().max(500).nullish(),
   termsUrl: z.url().max(500).nullish(),
   messagingEnabledAt: z.coerce.date().nullish(),
+  referralFormData: referralFormSchema.nullish(),
 });
 
 export const ProgramPartnerLinkSchema = LinkSchema.pick({
