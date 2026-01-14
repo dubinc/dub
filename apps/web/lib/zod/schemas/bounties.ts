@@ -122,13 +122,14 @@ export const BountyListSchema = BountySchema.extend({
 // used in GET /bounties/{bountyId}/submissions
 export const BountySubmissionSchema = z.object({
   id: z.string(),
+  bountyId: z.string(),
+  partnerId: z.string(),
   description: z.string().nullable(),
   urls: z.array(z.string()).nullable(),
   files: z.array(BountySubmissionFileSchema).nullable(),
   status: z.enum(BountySubmissionStatus),
   performanceCount: z.number().nullable(),
   createdAt: z.date(),
-  updatedAt: z.date(),
   completedAt: z.date().nullable(),
   reviewedAt: z.date().nullable(),
   rejectionReason: z.string().nullable(),
