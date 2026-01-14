@@ -1,6 +1,6 @@
 "use client";
 
-import { markPartnerReferralQualifiedAction } from "@/lib/actions/referrals/mark-partner-referral-qualified";
+import { markReferralQualifiedAction } from "@/lib/actions/referrals/mark-referral-qualified";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { partnerReferralSchema } from "@/lib/zod/schemas/partner-referrals";
@@ -18,7 +18,7 @@ export function useQualifyPartnerReferralModal({
 }) {
   const { id: workspaceId } = useWorkspace();
 
-  const { executeAsync, isPending } = useAction(markPartnerReferralQualifiedAction, {
+  const { executeAsync, isPending } = useAction(markReferralQualifiedAction, {
     onSuccess: async () => {
       toast.success("Partner referral qualified successfully!");
       mutatePrefix("/api/programs/partner-referrals");

@@ -4,14 +4,14 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getReferralOrThrow } from "@/lib/api/referrals/get-referral-or-throw";
-import { markPartnerReferralQualifiedSchema } from "@/lib/zod/schemas/partner-referrals";
+import { markReferralQualifiedSchema } from "@/lib/zod/schemas/partner-referrals";
 import { prisma } from "@dub/prisma";
 import { ReferralStatus } from "@dub/prisma/client";
 import { authActionClient } from "../safe-action";
 
 // Mark a partner referral as qualified
-export const markPartnerReferralQualifiedAction = authActionClient
-  .inputSchema(markPartnerReferralQualifiedSchema)
+export const markReferralQualifiedAction = authActionClient
+  .inputSchema(markReferralQualifiedSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { referralId } = parsedInput;

@@ -1,6 +1,6 @@
 "use client";
 
-import { markPartnerReferralClosedLostAction } from "@/lib/actions/referrals/mark-partner-referral-closed-lost";
+import { markReferralClosedLostAction } from "@/lib/actions/referrals/mark-referral-closed-lost";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { partnerReferralSchema } from "@/lib/zod/schemas/partner-referrals";
@@ -19,7 +19,7 @@ export function useMarkPartnerReferralClosedLostModal({
   const { id: workspaceId } = useWorkspace();
 
   const { executeAsync, isPending } = useAction(
-    markPartnerReferralClosedLostAction,
+    markReferralClosedLostAction,
     {
       onSuccess: async () => {
         toast.success("Partner referral marked as closed lost successfully!");

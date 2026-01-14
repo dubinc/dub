@@ -69,17 +69,17 @@ export const partnerReferralsCountResponseSchema = z.union([
   z.number(),
 ]);
 
-export const markPartnerReferralQualifiedSchema = z.object({
+export const markReferralQualifiedSchema = z.object({
   referralId: z.string(),
   workspaceId: z.string(),
 });
 
-export const markPartnerReferralUnqualifiedSchema = z.object({
+export const markReferralUnqualifiedSchema = z.object({
   referralId: z.string(),
   workspaceId: z.string(),
 });
 
-export const markPartnerReferralClosedWonSchema = z.object({
+export const markReferralClosedWonSchema = z.object({
   referralId: z.string(),
   workspaceId: z.string(),
   saleAmount: z
@@ -88,7 +88,7 @@ export const markPartnerReferralClosedWonSchema = z.object({
   stripeCustomerId: z.string().optional(),
 });
 
-export const markPartnerReferralClosedLostSchema = z.object({
+export const markReferralClosedLostSchema = z.object({
   referralId: z.string(),
   workspaceId: z.string(),
 });

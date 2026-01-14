@@ -1,6 +1,6 @@
 "use client";
 
-import { markPartnerReferralClosedWonAction } from "@/lib/actions/referrals/mark-partner-referral-closed-won";
+import { markReferralClosedWonAction } from "@/lib/actions/referrals/mark-referral-closed-won";
 import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -41,7 +41,7 @@ export function useMarkPartnerReferralClosedWonModal({
   });
 
   const { executeAsync, isPending } = useAction(
-    markPartnerReferralClosedWonAction,
+    markReferralClosedWonAction,
     {
       onSuccess: async () => {
         toast.success("Partner referral marked as closed won successfully!");

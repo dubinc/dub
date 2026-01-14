@@ -1,6 +1,6 @@
 "use client";
 
-import { markPartnerReferralUnqualifiedAction } from "@/lib/actions/referrals/mark-partner-referral-unqualified";
+import { markReferralUnqualifiedAction } from "@/lib/actions/referrals/mark-referral-unqualified";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { partnerReferralSchema } from "@/lib/zod/schemas/partner-referrals";
@@ -19,7 +19,7 @@ export function useUnqualifyPartnerReferralModal({
   const { id: workspaceId } = useWorkspace();
 
   const { executeAsync, isPending } = useAction(
-    markPartnerReferralUnqualifiedAction,
+    markReferralUnqualifiedAction,
     {
       onSuccess: async () => {
         toast.success("Partner referral unqualified successfully!");

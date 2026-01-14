@@ -4,17 +4,17 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getReferralOrThrow } from "@/lib/api/referrals/get-referral-or-throw";
-import { markPartnerReferralClosedWonSchema } from "@/lib/zod/schemas/partner-referrals";
+import { markReferralUnqualifiedSchema } from "@/lib/zod/schemas/partner-referrals";
 import { prisma } from "@dub/prisma";
 import { ReferralStatus } from "@dub/prisma/client";
 import { authActionClient } from "../safe-action";
 
-// Mark a partner referral as closed won
-export const markPartnerReferralClosedWonAction = authActionClient
-  .inputSchema(markPartnerReferralClosedWonSchema)
+// Mark a partner referral as unqualified
+export const markReferralUnqualifiedAction = authActionClient
+  .inputSchema(markReferralUnqualifiedSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const { referralId, saleAmount, stripeCustomerId } = parsedInput;
+    const { referralId } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -23,37 +23,27 @@ export const markPartnerReferralClosedWonAction = authActionClient
       programId,
     });
 
-    if (partnerReferral.status === ReferralStatus.closedWon) {
+    if (partnerReferral.status === ReferralStatus.unqualified) {
       throw new DubApiError({
         code: "bad_request",
-        message: "This partner referral is already marked as closed won.",
+        message: "This partner referral is already unqualified.",
       });
     }
-
-    // Update formData to include sale amount and Stripe customer ID
-    const formData =
-      (partnerReferral.formData as Record<string, unknown>) || {};
-    const updatedFormData = {
-      ...formData,
-      saleAmount,
-      stripeCustomerId: stripeCustomerId || null,
-    };
 
     const updatedReferral = await prisma.partnerReferral.update({
       where: {
         id: referralId,
       },
       data: {
-        status: ReferralStatus.closedWon,
-        formData: updatedFormData,
+        status: ReferralStatus.unqualified,
       },
     });
 
     await recordAuditLog({
       workspaceId: workspace.id,
       programId,
-      action: "partner_referral.closed_won",
-      description: `Partner referral ${referralId} marked as closed won with sale amount $${(saleAmount / 100).toFixed(2)}`,
+      action: "partner_referral.unqualified",
+      description: `Partner referral ${referralId} unqualified`,
       actor: user,
       targets: [
         {
@@ -71,10 +61,6 @@ export const markPartnerReferralClosedWonAction = authActionClient
           metadata: partnerReferral.partner,
         },
       ],
-      metadata: {
-        saleAmount,
-        stripeCustomerId: stripeCustomerId || null,
-      },
     });
 
     return updatedReferral;
