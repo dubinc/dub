@@ -1,5 +1,6 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Button, Download, TooltipContent } from "@dub/ui";
+import { useSession } from "next-auth/react";
 import { Dispatch, SetStateAction, useContext } from "react";
 import { toast } from "sonner";
 import { AnalyticsContext } from "../analytics-provider";
@@ -13,6 +14,7 @@ export function EventsExportButton({
   const { exportQueryString } = useContext(EventsContext);
   const { eventsApiPath } = useContext(AnalyticsContext);
   const { slug, plan } = useWorkspace();
+  const { data: session } = useSession();
 
   const needsHigherPlan = plan === "free" || plan === "pro";
 
@@ -31,12 +33,25 @@ export function EventsExportButton({
       throw new Error(response.statusText);
     }
 
+    if (response.status === 202) {
+      setOpenPopover(false);
+      return {
+        isAsync: true,
+        message: `Your export is being processed and we'll send you an email (${session?.user?.email}) when it's ready to download.`,
+      };
+    }
+
     const blob = await response.blob();
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
     a.download = `Dub Events Export - ${new Date().toISOString()}.csv`;
     a.click();
+    setOpenPopover(false);
+    return {
+      isAsync: false,
+      message: "Exported successfully",
+    };
   }
 
   return (
@@ -57,10 +72,9 @@ export function EventsExportButton({
       onClick={() => {
         toast.promise(exportData(), {
           loading: "Exporting file...",
-          success: "Exported successfully",
+          success: (data) => data.message,
           error: (error) => error,
         });
-        setOpenPopover(false);
       }}
     />
   );
