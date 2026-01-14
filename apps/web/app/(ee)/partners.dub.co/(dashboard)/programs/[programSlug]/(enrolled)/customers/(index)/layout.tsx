@@ -3,7 +3,7 @@
 import usePartnerCustomersCount from "@/lib/swr/use-partner-customers-count";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
-import { InfoTooltip } from "@dub/ui";
+import { Button, InfoTooltip } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
@@ -39,7 +39,18 @@ export default function PartnerCustomersLayout({
   ];
 
   return (
-    <PageContent title="Customers">
+    <PageContent
+      title="Customers"
+      controls={
+        <Button
+          text="Submit Referral"
+          className="h-9 w-fit rounded-lg"
+          onClick={() => {
+            // TODO: Implement submit referral action
+          }}
+        />
+      }
+    >
       <PageWidthWrapper className="flex flex-col gap-3 pb-10">
         <div
           className={cn(
