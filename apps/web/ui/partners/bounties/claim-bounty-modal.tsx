@@ -430,7 +430,7 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                       Details
                     </span>
                     <p className="text-content-subtle font-medium">
-                      <Markdown className={cn("p-0", PROSE_STYLES.default)}>
+                      <Markdown className={PROSE_STYLES.default}>
                         {bounty.description}
                       </Markdown>
                     </p>

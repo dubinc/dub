@@ -69,16 +69,10 @@ export function ConnectPayoutButton(props: ButtonProps) {
     }
   }, [executeStripeAsync, executePaypalAsync, partner, payoutMethod]);
 
-  const {
-    setShowBankAccountRequirementsModal,
-    BankAccountRequirementsModal,
-  } = useBankAccountRequirementsModal({
-    onContinue: connectPayout,
-  });
-
-  const onClick = useCallback(() => {
-    setShowBankAccountRequirementsModal(true);
-  }, [setShowBankAccountRequirementsModal]);
+  const { setShowBankAccountRequirementsModal, BankAccountRequirementsModal } =
+    useBankAccountRequirementsModal({
+      onContinue: connectPayout,
+    });
 
   const errorMessage = useMemo(
     () =>
@@ -98,7 +92,13 @@ export function ConnectPayoutButton(props: ButtonProps) {
     <>
       {BankAccountRequirementsModal}
       <Button
-        onClick={onClick}
+        onClick={() => {
+          if (payoutMethod === "stripe") {
+            setShowBankAccountRequirementsModal(true);
+          } else {
+            connectPayout();
+          }
+        }}
         loading={isStripePending || isPaypalPending}
         text={
           payoutMethod === "paypal" ? "Connect PayPal" : "Connect bank account"

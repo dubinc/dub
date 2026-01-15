@@ -146,7 +146,7 @@ function RadioGroup<T extends string>({
   return (
     <div>
       {label && (
-        <Markdown className="prose-a:underline-offset-2 mb-1.5 p-0 text-sm font-medium">
+        <Markdown className="prose-a:underline-offset-2 mb-1.5 text-sm font-medium">
           {label}
         </Markdown>
       )}
