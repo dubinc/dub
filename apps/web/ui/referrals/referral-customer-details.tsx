@@ -1,6 +1,7 @@
 import { ReferralProps } from "@/lib/types";
 import { Envelope, OfficeBuilding } from "@dub/ui";
-import { GOOGLE_FAVICON_URL, OG_AVATAR_URL } from "@dub/utils";
+import { OG_AVATAR_URL } from "@dub/utils";
+import { getCompanyLogoUrl } from "./referral-utils";
 import { ReferralStatusBadge } from "./referral-status-badge";
 
 interface ReferralCustomerDetailsProps {
@@ -10,11 +11,7 @@ interface ReferralCustomerDetailsProps {
 export function ReferralCustomerDetails({
   referral,
 }: ReferralCustomerDetailsProps) {
-  const emailDomain = referral.email.split("@")[1];
-
-  const companyLogoUrl = emailDomain
-    ? `${GOOGLE_FAVICON_URL}${emailDomain}`
-    : null;
+  const companyLogoUrl = getCompanyLogoUrl(referral.email);
 
   return (
     <div className="border-border-subtle overflow-hidden rounded-xl border bg-white p-4">

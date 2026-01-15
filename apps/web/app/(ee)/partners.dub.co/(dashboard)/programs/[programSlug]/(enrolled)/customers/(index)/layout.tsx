@@ -1,6 +1,7 @@
 "use client";
 
 import usePartnerCustomersCount from "@/lib/swr/use-partner-customers-count";
+import usePartnerReferralsCount from "@/lib/swr/use-partner-referrals-count";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
@@ -16,18 +17,20 @@ export default function PartnerCustomersLayout({
 }: {
   children: ReactNode;
 }) {
-  const { programSlug } = useParams<{ programSlug: string }>();
   const pathname = usePathname();
+  const { programEnrollment } = useProgramEnrollment();
+  const { programSlug } = useParams<{ programSlug: string }>();
   const [showReferralSheet, setShowReferralSheet] = useState(false);
 
-  const { programEnrollment } = useProgramEnrollment();
   const { data: customersCount } = usePartnerCustomersCount<number>({
     includeParams: [],
   });
 
+  const { data: referralsCount } = usePartnerReferralsCount<number>({
+    includeParams: [],
+  });
+
   const referralFormData = programEnrollment?.program?.referralFormData;
-  const hasReferralForm =
-    referralFormData?.fields && referralFormData.fields.length > 0;
 
   const tabs = [
     {
@@ -42,7 +45,7 @@ export default function PartnerCustomersLayout({
       id: "invited",
       href: "referrals",
       info: "Shows your submitted referrals and their status.",
-      // count: referralsCount,
+      count: referralsCount,
     },
   ];
 
@@ -54,7 +57,7 @@ export default function PartnerCustomersLayout({
           <Button
             text="Submit Referral"
             className="h-9 w-fit rounded-lg"
-            disabled={!hasReferralForm}
+            disabled={!referralFormData}
             onClick={() => {
               setShowReferralSheet(true);
             }}
@@ -62,7 +65,7 @@ export default function PartnerCustomersLayout({
         </>
       }
     >
-      {hasReferralForm && programEnrollment?.programId && referralFormData && (
+      {referralFormData && programEnrollment?.programId && (
         <SubmitReferralSheet
           isOpen={showReferralSheet}
           setIsOpen={setShowReferralSheet}

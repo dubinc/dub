@@ -1,3 +1,5 @@
+import { GOOGLE_FAVICON_URL } from "@dub/utils";
+
 // Formats a formData field value for display
 export function formatFormDataValue(value: unknown): string {
   if (value === null || value === undefined || value === "") {
@@ -21,4 +23,10 @@ export function formatFormDataValue(value: unknown): string {
   }
 
   return String(value);
+}
+
+// Gets company logo URL from email domain
+export function getCompanyLogoUrl(email: string): string | null {
+  const emailDomain = email.split("@")[1];
+  return emailDomain ? `${GOOGLE_FAVICON_URL}${emailDomain}` : null;
 }

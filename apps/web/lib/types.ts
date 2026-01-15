@@ -3,6 +3,7 @@ import {
   PartnerEarningsSchema,
   PartnerProfileCustomerSchema,
   PartnerProfileLinkSchema,
+  partnerReferralsCountByStatusSchema,
   partnerUserSchema,
 } from "@/lib/zod/schemas/partner-profile";
 import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
@@ -472,6 +473,10 @@ export type PartnerProfileCustomerProps = z.infer<
 >;
 
 export type PartnerProfileLinkProps = z.infer<typeof PartnerProfileLinkSchema>;
+
+export type PartnerProfileReferralsCountByStatus = z.infer<
+  typeof partnerReferralsCountByStatusSchema
+>;
 
 export type EnrolledPartnerProps = z.infer<typeof EnrolledPartnerSchema> & {
   platforms: PartnerPlatformProps[];
