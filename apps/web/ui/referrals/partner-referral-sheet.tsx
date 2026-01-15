@@ -28,7 +28,8 @@ function ReferralSheetContent({
   referral,
   onPrevious,
   onNext,
-}: Omit<ReferralSheetProps, "setIsOpen">) {
+  setIsOpen,
+}: ReferralSheetProps) {
   const { setShowQualifyModal, QualifyModal, isQualifying } =
     useQualifyPartnerReferralModal({ referral });
 
@@ -71,6 +72,56 @@ function ReferralSheetContent({
   const showClosedButtons = referral.status === "qualified";
   const showNoActions = ["unqualified", "closedWon", "closedLost"].includes(
     referral.status,
+  );
+
+  // Keyboard shortcuts for action buttons
+  useKeyboardShortcut(
+    "u",
+    () => {
+      if (showQualifyButtons && !isUnqualifying) {
+        setShowUnqualifyModal(true);
+      }
+    },
+    { sheet: true },
+  );
+
+  useKeyboardShortcut(
+    "q",
+    () => {
+      if (showQualifyButtons && !isQualifying) {
+        setShowQualifyModal(true);
+      }
+    },
+    { sheet: true },
+  );
+
+  useKeyboardShortcut(
+    "l",
+    () => {
+      if (showClosedButtons && !isMarkingClosedLost) {
+        setShowClosedLostModal(true);
+      }
+    },
+    { sheet: true },
+  );
+
+  useKeyboardShortcut(
+    "w",
+    () => {
+      if (showClosedButtons && !isMarkingClosedWon) {
+        setShowClosedWonModal(true);
+      }
+    },
+    { sheet: true },
+  );
+
+  // Escape key to close sheet
+  useKeyboardShortcut(
+    "Escape",
+    () => {
+      setIsOpen(false);
+    },
+    { sheet: true },
   );
 
   return (
@@ -136,7 +187,7 @@ function ReferralSheetContent({
                     shortcut="U"
                     onClick={() => setShowUnqualifyModal(true)}
                     disabled={isUnqualifying}
-                    className="w-fit shrink-0"
+                    className="h-9 w-fit shrink-0"
                   />
                   <Button
                     type="button"
@@ -145,7 +196,7 @@ function ReferralSheetContent({
                     shortcut="Q"
                     onClick={() => setShowQualifyModal(true)}
                     disabled={isQualifying}
-                    className="w-fit shrink-0"
+                    className="h-9 w-fit shrink-0"
                   />
                 </>
               )}
@@ -159,7 +210,7 @@ function ReferralSheetContent({
                     shortcut="L"
                     onClick={() => setShowClosedLostModal(true)}
                     disabled={isMarkingClosedLost}
-                    className="w-fit shrink-0"
+                    className="h-9 w-fit shrink-0"
                   />
                   <Button
                     type="button"
@@ -168,7 +219,7 @@ function ReferralSheetContent({
                     shortcut="W"
                     onClick={() => setShowClosedWonModal(true)}
                     disabled={isMarkingClosedWon}
-                    className="w-fit shrink-0"
+                    className="h-9 w-fit shrink-0"
                   />
                 </>
               )}
