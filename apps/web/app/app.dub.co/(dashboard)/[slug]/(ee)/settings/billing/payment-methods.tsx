@@ -65,8 +65,7 @@ export default function PaymentMethods() {
               clientAccessCheck({
                 action: "billing.write",
                 role,
-                customPermissionDescription: "manage payment methods",
-              }).error || undefined
+              }).error
             }
           />
         )}

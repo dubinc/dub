@@ -271,7 +271,7 @@ export function CreateLinkButton({
   }).error;
 
   useKeyboardShortcut("c", () => setShowLinkBuilder(true), {
-    enabled: !permissionsError,
+    enabled: !exceededLinks && !permissionsError,
   });
 
   // listen to paste event, and if it's a URL, open the modal and input the URL
@@ -310,7 +310,7 @@ export function CreateLinkButton({
       disabledTooltip={
         exceededLinks ? (
           <TooltipContent
-            title="Your workspace has exceeded its monthly links limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
+            title="Your workspace has exceeded its monthly links limit. We're still collecting data on your existing links, but you need to upgrade to create more links."
             cta="Upgrade plan"
             href={`/${slug}/upgrade`}
           />

@@ -44,7 +44,7 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 
-export default function WorkspacePeopleClient() {
+export function WorkspaceMembersClient() {
   const { setShowInviteWorkspaceUserModal, InviteWorkspaceUserModal } =
     useInviteWorkspaceUserModal({ showSavedInvites: true });
 
@@ -245,36 +245,34 @@ export default function WorkspacePeopleClient() {
       <PageContent
         title="Members"
         controls={
-          isCurrentUserOwner && (
-            <div className="flex space-x-2">
-              <Button
-                text="Invite member"
-                onClick={() => setShowInviteWorkspaceUserModal(true)}
-                className="h-9 w-fit"
-                shortcut="M"
-                disabledTooltip={
-                  clientAccessCheck({
-                    action: "workspaces.write",
-                    role,
-                    customPermissionDescription: "invite new teammates",
-                  }).error || undefined
-                }
-              />
-              <Button
-                icon={<LinkIcon className="h-4 w-4 text-neutral-800" />}
-                variant="secondary"
-                onClick={() => setShowInviteCodeModal(true)}
-                className="h-9 space-x-0"
-                disabledTooltip={
-                  clientAccessCheck({
-                    action: "workspaces.write",
-                    role,
-                    customPermissionDescription: "generate invite links",
-                  }).error || undefined
-                }
-              />
-            </div>
-          )
+          <div className="flex space-x-2">
+            <Button
+              text="Invite member"
+              onClick={() => setShowInviteWorkspaceUserModal(true)}
+              className="h-9 w-fit"
+              shortcut="M"
+              disabledTooltip={
+                clientAccessCheck({
+                  action: "workspaces.write",
+                  role,
+                  customPermissionDescription: "invite new teammates",
+                }).error || undefined
+              }
+            />
+            <Button
+              icon={<LinkIcon className="h-4 w-4 text-neutral-800" />}
+              variant="secondary"
+              onClick={() => setShowInviteCodeModal(true)}
+              className="h-9 space-x-0"
+              disabledTooltip={
+                clientAccessCheck({
+                  action: "workspaces.write",
+                  role,
+                  customPermissionDescription: "generate invite links",
+                }).error || undefined
+              }
+            />
+          </div>
         }
       >
         <PageWidthWrapper className="mb-20 flex flex-col gap-4">

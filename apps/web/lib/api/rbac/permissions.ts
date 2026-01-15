@@ -20,11 +20,11 @@ export const PERMISSION_ACTIONS = [
   "webhooks.write",
   "folders.read",
   "folders.write",
-  "payouts.write",
   "groups.write",
   "groups.read",
   "messages.read",
   "messages.write",
+  "payouts.write",
   "billing.write",
 ] as const;
 
@@ -137,7 +137,7 @@ export const ROLE_PERMISSIONS: {
   },
   {
     action: "billing.write",
-    description: "create, update, or delete payment methods",
+    description: "manage billing details",
     roles: ["owner", "billing"],
   },
   {

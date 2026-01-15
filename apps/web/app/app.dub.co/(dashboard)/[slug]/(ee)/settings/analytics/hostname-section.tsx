@@ -12,7 +12,13 @@ import HostnameMenu from "./hostname-menu";
 
 export const HostnameSection = ({ className }: { className?: string }) => {
   const { AddHostnameModal, setShowAddHostnameModal } = useAddHostnameModal();
-  const { allowedHostnames, loading } = useWorkspace();
+  const { role, allowedHostnames, loading } = useWorkspace();
+
+  const permissionsError = clientAccessCheck({
+    action: "workspaces.write",
+    role,
+    customPermissionDescription: "manage allowed hostnames",
+  }).error;
 
   let content;
 
@@ -51,6 +57,7 @@ export const HostnameSection = ({ className }: { className?: string }) => {
             text="Add hostname"
             className="h-7 w-fit rounded-lg px-2.5 py-1 text-sm font-medium"
             onClick={() => setShowAddHostnameModal(true)}
+            disabledTooltip={permissionsError || undefined}
           />
         </div>
 
