@@ -19,7 +19,7 @@ export const setRewardfulTokenAction = authActionClient
 
     throwIfNoPermission({
       role: workspace.role,
-      requiredPermissions: ["workspaces.write"],
+      requiredRoles: ["owner", "member"],
     });
 
     const rewardfulApi = new RewardfulApi({ token });

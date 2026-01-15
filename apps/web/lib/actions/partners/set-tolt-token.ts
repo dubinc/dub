@@ -21,7 +21,7 @@ export const setToltTokenAction = authActionClient
 
     throwIfNoPermission({
       role: workspace.role,
-      requiredPermissions: ["workspaces.write"],
+      requiredRoles: ["owner", "member"],
     });
 
     const toltApi = new ToltApi({ token });

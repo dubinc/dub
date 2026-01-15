@@ -31,7 +31,7 @@ export const banPartnerAction = authActionClient
 
     throwIfNoPermission({
       role: workspace.role,
-      requiredPermissions: ["workspaces.write"],
+      requiredRoles: ["owner", "member"],
     });
 
     await banPartner({

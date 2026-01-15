@@ -19,7 +19,7 @@ export const onboardProgramAction = authActionClient
 
     throwIfNoPermission({
       role: workspace.role,
-      requiredPermissions: ["workspaces.write"],
+      requiredRoles: ["owner", "member"],
     });
 
     if (workspace.defaultProgramId) {
