@@ -4,7 +4,7 @@ import useDomainsCount from "@/lib/swr/use-domains-count";
 import usePaymentMethods from "@/lib/swr/use-payment-methods";
 import useWorkspace from "@/lib/swr/use-workspace";
 import useWorkspaceUsers from "@/lib/swr/use-workspace-users";
-import { CheckCircleFill, ThreeDots } from "@/ui/shared/icons";
+import { CheckCircleFill } from "@/ui/shared/icons";
 import { Button, Popover, useLocalStorage, useMediaQuery } from "@dub/ui";
 import { CircleDotted, ExpandingArrow } from "@dub/ui/icons";
 import { ChevronDown } from "lucide-react";
@@ -128,12 +128,6 @@ function OnboardingButtonInner({
                 </p>
               </div>
               <div className="flex items-center gap-1">
-                <OnboardingMenu
-                  onHideForever={() => {
-                    onHideForever();
-                    setIsOpen(false);
-                  }}
-                />
                 <MiniButton onClick={() => setIsOpen(false)}>
                   <ChevronDown className="size-4" />
                 </MiniButton>
@@ -166,6 +160,16 @@ function OnboardingButtonInner({
                 );
               })}
             </div>
+
+            <Button
+              text="Dismiss guide"
+              variant="outline"
+              onClick={() => {
+                onHideForever();
+                setIsOpen(false);
+              }}
+              className="mt-3 h-7 rounded-lg bg-black/[0.04] duration-75 hover:bg-black/[0.07] active:scale-[0.98]"
+            />
           </div>
         </div>
       }
@@ -198,29 +202,3 @@ const MiniButton = forwardRef(
     );
   },
 );
-
-function OnboardingMenu({ onHideForever }: { onHideForever: () => void }) {
-  const [isOpen, setIsOpen] = useState(false);
-
-  return (
-    <Popover
-      align="end"
-      content={
-        <div className="p-1">
-          <Button
-            onClick={onHideForever}
-            variant="outline"
-            text="Dismiss forever"
-            className="h-9"
-          />
-        </div>
-      }
-      openPopover={isOpen}
-      setOpenPopover={setIsOpen}
-    >
-      <MiniButton>
-        <ThreeDots className="size-4" />
-      </MiniButton>
-    </Popover>
-  );
-}
