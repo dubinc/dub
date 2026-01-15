@@ -8,6 +8,7 @@ import {
   createPartnerCommentSchema,
 } from "../../zod/schemas/programs";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 // Create a partner comment
 export const createPartnerCommentAction = authActionClient
@@ -15,6 +16,11 @@ export const createPartnerCommentAction = authActionClient
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { partnerId, text } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredPermissions: ["messages.write"],
+    });
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 

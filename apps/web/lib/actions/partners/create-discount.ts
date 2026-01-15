@@ -17,6 +17,7 @@ import { APP_DOMAIN_WITH_NGROK, truncate } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { Stripe } from "stripe";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 const stripe = stripeAppClient({
   ...(process.env.VERCEL_ENV && { mode: "live" }),
@@ -28,6 +29,11 @@ export const createDiscountAction = authActionClient
     const { workspace, user } = ctx;
     let { amount, type, maxDuration, couponId, couponTestId, groupId } =
       parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredRoles: ["owner", "member"],
+    });
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 

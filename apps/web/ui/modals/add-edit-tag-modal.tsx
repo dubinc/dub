@@ -1,3 +1,4 @@
+import { clientAccessCheck } from "@/lib/client-access-check";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useTags from "@/lib/swr/use-tags";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -211,12 +212,17 @@ function AddTagButton({
 }: {
   setShowAddEditTagModal: Dispatch<SetStateAction<boolean>>;
 }) {
-  const { slug, plan, tagsLimit } = useWorkspace();
+  const { slug, plan, tagsLimit, role } = useWorkspace();
   const { tags } = useTags();
   const exceededTags = tags && tagsLimit && tags.length >= tagsLimit;
 
+  const permissionsError = clientAccessCheck({
+    action: "tags.write",
+    role,
+  }).error;
+
   useKeyboardShortcut("c", () => setShowAddEditTagModal(true), {
-    enabled: !exceededTags,
+    enabled: !exceededTags && !permissionsError,
   });
 
   return (
@@ -233,7 +239,9 @@ function AddTagButton({
               cta="Upgrade"
               href={`/${slug}/upgrade`}
             />
-          ) : undefined
+          ) : (
+            permissionsError || undefined
+          )
         }
         onClick={() => setShowAddEditTagModal(true)}
       />

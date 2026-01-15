@@ -1,5 +1,6 @@
 "use client";
 
+import { clientAccessCheck } from "@/lib/client-access-check";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ExpandedLinkProps } from "@/lib/types";
 import { LinkBuilderDestinationUrlInput } from "@/ui/links/link-builder/controls/link-builder-destination-url-input";
@@ -262,9 +263,16 @@ export function CreateLinkButton({
 }: {
   setShowLinkBuilder: Dispatch<SetStateAction<boolean>>;
 } & CreateLinkButtonProps) {
-  const { slug, plan, nextPlan, exceededLinks } = useWorkspace();
+  const { slug, role, exceededLinks } = useWorkspace();
 
-  useKeyboardShortcut("c", () => setShowLinkBuilder(true));
+  const permissionsError = clientAccessCheck({
+    action: "links.write",
+    role,
+  }).error;
+
+  useKeyboardShortcut("c", () => setShowLinkBuilder(true), {
+    enabled: !permissionsError,
+  });
 
   // listen to paste event, and if it's a URL, open the modal and input the URL
   const handlePaste = (e: ClipboardEvent) => {
@@ -283,7 +291,8 @@ export function CreateLinkButton({
       target.tagName !== "INPUT" &&
       target.tagName !== "TEXTAREA" &&
       !existingModalBackdrop &&
-      !exceededLinks
+      !exceededLinks &&
+      !permissionsError
     ) {
       setShowLinkBuilder(true);
     }
@@ -299,13 +308,15 @@ export function CreateLinkButton({
       text="Create link"
       shortcut="C"
       disabledTooltip={
-        exceededLinks && plan !== "enterprise" ? (
+        exceededLinks ? (
           <TooltipContent
             title="Your workspace has exceeded its monthly links limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
-            cta={`Upgrade to ${nextPlan.name}`}
+            cta="Upgrade plan"
             href={`/${slug}/upgrade`}
           />
-        ) : undefined
+        ) : (
+          permissionsError || undefined
+        )
       }
       onClick={() => setShowLinkBuilder(true)}
       {...buttonProps}

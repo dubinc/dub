@@ -1,6 +1,7 @@
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { UserProps } from "@/lib/types";
+import { WorkspaceRole } from "@dub/prisma/client";
 import { Avatar, Button, Modal, useMediaQuery } from "@dub/ui";
 import { useSearchParams } from "next/navigation";
 import {
@@ -21,7 +22,7 @@ function WorkspaceUserRoleModal({
   showWorkspaceUserRoleModal: boolean;
   setShowWorkspaceUserRoleModal: Dispatch<SetStateAction<boolean>>;
   user: UserProps;
-  role: "owner" | "member";
+  role: WorkspaceRole;
 }) {
   const [editing, setEditing] = useState(false);
   const { id } = useWorkspace();
@@ -120,7 +121,7 @@ export function useWorkspaceUserRoleModal({
   role,
 }: {
   user: UserProps;
-  role: "owner" | "member";
+  role: WorkspaceRole;
 }) {
   const [showWorkspaceUserRoleModal, setShowWorkspaceUserRoleModal] =
     useState(false);

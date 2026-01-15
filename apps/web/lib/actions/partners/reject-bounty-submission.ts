@@ -5,6 +5,7 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { rejectBountySubmissionBodySchema } from "@/lib/zod/schemas/bounties";
 import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 const inputSchema = rejectBountySubmissionBodySchema.extend({
   workspaceId: z.string(),
@@ -17,6 +18,11 @@ export const rejectBountySubmissionAction = authActionClient
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { submissionId, rejectionReason, rejectionNote } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredRoles: ["owner", "member"],
+    });
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 

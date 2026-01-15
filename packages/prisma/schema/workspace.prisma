@@ -81,6 +81,8 @@ model Project {
 enum WorkspaceRole {
   owner
   member
+  viewer
+  billing
 }
 
 model ProjectInvite {

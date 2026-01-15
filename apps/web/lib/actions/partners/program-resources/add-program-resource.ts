@@ -14,6 +14,7 @@ import { nanoid } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import * as z from "zod/v4";
 import { authActionClient } from "../../safe-action";
+import { throwIfNoPermission } from "../../throw-if-no-permission";
 
 // Base schema for all resource types
 const baseResourceSchema = z.object({
@@ -60,6 +61,12 @@ export const addProgramResourceAction = authActionClient
   .action(async ({ ctx, parsedInput }) => {
     const { workspace } = ctx;
     const { name, resourceType } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredRoles: ["owner", "member"],
+    });
+
     const programId = getDefaultProgramIdOrThrow(workspace);
 
     // Verify the program exists and belongs to the workspace

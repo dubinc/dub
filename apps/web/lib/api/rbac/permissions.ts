@@ -25,6 +25,7 @@ export const PERMISSION_ACTIONS = [
   "groups.read",
   "messages.read",
   "messages.write",
+  "billing.write",
 ] as const;
 
 export type PermissionAction = (typeof PERMISSION_ACTIONS)[number];
@@ -37,7 +38,7 @@ export const ROLE_PERMISSIONS: {
   {
     action: "links.read",
     description: "access links",
-    roles: ["owner", "member"],
+    roles: ["owner", "member", "viewer", "billing"],
   },
   {
     action: "links.write",
@@ -47,12 +48,12 @@ export const ROLE_PERMISSIONS: {
   {
     action: "analytics.read",
     description: "access analytics",
-    roles: ["owner", "member"],
+    roles: ["owner", "member", "viewer", "billing"],
   },
   {
     action: "workspaces.read",
     description: "access workspaces",
-    roles: ["owner", "member"],
+    roles: ["owner", "member", "viewer", "billing"],
   },
   {
     action: "workspaces.write",
@@ -62,7 +63,7 @@ export const ROLE_PERMISSIONS: {
   {
     action: "domains.read",
     description: "access domains",
-    roles: ["owner", "member"],
+    roles: ["owner", "member", "viewer", "billing"],
   },
   {
     action: "domains.write",
@@ -72,7 +73,7 @@ export const ROLE_PERMISSIONS: {
   {
     action: "tags.read",
     description: "access tags",
-    roles: ["owner", "member"],
+    roles: ["owner", "member", "viewer", "billing"],
   },
   {
     action: "tags.write",
@@ -82,7 +83,7 @@ export const ROLE_PERMISSIONS: {
   {
     action: "tokens.read",
     description: "access API keys",
-    roles: ["owner", "member"],
+    roles: ["owner", "member", "viewer", "billing"],
   },
   {
     action: "tokens.write",
@@ -92,7 +93,7 @@ export const ROLE_PERMISSIONS: {
   {
     action: "oauth_apps.read",
     description: "read OAuth apps",
-    roles: ["owner", "member"],
+    roles: ["owner", "member", "viewer", "billing"],
   },
   {
     action: "oauth_apps.write",
@@ -102,7 +103,7 @@ export const ROLE_PERMISSIONS: {
   {
     action: "integrations.read",
     description: "read authorized OAuth apps",
-    roles: ["owner", "member"],
+    roles: ["owner", "member", "viewer", "billing"],
   },
   {
     action: "integrations.write",
@@ -112,7 +113,7 @@ export const ROLE_PERMISSIONS: {
   {
     action: "webhooks.read",
     description: "read webhooks",
-    roles: ["owner", "member"],
+    roles: ["owner", "member", "viewer", "billing"],
   },
   {
     action: "webhooks.write",
@@ -122,7 +123,7 @@ export const ROLE_PERMISSIONS: {
   {
     action: "folders.read",
     description: "access folders",
-    roles: ["owner", "member"],
+    roles: ["owner", "member", "viewer", "billing"],
   },
   {
     action: "folders.write",
@@ -132,7 +133,12 @@ export const ROLE_PERMISSIONS: {
   {
     action: "payouts.write",
     description: "confirm payouts",
-    roles: ["owner"],
+    roles: ["owner", "billing"],
+  },
+  {
+    action: "billing.write",
+    description: "create, update, or delete payment methods",
+    roles: ["owner", "billing"],
   },
   {
     action: "groups.write",
@@ -142,7 +148,7 @@ export const ROLE_PERMISSIONS: {
   {
     action: "groups.read",
     description: "access groups",
-    roles: ["owner", "member"],
+    roles: ["owner", "member", "viewer", "billing"],
   },
   {
     action: "messages.write",
@@ -152,7 +158,7 @@ export const ROLE_PERMISSIONS: {
   {
     action: "messages.read",
     description: "access messages",
-    roles: ["owner", "member"],
+    roles: ["owner", "member", "viewer", "billing"],
   },
 ];
 

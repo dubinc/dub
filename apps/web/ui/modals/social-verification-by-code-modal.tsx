@@ -64,18 +64,21 @@ function SocialVerificationByCodeModalInner({
   const platformInfo: PlatformInfo = PLATFORM_INFO[platform];
   const profileUrl = platformInfo.getProfileUrl(handle);
 
-  const { executeAsync, isPending } = useAction(verifySocialAccountByCodeAction, {
-    onSuccess: async () => {
-      toast.success(`${platformInfo.name} account verified successfully!`);
-      setShowSocialVerificationModal(false);
-      await mutatePartner();
+  const { executeAsync, isPending } = useAction(
+    verifySocialAccountByCodeAction,
+    {
+      onSuccess: async () => {
+        toast.success(`${platformInfo.name} account verified successfully!`);
+        setShowSocialVerificationModal(false);
+        await mutatePartner();
+      },
+      onError: ({ error }) => {
+        toast.error(
+          error.serverError || "Failed to verify account. Please try again.",
+        );
+      },
     },
-    onError: ({ error }) => {
-      toast.error(
-        error.serverError || "Failed to verify account. Please try again.",
-      );
-    },
-  });
+  );
 
   const handleVerify = async () => {
     await executeAsync({
@@ -174,4 +177,3 @@ function Step({
     </div>
   );
 }
-
