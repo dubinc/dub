@@ -21,6 +21,7 @@ export default function WelcomeEmail({
   name = "Brendon Urie",
   email = "panic@thedis.co",
   workspace,
+  hasDubPartners = false,
   unsubscribeUrl,
 }: {
   name: string | null;
@@ -30,13 +31,15 @@ export default function WelcomeEmail({
     name: string;
     logo: string | null;
   };
+  hasDubPartners?: boolean;
   unsubscribeUrl: string;
 }) {
   // workspace = {
   //   slug: "acme",
   //   name: "Acme",
-  //   logo: DUB_LOGO,
+  //   logo: "https://assets.dub.co/logo.png",
   // };
+  // hasDubPartners = true;
 
   const workspaceUrl = `https://app.dub.co/${workspace?.slug}`;
 
@@ -90,7 +93,7 @@ export default function WelcomeEmail({
             )}
 
             <Heading className="mx-0 mb-0 mt-6 p-0 text-lg font-semibold text-black">
-              Getting started
+              {hasDubPartners ? "Complete setup" : "Getting started"}
             </Heading>
 
             <Text className="mb-6 mt-0 text-sm leading-6 text-neutral-600">
@@ -115,30 +118,59 @@ export default function WelcomeEmail({
               and start creating your branded short links.
             </Text>
 
-            <Text className="mb-4 text-sm leading-6 text-neutral-600">
-              2. Create a short link:{" "}
-              <Link
-                href="https://dub.co/help/article/dub-analytics"
-                className="text-neutral-600 underline underline-offset-2"
-              >
-                Create your first Dub short link
-              </Link>{" "}
-              and explore the different features available.
-            </Text>
+            {hasDubPartners ? (
+              <>
+                <Text className="mb-4 text-sm leading-6 text-neutral-600">
+                  2. Track conversions:{" "}
+                  <Link
+                    href="https://dub.co/docs/conversions/quickstart"
+                    className="text-neutral-600 underline underline-offset-2"
+                  >
+                    Install the Dub tracking script
+                  </Link>{" "}
+                  to track your short link and partner conversions.
+                </Text>
 
-            <Text className="mb-4 text-sm leading-6 text-neutral-600">
-              3. Explore analytics:{" "}
-              <Link
-                href="https://dub.co/help/article/dub-analytics"
-                className="text-neutral-600 underline underline-offset-2"
-              >
-                View the performance
-              </Link>{" "}
-              of your short links with graphs and detailed analytics.
-            </Text>
+                <Text className="mb-4 text-sm leading-6 text-neutral-600">
+                  3. Create a program:{" "}
+                  <Link
+                    href="https://dub.co/help/article/dub-analytics"
+                    className="text-neutral-600 underline underline-offset-2"
+                  >
+                    Set up your Dub partner program
+                  </Link>{" "}
+                  to grow your revenue on autopilot with advanced reward
+                  structures, dual-sided incentives, and real-time attribution.
+                </Text>
+              </>
+            ) : (
+              <>
+                <Text className="mb-4 text-sm leading-6 text-neutral-600">
+                  2. Create a short link:{" "}
+                  <Link
+                    href="https://dub.co/help/article/dub-analytics"
+                    className="text-neutral-600 underline underline-offset-2"
+                  >
+                    Create your first Dub short link
+                  </Link>{" "}
+                  and explore the different features available.
+                </Text>
+
+                <Text className="mb-4 text-sm leading-6 text-neutral-600">
+                  3. Explore analytics:{" "}
+                  <Link
+                    href="https://dub.co/help/article/dub-analytics"
+                    className="text-neutral-600 underline underline-offset-2"
+                  >
+                    View the performance
+                  </Link>{" "}
+                  of your short links with graphs and detailed analytics.
+                </Text>
+              </>
+            )}
 
             <Text className="mb-8 text-sm leading-6 text-neutral-600">
-              4. Explore the API{" "}
+              4. Explore the API:{" "}
               <Link
                 href="https://dub.co/docs/introduction"
                 className="text-neutral-600 underline underline-offset-2"
@@ -150,7 +182,7 @@ export default function WelcomeEmail({
 
             <Section className="mb-8">
               <Link
-                className="rounded-lg bg-black px-6 py-2.5 text-center text-[14px] font-medium text-white no-underline"
+                className="rounded-lg bg-black px-4 py-2.5 text-center text-[14px] font-medium text-white no-underline"
                 href="https://app.dub.co"
               >
                 Go to your dashboard

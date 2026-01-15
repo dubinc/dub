@@ -1,6 +1,7 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { generateUnsubscribeToken } from "@/lib/email/unsubscribe-token";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { sendEmail } from "@dub/email";
 import WelcomeEmail from "@dub/email/templates/welcome-email";
 import WelcomeEmailPartner from "@dub/email/templates/welcome-email-partner";
@@ -36,6 +37,7 @@ export async function POST(req: Request) {
                 slug: true,
                 name: true,
                 logo: true,
+                plan: true,
               },
             },
           },
@@ -75,6 +77,9 @@ export async function POST(req: Request) {
               email: user.email,
               name: user.name,
               workspace: user.projects?.[0]?.project,
+              hasDubPartners: getPlanCapabilities(
+                user.projects?.[0]?.project?.plan || "free",
+              ).canManageProgram,
               unsubscribeUrl,
             }),
         variant: "marketing",
