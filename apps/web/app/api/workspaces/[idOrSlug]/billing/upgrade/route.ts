@@ -123,7 +123,7 @@ export const POST = withWorkspace(
         },
       });
 
-      return NextResponse.json(stripeSession);
+      return NextResponse.json({ id: stripeSession.id });
     }
   },
   {

@@ -20,7 +20,7 @@ export const getIntegrationInstallUrl = authActionClient
 
     throwIfNoPermission({
       role: workspace.role,
-      requiredPermissions: ["workspaces.write"],
+      requiredRoles: ["owner", "member"],
     });
 
     let url: string | null = null;
