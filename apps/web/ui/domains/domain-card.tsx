@@ -567,6 +567,7 @@ function DomainCardMenu({
                   }}
                   icon={<Archive className="h-4 w-4" />}
                   className="h-9 justify-start px-2 font-medium"
+                  disabledTooltip={permissionsError || undefined}
                 />
                 {!isDubProvisioned && (
                   <Button
@@ -578,6 +579,7 @@ function DomainCardMenu({
                     }}
                     icon={<Delete className="h-4 w-4" />}
                     className="h-9 justify-start px-2 font-medium"
+                    disabledTooltip={permissionsError || undefined}
                   />
                 )}
               </div>

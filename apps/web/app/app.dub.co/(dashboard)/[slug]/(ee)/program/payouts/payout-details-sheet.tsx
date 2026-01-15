@@ -2,6 +2,7 @@ import {
   INVOICE_AVAILABLE_PAYOUT_STATUSES,
   PAYOUTS_SHEET_ITEMS_LIMIT,
 } from "@/lib/constants/payouts";
+import { clientAccessCheck } from "@/lib/client-access-check";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CommissionResponse, PayoutResponse } from "@/lib/types";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
@@ -47,6 +48,12 @@ type PayoutDetailsSheetProps = {
 };
 
 function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
+  const { role } = useWorkspace();
+
+  const permissionsError = clientAccessCheck({
+    action: "payouts.write",
+    role,
+  }).error;
   const { id: workspaceId, slug } = useWorkspace();
   const { queryParams } = useRouterStuff();
 
@@ -326,7 +333,9 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
               disabledTooltip={
                 !payout.partner.payoutsEnabledAt
                   ? "This partner has not [connected a bank account](https://dub.co/help/article/receiving-payouts) to receive payouts yet, which means they won't be able to receive payouts from your program."
-                  : undefined
+                  : (
+                      permissionsError || undefined
+                    )
               }
               onClick={() => {
                 queryParams({
