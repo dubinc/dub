@@ -28,6 +28,22 @@ export async function POST(req: Request) {
         name: true,
         email: true,
         partners: true,
+
+        projects: {
+          select: {
+            project: {
+              select: {
+                slug: true,
+                name: true,
+                logo: true,
+              },
+            },
+          },
+          orderBy: {
+            createdAt: "asc",
+          },
+          take: 1,
+        },
       },
     });
 
@@ -58,6 +74,7 @@ export async function POST(req: Request) {
           : WelcomeEmail({
               email: user.email,
               name: user.name,
+              workspace: user.projects?.[0]?.project,
               unsubscribeUrl,
             }),
         variant: "marketing",
