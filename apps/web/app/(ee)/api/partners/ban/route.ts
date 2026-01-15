@@ -53,6 +53,6 @@ export const POST = withWorkspace(
   },
   {
     requiredPlan: ["advanced", "enterprise"],
-    allowedRoles: ["owner", "member"],
+    requiredRoles: ["owner", "member"],
   },
 );

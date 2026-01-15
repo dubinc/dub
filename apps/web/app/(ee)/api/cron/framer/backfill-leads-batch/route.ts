@@ -394,6 +394,6 @@ export const POST = withWorkspace(
     }
   },
   {
-    allowedRoles: ["owner", "member"],
+    requiredRoles: ["owner", "member"],
   },
 );

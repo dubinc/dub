@@ -202,6 +202,6 @@ export const PATCH = withWorkspace(
     );
   },
   {
-    allowedRoles: ["owner", "member"],
+    requiredRoles: ["owner", "member"],
   },
 );

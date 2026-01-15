@@ -62,7 +62,7 @@ export const GET = withWorkspace(
   },
   {
     requiredPlan: ["advanced", "enterprise"],
-    allowedRoles: ["owner", "member"],
+    requiredRoles: ["owner", "member"],
   },
 );
 
@@ -164,6 +164,6 @@ export const POST = withWorkspace(
   },
   {
     requiredPlan: ["advanced", "enterprise"],
-    allowedRoles: ["owner", "member"],
+    requiredRoles: ["owner", "member"],
   },
 );
