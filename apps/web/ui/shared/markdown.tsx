@@ -16,9 +16,9 @@ export function Markdown({
   return (
     <ReactMarkdown
       className={cn(
-        "prose prose-sm prose-gray max-w-none p-6 transition-all",
+        "prose prose-sm prose-neutral max-w-none transition-all",
         "prose-headings:leading-tight",
-        "prose-a:font-medium prose-a:text-neutral-500 prose-a:underline-offset-4 hover:prose-a:text-black",
+        "prose-a:font-medium prose-a:text-neutral-900 prose-a:underline-offset-2 prose-a:decoration-dotted prose-a:cursor-alias",
         className,
       )}
       components={{

@@ -4,6 +4,7 @@ import { generatePaypalOAuthUrl } from "@/lib/actions/partners/generate-paypal-o
 import { generateStripeAccountLink } from "@/lib/actions/partners/generate-stripe-account-link";
 import { hasPermission } from "@/lib/auth/partner-users/partner-user-permissions";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
+import { useBankAccountRequirementsModal } from "@/ui/partners/bank-account-requirements-modal";
 import { Button, ButtonProps, TooltipContent } from "@dub/ui";
 import { COUNTRIES } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
@@ -43,7 +44,7 @@ export function ConnectPayoutButton(props: ButtonProps) {
       },
     });
 
-  const onClick = useCallback(async () => {
+  const connectPayout = useCallback(async () => {
     if (!partner) {
       toast.error("Invalid partner profile. Please log out and log back in.");
       return;
@@ -68,6 +69,11 @@ export function ConnectPayoutButton(props: ButtonProps) {
     }
   }, [executeStripeAsync, executePaypalAsync, partner, payoutMethod]);
 
+  const { setShowBankAccountRequirementsModal, BankAccountRequirementsModal } =
+    useBankAccountRequirementsModal({
+      onContinue: connectPayout,
+    });
+
   const errorMessage = useMemo(
     () =>
       !partner?.country
@@ -83,22 +89,31 @@ export function ConnectPayoutButton(props: ButtonProps) {
   }
 
   return (
-    <Button
-      onClick={onClick}
-      loading={isStripePending || isPaypalPending}
-      text={
-        payoutMethod === "paypal" ? "Connect PayPal" : "Connect bank account"
-      }
-      disabledTooltip={
-        errorMessage && (
-          <TooltipContent
-            title={errorMessage}
-            cta="Update profile settings"
-            href="/profile"
-          />
-        )
-      }
-      {...props}
-    />
+    <>
+      {BankAccountRequirementsModal}
+      <Button
+        onClick={() => {
+          if (payoutMethod === "stripe") {
+            setShowBankAccountRequirementsModal(true);
+          } else {
+            connectPayout();
+          }
+        }}
+        loading={isStripePending || isPaypalPending}
+        text={
+          payoutMethod === "paypal" ? "Connect PayPal" : "Connect bank account"
+        }
+        disabledTooltip={
+          errorMessage && (
+            <TooltipContent
+              title={errorMessage}
+              cta="Update profile settings"
+              href="/profile"
+            />
+          )
+        }
+        {...props}
+      />
+    </>
   );
 }
