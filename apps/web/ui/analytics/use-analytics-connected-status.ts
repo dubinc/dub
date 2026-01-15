@@ -11,11 +11,14 @@ export function useAnalyticsConnectedStatus() {
     "analyticsSettingsSaleTrackingSetupComplete",
   );
 
+  const all = [
+    connectionSetupComplete,
+    leadTrackingSetupComplete,
+    saleTrackingSetupComplete,
+  ];
+
   return {
-    isConnected: [
-      connectionSetupComplete,
-      leadTrackingSetupComplete,
-      saleTrackingSetupComplete,
-    ].some(Boolean),
+    isConnected: all.some(Boolean),
+    isFullyConnected: all.every(Boolean),
   };
 }

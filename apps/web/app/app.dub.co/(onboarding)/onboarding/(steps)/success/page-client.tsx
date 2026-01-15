@@ -3,7 +3,7 @@
 import useDomains from "@/lib/swr/use-domains";
 import usePaymentMethods from "@/lib/swr/use-payment-methods";
 import { WorkspaceProps } from "@/lib/types";
-import { useAnalyticsConnectedStatus } from "@/ui/layout/toolbar/onboarding/use-analytics-connected-status";
+import { useAnalyticsConnectedStatus } from "@/ui/analytics/use-analytics-connected-status";
 import {
   BlurImage,
   Book2,

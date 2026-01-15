@@ -4,6 +4,7 @@ import useDomainsCount from "@/lib/swr/use-domains-count";
 import usePaymentMethods from "@/lib/swr/use-payment-methods";
 import useWorkspace from "@/lib/swr/use-workspace";
 import useWorkspaceUsers from "@/lib/swr/use-workspace-users";
+import { useAnalyticsConnectedStatus } from "@/ui/analytics/use-analytics-connected-status";
 import { CheckCircleFill } from "@/ui/shared/icons";
 import {
   Button,
@@ -17,7 +18,6 @@ import { ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { forwardRef, HTMLAttributes, Ref, useMemo, useState } from "react";
-import { useAnalyticsConnectedStatus } from "./use-analytics-connected-status";
 
 export function OnboardingButton() {
   const { isMobile } = useMediaQuery();
