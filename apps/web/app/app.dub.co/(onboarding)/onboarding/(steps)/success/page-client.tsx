@@ -1,18 +1,23 @@
 "use client";
 
 import useDomains from "@/lib/swr/use-domains";
+import usePaymentMethods from "@/lib/swr/use-payment-methods";
 import { WorkspaceProps } from "@/lib/types";
+import { useAnalyticsConnectedStatus } from "@/ui/layout/toolbar/onboarding/use-analytics-connected-status";
 import {
   BlurImage,
   Book2,
   Button,
   Check2,
   CircleQuestion,
+  ConnectedDots4,
   CursorRays,
   Globe,
+  GreekTemple,
   Hyperlink,
   LinesY,
   Msg,
+  Plug2,
   Users,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
@@ -29,10 +34,16 @@ export function SuccessPageClient({
 }) {
   const { finish, isLoading, isSuccessful } = useOnboardingProgress();
 
+  const hasProgram = Boolean(workspace.defaultProgramId);
+
   const { allWorkspaceDomains } = useDomains();
   const domainConnected = Boolean(allWorkspaceDomains?.length);
 
-  const hasProgram = Boolean(workspace.defaultProgramId);
+  const { isConnected: analyticsConnected } = useAnalyticsConnectedStatus();
+  const { paymentMethods, loading: paymentMethodsLoading } = usePaymentMethods({
+    enabled: hasProgram,
+  });
+  const hasPaymentMethod = Boolean(paymentMethods?.length);
 
   return (
     <div className="mx-auto flex w-full max-w-sm flex-col items-center pb-10">
@@ -92,27 +103,56 @@ export function SuccessPageClient({
               cta: domainConnected ? "Manage" : "Connect",
               complete: Boolean(allWorkspaceDomains?.length),
             },
-            {
-              icon: Hyperlink,
-              title: "Create a short link",
-              description: "Create your first Dub short link",
-              href: `/${workspace.slug}/links?newLink=true`,
-              cta: "Create",
-            },
-            {
-              icon: LinesY,
-              title: "Explore analytics",
-              description: "View clicks and performance data",
-              href: `/${workspace.slug}/analytics`,
-              cta: "View",
-            },
-            {
-              icon: CursorRays,
-              title: "Explore events",
-              description: "View events for your short links",
-              href: `/${workspace.slug}/events`,
-              cta: "View",
-            },
+            ...(hasProgram
+              ? [
+                  {
+                    icon: ConnectedDots4,
+                    title: "Create a program",
+                    description: "Set up your Dub partner program",
+                    href: `/${workspace.slug}/program`,
+                    cta: "Manage",
+                    complete: true,
+                  },
+                  {
+                    icon: Plug2,
+                    title: "Connect to Dub",
+                    description: "Install the Dub tracking script",
+                    href: `/${workspace.slug}/settings/analytics`,
+                    cta: "Install",
+                    complete: analyticsConnected,
+                  },
+                  {
+                    icon: GreekTemple,
+                    title: "Connect payout method",
+                    description: "Connect a bank account for payouts",
+                    href: `/${workspace.slug}/program/payouts`,
+                    cta: "Connect",
+                    complete: hasPaymentMethod,
+                  },
+                ]
+              : [
+                  {
+                    icon: Hyperlink,
+                    title: "Create a short link",
+                    description: "Create your first Dub short link",
+                    href: `/${workspace.slug}/links?newLink=true`,
+                    cta: "Create",
+                  },
+                  {
+                    icon: LinesY,
+                    title: "Explore analytics",
+                    description: "View clicks and performance data",
+                    href: `/${workspace.slug}/analytics`,
+                    cta: "View",
+                  },
+                  {
+                    icon: CursorRays,
+                    title: "Explore events",
+                    description: "View events for your short links",
+                    href: `/${workspace.slug}/events`,
+                    cta: "View",
+                  },
+                ]),
           ].map(({ icon: Icon, title, description, href, cta, complete }) => (
             <div
               key={href}
