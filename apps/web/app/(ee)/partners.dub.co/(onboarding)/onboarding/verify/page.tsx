@@ -50,7 +50,7 @@ function PayoutProvider({ provider }: { provider: "stripe" | "paypal" }) {
         </div>
         <div className="bg-white px-6 py-4 text-sm text-neutral-600">
           We use {label} to ensure you get paid on time and to keep your
-          personal bank details secure. Click <strong>Save and continue</strong>{" "}
+          personal bank details secure. Click <strong>Connect payouts</strong>{" "}
           to connect your bank account.
           <br />
           <br />
@@ -68,7 +68,7 @@ function PayoutProvider({ provider }: { provider: "stripe" | "paypal" }) {
         </div>
       </div>
       <div className="mt-10 grid gap-4">
-        <ConnectPayoutButton text="Save and continue" />
+        <ConnectPayoutButton text="Connect payouts" />
 
         <Link
           href="/programs"

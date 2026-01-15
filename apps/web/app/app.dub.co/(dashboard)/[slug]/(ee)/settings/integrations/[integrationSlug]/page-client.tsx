@@ -343,7 +343,9 @@ export default function IntegrationPageClient({
           </Carousel>
         ) : null}
 
-        {integration.readme && <Markdown>{integration.readme}</Markdown>}
+        {integration.readme && (
+          <Markdown className="p-6">{integration.readme}</Markdown>
+        )}
       </div>
 
       {SettingsComponent && <SettingsComponent {...integration} />}
