@@ -355,7 +355,7 @@ function Hero({
                 }
               >
                 <span className="underline decoration-dotted underline-offset-2">
-                  {invite.role}
+                  {invite.role === "billing" ? "billing user" : invite.role}
                 </span>
               </Tooltip>
             </>
