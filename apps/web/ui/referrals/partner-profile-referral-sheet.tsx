@@ -1,4 +1,4 @@
-import { partnerProfileReferralSchema } from "@/lib/zod/schemas/partner-profile";
+import { PartnerProfileReferral } from "@/lib/zod/schemas/partner-profile";
 import { X } from "@/ui/shared/icons";
 import {
   Button,
@@ -9,14 +9,11 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { Dispatch, SetStateAction } from "react";
-import * as z from "zod/v4";
-import { ReferralLeadDetails } from "./referral-lead-details";
 import { ReferralDetails } from "./referral-details";
-
-type PartnerProfileReferralProps = z.infer<typeof partnerProfileReferralSchema>;
+import { ReferralLeadDetails } from "./referral-lead-details";
 
 type PartnerProfileReferralSheetProps = {
-  referral: PartnerProfileReferralProps;
+  referral: PartnerProfileReferral;
   onNext?: () => void;
   onPrevious?: () => void;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
@@ -84,12 +81,12 @@ function PartnerProfileReferralSheetContent({
         </div>
       </div>
 
-      <div className="@3xl/sheet:grid-cols-[minmax(440px,1fr)_minmax(0,360px)] scrollbar-hide grid min-h-0 grow grid-cols-1 gap-x-6 gap-y-4 overflow-y-auto p-4 sm:p-6">
+      <div className="@3xl/sheet:grid-cols-[minmax(440px,1fr)_minmax(0,360px)] scrollbar-hide grid min-h-0 grow grid-cols-1 gap-x-6 gap-y-2 overflow-y-auto p-4 sm:gap-y-4 sm:p-6">
         {/* Left side - Referral details */}
         <ReferralDetails referral={{ formData: referral.formData }} />
 
         {/* Right side - Customer details */}
-        <div className="@3xl/sheet:order-2 flex flex-col gap-4">
+        <div className="@3xl/sheet:order-2 flex flex-col gap-2 sm:gap-4">
           <ReferralLeadDetails referral={referral} />
         </div>
       </div>
