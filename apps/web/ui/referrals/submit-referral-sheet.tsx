@@ -4,7 +4,7 @@ import { submitReferralAction } from "@/lib/actions/referrals/submit-referral";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { referralFormSchema } from "@/lib/zod/schemas/referral-form";
 import { X } from "@/ui/shared/icons";
-import { Button, LoadingSpinner, Sheet } from "@dub/ui";
+import { Button, CircleCheckFill, Sheet } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
@@ -136,15 +136,21 @@ export function SubmitReferralSheet({
         </form>
 
         {isSubmitSuccessful && (
-          <div className="absolute inset-0 flex items-center justify-center">
+          <div className="absolute inset-0 flex items-center justify-center bg-white">
             <div className="flex flex-col items-center">
-              <LoadingSpinner />
+              <CircleCheckFill className="size-8 text-green-500" />
               <span className="mt-4 block text-base font-semibold text-neutral-900">
                 Referral submitted
               </span>
               <p className="mt-2 text-center text-sm text-neutral-500">
                 Your referral has been submitted successfully.
               </p>
+              <Button
+                text="Close"
+                variant="primary"
+                className="mt-6"
+                onClick={() => setIsOpen(false)}
+              />
             </div>
           </div>
         )}
