@@ -3,7 +3,7 @@
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getReferralOrThrow } from "@/lib/api/referrals/get-referral-or-throw";
-import { markReferralClosedWonSchema } from "@/lib/zod/schemas/partner-referrals";
+import { markReferralClosedWonSchema } from "@/lib/zod/schemas/referrals";
 import { prisma } from "@dub/prisma";
 import { ReferralStatus } from "@dub/prisma/client";
 import { authActionClient } from "../safe-action";

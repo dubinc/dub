@@ -91,7 +91,7 @@ import {
   NetworkPartnerSchema,
   PartnerConversionScoreSchema,
 } from "./zod/schemas/partner-network";
-import { referralSchema } from "./zod/schemas/partner-referrals";
+import { referralSchema } from "./zod/schemas/referrals";
 import {
   createPartnerSchema,
   EnrolledPartnerSchema,

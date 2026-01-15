@@ -3,7 +3,7 @@
 import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
-import { createPartnerReferralSchema } from "@/lib/zod/schemas/partner-referrals";
+import { createPartnerReferralSchema } from "@/lib/zod/schemas/referrals";
 import {
   formFieldSchema,
   referralFormSchema,

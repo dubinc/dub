@@ -4,7 +4,7 @@ import { EnrolledPartnerProps } from "@/lib/types";
 import {
   partnerReferralsCountByPartnerIdSchema,
   partnerReferralsCountByStatusSchema,
-} from "@/lib/zod/schemas/partner-referrals";
+} from "@/lib/zod/schemas/referrals";
 import { CircleDotted, useRouterStuff } from "@dub/ui";
 import { Users } from "@dub/ui/icons";
 import { cn, nFormatter, OG_AVATAR_URL } from "@dub/utils";

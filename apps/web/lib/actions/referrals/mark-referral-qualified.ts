@@ -7,7 +7,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getReferralOrThrow } from "@/lib/api/referrals/get-referral-or-throw";
 import { recordFakeClick } from "@/lib/tinybird/record-fake-click";
-import { markReferralQualifiedSchema } from "@/lib/zod/schemas/partner-referrals";
+import { markReferralQualifiedSchema } from "@/lib/zod/schemas/referrals";
 import { prisma } from "@dub/prisma";
 import { ReferralStatus } from "@dub/prisma/client";
 import { pick } from "@dub/utils";

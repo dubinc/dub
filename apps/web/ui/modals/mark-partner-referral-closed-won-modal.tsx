@@ -4,7 +4,7 @@ import { markReferralClosedWonAction } from "@/lib/actions/referrals/mark-referr
 import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { referralSchema } from "@/lib/zod/schemas/partner-referrals";
+import { referralSchema } from "@/lib/zod/schemas/referrals";
 import { Button, Modal } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";

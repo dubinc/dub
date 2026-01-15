@@ -4,7 +4,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import {
   getPartnerReferralsQuerySchema,
   referralSchema,
-} from "@/lib/zod/schemas/partner-referrals";
+} from "@/lib/zod/schemas/referrals";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";

@@ -1,5 +1,5 @@
 import useWorkspace from "@/lib/swr/use-workspace";
-import { getPartnerReferralsCountQuerySchema } from "@/lib/zod/schemas/partner-referrals";
+import { getPartnerReferralsCountQuerySchema } from "@/lib/zod/schemas/referrals";
 import { useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import useSWR from "swr";

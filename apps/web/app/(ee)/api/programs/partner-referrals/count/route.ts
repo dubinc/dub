@@ -3,7 +3,7 @@ import { withWorkspace } from "@/lib/auth";
 import {
   getPartnerReferralsCountQuerySchema,
   partnerReferralsCountResponseSchema,
-} from "@/lib/zod/schemas/partner-referrals";
+} from "@/lib/zod/schemas/referrals";
 import { prisma, sanitizeFullTextSearch } from "@dub/prisma";
 import { Prisma, ReferralStatus } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
