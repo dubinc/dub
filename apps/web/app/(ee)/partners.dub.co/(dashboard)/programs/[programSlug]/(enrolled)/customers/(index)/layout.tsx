@@ -7,7 +7,7 @@ import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { SubmitReferralSheet } from "@/ui/referrals/submit-referral-sheet";
 import { Button, InfoTooltip } from "@dub/ui";
-import { cn } from "@dub/utils";
+import { cn, nFormatter } from "@dub/utils";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { CSSProperties, ReactNode, useState } from "react";
@@ -58,6 +58,7 @@ export default function PartnerCustomersLayout({
             text="Submit Referral"
             className="h-9 w-fit rounded-lg"
             disabled={!referralFormData}
+            disabledTooltip="Submitted referrals are not offered."
             onClick={() => {
               setShowReferralSheet(true);
             }}
@@ -103,9 +104,9 @@ export default function PartnerCustomersLayout({
                   </span>
                   {tab.info && <InfoTooltip content={tab.info} />}
                 </div>
-                {tab.count ? (
+                {tab.count !== undefined ? (
                   <span className="text-content-emphasis text-base font-semibold">
-                    {tab.count.toLocaleString()}
+                    {nFormatter(tab.count, { full: true })}
                   </span>
                 ) : (
                   <div className="h-6 w-12 animate-pulse rounded-md bg-neutral-200" />
