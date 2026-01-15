@@ -96,7 +96,7 @@ export default function WelcomeEmail({
 
                       <Link
                         href={workspaceUrl}
-                        className="m-0 text-xs font-medium text-neutral-800 underline"
+                        className="m-0 text-xs font-medium text-neutral-600 underline"
                       >
                         {getPrettyUrl(workspaceUrl)}
                       </Link>
@@ -132,7 +132,7 @@ export default function WelcomeEmail({
 
                       <Link
                         href={`${workspaceUrl}/program`}
-                        className="m-0 text-xs font-medium text-neutral-800 underline"
+                        className="m-0 text-xs font-medium text-neutral-600 underline"
                       >
                         {getPrettyUrl(`${workspaceUrl}/program`)}
                       </Link>
