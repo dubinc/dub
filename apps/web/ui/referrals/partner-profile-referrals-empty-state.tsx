@@ -1,5 +1,6 @@
 "use client";
 
+import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PROGRAM_MARKETPLACE_LOGO_COUNT } from "@/ui/partners/program-marketplace/program-marketplace-logos";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { Button } from "@dub/ui";
@@ -31,14 +32,17 @@ const EMPTY_STATE_CARDS = [
 ];
 
 export function PartnerProfileReferralsEmptyState() {
-  const submittedReferralsEnabled = true; // TODO: Add check based on the program's rewards
+  const { programEnrollment } = useProgramEnrollment();
+
+  const submittedReferralsEnabled =
+    programEnrollment?.program?.referralFormData !== null;
 
   return (
     <AnimatedEmptyState
       title={
         submittedReferralsEnabled
           ? "No referrals submitted"
-          : "Submitted referrals not enabled"
+          : "Submitted referrals not offered"
       }
       description={
         submittedReferralsEnabled
