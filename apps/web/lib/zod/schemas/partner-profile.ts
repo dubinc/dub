@@ -23,6 +23,7 @@ import { CustomerEnrichedSchema } from "./customers";
 import { LinkSchema } from "./links";
 import { getPaginationQuerySchema } from "./misc";
 import { payoutsQuerySchema } from "./payouts";
+import { referralFormDataSchema } from "./referral-form";
 import { workflowConditionSchema } from "./workflows";
 
 export const PartnerEarningsSchema = CommissionSchema.omit({
@@ -248,7 +249,8 @@ export const partnerProfileReferralSchema = z.object({
   email: z.email(),
   company: z.string(),
   status: z.enum(ReferralStatus),
-  formData: z.array(z.record(z.string(), z.unknown())).nullable().optional(),
+  customerId: z.string().nullable(),
+  formData: z.array(referralFormDataSchema).nullable().optional(),
   createdAt: z.date(),
   updatedAt: z.date(),
 });

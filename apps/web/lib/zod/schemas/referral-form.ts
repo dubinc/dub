@@ -112,3 +112,10 @@ export const referralFormSchema = z.object({
   description: z.string().optional(),
   fields: formFieldsSchema,
 });
+
+// This is the schema for the form data that is stored in the database
+export const referralFormDataSchema = z.object({
+  key: z.string().min(1),
+  label: z.string().min(1),
+  value: z.unknown(),
+});

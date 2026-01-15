@@ -2,6 +2,7 @@ import { ReferralStatus } from "@dub/prisma/client";
 import * as z from "zod/v4";
 import { getPaginationQuerySchema } from "./misc";
 import { PartnerSchema } from "./partners";
+import { referralFormDataSchema } from "./referral-form";
 
 export const referralSchema = z.object({
   id: z.string(),
@@ -11,7 +12,7 @@ export const referralSchema = z.object({
   email: z.email(),
   company: z.string(),
   status: z.enum(ReferralStatus),
-  formData: z.array(z.record(z.string(), z.unknown())).nullable().optional(),
+  formData: z.array(referralFormDataSchema).nullable().optional(),
   createdAt: z.date(),
   updatedAt: z.date(),
   partner: PartnerSchema.pick({

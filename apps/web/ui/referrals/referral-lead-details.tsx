@@ -8,7 +8,7 @@ interface ReferralCustomerDetailsProps {
   referral: Pick<ReferralProps, "id" | "name" | "email" | "company" | "status">;
 }
 
-export function ReferralCustomerDetails({
+export function ReferralLeadDetails({
   referral,
 }: ReferralCustomerDetailsProps) {
   const companyLogoUrl = getCompanyLogoUrl(referral.email);

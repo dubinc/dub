@@ -13,7 +13,7 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { Dispatch, SetStateAction } from "react";
-import { ReferralCustomerDetails } from "./referral-customer-details";
+import { ReferralLeadDetails } from "./referral-lead-details";
 import { ReferralDetails } from "./referral-details";
 import { ReferralPartnerDetails } from "./referral-partner-details";
 
@@ -170,7 +170,7 @@ function ReferralSheetContent({
 
           {/* Right side - Two cards */}
           <div className="@3xl/sheet:order-2 flex flex-col gap-4">
-            <ReferralCustomerDetails referral={referral} />
+            <ReferralLeadDetails referral={referral} />
             <ReferralPartnerDetails referral={referral} />
           </div>
         </div>

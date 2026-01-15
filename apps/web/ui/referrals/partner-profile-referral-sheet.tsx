@@ -10,7 +10,7 @@ import {
 } from "@dub/ui";
 import { Dispatch, SetStateAction } from "react";
 import * as z from "zod/v4";
-import { ReferralCustomerDetails } from "./referral-customer-details";
+import { ReferralLeadDetails } from "./referral-lead-details";
 import { ReferralDetails } from "./referral-details";
 
 type PartnerProfileReferralProps = z.infer<typeof partnerProfileReferralSchema>;
@@ -90,7 +90,7 @@ function PartnerProfileReferralSheetContent({
 
         {/* Right side - Customer details */}
         <div className="@3xl/sheet:order-2 flex flex-col gap-4">
-          <ReferralCustomerDetails referral={referral} />
+          <ReferralLeadDetails referral={referral} />
         </div>
       </div>
     </div>
