@@ -3,7 +3,7 @@
 import usePartnerReferrals from "@/lib/swr/use-partner-referrals";
 import usePartnerReferralsCount from "@/lib/swr/use-partner-referrals-count";
 import { PartnerProfileReferralsCountByStatus } from "@/lib/types";
-import { partnerProfileReferralSchema } from "@/lib/zod/schemas/partner-profile";
+import { PartnerProfileReferral } from "@/lib/zod/schemas/partner-profile";
 import { PartnerProfileReferralSheet } from "@/ui/referrals/partner-profile-referral-sheet";
 import { PartnerProfileReferralsEmptyState } from "@/ui/referrals/partner-profile-referrals-empty-state";
 import { ReferralStatusBadges } from "@/ui/referrals/referral-status-badges";
@@ -25,9 +25,6 @@ import { CircleDotted } from "@dub/ui/icons";
 import { cn, formatDate, nFormatter, OG_AVATAR_URL } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
-import * as z from "zod/v4";
-
-type PartnerProfileReferralProps = z.infer<typeof partnerProfileReferralSchema>;
 
 export default function PartnerCustomersReferralsPage() {
   const { queryParams, searchParams } = useRouterStuff();
@@ -137,7 +134,7 @@ export default function PartnerCustomersReferralsPage() {
           header: "Lead",
           enableHiding: false,
           minSize: 250,
-          cell: ({ row }: { row: Row<PartnerProfileReferralProps> }) => {
+          cell: ({ row }: { row: Row<PartnerProfileReferral> }) => {
             const referral = row.original;
             const companyLogoUrl = getCompanyLogoUrl(referral.email);
 
@@ -160,7 +157,7 @@ export default function PartnerCustomersReferralsPage() {
           header: "Name",
           accessorKey: "name",
           minSize: 150,
-          cell: ({ row }: { row: Row<PartnerProfileReferralProps> }) => {
+          cell: ({ row }: { row: Row<PartnerProfileReferral> }) => {
             return (
               <span className="min-w-0 truncate" title={row.original.name}>
                 {row.original.name}
@@ -173,7 +170,7 @@ export default function PartnerCustomersReferralsPage() {
           header: "Company",
           accessorKey: "company",
           minSize: 150,
-          cell: ({ row }: { row: Row<PartnerProfileReferralProps> }) => {
+          cell: ({ row }: { row: Row<PartnerProfileReferral> }) => {
             return (
               <span className="min-w-0 truncate" title={row.original.company}>
                 {row.original.company}
@@ -184,7 +181,7 @@ export default function PartnerCustomersReferralsPage() {
         {
           id: "submitted",
           header: "Submitted",
-          cell: ({ row }: { row: Row<PartnerProfileReferralProps> }) => (
+          cell: ({ row }: { row: Row<PartnerProfileReferral> }) => (
             <TimestampTooltip
               timestamp={row.original.createdAt}
               rows={["local"]}
@@ -201,7 +198,7 @@ export default function PartnerCustomersReferralsPage() {
           id: "status",
           header: "Status",
           accessorKey: "status",
-          cell: ({ row }: { row: Row<PartnerProfileReferralProps> }) => {
+          cell: ({ row }: { row: Row<PartnerProfileReferral> }) => {
             const status = row.original.status;
             const badge = ReferralStatusBadges[status];
 
