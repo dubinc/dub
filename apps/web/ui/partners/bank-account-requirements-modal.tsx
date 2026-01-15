@@ -30,10 +30,8 @@ function BankAccountRequirementsModal({
   const [acknowledged, setAcknowledged] = useState(false);
 
   const handleContinue = useCallback(() => {
-    setShowModal(false);
-    setAcknowledged(false);
     onContinue();
-  }, [onContinue, setShowModal]);
+  }, [onContinue]);
 
   const handleClose = useCallback(() => {
     setShowModal(false);
