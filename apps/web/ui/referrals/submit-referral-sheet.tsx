@@ -1,13 +1,13 @@
 "use client";
 
-import { createReferralAction } from "@/lib/actions/referrals/create-referral";
+import { submitReferralAction } from "@/lib/actions/referrals/submit-referral";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { referralFormSchema } from "@/lib/zod/schemas/referral-form";
 import { X } from "@/ui/shared/icons";
 import { Button, LoadingSpinner, Sheet } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
-import { Dispatch, SetStateAction, useMemo } from "react";
+import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod/v4";
@@ -32,6 +32,8 @@ export function SubmitReferralSheet({
   referralFormData,
   onSuccess,
 }: SubmitReferralSheetProps) {
+  const [isSubmitSuccessful, setIsSubmitSuccessful] = useState(false);
+
   const validatedFormData = useMemo(() => {
     try {
       return referralFormSchema.parse(referralFormData);
@@ -46,26 +48,24 @@ export function SubmitReferralSheet({
     },
   });
 
-  const {
-    handleSubmit,
-    setError,
-    reset,
-    formState: { isSubmitSuccessful },
-  } = form;
+  const { handleSubmit, setError, reset } = form;
 
-  const { executeAsync, isPending } = useAction(createReferralAction, {
+  const { executeAsync, isPending } = useAction(submitReferralAction, {
     onSuccess: () => {
-      mutatePrefix("/api/programs/partner-referrals");
+      mutatePrefix(`/api/partner-profile/programs/${programId}/referrals`);
       toast.success("Referral submitted successfully");
       reset();
-      setIsOpen(false);
+      setIsSubmitSuccessful(true);
+      // setIsOpen(false);
       onSuccess?.();
     },
     onError: ({ error }) => {
-      toast.error(error.serverError || "Failed to submit referral");
+      const errorMessage = error.serverError || "Failed to submit referral";
+      toast.error(errorMessage);
       setError("root.serverError", {
-        message: error.serverError || "Failed to submit referral",
+        message: errorMessage,
       });
+      setIsSubmitSuccessful(false);
     },
   });
 
@@ -79,6 +79,13 @@ export function SubmitReferralSheet({
       formData: data.formData,
     });
   };
+
+  // Reset success state when sheet closes
+  useEffect(() => {
+    if (!isOpen) {
+      setIsSubmitSuccessful(false);
+    }
+  }, [isOpen]);
 
   if (!validatedFormData) {
     return null;
@@ -98,18 +105,9 @@ export function SubmitReferralSheet({
           }}
         >
           <div className="sticky top-0 z-10 border-b border-neutral-200 bg-neutral-50">
-            <div className="flex items-start justify-between p-6">
-              <Sheet.Title asChild className="min-w-0">
-                <div>
-                  <span className="block text-base font-semibold leading-tight text-neutral-900">
-                    {validatedFormData.title || "Submit Referral"}
-                  </span>
-                  {validatedFormData.description && (
-                    <p className="mt-1 text-sm text-neutral-500">
-                      {validatedFormData.description}
-                    </p>
-                  )}
-                </div>
+            <div className="flex h-16 items-center justify-between px-6 py-4">
+              <Sheet.Title className="text-lg font-semibold">
+                Submit Referral
               </Sheet.Title>
               <Sheet.Close asChild>
                 <Button
@@ -122,7 +120,7 @@ export function SubmitReferralSheet({
           </div>
 
           <div className="min-h-0 flex-1 overflow-y-auto">
-            <div className="flex flex-col gap-6 p-5 sm:p-8">
+            <div className="flex flex-col gap-6 p-5 sm:p-6">
               <ReferralForm referralFormData={validatedFormData} />
             </div>
           </div>
@@ -136,6 +134,7 @@ export function SubmitReferralSheet({
             />
           </div>
         </form>
+
         {isSubmitSuccessful && (
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="flex flex-col items-center">

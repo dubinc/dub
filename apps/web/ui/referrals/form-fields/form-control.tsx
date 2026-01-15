@@ -28,7 +28,7 @@ export const FormControl = ({
 }: FormControlProps) => {
   return (
     <label {...rest}>
-      <div className="flex items-center gap-1.5" dir={labelDir}>
+      <div className="flex items-center gap-1" dir={labelDir}>
         <span className="text-content-emphasis text-sm font-medium">
           {label}
         </span>

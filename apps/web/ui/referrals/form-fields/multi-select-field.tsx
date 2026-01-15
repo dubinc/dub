@@ -22,7 +22,6 @@ export function MultiSelectField({
     <FormControl
       label={field.label}
       required={field.required}
-      helperText="Select all that apply"
       error={state.error?.message}
       labelDir="auto"
     >
@@ -31,10 +30,7 @@ export function MultiSelectField({
         name={keyPath}
         rules={{
           validate: (val: any) => {
-            if (
-              field.required &&
-              (!Array.isArray(val) || !val.length)
-            ) {
+            if (field.required && (!Array.isArray(val) || !val.length)) {
               return "Please select at least one option";
             }
             return true;

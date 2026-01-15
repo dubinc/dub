@@ -108,14 +108,19 @@ export const formFieldsSchema = z
 
 // Full form schema (builder storage)
 export const referralFormSchema = z.object({
-  title: z.string().optional(),
-  description: z.string().optional(),
   fields: formFieldsSchema,
 });
 
-// This is the schema for the form data that is stored in the database
+// This is the schema for the submitted form data that is stored in the database
 export const referralFormDataSchema = z.object({
   key: z.string().min(1),
   label: z.string().min(1),
   value: z.unknown(),
+});
+
+// Schema for validating required fields
+export const referralRequiredFieldsSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  email: z.email("Invalid email address"),
+  company: z.string().min(1, "Company is required"),
 });

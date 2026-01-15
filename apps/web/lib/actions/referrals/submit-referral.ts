@@ -3,24 +3,18 @@
 import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
-import { createPartnerReferralSchema } from "@/lib/zod/schemas/referrals";
+import { REFERRAL_FORM_REQUIRED_FIELD_KEYS } from "@/lib/referrals/constants";
 import {
   formFieldSchema,
   referralFormSchema,
+  referralRequiredFieldsSchema,
 } from "@/lib/zod/schemas/referral-form";
+import { createPartnerReferralSchema } from "@/lib/zod/schemas/referrals";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { COUNTRIES } from "@dub/utils";
 import * as z from "zod/v4";
 import { authPartnerActionClient } from "../safe-action";
-
-const REQUIRED_FIELD_KEYS = new Set(["name", "email", "company"]);
-
-const requiredFieldsSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  email: z.email("Invalid email address"),
-  company: z.string().min(1, "Company is required"),
-});
 
 /**
  * Converts field values based on field type:
@@ -60,7 +54,7 @@ function convertFieldValue(
 }
 
 // Create a partner referral
-export const createReferralAction = authPartnerActionClient
+export const submitReferralAction = authPartnerActionClient
   .inputSchema(createPartnerReferralSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { partner } = ctx;
@@ -75,7 +69,8 @@ export const createReferralAction = authPartnerActionClient
     });
 
     // Make sure required fields are present
-    const requiredFieldsResult = requiredFieldsSchema.safeParse(rawFormData);
+    const requiredFieldsResult =
+      referralRequiredFieldsSchema.safeParse(rawFormData);
 
     if (!requiredFieldsResult.success) {
       const firstError = requiredFieldsResult.error.issues[0];
@@ -111,7 +106,7 @@ export const createReferralAction = authPartnerActionClient
     // Process all fields in rawFormData except required ones
     for (const [key, value] of Object.entries(rawFormData)) {
       // Skip required fields
-      if (REQUIRED_FIELD_KEYS.has(key)) {
+      if (REFERRAL_FORM_REQUIRED_FIELD_KEYS.has(key)) {
         continue;
       }
 

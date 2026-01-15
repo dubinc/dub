@@ -1,6 +1,4 @@
 {
-  "title": "Partner Referral Form",
-  "description": "Please fill out this form to submit your referral",
   "fields": [
     {
       "key": "department",

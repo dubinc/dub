@@ -55,10 +55,14 @@ export default function PartnerCustomersLayout({
       controls={
         <>
           <Button
-            text="Submit Referral"
+            text="Submit referral"
             className="h-9 w-fit rounded-lg"
             disabled={!referralFormData}
-            disabledTooltip="Submitted referrals are not offered."
+            disabledTooltip={
+              referralFormData
+                ? undefined
+                : "Submitted referrals are not offered."
+            }
             onClick={() => {
               setShowReferralSheet(true);
             }}
