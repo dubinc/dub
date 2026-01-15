@@ -323,6 +323,8 @@ export const createManualCommissionAction = authActionClient
             externalId: `dummy_${nanoid(32)}`, // generate random externalId
             stripeCustomerId: null,
             linkId: null,
+            programId: null,
+            partnerId: null,
             clickId: null,
           },
         });
@@ -456,6 +458,8 @@ export const createManualCommissionAction = authActionClient
           },
           data: {
             linkId: link.id,
+            programId: link.programId,
+            partnerId: link.partnerId,
             clickId: clickId,
             clickedAt: new Date(clickTimestamp),
             ...(saleAmount && {

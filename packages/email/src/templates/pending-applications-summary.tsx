@@ -76,8 +76,7 @@ export default function PendingApplicationsSummary({
 
             <Heading className="mx-0 mb-5 mt-10 p-0 text-lg font-medium text-black">
               {nFormatter(totalCount, { full: true })}{" "}
-              {pluralize("partner application", totalCount)}
-              pending review
+              {pluralize("partner application", totalCount)} pending review
             </Heading>
 
             <Text className="text-sm leading-6 text-gray-600">
@@ -101,36 +100,39 @@ export default function PendingApplicationsSummary({
                     className={`rounded-lg border border-solid border-neutral-200 bg-neutral-50 p-4 ${index < partners.length - 1 ? "mb-3" : ""}`}
                   >
                     <Row>
-                      <Column width="auto" className="pr-3" valign="middle">
-                        <div className="flex items-center">
-                          <Img
-                            src={
-                              partner.image || `${OG_AVATAR_URL}${partner.id}`
-                            }
-                            width="40"
-                            height="40"
-                            alt={partner.name || "partner avatar"}
-                            className="rounded-full"
-                          />
-                          <div className="ml-3">
-                            <Text className="m-0 p-0 text-sm font-semibold text-neutral-900">
-                              {partner.name || ""}
-                            </Text>
-                            <Text className="m-0 p-0 text-sm font-medium text-neutral-500 no-underline">
-                              {partner.email}
-                            </Text>
-                          </div>
+                      <Column
+                        width={52}
+                        valign="middle"
+                        style={{ paddingRight: "12px" }}
+                      >
+                        <Img
+                          src={partner.image || `${OG_AVATAR_URL}${partner.id}`}
+                          width="40"
+                          height="40"
+                          alt={partner.name || "partner avatar"}
+                          className="rounded-full"
+                        />
+                      </Column>
+                      <Column valign="middle" style={{ paddingRight: "12px" }}>
+                        <div
+                          style={{
+                            width: "200px",
+                            overflow: "hidden",
+                          }}
+                        >
+                          <Text className="m-0 truncate p-0 text-sm font-semibold text-neutral-900">
+                            {partner.name || ""}
+                          </Text>
+                          <Text className="m-0 truncate p-0 text-sm font-medium text-neutral-500 no-underline">
+                            {partner.email}
+                          </Text>
                         </div>
                       </Column>
-                      <Column
-                        width="auto"
-                        align="right"
-                        valign="middle"
-                        className="whitespace-nowrap"
-                      >
+                      <Column width={90} align="right" valign="middle">
                         <Link
                           href={`${applicationsUrl}?partnerId=${partner.id}`}
                           className="box-border inline-block rounded-md border border-solid border-neutral-200 bg-white px-4 py-2 text-center text-sm font-medium leading-none text-black no-underline"
+                          style={{ whiteSpace: "nowrap" }}
                         >
                           Review
                         </Link>

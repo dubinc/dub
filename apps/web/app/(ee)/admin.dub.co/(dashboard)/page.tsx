@@ -4,6 +4,7 @@ import { DeletePartnerAccount } from "./components/delete-partner-account";
 import { ImpersonateUser } from "./components/impersonate-user";
 import { ImpersonateWorkspace } from "./components/impersonate-workspace";
 import { RefreshDomain } from "./components/refresh-domain";
+import { ResetLoginAttempts } from "./components/reset-login-attempts";
 
 export const metadata = constructMetadata({
   title: "Dub Admin",
@@ -50,6 +51,13 @@ export default function AdminPage() {
           Remove and re-add domain from Vercel
         </p>
         <RefreshDomain />
+      </div>
+      <div className="flex flex-col space-y-4 px-5 py-10">
+        <h2 className="text-xl font-semibold">Reset Login Attempts</h2>
+        <p className="text-sm text-neutral-500">
+          Reset a user's invalidLoginAttempts and lockedAt fields
+        </p>
+        <ResetLoginAttempts />
       </div>
     </div>
   );
