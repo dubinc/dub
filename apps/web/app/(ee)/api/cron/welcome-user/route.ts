@@ -38,6 +38,17 @@ export async function POST(req: Request) {
                 name: true,
                 logo: true,
                 plan: true,
+                programs: {
+                  select: {
+                    slug: true,
+                    name: true,
+                    logo: true,
+                  },
+                  orderBy: {
+                    createdAt: "desc",
+                  },
+                  take: 1,
+                },
               },
             },
           },
@@ -80,6 +91,7 @@ export async function POST(req: Request) {
               hasDubPartners: getPlanCapabilities(
                 user.projects?.[0]?.project?.plan || "free",
               ).canManageProgram,
+              program: user.projects?.[0]?.project?.programs?.[0],
               unsubscribeUrl,
             }),
         variant: "marketing",
