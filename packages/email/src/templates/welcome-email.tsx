@@ -40,18 +40,6 @@ export default function WelcomeEmail({
   hasDubPartners?: boolean;
   unsubscribeUrl: string;
 }) {
-  workspace = {
-    slug: "acme",
-    name: "Acme",
-    logo: "https://assets.dub.co/logo.png",
-  };
-  program = {
-    slug: "acme",
-    name: "Acme",
-    logo: "https://assets.dub.co/misc/acme-logo.png",
-  };
-  hasDubPartners = true;
-
   const workspaceUrl = `https://app.dub.co/${workspace?.slug}`;
 
   return (
