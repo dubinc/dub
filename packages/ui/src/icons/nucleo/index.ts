@@ -230,6 +230,7 @@ export * from "./tag";
 export * from "./tags";
 export * from "./text-bold";
 export * from "./text-italic";
+export * from "./text-strike";
 export * from "./timer2";
 export * from "./toggle2-fill";
 export * from "./toggles";
