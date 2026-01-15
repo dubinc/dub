@@ -439,11 +439,14 @@ const CommandEmpty = ({
   onSelect: () => void;
   askAI?: boolean;
 }>) => {
-  // If the selected filter has no options, show the search input as an option
+  // If the selected filter has no options (and shouldFilter is true,
+  // meaning it's leveraging Command.List's native filtering and not external/async filtering),
+  // show the search input as an option
   if (
     selectedFilter &&
     selectedFilter.options &&
-    selectedFilter.options.length === 0
+    selectedFilter.options.length === 0 &&
+    selectedFilter.shouldFilter !== false
   ) {
     if (!search)
       return (
