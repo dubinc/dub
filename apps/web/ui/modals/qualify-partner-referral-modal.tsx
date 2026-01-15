@@ -3,13 +3,13 @@
 import { markReferralQualifiedAction } from "@/lib/actions/referrals/mark-referral-qualified";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { partnerReferralSchema } from "@/lib/zod/schemas/partner-referrals";
+import { referralSchema } from "@/lib/zod/schemas/partner-referrals";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { useAction } from "next-safe-action/hooks";
 import { toast } from "sonner";
 import * as z from "zod/v4";
 
-type PartnerReferralProps = z.infer<typeof partnerReferralSchema>;
+type PartnerReferralProps = z.infer<typeof referralSchema>;
 
 export function useQualifyPartnerReferralModal({
   referral,

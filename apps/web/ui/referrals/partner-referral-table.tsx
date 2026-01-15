@@ -3,7 +3,7 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   getPartnerReferralsQuerySchema,
-  partnerReferralSchema,
+  referralSchema,
 } from "@/lib/zod/schemas/partner-referrals";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
@@ -25,12 +25,12 @@ import { Row } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 import * as z from "zod/v4";
-import { PartnerReferralSheet } from "./partner-referral-sheet";
-import { PartnerReferralStatusBadges } from "./partner-referral-status-badges";
+import { ReferralSheet } from "./partner-referral-sheet";
+import { ReferralStatusBadges } from "./referral-status-badges";
 import { usePartnerReferralFilters } from "./use-partner-referral-filters";
 import { usePartnerReferralsCount } from "./use-partner-referrals-count";
 
-type PartnerReferralProps = z.infer<typeof partnerReferralSchema>;
+type PartnerReferralProps = z.infer<typeof referralSchema>;
 
 export function PartnerReferralTable({
   query,
@@ -163,7 +163,7 @@ export function PartnerReferralTable({
           accessorKey: "status",
           cell: ({ row }: { row: Row<PartnerReferralProps> }) => {
             const status = row.original.status;
-            const badge = PartnerReferralStatusBadges[status];
+            const badge = ReferralStatusBadges[status];
 
             return (
               <StatusBadge
@@ -258,7 +258,7 @@ export function PartnerReferralTable({
   return (
     <div className="flex flex-col gap-3">
       {detailsSheetState.referralId && currentReferral && (
-        <PartnerReferralSheet
+        <ReferralSheet
           isOpen={detailsSheetState.open}
           setIsOpen={(open) =>
             setDetailsSheetState((s) => ({ ...s, open }) as any)

@@ -90,6 +90,7 @@ import {
   NetworkPartnerSchema,
   PartnerConversionScoreSchema,
 } from "./zod/schemas/partner-network";
+import { referralSchema } from "./zod/schemas/partner-referrals";
 import {
   createPartnerSchema,
   EnrolledPartnerSchema,
@@ -753,3 +754,11 @@ export type CreateFraudEventInput = Pick<
   > & {
     metadata?: Record<string, unknown> | null;
   };
+
+export type ReferralProps = z.infer<typeof referralSchema>;
+
+export type ReferralFormDataField = {
+  key: string;
+  label: string;
+  value: unknown;
+};

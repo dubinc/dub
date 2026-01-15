@@ -4,7 +4,7 @@ import { markReferralClosedWonAction } from "@/lib/actions/referrals/mark-referr
 import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { partnerReferralSchema } from "@/lib/zod/schemas/partner-referrals";
+import { referralSchema } from "@/lib/zod/schemas/partner-referrals";
 import { Button, Modal } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
@@ -13,7 +13,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod/v4";
 
-type PartnerReferralProps = z.infer<typeof partnerReferralSchema>;
+type PartnerReferralProps = z.infer<typeof referralSchema>;
 
 type MarkPartnerReferralClosedWonFormData = {
   saleAmount: number | null;

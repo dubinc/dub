@@ -3,7 +3,7 @@ import * as z from "zod/v4";
 import { getPaginationQuerySchema } from "./misc";
 import { PartnerSchema } from "./partners";
 
-export const partnerReferralSchema = z.object({
+export const referralSchema = z.object({
   id: z.string(),
   programId: z.string(),
   partnerId: z.string(),

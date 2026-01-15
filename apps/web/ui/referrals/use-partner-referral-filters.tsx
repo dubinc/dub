@@ -11,7 +11,7 @@ import { cn, nFormatter, OG_AVATAR_URL } from "@dub/utils";
 import { useCallback, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 import * as z from "zod/v4";
-import { PartnerReferralStatusBadges } from "./partner-referral-status-badges";
+import { ReferralStatusBadges } from "./referral-status-badges";
 import { usePartnerReferralsCount } from "./use-partner-referrals-count";
 
 export function usePartnerReferralFilters(
@@ -81,7 +81,7 @@ export function usePartnerReferralFilters(
         label: "Status",
         options:
           statusCount?.map(({ status, _count }) => {
-            const badge = PartnerReferralStatusBadges[status];
+            const badge = ReferralStatusBadges[status];
             const Icon = badge.icon;
 
             return {

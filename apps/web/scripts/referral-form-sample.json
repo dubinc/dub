@@ -3,8 +3,8 @@
   "description": "Please fill out this form to submit your referral",
   "fields": [
     {
-      "key": "place",
-      "label": "Place",
+      "key": "department",
+      "label": "Department",
       "type": "text",
       "required": true,
       "locked": false,

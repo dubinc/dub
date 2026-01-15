@@ -5,7 +5,7 @@ import {
 import { CommissionSchema } from "@/lib/zod/schemas/commissions";
 import { DiscountCodeSchema, DiscountSchema } from "@/lib/zod/schemas/discount";
 import { GroupSchema } from "@/lib/zod/schemas/groups";
-import { partnerReferralSchema } from "@/lib/zod/schemas/partner-referrals";
+import { referralSchema } from "@/lib/zod/schemas/partner-referrals";
 import { PartnerSchema } from "@/lib/zod/schemas/partners";
 import { PayoutSchema } from "@/lib/zod/schemas/payouts";
 import { ProgramSchema } from "@/lib/zod/schemas/programs";
@@ -201,7 +201,7 @@ export const auditLogTarget = z.union([
   z.object({
     type: z.literal("partner_referral"),
     id: z.string(),
-    metadata: partnerReferralSchema.pick({
+    metadata: referralSchema.pick({
       email: true,
       name: true,
       company: true,

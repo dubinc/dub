@@ -26,7 +26,7 @@ import { useEffect, useMemo, useState } from "react";
 import * as z from "zod/v4";
 import { PartnerProfileReferralSheet } from "./partner-profile-referral-sheet";
 import { PartnerProfileReferralsEmptyState } from "./partner-profile-referrals-empty-state";
-import { PartnerReferralStatusBadges } from "./partner-referral-status-badges";
+import { ReferralStatusBadges } from "./referral-status-badges";
 
 type PartnerProfileReferralProps = z.infer<typeof partnerProfileReferralSchema>;
 
@@ -89,7 +89,7 @@ export function PartnerProfileReferralTable() {
         label: "Status",
         options:
           referralsCountByStatus?.map(({ status, _count }) => {
-            const badge = PartnerReferralStatusBadges[status];
+            const badge = ReferralStatusBadges[status];
             const Icon = badge.icon;
 
             return {
@@ -207,7 +207,7 @@ export function PartnerProfileReferralTable() {
           accessorKey: "status",
           cell: ({ row }: { row: Row<PartnerProfileReferralProps> }) => {
             const status = row.original.status;
-            const badge = PartnerReferralStatusBadges[status];
+            const badge = ReferralStatusBadges[status];
 
             return (
               <StatusBadge

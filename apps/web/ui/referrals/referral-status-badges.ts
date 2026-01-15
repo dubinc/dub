@@ -1,7 +1,7 @@
 import { ReferralStatus } from "@dub/prisma/client";
 import { CircleCheck, CircleHalfDottedClock, CircleXmark } from "@dub/ui/icons";
 
-export const PartnerReferralStatusBadges: Record<
+export const ReferralStatusBadges: Record<
   ReferralStatus,
   {
     label: string;
