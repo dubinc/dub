@@ -163,8 +163,13 @@ const PaymentMethodCard = ({
 };
 
 const NoPartnerPaymentMethods = () => {
+  const { stripeId } = useWorkspace();
   const { setShowAddPaymentMethodModal, AddPaymentMethodModal } =
     useAddPaymentMethodModal();
+
+  if (!stripeId) {
+    return null;
+  }
 
   return (
     <>
