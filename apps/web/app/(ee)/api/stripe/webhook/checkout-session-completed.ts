@@ -209,18 +209,12 @@ async function completeOnboarding({
         }
       }
 
-      console.log("CREATING PROGRAM?", {
-        store: workspace.store,
-        programOnboarding: workspace.store?.programOnboarding,
-      });
-
       // Create program
       if (
         workspace.store?.programOnboarding &&
         (workspace.store.programOnboarding as ProgramData).lastCompletedStep ===
           "configure-reward"
       ) {
-        console.log("CREATING PROGRAM...");
         try {
           await createProgram({
             workspace,
