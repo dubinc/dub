@@ -429,11 +429,9 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                     <span className="text-content-emphasis font-semibold">
                       Details
                     </span>
-                    <p className="text-content-subtle font-medium">
-                      <Markdown className={PROSE_STYLES.default}>
-                        {bounty.description}
-                      </Markdown>
-                    </p>
+                    <Markdown className={PROSE_STYLES.default}>
+                      {bounty.description}
+                    </Markdown>
                   </div>
                 )}
 

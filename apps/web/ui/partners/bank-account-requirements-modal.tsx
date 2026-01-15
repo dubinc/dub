@@ -50,7 +50,7 @@ function BankAccountRequirementsModal({
 
         <div className="flex flex-col gap-2 text-sm text-neutral-800">
           <p className="font-semibold">Requirements:</p>
-          <Markdown className="list-decimal space-y-1">
+          <Markdown className="list-decimal">
             {BANK_ACCOUNT_REQUIREMENTS.join("\n")}
           </Markdown>
 
