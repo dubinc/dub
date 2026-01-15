@@ -263,14 +263,16 @@ export function CreateLinkButton({
 }: {
   setShowLinkBuilder: Dispatch<SetStateAction<boolean>>;
 } & CreateLinkButtonProps) {
-  const { slug, role, plan, nextPlan, exceededLinks } = useWorkspace();
+  const { slug, role, exceededLinks } = useWorkspace();
 
   const permissionsError = clientAccessCheck({
     action: "links.write",
     role,
   }).error;
 
-  useKeyboardShortcut("c", () => setShowLinkBuilder(true));
+  useKeyboardShortcut("c", () => setShowLinkBuilder(true), {
+    enabled: !permissionsError,
+  });
 
   // listen to paste event, and if it's a URL, open the modal and input the URL
   const handlePaste = (e: ClipboardEvent) => {
@@ -309,7 +311,7 @@ export function CreateLinkButton({
         exceededLinks ? (
           <TooltipContent
             title="Your workspace has exceeded its monthly links limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
-            cta={`Upgrade to ${nextPlan.name}`}
+            cta="Upgrade plan"
             href={`/${slug}/upgrade`}
           />
         ) : (
