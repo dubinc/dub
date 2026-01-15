@@ -5,7 +5,13 @@ import usePaymentMethods from "@/lib/swr/use-payment-methods";
 import useWorkspace from "@/lib/swr/use-workspace";
 import useWorkspaceUsers from "@/lib/swr/use-workspace-users";
 import { CheckCircleFill } from "@/ui/shared/icons";
-import { Button, Popover, useLocalStorage, useMediaQuery } from "@dub/ui";
+import {
+  Button,
+  Popover,
+  ProgressCircle,
+  useLocalStorage,
+  useMediaQuery,
+} from "@dub/ui";
 import { CircleDotted, ExpandingArrow } from "@dub/ui/icons";
 import { ChevronDown } from "lucide-react";
 import Link from "next/link";
@@ -178,13 +184,14 @@ function OnboardingButtonInner({
     >
       <button
         type="button"
-        className="animate-slide-up-fade -mt-1 flex h-12 flex-col items-center justify-center rounded-full border border-neutral-950 bg-neutral-950 px-6 text-xs font-medium leading-tight text-white shadow-md transition-all [--offset:10px] hover:bg-neutral-800 hover:ring-4 hover:ring-neutral-200"
+        className="animate-slide-up-fade flex h-8 items-center justify-center gap-1.5 rounded-full border border-neutral-950 bg-neutral-950 px-3 text-xs font-medium leading-tight text-white shadow-md transition-all [--offset:10px] hover:bg-neutral-800 hover:ring-4 hover:ring-neutral-200"
       >
-        <span>Getting Started</span>
-        <span className="text-neutral-400">
-          {Math.round((remainingRecommendedTasks / tasks.length) * 100)}%
-          complete
-        </span>
+        <span>Complete setup</span>
+        <ProgressCircle
+          progress={1 - remainingRecommendedTasks / tasks.length}
+          className="size-3 text-white/80 [--track-color:#fff3]"
+          strokeWidth={14}
+        />
       </button>
     </Popover>
   );
