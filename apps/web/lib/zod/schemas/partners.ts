@@ -853,5 +853,5 @@ export const partnerPayoutSettingsSchema = z.object({
 export const partnerCrossProgramSummarySchema = z.object({
   totalPrograms: z.number(),
   trustedPrograms: z.number(),
-  removedPrograms: z.number(),
+  bannedPrograms: z.number(),
 });

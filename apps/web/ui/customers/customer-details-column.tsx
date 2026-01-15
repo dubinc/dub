@@ -5,6 +5,7 @@ import {
   Globe,
   Hyperlink,
   TimestampTooltip,
+  Tooltip,
   UTM_PARAMETERS,
 } from "@dub/ui";
 import {
@@ -229,6 +230,26 @@ export function CustomerDetailsColumn({
                     >
                       {customer.externalId}
                     </CopyText>
+                  </div>
+                </div>
+              )}
+
+              {customer?.stripeCustomerId && (
+                <div className="flex flex-col gap-2.5">
+                  <DetailHeading>Stripe Customer ID</DetailHeading>
+                  <div>
+                    <Tooltip content="View in Stripe" align="start">
+                      <div>
+                        <ConditionalLink
+                          href={`https://dashboard.stripe.com/customers/${customer.stripeCustomerId}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="truncate text-xs"
+                        >
+                          {customer.stripeCustomerId}
+                        </ConditionalLink>
+                      </div>
+                    </Tooltip>
                   </div>
                 </div>
               )}

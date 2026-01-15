@@ -1,3 +1,8 @@
+import {
+  eventsExportColumnAccessors,
+  eventsExportColumnNames,
+} from "@/lib/analytics/events-export-helpers";
+import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { getEvents } from "@/lib/analytics/get-events";
 import { getFolderIdsToFilter } from "@/lib/analytics/get-folder-ids-to-filter";
 import { convertToCSV } from "@/lib/analytics/utils";
@@ -6,43 +11,16 @@ import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { throwIfClicksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { assertValidDateRangeForPlan } from "@/lib/api/utils/assert-valid-date-range-for-plan";
 import { withWorkspace } from "@/lib/auth";
+import { qstash } from "@/lib/cron";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
-import { ClickEvent, LeadEvent, SaleEvent } from "@/lib/types";
 import { eventsQuerySchema } from "@/lib/zod/schemas/analytics";
-import { COUNTRIES, capitalize } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, capitalize } from "@dub/utils";
+import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
-type Row = ClickEvent | LeadEvent | SaleEvent;
+const MAX_EVENTS_TO_EXPORT = 1000;
 
-const columnNames: Record<string, string> = {
-  trigger: "Event",
-  url: "Destination URL",
-  os: "OS",
-  referer: "Referrer",
-  refererUrl: "Referrer URL",
-  timestamp: "Date",
-  invoiceId: "Invoice ID",
-  saleAmount: "Sale Amount",
-  clickId: "Click ID",
-};
-
-const columnAccessors = {
-  trigger: (r: Row) => r.click.trigger,
-  event: (r: LeadEvent | SaleEvent) => r.eventName,
-  url: (r: ClickEvent) => r.click.url,
-  link: (r: Row) => r.domain + (r.key === "_root" ? "" : `/${r.key}`),
-  country: (r: Row) =>
-    r.country ? COUNTRIES[r.country] ?? r.country : r.country,
-  referer: (r: ClickEvent) => r.click.referer,
-  refererUrl: (r: ClickEvent) => r.click.refererUrl,
-  customer: (r: LeadEvent | SaleEvent) =>
-    r.customer.name + (r.customer.email ? ` <${r.customer.email}>` : ""),
-  invoiceId: (r: SaleEvent) => r.sale.invoiceId,
-  saleAmount: (r: SaleEvent) => "$" + (r.sale.amount / 100).toFixed(2),
-  clickId: (r: ClickEvent) => r.click.id,
-};
-
-// GET /api/events/export – get export data for analytics
+// GET /api/events/export – export events to CSV (with async support if >1000 events)
 export const GET = withWorkspace(
   async ({ searchParams, workspace, session }) => {
     throwIfClicksUsageExceeded(workspace);
@@ -93,11 +71,48 @@ export const GET = withWorkspace(
           userId: session.user.id,
         });
 
+    // Count events using getAnalytics with groupBy: "count"
+    const countResponse = await getAnalytics({
+      ...parsedParams,
+      groupBy: "count",
+      ...(link && { linkId: link.id }),
+      folderIds,
+      workspaceId: workspace.id,
+      dataAvailableFrom: workspace.createdAt,
+    });
+
+    // Extract the count based on event type
+    // getAnalytics with groupBy: "count" returns an object like { clicks: 123 } or { leads: 45 } or { sales: 10, saleAmount: 5000 }
+    const eventsCount =
+      typeof countResponse === "object" && countResponse !== null
+        ? (countResponse[event as keyof typeof countResponse] as number) ?? 0
+        : typeof countResponse === "number"
+          ? countResponse
+          : 0;
+
+    // Process the export in the background if the number of events is greater than MAX_EVENTS_TO_EXPORT
+    if (eventsCount > MAX_EVENTS_TO_EXPORT) {
+      await qstash.publishJSON({
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/export/events/workspace`,
+        body: {
+          ...searchParams,
+          workspaceId: workspace.id,
+          userId: session.user.id,
+          ...(link && { linkId: link.id }),
+          folderIds: folderIds ? folderIds : undefined,
+          folderId: folderId || "",
+          dataAvailableFrom: workspace.createdAt.toISOString(),
+        },
+      });
+
+      return NextResponse.json({}, { status: 202 });
+    }
+
     const response = await getEvents({
       ...parsedParams,
       ...(link && { linkId: link.id }),
       workspaceId: workspace.id,
-      limit: 100000,
+      limit: MAX_EVENTS_TO_EXPORT,
       folderIds,
       folderId: folderId || "",
     });
@@ -105,8 +120,8 @@ export const GET = withWorkspace(
     const data = response.map((row) =>
       Object.fromEntries(
         columns.map((c) => [
-          columnNames?.[c] ?? capitalize(c),
-          columnAccessors[c]?.(row) ?? row?.[c],
+          eventsExportColumnNames?.[c] ?? capitalize(c),
+          eventsExportColumnAccessors[c]?.(row) ?? row?.[c],
         ]),
       ),
     );
