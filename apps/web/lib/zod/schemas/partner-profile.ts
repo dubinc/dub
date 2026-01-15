@@ -255,6 +255,8 @@ export const partnerProfileReferralSchema = z.object({
   updatedAt: z.date(),
 });
 
+export type PartnerProfileReferral = z.infer<typeof partnerProfileReferralSchema>;
+
 export const getPartnerReferralsQuerySchema = z
   .object({
     status: z.enum(ReferralStatus).optional(),
