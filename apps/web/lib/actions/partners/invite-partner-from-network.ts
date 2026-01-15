@@ -22,7 +22,7 @@ export const invitePartnerFromNetworkAction = authActionClient
 
     throwIfNoPermission({
       role: workspace.role,
-      requiredPermissions: ["workspaces.write"],
+      requiredRoles: ["owner", "member"],
     });
 
     const networkInvitesUsage = await getNetworkInvitesUsage(workspace);

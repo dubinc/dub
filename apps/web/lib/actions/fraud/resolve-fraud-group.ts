@@ -16,7 +16,7 @@ export const resolveFraudGroupAction = authActionClient
 
     throwIfNoPermission({
       role: workspace.role,
-      requiredPermissions: ["workspaces.write"],
+      requiredRoles: ["owner", "member"],
     });
 
     const { canManageFraudEvents } = getPlanCapabilities(workspace.plan);

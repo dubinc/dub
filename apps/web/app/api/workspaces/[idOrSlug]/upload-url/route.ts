@@ -25,6 +25,6 @@ export const POST = withWorkspace(
     });
   },
   {
-    requiredPermissions: ["workspaces.write"],
+    requiredRoles: ["owner", "member"],
   },
 );

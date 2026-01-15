@@ -333,6 +333,6 @@ export const POST = withWorkspace(
       "advanced",
       "enterprise",
     ],
-    requiredPermissions: ["workspaces.write"],
+    requiredRoles: ["owner", "member"],
   },
 );

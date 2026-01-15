@@ -228,7 +228,7 @@ export const PATCH = withWorkspace(
       "advanced",
       "enterprise",
     ],
-    requiredPermissions: ["workspaces.write"],
+    requiredRoles: ["owner", "member"],
   },
 );
 
@@ -312,6 +312,6 @@ export const DELETE = withWorkspace(
       "advanced",
       "enterprise",
     ],
-    requiredPermissions: ["workspaces.write"],
+    requiredRoles: ["owner", "member"],
   },
 );

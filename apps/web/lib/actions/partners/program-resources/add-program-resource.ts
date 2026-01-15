@@ -64,7 +64,7 @@ export const addProgramResourceAction = authActionClient
 
     throwIfNoPermission({
       role: workspace.role,
-      requiredPermissions: ["workspaces.write"],
+      requiredRoles: ["owner", "member"],
     });
 
     const programId = getDefaultProgramIdOrThrow(workspace);

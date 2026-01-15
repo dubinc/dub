@@ -20,7 +20,7 @@ export const bulkBanPartnersAction = authActionClient
 
     throwIfNoPermission({
       role: workspace.role,
-      requiredPermissions: ["workspaces.write"],
+      requiredRoles: ["owner", "member"],
     });
 
     const programId = getDefaultProgramIdOrThrow(workspace);
