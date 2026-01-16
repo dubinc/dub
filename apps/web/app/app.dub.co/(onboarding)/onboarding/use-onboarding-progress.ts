@@ -64,7 +64,7 @@ export function useOnboardingProgress() {
 
       router.push(slug ? (hasProgram ? `/${slug}/program` : `/${slug}`) : "/");
     },
-    [execute, router, slug],
+    [executeAsync, router, slug],
   );
 
   return {
