@@ -10,12 +10,17 @@ export function AnalyticsExportButton({
   setOpenPopover: Dispatch<SetStateAction<boolean>>;
 }) {
   const [loading, setLoading] = useState(false);
-  const { queryString } = useContext(AnalyticsContext);
+  const { queryString, baseApiPath, partnerPage } = useContext(AnalyticsContext);
 
   async function exportData() {
     setLoading(true);
     try {
-      const response = await fetch(`/api/analytics/export?${queryString}`, {
+      // Use partner profile export endpoint if on partner page, otherwise use regular export endpoint
+      const exportPath = partnerPage
+        ? `${baseApiPath}/export`
+        : "/api/analytics/export";
+
+      const response = await fetch(`${exportPath}?${queryString}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",

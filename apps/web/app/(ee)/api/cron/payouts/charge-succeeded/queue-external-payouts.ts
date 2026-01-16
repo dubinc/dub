@@ -138,6 +138,7 @@ export async function queueExternalPayouts(
           endDate: payout.periodEnd,
           mode: "external",
           paymentMethod: invoice.paymentMethod ?? "ach",
+          payoutMethod: payout.partner.paypalEmail ? "paypal" : "stripe",
         },
       },
     })),

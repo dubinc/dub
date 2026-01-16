@@ -3,11 +3,12 @@ import {
   MonthlyTraffic,
   PartnerBannedReason,
   PartnerProfileType,
+  PlatformType,
   PreferredEarningStructure,
   ProgramEnrollmentStatus,
   SalesChannel,
 } from "@dub/prisma/client";
-import { COUNTRY_CODES, GOOGLE_FAVICON_URL } from "@dub/utils";
+import { COUNTRY_CODES } from "@dub/utils";
 import * as z from "zod/v4";
 import { analyticsQuerySchema } from "./analytics";
 import { analyticsResponse } from "./analytics-response";
@@ -16,6 +17,7 @@ import {
   base64ImageSchema,
   booleanQuerySchema,
   getPaginationQuerySchema,
+  googleFaviconUrlSchema,
   publicHostedImageSchema,
   storedR2ImageUrlSchema,
 } from "./misc";
@@ -187,7 +189,7 @@ export const getPartnersQuerySchemaExtended = getPartnersQuerySchema.extend({
     .transform((v) => (Array.isArray(v) ? v : v.split(",")))
     .optional(),
   groupId: z.string().optional(),
-  includeOnlinePresenceVerification: booleanQuerySchema.optional(),
+  includePartnerPlatforms: booleanQuerySchema.optional(),
 });
 
 export const partnersExportQuerySchema = getPartnersQuerySchemaExtended
@@ -212,40 +214,41 @@ export const partnersCountQuerySchema = getPartnersQuerySchemaExtended
       .optional(),
   });
 
+export const partnerPlatformSchema = z.object({
+  type: z.enum(PlatformType),
+  identifier: z.string(),
+  verifiedAt: z.date().nullable(),
+  platformId: z.string().nullable(),
+  subscribers: z.bigint().default(BigInt(0)),
+  posts: z.bigint().default(BigInt(0)),
+  views: z.bigint().default(BigInt(0)),
+});
+
 export const PartnerOnlinePresenceSchema = z.object({
   website: z
     .string()
     .nullish()
     .describe("The partner's website URL (including the https protocol)."),
-  websiteTxtRecord: z.string().nullish(),
-  websiteVerifiedAt: z.date().nullish(),
   youtube: z
     .string()
     .nullish()
     .describe("The partner's YouTube channel username (e.g. `johndoe`)."),
-  youtubeVerifiedAt: z.date().nullish(),
-  youtubeSubscriberCount: z.number().nullish(),
-  youtubeViewCount: z.number().nullish(),
   twitter: z
     .string()
     .nullish()
     .describe("The partner's Twitter username (e.g. `johndoe`)."),
-  twitterVerifiedAt: z.date().nullish(),
   linkedin: z
     .string()
     .nullish()
     .describe("The partner's LinkedIn username (e.g. `johndoe`)."),
-  linkedinVerifiedAt: z.date().nullish(),
   instagram: z
     .string()
     .nullish()
     .describe("The partner's Instagram username (e.g. `johndoe`)."),
-  instagramVerifiedAt: z.date().nullish(),
   tiktok: z
     .string()
     .nullish()
     .describe("The partner's TikTok username (e.g. `johndoe`)."),
-  tiktokVerifiedAt: z.date().nullish(),
 });
 
 export const MAX_PARTNER_INDUSTRY_INTERESTS = 8;
@@ -479,14 +482,17 @@ export const EnrolledPartnerSchemaExtended = EnrolledPartnerSchema.extend({
   lastLeadAt: z.date().nullish(),
   lastConversionAt: z.date().nullish(),
   customerDataSharingEnabledAt: z.date().nullish(),
-  ...PartnerSchema.pick({
-    monthlyTraffic: true,
-    industryInterests: true,
-    preferredEarningStructures: true,
-    salesChannels: true,
-  }).shape,
-  ...PartnerOnlinePresenceSchema.shape,
-});
+  platforms: z.array(partnerPlatformSchema).nullable(),
+})
+  .extend(
+    PartnerSchema.pick({
+      monthlyTraffic: true,
+      industryInterests: true,
+      preferredEarningStructures: true,
+      salesChannels: true,
+    }).shape,
+  )
+  .extend(PartnerOnlinePresenceSchema.shape);
 
 export const WebhookPartnerSchema = PartnerSchema.pick({
   id: true,
@@ -611,12 +617,7 @@ const partnerImageSchema = z
     base64ImageSchema,
     storedR2ImageUrlSchema,
     publicHostedImageSchema,
-    z
-      .url()
-      .trim()
-      .refine((url) => url.startsWith(GOOGLE_FAVICON_URL), {
-        message: `Image URL must start with ${GOOGLE_FAVICON_URL}`,
-      }),
+    googleFaviconUrlSchema,
   ])
   .transform((v) => v || "")
   .refine((v) => v !== "", {
@@ -845,6 +846,15 @@ export const bulkArchivePartnersSchema = z.object({
     .transform((v) => [...new Set(v)]),
 });
 
+export const bulkDeactivatePartnersSchema = z.object({
+  workspaceId: z.string(),
+  partnerIds: z
+    .array(z.string())
+    .max(100)
+    .min(1)
+    .transform((v) => [...new Set(v)]),
+});
+
 export const partnerPayoutSettingsSchema = z.object({
   companyName: z.string().max(190).trim().nullish(),
   address: z.string().max(500).trim().nullish(),
@@ -854,5 +864,5 @@ export const partnerPayoutSettingsSchema = z.object({
 export const partnerCrossProgramSummarySchema = z.object({
   totalPrograms: z.number(),
   trustedPrograms: z.number(),
-  removedPrograms: z.number(),
+  bannedPrograms: z.number(),
 });

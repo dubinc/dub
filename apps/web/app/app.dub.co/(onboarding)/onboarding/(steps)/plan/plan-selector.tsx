@@ -26,7 +26,7 @@ export function PlanSelector() {
             { value: "monthly", label: "Monthly" },
             {
               value: "yearly",
-              label: "Yearly (2 months free)",
+              label: "Yearly (Save 17%)",
             },
           ]}
           className="overflow-hidden rounded-lg bg-neutral-100 p-0.5"

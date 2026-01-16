@@ -1,8 +1,10 @@
 "use client";
 
+import { clientAccessCheck } from "@/lib/client-access-check";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   Button,
+  DynamicTooltipWrapper,
   Icon,
   LoadingSpinner,
   Popover,
@@ -17,8 +19,13 @@ import { toast } from "sonner";
 import { ThreeDots } from "../shared/icons";
 
 export default function SubscriptionMenu() {
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, role } = useWorkspace();
   const router = useRouter();
+
+  const permissionsError = clientAccessCheck({
+    action: "billing.write",
+    role,
+  }).error;
 
   const [isOpen, setIsOpen] = useState(false);
   const [clicked, setClicked] = useState(false);
@@ -54,11 +61,13 @@ export default function SubscriptionMenu() {
               icon={StripeIcon}
               label="Open billing portal"
               onSelect={() => openBillingPortal(false)}
+              disabledTooltip={permissionsError}
             />
             <MenuItem
               icon={SquareXmark}
               label="Cancel subscription"
               onSelect={() => openBillingPortal(true)}
+              disabledTooltip={permissionsError}
             />
           </Command.List>
         </Command>
@@ -86,25 +95,28 @@ function MenuItem({
   icon: IconComp,
   label,
   onSelect,
-  disabled,
+  disabledTooltip,
 }: {
   icon: Icon;
   label: string;
   onSelect: () => void;
-  disabled?: boolean;
+  disabledTooltip?: string | boolean;
 }) {
   return (
-    <Command.Item
-      className={cn(
-        "flex cursor-pointer select-none items-center gap-2 whitespace-nowrap rounded-md p-2 text-sm text-neutral-600",
-        "data-[selected=true]:bg-neutral-100",
-        disabled && "cursor-not-allowed opacity-50",
-      )}
-      onSelect={onSelect}
-      disabled={disabled}
+    <DynamicTooltipWrapper
+      tooltipProps={disabledTooltip ? { content: disabledTooltip } : undefined}
     >
-      <IconComp className="size-4 shrink-0 text-neutral-700" />
-      {label}
-    </Command.Item>
+      <Command.Item
+        className={cn(
+          "flex cursor-pointer select-none items-center gap-2 whitespace-nowrap rounded-md p-2 text-sm text-neutral-600",
+          "data-[selected=true]:bg-neutral-100",
+          disabledTooltip && "cursor-not-allowed opacity-50",
+        )}
+        onSelect={disabledTooltip ? undefined : onSelect}
+      >
+        <IconComp className="size-4 shrink-0 text-neutral-700" />
+        {label}
+      </Command.Item>
+    </DynamicTooltipWrapper>
   );
 }

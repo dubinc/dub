@@ -1,12 +1,17 @@
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
+import {
+  getAvailableRolesForPlan,
+  WORKSPACE_ROLES,
+} from "@/lib/workspace-roles";
 import { Invite } from "@/lib/zod/schemas/invites";
 import { WorkspaceRole } from "@dub/prisma/client";
 import { Button, useMediaQuery, useRouterStuff } from "@dub/ui";
 import { Trash } from "@dub/ui/icons";
-import { capitalize, cn, pluralize } from "@dub/utils";
+import { cn, pluralize } from "@dub/utils";
 import { Plus } from "lucide-react";
 import posthog from "posthog-js";
+import { useMemo } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { CustomToast } from "../shared/custom-toast";
@@ -31,9 +36,13 @@ export function InviteTeammatesForm({
   invites?: Invite[];
   className?: string;
 }) {
-  const { id, slug } = useWorkspace();
+  const { id, slug, plan } = useWorkspace();
   const { isMobile } = useMediaQuery();
   const { queryParams } = useRouterStuff();
+
+  const availableRolesForPlan = useMemo(() => {
+    return getAvailableRolesForPlan(plan);
+  }, [plan]);
 
   const maxTeammates = saveOnly ? 4 : 10;
 
@@ -140,11 +149,17 @@ export function InviteTeammatesForm({
                   defaultValue="member"
                   className="rounded-r-md border border-l-0 border-neutral-300 bg-white pl-4 pr-8 text-neutral-600 focus:border-neutral-300 focus:outline-none focus:ring-0 sm:text-sm"
                 >
-                  {["owner", "member"].map((role) => (
-                    <option key={role} value={role}>
-                      {capitalize(role)}
-                    </option>
-                  ))}
+                  {WORKSPACE_ROLES.map(({ value, label }) => {
+                    return (
+                      <option
+                        key={value}
+                        value={value}
+                        disabled={!availableRolesForPlan.includes(value)}
+                      >
+                        {label}
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
             </label>

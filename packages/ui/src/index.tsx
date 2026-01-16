@@ -3,6 +3,7 @@ import "./styles.css";
 
 // components
 export * from "./accordion";
+export * from "./activity-ring";
 export * from "./alert";
 export * from "./avatar";
 export * from "./badge";

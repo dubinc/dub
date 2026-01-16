@@ -6,7 +6,7 @@ import { notificationTypes } from "@/lib/zod/schemas/workspaces";
 import { Switch, useOptimisticUpdate } from "@dub/ui";
 import { Globe, Hyperlink, Msgs, UserPlus } from "@dub/ui/icons";
 import { isClickOnInteractiveChild } from "@dub/utils";
-import { DollarSign, Trophy } from "lucide-react";
+import { DollarSign, ListChecks, Trophy } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import React from "react";
 import * as z from "zod/v4";
@@ -36,13 +36,6 @@ export default function NotificationsSettingsPageClient() {
 
   const partnerProgramNotifications = [
     {
-      type: "newPartnerApplication",
-      icon: UserPlus,
-      title: "New partner application",
-      description:
-        "Alert when a new partner application is made in your partner program.",
-    },
-    {
       type: "newPartnerSale",
       icon: DollarSign,
       title: "New partner sale",
@@ -61,6 +54,19 @@ export default function NotificationsSettingsPageClient() {
       title: "New message from partner",
       description:
         "Alert when a new message is received from a partner in your partner program.",
+    },
+    {
+      type: "newPartnerApplication",
+      icon: UserPlus,
+      title: "New partner application",
+      description:
+        "Alert when a new partner application is made in your partner program.",
+    },
+    {
+      type: "pendingApplicationsSummary",
+      icon: ListChecks,
+      title: "Pending applications summary",
+      description: "Daily summary email of pending partner applications.",
     },
     // {
     //   type: "fraudEventsSummary",

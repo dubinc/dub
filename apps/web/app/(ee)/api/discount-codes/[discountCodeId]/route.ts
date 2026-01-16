@@ -74,5 +74,6 @@ export const DELETE = withWorkspace(
       "advanced",
       "enterprise",
     ],
+    requiredRoles: ["owner", "member"],
   },
 );

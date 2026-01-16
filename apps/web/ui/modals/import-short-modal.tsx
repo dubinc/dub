@@ -211,7 +211,7 @@ function ImportShortModal({
                 import your links.
               </p>
               <a
-                href="mailto:support@dub.co?subject=I%20need%20help%20with%20importing%20my%20Short.io%20links"
+                href="https://dub.co/support"
                 className={cn(
                   buttonVariants({ variant: "secondary" }),
                   "flex h-8 items-center justify-center rounded-md border px-4 text-sm",

@@ -1,12 +1,13 @@
 "use client";
 
 import { approvePartnerAction } from "@/lib/actions/partners/approve-partner";
+import { buildSocialPlatformLookup } from "@/lib/social-utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useGroups from "@/lib/swr/use-groups";
 import usePartner from "@/lib/swr/use-partner";
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { EnrolledPartnerProps } from "@/lib/types";
+import { EnrolledPartnerProps, PartnerPlatformProps } from "@/lib/types";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerApplicationSheet } from "@/ui/partners/partner-application-sheet";
@@ -14,6 +15,7 @@ import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PartnerSocialColumn } from "@/ui/partners/partner-social-column";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
+import { PlatformType } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
   Button,
@@ -28,12 +30,7 @@ import {
   useTable,
 } from "@dub/ui";
 import { Check, Dots, LoadingSpinner, Users } from "@dub/ui/icons";
-import {
-  COUNTRIES,
-  fetcher,
-  formatDate,
-  getDomainWithoutWWW,
-} from "@dub/utils";
+import { COUNTRIES, fetcher, formatDate } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { useAction } from "next-safe-action/hooks";
@@ -96,7 +93,7 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
         status: "rejected",
         sortBy,
         sortOrder,
-        includeOnlinePresenceVerification: true,
+        includePartnerPlatformPropss: true,
       },
       { exclude: ["partnerId"] },
     )}`,
@@ -108,6 +105,21 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
   );
 
   const { groups } = useGroups();
+
+  // Create a separate map for platform lookups by partner ID
+  const platformsMapByPartnerId = useMemo(() => {
+    const map = new Map<
+      string,
+      Record<PlatformType, PartnerPlatformProps | null>
+    >();
+
+    partners?.forEach((partner) => {
+      if (partner.platforms) {
+        map.set(partner.id, buildSocialPlatformLookup(partner.platforms));
+      }
+    });
+    return map;
+  }, [partners]);
 
   const [detailsSheetState, setDetailsSheetState] = useState<
     | { open: false; partnerId: string | null }
@@ -209,11 +221,13 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
         id: "website",
         header: "Website",
         minSize: 150,
-        cell: ({ row }) => {
+        cell: ({ row }: { row: Row<EnrolledPartnerProps> }) => {
+          const platformsMap = platformsMapByPartnerId.get(row.original.id);
+
           return (
             <PartnerSocialColumn
-              value={getDomainWithoutWWW(row.original.website) ?? "-"}
-              verified={!!row.original.websiteVerifiedAt}
+              platform={platformsMap?.website}
+              platformName="website"
             />
           );
         },
@@ -222,12 +236,13 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
         id: "youtube",
         header: "YouTube",
         minSize: 150,
-        cell: ({ row }) => {
+        cell: ({ row }: { row: Row<EnrolledPartnerProps> }) => {
+          const platformsMap = platformsMapByPartnerId.get(row.original.id);
+
           return (
             <PartnerSocialColumn
-              at
-              value={row.original.youtube}
-              verified={!!row.original.youtubeVerifiedAt}
+              platform={platformsMap?.youtube}
+              platformName="youtube"
             />
           );
         },
@@ -236,12 +251,13 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
         id: "twitter",
         header: "X/Twitter",
         minSize: 150,
-        cell: ({ row }) => {
+        cell: ({ row }: { row: Row<EnrolledPartnerProps> }) => {
+          const platformsMap = platformsMapByPartnerId.get(row.original.id);
+
           return (
             <PartnerSocialColumn
-              at
-              value={row.original.twitter}
-              verified={!!row.original.twitterVerifiedAt}
+              platform={platformsMap?.twitter}
+              platformName="twitter"
             />
           );
         },
@@ -250,11 +266,13 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
         id: "linkedin",
         header: "LinkedIn",
         minSize: 150,
-        cell: ({ row }) => {
+        cell: ({ row }: { row: Row<EnrolledPartnerProps> }) => {
+          const platformsMap = platformsMapByPartnerId.get(row.original.id);
+
           return (
             <PartnerSocialColumn
-              value={row.original.linkedin}
-              verified={!!row.original.linkedinVerifiedAt}
+              platform={platformsMap?.linkedin}
+              platformName="linkedin"
             />
           );
         },
@@ -263,12 +281,13 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
         id: "instagram",
         header: "Instagram",
         minSize: 150,
-        cell: ({ row }) => {
+        cell: ({ row }: { row: Row<EnrolledPartnerProps> }) => {
+          const platformsMap = platformsMapByPartnerId.get(row.original.id);
+
           return (
             <PartnerSocialColumn
-              at
-              value={row.original.instagram}
-              verified={!!row.original.instagramVerifiedAt}
+              platform={platformsMap?.instagram}
+              platformName="instagram"
             />
           );
         },
@@ -277,12 +296,13 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
         id: "tiktok",
         header: "TikTok",
         minSize: 150,
-        cell: ({ row }) => {
+        cell: ({ row }: { row: Row<EnrolledPartnerProps> }) => {
+          const platformsMap = platformsMapByPartnerId.get(row.original.id);
+
           return (
             <PartnerSocialColumn
-              at
-              value={row.original.tiktok}
-              verified={!!row.original.tiktokVerifiedAt}
+              platform={platformsMap?.tiktok}
+              platformName="tiktok"
             />
           );
         },
@@ -301,7 +321,7 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
         ),
       },
     ],
-    [workspaceId, groups],
+    [workspaceId, groups, platformsMapByPartnerId],
   );
 
   const { table, ...tableProps } = useTable<EnrolledPartnerProps>({

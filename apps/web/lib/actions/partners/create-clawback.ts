@@ -5,12 +5,18 @@ import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enro
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import { createClawbackSchema } from "@/lib/zod/schemas/commissions";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 export const createClawbackAction = authActionClient
   .inputSchema(createClawbackSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const programId = getDefaultProgramIdOrThrow(workspace);
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredRoles: ["owner", "member"],
+    });
 
     const { partnerId, amount, description } = parsedInput;
 

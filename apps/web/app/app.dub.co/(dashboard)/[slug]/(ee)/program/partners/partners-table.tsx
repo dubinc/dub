@@ -10,7 +10,9 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
 import { useArchivePartnerModal } from "@/ui/modals/archive-partner-modal";
 import { useBanPartnerModal } from "@/ui/modals/ban-partner-modal";
+import { useBulkArchivePartnersModal } from "@/ui/modals/bulk-archive-partners-modal";
 import { useBulkBanPartnersModal } from "@/ui/modals/bulk-ban-partners-modal";
+import { useBulkDeactivatePartnersModal } from "@/ui/modals/bulk-deactivate-partners-modal";
 import { useChangeGroupModal } from "@/ui/modals/change-group-modal";
 import { useDeactivatePartnerModal } from "@/ui/modals/deactivate-partner-modal";
 import { useReactivatePartnerModal } from "@/ui/modals/reactivate-partner-modal";
@@ -179,6 +181,30 @@ export function PartnersTable() {
   const { EditPartnerTagsModal, setShowEditPartnerTagsModal } =
     useEditPartnerTagsModal({
       partners: pendingEditTagsPartners,
+    });
+
+  const [pendingArchivePartners, setPendingArchivePartners] = useState<
+    EnrolledPartnerProps[]
+  >([]);
+
+  const { BulkArchivePartnersModal, setShowBulkArchivePartnersModal } =
+    useBulkArchivePartnersModal({
+      partners: pendingArchivePartners,
+      onConfirm: async () => {
+        await mutatePrefix("/api/partners");
+      },
+    });
+
+  const [pendingDeactivatePartners, setPendingDeactivatePartners] = useState<
+    EnrolledPartnerProps[]
+  >([]);
+
+  const { BulkDeactivatePartnersModal, setShowBulkDeactivatePartnersModal } =
+    useBulkDeactivatePartnersModal({
+      partners: pendingDeactivatePartners,
+      onConfirm: async () => {
+        await mutatePrefix("/api/partners");
+      },
     });
 
   const [pendingBanPartners, setPendingBanPartners] = useState<
@@ -513,7 +539,7 @@ export function PartnersTable() {
       <>
         <Button
           variant="primary"
-          text="Add to group"
+          text="Change group"
           icon={<Users6 className="size-3.5 shrink-0" />}
           className="h-7 w-fit rounded-lg px-2.5"
           loading={false}
@@ -540,9 +566,19 @@ export function PartnersTable() {
             setShowEditPartnerTagsModal(true);
           }}
         />
-        {status !== "banned" && (
+
+        {(status === "approved" ||
+          searchParams.get("status") === "approved") && (
           <BulkActionsMenu
             table={table}
+            onArchivePartners={(partners) => {
+              setPendingArchivePartners(partners);
+              setShowBulkArchivePartnersModal(true);
+            }}
+            onDeactivatePartners={(partners) => {
+              setPendingDeactivatePartners(partners);
+              setShowBulkDeactivatePartnersModal(true);
+            }}
             onBanPartners={(partners) => {
               setPendingBanPartners(partners);
               setShowBulkBanPartnersModal(true);
@@ -563,6 +599,8 @@ export function PartnersTable() {
     <div className="flex flex-col gap-6">
       <ChangeGroupModal />
       <EditPartnerTagsModal />
+      <BulkArchivePartnersModal />
+      <BulkDeactivatePartnersModal />
       <BulkBanPartnersModal />
       <div>
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -618,12 +656,22 @@ export function PartnersTable() {
 
 function BulkActionsMenu({
   table,
+  onArchivePartners,
+  onDeactivatePartners,
   onBanPartners,
 }: {
   table: TableType<EnrolledPartnerProps>;
+  onArchivePartners: (partners: EnrolledPartnerProps[]) => void;
+  onDeactivatePartners: (partners: EnrolledPartnerProps[]) => void;
   onBanPartners: (partners: EnrolledPartnerProps[]) => void;
 }) {
   const [isOpen, setIsOpen] = useState(false);
+
+  const selectedPartners = table
+    .getSelectedRowModel()
+    .rows.map((row) => row.original);
+
+  const partnerWord = selectedPartners.length === 1 ? "partner" : "partners";
 
   return (
     <Popover
@@ -634,14 +682,27 @@ function BulkActionsMenu({
           <Command.List className="w-screen text-sm focus-visible:outline-none sm:w-auto sm:min-w-[200px]">
             <Command.Group className="grid gap-px p-1.5">
               <MenuItem
+                icon={BoxArchive}
+                label={`Archive ${partnerWord}`}
+                onSelect={() => {
+                  onArchivePartners(selectedPartners);
+                  setIsOpen(false);
+                }}
+              />
+              <MenuItem
+                icon={CircleXmark}
+                label={`Deactivate ${partnerWord}`}
+                onSelect={() => {
+                  onDeactivatePartners(selectedPartners);
+                  setIsOpen(false);
+                }}
+              />
+              <MenuItem
                 icon={UserDelete}
-                label="Ban partners"
+                label={`Ban ${partnerWord}`}
                 variant="danger"
                 onSelect={() => {
-                  const partners = table
-                    .getSelectedRowModel()
-                    .rows.map((row) => row.original);
-                  onBanPartners(partners);
+                  onBanPartners(selectedPartners);
                   setIsOpen(false);
                 }}
               />

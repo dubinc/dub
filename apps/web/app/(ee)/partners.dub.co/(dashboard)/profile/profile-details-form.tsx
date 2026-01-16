@@ -102,7 +102,7 @@ export function ProfileDetailsForm({ partner }: { partner?: PartnerProps }) {
       <SettingsRow
         id="sites"
         heading="Website and socials"
-        description="Add your website and social accounts you use to share links. Verifying at least one helps build trust with programs."
+        description="Add your website and social accounts you use to share links. Verifying as many platforms as possible helps build trust with programs."
       >
         <OnlinePresenceForm
           ref={onlinePresenceFormRef}

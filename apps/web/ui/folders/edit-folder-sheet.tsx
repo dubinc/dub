@@ -131,9 +131,11 @@ const EditFolderSheetContent = ({
         </div>
       </div>
       <div className="scrollbar-hide flex size-full grow flex-col overflow-y-auto bg-zinc-50">
-        <div className="bg-white px-8 py-6">
-          <EditFolderForm folder={folder} />
-        </div>
+        {canUpdateFolder && (
+          <div className="bg-white px-8 py-6">
+            <EditFolderForm folder={folder} />
+          </div>
+        )}
         <div className="border-border-subtle border-t px-8 py-6">
           {/* Workspace-level access */}
           <div>

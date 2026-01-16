@@ -24,6 +24,6 @@ export const clientAccessCheck = ({
 
   return {
     allowed,
-    error: `Only workspace ${combineWords(allowedWorkspaceRoles.map((r) => `${r}s`))} can ${customPermissionDescription || permission.description}.`,
+    error: `Only workspace ${combineWords(allowedWorkspaceRoles.map((r) => `${r === "billing" ? "billing user" : r}s`))} can ${customPermissionDescription || permission.description}.`,
   };
 };

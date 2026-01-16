@@ -73,6 +73,7 @@ export async function getPartners(filters: PartnerFilters) {
               partnerTag: true,
             },
           },
+          platforms: true,
         },
       },
       links: true,

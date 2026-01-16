@@ -29,6 +29,7 @@ import { COUNTRIES_TO_CONTINENTS } from "@dub/utils/src";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 const leadEventSchemaTBWithTimestamp = leadEventSchemaTB.extend({
   timestamp: z.string(),
@@ -42,6 +43,11 @@ export const createManualCommissionAction = authActionClient
   .inputSchema(createCommissionSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredRoles: ["owner", "member"],
+    });
 
     const {
       partnerId,
@@ -317,6 +323,8 @@ export const createManualCommissionAction = authActionClient
             externalId: `dummy_${nanoid(32)}`, // generate random externalId
             stripeCustomerId: null,
             linkId: null,
+            programId: null,
+            partnerId: null,
             clickId: null,
           },
         });
@@ -450,6 +458,8 @@ export const createManualCommissionAction = authActionClient
           },
           data: {
             linkId: link.id,
+            programId: link.programId,
+            partnerId: link.partnerId,
             clickId: clickId,
             clickedAt: new Date(clickTimestamp),
             ...(saleAmount && {

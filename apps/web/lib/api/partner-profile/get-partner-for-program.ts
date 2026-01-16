@@ -28,6 +28,7 @@ export async function getPartnerForProgram({
               partnerTag: true,
             },
           },
+          platforms: true,
         },
       },
       links: true,
