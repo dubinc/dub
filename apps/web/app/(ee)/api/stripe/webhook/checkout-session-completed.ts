@@ -9,7 +9,7 @@ import { redis } from "@/lib/upstash";
 import { sendBatchEmail } from "@dub/email";
 import UpgradeEmail from "@dub/email/templates/upgrade-email";
 import { prisma } from "@dub/prisma";
-import { User } from "@dub/prisma/client";
+import { Program, User } from "@dub/prisma/client";
 import { getPlanAndTierFromPriceId, log } from "@dub/utils";
 import Stripe from "stripe";
 
@@ -170,8 +170,9 @@ async function completeOnboarding({
     },
     include: {
       users: true,
+      programs: true,
     },
-  })) as unknown as WorkspaceProps | null;
+  })) as unknown as (WorkspaceProps & { programs: Program[] }) | null;
 
   if (!workspace) {
     console.error("Failed to complete onboarding for workspace", workspaceId);
@@ -211,6 +212,8 @@ async function completeOnboarding({
 
       // Create program
       if (
+        users.length > 0 &&
+        workspace.programs.length === 0 &&
         workspace.store?.programOnboarding &&
         (workspace.store.programOnboarding as ProgramData).lastCompletedStep ===
           "configure-reward"
