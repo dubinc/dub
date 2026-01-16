@@ -93,7 +93,7 @@ export function useAnalyticsFilters({
 } = {}) {
   const { selectedTab, saleUnit } = context ?? useContext(AnalyticsContext);
 
-  const { slug, programSlug } = useParams();
+  const { slug } = useParams();
 
   const { queryParams, searchParamsObj } = useRouterStuff();
 
@@ -471,6 +471,7 @@ export function useAnalyticsFilters({
                 key: "partnerTagIds",
                 icon: Tag,
                 label: "Tag",
+                multiple: true,
                 options:
                   partnerTags?.map(({ partnerTag, ...rest }) => ({
                     value: partnerTag.id,
@@ -890,15 +891,21 @@ export function useAnalyticsFilters({
                 ? {
                     tagIds: selectedTagIds.concat(value).join(","),
                   }
-                : {
-                    [key]: value,
-                  },
+                : key === "partnerTagIds"
+                  ? {
+                      partnerTagIds: selectedPartnerTagIds
+                        .concat(value)
+                        .join(","),
+                    }
+                  : {
+                      [key]: value,
+                    },
           del: "page",
           scroll: false,
         });
       }
     },
-    [queryParams, activeFilters, selectedTagIds],
+    [queryParams, activeFilters, selectedTagIds, selectedPartnerTagIds],
   );
 
   const onRemove = useCallback(
