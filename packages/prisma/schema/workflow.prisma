@@ -3,6 +3,7 @@ enum WorkflowTrigger {
   partnerMetricsUpdated
 
   // TODO: Remove this after migrations
+  clickRecorded
   commissionEarned
   leadRecorded
   saleRecorded
