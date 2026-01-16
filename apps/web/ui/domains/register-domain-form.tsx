@@ -10,7 +10,6 @@ import {
 import { LoadingSpinner } from "@dub/ui/icons";
 import { cn, truncate } from "@dub/utils";
 import { CircleCheck, Star } from "lucide-react";
-import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useDebounce } from "use-debounce";
@@ -306,9 +305,10 @@ export function RegisterDomainForm({
           />
         )}
         {searchedDomain && searchedDomain.premium ? (
-          <Link
+          <a
             href={`https://www.dynadot.com/domain/search?domain=${searchedDomain.domain}`}
             target="_blank"
+            rel="noopener noreferrer"
             className={cn(
               buttonVariants(),
               "flex h-9 w-full items-center justify-center rounded-md border px-4 text-sm",
@@ -316,7 +316,7 @@ export function RegisterDomainForm({
             )}
           >
             Register on Dynadot
-          </Link>
+          </a>
         ) : (
           <Button
             type="submit"
@@ -338,6 +338,7 @@ export function RegisterDomainForm({
           <a
             href="https://dub.co/help/article/free-dot-link-domain#terms-and-conditions"
             target="_blank"
+            rel="noopener noreferrer"
             className="underline transition-colors hover:text-neutral-700"
           >
             terms
@@ -370,6 +371,7 @@ function DomainSavedToast() {
         <a
           href="https://dub.co/help/article/free-dot-link-domain"
           target="_blank"
+          rel="noopener noreferrer"
           className="text-neutral-500 underline transition-colors hover:text-neutral-800"
         >
           Learn more

@@ -40,7 +40,9 @@ export default function WelcomeEmail({
   hasDubPartners?: boolean;
   unsubscribeUrl: string;
 }) {
-  const workspaceUrl = `https://app.dub.co/${workspace?.slug}`;
+  const workspaceUrl = workspace
+    ? `https://app.dub.co/${workspace?.slug}`
+    : "https://app.dub.co";
 
   return (
     <Html>

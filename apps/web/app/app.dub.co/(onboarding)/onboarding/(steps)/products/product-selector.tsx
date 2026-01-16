@@ -22,6 +22,7 @@ const products = {
         <a
           href="https://dub.co/links"
           target="_blank"
+          rel="noopener noreferrer"
           className="cursor-help font-medium underline decoration-dotted underline-offset-2 transition-colors hover:text-neutral-700"
         >
           all short link features
