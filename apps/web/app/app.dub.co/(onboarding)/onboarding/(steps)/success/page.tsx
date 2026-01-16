@@ -31,7 +31,5 @@ export default async function SuccessPage({
   });
   if (!workspace) redirect("/onboarding");
 
-  const hasProgram = Boolean(workspace.defaultProgramId);
-
   return <SuccessPageClient workspace={workspace} />;
 }

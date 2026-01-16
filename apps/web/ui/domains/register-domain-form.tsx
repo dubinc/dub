@@ -366,7 +366,7 @@ function DomainSavedToast() {
     <div className="flex items-center gap-1.5 rounded-lg bg-white p-4 text-sm shadow-[0_4px_12px_#0000001a]">
       <CheckCircleFill className="size-5 shrink-0 text-black" />
       <p className="text-[13px] font-medium text-neutral-900">
-        Domain saved. You'll need a pro plan to complete the registration.{" "}
+        Domain saved. You'll need a paid plan to complete the registration.{" "}
         <a
           href="https://dub.co/help/article/free-dot-link-domain"
           target="_blank"

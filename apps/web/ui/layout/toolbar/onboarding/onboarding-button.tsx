@@ -1,5 +1,6 @@
 "use client";
 
+import { DIRECT_DEBIT_PAYMENT_METHOD_TYPES } from "@/lib/constants/payouts";
 import useDomainsCount from "@/lib/swr/use-domains-count";
 import usePaymentMethods from "@/lib/swr/use-payment-methods";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -43,17 +44,16 @@ function OnboardingButtonInner({
     ignoreParams: true,
   });
   const { users, loading: usersLoading } = useWorkspaceUsers();
-  const { users: invites, loading: invitesLoading } = useWorkspaceUsers({
-    invites: true,
-  });
 
-  const { isConnected } = useAnalyticsConnectedStatus();
+  const { isConnected: connectedAnalytics } = useAnalyticsConnectedStatus();
   const { paymentMethods, loading: paymentMethodsLoading } = usePaymentMethods({
     enabled: Boolean(defaultProgramId),
   });
+  const connectedBankAccount = paymentMethods?.some((pm) =>
+    DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(pm.type),
+  );
 
-  const loading =
-    domainsLoading || usersLoading || invitesLoading || paymentMethodsLoading;
+  const loading = domainsLoading || usersLoading || paymentMethodsLoading;
 
   const tasks = useMemo(() => {
     return [
@@ -72,15 +72,15 @@ function OnboardingButtonInner({
               recommended: true,
             },
             {
-              display: "Connect to Dub",
+              display: "Set up conversion tracking",
               cta: `/${slug}/settings/analytics`,
-              checked: isConnected,
+              checked: connectedAnalytics,
               recommended: true,
             },
             {
-              display: "Connect payout method",
+              display: "Connect bank account for payouts",
               cta: `/${slug}/program/payouts`,
-              checked: paymentMethods && paymentMethods.length > 0,
+              checked: connectedBankAccount,
               recommended: true,
             },
           ]
@@ -94,8 +94,7 @@ function OnboardingButtonInner({
             {
               display: "Invite your team",
               cta: `/${slug}/settings/people`,
-              checked:
-                (users && users.length > 1) || (invites && invites.length > 0),
+              checked: users && users.length > 1,
               recommended: false,
             },
           ]),
@@ -103,12 +102,11 @@ function OnboardingButtonInner({
   }, [
     slug,
     defaultProgramId,
-    isConnected,
+    connectedAnalytics,
     paymentMethods,
     domainsCount,
     totalLinks,
     users,
-    invites,
   ]);
 
   const [isOpen, setIsOpen] = useState(false);
@@ -147,7 +145,7 @@ function OnboardingButtonInner({
                   <Link
                     key={display}
                     href={cta}
-                    onClick={() => setIsOpen(false)}
+                    onClick={() => setTimeout(() => setIsOpen(false), 500)}
                   >
                     <div className="group flex items-center justify-between gap-3 p-3 sm:gap-10">
                       <div className="flex items-center gap-2">

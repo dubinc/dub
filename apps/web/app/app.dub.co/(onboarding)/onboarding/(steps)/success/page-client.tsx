@@ -1,5 +1,6 @@
 "use client";
 
+import { DIRECT_DEBIT_PAYMENT_METHOD_TYPES } from "@/lib/constants/payouts";
 import useDomains from "@/lib/swr/use-domains";
 import usePaymentMethods from "@/lib/swr/use-payment-methods";
 import { WorkspaceProps } from "@/lib/types";
@@ -37,13 +38,15 @@ export function SuccessPageClient({
   const hasProgram = Boolean(workspace.defaultProgramId);
 
   const { allWorkspaceDomains } = useDomains();
-  const domainConnected = Boolean(allWorkspaceDomains?.length);
+  const connectedDomain = Boolean(allWorkspaceDomains?.length);
 
-  const { isConnected: analyticsConnected } = useAnalyticsConnectedStatus();
-  const { paymentMethods, loading: paymentMethodsLoading } = usePaymentMethods({
+  const { isConnected: connectedAnalytics } = useAnalyticsConnectedStatus();
+  const { paymentMethods } = usePaymentMethods({
     enabled: hasProgram,
   });
-  const hasPaymentMethod = Boolean(paymentMethods?.length);
+  const connectedBankAccount = paymentMethods?.some((pm) =>
+    DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(pm.type),
+  );
 
   return (
     <div className="mx-auto flex w-full max-w-sm flex-col items-center pb-10">
@@ -99,8 +102,8 @@ export function SuccessPageClient({
               icon: Globe,
               title: "Connect domain",
               description: "Use a dedicated domain for Dub",
-              href: `/${workspace.slug}/links/domains`,
-              cta: domainConnected ? "Manage" : "Connect",
+              href: `/${workspace.slug}/settings/domains`,
+              cta: connectedDomain ? "Manage" : "Connect",
               complete: Boolean(allWorkspaceDomains?.length),
             },
             ...(hasProgram
@@ -115,19 +118,19 @@ export function SuccessPageClient({
                   },
                   {
                     icon: Plug2,
-                    title: "Connect to Dub",
+                    title: "Set up conversion tracking",
                     description: "Install the Dub tracking script",
                     href: `/${workspace.slug}/settings/analytics`,
                     cta: "Install",
-                    complete: analyticsConnected,
+                    complete: connectedAnalytics,
                   },
                   {
                     icon: GreekTemple,
-                    title: "Connect payout method",
+                    title: "Connect bank account",
                     description: "Connect a bank account for payouts",
                     href: `/${workspace.slug}/program/payouts`,
                     cta: "Connect",
-                    complete: hasPaymentMethod,
+                    complete: connectedBankAccount,
                   },
                 ]
               : [
