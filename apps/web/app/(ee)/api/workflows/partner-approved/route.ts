@@ -1,11 +1,11 @@
 import { triggerDraftBountySubmissionCreation } from "@/lib/api/bounties/trigger-draft-bounty-submissions";
-import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { createPartnerDefaultLinks } from "@/lib/api/partners/create-partner-default-links";
 import { getPartnerInviteRewardsAndBounties } from "@/lib/api/partners/get-partner-invite-rewards-and-bounties";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { createWorkflowLogger } from "@/lib/cron/qstash-workflow-logger";
-import { PlanProps, RewardProps } from "@/lib/types";
+import { polyfillSocialMediaFields } from "@/lib/social-utils";
+import { PlanProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
 import { sendBatchEmail } from "@dub/email";
@@ -197,19 +197,6 @@ export const { POST } = serve<Payload>(
         return;
       }
 
-      // Find the group to get the rewards
-      const group = await getGroupOrThrow({
-        programId,
-        groupId,
-        includeExpandedFields: true,
-      });
-
-      const rewards = [
-        group.clickReward,
-        group.leadReward,
-        group.saleReward,
-      ].filter(Boolean) as RewardProps[];
-
       logger.info({
         message: `Sending email notification to ${partnerUsers.length} partner users.`,
         data: partnerUsers,
@@ -265,9 +252,16 @@ export const { POST } = serve<Payload>(
         data: input,
       });
 
+      const partnerPlatforms = await prisma.partnerPlatform.findMany({
+        where: {
+          partnerId,
+        },
+      });
+
       const enrolledPartner = EnrolledPartnerSchema.parse({
         ...programEnrollment,
         ...partner,
+        ...polyfillSocialMediaFields(partnerPlatforms),
         id: partner.id,
         status: programEnrollment.status,
         links,

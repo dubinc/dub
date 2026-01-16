@@ -35,5 +35,11 @@
     "sales": 1,
     "saleAmount": 50000,
     "createdAt": "2025-07-16T10:48:01.739Z"
+  },
+  "link": {
+    "id": "cm0lcuvtz000xcutmqw4a7wi3",
+    "shortLink": "https://dub.sh/track-test",
+    "domain": "dub.sh",
+    "key": "track-test"
   }
 }

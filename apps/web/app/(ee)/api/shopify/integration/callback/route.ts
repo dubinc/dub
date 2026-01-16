@@ -85,7 +85,7 @@ export const PATCH = withWorkspace(
     }
   },
   {
-    requiredPermissions: ["workspaces.write"],
+    requiredRoles: ["owner", "member"],
     requiredPlan: [
       "business",
       "business plus",

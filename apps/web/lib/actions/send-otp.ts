@@ -85,7 +85,7 @@ export const sendOtpAction = actionClient
         ]);
         if (!isPartnerAccount && !hasExistingApplications) {
           throw new Error(
-            "Invalid email address – please use your work email instead. If you think this is a mistake, please contact us at support@dub.co",
+            "Invalid email address – please use your work email instead. If you think this is a mistake, please contact us at dub.co/support",
           );
         }
       }

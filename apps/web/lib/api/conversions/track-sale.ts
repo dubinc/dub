@@ -13,7 +13,7 @@ import {
   recordSale,
 } from "@/lib/tinybird";
 import { logConversionEvent } from "@/lib/tinybird/log-conversion-events";
-import { LeadEventTB, WorkspaceProps } from "@/lib/types";
+import { ClickEventTB, LeadEventTB, WorkspaceProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {
@@ -123,27 +123,29 @@ export const trackSale = async ({
     }
   }
 
-  // No existing customer is found, find the click event and create a new customer (for direct sale tracking)
-  else {
-    if (!clickId) {
-      waitUntil(
-        logConversionEvent({
-          workspace_id: workspace.id,
-          path: "/track/sale",
-          body: JSON.stringify(rawBody),
-          error: `No existing customer with the provided customerExternalId (${customerExternalId}) was found, and there was no clickId provided for direct sale tracking.`,
-        }),
-      );
+  // If no existing customer is found and no clickId is provided, return an error
+  if (!existingCustomer && !clickId) {
+    waitUntil(
+      logConversionEvent({
+        workspace_id: workspace.id,
+        path: "/track/sale",
+        body: JSON.stringify(rawBody),
+        error: `No existing customer with the provided customerExternalId (${customerExternalId}) was found, and there was no clickId provided for direct sale tracking.`,
+      }),
+    );
 
-      return {
-        eventName,
-        customer: null,
-        sale: null,
-      };
-    }
+    return {
+      eventName,
+      customer: null,
+      sale: null,
+    };
+  }
 
-    // Find the click event for the given clickId
-    const clickData = await getClickEvent({
+  let clickData: ClickEventTB | null = null;
+
+  // Find the click event for the given clickId
+  if (clickId) {
+    clickData = await getClickEvent({
       clickId,
     });
 
@@ -154,6 +156,18 @@ export const trackSale = async ({
       });
     }
 
+    // For the same customer, a sale event might come from a different link click than the original lead event.
+    // We want to attribute the sale to the correct link (the one from the clickId) for direct sale tracking.
+    if (leadEventData) {
+      leadEventData = {
+        ...leadEventData,
+        link_id: clickData.link_id,
+      };
+    }
+  }
+
+  // If no existing customer is found and a click event is found, create a new customer (for direct sale tracking)
+  if (!existingCustomer && clickData) {
     // Create a new customer
     const link = await prisma.link.findUnique({
       where: {

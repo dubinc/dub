@@ -119,12 +119,18 @@ export const CustomerSchema = z.object({
     .describe(
       "The unique ID of the customer. You may use either the customer's `id` on Dub (obtained via `/customers` endpoint) or their `externalId` (unique ID within your system, prefixed with `ext_`, e.g. `ext_123`).",
     ),
-  externalId: z
-    .string()
-    .describe("Unique identifier for the customer in the client's app."),
   name: z.string().describe("Name of the customer."),
   email: z.string().nullish().describe("Email of the customer."),
   avatar: z.string().nullish().describe("Avatar URL of the customer."),
+  externalId: z
+    .string()
+    .describe("Unique identifier for the customer in the client's app."),
+  stripeCustomerId: z
+    .string()
+    .nullish()
+    .describe(
+      "The customer's Stripe customer ID. This is useful for attributing recurring sale events to the partner who referred the customer.",
+    ),
   country: z.string().nullish().describe("Country of the customer."),
   sales: z
     .number()

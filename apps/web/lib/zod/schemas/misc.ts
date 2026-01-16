@@ -112,23 +112,33 @@ export const storedR2ImageUrlSchema = z
     message: `URL must start with ${R2_URL}`,
   });
 
+// Google user content URL schema - supports URLs like https://lh3.googleusercontent.com/...
+// This is needed when users sign up via Google OAuth and want to use their Google profile image
+// as their workspace logo or avatar
+export const googleUserContentUrlSchema = z
+  .url()
+  .trim()
+  .refine((url) => url.startsWith("https://lh3.googleusercontent.com/"), {
+    message: "Image URL must be a valid Google user content URL",
+  });
+
+// Google favicon URL schema - supports URLs starting with GOOGLE_FAVICON_URL
+export const googleFaviconUrlSchema = z
+  .url()
+  .trim()
+  .refine((url) => url.startsWith(GOOGLE_FAVICON_URL), {
+    message: `Image URL must start with ${GOOGLE_FAVICON_URL}`,
+  });
+
 // Uploaded image could be any of the following:
 // - Base64 encoded image
 // - R2_URL
 // - Special case for GOOGLE_FAVICON_URL
+// - Google user content URLs (e.g., https://lh3.googleusercontent.com/...)
 // This schema contains an async refinement check for base64 image validation,
 // which requires using parseAsync() instead of parse() when validating
 export const uploadedImageSchema = z
-  .union([
-    base64ImageSchema,
-    storedR2ImageUrlSchema,
-    z
-      .url()
-      .trim()
-      .refine((url) => url.startsWith(GOOGLE_FAVICON_URL), {
-        message: `Image URL must start with ${GOOGLE_FAVICON_URL}`,
-      }),
-  ])
+  .union([base64ImageSchema, storedR2ImageUrlSchema, googleFaviconUrlSchema])
   .transform((v) => v || null);
 
 // Base64 encoded image/SVG or R2_URL

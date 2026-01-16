@@ -497,10 +497,12 @@ export const PLAN_COMPARE_FEATURES: {
       {
         check: {
           default: false,
+          business: true,
           advanced: true,
           enterprise: true,
         },
         text: "Role-based access control",
+        href: "https://dub.co/help/article/folders-rbac",
       },
       {
         check: {

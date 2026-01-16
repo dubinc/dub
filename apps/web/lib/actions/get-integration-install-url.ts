@@ -4,6 +4,7 @@ import * as z from "zod/v4";
 import { hubSpotOAuthProvider } from "../integrations/hubspot/oauth";
 import { slackOAuthProvider } from "../integrations/slack/oauth";
 import { authActionClient } from "./safe-action";
+import { throwIfNoPermission } from "./throw-if-no-permission";
 
 const schema = z.object({
   workspaceId: z.string(),
@@ -16,6 +17,11 @@ export const getIntegrationInstallUrl = authActionClient
   .action(async ({ ctx, parsedInput }) => {
     const { workspace } = ctx;
     const { integrationSlug } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredRoles: ["owner", "member"],
+    });
 
     let url: string | null = null;
 

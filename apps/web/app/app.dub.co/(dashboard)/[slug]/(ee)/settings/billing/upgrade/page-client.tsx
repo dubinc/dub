@@ -114,7 +114,7 @@ export function WorkspaceBillingUpgradePageClient() {
         <ToggleGroup
           options={[
             { label: "Monthly", value: "monthly" },
-            { label: "Yearly (2 months free)", value: "yearly" },
+            { label: "Yearly (Save 17%)", value: "yearly" },
           ]}
           selected={period}
           selectAction={(option) => setPeriod(option as "monthly" | "yearly")}

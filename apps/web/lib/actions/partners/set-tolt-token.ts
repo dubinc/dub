@@ -5,6 +5,7 @@ import { toltImporter } from "@/lib/tolt/importer";
 import { ToltProgram } from "@/lib/tolt/types";
 import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 const schema = z.object({
   workspaceId: z.string(),
@@ -17,6 +18,11 @@ export const setToltTokenAction = authActionClient
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
     const { token, toltProgramId } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredRoles: ["owner", "member"],
+    });
 
     const toltApi = new ToltApi({ token });
     let program: ToltProgram | undefined;

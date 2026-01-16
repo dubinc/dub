@@ -273,6 +273,14 @@ export const createPartnerCommission = async ({
       },
       include: {
         customer: true,
+        link: {
+          select: {
+            id: true,
+            shortLink: true,
+            domain: true,
+            key: true,
+          },
+        },
       },
     });
 

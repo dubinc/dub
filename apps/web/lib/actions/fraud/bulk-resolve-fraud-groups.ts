@@ -6,12 +6,18 @@ import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { bulkResolveFraudGroupsSchema } from "@/lib/zod/schemas/fraud";
 import { prisma } from "@dub/prisma";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 export const bulkResolveFraudGroupsAction = authActionClient
   .inputSchema(bulkResolveFraudGroupsSchema)
   .action(async ({ ctx, parsedInput }) => {
     const { workspace, user } = ctx;
     const { groupIds, resolutionReason } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredRoles: ["owner", "member"],
+    });
 
     const { canManageFraudEvents } = getPlanCapabilities(workspace.plan);
 

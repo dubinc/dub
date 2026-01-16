@@ -12,6 +12,7 @@ import { prisma } from "@dub/prisma";
 import { FraudRuleType, ProgramEnrollmentStatus } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 // Reject a list of pending partners
 export const bulkRejectPartnerApplicationsAction = authActionClient
@@ -19,6 +20,11 @@ export const bulkRejectPartnerApplicationsAction = authActionClient
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { partnerIds, reportFraud } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredRoles: ["owner", "member"],
+    });
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
