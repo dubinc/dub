@@ -15,6 +15,7 @@ export * from "./misc";
 export * from "./paypal-supported-countries";
 export * from "./plan-compare";
 export * from "./pricing";
+export * from "./pricing-features";
 export * from "./regions";
 export * from "./reserved-slugs";
 export * from "./saml";
