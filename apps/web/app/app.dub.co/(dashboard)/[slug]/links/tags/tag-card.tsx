@@ -1,5 +1,6 @@
 "use client";
 
+import { clientAccessCheck } from "@/lib/client-access-check";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { TagProps } from "@/lib/types";
@@ -34,7 +35,7 @@ export function TagCard({
   tag: TagProps & { _count?: { links: number } };
 }) {
   const router = useRouter();
-  const { id, slug } = useWorkspace();
+  const { id, slug, role } = useWorkspace();
 
   const linksCount = tag._count?.links;
 
@@ -49,6 +50,11 @@ export function TagCard({
   const { AddEditTagModal, setShowAddEditTagModal } = useAddEditTagModal({
     props: tag,
   });
+
+  const permissionsError = clientAccessCheck({
+    action: "tags.write",
+    role,
+  }).error;
 
   const [copiedTagId, copyToClipboard] = useCopyToClipboard();
 
@@ -137,6 +143,7 @@ export function TagCard({
                   icon={<PenWriting className="h-4 w-4" />}
                   shortcut="E"
                   className="h-9 px-2 font-medium"
+                  disabledTooltip={permissionsError || undefined}
                 />
                 <Button
                   text="Copy Tag ID"
@@ -159,6 +166,7 @@ export function TagCard({
                   icon={<Delete className="h-4 w-4" />}
                   shortcut="X"
                   className="h-9 px-2 font-medium"
+                  disabledTooltip={permissionsError || undefined}
                 />
               </div>
             }

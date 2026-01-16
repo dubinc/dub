@@ -4,6 +4,7 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { approvePartnerEnrollment } from "@/lib/partners/approve-partner-enrollment";
 import { approvePartnerSchema } from "@/lib/zod/schemas/partners";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 // Approve a partner application
 export const approvePartnerAction = authActionClient
@@ -11,6 +12,11 @@ export const approvePartnerAction = authActionClient
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { partnerId, groupId } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredRoles: ["owner", "member"],
+    });
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 

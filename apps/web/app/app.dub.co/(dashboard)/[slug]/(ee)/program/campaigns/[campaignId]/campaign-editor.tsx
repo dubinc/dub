@@ -1,4 +1,4 @@
-import { uploadEmailImageAction } from "@/lib/actions/partners/upload-email-image";
+import { uploadCampaignImageAction } from "@/lib/actions/partners/upload-campaign-image";
 import { CAMPAIGN_READONLY_STATUSES } from "@/lib/api/campaigns/constants";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import { useEmailDomains } from "@/lib/swr/use-email-domains";
@@ -234,7 +234,7 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
   );
 
   const { executeAsync: executeImageUpload } = useAction(
-    uploadEmailImageAction,
+    uploadCampaignImageAction,
   );
 
   const statusBadge = CAMPAIGN_STATUS_BADGES[campaign.status];

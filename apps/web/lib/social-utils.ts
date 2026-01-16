@@ -108,9 +108,9 @@ export const sanitizeSocialHandle = (
 
 // Converts an array of platform objects into a key-value object
 // for easy lookup by platform name. Returns null for platforms not found.
-export function buildSocialPlatformLookup<
-  T extends { type: PlatformType },
->(platforms: T[]): Record<PlatformType, T | null> {
+export function buildSocialPlatformLookup<T extends { type: PlatformType }>(
+  platforms: T[],
+): Record<PlatformType, T | null> {
   const result = {
     website: null,
     youtube: null,

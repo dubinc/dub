@@ -12,7 +12,14 @@ export default function usePartnerPayouts(opts?: Record<string, string>) {
   const { data: payouts, error } = useSWR<PartnerPayoutResponse[]>(
     partnerId
       ? `/api/partner-profile/payouts${getQueryString(opts, {
-          include: ["programId", "sortBy", "sortOrder", "status"],
+          include: [
+            "programId",
+            "sortBy",
+            "sortOrder",
+            "status",
+            "page",
+            "pageSize",
+          ],
         })}`
       : undefined,
     fetcher,

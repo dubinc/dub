@@ -12,6 +12,7 @@ import { Prisma } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { revalidatePath } from "next/cache";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 export const updateRewardAction = authActionClient
   .inputSchema(updateRewardSchema)
@@ -27,6 +28,11 @@ export const updateRewardAction = authActionClient
       modifiers,
       rewardId,
     } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredRoles: ["owner", "member"],
+    });
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 

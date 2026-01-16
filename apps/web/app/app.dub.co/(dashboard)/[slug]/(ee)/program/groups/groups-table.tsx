@@ -1,5 +1,6 @@
 "use client";
 
+import { clientAccessCheck } from "@/lib/client-access-check";
 import useGroupsCount from "@/lib/swr/use-groups-count";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -11,6 +12,7 @@ import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import {
   Button,
+  DynamicTooltipWrapper,
   EditColumnsButton,
   Icon,
   Popover,
@@ -238,10 +240,16 @@ function RowMenuButton({ row }: { row: Row<GroupExtendedProps> }) {
   const router = useRouter();
   const { slug } = useParams();
   const [isOpen, setIsOpen] = useState(false);
+  const { role } = useWorkspace();
 
   const { DeleteGroupModal, setShowDeleteGroupModal } = useDeleteGroupModal(
     row.original,
   );
+
+  const permissionsError = clientAccessCheck({
+    action: "groups.write",
+    role,
+  }).error;
 
   const [copiedGroupId, copyToClipboard] = useCopyToClipboard();
 
@@ -263,6 +271,7 @@ function RowMenuButton({ row }: { row: Row<GroupExtendedProps> }) {
                     `/${slug}/program/groups/${row.original.slug}/settings`,
                   )
                 }
+                disabledTooltip={permissionsError || undefined}
               />
 
               <MenuItem
@@ -304,6 +313,7 @@ function RowMenuButton({ row }: { row: Row<GroupExtendedProps> }) {
                   label="Delete group"
                   variant="danger"
                   onSelect={() => setShowDeleteGroupModal(true)}
+                  disabledTooltip={permissionsError || undefined}
                 />
               )}
             </Command.List>
@@ -327,11 +337,13 @@ function MenuItem({
   label,
   onSelect,
   variant = "default",
+  disabledTooltip,
 }: {
   icon: Icon;
   label: string;
   onSelect: () => void;
   variant?: "default" | "danger";
+  disabledTooltip?: string | boolean;
 }) {
   const variantStyles = {
     default: {
@@ -347,16 +359,22 @@ function MenuItem({
   const { text, icon } = variantStyles[variant];
 
   return (
-    <Command.Item
-      className={cn(
-        "flex cursor-pointer select-none items-center gap-2 whitespace-nowrap rounded-md p-2 text-sm",
-        "data-[selected=true]:bg-neutral-100",
-        text,
-      )}
-      onSelect={onSelect}
+    <DynamicTooltipWrapper
+      tooltipProps={disabledTooltip ? { content: disabledTooltip } : undefined}
     >
-      <IconComp className={cn("size-4 shrink-0", icon)} />
-      {label}
-    </Command.Item>
+      <Command.Item
+        className={cn(
+          "flex cursor-pointer select-none items-center gap-2 whitespace-nowrap rounded-md p-2 text-sm",
+          disabledTooltip
+            ? "cursor-not-allowed opacity-50"
+            : "data-[selected=true]:bg-neutral-100",
+          text,
+        )}
+        onSelect={disabledTooltip ? undefined : onSelect}
+      >
+        <IconComp className={cn("size-4 shrink-0", icon)} />
+        {label}
+      </Command.Item>
+    </DynamicTooltipWrapper>
   );
 }

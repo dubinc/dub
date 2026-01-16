@@ -1,5 +1,6 @@
 "use client";
 
+import { clientAccessCheck } from "@/lib/client-access-check";
 import useSAML from "@/lib/swr/use-saml";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useRemoveSAMLModal } from "@/ui/modals/remove-saml-modal";
@@ -20,11 +21,17 @@ import { Lock, ShieldOff } from "lucide-react";
 import { useMemo, useState } from "react";
 
 export function SAML() {
-  const { id: workspaceId, plan, ssoEmailDomain } = useWorkspace();
+  const { id: workspaceId, plan, role, ssoEmailDomain } = useWorkspace();
   const { SAMLModal, setShowSAMLModal } = useSAMLModal();
   const { RemoveSAMLModal, setShowRemoveSAMLModal } = useRemoveSAMLModal();
   const { provider, configured, loading } = useSAML();
   const [openPopover, setOpenPopover] = useState(false);
+
+  const permissionsError = clientAccessCheck({
+    action: "workspaces.write",
+    role,
+    customPermissionDescription: "configure SAML SSO",
+  }).error;
 
   const {
     data: workspaceData,
@@ -183,18 +190,19 @@ export function SAML() {
                 ) : (
                   <Button
                     text="Configure"
-                    disabled={plan !== "enterprise"}
-                    {...(plan !== "enterprise" && {
-                      disabledTooltip: (
+                    onClick={() => setShowSAMLModal(true)}
+                    disabledTooltip={
+                      plan !== "enterprise" ? (
                         <TooltipContent
                           title="SAML SSO is only available on Enterprise plans. Upgrade to get started."
                           cta="Contact sales"
                           href="https://dub.co/enterprise"
                           target="_blank"
                         />
-                      ),
-                    })}
-                    onClick={() => setShowSAMLModal(true)}
+                      ) : (
+                        permissionsError || undefined
+                      )
+                    }
                   />
                 )}
               </div>

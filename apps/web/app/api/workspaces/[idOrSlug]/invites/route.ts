@@ -1,5 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
 import { inviteUser } from "@/lib/api/users";
+import { assertRoleAllowedForPlan } from "@/lib/api/workspaces/assert-role-plan";
 import { withWorkspace } from "@/lib/auth";
 import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import { ratelimit, redis } from "@/lib/upstash";
@@ -9,7 +10,7 @@ import {
   workspaceUserSchema,
 } from "@/lib/zod/schemas/workspaces";
 import { prisma } from "@dub/prisma";
-import { PartnerRole } from "@dub/prisma/client";
+import { WorkspaceRole } from "@dub/prisma/client";
 import { pluralize } from "@dub/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
@@ -48,6 +49,13 @@ export const GET = withWorkspace(
 export const POST = withWorkspace(
   async ({ req, workspace, session }) => {
     const { teammates } = inviteTeammatesSchema.parse(await req.json());
+
+    for (const teammate of teammates) {
+      assertRoleAllowedForPlan({
+        role: teammate.role,
+        plan: workspace.plan,
+      });
+    }
 
     const { success } = await ratelimit(1, "1 s").limit(
       `workspace-invites:${workspace.id}`,
@@ -165,13 +173,18 @@ export const POST = withWorkspace(
 
 const updateInviteRoleSchema = z.object({
   email: z.email(),
-  role: z.enum(PartnerRole),
+  role: z.enum(WorkspaceRole),
 });
 
 // PATCH /api/workspaces/[idOrSlug]/invites - update an invite's role
 export const PATCH = withWorkspace(
   async ({ req, workspace }) => {
     const { email, role } = updateInviteRoleSchema.parse(await req.json());
+
+    assertRoleAllowedForPlan({
+      role,
+      plan: workspace.plan,
+    });
 
     const invite = await prisma.projectInvite.findUnique({
       where: {
@@ -216,6 +229,7 @@ export const DELETE = withWorkspace(
         email: z.email(),
       })
       .parse(searchParams);
+
     const response = await prisma.projectInvite.delete({
       where: {
         email_projectId: {
@@ -224,6 +238,7 @@ export const DELETE = withWorkspace(
         },
       },
     });
+
     return NextResponse.json(response);
   },
   {

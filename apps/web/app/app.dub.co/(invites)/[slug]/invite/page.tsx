@@ -90,8 +90,8 @@ export default async function WorkspaceInvitePage({
 
   if (!invite) redirect(`/${slug}`);
 
+  // Expired invite
   if (invite.expires < new Date()) {
-    // Expired invite
     return (
       <>
         <div className="z-10 flex items-center justify-end p-4">
@@ -355,7 +355,7 @@ function Hero({
                 }
               >
                 <span className="underline decoration-dotted underline-offset-2">
-                  {invite.role}
+                  {invite.role === "billing" ? "billing user" : invite.role}
                 </span>
               </Tooltip>
             </>

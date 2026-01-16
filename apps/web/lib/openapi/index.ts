@@ -31,7 +31,7 @@ export const document = createDocument({
     contact: {
       name: "Dub Support",
       email: "support@dub.co",
-      url: "https://dub.co/api",
+      url: "https://dub.co/support",
     },
     license: {
       name: "AGPL-3.0 license",
