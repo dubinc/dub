@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 
 /*
     This route is used to send a welcome email to new users + subscribe them to the corresponding Resend audience
-    It is called by QStash 15 minutes after a user is created.
+    It is called by QStash 45 minutes after a user is created.
 */
 export async function POST(req: Request) {
   try {

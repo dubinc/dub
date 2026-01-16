@@ -162,6 +162,7 @@ export function PlanSelector({ product }: { product: OnboardingProduct }) {
                   <a
                     href={`https://dub.co/${product === "links" ? "partners" : "links"}`}
                     target="_blank"
+                    rel="noopener noreferrer"
                     className="group peer relative z-10 flex items-center justify-center px-5 py-2.5 transition-transform duration-100 active:scale-[0.97]"
                   >
                     <div className="relative flex items-center gap-2 transition-[transform,opacity] group-hover:-translate-y-1 group-hover:opacity-0">

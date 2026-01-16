@@ -57,6 +57,7 @@ export default function Plan() {
         <a
           href={`https://dub.co/pricing/${product}`}
           target="_blank"
+          rel="noopener noreferrer"
           className="flex items-center text-neutral-500 underline-offset-4 transition-colors hover:text-neutral-800 hover:underline"
         >
           Compare all plans ↗
