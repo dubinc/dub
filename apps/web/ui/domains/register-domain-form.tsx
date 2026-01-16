@@ -288,6 +288,22 @@ export function RegisterDomainForm({
               </div>
             </div>
           )}
+
+        {searchedDomain && showTerms && variant === "modal" && (
+          <p className="-my-2 text-pretty text-center text-xs text-neutral-500">
+            By claiming your .link domain, you agree to our{" "}
+            <a
+              href="https://dub.co/help/article/free-dot-link-domain#terms-and-conditions"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline transition-colors hover:text-neutral-700"
+            >
+              terms
+            </a>
+            .<br />
+            After the first year, your renewal is $12/year.
+          </p>
+        )}
       </div>
       <div
         className={cn(
@@ -332,7 +348,7 @@ export function RegisterDomainForm({
           />
         )}
       </div>
-      {searchedDomain && showTerms && (
+      {searchedDomain && showTerms && variant !== "modal" && (
         <p className="mt-4 text-pretty text-center text-xs text-neutral-500">
           By claiming your .link domain, you agree to our{" "}
           <a
