@@ -42,7 +42,7 @@ export const ROLE_PERMISSIONS: {
   },
   {
     action: "links.write",
-    description: "create, update, or delete links",
+    description: "manage links",
     roles: ["owner", "member"],
   },
   {
@@ -57,7 +57,7 @@ export const ROLE_PERMISSIONS: {
   },
   {
     action: "workspaces.write",
-    description: "update or delete the current workspace",
+    description: "manage workspace settings",
     roles: ["owner"],
   },
   {
@@ -67,7 +67,7 @@ export const ROLE_PERMISSIONS: {
   },
   {
     action: "domains.write",
-    description: "create, update, or delete domains",
+    description: "manage domains",
     roles: ["owner"],
   },
   {
@@ -77,7 +77,7 @@ export const ROLE_PERMISSIONS: {
   },
   {
     action: "tags.write",
-    description: "create, update, or delete tags",
+    description: "manage tags",
     roles: ["owner", "member"],
   },
   {
@@ -87,37 +87,37 @@ export const ROLE_PERMISSIONS: {
   },
   {
     action: "tokens.write",
-    description: "create, update, or delete API keys",
+    description: "manage API keys",
     roles: ["owner"],
   },
   {
     action: "oauth_apps.read",
-    description: "read OAuth apps",
+    description: "access OAuth apps",
     roles: ["owner", "member", "viewer", "billing"],
   },
   {
     action: "oauth_apps.write",
-    description: "create, update, or delete OAuth apps",
+    description: "manage OAuth apps",
     roles: ["owner"],
   },
   {
     action: "integrations.read",
-    description: "read authorized OAuth apps",
+    description: "access integrations",
     roles: ["owner", "member", "viewer", "billing"],
   },
   {
     action: "integrations.write",
-    description: "disconnect authorized OAuth apps",
+    description: "manage integrations",
     roles: ["owner", "member"],
   },
   {
     action: "webhooks.read",
-    description: "read webhooks",
+    description: "access webhooks",
     roles: ["owner", "member", "viewer", "billing"],
   },
   {
     action: "webhooks.write",
-    description: "create, update, or delete webhooks",
+    description: "manage webhooks",
     roles: ["owner"],
   },
   {
@@ -127,7 +127,7 @@ export const ROLE_PERMISSIONS: {
   },
   {
     action: "folders.write",
-    description: "create, update, or delete folders",
+    description: "manage folders",
     roles: ["owner", "member"],
   },
   {
@@ -141,24 +141,24 @@ export const ROLE_PERMISSIONS: {
     roles: ["owner", "billing"],
   },
   {
-    action: "groups.write",
-    description: "create, update, or delete groups",
-    roles: ["owner", "member"],
-  },
-  {
     action: "groups.read",
     description: "access groups",
     roles: ["owner", "member", "viewer", "billing"],
   },
   {
-    action: "messages.write",
-    description: "create, update, or delete messages",
+    action: "groups.write",
+    description: "manage groups",
     roles: ["owner", "member"],
   },
   {
     action: "messages.read",
     description: "access messages",
     roles: ["owner", "member", "viewer", "billing"],
+  },
+  {
+    action: "messages.write",
+    description: "manage messages",
+    roles: ["owner", "member"],
   },
 ];
 
