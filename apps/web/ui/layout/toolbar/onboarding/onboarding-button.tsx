@@ -111,8 +111,10 @@ function OnboardingButtonInner({
 
   const [isOpen, setIsOpen] = useState(false);
 
-  const remainingRecommendedTasks = tasks.filter(
-    (task) => task.recommended && !task.checked,
+  const recommendedTasks = tasks.filter((task) => task.recommended);
+
+  const remainingRecommendedTasks = recommendedTasks.filter(
+    (task) => !task.checked,
   ).length;
 
   return loading || remainingRecommendedTasks === 0 ? null : (
@@ -186,7 +188,7 @@ function OnboardingButtonInner({
       >
         <span>Complete setup</span>
         <ProgressCircle
-          progress={1 - remainingRecommendedTasks / tasks.length}
+          progress={1 - remainingRecommendedTasks / recommendedTasks.length}
           className="size-3 text-white/80 [--track-color:#fff3]"
           strokeWidth={14}
         />
