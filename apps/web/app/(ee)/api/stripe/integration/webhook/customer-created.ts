@@ -14,14 +14,31 @@ export async function customerCreated(event: Stripe.Event) {
     return "External ID not found in Stripe customer metadata, skipping...";
   }
 
-  // Check the customer is not already created
-  // Find customer using projectConnectId and externalId (the customer's ID in the client app)
-  const customer = await prisma.customer.findUnique({
+  const workspace = await prisma.project.findUnique({
     where: {
-      projectConnectId_externalId: {
-        projectConnectId: stripeAccountId,
-        externalId: dubCustomerExternalId,
-      },
+      stripeConnectId: stripeAccountId,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!workspace) {
+    return "Workspace not found, skipping...";
+  }
+
+  // Check the customer is not already created
+  const customer = await prisma.customer.findFirst({
+    where: {
+      OR: [
+        {
+          projectId: workspace.id,
+          externalId: dubCustomerExternalId,
+        },
+        {
+          stripeCustomerId: stripeCustomer.id,
+        },
+      ],
     },
   });
 
@@ -34,7 +51,9 @@ export async function customerCreated(event: Stripe.Event) {
           id: customer.id,
         },
         data: {
+          externalId: dubCustomerExternalId,
           stripeCustomerId: stripeCustomer.id,
+          projectConnectId: stripeAccountId,
         },
       });
 
