@@ -3,6 +3,7 @@
 import { DIRECT_DEBIT_PAYMENT_METHOD_TYPES } from "@/lib/constants/payouts";
 import useDomains from "@/lib/swr/use-domains";
 import usePaymentMethods from "@/lib/swr/use-payment-methods";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { WorkspaceProps } from "@/lib/types";
 import { useAnalyticsConnectedStatus } from "@/ui/analytics/use-analytics-connected-status";
 import {
@@ -17,6 +18,7 @@ import {
   GreekTemple,
   Hyperlink,
   LinesY,
+  LoadingSpinner,
   Msg,
   Plug2,
   Users,
@@ -33,17 +35,20 @@ export function SuccessPageClient({
     "name" | "slug" | "logo" | "defaultProgramId"
   >;
 }) {
+  const { loading: isLoadingWorkspace } = useWorkspace();
+
   const { finish, isLoading, isSuccessful } = useOnboardingProgress();
 
   const hasProgram = Boolean(workspace.defaultProgramId);
 
-  const { allWorkspaceDomains } = useDomains();
+  const { allWorkspaceDomains, loading: isLoadingDomains } = useDomains();
   const connectedDomain = Boolean(allWorkspaceDomains?.length);
 
   const { isConnected: connectedAnalytics } = useAnalyticsConnectedStatus();
-  const { paymentMethods } = usePaymentMethods({
-    enabled: hasProgram,
-  });
+  const { paymentMethods, loading: isLoadingPaymentMethods } =
+    usePaymentMethods({
+      enabled: hasProgram,
+    });
   const connectedBankAccount = paymentMethods?.some((pm) =>
     DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(pm.type),
   );
@@ -104,6 +109,7 @@ export function SuccessPageClient({
               description: "Use a dedicated domain for Dub",
               href: `/${workspace.slug}/settings/domains`,
               cta: connectedDomain ? "Manage" : "Connect",
+              loading: isLoadingDomains,
               complete: Boolean(allWorkspaceDomains?.length),
             },
             ...(hasProgram
@@ -122,6 +128,7 @@ export function SuccessPageClient({
                     description: "Install the Dub tracking script",
                     href: `/${workspace.slug}/settings/analytics`,
                     cta: "Install",
+                    loading: isLoadingWorkspace,
                     complete: connectedAnalytics,
                   },
                   {
@@ -130,6 +137,7 @@ export function SuccessPageClient({
                     description: "Connect a bank account for payouts",
                     href: `/${workspace.slug}/program/payouts`,
                     cta: "Connect",
+                    loading: isLoadingWorkspace || isLoadingPaymentMethods,
                     complete: connectedBankAccount,
                   },
                 ]
@@ -156,46 +164,63 @@ export function SuccessPageClient({
                     cta: "View",
                   },
                 ]),
-          ].map(({ icon: Icon, title, description, href, cta, complete }) => (
-            <div
-              key={href}
-              className={cn(
-                "flex items-center justify-between gap-2 px-2.5 py-2",
-                complete && "bg-black/[0.02]",
-              )}
-            >
-              <div className="flex min-w-0 items-center gap-2">
-                <div
-                  className={cn(
-                    "flex size-8 items-center justify-center rounded-md bg-black/5",
-                    complete && "bg-green-400",
-                  )}
-                >
-                  {complete ? (
-                    <Check2 className="size-4 text-green-800" />
-                  ) : (
-                    <Icon className="size-4" />
-                  )}
-                </div>
-                <div className={cn("min-w-0", complete && "opacity-60")}>
-                  <div className="text-content-default text-sm font-medium">
-                    {title}
-                  </div>
-                  <p className="text-content-subtle truncate text-xs font-medium">
-                    {description}
-                  </p>
-                </div>
-              </div>
-
-              <Link
-                href={href}
-                target="_blank"
-                className="border-subtle bg-bg-default hover:bg-bg-muted flex h-7 items-center rounded-lg border px-2.5 text-sm font-medium transition-transform active:scale-[0.98]"
+          ].map(
+            ({
+              icon: Icon,
+              title,
+              description,
+              href,
+              cta,
+              loading,
+              complete,
+            }) => (
+              <div
+                key={href}
+                className={cn(
+                  "flex items-center justify-between gap-2 px-2.5 py-2",
+                  complete && "bg-black/[0.02]",
+                )}
               >
-                {cta}
-              </Link>
-            </div>
-          ))}
+                <div className="flex min-w-0 items-center gap-2">
+                  <div
+                    className={cn(
+                      "flex size-8 items-center justify-center rounded-md bg-black/5",
+                      complete && "bg-green-400",
+                    )}
+                  >
+                    {loading ? (
+                      <LoadingSpinner className="size-4" />
+                    ) : complete ? (
+                      <Check2 className="size-4 text-green-800" />
+                    ) : (
+                      <Icon className="size-4" />
+                    )}
+                  </div>
+                  <div
+                    className={cn(
+                      "min-w-0",
+                      (loading || complete) && "opacity-60",
+                    )}
+                  >
+                    <div className="text-content-default text-sm font-medium">
+                      {title}
+                    </div>
+                    <p className="text-content-subtle truncate text-xs font-medium">
+                      {description}
+                    </p>
+                  </div>
+                </div>
+
+                <Link
+                  href={href}
+                  target="_blank"
+                  className="border-subtle bg-bg-default hover:bg-bg-muted flex h-7 items-center rounded-lg border px-2.5 text-sm font-medium transition-transform active:scale-[0.98]"
+                >
+                  {cta}
+                </Link>
+              </div>
+            ),
+          )}
         </div>
       </div>
 
