@@ -244,6 +244,10 @@ export function WorkspaceMembersClient() {
       <InviteCodeModal />
       <PageContent
         title="Members"
+        titleInfo={{
+          title:
+            "Learn how to [invite teammates](https://dub.co/help/article/how-to-invite-teammates) to your workspace and [assign them different roles and permissions](https://dub.co/help/article/workspace-roles).",
+        }}
         controls={
           <div className="flex space-x-2">
             <Button
