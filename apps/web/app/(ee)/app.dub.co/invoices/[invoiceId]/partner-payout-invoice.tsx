@@ -204,7 +204,6 @@ export async function PartnerPayoutInvoice({
         city: "San Francisco",
         state: "CA",
         postalCode: "94114",
-        email: "support@dub.co",
       },
     },
     {
@@ -228,12 +227,6 @@ export async function PartnerPayoutInvoice({
       <Page size="A4" style={tw("p-20 bg-white")}>
         <View style={tw("flex-row justify-between items-center mb-4")}>
           <Image src={DUB_WORDMARK} style={tw("w-20 h-10")} />
-          <View style={tw("text-right w-1/2")}>
-            <Text style={tw("text-sm font-medium text-neutral-800")}>
-              Dub Technologies Inc.
-            </Text>
-            <Text style={tw("text-sm text-neutral-500 ")}>support@dub.co</Text>
-          </View>
         </View>
 
         <View style={tw("flex-col gap-2 text-sm font-medium mb-10")}>
@@ -430,14 +423,15 @@ export async function PartnerPayoutInvoice({
         </View>
 
         <Text style={tw("text-sm text-neutral-600 mt-6")}>
-          If you have any questions, visit our support site at{" "}
+          If you have any questions,{" "}
           <Link href="https://dub.co/help" style={tw("text-neutral-900")}>
-            https://dub.co/help
+            visit our help center
           </Link>{" "}
-          or contact us at{" "}
-          <Link href="mailto:support@dub.co" style={tw("text-neutral-900")}>
-            support@dub.co
+          or{" "}
+          <Link href="https://dub.co/support" style={tw("text-neutral-900")}>
+            reach out to our support team
           </Link>
+          .
         </Text>
       </Page>
     </Document>,

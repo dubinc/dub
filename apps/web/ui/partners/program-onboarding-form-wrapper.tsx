@@ -4,7 +4,15 @@ import { useWorkspaceStore } from "@/lib/swr/use-workspace-store";
 import { ProgramData } from "@/lib/types";
 import { FormProvider, useForm } from "react-hook-form";
 
-export function FormWrapper({ children }: { children: React.ReactNode }) {
+export function ProgramOnboardingFormWrapper({
+  children,
+  defaultValues,
+  values,
+}: {
+  children: React.ReactNode;
+  defaultValues?: Partial<ProgramData>;
+  values?: Partial<ProgramData>;
+}) {
   const [programOnboarding] =
     useWorkspaceStore<ProgramData>("programOnboarding");
 
@@ -17,6 +25,7 @@ export function FormWrapper({ children }: { children: React.ReactNode }) {
       amountInPercentage: null,
       maxDuration: 12,
       partners: [{ email: "" }],
+      ...defaultValues,
     },
     values: programOnboarding
       ? {
@@ -38,6 +47,7 @@ export function FormWrapper({ children }: { children: React.ReactNode }) {
           supportEmail: programOnboarding.supportEmail || null,
           helpUrl: programOnboarding.helpUrl || null,
           termsUrl: programOnboarding.termsUrl || null,
+          ...values,
         }
       : undefined,
   });

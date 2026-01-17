@@ -1,5 +1,6 @@
 "use client";
 
+import { clientAccessCheck } from "@/lib/client-access-check";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useWorkspaceStore } from "@/lib/swr/use-workspace-store";
 import { LockSmall, Switch } from "@dub/ui";
@@ -10,7 +11,13 @@ import { PublishableKeyForm } from "./publishable-key-form";
 export function ConversionTrackingSection() {
   const id = useId();
 
-  const { publishableKey } = useWorkspace();
+  const { role, publishableKey } = useWorkspace();
+
+  const permissionsError = clientAccessCheck({
+    action: "workspaces.write",
+    role,
+    customPermissionDescription: "manage conversion tracking settings",
+  }).error;
 
   const [enabled, setEnabled, { loading }] = useWorkspaceStore<boolean>(
     "analyticsSettingsConversionTrackingEnabled",
@@ -57,9 +64,10 @@ export function ConversionTrackingSection() {
           thumbDimensions="size-3"
           thumbTranslate="translate-x-3"
           fn={setEnabled}
-          {...(publishableKey
+          {...(publishableKey || permissionsError
             ? {
                 disabledTooltip:
+                  permissionsError ||
                   "You need to revoke your current publishable key first before disabling conversion tracking.",
                 thumbIcon: (
                   <div className="flex size-full items-center justify-center">

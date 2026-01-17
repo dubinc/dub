@@ -1,9 +1,9 @@
 import { ReactNode } from "react";
-import { nFormatter } from "../functions/nformatter";
-import { INFINITY_NUMBER } from "./misc";
-import { PLANS } from "./pricing";
+import { nFormatter } from "../../functions/nformatter";
+import { INFINITY_NUMBER } from "../misc";
+import { PLANS } from "./pricing-plans";
 
-export const PLAN_COMPARE_FEATURES: {
+export const PRICING_PLAN_COMPARE_FEATURES: {
   category: string;
   href: string;
   features: {
@@ -497,10 +497,12 @@ export const PLAN_COMPARE_FEATURES: {
       {
         check: {
           default: false,
+          business: true,
           advanced: true,
           enterprise: true,
         },
         text: "Role-based access control",
+        href: "https://dub.co/help/article/folders-rbac",
       },
       {
         check: {

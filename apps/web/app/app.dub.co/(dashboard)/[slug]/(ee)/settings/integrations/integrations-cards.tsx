@@ -107,7 +107,7 @@ export function IntegrationsCards({
               )}
               addButton={
                 <a
-                  href="mailto:support@dub.co?subject=Integration%20Request"
+                  href="https://dub.co/support"
                   className={cn(
                     buttonVariants({ variant: "primary" }),
                     "flex h-8 items-center rounded-md border px-2.5 text-sm",

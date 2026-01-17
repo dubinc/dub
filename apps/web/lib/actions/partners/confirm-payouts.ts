@@ -20,6 +20,7 @@ import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 const confirmPayoutsSchema = z.object({
   workspaceId: z.string(),
@@ -56,9 +57,10 @@ export const confirmPayoutsAction = authActionClient
       programId,
     });
 
-    if (workspace.role !== "owner") {
-      throw new Error("Only workspace owners can confirm payouts.");
-    }
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredPermissions: ["payouts.write"],
+    });
 
     if (!workspace.stripeId) {
       throw new Error("Workspace does not have a valid Stripe ID.");

@@ -1,5 +1,6 @@
+import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { getBountyRewardDescription } from "@/lib/partners/get-bounty-reward-description";
-import { APP_DOMAIN, currencyFormatter, truncate } from "@dub/utils";
+import { APP_DOMAIN, COUNTRIES, currencyFormatter, truncate } from "@dub/utils";
 import { LinkWebhookEvent } from "dub/models/components";
 import * as z from "zod/v4";
 import { WebhookTrigger } from "../../types";
@@ -56,7 +57,7 @@ const linkTemplates = ({
 
 const linkClickedTemplate = ({ data }: { data: ClickEventWebhookPayload }) => {
   const { link, click } = data;
-  const linkToClicks = `${APP_DOMAIN}/events?event=clicks&domain=${link.domain}&key=${link.key}`;
+  const hrefToClicks = `${APP_DOMAIN}/events?event=clicks&domain=${link.domain}&key=${link.key}`;
 
   return {
     blocks: [
@@ -98,7 +99,7 @@ const linkClickedTemplate = ({ data }: { data: ClickEventWebhookPayload }) => {
         elements: [
           {
             type: "mrkdwn",
-            text: `<${linkToClicks}|View on Dub>`,
+            text: `<${hrefToClicks}|View on Dub>`,
           },
         ],
       },
@@ -107,8 +108,16 @@ const linkClickedTemplate = ({ data }: { data: ClickEventWebhookPayload }) => {
 };
 
 const leadCreatedTemplate = ({ data }: { data: LeadEventWebhookPayload }) => {
-  const { customer, click, link } = data;
-  const linkToLeads = `${APP_DOMAIN}/events?event=leads&domain=${link.domain}&key=${link.key}`;
+  const { customer, click, link, partner } = data;
+  const hrefToCustomerPage = `${APP_DOMAIN}/customers/${customer.id}`;
+  const hrefToPartnerPage = `${APP_DOMAIN}/program/partners/${partner?.id}`;
+  const hrefToLinkPage = `${APP_DOMAIN}/links/${link.domain}/${link.key}`;
+
+  const quickLinks = [
+    `<${hrefToCustomerPage}|Customer>`,
+    ...(partner ? [`<${hrefToPartnerPage}|Partner>`] : []),
+    `<${hrefToLinkPage}|Link>`,
+  ];
 
   return {
     blocks: [
@@ -121,24 +130,28 @@ const leadCreatedTemplate = ({ data }: { data: LeadEventWebhookPayload }) => {
         fields: [
           {
             type: "mrkdwn",
-            text: `*Customer*\n${customer.name}`,
+            text: `*Customer*\n<${hrefToCustomerPage}|${customer.name}> (<${hrefToCustomerPage}|\`${customer.email}\`>)`,
           },
           {
             type: "mrkdwn",
-            text: `*Email*\n<mailto:${customer.email}|${customer.email}>`,
+            text: `*Country*\n:flag-${click.country.toLowerCase()}: ${COUNTRIES[click.country]}`,
           },
         ],
       },
       {
         type: "section",
         fields: [
+          ...(partner
+            ? [
+                {
+                  type: "mrkdwn",
+                  text: `*Partner*\n<${hrefToPartnerPage}|${partner.name}> (<${hrefToPartnerPage}|\`${partner.email}\`>)`,
+                },
+              ]
+            : []),
           {
             type: "mrkdwn",
-            text: `*Country*\n${click.country}`,
-          },
-          {
-            type: "mrkdwn",
-            text: `*Short link*\n<${link.shortLink}|${link.shortLink}>`,
+            text: `*Link*\n<${hrefToLinkPage}|${link.domain}/${link.key}>`,
           },
         ],
       },
@@ -147,7 +160,7 @@ const leadCreatedTemplate = ({ data }: { data: LeadEventWebhookPayload }) => {
         elements: [
           {
             type: "mrkdwn",
-            text: `<${linkToLeads}|View on Dub>`,
+            text: `View on Dub: ${quickLinks.join(" | ")}`,
           },
         ],
       },
@@ -156,9 +169,23 @@ const leadCreatedTemplate = ({ data }: { data: LeadEventWebhookPayload }) => {
 };
 
 const saleCreatedTemplate = ({ data }: { data: SaleEventWebhookPayload }) => {
-  const { customer, click, sale, link } = data;
+  const { customer, click, sale, link, partner } = data;
   const amountInDollars = (sale.amount / 100).toFixed(2);
-  const linkToSales = `${APP_DOMAIN}/events?event=sales&domain=${link.domain}&key=${link.key}`;
+  const isNewSaleType = isFirstConversion({
+    customer: {
+      sales: customer.sales || 0,
+      linkId: null,
+    },
+  });
+  const hrefToCustomerPage = `${APP_DOMAIN}/customers/${customer.id}`;
+  const hrefToPartnerPage = `${APP_DOMAIN}/program/partners/${partner?.id}`;
+  const hrefToLinkPage = `${APP_DOMAIN}/links/${link.domain}/${link.key}`;
+
+  const quickLinks = [
+    `<${hrefToCustomerPage}|Customer>`,
+    ...(partner ? [`<${hrefToPartnerPage}|Partner>`] : []),
+    `<${hrefToLinkPage}|Link>`,
+  ];
 
   return {
     blocks: [
@@ -171,11 +198,11 @@ const saleCreatedTemplate = ({ data }: { data: SaleEventWebhookPayload }) => {
         fields: [
           {
             type: "mrkdwn",
-            text: `*Customer*\n${customer.name}`,
+            text: `*Customer*\n${customer.name} (<mailto:${customer.email}|${customer.email}>)`,
           },
           {
             type: "mrkdwn",
-            text: `*Email*\n<mailto:${customer.email}|${customer.email}>`,
+            text: `*Country*\n:flag-${click.country.toLowerCase()}: ${COUNTRIES[click.country]}`,
           },
         ],
       },
@@ -184,11 +211,28 @@ const saleCreatedTemplate = ({ data }: { data: SaleEventWebhookPayload }) => {
         fields: [
           {
             type: "mrkdwn",
-            text: `*Country*\n${click.country}`,
+            text: `*Amount*\n${amountInDollars} ${sale.currency.toUpperCase()}`,
           },
           {
             type: "mrkdwn",
-            text: `*Amount*\n${amountInDollars} ${sale.currency.toUpperCase()}`,
+            text: `*Sale Type*\n${isNewSaleType ? ":new: New sale (first payment)" : ":repeat: Recurring sale (subscription renewal)"}`,
+          },
+        ],
+      },
+      {
+        type: "section",
+        fields: [
+          ...(partner
+            ? [
+                {
+                  type: "mrkdwn",
+                  text: `*Partner*\n<${hrefToPartnerPage}|${partner.name}> (<${hrefToPartnerPage}|\`${partner.email}\`>)`,
+                },
+              ]
+            : []),
+          {
+            type: "mrkdwn",
+            text: `*Link*\n<${hrefToLinkPage}|${link.domain}/${link.key}>`,
           },
         ],
       },
@@ -197,7 +241,7 @@ const saleCreatedTemplate = ({ data }: { data: SaleEventWebhookPayload }) => {
         elements: [
           {
             type: "mrkdwn",
-            text: `<${linkToSales}|View on Dub>`,
+            text: `View on Dub: ${quickLinks.join(" | ")}`,
           },
         ],
       },
@@ -210,8 +254,8 @@ const partnerEnrolledTemplate = ({
 }: {
   data: PartnerEventWebhookPayload;
 }) => {
-  const { name, email, country, partnerId } = data;
-  const linkToPartner = `${APP_DOMAIN}/program/partners/${partnerId}`;
+  const { name, email, country, companyName, partnerId } = data;
+  const hrefToPartnerPage = `${APP_DOMAIN}/program/partners/${partnerId}`;
 
   return {
     blocks: [
@@ -227,16 +271,24 @@ const partnerEnrolledTemplate = ({
         fields: [
           {
             type: "mrkdwn",
-            text: `*Name*\n${name}`,
+            text: `*Partner*\n<${hrefToPartnerPage}|${name}> (<${hrefToPartnerPage}|\`${email}\`>)`,
           },
-          {
-            type: "mrkdwn",
-            text: `*Email*\n<mailto:${email}|${email}>`,
-          },
-          {
-            type: "mrkdwn",
-            text: `*Country*\n${country}`,
-          },
+          ...(country
+            ? [
+                {
+                  type: "mrkdwn",
+                  text: `*Country*\n:flag-${country.toLowerCase()}: ${COUNTRIES[country]}`,
+                },
+              ]
+            : []),
+          ...(companyName
+            ? [
+                {
+                  type: "mrkdwn",
+                  text: `*Company*\n${companyName}`,
+                },
+              ]
+            : []),
         ],
       },
       {
@@ -244,7 +296,7 @@ const partnerEnrolledTemplate = ({
         elements: [
           {
             type: "mrkdwn",
-            text: `Partner ID: ${partnerId} | <${linkToPartner}|View on Dub>`,
+            text: `View on Dub: <${hrefToPartnerPage}|Partner>`,
           },
         ],
       },
@@ -257,8 +309,8 @@ const partnerApplicationSubmittedTemplate = ({
 }: {
   data: PartnerApplicationWebhookPayload;
 }) => {
-  const { id, partner } = data;
-  const linkToApplication = `${APP_DOMAIN}/program/partners/applications?partnerId=${partner.id}`;
+  const { partner } = data;
+  const hrefToApplicationPage = `${APP_DOMAIN}/program/partners/applications?partnerId=${partner.id}`;
 
   return {
     blocks: [
@@ -274,16 +326,16 @@ const partnerApplicationSubmittedTemplate = ({
         fields: [
           {
             type: "mrkdwn",
-            text: `*Name*\n${partner.name}`,
+            text: `*Name*\n<${hrefToApplicationPage}|${partner.name}> (<${hrefToApplicationPage}|\`${partner.email}\`>)`,
           },
-          {
-            type: "mrkdwn",
-            text: `*Email*\n<mailto:${partner.email}|${partner.email}>`,
-          },
-          {
-            type: "mrkdwn",
-            text: `*Country*\n${partner.country}`,
-          },
+          ...(partner.country
+            ? [
+                {
+                  type: "mrkdwn",
+                  text: `*Country*\n:flag-${partner.country.toLowerCase()}: ${COUNTRIES[partner.country]}`,
+                },
+              ]
+            : []),
           ...(partner.companyName
             ? [
                 {
@@ -299,7 +351,7 @@ const partnerApplicationSubmittedTemplate = ({
         elements: [
           {
             type: "mrkdwn",
-            text: `Application ID: ${id} | <${linkToApplication}|View on Dub>`,
+            text: `View on Dub: <${hrefToApplicationPage}|Application>`,
           },
         ],
       },
@@ -312,11 +364,25 @@ const commissionCreatedTemplate = ({
 }: {
   data: CommissionEventWebhookPayload;
 }) => {
-  const { id, amount, earnings, currency, partner, customer } = data;
+  const { id, amount, earnings, currency, partner, customer, link } = data;
 
   const formattedAmount = currencyFormatter(amount, { currency });
   const formattedEarnings = currencyFormatter(earnings, { currency });
-  const linkToCommissions = `${APP_DOMAIN}/program/commissions`;
+  const hrefToPartnerPage = `${APP_DOMAIN}/program/partners/${partner.id}`;
+  const hrefToCustomerPage = customer
+    ? `${APP_DOMAIN}/customers/${customer.id}`
+    : null;
+  const hrefToLinkPage = link
+    ? `${APP_DOMAIN}/links/${link.domain}/${link.key}`
+    : null;
+  const hrefToCommission = `${APP_DOMAIN}/program/commissions?commissionId=${id}`;
+
+  const quickLinks = [
+    `<${hrefToCommission}|Commission>`,
+    `<${hrefToPartnerPage}|Partner>`,
+    ...(customer ? [`<${hrefToCustomerPage}|Customer>`] : []),
+    ...(link ? [`<${hrefToLinkPage}|Link>`] : []),
+  ];
 
   return {
     blocks: [
@@ -324,20 +390,21 @@ const commissionCreatedTemplate = ({
         type: "section",
         text: {
           type: "mrkdwn",
-          text: `*New commission created* :tada:`,
+          text: "*New commission created* :tada:",
         },
-      },
-      {
-        type: "section",
         fields: [
           {
             type: "mrkdwn",
-            text: `*Partner*\n${partner.name}`,
+            text: `*Partner*\n<${hrefToPartnerPage}|${partner.name}> (<${hrefToPartnerPage}|\`${partner.email}\`>)`,
           },
-          {
-            type: "mrkdwn",
-            text: `*Email*\n<mailto:${partner.email}|${partner.email}>`,
-          },
+          ...(customer
+            ? [
+                {
+                  type: "mrkdwn",
+                  text: `*Customer*\n<${hrefToCustomerPage}|${customer.name}> (<${hrefToCustomerPage}|\`${customer.email}\`>)`,
+                },
+              ]
+            : []),
         ],
       },
       {
@@ -353,29 +420,12 @@ const commissionCreatedTemplate = ({
           },
         ],
       },
-      ...(customer
-        ? [
-            {
-              type: "section",
-              fields: [
-                {
-                  type: "mrkdwn",
-                  text: `*Customer*\n${customer.name}`,
-                },
-                {
-                  type: "mrkdwn",
-                  text: `*Customer Email*\n<mailto:${customer.email}|${customer.email}>`,
-                },
-              ],
-            },
-          ]
-        : []),
       {
         type: "context",
         elements: [
           {
             type: "mrkdwn",
-            text: `Commission ID: ${id} | <${linkToCommissions}|View on Dub>`,
+            text: `View on Dub: ${quickLinks.join(" | ")}`,
           },
         ],
       },
@@ -411,7 +461,7 @@ const bountyTemplates = ({
     rewardDescription,
   });
 
-  const linkToBounty = `${APP_DOMAIN}/program/bounties/${id}`;
+  const hrefToBounty = `${APP_DOMAIN}/program/bounties/${id}`;
 
   return {
     blocks: [
@@ -464,7 +514,7 @@ const bountyTemplates = ({
         elements: [
           {
             type: "mrkdwn",
-            text: `<${linkToBounty}|View on Dub>`,
+            text: `<${hrefToBounty}|View on Dub>`,
           },
         ],
       },
@@ -479,7 +529,7 @@ const payoutConfirmedTemplate = ({
 }) => {
   const { id, amount, currency, partner, invoiceId } = data;
   const formattedAmount = currencyFormatter(amount, { currency });
-  const linkToPayout = `${APP_DOMAIN}/program/payouts?payoutId=${id}`;
+  const hrefToPayout = `${APP_DOMAIN}/program/payouts?payoutId=${id}`;
 
   return {
     blocks: [
@@ -525,7 +575,7 @@ const payoutConfirmedTemplate = ({
         elements: [
           {
             type: "mrkdwn",
-            text: `Payout ID: ${id} | <${linkToPayout}|View on Dub>`,
+            text: `Payout ID: ${id} | <${hrefToPayout}|View on Dub>`,
           },
         ],
       },

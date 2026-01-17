@@ -1,16 +1,19 @@
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
+import {
+  getAvailableRolesForPlan,
+  WORKSPACE_ROLES,
+} from "@/lib/workspace-roles";
 import { Invite } from "@/lib/zod/schemas/invites";
 import { WorkspaceRole } from "@dub/prisma/client";
 import { Button, useMediaQuery, useRouterStuff } from "@dub/ui";
 import { Trash } from "@dub/ui/icons";
-import { capitalize, cn, pluralize } from "@dub/utils";
+import { cn, pluralize } from "@dub/utils";
 import { Plus } from "lucide-react";
 import posthog from "posthog-js";
+import { useMemo } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { CustomToast } from "../shared/custom-toast";
-import { CheckCircleFill } from "../shared/icons";
 import { UpgradeRequiredToast } from "../shared/upgrade-required-toast";
 
 type FormData = {
@@ -22,20 +25,20 @@ type FormData = {
 
 export function InviteTeammatesForm({
   onSuccess,
-  saveOnly = false,
   invites = [],
   className,
 }: {
   onSuccess?: () => void;
-  saveOnly?: boolean; // Whether to only save the data without actually sending invites
   invites?: Invite[];
   className?: string;
 }) {
-  const { id, slug } = useWorkspace();
+  const { id, slug, plan, usersLimit } = useWorkspace();
   const { isMobile } = useMediaQuery();
   const { queryParams } = useRouterStuff();
 
-  const maxTeammates = saveOnly ? 4 : 10;
+  const availableRolesForPlan = useMemo(() => {
+    return getAvailableRolesForPlan(plan);
+  }, [plan]);
 
   const {
     control,
@@ -56,42 +59,28 @@ export function InviteTeammatesForm({
     <form
       onSubmit={handleSubmit(async (data) => {
         const teammates = data.teammates.filter(({ email }) => email);
-        const res = await fetch(
-          `/api/workspaces/${id}/invites${saveOnly ? "/saved" : ""}`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ teammates }),
-          },
-        );
+        const res = await fetch(`/api/workspaces/${id}/invites`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ teammates }),
+        });
 
         if (res.ok) {
           await mutatePrefix(`/api/workspaces/${id}/invites`);
 
-          if (saveOnly) {
-            toast.custom(
-              () => (
-                <CustomToast icon={CheckCircleFill}>
-                  {`${pluralize("Invitation", teammates.length)} saved. You'll need a pro plan to invite teammates. [Learn more](https://dub.co/help/article/how-to-invite-teammates)`}
-                </CustomToast>
-              ),
-              { duration: 7000 },
-            );
-          } else {
-            toast.success(`${pluralize("Invitation", teammates.length)} sent!`);
-            queryParams({
-              set: {
-                status: "invited",
-              },
-            });
+          toast.success(`${pluralize("Invitation", teammates.length)} sent!`);
+          queryParams({
+            set: {
+              status: "invited",
+            },
+          });
 
-            teammates.forEach(({ email }) =>
-              posthog.capture("teammate_invited", {
-                workspace: slug,
-                invitee_email: email,
-              }),
-            );
-          }
+          teammates.forEach(({ email }) =>
+            posthog.capture("teammate_invited", {
+              workspace: slug,
+              invitee_email: email,
+            }),
+          );
           onSuccess?.();
         } else {
           const { error } = await res.json();
@@ -140,11 +129,17 @@ export function InviteTeammatesForm({
                   defaultValue="member"
                   className="rounded-r-md border border-l-0 border-neutral-300 bg-white pl-4 pr-8 text-neutral-600 focus:border-neutral-300 focus:outline-none focus:ring-0 sm:text-sm"
                 >
-                  {["owner", "member"].map((role) => (
-                    <option key={role} value={role}>
-                      {capitalize(role)}
-                    </option>
-                  ))}
+                  {WORKSPACE_ROLES.map(({ value, label }) => {
+                    return (
+                      <option
+                        key={value}
+                        value={value}
+                        disabled={!availableRolesForPlan.includes(value)}
+                      >
+                        {label}
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
             </label>
@@ -166,14 +161,12 @@ export function InviteTeammatesForm({
           icon={<Plus className="size-4" />}
           text="Add email"
           onClick={() => append({ email: "", role: "member" })}
-          disabled={fields.length >= maxTeammates}
+          disabled={fields.length >= (usersLimit || Infinity)}
         />
       </div>
       <Button
         loading={isSubmitting || isSubmitSuccessful}
-        text={
-          saveOnly ? "Continue" : `Send ${pluralize("invite", fields.length)}`
-        }
+        text={`Send ${pluralize("invite", fields.length)}`}
       />
     </form>
   );

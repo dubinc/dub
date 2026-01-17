@@ -1,14 +1,13 @@
 "use server";
 
 import { createId } from "@/lib/api/create-id";
-import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { onboardProgramSchema } from "@/lib/zod/schemas/program-onboarding";
 import { prisma } from "@dub/prisma";
 import { Project } from "@dub/prisma/client";
-import { isLegacyBusinessPlan } from "@dub/utils";
 import { redirect } from "next/navigation";
 import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 import { createProgram } from "./create-program";
 
 export const onboardProgramAction = authActionClient
@@ -16,18 +15,14 @@ export const onboardProgramAction = authActionClient
   .action(async ({ ctx, parsedInput: data }) => {
     const { workspace, user } = ctx;
 
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredRoles: ["owner", "member"],
+    });
+
     if (workspace.defaultProgramId) {
       throw new Error(
         "You've already created a program for your workspace. Please use the existing program instead.",
-      );
-    }
-
-    if (
-      !getPlanCapabilities(workspace.plan).canManageProgram ||
-      isLegacyBusinessPlan(workspace)
-    ) {
-      throw new Error(
-        "Your current plan does not support creating a program. Please upgrade to a higher plan to proceed.",
       );
     }
 
@@ -35,6 +30,8 @@ export const onboardProgramAction = authActionClient
       await createProgram({
         workspace,
         user,
+        redirectTo: `/${workspace.slug}/program?onboarded-program=true`,
+        sendProgramWelcomeEmail: true,
       });
       return;
     }

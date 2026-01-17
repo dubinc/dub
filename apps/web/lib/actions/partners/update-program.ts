@@ -10,6 +10,7 @@ import * as z from "zod/v4";
 import { getProgramOrThrow } from "../../api/programs/get-program-or-throw";
 import { ProgramSchema, updateProgramSchema } from "../../zod/schemas/programs";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 const schema = updateProgramSchema.partial().extend({
   workspaceId: z.string(),
@@ -29,6 +30,11 @@ export const updateProgramAction = authActionClient
       messagingEnabledAt,
       referralFormData,
     } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredRoles: ["owner", "member"],
+    });
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 

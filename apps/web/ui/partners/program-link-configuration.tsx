@@ -52,7 +52,7 @@ export function ProgramLinkConfiguration({
           className="max-w-full"
         />
         <p className="text-xs font-normal text-neutral-500">
-          Where people will be redirected to when they click on your program's
+          Where people will be redirected to when they click on your partners'
           referral links
         </p>
       </div>

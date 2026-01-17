@@ -1,11 +1,14 @@
 "use client";
 
+import { clientAccessCheck } from "@/lib/client-access-check";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { useWorkspaceStore } from "@/lib/swr/use-workspace-store";
-import { Switch } from "@dub/ui";
+import { LockSmall, Switch } from "@dub/ui";
 import { useId } from "react";
 
 export function OutboundDomainTrackingSection() {
   const id = useId();
+  const { role } = useWorkspace();
 
   const [enabled, setEnabled, { loading }] = useWorkspaceStore<boolean>(
     "analyticsSettingsOutboundDomainTrackingEnabled",
@@ -13,6 +16,12 @@ export function OutboundDomainTrackingSection() {
       mutateOnSet: true,
     },
   );
+
+  const permissionsError = clientAccessCheck({
+    action: "workspaces.write",
+    role,
+    customPermissionDescription: "manage outbound domain tracking",
+  }).error;
 
   return (
     <div className="flex flex-1 flex-col rounded-lg border border-neutral-200 bg-neutral-50">
@@ -41,6 +50,16 @@ export function OutboundDomainTrackingSection() {
 
         <Switch
           disabled={loading}
+          {...(permissionsError
+            ? {
+                disabledTooltip: permissionsError,
+                thumbIcon: (
+                  <div className="flex size-full items-center justify-center">
+                    <LockSmall className="size-[8px] text-black" />
+                  </div>
+                ),
+              }
+            : {})}
           checked={enabled || false}
           trackDimensions="radix-state-checked:bg-black focus-visible:ring-black/20 w-7 h-4"
           thumbDimensions="size-3"

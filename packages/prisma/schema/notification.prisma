@@ -50,7 +50,7 @@ model NotificationPreference {
   linkUsageSummary           Boolean @default(true)
   domainConfigurationUpdates Boolean @default(true)
   newPartnerSale             Boolean @default(true)
-  newPartnerApplication      Boolean @default(true)
+  newPartnerApplication      Boolean @default(false)
   pendingApplicationsSummary Boolean @default(true)
   newBountySubmitted         Boolean @default(true)
   newMessageFromPartner      Boolean @default(true)

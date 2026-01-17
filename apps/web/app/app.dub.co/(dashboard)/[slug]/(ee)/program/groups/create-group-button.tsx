@@ -1,5 +1,6 @@
 "use client";
 
+import { clientAccessCheck } from "@/lib/client-access-check";
 import useGroupsCount from "@/lib/swr/use-groups-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { usePartnersUpgradeModal } from "@/ui/partners/partners-upgrade-modal";
@@ -8,8 +9,13 @@ import { useCreateGroupModal } from "./create-group-modal";
 
 export function CreateGroupButton() {
   const { isMobile } = useMediaQuery();
-  const { groupsLimit, nextPlan } = useWorkspace();
+  const { groupsLimit, nextPlan, role } = useWorkspace();
   const { groupsCount } = useGroupsCount();
+
+  const permissionsError = clientAccessCheck({
+    action: "groups.write",
+    role,
+  }).error;
 
   const { partnersUpgradeModal, setShowPartnersUpgradeModal } =
     usePartnersUpgradeModal({
@@ -29,7 +35,9 @@ export function CreateGroupButton() {
     else setShowCreateGroupSheet(true);
   };
 
-  useKeyboardShortcut("c", () => handleCreateGroup());
+  useKeyboardShortcut("c", () => handleCreateGroup(), {
+    enabled: !disabled && !permissionsError,
+  });
 
   return (
     <>
@@ -42,6 +50,7 @@ export function CreateGroupButton() {
         className="h-8 px-3 sm:h-9"
         shortcut={!disabled ? "C" : undefined}
         disabled={disabled}
+        disabledTooltip={permissionsError || undefined}
       />
     </>
   );

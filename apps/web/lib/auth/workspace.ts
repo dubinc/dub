@@ -2,6 +2,7 @@ import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { BetaFeatures, PlanProps, WorkspaceWithUsers } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
+import { WorkspaceRole } from "@dub/prisma/client";
 import { API_DOMAIN, getSearchParams } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { headers } from "next/headers";
@@ -67,14 +68,14 @@ export const withWorkspace = (
       "advanced",
       "enterprise",
     ], // if the action needs a specific plan
-    featureFlag, // if the action needs a specific feature flag
     requiredPermissions = [],
-    skipPermissionChecks, // if the action doesn't need to check for required permission(s)
+    requiredRoles = [],
+    featureFlag, // if the action needs a specific feature flag
   }: {
     requiredPlan?: Array<PlanProps>;
-    featureFlag?: BetaFeatures;
     requiredPermissions?: PermissionAction[];
-    skipPermissionChecks?: boolean;
+    requiredRoles?: WorkspaceRole[];
+    featureFlag?: BetaFeatures;
   } = {},
 ) => {
   return withAxiomBodyLog(
@@ -415,12 +416,23 @@ export const withWorkspace = (
         }
 
         // Check user has permission to make the action
-        if (!skipPermissionChecks) {
+        if (requiredPermissions.length > 0) {
           throwIfNoAccess({
             permissions,
             requiredPermissions,
             workspaceId: workspace.id,
             externalRequest: Boolean(apiKey),
+          });
+        }
+
+        // role checks
+        if (
+          requiredRoles.length > 0 &&
+          !requiredRoles.includes(workspace.users[0].role)
+        ) {
+          throw new DubApiError({
+            code: "forbidden",
+            message: `You don't have the required role to access this endpoint. Required role(s): ${requiredRoles.join(", ")}.`,
           });
         }
 

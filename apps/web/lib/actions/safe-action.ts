@@ -36,6 +36,7 @@ export const authUserActionClient = actionClient.use(async ({ next }) => {
   });
 });
 
+// Workspace users
 export const authActionClient = actionClient.use(
   async ({ next, clientInput }) => {
     const session = await getSession();
@@ -87,6 +88,7 @@ export const authActionClient = actionClient.use(
   },
 );
 
+// Partner users
 export const authPartnerActionClient = actionClient.use(async ({ next }) => {
   const session = await getSession();
 

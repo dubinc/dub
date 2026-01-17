@@ -1,5 +1,5 @@
-import WorkspacePeopleClient from "./page-client";
+import { WorkspaceMembersClient } from "./page-client";
 
-export default function WorkspacePeople() {
-  return <WorkspacePeopleClient />;
+export default function WorkspaceMembers() {
+  return <WorkspaceMembersClient />;
 }

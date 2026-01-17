@@ -5,6 +5,7 @@ import { storage } from "@/lib/storage";
 import { nanoid, R2_URL } from "@dub/utils";
 import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 const schema = z.object({
   workspaceId: z.string(),
@@ -14,6 +15,12 @@ export const uploadLanderImageAction = authActionClient
   .inputSchema(schema)
   .action(async ({ ctx }) => {
     const { workspace } = ctx;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredRoles: ["owner", "member"],
+    });
+
     const programId = getDefaultProgramIdOrThrow(workspace);
 
     try {

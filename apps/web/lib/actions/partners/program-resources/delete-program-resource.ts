@@ -10,6 +10,7 @@ import { prisma } from "@dub/prisma";
 import { R2_URL } from "@dub/utils";
 import * as z from "zod/v4";
 import { authActionClient } from "../../safe-action";
+import { throwIfNoPermission } from "../../throw-if-no-permission";
 
 // Schema for deleting a program resource
 const deleteProgramResourceSchema = z.object({
@@ -23,6 +24,12 @@ export const deleteProgramResourceAction = authActionClient
   .action(async ({ ctx, parsedInput }) => {
     const { workspace } = ctx;
     const { resourceType, resourceId } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredRoles: ["owner", "member"],
+    });
+
     const programId = getDefaultProgramIdOrThrow(workspace);
 
     // Verify the program exists and belongs to the workspace

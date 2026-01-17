@@ -10,13 +10,11 @@ import {
 } from "@dub/utils";
 import { ImageResponse } from "next/og";
 import { NextRequest } from "next/server";
-
-export const runtime = "edge";
+import { loadGoogleFont } from "../load-google-font";
 
 export async function GET(req: NextRequest) {
-  const interMedium = await fetch(
-    new URL("@/styles/Inter-Medium.ttf", import.meta.url),
-  ).then((res) => res.arrayBuffer());
+  // Load Inter Medium font (weight 500)
+  const interMedium = await loadGoogleFont("Inter:wght@500");
 
   const linkId = req.nextUrl.searchParams.get("linkId");
   const folderId = req.nextUrl.searchParams.get("folderId");
@@ -201,12 +199,16 @@ export async function GET(req: NextRequest) {
     {
       width: 1200,
       height: 630,
-      fonts: [
-        {
-          name: "Inter Medium",
-          data: interMedium,
-        },
-      ],
+      fonts: interMedium
+        ? [
+            {
+              name: "Inter",
+              data: interMedium,
+              style: "normal",
+              weight: 500,
+            },
+          ]
+        : [],
     },
   );
 }

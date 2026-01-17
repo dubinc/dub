@@ -1,3 +1,5 @@
+import { clientAccessCheck } from "@/lib/client-access-check";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { Button } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { PropsWithChildren } from "react";
@@ -5,6 +7,12 @@ import { useFormContext, useFormState } from "react-hook-form";
 import { LinkFormData } from "./link-builder-provider";
 
 export function LinkActionBar({ children }: PropsWithChildren) {
+  const { role } = useWorkspace();
+  const permissionsError = clientAccessCheck({
+    action: "links.write",
+    role,
+  }).error;
+
   const { control, reset } = useFormContext<LinkFormData>();
   const { isDirty, isSubmitting, isSubmitSuccessful } = useFormState({
     control,
@@ -41,6 +49,7 @@ export function LinkActionBar({ children }: PropsWithChildren) {
             variant="secondary"
             className="hidden h-7 px-2.5 text-xs lg:flex"
             onClick={() => reset()}
+            disabledTooltip={permissionsError || undefined}
           />
           <Button
             type="submit"
@@ -48,6 +57,7 @@ export function LinkActionBar({ children }: PropsWithChildren) {
             variant="primary"
             className="h-7 px-2.5 text-xs"
             loading={isSubmitting || isSubmitSuccessful}
+            disabledTooltip={permissionsError || undefined}
           />
         </div>
       </div>

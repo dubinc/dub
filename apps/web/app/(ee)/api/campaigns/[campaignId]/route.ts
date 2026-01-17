@@ -44,6 +44,7 @@ export const GET = withWorkspace(
   },
   {
     requiredPlan: ["advanced", "enterprise"],
+    requiredRoles: ["owner", "member"],
   },
 );
 
@@ -171,6 +172,7 @@ export const PATCH = withWorkspace(
   },
   {
     requiredPlan: ["advanced", "enterprise"],
+    requiredRoles: ["owner", "member"],
   },
 );
 
@@ -222,5 +224,6 @@ export const DELETE = withWorkspace(
   },
   {
     requiredPlan: ["advanced", "enterprise"],
+    requiredRoles: ["owner", "member"],
   },
 );

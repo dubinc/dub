@@ -13,11 +13,17 @@ import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { getProgramOrThrow } from "../../api/programs/get-program-or-throw";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 export const invitePartnerFromNetworkAction = authActionClient
   .inputSchema(invitePartnerFromNetworkSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredRoles: ["owner", "member"],
+    });
 
     const networkInvitesUsage = await getNetworkInvitesUsage(workspace);
 

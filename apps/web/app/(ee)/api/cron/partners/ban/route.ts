@@ -15,7 +15,7 @@ import PartnerBanned from "@dub/email/templates/partner-banned";
 import { prisma } from "@dub/prisma";
 import { FraudRuleType } from "@dub/prisma/client";
 import * as z from "zod/v4";
-import { logAndRespond } from "../../../utils";
+import { logAndRespond } from "../../utils";
 import { cancelCommissions } from "./cancel-commissions";
 
 const schema = z.object({
@@ -23,7 +23,7 @@ const schema = z.object({
   partnerId: z.string(),
 });
 
-// POST /api/cron/partners/ban/process - do the post-ban processing
+// POST /api/cron/partners/ban - handle all side effects of banning a partner
 export const POST = withCron(async ({ rawBody }) => {
   const { programId, partnerId } = schema.parse(JSON.parse(rawBody));
 
@@ -78,6 +78,9 @@ export const POST = withCron(async ({ rawBody }) => {
         },
         data: {
           status: "rejected",
+          rejectionReason: "other",
+          rejectionNote:
+            "Rejected automatically because the partner was banned.",
         },
       }),
 
