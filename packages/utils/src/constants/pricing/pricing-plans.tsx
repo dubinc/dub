@@ -1,5 +1,5 @@
-import { nFormatter } from "../functions";
-import { INFINITY_NUMBER } from "./misc";
+import { nFormatter } from "../../functions";
+import { INFINITY_NUMBER } from "../misc";
 
 export type PlanFeature = {
   id?: string;

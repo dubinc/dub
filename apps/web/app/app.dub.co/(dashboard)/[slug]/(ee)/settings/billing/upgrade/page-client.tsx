@@ -19,11 +19,11 @@ import {
   cn,
   getSuggestedPlan,
   isDowngradePlan,
-  PLAN_COMPARE_FEATURES,
+  isLegacyBusinessPlan,
   PlanDetails,
   PLANS,
+  PRICING_PLAN_COMPARE_FEATURES,
 } from "@dub/utils";
-import { isLegacyBusinessPlan } from "@dub/utils/src/constants/pricing";
 import NumberFlow from "@number-flow/react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { motion } from "motion/react";
@@ -33,7 +33,7 @@ import { CSSProperties, useEffect, useMemo, useState } from "react";
 import { AdjustUsageRow } from "./adjust-usage-row";
 
 const COMPARE_FEATURE_ICONS: Record<
-  (typeof PLAN_COMPARE_FEATURES)[number]["category"],
+  (typeof PRICING_PLAN_COMPARE_FEATURES)[number]["category"],
   Icon
 > = {
   Links: Hyperlink,
@@ -285,7 +285,7 @@ export function WorkspaceBillingUpgradePageClient() {
           <div className="h-4 bg-gradient-to-b from-white" />
         </div>
         <div className="flex flex-col pb-12">
-          {PLAN_COMPARE_FEATURES.map((section) => (
+          {PRICING_PLAN_COMPARE_FEATURES.map((section) => (
             <BillingCompareSection
               key={section.category}
               category={section.category}
@@ -307,7 +307,7 @@ function BillingCompareSection({
   features,
   mobilePlanIndex,
   plans,
-}: (typeof PLAN_COMPARE_FEATURES)[number] & {
+}: (typeof PRICING_PLAN_COMPARE_FEATURES)[number] & {
   mobilePlanIndex: number;
   plans: { plan: PlanDetails; planTier: number }[];
 }) {

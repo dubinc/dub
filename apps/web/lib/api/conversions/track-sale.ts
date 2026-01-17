@@ -253,8 +253,9 @@ export const trackSale = async ({
     leadEventData = {
       ...clickData,
       event_id: nanoid(16),
-      // if leadEventName is provided, use it, otherwise use "Sign up"
-      event_name: leadEventName ?? "Sign up",
+      // if leadEventName is provided, use it
+      // otherwise use "Direct sale tracking lead event" (since it's for direct sale tracking)
+      event_name: leadEventName ?? "Direct sale tracking lead event",
       customer_id: newCustomer.id,
       metadata: metadata ? JSON.stringify(metadata) : "",
     };

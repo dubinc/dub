@@ -4,7 +4,7 @@ import { approvePartnerEnrollment } from "@/lib/partners/approve-partner-enrollm
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@dub/prisma";
 import * as z from "zod/v4";
-import { logAndRespond } from "../utils";
+import { logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";
 
@@ -13,7 +13,7 @@ const schema = z.object({
   partnerId: z.string(),
 });
 
-// POST /api/cron/auto-approve-partner
+// POST /api/cron/partners/auto-approve
 // This route is used to auto-approve a partner enrolled in a program
 export const POST = withCron(async ({ rawBody }) => {
   const { programId, partnerId } = schema.parse(JSON.parse(rawBody));
