@@ -2,7 +2,6 @@ import { createProgram } from "@/lib/actions/partners/create-program";
 import { claimDotLinkDomain } from "@/lib/api/domains/claim-dot-link-domain";
 import { onboardingStepCache } from "@/lib/api/workspaces/onboarding-step-cache";
 import { tokenCache } from "@/lib/auth/token-cache";
-import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { stripe } from "@/lib/stripe";
 import { WorkspaceProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
@@ -10,7 +9,7 @@ import { sendBatchEmail } from "@dub/email";
 import UpgradeEmail from "@dub/email/templates/upgrade-email";
 import { prisma } from "@dub/prisma";
 import { Program, User } from "@dub/prisma/client";
-import { getPlanAndTierFromPriceId, log } from "@dub/utils";
+import { getPlanAndTierFromPriceId, log, prettyPrint } from "@dub/utils";
 import Stripe from "stripe";
 
 export async function checkoutSessionCompleted(event: Stripe.Event) {
@@ -139,21 +138,6 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     tokenCache.expireMany({
       hashedKeys: workspace.restrictedTokens.map(({ hashedKey }) => hashedKey),
     }),
-
-    // enable program messaging if available
-    ...(workspace.defaultProgramId &&
-    getPlanCapabilities(workspace.plan).canMessagePartners
-      ? [
-          prisma.program.update({
-            where: {
-              id: workspace.defaultProgramId,
-            },
-            data: {
-              messagingEnabledAt: new Date(),
-            },
-          }),
-        ]
-      : []),
   ]);
 }
 
@@ -224,7 +208,7 @@ async function completeOnboarding({
         } catch (e) {
           console.error(
             "Failed to create program from onboarding",
-            { workspace, user: users[0] },
+            prettyPrint({ workspace, user: users[0] }),
             e,
           );
         }

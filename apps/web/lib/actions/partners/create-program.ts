@@ -5,7 +5,7 @@ import { createAndEnrollPartner } from "@/lib/api/partners/create-and-enroll-par
 import { getPartnerInviteRewardsAndBounties } from "@/lib/api/partners/get-partner-invite-rewards-and-bounties";
 import { generateRandomString } from "@/lib/api/utils/generate-random-string";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
-import { isStored, storage } from "@/lib/storage";
+import { storage } from "@/lib/storage";
 import { PlanProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import {
@@ -19,12 +19,7 @@ import ProgramInvite from "@dub/email/templates/program-invite";
 import ProgramWelcome from "@dub/email/templates/program-welcome";
 import { prisma } from "@dub/prisma";
 import { Program, Project, User } from "@dub/prisma/client";
-import {
-  getDomainWithoutWWW,
-  isLegacyBusinessPlan,
-  nanoid,
-  R2_URL,
-} from "@dub/utils";
+import { getDomainWithoutWWW, isLegacyBusinessPlan, nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { redirect } from "next/navigation";
 
@@ -242,11 +237,6 @@ export const createProgram = async ({
             }),
           )
         : []),
-
-      // delete the temporary uploaded logo
-      uploadedLogo &&
-        isStored(uploadedLogo) &&
-        storage.delete({ key: uploadedLogo.replace(`${R2_URL}/`, "") }),
 
       // send email about the new program
       sendProgramWelcomeEmail &&

@@ -46,9 +46,7 @@ export function ProductSelector() {
               {product.title}
             </a>
           }
-          description={
-            <MarkdownDescription>{product.description}</MarkdownDescription>
-          }
+          description={product.description}
           cta={`Continue with ${product.title}`}
           paidPlanRequired={product.paidPlanRequired}
         />
@@ -68,7 +66,7 @@ function ProductOption({
   product: "links" | "partners";
   icon: string;
   title: ReactNode;
-  description: ReactNode;
+  description: string;
   cta: string;
   paidPlanRequired?: boolean;
 }) {
@@ -94,7 +92,9 @@ function ProductOption({
         <span className="text-base font-semibold text-neutral-900">
           {title}
         </span>
-        <p className="text-sm text-neutral-500">{description}</p>
+        <MarkdownDescription className="text-sm text-neutral-500">
+          {description}
+        </MarkdownDescription>
       </div>
       <div className="flex w-full grow flex-col justify-end gap-2">
         <Button

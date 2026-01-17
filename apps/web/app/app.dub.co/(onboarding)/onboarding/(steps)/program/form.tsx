@@ -101,14 +101,14 @@ export function Form() {
 
         <Input
           {...register("name", { required: true })}
-          placeholder="Acme"
+          placeholder="Acme, Inc."
           autoFocus={!isMobile}
           className="max-w-full"
           error={errors.name?.message}
         />
 
         <p className="text-content-subtle text-xs">
-          Used as the external displayed program name.
+          This will used as your program's public name
         </p>
       </label>
 
@@ -141,7 +141,7 @@ export function Form() {
         </div>
 
         <p className="text-content-subtle text-xs">
-          Recommended size of 160&times;160px
+          Recommended size: 160&times;160px
         </p>
       </label>
 
@@ -166,8 +166,8 @@ export function Form() {
         />
 
         <p className="text-content-subtle text-xs">
-          Where people will be redirected to when they click on your program's
-          referral links
+          Where customers will be redirected to when they click on your
+          partners' referral links
         </p>
       </label>
 
