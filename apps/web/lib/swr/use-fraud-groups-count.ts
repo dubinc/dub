@@ -25,7 +25,7 @@ export function useFraudGroupCount<T>({
     ignoreParams
       ? { include: [] }
       : {
-          exclude: ["page", "pageSize", "sortBy", "sortOrder", "groupId", "partnerId"],
+          exclude: ["page", "pageSize", "sortBy", "sortOrder", "groupId"],
         },
   );
 
