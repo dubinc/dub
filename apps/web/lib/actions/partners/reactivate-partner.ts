@@ -43,7 +43,7 @@ export const reactivatePartnerAction = authActionClient
       throw new Error("This partner is not deactivated.");
     }
 
-    const defaultGroup = await getGroupOrThrow({
+    const partnerGroup = await getGroupOrThrow({
       programId,
       groupId:
         programEnrollment.groupId || programEnrollment.program.defaultGroupId,
@@ -63,11 +63,11 @@ export const reactivatePartnerAction = authActionClient
         },
         data: {
           status: "approved",
-          groupId: defaultGroup.id,
-          clickRewardId: defaultGroup.clickRewardId,
-          leadRewardId: defaultGroup.leadRewardId,
-          saleRewardId: defaultGroup.saleRewardId,
-          discountId: defaultGroup.discountId,
+          groupId: partnerGroup.id,
+          clickRewardId: partnerGroup.clickRewardId,
+          leadRewardId: partnerGroup.leadRewardId,
+          saleRewardId: partnerGroup.saleRewardId,
+          discountId: partnerGroup.discountId,
         },
       }),
     ]);
