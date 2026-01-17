@@ -24,6 +24,7 @@ export function PartnerFraudIndicator({
       status: "pending",
     },
     enabled: !!partnerId,
+    ignoreParams: true,
   });
 
   if (loading) {
