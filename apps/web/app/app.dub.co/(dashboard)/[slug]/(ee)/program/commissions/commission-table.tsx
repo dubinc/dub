@@ -134,6 +134,7 @@ export function CommissionTable() {
       groupBy: "partnerId",
       status: "pending",
     },
+    ignoreParams: true,
   });
 
   const { canManageFraudEvents } = getPlanCapabilities(workspace?.plan ?? "");

@@ -103,6 +103,7 @@ const PayoutTableInner = memo(
         groupBy: "partnerId",
         status: "pending",
       },
+      ignoreParams: true,
     });
 
     // Memoized map of partner IDs with pending fraud events

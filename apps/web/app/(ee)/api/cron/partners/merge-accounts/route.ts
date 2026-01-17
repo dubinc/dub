@@ -24,7 +24,7 @@ const schema = z.object({
 
 const CACHE_KEY_PREFIX = "merge-partner-accounts";
 
-// POST /api/cron/merge-partner-accounts
+// POST /api/cron/partners/merge-accounts
 // This route is used to merge a partner account into another account
 export async function POST(req: Request) {
   let userId: string | null = null;
