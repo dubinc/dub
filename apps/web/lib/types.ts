@@ -280,6 +280,7 @@ export interface DomainProps {
   verified: boolean;
   primary: boolean;
   archived: boolean;
+  createdAt: Date;
   placeholder?: string;
   expiredUrl?: string;
   notFoundUrl?: string;
