@@ -20,6 +20,7 @@ export async function getPartners(filters: PartnerFilters) {
     sortOrder,
     programId,
     groupId,
+    partnerTagIds,
   } = filters;
 
   const partners = await prisma.programEnrollment.findMany({
@@ -29,6 +30,16 @@ export async function getPartners(filters: PartnerFilters) {
       ...(partnerIds && {
         partnerId: {
           in: partnerIds,
+        },
+      }),
+      ...(partnerTagIds && {
+        partner: {
+          programPartnerTags: {
+            some: {
+              programId,
+              partnerTagId: { in: partnerTagIds },
+            },
+          },
         },
       }),
       status,
@@ -54,6 +65,14 @@ export async function getPartners(filters: PartnerFilters) {
     include: {
       partner: {
         include: {
+          programPartnerTags: {
+            where: {
+              programId,
+            },
+            include: {
+              partnerTag: true,
+            },
+          },
           platforms: true,
         },
       },
@@ -71,6 +90,7 @@ export async function getPartners(filters: PartnerFilters) {
     ...programEnrollment,
     id: partner.id,
     createdAt: new Date(programEnrollment.createdAt),
+    tags: partner.programPartnerTags.map(({ partnerTag }) => partnerTag),
     links,
     netRevenue:
       programEnrollment.totalSaleAmount - programEnrollment.totalCommissions,
