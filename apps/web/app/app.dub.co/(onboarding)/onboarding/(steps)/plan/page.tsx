@@ -17,12 +17,19 @@ export default function Plan() {
       title={
         <>
           Choose your{" "}
-          <DubProductIcon
-            product={product}
-            className="mb-[3px] ml-1 inline-flex size-5 align-middle"
-            iconClassName="size-3"
-          />{" "}
-          Dub {capitalize(product)} plan
+          <a
+            href={`https://dub.co/${product}`}
+            target="_blank"
+            className="group inline-block"
+          >
+            <DubProductIcon
+              product={product}
+              className="mb-[3px] ml-1 inline-flex size-5 align-middle transition-transform group-hover:-rotate-12"
+              iconClassName="size-3"
+            />{" "}
+            Dub {capitalize(product)}
+          </a>{" "}
+          plan
         </>
       }
       description={
@@ -33,10 +40,10 @@ export default function Plan() {
         ) : (
           <>
             <span className="inline-block">
-              Find a plan that fits your needs, or start on the
+              Find a plan that fits your needs, or
             </span>{" "}
-            <FreePlanButton className="text-base underline underline-offset-2">
-              free plan.
+            <FreePlanButton className="text-base underline decoration-dotted underline-offset-2">
+              start on the free plan.
             </FreePlanButton>
           </>
         )

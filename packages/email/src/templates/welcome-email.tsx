@@ -230,7 +230,7 @@ export default function WelcomeEmail({
                     <Text className="mb-4 text-sm leading-6 text-neutral-600">
                       2. Track conversions:{" "}
                       <Link
-                        href="https://dub.co/docs/conversions/quickstart"
+                        href="https://app.dub.co/settings/analytics"
                         className="text-neutral-600 underline underline-offset-2"
                       >
                         Install the Dub tracking script
@@ -241,7 +241,7 @@ export default function WelcomeEmail({
                     <Text className="mb-4 text-sm leading-6 text-neutral-600">
                       3. Create a program:{" "}
                       <Link
-                        href="https://dub.co/help/article/dub-analytics"
+                        href="https://dub.co/docs/partners/quickstart"
                         className="text-neutral-600 underline underline-offset-2"
                       >
                         Set up your Dub partner program
@@ -256,7 +256,7 @@ export default function WelcomeEmail({
                     <Text className="mb-4 text-sm leading-6 text-neutral-600">
                       2. Create a short link:{" "}
                       <Link
-                        href="https://dub.co/help/article/dub-analytics"
+                        href="https://dub.co/help/article/how-to-create-link"
                         className="text-neutral-600 underline underline-offset-2"
                       >
                         Create your first Dub short link

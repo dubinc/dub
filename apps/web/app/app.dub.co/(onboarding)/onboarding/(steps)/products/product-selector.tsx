@@ -3,7 +3,6 @@
 import { MarkdownDescription } from "@/ui/shared/markdown-description";
 import { Button, Crown, DubProductIcon } from "@dub/ui";
 import Image from "next/image";
-import Link from "next/link";
 import { ReactNode } from "react";
 import { useOnboardingProgress } from "../../use-onboarding-progress";
 
@@ -35,14 +34,17 @@ export function ProductSelector() {
           product={key as "links" | "partners"}
           icon={product.image}
           title={
-            <Link
+            <a
               href={product.href}
               target="_blank"
-              className="flex items-center justify-center gap-2"
+              className="group flex items-center justify-center gap-2"
             >
-              <DubProductIcon product={key as "links" | "partners"} />{" "}
+              <DubProductIcon
+                product={key as "links" | "partners"}
+                className="transition-transform group-hover:-rotate-12 group-hover:scale-110"
+              />{" "}
               {product.title}
-            </Link>
+            </a>
           }
           description={
             <MarkdownDescription>{product.description}</MarkdownDescription>

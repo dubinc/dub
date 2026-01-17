@@ -6,6 +6,7 @@ import usePaymentMethods from "@/lib/swr/use-payment-methods";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { WorkspaceProps } from "@/lib/types";
 import { useAnalyticsConnectedStatus } from "@/ui/analytics/use-analytics-connected-status";
+import { MarkdownDescription } from "@/ui/shared/markdown-description";
 import {
   BlurImage,
   Book2,
@@ -78,11 +79,11 @@ export function SuccessPageClient({
         <h1 className="text-pretty text-center text-xl font-semibold">
           The {workspace.name} workspace has been created
         </h1>
-        <p className="mt-2 text-pretty text-center text-base text-neutral-500">
+        <MarkdownDescription className="mt-2 text-pretty text-center text-base text-neutral-500">
           {hasProgram
-            ? "Now you can manage your partner program and short links in one place"
-            : "Now you have one central, organized place to build and manage all your short links."}
-        </p>
+            ? "Now you can manage your [partner program](https://dub.co/partners) and [short links](https://dub.co/links) all in one place"
+            : "Now you have one central, organized place to create and [manage all your short links](https://dub.co/help/category/link-management)."}
+        </MarkdownDescription>
         <div className="mt-4 w-full">
           <Button
             onClick={() => finish({ hasProgram })}
@@ -106,8 +107,7 @@ export function SuccessPageClient({
             {
               icon: Globe,
               title: "Connect domain",
-              description:
-                "Already have a domain? Connect it to your Dub workspace.",
+              description: "Claim a free domain or connect your own",
               href: `/${workspace.slug}/settings/domains`,
               cta: connectedDomain ? "Manage" : "Connect",
               loading: isLoadingDomains,
