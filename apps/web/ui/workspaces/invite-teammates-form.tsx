@@ -161,7 +161,7 @@ export function InviteTeammatesForm({
           icon={<Plus className="size-4" />}
           text="Add email"
           onClick={() => append({ email: "", role: "member" })}
-          disabled={fields.length >= (usersLimit || 0)}
+          disabled={fields.length >= (usersLimit || Infinity)}
         />
       </div>
       <Button
