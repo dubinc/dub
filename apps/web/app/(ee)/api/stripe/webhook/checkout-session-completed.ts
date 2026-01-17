@@ -4,7 +4,7 @@ import { onboardingStepCache } from "@/lib/api/workspaces/onboarding-step-cache"
 import { tokenCache } from "@/lib/auth/token-cache";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { stripe } from "@/lib/stripe";
-import { ProgramData, WorkspaceProps } from "@/lib/types";
+import { WorkspaceProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { sendBatchEmail } from "@dub/email";
 import UpgradeEmail from "@dub/email/templates/upgrade-email";
@@ -214,9 +214,7 @@ async function completeOnboarding({
       if (
         users.length > 0 &&
         workspace.programs.length === 0 &&
-        workspace.store?.programOnboarding &&
-        (workspace.store.programOnboarding as ProgramData).lastCompletedStep ===
-          "configure-reward"
+        workspace.store?.programOnboarding
       ) {
         try {
           await createProgram({

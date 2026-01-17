@@ -27,9 +27,6 @@ export default async function ProgramPage({
     select: {
       id: true,
       domains: {
-        where: {
-          archived: false,
-        },
         orderBy: {
           createdAt: "desc",
         },

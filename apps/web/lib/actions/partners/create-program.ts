@@ -28,7 +28,7 @@ export const createProgram = async ({
   workspace,
   user,
   redirectTo,
-  email = false,
+  sendProgramWelcomeEmail = false,
 }: {
   workspace: Pick<
     Project,
@@ -36,7 +36,7 @@ export const createProgram = async ({
   >;
   user: Pick<User, "id" | "email">;
   redirectTo?: string;
-  email?: boolean;
+  sendProgramWelcomeEmail?: boolean;
 }) => {
   const store = workspace.store as Record<string, any>;
   if (!store.programOnboarding) {
@@ -225,7 +225,7 @@ export const createProgram = async ({
         storage.delete({ key: uploadedLogo.replace(`${R2_URL}/`, "") }),
 
       // send email about the new program
-      email &&
+      sendProgramWelcomeEmail &&
         sendEmail({
           subject: `Your program ${program.name} is created and ready to share with your partners.`,
           to: user.email!,

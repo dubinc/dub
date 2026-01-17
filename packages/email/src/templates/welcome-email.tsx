@@ -21,7 +21,7 @@ export default function WelcomeEmail({
   email = "panic@thedis.co",
   workspace,
   program,
-  hasDubPartners = false,
+  hasDubPartners = true,
   unsubscribeUrl,
 }: {
   email: string;
@@ -285,7 +285,8 @@ export default function WelcomeEmail({
                   >
                     Check out our docs
                   </Link>{" "}
-                  for programmatic link creation.
+                  for programmatic link creation
+                  {hasDubPartners ? " and partner management" : ""}.
                 </Text>
               </>
             )}

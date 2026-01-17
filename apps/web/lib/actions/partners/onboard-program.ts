@@ -31,7 +31,7 @@ export const onboardProgramAction = authActionClient
         workspace,
         user,
         redirectTo: `/${workspace.slug}/program?onboarded-program=true`,
-        email: true,
+        sendProgramWelcomeEmail: true,
       });
       return;
     }

@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
-import { nFormatter } from "../functions/nformatter";
-import { PLANS } from "./pricing";
+import { nFormatter } from "../../functions/nformatter";
+import { PLANS } from "./pricing-plans";
 
 type Plan = (typeof PLANS)[number];
 
@@ -58,7 +58,7 @@ const getPartnersStandards = (plan: Plan): HeroFeature[] => [
   },
 ];
 
-export const PRICING_FEATURES = {
+export const PRICING_PLAN_MAIN_FEATURES = {
   links: {
     Pro: [
       {
