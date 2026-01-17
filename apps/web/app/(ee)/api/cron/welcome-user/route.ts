@@ -86,7 +86,6 @@ export async function POST(req: Request) {
             })
           : WelcomeEmail({
               email: user.email,
-              name: user.name,
               workspace: user.projects?.[0]?.project,
               hasDubPartners: getPlanCapabilities(
                 user.projects?.[0]?.project?.plan || "free",

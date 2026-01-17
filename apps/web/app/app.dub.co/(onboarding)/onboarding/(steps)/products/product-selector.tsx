@@ -1,8 +1,9 @@
 "use client";
 
+import { MarkdownDescription } from "@/ui/shared/markdown-description";
 import { Button, Crown, DubProductIcon } from "@dub/ui";
 import Image from "next/image";
-import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { ReactNode } from "react";
 import { useOnboardingProgress } from "../../use-onboarding-progress";
 
@@ -10,34 +11,22 @@ const products = {
   links: {
     image: "https://assets.dub.co/icons/link.webp",
     title: "Dub Links",
-    description: "Short link management, analytics, QR codes, and tracking.",
+    href: "https://dub.co/links",
+    description:
+      "[Short links](https://dub.co/help/category/link-management), [QR codes](https://dub.co/help/article/custom-qr-codes), [real-time analytics](https://dub.co/help/article/dub-analytics), and [conversion tracking](https://dub.co/docs/conversions/quickstart).",
     paidPlanRequired: false,
   },
   partners: {
     image: "https://assets.dub.co/icons/trophy.webp",
     title: "Dub Partners",
-    description: (
-      <>
-        Manage a partner program with tracking, plus{" "}
-        <a
-          href="https://dub.co/links"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="cursor-help font-medium underline decoration-dotted underline-offset-2 transition-colors hover:text-neutral-700"
-        >
-          all short link features
-        </a>
-        .
-      </>
-    ),
+    href: "https://dub.co/partners",
+    description:
+      "Modern [affiliate programs](https://dub.co/partners) with [global payouts](https://dub.co/help/article/partner-payouts) and [accurate attribution](https://dub.co/help/article/program-analytics).",
     paidPlanRequired: true,
   },
 };
 
 export function ProductSelector() {
-  const searchParams = useSearchParams();
-  const workspaceSlug = searchParams.get("workspace");
-
   return (
     <div className="animate-fade-in mx-auto grid w-full max-w-[312px] gap-4 sm:max-w-[600px] sm:grid-cols-2">
       {Object.entries(products).map(([key, product]) => (
@@ -46,12 +35,18 @@ export function ProductSelector() {
           product={key as "links" | "partners"}
           icon={product.image}
           title={
-            <span className="flex items-center justify-center gap-2">
+            <Link
+              href={product.href}
+              target="_blank"
+              className="flex items-center justify-center gap-2"
+            >
               <DubProductIcon product={key as "links" | "partners"} />{" "}
               {product.title}
-            </span>
+            </Link>
           }
-          description={product.description}
+          description={
+            <MarkdownDescription>{product.description}</MarkdownDescription>
+          }
           cta={`Continue with ${product.title}`}
           paidPlanRequired={product.paidPlanRequired}
         />

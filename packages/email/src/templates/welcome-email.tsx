@@ -18,14 +18,12 @@ import {
 import { Footer } from "../components/footer";
 
 export default function WelcomeEmail({
-  name = "Brendon Urie",
   email = "panic@thedis.co",
   workspace,
   program,
   hasDubPartners = false,
   unsubscribeUrl,
 }: {
-  name: string | null;
   email: string;
   workspace?: {
     slug: string;
@@ -59,7 +57,7 @@ export default function WelcomeEmail({
             </Heading>
             <Text className="mb-8 text-sm leading-6 text-neutral-600">
               Thank you for signing up for Dub! You can now start creating and
-              managing short links, and tracking their performance.
+              managing short links and track their performance.
             </Text>
 
             {workspace ? (

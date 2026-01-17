@@ -21,7 +21,7 @@ export function DefaultDomainSelector() {
           step="domain/custom"
           icon="https://assets.dub.co/icons/domain-sign.webp"
           title="Connect a custom domain"
-          description="Use a dedicated domain for Dub use only."
+          description="Already have a domain? Connect it to your Dub workspace."
           cta="Connect domain"
         />
         <DomainOption

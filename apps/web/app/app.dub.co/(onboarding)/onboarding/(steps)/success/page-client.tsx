@@ -106,7 +106,8 @@ export function SuccessPageClient({
             {
               icon: Globe,
               title: "Connect domain",
-              description: "Use a dedicated domain for Dub",
+              description:
+                "Already have a domain? Connect it to your Dub workspace.",
               href: `/${workspace.slug}/settings/domains`,
               cta: connectedDomain ? "Manage" : "Connect",
               loading: isLoadingDomains,
