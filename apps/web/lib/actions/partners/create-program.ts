@@ -19,7 +19,12 @@ import ProgramInvite from "@dub/email/templates/program-invite";
 import ProgramWelcome from "@dub/email/templates/program-welcome";
 import { prisma } from "@dub/prisma";
 import { Program, Project, User } from "@dub/prisma/client";
-import { getDomainWithoutWWW, nanoid, R2_URL } from "@dub/utils";
+import {
+  getDomainWithoutWWW,
+  isLegacyBusinessPlan,
+  nanoid,
+  R2_URL,
+} from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { redirect } from "next/navigation";
 
@@ -32,12 +37,34 @@ export const createProgram = async ({
 }: {
   workspace: Pick<
     Project,
-    "id" | "slug" | "plan" | "store" | "webhookEnabled" | "invoicePrefix"
+    | "id"
+    | "slug"
+    | "plan"
+    | "payoutsLimit"
+    | "store"
+    | "webhookEnabled"
+    | "invoicePrefix"
   >;
   user: Pick<User, "id" | "email">;
   redirectTo?: string;
   sendProgramWelcomeEmail?: boolean;
 }) => {
+  const { canManageProgram, canMessagePartners } = getPlanCapabilities(
+    workspace.plan,
+  );
+
+  if (
+    !canManageProgram ||
+    isLegacyBusinessPlan({
+      plan: workspace.plan,
+      payoutsLimit: workspace.payoutsLimit,
+    })
+  ) {
+    throw new Error(
+      "Your current plan does not have access to create a partner program. Please upgrade to a higher plan to proceed.",
+    );
+  }
+
   const store = workspace.store as Record<string, any>;
   if (!store.programOnboarding) {
     throw new Error("Program onboarding data not found");
@@ -113,10 +140,7 @@ export const createProgram = async ({
         supportEmail,
         helpUrl,
         termsUrl,
-        messagingEnabledAt: getPlanCapabilities(workspace.plan)
-          .canMessagePartners
-          ? new Date()
-          : null,
+        messagingEnabledAt: canMessagePartners ? new Date() : null,
         ...(type &&
           (amountInCents != null || amountInPercentage != null) && {
             rewards: {

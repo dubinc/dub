@@ -32,11 +32,10 @@ export function InviteTeammatesForm({
   invites?: Invite[];
   className?: string;
 }) {
-  const { id, slug, plan } = useWorkspace();
+  const { id, slug, plan, usersLimit } = useWorkspace();
   const { isMobile } = useMediaQuery();
   const { queryParams } = useRouterStuff();
 
-  const maxTeammates = 10;
   const availableRolesForPlan = useMemo(() => {
     return getAvailableRolesForPlan(plan);
   }, [plan]);
@@ -162,7 +161,7 @@ export function InviteTeammatesForm({
           icon={<Plus className="size-4" />}
           text="Add email"
           onClick={() => append({ email: "", role: "member" })}
-          disabled={fields.length >= maxTeammates}
+          disabled={fields.length >= (usersLimit || 0)}
         />
       </div>
       <Button

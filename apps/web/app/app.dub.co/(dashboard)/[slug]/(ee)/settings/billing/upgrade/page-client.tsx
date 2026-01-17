@@ -19,11 +19,11 @@ import {
   cn,
   getSuggestedPlan,
   isDowngradePlan,
+  isLegacyBusinessPlan,
   PlanDetails,
   PLANS,
   PRICING_PLAN_COMPARE_FEATURES,
 } from "@dub/utils";
-import { isLegacyBusinessPlan } from "@dub/utils/src/constants/pricing";
 import NumberFlow from "@number-flow/react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { motion } from "motion/react";

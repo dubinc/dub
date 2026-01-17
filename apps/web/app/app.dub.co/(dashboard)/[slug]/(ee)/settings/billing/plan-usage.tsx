@@ -33,9 +33,9 @@ import {
   cn,
   getFirstAndLastDay,
   INFINITY_NUMBER,
+  isLegacyBusinessPlan,
   nFormatter,
 } from "@dub/utils";
-import { isLegacyBusinessPlan } from "@dub/utils/src/constants/pricing";
 import NumberFlow from "@number-flow/react";
 import Link from "next/link";
 import { CSSProperties, useMemo } from "react";
