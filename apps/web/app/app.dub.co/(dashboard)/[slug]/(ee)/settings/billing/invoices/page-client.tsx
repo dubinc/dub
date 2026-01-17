@@ -1,22 +1,20 @@
 "use client";
 
-import {
-  INVOICE_AVAILABLE_PAYOUT_STATUSES,
-  INVOICE_PAYMENT_METHODS,
-} from "@/lib/constants/payouts";
+import { INVOICE_PAYMENT_METHODS } from "@/lib/constants/payouts";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { InvoiceProps } from "@/lib/types";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import {
-  Button,
   buttonVariants,
+  DynamicTooltipWrapper,
   Receipt2,
   StatusBadge,
   TabSelect,
   useRouterStuff,
 } from "@dub/ui";
 import { cn, currencyFormatter, fetcher } from "@dub/utils";
+import { AlertCircle } from "lucide-react";
 import { useMemo } from "react";
 import useSWR from "swr";
 
@@ -130,9 +128,7 @@ const InvoiceCard = ({
             </div>
           </div>
           <div className="flex items-center">
-            {invoice.pdfUrl &&
-            (!invoice.status ||
-              INVOICE_AVAILABLE_PAYOUT_STATUSES.includes(invoice.status)) ? (
+            {invoice.pdfUrl && invoice.status !== "failed" ? (
               <a
                 href={invoice.pdfUrl}
                 target="_blank"
@@ -144,16 +140,7 @@ const InvoiceCard = ({
                 <span>View invoice</span>
               </a>
             ) : (
-              <Button
-                className="h-9 w-fit px-3"
-                variant="secondary"
-                text="View invoice"
-                disabled
-                disabledTooltip={
-                  invoice.failedReason ||
-                  "Invoice not available. Contact support if you need assistance."
-                }
-              />
+              <div />
             )}
           </div>
         </div>
@@ -169,13 +156,19 @@ const InvoiceCard = ({
                 (() => {
                   const badge = PayoutStatusBadges[invoice.status];
                   return (
-                    <StatusBadge
-                      icon={null}
-                      variant={badge.variant}
-                      className="rounded-md py-0.5"
+                    <DynamicTooltipWrapper
+                      {...(invoice.failedReason
+                        ? { tooltipProps: { content: invoice.failedReason } }
+                        : null)}
                     >
-                      {badge.label}
-                    </StatusBadge>
+                      <StatusBadge
+                        icon={invoice.status === "failed" ? AlertCircle : null}
+                        variant={badge.variant}
+                        className="rounded-md py-0.5"
+                      >
+                        {badge.label}
+                      </StatusBadge>
+                    </DynamicTooltipWrapper>
                   );
                 })()}
             </div>
@@ -228,13 +221,19 @@ const InvoiceCard = ({
               (() => {
                 const badge = PayoutStatusBadges[invoice.status];
                 return (
-                  <StatusBadge
-                    icon={null}
-                    variant={badge.variant}
-                    className="rounded-md py-0.5"
+                  <DynamicTooltipWrapper
+                    {...(invoice.failedReason
+                      ? { tooltipProps: { content: invoice.failedReason } }
+                      : null)}
                   >
-                    {badge.label}
-                  </StatusBadge>
+                    <StatusBadge
+                      icon={invoice.status === "failed" ? AlertCircle : null}
+                      variant={badge.variant}
+                      className="rounded-md py-0.5"
+                    >
+                      {badge.label}
+                    </StatusBadge>
+                  </DynamicTooltipWrapper>
                 );
               })()}
           </div>
@@ -263,9 +262,7 @@ const InvoiceCard = ({
         )}
 
         <div className="flex items-center justify-end sm:col-span-1 sm:justify-end">
-          {invoice.pdfUrl &&
-          (!invoice.status ||
-            INVOICE_AVAILABLE_PAYOUT_STATUSES.includes(invoice.status)) ? (
+          {invoice.pdfUrl && invoice.status !== "failed" ? (
             <a
               href={invoice.pdfUrl}
               target="_blank"
@@ -277,16 +274,7 @@ const InvoiceCard = ({
               <span>View invoice</span>
             </a>
           ) : (
-            <Button
-              className="h-9 w-fit px-3"
-              variant="secondary"
-              text="View invoice"
-              disabled
-              disabledTooltip={
-                invoice.failedReason ||
-                "Invoice not available. Contact support if you need assistance."
-              }
-            />
+            <div />
           )}
         </div>
       </div>
