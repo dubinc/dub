@@ -3,10 +3,12 @@ import { prisma } from "@dub/prisma";
 import { Grid, Wordmark } from "@dub/ui";
 import { ArrowRight, Copy, IOSAppStore, MobilePhone } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
+import { headers } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { DeepLinkActionButtons } from "./action-buttons";
 import { BrandLogoBadge } from "./brand-logo-badge";
+import { getLanguage, getTranslations } from "./translations";
 
 export default async function DeepLinkPreviewPage(props: {
   params: Promise<{ domain: string; key: string }>;
@@ -14,6 +16,12 @@ export default async function DeepLinkPreviewPage(props: {
   const params = await props.params;
   const domain = params.domain;
   const key = decodeURIComponent(params.key);
+
+  // Detect language from Accept-Language header
+  const headersList = await headers();
+  const acceptLanguage = headersList.get("accept-language");
+  const language = getLanguage(acceptLanguage);
+  const t = getTranslations(language);
 
   const link = await prisma.link.findUnique({
     where: {
@@ -92,7 +100,7 @@ export default async function DeepLinkPreviewPage(props: {
             target="_blank"
             className="flex items-center gap-1 whitespace-nowrap text-sm font-medium text-neutral-900"
           >
-            Powered by <Wordmark className="text-content-emphasis h-3.5" />
+            {t.poweredBy} <Wordmark className="text-content-emphasis h-3.5" />
           </Link>
         </div>
 
@@ -102,7 +110,7 @@ export default async function DeepLinkPreviewPage(props: {
 
             <div className="flex h-40 w-full max-w-xs flex-col gap-6 rounded-xl border border-neutral-300 px-10 py-8">
               <p className="text-center text-sm font-normal leading-5 text-neutral-700">
-                Clicking below will copy this page and open it in the app.
+                {t.description}
               </p>
 
               <div className="flex items-center justify-center gap-3">
@@ -115,7 +123,7 @@ export default async function DeepLinkPreviewPage(props: {
             </div>
           </div>
 
-          <DeepLinkActionButtons link={link} />
+          <DeepLinkActionButtons link={link} language={language} />
         </div>
       </div>
     </main>

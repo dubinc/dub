@@ -3,12 +3,16 @@
 import { Link } from "@dub/prisma/client";
 import { Button, IOSAppStore, useCopyToClipboard } from "@dub/ui";
 import { useSearchParams } from "next/navigation";
+import { getTranslations, Language } from "./translations";
 
 export function DeepLinkActionButtons({
   link,
+  language,
 }: {
   link: Pick<Link, "shortLink">;
+  language: Language;
 }) {
+  const t = getTranslations(language);
   const searchParams = useSearchParams();
   const searchParamsString = searchParams.toString();
 
@@ -27,7 +31,7 @@ export function DeepLinkActionButtons({
   return (
     <div className="flex flex-col items-center gap-4">
       <Button
-        text="Open in the app"
+        text={t.openInApp}
         className="h-12 w-full rounded-xl bg-neutral-900 text-white"
         variant="primary"
         onClick={() => handleClick({ withCopy: true })}
@@ -38,7 +42,7 @@ export function DeepLinkActionButtons({
         onClick={() => handleClick()}
         className="text-sm text-neutral-500"
       >
-        Open in the app without copying
+        {t.openInAppWithoutCopying}
       </button>
     </div>
   );
