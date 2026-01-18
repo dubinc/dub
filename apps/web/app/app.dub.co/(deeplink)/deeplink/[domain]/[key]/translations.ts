@@ -1,5 +1,3 @@
-export type Language = "en" | "zh" | "es" | "fr" | "tr";
-
 export const translations = {
   en: {
     poweredBy: "Powered by",
@@ -36,6 +34,8 @@ export const translations = {
   },
 } as const;
 
+export type Language = keyof typeof translations;
+
 export function getLanguage(acceptLanguage?: string | null): Language {
   if (!acceptLanguage) return "en";
 
@@ -49,7 +49,7 @@ export function getLanguage(acceptLanguage?: string | null): Language {
 
   // Check for supported languages in order of preference
   for (const lang of languages) {
-    if (lang === "zh" || lang === "es" || lang === "fr" || lang === "tr") {
+    if (lang in translations) {
       return lang as Language;
     }
   }
