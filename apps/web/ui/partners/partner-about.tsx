@@ -8,7 +8,8 @@ import {
 } from "@/lib/partners/partner-profile";
 import { EnrolledPartnerExtendedProps } from "@/lib/types";
 import { OnlinePresenceSummary } from "@/ui/partners/online-presence-summary";
-import { Icon } from "@dub/ui";
+import { Icon, Tooltip } from "@dub/ui";
+import { HelpCircle } from "lucide-react";
 
 export function PartnerAbout({
   partner,
@@ -98,9 +99,14 @@ export function PartnerAbout({
 
       {Boolean(partner.monthlyTraffic) && (
         <div className="flex flex-col gap-2">
-          <h3 className="text-content-emphasis text-xs font-semibold">
-            Monthly traffic
-          </h3>
+          <div className="flex items-center gap-1">
+            <h3 className="text-content-emphasis text-xs font-semibold">
+              Monthly traffic
+            </h3>
+            <Tooltip content="Shared by the partner, not verified by Dub.">
+              <HelpCircle className="h-3.5 w-3.5 text-neutral-500" />
+            </Tooltip>
+          </div>
           <span className="text-content-default text-xs">
             {monthlyTrafficAmountsMap[partner.monthlyTraffic!]?.label ?? "-"}
           </span>
