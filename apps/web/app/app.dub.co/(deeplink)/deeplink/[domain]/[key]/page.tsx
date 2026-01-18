@@ -20,7 +20,6 @@ export default async function DeepLinkPreviewPage(props: {
   // Detect language from Accept-Language header
   const headersList = await headers();
   const acceptLanguage = headersList.get("accept-language");
-  console.log("acceptLanguage", acceptLanguage);
   const language = getLanguage(acceptLanguage);
   const t = getTranslations(language);
 
