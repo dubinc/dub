@@ -1,0 +1,107 @@
+{
+  "fields": [
+    {
+      "key": "department",
+      "label": "Department",
+      "type": "text",
+      "required": true,
+      "locked": false,
+      "position": 0,
+      "constraints": {
+        "maxLength": 100,
+        "pattern": "^[a-zA-Z0-9\\s-]+$"
+      }
+    },
+    {
+      "key": "description",
+      "label": "Description",
+      "type": "textarea",
+      "required": true,
+      "locked": false,
+      "position": 1,
+      "constraints": {
+        "maxLength": 500
+      }
+    },
+    {
+      "key": "referralType",
+      "label": "Referral Type",
+      "type": "select",
+      "required": true,
+      "locked": false,
+      "position": 2,
+      "options": [
+        {
+          "label": "Enterprise",
+          "value": "enterprise"
+        },
+        {
+          "label": "SMB",
+          "value": "smb"
+        },
+        {
+          "label": "Startup",
+          "value": "startup"
+        }
+      ]
+    },
+    {
+      "key": "country",
+      "label": "Country",
+      "type": "country",
+      "required": false,
+      "locked": false,
+      "position": 3
+    },
+    {
+      "key": "startDate",
+      "label": "Start Date",
+      "type": "date",
+      "required": false,
+      "locked": false,
+      "position": 4
+    },
+    {
+      "key": "interests",
+      "label": "Interests",
+      "type": "multiSelect",
+      "required": false,
+      "locked": false,
+      "position": 5,
+      "options": [
+        {
+          "label": "Technology",
+          "value": "technology"
+        },
+        {
+          "label": "Marketing",
+          "value": "marketing"
+        },
+        {
+          "label": "Sales",
+          "value": "sales"
+        },
+        {
+          "label": "Support",
+          "value": "support"
+        }
+      ]
+    },
+    {
+      "key": "employeeCount",
+      "label": "Employee Count",
+      "type": "number",
+      "required": false,
+      "locked": false,
+      "position": 6
+    },
+    {
+      "key": "phoneNumber",
+      "label": "Phone Number",
+      "type": "phone",
+      "required": false,
+      "locked": false,
+      "position": 7
+    }
+  ]
+}

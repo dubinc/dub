@@ -10,7 +10,8 @@ export function AnalyticsExportButton({
   setOpenPopover: Dispatch<SetStateAction<boolean>>;
 }) {
   const [loading, setLoading] = useState(false);
-  const { queryString, baseApiPath, partnerPage } = useContext(AnalyticsContext);
+  const { queryString, baseApiPath, partnerPage } =
+    useContext(AnalyticsContext);
 
   async function exportData() {
     setLoading(true);

@@ -7,9 +7,11 @@ import { getPartnerCustomersCountQuerySchema } from "../zod/schemas/partner-prof
 
 export default function usePartnerCustomersCount<T = number>({
   query,
+  includeParams = ["country", "linkId", "search"],
   enabled = true,
 }: {
   query?: z.infer<typeof getPartnerCustomersCountQuerySchema>;
+  includeParams?: string[];
   enabled?: boolean;
 } = {}) {
   const { programSlug } = useParams<{ programSlug: string }>();
@@ -20,7 +22,7 @@ export default function usePartnerCustomersCount<T = number>({
       `/api/partner-profile/programs/${programSlug}/customers/count${getQueryString(
         query,
         {
-          include: ["country", "linkId", "search"],
+          include: includeParams,
         },
       )}`,
     fetcher,

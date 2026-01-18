@@ -3,6 +3,7 @@ import {
   PartnerEarningsSchema,
   PartnerProfileCustomerSchema,
   PartnerProfileLinkSchema,
+  partnerReferralsCountByStatusSchema,
   partnerUserSchema,
 } from "@/lib/zod/schemas/partner-profile";
 import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
@@ -120,6 +121,8 @@ import {
   ProgramEnrollmentSchema,
   ProgramSchema,
 } from "./zod/schemas/programs";
+import { referralFormDataSchema } from "./zod/schemas/referral-form";
+import { referralSchema } from "./zod/schemas/referrals";
 import {
   rewardConditionsArraySchema,
   rewardConditionSchema,
@@ -473,6 +476,10 @@ export type PartnerProfileCustomerProps = z.infer<
 
 export type PartnerProfileLinkProps = z.infer<typeof PartnerProfileLinkSchema>;
 
+export type PartnerProfileReferralsCountByStatus = z.infer<
+  typeof partnerReferralsCountByStatusSchema
+>;
+
 export type EnrolledPartnerProps = z.infer<typeof EnrolledPartnerSchema> & {
   platforms: PartnerPlatformProps[];
 };
@@ -754,3 +761,7 @@ export type CreateFraudEventInput = Pick<
   > & {
     metadata?: Record<string, unknown> | null;
   };
+
+export type ReferralProps = z.infer<typeof referralSchema>;
+
+export type ReferralFormDataField = z.infer<typeof referralFormDataSchema>;

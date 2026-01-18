@@ -97,8 +97,9 @@ export const appRedirect = async (path: string) => {
     return path.replace(customersPageRegex, "/$1/customers/$2/sales");
 
   // Redirect "/[slug]/program/customers/:customerId" to "/[slug]/program/customers/:customerId/sales"
+  // Only applies when customerId starts with "cus_" (old IDs handled by page redirect)
   const programCustomersPageRegex =
-    /^\/([^\/]+)\/program\/customers\/([^\/]+)$/;
+    /^\/([^\/]+)\/program\/customers\/(cus_[^\/]+)$/;
   if (programCustomersPageRegex.test(path))
     return path.replace(
       programCustomersPageRegex,

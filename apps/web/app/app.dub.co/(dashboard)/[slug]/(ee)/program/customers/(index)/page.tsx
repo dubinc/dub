@@ -3,7 +3,7 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CustomerTable } from "@/ui/customers/customer-table/customer-table";
 
-export function CustomersPageClient() {
+export default function ProgramCustomersPage() {
   const { defaultProgramId } = useWorkspace();
   return (
     <CustomerTable
