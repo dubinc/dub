@@ -38,6 +38,7 @@ export const markReferralQualifiedAction = authActionClient
     const updatedReferral = await prisma.partnerReferral.update({
       where: {
         id: referralId,
+        status: ReferralStatus.pending,
       },
       data: {
         status: ReferralStatus.qualified,
@@ -90,33 +91,12 @@ export const markReferralQualifiedAction = authActionClient
     await trackLead({
       clickId: clickEvent.click_id,
       eventName: "Qualified Lead",
+      customerExternalId: customer.externalId!,
       customerName: customer.name,
       customerEmail: customer.email,
-      customerExternalId: customer.externalId!,
+      mode: "wait",
       rawBody: {},
       workspace: pick(workspace, ["id", "stripeConnectId", "webhookEnabled"]),
-    });
-
-    // TODO:
-    // Create a commission
-
-    await recordAuditLog({
-      workspaceId: workspace.id,
-      programId,
-      action: "partner_referral.qualified",
-      description: `Partner referral ${referralId} qualified`,
-      actor: user,
-      targets: [
-        {
-          type: "partner_referral",
-          id: referralId,
-          metadata: {
-            email: referral.email,
-            name: referral.name,
-            company: referral.company,
-          },
-        },
-      ],
     });
 
     return updatedReferral;

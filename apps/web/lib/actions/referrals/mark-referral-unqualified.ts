@@ -39,29 +39,5 @@ export const markReferralUnqualifiedAction = authActionClient
       },
     });
 
-    await recordAuditLog({
-      workspaceId: workspace.id,
-      programId,
-      action: "partner_referral.unqualified",
-      description: `Partner referral ${referralId} unqualified`,
-      actor: user,
-      targets: [
-        {
-          type: "partner_referral",
-          id: referralId,
-          metadata: {
-            email: partnerReferral.email,
-            name: partnerReferral.name,
-            company: partnerReferral.company,
-          },
-        },
-        {
-          type: "partner",
-          id: partnerReferral.partnerId,
-          metadata: partnerReferral.partner,
-        },
-      ],
-    });
-
     return updatedReferral;
   });

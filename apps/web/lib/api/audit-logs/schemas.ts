@@ -91,12 +91,6 @@ const actionSchema = z.enum([
   "bounty_submission.approved",
   "bounty_submission.rejected",
   "bounty_submission.reopened",
-
-  // Partner referrals
-  "partner_referral.qualified",
-  "partner_referral.unqualified",
-  "partner_referral.closed_won",
-  "partner_referral.closed_lost",
 ]);
 
 export const auditLogTarget = z.union([
