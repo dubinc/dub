@@ -20,11 +20,6 @@ import {
 import { useRef } from "react";
 import * as z from "zod/v4";
 
-// const REWARD_MODIFIER_LABELS = {
-//   ...ATTRIBUTE_LABELS,
-//   productId: "Product",
-// };
-
 type ProgramRewardModifiersTooltipProps = {
   reward?: Omit<RewardProps, "id"> | null;
 };

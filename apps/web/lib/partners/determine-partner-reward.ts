@@ -53,8 +53,6 @@ export const determinePartnerReward = ({
     },
   };
 
-  console.log("context", context);
-
   if (partnerReward.modifiers && context) {
     const modifiers = rewardConditionsArraySchema.safeParse(
       partnerReward.modifiers,
