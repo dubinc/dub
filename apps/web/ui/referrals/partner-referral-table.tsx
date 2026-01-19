@@ -19,7 +19,6 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { Dots } from "@dub/ui/icons";
 import { cn, fetcher, formatDate, OG_AVATAR_URL } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
@@ -176,19 +175,7 @@ export function PartnerReferralTable({
             );
           },
         },
-        // Menu
-        {
-          id: "menu",
-          enableHiding: false,
-          minSize: 43,
-          size: 43,
-          maxSize: 43,
-          header: () => null,
-          cell: ({ row }: { row: Row<PartnerReferralProps> }) => (
-            <RowMenuButton row={row} />
-          ),
-        },
-      ].filter((c) => c.id === "menu" || referralsColumns.all.includes(c.id)),
+      ].filter((c) => referralsColumns.all.includes(c.id)),
     [workspaceSlug],
   );
 
@@ -199,7 +186,6 @@ export function PartnerReferralTable({
     onPaginationChange: setPagination,
     columnVisibility,
     onColumnVisibilityChange: setColumnVisibility,
-    columnPinning: { right: ["menu"] },
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (p) => `partner referral${p ? "s" : ""}`,
@@ -341,16 +327,5 @@ export function PartnerReferralTable({
         />
       )}
     </div>
-  );
-}
-
-function RowMenuButton({ row }: { row: Row<PartnerReferralProps> }) {
-  return (
-    <button
-      type="button"
-      className="h-8 whitespace-nowrap px-2 disabled:border-transparent disabled:bg-transparent"
-    >
-      <Dots className="h-4 w-4 shrink-0" />
-    </button>
   );
 }
