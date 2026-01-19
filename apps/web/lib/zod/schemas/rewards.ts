@@ -340,7 +340,7 @@ export const rewardContextSchema = z.object({
   customer: z
     .object({
       country: z.string().nullish(),
-      source: z.enum(CUSTOMER_SOURCES).nullish().default("tracked"),
+      source: z.enum(CUSTOMER_SOURCES).default("tracked").nullish(),
     })
     .optional(),
 
