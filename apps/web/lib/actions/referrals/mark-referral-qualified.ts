@@ -10,6 +10,7 @@ import { markReferralQualifiedSchema } from "@/lib/zod/schemas/referrals";
 import { prisma } from "@dub/prisma";
 import { ReferralStatus } from "@dub/prisma/client";
 import { pick } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 
 // Mark a partner referral as qualified
@@ -44,65 +45,82 @@ export const markReferralQualifiedAction = authActionClient
       },
     });
 
-    // Find the default link for the partner
-    const links = await prisma.link.findMany({
-      where: {
-        programId,
-        partnerId: referral.partnerId,
-        partnerGroupDefaultLinkId: {
-          not: null,
-        },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-      take: 1,
-    });
+    waitUntil(
+      (async () => {
+        // Find the default link for the partner
+        const links = await prisma.link.findMany({
+          where: {
+            programId,
+            partnerId: referral.partnerId,
+            partnerGroupDefaultLinkId: {
+              not: null,
+            },
+          },
+          orderBy: {
+            partnerGroupDefaultLinkId: "asc",
+          },
+        });
 
-    if (links.length === 0) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: "No default link found for the partner.",
-      });
-    }
+        if (links.length === 0) {
+          return;
+        }
 
-    // Record a fake click
-    const clickEvent = await recordFakeClick({
-      link: pick(links[0], ["id", "url", "domain", "key", "projectId"]),
-    });
+        const partnerLink = links[0];
 
-    // Create a customer
-    if (!referral.email) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: "The partner referral must have an email address.",
-      });
-    }
+        // Record a fake click
+        const clickEvent = await recordFakeClick({
+          link: pick(partnerLink, ["id", "url", "domain", "key", "projectId"]),
+        });
 
-    const customer = await prisma.customer.create({
-      data: {
-        id: createId({ prefix: "cus_" }),
-        name: referral.name,
-        email: referral.email,
-        projectId: workspace.id,
-        projectConnectId: workspace.stripeConnectId,
-        programId,
-        partnerId: referral.partnerId,
-        linkId: clickEvent.link_id,
-        clickId: clickEvent.click_id,
-      },
-    });
+        // Create a customer
+        if (!referral.email) {
+          throw new DubApiError({
+            code: "bad_request",
+            message: "The partner referral must have an email address.",
+          });
+        }
 
-    // Track the lead
-    await trackLead({
-      clickId: clickEvent.click_id,
-      eventName: "Qualified Lead",
-      customerExternalId: referral.email,
-      customerName: customer.name,
-      customerEmail: customer.email,
-      mode: "wait",
-      rawBody: {},
-      workspace: pick(workspace, ["id", "stripeConnectId", "webhookEnabled"]),
-      source: "submitted",
-    });
+        const customer = await prisma.customer.create({
+          data: {
+            id: createId({ prefix: "cus_" }),
+            name: referral.name,
+            email: referral.email,
+            externalId: referral.email,
+            projectId: workspace.id,
+            projectConnectId: workspace.stripeConnectId,
+            programId,
+            partnerId: referral.partnerId,
+            linkId: clickEvent.link_id,
+            clickId: clickEvent.click_id,
+          },
+        });
+
+        // Track the lead
+        await trackLead({
+          clickId: clickEvent.click_id,
+          eventName: "Qualified Lead",
+          customerExternalId: referral.email,
+          customerName: customer.name,
+          customerEmail: customer.email,
+          mode: "wait",
+          rawBody: {},
+          workspace: pick(workspace, [
+            "id",
+            "stripeConnectId",
+            "webhookEnabled",
+          ]),
+          source: "submitted",
+        });
+
+        // Update the referral with the customer ID
+        await prisma.partnerReferral.update({
+          where: {
+            id: referralId,
+          },
+          data: {
+            customerId: customer.id,
+          },
+        });
+      })(),
+    );
   });
