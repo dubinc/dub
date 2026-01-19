@@ -44,7 +44,7 @@ export const markReferralQualifiedAction = authActionClient
         status: ReferralStatus.qualified,
       },
     });
-
+  
     waitUntil(
       (async () => {
         // Find the default link for the partner
@@ -73,13 +73,6 @@ export const markReferralQualifiedAction = authActionClient
         });
 
         // Create a customer
-        if (!referral.email) {
-          throw new DubApiError({
-            code: "bad_request",
-            message: "The partner referral must have an email address.",
-          });
-        }
-
         const customer = await prisma.customer.create({
           data: {
             id: createId({ prefix: "cus_" }),
@@ -95,7 +88,7 @@ export const markReferralQualifiedAction = authActionClient
           },
         });
 
-        // Track the lead
+        // Track the qualified lead
         await trackLead({
           clickId: clickEvent.click_id,
           eventName: "Qualified Lead",
