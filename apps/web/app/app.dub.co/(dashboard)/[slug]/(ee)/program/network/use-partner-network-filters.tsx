@@ -1,6 +1,15 @@
 import useNetworkPartnersCount from "@/lib/swr/use-network-partners-count";
+import { PlatformType } from "@dub/prisma/client";
 import { useRouterStuff } from "@dub/ui";
-import { FlagWavy } from "@dub/ui/icons";
+import {
+  FlagWavy,
+  Instagram,
+  Megaphone,
+  ShieldCheck,
+  TikTok,
+  Twitter,
+  YouTube,
+} from "@dub/ui/icons";
 import { COUNTRIES, nFormatter } from "@dub/utils";
 import { useCallback, useMemo } from "react";
 
@@ -25,12 +34,58 @@ export function usePartnerNetworkFilters({
     excludeParams: ["country"],
   });
 
+  const { data: platformsCount } = useNetworkPartnersCount<
+    | {
+        platform: PlatformType;
+        _count: number;
+      }[]
+    | undefined
+  >({
+    query: {
+      status,
+      groupBy: "platform",
+    },
+    excludeParams: ["platform"],
+  });
+
+  const { data: subscribersCount } = useNetworkPartnersCount<
+    | {
+        subscribers: string;
+        _count: number;
+      }[]
+    | undefined
+  >({
+    query: {
+      status,
+      groupBy: "subscribers",
+    },
+    excludeParams: ["subscribers"],
+  });
+
+  const platformIcons: Record<PlatformType, typeof YouTube> = {
+    youtube: YouTube,
+    twitter: Twitter,
+    instagram: Instagram,
+    tiktok: TikTok,
+    linkedin: Twitter, // fallback
+    website: FlagWavy, // fallback
+  };
+
+  const platformLabels: Record<PlatformType, string> = {
+    youtube: "YouTube",
+    twitter: "X",
+    instagram: "Instagram",
+    tiktok: "TikTok",
+    linkedin: "LinkedIn",
+    website: "Website",
+  };
+
   const filters = useMemo(
     () => [
       {
         key: "country",
         icon: FlagWavy,
-        label: "Location",
+        label: "Partner country",
         getOptionIcon: (value) => (
           <img
             alt={value}
@@ -48,14 +103,62 @@ export function usePartnerNetworkFilters({
               right: nFormatter(_count, { full: true }),
             })) ?? [],
       },
+      {
+        key: "platform",
+        icon: ShieldCheck,
+        label: "Verified social platform",
+        getOptionIcon: (value: PlatformType) => {
+          const Icon = platformIcons[value] || YouTube;
+          return <Icon className="size-4" />;
+        },
+        getOptionLabel: (value: PlatformType) => platformLabels[value] || value,
+        options:
+          platformsCount
+            ?.filter(({ platform }) =>
+              ["youtube", "twitter", "instagram", "tiktok"].includes(platform),
+            )
+            .map(({ platform, _count }) => ({
+              value: platform,
+              label: platformLabels[platform] || platform,
+              right: nFormatter(_count, { full: true }),
+            })) ?? [],
+      },
+      {
+        key: "subscribers",
+        icon: Megaphone,
+        label: "Verified subscriber count",
+        getOptionIcon: () => <Megaphone className="size-4" />,
+        getOptionLabel: (value: string) => {
+          const labels: Record<string, string> = {
+            "<5000": "< 5,000",
+            "5000-25000": "5,000 - 25,000",
+            "25000-100000": "25,000 - 100,000",
+            "100000+": "100,000+",
+          };
+          return labels[value] || value;
+        },
+        options:
+          subscribersCount?.map(({ subscribers, _count }) => ({
+            value: subscribers,
+            label:
+              subscribers === "<5000"
+                ? "< 5,000"
+                : subscribers === "5000-25000"
+                  ? "5,000 - 25,000"
+                  : subscribers === "25000-100000"
+                    ? "25,000 - 100,000"
+                    : "100,000+",
+            right: nFormatter(_count, { full: true }),
+          })) ?? [],
+      },
     ],
-    [countriesCount],
+    [countriesCount, platformsCount, subscribersCount],
   );
 
   const multiFilters = useMemo(() => ({}), []) as Record<string, string[]>;
 
   const activeFilters = useMemo(() => {
-    const { country } = searchParamsObj;
+    const { country, platform, subscribers } = searchParamsObj;
 
     return [
       ...Object.entries(multiFilters)
@@ -63,6 +166,8 @@ export function usePartnerNetworkFilters({
         .filter(({ value }) => value.length > 0),
 
       ...(country ? [{ key: "country", value: country }] : []),
+      ...(platform ? [{ key: "platform", value: platform }] : []),
+      ...(subscribers ? [{ key: "subscribers", value: subscribers }] : []),
     ];
   }, [searchParamsObj, multiFilters]);
 
@@ -105,7 +210,7 @@ export function usePartnerNetworkFilters({
   const onRemoveAll = useCallback(
     () =>
       queryParams({
-        del: ["country", "starred"],
+        del: ["country", "starred", "platform", "subscribers"],
       }),
     [queryParams],
   );
