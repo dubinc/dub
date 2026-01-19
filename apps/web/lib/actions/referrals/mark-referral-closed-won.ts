@@ -77,6 +77,6 @@ export const markReferralClosedWonAction = authActionClient
         data: {
           stripeCustomerId,
         },
-      })
+      }),
     );
   });

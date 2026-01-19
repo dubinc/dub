@@ -44,7 +44,7 @@ export const markReferralQualifiedAction = authActionClient
         status: ReferralStatus.qualified,
       },
     });
-  
+
     waitUntil(
       (async () => {
         // Find the default link for the partner

@@ -1,5 +1,6 @@
 "use client";
 
+import { REFERRAL_ENABLED_PROGRAM_IDS } from "@/lib/referrals/constants";
 import useCustomersCount from "@/lib/swr/use-customers-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PageContent } from "@/ui/layout/page-content";
@@ -9,7 +10,7 @@ import { InfoTooltip } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CSSProperties, ReactNode } from "react";
+import { CSSProperties, ReactNode, useMemo } from "react";
 import { CustomersDropdownMenu } from "../customers-dropdown-menu";
 
 export default function PartnerCustomersLayout({
@@ -18,8 +19,7 @@ export default function PartnerCustomersLayout({
   children: ReactNode;
 }) {
   const pathname = usePathname();
-
-  const { slug } = useWorkspace();
+  const { slug, defaultProgramId } = useWorkspace();
 
   const { data: customersCount } = useCustomersCount<number>({
     includeParams: [],
@@ -29,22 +29,32 @@ export default function PartnerCustomersLayout({
     includeParams: [],
   });
 
-  const tabs = [
-    {
-      label: "Customers",
-      id: "customers",
-      href: "",
-      info: "Shows both converted and non-converted customers.",
-      count: customersCount,
-    },
-    {
-      label: "Partner Referrals",
-      id: "invited",
-      href: "referrals",
-      info: "Shows your partners' submitted referrals.",
-      count: referralsCount,
-    },
-  ];
+  const isEnabled = defaultProgramId
+    ? REFERRAL_ENABLED_PROGRAM_IDS.includes(defaultProgramId)
+    : false;
+
+  const tabs = useMemo(() => {
+    if (!isEnabled) {
+      return [];
+    }
+
+    return [
+      {
+        label: "Customers",
+        id: "customers",
+        href: "",
+        info: "Shows both converted and non-converted customers.",
+        count: customersCount,
+      },
+      {
+        label: "Partner Referrals",
+        id: "invited",
+        href: "referrals",
+        info: "Shows your partners' submitted referrals.",
+        count: referralsCount,
+      },
+    ];
+  }, [isEnabled, customersCount, referralsCount]);
 
   return (
     <PageContent
@@ -57,45 +67,47 @@ export default function PartnerCustomersLayout({
       controls={<CustomersDropdownMenu />}
     >
       <PageWidthWrapper className="flex flex-col gap-3 pb-10">
-        <div
-          className={cn(
-            "grid grid-cols-[repeat(var(--tabs),minmax(0,1fr))] gap-2",
-          )}
-          style={{ "--tabs": tabs.length } as CSSProperties}
-        >
-          {tabs.map((tab) => {
-            const isActive = pathname.endsWith(
-              `/customers${tab.href ? `/${tab.href}` : ""}`,
-            );
+        {tabs.length > 0 && (
+          <div
+            className={cn(
+              "grid grid-cols-[repeat(var(--tabs),minmax(0,1fr))] gap-2",
+            )}
+            style={{ "--tabs": tabs.length } as CSSProperties}
+          >
+            {tabs.map((tab) => {
+              const isActive = pathname.endsWith(
+                `/customers${tab.href ? `/${tab.href}` : ""}`,
+              );
 
-            return (
-              <Link
-                key={tab.id}
-                href={`/${slug}/program/customers${tab.href ? `/${tab.href}` : ""}`}
-                className={cn(
-                  "border-border-subtle flex flex-col gap-1 rounded-lg border p-4 text-left transition-colors duration-100",
-                  isActive
-                    ? "border-black ring-1 ring-black"
-                    : "hover:bg-bg-muted",
-                )}
-              >
-                <div className="flex items-center gap-2">
-                  <span className="text-content-default text-xs font-semibold">
-                    {tab.label}
-                  </span>
-                  {tab.info && <InfoTooltip content={tab.info} />}
-                </div>
-                {tab.count ? (
-                  <span className="text-content-emphasis text-base font-semibold">
-                    {tab.count.toLocaleString()}
-                  </span>
-                ) : (
-                  <div className="h-6 w-12 animate-pulse rounded-md bg-neutral-200" />
-                )}
-              </Link>
-            );
-          })}
-        </div>
+              return (
+                <Link
+                  key={tab.id}
+                  href={`/${slug}/program/customers${tab.href ? `/${tab.href}` : ""}`}
+                  className={cn(
+                    "border-border-subtle flex flex-col gap-1 rounded-lg border p-4 text-left transition-colors duration-100",
+                    isActive
+                      ? "border-black ring-1 ring-black"
+                      : "hover:bg-bg-muted",
+                  )}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-content-default text-xs font-semibold">
+                      {tab.label}
+                    </span>
+                    {tab.info && <InfoTooltip content={tab.info} />}
+                  </div>
+                  {tab.count ? (
+                    <span className="text-content-emphasis text-base font-semibold">
+                      {tab.count.toLocaleString()}
+                    </span>
+                  ) : (
+                    <div className="h-6 w-12 animate-pulse rounded-md bg-neutral-200" />
+                  )}
+                </Link>
+              );
+            })}
+          </div>
+        )}
         {children}
       </PageWidthWrapper>
     </PageContent>

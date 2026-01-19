@@ -44,3 +44,9 @@ export const REFERRAL_FORM_FIELD_INPUT_PROPS: Record<
   name: { autoComplete: "name" },
   company: { autoComplete: "organization" },
 };
+
+export const REFERRAL_ENABLED_PROGRAM_IDS = [
+  "prog_1K2J9DRWPPJ2F1RX53N92TSGA", // Kiran (Local) - Remove this after testing
+  "prog_CYCu7IMAapjkRpTnr8F1azjN", // Acme
+  "prog_d8pl69xXCv4AoHNT281pHQdo" // Dub
+];
