@@ -17,7 +17,7 @@ import { authActionClient } from "../safe-action";
 export const markReferralQualifiedAction = authActionClient
   .inputSchema(markReferralQualifiedSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { workspace, user } = ctx;
+    const { workspace } = ctx;
     const { referralId } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
@@ -72,7 +72,15 @@ export const markReferralQualifiedAction = authActionClient
       link: pick(links[0], ["id", "url", "domain", "key", "projectId"]),
     });
 
+
     // Create a customer
+    if(!referral.email)  {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "The partner referral must have an email address.",
+      });
+    }
+
     const customer = await prisma.customer.create({
       data: {
         id: createId({ prefix: "cus_" }),
@@ -91,12 +99,13 @@ export const markReferralQualifiedAction = authActionClient
     await trackLead({
       clickId: clickEvent.click_id,
       eventName: "Qualified Lead",
-      customerExternalId: customer.externalId!,
+      customerExternalId: referral.email,
       customerName: customer.name,
       customerEmail: customer.email,
       mode: "wait",
       rawBody: {},
       workspace: pick(workspace, ["id", "stripeConnectId", "webhookEnabled"]),
+      source: "submitted",
     });
 
     return updatedReferral;

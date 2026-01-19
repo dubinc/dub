@@ -22,10 +22,12 @@ import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { syncPartnerLinksStats } from "../partners/sync-partner-links-stats";
 import { executeWorkflows } from "../workflows/execute-workflows";
+import { LeadCustomerSource } from "@/lib/types";
 
 type TrackLeadParams = z.input<typeof trackLeadRequestSchema> & {
   rawBody: any;
   workspace: Pick<WorkspaceProps, "id" | "stripeConnectId" | "webhookEnabled">;
+  source?: LeadCustomerSource // default is "tracked"
 };
 
 export const trackLead = async ({
@@ -40,6 +42,7 @@ export const trackLead = async ({
   metadata,
   rawBody,
   workspace,
+  source = "tracked",
 }: TrackLeadParams) => {
   // try to find the customer to use if it exists
   let customer = await prisma.customer.findUnique({
@@ -312,6 +315,7 @@ export const trackLead = async ({
               context: {
                 customer: {
                   country: customer.country,
+                  source,
                 },
               },
             });
