@@ -34,6 +34,34 @@ export function usePartnerNetworkFilters({
     excludeParams: ["country"],
   });
 
+  const { data: platformsCount } = useNetworkPartnersCount<
+    | {
+        platform: PlatformType;
+        _count: number;
+      }[]
+    | undefined
+  >({
+    query: {
+      status,
+      groupBy: "platform",
+    },
+    excludeParams: ["platform"],
+  });
+
+  const { data: subscribersCount } = useNetworkPartnersCount<
+    | {
+        subscribers: string;
+        _count: number;
+      }[]
+    | undefined
+  >({
+    query: {
+      status,
+      groupBy: "subscribers",
+    },
+    excludeParams: ["subscribers"],
+  });
+
   const platformIcons: Record<PlatformType, typeof YouTube> = {
     youtube: YouTube,
     twitter: Twitter,
@@ -51,22 +79,6 @@ export function usePartnerNetworkFilters({
     linkedin: "LinkedIn",
     website: "Website",
   };
-
-  // Static platform options (matching design)
-  const platformOptions: PlatformType[] = [
-    "youtube",
-    "twitter",
-    "instagram",
-    "tiktok",
-  ];
-
-  // Static subscriber count options (matching design)
-  const subscriberOptions = [
-    { value: "<5000", label: "< 5,000" },
-    { value: "5000-25000", label: "5,000 - 25,000" },
-    { value: "25000-100000", label: "25,000 - 100,000" },
-    { value: "100000+", label: "100,000+" },
-  ] as const;
 
   const filters = useMemo(
     () => [
@@ -100,10 +112,16 @@ export function usePartnerNetworkFilters({
           return <Icon className="size-4" />;
         },
         getOptionLabel: (value: PlatformType) => platformLabels[value] || value,
-        options: platformOptions.map((platform) => ({
-          value: platform,
-          label: platformLabels[platform],
-        })),
+        options:
+          platformsCount
+            ?.filter(({ platform }) =>
+              ["youtube", "twitter", "instagram", "tiktok"].includes(platform),
+            )
+            .map(({ platform, _count }) => ({
+              value: platform,
+              label: platformLabels[platform] || platform,
+              right: nFormatter(_count, { full: true }),
+            })) ?? [],
       },
       {
         key: "subscribers",
@@ -119,13 +137,22 @@ export function usePartnerNetworkFilters({
           };
           return labels[value] || value;
         },
-        options: subscriberOptions.map(({ value, label }) => ({
-          value,
-          label,
-        })),
+        options:
+          subscribersCount?.map(({ subscribers, _count }) => ({
+            value: subscribers,
+            label:
+              subscribers === "<5000"
+                ? "< 5,000"
+                : subscribers === "5000-25000"
+                  ? "5,000 - 25,000"
+                  : subscribers === "25000-100000"
+                    ? "25,000 - 100,000"
+                    : "100,000+",
+            right: nFormatter(_count, { full: true }),
+          })) ?? [],
       },
     ],
-    [countriesCount],
+    [countriesCount, platformsCount, subscribersCount],
   );
 
   const multiFilters = useMemo(() => ({}), []) as Record<string, string[]>;
