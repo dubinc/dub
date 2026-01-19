@@ -1,8 +1,10 @@
 "use client";
 
 import { addProgramResourceAction } from "@/lib/actions/partners/program-resources/add-program-resource";
+import { updateProgramResourceAction } from "@/lib/actions/partners/program-resources/update-program-resource";
 import useProgramResources from "@/lib/swr/use-program-resources";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { ProgramResourceFile } from "@/lib/zod/schemas/program-resources";
 import { Button, FileContent, FileUpload, Modal } from "@dub/ui";
 import { cn, truncate } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
@@ -17,34 +19,39 @@ import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod/v4";
 
-type AddFileModalProps = {
-  showAddFileModal: boolean;
-  setShowAddFileModal: Dispatch<SetStateAction<boolean>>;
+type FileModalProps = {
+  showFileModal: boolean;
+  setShowFileModal: Dispatch<SetStateAction<boolean>>;
+  existingResource?: ProgramResourceFile;
 };
 
 // Define the form schema
 const fileFormSchema = z.object({
   name: z.string().min(1, "Name is required"),
-  file: z.string().min(1, "File is required"),
+  file: z.string().optional(),
   extension: z.string().nullish(),
 });
 
 type FileFormData = z.infer<typeof fileFormSchema>;
 
-function AddFileModal(props: AddFileModalProps) {
+function FileModal(props: FileModalProps) {
   return (
     <Modal
-      showModal={props.showAddFileModal}
-      setShowModal={props.setShowAddFileModal}
+      showModal={props.showFileModal}
+      setShowModal={props.setShowFileModal}
     >
-      <AddFileModalInner {...props} />
+      <FileModalInner {...props} />
     </Modal>
   );
 }
 
-function AddFileModalInner({ setShowAddFileModal }: AddFileModalProps) {
+function FileModalInner({
+  setShowFileModal,
+  existingResource,
+}: FileModalProps) {
   const { id: workspaceId } = useWorkspace();
   const { mutate } = useProgramResources();
+  const isEditing = Boolean(existingResource);
 
   const {
     register,
@@ -56,17 +63,18 @@ function AddFileModalInner({ setShowAddFileModal }: AddFileModalProps) {
     formState: { errors, isSubmitting, isSubmitSuccessful },
   } = useForm<FileFormData>({
     defaultValues: {
-      name: "",
+      name: existingResource?.name || "",
       file: "",
     },
   });
 
-  const [fileName, setFileName] = useState("");
+  const [fileName, setFileName] = useState(existingResource?.name || "");
+  const [hasNewFile, setHasNewFile] = useState(false);
 
-  const { executeAsync } = useAction(addProgramResourceAction, {
+  const { executeAsync: executeAdd } = useAction(addProgramResourceAction, {
     onSuccess: () => {
       mutate();
-      setShowAddFileModal(false);
+      setShowFileModal(false);
       toast.success("File added successfully!");
     },
     onError({ error }) {
@@ -81,21 +89,57 @@ function AddFileModalInner({ setShowAddFileModal }: AddFileModalProps) {
     },
   });
 
+  const { executeAsync: executeUpdate } = useAction(updateProgramResourceAction, {
+    onSuccess: () => {
+      mutate();
+      setShowFileModal(false);
+      toast.success("File updated successfully!");
+    },
+    onError({ error }) {
+      if (error.serverError) {
+        setError("root.serverError", {
+          message: error.serverError,
+        });
+        toast.error(error.serverError);
+      } else {
+        toast.error("Failed to update file");
+      }
+    },
+  });
+
   return (
     <>
       <div className="space-y-2 border-b border-neutral-200 p-4 sm:p-6">
-        <h3 className="text-lg font-medium leading-none">Add file</h3>
+        <h3 className="text-lg font-medium leading-none">
+          {isEditing ? "Edit file" : "Add file"}
+        </h3>
       </div>
 
       <form
         onSubmit={handleSubmit(async (data: FileFormData) => {
-          await executeAsync({
-            workspaceId: workspaceId!,
-            name: data.name,
-            resourceType: "file",
-            file: data.file,
-            extension: data.extension,
-          });
+          if (isEditing && existingResource) {
+            await executeUpdate({
+              workspaceId: workspaceId!,
+              resourceId: existingResource.id,
+              resourceType: "file",
+              name: data.name,
+              ...(hasNewFile && data.file
+                ? { file: data.file, extension: data.extension }
+                : {}),
+            });
+          } else {
+            if (!data.file) {
+              setError("file", { message: "File is required" });
+              return;
+            }
+            await executeAdd({
+              workspaceId: workspaceId!,
+              name: data.name,
+              resourceType: "file",
+              file: data.file,
+              extension: data.extension,
+            });
+          }
         })}
       >
         <div className="bg-neutral-50 p-4 sm:p-6">
@@ -110,7 +154,7 @@ function AddFileModalInner({ setShowAddFileModal }: AddFileModalProps) {
               <Controller
                 control={control}
                 name="file"
-                rules={{ required: "File is required" }}
+                rules={{ required: !isEditing ? "File is required" : false }}
                 render={({ field }) => (
                   <FileUpload
                     accept="programResourceFiles"
@@ -125,6 +169,7 @@ function AddFileModalInner({ setShowAddFileModal }: AddFileModalProps) {
                       setFileName(file.name);
                       field.onChange(src);
                       setValue("extension", file.name.split(".").pop());
+                      setHasNewFile(true);
 
                       // Set the file name to the file name without extension if no name is provided
                       const currentName = getValues("name");
@@ -136,11 +181,13 @@ function AddFileModalInner({ setShowAddFileModal }: AddFileModalProps) {
                         setValue("name", nameWithoutExtension || file.name);
                       }
                     }}
-                    icon={field.value ? FileContent : undefined}
+                    icon={field.value || isEditing ? FileContent : undefined}
                     content={
                       field.value
                         ? truncate(fileName, 25)
-                        : "Any document or zip file, max size of 10MB"
+                        : isEditing
+                          ? `Current: ${truncate(existingResource?.name || "", 25)} (drop to replace)`
+                          : "Any document or zip file, max size of 10MB"
                     }
                     maxFileSizeMB={10}
                   />
@@ -181,7 +228,7 @@ function AddFileModalInner({ setShowAddFileModal }: AddFileModalProps) {
 
         <div className="flex items-center justify-end gap-2 border-t border-neutral-200 bg-neutral-50 px-4 py-5 sm:px-6">
           <Button
-            onClick={() => setShowAddFileModal(false)}
+            onClick={() => setShowFileModal(false)}
             variant="secondary"
             text="Cancel"
             className="h-8 w-fit px-3"
@@ -191,7 +238,7 @@ function AddFileModalInner({ setShowAddFileModal }: AddFileModalProps) {
             type="submit"
             autoFocus
             loading={isSubmitting || isSubmitSuccessful}
-            text="Add File"
+            text={isEditing ? "Save Changes" : "Add File"}
             className="h-8 w-fit px-3"
           />
         </div>
@@ -200,23 +247,29 @@ function AddFileModalInner({ setShowAddFileModal }: AddFileModalProps) {
   );
 }
 
-export function useAddFileModal() {
-  const [showAddFileModal, setShowAddFileModal] = useState(false);
+export function useFileModal({
+  existingResource,
+}: { existingResource?: ProgramResourceFile } = {}) {
+  const [showFileModal, setShowFileModal] = useState(false);
 
-  const AddFileModalCallback = useCallback(() => {
+  const FileModalCallback = useCallback(() => {
     return (
-      <AddFileModal
-        showAddFileModal={showAddFileModal}
-        setShowAddFileModal={setShowAddFileModal}
+      <FileModal
+        showFileModal={showFileModal}
+        setShowFileModal={setShowFileModal}
+        existingResource={existingResource}
       />
     );
-  }, [showAddFileModal, setShowAddFileModal]);
+  }, [showFileModal, setShowFileModal, existingResource]);
 
   return useMemo(
     () => ({
-      setShowAddFileModal,
-      AddFileModal: AddFileModalCallback,
+      setShowFileModal,
+      FileModal: FileModalCallback,
     }),
-    [setShowAddFileModal, AddFileModalCallback],
+    [setShowFileModal, FileModalCallback],
   );
 }
+
+// Keep backwards compatibility alias
+export const useAddFileModal = useFileModal;

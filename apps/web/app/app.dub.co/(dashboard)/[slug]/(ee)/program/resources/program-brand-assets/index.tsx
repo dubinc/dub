@@ -3,7 +3,12 @@
 import { deleteProgramResourceAction } from "@/lib/actions/partners/program-resources/delete-program-resource";
 import useProgramResources from "@/lib/swr/use-program-resources";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { ProgramResourceType } from "@/lib/zod/schemas/program-resources";
+import {
+  ProgramResourceColor,
+  ProgramResourceFile,
+  ProgramResourceLink,
+  ProgramResourceType,
+} from "@/lib/zod/schemas/program-resources";
 import { ResourceCard } from "@/ui/partners/resources/resource-card";
 import { AnimatedSizeContainer, Button, FileContent } from "@dub/ui";
 import {
@@ -15,20 +20,45 @@ import {
   GOOGLE_FAVICON_URL,
 } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
+import { useState } from "react";
 import { toast } from "sonner";
 import { SettingsRow } from "../../program-settings-row";
-import { useAddColorModal } from "./add-color-modal";
-import { useAddFileModal } from "./add-file-modal";
-import { useAddLinkModal } from "./add-link-modal";
-import { useAddLogoModal } from "./add-logo-modal";
+import { useColorModal } from "./add-color-modal";
+import { useFileModal } from "./add-file-modal";
+import { useLinkModal } from "./add-link-modal";
+import { useLogoModal } from "./add-logo-modal";
 
 export function ProgramBrandAssets() {
   const { id: workspaceId } = useWorkspace();
   const { resources, mutate, isLoading } = useProgramResources();
-  const { setShowAddLogoModal, AddLogoModal } = useAddLogoModal();
-  const { setShowAddColorModal, AddColorModal } = useAddColorModal();
-  const { setShowAddFileModal, AddFileModal } = useAddFileModal();
-  const { setShowAddLinkModal, AddLinkModal } = useAddLinkModal();
+
+  // Track which resource is being edited (if any)
+  const [editingLogo, setEditingLogo] = useState<
+    ProgramResourceFile | undefined
+  >();
+  const [editingColor, setEditingColor] = useState<
+    ProgramResourceColor | undefined
+  >();
+  const [editingFile, setEditingFile] = useState<
+    ProgramResourceFile | undefined
+  >();
+  const [editingLink, setEditingLink] = useState<
+    ProgramResourceLink | undefined
+  >();
+
+  // Modal hooks with editing support
+  const { setShowLogoModal, LogoModal } = useLogoModal({
+    existingResource: editingLogo,
+  });
+  const { setShowColorModal, ColorModal } = useColorModal({
+    existingResource: editingColor,
+  });
+  const { setShowFileModal, FileModal } = useFileModal({
+    existingResource: editingFile,
+  });
+  const { setShowLinkModal, LinkModal } = useLinkModal({
+    existingResource: editingLink,
+  });
 
   const { executeAsync } = useAction(deleteProgramResourceAction, {
     onSuccess: ({ input }) => {
@@ -55,12 +85,52 @@ export function ProgramBrandAssets() {
     return !!result?.data?.success;
   };
 
+  const handleAddLogo = () => {
+    setEditingLogo(undefined);
+    setShowLogoModal(true);
+  };
+
+  const handleEditLogo = (logo: ProgramResourceFile) => {
+    setEditingLogo(logo);
+    setShowLogoModal(true);
+  };
+
+  const handleAddColor = () => {
+    setEditingColor(undefined);
+    setShowColorModal(true);
+  };
+
+  const handleEditColor = (color: ProgramResourceColor) => {
+    setEditingColor(color);
+    setShowColorModal(true);
+  };
+
+  const handleAddFile = () => {
+    setEditingFile(undefined);
+    setShowFileModal(true);
+  };
+
+  const handleEditFile = (file: ProgramResourceFile) => {
+    setEditingFile(file);
+    setShowFileModal(true);
+  };
+
+  const handleAddLink = () => {
+    setEditingLink(undefined);
+    setShowLinkModal(true);
+  };
+
+  const handleEditLink = (link: ProgramResourceLink) => {
+    setEditingLink(link);
+    setShowLinkModal(true);
+  };
+
   return (
     <>
-      <AddLogoModal />
-      <AddColorModal />
-      <AddFileModal />
-      <AddLinkModal />
+      <LogoModal />
+      <ColorModal />
+      <FileModal />
+      <LinkModal />
       <div className="rounded-lg border border-neutral-200 bg-white">
         <div className="p-6">
           <h2 className="inline-flex items-center gap-2 text-lg font-semibold text-neutral-900">
@@ -82,7 +152,7 @@ export function ProgramBrandAssets() {
                 <Button
                   text="Add Logo"
                   className="h-8 w-fit px-3"
-                  onClick={() => setShowAddLogoModal(true)}
+                  onClick={handleAddLogo}
                   loading={isLoading}
                 />
               </div>
@@ -109,6 +179,7 @@ export function ProgramBrandAssets() {
                         title={logo.name || "Logo"}
                         description={`${getFileExtension(logo.url) || "Unknown"}・${formatFileSize(logo.size, 0)}`}
                         downloadUrl={logo.url}
+                        onEdit={() => handleEditLogo(logo)}
                         onDelete={() => handleDelete("logo", logo.id)}
                       />
                     ))}
@@ -127,7 +198,7 @@ export function ProgramBrandAssets() {
                 <Button
                   text="Add Link"
                   className="h-8 w-fit px-3"
-                  onClick={() => setShowAddLinkModal(true)}
+                  onClick={handleAddLink}
                   loading={isLoading}
                 />
               </div>
@@ -154,6 +225,7 @@ export function ProgramBrandAssets() {
                         description={getPrettyUrl(link.url)}
                         visitUrl={link.url}
                         copyText={link.url}
+                        onEdit={() => handleEditLink(link)}
                         onDelete={() => handleDelete("link", link.id)}
                       />
                     ))}
@@ -172,7 +244,7 @@ export function ProgramBrandAssets() {
                 <Button
                   text="Add Color"
                   className="h-8 w-fit px-3"
-                  onClick={() => setShowAddColorModal(true)}
+                  onClick={handleAddColor}
                   loading={isLoading}
                 />
               </div>
@@ -195,6 +267,7 @@ export function ProgramBrandAssets() {
                         title={color.name || "Color"}
                         description={color.color.toUpperCase()}
                         copyText={color.color.toUpperCase()}
+                        onEdit={() => handleEditColor(color)}
                         onDelete={() => handleDelete("color", color.id)}
                       />
                     ))}
@@ -213,7 +286,7 @@ export function ProgramBrandAssets() {
                 <Button
                   text="Add File"
                   className="h-8 w-fit px-3"
-                  onClick={() => setShowAddFileModal(true)}
+                  onClick={handleAddFile}
                   loading={isLoading}
                 />
               </div>
@@ -235,6 +308,7 @@ export function ProgramBrandAssets() {
                         title={file.name || "File"}
                         description={`${getFileExtension(file.url) || "Unknown"}・${formatFileSize(file.size, 0)}`}
                         downloadUrl={file.url}
+                        onEdit={() => handleEditFile(file)}
                         onDelete={() => handleDelete("file", file.id)}
                       />
                     ))}
