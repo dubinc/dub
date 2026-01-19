@@ -1,8 +1,5 @@
-import {
-  INVOICE_AVAILABLE_PAYOUT_STATUSES,
-  PAYOUTS_SHEET_ITEMS_LIMIT,
-} from "@/lib/constants/payouts";
 import { clientAccessCheck } from "@/lib/client-access-check";
+import { PAYOUTS_SHEET_ITEMS_LIMIT } from "@/lib/constants/payouts";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CommissionResponse, PayoutResponse } from "@/lib/types";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
@@ -143,21 +140,20 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
             </Tooltip>
           )}
 
-          {payout.mode === "internal" &&
-            INVOICE_AVAILABLE_PAYOUT_STATUSES.includes(payout.status) && (
-              <Tooltip content="View invoice">
-                <div className="flex h-5 w-5 items-center justify-center rounded-md transition-colors duration-150 hover:border hover:border-neutral-200 hover:bg-neutral-100">
-                  <Link
-                    href={`${APP_DOMAIN}/invoices/${payout.invoiceId || payout.id}`}
-                    className="text-neutral-700"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <InvoiceDollar className="size-4" />
-                  </Link>
-                </div>
-              </Tooltip>
-            )}
+          {payout.mode === "internal" && payout.status !== "failed" && (
+            <Tooltip content="View invoice">
+              <div className="flex h-5 w-5 items-center justify-center rounded-md transition-colors duration-150 hover:border hover:border-neutral-200 hover:bg-neutral-100">
+                <Link
+                  href={`${APP_DOMAIN}/invoices/${payout.invoiceId || payout.id}`}
+                  className="text-neutral-700"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <InvoiceDollar className="size-4" />
+                </Link>
+              </div>
+            </Tooltip>
+          )}
         </div>
       ),
 
@@ -333,9 +329,7 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
               disabledTooltip={
                 !payout.partner.payoutsEnabledAt
                   ? "This partner has not [connected a bank account](https://dub.co/help/article/receiving-payouts) to receive payouts yet, which means they won't be able to receive payouts from your program."
-                  : (
-                      permissionsError || undefined
-                    )
+                  : permissionsError || undefined
               }
               onClick={() => {
                 queryParams({
