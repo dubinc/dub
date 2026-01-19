@@ -68,17 +68,15 @@ export const markReferralClosedWonAction = authActionClient
       source: "submitted",
     });
 
+    // Update customer with the stripe customer ID
     waitUntil(
-      (async () => {
-        // Update customer with the stripe customer ID
-        await prisma.customer.update({
-          where: {
-            id: referral.customerId!,
-          },
-          data: {
-            stripeCustomerId,
-          },
-        });
-      })(),
+      prisma.customer.update({
+        where: {
+          id: referral.customerId!,
+        },
+        data: {
+          stripeCustomerId,
+        },
+      })
     );
   });
