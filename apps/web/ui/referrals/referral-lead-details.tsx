@@ -1,8 +1,8 @@
 import { ReferralProps } from "@/lib/types";
 import { Envelope, OfficeBuilding } from "@dub/ui";
 import { OG_AVATAR_URL } from "@dub/utils";
-import { getCompanyLogoUrl } from "./referral-utils";
 import { ReferralStatusBadge } from "./referral-status-badge";
+import { getCompanyLogoUrl } from "./referral-utils";
 
 interface ReferralCustomerDetailsProps {
   referral: Pick<ReferralProps, "id" | "name" | "email" | "company" | "status">;

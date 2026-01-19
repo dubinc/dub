@@ -2,7 +2,6 @@
 
 import useCustomersCount from "@/lib/swr/use-customers-count";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { CustomersDropdownMenu } from "../customers-dropdown-menu";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { InfoTooltip } from "@dub/ui";
@@ -10,6 +9,7 @@ import { cn } from "@dub/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { CSSProperties, ReactNode } from "react";
+import { CustomersDropdownMenu } from "../customers-dropdown-menu";
 
 export default function PartnerCustomersLayout({
   children,

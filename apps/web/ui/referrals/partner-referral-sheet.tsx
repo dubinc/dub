@@ -13,8 +13,8 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { Dispatch, SetStateAction } from "react";
-import { ReferralLeadDetails } from "./referral-lead-details";
 import { ReferralDetails } from "./referral-details";
+import { ReferralLeadDetails } from "./referral-lead-details";
 import { ReferralPartnerDetails } from "./referral-partner-details";
 
 type ReferralSheetProps = {
