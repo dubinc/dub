@@ -507,7 +507,12 @@ export type DiscountProps = z.infer<typeof DiscountSchema>;
 
 export type DiscountCodeProps = z.infer<typeof DiscountCodeSchema>;
 
-export type ProgramProps = z.infer<typeof ProgramSchema>;
+export type ProgramProps = Omit<
+  z.infer<typeof ProgramSchema>,
+  "referralFormData"
+> & {
+  referralFormData?: Prisma.JsonValue | null;
+};
 
 export type ProgramInviteEmailData = z.infer<
   typeof programInviteEmailDataSchema

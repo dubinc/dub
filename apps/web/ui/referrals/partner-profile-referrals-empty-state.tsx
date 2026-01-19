@@ -1,12 +1,14 @@
 "use client";
 
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
+import { referralFormSchema } from "@/lib/zod/schemas/referral-form";
 import { PROGRAM_MARKETPLACE_LOGO_COUNT } from "@/ui/partners/program-marketplace/program-marketplace-logos";
 import { SubmitReferralSheet } from "@/ui/referrals/submit-referral-sheet";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { Button } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import * as z from "zod/v4";
 
 const EMPTY_STATE_CARDS = [
   {
@@ -36,9 +38,21 @@ export function PartnerProfileReferralsEmptyState() {
   const { programEnrollment } = useProgramEnrollment();
   const [showReferralSheet, setShowReferralSheet] = useState(false);
 
-  const submittedReferralsEnabled =
-    programEnrollment?.program?.referralFormData !== null;
-  const referralFormData = programEnrollment?.program?.referralFormData;
+  const referralFormDataRaw = programEnrollment?.program?.referralFormData;
+  const submittedReferralsEnabled = referralFormDataRaw !== null;
+
+  const referralFormData = useMemo(() => {
+    if (!referralFormDataRaw) {
+      return null;
+    }
+    try {
+      return referralFormSchema.parse(referralFormDataRaw) as z.infer<
+        typeof referralFormSchema
+      >;
+    } catch {
+      return null;
+    }
+  }, [referralFormDataRaw]);
 
   return (
     <>

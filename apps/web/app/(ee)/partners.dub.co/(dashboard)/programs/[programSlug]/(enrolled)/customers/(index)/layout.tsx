@@ -4,6 +4,7 @@ import { REFERRAL_ENABLED_PROGRAM_IDS } from "@/lib/referrals/constants";
 import usePartnerCustomersCount from "@/lib/swr/use-partner-customers-count";
 import usePartnerReferralsCount from "@/lib/swr/use-partner-referrals-count";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
+import { referralFormSchema } from "@/lib/zod/schemas/referral-form";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { SubmitReferralSheet } from "@/ui/referrals/submit-referral-sheet";
@@ -12,6 +13,7 @@ import { cn, nFormatter } from "@dub/utils";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { CSSProperties, ReactNode, useMemo, useState } from "react";
+import * as z from "zod/v4";
 
 export default function PartnerCustomersLayout({
   children,
@@ -31,12 +33,25 @@ export default function PartnerCustomersLayout({
     includeParams: [],
   });
 
-  const referralFormData = programEnrollment?.program?.referralFormData;
+  const referralFormDataRaw = programEnrollment?.program?.referralFormData;
   const programId = programEnrollment?.programId;
 
   const isEnabled = programId
     ? REFERRAL_ENABLED_PROGRAM_IDS.includes(programId)
     : false;
+
+  const referralFormData = useMemo(() => {
+    if (!referralFormDataRaw) {
+      return null;
+    }
+    try {
+      return referralFormSchema.parse(referralFormDataRaw) as z.infer<
+        typeof referralFormSchema
+      >;
+    } catch {
+      return null;
+    }
+  }, [referralFormDataRaw]);
 
   const tabs = useMemo(() => {
     if (!isEnabled) {

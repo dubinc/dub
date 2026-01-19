@@ -47,7 +47,7 @@ export const ProgramSchema = z.object({
   supportEmail: z.string().nullish(),
   helpUrl: z.string().nullish(),
   termsUrl: z.string().nullish(),
-  referralFormData: referralFormSchema.nullish(),
+  referralFormData: z.record(z.string(), z.any()).nullish(),
   createdAt: z.date(),
   updatedAt: z.date(),
   startedAt: z.date().nullish(),
