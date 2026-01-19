@@ -1,11 +1,13 @@
 "use server";
 
+import { trackSale } from "@/lib/api/conversions/track-sale";
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getReferralOrThrow } from "@/lib/api/referrals/get-referral-or-throw";
 import { markReferralClosedWonSchema } from "@/lib/zod/schemas/referrals";
 import { prisma } from "@dub/prisma";
 import { ReferralStatus } from "@dub/prisma/client";
+import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 
 // Mark a partner referral as closed won
@@ -36,6 +38,7 @@ export const markReferralClosedWonAction = authActionClient
       });
     }
 
+    // Mark the referral as closed won
     await prisma.partnerReferral.update({
       where: {
         id: referralId,
@@ -46,20 +49,36 @@ export const markReferralClosedWonAction = authActionClient
       },
     });
 
-    await prisma.customer.update({
-      where: {
-        id: referral.customerId,
-      },
-      data: {
-        ...(stripeCustomerId && {
-          stripeCustomerId,
-        }),
-        sales: {
-          increment: 1,
-        },
-        saleAmount: {
-          increment: saleAmount,
-        },
-      },
+    if (!referral.customer) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "This referral does not have a customer associated with it.",
+      });
+    }
+
+    await trackSale({
+      customerExternalId: referral.customer.externalId!,
+      amount: saleAmount,
+      eventName: "Closed Won",
+      paymentProcessor: "custom",
+      invoiceId: null,
+      metadata: null,
+      rawBody: {},
+      workspace,
+      source: "submitted",
     });
+
+    waitUntil(
+      (async () => {
+        // Update customer with the stripe customer ID
+        await prisma.customer.update({
+          where: {
+            id: referral.customerId!,
+          },
+          data: {
+            stripeCustomerId,
+          },
+        });
+      })(),
+    );
   });
