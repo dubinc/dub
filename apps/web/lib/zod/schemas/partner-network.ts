@@ -60,9 +60,7 @@ export const getNetworkPartnersCountQuerySchema = getNetworkPartnersQuerySchema
   })
   .extend({
     status: NetworkPartnersStatusSchema.nullish(),
-    groupBy: z
-      .enum(["status", "country", "platform", "subscribers"])
-      .default("status"),
+    groupBy: z.enum(["status", "country"]).default("status"),
   });
 
 export const NetworkPartnerSchema = PartnerSchema.pick({
