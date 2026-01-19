@@ -25,5 +25,7 @@ model PartnerReferral {
   customer          Customer?          @relation(fields: [customerId], references: [id])
 
   @@index([programId, partnerId])
+  @@index(partnerId)
+  @@index(customerId)
   @@fulltext([email, name])
 }
