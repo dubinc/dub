@@ -1,18 +1,13 @@
+import { getNetworkPartnersQuerySchema } from "@/lib/zod/schemas/partner-network";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { ACME_PROGRAM_ID } from "@dub/utils";
+import * as z from "zod/v4";
 
-export interface PartnerRankingFilters {
-  partnerIds?: string[];
-  status?: "discover" | "invited" | "recruited";
-  country?: string;
-  starred?: boolean;
-}
+type PartnerRankingFilters = z.infer<typeof getNetworkPartnersQuerySchema>;
 
 export interface PartnerRankingParams extends PartnerRankingFilters {
   programId: string;
-  page: number;
-  pageSize: number;
   similarPrograms?: Array<{ programId: string; similarityScore: number }>;
 }
 
@@ -50,6 +45,8 @@ export async function calculatePartnerRanking({
   partnerIds,
   country,
   starred,
+  platform,
+  subscribers,
   page,
   pageSize,
   status = "discover",
@@ -67,6 +64,48 @@ export async function calculatePartnerRanking({
 
   if (country) {
     conditions.push(Prisma.sql`p.country = ${country}`);
+  }
+
+  // Filter by platform type and/or subscriber count (must have verified platform)
+  // Combine both filters into a single EXISTS clause so they apply to the same platform
+  if (platform || subscribers) {
+    const platformConditions: Prisma.Sql[] = [
+      Prisma.sql`pp_filter.partnerId = p.id`,
+      Prisma.sql`pp_filter.verifiedAt IS NOT NULL`,
+    ];
+
+    if (platform) {
+      platformConditions.push(Prisma.sql`pp_filter.type = ${platform}`);
+    }
+
+    if (subscribers) {
+      switch (subscribers) {
+        case "<5000":
+          platformConditions.push(Prisma.sql`pp_filter.subscribers < 5000`);
+          break;
+        case "5000-25000":
+          platformConditions.push(
+            Prisma.sql`pp_filter.subscribers >= 5000 AND pp_filter.subscribers < 25000`,
+          );
+          break;
+        case "25000-100000":
+          platformConditions.push(
+            Prisma.sql`pp_filter.subscribers >= 25000 AND pp_filter.subscribers < 100000`,
+          );
+          break;
+        case "100000+":
+          platformConditions.push(Prisma.sql`pp_filter.subscribers >= 100000`);
+          break;
+      }
+    }
+
+    conditions.push(
+      Prisma.sql`EXISTS (
+        SELECT 1 
+        FROM PartnerPlatform pp_filter 
+        WHERE ${Prisma.join(platformConditions, " AND ")}
+      )`,
+    );
   }
 
   if (status === "discover") {
