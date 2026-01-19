@@ -165,90 +165,66 @@ export const GET = withWorkspace(
 
       return NextResponse.json(countries);
     } else if (groupBy === "platform") {
-      // Get counts by platform type (only verified platforms)
-      const platformConditions: Prisma.Sql[] = [
-        Prisma.sql`p.discoverableAt IS NOT NULL`,
-        Prisma.sql`pp.verifiedAt IS NOT NULL`,
-      ];
+      // Build platform filter for PartnerPlatform
+      const platformPlatformFilter: Prisma.PartnerPlatformWhereInput = {
+        verifiedAt: { not: null },
+        ...(subscribers === "<5000" && {
+          subscribers: { lt: 5000 },
+        }),
+        ...(subscribers === "5000-25000" && {
+          subscribers: { gte: 5000, lt: 25000 },
+        }),
+        ...(subscribers === "25000-100000" && {
+          subscribers: { gte: 25000, lt: 100000 },
+        }),
+        ...(subscribers === "100000+" && {
+          subscribers: { gte: 100000 },
+        }),
+      };
 
-      if (partnerIds && partnerIds.length > 0) {
-        platformConditions.push(
-          Prisma.sql`p.id IN (${Prisma.join(partnerIds)})`,
-        );
-      }
+      // Build partner where clause combining all filters
+      const partnerWhere: Prisma.PartnerWhereInput = {
+        ...commonWhere,
+        ...statusWheres[status || "discover"],
+        platforms: {
+          some: platformPlatformFilter,
+        },
+      };
 
-      if (country) {
-        platformConditions.push(Prisma.sql`p.country = ${country}`);
-      }
+      // Get all partners matching the criteria with their platforms
+      const partners = await prisma.partner.findMany({
+        where: partnerWhere,
+        select: {
+          id: true,
+          platforms: {
+            where: platformPlatformFilter,
+            select: {
+              type: true,
+            },
+          },
+        },
+      });
 
-      if (subscribers) {
-        switch (subscribers) {
-          case "<5000":
-            platformConditions.push(Prisma.sql`pp.subscribers < 5000`);
-            break;
-          case "5000-25000":
-            platformConditions.push(
-              Prisma.sql`pp.subscribers >= 5000 AND pp.subscribers < 25000`,
-            );
-            break;
-          case "25000-100000":
-            platformConditions.push(
-              Prisma.sql`pp.subscribers >= 25000 AND pp.subscribers < 100000`,
-            );
-            break;
-          case "100000+":
-            platformConditions.push(Prisma.sql`pp.subscribers >= 100000`);
-            break;
+      // Group by platform type and count distinct partners
+      const platformCountsMap = new Map<PlatformType, Set<string>>();
+
+      for (const partner of partners) {
+        for (const platform of partner.platforms) {
+          if (!platformCountsMap.has(platform.type)) {
+            platformCountsMap.set(platform.type, new Set());
+          }
+          platformCountsMap.get(platform.type)!.add(partner.id);
         }
       }
 
-      let statusCondition: Prisma.Sql;
-      if (status === "discover") {
-        statusCondition = Prisma.sql`NOT EXISTS (
-          SELECT 1 FROM ProgramEnrollment pe 
-          WHERE pe.partnerId = p.id AND pe.programId = ${programId}
-        )`;
-      } else if (status === "invited") {
-        statusCondition = Prisma.sql`EXISTS (
-          SELECT 1 FROM ProgramEnrollment pe 
-          WHERE pe.partnerId = p.id 
-            AND pe.programId = ${programId} 
-            AND pe.status = 'invited'
-        )`;
-      } else if (status === "recruited") {
-        statusCondition = Prisma.sql`EXISTS (
-          SELECT 1 FROM ProgramEnrollment pe 
-          WHERE pe.partnerId = p.id 
-            AND pe.programId = ${programId} 
-            AND pe.status = 'approved'
-        )`;
-      } else {
-        statusCondition = Prisma.sql`NOT EXISTS (
-          SELECT 1 FROM ProgramEnrollment pe 
-          WHERE pe.partnerId = p.id AND pe.programId = ${programId}
-        )`;
-      }
+      const platformCounts = Array.from(platformCountsMap.entries())
+        .map(([type, partnerIds]) => ({
+          platform: type,
+          _count: partnerIds.size,
+        }))
+        .sort((a, b) => b._count - a._count);
 
-      const platformCounts = await prisma.$queryRaw<
-        Array<{ type: PlatformType; _count: bigint }>
-      >`
-        SELECT 
-          pp.type,
-          COUNT(DISTINCT p.id) as _count
-        FROM Partner p
-        INNER JOIN PartnerPlatform pp ON pp.partnerId = p.id
-        WHERE ${Prisma.join(platformConditions, " AND ")}
-          AND ${statusCondition}
-        GROUP BY pp.type
-        ORDER BY _count DESC
-      `;
-
-      return NextResponse.json(
-        platformCounts.map((pc) => ({
-          platform: pc.type,
-          _count: Number(pc._count),
-        })),
-      );
+      return NextResponse.json(platformCounts);
     } else if (groupBy === "subscribers") {
       // Get counts by subscriber ranges (only verified platforms)
       const subscriberRanges = [
