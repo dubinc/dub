@@ -3,7 +3,9 @@ import { PlatformType } from "@dub/prisma/client";
 import { useRouterStuff } from "@dub/ui";
 import {
   FlagWavy,
+  Globe,
   Instagram,
+  LinkedIn,
   Megaphone,
   ShieldCheck,
   TikTok,
@@ -67,17 +69,24 @@ export function usePartnerNetworkFilters({
     twitter: Twitter,
     instagram: Instagram,
     tiktok: TikTok,
-    linkedin: Twitter, // fallback
-    website: FlagWavy, // fallback
+    linkedin: LinkedIn,
+    website: Globe,
   };
 
   const platformLabels: Record<PlatformType, string> = {
     youtube: "YouTube",
-    twitter: "X",
+    twitter: "X/Twitter",
     instagram: "Instagram",
     tiktok: "TikTok",
     linkedin: "LinkedIn",
     website: "Website",
+  };
+
+  const subscriberLabels: Record<string, string> = {
+    "<5000": "< 5,000",
+    "5000-25000": "5,000 - 25,000",
+    "25000-100000": "25,000 - 100,000",
+    "100000+": "100,000+",
   };
 
   const filters = useMemo(
@@ -128,26 +137,11 @@ export function usePartnerNetworkFilters({
         icon: Megaphone,
         label: "Verified subscriber count",
         getOptionIcon: () => <Megaphone className="size-4" />,
-        getOptionLabel: (value: string) => {
-          const labels: Record<string, string> = {
-            "<5000": "< 5,000",
-            "5000-25000": "5,000 - 25,000",
-            "25000-100000": "25,000 - 100,000",
-            "100000+": "100,000+",
-          };
-          return labels[value] || value;
-        },
+        getOptionLabel: (value: string) => subscriberLabels[value] || value,
         options:
           subscribersCount?.map(({ subscribers, _count }) => ({
             value: subscribers,
-            label:
-              subscribers === "<5000"
-                ? "< 5,000"
-                : subscribers === "5000-25000"
-                  ? "5,000 - 25,000"
-                  : subscribers === "25000-100000"
-                    ? "25,000 - 100,000"
-                    : "100,000+",
+            label: subscriberLabels[subscribers] || subscribers,
             right: nFormatter(_count, { full: true }),
           })) ?? [],
       },
