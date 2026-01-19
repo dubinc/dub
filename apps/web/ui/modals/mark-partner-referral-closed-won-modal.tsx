@@ -43,7 +43,7 @@ export function useMarkPartnerReferralClosedWonModal({
   const { executeAsync, isPending } = useAction(markReferralClosedWonAction, {
     onSuccess: async () => {
       toast.success("Partner referral marked as closed won successfully!");
-      mutatePrefix("/api/programs/partner-referrals");
+      mutatePrefix("/api/programs/referrals");
       setShowModal(false);
       reset();
     },

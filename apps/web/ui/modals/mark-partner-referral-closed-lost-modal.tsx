@@ -21,7 +21,7 @@ export function useMarkPartnerReferralClosedLostModal({
   const { executeAsync, isPending } = useAction(markReferralClosedLostAction, {
     onSuccess: async () => {
       toast.success("Partner referral marked as closed lost successfully!");
-      mutatePrefix("/api/programs/partner-referrals");
+      mutatePrefix("/api/programs/referrals");
     },
     onError({ error }) {
       toast.error(error.serverError);

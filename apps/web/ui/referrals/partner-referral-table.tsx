@@ -70,7 +70,7 @@ export function PartnerReferralTable({
     error,
     isLoading,
   } = useSWR<PartnerReferralProps[]>(
-    `/api/programs/partner-referrals${getQueryString({
+    `/api/programs/referrals${getQueryString({
       workspaceId,
       ...query,
     })}`,

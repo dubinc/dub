@@ -21,7 +21,7 @@ export function useQualifyPartnerReferralModal({
   const { executeAsync, isPending } = useAction(markReferralQualifiedAction, {
     onSuccess: async () => {
       toast.success("Partner referral qualified successfully!");
-      mutatePrefix("/api/programs/partner-referrals");
+      mutatePrefix("/api/programs/referrals");
     },
     onError({ error }) {
       toast.error(error.serverError);

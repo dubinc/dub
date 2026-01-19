@@ -21,7 +21,7 @@ export function useUnqualifyPartnerReferralModal({
   const { executeAsync, isPending } = useAction(markReferralUnqualifiedAction, {
     onSuccess: async () => {
       toast.success("Partner referral unqualified successfully!");
-      mutatePrefix("/api/programs/partner-referrals");
+      mutatePrefix("/api/programs/referrals");
     },
     onError({ error }) {
       toast.error(error.serverError);

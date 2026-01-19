@@ -17,7 +17,7 @@ export function usePartnerReferralsCount<T = number>({
 
   const { data, error, isLoading } = useSWR<T>(
     workspaceId &&
-      `/api/programs/partner-referrals/count${getQueryString(
+      `/api/programs/referrals/count${getQueryString(
         { workspaceId, ...query },
         {
           include: includeParams,
