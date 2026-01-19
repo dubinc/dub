@@ -110,18 +110,12 @@ export const updateProgramResourceAction = authActionClient
 
       // If a new file is provided, upload it and delete the old one
       if (file) {
-        // Delete old file from storage
-        if (existingResource.url) {
-          try {
-            await storage.delete({
-              key: existingResource.url.replace(`${R2_URL}/`, ""),
-            });
-          } catch (error) {
-            console.error(
-              "Failed to delete old program resource file from storage:",
-              error,
-            );
-          }
+        // Validate file size before upload
+        const base64Data = file.replace(/^data:.+;base64,/, "");
+        const fileSize = Math.ceil((base64Data.length * 3) / 4);
+
+        if (fileSize / 1024 / 1024 > 10) {
+          throw new Error("File size is too large");
         }
 
         // Upload the new file
@@ -147,16 +141,22 @@ export const updateProgramResourceAction = authActionClient
           throw new Error(`Failed to upload ${resourceType}`);
         }
 
-        // Extract file size from base64 string
-        const base64Data = file.replace(/^data:.+;base64,/, "");
-        const fileSize = Math.ceil((base64Data.length * 3) / 4);
-
-        if (fileSize / 1024 / 1024 > 10) {
-          throw new Error("File size is too large");
-        }
-
         newUrl = uploadResult.url;
         newSize = fileSize;
+
+        // Delete old file from storage (best-effort, after successful upload)
+        if (existingResource.url) {
+          try {
+            await storage.delete({
+              key: existingResource.url.replace(`${R2_URL}/`, ""),
+            });
+          } catch (error) {
+            console.error(
+              "Failed to delete old program resource file from storage:",
+              error,
+            );
+          }
+        }
       }
 
       const updatedResource = programResourceFileSchema.parse({
