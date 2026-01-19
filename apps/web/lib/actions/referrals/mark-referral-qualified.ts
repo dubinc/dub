@@ -1,6 +1,5 @@
 "use server";
 
-import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { trackLead } from "@/lib/api/conversions/track-lead";
 import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
@@ -35,7 +34,7 @@ export const markReferralQualifiedAction = authActionClient
     }
 
     // Mark the referral as qualified
-    const updatedReferral = await prisma.partnerReferral.update({
+    await prisma.partnerReferral.update({
       where: {
         id: referralId,
         status: ReferralStatus.pending,
@@ -72,9 +71,8 @@ export const markReferralQualifiedAction = authActionClient
       link: pick(links[0], ["id", "url", "domain", "key", "projectId"]),
     });
 
-
     // Create a customer
-    if(!referral.email)  {
+    if (!referral.email) {
       throw new DubApiError({
         code: "bad_request",
         message: "The partner referral must have an email address.",
@@ -107,6 +105,4 @@ export const markReferralQualifiedAction = authActionClient
       workspace: pick(workspace, ["id", "stripeConnectId", "webhookEnabled"]),
       source: "submitted",
     });
-
-    return updatedReferral;
   });

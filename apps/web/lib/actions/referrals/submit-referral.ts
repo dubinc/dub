@@ -126,7 +126,7 @@ export const submitReferralAction = authPartnerActionClient
       });
     }
 
-    const referral = await prisma.partnerReferral.create({
+    await prisma.partnerReferral.create({
       data: {
         id: createId({ prefix: "ref_" }),
         programId,
@@ -140,6 +140,4 @@ export const submitReferralAction = authPartnerActionClient
             : undefined,
       },
     });
-
-    return referral;
   });

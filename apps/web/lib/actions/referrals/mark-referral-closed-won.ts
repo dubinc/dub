@@ -22,7 +22,6 @@ export const markReferralClosedWonAction = authActionClient
       programId,
     });
 
-    // This should never happen
     if (!referral.customerId) {
       throw new DubApiError({
         code: "bad_request",
@@ -40,6 +39,7 @@ export const markReferralClosedWonAction = authActionClient
     await prisma.partnerReferral.update({
       where: {
         id: referralId,
+        status: "qualified",
       },
       data: {
         status: ReferralStatus.closedWon,

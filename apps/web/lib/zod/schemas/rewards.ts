@@ -334,13 +334,13 @@ export const REWARD_EVENT_COLUMN_MAPPING = Object.freeze({
   sale: "saleRewardId",
 });
 
-export const LEAD_CUSTOMER_SOURCES = ["tracked", "submitted"] as const;
+export const CUSTOMER_SOURCES = ["tracked", "submitted"] as const;
 
 export const rewardContextSchema = z.object({
   customer: z
     .object({
       country: z.string().nullish(),
-      source: z.enum(LEAD_CUSTOMER_SOURCES).nullish().default("tracked"),
+      source: z.enum(CUSTOMER_SOURCES).nullish().default("tracked"),
     })
     .optional(),
 

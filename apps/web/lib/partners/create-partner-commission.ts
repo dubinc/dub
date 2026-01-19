@@ -3,7 +3,6 @@ import {
   Commission,
   CommissionStatus,
   CommissionType,
-  EventType,
   Link,
   Partner,
   ProgramEnrollment,

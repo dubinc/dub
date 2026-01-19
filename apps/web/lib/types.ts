@@ -124,7 +124,7 @@ import {
 import { referralFormDataSchema } from "./zod/schemas/referral-form";
 import { referralSchema } from "./zod/schemas/referrals";
 import {
-  LEAD_CUSTOMER_SOURCES,
+  CUSTOMER_SOURCES,
   rewardConditionsArraySchema,
   rewardConditionSchema,
   rewardConditionsSchema,
@@ -767,4 +767,4 @@ export type ReferralProps = z.infer<typeof referralSchema>;
 
 export type ReferralFormDataField = z.infer<typeof referralFormDataSchema>;
 
-export type LeadCustomerSource = (typeof LEAD_CUSTOMER_SOURCES)[number];
+export type CustomerSource = (typeof CUSTOMER_SOURCES)[number];
