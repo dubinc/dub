@@ -17,19 +17,17 @@ export function ReferralDetails({ referral }: ReferralDetailsProps) {
         <h3 className="text-content-emphasis mb-4 text-lg font-semibold">
           Referral details
         </h3>
-        <div className="grid grid-cols-1 gap-5 text-sm text-neutral-600">
-          {formData?.map((field) => {
-            return (
-              <div key={field.key}>
-                <div className="text-content-default text-sm font-semibold">
-                  {field.label}
-                </div>
-                <div className="text-content-default text-sm">
-                  {formatFormDataValue(field.value)}
-                </div>
+        <div className="grid grid-cols-1 gap-4 text-sm text-neutral-600">
+          {formData?.map((field) => (
+            <div key={field.key}>
+              <div className="text-content-default text-sm font-semibold">
+                {field.label}
               </div>
-            );
-          })}
+              <div className="text-content-default text-sm">
+                {formatFormDataValue(field.value)}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>

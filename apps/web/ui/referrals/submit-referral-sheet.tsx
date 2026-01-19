@@ -7,6 +7,7 @@ import { X } from "@/ui/shared/icons";
 import { Button, CircleCheckFill, Sheet } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
+import { useParams } from "next/navigation";
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -33,6 +34,7 @@ export function SubmitReferralSheet({
   onSuccess,
 }: SubmitReferralSheetProps) {
   const [isSubmitSuccessful, setIsSubmitSuccessful] = useState(false);
+  const { programSlug } = useParams<{ programSlug: string }>();
 
   const validatedFormData = useMemo(() => {
     try {
@@ -51,13 +53,18 @@ export function SubmitReferralSheet({
   const { handleSubmit, setError, reset } = form;
 
   const { executeAsync, isPending } = useAction(submitReferralAction, {
-    onSuccess: () => {
-      mutatePrefix(`/api/partner-profile/programs/${programId}/referrals`);
+    onSuccess: async () => {
       toast.success("Referral submitted successfully");
       reset();
       setIsSubmitSuccessful(true);
-      // setIsOpen(false);
       onSuccess?.();
+
+      if (programSlug) {
+        await mutatePrefix([
+          `/api/partner-profile/programs/${programSlug}/referrals`,
+          `/api/partner-profile/programs/${programSlug}/referrals/count`,
+        ]);
+      }
     },
     onError: ({ error }) => {
       const errorMessage = error.serverError || "Failed to submit referral";
