@@ -96,7 +96,7 @@ export default function PartnerCustomersLayout({
                     </span>
                     {tab.info && <InfoTooltip content={tab.info} />}
                   </div>
-                  {tab.count ? (
+                  {tab.count !== undefined ? (
                     <span className="text-content-emphasis text-base font-semibold">
                       {tab.count.toLocaleString()}
                     </span>
