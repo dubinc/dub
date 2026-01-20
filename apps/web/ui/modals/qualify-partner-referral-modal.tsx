@@ -4,12 +4,19 @@ import { markReferralQualifiedAction } from "@/lib/actions/referrals/mark-referr
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { referralSchema } from "@/lib/zod/schemas/referrals";
-import { useConfirmModal } from "@/ui/modals/confirm-modal";
+import { Button, Modal, useKeyboardShortcut } from "@dub/ui";
+import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod/v4";
 
 type PartnerReferralProps = z.infer<typeof referralSchema>;
+
+type QualifyPartnerReferralFormData = {
+  externalId: string;
+};
 
 export function useQualifyPartnerReferralModal({
   referral,
@@ -17,25 +24,33 @@ export function useQualifyPartnerReferralModal({
   referral: PartnerReferralProps;
 }) {
   const { id: workspaceId } = useWorkspace();
+  const [showModal, setShowModal] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    reset,
+  } = useForm<QualifyPartnerReferralFormData>({
+    defaultValues: {
+      externalId: "",
+    },
+  });
 
   const { executeAsync, isPending } = useAction(markReferralQualifiedAction, {
     onSuccess: async () => {
       toast.success("Partner referral qualified successfully!");
       mutatePrefix("/api/programs/referrals");
+      setShowModal(false);
+      reset();
     },
     onError({ error }) {
       toast.error(error.serverError);
     },
   });
 
-  const { setShowConfirmModal, confirmModal } = useConfirmModal({
-    title: "Qualify lead",
-    description: "Are you sure you want to qualify this partner referral?",
-    confirmText: "Qualify",
-    cancelText: "Cancel",
-    confirmShortcut: "Q",
-    confirmShortcutOptions: { modal: true },
-    onConfirm: async () => {
+  const onSubmit = useCallback(
+    async (data: QualifyPartnerReferralFormData) => {
       if (!workspaceId || !referral.id) {
         return;
       }
@@ -43,13 +58,121 @@ export function useQualifyPartnerReferralModal({
       await executeAsync({
         workspaceId,
         referralId: referral.id,
+        externalId: data.externalId || undefined,
       });
     },
-  });
+    [executeAsync, referral.id, workspaceId],
+  );
+
+  const handleFormSubmit = handleSubmit(onSubmit);
+
+  // Keyboard shortcuts for modal actions
+  useKeyboardShortcut(
+    "q",
+    (e) => {
+      if (showModal && !isPending && !isSubmitting) {
+        e.preventDefault();
+        handleFormSubmit(e as any);
+      }
+    },
+    { modal: true },
+  );
+
+  useKeyboardShortcut(
+    "c",
+    (e) => {
+      if (showModal) {
+        e.preventDefault();
+        setShowModal(false);
+        reset();
+      }
+    },
+    { modal: true },
+  );
+
+  const qualifyModal = useMemo(
+    () => (
+      <Modal showModal={showModal} setShowModal={setShowModal}>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <div className="flex flex-col gap-1 border-b border-neutral-200 px-[18px] py-5 text-left">
+            <h3 className="text-content-emphasis text-base font-semibold">
+              Qualify lead
+            </h3>
+            <p className="text-content-subtle text-sm">
+              Are you sure you want to qualify this partner referral?
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-5 p-5">
+            <div className="flex flex-col gap-2">
+              <label className="text-content-emphasis block text-sm font-medium">
+                External ID (optional)
+              </label>
+              <div className="relative rounded-md shadow-sm">
+                <input
+                  type="text"
+                  className={cn(
+                    "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                    errors.externalId &&
+                      "border-red-600 focus:border-red-500 focus:ring-red-600",
+                  )}
+                  placeholder="External customer ID"
+                  {...register("externalId", {
+                    required: false,
+                  })}
+                />
+              </div>
+
+              {errors.externalId && (
+                <p className="text-xs text-red-600">
+                  {errors.externalId.message}
+                </p>
+              )}
+
+              <p className="text-xs text-neutral-500">
+                The customer's external ID. If not provided, the referral email will be used.
+              </p>
+            </div>
+          </div>
+
+          <div className="border-border-subtle flex items-center justify-end gap-2 border-t px-5 py-4">
+            <Button
+              variant="secondary"
+              className="h-8 w-fit px-3"
+              text="Cancel"
+              shortcut="C"
+              onClick={() => {
+                setShowModal(false);
+                reset();
+              }}
+            />
+            <Button
+              type="submit"
+              variant="primary"
+              className="h-8 w-fit px-3"
+              text="Qualify"
+              shortcut="Q"
+              loading={isPending || isSubmitting}
+            />
+          </div>
+        </form>
+      </Modal>
+    ),
+    [
+      showModal,
+      handleSubmit,
+      onSubmit,
+      register,
+      errors,
+      isPending,
+      isSubmitting,
+      reset,
+    ],
+  );
 
   return {
-    setShowQualifyModal: setShowConfirmModal,
-    QualifyModal: confirmModal,
-    isQualifying: isPending,
+    setShowQualifyModal: setShowModal,
+    QualifyModal: qualifyModal,
+    isQualifying: isPending || isSubmitting,
   };
 }
