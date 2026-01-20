@@ -249,7 +249,6 @@ export async function PartnerPayoutInvoice({
               .join(", ");
 
             const records = [
-              address.companyName,
               address.name,
               address.line1,
               address.line2,
