@@ -220,6 +220,46 @@ export default function ProgramPageClient() {
                     </div>
                   </>
                 )}
+
+                {(program.minPayoutAmount > 0 ||
+                  (programEnrollment.group?.holdingPeriodDays ?? 0) > 0) && (
+                  <p className="mt-1.5 text-xs text-neutral-500">
+                    {program.minPayoutAmount > 0 && (
+                      <>
+                        <span className="font-semibold text-neutral-700">
+                          ${program.minPayoutAmount / 100}
+                        </span>{" "}
+                        <a
+                          href="https://dub.co/help/article/commissions-payouts#what-does-minimum-payout-amount-mean"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="underline decoration-dotted underline-offset-2"
+                        >
+                          minimum payout
+                        </a>
+                      </>
+                    )}
+                    {program.minPayoutAmount > 0 &&
+                      (programEnrollment.group?.holdingPeriodDays ?? 0) > 0 &&
+                      ", "}
+                    {(programEnrollment.group?.holdingPeriodDays ?? 0) > 0 && (
+                      <>
+                        <span className="font-semibold text-neutral-700">
+                          {programEnrollment.group?.holdingPeriodDays} day
+                        </span>{" "}
+                        <a
+                          href="https://dub.co/help/article/commissions-payouts#what-does-holding-period-mean"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="underline decoration-dotted underline-offset-2"
+                        >
+                          holding period
+                        </a>
+                        {program.minPayoutAmount === 0 && " before payout"}
+                      </>
+                    )}
+                  </p>
+                )}
               </div>
             </motion.div>
           )}
