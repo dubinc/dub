@@ -1,5 +1,5 @@
 import { ReferralProps } from "@/lib/types";
-import { useMarReferralClosedLostModal } from "@/ui/modals/mark-referral-closed-lost-modal";
+import { useMarkReferralClosedLostModal } from "@/ui/modals/mark-referral-closed-lost-modal";
 import { useMarkReferralClosedWonModal } from "@/ui/modals/mark-referral-closed-won-modal";
 import { useMarkReferralQualifiedModal } from "@/ui/modals/mark-referral-qualified-modal";
 import { useUnqualifyReferralModal } from "@/ui/modals/unqualify-referral-modal";
@@ -46,7 +46,7 @@ function ReferralSheetContent({
   } = useMarkReferralClosedWonModal({ referral });
 
   const { setShowClosedLostModal, ClosedLostModal, isMarkingClosedLost } =
-    useMarReferralClosedLostModal({ referral });
+    useMarkReferralClosedLostModal({ referral });
 
   // right arrow key onNext
   useKeyboardShortcut(
