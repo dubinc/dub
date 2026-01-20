@@ -26,9 +26,9 @@ export const translations = {
     openInAppWithoutCopying: "Ouvrir dans l'application sans copier",
   },
   tr: {
-    poweredBy: "Tarafından desteklenmektedir",
-    description:
-      "Aşağıya tıklamak bu sayfayı kopyalayacak ve uygulamada açacaktır.",
+    poweredBy: "tarafından desteklenmektedir",
+    poweredByOrder: "inverted",
+    description: "Linki uygulamada açmak için aşağıdaki butona tıklayın.",
     openInApp: "Uygulamada aç",
     openInAppWithoutCopying: "Kopyalamadan uygulamada aç",
   },

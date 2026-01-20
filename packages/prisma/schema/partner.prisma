@@ -83,6 +83,7 @@ model Partner {
   fraudEvents                FraudEvent[]
   partnerRewinds             PartnerRewind[]
   platforms                  PartnerPlatform[]
+  referrals                  PartnerReferral[]
 
   @@index(country)
   @@index(discoverableAt)
