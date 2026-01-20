@@ -78,6 +78,7 @@ export async function PartnerPayoutInvoice({
       const response = await stripe.customers.retrieve(workspace.stripeId, {
         expand: ["tax_ids"],
       });
+      console.log("response", JSON.stringify(response, null, 2));
       customer = response as Stripe.Customer;
     } catch (error) {
       console.error(error);
@@ -209,13 +210,12 @@ export async function PartnerPayoutInvoice({
     {
       title: "Bill to",
       address: {
-        companyName: workspace.name,
-        name: customer?.shipping?.name,
-        line1: customer?.shipping?.address?.line1,
-        line2: customer?.shipping?.address?.line2,
-        city: customer?.shipping?.address?.city,
-        state: customer?.shipping?.address?.state,
-        postalCode: customer?.shipping?.address?.postal_code,
+        name: customer?.name || workspace.name,
+        line1: customer?.address?.line1,
+        line2: customer?.address?.line2,
+        city: customer?.address?.city,
+        state: customer?.address?.state,
+        postalCode: customer?.address?.postal_code,
         email: customer?.email,
         taxId: primaryTaxId ? `Tax ID: ${primaryTaxId.value}` : undefined,
       },
