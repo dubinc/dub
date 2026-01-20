@@ -404,13 +404,12 @@ function ConditionLogic({
                         },
                       )
                     }
-                    items={(
-                      condition.entity === "customer" &&
-                      condition.attribute === "source"
-                        ? SOURCE_CONDITION_OPERATORS
-                        : ["number", "currency"].includes(attributeType)
-                          ? NUMBER_CONDITION_OPERATORS
-                          : STRING_CONDITION_OPERATORS
+                    items={(condition.entity === "customer" &&
+                    condition.attribute === "source"
+                      ? SOURCE_CONDITION_OPERATORS
+                      : ["number", "currency"].includes(attributeType)
+                        ? NUMBER_CONDITION_OPERATORS
+                        : STRING_CONDITION_OPERATORS
                     ).map((operator) => ({
                       text: CONDITION_OPERATOR_LABELS[operator],
                       value: operator,

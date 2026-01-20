@@ -296,7 +296,8 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             icon: UserCheck,
             href: `/${slug}/program/customers`,
             badge:
-              pathname?.includes("/customers/referrals") && pendingReferralsCount
+              pathname?.includes("/customers/referrals") &&
+              pendingReferralsCount
                 ? pendingReferralsCount > 99
                   ? "99+"
                   : pendingReferralsCount
