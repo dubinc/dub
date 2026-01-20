@@ -13,7 +13,12 @@ import {
   recordSale,
 } from "@/lib/tinybird";
 import { logConversionEvent } from "@/lib/tinybird/log-conversion-events";
-import { ClickEventTB, LeadEventTB, WorkspaceProps } from "@/lib/types";
+import {
+  ClickEventTB,
+  CustomerSource,
+  LeadEventTB,
+  WorkspaceProps,
+} from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {
@@ -32,9 +37,11 @@ import * as z from "zod/v4";
 import { createId } from "../create-id";
 import { syncPartnerLinksStats } from "../partners/sync-partner-links-stats";
 import { executeWorkflows } from "../workflows/execute-workflows";
+
 type TrackSaleParams = z.input<typeof trackSaleRequestSchema> & {
   rawBody: any;
   workspace: Pick<WorkspaceProps, "id" | "stripeConnectId" | "webhookEnabled">;
+  source?: CustomerSource; // default is "tracked"
 };
 
 export const trackSale = async ({
@@ -52,6 +59,7 @@ export const trackSale = async ({
   metadata,
   rawBody,
   workspace,
+  source = "tracked",
 }: TrackSaleParams) => {
   let existingCustomer: Customer | null = null;
   let newCustomer: Customer | null = null;
@@ -300,6 +308,7 @@ export const trackSale = async ({
       workspace,
       leadEventData,
       customer,
+      source,
     }),
   ]);
 
@@ -408,6 +417,7 @@ const _trackSale = async ({
   workspace,
   leadEventData,
   customer,
+  source,
 }: Omit<TrackSaleParams, "customerExternalId"> & {
   leadEventData: LeadEventTB | null;
   customer: Customer;
@@ -538,6 +548,7 @@ const _trackSale = async ({
           context: {
             customer: {
               country: customer.country,
+              source: source!,
             },
             sale: {
               productId: metadata?.productId as string,

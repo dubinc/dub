@@ -17,53 +17,168 @@ export const COMMISSION_TYPES = [
   },
 ] as const;
 
-export const CONDITION_ENTITIES = ["customer", "sale", "partner"] as const;
+export type RewardConditionEntityAttribute = {
+  id: string;
+  label: string;
+  type: "string" | "number" | "currency";
+  options?: {
+    id: string;
+    label: string;
+  }[];
+};
 
-export const CONDITION_CUSTOMER_ATTRIBUTES = ["country"] as const;
+export type RewardConditionEntity = {
+  id: "partner" | "customer" | "sale";
+  label: string;
+  attributes: RewardConditionEntityAttribute[];
+};
 
-export const CONDITION_SALE_ATTRIBUTES = ["productId", "amount"] as const;
+const PARTNER_ENTITY: RewardConditionEntity = {
+  id: "partner",
+  label: "Partner",
+  attributes: [
+    {
+      id: "country",
+      label: "Country",
+      type: "string",
+    },
+    {
+      id: "totalClicks",
+      label: "Total clicks",
+      type: "number",
+    },
+    {
+      id: "totalLeads",
+      label: "Total leads",
+      type: "number",
+    },
+    {
+      id: "totalConversions",
+      label: "Total conversions",
+      type: "number",
+    },
+    {
+      id: "totalSaleAmount",
+      label: "Total revenue",
+      type: "currency",
+    },
+    {
+      id: "totalCommissions",
+      label: "Total commissions",
+      type: "currency",
+    },
+  ],
+};
 
-export const CONDITION_PARTNER_ATTRIBUTES = [
-  "country",
-  "totalClicks",
-  "totalLeads",
-  "totalConversions",
-  "totalSaleAmount",
-  "totalCommissions",
-] as const;
+const CUSTOMER_ENTITY: RewardConditionEntity = {
+  id: "customer",
+  label: "Customer",
+  attributes: [
+    {
+      id: "country",
+      label: "Country",
+      type: "string",
+    },
+  ],
+};
 
-export const CONDITION_ATTRIBUTES = [
-  ...CONDITION_CUSTOMER_ATTRIBUTES,
-  ...CONDITION_SALE_ATTRIBUTES,
-  ...CONDITION_PARTNER_ATTRIBUTES,
-] as const;
-
-export const ENTITY_ATTRIBUTE_TYPES: Partial<
-  Record<
-    (typeof CONDITION_ENTITIES)[number],
-    Partial<
-      Record<
-        (typeof CONDITION_ATTRIBUTES)[number],
-        "string" | "number" | "currency"
-      >
-    >
-  >
+export const REWARD_CONDITIONS: Record<
+  EventType,
+  {
+    entities: RewardConditionEntity[];
+  }
 > = {
-  customer: {
-    country: "string",
+  // Click reward
+  click: {
+    entities: [CUSTOMER_ENTITY],
   },
-  partner: {
-    country: "string",
-    totalClicks: "number",
-    totalLeads: "number",
-    totalConversions: "number",
-    totalSaleAmount: "currency",
-    totalCommissions: "currency",
+
+  // Lead reward
+  lead: {
+    entities: [
+      {
+        ...CUSTOMER_ENTITY,
+        attributes: [
+          ...CUSTOMER_ENTITY.attributes,
+          {
+            id: "source",
+            label: "Source",
+            type: "string",
+            options: [
+              {
+                id: "tracked",
+                label: "tracked lead",
+              },
+              {
+                id: "submitted",
+                label: "qualified lead",
+              },
+            ],
+          },
+        ],
+      },
+      PARTNER_ENTITY,
+    ],
   },
+
+  // Sale reward
   sale: {
-    amount: "currency",
+    entities: [
+      {
+        ...CUSTOMER_ENTITY,
+        attributes: [
+          ...CUSTOMER_ENTITY.attributes,
+          {
+            id: "source",
+            label: "Source",
+            type: "string",
+            options: [
+              {
+                id: "tracked",
+                label: "tracked sale",
+              },
+              {
+                id: "submitted",
+                label: "closed won deal",
+              },
+            ],
+          },
+        ],
+      },
+      PARTNER_ENTITY,
+      {
+        id: "sale",
+        label: "Sale",
+        attributes: [
+          {
+            id: "productId",
+            label: "Product ID",
+            type: "string",
+          },
+          {
+            id: "amount",
+            label: "Amount",
+            type: "currency",
+          },
+        ],
+      },
+    ],
   },
 };
+
+export const REWARD_CONDITION_ENTITIES = [
+  ...new Set(
+    Object.values(REWARD_CONDITIONS).flatMap(({ entities }) => entities),
+  ),
+];
+
+export const REWARD_CONDITION_ATTRIBUTES = [
+  ...new Set(
+    Object.values(REWARD_CONDITIONS).flatMap(({ entities }) =>
+      entities.flatMap(({ attributes }) => attributes),
+    ),
+  ),
+];
 
 export const CONDITION_OPERATORS = [
   "equals_to",
@@ -91,17 +206,6 @@ export const NUMBER_CONDITION_OPERATORS: (typeof CONDITION_OPERATORS)[number][] 
     "less_than_or_equal",
   ];
 
-export const ATTRIBUTE_LABELS = {
-  country: "Country",
-  productId: "Product ID",
-  amount: "Amount",
-  totalClicks: "Total clicks",
-  totalLeads: "Total leads",
-  totalConversions: "Total conversions",
-  totalSaleAmount: "Total revenue",
-  totalCommissions: "Total commissions",
-} as const;
-
 export const CONDITION_OPERATOR_LABELS = {
   equals_to: "is",
   not_equals: "is not",
@@ -116,8 +220,12 @@ export const CONDITION_OPERATOR_LABELS = {
 } as const;
 
 export const rewardConditionSchema = z.object({
-  entity: z.enum(CONDITION_ENTITIES),
-  attribute: z.enum(CONDITION_ATTRIBUTES),
+  entity: z.enum(
+    REWARD_CONDITION_ENTITIES.map(({ id }) => id) as [string, ...string[]],
+  ),
+  attribute: z.enum(
+    REWARD_CONDITION_ATTRIBUTES.map(({ id }) => id) as [string, ...string[]],
+  ),
   operator: z.enum(CONDITION_OPERATORS),
   value: z.union([
     z.string(),
@@ -226,10 +334,13 @@ export const REWARD_EVENT_COLUMN_MAPPING = Object.freeze({
   sale: "saleRewardId",
 });
 
+export const CUSTOMER_SOURCES = ["tracked", "submitted"] as const;
+
 export const rewardContextSchema = z.object({
   customer: z
     .object({
       country: z.string().nullish(),
+      source: z.enum(CUSTOMER_SOURCES).default("tracked").nullish(),
     })
     .optional(),
 

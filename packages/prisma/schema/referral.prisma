@@ -1,0 +1,31 @@
+enum ReferralStatus {
+  pending
+  qualified
+  unqualified
+  closedWon
+  closedLost
+}
+
+model PartnerReferral {
+  id         String         @id @default(cuid())
+  programId  String
+  partnerId  String
+  customerId String?
+  name       String
+  email      String
+  company    String
+  formData   Json?          @db.Json
+  status     ReferralStatus @default(pending)
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  program           Program            @relation(fields: [programId], references: [id])
+  partner           Partner            @relation(fields: [partnerId], references: [id])
+  programEnrollment ProgramEnrollment  @relation(fields: [programId, partnerId], references: [programId, partnerId])
+  customer          Customer?          @relation(fields: [customerId], references: [id])
+
+  @@index([programId, partnerId])
+  @@index(partnerId)
+  @@index(customerId)
+  @@fulltext([email, name])
+}

@@ -19,7 +19,7 @@ export function ProgramSidebar({
   applicationRewards,
   applicationDiscount,
 }: {
-  program: ProgramProps;
+  program: Omit<ProgramProps, "referralFormData">;
   applicationRewards: RewardProps[];
   applicationDiscount: DiscountProps | null;
 }) {

@@ -3,6 +3,7 @@ import {
   PartnerEarningsSchema,
   PartnerProfileCustomerSchema,
   PartnerProfileLinkSchema,
+  partnerReferralsCountByStatusSchema,
   partnerUserSchema,
 } from "@/lib/zod/schemas/partner-profile";
 import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
@@ -120,7 +121,10 @@ import {
   ProgramEnrollmentSchema,
   ProgramSchema,
 } from "./zod/schemas/programs";
+import { referralFormDataSchema } from "./zod/schemas/referral-form";
+import { referralSchema } from "./zod/schemas/referrals";
 import {
+  CUSTOMER_SOURCES,
   rewardConditionsArraySchema,
   rewardConditionSchema,
   rewardConditionsSchema,
@@ -473,6 +477,10 @@ export type PartnerProfileCustomerProps = z.infer<
 
 export type PartnerProfileLinkProps = z.infer<typeof PartnerProfileLinkSchema>;
 
+export type PartnerProfileReferralsCountByStatus = z.infer<
+  typeof partnerReferralsCountByStatusSchema
+>;
+
 export type EnrolledPartnerProps = z.infer<typeof EnrolledPartnerSchema> & {
   platforms: PartnerPlatformProps[];
 };
@@ -499,7 +507,12 @@ export type DiscountProps = z.infer<typeof DiscountSchema>;
 
 export type DiscountCodeProps = z.infer<typeof DiscountCodeSchema>;
 
-export type ProgramProps = z.infer<typeof ProgramSchema>;
+export type ProgramProps = Omit<
+  z.infer<typeof ProgramSchema>,
+  "referralFormData"
+> & {
+  referralFormData?: Prisma.JsonValue | null;
+};
 
 export type ProgramInviteEmailData = z.infer<
   typeof programInviteEmailDataSchema
@@ -754,3 +767,9 @@ export type CreateFraudEventInput = Pick<
   > & {
     metadata?: Record<string, unknown> | null;
   };
+
+export type ReferralProps = z.infer<typeof referralSchema>;
+
+export type ReferralFormDataField = z.infer<typeof referralFormDataSchema>;
+
+export type CustomerSource = (typeof CUSTOMER_SOURCES)[number];
