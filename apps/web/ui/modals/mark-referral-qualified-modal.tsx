@@ -7,7 +7,7 @@ import { ReferralProps } from "@/lib/types";
 import { Button, Modal, useKeyboardShortcut } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
-import { Dispatch, SetStateAction, useCallback, useRef, useState } from "react";
+import { Dispatch, SetStateAction, useCallback, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -44,6 +44,13 @@ function ReferralQualifiedModal({
 
   // Store reset function in ref so parent can call it
   onResetRef.current = reset;
+
+  // Reset form when modal is closed
+  useEffect(() => {
+    if (!showModal) {
+      reset();
+    }
+  }, [showModal, reset]);
 
   const handleFormSubmit = handleSubmit(onSubmit);
 
