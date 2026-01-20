@@ -8,24 +8,16 @@ import { UtmTemplate } from "@dub/prisma/client";
 import {
   ArrowTurnLeft,
   Button,
-  Combobox,
   InfoTooltip,
   Modal,
   useCopyToClipboard,
   useMediaQuery,
 } from "@dub/ui";
-import {
-  cn,
-  constructURLFromUTMParams,
-  getPathnameFromUrl,
-  linkConstructor,
-  punycode,
-} from "@dub/utils";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { constructURLFromUTMParams } from "@dub/utils";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
-import { useDebounce } from "use-debounce";
 import { X } from "../shared/icons";
 
 interface AddPartnerLinkModalProps {
@@ -36,8 +28,8 @@ interface AddPartnerLinkModalProps {
 }
 
 interface FormData {
-  pathname: string;
   key: string;
+  url: string;
 }
 
 const AddPartnerLinkModal = ({
@@ -56,8 +48,8 @@ const AddPartnerLinkModal = ({
 
   const { register, handleSubmit, watch } = useForm<FormData>({
     defaultValues: {
-      pathname: "",
       key: "",
+      url: program?.url || "",
     },
   });
 
@@ -65,47 +57,15 @@ const AddPartnerLinkModal = ({
     groupIdOrSlug: partner.groupId ?? DEFAULT_PARTNER_GROUP.slug,
   });
 
-  const additionalLinks = partnerGroup?.additionalLinks ?? [];
-
-  const destinationDomains = useMemo(
-    () => additionalLinks.map((link) => link.domain),
-    [additionalLinks],
-  );
-
-  const [destinationDomain, setDestinationDomain] = useState(
-    destinationDomains?.[0] ?? null,
-  );
-
-  const [isExactMode, setIsExactMode] = useState(false);
-
-  useEffect(() => {
-    const additionalLink = additionalLinks.find(
-      (link) => link.domain === destinationDomain,
-    );
-
-    setIsExactMode(additionalLink?.validationMode === "exact");
-  }, [destinationDomain, additionalLinks]);
-
-  const [key, pathname] = watch(["key", "pathname"]);
-
-  // If there is only one destination domain and we are in exact mode, hide the destination URL input
-  const hideDestinationUrl = useMemo(
-    () => destinationDomains.length === 1 && isExactMode,
-    [destinationDomains.length, isExactMode],
-  );
+  const [key, url] = watch(["key", "url"]);
 
   const onSubmit = async (formData: FormData) => {
-    if (!destinationDomain || !program?.id || !partner.id) {
+    if (!program?.id || !partner.id) {
       return;
     }
 
     setIsSubmitting(true);
     setErrorMessage(null);
-
-    const url = linkConstructor({
-      domain: destinationDomain,
-      key: getPathnameFromUrl(pathname),
-    });
 
     try {
       const response = await fetch(`/api/links?workspaceId=${workspaceId}`, {
@@ -208,57 +168,27 @@ const AddPartnerLinkModal = ({
               )}
             </div>
 
-            {!hideDestinationUrl && (
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center gap-2">
-                  <label
-                    htmlFor="url"
-                    className="block text-sm font-medium text-neutral-700"
-                  >
-                    Destination URL
-                  </label>
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <label
+                  htmlFor="url"
+                  className="block text-sm font-medium text-neutral-700"
+                >
+                  Destination URL
+                </label>
 
-                  <InfoTooltip content="The URL your users will get redirected to when they visit your short link. [Learn more.](https://dub.co/help/article/how-to-create-link)" />
-                </div>
-
-                <div className="relative flex rounded-md shadow-sm">
-                  <div className="z-[1]">
-                    <DestinationDomainCombobox
-                      selectedDomain={destinationDomain}
-                      setSelectedDomain={setDestinationDomain}
-                      destinationDomains={destinationDomains}
-                    />
-                  </div>
-                  <input
-                    {...register("pathname", { required: false })}
-                    type="text"
-                    placeholder="(optional)"
-                    disabled={isExactMode}
-                    onPaste={(e: React.ClipboardEvent<HTMLInputElement>) => {
-                      if (isExactMode) return;
-
-                      e.preventDefault();
-
-                      const text = e.clipboardData.getData("text/plain");
-
-                      try {
-                        const url = new URL(text);
-                        e.currentTarget.value = url.pathname.slice(1);
-                      } catch (err) {
-                        e.currentTarget.value = text;
-                      }
-                    }}
-                    className={cn(
-                      "z-0 block w-full rounded-r-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:z-[1] focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-                      {
-                        "cursor-not-allowed border bg-neutral-100 text-neutral-500":
-                          isExactMode,
-                      },
-                    )}
-                  />
-                </div>
+                <InfoTooltip content="The URL your users will get redirected to when they visit your short link. [Learn more.](https://dub.co/help/article/how-to-create-link)" />
               </div>
-            )}
+
+              <div className="relative flex rounded-md shadow-sm">
+                <input
+                  {...register("url", { required: false })}
+                  type="text"
+                  placeholder="(optional)"
+                  className="z-0 block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:z-[1] focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                />
+              </div>
+            </div>
           </div>
         </div>
 
@@ -282,84 +212,6 @@ const AddPartnerLinkModal = ({
     </Modal>
   );
 };
-
-function DestinationDomainCombobox({
-  selectedDomain,
-  setSelectedDomain,
-  destinationDomains,
-  disabled = false,
-}: {
-  selectedDomain?: string;
-  setSelectedDomain: (domain: string) => void;
-  destinationDomains: string[];
-  disabled?: boolean;
-}) {
-  const [search, setSearch] = useState("");
-  const [debouncedSearch] = useDebounce(search, 500);
-  const [isOpen, setIsOpen] = useState(false);
-
-  const options = useMemo(() => {
-    const allDomains = selectedDomain
-      ? [
-          selectedDomain,
-          ...destinationDomains.filter((d) => d !== selectedDomain),
-        ]
-      : destinationDomains;
-
-    if (!debouncedSearch) {
-      return allDomains.map((domain) => ({
-        value: domain,
-        label: punycode(domain),
-      }));
-    }
-
-    return allDomains
-      .filter((domain) =>
-        punycode(domain).toLowerCase().includes(debouncedSearch.toLowerCase()),
-      )
-      .map((domain) => ({
-        value: domain,
-        label: punycode(domain),
-      }));
-  }, [selectedDomain, destinationDomains, debouncedSearch]);
-
-  return (
-    <Combobox
-      selected={
-        selectedDomain
-          ? {
-              value: selectedDomain,
-              label: punycode(selectedDomain),
-            }
-          : null
-      }
-      setSelected={(option) => {
-        if (!option || disabled) return;
-        setSelectedDomain(option.value);
-      }}
-      options={options}
-      caret={true}
-      placeholder="Select domain..."
-      searchPlaceholder="Search domains..."
-      buttonProps={{
-        className: cn(
-          "w-32 sm:w-40 h-full rounded-r-none border-r-transparent justify-start px-2.5",
-          "data-[state=open]:ring-1 data-[state=open]:ring-neutral-500 data-[state=open]:border-neutral-500",
-          "focus:ring-1 focus:ring-neutral-500 focus:border-neutral-500 transition-none",
-          {
-            "cursor-not-allowed bg-neutral-100 text-neutral-500": disabled,
-          },
-        ),
-        disabled,
-      }}
-      optionClassName="sm:max-w-[225px]"
-      shouldFilter={false}
-      open={disabled ? false : isOpen}
-      onOpenChange={disabled ? undefined : setIsOpen}
-      onSearchChange={disabled ? undefined : setSearch}
-    />
-  );
-}
 
 export function useAddPartnerLinkModal({
   onSuccess,
