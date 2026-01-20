@@ -73,7 +73,7 @@ export const markReferralQualifiedAction = authActionClient
         });
 
         // Use provided externalId or fallback to referral email
-        const customerExternalId = externalId ?? referral.email;
+        const customerExternalId = externalId?.trim() ?? referral.email;
 
         // Create a customer
         const customer = await prisma.customer.create({
