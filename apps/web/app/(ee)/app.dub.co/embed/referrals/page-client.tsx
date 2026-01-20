@@ -227,7 +227,8 @@ export function ReferralsEmbedPageClient({
                 {(group.holdingPeriodDays ?? 0) > 0 && (
                   <>
                     <span className="font-semibold text-neutral-700">
-                      {group.holdingPeriodDays} day
+                      {group.holdingPeriodDays}{" "}
+                      {group.holdingPeriodDays === 1 ? "day" : "days"}
                     </span>{" "}
                     <a
                       href="https://dub.co/help/article/commissions-payouts#what-does-holding-period-mean"

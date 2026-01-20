@@ -245,7 +245,10 @@ export default function ProgramPageClient() {
                     {(programEnrollment.group?.holdingPeriodDays ?? 0) > 0 && (
                       <>
                         <span className="font-semibold text-neutral-700">
-                          {programEnrollment.group?.holdingPeriodDays} day
+                          {programEnrollment.group?.holdingPeriodDays}{" "}
+                          {programEnrollment.group?.holdingPeriodDays === 1
+                            ? "day"
+                            : "days"}
                         </span>{" "}
                         <a
                           href="https://dub.co/help/article/commissions-payouts#what-does-holding-period-mean"
