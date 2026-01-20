@@ -1,4 +1,5 @@
 import { textFieldSchema } from "@/lib/zod/schemas/referral-form";
+import { ACME_PROGRAM_ID } from "@dub/utils";
 import * as z from "zod/v4";
 
 // Required fields configuration for referral forms
@@ -46,6 +47,6 @@ export const REFERRAL_FORM_FIELD_INPUT_PROPS: Record<
 };
 
 export const REFERRAL_ENABLED_PROGRAM_IDS = [
-  "prog_CYCu7IMAapjkRpTnr8F1azjN", // Acme
+  ACME_PROGRAM_ID, // Acme
   "prog_1K7Y2RGFC4BKZQQZAZEEK9MVE", // SelectCode
 ];

@@ -90,97 +90,91 @@ export function PartnerReferralTable({
     referralsColumns,
   );
 
-  const columns = useMemo(
-    () =>
-      [
-        {
-          id: "lead",
-          header: "Lead",
-          enableHiding: false,
-          minSize: 250,
-          cell: ({ row }: { row: Row<PartnerReferralProps> }) => {
-            const referral = row.original;
-            const companyLogoUrl = getCompanyLogoUrl(referral.email);
+  const columns = [
+    {
+      id: "lead",
+      header: "Lead",
+      enableHiding: false,
+      minSize: 250,
+      cell: ({ row }: { row: Row<PartnerReferralProps> }) => {
+        const referral = row.original;
+        const companyLogoUrl = getCompanyLogoUrl(referral.email);
 
-            return (
-              <div className="flex items-center gap-2 truncate">
-                <img
-                  alt={referral.email}
-                  src={companyLogoUrl || `${OG_AVATAR_URL}${referral.id}`}
-                  className="size-5 shrink-0 rounded-full border border-neutral-200"
-                />
-                <span className="truncate" title={referral.email}>
-                  {referral.email}
-                </span>
-              </div>
-            );
-          },
-        },
-        {
-          id: "company",
-          header: "Company",
-          accessorKey: "company",
-          minSize: 150,
-          cell: ({ row }: { row: Row<PartnerReferralProps> }) => {
-            return (
-              <span className="min-w-0 truncate" title={row.original.company}>
-                {row.original.company}
-              </span>
-            );
-          },
-        },
-        {
-          id: "partner",
-          header: "Partner",
-          minSize: 200,
-          cell: ({ row }: { row: Row<PartnerReferralProps> }) => {
-            return (
-              <PartnerRowItem
-                partner={row.original.partner}
-                showPermalink={true}
-                showFraudIndicator={false}
-              />
-            );
-          },
-        },
-        {
-          id: "submitted",
-          header: "Submitted",
-          cell: ({ row }: { row: Row<PartnerReferralProps> }) => (
-            <TimestampTooltip
-              timestamp={row.original.createdAt}
-              rows={["local"]}
-              side="left"
-              delayDuration={150}
-            >
-              <span>
-                {formatDate(row.original.createdAt, { month: "short" })}
-              </span>
-            </TimestampTooltip>
-          ),
-        },
-        {
-          id: "status",
-          header: "Status",
-          accessorKey: "status",
-          cell: ({ row }: { row: Row<PartnerReferralProps> }) => {
-            const status = row.original.status;
-            const badge = ReferralStatusBadges[status];
+        return (
+          <div className="flex items-center gap-2 truncate">
+            <img
+              alt={referral.email}
+              src={companyLogoUrl || `${OG_AVATAR_URL}${referral.id}`}
+              className="size-5 shrink-0 rounded-full border border-neutral-200"
+            />
+            <span className="truncate" title={referral.email}>
+              {referral.email}
+            </span>
+          </div>
+        );
+      },
+    },
+    {
+      id: "company",
+      header: "Company",
+      accessorKey: "company",
+      minSize: 150,
+      cell: ({ row }: { row: Row<PartnerReferralProps> }) => {
+        return (
+          <span className="min-w-0 truncate" title={row.original.company}>
+            {row.original.company}
+          </span>
+        );
+      },
+    },
+    {
+      id: "partner",
+      header: "Partner",
+      minSize: 200,
+      cell: ({ row }: { row: Row<PartnerReferralProps> }) => {
+        return (
+          <PartnerRowItem
+            partner={row.original.partner}
+            showPermalink={true}
+            showFraudIndicator={false}
+          />
+        );
+      },
+    },
+    {
+      id: "submitted",
+      header: "Submitted",
+      cell: ({ row }: { row: Row<PartnerReferralProps> }) => (
+        <TimestampTooltip
+          timestamp={row.original.createdAt}
+          rows={["local"]}
+          side="left"
+          delayDuration={150}
+        >
+          <span>{formatDate(row.original.createdAt, { month: "short" })}</span>
+        </TimestampTooltip>
+      ),
+    },
+    {
+      id: "status",
+      header: "Status",
+      accessorKey: "status",
+      cell: ({ row }: { row: Row<PartnerReferralProps> }) => {
+        const status = row.original.status;
+        const badge = ReferralStatusBadges[status];
 
-            return (
-              <StatusBadge
-                variant={badge.variant}
-                icon={null}
-                className={cn("border-0", badge.className)}
-              >
-                {badge.label}
-              </StatusBadge>
-            );
-          },
-        },
-      ].filter((c) => referralsColumns.all.includes(c.id)),
-    [workspaceSlug],
-  );
+        return (
+          <StatusBadge
+            variant={badge.variant}
+            icon={null}
+            className={cn("border-0", badge.className)}
+          >
+            {badge.label}
+          </StatusBadge>
+        );
+      },
+    },
+  ].filter((c) => referralsColumns.all.includes(c.id));
 
   const { table, ...tableProps } = useTable({
     data: referrals || [],

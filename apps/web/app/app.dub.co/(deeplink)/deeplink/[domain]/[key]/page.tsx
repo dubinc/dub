@@ -98,7 +98,10 @@ export default async function DeepLinkPreviewPage(props: {
           <Link
             href="https://dub.co/docs/concepts/deep-links/quickstart"
             target="_blank"
-            className="flex items-center gap-1 whitespace-nowrap text-sm font-medium text-neutral-900"
+            className={cn(
+              "flex items-center gap-1 whitespace-nowrap text-sm font-medium text-neutral-900",
+              t["poweredByOrder"] === "inverted" ? "flex-row-reverse" : "",
+            )}
           >
             {t.poweredBy} <Wordmark className="text-content-emphasis h-3.5" />
           </Link>
