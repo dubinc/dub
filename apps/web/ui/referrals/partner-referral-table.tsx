@@ -26,6 +26,7 @@ import useSWR from "swr";
 import * as z from "zod/v4";
 import { ReferralSheet } from "./partner-referral-sheet";
 import { ReferralStatusBadges } from "./referral-status-badges";
+import { getCompanyLogoUrl } from "./referral-utils";
 import { usePartnerReferralFilters } from "./use-partner-referral-filters";
 import { usePartnerReferralsCount } from "./use-partner-referrals-count";
 
@@ -99,11 +100,13 @@ export function PartnerReferralTable({
           minSize: 250,
           cell: ({ row }: { row: Row<PartnerReferralProps> }) => {
             const referral = row.original;
+            const companyLogoUrl = getCompanyLogoUrl(referral.email);
+
             return (
               <div className="flex items-center gap-2 truncate">
                 <img
                   alt={referral.email}
-                  src={`${OG_AVATAR_URL}${referral.id}`}
+                  src={companyLogoUrl || `${OG_AVATAR_URL}${referral.id}`}
                   className="size-5 shrink-0 rounded-full border border-neutral-200"
                 />
                 <span className="truncate" title={referral.email}>
