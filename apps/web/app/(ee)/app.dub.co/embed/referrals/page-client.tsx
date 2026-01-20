@@ -7,6 +7,7 @@ import { programEmbedSchema } from "@/lib/zod/schemas/program-embed";
 import { programResourcesSchema } from "@/lib/zod/schemas/program-resources";
 import { HeroBackground } from "@/ui/partners/hero-background";
 import { ProgramRewardList } from "@/ui/partners/program-reward-list";
+import { ProgramRewardTerms } from "@/ui/partners/program-reward-terms";
 import { ThreeDots } from "@/ui/shared/icons";
 import { Partner, Program } from "@dub/prisma/client";
 import {
@@ -202,46 +203,11 @@ export function ReferralsEmbedPageClient({
             </div>
             <div className="text-content-emphasis relative mt-4 text-lg">
               <ProgramRewardList rewards={rewards} discount={discount} />
+              <ProgramRewardTerms
+                minPayoutAmount={program.minPayoutAmount}
+                holdingPeriodDays={group.holdingPeriodDays ?? 0}
+              />
             </div>
-            {(program.minPayoutAmount > 0 ||
-              (group.holdingPeriodDays ?? 0) > 0) && (
-              <p className="mt-1.5 text-xs text-neutral-500">
-                {program.minPayoutAmount > 0 && (
-                  <>
-                    <span className="font-semibold text-neutral-700">
-                      ${program.minPayoutAmount / 100}
-                    </span>{" "}
-                    <a
-                      href="https://dub.co/help/article/commissions-payouts#what-does-minimum-payout-amount-mean"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="underline decoration-dotted underline-offset-2"
-                    >
-                      minimum payout
-                    </a>
-                  </>
-                )}
-                {program.minPayoutAmount > 0 &&
-                  (group.holdingPeriodDays ?? 0) > 0 &&
-                  ", "}
-                {(group.holdingPeriodDays ?? 0) > 0 && (
-                  <>
-                    <span className="font-semibold text-neutral-700">
-                      {group.holdingPeriodDays} day
-                    </span>{" "}
-                    <a
-                      href="https://dub.co/help/article/commissions-payouts#what-does-holding-period-mean"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="underline decoration-dotted underline-offset-2"
-                    >
-                      holding period
-                    </a>
-                    {program.minPayoutAmount === 0 && " before payout"}
-                  </>
-                )}
-              </p>
-            )}
           </div>
           {!programEmbedData?.hidePoweredByBadge && (
             <div className="mt-4 flex justify-center md:absolute md:bottom-3 md:right-3 md:mt-0">
