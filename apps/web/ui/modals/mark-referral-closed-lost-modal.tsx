@@ -8,7 +8,7 @@ import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { useAction } from "next-safe-action/hooks";
 import { toast } from "sonner";
 
-export function useMarReferralClosedLostModal({
+export function useMarkReferralClosedLostModal({
   referral,
 }: {
   referral: ReferralProps;
