@@ -24,17 +24,17 @@ export const markReferralClosedWonAction = authActionClient
       programId,
     });
 
-    if (!referral.customerId) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: "This referral does not have a customer associated with it.",
-      });
-    }
-
     if (referral.status === ReferralStatus.closedWon) {
       throw new DubApiError({
         code: "bad_request",
         message: "This partner referral is already marked as closed won.",
+      });
+    }
+
+    if (!referral.customer) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "This referral does not have a customer associated with it.",
       });
     }
 
@@ -48,13 +48,6 @@ export const markReferralClosedWonAction = authActionClient
         status: ReferralStatus.closedWon,
       },
     });
-
-    if (!referral.customer) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: "This referral does not have a customer associated with it.",
-      });
-    }
 
     await trackSale({
       customerExternalId: referral.customer.externalId!,
