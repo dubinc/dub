@@ -1,4 +1,4 @@
-import { encodeKeyIfCaseSensitive } from "@/lib/api/links/case-sensitivity";
+import { decodeLinkIfCaseSensitive, encodeKeyIfCaseSensitive } from "@/lib/api/links/case-sensitivity";
 import { deepViewDataSchema } from "@/lib/zod/schemas/deep-links";
 import { prisma } from "@dub/prisma";
 import { Grid, Wordmark } from "@dub/ui";
@@ -30,7 +30,7 @@ export default async function DeepLinkPreviewPage(props: {
     key,
   });
 
-  const link = await prisma.link.findUnique({
+  let link = await prisma.link.findUnique({
     where: {
       domain_key: {
         domain,
@@ -61,6 +61,14 @@ export default async function DeepLinkPreviewPage(props: {
   // we skip the deep link preview and redirect to the link's URL
   if (!link.shortDomain.appleAppSiteAssociation || !deepViewData) {
     redirect(link.ios ?? link.url);
+  }
+
+  // decode the link if the domain is case sensitive
+  link = decodeLinkIfCaseSensitive(link);
+
+  // This should never happen
+  if (!link) {
+    redirect(`https://${domain}`);
   }
 
   return (
