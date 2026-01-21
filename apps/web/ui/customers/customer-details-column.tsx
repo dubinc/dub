@@ -88,7 +88,7 @@ export function CustomerDetailsColumn({
           ),
         }
       : null,
-  ].filter((field) => field !== null);
+  ].filter((field): field is NonNullable<typeof field> => field !== null);
 
   const partner = customer?.partner;
   const link = customerActivity?.link;
@@ -148,9 +148,7 @@ export function CustomerDetailsColumn({
           </div>
 
           <div className="flex flex-col gap-2 p-4">
-            {basicFields
-              .filter(({ text }) => text !== null)
-              .map(({ id, icon, text }) => (
+            {basicFields.map(({ id, icon, text }) => (
                 <div key={id}>
                   <div className="text-content-default flex items-center gap-1.5">
                     {text !== undefined ? (
