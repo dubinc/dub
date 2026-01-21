@@ -104,7 +104,6 @@ function EditCustomerModal({
                 autoComplete="off"
                 className="border-border-subtle mt-2 block w-full rounded-lg text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
                 placeholder="marvin@email.com"
-                autoFocus={!isMobile}
                 {...register("email", {
                   setValueAs: (value) => (value === "" ? null : value),
                 })}
