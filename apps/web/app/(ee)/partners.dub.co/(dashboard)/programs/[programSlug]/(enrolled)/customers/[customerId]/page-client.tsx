@@ -4,6 +4,7 @@ import { CUSTOMER_PAGE_EVENTS_LIMIT } from "@/lib/constants/misc";
 import usePartnerCustomer from "@/lib/swr/use-partner-customer";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PartnerEarningsResponse } from "@/lib/types";
+import { CustomerEnriched } from "@/lib/types";
 import { CustomerActivityList } from "@/ui/customers/customer-activity-list";
 import { CustomerDetailsColumn } from "@/ui/customers/customer-details-column";
 import { CustomerSalesTable } from "@/ui/customers/customer-sales-table";
@@ -79,7 +80,15 @@ export function ProgramCustomerPageClient() {
         <div className="@3xl/page:grid-cols-[minmax(440px,1fr)_minmax(0,360px)] grid grid-cols-1 gap-6">
           <div className="@3xl/page:order-2">
             <CustomerDetailsColumn
-              customer={customer}
+              customer={
+                customer && customer.id
+                  ? ({
+                      ...customer,
+                      name: customer.name || "",
+                      externalId: "",
+                    })
+                  : undefined
+              }
               customerActivity={customer?.activity}
               isCustomerActivityLoading={!customer}
             />

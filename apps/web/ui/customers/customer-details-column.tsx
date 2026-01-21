@@ -1,9 +1,12 @@
 import { CustomerActivityResponse, CustomerEnriched } from "@/lib/types";
 import {
+  Button,
+  CalendarIcon,
   CopyText,
   Envelope,
   Globe,
   Hyperlink,
+  SquareUserSparkle2,
   TimestampTooltip,
   Tooltip,
   UTM_PARAMETERS,
@@ -16,9 +19,11 @@ import {
   getPrettyUrl,
   OG_AVATAR_URL,
 } from "@dub/utils";
+import { Pencil } from "lucide-react";
 import { useParams } from "next/navigation";
 import { Fragment, HTMLProps, useMemo } from "react";
 import { DeviceIcon } from "../analytics/device-icon";
+import { useEditCustomerModal } from "../modals/edit-customer-modal";
 import { ConditionalLink } from "../shared/conditional-link";
 
 export function CustomerDetailsColumn({
@@ -28,44 +33,67 @@ export function CustomerDetailsColumn({
   isProgramPage = false,
   workspaceSlug,
 }: {
-  customer?: Omit<
-    CustomerEnriched,
-    "name" | "externalId" | "sales" | "saleAmount"
-  > & {
-    name?: string | null;
-    externalId?: string;
-  };
+  customer?: CustomerEnriched;
   customerActivity?: CustomerActivityResponse;
   isCustomerActivityLoading: boolean;
   isProgramPage?: boolean;
   workspaceSlug?: string;
 }) {
   const { programSlug } = useParams<{ programSlug: string }>();
+  const { EditCustomerModal, openEditCustomerModal } =
+    useEditCustomerModal();
 
-  const basicFields = [
-    ...(!customer || customer?.email
-      ? [
-          {
+  const basicFields = 
+    [
+      customer?.email
+        ? {
             id: "email",
             icon: <Envelope className="size-3.5 shrink-0" />,
-            text: customer?.email,
-          },
-        ]
-      : []),
-    {
-      id: "country",
-      icon: customer?.country ? (
-        <img
-          alt={`Flag of ${COUNTRIES[customer.country]}`}
-          src={`https://flag.vercel.app/m/${customer.country}.svg`}
-          className="size-3.5 rounded-full"
-        />
-      ) : (
-        <Globe className="size-3.5 shrink-0" />
-      ),
-      text: customer?.country ? COUNTRIES[customer.country] : "Planet Earth",
-    },
-  ];
+            text: customer.email,
+          }
+        : null,
+
+      {
+        id: "country",
+        icon: customer?.country ? (
+          <img
+            alt={`Flag of ${COUNTRIES[customer.country]}`}
+            src={`https://flag.vercel.app/m/${customer.country}.svg`}
+            className="size-3.5 rounded-full"
+          />
+        ) : (
+          <Globe className="size-3.5 shrink-0" />
+        ),
+        text: customer?.country
+          ? COUNTRIES[customer.country]
+          : "Planet Earth",
+      },
+
+      customer?.createdAt
+        ? {
+            id: "since",
+            icon: <CalendarIcon className="size-3.5 shrink-0" />,
+            text: (
+              <span>
+                Since{" "}
+                <TimestampTooltip
+                  timestamp={customer.createdAt}
+                  rows={["local", "utc", "unix"]}
+                  side="left"
+                >
+                  <span>
+                    {new Date(customer.createdAt).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
+                  </span>
+                </TimestampTooltip>
+              </span>
+            ),
+          }
+        : null,
+    ].filter((field) => field !== null);
 
   const partner = customer?.partner;
   const link = customerActivity?.link;
@@ -82,43 +110,36 @@ export function CustomerDetailsColumn({
   }, [click?.url]);
 
   return (
-    <div className="grid grid-cols-1 gap-6 overflow-hidden whitespace-nowrap text-sm text-neutral-900">
-      <div className="border-border-subtle flex flex-col divide-y divide-neutral-200 rounded-xl border bg-white">
-        <div className="p-4">
-          <div className="flex items-start justify-between gap-2">
-            <div className="relative w-fit">
-              {customer ? (
-                <img
-                  src={customer.avatar || `${OG_AVATAR_URL}${customer.id}`}
-                  alt={customer.id}
-                  className="size-10 rounded-full border border-neutral-100"
-                />
-              ) : (
-                <div className="size-10 animate-pulse rounded-full bg-neutral-200" />
+    <>
+      <EditCustomerModal />
+      <div className="grid grid-cols-1 gap-6 overflow-hidden whitespace-nowrap text-sm text-neutral-900">
+        <div className="border-border-subtle flex flex-col divide-y divide-neutral-200 rounded-xl border bg-white">
+          <div className="p-4">
+            <div className="flex items-start justify-between gap-2">
+              <div className="relative w-fit">
+                {customer ? (
+                  <img
+                    src={customer.avatar || `${OG_AVATAR_URL}${customer.id}`}
+                    alt={customer.id}
+                    className="size-10 rounded-full border border-neutral-100"
+                  />
+                ) : (
+                  <div className="size-10 animate-pulse rounded-full bg-neutral-200" />
+                )}
+              </div>
+
+              {customer && (
+                <Button
+                variant="secondary"
+                icon={<Pencil className="size-4" />}
+                text="Edit"
+                className="h-7 rounded-lg px-2 w-fit"
+                onClick={() =>
+                  openEditCustomerModal(customer)
+                }
+              />
               )}
             </div>
-
-            {customer ? (
-              <div className="text-content-default bg-bg-emphasis rounded-md px-1 text-xs font-medium">
-                Since{" "}
-                <TimestampTooltip
-                  timestamp={customer.createdAt}
-                  rows={["local", "utc", "unix"]}
-                  side="left"
-                >
-                  <span>
-                    {new Date(customer.createdAt).toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                    })}
-                  </span>
-                </TimestampTooltip>
-              </div>
-            ) : (
-              <div className="h-5 w-24 animate-pulse rounded-md bg-neutral-100" />
-            )}
-          </div>
 
           <div className="mt-3">
             {customer ? (
@@ -338,7 +359,8 @@ export function CustomerDetailsColumn({
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 }
 
