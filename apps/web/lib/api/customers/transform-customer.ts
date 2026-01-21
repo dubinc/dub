@@ -10,11 +10,11 @@ import {
 export interface CustomerWithLink extends Customer {
   link?: Link | null;
   programEnrollment?:
-  | (ProgramEnrollment & {
-    partner: Partner;
-    discount?: Discount | null;
-  })
-  | null;
+    | (ProgramEnrollment & {
+        partner: Partner;
+        discount?: Discount | null;
+      })
+    | null;
 }
 
 export const transformCustomer = (customer: CustomerWithLink) => {

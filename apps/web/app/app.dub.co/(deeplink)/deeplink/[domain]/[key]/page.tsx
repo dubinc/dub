@@ -1,3 +1,4 @@
+import { encodeKeyIfCaseSensitive } from "@/lib/api/links/case-sensitivity";
 import { deepViewDataSchema } from "@/lib/zod/schemas/deep-links";
 import { prisma } from "@dub/prisma";
 import { Grid, Wordmark } from "@dub/ui";
@@ -9,7 +10,6 @@ import { redirect } from "next/navigation";
 import { DeepLinkActionButtons } from "./action-buttons";
 import { BrandLogoBadge } from "./brand-logo-badge";
 import { getLanguage, getTranslations } from "./translations";
-import { encodeKeyIfCaseSensitive } from "@/lib/api/links/case-sensitivity";
 
 export default async function DeepLinkPreviewPage(props: {
   params: Promise<{ domain: string; key: string }>;
@@ -27,7 +27,7 @@ export default async function DeepLinkPreviewPage(props: {
   // Encode the key for case-sensitive domains before querying
   const encodedKey = encodeKeyIfCaseSensitive({
     domain,
-    key
+    key,
   });
 
   const link = await prisma.link.findUnique({

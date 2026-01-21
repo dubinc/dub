@@ -21,25 +21,25 @@ export const getCustomerOrThrow = async (
     where: {
       ...(id.startsWith("ext_")
         ? {
-          projectId_externalId: {
-            projectId: workspaceId,
-            externalId: id.replace("ext_", ""),
-          },
-        }
+            projectId_externalId: {
+              projectId: workspaceId,
+              externalId: id.replace("ext_", ""),
+            },
+          }
         : { id }),
     },
     ...(includeExpandedFields
       ? {
-        include: {
-          link: true,
-          programEnrollment: {
-            include: {
-              partner: true,
-              discount: true,
+          include: {
+            link: true,
+            programEnrollment: {
+              include: {
+                partner: true,
+                discount: true,
+              },
             },
           },
-        },
-      }
+        }
       : {}),
   });
 
