@@ -194,9 +194,12 @@ export function CustomerTable({
           id: "partner",
           header: "Partner",
           meta: {
-            filterParams: ({ row }) => ({
-              partnerId: row.original.partner.id,
-            }),
+            filterParams: ({ row }) =>
+              row.original.partner?.id
+                ? {
+                    partnerId: row.original.partner.id,
+                  }
+                : undefined,
           },
           cell: ({ row }) =>
             row.original.partner ? (

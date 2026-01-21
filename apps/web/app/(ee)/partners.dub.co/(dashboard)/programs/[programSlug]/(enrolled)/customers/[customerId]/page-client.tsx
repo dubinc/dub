@@ -79,7 +79,15 @@ export function ProgramCustomerPageClient() {
         <div className="@3xl/page:grid-cols-[minmax(440px,1fr)_minmax(0,360px)] grid grid-cols-1 gap-6">
           <div className="@3xl/page:order-2">
             <CustomerDetailsColumn
-              customer={customer}
+              customer={
+                customer && customer.id
+                  ? {
+                      ...customer,
+                      name: customer.name || "",
+                      externalId: "",
+                    }
+                  : undefined
+              }
               customerActivity={customer?.activity}
               isCustomerActivityLoading={!customer}
             />
