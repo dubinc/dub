@@ -15,7 +15,7 @@ type EditCustomerModalProps = {
   setShowModal: (showModal: boolean) => void;
   customer: Pick<
     CustomerEnriched,
-    "id" | "email" | "stripeCustomerId" | "externalId"
+    "id" | "name" | "email" | "stripeCustomerId" | "externalId"
   >;
 };
 
@@ -35,6 +35,7 @@ function EditCustomerModal({
     formState: { isDirty },
   } = useForm<FormData>({
     defaultValues: {
+      name: customer?.name || null,
       email: customer?.email || null,
       stripeCustomerId: customer?.stripeCustomerId || null,
       externalId: customer?.externalId || "",
@@ -44,6 +45,7 @@ function EditCustomerModal({
   useEffect(() => {
     if (showModal) {
       reset({
+        name: customer?.name || null,
         email: customer?.email || null,
         stripeCustomerId: customer?.stripeCustomerId || null,
         externalId: customer?.externalId || "",
@@ -79,6 +81,22 @@ function EditCustomerModal({
           <div className="flex flex-col gap-4 px-4 py-6 text-left sm:px-6">
             <div>
               <label className="text-content-emphasis text-sm font-normal">
+                Name
+              </label>
+              <input
+                type="text"
+                autoComplete="off"
+                className="border-border-subtle mt-2 block w-full rounded-lg text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                placeholder="John Doe"
+                autoFocus={!isMobile}
+                {...register("name", {
+                  setValueAs: (value) => (value === "" ? null : value),
+                })}
+              />
+            </div>
+
+            <div>
+              <label className="text-content-emphasis text-sm font-normal">
                 Email
               </label>
               <input
@@ -95,21 +113,6 @@ function EditCustomerModal({
 
             <div>
               <label className="text-content-emphasis text-sm font-normal">
-                Stripe Customer ID
-              </label>
-              <input
-                type="text"
-                autoComplete="off"
-                className="border-border-subtle mt-2 block w-full rounded-lg text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                placeholder="cus_N1YwZ8JxQ2AbC9"
-                {...register("stripeCustomerId", {
-                  setValueAs: (value) => (value === "" ? null : value),
-                })}
-              />
-            </div>
-
-            <div>
-              <label className="text-content-emphasis text-sm font-normal">
                 External ID
               </label>
               <input
@@ -118,6 +121,22 @@ function EditCustomerModal({
                 className="border-border-subtle mt-2 block w-full rounded-lg text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
                 placeholder="user_1K92AP652K2R7ANJAAHKENJNF"
                 {...register("externalId", {
+                  setValueAs: (value) => (value === "" ? null : value),
+                })}
+              />
+            </div>
+
+
+            <div>
+              <label className="text-content-emphasis text-sm font-normal">
+                Stripe Customer ID
+              </label>
+              <input
+                type="text"
+                autoComplete="off"
+                className="border-border-subtle mt-2 block w-full rounded-lg text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                placeholder="cus_N1YwZ8JxQ2AbC9"
+                {...register("stripeCustomerId", {
                   setValueAs: (value) => (value === "" ? null : value),
                 })}
               />
