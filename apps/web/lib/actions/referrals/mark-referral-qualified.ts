@@ -18,7 +18,7 @@ export const markReferralQualifiedAction = authActionClient
   .inputSchema(markReferralQualifiedSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const { referralId } = parsedInput;
+    const { referralId, externalId } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -72,13 +72,16 @@ export const markReferralQualifiedAction = authActionClient
           link: pick(partnerLink, ["id", "url", "domain", "key", "projectId"]),
         });
 
+        // Use provided externalId or fallback to referral email
+        const customerExternalId = externalId || referral.email;
+
         // Create a customer
         const customer = await prisma.customer.create({
           data: {
             id: createId({ prefix: "cus_" }),
             name: referral.name,
             email: referral.email,
-            externalId: referral.email,
+            externalId: customerExternalId,
             projectId: workspace.id,
             projectConnectId: workspace.stripeConnectId,
             programId,
@@ -92,7 +95,7 @@ export const markReferralQualifiedAction = authActionClient
         await trackLead({
           clickId: clickEvent.click_id,
           eventName: "Qualified Lead",
-          customerExternalId: referral.email,
+          customerExternalId,
           customerName: customer.name,
           customerEmail: customer.email,
           mode: "wait",

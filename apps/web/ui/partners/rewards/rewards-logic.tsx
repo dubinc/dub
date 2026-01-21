@@ -11,6 +11,7 @@ import {
   NUMBER_CONDITION_OPERATORS,
   REWARD_CONDITIONS,
   RewardConditionEntityAttribute,
+  SOURCE_CONDITION_OPERATORS,
   STRING_CONDITION_OPERATORS,
 } from "@/lib/zod/schemas/rewards";
 import { X } from "@/ui/shared/icons";
@@ -403,9 +404,12 @@ function ConditionLogic({
                         },
                       )
                     }
-                    items={(["number", "currency"].includes(attributeType)
-                      ? NUMBER_CONDITION_OPERATORS
-                      : STRING_CONDITION_OPERATORS
+                    items={(condition.entity === "customer" &&
+                    condition.attribute === "source"
+                      ? SOURCE_CONDITION_OPERATORS
+                      : ["number", "currency"].includes(attributeType)
+                        ? NUMBER_CONDITION_OPERATORS
+                        : STRING_CONDITION_OPERATORS
                     ).map((operator) => ({
                       text: CONDITION_OPERATOR_LABELS[operator],
                       value: operator,

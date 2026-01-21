@@ -126,7 +126,7 @@ export function CustomerDetailsColumn({
               {customer && (
                 <Button
                   variant="secondary"
-                  icon={<Pencil className="size-4" />}
+                  icon={<Pencil className="size-3.5" />}
                   text="Edit"
                   className="h-7 w-fit rounded-lg px-2"
                   onClick={() => openEditCustomerModal(customer)}
@@ -149,21 +149,21 @@ export function CustomerDetailsColumn({
 
           <div className="flex flex-col gap-2 p-4">
             {basicFields.map(({ id, icon, text }) => (
-                <div key={id}>
-                  <div className="text-content-default flex items-center gap-1.5">
-                    {text !== undefined ? (
-                      <>
-                        {icon}
-                        <span className="min-w-0 truncate text-xs font-medium">
-                          {text}
-                        </span>
-                      </>
-                    ) : (
-                      <div className="h-4 w-24 animate-pulse rounded bg-neutral-200" />
-                    )}
-                  </div>
+              <div key={id}>
+                <div className="text-content-default flex items-center gap-1.5">
+                  {text !== undefined ? (
+                    <>
+                      {icon}
+                      <span className="min-w-0 truncate text-xs font-medium">
+                        {text}
+                      </span>
+                    </>
+                  ) : (
+                    <div className="h-4 w-24 animate-pulse rounded bg-neutral-200" />
+                  )}
                 </div>
-              ))}
+              </div>
+            ))}
           </div>
 
           <div className="@md/page:grid-cols-2 @3xl/page:grid-cols-1 grid grid-cols-1 gap-5 p-4 text-xs">
