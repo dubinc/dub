@@ -93,7 +93,7 @@ export const createCustomerBodySchema = z.object({
       "The customer's avatar URL. If not provided, a random avatar will be generated.",
     ),
   externalId: z
-    .string()
+    .string("External ID is required")
     .describe(
       "The customer's unique identifier your database. This is useful for associating subsequent conversion events from Dub's API to your internal systems.",
     ),
