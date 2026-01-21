@@ -33,22 +33,24 @@ export function ProgramRewardTerms({
   if (items.length === 0) return null;
 
   return (
-    <div className="border-border-subtle text-content-subtle -mt-1 flex items-center rounded-b-md rounded-t-none border border-t-0 p-1.5 pl-2.5 pt-2.5 text-xs">
+    <div className="border-border-subtle text-content-subtle -mt-1 flex items-center gap-1 rounded-b-md rounded-t-none border border-t-0 p-1.5 pl-2.5 pt-2.5 text-xs">
       {items.map((item, index) => (
-        <span key={item.label}>
-          <span className="text-content-emphasis font-semibold">
-            {item.value}
-          </span>{" "}
-          <a
-            href={item.href}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline decoration-dotted underline-offset-2"
-          >
-            {item.label}
-          </a>
-          {index < items.length - 1 && ", "}
-        </span>
+        <>
+          <span key={item.label}>
+            <span className="text-content-emphasis font-semibold">
+              {item.value}
+            </span>{" "}
+            <a
+              href={item.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline decoration-dotted underline-offset-2"
+            >
+              {item.label}
+            </a>
+          </span>
+          {index < items.length - 1 && "•"}
+        </>
       ))}
     </div>
   );
