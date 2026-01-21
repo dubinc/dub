@@ -45,8 +45,8 @@ export const GET = withWorkspace(
       where: {
         ...(customerIds
           ? {
-              id: { in: customerIds },
-            }
+            id: { in: customerIds },
+          }
           : {}),
         ...(programId && {
           programId,
@@ -63,9 +63,9 @@ export const GET = withWorkspace(
               ? search.includes("@")
                 ? { email: search }
                 : {
-                    email: { search: sanitizeFullTextSearch(search) },
-                    name: { search: sanitizeFullTextSearch(search) },
-                  }
+                  email: { search: sanitizeFullTextSearch(search) },
+                  name: { search: sanitizeFullTextSearch(search) },
+                }
               : {}),
         ...(country && {
           country,
@@ -81,33 +81,39 @@ export const GET = withWorkspace(
       take: pageSize,
       ...(includeExpandedFields
         ? {
-            include: {
-              link: {
-                include: {
-                  programEnrollment: {
-                    include: {
-                      partner: {
-                        select: {
-                          id: true,
-                          name: true,
-                          email: true,
-                          image: true,
-                        },
-                      },
-                      discount: true,
-                    },
-                  },
-                },
-              },
+          include: {
+            link: {
+              select: {
+                id: true,
+                domain: true,
+                key: true,
+                shortLink: true,
+                url: true,
+                programId: true,
+              }
             },
+            programEnrollment: {
+              include: {
+                partner: {
+                  select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    image: true,
+                  }
+                },
+                discount: true,
+              }
+            }
           }
+        }
         : {}),
     });
 
     const responseSchema = includeExpandedFields
       ? CustomerEnrichedSchema.extend({
-          discount: DiscountSchemaWithDeprecatedFields,
-        })
+        discount: DiscountSchemaWithDeprecatedFields,
+      })
       : CustomerSchema;
 
     const response = responseSchema
