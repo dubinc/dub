@@ -104,8 +104,8 @@ export function InviteTeammatesForm({
     >
       <div className="flex flex-col gap-2">
         {fields.map((field, index) => (
-          <div key={field.id} className="relative">
-            <label>
+          <div key={field.id} className="flex items-end gap-2">
+            <label className="flex-1">
               {index === 0 && (
                 <span className="mb-2 block text-sm font-medium text-neutral-700">
                   {pluralize("Email", fields.length)}
@@ -144,14 +144,12 @@ export function InviteTeammatesForm({
               </div>
             </label>
             {index > 0 && (
-              <div className="absolute -right-1 top-1/2 -translate-y-1/2 translate-x-full">
-                <Button
-                  variant="outline"
-                  icon={<Trash className="size-4" />}
-                  className="h-8 px-1"
-                  onClick={() => remove(index)}
-                />
-              </div>
+              <Button
+                variant="outline"
+                icon={<Trash className="size-4" />}
+                className="h-9 w-9 shrink-0 px-0"
+                onClick={() => remove(index)}
+              />
             )}
           </div>
         ))}

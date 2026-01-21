@@ -112,12 +112,15 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
   // If sorting by popularity, put promoted programs first
   if (sortBy === "popularity") {
     const PROMOTED_PROGRAM_IDS = [
-      "prog_1K0QHV7MP3PR05CJSCF5VN93X",
-      "prog_1JPKFV1EFCJACKR4QZBZGRMZ9",
-      "prog_1K7J9JV5P2NBPH4A4X4YGHV68",
-      "prog_MqN7G1vSbuSELpYJwioHyDE8",
       "prog_qGGSH0jXFZLeogOnq1sLkriY",
+      "prog_1JPKFV1EFCJACKR4QZBZGRMZ9",
+      "prog_MqN7G1vSbuSELpYJwioHyDE8",
+      "prog_1JQ9QE81X45KKEPGV1VQFPRQ4",
       "prog_1K0A6SX71Q3ZRC1HYFMXQGWJ8",
+      "prog_1K7J9JV5P2NBPH4A4X4YGHV68",
+      "prog_1JWVR53QX1NM7NDEK62E3J19H",
+      "prog_1KCD34S7H3Z8BNJ5XJDTCFDJF",
+      "prog_1JXR4KWH9DDJ2ZEM4G6KB2MY4",
     ];
 
     const promoted = programs.filter((p) =>

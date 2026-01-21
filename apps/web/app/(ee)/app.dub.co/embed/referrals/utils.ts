@@ -98,6 +98,7 @@ export const getReferralsEmbedData = async (token: string) => {
       additionalLinks: group.additionalLinks as PartnerGroupAdditionalLink[],
       maxPartnerLinks: group.maxPartnerLinks,
       linkStructure: group.linkStructure,
+      holdingPeriodDays: group.holdingPeriodDays,
     },
   };
 };
