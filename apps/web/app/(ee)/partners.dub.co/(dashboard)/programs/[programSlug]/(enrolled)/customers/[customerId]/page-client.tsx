@@ -4,7 +4,6 @@ import { CUSTOMER_PAGE_EVENTS_LIMIT } from "@/lib/constants/misc";
 import usePartnerCustomer from "@/lib/swr/use-partner-customer";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PartnerEarningsResponse } from "@/lib/types";
-import { CustomerEnriched } from "@/lib/types";
 import { CustomerActivityList } from "@/ui/customers/customer-activity-list";
 import { CustomerDetailsColumn } from "@/ui/customers/customer-details-column";
 import { CustomerSalesTable } from "@/ui/customers/customer-sales-table";
@@ -82,11 +81,11 @@ export function ProgramCustomerPageClient() {
             <CustomerDetailsColumn
               customer={
                 customer && customer.id
-                  ? ({
+                  ? {
                       ...customer,
                       name: customer.name || "",
                       externalId: "",
-                    })
+                    }
                   : undefined
               }
               customerActivity={customer?.activity}
