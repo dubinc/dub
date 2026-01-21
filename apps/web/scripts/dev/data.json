@@ -1,0 +1,185 @@
+{
+  "workspace": {
+    "id": "ws_1KETZ919F83ZJH6A80HWEHW6E",
+    "name": "Acme, Inc.",
+    "slug": "acme",
+    "plan": "enterprise",
+    "billingCycleStart": 1,
+    "usageLimit": 100000,
+    "linksLimit": 100000,
+    "payoutsLimit": 100000,
+    "domainsLimit": 100,
+    "tagsLimit": 100,
+    "foldersLimit": 100,
+    "usersLimit": 100,
+    "aiLimit": 100,
+    "groupsLimit": 100,
+    "defaultProgramId": "prog_1K2J9DRWPPJ2F1RX53N92TSGA",
+    "invoicePrefix": "ACME",
+    "conversionEnabled": true,
+    "webhookEnabled": true,
+    "dotLinkClaimed": true,
+    "fastDirectDebitPayouts": true
+  },
+  "users": [
+    {
+      "id": "user_cludszk1h0000wmd2e0ea2b0p",
+      "name": "Owner",
+      "email": "owner@dub.co",
+      "emailVerified": "2026-01-21T00:00:00.000Z",
+      "role": "owner"
+    },
+    {
+      "id": "user_cludszk1h0000wmd2e0ea2b0q",
+      "name": "Member",
+      "email": "member@dub.co",
+      "emailVerified": "2026-01-21T00:00:00.000Z",
+      "role": "member"
+    },
+    {
+      "id": "user_cludszk1h0000wmd2e0ea2b0r",
+      "name": "Viewer",
+      "email": "viewer@dub.co",
+      "emailVerified": "2026-01-21T00:00:00.000Z",
+      "role": "viewer"
+    },
+    {
+      "id": "user_cludszk1h0000wmd2e0ea2b0s",
+      "name": "Billing",
+      "email": "billing@dub.co",
+      "emailVerified": "2026-01-21T00:00:00.000Z",
+      "role": "billing"
+    }
+  ],
+  "domains": [
+    {
+      "id": "dom_1KETZ919F83ZJH6A80HWEHW6E",
+      "slug": "dub.sh",
+      "verified": true
+    }
+  ],
+  "folders": [
+    {
+      "id": "fold_1K2J9DRWPPJ2F1RX53N92TSGB",
+      "name": "Partner Links",
+      "description": "Default folder for partner links",
+      "accessLevel": "write"
+    }
+  ],
+  "rewards": [
+    {
+      "id": "rw_1K2J9DRWPPJ2F1RX53N92TSGD",
+      "event": "lead",
+      "type": "flat",
+      "amountInCents": 1000,
+      "maxDuration": null,
+      "description": null,
+      "tooltipDescription": null
+    },
+    {
+      "id": "rw_1K2J9DRWPPJ2F1RX53N92TSGE",
+      "event": "sale",
+      "type": "flat",
+      "amountInCents": 3000,
+      "maxDuration": 12,
+      "description": null,
+      "tooltipDescription": null
+    }
+  ],
+  "groups": [
+    {
+      "id": "grp_1K2J9DRWPPJ2F1RX53N92TSGC",
+      "name": "Default Group",
+      "slug": "default",
+      "color": null,
+      "leadRewardId": "rw_1K2J9DRWPPJ2F1RX53N92TSGD",
+      "saleRewardId": "rw_1K2J9DRWPPJ2F1RX53N92TSGE"
+    }
+  ],
+  "program": {
+    "id": "prog_1K2J9DRWPPJ2F1RX53N92TSGA",
+    "name": "Acme",
+    "slug": "acme",
+    "defaultFolderId": "fold_1K2J9DRWPPJ2F1RX53N92TSGB",
+    "defaultGroupId": "grp_1K2J9DRWPPJ2F1RX53N92TSGC",
+    "domain": "dub.sh",
+    "url": "https://acme.com",
+    "termsUrl": "https://acme.com/terms",
+    "helpUrl": "https://acme.com/help",
+    "supportEmail": "support@acme.com",
+    "messagingEnabledAt": "2026-01-21T00:00:00.000Z",
+    "partnerNetworkEnabledAt": "2026-01-21T00:00:00.000Z"
+  },
+  "partners": [
+    {
+      "id": "pn_1K2J9DRWPPJ2F1RX53N92TSGD",
+      "name": "Partner 1",
+      "email": "partner1@example.com",
+      "description": "Partner 1 description",
+      "country": "US",
+      "createdAt": "2026-01-21T00:00:00.000Z",
+      "user": {
+        "id": "user_cl8dea8g1073109m7wkwlldqj",
+        "name": "Partner 1",
+        "email": "partner1@example.com",
+        "emailVerified": "2026-01-21T00:00:00.000Z"
+      }
+    },
+    {
+      "id": "pn_1K2J9DRWPPJ2F1RX53N92TSGE",
+      "name": "Partner 2",
+      "email": "partner2@example.com",
+      "description": "Partner 2 description",
+      "country": "US",
+      "createdAt": "2026-01-21T00:00:00.000Z",
+      "user": {
+        "id": "user_cludszk1h0000wmd2e0ea2b0t",
+        "name": "Partner 2",
+        "email": "partner2@example.com",
+        "emailVerified": "2026-01-21T00:00:00.000Z"
+      }
+    },
+    {
+      "id": "pn_1K2J9DRWPPJ2F1RX53N92TSGF",
+      "name": "Partner 3",
+      "email": "partner3@example.com",
+      "description": "Partner 3 description",
+      "country": "US",
+      "createdAt": "2026-01-21T00:00:00.000Z",
+      "user": {
+        "id": "user_cludszk1h0000wmd2e0ea2b0u",
+        "name": "Partner 3",
+        "email": "partner3@example.com",
+        "emailVerified": "2026-01-21T00:00:00.000Z"
+      }
+    },
+    {
+      "id": "pn_1K2J9DRWPPJ2F1RX53N92TSGG",
+      "name": "Partner 4",
+      "email": "partner4@example.com",
+      "description": "Partner 4 description",
+      "country": "US",
+      "createdAt": "2026-01-21T00:00:00.000Z",
+      "user": {
+        "id": "user_cludszk1h0000wmd2e0ea2b0v",
+        "name": "Partner 4",
+        "email": "partner4@example.com",
+        "emailVerified": "2026-01-21T00:00:00.000Z"
+      }
+    },
+    {
+      "id": "pn_1K2J9DRWPPJ2F1RX53N92TSGH",
+      "name": "Partner 5",
+      "email": "partner5@example.com",
+      "description": "Partner 5 description",
+      "country": "US",
+      "createdAt": "2026-01-21T00:00:00.000Z",
+      "user": {
+        "id": "user_cludszk1h0000wmd2e0ea2b0w",
+        "name": "Partner 5",
+        "email": "partner5@example.com",
+        "emailVerified": "2026-01-21T00:00:00.000Z"
+      }
+    }
+  ]
+}

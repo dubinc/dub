@@ -125,7 +125,6 @@ function EditCustomerModal({
               />
             </div>
 
-
             <div>
               <label className="text-content-emphasis text-sm font-normal">
                 Stripe Customer ID
