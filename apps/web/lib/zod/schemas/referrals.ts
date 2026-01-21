@@ -65,7 +65,7 @@ export const createPartnerReferralSchema = z.object({
 export const markReferralQualifiedSchema = z.object({
   referralId: z.string(),
   workspaceId: z.string(),
-  externalId: z.string().optional(),
+  externalId: z.string().trim().optional(),
 });
 
 export const markReferralUnqualifiedSchema = z.object({
