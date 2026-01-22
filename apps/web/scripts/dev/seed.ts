@@ -365,13 +365,6 @@ const createPartners = async (data: SeedData) => {
     })),
   });
 
-  // Create partner notification preferences
-  await prisma.partnerNotificationPreferences.createMany({
-    data: partners.map((partner) => ({
-      partnerUserId: partner.user.id,
-    })),
-  });
-
   console.log(`Created ${partnerCount} partners`);
 
   // Create program enrollments
@@ -404,6 +397,7 @@ const createIntegrations = async (data: SeedData) => {
         ? (integration.screenshots as Prisma.JsonArray)
         : undefined,
       verified: Boolean(integration.verified),
+      comingSoon: Boolean(integration.comingSoon),
     })),
   });
 
@@ -412,54 +406,87 @@ const createIntegrations = async (data: SeedData) => {
 
 // Delete in order of dependencies
 const truncate = async () => {
-  console.log("Truncating database...");
+  console.log("Truncating database...\n");
 
-  await prisma.installedIntegration.deleteMany();
-  await prisma.linkWebhook.deleteMany();
-  await prisma.webhook.deleteMany();
-  await prisma.utmTemplate.deleteMany();
-  await prisma.linkTag.deleteMany();
-  await prisma.tag.deleteMany();
-  await prisma.token.deleteMany();
-  await prisma.restrictedToken.deleteMany();
-  await prisma.oAuthRefreshToken.deleteMany();
-  await prisma.passwordResetToken.deleteMany();
-  await prisma.verificationToken.deleteMany();
-  await prisma.emailVerificationToken.deleteMany();
-  await prisma.notificationPreference.deleteMany();
-  await prisma.integration.deleteMany();
-  await prisma.commission.deleteMany();
-  await prisma.partnerComment.deleteMany();
-  await prisma.payout.deleteMany();
-  await prisma.invoice.deleteMany();
-  await prisma.customer.deleteMany();
-  await prisma.reward.deleteMany();
-  await prisma.discountCode.deleteMany();
-  await prisma.discount.deleteMany();
-  await prisma.folderAccessRequest.deleteMany();
-  await prisma.emailDomain.deleteMany();
-  await prisma.message.deleteMany();
-  await prisma.partnerGroupDefaultLink.deleteMany();
-  await prisma.folderUser.deleteMany();
-  await prisma.folder.deleteMany();
-  await prisma.link.deleteMany();
-  await prisma.workflow.deleteMany();
-  await prisma.bountyGroup.deleteMany();
-  await prisma.bountySubmission.deleteMany();
-  await prisma.bounty.deleteMany();
-  await prisma.campaignGroup.deleteMany();
-  await prisma.campaign.deleteMany();
-  await prisma.programApplication.deleteMany();
-  await prisma.programEnrollment.deleteMany();
-  await prisma.partnerGroup.deleteMany();
-  await prisma.partnerUser.deleteMany();
-  await prisma.partner.deleteMany();
-  await prisma.partnerInvite.deleteMany();
-  await prisma.domain.deleteMany();
-  await prisma.projectUsers.deleteMany();
-  await prisma.user.deleteMany();
-  await prisma.project.deleteMany();
-  await prisma.program.deleteMany();
+
+  // First, nullify the defaultProgramId references to break the relation
+  await prisma.project.updateMany({
+    data: {
+      defaultProgramId: null,
+    },
+  });
+
+  const tables = [
+    "InstalledIntegration",
+    "LinkWebhook",
+    "Webhook",
+    "UtmTemplate",
+    "LinkTag",
+    "Tag",
+    "Token",
+    "RestrictedToken",
+    "OAuthRefreshToken",
+    "PasswordResetToken",
+    "VerificationToken",
+    "EmailVerificationToken",
+    "NotificationPreference",
+    "Integration",
+    "Commission",
+    "PartnerComment",
+    "Payout",
+    "Invoice",
+    "Customer",
+    "Reward",
+    "DiscountCode",
+    "Discount",
+    "FolderAccessRequest",
+    "EmailDomain",
+    "Message",
+    "PartnerGroupDefaultLink",
+    "FolderUser",
+    "Folder",
+    "Link",
+    "Workflow",
+    "BountyGroup",
+    "BountySubmission",
+    "Bounty",
+    "CampaignGroup",
+    "Campaign",
+    "ProgramApplication",
+    "ProgramEnrollment",
+    "PartnerGroup",
+    "PartnerUser",
+    "Partner",
+    "PartnerInvite",
+    "Domain",
+    "ProjectUsers",
+    "User",
+    "Program",
+    "Project",
+  ];
+
+  const total = tables.length;
+  const errors: string[] = [];
+
+  for (let i = 0; i < tables.length; i++) {
+    const tableName = tables[i];
+    try {
+      process.stdout.write(`\r[${i + 1}/${total}] Truncating ${tableName}...`);
+      // Use TRUNCATE for each table separately (MySQL/PlanetScale syntax)
+      await prisma.$executeRawUnsafe(`TRUNCATE TABLE \`${tableName}\`;`);
+    } catch (error: any) {
+      errors.push(`${tableName}: ${error.message || error.code || "Unknown error"}`);
+      process.stdout.write(`\r[${i + 1}/${total}] Skipping ${tableName} (error occurred)...`);
+    }
+  }
+
+  console.log("\n");
+
+  if (errors.length > 0) {
+    console.log("⚠️  Some tables had errors during truncation:");
+    errors.forEach((error) => console.log(`  - ${error}`));
+    console.log("");
+  }
 
   console.log("Database truncated successfully");
 };
@@ -486,6 +513,7 @@ async function main() {
 
   if (shouldTruncate) {
     console.log("\n⚠️  WARNING: This will delete ALL data from the database.\n");
+    console.log("⚠️  Make sure you are NOT on production database!\n");
     const confirmed = await askConfirmation(
       "Are you sure you want to delete ALL data from the database?"
     );
