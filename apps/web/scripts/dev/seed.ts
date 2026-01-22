@@ -408,7 +408,6 @@ const createIntegrations = async (data: SeedData) => {
 const truncate = async () => {
   console.log("Truncating database...\n");
 
-
   // First, nullify the defaultProgramId references to break the relation
   await prisma.project.updateMany({
     data: {
@@ -475,8 +474,12 @@ const truncate = async () => {
       // Use TRUNCATE for each table separately (MySQL/PlanetScale syntax)
       await prisma.$executeRawUnsafe(`TRUNCATE TABLE \`${tableName}\`;`);
     } catch (error: any) {
-      errors.push(`${tableName}: ${error.message || error.code || "Unknown error"}`);
-      process.stdout.write(`\r[${i + 1}/${total}] Skipping ${tableName} (error occurred)...`);
+      errors.push(
+        `${tableName}: ${error.message || error.code || "Unknown error"}`,
+      );
+      process.stdout.write(
+        `\r[${i + 1}/${total}] Skipping ${tableName} (error occurred)...`,
+      );
     }
   }
 
@@ -499,10 +502,13 @@ const askConfirmation = (question: string): Promise<boolean> => {
   });
 
   return new Promise((resolve) => {
-    rl.question(`${question}\nType "YES DELETE DATA" to confirm: `, (answer) => {
-      rl.close();
-      resolve(answer === "YES DELETE DATA");
-    });
+    rl.question(
+      `${question}\nType "YES DELETE DATA" to confirm: `,
+      (answer) => {
+        rl.close();
+        resolve(answer === "YES DELETE DATA");
+      },
+    );
   });
 };
 
@@ -512,10 +518,12 @@ async function main() {
   const shouldTruncate = process.argv.slice(2).includes("--truncate");
 
   if (shouldTruncate) {
-    console.log("\n⚠️  WARNING: This will delete ALL data from the database.\n");
+    console.log(
+      "\n⚠️  WARNING: This will delete ALL data from the database.\n",
+    );
     console.log("⚠️  Make sure you are NOT on production database!\n");
     const confirmed = await askConfirmation(
-      "Are you sure you want to delete ALL data from the database?"
+      "Are you sure you want to delete ALL data from the database?",
     );
 
     if (!confirmed) {
