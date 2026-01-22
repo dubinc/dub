@@ -192,13 +192,10 @@ export const BountySubmissionExtendedSchema = BountySubmissionSchema.extend({
 });
 
 export const approveBountySubmissionBodySchema = z.object({
-  rewardAmount: z
-    .number()
-    .nullish()
-    .meta({
-      description:
-        "The reward amount for the performance-based bounty. Applicable if the bounty reward amount is not set.",
-    }),
+  rewardAmount: z.number().nullish().meta({
+    description:
+      "The reward amount for the performance-based bounty. Applicable if the bounty reward amount is not set.",
+  }),
 });
 
 export const rejectBountySubmissionBodySchema = z.object({
