@@ -21,7 +21,7 @@ const child = spawn(
   {
     stdio: "inherit", // This pipes stdout/stderr directly to the parent process
     shell: true, // Allows running commands as if in a shell
-  }
+  },
 );
 
 child.on("error", (error) => {
