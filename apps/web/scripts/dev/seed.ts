@@ -4,6 +4,7 @@ import { prisma } from "@dub/prisma";
 import {
   Domain,
   Folder,
+  Integration,
   Partner,
   PartnerGroup,
   Prisma,
@@ -104,11 +105,15 @@ type SeedData = {
   workspace: Workspace;
   users: WorkspaceUser[];
   domains: DomainSeed[];
-  folders?: FolderSeed[];
-  rewards?: RewardSeed[];
-  groups?: GroupSeed[];
-  program?: ProgramSeed;
-  partners?: PartnerSeed[];
+  folders: FolderSeed[];
+  rewards: RewardSeed[];
+  groups: GroupSeed[];
+  program: ProgramSeed;
+  partners: PartnerSeed[];
+  integrations: Omit<
+    Integration,
+    "id" | "projectId" | "userId" | "createdAt" | "updatedAt"
+  >[];
 };
 
 const parseJSON = (): SeedData => {
@@ -118,11 +123,9 @@ const parseJSON = (): SeedData => {
 };
 
 // Create workspace
-const createWorkspace = async ({
-  workspace,
-}: {
-  workspace: Prisma.ProjectCreateInput;
-}) => {
+const createWorkspace = async (data: SeedData) => {
+  const { workspace } = data;
+
   const { id } = await prisma.project.create({
     data: workspace,
   });
@@ -131,13 +134,9 @@ const createWorkspace = async ({
 };
 
 // Create users
-const createUsers = async ({
-  workspace,
-  users,
-}: {
-  workspace: Pick<Project, "id">;
-  users: WorkspaceUser[];
-}) => {
+const createUsers = async (data: SeedData) => {
+  const { workspace, users } = data;
+
   if (!users || users.length === 0) {
     console.log("No users to insert");
     return;
@@ -180,13 +179,9 @@ const createUsers = async ({
 };
 
 // Create domains
-const createDomains = async ({
-  domains,
-  workspace,
-}: {
-  domains: DomainSeed[];
-  workspace: Pick<Project, "id">;
-}) => {
+const createDomains = async (data: SeedData) => {
+  const { domains, workspace } = data;
+
   if (!domains || domains.length === 0) {
     console.log("No domains to insert");
     return;
@@ -205,13 +200,9 @@ const createDomains = async ({
 };
 
 // Create folders
-const createFolders = async ({
-  folders,
-  workspace,
-}: {
-  folders?: FolderSeed[];
-  workspace: Pick<Project, "id">;
-}) => {
+const createFolders = async (data: SeedData) => {
+  const { folders, workspace } = data;
+
   if (!folders || folders.length === 0) {
     console.log("No folders to insert");
     return;
@@ -231,13 +222,9 @@ const createFolders = async ({
 };
 
 // Create rewards
-const createRewards = async ({
-  rewards,
-  program,
-}: {
-  rewards?: RewardSeed[];
-  program?: ProgramSeed;
-}) => {
+const createRewards = async (data: SeedData) => {
+  const { rewards, program } = data;
+
   if (!rewards || rewards.length === 0) {
     console.log("No rewards to insert");
     return;
@@ -268,13 +255,9 @@ const createRewards = async ({
 };
 
 // Create groups
-const createGroups = async ({
-  groups,
-  program,
-}: {
-  groups?: GroupSeed[];
-  program?: ProgramSeed;
-}) => {
+const createGroups = async (data: SeedData) => {
+  const { groups, program } = data;
+
   if (!groups || groups.length === 0) {
     console.log("No groups to insert");
     return;
@@ -301,13 +284,9 @@ const createGroups = async ({
 };
 
 // Create program
-const createProgram = async ({
-  program,
-  workspace,
-}: {
-  program?: ProgramSeed;
-  workspace: Pick<Project, "id">;
-}) => {
+const createProgram = async (data: SeedData) => {
+  const { program, workspace } = data;
+
   if (!program) {
     console.log("No program to insert");
     return;
@@ -326,8 +305,8 @@ const createProgram = async ({
       termsUrl: program.termsUrl,
       helpUrl: program.helpUrl,
       supportEmail: program.supportEmail,
-      messagingEnabledAt: new Date(program.messagingEnabledAt),
-      partnerNetworkEnabledAt: new Date(program.partnerNetworkEnabledAt),
+      messagingEnabledAt: new Date(),
+      partnerNetworkEnabledAt: new Date(),
       addedToMarketplaceAt: new Date(),
       featuredOnMarketplaceAt: new Date(),
     },
@@ -337,13 +316,9 @@ const createProgram = async ({
 };
 
 // Create partners
-const createPartners = async ({
-  partners,
-  program,
-}: {
-  partners?: PartnerSeed[];
-  program?: ProgramSeed;
-}) => {
+const createPartners = async (data: SeedData) => {
+  const { partners, program } = data;
+
   if (!partners || partners.length === 0) {
     console.log("No partners to insert");
     return;
@@ -357,7 +332,7 @@ const createPartners = async ({
   const passwordHash = await hashPassword("password");
 
   // Create users for partners
-  const { count: userCount } = await prisma.user.createMany({
+  await prisma.user.createMany({
     data: partners.map((partner) => ({
       id: partner.user.id,
       name: partner.user.name,
@@ -380,7 +355,7 @@ const createPartners = async ({
   });
 
   // Create partner users
-  const { count: partnerUserCount } = await prisma.partnerUser.createMany({
+  await prisma.partnerUser.createMany({
     data: partners.map((partner) => ({
       userId: partner.user.id,
       partnerId: partner.id,
@@ -390,12 +365,11 @@ const createPartners = async ({
   });
 
   // Create partner notification preferences
-  const { count: notificationPreferencesCount } =
-    await prisma.partnerNotificationPreferences.createMany({
-      data: partners.map((partner) => ({
-        partnerUserId: partner.user.id,
-      })),
-    });
+  await prisma.partnerNotificationPreferences.createMany({
+    data: partners.map((partner) => ({
+      partnerUserId: partner.user.id,
+    })),
+  });
 
   console.log(`Created ${partnerCount} partners`);
 
@@ -412,47 +386,40 @@ const createPartners = async ({
   console.log(`Created ${enrollmentCount} program enrollments`);
 };
 
+// Create integrations
+const createIntegrations = async (data: SeedData) => {
+  const { integrations, workspace } = data;
+
+  if (!integrations || integrations.length === 0) {
+    console.log("No integrations to insert");
+    return;
+  }
+
+  const { count } = await prisma.integration.createMany({
+    data: integrations.map((integration) => ({
+      ...integration,
+      projectId: workspace.id,
+      screenshots: integration.screenshots
+        ? (integration.screenshots as Prisma.JsonArray)
+        : undefined,
+    })),
+  });
+
+  console.log(`Created ${count} integrations`);
+};
+
 async function main() {
   const data = parseJSON();
 
-  await createWorkspace({
-    workspace: data.workspace,
-  });
-
-  await createUsers({
-    workspace: data.workspace,
-    users: data.users,
-  });
-
-  await createDomains({
-    domains: data.domains,
-    workspace: data.workspace,
-  });
-
-  await createFolders({
-    folders: data.folders,
-    workspace: data.workspace,
-  });
-
-  await createProgram({
-    program: data.program,
-    workspace: data.workspace,
-  });
-
-  await createRewards({
-    rewards: data.rewards,
-    program: data.program,
-  });
-
-  await createGroups({
-    groups: data.groups,
-    program: data.program,
-  });
-
-  await createPartners({
-    partners: data.partners,
-    program: data.program,
-  });
+  await createWorkspace(data);
+  await createUsers(data);
+  await createDomains(data);
+  await createFolders(data);
+  await createProgram(data);
+  await createRewards(data);
+  await createGroups(data);
+  await createPartners(data);
+  await createIntegrations(data);
 }
 
 main();
