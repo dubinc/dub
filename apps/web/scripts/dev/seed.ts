@@ -17,6 +17,7 @@ import {
 import "dotenv-flow/config";
 import fs from "fs";
 import path from "path";
+import readline from "readline";
 
 type Workspace = Pick<
   Project,
@@ -402,13 +403,103 @@ const createIntegrations = async (data: SeedData) => {
       screenshots: integration.screenshots
         ? (integration.screenshots as Prisma.JsonArray)
         : undefined,
+      verified: Boolean(integration.verified),
     })),
   });
 
   console.log(`Created ${count} integrations`);
 };
 
+// Delete in order of dependencies
+const truncate = async () => {
+  console.log("Truncating database...");
+
+  await prisma.installedIntegration.deleteMany();
+  await prisma.linkWebhook.deleteMany();
+  await prisma.webhook.deleteMany();
+  await prisma.utmTemplate.deleteMany();
+  await prisma.linkTag.deleteMany();
+  await prisma.tag.deleteMany();
+  await prisma.token.deleteMany();
+  await prisma.restrictedToken.deleteMany();
+  await prisma.oAuthRefreshToken.deleteMany();
+  await prisma.passwordResetToken.deleteMany();
+  await prisma.verificationToken.deleteMany();
+  await prisma.emailVerificationToken.deleteMany();
+  await prisma.notificationPreference.deleteMany();
+  await prisma.integration.deleteMany();
+  await prisma.commission.deleteMany();
+  await prisma.partnerComment.deleteMany();
+  await prisma.payout.deleteMany();
+  await prisma.invoice.deleteMany();
+  await prisma.customer.deleteMany();
+  await prisma.reward.deleteMany();
+  await prisma.discountCode.deleteMany();
+  await prisma.discount.deleteMany();
+  await prisma.folderAccessRequest.deleteMany();
+  await prisma.emailDomain.deleteMany();
+  await prisma.message.deleteMany();
+  await prisma.partnerGroupDefaultLink.deleteMany();
+  await prisma.folderUser.deleteMany();
+  await prisma.folder.deleteMany();
+  await prisma.link.deleteMany();
+  await prisma.workflow.deleteMany();
+  await prisma.bountyGroup.deleteMany();
+  await prisma.bountySubmission.deleteMany();
+  await prisma.bounty.deleteMany();
+  await prisma.campaignGroup.deleteMany();
+  await prisma.campaign.deleteMany();
+  await prisma.programApplication.deleteMany();
+  await prisma.programEnrollment.deleteMany();
+  await prisma.partnerGroup.deleteMany();
+  await prisma.partnerUser.deleteMany();
+  await prisma.partner.deleteMany();
+  await prisma.partnerInvite.deleteMany();
+  await prisma.domain.deleteMany();
+  await prisma.projectUsers.deleteMany();
+  await prisma.user.deleteMany();
+  await prisma.project.deleteMany();
+  await prisma.program.deleteMany();
+
+  console.log("Database truncated successfully");
+};
+
+// Ask for confirmation - requires typing "YES DELETE DATA"
+const askConfirmation = (question: string): Promise<boolean> => {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+
+  return new Promise((resolve) => {
+    rl.question(`${question}\nType "YES DELETE DATA" to confirm: `, (answer) => {
+      rl.close();
+      resolve(answer === "YES DELETE DATA");
+    });
+  });
+};
+
 async function main() {
+  // Check for --truncate flag
+  // process.argv[0] = node, process.argv[1] = script path, process.argv[2+] = arguments
+  const shouldTruncate = process.argv.slice(2).includes("--truncate");
+
+  if (shouldTruncate) {
+    console.log("\n⚠️  WARNING: This will delete ALL data from the database.\n");
+    const confirmed = await askConfirmation(
+      "Are you sure you want to delete ALL data from the database?"
+    );
+
+    if (!confirmed) {
+      console.log("\nTruncate cancelled. Exiting...");
+      process.exit(0);
+    }
+
+    console.log("\n");
+    await truncate();
+    console.log("\n");
+  }
+
   const data = parseJSON();
 
   await createWorkspace(data);
