@@ -167,10 +167,23 @@ const createUsers = async (data: SeedData) => {
 
   console.log(`Created ${projectUsersCount} project users`);
 
+  // Query ProjectUsers to get the actual IDs (since createMany doesn't return them)
+  const projectUsers = await prisma.projectUsers.findMany({
+    where: {
+      projectId: workspace.id,
+      userId: { in: users.map((u) => u.id) },
+    },
+  });
+
+  // Map userId -> projectUser.id
+  const userIdToProjectUserId = new Map(
+    projectUsers.map((pu) => [pu.userId, pu.id]),
+  );
+
   const { count: notificationPreferencesCount } =
     await prisma.notificationPreference.createMany({
       data: users.map((user) => ({
-        projectUserId: user.id,
+        projectUserId: userIdToProjectUserId.get(user.id)!,
       })),
     });
 
