@@ -1,8 +1,8 @@
 import { ReferralProps } from "@/lib/types";
-import { useMarkPartnerReferralClosedLostModal } from "@/ui/modals/mark-partner-referral-closed-lost-modal";
-import { useMarkPartnerReferralClosedWonModal } from "@/ui/modals/mark-partner-referral-closed-won-modal";
-import { useQualifyPartnerReferralModal } from "@/ui/modals/qualify-partner-referral-modal";
-import { useUnqualifyPartnerReferralModal } from "@/ui/modals/unqualify-partner-referral-modal";
+import { useMarkReferralClosedLostModal } from "@/ui/modals/mark-referral-closed-lost-modal";
+import { useMarkReferralClosedWonModal } from "@/ui/modals/mark-referral-closed-won-modal";
+import { useMarkReferralQualifiedModal } from "@/ui/modals/mark-referral-qualified-modal";
+import { useUnqualifyReferralModal } from "@/ui/modals/unqualify-referral-modal";
 import { X } from "@/ui/shared/icons";
 import {
   Button,
@@ -30,20 +30,23 @@ function ReferralSheetContent({
   onNext,
   setIsOpen,
 }: ReferralSheetProps) {
-  const { setShowQualifyModal, QualifyModal, isQualifying } =
-    useQualifyPartnerReferralModal({ referral });
+  const {
+    setShowModal: setShowQualifyModal,
+    QualifiedModal,
+    isMarkingQualified: isQualifying,
+  } = useMarkReferralQualifiedModal({ referral });
 
   const { setShowUnqualifyModal, UnqualifyModal, isUnqualifying } =
-    useUnqualifyPartnerReferralModal({ referral });
+    useUnqualifyReferralModal({ referral });
 
   const {
     setShowModal: setShowClosedWonModal,
     ClosedWonModal,
     isMarkingClosedWon,
-  } = useMarkPartnerReferralClosedWonModal({ referral });
+  } = useMarkReferralClosedWonModal({ referral });
 
   const { setShowClosedLostModal, ClosedLostModal, isMarkingClosedLost } =
-    useMarkPartnerReferralClosedLostModal({ referral });
+    useMarkReferralClosedLostModal({ referral });
 
   // right arrow key onNext
   useKeyboardShortcut(
@@ -126,7 +129,7 @@ function ReferralSheetContent({
 
   return (
     <>
-      {QualifyModal}
+      {QualifiedModal}
       {UnqualifyModal}
       {ClosedWonModal}
       {ClosedLostModal}

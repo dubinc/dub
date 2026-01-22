@@ -3,18 +3,15 @@
 import { markReferralClosedLostAction } from "@/lib/actions/referrals/mark-referral-closed-lost";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { referralSchema } from "@/lib/zod/schemas/referrals";
+import { ReferralProps } from "@/lib/types";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { useAction } from "next-safe-action/hooks";
 import { toast } from "sonner";
-import * as z from "zod/v4";
 
-type PartnerReferralProps = z.infer<typeof referralSchema>;
-
-export function useMarkPartnerReferralClosedLostModal({
+export function useMarkReferralClosedLostModal({
   referral,
 }: {
-  referral: PartnerReferralProps;
+  referral: ReferralProps;
 }) {
   const { id: workspaceId } = useWorkspace();
 

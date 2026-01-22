@@ -11,6 +11,7 @@ import usePayoutsCount from "@/lib/swr/use-payouts-count";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import useWorkspaces from "@/lib/swr/use-workspaces";
+import { usePartnerReferralsCount } from "@/ui/referrals/use-partner-referrals-count";
 import { useRouterStuff } from "@dub/ui";
 import {
   Bell,
@@ -70,6 +71,7 @@ type SidebarNavData = {
   submittedBountiesCount?: number;
   unreadMessagesCount?: number;
   pendingFraudEventsCount?: number;
+  pendingReferralsCount?: number;
   showConversionGuides?: boolean;
   partnerNetworkEnabled?: boolean;
 };
@@ -205,7 +207,9 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
     submittedBountiesCount,
     unreadMessagesCount,
     pendingFraudEventsCount,
+    pendingReferralsCount,
     partnerNetworkEnabled,
+    pathname,
   }) => ({
     title: "Partner Program",
     showNews,
@@ -291,6 +295,13 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "Customers",
             icon: UserCheck,
             href: `/${slug}/program/customers`,
+            badge:
+              pathname?.includes("/customers/referrals") &&
+              pendingReferralsCount
+                ? pendingReferralsCount > 99
+                  ? "99+"
+                  : pendingReferralsCount
+                : undefined,
           },
           {
             name: "Commissions",
@@ -591,6 +602,14 @@ export function AppSidebarNav({
     ignoreParams: true,
   });
 
+  const { data: pendingReferralsCount } = usePartnerReferralsCount<number>({
+    query:
+      currentArea === "program" && defaultProgramId
+        ? { status: "pending" }
+        : undefined,
+    includeParams: ["status"],
+  });
+
   const { canTrackConversions } = getPlanCapabilities(plan);
 
   return (
@@ -612,6 +631,7 @@ export function AppSidebarNav({
         submittedBountiesCount,
         unreadMessagesCount,
         pendingFraudEventsCount,
+        pendingReferralsCount,
         showConversionGuides: canTrackConversions,
         partnerNetworkEnabled:
           program && program.partnerNetworkEnabledAt !== null,
