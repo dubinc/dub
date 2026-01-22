@@ -353,6 +353,7 @@ const createPartners = async (data: SeedData) => {
       email: partner.user.email,
       emailVerified: new Date(partner.user.emailVerified),
       passwordHash,
+      defaultPartnerId: partner.id,
     })),
   });
 
