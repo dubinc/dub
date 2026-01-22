@@ -206,6 +206,9 @@ export const NUMBER_CONDITION_OPERATORS: (typeof CONDITION_OPERATORS)[number][] 
     "less_than_or_equal",
   ];
 
+export const SOURCE_CONDITION_OPERATORS: (typeof CONDITION_OPERATORS)[number][] =
+  ["equals_to", "not_equals"];
+
 export const CONDITION_OPERATOR_LABELS = {
   equals_to: "is",
   not_equals: "is not",

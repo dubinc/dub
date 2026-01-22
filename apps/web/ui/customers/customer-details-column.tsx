@@ -126,7 +126,7 @@ export function CustomerDetailsColumn({
               {customer && (
                 <Button
                   variant="secondary"
-                  icon={<Pencil className="size-4" />}
+                  icon={<Pencil className="size-3.5" />}
                   text="Edit"
                   className="h-7 w-fit rounded-lg px-2"
                   onClick={() => openEditCustomerModal(customer)}
