@@ -13,7 +13,7 @@ export const listBountySubmissions: ZodOpenApiOperationObject = {
   description: "List all submissions for a specific bounty.",
   requestParams: {
     path: z.object({
-      bountyId: z.string(),
+      bountyId: z.string().meta({ description: "The ID of the bounty" }),
     }),
     query: getBountySubmissionsQuerySchema,
   },

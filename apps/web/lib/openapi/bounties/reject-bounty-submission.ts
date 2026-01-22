@@ -14,8 +14,10 @@ export const rejectBountySubmission: ZodOpenApiOperationObject = {
     "Reject a bounty submission with a specified reason and optional note.",
   requestParams: {
     path: z.object({
-      bountyId: z.string(),
-      submissionId: z.string(),
+      bountyId: z.string().meta({ description: "The ID of the bounty" }),
+      submissionId: z
+        .string()
+        .meta({ description: "The ID of the bounty submission" }),
     }),
   },
   requestBody: {
