@@ -41,6 +41,8 @@ export default async function DeepLinkPreviewPage(props: {
       },
     },
     select: {
+      domain: true,
+      key: true,
       shortLink: true,
       url: true,
       ios: true,
