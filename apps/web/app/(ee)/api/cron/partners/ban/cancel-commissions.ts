@@ -1,6 +1,6 @@
 import { prisma } from "@dub/prisma";
 
-// Mark the commissions as cancelled
+// Mark the commissions as canceled
 export async function cancelCommissions({
   programId,
   partnerId,
@@ -63,9 +63,9 @@ export async function cancelCommissions({
 
   if (failedBatches > 0) {
     console.warn(
-      `Cancelled ${canceledCommissions} commissions with ${failedBatches} failed batch(es).`,
+      `Canceled ${canceledCommissions} commissions with ${failedBatches} failed batch(es).`,
     );
   } else {
-    console.info(`Cancelled ${canceledCommissions} commissions.`);
+    console.info(`Canceled ${canceledCommissions} commissions.`);
   }
 }

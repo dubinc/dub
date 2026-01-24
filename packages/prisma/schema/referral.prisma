@@ -19,10 +19,10 @@ model PartnerReferral {
   createdAt  DateTime       @default(now())
   updatedAt  DateTime       @updatedAt
 
-  program           Program            @relation(fields: [programId], references: [id])
-  partner           Partner            @relation(fields: [partnerId], references: [id])
-  programEnrollment ProgramEnrollment  @relation(fields: [programId, partnerId], references: [programId, partnerId])
-  customer          Customer?          @relation(fields: [customerId], references: [id])
+  program           Program           @relation(fields: [programId], references: [id])
+  partner           Partner           @relation(fields: [partnerId], references: [id])
+  programEnrollment ProgramEnrollment @relation(fields: [programId, partnerId], references: [programId, partnerId])
+  customer          Customer?         @relation(fields: [customerId], references: [id])
 
   @@index([programId, partnerId])
   @@index(partnerId)

@@ -431,6 +431,8 @@ export async function checkoutSessionCompleted(
         saleAmount: {
           increment: chargeAmountTotal,
         },
+        firstSaleAt: customer.firstSaleAt ? undefined : new Date(),
+        subscriptionCanceledAt: null,
       },
     }),
   ]);
