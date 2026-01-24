@@ -14,6 +14,8 @@ const expectedCustomer = {
   saleAmount: 0,
   sales: 0,
   createdAt: expect.any(String),
+  firstSaleAt: null,
+  subscriptionCanceledAt: null,
 };
 
 describe.sequential("/customers/**", async () => {
