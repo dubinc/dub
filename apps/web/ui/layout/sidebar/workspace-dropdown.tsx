@@ -194,8 +194,10 @@ function WorkspaceList({
                     getPlanColor(selected.plan),
                   )}
                 >
-                  {selected.plan} · {membersCount}{" "}
-                  {pluralize("member", membersCount)}
+                  {selected.plan}
+                  {membersCount > 0
+                    ? ` · ${membersCount} ${pluralize("member", membersCount)}`
+                    : ""}
                 </div>
               )}
             </div>
