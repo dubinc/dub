@@ -16,45 +16,61 @@ export const getFirstSaleEvents = tb.buildPipe({
 });
 
 async function main() {
-  const customerWithSales = await prisma.customer.findMany({
-    where: {
-      sales: {
-        gt: 0,
+  while (true) {
+    const customerWithSales = await prisma.customer.findMany({
+      where: {
+        sales: {
+          gt: 0,
+        },
+        firstSaleAt: null,
       },
-      firstSaleAt: null,
-    },
-    take: 5000,
-  });
+      take: 5000,
+    });
 
-  let updated = 0;
+    if (customerWithSales.length === 0) {
+      console.log("No customers left to backfill");
+      break;
+    }
 
-  const chunks = chunk(customerWithSales, 50);
+    let updated = 0;
 
-  for (const chunk of chunks) {
-    const firstSaleEvents = await getFirstSaleEvents({
-      customerIds: chunk.map((customer) => customer.id),
-    }).then((res) => res.data);
+    const chunks = chunk(customerWithSales, 100);
 
-    await Promise.all(
-      firstSaleEvents.map(async (event) => {
-        const res = await prisma.customer.update({
-          where: { id: event.customerId },
-          data: {
-            firstSaleAt: new Date(event.firstSaleAt),
-          },
-        });
-        console.log({
-          id: res.id,
-          firstSaleAt: res.firstSaleAt,
-        });
-        updated++;
-      }),
-    );
+    for (const chunk of chunks) {
+      const firstSaleEvents = await getFirstSaleEvents({
+        customerIds: chunk.map((customer) => customer.id),
+      }).then((res) => res.data);
+
+      await Promise.all(
+        chunk.map(async (customer) => {
+          const firstSaleEvent = firstSaleEvents
+            .filter((event) => event.customerId === customer.id)
+            .sort(
+              (a, b) =>
+                new Date(a.firstSaleAt).getTime() -
+                new Date(b.firstSaleAt).getTime(),
+            )[0];
+
+          if (!firstSaleEvent) {
+            return;
+          }
+          try {
+            await prisma.customer.update({
+              where: { id: customer.id },
+              data: {
+                firstSaleAt: new Date(firstSaleEvent.firstSaleAt),
+              },
+            });
+            updated++;
+          } catch (_e) {}
+        }),
+      );
+
+      console.log(
+        `Updated ${updated}/${customerWithSales.length} customers (${(updated / customerWithSales.length) * 100}%)`,
+      );
+    }
   }
-
-  console.log(
-    `Updated ${updated}/${customerWithSales.length} customers (${(updated / customerWithSales.length) * 100}%)`,
-  );
 }
 
 main();
