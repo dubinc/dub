@@ -1,8 +1,7 @@
 "use client";
 
-import { DIRECT_DEBIT_PAYMENT_METHOD_TYPES } from "@/lib/constants/payouts";
 import useDomainsCount from "@/lib/swr/use-domains-count";
-import usePaymentMethods from "@/lib/swr/use-payment-methods";
+import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import useWorkspaceUsers from "@/lib/swr/use-workspace-users";
 import { useAnalyticsConnectedStatus } from "@/ui/analytics/use-analytics-connected-status";
@@ -46,14 +45,14 @@ function OnboardingButtonInner({
   const { users, loading: usersLoading } = useWorkspaceUsers();
 
   const { isConnected: connectedAnalytics } = useAnalyticsConnectedStatus();
-  const { paymentMethods, loading: paymentMethodsLoading } = usePaymentMethods({
-    enabled: Boolean(defaultProgramId),
-  });
-  const connectedBankAccount = paymentMethods?.some((pm) =>
-    DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(pm.type),
-  );
 
-  const loading = domainsLoading || usersLoading || paymentMethodsLoading;
+  const { partnersCount, loading: partnersCountLoading } =
+    usePartnersCount<number>({
+      ignoreParams: true,
+      enabled: Boolean(defaultProgramId),
+    });
+
+  const loading = domainsLoading || usersLoading || partnersCountLoading;
 
   const tasks = useMemo(() => {
     return [
@@ -78,9 +77,9 @@ function OnboardingButtonInner({
               recommended: true,
             },
             {
-              display: "Connect bank account for payouts",
-              cta: `/${slug}/program/payouts`,
-              checked: connectedBankAccount,
+              display: "Invite your partners",
+              cta: `/${slug}/program/partners`,
+              checked: partnersCount && partnersCount > 0,
               recommended: true,
             },
           ]
@@ -88,7 +87,7 @@ function OnboardingButtonInner({
             {
               display: "Create a short link",
               cta: `/${slug}/links`,
-              checked: totalLinks === 0 ? false : true,
+              checked: totalLinks && totalLinks > 0,
               recommended: true,
             },
             {
@@ -102,9 +101,9 @@ function OnboardingButtonInner({
   }, [
     slug,
     defaultProgramId,
-    connectedAnalytics,
-    paymentMethods,
     domainsCount,
+    connectedAnalytics,
+    partnersCount,
     totalLinks,
     users,
   ]);
@@ -128,7 +127,8 @@ function OnboardingButtonInner({
               <div>
                 <span className="text-base font-medium">Complete setup</span>
                 <p className="mt-1 text-sm text-neutral-300">
-                  Finish setting up your workspace
+                  Finish setting up your{" "}
+                  {defaultProgramId ? "program" : "workspace"}
                   <br className="hidden sm:block" />
                   to get the most out of Dub
                 </p>

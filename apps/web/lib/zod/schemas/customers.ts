@@ -140,7 +140,23 @@ export const CustomerSchema = z.object({
     .number()
     .nullish()
     .describe("Total amount of sales for the customer."),
-  createdAt: z.date().describe("The date the customer was created."),
+  createdAt: z
+    .date()
+    .describe(
+      "The date the customer was created (usually the signup date or trial start date).",
+    ),
+  firstSaleAt: z
+    .date()
+    .nullish()
+    .describe(
+      "The date the customer made their first sale. Useful for calculating the time to first sale and LTV.",
+    ),
+  subscriptionCanceledAt: z
+    .date()
+    .nullish()
+    .describe(
+      "The date the customer canceled their subscription. Useful for calculating LTV and churn rate.",
+    ),
 });
 
 // An extended schema that includes the customer's link, partner, and discount.

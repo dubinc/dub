@@ -42,6 +42,7 @@ import { Cell, Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
@@ -63,9 +64,9 @@ export function CustomerTable({
   isProgramPage?: boolean;
 }) {
   const { id: workspaceId, slug: workspaceSlug, plan } = useWorkspace();
-
   const { canManageCustomers } = getPlanCapabilities(plan);
 
+  const router = useRouter();
   const { queryParams, searchParams, getQueryString } = useRouterStuff();
 
   const sortBy = searchParams.get("sortBy") || "createdAt";
@@ -115,6 +116,8 @@ export function CustomerTable({
       "link",
       "saleAmount",
       "createdAt",
+      "firstSaleAt",
+      "subscriptionCanceledAt",
       "externalId",
     ],
     defaultVisible: [
@@ -123,6 +126,8 @@ export function CustomerTable({
       ...(isProgramPage ? ["partner"] : ["link"]),
       "saleAmount",
       "createdAt",
+      "firstSaleAt",
+      "subscriptionCanceledAt",
     ],
   };
 
@@ -149,11 +154,6 @@ export function CustomerTable({
             return (
               <CustomerRowItem
                 customer={row.original}
-                href={
-                  isProgramPage
-                    ? `/${workspaceSlug}/program/customers/${row.original.id}`
-                    : `/${workspaceSlug}/customers/${row.original.id}`
-                }
                 chartActivityIconMode="visible"
               />
             );
@@ -239,7 +239,11 @@ export function CustomerTable({
         },
         {
           id: "saleAmount",
-          header: "Lifetime value",
+          header: "LTV",
+          meta: {
+            headerTooltip:
+              "The total amount of revenue the customer has generated over time (lifetime value).",
+          },
           accessorKey: "saleAmount",
           cell: ({ getValue }) => (
             <div className="flex items-center gap-2">
@@ -255,6 +259,10 @@ export function CustomerTable({
         {
           id: "createdAt",
           header: "Created",
+          meta: {
+            headerTooltip:
+              "The date the customer was created (usually the signup date or trial start date).",
+          },
           cell: ({ row }) => (
             <TimestampTooltip
               timestamp={row.original.createdAt}
@@ -267,6 +275,52 @@ export function CustomerTable({
               </span>
             </TimestampTooltip>
           ),
+        },
+        {
+          id: "firstSaleAt",
+          header: "Paid",
+          meta: {
+            headerTooltip: "The date the customer made their first sale.",
+          },
+          cell: ({ row }) =>
+            row.original.firstSaleAt ? (
+              <TimestampTooltip
+                timestamp={row.original.firstSaleAt}
+                rows={["local"]}
+                side="left"
+                delayDuration={150}
+              >
+                <span>
+                  {formatDate(row.original.firstSaleAt, { month: "short" })}
+                </span>
+              </TimestampTooltip>
+            ) : (
+              "-"
+            ),
+        },
+        {
+          id: "subscriptionCanceledAt",
+          header: "Canceled",
+          meta: {
+            headerTooltip: "The date the customer canceled their subscription.",
+          },
+          cell: ({ row }) =>
+            row.original.subscriptionCanceledAt ? (
+              <TimestampTooltip
+                timestamp={row.original.subscriptionCanceledAt}
+                rows={["local"]}
+                side="left"
+                delayDuration={150}
+              >
+                <span>
+                  {formatDate(row.original.subscriptionCanceledAt, {
+                    month: "short",
+                  })}
+                </span>
+              </TimestampTooltip>
+            ) : (
+              "-"
+            ),
         },
         {
           id: "externalId",
@@ -299,9 +353,27 @@ export function CustomerTable({
     [isProgramPage, workspaceSlug],
   );
 
+  const getCustomerUrl = (row: Row<CustomerProps>) =>
+    isProgramPage
+      ? `/${workspaceSlug}/program/customers/${row.original.id}`
+      : `/${workspaceSlug}/customers/${row.original.id}`;
+
   const { table, ...tableProps } = useTable({
     data: canManageCustomers ? customers || [] : EXAMPLE_CUSTOMER_DATA,
     columns,
+    columnPinning: { right: ["menu"] },
+    onRowClick: (row, e) => {
+      const url = getCustomerUrl(row);
+
+      if (e.metaKey || e.ctrlKey) window.open(url, "_blank");
+      else router.push(url);
+    },
+    onRowAuxClick: (row) => window.open(getCustomerUrl(row), "_blank"),
+    rowProps: (row) => ({
+      onPointerEnter: () => {
+        router.prefetch(getCustomerUrl(row));
+      },
+    }),
     pagination,
     onPaginationChange: setPagination,
     columnVisibility,
@@ -318,7 +390,6 @@ export function CustomerTable({
         del: "page",
         scroll: false,
       }),
-    columnPinning: { right: ["menu"] },
     cellRight: (cell) => {
       const meta = cell.column.columnDef.meta as ColumnMeta | undefined;
       return (

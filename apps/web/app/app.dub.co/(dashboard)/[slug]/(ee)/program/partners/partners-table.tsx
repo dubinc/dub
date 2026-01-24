@@ -280,6 +280,14 @@ export function PartnersTable() {
           id: "location",
           header: "Location",
           minSize: 150,
+          meta: {
+            filterParams: ({ getValue }) =>
+              getValue()
+                ? {
+                    country: getValue(),
+                  }
+                : undefined,
+          },
           cell: ({ row }) => {
             const country = row.original.country;
             return (
