@@ -8,18 +8,20 @@ import { chargeRefunded } from "./charge-refunded";
 import { checkoutSessionCompleted } from "./checkout-session-completed";
 import { couponDeleted } from "./coupon-deleted";
 import { customerCreated } from "./customer-created";
+import { customerSubscriptionDeleted } from "./customer-subscription-deleted";
 import { customerUpdated } from "./customer-updated";
 import { invoicePaid } from "./invoice-paid";
 import { promotionCodeUpdated } from "./promotion-code-updated";
 
 const relevantEvents = new Set([
+  "account.application.deauthorized",
+  "charge.refunded",
+  "checkout.session.completed",
+  "coupon.deleted",
   "customer.created",
   "customer.updated",
-  "checkout.session.completed",
+  "customer.subscription.deleted",
   "invoice.paid",
-  "charge.refunded",
-  "account.application.deauthorized",
-  "coupon.deleted",
   "promotion_code.updated",
 ]);
 
@@ -80,26 +82,29 @@ export const POST = withAxiom(async (req: Request) => {
   let response = "OK";
 
   switch (event.type) {
+    case "account.application.deauthorized":
+      response = await accountApplicationDeauthorized(event);
+      break;
+    case "charge.refunded":
+      response = await chargeRefunded(event, mode);
+      break;
+    case "checkout.session.completed":
+      response = await checkoutSessionCompleted(event, mode);
+      break;
+    case "coupon.deleted":
+      response = await couponDeleted(event);
+      break;
     case "customer.created":
       response = await customerCreated(event);
       break;
     case "customer.updated":
       response = await customerUpdated(event);
       break;
-    case "checkout.session.completed":
-      response = await checkoutSessionCompleted(event, mode);
+    case "customer.subscription.deleted":
+      response = await customerSubscriptionDeleted(event);
       break;
     case "invoice.paid":
       response = await invoicePaid(event, mode);
-      break;
-    case "charge.refunded":
-      response = await chargeRefunded(event, mode);
-      break;
-    case "account.application.deauthorized":
-      response = await accountApplicationDeauthorized(event);
-      break;
-    case "coupon.deleted":
-      response = await couponDeleted(event);
       break;
     case "promotion_code.updated":
       response = await promotionCodeUpdated(event);
