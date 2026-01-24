@@ -625,6 +625,7 @@ const _trackSale = async ({
           saleAmount: {
             increment: amount,
           },
+          firstSaleAt: customer.firstSaleAt ? undefined : new Date(),
         },
       });
     })(),

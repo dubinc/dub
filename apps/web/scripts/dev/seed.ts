@@ -541,7 +541,7 @@ async function main() {
     );
 
     if (!confirmed) {
-      console.log("\nTruncate cancelled. Exiting...");
+      console.log("\nTruncate canceled. Exiting...");
       process.exit(0);
     }
 
