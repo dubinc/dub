@@ -1,7 +1,7 @@
 "use client";
 
 import useWorkspace from "@/lib/swr/use-workspace";
-import { CustomersTable } from "@/ui/customers/customers-table";
+import { CustomersTable } from "@/ui/customers/customers-table/customers-table";
 
 export default function ProgramCustomersPage() {
   const { defaultProgramId } = useWorkspace();
