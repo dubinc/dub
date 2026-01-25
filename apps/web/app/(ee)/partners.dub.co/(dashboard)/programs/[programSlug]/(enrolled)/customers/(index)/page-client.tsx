@@ -252,7 +252,7 @@ export function ProgramCustomersPageClient() {
       const url = `/programs/${programSlug}/customers/${row.original.id}`;
 
       if (e.metaKey || e.ctrlKey) window.open(url, "_blank");
-      else window.open(url, "_blank");
+      else router.push(url);
     },
     onRowAuxClick: (row) =>
       window.open(
