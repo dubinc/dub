@@ -17,7 +17,7 @@ export default function useCustomersCount<T = number>({
   const { id: workspaceId } = useWorkspace();
   const { getQueryString } = useRouterStuff();
 
-  const { data, error } = useSWR<T>(
+  const { data, error, isLoading } = useSWR<T>(
     enabled &&
       workspaceId &&
       `/api/customers/count${getQueryString(
@@ -34,6 +34,7 @@ export default function useCustomersCount<T = number>({
 
   return {
     data,
+    loading: isLoading,
     error,
   };
 }

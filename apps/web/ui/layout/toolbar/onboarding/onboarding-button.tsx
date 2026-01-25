@@ -1,10 +1,11 @@
 "use client";
 
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import useCustomersCount from "@/lib/swr/use-customers-count";
 import useDomainsCount from "@/lib/swr/use-domains-count";
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import useWorkspaceUsers from "@/lib/swr/use-workspace-users";
-import { useAnalyticsConnectedStatus } from "@/ui/analytics/use-analytics-connected-status";
 import { CheckCircleFill } from "@/ui/shared/icons";
 import {
   Button,
@@ -37,14 +38,20 @@ function OnboardingButtonInner({
   onHideForever: () => void;
 }) {
   const { slug } = useParams() as { slug: string };
-  const { totalLinks, defaultProgramId } = useWorkspace();
+  const { plan, totalLinks, defaultProgramId } = useWorkspace();
+
+  const { canTrackConversions } = getPlanCapabilities(plan);
 
   const { data: domainsCount, loading: domainsLoading } = useDomainsCount({
     ignoreParams: true,
   });
   const { users, loading: usersLoading } = useWorkspaceUsers();
 
-  const { isConnected: connectedAnalytics } = useAnalyticsConnectedStatus();
+  const { data: customersCount, loading: customersCountLoading } =
+    useCustomersCount<number>({
+      includeParams: [],
+      enabled: canTrackConversions,
+    });
 
   const { partnersCount, loading: partnersCountLoading } =
     usePartnersCount<number>({
@@ -52,7 +59,11 @@ function OnboardingButtonInner({
       enabled: Boolean(defaultProgramId),
     });
 
-  const loading = domainsLoading || usersLoading || partnersCountLoading;
+  const loading =
+    domainsLoading ||
+    usersLoading ||
+    customersCountLoading ||
+    partnersCountLoading;
 
   const tasks = useMemo(() => {
     return [
@@ -73,7 +84,7 @@ function OnboardingButtonInner({
             {
               display: "Set up conversion tracking",
               cta: `/${slug}/settings/analytics`,
-              checked: connectedAnalytics,
+              checked: customersCount && customersCount > 0,
               recommended: true,
             },
             {
@@ -102,7 +113,7 @@ function OnboardingButtonInner({
     slug,
     defaultProgramId,
     domainsCount,
-    connectedAnalytics,
+    customersCount,
     partnersCount,
     totalLinks,
     users,
