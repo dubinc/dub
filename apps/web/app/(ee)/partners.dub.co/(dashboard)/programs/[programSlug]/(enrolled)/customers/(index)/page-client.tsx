@@ -156,7 +156,11 @@ export function ProgramCustomersPageClient() {
         },
         {
           id: "saleAmount",
-          header: "Lifetime value",
+          header: "LTV",
+          meta: {
+            headerTooltip:
+              "The total amount of revenue the customer has generated over time (lifetime value).",
+          },
           accessorKey: "activity.ltv",
           cell: ({ getValue }) => (
             <div className="flex items-center gap-2">
@@ -172,6 +176,10 @@ export function ProgramCustomersPageClient() {
         {
           id: "createdAt",
           header: "Created",
+          meta: {
+            headerTooltip:
+              "The date the customer was created (usually the signup date or trial start date).",
+          },
           cell: ({ row }) => (
             <TimestampTooltip
               timestamp={row.original.createdAt}
