@@ -15,11 +15,11 @@ import { BrandLogoBadge } from "./brand-logo-badge";
 import { getLanguage, getTranslations } from "./translations";
 
 export default async function DeepLinkPreviewPage(props: {
-  params: Promise<{ domain: string; key: string }>;
+  params: Promise<{ domain: string; key?: string[] }>;
 }) {
   const params = await props.params;
   const domain = params.domain;
-  const key = decodeURIComponent(params.key);
+  const key = params.key ? decodeURIComponent(params.key.join("/")) : "_root";
 
   // Detect language from Accept-Language header
   const headersList = await headers();
