@@ -169,7 +169,7 @@ export const trackSale = async ({
     if (leadEventData) {
       leadEventData = {
         ...leadEventData,
-        link_id: clickData.link_id,
+        ...clickData,
       };
     }
   }
