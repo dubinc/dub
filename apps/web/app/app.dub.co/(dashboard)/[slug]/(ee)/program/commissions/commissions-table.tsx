@@ -64,7 +64,7 @@ const commissionsColumns = {
   ],
 };
 
-export function CommissionTable() {
+export function CommissionsTable() {
   const {
     filters,
     activeFilters,

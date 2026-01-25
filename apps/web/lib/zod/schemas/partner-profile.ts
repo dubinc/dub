@@ -100,6 +100,8 @@ export const PartnerProfileCustomerSchema = CustomerEnrichedSchema.pick({
   email: true,
   country: true,
   createdAt: true,
+  firstSaleAt: true,
+  subscriptionCanceledAt: true,
 }).extend({
   activity: customerActivityResponseSchema,
 });

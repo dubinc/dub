@@ -1,16 +1,14 @@
 "use client";
 
 import useCommissionsCount from "@/lib/swr/use-commissions-count";
-import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import { ProgramStatsFilter } from "@/ui/partners/program-stats-filter";
 import { useRouterStuff } from "@dub/ui";
 import { Users } from "@dub/ui/icons";
 
-export function CommissionStats() {
+export function CommissionsStats() {
   const { slug } = useWorkspace();
-  const { program } = useProgram();
   const { queryParams } = useRouterStuff();
   const { commissionsCount, error } = useCommissionsCount({
     exclude: ["status", "page"],
