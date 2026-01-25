@@ -56,7 +56,7 @@ type ColumnMeta = {
   ) => Record<string, any>;
 };
 
-export function CustomerTable({
+export function CustomersTable({
   query,
   isProgramPage = false,
 }: {

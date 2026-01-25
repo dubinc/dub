@@ -9,6 +9,7 @@ import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import {
   AnimatedSizeContainer,
+  EditColumnsButton,
   Filter,
   LinkLogo,
   Table,
@@ -27,11 +28,12 @@ import {
   getPrettyUrl,
 } from "@dub/utils";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useMemo } from "react";
 import { usePartnerCustomerFilters } from "./use-partner-customer-filters";
 
 export function ProgramCustomersPageClient() {
+  const router = useRouter();
   const { searchParams, queryParams } = useRouterStuff();
 
   const { programSlug } = useParams<{ programSlug: string }>();
@@ -59,8 +61,24 @@ export function ProgramCustomersPageClient() {
   } = usePartnerCustomerFilters();
 
   const customersColumns = {
-    all: ["customer", "country", "link", "saleAmount", "createdAt"],
-    defaultVisible: ["customer", "country", "link", "saleAmount", "createdAt"],
+    all: [
+      "customer",
+      "country",
+      "link",
+      "saleAmount",
+      "createdAt",
+      "firstSaleAt",
+      "subscriptionCanceledAt",
+    ],
+    defaultVisible: [
+      "customer",
+      "country",
+      "link",
+      "saleAmount",
+      "createdAt",
+      "firstSaleAt",
+      "subscriptionCanceledAt",
+    ],
   };
 
   const { columnVisibility, setColumnVisibility } = useColumnVisibility(
@@ -69,109 +87,185 @@ export function ProgramCustomersPageClient() {
   );
 
   const columns = useMemo(
-    () => [
-      {
-        id: "customer",
-        header: "Customer",
-        enableHiding: false,
-        minSize: 250,
-        cell: ({ row }) => {
-          return (
-            <CustomerRowItem
-              customer={row.original}
-              href={`/programs/${programSlug}/customers/${row.original.id}`}
-              chartActivityIconMode="visible"
-            />
-          );
-        },
-      },
-      {
-        id: "country",
-        header: "Country",
-        accessorKey: "country",
-        minSize: 150,
-        cell: ({ row }) => {
-          const country = row.original.country;
-          return (
-            <div className="flex items-center gap-2">
-              {country && (
-                <img
-                  alt={`${country} flag`}
-                  src={`https://hatscripts.github.io/circle-flags/flags/${country.toLowerCase()}.svg`}
-                  className="size-4 shrink-0"
-                />
-              )}
-              <span className="min-w-0 truncate">
-                {(country ? COUNTRIES[country] : null) ?? "-"}
-              </span>
-            </div>
-          );
-        },
-      },
-      {
-        id: "link",
-        header: "Link",
-        accessorKey: "activity.link",
-        cell: ({ row }) =>
-          row.original.activity.link ? (
-            <Link
-              href={`/programs/${programSlug}/links?domain=${row.original.activity.link.domain}&key=${row.original.activity.link.key}`}
-              className="flex cursor-alias items-center gap-3 decoration-dotted underline-offset-2 hover:underline"
-            >
-              <LinkLogo
-                apexDomain={getApexDomain(row.original.activity.link.shortLink)}
-                className="size-4 shrink-0 sm:size-4"
+    () =>
+      [
+        {
+          id: "customer",
+          header: "Customer",
+          enableHiding: false,
+          minSize: 250,
+          cell: ({ row }) => {
+            return (
+              <CustomerRowItem
+                customer={row.original}
+                chartActivityIconMode="visible"
               />
-              <span
-                className="truncate"
-                title={row.original.activity.link.shortLink}
+            );
+          },
+        },
+        {
+          id: "country",
+          header: "Country",
+          accessorKey: "country",
+          minSize: 150,
+          cell: ({ row }) => {
+            const country = row.original.country;
+            return (
+              <div className="flex items-center gap-2">
+                {country && (
+                  <img
+                    alt={`${country} flag`}
+                    src={`https://hatscripts.github.io/circle-flags/flags/${country.toLowerCase()}.svg`}
+                    className="size-4 shrink-0"
+                  />
+                )}
+                <span className="min-w-0 truncate">
+                  {(country ? COUNTRIES[country] : null) ?? "-"}
+                </span>
+              </div>
+            );
+          },
+        },
+        {
+          id: "link",
+          header: "Link",
+          accessorKey: "activity.link",
+          cell: ({ row }) =>
+            row.original.activity.link ? (
+              <Link
+                href={`/programs/${programSlug}/links?domain=${row.original.activity.link.domain}&key=${row.original.activity.link.key}`}
+                className="flex cursor-alias items-center gap-3 decoration-dotted underline-offset-2 hover:underline"
               >
-                {getPrettyUrl(row.original.activity.link.shortLink)}
+                <LinkLogo
+                  apexDomain={getApexDomain(
+                    row.original.activity.link.shortLink,
+                  )}
+                  className="size-4 shrink-0 sm:size-4"
+                />
+                <span
+                  className="truncate"
+                  title={row.original.activity.link.shortLink}
+                >
+                  {getPrettyUrl(row.original.activity.link.shortLink)}
+                </span>
+              </Link>
+            ) : (
+              "-"
+            ),
+          size: 250,
+        },
+        {
+          id: "saleAmount",
+          header: "Lifetime value",
+          accessorKey: "activity.ltv",
+          cell: ({ getValue }) => (
+            <div className="flex items-center gap-2">
+              <span>
+                {currencyFormatter(getValue() ?? 0, {
+                  trailingZeroDisplay: "stripIfInteger",
+                })}
               </span>
-            </Link>
-          ) : (
-            "-"
+              <span className="text-neutral-400">USD</span>
+            </div>
           ),
-        size: 250,
-      },
-      {
-        id: "saleAmount",
-        header: "Lifetime value",
-        accessorKey: "activity.ltv",
-        cell: ({ getValue }) => (
-          <div className="flex items-center gap-2">
-            <span>
-              {currencyFormatter(getValue() ?? 0, {
-                trailingZeroDisplay: "stripIfInteger",
-              })}
-            </span>
-            <span className="text-neutral-400">USD</span>
-          </div>
-        ),
-      },
-      {
-        id: "createdAt",
-        header: "Created",
-        cell: ({ row }) => (
-          <TimestampTooltip
-            timestamp={row.original.createdAt}
-            rows={["local"]}
-            side="left"
-            delayDuration={150}
-          >
-            <span>
-              {formatDate(row.original.createdAt, { month: "short" })}
-            </span>
-          </TimestampTooltip>
-        ),
-      },
-    ],
+        },
+        {
+          id: "createdAt",
+          header: "Created",
+          cell: ({ row }) => (
+            <TimestampTooltip
+              timestamp={row.original.createdAt}
+              rows={["local"]}
+              side="left"
+              delayDuration={150}
+            >
+              <span>
+                {formatDate(row.original.createdAt, { month: "short" })}
+              </span>
+            </TimestampTooltip>
+          ),
+        },
+        {
+          id: "firstSaleAt",
+          header: "Paid",
+          meta: {
+            headerTooltip: "The date the customer made their first sale.",
+          },
+          cell: ({ row }) =>
+            row.original.firstSaleAt ? (
+              <TimestampTooltip
+                timestamp={row.original.firstSaleAt}
+                rows={["local"]}
+                side="left"
+                delayDuration={150}
+              >
+                <span>
+                  {formatDate(row.original.firstSaleAt, { month: "short" })}
+                </span>
+              </TimestampTooltip>
+            ) : (
+              "-"
+            ),
+        },
+        {
+          id: "subscriptionCanceledAt",
+          header: "Canceled",
+          meta: {
+            headerTooltip: "The date the customer canceled their subscription.",
+          },
+          cell: ({ row }) =>
+            row.original.subscriptionCanceledAt ? (
+              <TimestampTooltip
+                timestamp={row.original.subscriptionCanceledAt}
+                rows={["local"]}
+                side="left"
+                delayDuration={150}
+              >
+                <span>
+                  {formatDate(row.original.subscriptionCanceledAt, {
+                    month: "short",
+                  })}
+                </span>
+              </TimestampTooltip>
+            ) : (
+              "-"
+            ),
+        },
+        // Menu
+        {
+          id: "menu",
+          enableHiding: false,
+          minSize: 43,
+          size: 43,
+          maxSize: 43,
+          header: () => <EditColumnsButton table={table} />,
+        },
+      ].filter((c) => c.id === "menu" || customersColumns.all.includes(c.id)),
     [programSlug],
   );
 
   const { table, ...tableProps } = useTable({
     data: customers || [],
     columns,
+    columnPinning: { right: ["menu"] },
+    onRowClick: (row, e) => {
+      const url = `/programs/${programSlug}/customers/${row.original.id}`;
+
+      if (e.metaKey || e.ctrlKey) window.open(url, "_blank");
+      else router.push(url);
+    },
+    onRowAuxClick: (row) =>
+      window.open(
+        `/programs/${programSlug}/customers/${row.original.id}`,
+        "_blank",
+      ),
+    rowProps: (row) => ({
+      onPointerEnter: () => {
+        router.prefetch(
+          `/programs/${programSlug}/customers/${row.original.id}`,
+        );
+      },
+    }),
     pagination,
     onPaginationChange: setPagination,
     columnVisibility,

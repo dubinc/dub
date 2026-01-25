@@ -1,12 +1,12 @@
 "use client";
 
 import useWorkspace from "@/lib/swr/use-workspace";
-import { CustomerTable } from "@/ui/customers/customer-table/customer-table";
+import { CustomersTable } from "@/ui/customers/customers-table/customers-table";
 
 export default function ProgramCustomersPage() {
   const { defaultProgramId } = useWorkspace();
   return (
-    <CustomerTable
+    <CustomersTable
       query={{ programId: defaultProgramId || undefined }}
       isProgramPage
     />
