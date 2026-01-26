@@ -48,11 +48,9 @@ export async function customerSubscriptionCreated(
     return `Workspace ${workspace.slug} has no Stripe integration installed, skipping...`;
   }
 
-  const stripeIntegrationSettings = workspace.installedIntegrations[0].settings
-    ? stripeIntegrationSettingsSchema.parse(
-        workspace.installedIntegrations[0].settings,
-      )
-    : null;
+  const stripeIntegrationSettings = stripeIntegrationSettingsSchema.parse(
+    workspace.installedIntegrations[0].settings ?? {},
+  );
 
   if (!stripeIntegrationSettings?.freeTrials?.enabled) {
     return `Stripe free trial tracking is not enabled for workspace ${workspace.slug}, skipping...`;
