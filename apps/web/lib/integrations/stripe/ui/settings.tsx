@@ -2,6 +2,7 @@
 
 import useWorkspace from "@/lib/swr/use-workspace";
 import { InstalledIntegrationInfoProps } from "@/lib/types";
+import { MarkdownDescription } from "@/ui/shared/markdown-description";
 import { AnimatedSizeContainer, Button, Switch } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
 import { useMemo, useState } from "react";
@@ -104,9 +105,11 @@ export const StripeIntegrationSettings = ({
               <label className="mb-1 block text-sm font-semibold text-neutral-900">
                 Track Free Trials
               </label>
-              <p className="text-sm text-neutral-600">
-                Whether to track subscription free trials as lead events.
-              </p>
+              <MarkdownDescription className="text-sm text-neutral-600">
+                Whether to track [subscription free
+                trials](https://docs.stripe.com/billing/subscriptions/trials) as
+                lead events.
+              </MarkdownDescription>
             </div>
             <Switch
               checked={freeTrialsEnabled}
@@ -121,12 +124,13 @@ export const StripeIntegrationSettings = ({
                 <div className="flex items-center justify-between gap-4 p-5">
                   <div className="min-w-0 flex-1">
                     <label className="mb-1 block text-sm font-semibold text-neutral-900">
-                      Track Quantity
+                      Track Provisioned Quantity
                     </label>
-                    <p className="text-sm text-neutral-600">
-                      Whether to track the provisioned quantity in the
-                      subscription as separate lead events.
-                    </p>
+                    <MarkdownDescription className="text-sm text-neutral-600">
+                      Whether to track the [provisioned
+                      quantity](https://docs.stripe.com/billing/subscriptions/quantities)
+                      in the subscription as separate lead events.
+                    </MarkdownDescription>
                   </div>
                   <Switch
                     checked={trackQuantity}
