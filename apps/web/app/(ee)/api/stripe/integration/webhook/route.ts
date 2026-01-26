@@ -8,6 +8,7 @@ import { chargeRefunded } from "./charge-refunded";
 import { checkoutSessionCompleted } from "./checkout-session-completed";
 import { couponDeleted } from "./coupon-deleted";
 import { customerCreated } from "./customer-created";
+import { customerSubscriptionCreated } from "./customer-subscription-created";
 import { customerSubscriptionDeleted } from "./customer-subscription-deleted";
 import { customerUpdated } from "./customer-updated";
 import { invoicePaid } from "./invoice-paid";
@@ -20,6 +21,7 @@ const relevantEvents = new Set([
   "coupon.deleted",
   "customer.created",
   "customer.updated",
+  "customer.subscription.created",
   "customer.subscription.deleted",
   "invoice.paid",
   "promotion_code.updated",
@@ -99,6 +101,9 @@ export const POST = withAxiom(async (req: Request) => {
       break;
     case "customer.updated":
       response = await customerUpdated(event);
+      break;
+    case "customer.subscription.created":
+      response = await customerSubscriptionCreated(event, mode);
       break;
     case "customer.subscription.deleted":
       response = await customerSubscriptionDeleted(event);

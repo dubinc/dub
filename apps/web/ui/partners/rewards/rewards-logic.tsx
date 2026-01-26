@@ -11,7 +11,6 @@ import {
   NUMBER_CONDITION_OPERATORS,
   REWARD_CONDITIONS,
   RewardConditionEntityAttribute,
-  SOURCE_CONDITION_OPERATORS,
   STRING_CONDITION_OPERATORS,
 } from "@/lib/zod/schemas/rewards";
 import { X } from "@/ui/shared/icons";
@@ -303,6 +302,31 @@ function ConditionLogic({
 
   const [displayProductLabel, setDisplayProductLabel] = useState(false);
 
+  // Auto-set operator to "equals_to" for customer.source
+  const isCustomerSourceCondition =
+    condition.entity === "customer" && condition.attribute === "source";
+
+  useEffect(() => {
+    if (isCustomerSourceCondition && condition.operator !== "equals_to") {
+      setValue(
+        conditionKey,
+        {
+          ...condition,
+          operator: "equals_to",
+        },
+        {
+          shouldDirty: true,
+        },
+      );
+    }
+  }, [
+    isCustomerSourceCondition,
+    condition.operator,
+    condition,
+    conditionKey,
+    setValue,
+  ]);
+
   return (
     <div className="flex w-full flex-col">
       <div className="flex items-center justify-between p-2.5">
@@ -369,53 +393,54 @@ function ConditionLogic({
                     }))}
                   />
                 </InlineBadgePopover>{" "}
-                <InlineBadgePopover
-                  text={
-                    condition.operator
-                      ? CONDITION_OPERATOR_LABELS[condition.operator]
-                      : "Condition"
-                  }
-                  invalid={!condition.operator}
-                >
-                  <InlineBadgePopoverMenu
-                    selectedValue={condition.operator}
-                    onSelect={(value) =>
-                      setValue(
-                        conditionKey,
-                        {
-                          ...condition,
-                          operator:
-                            value as (typeof CONDITION_OPERATORS)[number],
-                          // Update value to array / string / number if needed
-                          ...(["in", "not_in"].includes(value)
-                            ? !Array.isArray(condition.value)
-                              ? { value: [] }
-                              : null
-                            : ["number", "currency"].includes(attributeType)
-                              ? typeof condition.value !== "number"
-                                ? { value: "" }
-                                : null
-                              : typeof condition.value !== "string"
-                                ? { value: "" }
-                                : null),
-                        },
-                        {
-                          shouldDirty: true,
-                        },
-                      )
+                {isCustomerSourceCondition ? (
+                  <span className="text-content-emphasis font-medium">is </span>
+                ) : (
+                  <InlineBadgePopover
+                    text={
+                      condition.operator
+                        ? CONDITION_OPERATOR_LABELS[condition.operator]
+                        : "Condition"
                     }
-                    items={(condition.entity === "customer" &&
-                    condition.attribute === "source"
-                      ? SOURCE_CONDITION_OPERATORS
-                      : ["number", "currency"].includes(attributeType)
+                    invalid={!condition.operator}
+                  >
+                    <InlineBadgePopoverMenu
+                      selectedValue={condition.operator}
+                      onSelect={(value) =>
+                        setValue(
+                          conditionKey,
+                          {
+                            ...condition,
+                            operator:
+                              value as (typeof CONDITION_OPERATORS)[number],
+                            // Update value to array / string / number if needed
+                            ...(["in", "not_in"].includes(value)
+                              ? !Array.isArray(condition.value)
+                                ? { value: [] }
+                                : null
+                              : ["number", "currency"].includes(attributeType)
+                                ? typeof condition.value !== "number"
+                                  ? { value: "" }
+                                  : null
+                                : typeof condition.value !== "string"
+                                  ? { value: "" }
+                                  : null),
+                          },
+                          {
+                            shouldDirty: true,
+                          },
+                        )
+                      }
+                      items={(["number", "currency"].includes(attributeType)
                         ? NUMBER_CONDITION_OPERATORS
                         : STRING_CONDITION_OPERATORS
-                    ).map((operator) => ({
-                      text: CONDITION_OPERATOR_LABELS[operator],
-                      value: operator,
-                    }))}
-                  />
-                </InlineBadgePopover>{" "}
+                      ).map((operator) => ({
+                        text: CONDITION_OPERATOR_LABELS[operator],
+                        value: operator,
+                      }))}
+                    />
+                  </InlineBadgePopover>
+                )}{" "}
                 {condition.operator && (
                   <>
                     <InlineBadgePopover

@@ -1,16 +1,14 @@
 import { createId } from "@/lib/api/create-id";
-import { detectAndRecordFraudEvent } from "@/lib/api/fraud/detect-record-fraud-event";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { generateRandomName } from "@/lib/names";
-import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import { getClickEvent, recordLead } from "@/lib/tinybird";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformLeadEventData } from "@/lib/webhook/transform";
 import { prisma } from "@dub/prisma";
 import { WorkflowTrigger } from "@dub/prisma/client";
-import { nanoid, pick } from "@dub/utils";
+import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
 
@@ -105,28 +103,7 @@ export async function createNewCustomer(event: Stripe.Event) {
     }),
   ]);
 
-  let createdCommission:
-    | Awaited<ReturnType<typeof createPartnerCommission>>
-    | undefined = undefined;
-
   if (link.programId && link.partnerId) {
-    createdCommission = await createPartnerCommission({
-      event: "lead",
-      programId: link.programId,
-      partnerId: link.partnerId,
-      linkId: link.id,
-      eventId: leadData.event_id,
-      customerId: customer.id,
-      quantity: 1,
-      context: {
-        customer: {
-          country: customer.country,
-        },
-      },
-    });
-
-    const { webhookPartner, programEnrollment } = createdCommission;
-
     waitUntil(
       Promise.allSettled([
         executeWorkflows({
@@ -145,17 +122,6 @@ export async function createNewCustomer(event: Stripe.Event) {
           programId: link.programId,
           eventType: "lead",
         }),
-
-        webhookPartner &&
-          detectAndRecordFraudEvent({
-            program: { id: link.programId },
-            partner: pick(webhookPartner, ["id", "email", "name"]),
-            programEnrollment: pick(programEnrollment, ["status"]),
-            customer: pick(customer, ["id", "email", "name"]),
-            link: pick(link, ["id"]),
-            click: pick(leadData, ["url", "referer"]),
-            event: { id: leadData.event_id },
-          }),
       ]),
     );
   }
@@ -170,7 +136,6 @@ export async function createNewCustomer(event: Stripe.Event) {
         eventName,
         link: linkUpdated,
         customer,
-        partner: createdCommission?.webhookPartner,
         metadata: null,
       }),
     }),

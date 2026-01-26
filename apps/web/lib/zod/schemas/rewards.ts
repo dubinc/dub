@@ -113,6 +113,10 @@ export const REWARD_CONDITIONS: Record<
                 id: "submitted",
                 label: "qualified lead",
               },
+              {
+                id: "trial",
+                label: "free trial",
+              },
             ],
           },
         ],
@@ -205,9 +209,6 @@ export const NUMBER_CONDITION_OPERATORS: (typeof CONDITION_OPERATORS)[number][] 
     "less_than",
     "less_than_or_equal",
   ];
-
-export const SOURCE_CONDITION_OPERATORS: (typeof CONDITION_OPERATORS)[number][] =
-  ["equals_to", "not_equals"];
 
 export const CONDITION_OPERATOR_LABELS = {
   equals_to: "is",
@@ -337,7 +338,7 @@ export const REWARD_EVENT_COLUMN_MAPPING = Object.freeze({
   sale: "saleRewardId",
 });
 
-export const CUSTOMER_SOURCES = ["tracked", "submitted"] as const;
+export const CUSTOMER_SOURCES = ["tracked", "submitted", "trial"] as const;
 
 export const rewardContextSchema = z.object({
   customer: z
