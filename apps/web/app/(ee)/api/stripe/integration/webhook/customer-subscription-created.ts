@@ -1,4 +1,5 @@
 import { trackLead } from "@/lib/api/conversions/track-lead";
+import { stripeIntegrationSettingsSchema } from "@/lib/integrations/stripe/schema";
 import { StripeMode } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { Customer } from "@dub/prisma/client";
@@ -47,7 +48,13 @@ export async function customerSubscriptionCreated(
     return `Workspace ${workspace.slug} has no Stripe integration installed, skipping...`;
   }
 
-  const stripeIntegration = workspace.installedIntegrations[0];
+  const stripeIntegrationSettings = stripeIntegrationSettingsSchema.parse(
+    workspace.installedIntegrations[0].settings,
+  );
+
+  if (!stripeIntegrationSettings?.freeTrials?.enabled) {
+    return `Stripe free trial tracking is not enabled for workspace ${workspace.slug}, skipping...`;
+  }
 
   let customer: Customer | null = null;
 
@@ -87,13 +94,19 @@ export async function customerSubscriptionCreated(
     return `Customer ${customer.id} has no clickId or externalId, skipping...`;
   }
 
+  // if trackQuantity is enabled, use the quantity from the main subscription item
+  // (e.g. for a 3-seat free trial, the event quantity will be 3)
+  const eventQuantity = stripeIntegrationSettings.freeTrials.trackQuantity
+    ? createdSubscription.items.data[0].quantity
+    : 1;
+
   await trackLead({
     clickId: customer.clickId,
     eventName: "Started Trial",
     customerExternalId: customer.externalId,
     customerName: customer.name,
     customerEmail: customer.email,
-    eventQuantity: 1, //
+    eventQuantity,
     rawBody: {},
     workspace: pick(workspace, ["id", "stripeConnectId", "webhookEnabled"]),
     source: "trial",
