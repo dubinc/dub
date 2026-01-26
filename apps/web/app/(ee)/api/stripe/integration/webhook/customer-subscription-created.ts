@@ -4,6 +4,7 @@ import { StripeMode } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { Customer } from "@dub/prisma/client";
 import { pick, STRIPE_INTEGRATION_ID } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
 import { getConnectedCustomer } from "./utils/get-connected-customer";
 
@@ -83,6 +84,17 @@ export async function customerSubscriptionCreated(
         // this should never happen, but just in case
         return `Customer ${stripeCustomer.id} with email ${stripeCustomer.email} has not been tracked yet, skipping...`;
       }
+      // update the customer with the Stripe customer ID (for future reference by invoice.paid)
+      waitUntil(
+        prisma.customer.update({
+          where: {
+            id: customer.id,
+          },
+          data: {
+            stripeCustomerId,
+          },
+        }),
+      );
     } else {
       // this should never happen either, but just in case
       return `Customer with stripeCustomerId ${stripeCustomerId} ${stripeCustomer ? "does not have an email on Stripe" : "does not exist"}, skipping...`;
