@@ -28,8 +28,26 @@ export default function PartnerApplicationApproved({
     email: "panic@thedis.co",
     payoutsEnabled: false,
   },
-  rewards = null,
-  bounties = null,
+  rewards = [
+    {
+      icon: "https://assets.dub.co/email-assets/icons/invoice-dollar.png",
+      label: "Earn up to 65% per sale for 1 year",
+    },
+    {
+      icon: "https://assets.dub.co/email-assets/icons/gift.png",
+      label: "New users get 20% off for 3 months",
+    },
+  ],
+  bounties = [
+    {
+      icon: "https://assets.dub.co/email-assets/icons/heart.png",
+      label: "Create a YouTube video about Acme",
+    },
+    {
+      icon: "https://assets.dub.co/email-assets/icons/trophy.png",
+      label: "Earn $100 after generating $1,000 in revenue",
+    },
+  ],
 }: {
   program: {
     name: string;
@@ -68,58 +86,53 @@ export default function PartnerApplicationApproved({
 
             <Text className="text-sm leading-6 text-neutral-600">
               Your application to join <strong>{program.name}'s</strong> partner
-              program has been approved. You can now start promoting their
-              products and earning commissions.
+              program has been approved. You can now promote their products and
+              earn commissions.
             </Text>
 
             {Boolean(rewards?.length || bounties?.length) && (
-              <>
-                <Text className="text-sm leading-6 text-neutral-600">
-                  You're immediately eligible for the following:
-                </Text>
-                <Section className="my-4 rounded-xl border border-solid border-neutral-200 bg-neutral-50 px-5 py-4">
-                  {rewards && Boolean(rewards.length) && (
-                    <>
-                      <Text className="my-0 text-base font-semibold text-black">
-                        Rewards
-                      </Text>
-                      {rewards.map((reward) => (
-                        <Row key={reward.label} className="mb-0 mt-2">
-                          <Column className="align-center">
-                            <Img src={reward.icon} height="16" alt="" />
-                          </Column>
-                          <Column className="w-full pl-2">
-                            <Text className="my-0 text-sm font-medium text-neutral-600">
-                              {reward.label}
-                            </Text>
-                          </Column>
-                        </Row>
-                      ))}
-                    </>
-                  )}
-                  {bounties && Boolean(bounties.length) && (
-                    <>
-                      <Text
-                        className={`mb-0 text-base font-semibold text-black ${rewards?.length ? "mt-5" : "mt-0"}`}
-                      >
-                        Bounties
-                      </Text>
-                      {bounties.map((bounty) => (
-                        <Row key={bounty.label} className="mb-0 mt-2">
-                          <Column className="align-center">
-                            <Img src={bounty.icon} height="16" alt="" />
-                          </Column>
-                          <Column className="w-full pl-2">
-                            <Text className="my-0 text-sm font-medium text-neutral-600">
-                              {bounty.label}
-                            </Text>
-                          </Column>
-                        </Row>
-                      ))}
-                    </>
-                  )}
-                </Section>
-              </>
+              <Section className="my-4 rounded-xl border border-solid border-neutral-200 bg-neutral-50 px-5 py-4">
+                {rewards && Boolean(rewards.length) && (
+                  <>
+                    <Text className="my-0 text-base font-semibold text-black">
+                      Rewards
+                    </Text>
+                    {rewards.map((reward) => (
+                      <Row key={reward.label} className="mb-0 mt-2">
+                        <Column className="align-center">
+                          <Img src={reward.icon} height="16" alt="" />
+                        </Column>
+                        <Column className="w-full pl-2">
+                          <Text className="my-0 text-sm font-medium text-neutral-600">
+                            {reward.label}
+                          </Text>
+                        </Column>
+                      </Row>
+                    ))}
+                  </>
+                )}
+                {bounties && Boolean(bounties.length) && (
+                  <>
+                    <Text
+                      className={`mb-0 text-base font-semibold text-black ${rewards?.length ? "mt-5" : "mt-0"}`}
+                    >
+                      Bounties
+                    </Text>
+                    {bounties.map((bounty) => (
+                      <Row key={bounty.label} className="mb-0 mt-2">
+                        <Column className="align-center">
+                          <Img src={bounty.icon} height="16" alt="" />
+                        </Column>
+                        <Column className="w-full pl-2">
+                          <Text className="my-0 text-sm font-medium text-neutral-600">
+                            {bounty.label}
+                          </Text>
+                        </Column>
+                      </Row>
+                    ))}
+                  </>
+                )}
+              </Section>
             )}
 
             <Hr className="my-6 border-neutral-200" />
