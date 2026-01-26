@@ -72,7 +72,7 @@ export async function customerSubscriptionCreated(
       mode,
     });
 
-    if (stripeCustomer) {
+    if (stripeCustomer?.email) {
       customer = await prisma.customer.findFirst({
         where: {
           projectId: workspace.id,
