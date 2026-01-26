@@ -30,7 +30,6 @@ export async function customerSubscriptionCreated(
       id: true,
       slug: true,
       stripeConnectId: true,
-      defaultProgramId: true,
       webhookEnabled: true,
       installedIntegrations: {
         where: {
@@ -85,13 +84,17 @@ export async function customerSubscriptionCreated(
         return `Customer ${stripeCustomer.id} with email ${stripeCustomer.email} has not been tracked yet, skipping...`;
       }
     } else {
-      // this should never happen, but just in case
-      return `Customer with stripeCustomerId ${stripeCustomerId} not found, skipping...`;
+      // this should never happen either, but just in case
+      return `Customer with stripeCustomerId ${stripeCustomerId} ${stripeCustomer ? "does not have an email on Stripe" : "does not exist"}, skipping...`;
     }
   }
 
-  if (!customer.clickId || !customer.externalId) {
-    return `Customer ${customer.id} has no clickId or externalId, skipping...`;
+  if (!customer.clickId) {
+    return `Customer ${customer.id} has no clickId, skipping...`;
+  }
+
+  if (!customer.externalId) {
+    return `Customer ${customer.id} has no externalId, skipping...`;
   }
 
   // if trackQuantity is enabled, use the quantity from the main subscription item
