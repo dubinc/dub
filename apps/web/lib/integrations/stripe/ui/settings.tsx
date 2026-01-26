@@ -105,7 +105,7 @@ export const StripeIntegrationSettings = ({
                 Track Free Trials
               </label>
               <p className="text-sm text-neutral-600">
-                Whether to track free trials as lead events.
+                Whether to track subscription free trials as lead events.
               </p>
             </div>
             <Switch

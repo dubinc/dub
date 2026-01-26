@@ -6,12 +6,12 @@ export const stripeIntegrationSettingsSchema = z.object({
       enabled: z
         .boolean()
         .default(false)
-        .describe("Whether to track free trials as lead events."),
+        .describe("Whether to track subscription free trials as lead events."),
       trackQuantity: z
         .boolean()
         .default(false)
         .describe(
-          "Whether to track the provisioned quantity in the subscription as separate lead events (and lead rewards).",
+          "Whether to track the provisioned quantity in the subscription as separate lead events.",
         ),
     })
     .nullish(),
