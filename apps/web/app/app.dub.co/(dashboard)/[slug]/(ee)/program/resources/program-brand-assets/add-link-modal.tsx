@@ -1,8 +1,10 @@
 "use client";
 
 import { addProgramResourceAction } from "@/lib/actions/partners/program-resources/add-program-resource";
+import { updateProgramResourceAction } from "@/lib/actions/partners/program-resources/update-program-resource";
 import useProgramResources from "@/lib/swr/use-program-resources";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { ProgramResourceLink } from "@/lib/zod/schemas/program-resources";
 import { Button, Modal } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
@@ -17,9 +19,10 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod/v4";
 
-type AddLinkModalProps = {
-  showAddLinkModal: boolean;
-  setShowAddLinkModal: Dispatch<SetStateAction<boolean>>;
+type LinkModalProps = {
+  showLinkModal: boolean;
+  setShowLinkModal: Dispatch<SetStateAction<boolean>>;
+  existingResource?: ProgramResourceLink;
 };
 
 const linkFormSchema = z.object({
@@ -29,20 +32,24 @@ const linkFormSchema = z.object({
 
 type LinkFormData = z.infer<typeof linkFormSchema>;
 
-function AddLinkModal(props: AddLinkModalProps) {
+function LinkModal(props: LinkModalProps) {
   return (
     <Modal
-      showModal={props.showAddLinkModal}
-      setShowModal={props.setShowAddLinkModal}
+      showModal={props.showLinkModal}
+      setShowModal={props.setShowLinkModal}
     >
-      <AddLinkModalInner {...props} />
+      <LinkModalInner {...props} />
     </Modal>
   );
 }
 
-function AddLinkModalInner({ setShowAddLinkModal }: AddLinkModalProps) {
+function LinkModalInner({
+  setShowLinkModal,
+  existingResource,
+}: LinkModalProps) {
   const { id: workspaceId } = useWorkspace();
   const { mutate } = useProgramResources();
+  const isEditing = Boolean(existingResource);
 
   const {
     register,
@@ -51,15 +58,15 @@ function AddLinkModalInner({ setShowAddLinkModal }: AddLinkModalProps) {
     formState: { errors, isSubmitting, isSubmitSuccessful },
   } = useForm<LinkFormData>({
     defaultValues: {
-      name: "",
-      url: "",
+      name: existingResource?.name || "",
+      url: existingResource?.url || "",
     },
   });
 
-  const { executeAsync } = useAction(addProgramResourceAction, {
+  const { executeAsync: executeAdd } = useAction(addProgramResourceAction, {
     onSuccess: () => {
       mutate();
-      setShowAddLinkModal(false);
+      setShowLinkModal(false);
       toast.success("Link added successfully!");
     },
     onError({ error }) {
@@ -74,20 +81,50 @@ function AddLinkModalInner({ setShowAddLinkModal }: AddLinkModalProps) {
     },
   });
 
+  const { executeAsync: executeUpdate } = useAction(updateProgramResourceAction, {
+    onSuccess: () => {
+      mutate();
+      setShowLinkModal(false);
+      toast.success("Link updated successfully!");
+    },
+    onError({ error }) {
+      if (error.serverError) {
+        setError("root.serverError", {
+          message: error.serverError,
+        });
+        toast.error(error.serverError);
+      } else {
+        toast.error("Failed to update link");
+      }
+    },
+  });
+
   return (
     <>
       <div className="space-y-2 border-b border-neutral-200 p-4 sm:p-6">
-        <h3 className="text-lg font-medium leading-none">Add link</h3>
+        <h3 className="text-lg font-medium leading-none">
+          {isEditing ? "Edit link" : "Add link"}
+        </h3>
       </div>
 
       <form
         onSubmit={handleSubmit(async (data: LinkFormData) => {
-          await executeAsync({
-            workspaceId: workspaceId!,
-            name: data.name,
-            resourceType: "link",
-            url: data.url,
-          });
+          if (isEditing && existingResource) {
+            await executeUpdate({
+              workspaceId: workspaceId!,
+              resourceId: existingResource.id,
+              resourceType: "link",
+              name: data.name,
+              url: data.url,
+            });
+          } else {
+            await executeAdd({
+              workspaceId: workspaceId!,
+              name: data.name,
+              resourceType: "link",
+              url: data.url,
+            });
+          }
         })}
       >
         <div className="bg-neutral-50 p-4 sm:p-6">
@@ -154,7 +191,7 @@ function AddLinkModalInner({ setShowAddLinkModal }: AddLinkModalProps) {
 
         <div className="flex items-center justify-end gap-2 border-t border-neutral-200 bg-neutral-50 px-4 py-5 sm:px-6">
           <Button
-            onClick={() => setShowAddLinkModal(false)}
+            onClick={() => setShowLinkModal(false)}
             variant="secondary"
             text="Cancel"
             className="h-8 w-fit px-3"
@@ -164,7 +201,7 @@ function AddLinkModalInner({ setShowAddLinkModal }: AddLinkModalProps) {
             type="submit"
             autoFocus
             loading={isSubmitting || isSubmitSuccessful}
-            text="Add link"
+            text={isEditing ? "Save Changes" : "Add link"}
             className="h-8 w-fit px-3"
           />
         </div>
@@ -173,23 +210,29 @@ function AddLinkModalInner({ setShowAddLinkModal }: AddLinkModalProps) {
   );
 }
 
-export function useAddLinkModal() {
-  const [showAddLinkModal, setShowAddLinkModal] = useState(false);
+export function useLinkModal({
+  existingResource,
+}: { existingResource?: ProgramResourceLink } = {}) {
+  const [showLinkModal, setShowLinkModal] = useState(false);
 
-  const AddLinkModalCallback = useCallback(() => {
+  const LinkModalCallback = useCallback(() => {
     return (
-      <AddLinkModal
-        showAddLinkModal={showAddLinkModal}
-        setShowAddLinkModal={setShowAddLinkModal}
+      <LinkModal
+        showLinkModal={showLinkModal}
+        setShowLinkModal={setShowLinkModal}
+        existingResource={existingResource}
       />
     );
-  }, [showAddLinkModal, setShowAddLinkModal]);
+  }, [showLinkModal, setShowLinkModal, existingResource]);
 
   return useMemo(
     () => ({
-      setShowAddLinkModal,
-      AddLinkModal: AddLinkModalCallback,
+      setShowLinkModal,
+      LinkModal: LinkModalCallback,
     }),
-    [setShowAddLinkModal, AddLinkModalCallback],
+    [setShowLinkModal, LinkModalCallback],
   );
 }
+
+// Keep backwards compatibility alias
+export const useAddLinkModal = useLinkModal;
