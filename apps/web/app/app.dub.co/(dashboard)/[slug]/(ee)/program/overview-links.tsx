@@ -1,12 +1,10 @@
-import useGroup from "@/lib/swr/use-group";
+import useGroups from "@/lib/swr/use-groups";
 import useProgram from "@/lib/swr/use-program";
-import useWorkspace from "@/lib/swr/use-workspace";
-import { GroupWithProgramProps } from "@/lib/types";
+import { GroupWithFormDataProps } from "@/lib/types";
+import { GroupSelector } from "@/ui/partners/groups/group-selector";
 import { ProgramOverviewCard } from "@/ui/partners/overview/program-overview-card";
-import { ButtonLink } from "@/ui/placeholders/button-link";
 import {
   ArrowUpRight,
-  Brush,
   Check,
   Copy,
   InputField,
@@ -16,30 +14,59 @@ import {
 } from "@dub/ui";
 import { cn, getPrettyUrl, PARTNERS_DOMAIN } from "@dub/utils";
 import Link from "next/link";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 export function OverviewLinks() {
-  const { slug } = useWorkspace();
   const { program } = useProgram();
-  const { group: defaultGroup } = useGroup<GroupWithProgramProps>({
-    groupIdOrSlug: "default",
+  const { groups } = useGroups<GroupWithFormDataProps>({
     query: { includeExpandedFields: true },
   });
 
-  const links = useMemo(
-    () => [
+  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
+
+  // Initialize with the default group when groups are loaded
+  useEffect(() => {
+    if (groups?.length && !selectedGroupId) {
+      const defaultGroup =
+        groups.find((g) => g.slug === "default") || groups[0];
+      if (defaultGroup) {
+        setSelectedGroupId(defaultGroup.id);
+      }
+    }
+  }, [groups, selectedGroupId]);
+
+  const selectedGroup = useMemo(() => {
+    if (!groups?.length || !selectedGroupId) return null;
+    return groups.find((g) => g.id === selectedGroupId) || null;
+  }, [groups, selectedGroupId]);
+
+  const showGroupSelector = groups && groups.length > 1;
+
+  const links = useMemo(() => {
+    const groupSlug = selectedGroup?.slug;
+    const isDefault = groupSlug === "default";
+
+    const landingPageHref = isDefault
+      ? `${PARTNERS_DOMAIN}/${program?.slug}`
+      : `${PARTNERS_DOMAIN}/${program?.slug}/${groupSlug}`;
+
+    const applicationHref = isDefault
+      ? `${PARTNERS_DOMAIN}/${program?.slug}/apply`
+      : `${PARTNERS_DOMAIN}/${program?.slug}/${groupSlug}/apply`;
+
+    return [
       {
         icon: Post,
         label: "Landing page",
-        href: `${PARTNERS_DOMAIN}/${program?.slug}`,
-        disabled: !defaultGroup?.landerPublishedAt,
+        href: landingPageHref,
+        disabled: !selectedGroup?.landerPublishedAt,
       },
       {
         icon: InputField,
         label: "Application form",
-        href: `${PARTNERS_DOMAIN}/${program?.slug}/apply`,
-        disabled: !defaultGroup?.applicationFormPublishedAt,
+        href: applicationHref,
+        disabled: !selectedGroup?.applicationFormPublishedAt,
       },
       {
         icon: Window,
@@ -47,9 +74,8 @@ export function OverviewLinks() {
         href: `${PARTNERS_DOMAIN}/programs/${program?.slug}`,
         disabled: !program,
       },
-    ],
-    [slug, program, defaultGroup],
-  );
+    ];
+  }, [program, selectedGroup]);
 
   return (
     <ProgramOverviewCard className="py-4">
@@ -57,14 +83,22 @@ export function OverviewLinks() {
         <h2 className="text-content-emphasis text-sm font-medium">
           Program links
         </h2>
-        <ButtonLink
-          href={`/${slug}/program/groups/default/branding`}
-          variant="secondary"
-          className="-mr-1 -mt-1 h-7 px-2 text-sm"
-        >
-          <Brush className="mr-1.5 size-4 shrink-0" />
-          Branding
-        </ButtonLink>
+        {showGroupSelector && (
+          <GroupSelector
+            selectedGroupId={selectedGroupId}
+            setSelectedGroupId={setSelectedGroupId}
+            buttonProps={{
+              className:
+                "h-7 -mr-1 -mt-1 max-w-[160px] px-2 text-sm justify-between",
+            }}
+            labelProps={{
+              className: "truncate text-sm font-medium",
+            }}
+            popoverProps={{
+              contentClassName: "min-w-[180px]",
+            }}
+          />
+        )}
       </div>
       <div className="mt-3 flex flex-col px-2">
         {links.map((link) => {
