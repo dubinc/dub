@@ -7,7 +7,7 @@ import {
   salesChannelsMap,
 } from "@/lib/partners/partner-profile";
 import { EnrolledPartnerExtendedProps } from "@/lib/types";
-import { OnlinePresenceSummary } from "@/ui/partners/online-presence-summary";
+import { PartnerPlatformSummary } from "@/ui/partners/partner-platform-summary";
 import { Icon, InfoTooltip } from "@dub/ui";
 
 export function PartnerAbout({
@@ -44,7 +44,7 @@ export function PartnerAbout({
         <h3 className="text-content-emphasis text-sm font-semibold">
           Website and socials
         </h3>
-        <OnlinePresenceSummary
+        <PartnerPlatformSummary
           platforms={partner.platforms}
           showLabels={false}
           className="gap-y-2"

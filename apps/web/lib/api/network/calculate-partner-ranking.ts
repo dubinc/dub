@@ -128,7 +128,7 @@ export async function calculatePartnerRanking({
 
   const whereClause = Prisma.join(conditions, " AND ");
 
-  // Rank partners with no online presence lower
+  // Rank partners with no platforms lower
   const hasProfileCheck = Prisma.sql`EXISTS (
     SELECT 1 
     FROM PartnerPlatform pp 
@@ -261,7 +261,7 @@ export async function calculatePartnerRanking({
       -- Trusted partners (trustedAt IS NOT NULL) get 200 bonus points to rank at the top
       -- Partners with profiles get 500 bonus points to ensure they rank above those without profiles
       (
-        -- Profile bonus: 500 points for partners with online presence (ensures they rank above those without)
+        -- Profile bonus: 500 points for partners with platforms (ensures they rank above those without)
         CASE WHEN ${hasProfileCheck} THEN 500 ELSE 0 END +
         -- Trusted partner bonus: 200 points for partners with trustedAt set
         CASE WHEN p.trustedAt IS NOT NULL THEN 200 ELSE 0 END +

@@ -9,7 +9,7 @@ import {
 import { cn } from "@dub/utils";
 import { PropsWithChildren } from "react";
 
-export function OnlinePresenceCard({
+export function PartnerPlatformCard({
   icon: Icon,
   prefix,
   value,

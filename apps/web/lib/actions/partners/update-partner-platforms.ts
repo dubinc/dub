@@ -46,7 +46,7 @@ const createWebsiteSchema = () => {
     );
 };
 
-const updateOnlinePresenceSchema = z.object({
+const updatePartnerPlatformsSchema = z.object({
   website: createWebsiteSchema(),
   youtube: createSocialPlatformSchema("youtube"),
   twitter: createSocialPlatformSchema("twitter"),
@@ -56,8 +56,8 @@ const updateOnlinePresenceSchema = z.object({
   source: z.enum(["onboarding", "settings"]).default("onboarding"),
 });
 
-export const updateOnlinePresenceAction = authPartnerActionClient
-  .inputSchema(updateOnlinePresenceSchema)
+export const updatePartnerPlatformsAction = authPartnerActionClient
+  .inputSchema(updatePartnerPlatformsSchema)
   .action(async ({ ctx, parsedInput }) => {
     const { partner } = ctx;
 

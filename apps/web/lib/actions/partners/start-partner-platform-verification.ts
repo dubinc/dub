@@ -4,7 +4,7 @@ import {
   generateCodeChallengeHash,
   generateCodeVerifier,
 } from "@/lib/api/oauth/utils";
-import { ONLINE_PRESENCE_PROVIDERS } from "@/lib/api/partner-profile/online-presence-providers";
+import { PARTNER_PLATFORMS_PROVIDERS } from "@/lib/api/partner-profile/partner-platforms-providers";
 import { upsertPartnerPlatform } from "@/lib/api/partner-profile/upsert-partner-platform";
 import { generateOTP } from "@/lib/auth/utils";
 import {
@@ -75,7 +75,7 @@ export const startPartnerPlatformVerificationAction = authPartnerActionClient
     }
 
     // For OAuth based verification
-    const oauthProvider = ONLINE_PRESENCE_PROVIDERS[platform];
+    const oauthProvider = PARTNER_PLATFORMS_PROVIDERS[platform];
     if (oauthProvider) {
       return startOAuthVerification(params);
     }
@@ -122,7 +122,7 @@ async function startOAuthVerification({
 }: VerificationParams): Promise<
   Extract<VerificationResult, { type: "oauth" }>
 > {
-  const oauthProvider = ONLINE_PRESENCE_PROVIDERS[platform];
+  const oauthProvider = PARTNER_PLATFORMS_PROVIDERS[platform];
   if (!oauthProvider || !oauthProvider.clientId) {
     throw new Error(`OAuth provider not configured for ${platform}`);
   }
@@ -167,7 +167,7 @@ async function startOAuthVerification({
 
   const searchParams = new URLSearchParams({
     [oauthProvider.clientIdParam ?? "client_id"]: oauthProvider.clientId,
-    redirect_uri: `${PARTNERS_DOMAIN_WITH_NGROK}/api/partners/online-presence/callback`,
+    redirect_uri: `${PARTNERS_DOMAIN_WITH_NGROK}/api/partners/platforms/callback`,
     scope: oauthProvider.scopes,
     response_type: "code",
     state,

@@ -2,7 +2,7 @@
 
 import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { startPartnerPlatformVerificationAction } from "@/lib/actions/partners/start-partner-platform-verification";
-import { updateOnlinePresenceAction } from "@/lib/actions/partners/update-online-presence";
+import { updatePartnerPlatformsAction } from "@/lib/actions/partners/update-partner-platforms";
 import { hasPermission } from "@/lib/auth/partner-users/partner-user-permissions";
 import { sanitizeSocialHandle, sanitizeWebsite } from "@/lib/social-utils";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
@@ -36,7 +36,7 @@ import {
 import { toast } from "sonner";
 import { mutate } from "swr";
 import * as z from "zod/v4";
-import { OnlinePresenceCard } from "./online-presence-card";
+import { PartnerPlatformCard } from "./partner-platform-card";
 
 const onlinePresenceSchema = z.object({
   website: parseUrlSchemaAllowEmpty().nullish(),
@@ -125,13 +125,13 @@ export const PartnerPlatformsForm = forwardRef<
       formState: { errors, isSubmitting, isSubmitSuccessful },
     } = form;
 
-    const { executeAsync } = useAction(updateOnlinePresenceAction, {
+    const { executeAsync } = useAction(updatePartnerPlatformsAction, {
       onSuccess: async () => {
         await mutate("/api/partner-profile");
       },
       onError: ({ error }) => {
         toast.error(
-          parseActionError(error, "Failed to update online presence"),
+          parseActionError(error, "Failed to update partner platforms"),
         );
 
         reset(form.getValues(), { keepErrors: true });
@@ -752,7 +752,7 @@ function FormRow({
               >
                 {label}
               </span>
-              <OnlinePresenceCard
+              <PartnerPlatformCard
                 icon={Icon}
                 prefix={prefix}
                 value={value ?? ""}
