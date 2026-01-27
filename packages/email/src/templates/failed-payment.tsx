@@ -1,4 +1,4 @@
-import { currencyFormatter, DUB_WORDMARK } from "@dub/utils";
+import { currencyFormatter, DUB_WORDMARK, PLANS } from "@dub/utils";
 import {
   Body,
   Container,
@@ -22,13 +22,25 @@ export default function FailedPayment({
   attemptCount = 2,
 }: {
   user: { name?: string | null; email: string };
-  workspace: Pick<WorkspaceProps, "name" | "slug">;
+  workspace: Pick<WorkspaceProps, "name" | "slug"> & {
+    plan?: string;
+    defaultProgramId?: string | null;
+  };
   amountDue: number;
   attemptCount: number;
 }) {
   const title = `${
     attemptCount == 2 ? "2nd notice: " : attemptCount == 3 ? "3rd notice: " : ""
   }Your payment for Dub failed`;
+
+  // Check if plan has partner access (Business, Advanced, Enterprise have payouts > 0)
+  const planHasPartnerAccess = workspace.plan
+    ? (PLANS.find((p) => p.name.toLowerCase() === workspace.plan?.toLowerCase())
+        ?.limits.payouts ?? 0) > 0
+    : false;
+
+  const showPartnerWarning =
+    planHasPartnerAccess && !!workspace.defaultProgramId;
 
   return (
     <Html>
@@ -42,26 +54,29 @@ export default function FailedPayment({
             </Section>
             <Heading className="mx-0 my-7 p-0 text-lg font-medium text-black">
               {attemptCount == 2 ? "2nd " : attemptCount == 3 ? "3rd  " : ""}
-              Failed Payment for Dub
+              payment attempt failed for Dub
             </Heading>
             <Text className="text-sm leading-6 text-black">
-              Hey{user.name ? `, ${user.name}` : ""}!
+              Hey{user.name ? ` ${user.name}` : ""},
             </Text>
             <Text className="text-sm leading-6 text-black">
-              Your payment of{" "}
+              We were unable to process your payment of{" "}
               <code className="text-purple-600">
                 {currencyFormatter(amountDue)}
               </code>{" "}
               for your Dub workspace{" "}
-              <code className="text-purple-600">{workspace.name}</code> has
-              failed. Please{" "}
-              <Link
-                href="https://dub.co/help/article/how-to-change-billing-information"
-                className="font-medium text-blue-600 no-underline"
-              >
-                update your payment information
-              </Link>{" "}
-              using the link below:
+              <code className="text-purple-600">{workspace.name}</code>.
+            </Text>
+            {showPartnerWarning && (
+              <Text className="text-sm leading-6 text-black">
+                Your workspace also has an active partner program. If payment is
+                not resolved, your plan will be downgraded and your partner
+                program may be deactivated.
+              </Text>
+            )}
+            <Text className="text-sm leading-6 text-black">
+              To avoid downgrading, please update your payment information
+              below.
             </Text>
             <Section className="my-8">
               <Link
@@ -72,8 +87,8 @@ export default function FailedPayment({
               </Link>
             </Section>
             <Text className="text-sm leading-6 text-black">
-              If you have any questions, feel free to respond to this email –
-              we're happy to help!
+              If you have any questions, just reply to this email and we will
+              help you get it sorted.
             </Text>
             <Footer email={user.email} />
           </Container>
