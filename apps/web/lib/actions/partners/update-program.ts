@@ -3,6 +3,7 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { referralFormSchema } from "@/lib/zod/schemas/referral-form";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
@@ -14,6 +15,7 @@ import { throwIfNoPermission } from "../throw-if-no-permission";
 const schema = updateProgramSchema.partial().extend({
   workspaceId: z.string(),
   applyHoldingPeriodDaysToAllGroups: z.boolean().optional(),
+  referralFormData: referralFormSchema.optional(),
 });
 
 export const updateProgramAction = authActionClient
@@ -26,6 +28,7 @@ export const updateProgramAction = authActionClient
       termsUrl,
       minPayoutAmount,
       messagingEnabledAt,
+      referralFormData,
     } = parsedInput;
 
     throwIfNoPermission({
@@ -52,6 +55,9 @@ export const updateProgramAction = authActionClient
         ...(messagingEnabledAt !== undefined &&
           (getPlanCapabilities(workspace.plan).canMessagePartners ||
             messagingEnabledAt === null) && { messagingEnabledAt }),
+        ...(referralFormData !== undefined && {
+          referralFormData: referralFormData ?? null,
+        }),
       },
     });
 

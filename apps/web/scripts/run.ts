@@ -12,10 +12,17 @@ const scriptPath = `./scripts/${command}.${
   command === "send-emails" ? "tsx" : "ts"
 }`;
 
-const child = spawn("tsx", ["--stack-size=5120000", scriptPath], {
-  stdio: "inherit", // This pipes stdout/stderr directly to the parent process
-  shell: true, // Allows running commands as if in a shell
-});
+// Get all arguments after the command (e.g., --truncate)
+const scriptArgs = process.argv.slice(3);
+
+const child = spawn(
+  "tsx",
+  ["--stack-size=5120000", scriptPath, ...scriptArgs],
+  {
+    stdio: "inherit", // This pipes stdout/stderr directly to the parent process
+    shell: true, // Allows running commands as if in a shell
+  },
+);
 
 child.on("error", (error) => {
   console.error(`Error executing script: ${error.message}`);

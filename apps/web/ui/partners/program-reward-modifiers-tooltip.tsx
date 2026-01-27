@@ -4,9 +4,9 @@ import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
 import { getRewardAmount } from "@/lib/partners/get-reward-amount";
 import { RewardProps } from "@/lib/types";
 import {
-  ATTRIBUTE_LABELS,
   CONDITION_OPERATOR_LABELS,
-  ENTITY_ATTRIBUTE_TYPES,
+  REWARD_CONDITIONS,
+  rewardConditionSchema,
   rewardConditionsArraySchema,
   rewardConditionsSchema,
 } from "@/lib/zod/schemas/rewards";
@@ -19,11 +19,6 @@ import {
 } from "@dub/utils";
 import { useRef } from "react";
 import * as z from "zod/v4";
-
-const REWARD_MODIFIER_LABELS = {
-  ...ATTRIBUTE_LABELS,
-  productId: "Product",
-};
 
 type ProgramRewardModifiersTooltipProps = {
   reward?: Omit<RewardProps, "id"> | null;
@@ -108,9 +103,7 @@ const RewardItem = ({
   operator = "AND",
 }: {
   reward: Omit<RewardProps, "id">;
-  conditions?: z.infer<
-    typeof rewardConditionsArraySchema
-  >[number]["conditions"];
+  conditions?: z.infer<typeof rewardConditionSchema>[];
   operator?: z.infer<typeof rewardConditionsSchema>["operator"];
 }) => {
   const rewardAmount = constructRewardAmount({
@@ -142,13 +135,20 @@ const RewardItem = ({
       {conditions && conditions.length > 0 && (
         <ul className="ml-1 text-xs font-medium text-neutral-600">
           {conditions.map((condition, idx) => {
+            const entity = REWARD_CONDITIONS[reward.event].entities.find(
+              (e) => e.id === condition.entity,
+            );
+            const attribute = entity?.attributes?.find(
+              (a) => a.id === condition.attribute,
+            );
+
             return (
               <li key={idx} className="flex items-start gap-1">
                 <span className="shrink-0 text-lg leading-none">&bull;</span>
                 <span className="min-w-0">
                   {idx === 0 ? "If" : capitalize(operator.toLowerCase())}{" "}
                   {condition.entity}{" "}
-                  {REWARD_MODIFIER_LABELS[condition.attribute].toLowerCase()}{" "}
+                  {(attribute?.label ?? condition.attribute)?.toLowerCase()}{" "}
                   {CONDITION_OPERATOR_LABELS[condition.operator]}{" "}
                   {condition.value &&
                     (condition.attribute === "country"
@@ -162,17 +162,26 @@ const RewardItem = ({
                       : // Non-country value(s)
                         Array.isArray(condition.value)
                         ? // Basic array
-                          condition.value.join(", ")
+                          (attribute?.options
+                            ? (condition.value as string[] | number[]).map(
+                                (v) =>
+                                  attribute.options?.find((o) => o.id === v)
+                                    ?.label ?? v,
+                              )
+                            : condition.value
+                          ).join(", ")
                         : condition.attribute === "productId" && condition.label
                           ? // Product label
                             condition.label
-                          : ENTITY_ATTRIBUTE_TYPES[condition.entity]?.[
-                                condition.attribute
-                              ] === "currency"
+                          : attribute?.type === "currency"
                             ? // Currency value
                               currencyFormatter(Number(condition.value))
                             : // Everything else
-                              condition.value.toString())}
+                              attribute?.options
+                              ? attribute.options.find(
+                                  (o) => o.id === condition.value,
+                                )?.label ?? condition.value.toString()
+                              : condition.value.toString())}
                 </span>
               </li>
             );

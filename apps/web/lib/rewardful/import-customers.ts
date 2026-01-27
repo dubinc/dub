@@ -116,12 +116,12 @@ async function createCustomer({
     return;
   }
 
-  const link = await prisma.link.findUnique({
+  // here we're using findFirst because for some reason findUnique uses a weird collation
+  // that causes a bunch of LINK_NOT_FOUND errors (for links/coupons that actually exist)
+  const link = await prisma.link.findFirst({
     where: {
-      domain_key: {
-        domain: program.domain!,
-        key: shortLinkToken,
-      },
+      domain: program.domain!,
+      key: shortLinkToken,
     },
   });
 

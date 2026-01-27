@@ -469,6 +469,7 @@ export const createManualCommissionAction = authActionClient
               saleAmount: {
                 increment: saleAmount,
               },
+              firstSaleAt: customer.firstSaleAt ? undefined : new Date(),
             }),
           },
         });

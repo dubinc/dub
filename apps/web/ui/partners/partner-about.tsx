@@ -8,7 +8,7 @@ import {
 } from "@/lib/partners/partner-profile";
 import { EnrolledPartnerExtendedProps } from "@/lib/types";
 import { OnlinePresenceSummary } from "@/ui/partners/online-presence-summary";
-import { Icon } from "@dub/ui";
+import { Icon, InfoTooltip } from "@dub/ui";
 
 export function PartnerAbout({
   partner,
@@ -98,9 +98,12 @@ export function PartnerAbout({
 
       {Boolean(partner.monthlyTraffic) && (
         <div className="flex flex-col gap-2">
-          <h3 className="text-content-emphasis text-xs font-semibold">
-            Monthly traffic
-          </h3>
+          <div className="flex items-center gap-1">
+            <h3 className="text-content-emphasis text-xs font-semibold">
+              Monthly traffic
+            </h3>
+            <InfoTooltip content="Shared by the partner, not verified by Dub." />
+          </div>
           <span className="text-content-default text-xs">
             {monthlyTrafficAmountsMap[partner.monthlyTraffic!]?.label ?? "-"}
           </span>

@@ -130,6 +130,17 @@ export const createDiscountAction = authActionClient
         },
       });
 
+      await tx.discountCode.updateMany({
+        where: {
+          programEnrollment: {
+            groupId,
+          },
+        },
+        data: {
+          discountId: discount.id,
+        },
+      });
+
       return discount;
     });
 

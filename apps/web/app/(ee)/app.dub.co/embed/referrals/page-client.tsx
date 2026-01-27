@@ -7,6 +7,7 @@ import { programEmbedSchema } from "@/lib/zod/schemas/program-embed";
 import { programResourcesSchema } from "@/lib/zod/schemas/program-resources";
 import { HeroBackground } from "@/ui/partners/hero-background";
 import { ProgramRewardList } from "@/ui/partners/program-reward-list";
+import { ProgramRewardTerms } from "@/ui/partners/program-reward-terms";
 import { ThreeDots } from "@/ui/shared/icons";
 import { Partner, Program } from "@dub/prisma/client";
 import {
@@ -71,6 +72,7 @@ export function ReferralsEmbedPageClient({
     | "additionalLinks"
     | "maxPartnerLinks"
     | "linkStructure"
+    | "holdingPeriodDays"
   >;
   themeOptions: ThemeOptions;
   dynamicHeight: boolean;
@@ -201,6 +203,10 @@ export function ReferralsEmbedPageClient({
             </div>
             <div className="text-content-emphasis relative mt-4 text-lg">
               <ProgramRewardList rewards={rewards} discount={discount} />
+              <ProgramRewardTerms
+                minPayoutAmount={program.minPayoutAmount}
+                holdingPeriodDays={group.holdingPeriodDays ?? 0}
+              />
             </div>
           </div>
           {!programEmbedData?.hidePoweredByBadge && (
