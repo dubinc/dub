@@ -109,7 +109,8 @@ export const PartnerPlatformsForm = forwardRef<
     }: PartnerPlatformsFormWithFormProps,
     ref,
   ) => {
-    const form = formProp ?? usePartnerPlatformsForm({ partner });
+    const defaultForm = usePartnerPlatformsForm({ partner });
+    const form = formProp ?? defaultForm;
     const { partner: currentPartner } = usePartnerProfile();
 
     const disabled = currentPartner

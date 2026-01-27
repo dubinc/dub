@@ -15,11 +15,7 @@ export function OnboardingPlatformsPageClient({
   return (
     <>
       <PartnerPlatformsForm
-        onSubmitSuccessful={() =>
-          router.push(
-            partner.country === "US" ? "/onboarding/payouts" : "/programs",
-          )
-        }
+        onSubmitSuccessful={() => router.push("/onboarding/payouts")}
         partner={partner}
         variant="onboarding"
       />
