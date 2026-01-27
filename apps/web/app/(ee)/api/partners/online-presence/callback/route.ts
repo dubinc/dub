@@ -73,7 +73,7 @@ export async function GET(req: Request) {
   // Redirect user based on source
   const redirectUrl =
     source === "onboarding"
-      ? `${PARTNERS_DOMAIN}/onboarding/online-presence`
+      ? `${PARTNERS_DOMAIN}/onboarding/platforms`
       : `${PARTNERS_DOMAIN}/profile`;
 
   const { tokenUrl, clientId, clientSecret, verify, pkce, clientIdParam } =

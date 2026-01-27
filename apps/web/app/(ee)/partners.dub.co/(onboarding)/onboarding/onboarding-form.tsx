@@ -93,7 +93,7 @@ export function OnboardingForm({
   const { executeAsync, isPending } = useAction(onboardPartnerAction, {
     onSuccess: () => {
       setAccountCreated(true);
-      router.push("/onboarding/online-presence");
+      router.push("/onboarding/platforms");
     },
     onError: ({ error, input }) => {
       toast.error(error.serverError);

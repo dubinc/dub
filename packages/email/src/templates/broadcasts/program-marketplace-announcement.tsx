@@ -13,7 +13,7 @@ import {
   Tailwind,
   Text,
 } from "@react-email/components";
-import { Footer } from "../components/footer";
+import { Footer } from "../../components/footer";
 
 export default function ProgramMarketplaceAnnouncement({
   email = "panic@thedis.co",

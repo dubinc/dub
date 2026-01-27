@@ -2,35 +2,35 @@ import { getSession } from "@/lib/auth";
 import { buildSocialPlatformLookup } from "@/lib/social-utils";
 import { PartnerPlatformProps } from "@/lib/types";
 import { partnerPlatformSchema } from "@/lib/zod/schemas/partners";
-import { OnlinePresenceForm } from "@/ui/partners/online-presence-form";
+import { PartnerPlatformsForm } from "@/ui/partners/partner-platforms-form";
 import { prisma } from "@dub/prisma";
 import { PlatformType } from "@dub/prisma/client";
 import { Suspense } from "react";
 import * as z from "zod/v4";
-import { OnlinePresencePageClient } from "./page-client";
+import { OnboardingPlatformsPageClient } from "./page-client";
 
-export default function OnlinePresencePage() {
+export default function OnboardingPlatformsPage() {
   return (
     <div className="relative mx-auto w-full max-w-[416px] text-center md:mt-4">
       <h1 className="animate-slide-up-fade text-lg font-medium [--offset:8px] [animation-delay:250ms] [animation-duration:1s] [animation-fill-mode:both]">
-        Your online presence
+        Your social and web platforms
       </h1>
 
       <p className="animate-slide-up-fade text-content-subtle mt-1 text-sm [animation-delay:500ms] [animation-duration:1s] [animation-fill-mode:both]">
-        These improve your reputation score and rank you higher. Verification is
-        optional and can be done later.
+        Verifying your social and web platforms will improve your reputation
+        score and rank you higher in our partner network.
       </p>
 
       <div className="animate-slide-up-fade mt-8 grid gap-4 [animation-delay:750ms] [animation-duration:1s] [animation-fill-mode:both]">
-        <Suspense fallback={<OnlinePresenceForm partner={null} />}>
-          <OnlinePresenceFormRSC />
+        <Suspense fallback={<PartnerPlatformsForm partner={null} />}>
+          <OnboardingPlatformsFormRSC />
         </Suspense>
       </div>
     </div>
   );
 }
 
-async function OnlinePresenceFormRSC() {
+async function OnboardingPlatformsFormRSC() {
   const { user } = await getSession();
 
   const [partner, application] = await Promise.all([
@@ -114,5 +114,5 @@ async function OnlinePresenceFormRSC() {
     }
   }
 
-  return <OnlinePresencePageClient partner={{ ...partner, platforms }} />;
+  return <OnboardingPlatformsPageClient partner={{ ...partner, platforms }} />;
 }
