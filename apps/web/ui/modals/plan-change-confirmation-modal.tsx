@@ -87,7 +87,6 @@ function PlanChangeConfirmationModal({
           onClick={async () => {
             if (isSubmitting) return;
             setIsSubmitting(true);
-            setShowPlanChangeConfirmationModal(false);
             await onConfirm();
             setIsSubmitting(false);
           }}
