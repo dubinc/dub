@@ -25,14 +25,18 @@ export function OverviewLinks() {
 
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
 
-  // Initialize with the default group when groups are loaded
+  // Initialize or reset selection when groups change
   useEffect(() => {
-    if (groups?.length && !selectedGroupId) {
+    if (!groups?.length) return;
+
+    // Check if current selection is still valid
+    const isCurrentSelectionValid =
+      selectedGroupId && groups.some((g) => g.id === selectedGroupId);
+
+    if (!isCurrentSelectionValid) {
       const defaultGroup =
         groups.find((g) => g.slug === "default") || groups[0];
-      if (defaultGroup) {
-        setSelectedGroupId(defaultGroup.id);
-      }
+      setSelectedGroupId(defaultGroup.id);
     }
   }, [groups, selectedGroupId]);
 
@@ -44,34 +48,46 @@ export function OverviewLinks() {
   const showGroupSelector = groups && groups.length > 1;
 
   const links = useMemo(() => {
+    const programSlug = program?.slug;
     const groupSlug = selectedGroup?.slug;
     const isDefault = groupSlug === "default";
 
-    const landingPageHref = isDefault
-      ? `${PARTNERS_DOMAIN}/${program?.slug}`
-      : `${PARTNERS_DOMAIN}/${program?.slug}/${groupSlug}`;
+    // Build URLs only when we have valid slugs
+    const landingPageHref =
+      programSlug && groupSlug
+        ? isDefault
+          ? `${PARTNERS_DOMAIN}/${programSlug}`
+          : `${PARTNERS_DOMAIN}/${programSlug}/${groupSlug}`
+        : "#";
 
-    const applicationHref = isDefault
-      ? `${PARTNERS_DOMAIN}/${program?.slug}/apply`
-      : `${PARTNERS_DOMAIN}/${program?.slug}/${groupSlug}/apply`;
+    const applicationHref =
+      programSlug && groupSlug
+        ? isDefault
+          ? `${PARTNERS_DOMAIN}/${programSlug}/apply`
+          : `${PARTNERS_DOMAIN}/${programSlug}/${groupSlug}/apply`
+        : "#";
+
+    const partnerPortalHref = programSlug
+      ? `${PARTNERS_DOMAIN}/programs/${programSlug}`
+      : "#";
 
     return [
       {
         icon: Post,
         label: "Landing page",
         href: landingPageHref,
-        disabled: !selectedGroup?.landerPublishedAt,
+        disabled: !selectedGroup?.landerPublishedAt || !programSlug,
       },
       {
         icon: InputField,
         label: "Application form",
         href: applicationHref,
-        disabled: !selectedGroup?.applicationFormPublishedAt,
+        disabled: !selectedGroup?.applicationFormPublishedAt || !programSlug,
       },
       {
         icon: Window,
         label: "Partner portal",
-        href: `${PARTNERS_DOMAIN}/programs/${program?.slug}`,
+        href: partnerPortalHref,
         disabled: !program,
       },
     ];
