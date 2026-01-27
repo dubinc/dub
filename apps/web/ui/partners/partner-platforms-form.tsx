@@ -2,7 +2,7 @@
 
 import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { startPartnerPlatformVerificationAction } from "@/lib/actions/partners/start-partner-platform-verification";
-import { updateOnlinePresenceAction } from "@/lib/actions/partners/update-online-presence";
+import { updatePartnerPlatformsAction } from "@/lib/actions/partners/update-partner-platforms";
 import { hasPermission } from "@/lib/auth/partner-users/partner-user-permissions";
 import { sanitizeSocialHandle, sanitizeWebsite } from "@/lib/social-utils";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
@@ -36,7 +36,7 @@ import {
 import { toast } from "sonner";
 import { mutate } from "swr";
 import * as z from "zod/v4";
-import { OnlinePresenceCard } from "./online-presence-card";
+import { PartnerPlatformCard } from "./partner-platform-card";
 
 const onlinePresenceSchema = z.object({
   website: parseUrlSchemaAllowEmpty().nullish(),
@@ -47,9 +47,9 @@ const onlinePresenceSchema = z.object({
   tiktok: z.string().nullish(),
 });
 
-type OnlinePresenceFormData = z.infer<typeof onlinePresenceSchema>;
+type PartnerPlatformsFormData = z.infer<typeof onlinePresenceSchema>;
 
-interface OnlinePresenceFormProps {
+interface PartnerPlatformsFormProps {
   variant?: "onboarding" | "settings";
   partner?: Pick<PartnerProps, "platforms"> | null;
   onSubmitSuccessful?: () => void;
@@ -65,7 +65,7 @@ function getPlatformData(
 
 // Helper function to get identifier from platforms array
 function getPlatformIdentifier(
-  partner: OnlinePresenceFormProps["partner"],
+  partner: PartnerPlatformsFormProps["partner"],
   platform: PlatformType,
 ): string | undefined {
   return getPlatformData(partner?.platforms, platform)?.identifier;
@@ -75,10 +75,10 @@ function getPlatformIdentifier(
  * Separate optional hook to allow for form management outside of the main component.
  * If used, the returned form object should be passed to the main component as a prop.
  */
-export function useOnlinePresenceForm({
+export function usePartnerPlatformsForm({
   partner,
-}: Pick<OnlinePresenceFormProps, "partner">) {
-  return useForm<OnlinePresenceFormData>({
+}: Pick<PartnerPlatformsFormProps, "partner">) {
+  return useForm<PartnerPlatformsFormData>({
     defaultValues: {
       website: getPlatformIdentifier(partner, "website")
         ? getPrettyUrl(getPlatformIdentifier(partner, "website")!)
@@ -92,13 +92,13 @@ export function useOnlinePresenceForm({
   });
 }
 
-type OnlinePresenceFormWithFormProps = OnlinePresenceFormProps & {
-  form?: ReturnType<typeof useOnlinePresenceForm>;
+type PartnerPlatformsFormWithFormProps = PartnerPlatformsFormProps & {
+  form?: ReturnType<typeof usePartnerPlatformsForm>;
 };
 
-export const OnlinePresenceForm = forwardRef<
+export const PartnerPlatformsForm = forwardRef<
   HTMLFormElement,
-  OnlinePresenceFormWithFormProps
+  PartnerPlatformsFormWithFormProps
 >(
   (
     {
@@ -106,10 +106,11 @@ export const OnlinePresenceForm = forwardRef<
       variant = "onboarding",
       partner,
       onSubmitSuccessful,
-    }: OnlinePresenceFormWithFormProps,
+    }: PartnerPlatformsFormWithFormProps,
     ref,
   ) => {
-    const form = formProp ?? useOnlinePresenceForm({ partner });
+    const defaultForm = usePartnerPlatformsForm({ partner });
+    const form = formProp ?? defaultForm;
     const { partner: currentPartner } = usePartnerProfile();
 
     const disabled = currentPartner
@@ -125,13 +126,13 @@ export const OnlinePresenceForm = forwardRef<
       formState: { errors, isSubmitting, isSubmitSuccessful },
     } = form;
 
-    const { executeAsync } = useAction(updateOnlinePresenceAction, {
+    const { executeAsync } = useAction(updatePartnerPlatformsAction, {
       onSuccess: async () => {
         await mutate("/api/partner-profile");
       },
       onError: ({ error }) => {
         toast.error(
-          parseActionError(error, "Failed to update online presence"),
+          parseActionError(error, "Failed to update partner platforms"),
         );
 
         reset(form.getValues(), { keepErrors: true });
@@ -384,51 +385,6 @@ export const OnlinePresenceForm = forwardRef<
               />
 
               <FormRow
-                label="LinkedIn"
-                property="linkedin"
-                prefix="in/"
-                icon={LinkedIn}
-                disabled={disabled}
-                verifyDisabledTooltip="LinkedIn verification is coming soon."
-                onVerifyClick={async () => {
-                  const handle = getValues("linkedin");
-
-                  if (handle) {
-                    await startSocialVerification({
-                      platform: "linkedin",
-                      handle,
-                      source: variant,
-                    });
-                  }
-
-                  return isStartingSocialVerification;
-                }}
-                input={
-                  <div className="flex rounded-md">
-                    <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
-                      linkedin.com/in
-                    </span>
-                    <input
-                      type="text"
-                      disabled={disabled}
-                      className={cn(
-                        "block w-full rounded-none rounded-r-md focus:outline-none sm:text-sm",
-                        disabled &&
-                          "cursor-not-allowed bg-neutral-50 text-neutral-400",
-                        errors.linkedin
-                          ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                          : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
-                      )}
-                      placeholder="handle"
-                      onPaste={(e) => onPasteSocial(e, "linkedin")}
-                      {...register("linkedin")}
-                    />
-                  </div>
-                }
-                variant={variant}
-              />
-
-              <FormRow
                 label="Instagram"
                 property="instagram"
                 prefix="@"
@@ -518,6 +474,51 @@ export const OnlinePresenceForm = forwardRef<
                 }
                 variant={variant}
               />
+
+              <FormRow
+                label="LinkedIn"
+                property="linkedin"
+                prefix="in/"
+                icon={LinkedIn}
+                disabled={disabled}
+                verifyDisabledTooltip="LinkedIn verification is coming soon."
+                onVerifyClick={async () => {
+                  const handle = getValues("linkedin");
+
+                  if (handle) {
+                    await startSocialVerification({
+                      platform: "linkedin",
+                      handle,
+                      source: variant,
+                    });
+                  }
+
+                  return isStartingSocialVerification;
+                }}
+                input={
+                  <div className="flex rounded-md">
+                    <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
+                      linkedin.com/in
+                    </span>
+                    <input
+                      type="text"
+                      disabled={disabled}
+                      className={cn(
+                        "block w-full rounded-none rounded-r-md focus:outline-none sm:text-sm",
+                        disabled &&
+                          "cursor-not-allowed bg-neutral-50 text-neutral-400",
+                        errors.linkedin
+                          ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
+                          : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
+                      )}
+                      placeholder="handle"
+                      onPaste={(e) => onPasteSocial(e, "linkedin")}
+                      {...register("linkedin")}
+                    />
+                  </div>
+                }
+                variant={variant}
+              />
             </div>
 
             {variant === "onboarding" && (
@@ -539,11 +540,11 @@ export const OnlinePresenceForm = forwardRef<
 function useVerifiedState({
   property,
 }: {
-  property: keyof OnlinePresenceFormData;
+  property: keyof PartnerPlatformsFormData;
 }) {
   const { partner: partnerProfile } = usePartnerProfile();
 
-  const { watch, getFieldState } = useFormContext<OnlinePresenceFormData>();
+  const { watch, getFieldState } = useFormContext<PartnerPlatformsFormData>();
 
   const value = watch(property);
   const isValid = !!value && !getFieldState(property).invalid;
@@ -551,7 +552,7 @@ function useVerifiedState({
   const loading = !partnerProfile && isValid;
 
   // Map form property to PlatformType enum
-  const platformMap: Record<keyof OnlinePresenceFormData, PlatformType> = {
+  const platformMap: Record<keyof PartnerPlatformsFormData, PlatformType> = {
     website: "website",
     youtube: "youtube",
     twitter: "twitter",
@@ -584,13 +585,13 @@ function VerifyButton({
   disabledTooltip,
   disabled: formDisabled = false,
 }: {
-  property: keyof OnlinePresenceFormData;
+  property: keyof PartnerPlatformsFormData;
   icon: Icon;
   onClick: () => Promise<boolean>;
   disabledTooltip?: string;
   disabled?: boolean;
 }) {
-  const { control, getFieldState } = useFormContext<OnlinePresenceFormData>();
+  const { control, getFieldState } = useFormContext<PartnerPlatformsFormData>();
   const value = useWatch({ control, name: property });
 
   const { isVerified, loading } = useVerifiedState({
@@ -646,7 +647,7 @@ function FormRow({
   label: string;
   input: ReactNode;
 
-  property: keyof OnlinePresenceFormData;
+  property: keyof PartnerPlatformsFormData;
   prefix?: string;
   icon: Icon;
   onVerifyClick: () => Promise<boolean>;
@@ -655,7 +656,7 @@ function FormRow({
   disabled?: boolean;
 }) {
   const { partner } = usePartnerProfile();
-  const { control, setValue } = useFormContext<OnlinePresenceFormData>();
+  const { control, setValue } = useFormContext<PartnerPlatformsFormData>();
   const value = useWatch({ control, name: property });
 
   const { isVerified } = useVerifiedState({ property });
@@ -752,7 +753,7 @@ function FormRow({
               >
                 {label}
               </span>
-              <OnlinePresenceCard
+              <PartnerPlatformCard
                 icon={Icon}
                 prefix={prefix}
                 value={value ?? ""}

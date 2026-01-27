@@ -39,25 +39,6 @@ model Partner {
   discoverableAt DateTime?
   trustedAt      DateTime?
 
-  // online presence fields
-  website                String?
-  websiteTxtRecord       String?
-  websiteVerifiedAt      DateTime?
-  youtube                String?
-  youtubeChannelId       String?
-  youtubeVerifiedAt      DateTime?
-  youtubeSubscriberCount Int       @default(0)
-  youtubeVideoCount      Int       @default(0)
-  youtubeViewCount       Int       @default(0)
-  twitter                String?
-  twitterVerifiedAt      DateTime?
-  linkedin               String?
-  linkedinVerifiedAt     DateTime?
-  instagram              String?
-  instagramVerifiedAt    DateTime?
-  tiktok                 String?
-  tiktokVerifiedAt       DateTime?
-
   // miscellaneous fields
   invoiceSettings  Json?
   changeHistoryLog Json?

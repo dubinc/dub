@@ -1,11 +1,11 @@
 "use client";
 
 import { PartnerProps } from "@/lib/types";
-import { OnlinePresenceForm } from "@/ui/partners/online-presence-form";
+import { PartnerPlatformsForm } from "@/ui/partners/partner-platforms-form";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-export function OnlinePresencePageClient({
+export function OnboardingPlatformsPageClient({
   partner,
 }: {
   partner: Pick<PartnerProps, "country" | "platforms">;
@@ -14,17 +14,13 @@ export function OnlinePresencePageClient({
 
   return (
     <>
-      <OnlinePresenceForm
-        onSubmitSuccessful={() =>
-          router.push(
-            partner.country === "US" ? "/onboarding/verify" : "/programs",
-          )
-        }
+      <PartnerPlatformsForm
+        onSubmitSuccessful={() => router.push("/onboarding/payouts")}
         partner={partner}
         variant="onboarding"
       />
       <Link
-        href="/onboarding/verify"
+        href="/onboarding/payouts"
         className="text-sm font-medium text-neutral-800 transition-colors hover:text-neutral-950"
       >
         I'll complete this later

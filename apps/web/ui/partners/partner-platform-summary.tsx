@@ -2,9 +2,9 @@ import { PARTNER_PLATFORM_FIELDS } from "@/lib/partners/partner-platforms";
 import { PartnerPlatformProps } from "@/lib/types";
 import { cn } from "@dub/utils";
 import { Fragment } from "react";
-import { OnlinePresenceCard } from "./online-presence-card";
+import { PartnerPlatformCard } from "./partner-platform-card";
 
-export function OnlinePresenceSummary({
+export function PartnerPlatformSummary({
   platforms,
   showLabels = true,
   className,
@@ -24,7 +24,7 @@ export function OnlinePresenceSummary({
           emptyClassName,
         )}
       >
-        No online presence provided
+        No platforms connected
       </div>
     );
   }
@@ -50,7 +50,7 @@ export function OnlinePresenceSummary({
               <span className="text-content-default font-medium">{label}</span>
             )}
             <div>
-              <OnlinePresenceCard
+              <PartnerPlatformCard
                 icon={Icon}
                 value={value ?? ""}
                 verified={verified}

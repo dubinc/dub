@@ -1,4 +1,4 @@
-import { ONLINE_PRESENCE_PROVIDERS } from "@/lib/api/partner-profile/online-presence-providers";
+import { PARTNER_PLATFORMS_PROVIDERS } from "@/lib/api/partner-profile/partner-platforms-providers";
 import { fetchSocialProfile } from "@/lib/api/scrape-creators/fetch-social-profile";
 import { getSession } from "@/lib/auth/utils";
 import { redis } from "@/lib/upstash/redis";
@@ -24,7 +24,7 @@ interface State {
   source: "onboarding" | "settings";
 }
 
-// GET /api/partners/online-presence/callback
+// GET /api/partners/platforms/callback
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
 
@@ -64,7 +64,7 @@ export async function GET(req: Request) {
   }
 
   // Validate platform exists in providers
-  const provider = ONLINE_PRESENCE_PROVIDERS[platform];
+  const provider = PARTNER_PLATFORMS_PROVIDERS[platform];
   if (!provider) {
     console.error(`Invalid platform: ${platform}`);
     return NextResponse.redirect(PARTNERS_DOMAIN);
@@ -73,7 +73,7 @@ export async function GET(req: Request) {
   // Redirect user based on source
   const redirectUrl =
     source === "onboarding"
-      ? `${PARTNERS_DOMAIN}/onboarding/online-presence`
+      ? `${PARTNERS_DOMAIN}/onboarding/platforms`
       : `${PARTNERS_DOMAIN}/profile`;
 
   const { tokenUrl, clientId, clientSecret, verify, pkce, clientIdParam } =
@@ -87,7 +87,7 @@ export async function GET(req: Request) {
   // Local development redirect since the verifier cookie won't be present on ngrok
   if (pkce && !codeVerifier && process.env.NODE_ENV === "development") {
     return NextResponse.redirect(
-      `http://partners.localhost:8888/api/partners/online-presence/callback?${searchParams.toString()}`,
+      `http://partners.localhost:8888/api/partners/platforms/callback?${searchParams.toString()}`,
     );
   }
 
@@ -99,7 +99,7 @@ export async function GET(req: Request) {
     [clientIdParam ?? "client_id"]: clientId!,
     client_secret: clientSecret!,
     code,
-    redirect_uri: `${PARTNERS_DOMAIN_WITH_NGROK}/api/partners/online-presence/callback`,
+    redirect_uri: `${PARTNERS_DOMAIN_WITH_NGROK}/api/partners/platforms/callback`,
     grant_type: "authorization_code",
     ...(codeVerifier && { code_verifier: codeVerifier }),
   });
