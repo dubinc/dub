@@ -20,9 +20,10 @@ function PlanChangeConfirmationModal({
 }: {
   showPlanChangeConfirmationModal: boolean;
   setShowPlanChangeConfirmationModal: Dispatch<SetStateAction<boolean>>;
-  onConfirm: () => void;
+  onConfirm: () => void | Promise<void>;
 }) {
   const { slug } = useWorkspace();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   return (
     <Modal
@@ -81,7 +82,15 @@ function PlanChangeConfirmationModal({
           variant="primary"
           className="h-8 w-fit px-3"
           text="Continue"
-          onClick={onConfirm}
+          loading={isSubmitting}
+          disabled={isSubmitting}
+          onClick={async () => {
+            if (isSubmitting) return;
+            setIsSubmitting(true);
+            setShowPlanChangeConfirmationModal(false);
+            await onConfirm();
+            setIsSubmitting(false);
+          }}
         />
       </div>
     </Modal>
@@ -91,7 +100,7 @@ function PlanChangeConfirmationModal({
 export function usePlanChangeConfirmationModal({
   onConfirm,
 }: {
-  onConfirm: () => void;
+  onConfirm: () => void | Promise<void>;
 }) {
   const [
     showPlanChangeConfirmationModal,
