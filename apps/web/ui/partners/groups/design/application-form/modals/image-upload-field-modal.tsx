@@ -10,8 +10,8 @@ import { v4 as uuid } from "uuid";
 import * as z from "zod/v4";
 
 const MIN_MAX_IMAGES = 2;
-const MAX_MAX_IMAGES = 20;
-const DEFAULT_MAX_IMAGES = 5;
+const MAX_MAX_IMAGES = 10;
+const DEFAULT_MAX_IMAGES = 4;
 
 type ImageUploadFieldData = z.infer<
   typeof programApplicationFormImageUploadFieldSchema
