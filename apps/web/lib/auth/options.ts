@@ -575,6 +575,15 @@ export const authOptions: NextAuthOptions = {
         );
         return;
       }
+
+      // Update lastLoginAt in the background
+      waitUntil(
+        prisma.user.update({
+          where: { id: user.id },
+          data: { lastLoginAt: new Date() },
+        }),
+      );
+
       // only process new user workflow if the user was created in the last 15s (newly created user)
       if (
         user.createdAt &&
