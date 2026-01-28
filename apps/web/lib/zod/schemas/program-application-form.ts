@@ -1,4 +1,5 @@
 import * as z from "zod/v4";
+import { storedR2ImageUrlSchema } from "./misc";
 
 // Common schema for all fields
 export const programApplicationFormFieldCommonSchema = z.object({
@@ -117,6 +118,20 @@ export const programApplicationFormWebsiteAndSocialsFieldWithValueSchema =
     data: z.array(programApplicationFormSiteSchemaWithValue),
   });
 
+// Image upload field
+export const programApplicationFormImageUploadFieldSchema =
+  programApplicationFormFieldCommonSchema.extend({
+    type: z.literal("image-upload"),
+    data: z.object({
+      maxImages: z.number(),
+    }),
+  });
+
+export const programApplicationFormImageUploadFieldWithValueSchema =
+  programApplicationFormImageUploadFieldSchema.extend({
+    value: z.array(storedR2ImageUrlSchema),
+  });
+
 // All fields
 export const programApplicationFormFieldSchema = z.discriminatedUnion("type", [
   programApplicationFormShortTextFieldSchema,
@@ -124,6 +139,7 @@ export const programApplicationFormFieldSchema = z.discriminatedUnion("type", [
   programApplicationFormSelectFieldSchema,
   programApplicationFormMultipleChoiceFieldSchema,
   programApplicationFormWebsiteAndSocialsFieldSchema,
+  programApplicationFormImageUploadFieldSchema,
 ]);
 
 export const programApplicationFormFieldWithValuesSchema = z.discriminatedUnion(
@@ -134,6 +150,7 @@ export const programApplicationFormFieldWithValuesSchema = z.discriminatedUnion(
     programApplicationFormSelectFieldWithValueSchema,
     programApplicationFormMultipleChoiceFieldWithValueSchema,
     programApplicationFormWebsiteAndSocialsFieldWithValueSchema,
+    programApplicationFormImageUploadFieldWithValueSchema,
   ],
 );
 

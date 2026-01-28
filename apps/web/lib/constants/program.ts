@@ -28,3 +28,13 @@ export const PROGRAM_IMPORT_SOURCES = [
     helpUrl: "https://dub.co/help/article/migrating-from-firstpromoter",
   },
 ] as const;
+
+export const PROGRAM_APPLICATION_IMAGE_MAX_FILE_SIZE_MB = 5;
+
+export const PROGRAM_APPLICATION_IMAGE_ALLOWED_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+] as const;
+
+export const PROGRAM_APPLICATION_IMAGE_ALLOWED_TYPES_LABEL = "JPG, PNG, WebP";

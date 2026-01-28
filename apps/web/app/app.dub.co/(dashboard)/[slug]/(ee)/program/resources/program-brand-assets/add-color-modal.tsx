@@ -108,23 +108,26 @@ function ColorModalInner({
     },
   });
 
-  const { executeAsync: executeUpdate } = useAction(updateProgramResourceAction, {
-    onSuccess: () => {
-      mutate();
-      setShowColorModal(false);
-      toast.success("Color updated successfully!");
+  const { executeAsync: executeUpdate } = useAction(
+    updateProgramResourceAction,
+    {
+      onSuccess: () => {
+        mutate();
+        setShowColorModal(false);
+        toast.success("Color updated successfully!");
+      },
+      onError({ error }) {
+        if (error.serverError) {
+          setError("root.serverError", {
+            message: error.serverError,
+          });
+          toast.error(error.serverError);
+        } else {
+          toast.error("Failed to update color");
+        }
+      },
     },
-    onError({ error }) {
-      if (error.serverError) {
-        setError("root.serverError", {
-          message: error.serverError,
-        });
-        toast.error(error.serverError);
-      } else {
-        toast.error("Failed to update color");
-      }
-    },
-  });
+  );
 
   return (
     <>

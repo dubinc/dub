@@ -89,23 +89,26 @@ function LogoModalInner({
     },
   });
 
-  const { executeAsync: executeUpdate } = useAction(updateProgramResourceAction, {
-    onSuccess: () => {
-      mutate();
-      setShowLogoModal(false);
-      toast.success("Logo updated successfully!");
+  const { executeAsync: executeUpdate } = useAction(
+    updateProgramResourceAction,
+    {
+      onSuccess: () => {
+        mutate();
+        setShowLogoModal(false);
+        toast.success("Logo updated successfully!");
+      },
+      onError({ error }) {
+        if (error.serverError) {
+          setError("root.serverError", {
+            message: error.serverError,
+          });
+          toast.error(error.serverError);
+        } else {
+          toast.error("Failed to update logo");
+        }
+      },
     },
-    onError({ error }) {
-      if (error.serverError) {
-        setError("root.serverError", {
-          message: error.serverError,
-        });
-        toast.error(error.serverError);
-      } else {
-        toast.error("Failed to update logo");
-      }
-    },
-  });
+  );
 
   return (
     <>
@@ -154,7 +157,9 @@ function LogoModalInner({
               <Controller
                 control={control}
                 name="file"
-                rules={{ required: !isEditing ? "Logo file is required" : false }}
+                rules={{
+                  required: !isEditing ? "Logo file is required" : false,
+                }}
                 render={({ field }) => (
                   <FileUpload
                     accept="programResourceImages"
