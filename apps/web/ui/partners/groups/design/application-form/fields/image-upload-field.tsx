@@ -250,7 +250,7 @@ function ImageUploadFieldContent({
                 <img
                   src={file.url}
                   alt={`Upload ${idx + 1}`}
-                  className="object-cover"
+                  className="size-full object-cover"
                 />
               </div>
             ) : null}
