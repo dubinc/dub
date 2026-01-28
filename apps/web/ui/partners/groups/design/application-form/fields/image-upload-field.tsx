@@ -38,6 +38,7 @@ function ImageUploadFieldContent({
   maxImages,
   error,
   uploadFile,
+  onStatusChange,
 }: {
   field: ImageUploadFieldData;
   preview?: boolean;
@@ -46,6 +47,7 @@ function ImageUploadFieldContent({
   maxImages: number;
   error: boolean;
   uploadFile: (params: { programSlug: string }) => Promise<any>;
+  onStatusChange?: (loading: boolean) => void;
 }) {
   const currentValue = controllerField.value || [];
 
@@ -75,21 +77,29 @@ function ImageUploadFieldContent({
 
     if (Array.isArray(currentValue)) {
       const currentUrls = currentValue.filter(Boolean);
-      const fileUrls = files.map((f) => f.url).filter(Boolean);
+      const fileUrls = files
+        .filter((f) => f.url && !f.uploading)
+        .map((f) => f.url!)
+        .filter(Boolean);
 
-      // Only update if URLs differ
+      // Only update if URLs differ (compare as sets to handle reordering)
+      const currentUrlsSet = new Set(currentUrls);
+      const fileUrlsSet = new Set(fileUrls);
+
       if (
         currentUrls.length !== fileUrls.length ||
-        currentUrls.some((url, idx) => url !== fileUrls[idx])
+        currentUrls.some((url) => !fileUrlsSet.has(url)) ||
+        fileUrls.some((url) => !currentUrlsSet.has(url))
       ) {
-        setFiles(
-          currentUrls.map((url: string) => ({
-            id: uuid(),
-            url,
-            uploading: false,
-            file: undefined,
-          })),
-        );
+        // Preserve uploading files when syncing
+        const uploadingFiles = files.filter((f) => f.uploading);
+        const syncedFiles = currentUrls.map((url: string) => ({
+          id: uuid(),
+          url,
+          uploading: false,
+          file: undefined,
+        }));
+        setFiles([...syncedFiles, ...uploadingFiles]);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -106,10 +116,15 @@ function ImageUploadFieldContent({
       ? formValue.filter(Boolean)
       : [];
 
+    // Compare as sets to handle reordering
+    const urlsSet = new Set(urls);
+    const currentUrlsSet = new Set(currentUrls);
+
     // Only update if URLs actually changed
     if (
       urls.length !== currentUrls.length ||
-      urls.some((url, idx) => url !== currentUrls[idx])
+      urls.some((url) => !currentUrlsSet.has(url)) ||
+      currentUrls.some((url) => !urlsSet.has(url))
     ) {
       isInternalUpdateRef.current = true;
       controllerField.onChange(urls);
@@ -201,6 +216,11 @@ function ImageUploadFieldContent({
 
   const fileUploading = files.some(({ uploading }) => uploading);
 
+  // Notify parent when async state changes
+  useEffect(() => {
+    onStatusChange?.(fileUploading);
+  }, [fileUploading, onStatusChange]);
+
   return (
     <div className="mt-2">
       <div
@@ -275,10 +295,12 @@ export function ImageUploadField({
   keyPath: keyPathProp,
   field,
   preview,
+  onStatusChange,
 }: {
   keyPath?: string;
   field: ImageUploadFieldData;
   preview?: boolean;
+  onStatusChange?: (loading: boolean) => void;
 }) {
   const { programSlug } = useParams<{ programSlug: string }>();
   const { getFieldState, control } = useFormContext<any>();
@@ -328,6 +350,7 @@ export function ImageUploadField({
             maxImages={maxImages}
             error={error}
             uploadFile={uploadFile}
+            onStatusChange={onStatusChange}
           />
         )}
       />

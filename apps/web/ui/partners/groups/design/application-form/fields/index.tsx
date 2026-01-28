@@ -23,10 +23,12 @@ export const ProgramApplicationFormField = ({
   field,
   keyPath,
   preview,
+  onStatusChange,
 }: {
   field: z.infer<typeof programApplicationFormFieldSchema>;
   keyPath?: string;
   preview?: boolean;
+  onStatusChange?: (loading: boolean) => void;
 }) => {
   const Component = FIELD_COMPONENTS[field.type];
 
@@ -34,5 +36,12 @@ export const ProgramApplicationFormField = ({
     return null;
   }
 
-  return <Component field={field} keyPath={keyPath} preview={preview} />;
+  return (
+    <Component
+      field={field}
+      keyPath={keyPath}
+      preview={preview}
+      onStatusChange={onStatusChange}
+    />
+  );
 };
