@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { v4 as uuid } from "uuid";
 import * as z from "zod/v4";
 import { FormControl } from "./form-control";
+import { parseActionError } from "@/lib/actions/parse-action-errors";
 
 type ImageUploadFieldData = z.infer<
   typeof programApplicationFormImageUploadFieldSchema
@@ -175,7 +176,7 @@ function ImageUploadFieldContent({
       });
 
       if (!result?.data) {
-        throw new Error("Failed to get signed upload URL");
+        return
       }
 
       const { signedUrl, destinationUrl } = result.data;
@@ -216,10 +217,16 @@ function ImageUploadFieldContent({
 
   const fileUploading = files.some(({ uploading }) => uploading);
 
+  // Track the callback in a ref to avoid infinite loops from changing function references
+  const onStatusChangeRef = useRef(onStatusChange);
+  useEffect(() => {
+    onStatusChangeRef.current = onStatusChange;
+  }, [onStatusChange]);
+
   // Notify parent when async state changes
   useEffect(() => {
-    onStatusChange?.(fileUploading);
-  }, [fileUploading, onStatusChange]);
+    onStatusChangeRef.current?.(fileUploading);
+  }, [fileUploading]);
 
   return (
     <div className="mt-2">
@@ -310,6 +317,12 @@ export function ImageUploadField({
 
   const { executeAsync: uploadFile } = useAction(
     uploadProgramApplicationImageAction,
+    {
+      onError({error}) {
+        toast.error(parseActionError(error, "Failed to upload image."));
+        onStatusChange?.(false);
+      },
+    }
   );
 
   const maxImages = field.data.maxImages || 1;
