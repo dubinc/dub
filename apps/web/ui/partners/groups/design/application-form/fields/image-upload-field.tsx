@@ -176,7 +176,9 @@ function ImageUploadFieldContent({
       });
 
       if (!result?.data) {
-        return
+        toast.error("Failed to upload image. Please try again.");
+        setFiles((prev) => prev.filter((f) => f.id !== newFile.id));
+        return;
       }
 
       const { signedUrl, destinationUrl } = result.data;
