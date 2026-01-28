@@ -81,23 +81,26 @@ function LinkModalInner({
     },
   });
 
-  const { executeAsync: executeUpdate } = useAction(updateProgramResourceAction, {
-    onSuccess: () => {
-      mutate();
-      setShowLinkModal(false);
-      toast.success("Link updated successfully!");
+  const { executeAsync: executeUpdate } = useAction(
+    updateProgramResourceAction,
+    {
+      onSuccess: () => {
+        mutate();
+        setShowLinkModal(false);
+        toast.success("Link updated successfully!");
+      },
+      onError({ error }) {
+        if (error.serverError) {
+          setError("root.serverError", {
+            message: error.serverError,
+          });
+          toast.error(error.serverError);
+        } else {
+          toast.error("Failed to update link");
+        }
+      },
     },
-    onError({ error }) {
-      if (error.serverError) {
-        setError("root.serverError", {
-          message: error.serverError,
-        });
-        toast.error(error.serverError);
-      } else {
-        toast.error("Failed to update link");
-      }
-    },
-  });
+  );
 
   return (
     <>

@@ -89,23 +89,26 @@ function FileModalInner({
     },
   });
 
-  const { executeAsync: executeUpdate } = useAction(updateProgramResourceAction, {
-    onSuccess: () => {
-      mutate();
-      setShowFileModal(false);
-      toast.success("File updated successfully!");
+  const { executeAsync: executeUpdate } = useAction(
+    updateProgramResourceAction,
+    {
+      onSuccess: () => {
+        mutate();
+        setShowFileModal(false);
+        toast.success("File updated successfully!");
+      },
+      onError({ error }) {
+        if (error.serverError) {
+          setError("root.serverError", {
+            message: error.serverError,
+          });
+          toast.error(error.serverError);
+        } else {
+          toast.error("Failed to update file");
+        }
+      },
     },
-    onError({ error }) {
-      if (error.serverError) {
-        setError("root.serverError", {
-          message: error.serverError,
-        });
-        toast.error(error.serverError);
-      } else {
-        toast.error("Failed to update file");
-      }
-    },
-  });
+  );
 
   return (
     <>

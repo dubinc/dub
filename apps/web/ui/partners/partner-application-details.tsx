@@ -36,7 +36,10 @@ export function PartnerApplicationDetails({
           <h4 className="text-content-emphasis font-semibold">{field.title}</h4>
           <div className="mt-2">
             {field.images && field.images.length > 0 ? (
-              <ApplicationFormImageGrid images={field.images} fieldTitle={field.title} />
+              <ApplicationFormImageGrid
+                images={field.images}
+                fieldTitle={field.title}
+              />
             ) : field.value || field.value === "" ? (
               <Linkify
                 as="p"

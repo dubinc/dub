@@ -8,6 +8,10 @@ import { useWatch } from "react-hook-form";
 import * as z from "zod/v4";
 import { useBrandingFormContext } from "../../branding-form";
 import {
+  ImageUploadFieldModal,
+  ImageUploadFieldThumbnail,
+} from "./image-upload-field-modal";
+import {
   LongTextFieldModal,
   LongTextFieldThumbnail,
 } from "./long-text-field-modal";
@@ -24,10 +28,6 @@ import {
   WebsiteAndSocialsFieldIcon,
   WebsiteAndSocialsFieldModal,
 } from "./website-and-socials-field-modal";
-import {
-  ImageUploadFieldModal,
-  ImageUploadFieldThumbnail,
-} from "./image-upload-field-modal";
 
 type AddFieldModalProps = {
   showAddFieldModal: boolean;

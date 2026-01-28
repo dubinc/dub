@@ -7,18 +7,17 @@ import {
   PROGRAM_APPLICATION_IMAGE_MAX_FILE_SIZE_MB,
 } from "@/lib/constants/program";
 import { programApplicationFormImageUploadFieldSchema } from "@/lib/zod/schemas/program-application-form";
-import usePartnerProfile from "@/lib/swr/use-partner-profile";
-import { cn, R2_URL } from "@dub/utils";
+import { X } from "@/ui/shared/icons";
+import { FileUpload, LoadingSpinner } from "@dub/ui";
+import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { useParams } from "next/navigation";
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 import { v4 as uuid } from "uuid";
 import * as z from "zod/v4";
 import { FormControl } from "./form-control";
-import { FileUpload, LoadingSpinner } from "@dub/ui";
-import { X } from "@/ui/shared/icons";
 
 type ImageUploadFieldData = z.infer<
   typeof programApplicationFormImageUploadFieldSchema
@@ -49,10 +48,10 @@ function ImageUploadFieldContent({
   uploadFile: (params: { programSlug: string }) => Promise<any>;
 }) {
   const currentValue = controllerField.value || [];
-  
+
   // Track if we're updating from an internal change to prevent circular updates
   const isInternalUpdateRef = useRef(false);
-  
+
   // Initialize files state from form value
   const [files, setFiles] = useState<FileInput[]>(() => {
     if (Array.isArray(currentValue) && currentValue.length > 0) {
@@ -73,11 +72,11 @@ function ImageUploadFieldContent({
       isInternalUpdateRef.current = false;
       return;
     }
-    
+
     if (Array.isArray(currentValue)) {
       const currentUrls = currentValue.filter(Boolean);
       const fileUrls = files.map((f) => f.url).filter(Boolean);
-      
+
       // Only update if URLs differ
       if (
         currentUrls.length !== fileUrls.length ||
@@ -98,17 +97,15 @@ function ImageUploadFieldContent({
 
   // Update form value when files change
   useEffect(() => {
-    const urls = files
-      .filter((f) => f.url && !f.uploading)
-      .map((f) => f.url!);
-    
+    const urls = files.filter((f) => f.url && !f.uploading).map((f) => f.url!);
+
     // Compare with current form value to avoid unnecessary updates
     // Read currentValue directly from controllerField to avoid stale closure
     const formValue = controllerField.value || [];
-    const currentUrls = Array.isArray(formValue) 
-      ? formValue.filter(Boolean) 
+    const currentUrls = Array.isArray(formValue)
+      ? formValue.filter(Boolean)
       : [];
-    
+
     // Only update if URLs actually changed
     if (
       urls.length !== currentUrls.length ||
@@ -121,7 +118,9 @@ function ImageUploadFieldContent({
 
   const handleUpload = async (file: File) => {
     if (!programSlug) {
-      toast.error("Unable to upload image. Please refresh the page and try again.");
+      toast.error(
+        "Unable to upload image. Please refresh the page and try again.",
+      );
       return;
     }
 
@@ -135,14 +134,20 @@ function ImageUploadFieldContent({
 
     // Validate file size
     if (file.size > PROGRAM_APPLICATION_IMAGE_MAX_FILE_SIZE_MB * 1024 * 1024) {
-      toast.error(`File size exceeds maximum of ${PROGRAM_APPLICATION_IMAGE_MAX_FILE_SIZE_MB}MB`);
+      toast.error(
+        `File size exceeds maximum of ${PROGRAM_APPLICATION_IMAGE_MAX_FILE_SIZE_MB}MB`,
+      );
       return;
     }
 
     // Check max images limit
-    const currentUploadedCount = files.filter((f) => f.url && !f.uploading).length;
+    const currentUploadedCount = files.filter(
+      (f) => f.url && !f.uploading,
+    ).length;
     if (currentUploadedCount >= maxImages) {
-      toast.error(`Maximum of ${maxImages} image${maxImages === 1 ? "" : "s"} allowed`);
+      toast.error(
+        `Maximum of ${maxImages} image${maxImages === 1 ? "" : "s"} allowed`,
+      );
       return;
     }
 
@@ -213,7 +218,11 @@ function ImageUploadFieldContent({
               <LoadingSpinner className="size-4" />
             ) : file.url ? (
               <div className="relative size-full overflow-hidden rounded-md">
-                <img src={file.url} alt={`Upload ${idx + 1}`} className="object-cover" />
+                <img
+                  src={file.url}
+                  alt={`Upload ${idx + 1}`}
+                  className="object-cover"
+                />
               </div>
             ) : null}
             <span className="sr-only">
@@ -251,7 +260,9 @@ function ImageUploadFieldContent({
               ? null
               : `${PROGRAM_APPLICATION_IMAGE_ALLOWED_TYPES_LABEL}, max size of ${PROGRAM_APPLICATION_IMAGE_MAX_FILE_SIZE_MB}MB`
           }
-          onChange={preview ? undefined : async ({ file }) => await handleUpload(file)}
+          onChange={
+            preview ? undefined : async ({ file }) => await handleUpload(file)
+          }
           disabled={preview || files.length >= maxImages || fileUploading}
           maxFileSizeMB={PROGRAM_APPLICATION_IMAGE_MAX_FILE_SIZE_MB}
         />
@@ -269,9 +280,9 @@ export function ImageUploadField({
   field: ImageUploadFieldData;
   preview?: boolean;
 }) {
-  const {programSlug} = useParams<{ programSlug: string }>();
+  const { programSlug } = useParams<{ programSlug: string }>();
   const { getFieldState, control } = useFormContext<any>();
- 
+
   const keyPath = keyPathProp ? `${keyPathProp}.value` : "value";
   const state = getFieldState(keyPath);
 
@@ -297,7 +308,9 @@ export function ImageUploadField({
             : {
                 validate: (val: any) => {
                   if (field.required) {
-                    const imageUrls = Array.isArray(val) ? val.filter(Boolean) : [];
+                    const imageUrls = Array.isArray(val)
+                      ? val.filter(Boolean)
+                      : [];
                     if (imageUrls.length === 0) {
                       return `${field.label} is required`;
                     }
