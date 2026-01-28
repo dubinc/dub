@@ -160,14 +160,14 @@ export function useMarkReferralQualifiedModal({
 }: {
   referral: ReferralProps;
 }) {
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, defaultProgramId } = useWorkspace();
   const [showModal, setShowModal] = useState(false);
   const resetFormRef = useRef<(() => void) | null>(null);
 
   const { executeAsync, isPending } = useAction(markReferralQualifiedAction, {
     onSuccess: async () => {
       toast.success("Partner referral qualified successfully!");
-      mutatePrefix("/api/programs/referrals");
+      mutatePrefix(`/api/programs/${defaultProgramId}/referrals`);
       setShowModal(false);
       resetFormRef.current?.();
     },

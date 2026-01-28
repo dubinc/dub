@@ -1,10 +1,7 @@
 "use client";
 
 import useWorkspace from "@/lib/swr/use-workspace";
-import {
-  getPartnerReferralsQuerySchema,
-  referralSchema,
-} from "@/lib/zod/schemas/referrals";
+import { referralSchema } from "@/lib/zod/schemas/referrals";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
@@ -24,22 +21,18 @@ import { Row } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 import * as z from "zod/v4";
+import { useProgramReferralsCount } from "../../lib/swr/use-program-referrals-count";
 import { ReferralSheet } from "./partner-referral-sheet";
 import { ReferralStatusBadges } from "./referral-status-badges";
 import { getCompanyLogoUrl } from "./referral-utils";
-import { usePartnerReferralFilters } from "./use-partner-referral-filters";
-import { usePartnerReferralsCount } from "./use-partner-referrals-count";
+import { useProgramReferralsFilters } from "./use-program-referral-filters";
 
 type PartnerReferralProps = z.infer<typeof referralSchema>;
 
-export function PartnerReferralTable({
-  query,
-}: {
-  query?: Partial<z.infer<typeof getPartnerReferralsQuerySchema>>;
-}) {
+export function PartnerReferralTable() {
   const { getQueryString, queryParams, searchParams } = useRouterStuff();
   const { pagination, setPagination } = usePagination();
-  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
+  const { id: workspaceId, defaultProgramId } = useWorkspace();
 
   const referralIdFromUrl = searchParams.get("referralId");
 
@@ -59,20 +52,18 @@ export function PartnerReferralTable({
     onRemoveAll,
     setSearch,
     setSelectedFilter,
-  } = usePartnerReferralFilters({});
+  } = useProgramReferralsFilters({});
 
-  const { data: referralsCount, error: countError } = usePartnerReferralsCount({
-    query,
-  });
+  const { data: referralsCount, error: countError } =
+    useProgramReferralsCount();
 
   const {
     data: referrals,
     error,
     isLoading,
   } = useSWR<PartnerReferralProps[]>(
-    `/api/programs/referrals${getQueryString({
+    `/api/programs/${defaultProgramId}/referrals${getQueryString({
       workspaceId,
-      ...query,
     })}`,
     fetcher,
     {

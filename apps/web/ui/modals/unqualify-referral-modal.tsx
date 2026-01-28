@@ -13,12 +13,12 @@ export function useUnqualifyReferralModal({
 }: {
   referral: ReferralProps;
 }) {
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, defaultProgramId } = useWorkspace();
 
   const { executeAsync, isPending } = useAction(markReferralUnqualifiedAction, {
     onSuccess: async () => {
       toast.success("Partner referral unqualified successfully!");
-      mutatePrefix("/api/programs/referrals");
+      mutatePrefix(`/api/programs/${defaultProgramId}/referrals`);
     },
     onError({ error }) {
       toast.error(error.serverError);

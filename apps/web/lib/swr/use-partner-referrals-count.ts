@@ -7,11 +7,11 @@ import * as z from "zod/v4";
 
 export default function usePartnerReferralsCount<T = number>({
   query,
-  includeParams = ["status", "search"],
+  ignoreParams,
   enabled = true,
 }: {
   query?: Partial<z.infer<typeof getPartnerReferralsCountQuerySchema>>;
-  includeParams?: string[];
+  ignoreParams?: boolean;
   enabled?: boolean;
 } = {}) {
   const { programSlug } = useParams<{ programSlug: string }>();
@@ -29,7 +29,7 @@ export default function usePartnerReferralsCount<T = number>({
             )
           : undefined,
         {
-          include: includeParams,
+          include: ignoreParams ? [] : ["status", "search"],
         },
       )}`,
     fetcher,

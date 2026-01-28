@@ -9,9 +9,9 @@ import { useFraudGroupCount } from "@/lib/swr/use-fraud-groups-count";
 import { usePartnerMessagesCount } from "@/lib/swr/use-partner-messages-count";
 import usePayoutsCount from "@/lib/swr/use-payouts-count";
 import useProgram from "@/lib/swr/use-program";
+import { useProgramReferralsCount } from "@/lib/swr/use-program-referrals-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import useWorkspaces from "@/lib/swr/use-workspaces";
-import { usePartnerReferralsCount } from "@/ui/referrals/use-partner-referrals-count";
 import { useRouterStuff } from "@dub/ui";
 import {
   Bell,
@@ -295,13 +295,11 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "Customers",
             icon: UserCheck,
             href: `/${slug}/program/customers`,
-            badge:
-              pathname?.includes("/customers/referrals") &&
-              pendingReferralsCount
-                ? pendingReferralsCount > 99
-                  ? "99+"
-                  : pendingReferralsCount
-                : undefined,
+            badge: pendingReferralsCount
+              ? pendingReferralsCount > 99
+                ? "99+"
+                : pendingReferralsCount
+              : undefined,
           },
           {
             name: "Commissions",
@@ -602,12 +600,10 @@ export function AppSidebarNav({
     ignoreParams: true,
   });
 
-  const { data: pendingReferralsCount } = usePartnerReferralsCount<number>({
-    query:
-      currentArea === "program" && defaultProgramId
-        ? { status: "pending" }
-        : undefined,
-    includeParams: ["status"],
+  const { data: pendingReferralsCount } = useProgramReferralsCount<number>({
+    query: { status: "pending" },
+    ignoreParams: true,
+    enabled: Boolean(currentArea === "program" && defaultProgramId),
   });
 
   const { canTrackConversions } = getPlanCapabilities(plan);

@@ -2,10 +2,10 @@
 
 import { REFERRAL_ENABLED_PROGRAM_IDS } from "@/lib/referrals/constants";
 import useCustomersCount from "@/lib/swr/use-customers-count";
+import { useProgramReferralsCount } from "@/lib/swr/use-program-referrals-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
-import { usePartnerReferralsCount } from "@/ui/referrals/use-partner-referrals-count";
 import { InfoTooltip } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Link from "next/link";
@@ -25,8 +25,8 @@ export default function PartnerCustomersLayout({
     includeParams: [],
   });
 
-  const { data: referralsCount } = usePartnerReferralsCount<number>({
-    includeParams: [],
+  const { data: referralsCount } = useProgramReferralsCount<number>({
+    ignoreParams: true,
   });
 
   const isEnabled = defaultProgramId

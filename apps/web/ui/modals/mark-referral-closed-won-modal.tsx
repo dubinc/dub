@@ -193,14 +193,14 @@ export function useMarkReferralClosedWonModal({
 }: {
   referral: ReferralProps;
 }) {
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, defaultProgramId } = useWorkspace();
   const [showModal, setShowModal] = useState(false);
   const resetFormRef = useRef<(() => void) | null>(null);
 
   const { executeAsync, isPending } = useAction(markReferralClosedWonAction, {
     onSuccess: async () => {
       toast.success("Partner referral marked as closed won successfully!");
-      mutatePrefix("/api/programs/referrals");
+      mutatePrefix(`/api/programs/${defaultProgramId}/referrals`);
       setShowModal(false);
       resetFormRef.current?.();
     },

@@ -8,7 +8,7 @@ import { prisma, sanitizeFullTextSearch } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
-// GET /api/programs/referrals - get all partner referrals for a program
+// GET /api/programs/[programId]/referrals - get all partner referrals for a program
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);

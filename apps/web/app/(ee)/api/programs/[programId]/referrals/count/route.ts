@@ -8,7 +8,7 @@ import { prisma, sanitizeFullTextSearch } from "@dub/prisma";
 import { Prisma, ReferralStatus } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 
-// GET /api/programs/referrals/count - get the count of partner referrals for a program
+// GET /api/programs/[programId]/referrals/count - get the count of partner referrals for a program
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);

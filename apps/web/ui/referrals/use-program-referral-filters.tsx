@@ -11,10 +11,10 @@ import { cn, nFormatter, OG_AVATAR_URL } from "@dub/utils";
 import { useCallback, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 import * as z from "zod/v4";
+import { useProgramReferralsCount } from "../../lib/swr/use-program-referrals-count";
 import { ReferralStatusBadges } from "./referral-status-badges";
-import { usePartnerReferralsCount } from "./use-partner-referrals-count";
 
-export function usePartnerReferralFilters(
+export function useProgramReferralsFilters(
   extraSearchParams: Record<string, string>,
 ) {
   const [search, setSearch] = useState("");
@@ -27,7 +27,7 @@ export function usePartnerReferralFilters(
     selectedFilter === "partnerId" ? debouncedSearch : "",
   );
 
-  const { data: statusCount } = usePartnerReferralsCount<
+  const { data: statusCount } = useProgramReferralsCount<
     z.infer<typeof partnerReferralsCountByStatusSchema>[] | undefined
   >({
     query: {
@@ -35,7 +35,7 @@ export function usePartnerReferralFilters(
     },
   });
 
-  const { data: partnersCount } = usePartnerReferralsCount<
+  const { data: partnersCount } = useProgramReferralsCount<
     z.infer<typeof partnerReferralsCountByPartnerIdSchema>[] | undefined
   >({
     query: {

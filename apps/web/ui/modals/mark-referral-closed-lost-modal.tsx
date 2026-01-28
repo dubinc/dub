@@ -13,12 +13,12 @@ export function useMarkReferralClosedLostModal({
 }: {
   referral: ReferralProps;
 }) {
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, defaultProgramId } = useWorkspace();
 
   const { executeAsync, isPending } = useAction(markReferralClosedLostAction, {
     onSuccess: async () => {
       toast.success("Partner referral marked as closed lost successfully!");
-      mutatePrefix("/api/programs/referrals");
+      mutatePrefix(`/api/programs/${defaultProgramId}/referrals`);
     },
     onError({ error }) {
       toast.error(error.serverError);

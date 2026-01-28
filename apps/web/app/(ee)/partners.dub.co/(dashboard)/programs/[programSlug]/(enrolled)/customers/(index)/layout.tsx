@@ -30,7 +30,7 @@ export default function PartnerCustomersLayout({
   });
 
   const { data: referralsCount } = usePartnerReferralsCount<number>({
-    includeParams: [],
+    ignoreParams: true,
   });
 
   const referralFormDataRaw = programEnrollment?.program?.referralFormData;
