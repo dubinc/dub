@@ -4,6 +4,7 @@ import { ProgramApplication } from "@dub/prisma/client";
 export interface FormDataKeyValue {
   title: string;
   value: string;
+  images?: string[];
 }
 
 export const formatApplicationFormData = (
@@ -44,6 +45,12 @@ export const formatApplicationFormData = (
           return {
             title: field.label,
             value,
+          };
+        case "image-upload":
+          return {
+            title: field.label,
+            value: "",
+            images: Array.isArray(field.value) ? field.value : [],
           };
         case "website-and-socials":
           return null;

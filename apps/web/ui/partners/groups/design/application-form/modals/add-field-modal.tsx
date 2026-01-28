@@ -24,6 +24,10 @@ import {
   WebsiteAndSocialsFieldIcon,
   WebsiteAndSocialsFieldModal,
 } from "./website-and-socials-field-modal";
+import {
+  ImageUploadFieldModal,
+  ImageUploadFieldThumbnail,
+} from "./image-upload-field-modal";
 
 type AddFieldModalProps = {
   showAddFieldModal: boolean;
@@ -78,6 +82,13 @@ export const DESIGNER_FIELDS: ({
     description: "For a shorter range of answers to a question",
     modal: MultipleChoiceFieldModal,
     thumbnail: <MultipleChoiceFieldThumbnail />,
+  },
+  {
+    id: "image-upload",
+    label: "Image Upload",
+    description: "Allow partners to upload images",
+    modal: ImageUploadFieldModal,
+    thumbnail: <ImageUploadFieldThumbnail />,
   },
   {
     id: "website-and-socials",

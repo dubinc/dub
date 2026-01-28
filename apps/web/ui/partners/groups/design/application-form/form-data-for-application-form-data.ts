@@ -1,6 +1,7 @@
 import { ProgramApplicationFormDataWithValues } from "@/lib/types";
 import {
   programApplicationFormFieldSchema,
+  programApplicationFormImageUploadFieldWithValueSchema,
   programApplicationFormLongTextFieldWithValueSchema,
   programApplicationFormMultipleChoiceFieldSchema,
   programApplicationFormMultipleChoiceFieldWithValueSchema,
@@ -45,6 +46,13 @@ export const formDataForApplicationFormData = (
           } as z.infer<
             typeof programApplicationFormMultipleChoiceFieldWithValueSchema
           >;
+        case "image-upload":
+          return {
+            ...field,
+            value: [],
+          } as z.infer<
+            typeof programApplicationFormImageUploadFieldWithValueSchema
+          >;
         case "website-and-socials":
           return {
             ...field,
@@ -55,6 +63,8 @@ export const formDataForApplicationFormData = (
           } as z.infer<
             typeof programApplicationFormWebsiteAndSocialsFieldWithValueSchema
           >;
+        default:
+          return field;
       }
     }),
   } as any;

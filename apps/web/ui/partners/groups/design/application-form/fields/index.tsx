@@ -1,5 +1,6 @@
 import { programApplicationFormFieldSchema } from "@/lib/zod/schemas/program-application-form";
 import * as z from "zod/v4";
+import { ImageUploadField } from "./image-upload-field";
 import { LongTextField } from "./long-text-field";
 import { MultipleChoiceField } from "./multiple-choice-field";
 import { SelectField } from "./select-field";
@@ -15,6 +16,7 @@ const FIELD_COMPONENTS: Record<
   "long-text": LongTextField,
   select: SelectField,
   "website-and-socials": WebsiteAndSocialsField,
+  "image-upload": ImageUploadField,
 };
 
 export const ProgramApplicationFormField = ({
