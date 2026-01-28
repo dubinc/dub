@@ -39,36 +39,29 @@ function PlanChangeConfirmationModal({
         <div className="flex flex-col items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4">
           <TriangleWarning className="size-5 text-amber-600" />
           <p className="text-sm font-medium text-amber-900">
-            Your partner program will be deactivated after this change.
+            This change will affect your partner program
           </p>
         </div>
 
-        <div className="space-y-3 text-sm text-neutral-600">
-          <p>
-            Ensure any outstanding commissions and payouts are resolved before
-            changing your plan.
-          </p>
-
-          <p>
-            Once the program is deactivated, you will lose access to your
-            partner program until you upgrade again.
-          </p>
-
-          <p>
-            All partner links will stop tracking new activity, and partners will
-            be notified automatically.
-          </p>
-        </div>
-
-        <p className="text-sm text-neutral-600">
-          View{" "}
-          <Link
-            href={`/${slug}/program/payouts?status=pending`}
-            className="font-medium text-neutral-900 underline underline-offset-4 hover:text-neutral-600"
-          >
-            pending payouts
-          </Link>
-        </p>
+        <ul className="list-disc space-y-1.5 pl-5 text-sm text-neutral-600">
+          <li>Your partner program will be deactivated and access removed</li>
+          <li>Partner links will stop tracking new activity</li>
+          <li>Partners will be notified automatically</li>
+          <li>
+            Any{" "}
+            <Link
+              href={`/${slug}/program/payouts?status=pending`}
+              className="font-medium text-neutral-900 underline underline-offset-4 hover:text-neutral-600"
+            >
+              pending payouts
+            </Link>{" "}
+            will need to be resolved
+          </li>
+          <li>
+            To access your partner program in the future, you will need to
+            upgrade
+          </li>
+        </ul>
       </div>
 
       <div className="flex items-center justify-end gap-2 border-t border-neutral-200 px-4 py-5 sm:px-6">
