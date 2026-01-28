@@ -7,6 +7,7 @@ import { BLOCK_COMPONENTS } from "@/ui/partners/lander/blocks";
 import { LanderHero } from "@/ui/partners/lander/lander-hero";
 import { LanderRewards } from "@/ui/partners/lander/lander-rewards";
 import { prisma } from "@dub/prisma";
+import { Reward } from "@dub/prisma/client";
 import { CircleCheckFill } from "@dub/ui";
 import { OG_AVATAR_URL, cn } from "@dub/utils";
 import { redirect } from "next/navigation";
@@ -64,7 +65,7 @@ export default async function ProgramInvitePage(props: {
 
   const rewards = [clickReward, leadReward, saleReward]
     .filter((r) => r !== null)
-    .map((r) => serializeReward(r));
+    .map((r) => serializeReward(r as Reward));
 
   const landerData = group.landerData
     ? programLanderSchema.parse(group.landerData)
