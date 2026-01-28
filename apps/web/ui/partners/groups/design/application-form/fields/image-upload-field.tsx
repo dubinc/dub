@@ -1,5 +1,6 @@
 "use client";
 
+import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { uploadProgramApplicationImageAction } from "@/lib/actions/partners/upload-program-application-image";
 import {
   PROGRAM_APPLICATION_IMAGE_ALLOWED_TYPES,
@@ -18,7 +19,6 @@ import { toast } from "sonner";
 import { v4 as uuid } from "uuid";
 import * as z from "zod/v4";
 import { FormControl } from "./form-control";
-import { parseActionError } from "@/lib/actions/parse-action-errors";
 
 type ImageUploadFieldData = z.infer<
   typeof programApplicationFormImageUploadFieldSchema
@@ -320,11 +320,11 @@ export function ImageUploadField({
   const { executeAsync: uploadFile } = useAction(
     uploadProgramApplicationImageAction,
     {
-      onError({error}) {
+      onError({ error }) {
         toast.error(parseActionError(error, "Failed to upload image."));
         onStatusChange?.(false);
       },
-    }
+    },
   );
 
   const maxImages = field.data.maxImages || 1;
