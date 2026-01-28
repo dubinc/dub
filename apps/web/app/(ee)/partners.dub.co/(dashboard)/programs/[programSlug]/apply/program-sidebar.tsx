@@ -1,7 +1,5 @@
 "use client";
 
-import { acceptProgramInviteAction } from "@/lib/actions/partners/accept-program-invite";
-import { mutatePrefix } from "@/lib/swr/mutate";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { DiscountProps, ProgramProps, RewardProps } from "@/lib/types";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
@@ -9,10 +7,8 @@ import { useProgramApplicationSheet } from "@/ui/partners/program-application-sh
 import { ProgramRewardList } from "@/ui/partners/program-reward-list";
 import { BlurImage, Button, CircleCheck, Link4, StatusBadge } from "@dub/ui";
 import { capitalize, cn, OG_AVATAR_URL } from "@dub/utils";
-import { useAction } from "next-safe-action/hooks";
-import { useRouter } from "next/navigation";
+import { redirect } from "next/navigation";
 import { useMemo, useState } from "react";
-import { toast } from "sonner";
 
 export function ProgramSidebar({
   program,
@@ -23,8 +19,6 @@ export function ProgramSidebar({
   applicationRewards: RewardProps[];
   applicationDiscount: DiscountProps | null;
 }) {
-  const router = useRouter();
-
   const { programEnrollment } = useProgramEnrollment({
     swrOpts: {
       keepPreviousData: true,
@@ -47,14 +41,11 @@ export function ProgramSidebar({
 
   const buttonText = useMemo(() => {
     if (justApplied) return "Applied";
-
     if (!programEnrollment) return "Apply";
 
     switch (programEnrollment.status) {
       case "pending":
         return "Applied";
-      case "invited":
-        return "Accept invite";
       case "approved":
         return "Enrolled";
       default:
@@ -62,26 +53,16 @@ export function ProgramSidebar({
     }
   }, [justApplied, programEnrollment]);
 
-  const { executeAsync: executeAcceptInvite, isPending: isAcceptingInvite } =
-    useAction(acceptProgramInviteAction, {
-      onSuccess: async () => {
-        await mutatePrefix("/api/partner-profile/programs");
-        toast.success("Program invite accepted!");
-        if (program) {
-          router.push(`/programs/${program.slug}`);
-        }
-      },
-      onError: ({ error }) => {
-        toast.error(error.serverError);
-      },
-    });
-
   const { programApplicationSheet, setIsOpen: setIsApplicationSheetOpen } =
     useProgramApplicationSheet({
       program,
       programEnrollment,
       onSuccess: () => setJustApplied(true),
     });
+
+  if (programEnrollment?.status === "invited") {
+    redirect(`/programs/${program.slug}/invite`);
+  }
 
   return (
     <div>
@@ -139,18 +120,8 @@ export function ProgramSidebar({
         className={cn("mt-8", justApplied && "text-green-600")}
         text={buttonText}
         icon={justApplied ? <CircleCheck className="size-4" /> : undefined}
-        disabled={
-          (programEnrollment && programEnrollment.status !== "invited") ||
-          justApplied
-        }
-        onClick={() => {
-          if (programEnrollment?.status === "invited") {
-            executeAcceptInvite({
-              programId: programEnrollment.programId,
-            });
-          } else setIsApplicationSheetOpen(true);
-        }}
-        loading={isAcceptingInvite}
+        disabled={programEnrollment || justApplied ? true : undefined}
+        onClick={() => setIsApplicationSheetOpen(true)}
       />
     </div>
   );
