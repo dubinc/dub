@@ -319,7 +319,8 @@ export const trackLead = async ({
               },
             });
 
-            const { webhookPartner, programEnrollment } = createdCommission;
+            const { commission, webhookPartner, programEnrollment } =
+              createdCommission;
 
             await Promise.allSettled([
               executeWorkflows({
@@ -339,7 +340,9 @@ export const trackLead = async ({
                 eventType: "lead",
               }),
 
-              webhookPartner &&
+              // only run fraud checks if the commission was created
+              commission &&
+                webhookPartner &&
                 detectAndRecordFraudEvent({
                   program: { id: link.programId },
                   partner: pick(webhookPartner, ["id", "email", "name"]),
