@@ -27,6 +27,8 @@ export async function invoicePaymentFailed(event: Stripe.Event) {
       id: true,
       name: true,
       slug: true,
+      plan: true,
+      defaultProgramId: true,
       users: {
         select: {
           user: {
