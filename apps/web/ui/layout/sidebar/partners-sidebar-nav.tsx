@@ -296,7 +296,7 @@ export function PartnersSidebarNav({
 
   const isEnrolledProgramPage =
     pathname.startsWith(`/programs/${programSlug}`) &&
-    pathname !== `/programs/${programSlug}/apply`;
+    !["/apply", "/invite"].some((p) => pathname.endsWith(p));
 
   const { programEnrollment, showDetailedAnalytics } = useProgramEnrollment({
     enabled: isEnrolledProgramPage,
