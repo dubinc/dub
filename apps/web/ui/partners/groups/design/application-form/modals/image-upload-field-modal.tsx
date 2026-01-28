@@ -253,32 +253,32 @@ function ImageUploadFieldModalInner({
 export function ImageUploadFieldThumbnail() {
   return (
     <svg
-      width="168"
-      height="100"
-      viewBox="0 0 168 100"
+      width="48"
+      height="48"
+      viewBox="0 0 48 48"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className="h-auto w-full"
+      className="size-full"
     >
-      <rect x="0.5" y="0.5" width="167" height="99" rx="5.5" fill="white" />
-      <rect x="0.5" y="0.5" width="167" height="99" rx="5.5" stroke="#E5E5E5" />
-      <rect x="20" y="20" width="60" height="60" rx="4" fill="#F5F5F5" />
-      <rect x="20" y="20" width="60" height="60" rx="4" stroke="#E5E5E5" />
-      <circle cx="35" cy="35" r="4" fill="#D9D9D9" />
+      <rect x="0.5" y="0.5" width="47" height="47" rx="5.5" fill="white" />
+      <rect x="0.5" y="0.5" width="47" height="47" rx="5.5" stroke="#E5E5E5" />
+      <rect x="6" y="14" width="16" height="20" rx="2" fill="#F5F5F5" />
+      <rect x="6" y="14" width="16" height="20" rx="2" stroke="#E5E5E5" />
+      <circle cx="10" cy="18" r="1.5" fill="#D9D9D9" />
       <path
-        d="M20 65L35 50L50 65H20Z"
+        d="M6 30L10 25L14 30H6Z"
         fill="#D9D9D9"
         stroke="#E5E5E5"
-        strokeWidth="1"
+        strokeWidth="0.5"
       />
-      <rect x="88" y="20" width="60" height="60" rx="4" fill="#F5F5F5" />
-      <rect x="88" y="20" width="60" height="60" rx="4" stroke="#E5E5E5" />
-      <circle cx="103" cy="35" r="4" fill="#D9D9D9" />
+      <rect x="26" y="14" width="16" height="20" rx="2" fill="#F5F5F5" />
+      <rect x="26" y="14" width="16" height="20" rx="2" stroke="#E5E5E5" />
+      <circle cx="30" cy="18" r="1.5" fill="#D9D9D9" />
       <path
-        d="M88 65L103 50L118 65H88Z"
+        d="M26 30L30 25L34 30H26Z"
         fill="#D9D9D9"
         stroke="#E5E5E5"
-        strokeWidth="1"
+        strokeWidth="0.5"
       />
     </svg>
   );
