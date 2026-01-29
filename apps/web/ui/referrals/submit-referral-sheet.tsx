@@ -78,9 +78,22 @@ export function SubmitReferralSheet({
       return;
     }
 
+    // Strip null, undefined, empty string, and NaN so they are never recorded
+    const sanitizedFormData = Object.fromEntries(
+      Object.entries(data.formData).filter(([, value]) => {
+        if (value === undefined || value === null || value === "") {
+          return false;
+        }
+        if (typeof value === "number" && Number.isNaN(value)) {
+          return false;
+        }
+        return true;
+      }),
+    );
+
     await executeAsync({
       programId,
-      formData: data.formData,
+      formData: sanitizedFormData,
     });
   };
 

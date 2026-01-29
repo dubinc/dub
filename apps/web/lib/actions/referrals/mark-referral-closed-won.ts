@@ -4,6 +4,7 @@ import { trackSale } from "@/lib/api/conversions/track-sale";
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getReferralOrThrow } from "@/lib/api/referrals/get-referral-or-throw";
+import { notifyReferralStatusUpdate } from "@/lib/api/referrals/notify-referral-status-update";
 import { markReferralClosedWonSchema } from "@/lib/zod/schemas/referrals";
 import { prisma } from "@dub/prisma";
 import { ReferralStatus } from "@dub/prisma/client";
@@ -15,7 +16,7 @@ export const markReferralClosedWonAction = authActionClient
   .inputSchema(markReferralClosedWonSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const { referralId, saleAmount, stripeCustomerId } = parsedInput;
+    const { referralId, saleAmount, stripeCustomerId, notes } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -63,13 +64,22 @@ export const markReferralClosedWonAction = authActionClient
 
     // Update customer with the stripe customer ID
     waitUntil(
-      prisma.customer.update({
-        where: {
-          id: referral.customerId!,
-        },
-        data: {
-          stripeCustomerId,
-        },
-      }),
+      (async () => {
+        await prisma.customer.update({
+          where: {
+            id: referral.customerId!,
+          },
+          data: {
+            stripeCustomerId,
+          },
+        });
+
+        await notifyReferralStatusUpdate({
+          referral,
+          programId,
+          status: ReferralStatus.closedWon,
+          notes,
+        });
+      })(),
     );
   });

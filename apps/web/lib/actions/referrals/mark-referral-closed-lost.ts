@@ -3,9 +3,11 @@
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getReferralOrThrow } from "@/lib/api/referrals/get-referral-or-throw";
+import { notifyReferralStatusUpdate } from "@/lib/api/referrals/notify-referral-status-update";
 import { markReferralClosedLostSchema } from "@/lib/zod/schemas/referrals";
 import { prisma } from "@dub/prisma";
 import { ReferralStatus } from "@dub/prisma/client";
+import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 
 // Mark a partner referral as closed lost
@@ -13,7 +15,7 @@ export const markReferralClosedLostAction = authActionClient
   .inputSchema(markReferralClosedLostSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const { referralId } = parsedInput;
+    const { referralId, notes } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -37,4 +39,13 @@ export const markReferralClosedLostAction = authActionClient
         status: ReferralStatus.closedLost,
       },
     });
+
+    waitUntil(
+      notifyReferralStatusUpdate({
+        referral: partnerReferral,
+        programId,
+        status: ReferralStatus.closedLost,
+        notes,
+      }),
+    );
   });
