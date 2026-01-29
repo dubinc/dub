@@ -68,6 +68,7 @@ export const executeMoveGroupWorkflow = async ({
     },
     select: {
       id: true,
+      name: true,
       clickRewardId: true,
       leadRewardId: true,
       saleRewardId: true,

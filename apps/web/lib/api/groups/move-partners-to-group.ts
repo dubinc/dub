@@ -2,11 +2,12 @@ import { qstash } from "@/lib/cron";
 import { recordLink } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
 import { PartnerGroup } from "@dub/prisma/client";
-import { APP_DOMAIN_WITH_NGROK, prettyPrint } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { triggerDraftBountySubmissionCreation } from "../bounties/trigger-draft-bounty-submissions";
 import { includeProgramEnrollment } from "../links/include-program-enrollment";
 import { includeTags } from "../links/include-tags";
+import { notifyPartnerGroupChange } from "../partners/notify-partner-group-change";
 
 interface MovePartnersToGroupParams {
   programId: string;
@@ -14,7 +15,12 @@ interface MovePartnersToGroupParams {
   userId: string;
   group: Pick<
     PartnerGroup,
-    "id" | "clickRewardId" | "leadRewardId" | "saleRewardId" | "discountId"
+    | "id"
+    | "name"
+    | "clickRewardId"
+    | "leadRewardId"
+    | "saleRewardId"
+    | "discountId"
   >;
 }
 
@@ -27,6 +33,24 @@ export async function movePartnersToGroup({
   if (partnerIds.length === 0) {
     return 0;
   }
+
+  const programEnrollments = await prisma.programEnrollment.findMany({
+    where: {
+      partnerId: {
+        in: partnerIds,
+      },
+      programId,
+    },
+    select: {
+      partnerId: true,
+    },
+  });
+
+  if (programEnrollments.length === 0) {
+    return 0;
+  }
+
+  partnerIds = programEnrollments.map(({ partnerId }) => partnerId);
 
   const { count } = await prisma.programEnrollment.updateMany({
     where: {
@@ -47,11 +71,6 @@ export async function movePartnersToGroup({
   if (count === 0) {
     return 0;
   }
-
-  console.log(
-    `Moved ${count} partners to group ${group.id}`,
-    prettyPrint({ partnerIds }),
-  );
 
   waitUntil(
     (async () => {
@@ -94,6 +113,12 @@ export async function movePartnersToGroup({
         }),
 
         recordLink(partnerLinks),
+
+        notifyPartnerGroupChange({
+          programId,
+          groupId: group.id,
+          partnerIds,
+        }),
       ]);
     })(),
   );
