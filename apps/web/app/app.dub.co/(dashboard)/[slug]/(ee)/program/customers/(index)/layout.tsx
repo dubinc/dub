@@ -11,7 +11,6 @@ import { cn } from "@dub/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { CSSProperties, ReactNode, useMemo } from "react";
-import { CustomersDropdownMenu } from "../customers-dropdown-menu";
 
 export default function PartnerCustomersLayout({
   children,
@@ -64,7 +63,6 @@ export default function PartnerCustomersLayout({
           "Get deeper, real-time insights about your referred customers' demographics, purchasing behavior, and lifetime value (LTV).",
         href: "https://dub.co/help/article/customer-insights",
       }}
-      controls={<CustomersDropdownMenu />}
     >
       <PageWidthWrapper className="flex flex-col gap-3 pb-10">
         {tabs.length > 0 && (

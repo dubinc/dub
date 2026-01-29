@@ -121,15 +121,15 @@ function ReferralClosedWonModal({
               </span>
             </div>
 
-            {errors.saleAmount && (
+            {errors.saleAmount ? (
               <p className="text-xs text-red-600">
                 {errors.saleAmount.message}
               </p>
+            ) : (
+              <p className="text-xs text-neutral-500">
+                This will also be recorded as a sale commission (if applicable)
+              </p>
             )}
-
-            <p className="text-xs text-neutral-500">
-              This will be also recorded as a sale commission (if applicable)
-            </p>
           </div>
 
           <div className="flex flex-col gap-2">

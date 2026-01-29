@@ -5,6 +5,7 @@ import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getReferralOrThrow } from "@/lib/api/referrals/get-referral-or-throw";
+import { notifyReferralStatusUpdate } from "@/lib/api/referrals/notify-referral-status-update";
 import { recordFakeClick } from "@/lib/tinybird/record-fake-click";
 import { markReferralQualifiedSchema } from "@/lib/zod/schemas/referrals";
 import { prisma } from "@dub/prisma";
@@ -18,7 +19,7 @@ export const markReferralQualifiedAction = authActionClient
   .inputSchema(markReferralQualifiedSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const { referralId, externalId } = parsedInput;
+    const { referralId, externalId, notes } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -116,6 +117,13 @@ export const markReferralQualifiedAction = authActionClient
           data: {
             customerId: customer.id,
           },
+        });
+
+        await notifyReferralStatusUpdate({
+          referral,
+          programId,
+          status: ReferralStatus.qualified,
+          notes,
         });
       })(),
     );
