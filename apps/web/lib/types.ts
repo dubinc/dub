@@ -23,6 +23,7 @@ import {
   User,
   UtmTemplate,
   Webhook,
+  WorkflowTrigger,
   WorkspaceRole,
 } from "@dub/prisma/client";
 import * as z from "zod/v4";
@@ -36,6 +37,7 @@ import {
 import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "./webhook/constants";
 import {
   BountyListSchema,
+  bountyPerformanceConditionSchema,
   BountySchema,
   BountySubmissionExtendedSchema,
   getBountySubmissionsQuerySchema,
@@ -44,6 +46,7 @@ import {
   CampaignListSchema,
   CampaignSchema,
   campaignSummarySchema,
+  campaignTriggerConditionSchema,
   EMAIL_TEMPLATE_VARIABLES,
   updateCampaignSchema,
 } from "./zod/schemas/campaigns";
@@ -646,6 +649,14 @@ export type BountySubmissionRequirement =
 
 export type WorkflowCondition = z.infer<typeof workflowConditionSchema>;
 
+export type BountyPerformanceCondition = z.infer<
+  typeof bountyPerformanceConditionSchema
+>;
+
+export type CampaignTriggerCondition = z.infer<
+  typeof campaignTriggerConditionSchema
+>;
+
 export type WorkflowConditionAttribute = (typeof WORKFLOW_ATTRIBUTES)[number];
 
 export type WorkflowComparisonOperator =
@@ -653,26 +664,10 @@ export type WorkflowComparisonOperator =
 
 export type WorkflowAction = z.infer<typeof workflowActionSchema>;
 
-export type OperatorFn = (a: number, b: number) => boolean;
-
-export interface WorkflowContext {
-  programId: string;
-  partnerId: string;
-  groupId?: string;
-  current?: {
-    leads?: number;
-    conversions?: number;
-    saleAmount?: number;
-    commissions?: number;
-  };
-  // Not using at the moment
-  historical?: {
-    leads?: number;
-    conversions?: number;
-    saleAmount?: number;
-    commissions?: number;
-  };
-}
+export type OperatorFn = (
+  aV: number,
+  cV: number | { min: number; max?: number },
+) => boolean;
 
 export type BountySubmissionsQueryFilters = z.infer<
   typeof getBountySubmissionsQuerySchema
@@ -763,10 +758,34 @@ export type CreateFraudEventInput = Pick<
   "programId" | "partnerId" | "type"
 > &
   Partial<
-    Pick<FraudEvent, "linkId" | "eventId" | "customerId" | "sourceProgramId">
-  > & {
-    metadata?: Record<string, unknown> | null;
+    Pick<
+      FraudEvent,
+      "linkId" | "eventId" | "customerId" | "sourceProgramId" | "metadata"
+    >
+  >;
+
+interface WorkflowIdentity {
+  programId: string;
+  partnerId: string;
+  groupId?: string;
+}
+
+interface PartnerMetrics {
+  leads?: number;
+  conversions?: number;
+  saleAmount?: number;
+  commissions?: number;
+}
+
+export interface WorkflowContext {
+  trigger: WorkflowTrigger;
+  reason?: "lead" | "sale" | "commission";
+  identity: WorkflowIdentity;
+  metrics?: {
+    current?: PartnerMetrics;
+    aggregated?: PartnerMetrics;
   };
+}
 
 export type ReferralProps = z.infer<typeof referralSchema>;
 

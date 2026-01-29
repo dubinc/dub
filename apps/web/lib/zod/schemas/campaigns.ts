@@ -8,7 +8,7 @@ import { GroupSchema } from "./groups";
 import { getPaginationQuerySchema } from "./misc";
 import { EnrolledPartnerSchema } from "./partners";
 import { parseDateSchema } from "./utils";
-import { workflowConditionSchema } from "./workflows";
+import { WORKFLOW_ATTRIBUTES, workflowConditionSchema } from "./workflows";
 
 export const EMAIL_TEMPLATE_VARIABLES = [
   "PartnerName",
@@ -46,6 +46,12 @@ export const CAMPAIGN_WORKFLOW_ATTRIBUTE_CONFIG: Record<
   },
 };
 
+export const campaignTriggerConditionSchema = z.object({
+  attribute: z.enum(WORKFLOW_ATTRIBUTES),
+  operator: z.literal("gte").default("gte"),
+  value: z.number(),
+});
+
 export const CampaignSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -55,7 +61,7 @@ export const CampaignSchema = z.object({
   bodyJson: z.record(z.string(), z.any()),
   type: z.enum(CampaignType),
   status: z.enum(CampaignStatus),
-  triggerCondition: workflowConditionSchema.nullable().default(null),
+  triggerCondition: campaignTriggerConditionSchema.nullable().default(null),
   groups: z.array(GroupSchema.pick({ id: true })),
   scheduledAt: z.date().nullable(),
   createdAt: z.date(),
@@ -88,7 +94,7 @@ export const updateCampaignSchema = z
     preview: z.string().nullish(),
     from: z.email().trim().toLowerCase(),
     bodyJson: z.record(z.string(), z.any()),
-    triggerCondition: workflowConditionSchema.nullish(),
+    triggerCondition: campaignTriggerConditionSchema.nullish(),
     groupIds: z.array(z.string()).nullable(),
     scheduledAt: parseDateSchema.nullish(),
     status: z.enum([

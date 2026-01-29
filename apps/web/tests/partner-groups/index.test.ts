@@ -32,6 +32,7 @@ const expectedGroup: Partial<GroupProps> = {
   maxPartnerLinks: DEFAULT_ADDITIONAL_PARTNER_LINKS,
   linkStructure: "short",
   additionalLinks: expect.any(Array),
+  moveRules: null,
 };
 
 describe.sequential("/groups/**", async () => {
@@ -138,6 +139,123 @@ describe.sequential("/groups/**", async () => {
     group = updatedGroup;
   });
 
+  test("PATCH /groups/[groupId] - update group with group move rule", async () => {
+    const moveRules = [
+      {
+        attribute: "totalLeads" as const,
+        operator: "gte" as const,
+        value: 10,
+      },
+    ];
+
+    const { status } = await http.patch<GroupProps>({
+      path: `/groups/${group.id}`,
+      body: {
+        moveRules,
+      },
+    });
+
+    expect(status).toEqual(200);
+
+    // Fetch the group to verify moveRules was persisted
+    const { data: fetchedGroup } = await http.get<GroupWithProgramProps>({
+      path: `/groups/${group.id}`,
+    });
+
+    const {
+      applicationFormData,
+      applicationFormPublishedAt,
+      landerData,
+      landerPublishedAt,
+      program,
+      ...updatedGroup
+    } = fetchedGroup;
+
+    expect(updatedGroup.moveRules).toStrictEqual(moveRules);
+
+    group = {
+      ...group,
+      moveRules,
+    };
+  });
+
+  test("PATCH /groups/[groupId] - add new rule to existing group move", async () => {
+    const moveRules = [
+      {
+        attribute: "totalLeads" as const,
+        operator: "gte" as const,
+        value: 10,
+      },
+      {
+        attribute: "totalConversions" as const,
+        operator: "gte" as const,
+        value: 5,
+      },
+    ];
+
+    const { status } = await http.patch<GroupProps>({
+      path: `/groups/${group.id}`,
+      body: {
+        moveRules,
+      },
+    });
+
+    expect(status).toEqual(200);
+
+    // Fetch the group to verify moveRules was updated
+    const { data: fetchedGroup } = await http.get<GroupWithProgramProps>({
+      path: `/groups/${group.id}`,
+    });
+
+    const {
+      applicationFormData,
+      applicationFormPublishedAt,
+      landerData,
+      landerPublishedAt,
+      program,
+      ...updatedGroup
+    } = fetchedGroup;
+
+    expect(updatedGroup.moveRules).toStrictEqual(moveRules);
+
+    group = {
+      ...group,
+      moveRules,
+    };
+  });
+
+  test("PATCH /groups/[groupId] - remove group move rule", async () => {
+    const { status } = await http.patch<GroupProps>({
+      path: `/groups/${group.id}`,
+      body: {
+        moveRules: [],
+      },
+    });
+
+    expect(status).toEqual(200);
+
+    // Fetch the group to verify moveRules was removed
+    const { data: fetchedGroup } = await http.get<GroupWithProgramProps>({
+      path: `/groups/${group.id}`,
+    });
+
+    const {
+      applicationFormData,
+      applicationFormPublishedAt,
+      landerData,
+      landerPublishedAt,
+      program,
+      ...updatedGroup
+    } = fetchedGroup;
+
+    expect(updatedGroup.moveRules).toBeNull();
+
+    group = {
+      ...group,
+      moveRules: null,
+    };
+  });
+
   test("GET /groups - fetch all groups", async () => {
     const { status, data: groups } = await http.get<GroupExtendedProps[]>({
       path: "/groups",
@@ -170,6 +288,7 @@ describe.sequential("/groups/**", async () => {
       totalConversions: 0,
       totalCommissions: 0,
       netRevenue: 0,
+      moveRules: null,
     });
   });
 

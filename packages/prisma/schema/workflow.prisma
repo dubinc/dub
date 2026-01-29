@@ -1,6 +1,9 @@
 enum WorkflowTrigger {
   partnerEnrolled // scheduled
-  clickRecorded // scheduled
+  partnerMetricsUpdated
+
+  // TODO: Remove this after migrations
+  clickRecorded
   commissionEarned
   leadRecorded
   saleRecorded
@@ -17,9 +20,10 @@ model Workflow {
   createdAt         DateTime        @default(now())
   updatedAt         DateTime        @updatedAt
 
-  program  Program   @relation(fields: [programId], references: [id], onDelete: Cascade)
-  bounty   Bounty?
-  campaign Campaign?
+  program      Program       @relation(fields: [programId], references: [id], onDelete: Cascade)
+  bounty       Bounty?
+  campaign     Campaign?
+  partnerGroup PartnerGroup?
 
   @@index([programId, trigger])
 }
