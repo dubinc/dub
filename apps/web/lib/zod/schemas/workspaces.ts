@@ -169,7 +169,6 @@ export const notificationTypes = z.enum([
   "pendingApplicationsSummary",
   "newBountySubmitted",
   "newMessageFromPartner",
-  "newPartnerReferral",
   "fraudEventsSummary",
 ]);
 

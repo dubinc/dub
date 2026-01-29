@@ -1,3 +1,4 @@
+import { getCompanyLogoUrl } from "@/ui/referrals/referral-utils";
 import { sendBatchEmail } from "@dub/email";
 import { ResendBulkEmailOptions } from "@dub/email/resend/types";
 import PartnerReferralSubmitted from "@dub/email/templates/partner-referral-submitted";
@@ -25,9 +26,6 @@ export async function notifyPartnerReferralSubmitted({
   const workspaceUsers = await prisma.projectUsers.findMany({
     where: {
       projectId: program.workspaceId,
-      notificationPreference: {
-        newPartnerReferral: true,
-      },
       user: {
         email: {
           not: null,
@@ -53,12 +51,6 @@ export async function notifyPartnerReferralSubmitted({
     | { label: string; value: unknown }[]
     | null;
 
-  // Try to get an image from the referral's email domain
-  const emailDomain = referral.email.split("@")[1];
-  const image = emailDomain
-    ? `https://logo.clearbit.com/${emailDomain}`
-    : null;
-
   const allEmails: ResendBulkEmailOptions = workspaceUsers.map(
     ({ user, project }) => ({
       subject: "New partner referral submitted",
@@ -74,7 +66,7 @@ export async function notifyPartnerReferralSubmitted({
           name: referral.name,
           email: referral.email,
           company: referral.company,
-          image,
+          image: getCompanyLogoUrl(referral.email),
           formData,
         },
       }),

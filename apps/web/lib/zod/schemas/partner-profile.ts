@@ -139,7 +139,6 @@ export const partnerNotificationTypes = z.enum([
   "applicationApproved",
   "newMessageFromProgram",
   "marketingCampaign",
-  "referralStatusUpdate",
 ]);
 
 export const PartnerBountySchema = BountySchema.omit({

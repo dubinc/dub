@@ -1,4 +1,4 @@
-import { GOOGLE_FAVICON_URL } from "@dub/utils";
+import { GOOGLE_FAVICON_URL, OG_AVATAR_URL } from "@dub/utils";
 
 // Formats a formData field value for display
 export function formatFormDataValue(value: unknown): string {
@@ -26,7 +26,9 @@ export function formatFormDataValue(value: unknown): string {
 }
 
 // Gets company logo URL from email domain
-export function getCompanyLogoUrl(email: string): string | null {
+export function getCompanyLogoUrl(email: string) {
   const emailDomain = email.split("@")[1];
-  return emailDomain ? `${GOOGLE_FAVICON_URL}${emailDomain}` : null;
+  return emailDomain
+    ? `${GOOGLE_FAVICON_URL}${emailDomain}`
+    : `${OG_AVATAR_URL}${email}`;
 }

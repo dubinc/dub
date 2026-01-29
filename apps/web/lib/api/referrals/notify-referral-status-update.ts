@@ -1,10 +1,9 @@
 import { ReferralStatusBadges } from "@/ui/referrals/referral-status-badges";
-import { sendBatchEmail } from "@dub/email";
-import { ResendBulkEmailOptions } from "@dub/email/resend/types";
+import { getCompanyLogoUrl } from "@/ui/referrals/referral-utils";
+import { sendEmail } from "@dub/email";
 import ReferralStatusUpdate from "@dub/email/templates/referral-status-update";
 import { prisma } from "@dub/prisma";
 import { PartnerReferral, ReferralStatus } from "@dub/prisma/client";
-import { chunk } from "@dub/utils";
 
 export async function notifyReferralStatusUpdate({
   referral,
@@ -28,20 +27,6 @@ export async function notifyReferralStatusUpdate({
       select: {
         name: true,
         email: true,
-        users: {
-          where: {
-            notificationPreferences: {
-              referralStatusUpdate: true,
-            },
-          },
-          select: {
-            user: {
-              select: {
-                email: true,
-              },
-            },
-          },
-        },
       },
     }),
   ]);
@@ -50,45 +35,29 @@ export async function notifyReferralStatusUpdate({
 
   const statusLabel = ReferralStatusBadges[status].label;
 
-  // Try to get an image from the referral's email domain
-  const emailDomain = referral.email.split("@")[1];
-  const image = emailDomain
-    ? `https://logo.clearbit.com/${emailDomain}`
-    : null;
-
-  const partnerEmailsToNotify = partner.users
-    .map(({ user }) => user.email)
-    .filter(Boolean) as string[];
-
-  const allEmails: ResendBulkEmailOptions = partnerEmailsToNotify.map(
-    (email) => ({
-      subject: `Your referral status has been updated to ${statusLabel}`,
-      variant: "notifications",
-      to: email,
-      react: ReferralStatusUpdate({
-        partner: {
-          name: partner.name,
-          email,
-        },
-        program: {
-          name: program.name,
-          slug: program.slug,
-        },
-        referral: {
-          name: referral.name,
-          email: referral.email,
-          company: referral.company,
-          image,
-        },
-        status: statusLabel,
-        notes,
-      }),
+  const emailRes = await sendEmail({
+    subject: `Your referral status has been updated to ${statusLabel}`,
+    variant: "notifications",
+    to: partner.email!,
+    react: ReferralStatusUpdate({
+      partner: {
+        name: partner.name,
+        email: partner.email!,
+      },
+      program: {
+        name: program.name,
+        slug: program.slug,
+      },
+      referral: {
+        name: referral.name,
+        email: referral.email,
+        company: referral.company,
+        image: getCompanyLogoUrl(referral.email),
+      },
+      status: statusLabel,
+      notes,
     }),
-  );
+  });
 
-  const emailChunks = chunk(allEmails, 100);
-
-  await Promise.all(
-    emailChunks.map((emailChunk) => sendBatchEmail(emailChunk)),
-  );
+  console.log(`Resend email sent: ${JSON.stringify(emailRes, null, 2)}`);
 }
