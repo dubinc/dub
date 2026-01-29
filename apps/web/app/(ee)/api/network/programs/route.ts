@@ -99,41 +99,20 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
     },
     orderBy:
       sortBy === "popularity"
-        ? {
-            applications: {
-              _count: "desc",
+        ? [
+            {
+              marketplaceRanking: "asc",
             },
-          }
+            {
+              applications: {
+                _count: "desc",
+              },
+            },
+          ]
         : { [sortBy]: sortOrder },
     skip: (page - 1) * pageSize,
     take: pageSize,
   });
-
-  // If sorting by popularity, put promoted programs first
-  if (sortBy === "popularity") {
-    const PROMOTED_PROGRAM_IDS = [
-      "prog_qGGSH0jXFZLeogOnq1sLkriY",
-      "prog_1JPKFV1EFCJACKR4QZBZGRMZ9",
-      "prog_MqN7G1vSbuSELpYJwioHyDE8",
-      "prog_1JQ9QE81X45KKEPGV1VQFPRQ4",
-      "prog_1K0A6SX71Q3ZRC1HYFMXQGWJ8",
-      "prog_1K7J9JV5P2NBPH4A4X4YGHV68",
-      "prog_1JWVR53QX1NM7NDEK62E3J19H",
-      "prog_1KCD34S7H3Z8BNJ5XJDTCFDJF",
-      "prog_1JXR4KWH9DDJ2ZEM4G6KB2MY4",
-    ];
-
-    const promoted = programs.filter((p) =>
-      PROMOTED_PROGRAM_IDS.includes(p.id),
-    );
-    const others = programs.filter((p) => !PROMOTED_PROGRAM_IDS.includes(p.id));
-    // Sort promoted by their order in PROMOTED_PROGRAM_IDS
-    promoted.sort(
-      (a, b) =>
-        PROMOTED_PROGRAM_IDS.indexOf(a.id) - PROMOTED_PROGRAM_IDS.indexOf(b.id),
-    );
-    programs.splice(0, programs.length, ...promoted, ...others);
-  }
 
   return NextResponse.json(
     z.array(NetworkProgramSchema).parse(

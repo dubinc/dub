@@ -56,6 +56,7 @@ model Program {
   addedToMarketplaceAt    DateTime?
   featuredOnMarketplaceAt DateTime?
   marketplaceHeaderImage  String?
+  marketplaceRanking      Int       @default(2147483647)
 
   workspace                Project                   @relation(fields: [workspaceId], references: [id])
   customDomain             Domain?                   @relation(fields: [domain], references: [slug])
