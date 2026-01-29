@@ -108,7 +108,8 @@ export function constructDiscountCodeForPartner({
   const amount =
     discount.type === "percentage" ? discount.amount : discount.amount / 100;
 
-  const [firstName] = partner.name.toUpperCase().split(" ");
+  const [firstName] = partner.name.trim().toUpperCase().split(" ");
+  const prefix = firstName || "PARTNER";
 
-  return `${firstName}${amount}OFF`;
+  return `${prefix}${amount}OFF`;
 }
