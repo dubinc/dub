@@ -1,7 +1,7 @@
+import { createDiscountCode } from "@/lib/api/discounts/create-discount-code";
 import { isDiscountEquivalent } from "@/lib/api/discounts/is-discount-equivalent";
 import { queueDiscountCodeDeletion } from "@/lib/api/discounts/queue-discount-code-deletion";
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { withCron } from "@/lib/cron/with-cron";
 import { prisma } from "@dub/prisma";
 import { DiscountCode } from "@dub/prisma/client";
 import * as z from "zod/v4";
@@ -16,99 +16,135 @@ const schema = z.object({
 });
 
 // POST /api/cron/groups/remap-discount-codes
-export async function POST(req: Request) {
-  try {
-    const rawBody = await req.text();
+export const POST = withCron(async ({ rawBody }) => {
+  const { programId, partnerIds, groupId } = schema.parse(JSON.parse(rawBody));
 
-    await verifyQstashSignature({
-      req,
-      rawBody,
-    });
+  if (partnerIds.length === 0) {
+    return logAndRespond("No partner IDs provided.");
+  }
 
-    const { programId, partnerIds, groupId } = schema.parse(
-      JSON.parse(rawBody),
-    );
-
-    if (partnerIds.length === 0) {
-      return logAndRespond("No partner IDs provided.");
-    }
-
-    const programEnrollments = await prisma.programEnrollment.findMany({
-      where: {
-        partnerId: {
-          in: partnerIds,
-        },
-        programId,
+  const programEnrollments = await prisma.programEnrollment.findMany({
+    where: {
+      partnerId: {
+        in: partnerIds,
       },
-      include: {
-        discountCodes: {
-          include: {
-            discount: true,
-          },
+      programId,
+    },
+    include: {
+      discountCodes: {
+        include: {
+          discount: true,
         },
       },
-    });
-
-    if (programEnrollments.length === 0) {
-      return logAndRespond("No program enrollments found.");
-    }
-
-    const group = await prisma.partnerGroup.findUnique({
-      where: {
-        id: groupId,
+      links: {
+        select: {
+          id: true,
+        },
       },
-      include: {
-        discount: true,
+      partner: {
+        select: {
+          id: true,
+          name: true,
+        },
       },
-    });
+    },
+  });
 
-    if (!group) {
-      return logAndRespond("Group not found.");
-    }
+  if (programEnrollments.length === 0) {
+    return logAndRespond("No program enrollments found.");
+  }
 
-    const discountCodes = programEnrollments.flatMap(
-      ({ discountCodes }) => discountCodes,
+  const group = await prisma.partnerGroup.findUnique({
+    where: {
+      id: groupId,
+    },
+    include: {
+      discount: true,
+    },
+  });
+
+  if (!group) {
+    return logAndRespond("Group not found.");
+  }
+
+  const discountCodes = programEnrollments.flatMap(
+    ({ discountCodes }) => discountCodes,
+  );
+
+  // Find the discount codes to update and remove
+  const discountCodesToUpdate: DiscountCode[] = [];
+  const discountCodesToRemove: DiscountCode[] = [];
+
+  for (const discountCode of discountCodes) {
+    const keepDiscountCode = isDiscountEquivalent(
+      group.discount,
+      discountCode.discount,
     );
 
-    const discountCodesToUpdate: DiscountCode[] = [];
-    const discountCodesToRemove: DiscountCode[] = [];
+    if (keepDiscountCode) {
+      discountCodesToUpdate.push(discountCode);
+    } else {
+      discountCodesToRemove.push(discountCode);
+    }
+  }
 
-    for (const discountCode of discountCodes) {
-      const keepDiscountCode = isDiscountEquivalent(
-        group.discount,
-        discountCode.discount,
+  // Update the discount codes to use the new discount if they are equivalent
+  if (discountCodesToUpdate.length > 0) {
+    await prisma.discountCode.updateMany({
+      where: {
+        id: {
+          in: discountCodesToUpdate.map(({ id }) => id),
+        },
+      },
+      data: {
+        discountId: group.discount?.id,
+      },
+    });
+  }
+
+  // Remove the old discount codes
+  if (discountCodesToRemove.length > 0) {
+    await prisma.discountCode.deleteMany({
+      where: {
+        id: {
+          in: discountCodesToRemove.map(({ id }) => id),
+        },
+      },
+    });
+
+    await queueDiscountCodeDeletion(discountCodesToRemove);
+
+    // Create new discount codes if the auto-provision is enabled for the discount
+    if (group.discount?.autoProvisionEnabledAt) {
+      const partners = programEnrollments.flatMap(({ links, partner }) =>
+        links.map((link) => ({ link, partner })),
       );
 
-      if (keepDiscountCode) {
-        discountCodesToUpdate.push(discountCode);
-      } else {
-        discountCodesToRemove.push(discountCode);
-      }
-    }
+      console.log("partners", partners);
 
-    // Update the discount codes to use the new discount
-    if (discountCodesToUpdate.length > 0) {
-      await prisma.discountCode.updateMany({
+      const workspace = await prisma.project.findUniqueOrThrow({
         where: {
-          id: {
-            in: discountCodesToUpdate.map(({ id }) => id),
-          },
+          defaultProgramId: programId,
         },
-        data: {
-          discountId: group.discount?.id,
+        select: {
+          stripeConnectId: true,
         },
       });
-    }
 
-    // Remove the discount codes from the group
-    if (discountCodesToRemove.length > 0) {
-      await queueDiscountCodeDeletion(discountCodesToRemove);
+      if (workspace.stripeConnectId) {
+        for (const { link, partner } of partners) {
+          await createDiscountCode({
+            stripeConnectId: workspace.stripeConnectId,
+            partner,
+            link,
+            discount: group.discount,
+          });
+        }
+      }
     }
-
-    return logAndRespond(
-      `Updated ${discountCodesToUpdate.length} discount codes and removed ${discountCodesToRemove.length} discount codes.`,
-    );
-  } catch (error) {
-    return handleAndReturnErrorResponse(error);
   }
-}
+
+  return logAndRespond(
+    `Updated ${discountCodesToUpdate.length} discount codes and removed ${discountCodesToRemove.length} discount codes.`,
+  );
+});
