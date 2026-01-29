@@ -576,5 +576,3 @@ const formatValue = (
 
   return String(numValue);
 };
-
-

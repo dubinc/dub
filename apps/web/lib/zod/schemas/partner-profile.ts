@@ -28,7 +28,6 @@ import { LinkSchema } from "./links";
 import { getPaginationQuerySchema } from "./misc";
 import { payoutsQuerySchema } from "./payouts";
 import { referralFormDataSchema } from "./referral-form";
-import { workflowConditionSchema } from "./workflows";
 
 export const PartnerEarningsSchema = CommissionSchema.omit({
   userId: true,
