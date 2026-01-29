@@ -13,10 +13,6 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-const ENVELOPE_ICON = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 18 18'%3E%3Cg fill='%23737373'%3E%3Cpath d='M1.75,5.75l6.767,3.733c.301,.166,.665,.166,.966,0l6.767-3.733' fill='none' stroke='%23737373' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5'/%3E%3Crect height='11.5' width='14.5' fill='none' rx='2' ry='2' stroke='%23737373' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' x='1.75' y='3.25'/%3E%3C/g%3E%3C/svg%3E`;
-
-const OFFICE_BUILDING_ICON = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 18 18'%3E%3Cg fill='%23737373'%3E%3Cpath d='M7.75,16.25V7.75c0-.552,.448-1,1-1h5.5c.552,0,1,.448,1,1v8.5' fill='none' stroke='%23737373' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5'/%3E%3Cpath d='M2.75,16.25V4.412c0-.402,.24-.765,.61-.921L7.86,1.588c.659-.279,1.39,.205,1.39,.921v1.741' fill='none' stroke='%23737373' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5'/%3E%3Cline fill='none' stroke='%23737373' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' x1='1.75' x2='16.25' y1='16.25' y2='16.25'/%3E%3Cline fill='none' stroke='%23737373' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' x1='10.25' x2='10.25' y1='10.25' y2='9.75'/%3E%3Cline fill='none' stroke='%23737373' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' x1='12.75' x2='12.75' y1='10.25' y2='9.75'/%3E%3Cline fill='none' stroke='%23737373' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' x1='10.25' x2='10.25' y1='13.25' y2='12.75'/%3E%3Cline fill='none' stroke='%23737373' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' x1='12.75' x2='12.75' y1='13.25' y2='12.75'/%3E%3C/g%3E%3C/svg%3E`;
-
 export default function ReferralStatusUpdate({
   partner = {
     name: "John Doe",
@@ -111,10 +107,11 @@ export default function ReferralStatusUpdate({
                             }}
                           >
                             <Img
-                              src={ENVELOPE_ICON}
+                              src="https://assets.dub.co/email-assets/icons/envelope.png"
                               width="14"
                               height="14"
-                              alt=""
+                              className="opacity-75"
+                              alt="envelope"
                             />
                           </td>
                           <td
@@ -142,10 +139,11 @@ export default function ReferralStatusUpdate({
                             }}
                           >
                             <Img
-                              src={OFFICE_BUILDING_ICON}
+                              src="https://assets.dub.co/email-assets/icons/office-building.png"
                               width="14"
                               height="14"
-                              alt=""
+                              alt="office building"
+                              className="opacity-75"
                             />
                           </td>
                           <td
