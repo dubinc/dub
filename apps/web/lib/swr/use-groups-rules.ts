@@ -6,7 +6,7 @@ import useWorkspace from "./use-workspace";
 
 type GroupRules = z.infer<typeof groupRulesSchema>;
 
-export default function useGroupsRules() {
+export function useGroupsRules() {
   const { id: workspaceId } = useWorkspace();
 
   const { data, isLoading, error } = useSWR<GroupRules>(
