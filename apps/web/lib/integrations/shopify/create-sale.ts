@@ -115,7 +115,7 @@ export async function createShopifySale({
     }),
     prisma.customer.update({
       where: {
-        id: customerId,
+        id: existingCustomer.id,
       },
       data: {
         sales: {
@@ -124,6 +124,7 @@ export async function createShopifySale({
         saleAmount: {
           increment: amount,
         },
+        firstSaleAt: existingCustomer.firstSaleAt ? undefined : new Date(),
       },
     }),
     redis.del(`shopify:checkout:${checkoutToken}`),

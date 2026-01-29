@@ -7,17 +7,22 @@ import { DUB_PARTNERS_ANALYTICS_INTERVAL } from "../analytics/constants";
 import { PartnerEarningsTimeseriesFilters } from "../analytics/types";
 
 export function usePartnerEarningsTimeseries(
-  params?: PartnerEarningsTimeseriesFilters & { programId?: string },
+  params?: PartnerEarningsTimeseriesFilters & {
+    programId?: string;
+    enabled?: boolean;
+  },
 ) {
   const { data: session } = useSession();
   const partnerId = session?.user?.["defaultPartnerId"];
   const { programSlug } = useParams();
   const programIdToUse = params?.programId ?? programSlug;
+  const enabled = params?.enabled !== false;
 
   const { getQueryString } = useRouterStuff();
 
   const { data, error } = useSWR<any>(
-    partnerId &&
+    enabled &&
+      partnerId &&
       programIdToUse &&
       `/api/partner-profile/programs/${programIdToUse}/earnings/timeseries${getQueryString(
         {

@@ -8,6 +8,10 @@ import { useWatch } from "react-hook-form";
 import * as z from "zod/v4";
 import { useBrandingFormContext } from "../../branding-form";
 import {
+  ImageUploadFieldModal,
+  ImageUploadFieldThumbnail,
+} from "./image-upload-field-modal";
+import {
   LongTextFieldModal,
   LongTextFieldThumbnail,
 } from "./long-text-field-modal";
@@ -47,6 +51,7 @@ export const DESIGNER_FIELDS: ({
   label: string;
   description: string;
   modal: React.ComponentType<any>;
+  fullWidth?: boolean;
 } & (
   | { icon: Icon; thumbnail?: never }
   | { thumbnail: ReactNode; icon?: never }
@@ -80,11 +85,20 @@ export const DESIGNER_FIELDS: ({
     thumbnail: <MultipleChoiceFieldThumbnail />,
   },
   {
+    id: "image-upload",
+    label: "Image Upload",
+    description: "Let applicants upload images",
+    modal: ImageUploadFieldModal,
+    thumbnail: <ImageUploadFieldThumbnail />,
+    fullWidth: true,
+  },
+  {
     id: "website-and-socials",
     label: "Website and socials",
     description: "Collect website and social media links",
     modal: WebsiteAndSocialsFieldModal,
     icon: WebsiteAndSocialsFieldIcon,
+    fullWidth: true,
   },
 ];
 
@@ -145,8 +159,9 @@ function AddFieldModalInner({
                 type="button"
                 onClick={() => setModalState(field.id)}
                 className={cn(
-                  "flex flex-col gap-4 rounded-md border border-transparent bg-neutral-100 p-4 text-left outline-none ring-black/10 transition-all duration-150 hover:border-neutral-800 hover:ring focus-visible:border-neutral-800",
-                  field.icon && "col-span-2 flex-row items-center",
+                  "flex rounded-md border border-transparent bg-neutral-100 p-4 text-left outline-none ring-black/10 transition-all duration-150 hover:border-neutral-800 hover:ring focus-visible:border-neutral-800",
+                  field.fullWidth && "col-span-2 flex-row items-center gap-4",
+                  !field.fullWidth && "flex-col gap-4",
                 )}
               >
                 {field.icon ? (
@@ -154,7 +169,12 @@ function AddFieldModalInner({
                     <field.icon className="size-5 text-neutral-600" />
                   </div>
                 ) : (
-                  <div className="flex h-24 items-center justify-center overflow-hidden rounded-md border border-neutral-200 bg-white">
+                  <div
+                    className={cn(
+                      "flex items-center justify-center overflow-hidden rounded-md border border-neutral-200 bg-white",
+                      field.fullWidth ? "size-12" : "h-24 w-full",
+                    )}
+                  >
                     {field.thumbnail}
                   </div>
                 )}

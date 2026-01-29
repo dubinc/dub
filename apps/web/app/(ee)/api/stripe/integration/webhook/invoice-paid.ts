@@ -207,6 +207,7 @@ export async function invoicePaid(event: Stripe.Event, mode: StripeMode) {
         saleAmount: {
           increment: invoiceSaleAmount,
         },
+        firstSaleAt: customer.firstSaleAt ? undefined : new Date(),
       },
     }),
   ]);

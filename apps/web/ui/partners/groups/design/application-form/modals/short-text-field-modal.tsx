@@ -81,7 +81,6 @@ function ShortTextFieldModalInner({
     control,
     handleSubmit,
     register,
-    unregister,
     formState: { errors },
     watch,
   } = useForm<FormData>({

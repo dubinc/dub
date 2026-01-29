@@ -20,6 +20,7 @@ import { GroupSchema } from "./groups";
 import { LinkSchema } from "./links";
 import { programApplicationFormDataWithValuesSchema } from "./program-application-form";
 import { programInviteEmailDataSchema } from "./program-invite-email";
+import { referralFormSchema } from "./referral-form";
 import { RewardSchema } from "./rewards";
 import { UserSchema } from "./users";
 import { parseDateSchema } from "./utils";
@@ -46,6 +47,7 @@ export const ProgramSchema = z.object({
   supportEmail: z.string().nullish(),
   helpUrl: z.string().nullish(),
   termsUrl: z.string().nullish(),
+  referralFormData: z.record(z.string(), z.any()).nullish(),
   createdAt: z.date(),
   updatedAt: z.date(),
   startedAt: z.date().nullish(),
@@ -74,6 +76,7 @@ export const updateProgramSchema = z.object({
   helpUrl: z.url().max(500).nullish(),
   termsUrl: z.url().max(500).nullish(),
   messagingEnabledAt: z.coerce.date().nullish(),
+  referralFormData: referralFormSchema.nullish(),
 });
 
 export const ProgramPartnerLinkSchema = LinkSchema.pick({
@@ -144,6 +147,7 @@ export const ProgramEnrollmentSchema = z.object({
     linkStructure: true,
   }).nullish(),
   customerDataSharingEnabledAt: z.date().nullable(),
+  referralFormData: referralFormSchema.nullish(),
 });
 
 export const ProgramInviteSchema = z.object({

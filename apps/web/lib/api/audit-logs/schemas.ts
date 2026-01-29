@@ -8,6 +8,7 @@ import { GroupSchema } from "@/lib/zod/schemas/groups";
 import { PartnerSchema } from "@/lib/zod/schemas/partners";
 import { PayoutSchema } from "@/lib/zod/schemas/payouts";
 import { ProgramSchema } from "@/lib/zod/schemas/programs";
+import { referralSchema } from "@/lib/zod/schemas/referrals";
 import { RewardSchema } from "@/lib/zod/schemas/rewards";
 import * as z from "zod/v4";
 
@@ -189,6 +190,16 @@ export const auditLogTarget = z.union([
     type: z.literal("bounty_submission"),
     id: z.string(),
     metadata: BountySubmissionSchema,
+  }),
+
+  z.object({
+    type: z.literal("partner_referral"),
+    id: z.string(),
+    metadata: referralSchema.pick({
+      email: true,
+      name: true,
+      company: true,
+    }),
   }),
 ]);
 

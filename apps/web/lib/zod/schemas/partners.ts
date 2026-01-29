@@ -217,7 +217,7 @@ export const partnerPlatformSchema = z.object({
   views: z.bigint().default(BigInt(0)),
 });
 
-export const PartnerOnlinePresenceSchema = z.object({
+export const PartnerPartnerPlatformsSchema = z.object({
   website: z
     .string()
     .nullish()
@@ -342,7 +342,7 @@ export const PartnerSchema = z
         "The date when the partner received the trusted badge in the partner network.",
       ),
   })
-  .extend(PartnerOnlinePresenceSchema.shape)
+  .extend(PartnerPartnerPlatformsSchema.shape)
   .extend(PartnerProfileSchema.partial().shape);
 
 export const PartnerWithProfileSchema = PartnerSchema.extend(
@@ -457,7 +457,7 @@ export const EnrolledPartnerSchema = PartnerSchema.pick({
       ),
   })
   .extend(
-    PartnerOnlinePresenceSchema.pick({
+    PartnerPartnerPlatformsSchema.pick({
       website: true,
       youtube: true,
       twitter: true,
@@ -481,7 +481,7 @@ export const EnrolledPartnerSchemaExtended = EnrolledPartnerSchema.extend({
       salesChannels: true,
     }).shape,
   )
-  .extend(PartnerOnlinePresenceSchema.shape);
+  .extend(PartnerPartnerPlatformsSchema.shape);
 
 export const WebhookPartnerSchema = PartnerSchema.pick({
   id: true,

@@ -431,6 +431,8 @@ export async function checkoutSessionCompleted(
         saleAmount: {
           increment: chargeAmountTotal,
         },
+        firstSaleAt: customer.firstSaleAt ? undefined : new Date(),
+        subscriptionCanceledAt: null,
       },
     }),
   ]);
@@ -625,7 +627,7 @@ async function attributeViaPromoCode({
     ...rest,
     workspace_id: clickEvent.workspace_id || customer.projectId, // in case for some reason the click event doesn't have workspace_id
     event_id: nanoid(16),
-    event_name: "Sign up",
+    event_name: "Checkout with discount code",
     customer_id: customer.id,
     metadata: "",
   };

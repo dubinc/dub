@@ -65,7 +65,7 @@ export function ProgramLogos() {
                       key={idx}
                       className={cn(
                         "relative flex items-center gap-5",
-                        "motion-safe:animate-infinite-scroll [--scroll:-100%] motion-safe:[animation-duration:20s]",
+                        "motion-safe:animate-infinite-scroll [--scroll:-100%] motion-safe:[animation-duration:30s]",
                         row % 2 === 0 &&
                           "motion-safe:[animation-direction:reverse]",
                       )}

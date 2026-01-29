@@ -380,7 +380,7 @@ function PartnerCard({
     [partner],
   );
 
-  const onlinePresenceData = useMemo(
+  const partnerPlatformsData = useMemo(
     () =>
       partner
         ? PARTNER_PLATFORM_FIELDS.map((field) => ({
@@ -491,15 +491,15 @@ function PartnerCard({
               ))}
           </div>
 
-          {/* Online presence */}
+          {/* Platforms */}
           <div
             className={cn(
               "flex flex-wrap items-center gap-1.5",
               !partner && "animate-pulse",
             )}
           >
-            {onlinePresenceData?.length
-              ? onlinePresenceData.map(
+            {partnerPlatformsData?.length
+              ? partnerPlatformsData.map(
                   ({ label, icon: Icon, verified, value, href }) => (
                     <Tooltip
                       key={label}
