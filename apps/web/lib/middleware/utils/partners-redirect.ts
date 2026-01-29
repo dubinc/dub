@@ -15,6 +15,7 @@ export const partnersRedirect = (path: string) => {
 };
 
 const PARTNERS_PROGRAM_REDIRECTS = {
+  florafauna: "flora",
   "ship-30": "dwp",
   supercutai: "supercut",
   "teller-perps": "teller",
