@@ -6,6 +6,7 @@ import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { referralFormSchema } from "@/lib/zod/schemas/referral-form";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
+import { revalidatePath } from "next/cache";
 import * as z from "zod/v4";
 import { getProgramOrThrow } from "../../api/programs/get-program-or-throw";
 import { ProgramSchema, updateProgramSchema } from "../../zod/schemas/programs";
@@ -62,20 +63,26 @@ export const updateProgramAction = authActionClient
     });
 
     waitUntil(
-      recordAuditLog({
-        workspaceId: workspace.id,
-        programId: program.id,
-        action: "program.updated",
-        description: `Program ${program.name} updated`,
-        actor: user,
-        targets: [
-          {
-            type: "program",
-            id: program.id,
-            metadata: updatedProgram,
-          },
-        ],
-      }),
+      (async () => {
+        await recordAuditLog({
+          workspaceId: workspace.id,
+          programId: program.id,
+          action: "program.updated",
+          description: `Program ${program.name} updated`,
+          actor: user,
+          targets: [
+            {
+              type: "program",
+              id: program.id,
+              metadata: updatedProgram,
+            },
+          ],
+        });
+
+        if (updatedProgram.termsUrl !== program.termsUrl) {
+          revalidatePath(`/partners.dub.co/${program.slug}/apply`);
+        }
+      })(),
     );
 
     return {
