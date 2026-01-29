@@ -103,6 +103,15 @@ export const UA_BOTS = [
   "monsido", // Monsido
 ];
 
+export const REFERRER_BOTS = [
+  "url.emailprotection.link",
+  "urlsand.com", // whysecurity.urlsand.com, alpitour.urlsand.com
+  "statics.teams.cdn.office.net",
+  "security-za.m.mimecastprotect.com",
+  "deref-mail.com",
+  "deref-gmx.com",
+];
+
 export const IP_BOTS = [
   "127.0.0.1", // localhost
 
