@@ -44,7 +44,7 @@ export async function deleteLink(linkId: string) {
           },
         }),
 
-      link.discountCode && queueDiscountCodeDeletion(link.discountCode.id),
+      link.discountCode && queueDiscountCodeDeletion(link.discountCode),
     ]),
   );
 

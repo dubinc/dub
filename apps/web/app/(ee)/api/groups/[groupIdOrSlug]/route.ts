@@ -436,7 +436,7 @@ export const DELETE = withWorkspace(
               }),
 
             ...discountCodesToDelete.map((discountCode) =>
-              queueDiscountCodeDeletion(discountCode.id),
+              queueDiscountCodeDeletion(discountCode),
             ),
 
             recordAuditLog({

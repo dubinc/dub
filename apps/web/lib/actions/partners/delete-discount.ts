@@ -88,7 +88,7 @@ export const deleteDiscountAction = authActionClient
           },
         }),
 
-        queueDiscountCodeDeletion(discountCodes.map(({ id }) => id)),
+        queueDiscountCodeDeletion(discountCodes),
 
         recordAuditLog({
           workspaceId: workspace.id,

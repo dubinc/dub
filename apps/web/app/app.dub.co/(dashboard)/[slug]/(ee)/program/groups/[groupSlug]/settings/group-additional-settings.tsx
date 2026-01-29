@@ -6,7 +6,7 @@ import { PAYOUT_HOLDING_PERIOD_DAYS } from "@/lib/constants/payouts";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useGroup from "@/lib/swr/use-group";
-import {useGroupsRules} from "@/lib/swr/use-groups-rules";
+import { useGroupsRules } from "@/lib/swr/use-groups-rules";
 import { GroupProps } from "@/lib/types";
 import { updateGroupSchema } from "@/lib/zod/schemas/groups";
 import { Button, Checkbox, Modal, Switch } from "@dub/ui";

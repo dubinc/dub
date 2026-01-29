@@ -133,8 +133,8 @@ export const POST = withCron(async ({ rawBody }) => {
     // Queue discount code deletions
     queueDiscountCodeDeletion(
       links
-        .map((link) => link.discountCode?.id)
-        .filter((id): id is string => id !== undefined),
+        .map((link) => link.discountCode)
+        .filter((discountCode) => discountCode !== null),
     ),
   ]);
 

@@ -91,8 +91,8 @@ export const bulkDeactivatePartnersAction = authActionClient
     waitUntil(
       (async () => {
         const allLinks = programEnrollments.flatMap((pe) => pe.links);
-        const allDiscountCodeIds = programEnrollments.flatMap((pe) =>
-          pe.discountCodes.map((dc) => dc.id),
+        const allDiscountCodes = programEnrollments.flatMap((pe) =>
+          pe.discountCodes.map((dc) => dc),
         );
 
         const program = await prisma.program.findUniqueOrThrow({
@@ -111,7 +111,7 @@ export const bulkDeactivatePartnersAction = authActionClient
           linkCache.expireMany(allLinks),
 
           // Queue discount code deletions
-          queueDiscountCodeDeletion(allDiscountCodeIds),
+          queueDiscountCodeDeletion(allDiscountCodes),
 
           // Record audit logs
           recordAuditLog(
