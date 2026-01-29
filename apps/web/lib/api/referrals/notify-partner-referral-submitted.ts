@@ -1,10 +1,8 @@
 import { getCompanyLogoUrl } from "@/ui/referrals/referral-utils";
 import { sendBatchEmail } from "@dub/email";
-import { ResendBulkEmailOptions } from "@dub/email/resend/types";
 import PartnerReferralSubmitted from "@dub/email/templates/partner-referral-submitted";
 import { prisma } from "@dub/prisma";
 import { PartnerReferral } from "@dub/prisma/client";
-import { chunk } from "@dub/utils";
 
 export async function notifyPartnerReferralSubmitted({
   referral,
@@ -30,6 +28,7 @@ export async function notifyPartnerReferralSubmitted({
         email: {
           not: null,
         },
+        isMachine: false,
       },
     },
     include: {
@@ -44,6 +43,10 @@ export async function notifyPartnerReferralSubmitted({
         },
       },
     },
+    take: 100,
+    orderBy: {
+      createdAt: "asc",
+    },
   });
 
   // Parse formData from JSON
@@ -51,8 +54,8 @@ export async function notifyPartnerReferralSubmitted({
     | { label: string; value: unknown }[]
     | null;
 
-  const allEmails: ResendBulkEmailOptions = workspaceUsers.map(
-    ({ user, project }) => ({
+  const emailsRes = await sendBatchEmail(
+    workspaceUsers.map(({ user, project }) => ({
       subject: "New partner referral submitted",
       variant: "notifications",
       to: user.email!,
@@ -70,12 +73,8 @@ export async function notifyPartnerReferralSubmitted({
           formData,
         },
       }),
-    }),
+    })),
   );
 
-  const emailChunks = chunk(allEmails, 100);
-
-  await Promise.all(
-    emailChunks.map((emailChunk) => sendBatchEmail(emailChunk)),
-  );
+  console.log(`Resend email sent: ${JSON.stringify(emailsRes, null, 2)}`);
 }
