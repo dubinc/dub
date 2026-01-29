@@ -148,7 +148,7 @@ function WorkspaceList({
   const { scrollProgress, updateScrollProgress } = useScrollProgress(scrollRef);
 
   const { users } = useWorkspaceUsers();
-  const membersCount = users?.length ?? 0;
+  const membersCount = users?.filter((user) => !user.isMachine).length ?? 0;
 
   const href = useCallback(
     (slug: string) => {
