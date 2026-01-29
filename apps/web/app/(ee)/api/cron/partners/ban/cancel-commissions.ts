@@ -18,7 +18,9 @@ export async function cancelCommissions({
         where: {
           programId,
           partnerId,
-          status: "pending",
+          status: {
+            in: ["pending", "processed"],
+          },
         },
         select: {
           id: true,
