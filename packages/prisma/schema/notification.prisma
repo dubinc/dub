@@ -54,6 +54,7 @@ model NotificationPreference {
   pendingApplicationsSummary Boolean @default(true)
   newBountySubmitted         Boolean @default(true)
   newMessageFromPartner      Boolean @default(true)
+  newPartnerReferral         Boolean @default(true)
   fraudEventsSummary         Boolean @default(true)
 
   projectUser ProjectUsers @relation(fields: [projectUserId], references: [id], onDelete: Cascade)
@@ -67,6 +68,7 @@ model PartnerNotificationPreferences {
   applicationApproved   Boolean @default(true)
   newMessageFromProgram Boolean @default(true)
   marketingCampaign     Boolean @default(true)
+  referralStatusUpdate  Boolean @default(true)
 
   partnerUser PartnerUser @relation(fields: [partnerUserId], references: [id], onDelete: Cascade)
 }

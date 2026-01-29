@@ -66,11 +66,13 @@ export const markReferralQualifiedSchema = z.object({
   referralId: z.string(),
   workspaceId: z.string(),
   externalId: z.string().trim().optional(),
+  notes: z.string().trim().optional(),
 });
 
 export const markReferralUnqualifiedSchema = z.object({
   referralId: z.string(),
   workspaceId: z.string(),
+  notes: z.string().trim().optional(),
 });
 
 export const markReferralClosedWonSchema = z.object({
@@ -80,9 +82,11 @@ export const markReferralClosedWonSchema = z.object({
     .number()
     .min(0, "Sale amount must be greater than or equal to 0"),
   stripeCustomerId: z.string().optional(),
+  notes: z.string().trim().optional(),
 });
 
 export const markReferralClosedLostSchema = z.object({
   referralId: z.string(),
   workspaceId: z.string(),
+  notes: z.string().trim().optional(),
 });

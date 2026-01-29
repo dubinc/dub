@@ -7,6 +7,7 @@ import {
   Flag6,
   InvoiceDollar,
   Msgs,
+  Refresh2,
   Switch,
   useOptimisticUpdate,
 } from "@dub/ui";
@@ -40,6 +41,12 @@ const notifications = [
     icon: Flag6,
     title: "Marketing campaigns",
     description: "Receive marketing emails from your programs.",
+  },
+  {
+    type: "referralStatusUpdate",
+    icon: Refresh2,
+    title: "Referral status update",
+    description: "Alert when a referral you submitted has a status change.",
   },
 ] as const;
 

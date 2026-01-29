@@ -4,7 +4,7 @@ import { updateWorkspaceNotificationPreference } from "@/lib/actions/update-work
 import useWorkspace from "@/lib/swr/use-workspace";
 import { notificationTypes } from "@/lib/zod/schemas/workspaces";
 import { Switch, useOptimisticUpdate } from "@dub/ui";
-import { Globe, Hyperlink, Msgs, UserPlus } from "@dub/ui/icons";
+import { Globe, Hyperlink, Msgs, UserPlus, Users } from "@dub/ui/icons";
 import { isClickOnInteractiveChild } from "@dub/utils";
 import { DollarSign, ListChecks, Trophy } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
@@ -61,6 +61,13 @@ export default function NotificationsSettingsPageClient() {
       title: "New partner application",
       description:
         "Alert when a new partner application is made in your partner program.",
+    },
+    {
+      type: "newPartnerReferral",
+      icon: Users,
+      title: "New partner referral",
+      description:
+        "Alert when a partner submits a new referral in your partner program.",
     },
     {
       type: "pendingApplicationsSummary",
