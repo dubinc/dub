@@ -134,7 +134,10 @@ export const POST = withCron(async ({ rawBody }) => {
     queueDiscountCodeDeletion(
       links
         .map((link) => link.discountCode)
-        .filter((discountCode) => discountCode !== null),
+        .filter(
+          (discountCode): discountCode is NonNullable<typeof discountCode> =>
+            discountCode !== null,
+        ),
     ),
   ]);
 
