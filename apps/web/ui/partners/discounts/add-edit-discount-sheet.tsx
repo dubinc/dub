@@ -83,6 +83,7 @@ function DiscountSheetContent({
       maxDuration: 6,
       couponId: "",
       couponTestId: "",
+      autoProvisionEnabledAt: null
     }; // default is 10% for 6 months
 
   const form = useForm<FormData>({
@@ -98,7 +99,7 @@ function DiscountSheetContent({
           : defaultValuesSource.maxDuration,
       couponId: defaultValuesSource.couponId || "",
       couponTestId: defaultValuesSource.couponTestId,
-      autoProvision: Boolean(discount?.autoProvisionEnabledAt),
+      autoProvision: Boolean(defaultValuesSource.autoProvisionEnabledAt),
     },
   });
 
