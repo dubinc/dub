@@ -5,6 +5,9 @@ export function formatFormDataValue(value: unknown): string {
   if (value === null || value === undefined || value === "") {
     return "";
   }
+  if (typeof value === "number" && Number.isNaN(value)) {
+    return "";
+  }
 
   if (Array.isArray(value)) {
     return value.map((v) => String(v)).join(", ");

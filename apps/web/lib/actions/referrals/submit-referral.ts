@@ -112,8 +112,11 @@ export const submitReferralAction = authPartnerActionClient
         continue;
       }
 
-      // Skip undefined/null/empty string values (but allow 0 and false)
+      // Skip undefined/null/empty string/NaN so null values are never recorded (allow 0 and false)
       if (value === undefined || value === null || value === "") {
+        continue;
+      }
+      if (typeof value === "number" && Number.isNaN(value)) {
         continue;
       }
 

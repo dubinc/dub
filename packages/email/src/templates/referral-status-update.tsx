@@ -33,7 +33,7 @@ export default function ReferralStatusUpdate({
     image: null,
   },
   status = "Qualified",
-  notes = "This referral has been reviewed and meets our qualification criteria.",
+  notes,
 }: {
   partner: { name: string; email: string };
   program: { name: string; slug: string };
@@ -64,8 +64,8 @@ export default function ReferralStatusUpdate({
             </Heading>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              Your submitted referral has changed to{" "}
-              <strong>{status}</strong> by <strong>{program.name}</strong>.
+              Your submitted referral has changed to <strong>{status}</strong>{" "}
+              by <strong>{program.name}</strong>.
             </Text>
 
             {notes && (
@@ -85,8 +85,7 @@ export default function ReferralStatusUpdate({
                   <div>
                     <Img
                       src={
-                        referral.image ||
-                        `${OG_AVATAR_URL}${referral.email}`
+                        referral.image || `${OG_AVATAR_URL}${referral.email}`
                       }
                       width="48"
                       height="48"
@@ -98,22 +97,64 @@ export default function ReferralStatusUpdate({
                       <Text className="m-0 mt-3 p-0 text-lg font-medium text-neutral-900">
                         {referral.name}
                       </Text>
-                      <table cellPadding="0" cellSpacing="0" style={{ marginTop: "4px" }}>
+                      <table
+                        cellPadding="0"
+                        cellSpacing="0"
+                        style={{ marginTop: "4px" }}
+                      >
                         <tr>
-                          <td style={{ verticalAlign: "middle", paddingRight: "6px", lineHeight: 0 }}>
-                            <Img src={ENVELOPE_ICON} width="14" height="14" alt="" />
+                          <td
+                            style={{
+                              verticalAlign: "middle",
+                              paddingRight: "6px",
+                              lineHeight: 0,
+                            }}
+                          >
+                            <Img
+                              src={ENVELOPE_ICON}
+                              width="14"
+                              height="14"
+                              alt=""
+                            />
                           </td>
-                          <td style={{ verticalAlign: "middle", fontSize: "14px", color: "#737373" }}>
+                          <td
+                            style={{
+                              verticalAlign: "middle",
+                              fontSize: "14px",
+                              color: "#737373",
+                            }}
+                          >
                             {referral.email}
                           </td>
                         </tr>
                       </table>
-                      <table cellPadding="0" cellSpacing="0" style={{ marginTop: "4px" }}>
+                      <table
+                        cellPadding="0"
+                        cellSpacing="0"
+                        style={{ marginTop: "4px" }}
+                      >
                         <tr>
-                          <td style={{ verticalAlign: "middle", paddingRight: "6px", lineHeight: 0 }}>
-                            <Img src={OFFICE_BUILDING_ICON} width="14" height="14" alt="" />
+                          <td
+                            style={{
+                              verticalAlign: "middle",
+                              paddingRight: "6px",
+                              lineHeight: 0,
+                            }}
+                          >
+                            <Img
+                              src={OFFICE_BUILDING_ICON}
+                              width="14"
+                              height="14"
+                              alt=""
+                            />
                           </td>
-                          <td style={{ verticalAlign: "middle", fontSize: "14px", color: "#737373" }}>
+                          <td
+                            style={{
+                              verticalAlign: "middle",
+                              fontSize: "14px",
+                              color: "#737373",
+                            }}
+                          >
                             {referral.company}
                           </td>
                         </tr>
