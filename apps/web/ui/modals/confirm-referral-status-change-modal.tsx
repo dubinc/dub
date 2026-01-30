@@ -17,9 +17,10 @@ import {
 } from "@/lib/zod/schemas/referrals";
 import { ReferralStatusBadge } from "@/ui/referrals/referral-status-badge";
 import { ReferralStatus } from "@dub/prisma/client";
-import { Button, Modal, useMediaQuery } from "@dub/ui";
+import { AnimatedSizeContainer, Button, Modal, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ChevronDown } from "lucide-react";
+import { motion } from "motion/react";
 import { useAction } from "next-safe-action/hooks";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -95,6 +96,7 @@ function ConfirmReferralStatusChangeModal({
 }: ConfirmReferralStatusChangeModalProps) {
   const { isMobile } = useMediaQuery();
   const { id: workspaceId, defaultProgramId } = useWorkspace();
+  const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
 
   const { executeAsync, isPending } = useAction(updateReferralStatusAction, {
     onSuccess: async () => {
@@ -128,11 +130,13 @@ function ConfirmReferralStatusChangeModal({
         saleAmount: null,
         stripeCustomerId: "",
       });
+      setShowAdvancedOptions(false);
     }
   }, [showModal, newStatus, reset]);
 
   const config = STATUS_CONFIG[newStatus];
   const visibleFields = new Set(config.fields);
+  const hasAdvancedSettings = visibleFields.has("stripeCustomerId");
 
   const onSubmit = async (data: StatusChangeFormData) => {
     if (!workspaceId || !referral.id) return;
@@ -176,15 +180,15 @@ function ConfirmReferralStatusChangeModal({
                 }}
               />
               <div className="relative flex items-center justify-center gap-4">
-                <ReferralStatusBadge status={referral.status} />
+                <ReferralStatusBadge status={referral.status} className="h-7" />
                 <ArrowRight className="size-4 text-neutral-400" />
-                <ReferralStatusBadge status={newStatus} />
+                <ReferralStatusBadge status={newStatus} className="h-7" />
               </div>
             </div>
 
             {visibleFields.has("externalId") && (
               <div>
-                <label className="text-content-emphasis text-sm font-normal">
+                <label className="text-content-emphasis text-sm font-medium">
                   External ID (optional)
                 </label>
                 <input
@@ -209,7 +213,7 @@ function ConfirmReferralStatusChangeModal({
 
             {visibleFields.has("saleAmount") && (
               <div>
-                <label className="text-content-emphasis text-sm font-normal">
+                <label className="text-content-emphasis text-sm font-medium">
                   Sale Amount (required)
                 </label>
                 <div className="relative mt-2">
@@ -254,35 +258,12 @@ function ConfirmReferralStatusChangeModal({
               </div>
             )}
 
-            {visibleFields.has("stripeCustomerId") && (
-              <div>
-                <label className="text-content-emphasis text-sm font-normal">
-                  Stripe Customer ID (optional)
-                </label>
-                <input
-                  type="text"
-                  autoComplete="off"
-                  className={cn(
-                    "border-border-subtle mt-2 block w-full rounded-lg text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-                    errors.stripeCustomerId &&
-                      "border-red-600 focus:border-red-500 focus:ring-red-600",
-                  )}
-                  {...register("stripeCustomerId", {
-                    setValueAs: (value) => (value === "" ? undefined : value),
-                  })}
-                />
-                <p className="text-content-subtle mt-1 text-xs">
-                  The customer's Stripe Customer ID
-                </p>
-              </div>
-            )}
-
             <div>
-              <label className="text-content-emphasis text-sm font-normal">
+              <label className="text-content-emphasis text-sm font-medium">
                 Notes for the partner (optional)
               </label>
               <textarea
-                rows={4}
+                rows={2}
                 className={cn(
                   "border-border-subtle mt-2 block w-full rounded-lg text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
                   errors.notes &&
@@ -293,6 +274,55 @@ function ConfirmReferralStatusChangeModal({
                 })}
               />
             </div>
+
+            {hasAdvancedSettings && (
+              <div className="flex flex-col">
+                <button
+                  type="button"
+                  className="flex w-full items-center gap-2"
+                  onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
+                >
+                  <p className="text-sm text-neutral-700">
+                    {showAdvancedOptions ? "Hide" : "Show"} advanced settings
+                  </p>
+                  <motion.div
+                    animate={{ rotate: showAdvancedOptions ? 180 : 0 }}
+                    className="text-neutral-600"
+                  >
+                    <ChevronDown className="size-4" />
+                  </motion.div>
+                </button>
+
+                <AnimatedSizeContainer height className="flex flex-col">
+                  {showAdvancedOptions &&
+                    visibleFields.has("stripeCustomerId") && (
+                      <div className="mt-4 p-px">
+                        <div>
+                          <label className="text-content-emphasis text-sm font-medium">
+                            Stripe Customer ID (optional)
+                          </label>
+                          <input
+                            type="text"
+                            autoComplete="off"
+                            className={cn(
+                              "border-border-subtle mt-2 block w-full rounded-lg text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                              errors.stripeCustomerId &&
+                                "border-red-600 focus:border-red-500 focus:ring-red-600",
+                            )}
+                            {...register("stripeCustomerId", {
+                              setValueAs: (value) =>
+                                value === "" ? undefined : value,
+                            })}
+                          />
+                          <p className="text-content-subtle mt-1 text-xs">
+                            The customer's Stripe Customer ID
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                </AnimatedSizeContainer>
+              </div>
+            )}
           </div>
 
           <div className="flex items-center justify-end border-t border-neutral-200 px-4 py-4 sm:px-6">
