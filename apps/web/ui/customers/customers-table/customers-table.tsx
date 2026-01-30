@@ -378,7 +378,12 @@ export function CustomersTable({
     onPaginationChange: setPagination,
     columnVisibility,
     onColumnVisibilityChange: setColumnVisibility,
-    sortableColumns: ["createdAt", "saleAmount"],
+    sortableColumns: [
+      "createdAt",
+      "saleAmount",
+      "firstSaleAt",
+      "subscriptionCanceledAt",
+    ],
     sortBy,
     sortOrder,
     onSortChange: ({ sortBy, sortOrder }) =>
