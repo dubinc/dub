@@ -15,7 +15,7 @@ import {
   markReferralQualifiedSchema,
   markReferralUnqualifiedSchema,
 } from "@/lib/zod/schemas/referrals";
-import { ReferralStatusBadges } from "@/ui/referrals/referral-status-badges";
+import { ReferralStatusBadge } from "@/ui/referrals/referral-status-badge";
 import { ReferralStatus } from "@dub/prisma/client";
 import { Button, Modal, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
@@ -131,8 +131,6 @@ function ConfirmReferralStatusChangeModal({
     }
   }, [showModal, newStatus, reset]);
 
-  const currentBadge = ReferralStatusBadges[referral.status];
-  const newBadge = ReferralStatusBadges[newStatus];
   const config = STATUS_CONFIG[newStatus];
   const visibleFields = new Set(config.fields);
 
@@ -160,7 +158,7 @@ function ConfirmReferralStatusChangeModal({
         </h3>
       </div>
 
-      <div className="bg-neutral-50">
+      <div>
         <form
           onSubmit={(e) => {
             e.stopPropagation();
@@ -178,23 +176,9 @@ function ConfirmReferralStatusChangeModal({
                 }}
               />
               <div className="relative flex items-center justify-center gap-4">
-                <div
-                  className={cn(
-                    "rounded-md px-2 py-1 text-xs font-semibold",
-                    currentBadge.className,
-                  )}
-                >
-                  {currentBadge.label}
-                </div>
+                <ReferralStatusBadge status={referral.status} />
                 <ArrowRight className="size-4 text-neutral-400" />
-                <div
-                  className={cn(
-                    "rounded-md px-2 py-1 text-xs font-semibold",
-                    newBadge.className,
-                  )}
-                >
-                  {newBadge.label}
-                </div>
+                <ReferralStatusBadge status={newStatus} />
               </div>
             </div>
 
