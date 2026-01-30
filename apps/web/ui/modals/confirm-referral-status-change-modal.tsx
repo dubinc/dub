@@ -84,8 +84,9 @@ function ConfirmReferralStatusChangeModal({
 
   const { executeAsync, isPending } = useAction(updateReferralStatusAction, {
     onSuccess: async () => {
-      await mutatePrefix(`/api/programs/${defaultProgramId}/referrals`);
+      setShowModal(false);
       toast.success("Referral status updated successfully!");
+      await mutatePrefix(`/api/programs/${defaultProgramId}/referrals`);
     },
     onError({ error }) {
       toast.error(error.serverError || "Failed to update referral status");
@@ -127,15 +128,14 @@ function ConfirmReferralStatusChangeModal({
 
     const payload = config.buildPayload(
       {
-        referralId: referral.id,
         workspaceId,
+        referralId: referral.id,
         notes: data.notes || undefined,
       },
       data,
     );
 
     await executeAsync(payload);
-    setShowModal(false);
   };
 
   return (
