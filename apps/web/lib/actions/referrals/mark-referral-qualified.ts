@@ -13,6 +13,7 @@ import { ReferralStatus } from "@dub/prisma/client";
 import { pick } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 // Mark a partner referral as qualified
 export const markReferralQualifiedAction = authActionClient
@@ -20,6 +21,11 @@ export const markReferralQualifiedAction = authActionClient
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
     const { referralId, externalId, notes } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredRoles: ["owner", "member"],
+    });
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 

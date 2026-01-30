@@ -9,6 +9,7 @@ import { prisma } from "@dub/prisma";
 import { ReferralStatus } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 // Mark a partner referral as closed lost
 export const markReferralClosedLostAction = authActionClient
@@ -16,6 +17,11 @@ export const markReferralClosedLostAction = authActionClient
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
     const { referralId, notes } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredRoles: ["owner", "member"],
+    });
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 

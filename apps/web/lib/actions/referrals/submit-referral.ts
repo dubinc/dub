@@ -3,6 +3,7 @@
 import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
+import { notifyPartnerReferralSubmitted } from "@/lib/api/referrals/notify-partner-referral-submitted";
 import { REFERRAL_FORM_REQUIRED_FIELD_KEYS } from "@/lib/referrals/constants";
 import {
   formFieldSchema,
@@ -10,7 +11,6 @@ import {
   referralRequiredFieldsSchema,
 } from "@/lib/zod/schemas/referral-form";
 import { createPartnerReferralSchema } from "@/lib/zod/schemas/referrals";
-import { notifyPartnerReferralSubmitted } from "@/lib/api/referrals/notify-partner-referral-submitted";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { COUNTRIES } from "@dub/utils";
