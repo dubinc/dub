@@ -4,13 +4,16 @@ import { updateReferralStatusAction } from "@/lib/actions/referrals/update-refer
 import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { ReferralProps } from "@/lib/types";
+import {
+  ReferralProps,
+  UpdateReferralStatusFormSchema,
+  UpdateReferralStatusPayload,
+} from "@/lib/types";
 import {
   markReferralClosedLostSchema,
   markReferralClosedWonSchema,
   markReferralQualifiedSchema,
   markReferralUnqualifiedSchema,
-  updateReferralStatusSchema,
 } from "@/lib/zod/schemas/referrals";
 import { ReferralStatusBadges } from "@/ui/referrals/referral-status-badges";
 import { ReferralStatus } from "@dub/prisma/client";
@@ -21,7 +24,6 @@ import { useAction } from "next-safe-action/hooks";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import type { z } from "zod/v4";
 
 type StatusField = "notes" | "externalId" | "saleAmount" | "stripeCustomerId";
 
@@ -32,15 +34,9 @@ type StatusChangeFormData = {
   stripeCustomerId: string;
 };
 
-type UpdateReferralStatusPayload = z.infer<typeof updateReferralStatusSchema>;
-
 type StatusConfig = {
   fields: StatusField[];
-  formSchema:
-    | typeof markReferralQualifiedSchema
-    | typeof markReferralUnqualifiedSchema
-    | typeof markReferralClosedWonSchema
-    | typeof markReferralClosedLostSchema;
+  formSchema: UpdateReferralStatusFormSchema;
   buildPayload: (
     base: { referralId: string; workspaceId: string; notes?: string },
     data: StatusChangeFormData,
@@ -99,8 +95,6 @@ function ConfirmReferralStatusChangeModal({
 }: ConfirmReferralStatusChangeModalProps) {
   const { isMobile } = useMediaQuery();
   const { id: workspaceId, defaultProgramId } = useWorkspace();
-  const config = STATUS_CONFIG[newStatus];
-  const visibleFields = new Set(config.fields);
 
   const { executeAsync, isPending } = useAction(updateReferralStatusAction, {
     onSuccess: async () => {
@@ -116,7 +110,6 @@ function ConfirmReferralStatusChangeModal({
     register,
     handleSubmit,
     reset,
-    setError,
     formState: { errors, isSubmitting },
   } = useForm<StatusChangeFormData>({
     defaultValues: {
@@ -140,35 +133,12 @@ function ConfirmReferralStatusChangeModal({
 
   const currentBadge = ReferralStatusBadges[referral.status];
   const newBadge = ReferralStatusBadges[newStatus];
+  const config = STATUS_CONFIG[newStatus];
+  const visibleFields = new Set(config.fields);
 
   const onSubmit = async (data: StatusChangeFormData) => {
     if (!workspaceId || !referral.id) return;
 
-    const toValidate = {
-      referralId: referral.id,
-      workspaceId,
-      notes: data.notes || undefined,
-      externalId: data.externalId || undefined,
-      saleAmount: data.saleAmount ?? 0,
-      stripeCustomerId: data.stripeCustomerId || undefined,
-    };
-    const parsed = config.formSchema.safeParse(toValidate);
-    if (!parsed.success) {
-      const issues = parsed.error.flatten().fieldErrors;
-      const formKeys: (keyof StatusChangeFormData)[] = [
-        "notes",
-        "externalId",
-        "saleAmount",
-        "stripeCustomerId",
-      ];
-      formKeys.forEach((key) => {
-        const msg = issues[key]?.[0];
-        if (msg) setError(key, { type: "manual", message: msg });
-      });
-      return;
-    }
-
-    setShowModal(false);
     const payload = config.buildPayload(
       {
         referralId: referral.id,
@@ -177,7 +147,9 @@ function ConfirmReferralStatusChangeModal({
       },
       data,
     );
+
     await executeAsync(payload);
+    setShowModal(false);
   };
 
   return (
@@ -367,7 +339,9 @@ function ConfirmReferralStatusChangeModal({
   );
 }
 
-export function useConfirmReferralStatusChangeModal() {
+export function useConfirmReferralStatusChangeModal(options?: {
+  onClose?: () => void;
+}) {
   const [state, setState] = useState<{
     referral: ReferralProps;
     newStatus: ReferralStatus;
@@ -382,6 +356,7 @@ export function useConfirmReferralStatusChangeModal() {
 
   function closeConfirmReferralStatusChangeModal() {
     setState(null);
+    options?.onClose?.();
   }
 
   function ConfirmReferralStatusChangeModalWrapper() {

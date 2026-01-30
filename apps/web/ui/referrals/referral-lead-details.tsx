@@ -3,29 +3,51 @@
 import { ReferralProps } from "@/lib/types";
 import { useConfirmReferralStatusChangeModal } from "@/ui/modals/confirm-referral-status-change-modal";
 import { useEditReferralModal } from "@/ui/modals/edit-referral-modal";
+import { ReferralStatus } from "@dub/prisma/client";
 import { Button, Envelope, OfficeBuilding } from "@dub/ui";
 import { OG_AVATAR_URL } from "@dub/utils";
 import { Pencil } from "lucide-react";
+import { ReferralStatusBadge } from "./referral-status-badge";
 import { ReferralStatusDropdown } from "./referral-status-dropdown";
 import { getCompanyLogoUrl } from "./referral-utils";
 
-interface ReferralCustomerDetailsProps {
-  referral: ReferralProps;
+interface ReferralLeadDetailsProps {
+  referral: Pick<ReferralProps, "id" | "name" | "email" | "company" | "status">;
+  mode?: "interactive" | "readonly";
+  selectedStatus?: ReferralStatus;
+  onStatusChange?: (newStatus: ReferralStatus) => void;
 }
 
 export function ReferralLeadDetails({
   referral,
-}: ReferralCustomerDetailsProps) {
+  mode = "interactive",
+  selectedStatus,
+  onStatusChange,
+}: ReferralLeadDetailsProps) {
   const { EditReferralModal, openEditReferralModal } = useEditReferralModal();
   const {
     ConfirmReferralStatusChangeModal,
     openConfirmReferralStatusChangeModal,
   } = useConfirmReferralStatusChangeModal();
 
+  const isInteractive = mode === "interactive";
+  const isControlled = onStatusChange !== undefined;
+
+  const handleStatusChange = (newStatus: ReferralStatus) => {
+    if (onStatusChange) {
+      onStatusChange(newStatus);
+    } else {
+      openConfirmReferralStatusChangeModal(
+        referral as ReferralProps,
+        newStatus,
+      );
+    }
+  };
+
   return (
     <>
-      <EditReferralModal />
-      <ConfirmReferralStatusChangeModal />
+      {isInteractive && <EditReferralModal />}
+      {isInteractive && !isControlled && <ConfirmReferralStatusChangeModal />}
       <div className="border-border-subtle overflow-hidden rounded-xl border bg-white p-4">
         <div className="flex items-start justify-between">
           <div className="relative w-fit shrink-0">
@@ -39,14 +61,16 @@ export function ReferralLeadDetails({
             />
           </div>
 
-          <Button
-            type="button"
-            variant="secondary"
-            icon={<Pencil className="size-3.5" />}
-            text="Edit"
-            className="h-7 w-fit rounded-lg px-2"
-            onClick={() => openEditReferralModal(referral)}
-          />
+          {isInteractive && (
+            <Button
+              type="button"
+              variant="secondary"
+              icon={<Pencil className="size-3.5" />}
+              text="Edit"
+              className="h-7 w-fit rounded-lg px-2"
+              onClick={() => openEditReferralModal(referral as ReferralProps)}
+            />
+          )}
         </div>
 
         <div className="mt-2">
@@ -76,12 +100,15 @@ export function ReferralLeadDetails({
           <div className="text-content-emphasis mb-3 text-base font-semibold">
             Referral stage
           </div>
-          <ReferralStatusDropdown
-            referral={referral}
-            onStatusChange={(newStatus) =>
-              openConfirmReferralStatusChangeModal(referral, newStatus)
-            }
-          />
+          {isInteractive ? (
+            <ReferralStatusDropdown
+              referral={referral as ReferralProps}
+              selectedStatus={selectedStatus}
+              onStatusChange={handleStatusChange}
+            />
+          ) : (
+            <ReferralStatusBadge status={referral.status} />
+          )}
         </div>
       </div>
     </>

@@ -1,19 +1,18 @@
 "use server";
 
+import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getReferralOrThrow } from "@/lib/api/referrals/get-referral-or-throw";
+import { markReferralClosedWon } from "@/lib/api/referrals/mark-referral-closed-won";
+import { markReferralQualified } from "@/lib/api/referrals/mark-referral-qualified";
+import { notifyReferralStatusUpdate } from "@/lib/api/referrals/notify-referral-status-update";
 import { REFERRAL_STATUS_TRANSITIONS } from "@/lib/referrals/constants";
+import { ReferralWithCustomer } from "@/lib/types";
 import { updateReferralStatusSchema } from "@/lib/zod/schemas/referrals";
 import { prisma } from "@dub/prisma";
 import { ReferralStatus } from "@dub/prisma/client";
+import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
-
-// Unified action to update referral status
-// TODO: Consolidate logic from existing actions:
-// - mark-referral-qualified.ts (for status === "qualified")
-// - mark-referral-unqualified.ts (for status === "unqualified")
-// - mark-referral-closed-won.ts (for status === "closedWon")
-// - mark-referral-closed-lost.ts (for status === "closedLost")
 
 export const updateReferralStatusAction = authActionClient
   .inputSchema(updateReferralStatusSchema)
@@ -23,26 +22,68 @@ export const updateReferralStatusAction = authActionClient
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const referral = await getReferralOrThrow({
+    let referral = await getReferralOrThrow({
       referralId,
       programId,
     });
 
     if (!REFERRAL_STATUS_TRANSITIONS[referral.status].includes(status)) {
-      throw new Error(
-        `Invalid status transition from ${referral.status} to ${status}`,
-      );
+      throw new DubApiError({
+        code: "bad_request",
+        message: `Cannot transition from ${referral.status} to ${status}.`,
+      });
     }
 
-    await prisma.partnerReferral.update({
+    if (referral.status === status) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "Referral is already in this status.",
+      });
+    }
+
+    if (status === ReferralStatus.closedWon && !referral.customer) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "This referral does not have a customer associated with it.",
+      });
+    }
+
+    referral = await prisma.partnerReferral.update({
       where: {
-        id: referralId,
-        status: ReferralStatus.pending,
+        id: referral.id,
+        status: referral.status,
       },
       data: {
-        status: ReferralStatus.qualified,
+        status,
+      },
+      include: {
+        customer: true,
       },
     });
 
-    throw new Error("Not implemented yet");
+    waitUntil(
+      notifyReferralStatusUpdate({
+        referral,
+        notes,
+      }),
+    );
+
+    // Mark the referral as qualified
+    if (status === ReferralStatus.qualified) {
+      await markReferralQualified({
+        workspace,
+        referral: referral as ReferralWithCustomer,
+        externalId: parsedInput.externalId ?? null,
+      });
+    }
+
+    // Mark the referral as closed won
+    if (status === ReferralStatus.closedWon) {
+      await markReferralClosedWon({
+        workspace,
+        referral: referral as ReferralWithCustomer,
+        saleAmount: parsedInput.saleAmount,
+        stripeCustomerId: parsedInput.stripeCustomerId ?? null,
+      });
+    }
   });

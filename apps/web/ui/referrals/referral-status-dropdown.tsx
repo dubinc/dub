@@ -10,16 +10,19 @@ import { ReferralStatusBadges } from "./referral-status-badges";
 
 interface ReferralStatusDropdownProps {
   referral: ReferralProps;
+  selectedStatus?: ReferralStatus;
   onStatusChange: (newStatus: ReferralStatus) => void;
 }
 
 export function ReferralStatusDropdown({
   referral,
+  selectedStatus,
   onStatusChange,
 }: ReferralStatusDropdownProps) {
   const [openStatusDropdown, setOpenStatusDropdown] = useState(false);
 
-  const currentBadge = ReferralStatusBadges[referral.status];
+  const displayStatus = selectedStatus ?? referral.status;
+  const currentBadge = ReferralStatusBadges[displayStatus];
   const allStatuses = Object.keys(ReferralStatusBadges) as ReferralStatus[];
 
   const handleStatusChange = (newStatus: ReferralStatus) => {
@@ -38,7 +41,7 @@ export function ReferralStatusDropdown({
         <div className="w-full p-2">
           {allStatuses.map((status) => {
             const badge = ReferralStatusBadges[status];
-            const isSelected = status === referral.status;
+            const isSelected = status === displayStatus;
             return (
               <button
                 key={status}
