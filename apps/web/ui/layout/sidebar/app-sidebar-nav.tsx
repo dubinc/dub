@@ -293,7 +293,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
           },
           {
             name: "Customers",
-            icon: UserCheck,
+            icon: User,
             href: `/${slug}/program/customers`,
             badge: pendingReferralsCount
               ? pendingReferralsCount > 99
