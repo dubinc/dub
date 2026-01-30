@@ -168,7 +168,7 @@ function ConfirmReferralStatusChangeModal({
           <div className="flex flex-col gap-4 px-4 py-6 text-left sm:px-6">
             <div className="relative overflow-hidden rounded-lg border border-neutral-200 bg-white p-5">
               <div
-                className="pointer-events-none absolute inset-0"
+                className="pointer-events-none absolute inset-0 bg-neutral-50"
                 style={{
                   backgroundImage:
                     "radial-gradient(circle, #d4d4d4 1px, transparent 1px)",
@@ -191,11 +191,10 @@ function ConfirmReferralStatusChangeModal({
                   type="text"
                   autoComplete="off"
                   className={cn(
-                    "border-border-subtle mt-2 block w-full rounded-lg text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                    "border-border-subtle mt-2 block w-full rounded-lg text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
                     errors.externalId &&
                       "border-red-600 focus:border-red-500 focus:ring-red-600",
                   )}
-                  placeholder="External customer ID"
                   autoFocus={!isMobile}
                   {...register("externalId", {
                     setValueAs: (value) => (value === "" ? undefined : value),
@@ -222,11 +221,10 @@ function ConfirmReferralStatusChangeModal({
                     step="0.01"
                     min="0"
                     className={cn(
-                      "border-border-subtle block w-full rounded-lg pl-6 pr-12 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                      "border-border-subtle block w-full rounded-lg pl-6 pr-12 text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
                       errors.saleAmount &&
                         "border-red-600 focus:border-red-500 focus:ring-red-600",
                     )}
-                    placeholder="50000"
                     {...register("saleAmount", {
                       required: "Sale amount is required",
                       min: {
@@ -265,11 +263,10 @@ function ConfirmReferralStatusChangeModal({
                   type="text"
                   autoComplete="off"
                   className={cn(
-                    "border-border-subtle mt-2 block w-full rounded-lg text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                    "border-border-subtle mt-2 block w-full rounded-lg text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
                     errors.stripeCustomerId &&
                       "border-red-600 focus:border-red-500 focus:ring-red-600",
                   )}
-                  placeholder="cus_NffrFeUfNV2Hib"
                   {...register("stripeCustomerId", {
                     setValueAs: (value) => (value === "" ? undefined : value),
                   })}
@@ -287,11 +284,10 @@ function ConfirmReferralStatusChangeModal({
               <textarea
                 rows={4}
                 className={cn(
-                  "border-border-subtle mt-2 block w-full rounded-lg text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                  "border-border-subtle mt-2 block w-full rounded-lg text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
                   errors.notes &&
                     "border-red-600 focus:border-red-500 focus:ring-red-600",
                 )}
-                placeholder="Add a note for the partner..."
                 {...register("notes", {
                   setValueAs: (value) => (value === "" ? undefined : value),
                 })}
