@@ -780,7 +780,9 @@ export type ReferralProps = z.infer<typeof referralSchema>;
 
 export type ReferralFormDataField = z.infer<typeof referralFormDataSchema>;
 
-export type UpdateReferralStatusPayload = z.infer<typeof updateReferralStatusSchema>;
+export type UpdateReferralStatusPayload = z.infer<
+  typeof updateReferralStatusSchema
+>;
 
 export type UpdateReferralStatusFormSchema =
   | typeof markReferralQualifiedSchema
