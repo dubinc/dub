@@ -48,8 +48,8 @@ export function ReferralLeadDetails({
     <>
       {isInteractive && <EditReferralModal />}
       {isInteractive && !isControlled && <ConfirmReferralStatusChangeModal />}
-      <div className="border-border-subtle overflow-hidden rounded-xl border bg-white p-4">
-        <div className="flex items-start justify-between">
+      <div className="border-border-subtle overflow-hidden rounded-xl border bg-white">
+        <div className="flex items-start justify-between px-2.5 pt-4">
           <div className="relative w-fit shrink-0">
             <img
               src={
@@ -73,13 +73,13 @@ export function ReferralLeadDetails({
           )}
         </div>
 
-        <div className="mt-2">
+        <div className="mt-2 px-4">
           <div className="text-content-emphasis text-base font-semibold">
             {referral.name}
           </div>
         </div>
 
-        <div className="mt-2 flex flex-col gap-2">
+        <div className="mt-2 flex flex-col gap-2 px-4">
           {[
             { icon: Envelope, value: referral.email },
             { icon: OfficeBuilding, value: referral.company },
@@ -96,8 +96,8 @@ export function ReferralLeadDetails({
           ))}
         </div>
 
-        <div className="mt-4 border-t border-neutral-200 pt-4">
-          <div className="text-content-emphasis mb-3 text-base font-semibold">
+        <div className="mt-4 border-t border-neutral-200 px-4 py-2.5 pb-4">
+          <div className="text-content-emphasis mb-2 text-base font-semibold">
             Referral stage
           </div>
           {isInteractive ? (
