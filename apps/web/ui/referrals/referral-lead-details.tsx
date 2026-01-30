@@ -5,6 +5,7 @@ import { useEditReferralModal } from "@/ui/modals/edit-referral-modal";
 import { Button, Envelope, OfficeBuilding } from "@dub/ui";
 import { OG_AVATAR_URL } from "@dub/utils";
 import { Pencil } from "lucide-react";
+import { ReferralStatusDropdown } from "./referral-status-dropdown";
 import { getCompanyLogoUrl } from "./referral-utils";
 
 interface ReferralCustomerDetailsProps {
@@ -63,6 +64,13 @@ export function ReferralLeadDetails({
               </span>
             </div>
           ))}
+        </div>
+
+        <div className="mt-4 border-t border-neutral-200 pt-4">
+          <div className="text-content-emphasis mb-3 text-base font-semibold">
+            Referral stage
+          </div>
+          <ReferralStatusDropdown currentStatus={referral.status} />
         </div>
       </div>
     </>
