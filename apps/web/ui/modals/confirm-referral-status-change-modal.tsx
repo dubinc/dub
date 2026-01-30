@@ -4,17 +4,7 @@ import { updateReferralStatusAction } from "@/lib/actions/referrals/update-refer
 import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
-import {
-  ReferralProps,
-  UpdateReferralStatusFormSchema,
-  UpdateReferralStatusPayload,
-} from "@/lib/types";
-import {
-  markReferralClosedLostSchema,
-  markReferralClosedWonSchema,
-  markReferralQualifiedSchema,
-  markReferralUnqualifiedSchema,
-} from "@/lib/zod/schemas/referrals";
+import { ReferralProps, UpdateReferralStatusPayload } from "@/lib/types";
 import { ReferralStatusBadge } from "@/ui/referrals/referral-status-badge";
 import { ReferralStatus } from "@dub/prisma/client";
 import { AnimatedSizeContainer, Button, Modal, useMediaQuery } from "@dub/ui";
@@ -37,7 +27,6 @@ type StatusChangeFormData = {
 
 type StatusConfig = {
   fields: StatusField[];
-  formSchema: UpdateReferralStatusFormSchema;
   buildPayload: (
     base: { referralId: string; workspaceId: string; notes?: string },
     data: StatusChangeFormData,
@@ -47,12 +36,10 @@ type StatusConfig = {
 const STATUS_CONFIG: Record<ReferralStatus, StatusConfig> = {
   pending: {
     fields: [],
-    formSchema: markReferralClosedLostSchema,
     buildPayload: (base) => ({ ...base, status: "pending" }),
   },
   qualified: {
     fields: ["externalId"],
-    formSchema: markReferralQualifiedSchema,
     buildPayload: (base, data) => ({
       ...base,
       status: "qualified",
@@ -61,12 +48,10 @@ const STATUS_CONFIG: Record<ReferralStatus, StatusConfig> = {
   },
   unqualified: {
     fields: [],
-    formSchema: markReferralUnqualifiedSchema,
     buildPayload: (base) => ({ ...base, status: "unqualified" }),
   },
   closedWon: {
     fields: ["saleAmount", "stripeCustomerId"],
-    formSchema: markReferralClosedWonSchema,
     buildPayload: (base, data) => ({
       ...base,
       status: "closedWon",
@@ -76,7 +61,6 @@ const STATUS_CONFIG: Record<ReferralStatus, StatusConfig> = {
   },
   closedLost: {
     fields: [],
-    formSchema: markReferralClosedLostSchema,
     buildPayload: (base) => ({ ...base, status: "closedLost" }),
   },
 };
