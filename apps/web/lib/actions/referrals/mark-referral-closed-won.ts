@@ -10,6 +10,7 @@ import { prisma } from "@dub/prisma";
 import { ReferralStatus } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 // Mark a partner referral as closed won
 export const markReferralClosedWonAction = authActionClient
@@ -17,6 +18,11 @@ export const markReferralClosedWonAction = authActionClient
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
     const { referralId, saleAmount, stripeCustomerId, notes } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredRoles: ["owner", "member"],
+    });
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
