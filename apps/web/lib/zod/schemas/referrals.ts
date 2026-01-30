@@ -90,3 +90,12 @@ export const markReferralClosedLostSchema = z.object({
   workspaceId: z.string(),
   notes: z.string().trim().optional(),
 });
+
+export const updateReferralSchema = z.object({
+  referralId: z.string(),
+  workspaceId: z.string(),
+  name: z.string().min(1, "Name is required"),
+  email: z.email("Invalid email address"),
+  company: z.string().min(1, "Company is required"),
+  formData: z.array(referralFormDataSchema).nullable().optional(),
+});

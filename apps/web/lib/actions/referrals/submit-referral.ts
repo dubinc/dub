@@ -3,14 +3,15 @@
 import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
+import { notifyPartnerReferralSubmitted } from "@/lib/api/referrals/notify-partner-referral-submitted";
 import { REFERRAL_FORM_REQUIRED_FIELD_KEYS } from "@/lib/referrals/constants";
+import { ReferralFormDataField } from "@/lib/types";
 import {
   formFieldSchema,
   referralFormSchema,
   referralRequiredFieldsSchema,
 } from "@/lib/zod/schemas/referral-form";
 import { createPartnerReferralSchema } from "@/lib/zod/schemas/referrals";
-import { notifyPartnerReferralSubmitted } from "@/lib/api/referrals/notify-partner-referral-submitted";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { COUNTRIES } from "@dub/utils";
@@ -85,11 +86,7 @@ export const submitReferralAction = authPartnerActionClient
     const { name, email, company } = requiredFieldsResult.data;
 
     // Parse custom fields from formData
-    const customFormData: Array<{
-      key: string;
-      value: unknown;
-      label: string;
-    }> = [];
+    const customFormData: ReferralFormDataField[] = [];
 
     // Parse and get form schema fields to extract labels
     const parsedReferralFormData = programEnrollment.program.referralFormData
@@ -116,6 +113,7 @@ export const submitReferralAction = authPartnerActionClient
       if (value === undefined || value === null || value === "") {
         continue;
       }
+
       if (typeof value === "number" && Number.isNaN(value)) {
         continue;
       }
@@ -128,6 +126,7 @@ export const submitReferralAction = authPartnerActionClient
         key,
         label,
         value: convertFieldValue(value, fieldSchema),
+        type: fieldSchema?.type ?? "text",
       });
     }
 
