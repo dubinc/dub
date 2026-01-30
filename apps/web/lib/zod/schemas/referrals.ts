@@ -62,6 +62,7 @@ export const createPartnerReferralSchema = z.object({
   formData: z.record(z.string(), z.unknown()), // Contains all form fields including name, email, company
 });
 
+// TODO: Remove this schema
 export const markReferralQualifiedSchema = z.object({
   referralId: z.string(),
   workspaceId: z.string(),

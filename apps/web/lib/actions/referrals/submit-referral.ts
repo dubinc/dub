@@ -3,6 +3,7 @@
 import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
+import { addReferralEvent } from "@/lib/api/referrals/add-referral-event";
 import { notifyPartnerReferralSubmitted } from "@/lib/api/referrals/notify-partner-referral-submitted";
 import { REFERRAL_FORM_REQUIRED_FIELD_KEYS } from "@/lib/referrals/constants";
 import { ReferralFormDataField } from "@/lib/types";
@@ -146,9 +147,16 @@ export const submitReferralAction = authPartnerActionClient
     });
 
     waitUntil(
-      notifyPartnerReferralSubmitted({
-        referral,
-        programId,
-      }),
+      Promise.allSettled([
+        notifyPartnerReferralSubmitted({
+          referral,
+          programId,
+        }),
+
+        addReferralEvent({
+          referralId: referral.id,
+          type: "referral.created",
+        }),
+      ]),
     );
   });

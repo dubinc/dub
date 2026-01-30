@@ -2,6 +2,7 @@
 
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { addReferralEvent } from "@/lib/api/referrals/add-referral-event";
 import { getReferralOrThrow } from "@/lib/api/referrals/get-referral-or-throw";
 import { markReferralClosedWon } from "@/lib/api/referrals/mark-referral-closed-won";
 import { markReferralQualified } from "@/lib/api/referrals/mark-referral-qualified";
@@ -14,10 +15,17 @@ import { ReferralStatus } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 
+const REFERRAL_EVENT_TYPES = {
+  [ReferralStatus.qualified]: "referral.qualified",
+  [ReferralStatus.unqualified]: "referral.unqualified",
+  [ReferralStatus.closedWon]: "referral.closedWon",
+  [ReferralStatus.closedLost]: "referral.closedLost",
+} as const;
+
 export const updateReferralStatusAction = authActionClient
   .inputSchema(updateReferralStatusSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { workspace } = ctx;
+    const { workspace, user } = ctx;
     const { referralId, status, notes } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
@@ -62,10 +70,19 @@ export const updateReferralStatusAction = authActionClient
     });
 
     waitUntil(
-      notifyReferralStatusUpdate({
-        referral,
-        notes,
-      }),
+      Promise.allSettled([
+        notifyReferralStatusUpdate({
+          referral,
+          notes,
+        }),
+
+        addReferralEvent({
+          referralId: referral.id,
+          type: REFERRAL_EVENT_TYPES[status],
+          note: notes,
+          userId: user.id,
+        }),
+      ]),
     );
 
     // Mark the referral as qualified
