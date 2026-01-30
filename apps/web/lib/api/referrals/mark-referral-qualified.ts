@@ -24,9 +24,6 @@ export const markReferralQualified = async ({
     where: {
       programId: referral.programId,
       partnerId: referral.partnerId,
-      partnerGroupDefaultLinkId: {
-        not: null,
-      },
     },
     orderBy: {
       partnerGroupDefaultLinkId: "asc",
