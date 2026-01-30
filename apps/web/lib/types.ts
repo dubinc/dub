@@ -15,6 +15,7 @@ import {
   FraudRuleType,
   Link,
   PartnerGroup,
+  PartnerReferral,
   PartnerRole,
   PayoutStatus,
   Prisma,
@@ -122,7 +123,14 @@ import {
   ProgramSchema,
 } from "./zod/schemas/programs";
 import { referralFormDataSchema } from "./zod/schemas/referral-form";
-import { referralSchema } from "./zod/schemas/referrals";
+import {
+  markReferralClosedLostSchema,
+  markReferralClosedWonSchema,
+  markReferralQualifiedSchema,
+  markReferralUnqualifiedSchema,
+  referralSchema,
+  updateReferralStatusSchema,
+} from "./zod/schemas/referrals";
 import {
   CUSTOMER_SOURCES,
   rewardConditionsArraySchema,
@@ -772,4 +780,16 @@ export type ReferralProps = z.infer<typeof referralSchema>;
 
 export type ReferralFormDataField = z.infer<typeof referralFormDataSchema>;
 
+export type UpdateReferralStatusPayload = z.infer<typeof updateReferralStatusSchema>;
+
+export type UpdateReferralStatusFormSchema =
+  | typeof markReferralQualifiedSchema
+  | typeof markReferralUnqualifiedSchema
+  | typeof markReferralClosedWonSchema
+  | typeof markReferralClosedLostSchema;
+
 export type CustomerSource = (typeof CUSTOMER_SOURCES)[number];
+
+export type ReferralWithCustomer = PartnerReferral & {
+  customer: Customer | null;
+};
