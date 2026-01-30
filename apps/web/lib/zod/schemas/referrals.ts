@@ -62,36 +62,6 @@ export const createPartnerReferralSchema = z.object({
   formData: z.record(z.string(), z.unknown()), // Contains all form fields including name, email, company
 });
 
-// TODO: Remove this schema
-export const markReferralQualifiedSchema = z.object({
-  referralId: z.string(),
-  workspaceId: z.string(),
-  externalId: z.string().trim().optional(),
-  notes: z.string().trim().optional(),
-});
-
-export const markReferralUnqualifiedSchema = z.object({
-  referralId: z.string(),
-  workspaceId: z.string(),
-  notes: z.string().trim().optional(),
-});
-
-export const markReferralClosedWonSchema = z.object({
-  referralId: z.string(),
-  workspaceId: z.string(),
-  saleAmount: z
-    .number()
-    .min(0, "Sale amount must be greater than or equal to 0"),
-  stripeCustomerId: z.string().optional(),
-  notes: z.string().trim().optional(),
-});
-
-export const markReferralClosedLostSchema = z.object({
-  referralId: z.string(),
-  workspaceId: z.string(),
-  notes: z.string().trim().optional(),
-});
-
 export const updateReferralSchema = z.object({
   referralId: z.string(),
   workspaceId: z.string(),
@@ -104,7 +74,11 @@ export const updateReferralSchema = z.object({
 const updateReferralStatusBaseSchema = z.object({
   referralId: z.string(),
   workspaceId: z.string(),
-  notes: z.string().trim().optional(),
+  notes: z
+    .string()
+    .trim()
+    .max(1000, "Notes must be less than 1000 characters")
+    .optional(),
 });
 
 export const updateReferralStatusSchema = z.discriminatedUnion("status", [
