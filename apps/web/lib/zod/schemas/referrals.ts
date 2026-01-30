@@ -99,3 +99,36 @@ export const updateReferralSchema = z.object({
   company: z.string().min(1, "Company is required"),
   formData: z.array(referralFormDataSchema).nullable().optional(),
 });
+
+const updateReferralStatusBaseSchema = z.object({
+  referralId: z.string(),
+  workspaceId: z.string(),
+  notes: z.string().trim().optional(),
+});
+
+export const updateReferralStatusSchema = z.discriminatedUnion("status", [
+  updateReferralStatusBaseSchema.extend({
+    status: z.literal("pending"),
+  }),
+
+  updateReferralStatusBaseSchema.extend({
+    status: z.literal("qualified"),
+    externalId: z.string().trim().optional(),
+  }),
+
+  updateReferralStatusBaseSchema.extend({
+    status: z.literal("unqualified"),
+  }),
+
+  updateReferralStatusBaseSchema.extend({
+    status: z.literal("closedWon"),
+    saleAmount: z
+      .number()
+      .min(0, "Sale amount must be greater than or equal to 0"),
+    stripeCustomerId: z.string().optional(),
+  }),
+
+  updateReferralStatusBaseSchema.extend({
+    status: z.literal("closedLost"),
+  }),
+]);

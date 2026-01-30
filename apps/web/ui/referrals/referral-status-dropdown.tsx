@@ -1,5 +1,6 @@
 "use client";
 
+import { ReferralProps } from "@/lib/types";
 import { ReferralStatus } from "@dub/prisma/client";
 import { Popover } from "@dub/ui";
 import { cn } from "@dub/utils";
@@ -8,33 +9,22 @@ import { useState } from "react";
 import { ReferralStatusBadges } from "./referral-status-badges";
 
 interface ReferralStatusDropdownProps {
-  currentStatus: ReferralStatus;
-  onStatusChange?: (newStatus: ReferralStatus) => void;
+  referral: ReferralProps;
+  onStatusChange: (newStatus: ReferralStatus) => void;
 }
 
 export function ReferralStatusDropdown({
-  currentStatus,
+  referral,
   onStatusChange,
 }: ReferralStatusDropdownProps) {
   const [openStatusDropdown, setOpenStatusDropdown] = useState(false);
 
-  const currentBadge = ReferralStatusBadges[currentStatus];
+  const currentBadge = ReferralStatusBadges[referral.status];
   const allStatuses = Object.keys(ReferralStatusBadges) as ReferralStatus[];
 
   const handleStatusChange = (newStatus: ReferralStatus) => {
-    if (newStatus !== currentStatus) {
-      const newBadge = ReferralStatusBadges[newStatus];
-      const confirmed = window.confirm(
-        `Change referral status from "${currentBadge.label}" to "${newBadge.label}"?`,
-      );
-      if (confirmed) {
-        if (onStatusChange) {
-          onStatusChange(newStatus);
-        } else {
-          // TODO: Implement actual status update logic
-          alert(`Status would be changed to: ${newBadge.label}`);
-        }
-      }
+    if (newStatus !== referral.status) {
+      onStatusChange(newStatus);
     }
     setOpenStatusDropdown(false);
   };
@@ -48,7 +38,7 @@ export function ReferralStatusDropdown({
         <div className="w-full p-2">
           {allStatuses.map((status) => {
             const badge = ReferralStatusBadges[status];
-            const isSelected = status === currentStatus;
+            const isSelected = status === referral.status;
             return (
               <button
                 key={status}

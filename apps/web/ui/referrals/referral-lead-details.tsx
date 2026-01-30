@@ -1,6 +1,7 @@
 "use client";
 
 import { ReferralProps } from "@/lib/types";
+import { useConfirmReferralStatusChangeModal } from "@/ui/modals/confirm-referral-status-change-modal";
 import { useEditReferralModal } from "@/ui/modals/edit-referral-modal";
 import { Button, Envelope, OfficeBuilding } from "@dub/ui";
 import { OG_AVATAR_URL } from "@dub/utils";
@@ -16,10 +17,15 @@ export function ReferralLeadDetails({
   referral,
 }: ReferralCustomerDetailsProps) {
   const { EditReferralModal, openEditReferralModal } = useEditReferralModal();
+  const {
+    ConfirmReferralStatusChangeModal,
+    openConfirmReferralStatusChangeModal,
+  } = useConfirmReferralStatusChangeModal();
 
   return (
     <>
       <EditReferralModal />
+      <ConfirmReferralStatusChangeModal />
       <div className="border-border-subtle overflow-hidden rounded-xl border bg-white p-4">
         <div className="flex items-start justify-between">
           <div className="relative w-fit shrink-0">
@@ -70,7 +76,12 @@ export function ReferralLeadDetails({
           <div className="text-content-emphasis mb-3 text-base font-semibold">
             Referral stage
           </div>
-          <ReferralStatusDropdown currentStatus={referral.status} />
+          <ReferralStatusDropdown
+            referral={referral}
+            onStatusChange={(newStatus) =>
+              openConfirmReferralStatusChangeModal(referral, newStatus)
+            }
+          />
         </div>
       </div>
     </>

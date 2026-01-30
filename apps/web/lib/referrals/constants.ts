@@ -1,4 +1,5 @@
 import { textFieldSchema } from "@/lib/zod/schemas/referral-form";
+import { ReferralStatus } from "@dub/prisma/client";
 import { ACME_PROGRAM_ID } from "@dub/utils";
 import * as z from "zod/v4";
 
@@ -50,4 +51,16 @@ export const REFERRAL_ENABLED_PROGRAM_IDS = [
   ACME_PROGRAM_ID, // Acme
   "prog_1K7Y2RGFC4BKZQQZAZEEK9MVE", // SelectCode
   "prog_1KFZQJZRDRV62C037FQZSY0Y8", // FFG
+  "prog_1K2J9DRWPPJ2F1RX53N92TSGA", // Remove this
 ];
+
+export const REFERRAL_STATUS_TRANSITIONS: Record<
+  ReferralStatus,
+  readonly ReferralStatus[]
+> = {
+  pending: ["qualified", "closedLost"],
+  qualified: ["closedWon", "closedLost"],
+  closedWon: [],
+  closedLost: [],
+  unqualified: [],
+};
