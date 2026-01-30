@@ -49,7 +49,7 @@ export function ReferralLeadDetails({
       {isInteractive && <EditReferralModal />}
       {isInteractive && !isControlled && <ConfirmReferralStatusChangeModal />}
       <div className="border-border-subtle overflow-hidden rounded-xl border bg-white">
-        <div className="flex items-start justify-between px-2.5 pt-4">
+        <div className="flex items-start justify-between px-4 pt-4">
           <div className="relative w-fit shrink-0">
             <img
               src={
@@ -96,7 +96,7 @@ export function ReferralLeadDetails({
           ))}
         </div>
 
-        <div className="mt-4 border-t border-neutral-200 px-4 py-2.5 pb-4">
+        <div className="mt-4 border-t border-neutral-200 p-4">
           <div className="text-content-emphasis mb-2 text-base font-semibold">
             Referral stage
           </div>
