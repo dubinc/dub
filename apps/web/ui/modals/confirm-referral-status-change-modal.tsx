@@ -305,14 +305,14 @@ function ConfirmReferralStatusChangeModal({
                 type="button"
                 variant="secondary"
                 text="Cancel"
-                className="h-9 w-fit"
+                className="h-8 w-fit"
                 onClick={() => setShowModal(false)}
                 disabled={isSubmitting}
               />
               <Button
                 type="submit"
                 text="Confirm"
-                className="h-9 w-fit"
+                className="h-8 w-fit"
                 loading={isPending || isSubmitting}
               />
             </div>
