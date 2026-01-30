@@ -278,7 +278,12 @@ export function ProgramCustomersPageClient() {
     onPaginationChange: setPagination,
     columnVisibility,
     onColumnVisibilityChange: setColumnVisibility,
-    sortableColumns: ["saleAmount", "createdAt"],
+    sortableColumns: [
+      "saleAmount",
+      "createdAt",
+      "firstSaleAt",
+      "subscriptionCanceledAt",
+    ],
     sortBy,
     sortOrder,
     onSortChange: ({ sortBy, sortOrder }) =>
