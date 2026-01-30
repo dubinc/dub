@@ -124,10 +124,6 @@ import {
 } from "./zod/schemas/programs";
 import { referralFormDataSchema } from "./zod/schemas/referral-form";
 import {
-  markReferralClosedLostSchema,
-  markReferralClosedWonSchema,
-  markReferralQualifiedSchema,
-  markReferralUnqualifiedSchema,
   referralSchema,
   updateReferralStatusSchema,
 } from "./zod/schemas/referrals";
@@ -783,12 +779,6 @@ export type ReferralFormDataField = z.infer<typeof referralFormDataSchema>;
 export type UpdateReferralStatusPayload = z.infer<
   typeof updateReferralStatusSchema
 >;
-
-export type UpdateReferralStatusFormSchema =
-  | typeof markReferralQualifiedSchema
-  | typeof markReferralUnqualifiedSchema
-  | typeof markReferralClosedWonSchema
-  | typeof markReferralClosedLostSchema;
 
 export type CustomerSource = (typeof CUSTOMER_SOURCES)[number];
 
