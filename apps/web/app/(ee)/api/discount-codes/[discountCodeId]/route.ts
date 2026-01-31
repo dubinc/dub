@@ -59,7 +59,7 @@ export const DELETE = withWorkspace(
           ],
         }),
 
-        queueDiscountCodeDeletion(discountCode.id),
+        queueDiscountCodeDeletion(discountCode),
       ]),
     );
 

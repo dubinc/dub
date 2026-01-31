@@ -17,7 +17,7 @@ export const updateDiscountAction = authActionClient
   .inputSchema(updateDiscountSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const { discountId, couponTestId } = parsedInput;
+    const { discountId, couponTestId, autoProvision } = parsedInput;
 
     throwIfNoPermission({
       role: workspace.role,
@@ -38,6 +38,11 @@ export const updateDiscountAction = authActionClient
         },
         data: {
           couponTestId: couponTestId || null,
+          ...(autoProvision !== undefined && {
+            autoProvisionEnabledAt: autoProvision
+              ? discount.autoProvisionEnabledAt ?? new Date()
+              : null,
+          }),
         },
         include: {
           program: true,

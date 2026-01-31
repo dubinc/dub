@@ -1,3 +1,4 @@
+import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
 import { X } from "@/ui/shared/icons";
 import {
   AnimatedSizeContainer,
@@ -312,6 +313,51 @@ export const InlineBadgePopoverInputs = ({
     </div>
   );
 };
+
+export const InlineBadgePopoverAmountInput = forwardRef<
+  HTMLInputElement,
+  Omit<HTMLProps<HTMLInputElement>, "type"> & {
+    type: "currency" | "percentage" | "number";
+  }
+>(({ type, className, onKeyDown, onChange, ...rest }, ref) => {
+  const { setIsOpen } = useContext(InlineBadgePopoverContext);
+
+  return (
+    <div className={cn("relative rounded-md shadow-sm", className)}>
+      {type === "currency" && (
+        <span className="absolute inset-y-0 left-0 flex items-center pl-1.5 text-sm text-neutral-400">
+          $
+        </span>
+      )}
+      <input
+        ref={ref}
+        className={cn(
+          "block w-full rounded-md border-neutral-300 px-1.5 py-1 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:w-32 sm:text-sm",
+          type === "currency" && "pl-4 pr-12",
+          type === "percentage" && "pr-7",
+        )}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            setIsOpen(false);
+          }
+          handleMoneyKeyDown(e);
+          onKeyDown?.(e);
+        }}
+        onChange={(e) => {
+          handleMoneyInputChange(e);
+          onChange?.(e);
+        }}
+        {...rest}
+      />
+      {["currency", "percentage"].includes(type) && (
+        <span className="absolute inset-y-0 right-0 flex items-center pr-1.5 text-sm text-neutral-400">
+          {type === "currency" ? "USD" : "%"}
+        </span>
+      )}
+    </div>
+  );
+});
 
 export const InlineBadgePopoverRichTextArea = ({
   value,

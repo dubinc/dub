@@ -27,8 +27,15 @@ export const createDiscountAction = authActionClient
   .inputSchema(createDiscountSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    let { amount, type, maxDuration, couponId, couponTestId, groupId } =
-      parsedInput;
+    let {
+      amount,
+      type,
+      maxDuration,
+      couponId,
+      couponTestId,
+      groupId,
+      autoProvision,
+    } = parsedInput;
 
     throwIfNoPermission({
       role: workspace.role,
@@ -109,6 +116,7 @@ export const createDiscountAction = authActionClient
           maxDuration,
           couponId: stripeCoupon?.id || couponId,
           ...(couponTestId && { couponTestId }),
+          ...(autoProvision && { autoProvisionEnabledAt: new Date() }),
         },
       });
 

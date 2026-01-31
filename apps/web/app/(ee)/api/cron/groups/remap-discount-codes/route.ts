@@ -3,6 +3,7 @@ import { queueDiscountCodeDeletion } from "@/lib/api/discounts/queue-discount-co
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { prisma } from "@dub/prisma";
+import { DiscountCode } from "@dub/prisma/client";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 
@@ -69,8 +70,8 @@ export async function POST(req: Request) {
       ({ discountCodes }) => discountCodes,
     );
 
-    const discountCodesToUpdate: string[] = [];
-    const discountCodesToRemove: string[] = [];
+    const discountCodesToUpdate: DiscountCode[] = [];
+    const discountCodesToRemove: DiscountCode[] = [];
 
     for (const discountCode of discountCodes) {
       const keepDiscountCode = isDiscountEquivalent(
@@ -79,9 +80,9 @@ export async function POST(req: Request) {
       );
 
       if (keepDiscountCode) {
-        discountCodesToUpdate.push(discountCode.id);
+        discountCodesToUpdate.push(discountCode);
       } else {
-        discountCodesToRemove.push(discountCode.id);
+        discountCodesToRemove.push(discountCode);
       }
     }
 
@@ -90,7 +91,7 @@ export async function POST(req: Request) {
       await prisma.discountCode.updateMany({
         where: {
           id: {
-            in: discountCodesToUpdate,
+            in: discountCodesToUpdate.map(({ id }) => id),
           },
         },
         data: {

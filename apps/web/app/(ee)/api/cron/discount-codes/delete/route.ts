@@ -1,0 +1,48 @@
+import { withCron } from "@/lib/cron/with-cron";
+import { disableStripeDiscountCode } from "@/lib/stripe/disable-stripe-discount-code";
+import { prisma } from "@dub/prisma";
+import * as z from "zod/v4";
+import { logAndRespond } from "../../utils";
+
+export const dynamic = "force-dynamic";
+
+const schema = z.object({
+  code: z.string(),
+  programId: z.string(),
+});
+
+// POST /api/cron/discount-codes/delete
+export const POST = withCron(async ({ rawBody }) => {
+  const { code, programId } = schema.parse(JSON.parse(rawBody));
+
+  const workspace = await prisma.project.findUniqueOrThrow({
+    where: {
+      defaultProgramId: programId,
+    },
+    select: {
+      stripeConnectId: true,
+    },
+  });
+
+  await disableStripeDiscountCode({
+    code,
+    stripeConnectId: workspace.stripeConnectId,
+  });
+
+  try {
+    await prisma.discountCode.delete({
+      where: {
+        programId_code: {
+          programId,
+          code,
+        },
+      },
+    });
+  } catch {
+    // Do nothing
+  }
+
+  return logAndRespond(
+    `Discount code ${code} disabled from Stripe for ${workspace.stripeConnectId}.`,
+  );
+});

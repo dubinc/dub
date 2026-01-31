@@ -93,7 +93,7 @@ export const deactivatePartnerAction = authActionClient
               variant: "notifications",
             }),
           linkCache.expireMany(links),
-          queueDiscountCodeDeletion(discountCodes.map(({ id }) => id)),
+          queueDiscountCodeDeletion(discountCodes),
           recordAuditLog({
             workspaceId: workspace.id,
             programId,

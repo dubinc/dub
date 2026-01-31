@@ -4,6 +4,7 @@ import ConnectPayoutReminder from "@dub/email/templates/connect-payout-reminder"
 import DubPartnerRewind from "@dub/email/templates/dub-partner-rewind";
 import PartnerBanned from "@dub/email/templates/partner-banned";
 import PartnerDeactivated from "@dub/email/templates/partner-deactivated";
+import PartnerGroupChanged from "@dub/email/templates/partner-group-changed";
 import PartnerPayoutConfirmed from "@dub/email/templates/partner-payout-confirmed";
 import PartnerPayoutProcessed from "@dub/email/templates/partner-payout-processed";
 import ProgramPayoutThankYou from "@dub/email/templates/program-payout-thank-you";
@@ -18,6 +19,8 @@ export const EMAIL_TEMPLATES_MAP = {
   PartnerBanned,
   ProgramPayoutThankYou,
   UnresolvedFraudEventsSummary,
+  PartnerGroupChanged,
+
   // special promo emails
   ProgramMarketplaceAnnouncement,
   DubPartnerRewind,
