@@ -27,8 +27,8 @@ export default function ReferralStatusUpdate({
     email: "jane@example.com",
     company: "Acme Corp",
     image: null,
+    status: "Qualified",
   },
-  status = "Qualified",
   notes,
 }: {
   partner: { name: string; email: string };
@@ -38,15 +38,15 @@ export default function ReferralStatusUpdate({
     email: string;
     company: string;
     image: string | null;
+    status: string;
   };
-  status: string;
   notes?: string | null;
 }) {
   return (
     <Html>
       <Head />
       <Preview>
-        Your referral {referral.name} has been updated to {status}.
+        Your referral {referral.name} has been updated to {referral.status}.
       </Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
@@ -60,8 +60,9 @@ export default function ReferralStatusUpdate({
             </Heading>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              Your submitted referral has changed to <strong>{status}</strong>{" "}
-              by <strong>{program.name}</strong>.
+              Your submitted referral has changed to{" "}
+              <strong>{referral.status}</strong> by{" "}
+              <strong>{program.name}</strong>.
             </Text>
 
             {notes && (

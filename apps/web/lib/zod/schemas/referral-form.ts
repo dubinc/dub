@@ -1,5 +1,16 @@
 import * as z from "zod/v4";
 
+const fieldTypeSchema = z.enum([
+  "text",
+  "textarea",
+  "select",
+  "country",
+  "date",
+  "multiSelect",
+  "number",
+  "phone",
+]);
+
 export const fieldCommonSchema = z.object({
   key: z.string().min(1),
   label: z.string().min(1),
@@ -116,6 +127,7 @@ export const referralFormDataSchema = z.object({
   key: z.string().min(1),
   label: z.string().min(1),
   value: z.unknown(),
+  type: fieldTypeSchema.default("text"),
 });
 
 // Schema for validating required fields

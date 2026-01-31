@@ -87,7 +87,7 @@ function PartnerProfileReferralSheetContent({
 
         {/* Right side - Customer details */}
         <div className="@3xl/sheet:order-2 flex flex-col gap-2 sm:gap-4">
-          <ReferralLeadDetails referral={referral} />
+          <ReferralLeadDetails referral={referral} mode="readonly" />
         </div>
       </div>
     </div>
