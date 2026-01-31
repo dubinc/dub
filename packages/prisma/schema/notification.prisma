@@ -39,8 +39,6 @@ model UserNotificationPreferences {
   partnerAccount Boolean @default(true)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index(userId)
 }
 
 // TODO: update this to WorkspaceNotificationPreferences

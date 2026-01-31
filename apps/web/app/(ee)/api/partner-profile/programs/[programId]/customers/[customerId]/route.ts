@@ -41,18 +41,6 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     where: {
       id: customerId,
     },
-    include: {
-      // find the first commission for this customer and partner
-      commissions: {
-        where: {
-          partnerId: partner.id,
-        },
-        take: 1,
-        orderBy: {
-          createdAt: "asc",
-        },
-      },
-    },
   });
 
   if (!customer || customer?.projectId !== program.workspaceId) {
@@ -78,29 +66,14 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
   const firstLinkId = events[events.length - 1].link_id;
   const link = links.find((link) => link.id === firstLinkId);
 
-  // Find the LTV of the customer
-  // TODO: Calculate this from all events, not limited
-  const ltv = events.reduce((acc, event) => {
-    if (event.event === "sale" && event.saleAmount) {
-      acc += Number(event.saleAmount);
-    }
-
-    return acc;
-  }, 0);
-
-  // Find the time to lead of the customer
   const timeToLead =
     customer.clickedAt && customer.createdAt
       ? customer.createdAt.getTime() - customer.clickedAt.getTime()
       : null;
 
-  // Find the time to first sale of the customer
-  // TODO: Calculate this from all events, not limited
-  const firstSale = events.filter(({ event }) => event === "sale").pop();
-
   const timeToSale =
-    firstSale && customer.createdAt
-      ? new Date(firstSale.timestamp).getTime() - customer.createdAt.getTime()
+    customer.firstSaleAt && customer.createdAt
+      ? customer.firstSaleAt.getTime() - customer.createdAt.getTime()
       : null;
 
   return NextResponse.json(
@@ -116,10 +89,9 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
           : customer.name || generateRandomName(),
       }),
       activity: {
-        ltv,
+        ...customer,
         timeToLead,
         timeToSale,
-        firstSaleDate: customer.commissions[0]?.createdAt ?? null,
         events,
         link,
       },

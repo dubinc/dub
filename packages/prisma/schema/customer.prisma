@@ -39,6 +39,8 @@ model Customer {
   @@index([projectId, email])
   @@index([projectId, createdAt])
   @@index([projectId, saleAmount])
+  @@index([projectId, firstSaleAt])
+  @@index([projectId, subscriptionCanceledAt])
   @@index([programId, partnerId])
   @@index(partnerId)
   @@index(linkId)

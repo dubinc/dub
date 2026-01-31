@@ -7,6 +7,7 @@ import {
   currencyFormatter,
   formatDateTimeSmart,
   nFormatter,
+  pluralize,
 } from "@dub/utils";
 import { formatDistance } from "date-fns";
 import Link from "next/link";
@@ -18,7 +19,11 @@ export function CustomerStats({
 }: {
   customer?: Pick<CustomerEnriched, "sales" | "saleAmount" | "createdAt">;
 }) {
-  const { customerId } = useParams<{ customerId: string }>();
+  const { slug: workspaceSlug, customerId } = useParams<{
+    slug: string;
+    customerId: string;
+  }>();
+
   const { customerActivity, isCustomerActivityLoading } = useCustomerActivity({
     customerId,
   });
@@ -30,28 +35,16 @@ export function CustomerStats({
   }[] = useMemo(
     () => [
       {
-        label: "Time to sale",
-        value:
-          !customer || isCustomerActivityLoading
-            ? undefined
-            : customerActivity?.firstSaleDate
-              ? formatDistance(
-                  customerActivity.firstSaleDate,
-                  customer.createdAt,
-                )
-              : "-",
-      },
-      {
         label: "First sale date",
         value:
-          isCustomerActivityLoading ? undefined : customerActivity?.firstSaleDate ? (
+          isCustomerActivityLoading ? undefined : customerActivity?.firstSaleAt ? (
             <TimestampTooltip
-              timestamp={customerActivity.firstSaleDate}
+              timestamp={customerActivity.firstSaleAt}
               side="right"
               rows={["local", "utc"]}
             >
               <span className="hover:text-content-emphasis underline decoration-dotted underline-offset-2">
-                {formatDateTimeSmart(customerActivity.firstSaleDate)}
+                {formatDateTimeSmart(customerActivity.firstSaleAt)}
               </span>
             </TimestampTooltip>
           ) : (
@@ -59,19 +52,46 @@ export function CustomerStats({
           ),
       },
       {
-        label: "Sales",
-        value: customer
-          ? nFormatter(customer.sales ?? 0, { full: true })
-          : undefined,
+        label: "Time to sale",
+        value:
+          !customer || isCustomerActivityLoading
+            ? undefined
+            : customerActivity?.firstSaleAt
+              ? formatDistance(customerActivity.firstSaleAt, customer.createdAt)
+              : "-",
       },
       {
         label: "Lifetime value",
-        value: customer
-          ? currencyFormatter(customer.saleAmount ?? 0)
-          : undefined,
+        value: customer ? (
+          <div className="flex items-center gap-1">
+            {currencyFormatter(customer.saleAmount ?? 0)}
+            <span className="text-xs text-neutral-500">
+              ({nFormatter(customer.sales ?? 0, { full: true })}{" "}
+              {pluralize("sale", customer.sales ?? 0)})
+            </span>
+          </div>
+        ) : undefined,
+        href: `/${workspaceSlug}/events?event=sales&customerId=${customerId}&interval=1y`,
+      },
+      {
+        label: "Subscription canceled",
+        value:
+          isCustomerActivityLoading ? undefined : customerActivity?.subscriptionCanceledAt ? (
+            <TimestampTooltip
+              timestamp={customerActivity.subscriptionCanceledAt}
+              side="right"
+              rows={["local", "utc"]}
+            >
+              <span className="hover:text-content-emphasis underline decoration-dotted underline-offset-2">
+                {formatDateTimeSmart(customerActivity.subscriptionCanceledAt)}
+              </span>
+            </TimestampTooltip>
+          ) : (
+            "-"
+          ),
       },
     ],
-    [customer, customerActivity, isCustomerActivityLoading],
+    [workspaceSlug, customer, customerActivity, isCustomerActivityLoading],
   );
 
   return (

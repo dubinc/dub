@@ -61,18 +61,6 @@ export const GET = withPartnerProfile(
       },
       include: {
         link: true,
-        commissions: {
-          where: {
-            partnerId: partner.id,
-          },
-          take: 1,
-          orderBy: {
-            createdAt: "asc",
-          },
-          select: {
-            createdAt: true,
-          },
-        },
       },
       orderBy: {
         [sortBy]: sortOrder,
@@ -100,10 +88,9 @@ export const GET = withPartnerProfile(
             : customer.name || generateRandomName(),
         }),
         activity: {
-          ltv: customer.saleAmount,
+          ...customer,
           timeToLead,
           timeToSale: null,
-          firstSaleDate: customer.commissions[0]?.createdAt ?? null,
           events: [],
           link: customer.link,
         },

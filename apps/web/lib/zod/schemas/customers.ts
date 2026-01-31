@@ -46,7 +46,12 @@ export const getCustomersQuerySchema = z
         "Whether to include expanded fields on the customer (`link`, `partner`, `discount`).",
       ),
     sortBy: z
-      .enum(["createdAt", "saleAmount"])
+      .enum([
+        "createdAt",
+        "saleAmount",
+        "firstSaleAt",
+        "subscriptionCanceledAt",
+      ])
       .optional()
       .default("createdAt")
       .describe(
