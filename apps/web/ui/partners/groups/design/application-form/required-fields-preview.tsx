@@ -6,7 +6,7 @@ const RequiredFieldItemPreview = ({
   label: string;
 }) => {
   return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-1.5 rounded-lg bg-blue-100 py-4">
+    <div className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-blue-200 bg-blue-100 py-4">
       <div className="relative h-4 w-4">{icon}</div>
       <div className="text-sm font-medium text-blue-900">{label}</div>
     </div>
@@ -15,18 +15,18 @@ const RequiredFieldItemPreview = ({
 
 const RequiredFieldsPreview = () => {
   return (
-    <div className="rounded-[10px] border border-blue-200 bg-blue-50 px-4 pb-2 pt-4">
-      <div className="grid w-full grid-cols-1 gap-4 lg:grid-cols-3">
+    <div className="rounded-xl bg-blue-50 px-1 pb-1.5 pt-1">
+      <div className="grid w-full grid-cols-1 gap-1 lg:grid-cols-3">
         <RequiredFieldItemPreview icon={<SignatureIcon />} label="Name" />
         <RequiredFieldItemPreview icon={<EmailIcon />} label="Email" />
         <RequiredFieldItemPreview icon={<CountryIcon />} label="Country" />
       </div>
-      <div className="mt-2 flex items-center justify-center gap-2">
+      <div className="mt-1 flex items-center justify-center gap-2">
         <div className="relative h-4 w-4">
           <LockIcon />
         </div>
-        <div className="text-sm font-medium text-blue-900">
-          Mandatory fields
+        <div className="text-xs font-medium text-blue-900">
+          Required applicant fields
         </div>
       </div>
     </div>
