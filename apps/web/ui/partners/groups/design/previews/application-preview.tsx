@@ -230,7 +230,7 @@ export function ApplicationPreview({
               <EditToolbar
                 onEdit={() => setShowEditApplicationHeroModal(true)}
               />
-              <div className="mx-auto max-w-screen-sm">
+              <div className="relative mx-auto max-w-screen-sm">
                 <div className="px-6">
                   <ApplicationFormHero
                     program={program}
