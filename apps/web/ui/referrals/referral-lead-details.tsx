@@ -37,10 +37,7 @@ export function ReferralLeadDetails({
     if (onStatusChange) {
       onStatusChange(newStatus);
     } else {
-      openConfirmReferralStatusChangeModal(
-        referral as ReferralProps,
-        newStatus,
-      );
+      openConfirmReferralStatusChangeModal(referral, newStatus);
     }
   };
 
