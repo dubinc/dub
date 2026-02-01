@@ -26,6 +26,8 @@ export function formatRedisLink(link: ExpandedLink): RedisLinkProps {
     discount,
     testVariants,
     testCompletedAt,
+    isRule,
+    rulePattern,
   } = link;
 
   const webhookIds = webhooks?.map(({ webhookId }) => webhookId) ?? [];
@@ -76,5 +78,7 @@ export function formatRedisLink(link: ExpandedLink): RedisLinkProps {
       testVariants: testVariants as z.infer<typeof ABTestVariantsSchema>,
       testCompletedAt: new Date(testCompletedAt!),
     }),
+    ...(isRule && { isRule: true }),
+    ...(rulePattern && { rulePattern }),
   };
 }

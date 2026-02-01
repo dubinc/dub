@@ -21,7 +21,8 @@ import {
 import { linkCache } from "../api/links/cache";
 import { isCaseSensitiveDomain } from "../api/links/case-sensitivity";
 import { recordClickCache } from "../api/links/record-click-cache";
-import { getLinkViaEdge } from "../planetscale";
+import { ruleCache, RedisRuleLink } from "../api/links/rule-cache";
+import { getLinkViaEdge, getRulesViaEdge } from "../planetscale";
 import { getPartnerEnrollmentInfo } from "../planetscale/get-partner-enrollment-info";
 import { cacheDeepLinkClickData } from "./utils/cache-deeplink-click-data";
 import { crawlBitly } from "./utils/crawl-bitly";
@@ -33,6 +34,7 @@ import { handleNotFoundLink } from "./utils/handle-not-found-link";
 import { isIosAppStoreUrl } from "./utils/is-ios-app-store-url";
 import { isSingularTrackingUrl } from "./utils/is-singular-tracking-url";
 import { isSupportedCustomURIScheme } from "./utils/is-supported-custom-uri-scheme";
+import { matchRules, MatchResult } from "./utils/match-rule";
 import { parse } from "./utils/parse";
 import { resolveABTestURL } from "./utils/resolve-ab-test-url";
 
@@ -76,6 +78,7 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
 
   let cachedLink = await linkCache.get({ domain, key });
   let isPartnerLink = Boolean(cachedLink?.programId && cachedLink?.partnerId);
+  let ruleMatch: MatchResult | null = null;
 
   if (!cachedLink) {
     let linkData = await getLinkViaEdge({
@@ -84,38 +87,71 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
     });
 
     if (!linkData) {
-      if (domain === "buff.ly") {
-        return await crawlBitly(req);
+      // Try to match against redirect rules before returning 404
+      let rules = await ruleCache.get(domain);
+
+      if (!rules) {
+        // Fetch rules from database and cache them
+        const rulesData = await getRulesViaEdge(domain);
+        if (rulesData.length > 0) {
+          const formattedRules = rulesData.map((rule) => ({
+            ...formatRedisLink(rule as any),
+            rulePattern: rule.rulePattern!,
+          })) as RedisRuleLink[];
+          await ruleCache.set(domain, formattedRules as any);
+          rules = formattedRules;
+        }
       }
 
-      return await handleNotFoundLink(req);
-    }
+      if (rules && rules.length > 0) {
+        // Match the path against rules
+        const pathToMatch = `/${key}`;
+        ruleMatch = matchRules(pathToMatch, rules);
 
-    isPartnerLink = Boolean(linkData.programId && linkData.partnerId);
+        if (ruleMatch) {
+          // Use the matched rule as the link
+          cachedLink = ruleMatch.rule;
+          isPartnerLink = Boolean(
+            cachedLink?.programId && cachedLink?.partnerId,
+          );
+        }
+      }
 
-    // format link to fit the RedisLinkProps interface
-    cachedLink = formatRedisLink(linkData as any);
-
-    ev.waitUntil(
-      (async () => {
-        if (!isPartnerLink) {
-          await linkCache.set(linkData as any);
-          return;
+      // If still no match, return 404
+      if (!cachedLink) {
+        if (domain === "buff.ly") {
+          return await crawlBitly(req);
         }
 
-        const { partner, discount } = await getPartnerEnrollmentInfo({
-          programId: linkData.programId,
-          partnerId: linkData.partnerId,
-        });
+        return await handleNotFoundLink(req);
+      }
+    } else {
+      isPartnerLink = Boolean(linkData.programId && linkData.partnerId);
 
-        // we'll use this data on /track/click
-        await linkCache.set({
-          ...(linkData as any),
-          ...(partner && { partner }),
-          ...(discount && { discount }),
-        });
-      })(),
-    );
+      // format link to fit the RedisLinkProps interface
+      cachedLink = formatRedisLink(linkData as any);
+
+      ev.waitUntil(
+        (async () => {
+          if (!isPartnerLink) {
+            await linkCache.set(linkData as any);
+            return;
+          }
+
+          const { partner, discount } = await getPartnerEnrollmentInfo({
+            programId: linkData.programId,
+            partnerId: linkData.partnerId,
+          });
+
+          // we'll use this data on /track/click
+          await linkCache.set({
+            ...(linkData as any),
+            ...(partner && { partner }),
+            ...(discount && { discount }),
+          });
+        })(),
+      );
+    }
   }
 
   const {
@@ -262,6 +298,7 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
         clickId,
         workspaceId,
         linkId,
+        aliasLinkId: ruleMatch?.matchedPath,
         domain,
         key,
         url,
@@ -320,6 +357,7 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
         clickId,
         workspaceId,
         linkId,
+        aliasLinkId: ruleMatch?.matchedPath,
         domain,
         key,
         url: finalUrl,
@@ -356,6 +394,7 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
         clickId,
         workspaceId,
         linkId,
+        aliasLinkId: ruleMatch?.matchedPath,
         domain,
         key,
         url: finalUrl,
@@ -394,6 +433,7 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
         clickId,
         workspaceId,
         linkId,
+        aliasLinkId: ruleMatch?.matchedPath,
         domain,
         key,
         url: finalUrl,
@@ -463,6 +503,7 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
         clickId,
         workspaceId,
         linkId,
+        aliasLinkId: ruleMatch?.matchedPath,
         domain,
         key,
         url: finalUrl,
@@ -531,6 +572,7 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
         clickId,
         workspaceId,
         linkId,
+        aliasLinkId: ruleMatch?.matchedPath,
         domain,
         key,
         url: finalUrl,

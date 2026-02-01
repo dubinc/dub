@@ -22,6 +22,8 @@ export interface EdgeLinkProps {
   trackConversion: boolean;
   programId: string | null;
   partnerId: string | null;
+  isRule: number;
+  rulePattern: string | null;
 }
 
 export interface EdgeDomainProps {
