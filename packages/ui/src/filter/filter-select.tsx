@@ -18,19 +18,17 @@ import { useKeyboardShortcut, useMediaQuery } from "../hooks";
 import { useScrollProgress } from "../hooks/use-scroll-progress";
 import { Check, LoadingSpinner, Magic } from "../icons";
 import { Popover } from "../popover";
-import { Filter, FilterOption } from "./types";
+import { Filter, FilterOption, ActiveFilter } from "./types";
 
 type FilterSelectProps = {
   filters: Filter[];
-  onSelect: (key: string, value: FilterOption["value"]) => void;
+  onSelect: (key: string, value: FilterOption["value"] | FilterOption["value"][]) => void;
   onRemove: (key: string, value: FilterOption["value"]) => void;
   onOpenFilter?: (key: string) => void;
   onSearchChange?: (search: string) => void;
   onSelectedFilterChange?: (key: string | null) => void;
-  activeFilters?: {
-    key: Filter["key"];
-    value: FilterOption["value"];
-  }[];
+  activeFilters?: ActiveFilter[];
+  multiSelect?: boolean;
   askAI?: boolean;
   children?: ReactNode;
   emptyState?: ReactNode | Record<string, ReactNode>;
@@ -45,6 +43,7 @@ export function FilterSelect({
   onSearchChange,
   onSelectedFilterChange,
   activeFilters,
+  multiSelect = false,
   askAI,
   children,
   emptyState,
@@ -96,8 +95,9 @@ export function FilterSelect({
 
     setSearch("");
     setSelectedFilterKey(key);
+
     onOpenFilter?.(key);
-  }, []);
+  }, [onOpenFilter]);
 
   const isOptionSelected = useCallback(
     (value: FilterOption["value"]) => {
@@ -107,31 +107,35 @@ export function FilterSelect({
         ({ key }) => key === selectedFilterKey,
       );
 
-      return (
-        activeFilter?.value === value ||
-        (activeFilter &&
-          selectedFilter.multiple &&
-          Array.isArray(activeFilter.value) &&
-          activeFilter.value.includes(value))
-      );
+      return activeFilter?.values.includes(value) ?? false;
     },
-    [selectedFilter],
+    [selectedFilter, activeFilters, selectedFilterKey],
   );
+
 
   const selectOption = useCallback(
     (value: FilterOption["value"]) => {
       if (selectedFilter) {
-        const isSelected = isOptionSelected(value);
-
-        isSelected
-          ? onRemove(selectedFilter.key, value)
-          : onSelect(selectedFilter.key, value);
-
-        if (!selectedFilter.multiple) setIsOpen(false);
+        const isSingleSelect = selectedFilter.singleSelect || !multiSelect;
+        if (isSingleSelect) {
+          const isSelected = isOptionSelected(value);
+          isSelected
+            ? onRemove(selectedFilter.key, value)
+            : onSelect(selectedFilter.key, value);
+          setIsOpen(false);
+        } else {
+          const isSelected = isOptionSelected(value);
+          if (isSelected) {
+            onRemove(selectedFilter.key, value);
+          } else {
+            onSelect(selectedFilter.key, value);
+          }
+        }
       }
     },
-    [activeFilters, selectedFilter, askAI],
+    [selectedFilter, multiSelect, isOptionSelected, onSelect, onRemove],
   );
+
 
   useEffect(() => {
     onSearchChange?.(search);
@@ -236,6 +240,7 @@ export function FilterSelect({
                     selectedFilter.options
                       ?.filter((option) => !search || !option.hideDuringSearch)
                       ?.map((option) => {
+                        const isSingleSelect = selectedFilter.singleSelect || !multiSelect;
                         const isSelected = isOptionSelected(option.value);
 
                         return (
@@ -243,9 +248,15 @@ export function FilterSelect({
                             key={option.value}
                             filter={selectedFilter}
                             option={option}
+                            showCheckbox={!isSingleSelect}
+                            isChecked={isSelected}
                             right={
-                              isSelected ? (
-                                <Check className="h-4 w-4" />
+                              isSingleSelect ? (
+                                isSelected ? (
+                                  <Check className="h-4 w-4" />
+                                ) : (
+                                  option.right
+                                )
                               ) : (
                                 option.right
                               )
@@ -378,11 +389,15 @@ function FilterButton({
   filter,
   option,
   right,
+  showCheckbox,
+  isChecked,
   onSelect,
 }: {
   filter: Filter;
   option?: FilterOption;
   right?: ReactNode;
+  showCheckbox?: boolean;
+  isChecked?: boolean;
   onSelect: () => void;
 }) {
   const { isMobile } = useMediaQuery();
@@ -416,11 +431,19 @@ function FilterButton({
       onSelect={onSelect}
       value={label + option?.value}
     >
+      {showCheckbox && (
+        <div className={cn(
+          "flex h-4 w-4 items-center justify-center rounded border",
+          isChecked ? "border-neutral-900 bg-neutral-900" : "border-neutral-300"
+        )}>
+          {isChecked && <Check className="h-3 w-3 text-white" />}
+        </div>
+      )}
       <span className="shrink-0 text-neutral-600">
         {isReactNode(Icon) ? Icon : <Icon className="h-4 w-4" />}
       </span>
-      {truncate(label, 48)}
-      <div className="ml-1 flex shrink-0 grow justify-end text-neutral-500">
+      <span className="flex-1">{truncate(label, 48)}</span>
+      <div className="ml-1 flex shrink-0 justify-end text-neutral-500">
         {right}
       </div>
     </Command.Item>

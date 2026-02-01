@@ -8,11 +8,13 @@ import { readStreamableValue } from "@ai-sdk/rsc";
 import {
   BlurImage,
   Filter,
+  FilterOperator,
   LinkLogo,
   Sliders,
   useRouterStuff,
   UTM_PARAMETERS,
 } from "@dub/ui";
+
 import {
   Calendar6,
   Cube,
@@ -120,38 +122,63 @@ export function useAnalyticsFilters({
 
   const [requestedFilters, setRequestedFilters] = useState<string[]>([]);
 
+  const parseFilterParam = useCallback((value: string): {
+    operator: FilterOperator;
+    values: string[];
+  } => {
+    const isNegated = value.startsWith('-');
+    const cleanValue = isNegated ? value.slice(1) : value;
+    const values = cleanValue.split(',').filter(Boolean);
+
+    const operator: FilterOperator = isNegated
+      ? (values.length > 1 ? 'IS_NOT_ONE_OF' : 'IS_NOT')
+      : (values.length > 1 ? 'IS_ONE_OF' : 'IS');
+
+    return {
+      operator,
+      values,
+    };
+  }, []);
+
   const activeFilters = useMemo(() => {
     const { domain, key, root, folderId, ...params } = searchParamsObj;
 
     // Handle special cases first
     const filters = [
       // Handle domain/key special case
-      ...(domain && !key ? [{ key: "domain", value: domain }] : []),
+      ...(domain && !key ? [{ key: "domain", operator: "IS" as const, values: [domain] }] : []),
       ...(domain && key
         ? [
             {
               key: "link",
-              value: linkConstructor({ domain, key, pretty: true }),
+              operator: "IS" as const,
+              values: [linkConstructor({ domain, key, pretty: true })],
             },
           ]
         : []),
       // Handle tagIds special case
       ...(selectedTagIds.length > 0
-        ? [{ key: "tagIds", value: selectedTagIds }]
+        ? [{
+          key: "tagIds",
+          operator: (selectedTagIds.length > 1 ? "IS_ONE_OF" : "IS") as FilterOperator,
+          values: selectedTagIds
+        }]
         : []),
       // Handle root special case - convert string to boolean
-      ...(root ? [{ key: "root", value: root === "true" }] : []),
+      ...(root ? [{ key: "root", operator: "IS" as const, values: [root === "true"] }] : []),
       // Handle folderId special case
-      ...(folderId ? [{ key: "folderId", value: folderId }] : []),
+      ...(folderId ? [{ key: "folderId", operator: "IS" as const, values: [folderId] }] : []),
       // Handle customerId special case
       ...(selectedCustomer
         ? [
             {
               key: "customerId",
-              value:
+              operator: "IS" as const,
+              values: [
                 selectedCustomer.email ||
                 selectedCustomer["name"] ||
                 selectedCustomer["externalId"],
+              ],
             },
           ]
         : []),
@@ -171,7 +198,8 @@ export function useAnalyticsFilters({
 
       const value = params[filter];
       if (value) {
-        filters.push({ key: filter, value });
+        const { operator, values } = parseFilterParam(value);
+        filters.push({ key: filter, operator, values });
       }
     });
 
@@ -182,6 +210,7 @@ export function useAnalyticsFilters({
     partnerPage,
     selectedCustomerId,
     selectedCustomer,
+    parseFilterParam,
   ]);
 
   const isRequested = useCallback(
@@ -348,6 +377,7 @@ export function useAnalyticsFilters({
     key: "link",
     icon: Hyperlink,
     label: "Link",
+    singleSelect: true,
     getOptionIcon: (value, props) => {
       const url = props.option?.data?.url;
       const [domain, key] = value.split("/");
@@ -373,6 +403,7 @@ export function useAnalyticsFilters({
     key: "domain",
     icon: Globe2,
     label: "Domain",
+    singleSelect: true,
     getOptionIcon: (value) => (
       <BlurImage
         src={`${GOOGLE_FAVICON_URL}${value}`}
@@ -394,6 +425,7 @@ export function useAnalyticsFilters({
     key: "saleType",
     icon: Receipt2,
     label: "Sale type",
+    singleSelect: true,
     separatorAfter: true,
     options: [
       {
@@ -415,6 +447,7 @@ export function useAnalyticsFilters({
         key: "ai",
         icon: Magic,
         label: "Ask AI",
+        singleSelect: true,
         separatorAfter: true,
         options:
           aiFilterSuggestions?.map(({ icon, value }) => ({
@@ -475,6 +508,7 @@ export function useAnalyticsFilters({
                   key: "folderId",
                   icon: Folder,
                   label: "Folder",
+                  singleSelect: true,
                   getOptionIcon: (_value, props) => {
                     const folder = props.option?.data?.folder;
                     return folder ? (
@@ -528,6 +562,7 @@ export function useAnalyticsFilters({
                   key: "root",
                   icon: Sliders,
                   label: "Link type",
+                  singleSelect: true,
                   options: [
                     {
                       value: true,
@@ -547,14 +582,21 @@ export function useAnalyticsFilters({
         key: "country",
         icon: FlagWavy,
         label: "Country",
-        getOptionIcon: (value) => (
-          <img
-            alt={value}
-            src={`https://hatscripts.github.io/circle-flags/flags/${value.toLowerCase()}.svg`}
-            className="size-4 shrink-0"
-          />
-        ),
-        getOptionLabel: (value) => COUNTRIES[value],
+        getOptionIcon: (value) => {
+          if (typeof value !== 'string') return null;
+
+          return (
+            <img
+              alt={value}
+              src={`https://hatscripts.github.io/circle-flags/flags/${value.toLowerCase()}.svg`}
+              className="size-4 shrink-0"
+            />
+          );
+        },
+        getOptionLabel: (value) => {
+          if (typeof value !== 'string') return String(value);
+          return COUNTRIES[value] || value;
+        },
         options:
           countries?.map(({ country, ...rest }) => ({
             value: country,
@@ -602,10 +644,14 @@ export function useAnalyticsFilters({
         key: "continent",
         icon: MapPosition,
         label: "Continent",
-        getOptionIcon: (value) => (
-          <ContinentIcon display={value} className="size-2.5" />
-        ),
-        getOptionLabel: (value) => CONTINENTS[value],
+        getOptionIcon: (value) => {
+          if (typeof value !== 'string') return null;
+          return <ContinentIcon display={value} className="size-2.5" />;
+        },
+        getOptionLabel: (value) => {
+          if (typeof value !== 'string') return String(value);
+          return CONTINENTS[value] || value;
+        },
         options:
           continents?.map(({ continent, ...rest }) => ({
             value: continent,
@@ -617,13 +663,16 @@ export function useAnalyticsFilters({
         key: "device",
         icon: MobilePhone,
         label: "Device",
-        getOptionIcon: (value) => (
-          <DeviceIcon
-            display={capitalize(value) ?? value}
-            tab="devices"
-            className="h-4 w-4"
-          />
-        ),
+        getOptionIcon: (value) => {
+          if (typeof value !== 'string') return null;
+          return (
+            <DeviceIcon
+              display={capitalize(value) ?? value}
+              tab="devices"
+              className="h-4 w-4"
+            />
+          );
+        },
         options:
           devices?.map(({ device, ...rest }) => ({
             value: device,
@@ -635,9 +684,10 @@ export function useAnalyticsFilters({
         key: "browser",
         icon: Window,
         label: "Browser",
-        getOptionIcon: (value) => (
-          <DeviceIcon display={value} tab="browsers" className="h-4 w-4" />
-        ),
+        getOptionIcon: (value) => {
+          if (typeof value !== 'string') return null;
+          return <DeviceIcon display={value} tab="browsers" className="h-4 w-4" />;
+        },
         options:
           browsers?.map(({ browser, ...rest }) => ({
             value: browser,
@@ -649,9 +699,10 @@ export function useAnalyticsFilters({
         key: "os",
         icon: Cube,
         label: "OS",
-        getOptionIcon: (value) => (
-          <DeviceIcon display={value} tab="os" className="h-4 w-4" />
-        ),
+        getOptionIcon: (value) => {
+          if (typeof value !== 'string') return null;
+          return <DeviceIcon display={value} tab="os" className="h-4 w-4" />;
+        },
         options:
           os?.map(({ os, ...rest }) => ({
             value: os,
@@ -683,9 +734,10 @@ export function useAnalyticsFilters({
         key: "referer",
         icon: ReferredVia,
         label: "Referer",
-        getOptionIcon: (value, props) => (
-          <ReferrerIcon display={value} className="h-4 w-4" />
-        ),
+        getOptionIcon: (value, props) => {
+          if (typeof value !== 'string') return null;
+          return <ReferrerIcon display={value} className="h-4 w-4" />;
+        },
         options:
           referers?.map(({ referer, ...rest }) => ({
             value: referer,
@@ -700,9 +752,10 @@ export function useAnalyticsFilters({
               key: "refererUrl",
               icon: ReferredVia,
               label: "Referrer URL",
-              getOptionIcon: (value, props) => (
-                <ReferrerIcon display={value} className="h-4 w-4" />
-              ),
+              getOptionIcon: (value, props) => {
+                if (typeof value !== 'string') return null;
+                return <ReferrerIcon display={value} className="h-4 w-4" />;
+              },
               options:
                 refererUrls?.map(({ refererUrl, ...rest }) => ({
                   value: refererUrl,
@@ -732,9 +785,10 @@ export function useAnalyticsFilters({
                 key,
                 icon: Icon,
                 label: `UTM ${label}`,
-                getOptionIcon: (value) => (
-                  <Icon display={value} className="h-4 w-4" />
-                ),
+                getOptionIcon: (value) => {
+                  if (typeof value !== 'string') return null;
+                  return <Icon display={value} className="h-4 w-4" />;
+                },
                 options:
                   utmData[key]?.map((dt) => ({
                     value: dt[key],
@@ -749,6 +803,7 @@ export function useAnalyticsFilters({
         key: "customerId",
         icon: User,
         label: "Customer",
+        singleSelect: true,
         hideInFilterDropdown: true,
         getOptionIcon: () => {
           return selectedCustomer ? (
@@ -775,6 +830,7 @@ export function useAnalyticsFilters({
         key: "partnerId",
         icon: Users6,
         label: "Partner",
+        singleSelect: true,
         hideInFilterDropdown: true,
         getOptionIcon: () => {
           return selectedPartner ? (
@@ -822,6 +878,27 @@ export function useAnalyticsFilters({
 
   const onSelect = useCallback(
     async (key, value) => {
+      if (Array.isArray(value)) {
+        if (value.length === 0) {
+          queryParams({ del: key, scroll: false });
+        } else {
+          const currentParam = searchParamsObj[key];
+          const isNegated = currentParam?.startsWith("-") ?? false;
+
+          const newParam = isNegated
+            ? `-${value.join(",")}`
+            : value.join(",");
+
+          queryParams({
+            set: { [key]: newParam },
+            del: "page",
+            scroll: false,
+          });
+        }
+
+        return;
+      }
+
       if (key === "ai") {
         setStreaming(true);
         const prompt = value.replace("Ask AI ", "");
@@ -844,46 +921,94 @@ export function useAnalyticsFilters({
           filters: activeFilters,
         });
         setStreaming(false);
-      } else {
+      } else if (key === "link") {
         queryParams({
-          set:
-            key === "link"
-              ? {
-                  domain: new URL(`https://${value}`).hostname,
-                  key: new URL(`https://${value}`).pathname.slice(1) || "_root",
-                }
-              : key === "tagIds"
-                ? {
-                    tagIds: selectedTagIds.concat(value).join(","),
-                  }
-                : {
-                    [key]: value,
-                  },
+          set: {
+            domain: new URL(`https://${value}`).hostname,
+            key: new URL(`https://${value}`).pathname.slice(1) || "_root",
+          },
           del: "page",
           scroll: false,
         });
+      } else if (key === "tagIds") {
+        queryParams({
+          set: {
+            tagIds: selectedTagIds.concat(value).join(","),
+          },
+          del: "page",
+          scroll: false,
+        });
+      } else {
+        const currentParam = searchParamsObj[key];
+
+        if (!currentParam) {
+          queryParams({
+            set: { [key]: value },
+            del: "page",
+            scroll: false,
+          });
+        } else {
+          const parsed = parseFilterParam(currentParam);
+
+          if (!parsed.values.includes(value)) {
+            const newValues = [...parsed.values, value];
+            const newParam = parsed.operator.includes("NOT")
+              ? `-${newValues.join(",")}`
+              : newValues.join(",");
+
+            queryParams({
+              set: { [key]: newParam },
+              del: "page",
+              scroll: false,
+            });
+          }
+        }
       }
     },
-    [queryParams, activeFilters, selectedTagIds],
+    [queryParams, activeFilters, selectedTagIds, searchParamsObj, parseFilterParam],
   );
 
   const onRemove = useCallback(
-    (key, value) =>
-      queryParams(
-        key === "tagIds" &&
-          !(selectedTagIds.length === 1 && selectedTagIds[0] === value)
-          ? {
-              set: {
-                tagIds: selectedTagIds.filter((id) => id !== value).join(","),
-              },
-              scroll: false,
-            }
-          : {
-              del: key === "link" ? ["domain", "key", "url"] : key,
-              scroll: false,
+    (key, value) => {
+      if (key === "tagIds") {
+        if (selectedTagIds.length === 1 && selectedTagIds[0] === value) {
+          queryParams({ del: "tagIds", scroll: false });
+        } else {
+          queryParams({
+            set: {
+              tagIds: selectedTagIds.filter((id) => id !== value).join(","),
             },
-      ),
-    [queryParams, selectedTagIds],
+            scroll: false,
+          });
+        }
+      } else if (key === "link") {
+        queryParams({
+          del: ["domain", "key", "url"],
+          scroll: false,
+        });
+      } else {
+        const currentParam = searchParamsObj[key];
+
+        if (!currentParam) return;
+
+        const parsed = parseFilterParam(currentParam);
+        const newValues = parsed.values.filter((v) => v !== value);
+
+        if (newValues.length === 0) {
+          queryParams({ del: key, scroll: false });
+        } else {
+          const newParam = parsed.operator.includes("NOT")
+            ? `-${newValues.join(",")}`
+            : newValues.join(",");
+
+          queryParams({
+            set: { [key]: newParam },
+            scroll: false,
+          });
+        }
+      }
+    },
+    [queryParams, selectedTagIds, searchParamsObj, parseFilterParam],
   );
 
   const onRemoveAll = useCallback(
@@ -899,21 +1024,50 @@ export function useAnalyticsFilters({
   );
 
   const onOpenFilter = useCallback(
-    (key) =>
-      setRequestedFilters((rf) => (rf.includes(key) ? rf : [...rf, key])),
+    (key) => {
+      setRequestedFilters((rf) => (rf.includes(key) ? rf : [...rf, key]));
+    },
     [],
   );
 
+  const onToggleOperator = useCallback(
+    (key) => {
+      const currentParam = searchParamsObj[key];
+      if (!currentParam) return;
+
+      const isNegated = currentParam.startsWith("-");
+      const cleanValue = isNegated ? currentParam.slice(1) : currentParam;
+
+      const newParam = isNegated ? cleanValue : `-${cleanValue}`;
+
+      queryParams({
+        set: { [key]: newParam },
+        scroll: false,
+      });
+    },
+    [searchParamsObj, queryParams],
+  );
+
+  const onRemoveFilter = useCallback(
+    (key) => {
+      queryParams({ del: key, scroll: false });
+    },
+    [queryParams],
+  );
+
   const activeFiltersWithStreaming = useMemo(
-    () => [
-      ...activeFilters,
-      ...(streaming && !activeFilters.length
-        ? Array.from({ length: 2 }, (_, i) => i).map((i) => ({
+    () => {
+      return [
+        ...activeFilters,
+        ...(streaming && !activeFilters.length
+          ? Array.from({ length: 2 }, (_, i) => i).map((i) => ({
             key: "loader",
-            value: i,
+            values: [i],
+            operator: "IS" as const,
           }))
-        : []),
-    ],
+          : []),
+      ];
+    },
     [activeFilters, streaming],
   );
 
@@ -922,8 +1076,10 @@ export function useAnalyticsFilters({
     activeFilters,
     onSelect,
     onRemove,
+    onRemoveFilter,
     onRemoveAll,
     onOpenFilter,
+    onToggleOperator,
     streaming,
     activeFiltersWithStreaming,
   };

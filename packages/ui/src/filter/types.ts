@@ -6,6 +6,8 @@ type FilterIcon =
   | ReactNode
   | ComponentType<SVGProps<SVGSVGElement>>;
 
+export type FilterOperator = "IS" | "IS_NOT" | "IS_ONE_OF" | "IS_NOT_ONE_OF";
+
 export type Filter = {
   key: string;
   icon: FilterIcon;
@@ -15,6 +17,7 @@ export type Filter = {
   shouldFilter?: boolean;
   separatorAfter?: boolean;
   multiple?: boolean;
+  singleSelect?: boolean; // Force single-select behavior even if multiSelect is enabled globally
   getOptionIcon?: (
     value: FilterOption["value"],
     props: { key: Filter["key"]; option?: FilterOption },
@@ -34,4 +37,10 @@ export type FilterOption = {
   hideDuringSearch?: boolean;
   data?: Record<string, any>;
   permalink?: string;
+};
+
+export type ActiveFilter = {
+  key: Filter["key"];
+  values: FilterOption["value"][];
+  operator: FilterOperator;
 };

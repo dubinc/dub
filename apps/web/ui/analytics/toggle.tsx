@@ -67,8 +67,10 @@ export function AnalyticsToggle({
     activeFilters,
     onSelect,
     onRemove,
+    onRemoveFilter,
     onRemoveAll,
     onOpenFilter,
+    onToggleOperator,
     streaming,
     activeFiltersWithStreaming,
   } = useAnalyticsFilters({ partnerPage, dashboardProps });
@@ -81,6 +83,7 @@ export function AnalyticsToggle({
       onSelect={onSelect}
       onRemove={onRemove}
       onOpenFilter={onOpenFilter}
+      multiSelect={true}
       askAI
     />
   );
@@ -288,7 +291,9 @@ export function AnalyticsToggle({
           activeFilters={activeFiltersWithStreaming}
           onSelect={onSelect}
           onRemove={onRemove}
+          onRemoveFilter={onRemoveFilter}
           onRemoveAll={onRemoveAll}
+          onToggleOperator={onToggleOperator}
         />
         <div
           className={cn(
