@@ -39,12 +39,14 @@ export const markReferralClosedWon = async ({
     source: "submitted",
   });
 
-  await prisma.customer.update({
-    where: {
-      id: referral.customerId!,
-    },
-    data: {
-      stripeCustomerId,
-    },
-  });
+  if (stripeCustomerId) {
+    await prisma.customer.update({
+      where: {
+        id: referral.customerId!,
+      },
+      data: {
+        stripeCustomerId,
+      },
+    });
+  }
 };

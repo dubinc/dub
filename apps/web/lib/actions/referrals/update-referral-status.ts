@@ -16,6 +16,7 @@ import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 
 const REFERRAL_EVENT_TYPES = {
+  [ReferralStatus.pending]: "referral.created",
   [ReferralStatus.qualified]: "referral.qualified",
   [ReferralStatus.unqualified]: "referral.unqualified",
   [ReferralStatus.closedWon]: "referral.closedWon",
