@@ -326,8 +326,8 @@ export function ApplicationPreview({
               })}
 
               {fields.length === 0 && (
-                <div className="relative py-10">
-                  <div className="border-subtle pointer-events-none absolute inset-y-0 left-1/2 w-[1080px] max-w-[calc(100cqw-32px)] -translate-x-1/2 overflow-hidden rounded-xl border">
+                <div className="group/empty relative py-10">
+                  <div className="border-subtle pointer-events-none absolute inset-y-0 left-1/2 w-[1080px] max-w-[calc(100cqw-32px)] -translate-x-1/2 overflow-hidden rounded-xl border opacity-40 transition-opacity duration-300 ease-out group-hover/empty:opacity-100">
                     <Grid
                       cellSize={60}
                       className="text-border-subtle inset-[unset] left-1/2 top-1/2 h-[max(1200px,100%)] w-[1200px] -translate-x-1/2 -translate-y-1/2"
