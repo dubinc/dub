@@ -337,12 +337,12 @@ export function useConfirmReferralStatusChangeModal(options?: {
   onClose?: () => void;
 }) {
   const [state, setState] = useState<{
-    referral: ReferralProps;
+    referral: Pick<ReferralProps, "id" | "status">;
     newStatus: ReferralStatus;
   } | null>(null);
 
   function openConfirmReferralStatusChangeModal(
-    referral: ReferralProps,
+    referral: Pick<ReferralProps, "id" | "status">,
     newStatus: ReferralStatus,
   ) {
     setState({ referral, newStatus });
