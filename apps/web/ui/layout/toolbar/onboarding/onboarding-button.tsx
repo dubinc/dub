@@ -6,6 +6,7 @@ import useDomainsCount from "@/lib/swr/use-domains-count";
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import useWorkspaceUsers from "@/lib/swr/use-workspace-users";
+import { useAnalyticsConnectedStatus } from "@/ui/analytics/use-analytics-connected-status";
 import { CheckCircleFill } from "@/ui/shared/icons";
 import {
   Button,
@@ -47,10 +48,11 @@ function OnboardingButtonInner({
   });
   const { users, loading: usersLoading } = useWorkspaceUsers();
 
+  const { isConnected: connectedAnalytics } = useAnalyticsConnectedStatus();
   const { data: customersCount, loading: customersCountLoading } =
     useCustomersCount<number>({
       includeParams: [],
-      enabled: canTrackConversions,
+      enabled: canTrackConversions && !connectedAnalytics,
     });
 
   const { partnersCount, loading: partnersCountLoading } =
@@ -84,7 +86,7 @@ function OnboardingButtonInner({
             {
               display: "Set up conversion tracking",
               cta: `/${slug}/settings/analytics`,
-              checked: customersCount && customersCount > 0,
+              checked: connectedAnalytics || (customersCount && customersCount > 0),
               recommended: true,
             },
             {
@@ -113,6 +115,7 @@ function OnboardingButtonInner({
     slug,
     defaultProgramId,
     domainsCount,
+    connectedAnalytics,
     customersCount,
     partnersCount,
     totalLinks,
