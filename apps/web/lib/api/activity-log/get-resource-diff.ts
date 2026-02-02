@@ -1,4 +1,3 @@
-import { prettyPrint } from "@dub/utils";
 import * as jsondiffpatch from "jsondiffpatch";
 
 type DiffValue = {
@@ -72,8 +71,6 @@ export const getResourceDiff = (
       };
     }
   }
-
-  console.log("[getResourceDiff] diff:", prettyPrint(result));
 
   return Object.keys(result).length > 0 ? result : null;
 };
