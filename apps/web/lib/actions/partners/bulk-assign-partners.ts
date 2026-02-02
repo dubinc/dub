@@ -74,7 +74,7 @@ export const bulkAssignPartnersAction = authActionClient
           programId,
           action: managerUserId
             ? "partner.assigned"
-            : ("partner.unassigned" as any),
+            : "partner.unassigned",
           description: managerUserId
             ? `Partner ${partner.id} assigned to user ${managerUserId}`
             : `Partner ${partner.id} unassigned`,

@@ -75,7 +75,7 @@ function PartnerApplicationSheetContent({
   useEffect(() => {
     setSelectedGroupId(partner.groupId ?? null);
     setSelectedManagerUserId(partner.managerUserId ?? null);
-  }, [partner.groupId, partner.managerUserId]);
+  }, [partner.id, partner.groupId, partner.managerUserId]);
 
   return (
     <div className="flex size-full flex-col">

@@ -42,12 +42,13 @@ function AssignPartnersModal({
   >(undefined);
 
   useEffect(() => {
+    if (!showAssignPartnersModal) return;
     if (partners.length === 1) {
       setSelectedManagerUserId(partners[0].managerUserId ?? null);
     } else {
       setSelectedManagerUserId(undefined);
     }
-  }, [partners]);
+  }, [showAssignPartnersModal, partners]);
 
   const { executeAsync, isPending } = useAction(bulkAssignPartnersAction, {
     onSuccess: () => {

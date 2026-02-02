@@ -62,6 +62,8 @@ const actionSchema = z.enum([
   "partner.reactivated",
   "partner.banned",
   "partner.unbanned",
+  "partner.assigned",
+  "partner.unassigned",
 
   // Auto approve partners
   "auto_approve_partner.enabled",

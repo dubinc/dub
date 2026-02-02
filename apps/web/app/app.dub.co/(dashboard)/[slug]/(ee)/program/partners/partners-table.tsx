@@ -907,14 +907,16 @@ function RowMenuButton({
                       }}
                     />
 
-                    <MenuItem
-                      icon={UserArrowRight}
-                      label="Assign to"
-                      onSelect={() => {
-                        setShowRowAssignModal(true);
-                        setIsOpen(false);
-                      }}
-                    />
+                    {row.original.status === "approved" && (
+                      <MenuItem
+                        icon={UserArrowRight}
+                        label="Assign to"
+                        onSelect={() => {
+                          setShowRowAssignModal(true);
+                          setIsOpen(false);
+                        }}
+                      />
+                    )}
                   </Command.Group>
 
                   <Command.Separator className="border-t border-neutral-200" />
