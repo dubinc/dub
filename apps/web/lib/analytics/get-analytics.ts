@@ -8,6 +8,7 @@ import { decodeKeyIfCaseSensitive } from "../api/links/case-sensitivity";
 import { conn } from "../planetscale";
 import { analyticsFilterTB } from "../zod/schemas/analytics";
 import { analyticsResponse } from "../zod/schemas/analytics-response";
+import { buildAdvancedFilters } from "./build-advanced-filters";
 import {
   DIMENSIONAL_ANALYTICS_FILTERS,
   SINGULAR_ANALYTICS_ENDPOINTS,
@@ -104,14 +105,19 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     timezone,
   });
 
-  if (qr) {
-    trigger = "qr";
+  // Handle qr backward compatibility
+  let triggerForPipe = trigger;
+  if (qr && !trigger) {
+    triggerForPipe = { operator: "IS" as const, sqlOperator: "=" as const, values: ["qr"] };
   }
 
-  if (region) {
+  // Handle region split (format: "US-CA")
+  let countryForPipe = country;
+  let regionForPipe = region;
+  if (region && typeof region === 'string') {
     const split = region.split("-");
-    country = split[0];
-    region = split[1];
+    countryForPipe = { operator: "IS" as const, sqlOperator: "=" as const, values: [split[0]] };
+    regionForPipe = split[1];
   }
 
   // Create a Tinybird pipe
@@ -119,12 +125,12 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     pipe: ["count", "timeseries"].includes(groupBy)
       ? `v3_${groupBy}`
       : [
-            "top_folders",
-            "top_link_tags",
-            "top_domains",
-            "top_partners",
-            "top_groups",
-          ].includes(groupBy)
+        "top_folders",
+        "top_link_tags",
+        "top_domains",
+        "top_partners",
+        "top_groups",
+      ].includes(groupBy)
         ? "v3_group_by_link_metadata"
         : "v3_group_by",
     parameters: analyticsFilterTB,
@@ -140,23 +146,68 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     }),
   });
 
-  const filters = queryParser(query);
+  const metadataFilters = queryParser(query) || [];
 
-  const response = await pipe({
-    ...params,
+  const advancedFilters = buildAdvancedFilters({
+    country: countryForPipe,
+    city: params.city,
+    continent: params.continent,
+    device: params.device,
+    browser: params.browser,
+    os: params.os,
+    referer: params.referer,
+    refererUrl: params.refererUrl,
+    url: params.url,
+    trigger: triggerForPipe,
+  });
+
+  const allFilters = [...metadataFilters, ...advancedFilters];
+  const fieldsInAdvancedFilters = new Set(advancedFilters.map(f => f.field));
+
+  const tinybirdParams: any = {
+    workspaceId: params.workspaceId,
+    linkId: params.linkId,
+    linkIds: params.linkIds,
+    folderIds: params.folderIds,
+    domain: params.domain,
+    tagIds: params.tagIds,
+    customerId: params.customerId,
+    programId: params.programId,
+    partnerId: params.partnerId,
+    tenantId: params.tenantId,
+    folderId: params.folderId,
+    groupId: params.groupId,
+    root: params.root,
+    saleType: params.saleType,
+
+    country: !fieldsInAdvancedFilters.has('country') && countryForPipe?.sqlOperator === '=' ? countryForPipe.values[0] : undefined,
+    city: !fieldsInAdvancedFilters.has('city') && params.city?.sqlOperator === '=' ? params.city.values[0] : undefined,
+    continent: !fieldsInAdvancedFilters.has('continent') && params.continent?.sqlOperator === '=' ? params.continent.values[0] : undefined,
+    device: !fieldsInAdvancedFilters.has('device') && params.device?.sqlOperator === '=' ? params.device.values[0] : undefined,
+    browser: !fieldsInAdvancedFilters.has('browser') && params.browser?.sqlOperator === '=' ? params.browser.values[0] : undefined,
+    os: !fieldsInAdvancedFilters.has('os') && params.os?.sqlOperator === '=' ? params.os.values[0] : undefined,
+    trigger: !fieldsInAdvancedFilters.has('trigger') && triggerForPipe?.sqlOperator === '=' ? triggerForPipe.values[0] : undefined,
+    referer: !fieldsInAdvancedFilters.has('referer') && params.referer?.sqlOperator === '=' ? params.referer.values[0] : undefined,
+    refererUrl: !fieldsInAdvancedFilters.has('refererUrl') && params.refererUrl?.sqlOperator === '=' ? params.refererUrl.values[0] : undefined,
+    url: !fieldsInAdvancedFilters.has('url') && params.url?.sqlOperator === '=' ? params.url.values[0] : undefined,
+
+    utm_source: params.utm_source,
+    utm_medium: params.utm_medium,
+    utm_campaign: params.utm_campaign,
+    utm_term: params.utm_term,
+    utm_content: params.utm_content,
     groupBy,
     eventType: event,
-    workspaceId,
-    tagIds,
-    trigger,
     start: formatUTCDateTimeClickhouse(startDate),
     end: formatUTCDateTimeClickhouse(endDate),
     granularity,
     timezone,
-    country,
-    region,
-    filters: filters ? JSON.stringify(filters) : undefined,
-  });
+    region: typeof regionForPipe === 'string' ? regionForPipe : undefined,
+
+    filters: allFilters.length > 0 ? JSON.stringify(allFilters) : undefined,
+  };
+
+  const response = await pipe(tinybirdParams);
 
   if (groupBy === "count") {
     const { groupByField, ...rest } = response.data[0];

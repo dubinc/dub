@@ -12,6 +12,7 @@ import {
   DUB_FOUNDING_DATE,
   capitalize,
   formatDate,
+  parseFilterValue,
 } from "@dub/utils";
 import * as z from "zod/v4";
 import { booleanQuerySchema } from "./misc";
@@ -135,60 +136,92 @@ export const analyticsQuerySchema = z
     country: z
       .string()
       .optional()
+      .transform(parseFilterValue)
       .describe(
-        "The country to retrieve analytics for. Must be passed as a 2-letter ISO 3166-1 country code. See https://d.to/geo for more information.",
+        "The country to retrieve analytics for. Must be passed as a 2-letter ISO 3166-1 country code. Supports multiple values (comma-separated) and negation (prefix with `-`). Examples: `US`, `US,BR,FR`, `-US`, `-US,BR`. See https://d.to/geo for more information.",
       ),
     city: z
       .string()
       .optional()
-      .describe("The city to retrieve analytics for.")
+      .transform(parseFilterValue)
+      .describe("The city to retrieve analytics for. Supports multiple values (comma-separated) and negation (prefix with `-`).")
       .meta({ example: "New York" }),
     region: z
       .string()
       .optional()
       .describe("The ISO 3166-2 region code to retrieve analytics for."),
     continent: z
-      .enum(CONTINENT_CODES)
+      .string()
       .optional()
-      .describe("The continent to retrieve analytics for."),
+      .transform(parseFilterValue)
+      .describe("The continent to retrieve analytics for. Supports multiple values (comma-separated) and negation (prefix with `-`)."),
     device: z
       .string()
       .optional()
-      .transform((v) => capitalize(v) as string | undefined)
-      .describe("The device to retrieve analytics for.")
+      .transform((v) => {
+        if (!v) return undefined;
+        // Capitalize each value
+        const parsed = parseFilterValue(v);
+        if (!parsed) return undefined;
+        return {
+          ...parsed,
+          values: parsed.values.map((val) => capitalize(val)).filter(Boolean) as string[],
+        };
+      })
+      .describe("The device to retrieve analytics for. Supports multiple values (comma-separated) and negation (prefix with `-`).")
       .meta({ example: "Desktop" }),
     browser: z
       .string()
       .optional()
-      .transform((v) => capitalize(v) as string | undefined)
-      .describe("The browser to retrieve analytics for.")
+      .transform((v) => {
+        if (!v) return undefined;
+        const parsed = parseFilterValue(v);
+        if (!parsed) return undefined;
+        return {
+          ...parsed,
+          values: parsed.values.map((val) => capitalize(val)).filter(Boolean) as string[],
+        };
+      })
+      .describe("The browser to retrieve analytics for. Supports multiple values (comma-separated) and negation (prefix with `-`).")
       .meta({ example: "Chrome" }),
     os: z
       .string()
       .optional()
       .transform((v) => {
-        if (v === "iOS") return "iOS";
-        return capitalize(v) as string | undefined;
+        if (!v) return undefined;
+        const parsed = parseFilterValue(v);
+        if (!parsed) return undefined;
+        return {
+          ...parsed,
+          values: parsed.values.map((val) => (val === "iOS" ? "iOS" : capitalize(val))).filter(Boolean) as string[],
+        };
       })
-      .describe("The OS to retrieve analytics for.")
+      .describe("The OS to retrieve analytics for. Supports multiple values (comma-separated) and negation (prefix with `-`).")
       .meta({ example: "Windows" }),
     trigger: z
-      .enum(TRIGGER_TYPES)
+      .string()
       .optional()
+      .transform(parseFilterValue)
       .describe(
-        "The trigger to retrieve analytics for. If undefined, returns all trigger types.",
+        "The trigger to retrieve analytics for. Supports multiple values (comma-separated) and negation (prefix with `-`). If undefined, returns all trigger types.",
       ),
     referer: z
       .string()
       .optional()
-      .describe("The referer hostname to retrieve analytics for.")
+      .transform(parseFilterValue)
+      .describe("The referer hostname to retrieve analytics for. Supports multiple values (comma-separated) and negation (prefix with `-`).")
       .meta({ example: "google.com" }),
     refererUrl: z
       .string()
       .optional()
-      .describe("The full referer URL to retrieve analytics for.")
+      .transform(parseFilterValue)
+      .describe("The full referer URL to retrieve analytics for. Supports multiple values (comma-separated) and negation (prefix with `-`).")
       .meta({ example: "https://dub.co/blog" }),
-    url: z.string().optional().describe("The URL to retrieve analytics for."),
+    url: z
+      .string()
+      .optional()
+      .transform(parseFilterValue)
+      .describe("The URL to retrieve analytics for. Supports multiple values (comma-separated) and negation (prefix with `-`)."),
     tagIds: z
       .union([z.string(), z.array(z.string())])
       .transform((v) => (Array.isArray(v) ? v : v.split(",")))
@@ -250,7 +283,7 @@ export const analyticsFilterTB = z
     customerId: z.string().optional(),
     root: z.boolean().optional(),
     saleType: z.string().optional(),
-    trigger: z.enum(TRIGGER_TYPES).optional(),
+    trigger: z.string().optional(), // Changed to string to support comma-separated values
     start: z.string(),
     end: z.string(),
     granularity: z.enum(["minute", "hour", "day", "month"]).optional(),

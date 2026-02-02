@@ -8,7 +8,6 @@ import { readStreamableValue } from "@ai-sdk/rsc";
 import {
   BlurImage,
   Filter,
-  FilterOperator,
   LinkLogo,
   Sliders,
   useRouterStuff,
@@ -49,7 +48,10 @@ import {
   linkConstructor,
   nFormatter,
   OG_AVATAR_URL,
+  parseFilterValue,
   REGIONS,
+  type FilterOperator,
+  type ParsedFilter,
 } from "@dub/utils";
 import { useParams } from "next/navigation";
 import posthog from "posthog-js";
@@ -122,22 +124,8 @@ export function useAnalyticsFilters({
 
   const [requestedFilters, setRequestedFilters] = useState<string[]>([]);
 
-  const parseFilterParam = useCallback((value: string): {
-    operator: FilterOperator;
-    values: string[];
-  } => {
-    const isNegated = value.startsWith('-');
-    const cleanValue = isNegated ? value.slice(1) : value;
-    const values = cleanValue.split(',').filter(Boolean);
-
-    const operator: FilterOperator = isNegated
-      ? (values.length > 1 ? 'IS_NOT_ONE_OF' : 'IS_NOT')
-      : (values.length > 1 ? 'IS_ONE_OF' : 'IS');
-
-    return {
-      operator,
-      values,
-    };
+  const parseFilterParam = useCallback((value: string): ParsedFilter | undefined => {
+    return parseFilterValue(value);
   }, []);
 
   const activeFilters = useMemo(() => {
@@ -198,8 +186,10 @@ export function useAnalyticsFilters({
 
       const value = params[filter];
       if (value) {
-        const { operator, values } = parseFilterParam(value);
-        filters.push({ key: filter, operator, values });
+        const parsed = parseFilterParam(value);
+        if (parsed) {
+          filters.push({ key: filter, operator: parsed.operator, values: parsed.values });
+        }
       }
     });
 

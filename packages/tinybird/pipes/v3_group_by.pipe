@@ -141,6 +141,93 @@ SQL >
         {% if defined(url) %} AND splitByString('?', url)[1] = {{ url }} {% end %}
         {% if defined(start) %} AND timestamp >= {{ DateTime64(start) }} {% end %}
         {% if defined(end) %} AND timestamp <= {{ DateTime64(end) }} {% end %}
+        {% if defined(filters) %}
+            {% for item in JSON(filters, '[]') %}
+                {% if item.get('operand', '').startswith('metadata.') %}
+                    {% set metadataKey = item.get('operand', '').split('.')[1] %}
+                    {% set operator = item.get('operator', 'equals') %}
+                    {% set value = item.get('value', '') %}
+                    {% if operator == 'equals' %}
+                        AND JSONExtractString(metadata, {{ metadataKey }}) = {{ value }}
+                    {% elif operator == 'notEquals' %}
+                        AND JSONExtractString(metadata, {{ metadataKey }}) != {{ value }}
+                    {% elif operator == 'greaterThan' %}
+                        AND JSONExtractString(metadata, {{ metadataKey }}) > {{ value }}
+                    {% elif operator == 'lessThan' %}
+                        AND JSONExtractString(metadata, {{ metadataKey }}) < {{ value }}
+                    {% elif operator == 'greaterThanOrEqual' %}
+                        AND JSONExtractString(metadata, {{ metadataKey }}) >= {{ value }}
+                    {% elif operator == 'lessThanOrEqual' %}
+                        AND JSONExtractString(metadata, {{ metadataKey }}) <= {{ value }}
+                    {% end %}
+                {% elif item.get('field', '') %}
+                    {% set field = item.get('field', '') %}
+                    {% set operator = item.get('operator', '=') %}
+                    {% set values = item.get('values', []) %}
+                    {% if field == 'country' %}
+                        {% if operator == 'IN' %} AND country IN {{ Array(values, 'String') }}
+                        {% elif operator == 'NOT IN' %} AND country NOT IN {{ Array(values, 'String') }}
+                        {% elif operator == '=' %} AND country = {{ String(values[0]) }}
+                        {% elif operator == '!=' %} AND country != {{ String(values[0]) }}
+                        {% end %}
+                    {% elif field == 'city' %}
+                        {% if operator == 'IN' %} AND city IN {{ Array(values, 'String') }}
+                        {% elif operator == 'NOT IN' %} AND city NOT IN {{ Array(values, 'String') }}
+                        {% elif operator == '=' %} AND city = {{ String(values[0]) }}
+                        {% elif operator == '!=' %} AND city != {{ String(values[0]) }}
+                        {% end %}
+                    {% elif field == 'continent' %}
+                        {% if operator == 'IN' %} AND continent IN {{ Array(values, 'String') }}
+                        {% elif operator == 'NOT IN' %} AND continent NOT IN {{ Array(values, 'String') }}
+                        {% elif operator == '=' %} AND continent = {{ String(values[0]) }}
+                        {% elif operator == '!=' %} AND continent != {{ String(values[0]) }}
+                        {% end %}
+                    {% elif field == 'device' %}
+                        {% if operator == 'IN' %} AND device IN {{ Array(values, 'String') }}
+                        {% elif operator == 'NOT IN' %} AND device NOT IN {{ Array(values, 'String') }}
+                        {% elif operator == '=' %} AND device = {{ String(values[0]) }}
+                        {% elif operator == '!=' %} AND device != {{ String(values[0]) }}
+                        {% end %}
+                    {% elif field == 'browser' %}
+                        {% if operator == 'IN' %} AND browser IN {{ Array(values, 'String') }}
+                        {% elif operator == 'NOT IN' %} AND browser NOT IN {{ Array(values, 'String') }}
+                        {% elif operator == '=' %} AND browser = {{ String(values[0]) }}
+                        {% elif operator == '!=' %} AND browser != {{ String(values[0]) }}
+                        {% end %}
+                    {% elif field == 'os' %}
+                        {% if operator == 'IN' %} AND os IN {{ Array(values, 'String') }}
+                        {% elif operator == 'NOT IN' %} AND os NOT IN {{ Array(values, 'String') }}
+                        {% elif operator == '=' %} AND os = {{ String(values[0]) }}
+                        {% elif operator == '!=' %} AND os != {{ String(values[0]) }}
+                        {% end %}
+                    {% elif field == 'trigger' %}
+                        {% if operator == 'IN' %} AND trigger IN {{ Array(values, 'String') }}
+                        {% elif operator == 'NOT IN' %} AND trigger NOT IN {{ Array(values, 'String') }}
+                        {% elif operator == '=' %} AND trigger = {{ String(values[0]) }}
+                        {% elif operator == '!=' %} AND trigger != {{ String(values[0]) }}
+                        {% end %}
+                    {% elif field == 'referer' %}
+                        {% if operator == 'IN' %} AND referer IN {{ Array(values, 'String') }}
+                        {% elif operator == 'NOT IN' %} AND referer NOT IN {{ Array(values, 'String') }}
+                        {% elif operator == '=' %} AND referer = {{ String(values[0]) }}
+                        {% elif operator == '!=' %} AND referer != {{ String(values[0]) }}
+                        {% end %}
+                    {% elif field == 'refererUrl' %}
+                        {% if operator == 'IN' %} AND splitByString('?', referer_url)[1] IN {{ Array(values, 'String') }}
+                        {% elif operator == 'NOT IN' %} AND splitByString('?', referer_url)[1] NOT IN {{ Array(values, 'String') }}
+                        {% elif operator == '=' %} AND splitByString('?', referer_url)[1] = {{ String(values[0]) }}
+                        {% elif operator == '!=' %} AND splitByString('?', referer_url)[1] != {{ String(values[0]) }}
+                        {% end %}
+                    {% elif field == 'url' %}
+                        {% if operator == 'IN' %} AND splitByString('?', url)[1] IN {{ Array(values, 'String') }}
+                        {% elif operator == 'NOT IN' %} AND splitByString('?', url)[1] NOT IN {{ Array(values, 'String') }}
+                        {% elif operator == '=' %} AND splitByString('?', url)[1] = {{ String(values[0]) }}
+                        {% elif operator == '!=' %} AND splitByString('?', url)[1] != {{ String(values[0]) }}
+                        {% end %}
+                    {% end %}
+                {% end %}
+            {% end %}
+        {% end %}
     GROUP BY
         groupByField
         {% if String(groupBy) == 'cities' %}, country, region
@@ -262,6 +349,71 @@ SQL >
                         AND JSONExtractString(metadata, {{ metadataKey }}) >= {{ value }}
                     {% elif operator == 'lessThanOrEqual' %}
                         AND JSONExtractString(metadata, {{ metadataKey }}) <= {{ value }}
+                    {% end %}
+                {% elif item.get('field', '') %}
+                    {% set field = item.get('field', '') %}
+                    {% set operator = item.get('operator', '=') %}
+                    {% set values = item.get('values', []) %}
+                    {% if field == 'country' %}
+                        {% if operator == 'IN' %} AND country IN {{ Array(values, 'String') }}
+                        {% elif operator == 'NOT IN' %} AND country NOT IN {{ Array(values, 'String') }}
+                        {% elif operator == '=' %} AND country = {{ String(values[0]) }}
+                        {% elif operator == '!=' %} AND country != {{ String(values[0]) }}
+                        {% end %}
+                    {% elif field == 'city' %}
+                        {% if operator == 'IN' %} AND city IN {{ Array(values, 'String') }}
+                        {% elif operator == 'NOT IN' %} AND city NOT IN {{ Array(values, 'String') }}
+                        {% elif operator == '=' %} AND city = {{ String(values[0]) }}
+                        {% elif operator == '!=' %} AND city != {{ String(values[0]) }}
+                        {% end %}
+                    {% elif field == 'continent' %}
+                        {% if operator == 'IN' %} AND continent IN {{ Array(values, 'String') }}
+                        {% elif operator == 'NOT IN' %} AND continent NOT IN {{ Array(values, 'String') }}
+                        {% elif operator == '=' %} AND continent = {{ String(values[0]) }}
+                        {% elif operator == '!=' %} AND continent != {{ String(values[0]) }}
+                        {% end %}
+                    {% elif field == 'device' %}
+                        {% if operator == 'IN' %} AND device IN {{ Array(values, 'String') }}
+                        {% elif operator == 'NOT IN' %} AND device NOT IN {{ Array(values, 'String') }}
+                        {% elif operator == '=' %} AND device = {{ String(values[0]) }}
+                        {% elif operator == '!=' %} AND device != {{ String(values[0]) }}
+                        {% end %}
+                    {% elif field == 'browser' %}
+                        {% if operator == 'IN' %} AND browser IN {{ Array(values, 'String') }}
+                        {% elif operator == 'NOT IN' %} AND browser NOT IN {{ Array(values, 'String') }}
+                        {% elif operator == '=' %} AND browser = {{ String(values[0]) }}
+                        {% elif operator == '!=' %} AND browser != {{ String(values[0]) }}
+                        {% end %}
+                    {% elif field == 'os' %}
+                        {% if operator == 'IN' %} AND os IN {{ Array(values, 'String') }}
+                        {% elif operator == 'NOT IN' %} AND os NOT IN {{ Array(values, 'String') }}
+                        {% elif operator == '=' %} AND os = {{ String(values[0]) }}
+                        {% elif operator == '!=' %} AND os != {{ String(values[0]) }}
+                        {% end %}
+                    {% elif field == 'trigger' %}
+                        {% if operator == 'IN' %} AND trigger IN {{ Array(values, 'String') }}
+                        {% elif operator == 'NOT IN' %} AND trigger NOT IN {{ Array(values, 'String') }}
+                        {% elif operator == '=' %} AND trigger = {{ String(values[0]) }}
+                        {% elif operator == '!=' %} AND trigger != {{ String(values[0]) }}
+                        {% end %}
+                    {% elif field == 'referer' %}
+                        {% if operator == 'IN' %} AND referer IN {{ Array(values, 'String') }}
+                        {% elif operator == 'NOT IN' %} AND referer NOT IN {{ Array(values, 'String') }}
+                        {% elif operator == '=' %} AND referer = {{ String(values[0]) }}
+                        {% elif operator == '!=' %} AND referer != {{ String(values[0]) }}
+                        {% end %}
+                    {% elif field == 'refererUrl' %}
+                        {% if operator == 'IN' %} AND splitByString('?', referer_url)[1] IN {{ Array(values, 'String') }}
+                        {% elif operator == 'NOT IN' %} AND splitByString('?', referer_url)[1] NOT IN {{ Array(values, 'String') }}
+                        {% elif operator == '=' %} AND splitByString('?', referer_url)[1] = {{ String(values[0]) }}
+                        {% elif operator == '!=' %} AND splitByString('?', referer_url)[1] != {{ String(values[0]) }}
+                        {% end %}
+                    {% elif field == 'url' %}
+                        {% if operator == 'IN' %} AND splitByString('?', url)[1] IN {{ Array(values, 'String') }}
+                        {% elif operator == 'NOT IN' %} AND splitByString('?', url)[1] NOT IN {{ Array(values, 'String') }}
+                        {% elif operator == '=' %} AND splitByString('?', url)[1] = {{ String(values[0]) }}
+                        {% elif operator == '!=' %} AND splitByString('?', url)[1] != {{ String(values[0]) }}
+                        {% end %}
                     {% end %}
                 {% end %}
             {% end %}
@@ -423,6 +575,71 @@ SQL >
                             AND JSONExtractString(se.metadata, {{ metadataKey }}) >= {{ value }}
                         {% elif operator == 'lessThanOrEqual' %}
                             AND JSONExtractString(se.metadata, {{ metadataKey }}) <= {{ value }}
+                        {% end %}
+                    {% elif item.get('field', '') %}
+                        {% set field = item.get('field', '') %}
+                        {% set operator = item.get('operator', '=') %}
+                        {% set values = item.get('values', []) %}
+                        {% if field == 'country' %}
+                            {% if operator == 'IN' %} AND se.country IN {{ Array(values, 'String') }}
+                            {% elif operator == 'NOT IN' %} AND se.country NOT IN {{ Array(values, 'String') }}
+                            {% elif operator == '=' %} AND se.country = {{ String(values[0]) }}
+                            {% elif operator == '!=' %} AND se.country != {{ String(values[0]) }}
+                            {% end %}
+                        {% elif field == 'city' %}
+                            {% if operator == 'IN' %} AND se.city IN {{ Array(values, 'String') }}
+                            {% elif operator == 'NOT IN' %} AND se.city NOT IN {{ Array(values, 'String') }}
+                            {% elif operator == '=' %} AND se.city = {{ String(values[0]) }}
+                            {% elif operator == '!=' %} AND se.city != {{ String(values[0]) }}
+                            {% end %}
+                        {% elif field == 'continent' %}
+                            {% if operator == 'IN' %} AND se.continent IN {{ Array(values, 'String') }}
+                            {% elif operator == 'NOT IN' %} AND se.continent NOT IN {{ Array(values, 'String') }}
+                            {% elif operator == '=' %} AND se.continent = {{ String(values[0]) }}
+                            {% elif operator == '!=' %} AND se.continent != {{ String(values[0]) }}
+                            {% end %}
+                        {% elif field == 'device' %}
+                            {% if operator == 'IN' %} AND se.device IN {{ Array(values, 'String') }}
+                            {% elif operator == 'NOT IN' %} AND se.device NOT IN {{ Array(values, 'String') }}
+                            {% elif operator == '=' %} AND se.device = {{ String(values[0]) }}
+                            {% elif operator == '!=' %} AND se.device != {{ String(values[0]) }}
+                            {% end %}
+                        {% elif field == 'browser' %}
+                            {% if operator == 'IN' %} AND se.browser IN {{ Array(values, 'String') }}
+                            {% elif operator == 'NOT IN' %} AND se.browser NOT IN {{ Array(values, 'String') }}
+                            {% elif operator == '=' %} AND se.browser = {{ String(values[0]) }}
+                            {% elif operator == '!=' %} AND se.browser != {{ String(values[0]) }}
+                            {% end %}
+                        {% elif field == 'os' %}
+                            {% if operator == 'IN' %} AND se.os IN {{ Array(values, 'String') }}
+                            {% elif operator == 'NOT IN' %} AND se.os NOT IN {{ Array(values, 'String') }}
+                            {% elif operator == '=' %} AND se.os = {{ String(values[0]) }}
+                            {% elif operator == '!=' %} AND se.os != {{ String(values[0]) }}
+                            {% end %}
+                        {% elif field == 'trigger' %}
+                            {% if operator == 'IN' %} AND se.trigger IN {{ Array(values, 'String') }}
+                            {% elif operator == 'NOT IN' %} AND se.trigger NOT IN {{ Array(values, 'String') }}
+                            {% elif operator == '=' %} AND se.trigger = {{ String(values[0]) }}
+                            {% elif operator == '!=' %} AND se.trigger != {{ String(values[0]) }}
+                            {% end %}
+                        {% elif field == 'referer' %}
+                            {% if operator == 'IN' %} AND se.referer IN {{ Array(values, 'String') }}
+                            {% elif operator == 'NOT IN' %} AND se.referer NOT IN {{ Array(values, 'String') }}
+                            {% elif operator == '=' %} AND se.referer = {{ String(values[0]) }}
+                            {% elif operator == '!=' %} AND se.referer != {{ String(values[0]) }}
+                            {% end %}
+                        {% elif field == 'refererUrl' %}
+                            {% if operator == 'IN' %} AND splitByString('?', se.referer_url)[1] IN {{ Array(values, 'String') }}
+                            {% elif operator == 'NOT IN' %} AND splitByString('?', se.referer_url)[1] NOT IN {{ Array(values, 'String') }}
+                            {% elif operator == '=' %} AND splitByString('?', se.referer_url)[1] = {{ String(values[0]) }}
+                            {% elif operator == '!=' %} AND splitByString('?', se.referer_url)[1] != {{ String(values[0]) }}
+                            {% end %}
+                        {% elif field == 'url' %}
+                            {% if operator == 'IN' %} AND splitByString('?', se.url)[1] IN {{ Array(values, 'String') }}
+                            {% elif operator == 'NOT IN' %} AND splitByString('?', se.url)[1] NOT IN {{ Array(values, 'String') }}
+                            {% elif operator == '=' %} AND splitByString('?', se.url)[1] = {{ String(values[0]) }}
+                            {% elif operator == '!=' %} AND splitByString('?', se.url)[1] != {{ String(values[0]) }}
+                            {% end %}
                         {% end %}
                     {% end %}
                 {% end %}
