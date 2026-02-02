@@ -33,8 +33,23 @@ export const executeMoveGroupWorkflow = async ({
 
   const { groupId: newGroupId } = action.data;
 
-  // Do nothing if the partner is already in the group
-  if (groupId === newGroupId) {
+  // Fetch program enrollment to get fresh groupId
+  const programEnrollment = await prisma.programEnrollment.findUniqueOrThrow({
+    where: {
+      partnerId_programId: {
+        partnerId,
+        programId,
+      },
+    },
+    select: {
+      groupId: true,
+    },
+  });
+
+  if (programEnrollment.groupId === newGroupId) {
+    console.log(
+      `Partner ${partnerId} is already in target group ${newGroupId}. Skipping..`,
+    );
     return;
   }
 
