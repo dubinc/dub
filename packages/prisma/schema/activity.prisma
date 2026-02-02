@@ -10,7 +10,7 @@ model ActivityLog {
   changeSet    Json?
   createdAt    DateTime @default(now())
 
-  user User? @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id])
 
   @@index([resourceType, resourceId])
 }
