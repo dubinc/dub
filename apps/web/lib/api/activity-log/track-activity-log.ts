@@ -1,5 +1,6 @@
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
+import { prettyPrint } from "@dub/utils";
 
 type ResourceType = "referral";
 
@@ -14,7 +15,7 @@ type Action =
 interface TrackActivityLogInput
   extends Pick<
     Prisma.ActivityLogUncheckedCreateInput,
-    "resourceId" | "userId" | "description"
+    "workspaceId" | "programId" | "resourceId" | "userId" | "description"
   > {
   resourceType: ResourceType;
   action: Action;
@@ -22,10 +23,17 @@ interface TrackActivityLogInput
 }
 
 export const trackActivityLog = async (input: TrackActivityLogInput) => {
-  return prisma.activityLog.create({
+  const activityLog = await prisma.activityLog.create({
     data: {
       ...input,
       changeSet: input.changeSet as Prisma.InputJsonValue,
     },
   });
+
+  console.log(
+    "[trackActivityLog] Activity log created",
+    prettyPrint(activityLog),
+  );
+
+  return activityLog;
 };

@@ -154,6 +154,8 @@ export const submitReferralAction = authPartnerActionClient
         }),
 
         trackActivityLog({
+          workspaceId: programEnrollment.program.workspaceId,
+          programId,
           resourceType: "referral",
           resourceId: referral.id,
           userId: user.id,

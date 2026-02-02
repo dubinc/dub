@@ -1,5 +1,7 @@
 model ActivityLog {
   id           String   @id @default(cuid())
+  workspaceId  String
+  programId    String
   resourceType String
   resourceId   String
   userId       String

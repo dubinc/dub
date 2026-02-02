@@ -106,7 +106,8 @@ function EditReferralModal({
     const updatedFormData: ReferralFormDataField[] = originalFormData.map(
       (field) => ({
         ...field,
-        value: data.formData[field.key] ?? field.value,
+        value:
+          field.key in data.formData ? data.formData[field.key] : field.value,
       }),
     );
 
@@ -207,10 +208,6 @@ function EditReferralModal({
                 }
 
                 if (field.type === "country") {
-                  const country = Object.entries(COUNTRIES).find(
-                    ([_, name]) => name === field.value,
-                  )?.[0];
-
                   return (
                     <div key={field.key}>
                       <label className="text-content-emphasis text-sm font-normal">
@@ -219,13 +216,19 @@ function EditReferralModal({
                       <Controller
                         control={control}
                         name={keyPath}
-                        render={({ field: formField }) => (
-                          <CountryCombobox
-                            value={country || (formField.value as string)}
-                            onChange={formField.onChange}
-                            className="mt-2"
-                          />
-                        )}
+                        render={({ field: formField }) => {
+                          const country = Object.entries(COUNTRIES).find(
+                            ([_, name]) => name === (formField.value as string),
+                          )?.[0];
+
+                          return (
+                            <CountryCombobox
+                              value={country || (formField.value as string)}
+                              onChange={formField.onChange}
+                              className="mt-2"
+                            />
+                          );
+                        }}
                       />
                     </div>
                   );

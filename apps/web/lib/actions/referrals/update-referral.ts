@@ -51,6 +51,8 @@ export const updateReferralAction = authActionClient
     if (diff) {
       waitUntil(
         trackActivityLog({
+          workspaceId: workspace.id,
+          programId,
           resourceType: "referral",
           resourceId: referralId,
           userId: user.id,

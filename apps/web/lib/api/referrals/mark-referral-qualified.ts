@@ -30,6 +30,9 @@ export const markReferralQualified = async ({
   });
 
   if (links.length === 0) {
+    console.error(
+      `[markReferralQualified] No links found for partner ${referral.partnerId} in program ${referral.programId}`,
+    );
     return;
   }
 

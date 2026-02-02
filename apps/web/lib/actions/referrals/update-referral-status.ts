@@ -77,13 +77,17 @@ export const updateReferralStatusAction = authActionClient
             referral,
             notes,
           }),
+
           trackActivityLog({
+            workspaceId: workspace.id,
+            programId,
             resourceType: "referral",
             resourceId: referral.id,
             userId: user.id,
             action: REFERRAL_EVENT_TYPES[status],
             description: notes,
           }),
+
           ...(status === ReferralStatus.qualified
             ? [
                 markReferralQualified({
@@ -93,6 +97,7 @@ export const updateReferralStatusAction = authActionClient
                 }),
               ]
             : []),
+
           ...(status === ReferralStatus.closedWon
             ? [
                 markReferralClosedWon({
@@ -103,7 +108,6 @@ export const updateReferralStatusAction = authActionClient
                 }),
               ]
             : []),
-        ]);
         ]);
       })(),
     );
