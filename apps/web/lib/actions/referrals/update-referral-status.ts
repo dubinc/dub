@@ -71,38 +71,44 @@ export const updateReferralStatusAction = authActionClient
     });
 
     waitUntil(
-      Promise.allSettled([
-        notifyReferralStatusUpdate({
-          referral,
-          notes,
-        }),
+      (async () => {
+        await Promise.allSettled([
+          notifyReferralStatusUpdate({
+            referral,
+            notes,
+          }),
 
-        trackActivityLog({
-          resourceType: "referral",
-          resourceId: referral.id,
-          userId: user.id,
-          action: REFERRAL_EVENT_TYPES[status],
-          description: notes,
-        }),
-      ]),
+          trackActivityLog({
+            resourceType: "referral",
+            resourceId: referral.id,
+            userId: user.id,
+            action: REFERRAL_EVENT_TYPES[status],
+            description: notes,
+          }),
+
+          // Mark the referral as qualified
+          {
+            ...(status === ReferralStatus.qualified
+              ? markReferralQualified({
+                  workspace,
+                  referral: referral as ReferralWithCustomer,
+                  externalId: parsedInput.externalId ?? null,
+                })
+              : {}),
+          },
+
+          // Mark the referral as closed won
+          {
+            ...(status === ReferralStatus.closedWon
+              ? markReferralClosedWon({
+                  workspace,
+                  referral: referral as ReferralWithCustomer,
+                  saleAmount: parsedInput.saleAmount,
+                  stripeCustomerId: parsedInput.stripeCustomerId ?? null,
+                })
+              : {}),
+          },
+        ]);
+      })(),
     );
-
-    // Mark the referral as qualified
-    if (status === ReferralStatus.qualified) {
-      await markReferralQualified({
-        workspace,
-        referral: referral as ReferralWithCustomer,
-        externalId: parsedInput.externalId ?? null,
-      });
-    }
-
-    // Mark the referral as closed won
-    if (status === ReferralStatus.closedWon) {
-      await markReferralClosedWon({
-        workspace,
-        referral: referral as ReferralWithCustomer,
-        saleAmount: parsedInput.saleAmount,
-        stripeCustomerId: parsedInput.stripeCustomerId ?? null,
-      });
-    }
   });
