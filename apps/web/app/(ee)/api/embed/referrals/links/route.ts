@@ -9,7 +9,7 @@ import { linkEventSchema } from "@/lib/zod/schemas/links";
 import { createPartnerLinkSchema } from "@/lib/zod/schemas/partners";
 import { ReferralsEmbedLinkSchema } from "@/lib/zod/schemas/referrals-embed";
 import { prisma } from "@dub/prisma";
-import { constructURLFromUTMParams } from "@dub/utils";
+import { getUTMParamsFromURL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -89,14 +89,18 @@ export const POST = withReferralsEmbedToken(
       });
     }
 
+    const linkUrl = url || partnerGroup.partnerGroupDefaultLinks[0].url;
+
     const { link, error, code } = await processLink({
       payload: {
         key: key || undefined,
-        url: constructURLFromUTMParams(
-          url || partnerGroup.partnerGroupDefaultLinks[0].url,
-          extractUtmParams(partnerGroup.utmTemplate),
-        ),
-        ...extractUtmParams(partnerGroup.utmTemplate, { excludeRef: true }),
+        url: linkUrl,
+        ...(partnerGroup.utmTemplate
+          ? {
+              ...extractUtmParams(partnerGroup.utmTemplate),
+              ...getUTMParamsFromURL(linkUrl),
+            }
+          : {}),
         domain: program.domain,
         programId: program.id,
         folderId: program.defaultFolderId,
