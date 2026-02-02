@@ -35,6 +35,7 @@ import {
   DESIGNER_FIELDS,
 } from "../application-form/modals/add-field-modal";
 import { useEditApplicationHeroModal } from "../application-form/modals/edit-application-hero-modal";
+import ProgramTermsPreview from "../application-form/program-terms-preview";
 import RequiredFieldsPreview from "../application-form/required-fields-preview";
 import { useBrandingFormContext } from "../branding-form";
 
@@ -230,7 +231,7 @@ export function ApplicationPreview({
               <EditToolbar
                 onEdit={() => setShowEditApplicationHeroModal(true)}
               />
-              <div className="mx-auto max-w-screen-sm">
+              <div className="relative mx-auto max-w-screen-sm">
                 <div className="px-6">
                   <ApplicationFormHero
                     program={program}
@@ -325,10 +326,25 @@ export function ApplicationPreview({
               })}
 
               {fields.length === 0 && (
-                <div className="flex justify-center py-10">
-                  <AddFieldButton onClick={() => setAddFieldIndex(0)} />
+                <div className="group/empty relative py-10">
+                  <div className="border-subtle pointer-events-none absolute inset-y-0 left-1/2 w-[1080px] max-w-[calc(100cqw-32px)] -translate-x-1/2 overflow-hidden rounded-xl border opacity-40 transition-opacity duration-300 ease-out group-hover/empty:opacity-100">
+                    <Grid
+                      cellSize={60}
+                      className="text-border-subtle inset-[unset] left-1/2 top-1/2 h-[max(1200px,100%)] w-[1200px] -translate-x-1/2 -translate-y-1/2"
+                    />
+                  </div>
+                  <div className="relative flex justify-center">
+                    <AddFieldButton onClick={() => setAddFieldIndex(0)} />
+                  </div>
                 </div>
               )}
+            </div>
+
+            {/* Program terms agreement */}
+            <div className="relative mx-auto max-w-screen-sm py-6">
+              <div className="px-6">
+                <ProgramTermsPreview />
+              </div>
             </div>
 
             {/* Buttons */}

@@ -16,13 +16,12 @@ export function PartnerCrossProgramSummary({
     return <LoadingSkeleton />;
   }
 
-  const { totalPrograms, trustedPrograms, bannedPrograms } =
-    crossProgramSummary;
+  const { totalPrograms, activePrograms, bannedPrograms } = crossProgramSummary;
 
   return (
     <div className="flex items-center gap-3">
       <ActivityRing
-        positiveValue={trustedPrograms}
+        positiveValue={activePrograms}
         negativeValue={bannedPrograms}
         positiveIcon={UserCheck}
         negativeIcon={UserXmark}
@@ -30,8 +29,8 @@ export function PartnerCrossProgramSummary({
       />
       <div className="flex min-w-0 grow flex-col gap-[5px]">
         <StatRow
-          label="Marked as trustworthy"
-          value={trustedPrograms}
+          label="Active programs"
+          value={activePrograms}
           total={totalPrograms}
         />
         <StatRow

@@ -2,7 +2,6 @@
 
 import { programApplicationFormFieldSchema } from "@/lib/zod/schemas/program-application-form";
 import { Icon, Modal } from "@dub/ui";
-import { cn } from "@dub/utils";
 import { Dispatch, Fragment, ReactNode, SetStateAction, useState } from "react";
 import { useWatch } from "react-hook-form";
 import * as z from "zod/v4";
@@ -25,8 +24,8 @@ import {
   ShortTextFieldThumbnail,
 } from "./short-text-field-modal";
 import {
-  WebsiteAndSocialsFieldIcon,
   WebsiteAndSocialsFieldModal,
+  WebsiteAndSocialsFieldThumbnail,
 } from "./website-and-socials-field-modal";
 
 type AddFieldModalProps = {
@@ -40,6 +39,7 @@ export function AddFieldModal(props: AddFieldModalProps) {
     <Modal
       showModal={props.showAddFieldModal}
       setShowModal={props.setShowAddFieldModal}
+      className="max-w-2xl"
     >
       <AddFieldModalInner {...props} />
     </Modal>
@@ -51,7 +51,6 @@ export const DESIGNER_FIELDS: ({
   label: string;
   description: string;
   modal: React.ComponentType<any>;
-  fullWidth?: boolean;
 } & (
   | { icon: Icon; thumbnail?: never }
   | { thumbnail: ReactNode; icon?: never }
@@ -90,15 +89,13 @@ export const DESIGNER_FIELDS: ({
     description: "Let applicants upload images",
     modal: ImageUploadFieldModal,
     thumbnail: <ImageUploadFieldThumbnail />,
-    fullWidth: true,
   },
   {
     id: "website-and-socials",
     label: "Website and socials",
     description: "Collect website and social media links",
     modal: WebsiteAndSocialsFieldModal,
-    icon: WebsiteAndSocialsFieldIcon,
-    fullWidth: true,
+    thumbnail: <WebsiteAndSocialsFieldThumbnail />,
   },
 ];
 
@@ -130,7 +127,7 @@ function AddFieldModalInner({
         <h3 className="text-base font-semibold leading-6 text-neutral-800">
           Insert field
         </h3>
-        <div className="mt-4 grid grid-cols-2 gap-4">
+        <div className="mt-4 grid grid-cols-2 gap-4 md:grid-cols-3">
           {fields.map((field) => (
             <Fragment key={field.id}>
               <field.modal
@@ -158,23 +155,14 @@ function AddFieldModalInner({
               <button
                 type="button"
                 onClick={() => setModalState(field.id)}
-                className={cn(
-                  "flex rounded-md border border-transparent bg-neutral-100 p-4 text-left outline-none ring-black/10 transition-all duration-150 hover:border-neutral-800 hover:ring focus-visible:border-neutral-800",
-                  field.fullWidth && "col-span-2 flex-row items-center gap-4",
-                  !field.fullWidth && "flex-col gap-4",
-                )}
+                className="flex flex-col gap-4 rounded-md border border-transparent bg-neutral-100 p-4 text-left outline-none ring-black/10 transition-all duration-150 hover:border-neutral-800 hover:ring focus-visible:border-neutral-800"
               >
                 {field.icon ? (
                   <div className="flex size-12 items-center justify-center overflow-hidden rounded-md border border-neutral-200 bg-white">
                     <field.icon className="size-5 text-neutral-600" />
                   </div>
                 ) : (
-                  <div
-                    className={cn(
-                      "flex items-center justify-center overflow-hidden rounded-md border border-neutral-200 bg-white",
-                      field.fullWidth ? "size-12" : "h-24 w-full",
-                    )}
-                  >
+                  <div className="flex h-24 w-full items-center justify-center overflow-hidden rounded-md border border-neutral-200 bg-white">
                     {field.thumbnail}
                   </div>
                 )}

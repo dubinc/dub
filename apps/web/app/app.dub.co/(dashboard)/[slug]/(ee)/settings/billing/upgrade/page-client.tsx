@@ -1,5 +1,6 @@
 "use client";
 
+import { clientAccessCheck } from "@/lib/client-access-check";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { usePartnersUpgradeModal } from "@/ui/partners/partners-upgrade-modal";
 import { UpgradePlanButton } from "@/ui/workspaces/upgrade-plan-button";
@@ -48,11 +49,17 @@ const COMPARE_FEATURE_ICONS: Record<
 export function WorkspaceBillingUpgradePageClient() {
   const {
     slug,
+    role,
     plan: currentPlan,
     planTier: currentPlanTier = 1,
     stripeId,
     payoutsLimit,
   } = useWorkspace();
+
+  const { error: permissionsError } = clientAccessCheck({
+    action: "billing.write",
+    role,
+  });
 
   const [mobilePlanIndex, setMobilePlanIndex] = useState(0);
   const [period, setPeriod] = useState<"monthly" | "yearly">("monthly");
@@ -245,6 +252,7 @@ export function WorkspaceBillingUpgradePageClient() {
                           disabled={
                             disableCurrentPlan || currentPlan === "enterprise"
                           }
+                          disabledTooltip={permissionsError || undefined}
                           text={
                             currentPlan === "enterprise"
                               ? "Contact support"
