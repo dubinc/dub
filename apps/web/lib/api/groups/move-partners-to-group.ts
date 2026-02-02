@@ -98,15 +98,6 @@ export async function movePartnersToGroup({
           },
         }),
 
-        qstash.publishJSON({
-          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/remap-discount-codes`,
-          body: {
-            programId,
-            partnerIds,
-            groupId: group.id,
-          },
-        }),
-
         triggerDraftBountySubmissionCreation({
           programId,
           partnerIds,

@@ -1,7 +1,7 @@
 "use server";
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
-import { queueDiscountCodeDeletion } from "@/lib/api/discounts/queue-discount-code-deletion";
+import { deleteDiscountCodes } from "@/lib/api/discounts/delete-discount-code";
 import { linkCache } from "@/lib/api/links/cache";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { bulkDeactivatePartnersSchema } from "@/lib/zod/schemas/partners";
@@ -111,7 +111,7 @@ export const bulkDeactivatePartnersAction = authActionClient
           linkCache.expireMany(allLinks),
 
           // Queue discount code deletions
-          queueDiscountCodeDeletion(allDiscountCodes),
+          deleteDiscountCodes(allDiscountCodes),
 
           // Record audit logs
           recordAuditLog(

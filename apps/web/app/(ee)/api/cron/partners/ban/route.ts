@@ -1,4 +1,4 @@
-import { queueDiscountCodeDeletion } from "@/lib/api/discounts/queue-discount-code-deletion";
+import { deleteDiscountCodes } from "@/lib/api/discounts/delete-discount-code";
 import { createFraudEvents } from "@/lib/api/fraud/create-fraud-events";
 import { linkCache } from "@/lib/api/links/cache";
 import { includeTags } from "@/lib/api/links/include-tags";
@@ -131,7 +131,7 @@ export const POST = withCron(async ({ rawBody }) => {
     recordLink(links, { deleted: true }),
 
     // Queue discount code deletions
-    queueDiscountCodeDeletion(
+    deleteDiscountCodes(
       links
         .map((link) => link.discountCode)
         .filter(

@@ -1,6 +1,6 @@
 import { createDiscountCode } from "@/lib/api/discounts/create-discount-code";
+import { deleteDiscountCodes } from "@/lib/api/discounts/delete-discount-code";
 import { isDiscountEquivalent } from "@/lib/api/discounts/is-discount-equivalent";
-import { queueDiscountCodeDeletion } from "@/lib/api/discounts/queue-discount-code-deletion";
 import { withCron } from "@/lib/cron/with-cron";
 import { prisma } from "@dub/prisma";
 import { DiscountCode } from "@dub/prisma/client";
@@ -104,15 +104,7 @@ export const POST = withCron(async ({ rawBody }) => {
 
   // Remove the old discount codes
   if (discountCodesToRemove.length > 0) {
-    await prisma.discountCode.deleteMany({
-      where: {
-        id: {
-          in: discountCodesToRemove.map(({ id }) => id),
-        },
-      },
-    });
-
-    await queueDiscountCodeDeletion(discountCodesToRemove);
+    await deleteDiscountCodes(discountCodesToRemove);
 
     // Create new discount codes if the auto-provision is enabled for the discount
     if (group.discount?.autoProvisionEnabledAt) {

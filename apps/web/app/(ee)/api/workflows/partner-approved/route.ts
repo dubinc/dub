@@ -32,7 +32,7 @@ type Payload = z.infer<typeof payloadSchema>;
  * 1. **Create Default Links**: Creates partner-specific default links based on the group's
  *    configuration.
  *
- * 2. **Create Discount Code**: If the group's discount has auto-provisioning enabled,
+ * 2. **Create Discount Codes**: If the group's discount has auto-provisioning enabled,
  *    creates a discount code for the partner.
  *
  * 3. **Send Email Notification**: Sends an approval email to all partner users who have
@@ -158,7 +158,7 @@ export const { POST } = serve<Payload>(
     });
 
     // Step 2: Auto-provision discount code if enabled
-    await context.run("create-discount-code", async () => {
+    await context.run("create-discount-codes", async () => {
       if (!groupId) {
         return;
       }

@@ -1,6 +1,6 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { deleteDiscountCodes } from "@/lib/api/discounts/delete-discount-code";
 import { isDiscountEquivalent } from "@/lib/api/discounts/is-discount-equivalent";
-import { queueDiscountCodeDeletion } from "@/lib/api/discounts/queue-discount-code-deletion";
 import { DubApiError } from "@/lib/api/errors";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { upsertGroupMoveRules } from "@/lib/api/groups/upsert-group-move-rules";
@@ -436,7 +436,7 @@ export const DELETE = withWorkspace(
               }),
 
             ...discountCodesToDelete.map((discountCode) =>
-              queueDiscountCodeDeletion(discountCode),
+              deleteDiscountCodes(discountCode),
             ),
 
             recordAuditLog({
