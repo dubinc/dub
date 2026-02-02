@@ -10,6 +10,7 @@ import {
 import { generateRandomName } from "@/lib/names";
 import { PartnerProfileCustomerSchema } from "@/lib/zod/schemas/partner-profile";
 import { prisma } from "@dub/prisma";
+import { CommissionType } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -41,6 +42,19 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     where: {
       id: customerId,
     },
+    include: {
+      // find the first sale commission for this customer and partner
+      commissions: {
+        where: {
+          partnerId: partner.id,
+          type: CommissionType.sale,
+        },
+        take: 1,
+        orderBy: {
+          createdAt: "asc",
+        },
+      },
+    },
   });
 
   if (!customer || customer?.projectId !== program.workspaceId) {
@@ -65,15 +79,18 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
   // get the first partner link that this customer interacted with
   const firstLinkId = events[events.length - 1].link_id;
   const link = links.find((link) => link.id === firstLinkId);
+  const firstSaleAt =
+    customer.commissions[0]?.createdAt ?? customer.firstSaleAt;
 
+  // TODO: Calculate based on events (more accurate for multi-tenant setups where customers can interact with multiple partners)
   const timeToLead =
     customer.clickedAt && customer.createdAt
       ? customer.createdAt.getTime() - customer.clickedAt.getTime()
       : null;
 
   const timeToSale =
-    customer.firstSaleAt && customer.createdAt
-      ? customer.firstSaleAt.getTime() - customer.createdAt.getTime()
+    firstSaleAt && customer.createdAt
+      ? firstSaleAt.getTime() - customer.createdAt.getTime()
       : null;
 
   return NextResponse.json(
@@ -82,6 +99,7 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     }).parse({
       ...transformCustomer({
         ...customer,
+        firstSaleAt,
         email: customer.email
           ? customerDataSharingEnabledAt
             ? customer.email
@@ -90,6 +108,7 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
       }),
       activity: {
         ...customer,
+        firstSaleAt,
         timeToLead,
         timeToSale,
         events,

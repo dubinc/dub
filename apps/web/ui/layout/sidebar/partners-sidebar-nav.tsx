@@ -30,6 +30,7 @@ import { ReactNode, useMemo } from "react";
 import { CursorRays } from "./icons/cursor-rays";
 import { Hyperlink } from "./icons/hyperlink";
 import { LinesY } from "./icons/lines-y";
+import { User } from "./icons/user";
 import { PartnerProgramDropdown } from "./partner-program-dropdown";
 import { PayoutStats } from "./payout-stats";
 import { ProgramHelpSupport } from "./program-help-support";
@@ -222,7 +223,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
                 },
                 {
                   name: "Customers",
-                  icon: UserCheck,
+                  icon: User,
                   href: `/programs/${programSlug}/customers` as `/${string}`,
                   locked: isUnapproved,
                 },
