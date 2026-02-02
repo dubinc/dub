@@ -9,15 +9,17 @@ import { logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";
 
-const schema = z.object({
+const inputSchema = z.object({
   programId: z.string(),
-  partnerIds: z.array(z.string()),
   groupId: z.string(),
+  partnerIds: z.array(z.string()),
 });
 
 // POST /api/cron/groups/remap-discount-codes
 export const POST = withCron(async ({ rawBody }) => {
-  const { programId, partnerIds, groupId } = schema.parse(JSON.parse(rawBody));
+  const { programId, partnerIds, groupId } = inputSchema.parse(
+    JSON.parse(rawBody),
+  );
 
   if (partnerIds.length === 0) {
     return logAndRespond("No partner IDs provided.");
@@ -31,20 +33,25 @@ export const POST = withCron(async ({ rawBody }) => {
       programId,
     },
     include: {
-      discountCodes: {
-        include: {
-          discount: true,
+      partner: {
+        select: {
+          id: true,
+          name: true,
         },
       },
       links: {
         select: {
           id: true,
         },
+        where: {
+          partnerGroupDefaultLinkId: {
+            not: null,
+          },
+        },
       },
-      partner: {
-        select: {
-          id: true,
-          name: true,
+      discountCodes: {
+        include: {
+          discount: true,
         },
       },
     },
@@ -90,6 +97,10 @@ export const POST = withCron(async ({ rawBody }) => {
 
   // Update the discount codes to use the new discount if they are equivalent
   if (discountCodesToUpdate.length > 0) {
+    console.log(
+      `Found ${discountCodesToUpdate.length} discount codes which share the same discount as the previous group. Updating them to use the new discount.`,
+    );
+
     await prisma.discountCode.updateMany({
       where: {
         id: {
@@ -104,6 +115,10 @@ export const POST = withCron(async ({ rawBody }) => {
 
   // Remove the old discount codes
   if (discountCodesToRemove.length > 0) {
+    console.log(
+      `Found ${discountCodesToRemove.length} discount codes which do not share the same discount as the previous group. Deleting them.`,
+    );
+
     await deleteDiscountCodes(discountCodesToRemove);
 
     // Create new discount codes if the auto-provision is enabled for the discount
@@ -111,8 +126,6 @@ export const POST = withCron(async ({ rawBody }) => {
       const partners = programEnrollments.flatMap(({ links, partner }) =>
         links.map((link) => ({ link, partner })),
       );
-
-      console.log("partners", partners);
 
       const workspace = await prisma.project.findUniqueOrThrow({
         where: {
@@ -136,7 +149,5 @@ export const POST = withCron(async ({ rawBody }) => {
     }
   }
 
-  return logAndRespond(
-    `Updated ${discountCodesToUpdate.length} discount codes and removed ${discountCodesToRemove.length} discount codes.`,
-  );
+  return logAndRespond("Finished remapping discount codes for the group.");
 });

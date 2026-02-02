@@ -24,13 +24,18 @@ export async function deleteDiscountCodes(input: DeleteDiscountCodesParams) {
   }
 
   // Delete the discount codes from the database
-  await prisma.discountCode.deleteMany({
+  const deletedDiscountCodes = await prisma.discountCode.deleteMany({
     where: {
       id: {
         in: discountCodes.map(({ id }) => id),
       },
     },
   });
+
+  console.log(
+    `Deleted ${deletedDiscountCodes.count} discount codes.`,
+    discountCodes.map(({ id, code }) => ({ id, code })),
+  );
 
   // Queue the job to remove the discount codes from Stripe
   const chunks = chunk(discountCodes, 100);

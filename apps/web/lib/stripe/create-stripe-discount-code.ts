@@ -12,11 +12,13 @@ const MAX_ATTEMPTS = 3;
 export async function createStripeDiscountCode({
   stripeConnectId,
   discount,
+  partner,
   code,
   shouldRetry = true,
 }: {
   stripeConnectId: string;
   discount: Pick<DiscountProps, "id" | "couponId" | "amount" | "type">;
+  partner: Pick<Partner, "name">;
   code: string;
   shouldRetry?: boolean; // we don't retry if the code is provided by the user
 }) {
@@ -65,10 +67,7 @@ export async function createStripeDiscountCode({
         throw error;
       }
 
-      const newCode = constructDiscountCode({
-        code: currentCode,
-        discount,
-      });
+      const newCode = `${currentCode}${nanoid(2)}`;
 
       console.warn(
         `Discount code "${currentCode}" already exists. Retrying with "${newCode}" (attempt ${attempt}/${MAX_ATTEMPTS}).`,
@@ -82,23 +81,6 @@ export async function createStripeDiscountCode({
 }
 
 export function constructDiscountCode({
-  code,
-  discount,
-}: {
-  code: string;
-  discount: Pick<DiscountProps, "amount" | "type">;
-}) {
-  const amount =
-    discount.type === "percentage" ? discount.amount : discount.amount / 100;
-
-  if (!code.endsWith(amount.toString())) {
-    return `${code}${amount}`;
-  }
-
-  return `${code}${nanoid(4)}`;
-}
-
-export function constructDiscountCodeForPartner({
   partner,
   discount,
 }: {
