@@ -138,13 +138,26 @@ export const analyticsQuerySchema = z
       .optional()
       .transform(parseFilterValue)
       .describe(
-        "The country to retrieve analytics for. Must be passed as a 2-letter ISO 3166-1 country code. Supports multiple values (comma-separated) and negation (prefix with `-`). Examples: `US`, `US,BR,FR`, `-US`, `-US,BR`. See https://d.to/geo for more information.",
-      ),
+        "The country to retrieve analytics for. Must be passed as a 2-letter ISO 3166-1 country code. " +
+        "Supports advanced filtering: " +
+        "• Single value: `US` (IS US) " +
+        "• Multiple values: `US,BR,FR` (IS ONE OF) " +
+        "• Exclude single: `-US` (IS NOT US) " +
+        "• Exclude multiple: `-US,BR` (IS NOT ONE OF). " +
+        "See https://d.to/geo for country codes.",
+      )
+      .meta({
+        example: "US",
+      }),
     city: z
       .string()
       .optional()
       .transform(parseFilterValue)
-      .describe("The city to retrieve analytics for. Supports multiple values (comma-separated) and negation (prefix with `-`).")
+      .describe(
+        "The city to retrieve analytics for. " +
+        "Supports advanced filtering: single value, multiple values (comma-separated), or exclusion (prefix with `-`). " +
+        "Examples: `New York`, `New York,London`, `-New York`."
+      )
       .meta({ example: "New York" }),
     region: z
       .string()
@@ -154,7 +167,13 @@ export const analyticsQuerySchema = z
       .string()
       .optional()
       .transform(parseFilterValue)
-      .describe("The continent to retrieve analytics for. Supports multiple values (comma-separated) and negation (prefix with `-`)."),
+      .describe(
+        "The continent to retrieve analytics for. " +
+        "Supports advanced filtering: single value, multiple values (comma-separated), or exclusion (prefix with `-`). " +
+        "Valid values: AF, AN, AS, EU, NA, OC, SA. " +
+        "Examples: `NA`, `NA,EU`, `-AS`."
+      )
+      .meta({ example: "NA" }),
     device: z
       .string()
       .optional()
@@ -168,7 +187,11 @@ export const analyticsQuerySchema = z
           values: parsed.values.map((val) => capitalize(val)).filter(Boolean) as string[],
         };
       })
-      .describe("The device to retrieve analytics for. Supports multiple values (comma-separated) and negation (prefix with `-`).")
+      .describe(
+        "The device to retrieve analytics for. " +
+        "Supports advanced filtering: single value, multiple values (comma-separated), or exclusion (prefix with `-`). " +
+        "Examples: `Desktop`, `Mobile,Tablet`, `-Mobile`."
+      )
       .meta({ example: "Desktop" }),
     browser: z
       .string()
@@ -182,7 +205,11 @@ export const analyticsQuerySchema = z
           values: parsed.values.map((val) => capitalize(val)).filter(Boolean) as string[],
         };
       })
-      .describe("The browser to retrieve analytics for. Supports multiple values (comma-separated) and negation (prefix with `-`).")
+      .describe(
+        "The browser to retrieve analytics for. " +
+        "Supports advanced filtering: single value, multiple values (comma-separated), or exclusion (prefix with `-`). " +
+        "Examples: `Chrome`, `Chrome,Firefox,Safari`, `-IE`."
+      )
       .meta({ example: "Chrome" }),
     os: z
       .string()
@@ -196,32 +223,53 @@ export const analyticsQuerySchema = z
           values: parsed.values.map((val) => (val === "iOS" ? "iOS" : capitalize(val))).filter(Boolean) as string[],
         };
       })
-      .describe("The OS to retrieve analytics for. Supports multiple values (comma-separated) and negation (prefix with `-`).")
+      .describe(
+        "The OS to retrieve analytics for. " +
+        "Supports advanced filtering: single value, multiple values (comma-separated), or exclusion (prefix with `-`). " +
+        "Examples: `Windows`, `Mac,Windows,Linux`, `-Windows`."
+      )
       .meta({ example: "Windows" }),
     trigger: z
       .string()
       .optional()
       .transform(parseFilterValue)
       .describe(
-        "The trigger to retrieve analytics for. Supports multiple values (comma-separated) and negation (prefix with `-`). If undefined, returns all trigger types.",
-      ),
+        "The trigger to retrieve analytics for. " +
+        "Supports advanced filtering: single value, multiple values (comma-separated), or exclusion (prefix with `-`). " +
+        "Valid values: qr, link. " +
+        "Examples: `qr`, `qr,link`, `-qr`. " +
+        "If undefined, returns all trigger types."
+      )
+      .meta({ example: "qr" }),
     referer: z
       .string()
       .optional()
       .transform(parseFilterValue)
-      .describe("The referer hostname to retrieve analytics for. Supports multiple values (comma-separated) and negation (prefix with `-`).")
+      .describe(
+        "The referer hostname to retrieve analytics for. " +
+        "Supports advanced filtering: single value, multiple values (comma-separated), or exclusion (prefix with `-`). " +
+        "Examples: `google.com`, `google.com,twitter.com`, `-facebook.com`."
+      )
       .meta({ example: "google.com" }),
     refererUrl: z
       .string()
       .optional()
       .transform(parseFilterValue)
-      .describe("The full referer URL to retrieve analytics for. Supports multiple values (comma-separated) and negation (prefix with `-`).")
+      .describe(
+        "The full referer URL to retrieve analytics for. " +
+        "Supports advanced filtering: single value, multiple values (comma-separated), or exclusion (prefix with `-`)."
+      )
       .meta({ example: "https://dub.co/blog" }),
     url: z
       .string()
       .optional()
       .transform(parseFilterValue)
-      .describe("The URL to retrieve analytics for. Supports multiple values (comma-separated) and negation (prefix with `-`)."),
+      .describe(
+        "The destination URL to retrieve analytics for. " +
+        "Supports advanced filtering: single value, multiple values (comma-separated), or exclusion (prefix with `-`). " +
+        "Examples: `https://example.com`, `https://example.com,https://other.com`, `-https://spam.com`."
+      )
+      .meta({ example: "https://example.com" }),
     tagIds: z
       .union([z.string(), z.array(z.string())])
       .transform((v) => (Array.isArray(v) ? v : v.split(",")))
