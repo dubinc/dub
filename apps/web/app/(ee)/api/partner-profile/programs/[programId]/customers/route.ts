@@ -85,12 +85,6 @@ export const GET = withPartnerProfile(
       const firstSaleAt =
         customer.commissions[0]?.createdAt ?? customer.firstSaleAt;
 
-      // TODO: Calculate based on events (more accurate for multi-tenant setups where customers can interact with multiple partners)
-      const timeToLead =
-        customer.clickedAt && customer.createdAt
-          ? customer.createdAt.getTime() - customer.clickedAt.getTime()
-          : null;
-
       return PartnerProfileCustomerSchema.extend({
         ...(customerDataSharingEnabledAt && { name: z.string().nullish() }),
       }).parse({
@@ -105,9 +99,6 @@ export const GET = withPartnerProfile(
         }),
         activity: {
           ...customer,
-          firstSaleAt,
-          timeToLead,
-          timeToSale: null,
           events: [],
           link: customer.link,
         },

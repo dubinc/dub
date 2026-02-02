@@ -31,8 +31,7 @@ export function ProgramCustomerPageClient() {
   });
 
   const rewardPeriodEndDate = useMemo(() => {
-    if (!programEnrollment?.rewards || !customer?.activity?.firstSaleAt)
-      return null;
+    if (!programEnrollment?.rewards || !customer?.firstSaleAt) return null;
     const saleReward = programEnrollment?.rewards.find(
       (r) => r.event === "sale",
     );
@@ -43,7 +42,7 @@ export function ProgramCustomerPageClient() {
       return null;
 
     // add the max duration to the first sale date
-    return addMonths(customer.activity.firstSaleAt, saleReward.maxDuration);
+    return addMonths(customer.firstSaleAt, saleReward.maxDuration);
   }, [programEnrollment, customer]);
 
   if ((!customer && !isLoading) || !showDetailedAnalytics) {
