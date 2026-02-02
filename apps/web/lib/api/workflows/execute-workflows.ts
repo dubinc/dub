@@ -166,10 +166,6 @@ export async function executeWorkflows({
     try {
       const { action } = parseWorkflowConfig(workflow);
 
-      if (!action) {
-        continue;
-      }
-
       const handler = ACTION_HANDLERS[action.type];
 
       if (!handler) {
