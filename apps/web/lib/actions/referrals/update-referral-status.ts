@@ -77,7 +77,6 @@ export const updateReferralStatusAction = authActionClient
             referral,
             notes,
           }),
-
           trackActivityLog({
             resourceType: "referral",
             resourceId: referral.id,
@@ -85,29 +84,26 @@ export const updateReferralStatusAction = authActionClient
             action: REFERRAL_EVENT_TYPES[status],
             description: notes,
           }),
-
-          // Mark the referral as qualified
-          {
-            ...(status === ReferralStatus.qualified
-              ? markReferralQualified({
+          ...(status === ReferralStatus.qualified
+            ? [
+                markReferralQualified({
                   workspace,
                   referral: referral as ReferralWithCustomer,
                   externalId: parsedInput.externalId ?? null,
-                })
-              : {}),
-          },
-
-          // Mark the referral as closed won
-          {
-            ...(status === ReferralStatus.closedWon
-              ? markReferralClosedWon({
+                }),
+              ]
+            : []),
+          ...(status === ReferralStatus.closedWon
+            ? [
+                markReferralClosedWon({
                   workspace,
                   referral: referral as ReferralWithCustomer,
                   saleAmount: parsedInput.saleAmount,
                   stripeCustomerId: parsedInput.stripeCustomerId ?? null,
-                })
-              : {}),
-          },
+                }),
+              ]
+            : []),
+        ]);
         ]);
       })(),
     );
