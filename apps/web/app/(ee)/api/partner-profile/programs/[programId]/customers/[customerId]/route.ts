@@ -82,17 +82,6 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
   const firstSaleAt =
     customer.commissions[0]?.createdAt ?? customer.firstSaleAt;
 
-  // TODO: Calculate based on events (more accurate for multi-tenant setups where customers can interact with multiple partners)
-  const timeToLead =
-    customer.clickedAt && customer.createdAt
-      ? customer.createdAt.getTime() - customer.clickedAt.getTime()
-      : null;
-
-  const timeToSale =
-    firstSaleAt && customer.createdAt
-      ? firstSaleAt.getTime() - customer.createdAt.getTime()
-      : null;
-
   return NextResponse.json(
     PartnerProfileCustomerSchema.extend({
       ...(customerDataSharingEnabledAt && { name: z.string().nullish() }),
@@ -108,9 +97,6 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
       }),
       activity: {
         ...customer,
-        firstSaleAt,
-        timeToLead,
-        timeToSale,
         events,
         link,
       },
