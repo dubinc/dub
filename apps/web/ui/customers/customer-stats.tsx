@@ -1,4 +1,3 @@
-import useCustomerActivity from "@/lib/swr/use-customer-activity";
 import { CustomerEnriched } from "@/lib/types";
 import { TimestampTooltip } from "@dub/ui";
 import { ArrowUpRight2 } from "@dub/ui/icons";
@@ -17,16 +16,19 @@ import { CSSProperties, useMemo } from "react";
 export function CustomerStats({
   customer,
 }: {
-  customer?: Pick<CustomerEnriched, "sales" | "saleAmount" | "createdAt">;
+  customer?: Pick<
+    CustomerEnriched,
+    | "sales"
+    | "saleAmount"
+    | "createdAt"
+    | "firstSaleAt"
+    | "subscriptionCanceledAt"
+  >;
 }) {
   const { slug: workspaceSlug, customerId } = useParams<{
     slug: string;
     customerId: string;
   }>();
-
-  const { customerActivity, isCustomerActivityLoading } = useCustomerActivity({
-    customerId,
-  });
 
   const stats: {
     label: string;
@@ -36,29 +38,27 @@ export function CustomerStats({
     () => [
       {
         label: "First sale date",
-        value:
-          isCustomerActivityLoading ? undefined : customerActivity?.firstSaleAt ? (
-            <TimestampTooltip
-              timestamp={customerActivity.firstSaleAt}
-              side="right"
-              rows={["local", "utc"]}
-            >
-              <span className="hover:text-content-emphasis underline decoration-dotted underline-offset-2">
-                {formatDateTimeSmart(customerActivity.firstSaleAt)}
-              </span>
-            </TimestampTooltip>
-          ) : (
-            "-"
-          ),
+        value: !customer ? undefined : customer.firstSaleAt ? (
+          <TimestampTooltip
+            timestamp={customer.firstSaleAt}
+            side="right"
+            rows={["local", "utc"]}
+          >
+            <span className="hover:text-content-emphasis underline decoration-dotted underline-offset-2">
+              {formatDateTimeSmart(customer.firstSaleAt)}
+            </span>
+          </TimestampTooltip>
+        ) : (
+          "-"
+        ),
       },
       {
         label: "Time to sale",
-        value:
-          !customer || isCustomerActivityLoading
-            ? undefined
-            : customerActivity?.firstSaleAt
-              ? formatDistance(customerActivity.firstSaleAt, customer.createdAt)
-              : "-",
+        value: !customer
+          ? undefined
+          : customer.firstSaleAt
+            ? formatDistance(customer.firstSaleAt, customer.createdAt)
+            : "-",
       },
       {
         label: "Lifetime value",
@@ -75,23 +75,22 @@ export function CustomerStats({
       },
       {
         label: "Subscription canceled",
-        value:
-          isCustomerActivityLoading ? undefined : customerActivity?.subscriptionCanceledAt ? (
-            <TimestampTooltip
-              timestamp={customerActivity.subscriptionCanceledAt}
-              side="right"
-              rows={["local", "utc"]}
-            >
-              <span className="hover:text-content-emphasis underline decoration-dotted underline-offset-2">
-                {formatDateTimeSmart(customerActivity.subscriptionCanceledAt)}
-              </span>
-            </TimestampTooltip>
-          ) : (
-            "-"
-          ),
+        value: !customer ? undefined : customer.subscriptionCanceledAt ? (
+          <TimestampTooltip
+            timestamp={customer.subscriptionCanceledAt}
+            side="right"
+            rows={["local", "utc"]}
+          >
+            <span className="hover:text-content-emphasis underline decoration-dotted underline-offset-2">
+              {formatDateTimeSmart(customer.subscriptionCanceledAt)}
+            </span>
+          </TimestampTooltip>
+        ) : (
+          "-"
+        ),
       },
     ],
-    [workspaceSlug, customer, customerActivity, isCustomerActivityLoading],
+    [workspaceSlug, customer],
   );
 
   return (

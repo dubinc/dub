@@ -215,6 +215,7 @@ export * from "./sort-alpha-ascending";
 export * from "./sort-alpha-descending";
 export * from "./sparkle3";
 export * from "./square-chart";
+export * from "./square-check";
 export * from "./square-layout-grid5";
 export * from "./square-layout-grid6";
 export * from "./square-user-sparkle2";
