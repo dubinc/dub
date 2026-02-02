@@ -14,6 +14,7 @@ import { prisma } from "@dub/prisma";
 import { ReferralStatus } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 const REFERRAL_EVENT_TYPES = {
   [ReferralStatus.pending]: "referral.created",
@@ -30,6 +31,11 @@ export const updateReferralStatusAction = authActionClient
     const { referralId, status, notes } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredRoles: ["owner", "member"],
+    });
 
     let referral = await getReferralOrThrow({
       referralId,
