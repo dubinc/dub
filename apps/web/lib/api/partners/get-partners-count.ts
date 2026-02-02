@@ -128,6 +128,34 @@ export async function getPartnersCount<T>(
     return partners as T;
   }
 
+  // Get partner count by assignee
+  if (groupBy === "managerUserId") {
+    const partners = await prisma.programEnrollment.groupBy({
+      by: ["managerUserId"],
+      where: {
+        programId,
+        ...(groupId && {
+          groupId,
+        }),
+        partner: {
+          ...(country && {
+            country,
+          }),
+          ...commonWhere,
+        },
+        status,
+      },
+      _count: true,
+      orderBy: {
+        _count: {
+          managerUserId: "desc",
+        },
+      },
+    });
+
+    return partners as T;
+  }
+
   // Get absolute count of partners
   const count = await prisma.programEnrollment.count({
     where: {

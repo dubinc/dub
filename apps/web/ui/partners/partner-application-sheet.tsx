@@ -45,6 +45,10 @@ function PartnerApplicationSheetContent({
     partner.groupId ?? null,
   );
 
+  const [selectedManagerUserId, setSelectedManagerUserId] = useState<
+    string | null
+  >(partner.managerUserId ?? null);
+
   // right arrow key onNext
   useKeyboardShortcut(
     "ArrowRight",
@@ -70,7 +74,8 @@ function PartnerApplicationSheetContent({
   // Reset selection when navigating between partners
   useEffect(() => {
     setSelectedGroupId(partner.groupId ?? null);
-  }, [partner.groupId]);
+    setSelectedManagerUserId(partner.managerUserId ?? null);
+  }, [partner.groupId, partner.managerUserId]);
 
   return (
     <div className="flex size-full flex-col">
@@ -127,6 +132,8 @@ function PartnerApplicationSheetContent({
               selectedGroupId,
               setSelectedGroupId,
             })}
+            selectedManagerUserId={selectedManagerUserId}
+            setSelectedManagerUserId={setSelectedManagerUserId}
             showApplicationRiskAnalysis={true}
           />
         </div>
@@ -157,6 +164,7 @@ function PartnerApplicationSheetContent({
             groupId={
               partner.status === "rejected" ? selectedGroupId : partner.groupId
             }
+            managerUserId={selectedManagerUserId}
             setIsOpen={setIsOpen}
             onNext={onNext}
           />
@@ -224,11 +232,13 @@ export function PartnerApplicationSheet({
 function PartnerApproval({
   partner,
   groupId,
+  managerUserId,
   setIsOpen,
   onNext,
 }: {
   partner: EnrolledPartnerProps;
   groupId?: string | null;
+  managerUserId?: string | null;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
   onNext?: () => void;
 }) {
@@ -259,6 +269,7 @@ function PartnerApproval({
         workspaceId: workspaceId,
         partnerId: partner.id,
         groupId,
+        managerUserId,
       });
     },
   });

@@ -98,6 +98,7 @@ model ProgramEnrollment {
   programId     String
   tenantId      String?
   groupId       String?
+  managerUserId String?
   applicationId String?                 @unique
   clickRewardId String?
   leadRewardId  String?
@@ -136,6 +137,7 @@ model ProgramEnrollment {
   links             Link[]
   customers         Customer[]
   partnerGroup      PartnerGroup?       @relation(fields: [groupId], references: [id])
+  managerUser       User?               @relation("ManagedEnrollments", fields: [managerUserId], references: [id])
   application       ProgramApplication? @relation(fields: [applicationId], references: [id])
   clickReward       Reward?             @relation("ClickRewardEnrollments", fields: [clickRewardId], references: [id])
   leadReward        Reward?             @relation("LeadRewardEnrollments", fields: [leadRewardId], references: [id])
@@ -168,6 +170,8 @@ model ProgramEnrollment {
   // other indexes
   @@index([programId, groupId])
   @@index([groupId, status])
+  @@index([programId, managerUserId])
+  @@index(managerUserId)
   @@index(clickRewardId)
   @@index(leadRewardId)
   @@index(saleRewardId)

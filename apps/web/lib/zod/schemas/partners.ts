@@ -184,6 +184,7 @@ export const getPartnersQuerySchemaExtended = getPartnersQuerySchema.extend({
     .transform((v) => (Array.isArray(v) ? v : v.split(",")))
     .optional(),
   groupId: z.string().optional(),
+  managerUserId: z.string().optional(),
   includePartnerPlatforms: booleanQuerySchema.optional(),
 });
 
@@ -204,7 +205,7 @@ export const partnersCountQuerySchema = getPartnersQuerySchemaExtended
     pageSize: true,
   })
   .extend({
-    groupBy: z.enum(["status", "country", "groupId"]).optional(),
+    groupBy: z.enum(["status", "country", "groupId", "managerUserId"]).optional(),
   });
 
 export const partnerPlatformSchema = z.object({
@@ -455,6 +456,15 @@ export const EnrolledPartnerSchema = PartnerSchema.pick({
       .describe(
         "Return On Ad Spend (ROAS) (`Total Revenue ÷ Total Commissions`)",
       ),
+    managerUser: z
+      .object({
+        id: z.string(),
+        name: z.string().nullable(),
+        email: z.string().nullable(),
+        image: z.string().nullable(),
+      })
+      .nullish()
+      .describe("The workspace member assigned to manage this partner."),
   })
   .extend(
     PartnerPartnerPlatformsSchema.pick({
@@ -744,6 +754,17 @@ export const approvePartnerSchema = z.object({
   workspaceId: z.string(),
   partnerId: z.string(),
   groupId: z.string().nullish(),
+  managerUserId: z.string().nullish(),
+});
+
+export const bulkAssignPartnersSchema = z.object({
+  workspaceId: z.string(),
+  partnerIds: z
+    .array(z.string())
+    .min(1)
+    .max(100)
+    .transform((v) => [...new Set(v)]),
+  managerUserId: z.string().nullable(),
 });
 
 export const bulkApprovePartnersSchema = z.object({

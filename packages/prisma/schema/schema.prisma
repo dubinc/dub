@@ -47,6 +47,7 @@ model User {
   sentMessages            Message[]
   partnerComments         PartnerComment[]
   fraudEventGroups        FraudEventGroup[]
+  managedEnrollments      ProgramEnrollment[] @relation("ManagedEnrollments")
 
   @@index(source)
   @@index(defaultWorkspace)

@@ -35,6 +35,7 @@ import {
   PartnerFraudBanner,
 } from "./fraud-risks/partner-fraud-banner";
 import { PartnerFraudIndicator } from "./fraud-risks/partner-fraud-indicator";
+import { PartnerInfoAssignee } from "./partner-info-assignee";
 import { PartnerInfoGroup } from "./partner-info-group";
 import { ConversionScoreTooltip } from "./partner-network/conversion-score-tooltip";
 import { PartnerStarButton } from "./partner-star-button";
@@ -53,6 +54,10 @@ type PartnerInfoCardsProps = {
   // Only used for a controlled group selector that doesn't persist the selection itself
   selectedGroupId?: string | null;
   setSelectedGroupId?: (groupId: string) => void;
+
+  // Only used for a controlled assignee selector that doesn't persist the selection itself
+  selectedManagerUserId?: string | null;
+  setSelectedManagerUserId?: (userId: string | null) => void;
 } & (
   | { type?: "enrolled"; partner?: EnrolledPartnerExtendedProps }
   | { type: "network"; partner?: NetworkPartnerProps }
@@ -72,6 +77,8 @@ export function PartnerInfoCards({
   hideStatuses = [],
   selectedGroupId,
   setSelectedGroupId,
+  selectedManagerUserId,
+  setSelectedManagerUserId,
   showFraudIndicator = true,
   showApplicationRiskAnalysis = false,
 }: PartnerInfoCardsProps) {
@@ -291,30 +298,55 @@ export function PartnerInfoCards({
         </div>
       </div>
 
-      <div className="border-border-subtle flex flex-col gap-4 rounded-xl border p-4">
-        {/* Group */}
-        <div className="flex flex-col gap-2">
-          {isEnrolled && (
+      <div className="border-border-subtle flex flex-col divide-y divide-neutral-200 rounded-xl border">
+        {/* Assignee */}
+        {isEnrolled && (
+          <div className="flex flex-col gap-2 p-4">
             <h3 className="text-content-emphasis text-sm font-semibold">
-              Group
+              Assignee
             </h3>
-          )}
-          {partner ? (
-            <PartnerInfoGroup
-              partner={partner}
-              changeButtonText="Change"
-              hideChangeButton={
-                "status" in partner &&
-                INACTIVE_ENROLLMENT_STATUSES.includes(partner.status)
-              }
-              className="rounded-lg bg-white shadow-sm"
-              selectedGroupId={selectedGroupId}
-              setSelectedGroupId={setSelectedGroupId}
-            />
-          ) : (
-            <div className="my-px h-11 w-full animate-pulse rounded-lg bg-neutral-200" />
-          )}
-        </div>
+            {partner ? (
+              <PartnerInfoAssignee
+                partner={partner}
+                changeButtonText="Change"
+                hideChangeButton={
+                  "status" in partner &&
+                  INACTIVE_ENROLLMENT_STATUSES.includes(partner.status)
+                }
+                className="rounded-lg bg-white shadow-sm"
+                selectedManagerUserId={selectedManagerUserId}
+                setSelectedManagerUserId={setSelectedManagerUserId}
+              />
+            ) : (
+              <div className="my-px h-11 w-full animate-pulse rounded-lg bg-neutral-200" />
+            )}
+          </div>
+        )}
+
+        {/* Group */}
+        <div className="flex flex-col gap-4 p-4">
+          <div className="flex flex-col gap-2">
+            {isEnrolled && (
+              <h3 className="text-content-emphasis text-sm font-semibold">
+                Group
+              </h3>
+            )}
+            {partner ? (
+              <PartnerInfoGroup
+                partner={partner}
+                changeButtonText="Change"
+                hideChangeButton={
+                  "status" in partner &&
+                  INACTIVE_ENROLLMENT_STATUSES.includes(partner.status)
+                }
+                className="rounded-lg bg-white shadow-sm"
+                selectedGroupId={selectedGroupId}
+                setSelectedGroupId={setSelectedGroupId}
+              />
+            ) : (
+              <div className="my-px h-11 w-full animate-pulse rounded-lg bg-neutral-200" />
+            )}
+          </div>
 
         {isEnrolled && partner?.status === "approved" && (
           <>
@@ -389,6 +421,7 @@ export function PartnerInfoCards({
             </div>
           </>
         )}
+        </div>
       </div>
     </div>
   );

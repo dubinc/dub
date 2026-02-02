@@ -24,6 +24,14 @@ export async function getPartnerForProgram({
         },
       },
       links: true,
+      managerUser: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          image: true,
+        },
+      },
     },
   });
 
@@ -31,11 +39,12 @@ export async function getPartnerForProgram({
     return null;
   }
 
-  const { partner, links, ...programEnrollment } = data;
+  const { partner, links, managerUser, ...programEnrollment } = data;
 
   return {
     ...partner,
     ...programEnrollment,
+    managerUser: managerUser || null,
     netRevenue:
       programEnrollment.totalSaleAmount - programEnrollment.totalCommissions,
     id: partner.id,

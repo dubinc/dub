@@ -13,6 +13,7 @@ import { useBanPartnerModal } from "@/ui/modals/ban-partner-modal";
 import { useBulkArchivePartnersModal } from "@/ui/modals/bulk-archive-partners-modal";
 import { useBulkBanPartnersModal } from "@/ui/modals/bulk-ban-partners-modal";
 import { useBulkDeactivatePartnersModal } from "@/ui/modals/bulk-deactivate-partners-modal";
+import { useAssignPartnersModal } from "@/ui/modals/assign-partners-modal";
 import { useChangeGroupModal } from "@/ui/modals/change-group-modal";
 import { useDeactivatePartnerModal } from "@/ui/modals/deactivate-partner-modal";
 import { useReactivatePartnerModal } from "@/ui/modals/reactivate-partner-modal";
@@ -42,11 +43,13 @@ import {
 } from "@dub/ui";
 import {
   BoxArchive,
+  CircleDottedUser,
   CircleXmark,
   Dots,
   EnvelopeArrowRight,
   LoadingSpinner,
   Trash,
+  UserArrowRight,
   UserDelete,
   Users,
   Users6,
@@ -57,6 +60,7 @@ import {
   currencyFormatter,
   fetcher,
   formatDate,
+  OG_AVATAR_URL,
 } from "@dub/utils";
 import { nFormatter } from "@dub/utils/src/functions";
 import { Row, Table as TableType } from "@tanstack/react-table";
@@ -89,6 +93,7 @@ const partnersColumns = {
     "clickToConversionRate",
     "leadToConversionRate",
     "returnOnAdSpend",
+    "assignee",
   ],
   defaultVisible: [
     "partner",
@@ -168,6 +173,15 @@ export function PartnersTable() {
   const { ChangeGroupModal, setShowChangeGroupModal } = useChangeGroupModal({
     partners: pendingChangeGroupPartners,
   });
+
+  const [pendingAssignPartners, setPendingAssignPartners] = useState<
+    EnrolledPartnerProps[]
+  >([]);
+
+  const { AssignPartnersModal, setShowAssignPartnersModal } =
+    useAssignPartnersModal({
+      partners: pendingAssignPartners,
+    });
 
   const [pendingArchivePartners, setPendingArchivePartners] = useState<
     EnrolledPartnerProps[]
@@ -441,6 +455,36 @@ export function PartnersTable() {
               ? `${parseFloat(d.returnOnAdSpend.toFixed(2))}x`
               : "-",
         },
+        {
+          id: "assignee",
+          header: "Assignee",
+          cell: ({ row }) => {
+            const managerUser = row.original.managerUser;
+            if (!managerUser) {
+              return (
+                <div className="flex items-center gap-2">
+                  <CircleDottedUser className="size-4 shrink-0 text-neutral-400" />
+                  <span className="text-sm text-neutral-400">No assignee</span>
+                </div>
+              );
+            }
+            return (
+              <div className="flex items-center gap-2">
+                <img
+                  src={
+                    managerUser.image ||
+                    `${OG_AVATAR_URL}${managerUser.name || managerUser.id}`
+                  }
+                  alt={managerUser.name || ""}
+                  className="size-4 rounded-full"
+                />
+                <span className="truncate text-sm font-medium">
+                  {managerUser.name || managerUser.email}
+                </span>
+              </div>
+            );
+          },
+        },
         // Menu
         {
           id: "menu",
@@ -536,6 +580,10 @@ export function PartnersTable() {
           searchParams.get("status") === "approved") && (
           <BulkActionsMenu
             table={table}
+            onAssignPartners={(partners) => {
+              setPendingAssignPartners(partners);
+              setShowAssignPartnersModal(true);
+            }}
             onArchivePartners={(partners) => {
               setPendingArchivePartners(partners);
               setShowBulkArchivePartnersModal(true);
@@ -563,6 +611,7 @@ export function PartnersTable() {
   return (
     <div className="flex flex-col gap-6">
       <ChangeGroupModal />
+      <AssignPartnersModal />
       <BulkArchivePartnersModal />
       <BulkDeactivatePartnersModal />
       <BulkBanPartnersModal />
@@ -620,11 +669,13 @@ export function PartnersTable() {
 
 function BulkActionsMenu({
   table,
+  onAssignPartners,
   onArchivePartners,
   onDeactivatePartners,
   onBanPartners,
 }: {
   table: TableType<EnrolledPartnerProps>;
+  onAssignPartners: (partners: EnrolledPartnerProps[]) => void;
   onArchivePartners: (partners: EnrolledPartnerProps[]) => void;
   onDeactivatePartners: (partners: EnrolledPartnerProps[]) => void;
   onBanPartners: (partners: EnrolledPartnerProps[]) => void;
@@ -645,6 +696,14 @@ function BulkActionsMenu({
         <Command tabIndex={0} loop className="focus:outline-none">
           <Command.List className="w-screen text-sm focus-visible:outline-none sm:w-auto sm:min-w-[200px]">
             <Command.Group className="grid gap-px p-1.5">
+              <MenuItem
+                icon={UserArrowRight}
+                label={`Assign ${partnerWord}`}
+                onSelect={() => {
+                  onAssignPartners(selectedPartners);
+                  setIsOpen(false);
+                }}
+              />
               <MenuItem
                 icon={BoxArchive}
                 label={`Archive ${partnerWord}`}
@@ -698,6 +757,13 @@ function RowMenuButton({
   const [isOpen, setIsOpen] = useState(false);
 
   const { ChangeGroupModal, setShowChangeGroupModal } = useChangeGroupModal({
+    partners: [row.original],
+  });
+
+  const {
+    AssignPartnersModal: RowAssignModal,
+    setShowAssignPartnersModal: setShowRowAssignModal,
+  } = useAssignPartnersModal({
     partners: [row.original],
   });
 
@@ -755,6 +821,7 @@ function RowMenuButton({
   return (
     <>
       <ChangeGroupModal />
+      <RowAssignModal />
       <ArchivePartnerModal />
       <BanPartnerModal />
       <UnbanPartnerModal />
@@ -836,6 +903,15 @@ function RowMenuButton({
                       label="Change group"
                       onSelect={() => {
                         setShowChangeGroupModal(true);
+                        setIsOpen(false);
+                      }}
+                    />
+
+                    <MenuItem
+                      icon={UserArrowRight}
+                      label="Assign to"
+                      onSelect={() => {
+                        setShowRowAssignModal(true);
                         setIsOpen(false);
                       }}
                     />
