@@ -193,8 +193,12 @@ export const { POST } = serve<Payload>(
         where: {
           programId,
           partnerId,
-          partnerGroupDefaultLinkId: { not: null },
-          discountCode: { is: null },
+          partnerGroupDefaultLinkId: {
+            not: null,
+          },
+          discountCode: {
+            is: null,
+          },
         },
         select: {
           id: true,

@@ -33,22 +33,6 @@ export const POST = withCron(async ({ rawBody }) => {
       programId,
     },
     include: {
-      partner: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
-      links: {
-        select: {
-          id: true,
-        },
-        where: {
-          partnerGroupDefaultLinkId: {
-            not: null,
-          },
-        },
-      },
       discountCodes: {
         include: {
           discount: true,
@@ -98,7 +82,7 @@ export const POST = withCron(async ({ rawBody }) => {
   // Update the discount codes to use the new discount if they are equivalent
   if (discountCodesToUpdate.length > 0) {
     console.log(
-      `Found ${discountCodesToUpdate.length} discount codes which share the same discount as the previous group. Updating them to use the new discount.`,
+      `Found ${discountCodesToUpdate.length} discount codes equivalent to the new group's discount. Updating them.`,
     );
 
     await prisma.discountCode.updateMany({
@@ -116,17 +100,43 @@ export const POST = withCron(async ({ rawBody }) => {
   // Remove the previous discount codes
   if (discountCodesToRemove.length > 0) {
     console.log(
-      `Found ${discountCodesToRemove.length} discount codes which do not share the same discount as the previous group. Deleting them.`,
+      `Found ${discountCodesToRemove.length} discount codes not equivalent to the new group's discount. Deleting them.`,
     );
 
     await deleteDiscountCodes(discountCodesToRemove);
+  }
 
-    // Create new discount codes if the auto-provision is enabled for the discount
-    if (group.discount?.autoProvisionEnabledAt) {
-      const partners = programEnrollments.flatMap(({ links, partner }) =>
-        links.map((link) => ({ link, partner })),
-      );
+  if (group.discount?.autoProvisionEnabledAt) {
+    // Find the partner default links that don't have a discount code yet
+    const links = await prisma.link.findMany({
+      where: {
+        partnerId: {
+          in: partnerIds,
+        },
+        programId,
+        partnerGroupDefaultLinkId: {
+          not: null,
+        },
+        discountCode: {
+          is: null,
+        },
+      },
+      select: {
+        id: true,
+        programEnrollment: {
+          select: {
+            partner: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
+      },
+    });
 
+    if (links.length > 0) {
       const workspace = await prisma.project.findUniqueOrThrow({
         where: {
           defaultProgramId: programId,
@@ -136,11 +146,12 @@ export const POST = withCron(async ({ rawBody }) => {
         },
       });
 
+      // Create discount code for the partner default links
       if (workspace.stripeConnectId) {
-        for (const { link, partner } of partners) {
+        for (const link of links) {
           await createDiscountCode({
             stripeConnectId: workspace.stripeConnectId,
-            partner,
+            partner: link.programEnrollment!.partner,
             link,
             discount: group.discount,
           });
