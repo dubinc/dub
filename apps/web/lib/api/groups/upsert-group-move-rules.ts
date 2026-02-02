@@ -6,8 +6,8 @@ import { PartnerGroup, WorkflowTrigger } from "@dub/prisma/client";
 import { pluralize } from "@dub/utils";
 import { createId } from "../create-id";
 import { DubApiError } from "../errors";
-import { findGroupsWithMatchingRules } from "./find-groups-with-matching-rules.ts";
-import { getGroupMoveRules } from "./get-group-move-rules.ts";
+import { findGroupsWithMatchingRules } from "./find-groups-with-matching-rules";
+import { getGroupMoveRules } from "./get-group-move-rules";
 
 export async function upsertGroupMoveRules({
   workspace,
