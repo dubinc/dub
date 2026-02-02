@@ -49,9 +49,9 @@ export type AnalyticsFilters = Override<
     end?: Date | null;
 
     // TODO: Fix the schema so that we can avoid the override here
-    // device?: string | undefined;
-    // browser?: string | undefined;
-    // os?: string | undefined;
+    device?: string | undefined;
+    browser?: string | undefined;
+    os?: string | undefined;
   }
 >;
 
