@@ -29,19 +29,6 @@ export const POST = withCron(async ({ rawBody }) => {
     stripeConnectId: workspace.stripeConnectId,
   });
 
-  try {
-    await prisma.discountCode.delete({
-      where: {
-        programId_code: {
-          programId,
-          code,
-        },
-      },
-    });
-  } catch {
-    // Do nothing
-  }
-
   return logAndRespond(
     `Discount code ${code} disabled from Stripe for ${workspace.stripeConnectId}.`,
   );
