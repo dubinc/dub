@@ -19,8 +19,8 @@ export const verifyCommission = async ({
 }: VerifyCommissionProps) => {
   let customerId: string | undefined;
 
-  // Pause for 1.5 seconds for data to be fully processed
-  await new Promise((resolve) => setTimeout(resolve, 1500));
+  // Pause for 3 seconds for data to be fully processed
+  await new Promise((resolve) => setTimeout(resolve, 3000));
 
   // Optional: resolve customer ID if customerExternalId is given
   if (customerExternalId) {
@@ -31,9 +31,6 @@ export const verifyCommission = async ({
 
     expect(customers.length).toBeGreaterThan(0);
     customerId = customers[0].id;
-
-    // Small delay if necessary for async commission processing
-    await new Promise((resolve) => setTimeout(resolve, 2000));
   }
 
   const query: Record<string, string> = {};
