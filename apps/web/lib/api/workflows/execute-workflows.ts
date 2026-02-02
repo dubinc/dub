@@ -65,11 +65,19 @@ export async function executeWorkflows({
 
   if (reason) {
     workflows = workflows.filter((workflow) => {
-      const { conditions } = parseWorkflowConfig(workflow);
-      const expectedAttributes = REASON_TO_ATTRIBUTES[reason];
-      return conditions.some(({ attribute }) =>
-        expectedAttributes.includes(attribute),
-      );
+      try {
+        const { conditions } = parseWorkflowConfig(workflow);
+        const expectedAttributes = REASON_TO_ATTRIBUTES[reason];
+        return conditions.some(({ attribute }) =>
+          expectedAttributes.includes(attribute),
+        );
+      } catch (error) {
+        console.error(
+          `Failed to parse workflow config for workflow ${workflow.id}, skipping:`,
+          error,
+        );
+        return false;
+      }
     });
 
     if (workflows.length === 0) {
@@ -83,8 +91,16 @@ export async function executeWorkflows({
   // Commissions require a separate expensive aggregate query.
   // We only fetch if needed to avoid unnecessary database queries.
   const shouldFetchCommissions = workflows.some((w) => {
-    const { conditions } = parseWorkflowConfig(w);
-    return conditions.some((c) => c.attribute === "totalCommissions");
+    try {
+      const { conditions } = parseWorkflowConfig(w);
+      return conditions.some((c) => c.attribute === "totalCommissions");
+    } catch (error) {
+      console.error(
+        `Failed to parse workflow config for workflow ${w.id} during commission check, skipping:`,
+        error,
+      );
+      return false;
+    }
   });
 
   const [programEnrollment, totalCommissions] = await Promise.all([
