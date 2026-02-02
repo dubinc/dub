@@ -1,10 +1,13 @@
 "use server";
 
+import { getResourceDiff } from "@/lib/api/activity-log/get-resource-diff";
+import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getReferralOrThrow } from "@/lib/api/referrals/get-referral-or-throw";
 import { updateReferralSchema } from "@/lib/zod/schemas/referrals";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
+import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";
 
@@ -12,7 +15,7 @@ import { throwIfNoPermission } from "../throw-if-no-permission";
 export const updateReferralAction = authActionClient
   .inputSchema(updateReferralSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { workspace } = ctx;
+    const { workspace, user } = ctx;
     const { referralId, name, email, company, formData } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
@@ -22,12 +25,12 @@ export const updateReferralAction = authActionClient
       requiredRoles: ["owner", "member"],
     });
 
-    await getReferralOrThrow({
+    const existingReferral = await getReferralOrThrow({
       referralId,
       programId,
     });
 
-    await prisma.partnerReferral.update({
+    const updatedReferral = await prisma.partnerReferral.update({
       where: {
         id: referralId,
       },
@@ -40,4 +43,20 @@ export const updateReferralAction = authActionClient
         }),
       },
     });
+
+    const diff = getResourceDiff(existingReferral, updatedReferral, {
+      fields: ["name", "email", "company"],
+    });
+
+    if (diff) {
+      waitUntil(
+        trackActivityLog({
+          resourceType: "referral",
+          resourceId: referralId,
+          userId: user.id,
+          action: "referral.updated",
+          changeSet: diff,
+        }),
+      );
+    }
   });

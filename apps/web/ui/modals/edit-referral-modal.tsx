@@ -7,6 +7,7 @@ import { ReferralFormDataField, ReferralProps } from "@/lib/types";
 import { updateReferralSchema } from "@/lib/zod/schemas/referrals";
 import { CountryCombobox } from "@/ui/partners/country-combobox";
 import { Button, Modal, useMediaQuery } from "@dub/ui";
+import { COUNTRIES } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -206,6 +207,10 @@ function EditReferralModal({
                 }
 
                 if (field.type === "country") {
+                  const country = Object.entries(COUNTRIES).find(
+                    ([_, name]) => name === field.value,
+                  )?.[0];
+
                   return (
                     <div key={field.key}>
                       <label className="text-content-emphasis text-sm font-normal">
@@ -216,7 +221,7 @@ function EditReferralModal({
                         name={keyPath}
                         render={({ field: formField }) => (
                           <CountryCombobox
-                            value={(formField.value as string) || ""}
+                            value={country || (formField.value as string)}
                             onChange={formField.onChange}
                             className="mt-2"
                           />

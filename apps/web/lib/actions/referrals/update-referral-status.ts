@@ -1,8 +1,8 @@
 "use server";
 
+import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { addReferralEvent } from "@/lib/api/referrals/add-referral-event";
 import { getReferralOrThrow } from "@/lib/api/referrals/get-referral-or-throw";
 import { markReferralClosedWon } from "@/lib/api/referrals/mark-referral-closed-won";
 import { markReferralQualified } from "@/lib/api/referrals/mark-referral-qualified";
@@ -77,11 +77,12 @@ export const updateReferralStatusAction = authActionClient
           notes,
         }),
 
-        addReferralEvent({
-          referralId: referral.id,
-          type: REFERRAL_EVENT_TYPES[status],
-          note: notes,
+        trackActivityLog({
+          resourceType: "referral",
+          resourceId: referral.id,
           userId: user.id,
+          action: REFERRAL_EVENT_TYPES[status],
+          description: notes,
         }),
       ]),
     );

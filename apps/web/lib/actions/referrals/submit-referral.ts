@@ -1,9 +1,9 @@
 "use server";
 
+import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
 import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
-import { addReferralEvent } from "@/lib/api/referrals/add-referral-event";
 import { notifyPartnerReferralSubmitted } from "@/lib/api/referrals/notify-partner-referral-submitted";
 import { REFERRAL_FORM_REQUIRED_FIELD_KEYS } from "@/lib/referrals/constants";
 import { ReferralFormDataField } from "@/lib/types";
@@ -61,7 +61,7 @@ function convertFieldValue(
 export const submitReferralAction = authPartnerActionClient
   .inputSchema(createPartnerReferralSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { partner } = ctx;
+    const { partner, user } = ctx;
     const { programId, formData: rawFormData } = parsedInput;
 
     const programEnrollment = await getProgramEnrollmentOrThrow({
@@ -153,9 +153,11 @@ export const submitReferralAction = authPartnerActionClient
           programId,
         }),
 
-        addReferralEvent({
-          referralId: referral.id,
-          type: "referral.created",
+        trackActivityLog({
+          resourceType: "referral",
+          resourceId: referral.id,
+          userId: user.id,
+          action: "referral.created",
         }),
       ]),
     );
