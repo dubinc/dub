@@ -10,13 +10,13 @@ import { findGroupsWithMatchingRules } from "./find-groups-with-matching-rules.t
 import { getGroupMoveRules } from "./get-group-move-rules.ts";
 
 export async function upsertGroupMoveRules({
+  workspace,
   group,
   moveRules,
-  workspace,
 }: {
+  workspace: Pick<WorkspaceProps, "plan" | "defaultProgramId">;
   group: PartnerGroup;
   moveRules?: WorkflowCondition[];
-  workspace: Pick<WorkspaceProps, "plan" | "defaultProgramId">;
 }): Promise<{ workflowId: string | null | undefined }> {
   const { canUseGroupMoveRule } = getPlanCapabilities(workspace.plan);
 

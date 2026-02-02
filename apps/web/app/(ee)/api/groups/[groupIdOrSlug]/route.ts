@@ -130,9 +130,9 @@ export const PATCH = withWorkspace(
       : null;
 
     const { workflowId } = await upsertGroupMoveRules({
+      workspace,
       group,
       moveRules,
-      workspace,
     });
 
     const [updatedGroup] = await Promise.all([

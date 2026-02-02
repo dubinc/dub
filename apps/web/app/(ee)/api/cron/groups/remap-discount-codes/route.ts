@@ -113,7 +113,7 @@ export const POST = withCron(async ({ rawBody }) => {
     });
   }
 
-  // Remove the old discount codes
+  // Remove the previous discount codes
   if (discountCodesToRemove.length > 0) {
     console.log(
       `Found ${discountCodesToRemove.length} discount codes which do not share the same discount as the previous group. Deleting them.`,
