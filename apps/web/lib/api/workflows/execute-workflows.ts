@@ -63,24 +63,49 @@ export async function executeWorkflows({
     return;
   }
 
-  if (reason) {
-    workflows = workflows.filter((workflow) => {
+  // Parse all workflow configs once upfront, filtering out any that fail to parse
+  const parsedWorkflows = workflows
+    .map((workflow) => {
       try {
-        const { conditions } = parseWorkflowConfig(workflow);
-        const expectedAttributes = REASON_TO_ATTRIBUTES[reason];
-        return conditions.some(({ attribute }) =>
-          expectedAttributes.includes(attribute),
-        );
+        return {
+          workflow,
+          config: parseWorkflowConfig(workflow),
+        };
       } catch (error) {
         console.error(
           `Failed to parse workflow config for workflow ${workflow.id}, skipping:`,
           error,
         );
-        return false;
+        return null;
       }
-    });
+    })
+    .filter(
+      (
+        item,
+      ): item is {
+        workflow: Workflow;
+        config: ReturnType<typeof parseWorkflowConfig>;
+      } => item !== null,
+    );
 
-    if (workflows.length === 0) {
+  if (parsedWorkflows.length === 0) {
+    console.log(
+      `No valid workflows found to execute for trigger ${trigger} and reason ${reason}.`,
+    );
+    return;
+  }
+
+  // Filter by reason if provided
+  let filteredWorkflows = parsedWorkflows;
+  if (reason) {
+    const expectedAttributes = REASON_TO_ATTRIBUTES[reason];
+    filteredWorkflows = parsedWorkflows.filter(({ config }) =>
+      config.conditions.some(({ attribute }) =>
+        expectedAttributes.includes(attribute),
+      ),
+    );
+
+    if (filteredWorkflows.length === 0) {
       console.log(
         `No relevant workflows found to execute for trigger ${trigger} and reason ${reason}.`,
       );
@@ -90,18 +115,9 @@ export async function executeWorkflows({
 
   // Commissions require a separate expensive aggregate query.
   // We only fetch if needed to avoid unnecessary database queries.
-  const shouldFetchCommissions = workflows.some((w) => {
-    try {
-      const { conditions } = parseWorkflowConfig(w);
-      return conditions.some((c) => c.attribute === "totalCommissions");
-    } catch (error) {
-      console.error(
-        `Failed to parse workflow config for workflow ${w.id} during commission check, skipping:`,
-        error,
-      );
-      return false;
-    }
-  });
+  const shouldFetchCommissions = filteredWorkflows.some(({ config }) =>
+    config.conditions.some((c) => c.attribute === "totalCommissions"),
+  );
 
   const [programEnrollment, totalCommissions] = await Promise.all([
     prisma.programEnrollment.findUnique({
@@ -178,14 +194,12 @@ export async function executeWorkflows({
     },
   };
 
-  for (const workflow of workflows) {
+  for (const { workflow, config } of filteredWorkflows) {
     try {
-      const { action } = parseWorkflowConfig(workflow);
-
-      const handler = ACTION_HANDLERS[action.type];
+      const handler = ACTION_HANDLERS[config.action.type];
 
       if (!handler) {
-        throw new Error(`Unsupported workflow action ${action.type}`);
+        throw new Error(`Unsupported workflow action ${config.action.type}`);
       }
 
       await handler.execute({
