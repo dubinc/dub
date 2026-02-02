@@ -18,7 +18,7 @@ interface TrackActivityLogInput
   > {
   resourceType: ResourceType;
   action: Action;
-  changeSet: Record<string, unknown>;
+  changeSet?: Record<string, unknown>;
 }
 
 export const trackActivityLog = async (input: TrackActivityLogInput) => {
