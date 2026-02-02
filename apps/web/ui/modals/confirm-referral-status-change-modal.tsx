@@ -198,7 +198,7 @@ function ConfirmReferralStatusChangeModal({
             {visibleFields.has("saleAmount") && (
               <div>
                 <label className="text-content-emphasis text-sm font-medium">
-                  Sale Amount (required)
+                  Sale Amount
                 </label>
                 <div className="relative mt-2">
                   <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
