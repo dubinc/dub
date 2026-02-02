@@ -62,7 +62,7 @@ export const executeMoveGroupWorkflow = async ({
     `Partner meets the trigger condition for the workflow ${workflow.id}. Executing..`,
   );
 
-  const group = await prisma.partnerGroup.findUnique({
+  const newGroup = await prisma.partnerGroup.findUnique({
     where: {
       id: newGroupId,
     },
@@ -76,7 +76,7 @@ export const executeMoveGroupWorkflow = async ({
     },
   });
 
-  if (!group) {
+  if (!newGroup) {
     console.log(`Group ${newGroupId} not found. Skipping..`);
     return;
   }
@@ -95,6 +95,6 @@ export const executeMoveGroupWorkflow = async ({
     programId,
     partnerIds: [partnerId],
     userId: owners.users[0].id,
-    group,
+    group: newGroup,
   });
 };
