@@ -8,6 +8,7 @@ import { withWorkspace } from "@/lib/auth";
 import { getFeatureFlags } from "@/lib/edge-config";
 import { jackson } from "@/lib/jackson";
 import { storage } from "@/lib/storage";
+import { redis } from "@/lib/upstash";
 import {
   createWorkspaceSchema,
   WorkspaceSchema,
@@ -130,7 +131,7 @@ export const PATCH = withWorkspace(
     }
 
     try {
-      const response = await prisma.project.update({
+      const updatedWorkspace = await prisma.project.update({
         where: {
           slug: workspace.slug,
         },
@@ -160,15 +161,22 @@ export const PATCH = withWorkspace(
         },
       });
 
-      if (slug !== workspace.slug) {
-        await prisma.user.updateMany({
-          where: {
-            defaultWorkspace: workspace.slug,
-          },
-          data: {
-            defaultWorkspace: slug,
-          },
-        });
+      if (updatedWorkspace.slug !== workspace.slug) {
+        await Promise.allSettled([
+          prisma.user.updateMany({
+            where: {
+              defaultWorkspace: workspace.slug,
+            },
+            data: {
+              defaultWorkspace: updatedWorkspace.slug,
+            },
+          }),
+          // refresh the workspace product cache for both workspaces
+          redis.del(
+            `workspace:product:${updatedWorkspace.slug}`,
+            `workspace:product:${workspace.slug}`,
+          ),
+        ]);
       }
 
       waitUntil(
@@ -181,13 +189,13 @@ export const PATCH = withWorkspace(
 
           // Sync the allowedHostnames cache for workspace domains
           const current = JSON.stringify(workspace.allowedHostnames);
-          const next = JSON.stringify(response.allowedHostnames);
-          const domains = response.domains.map(({ slug }) => slug);
+          const next = JSON.stringify(updatedWorkspace.allowedHostnames);
+          const domains = updatedWorkspace.domains.map(({ slug }) => slug);
 
           if (current !== next) {
             if (
-              Array.isArray(response.allowedHostnames) &&
-              response.allowedHostnames.length > 0
+              Array.isArray(updatedWorkspace.allowedHostnames) &&
+              updatedWorkspace.allowedHostnames.length > 0
             ) {
               allowedHostnamesCache.mset({
                 allowedHostnames: next,
@@ -204,10 +212,10 @@ export const PATCH = withWorkspace(
 
       return NextResponse.json(
         WorkspaceSchema.parse({
-          ...response,
-          id: prefixWorkspaceId(response.id),
+          ...updatedWorkspace,
+          id: prefixWorkspaceId(updatedWorkspace.id),
           flags: await getFeatureFlags({
-            workspaceId: response.id,
+            workspaceId: updatedWorkspace.id,
           }),
         }),
       );

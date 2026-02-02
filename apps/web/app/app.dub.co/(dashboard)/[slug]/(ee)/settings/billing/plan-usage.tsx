@@ -67,7 +67,6 @@ export default function PlanUsage() {
 
   const { data: tags } = useTagsCount();
   const { users } = useWorkspaceUsers();
-  const { searchParamsObj } = useRouterStuff();
 
   const { partnersCount } = usePartnersCount<number>({
     programId: defaultProgramId ?? undefined,

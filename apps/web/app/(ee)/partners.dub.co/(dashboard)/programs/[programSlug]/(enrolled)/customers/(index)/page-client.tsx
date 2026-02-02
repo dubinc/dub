@@ -161,7 +161,7 @@ export function ProgramCustomersPageClient() {
             headerTooltip:
               "The total amount of revenue the customer has generated over time (lifetime value).",
           },
-          accessorKey: "activity.ltv",
+          accessorKey: "activity.saleAmount",
           cell: ({ getValue }) => (
             <div className="flex items-center gap-2">
               <span>
@@ -278,7 +278,12 @@ export function ProgramCustomersPageClient() {
     onPaginationChange: setPagination,
     columnVisibility,
     onColumnVisibilityChange: setColumnVisibility,
-    sortableColumns: ["saleAmount", "createdAt"],
+    sortableColumns: [
+      "saleAmount",
+      "createdAt",
+      "firstSaleAt",
+      "subscriptionCanceledAt",
+    ],
     sortBy,
     sortOrder,
     onSortChange: ({ sortBy, sortOrder }) =>
