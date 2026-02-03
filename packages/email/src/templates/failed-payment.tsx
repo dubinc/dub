@@ -16,16 +16,24 @@ import { Footer } from "../components/footer";
 import { WorkspaceProps } from "../types";
 
 export default function FailedPayment({
-  user = { name: "Brendon Urie", email: "panic@thedis.co" },
-  workspace = { name: "Dub", slug: "dub" },
+  user = {
+    name: "Brendon Urie",
+    email: "panic@thedis.co",
+  },
+  workspace = {
+    name: "Dub",
+    slug: "dub",
+    plan: "business",
+    defaultProgramId: null,
+  },
   amountDue = 2400,
   attemptCount = 2,
 }: {
   user: { name?: string | null; email: string };
-  workspace: Pick<WorkspaceProps, "name" | "slug"> & {
-    plan?: string;
-    defaultProgramId?: string | null;
-  };
+  workspace: Pick<
+    WorkspaceProps,
+    "name" | "slug" | "plan" | "defaultProgramId"
+  >;
   amountDue: number;
   attemptCount: number;
 }) {
