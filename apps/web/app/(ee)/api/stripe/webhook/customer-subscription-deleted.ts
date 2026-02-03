@@ -236,4 +236,6 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
   if (workspace.defaultProgramId) {
     await deactivateProgram(workspace.defaultProgramId);
   }
+
+  return NextResponse.json({ received: true });
 }
