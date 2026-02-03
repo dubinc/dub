@@ -307,8 +307,6 @@ export function MultipleChoiceFieldThumbnail() {
       xmlns="http://www.w3.org/2000/svg"
       className="h-auto w-full"
     >
-      <rect x="0.5" y="0.5" width="167" height="99" rx="5.5" fill="white" />
-      <rect x="0.5" y="0.5" width="167" height="99" rx="5.5" stroke="#E5E5E5" />
       <rect
         x="25.3125"
         y="27.5625"
