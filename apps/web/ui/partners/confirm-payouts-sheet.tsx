@@ -355,6 +355,7 @@ function ConfirmPayoutsSheetContent() {
       fastAchFee,
     };
   }, [
+    eligiblePayoutsCount,
     finalEligiblePayouts,
     selectedPaymentMethod,
     program?.payoutMode,
