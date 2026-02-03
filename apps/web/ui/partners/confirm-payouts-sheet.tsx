@@ -342,7 +342,7 @@ function ConfirmPayoutsSheetContent() {
       payoutFeeWaiverLimit: payoutFeeWaiverLimit ?? 0,
       payoutFeeWaivedUsage: payoutFeeWaivedUsage ?? 0,
       payoutFee: selectedPaymentMethod.fee,
-      fastAchFee: fastAchFee,
+      fastAchFee,
     });
 
     const total = amount + fee;
