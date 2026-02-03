@@ -161,13 +161,13 @@ export async function processPayouts({
   const {
     feeFreeAmount,
     feeChargedAmount,
-    freeTierRemaining,
+    feeWaiverRemaining,
     fee: invoiceFee,
   } = calculatePayoutFeeWithWaiver({
     payoutAmount: totalPayoutAmount,
+    payoutFee,
     payoutFeeWaiverLimit: workspace.payoutFeeWaiverLimit,
     payoutFeeWaivedUsage: workspace.payoutFeeWaivedUsage,
-    payoutFee,
     fastAchFee: invoice.paymentMethod === "ach_fast" ? FAST_ACH_FEE_CENTS : 0,
   });
 
@@ -181,7 +181,7 @@ export async function processPayouts({
     invoiceTotal,
     feeFreeAmount,
     feeChargedAmount,
-    freeTierRemaining,
+    feeWaiverRemaining,
   });
 
   await prisma.invoice.update({

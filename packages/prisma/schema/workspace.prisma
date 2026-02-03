@@ -26,8 +26,8 @@ model Project {
   payoutsUsage         Int   @default(0)
   payoutsLimit         Int   @default(0)
   payoutFee            Float @default(0.05) // processing fee (in decimals) for partner payouts
-  payoutFeeWaiverLimit Int   @default(0) // the amount of payouts usage that will waive the payout fee
-  payoutFeeWaivedUsage Int   @default(0) // the amount of payouts usage that has been waived the payout fee
+  payoutFeeWaiverLimit Int   @default(0) // amount in cents for which the payout fee will be waived
+  payoutFeeWaivedUsage Int   @default(0) // how much of payoutFeeWaiverLimit has been used
 
   domainsLimit        Int @default(3)
   tagsLimit           Int @default(5)
