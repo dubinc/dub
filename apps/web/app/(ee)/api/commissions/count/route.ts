@@ -8,11 +8,17 @@ import { NextResponse } from "next/server";
 export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   const programId = getDefaultProgramIdOrThrow(workspace);
 
-  const parsedParams = getCommissionsCountQuerySchema.parse(searchParams);
+  const isHold = searchParams.status === "hold";
+  const { status: _status, ...restSearchParams } = searchParams;
+
+  const parsedParams = getCommissionsCountQuerySchema.parse(
+    isHold ? restSearchParams : searchParams,
+  );
 
   const counts = await getCommissionsCount({
     ...parsedParams,
     programId,
+    isHold,
   });
 
   return NextResponse.json(counts);

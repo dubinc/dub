@@ -60,6 +60,30 @@ export const CommissionStatusBadges = {
     icon: CircleCheck,
     tooltip: (_: CommissionTooltipDataProps) => null,
   },
+  hold: {
+    label: "On Hold",
+    variant: "error",
+    className: "text-red-600 bg-red-100",
+    icon: ShieldAlert,
+    tooltip: (data: CommissionTooltipDataProps) => {
+      if (data.variant === "partner") {
+        const title =
+          "This commission is on hold due to pending fraud events and cannot be paid out until they are resolved.";
+
+        if (data.program?.name && data.program?.slug) {
+          return `${title} If you believe this is incorrect, [reach out to the ${data.program.name} team](${PARTNERS_DOMAIN}/messages/${data.program.slug}).`;
+        }
+
+        return title;
+      }
+
+      const linkToFraudEvents = data.partner?.id
+        ? `/${data.workspace?.slug}/program/fraud?partnerId=${data.partner.id}`
+        : `/${data.workspace?.slug}/program/fraud`;
+
+      return `This partner's commissions are on hold due to [unresolved fraud events](${linkToFraudEvents}). They cannot be paid out until resolved.`;
+    },
+  },
   fraud: {
     label: "Fraud",
     variant: "error",
@@ -126,30 +150,6 @@ export const CommissionStatusBadges = {
         return `${title}[reach out to the ${data.program.name} team](${PARTNERS_DOMAIN}/messages/${data.program.slug})`;
       }
       return title;
-    },
-  },
-  hold: {
-    label: "On Hold",
-    variant: "error",
-    className: "text-red-600 bg-red-100",
-    icon: CircleXmark,
-    tooltip: (data: CommissionTooltipDataProps) => {
-      if (data.variant === "partner") {
-        const title =
-          "This commission is on hold due to pending fraud events and cannot be paid out until they are resolved.";
-
-        if (data.program?.name && data.program?.slug) {
-          return `${title} If you believe this is incorrect, [reach out to the ${data.program.name} team](${PARTNERS_DOMAIN}/messages/${data.program.slug}).`;
-        }
-
-        return title;
-      }
-
-      const linkToFraudEvents = data.partner?.id
-        ? `/${data.workspace?.slug}/program/fraud?partnerId=${data.partner.id}`
-        : `/${data.workspace?.slug}/program/fraud`;
-
-      return `This partner's commissions are on hold due to [unresolved fraud events](${linkToFraudEvents}). They cannot be paid out until resolved.`;
     },
   },
 };

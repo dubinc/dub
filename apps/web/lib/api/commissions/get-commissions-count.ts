@@ -1,13 +1,14 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { getCommissionsCountQuerySchema } from "@/lib/zod/schemas/commissions";
 import { prisma } from "@dub/prisma";
-import { CommissionStatus } from "@dub/prisma/client";
+import { CommissionStatus, FraudEventStatus } from "@dub/prisma/client";
 import * as z from "zod/v4";
 
 type CommissionsCountFilters = z.infer<
   typeof getCommissionsCountQuerySchema
 > & {
   programId: string;
+  isHold?: boolean;
 };
 
 export async function getCommissionsCount(filters: CommissionsCountFilters) {
@@ -23,6 +24,7 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
     interval,
     timezone,
     programId,
+    isHold,
   } = filters;
 
   const { startDate, endDate } = getStartEndDates({
@@ -32,6 +34,27 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
     timezone,
   });
 
+  const statusFilter = isHold
+    ? { in: [CommissionStatus.pending, CommissionStatus.processed] }
+    : status ?? {
+        notIn: [
+          CommissionStatus.duplicate,
+          CommissionStatus.fraud,
+          CommissionStatus.canceled,
+        ],
+      };
+
+  const programEnrollmentFilter = {
+    ...(groupId && { groupId }),
+    ...(isHold && {
+      fraudEventGroups: {
+        some: {
+          status: FraudEventStatus.pending,
+        },
+      },
+    }),
+  };
+
   const commissionsCount = await prisma.commission.groupBy({
     by: ["status"],
     where: {
@@ -40,13 +63,7 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
       },
       programId,
       partnerId,
-      status: status ?? {
-        notIn: [
-          CommissionStatus.duplicate,
-          CommissionStatus.fraud,
-          CommissionStatus.canceled,
-        ],
-      },
+      status: statusFilter,
       type,
       payoutId,
       customerId,
@@ -54,10 +71,8 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
         gte: startDate,
         lte: endDate,
       },
-      ...(groupId && {
-        programEnrollment: {
-          groupId,
-        },
+      ...(Object.keys(programEnrollmentFilter).length > 0 && {
+        programEnrollment: programEnrollmentFilter,
       }),
     },
     _count: true,
@@ -77,7 +92,7 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
       return acc;
     },
     {} as Record<
-      CommissionStatus | "all",
+      CommissionStatus | "all" | "hold",
       {
         count: number;
         amount: number;
@@ -105,6 +120,46 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
     }),
     { count: 0, amount: 0, earnings: 0 },
   );
+
+  // Calculate hold count (pending/processed commissions for partners with pending fraud events)
+  if (isHold) {
+    counts.hold = counts.all;
+  } else {
+    const holdCount = await prisma.commission.aggregate({
+      where: {
+        earnings: { not: 0 },
+        programId,
+        partnerId,
+        status: { in: [CommissionStatus.pending, CommissionStatus.processed] },
+        type,
+        payoutId,
+        customerId,
+        createdAt: {
+          gte: startDate,
+          lte: endDate,
+        },
+        programEnrollment: {
+          ...(groupId && { groupId }),
+          fraudEventGroups: {
+            some: {
+              status: FraudEventStatus.pending,
+            },
+          },
+        },
+      },
+      _count: { _all: true },
+      _sum: {
+        amount: true,
+        earnings: true,
+      },
+    });
+
+    counts.hold = {
+      count: holdCount._count._all,
+      amount: holdCount._sum?.amount ?? 0,
+      earnings: holdCount._sum?.earnings ?? 0,
+    };
+  }
 
   return counts;
 }
