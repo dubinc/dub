@@ -41,6 +41,8 @@ interface ProcessPayoutsProps {
     | "payoutsUsage"
     | "payoutsLimit"
     | "payoutFee"
+    | "payoutFeeWaiverLimit"
+    | "payoutFeeWaivedUsage"
     | "webhookEnabled"
   >;
   program: Pick<
@@ -155,9 +157,17 @@ export async function processPayouts({
     `Using payout fee of ${payoutFee} for payment method ${paymentMethod.type}`,
   );
 
+  // Calculate tiered fee with waiver logic
+  const freeTierRemaining = Math.max(
+    0,
+    workspace.payoutFeeWaiverLimit - workspace.payoutFeeWaivedUsage,
+  );
+  const feeFreeAmount = Math.min(totalPayoutAmount, freeTierRemaining);
+  const feeChargedAmount = totalPayoutAmount - feeFreeAmount;
+
   const fastAchFee =
     invoice.paymentMethod === "ach_fast" ? FAST_ACH_FEE_CENTS : 0;
-  const invoiceFee = Math.round(totalPayoutAmount * payoutFee) + fastAchFee;
+  const invoiceFee = Math.round(feeChargedAmount * payoutFee) + fastAchFee;
   const invoiceTotal = totalPayoutAmount + invoiceFee;
 
   console.log({
@@ -166,6 +176,9 @@ export async function processPayouts({
     totalPayoutAmount,
     invoiceFee,
     invoiceTotal,
+    feeFreeAmount,
+    feeChargedAmount,
+    freeTierRemaining,
   });
 
   await prisma.invoice.update({
@@ -243,6 +256,9 @@ export async function processPayouts({
     data: {
       payoutsUsage: {
         increment: totalPayoutAmount,
+      },
+      payoutFeeWaivedUsage: {
+        increment: feeFreeAmount,
       },
     },
     include: {
