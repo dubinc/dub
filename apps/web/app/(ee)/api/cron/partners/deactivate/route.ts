@@ -78,9 +78,9 @@ export const POST = withCron(async ({ rawBody }) => {
     })),
   );
 
-  console.log("[bulkDeactivatePartners] Sent notification emails.", {
-    emailResponse,
-  });
+  console.log("[bulkDeactivatePartners] Sent notification emails.");
 
-  return logAndRespond("OK");
+  return logAndRespond(
+    `[bulkDeactivatePartners] Deactivated ${partnerIds.length} partners for program ${programId}.`,
+  );
 });
