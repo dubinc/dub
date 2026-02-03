@@ -10,6 +10,7 @@ export async function deactivateProgram(programId: string) {
   await prisma.program.update({
     where: {
       id: programId,
+      deactivatedAt: null,
     },
     data: {
       deactivatedAt: new Date(),
