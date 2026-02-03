@@ -5,4 +5,4 @@ export const qstash = new Client({
 });
 
 // Default batch size for cron jobs that process records in batches
-export const CRON_BATCH_SIZE = 1;
+export const CRON_BATCH_SIZE = 100;
