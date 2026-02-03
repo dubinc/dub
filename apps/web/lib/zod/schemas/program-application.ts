@@ -1,5 +1,8 @@
 import * as z from "zod/v4";
-import { EnrolledPartnerSchema, PartnerOnlinePresenceSchema } from "./partners";
+import {
+  EnrolledPartnerSchema,
+  PartnerPartnerPlatformsSchema,
+} from "./partners";
 import { ProgramEnrollmentSchema } from "./programs";
 
 export const partnerApplicationWebhookSchema = z.object({
@@ -21,7 +24,7 @@ export const partnerApplicationWebhookSchema = z.object({
       }).shape,
     )
     .extend(
-      PartnerOnlinePresenceSchema.pick({
+      PartnerPartnerPlatformsSchema.pick({
         website: true,
         youtube: true,
         twitter: true,

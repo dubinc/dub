@@ -94,7 +94,9 @@ export const POST = withWorkspace(
               customer_email: session.user.email,
             }),
         billing_address_collection: "required",
-        success_url: `${APP_DOMAIN}/${workspace.slug}?${onboarding ? "onboarded" : "upgraded"}=true&plan=${plan}&period=${period}`,
+        success_url: onboarding
+          ? `${APP_DOMAIN}/onboarding/success?workspace=${workspace.slug}`
+          : `${APP_DOMAIN}/${workspace.slug}?upgraded=true&plan=${plan}&period=${period}`,
         cancel_url: baseUrl,
         line_items: [{ price: prices.data[0].id, quantity: 1 }],
         ...(customer?.discount?.couponId

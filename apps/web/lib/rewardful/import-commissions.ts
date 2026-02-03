@@ -384,6 +384,7 @@ async function createCommission({
       data: {
         sales: { increment: 1 },
         saleAmount: { increment: amount },
+        firstSaleAt: customerFound.firstSaleAt ? undefined : new Date(),
       },
     }),
   ]);

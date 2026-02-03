@@ -91,19 +91,40 @@ function ProgramCardEarnings({
   programEnrollment: ProgramEnrollmentProps;
 }) {
   const { program, totalCommissions } = programEnrollment;
+
   const { data: timeseries } = usePartnerEarningsTimeseries({
     programId: program.id,
     interval: "1y",
-  });
+    enabled: totalCommissions > 0,
+  } as Parameters<typeof usePartnerEarningsTimeseries>[0]);
 
-  const chartData = useMemo(
-    () =>
+  const chartData = useMemo(() => {
+    if (totalCommissions === 0) {
+      // Generate dummy data (straight line at 0) for the past year
+      const now = new Date();
+      const oneYearAgo = new Date(now);
+      oneYearAgo.setFullYear(now.getFullYear() - 1);
+
+      // Generate 12 data points (monthly)
+      const dummyData: { date: Date; value: number }[] = [];
+      for (let i = 0; i < 12; i++) {
+        const date = new Date(oneYearAgo);
+        date.setMonth(oneYearAgo.getMonth() + i);
+        dummyData.push({
+          date,
+          value: 0,
+        });
+      }
+      return dummyData;
+    }
+
+    return (
       timeseries?.map((d) => ({
         date: new Date(d.start),
         value: d.earnings,
-      })),
-    [timeseries],
-  );
+      })) ?? []
+    );
+  }, [timeseries, totalCommissions]);
 
   return (
     <div className="mt-4 grid grid-cols-[min-content,minmax(0,1fr)] gap-4 rounded-md border border-neutral-200 bg-neutral-50">

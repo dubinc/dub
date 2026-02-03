@@ -33,9 +33,9 @@ import {
   cn,
   getFirstAndLastDay,
   INFINITY_NUMBER,
+  isLegacyBusinessPlan,
   nFormatter,
 } from "@dub/utils";
-import { isLegacyBusinessPlan } from "@dub/utils/src/constants/pricing";
 import NumberFlow from "@number-flow/react";
 import Link from "next/link";
 import { CSSProperties, useMemo } from "react";
@@ -67,7 +67,6 @@ export default function PlanUsage() {
 
   const { data: tags } = useTagsCount();
   const { users } = useWorkspaceUsers();
-  const { searchParamsObj } = useRouterStuff();
 
   const { partnersCount } = usePartnersCount<number>({
     programId: defaultProgramId ?? undefined,
@@ -232,7 +231,11 @@ export default function PlanUsage() {
           <UsageCategory
             title="Payout fees"
             icon={CirclePercentage}
-            usage={plan && payoutFee && `${payoutFee * 100}%`}
+            usage={
+              plan && payoutFee !== undefined
+                ? `${payoutFee * 100}%`
+                : undefined
+            }
             href="https://dub.co/help/article/partner-payouts#payout-fees-and-timing"
           />
         </div>

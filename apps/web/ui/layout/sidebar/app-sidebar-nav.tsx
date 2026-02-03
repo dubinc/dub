@@ -9,6 +9,7 @@ import { useFraudGroupCount } from "@/lib/swr/use-fraud-groups-count";
 import { usePartnerMessagesCount } from "@/lib/swr/use-partner-messages-count";
 import usePayoutsCount from "@/lib/swr/use-payouts-count";
 import useProgram from "@/lib/swr/use-program";
+import { useProgramReferralsCount } from "@/lib/swr/use-program-referrals-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import useWorkspaces from "@/lib/swr/use-workspaces";
 import { useRouterStuff } from "@dub/ui";
@@ -70,6 +71,7 @@ type SidebarNavData = {
   submittedBountiesCount?: number;
   unreadMessagesCount?: number;
   pendingFraudEventsCount?: number;
+  pendingReferralsCount?: number;
   showConversionGuides?: boolean;
   partnerNetworkEnabled?: boolean;
 };
@@ -205,7 +207,9 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
     submittedBountiesCount,
     unreadMessagesCount,
     pendingFraudEventsCount,
+    pendingReferralsCount,
     partnerNetworkEnabled,
+    pathname,
   }) => ({
     title: "Partner Program",
     showNews,
@@ -289,8 +293,13 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
           },
           {
             name: "Customers",
-            icon: UserCheck,
+            icon: User,
             href: `/${slug}/program/customers`,
+            badge: pendingReferralsCount
+              ? pendingReferralsCount > 99
+                ? "99+"
+                : pendingReferralsCount
+              : undefined,
           },
           {
             name: "Commissions",
@@ -591,6 +600,12 @@ export function AppSidebarNav({
     ignoreParams: true,
   });
 
+  const { data: pendingReferralsCount } = useProgramReferralsCount<number>({
+    query: { status: "pending" },
+    ignoreParams: true,
+    enabled: Boolean(currentArea === "program" && defaultProgramId),
+  });
+
   const { canTrackConversions } = getPlanCapabilities(plan);
 
   return (
@@ -612,6 +627,7 @@ export function AppSidebarNav({
         submittedBountiesCount,
         unreadMessagesCount,
         pendingFraudEventsCount,
+        pendingReferralsCount,
         showConversionGuides: canTrackConversions,
         partnerNetworkEnabled:
           program && program.partnerNetworkEnabledAt !== null,

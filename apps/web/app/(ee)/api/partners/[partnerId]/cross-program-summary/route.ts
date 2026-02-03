@@ -31,13 +31,8 @@ export const GET = withWorkspace(
       _count: true,
     });
 
-    const totalPrograms = programEnrollments.reduce(
-      (acc, enrollment) => acc + enrollment._count,
-      0,
-    );
-
     // approved and archived statuses
-    const trustedPrograms = programEnrollments
+    const activePrograms = programEnrollments
       .filter((enrollment) =>
         ACTIVE_ENROLLMENT_STATUSES.includes(enrollment.status),
       )
@@ -50,8 +45,8 @@ export const GET = withWorkspace(
 
     return NextResponse.json(
       partnerCrossProgramSummarySchema.parse({
-        totalPrograms,
-        trustedPrograms,
+        totalPrograms: activePrograms + bannedPrograms,
+        activePrograms,
         bannedPrograms,
       }),
     );

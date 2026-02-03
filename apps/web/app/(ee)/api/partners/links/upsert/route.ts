@@ -18,7 +18,7 @@ import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { linkEventSchema } from "@/lib/zod/schemas/links";
 import { upsertPartnerLinkSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
-import { constructURLFromUTMParams, deepEqual } from "@dub/utils";
+import { deepEqual, getUTMParamsFromURL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -77,7 +77,7 @@ export const PUT = withWorkspace(
     }
 
     validatePartnerLinkUrl({
-      group: partner.partnerGroup,
+      group: partnerGroup,
       url,
     });
 
@@ -192,7 +192,7 @@ export const PUT = withWorkspace(
         });
       }
     } else {
-      const utmTemplate = partner.partnerGroup?.utmTemplate;
+      const linkUrl = url || partnerGroup.partnerGroupDefaultLinks[0].url;
 
       // proceed with /api/partners/links POST logic
       const { link, error, code } = await processLink({
@@ -200,11 +200,13 @@ export const PUT = withWorkspace(
           ...linkProps,
           domain: program.domain,
           key: key || undefined,
-          url: constructURLFromUTMParams(
-            url || partnerGroup.partnerGroupDefaultLinks[0].url,
-            extractUtmParams(partnerGroup.utmTemplate),
-          ),
-          ...extractUtmParams(partnerGroup.utmTemplate, { excludeRef: true }),
+          url: linkUrl,
+          ...(partnerGroup.utmTemplate
+            ? {
+                ...extractUtmParams(partnerGroup.utmTemplate),
+                ...getUTMParamsFromURL(linkUrl),
+              }
+            : {}),
           programId: program.id,
           tenantId: partner.tenantId,
           partnerId: partner.partnerId,

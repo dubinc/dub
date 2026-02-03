@@ -21,7 +21,7 @@ export function PageContent({
   return (
     <div
       className={cn(
-        "min-h-full flex flex-col rounded-t-[inherit] bg-neutral-100 md:bg-white",
+        "flex min-h-full flex-col rounded-t-[inherit] bg-neutral-100 md:bg-white",
         className,
       )}
     >

@@ -93,7 +93,7 @@ export function useAnalyticsFilters({
 } = {}) {
   const { selectedTab, saleUnit } = context ?? useContext(AnalyticsContext);
 
-  const { slug, programSlug } = useParams();
+  const { slug } = useParams();
 
   const { queryParams, searchParamsObj } = useRouterStuff();
 

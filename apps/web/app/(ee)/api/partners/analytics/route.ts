@@ -31,7 +31,7 @@ export const GET = withWorkspace(
 
     throwIfNoPartnerIdOrTenantId({ partnerId, tenantId });
 
-    const programEnrollment = await prisma.programEnrollment.findUniqueOrThrow({
+    const programEnrollment = await prisma.programEnrollment.findUnique({
       where: partnerId
         ? {
             partnerId_programId: {
@@ -54,6 +54,13 @@ export const GET = withWorkspace(
         },
       },
     });
+
+    if (!programEnrollment) {
+      throw new DubApiError({
+        code: "not_found",
+        message: `The partner with ${partnerId ? "partnerId" : "tenantId"} ${partnerId ?? tenantId} is not enrolled in your program.`,
+      });
+    }
 
     if (programEnrollment.program.workspaceId !== workspace.id) {
       throw new DubApiError({

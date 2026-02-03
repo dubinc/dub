@@ -4,7 +4,9 @@ import useSWR from "swr";
 import useWorkspace from "./use-workspace";
 
 // Returns the Stripe payment methods for the business
-export default function usePaymentMethods() {
+export default function usePaymentMethods({
+  enabled = true,
+}: { enabled?: boolean } = {}) {
   const { slug } = useWorkspace();
 
   const {
@@ -12,7 +14,7 @@ export default function usePaymentMethods() {
     isLoading,
     error,
   } = useSWR<Stripe.PaymentMethod[]>(
-    slug && `/api/workspaces/${slug}/billing/payment-methods`,
+    enabled && slug && `/api/workspaces/${slug}/billing/payment-methods`,
     fetcher,
   );
 

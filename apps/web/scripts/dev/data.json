@@ -1,0 +1,473 @@
+{
+  "workspace": {
+    "id": "ws_1KETZ919F83ZJH6A80HWEHW6E",
+    "name": "Acme, Inc.",
+    "slug": "acme",
+    "plan": "enterprise",
+    "billingCycleStart": 1,
+    "usageLimit": 100000,
+    "linksLimit": 100000,
+    "payoutsLimit": 100000,
+    "domainsLimit": 100,
+    "tagsLimit": 100,
+    "foldersLimit": 100,
+    "usersLimit": 100,
+    "aiLimit": 100,
+    "groupsLimit": 100,
+    "defaultProgramId": "prog_1K2J9DRWPPJ2F1RX53N92TSGA",
+    "invoicePrefix": "ACME",
+    "conversionEnabled": true,
+    "webhookEnabled": true,
+    "dotLinkClaimed": true,
+    "fastDirectDebitPayouts": true
+  },
+  "users": [
+    {
+      "id": "user_cludszk1h0000wmd2e0ea2b0p",
+      "name": "Owner",
+      "email": "owner@dub-internal-test.com",
+      "emailVerified": "2026-01-21T00:00:00.000Z",
+      "role": "owner"
+    },
+    {
+      "id": "user_cludszk1h0000wmd2e0ea2b0q",
+      "name": "Member",
+      "email": "member@dub-internal-test.com",
+      "emailVerified": "2026-01-21T00:00:00.000Z",
+      "role": "member"
+    },
+    {
+      "id": "user_cludszk1h0000wmd2e0ea2b0r",
+      "name": "Viewer",
+      "email": "viewer@dub-internal-test.com",
+      "emailVerified": "2026-01-21T00:00:00.000Z",
+      "role": "viewer"
+    },
+    {
+      "id": "user_cludszk1h0000wmd2e0ea2b0s",
+      "name": "Billing",
+      "email": "billing@dub-internal-test.com",
+      "emailVerified": "2026-01-21T00:00:00.000Z",
+      "role": "billing"
+    }
+  ],
+  "domains": [
+    {
+      "id": "dom_1KETZ919F83ZJH6A80HWEHW6E",
+      "slug": "dub.sh",
+      "verified": true
+    }
+  ],
+  "folders": [
+    {
+      "id": "fold_1K2J9DRWPPJ2F1RX53N92TSGB",
+      "name": "Partner Links",
+      "description": "Default folder for partner links",
+      "accessLevel": "write"
+    }
+  ],
+  "rewards": [
+    {
+      "id": "rw_1K2J9DRWPPJ2F1RX53N92TSGD",
+      "event": "lead",
+      "type": "flat",
+      "amountInCents": 1000,
+      "maxDuration": null,
+      "description": null,
+      "tooltipDescription": null
+    },
+    {
+      "id": "rw_1K2J9DRWPPJ2F1RX53N92TSGE",
+      "event": "sale",
+      "type": "flat",
+      "amountInCents": 3000,
+      "maxDuration": 12,
+      "description": null,
+      "tooltipDescription": null
+    }
+  ],
+  "groups": [
+    {
+      "id": "grp_1K2J9DRWPPJ2F1RX53N92TSGC",
+      "name": "Default Group",
+      "slug": "default",
+      "color": null,
+      "leadRewardId": "rw_1K2J9DRWPPJ2F1RX53N92TSGD",
+      "saleRewardId": "rw_1K2J9DRWPPJ2F1RX53N92TSGE"
+    }
+  ],
+  "program": {
+    "id": "prog_1K2J9DRWPPJ2F1RX53N92TSGA",
+    "name": "Acme",
+    "slug": "acme",
+    "defaultFolderId": "fold_1K2J9DRWPPJ2F1RX53N92TSGB",
+    "defaultGroupId": "grp_1K2J9DRWPPJ2F1RX53N92TSGC",
+    "domain": "dub.sh",
+    "url": "https://acme.com",
+    "termsUrl": "https://acme.com/terms",
+    "helpUrl": "https://acme.com/help",
+    "supportEmail": "support@acme.com"
+  },
+  "partners": [
+    {
+      "id": "pn_1K2J9DRWPPJ2F1RX53N92TSGD",
+      "name": "Partner 1",
+      "email": "partner1@dub-internal-test.com",
+      "description": "Partner 1 description",
+      "country": "US",
+      "createdAt": "2026-01-21T00:00:00.000Z",
+      "user": {
+        "id": "user_cl8dea8g1073109m7wkwlldqj",
+        "name": "Partner 1",
+        "email": "partner1@dub-internal-test.com",
+        "emailVerified": "2026-01-21T00:00:00.000Z"
+      }
+    },
+    {
+      "id": "pn_1K2J9DRWPPJ2F1RX53N92TSGE",
+      "name": "Partner 2",
+      "email": "partner2@dub-internal-test.com",
+      "description": "Partner 2 description",
+      "country": "US",
+      "createdAt": "2026-01-21T00:00:00.000Z",
+      "user": {
+        "id": "user_cludszk1h0000wmd2e0ea2b0t",
+        "name": "Partner 2",
+        "email": "partner2@dub-internal-test.com",
+        "emailVerified": "2026-01-21T00:00:00.000Z"
+      }
+    },
+    {
+      "id": "pn_1K2J9DRWPPJ2F1RX53N92TSGF",
+      "name": "Partner 3",
+      "email": "partner3@dub-internal-test.com",
+      "description": "Partner 3 description",
+      "country": "US",
+      "createdAt": "2026-01-21T00:00:00.000Z",
+      "user": {
+        "id": "user_cludszk1h0000wmd2e0ea2b0u",
+        "name": "Partner 3",
+        "email": "partner3@dub-internal-test.com",
+        "emailVerified": "2026-01-21T00:00:00.000Z"
+      }
+    },
+    {
+      "id": "pn_1K2J9DRWPPJ2F1RX53N92TSGG",
+      "name": "Partner 4",
+      "email": "partner4@dub-internal-test.com",
+      "description": "Partner 4 description",
+      "country": "US",
+      "createdAt": "2026-01-21T00:00:00.000Z",
+      "user": {
+        "id": "user_cludszk1h0000wmd2e0ea2b0v",
+        "name": "Partner 4",
+        "email": "partner4@dub-internal-test.com",
+        "emailVerified": "2026-01-21T00:00:00.000Z"
+      }
+    },
+    {
+      "id": "pn_1K2J9DRWPPJ2F1RX53N92TSGH",
+      "name": "Partner 5",
+      "email": "partner5@dub-internal-test.com",
+      "description": "Partner 5 description",
+      "country": "US",
+      "createdAt": "2026-01-21T00:00:00.000Z",
+      "user": {
+        "id": "user_cludszk1h0000wmd2e0ea2b0w",
+        "name": "Partner 5",
+        "email": "partner5@dub-internal-test.com",
+        "emailVerified": "2026-01-21T00:00:00.000Z"
+      }
+    }
+  ],
+  "integrations": [
+    {
+      "id": "clzlmyxup0001jeqyaka3dvdd",
+      "name": "Make.com",
+      "slug": "make",
+      "description": "Connect your Dub workspace to 2,000+ apps via Make.com.",
+      "readme": "This is the official Make.com integration for Dub. Make.com lets you connect Dub with thousands of the most popular apps in just a few clicks. Choose from thousands of ready-made apps or use our no-code toolkit to connect to apps.\n\n## Features\n\nThe following modules are supported.\n- Create a link\n- Update a link\n- Retrieve a link\n- Upsert a link\n- Delete a link\n- Make an API Call\n\n## How to install\n1. Click on \"Enable\"\n2. Allow Make.com to access your Dub workspace\n3. Now, you can use Dub modules in Make.com to create visual automated workflows.",
+      "developer": "Dub",
+      "website": "https://www.make.com/en/integrations/dub",
+      "logo": "https://dubassets.com/integrations/clzlmyxup0001jeqyaka3dvdd_GSp2tii",
+      "screenshots": ["https://dubassets.com/integration-screenshots/VCgvW2LjXsLoIFv2", "https://dubassets.com/integration-screenshots/i5VhxZPsiir0O4Mm", "https://dubassets.com/integration-screenshots/RydWo5Vuti1md99Y", "https://dubassets.com/integration-screenshots/B8vnuWTDNn522PeO", "https://dubassets.com/integration-screenshots/69orbl78A9a6sABs"],
+      "verified": 1,
+      "installUrl": "https://d.to/make",
+      "category": "Automations",
+      "comingSoon": 0,
+      "guideUrl": null
+    },
+    {
+      "id": "clzlmyzlx0005jeqy95pjrwbz",
+      "name": "Raycast",
+      "slug": "raycast",
+      "description": "Shorten and manage your links directly in Raycast.",
+      "readme": "This is the official Raycast integration for Dub.\n\n## Features\n\n- Shorten links & assign tags to them\n- See a list of short links along with their respective analytics\n\n## How to install\n\nYou can install the Dub Raycast integration [here](https://d.to/ray).",
+      "developer": "Dub",
+      "website": "https://dub.co",
+      "logo": "https://dubassets.com/integrations/clzlmyzlx0005jeqy95pjrwbz_Yg767eU",
+      "screenshots": ["https://dubassets.com/integration-screenshots/b1SsigyIcIiCM5rg", "https://dubassets.com/integration-screenshots/elx3p7U5ryWEZR1T", "https://dubassets.com/integration-screenshots/eZlq9CUYDxHuNOYj", "https://dubassets.com/integration-screenshots/fHIXRcOf1ctCWbKZ", "https://dubassets.com/integration-screenshots/jUjNz70iIpN6vOoX", "https://dubassets.com/integration-screenshots/ueytiiNoIKpHaK83"],
+      "verified": 1,
+      "installUrl": "https://d.to/ray",
+      "category": "Productivity",
+      "comingSoon": 0,
+      "guideUrl": null
+    },
+    {
+      "id": "clzlmz336000fjeqynwhfv8vo",
+      "name": "Zapier",
+      "slug": "zapier",
+      "description": "Connect your Dub workspace to 7,000+ apps via Zapier.",
+      "readme": "This is the official Zapier integration for Dub. It's easy to implement, does not require coding, and allows you to connect Dub with other apps in minutes.\n\n## Supported actions\n\n**Dub Links**:\n- [Create link](https://dub.co/docs/api-reference/endpoint/create-a-link)\n- [Retrieve link](https://dub.co/docs/api-reference/endpoint/retrieve-a-link)\n- [Update link](https://dub.co/docs/api-reference/endpoint/update-a-link)\n- [Upsert link](https://dub.co/docs/api-reference/endpoint/upsert-a-link)\n- [Delete link](https://dub.co/docs/api-reference/endpoint/delete-a-link)\n\n**Dub Partners**:\n- [Track a lead event](https://dub.co/docs/api-reference/endpoint/track-lead)\n- [Track a sale event](https://dub.co/docs/api-reference/endpoint/track-sale)\n\n## Supported triggers\n\n**Dub Links**\n- `link.created`\n- `link.updated`\n- `link.deleted`\n- `link.clicked`\n\n**Dub Partners**\n- `lead.created`\n- `sale.created`\n- `partner.enrolled`\n- `partner.application_submitted`",
+      "developer": "Dub",
+      "website": "https://zapier.com/apps/dub/integrations",
+      "logo": "https://dubassets.com/integrations/clzlmz336000fjeqynwhfv8vo_S4yz4ak",
+      "screenshots": ["https://dubassets.com/integration-screenshots/bEld4Gv6Fq0fK71z", "https://dubassets.com/integration-screenshots/VNwGY2jNAWEyhbXm", "https://dubassets.com/integration-screenshots/6P30UyuQYJDHnXOm", "https://dubassets.com/integration-screenshots/eEhRKYPBxeqdzrHO"],
+      "verified": 1,
+      "installUrl": "https://d.to/zapier",
+      "category": "Automations",
+      "comingSoon": 0,
+      "guideUrl": null
+    },
+    {
+      "id": "clzra1ya60001wnj4a89zcg9h",
+      "name": "Stripe",
+      "slug": "stripe",
+      "description": "Track how your links are converting to sales on Stripe.",
+      "readme": "Integrate with Stripe to automatically track sale [conversion events](https://dub.co/help/article/dub-conversions) when someone makes a purchase via one of your Dub short links.\n\n[Read the docs](https://dub.co/docs/conversions/sales/stripe) on how to set this up.",
+      "developer": "Dub",
+      "website": "https://marketplace.stripe.com/apps/dub-conversions",
+      "logo": "https://dubassets.com/integrations/clzra1ya60001wnj4a89zcg9h_jtyaGa7",
+      "screenshots": ["https://dubassets.com/integration-screenshots/AP9z3b8HsDIOVQMq", "https://dubassets.com/integration-screenshots/y9CMwUxLbO7pjXJM", "https://dubassets.com/integration-screenshots/W94e40NcUlUlB5Bq", "https://dubassets.com/integration-screenshots/PZkxLsI8yG65qo0n", "https://dubassets.com/integration-screenshots/WkeZCSZOOSEukIlT"],
+      "verified": 1,
+      "installUrl": "https://marketplace.stripe.com/apps/dub",
+      "category": "Payments",
+      "comingSoon": 0,
+      "guideUrl": null
+    },
+    {
+      "id": "clzrjifgn0004tyvlu72oxcc2",
+      "name": "WordPress",
+      "slug": "wordpress",
+      "description": "Offical WordPress integration for Dub.",
+      "readme": "This is the official WordPress Integration for Dub. It uses [Dub's API](https://dub.co/api) to programmatically shorten links inside Wordpress.\n\nFeatures:\n- Automatically create short links when a new post is published\n- Edit short link slugs directly inside WordPress\n- Track [conversion events](https://dub.co/help/article/dub-conversions) from link click to account signups",
+      "developer": "Dub",
+      "website": "https://wordpress.org/plugins/dubinc",
+      "logo": "https://dubassets.com/integrations/clzrjifgn0004tyvlu72oxcc2_GrLz146",
+      "screenshots": ["https://dubassets.com/integration-screenshots/pVyCJ0nCMk8vFdzV", "https://dubassets.com/integration-screenshots/Q16c06AFd08y1xWq", "https://dubassets.com/integration-screenshots/t213OS2erwTHuUY4", "https://dubassets.com/integration-screenshots/4BMcLwc1K5TzGZKW", "https://dubassets.com/integration-screenshots/Rn8LaG1kULTmmlgM", "https://dubassets.com/integration-screenshots/DGSvRclGjQtYLtWO"],
+      "verified": 1,
+      "installUrl": "https://wordpress.org/plugins/dubinc",
+      "category": "CMS",
+      "comingSoon": 0,
+      "guideUrl": null
+    },
+    {
+      "id": "clzu59rx9000110bm5fnlzwuj",
+      "name": "Slack",
+      "slug": "slack",
+      "description": "Shorten and manage your links directly in Slack.",
+      "readme": "This is the official Slack integration for Dub to create and share short links directly in Slack.\n\n## Features\n- Shorten links directly in Slack\n- Customize the domain and link path if needed\n\n## How to install\n1. Click on \"Enable\"\n2. Allow Dub to send messages to your Slack channels\n3. You can now use Dub's slash commands `/shorten` to create short links.",
+      "developer": "Dub",
+      "website": "https://d.to/slack",
+      "logo": "https://dubassets.com/integrations/clzu59rx9000110bm5fnlzwuj_Y93aiyc",
+      "screenshots": ["https://dubassets.com/integration-screenshots/sjCSeH5xHsY9UW6C", "https://dubassets.com/integration-screenshots/vFYafTOdc2l7Sq5F", "https://dubassets.com/integration-screenshots/bW9pAcP5oPVL76VS", "https://dubassets.com/integration-screenshots/H8BqDHlDBGIQRZj0"],
+      "verified": 1,
+      "installUrl": null,
+      "category": "Productivity",
+      "comingSoon": 0,
+      "guideUrl": null
+    },
+    {
+      "id": "int_1JTHYWTFB84YSJV3QEZ8XGZXN",
+      "name": "Better Auth",
+      "slug": "better-auth",
+      "description": "Track Better Auth signup events with Dub Conversions.",
+      "readme": "This is the official Better Auth integration for Dub to [track conversion events](https://dub.co/docs/conversions/quickstart) in your Better Auth application.",
+      "developer": "Dub",
+      "website": "https://www.better-auth.com",
+      "logo": "https://dubassets.com/integrations/int_1JTHYWTFB84YSJV3QEZ8XGZXN_JdEC95Z",
+      "screenshots": ["https://dubassets.com/integration-screenshots/BQ30guSSjzVAtzgm"],
+      "verified": 1,
+      "installUrl": null,
+      "category": "Authentication",
+      "comingSoon": 0,
+      "guideUrl": "https://dub.co/docs/conversions/leads/better-auth"
+    },
+    {
+      "id": "int_1JV8YSBDPD2435DXQPFGHHB8C",
+      "name": "Cal.com",
+      "slug": "cal",
+      "description": "Track how your links are converting to meeting bookings on Cal.com.",
+      "readme": "Integrate with Cal.com to automatically track [lead conversion events](https://dub.co/docs/conversions/leads/introduction) when someone books a meeting via one of your Dub short links.\n\nUseful for tracking SaaS enterprise leads or agency meeting bookings.\n\n## Installation steps\n\n1. Click on \"Enable\" to install the Dub app in the Cal.com App Store.\n2. Set up the [`@dub/analytics` client-side script](https://dub.co/docs/sdks/client-side/introduction) on your site, and add both `app.cal.com` and `cal.com` to your [outbound domains](https://dub.co/docs/sdks/client-side/features/cross-domain-tracking).\n3. Once a booking event occurs, the booker's details will automatically be tracked as a [lead event](https://dub.co/docs/conversions/leads/introduction) on Dub.\n\n## Example App\n\nCheck out this [open-source example](https://github.com/dubinc/examples/blob/main/conversions/cal) to learn more about how to integrate Cal.com and Dub to track meeting booking events.",
+      "developer": "Cal.com",
+      "website": "https://cal.com",
+      "logo": "https://dubassets.com/integrations/int_1JV8YSBDPD2435DXQPFGHHB8C_LTVhJln",
+      "screenshots": ["https://dubassets.com/integration-screenshots/15mi44jeIytjtEjc", "https://dubassets.com/integration-screenshots/3tQKqxUUh2hQ4zTF", "https://dubassets.com/integration-screenshots/qzdJL2ZuJ1SzMyCx", "https://dubassets.com/integration-screenshots/H3q6KYXogQz1HRnL"],
+      "verified": 1,
+      "installUrl": "https://app.cal.com/apps/dub",
+      "category": "Scheduling",
+      "comingSoon": 0,
+      "guideUrl": null
+    },
+    {
+      "id": "int_1K0YR77SXYCMRDEJ92KJG29T0",
+      "name": "Google Tag Manager",
+      "slug": "gtm",
+      "description": "Track conversion events with Google Tag Manager and Dub",
+      "readme": null,
+      "developer": "Dub",
+      "website": "https://dub.co",
+      "logo": "https://dubassets.com/integrations/int_1K0YR77SXYCMRDEJ92KJG29T0_aC6yfk4",
+      "screenshots": ["https://dubassets.com/integration-screenshots/ZcTQulksETtgSM39"],
+      "verified": 1,
+      "installUrl": null,
+      "category": "Analytics",
+      "comingSoon": 0,
+      "guideUrl": "https://dub.co/docs/conversions/leads/client-side"
+    },
+    {
+      "id": "int_bWyK6fhE0KpBg5wZSRN7DwWz",
+      "name": "Polar",
+      "slug": "polar",
+      "description": "Track how your links are converting to sales on Polar.",
+      "readme": "",
+      "developer": "Dub",
+      "website": "https://polar.sh",
+      "logo": "https://dubassets.com/integrations/int_bWyK6fhE0KpBg5wZSRN7DwWz_3nfkIc7",
+      "screenshots": [],
+      "verified": 1,
+      "installUrl": null,
+      "category": "Payments",
+      "comingSoon": 1,
+      "guideUrl": null
+    },
+    {
+      "id": "int_ffw3qgrFAahY6qs1hXaH3wHS",
+      "name": "Hubspot",
+      "slug": "hubspot",
+      "description": "Track Hubspot leads/deal changes and auto-generate partner commissions on Dub.",
+      "readme": "Easily track and attribute leads and sales from HubSpot inside Dub.\n\n## Features\n\n- Bidirectional sync between HubSpot contacts and Dub lead events\n- Automatic attribution of leads to the exact Dub link or partner\n- Support for HubSpot Forms and HubSpot Meeting Scheduler\n- Closed Won sale tracking\n\n## Setup process\n\n1. Enable conversion tracking in Dub\n2. Install the `@dub/analytics` script on your site\n3. Connect HubSpot via the Dub integration\n4. (Optional) Set your custom **Closed Won Deal Stage ID**\n\nOnce connected, Dub gives you full visibility into your funnel — from click → lead → meeting → Closed Won revenue.",
+      "developer": "Dub",
+      "website": "https://dub.co/docs/conversions/leads/hubspot",
+      "logo": "https://dubassets.com/integrations/int_ffw3qgrFAahY6qs1hXaH3wHS_JPoCPOh",
+      "screenshots": ["https://dubassets.com/integration-screenshots/HkHxRtAmXLznxS33", "https://dubassets.com/integration-screenshots/AVdtxIm3Neht6ten", "https://dubassets.com/integration-screenshots/Rw0a3Eoizx3JXczD", "https://dubassets.com/integration-screenshots/qIknpqLYkJVNy71x"],
+      "verified": 1,
+      "installUrl": null,
+      "category": "Scheduling",
+      "comingSoon": 0,
+      "guideUrl": null
+    },
+    {
+      "id": "int_h6V1CeFEH8WD5FOMfKpbopJb",
+      "name": "Typefully",
+      "slug": "typefully",
+      "description": "Automatically shorten every social link on Typefully with Dub.",
+      "readme": "",
+      "developer": "Typefully, Inc.",
+      "website": "https://typefully.com",
+      "logo": "https://dubassets.com/integrations/int_h6V1CeFEH8WD5FOMfKpbopJb_qlATYcv",
+      "screenshots": [],
+      "verified": 1,
+      "installUrl": null,
+      "category": "Social Media",
+      "comingSoon": 1,
+      "guideUrl": null
+    },
+    {
+      "id": "int_HkSNVafYEVt1DVrTZxavVond",
+      "name": "Supabase",
+      "slug": "supabase",
+      "description": "Track Supabase signup events with Dub Conversions.",
+      "readme": "",
+      "developer": "Dub",
+      "website": "https://dub.co/docs/conversions/leads/supabase",
+      "logo": "https://dubassets.com/integrations/int_HkSNVafYEVt1DVrTZxavVond_UAmjOJn",
+      "screenshots": [],
+      "verified": 1,
+      "installUrl": null,
+      "category": "Authentication",
+      "comingSoon": 0,
+      "guideUrl": "https://dub.co/docs/conversions/leads/supabase"
+    },
+    {
+      "id": "int_iWOtrZgmcyU6XDwKr4AYYqLN",
+      "name": "Shopify",
+      "slug": "shopify",
+      "description": "Track how your links are converting to sales on Shopify.",
+      "readme": "Powerful real-time [conversion analytics](https://dub.co/analytics) for your Shopify store.\n\nFeatures:\n- **Real-time conversion analytics**: See how your link clicks are converting to sales\n- **Customer insights**: Measure your CAC and LTV to understand ROI on marketing spend\n- **AI-powered insights**: Query your analytics using natural language\n\n[Read the docs](https://dub.co/docs/conversions/sales/shopify) on how to set this up.",
+      "developer": "Dub",
+      "website": "https://apps.shopify.com/dub-conversion-tracking",
+      "logo": "https://dubassets.com/integrations/int_iWOtrZgmcyU6XDwKr4AYYqLN_jUmF77W",
+      "screenshots": ["https://dubassets.com/integration-screenshots/vHP96JXi6lu59CWA", "https://dubassets.com/integration-screenshots/SCe5zajrjz4SZxbq", "https://dubassets.com/integration-screenshots/rhRBhAxck04tkqdj", "https://dubassets.com/integration-screenshots/oLkfdYBTxIFAoY5u", "https://dubassets.com/integration-screenshots/WeibSgHT5GxFTXE2"],
+      "verified": 1,
+      "installUrl": "https://d.to/shopify",
+      "category": "Payments",
+      "comingSoon": 0,
+      "guideUrl": null
+    },
+    {
+      "id": "int_v9mi4mw68mW3ZUx3o5jdM6uG",
+      "name": "Publer",
+      "slug": "publer",
+      "description": "Automatically shorten every social link on Publer with Dub.",
+      "readme": "**[Publer](https://publer.com)** is a social media management platform that empowers creators to schedule and publish posts across all major social networks. Through the **Dub** integration, you can automatically shorten every link you share via Publer—keeping your posts clean and engaging.\n\n**Key Benefits**:\n\n- **Automatic Link Shortening:** No extra steps are needed. Publer will shorten all your links in real time.  \n- **Better Post Aesthetics:** Shorter links mean cleaner posts, reducing clutter and making your content more reader-friendly.  \n- **Analytics & Insights:** Dub provides click tracking and analytics, allowing you to measure engagement and refine your social media strategy.\n\n**Getting Started:**\n1. Connect your Dub account in Publer’s social account settings.\n2. Schedule your social media posts as usual.  \n3. Sit back and let Publer automatically shorten all your links with Dub!",
+      "developer": "Kalemi Code LLC",
+      "website": "https://publer.com/help/en/article/how-to-set-up-dub-url-shortener-16uuhzd/",
+      "logo": "https://dubassets.com/integrations/int_v9mi4mw68mW3ZUx3o5jdM6uG_0r1AqTO",
+      "screenshots": ["https://dubassets.com/integration-screenshots/y0LO3V9MtsbbWilH", "https://dubassets.com/integration-screenshots/R80UvlENvedyONIb", "https://dubassets.com/integration-screenshots/uoHsNKr6E1STC4rh", "https://dubassets.com/integration-screenshots/VBCVPcRC9ZBNoFFS", "https://dubassets.com/integration-screenshots/YlDIMeJdDWlRrLmn"],
+      "verified": 1,
+      "installUrl": "https://publer.com/help/en/article/how-to-set-up-dub-url-shortener-16uuhzd",
+      "category": "Social Media",
+      "comingSoon": 0,
+      "guideUrl": null
+    },
+    {
+      "id": "int_VmUeF9RNLsjDzQHkJrRYd4IO",
+      "name": "Appwrite",
+      "slug": "appwrite",
+      "description": "Track Appwrite signup events with Dub Conversions.",
+      "readme": "",
+      "developer": "Dub",
+      "website": "https://dub.co/docs/conversions/leads/appwrite",
+      "logo": "https://dubassets.com/integrations/int_VmUeF9RNLsjDzQHkJrRYd4IO_wpaOebv",
+      "screenshots": [],
+      "verified": 1,
+      "installUrl": null,
+      "category": "Authentication",
+      "comingSoon": 0,
+      "guideUrl": "https://dub.co/docs/conversions/leads/appwrite"
+    },
+    {
+      "id": "int_YHNfa4Z2ykEA36dveebt4h4g",
+      "name": "Clerk",
+      "slug": "clerk",
+      "description": "Track Clerk signup events with Dub Conversions.",
+      "readme": "",
+      "developer": "Dub",
+      "website": "https://dub.co/docs/conversions/leads/clerk",
+      "logo": "https://dubassets.com/integrations/int_YHNfa4Z2ykEA36dveebt4h4g_cW2M2Gw",
+      "screenshots": [],
+      "verified": 1,
+      "installUrl": null,
+      "category": "Authentication",
+      "comingSoon": 0,
+      "guideUrl": "https://dub.co/docs/conversions/leads/clerk"
+    },
+    {
+      "id": "int_zGnSElTzimbz20OWnXerPoKv",
+      "name": "Segment",
+      "slug": "segment",
+      "description": "Send and receive events between your Dub and Segment workspaces.",
+      "readme": "Connect Dub with Segment and stream real-time events from your Dub workspace to your Segment workspace.\n\nSupported events:\n\n- [`link.clicked`](https://dub.co/docs/concepts/webhooks/event-types#link-clicked)\n- [`lead.created`](https://dub.co/docs/concepts/webhooks/event-types#lead-created)\n- [`sale.created`](https://dub.co/docs/concepts/webhooks/event-types#sale-created)\n\nComing soon: Sending events from Segment to Dub.",
+      "developer": "Dub",
+      "website": "https://segment.com/docs/connections/sources/catalog/cloud-apps/dub",
+      "logo": "https://dubassets.com/integrations/int_zGnSElTzimbz20OWnXerPoKv_Noy3Xhk",
+      "screenshots": ["https://dubassets.com/integration-screenshots/MvHnxSLGU3hMNMQk", "https://dubassets.com/integration-screenshots/oXrlBPJjgd2fGCiP", "https://dubassets.com/integration-screenshots/OPL4HS3z0i4R6q0B", "https://dubassets.com/integration-screenshots/xMh9URKttuacj3qR"],
+      "verified": 1,
+      "installUrl": null,
+      "category": "Analytics",
+      "comingSoon": 0,
+      "guideUrl": null
+    }
+  ]
+}
