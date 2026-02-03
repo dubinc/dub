@@ -2,6 +2,7 @@ import { deleteWorkspaceFolders } from "@/lib/api/folders/delete-workspace-folde
 import { linkCache } from "@/lib/api/links/cache";
 import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
 import { includeTags } from "@/lib/api/links/include-tags";
+import { deactivateProgram } from "@/lib/api/programs/deactivate-program";
 import { tokenCache } from "@/lib/auth/token-cache";
 import { isBlacklistedEmail } from "@/lib/edge-config/is-blacklisted-email";
 import { stripe } from "@/lib/stripe";
@@ -229,5 +230,10 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
     await deleteWorkspaceFolders({
       workspaceId: workspace.id,
     });
+  }
+
+  // Deactivate the program if the workspace had partner access
+  if (workspace.defaultProgramId) {
+    await deactivateProgram(workspace.defaultProgramId);
   }
 }
