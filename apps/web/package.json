@@ -9,6 +9,7 @@
     "start": "next start",
     "script": "tsx ./scripts/run.ts",
     "test": "pnpm prisma:generate && vitest -no-file-parallelism",
+    "test:e2e:track-sale": "pnpm prisma:generate && vitest -no-file-parallelism tests/tracks/track-sale.test.ts",
     "generate-openapi": "tsx ./scripts/generate-openapi.ts",
     "prisma:generate": "dotenv-flow -e .env -- pnpm --filter=@dub/prisma generate",
     "prisma:push": "dotenv-flow -e .env -- pnpm --filter=@dub/prisma push",

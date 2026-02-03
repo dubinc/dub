@@ -17,6 +17,9 @@ export const verifyCommission = async ({
   expectedAmount,
   expectedEarnings,
 }: VerifyCommissionProps) => {
+  const startTime = performance.now();
+  console.log(`[DEBUG] Starting verifyCommission verification`);
+
   let customerId: string | undefined;
 
   // Pause for 3 seconds for data to be fully processed
@@ -66,4 +69,9 @@ export const verifyCommission = async ({
   }
 
   expect(commission.earnings).toEqual(expectedEarnings);
+
+  const totalTimeSeconds = (performance.now() - startTime) / 1000;
+  console.log(
+    `[DEBUG] verifyCommission completed in ${totalTimeSeconds.toFixed(2)} seconds`,
+  );
 };
