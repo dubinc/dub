@@ -61,7 +61,9 @@ export const POST = withCron(async ({ rawBody }) => {
   const emailResponse = await sendBatchEmail(
     programEnrollments.map(({ partner }) => ({
       variant: "notifications",
-      subject: `Your partnership with ${program.name} has been deactivated`,
+      subject: programDeactivated
+        ? `The ${program.name} program has been deactivated`
+        : `Your partnership with ${program.name} has been deactivated`,
       to: partner.email!,
       replyTo: program.supportEmail || "noreply",
       react: PartnerDeactivated({
@@ -78,7 +80,9 @@ export const POST = withCron(async ({ rawBody }) => {
     })),
   );
 
-  console.log("[bulkDeactivatePartners] Sent notification emails.");
+  console.log("[bulkDeactivatePartners] Sent notification emails.", {
+    response: emailResponse,
+  });
 
   return logAndRespond(
     `[bulkDeactivatePartners] Deactivated ${partnerIds.length} partners for program ${programId}.`,

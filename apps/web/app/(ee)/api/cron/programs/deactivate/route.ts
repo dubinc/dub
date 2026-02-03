@@ -26,11 +26,18 @@ export const POST = withCron(async ({ rawBody }) => {
       id: true,
       workspaceId: true,
       name: true,
+      deactivatedAt: true,
     },
   });
 
   if (!program) {
     return logAndRespond(`Program ${programId} not found.`);
+  }
+
+  if (!program.deactivatedAt) {
+    return logAndRespond(
+      `Program ${programId} is not deactivated. Skipping...`,
+    );
   }
 
   // Fetch active partners in batches using offset pagination
