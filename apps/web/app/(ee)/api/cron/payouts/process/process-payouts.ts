@@ -1,6 +1,7 @@
 import { getPayoutEligibilityFilter } from "@/lib/api/payouts/payout-eligibility-filter";
 import { FAST_ACH_FEE_CENTS, FOREX_MARKUP_RATE } from "@/lib/constants/payouts";
 import { qstash } from "@/lib/cron";
+import { calculatePayoutFeeWithWaiver } from "@/lib/partners/calculate-payout-fee-with-waiver";
 import {
   CUTOFF_PERIOD,
   CUTOFF_PERIOD_TYPES,
@@ -157,17 +158,16 @@ export async function processPayouts({
     `Using payout fee of ${payoutFee} for payment method ${paymentMethod.type}`,
   );
 
-  // Calculate tiered fee with waiver logic
-  const freeTierRemaining = Math.max(
-    0,
-    workspace.payoutFeeWaiverLimit - workspace.payoutFeeWaivedUsage,
-  );
-  const feeFreeAmount = Math.min(totalPayoutAmount, freeTierRemaining);
-  const feeChargedAmount = totalPayoutAmount - feeFreeAmount;
+  const { feeFreeAmount, feeChargedAmount, freeTierRemaining, fee } =
+    calculatePayoutFeeWithWaiver({
+      payoutAmount: totalPayoutAmount,
+      payoutFeeWaiverLimit: workspace.payoutFeeWaiverLimit,
+      payoutFeeWaivedUsage: workspace.payoutFeeWaivedUsage,
+      payoutFee,
+      fastAchFee: invoice.paymentMethod === "ach_fast" ? FAST_ACH_FEE_CENTS : 0,
+    });
 
-  const fastAchFee =
-    invoice.paymentMethod === "ach_fast" ? FAST_ACH_FEE_CENTS : 0;
-  const invoiceFee = Math.round(feeChargedAmount * payoutFee) + fastAchFee;
+  const invoiceFee = fee;
   const invoiceTotal = totalPayoutAmount + invoiceFee;
 
   console.log({

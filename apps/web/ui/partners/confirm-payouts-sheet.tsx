@@ -8,6 +8,7 @@ import {
   INVOICE_MIN_PAYOUT_AMOUNT_CENTS,
 } from "@/lib/constants/payouts";
 import { exceededLimitError } from "@/lib/exceeded-limit-error";
+import { calculatePayoutFeeWithWaiver } from "@/lib/partners/calculate-payout-fee-with-waiver";
 import {
   CUTOFF_PERIOD,
   CUTOFF_PERIOD_TYPES,
@@ -336,20 +337,14 @@ function ConfirmPayoutsSheetContent() {
       ? FAST_ACH_FEE_CENTS
       : 0;
 
-    // Calculate tiered fee with waiver logic
-    const waiverLimit = payoutFeeWaiverLimit ?? 0;
-    const waivedUsage = payoutFeeWaivedUsage ?? 0;
-    const waiverRemaining = Math.max(0, waiverLimit - waivedUsage);
+    const { fee } = calculatePayoutFeeWithWaiver({
+      payoutAmount: amount,
+      payoutFeeWaiverLimit: payoutFeeWaiverLimit ?? 0,
+      payoutFeeWaivedUsage: payoutFeeWaivedUsage ?? 0,
+      payoutFee: selectedPaymentMethod.fee,
+      fastAchFee: fastAchFee,
+    });
 
-    // Portion of this payout that falls under the waiver (0% fee)
-    const waivedAmount = Math.min(amount, waiverRemaining);
-    // Portion that exceeds the waiver (normal fee rate applies)
-    const feeableAmount = amount - waivedAmount;
-
-    // Fee only applies to the feeable portion
-    const fee = Math.round(
-      feeableAmount * selectedPaymentMethod.fee + fastAchFee,
-    );
     const total = amount + fee;
 
     return {
