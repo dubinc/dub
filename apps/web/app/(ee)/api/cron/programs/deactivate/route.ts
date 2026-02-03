@@ -75,15 +75,8 @@ export const POST = withCron(async ({ rawBody }) => {
       },
     });
 
-    console.info(
-      `[deactivateProgram] Queued next batch for program ${programId}.`,
-      {
-        messageId: response.messageId,
-      },
-    );
-
     return logAndRespond(
-      `[deactivateProgram] Processed ${partnerIds.length} partners. Queued next batch.`,
+      `[deactivateProgram] Processed ${partnerIds.length} partners. Queued next batch ${response.messageId}.`,
     );
   }
 
