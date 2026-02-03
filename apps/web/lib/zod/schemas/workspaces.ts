@@ -72,6 +72,16 @@ export const WorkspaceSchema = z
       .describe(
         "The processing fee (in decimals) for partner payouts. For card payments, an additional 0.03 is added to the fee. Learn more: https://d.to/payouts",
       ),
+    payoutFeeWaiverLimit: z
+      .number()
+      .describe(
+        "The payout fee waiver limit of the workspace. Applicable only to custom enterprise plans.",
+      ),
+    payoutFeeWaivedUsage: z
+      .number()
+      .describe(
+        "The payout fee waived usage of the workspace. Applicable only to custom enterprise plans.",
+      ),
     domainsLimit: z.number().describe("The domains limit of the workspace."),
     tagsLimit: z.number().describe("The tags limit of the workspace."),
     foldersUsage: z.number().describe("The folders usage of the workspace."),
