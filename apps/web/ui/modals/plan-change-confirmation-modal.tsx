@@ -94,10 +94,8 @@ export function usePlanChangeConfirmationModal({
 }: {
   onConfirm: () => void | Promise<void>;
 }) {
-  const [
-    showPlanChangeConfirmationModal,
-    setShowPlanChangeConfirmationModal,
-  ] = useState(false);
+  const [showPlanChangeConfirmationModal, setShowPlanChangeConfirmationModal] =
+    useState(false);
 
   // Use ref to avoid re-renders when parent state changes
   const onConfirmRef = useRef(onConfirm);

@@ -17,8 +17,8 @@ import { Command } from "cmdk";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
-import { ThreeDots } from "../shared/icons";
 import { usePlanChangeConfirmationModal } from "../modals/plan-change-confirmation-modal";
+import { ThreeDots } from "../shared/icons";
 
 export default function SubscriptionMenu() {
   const { id: workspaceId, role, plan, defaultProgramId } = useWorkspace();
