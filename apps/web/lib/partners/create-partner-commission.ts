@@ -225,7 +225,13 @@ export const createPartnerCommission = async ({
               if (monthsDifference >= reward.maxDuration) {
                 console.log(
                   `Partner ${partnerId} has reached max duration for ${event} event, skipping commission creation...`,
+                  {
+                    monthsDifference,
+                    rewardMaxDuration: reward.maxDuration,
+                    firstCommissionCreatedAt: firstCommission.createdAt,
+                  },
                 );
+
                 return {
                   commission: null,
                   programEnrollment,
