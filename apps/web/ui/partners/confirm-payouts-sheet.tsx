@@ -542,6 +542,9 @@ function ConfirmPayoutsSheetContent() {
     cutoffPeriod,
     cutoffPeriodOptions,
     selectedCutoffPeriodOption,
+    fastAchFee,
+    payoutFeeWaiverLimit,
+    payoutFeeWaivedUsage,
   ]);
 
   const partnerColumn = useMemo(
