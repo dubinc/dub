@@ -158,16 +158,19 @@ export async function processPayouts({
     `Using payout fee of ${payoutFee} for payment method ${paymentMethod.type}`,
   );
 
-  const { feeFreeAmount, feeChargedAmount, freeTierRemaining, fee } =
-    calculatePayoutFeeWithWaiver({
-      payoutAmount: totalPayoutAmount,
-      payoutFeeWaiverLimit: workspace.payoutFeeWaiverLimit,
-      payoutFeeWaivedUsage: workspace.payoutFeeWaivedUsage,
-      payoutFee,
-      fastAchFee: invoice.paymentMethod === "ach_fast" ? FAST_ACH_FEE_CENTS : 0,
-    });
+  const {
+    feeFreeAmount,
+    feeChargedAmount,
+    freeTierRemaining,
+    fee: invoiceFee,
+  } = calculatePayoutFeeWithWaiver({
+    payoutAmount: totalPayoutAmount,
+    payoutFeeWaiverLimit: workspace.payoutFeeWaiverLimit,
+    payoutFeeWaivedUsage: workspace.payoutFeeWaivedUsage,
+    payoutFee,
+    fastAchFee: invoice.paymentMethod === "ach_fast" ? FAST_ACH_FEE_CENTS : 0,
+  });
 
-  const invoiceFee = fee;
   const invoiceTotal = totalPayoutAmount + invoiceFee;
 
   console.log({
