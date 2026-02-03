@@ -63,6 +63,7 @@ export const POST = withCron(async ({ rawBody }) => {
     workspaceId: program.workspaceId,
     programId,
     partnerIds,
+    programDeactivated: true,
   });
 
   // Self-queue the next batch if there are more partners to process

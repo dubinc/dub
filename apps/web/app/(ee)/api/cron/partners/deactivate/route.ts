@@ -10,11 +10,14 @@ import { logAndRespond } from "../../utils";
 const inputSchema = z.object({
   programId: z.string(),
   partnerIds: z.array(z.string()),
+  programDeactivated: z.boolean().optional().default(false),
 });
 
 // POST /api/cron/partners/deactivate - deactivate partners in a program
 export const POST = withCron(async ({ rawBody }) => {
-  const { programId, partnerIds } = inputSchema.parse(JSON.parse(rawBody));
+  const { programId, partnerIds, programDeactivated } = inputSchema.parse(
+    JSON.parse(rawBody),
+  );
 
   const programEnrollments = await prisma.programEnrollment.findMany({
     where: {
@@ -70,6 +73,7 @@ export const POST = withCron(async ({ rawBody }) => {
           name: program.name,
           slug: program.slug,
         },
+        programDeactivated,
       }),
     })),
   );

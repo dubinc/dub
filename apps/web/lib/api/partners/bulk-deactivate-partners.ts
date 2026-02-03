@@ -10,6 +10,7 @@ interface BulkDeactivatePartnersParams {
   programId: string;
   partnerIds: string[];
   user?: Session["user"];
+  programDeactivated?: boolean; // Indicate if the entire program is being deactivated
 }
 
 export async function bulkDeactivatePartners({
@@ -17,6 +18,7 @@ export async function bulkDeactivatePartners({
   programId,
   partnerIds,
   user,
+  programDeactivated = false,
 }: BulkDeactivatePartnersParams) {
   const programEnrollments = await prisma.programEnrollment.findMany({
     where: {
@@ -120,6 +122,7 @@ export async function bulkDeactivatePartners({
     body: {
       programId,
       partnerIds: partnerIdsToDeactivate,
+      programDeactivated,
     },
   });
 
