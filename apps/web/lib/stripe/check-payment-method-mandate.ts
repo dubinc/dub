@@ -22,7 +22,7 @@ export const checkPaymentMethodMandate = async ({
   }
 
   const { data: mandatesData } = await mandatesResponse.json();
-  if (mandatesData.length === 0) {
+  if (!mandatesData || mandatesData.length === 0) {
     return null;
   }
 

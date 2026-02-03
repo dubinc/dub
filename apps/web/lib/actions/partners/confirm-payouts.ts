@@ -163,14 +163,14 @@ export const confirmPayoutsAction = authActionClient
       throw new Error("Fast settlement is only supported for ACH payment.");
     }
 
+    // if it's a direct debit payment method, we need to check to make sure mandate is valid
     if (DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(paymentMethod.type)) {
-      // check if mandate is valid
       const mandate = await checkPaymentMethodMandate({
         paymentMethodId,
       });
 
       if (!mandate) {
-        // remove the payment method
+        // if mandate is not valid, remove the payment method
         await stripe.paymentMethods.detach(paymentMethodId);
         throw new Error(
           "No active mandate found for this bank account. Please set up a new bank account for payouts under your billing settings page.",
