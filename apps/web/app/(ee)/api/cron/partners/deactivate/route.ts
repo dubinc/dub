@@ -1,0 +1,82 @@
+import { queueDiscountCodeDeletion } from "@/lib/api/discounts/queue-discount-code-deletion";
+import { linkCache } from "@/lib/api/links/cache";
+import { withCron } from "@/lib/cron/with-cron";
+import { sendBatchEmail } from "@dub/email";
+import PartnerDeactivated from "@dub/email/templates/partner-deactivated";
+import { prisma } from "@dub/prisma";
+import * as z from "zod/v4";
+import { logAndRespond } from "../../utils";
+
+const inputSchema = z.object({
+  programId: z.string(),
+  partnerIds: z.array(z.string()),
+});
+
+// POST /api/cron/partners/deactivate - deactivate partners in a program
+export const POST = withCron(async ({ rawBody }) => {
+  const { programId, partnerIds } = inputSchema.parse(JSON.parse(rawBody));
+
+  const programEnrollments = await prisma.programEnrollment.findMany({
+    where: {
+      programId,
+      partnerId: {
+        in: partnerIds,
+      },
+    },
+    include: {
+      partner: true,
+      links: true,
+      discountCodes: true,
+    },
+  });
+
+  // Expire all links in cache
+  const links = programEnrollments.flatMap(({ links }) => links);
+  await linkCache.expireMany(links);
+  console.log("[bulkDeactivatePartners] Expired links in cache.");
+
+  // Queue discount code deletions
+  const discountCodeIds = programEnrollments.flatMap(({ discountCodes }) =>
+    discountCodes.map((dc) => dc.id),
+  );
+  await queueDiscountCodeDeletion(discountCodeIds);
+  console.log("[bulkDeactivatePartners] Queued discount code deletions.");
+
+  // Find the program
+  const program = await prisma.program.findUniqueOrThrow({
+    where: {
+      id: programId,
+    },
+    select: {
+      name: true,
+      slug: true,
+      supportEmail: true,
+    },
+  });
+
+  // Send notification emails
+  const emailResponse = await sendBatchEmail(
+    programEnrollments.map(({ partner }) => ({
+      variant: "notifications",
+      subject: `Your partnership with ${program.name} has been deactivated`,
+      to: partner.email!,
+      replyTo: program.supportEmail || "noreply",
+      react: PartnerDeactivated({
+        partner: {
+          name: partner.name,
+          email: partner.email!,
+        },
+        program: {
+          name: program.name,
+          slug: program.slug,
+        },
+      }),
+    })),
+  );
+
+  console.log("[bulkDeactivatePartners] Sent notification emails.", {
+    emailResponse,
+  });
+
+  return logAndRespond("OK");
+});

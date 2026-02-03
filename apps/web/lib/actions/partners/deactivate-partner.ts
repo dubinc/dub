@@ -21,6 +21,7 @@ export const deactivatePartnerAction = authActionClient
     const programId = getDefaultProgramIdOrThrow(workspace);
 
     await bulkDeactivatePartners({
+      workspaceId: workspace.id,
       programId,
       partnerIds: [partnerId],
       user,
