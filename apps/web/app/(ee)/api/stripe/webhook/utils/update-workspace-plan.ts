@@ -166,7 +166,12 @@ export async function updateWorkspacePlan({
     }
 
     // Deactivate the program if the workspace loses partner access (Business/Enterprise -> Pro/Free)
-    if (wouldLosePartnerAccess(workspace.plan, newPlanName)) {
+    if (
+      wouldLosePartnerAccess({
+        currentPlan: workspace.plan,
+        newPlan: newPlanName,
+      })
+    ) {
       if (workspace.defaultProgramId) {
         await deactivateProgram(workspace.defaultProgramId);
       }

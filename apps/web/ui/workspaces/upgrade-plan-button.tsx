@@ -47,7 +47,10 @@ export function UpgradePlanButton({
   const losesPartnerAccess =
     currentPlan &&
     defaultProgramId &&
-    wouldLosePartnerAccess(currentPlan, selectedPlan.name.toLowerCase());
+    wouldLosePartnerAccess({
+      currentPlan,
+      newPlan: selectedPlan.name.toLowerCase(),
+    });
 
   const performUpgrade = () => {
     setClicked(true);

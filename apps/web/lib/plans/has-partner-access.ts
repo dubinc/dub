@@ -18,10 +18,13 @@ export function planHasPartnerAccess(planName: string): boolean {
  * @param newPlan - The new plan name (null for cancellation)
  * @returns true if the change would result in losing partner access
  */
-export function wouldLosePartnerAccess(
-  currentPlan: string,
-  newPlan: string | null,
-): boolean {
+export function wouldLosePartnerAccess({
+  currentPlan,
+  newPlan,
+}: {
+  currentPlan: string;
+  newPlan: string | null;
+}): boolean {
   const hasCurrentAccess = planHasPartnerAccess(currentPlan);
 
   // If canceling subscription (newPlan is null), they lose access if they currently have it

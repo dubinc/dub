@@ -54,7 +54,9 @@ export default function SubscriptionMenu() {
 
   // Check if canceling would lose partner access
   const losesPartnerAccess =
-    plan && defaultProgramId && wouldLosePartnerAccess(plan, null);
+    plan &&
+    defaultProgramId &&
+    wouldLosePartnerAccess({ currentPlan: plan, newPlan: null });
 
   const { setShowPlanChangeConfirmationModal, PlanChangeConfirmationModal } =
     usePlanChangeConfirmationModal({
