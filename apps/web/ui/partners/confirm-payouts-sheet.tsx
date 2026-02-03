@@ -59,7 +59,6 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-import Stripe from "stripe";
 import useSWR from "swr";
 import { UpgradeRequiredToast } from "../shared/upgrade-required-toast";
 import { ExternalPayoutsIndicator } from "./external-payouts-indicator";
@@ -84,6 +83,8 @@ function ConfirmPayoutsSheetContent() {
     payoutsUsage,
     payoutsLimit,
     payoutFee,
+    payoutFeeWaiverLimit,
+    payoutFeeWaivedUsage,
     fastDirectDebitPayouts,
   } = useWorkspace();
 
@@ -335,7 +336,20 @@ function ConfirmPayoutsSheetContent() {
       ? FAST_ACH_FEE_CENTS
       : 0;
 
-    const fee = Math.round(amount * selectedPaymentMethod.fee + fastAchFee);
+    // Calculate tiered fee with waiver logic
+    const waiverLimit = payoutFeeWaiverLimit ?? 0;
+    const waivedUsage = payoutFeeWaivedUsage ?? 0;
+    const waiverRemaining = Math.max(0, waiverLimit - waivedUsage);
+
+    // Portion of this payout that falls under the waiver (0% fee)
+    const waivedAmount = Math.min(amount, waiverRemaining);
+    // Portion that exceeds the waiver (normal fee rate applies)
+    const feeableAmount = amount - waivedAmount;
+
+    // Fee only applies to the feeable portion
+    const fee = Math.round(
+      feeableAmount * selectedPaymentMethod.fee + fastAchFee,
+    );
     const total = amount + fee;
 
     return {
@@ -345,7 +359,13 @@ function ConfirmPayoutsSheetContent() {
       total,
       fastAchFee,
     };
-  }, [finalEligiblePayouts, selectedPaymentMethod, program?.payoutMode]);
+  }, [
+    finalEligiblePayouts,
+    selectedPaymentMethod,
+    program?.payoutMode,
+    payoutFeeWaiverLimit,
+    payoutFeeWaivedUsage,
+  ]);
 
   const invoiceData = useMemo(() => {
     return [
@@ -492,7 +512,12 @@ function ConfirmPayoutsSheetContent() {
             <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
           ),
         tooltipContent: selectedPaymentMethod
-          ? `${selectedPaymentMethod.fee * 100}% processing fee${(fastAchFee ?? 0) > 0 ? ` + ${currencyFormatter(fastAchFee ?? 0)} Fast ACH fee` : ""}. ${!DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(selectedPaymentMethod.type as Stripe.PaymentMethod.Type) ? " Switch to Direct Debit for a reduced fee." : ""} [Learn more](https://d.to/payouts)`
+          ? buildPayoutFeeTooltip({
+              selectedPaymentMethod,
+              fastAchFee: fastAchFee ?? 0,
+              payoutFeeWaiverLimit: payoutFeeWaiverLimit ?? 0,
+              payoutFeeWaivedUsage: payoutFeeWaivedUsage ?? 0,
+            })
           : undefined,
       },
       {
@@ -983,4 +1008,40 @@ function ConfirmPayoutsButton({
       </div>
     </Popover>
   );
+}
+
+function buildPayoutFeeTooltip({
+  selectedPaymentMethod,
+  fastAchFee,
+  payoutFeeWaiverLimit,
+  payoutFeeWaivedUsage,
+}: {
+  selectedPaymentMethod: Pick<SelectPaymentMethod, "fee" | "type">;
+  fastAchFee: number;
+  payoutFeeWaiverLimit: number;
+  payoutFeeWaivedUsage: number;
+}): string {
+  const feePercentage = selectedPaymentMethod.fee * 100;
+
+  const isWithinWaiver =
+    payoutFeeWaiverLimit > 0 && payoutFeeWaivedUsage < payoutFeeWaiverLimit;
+
+  const fastAchFeeText =
+    fastAchFee > 0 ? ` + ${currencyFormatter(fastAchFee)} Fast ACH fee` : "";
+
+  if (isWithinWaiver) {
+    const waiverLimitFormatted = nFormatter(payoutFeeWaiverLimit / 100);
+
+    return `0% processing fee for the first $${waiverLimitFormatted} payouts, then ${feePercentage}%${fastAchFeeText}. [Learn more](https://d.to/payouts)`;
+  }
+
+  const isDirectDebit = DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(
+    selectedPaymentMethod.type as any,
+  );
+
+  const directDebitSuggestion = isDirectDebit
+    ? ""
+    : " Switch to Direct Debit for a reduced fee.";
+
+  return `${feePercentage}% processing fee${fastAchFeeText}. ${directDebitSuggestion} [Learn more](https://d.to/payouts)`;
 }
