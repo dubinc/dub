@@ -51,6 +51,11 @@ export const verifyCommission = async ({
     query,
   });
 
+  const totalTimeSeconds = (performance.now() - startTime) / 1000;
+  console.log(
+    `[DEBUG] verifyCommission completed in ${totalTimeSeconds.toFixed(2)} seconds`,
+  );
+
   expect(status).toEqual(200);
   expect(commissions).toHaveLength(1);
 
@@ -69,9 +74,4 @@ export const verifyCommission = async ({
   }
 
   expect(commission.earnings).toEqual(expectedEarnings);
-
-  const totalTimeSeconds = (performance.now() - startTime) / 1000;
-  console.log(
-    `[DEBUG] verifyCommission completed in ${totalTimeSeconds.toFixed(2)} seconds`,
-  );
 };
