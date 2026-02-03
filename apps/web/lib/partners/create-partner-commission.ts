@@ -74,10 +74,16 @@ export const createPartnerCommission = async ({
   context,
   skipWorkflow = false,
 }: CreatePartnerCommissionProps) => {
+  const startTime = performance.now();
+  console.log(
+    `[DEBUG] Starting commission creation for partner ${partnerId}, event: ${event}`,
+  );
+
   let earnings = 0;
   let reward: RewardProps | null = null;
   let status: CommissionStatus = "pending";
 
+  const enrollmentStartTime = performance.now();
   const programEnrollment = await getProgramEnrollmentOrThrow({
     partnerId,
     programId,
@@ -90,26 +96,40 @@ export const createPartnerCommission = async ({
       ...(event === "sale" && { saleReward: true }),
     },
   });
+  const enrollmentTime = performance.now() - enrollmentStartTime;
+  console.log(
+    `[DEBUG] Fetched program enrollment in ${enrollmentTime.toFixed(2)}ms`,
+  );
 
   let firstCommission: Pick<
     Commission,
     "rewardId" | "status" | "createdAt"
   > | null = null;
+  let rewardTime = 0;
 
   if (event === "custom") {
     earnings = amount;
     amount = 0;
   } else {
+    const rewardStartTime = performance.now();
     reward = determinePartnerReward({
       event,
       programEnrollment,
       context,
     });
+    rewardTime = performance.now() - rewardStartTime;
+    console.log(
+      `[DEBUG] Determined partner reward in ${rewardTime.toFixed(2)}ms`,
+    );
 
     // if there is no reward, skip commission creation
     if (!reward) {
+      const totalTime = performance.now() - startTime;
       console.log(
         `Partner ${partnerId} has no reward for ${event} event, skipping commission creation...`,
+      );
+      console.log(
+        `[DEBUG] Commission creation skipped (no reward) in ${totalTime.toFixed(2)}ms`,
       );
       return {
         commission: null,
@@ -146,8 +166,12 @@ export const createPartnerCommission = async ({
       if (firstCommission) {
         // if first commission is fraud or canceled, skip commission creation
         if (["fraud", "canceled"].includes(firstCommission.status)) {
+          const totalTime = performance.now() - startTime;
           console.log(
             `Partner ${partnerId} has a first commission that is ${firstCommission.status}, skipping commission creation...`,
+          );
+          console.log(
+            `[DEBUG] Commission creation skipped (fraud/canceled) in ${totalTime.toFixed(2)}ms`,
           );
           return {
             commission: null,
@@ -158,8 +182,12 @@ export const createPartnerCommission = async ({
 
         // for lead events, we need to check if the partner has already been issued a lead reward for this customer
         if (event === "lead") {
+          const totalTime = performance.now() - startTime;
           console.log(
             `Partner ${partnerId} has already been issued a lead reward for this customer ${customerId}, skipping commission creation...`,
+          );
+          console.log(
+            `[DEBUG] Commission creation skipped (duplicate lead) in ${totalTime.toFixed(2)}ms`,
           );
 
           return {
@@ -189,8 +217,12 @@ export const createPartnerCommission = async ({
               typeof originalReward?.maxDuration === "number" &&
               originalReward.maxDuration === 0
             ) {
+              const totalTime = performance.now() - startTime;
               console.log(
                 `Partner ${partnerId} is only eligible for first-sale commissions based on the original reward ${originalReward.id}, skipping commission creation...`,
+              );
+              console.log(
+                `[DEBUG] Commission creation skipped (first-sale only) in ${totalTime.toFixed(2)}ms`,
               );
               return {
                 commission: null,
@@ -205,8 +237,12 @@ export const createPartnerCommission = async ({
           if (typeof reward?.maxDuration === "number") {
             // One-time sale reward (maxDuration === 0)
             if (reward.maxDuration === 0) {
+              const totalTime = performance.now() - startTime;
               console.log(
                 `Partner ${partnerId} is only eligible for first-sale commissions, skipping commission creation...`,
+              );
+              console.log(
+                `[DEBUG] Commission creation skipped (first-sale only) in ${totalTime.toFixed(2)}ms`,
               );
               return {
                 commission: null,
@@ -223,6 +259,7 @@ export const createPartnerCommission = async ({
               );
 
               if (monthsDifference >= reward.maxDuration) {
+                const totalTime = performance.now() - startTime;
                 console.log(
                   `Partner ${partnerId} has reached max duration for ${event} event, skipping commission creation...`,
                   {
@@ -230,6 +267,9 @@ export const createPartnerCommission = async ({
                     rewardMaxDuration: reward.maxDuration,
                     firstCommissionCreatedAt: firstCommission.createdAt,
                   },
+                );
+                console.log(
+                  `[DEBUG] Commission creation skipped (max duration reached) in ${totalTime.toFixed(2)}ms`,
                 );
 
                 return {
@@ -257,6 +297,7 @@ export const createPartnerCommission = async ({
   }
 
   try {
+    const commissionCreateStartTime = performance.now();
     const commission = await prisma.commission.create({
       data: {
         id: createId({ prefix: "cm_" }),
@@ -289,6 +330,10 @@ export const createPartnerCommission = async ({
         },
       },
     });
+    const commissionCreateTime = performance.now() - commissionCreateStartTime;
+    console.log(
+      `[DEBUG] Created commission in database in ${commissionCreateTime.toFixed(2)}ms`,
+    );
 
     console.log(
       `Created a ${event} commission ${commission.id} (${currencyFormatter(commission.earnings, { currency: commission.currency })}) for ${partnerId}: ${prettyPrint(commission)}`,
@@ -395,6 +440,11 @@ export const createPartnerCommission = async ({
             }),
         ]);
       })(),
+    );
+
+    const totalTime = performance.now() - startTime;
+    console.log(
+      `[DEBUG] Commission creation completed in ${totalTime.toFixed(2)}ms (enrollment: ${enrollmentTime.toFixed(2)}ms, reward: ${rewardTime.toFixed(2)}ms, create: ${commissionCreateTime.toFixed(2)}ms)`,
     );
 
     return {
