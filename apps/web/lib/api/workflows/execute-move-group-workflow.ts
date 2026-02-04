@@ -1,4 +1,5 @@
 import { WorkflowConditionAttribute, WorkflowContext } from "@/lib/types";
+import { redis } from "@/lib/upstash/redis";
 import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
 import { prisma } from "@dub/prisma";
 import { Workflow, WorkspaceRole } from "@dub/prisma/client";
@@ -106,11 +107,25 @@ export const executeMoveGroupWorkflow = async ({
     return;
   }
 
-  await movePartnersToGroup({
-    workspaceId,
-    programId,
-    partnerIds: [partnerId],
-    userId: users[0].id,
-    group: newGroup,
-  });
+  // Prevents duplicate moves when a workflow with matching conditions
+  // are triggered by the same partnerMetricsUpdated event.
+  const lockKey = `workflow:moveGroup:${workflow.id}:${programId}:${partnerId}`;
+  const acquired = await redis.set(lockKey, "1", { nx: true, ex: 10 });
+
+  if (!acquired) {
+    console.log(`Partner ${partnerId} move already in progress. Skipping..`);
+    return;
+  }
+
+  try {
+    await movePartnersToGroup({
+      workspaceId,
+      programId,
+      partnerIds: [partnerId],
+      userId: users[0].id,
+      group: newGroup,
+    });
+  } finally {
+    await redis.del(lockKey);
+  }
 };
