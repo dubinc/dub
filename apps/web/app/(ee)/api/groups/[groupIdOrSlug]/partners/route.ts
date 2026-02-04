@@ -122,10 +122,10 @@ export const POST = withWorkspace(
               return {
                 workspaceId: workspace.id,
                 programId,
-                resourceType: "programEnrollment" as const,
+                resourceType: "programEnrollment",
                 resourceId: updatedEnrollment.id,
                 userId: session.user.id,
-                action: "programEnrollment.groupChanged" as const,
+                action: "programEnrollment.groupChanged",
                 changeSet: buildProgramEnrollmentChangeSet({
                   oldEnrollment,
                   newEnrollment: updatedEnrollment,
