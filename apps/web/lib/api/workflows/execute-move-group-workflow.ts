@@ -109,7 +109,7 @@ export const executeMoveGroupWorkflow = async ({
 
   // Prevents duplicate moves when a workflow with matching conditions
   // are triggered by the same partnerMetricsUpdated event.
-  const lockKey = `workflow:moveGroup:${workflow.id}:${programId}:${partnerId}`;
+  const lockKey = `workflow:moveGroup:${programId}:${newGroupId}:${partnerId}`;
   const acquired = await redis.set(lockKey, "1", { nx: true, ex: 10 });
 
   if (!acquired) {
