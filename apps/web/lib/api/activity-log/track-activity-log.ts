@@ -1,29 +1,19 @@
+import {
+  ActivityLogAction,
+  ActivityLogResourceType,
+} from "@/lib/zod/schemas/activity-log";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { prettyPrint } from "@dub/utils";
 import { ChangeSet } from "./build-change-set";
-
-type ResourceType = "referral" | "programEnrollment" | "reward";
-
-type Action =
-  | "referral.created"
-  | "referral.updated"
-  | "referral.qualified"
-  | "referral.unqualified"
-  | "referral.closedWon"
-  | "referral.closedLost"
-  | "programEnrollment.groupChanged"
-  | "reward.created"
-  | "reward.updated"
-  | "reward.deleted";
 
 interface TrackActivityLogInput
   extends Pick<
     Prisma.ActivityLogUncheckedCreateInput,
     "workspaceId" | "programId" | "resourceId" | "userId" | "description"
   > {
-  resourceType: ResourceType;
-  action: Action;
+  resourceType: ActivityLogResourceType;
+  action: ActivityLogAction;
   changeSet?: ChangeSet;
 }
 
