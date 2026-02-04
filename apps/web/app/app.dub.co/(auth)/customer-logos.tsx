@@ -11,7 +11,7 @@ const CUSTOMER_LOGOS: { name: string; src: string; className?: string }[] = [
   {
     name: "Granola",
     src: "https://assets.dub.co/companies/granola.svg",
-    className: "h-6",
+    className: "h-5",
   },
   { name: "Buffer", src: "https://assets.dub.co/companies/buffer.svg" },
   {
