@@ -19,7 +19,15 @@ export const GET = withWorkspace(
     const commonWhere: Prisma.PartnerReferralWhereInput = {
       programId,
       ...(partnerId && groupBy !== "partnerId" && { partnerId }),
-      ...(status && groupBy !== "status" && { status }),
+      ...(groupBy === "status"
+        ? {}
+        : status
+          ? { status }
+          : {
+              status: {
+                notIn: [ReferralStatus.unqualified, ReferralStatus.closedLost],
+              },
+            }),
       ...(search
         ? search.includes("@")
           ? { email: search }

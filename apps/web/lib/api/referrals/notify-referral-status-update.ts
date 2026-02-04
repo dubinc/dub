@@ -3,27 +3,30 @@ import { getCompanyLogoUrl } from "@/ui/referrals/referral-utils";
 import { sendEmail } from "@dub/email";
 import ReferralStatusUpdate from "@dub/email/templates/referral-status-update";
 import { prisma } from "@dub/prisma";
-import { PartnerReferral, ReferralStatus } from "@dub/prisma/client";
+import { PartnerReferral } from "@dub/prisma/client";
 
 export async function notifyReferralStatusUpdate({
   referral,
-  programId,
-  status,
   notes,
 }: {
-  referral: Pick<PartnerReferral, "name" | "email" | "company" | "partnerId">;
-  programId: string;
-  status: ReferralStatus;
+  referral: PartnerReferral;
   notes?: string | null;
 }) {
   const [program, partner] = await Promise.all([
     prisma.program.findUnique({
-      where: { id: programId },
-      select: { name: true, slug: true },
+      where: {
+        id: referral.programId,
+      },
+      select: {
+        name: true,
+        slug: true,
+      },
     }),
 
     prisma.partner.findUnique({
-      where: { id: referral.partnerId },
+      where: {
+        id: referral.partnerId,
+      },
       select: {
         name: true,
         email: true,
@@ -33,7 +36,7 @@ export async function notifyReferralStatusUpdate({
 
   if (!program || !partner) return;
 
-  const statusLabel = ReferralStatusBadges[status].label;
+  const statusLabel = ReferralStatusBadges[referral.status].label;
 
   const emailRes = await sendEmail({
     subject: `Your referral status has been updated to ${statusLabel}`,
@@ -53,8 +56,8 @@ export async function notifyReferralStatusUpdate({
         email: referral.email,
         company: referral.company,
         image: getCompanyLogoUrl(referral.email),
+        status: statusLabel,
       },
-      status: statusLabel,
       notes,
     }),
   });
