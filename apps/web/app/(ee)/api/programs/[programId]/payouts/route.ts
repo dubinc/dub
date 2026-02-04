@@ -7,6 +7,7 @@ import {
   payoutsQuerySchema,
 } from "@/lib/zod/schemas/payouts";
 import { prisma } from "@dub/prisma";
+import { FraudEventStatus, PayoutStatus } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -14,8 +15,15 @@ import * as z from "zod/v4";
 export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   const programId = getDefaultProgramIdOrThrow(workspace);
 
-  const { status, partnerId, invoiceId, sortBy, sortOrder, page, pageSize } =
-    payoutsQuerySchema.parse(searchParams);
+  const isHold = searchParams.status === "hold";
+  const { status: _status, ...restSearchParams } = searchParams;
+
+  let { status, partnerId, invoiceId, sortBy, sortOrder, page, pageSize } =
+    payoutsQuerySchema.parse(isHold ? restSearchParams : searchParams);
+
+  if (isHold) {
+    status = PayoutStatus.pending;
+  }
 
   const program = await getProgramOrThrow({
     workspaceId: workspace.id,
@@ -28,21 +36,19 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
       ...(status && { status }),
       ...(partnerId && { partnerId }),
       ...(invoiceId && { invoiceId }),
-    },
-    include: {
-      partner: {
-        include: {
-          programs: {
-            where: {
-              programId,
-            },
-            select: {
-              tenantId: true,
+      ...(isHold && {
+        programEnrollment: {
+          fraudEventGroups: {
+            some: {
+              status: FraudEventStatus.pending,
             },
           },
         },
-      },
-      user: true,
+      }),
+    },
+    include: {
+      programEnrollment: true,
+      partner: true,
     },
     skip: (page - 1) * pageSize,
     take: pageSize,
@@ -51,23 +57,25 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     },
   });
 
-  const transformedPayouts = payouts.map(({ partner, ...payout }) => {
-    const mode =
-      payout.mode ??
-      getEffectivePayoutMode({
-        payoutMode: program.payoutMode,
-        payoutsEnabledAt: partner.payoutsEnabledAt,
-      });
+  const transformedPayouts = payouts.map(
+    ({ partner, programEnrollment, ...payout }) => {
+      const mode =
+        payout.mode ??
+        getEffectivePayoutMode({
+          payoutMode: program.payoutMode,
+          payoutsEnabledAt: partner.payoutsEnabledAt,
+        });
 
-    return {
-      ...payout,
-      mode,
-      partner: {
-        ...partner,
-        ...partner.programs[0],
-      },
-    };
-  });
+      return {
+        ...payout,
+        mode,
+        partner: {
+          ...partner,
+          tenantId: programEnrollment.tenantId,
+        },
+      };
+    },
+  );
 
   return NextResponse.json(
     z.array(PayoutResponseSchema).parse(transformedPayouts),

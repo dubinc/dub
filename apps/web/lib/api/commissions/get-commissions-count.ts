@@ -121,45 +121,5 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
     { count: 0, amount: 0, earnings: 0 },
   );
 
-  // Calculate hold count (pending/processed commissions for partners with pending fraud events)
-  if (isHold) {
-    counts.hold = counts.all;
-  } else {
-    const holdCount = await prisma.commission.aggregate({
-      where: {
-        earnings: { not: 0 },
-        programId,
-        partnerId,
-        status: { in: [CommissionStatus.pending, CommissionStatus.processed] },
-        type,
-        payoutId,
-        customerId,
-        createdAt: {
-          gte: startDate,
-          lte: endDate,
-        },
-        programEnrollment: {
-          ...(groupId && { groupId }),
-          fraudEventGroups: {
-            some: {
-              status: FraudEventStatus.pending,
-            },
-          },
-        },
-      },
-      _count: { _all: true },
-      _sum: {
-        amount: true,
-        earnings: true,
-      },
-    });
-
-    counts.hold = {
-      count: holdCount._count._all,
-      amount: holdCount._sum?.amount ?? 0,
-      earnings: holdCount._sum?.earnings ?? 0,
-    };
-  }
-
   return counts;
 }
