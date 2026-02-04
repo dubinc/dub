@@ -10,11 +10,9 @@ import { includeProgramEnrollment } from "./include-program-enrollment";
 import { includeTags } from "./include-tags";
 import { propagateBulkLinkChanges } from "./propagate-bulk-link-changes";
 import { updateLinksUsage } from "./update-links-usage";
-import {
-  checkIfLinksHaveTags,
-  checkIfLinksHaveWebhooks,
-  transformLink,
-} from "./utils";
+import { checkIfLinksHaveTags } from "./utils/check-if-links-have-tags";
+import { checkIfLinksHaveWebhooks } from "./utils/check-if-links-have-webhooks";
+import { transformLink } from "./utils/transform-link";
 
 export async function bulkCreateLinks({
   links,
