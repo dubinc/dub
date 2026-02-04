@@ -1,11 +1,12 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { getCommissionsQuerySchema } from "@/lib/zod/schemas/commissions";
 import { prisma } from "@dub/prisma";
-import { CommissionStatus } from "@dub/prisma/client";
+import { CommissionStatus, FraudEventStatus } from "@dub/prisma/client";
 import * as z from "zod/v4";
 
 type CommissionsFilters = z.infer<typeof getCommissionsQuerySchema> & {
   programId: string;
+  isHoldStatus?: boolean;
 };
 
 export async function getCommissions(filters: CommissionsFilters) {
@@ -26,6 +27,7 @@ export async function getCommissions(filters: CommissionsFilters) {
     pageSize,
     sortBy,
     sortOrder,
+    isHoldStatus,
   } = filters;
 
   const { startDate, endDate } = getStartEndDates({
@@ -34,6 +36,27 @@ export async function getCommissions(filters: CommissionsFilters) {
     end,
     timezone,
   });
+
+  const statusFilter = isHoldStatus
+    ? { in: [CommissionStatus.pending, CommissionStatus.processed] }
+    : status ?? {
+        notIn: [
+          CommissionStatus.duplicate,
+          CommissionStatus.fraud,
+          CommissionStatus.canceled,
+        ],
+      };
+
+  const programEnrollmentFilter = {
+    ...(groupId && { groupId }),
+    ...(isHoldStatus && {
+      fraudEventGroups: {
+        some: {
+          status: FraudEventStatus.pending,
+        },
+      },
+    }),
+  };
 
   return await prisma.commission.findMany({
     where: invoiceId
@@ -47,13 +70,7 @@ export async function getCommissions(filters: CommissionsFilters) {
           },
           programId,
           partnerId,
-          status: status ?? {
-            notIn: [
-              CommissionStatus.duplicate,
-              CommissionStatus.fraud,
-              CommissionStatus.canceled,
-            ],
-          },
+          status: statusFilter,
           type,
           customerId,
           payoutId,
@@ -61,10 +78,8 @@ export async function getCommissions(filters: CommissionsFilters) {
             gte: startDate,
             lte: endDate,
           },
-          ...(groupId && {
-            programEnrollment: {
-              groupId,
-            },
+          ...(Object.keys(programEnrollmentFilter).length > 0 && {
+            programEnrollment: programEnrollmentFilter,
           }),
         },
     include: {

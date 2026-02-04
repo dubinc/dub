@@ -8,6 +8,7 @@ import {
   INVOICE_MIN_PAYOUT_AMOUNT_CENTS,
 } from "@/lib/constants/payouts";
 import { exceededLimitError } from "@/lib/exceeded-limit-error";
+import { calculatePayoutFeeWithWaiver } from "@/lib/partners/calculate-payout-fee-with-waiver";
 import {
   CUTOFF_PERIOD,
   CUTOFF_PERIOD_TYPES,
@@ -59,7 +60,6 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-import Stripe from "stripe";
 import useSWR from "swr";
 import { UpgradeRequiredToast } from "../shared/upgrade-required-toast";
 import { ExternalPayoutsIndicator } from "./external-payouts-indicator";
@@ -84,6 +84,8 @@ function ConfirmPayoutsSheetContent() {
     payoutsUsage,
     payoutsLimit,
     payoutFee,
+    payoutFeeWaiverLimit,
+    payoutFeeWaiverUsage,
     fastDirectDebitPayouts,
   } = useWorkspace();
 
@@ -335,7 +337,14 @@ function ConfirmPayoutsSheetContent() {
       ? FAST_ACH_FEE_CENTS
       : 0;
 
-    const fee = Math.round(amount * selectedPaymentMethod.fee + fastAchFee);
+    const { fee } = calculatePayoutFeeWithWaiver({
+      payoutAmount: amount,
+      payoutFeeWaiverLimit: payoutFeeWaiverLimit ?? 0,
+      payoutFeeWaiverUsage: payoutFeeWaiverUsage ?? 0,
+      payoutFee: selectedPaymentMethod.fee,
+      fastAchFee,
+    });
+
     const total = amount + fee;
 
     return {
@@ -345,7 +354,14 @@ function ConfirmPayoutsSheetContent() {
       total,
       fastAchFee,
     };
-  }, [finalEligiblePayouts, selectedPaymentMethod, program?.payoutMode]);
+  }, [
+    eligiblePayoutsCount,
+    finalEligiblePayouts,
+    selectedPaymentMethod,
+    program?.payoutMode,
+    payoutFeeWaiverLimit,
+    payoutFeeWaiverUsage,
+  ]);
 
   const invoiceData = useMemo(() => {
     return [
@@ -492,7 +508,12 @@ function ConfirmPayoutsSheetContent() {
             <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
           ),
         tooltipContent: selectedPaymentMethod
-          ? `${selectedPaymentMethod.fee * 100}% processing fee${(fastAchFee ?? 0) > 0 ? ` + ${currencyFormatter(fastAchFee ?? 0)} Fast ACH fee` : ""}. ${!DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(selectedPaymentMethod.type as Stripe.PaymentMethod.Type) ? " Switch to Direct Debit for a reduced fee." : ""} [Learn more](https://d.to/payouts)`
+          ? buildPayoutFeeTooltip({
+              selectedPaymentMethod,
+              fastAchFee: fastAchFee ?? 0,
+              payoutFeeWaiverLimit: payoutFeeWaiverLimit ?? 0,
+              payoutFeeWaiverUsage: payoutFeeWaiverUsage ?? 0,
+            })
           : undefined,
       },
       {
@@ -521,6 +542,9 @@ function ConfirmPayoutsSheetContent() {
     cutoffPeriod,
     cutoffPeriodOptions,
     selectedCutoffPeriodOption,
+    fastAchFee,
+    payoutFeeWaiverLimit,
+    payoutFeeWaiverUsage,
   ]);
 
   const partnerColumn = useMemo(
@@ -983,4 +1007,40 @@ function ConfirmPayoutsButton({
       </div>
     </Popover>
   );
+}
+
+function buildPayoutFeeTooltip({
+  selectedPaymentMethod,
+  fastAchFee,
+  payoutFeeWaiverLimit,
+  payoutFeeWaiverUsage,
+}: {
+  selectedPaymentMethod: Pick<SelectPaymentMethod, "fee" | "type">;
+  fastAchFee: number;
+  payoutFeeWaiverLimit: number;
+  payoutFeeWaiverUsage: number;
+}): string {
+  const feePercentage = selectedPaymentMethod.fee * 100;
+
+  const isWithinWaiver =
+    payoutFeeWaiverLimit > 0 && payoutFeeWaiverUsage < payoutFeeWaiverLimit;
+
+  const fastAchFeeText =
+    fastAchFee > 0 ? ` + ${currencyFormatter(fastAchFee)} Fast ACH fee` : "";
+
+  if (isWithinWaiver) {
+    const waiverLimitFormatted = nFormatter(payoutFeeWaiverLimit / 100);
+
+    return `0% processing fee for the first $${waiverLimitFormatted} payouts, then ${feePercentage}%${fastAchFeeText}. [Learn more](https://d.to/payouts)`;
+  }
+
+  const isDirectDebit = DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(
+    selectedPaymentMethod.type as any,
+  );
+
+  const directDebitSuggestion = isDirectDebit
+    ? ""
+    : " Switch to Direct Debit for a reduced fee.";
+
+  return `${feePercentage}% processing fee${fastAchFeeText}. ${directDebitSuggestion} [Learn more](https://d.to/payouts)`;
 }

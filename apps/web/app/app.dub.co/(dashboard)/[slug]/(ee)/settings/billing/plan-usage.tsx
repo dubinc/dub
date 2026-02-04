@@ -38,7 +38,7 @@ import {
 } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import Link from "next/link";
-import { CSSProperties, useMemo } from "react";
+import { CSSProperties, ReactNode, useMemo } from "react";
 import { UsageChart } from "./usage-chart";
 
 export default function PlanUsage() {
@@ -55,6 +55,8 @@ export default function PlanUsage() {
     payoutsUsage,
     payoutsLimit,
     payoutFee,
+    payoutFeeWaiverLimit,
+    payoutFeeWaiverUsage,
     domains,
     domainsLimit,
     foldersUsage,
@@ -121,6 +123,33 @@ export default function PlanUsage() {
     }
     return tabs;
   }, [usage, usageLimit, linksUsage, linksLimit, totalLinks]);
+
+  // Display the payout fee in a readable format
+  const payoutFeeDisplay = useMemo((): ReactNode => {
+    if (!plan || payoutFee === undefined) return undefined;
+
+    const hasTieredPricing = payoutFeeWaiverLimit && payoutFeeWaiverLimit > 0;
+    const hasWaiverRemaining =
+      payoutFeeWaiverUsage !== undefined &&
+      payoutFeeWaiverUsage < payoutFeeWaiverLimit!;
+
+    if (hasTieredPricing && hasWaiverRemaining) {
+      const waiverLimitFormatted = nFormatter(payoutFeeWaiverLimit / 100, {
+        full: payoutFeeWaiverLimit < 100000,
+      });
+
+      return (
+        <>
+          <span className="text-neutral-400 line-through">
+            {payoutFee * 100}%
+          </span>{" "}
+          0% for the first ${waiverLimitFormatted}
+        </>
+      );
+    }
+
+    return `${payoutFee * 100}%`;
+  }, [plan, payoutFee, payoutFeeWaiverLimit, payoutFeeWaiverUsage]);
 
   return (
     <div className="rounded-xl border border-neutral-200 bg-white">
@@ -231,11 +260,7 @@ export default function PlanUsage() {
           <UsageCategory
             title="Payout fees"
             icon={CirclePercentage}
-            usage={
-              plan && payoutFee !== undefined
-                ? `${payoutFee * 100}%`
-                : undefined
-            }
+            usage={payoutFeeDisplay}
             href="https://dub.co/help/article/partner-payouts#payout-fees-and-timing"
           />
         </div>
@@ -439,7 +464,7 @@ function UsageTabCard({
 function UsageCategory(data: {
   title: string;
   icon: Icon;
-  usage?: number | string;
+  usage?: number | string | ReactNode;
   usageLimit?: number;
   href?: string;
   unit?: string;
@@ -465,9 +490,7 @@ function UsageCategory(data: {
         {usage || usage === 0 ? (
           <p>
             {typeof usage === "number"
-              ? `${unit ?? ""}${nFormatter(usage / (unit === "$" ? 100 : 1), {
-                  full: true,
-                })}`
+              ? `${unit ?? ""}${nFormatter(usage / (unit === "$" ? 100 : 1), { full: true })}`
               : usage}
           </p>
         ) : (
