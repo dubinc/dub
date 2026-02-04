@@ -11,10 +11,10 @@ export async function deactivateProgram(programId: string) {
     prisma.program.update({
       where: {
         id: programId,
-        deactivatedAt: null,
       },
       data: {
         deactivatedAt: new Date(),
+        messagingEnabledAt: null,
       },
     }),
 
