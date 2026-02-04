@@ -20,6 +20,7 @@ export async function getPartners(filters: PartnerFilters) {
     sortOrder,
     programId,
     groupId,
+    managerUserId,
   } = filters;
 
   const partners = await prisma.programEnrollment.findMany({
@@ -33,6 +34,9 @@ export async function getPartners(filters: PartnerFilters) {
       }),
       status,
       groupId,
+      ...(managerUserId && {
+        managerUserId: managerUserId === "none" ? null : managerUserId,
+      }),
       ...(country || search || email
         ? {
             partner: {
@@ -58,6 +62,14 @@ export async function getPartners(filters: PartnerFilters) {
         },
       },
       links: true,
+      managerUser: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          image: true,
+        },
+      },
     },
     take: pageSize,
     skip: (page - 1) * pageSize,
@@ -66,13 +78,16 @@ export async function getPartners(filters: PartnerFilters) {
     },
   });
 
-  return partners.map(({ partner, links, ...programEnrollment }) => ({
-    ...partner,
-    ...programEnrollment,
-    id: partner.id,
-    createdAt: new Date(programEnrollment.createdAt),
-    links,
-    netRevenue:
-      programEnrollment.totalSaleAmount - programEnrollment.totalCommissions,
-  }));
+  return partners.map(
+    ({ partner, links, managerUser, ...programEnrollment }) => ({
+      ...partner,
+      ...programEnrollment,
+      id: partner.id,
+      createdAt: new Date(programEnrollment.createdAt),
+      links,
+      managerUser: managerUser || null,
+      netRevenue:
+        programEnrollment.totalSaleAmount - programEnrollment.totalCommissions,
+    }),
+  );
 }

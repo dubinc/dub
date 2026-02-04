@@ -1,20 +1,28 @@
 import useGroups from "@/lib/swr/use-groups";
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
+import useWorkspaceUsers from "@/lib/swr/use-workspace-users";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { ProgramEnrollmentStatus } from "@dub/prisma/client";
 import { useRouterStuff } from "@dub/ui";
-import { CircleDotted, FlagWavy, Users6 } from "@dub/ui/icons";
-import { cn, COUNTRIES, nFormatter } from "@dub/utils";
+import {
+  CircleDotted,
+  CircleDottedUser,
+  FlagWavy,
+  UserArrowRight,
+  Users6,
+} from "@dub/ui/icons";
+import { cn, COUNTRIES, nFormatter, OG_AVATAR_URL } from "@dub/utils";
 import { useMemo } from "react";
 
 export function usePartnerFilters(
   extraSearchParams: Record<string, string>,
-  enabledFilters: ("groupId" | "status" | "country")[] = [
+  enabledFilters: ("groupId" | "status" | "country" | "managerUserId")[] = [
     "groupId",
     "status",
     "country",
+    "managerUserId",
   ],
 ) {
   const { searchParamsObj, queryParams } = useRouterStuff();
@@ -58,6 +66,20 @@ export function usePartnerFilters(
     groupBy: "groupId",
     status,
     enabled: enabledFilters.includes("groupId"),
+  });
+
+  const { users } = useWorkspaceUsers();
+
+  const { partnersCount: assigneeCount } = usePartnersCount<
+    | {
+        managerUserId: string | null;
+        _count: number;
+      }[]
+    | undefined
+  >({
+    groupBy: "managerUserId",
+    status,
+    enabled: enabledFilters.includes("managerUserId"),
   });
 
   const filters = useMemo(
@@ -147,12 +169,71 @@ export function usePartnerFilters(
             },
           ]
         : []),
+      ...(enabledFilters.includes("managerUserId")
+        ? [
+            {
+              key: "managerUserId",
+              icon: UserArrowRight,
+              label: "Assignee",
+              getOptionIcon: (value: string) =>
+                value === "none" ? (
+                  <CircleDottedUser className="size-4 shrink-0 text-neutral-400" />
+                ) : (
+                  <img
+                    alt=""
+                    src={
+                      users?.find((u) => u.id === value)?.image ||
+                      `${OG_AVATAR_URL}${value}`
+                    }
+                    className="size-4 shrink-0 rounded-full"
+                  />
+                ),
+              getOptionLabel: (value: string) =>
+                value === "none"
+                  ? "No assignee"
+                  : users?.find((u) => u.id === value)?.name ||
+                    users?.find((u) => u.id === value)?.email ||
+                    "Unknown",
+              options:
+                assigneeCount && users
+                  ? assigneeCount.map(({ managerUserId, _count }) => {
+                      if (!managerUserId) {
+                        return {
+                          value: "none",
+                          label: "No assignee",
+                          icon: (
+                            <CircleDottedUser className="size-4 shrink-0 text-neutral-400" />
+                          ),
+                          right: nFormatter(_count || 0, { full: true }),
+                        };
+                      }
+                      const user = users.find((u) => u.id === managerUserId);
+                      return {
+                        value: managerUserId,
+                        label: user?.name || user?.email || "Unknown",
+                        icon: (
+                          <img
+                            alt={user?.name || ""}
+                            src={
+                              user?.image ||
+                              `${OG_AVATAR_URL}${user?.name || managerUserId}`
+                            }
+                            className="size-4 shrink-0 rounded-full"
+                          />
+                        ),
+                        right: nFormatter(_count || 0, { full: true }),
+                      };
+                    })
+                  : null,
+            },
+          ]
+        : []),
     ],
-    [groupsCount, groups, statusCount, countriesCount],
+    [groupsCount, groups, statusCount, countriesCount, assigneeCount, users],
   );
 
   const activeFilters = useMemo(() => {
-    const { groupId, status, country } = searchParamsObj;
+    const { groupId, status, country, managerUserId } = searchParamsObj;
 
     return [
       ...(enabledFilters.includes("groupId") && groupId
@@ -163,6 +244,9 @@ export function usePartnerFilters(
         : []),
       ...(enabledFilters.includes("country") && country
         ? [{ key: "country", value: country }]
+        : []),
+      ...(enabledFilters.includes("managerUserId") && managerUserId
+        ? [{ key: "managerUserId", value: managerUserId }]
         : []),
     ];
   }, [searchParamsObj]);
@@ -182,7 +266,7 @@ export function usePartnerFilters(
 
   const onRemoveAll = () =>
     queryParams({
-      del: ["status", "country", "groupId", "search"],
+      del: ["status", "country", "groupId", "managerUserId", "search"],
     });
 
   const searchQuery = useMemo(

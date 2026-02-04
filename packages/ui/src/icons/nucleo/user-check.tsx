@@ -2,11 +2,7 @@ import { SVGProps } from "react";
 
 export function UserCheck(props: SVGProps<SVGSVGElement>) {
   return (
-    <svg
-      viewBox="0 0 14 14"
-      xmlns="http://www.w3.org/2000/svg"
-      {...props}
-    >
+    <svg viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg" {...props}>
       <g fill="currentColor" clipPath="url(#user-check-clip)">
         <path
           d="M7.00022 5.63911C8.18166 5.63911 9.13911 4.68166 9.13911 3.50022C9.13911 2.31877 8.18166 1.36133 7.00022 1.36133C5.81877 1.36133 4.86133 2.31877 4.86133 3.50022C4.86133 4.68166 5.81877 5.63911 7.00022 5.63911Z"

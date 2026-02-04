@@ -10,11 +10,13 @@ export async function approvePartnerEnrollment({
   partnerId,
   userId,
   groupId,
+  managerUserId,
 }: {
   programId: string;
   partnerId: string;
   userId: string;
   groupId?: string | null;
+  managerUserId?: string | null;
 }) {
   const program = await prisma.program.findUniqueOrThrow({
     where: {
@@ -51,6 +53,7 @@ export async function approvePartnerEnrollment({
       leadRewardId: group.leadRewardId,
       saleRewardId: group.saleRewardId,
       discountId: group.discountId,
+      ...(managerUserId !== undefined && { managerUserId }),
     },
     include: {
       partner: true,
