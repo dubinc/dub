@@ -39,7 +39,7 @@ const expectValidSaleResponse = (
   });
 };
 
-describe("POST /track/sale", async () => {
+describe.concurrent("POST /track/sale", async () => {
   const h = new IntegrationHarness();
   const { http } = await h.init();
 
@@ -79,48 +79,54 @@ describe("POST /track/sale", async () => {
 
   test("track a sale with regular vs premium product ID (should create the right commission)", async () => {
     const regularInvoiceId = `INV_${randomId()}`;
-    const response1 = await http.post<TrackSaleResponse>({
-      path: "/track/sale",
-      body: {
-        ...sale,
-        amount: 2000,
-        customerExternalId: E2E_CUSTOMER_EXTERNAL_ID_2,
-        invoiceId: regularInvoiceId,
-        metadata: {
-          productId: "regularProductId",
-        },
-      },
-    });
-    expect(response1.status).toEqual(200);
-
     const premiumInvoiceId = `INV_${randomId()}`;
-    const response2 = await http.post<TrackSaleResponse>({
-      path: "/track/sale",
-      body: {
-        ...sale,
-        amount: 3000,
-        customerExternalId: E2E_CUSTOMER_EXTERNAL_ID_2,
-        invoiceId: premiumInvoiceId,
-        metadata: {
-          productId: "premiumProductId",
+
+    const [response1, response2] = await Promise.all([
+      http.post<TrackSaleResponse>({
+        path: "/track/sale",
+        body: {
+          ...sale,
+          amount: 2000,
+          customerExternalId: E2E_CUSTOMER_EXTERNAL_ID_2,
+          invoiceId: regularInvoiceId,
+          metadata: {
+            productId: "regularProductId",
+          },
         },
-      },
-    });
+      }),
+
+      http.post<TrackSaleResponse>({
+        path: "/track/sale",
+        body: {
+          ...sale,
+          amount: 3000,
+          customerExternalId: E2E_CUSTOMER_EXTERNAL_ID_2,
+          invoiceId: premiumInvoiceId,
+          metadata: {
+            productId: "premiumProductId",
+          },
+        },
+      }),
+    ]);
+
+    expect(response1.status).toEqual(200);
     expect(response2.status).toEqual(200);
 
-    await verifyCommission({
-      http,
-      invoiceId: regularInvoiceId,
-      expectedAmount: response1.data.sale?.amount!,
-      expectedEarnings: E2E_SALE_REWARD.amountInCents,
-    });
+    await Promise.all([
+      verifyCommission({
+        http,
+        invoiceId: regularInvoiceId,
+        expectedAmount: response1.data.sale?.amount!,
+        expectedEarnings: E2E_SALE_REWARD.amountInCents,
+      }),
 
-    await verifyCommission({
-      http,
-      invoiceId: premiumInvoiceId,
-      expectedAmount: response2.data.sale?.amount!,
-      expectedEarnings: E2E_SALE_REWARD.modifiers[0].amountInCents!,
-    });
+      verifyCommission({
+        http,
+        invoiceId: premiumInvoiceId,
+        expectedAmount: response2.data.sale?.amount!,
+        expectedEarnings: E2E_SALE_REWARD.modifiers[0].amountInCents!,
+      }),
+    ]);
   });
 
   test("track a sale with an externalId that does not exist (should return null customer and sale)", async () => {
@@ -257,48 +263,52 @@ describe("POST /track/sale", async () => {
     const smallSaleInvoiceId = `INV_${randomId()}`;
     const smallSaleAmount = 10000; // $100.00
 
-    const response1 = await http.post<TrackSaleResponse>({
-      path: "/track/sale",
-      body: {
-        ...sale,
-        amount: smallSaleAmount,
-        customerExternalId: E2E_CUSTOMER_EXTERNAL_ID_2,
-        invoiceId: smallSaleInvoiceId,
-      },
-    });
-
-    expect(response1.status).toEqual(200);
-    expect(response1.data.sale?.amount).toEqual(smallSaleAmount);
-
     // Test with a large sale amount
     const largeSaleInvoiceId = `INV_${randomId()}`;
     const largeSaleAmount = 20000; // $200.00
 
-    const response2 = await http.post<TrackSaleResponse>({
-      path: "/track/sale",
-      body: {
-        ...sale,
-        amount: largeSaleAmount,
-        customerExternalId: E2E_CUSTOMER_EXTERNAL_ID_2,
-        invoiceId: largeSaleInvoiceId,
-      },
-    });
+    const [response1, response2] = await Promise.all([
+      http.post<TrackSaleResponse>({
+        path: "/track/sale",
+        body: {
+          ...sale,
+          amount: smallSaleAmount,
+          customerExternalId: E2E_CUSTOMER_EXTERNAL_ID_2,
+          invoiceId: smallSaleInvoiceId,
+        },
+      }),
+
+      http.post<TrackSaleResponse>({
+        path: "/track/sale",
+        body: {
+          ...sale,
+          amount: largeSaleAmount,
+          customerExternalId: E2E_CUSTOMER_EXTERNAL_ID_2,
+          invoiceId: largeSaleInvoiceId,
+        },
+      }),
+    ]);
+
+    expect(response1.status).toEqual(200);
+    expect(response1.data.sale?.amount).toEqual(smallSaleAmount);
 
     expect(response2.status).toEqual(200);
     expect(response2.data.sale?.amount).toEqual(largeSaleAmount);
 
-    await verifyCommission({
-      http,
-      invoiceId: smallSaleInvoiceId,
-      expectedAmount: response1.data.sale?.amount!,
-      expectedEarnings: E2E_SALE_REWARD.amountInCents,
-    });
+    await Promise.all([
+      verifyCommission({
+        http,
+        invoiceId: smallSaleInvoiceId,
+        expectedAmount: response1.data.sale?.amount!,
+        expectedEarnings: E2E_SALE_REWARD.amountInCents,
+      }),
 
-    await verifyCommission({
-      http,
-      invoiceId: largeSaleInvoiceId,
-      expectedAmount: response2.data.sale?.amount!,
-      expectedEarnings: E2E_SALE_REWARD.modifiers[1].amountInCents!,
-    });
+      verifyCommission({
+        http,
+        invoiceId: largeSaleInvoiceId,
+        expectedAmount: response2.data.sale?.amount!,
+        expectedEarnings: E2E_SALE_REWARD.modifiers[1].amountInCents!,
+      }),
+    ]);
   });
 });
