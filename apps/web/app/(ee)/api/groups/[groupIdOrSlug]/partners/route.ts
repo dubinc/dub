@@ -113,6 +113,7 @@ export const POST = withWorkspace(
               },
             });
 
+          // Build activity log inputs
           const activityLogInputs = updatedProgramEnrollments.map(
             (updatedEnrollment) => {
               const oldEnrollment = programEnrollments.find(
@@ -122,10 +123,10 @@ export const POST = withWorkspace(
               return {
                 workspaceId: workspace.id,
                 programId,
-                resourceType: "programEnrollment",
+                resourceType: "programEnrollment" as const,
                 resourceId: updatedEnrollment.id,
                 userId: session.user.id,
-                action: "programEnrollment.groupChanged",
+                action: "programEnrollment.groupChanged" as const,
                 changeSet: buildProgramEnrollmentChangeSet({
                   oldEnrollment,
                   newEnrollment: updatedEnrollment,
