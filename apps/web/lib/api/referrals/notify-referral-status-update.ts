@@ -56,7 +56,7 @@ export async function notifyReferralStatusUpdate({
         email: referral.email,
         company: referral.company,
         image: getCompanyLogoUrl(referral.email),
-        status: referral.status,
+        status: statusLabel,
       },
       notes,
     }),
