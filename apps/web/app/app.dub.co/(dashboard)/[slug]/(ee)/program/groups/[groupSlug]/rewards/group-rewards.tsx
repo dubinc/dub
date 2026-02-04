@@ -25,6 +25,24 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
+const REWARD_EVENT_DESCRIPTIONS: Record<
+  EventType,
+  { title: string; description: string }
+> = {
+  sale: {
+    title: "Sale reward",
+    description: "Reward when revenue is generated.",
+  },
+  lead: {
+    title: "Lead reward",
+    description: "Reward for sign ups or demos.",
+  },
+  click: {
+    title: "Click reward",
+    description: "Reward for traffic and reach.",
+  },
+};
+
 export function GroupRewards() {
   const { group, loading } = useGroup();
   const { searchParams } = useRouterStuff();
@@ -157,18 +175,23 @@ const RewardItem = ({
         </div>
         <div className="flex flex-1 flex-col justify-between gap-y-4 md:flex-row md:items-center">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-normal">
-              {reward ? (
+            {reward ? (
+              <span className="text-sm font-normal">
                 <ProgramRewardDescription
                   reward={reward}
                   amountClassName="text-blue-600"
                 />
-              ) : (
-                <span className="text-sm font-normal text-neutral-600">
-                  No {event} reward configured
+              </span>
+            ) : (
+              <div className="flex flex-col">
+                <span className="text-sm font-medium text-neutral-900">
+                  {REWARD_EVENT_DESCRIPTIONS[event].title}
                 </span>
-              )}
-            </span>
+                <span className="text-sm font-normal text-neutral-500">
+                  {REWARD_EVENT_DESCRIPTIONS[event].description}
+                </span>
+              </div>
+            )}
           </div>
 
           {reward ? (

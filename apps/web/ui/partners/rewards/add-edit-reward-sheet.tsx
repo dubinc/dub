@@ -31,8 +31,10 @@ import {
   Sheet,
   Tooltip,
   TooltipContent,
+  useLocalStorage,
   useRouterStuff,
 } from "@dub/ui";
+import { CursorRays, InvoiceDollar, UserPlus } from "@dub/ui/icons";
 import { capitalize, cn, pluralize } from "@dub/utils";
 import { motion } from "motion/react";
 import { useAction } from "next-safe-action/hooks";
@@ -367,6 +369,7 @@ function RewardSheetContent({
         </div>
 
         <div className="flex flex-1 flex-col overflow-y-auto p-6">
+          {!reward && <RewardHelperBlock event={event} />}
           <RewardSheetCard
             title={
               <div className="w-full">
@@ -607,6 +610,78 @@ function RewardSheetContent({
         </div>
       </form>
     </FormProvider>
+  );
+}
+
+const REWARD_HELPER_CONTENT: Record<
+  EventType,
+  {
+    icon: typeof InvoiceDollar;
+    title: string;
+    description: string;
+  }
+> = {
+  sale: {
+    icon: InvoiceDollar,
+    title: "Sale rewards",
+    description:
+      "Reward when revenue is generated. Best for partners, creators, and long term partnerships.",
+  },
+  lead: {
+    icon: UserPlus,
+    title: "Lead rewards",
+    description:
+      "Reward for sign ups or demos. Best for B2B, demos, waitlists, or longer sales cycles.",
+  },
+  click: {
+    icon: CursorRays,
+    title: "Click rewards",
+    description:
+      "Reward for traffic and reach. Best for publishers and trusted partners only.",
+  },
+};
+
+function RewardHelperBlock({ event }: { event: EventType }) {
+  const [dismissed, setDismissed] = useLocalStorage<boolean>(
+    `reward-helper-${event}-dismissed`,
+    false,
+  );
+
+  const content = REWARD_HELPER_CONTENT[event];
+  const Icon = content.icon;
+
+  return (
+    <motion.div
+      animate={
+        dismissed
+          ? { opacity: 0, height: 0, marginBottom: 0 }
+          : { opacity: 1, height: "auto", marginBottom: 16 }
+      }
+      initial={false}
+      className="overflow-hidden"
+      inert={dismissed}
+    >
+      <div className="relative flex items-start gap-3 rounded-lg border border-neutral-200 bg-neutral-50 p-4">
+        <div className="flex size-8 shrink-0 items-center justify-center rounded-md border border-neutral-200 bg-white">
+          <Icon className="size-4 text-neutral-600" />
+        </div>
+        <div className="flex flex-1 flex-col gap-1 pr-6">
+          <span className="text-sm font-medium text-neutral-900">
+            {content.title}
+          </span>
+          <span className="text-sm text-neutral-500">
+            {content.description}
+          </span>
+        </div>
+        <button
+          type="button"
+          className="absolute right-3 top-3 flex size-6 shrink-0 items-center justify-center rounded-md transition-colors hover:bg-neutral-200"
+          onClick={() => setDismissed(true)}
+        >
+          <X className="size-3.5 text-neutral-400" />
+        </button>
+      </div>
+    </motion.div>
   );
 }
 

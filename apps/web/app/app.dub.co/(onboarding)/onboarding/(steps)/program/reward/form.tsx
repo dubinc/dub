@@ -18,12 +18,29 @@ const DEFAULT_REWARD_TYPES = [
   {
     key: "sale",
     label: "Sale",
-    description: "For purchases",
+    description: "Paid revenue",
+    mostCommon: true,
   },
   {
     key: "lead",
     label: "Lead",
-    description: "For sign ups",
+    description: "Sign ups and demos",
+    mostCommon: false,
+  },
+] as const;
+
+const PAYOUT_MODELS = [
+  {
+    key: "percentage",
+    label: "Percentage",
+    description: "Revenue based",
+    mostCommon: true,
+  },
+  {
+    key: "flat",
+    label: "Flat",
+    description: "Fixed amount",
+    mostCommon: false,
   },
 ] as const;
 
@@ -99,52 +116,60 @@ export function Form() {
         </h2>
 
         <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-          {DEFAULT_REWARD_TYPES.map(({ key, label, description }) => {
-            const isSelected = key === defaultRewardType;
+          {DEFAULT_REWARD_TYPES.map(
+            ({ key, label, description, mostCommon }) => {
+              const isSelected = key === defaultRewardType;
 
-            return (
-              <label
-                key={key}
-                className={cn(
-                  "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600 hover:bg-neutral-50",
-                  "transition-all duration-150",
-                  isSelected &&
-                    "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
-                )}
-              >
-                <input
-                  type="radio"
-                  value={key}
-                  className="hidden"
-                  checked={isSelected}
-                  onChange={() => {
-                    setValue("defaultRewardType", key, {
-                      shouldDirty: true,
-                    });
+              return (
+                <div key={key} className="flex flex-col items-center">
+                  <label
+                    className={cn(
+                      "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600 hover:bg-neutral-50",
+                      "transition-all duration-150",
+                      isSelected &&
+                        "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
+                    )}
+                  >
+                    <input
+                      type="radio"
+                      value={key}
+                      className="hidden"
+                      checked={isSelected}
+                      onChange={() => {
+                        setValue("defaultRewardType", key, {
+                          shouldDirty: true,
+                        });
 
-                    if (key === "lead") {
-                      setValue("type", "flat", { shouldDirty: true });
-                      setValue("maxDuration", 0, { shouldDirty: true });
-                    }
-                  }}
-                />
-                <div className="flex grow flex-col text-sm">
-                  <span className="text-sm font-semibold text-neutral-900">
-                    {label}
-                  </span>
-                  <span className="text-sm font-normal text-neutral-600">
-                    {description}
-                  </span>
-                </div>
-                <CircleCheckFill
-                  className={cn(
-                    "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
-                    isSelected && "scale-100 opacity-100",
+                        if (key === "lead") {
+                          setValue("type", "flat", { shouldDirty: true });
+                          setValue("maxDuration", 0, { shouldDirty: true });
+                        }
+                      }}
+                    />
+                    <div className="flex grow flex-col text-sm">
+                      <span className="text-sm font-semibold text-neutral-900">
+                        {label}
+                      </span>
+                      <span className="text-sm font-normal text-neutral-600">
+                        {description}
+                      </span>
+                    </div>
+                    <CircleCheckFill
+                      className={cn(
+                        "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
+                        isSelected && "scale-100 opacity-100",
+                      )}
+                    />
+                  </label>
+                  {mostCommon && (
+                    <span className="mt-1.5 text-xs text-neutral-400">
+                      Most common
+                    </span>
                   )}
-                />
-              </label>
-            );
-          })}
+                </div>
+              );
+            },
+          )}
         </div>
       </div>
 
@@ -166,51 +191,60 @@ export function Form() {
                       const isSelected = value === commissionStructure;
 
                       return (
-                        <label
+                        <div
                           key={value}
-                          className={cn(
-                            "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600 hover:bg-neutral-50",
-                            "transition-all duration-150",
-                            isSelected &&
-                              "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
-                          )}
+                          className="flex flex-col items-center"
                         >
-                          <input
-                            type="radio"
-                            value={value}
-                            className="hidden"
-                            checked={isSelected}
-                            onChange={(e) => {
-                              if (value === "one-off") {
-                                setCommissionStructure("one-off");
-                                setValue("maxDuration", 0, {
-                                  shouldValidate: true,
-                                });
-                              }
-
-                              if (value === "recurring") {
-                                setCommissionStructure("recurring");
-                                setValue("maxDuration", 12, {
-                                  shouldValidate: true,
-                                });
-                              }
-                            }}
-                          />
-                          <div className="flex grow flex-col text-sm">
-                            <span className="text-sm font-semibold text-neutral-900">
-                              {label}
-                            </span>
-                            <span className="text-sm font-normal text-neutral-600">
-                              {shortDescription}
-                            </span>
-                          </div>
-                          <CircleCheckFill
+                          <label
                             className={cn(
-                              "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
-                              isSelected && "scale-100 opacity-100",
+                              "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600 hover:bg-neutral-50",
+                              "transition-all duration-150",
+                              isSelected &&
+                                "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
                             )}
-                          />
-                        </label>
+                          >
+                            <input
+                              type="radio"
+                              value={value}
+                              className="hidden"
+                              checked={isSelected}
+                              onChange={() => {
+                                if (value === "one-off") {
+                                  setCommissionStructure("one-off");
+                                  setValue("maxDuration", 0, {
+                                    shouldValidate: true,
+                                  });
+                                }
+
+                                if (value === "recurring") {
+                                  setCommissionStructure("recurring");
+                                  setValue("maxDuration", 12, {
+                                    shouldValidate: true,
+                                  });
+                                }
+                              }}
+                            />
+                            <div className="flex grow flex-col text-sm">
+                              <span className="text-sm font-semibold text-neutral-900">
+                                {label}
+                              </span>
+                              <span className="text-sm font-normal text-neutral-600">
+                                {shortDescription}
+                              </span>
+                            </div>
+                            <CircleCheckFill
+                              className={cn(
+                                "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
+                                isSelected && "scale-100 opacity-100",
+                              )}
+                            />
+                          </label>
+                          {value === "one-off" && (
+                            <span className="mt-1.5 text-xs text-neutral-400">
+                              Most common
+                            </span>
+                          )}
+                        </div>
                       );
                     },
                   )}
@@ -249,23 +283,69 @@ export function Form() {
               )}
 
             {defaultRewardType === "sale" && (
-              <label className="space-y-2">
-                <span className="text-content-emphasis block text-sm font-semibold">
+              <div className="space-y-2">
+                <h2 className="text-content-emphasis text-sm font-semibold">
                   Payout model
-                </span>
-                <select
-                  {...register("type")}
-                  className="block w-full rounded-md border border-neutral-300 bg-white py-2 pl-3 pr-10 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500"
-                >
-                  <option value="flat">Flat</option>
-                  <option value="percentage">Percentage</option>
-                </select>
-              </label>
+                </h2>
+                <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+                  {PAYOUT_MODELS.map(
+                    ({ key, label, description, mostCommon }) => {
+                      const isSelected = key === type;
+
+                      return (
+                        <div
+                          key={key}
+                          className="flex flex-col items-center"
+                        >
+                          <label
+                            className={cn(
+                              "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600 hover:bg-neutral-50",
+                              "transition-all duration-150",
+                              isSelected &&
+                                "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
+                            )}
+                          >
+                            <input
+                              type="radio"
+                              value={key}
+                              className="hidden"
+                              checked={isSelected}
+                              onChange={() =>
+                                setValue("type", key, { shouldDirty: true })
+                              }
+                            />
+                            <div className="flex grow flex-col text-sm">
+                              <span className="text-sm font-semibold text-neutral-900">
+                                {label}
+                              </span>
+                              <span className="text-sm font-normal text-neutral-600">
+                                {description}
+                              </span>
+                            </div>
+                            <CircleCheckFill
+                              className={cn(
+                                "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
+                                isSelected && "scale-100 opacity-100",
+                              )}
+                            />
+                          </label>
+                          {mostCommon && (
+                            <span className="mt-1.5 text-xs text-neutral-400">
+                              Most common
+                            </span>
+                          )}
+                        </div>
+                      );
+                    },
+                  )}
+                </div>
+              </div>
             )}
 
             <label className="space-y-2">
               <span className="text-content-emphasis block text-sm font-semibold">
-                Amount per {defaultRewardType}
+                {type === "percentage" ? "Percentage" : "Amount"} per{" "}
+                {defaultRewardType}
               </span>
               <div className="relative rounded-md shadow-sm">
                 <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
