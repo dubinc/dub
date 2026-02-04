@@ -53,17 +53,12 @@ export default function PartnerDeactivated({
             </Section>
 
             <Heading className="mx-0 p-0 text-lg font-medium text-neutral-600">
-              {programDeactivated
-                ? `${program.name} has deactivated their program`
-                : `${program.name} has deactivated your partnership`}
+              {program.name} has deactivated{" "}
+              {programDeactivated ? "their program" : "your partnership"}
             </Heading>
 
             {programDeactivated ? (
               <>
-                <Text className="text-sm leading-6 text-neutral-600">
-                  Hello {partner.name},
-                </Text>
-
                 <Text className="text-sm leading-6 text-neutral-600">
                   We're reaching out to let you know that {program.name} has
                   deactivated their partner program.
@@ -72,13 +67,6 @@ export default function PartnerDeactivated({
                 <Text className="text-sm leading-6 text-neutral-600">
                   As a result, any {program.name} links you were sharing are now
                   disabled and will no longer generate new commissions.
-                </Text>
-
-                <Text className="text-sm leading-6 text-neutral-600">
-                  Any commissions earned before the program was deactivated will
-                  still be paid out. If you have pending commissions that are
-                  approved, those payouts will continue to be processed as
-                  usual.
                 </Text>
 
                 <Text className="text-sm leading-6 text-neutral-600">
@@ -102,8 +90,8 @@ export default function PartnerDeactivated({
             ) : (
               <>
                 <Text className="text-sm leading-6 text-neutral-600">
-                  Hello {partner.name}, your partnership with the {program.name}{" "}
-                  program has been deactivated
+                  Hello {partner.name}, {program.name} has deactivated your
+                  partnership with their program
                   {deactivatedReason ? (
                     <span className="font-bold">{` ${deactivatedReason}`}</span>
                   ) : (

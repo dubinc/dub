@@ -3,7 +3,6 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Button, Modal } from "@dub/ui";
 import { TriangleWarning } from "@dub/ui/icons";
-import Link from "next/link";
 import {
   Dispatch,
   SetStateAction,
@@ -12,6 +11,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { Markdown } from "../shared/markdown";
 
 function PlanChangeConfirmationModal({
   showPlanChangeConfirmationModal,
@@ -43,25 +43,14 @@ function PlanChangeConfirmationModal({
           </p>
         </div>
 
-        <ul className="list-disc space-y-1.5 pl-5 text-sm text-neutral-600">
-          <li>Your partner program will be deactivated and access removed</li>
-          <li>Partner links will stop tracking new activity</li>
-          <li>Partners will be notified automatically</li>
-          <li>
-            Any{" "}
-            <Link
-              href={`/${slug}/program/payouts?status=pending`}
-              className="font-medium text-neutral-900 underline underline-offset-4 hover:text-neutral-600"
-            >
-              pending payouts
-            </Link>{" "}
-            will need to be resolved
-          </li>
-          <li>
-            To access your partner program in the future, you will need to
-            upgrade
-          </li>
-        </ul>
+        <Markdown className="list-decimal">
+          {[
+            "- You will lose access to your partner program.",
+            "- Your partner program will be deactivated and partners will be notified automatically.",
+            "- Partner links will stop tracking new activity.",
+            `- Any [pending payouts](/${slug}/program/payouts?status=pending) will remain a legal liability until they are resolved.`,
+          ].join("\n")}
+        </Markdown>
       </div>
 
       <div className="flex items-center justify-end gap-2 border-t border-neutral-200 px-4 py-5 sm:px-6">
