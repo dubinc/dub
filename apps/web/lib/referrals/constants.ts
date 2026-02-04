@@ -57,7 +57,7 @@ export const REFERRAL_STATUS_TRANSITIONS: Record<
   ReferralStatus,
   readonly ReferralStatus[]
 > = {
-  pending: ["qualified", "closedLost"],
+  pending: ["qualified", "closedLost", "unqualified"],
   qualified: ["closedWon", "closedLost"],
   closedWon: [],
   closedLost: [],
