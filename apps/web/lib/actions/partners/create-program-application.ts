@@ -6,6 +6,7 @@ import { notifyPartnerApplication } from "@/lib/api/partners/notify-partner-appl
 import { getIP } from "@/lib/api/utils/get-ip";
 import { getSession } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
+import { partnerCanViewMarketplace } from "@/lib/network/get-discoverability-requirements";
 import {
   formatApplicationFormData,
   formatWebsiteAndSocialsFields,
@@ -167,6 +168,19 @@ export const createProgramApplicationAction = actionClient
           },
         })
       : null;
+
+    // if the application form is not published and
+    // the partner is not logged in OR is logged in but cannot view the marketplace, throw an error
+    if (
+      !group.applicationFormPublishedAt &&
+      (!existingPartner ||
+        !partnerCanViewMarketplace({
+          partner: existingPartner,
+          programEnrollments: existingPartner.programs,
+        }))
+    ) {
+      throw new Error("This program is no longer accepting applications.");
+    }
 
     if (existingPartner) {
       return createApplicationAndEnrollment({
