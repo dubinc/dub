@@ -1,6 +1,7 @@
 "use client";
 
 import { clientAccessCheck } from "@/lib/client-access-check";
+import { wouldLosePartnerAccess } from "@/lib/plans/has-partner-access";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   Button,
@@ -16,10 +17,11 @@ import { Command } from "cmdk";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { usePlanChangeConfirmationModal } from "../modals/plan-change-confirmation-modal";
 import { ThreeDots } from "../shared/icons";
 
 export default function SubscriptionMenu() {
-  const { id: workspaceId, role } = useWorkspace();
+  const { id: workspaceId, role, plan, defaultProgramId } = useWorkspace();
   const router = useRouter();
 
   const permissionsError = clientAccessCheck({
@@ -50,44 +52,67 @@ export default function SubscriptionMenu() {
     });
   };
 
+  // Check if canceling would lose partner access
+  const losesPartnerAccess =
+    plan &&
+    defaultProgramId &&
+    wouldLosePartnerAccess({ currentPlan: plan, newPlan: null });
+
+  const { setShowPlanChangeConfirmationModal, PlanChangeConfirmationModal } =
+    usePlanChangeConfirmationModal({
+      onConfirm: () => openBillingPortal(true),
+    });
+
+  const handleCancelSubscription = () => {
+    setIsOpen(false);
+    if (losesPartnerAccess) {
+      setShowPlanChangeConfirmationModal(true);
+    } else {
+      openBillingPortal(true);
+    }
+  };
+
   return (
-    <Popover
-      openPopover={isOpen}
-      setOpenPopover={setIsOpen}
-      content={
-        <Command tabIndex={0} loop className="pointer-events-auto">
-          <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[180px]">
-            <MenuItem
-              icon={StripeIcon}
-              label="Open billing portal"
-              onSelect={() => openBillingPortal(false)}
-              disabledTooltip={permissionsError}
-            />
-            <MenuItem
-              icon={SquareXmark}
-              label="Cancel subscription"
-              onSelect={() => openBillingPortal(true)}
-              disabledTooltip={permissionsError}
-            />
-          </Command.List>
-        </Command>
-      }
-      align="end"
-    >
-      <Button
-        type="button"
-        className="h-9 px-2"
-        variant="secondary"
-        icon={
-          clicked ? (
-            <LoadingSpinner className="size-4 shrink-0" />
-          ) : (
-            <ThreeDots className="size-4 shrink-0" />
-          )
+    <>
+      <PlanChangeConfirmationModal />
+      <Popover
+        openPopover={isOpen}
+        setOpenPopover={setIsOpen}
+        content={
+          <Command tabIndex={0} loop className="pointer-events-auto">
+            <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[180px]">
+              <MenuItem
+                icon={StripeIcon}
+                label="Open billing portal"
+                onSelect={() => openBillingPortal(false)}
+                disabledTooltip={permissionsError}
+              />
+              <MenuItem
+                icon={SquareXmark}
+                label="Cancel subscription"
+                onSelect={handleCancelSubscription}
+                disabledTooltip={permissionsError}
+              />
+            </Command.List>
+          </Command>
         }
-        disabled={clicked}
-      />
-    </Popover>
+        align="end"
+      >
+        <Button
+          type="button"
+          className="h-9 px-2"
+          variant="secondary"
+          icon={
+            clicked ? (
+              <LoadingSpinner className="size-4 shrink-0" />
+            ) : (
+              <ThreeDots className="size-4 shrink-0" />
+            )
+          }
+          disabled={clicked}
+        />
+      </Popover>
+    </>
   );
 }
 
