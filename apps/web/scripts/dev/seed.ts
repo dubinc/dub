@@ -7,6 +7,7 @@ import {
   Integration,
   Partner,
   PartnerGroup,
+  PartnerGroupDefaultLink,
   Prisma,
   Program,
   Project,
@@ -25,6 +26,7 @@ type Workspace = Pick<
   | "name"
   | "slug"
   | "plan"
+  | "logo"
   | "billingCycleStart"
   | "usageLimit"
   | "linksLimit"
@@ -62,8 +64,16 @@ type RewardSeed = Pick<
 
 type GroupSeed = Pick<
   PartnerGroup,
-  "id" | "name" | "slug" | "color" | "leadRewardId" | "saleRewardId"
->;
+  | "id"
+  | "name"
+  | "slug"
+  | "color"
+  | "leadRewardId"
+  | "saleRewardId"
+  | "additionalLinks"
+> & {
+  defaultLinks: Pick<PartnerGroupDefaultLink, "url">[];
+};
 
 type ProgramSeed = Omit<
   Pick<
@@ -71,6 +81,7 @@ type ProgramSeed = Omit<
     | "id"
     | "name"
     | "slug"
+    | "logo"
     | "defaultFolderId"
     | "defaultGroupId"
     | "domain"
@@ -291,10 +302,31 @@ const createGroups = async (data: SeedData) => {
       color: group.color ?? null,
       leadRewardId: group.leadRewardId ?? null,
       saleRewardId: group.saleRewardId ?? null,
+      additionalLinks: group.additionalLinks as Prisma.JsonArray,
     })),
   });
 
   console.log(`Created ${count} groups`);
+
+  const defaultLinks = groups.flatMap((group) =>
+    group.defaultLinks.map((link) => ({
+      groupId: group.id,
+      url: link.url,
+    })),
+  );
+
+  const { count: defaultLinksCount } =
+    await prisma.partnerGroupDefaultLink.createMany({
+      data: defaultLinks.map((link) => ({
+        id: createId({ prefix: "pgdl_" }),
+        programId: program.id,
+        domain: program.domain!,
+        groupId: link.groupId,
+        url: link.url,
+      })),
+    });
+
+  console.log(`Created ${defaultLinksCount} default links`);
 };
 
 // Create program
@@ -312,6 +344,7 @@ const createProgram = async (data: SeedData) => {
       workspaceId: workspace.id,
       name: program.name,
       slug: program.slug,
+      logo: program.logo,
       defaultFolderId: program.defaultFolderId,
       defaultGroupId: program.defaultGroupId,
       domain: program.domain,
