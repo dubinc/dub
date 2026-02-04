@@ -1,8 +1,8 @@
 import { Session } from "@/lib/auth";
 import { ACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
-import { executePartnerDeactivation } from "./bulk-deactivate-partners";
 import { DubApiError } from "../errors";
 import { getProgramEnrollmentOrThrow } from "../programs/get-program-enrollment-or-throw";
+import { processPartnerDeactivation } from "./process-partner-deactivation";
 
 interface DeactivatePartnerParams {
   workspaceId: string;
@@ -11,7 +11,6 @@ interface DeactivatePartnerParams {
   user?: Session["user"];
 }
 
-// Deactivate a partner in a program
 export async function deactivatePartner({
   workspaceId,
   programId,
@@ -39,16 +38,10 @@ export async function deactivatePartner({
 
   const { partner } = programEnrollment;
 
-  await executePartnerDeactivation({
+  await processPartnerDeactivation({
     workspaceId,
     programId,
-    partners: [
-      {
-        id: partner.id,
-        name: partner.name,
-        email: partner.email,
-      },
-    ],
+    partners: [partner],
     user,
   });
 }
