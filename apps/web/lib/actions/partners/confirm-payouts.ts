@@ -168,6 +168,7 @@ export const confirmPayoutsAction = authActionClient
       const mandate = await checkPaymentMethodMandate({
         paymentMethodId,
       });
+
       if (!mandate) {
         // if mandate is not valid, remove the payment method
         await stripe.paymentMethods.detach(paymentMethodId);
