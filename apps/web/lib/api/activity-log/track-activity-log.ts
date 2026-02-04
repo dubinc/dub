@@ -8,6 +8,8 @@ type Action =
   | "referral.created"
   | "referral.updated"
   | "referral.qualified"
+  | "referral.meeting"
+  | "referral.negotiation"
   | "referral.unqualified"
   | "referral.closedWon"
   | "referral.closedLost";

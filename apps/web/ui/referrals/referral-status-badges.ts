@@ -13,31 +13,43 @@ export const ReferralStatusBadges: Record<
   pending: {
     label: "New",
     variant: "new",
-    className: "text-blue-600 bg-blue-100",
+    className: "bg-blue-100 text-blue-600",
     icon: CircleHalfDottedClock,
   },
   qualified: {
     label: "Qualified",
     variant: "new",
-    className: "text-purple-600 bg-purple-100",
+    className: "bg-[#EDE8FD] text-[#7B3AFF]",
+    icon: CircleCheck,
+  },
+  meeting: {
+    label: "Meeting",
+    variant: "pending",
+    className: "bg-[#FFF3EC] text-[#FF4D00]",
+    icon: CircleCheck,
+  },
+  negotiation: {
+    label: "Negotiation",
+    variant: "neutral",
+    className: "bg-[#F5EDFF] text-[#CE00FF]",
     icon: CircleCheck,
   },
   unqualified: {
     label: "Unqualified",
     variant: "error",
-    className: "text-red-600 bg-red-100",
+    className: "bg-red-100 text-red-600",
     icon: CircleXmark,
   },
   closedWon: {
     label: "Closed won",
     variant: "success",
-    className: "text-green-600 bg-green-100",
+    className: "bg-green-100 text-green-600",
     icon: CircleCheck,
   },
   closedLost: {
     label: "Closed lost",
     variant: "error",
-    className: "text-red-600 bg-red-100",
+    className: "bg-[#FFEBEB] text-[#D60000]",
     icon: CircleXmark,
   },
 };
