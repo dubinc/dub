@@ -14,7 +14,6 @@ interface BulkDeactivatePartnersParams {
   programDeactivated?: boolean; // Indicate if the entire program is being deactivated
 }
 
-// Bulk deactivate partners in a program
 export async function bulkDeactivatePartners({
   workspaceId,
   programId,

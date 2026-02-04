@@ -78,13 +78,19 @@ export default function FailedPayment({
             {showPartnerWarning && (
               <Text className="text-sm leading-6 text-black">
                 Your workspace also has an active partner program. If payment is
-                not resolved, your plan will be downgraded and your partner
-                program may be deactivated.
+                not resolved, your plan will be canceled and your partner
+                program will be deactivated.
               </Text>
             )}
             <Text className="text-sm leading-6 text-black">
-              To avoid downgrading, please update your payment information
-              below.
+              Please{" "}
+              <Link
+                href="https://dub.co/help/article/how-to-change-billing-information"
+                className="font-medium text-blue-600 no-underline"
+              >
+                update your payment information
+              </Link>{" "}
+              using the link below:
             </Text>
             <Section className="my-8">
               <Link

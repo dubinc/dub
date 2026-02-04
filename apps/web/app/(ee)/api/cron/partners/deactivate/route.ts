@@ -27,7 +27,15 @@ export const POST = withCron(async ({ rawBody }) => {
       },
     },
     include: {
-      partner: true,
+      partner: {
+        include: {
+          _count: {
+            select: {
+              users: true,
+            },
+          },
+        },
+      },
       links: true,
       discountCodes: true,
     },
@@ -59,25 +67,28 @@ export const POST = withCron(async ({ rawBody }) => {
 
   // Send notification emails
   const emailResponse = await sendBatchEmail(
-    programEnrollments.map(({ partner }) => ({
-      variant: "notifications",
-      subject: programDeactivated
-        ? `The ${program.name} program has been deactivated`
-        : `Your partnership with ${program.name} has been deactivated`,
-      to: partner.email!,
-      replyTo: program.supportEmail || "noreply",
-      react: PartnerDeactivated({
-        partner: {
-          name: partner.name,
-          email: partner.email!,
-        },
-        program: {
-          name: program.name,
-          slug: program.slug,
-        },
-        programDeactivated,
-      }),
-    })),
+    programEnrollments
+      // only notify partners with user accounts (meaning they've signed up on partners.dub.co)
+      .filter(({ partner }) => partner._count.users > 0)
+      .map(({ partner }) => ({
+        variant: "notifications",
+        subject: programDeactivated
+          ? `The ${program.name} program has been deactivated`
+          : `Your partnership with ${program.name} has been deactivated`,
+        to: partner.email!,
+        replyTo: program.supportEmail || "noreply",
+        react: PartnerDeactivated({
+          partner: {
+            name: partner.name,
+            email: partner.email!,
+          },
+          program: {
+            name: program.name,
+            slug: program.slug,
+          },
+          programDeactivated,
+        }),
+      })),
   );
 
   console.log("[bulkDeactivatePartners] Sent notification emails.", {
