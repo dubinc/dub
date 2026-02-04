@@ -46,6 +46,14 @@ const STATUS_CONFIG: Record<ReferralStatus, StatusConfig> = {
       externalId: data.externalId || undefined,
     }),
   },
+  meeting: {
+    fields: [],
+    buildPayload: (base) => ({ ...base, status: "meeting" }),
+  },
+  negotiation: {
+    fields: [],
+    buildPayload: (base) => ({ ...base, status: "negotiation" }),
+  },
   unqualified: {
     fields: [],
     buildPayload: (base) => ({ ...base, status: "unqualified" }),

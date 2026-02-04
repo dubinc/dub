@@ -92,6 +92,14 @@ export const updateReferralStatusSchema = z.discriminatedUnion("status", [
   }),
 
   updateReferralStatusBaseSchema.extend({
+    status: z.literal("meeting"),
+  }),
+
+  updateReferralStatusBaseSchema.extend({
+    status: z.literal("negotiation"),
+  }),
+
+  updateReferralStatusBaseSchema.extend({
     status: z.literal("unqualified"),
   }),
 

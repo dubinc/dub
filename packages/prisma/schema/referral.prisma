@@ -1,6 +1,8 @@
 enum ReferralStatus {
   pending
   qualified
+  meeting
+  negotiation
   unqualified
   closedWon
   closedLost
