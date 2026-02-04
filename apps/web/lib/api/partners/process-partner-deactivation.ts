@@ -59,7 +59,7 @@ export async function processPartnerDeactivation({
     }),
   ]);
 
-  console.log("[executePartnerDeactivation] Deactivated partners in program.", {
+  console.log("[processPartnerDeactivation] Deactivated partners in program.", {
     programId,
     partnerIds,
   });
@@ -99,14 +99,14 @@ export async function processPartnerDeactivation({
 
   if (qstashResponse.messageId) {
     console.log(
-      "[executePartnerDeactivation] Deactivation job enqueued successfully.",
+      "[processPartnerDeactivation] Deactivation job enqueued successfully.",
       {
         response: qstashResponse,
       },
     );
   } else {
     console.error(
-      "[executePartnerDeactivation] Failed to enqueue deactivation job",
+      "[processPartnerDeactivation] Failed to enqueue deactivation job",
       {
         response: qstashResponse,
       },
