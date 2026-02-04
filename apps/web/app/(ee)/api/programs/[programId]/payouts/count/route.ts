@@ -4,15 +4,23 @@ import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { payoutsCountQuerySchema } from "@/lib/zod/schemas/payouts";
 import { prisma } from "@dub/prisma";
-import { PayoutStatus, Prisma } from "@dub/prisma/client";
+import { FraudEventStatus, PayoutStatus, Prisma } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 
 // GET /api/programs/[programId]/payouts/count
 export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   const programId = getDefaultProgramIdOrThrow(workspace);
 
-  const { partnerId, groupBy, eligibility, status, invoiceId } =
-    payoutsCountQuerySchema.parse(searchParams);
+  const isHoldStatus = searchParams.status === "hold";
+  const { status: _status, ...restSearchParams } = searchParams;
+  let { status, partnerId, groupBy, eligibility, invoiceId } =
+    payoutsCountQuerySchema.parse(
+      isHoldStatus ? restSearchParams : searchParams,
+    );
+
+  if (isHoldStatus) {
+    status = PayoutStatus.pending;
+  }
 
   const program = await getProgramOrThrow({
     workspaceId: workspace.id,
@@ -26,6 +34,15 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
       ...getPayoutEligibilityFilter({ program, workspace }),
     }),
     ...(invoiceId && { invoiceId }),
+    ...(isHoldStatus && {
+      programEnrollment: {
+        fraudEventGroups: {
+          some: {
+            status: FraudEventStatus.pending,
+          },
+        },
+      },
+    }),
   };
 
   // Get payout count by status
