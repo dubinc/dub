@@ -32,7 +32,7 @@ export function EarningsCalculatorBlock({
   const rewardAmount = getRewardAmount(group.saleReward);
   const revenue = value * ((block.data.productPrice || 30_00) / 100);
 
-  const isYearly = block.data.earningsTime === "yearly";
+  const isYearly = block.data.billingPeriod === "yearly";
 
   const monthlyEarnings = Math.floor(
     group.saleReward.type === "flat"

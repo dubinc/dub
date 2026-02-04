@@ -62,7 +62,7 @@ function EarningsCalculatorBlockModalInner({
       productPrice: defaultValues?.productPrice
         ? defaultValues.productPrice / 100
         : undefined,
-      earningsTime: defaultValues?.earningsTime ?? "monthly",
+      billingPeriod: defaultValues?.billingPeriod ?? "monthly",
     },
   });
 
@@ -135,7 +135,7 @@ function EarningsCalculatorBlockModalInner({
                   <div className="mt-2">
                     <Controller
                       control={control}
-                      name="earningsTime"
+                      name="billingPeriod"
                       render={({ field }) => (
                         <ToggleGroup
                           options={[
@@ -206,7 +206,7 @@ function Preview({
   control: Control<EarningsCalculatorBlockData>;
 }) {
   const productPrice = useWatch({ control, name: "productPrice" });
-  const earningsTime = useWatch({ control, name: "earningsTime" });
+  const billingPeriod = useWatch({ control, name: "billingPeriod" });
 
   const { group } = useGroup();
 
@@ -220,7 +220,7 @@ function Preview({
         data: {
           productPrice:
             Math.min(Math.max(productPrice || 0, 0), MAX_PRODUCT_PRICE) * 100,
-          earningsTime: earningsTime ?? "monthly",
+          billingPeriod: billingPeriod ?? "monthly",
         },
       }}
       group={group}
