@@ -159,10 +159,10 @@ export async function processPayouts({
   );
 
   const {
+    fee: invoiceFee,
     feeFreeAmount,
     feeChargedAmount,
     feeWaiverRemaining,
-    fee: invoiceFee,
   } = calculatePayoutFeeWithWaiver({
     payoutAmount: totalPayoutAmount,
     payoutFee,
