@@ -1,6 +1,6 @@
 "use server";
 
-import { bulkDeactivatePartners } from "@/lib/api/partners/bulk-deactivate-partners";
+import { deactivatePartner } from "@/lib/api/partners/deactivate-partner";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { deactivatePartnerSchema } from "@/lib/zod/schemas/partners";
 import { authActionClient } from "../safe-action";
@@ -20,10 +20,10 @@ export const deactivatePartnerAction = authActionClient
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    await bulkDeactivatePartners({
+    await deactivatePartner({
       workspaceId: workspace.id,
       programId,
-      partnerIds: [partnerId],
+      partnerId,
       user,
     });
   });

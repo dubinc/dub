@@ -11,11 +11,11 @@ const EnrolledPartnerSchema = EnrolledPartnerSchemaDate.extend(
   normalizedPartnerDateFields.shape,
 );
 
-describe.sequential("POST /partners/ban", async () => {
+describe.concurrent("POST /partners/deactivate", async () => {
   const h = new IntegrationHarness();
   const { http } = await h.init();
 
-  test("ban partner by partnerId", async () => {
+  test("deactivate partner by partnerId", async () => {
     const partner = {
       name: generateRandomName(),
       email: randomEmail(),
@@ -30,28 +30,27 @@ describe.sequential("POST /partners/ban", async () => {
     expect(createStatus).toEqual(201);
     const createdPartner = EnrolledPartnerSchema.parse(createdData);
 
-    const { data: banData, status: banStatus } = await http.post<{
+    const { data: deactivateData, status: deactivateStatus } = await http.post<{
       partnerId: string;
     }>({
-      path: "/partners/ban",
+      path: "/partners/deactivate",
       body: {
         partnerId: createdPartner.id,
-        reason: "fraud",
       },
     });
 
-    expect(banStatus).toEqual(200);
-    expect(banData.partnerId).toBe(createdPartner.id);
+    expect(deactivateStatus).toEqual(200);
+    expect(deactivateData.partnerId).toBe(createdPartner.id);
 
-    // Verify the partner is banned
+    // Verify the partner is deactivated
     const fetchedPartner = await fetchPartner({
       http,
       partnerId: createdPartner.id,
     });
-    expect(fetchedPartner.status).toBe("banned");
+    expect(fetchedPartner.status).toBe("deactivated");
   });
 
-  test("ban partner by tenantId", async () => {
+  test("deactivate partner by tenantId", async () => {
     const tenantId = randomId();
 
     const partner = {
@@ -70,24 +69,23 @@ describe.sequential("POST /partners/ban", async () => {
     const createdPartner = EnrolledPartnerSchema.parse(createdData);
     expect(createdPartner.tenantId).toBe(tenantId);
 
-    const { data: banData, status: banStatus } = await http.post<{
+    const { data: deactivateData, status: deactivateStatus } = await http.post<{
       partnerId: string;
     }>({
-      path: "/partners/ban",
+      path: "/partners/deactivate",
       body: {
         tenantId,
-        reason: "fraud",
       },
     });
 
-    expect(banStatus).toEqual(200);
-    expect(banData.partnerId).toBe(createdPartner.id);
+    expect(deactivateStatus).toEqual(200);
+    expect(deactivateData.partnerId).toBe(createdPartner.id);
 
-    // Verify the partner is banned
+    // Verify the partner is deactivated
     const fetchedPartner = await fetchPartner({
       http,
       partnerId: createdPartner.id,
     });
-    expect(fetchedPartner.status).toBe("banned");
+    expect(fetchedPartner.status).toBe("deactivated");
   });
 });
