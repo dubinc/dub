@@ -1,3 +1,5 @@
+import { buildProgramEnrollmentChangeSet } from "@/lib/api/activity-log/build-change-set";
+import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
 import { triggerDraftBountySubmissionCreation } from "@/lib/api/bounties/trigger-draft-bounty-submissions";
 import { DubApiError } from "@/lib/api/errors";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
@@ -42,6 +44,24 @@ export const POST = withWorkspace(
       });
     }
 
+    const programEnrollments = await prisma.programEnrollment.findMany({
+      where: {
+        partnerId: {
+          in: partnerIds,
+        },
+        programId,
+      },
+      select: {
+        id: true,
+        partnerGroup: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+
     const { count } = await prisma.programEnrollment.updateMany({
       where: {
         partnerId: {
@@ -74,6 +94,46 @@ export const POST = withWorkspace(
             },
           });
 
+          const updatedProgramEnrollments =
+            await prisma.programEnrollment.findMany({
+              where: {
+                partnerId: {
+                  in: partnerIds,
+                },
+                programId,
+              },
+              select: {
+                id: true,
+                partnerGroup: {
+                  select: {
+                    id: true,
+                    name: true,
+                  },
+                },
+              },
+            });
+
+          const activityLogInputs = updatedProgramEnrollments.map(
+            (updatedEnrollment) => {
+              const oldEnrollment = programEnrollments.find(
+                (e) => e.id === updatedEnrollment.id,
+              );
+
+              return {
+                workspaceId: workspace.id,
+                programId,
+                resourceType: "programEnrollment" as const,
+                resourceId: updatedEnrollment.id,
+                userId: session.user.id,
+                action: "programEnrollment.groupChanged" as const,
+                changeSet: buildProgramEnrollmentChangeSet({
+                  oldEnrollment,
+                  newEnrollment: updatedEnrollment,
+                }),
+              };
+            },
+          );
+
           await Promise.allSettled([
             qstash.publishJSON({
               url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/remap-default-links`,
@@ -100,6 +160,8 @@ export const POST = withWorkspace(
             }),
 
             recordLink(partnerLinks),
+
+            trackActivityLog(activityLogInputs),
           ]);
         })(),
       );
