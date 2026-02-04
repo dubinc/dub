@@ -73,12 +73,16 @@ export function EarningsCalculatorBlock({
         <div className="relative overflow-hidden rounded-[10px] border border-neutral-100 bg-neutral-50 p-5">
           <WavePattern />
           <div className="relative z-10 flex flex-col gap-5">
-            <p className="text-base font-medium leading-6 tracking-[-0.32px] text-neutral-500">
+            <p
+              id={`${id}-label`}
+              className="text-base font-medium leading-6 tracking-[-0.32px] text-neutral-500"
+            >
               <NumberFlow value={value} /> customer sales
             </p>
             <input
               id={`${id}-slider`}
               type="range"
+              aria-labelledby={`${id}-label`}
               min={SLIDER_MIN}
               max={SLIDER_MAX}
               value={value}
