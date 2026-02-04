@@ -4,12 +4,15 @@ import { prisma } from "@dub/prisma";
 import { PartnerGroup } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
+import { buildProgramEnrollmentChangeSet } from "../activity-log/build-change-set";
+import { trackActivityLog } from "../activity-log/track-activity-log";
 import { triggerDraftBountySubmissionCreation } from "../bounties/trigger-draft-bounty-submissions";
 import { includeProgramEnrollment } from "../links/include-program-enrollment";
 import { includeTags } from "../links/include-tags";
 import { notifyPartnerGroupChange } from "../partners/notify-partner-group-change";
 
 interface MovePartnersToGroupParams {
+  workspaceId: string;
   programId: string;
   partnerIds: string[];
   userId: string;
@@ -25,6 +28,7 @@ interface MovePartnersToGroupParams {
 }
 
 export async function movePartnersToGroup({
+  workspaceId,
   programId,
   partnerIds,
   userId,
@@ -42,7 +46,14 @@ export async function movePartnersToGroup({
       programId,
     },
     select: {
+      id: true,
       partnerId: true,
+      partnerGroup: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
     },
   });
 
@@ -87,6 +98,48 @@ export async function movePartnersToGroup({
         },
       });
 
+      const updatedProgramEnrollments = await prisma.programEnrollment.findMany(
+        {
+          where: {
+            partnerId: {
+              in: partnerIds,
+            },
+            programId,
+          },
+          select: {
+            id: true,
+            partnerGroup: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
+      );
+
+      // Build activity log inputs
+      const activityLogInputs = updatedProgramEnrollments.map(
+        (updatedEnrollment) => {
+          const oldEnrollment = programEnrollments.find(
+            (e) => e.id === updatedEnrollment.id,
+          );
+
+          return {
+            workspaceId,
+            programId,
+            resourceType: "programEnrollment" as const,
+            resourceId: updatedEnrollment.id,
+            userId,
+            action: "programEnrollment.groupChanged" as const,
+            changeSet: buildProgramEnrollmentChangeSet({
+              oldEnrollment,
+              newEnrollment: updatedEnrollment,
+            }),
+          };
+        },
+      );
+
       await Promise.allSettled([
         qstash.publishJSON({
           url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/remap-default-links`,
@@ -110,6 +163,8 @@ export async function movePartnersToGroup({
           groupId: group.id,
           partnerIds,
         }),
+
+        trackActivityLog(activityLogInputs),
       ]);
     })(),
   );

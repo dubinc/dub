@@ -96,20 +96,21 @@ export const executeMoveGroupWorkflow = async ({
     return;
   }
 
-  const owners = await getWorkspaceUsers({
+  const { id: workspaceId, users } = await getWorkspaceUsers({
     programId,
     role: WorkspaceRole.owner,
   });
 
-  if (owners.users.length === 0) {
+  if (users.length === 0) {
     console.log("No owners found for the program. Skipping..");
     return;
   }
 
   await movePartnersToGroup({
+    workspaceId,
     programId,
     partnerIds: [partnerId],
-    userId: owners.users[0].id,
+    userId: users[0].id,
     group: newGroup,
   });
 };

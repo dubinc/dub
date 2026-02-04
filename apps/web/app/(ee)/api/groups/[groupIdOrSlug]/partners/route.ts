@@ -36,6 +36,7 @@ export const POST = withWorkspace(
     }
 
     const count = await movePartnersToGroup({
+      workspaceId: workspace.id,
       programId,
       partnerIds,
       userId: session.user.id,
