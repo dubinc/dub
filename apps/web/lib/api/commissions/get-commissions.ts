@@ -6,7 +6,7 @@ import * as z from "zod/v4";
 
 type CommissionsFilters = z.infer<typeof getCommissionsQuerySchema> & {
   programId: string;
-  isHold?: boolean;
+  isHoldStatus?: boolean;
 };
 
 export async function getCommissions(filters: CommissionsFilters) {
@@ -27,7 +27,7 @@ export async function getCommissions(filters: CommissionsFilters) {
     pageSize,
     sortBy,
     sortOrder,
-    isHold,
+    isHoldStatus,
   } = filters;
 
   const { startDate, endDate } = getStartEndDates({
@@ -37,7 +37,7 @@ export async function getCommissions(filters: CommissionsFilters) {
     timezone,
   });
 
-  const statusFilter = isHold
+  const statusFilter = isHoldStatus
     ? { in: [CommissionStatus.pending, CommissionStatus.processed] }
     : status ?? {
         notIn: [
@@ -49,7 +49,7 @@ export async function getCommissions(filters: CommissionsFilters) {
 
   const programEnrollmentFilter = {
     ...(groupId && { groupId }),
-    ...(isHold && {
+    ...(isHoldStatus && {
       fraudEventGroups: {
         some: {
           status: FraudEventStatus.pending,

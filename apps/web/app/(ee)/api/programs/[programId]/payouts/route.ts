@@ -15,13 +15,13 @@ import * as z from "zod/v4";
 export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   const programId = getDefaultProgramIdOrThrow(workspace);
 
-  const isHold = searchParams.status === "hold";
+  const isHoldStatus = searchParams.status === "hold";
   const { status: _status, ...restSearchParams } = searchParams;
 
   let { status, partnerId, invoiceId, sortBy, sortOrder, page, pageSize } =
-    payoutsQuerySchema.parse(isHold ? restSearchParams : searchParams);
+    payoutsQuerySchema.parse(isHoldStatus ? restSearchParams : searchParams);
 
-  if (isHold) {
+  if (isHoldStatus) {
     status = PayoutStatus.pending;
   }
 
@@ -36,7 +36,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
       ...(status && { status }),
       ...(partnerId && { partnerId }),
       ...(invoiceId && { invoiceId }),
-      ...(isHold && {
+      ...(isHoldStatus && {
         programEnrollment: {
           fraudEventGroups: {
             some: {

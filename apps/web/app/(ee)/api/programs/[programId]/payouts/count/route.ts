@@ -11,12 +11,14 @@ import { NextResponse } from "next/server";
 export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   const programId = getDefaultProgramIdOrThrow(workspace);
 
-  const isHold = searchParams.status === "hold";
+  const isHoldStatus = searchParams.status === "hold";
   const { status: _status, ...restSearchParams } = searchParams;
   let { status, partnerId, groupBy, eligibility, invoiceId } =
-    payoutsCountQuerySchema.parse(isHold ? restSearchParams : searchParams);
+    payoutsCountQuerySchema.parse(
+      isHoldStatus ? restSearchParams : searchParams,
+    );
 
-  if (isHold) {
+  if (isHoldStatus) {
     status = PayoutStatus.pending;
   }
 
@@ -32,7 +34,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
       ...getPayoutEligibilityFilter({ program, workspace }),
     }),
     ...(invoiceId && { invoiceId }),
-    ...(isHold && {
+    ...(isHoldStatus && {
       programEnrollment: {
         fraudEventGroups: {
           some: {

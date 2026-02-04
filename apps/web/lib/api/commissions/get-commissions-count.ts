@@ -8,7 +8,7 @@ type CommissionsCountFilters = z.infer<
   typeof getCommissionsCountQuerySchema
 > & {
   programId: string;
-  isHold?: boolean;
+  isHoldStatus?: boolean;
 };
 
 export async function getCommissionsCount(filters: CommissionsCountFilters) {
@@ -24,7 +24,7 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
     interval,
     timezone,
     programId,
-    isHold,
+    isHoldStatus,
   } = filters;
 
   const { startDate, endDate } = getStartEndDates({
@@ -34,7 +34,7 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
     timezone,
   });
 
-  const statusFilter = isHold
+  const statusFilter = isHoldStatus
     ? { in: [CommissionStatus.pending, CommissionStatus.processed] }
     : status ?? {
         notIn: [
@@ -46,7 +46,7 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
 
   const programEnrollmentFilter = {
     ...(groupId && { groupId }),
-    ...(isHold && {
+    ...(isHoldStatus && {
       fraudEventGroups: {
         some: {
           status: FraudEventStatus.pending,
