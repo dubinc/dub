@@ -1,10 +1,12 @@
 "use server";
 
+import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
 import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { notifyPartnerReferralSubmitted } from "@/lib/api/referrals/notify-partner-referral-submitted";
 import { REFERRAL_FORM_REQUIRED_FIELD_KEYS } from "@/lib/referrals/constants";
+import { ReferralFormDataField } from "@/lib/types";
 import {
   formFieldSchema,
   referralFormSchema,
@@ -59,7 +61,7 @@ function convertFieldValue(
 export const submitReferralAction = authPartnerActionClient
   .inputSchema(createPartnerReferralSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { partner } = ctx;
+    const { partner, user } = ctx;
     const { programId, formData: rawFormData } = parsedInput;
 
     const programEnrollment = await getProgramEnrollmentOrThrow({
@@ -85,11 +87,7 @@ export const submitReferralAction = authPartnerActionClient
     const { name, email, company } = requiredFieldsResult.data;
 
     // Parse custom fields from formData
-    const customFormData: Array<{
-      key: string;
-      value: unknown;
-      label: string;
-    }> = [];
+    const customFormData: ReferralFormDataField[] = [];
 
     // Parse and get form schema fields to extract labels
     const parsedReferralFormData = programEnrollment.program.referralFormData
@@ -116,6 +114,7 @@ export const submitReferralAction = authPartnerActionClient
       if (value === undefined || value === null || value === "") {
         continue;
       }
+
       if (typeof value === "number" && Number.isNaN(value)) {
         continue;
       }
@@ -128,6 +127,7 @@ export const submitReferralAction = authPartnerActionClient
         key,
         label,
         value: convertFieldValue(value, fieldSchema),
+        type: fieldSchema?.type ?? "text",
       });
     }
 
@@ -147,9 +147,20 @@ export const submitReferralAction = authPartnerActionClient
     });
 
     waitUntil(
-      notifyPartnerReferralSubmitted({
-        referral,
-        programId,
-      }),
+      Promise.allSettled([
+        notifyPartnerReferralSubmitted({
+          referral,
+          programId,
+        }),
+
+        trackActivityLog({
+          workspaceId: programEnrollment.program.workspaceId,
+          programId,
+          resourceType: "referral",
+          resourceId: referral.id,
+          userId: user.id,
+          action: "referral.created",
+        }),
+      ]),
     );
   });
