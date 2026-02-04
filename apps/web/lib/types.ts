@@ -450,7 +450,7 @@ export type UsageResponse = z.infer<typeof usageResponse>;
 export type PartnersCount = Record<ProgramEnrollmentStatus | "all", number>;
 
 export type CommissionsCount = Record<
-  CommissionStatus | "all",
+  CommissionStatus | "all" | "hold",
   {
     count: number;
     amount: number;
