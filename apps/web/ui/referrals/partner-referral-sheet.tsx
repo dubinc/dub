@@ -1,9 +1,7 @@
 import { ReferralProps } from "@/lib/types";
-import { useMarkReferralClosedLostModal } from "@/ui/modals/mark-referral-closed-lost-modal";
-import { useMarkReferralClosedWonModal } from "@/ui/modals/mark-referral-closed-won-modal";
-import { useMarkReferralQualifiedModal } from "@/ui/modals/mark-referral-qualified-modal";
-import { useUnqualifyReferralModal } from "@/ui/modals/unqualify-referral-modal";
+import { useConfirmReferralStatusChangeModal } from "@/ui/modals/confirm-referral-status-change-modal";
 import { X } from "@/ui/shared/icons";
+import { ReferralStatus } from "@dub/prisma/client";
 import {
   Button,
   ChevronLeft,
@@ -12,7 +10,7 @@ import {
   useKeyboardShortcut,
   useRouterStuff,
 } from "@dub/ui";
-import { Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 import { ReferralDetails } from "./referral-details";
 import { ReferralLeadDetails } from "./referral-lead-details";
 import { ReferralPartnerDetails } from "./referral-partner-details";
@@ -30,23 +28,19 @@ function ReferralSheetContent({
   onNext,
   setIsOpen,
 }: ReferralSheetProps) {
-  const {
-    setShowModal: setShowQualifyModal,
-    QualifiedModal,
-    isMarkingQualified: isQualifying,
-  } = useMarkReferralQualifiedModal({ referral });
-
-  const { setShowUnqualifyModal, UnqualifyModal, isUnqualifying } =
-    useUnqualifyReferralModal({ referral });
+  const [pendingStatus, setPendingStatus] = useState<ReferralStatus | null>(
+    null,
+  );
 
   const {
-    setShowModal: setShowClosedWonModal,
-    ClosedWonModal,
-    isMarkingClosedWon,
-  } = useMarkReferralClosedWonModal({ referral });
+    ConfirmReferralStatusChangeModal,
+    openConfirmReferralStatusChangeModal,
+  } = useConfirmReferralStatusChangeModal({
+    onClose: () => setPendingStatus(null),
+  });
 
-  const { setShowClosedLostModal, ClosedLostModal, isMarkingClosedLost } =
-    useMarkReferralClosedLostModal({ referral });
+  const hasPendingStatusChange =
+    pendingStatus !== null && pendingStatus !== referral.status;
 
   // right arrow key onNext
   useKeyboardShortcut(
@@ -70,54 +64,6 @@ function ReferralSheetContent({
     { sheet: true },
   );
 
-  // Determine which buttons to show based on status
-  const showQualifyButtons = referral.status === "pending";
-  const showClosedButtons = referral.status === "qualified";
-  const showNoActions = ["unqualified", "closedWon", "closedLost"].includes(
-    referral.status,
-  );
-
-  // Keyboard shortcuts for action buttons
-  useKeyboardShortcut(
-    "u",
-    () => {
-      if (showQualifyButtons && !isUnqualifying) {
-        setShowUnqualifyModal(true);
-      }
-    },
-    { sheet: true },
-  );
-
-  useKeyboardShortcut(
-    "q",
-    () => {
-      if (showQualifyButtons && !isQualifying) {
-        setShowQualifyModal(true);
-      }
-    },
-    { sheet: true },
-  );
-
-  useKeyboardShortcut(
-    "l",
-    () => {
-      if (showClosedButtons && !isMarkingClosedLost) {
-        setShowClosedLostModal(true);
-      }
-    },
-    { sheet: true },
-  );
-
-  useKeyboardShortcut(
-    "w",
-    () => {
-      if (showClosedButtons && !isMarkingClosedWon) {
-        setShowClosedWonModal(true);
-      }
-    },
-    { sheet: true },
-  );
-
   // Escape key to close sheet
   useKeyboardShortcut(
     "Escape",
@@ -127,12 +73,19 @@ function ReferralSheetContent({
     { sheet: true },
   );
 
+  const handleStatusChange = (newStatus: ReferralStatus) => {
+    setPendingStatus(newStatus === referral.status ? null : newStatus);
+  };
+
+  const handleSaveStatusChange = () => {
+    if (pendingStatus !== null) {
+      openConfirmReferralStatusChangeModal(referral, pendingStatus);
+    }
+  };
+
   return (
     <>
-      {QualifiedModal}
-      {UnqualifyModal}
-      {ClosedWonModal}
-      {ClosedLostModal}
+      <ConfirmReferralStatusChangeModal />
       <div className="flex size-full flex-col">
         <div className="flex h-16 shrink-0 items-center justify-between border-b border-neutral-200 px-6 py-4">
           <Sheet.Title className="text-lg font-semibold">
@@ -173,59 +126,32 @@ function ReferralSheetContent({
 
           {/* Right side - Two cards */}
           <div className="@3xl/sheet:order-2 flex flex-col gap-4">
-            <ReferralLeadDetails referral={referral} />
+            <ReferralLeadDetails
+              referral={referral}
+              selectedStatus={pendingStatus ?? referral.status}
+              onStatusChange={handleStatusChange}
+            />
             <ReferralPartnerDetails referral={referral} />
           </div>
         </div>
 
-        {!showNoActions && (
+        {hasPendingStatusChange && (
           <div className="shrink-0 border-t border-neutral-200 p-5">
             <div className="flex justify-end gap-2">
-              {showQualifyButtons && (
-                <>
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    text="Unqualify"
-                    shortcut="U"
-                    onClick={() => setShowUnqualifyModal(true)}
-                    disabled={isUnqualifying}
-                    className="h-9 w-fit shrink-0"
-                  />
-                  <Button
-                    type="button"
-                    variant="primary"
-                    text="Qualify"
-                    shortcut="Q"
-                    onClick={() => setShowQualifyModal(true)}
-                    disabled={isQualifying}
-                    className="h-9 w-fit shrink-0"
-                  />
-                </>
-              )}
-
-              {showClosedButtons && (
-                <>
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    text="Closed lost"
-                    shortcut="L"
-                    onClick={() => setShowClosedLostModal(true)}
-                    disabled={isMarkingClosedLost}
-                    className="h-9 w-fit shrink-0"
-                  />
-                  <Button
-                    type="button"
-                    variant="primary"
-                    text="Closed won"
-                    shortcut="W"
-                    onClick={() => setShowClosedWonModal(true)}
-                    disabled={isMarkingClosedWon}
-                    className="h-9 w-fit shrink-0"
-                  />
-                </>
-              )}
+              <Button
+                type="button"
+                variant="secondary"
+                text="Cancel"
+                className="h-9 w-fit shrink-0"
+                onClick={() => setPendingStatus(null)}
+              />
+              <Button
+                type="button"
+                variant="primary"
+                text="Save changes"
+                className="h-9 w-fit shrink-0"
+                onClick={handleSaveStatusChange}
+              />
             </div>
           </div>
         )}

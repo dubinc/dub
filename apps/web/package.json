@@ -91,6 +91,7 @@
     "jose": "^6.1.0",
     "js-cookie": "^3.0.5",
     "json-2-csv": "^5.5.0",
+    "jsondiffpatch": "^0.7.3",
     "jszip": "^3.10.1",
     "linkify-react": "4.3.2",
     "lru-cache": "^11.2.2",

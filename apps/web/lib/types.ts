@@ -15,6 +15,7 @@ import {
   FraudRuleType,
   Link,
   PartnerGroup,
+  PartnerReferral,
   PartnerRole,
   PayoutStatus,
   Prisma,
@@ -125,7 +126,10 @@ import {
   ProgramSchema,
 } from "./zod/schemas/programs";
 import { referralFormDataSchema } from "./zod/schemas/referral-form";
-import { referralSchema } from "./zod/schemas/referrals";
+import {
+  referralSchema,
+  updateReferralStatusSchema,
+} from "./zod/schemas/referrals";
 import {
   CUSTOMER_SOURCES,
   rewardConditionsArraySchema,
@@ -449,7 +453,7 @@ export type UsageResponse = z.infer<typeof usageResponse>;
 export type PartnersCount = Record<ProgramEnrollmentStatus | "all", number>;
 
 export type CommissionsCount = Record<
-  CommissionStatus | "all",
+  CommissionStatus | "all" | "hold",
   {
     count: number;
     amount: number;
@@ -790,4 +794,12 @@ export type ReferralProps = z.infer<typeof referralSchema>;
 
 export type ReferralFormDataField = z.infer<typeof referralFormDataSchema>;
 
+export type UpdateReferralStatusPayload = z.infer<
+  typeof updateReferralStatusSchema
+>;
+
 export type CustomerSource = (typeof CUSTOMER_SOURCES)[number];
+
+export type ReferralWithCustomer = PartnerReferral & {
+  customer: Customer | null;
+};

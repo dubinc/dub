@@ -49,9 +49,8 @@ export function usePayoutFilters() {
         key: "status",
         icon: CircleDotted,
         label: "Status",
-        options: Object.entries(PayoutStatusBadges)
-          .filter(([key]) => key !== "hold")
-          .map(([value, { label }]) => {
+        options: Object.entries(PayoutStatusBadges).map(
+          ([value, { label }]) => {
             const Icon = PayoutStatusBadges[value].icon;
             const count = payoutsCount?.find((p) => p.status === value)?.count;
 
@@ -66,9 +65,12 @@ export function usePayoutFilters() {
                   )}
                 />
               ),
-              right: nFormatter(count || 0, { full: true }),
+              ...(value !== "hold" && {
+                right: nFormatter(count || 0, { full: true }),
+              }),
             };
-          }),
+          },
+        ),
       },
       {
         key: "invoiceId",

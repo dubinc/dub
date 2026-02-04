@@ -31,7 +31,7 @@ export function ReferralDetails({ referral }: ReferralDetailsProps) {
               <div className="text-content-default text-sm font-semibold">
                 {field.label}
               </div>
-              <div className="text-content-default text-sm">
+              <div className="text-content-default whitespace-pre-line text-wrap text-sm">
                 {formatFormDataValue(field.value)}
               </div>
             </div>

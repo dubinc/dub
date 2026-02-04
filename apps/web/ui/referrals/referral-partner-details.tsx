@@ -14,7 +14,7 @@ export function ReferralPartnerDetails({
 
   return (
     <div className="border-border-subtle overflow-hidden rounded-xl border bg-white p-4">
-      <h3 className="text-content-emphasis mb-4 text-sm font-semibold">
+      <h3 className="text-content-emphasis mb-2.5 text-sm font-semibold">
         Referral partner
       </h3>
       <Link

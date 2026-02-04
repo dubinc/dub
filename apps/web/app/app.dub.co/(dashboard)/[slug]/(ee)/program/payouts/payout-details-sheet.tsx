@@ -323,25 +323,41 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
       <div className="sticky bottom-0 z-10 border-t border-neutral-200 bg-white">
         <div className="flex items-center justify-between gap-2 p-5">
           {payout.status === "pending" ? (
-            <Button
-              type="button"
-              text="Confirm payout"
-              disabledTooltip={
-                !payout.partner.payoutsEnabledAt
-                  ? "This partner has not [connected a bank account](https://dub.co/help/article/receiving-payouts) to receive payouts yet, which means they won't be able to receive payouts from your program."
-                  : permissionsError || undefined
-              }
-              onClick={() => {
-                queryParams({
-                  set: {
-                    confirmPayouts: "true",
-                    selectedPayoutId: payout.id,
-                  },
-                  del: "payoutId",
-                  scroll: false,
-                });
-              }}
-            />
+            <div className="flex w-full flex-col gap-2 sm:flex-row">
+              <Button
+                type="button"
+                text="Confirm this payout"
+                variant="secondary"
+                disabledTooltip={
+                  !payout.partner.payoutsEnabledAt
+                    ? "This partner has not [connected a bank account](https://dub.co/help/article/receiving-payouts) to receive payouts yet, which means they won't be able to receive payouts from your program."
+                    : permissionsError || undefined
+                }
+                onClick={() => {
+                  queryParams({
+                    set: {
+                      confirmPayouts: "true",
+                      selectedPayoutId: payout.id,
+                    },
+                    del: "payoutId",
+                    scroll: false,
+                  });
+                }}
+              />
+              <Button
+                type="button"
+                text="Confirm all pending payouts"
+                onClick={() => {
+                  queryParams({
+                    set: {
+                      confirmPayouts: "true",
+                    },
+                    del: "payoutId",
+                    scroll: false,
+                  });
+                }}
+              />
+            </div>
           ) : (
             <ViewAllPayoutsLink />
           )}

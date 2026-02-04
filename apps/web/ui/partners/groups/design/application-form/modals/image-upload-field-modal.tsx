@@ -253,32 +253,79 @@ function ImageUploadFieldModalInner({
 export function ImageUploadFieldThumbnail() {
   return (
     <svg
-      width="48"
-      height="48"
-      viewBox="0 0 48 48"
+      width="171"
+      height="100"
+      viewBox="0 0 171 100"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className="size-full p-4"
+      className="h-auto w-full"
     >
-      <rect x="0.5" y="0.5" width="47" height="47" rx="5.5" fill="white" />
-      <rect x="0.5" y="0.5" width="47" height="47" rx="5.5" stroke="#E5E5E5" />
-      <rect x="6" y="14" width="16" height="20" rx="2" fill="#F5F5F5" />
-      <rect x="6" y="14" width="16" height="20" rx="2" stroke="#E5E5E5" />
-      <circle cx="10" cy="18" r="1.5" fill="#D9D9D9" />
-      <path
-        d="M6 30L10 25L14 30H6Z"
-        fill="#D9D9D9"
-        stroke="#E5E5E5"
-        strokeWidth="0.5"
+      <rect
+        x="50.6685"
+        y="25.419"
+        width="63.33"
+        height="59.33"
+        rx="5.665"
+        fill="white"
       />
-      <rect x="26" y="14" width="16" height="20" rx="2" fill="#F5F5F5" />
-      <rect x="26" y="14" width="16" height="20" rx="2" stroke="#E5E5E5" />
-      <circle cx="30" cy="18" r="1.5" fill="#D9D9D9" />
+      <rect
+        x="50.6685"
+        y="25.419"
+        width="63.33"
+        height="59.33"
+        rx="5.665"
+        stroke="#D4D4D4"
+        strokeWidth="0.67"
+      />
+      <rect
+        x="46.6685"
+        y="21.419"
+        width="71.33"
+        height="59.33"
+        rx="5.665"
+        fill="white"
+      />
+      <rect
+        x="46.6685"
+        y="21.419"
+        width="71.33"
+        height="59.33"
+        rx="5.665"
+        stroke="#D4D4D4"
+        strokeWidth="0.67"
+      />
+      <rect
+        x="42.4283"
+        y="17.335"
+        width="79.33"
+        height="59.33"
+        rx="5.665"
+        fill="white"
+      />
+      <rect
+        x="42.4283"
+        y="17.335"
+        width="79.33"
+        height="59.33"
+        rx="5.665"
+        stroke="#D4D4D4"
+        strokeWidth="0.67"
+      />
       <path
-        d="M26 30L30 25L34 30H26Z"
-        fill="#D9D9D9"
-        stroke="#E5E5E5"
-        strokeWidth="0.5"
+        d="M75.4266 54.6678L83.2085 46.8871C84.2499 45.8458 85.9379 45.846 86.9792 46.8874L91.7601 51.6691"
+        stroke="#262626"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M75.0931 54.6666L89.0931 54.6678C90.5659 54.6679 91.7599 53.4741 91.76 52.0013L91.7608 42.0013C91.7609 40.5285 90.5671 39.3345 89.0943 39.3344L75.0943 39.3333C73.6216 39.3332 72.4276 40.527 72.4275 41.9997L72.4266 51.9997C72.4265 53.4725 73.6203 54.6665 75.0931 54.6666Z"
+        stroke="#262626"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M77.7606 46.3315C78.6811 46.3316 79.4274 45.5855 79.4274 44.665C79.4275 43.7445 78.6814 42.9983 77.7609 42.9982C76.8404 42.9981 76.0942 43.7442 76.0941 44.6647C76.094 45.5852 76.8402 46.3314 77.7606 46.3315Z"
+        fill="#262626"
       />
     </svg>
   );

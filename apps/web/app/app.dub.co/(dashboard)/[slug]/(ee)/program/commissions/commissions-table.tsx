@@ -359,7 +359,10 @@ export function CommissionsTable() {
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (p) => `commission${p ? "s" : ""}`,
-    rowCount: commissionsCount?.[searchParamsObj.status || "all"].count ?? 0,
+    rowCount:
+      commissionsCount?.[searchParamsObj.status || "all"]?.count ??
+      commissions?.length ??
+      0,
     loading: isLoading,
     error: error ? "Failed to load commissions" : undefined,
   });

@@ -47,6 +47,7 @@ model User {
   sentMessages            Message[]
   partnerComments         PartnerComment[]
   fraudEventGroups        FraudEventGroup[]
+  activityLogs            ActivityLog[]
 
   @@index(source)
   @@index(defaultWorkspace)
