@@ -1,7 +1,7 @@
 import { generateRandomName } from "@/lib/names";
 import { EnrolledPartnerSchema as EnrolledPartnerSchemaDate } from "@/lib/zod/schemas/partners";
-import { Partner } from "@dub/prisma/client";
 import { describe, expect, test } from "vitest";
+import { fetchPartner } from "../utils/fetch-partner";
 import { randomEmail, randomId } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 import { E2E_PARTNER_GROUP } from "../utils/resource";
@@ -22,11 +22,10 @@ describe.concurrent("POST /partners/deactivate", async () => {
       groupId: E2E_PARTNER_GROUP.id,
     };
 
-    const { data: createdData, status: createStatus } =
-      await http.post<Partner>({
-        path: "/partners",
-        body: partner,
-      });
+    const { data: createdData, status: createStatus } = await http.post({
+      path: "/partners",
+      body: partner,
+    });
 
     expect(createStatus).toEqual(201);
     const createdPartner = EnrolledPartnerSchema.parse(createdData);
@@ -42,6 +41,13 @@ describe.concurrent("POST /partners/deactivate", async () => {
 
     expect(deactivateStatus).toEqual(200);
     expect(deactivateData.partnerId).toBe(createdPartner.id);
+
+    // Verify the partner is deactivated
+    const fetchedPartner = await fetchPartner({
+      http,
+      partnerId: createdPartner.id,
+    });
+    expect(fetchedPartner.status).toBe("deactivated");
   });
 
   test("deactivate partner by tenantId", async () => {
@@ -54,11 +60,10 @@ describe.concurrent("POST /partners/deactivate", async () => {
       groupId: E2E_PARTNER_GROUP.id,
     };
 
-    const { data: createdData, status: createStatus } =
-      await http.post<Partner>({
-        path: "/partners",
-        body: partner,
-      });
+    const { data: createdData, status: createStatus } = await http.post({
+      path: "/partners",
+      body: partner,
+    });
 
     expect(createStatus).toEqual(201);
     const createdPartner = EnrolledPartnerSchema.parse(createdData);
@@ -75,5 +80,12 @@ describe.concurrent("POST /partners/deactivate", async () => {
 
     expect(deactivateStatus).toEqual(200);
     expect(deactivateData.partnerId).toBe(createdPartner.id);
+
+    // Verify the partner is deactivated
+    const fetchedPartner = await fetchPartner({
+      http,
+      partnerId: createdPartner.id,
+    });
+    expect(fetchedPartner.status).toBe("deactivated");
   });
 });
