@@ -85,7 +85,7 @@ function ConfirmPayoutsSheetContent() {
     payoutsLimit,
     payoutFee,
     payoutFeeWaiverLimit,
-    payoutFeeWaivedUsage,
+    payoutFeeWaiverUsage,
     fastDirectDebitPayouts,
   } = useWorkspace();
 
@@ -340,7 +340,7 @@ function ConfirmPayoutsSheetContent() {
     const { fee } = calculatePayoutFeeWithWaiver({
       payoutAmount: amount,
       payoutFeeWaiverLimit: payoutFeeWaiverLimit ?? 0,
-      payoutFeeWaivedUsage: payoutFeeWaivedUsage ?? 0,
+      payoutFeeWaiverUsage: payoutFeeWaiverUsage ?? 0,
       payoutFee: selectedPaymentMethod.fee,
       fastAchFee,
     });
@@ -360,7 +360,7 @@ function ConfirmPayoutsSheetContent() {
     selectedPaymentMethod,
     program?.payoutMode,
     payoutFeeWaiverLimit,
-    payoutFeeWaivedUsage,
+    payoutFeeWaiverUsage,
   ]);
 
   const invoiceData = useMemo(() => {
@@ -512,7 +512,7 @@ function ConfirmPayoutsSheetContent() {
               selectedPaymentMethod,
               fastAchFee: fastAchFee ?? 0,
               payoutFeeWaiverLimit: payoutFeeWaiverLimit ?? 0,
-              payoutFeeWaivedUsage: payoutFeeWaivedUsage ?? 0,
+              payoutFeeWaiverUsage: payoutFeeWaiverUsage ?? 0,
             })
           : undefined,
       },
@@ -544,7 +544,7 @@ function ConfirmPayoutsSheetContent() {
     selectedCutoffPeriodOption,
     fastAchFee,
     payoutFeeWaiverLimit,
-    payoutFeeWaivedUsage,
+    payoutFeeWaiverUsage,
   ]);
 
   const partnerColumn = useMemo(
@@ -1013,17 +1013,17 @@ function buildPayoutFeeTooltip({
   selectedPaymentMethod,
   fastAchFee,
   payoutFeeWaiverLimit,
-  payoutFeeWaivedUsage,
+  payoutFeeWaiverUsage,
 }: {
   selectedPaymentMethod: Pick<SelectPaymentMethod, "fee" | "type">;
   fastAchFee: number;
   payoutFeeWaiverLimit: number;
-  payoutFeeWaivedUsage: number;
+  payoutFeeWaiverUsage: number;
 }): string {
   const feePercentage = selectedPaymentMethod.fee * 100;
 
   const isWithinWaiver =
-    payoutFeeWaiverLimit > 0 && payoutFeeWaivedUsage < payoutFeeWaiverLimit;
+    payoutFeeWaiverLimit > 0 && payoutFeeWaiverUsage < payoutFeeWaiverLimit;
 
   const fastAchFeeText =
     fastAchFee > 0 ? ` + ${currencyFormatter(fastAchFee)} Fast ACH fee` : "";

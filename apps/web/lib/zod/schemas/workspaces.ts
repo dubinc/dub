@@ -75,12 +75,12 @@ export const WorkspaceSchema = z
     payoutFeeWaiverLimit: z
       .number()
       .describe(
-        "The payout fee waiver limit of the workspace. Applicable only to custom enterprise plans.",
+        "The amount in cents for which the payout fee will be waived. Applicable only to custom enterprise plans.",
       ),
-    payoutFeeWaivedUsage: z
+    payoutFeeWaiverUsage: z
       .number()
       .describe(
-        "The payout fee waived usage of the workspace. Applicable only to custom enterprise plans.",
+        "How much of `payoutFeeWaiverLimit` has been used. Applicable only to custom enterprise plans.",
       ),
     domainsLimit: z.number().describe("The domains limit of the workspace."),
     tagsLimit: z.number().describe("The tags limit of the workspace."),

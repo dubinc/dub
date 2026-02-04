@@ -56,7 +56,7 @@ export default function PlanUsage() {
     payoutsLimit,
     payoutFee,
     payoutFeeWaiverLimit,
-    payoutFeeWaivedUsage,
+    payoutFeeWaiverUsage,
     domains,
     domainsLimit,
     foldersUsage,
@@ -130,8 +130,8 @@ export default function PlanUsage() {
 
     const hasTieredPricing = payoutFeeWaiverLimit && payoutFeeWaiverLimit > 0;
     const hasWaiverRemaining =
-      payoutFeeWaivedUsage !== undefined &&
-      payoutFeeWaivedUsage < payoutFeeWaiverLimit!;
+      payoutFeeWaiverUsage !== undefined &&
+      payoutFeeWaiverUsage < payoutFeeWaiverLimit!;
 
     if (hasTieredPricing && hasWaiverRemaining) {
       const waiverLimitFormatted = nFormatter(payoutFeeWaiverLimit / 100, {
@@ -149,7 +149,7 @@ export default function PlanUsage() {
     }
 
     return `${payoutFee * 100}%`;
-  }, [plan, payoutFee, payoutFeeWaiverLimit, payoutFeeWaivedUsage]);
+  }, [plan, payoutFee, payoutFeeWaiverLimit, payoutFeeWaiverUsage]);
 
   return (
     <div className="rounded-xl border border-neutral-200 bg-white">

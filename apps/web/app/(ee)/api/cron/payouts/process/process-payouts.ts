@@ -43,7 +43,7 @@ interface ProcessPayoutsProps {
     | "payoutsLimit"
     | "payoutFee"
     | "payoutFeeWaiverLimit"
-    | "payoutFeeWaivedUsage"
+    | "payoutFeeWaiverUsage"
     | "webhookEnabled"
   >;
   program: Pick<
@@ -167,7 +167,7 @@ export async function processPayouts({
     payoutAmount: totalPayoutAmount,
     payoutFee,
     payoutFeeWaiverLimit: workspace.payoutFeeWaiverLimit,
-    payoutFeeWaivedUsage: workspace.payoutFeeWaivedUsage,
+    payoutFeeWaiverUsage: workspace.payoutFeeWaiverUsage,
     fastAchFee: invoice.paymentMethod === "ach_fast" ? FAST_ACH_FEE_CENTS : 0,
   });
 
@@ -260,7 +260,7 @@ export async function processPayouts({
       payoutsUsage: {
         increment: totalPayoutAmount,
       },
-      payoutFeeWaivedUsage: {
+      payoutFeeWaiverUsage: {
         increment: feeFreeAmount,
       },
     },

@@ -9,7 +9,7 @@ describe("calculatePayoutFeeWithWaiver", () => {
       payoutAmount: 10000, // $100.00
       payoutFee,
       payoutFeeWaiverLimit: 0,
-      payoutFeeWaivedUsage: 0,
+      payoutFeeWaiverUsage: 0,
     });
 
     expect(result).toEqual({
@@ -25,7 +25,7 @@ describe("calculatePayoutFeeWithWaiver", () => {
       payoutAmount: 10000, // $100.00
       payoutFee,
       payoutFeeWaiverLimit: 50000, // $500.00 limit
-      payoutFeeWaivedUsage: 0, // nothing used yet
+      payoutFeeWaiverUsage: 0, // nothing used yet
     });
 
     expect(result).toEqual({
@@ -41,7 +41,7 @@ describe("calculatePayoutFeeWithWaiver", () => {
       payoutAmount: 10000, // $100.00
       payoutFee,
       payoutFeeWaiverLimit: 50000, // $500.00 limit
-      payoutFeeWaivedUsage: 45000, // $450.00 already used
+      payoutFeeWaiverUsage: 45000, // $450.00 already used
     });
 
     expect(result).toEqual({
@@ -57,7 +57,7 @@ describe("calculatePayoutFeeWithWaiver", () => {
       payoutAmount: 10000, // $100.00
       payoutFee,
       payoutFeeWaiverLimit: 50000, // $500.00 limit
-      payoutFeeWaivedUsage: 50000, // fully used
+      payoutFeeWaiverUsage: 50000, // fully used
     });
 
     expect(result).toEqual({
@@ -72,7 +72,7 @@ describe("calculatePayoutFeeWithWaiver", () => {
     const result = calculatePayoutFeeWithWaiver({
       payoutAmount: 10000,
       payoutFeeWaiverLimit: 50000,
-      payoutFeeWaivedUsage: 45000,
+      payoutFeeWaiverUsage: 45000,
       payoutFee,
       fastAchFee: 50,
     });

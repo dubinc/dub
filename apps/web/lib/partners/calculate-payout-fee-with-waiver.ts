@@ -2,7 +2,7 @@ export interface PayoutFeeWithWaiverParams {
   payoutAmount: number;
   payoutFee: number;
   payoutFeeWaiverLimit: number;
-  payoutFeeWaivedUsage: number;
+  payoutFeeWaiverUsage: number;
   fastAchFee?: number;
 }
 
@@ -11,7 +11,7 @@ export function calculatePayoutFeeWithWaiver({
   payoutAmount,
   payoutFee,
   payoutFeeWaiverLimit,
-  payoutFeeWaivedUsage,
+  payoutFeeWaiverUsage,
   fastAchFee = 0,
 }: PayoutFeeWithWaiverParams) {
   if (payoutFeeWaiverLimit === 0) {
@@ -26,7 +26,7 @@ export function calculatePayoutFeeWithWaiver({
   // Split the payout amount between free tier (0% fee) and fee charged (normal rate)
   const feeWaiverRemaining = Math.max(
     0,
-    payoutFeeWaiverLimit - payoutFeeWaivedUsage,
+    payoutFeeWaiverLimit - payoutFeeWaiverUsage,
   );
   const feeFreeAmount = Math.min(payoutAmount, feeWaiverRemaining);
   const feeChargedAmount = payoutAmount - feeFreeAmount;
