@@ -41,9 +41,6 @@ export const POST = withCron(async ({ rawBody }) => {
     );
   }
 
-  // Fetch active partners in batches using offset pagination
-  // Since deactivated records no longer match the status filter,
-  // we always fetch from offset 0 to get the next batch of unprocessed records
   const programEnrollments = await prisma.programEnrollment.findMany({
     where: {
       programId,
