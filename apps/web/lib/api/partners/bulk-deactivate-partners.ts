@@ -1,5 +1,6 @@
 import { Session } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
+import { ACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -27,7 +28,7 @@ export async function bulkDeactivatePartners({
       },
       programId,
       status: {
-        in: ["approved", "archived"],
+        in: ACTIVE_ENROLLMENT_STATUSES,
       },
     },
     select: {
@@ -75,7 +76,7 @@ export async function bulkDeactivatePartners({
         },
         programId,
         status: {
-          in: ["approved", "archived"],
+          in: ACTIVE_ENROLLMENT_STATUSES,
         },
       },
       data: {
