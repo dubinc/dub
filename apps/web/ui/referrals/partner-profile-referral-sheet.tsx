@@ -9,7 +9,6 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { Dispatch, SetStateAction } from "react";
-import { ReferralActivitySection } from "@/ui/activity-logs/referral-activity-section";
 import { ReferralDetails } from "./referral-details";
 import { ReferralLeadDetails } from "./referral-lead-details";
 
@@ -90,8 +89,6 @@ function PartnerProfileReferralSheetContent({
         <div className="@3xl/sheet:order-2 flex flex-col gap-2 sm:gap-4">
           <ReferralLeadDetails referral={referral} mode="readonly" />
         </div>
-
-        <ReferralActivitySection referralId={referral.id} />
       </div>
     </div>
   );

@@ -1,7 +1,10 @@
 "use client";
 
 import { useActivityLogs } from "@/lib/swr/use-activity-logs";
-import { ActivityFeed, ActivityFeedSkeleton } from "./activity-item";
+import {
+  ActivityFeed,
+  ActivityFeedSkeleton,
+} from "@/ui/activity-logs/activity-feed";
 
 export function ReferralActivitySection({
   referralId,
@@ -23,7 +26,7 @@ export function ReferralActivitySection({
   }
 
   return (
-    <section className="order-3 col-span-full flex flex-col gap-3">
+    <section className="order-3 col-span-full flex flex-col gap-3 px-1">
       <h3 className="text-content-emphasis text-base font-semibold">
         Activity
       </h3>
@@ -34,7 +37,7 @@ export function ReferralActivitySection({
           Failed to load activity. Please try again.
         </p>
       ) : (
-        <ActivityFeed logs={logs} />
+        <ActivityFeed logs={logs} resourceType="referral" />
       )}
     </section>
   );

@@ -5,7 +5,7 @@ import { EnrolledPartnerExtendedProps } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
 import { Button, Sheet } from "@dub/ui";
 import { Dispatch, SetStateAction, useState } from "react";
-import { ActivityFeed, ActivityFeedSkeleton } from "./activity-item";
+import { ActivityFeed, ActivityFeedSkeleton } from "@/ui/activity-logs/activity-feed";
 
 interface PartnerGroupHistorySheetProps {
   partner: Pick<EnrolledPartnerExtendedProps, "id">;
@@ -54,7 +54,7 @@ function PartnerGroupHistorySheetContent({
             <p className="text-sm text-neutral-500">No group history yet</p>
           </div>
         ) : (
-          <ActivityFeed logs={activityLogs} />
+          <ActivityFeed logs={activityLogs} resourceType="partner" />
         )}
       </div>
     </div>
