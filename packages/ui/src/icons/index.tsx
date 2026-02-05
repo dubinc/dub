@@ -16,7 +16,6 @@ export * from "./dub-product-icon";
 export * from "./expanding-arrow";
 export * from "./file-pen";
 export * from "./file-send";
-export * from "./user-clock";
 export * from "./ios-app-store";
 export * from "./lock-small";
 export * from "./magic";
@@ -26,6 +25,7 @@ export * from "./photo";
 export * from "./sort-order";
 export * from "./success";
 export * from "./tick";
+export * from "./user-clock";
 
 // loaders
 export * from "./loading-circle";

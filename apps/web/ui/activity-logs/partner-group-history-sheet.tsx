@@ -2,10 +2,13 @@
 
 import { useActivityLogs } from "@/lib/swr/use-activity-logs";
 import { EnrolledPartnerExtendedProps } from "@/lib/types";
+import {
+  ActivityFeed,
+  ActivityFeedSkeleton,
+} from "@/ui/activity-logs/activity-feed";
 import { X } from "@/ui/shared/icons";
 import { Button, Sheet } from "@dub/ui";
 import { Dispatch, SetStateAction, useState } from "react";
-import { ActivityFeed, ActivityFeedSkeleton } from "@/ui/activity-logs/activity-feed";
 
 interface PartnerGroupHistorySheetProps {
   partner: Pick<EnrolledPartnerExtendedProps, "id">;
