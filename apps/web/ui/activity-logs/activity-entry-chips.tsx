@@ -1,5 +1,7 @@
 import { ActivityLog, GroupProps } from "@/lib/types";
 import { getResourceColorData, RAINBOW_CONIC_GRADIENT } from "@/ui/colors";
+import { ReferralStatusBadges } from "@/ui/referrals/referral-status-badges";
+import { ReferralStatus } from "@dub/prisma/client";
 import { Bolt } from "@dub/ui";
 import { cn, OG_AVATAR_URL } from "@dub/utils";
 import { ReactNode } from "react";
@@ -79,4 +81,21 @@ export function ActorChip({ log }: ActorChipProps) {
   }
 
   return <SystemChip />;
+}
+
+export function ReferralStatusPill({ status }: { status: ReferralStatus }) {
+  const badge = ReferralStatusBadges[status];
+
+  if (!badge) return null;
+
+  return (
+    <span
+      className={cn(
+        "inline-flex rounded-lg px-2 py-0.5 text-sm font-medium",
+        badge.className,
+      )}
+    >
+      {badge.label}
+    </span>
+  );
 }

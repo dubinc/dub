@@ -11,6 +11,7 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { Dispatch, SetStateAction, useState } from "react";
+import { ReferralActivitySection } from "@/ui/activity-logs/referral-activity-section";
 import { ReferralDetails } from "./referral-details";
 import { ReferralLeadDetails } from "./referral-lead-details";
 import { ReferralPartnerDetails } from "./referral-partner-details";
@@ -133,6 +134,8 @@ function ReferralSheetContent({
             />
             <ReferralPartnerDetails referral={referral} />
           </div>
+
+          <ReferralActivitySection referralId={referral.id} />
         </div>
 
         {hasPendingStatusChange && (

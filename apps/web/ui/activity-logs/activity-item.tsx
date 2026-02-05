@@ -18,6 +18,10 @@ export function ActivityItem({ log, isLast = false }: ActivityItemProps) {
   const icon = getActivityLogIcon(log);
   const Renderer = getActivityLogRenderer(log.action);
 
+  if (!Renderer) {
+    return null;
+  }
+
   return (
     <li className="relative flex gap-3">
       {!isLast && (
