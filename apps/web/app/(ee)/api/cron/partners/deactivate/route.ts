@@ -1,4 +1,4 @@
-import { queueDiscountCodeDeletion } from "@/lib/api/discounts/queue-discount-code-deletion";
+import { deleteDiscountCodes } from "@/lib/api/discounts/delete-discount-code";
 import { linkCache } from "@/lib/api/links/cache";
 import { withCron } from "@/lib/cron/with-cron";
 import { sendBatchEmail } from "@dub/email";
@@ -47,10 +47,10 @@ export const POST = withCron(async ({ rawBody }) => {
   console.log("[bulkDeactivatePartners] Expired links in cache.");
 
   // Queue discount code deletions
-  const discountCodeIds = programEnrollments.flatMap(({ discountCodes }) =>
-    discountCodes.map((dc) => dc.id),
+  const discountCodes = programEnrollments.flatMap(({ discountCodes }) =>
+    discountCodes.map((dc) => dc),
   );
-  await queueDiscountCodeDeletion(discountCodeIds);
+  await deleteDiscountCodes(discountCodes);
   console.log("[bulkDeactivatePartners] Queued discount code deletions.");
 
   // Find the program
