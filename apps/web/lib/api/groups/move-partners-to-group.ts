@@ -5,7 +5,10 @@ import { PartnerGroup } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { buildProgramEnrollmentChangeSet } from "../activity-log/build-change-set";
-import { trackActivityLog } from "../activity-log/track-activity-log";
+import {
+  trackActivityLog,
+  TrackActivityLogInput,
+} from "../activity-log/track-activity-log";
 import { triggerDraftBountySubmissionCreation } from "../bounties/trigger-draft-bounty-submissions";
 import { includeProgramEnrollment } from "../links/include-program-enrollment";
 import { includeTags } from "../links/include-tags";
@@ -108,6 +111,7 @@ export async function movePartnersToGroup({
           },
           select: {
             id: true,
+            partnerId: true,
             partnerGroup: {
               select: {
                 id: true,
@@ -119,8 +123,8 @@ export async function movePartnersToGroup({
       );
 
       // Build activity log inputs
-      const activityLogInputs = updatedProgramEnrollments.map(
-        (updatedEnrollment) => {
+      const activityLogInputs: TrackActivityLogInput[] =
+        updatedProgramEnrollments.map((updatedEnrollment) => {
           const oldEnrollment = programEnrollments.find(
             (e) => e.id === updatedEnrollment.id,
           );
@@ -128,17 +132,16 @@ export async function movePartnersToGroup({
           return {
             workspaceId,
             programId,
-            resourceType: "programEnrollment" as const,
-            resourceId: updatedEnrollment.id,
+            resourceType: "partner",
+            resourceId: updatedEnrollment.partnerId,
             userId,
-            action: "programEnrollment.groupChanged" as const,
+            action: "partner.groupChanged",
             changeSet: buildProgramEnrollmentChangeSet({
               oldEnrollment,
               newEnrollment: updatedEnrollment,
             }),
           };
-        },
-      );
+        });
 
       await Promise.allSettled([
         qstash.publishJSON({
