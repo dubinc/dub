@@ -1,11 +1,18 @@
 import useGroups from "@/lib/swr/use-groups";
 import { ActivityLog, GroupProps } from "@/lib/types";
 import { Bolt } from "@dub/ui";
+import { ReactNode } from "react";
 import { GroupPill, SourcePill, UserChip } from "../activity-entry-chips";
 
 interface GroupChangeSet {
   old: Pick<GroupProps, "id" | "name">;
   new: Pick<GroupProps, "id" | "name">;
+}
+
+function Label({ children }: { children: ReactNode }) {
+  return (
+    <span className="text-sm font-medium text-neutral-800">{children}</span>
+  );
 }
 
 export function PartnerGroupChangedRenderer({ log }: { log: ActivityLog }) {
@@ -21,23 +28,21 @@ export function PartnerGroupChangedRenderer({ log }: { log: ActivityLog }) {
   const newGroupColor =
     groups?.find((g) => g.id === newGroup.id)?.color ?? null;
 
-  if (log.user) {
-    return (
-      <>
-        <span>Moved to</span>
-        <GroupPill name={newGroup.name} color={newGroupColor} />
-        <span>by</span>
-        <UserChip user={log.user} />
-      </>
-    );
-  }
-
   return (
     <>
-      <span>Moved to</span>
+      <Label>Moved to</Label>
       <GroupPill name={newGroup.name} color={newGroupColor} />
-      <span>automatically by</span>
-      <SourcePill icon={<Bolt className="size-3" />} label="Group move" />
+      {log.user ? (
+        <>
+          <Label>by</Label>
+          <UserChip user={log.user} />
+        </>
+      ) : (
+        <>
+          <Label>automatically by</Label>
+          <SourcePill icon={<Bolt className="size-3" />} label="Group move" />
+        </>
+      )}
     </>
   );
 }

@@ -37,7 +37,7 @@ export function ActivityItem({ log, isLast = false }: ActivityItemProps) {
       </div>
 
       <div className="flex min-w-0 flex-1 flex-col gap-1 pb-6">
-        <div className="flex flex-wrap items-center gap-1 text-sm text-neutral-700">
+        <div className="flex flex-wrap items-center gap-1.5 text-sm text-neutral-700">
           <Renderer log={log} />
         </div>
 
