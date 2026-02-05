@@ -15,21 +15,25 @@ model User {
   emailVerified DateTime?
   image         String?
   isMachine     Boolean   @default(false)
+  createdAt     DateTime  @default(now())
 
-  // password data
+  // password & security fields
   passwordHash         String?
   invalidLoginAttempts Int       @default(0)
   lockedAt             DateTime?
 
-  createdAt               DateTime                     @default(now())
-  subscribed              Boolean                      @default(true) // TODO: deprecrate once notificationPreferences is fully migrated
-  notificationPreferences UserNotificationPreferences?
-  source                  String? // where the user came from
-  defaultWorkspace        String? // slug of the user's default workspace
-  defaultPartnerId        String? // the user's default partner ID
+  // user preferences
+  defaultWorkspace String? // slug of the user's default workspace
+  defaultPartnerId String? // the user's default partner ID
+
+  // internal fields
+  source   String? // where the user came from
+  sentMail Boolean @default(false)
+
   // relational data
   accounts                Account[]
   sessions                Session[]
+  notificationPreferences UserNotificationPreferences?
   projects                ProjectUsers[]
   partners                PartnerUser[]
   links                   Link[]
@@ -47,7 +51,9 @@ model User {
   sentMessages            Message[]
   partnerComments         PartnerComment[]
   fraudEventGroups        FraudEventGroup[]
+  activityLogs            ActivityLog[]
 
+  @@index(sentMail)
   @@index(source)
   @@index(defaultWorkspace)
 }

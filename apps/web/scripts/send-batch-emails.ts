@@ -1,71 +1,50 @@
-import DubPartnerRewind from "@dub/email/templates/dub-partner-rewind";
+import ConnectPlatformsReminder from "@dub/email/templates/connect-platforms-reminder";
 import { prisma } from "@dub/prisma";
-import { chunk } from "@dub/utils";
 import "dotenv-flow/config";
 import { queueBatchEmail } from "../lib/email/queue-batch-email";
+import { generateUnsubscribeToken } from "../lib/email/unsubscribe-token";
 
 async function main() {
-  const partnerRewinds = await prisma.partnerRewind.findMany({
+  const usersToNotify = await prisma.user.findMany({
     where: {
-      partner: {
-        users: {
-          some: {
-            user: {
-              notificationPreferences: {
-                partnerAccount: true,
-              },
-            },
-          },
-        },
+      sentMail: false,
+      notificationPreferences: {
+        partnerAccount: true,
       },
-      year: 2025,
-      sentAt: null,
+      partners: {
+        some: {},
+      },
     },
-    include: {
-      partner: true,
-    },
+    take: 1000,
   });
-  console.log(`Found ${partnerRewinds.length} partner rewinds`);
+  console.log(`Found ${usersToNotify.length} users to notify`);
 
-  console.table(
-    partnerRewinds
-      .map(({ partner, id, year, partnerId, createdAt, sentAt, ...rest }) => ({
-        ...rest,
-        partner: partner.email,
-        country: partner.country,
-      }))
-      .slice(0, 10),
-  );
-
-  const res = await queueBatchEmail<typeof DubPartnerRewind>(
-    partnerRewinds.map(({ partner }) => ({
-      to: partner.email!,
-      subject: "Your Dub Partner Rewind 2025",
+  const res = await queueBatchEmail<typeof ConnectPlatformsReminder>(
+    usersToNotify.map((user) => ({
+      to: user.email!,
+      subject: "Verify your social platforms on Dub Partners",
       variant: "marketing",
-      replyTo: "noreply",
-      templateName: "DubPartnerRewind",
+      templateName: "ConnectPlatformsReminder",
       templateProps: {
-        email: partner.email!,
+        email: user.email!,
+        unsubscribeUrl: `https://partners.dub.co/unsubscribe/${generateUnsubscribeToken(user.email!)}`,
       },
     })),
   );
 
-  console.log({ res });
+  console.log(res);
 
-  const chunks = chunk(partnerRewinds, 1000);
-  for (const chunk of chunks) {
-    const res = await prisma.partnerRewind.updateMany({
-      where: {
-        id: {
-          in: chunk.map(({ id }) => id),
-        },
+  const updatedUsers = await prisma.user.updateMany({
+    where: {
+      id: {
+        in: usersToNotify.map((user) => user.id),
       },
-      data: {
-        sentAt: new Date(),
-      },
-    });
-    console.log(`Updated ${res.count} partner rewinds to sent`);
-  }
+    },
+    data: {
+      sentMail: true,
+    },
+  });
+  console.log(`Updated ${updatedUsers.count} users to sentMail: true`);
 }
 
 main();

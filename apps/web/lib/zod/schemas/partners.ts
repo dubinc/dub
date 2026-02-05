@@ -27,14 +27,14 @@ import { parseUrlSchema } from "./utils";
 export const PARTNERS_MAX_PAGE_SIZE = 100;
 
 export const ACTIVE_ENROLLMENT_STATUSES: ProgramEnrollmentStatus[] = [
-  "approved",
-  "archived",
+  ProgramEnrollmentStatus.approved,
+  ProgramEnrollmentStatus.archived,
 ];
 
 export const INACTIVE_ENROLLMENT_STATUSES: ProgramEnrollmentStatus[] = [
-  "banned",
-  "deactivated",
-  "rejected",
+  ProgramEnrollmentStatus.banned,
+  ProgramEnrollmentStatus.deactivated,
+  ProgramEnrollmentStatus.rejected,
 ];
 
 export const exportPartnerColumns = [
@@ -820,6 +820,8 @@ export const deactivatePartnerSchema = z.object({
   workspaceId: z.string(),
   partnerId: z.string(),
 });
+
+export const deactivatePartnerApiSchema = partnerIdTenantIdSchema;
 
 export const archivePartnerSchema = z.object({
   workspaceId: z.string(),
