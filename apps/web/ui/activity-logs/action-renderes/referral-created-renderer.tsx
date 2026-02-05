@@ -3,7 +3,7 @@
 import { ActivityLog } from "@/lib/types";
 import { FileText } from "lucide-react";
 import { ReactNode } from "react";
-import { ActorChip, SourcePill } from "./activity-entry-chips";
+import { ActorChip, SourcePill } from "../activity-entry-chips";
 
 function Label({ children }: { children: ReactNode }) {
   return (

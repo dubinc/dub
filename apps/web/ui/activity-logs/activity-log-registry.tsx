@@ -3,9 +3,9 @@ import { ActivityLogAction } from "@/lib/zod/schemas/activity-log";
 import { CircleInfo, UserArrowRight } from "@dub/ui";
 import { FileText } from "lucide-react";
 import { ComponentType, ReactNode } from "react";
-import { PartnerGroupChangedRenderer } from "./partner-group-changed-renderer";
-import { ReferralCreatedRenderer } from "./referral-created-renderer";
-import { ReferralStatusChangedRenderer } from "./referral-status-changed-renderer";
+import { PartnerGroupChangedRenderer } from "./action-renderes/partner-group-changed-renderer";
+import { ReferralCreatedRenderer } from "./action-renderes/referral-created-renderer";
+import { ReferralStatusChangedRenderer } from "./action-renderes/referral-status-changed-renderer";
 
 export type ActorType = "USER" | "SYSTEM";
 

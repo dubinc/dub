@@ -3,7 +3,7 @@
 import { ActivityLog } from "@/lib/types";
 import { ReferralStatus } from "@dub/prisma/client";
 import { ReactNode } from "react";
-import { ActorChip, ReferralStatusPill } from "./activity-entry-chips";
+import { ActorChip, ReferralStatusPill } from "../activity-entry-chips";
 
 interface StatusChangeSet {
   old: ReferralStatus | null;
