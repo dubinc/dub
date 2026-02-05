@@ -10,16 +10,22 @@ export async function notifyPartnerReferralSubmitted({
 }: {
   referral: Pick<
     PartnerReferral,
-    "id" | "name" | "email" | "company" | "formData"
+    "id" | "name" | "email" | "company" | "formData" | "partnerId"
   >;
   programId: string;
 }) {
-  const program = await prisma.program.findUnique({
-    where: { id: programId },
-    select: { workspaceId: true },
-  });
+  const [program, partner] = await Promise.all([
+    prisma.program.findUnique({
+      where: { id: programId },
+      select: { workspaceId: true },
+    }),
+    prisma.partner.findUnique({
+      where: { id: referral.partnerId },
+      select: { name: true, email: true, image: true },
+    }),
+  ]);
 
-  if (!program) return;
+  if (!program || !partner) return;
 
   const workspaceUsers = await prisma.projectUsers.findMany({
     where: {
@@ -71,6 +77,11 @@ export async function notifyPartnerReferralSubmitted({
           company: referral.company,
           image: getCompanyLogoUrl(referral.email),
           formData,
+        },
+        partner: {
+          name: partner.name,
+          email: partner.email,
+          image: partner.image,
         },
       }),
     })),
