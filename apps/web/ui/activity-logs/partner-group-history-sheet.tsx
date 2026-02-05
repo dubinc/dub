@@ -2,10 +2,7 @@
 
 import { useActivityLogs } from "@/lib/swr/use-activity-logs";
 import { EnrolledPartnerExtendedProps } from "@/lib/types";
-import {
-  ActivityFeed,
-  ActivityFeedSkeleton,
-} from "@/ui/activity-logs/activity-feed";
+import { PartnerGroupActivitySection } from "@/ui/activity-logs/partner-group-activity-section";
 import { X } from "@/ui/shared/icons";
 import { Button, Sheet } from "@dub/ui";
 import { Dispatch, SetStateAction, useState } from "react";
@@ -19,15 +16,6 @@ interface PartnerGroupHistorySheetProps {
 function PartnerGroupHistorySheetContent({
   partner,
 }: Omit<PartnerGroupHistorySheetProps, "isOpen">) {
-  const { activityLogs, loading, error } = useActivityLogs({
-    query: {
-      resourceType: "partner",
-      resourceId: partner.id,
-      action: "partner.groupChanged",
-    },
-    enabled: !!partner.id,
-  });
-
   return (
     <div className="flex size-full flex-col">
       <div className="flex h-16 shrink-0 items-center justify-between border-b border-neutral-200 px-6 py-4">
@@ -44,21 +32,7 @@ function PartnerGroupHistorySheetContent({
       </div>
 
       <div className="scrollbar-hide flex min-h-0 flex-1 flex-col overflow-y-auto p-4 sm:p-6">
-        {loading ? (
-          <ActivityFeedSkeleton count={3} />
-        ) : error ? (
-          <div className="flex flex-col items-center justify-center py-8 text-center">
-            <p className="text-sm text-neutral-500">
-              Failed to load history. Please try again.
-            </p>
-          </div>
-        ) : !activityLogs || activityLogs.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-8 text-center">
-            <p className="text-sm text-neutral-500">No group history yet</p>
-          </div>
-        ) : (
-          <ActivityFeed logs={activityLogs} resourceType="partner" />
-        )}
+        <PartnerGroupActivitySection partnerId={partner.id} />
       </div>
     </div>
   );
