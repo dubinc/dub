@@ -213,7 +213,7 @@ export function Form() {
                     key={value}
                     className={cn(
                       "flex flex-col items-center",
-                      value === "one-off" &&
+                      value === "recurring" &&
                         "rounded-md border border-neutral-200 bg-neutral-100",
                     )}
                   >
@@ -221,7 +221,7 @@ export function Form() {
                       className={cn(
                         "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600 hover:bg-neutral-50",
                         "transition-all duration-150",
-                        value === "one-off" && "border-transparent shadow-sm",
+                        value === "recurring" && "border-transparent shadow-sm",
                         isSelected &&
                           "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
                       )}
@@ -262,7 +262,7 @@ export function Form() {
                         )}
                       />
                     </label>
-                    {value === "one-off" && (
+                    {value === "recurring" && (
                       <span className="py-0.5 text-xs font-medium text-neutral-500">
                         Most common
                       </span>
@@ -293,12 +293,8 @@ export function Form() {
                   {RECURRING_MAX_DURATIONS.filter(
                     (v) => v !== 0 && v !== 1, // filter out one-time and 1-month intervals (we only use 1-month for discounts)
                   ).map((duration) => (
-                    <option
-                      key={duration}
-                      value={duration}
-                      selected={duration === 12}
-                    >
-                      {duration} {duration === 1 ? "month" : "months"}
+                    <option key={duration} value={duration}>
+                      {duration} months
                     </option>
                   ))}
                 </select>

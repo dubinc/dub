@@ -23,7 +23,7 @@ export function ProgramOnboardingFormWrapper({
       type: "percentage",
       amountInCents: null,
       amountInPercentage: null,
-      maxDuration: 12,
+      maxDuration: null,
       partners: [{ email: "" }],
       ...defaultValues,
     },
