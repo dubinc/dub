@@ -21,6 +21,8 @@ model User {
   invalidLoginAttempts Int       @default(0)
   lockedAt             DateTime?
 
+  lastLoginAt             DateTime?
+
   createdAt               DateTime                     @default(now())
   subscribed              Boolean                      @default(true) // TODO: deprecrate once notificationPreferences is fully migrated
   notificationPreferences UserNotificationPreferences?

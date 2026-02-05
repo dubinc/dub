@@ -145,7 +145,7 @@ export function WorkspaceMembersClient() {
         header: "Name",
         accessorFn: (row) => row.name || row.email,
         minSize: 360,
-        size: 870,
+        size: 750,
         maxSize: 900,
         cell: ({ row }) => {
           const user = row.original;
@@ -168,6 +168,29 @@ export function WorkspaceMembersClient() {
                 </p>
               </div>
             </div>
+          );
+        },
+      },
+      {
+        id: "lastActive",
+        header: "Last active",
+        accessorFn: (row) => row.lastLoginAt,
+        minSize: 100,
+        size: 120,
+        maxSize: 150,
+        cell: ({ row }) => {
+          const user = row.original;
+          if (status === "invited" || !user.lastLoginAt) {
+            return <span className="text-neutral-400">-</span>;
+          }
+          return (
+            <span className="text-sm text-neutral-500">
+              {new Date(user.lastLoginAt).toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              })}
+            </span>
           );
         },
       },
