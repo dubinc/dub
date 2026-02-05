@@ -2,31 +2,20 @@ import { getCompanyLogoUrl } from "@/ui/referrals/referral-utils";
 import { sendBatchEmail } from "@dub/email";
 import PartnerReferralSubmitted from "@dub/email/templates/partner-referral-submitted";
 import { prisma } from "@dub/prisma";
-import { PartnerReferral } from "@dub/prisma/client";
+import { Partner, PartnerReferral, Program } from "@dub/prisma/client";
 
 export async function notifyPartnerReferralSubmitted({
   referral,
-  programId,
+  program,
+  partner,
 }: {
   referral: Pick<
     PartnerReferral,
-    "id" | "name" | "email" | "company" | "formData" | "partnerId"
+    "id" | "name" | "email" | "company" | "formData"
   >;
-  programId: string;
+  program: Pick<Program, "workspaceId">;
+  partner: Pick<Partner, "name" | "email" | "image">;
 }) {
-  const [program, partner] = await Promise.all([
-    prisma.program.findUnique({
-      where: { id: programId },
-      select: { workspaceId: true },
-    }),
-    prisma.partner.findUnique({
-      where: { id: referral.partnerId },
-      select: { name: true, email: true, image: true },
-    }),
-  ]);
-
-  if (!program || !partner) return;
-
   const workspaceUsers = await prisma.projectUsers.findMany({
     where: {
       projectId: program.workspaceId,

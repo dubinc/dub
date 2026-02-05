@@ -69,6 +69,7 @@ export const submitReferralAction = authPartnerActionClient
       programId,
       include: {
         program: true,
+        partner: true,
       },
     });
 
@@ -150,7 +151,8 @@ export const submitReferralAction = authPartnerActionClient
       Promise.allSettled([
         notifyPartnerReferralSubmitted({
           referral,
-          programId,
+          program: programEnrollment.program,
+          partner: programEnrollment.partner,
         }),
 
         trackActivityLog({
