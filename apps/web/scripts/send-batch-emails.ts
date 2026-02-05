@@ -7,6 +7,7 @@ import { generateUnsubscribeToken } from "../lib/email/unsubscribe-token";
 async function main() {
   const usersToNotify = await prisma.user.findMany({
     where: {
+      sentMail: false,
       notificationPreferences: {
         partnerAccount: true,
       },
@@ -14,6 +15,7 @@ async function main() {
         some: {},
       },
     },
+    take: 1000,
   });
   console.log(`Found ${usersToNotify.length} users to notify`);
 
@@ -31,6 +33,18 @@ async function main() {
   );
 
   console.log(res);
+
+  const updatedUsers = await prisma.user.updateMany({
+    where: {
+      id: {
+        in: usersToNotify.map((user) => user.id),
+      },
+    },
+    data: {
+      sentMail: true,
+    },
+  });
+  console.log(`Updated ${updatedUsers.count} users to sentMail: true`);
 }
 
 main();
