@@ -12,7 +12,7 @@ export function useOnboardingProgram({ domain }: { domain?: string } = {}) {
         name: name ?? undefined,
         logo: logo ?? undefined,
         domain,
-        maxDuration: 0,
+        maxDuration: 12,
       },
     },
   };

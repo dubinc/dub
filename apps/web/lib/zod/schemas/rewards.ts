@@ -4,16 +4,16 @@ import { getPaginationQuerySchema, maxDurationSchema } from "./misc";
 
 export const COMMISSION_TYPES = [
   {
-    value: "one-off",
-    label: "One-off",
-    description: "Pay a one-time payout",
-    shortDescription: "Single payouts",
-  },
-  {
     value: "recurring",
     label: "Recurring",
     description: "Pay an ongoing payout",
     shortDescription: "Ongoing payouts",
+  },
+  {
+    value: "one-off",
+    label: "One-off",
+    description: "Pay a one-time payout",
+    shortDescription: "Single payouts",
   },
 ] as const;
 
