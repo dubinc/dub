@@ -1,13 +1,14 @@
 import { ActivityLog } from "@/lib/types";
 import { ActivityLogResourceType } from "@/lib/zod/schemas/activity-log";
-import { PartnerActivityItem } from "@/ui/activity-logs/partner-activity-item";
+import { PartnerGroupActivityItem } from "@/ui/activity-logs/partner-group-activity-item";
 import { ReferralActivityItem } from "@/ui/activity-logs/referral-activity-item";
+import { ComponentType } from "react";
 
 const ACTIVITY_ITEM_MAP: Record<
   Extract<ActivityLogResourceType, "partner" | "referral">,
-  typeof PartnerActivityItem
+  ComponentType<{ log: ActivityLog; isLast?: boolean }>
 > = {
-  partner: PartnerActivityItem,
+  partner: PartnerGroupActivityItem,
   referral: ReferralActivityItem,
 };
 

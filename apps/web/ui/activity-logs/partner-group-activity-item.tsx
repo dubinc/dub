@@ -5,15 +5,15 @@ import {
   getActivityLogRenderer,
 } from "./activity-log-registry";
 
-interface PartnerActivityItemProps {
+interface PartnerGroupActivityItemProps {
   log: ActivityLog;
   isLast?: boolean;
 }
 
-export function PartnerActivityItem({
+export function PartnerGroupActivityItem({
   log,
   isLast = false,
-}: PartnerActivityItemProps) {
+}: PartnerGroupActivityItemProps) {
   const icon = getActivityLogIcon(log);
   const Renderer = getActivityLogRenderer(log.action);
 
