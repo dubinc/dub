@@ -70,13 +70,12 @@ export function getActivityLogRenderer(
   return renderers.get(action) ?? null;
 }
 
-const ICON_CLASSNAME = "size-5 text-neutral-500";
-const DEFAULT_ICON_CLASSNAME = "size-5 text-neutral-400";
-
 export function getActivityLogIcon(log: ActivityLog): ReactNode {
   const Icon = ACTIVITY_LOG_ICONS[log.action];
+
   if (Icon) {
-    return <Icon className={ICON_CLASSNAME} />;
+    return <Icon className="size-5 text-neutral-500" />;
   }
-  return <CircleInfo className={DEFAULT_ICON_CLASSNAME} />;
+
+  return <CircleInfo className="size-5 text-neutral-400" />;
 }
