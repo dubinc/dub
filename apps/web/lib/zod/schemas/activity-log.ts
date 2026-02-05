@@ -27,6 +27,7 @@ export type ActivityLogAction = z.infer<typeof activityLogActionSchema>;
 export const getActivityLogsQuerySchema = z.object({
   resourceType: activityLogResourceTypeSchema,
   resourceId: z.string(),
+  action: activityLogActionSchema.optional(),
 });
 
 const fieldDiffSchema = z.object({

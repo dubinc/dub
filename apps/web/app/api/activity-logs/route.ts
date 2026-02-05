@@ -9,7 +9,7 @@ import * as z from "zod/v4";
 
 // GET /api/activity-logs - get activity logs for a resource
 export const GET = withWorkspace(async ({ workspace, searchParams }) => {
-  const { resourceType, resourceId } =
+  const { resourceType, resourceId, action } =
     getActivityLogsQuerySchema.parse(searchParams);
 
   const activityLogs = await prisma.activityLog.findMany({
@@ -17,6 +17,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
       workspaceId: workspace.id,
       resourceType,
       resourceId,
+      ...(action && { action }),
     },
     orderBy: {
       createdAt: "desc",

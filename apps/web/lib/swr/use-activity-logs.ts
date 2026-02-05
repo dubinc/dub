@@ -19,6 +19,7 @@ export function useActivityLogs({
         workspaceId: workspaceId!,
         resourceType: query.resourceType,
         resourceId: query.resourceId,
+        ...(query.action && { action: query.action }),
       }).toString()
     : "";
 
