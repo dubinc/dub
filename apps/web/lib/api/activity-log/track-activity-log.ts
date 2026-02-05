@@ -2,11 +2,11 @@ import { logger } from "@/lib/axiom/server";
 import {
   ActivityLogAction,
   ActivityLogResourceType,
-} from "@/lib/zod/schemas/activity-log";
+  ChangeSet,
+} from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { prettyPrint } from "@dub/utils";
-import { ChangeSet } from "./build-change-set";
 
 export interface TrackActivityLogInput
   extends Pick<

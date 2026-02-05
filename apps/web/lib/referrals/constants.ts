@@ -1,4 +1,4 @@
-import { ActivityLogAction } from "@/lib/zod/schemas/activity-log";
+import { ActivityLogAction } from "@/lib/types";
 import { textFieldSchema } from "@/lib/zod/schemas/referral-form";
 import { ReferralStatus } from "@dub/prisma/client";
 import { ACME_PROGRAM_ID } from "@dub/utils";

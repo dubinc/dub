@@ -1,11 +1,10 @@
-import { ActivityLog } from "@/lib/types";
-import { ActivityLogResourceType } from "@/lib/zod/schemas/activity-log";
+import { ActivityLog, ActivityLogResourceTypeWithFeed } from "@/lib/types";
 import { PartnerGroupActivityItem } from "@/ui/activity-logs/partner-group-activity-item";
 import { ReferralActivityItem } from "@/ui/activity-logs/referral-activity-item";
 import { ComponentType } from "react";
 
 const ACTIVITY_ITEM_MAP: Record<
-  Extract<ActivityLogResourceType, "partner" | "referral">,
+  ActivityLogResourceTypeWithFeed,
   ComponentType<{ log: ActivityLog; isLast?: boolean }>
 > = {
   partner: PartnerGroupActivityItem,
@@ -14,7 +13,7 @@ const ACTIVITY_ITEM_MAP: Record<
 
 interface ActivityFeedProps {
   logs: ActivityLog[];
-  resourceType: Extract<ActivityLogResourceType, "partner" | "referral">;
+  resourceType: ActivityLogResourceTypeWithFeed;
 }
 
 export function ActivityFeed({ logs, resourceType }: ActivityFeedProps) {

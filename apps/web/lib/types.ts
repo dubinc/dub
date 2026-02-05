@@ -36,7 +36,13 @@ import {
   FOLDER_WORKSPACE_ACCESS,
 } from "./folder/constants";
 import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "./webhook/constants";
-import { activityLogSchema } from "./zod/schemas/activity-log";
+import {
+  activityLogActionSchema,
+  activityLogResourceTypeSchema,
+  activityLogSchema,
+  fieldDiffSchema,
+  getActivityLogsQuerySchema,
+} from "./zod/schemas/activity-log";
 import {
   BountyListSchema,
   bountyPerformanceConditionSchema,
@@ -806,4 +812,21 @@ export type ReferralWithCustomer = PartnerReferral & {
   customer: Customer | null;
 };
 
+export type GetActivityLogsQuery = z.infer<typeof getActivityLogsQuerySchema>;
+
+export type ActivityLogResourceType = z.infer<
+  typeof activityLogResourceTypeSchema
+>;
+
+export type ActivityLogAction = z.infer<typeof activityLogActionSchema>;
+
+export type FieldDiff = z.infer<typeof fieldDiffSchema>;
+
+export type ChangeSet = Record<string, FieldDiff>;
+
 export type ActivityLog = z.infer<typeof activityLogSchema>;
+
+export type ActivityLogResourceTypeWithFeed = Extract<
+  ActivityLogResourceType,
+  "partner" | "referral"
+>;

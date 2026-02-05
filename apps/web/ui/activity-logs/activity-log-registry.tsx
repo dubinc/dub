@@ -1,5 +1,4 @@
-import { ActivityLog } from "@/lib/types";
-import { ActivityLogAction } from "@/lib/zod/schemas/activity-log";
+import { ActivityLog, ActivityLogAction } from "@/lib/types";
 import { CircleInfo, FileSend, UserArrowRight, UserClock } from "@dub/ui";
 import { ComponentType, ReactNode } from "react";
 import { PartnerGroupChangedRenderer } from "./action-renderers/partner-group-changed-renderer";
@@ -7,11 +6,6 @@ import { ReferralCreatedRenderer } from "./action-renderers/referral-created-ren
 import { ReferralStatusChangedRenderer } from "./action-renderers/referral-status-changed-renderer";
 
 export type ActorType = "USER" | "SYSTEM";
-
-export interface FieldDiff<T = unknown> {
-  old: T | null;
-  new: T | null;
-}
 
 type ActivityLogRenderer = (props: { log: ActivityLog }) => ReactNode;
 

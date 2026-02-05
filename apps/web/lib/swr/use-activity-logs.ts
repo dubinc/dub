@@ -1,15 +1,13 @@
 import useWorkspace from "@/lib/swr/use-workspace";
-import { getActivityLogsQuerySchema } from "@/lib/zod/schemas/activity-log";
+import { ActivityLog, GetActivityLogsQuery } from "@/lib/types";
 import { fetcher } from "@dub/utils";
 import useSWR from "swr";
-import * as z from "zod/v4";
-import { ActivityLog } from "../types";
 
 export function useActivityLogs({
   query,
   enabled = true,
 }: {
-  query?: z.infer<typeof getActivityLogsQuerySchema>;
+  query?: GetActivityLogsQuery;
   enabled?: boolean;
 } = {}) {
   const { id: workspaceId } = useWorkspace();
