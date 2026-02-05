@@ -6,12 +6,11 @@ import { PAYOUT_HOLDING_PERIOD_DAYS } from "@/lib/constants/payouts";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useGroup from "@/lib/swr/use-group";
-import { useGroupsRules } from "@/lib/swr/use-groups-rules";
+import { useGroupMoveRules } from "@/lib/swr/use-group-move-rules";
 import { GroupProps } from "@/lib/types";
 import { updateGroupSchema } from "@/lib/zod/schemas/groups";
 import { Button, Checkbox, Modal, Switch } from "@dub/ui";
 import { pluralize } from "@dub/utils";
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -29,11 +28,11 @@ export function GroupAdditionalSettings() {
     return <GroupAdditionalSettingsFormSkeleton />;
   }
 
-  return <GroupOtherSettingsForm group={group} />;
+  return <GroupAdditionalSettingsForm group={group} />;
 }
 
-function GroupOtherSettingsForm({ group }: { group: GroupProps }) {
-  const { groups, loading: groupsLoading } = useGroupsRules();
+function GroupAdditionalSettingsForm({ group }: { group: GroupProps }) {
+  const { groups, loading: groupsLoading } = useGroupMoveRules();
   const { makeRequest: updateGroup, isSubmitting } = useApiMutation();
 
   const [showConfirmAutoApproveModal, setShowConfirmAutoApproveModal] =
@@ -268,20 +267,8 @@ function GroupAdditionalSettingsFormSkeleton() {
         </SettingsRow>
 
         <SettingsRow
-          heading="Group move"
-          description={
-            <>
-              Create rules to move partners to this group when they meet
-              specific criteria.
-              <Link
-                href="https://dub.co/help"
-                target="_blank"
-                className="ml-1 underline"
-              >
-                Learn more
-              </Link>
-            </>
-          }
+          heading="Group move rules"
+          description="Create rules to move partners to this group when they meet specific criteria."
         >
           <div className="min-h-28 w-full animate-pulse rounded-md bg-neutral-200" />
         </SettingsRow>

@@ -13,7 +13,6 @@ import { GroupColorPicker } from "@/ui/partners/groups/group-color-picker";
 import { Button, CopyButton } from "@dub/ui";
 import { cn } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -79,7 +78,7 @@ function GroupSettingsForm({ group }: { group: GroupProps }) {
           </h3>
         </div>
         <SettingsRow
-          heading="Name"
+          heading="Group name"
           description="For internal use only, never visible to partners."
         >
           <div className="relative">
@@ -142,19 +141,7 @@ function GroupSettingsForm({ group }: { group: GroupProps }) {
 
         <SettingsRow
           heading="Group ID"
-          description={
-            <>
-              For setting up the Dub embedded referral dashboard within your
-              app.{" "}
-              <Link
-                href="https://dub.co/docs/partners/embedded-referrals"
-                target="_blank"
-                className="underline"
-              >
-                Learn more
-              </Link>
-            </>
-          }
+          description="For setting up the [Embedded Referral Dashboard](https://dub.co/docs/partners/embedded-referrals) within your app."
         >
           <div className="relative">
             <input
@@ -214,19 +201,7 @@ function GroupSettingsFormSkeleton() {
 
         <SettingsRow
           heading="Group ID"
-          description={
-            <>
-              For setting up the Dub embedded referral dashboard within your
-              app.{" "}
-              <Link
-                href="https://dub.co/docs/partners/embedded-referrals"
-                target="_blank"
-                className="underline"
-              >
-                Learn more
-              </Link>
-            </>
-          }
+          description="For setting up the [Embedded Referral Dashboard](https://dub.co/docs/partners/embedded-referrals) within your app."
         >
           <div className="h-[38px] w-full animate-pulse rounded-md bg-neutral-200" />
         </SettingsRow>
