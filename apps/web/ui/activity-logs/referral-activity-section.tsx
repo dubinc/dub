@@ -27,9 +27,12 @@ export function ReferralActivitySection({
 
   return (
     <section className="order-3 col-span-full flex flex-col gap-3 px-1">
-      <h3 className="text-content-emphasis text-base font-semibold">
-        Activity
-      </h3>
+      {!loading && (
+        <h3 className="text-content-emphasis text-base font-semibold">
+          Activity
+        </h3>
+      )}
+
       {loading ? (
         <ActivityFeedSkeleton count={3} />
       ) : error ? (
