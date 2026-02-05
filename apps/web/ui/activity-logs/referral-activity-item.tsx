@@ -32,12 +32,10 @@ export function ReferralActivityItem({
       )}
 
       <div
-        className="relative flex size-6 shrink-0 items-center justify-center"
+        className="flex size-6 shrink-0 items-center justify-center text-neutral-500"
         aria-hidden="true"
       >
-        <div className="flex size-6 items-center justify-center text-neutral-500">
-          {icon}
-        </div>
+        {icon}
       </div>
 
       <div className="flex min-w-0 flex-1 flex-col gap-2 overflow-hidden pb-6">

@@ -303,7 +303,7 @@ export function PartnerInfoCards({
         {/* Group */}
         <div className="flex flex-col gap-2">
           {isEnrolled && (
-            <div className="flex items-center justify-between">
+            <div className="flex min-h-7 items-center justify-between">
               <h3 className="text-content-emphasis text-sm font-semibold">
                 Group
               </h3>

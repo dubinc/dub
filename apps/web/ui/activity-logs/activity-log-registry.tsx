@@ -73,8 +73,8 @@ export function getActivityLogIcon(log: ActivityLog): ReactNode {
   const Icon = ACTIVITY_LOG_ICONS[log.action];
 
   if (Icon) {
-    return <Icon className="size-5 text-neutral-500" />;
+    return <Icon className="size-4 text-neutral-600" />;
   }
 
-  return <CircleInfo className="size-5 text-neutral-400" />;
+  return <CircleInfo className="size-4 text-neutral-400" />;
 }
