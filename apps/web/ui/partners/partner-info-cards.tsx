@@ -8,7 +8,9 @@ import {
 } from "@/lib/types";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { INACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
+import { usePartnerGroupHistorySheet } from "@/ui/activity-logs/partner-group-history-sheet";
 import {
+  Button,
   CalendarIcon,
   ChartActivity2,
   CopyButton,
@@ -79,6 +81,9 @@ export function PartnerInfoCards({
 
   const isEnrolled = type === "enrolled" || type === undefined;
   const isNetwork = type === "network";
+
+  const { partnerGroupHistorySheet, setIsOpen: setGroupHistoryOpen } =
+    usePartnerGroupHistorySheet({ partner: partner || null });
 
   const { group } = useGroup(
     {
@@ -295,10 +300,21 @@ export function PartnerInfoCards({
         {/* Group */}
         <div className="flex flex-col gap-2">
           {isEnrolled && (
-            <h3 className="text-content-emphasis text-sm font-semibold">
-              Group
-            </h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-content-emphasis text-sm font-semibold">
+                Group
+              </h3>
+
+              <Button
+                variant="outline"
+                text="View history"
+                className="h-7 w-fit rounded-lg px-1.5 text-xs font-medium text-neutral-400"
+                onClick={() => setGroupHistoryOpen(true)}
+              />
+            </div>
           )}
+
+          {partnerGroupHistorySheet}
           {partner ? (
             <PartnerInfoGroup
               partner={partner}

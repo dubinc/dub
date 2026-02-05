@@ -36,6 +36,7 @@ import {
   FOLDER_WORKSPACE_ACCESS,
 } from "./folder/constants";
 import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "./webhook/constants";
+import { activityLogSchema } from "./zod/schemas/activity-log";
 import {
   BountyListSchema,
   bountyPerformanceConditionSchema,
@@ -804,3 +805,5 @@ export type CustomerSource = (typeof CUSTOMER_SOURCES)[number];
 export type ReferralWithCustomer = PartnerReferral & {
   customer: Customer | null;
 };
+
+export type ActivityLog = z.infer<typeof activityLogSchema>;
