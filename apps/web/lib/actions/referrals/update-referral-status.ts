@@ -19,6 +19,8 @@ import { throwIfNoPermission } from "../throw-if-no-permission";
 const REFERRAL_EVENT_TYPES = {
   [ReferralStatus.pending]: "referral.created",
   [ReferralStatus.qualified]: "referral.qualified",
+  [ReferralStatus.meeting]: "referral.meeting",
+  [ReferralStatus.negotiation]: "referral.negotiation",
   [ReferralStatus.unqualified]: "referral.unqualified",
   [ReferralStatus.closedWon]: "referral.closedWon",
   [ReferralStatus.closedLost]: "referral.closedLost",

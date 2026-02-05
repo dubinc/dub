@@ -821,6 +821,8 @@ export const deactivatePartnerSchema = z.object({
   partnerId: z.string(),
 });
 
+export const deactivatePartnerApiSchema = partnerIdTenantIdSchema;
+
 export const archivePartnerSchema = z.object({
   workspaceId: z.string(),
   partnerId: z.string(),

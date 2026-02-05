@@ -1,10 +1,7 @@
 import { Session } from "@/lib/auth";
-import { qstash } from "@/lib/cron";
 import { ACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
-import { waitUntil } from "@vercel/functions";
-import { recordAuditLog } from "../audit-logs/record-audit-log";
+import { processPartnerDeactivation } from "./process-partner-deactivation";
 
 interface BulkDeactivatePartnersParams {
   workspaceId: string;
@@ -52,94 +49,13 @@ export async function bulkDeactivatePartners({
     return;
   }
 
-  const partnerIdsToDeactivate = programEnrollments.map(
-    ({ partner }) => partner.id,
-  );
+  const partners = programEnrollments.map(({ partner }) => partner);
 
-  await prisma.$transaction([
-    prisma.link.updateMany({
-      where: {
-        programId,
-        partnerId: {
-          in: partnerIdsToDeactivate,
-        },
-      },
-      data: {
-        expiresAt: new Date(),
-      },
-    }),
-
-    prisma.programEnrollment.updateMany({
-      where: {
-        partnerId: {
-          in: partnerIdsToDeactivate,
-        },
-        programId,
-        status: {
-          in: ACTIVE_ENROLLMENT_STATUSES,
-        },
-      },
-      data: {
-        status: "deactivated",
-        clickRewardId: null,
-        leadRewardId: null,
-        saleRewardId: null,
-        discountId: null,
-      },
-    }),
-  ]);
-
-  console.log("[bulkDeactivatePartners] Deactivated partners in program.", {
+  await processPartnerDeactivation({
+    workspaceId,
     programId,
-    partnerIds: partnerIdsToDeactivate,
+    partners,
+    user,
+    programDeactivated,
   });
-
-  if (user) {
-    waitUntil(
-      recordAuditLog(
-        programEnrollments.map(({ partner }) => ({
-          workspaceId,
-          programId,
-          action: "partner.deactivated",
-          description: `Partner ${partner.id} deactivated`,
-          actor: user,
-          targets: [
-            {
-              type: "partner",
-              id: partner.id,
-              metadata: {
-                name: partner.name,
-                email: partner.email ?? null,
-              },
-            },
-          ],
-        })),
-      ),
-    );
-  }
-
-  const qstashResponse = await qstash.publishJSON({
-    url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/deactivate`,
-    body: {
-      programId,
-      partnerIds: partnerIdsToDeactivate,
-      programDeactivated,
-    },
-  });
-
-  if (qstashResponse.messageId) {
-    console.log(
-      "[bulkDeactivatePartners] Deactivation job enqueued successfully.",
-      {
-        response: qstashResponse,
-      },
-    );
-  } else {
-    console.error(
-      "[bulkDeactivatePartners] Failed to enqueue deactivation job",
-      {
-        response: qstashResponse,
-      },
-    );
-  }
 }

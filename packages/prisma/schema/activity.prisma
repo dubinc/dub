@@ -12,5 +12,5 @@ model ActivityLog {
 
   user User @relation(fields: [userId], references: [id])
 
-  @@index([workspaceId, resourceType, resourceId])
+  @@index([resourceType, resourceId])
 }
