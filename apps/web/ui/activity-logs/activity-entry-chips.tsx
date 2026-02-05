@@ -6,6 +6,10 @@ import { Bolt } from "@dub/ui";
 import { cn, OG_AVATAR_URL } from "@dub/utils";
 import { ReactNode } from "react";
 import { getActorType } from "./activity-log-registry";
+interface ActivityChipProps {
+  children: ReactNode;
+  className?: string;
+}
 
 interface GroupPillProps extends Pick<GroupProps, "name" | "color"> {}
 
@@ -22,13 +26,26 @@ interface ActorChipProps {
   log: ActivityLog;
 }
 
+function ActivityChip({ children, className }: ActivityChipProps) {
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-2 rounded-lg bg-neutral-100 px-2 py-1 text-sm font-medium text-neutral-700",
+        className,
+      )}
+    >
+      {children}
+    </span>
+  );
+}
+
 export function GroupPill({ name, color }: GroupPillProps) {
   const colorClassName = color
     ? getResourceColorData(color)?.groupVariants
     : undefined;
 
   return (
-    <span className="inline-flex items-center gap-1 rounded-lg bg-neutral-100 px-2 py-0.5 text-sm font-medium text-neutral-700">
+    <ActivityChip>
       <span
         className={cn("size-2.5 shrink-0 rounded-full", colorClassName)}
         {...(!colorClassName && {
@@ -38,38 +55,38 @@ export function GroupPill({ name, color }: GroupPillProps) {
         })}
       />
       {name}
-    </span>
+    </ActivityChip>
   );
 }
 
 export function SourcePill({ icon, label }: SourcePillProps) {
   return (
-    <span className="inline-flex items-center gap-1 rounded-lg bg-neutral-100 px-2 py-0.5 text-sm font-medium text-neutral-700">
-      {icon && <span className="size-2.5 shrink-0 rounded-full">{icon}</span>}
+    <ActivityChip>
+      {icon}
       {label}
-    </span>
+    </ActivityChip>
   );
 }
 
 export function UserChip({ user }: UserChipProps) {
   return (
-    <span className="inline-flex items-center gap-1 rounded-lg bg-neutral-100 px-2 py-0.5 text-sm font-medium text-neutral-700">
+    <ActivityChip>
       <img
         src={user.image || `${OG_AVATAR_URL}${user.id}`}
         alt={`${user.name || user.email || "User"}`}
         className="size-4 shrink-0 rounded-full"
       />
       {user.name || user.email || "Unknown user"}
-    </span>
+    </ActivityChip>
   );
 }
 
 export function SystemChip() {
   return (
-    <span className="inline-flex items-center gap-1 rounded-lg bg-neutral-100 px-2 py-0.5 text-sm font-medium text-neutral-700">
+    <ActivityChip>
       <Bolt className="size-3 text-neutral-500" />
       System
-    </span>
+    </ActivityChip>
   );
 }
 
@@ -88,14 +105,5 @@ export function ReferralStatusPill({ status }: { status: ReferralStatus }) {
 
   if (!badge) return null;
 
-  return (
-    <span
-      className={cn(
-        "inline-flex rounded-lg px-2 py-0.5 text-sm font-medium",
-        badge.className,
-      )}
-    >
-      {badge.label}
-    </span>
-  );
+  return <ActivityChip className={badge.className}>{badge.label}</ActivityChip>;
 }

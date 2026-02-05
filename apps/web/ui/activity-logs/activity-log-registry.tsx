@@ -1,7 +1,6 @@
 import { ActivityLog } from "@/lib/types";
 import { ActivityLogAction } from "@/lib/zod/schemas/activity-log";
-import { CircleInfo, UserArrowRight } from "@dub/ui";
-import { FileText } from "lucide-react";
+import { CircleInfo, FileSend, UserArrowRight, UserClock } from "@dub/ui";
 import { ComponentType, ReactNode } from "react";
 import { PartnerGroupChangedRenderer } from "./action-renderes/partner-group-changed-renderer";
 import { ReferralCreatedRenderer } from "./action-renderes/referral-created-renderer";
@@ -24,13 +23,13 @@ const ACTIVITY_LOG_ICONS: Partial<
   Record<ActivityLogAction, ComponentType<{ className?: string }>>
 > = {
   "partner.groupChanged": UserArrowRight,
-  "referral.created": FileText,
-  "referral.qualified": UserArrowRight,
-  "referral.meeting": UserArrowRight,
-  "referral.negotiation": UserArrowRight,
-  "referral.unqualified": UserArrowRight,
-  "referral.closedWon": UserArrowRight,
-  "referral.closedLost": UserArrowRight,
+  "referral.created": FileSend,
+  "referral.qualified": UserClock,
+  "referral.meeting": UserClock,
+  "referral.negotiation": UserClock,
+  "referral.unqualified": UserClock,
+  "referral.closedWon": UserClock,
+  "referral.closedLost": UserClock,
 };
 
 const ACTIVITY_LOG_REGISTRY: Array<{

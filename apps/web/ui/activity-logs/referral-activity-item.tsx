@@ -42,7 +42,7 @@ export function ReferralActivityItem({
 
       <div className="flex min-w-0 flex-1 flex-col gap-1 overflow-hidden pb-6">
         <div className="flex min-w-0 items-center justify-between gap-3 text-sm text-neutral-700">
-          <span className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 overflow-hidden">
+          <span className="flex min-w-0 flex-1 flex-wrap items-center gap-2 overflow-hidden">
             <Renderer log={log} />
           </span>
           <time className="shrink-0 text-xs text-neutral-500">

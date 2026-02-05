@@ -1,7 +1,7 @@
 "use client";
 
 import { ActivityLog } from "@/lib/types";
-import { FileText } from "lucide-react";
+import { FilePen } from "@dub/ui";
 import { ReactNode } from "react";
 import { ActorChip, SourcePill } from "../activity-entry-chips";
 
@@ -18,7 +18,7 @@ export function ReferralCreatedRenderer({ log }: { log: ActivityLog }) {
       <ActorChip log={log} />
       <Label>via</Label>
       <SourcePill
-        icon={<FileText className="size-3 text-neutral-500" />}
+        icon={<FilePen className="size-4 text-black" />}
         label="Submission form"
       />
     </>
