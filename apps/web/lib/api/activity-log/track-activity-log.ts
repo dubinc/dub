@@ -8,7 +8,7 @@ import { Prisma } from "@dub/prisma/client";
 import { prettyPrint } from "@dub/utils";
 import { ChangeSet } from "./build-change-set";
 
-interface TrackActivityLogInput
+export interface TrackActivityLogInput
   extends Pick<
     Prisma.ActivityLogUncheckedCreateInput,
     "workspaceId" | "programId" | "resourceId" | "userId" | "description"

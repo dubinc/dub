@@ -380,6 +380,7 @@ export const createPartnerCommission = async ({
               trigger: "partnerMetricsUpdated",
               reason: "commission",
               identity: {
+                workspaceId: workspace.id,
                 programId,
                 partnerId,
               },

@@ -479,6 +479,7 @@ export async function checkoutSessionCompleted(
           trigger: "partnerMetricsUpdated",
           reason: "sale",
           identity: {
+            workspaceId: workspace.id,
             programId: link.programId,
             partnerId: link.partnerId,
           },
@@ -664,6 +665,7 @@ async function attributeViaPromoCode({
             trigger: "partnerMetricsUpdated",
             reason: "lead",
             identity: {
+              workspaceId: workspace.id,
               programId: link.programId,
               partnerId: link.partnerId,
             },

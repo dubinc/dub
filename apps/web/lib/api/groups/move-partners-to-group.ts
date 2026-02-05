@@ -1,12 +1,16 @@
 import { qstash } from "@/lib/cron";
 import { recordLink } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
-import { PartnerGroup } from "@dub/prisma/client";
+import { PartnerGroup, WorkspaceRole } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { buildProgramEnrollmentChangeSet } from "../activity-log/build-change-set";
-import { trackActivityLog } from "../activity-log/track-activity-log";
+import {
+  trackActivityLog,
+  TrackActivityLogInput,
+} from "../activity-log/track-activity-log";
 import { triggerDraftBountySubmissionCreation } from "../bounties/trigger-draft-bounty-submissions";
+import { getWorkspaceUsers } from "../get-workspace-users";
 import { includeProgramEnrollment } from "../links/include-program-enrollment";
 import { includeTags } from "../links/include-tags";
 import { notifyPartnerGroupChange } from "../partners/notify-partner-group-change";
@@ -15,7 +19,7 @@ interface MovePartnersToGroupParams {
   workspaceId: string;
   programId: string;
   partnerIds: string[];
-  userId: string;
+  userId: string | null;
   group: Pick<
     PartnerGroup,
     | "id"
@@ -119,8 +123,8 @@ export async function movePartnersToGroup({
       );
 
       // Build activity log inputs
-      const activityLogInputs = updatedProgramEnrollments.map(
-        (updatedEnrollment) => {
+      const activityLogInputs: TrackActivityLogInput[] =
+        updatedProgramEnrollments.map((updatedEnrollment) => {
           const oldEnrollment = programEnrollments.find(
             (e) => e.id === updatedEnrollment.id,
           );
@@ -128,17 +132,31 @@ export async function movePartnersToGroup({
           return {
             workspaceId,
             programId,
-            resourceType: "programEnrollment" as const,
+            resourceType: "programEnrollment",
             resourceId: updatedEnrollment.id,
             userId,
-            action: "programEnrollment.groupChanged" as const,
+            action: "programEnrollment.groupChanged",
             changeSet: buildProgramEnrollmentChangeSet({
               oldEnrollment,
               newEnrollment: updatedEnrollment,
             }),
           };
-        },
-      );
+        });
+
+      // If the userId is not provided, get the workspace user id from the workspace users
+      // userId will be null for workflow-initiated actions
+      let workspaceUserId = userId;
+
+      if (!workspaceUserId) {
+        const { users } = await getWorkspaceUsers({
+          programId,
+          role: WorkspaceRole.owner,
+        });
+
+        if (users.length > 0) {
+          workspaceUserId = users[0].id;
+        }
+      }
 
       await Promise.allSettled([
         qstash.publishJSON({
@@ -147,7 +165,7 @@ export async function movePartnersToGroup({
             programId,
             groupId: group.id,
             partnerIds,
-            userId,
+            userId: workspaceUserId,
           },
         }),
 

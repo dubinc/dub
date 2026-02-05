@@ -768,6 +768,7 @@ export type CreateFraudEventInput = Pick<
   };
 
 interface WorkflowIdentity {
+  workspaceId: string;
   programId: string;
   partnerId: string;
   groupId?: string;

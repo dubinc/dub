@@ -575,6 +575,7 @@ export const createManualCommissionAction = authActionClient
               trigger: "partnerMetricsUpdated",
               reason: "commission",
               identity: {
+                workspaceId: workspace.id,
                 programId,
                 partnerId,
               },
