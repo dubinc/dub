@@ -2,8 +2,8 @@ import { ActivityLog } from "@/lib/types";
 import { ActivityLogAction } from "@/lib/zod/schemas/activity-log";
 import { CircleInfo, UserArrowRight } from "@dub/ui";
 import { ReactNode } from "react";
-import { FallbackRenderer } from "./renderers/fallback-renderer";
-import { PartnerGroupChangedRenderer } from "./renderers/partner-group-changed-renderer";
+import { FallbackRenderer } from "./fallback-renderer";
+import { PartnerGroupChangedRenderer } from "./partner-group-changed-renderer";
 
 export type ActorType = "USER" | "SYSTEM";
 

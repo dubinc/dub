@@ -2,7 +2,7 @@ import useGroups from "@/lib/swr/use-groups";
 import { ActivityLog, GroupProps } from "@/lib/types";
 import { Bolt } from "@dub/ui";
 import { ReactNode } from "react";
-import { GroupPill, SourcePill, UserChip } from "../activity-entry-chips";
+import { GroupPill, SourcePill, UserChip } from "./activity-entry-chips";
 
 interface GroupChangeSet {
   old: Pick<GroupProps, "id" | "name">;
