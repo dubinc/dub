@@ -10,6 +10,7 @@ import {
   updateGroupSchema,
 } from "@/lib/zod/schemas/groups";
 import { GroupColorPicker } from "@/ui/partners/groups/group-color-picker";
+import { GroupSettingsRow } from "@/ui/partners/groups/group-settings-row";
 import { Button, CopyButton } from "@dub/ui";
 import { cn } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
@@ -17,7 +18,6 @@ import { useRouter } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod/v4";
-import { SettingsRow } from "./settings-row";
 
 type FormData = z.input<typeof updateGroupSchema>;
 
@@ -77,7 +77,7 @@ function GroupSettingsForm({ group }: { group: GroupProps }) {
             Group settings
           </h3>
         </div>
-        <SettingsRow
+        <GroupSettingsRow
           heading="Group name"
           description="For internal use only, never visible to partners."
         >
@@ -116,12 +116,12 @@ function GroupSettingsForm({ group }: { group: GroupProps }) {
               />
             </div>
           </div>
-        </SettingsRow>
+        </GroupSettingsRow>
 
         {group.slug !== DEFAULT_PARTNER_GROUP.slug && (
-          <SettingsRow
+          <GroupSettingsRow
             heading="Group slug"
-            description="For program landing page and internal group page URLs"
+            description="For [program landing page](https://dub.co/help/article/program-landing-page) and internal group page URLs"
           >
             <input
               type="text"
@@ -136,10 +136,10 @@ function GroupSettingsForm({ group }: { group: GroupProps }) {
               })}
               placeholder="group-name"
             />
-          </SettingsRow>
+          </GroupSettingsRow>
         )}
 
-        <SettingsRow
+        <GroupSettingsRow
           heading="Group ID"
           description="For setting up the [Embedded Referral Dashboard](https://dub.co/docs/partners/embedded-referrals) within your app."
         >
@@ -159,7 +159,7 @@ function GroupSettingsForm({ group }: { group: GroupProps }) {
               />
             </div>
           </div>
-        </SettingsRow>
+        </GroupSettingsRow>
       </div>
 
       <div className="border-border-subtle flex items-center justify-end rounded-b-lg border-t bg-neutral-50 px-6 py-4">
@@ -185,26 +185,26 @@ function GroupSettingsFormSkeleton() {
             Group settings
           </h3>
         </div>
-        <SettingsRow
+        <GroupSettingsRow
           heading="Name"
           description="For internal use only, never visible to partners."
         >
           <div className="h-[38px] w-full animate-pulse rounded-md bg-neutral-200" />
-        </SettingsRow>
+        </GroupSettingsRow>
 
-        <SettingsRow
+        <GroupSettingsRow
           heading="Group slug"
           description="For program landing page and internal group page URLs"
         >
           <div className="h-[38px] w-full animate-pulse rounded-md bg-neutral-200" />
-        </SettingsRow>
+        </GroupSettingsRow>
 
-        <SettingsRow
+        <GroupSettingsRow
           heading="Group ID"
           description="For setting up the [Embedded Referral Dashboard](https://dub.co/docs/partners/embedded-referrals) within your app."
         >
           <div className="h-[38px] w-full animate-pulse rounded-md bg-neutral-200" />
-        </SettingsRow>
+        </GroupSettingsRow>
       </div>
 
       <div className="border-border-subtle flex items-center justify-end rounded-b-lg border-t bg-neutral-50 px-6 py-4">

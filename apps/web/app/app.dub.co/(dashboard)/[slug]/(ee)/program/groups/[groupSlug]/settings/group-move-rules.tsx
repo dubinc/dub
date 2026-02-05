@@ -5,6 +5,7 @@ import useGroup from "@/lib/swr/use-group";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { WorkflowCondition } from "@/lib/types";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
+import { GroupSettingsRow } from "@/ui/partners/groups/group-settings-row";
 import { usePartnersUpgradeModal } from "@/ui/partners/partners-upgrade-modal";
 import {
   InlineBadgePopover,
@@ -14,10 +15,8 @@ import {
 import { ArrowTurnRight2, Button, UserArrowRight, Users } from "@dub/ui";
 import { currencyFormatter, nFormatter } from "@dub/utils";
 import { X } from "lucide-react";
-import Link from "next/link";
 import { Fragment, useMemo } from "react";
 import { Controller, useFieldArray, useFormContext } from "react-hook-form";
-import { SettingsRow } from "./settings-row";
 
 const ATTRIBUTES = [
   { key: "totalLeads", text: "total leads", type: "number" },
@@ -73,21 +72,9 @@ export function GroupMoveRules() {
   const { canUseGroupMoveRule } = getPlanCapabilities(plan);
 
   return (
-    <SettingsRow
-      heading="Group move"
-      description={
-        <>
-          Create rules to move partners to this group when they meet specific
-          criteria.
-          <Link
-            href="https://dub.co/help"
-            target="_blank"
-            className="ml-1 underline"
-          >
-            Learn more
-          </Link>
-        </>
-      }
+    <GroupSettingsRow
+      heading="Group move rules"
+      description="[Automatically move partners to this group](https://dub.co/help/article/partner-groups) when they meet specific criteria."
     >
       {!canUseGroupMoveRule ? (
         <GroupMoveRuleUpsell />
@@ -136,7 +123,7 @@ export function GroupMoveRules() {
       {canUseGroupMoveRule && (
         <Button
           text="Add rule"
-          variant="primary"
+          variant="secondary"
           className="mt-4 h-8 w-fit rounded-lg px-3"
           onClick={() => {
             appendRule({
@@ -153,7 +140,7 @@ export function GroupMoveRules() {
           }
         />
       )}
-    </SettingsRow>
+    </GroupSettingsRow>
   );
 }
 

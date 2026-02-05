@@ -9,6 +9,7 @@ import useGroup from "@/lib/swr/use-group";
 import { useGroupMoveRules } from "@/lib/swr/use-group-move-rules";
 import { GroupProps } from "@/lib/types";
 import { updateGroupSchema } from "@/lib/zod/schemas/groups";
+import { GroupSettingsRow } from "@/ui/partners/groups/group-settings-row";
 import { Button, Checkbox, Modal, Switch } from "@dub/ui";
 import { pluralize } from "@dub/utils";
 import { useEffect, useState } from "react";
@@ -17,7 +18,6 @@ import { toast } from "sonner";
 import { mutate } from "swr";
 import * as z from "zod/v4";
 import { GroupMoveRules } from "./group-move-rules";
-import { SettingsRow } from "./settings-row";
 
 type FormData = z.infer<typeof updateGroupSchema>;
 
@@ -175,9 +175,9 @@ function GroupAdditionalSettingsForm({ group }: { group: GroupProps }) {
                 </h3>
               </div>
 
-              <SettingsRow
+              <GroupSettingsRow
                 heading="Payout holding period"
-                description="Set how long to hold funds before they are eligible for payout."
+                description="[Set how long to hold funds](https://dub.co/help/article/partner-payouts#payout-holding-period) before they are eligible for payout."
               >
                 <select
                   className="block w-full rounded-md border border-neutral-300 bg-white py-2 pl-3 pr-10 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500"
@@ -200,11 +200,11 @@ function GroupAdditionalSettingsForm({ group }: { group: GroupProps }) {
                     </option>
                   ))}
                 </select>
-              </SettingsRow>
+              </GroupSettingsRow>
 
-              <SettingsRow
+              <GroupSettingsRow
                 heading="Auto-approve"
-                description="Automatically approve new partner applications."
+                description="[Automatically approve](https://dub.co/help/article/program-applications#auto-approve) new partner applications."
               >
                 <label>
                   <div className="flex select-none items-center gap-2">
@@ -220,7 +220,7 @@ function GroupAdditionalSettingsForm({ group }: { group: GroupProps }) {
                     </span>
                   </div>
                 </label>
-              </SettingsRow>
+              </GroupSettingsRow>
 
               <GroupMoveRules />
             </div>
@@ -252,26 +252,26 @@ function GroupAdditionalSettingsFormSkeleton() {
           </h3>
         </div>
 
-        <SettingsRow
+        <GroupSettingsRow
           heading="Payout holding period"
           description="Set how long to hold funds before they are eligible for payout."
         >
           <div className="h-[38px] w-full animate-pulse rounded-md bg-neutral-200" />
-        </SettingsRow>
+        </GroupSettingsRow>
 
-        <SettingsRow
+        <GroupSettingsRow
           heading="Auto-approve"
           description="Automatically approve new partner applications."
         >
           <div className="h-[38px] w-full animate-pulse rounded-md bg-neutral-200" />
-        </SettingsRow>
+        </GroupSettingsRow>
 
-        <SettingsRow
+        <GroupSettingsRow
           heading="Group move rules"
           description="Create rules to move partners to this group when they meet specific criteria."
         >
           <div className="min-h-28 w-full animate-pulse rounded-md bg-neutral-200" />
-        </SettingsRow>
+        </GroupSettingsRow>
       </div>
     </div>
   );
