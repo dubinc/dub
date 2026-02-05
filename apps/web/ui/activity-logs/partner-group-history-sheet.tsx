@@ -79,7 +79,19 @@ export function usePartnerGroupHistorySheet({
 }) {
   const [isOpen, setIsOpen] = useState(false);
 
+  const { activityLogs } = useActivityLogs({
+    query: partner
+      ? {
+          resourceType: "partner",
+          resourceId: partner.id,
+          action: "partner.groupChanged",
+        }
+      : undefined,
+    enabled: !!partner?.id,
+  });
+
   return {
+    hasActivityLogs: (activityLogs?.length ?? 0) > 0,
     partnerGroupHistorySheet: partner ? (
       <PartnerGroupHistorySheet
         partner={partner}

@@ -82,8 +82,11 @@ export function PartnerInfoCards({
   const isEnrolled = type === "enrolled" || type === undefined;
   const isNetwork = type === "network";
 
-  const { partnerGroupHistorySheet, setIsOpen: setGroupHistoryOpen } =
-    usePartnerGroupHistorySheet({ partner: partner || null });
+  const {
+    partnerGroupHistorySheet,
+    setIsOpen: setGroupHistoryOpen,
+    hasActivityLogs,
+  } = usePartnerGroupHistorySheet({ partner: partner || null });
 
   const { group } = useGroup(
     {
@@ -305,12 +308,14 @@ export function PartnerInfoCards({
                 Group
               </h3>
 
-              <Button
-                variant="outline"
-                text="View history"
-                className="h-7 w-fit rounded-lg px-1.5 text-xs font-medium text-neutral-400"
-                onClick={() => setGroupHistoryOpen(true)}
-              />
+              {hasActivityLogs && (
+                <Button
+                  variant="outline"
+                  text="View history"
+                  className="h-7 w-fit rounded-lg px-1.5 text-xs font-medium text-neutral-400"
+                  onClick={() => setGroupHistoryOpen(true)}
+                />
+              )}
             </div>
           )}
 
