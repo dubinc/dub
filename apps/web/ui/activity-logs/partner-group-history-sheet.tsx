@@ -5,6 +5,15 @@ import { EnrolledPartnerExtendedProps } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
 import { Button, Sheet } from "@dub/ui";
 import { Dispatch, SetStateAction, useState } from "react";
+import {
+  FallbackRenderer,
+  getActivityLogEntryRenderer,
+} from "./activity-log-renderers";
+import {
+  ActivityTimeline,
+  ActivityTimelineEntry,
+  ActivityTimelineSkeleton,
+} from "./activity-timeline";
 
 interface PartnerGroupHistorySheetProps {
   partner: Pick<EnrolledPartnerExtendedProps, "id">;
@@ -15,12 +24,14 @@ interface PartnerGroupHistorySheetProps {
 function PartnerGroupHistorySheetContent({
   partner,
 }: Omit<PartnerGroupHistorySheetProps, "isOpen">) {
-  const { activityLogs } = useActivityLogs({
-    query: { resourceType: "partner", resourceId: partner.id },
+  const { activityLogs, loading, error } = useActivityLogs({
+    query: {
+      resourceType: "partner",
+      resourceId: partner.id,
+      action: "partner.groupChanged",
+    },
     enabled: !!partner.id,
   });
-
-  console.log("[PartnerGroupHistorySheet] activityLogs", activityLogs);
 
   return (
     <div className="flex size-full flex-col">
@@ -37,7 +48,54 @@ function PartnerGroupHistorySheetContent({
         </Sheet.Close>
       </div>
 
-      <div className="scrollbar-hide flex min-h-0 flex-1 flex-col overflow-y-auto p-4 sm:p-6" />
+      <div className="scrollbar-hide flex min-h-0 flex-1 flex-col overflow-y-auto p-4 sm:p-6">
+        {loading ? (
+          <ActivityTimelineSkeleton count={3} />
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center py-8 text-center">
+            <p className="text-sm text-neutral-500">
+              Failed to load history. Please try again.
+            </p>
+          </div>
+        ) : !activityLogs || activityLogs.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-8 text-center">
+            <p className="text-sm text-neutral-500">No group history yet</p>
+          </div>
+        ) : (
+          <ActivityTimeline>
+            {activityLogs.map((log, index) => {
+              const renderer = getActivityLogEntryRenderer(log.action);
+              const isLast = index === activityLogs.length - 1;
+
+              if (!renderer) {
+                return (
+                  <ActivityTimelineEntry
+                    key={log.id}
+                    icon={
+                      <div className="size-5 rounded-full bg-neutral-200" />
+                    }
+                    createdAt={log.createdAt}
+                    isLast={isLast}
+                  >
+                    <FallbackRenderer log={log} />
+                  </ActivityTimelineEntry>
+                );
+              }
+
+              return (
+                <ActivityTimelineEntry
+                  key={log.id}
+                  icon={renderer.icon(log)}
+                  createdAt={log.createdAt}
+                  isLast={isLast}
+                >
+                  <renderer.content log={log} />
+                </ActivityTimelineEntry>
+              );
+            })}
+          </ActivityTimeline>
+        )}
+      </div>
     </div>
   );
 }
