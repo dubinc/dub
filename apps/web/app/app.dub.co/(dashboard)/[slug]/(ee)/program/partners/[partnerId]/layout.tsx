@@ -32,6 +32,7 @@ import {
   BoxArchive,
   ChevronRight,
   CircleXmark,
+  Copy,
   EnvelopeArrowRight,
   InvoiceDollar,
   LoadingSpinner,
@@ -354,6 +355,16 @@ function PageControls({ partner }: { partner: EnrolledPartnerProps }) {
                   }}
                 >
                   Advanced settings
+                </MenuItem>
+                <MenuItem
+                  icon={Copy}
+                  onClick={() => {
+                    navigator.clipboard.writeText(partner.id);
+                    toast.success("Partner ID copied!");
+                    setIsOpen(false);
+                  }}
+                >
+                  Copy Partner ID
                 </MenuItem>
                 {!["banned", "deactivated"].includes(partner.status) && (
                   <MenuItem
