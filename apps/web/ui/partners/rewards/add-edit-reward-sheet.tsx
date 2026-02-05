@@ -26,6 +26,7 @@ import { EventType, RewardStructure } from "@dub/prisma/client";
 import {
   Button,
   Gift,
+  Grid,
   MoneyBills2,
   Pen2,
   Sheet,
@@ -661,25 +662,34 @@ function RewardHelperBlock({ event }: { event: EventType }) {
       className="overflow-hidden"
       inert={dismissed}
     >
-      <div className="relative flex items-start gap-3 rounded-lg border border-neutral-200 bg-neutral-50 p-4">
-        <div className="flex size-8 shrink-0 items-center justify-center rounded-md border border-neutral-200 bg-white">
-          <Icon className="size-4 text-neutral-600" />
+      <div className="relative overflow-hidden rounded-xl bg-neutral-100 p-4">
+        <div className="absolute right-0 top-0 flex h-full w-1/2 items-start justify-end opacity-30 mix-blend-hard-light blur-[50px] [mask-image:linear-gradient(90deg,transparent,black)] [transform:translateZ(0)]">
+          <div className="h-32 w-80 -translate-y-4 translate-x-4 bg-[conic-gradient(from_220deg_at_50%_50%,#FF0000_0%,#EAB308_17%,#1E00FF_31%,#5CFF80_46%,#855AFC_60%,#3A8BFD_78%,#FF0000_100%)]" />
         </div>
-        <div className="flex flex-1 flex-col gap-1 pr-6">
-          <span className="text-sm font-medium text-neutral-900">
-            {content.title}
-          </span>
-          <span className="text-sm text-neutral-500">
-            {content.description}
-          </span>
+        <Grid
+          cellSize={60}
+          patternOffset={[33, 28]}
+          className="inset-[unset] right-0 top-0 h-full w-1/2 text-neutral-300 [mask-image:linear-gradient(90deg,transparent,black)]"
+        />
+
+        <div className="relative flex flex-col gap-2">
+          <Icon className="size-5 text-neutral-600" />
+          <div className="flex flex-col pt-2">
+            <span className="text-sm font-medium text-neutral-900">
+              {content.title}
+            </span>
+            <span className="text-sm text-neutral-500">
+              {content.description}
+            </span>
+          </div>
+          <Button
+            type="button"
+            variant="secondary"
+            text="Dismiss"
+            className="mt-1 h-8 w-fit px-3"
+            onClick={() => setDismissed(true)}
+          />
         </div>
-        <button
-          type="button"
-          className="absolute right-3 top-3 flex size-6 shrink-0 items-center justify-center rounded-md transition-colors hover:bg-neutral-200"
-          onClick={() => setDismissed(true)}
-        >
-          <X className="size-3.5 text-neutral-400" />
-        </button>
       </div>
     </motion.div>
   );

@@ -69,7 +69,10 @@ export function Form() {
   >("one-off");
 
   useEffect(
-    () => setCommissionStructure(maxDuration ? "recurring" : "one-off"),
+    () =>
+      setCommissionStructure(
+        maxDuration === 0 || maxDuration === undefined ? "one-off" : "recurring",
+      ),
     [maxDuration],
   );
 
@@ -121,11 +124,19 @@ export function Form() {
               const isSelected = key === defaultRewardType;
 
               return (
-                <div key={key} className="flex flex-col items-center">
+                <div
+                  key={key}
+                  className={cn(
+                    "flex flex-col items-center",
+                    mostCommon &&
+                      "rounded-md border border-neutral-200 bg-neutral-100",
+                  )}
+                >
                   <label
                     className={cn(
                       "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600 hover:bg-neutral-50",
                       "transition-all duration-150",
+                      mostCommon && "border-transparent shadow-sm",
                       isSelected &&
                         "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
                     )}
@@ -139,6 +150,12 @@ export function Form() {
                         setValue("defaultRewardType", key, {
                           shouldDirty: true,
                         });
+
+                        if (key === "sale") {
+                          setValue("type", "percentage", {
+                            shouldDirty: true,
+                          });
+                        }
 
                         if (key === "lead") {
                           setValue("type", "flat", { shouldDirty: true });
@@ -162,7 +179,7 @@ export function Form() {
                     />
                   </label>
                   {mostCommon && (
-                    <span className="mt-1.5 text-xs text-neutral-400">
+                    <span className="py-0.5 text-xs font-medium text-neutral-500">
                       Most common
                     </span>
                   )}
@@ -193,12 +210,18 @@ export function Form() {
                       return (
                         <div
                           key={value}
-                          className="flex flex-col items-center"
+                          className={cn(
+                            "flex flex-col items-center",
+                            value === "one-off" &&
+                              "rounded-md border border-neutral-200 bg-neutral-100",
+                          )}
                         >
                           <label
                             className={cn(
                               "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600 hover:bg-neutral-50",
                               "transition-all duration-150",
+                              value === "one-off" &&
+                                "border-transparent shadow-sm",
                               isSelected &&
                                 "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
                             )}
@@ -218,7 +241,7 @@ export function Form() {
 
                                 if (value === "recurring") {
                                   setCommissionStructure("recurring");
-                                  setValue("maxDuration", 12, {
+                                  setValue("maxDuration", null, {
                                     shouldValidate: true,
                                   });
                                 }
@@ -240,7 +263,7 @@ export function Form() {
                             />
                           </label>
                           {value === "one-off" && (
-                            <span className="mt-1.5 text-xs text-neutral-400">
+                            <span className="py-0.5 text-xs font-medium text-neutral-500">
                               Most common
                             </span>
                           )}
@@ -270,6 +293,7 @@ export function Form() {
                     })}
                     className="block w-full rounded-md border border-neutral-300 bg-white py-2 pl-3 pr-10 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500"
                   >
+                    <option value="">Lifetime</option>
                     {RECURRING_MAX_DURATIONS.filter(
                       (v) => v !== 0 && v !== 1, // filter out one-time and 1-month intervals (we only use 1-month for discounts)
                     ).map((duration) => (
@@ -277,7 +301,6 @@ export function Form() {
                         {duration} {duration === 1 ? "month" : "months"}
                       </option>
                     ))}
-                    <option value="">Lifetime</option>
                   </select>
                 </label>
               )}
@@ -295,12 +318,17 @@ export function Form() {
                       return (
                         <div
                           key={key}
-                          className="flex flex-col items-center"
+                          className={cn(
+                            "flex flex-col items-center",
+                            mostCommon &&
+                              "rounded-md border border-neutral-200 bg-neutral-100",
+                          )}
                         >
                           <label
                             className={cn(
                               "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600 hover:bg-neutral-50",
                               "transition-all duration-150",
+                              mostCommon && "border-transparent shadow-sm",
                               isSelected &&
                                 "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
                             )}
@@ -330,7 +358,7 @@ export function Form() {
                             />
                           </label>
                           {mostCommon && (
-                            <span className="mt-1.5 text-xs text-neutral-400">
+                            <span className="py-0.5 text-xs font-medium text-neutral-500">
                               Most common
                             </span>
                           )}
