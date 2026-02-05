@@ -2,9 +2,9 @@ import { ActivityLog } from "@/lib/types";
 import { ActivityLogAction } from "@/lib/zod/schemas/activity-log";
 import { CircleInfo, FileSend, UserArrowRight, UserClock } from "@dub/ui";
 import { ComponentType, ReactNode } from "react";
-import { PartnerGroupChangedRenderer } from "./action-renderes/partner-group-changed-renderer";
-import { ReferralCreatedRenderer } from "./action-renderes/referral-created-renderer";
-import { ReferralStatusChangedRenderer } from "./action-renderes/referral-status-changed-renderer";
+import { PartnerGroupChangedRenderer } from "./action-renderers/partner-group-changed-renderer";
+import { ReferralCreatedRenderer } from "./action-renderers/referral-created-renderer";
+import { ReferralStatusChangedRenderer } from "./action-renderers/referral-status-changed-renderer";
 
 export type ActorType = "USER" | "SYSTEM";
 
