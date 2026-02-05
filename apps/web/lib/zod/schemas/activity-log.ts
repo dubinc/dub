@@ -1,11 +1,7 @@
 import * as z from "zod/v4";
 import { UserSchema } from "./users";
 
-const activityLogResourceTypeSchema = z.enum([
-  "referral",
-  "programEnrollment",
-  "reward",
-]);
+const activityLogResourceTypeSchema = z.enum(["referral", "partner", "reward"]);
 
 const activityLogActionSchema = z.enum([
   "referral.created",
@@ -16,7 +12,7 @@ const activityLogActionSchema = z.enum([
   "referral.unqualified",
   "referral.closedWon",
   "referral.closedLost",
-  "programEnrollment.groupChanged",
+  "partner.groupChanged",
   "reward.created",
   "reward.updated",
   "reward.deleted",

@@ -112,6 +112,7 @@ export async function movePartnersToGroup({
           },
           select: {
             id: true,
+            partnerId: true,
             partnerGroup: {
               select: {
                 id: true,
@@ -132,10 +133,10 @@ export async function movePartnersToGroup({
           return {
             workspaceId,
             programId,
-            resourceType: "programEnrollment",
-            resourceId: updatedEnrollment.id,
+            resourceType: "partner",
+            resourceId: updatedEnrollment.partnerId,
             userId,
-            action: "programEnrollment.groupChanged",
+            action: "partner.groupChanged",
             changeSet: buildProgramEnrollmentChangeSet({
               oldEnrollment,
               newEnrollment: updatedEnrollment,
