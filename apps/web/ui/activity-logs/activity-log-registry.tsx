@@ -1,8 +1,10 @@
 import { ActivityLog } from "@/lib/types";
 import { ActivityLogAction } from "@/lib/zod/schemas/activity-log";
 import { CircleInfo, UserArrowRight } from "@dub/ui";
-import { ReactNode } from "react";
+import { FileText } from "lucide-react";
+import { ComponentType, ReactNode } from "react";
 import { PartnerGroupChangedRenderer } from "./partner-group-changed-renderer";
+import { ReferralCreatedRenderer } from "./referral-created-renderer";
 import { ReferralStatusChangedRenderer } from "./referral-status-changed-renderer";
 
 export type ActorType = "USER" | "SYSTEM";
@@ -14,33 +16,34 @@ export interface FieldDiff<T = unknown> {
 
 type ActivityLogRenderer = (props: { log: ActivityLog }) => ReactNode;
 
-type ActivityLogIconResolver = (log: ActivityLog) => ReactNode;
-
 export function getActorType(log: ActivityLog): ActorType {
   return log.user ? "USER" : "SYSTEM";
 }
 
-const partnerGroupChangedIcon: ActivityLogIconResolver = () => (
-  <UserArrowRight className="size-5 text-neutral-500" />
-);
-
-const referralStatusChangedIcon: ActivityLogIconResolver = () => (
-  <UserArrowRight className="size-5 text-neutral-500" />
-);
-
-const defaultIcon: ActivityLogIconResolver = () => (
-  <CircleInfo className="size-5 text-neutral-400" />
-);
+const ACTIVITY_LOG_ICONS: Partial<
+  Record<ActivityLogAction, ComponentType<{ className?: string }>>
+> = {
+  "partner.groupChanged": UserArrowRight,
+  "referral.created": FileText,
+  "referral.qualified": UserArrowRight,
+  "referral.meeting": UserArrowRight,
+  "referral.negotiation": UserArrowRight,
+  "referral.unqualified": UserArrowRight,
+  "referral.closedWon": UserArrowRight,
+  "referral.closedLost": UserArrowRight,
+};
 
 const ACTIVITY_LOG_REGISTRY: Array<{
   action: ActivityLogAction;
   renderer: ActivityLogRenderer;
-  icon: ActivityLogIconResolver;
 }> = [
   {
     action: "partner.groupChanged",
     renderer: PartnerGroupChangedRenderer,
-    icon: partnerGroupChangedIcon,
+  },
+  {
+    action: "referral.created",
+    renderer: ReferralCreatedRenderer,
   },
   ...(
     [
@@ -54,16 +57,11 @@ const ACTIVITY_LOG_REGISTRY: Array<{
   ).map((action) => ({
     action,
     renderer: ReferralStatusChangedRenderer,
-    icon: referralStatusChangedIcon,
   })),
 ];
 
 const renderers = new Map(
   ACTIVITY_LOG_REGISTRY.map(({ action, renderer }) => [action, renderer]),
-);
-
-const icons = new Map(
-  ACTIVITY_LOG_REGISTRY.map(({ action, icon }) => [action, icon]),
 );
 
 export function getActivityLogRenderer(
@@ -72,7 +70,13 @@ export function getActivityLogRenderer(
   return renderers.get(action) ?? null;
 }
 
+const ICON_CLASSNAME = "size-5 text-neutral-500";
+const DEFAULT_ICON_CLASSNAME = "size-5 text-neutral-400";
+
 export function getActivityLogIcon(log: ActivityLog): ReactNode {
-  const resolver = icons.get(log.action);
-  return resolver ? resolver(log) : defaultIcon(log);
+  const Icon = ACTIVITY_LOG_ICONS[log.action];
+  if (Icon) {
+    return <Icon className={ICON_CLASSNAME} />;
+  }
+  return <CircleInfo className={DEFAULT_ICON_CLASSNAME} />;
 }

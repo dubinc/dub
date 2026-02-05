@@ -24,7 +24,9 @@ export const trackActivityLog = async (
   let inputs = Array.isArray(input) ? input : [input];
 
   inputs = inputs.filter(
-    (i) => i.changeSet && Object.keys(i.changeSet).length > 0,
+    (i) =>
+      i.action === "referral.created" ||
+      (i.changeSet && Object.keys(i.changeSet).length > 0),
   );
 
   if (inputs.length === 0) {

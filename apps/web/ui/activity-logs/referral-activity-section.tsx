@@ -18,34 +18,24 @@ export function ReferralActivitySection({
 
   const logs = activityLogs ?? [];
 
-  if (loading) {
-    return (
-      <section className="order-3 col-span-full flex flex-col gap-3">
-        <h3 className="text-sm font-semibold text-neutral-900">Activity</h3>
-        <ActivityFeedSkeleton count={3} />
-      </section>
-    );
-  }
-
-  if (error) {
-    return (
-      <section className="order-3 col-span-full flex flex-col gap-3">
-        <h3 className="text-sm font-semibold text-neutral-900">Activity</h3>
-        <p className="text-sm text-neutral-500">
-          Failed to load activity. Please try again.
-        </p>
-      </section>
-    );
-  }
-
-  if (logs.length === 0) {
+  if (logs.length === 0 && !loading && !error) {
     return null;
   }
 
   return (
     <section className="order-3 col-span-full flex flex-col gap-3">
-      <h3 className="text-sm font-semibold text-neutral-900">Activity</h3>
-      <ActivityFeed logs={logs} />
+      <h3 className="text-content-emphasis text-base font-semibold">
+        Activity
+      </h3>
+      {loading ? (
+        <ActivityFeedSkeleton count={3} />
+      ) : error ? (
+        <p className="text-sm text-neutral-500">
+          Failed to load activity. Please try again.
+        </p>
+      ) : (
+        <ActivityFeed logs={logs} />
+      )}
     </section>
   );
 }
