@@ -40,12 +40,12 @@ export function ReferralActivityItem({
         </div>
       </div>
 
-      <div className="flex min-w-0 flex-1 flex-col gap-1 overflow-hidden pb-6">
+      <div className="flex min-w-0 flex-1 flex-col gap-2 overflow-hidden pb-6">
         <div className="flex min-w-0 items-center justify-between gap-3 text-sm text-neutral-700">
           <span className="flex min-w-0 flex-1 flex-wrap items-center gap-2 overflow-hidden">
             <Renderer log={log} />
           </span>
-          <time className="shrink-0 text-xs text-neutral-500">
+          <time className="hidden shrink-0 text-xs text-neutral-500 sm:block">
             {formatDate(log.createdAt, {
               month: "short",
               year: "numeric",
