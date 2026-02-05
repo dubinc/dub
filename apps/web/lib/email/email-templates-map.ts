@@ -1,6 +1,7 @@
 import BountyApproved from "@dub/email/templates/bounty-approved";
 import ProgramMarketplaceAnnouncement from "@dub/email/templates/broadcasts/program-marketplace-announcement";
 import ConnectPayoutReminder from "@dub/email/templates/connect-payout-reminder";
+import ConnectPlatformsReminder from "@dub/email/templates/connect-platforms-reminder";
 import DubPartnerRewind from "@dub/email/templates/dub-partner-rewind";
 import PartnerBanned from "@dub/email/templates/partner-banned";
 import PartnerDeactivated from "@dub/email/templates/partner-deactivated";
@@ -13,6 +14,7 @@ import UnresolvedFraudEventsSummary from "@dub/email/templates/unresolved-fraud-
 export const EMAIL_TEMPLATES_MAP = {
   BountyApproved,
   ConnectPayoutReminder,
+  ConnectPlatformsReminder,
   PartnerPayoutConfirmed,
   PartnerPayoutProcessed,
   PartnerDeactivated,
