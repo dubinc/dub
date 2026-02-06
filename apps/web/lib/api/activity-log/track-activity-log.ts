@@ -1,4 +1,5 @@
 import { logger } from "@/lib/axiom/server";
+import type { ChangeSet } from "@/lib/types";
 import {
   ActivityLogAction,
   ActivityLogResourceType,
@@ -6,15 +7,15 @@ import {
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { prettyPrint } from "@dub/utils";
-import { ChangeSet } from "./build-change-set";
 
 export interface TrackActivityLogInput
   extends Pick<
     Prisma.ActivityLogUncheckedCreateInput,
-    "workspaceId" | "programId" | "resourceId" | "userId" | "description"
+    "workspaceId" | "programId" | "resourceId" | "description"
   > {
   resourceType: ActivityLogResourceType;
   action: ActivityLogAction;
+  userId?: string | null;
   changeSet?: ChangeSet;
 }
 
@@ -24,7 +25,9 @@ export const trackActivityLog = async (
   let inputs = Array.isArray(input) ? input : [input];
 
   inputs = inputs.filter(
-    (i) => i.changeSet && Object.keys(i.changeSet).length > 0,
+    (i) =>
+      i.action === "referral.created" ||
+      (i.changeSet && Object.keys(i.changeSet).length > 0),
   );
 
   if (inputs.length === 0) {

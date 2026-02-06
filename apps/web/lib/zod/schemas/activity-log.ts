@@ -1,9 +1,13 @@
 import * as z from "zod/v4";
 import { UserSchema } from "./users";
 
-const activityLogResourceTypeSchema = z.enum(["referral", "partner", "reward"]);
+export const activityLogResourceTypeSchema = z.enum([
+  "referral",
+  "partner",
+  "reward",
+]);
 
-const activityLogActionSchema = z.enum([
+export const activityLogActionSchema = z.enum([
   "referral.created",
   "referral.updated",
   "referral.qualified",
@@ -27,9 +31,10 @@ export type ActivityLogAction = z.infer<typeof activityLogActionSchema>;
 export const getActivityLogsQuerySchema = z.object({
   resourceType: activityLogResourceTypeSchema,
   resourceId: z.string(),
+  action: activityLogActionSchema.optional(),
 });
 
-const fieldDiffSchema = z.object({
+export const fieldDiffSchema = z.object({
   old: z.unknown().nullable(),
   new: z.unknown().nullable(),
 });
@@ -38,7 +43,7 @@ export const activityLogSchema = z.object({
   id: z.string(),
   action: activityLogActionSchema,
   description: z.string().nullable(),
-  changeSet: z.record(z.string(), fieldDiffSchema),
+  changeSet: z.record(z.string(), fieldDiffSchema).nullable(),
   createdAt: z.date(),
-  user: UserSchema,
+  user: UserSchema.nullable(),
 });

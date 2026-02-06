@@ -37,6 +37,13 @@ import {
 } from "./folder/constants";
 import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "./webhook/constants";
 import {
+  activityLogActionSchema,
+  activityLogResourceTypeSchema,
+  activityLogSchema,
+  fieldDiffSchema,
+  getActivityLogsQuerySchema,
+} from "./zod/schemas/activity-log";
+import {
   BountyListSchema,
   bountyPerformanceConditionSchema,
   BountySchema,
@@ -158,6 +165,19 @@ import {
 } from "./zod/schemas/workflows";
 import { workspacePreferencesSchema } from "./zod/schemas/workspace-preferences";
 import { workspaceUserSchema } from "./zod/schemas/workspaces";
+
+export type GetActivityLogsQuery = z.infer<typeof getActivityLogsQuerySchema>;
+export type ActivityLogResourceType = z.infer<
+  typeof activityLogResourceTypeSchema
+>;
+export type ActivityLogAction = z.infer<typeof activityLogActionSchema>;
+export type FieldDiff = z.infer<typeof fieldDiffSchema>;
+export type ChangeSet = Record<string, FieldDiff>;
+export type ActivityLog = z.infer<typeof activityLogSchema>;
+export type ActivityLogResourceTypeWithFeed = Extract<
+  ActivityLogResourceType,
+  "partner" | "referral"
+>;
 
 export type LinkProps = Link;
 
@@ -768,6 +788,7 @@ export type CreateFraudEventInput = Pick<
   };
 
 interface WorkflowIdentity {
+  workspaceId: string;
   programId: string;
   partnerId: string;
   groupId?: string;

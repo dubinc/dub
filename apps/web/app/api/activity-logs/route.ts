@@ -1,3 +1,4 @@
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import {
   activityLogSchema,
@@ -7,16 +8,19 @@ import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
-// GET /api/activity-logs - get activity logs for a resource
+// GET /api/activity-logs – get activity logs for a resource
 export const GET = withWorkspace(async ({ workspace, searchParams }) => {
-  const { resourceType, resourceId } =
+  const { resourceType, resourceId, action } =
     getActivityLogsQuerySchema.parse(searchParams);
 
+  const programId = getDefaultProgramIdOrThrow(workspace);
   const activityLogs = await prisma.activityLog.findMany({
     where: {
       workspaceId: workspace.id,
+      programId,
       resourceType,
       resourceId,
+      ...(action && { action }),
     },
     orderBy: {
       createdAt: "desc",

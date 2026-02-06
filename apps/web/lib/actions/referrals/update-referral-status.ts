@@ -7,7 +7,10 @@ import { getReferralOrThrow } from "@/lib/api/referrals/get-referral-or-throw";
 import { markReferralClosedWon } from "@/lib/api/referrals/mark-referral-closed-won";
 import { markReferralQualified } from "@/lib/api/referrals/mark-referral-qualified";
 import { notifyReferralStatusUpdate } from "@/lib/api/referrals/notify-referral-status-update";
-import { REFERRAL_STATUS_TRANSITIONS } from "@/lib/referrals/constants";
+import {
+  REFERRAL_STATUS_TO_ACTIVITY_ACTION,
+  REFERRAL_STATUS_TRANSITIONS,
+} from "@/lib/referrals/constants";
 import { ReferralWithCustomer } from "@/lib/types";
 import { updateReferralStatusSchema } from "@/lib/zod/schemas/referrals";
 import { prisma } from "@dub/prisma";
@@ -15,16 +18,6 @@ import { ReferralStatus } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";
-
-const REFERRAL_EVENT_TYPES = {
-  [ReferralStatus.pending]: "referral.created",
-  [ReferralStatus.qualified]: "referral.qualified",
-  [ReferralStatus.meeting]: "referral.meeting",
-  [ReferralStatus.negotiation]: "referral.negotiation",
-  [ReferralStatus.unqualified]: "referral.unqualified",
-  [ReferralStatus.closedWon]: "referral.closedWon",
-  [ReferralStatus.closedLost]: "referral.closedLost",
-} as const;
 
 export const updateReferralStatusAction = authActionClient
   .inputSchema(updateReferralStatusSchema)
@@ -92,7 +85,7 @@ export const updateReferralStatusAction = authActionClient
             resourceType: "referral",
             resourceId: referral.id,
             userId: user.id,
-            action: REFERRAL_EVENT_TYPES[status],
+            action: REFERRAL_STATUS_TO_ACTIVITY_ACTION[status],
             description: notes,
             changeSet: {
               status: {
