@@ -49,6 +49,7 @@ export function trackRewardActivityLog({
 
   if (oldReward !== null && newReward === null) {
     const serialized = serializeReward(oldReward as Reward);
+
     return trackActivityLog({
       ...baseInput,
       action: "reward.deleted",
