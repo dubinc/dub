@@ -29,7 +29,9 @@ export function trackRewardActivityLog({
   ...baseInput
 }: TrackRewardActivityLogParams) {
   if (oldReward === null && newReward !== null) {
-    const serialized = serializeReward(newReward as Reward);
+    const newSnapshot = toRewardActivitySnapshot(
+      serializeReward(newReward as Reward),
+    );
 
     return trackActivityLog({
       ...baseInput,
@@ -38,14 +40,16 @@ export function trackRewardActivityLog({
       changeSet: {
         reward: {
           old: null,
-          new: toRewardActivitySnapshot(serialized),
+          new: newSnapshot,
         },
       },
     });
   }
 
   if (oldReward !== null && newReward === null) {
-    const serialized = serializeReward(oldReward as Reward);
+    const oldSnapshot = toRewardActivitySnapshot(
+      serializeReward(oldReward as Reward),
+    );
 
     return trackActivityLog({
       ...baseInput,
@@ -53,7 +57,7 @@ export function trackRewardActivityLog({
       action: "reward.deleted",
       changeSet: {
         reward: {
-          old: toRewardActivitySnapshot(serialized),
+          old: oldSnapshot,
           new: null,
         },
       },
