@@ -17,7 +17,6 @@ import {
 import * as z from "zod/v4";
 import { booleanQuerySchema } from "./misc";
 import { parseDateSchema } from "./utils";
-import { UTMTemplateSchema } from "./utm";
 
 const analyticsEvents = z
   .enum([...EVENT_TYPES, "composite"], {
@@ -55,14 +54,19 @@ export const analyticsPathParamsSchema = z.object({
 });
 
 // Query schema for GET /analytics and GET /events endpoints
-export const analyticsQuerySchema = z
-  .object({
+export const analyticsQuerySchema = z.object({
     event: analyticsEvents,
     groupBy: analyticsGroupBy,
     domain: z
       .string()
       .optional()
-      .describe("The domain to filter analytics for."),
+      .transform(parseFilterValue)
+      .describe(
+        "The domain to filter analytics for. " +
+        "Supports advanced filtering: single value, multiple values (comma-separated), or exclusion (prefix with `-`). " +
+        "Examples: `dub.co`, `dub.co,google.com`, `-spam.com`."
+      )
+      .meta({ example: "dub.co" }),
     key: z
       .string()
       .optional()
@@ -74,15 +78,15 @@ export const analyticsQuerySchema = z
       .optional()
       .describe(
         "The unique ID of the short link on Dub to retrieve analytics for.",
+      )
+      .meta({ deprecated: false }), // Keep for backward compatibility
+    linkIds: z
+      .union([z.string(), z.array(z.string())])
+      .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+      .optional()
+      .describe(
+        "The link IDs to retrieve analytics for. Supports comma-separated values or array format.",
       ),
-    // TODO: Add this to the public API when we can properly verify linkIds ownership in /api/analytics
-    // linkIds: z
-    //   .union([z.string(), z.array(z.string())])
-    //   .transform((v) => (Array.isArray(v) ? v : v.split(",")))
-    //   .optional()
-    //   .describe(
-    //     "A list of link IDs to retrieve analytics for. Takes precidence over ",
-    //   ),
     externalId: z
       .string()
       .optional()
@@ -271,31 +275,67 @@ export const analyticsQuerySchema = z
       )
       .meta({ example: "https://example.com" }),
     tagIds: z
-      .union([z.string(), z.array(z.string())])
-      .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+      .string()
       .optional()
-      .describe("The tag IDs to retrieve analytics for."),
+      .transform(parseFilterValue)
+      .describe(
+        "The tag IDs to retrieve analytics for. " +
+        "Supports advanced filtering: single value, multiple values (comma-separated), or exclusion (prefix with `-`). " +
+        "Examples: `tag_123`, `tag_123,tag_456`, `-tag_789`."
+      )
+      .meta({ example: "tag_123" }),
     folderId: z
       .string()
       .optional()
+      .transform(parseFilterValue)
       .describe(
-        "The folder ID to retrieve analytics for. If not provided, return analytics for unsorted links.",
-      ),
+        "The folder ID to retrieve analytics for. " +
+        "Supports advanced filtering: single value, multiple values (comma-separated), or exclusion (prefix with `-`). " +
+        "Examples: `folder_123`, `folder_123,folder_456`, `-folder_789`. " +
+        "If not provided, return analytics for all links."
+      )
+      .meta({ example: "folder_123" }),
     groupId: z
       .string()
       .optional()
       .describe("The group ID to retrieve analytics for."),
-    root: booleanQuerySchema
+    root: z
+      .string()
       .optional()
+      .transform((v) => {
+        if (!v) return undefined;
+        // Normalize boolean values to "true" or "false" strings for consistency
+        const parsed = parseFilterValue(v);
+        if (!parsed) return undefined;
+        return {
+          ...parsed,
+          values: parsed.values.map((val) => {
+            // Normalize various truthy/falsy values to "true"/"false"
+            if (val === "true" || val === "1" || val === "yes") return "true";
+            if (val === "false" || val === "0" || val === "no") return "false";
+            return val;
+          }),
+        };
+      })
       .describe(
-        "Filter for root domains. If true, filter for domains only. If false, filter for links only. If undefined, return both.",
-      ),
+        "Filter for root domains. " +
+        "Supports advanced filtering: single value, multiple values (comma-separated), or exclusion (prefix with `-`). " +
+        "Examples: `true` (root domains only), `false` (regular links only), `true,false` (both). " +
+        "If undefined, return both."
+      )
+      .meta({ example: "true" }),
     saleType: z
-      .enum(["new", "recurring"])
+      .string()
       .optional()
+      .transform(parseFilterValue)
       .describe(
-        "Filter sales by type: 'new' for first-time purchases, 'recurring' for repeat purchases. If undefined, returns both.",
-      ),
+        "Filter sales by type. " +
+        "Supports advanced filtering: single value, multiple values (comma-separated), or exclusion (prefix with `-`). " +
+        "Valid values: `new` (first-time purchases), `recurring` (repeat purchases). " +
+        "Examples: `new`, `new,recurring`, `-recurring`. " +
+        "If undefined, returns both."
+      )
+      .meta({ example: "new" }),
     query: z
       .string()
       .max(10000)
@@ -320,66 +360,112 @@ export const analyticsQuerySchema = z
         "Deprecated: Use the `trigger` field instead. Filter for QR code scans. If true, filter for QR codes only. If false, filter for links only. If undefined, return both.",
       )
       .meta({ deprecated: true }),
-  })
-  .extend(UTMTemplateSchema.omit({ id: true, name: true }).shape);
-
-// Analytics filter params for Tinybird endpoints
-export const analyticsFilterTB = z
-  .object({
-    eventType: analyticsEvents,
-    workspaceId: z.string().optional(),
-    customerId: z.string().optional(),
-    root: z.boolean().optional(),
-    saleType: z.string().optional(),
-    trigger: z.string().optional(), // Changed to string to support comma-separated values
-    start: z.string(),
-    end: z.string(),
-    granularity: z.enum(["minute", "hour", "day", "month"]).optional(),
-    timezone: z.string().optional(),
-    // TODO: remove this once it's been added to the public API
-    linkIds: z
-      .union([z.string(), z.array(z.string())])
-      .transform((v) => (Array.isArray(v) ? v : v.split(",")))
-      .optional()
-      .describe("The link IDs to retrieve analytics for."),
-    folderIds: z
-      .union([z.string(), z.array(z.string())])
-      .transform((v) => (Array.isArray(v) ? v : v.split(",")))
-      .optional()
-      .describe("The folder IDs to retrieve analytics for."),
-    filters: z
+    utm_source: z
       .string()
       .optional()
-      .describe("The filters to apply to the analytics."),
-  })
-  .extend(
-    analyticsQuerySchema.pick({
-      groupBy: true,
-      browser: true,
-      city: true,
-      country: true,
-      continent: true,
-      region: true,
-      device: true,
-      domain: true,
-      linkId: true,
-      os: true,
-      referer: true,
-      refererUrl: true,
-      tagIds: true,
-      url: true,
-      utm_source: true,
-      utm_medium: true,
-      utm_campaign: true,
-      utm_term: true,
-      utm_content: true,
-      programId: true,
-      partnerId: true,
-      tenantId: true,
-      folderId: true,
-      groupId: true,
-    }).shape,
-  );
+      .transform(parseFilterValue)
+      .describe(
+        "The UTM source to retrieve analytics for. " +
+        "Supports advanced filtering: single value, multiple values (comma-separated), or exclusion (prefix with `-`). " +
+        "Examples: `google`, `google,twitter`, `-spam`."
+      )
+      .meta({ example: "google" }),
+    utm_medium: z
+      .string()
+      .optional()
+      .transform(parseFilterValue)
+      .describe(
+        "The UTM medium to retrieve analytics for. " +
+        "Supports advanced filtering: single value, multiple values (comma-separated), or exclusion (prefix with `-`). " +
+        "Examples: `cpc`, `cpc,social`, `-email`."
+      )
+      .meta({ example: "cpc" }),
+    utm_campaign: z
+      .string()
+      .optional()
+      .transform(parseFilterValue)
+      .describe(
+        "The UTM campaign to retrieve analytics for. " +
+        "Supports advanced filtering: single value, multiple values (comma-separated), or exclusion (prefix with `-`). " +
+        "Examples: `summer_sale`, `summer_sale,winter_sale`, `-old_campaign`."
+      )
+      .meta({ example: "summer_sale" }),
+    utm_term: z
+      .string()
+      .optional()
+      .transform(parseFilterValue)
+      .describe(
+        "The UTM term to retrieve analytics for. " +
+        "Supports advanced filtering: single value, multiple values (comma-separated), or exclusion (prefix with `-`)."
+      )
+      .meta({ example: "keyword" }),
+    utm_content: z
+      .string()
+      .optional()
+      .transform(parseFilterValue)
+      .describe(
+        "The UTM content to retrieve analytics for. " +
+        "Supports advanced filtering: single value, multiple values (comma-separated), or exclusion (prefix with `-`)."
+      )
+      .meta({ example: "banner" }),
+});
+
+/**
+ * Parse analytics query parameters with backward compatibility
+ * Converts deprecated singular fields (linkId, tagId) to their plural equivalents
+ */
+export function parseAnalyticsQuery(searchParams: unknown) {
+  const data = analyticsQuerySchema.parse(searchParams);
+  
+  // Backward compatibility: convert linkId to linkIds
+  if (data.linkId && !data.linkIds) {
+    data.linkIds = [data.linkId];
+  }
+  
+  // Backward compatibility: convert tagId to tagIds
+  if (data.tagId && !data.tagIds) {
+    // Convert single tagId to the multi-value format
+    data.tagIds = { operator: "IS" as const, sqlOperator: "IN" as const, values: [data.tagId] };
+  }
+  
+  return data;
+}
+
+// Analytics filter params for Tinybird endpoints
+export const analyticsFilterTB = z.object({
+  eventType: analyticsEvents,
+  workspaceId: z.string().optional(),
+  customerId: z.string().optional(),
+  start: z.string(),
+  end: z.string(),
+  granularity: z.enum(["minute", "hour", "day", "month"]).optional(),
+  timezone: z.string().optional(),
+  groupBy: analyticsGroupBy,
+  // Link-specific filters (not using advanced filtering)
+  linkId: z.string().optional(),
+  linkIds: z
+    .union([z.string(), z.array(z.string())])
+    .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+    .optional()
+    .describe("The link IDs to retrieve analytics for."),
+  folderIds: z
+    .union([z.string(), z.array(z.string())])
+    .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+    .optional()
+    .describe("The folder IDs to retrieve analytics for."),
+  // Program/Partner/Group filters (not using advanced filtering)
+  programId: z.string().optional(),
+  partnerId: z.string().optional(),
+  tenantId: z.string().optional(),
+  groupId: z.string().optional(),
+  // Region is a special case - it's the subdivision part of a region code
+  region: z.string().optional(),
+  // All dimensional filters now go through the JSON filters parameter
+  filters: z
+    .string()
+    .optional()
+    .describe("JSON array of advanced filters with operators (IN, NOT IN)."),
+});
 
 export const eventsFilterTB = analyticsFilterTB
   .omit({ granularity: true, timezone: true })
@@ -422,3 +508,24 @@ export const eventsQuerySchema = analyticsQuerySchema
       .describe("DEPRECATED. Use `sortOrder` instead.")
       .meta({ deprecated: true }),
   });
+
+/**
+ * Parse events query parameters with backward compatibility
+ * Converts deprecated singular fields (linkId, tagId) to their plural equivalents
+ */
+export function parseEventsQuery(searchParams: unknown) {
+  const data = eventsQuerySchema.parse(searchParams);
+  
+  // Backward compatibility: convert linkId to linkIds
+  if (data.linkId && !data.linkIds) {
+    data.linkIds = [data.linkId];
+  }
+  
+  // Backward compatibility: convert tagId to tagIds
+  if (data.tagId && !data.tagIds) {
+    // Convert single tagId to the multi-value format
+    data.tagIds = { operator: "IS" as const, sqlOperator: "IN" as const, values: [data.tagId] };
+  }
+  
+  return data;
+}

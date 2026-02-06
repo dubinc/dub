@@ -47,11 +47,6 @@ export type AnalyticsFilters = Override<
     folderIds?: string[]; // TODO: remove this once it's been added to the public API
     start?: Date | null;
     end?: Date | null;
-
-    // TODO: Fix the schema so that we can avoid the override here
-    device?: string | undefined;
-    browser?: string | undefined;
-    os?: string | undefined;
   }
 >;
 

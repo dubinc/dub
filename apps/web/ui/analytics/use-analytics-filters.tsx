@@ -101,11 +101,6 @@ export function useAnalyticsFilters({
 
   const { queryParams, searchParamsObj } = useRouterStuff();
 
-  const selectedTagIds = useMemo(
-    () => searchParamsObj.tagIds?.split(",")?.filter(Boolean) ?? [],
-    [searchParamsObj.tagIds],
-  );
-
   const selectedCustomerId = searchParamsObj.customerId;
 
   const { data: selectedCustomerWorkspace } = useCustomer({
@@ -129,39 +124,26 @@ export function useAnalyticsFilters({
   }, []);
 
   const activeFilters = useMemo(() => {
-    const { domain, key, root, folderId, ...params } = searchParamsObj;
+    const { domain, key, tagIds, root, folderId, ...params } = searchParamsObj;
 
     // Handle special cases first
-    const filters = [
-      // Handle domain/key special case
-      ...(domain && !key ? [{ key: "domain", operator: "IS" as const, values: [domain] }] : []),
+    const filters: Array<{ key: string; operator: FilterOperator; values: any[] }> = [
+      // Handle domain/key special case for links
       ...(domain && key
         ? [
             {
               key: "link",
-              operator: "IS" as const,
+              operator: "IS" as FilterOperator,
               values: [linkConstructor({ domain, key, pretty: true })],
             },
           ]
         : []),
-      // Handle tagIds special case
-      ...(selectedTagIds.length > 0
-        ? [{
-          key: "tagIds",
-          operator: (selectedTagIds.length > 1 ? "IS_ONE_OF" : "IS") as FilterOperator,
-          values: selectedTagIds
-        }]
-        : []),
-      // Handle root special case - convert string to boolean
-      ...(root ? [{ key: "root", operator: "IS" as const, values: [root === "true"] }] : []),
-      // Handle folderId special case
-      ...(folderId ? [{ key: "folderId", operator: "IS" as const, values: [folderId] }] : []),
       // Handle customerId special case
       ...(selectedCustomer
         ? [
             {
               key: "customerId",
-              operator: "IS" as const,
+              operator: "IS" as FilterOperator,
               values: [
                 selectedCustomer.email ||
                 selectedCustomer["name"] ||
@@ -172,19 +154,16 @@ export function useAnalyticsFilters({
         : []),
     ];
 
-    // Handle all other filters dynamically
+    // Handle all filters dynamically (including domain, tagIds, folderId, root)
     VALID_ANALYTICS_FILTERS.forEach((filter) => {
       // Skip special cases we handled above
-      if (
-        ["domain", "key", "tagId", "tagIds", "root", "customerId"].includes(
-          filter,
-        )
-      )
-        return;
-      // also skip date range filters and qr
+      if (["key", "tagId", "customerId"].includes(filter)) return;
+      // Also skip date range filters and qr
       if (["interval", "start", "end", "qr"].includes(filter)) return;
+      // Skip domain if we're showing a specific link (domain + key)
+      if (filter === "domain" && domain && key) return;
 
-      const value = params[filter];
+      const value = params[filter] || (filter === "domain" ? domain : filter === "tagIds" ? tagIds : filter === "root" ? root : filter === "folderId" ? folderId : undefined);
       if (value) {
         const parsed = parseFilterParam(value);
         if (parsed) {
@@ -196,7 +175,6 @@ export function useAnalyticsFilters({
     return filters;
   }, [
     searchParamsObj,
-    selectedTagIds,
     partnerPage,
     selectedCustomerId,
     selectedCustomer,
@@ -367,7 +345,6 @@ export function useAnalyticsFilters({
     key: "link",
     icon: Hyperlink,
     label: "Link",
-    singleSelect: true,
     getOptionIcon: (value, props) => {
       const url = props.option?.data?.url;
       const [domain, key] = value.split("/");
@@ -393,7 +370,6 @@ export function useAnalyticsFilters({
     key: "domain",
     icon: Globe2,
     label: "Domain",
-    singleSelect: true,
     getOptionIcon: (value) => (
       <BlurImage
         src={`${GOOGLE_FAVICON_URL}${value}`}
@@ -415,7 +391,6 @@ export function useAnalyticsFilters({
     key: "saleType",
     icon: Receipt2,
     label: "Sale type",
-    singleSelect: true,
     separatorAfter: true,
     options: [
       {
@@ -498,7 +473,6 @@ export function useAnalyticsFilters({
                   key: "folderId",
                   icon: Folder,
                   label: "Folder",
-                  singleSelect: true,
                   getOptionIcon: (_value, props) => {
                     const folder = props.option?.data?.folder;
                     return folder ? (
@@ -552,7 +526,6 @@ export function useAnalyticsFilters({
                   key: "root",
                   icon: Sliders,
                   label: "Link type",
-                  singleSelect: true,
                   options: [
                     {
                       value: true,
@@ -793,7 +766,6 @@ export function useAnalyticsFilters({
         key: "customerId",
         icon: User,
         label: "Customer",
-        singleSelect: true,
         hideInFilterDropdown: true,
         getOptionIcon: () => {
           return selectedCustomer ? (
@@ -820,7 +792,6 @@ export function useAnalyticsFilters({
         key: "partnerId",
         icon: Users6,
         label: "Partner",
-        singleSelect: true,
         hideInFilterDropdown: true,
         getOptionIcon: () => {
           return selectedPartner ? (
@@ -850,7 +821,6 @@ export function useAnalyticsFilters({
       linkTags,
       folders,
       groups,
-      selectedTagIds,
       selectedCustomerId,
       countries,
       cities,
@@ -920,14 +890,6 @@ export function useAnalyticsFilters({
           del: "page",
           scroll: false,
         });
-      } else if (key === "tagIds") {
-        queryParams({
-          set: {
-            tagIds: selectedTagIds.concat(value).join(","),
-          },
-          del: "page",
-          scroll: false,
-        });
       } else {
         const currentParam = searchParamsObj[key];
 
@@ -940,7 +902,7 @@ export function useAnalyticsFilters({
         } else {
           const parsed = parseFilterParam(currentParam);
 
-          if (!parsed.values.includes(value)) {
+          if (parsed && !parsed.values.includes(value)) {
             const newValues = [...parsed.values, value];
             const newParam = parsed.operator.includes("NOT")
               ? `-${newValues.join(",")}`
@@ -955,23 +917,12 @@ export function useAnalyticsFilters({
         }
       }
     },
-    [queryParams, activeFilters, selectedTagIds, searchParamsObj, parseFilterParam],
+    [queryParams, activeFilters, searchParamsObj, parseFilterParam],
   );
 
   const onRemove = useCallback(
     (key, value) => {
-      if (key === "tagIds") {
-        if (selectedTagIds.length === 1 && selectedTagIds[0] === value) {
-          queryParams({ del: "tagIds", scroll: false });
-        } else {
-          queryParams({
-            set: {
-              tagIds: selectedTagIds.filter((id) => id !== value).join(","),
-            },
-            scroll: false,
-          });
-        }
-      } else if (key === "link") {
+      if (key === "link") {
         queryParams({
           del: ["domain", "key", "url"],
           scroll: false,
@@ -982,23 +933,23 @@ export function useAnalyticsFilters({
         if (!currentParam) return;
 
         const parsed = parseFilterParam(currentParam);
-        const newValues = parsed.values.filter((v) => v !== value);
+        const newValues = parsed?.values?.filter((v) => v !== value);
 
-        if (newValues.length === 0) {
+        if (newValues?.length === 0) {
           queryParams({ del: key, scroll: false });
         } else {
-          const newParam = parsed.operator.includes("NOT")
-            ? `-${newValues.join(",")}`
-            : newValues.join(",");
+          const newParam = parsed?.operator?.includes("NOT")
+            ? `-${newValues?.join(",")}`
+            : newValues?.join(",");
 
           queryParams({
-            set: { [key]: newParam },
+            set: { [key]: newParam as string },
             scroll: false,
           });
         }
       }
     },
-    [queryParams, selectedTagIds, searchParamsObj, parseFilterParam],
+    [queryParams, searchParamsObj, parseFilterParam],
   );
 
   const onRemoveAll = useCallback(

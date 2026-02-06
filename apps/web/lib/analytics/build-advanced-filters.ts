@@ -1,16 +1,16 @@
-import { ParsedFilter } from "@dub/utils";
+import { ParsedFilter, type SQLOperator } from "@dub/utils";
 
 export interface AdvancedFilter {
   field: string;
-  operator: "=" | "!=" | "IN" | "NOT IN";
+  operator: SQLOperator;
   values: string[];
 }
 
-// Fields that support advanced filtering
+// All fields that support advanced filtering with operators (IN, NOT IN)
+// These fields will be passed via the JSON filters array to Tinybird
 const SUPPORTED_FIELDS = [
   "country",
   "city",
-  "region",
   "continent",
   "device",
   "browser",
@@ -24,6 +24,11 @@ const SUPPORTED_FIELDS = [
   "utm_campaign",
   "utm_term",
   "utm_content",
+  "domain",
+  "tagIds",
+  "folderId",
+  "root",
+  "saleType",
 ] as const;
 
 type SupportedField = (typeof SUPPORTED_FIELDS)[number];

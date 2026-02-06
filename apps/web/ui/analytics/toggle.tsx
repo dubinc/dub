@@ -83,7 +83,6 @@ export function AnalyticsToggle({
       onSelect={onSelect}
       onRemove={onRemove}
       onOpenFilter={onOpenFilter}
-      multiSelect={true}
       askAI
     />
   );

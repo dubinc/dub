@@ -28,7 +28,6 @@ type FilterSelectProps = {
   onSearchChange?: (search: string) => void;
   onSelectedFilterChange?: (key: string | null) => void;
   activeFilters?: ActiveFilter[];
-  multiSelect?: boolean;
   askAI?: boolean;
   children?: ReactNode;
   emptyState?: ReactNode | Record<string, ReactNode>;
@@ -43,7 +42,6 @@ export function FilterSelect({
   onSearchChange,
   onSelectedFilterChange,
   activeFilters,
-  multiSelect = false,
   askAI,
   children,
   emptyState,
@@ -116,7 +114,8 @@ export function FilterSelect({
   const selectOption = useCallback(
     (value: FilterOption["value"]) => {
       if (selectedFilter) {
-        const isSingleSelect = selectedFilter.singleSelect || !multiSelect;
+        const isSingleSelect = selectedFilter?.singleSelect;
+
         if (isSingleSelect) {
           const isSelected = isOptionSelected(value);
           isSelected
@@ -133,7 +132,7 @@ export function FilterSelect({
         }
       }
     },
-    [selectedFilter, multiSelect, isOptionSelected, onSelect, onRemove],
+    [selectedFilter, isOptionSelected, onSelect, onRemove],
   );
 
 
@@ -240,7 +239,7 @@ export function FilterSelect({
                     selectedFilter.options
                       ?.filter((option) => !search || !option.hideDuringSearch)
                       ?.map((option) => {
-                        const isSingleSelect = selectedFilter.singleSelect || !multiSelect;
+                        const isSingleSelect = selectedFilter?.singleSelect;
                         const isSelected = isOptionSelected(option.value);
 
                         return (

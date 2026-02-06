@@ -24,7 +24,6 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     event,
     groupBy,
     workspaceId,
-    linkId,
     linkIds,
     interval,
     start,
@@ -39,16 +38,14 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     query,
   } = params;
 
-  const tagIds = combineTagIds(params);
-
   // get all-time clicks count if:
-  // 1. linkId or linkIds is defined
+  // 1. linkIds is defined
   // 2. type is count
   // 3. interval is all
   // 4. no custom start or end date is provided
   // 5. no other dimensional filters are applied
   if (
-    (linkId || linkIds) &&
+    (linkIds) &&
     groupBy === "count" &&
     interval === "all" &&
     !start &&
@@ -64,15 +61,15 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
           ? `sales, saleAmount`
           : `${event}`;
 
-    // Handle single linkId
-    if (linkId) {
-      const response = await conn.execute(
-        `SELECT ${columns} FROM Link WHERE id = ?`,
-        [linkId],
-      );
+    // // Handle single linkId
+    // if (linkId) {
+    //   const response = await conn.execute(
+    //     `SELECT ${columns} FROM Link WHERE id = ?`,
+    //     [linkId],
+    //   );
 
-      return analyticsResponse["count"].parse(response.rows[0]);
-    }
+    //   return analyticsResponse["count"].parse(response.rows[0]);
+    // }
 
     // Handle multiple linkIds with aggregation
     if (linkIds && linkIds.length > 0) {
@@ -108,7 +105,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
   // Handle qr backward compatibility
   let triggerForPipe = trigger;
   if (qr && !trigger) {
-    triggerForPipe = { operator: "IS" as const, sqlOperator: "=" as const, values: ["qr"] };
+    triggerForPipe = { operator: "IS" as const, sqlOperator: "IN" as const, values: ["qr"] };
   }
 
   // Handle region split (format: "US-CA")
@@ -116,7 +113,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
   let regionForPipe = region;
   if (region && typeof region === 'string') {
     const split = region.split("-");
-    countryForPipe = { operator: "IS" as const, sqlOperator: "=" as const, values: [split[0]] };
+    countryForPipe = { operator: "IS" as const, sqlOperator: "IN" as const, values: [split[0]] };
     regionForPipe = split[1];
   }
 
@@ -150,6 +147,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
 
   const advancedFilters = buildAdvancedFilters({
     country: countryForPipe,
+    trigger: triggerForPipe,
     city: params.city,
     continent: params.continent,
     device: params.device,
@@ -158,44 +156,30 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     referer: params.referer,
     refererUrl: params.refererUrl,
     url: params.url,
-    trigger: triggerForPipe,
-  });
-
-  const allFilters = [...metadataFilters, ...advancedFilters];
-  const fieldsInAdvancedFilters = new Set(advancedFilters.map(f => f.field));
-
-  const tinybirdParams: any = {
-    workspaceId: params.workspaceId,
-    linkId: params.linkId,
-    linkIds: params.linkIds,
-    folderIds: params.folderIds,
-    domain: params.domain,
-    tagIds: params.tagIds,
-    customerId: params.customerId,
-    programId: params.programId,
-    partnerId: params.partnerId,
-    tenantId: params.tenantId,
-    folderId: params.folderId,
-    groupId: params.groupId,
-    root: params.root,
-    saleType: params.saleType,
-
-    country: !fieldsInAdvancedFilters.has('country') && countryForPipe?.sqlOperator === '=' ? countryForPipe.values[0] : undefined,
-    city: !fieldsInAdvancedFilters.has('city') && params.city?.sqlOperator === '=' ? params.city.values[0] : undefined,
-    continent: !fieldsInAdvancedFilters.has('continent') && params.continent?.sqlOperator === '=' ? params.continent.values[0] : undefined,
-    device: !fieldsInAdvancedFilters.has('device') && params.device?.sqlOperator === '=' ? params.device.values[0] : undefined,
-    browser: !fieldsInAdvancedFilters.has('browser') && params.browser?.sqlOperator === '=' ? params.browser.values[0] : undefined,
-    os: !fieldsInAdvancedFilters.has('os') && params.os?.sqlOperator === '=' ? params.os.values[0] : undefined,
-    trigger: !fieldsInAdvancedFilters.has('trigger') && triggerForPipe?.sqlOperator === '=' ? triggerForPipe.values[0] : undefined,
-    referer: !fieldsInAdvancedFilters.has('referer') && params.referer?.sqlOperator === '=' ? params.referer.values[0] : undefined,
-    refererUrl: !fieldsInAdvancedFilters.has('refererUrl') && params.refererUrl?.sqlOperator === '=' ? params.refererUrl.values[0] : undefined,
-    url: !fieldsInAdvancedFilters.has('url') && params.url?.sqlOperator === '=' ? params.url.values[0] : undefined,
-
     utm_source: params.utm_source,
     utm_medium: params.utm_medium,
     utm_campaign: params.utm_campaign,
     utm_term: params.utm_term,
     utm_content: params.utm_content,
+    domain: params.domain,
+    tagIds: params.tagIds,
+    folderId: params.folderId,
+    root: params.root,
+    saleType: params.saleType,
+  });
+
+  const allFilters = [...metadataFilters, ...advancedFilters];
+
+  const tinybirdParams: any = {
+    workspaceId,
+    linkId: params.linkId,
+    linkIds: params.linkIds,
+    folderIds: params.folderIds,
+    customerId: params.customerId,
+    programId: params.programId,
+    partnerId: params.partnerId,
+    tenantId: params.tenantId,
+    groupId: params.groupId,
     groupBy,
     eventType: event,
     start: formatUTCDateTimeClickhouse(startDate),

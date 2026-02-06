@@ -1,5 +1,5 @@
 export type FilterOperator = "IS" | "IS_NOT" | "IS_ONE_OF" | "IS_NOT_ONE_OF";
-export type SQLOperator = "=" | "!=" | "IN" | "NOT IN";
+export type SQLOperator = "IN" | "NOT IN";
 
 export interface ParsedFilter {
   operator: FilterOperator;
@@ -11,10 +11,13 @@ export interface ParsedFilter {
  * Parse filter value from URL format to structured filter
  * 
  * Formats supported:
- * - "US" → IS, values: ["US"]
- * - "US,BR,FR" → IS_ONE_OF, values: ["US", "BR", "FR"]
- * - "-US" → IS_NOT, values: ["US"]
- * - "-US,BR" → IS_NOT_ONE_OF, values: ["US", "BR"]
+ * - "US" → IS, values: ["US"], SQL: IN
+ * - "US,BR,FR" → IS_ONE_OF, values: ["US", "BR", "FR"], SQL: IN
+ * - "-US" → IS_NOT, values: ["US"], SQL: NOT IN
+ * - "-US,BR" → IS_NOT_ONE_OF, values: ["US", "BR"], SQL: NOT IN
+ * 
+ * Note: All filters now use IN/NOT IN operators for consistency,
+ * even for single values. This simplifies SQL query generation.
  * 
  * @param value - The filter value string (can include "-" prefix for negation)
  * @returns Parsed filter with operator and values array
@@ -27,7 +30,7 @@ export function parseFilterValue(
   if (Array.isArray(value)) {
     return {
       operator: value.length > 1 ? "IS_ONE_OF" : "IS",
-      sqlOperator: value.length > 1 ? "IN" : "=",
+      sqlOperator: "IN",
       values: value,
     };
   }
@@ -46,13 +49,7 @@ export function parseFilterValue(
       ? "IS_ONE_OF"
       : "IS";
 
-  const sqlOperator: SQLOperator = isNegated
-    ? values.length > 1
-      ? "NOT IN"
-      : "!="
-    : values.length > 1
-      ? "IN"
-      : "=";
+  const sqlOperator: SQLOperator = isNegated ? "NOT IN" : "IN";
 
   return { operator, sqlOperator, values };
 }
