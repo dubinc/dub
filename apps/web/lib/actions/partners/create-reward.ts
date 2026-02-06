@@ -1,7 +1,6 @@
 "use server";
 
-import { toRewardActivitySnapshot } from "@/lib/api/activity-log/build-reward-change-set";
-import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
+import { trackRewardActivityLog } from "@/lib/api/activity-log/track-reward-activity-log";
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createId } from "@/lib/api/create-id";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
@@ -125,21 +124,15 @@ export const createRewardAction = authActionClient
           ],
         }),
 
-        trackActivityLog({
+        trackRewardActivityLog({
           workspaceId: workspace.id,
           programId,
-          resourceType: "reward",
+          userId: user.id,
           resourceId: reward.id,
           parentResourceType: "group",
           parentResourceId: groupId,
-          userId: user.id,
-          action: "reward.created",
-          changeSet: {
-            reward: {
-              old: null,
-              new: toRewardActivitySnapshot(reward),
-            },
-          },
+          old: null,
+          new: reward,
         }),
       ]),
     );

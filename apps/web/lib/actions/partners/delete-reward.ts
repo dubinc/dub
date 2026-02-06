@@ -1,7 +1,6 @@
 "use server";
 
-import { toRewardActivitySnapshot } from "@/lib/api/activity-log/build-reward-change-set";
-import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
+import { trackRewardActivityLog } from "@/lib/api/activity-log/track-reward-activity-log";
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getRewardOrThrow } from "@/lib/api/partners/get-reward-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
@@ -93,23 +92,15 @@ export const deleteRewardAction = authActionClient
           ],
         }),
 
-        trackActivityLog({
+        trackRewardActivityLog({
           workspaceId: workspace.id,
           programId,
-          resourceType: "reward",
-          resourceId: reward.id,
-          ...(partnerGroup?.id && {
-            parentResourceType: "group",
-            parentResourceId: partnerGroup.id,
-          }),
           userId: user.id,
-          action: "reward.deleted",
-          changeSet: {
-            reward: {
-              old: toRewardActivitySnapshot(reward),
-              new: null,
-            },
-          },
+          resourceId: reward.id,
+          parentResourceType: "group",
+          parentResourceId: partnerGroup?.id,
+          old: reward,
+          new: null,
         }),
       ]),
     );
