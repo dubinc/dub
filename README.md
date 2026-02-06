@@ -7,7 +7,7 @@
 <p align="center">
     The open-source link attribution platform.
     <br />
-    <a href="https://dub.co"><strong>Learn more »</strong></a>
+    <a href="https://dub.co"><strong>Learn more</strong></a>
     <br />
     <br />
     <a href="#introduction"><strong>Introduction</strong></a> ·
