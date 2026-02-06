@@ -374,6 +374,7 @@ const _trackLead = async ({
             trigger: "partnerMetricsUpdated",
             reason: "lead",
             identity: {
+              workspaceId: workspace.id,
               programId: link.programId,
               partnerId: link.partnerId,
             },
@@ -567,6 +568,7 @@ const _trackSale = async ({
             trigger: "partnerMetricsUpdated",
             reason: "sale",
             identity: {
+              workspaceId: workspace.id,
               programId: link.programId,
               partnerId: link.partnerId,
             },

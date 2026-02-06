@@ -248,6 +248,7 @@ export async function invoicePaid(event: Stripe.Event, mode: StripeMode) {
           trigger: "partnerMetricsUpdated",
           reason: "sale",
           identity: {
+            workspaceId: workspace.id,
             programId: link.programId,
             partnerId: link.partnerId,
           },

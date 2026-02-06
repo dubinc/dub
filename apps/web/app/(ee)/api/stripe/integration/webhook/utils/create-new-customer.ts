@@ -109,6 +109,7 @@ export async function createNewCustomer(event: Stripe.Event) {
           trigger: "partnerMetricsUpdated",
           reason: "lead",
           identity: {
+            workspaceId: workspace.id,
             programId: link.programId,
             partnerId: link.partnerId,
           },

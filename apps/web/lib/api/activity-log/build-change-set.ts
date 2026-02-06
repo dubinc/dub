@@ -1,11 +1,5 @@
+import type { ChangeSet } from "@/lib/types";
 import { PartnerGroup } from "@dub/prisma/client";
-
-export type FieldDiff<T = unknown> = {
-  old: T | null;
-  new: T | null;
-};
-
-export type ChangeSet = Record<string, FieldDiff>;
 
 interface BuildProgramEnrollmentChangeSetInput {
   oldEnrollment:

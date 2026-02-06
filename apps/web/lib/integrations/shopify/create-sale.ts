@@ -165,6 +165,7 @@ export async function createShopifySale({
           trigger: "partnerMetricsUpdated",
           reason: "sale",
           identity: {
+            workspaceId: workspaceId,
             programId: link.programId,
             partnerId: link.partnerId,
           },

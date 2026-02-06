@@ -13,8 +13,8 @@ import {
 import { cn } from "@dub/utils";
 import Link from "next/link";
 import { Dispatch, SetStateAction, useId, useRef } from "react";
-import { Controller, useForm, useWatch } from "react-hook-form";
 import type { Control } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import * as z from "zod/v4";
 import { EarningsCalculatorBlock } from "../../../../lander/blocks/earnings-calculator-block";
 
