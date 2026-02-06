@@ -123,7 +123,8 @@ export function useCommissionFilters() {
                   })
                 : undefined,
             };
-          }),
+          },
+        ),
       },
     ],
     [commissionsCount, partners, customers, groups],

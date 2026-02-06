@@ -94,7 +94,10 @@ function ConfirmReferralStatusChangeModal({
     onSuccess: async () => {
       setShowModal(false);
       toast.success("Referral status updated successfully!");
-      await mutatePrefix(`/api/programs/${defaultProgramId}/referrals`);
+      await mutatePrefix([
+        `/api/programs/${defaultProgramId}/referrals`,
+        "/api/activity-logs",
+      ]);
     },
     onError({ error }) {
       toast.error(error.serverError || "Failed to update referral status");

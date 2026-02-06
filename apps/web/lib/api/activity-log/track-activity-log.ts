@@ -2,11 +2,11 @@ import { logger } from "@/lib/axiom/server";
 import {
   ActivityLogAction,
   ActivityLogResourceType,
-} from "@/lib/zod/schemas/activity-log";
+  ChangeSet,
+} from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { prettyPrint } from "@dub/utils";
-import { ChangeSet } from "./build-change-set";
 
 export interface TrackActivityLogInput
   extends Pick<
@@ -24,7 +24,9 @@ export const trackActivityLog = async (
   let inputs = Array.isArray(input) ? input : [input];
 
   inputs = inputs.filter(
-    (i) => i.changeSet && Object.keys(i.changeSet).length > 0,
+    (i) =>
+      i.action === "referral.created" ||
+      (i.changeSet && Object.keys(i.changeSet).length > 0),
   );
 
   if (inputs.length === 0) {

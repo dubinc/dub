@@ -11,6 +11,7 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { Dispatch, SetStateAction, useState } from "react";
+import { ReferralActivitySection } from "../activity-logs/referral-activity-section";
 import { ReferralDetails } from "./referral-details";
 import { ReferralLeadDetails } from "./referral-lead-details";
 import { ReferralPartnerDetails } from "./referral-partner-details";
@@ -122,7 +123,10 @@ function ReferralSheetContent({
 
         <div className="@3xl/sheet:grid-cols-[minmax(440px,1fr)_minmax(0,360px)] scrollbar-hide grid min-h-0 grow grid-cols-1 gap-x-6 gap-y-4 overflow-y-auto p-4 sm:p-6">
           {/* Left side - Referral details */}
-          <ReferralDetails referral={{ formData: referral.formData }} />
+          <div className="flex flex-col gap-6">
+            <ReferralDetails referral={{ formData: referral.formData }} />
+            <ReferralActivitySection referralId={referral.id} />
+          </div>
 
           {/* Right side - Two cards */}
           <div className="@3xl/sheet:order-2 flex flex-col gap-4">

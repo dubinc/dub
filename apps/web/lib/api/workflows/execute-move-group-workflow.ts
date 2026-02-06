@@ -2,8 +2,7 @@ import { WorkflowConditionAttribute, WorkflowContext } from "@/lib/types";
 import { redis } from "@/lib/upstash/redis";
 import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
 import { prisma } from "@dub/prisma";
-import { Workflow, WorkspaceRole } from "@dub/prisma/client";
-import { getWorkspaceUsers } from "../get-workspace-users";
+import { Workflow } from "@dub/prisma/client";
 import { movePartnersToGroup } from "../groups/move-partners-to-group";
 import { evaluateWorkflowConditions } from "./evaluate-workflow-conditions";
 import { parseWorkflowConfig } from "./parse-workflow-config";
@@ -25,7 +24,7 @@ export const executeMoveGroupWorkflow = async ({
   }
 
   const { identity, metrics } = context;
-  const { programId, partnerId, groupId } = identity;
+  const { workspaceId, programId, partnerId, groupId } = identity;
 
   if (!groupId) {
     console.error("Partner groupId not set in the context. Skipping..");
@@ -97,16 +96,6 @@ export const executeMoveGroupWorkflow = async ({
     return;
   }
 
-  const { id: workspaceId, users } = await getWorkspaceUsers({
-    programId,
-    role: WorkspaceRole.owner,
-  });
-
-  if (users.length === 0) {
-    console.log("No owners found for the program. Skipping..");
-    return;
-  }
-
   // Prevents duplicate moves when a workflow with matching conditions
   // are triggered by the same partnerMetricsUpdated event.
   const lockKey = `workflow:moveGroup:${programId}:${newGroupId}:${partnerId}`;
@@ -122,7 +111,7 @@ export const executeMoveGroupWorkflow = async ({
       workspaceId,
       programId,
       partnerIds: [partnerId],
-      userId: users[0].id,
+      userId: null,
       group: newGroup,
     });
   } finally {

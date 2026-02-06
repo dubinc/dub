@@ -21,7 +21,7 @@ const schema = z.object({
   programId: z.string(),
   groupId: z.string(),
   partnerIds: z.array(z.string()).min(1),
-  userId: z.string(),
+  userId: z.string().nullish(),
   isGroupDeleted: z.boolean().optional(),
 });
 
@@ -158,7 +158,7 @@ export async function POST(req: Request) {
                 tenantId: programEnrollment?.tenantId ?? undefined,
                 partnerGroupDefaultLinkId: link.partnerGroupDefaultLinkId,
               },
-              userId,
+              userId: userId ?? undefined,
             });
           }),
         )
