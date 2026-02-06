@@ -16,11 +16,10 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   const programId = getDefaultProgramIdOrThrow(workspace);
   const activityLogs = await prisma.activityLog.findMany({
     where: {
-      workspaceId: workspace.id,
       programId,
       resourceType,
       resourceId,
-      ...(action && { action }),
+      action,
     },
     orderBy: {
       createdAt: "desc",
