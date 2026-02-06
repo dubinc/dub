@@ -1,8 +1,7 @@
 import { ActivityLog, ActivityLogResourceTypeWithFeed } from "@/lib/types";
 import { PartnerGroupActivityItem } from "@/ui/activity-logs/partner-group-activity-item";
 import { ReferralActivityItem } from "@/ui/activity-logs/referral-activity-item";
-
-import type { ComponentType } from "react";
+import { ComponentType } from "react";
 
 const ACTIVITY_ITEM_MAP: Record<
   ActivityLogResourceTypeWithFeed,
