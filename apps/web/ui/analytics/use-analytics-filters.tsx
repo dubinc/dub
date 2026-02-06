@@ -50,7 +50,6 @@ import {
   REGIONS,
 } from "@dub/utils";
 import { useParams } from "next/navigation";
-import posthog from "posthog-js";
 import {
   ComponentProps,
   ContextType,
@@ -839,10 +838,6 @@ export function useAnalyticsFilters({
             });
           }
         }
-        posthog.capture("ai_filters_generated", {
-          prompt,
-          filters: activeFilters,
-        });
         setStreaming(false);
       } else {
         queryParams({

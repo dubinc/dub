@@ -10,7 +10,6 @@ import { Button, useMediaQuery, useRouterStuff } from "@dub/ui";
 import { Trash } from "@dub/ui/icons";
 import { cn, pluralize } from "@dub/utils";
 import { Plus } from "lucide-react";
-import posthog from "posthog-js";
 import { useMemo } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -75,12 +74,6 @@ export function InviteTeammatesForm({
             },
           });
 
-          teammates.forEach(({ email }) =>
-            posthog.capture("teammate_invited", {
-              workspace: slug,
-              invitee_email: email,
-            }),
-          );
           onSuccess?.();
         } else {
           const { error } = await res.json();
