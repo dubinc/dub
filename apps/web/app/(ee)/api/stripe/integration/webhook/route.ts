@@ -85,7 +85,7 @@ export const POST = withAxiom(async (req: Request) => {
 
   switch (event.type) {
     case "account.application.deauthorized":
-      response = await accountApplicationDeauthorized(event);
+      response = await accountApplicationDeauthorized(event, mode);
       break;
     case "charge.refunded":
       response = await chargeRefunded(event, mode);
