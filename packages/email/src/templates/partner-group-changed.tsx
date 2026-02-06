@@ -114,7 +114,7 @@ export default function PartnerGroupChanged({
                     <Text
                       className={`mb-0 text-base font-semibold text-black ${rewards?.length ? "mt-5" : "mt-0"}`}
                     >
-                      Bounties
+                      Eligible Bounties
                     </Text>
                     {bounties.map((bounty) => (
                       <Row key={bounty.label} className="mb-0 mt-2">
