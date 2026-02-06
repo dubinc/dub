@@ -1,5 +1,13 @@
 "use server";
 
+import {
+  buildRewardChangeSetEntries,
+  toRewardActivitySnapshot,
+} from "@/lib/api/activity-log/build-reward-change-set";
+import {
+  trackActivityLog,
+  TrackActivityLogInput,
+} from "@/lib/api/activity-log/track-activity-log";
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getRewardOrThrow } from "@/lib/api/partners/get-reward-or-throw";
 import { serializeReward } from "@/lib/api/partners/serialize-reward";
@@ -96,6 +104,50 @@ export const updateRewardAction = authActionClient
       salePartnerGroup,
     ].some((group) => group?.slug === "default");
 
+    // Determine the groupId from the partner group relation
+    const partnerGroup =
+      clickPartnerGroup || leadPartnerGroup || salePartnerGroup;
+    const groupId = partnerGroup?.id;
+
+    // Build a separate activity log entry for each change type (base fields vs modifiers)
+    const serializedOldReward = {
+      ...reward,
+      amountInPercentage:
+        reward.amountInPercentage != null
+          ? Number(reward.amountInPercentage)
+          : null,
+    };
+    const serializedNewReward = serializeReward(rewardMetadata);
+    const rewardSnapshotOld = toRewardActivitySnapshot(serializedOldReward);
+    const rewardSnapshotNew = toRewardActivitySnapshot(serializedNewReward);
+
+    const activityEntries = buildRewardChangeSetEntries({
+      oldReward: serializedOldReward,
+      newReward: serializedNewReward,
+    });
+
+    const activityLogInputs: TrackActivityLogInput[] = activityEntries.map(
+      ({ action, changeSet }) => ({
+        workspaceId: workspace.id,
+        programId,
+        resourceType: "reward",
+        resourceId: rewardMetadata.id,
+        ...(groupId && {
+          parentResourceType: "group",
+          parentResourceId: groupId,
+        }),
+        userId: user.id,
+        action,
+        changeSet: {
+          ...changeSet,
+          reward: {
+            old: rewardSnapshotOld,
+            new: rewardSnapshotNew,
+          },
+        },
+      }),
+    );
+
     waitUntil(
       Promise.allSettled([
         recordAuditLog({
@@ -112,6 +164,8 @@ export const updateRewardAction = authActionClient
             },
           ],
         }),
+
+        trackActivityLog(activityLogInputs),
 
         // we only cache default group pages for now so we need to invalidate them
         ...(isDefaultGroup

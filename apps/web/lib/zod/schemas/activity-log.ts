@@ -20,6 +20,9 @@ export const activityLogActionSchema = z.enum([
   "reward.created",
   "reward.updated",
   "reward.deleted",
+  "reward.conditionAdded",
+  "reward.conditionRemoved",
+  "reward.conditionUpdated",
 ]);
 
 export const getActivityLogsQuerySchema = z.object({
