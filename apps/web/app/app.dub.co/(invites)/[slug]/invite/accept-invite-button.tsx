@@ -4,7 +4,6 @@ import { mutatePrefix } from "@/lib/swr/mutate";
 import { Button, useKeyboardShortcut } from "@dub/ui";
 import { useSession } from "next-auth/react";
 import { useParams, useRouter } from "next/navigation";
-import posthog from "posthog-js";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -30,17 +29,6 @@ export function AcceptInviteButton() {
         setIsAccepting(false);
         return;
       }
-
-      if (session?.user) {
-        posthog.identify(session.user["id"], {
-          email: session.user.email,
-          name: session.user.name,
-        });
-      }
-
-      posthog.capture("accepted_workspace_invite", {
-        workspace: slug,
-      });
 
       await mutatePrefix(["/api/workspaces", "/api/programs"]);
       router.replace(`/${slug}`);
