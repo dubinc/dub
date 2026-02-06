@@ -3,14 +3,20 @@
 import useGroup from "@/lib/swr/use-group";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { programLanderEarningsCalculatorBlockSchema } from "@/lib/zod/schemas/program-lander";
-import { Button, Modal, useMediaQuery, useScrollProgress } from "@dub/ui";
+import {
+  Button,
+  Modal,
+  ToggleGroup,
+  useMediaQuery,
+  useScrollProgress,
+} from "@dub/ui";
 import { cn } from "@dub/utils";
 import Link from "next/link";
 import { Dispatch, SetStateAction, useId, useRef } from "react";
-import { Control, useForm, useWatch } from "react-hook-form";
+import type { Control } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import * as z from "zod/v4";
 import { EarningsCalculatorBlock } from "../../../../lander/blocks/earnings-calculator-block";
-import { useBrandingFormContext } from "../../branding-form";
 
 type EarningsCalculatorBlockData = z.infer<
   typeof programLanderEarningsCalculatorBlockSchema
@@ -56,6 +62,7 @@ function EarningsCalculatorBlockModalInner({
       productPrice: defaultValues?.productPrice
         ? defaultValues.productPrice / 100
         : undefined,
+      billingPeriod: defaultValues?.billingPeriod ?? "monthly",
     },
   });
 
@@ -120,6 +127,32 @@ function EarningsCalculatorBlockModalInner({
                   </div>
                 </div>
 
+                {/* Earnings time toggle */}
+                <div>
+                  <label className="text-sm font-medium text-neutral-700">
+                    Earnings time
+                  </label>
+                  <div className="mt-2">
+                    <Controller
+                      control={control}
+                      name="billingPeriod"
+                      render={({ field }) => (
+                        <ToggleGroup
+                          options={[
+                            { value: "monthly", label: "Monthly" },
+                            { value: "yearly", label: "Yearly" },
+                          ]}
+                          selected={field.value ?? "monthly"}
+                          selectAction={(value) => field.onChange(value)}
+                          className="grid w-full grid-cols-2 rounded-lg border-none bg-neutral-100 p-0.5"
+                          optionClassName="flex h-9 justify-center"
+                          indicatorClassName="rounded-md border-none bg-white shadow-[0px_0px_2px_0px_rgba(0,0,0,0.05),0px_2px_6px_0px_rgba(0,0,0,0.1)]"
+                        />
+                      )}
+                    />
+                  </div>
+                </div>
+
                 <div className="flex flex-col gap-2.5">
                   <div>
                     <span className="text-content-emphasis text-sm font-medium">
@@ -173,14 +206,9 @@ function Preview({
   control: Control<EarningsCalculatorBlockData>;
 }) {
   const productPrice = useWatch({ control, name: "productPrice" });
+  const billingPeriod = useWatch({ control, name: "billingPeriod" });
 
   const { group } = useGroup();
-  const { control: brandingFormControl } = useBrandingFormContext();
-
-  const brandColor = useWatch({
-    control: brandingFormControl,
-    name: "brandColor",
-  });
 
   if (!group) return null;
 
@@ -192,9 +220,10 @@ function Preview({
         data: {
           productPrice:
             Math.min(Math.max(productPrice || 0, 0), MAX_PRODUCT_PRICE) * 100,
+          billingPeriod: billingPeriod ?? "monthly",
         },
       }}
-      group={{ ...group, brandColor }}
+      group={group}
       showTitleAndDescription={false}
     />
   );

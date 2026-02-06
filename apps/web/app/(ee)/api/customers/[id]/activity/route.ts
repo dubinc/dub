@@ -46,22 +46,9 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
     link = decodeLinkIfCaseSensitive(link);
   }
 
-  // Find the time to lead of the customer
-  const timeToLead =
-    customer.clickedAt && customer.createdAt
-      ? customer.createdAt.getTime() - customer.clickedAt.getTime()
-      : null;
-
-  const timeToSale =
-    customer.firstSaleAt && customer.createdAt
-      ? customer.firstSaleAt.getTime() - customer.createdAt.getTime()
-      : null;
-
   return NextResponse.json(
     customerActivityResponseSchema.parse({
       ...customer,
-      timeToLead,
-      timeToSale,
       events,
       link,
     }),

@@ -1,5 +1,5 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
-import { queueDiscountCodeDeletion } from "@/lib/api/discounts/queue-discount-code-deletion";
+import { deleteDiscountCodes } from "@/lib/api/discounts/delete-discount-code";
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
@@ -59,7 +59,7 @@ export const DELETE = withWorkspace(
           ],
         }),
 
-        queueDiscountCodeDeletion(discountCode.id),
+        deleteDiscountCodes(discountCode),
       ]),
     );
 

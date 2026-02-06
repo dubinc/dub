@@ -3,7 +3,7 @@ import { Hr, Link, Tailwind, Text } from "@react-email/components";
 export function Footer({
   email,
   marketing,
-  unsubscribeUrl,
+  unsubscribeUrl = "https://app.dub.co/account/settings",
   notificationSettingsUrl,
 }: {
   email: string;
@@ -11,48 +11,32 @@ export function Footer({
   unsubscribeUrl?: string;
   notificationSettingsUrl?: string;
 }) {
-  if (marketing) {
-    const unsubscribeHref =
-      unsubscribeUrl || "https://app.dub.co/account/settings";
-
-    return (
-      <Tailwind>
-        <Hr className="mx-0 my-6 w-full border border-neutral-200" />
-        <Text className="text-[12px] leading-6 text-neutral-500">
-          We send out product update emails once a month – no spam, no nonsense.{" "}
-          <Link className="text-neutral-700 underline" href={unsubscribeHref}>
-            Manage your email preferences.
-          </Link>
-        </Text>
-        <Text className="text-[12px] text-neutral-500">
-          Dub Technologies, Inc.
-          <br />
-          2261 Market Street STE 5906
-          <br />
-          San Francisco, CA 941114
-        </Text>
-      </Tailwind>
-    );
-  }
-
   return (
     <Tailwind>
       <Hr className="mx-0 my-6 w-full border border-neutral-200" />
       <Text className="text-[12px] leading-6 text-neutral-500">
         This email was intended for <span className="text-black">{email}</span>.
         If you were not expecting this email, you can ignore this email. If you
-        are concerned about your account's safety, please reply to this email to
-        get in touch with us.
+        are concerned about your account's safety, please{" "}
+        <Link
+          className="text-neutral-700 underline"
+          href="https://dub.co/support"
+        >
+          reach out to let us know
+        </Link>
+        .
       </Text>
 
-      {notificationSettingsUrl && (
+      {(marketing || notificationSettingsUrl) && (
         <Text className="text-[12px] leading-6 text-neutral-500">
-          Don’t want to get these emails?{" "}
+          Don't want to get these emails?{" "}
           <Link
             className="text-neutral-700 underline"
-            href={notificationSettingsUrl}
+            href={marketing ? unsubscribeUrl : notificationSettingsUrl}
           >
-            Adjust your notification settings
+            {marketing
+              ? "Manage your email preferences"
+              : "Adjust your notification settings"}
           </Link>
         </Text>
       )}

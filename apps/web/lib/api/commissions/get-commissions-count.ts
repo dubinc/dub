@@ -1,13 +1,14 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { getCommissionsCountQuerySchema } from "@/lib/zod/schemas/commissions";
 import { prisma } from "@dub/prisma";
-import { CommissionStatus } from "@dub/prisma/client";
+import { CommissionStatus, FraudEventStatus } from "@dub/prisma/client";
 import * as z from "zod/v4";
 
 type CommissionsCountFilters = z.infer<
   typeof getCommissionsCountQuerySchema
 > & {
   programId: string;
+  isHoldStatus?: boolean;
 };
 
 export async function getCommissionsCount(filters: CommissionsCountFilters) {
@@ -23,6 +24,7 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
     interval,
     timezone,
     programId,
+    isHoldStatus,
   } = filters;
 
   const { startDate, endDate } = getStartEndDates({
@@ -32,6 +34,27 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
     timezone,
   });
 
+  const statusFilter = isHoldStatus
+    ? { in: [CommissionStatus.pending, CommissionStatus.processed] }
+    : status ?? {
+        notIn: [
+          CommissionStatus.duplicate,
+          CommissionStatus.fraud,
+          CommissionStatus.canceled,
+        ],
+      };
+
+  const programEnrollmentFilter = {
+    ...(groupId && { groupId }),
+    ...(isHoldStatus && {
+      fraudEventGroups: {
+        some: {
+          status: FraudEventStatus.pending,
+        },
+      },
+    }),
+  };
+
   const commissionsCount = await prisma.commission.groupBy({
     by: ["status"],
     where: {
@@ -40,13 +63,7 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
       },
       programId,
       partnerId,
-      status: status ?? {
-        notIn: [
-          CommissionStatus.duplicate,
-          CommissionStatus.fraud,
-          CommissionStatus.canceled,
-        ],
-      },
+      status: statusFilter,
       type,
       payoutId,
       customerId,
@@ -54,10 +71,8 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
         gte: startDate,
         lte: endDate,
       },
-      ...(groupId && {
-        programEnrollment: {
-          groupId,
-        },
+      ...(Object.keys(programEnrollmentFilter).length > 0 && {
+        programEnrollment: programEnrollmentFilter,
       }),
     },
     _count: true,
@@ -77,7 +92,7 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
       return acc;
     },
     {} as Record<
-      CommissionStatus | "all",
+      CommissionStatus | "all" | "hold",
       {
         count: number;
         amount: number;

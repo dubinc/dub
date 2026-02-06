@@ -10,7 +10,6 @@ import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformSaleEventData } from "@/lib/webhook/transform";
 import { prisma } from "@dub/prisma";
-import { WorkflowTrigger } from "@dub/prisma/client";
 import { nanoid, pick } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { orderSchema } from "./schema";
@@ -163,10 +162,14 @@ export async function createShopifySale({
     waitUntil(
       Promise.allSettled([
         executeWorkflows({
-          trigger: WorkflowTrigger.saleRecorded,
-          context: {
+          trigger: "partnerMetricsUpdated",
+          reason: "sale",
+          identity: {
+            workspaceId: workspaceId,
             programId: link.programId,
             partnerId: link.partnerId,
+          },
+          metrics: {
             current: {
               saleAmount: saleData.amount,
               conversions: firstConversionFlag ? 1 : 0,

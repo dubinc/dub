@@ -1,4 +1,6 @@
+import { ActivityLogAction } from "@/lib/types";
 import { textFieldSchema } from "@/lib/zod/schemas/referral-form";
+import { ReferralStatus } from "@dub/prisma/client";
 import { ACME_PROGRAM_ID } from "@dub/utils";
 import * as z from "zod/v4";
 
@@ -51,3 +53,47 @@ export const REFERRAL_ENABLED_PROGRAM_IDS = [
   "prog_1K7Y2RGFC4BKZQQZAZEEK9MVE", // SelectCode
   "prog_1KFZQJZRDRV62C037FQZSY0Y8", // FFG
 ];
+
+export const REFERRAL_STATUS_TO_ACTIVITY_ACTION: Record<
+  ReferralStatus,
+  ActivityLogAction
+> = {
+  [ReferralStatus.pending]: "referral.created",
+  [ReferralStatus.qualified]: "referral.qualified",
+  [ReferralStatus.meeting]: "referral.meeting",
+  [ReferralStatus.negotiation]: "referral.negotiation",
+  [ReferralStatus.unqualified]: "referral.unqualified",
+  [ReferralStatus.closedWon]: "referral.closedWon",
+  [ReferralStatus.closedLost]: "referral.closedLost",
+};
+
+export const REFERRAL_STATUS_TRANSITIONS: Record<
+  ReferralStatus,
+  readonly ReferralStatus[]
+> = {
+  pending: ["qualified", "meeting", "closedLost", "unqualified"],
+  qualified: [
+    "meeting",
+    "negotiation",
+    "closedWon",
+    "closedLost",
+    "unqualified",
+  ],
+  meeting: [
+    "negotiation",
+    "qualified",
+    "closedWon",
+    "closedLost",
+    "unqualified",
+  ],
+  negotiation: [
+    "closedWon",
+    "qualified",
+    "meeting",
+    "closedLost",
+    "unqualified",
+  ],
+  closedWon: [],
+  closedLost: [],
+  unqualified: [],
+};

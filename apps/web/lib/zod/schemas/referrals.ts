@@ -62,31 +62,56 @@ export const createPartnerReferralSchema = z.object({
   formData: z.record(z.string(), z.unknown()), // Contains all form fields including name, email, company
 });
 
-export const markReferralQualifiedSchema = z.object({
+export const updateReferralSchema = z.object({
   referralId: z.string(),
   workspaceId: z.string(),
-  externalId: z.string().trim().optional(),
-  notes: z.string().trim().optional(),
+  name: z.string().min(1, "Name is required"),
+  email: z.email("Invalid email address"),
+  company: z.string().min(1, "Company is required"),
+  formData: z.array(referralFormDataSchema).nullable().optional(),
 });
 
-export const markReferralUnqualifiedSchema = z.object({
+const updateReferralStatusBaseSchema = z.object({
   referralId: z.string(),
   workspaceId: z.string(),
-  notes: z.string().trim().optional(),
+  notes: z
+    .string()
+    .trim()
+    .max(1000, "Notes must be less than 1000 characters")
+    .optional(),
 });
 
-export const markReferralClosedWonSchema = z.object({
-  referralId: z.string(),
-  workspaceId: z.string(),
-  saleAmount: z
-    .number()
-    .min(0, "Sale amount must be greater than or equal to 0"),
-  stripeCustomerId: z.string().optional(),
-  notes: z.string().trim().optional(),
-});
+export const updateReferralStatusSchema = z.discriminatedUnion("status", [
+  updateReferralStatusBaseSchema.extend({
+    status: z.literal("pending"),
+  }),
 
-export const markReferralClosedLostSchema = z.object({
-  referralId: z.string(),
-  workspaceId: z.string(),
-  notes: z.string().trim().optional(),
-});
+  updateReferralStatusBaseSchema.extend({
+    status: z.literal("qualified"),
+    externalId: z.string().trim().optional(),
+  }),
+
+  updateReferralStatusBaseSchema.extend({
+    status: z.literal("meeting"),
+  }),
+
+  updateReferralStatusBaseSchema.extend({
+    status: z.literal("negotiation"),
+  }),
+
+  updateReferralStatusBaseSchema.extend({
+    status: z.literal("unqualified"),
+  }),
+
+  updateReferralStatusBaseSchema.extend({
+    status: z.literal("closedWon"),
+    saleAmount: z
+      .number()
+      .min(0, "Sale amount must be greater than or equal to 0"),
+    stripeCustomerId: z.string().optional(),
+  }),
+
+  updateReferralStatusBaseSchema.extend({
+    status: z.literal("closedLost"),
+  }),
+]);

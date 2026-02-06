@@ -16,7 +16,7 @@ import {
   trackLeadResponseSchema,
 } from "@/lib/zod/schemas/leads";
 import { prisma } from "@dub/prisma";
-import { Link, WorkflowTrigger } from "@dub/prisma/client";
+import { Link } from "@dub/prisma/client";
 import { nanoid, pick, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
@@ -324,10 +324,14 @@ export const trackLead = async ({
 
             await Promise.allSettled([
               executeWorkflows({
-                trigger: WorkflowTrigger.leadRecorded,
-                context: {
+                trigger: "partnerMetricsUpdated",
+                reason: "lead",
+                identity: {
+                  workspaceId: workspace.id,
                   programId: link.programId,
                   partnerId: link.partnerId,
+                },
+                metrics: {
                   current: {
                     leads: 1,
                   },

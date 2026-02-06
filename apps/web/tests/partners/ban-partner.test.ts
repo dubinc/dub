@@ -1,7 +1,7 @@
 import { generateRandomName } from "@/lib/names";
 import { EnrolledPartnerSchema as EnrolledPartnerSchemaDate } from "@/lib/zod/schemas/partners";
-import { Partner } from "@dub/prisma/client";
 import { describe, expect, test } from "vitest";
+import { fetchPartner } from "../utils/fetch-partner";
 import { randomEmail, randomId } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 import { E2E_PARTNER_GROUP } from "../utils/resource";
@@ -22,11 +22,10 @@ describe.sequential("POST /partners/ban", async () => {
       groupId: E2E_PARTNER_GROUP.id,
     };
 
-    const { data: createdData, status: createStatus } =
-      await http.post<Partner>({
-        path: "/partners",
-        body: partner,
-      });
+    const { data: createdData, status: createStatus } = await http.post({
+      path: "/partners",
+      body: partner,
+    });
 
     expect(createStatus).toEqual(201);
     const createdPartner = EnrolledPartnerSchema.parse(createdData);
@@ -43,6 +42,13 @@ describe.sequential("POST /partners/ban", async () => {
 
     expect(banStatus).toEqual(200);
     expect(banData.partnerId).toBe(createdPartner.id);
+
+    // Verify the partner is banned
+    const fetchedPartner = await fetchPartner({
+      http,
+      partnerId: createdPartner.id,
+    });
+    expect(fetchedPartner.status).toBe("banned");
   });
 
   test("ban partner by tenantId", async () => {
@@ -55,11 +61,10 @@ describe.sequential("POST /partners/ban", async () => {
       groupId: E2E_PARTNER_GROUP.id,
     };
 
-    const { data: createdData, status: createStatus } =
-      await http.post<Partner>({
-        path: "/partners",
-        body: partner,
-      });
+    const { data: createdData, status: createStatus } = await http.post({
+      path: "/partners",
+      body: partner,
+    });
 
     expect(createStatus).toEqual(201);
     const createdPartner = EnrolledPartnerSchema.parse(createdData);
@@ -77,5 +82,12 @@ describe.sequential("POST /partners/ban", async () => {
 
     expect(banStatus).toEqual(200);
     expect(banData.partnerId).toBe(createdPartner.id);
+
+    // Verify the partner is banned
+    const fetchedPartner = await fetchPartner({
+      http,
+      partnerId: createdPartner.id,
+    });
+    expect(fetchedPartner.status).toBe("banned");
   });
 });

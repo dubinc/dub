@@ -36,6 +36,11 @@ export default function PartnerReferralSubmitted({
       },
     ],
   },
+  partner = {
+    name: "Sarah Charpentier",
+    email: "sarah@floridaman.org",
+    image: null,
+  },
 }: {
   email: string;
   workspace: { slug: string };
@@ -46,6 +51,11 @@ export default function PartnerReferralSubmitted({
     company: string;
     image: string | null;
     formData?: { label: string; value: unknown }[] | null;
+  };
+  partner: {
+    name: string;
+    email: string | null;
+    image: string | null;
   };
 }) {
   const referralUrl = `https://app.dub.co/${workspace.slug}/program/customers/referrals?referralId=${referral.id}`;
@@ -80,8 +90,8 @@ export default function PartnerReferralSubmitted({
             </Text>
 
             <Container className="mt-10 rounded-lg border border-solid border-neutral-200">
-              <Section className="p-2">
-                <Container className="w-full rounded-lg border border-solid border-neutral-100 bg-neutral-50 p-6">
+              <Section style={{ padding: "8px 8px 4px" }}>
+                <Container className="w-full rounded-lg border border-solid border-neutral-100 bg-neutral-50 p-5">
                   <div>
                     <Img
                       src={
@@ -163,6 +173,82 @@ export default function PartnerReferralSubmitted({
                       </table>
                     </div>
                   </div>
+
+                  <table
+                    cellPadding="0"
+                    cellSpacing="0"
+                    style={{
+                      width: "100%",
+                      backgroundColor: "#f2f2f2",
+                      borderRadius: "12px",
+                      padding: "12px",
+                      marginTop: "20px",
+                    }}
+                  >
+                    <tr>
+                      <td style={{ paddingBottom: "8px" }}>
+                        <Text
+                          className="m-0 p-0 text-xs font-semibold"
+                          style={{
+                            margin: 0,
+                            lineHeight: "16px",
+                            color: "#737373",
+                          }}
+                        >
+                          Submitted by
+                        </Text>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <table cellPadding="0" cellSpacing="0">
+                          <tr>
+                            <td
+                              style={{
+                                verticalAlign: "middle",
+                                paddingRight: "8px",
+                              }}
+                            >
+                              <Img
+                                src={
+                                  partner.image ||
+                                  `${OG_AVATAR_URL}${partner.email || partner.name}`
+                                }
+                                width="32"
+                                height="32"
+                                alt={partner.name}
+                                className="rounded-full"
+                              />
+                            </td>
+                            <td style={{ verticalAlign: "middle" }}>
+                              <Text
+                                className="m-0 p-0 text-xs font-semibold"
+                                style={{
+                                  margin: 0,
+                                  lineHeight: "16px",
+                                  color: "#171717",
+                                }}
+                              >
+                                {partner.name}
+                              </Text>
+                              {partner.email && (
+                                <Text
+                                  className="m-0 p-0 text-xs font-medium"
+                                  style={{
+                                    margin: 0,
+                                    lineHeight: "16px",
+                                    color: "#737373",
+                                  }}
+                                >
+                                  {partner.email}
+                                </Text>
+                              )}
+                            </td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
+                  </table>
                 </Container>
 
                 {referral.formData && referral.formData.length > 0 && (

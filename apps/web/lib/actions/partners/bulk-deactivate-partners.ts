@@ -1,16 +1,10 @@
 "use server";
 
-import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
-import { queueDiscountCodeDeletion } from "@/lib/api/discounts/queue-discount-code-deletion";
-import { linkCache } from "@/lib/api/links/cache";
+import { bulkDeactivatePartners } from "@/lib/api/partners/bulk-deactivate-partners";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { bulkDeactivatePartnersSchema } from "@/lib/zod/schemas/partners";
-import { sendBatchEmail } from "@dub/email";
-import PartnerDeactivated from "@dub/email/templates/partner-deactivated";
-import { prisma } from "@dub/prisma";
-import { ProgramEnrollmentStatus } from "@dub/prisma/client";
-import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 export const bulkDeactivatePartnersAction = authActionClient
   .inputSchema(bulkDeactivatePartnersSchema)
@@ -18,142 +12,17 @@ export const bulkDeactivatePartnersAction = authActionClient
     const { workspace, user } = ctx;
     const { partnerIds } = parsedInput;
 
-    const programId = getDefaultProgramIdOrThrow(workspace);
-
-    const programEnrollments = await prisma.programEnrollment.findMany({
-      where: {
-        partnerId: {
-          in: partnerIds,
-        },
-        programId,
-        status: {
-          in: ["approved", "archived"],
-        },
-      },
-      include: {
-        partner: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-        links: {
-          select: {
-            domain: true,
-            key: true,
-          },
-        },
-        discountCodes: true,
-      },
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredRoles: ["owner", "member"],
     });
 
-    if (programEnrollments.length === 0) {
-      throw new Error("You must provide at least one valid partner ID.");
-    }
+    const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const partnerIdsToDeactivate = programEnrollments.map((pe) => pe.partnerId);
-    const now = new Date();
-
-    await prisma.$transaction([
-      prisma.link.updateMany({
-        where: {
-          programId,
-          partnerId: {
-            in: partnerIdsToDeactivate,
-          },
-        },
-        data: {
-          expiresAt: now,
-        },
-      }),
-
-      prisma.programEnrollment.updateMany({
-        where: {
-          partnerId: {
-            in: partnerIdsToDeactivate,
-          },
-          programId,
-          status: {
-            in: ["approved", "archived"],
-          },
-        },
-        data: {
-          status: ProgramEnrollmentStatus.deactivated,
-          clickRewardId: null,
-          leadRewardId: null,
-          saleRewardId: null,
-          discountId: null,
-        },
-      }),
-    ]);
-
-    waitUntil(
-      (async () => {
-        const allLinks = programEnrollments.flatMap((pe) => pe.links);
-        const allDiscountCodeIds = programEnrollments.flatMap((pe) =>
-          pe.discountCodes.map((dc) => dc.id),
-        );
-
-        const program = await prisma.program.findUniqueOrThrow({
-          where: {
-            id: programId,
-          },
-          select: {
-            name: true,
-            supportEmail: true,
-            slug: true,
-          },
-        });
-
-        await Promise.allSettled([
-          // Expire all links in cache
-          linkCache.expireMany(allLinks),
-
-          // Queue discount code deletions
-          queueDiscountCodeDeletion(allDiscountCodeIds),
-
-          // Record audit logs
-          recordAuditLog(
-            programEnrollments.map(({ partner }) => ({
-              workspaceId: workspace.id,
-              programId,
-              action: "partner.deactivated",
-              description: `Partner ${partner.id} deactivated`,
-              actor: user,
-              targets: [
-                {
-                  type: "partner",
-                  id: partner.id,
-                  metadata: {
-                    name: partner.name,
-                    email: partner.email ?? null,
-                  },
-                },
-              ],
-            })),
-          ),
-        ]);
-
-        // Send notification emails
-        await sendBatchEmail(
-          programEnrollments.map(({ partner }) => ({
-            variant: "notifications",
-            subject: `Your partnership with ${program.name} has been deactivated`,
-            to: partner.email!,
-            replyTo: program.supportEmail || "noreply",
-            react: PartnerDeactivated({
-              partner: {
-                name: partner.name,
-                email: partner.email!,
-              },
-              program: {
-                name: program.name,
-                slug: program.slug,
-              },
-            }),
-          })),
-        );
-      })(),
-    );
+    await bulkDeactivatePartners({
+      workspaceId: workspace.id,
+      programId,
+      partnerIds,
+      user,
+    });
   });

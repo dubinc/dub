@@ -71,8 +71,15 @@ function ExportCommissionsModal({
       };
 
       const searchParams = data.useFilters
-        ? getQueryString(params)
-        : "?" + new URLSearchParams(params);
+        ? getQueryString({
+            ...params,
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          })
+        : "?" +
+          new URLSearchParams({
+            ...params,
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          });
 
       const response = await fetch(`/api/commissions/export${searchParams}`, {
         method: "GET",
