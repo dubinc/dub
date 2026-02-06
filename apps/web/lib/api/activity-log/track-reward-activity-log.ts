@@ -18,6 +18,7 @@ function toRewardActivitySnapshot(reward: RewardProps) {
     amountInPercentage: reward.amountInPercentage ?? null,
     maxDuration: reward.maxDuration ?? null,
     description: reward.description ?? null,
+    tooltipDescription: reward.tooltipDescription ?? null,
     modifiers: reward.modifiers ?? null,
   };
 }
@@ -60,21 +61,15 @@ export function trackRewardActivityLog({
   }
 
   if (oldReward !== null && newReward !== null) {
-    const serializedOld = serializeReward(oldReward as Reward);
-    const serializedNew = serializeReward(newReward as Reward);
+    const oldSnapshot = toRewardActivitySnapshot(
+      serializeReward(oldReward as Reward),
+    );
 
-    const diff = getResourceDiff(serializedOld, serializedNew, {
-      fields: [
-        "type",
-        "amountInCents",
-        "amountInPercentage",
-        "maxDuration",
-        "description",
-        "modifiers",
-      ],
-    });
+    const newSnapshot = toRewardActivitySnapshot(
+      serializeReward(newReward as Reward),
+    );
 
-    if (!diff) {
+    if (!getResourceDiff(oldSnapshot, newSnapshot)) {
       return;
     }
 
@@ -84,8 +79,8 @@ export function trackRewardActivityLog({
       action: "reward.updated",
       changeSet: {
         reward: {
-          old: toRewardActivitySnapshot(serializedOld),
-          new: toRewardActivitySnapshot(serializedNew),
+          old: oldSnapshot,
+          new: newSnapshot,
         },
       },
     });
