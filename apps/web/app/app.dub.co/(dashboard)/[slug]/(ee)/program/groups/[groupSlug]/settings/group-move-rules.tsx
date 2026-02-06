@@ -14,10 +14,8 @@ import {
 import { ArrowTurnRight2, Button, UserArrowRight, Users } from "@dub/ui";
 import { currencyFormatter, nFormatter } from "@dub/utils";
 import { X } from "lucide-react";
-import Link from "next/link";
 import { Fragment, useMemo } from "react";
 import { Controller, useFieldArray, useFormContext } from "react-hook-form";
-import { SettingsRow } from "./settings-row";
 
 const ATTRIBUTES = [
   { key: "totalLeads", text: "total leads", type: "number" },
@@ -73,22 +71,7 @@ export function GroupMoveRules() {
   const { canUseGroupMoveRule } = getPlanCapabilities(plan);
 
   return (
-    <SettingsRow
-      heading="Group move"
-      description={
-        <>
-          Create rules to move partners to this group when they meet specific
-          criteria.
-          <Link
-            href="https://dub.co/help"
-            target="_blank"
-            className="ml-1 underline"
-          >
-            Learn more
-          </Link>
-        </>
-      }
-    >
+    <>
       {!canUseGroupMoveRule ? (
         <GroupMoveRuleUpsell />
       ) : ruleFields.length === 0 ? (
@@ -136,7 +119,7 @@ export function GroupMoveRules() {
       {canUseGroupMoveRule && (
         <Button
           text="Add rule"
-          variant="primary"
+          variant="secondary"
           className="mt-4 h-8 w-fit rounded-lg px-3"
           onClick={() => {
             appendRule({
@@ -153,7 +136,7 @@ export function GroupMoveRules() {
           }
         />
       )}
-    </SettingsRow>
+    </>
   );
 }
 

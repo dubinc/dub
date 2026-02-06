@@ -1,10 +1,8 @@
 import { createId } from "@/lib/api/create-id";
-import {
-  constructDiscountCode,
-  createStripeDiscountCode,
-} from "@/lib/stripe/create-stripe-discount-code";
+import { createStripeDiscountCode } from "@/lib/stripe/create-stripe-discount-code";
 import { prisma } from "@dub/prisma";
 import { Discount, Link, Partner } from "@dub/prisma/client";
+import { constructDiscountCode } from "./construct-discount-code";
 
 export async function createDiscountCode({
   stripeConnectId,
@@ -33,7 +31,6 @@ export async function createDiscountCode({
     stripeConnectId,
     discount,
     code: finalCode,
-    partner,
     shouldRetry: code ? false : true,
   });
 

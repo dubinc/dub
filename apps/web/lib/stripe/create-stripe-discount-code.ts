@@ -1,4 +1,3 @@
-import { Partner } from "@dub/prisma/client";
 import { nanoid } from "@dub/utils";
 import { stripeAppClient } from ".";
 import { DiscountProps } from "../types";
@@ -12,13 +11,11 @@ const MAX_ATTEMPTS = 3;
 export async function createStripeDiscountCode({
   stripeConnectId,
   discount,
-  partner,
   code,
   shouldRetry = true,
 }: {
   stripeConnectId: string;
   discount: Pick<DiscountProps, "id" | "couponId" | "amount" | "type">;
-  partner: Pick<Partner, "name">;
   code: string;
   shouldRetry?: boolean; // we don't retry if the code is provided by the user
 }) {
@@ -78,20 +75,4 @@ export async function createStripeDiscountCode({
   }
 
   throw new Error("Failed to create Stripe discount code.");
-}
-
-export function constructDiscountCode({
-  partner,
-  discount,
-}: {
-  partner: Pick<Partner, "name">;
-  discount: Pick<DiscountProps, "amount" | "type">;
-}) {
-  const amount =
-    discount.type === "percentage" ? discount.amount : discount.amount / 100;
-
-  const [firstName] = partner.name.trim().toUpperCase().split(" ");
-  const prefix = firstName || "PARTNER";
-
-  return `${prefix}${amount}OFF`;
 }

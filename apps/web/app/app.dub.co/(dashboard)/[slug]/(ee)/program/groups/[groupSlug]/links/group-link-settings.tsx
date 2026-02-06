@@ -8,10 +8,11 @@ import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { GroupProps } from "@/lib/types";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
-import { Badge, Button, InfoTooltip, UTMBuilder } from "@dub/ui";
+import { GroupSettingsRow } from "@/ui/partners/groups/group-settings-row";
+import { Badge, Button, UTMBuilder } from "@dub/ui";
 import { CircleCheckFill } from "@dub/ui/icons";
 import { cn, deepEqual } from "@dub/utils";
-import { PropsWithChildren, useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -186,13 +187,9 @@ function GroupLinkSettingsForm({ group }: { group: GroupProps }) {
 
   return (
     <form className="flex flex-col divide-y divide-neutral-200">
-      <SettingsRow
+      <GroupSettingsRow
         heading="Link structure"
-        description="How your partner links are displayed"
-        titleInfo={{
-          title: "Configure the format of your partner referral links.",
-          href: "https://dub.co/help/article/partner-link-settings#link-structure",
-        }}
+        description="Configure the [format of your partner referral links](https://dub.co/help/article/partner-link-settings#link-structure)."
       >
         <div className="grid grid-cols-1 gap-3">
           {program &&
@@ -239,16 +236,11 @@ function GroupLinkSettingsForm({ group }: { group: GroupProps }) {
               );
             })}
         </div>
-      </SettingsRow>
+      </GroupSettingsRow>
 
-      <SettingsRow
+      <GroupSettingsRow
         heading="UTM parameters"
-        description="Configure UTM tracking parameters for all links in this group"
-        titleInfo={{
-          title:
-            "Configure UTM tracking parameters for all links in this group.",
-          href: "https://dub.co/help/article/partner-link-settings#utm-parameters",
-        }}
+        description="Configure [UTM tracking parameters](https://dub.co/help/article/partner-link-settings#utm-parameters) for all links in this group"
       >
         <UTMBuilder
           values={{
@@ -263,7 +255,7 @@ function GroupLinkSettingsForm({ group }: { group: GroupProps }) {
             setValue(key, value, { shouldDirty: true });
           }}
         />
-      </SettingsRow>
+      </GroupSettingsRow>
 
       <div className="flex items-center justify-end rounded-b-lg border-t border-neutral-200 bg-neutral-50 px-6 py-5">
         <Button
@@ -276,43 +268,5 @@ function GroupLinkSettingsForm({ group }: { group: GroupProps }) {
       </div>
       {confirmModal}
     </form>
-  );
-}
-
-function SettingsRow({
-  heading,
-  description,
-  titleInfo,
-  children,
-}: PropsWithChildren<{
-  heading: string;
-  description: string;
-  titleInfo?: {
-    title: string;
-    href: string;
-  };
-}>) {
-  return (
-    <div className="grid grid-cols-1 gap-10 px-6 py-8 sm:grid-cols-2">
-      <div className="flex flex-col gap-1">
-        <div className="flex items-center gap-2">
-          <h3 className="text-content-emphasis text-base font-semibold leading-none">
-            {heading}
-          </h3>
-          {titleInfo && (
-            <InfoTooltip
-              content={
-                titleInfo?.href
-                  ? `${titleInfo.title} [Learn more.](${titleInfo.href})`
-                  : titleInfo?.title
-              }
-            />
-          )}
-        </div>
-        <p className="text-content-subtle text-sm">{description}</p>
-      </div>
-
-      <div>{children}</div>
-    </div>
   );
 }
