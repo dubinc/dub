@@ -1,8 +1,8 @@
 import { ActivityLog, ActivityLogResourceTypeWithFeed } from "@/lib/types";
 import { PartnerGroupActivityItem } from "@/ui/activity-logs/partner-group-activity-item";
 import { ReferralActivityItem } from "@/ui/activity-logs/referral-activity-item";
-import { RewardActivityItem } from "@/ui/activity-logs/reward-activity-item";
-import { ComponentType } from "react";
+
+import type { ComponentType } from "react";
 
 const ACTIVITY_ITEM_MAP: Record<
   ActivityLogResourceTypeWithFeed,
@@ -10,7 +10,7 @@ const ACTIVITY_ITEM_MAP: Record<
 > = {
   partner: PartnerGroupActivityItem,
   referral: ReferralActivityItem,
-  reward: RewardActivityItem,
+  reward: ({ log }: { log: ActivityLog }) => null, // TODO: Implement reward activity item
 };
 
 interface ActivityFeedProps {
