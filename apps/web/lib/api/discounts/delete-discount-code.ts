@@ -7,9 +7,11 @@ const queue = qstash.queue({
   queueName: "delete-discount-code",
 });
 
+type DiscountCodePayload = Pick<DiscountCode, "id" | "code" | "programId">;
+
 type DeleteDiscountCodesParams =
-  | Pick<DiscountCode, "id" | "code" | "programId">
-  | Pick<DiscountCode, "id" | "code" | "programId">[];
+  | DiscountCodePayload
+  | (DiscountCodePayload | null | undefined)[];
 
 // Triggered in the following cases:
 // 1. When a discount is deleted
@@ -17,7 +19,10 @@ type DeleteDiscountCodesParams =
 // 3. When partners are banned / deactivated
 // 4. When a partner is moved to a different group
 export async function deleteDiscountCodes(input: DeleteDiscountCodesParams) {
-  const discountCodes = Array.isArray(input) ? input : [input];
+  const raw = Array.isArray(input) ? input : [input];
+  const discountCodes = raw.filter(
+    (dc): dc is NonNullable<typeof dc> => dc != null,
+  );
 
   if (discountCodes.length === 0) {
     return;
