@@ -41,6 +41,7 @@ export const activityLogSchema = z.object({
   action: activityLogActionSchema,
   description: z.string().nullable(),
   changeSet: z.record(z.string(), fieldDiffSchema).nullable(),
+  batchId: z.string().nullable().optional(),
   createdAt: z.date(),
   user: UserSchema.nullable(),
 });

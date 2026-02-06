@@ -24,6 +24,7 @@ export interface TrackActivityLogInput
   changeSet?: ChangeSet;
   parentResourceType?: string | null;
   parentResourceId?: string | null;
+  batchId?: string | null;
 }
 
 export const trackActivityLog = async (
@@ -46,6 +47,7 @@ export const trackActivityLog = async (
       data: inputs.map((input) => ({
         ...input,
         changeSet: input.changeSet as Prisma.InputJsonValue,
+        batchId: input.batchId ?? undefined,
       })),
     });
 

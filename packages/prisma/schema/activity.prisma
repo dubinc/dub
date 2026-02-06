@@ -9,6 +9,7 @@ model ActivityLog {
   userId             String?
   action             String
   description        String?  @db.Text
+  batchId            String?
   changeSet          Json?
   createdAt          DateTime @default(now())
 

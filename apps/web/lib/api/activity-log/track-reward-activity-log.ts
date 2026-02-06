@@ -1,5 +1,10 @@
 import { serializeReward } from "@/lib/api/partners/serialize-reward";
-import type { RewardProps } from "@/lib/types";
+import type {
+  ActivityLogAction,
+  ChangeSet,
+  RewardConditions,
+  RewardProps,
+} from "@/lib/types";
 import type { Reward } from "@dub/prisma/client";
 import { getResourceDiff } from "./get-resource-diff";
 import type { TrackActivityLogInput } from "./track-activity-log";
@@ -28,6 +33,7 @@ export function trackRewardActivityLog({
   new: newReward,
   ...baseInput
 }: TrackRewardActivityLogParams) {
+  // Created
   if (oldReward === null && newReward !== null) {
     const newSnapshot = toRewardActivitySnapshot(
       serializeReward(newReward as Reward),
@@ -46,6 +52,54 @@ export function trackRewardActivityLog({
     });
   }
 
+  // Updated
+  if (oldReward !== null && newReward !== null) {
+    const oldSnapshot = toRewardActivitySnapshot(
+      serializeReward(oldReward as Reward),
+    );
+
+    const newSnapshot = toRewardActivitySnapshot(
+      serializeReward(newReward as Reward),
+    );
+
+    if (!getResourceDiff(oldSnapshot, newSnapshot)) {
+      return;
+    }
+
+    const modifierChanges = getRewardModifierChanges(
+      oldSnapshot.modifiers,
+      newSnapshot.modifiers,
+    );
+
+    const batchId =
+      modifierChanges.length > 0 ? crypto.randomUUID() : undefined;
+
+    const logs: TrackActivityLogInput[] = [
+      {
+        ...baseInput,
+        resourceType: "reward",
+        action: "reward.updated",
+        batchId,
+        changeSet: {
+          reward: {
+            old: oldSnapshot,
+            new: newSnapshot,
+          },
+        },
+      },
+      ...modifierChanges.map((change) => ({
+        ...baseInput,
+        resourceType: "reward" as const,
+        action: change.action,
+        batchId,
+        changeSet: change.changeSet,
+      })),
+    ];
+
+    return trackActivityLog(logs);
+  }
+
+  // Deleted
   if (oldReward !== null && newReward === null) {
     const oldSnapshot = toRewardActivitySnapshot(
       serializeReward(oldReward as Reward),
@@ -63,30 +117,88 @@ export function trackRewardActivityLog({
       },
     });
   }
+}
 
-  if (oldReward !== null && newReward !== null) {
-    const oldSnapshot = toRewardActivitySnapshot(
-      serializeReward(oldReward as Reward),
-    );
+function getRewardModifierChanges(
+  oldModifiers: RewardConditions[],
+  newModifiers: RewardConditions[],
+) {
+  const results: {
+    action: Extract<
+      ActivityLogAction,
+      | "reward.conditionAdded"
+      | "reward.conditionRemoved"
+      | "reward.conditionUpdated"
+    >;
+    changeSet: ChangeSet;
+  }[] = [];
 
-    const newSnapshot = toRewardActivitySnapshot(
-      serializeReward(newReward as Reward),
-    );
+  oldModifiers = oldModifiers || [];
+  newModifiers = newModifiers || [];
 
-    if (!getResourceDiff(oldSnapshot, newSnapshot)) {
-      return;
-    }
+  const diff = getResourceDiff(oldModifiers, newModifiers);
 
-    return trackActivityLog({
-      ...baseInput,
-      resourceType: "reward",
-      action: "reward.updated",
-      changeSet: {
-        reward: {
-          old: oldSnapshot,
-          new: newSnapshot,
-        },
-      },
-    });
+  if (!diff) {
+    return results;
   }
+
+  const matchedNewIndices = new Set<number>();
+  const matchedOldIndices = new Set<number>();
+
+  for (const [key, { old: oldValue, new: newValue }] of Object.entries(diff)) {
+    const index = parseInt(key, 10);
+    if (isNaN(index)) continue;
+
+    if (oldValue === undefined && newValue !== undefined) {
+      matchedNewIndices.add(index);
+      results.push({
+        action: "reward.conditionAdded",
+        changeSet: {
+          condition: {
+            old: null,
+            new: newValue as RewardConditions,
+          },
+        },
+      });
+    } else if (oldValue !== undefined && newValue === undefined) {
+      matchedOldIndices.add(index);
+      results.push({
+        action: "reward.conditionRemoved",
+        changeSet: {
+          condition: {
+            old: oldValue as RewardConditions,
+            new: null,
+          },
+        },
+      });
+    } else if (
+      oldValue !== undefined &&
+      newValue !== undefined &&
+      !areModifiersEqual(
+        oldValue as RewardConditions,
+        newValue as RewardConditions,
+      )
+    ) {
+      matchedOldIndices.add(index);
+      matchedNewIndices.add(index);
+      results.push({
+        action: "reward.conditionUpdated",
+        changeSet: {
+          condition: {
+            old: oldValue as RewardConditions,
+            new: newValue as RewardConditions,
+          },
+        },
+      });
+    }
+  }
+
+  return results;
+}
+
+function areModifiersEqual(
+  mod1: RewardConditions,
+  mod2: RewardConditions,
+): boolean {
+  return JSON.stringify(mod1) === JSON.stringify(mod2);
 }
