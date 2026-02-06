@@ -3,6 +3,7 @@
 import useGroup from "@/lib/swr/use-group";
 import type { GroupProps, RewardProps } from "@/lib/types";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
+import { useRewardHistorySheet } from "@/ui/activity-logs/reward-history-sheet";
 import { REWARD_EVENTS } from "@/ui/partners/constants";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
 import {
@@ -139,12 +140,19 @@ const RewardItem = ({
     reward: reward || undefined,
   });
 
+  const { rewardHistorySheet, setIsOpen: setHistoryOpen } =
+    useRewardHistorySheet({
+      rewardId: reward?.id ?? null,
+      eventType: event,
+    });
+
   const Icon = REWARD_EVENTS[event].icon;
   const As = reward ? Link : "div";
 
   return (
     <>
       {RewardSheet}
+      {rewardHistorySheet}
       <As
         href={
           reward
@@ -184,21 +192,33 @@ const RewardItem = ({
           </div>
 
           {reward ? (
-            <Button
-              text="Edit"
-              variant="secondary"
-              className="h-9 w-fit rounded-lg"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                queryParams({
-                  set: {
-                    rewardId: reward.id,
-                  },
-                  scroll: false,
-                });
-              }}
-            />
+            <div className="flex items-center gap-2">
+              <Button
+                text="View history"
+                variant="secondary"
+                className="h-9 w-fit rounded-lg"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setHistoryOpen(true);
+                }}
+              />
+              <Button
+                text="Edit"
+                variant="secondary"
+                className="h-9 w-fit rounded-lg"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  queryParams({
+                    set: {
+                      rewardId: reward.id,
+                    },
+                    scroll: false,
+                  });
+                }}
+              />
+            </div>
           ) : (
             <div className="flex flex-col-reverse items-center gap-2 md:flex-row">
               {group.slug !== DEFAULT_PARTNER_GROUP.slug && (
