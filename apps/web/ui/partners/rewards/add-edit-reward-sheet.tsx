@@ -184,7 +184,10 @@ function RewardSheetContent({
           : undefined,
       description: defaultValuesSource?.description ?? null,
       tooltipDescription: defaultValuesSource?.tooltipDescription ?? null,
-      modifiers: defaultValuesSource?.modifiers?.map((m) => {
+      modifiers: (Array.isArray(defaultValuesSource?.modifiers)
+        ? defaultValuesSource.modifiers
+        : []
+      ).map((m) => {
         const maxDuration =
           m.maxDuration === undefined
             ? defaultValuesSource?.maxDuration

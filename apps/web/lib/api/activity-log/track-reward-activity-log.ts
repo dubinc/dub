@@ -1,42 +1,38 @@
 import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import type { RewardProps } from "@/lib/types";
 import type { Reward } from "@dub/prisma/client";
-import {
-  buildRewardChangeSetEntries,
-  toRewardActivitySnapshot,
-} from "./build-reward-change-set";
+import { getResourceDiff } from "./get-resource-diff";
 import type { TrackActivityLogInput } from "./track-activity-log";
 import { trackActivityLog } from "./track-activity-log";
 
-interface TrackRewardActivityLogParams extends TrackActivityLogInput {
+interface TrackRewardActivityLogParams
+  extends Omit<TrackActivityLogInput, "action" | "changeSet" | "resourceType"> {
   old: Reward | RewardProps | null;
   new: Reward | RewardProps | null;
 }
 
+function toRewardActivitySnapshot(reward: RewardProps) {
+  return {
+    type: reward.type,
+    amountInCents: reward.amountInCents ?? null,
+    amountInPercentage: reward.amountInPercentage ?? null,
+    maxDuration: reward.maxDuration ?? null,
+    description: reward.description ?? null,
+    modifiers: reward.modifiers ?? null,
+  };
+}
+
 export function trackRewardActivityLog({
-  workspaceId,
-  programId,
-  userId,
-  resourceId,
-  parentResourceType,
-  parentResourceId,
   old: oldReward,
   new: newReward,
+  ...baseInput
 }: TrackRewardActivityLogParams) {
-  const baseInput = {
-    workspaceId,
-    programId,
-    userId,
-    resourceId,
-    parentResourceType,
-    parentResourceId,
-    resourceType: "reward" as const,
-  };
-
   if (oldReward === null && newReward !== null) {
     const serialized = serializeReward(newReward as Reward);
+
     return trackActivityLog({
       ...baseInput,
+      resourceType: "reward",
       action: "reward.created",
       changeSet: {
         reward: {
@@ -52,6 +48,7 @@ export function trackRewardActivityLog({
 
     return trackActivityLog({
       ...baseInput,
+      resourceType: "reward",
       action: "reward.deleted",
       changeSet: {
         reward: {
@@ -65,24 +62,32 @@ export function trackRewardActivityLog({
   if (oldReward !== null && newReward !== null) {
     const serializedOld = serializeReward(oldReward as Reward);
     const serializedNew = serializeReward(newReward as Reward);
-    const rewardSnapshotOld = toRewardActivitySnapshot(serializedOld);
-    const rewardSnapshotNew = toRewardActivitySnapshot(serializedNew);
-    const entries = buildRewardChangeSetEntries({
-      oldReward: serializedOld,
-      newReward: serializedNew,
+
+    const diff = getResourceDiff(serializedOld, serializedNew, {
+      fields: [
+        "type",
+        "amountInCents",
+        "amountInPercentage",
+        "maxDuration",
+        "description",
+        "modifiers",
+      ],
     });
 
-    const inputs: TrackActivityLogInput[] = entries.map(
-      ({ action, changeSet }) => ({
-        ...baseInput,
-        action,
-        changeSet: {
-          ...changeSet,
-          reward: { old: rewardSnapshotOld, new: rewardSnapshotNew },
-        },
-      }),
-    );
+    if (!diff) {
+      return;
+    }
 
-    return trackActivityLog(inputs);
+    return trackActivityLog({
+      ...baseInput,
+      resourceType: "reward",
+      action: "reward.updated",
+      changeSet: {
+        reward: {
+          old: toRewardActivitySnapshot(serializedOld),
+          new: toRewardActivitySnapshot(serializedNew),
+        },
+      },
+    });
   }
 }

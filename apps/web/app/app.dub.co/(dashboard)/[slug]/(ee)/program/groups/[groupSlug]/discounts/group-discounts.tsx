@@ -121,4 +121,3 @@ const DiscountSkeleton = () => {
     </div>
   );
 };
-
