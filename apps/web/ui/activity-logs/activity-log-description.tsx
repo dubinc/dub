@@ -28,7 +28,9 @@ export function ActivityLogDescription({ log }: ActivityLogDescriptionProps) {
           {timeAgo(createdAt, { withAgo: true })}
         </span>
       </div>
-      <p className="text-content-subtle mt-2 text-sm">{description}</p>
+      {description && (
+        <p className="text-content-subtle mt-2 text-sm">{description}</p>
+      )}
     </div>
   );
 }
