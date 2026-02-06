@@ -100,7 +100,6 @@ export const updateRewardAction = authActionClient
     // Determine the groupId from the partner group relation
     const partnerGroup =
       clickPartnerGroup || leadPartnerGroup || salePartnerGroup;
-    const groupId = partnerGroup?.id;
 
     waitUntil(
       Promise.allSettled([
@@ -125,7 +124,7 @@ export const updateRewardAction = authActionClient
           userId: user.id,
           resourceId: rewardMetadata.id,
           parentResourceType: "group",
-          parentResourceId: groupId,
+          parentResourceId: partnerGroup?.id,
           old: reward,
           new: updatedReward,
         }),
