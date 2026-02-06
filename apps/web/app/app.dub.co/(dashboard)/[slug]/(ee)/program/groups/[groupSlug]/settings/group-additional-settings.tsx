@@ -23,15 +23,18 @@ type FormData = z.infer<typeof updateGroupSchema>;
 
 export function GroupAdditionalSettings() {
   const { group, loading } = useGroup();
-
-  if (!group || loading) {
-    return <GroupAdditionalSettingsFormSkeleton />;
-  }
-
-  return <GroupAdditionalSettingsForm group={group} />;
+  return (
+    <GroupAdditionalSettingsForm group={group ?? null} loading={loading} />
+  );
 }
 
-function GroupAdditionalSettingsForm({ group }: { group: GroupProps }) {
+function GroupAdditionalSettingsForm({
+  group,
+  loading,
+}: {
+  group: GroupProps | null;
+  loading: boolean;
+}) {
   const { groups, loading: groupsLoading } = useGroupMoveRules();
   const { makeRequest: updateGroup, isSubmitting } = useApiMutation();
 
@@ -43,11 +46,30 @@ function GroupAdditionalSettingsForm({ group }: { group: GroupProps }) {
     number | null
   >(null);
 
+  const form = useForm<FormData>({
+    defaultValues: {
+      moveRules: group?.moveRules ?? [],
+    },
+  });
+
+  const {
+    handleSubmit,
+    reset,
+    formState: { isDirty },
+  } = form;
+
+  useEffect(() => {
+    if (group) {
+      form.reset({ moveRules: group.moveRules ?? [] });
+    }
+  }, [group]);
+
   const handleAutoApproveConfirm = async ({
     applyToAllGroups,
   }: {
     applyToAllGroups: boolean;
   }) => {
+    if (!group) return;
     const currentValue = group.autoApprovePartnersEnabledAt ? true : false;
     await updateGroup(`/api/groups/${group.id}`, {
       method: "PATCH",
@@ -70,7 +92,7 @@ function GroupAdditionalSettingsForm({ group }: { group: GroupProps }) {
   }: {
     applyToAllGroups: boolean;
   }) => {
-    if (selectedHoldingPeriodDays === null) return;
+    if (selectedHoldingPeriodDays === null || !group) return;
 
     await updateGroup(`/api/groups/${group.id}`, {
       method: "PATCH",
@@ -93,19 +115,8 @@ function GroupAdditionalSettingsForm({ group }: { group: GroupProps }) {
     setSelectedHoldingPeriodDays(null);
   };
 
-  const form = useForm<FormData>({
-    defaultValues: {
-      moveRules: group.moveRules ?? [],
-    },
-  });
-
-  const {
-    handleSubmit,
-    reset,
-    formState: { isDirty },
-  } = form;
-
   const onSubmit = async (data: FormData) => {
+    if (!group) return;
     if (data.moveRules && data.moveRules.length > 0) {
       try {
         validateGroupMoveRules(data.moveRules);
@@ -147,23 +158,29 @@ function GroupAdditionalSettingsForm({ group }: { group: GroupProps }) {
     });
   };
 
+  const isLoading = loading || !group;
+
   return (
     <>
-      <ConfirmAutoApproveModal
-        isOpen={showConfirmAutoApproveModal}
-        setIsOpen={setShowConfirmAutoApproveModal}
-        onConfirm={handleAutoApproveConfirm}
-        isSubmitting={isSubmitting}
-        currentValue={group.autoApprovePartnersEnabledAt ? true : false}
-      />
-      <ConfirmHoldingPeriodModal
-        isOpen={showConfirmHoldingPeriodModal}
-        setIsOpen={handleHoldingPeriodCancel}
-        onConfirm={handleHoldingPeriodConfirm}
-        isSubmitting={isSubmitting}
-        currentValue={group.holdingPeriodDays}
-        newValue={selectedHoldingPeriodDays}
-      />
+      {group && (
+        <>
+          <ConfirmAutoApproveModal
+            isOpen={showConfirmAutoApproveModal}
+            setIsOpen={setShowConfirmAutoApproveModal}
+            onConfirm={handleAutoApproveConfirm}
+            isSubmitting={isSubmitting}
+            currentValue={group.autoApprovePartnersEnabledAt ? true : false}
+          />
+          <ConfirmHoldingPeriodModal
+            isOpen={showConfirmHoldingPeriodModal}
+            setIsOpen={handleHoldingPeriodCancel}
+            onConfirm={handleHoldingPeriodConfirm}
+            isSubmitting={isSubmitting}
+            currentValue={group.holdingPeriodDays}
+            newValue={selectedHoldingPeriodDays}
+          />
+        </>
+      )}
 
       <FormProvider {...form}>
         <form onSubmit={handleSubmit(onSubmit)}>
@@ -179,101 +196,85 @@ function GroupAdditionalSettingsForm({ group }: { group: GroupProps }) {
                 heading="Payout holding period"
                 description="[Set how long to hold funds](https://dub.co/help/article/partner-payouts#payout-holding-period) before they are eligible for payout."
               >
-                <select
-                  className="block w-full rounded-md border border-neutral-300 bg-white py-2 pl-3 pr-10 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500"
-                  value={
-                    selectedHoldingPeriodDays !== null
-                      ? selectedHoldingPeriodDays
-                      : group.holdingPeriodDays
-                  }
-                  onChange={(e) => {
-                    const newValue = Number(e.target.value);
-                    if (newValue !== group.holdingPeriodDays) {
-                      setSelectedHoldingPeriodDays(newValue);
-                      setShowConfirmHoldingPeriodModal(true);
+                {isLoading ? (
+                  <div className="h-[38px] w-full animate-pulse rounded-md bg-neutral-200" />
+                ) : (
+                  <select
+                    className="block w-full rounded-md border border-neutral-300 bg-white py-2 pl-3 pr-10 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500"
+                    value={
+                      selectedHoldingPeriodDays !== null
+                        ? selectedHoldingPeriodDays
+                        : group!.holdingPeriodDays
                     }
-                  }}
-                >
-                  {PAYOUT_HOLDING_PERIOD_DAYS.map((v) => (
-                    <option value={v} key={v}>
-                      {v} days {v === 30 && " (recommended)"}
-                    </option>
-                  ))}
-                </select>
+                    onChange={(e) => {
+                      const newValue = Number(e.target.value);
+                      if (newValue !== group!.holdingPeriodDays) {
+                        setSelectedHoldingPeriodDays(newValue);
+                        setShowConfirmHoldingPeriodModal(true);
+                      }
+                    }}
+                  >
+                    {PAYOUT_HOLDING_PERIOD_DAYS.map((v) => (
+                      <option value={v} key={v}>
+                        {v} days {v === 30 && " (recommended)"}
+                      </option>
+                    ))}
+                  </select>
+                )}
               </GroupSettingsRow>
 
               <GroupSettingsRow
                 heading="Auto-approve"
-                description="[Automatically approve](https://dub.co/help/article/program-applications#auto-approve) new partner applications."
+                description="[Automatically approve](https://dub.co/help/article/program-applications#auto-approve) new partner applications to this group."
               >
-                <label>
-                  <div className="flex select-none items-center gap-2">
-                    <Switch
-                      checked={
-                        group.autoApprovePartnersEnabledAt ? true : false
-                      }
-                      fn={() => setShowConfirmAutoApproveModal(true)}
-                      trackDimensions="radix-state-checked:bg-black focus-visible:ring-black/20"
-                    />
-                    <span className="text-content-emphasis text-sm">
-                      Enable auto-approve
-                    </span>
-                  </div>
-                </label>
+                {isLoading ? (
+                  <div className="h-[38px] w-full animate-pulse rounded-md bg-neutral-200" />
+                ) : (
+                  <label>
+                    <div className="flex select-none items-center gap-2">
+                      <Switch
+                        checked={
+                          group!.autoApprovePartnersEnabledAt ? true : false
+                        }
+                        fn={() => setShowConfirmAutoApproveModal(true)}
+                        trackDimensions="radix-state-checked:bg-black focus-visible:ring-black/20"
+                      />
+                      <span className="text-content-emphasis text-sm">
+                        Enable auto-approve
+                      </span>
+                    </div>
+                  </label>
+                )}
               </GroupSettingsRow>
 
-              <GroupMoveRules />
+              <GroupSettingsRow
+                heading="Group move rules"
+                description="[Automatically move partners to this group](https://dub.co/help/article/partner-groups#group-move-rules) when they meet specific criteria."
+              >
+                {isLoading ? (
+                  <div className="min-h-28 w-full animate-pulse rounded-md bg-neutral-200" />
+                ) : (
+                  <GroupMoveRules />
+                )}
+              </GroupSettingsRow>
             </div>
 
-            <div className="border-border-subtle flex items-center justify-end rounded-b-lg border-t bg-neutral-50 px-6 py-4">
-              <div>
-                <Button
-                  text="Save changes"
-                  className="h-8"
-                  loading={isSubmitting}
-                  disabled={!isDirty || groupsLoading}
-                />
+            {!isLoading && (
+              <div className="border-border-subtle flex items-center justify-end rounded-b-lg border-t bg-neutral-50 px-6 py-4">
+                <div>
+                  <Button
+                    text="Save changes"
+                    className="h-8"
+                    loading={isSubmitting}
+                    disabled={!isDirty || groupsLoading}
+                  />
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </form>
       </FormProvider>
     </>
-  );
-}
-
-function GroupAdditionalSettingsFormSkeleton() {
-  return (
-    <div className="border-border-subtle rounded-lg border">
-      <div className="flex flex-col divide-y divide-neutral-200">
-        <div className="px-6 py-6">
-          <h3 className="text-content-emphasis text-lg font-semibold leading-7">
-            Additional settings
-          </h3>
-        </div>
-
-        <GroupSettingsRow
-          heading="Payout holding period"
-          description="Set how long to hold funds before they are eligible for payout."
-        >
-          <div className="h-[38px] w-full animate-pulse rounded-md bg-neutral-200" />
-        </GroupSettingsRow>
-
-        <GroupSettingsRow
-          heading="Auto-approve"
-          description="Automatically approve new partner applications."
-        >
-          <div className="h-[38px] w-full animate-pulse rounded-md bg-neutral-200" />
-        </GroupSettingsRow>
-
-        <GroupSettingsRow
-          heading="Group move rules"
-          description="Create rules to move partners to this group when they meet specific criteria."
-        >
-          <div className="min-h-28 w-full animate-pulse rounded-md bg-neutral-200" />
-        </GroupSettingsRow>
-      </div>
-    </div>
   );
 }
 

@@ -5,7 +5,6 @@ import useGroup from "@/lib/swr/use-group";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { WorkflowCondition } from "@/lib/types";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
-import { GroupSettingsRow } from "@/ui/partners/groups/group-settings-row";
 import { usePartnersUpgradeModal } from "@/ui/partners/partners-upgrade-modal";
 import {
   InlineBadgePopover,
@@ -72,10 +71,7 @@ export function GroupMoveRules() {
   const { canUseGroupMoveRule } = getPlanCapabilities(plan);
 
   return (
-    <GroupSettingsRow
-      heading="Group move rules"
-      description="[Automatically move partners to this group](https://dub.co/help/article/partner-groups) when they meet specific criteria."
-    >
+    <>
       {!canUseGroupMoveRule ? (
         <GroupMoveRuleUpsell />
       ) : ruleFields.length === 0 ? (
@@ -140,7 +136,7 @@ export function GroupMoveRules() {
           }
         />
       )}
-    </GroupSettingsRow>
+    </>
   );
 }
 
