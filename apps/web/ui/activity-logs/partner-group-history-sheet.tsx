@@ -1,4 +1,5 @@
 "use client";
+
 import { useActivityLogs } from "@/lib/swr/use-activity-logs";
 import { EnrolledPartnerExtendedProps } from "@/lib/types";
 import { PartnerGroupActivitySection } from "@/ui/activity-logs/partner-group-activity-section";
@@ -11,6 +12,7 @@ interface PartnerGroupHistorySheetProps {
   isOpen: boolean;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
 }
+
 function PartnerGroupHistorySheetContent({
   partner,
 }: Omit<PartnerGroupHistorySheetProps, "isOpen">) {
@@ -28,12 +30,14 @@ function PartnerGroupHistorySheetContent({
           />
         </Sheet.Close>
       </div>
+
       <div className="scrollbar-hide flex min-h-0 flex-1 flex-col overflow-y-auto p-4 sm:p-6">
         <PartnerGroupActivitySection partnerId={partner.id} />
       </div>
     </div>
   );
 }
+
 export function PartnerGroupHistorySheet({
   isOpen,
   ...rest
@@ -44,12 +48,14 @@ export function PartnerGroupHistorySheet({
     </Sheet>
   );
 }
+
 export function usePartnerGroupHistorySheet({
   partner,
 }: {
   partner: Pick<EnrolledPartnerExtendedProps, "id"> | null;
 }) {
   const [isOpen, setIsOpen] = useState(false);
+
   const { activityLogs } = useActivityLogs({
     query: partner
       ? {
@@ -60,6 +66,7 @@ export function usePartnerGroupHistorySheet({
       : undefined,
     enabled: !!partner?.id,
   });
+
   return {
     hasActivityLogs: (activityLogs?.length ?? 0) > 0,
     partnerGroupHistorySheet: partner ? (

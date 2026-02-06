@@ -147,15 +147,18 @@ export async function movePartnersToGroup({
       // If the userId is not provided, get the workspace user id from the workspace users
       // userId will be null for workflow-initiated actions
       let workspaceUserId = userId;
+
       if (!workspaceUserId) {
         const { users } = await getWorkspaceUsers({
           programId,
           role: WorkspaceRole.owner,
         });
+
         if (users.length > 0) {
           workspaceUserId = users[0].id;
         }
       }
+
       await Promise.allSettled([
         qstash.publishJSON({
           url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/remap-default-links`,

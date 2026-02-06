@@ -6,10 +6,13 @@ import { ReferralCreatedRenderer } from "./action-renderers/referral-created-ren
 import { ReferralStatusChangedRenderer } from "./action-renderers/referral-status-changed-renderer";
 
 export type ActorType = "USER" | "SYSTEM";
+
 type ActivityLogRenderer = (props: { log: ActivityLog }) => ReactNode;
+
 export function getActorType(log: ActivityLog): ActorType {
   return log.user ? "USER" : "SYSTEM";
 }
+
 const ACTIVITY_LOG_ICONS: Partial<
   Record<ActivityLogAction, ComponentType<{ className?: string }>>
 > = {
@@ -22,6 +25,7 @@ const ACTIVITY_LOG_ICONS: Partial<
   "referral.closedWon": UserClock,
   "referral.closedLost": UserClock,
 };
+
 const ACTIVITY_LOG_REGISTRY: Array<{
   action: ActivityLogAction;
   renderer: ActivityLogRenderer;
@@ -48,18 +52,23 @@ const ACTIVITY_LOG_REGISTRY: Array<{
     renderer: ReferralStatusChangedRenderer,
   })),
 ];
+
 const renderers = new Map(
   ACTIVITY_LOG_REGISTRY.map(({ action, renderer }) => [action, renderer]),
 );
+
 export function getActivityLogRenderer(
   action: ActivityLogAction,
 ): ActivityLogRenderer | null {
   return renderers.get(action) ?? null;
 }
+
 export function getActivityLogIcon(log: ActivityLog): ReactNode {
   const Icon = ACTIVITY_LOG_ICONS[log.action];
+
   if (Icon) {
     return <Icon className="size-4 text-neutral-600" />;
   }
+
   return <CircleInfo className="size-4 text-neutral-400" />;
 }

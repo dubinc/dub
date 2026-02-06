@@ -1,9 +1,9 @@
 import { logger } from "@/lib/axiom/server";
-import type { ChangeSet } from "@/lib/types";
 import {
   ActivityLogAction,
   ActivityLogResourceType,
-} from "@/lib/zod/schemas/activity-log";
+  ChangeSet,
+} from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { prettyPrint } from "@dub/utils";
@@ -11,11 +11,10 @@ import { prettyPrint } from "@dub/utils";
 export interface TrackActivityLogInput
   extends Pick<
     Prisma.ActivityLogUncheckedCreateInput,
-    "workspaceId" | "programId" | "resourceId" | "description"
+    "workspaceId" | "programId" | "resourceId" | "userId" | "description"
   > {
   resourceType: ActivityLogResourceType;
   action: ActivityLogAction;
-  userId?: string | null;
   changeSet?: ChangeSet;
 }
 

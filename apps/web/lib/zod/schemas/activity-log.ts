@@ -22,12 +22,6 @@ export const activityLogActionSchema = z.enum([
   "reward.deleted",
 ]);
 
-export type ActivityLogResourceType = z.infer<
-  typeof activityLogResourceTypeSchema
->;
-
-export type ActivityLogAction = z.infer<typeof activityLogActionSchema>;
-
 export const getActivityLogsQuerySchema = z.object({
   resourceType: activityLogResourceTypeSchema,
   resourceId: z.string(),

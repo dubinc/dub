@@ -66,6 +66,7 @@ export const REFERRAL_STATUS_TO_ACTIVITY_ACTION: Record<
   [ReferralStatus.closedWon]: "referral.closedWon",
   [ReferralStatus.closedLost]: "referral.closedLost",
 };
+
 export const REFERRAL_STATUS_TRANSITIONS: Record<
   ReferralStatus,
   readonly ReferralStatus[]

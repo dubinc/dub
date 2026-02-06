@@ -4,8 +4,10 @@ import { OG_AVATAR_URL, timeAgo } from "@dub/utils";
 interface ActivityLogDescriptionProps {
   log: ActivityLog;
 }
+
 export function ActivityLogDescription({ log }: ActivityLogDescriptionProps) {
   const { user, description, createdAt } = log;
+
   return (
     <div className="mt-2 rounded-xl border border-neutral-200 px-4 py-3">
       <div className="flex items-center gap-1.5 text-xs">

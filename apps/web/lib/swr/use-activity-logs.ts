@@ -11,13 +11,16 @@ export function useActivityLogs({
   enabled?: boolean;
 } = {}) {
   const { id: workspaceId } = useWorkspace();
+
   const searchParams = query
     ? new URLSearchParams({
+        workspaceId: workspaceId!,
         resourceType: query.resourceType,
         resourceId: query.resourceId,
         ...(query.action && { action: query.action }),
       }).toString()
     : "";
+
   const { data, error, isLoading, mutate } = useSWR<ActivityLog[]>(
     enabled &&
       workspaceId &&
@@ -29,6 +32,7 @@ export function useActivityLogs({
       keepPreviousData: true,
     },
   );
+
   return {
     activityLogs: data,
     error,

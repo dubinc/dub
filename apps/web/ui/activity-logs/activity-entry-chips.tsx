@@ -6,22 +6,26 @@ import { Bolt } from "@dub/ui";
 import { cn, OG_AVATAR_URL } from "@dub/utils";
 import { ReactNode } from "react";
 import { getActorType } from "./activity-log-registry";
-
 interface ActivityChipProps {
   children: ReactNode;
   className?: string;
 }
+
 interface GroupPillProps extends Pick<GroupProps, "name" | "color"> {}
+
 interface SourcePillProps {
   icon?: ReactNode;
   label: string;
 }
+
 interface UserChipProps {
   user: NonNullable<ActivityLog["user"]>;
 }
+
 interface ActorChipProps {
   log: ActivityLog;
 }
+
 function ActivityChip({ children, className }: ActivityChipProps) {
   return (
     <span
@@ -34,10 +38,12 @@ function ActivityChip({ children, className }: ActivityChipProps) {
     </span>
   );
 }
+
 export function GroupPill({ name, color }: GroupPillProps) {
   const colorClassName = color
     ? getResourceColorData(color)?.groupVariants
     : undefined;
+
   return (
     <ActivityChip>
       <span
@@ -52,6 +58,7 @@ export function GroupPill({ name, color }: GroupPillProps) {
     </ActivityChip>
   );
 }
+
 export function SourcePill({ icon, label }: SourcePillProps) {
   return (
     <ActivityChip>
@@ -60,6 +67,7 @@ export function SourcePill({ icon, label }: SourcePillProps) {
     </ActivityChip>
   );
 }
+
 export function UserChip({ user }: UserChipProps) {
   return (
     <ActivityChip>
@@ -72,6 +80,7 @@ export function UserChip({ user }: UserChipProps) {
     </ActivityChip>
   );
 }
+
 export function SystemChip() {
   return (
     <ActivityChip>
@@ -80,15 +89,21 @@ export function SystemChip() {
     </ActivityChip>
   );
 }
+
 export function ActorChip({ log }: ActorChipProps) {
   const actorType = getActorType(log);
+
   if (actorType === "USER" && log.user) {
     return <UserChip user={log.user} />;
   }
+
   return <SystemChip />;
 }
+
 export function ReferralStatusPill({ status }: { status: ReferralStatus }) {
   const badge = ReferralStatusBadges[status];
+
   if (!badge) return null;
+
   return <ActivityChip className={badge.className}>{badge.label}</ActivityChip>;
 }

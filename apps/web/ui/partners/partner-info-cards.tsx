@@ -87,6 +87,7 @@ export function PartnerInfoCards({
     setIsOpen: setGroupHistoryOpen,
     hasActivityLogs,
   } = usePartnerGroupHistorySheet({ partner: partner || null });
+
   const { group } = useGroup(
     {
       groupIdOrSlug: partner
@@ -306,6 +307,7 @@ export function PartnerInfoCards({
               <h3 className="text-content-emphasis text-sm font-semibold">
                 Group
               </h3>
+
               {hasActivityLogs && (
                 <Button
                   variant="outline"
@@ -316,6 +318,7 @@ export function PartnerInfoCards({
               )}
             </div>
           )}
+
           {partnerGroupHistorySheet}
           {partner ? (
             <PartnerInfoGroup

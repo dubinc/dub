@@ -166,19 +166,6 @@ import {
 import { workspacePreferencesSchema } from "./zod/schemas/workspace-preferences";
 import { workspaceUserSchema } from "./zod/schemas/workspaces";
 
-export type GetActivityLogsQuery = z.infer<typeof getActivityLogsQuerySchema>;
-export type ActivityLogResourceType = z.infer<
-  typeof activityLogResourceTypeSchema
->;
-export type ActivityLogAction = z.infer<typeof activityLogActionSchema>;
-export type FieldDiff = z.infer<typeof fieldDiffSchema>;
-export type ChangeSet = Record<string, FieldDiff>;
-export type ActivityLog = z.infer<typeof activityLogSchema>;
-export type ActivityLogResourceTypeWithFeed = Extract<
-  ActivityLogResourceType,
-  "partner" | "referral"
->;
-
 export type LinkProps = Link;
 
 // used on client side (e.g. Link builder)
@@ -824,3 +811,22 @@ export type CustomerSource = (typeof CUSTOMER_SOURCES)[number];
 export type ReferralWithCustomer = PartnerReferral & {
   customer: Customer | null;
 };
+
+export type GetActivityLogsQuery = z.infer<typeof getActivityLogsQuerySchema>;
+
+export type ActivityLogResourceType = z.infer<
+  typeof activityLogResourceTypeSchema
+>;
+
+export type ActivityLogAction = z.infer<typeof activityLogActionSchema>;
+
+export type FieldDiff = z.infer<typeof fieldDiffSchema>;
+
+export type ChangeSet = Record<string, FieldDiff>;
+
+export type ActivityLog = z.infer<typeof activityLogSchema>;
+
+export type ActivityLogResourceTypeWithFeed = Extract<
+  ActivityLogResourceType,
+  "partner" | "referral"
+>;

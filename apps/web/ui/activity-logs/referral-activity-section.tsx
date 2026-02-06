@@ -1,4 +1,5 @@
 "use client";
+
 import { useActivityLogs } from "@/lib/swr/use-activity-logs";
 import {
   ActivityFeed,
@@ -17,10 +18,13 @@ export function ReferralActivitySection({
     },
     enabled: !!referralId,
   });
+
   const logs = activityLogs ?? [];
+
   if (logs.length === 0 && !loading && !error) {
     return null;
   }
+
   return (
     <section className="order-3 col-span-full flex flex-col gap-3 px-1">
       {!loading && (
@@ -28,6 +32,7 @@ export function ReferralActivitySection({
           Activity
         </h3>
       )}
+
       {loading ? (
         <ActivityFeedSkeleton count={3} />
       ) : error ? (

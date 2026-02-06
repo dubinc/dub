@@ -10,15 +10,18 @@ interface ReferralActivityItemProps {
   log: ActivityLog;
   isLast?: boolean;
 }
+
 export function ReferralActivityItem({
   log,
   isLast = false,
 }: ReferralActivityItemProps) {
   const icon = getActivityLogIcon(log);
   const Renderer = getActivityLogRenderer(log.action);
+
   if (!Renderer) {
     return null;
   }
+
   return (
     <li className="relative flex min-w-0 gap-3">
       {!isLast && (
@@ -27,12 +30,14 @@ export function ReferralActivityItem({
           aria-hidden="true"
         />
       )}
+
       <div
         className="flex size-6 shrink-0 items-center justify-center text-neutral-500"
         aria-hidden="true"
       >
         {icon}
       </div>
+
       <div className="flex min-w-0 flex-1 flex-col gap-2 overflow-hidden pb-6">
         <div className="flex min-w-0 items-center justify-between gap-3 text-sm text-neutral-700">
           <span className="flex min-w-0 flex-1 flex-wrap items-center gap-2 overflow-hidden">

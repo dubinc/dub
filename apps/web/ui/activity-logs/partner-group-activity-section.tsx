@@ -1,4 +1,5 @@
 "use client";
+
 import { useActivityLogs } from "@/lib/swr/use-activity-logs";
 import {
   ActivityFeed,
@@ -18,9 +19,11 @@ export function PartnerGroupActivitySection({
     },
     enabled: !!partnerId,
   });
+
   if (loading) {
     return <ActivityFeedSkeleton count={3} />;
   }
+
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center py-8 text-center">
@@ -30,6 +33,7 @@ export function PartnerGroupActivitySection({
       </div>
     );
   }
+
   if (!activityLogs || activityLogs.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-8 text-center">
@@ -37,5 +41,6 @@ export function PartnerGroupActivitySection({
       </div>
     );
   }
+
   return <ActivityFeed logs={activityLogs} resourceType="partner" />;
 }

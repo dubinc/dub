@@ -15,11 +15,14 @@ interface ActivityFeedProps {
   logs: ActivityLog[];
   resourceType: ActivityLogResourceTypeWithFeed;
 }
+
 export function ActivityFeed({ logs, resourceType }: ActivityFeedProps) {
   if (!logs || logs.length === 0) {
     return null;
   }
+
   const ActivityItemComponent = ACTIVITY_ITEM_MAP[resourceType];
+
   return (
     <ul className="flex min-w-0 flex-col" role="list">
       {logs.map((log, index) => (
@@ -32,6 +35,7 @@ export function ActivityFeed({ logs, resourceType }: ActivityFeedProps) {
     </ul>
   );
 }
+
 export function ActivityFeedSkeleton({ count = 3 }: { count?: number }) {
   return (
     <ul className="flex min-w-0 flex-col" role="list">
