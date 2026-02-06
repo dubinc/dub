@@ -26,6 +26,7 @@ model PartnerGroup {
   brandColor                   String?
   holdingPeriodDays            Int                  @default(0) // number of days to wait before earnings are added to a payout
   autoApprovePartnersEnabledAt DateTime?
+  workflowId                   String?              @unique
   utmTemplateId                String?              @unique
   createdAt                    DateTime             @default(now())
   updatedAt                    DateTime             @updatedAt
@@ -39,6 +40,7 @@ model PartnerGroup {
   applications             ProgramApplication[]
   bounties                 BountyGroup[]
   campaigns                CampaignGroup[]
+  workflow                 Workflow?                 @relation(fields: [workflowId], references: [id])
   utmTemplate              UtmTemplate?              @relation(fields: [utmTemplateId], references: [id])
   partnerGroupDefaultLinks PartnerGroupDefaultLink[]
 

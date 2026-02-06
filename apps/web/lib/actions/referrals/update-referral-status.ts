@@ -65,7 +65,7 @@ export const updateReferralStatusAction = authActionClient
       });
     }
 
-    referral = await prisma.partnerReferral.update({
+    const updatedReferral = await prisma.partnerReferral.update({
       where: {
         id: referral.id,
         status: referral.status,
@@ -94,13 +94,19 @@ export const updateReferralStatusAction = authActionClient
             userId: user.id,
             action: REFERRAL_EVENT_TYPES[status],
             description: notes,
+            changeSet: {
+              status: {
+                old: referral.status,
+                new: updatedReferral.status,
+              },
+            },
           }),
 
           ...(status === ReferralStatus.qualified
             ? [
                 markReferralQualified({
                   workspace,
-                  referral: referral as ReferralWithCustomer,
+                  referral: updatedReferral,
                   externalId: parsedInput.externalId ?? null,
                 }),
               ]
@@ -110,7 +116,7 @@ export const updateReferralStatusAction = authActionClient
             ? [
                 markReferralClosedWon({
                   workspace,
-                  referral: referral as ReferralWithCustomer,
+                  referral: updatedReferral as ReferralWithCustomer,
                   saleAmount: parsedInput.saleAmount,
                   stripeCustomerId: parsedInput.stripeCustomerId ?? null,
                 }),

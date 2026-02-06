@@ -3,7 +3,7 @@ import { recordLink } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
 import { R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import { queueDiscountCodeDeletion } from "../discounts/queue-discount-code-deletion";
+import { deleteDiscountCodes } from "../discounts/delete-discount-code";
 import { linkCache } from "./cache";
 import { includeProgramEnrollment } from "./include-program-enrollment";
 import { includeTags } from "./include-tags";
@@ -44,7 +44,7 @@ export async function deleteLink(linkId: string) {
           },
         }),
 
-      link.discountCode && queueDiscountCodeDeletion(link.discountCode.id),
+      link.discountCode && deleteDiscountCodes(link.discountCode),
     ]),
   );
 

@@ -23,7 +23,6 @@ import { createCommissionSchema } from "@/lib/zod/schemas/commissions";
 import { leadEventSchemaTB } from "@/lib/zod/schemas/leads";
 import { saleEventSchemaTB } from "@/lib/zod/schemas/sales";
 import { prisma } from "@dub/prisma";
-import { WorkflowTrigger } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK, nanoid, prettyPrint } from "@dub/utils";
 import { COUNTRIES_TO_CONTINENTS } from "@dub/utils/src";
 import { waitUntil } from "@vercel/functions";
@@ -573,13 +572,13 @@ export const createManualCommissionAction = authActionClient
         if (["lead", "sale"].includes(commissionType)) {
           await Promise.allSettled([
             executeWorkflows({
-              trigger:
-                commissionType === "lead"
-                  ? WorkflowTrigger.leadRecorded
-                  : WorkflowTrigger.saleRecorded,
-              context: {
+              trigger: "partnerMetricsUpdated",
+              reason: "commission",
+              identity: {
                 programId,
                 partnerId,
+              },
+              metrics: {
                 current: {
                   leads: commissionType === "lead" ? 1 : 0,
                   saleAmount: saleAmount ?? totalSaleAmount,
@@ -587,6 +586,7 @@ export const createManualCommissionAction = authActionClient
                 },
               },
             }),
+
             syncPartnerLinksStats({
               partnerId,
               programId,

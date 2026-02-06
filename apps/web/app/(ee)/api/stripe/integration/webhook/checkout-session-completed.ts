@@ -22,7 +22,7 @@ import {
   transformSaleEventData,
 } from "@/lib/webhook/transform";
 import { prisma } from "@dub/prisma";
-import { Customer, Project, WorkflowTrigger } from "@dub/prisma/client";
+import { Customer, Project } from "@dub/prisma/client";
 import { COUNTRIES_TO_CONTINENTS, nanoid, pick } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
@@ -476,10 +476,13 @@ export async function checkoutSessionCompleted(
     waitUntil(
       Promise.allSettled([
         executeWorkflows({
-          trigger: WorkflowTrigger.saleRecorded,
-          context: {
+          trigger: "partnerMetricsUpdated",
+          reason: "sale",
+          identity: {
             programId: link.programId,
             partnerId: link.partnerId,
+          },
+          metrics: {
             current: {
               saleAmount: saleData.amount,
               conversions: firstConversionFlag ? 1 : 0,
@@ -658,10 +661,13 @@ async function attributeViaPromoCode({
 
         await Promise.allSettled([
           executeWorkflows({
-            trigger: WorkflowTrigger.leadRecorded,
-            context: {
+            trigger: "partnerMetricsUpdated",
+            reason: "lead",
+            identity: {
               programId: link.programId,
               partnerId: link.partnerId,
+            },
+            metrics: {
               current: {
                 leads: 1,
               },
