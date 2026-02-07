@@ -6,7 +6,7 @@ import { throwIfClicksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { assertValidDateRangeForPlan } from "@/lib/api/utils/assert-valid-date-range-for-plan";
 import { withWorkspace } from "@/lib/auth";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
-import { eventsQuerySchema } from "@/lib/zod/schemas/analytics";
+import { parseEventsQuery } from "@/lib/zod/schemas/analytics";
 import { Link } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 
@@ -15,7 +15,7 @@ export const GET = withWorkspace(
   async ({ searchParams, workspace, session }) => {
     throwIfClicksUsageExceeded(workspace);
 
-    const parsedParams = eventsQuerySchema.parse(searchParams);
+    const parsedParams = parseEventsQuery(searchParams);
 
     let {
       event,
@@ -24,10 +24,18 @@ export const GET = withWorkspace(
       end,
       linkId,
       externalId,
-      domain,
+      domain: domainFilter,
       key,
-      folderId,
+      folderId: folderIdFilter,
     } = parsedParams;
+
+    // Extract string values for specific link/folder lookup
+    const domain = domainFilter && typeof domainFilter === 'object' && 'values' in domainFilter 
+      ? domainFilter.values[0] 
+      : undefined;
+    const folderId = folderIdFilter && typeof folderIdFilter === 'object' && 'values' in folderIdFilter
+      ? folderIdFilter.values[0]
+      : undefined;
 
     let link: Link | null = null;
 
@@ -78,7 +86,7 @@ export const GET = withWorkspace(
       ...(link && { linkId: link.id }),
       workspaceId: workspace.id,
       folderIds,
-      folderId: folderId || "",
+      folderId: folderIdFilter || undefined,
     });
     console.timeEnd("getEvents");
 

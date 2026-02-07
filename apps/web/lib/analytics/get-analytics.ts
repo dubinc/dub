@@ -8,10 +8,15 @@ import { decodeKeyIfCaseSensitive } from "../api/links/case-sensitivity";
 import { conn } from "../planetscale";
 import { analyticsFilterTB } from "../zod/schemas/analytics";
 import { analyticsResponse } from "../zod/schemas/analytics-response";
+import { buildAdvancedFilters } from "./build-advanced-filters";
 import {
   DIMENSIONAL_ANALYTICS_FILTERS,
   SINGULAR_ANALYTICS_ENDPOINTS,
 } from "./constants";
+import {
+  extractWorkspaceLinkFilters,
+  prepareFiltersForPipe,
+} from "./filter-helpers";
 import { queryParser } from "./query-parser";
 import { AnalyticsFilters } from "./types";
 import { formatUTCDateTimeClickhouse } from "./utils/format-utc-datetime-clickhouse";
@@ -23,7 +28,6 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     event,
     groupBy,
     workspaceId,
-    linkId,
     linkIds,
     interval,
     start,
@@ -38,16 +42,14 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     query,
   } = params;
 
-  const tagIds = combineTagIds(params);
-
   // get all-time clicks count if:
-  // 1. linkId or linkIds is defined
+  // 1. linkIds is defined
   // 2. type is count
   // 3. interval is all
   // 4. no custom start or end date is provided
   // 5. no other dimensional filters are applied
   if (
-    (linkId || linkIds) &&
+    linkIds &&
     groupBy === "count" &&
     interval === "all" &&
     !start &&
@@ -56,24 +58,6 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
       (filter) => !params[filter as keyof AnalyticsFilters],
     )
   ) {
-    const columns =
-      event === "composite"
-        ? `clicks, leads, sales, saleAmount`
-        : event === "sales"
-          ? `sales, saleAmount`
-          : `${event}`;
-
-    // Handle single linkId
-    if (linkId) {
-      const response = await conn.execute(
-        `SELECT ${columns} FROM Link WHERE id = ?`,
-        [linkId],
-      );
-
-      return analyticsResponse["count"].parse(response.rows[0]);
-    }
-
-    // Handle multiple linkIds with aggregation
     if (linkIds && linkIds.length > 0) {
       const linkIdsToFilter = linkIds.map(() => "?").join(",");
       const aggregateColumns =
@@ -92,9 +76,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     }
   }
 
-  if (groupBy === "trigger") {
-    groupBy = "triggers";
-  }
+  if (groupBy === "trigger") groupBy = "triggers";
 
   const { startDate, endDate, granularity } = getStartEndDates({
     interval,
@@ -104,27 +86,25 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     timezone,
   });
 
-  if (qr) {
-    trigger = "qr";
-  }
-
-  if (region) {
-    const split = region.split("-");
-    country = split[0];
-    region = split[1];
-  }
+  const { triggerForPipe, countryForPipe, regionForPipe } =
+    prepareFiltersForPipe({
+      qr,
+      trigger,
+      region,
+      country,
+    });
 
   // Create a Tinybird pipe
   const pipe = tb.buildPipe({
-    pipe: ["count", "timeseries"].includes(groupBy)
+    pipe: ["count", "timeseries"].includes(groupBy!)
       ? `v3_${groupBy}`
       : [
-            "top_folders",
-            "top_link_tags",
-            "top_domains",
-            "top_partners",
-            "top_groups",
-          ].includes(groupBy)
+        "top_folders",
+        "top_link_tags",
+        "top_domains",
+        "top_partners",
+        "top_groups",
+      ].includes(groupBy!)
         ? "v3_group_by_link_metadata"
         : "v3_group_by",
     parameters: analyticsFilterTB,
@@ -140,29 +120,63 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     }),
   });
 
-  const filters = queryParser(query);
+  const metadataFilters = queryParser(query) || [];
 
-  const response = await pipe({
+  const advancedFilters = buildAdvancedFilters({
     ...params,
+    country: countryForPipe,
+    trigger: triggerForPipe,
+  });
+
+  const allFilters = [...metadataFilters, ...advancedFilters];
+
+  const {
+    domain: domainParam,
+    domainOperator,
+    tagIds: tagIdsParam,
+    tagIdsOperator,
+    folderId: folderIdParam,
+    folderIdOperator,
+    root: rootParam,
+    rootOperator,
+  } = extractWorkspaceLinkFilters(params);
+
+  const tinybirdParams: any = {
+    workspaceId,
+    linkId: params.linkId,
+    linkIds: params.linkIds,
+    folderIds: params.folderIds,
+    customerId: params.customerId,
+    programId: params.programId,
+    partnerId: params.partnerId,
+    tenantId: params.tenantId,
+    groupId: params.groupId,
+    domain: domainParam,
+    domainOperator,
+    tagIds: tagIdsParam,
+    tagIdsOperator,
+    folderId: folderIdParam,
+    folderIdOperator,
+    root: rootParam,
+    rootOperator,
     groupBy,
     eventType: event,
-    workspaceId,
-    tagIds,
-    trigger,
     start: formatUTCDateTimeClickhouse(startDate),
     end: formatUTCDateTimeClickhouse(endDate),
     granularity,
     timezone,
-    country,
-    region,
-    filters: filters ? JSON.stringify(filters) : undefined,
-  });
+    region: typeof regionForPipe === "string" ? regionForPipe : undefined,
+
+    filters: allFilters.length > 0 ? JSON.stringify(allFilters) : undefined,
+  };
+
+  const response = await pipe(tinybirdParams);
 
   if (groupBy === "count") {
     const { groupByField, ...rest } = response.data[0];
     // Return the count value for deprecated count endpoints
     if (isDeprecatedClicksEndpoint) {
-      return rest[event];
+      return rest[event!];
       // Return the object for regular count endpoints
     } else {
       return rest;
@@ -326,12 +340,12 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
   }
 
   // Return array for other endpoints
-  const schema = analyticsResponse[groupBy];
+  const schema = analyticsResponse[groupBy!];
 
   return response.data.map((item) =>
     schema.parse({
       ...item,
-      [SINGULAR_ANALYTICS_ENDPOINTS[groupBy]]: item.groupByField,
+      [SINGULAR_ANALYTICS_ENDPOINTS[groupBy!]]: item.groupByField,
     }),
   );
 };

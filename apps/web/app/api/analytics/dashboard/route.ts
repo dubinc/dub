@@ -4,7 +4,7 @@ import { assertValidDateRangeForPlan } from "@/lib/api/utils/assert-valid-date-r
 import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import { PlanProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
-import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
+import { parseAnalyticsQuery } from "@/lib/zod/schemas/analytics";
 import { prisma } from "@dub/prisma";
 import { DUB_DEMO_LINKS, DUB_WORKSPACE_ID, getSearchParams } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -16,9 +16,17 @@ export const dynamic = "force-dynamic";
 export const GET = async (req: Request) => {
   try {
     const searchParams = getSearchParams(req.url);
-    const parsedParams = analyticsQuerySchema.parse(searchParams);
+    const parsedParams = parseAnalyticsQuery(searchParams);
 
-    const { domain, key, folderId, interval, start, end } = parsedParams;
+    const { domain: domainFilter, key, folderId: folderIdFilter, interval, start, end } = parsedParams;
+
+    // Extract string values for specific link/folder lookup
+    const domain = domainFilter && typeof domainFilter === 'object' && 'values' in domainFilter 
+      ? domainFilter.values[0] 
+      : undefined;
+    const folderId = folderIdFilter && typeof folderIdFilter === 'object' && 'values' in folderIdFilter
+      ? folderIdFilter.values[0]
+      : undefined;
 
     if ((!domain || !key) && !folderId) {
       throw new DubApiError({

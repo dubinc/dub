@@ -21,6 +21,11 @@ import {
   saleEventResponseSchema,
   saleEventSchemaTBEndpoint,
 } from "../zod/schemas/sales";
+import { buildAdvancedFilters } from "./build-advanced-filters";
+import {
+  extractWorkspaceLinkFilters,
+  prepareFiltersForPipe,
+} from "./filter-helpers";
 import { queryParser } from "./query-parser";
 import { EventsFilters } from "./types";
 import { formatUTCDateTimeClickhouse } from "./utils/format-utc-datetime-clickhouse";
@@ -53,15 +58,13 @@ export const getEvents = async (params: EventsFilters) => {
     timezone,
   });
 
-  if (qr) {
-    trigger = "qr";
-  }
-
-  if (region) {
-    const split = region.split("-");
-    country = split[0];
-    region = split[1];
-  }
+  const { triggerForPipe, countryForPipe, regionForPipe } =
+    prepareFiltersForPipe({
+      qr,
+      trigger,
+      region,
+      country,
+    });
 
   // support legacy order param
   if (order && order !== "desc") {
@@ -79,21 +82,70 @@ export const getEvents = async (params: EventsFilters) => {
       }[eventType] ?? clickEventSchemaTBEndpoint,
   });
 
-  const filters = queryParser(query);
+  const metadataFilters = queryParser(query) || [];
 
-  const response = await pipe({
-    ...params,
+  // Build advanced filters for event-level dimensions
+  const advancedFilters = buildAdvancedFilters({
+    country: countryForPipe,
+    trigger: triggerForPipe,
+    city: params.city,
+    continent: params.continent,
+    device: params.device,
+    browser: params.browser,
+    os: params.os,
+    referer: params.referer,
+    refererUrl: params.refererUrl,
+    url: params.url,
+    utm_source: params.utm_source,
+    utm_medium: params.utm_medium,
+    utm_campaign: params.utm_campaign,
+    utm_term: params.utm_term,
+    utm_content: params.utm_content,
+    saleType: params.saleType,
+  });
+
+  const allFilters = [...metadataFilters, ...advancedFilters];
+
+  const {
+    domain: domainParam,
+    domainOperator,
+    tagIds: tagIdsParam,
+    tagIdsOperator,
+    folderId: folderIdParam,
+    folderIdOperator,
+    root: rootParam,
+    rootOperator,
+  } = extractWorkspaceLinkFilters(params);
+
+  const tinybirdParams: any = {
     eventType,
     workspaceId,
-    trigger,
-    country,
-    region,
+    linkId: params.linkId,
+    linkIds: params.linkIds,
+    folderIds: params.folderIds,
+    customerId: params.customerId,
+    programId: params.programId,
+    partnerId: params.partnerId,
+    tenantId: params.tenantId,
+    groupId: params.groupId,
+    ...(typeof triggerForPipe !== 'object' && triggerForPipe ? { trigger: triggerForPipe } : {}),
+    ...(typeof countryForPipe !== 'object' && countryForPipe ? { country: countryForPipe } : {}),
+    ...(regionForPipe ? { region: regionForPipe } : {}),
+    // Workspace links filters with operators
+    ...(domainParam ? { domain: domainParam, domainOperator } : {}),
+    ...(tagIdsParam ? { tagIds: tagIdsParam, tagIdsOperator } : {}),
+    ...(folderIdParam ? { folderId: folderIdParam, folderIdOperator } : {}),
+    ...(rootParam ? { root: rootParam, rootOperator } : {}),
     order: sortOrder,
     offset: (params.page - 1) * params.limit,
+    limit: params.limit,
+    sortBy: params.sortBy,
     start: formatUTCDateTimeClickhouse(startDate),
     end: formatUTCDateTimeClickhouse(endDate),
-    filters: filters ? JSON.stringify(filters) : undefined,
-  });
+    filters: allFilters.length > 0 ? JSON.stringify(allFilters) : undefined,
+  };
+  
+  const response = await pipe(tinybirdParams);
 
   const [linksMap, customersMap] = await Promise.all([
     getLinksMap(response.data.map((d) => d.link_id)),
@@ -118,6 +170,11 @@ export const getEvents = async (params: EventsFilters) => {
 
       link = decodeLinkIfCaseSensitive(link);
 
+      const transformedLink = transformLink(link, { skipDecodeKey: true });
+      if (transformedLink.testVariants && !Array.isArray(transformedLink.testVariants)) {
+        transformedLink.testVariants = null;
+      }
+
       const eventData = {
         ...evt,
         // use link domain & key from mysql instead of tinybird
@@ -133,7 +190,7 @@ export const getEvents = async (params: EventsFilters) => {
           refererUrl: evt.referer_url_processed ?? "",
         }),
         // transformLink -> add shortLink, qrCode, workspaceId, etc.
-        link: transformLink(link, { skipDecodeKey: true }),
+        link: transformedLink,
         ...(evt.event === "lead" || evt.event === "sale"
           ? {
               eventId: evt.event_id,

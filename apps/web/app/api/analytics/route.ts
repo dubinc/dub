@@ -13,7 +13,7 @@ import { withWorkspace } from "@/lib/auth";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
 import {
   analyticsPathParamsSchema,
-  analyticsQuerySchema,
+  parseAnalyticsQuery,
 } from "@/lib/zod/schemas/analytics";
 import { Link } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
@@ -32,7 +32,7 @@ export const GET = withWorkspace(
       oldEvent = undefined;
     }
 
-    const parsedParams = analyticsQuerySchema.parse(searchParams);
+    const parsedParams = parseAnalyticsQuery(searchParams);
 
     let {
       event,
@@ -42,11 +42,20 @@ export const GET = withWorkspace(
       end,
       linkId,
       externalId,
-      domain,
+      domain: domainFilter,
       key,
-      folderId,
+      folderId: folderIdFilter,
       programId,
     } = parsedParams;
+
+    // Extract string values for specific link/folder lookup
+    // When domain+key is provided, it's for getting a specific link (not filtering)
+    const domain = domainFilter && typeof domainFilter === 'object' && 'values' in domainFilter 
+      ? domainFilter.values[0] 
+      : undefined;
+    const folderId = folderIdFilter && typeof folderIdFilter === 'object' && 'values' in folderIdFilter
+      ? folderIdFilter.values[0]
+      : undefined;
 
     let link: Link | null = null;
 
