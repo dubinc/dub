@@ -16,13 +16,7 @@ function Label({ children }: { children: ReactNode }) {
   );
 }
 
-interface ReferralStatusChangedRendererProps {
-  log: ActivityLog;
-}
-
-export function ReferralStatusChangedRenderer({
-  log,
-}: ReferralStatusChangedRendererProps) {
+export function ReferralStatusChangedRenderer({ log }: { log: ActivityLog }) {
   const statusChange = log.changeSet?.status as StatusChangeSet | undefined;
   const status = statusChange?.new ?? null;
 
