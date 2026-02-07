@@ -4,6 +4,7 @@ import { ActivityLog } from "@/lib/types";
 import { FilePen } from "@dub/ui";
 import { ReactNode } from "react";
 import { ActorChip, SourcePill } from "../activity-entry-chips";
+import { useActivityLogContext } from "../activity-log-context";
 
 function Label({ children }: { children: ReactNode }) {
   return (
@@ -11,8 +12,22 @@ function Label({ children }: { children: ReactNode }) {
   );
 }
 
-export function ReferralCreatedRenderer({ log }: { log: ActivityLog }) {
-  return (
+interface ReferralCreatedRendererProps {
+  log: ActivityLog;
+}
+
+export function ReferralCreatedRenderer({ log }: ReferralCreatedRendererProps) {
+  const { view } = useActivityLogContext();
+
+  return view === "partner" ? (
+    <>
+      <Label>Submitted via</Label>
+      <SourcePill
+        icon={<FilePen className="size-4 text-black" />}
+        label="Submission form"
+      />
+    </>
+  ) : (
     <>
       <Label>Submitted by</Label>
       <ActorChip log={log} />

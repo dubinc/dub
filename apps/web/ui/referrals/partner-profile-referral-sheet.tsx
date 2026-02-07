@@ -1,4 +1,5 @@
 import { PartnerProfileReferral } from "@/lib/zod/schemas/partner-profile";
+import { PartnerReferralActivitySection } from "@/ui/activity-logs/partner-referral-activity-section";
 import { X } from "@/ui/shared/icons";
 import {
   Button,
@@ -9,7 +10,6 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { Dispatch, SetStateAction } from "react";
-import { PartnerReferralActivitySection } from "@/ui/activity-logs/partner-referral-activity-section";
 import { ReferralDetails } from "./referral-details";
 import { ReferralLeadDetails } from "./referral-lead-details";
 

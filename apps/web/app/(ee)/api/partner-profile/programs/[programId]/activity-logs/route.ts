@@ -14,6 +14,14 @@ export const GET = withPartnerProfile(
     const { resourceType, resourceId, action } =
       getActivityLogsQuerySchema.parse(searchParams);
 
+    // Limit to referral for now
+    if (resourceType !== "referral") {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "Resource type must be referral.",
+      });
+    }
+
     const programEnrollment = await getProgramEnrollmentOrThrow({
       partnerId: partner.id,
       programId: params.programId,

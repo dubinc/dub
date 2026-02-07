@@ -6,6 +6,7 @@ import {
   ActivityFeed,
   ActivityFeedSkeleton,
 } from "@/ui/activity-logs/activity-feed";
+import { ActivityLogProvider } from "@/ui/activity-logs/activity-log-context";
 
 export function PartnerReferralActivitySection({
   referralId,
@@ -44,11 +45,9 @@ export function PartnerReferralActivitySection({
           Failed to load activity. Please try again.
         </p>
       ) : (
-        <ActivityFeed
-          logs={logs}
-          resourceType="referral"
-          programChip={program}
-        />
+        <ActivityLogProvider program={program} view="partner">
+          <ActivityFeed logs={logs} resourceType="referral" />
+        </ActivityLogProvider>
       )}
     </section>
   );
