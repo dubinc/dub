@@ -1,3 +1,4 @@
+import { deleteDiscountCodes } from "@/lib/api/discounts/delete-discount-code";
 import { markDomainAsDeleted } from "@/lib/api/domains/mark-domain-deleted";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
@@ -39,6 +40,7 @@ export async function POST(req: Request) {
         include: {
           ...includeTags,
           ...includeProgramEnrollment,
+          discountCode: true,
         },
         take: 100,
       }),
@@ -96,8 +98,9 @@ export async function POST(req: Request) {
       }),
     ]);
 
-    // Delete the links
     if (links.length > 0) {
+      await deleteDiscountCodes(links.flatMap((link) => link.discountCode));
+
       await prisma.link.deleteMany({
         where: {
           id: {
