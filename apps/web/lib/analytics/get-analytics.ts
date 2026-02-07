@@ -13,6 +13,10 @@ import {
   DIMENSIONAL_ANALYTICS_FILTERS,
   SINGULAR_ANALYTICS_ENDPOINTS,
 } from "./constants";
+import {
+  extractWorkspaceLinkFilters,
+  prepareFiltersForPipe,
+} from "./filter-helpers";
 import { queryParser } from "./query-parser";
 import { AnalyticsFilters } from "./types";
 import { formatUTCDateTimeClickhouse } from "./utils/format-utc-datetime-clickhouse";
@@ -82,20 +86,13 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     timezone,
   });
 
-  // Handle qr backward compatibility
-  let triggerForPipe = trigger;
-  if (qr && !trigger) {
-    triggerForPipe = { operator: "IS" as const, sqlOperator: "IN" as const, values: ["qr"] };
-  }
-
-  // Handle region split (format: "US-CA")
-  let countryForPipe = country;
-  let regionForPipe = region;
-  if (region && typeof region === 'string') {
-    const split = region.split("-");
-    countryForPipe = { operator: "IS" as const, sqlOperator: "IN" as const, values: [split[0]] };
-    regionForPipe = split[1];
-  }
+  const { triggerForPipe, countryForPipe, regionForPipe } =
+    prepareFiltersForPipe({
+      qr,
+      trigger,
+      region,
+      country,
+    });
 
   // Create a Tinybird pipe
   const pipe = tb.buildPipe({
@@ -133,17 +130,16 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
 
   const allFilters = [...metadataFilters, ...advancedFilters];
 
-  const domainParam = params.domain?.values;
-  const domainOperator = params.domain?.sqlOperator === 'NOT IN' ? 'NOT IN' : 'IN';
-
-  const tagIdsParam = params.tagIds?.values;
-  const tagIdsOperator = params.tagIds?.sqlOperator === 'NOT IN' ? 'NOT IN' : 'IN';
-
-  const folderIdParam = params.folderId?.values;
-  const folderIdOperator = params.folderId?.sqlOperator === 'NOT IN' ? 'NOT IN' : 'IN';
-
-  const rootParam = params.root?.values;
-  const rootOperator = params.root?.sqlOperator === 'NOT IN' ? 'NOT IN' : 'IN';
+  const {
+    domain: domainParam,
+    domainOperator,
+    tagIds: tagIdsParam,
+    tagIdsOperator,
+    folderId: folderIdParam,
+    folderIdOperator,
+    root: rootParam,
+    rootOperator,
+  } = extractWorkspaceLinkFilters(params);
 
   const tinybirdParams: any = {
     workspaceId,
@@ -169,7 +165,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     end: formatUTCDateTimeClickhouse(endDate),
     granularity,
     timezone,
-    region: typeof regionForPipe === 'string' ? regionForPipe : undefined,
+    region: typeof regionForPipe === "string" ? regionForPipe : undefined,
 
     filters: allFilters.length > 0 ? JSON.stringify(allFilters) : undefined,
   };

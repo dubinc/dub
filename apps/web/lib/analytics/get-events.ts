@@ -22,6 +22,10 @@ import {
   saleEventSchemaTBEndpoint,
 } from "../zod/schemas/sales";
 import { buildAdvancedFilters } from "./build-advanced-filters";
+import {
+  extractWorkspaceLinkFilters,
+  prepareFiltersForPipe,
+} from "./filter-helpers";
 import { queryParser } from "./query-parser";
 import { EventsFilters } from "./types";
 import { formatUTCDateTimeClickhouse } from "./utils/format-utc-datetime-clickhouse";
@@ -54,20 +58,13 @@ export const getEvents = async (params: EventsFilters) => {
     timezone,
   });
 
-  // Handle qr backward compatibility
-  let triggerForPipe = trigger;
-  if (qr && !trigger) {
-    triggerForPipe = { operator: "IS" as const, sqlOperator: "IN" as const, values: ["qr"] };
-  }
-
-  // Handle region split (format: "US-CA")
-  let countryForPipe = country;
-  let regionForPipe = region;
-  if (region && typeof region === 'string') {
-    const split = region.split("-");
-    countryForPipe = { operator: "IS" as const, sqlOperator: "IN" as const, values: [split[0]] };
-    regionForPipe = split[1];
-  }
+  const { triggerForPipe, countryForPipe, regionForPipe } =
+    prepareFiltersForPipe({
+      qr,
+      trigger,
+      region,
+      country,
+    });
 
   // support legacy order param
   if (order && order !== "desc") {
@@ -109,18 +106,16 @@ export const getEvents = async (params: EventsFilters) => {
 
   const allFilters = [...metadataFilters, ...advancedFilters];
 
-  // Extract workspace_links parameters as direct Tinybird params
-  const domainParam = params.domain?.values;
-  const domainOperator = params.domain?.sqlOperator === 'NOT IN' ? 'NOT IN' : 'IN';
-  
-  const tagIdsParam = params.tagIds?.values;
-  const tagIdsOperator = params.tagIds?.sqlOperator === 'NOT IN' ? 'NOT IN' : 'IN';
-  
-  const folderIdParam = params.folderId?.values;
-  const folderIdOperator = params.folderId?.sqlOperator === 'NOT IN' ? 'NOT IN' : 'IN';
-  
-  const rootParam = params.root?.values;
-  const rootOperator = params.root?.sqlOperator === 'NOT IN' ? 'NOT IN' : 'IN';
+  const {
+    domain: domainParam,
+    domainOperator,
+    tagIds: tagIdsParam,
+    tagIdsOperator,
+    folderId: folderIdParam,
+    folderIdOperator,
+    root: rootParam,
+    rootOperator,
+  } = extractWorkspaceLinkFilters(params);
 
   const tinybirdParams: any = {
     eventType,
