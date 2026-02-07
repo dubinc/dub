@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@dub/prisma";
+import { getUrlFromString } from "@dub/utils";
 import dns from "dns";
 import { authPartnerActionClient } from "../safe-action";
 
@@ -34,7 +35,7 @@ export const verifyDomainAction = authPartnerActionClient.action(
     let domain: string | null = null;
 
     try {
-      domain = new URL(partnerPlatform.identifier).hostname;
+      domain = new URL(getUrlFromString(partnerPlatform.identifier)).hostname;
     } catch (e) {
       throw new Error("Please make sure the website is a valid URL.");
     }
