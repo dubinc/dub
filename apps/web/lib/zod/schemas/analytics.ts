@@ -453,6 +453,33 @@ export const analyticsFilterTB = z.object({
     .transform((v) => (Array.isArray(v) ? v : v.split(",")))
     .optional()
     .describe("The folder IDs to retrieve analytics for."),
+  folderId: z
+    .union([z.string(), z.array(z.string())])
+    .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+    .optional()
+    .describe("The folder ID(s) to retrieve analytics for (with operator support)."),
+  domain: z
+    .union([z.string(), z.array(z.string())])
+    .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+    .optional()
+    .describe("The domain(s) to retrieve analytics for."),
+  domainOperator: z.enum(["IN", "NOT IN"]).optional(),
+  tagIds: z
+    .union([z.string(), z.array(z.string())])
+    .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+    .optional()
+    .describe("The tag IDs to retrieve analytics for."),
+  tagIdsOperator: z.enum(["IN", "NOT IN"]).optional(),
+  folderIdOperator: z.enum(["IN", "NOT IN"]).optional(),
+  root: z
+    .union([z.string(), z.boolean(), z.array(z.union([z.string(), z.boolean()]))])
+    .transform((v) => {
+      if (Array.isArray(v)) return v.map(val => typeof val === 'boolean' ? val : val === 'true');
+      return typeof v === 'boolean' ? [v] : [v === 'true'];
+    })
+    .optional()
+    .describe("Filter for root domain links."),
+  rootOperator: z.enum(["IN", "NOT IN"]).optional(),
   // Program/Partner/Group filters (not using advanced filtering)
   programId: z.string().optional(),
   partnerId: z.string().optional(),

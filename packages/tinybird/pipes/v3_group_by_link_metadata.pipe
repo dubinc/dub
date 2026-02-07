@@ -49,15 +49,36 @@ SQL >
         {% if defined(partnerId) %} AND partner_id = {{ partnerId }} {% end %}
         {% if defined(groupId) %} AND partner_group_id = {{ groupId }} {% end %}
         {% if defined(tenantId) %} AND tenant_id = {{ tenantId }} {% end %}
-        {% if defined(domain) %} AND domain IN {{ Array(domain, 'String') }} {% end %}
         {% if defined(folderIds) %} AND folder_id IN {{ Array(folderIds, 'String') }}
         {% elif defined(folderId) %} AND folder_id = {{ folderId }}
         {% end %}
+        {% if defined(domain) %}
+            {% if defined(domainOperator) and String(domainOperator) == 'NOT IN' %}
+                AND domain NOT IN {{ Array(domain, 'String') }}
+            {% else %}
+                AND domain IN {{ Array(domain, 'String') }}
+            {% end %}
+        {% end %}
         {% if defined(tagIds) %}
-            AND arrayIntersect(tag_ids, {{ Array(tagIds, 'String') }}) != []
+            {% if defined(tagIdsOperator) and String(tagIdsOperator) == 'NOT IN' %}
+                AND length(arrayFilter(x -> x NOT IN {{ Array(tagIds, 'String') }}, tag_ids)) = length(tag_ids)
+            {% else %}
+                AND arrayIntersect(tag_ids, {{ Array(tagIds, 'String') }}) != []
+            {% end %}
+        {% end %}
+        {% if defined(folderId) %}
+            {% if defined(folderIdOperator) and String(folderIdOperator) == 'NOT IN' %}
+                AND folder_id NOT IN {{ Array(folderId, 'String') }}
+            {% else %}
+                AND folder_id IN {{ Array(folderId, 'String') }}
+            {% end %}
         {% end %}
         {% if defined(root) %}
-            {% if Boolean(root) == 1 %} AND key = '_root' {% else %} AND key != '_root' {% end %}
+            {% if defined(rootOperator) and String(rootOperator) == 'NOT IN' %}
+                AND NOT (0{% for val in root %}{% if val %} OR key = '_root'{% else %} OR key != '_root'{% end %}{% end %})
+            {% else %}
+                AND (0{% for val in root %}{% if val %} OR key = '_root'{% else %} OR key != '_root'{% end %}{% end %})
+            {% end %}
         {% end %}
 
 
@@ -162,23 +183,13 @@ SQL >
                             AND NOT (0{% for val in values %} OR url LIKE concat('%', 'utm_content=', encodeURLFormComponent({{ String(val) }}), '%'){% end %})
                         {% end %}
                     {% elif field == 'domain' %}
-                        {% if operator == 'IN' %} AND ce.link_id IN (SELECT link_id FROM workspace_links WHERE domain IN {{ Array(values, 'String') }})
-                        {% elif operator == 'NOT IN' %} AND ce.link_id NOT IN (SELECT link_id FROM workspace_links WHERE domain IN {{ Array(values, 'String') }})
-                        {% end %}
+                        {# domain is already filtered at workspace_links node level #}
                     {% elif field == 'tagIds' %}
-                        {% if operator == 'IN' %} AND ce.link_id IN (SELECT link_id FROM workspace_links WHERE arrayIntersect(tag_ids, {{ Array(values, 'String') }}) != [])
-                        {% elif operator == 'NOT IN' %} AND ce.link_id NOT IN (SELECT link_id FROM workspace_links WHERE arrayIntersect(tag_ids, {{ Array(values, 'String') }}) != [])
-                        {% end %}
+                        {# tagIds is already filtered at workspace_links node level #}
                     {% elif field == 'folderId' %}
-                        {% if operator == 'IN' %} AND ce.link_id IN (SELECT link_id FROM workspace_links WHERE folder_id IN {{ Array(values, 'String') }})
-                        {% elif operator == 'NOT IN' %} AND ce.link_id NOT IN (SELECT link_id FROM workspace_links WHERE folder_id IN {{ Array(values, 'String') }})
-                        {% end %}
+                        {# folderId is already filtered at workspace_links node level #}
                     {% elif field == 'root' %}
-                        {% if operator == 'IN' %}
-                            AND ce.link_id IN (SELECT link_id FROM workspace_links WHERE 0{% for val in values %} OR {% if val == 'true' %}key = '_root'{% else %}key != '_root'{% end %}{% end %})
-                        {% elif operator == 'NOT IN' %}
-                            AND ce.link_id NOT IN (SELECT link_id FROM workspace_links WHERE 0{% for val in values %} OR {% if val == 'true' %}key = '_root'{% else %}key != '_root'{% end %}{% end %})
-                        {% end %}
+                        {# root is already filtered at workspace_links node level #}
                     {% elif field == 'saleType' %}
                         {# saleType is handled in the sales subquery, not here #}
                     {% end %}

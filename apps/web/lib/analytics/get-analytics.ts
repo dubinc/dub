@@ -45,7 +45,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
   // 4. no custom start or end date is provided
   // 5. no other dimensional filters are applied
   if (
-    (linkIds) &&
+    linkIds &&
     groupBy === "count" &&
     interval === "all" &&
     !start &&
@@ -54,24 +54,6 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
       (filter) => !params[filter as keyof AnalyticsFilters],
     )
   ) {
-    const columns =
-      event === "composite"
-        ? `clicks, leads, sales, saleAmount`
-        : event === "sales"
-          ? `sales, saleAmount`
-          : `${event}`;
-
-    // // Handle single linkId
-    // if (linkId) {
-    //   const response = await conn.execute(
-    //     `SELECT ${columns} FROM Link WHERE id = ?`,
-    //     [linkId],
-    //   );
-
-    //   return analyticsResponse["count"].parse(response.rows[0]);
-    // }
-
-    // Handle multiple linkIds with aggregation
     if (linkIds && linkIds.length > 0) {
       const linkIdsToFilter = linkIds.map(() => "?").join(",");
       const aggregateColumns =
@@ -90,9 +72,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     }
   }
 
-  if (groupBy === "trigger") {
-    groupBy = "triggers";
-  }
+  if (groupBy === "trigger") groupBy = "triggers";
 
   const { startDate, endDate, granularity } = getStartEndDates({
     interval,
@@ -146,29 +126,24 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
   const metadataFilters = queryParser(query) || [];
 
   const advancedFilters = buildAdvancedFilters({
+    ...params,
     country: countryForPipe,
     trigger: triggerForPipe,
-    city: params.city,
-    continent: params.continent,
-    device: params.device,
-    browser: params.browser,
-    os: params.os,
-    referer: params.referer,
-    refererUrl: params.refererUrl,
-    url: params.url,
-    utm_source: params.utm_source,
-    utm_medium: params.utm_medium,
-    utm_campaign: params.utm_campaign,
-    utm_term: params.utm_term,
-    utm_content: params.utm_content,
-    domain: params.domain,
-    tagIds: params.tagIds,
-    folderId: params.folderId,
-    root: params.root,
-    saleType: params.saleType,
   });
 
   const allFilters = [...metadataFilters, ...advancedFilters];
+
+  const domainParam = params.domain?.values;
+  const domainOperator = params.domain?.sqlOperator === 'NOT IN' ? 'NOT IN' : 'IN';
+
+  const tagIdsParam = params.tagIds?.values;
+  const tagIdsOperator = params.tagIds?.sqlOperator === 'NOT IN' ? 'NOT IN' : 'IN';
+
+  const folderIdParam = params.folderId?.values;
+  const folderIdOperator = params.folderId?.sqlOperator === 'NOT IN' ? 'NOT IN' : 'IN';
+
+  const rootParam = params.root?.values;
+  const rootOperator = params.root?.sqlOperator === 'NOT IN' ? 'NOT IN' : 'IN';
 
   const tinybirdParams: any = {
     workspaceId,
@@ -180,6 +155,14 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     partnerId: params.partnerId,
     tenantId: params.tenantId,
     groupId: params.groupId,
+    domain: domainParam,
+    domainOperator,
+    tagIds: tagIdsParam,
+    tagIdsOperator,
+    folderId: folderIdParam,
+    folderIdOperator,
+    root: rootParam,
+    rootOperator,
     groupBy,
     eventType: event,
     start: formatUTCDateTimeClickhouse(startDate),
