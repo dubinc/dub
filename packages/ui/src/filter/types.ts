@@ -18,6 +18,7 @@ export type Filter = {
   separatorAfter?: boolean;
   multiple?: boolean;
   singleSelect?: boolean; // Force single-select behavior even if multiSelect is enabled globally
+  hideOperator?: boolean; // Hide the operator dropdown (is/is not) even when multiple is enabled
   getOptionIcon?: (
     value: FilterOption["value"],
     props: { key: Filter["key"]; option?: FilterOption },

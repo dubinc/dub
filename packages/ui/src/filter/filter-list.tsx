@@ -19,7 +19,7 @@ type FilterListProps = {
   onRemoveAll: () => void;
   onSelect?: (key: string, value: FilterOption["value"] | FilterOption["value"][]) => void;
   onToggleOperator?: (key: string) => void;
-  isMultiple?: boolean; // Enable multi-select features (operators, checkboxes, etc.)
+  isAdvancedFilter?: boolean;
   className?: string;
 };
 
@@ -67,7 +67,7 @@ export function FilterList({
   onRemoveAll,
   onSelect,
   onToggleOperator,
-  isMultiple = false,
+  isAdvancedFilter = false,
   className,
 }: FilterListProps) {
   useKeyboardShortcut("Escape", onRemoveAll, { priority: 1 });
@@ -237,7 +237,7 @@ export function FilterList({
                   onRemoveFilter={onRemoveFilter}
                   onSelect={onSelect}
                   onToggleOperator={onToggleOperator}
-                  isMultiple={isMultiple}
+                  isAdvancedFilter={isAdvancedFilter}
                 />
               );
             })}
@@ -368,7 +368,7 @@ function OperatorFilterPill({
   onRemoveFilter,
   onSelect,
   onToggleOperator,
-  isMultiple = false,
+  isAdvancedFilter = false,
 }: {
   filterKey: string;
   filter: Filter;
@@ -381,7 +381,7 @@ function OperatorFilterPill({
   onRemoveFilter?: (key: string) => void;
   onSelect?: (key: string, value: FilterOption["value"] | FilterOption["value"][]) => void;
   onToggleOperator?: (key: string) => void;
-  isMultiple?: boolean;
+  isAdvancedFilter?: boolean;
 }) {
   const [operatorDropdownOpen, setOperatorDropdownOpen] = useState(false);
   const [valueDropdownOpen, setValueDropdownOpen] = useState(false);
@@ -401,8 +401,8 @@ function OperatorFilterPill({
       onSelect?.(filterKey, value);
     }
 
-    if (!isMultiple) setValueDropdownOpen(false);
-  }, [filterKey, values, onSelect, onRemove, isMultiple]);
+    if (!isAdvancedFilter && !filter.multiple) setValueDropdownOpen(false);
+  }, [filterKey, values, onSelect, onRemove, isAdvancedFilter, filter.multiple]);
 
   return (
     <motion.div
@@ -421,7 +421,7 @@ function OperatorFilterPill({
         {filter.label}
       </div>
 
-      {isMultiple ? (
+      {(isAdvancedFilter || filter.multiple) && !filter.hideOperator ? (
         <Popover
           openPopover={operatorDropdownOpen}
           setOpenPopover={setOperatorDropdownOpen}
@@ -555,7 +555,7 @@ function OperatorFilterPill({
                           }}
                           value={optionLabel + option.value}
                         >
-                          {isMultiple && (
+                          {(isAdvancedFilter || filter.multiple) && (
                             <div className={cn(
                               "flex h-4 w-4 items-center justify-center rounded border",
                               isSelected ? "border-neutral-900 bg-neutral-900" : "border-neutral-300"
@@ -568,7 +568,7 @@ function OperatorFilterPill({
                           </span>
                           <span className="flex-1">{truncate(optionLabel, 48)}</span>
                           <div className="ml-1 flex shrink-0 justify-end text-neutral-500">
-                            {isMultiple ? (
+                            {(isAdvancedFilter || filter.multiple) ? (
                               option.right
                             ) : (
                               isSelected ? (
@@ -586,7 +586,7 @@ function OperatorFilterPill({
                       <>
                         {selectedOptions.map(renderOption)}
                         
-                        {isMultiple && selectedOptions.length > 0 && unselectedOptions.length > 0 && (
+                        {(isAdvancedFilter || filter.multiple) && selectedOptions.length > 0 && unselectedOptions.length > 0 && (
                           <Command.Separator className="-mx-1 my-1 border-b border-neutral-200" />
                         )}
                         

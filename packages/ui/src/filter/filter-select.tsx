@@ -29,7 +29,7 @@ type FilterSelectProps = {
   onSelectedFilterChange?: (key: string | null) => void;
   activeFilters?: ActiveFilterInput[];
   askAI?: boolean;
-  isMultiple?: boolean;
+  isAdvancedFilter?: boolean;
   children?: ReactNode;
   emptyState?: ReactNode | Record<string, ReactNode>;
   className?: string;
@@ -44,7 +44,7 @@ export function FilterSelect({
   onSelectedFilterChange,
   activeFilters,
   askAI,
-  isMultiple = false,
+  isAdvancedFilter = false,
   children,
   emptyState,
   className,
@@ -116,7 +116,7 @@ export function FilterSelect({
   const selectOption = useCallback(
     (value: FilterOption["value"]) => {
       if (selectedFilter) {
-        const isSingleSelect = selectedFilter?.singleSelect || !isMultiple;
+        const isSingleSelect = selectedFilter?.singleSelect || (!isAdvancedFilter && !selectedFilter?.multiple);
 
         if (isSingleSelect) {
           const isSelected = isOptionSelected(value);
@@ -134,7 +134,7 @@ export function FilterSelect({
         }
       }
     },
-    [selectedFilter, isOptionSelected, onSelect, onRemove, isMultiple],
+    [selectedFilter, isOptionSelected, onSelect, onRemove, isAdvancedFilter],
   );
 
 
@@ -241,7 +241,7 @@ export function FilterSelect({
                     selectedFilter.options
                       ?.filter((option) => !search || !option.hideDuringSearch)
                       ?.map((option) => {
-                        const isSingleSelect = selectedFilter?.singleSelect || !isMultiple;
+                        const isSingleSelect = selectedFilter?.singleSelect || (!isAdvancedFilter && !selectedFilter?.multiple);
                         const isSelected = isOptionSelected(option.value);
 
                         return (
@@ -249,7 +249,7 @@ export function FilterSelect({
                             key={option.value}
                             filter={selectedFilter}
                             option={option}
-                            showCheckbox={!isSingleSelect && isMultiple}
+                            showCheckbox={!isSingleSelect && (isAdvancedFilter || selectedFilter?.multiple)}
                             isChecked={isSelected}
                             right={
                               isSingleSelect ? (
