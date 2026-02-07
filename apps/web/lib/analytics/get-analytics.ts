@@ -99,7 +99,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
 
   // Create a Tinybird pipe
   const pipe = tb.buildPipe({
-    pipe: ["count", "timeseries"].includes(groupBy)
+    pipe: ["count", "timeseries"].includes(groupBy!)
       ? `v3_${groupBy}`
       : [
         "top_folders",
@@ -107,7 +107,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
         "top_domains",
         "top_partners",
         "top_groups",
-      ].includes(groupBy)
+      ].includes(groupBy!)
         ? "v3_group_by_link_metadata"
         : "v3_group_by",
     parameters: analyticsFilterTB,
@@ -180,7 +180,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     const { groupByField, ...rest } = response.data[0];
     // Return the count value for deprecated count endpoints
     if (isDeprecatedClicksEndpoint) {
-      return rest[event];
+      return rest[event!];
       // Return the object for regular count endpoints
     } else {
       return rest;
@@ -344,12 +344,12 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
   }
 
   // Return array for other endpoints
-  const schema = analyticsResponse[groupBy];
+  const schema = analyticsResponse[groupBy!];
 
   return response.data.map((item) =>
     schema.parse({
       ...item,
-      [SINGULAR_ANALYTICS_ENDPOINTS[groupBy]]: item.groupByField,
+      [SINGULAR_ANALYTICS_ENDPOINTS[groupBy!]]: item.groupByField,
     }),
   );
 };

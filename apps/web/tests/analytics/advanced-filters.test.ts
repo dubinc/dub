@@ -9,7 +9,7 @@ describe("Advanced Filters - Unit Tests", () => {
         const result = parseFilterValue("US");
         expect(result).toEqual({
           operator: "IS",
-          sqlOperator: "=",
+          sqlOperator: "IN",
           values: ["US"],
         });
       });
@@ -18,7 +18,7 @@ describe("Advanced Filters - Unit Tests", () => {
         const result = parseFilterValue("-US");
         expect(result).toEqual({
           operator: "IS_NOT",
-          sqlOperator: "!=",
+          sqlOperator: "NOT IN",
           values: ["US"],
         });
       });
@@ -90,7 +90,7 @@ describe("Advanced Filters - Unit Tests", () => {
         const result = parseFilterValue(["US"]);
         expect(result).toEqual({
           operator: "IS",
-          sqlOperator: "=",
+          sqlOperator: "IN",
           values: ["US"],
         });
       });
@@ -110,7 +110,7 @@ describe("Advanced Filters - Unit Tests", () => {
     test("rebuild single positive value", () => {
       const result = buildFilterValue({
         operator: "IS",
-        sqlOperator: "=",
+        sqlOperator: "IN",
         values: ["US"],
       });
       expect(result).toBe("US");
@@ -128,7 +128,7 @@ describe("Advanced Filters - Unit Tests", () => {
     test("rebuild single negative value", () => {
       const result = buildFilterValue({
         operator: "IS_NOT",
-        sqlOperator: "!=",
+        sqlOperator: "NOT IN",
         values: ["US"],
       });
       expect(result).toBe("-US");
@@ -175,18 +175,18 @@ describe("Advanced Filters - Unit Tests", () => {
   });
 
   describe("buildAdvancedFilters", () => {
-    test("single field with equals operator", () => {
+    test("single field with IN operator (single value)", () => {
       const result = buildAdvancedFilters({
         country: {
           operator: "IS",
-          sqlOperator: "=",
+          sqlOperator: "IN",
           values: ["US"],
         },
       });
       expect(result).toEqual([
         {
           field: "country",
-          operator: "=",
+          operator: "IN",
           values: ["US"],
         },
       ]);
@@ -235,7 +235,7 @@ describe("Advanced Filters - Unit Tests", () => {
         },
         device: {
           operator: "IS",
-          sqlOperator: "=",
+          sqlOperator: "IN",
           values: ["Desktop"],
         },
       });
@@ -247,7 +247,7 @@ describe("Advanced Filters - Unit Tests", () => {
       });
       expect(result).toContainEqual({
         field: "device",
-        operator: "=",
+        operator: "IN",
         values: ["Desktop"],
       });
     });
@@ -261,7 +261,7 @@ describe("Advanced Filters - Unit Tests", () => {
       const result = buildAdvancedFilters({
         country: {
           operator: "IS",
-          sqlOperator: "=",
+          sqlOperator: "IN",
           values: ["US"],
         },
         city: undefined,
@@ -273,11 +273,11 @@ describe("Advanced Filters - Unit Tests", () => {
 
     test("handles all supported fields", () => {
       const result = buildAdvancedFilters({
-        country: { operator: "IS", sqlOperator: "=", values: ["US"] },
-        city: { operator: "IS", sqlOperator: "=", values: ["NYC"] },
-        device: { operator: "IS", sqlOperator: "=", values: ["Mobile"] },
-        browser: { operator: "IS", sqlOperator: "=", values: ["Chrome"] },
-        os: { operator: "IS", sqlOperator: "=", values: ["Mac"] },
+        country: { operator: "IS", sqlOperator: "IN", values: ["US"] },
+        city: { operator: "IS", sqlOperator: "IN", values: ["NYC"] },
+        device: { operator: "IS", sqlOperator: "IN", values: ["Mobile"] },
+        browser: { operator: "IS", sqlOperator: "IN", values: ["Chrome"] },
+        os: { operator: "IS", sqlOperator: "IN", values: ["Mac"] },
       });
       expect(result).toHaveLength(5);
       expect(result.map((f) => f.field)).toEqual([
@@ -291,9 +291,9 @@ describe("Advanced Filters - Unit Tests", () => {
 
     test("maintains insertion order", () => {
       const result = buildAdvancedFilters({
-        device: { operator: "IS", sqlOperator: "=", values: ["Mobile"] },
-        country: { operator: "IS", sqlOperator: "=", values: ["US"] },
-        browser: { operator: "IS", sqlOperator: "=", values: ["Chrome"] },
+        device: { operator: "IS", sqlOperator: "IN", values: ["Mobile"] },
+        country: { operator: "IS", sqlOperator: "IN", values: ["US"] },
+        browser: { operator: "IS", sqlOperator: "IN", values: ["Chrome"] },
       });
       // Should maintain order from SUPPORTED_FIELDS, not insertion order
       expect(result[0].field).toBe("country");
