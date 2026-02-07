@@ -40,22 +40,22 @@ function getOperatorLabel(operator: FilterOperator): string {
 
 function pluralize(word: string, count: number): string {
   if (count === 1) return word.toLowerCase();
-  
+
   const irregularPlurals: Record<string, string> = {
     'country': 'countries',
     'city': 'cities',
     'category': 'categories',
   };
-  
+
   const lowerWord = word.toLowerCase();
   if (irregularPlurals[lowerWord]) {
     return irregularPlurals[lowerWord];
   }
-  
+
   if (lowerWord.endsWith('y') && !['ay', 'ey', 'iy', 'oy', 'uy'].some(ending => lowerWord.endsWith(ending))) {
     return lowerWord.slice(0, -1) + 'ies';
   }
-  
+
   return lowerWord + 's';
 }
 
@@ -72,7 +72,7 @@ export function FilterList({
 }: FilterListProps) {
   useKeyboardShortcut("Escape", onRemoveAll, { priority: 1 });
   const normalizedFilters = activeFilters?.map(normalizeActiveFilter) ?? [];
-  
+
   return (
     <AnimatedSizeContainer
       height
@@ -109,19 +109,19 @@ export function FilterList({
 
               const isSingleValue = values.length === 1;
               const displayValues = values.slice(0, 3);
-              
+
               const displayLabel = isSingleValue
                 ? (() => {
-                    const value = values[0];
-                    const option = filter.options?.find((o) =>
-                      typeof o.value === "string" && typeof value === "string"
-                        ? o.value.toLowerCase() === value.toLowerCase()
-                        : o.value === value,
-                    );
-                    return option?.label ??
-                      filter.getOptionLabel?.(value, { key: filter.key, option }) ??
-                      String(value);
-                  })()
+                  const value = values[0];
+                  const option = filter.options?.find((o) =>
+                    typeof o.value === "string" && typeof value === "string"
+                      ? o.value.toLowerCase() === value.toLowerCase()
+                      : o.value === value,
+                  );
+                  return option?.label ??
+                    filter.getOptionLabel?.(value, { key: filter.key, option }) ??
+                    String(value);
+                })()
                 : `${values.length} ${pluralize(filter.label, values.length)}`;
 
               const showMultipleIcons = ["country", "city"].includes(key);
@@ -140,7 +140,7 @@ export function FilterList({
                       ? o.value.toLowerCase() === value.toLowerCase()
                       : o.value === value,
                   );
-                  
+
                   const OptionIcon =
                     option?.icon ??
                     filter.getOptionIcon?.(value, {
@@ -167,7 +167,7 @@ export function FilterList({
                             ? o.value.toLowerCase() === value.toLowerCase()
                             : o.value === value,
                         );
-                        
+
                         const OptionIcon =
                           option?.icon ??
                           filter.getOptionIcon?.(value, {
@@ -225,7 +225,7 @@ export function FilterList({
 
               return (
                 <OperatorFilterPill
-                  key={`${key}-${values.join(',')}`}
+                  key={key}
                   filterKey={key}
                   filter={filter}
                   values={values}
@@ -491,112 +491,112 @@ function OperatorFilterPill({
               className="rounded-[inherit]"
             >
               <Command loop shouldFilter={false}>
-              <div className="flex items-center overflow-hidden rounded-t-lg border-b border-neutral-200">
-                <Command.Input
-                  placeholder={`${filter.label}...`}
-                  value={search}
-                  onValueChange={setSearch}
-                  className="grow border-0 py-3 pl-4 pr-2 outline-none placeholder:text-neutral-400 focus:ring-0 sm:text-sm"
-                  autoCapitalize="none"
-                />
-              </div>
-              <div className="scrollbar-hide max-h-[50vh] w-screen overflow-y-scroll sm:w-auto">
-                <Command.List className="flex w-full flex-col gap-1 p-1 min-w-[180px]">
-                  {(() => {
-                    const filteredOptions = filter.options?.filter(option => {
-                      if (!search) return true;
-                      const optionLabel = (
-                        option.label ??
-                        filter.getOptionLabel?.(option.value, { key: filter.key, option }) ??
-                        String(option.value)
-                      ).toLowerCase();
-                      return optionLabel.includes(search.toLowerCase());
-                    }) ?? [];
+                <div className="flex items-center overflow-hidden rounded-t-lg border-b border-neutral-200">
+                  <Command.Input
+                    placeholder={`${filter.label}...`}
+                    value={search}
+                    onValueChange={setSearch}
+                    className="grow border-0 py-3 pl-4 pr-2 outline-none placeholder:text-neutral-400 focus:ring-0 sm:text-sm"
+                    autoCapitalize="none"
+                  />
+                </div>
+                <div className="scrollbar-hide max-h-[50vh] w-screen overflow-y-scroll sm:w-auto">
+                  <Command.List className="flex w-full flex-col gap-1 p-1 min-w-[180px]">
+                    {(() => {
+                      const filteredOptions = filter.options?.filter(option => {
+                        if (!search) return true;
+                        const optionLabel = (
+                          option.label ??
+                          filter.getOptionLabel?.(option.value, { key: filter.key, option }) ??
+                          String(option.value)
+                        ).toLowerCase();
+                        return optionLabel.includes(search.toLowerCase());
+                      }) ?? [];
 
-                    const selectedOptions = filteredOptions.filter(option => 
-                      initialSelectedValues.has(option.value)
-                    );
-                    const unselectedOptions = filteredOptions.filter(option => 
-                      !initialSelectedValues.has(option.value)
-                    );
+                      const selectedOptions = filteredOptions.filter(option =>
+                        initialSelectedValues.has(option.value)
+                      );
+                      const unselectedOptions = filteredOptions.filter(option =>
+                        !initialSelectedValues.has(option.value)
+                      );
 
-                    const renderOption = (option: FilterOption) => {
-                      const isSelected = values.includes(option.value);
-                      const OptionIcon =
-                        option.icon ??
-                        filter.getOptionIcon?.(option.value, {
-                          key: filter.key,
-                          option,
-                        }) ??
-                        filter.icon;
-                      
-                      const optionLabel =
-                        option.label ??
-                        filter.getOptionLabel?.(option.value, { key: filter.key, option }) ??
-                        String(option.value);
+                      const renderOption = (option: FilterOption) => {
+                        const isSelected = values.includes(option.value);
+                        const OptionIcon =
+                          option.icon ??
+                          filter.getOptionIcon?.(option.value, {
+                            key: filter.key,
+                            option,
+                          }) ??
+                          filter.icon;
+
+                        const optionLabel =
+                          option.label ??
+                          filter.getOptionLabel?.(option.value, { key: filter.key, option }) ??
+                          String(option.value);
+
+                        return (
+                          <Command.Item
+                            key={option.value}
+                            className={cn(
+                              "flex cursor-pointer items-center gap-3 whitespace-nowrap rounded-md px-3 py-2 text-left text-sm",
+                              "data-[selected=true]:bg-neutral-100",
+                            )}
+                            onSelect={() => {
+                              // Empty onSelect to use pointer events instead
+                            }}
+                            onPointerDown={(e) => {
+                              e.preventDefault();
+                            }}
+                            onPointerUp={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              toggleValue(option.value);
+                            }}
+                            value={optionLabel + option.value}
+                          >
+                            {(isAdvancedFilter || filter.multiple) && (
+                              <div className={cn(
+                                "flex h-4 w-4 items-center justify-center rounded border",
+                                isSelected ? "border-neutral-900 bg-neutral-900" : "border-neutral-300"
+                              )}>
+                                {isSelected && <Check className="h-3 w-3 text-white" />}
+                              </div>
+                            )}
+                            <span className="shrink-0 text-neutral-600">
+                              {isReactNode(OptionIcon) ? OptionIcon : <OptionIcon className="h-4 w-4" />}
+                            </span>
+                            <span className="flex-1">{truncate(optionLabel, 48)}</span>
+                            <div className="ml-1 flex shrink-0 justify-end text-neutral-500">
+                              {(isAdvancedFilter || filter.multiple) ? (
+                                option.right
+                              ) : (
+                                isSelected ? (
+                                  <Check className="h-4 w-4" />
+                                ) : (
+                                  option.right
+                                )
+                              )}
+                            </div>
+                          </Command.Item>
+                        );
+                      };
 
                       return (
-                        <Command.Item
-                          key={option.value}
-                          className={cn(
-                            "flex cursor-pointer items-center gap-3 whitespace-nowrap rounded-md px-3 py-2 text-left text-sm",
-                            "data-[selected=true]:bg-neutral-100",
-                          )}
-                          onSelect={() => {
-                            // Empty onSelect to use pointer events instead
-                          }}
-                          onPointerDown={(e) => {
-                            e.preventDefault();
-                          }}
-                          onPointerUp={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            toggleValue(option.value);
-                          }}
-                          value={optionLabel + option.value}
-                        >
-                          {(isAdvancedFilter || filter.multiple) && (
-                            <div className={cn(
-                              "flex h-4 w-4 items-center justify-center rounded border",
-                              isSelected ? "border-neutral-900 bg-neutral-900" : "border-neutral-300"
-                            )}>
-                              {isSelected && <Check className="h-3 w-3 text-white" />}
-                            </div>
-                          )}
-                          <span className="shrink-0 text-neutral-600">
-                            {isReactNode(OptionIcon) ? OptionIcon : <OptionIcon className="h-4 w-4" />}
-                          </span>
-                          <span className="flex-1">{truncate(optionLabel, 48)}</span>
-                          <div className="ml-1 flex shrink-0 justify-end text-neutral-500">
-                            {(isAdvancedFilter || filter.multiple) ? (
-                              option.right
-                            ) : (
-                              isSelected ? (
-                                <Check className="h-4 w-4" />
-                              ) : (
-                                option.right
-                              )
-                            )}
-                          </div>
-                        </Command.Item>
-                      );
-                    };
+                        <>
+                          {selectedOptions.map(renderOption)}
 
-                    return (
-                      <>
-                        {selectedOptions.map(renderOption)}
-                        
-                        {(isAdvancedFilter || filter.multiple) && selectedOptions.length > 0 && unselectedOptions.length > 0 && (
-                          <Command.Separator className="-mx-1 my-1 border-b border-neutral-200" />
-                        )}
-                        
-                        {unselectedOptions.map(renderOption)}
-                      </>
-                    );
-                  })()}
-                </Command.List>
-              </div>
-            </Command>
+                          {(isAdvancedFilter || filter.multiple) && selectedOptions.length > 0 && unselectedOptions.length > 0 && (
+                            <Command.Separator className="-mx-1 my-1 border-b border-neutral-200" />
+                          )}
+
+                          {unselectedOptions.map(renderOption)}
+                        </>
+                      );
+                    })()}
+                  </Command.List>
+                </div>
+              </Command>
             </AnimatedSizeContainer>
           </div>
         }
