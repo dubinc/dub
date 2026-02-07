@@ -262,4 +262,3 @@ const RewardSkeleton = () => {
     </div>
   );
 };
-

@@ -380,9 +380,7 @@ function PageControls({ partner }: { partner: EnrolledPartnerProps }) {
                         setIsOpen(false);
                       }}
                     >
-                      {partner.status === "archived"
-                        ? "Unarchive"
-                        : "Archive"}{" "}
+                      {partner.status === "archived" ? "Unarchive" : "Archive"}{" "}
                       partner
                     </MenuItem>
                   )}
