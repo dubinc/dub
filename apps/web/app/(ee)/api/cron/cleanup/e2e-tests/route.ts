@@ -98,6 +98,7 @@ export async function POST(req: Request) {
       }),
     ]);
 
+    // Delete the links
     if (links.length > 0) {
       await deleteDiscountCodes(links.flatMap((link) => link.discountCode));
 
