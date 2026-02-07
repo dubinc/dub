@@ -828,5 +828,5 @@ export type ActivityLog = z.infer<typeof activityLogSchema>;
 
 export type ActivityLogResourceTypeWithFeed = Extract<
   ActivityLogResourceType,
-  "partner" | "referral"
+  "partner" | "referral" | "reward"
 >;

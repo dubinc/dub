@@ -1,5 +1,6 @@
 "use server";
 
+import { trackRewardActivityLog } from "@/lib/api/activity-log/track-reward-activity-log";
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getRewardOrThrow } from "@/lib/api/partners/get-reward-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
@@ -35,7 +36,17 @@ export const deleteRewardAction = authActionClient
 
     const rewardIdColumn = REWARD_EVENT_COLUMN_MAPPING[reward.event];
 
-    await prisma.$transaction(async (tx) => {
+    const partnerGroup = await prisma.$transaction(async (tx) => {
+      const group = await tx.partnerGroup.findFirst({
+        where: {
+          programId,
+          [rewardIdColumn]: reward.id,
+        },
+        select: {
+          id: true,
+        },
+      });
+
       await tx.partnerGroup.update({
         // @ts-ignore
         where: {
@@ -60,22 +71,37 @@ export const deleteRewardAction = authActionClient
           id: reward.id,
         },
       });
+
+      return group;
     });
 
     waitUntil(
-      recordAuditLog({
-        workspaceId: workspace.id,
-        programId,
-        action: "reward.deleted",
-        description: `Reward ${rewardId} deleted`,
-        actor: user,
-        targets: [
-          {
-            type: "reward",
-            id: rewardId,
-            metadata: reward,
-          },
-        ],
-      }),
+      Promise.allSettled([
+        recordAuditLog({
+          workspaceId: workspace.id,
+          programId,
+          action: "reward.deleted",
+          description: `Reward ${rewardId} deleted`,
+          actor: user,
+          targets: [
+            {
+              type: "reward",
+              id: rewardId,
+              metadata: reward,
+            },
+          ],
+        }),
+
+        trackRewardActivityLog({
+          workspaceId: workspace.id,
+          programId,
+          userId: user.id,
+          resourceId: reward.id,
+          parentResourceType: "group",
+          parentResourceId: partnerGroup?.id,
+          old: reward,
+          new: null,
+        }),
+      ]),
     );
   });

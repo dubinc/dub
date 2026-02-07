@@ -315,61 +315,59 @@ export function Form() {
 
           {defaultRewardType === "sale" && (
             <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-              {PAYOUT_MODELS.map(
-                ({ key, label, description, mostCommon }) => {
-                  const isSelected = key === type;
+              {PAYOUT_MODELS.map(({ key, label, description, mostCommon }) => {
+                const isSelected = key === type;
 
-                  return (
-                    <div
-                      key={key}
+                return (
+                  <div
+                    key={key}
+                    className={cn(
+                      "flex flex-col items-center",
+                      mostCommon &&
+                        "rounded-md border border-neutral-200 bg-neutral-100",
+                    )}
+                  >
+                    <label
                       className={cn(
-                        "flex flex-col items-center",
-                        mostCommon &&
-                          "rounded-md border border-neutral-200 bg-neutral-100",
+                        "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600 hover:bg-neutral-50",
+                        "transition-all duration-150",
+                        mostCommon && "border-transparent shadow-sm",
+                        isSelected &&
+                          "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
                       )}
                     >
-                      <label
-                        className={cn(
-                          "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600 hover:bg-neutral-50",
-                          "transition-all duration-150",
-                          mostCommon && "border-transparent shadow-sm",
-                          isSelected &&
-                            "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
-                        )}
-                      >
-                        <input
-                          type="radio"
-                          value={key}
-                          className="hidden"
-                          checked={isSelected}
-                          onChange={() =>
-                            setValue("type", key, { shouldDirty: true })
-                          }
-                        />
-                        <div className="flex grow flex-col text-sm">
-                          <span className="text-sm font-semibold text-neutral-900">
-                            {label}
-                          </span>
-                          <span className="text-sm font-normal text-neutral-600">
-                            {description}
-                          </span>
-                        </div>
-                        <CircleCheckFill
-                          className={cn(
-                            "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
-                            isSelected && "scale-100 opacity-100",
-                          )}
-                        />
-                      </label>
-                      {mostCommon && (
-                        <span className="py-0.5 text-xs font-medium text-neutral-500">
-                          Most common
+                      <input
+                        type="radio"
+                        value={key}
+                        className="hidden"
+                        checked={isSelected}
+                        onChange={() =>
+                          setValue("type", key, { shouldDirty: true })
+                        }
+                      />
+                      <div className="flex grow flex-col text-sm">
+                        <span className="text-sm font-semibold text-neutral-900">
+                          {label}
                         </span>
-                      )}
-                    </div>
-                  );
-                },
-              )}
+                        <span className="text-sm font-normal text-neutral-600">
+                          {description}
+                        </span>
+                      </div>
+                      <CircleCheckFill
+                        className={cn(
+                          "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
+                          isSelected && "scale-100 opacity-100",
+                        )}
+                      />
+                    </label>
+                    {mostCommon && (
+                      <span className="py-0.5 text-xs font-medium text-neutral-500">
+                        Most common
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
 

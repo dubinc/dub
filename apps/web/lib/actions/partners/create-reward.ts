@@ -1,5 +1,6 @@
 "use server";
 
+import { trackRewardActivityLog } from "@/lib/api/activity-log/track-reward-activity-log";
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createId } from "@/lib/api/create-id";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
@@ -107,19 +108,32 @@ export const createRewardAction = authActionClient
     });
 
     waitUntil(
-      recordAuditLog({
-        workspaceId: workspace.id,
-        programId,
-        action: "reward.created",
-        description: `Reward ${reward.id} created`,
-        actor: user,
-        targets: [
-          {
-            type: "reward",
-            id: reward.id,
-            metadata: serializeReward(reward),
-          },
-        ],
-      }),
+      Promise.allSettled([
+        recordAuditLog({
+          workspaceId: workspace.id,
+          programId,
+          action: "reward.created",
+          description: `Reward ${reward.id} created`,
+          actor: user,
+          targets: [
+            {
+              type: "reward",
+              id: reward.id,
+              metadata: serializeReward(reward),
+            },
+          ],
+        }),
+
+        trackRewardActivityLog({
+          workspaceId: workspace.id,
+          programId,
+          userId: user.id,
+          resourceId: reward.id,
+          parentResourceType: "group",
+          parentResourceId: groupId,
+          old: null,
+          new: reward,
+        }),
+      ]),
     );
   });

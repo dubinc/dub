@@ -69,10 +69,7 @@ export function Form() {
   >("recurring");
 
   useEffect(
-    () =>
-      setCommissionStructure(
-        maxDuration === 0 ? "one-off" : "recurring",
-      ),
+    () => setCommissionStructure(maxDuration === 0 ? "one-off" : "recurring"),
     [maxDuration],
   );
 
