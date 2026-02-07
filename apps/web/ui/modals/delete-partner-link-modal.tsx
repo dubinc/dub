@@ -3,7 +3,6 @@ import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PartnerProfileLinkProps } from "@/lib/types";
 import { SimpleLinkCard } from "@/ui/links/simple-link-card";
 import { Button, Modal, useMediaQuery } from "@dub/ui";
-import { getPrettyUrl } from "@dub/utils";
 import { useParams } from "next/navigation";
 import {
   Dispatch,
@@ -49,8 +48,6 @@ function DeletePartnerLinkModalInner({
     group: programEnrollment?.group,
     link,
   });
-
-  const pattern = getPrettyUrl(partnerLink);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -122,15 +119,15 @@ function DeletePartnerLinkModalInner({
             htmlFor="verification"
             className="block text-sm text-neutral-700"
           >
-            To verify, type <span className="font-semibold">{pattern}</span>{" "}
-            below
+            To verify, type{" "}
+            <span className="font-semibold">confirm delete link</span> below
           </label>
           <div className="relative mt-1.5 rounded-md shadow-sm">
             <input
               type="text"
               name="verification"
               id="verification"
-              pattern={pattern}
+              pattern="confirm delete link"
               required
               autoFocus={!isMobile}
               autoComplete="off"
