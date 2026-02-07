@@ -18,7 +18,7 @@ import { useKeyboardShortcut, useMediaQuery } from "../hooks";
 import { useScrollProgress } from "../hooks/use-scroll-progress";
 import { Check, LoadingSpinner, Magic } from "../icons";
 import { Popover } from "../popover";
-import { Filter, FilterOption, ActiveFilter } from "./types";
+import { Filter, FilterOption, ActiveFilterInput, normalizeActiveFilter } from "./types";
 
 type FilterSelectProps = {
   filters: Filter[];
@@ -27,8 +27,9 @@ type FilterSelectProps = {
   onOpenFilter?: (key: string) => void;
   onSearchChange?: (search: string) => void;
   onSelectedFilterChange?: (key: string | null) => void;
-  activeFilters?: ActiveFilter[];
+  activeFilters?: ActiveFilterInput[];
   askAI?: boolean;
+  isMultiple?: boolean;
   children?: ReactNode;
   emptyState?: ReactNode | Record<string, ReactNode>;
   className?: string;
@@ -43,6 +44,7 @@ export function FilterSelect({
   onSelectedFilterChange,
   activeFilters,
   askAI,
+  isMultiple = false,
   children,
   emptyState,
   className,
@@ -101,11 +103,11 @@ export function FilterSelect({
     (value: FilterOption["value"]) => {
       if (!selectedFilter || !activeFilters) return false;
 
-      const activeFilter = activeFilters.find(
-        ({ key }) => key === selectedFilterKey,
-      );
-
-      return activeFilter?.values.includes(value) ?? false;
+      const rawActiveFilter = activeFilters.find((filter) => filter.key === selectedFilterKey);
+      if (!rawActiveFilter) return false;
+      
+      const normalizedFilter = normalizeActiveFilter(rawActiveFilter);
+      return normalizedFilter.values.includes(value);
     },
     [selectedFilter, activeFilters, selectedFilterKey],
   );
@@ -114,7 +116,7 @@ export function FilterSelect({
   const selectOption = useCallback(
     (value: FilterOption["value"]) => {
       if (selectedFilter) {
-        const isSingleSelect = selectedFilter?.singleSelect;
+        const isSingleSelect = selectedFilter?.singleSelect || !isMultiple;
 
         if (isSingleSelect) {
           const isSelected = isOptionSelected(value);
@@ -132,7 +134,7 @@ export function FilterSelect({
         }
       }
     },
-    [selectedFilter, isOptionSelected, onSelect, onRemove],
+    [selectedFilter, isOptionSelected, onSelect, onRemove, isMultiple],
   );
 
 
@@ -239,7 +241,7 @@ export function FilterSelect({
                     selectedFilter.options
                       ?.filter((option) => !search || !option.hideDuringSearch)
                       ?.map((option) => {
-                        const isSingleSelect = selectedFilter?.singleSelect;
+                        const isSingleSelect = selectedFilter?.singleSelect || !isMultiple;
                         const isSelected = isOptionSelected(option.value);
 
                         return (
@@ -247,7 +249,7 @@ export function FilterSelect({
                             key={option.value}
                             filter={selectedFilter}
                             option={option}
-                            showCheckbox={!isSingleSelect}
+                            showCheckbox={!isSingleSelect && isMultiple}
                             isChecked={isSelected}
                             right={
                               isSingleSelect ? (

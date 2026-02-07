@@ -9,16 +9,17 @@ import { useKeyboardShortcut } from "../hooks";
 import { Check, Icon } from "../icons";
 import { Popover } from "../popover";
 import { Tooltip } from "../tooltip";
-import { Filter, FilterOption, ActiveFilter, FilterOperator } from "./types";
+import { Filter, FilterOption, ActiveFilterInput, FilterOperator, normalizeActiveFilter } from "./types";
 
 type FilterListProps = {
   filters: Filter[];
-  activeFilters?: ActiveFilter[];
+  activeFilters?: ActiveFilterInput[];
   onRemove: (key: string, value: FilterOption["value"]) => void;
   onRemoveFilter?: (key: string) => void;
   onRemoveAll: () => void;
   onSelect?: (key: string, value: FilterOption["value"] | FilterOption["value"][]) => void;
   onToggleOperator?: (key: string) => void;
+  isMultiple?: boolean; // Enable multi-select features (operators, checkboxes, etc.)
   className?: string;
 };
 
@@ -66,9 +67,12 @@ export function FilterList({
   onRemoveAll,
   onSelect,
   onToggleOperator,
+  isMultiple = false,
   className,
 }: FilterListProps) {
   useKeyboardShortcut("Escape", onRemoveAll, { priority: 1 });
+  const normalizedFilters = activeFilters?.map(normalizeActiveFilter) ?? [];
+  
   return (
     <AnimatedSizeContainer
       height
@@ -83,7 +87,7 @@ export function FilterList({
       >
         <div className="flex grow flex-wrap gap-x-4 gap-y-2">
           <AnimatePresence>
-            {activeFilters?.map(({ key, values, operator }) => {
+            {normalizedFilters.map(({ key, values, operator }) => {
               if (key === "loader") {
                 return (
                   <motion.div
@@ -233,12 +237,13 @@ export function FilterList({
                   onRemoveFilter={onRemoveFilter}
                   onSelect={onSelect}
                   onToggleOperator={onToggleOperator}
+                  isMultiple={isMultiple}
                 />
               );
             })}
           </AnimatePresence>
         </div>
-        {activeFilters?.length !== 0 && (
+        {normalizedFilters.length !== 0 && (
           <button
             type="button"
             className="group mt-px flex items-center gap-2 whitespace-nowrap rounded-lg border border-transparent px-3 py-2 text-sm text-neutral-500 ring-inset ring-neutral-500 transition-colors hover:border-neutral-200 hover:bg-white hover:text-black focus:outline-none"
@@ -363,6 +368,7 @@ function OperatorFilterPill({
   onRemoveFilter,
   onSelect,
   onToggleOperator,
+  isMultiple = false,
 }: {
   filterKey: string;
   filter: Filter;
@@ -375,6 +381,7 @@ function OperatorFilterPill({
   onRemoveFilter?: (key: string) => void;
   onSelect?: (key: string, value: FilterOption["value"] | FilterOption["value"][]) => void;
   onToggleOperator?: (key: string) => void;
+  isMultiple?: boolean;
 }) {
   const [operatorDropdownOpen, setOperatorDropdownOpen] = useState(false);
   const [valueDropdownOpen, setValueDropdownOpen] = useState(false);
@@ -393,7 +400,9 @@ function OperatorFilterPill({
     } else {
       onSelect?.(filterKey, value);
     }
-  }, [filterKey, values, onSelect, onRemove]);
+
+    if (!isMultiple) setValueDropdownOpen(false);
+  }, [filterKey, values, onSelect, onRemove, isMultiple]);
 
   return (
     <motion.div
@@ -412,52 +421,58 @@ function OperatorFilterPill({
         {filter.label}
       </div>
 
-      <Popover
-        openPopover={operatorDropdownOpen}
-        setOpenPopover={setOperatorDropdownOpen}
-        content={
-          <div className="w-32 p-1">
-            <button
-              type="button"
-              className={cn(
-                "flex w-full items-center rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-neutral-100",
-                !operator.includes("NOT") && "bg-neutral-50"
-              )}
-              onClick={() => {
-                if (operator.includes("NOT")) {
-                  onToggleOperator?.(filterKey);
-                }
-                setOperatorDropdownOpen(false);
-              }}
-            >
-              is
-            </button>
-            <button
-              type="button"
-              className={cn(
-                "flex w-full items-center rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-neutral-100",
-                operator.includes("NOT") && "bg-neutral-50"
-              )}
-              onClick={() => {
-                if (!operator.includes("NOT")) {
-                  onToggleOperator?.(filterKey);
-                }
-                setOperatorDropdownOpen(false);
-              }}
-            >
-              is not
-            </button>
-          </div>
-        }
-        align="center"
-      >
-        <button
-          type="button"
-          className="px-3 py-2 text-neutral-500 transition-colors hover:bg-neutral-50 hover:text-neutral-700"
+      {isMultiple ? (
+        <Popover
+          openPopover={operatorDropdownOpen}
+          setOpenPopover={setOperatorDropdownOpen}
+          content={
+            <div className="w-32 p-1">
+              <button
+                type="button"
+                className={cn(
+                  "flex w-full items-center rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-neutral-100",
+                  !operator.includes("NOT") && "bg-neutral-50"
+                )}
+                onClick={() => {
+                  if (operator.includes("NOT")) {
+                    onToggleOperator?.(filterKey);
+                  }
+                  setOperatorDropdownOpen(false);
+                }}
+              >
+                is
+              </button>
+              <button
+                type="button"
+                className={cn(
+                  "flex w-full items-center rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-neutral-100",
+                  operator.includes("NOT") && "bg-neutral-50"
+                )}
+                onClick={() => {
+                  if (!operator.includes("NOT")) {
+                    onToggleOperator?.(filterKey);
+                  }
+                  setOperatorDropdownOpen(false);
+                }}
+              >
+                is not
+              </button>
+            </div>
+          }
+          align="center"
         >
-          {getOperatorLabel(operator)}
-        </button>
-      </Popover>
+          <button
+            type="button"
+            className="px-3 py-2 text-neutral-500 transition-colors hover:bg-neutral-50 hover:text-neutral-700"
+          >
+            {getOperatorLabel(operator)}
+          </button>
+        </Popover>
+      ) : (
+        <div className="px-3 py-2 text-neutral-500">
+          is
+        </div>
+      )}
 
       <Popover
         openPopover={valueDropdownOpen}
@@ -469,7 +484,7 @@ function OperatorFilterPill({
           }
         }}
         content={
-          <div onClick={(e) => e.stopPropagation()}>
+          <div>
             <AnimatedSizeContainer
               width
               height
@@ -540,18 +555,28 @@ function OperatorFilterPill({
                           }}
                           value={optionLabel + option.value}
                         >
-                          <div className={cn(
-                            "flex h-4 w-4 items-center justify-center rounded border",
-                            isSelected ? "border-neutral-900 bg-neutral-900" : "border-neutral-300"
-                          )}>
-                            {isSelected && <Check className="h-3 w-3 text-white" />}
-                          </div>
+                          {isMultiple && (
+                            <div className={cn(
+                              "flex h-4 w-4 items-center justify-center rounded border",
+                              isSelected ? "border-neutral-900 bg-neutral-900" : "border-neutral-300"
+                            )}>
+                              {isSelected && <Check className="h-3 w-3 text-white" />}
+                            </div>
+                          )}
                           <span className="shrink-0 text-neutral-600">
                             {isReactNode(OptionIcon) ? OptionIcon : <OptionIcon className="h-4 w-4" />}
                           </span>
                           <span className="flex-1">{truncate(optionLabel, 48)}</span>
                           <div className="ml-1 flex shrink-0 justify-end text-neutral-500">
-                            {option.right}
+                            {isMultiple ? (
+                              option.right
+                            ) : (
+                              isSelected ? (
+                                <Check className="h-4 w-4" />
+                              ) : (
+                                option.right
+                              )
+                            )}
                           </div>
                         </Command.Item>
                       );
@@ -561,7 +586,7 @@ function OperatorFilterPill({
                       <>
                         {selectedOptions.map(renderOption)}
                         
-                        {selectedOptions.length > 0 && unselectedOptions.length > 0 && (
+                        {isMultiple && selectedOptions.length > 0 && unselectedOptions.length > 0 && (
                           <Command.Separator className="-mx-1 my-1 border-b border-neutral-200" />
                         )}
                         
