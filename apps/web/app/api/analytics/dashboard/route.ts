@@ -1,3 +1,4 @@
+import { getFirstFilterValue } from "@/lib/analytics/filter-helpers";
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { assertValidDateRangeForPlan } from "@/lib/api/utils/assert-valid-date-range-for-plan";
@@ -21,12 +22,8 @@ export const GET = async (req: Request) => {
     const { domain: domainFilter, key, folderId: folderIdFilter, interval, start, end } = parsedParams;
 
     // Extract string values for specific link/folder lookup
-    const domain = domainFilter && typeof domainFilter === 'object' && 'values' in domainFilter 
-      ? domainFilter.values[0] 
-      : undefined;
-    const folderId = folderIdFilter && typeof folderIdFilter === 'object' && 'values' in folderIdFilter
-      ? folderIdFilter.values[0]
-      : undefined;
+    const domain = getFirstFilterValue(domainFilter);
+    const folderId = getFirstFilterValue(folderIdFilter);
 
     if ((!domain || !key) && !folderId) {
       throw new DubApiError({

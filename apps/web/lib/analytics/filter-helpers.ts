@@ -1,4 +1,27 @@
-import { ParsedFilter } from "@dub/utils";
+import { ParsedFilter, type SQLOperator } from "@dub/utils";
+
+/**
+ * Advanced filter structure for Tinybird's filters JSON parameter.
+ * Used for event-level dimensional filters.
+ */
+export interface AdvancedFilter {
+  field: string;
+  operator: SQLOperator;
+  values: string[];
+}
+
+/**
+ * Extract the first string value from a ParsedFilter.
+ * Useful for API routes that need a single value (e.g., domain, folderId)
+ * for lookups, even when the filter supports multiple values.
+ */
+export function getFirstFilterValue(
+  filter: ParsedFilter | string | undefined,
+): string | undefined {
+  if (!filter) return undefined;
+  if (typeof filter === "string") return filter;
+  return filter.values?.[0];
+}
 
 /**
  * Prepare trigger and region filters for Tinybird pipes.
@@ -71,4 +94,49 @@ export function extractWorkspaceLinkFilters(params: {
     root: root.values,
     rootOperator: root.operator,
   };
+}
+
+/**
+ * Build advanced filters array for Tinybird's filters JSON parameter.
+ * Extracts event-level dimensional filters from params and formats them
+ * for the filters JSON that gets passed to Tinybird pipes.
+ */
+const SUPPORTED_FIELDS = [
+  "country",
+  "city",
+  "continent",
+  "device",
+  "browser",
+  "os",
+  "referer",
+  "refererUrl",
+  "url",
+  "trigger",
+  "utm_source",
+  "utm_medium",
+  "utm_campaign",
+  "utm_term",
+  "utm_content",
+  "saleType",
+] as const;
+
+type SupportedField = (typeof SUPPORTED_FIELDS)[number];
+
+export function buildAdvancedFilters(
+  params: Partial<Record<SupportedField, ParsedFilter | undefined>>,
+): AdvancedFilter[] {
+  const filters: AdvancedFilter[] = [];
+
+  for (const field of SUPPORTED_FIELDS) {
+    const parsed = params[field];
+    if (!parsed) continue;
+
+    filters.push({
+      field,
+      operator: parsed.sqlOperator,
+      values: parsed.values,
+    });
+  }
+
+  return filters;
 }

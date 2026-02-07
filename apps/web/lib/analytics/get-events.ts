@@ -21,8 +21,8 @@ import {
   saleEventResponseSchema,
   saleEventSchemaTBEndpoint,
 } from "../zod/schemas/sales";
-import { buildAdvancedFilters } from "./build-advanced-filters";
 import {
+  buildAdvancedFilters,
   extractWorkspaceLinkFilters,
   prepareFiltersForPipe,
 } from "./filter-helpers";

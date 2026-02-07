@@ -1,4 +1,5 @@
 import { VALID_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
+import { getFirstFilterValue } from "@/lib/analytics/filter-helpers";
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { getFolderIdsToFilter } from "@/lib/analytics/get-folder-ids-to-filter";
 import { convertToCSV } from "@/lib/analytics/utils";
@@ -23,12 +24,8 @@ export const GET = withWorkspace(
       parsedParams;
 
     // Extract string values for specific link/folder lookup
-    const domain = domainFilter && typeof domainFilter === 'object' && 'values' in domainFilter 
-      ? domainFilter.values[0] 
-      : undefined;
-    const folderId = folderIdFilter && typeof folderIdFilter === 'object' && 'values' in folderIdFilter
-      ? folderIdFilter.values[0]
-      : undefined;
+    const domain = getFirstFilterValue(domainFilter);
+    const folderId = getFirstFilterValue(folderIdFilter);
 
     let link: Link | null = null;
 

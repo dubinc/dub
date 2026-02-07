@@ -1,5 +1,5 @@
 import { parseFilterValue, buildFilterValue } from "@dub/utils";
-import { buildAdvancedFilters } from "@/lib/analytics/build-advanced-filters";
+import { buildAdvancedFilters } from "@/lib/analytics/filter-helpers";
 import { describe, expect, test } from "vitest";
 
 describe("Advanced Filters - Unit Tests", () => {

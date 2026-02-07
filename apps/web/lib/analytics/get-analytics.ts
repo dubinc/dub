@@ -8,12 +8,12 @@ import { decodeKeyIfCaseSensitive } from "../api/links/case-sensitivity";
 import { conn } from "../planetscale";
 import { analyticsFilterTB } from "../zod/schemas/analytics";
 import { analyticsResponse } from "../zod/schemas/analytics-response";
-import { buildAdvancedFilters } from "./build-advanced-filters";
 import {
   DIMENSIONAL_ANALYTICS_FILTERS,
   SINGULAR_ANALYTICS_ENDPOINTS,
 } from "./constants";
 import {
+  buildAdvancedFilters,
   extractWorkspaceLinkFilters,
   prepareFiltersForPipe,
 } from "./filter-helpers";
