@@ -7,6 +7,7 @@ import { cn, OG_AVATAR_URL } from "@dub/utils";
 import { ReactNode } from "react";
 import { useActivityLogContext } from "./activity-log-context";
 import { getActorType } from "./activity-log-registry";
+
 interface ActivityChipProps {
   children: ReactNode;
   className?: string;
@@ -24,7 +25,7 @@ interface UserChipProps {
 }
 
 interface ProgramChipProps {
-  program: Pick<ProgramProps, "name" | "logo">;
+  program: Pick<ProgramProps, "id" | "name" | "logo">;
 }
 
 interface ActorChipProps {
@@ -90,7 +91,7 @@ export function ProgramChip({ program }: ProgramChipProps) {
   return (
     <ActivityChip>
       <img
-        src={program.logo || `${OG_AVATAR_URL}${program.name}`}
+        src={program.logo || `${OG_AVATAR_URL}${program.id}`}
         alt={program.name}
         className="size-4 shrink-0 rounded-full"
       />
@@ -109,12 +110,13 @@ export function SystemChip() {
 }
 
 export function ActorChip({ log }: ActorChipProps) {
-  const actorType = getActorType(log);
   const { program } = useActivityLogContext();
 
   if (program) {
     return <ProgramChip program={program} />;
   }
+
+  const actorType = getActorType(log);
 
   if (actorType === "USER" && log.user) {
     return <UserChip user={log.user} />;
