@@ -1,5 +1,6 @@
 import { isBlacklistedDomain } from "@/lib/edge-config";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
+import { validatePattern } from "@/lib/middleware/utils/match-rule";
 import { checkIfUserExists, getRandomKey } from "@/lib/planetscale";
 import { isNotHostedImage } from "@/lib/storage";
 import { NewLinkProps, ProcessedLinkProps } from "@/lib/types";
@@ -72,6 +73,8 @@ export async function processLink<T extends Record<string, any>>({
     programId,
     webhookIds,
     testVariants,
+    isRule,
+    rulePattern,
   } = payload;
 
   let expiresAt: string | Date | null | undefined = payload.expiresAt;
@@ -149,6 +152,36 @@ export async function processLink<T extends Record<string, any>>({
       error: "Conversion tracking must be enabled to use A/B testing.",
       code: "unprocessable_entity",
     };
+  }
+
+  // Redirect rule validation
+  if (isRule) {
+    if (!rulePattern) {
+      return {
+        link: payload,
+        error: "Rule pattern is required when creating a redirect rule.",
+        code: "bad_request",
+      };
+    }
+
+    const patternError = validatePattern(rulePattern);
+    if (patternError) {
+      return {
+        link: payload,
+        error: patternError,
+        code: "unprocessable_entity",
+      };
+    }
+
+    // Redirect rules require a Pro plan or higher
+    if (!workspace || workspace.plan === "free") {
+      return {
+        link: payload,
+        error:
+          "Redirect rules are only available on Pro plan and above. Upgrade to Pro to use this feature.",
+        code: "forbidden",
+      };
+    }
   }
 
   const domains = workspace
