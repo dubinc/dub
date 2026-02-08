@@ -624,7 +624,7 @@ function OperatorFilterPill({
           if (onRemoveFilter) {
             onRemoveFilter(filterKey);
           } else {
-            values.forEach(value => onRemove(filterKey, value));
+            values.forEach((value) => { onRemove(filterKey, value); });
           }
         }}
       >
