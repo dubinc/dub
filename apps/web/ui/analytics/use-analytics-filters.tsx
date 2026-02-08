@@ -986,7 +986,11 @@ export function useAnalyticsFilters({
 
   const onRemoveFilter = useCallback(
     (key) => {
-      queryParams({ del: key, scroll: false });
+      if (key === "link") {
+        queryParams({ del: ["domain", "key", "url"], scroll: false });
+      } else {
+        queryParams({ del: key, scroll: false });
+      }
     },
     [queryParams],
   );
