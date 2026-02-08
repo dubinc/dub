@@ -130,7 +130,7 @@ export const getEvents = async (params: EventsFilters) => {
     groupId: params.groupId,
     ...(typeof triggerForPipe !== 'object' && triggerForPipe ? { trigger: triggerForPipe } : {}),
     ...(typeof countryForPipe !== 'object' && countryForPipe ? { country: countryForPipe } : {}),
-    ...(regionForPipe ? { region: regionForPipe } : {}),
+    ...(typeof regionForPipe === 'string' ? { region: regionForPipe } : {}),
     // Workspace links filters with operators
     ...(domainParam ? { domain: domainParam, domainOperator } : {}),
     ...(tagIdsParam ? { tagIds: tagIdsParam, tagIdsOperator } : {}),
