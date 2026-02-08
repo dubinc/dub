@@ -481,13 +481,13 @@ SQL >
                             {% elif operator == 'notEquals' %}
                                 AND JSONExtractString(se.metadata, {{ metadataKey }}) != {{ value }}
                             {% elif operator == 'greaterThan' %}
-                                AND JSONExtractString(se.metadata, {{ metadataKey }}) > {{ value }}
+                                AND toFloat64OrNull(JSONExtractString(se.metadata, {{ metadataKey }})) > toFloat64OrNull({{ value }})
                             {% elif operator == 'lessThan' %}
-                                AND JSONExtractString(se.metadata, {{ metadataKey }}) < {{ value }}
+                                AND toFloat64OrNull(JSONExtractString(se.metadata, {{ metadataKey }})) < toFloat64OrNull({{ value }})
                             {% elif operator == 'greaterThanOrEqual' %}
-                                AND JSONExtractString(se.metadata, {{ metadataKey }}) >= {{ value }}
+                                AND toFloat64OrNull(JSONExtractString(se.metadata, {{ metadataKey }})) >= toFloat64OrNull({{ value }})
                             {% elif operator == 'lessThanOrEqual' %}
-                                AND JSONExtractString(se.metadata, {{ metadataKey }}) <= {{ value }}
+                                AND toFloat64OrNull(JSONExtractString(se.metadata, {{ metadataKey }})) <= toFloat64OrNull({{ value }})
                             {% end %}
                         {% elif item.get('field', '') %}
                             {% set field = item.get('field', '') %}

@@ -527,12 +527,12 @@ export function useAnalyticsFilters({
                   label: "Link type",
                   options: [
                     {
-                      value: true,
+                      value: "true",
                       icon: Globe2,
                       label: "Root domain link",
                     },
                     {
-                      value: false,
+                      value: "false",
                       icon: Hyperlink,
                       label: "Regular short link",
                     },
