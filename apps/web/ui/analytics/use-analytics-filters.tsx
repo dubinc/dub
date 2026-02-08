@@ -983,6 +983,7 @@ export function useAnalyticsFilters({
 
       queryParams({
         set: { [key]: newParam },
+        del: "page",
         scroll: false,
       });
     },
