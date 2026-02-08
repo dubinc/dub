@@ -81,7 +81,7 @@ export function normalizeActiveFilter(filter: ActiveFilterInput): ActiveFilter {
     };
   }
 
-  if (Array.isArray((filter as any).values) && !('operator' in filter)) {
+  if (Array.isArray((filter as any).values) && (!('operator' in filter) || !filter.operator)) {
     const values = (filter as LegacyActiveFilterPlural).values;
     return {
       key: filter.key,
