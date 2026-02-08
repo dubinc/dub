@@ -1,11 +1,13 @@
-import { ActivityLog, GroupProps } from "@/lib/types";
+import { ActivityLog, GroupProps, ProgramProps } from "@/lib/types";
 import { getResourceColorData, RAINBOW_CONIC_GRADIENT } from "@/ui/colors";
 import { ReferralStatusBadges } from "@/ui/referrals/referral-status-badges";
 import { ReferralStatus } from "@dub/prisma/client";
 import { Bolt } from "@dub/ui";
 import { cn, OG_AVATAR_URL } from "@dub/utils";
 import { ReactNode } from "react";
+import { useActivityLogContext } from "./activity-log-context";
 import { getActorType } from "./activity-log-registry";
+
 interface ActivityChipProps {
   children: ReactNode;
   className?: string;
@@ -20,6 +22,10 @@ interface SourcePillProps {
 
 interface UserChipProps {
   user: NonNullable<ActivityLog["user"]>;
+}
+
+interface ProgramChipProps {
+  program: Pick<ProgramProps, "id" | "name" | "logo">;
 }
 
 interface ActorChipProps {
@@ -81,6 +87,19 @@ export function UserChip({ user }: UserChipProps) {
   );
 }
 
+export function ProgramChip({ program }: ProgramChipProps) {
+  return (
+    <ActivityChip>
+      <img
+        src={program.logo || `${OG_AVATAR_URL}${program.id}`}
+        alt={program.name}
+        className="size-4 shrink-0 rounded-full"
+      />
+      {program.name}
+    </ActivityChip>
+  );
+}
+
 export function SystemChip() {
   return (
     <ActivityChip>
@@ -91,6 +110,12 @@ export function SystemChip() {
 }
 
 export function ActorChip({ log }: ActorChipProps) {
+  const { program } = useActivityLogContext();
+
+  if (program) {
+    return <ProgramChip program={program} />;
+  }
+
   const actorType = getActorType(log);
 
   if (actorType === "USER" && log.user) {
