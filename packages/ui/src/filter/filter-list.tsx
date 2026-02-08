@@ -45,6 +45,7 @@ function pluralize(word: string, count: number): string {
     'country': 'countries',
     'city': 'cities',
     'category': 'categories',
+    'os': 'OS',
   };
 
   const lowerWord = word.toLowerCase();
