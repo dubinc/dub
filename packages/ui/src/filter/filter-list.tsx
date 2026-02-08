@@ -544,15 +544,10 @@ function OperatorFilterPill({
                               "data-[selected=true]:bg-neutral-100",
                             )}
                             onSelect={() => {
-                              // Empty onSelect to use pointer events instead
+                              toggleValue(option.value);
                             }}
                             onPointerDown={(e) => {
                               e.preventDefault();
-                            }}
-                            onPointerUp={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              toggleValue(option.value);
                             }}
                             value={optionLabel + option.value}
                           >
