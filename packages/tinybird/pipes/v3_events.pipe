@@ -504,12 +504,107 @@ SQL >
                             {% elif operator == 'lessThanOrEqual' %}
                                 AND JSONExtractString(se.metadata, {{ metadataKey }}) <= {{ value }}
                             {% end %}
+                        {% elif item.get('field', '') %}
+                            {% set field = item.get('field', '') %}
+                            {% set operator = item.get('operator', 'IN') %}
+                            {% set values = item.get('values', []) %}
+                            {% if field == 'country' %}
+                                {% if operator == 'IN' %} AND se.country IN {{ Array(values, 'String') }}
+                                {% elif operator == 'NOT IN' %} AND se.country NOT IN {{ Array(values, 'String') }}
+                                {% end %}
+                            {% elif field == 'city' %}
+                                {% if operator == 'IN' %} AND se.city IN {{ Array(values, 'String') }}
+                                {% elif operator == 'NOT IN' %} AND se.city NOT IN {{ Array(values, 'String') }}
+                                {% end %}
+                            {% elif field == 'continent' %}
+                                {% if operator == 'IN' %} AND se.continent IN {{ Array(values, 'String') }}
+                                {% elif operator == 'NOT IN' %} AND se.continent NOT IN {{ Array(values, 'String') }}
+                                {% end %}
+                            {% elif field == 'device' %}
+                                {% if operator == 'IN' %} AND se.device IN {{ Array(values, 'String') }}
+                                {% elif operator == 'NOT IN' %} AND se.device NOT IN {{ Array(values, 'String') }}
+                                {% end %}
+                            {% elif field == 'browser' %}
+                                {% if operator == 'IN' %} AND se.browser IN {{ Array(values, 'String') }}
+                                {% elif operator == 'NOT IN' %} AND se.browser NOT IN {{ Array(values, 'String') }}
+                                {% end %}
+                            {% elif field == 'os' %}
+                                {% if operator == 'IN' %} AND se.os IN {{ Array(values, 'String') }}
+                                {% elif operator == 'NOT IN' %} AND se.os NOT IN {{ Array(values, 'String') }}
+                                {% end %}
+                            {% elif field == 'referer' %}
+                                {% if operator == 'IN' %} AND se.referer IN {{ Array(values, 'String') }}
+                                {% elif operator == 'NOT IN' %} AND se.referer NOT IN {{ Array(values, 'String') }}
+                                {% end %}
+                            {% elif field == 'refererUrl' %}
+                                {% if operator == 'IN' %} AND splitByString('?', se.referer_url)[1] IN {{ Array(values, 'String') }}
+                                {% elif operator == 'NOT IN' %} AND splitByString('?', se.referer_url)[1] NOT IN {{ Array(values, 'String') }}
+                                {% end %}
+                            {% elif field == 'url' %}
+                                {% if operator == 'IN' %} AND splitByString('?', se.url)[1] IN {{ Array(values, 'String') }}
+                                {% elif operator == 'NOT IN' %} AND splitByString('?', se.url)[1] NOT IN {{ Array(values, 'String') }}
+                                {% end %}
+                            {% elif field == 'utm_source' %}
+                                {% if operator == 'IN' %}
+                                    AND (0{% for val in values %} OR se.url LIKE concat('%', 'utm_source=', encodeURLFormComponent({{ String(val) }}), '%'){% end %})
+                                {% elif operator == 'NOT IN' %}
+                                    AND NOT (0{% for val in values %} OR se.url LIKE concat('%', 'utm_source=', encodeURLFormComponent({{ String(val) }}), '%'){% end %})
+                                {% end %}
+                            {% elif field == 'utm_medium' %}
+                                {% if operator == 'IN' %}
+                                    AND (0{% for val in values %} OR se.url LIKE concat('%', 'utm_medium=', encodeURLFormComponent({{ String(val) }}), '%'){% end %})
+                                {% elif operator == 'NOT IN' %}
+                                    AND NOT (0{% for val in values %} OR se.url LIKE concat('%', 'utm_medium=', encodeURLFormComponent({{ String(val) }}), '%'){% end %})
+                                {% end %}
+                            {% elif field == 'utm_campaign' %}
+                                {% if operator == 'IN' %}
+                                    AND (0{% for val in values %} OR se.url LIKE concat('%', 'utm_campaign=', encodeURLFormComponent({{ String(val) }}), '%'){% end %})
+                                {% elif operator == 'NOT IN' %}
+                                    AND NOT (0{% for val in values %} OR se.url LIKE concat('%', 'utm_campaign=', encodeURLFormComponent({{ String(val) }}), '%'){% end %})
+                                {% end %}
+                            {% elif field == 'utm_term' %}
+                                {% if operator == 'IN' %}
+                                    AND (0{% for val in values %} OR se.url LIKE concat('%', 'utm_term=', encodeURLFormComponent({{ String(val) }}), '%'){% end %})
+                                {% elif operator == 'NOT IN' %}
+                                    AND NOT (0{% for val in values %} OR se.url LIKE concat('%', 'utm_term=', encodeURLFormComponent({{ String(val) }}), '%'){% end %})
+                                {% end %}
+                            {% elif field == 'utm_content' %}
+                                {% if operator == 'IN' %}
+                                    AND (0{% for val in values %} OR se.url LIKE concat('%', 'utm_content=', encodeURLFormComponent({{ String(val) }}), '%'){% end %})
+                                {% elif operator == 'NOT IN' %}
+                                    AND NOT (0{% for val in values %} OR se.url LIKE concat('%', 'utm_content=', encodeURLFormComponent({{ String(val) }}), '%'){% end %})
+                                {% end %}
+                            {% elif field == 'domain' %}
+                                {# domain is already filtered at workspace_links node level #}
+                            {% elif field == 'tagIds' %}
+                                {# tagIds is already filtered at workspace_links node level #}
+                            {% elif field == 'folderId' %}
+                                {# folderId is already filtered at workspace_links node level #}
+                            {% elif field == 'root' %}
+                                {# root is already filtered at workspace_links node level #}
+                            {% elif field == 'saleType' %}
+                                {% if operator == 'IN' %} AND se.sale_type IN {{ Array(values, 'String') }}
+                                {% elif operator == 'NOT IN' %} AND se.sale_type NOT IN {{ Array(values, 'String') }}
+                                {% end %}
+                            {% end %}
                         {% end %}
                     {% end %}
                 {% end %}
 
         ) AS t
-    WHERE true {% if defined(saleType) %} AND t.sale_type = {{ String(saleType) }} {% end %}
+    WHERE true
+        {% if defined(saleType) %} AND t.sale_type = {{ String(saleType) }} {% end %}
+        {% if defined(filters) %}
+            {% for item in JSON(filters, '[]') %}
+                {% if item.get('field', '') == 'saleType' %}
+                    {% set operator = item.get('operator', 'IN') %}
+                    {% set values = item.get('values', []) %}
+                    {% if operator == 'IN' %} AND t.sale_type IN {{ Array(values, 'String') }}
+                    {% elif operator == 'NOT IN' %} AND t.sale_type NOT IN {{ Array(values, 'String') }}
+                    {% end %}
+                {% end %}
+            {% end %}
+        {% end %}
     ORDER BY t.timestamp {% if order == 'asc' %} ASC {% else %} DESC {% end %}
     LIMIT {{ Int32(limit, 100) }}
     {% if defined(offset) %} OFFSET {{ Int32(offset, 0) }} {% end %}
