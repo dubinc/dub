@@ -169,13 +169,13 @@ SQL >
                     {% elif operator == 'notEquals' %}
                         AND JSONExtractString(metadata, {{ metadataKey }}) != {{ value }}
                     {% elif operator == 'greaterThan' %}
-                        AND JSONExtractString(metadata, {{ metadataKey }}) > {{ value }}
+                        AND toFloat64OrNull(JSONExtractString(metadata, {{ metadataKey }})) > toFloat64OrNull({{ value }})
                     {% elif operator == 'lessThan' %}
-                        AND JSONExtractString(metadata, {{ metadataKey }}) < {{ value }}
+                        AND toFloat64OrNull(JSONExtractString(metadata, {{ metadataKey }})) < toFloat64OrNull({{ value }})
                     {% elif operator == 'greaterThanOrEqual' %}
-                        AND JSONExtractString(metadata, {{ metadataKey }}) >= {{ value }}
+                        AND toFloat64OrNull(JSONExtractString(metadata, {{ metadataKey }})) >= toFloat64OrNull({{ value }})
                     {% elif operator == 'lessThanOrEqual' %}
-                        AND JSONExtractString(metadata, {{ metadataKey }}) <= {{ value }}
+                        AND toFloat64OrNull(JSONExtractString(metadata, {{ metadataKey }})) <= toFloat64OrNull({{ value }})
                     {% end %}
                 {% elif item.get('field', '') %}
                     {% set field = item.get('field', '') %}
@@ -388,13 +388,13 @@ SQL >
                     {% elif operator == 'notEquals' %}
                         AND JSONExtractString(metadata, {{ metadataKey }}) != {{ value }}
                     {% elif operator == 'greaterThan' %}
-                        AND JSONExtractString(metadata, {{ metadataKey }}) > {{ value }}
+                        AND toFloat64OrNull(JSONExtractString(metadata, {{ metadataKey }})) > toFloat64OrNull({{ value }})
                     {% elif operator == 'lessThan' %}
-                        AND JSONExtractString(metadata, {{ metadataKey }}) < {{ value }}
+                        AND toFloat64OrNull(JSONExtractString(metadata, {{ metadataKey }})) < toFloat64OrNull({{ value }})
                     {% elif operator == 'greaterThanOrEqual' %}
-                        AND JSONExtractString(metadata, {{ metadataKey }}) >= {{ value }}
+                        AND toFloat64OrNull(JSONExtractString(metadata, {{ metadataKey }})) >= toFloat64OrNull({{ value }})
                     {% elif operator == 'lessThanOrEqual' %}
-                        AND JSONExtractString(metadata, {{ metadataKey }}) <= {{ value }}
+                        AND toFloat64OrNull(JSONExtractString(metadata, {{ metadataKey }})) <= toFloat64OrNull({{ value }})
                     {% end %}
                 {% elif item.get('field', '') %}
                     {% set field = item.get('field', '') %}
