@@ -98,9 +98,6 @@ SQL >
         {% if defined(partnerId) %} AND partner_id = {{ partnerId }} {% end %}
         {% if defined(groupId) %} AND partner_group_id = {{ groupId }} {% end %}
         {% if defined(tenantId) %} AND tenant_id = {{ tenantId }} {% end %}
-        {% if defined(folderIds) %} AND folder_id IN {{ Array(folderIds, 'String') }}
-        {% elif defined(folderId) %} AND folder_id = {{ folderId }}
-        {% end %}
         {% if defined(domain) %}
             {% if defined(domainOperator) and String(domainOperator) == 'NOT IN' %}
                 AND domain NOT IN {{ Array(domain, 'String') }}
