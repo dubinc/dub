@@ -1,9 +1,11 @@
 import { DubApiError } from "../api/errors";
 
 export const verifyVercelSignature = async (req: Request) => {
+  // skip verification in local development
   if (process.env.VERCEL !== "1") {
     return;
   }
+
   const authHeader = req.headers.get("authorization");
 
   if (
@@ -12,7 +14,7 @@ export const verifyVercelSignature = async (req: Request) => {
   ) {
     throw new DubApiError({
       code: "unauthorized",
-      message: "Invalid QStash request signature",
+      message: "Invalid Vercel cron request signature",
     });
   }
 };

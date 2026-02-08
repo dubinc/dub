@@ -1,1 +1,1 @@
-export * from "../../stripe/webhook/route";
+export * from "../../../(ee)/api/stripe/webhook/route";

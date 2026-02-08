@@ -1,6 +1,13 @@
+@import "../../../packages/tailwind-config/themes.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Hide the react-medium-image-zoom unzoom button */
+[data-rmiz-btn-unzoom] {
+  visibility: hidden;
+}
 
 code {
   counter-reset: step;
@@ -18,6 +25,15 @@ code .line::before {
   background-color: white;
   text-align: right;
   color: rgba(115, 138, 148, 0.4);
+}
+
+/* Hide the default number input spinners */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  margin: 0;
 }
 
 /* Implement a custom scrollbar to preventing ugly looking scroll-overflows */
@@ -38,4 +54,49 @@ code .line::before {
 .dub-scrollbar::-webkit-scrollbar-thumb {
   background-color: #d1d5db;
   border-radius: 10px;
+}
+
+/* Earnings calculator slider */
+.earnings-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 999px;
+  outline: none;
+  cursor: pointer;
+}
+
+.earnings-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #262626;
+  cursor: pointer;
+  margin-top: -4px;
+}
+
+.earnings-slider::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #262626;
+  border: none;
+  cursor: pointer;
+}
+
+.earnings-slider::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 999px;
+}
+
+.earnings-slider::-moz-range-track {
+  height: 4px;
+  border-radius: 999px;
+}
+
+/* Override Sonner toast border radius from 8px to 10px (Tailwind rounded-2xl) */
+[data-sonner-toast] {
+  border-radius: 10px !important;
 }

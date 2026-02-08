@@ -1,10 +1,12 @@
 "use client";
 
-import { clientAccessCheck } from "@/lib/api/tokens/permissions";
+import { clientAccessCheck } from "@/lib/client-access-check";
+import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { NewWebhook, WebhookProps } from "@/lib/types";
 import {
   LINK_LEVEL_WEBHOOK_TRIGGERS,
+  PROGRAM_LEVEL_WEBHOOK_TRIGGERS,
   WEBHOOK_TRIGGER_DESCRIPTIONS,
   WORKSPACE_LEVEL_WEBHOOK_TRIGGERS,
 } from "@/lib/webhook/constants";
@@ -32,12 +34,13 @@ export default function AddEditWebhookForm({
   newSecret?: string;
 }) {
   const router = useRouter();
+  const { program } = useProgram();
   const [saving, setSaving] = useState(false);
   const {
     id: workspaceId,
     slug: workspaceSlug,
     role,
-    partnersEnabled,
+    defaultProgramId,
   } = useWorkspace();
 
   const [data, setData] = useState<NewWebhook | WebhookProps>(
@@ -118,6 +121,20 @@ export default function AddEditWebhookForm({
     triggers.includes(trigger),
   );
 
+  const availableWebhookTriggers = useMemo(
+    () => [
+      ...WORKSPACE_LEVEL_WEBHOOK_TRIGGERS,
+      ...(defaultProgramId
+        ? PROGRAM_LEVEL_WEBHOOK_TRIGGERS.filter(
+            (trigger) =>
+              trigger !== "payout.confirmed" ||
+              program?.payoutMode !== "internal",
+          )
+        : []),
+    ],
+    [defaultProgramId, program?.payoutMode],
+  );
+
   return (
     <>
       <form
@@ -196,10 +213,7 @@ export default function AddEditWebhookForm({
             </span>
           </label>
           <div className="mt-3 flex flex-col gap-2">
-            {WORKSPACE_LEVEL_WEBHOOK_TRIGGERS.filter(
-              // if partners are not enabled, don't show partner.created
-              (trigger) => partnersEnabled || trigger !== "partner.created",
-            ).map((trigger) => (
+            {availableWebhookTriggers.map((trigger) => (
               <div key={trigger} className="group flex gap-2">
                 <Checkbox
                   value={trigger}

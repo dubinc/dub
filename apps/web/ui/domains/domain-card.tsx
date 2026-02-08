@@ -1,4 +1,4 @@
-import { clientAccessCheck } from "@/lib/api/tokens/permissions";
+import { clientAccessCheck } from "@/lib/client-access-check";
 import useDomains from "@/lib/swr/use-domains";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
@@ -6,12 +6,11 @@ import {
   DomainVerificationStatusProps,
   LinkProps,
 } from "@/lib/types";
-import { CheckCircleFill, Delete, ThreeDots } from "@/ui/shared/icons";
+import { CheckCircleFill, Delete, Repeat, ThreeDots } from "@/ui/shared/icons";
 import {
   Button,
   CircleCheck,
   Copy,
-  NumberTooltip,
   Popover,
   Refresh2,
   StatusBadge,
@@ -22,6 +21,7 @@ import {
   Wordmark,
 } from "@dub/ui";
 import {
+  CircleHalfDottedClock,
   CursorRays,
   Flag2,
   Gear,
@@ -29,9 +29,17 @@ import {
   Hyperlink,
   PenWriting,
 } from "@dub/ui/icons";
-import { cn, DEFAULT_LINK_PROPS, fetcher, nFormatter } from "@dub/utils";
-import { motion } from "framer-motion";
+import {
+  cn,
+  DEFAULT_LINK_PROPS,
+  fetcher,
+  formatDate,
+  nFormatter,
+  timeAgo,
+} from "@dub/utils";
+import { isPast } from "date-fns";
 import { Archive, ChevronDown, FolderInput, QrCode } from "lucide-react";
+import { motion } from "motion/react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useMemo, useRef, useState } from "react";
@@ -40,6 +48,7 @@ import useSWRImmutable from "swr/immutable";
 import { useAddEditDomainModal } from "../modals/add-edit-domain-modal";
 import { useArchiveDomainModal } from "../modals/archive-domain-modal";
 import { useDeleteDomainModal } from "../modals/delete-domain-modal";
+import { useDomainAutoRenewalModal } from "../modals/domain-auto-renewal-modal";
 import { useLinkBuilder } from "../modals/link-builder";
 import { useLinkQRModal } from "../modals/link-qr-modal";
 import { usePrimaryDomainModal } from "../modals/primary-domain-modal";
@@ -92,8 +101,25 @@ export default function DomainCard({ props }: { props: DomainProps }) {
   const searchParams = useSearchParams();
   const tab = searchParams.get("tab") || "active";
 
+  const expiresAt = props.registeredDomain?.expiresAt;
+  const isExpired = expiresAt && isPast(new Date(expiresAt));
+
+  const autoRenew = useMemo(() => {
+    if (!registeredDomain) {
+      return false;
+    }
+
+    return registeredDomain.autoRenewalDisabledAt === null;
+  }, [registeredDomain]);
+
+  const { openDomainRenewalModal, DomainAutoRenewalModal } =
+    useDomainAutoRenewalModal({
+      domain: props,
+    });
+
   return (
     <>
+      {isDubProvisioned && <DomainAutoRenewalModal />}
       <div
         ref={domainRef}
         className="hover:drop-shadow-card-hover group rounded-xl border border-neutral-200 bg-white transition-[filter]"
@@ -102,12 +128,42 @@ export default function DomainCard({ props }: { props: DomainProps }) {
       >
         {isDubProvisioned && (
           <div className="flex items-center justify-between gap-2 rounded-t-xl border-b border-neutral-100 bg-neutral-50 px-5 py-2 text-xs">
-            <div className="flex items-center gap-1.5">
-              <Wordmark className="h-4" />
-              <span className="font-medium text-neutral-900">
-                Provisioned by Dub
-              </span>
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5">
+                <Wordmark className="h-4" />
+                <span className="font-medium text-neutral-900">
+                  Provisioned by Dub
+                </span>
+              </div>
+
+              {expiresAt && (
+                <button
+                  className={cn(
+                    "flex items-center gap-1 decoration-dotted underline-offset-2 hover:underline",
+                    isExpired
+                      ? "text-red-600"
+                      : autoRenew
+                        ? "text-neutral-700"
+                        : "text-neutral-400 hover:text-neutral-700",
+                  )}
+                  onClick={() => {
+                    openDomainRenewalModal(!autoRenew);
+                  }}
+                >
+                  {autoRenew ? (
+                    <Repeat className="size-3.5" />
+                  ) : (
+                    <CircleHalfDottedClock className="size-3.5" />
+                  )}
+                  <span className="text-xs font-medium">
+                    {autoRenew
+                      ? `Renews on ${formatDate(expiresAt)}`
+                      : `Expire${isExpired ? "d" : "s"} on ${formatDate(expiresAt)}`}
+                  </span>
+                </button>
+              )}
             </div>
+
             <a
               href="https://dub.co/help/article/free-dot-link-domain"
               target="_blank"
@@ -128,7 +184,22 @@ export default function DomainCard({ props }: { props: DomainProps }) {
 
             {/* Clicks */}
             <div className="hidden md:flex">
-              <NumberTooltip value={props.link?.clicks || 0}>
+              <Tooltip
+                content={
+                  <div className="block max-w-xs px-4 py-2 text-center text-sm text-neutral-700">
+                    <p className="text-sm font-semibold text-neutral-700">
+                      {nFormatter(props.link?.clicks || 0, { full: true })}{" "}
+                      clicks
+                    </p>
+                    {props.link?.lastClicked && (
+                      <p className="mt-1 text-xs text-neutral-500">
+                        Last clicked{" "}
+                        {timeAgo(props.link?.lastClicked, { withAgo: true })}
+                      </p>
+                    )}
+                  </div>
+                }
+              >
                 <Link
                   href={`/${slug}/analytics?domain=${domain}&key=_root`}
                   className="flex items-center space-x-1 whitespace-nowrap rounded-md border border-neutral-200 bg-neutral-50 px-3 py-1 transition-colors hover:bg-neutral-100"
@@ -139,7 +210,7 @@ export default function DomainCard({ props }: { props: DomainProps }) {
                     <span className="ml-1 hidden sm:inline-block">clicks</span>
                   </p>
                 </Link>
-              </NumberTooltip>
+              </Tooltip>
             </div>
 
             {/* Status */}
@@ -213,11 +284,13 @@ export default function DomainCard({ props }: { props: DomainProps }) {
                   data-state={showDetails ? "open" : "closed"}
                 />
               )}
-              <Menu
+              <DomainCardMenu
                 props={props}
                 linkProps={props.link}
                 refreshProps={{ isValidating, mutate }}
                 groupHover={groupHover}
+                autoRenew={autoRenew}
+                openDomainRenewalModal={openDomainRenewalModal}
               />
             </div>
           </div>
@@ -255,11 +328,13 @@ export default function DomainCard({ props }: { props: DomainProps }) {
   );
 }
 
-function Menu({
+function DomainCardMenu({
   props,
   linkProps,
   refreshProps,
   groupHover,
+  autoRenew,
+  openDomainRenewalModal,
 }: {
   props: DomainProps;
   linkProps?: LinkProps;
@@ -268,21 +343,22 @@ function Menu({
     mutate: () => void;
   };
   groupHover: boolean;
+  autoRenew: boolean;
+  openDomainRenewalModal: (enable: boolean) => void;
 }) {
+  const { role } = useWorkspace();
+  const { isMobile } = useMediaQuery();
+  const { activeWorkspaceDomains } = useDomains();
+  const [openPopover, setOpenPopover] = useState(false);
+  const [copiedLinkId, copyToClipboard] = useCopyToClipboard();
+
   const { primary, archived, slug: domain, registeredDomain } = props;
   const isDubProvisioned = !!registeredDomain;
 
-  const { isMobile } = useMediaQuery();
-
-  const { role } = useWorkspace();
   const permissionsError = clientAccessCheck({
     action: "domains.write",
     role,
   }).error;
-
-  const { activeWorkspaceDomains } = useDomains();
-
-  const [openPopover, setOpenPopover] = useState(false);
 
   const { setShowAddEditDomainModal, AddEditDomainModal } =
     useAddEditDomainModal({
@@ -316,8 +392,6 @@ function Menu({
     props: linkProps || DEFAULT_LINK_PROPS,
   });
 
-  const [copiedLinkId, copyToClipboard] = useCopyToClipboard();
-
   const copyLinkId = () => {
     if (!linkProps) {
       toast.error("Link ID not found");
@@ -339,7 +413,6 @@ function Menu({
       <ArchiveDomainModal />
       <DeleteDomainModal />
       <TransferDomainModal />
-
       <motion.div
         animate={{
           width: groupHover && !isMobile ? "auto" : isMobile ? 79 : 39,
@@ -433,6 +506,29 @@ function Menu({
                   icon={<PenWriting className="h-4 w-4" />}
                   className="h-9 justify-start px-2 font-medium"
                 />
+
+                {isDubProvisioned && (
+                  <Button
+                    text={
+                      !autoRenew ? "Enable Auto-Renew" : "Disable Auto-Renew"
+                    }
+                    variant="outline"
+                    onClick={() => {
+                      setOpenPopover(false);
+                      openDomainRenewalModal(!autoRenew);
+                    }}
+                    icon={
+                      <Repeat
+                        className={cn(
+                          "h-4 w-4",
+                          !autoRenew ? "text-green-600" : "text-red-600",
+                        )}
+                      />
+                    }
+                    className="h-9 justify-start px-2 font-medium"
+                  />
+                )}
+
                 {!primary && (
                   <Button
                     text="Set as Primary"
@@ -471,6 +567,7 @@ function Menu({
                   }}
                   icon={<Archive className="h-4 w-4" />}
                   className="h-9 justify-start px-2 font-medium"
+                  disabledTooltip={permissionsError || undefined}
                 />
                 {!isDubProvisioned && (
                   <Button
@@ -482,6 +579,7 @@ function Menu({
                     }}
                     icon={<Delete className="h-4 w-4" />}
                     className="h-9 justify-start px-2 font-medium"
+                    disabledTooltip={permissionsError || undefined}
                   />
                 )}
               </div>

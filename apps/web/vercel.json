@@ -5,37 +5,57 @@
       "schedule": "0 * * * *"
     },
     {
+      "path": "/api/cron/email-domains/verify",
+      "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/domains/renewal-reminders",
+      "schedule": "0 8 * * *"
+    },
+    {
+      "path": "/api/cron/domains/renewal-payments",
+      "schedule": "0 8 * * *"
+    },
+    {
+      "path": "/api/cron/streams/update-workspace-clicks",
+      "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/cron/streams/update-partner-stats",
+      "schedule": "*/2 * * * *"
+    },
+    {
       "path": "/api/cron/usage",
       "schedule": "0 12 * * *"
     },
     {
-      "path": "/api/cron/cleanup",
-      "schedule": "0 */6 * * *"
+      "path": "/api/cron/aggregate-clicks",
+      "schedule": "0 0 * * *"
     },
     {
-      "path": "/api/cron/disposable-emails",
-      "schedule": "0 12 * * 1"
+      "path": "/api/cron/partner-program-summary",
+      "schedule": "0 13 1 * *"
     },
     {
-      "path": "/api/cron/payouts/clicks",
-      "schedule": "0 0,12 * * *"
+      "path": "/api/cron/pending-applications-summary",
+      "schedule": "0 9 * * *"
     },
     {
-      "path": "/api/cron/payouts/leads",
+      "path": "/api/cron/payouts/aggregate-due-commissions",
       "schedule": "0 * * * *"
     },
     {
-      "path": "/api/cron/payouts/sales",
-      "schedule": "0 * * * *"
+      "path": "/api/cron/payouts/reminders/partners",
+      "schedule": "0 14 * * *"
     },
     {
-      "path": "/api/cron/trigger-withdrawal",
-      "schedule": "0 0,12 * * *"
+      "path": "/api/cron/payouts/reminders/program-owners",
+      "schedule": "0 13 25-31,1-5 * *"
     }
   ],
   "functions": {
-    "app/api/cron/**/*.ts": {
-      "maxDuration": 300
+    "app/(ee)/api/cron/**/*.ts": {
+      "maxDuration": 600
     }
   }
 }

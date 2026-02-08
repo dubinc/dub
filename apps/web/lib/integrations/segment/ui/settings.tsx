@@ -19,7 +19,7 @@ export const SegmentSettings = (props: InstalledIntegrationInfoProps) => {
       {installed && webhookId && (
         <ConfigureWebhook
           webhookId={webhookId}
-          supportedEvents={["lead.created", "sale.created"]}
+          supportedEvents={["lead.created", "sale.created", "partner.enrolled"]}
         />
       )}
     </>

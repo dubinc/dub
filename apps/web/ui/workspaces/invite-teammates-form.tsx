@@ -1,39 +1,43 @@
+import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { Role, roles } from "@/lib/types";
+import {
+  getAvailableRolesForPlan,
+  WORKSPACE_ROLES,
+} from "@/lib/workspace-roles";
 import { Invite } from "@/lib/zod/schemas/invites";
-import { Button, useMediaQuery } from "@dub/ui";
+import { WorkspaceRole } from "@dub/prisma/client";
+import { Button, useMediaQuery, useRouterStuff } from "@dub/ui";
 import { Trash } from "@dub/ui/icons";
-import { capitalize, cn, pluralize } from "@dub/utils";
+import { cn, pluralize } from "@dub/utils";
 import { Plus } from "lucide-react";
-import posthog from "posthog-js";
+import { useMemo } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { mutate } from "swr";
-import { CheckCircleFill } from "../shared/icons";
 import { UpgradeRequiredToast } from "../shared/upgrade-required-toast";
 
 type FormData = {
   teammates: {
     email: string;
-    role: Role;
+    role: WorkspaceRole;
   }[];
 };
 
 export function InviteTeammatesForm({
   onSuccess,
-  saveOnly = false,
   invites = [],
   className,
 }: {
   onSuccess?: () => void;
-  saveOnly?: boolean; // Whether to only save the data without actually sending invites
   invites?: Invite[];
   className?: string;
 }) {
-  const { id, slug } = useWorkspace();
+  const { id, slug, plan, usersLimit } = useWorkspace();
   const { isMobile } = useMediaQuery();
+  const { queryParams } = useRouterStuff();
 
-  const maxTeammates = saveOnly ? 4 : 10;
+  const availableRolesForPlan = useMemo(() => {
+    return getAvailableRolesForPlan(plan);
+  }, [plan]);
 
   const {
     control,
@@ -54,33 +58,22 @@ export function InviteTeammatesForm({
     <form
       onSubmit={handleSubmit(async (data) => {
         const teammates = data.teammates.filter(({ email }) => email);
-        const res = await fetch(
-          `/api/workspaces/${id}/invites${saveOnly ? "/saved" : ""}`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ teammates }),
-          },
-        );
+        const res = await fetch(`/api/workspaces/${id}/invites`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ teammates }),
+        });
 
         if (res.ok) {
-          await mutate(`/api/workspaces/${id}/invites`);
+          await mutatePrefix(`/api/workspaces/${id}/invites`);
 
-          if (saveOnly) {
-            toast.custom(
-              () => <InviteSavedToast teammates={teammates.length} />,
-              { duration: 7000 },
-            );
-          } else {
-            toast.success(`${pluralize("Invitation", teammates.length)} sent!`);
+          toast.success(`${pluralize("Invitation", teammates.length)} sent!`);
+          queryParams({
+            set: {
+              status: "invited",
+            },
+          });
 
-            teammates.forEach(({ email }) =>
-              posthog.capture("teammate_invited", {
-                workspace: slug,
-                invitee_email: email,
-              }),
-            );
-          }
           onSuccess?.();
         } else {
           const { error } = await res.json();
@@ -104,8 +97,8 @@ export function InviteTeammatesForm({
     >
       <div className="flex flex-col gap-2">
         {fields.map((field, index) => (
-          <div key={field.id} className="relative">
-            <label>
+          <div key={field.id} className="flex items-end gap-2">
+            <label className="flex-1">
               {index === 0 && (
                 <span className="mb-2 block text-sm font-medium text-neutral-700">
                   {pluralize("Email", fields.length)}
@@ -129,23 +122,27 @@ export function InviteTeammatesForm({
                   defaultValue="member"
                   className="rounded-r-md border border-l-0 border-neutral-300 bg-white pl-4 pr-8 text-neutral-600 focus:border-neutral-300 focus:outline-none focus:ring-0 sm:text-sm"
                 >
-                  {roles.map((role) => (
-                    <option key={role} value={role}>
-                      {capitalize(role)}
-                    </option>
-                  ))}
+                  {WORKSPACE_ROLES.map(({ value, label }) => {
+                    return (
+                      <option
+                        key={value}
+                        value={value}
+                        disabled={!availableRolesForPlan.includes(value)}
+                      >
+                        {label}
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
             </label>
             {index > 0 && (
-              <div className="absolute -right-1 top-1/2 -translate-y-1/2 translate-x-full">
-                <Button
-                  variant="outline"
-                  icon={<Trash className="size-4" />}
-                  className="h-8 px-1"
-                  onClick={() => remove(index)}
-                />
-              </div>
+              <Button
+                variant="outline"
+                icon={<Trash className="size-4" />}
+                className="h-9 w-9 shrink-0 px-0"
+                onClick={() => remove(index)}
+              />
             )}
           </div>
         ))}
@@ -155,34 +152,13 @@ export function InviteTeammatesForm({
           icon={<Plus className="size-4" />}
           text="Add email"
           onClick={() => append({ email: "", role: "member" })}
-          disabled={fields.length >= maxTeammates}
+          disabled={fields.length >= (usersLimit || Infinity)}
         />
       </div>
       <Button
         loading={isSubmitting || isSubmitSuccessful}
-        text={
-          saveOnly ? "Continue" : `Send ${pluralize("invite", fields.length)}`
-        }
+        text={`Send ${pluralize("invite", fields.length)}`}
       />
     </form>
-  );
-}
-
-function InviteSavedToast({ teammates }: { teammates: number }) {
-  return (
-    <div className="flex items-center gap-1.5 rounded-lg bg-white p-4 text-sm shadow-[0_4px_12px_#0000001a]">
-      <CheckCircleFill className="size-5 shrink-0 text-black" />
-      <p className="text-[13px] font-medium text-neutral-900">
-        {pluralize("Invitation", teammates)} saved. You'll need a pro plan to
-        invite teammates.{" "}
-        <a
-          href="https://dub.co/help/article/how-to-invite-teammates"
-          target="_blank"
-          className="text-neutral-500 underline transition-colors hover:text-neutral-800"
-        >
-          Learn more
-        </a>
-      </p>
-    </div>
   );
 }

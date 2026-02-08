@@ -1,44 +1,41 @@
-import { useRouterStuff } from "@dub/ui";
+import { useCurrentSubdomain, useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
-import { useEffect, useState } from "react";
 import useSWR from "swr";
-import z from "../zod";
+import * as z from "zod/v4";
 import { getLinksCountQuerySchema } from "../zod/schemas/links";
 import useWorkspace from "./use-workspace";
 
 const partialQuerySchema = getLinksCountQuerySchema.partial();
 
-export default function useLinksCount<T = any>(
-  opts: z.infer<typeof partialQuerySchema> & { ignoreParams?: boolean } = {},
-) {
-  const { id: workspaceId } = useWorkspace();
+export default function useLinksCount<T = any>({
+  query,
+  ignoreParams,
+  enabled = true,
+}: {
+  query?: z.infer<typeof partialQuerySchema>;
+  ignoreParams?: boolean;
+  enabled?: boolean;
+} = {}) {
+  const { id: workspaceId, isMegaWorkspace } = useWorkspace();
   const { getQueryString } = useRouterStuff();
-
-  const [admin, setAdmin] = useState(false);
-  useEffect(() => {
-    if (window.location.host.startsWith("admin.")) {
-      setAdmin(true);
-    }
-  }, []);
+  const { subdomain } = useCurrentSubdomain();
 
   const { data, error } = useSWR<any>(
-    workspaceId
-      ? `/api/links/count${
-          opts.ignoreParams
-            ? `?workspaceId=${workspaceId}`
-            : getQueryString(
-                {
-                  workspaceId,
-                  ...opts,
-                },
-                {
-                  exclude: ["import", "upgrade", "newLink"],
-                },
-              )
-        }`
-      : admin
+    workspaceId && !isMegaWorkspace && enabled
+      ? `/api/links/count${getQueryString(
+          {
+            workspaceId,
+            ...query,
+          },
+          ignoreParams
+            ? { include: [] }
+            : {
+                exclude: ["import", "upgrade", "newLink"],
+              },
+        )}`
+      : subdomain === "admin"
         ? `/api/admin/links/count${getQueryString({
-            ...opts,
+            ...query,
           })}`
         : null,
     fetcher,

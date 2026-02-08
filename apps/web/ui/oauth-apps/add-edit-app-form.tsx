@@ -1,21 +1,30 @@
 "use client";
 
-import { clientAccessCheck } from "@/lib/api/tokens/permissions";
+import { clientAccessCheck } from "@/lib/client-access-check";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { ExistingOAuthApp, NewOAuthApp, OAuthAppProps } from "@/lib/types";
+import {
+  NewOAuthApp,
+  OAuthAppProps,
+  OAuthAppWithClientSecret,
+} from "@/lib/types";
+import { useOAuthAppCreatedModal } from "@/ui/modals/oauth-app-created-modal";
 import {
   Button,
   FileUpload,
   InfoTooltip,
   LoadingSpinner,
+  RichTextArea,
+  RichTextProvider,
+  RichTextToolbar,
   Switch,
+  useEnterSubmit,
 } from "@dub/ui";
 import { cn, nanoid } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
-import { Reorder } from "framer-motion";
 import { Paperclip, Trash2 } from "lucide-react";
+import { Reorder } from "motion/react";
 import { useRouter } from "next/navigation";
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import TextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 import { mutate } from "swr";
@@ -42,9 +51,14 @@ export default function AddOAuthAppForm({
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const { slug: workspaceSlug, id: workspaceId, role } = useWorkspace();
+
+  const [createdAppData, setCreatedAppData] =
+    useState<OAuthAppWithClientSecret | null>(null);
+
   const [urls, setUrls] = useState<{ id: string; value: string }[]>([
     { id: nanoid(), value: "" },
   ]);
+
   const [screenshots, setScreenshots] = useState<
     {
       file?: File;
@@ -53,14 +67,22 @@ export default function AddOAuthAppForm({
     }[]
   >([]);
 
-  const [data, setData] = useState<NewOAuthApp | ExistingOAuthApp>(
+  const [data, setData] = useState<NewOAuthApp | OAuthAppProps>(
     oAuthApp || defaultValues,
   );
+
+  const { OAuthAppCreatedModal, setShowOAuthAppCreatedModal } =
+    useOAuthAppCreatedModal({
+      oAuthApp: createdAppData,
+    });
 
   const { error: permissionsError } = clientAccessCheck({
     action: "oauth_apps.write",
     role,
   });
+
+  const formRef = useRef<HTMLFormElement>(null);
+  const { handleKeyDown } = useEnterSubmit(formRef);
 
   useEffect(() => {
     if (oAuthApp) {
@@ -128,11 +150,12 @@ export default function AddOAuthAppForm({
       toast.success(endpoint.successMessage);
 
       if (endpoint.method === "POST") {
-        const url = `/${workspaceSlug}/settings/oauth-apps/${result.id}${
-          result.clientSecret ? `?client_secret=${result.clientSecret}` : ""
-        }`;
-
-        router.push(url);
+        if (result.clientSecret) {
+          setCreatedAppData(result);
+          setShowOAuthAppCreatedModal(true);
+        } else {
+          router.push(`/${workspaceSlug}/settings/oauth-apps/${result.id}`);
+        }
       }
     } else {
       toast.error(result.error.message);
@@ -143,12 +166,12 @@ export default function AddOAuthAppForm({
   const handleUpload = async (file: File) => {
     setScreenshots((prev) => [...prev, { file, uploading: true }]);
 
-    const response = await fetch(
-      `/api/oauth/apps/upload-url?workspaceId=${workspaceId}`,
-      {
-        method: "POST",
-      },
-    );
+    const response = await fetch(`/api/workspaces/${workspaceId}/upload-url`, {
+      method: "POST",
+      body: JSON.stringify({
+        folder: "integration-screenshots",
+      }),
+    });
 
     if (!response.ok) {
       toast.error("Failed to get signed URL for screenshot upload.");
@@ -202,7 +225,9 @@ export default function AddOAuthAppForm({
 
   return (
     <>
+      <OAuthAppCreatedModal />
       <form
+        ref={formRef}
         onSubmit={onSubmit}
         className="flex flex-col space-y-5 pb-20 text-left"
       >
@@ -298,6 +323,7 @@ export default function AddOAuthAppForm({
               onChange={(e) => {
                 setData({ ...data, description: e.target.value });
               }}
+              onKeyDown={handleKeyDown}
               disabled={!canManageApp}
             />
           </div>
@@ -309,23 +335,33 @@ export default function AddOAuthAppForm({
             <InfoTooltip content="Provide some details about your integration. This will be displayed on the integration page. Markdown is supported." />
           </label>
           <div className="relative mt-2 rounded-md shadow-sm">
-            <TextareaAutosize
-              name="readme"
-              minRows={10}
-              className={cn(
-                "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-                {
-                  "cursor-not-allowed bg-neutral-50": !canManageApp,
-                },
-              )}
-              placeholder="## My Awesome Integration"
-              value={readme || ""}
-              maxLength={1000}
-              onChange={(e) => {
-                setData({ ...data, readme: e.target.value });
-              }}
-              disabled={!canManageApp}
-            />
+            <RichTextProvider
+              editable={canManageApp}
+              features={["headings", "bold", "italic", "links"]}
+              style="relaxed"
+              markdown
+              placeholder="Provide details about the application"
+              editorClassName="block max-h-64 min-h-32 overflow-auto scrollbar-hide w-full resize-none border-none p-3 text-base sm:text-sm"
+              initialValue={readme || ""}
+              onChange={(editor) =>
+                setData({
+                  ...data,
+                  readme: (editor as any).getMarkdown() || null,
+                })
+              }
+            >
+              <div
+                className={cn(
+                  "border-border-subtle overflow-hidden rounded-md border border-neutral-300 shadow-sm focus-within:border-neutral-500 focus-within:ring-1 focus-within:ring-neutral-500",
+                  !canManageApp && "cursor-not-allowed bg-neutral-50",
+                )}
+              >
+                <div className="flex flex-col">
+                  <RichTextArea />
+                  <RichTextToolbar className="px-1 pb-1" />
+                </div>
+              </div>
+            </RichTextProvider>
           </div>
         </div>
 
@@ -381,6 +417,7 @@ export default function AddOAuthAppForm({
             onChange={async ({ file }) => await handleUpload(file)}
             content="Drag and drop or click to upload screenshots"
             disabled={!canManageApp || screenshots.length >= 4}
+            maxFileSizeMB={2}
           />
         </div>
 

@@ -4,31 +4,44 @@ import { InvoiceSchema } from "@/lib/zod/schemas/invoices";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN } from "@dub/utils";
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 const querySchema = z.object({
-  type: z.enum(["subscription", "payout"]).optional().default("subscription"),
+  type: z
+    .enum(["subscription", "partnerPayout", "domainRenewal"])
+    .optional()
+    .default("subscription"),
 });
 
-export const GET = withWorkspace(async ({ workspace, searchParams }) => {
-  if (!workspace.stripeId) {
-    return NextResponse.json([]);
-  }
+// TODO: move to GET /invoices
+export const GET = withWorkspace(
+  async ({ workspace, searchParams }) => {
+    if (!workspace.stripeId) {
+      return NextResponse.json([]);
+    }
 
-  const { type } = querySchema.parse(searchParams);
+    const { type } = querySchema.parse(searchParams);
 
-  const invoices =
-    type === "subscription"
-      ? await subscriptionInvoices(workspace.stripeId)
-      : await payoutInvoices(workspace.id);
+    const invoices =
+      type === "subscription"
+        ? await subscriptionInvoices(workspace.stripeId)
+        : await otherInvoices({
+            workspaceId: workspace.id,
+            type,
+          });
 
-  return NextResponse.json(z.array(InvoiceSchema).parse(invoices));
-});
+    return NextResponse.json(z.array(InvoiceSchema).parse(invoices));
+  },
+  {
+    requiredPermissions: ["workspaces.read"],
+  },
+);
 
 const subscriptionInvoices = async (stripeId: string) => {
   try {
     const invoices = await stripe.invoices.list({
       customer: stripeId,
+      limit: 100,
     });
 
     return invoices.data.map((invoice) => {
@@ -46,17 +59,25 @@ const subscriptionInvoices = async (stripeId: string) => {
   }
 };
 
-const payoutInvoices = async (workspaceId: string) => {
+const otherInvoices = async ({
+  workspaceId,
+  type,
+}: {
+  workspaceId: string;
+  type: "partnerPayout" | "domainRenewal";
+}) => {
   const invoices = await prisma.invoice.findMany({
     where: {
       workspaceId,
+      type,
     },
     select: {
       id: true,
       total: true,
       createdAt: true,
-      receiptUrl: true,
       status: true,
+      paymentMethod: true,
+      failedReason: true,
     },
     orderBy: {
       createdAt: "desc",
@@ -66,7 +87,8 @@ const payoutInvoices = async (workspaceId: string) => {
   return invoices.map((invoice) => {
     return {
       ...invoice,
-      description: "Dub Partner payout",
+      description:
+        type === "partnerPayout" ? "Dub Partner payout" : "Dub Domain renewal",
       pdfUrl: `${APP_DOMAIN}/invoices/${invoice.id}`,
     };
   });

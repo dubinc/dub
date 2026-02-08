@@ -1,9 +1,10 @@
-import { addDomainToVercel } from "@/lib/api/domains";
+import { createId } from "@/lib/api/create-id";
+import { addDomainToVercel } from "@/lib/api/domains/add-domain-vercel";
 import { DubApiError } from "@/lib/api/errors";
 import { bulkCreateLinks } from "@/lib/api/links";
-import { createId } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
+import { verifyFolderAccess } from "@/lib/folder/permissions";
 import { redis } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
@@ -58,7 +59,7 @@ export const GET = withWorkspace(async ({ workspace }) => {
           },
         )
           .then((r) => r.json())
-          .then((data) => data.count) // subtract 1 to exclude root domain
+          .then((data) => data.count)
           .catch(() => 0),
       })),
   );
@@ -76,63 +77,89 @@ export const GET = withWorkspace(async ({ workspace }) => {
 });
 
 // PUT /api/workspaces/[idOrSlug]/import/rebrandly - save Rebrandly API key
-export const PUT = withWorkspace(async ({ req, workspace }) => {
-  const { apiKey } = await req.json();
-  const response = await redis.set(`import:rebrandly:${workspace.id}`, apiKey);
-  return NextResponse.json(response);
-});
+export const PUT = withWorkspace(
+  async ({ req, workspace }) => {
+    const { apiKey } = await req.json();
+    const response = await redis.set(
+      `import:rebrandly:${workspace.id}`,
+      apiKey,
+    );
+    return NextResponse.json(response);
+  },
+  {
+    requiredPermissions: ["links.write"],
+  },
+);
 
 // POST /api/workspaces/[idOrSlug]/import/rebrandly - create job to import links from Rebrandly
-export const POST = withWorkspace(async ({ req, workspace, session }) => {
-  const { selectedDomains, importTags } = await req.json();
+export const POST = withWorkspace(
+  async ({ req, workspace, session }) => {
+    const { selectedDomains, importTags, folderId, createdAfter } =
+      await req.json();
 
-  const domains = await prisma.domain.findMany({
-    where: { projectId: workspace.id },
-    select: { slug: true },
-  });
+    if (folderId) {
+      await verifyFolderAccess({
+        workspace,
+        userId: session.user.id,
+        folderId,
+        requiredPermission: "folders.links.write",
+      });
+    }
 
-  // check if there are domains that are not in the workspace
-  // if yes, add them to the workspace
-  const domainsNotInWorkspace = selectedDomains.filter(
-    ({ domain }) => !domains?.find((d) => d.slug === domain),
-  );
-  if (domainsNotInWorkspace.length > 0) {
-    await Promise.allSettled([
-      prisma.domain.createMany({
-        data: domainsNotInWorkspace.map(({ domain }) => ({
-          id: createId({ prefix: "dom_" }),
-          slug: domain,
-          projectId: workspace.id,
-          primary: false,
-        })),
-        skipDuplicates: true,
-      }),
-      domainsNotInWorkspace.map(({ domain }) => addDomainToVercel(domain)),
-    ]);
-    await bulkCreateLinks({
-      links: domainsNotInWorkspace.map(({ domain }) => ({
-        domain,
-        key: "_root",
-        url: "",
-        userId: session?.user?.id,
-        projectId: workspace.id,
-      })),
+    const domains = await prisma.domain.findMany({
+      where: { projectId: workspace.id },
+      select: { slug: true },
     });
-  }
 
-  const response = await Promise.all(
-    selectedDomains.map(({ id, domain }) =>
-      qstash.publishJSON({
-        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/import/rebrandly`,
-        body: {
-          workspaceId: workspace.id,
-          userId: session?.user?.id,
-          domainId: id,
+    // check if there are domains that are not in the workspace
+    // if yes, add them to the workspace
+    const domainsNotInWorkspace = selectedDomains.filter(
+      ({ domain }) => !domains?.find((d) => d.slug === domain),
+    );
+    if (domainsNotInWorkspace.length > 0) {
+      await Promise.allSettled([
+        prisma.domain.createMany({
+          data: domainsNotInWorkspace.map(({ domain }) => ({
+            id: createId({ prefix: "dom_" }),
+            slug: domain,
+            projectId: workspace.id,
+            primary: false,
+          })),
+          skipDuplicates: true,
+        }),
+        domainsNotInWorkspace.map(({ domain }) => addDomainToVercel(domain)),
+      ]);
+      await bulkCreateLinks({
+        links: domainsNotInWorkspace.map(({ domain }) => ({
           domain,
-          importTags,
-        },
-      }),
-    ),
-  );
-  return NextResponse.json(response);
-});
+          key: "_root",
+          url: "",
+          folderId,
+          userId: session?.user?.id,
+          projectId: workspace.id,
+        })),
+      });
+    }
+
+    const response = await Promise.all(
+      selectedDomains.map(({ id, domain }) =>
+        qstash.publishJSON({
+          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/import/rebrandly`,
+          body: {
+            workspaceId: workspace.id,
+            userId: session?.user?.id,
+            domainId: id,
+            domain,
+            folderId,
+            importTags,
+            ...(createdAfter && { createdAfter }),
+          },
+        }),
+      ),
+    );
+    return NextResponse.json(response);
+  },
+  {
+    requiredPermissions: ["links.write"],
+  },
+);

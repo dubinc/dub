@@ -1,7 +1,8 @@
+import useCurrentFolderId from "@/lib/swr/use-current-folder-id";
 import useLinksCount from "@/lib/swr/use-links-count";
 import useTags from "@/lib/swr/use-tags";
 import useTagsCount from "@/lib/swr/use-tags-count";
-import useUsers from "@/lib/swr/use-users";
+import useWorkspaceUsers from "@/lib/swr/use-workspace-users";
 import { TagProps } from "@/lib/types";
 import { TAGS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/tags";
 import { Avatar, BlurImage, Globe, Tag, User, useRouterStuff } from "@dub/ui";
@@ -15,12 +16,20 @@ export function useLinkFilters() {
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
+  const { folderId } = useCurrentFolderId();
 
-  const { tags, tagsAsync } = useTagFilterOptions(
-    selectedFilter === "tagIds" ? debouncedSearch : "",
-  );
-  const domains = useDomainFilterOptions();
-  const users = useUserFilterOptions();
+  const { tags, tagsAsync } = useTagFilterOptions({
+    search: selectedFilter === "tagIds" ? debouncedSearch : "",
+    folderId: folderId ?? "",
+  });
+
+  const domains = useDomainFilterOptions({
+    folderId: folderId ?? "",
+  });
+
+  const users = useUserFilterOptions({
+    folderId: folderId ?? "",
+  });
 
   const { queryParams, searchParamsObj } = useRouterStuff();
 
@@ -46,7 +55,7 @@ export function useLinkFilters() {
             icon: <TagBadge color={color} withIcon className="sm:p-1" />,
             label: name,
             data: { color },
-            right: count,
+            right: nFormatter(count, { full: true }),
             hideDuringSearch,
           })) ?? null,
       },
@@ -74,10 +83,9 @@ export function useLinkFilters() {
         icon: User,
         label: "Creator",
         options:
-          // @ts-expect-error
-          users?.map(({ id, name, email, image, count }) => ({
+          users?.map(({ id, name, image, count }) => ({
             value: id,
-            label: name || email,
+            label: name,
             icon: (
               <Avatar
                 user={{
@@ -88,7 +96,7 @@ export function useLinkFilters() {
                 className="h-4 w-4"
               />
             ),
-            right: count,
+            right: nFormatter(count, { full: true }),
           })) ?? null,
       },
     ];
@@ -161,7 +169,13 @@ export function useLinkFilters() {
   };
 }
 
-function useTagFilterOptions(search: string) {
+function useTagFilterOptions({
+  search,
+  folderId,
+}: {
+  search: string;
+  folderId: string;
+}) {
   const { searchParamsObj } = useRouterStuff();
 
   const tagIds = useMemo(
@@ -186,7 +200,7 @@ function useTagFilterOptions(search: string) {
       tagId: string;
       _count: number;
     }[]
-  >({ groupBy: "tagId", showArchived });
+  >({ query: { groupBy: "tagId", showArchived, folderId } });
 
   const tagsResult = useMemo(() => {
     return loadingTags ||
@@ -219,7 +233,7 @@ function useTagFilterOptions(search: string) {
   return { tags: tagsResult, tagsAsync };
 }
 
-function useDomainFilterOptions() {
+function useDomainFilterOptions({ folderId }: { folderId: string }) {
   const { showArchived } = useContext(LinksDisplayContext);
 
   const { data: domainsCount } = useLinksCount<
@@ -228,8 +242,11 @@ function useDomainFilterOptions() {
       _count: number;
     }[]
   >({
-    groupBy: "domain",
-    showArchived,
+    query: {
+      groupBy: "domain",
+      showArchived,
+      folderId,
+    },
   });
 
   return useMemo(() => {
@@ -244,8 +261,8 @@ function useDomainFilterOptions() {
   }, [domainsCount]);
 }
 
-function useUserFilterOptions() {
-  const { users } = useUsers();
+function useUserFilterOptions({ folderId }: { folderId: string }) {
+  const { users } = useWorkspaceUsers();
   const { showArchived } = useContext(LinksDisplayContext);
 
   const { data: usersCount } = useLinksCount<
@@ -254,8 +271,11 @@ function useUserFilterOptions() {
       _count: number;
     }[]
   >({
-    groupBy: "userId",
-    showArchived,
+    query: {
+      groupBy: "userId",
+      showArchived,
+      folderId,
+    },
   });
 
   return useMemo(
@@ -269,13 +289,7 @@ function useUserFilterOptions() {
                 0,
             }))
             .sort((a, b) => b.count - a.count)
-        : usersCount
-          ? usersCount.map(({ userId, _count }) => ({
-              id: userId,
-              name: userId,
-              count: _count,
-            }))
-          : null,
+        : null,
     [users, usersCount],
   );
 }

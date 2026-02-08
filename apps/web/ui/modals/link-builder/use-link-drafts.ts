@@ -1,7 +1,7 @@
+import { LinkFormData } from "@/ui/links/link-builder/link-builder-provider";
 import { useLocalStorage } from "@dub/ui";
 import { subDays } from "date-fns";
 import { useCallback, useLayoutEffect, useMemo } from "react";
-import { LinkFormData } from ".";
 
 export type LinkDraft = {
   timestamp: number;

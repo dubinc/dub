@@ -1,4 +1,4 @@
-export default function Tick({ className }: { className: string }) {
+export function Tick({ className }: { className: string }) {
   return (
     <svg
       fill="none"

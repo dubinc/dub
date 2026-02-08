@@ -1,15 +1,12 @@
 import { DubApiError } from "@/lib/api/errors";
-import {
-  isBlacklistedKey,
-  isReservedKey,
-  isReservedUsername,
-} from "@/lib/edge-config";
+import { isBlacklistedKey, isReservedUsername } from "@/lib/edge-config";
 import { checkIfKeyExists } from "@/lib/planetscale";
-import { WorkspaceProps } from "@/lib/types";
+import { Project } from "@dub/prisma/client";
 import {
   DEFAULT_REDIRECTS,
   isDubDomain,
   isReservedKeyGlobal,
+  RESERVED_SLUGS,
 } from "@dub/utils";
 
 export async function keyChecks({
@@ -19,7 +16,7 @@ export async function keyChecks({
 }: {
   domain: string;
   key: string;
-  workspace?: Pick<WorkspaceProps, "plan">;
+  workspace?: Pick<Project, "plan">;
 }): Promise<{ error: string | null; code?: DubApiError["code"] }> {
   if ((key.length === 0 || key === "_root") && workspace?.plan === "free") {
     return {
@@ -36,7 +33,7 @@ export async function keyChecks({
     };
   }
 
-  const link = await checkIfKeyExists(domain, key);
+  const link = await checkIfKeyExists({ domain, key });
   if (link) {
     return {
       error: "Duplicate key: This short link already exists.",
@@ -46,7 +43,7 @@ export async function keyChecks({
 
   if (isDubDomain(domain) && process.env.NEXT_PUBLIC_IS_DUB) {
     if (domain === "dub.sh" || domain === "dub.link") {
-      if (DEFAULT_REDIRECTS[key] || (await isReservedKey(key))) {
+      if (DEFAULT_REDIRECTS[key] || RESERVED_SLUGS.includes(key)) {
         return {
           error: "Duplicate key: This short link already exists.",
           code: "conflict",

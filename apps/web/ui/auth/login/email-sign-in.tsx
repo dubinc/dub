@@ -1,8 +1,6 @@
 import { checkAccountExistsAction } from "@/lib/actions/check-account-exists";
 import { Button, Input, useMediaQuery } from "@dub/ui";
-import { InputPassword } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
-import { Mail } from "lucide-react";
 import { signIn } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
@@ -11,10 +9,10 @@ import { useContext, useState } from "react";
 import { toast } from "sonner";
 import { errorCodes, LoginFormContext } from "./login-form";
 
-export const EmailSignIn = ({ redirectTo }: { redirectTo?: string }) => {
+export const EmailSignIn = ({ next }: { next?: string }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const next = searchParams?.get("next");
+  const finalNext = next ?? searchParams?.get("next");
   const { isMobile } = useMediaQuery();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -50,7 +48,15 @@ export const EmailSignIn = ({ redirectTo }: { redirectTo?: string }) => {
               return;
             }
 
-            const { accountExists, hasPassword } = result.data;
+            const { accountExists, hasPassword, requireSAML } = result.data;
+
+            if (requireSAML) {
+              setClickedMethod(undefined);
+              toast.error(
+                "Your organization requires authentication through your company's identity provider.",
+              );
+              return;
+            }
 
             if (accountExists && hasPassword) {
               setShowPasswordField(true);
@@ -85,7 +91,7 @@ export const EmailSignIn = ({ redirectTo }: { redirectTo?: string }) => {
           const response = await signIn(provider, {
             email,
             redirect: false,
-            callbackUrl: next || redirectTo || "/workspaces",
+            callbackUrl: finalNext || "/workspaces",
             ...(password && { password }),
           });
 
@@ -114,34 +120,50 @@ export const EmailSignIn = ({ redirectTo }: { redirectTo?: string }) => {
           }
 
           if (provider === "credentials") {
-            router.push(response?.url || redirectTo || "/workspaces");
+            router.push(response?.url || finalNext || "/workspaces");
           }
         }}
-        className="flex flex-col gap-y-3"
+        className="flex flex-col gap-y-6"
       >
         {authMethod === "email" && (
-          <input
-            id="email"
-            name="email"
-            autoFocus={!isMobile && !showPasswordField}
-            type="email"
-            placeholder="panic@thedis.co"
-            autoComplete="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            size={1}
-            className={cn(
-              "block w-full min-w-0 appearance-none rounded-md border border-neutral-300 px-3 py-2 placeholder-neutral-400 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm",
-              {
-                "pr-10": isPending,
-              },
-            )}
-          />
+          <label>
+            <span className="text-content-emphasis mb-2 block text-sm font-medium leading-none">
+              Email
+            </span>
+            <input
+              id="email"
+              name="email"
+              autoFocus={!isMobile && !showPasswordField}
+              type="email"
+              placeholder="panic@thedis.co"
+              autoComplete="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              size={1}
+              className={cn(
+                "block w-full min-w-0 appearance-none rounded-md border border-neutral-300 px-3 py-2 placeholder-neutral-400 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm",
+                {
+                  "pr-10": isPending,
+                },
+              )}
+            />
+          </label>
         )}
 
         {showPasswordField && (
-          <div>
+          <label>
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-content-emphasis block text-sm font-medium leading-none">
+                Password
+              </span>
+              <Link
+                href={`/forgot-password?email=${encodeURIComponent(email)}`}
+                className="text-content-subtle hover:text-content-emphasis text-xs leading-none underline underline-offset-2 transition-colors"
+              >
+                Forgot password?
+              </Link>
+            </div>
             <Input
               type="password"
               autoFocus={!isMobile}
@@ -149,19 +171,11 @@ export const EmailSignIn = ({ redirectTo }: { redirectTo?: string }) => {
               placeholder="Password (optional)"
               onChange={(e) => setPassword(e.target.value)}
             />
-          </div>
+          </label>
         )}
 
         <Button
-          text={`Continue with ${password ? "Password" : "Email"}`}
-          variant="secondary"
-          icon={
-            password ? (
-              <InputPassword className="size-4 text-neutral-600" />
-            ) : (
-              <Mail className="size-4 text-neutral-600" />
-            )
-          }
+          text={`Log in with ${password ? "password" : "email"}`}
           {...(authMethod !== "email" && {
             type: "button",
             onClick: (e) => {
@@ -174,14 +188,6 @@ export const EmailSignIn = ({ redirectTo }: { redirectTo?: string }) => {
           disabled={clickedMethod && clickedMethod !== "email"}
         />
       </form>
-      {showPasswordField && (
-        <Link
-          href={`/forgot-password?email=${encodeURIComponent(email)}`}
-          className="text-center text-xs text-neutral-500 transition-colors hover:text-black"
-        >
-          Forgot password?
-        </Link>
-      )}
     </>
   );
 };

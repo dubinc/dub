@@ -1,10 +1,14 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { withAxiom } from "@/lib/axiom/server";
 import { PartnerProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
-import { getSearchParams } from "@dub/utils";
-import { AxiomRequest, withAxiom } from "next-axiom";
-import { ratelimit } from "../upstash";
-import { Session, getSession } from "./utils";
+import { PartnerUser } from "@dub/prisma/client";
+import { getSearchParams, PARTNERS_DOMAIN } from "@dub/utils";
+import { partnerPlatformSchema } from "../zod/schemas/partners";
+import { Permission } from "./partner-users/partner-user-permissions";
+import { throwIfNoPermission } from "./partner-users/throw-if-no-permission";
+import { rateLimitRequest } from "./rate-limit-request";
+import { getSession, Session } from "./utils";
 
 interface WithPartnerProfileHandler {
   ({
@@ -14,25 +18,45 @@ interface WithPartnerProfileHandler {
     headers,
     session,
     partner,
+    partnerUser,
   }: {
     req: Request;
     params: Record<string, string>;
     searchParams: Record<string, string>;
-    headers?: Record<string, string>;
+    headers?: Headers;
     session: Session;
-    partner: PartnerProps;
+    partner: Omit<PartnerProps, "role" | "userId">;
+    partnerUser: Pick<PartnerUser, "userId" | "role">;
   }): Promise<Response>;
 }
 
+interface WithPartnerProfileOptions {
+  requiredPermission?: Permission;
+}
+
+const RATE_LIMIT_FOR_PARTNERS = {
+  api: {
+    limit: 600,
+    interval: "1 m",
+  },
+  analyticsApi: {
+    limit: 8,
+    interval: "1 s",
+  },
+} as const;
+
 export const withPartnerProfile = (
   handler: WithPartnerProfileHandler,
-  {}: {} = {},
+  { requiredPermission }: WithPartnerProfileOptions = {},
 ) => {
   return withAxiom(
     async (
-      req: AxiomRequest,
-      { params = {} }: { params: Record<string, string> | undefined },
+      req,
+      { params: initialParams }: { params: Promise<Record<string, string>> },
     ) => {
+      const params = (await initialParams) || {};
+      let responseHeaders = new Headers();
+
       try {
         const session = await getSession();
 
@@ -46,40 +70,33 @@ export const withPartnerProfile = (
         const searchParams = getSearchParams(req.url);
         const { defaultPartnerId, id: userId } = session.user;
 
-        const partner = await prisma.partner.findFirst({
-          where: {
-            ...(defaultPartnerId && {
-              id: defaultPartnerId,
-            }),
-            users: {
-              some: {
-                userId,
-              },
-            },
-          },
-          include: {
-            users: true,
-          },
+        if (!defaultPartnerId) {
+          throw new DubApiError({
+            code: "not_found",
+            message: "Partner profile not found.",
+          });
+        }
+
+        // Check API rate limit
+        const url = new URL(req.url || "", PARTNERS_DOMAIN);
+        const isAnalytics =
+          url.pathname.includes("/analytics") ||
+          url.pathname.includes("/events");
+
+        const rateLimit =
+          RATE_LIMIT_FOR_PARTNERS[isAnalytics ? "analyticsApi" : "api"];
+
+        const { success, headers } = await rateLimitRequest({
+          requests: rateLimit.limit,
+          interval: rateLimit.interval,
+          identifier: `partner-profile:ratelimit:${session.user.id}`,
         });
 
-        // partner profile doesn't exist
-        if (!partner || !partner.users) {
-          throw new DubApiError({
-            code: "not_found",
-            message: "Partner profile not found.",
-          });
+        if (headers) {
+          for (const [key, value] of Object.entries(headers)) {
+            responseHeaders.set(key, value);
+          }
         }
-
-        // partner profile exists but user is not part of it
-        if (partner.users.length === 0) {
-          throw new DubApiError({
-            code: "not_found",
-            message: "Partner profile not found.",
-          });
-        }
-
-        // rate limit
-        const { success } = await ratelimit(600, "1 m").limit(partner.id);
 
         if (!success) {
           throw new DubApiError({
@@ -88,16 +105,74 @@ export const withPartnerProfile = (
           });
         }
 
+        const partnerUser = await prisma.partnerUser.findUnique({
+          where: {
+            userId_partnerId: {
+              userId,
+              partnerId: defaultPartnerId,
+            },
+          },
+          include: {
+            partner: {
+              include: {
+                industryInterests: true,
+                preferredEarningStructures: true,
+                salesChannels: true,
+                platforms: true,
+              },
+            },
+          },
+        });
+
+        // partnerUser relationship doesn't exist
+        if (!partnerUser) {
+          throw new DubApiError({
+            code: "not_found",
+            message: "Partner profile not found.",
+          });
+        }
+
+        if (requiredPermission) {
+          throwIfNoPermission({
+            role: partnerUser.role,
+            permission: requiredPermission,
+          });
+        }
+
+        const {
+          industryInterests,
+          preferredEarningStructures,
+          salesChannels,
+          platforms,
+          ...partner
+        } = partnerUser.partner;
+
         return await handler({
           req,
           params,
           searchParams,
           session,
-          partner,
+          partner: {
+            ...partner,
+            industryInterests: industryInterests.map(
+              ({ industryInterest }) => industryInterest,
+            ),
+            preferredEarningStructures: preferredEarningStructures.map(
+              ({ preferredEarningStructure }) => preferredEarningStructure,
+            ),
+            salesChannels: salesChannels.map(
+              ({ salesChannel }) => salesChannel,
+            ),
+            platforms: partnerPlatformSchema.array().parse(platforms),
+          } as Omit<PartnerProps, "role" | "userId">,
+          partnerUser: {
+            userId: partnerUser.userId,
+            role: partnerUser.role,
+          },
+          headers: responseHeaders,
         });
       } catch (error) {
-        req.log.error(error);
-        return handleAndReturnErrorResponse(error);
+        return handleAndReturnErrorResponse(error, responseHeaders);
       }
     },
   );

@@ -5,15 +5,17 @@ import {
   handleWebhookFailure,
   resetWebhookFailureCount,
 } from "@/lib/webhook/failure";
+import { handleExternalPayoutEvent } from "@/lib/webhook/handle-external-payout-event";
 import { webhookCallbackSchema } from "@/lib/zod/schemas/webhooks";
 import { prisma } from "@dub/prisma";
 import { getSearchParams } from "@dub/utils";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 const searchParamsSchema = z.object({
   webhookId: z.string(),
   eventId: z.string(),
   event: z.enum(WEBHOOK_TRIGGERS),
+  failed: z.literal("true").optional(),
 });
 
 // POST /api/webhooks/callback – listen to webhooks status from QStash
@@ -24,12 +26,17 @@ export const POST = async (req: Request) => {
   const { url, status, body, sourceBody, sourceMessageId } =
     webhookCallbackSchema.parse(JSON.parse(rawBody));
 
-  const { webhookId, eventId, event } = searchParamsSchema.parse(
-    getSearchParams(req.url),
-  );
+  const {
+    webhookId,
+    eventId,
+    event,
+    failed: deliveryFailed, // failed after all the retries
+  } = searchParamsSchema.parse(getSearchParams(req.url));
 
   const webhook = await prisma.webhook.findUnique({
-    where: { id: webhookId },
+    where: {
+      id: webhookId,
+    },
   });
 
   if (!webhook) {
@@ -39,7 +46,7 @@ export const POST = async (req: Request) => {
 
   const request = Buffer.from(sourceBody, "base64").toString("utf-8");
   const response = Buffer.from(body, "base64").toString("utf-8");
-  const isFailed = status >= 400;
+  const isFailed = status >= 400 || status === -1;
 
   // Unsubscribe Zapier webhook
   if (
@@ -56,13 +63,13 @@ export const POST = async (req: Request) => {
     return new Response(`Unsubscribed Zapier webhook ${webhookId}`);
   }
 
-  await Promise.all([
+  await Promise.allSettled([
     // Record the webhook event
     recordWebhookEvent({
       url,
       event,
       event_id: eventId,
-      http_status: status,
+      http_status: status === -1 ? 503 : status,
       webhook_id: webhookId,
       request_body: request,
       response_body: response,
@@ -75,6 +82,21 @@ export const POST = async (req: Request) => {
     // Only reset if there were previous failures
     ...(webhook.consecutiveFailures > 0 && !isFailed
       ? [resetWebhookFailureCount(webhookId)]
+      : []),
+
+    // Handle payout events
+    ...(event === "payout.confirmed"
+      ? [
+          handleExternalPayoutEvent({
+            webhook,
+            payload: JSON.parse(request),
+            status: deliveryFailed
+              ? "failure"
+              : isFailed
+                ? "temporary_failure"
+                : "success",
+          }),
+        ]
       : []),
   ]);
 

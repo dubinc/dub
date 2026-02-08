@@ -1,34 +1,54 @@
-import { parse } from "@/lib/middleware/utils";
 import { NextRequest, NextResponse } from "next/server";
-import { getDefaultPartner } from "./utils/get-default-partner";
+import { getDefaultPartnerId } from "./utils/get-default-partner";
 import { getUserViaToken } from "./utils/get-user-via-token";
+import { isValidInternalRedirect } from "./utils/is-valid-internal-redirect";
+import { parse } from "./utils/parse";
+import {
+  partnersProgramRedirects,
+  partnersRedirect,
+} from "./utils/partners-redirect";
 
 const AUTHENTICATED_PATHS = [
   "/programs",
   "/marketplace",
   "/onboarding",
-  "/waitlist",
   "/settings",
+  "/profile",
+  "/messages",
+  "/payouts",
   "/account",
+  "/invite",
+  "/rewind",
 ];
 
-export default async function PartnersMiddleware(req: NextRequest) {
-  const { path, fullPath } = parse(req);
+export async function PartnersMiddleware(req: NextRequest) {
+  const { path, fullPath, searchParamsObj, searchParamsString } = parse(req);
 
   const user = await getUserViaToken(req);
+  const isPartnerInvite = req.nextUrl.pathname.endsWith("/invite");
 
   const isAuthenticatedPath = AUTHENTICATED_PATHS.some(
     (p) => path === "/" || path.startsWith(p),
   );
 
-  if (!user && isAuthenticatedPath) {
-    const customAuthProgramSlug = ["framer"].find((p) =>
-      path.startsWith(`/programs/${p}`),
+  const isLoginPath = ["/login", "/register"].some(
+    (p) => path.startsWith(p) || path.endsWith(p),
+  );
+
+  if (partnersProgramRedirects(path)) {
+    return NextResponse.redirect(
+      new URL(
+        `${partnersProgramRedirects(path)}${searchParamsString}`,
+        req.url,
+      ),
+      {
+        status: 301,
+      },
     );
-    if (customAuthProgramSlug) {
-      return NextResponse.redirect(
-        new URL(`/${customAuthProgramSlug}/login`, req.url),
-      );
+  } else if (!user && isAuthenticatedPath) {
+    if (path.startsWith("/programs/")) {
+      const programSlug = path.split("/")[2];
+      return NextResponse.redirect(new URL(`/${programSlug}/login`, req.url));
     }
 
     return NextResponse.redirect(
@@ -37,19 +57,39 @@ export default async function PartnersMiddleware(req: NextRequest) {
         req.url,
       ),
     );
-  } else if (user) {
-    const defaultPartner = await getDefaultPartner(user);
+  } else if (user && (isAuthenticatedPath || isLoginPath)) {
+    const defaultPartnerId = await getDefaultPartnerId(user);
 
-    if (!defaultPartner && !path.startsWith("/onboarding")) {
-      return NextResponse.redirect(new URL("/onboarding", req.url));
-    } else if (path === "/" || path.startsWith("/pn_")) {
-      return NextResponse.redirect(new URL("/programs", req.url));
-    } else if (
-      ["/login", "/register"].some(
-        (p) => path.startsWith(p) || path.endsWith(p),
-      )
+    if (
+      !defaultPartnerId &&
+      !isPartnerInvite &&
+      !["/onboarding", "/account"].some((p) => path.startsWith(p))
     ) {
+      return NextResponse.redirect(new URL("/onboarding", req.url));
+    }
+
+    // Handle ?next= query param with proper validation to prevent open redirects
+    if (
+      searchParamsObj.next &&
+      isValidInternalRedirect(searchParamsObj.next, req.url)
+    ) {
+      return NextResponse.redirect(new URL(searchParamsObj.next, req.url));
+    }
+
+    if (path === "/" || path.startsWith("/pn_")) {
+      return NextResponse.redirect(new URL("/programs", req.url));
+    } else if (isLoginPath) {
+      // if is custom program login or register path, redirect to /programs/:programSlug
+      const programSlugRegex = /^\/([^\/]+)\/(login|register)$/;
+      const match = path.match(programSlugRegex);
+      if (match) {
+        return NextResponse.redirect(new URL(`/programs/${match[1]}`, req.url));
+      }
       return NextResponse.redirect(new URL("/", req.url)); // Redirect authenticated users to dashboard
+    } else if (partnersRedirect(path)) {
+      return NextResponse.redirect(
+        new URL(`${partnersRedirect(path)}${searchParamsString}`, req.url),
+      );
     }
   }
 

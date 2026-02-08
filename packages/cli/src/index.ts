@@ -16,7 +16,7 @@ async function main() {
 
   const program = new Command()
     .name("dub")
-    .description("A CLI for shortening links with the Dub.co API.")
+    .description("A CLI for shortening links with the Dub API.")
     .version(
       packageInfo.version || "1.0.0",
       "-v, --version",

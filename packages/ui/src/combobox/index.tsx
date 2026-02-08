@@ -1,5 +1,5 @@
 import { cn } from "@dub/utils";
-import { Command, CommandInput, CommandItem, useCommandState } from "cmdk";
+import { Command, useCommandState } from "cmdk";
 import { ChevronDown } from "lucide-react";
 import {
   forwardRef,
@@ -9,12 +9,11 @@ import {
   ReactNode,
   useCallback,
   useEffect,
-  useRef,
   useState,
 } from "react";
 import { AnimatedSizeContainer } from "../animated-size-container";
 import { Button, ButtonProps } from "../button";
-import { useMediaQuery, useScrollProgress } from "../hooks";
+import { useMediaQuery } from "../hooks";
 import {
   Check2,
   CheckboxCheckedFill,
@@ -24,12 +23,17 @@ import {
   Plus,
 } from "../icons";
 import { Popover, PopoverProps } from "../popover";
+import { ScrollContainer } from "../scroll-container";
+import { Tooltip } from "../tooltip";
 
 export type ComboboxOption<TMeta = any> = {
-  label: string;
+  label: string | ReactNode;
   value: string;
   icon?: Icon | ReactNode;
+  disabledTooltip?: ReactNode;
   meta?: TMeta;
+  separatorAfter?: boolean;
+  first?: boolean;
 };
 
 export type ComboboxProps<
@@ -40,28 +44,37 @@ export type ComboboxProps<
   selected: TMultiple extends true
     ? ComboboxOption<TMeta>[]
     : ComboboxOption<TMeta> | null;
-  setSelected: TMultiple extends true
+  setSelected?: TMultiple extends true
     ? (options: ComboboxOption<TMeta>[]) => void
     : (option: ComboboxOption<TMeta> | null) => void;
+  onSelect?: (option: ComboboxOption<TMeta>) => void;
+  maxSelected?: number;
   options?: ComboboxOption<TMeta>[];
+  trigger?: ReactNode;
   icon?: Icon | ReactNode;
   placeholder?: ReactNode;
   searchPlaceholder?: string;
   emptyState?: ReactNode;
   createLabel?: (search: string) => ReactNode;
+  createIcon?: Icon;
   onCreate?: (search: string) => Promise<boolean>;
   buttonProps?: ButtonProps;
+  labelProps?: { className?: string };
+  iconProps?: { className?: string };
+  popoverProps?: { contentClassName?: string };
   shortcutHint?: string;
-  caret?: boolean;
+  caret?: boolean | ReactNode;
   side?: PopoverProps["side"];
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   onSearchChange?: (search: string) => void;
   shouldFilter?: boolean;
+  inputRight?: ReactNode;
   inputClassName?: string;
   optionRight?: (option: ComboboxOption) => ReactNode;
   optionClassName?: string;
   matchTriggerWidth?: boolean;
+  hideSearch?: boolean;
 }>;
 
 function isMultipleSelection(
@@ -75,14 +88,21 @@ export function Combobox({
   multiple,
   selected: selectedProp,
   setSelected,
+  onSelect,
+  maxSelected,
   options,
+  trigger,
   icon: Icon,
   placeholder = "Select...",
   searchPlaceholder = "Search...",
   emptyState,
   createLabel,
+  createIcon: CreateIcon = Plus,
   onCreate,
   buttonProps,
+  labelProps,
+  iconProps,
+  popoverProps,
   shortcutHint,
   caret,
   side,
@@ -90,10 +110,12 @@ export function Combobox({
   onOpenChange,
   onSearchChange,
   shouldFilter = true,
+  inputRight,
   inputClassName,
   optionRight,
   optionClassName,
   matchTriggerWidth,
+  hideSearch = false,
   children,
 }: ComboboxProps<boolean | undefined, any>) {
   const isMultiple = isMultipleSelection(multiple, setSelected);
@@ -119,17 +141,25 @@ export function Combobox({
   const [isCreating, setIsCreating] = useState(false);
 
   const handleSelect = (option: ComboboxOption) => {
+    const isAlreadySelected = isMultiple
+      ? selected.some(({ value }) => value === option.value)
+      : selected.length && selected[0]?.value === option.value;
+
+    if (!isAlreadySelected && maxSelected && selected.length >= maxSelected)
+      return;
+
+    onSelect?.(option);
+
     if (isMultiple) {
-      const isAlreadySelected = selected.some(
-        ({ value }) => value === option.value,
-      );
+      if (!setSelected) return;
+
       setSelected(
         isAlreadySelected
           ? selected.filter(({ value }) => value !== option.value)
           : [...selected, option],
       );
     } else {
-      setSelected(
+      setSelected?.(
         selected.length && selected[0]?.value === option.value ? null : option,
       );
       setIsOpen(false);
@@ -140,9 +170,12 @@ export function Combobox({
     (options: ComboboxOption[], search: string) => {
       return search === ""
         ? [
+            ...options.filter(
+              (o) => o.first && !selected.some((s) => s.value === o.value),
+            ),
             ...selected,
             ...options.filter(
-              (o) => selected.findIndex((s) => s.value === o.value) === -1,
+              (o) => !o.first && !selected.some((s) => s.value === o.value),
             ),
           ]
         : options;
@@ -161,7 +194,7 @@ export function Combobox({
   // Sort options when the options prop changes
   useEffect(() => {
     setShouldSortOptions(true);
-  }, [options]);
+  }, [JSON.stringify(options?.map((o) => o.value))]);
 
   // Reset search and sort options when the popover closes
   useEffect(() => {
@@ -172,6 +205,35 @@ export function Combobox({
   }, [isOpen]);
 
   useEffect(() => onSearchChange?.(search), [search]);
+
+  const createOptionItem = (
+    <Command.Item
+      className={cn(
+        "flex cursor-pointer items-center gap-3 whitespace-nowrap rounded-md px-3 py-2 text-left text-sm text-neutral-700",
+        "data-[selected=true]:bg-neutral-100",
+        optionClassName,
+      )}
+      onSelect={async () => {
+        setIsCreating(true);
+        const success = await onCreate?.(search);
+        if (success) {
+          setSearch("");
+          setIsOpen(false);
+        }
+        setIsCreating(false);
+      }}
+    >
+      {isCreating ? (
+        <LoadingSpinner className="size-4 shrink-0" />
+      ) : (
+        <CreateIcon className="size-4 shrink-0" />
+      )}
+      <div className="grow truncate">
+        {createLabel?.(search) ??
+          `Create ${search ? `"${search}"` : "new option..."}`}
+      </div>
+    </Command.Item>
+  );
 
   return (
     <Popover
@@ -185,6 +247,7 @@ export function Combobox({
       }}
       popoverContentClassName={cn(
         matchTriggerWidth && "sm:w-[var(--radix-popover-trigger-width)]",
+        popoverProps?.contentClassName,
       )}
       content={
         <AnimatedSizeContainer
@@ -195,78 +258,72 @@ export function Combobox({
           className="pointer-events-auto"
         >
           <Command loop shouldFilter={shouldFilter}>
-            <div className="flex items-center overflow-hidden rounded-t-lg border-b border-neutral-200">
-              <CommandInput
-                placeholder={searchPlaceholder}
-                value={search}
-                onValueChange={setSearch}
-                className={cn(
-                  "grow border-0 py-3 pl-4 pr-2 outline-none placeholder:text-neutral-400 focus:ring-0 sm:text-sm",
-                  inputClassName,
+            {!hideSearch && (
+              <div className="flex items-center overflow-hidden rounded-t-lg border-b border-neutral-200">
+                <Command.Input
+                  placeholder={searchPlaceholder}
+                  value={search}
+                  onValueChange={setSearch}
+                  className={cn(
+                    "grow border-0 py-3 pl-4 pr-2 outline-none placeholder:text-neutral-400 focus:ring-0 sm:text-sm",
+                    inputClassName,
+                  )}
+                  onKeyDown={(e) => {
+                    if (
+                      e.key === "Escape" ||
+                      (e.key === "Backspace" && !search)
+                    ) {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setIsOpen(false);
+                    }
+                  }}
+                />
+                {inputRight && <div className="mr-2">{inputRight}</div>}
+                {shortcutHint && (
+                  <kbd className="mr-2 hidden shrink-0 rounded border border-neutral-200 bg-neutral-100 px-2 py-0.5 text-xs font-light text-neutral-500 md:block">
+                    {shortcutHint}
+                  </kbd>
                 )}
-                onKeyDown={(e) => {
-                  if (
-                    e.key === "Escape" ||
-                    (e.key === "Backspace" && !search)
-                  ) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setIsOpen(false);
-                  }
-                }}
-              />
-              {shortcutHint && (
-                <kbd className="mr-2 hidden shrink-0 rounded border border-neutral-200 bg-neutral-100 px-2 py-0.5 text-xs font-light text-neutral-500 md:block">
-                  {shortcutHint}
-                </kbd>
+              </div>
+            )}
+            <ScrollContainer
+              className={cn(
+                "max-h-[min(50vh,250px)]",
+                onCreate && !multiple && "max-h-[calc(min(50vh,250px)-3.5rem)]",
               )}
-            </div>
-            <Scroll>
+            >
               <Command.List
                 className={cn("flex w-full min-w-[100px] flex-col gap-1 p-1")}
               >
                 {sortedOptions !== undefined ? (
                   <>
-                    {sortedOptions.map((option) => (
-                      <Option
-                        key={`${option.label}, ${option.value}`}
-                        option={option}
-                        multiple={isMultiple}
-                        selected={selected.some(
-                          ({ value }) => value === option.value,
-                        )}
-                        onSelect={() => handleSelect(option)}
-                        right={optionRight?.(option)}
-                        className={optionClassName}
-                      />
-                    ))}
-                    {search.length > 0 && onCreate && (
-                      <CommandItem
-                        className={cn(
-                          "flex cursor-pointer items-center gap-3 whitespace-nowrap rounded-md px-3 py-2 text-left text-sm text-neutral-700",
-                          "data-[selected=true]:bg-neutral-100",
-                          optionClassName,
-                        )}
-                        onSelect={async () => {
-                          setIsCreating(true);
-                          const success = await onCreate?.(search);
-                          if (success) {
-                            setSearch("");
-                            setIsOpen(false);
-                          }
-                          setIsCreating(false);
-                        }}
-                      >
-                        {isCreating ? (
-                          <LoadingSpinner className="size-4 shrink-0" />
-                        ) : (
-                          <Plus className="size-4 shrink-0" />
-                        )}
-                        <div className="grow truncate">
-                          {createLabel?.(search) || `Create "${search}"`}
-                        </div>
-                      </CommandItem>
-                    )}
+                    {sortedOptions.map((option) => {
+                      const isSelected = selected.some(
+                        ({ value }) => value === option.value,
+                      );
+                      return (
+                        <Option
+                          key={`${option.label}, ${option.value}`}
+                          option={option}
+                          multiple={isMultiple}
+                          selected={isSelected}
+                          onSelect={() => handleSelect(option)}
+                          disabled={Boolean(
+                            !isSelected &&
+                              maxSelected &&
+                              selected.length >= maxSelected,
+                          )}
+                          right={optionRight?.(option)}
+                          className={optionClassName}
+                        />
+                      );
+                    })}
+                    {/* for multiple selection, the create option item is shown at the bottom of the list */}
+                    {onCreate &&
+                      multiple &&
+                      search.length > 0 &&
+                      createOptionItem}
                     {shouldFilter ? (
                       <Empty className="flex min-h-12 items-center justify-center text-sm text-neutral-500">
                         {emptyState ? emptyState : "No matches"}
@@ -286,75 +343,69 @@ export function Combobox({
                   </Command.Loading>
                 )}
               </Command.List>
-            </Scroll>
+            </ScrollContainer>
+            {/* for single selection, the create option item is shown as a sticky item outside of the scroll container */}
+            {onCreate && !multiple && (
+              <div className="rounded-b-lg border-t border-neutral-200 bg-white p-1">
+                {createOptionItem}
+              </div>
+            )}
           </Command>
         </AnimatedSizeContainer>
       }
     >
-      <Button
-        variant="secondary"
-        {...buttonProps}
-        className={cn(buttonProps?.className, "flex gap-2")}
-        textWrapperClassName={cn(
-          buttonProps?.textWrapperClassName,
-          "w-full flex items-center justify-start",
-        )}
-        text={
-          <>
-            <div className="min-w-0 grow truncate text-left">
-              {children ||
-                selected.map((option) => option.label).join(", ") ||
-                placeholder}
-            </div>
-            {caret && (
-              <ChevronDown
-                className={`ml-1 size-4 shrink-0 text-neutral-400 transition-transform duration-75 group-data-[state=open]:rotate-180`}
-              />
-            )}
-          </>
-        }
-        icon={
-          Icon ? (
-            isReactNode(Icon) ? (
-              Icon
-            ) : (
-              <Icon className="size-4 shrink-0" />
-            )
-          ) : undefined
-        }
-      />
+      {trigger ?? (
+        <Button
+          variant="secondary"
+          {...buttonProps}
+          className={cn(buttonProps?.className, "flex gap-2")}
+          textWrapperClassName={cn(
+            buttonProps?.textWrapperClassName,
+            "w-full flex items-center justify-start",
+          )}
+          text={
+            <>
+              <div
+                className={cn(
+                  "min-w-0 grow truncate text-left",
+                  labelProps?.className,
+                )}
+              >
+                {children ||
+                  selected.map((option) => option.label).join(", ") ||
+                  placeholder}
+              </div>
+              {caret &&
+                (caret === true ? (
+                  <ChevronDown
+                    className={`ml-1 size-4 shrink-0 text-neutral-400 transition-transform duration-75 group-data-[state=open]:rotate-180`}
+                  />
+                ) : (
+                  caret
+                ))}
+            </>
+          }
+          icon={
+            Icon ? (
+              isReactNode(Icon) ? (
+                Icon
+              ) : (
+                <Icon className={cn("size-4 shrink-0", iconProps?.className)} />
+              )
+            ) : undefined
+          }
+        />
+      )}
     </Popover>
   );
 }
-
-const Scroll = ({ children }: PropsWithChildren) => {
-  const ref = useRef<HTMLDivElement>(null);
-
-  const { scrollProgress, updateScrollProgress } = useScrollProgress(ref);
-
-  return (
-    <>
-      <div
-        className="scrollbar-hide max-h-[min(50vh,250px)] w-screen overflow-y-scroll sm:w-auto"
-        ref={ref}
-        onScroll={updateScrollProgress}
-      >
-        {children}
-      </div>
-      {/* Bottom scroll fade */}
-      <div
-        className="pointer-events-none absolute bottom-0 left-0 hidden h-16 w-full rounded-b-lg bg-gradient-to-t from-white sm:block"
-        style={{ opacity: 1 - Math.pow(scrollProgress, 2) }}
-      ></div>
-    </>
-  );
-};
 
 function Option({
   option,
   onSelect,
   multiple,
   selected,
+  disabled,
   right,
   className,
 }: {
@@ -362,47 +413,71 @@ function Option({
   onSelect: () => void;
   multiple: boolean;
   selected: boolean;
+  disabled?: boolean;
   right?: ReactNode;
   className?: string;
 }) {
   return (
-    <Command.Item
-      className={cn(
-        "flex cursor-pointer items-center gap-3 whitespace-nowrap rounded-md px-3 py-2 text-left text-sm",
-        "data-[selected=true]:bg-neutral-100",
-        className,
-      )}
-      onSelect={onSelect}
-      value={option.label + option?.value}
-    >
-      {multiple && (
-        <div className="shrink-0 text-neutral-600">
-          {selected ? (
-            <CheckboxCheckedFill className="size-4 text-neutral-600" />
-          ) : (
-            <CheckboxUnchecked className="size-4 text-neutral-400" />
+    <>
+      <DisabledTooltip disabledTooltip={option.disabledTooltip}>
+        <Command.Item
+          className={cn(
+            "flex cursor-pointer items-center gap-3 whitespace-nowrap rounded-md px-3 py-2 text-left text-sm",
+            "data-[selected=true]:bg-neutral-100",
+            Boolean(disabled || option.disabledTooltip) &&
+              "cursor-not-allowed opacity-50",
+            className,
           )}
-        </div>
-      )}
-      <div className="flex min-w-0 grow items-center gap-1">
-        {option.icon && (
-          <span className="shrink-0 text-neutral-600">
-            {isReactNode(option.icon) ? (
-              option.icon
-            ) : (
-              <option.icon className="h-4 w-4" />
+          disabled={disabled || !!option.disabledTooltip}
+          onSelect={onSelect}
+          value={option.label + option?.value}
+        >
+          {multiple && (
+            <div className="shrink-0 text-neutral-600">
+              {selected ? (
+                <CheckboxCheckedFill className="size-4 text-neutral-600" />
+              ) : (
+                <CheckboxUnchecked className="size-4 text-neutral-400" />
+              )}
+            </div>
+          )}
+          <div className="flex min-w-0 grow items-center gap-2">
+            {option.icon && (
+              <span className="shrink-0 text-neutral-600">
+                {isReactNode(option.icon) ? (
+                  option.icon
+                ) : (
+                  <option.icon className="h-4 w-4" />
+                )}
+              </span>
             )}
-          </span>
-        )}
-        <span className="grow truncate">{option.label}</span>
-      </div>
-      {right}
-      {!multiple && selected && (
-        <Check2 className="size-4 shrink-0 text-neutral-600" />
+            <span className="grow truncate">{option.label}</span>
+          </div>
+          {right}
+          {!multiple && selected && (
+            <Check2 className="size-4 shrink-0 text-neutral-600" />
+          )}
+        </Command.Item>
+      </DisabledTooltip>
+      {option.separatorAfter && (
+        <Command.Separator className="-mx-1 my-1 h-px bg-neutral-200" />
       )}
-    </Command.Item>
+    </>
   );
 }
+
+const DisabledTooltip = ({
+  children,
+  disabledTooltip,
+}: PropsWithChildren<{ disabledTooltip: ReactNode }>) => {
+  return disabledTooltip ? (
+    <Tooltip content={disabledTooltip}>
+      <div>{children}</div>
+    </Tooltip>
+  ) : (
+    children
+  );
+};
 
 const isReactNode = (element: any): element is ReactNode =>
   isValidElement(element);

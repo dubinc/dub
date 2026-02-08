@@ -1,21 +1,32 @@
 "use server";
 
+import { createId } from "@/lib/api/create-id";
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { rewardfulImporter } from "@/lib/rewardful/importer";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { getProgramOrThrow } from "../../api/programs/get-program-or-throw";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 const schema = z.object({
   workspaceId: z.string(),
-  programId: z.string(),
-  campaignId: z.string().describe("Rewardful campaign ID to import."),
+  campaignIds: z
+    .array(z.string())
+    .describe("Rewardful campaign IDs to import."),
 });
 
 export const startRewardfulImportAction = authActionClient
-  .schema(schema)
+  .inputSchema(schema)
   .action(async ({ parsedInput, ctx }) => {
-    const { workspace } = ctx;
-    const { campaignId, programId } = parsedInput;
+    const { workspace, user } = ctx;
+    const { campaignIds } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredRoles: ["owner", "member"],
+    });
+
+    const programId = getDefaultProgramIdOrThrow(workspace);
 
     const program = await getProgramOrThrow({
       workspaceId: workspace.id,
@@ -30,15 +41,11 @@ export const startRewardfulImportAction = authActionClient
       throw new Error("Program URL is not set.");
     }
 
-    const credentials = await rewardfulImporter.getCredentials(programId);
-
-    await rewardfulImporter.setCredentials(programId, {
-      ...credentials,
-      campaignId,
-    });
-
     await rewardfulImporter.queue({
+      importId: createId({ prefix: "import_" }),
+      userId: user.id,
       programId,
-      action: "import-campaign",
+      campaignIds,
+      action: "import-campaigns",
     });
   });

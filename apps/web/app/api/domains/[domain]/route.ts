@@ -1,23 +1,28 @@
-import {
-  addDomainToVercel,
-  markDomainAsDeleted,
-  removeDomainFromVercel,
-  validateDomain,
-} from "@/lib/api/domains";
+import { addDomainToVercel } from "@/lib/api/domains/add-domain-vercel";
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
-import { queueDomainUpdate } from "@/lib/api/domains/queue";
+import { markDomainAsDeleted } from "@/lib/api/domains/mark-domain-deleted";
+import { queueDomainUpdate } from "@/lib/api/domains/queue-domain-update";
+import { removeDomainFromVercel } from "@/lib/api/domains/remove-domain-vercel";
+import { transformDomain } from "@/lib/api/domains/transform-domain";
+import { validateDomain } from "@/lib/api/domains/utils";
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
+import { isNonEmptyJson } from "@/lib/api/utils/is-non-empty-json";
 import { withWorkspace } from "@/lib/auth";
+import { setRenewOption } from "@/lib/dynadot/set-renew-option";
 import { storage } from "@/lib/storage";
-import {
-  DomainSchema,
-  updateDomainBodySchema,
-} from "@/lib/zod/schemas/domains";
+import { updateDomainBodySchema } from "@/lib/zod/schemas/domains";
 import { prisma } from "@dub/prisma";
+import { Prisma } from "@dub/prisma/client";
 import { combineWords, nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
+import * as z from "zod/v4";
+
+const updateDomainBodySchemaExtended = updateDomainBodySchema.extend({
+  deepviewData: z.string().nullish(),
+  autoRenew: z.boolean().nullish(),
+});
 
 // GET /api/domains/[domain] – get a workspace's domain
 export const GET = withWorkspace(
@@ -28,7 +33,7 @@ export const GET = withWorkspace(
       dubDomainChecks: true,
     });
 
-    return NextResponse.json(DomainSchema.parse(domainRecord));
+    return NextResponse.json(transformDomain(domainRecord));
   },
   {
     requiredPermissions: ["domains.read"],
@@ -39,9 +44,9 @@ export const GET = withWorkspace(
 export const PATCH = withWorkspace(
   async ({ req, workspace, params }) => {
     const {
+      id: domainId,
       slug: domain,
       registeredDomain,
-      id: domainId,
       logo: oldLogo,
     } = await getDomainOrThrow({
       workspace,
@@ -54,17 +59,33 @@ export const PATCH = withWorkspace(
       placeholder,
       expiredUrl,
       notFoundUrl,
-      archived,
       logo,
-    } = updateDomainBodySchema.parse(await parseRequestBody(req));
+      archived,
+      assetLinks,
+      appleAppSiteAssociation,
+      deepviewData,
+      autoRenew,
+    } = await updateDomainBodySchemaExtended.parseAsync(
+      await parseRequestBody(req),
+    );
 
     if (workspace.plan === "free") {
-      if (logo || expiredUrl || notFoundUrl) {
+      if (
+        logo ||
+        expiredUrl ||
+        notFoundUrl ||
+        assetLinks ||
+        appleAppSiteAssociation ||
+        isNonEmptyJson(deepviewData)
+      ) {
         const proFeaturesString = combineWords(
           [
             logo && "custom QR code logos",
             expiredUrl && "default expiration URLs",
             notFoundUrl && "not found URLs",
+            assetLinks && "Asset Links",
+            appleAppSiteAssociation && "Apple App Site Association",
+            isNonEmptyJson(deepviewData) && "Deep View",
           ].filter(Boolean) as string[],
         );
 
@@ -85,6 +106,7 @@ export const PATCH = withWorkspace(
           message: "You cannot update a Dub-provisioned domain.",
         });
       }
+
       const validDomain = await validateDomain(newDomain);
       if (validDomain.error && validDomain.code) {
         throw new DubApiError({
@@ -92,6 +114,7 @@ export const PATCH = withWorkspace(
           message: validDomain.error,
         });
       }
+
       const vercelResponse = await addDomainToVercel(newDomain);
       if (vercelResponse.error) {
         throw new DubApiError({
@@ -102,7 +125,10 @@ export const PATCH = withWorkspace(
     }
 
     const logoUploaded = logo
-      ? await storage.upload(`domains/${domainId}/logo_${nanoid(7)}`, logo)
+      ? await storage.upload({
+          key: `domains/${domainId}/logo_${nanoid(7)}`,
+          body: logo,
+        })
       : null;
 
     // If logo is null, we want to delete the logo (explicitly set in the request body to null or "")
@@ -119,17 +145,58 @@ export const PATCH = withWorkspace(
         expiredUrl,
         notFoundUrl,
         logo: deleteLogo ? null : logoUploaded?.url || oldLogo,
+        ...(assetLinks !== undefined && {
+          assetLinks: assetLinks ? JSON.parse(assetLinks) : Prisma.DbNull,
+        }),
+        ...(appleAppSiteAssociation !== undefined && {
+          appleAppSiteAssociation: appleAppSiteAssociation
+            ? JSON.parse(appleAppSiteAssociation)
+            : Prisma.DbNull,
+        }),
+        ...(deepviewData !== undefined && {
+          deepviewData: deepviewData ? JSON.parse(deepviewData) : Prisma.DbNull,
+        }),
       },
       include: {
         registeredDomain: true,
       },
     });
 
+    // Sync the autoRenew setting with the registered domain
+    if (registeredDomain && autoRenew !== undefined) {
+      const { autoRenewalDisabledAt } = registeredDomain;
+
+      const shouldUpdate =
+        (autoRenew === false && autoRenewalDisabledAt === null) ||
+        (autoRenew === true && autoRenewalDisabledAt !== null);
+
+      if (shouldUpdate) {
+        await prisma.registeredDomain.update({
+          where: {
+            domainId: domainId,
+          },
+          data: {
+            autoRenewalDisabledAt: autoRenew ? null : new Date(),
+          },
+        });
+
+        // only set the autoRenew option on Dynadot if it's been explicitly disabled
+        if (autoRenew === false) {
+          waitUntil(
+            setRenewOption({
+              domain,
+              autoRenew,
+            }),
+          );
+        }
+      }
+    }
+
     waitUntil(
       (async () => {
         // remove old logo
         if (oldLogo && (logo === null || logoUploaded)) {
-          await storage.delete(oldLogo.replace(`${R2_URL}/`, ""));
+          await storage.delete({ key: oldLogo.replace(`${R2_URL}/`, "") });
         }
 
         if (domainUpdated) {
@@ -139,17 +206,15 @@ export const PATCH = withWorkspace(
 
             // trigger the queue to rename the redis keys and update the links in Tinybird
             queueDomainUpdate({
-              workspaceId: workspace.id,
               oldDomain: domain,
               newDomain: newDomain,
-              page: 1,
             }),
           ]);
         }
       })(),
     );
 
-    return NextResponse.json(DomainSchema.parse(domainRecord));
+    return NextResponse.json(transformDomain(domainRecord));
   },
   {
     requiredPermissions: ["domains.write"],
@@ -159,7 +224,11 @@ export const PATCH = withWorkspace(
 // DELETE /api/domains/[domain] - delete a workspace's domain
 export const DELETE = withWorkspace(
   async ({ params, workspace }) => {
-    const { slug: domain, registeredDomain } = await getDomainOrThrow({
+    const {
+      slug: domain,
+      registeredDomain,
+      partnerProgram,
+    } = await getDomainOrThrow({
       workspace,
       domain: params.domain,
       dubDomainChecks: true,
@@ -172,9 +241,16 @@ export const DELETE = withWorkspace(
       });
     }
 
+    if (partnerProgram) {
+      throw new DubApiError({
+        code: "forbidden",
+        message:
+          "You cannot delete a domain that is actively in use in a partner program.",
+      });
+    }
+
     await markDomainAsDeleted({
       domain,
-      workspaceId: workspace.id,
     });
 
     return NextResponse.json({ slug: domain });

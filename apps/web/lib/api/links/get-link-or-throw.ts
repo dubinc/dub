@@ -1,6 +1,11 @@
 import { prisma } from "@dub/prisma";
 import { Link } from "@dub/prisma/client";
 import { DubApiError } from "../errors";
+import { prefixWorkspaceId } from "../workspaces/workspace-id";
+import {
+  decodeLinkIfCaseSensitive,
+  encodeKeyIfCaseSensitive,
+} from "./case-sensitivity";
 
 interface GetLinkParams {
   workspaceId: string;
@@ -8,11 +13,20 @@ interface GetLinkParams {
   externalId?: string;
   domain?: string;
   key?: string;
+  includeUser?: boolean;
+  includeWebhooks?: boolean;
 }
 
 // Get link or throw error if not found or doesn't belong to workspace
 export const getLinkOrThrow = async (params: GetLinkParams) => {
-  let { workspaceId, domain, key, externalId } = params;
+  let {
+    workspaceId,
+    domain,
+    key,
+    externalId,
+    includeUser = false,
+    includeWebhooks = false,
+  } = params;
   let link: Link | null = null;
 
   const linkId = params.linkId || params.externalId || undefined;
@@ -34,17 +48,30 @@ export const getLinkOrThrow = async (params: GetLinkParams) => {
             }
           : { id: linkId }),
       },
+      include: {
+        webhooks: includeWebhooks,
+        user: includeUser,
+      },
     });
   }
 
   // Get link by domain and key
   else if (domain && key) {
+    key = encodeKeyIfCaseSensitive({
+      domain,
+      key,
+    });
+
     link = await prisma.link.findUnique({
       where: {
         domain_key: {
           domain,
           key,
         },
+      },
+      include: {
+        webhooks: includeWebhooks,
+        user: includeUser,
       },
     });
   }
@@ -66,9 +93,9 @@ export const getLinkOrThrow = async (params: GetLinkParams) => {
   if (link.projectId !== workspaceId) {
     throw new DubApiError({
       code: "unauthorized",
-      message: `Link does not belong to workspace ws_${workspaceId}.`,
+      message: `Link does not belong to workspace ${prefixWorkspaceId(workspaceId)}.`,
     });
   }
 
-  return link;
+  return decodeLinkIfCaseSensitive(link);
 };

@@ -3,8 +3,9 @@ import {
   FOLDER_WORKSPACE_ACCESS,
 } from "@/lib/folder/constants";
 import { FolderAccessLevel } from "@/lib/types";
-import z from "@/lib/zod";
-import { FolderUserRole } from "@dub/prisma/client";
+import { FolderType, FolderUserRole } from "@dub/prisma/client";
+import * as z from "zod/v4";
+import { getPaginationQuerySchema } from "./misc";
 
 const workspaceFolderAccess = z
   .enum(
@@ -24,27 +25,34 @@ export const folderUserRoleSchema = z
 export const FolderSchema = z.object({
   id: z.string().describe("The unique ID of the folder."),
   name: z.string().describe("The name of the folder."),
+  description: z.string().nullable().describe("The description of the folder."),
+  type: z.enum(Object.keys(FolderType) as [FolderType, ...FolderType[]]),
   accessLevel: workspaceFolderAccess,
-  linkCount: z
-    .number()
-    .describe("The number of links in the folder.")
-    .default(0),
   createdAt: z.date().describe("The date the folder was created."),
   updatedAt: z.date().describe("The date the folder was updated."),
 });
 
+export const FOLDER_MAX_DESCRIPTION_LENGTH = 500;
+
 export const createFolderSchema = z.object({
   name: z.string().describe("The name of the folder.").max(190),
+  description: z
+    .string()
+    .max(FOLDER_MAX_DESCRIPTION_LENGTH)
+    .nullish()
+    .describe("The description of the folder."),
   accessLevel: workspaceFolderAccess,
 });
 
-export const listFoldersQuerySchema = z.object({
-  search: z
-    .string()
-    .optional()
-    .describe("The search term to filter the folders by."),
-});
+export const FOLDERS_MAX_PAGE_SIZE = 50;
+
+export const listFoldersQuerySchema = z
+  .object({
+    search: z
+      .string()
+      .optional()
+      .describe("The search term to filter the folders by."),
+  })
+  .extend(getPaginationQuerySchema({ pageSize: FOLDERS_MAX_PAGE_SIZE }));
 
 export const updateFolderSchema = createFolderSchema.partial();
-
-export const FOLDERS_MAX_PAGE_SIZE = 50;

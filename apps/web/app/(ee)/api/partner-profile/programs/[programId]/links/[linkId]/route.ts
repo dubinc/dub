@@ -1,0 +1,207 @@
+import { DubApiError, ErrorCodes } from "@/lib/api/errors";
+import { deleteLink, processLink, updateLink } from "@/lib/api/links";
+import { validatePartnerLinkUrl } from "@/lib/api/links/validate-partner-link-url";
+import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
+import { parseRequestBody } from "@/lib/api/utils";
+import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
+import { withPartnerProfile } from "@/lib/auth/partner";
+import { NewLinkProps } from "@/lib/types";
+import { PartnerProfileLinkSchema } from "@/lib/zod/schemas/partner-profile";
+import { createPartnerLinkSchema } from "@/lib/zod/schemas/partners";
+import { prisma } from "@dub/prisma";
+import { getPrettyUrl } from "@dub/utils";
+import { NextResponse } from "next/server";
+
+// PATCH /api/partner-profile/[programId]/links/[linkId] - update a link for a partner
+export const PATCH = withPartnerProfile(
+  async ({ partner, params, req, session }) => {
+    const { url, key, comments } = createPartnerLinkSchema
+      .pick({ url: true, key: true, comments: true })
+      .parse(await parseRequestBody(req));
+
+    const { programId, linkId } = params;
+
+    const {
+      program,
+      links,
+      status,
+      partnerGroup: group,
+    } = await getProgramEnrollmentOrThrow({
+      partnerId: partner.id,
+      programId,
+      include: {
+        program: true,
+        links: true,
+        partnerGroup: true,
+      },
+    });
+
+    if (["banned", "deactivated"].includes(status)) {
+      throw new DubApiError({
+        code: "forbidden",
+        message: "You are banned from this program.",
+      });
+    }
+
+    if (!group) {
+      throw new DubApiError({
+        code: "forbidden",
+        message:
+          "You're not part of any group yet. Please reach out to the program owner to be added.",
+      });
+    }
+
+    const link = links.find((link) => link.id === linkId);
+
+    if (!link) {
+      throw new DubApiError({
+        code: "not_found",
+        message: "Link not found.",
+      });
+    }
+
+    if (!program.domain || !program.url) {
+      throw new DubApiError({
+        code: "bad_request",
+        message:
+          "This program needs a domain and URL set before creating a link.",
+      });
+    }
+
+    const linkUrlChanged = getPrettyUrl(link.url) !== getPrettyUrl(url);
+
+    if (linkUrlChanged) {
+      if (link.partnerGroupDefaultLinkId) {
+        throw new DubApiError({
+          code: "forbidden",
+          message:
+            "You cannot update the destination URL of your default link.",
+        });
+      } else {
+        validatePartnerLinkUrl({ group, url });
+      }
+    }
+
+    // check if the group has a UTM template
+    const groupUtmTemplate = group.utmTemplateId
+      ? await prisma.utmTemplate.findUnique({
+          where: {
+            id: group.utmTemplateId,
+          },
+        })
+      : null;
+
+    // if domain and key are the same, we don't need to check if the key exists
+    const skipKeyChecks = link.key.toLowerCase() === key?.toLowerCase();
+
+    const {
+      link: processedLink,
+      error,
+      code,
+    } = await processLink({
+      payload: {
+        ...link,
+        ...(groupUtmTemplate ? extractUtmParams(groupUtmTemplate) : {}),
+        // coerce types
+        expiresAt:
+          link.expiresAt instanceof Date
+            ? link.expiresAt.toISOString()
+            : link.expiresAt,
+        geo: link.geo as NewLinkProps["geo"],
+        testVariants: link.testVariants as NewLinkProps["testVariants"],
+        testCompletedAt:
+          link.testCompletedAt instanceof Date
+            ? link.testCompletedAt.toISOString()
+            : link.testCompletedAt,
+        testStartedAt:
+          link.testStartedAt instanceof Date
+            ? link.testStartedAt.toISOString()
+            : link.testStartedAt,
+
+        // merge in new props
+        key: key || undefined,
+        url: url || program.url,
+        comments,
+      },
+      workspace: {
+        id: program.workspaceId,
+        plan: "business",
+        users: [{ role: "owner" }],
+      },
+      userId: session.user.id,
+      skipKeyChecks,
+      skipFolderChecks: true, // can't be changed by the partner
+      skipProgramChecks: true, // can't be changed by the partner
+      skipExternalIdChecks: true, // can't be changed by the partner
+    });
+
+    if (error != null) {
+      throw new DubApiError({
+        code: code as ErrorCodes,
+        message: error,
+      });
+    }
+
+    const partnerLink = await updateLink({
+      oldLink: {
+        domain: link.domain,
+        key: link.key,
+        image: link.image,
+      },
+      updatedLink: processedLink,
+    });
+
+    return NextResponse.json(PartnerProfileLinkSchema.parse(partnerLink));
+  },
+);
+
+// DELETE /api/partner-profile/[programId]/links/[linkId] - delete a link for a partner
+export const DELETE = withPartnerProfile(async ({ partner, params }) => {
+  const { programId, linkId } = params;
+
+  const { links, status } = await getProgramEnrollmentOrThrow({
+    partnerId: partner.id,
+    programId,
+    include: {
+      links: true,
+    },
+  });
+
+  if (["banned", "deactivated"].includes(status)) {
+    throw new DubApiError({
+      code: "forbidden",
+      message: "You are banned from this program.",
+    });
+  }
+
+  const link = links.find((link) => link.id === linkId);
+
+  if (!link) {
+    throw new DubApiError({
+      code: "not_found",
+      message: "Link not found.",
+    });
+  }
+
+  // Check if this is a default link
+  if (link.partnerGroupDefaultLinkId) {
+    throw new DubApiError({
+      code: "forbidden",
+      message: "You cannot delete your default link.",
+    });
+  }
+
+  // Check if link has any clicks, leads, or sales
+  if (link.clicks > 0 || link.leads > 0 || link.saleAmount > 0) {
+    throw new DubApiError({
+      code: "bad_request",
+      message:
+        "You can only delete links with 0 clicks, 0 leads, and $0 in sales.",
+    });
+  }
+
+  // Delete the link
+  await deleteLink(link.id);
+
+  return NextResponse.json({ id: link.id });
+});

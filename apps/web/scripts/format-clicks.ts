@@ -87,7 +87,6 @@ async function main() {
         timestamp,
         click_id: nanoid(16),
         link_id: link.link_id,
-        alias_link_id: "",
         url: link.url || "",
         bot: data.bot === "1" ? 1 : 0,
       };

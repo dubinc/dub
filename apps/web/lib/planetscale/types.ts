@@ -3,6 +3,7 @@ export interface EdgeLinkProps {
   domain: string;
   key: string;
   url: string;
+  shortLink: string;
   proxy: number;
   title: string;
   description: string;
@@ -18,6 +19,9 @@ export interface EdgeLinkProps {
   publicStats: number;
   expiredUrl: string | null;
   createdAt: string;
+  trackConversion: boolean;
+  programId: string | null;
+  partnerId: string | null;
 }
 
 export interface EdgeDomainProps {

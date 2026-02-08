@@ -3,9 +3,10 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import EmptyState from "@/ui/shared/empty-state";
 import { Menu3 } from "@dub/ui/icons";
+import { cn } from "@dub/utils";
 import { useContext } from "react";
 import AnalyticsProvider, { AnalyticsContext } from "../analytics-provider";
-import Toggle from "../toggle";
+import { AnalyticsToggle } from "../toggle";
 import EventsTable from "./events-table";
 import EventsTabs from "./events-tabs";
 
@@ -13,21 +14,29 @@ export default function AnalyticsEvents({
   staticDomain,
   staticUrl,
   adminPage,
-  demoPage,
 }: {
   staticDomain?: string;
   staticUrl?: string;
   adminPage?: boolean;
-  demoPage?: boolean;
 }) {
   return (
-    <AnalyticsProvider {...{ staticDomain, staticUrl, adminPage, demoPage }}>
+    <AnalyticsProvider {...{ staticDomain, staticUrl, adminPage }}>
       <div className="pb-10">
-        <Toggle page="events" />
-        <div className="mx-auto flex max-w-screen-xl flex-col gap-3 px-3 lg:px-10">
-          <EventsTabs />
-          <EventsTableContainer />
-        </div>
+        <AnalyticsToggle page="events" />
+        <AnalyticsContext.Consumer>
+          {({ dashboardProps }) => (
+            <div
+              className={cn(
+                "mx-auto flex max-w-screen-xl flex-col gap-3 px-3 lg:px-10",
+                // TODO: [PageContent] Remove once all pages are migrated to the new PageContent
+                !dashboardProps && !adminPage && "lg:px-6",
+              )}
+            >
+              <EventsTabs />
+              <EventsTableContainer />
+            </div>
+          )}
+        </AnalyticsContext.Consumer>
       </div>
     </AnalyticsProvider>
   );

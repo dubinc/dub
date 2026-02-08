@@ -38,7 +38,7 @@ export function News({ articles }: { articles: NewsArticle[] }) {
 
   return cards.length || showCompleted ? (
     <div
-      className="group overflow-hidden px-3 pb-3 pt-8"
+      className="group overflow-hidden border-t border-neutral-200 p-3 pt-6 transition-all duration-200 hover:pt-10"
       data-active={cardCount !== 0}
     >
       <div className="relative size-full">
@@ -132,7 +132,7 @@ function NewsCard({
     startTime: 0,
     maxDelta: 0,
   });
-  const animation = useRef<Animation>();
+  const animation = useRef<Animation>(undefined);
   const [dragging, setDragging] = useState(false);
 
   const onDragMove = (e: PointerEvent) => {
@@ -158,13 +158,13 @@ function NewsCard({
     animation.current.onfinish = () => onDismiss?.();
   };
 
-  const stopDragging = (cancelled: boolean) => {
+  const stopDragging = (canceled: boolean) => {
     if (!ref.current) return;
     unbindListeners();
     setDragging(false);
 
     const dx = drag.current.delta;
-    if (Math.abs(dx) > ref.current.clientWidth / (cancelled ? 2 : 3)) {
+    if (Math.abs(dx) > ref.current.clientWidth / (canceled ? 2 : 3)) {
       dismiss();
       return;
     }

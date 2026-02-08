@@ -1,0 +1,66 @@
+import { getAnalytics } from "@/lib/analytics/get-analytics";
+import { DubApiError } from "@/lib/api/errors";
+import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
+import { withPartnerProfile } from "@/lib/auth/partner";
+import {
+  LARGE_PROGRAM_IDS,
+  LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS,
+  MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING,
+} from "@/lib/constants/partner-profile";
+import { partnerProfileAnalyticsQuerySchema } from "@/lib/zod/schemas/partner-profile";
+import { NextResponse } from "next/server";
+
+// GET /api/partner-profile/programs/[programId]/analytics – get analytics for a program enrollment link
+export const GET = withPartnerProfile(
+  async ({ partner, params, searchParams }) => {
+    const { program, links, totalCommissions } =
+      await getProgramEnrollmentOrThrow({
+        partnerId: partner.id,
+        programId: params.programId,
+        include: {
+          program: true,
+          links: true,
+        },
+      });
+
+    let { linkId, domain, key, ...rest } =
+      partnerProfileAnalyticsQuerySchema.parse(searchParams);
+
+    if (linkId) {
+      if (!links.some((link) => link.id === linkId)) {
+        throw new DubApiError({
+          code: "not_found",
+          message: "Link not found",
+        });
+      }
+    } else if (domain && key) {
+      const foundLink = links.find(
+        (link) => link.domain === domain && link.key === key,
+      );
+      if (!foundLink) {
+        throw new DubApiError({
+          code: "not_found",
+          message: "Link not found",
+        });
+      }
+
+      linkId = foundLink.id;
+    }
+
+    const response = await getAnalytics({
+      ...(LARGE_PROGRAM_IDS.includes(program.id) &&
+      totalCommissions < LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS
+        ? { event: rest.event, groupBy: "count", interval: "all" }
+        : rest),
+      workspaceId: program.workspaceId,
+      ...(linkId
+        ? { linkId }
+        : links.length > MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING
+          ? { partnerId: partner.id }
+          : { linkIds: links.map((link) => link.id) }),
+      dataAvailableFrom: program.startedAt ?? program.createdAt,
+    });
+
+    return NextResponse.json(response);
+  },
+);

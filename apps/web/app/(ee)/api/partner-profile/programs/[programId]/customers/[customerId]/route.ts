@@ -1,0 +1,105 @@
+import { getCustomerEvents } from "@/lib/analytics/get-customer-events";
+import { transformCustomer } from "@/lib/api/customers/transform-customer";
+import { DubApiError } from "@/lib/api/errors";
+import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
+import { withPartnerProfile } from "@/lib/auth/partner";
+import {
+  LARGE_PROGRAM_IDS,
+  LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS,
+} from "@/lib/constants/partner-profile";
+import { generateRandomName } from "@/lib/names";
+import { PartnerProfileCustomerSchema } from "@/lib/zod/schemas/partner-profile";
+import { prisma } from "@dub/prisma";
+import { CommissionType } from "@dub/prisma/client";
+import { NextResponse } from "next/server";
+import * as z from "zod/v4";
+
+// GET /api/partner-profile/programs/:programId/customers/:customerId – Get a customer by ID
+export const GET = withPartnerProfile(async ({ partner, params }) => {
+  const { customerId, programId } = params;
+
+  const { program, links, totalCommissions, customerDataSharingEnabledAt } =
+    await getProgramEnrollmentOrThrow({
+      partnerId: partner.id,
+      programId: programId,
+      include: {
+        program: true,
+        links: true,
+      },
+    });
+
+  if (
+    LARGE_PROGRAM_IDS.includes(program.id) &&
+    totalCommissions < LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS
+  ) {
+    throw new DubApiError({
+      code: "forbidden",
+      message: "This feature is not available for your program.",
+    });
+  }
+
+  const customer = await prisma.customer.findUnique({
+    where: {
+      id: customerId,
+    },
+    include: {
+      // find the first sale commission for this customer and partner
+      commissions: {
+        where: {
+          partnerId: partner.id,
+          type: CommissionType.sale,
+        },
+        take: 1,
+        orderBy: {
+          createdAt: "asc",
+        },
+      },
+    },
+  });
+
+  if (!customer || customer?.projectId !== program.workspaceId) {
+    throw new DubApiError({
+      code: "not_found",
+      message: "Customer is not part of this program.",
+    });
+  }
+
+  const events = await getCustomerEvents({
+    customerId: customer.id,
+    linkIds: links.map((link) => link.id),
+  });
+
+  if (events.length === 0) {
+    throw new DubApiError({
+      code: "not_found",
+      message: "Customer is not attributed to any links by this partner.",
+    });
+  }
+
+  // get the first partner link that this customer interacted with
+  const firstLinkId = events[events.length - 1].link_id;
+  const link = links.find((link) => link.id === firstLinkId);
+  const firstSaleAt =
+    customer.commissions[0]?.createdAt ?? customer.firstSaleAt;
+
+  return NextResponse.json(
+    PartnerProfileCustomerSchema.extend({
+      ...(customerDataSharingEnabledAt && { name: z.string().nullish() }),
+    }).parse({
+      ...transformCustomer({
+        ...customer,
+        firstSaleAt,
+        email: customer.email
+          ? customerDataSharingEnabledAt
+            ? customer.email
+            : customer.email.replace(/(?<=^.).+(?=.@)/, "****")
+          : customer.name || generateRandomName(),
+      }),
+      activity: {
+        ...customer,
+        events,
+        link,
+      },
+    }),
+  );
+});

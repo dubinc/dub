@@ -1,8 +1,9 @@
+import { linksSortOptions } from "@/lib/links/links-display";
 import { IconMenu, Popover, Tick, useRouterStuff } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { ChevronDown, SortDesc } from "lucide-react";
 import { useContext, useState } from "react";
-import { LinksDisplayContext, sortOptions } from "./links-display-provider";
+import { LinksDisplayContext } from "./links-display-provider";
 
 export default function LinkSort() {
   const { queryParams } = useRouterStuff();
@@ -11,13 +12,13 @@ export default function LinkSort() {
 
   const { sortBy, setSort } = useContext(LinksDisplayContext);
   const selectedSort =
-    sortOptions.find((s) => s.slug === sortBy) ?? sortOptions[0];
+    linksSortOptions.find((s) => s.slug === sortBy) ?? linksSortOptions[0];
 
   return (
     <Popover
       content={
         <div className="w-full p-2 md:w-48">
-          {sortOptions.map(({ display, slug }) => (
+          {linksSortOptions.map(({ display, slug }) => (
             <button
               key={slug}
               onClick={() => {

@@ -1,3 +1,4 @@
+import containerQueries from "@tailwindcss/container-queries";
 import forms from "@tailwindcss/forms";
 import typography from "@tailwindcss/typography";
 import scrollbarHide from "tailwind-scrollbar-hide";
@@ -20,6 +21,8 @@ const config: Config = {
           css: {
             "blockquote p:first-of-type::before": { content: "none" },
             "blockquote p:first-of-type::after": { content: "none" },
+            "code::before": { content: '""' },
+            "code::after": { content: '""' },
           },
         },
       },
@@ -44,6 +47,7 @@ const config: Config = {
         // Modal
         "scale-in": "scale-in 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
         "fade-in": "fade-in 0.2s ease-out forwards",
+        "fade-in-blur": "fade-in-blur 0.5s ease-out forwards",
         "scale-in-fade": "scale-in-fade 0.2s ease-out forwards",
         // Popover, Tooltip
         "slide-up-fade": "slide-up-fade 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
@@ -76,12 +80,17 @@ const config: Config = {
       keyframes: {
         // Modal
         "scale-in": {
-          "0%": { transform: "scale(0.95)" },
-          "100%": { transform: "scale(1)" },
+          "0%": { transform: "scale(var(--from-scale,0.95))" },
+          "100%": { transform: "scale(var(--to-scale,1))" },
         },
         "fade-in": {
           "0%": { opacity: "0" },
           "100%": { opacity: "1" },
+        },
+        "fade-in-blur": {
+          "0%": { opacity: "0", filter: "blur(4px)" },
+          "50%": { opacity: "0.5", filter: "blur(0px)" },
+          "100%": { opacity: "1", filter: "blur(0px)" },
         },
         "scale-in-fade": {
           "0%": { transform: "scale(0.95)", opacity: "0" },
@@ -203,13 +212,59 @@ const config: Config = {
           800: "#846358",
           900: "#43302b",
         },
+
+        // Light/dark mode colors
+
+        "bg-emphasis": "rgb(var(--bg-emphasis, 229 229 229) / <alpha-value>)",
+        "bg-default": "rgb(var(--bg-default, 255 255 255) / <alpha-value>)",
+        "bg-subtle": "rgb(var(--bg-subtle, 245 245 245) / <alpha-value>)",
+        "bg-muted": "rgb(var(--bg-muted, 250 250 250) / <alpha-value>)",
+        "bg-inverted": "rgb(var(--bg-inverted, 23 23 23) / <alpha-value>)",
+
+        "bg-info": "rgb(var(--bg-info, 191 219 254) / <alpha-value>)",
+        "bg-success": "rgb(var(--bg-success, 220 252 231) / <alpha-value>)",
+        "bg-attention": "rgb(var(--bg-attention, 255 237 213) / <alpha-value>)",
+        "bg-error": "rgb(var(--bg-error, 254 226 226) / <alpha-value>)",
+
+        "border-emphasis":
+          "rgb(var(--border-emphasis, 163 163 163) / <alpha-value>)",
+        "border-default":
+          "rgb(var(--border-default, 212 212 212) / <alpha-value>)",
+        "border-subtle":
+          "rgb(var(--border-subtle, 229 229 229) / <alpha-value>)",
+        "border-muted": "rgb(var(--border-muted, 245 245 245) / <alpha-value>)",
+
+        "content-inverted":
+          "rgb(var(--content-inverted, 255 255 255) / <alpha-value>)",
+        "content-muted":
+          "rgb(var(--content-muted, 163 163 163) / <alpha-value>)",
+        "content-subtle":
+          "rgb(var(--content-subtle, 115 115 115) / <alpha-value>)",
+        "content-default":
+          "rgb(var(--content-default, 64 64 64) / <alpha-value>)",
+        "content-emphasis":
+          "rgb(var(--content-emphasis, 23 23 23) / <alpha-value>)",
+
+        "content-info": "rgb(var(--content-info, 29 78 216) / <alpha-value>)",
+        "content-success":
+          "rgb(var(--content-success, 21 128 61) / <alpha-value>)",
+        "content-attention":
+          "rgb(var(--content-attention, 194 65 12) / <alpha-value>)",
+        "content-error": "rgb(var(--content-error, 185 28 28) / <alpha-value>)",
       },
       dropShadow: {
         "card-hover": ["0 8px 12px #222A350d", "0 32px 80px #2f30370f"],
       },
     },
   },
-  plugins: [forms, typography, scrollbarHide, radix],
+  plugins: [
+    forms,
+    typography,
+    scrollbarHide,
+    radix,
+    // TODO: Remove the container queries plugin when we upgrade to Tailwind v4
+    containerQueries,
+  ],
 };
 
 export default config;

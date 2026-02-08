@@ -1,144 +1,85 @@
-import { INTERVAL_DATA } from "@/lib/analytics/constants";
 import { convertToCSV } from "@/lib/analytics/utils";
-import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
+import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
+import { getLinksCount } from "@/lib/api/links";
+import { formatLinksForExport } from "@/lib/api/links/format-links-for-export";
+import { getLinksForWorkspace } from "@/lib/api/links/get-links-for-workspace";
 import { throwIfClicksUsageExceeded } from "@/lib/api/links/usage-checks";
+import { validateLinksQueryFilters } from "@/lib/api/links/validate-links-query-filters";
 import { withWorkspace } from "@/lib/auth";
-import { verifyFolderAccess } from "@/lib/folder/permissions";
+import { MEGA_WORKSPACE_LINKS_LIMIT } from "@/lib/constants/misc";
+import { qstash } from "@/lib/cron";
 import { linksExportQuerySchema } from "@/lib/zod/schemas/links";
-import { prisma } from "@dub/prisma";
-import { linkConstructor } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { endOfDay, startOfDay } from "date-fns";
+import { NextResponse } from "next/server";
 
-// GET /api/links/export – export links to CSV
+const MAX_LINKS_TO_EXPORT = 1000;
+
+// GET /api/links/export – export links to CSV
 export const GET = withWorkspace(
   async ({ searchParams, workspace, session }) => {
     throwIfClicksUsageExceeded(workspace);
 
-    const {
-      domain,
-      tagIds,
-      search,
-      sort,
-      userId,
-      showArchived,
-      withTags,
-      start,
-      end,
-      interval,
-      columns,
-      folderId,
-    } = linksExportQuerySchema.parse(searchParams);
+    const { columns, ...filters } = linksExportQuerySchema.parse(searchParams);
 
-    if (domain) {
-      await getDomainOrThrow({ workspace, domain });
-    }
-
-    if (folderId) {
-      await verifyFolderAccess({
-        workspace,
-        userId: session.user.id,
-        folderId,
-        requiredPermission: "folders.read",
-      });
-    }
-
-    const links = await prisma.link.findMany({
-      select: {
-        id: columns.includes("id"),
-        domain: columns.includes("link"),
-        key: columns.includes("link"),
-        url: columns.includes("url"),
-        clicks: columns.includes("clicks"),
-        createdAt: columns.includes("createdAt"),
-        updatedAt: columns.includes("updatedAt"),
-        ...(columns.includes("tags") && {
-          tags: {
-            select: {
-              tag: {
-                select: {
-                  name: true,
-                },
-              },
-            },
-          },
-        }),
-        archived: columns.includes("archived"),
-      },
-      where: {
-        projectId: workspace.id,
-        archived: showArchived ? undefined : false,
-        createdAt: {
-          gte:
-            start ??
-            (interval && interval !== "all"
-              ? INTERVAL_DATA[interval].startDate
-              : undefined),
-          lte: end ?? new Date(),
-        },
-        ...(domain && { domain }),
-        ...(search && {
-          OR: [
-            {
-              key: { contains: search },
-            },
-            {
-              url: { contains: search },
-            },
-          ],
-        }),
-        ...(withTags && {
-          tags: {
-            some: {},
-          },
-        }),
-        ...(tagIds &&
-          tagIds.length > 0 && {
-            tags: { some: { tagId: { in: tagIds } } },
-          }),
-        ...(userId && { userId }),
-        folderId: folderId || null,
-      },
-
-      // TODO: orderBy is not currently supported
-      orderBy: {
-        [sort]: "desc",
-      },
+    const { folderIds } = await validateLinksQueryFilters({
+      ...filters,
+      workspace,
+      userId: session.user.id,
     });
 
-    const csvData = convertToCSV(
-      links.map((link) => {
-        // Use a Map to maintain order of keys
-        let result = new Map([
-          ...(columns.includes("link")
-            ? [
-                [
-                  "link",
-                  linkConstructor({ domain: link.domain, key: link.key }),
-                ] as [string, string],
-              ]
-            : []),
-          ...Object.entries(link),
-        ]);
+    const { interval, start, end } = filters;
 
-        if (columns.includes("link")) {
-          result.delete("domain");
-          result.delete("key");
-        }
+    const { startDate, endDate } = getStartEndDates({
+      interval,
+      start: start ? startOfDay(new Date(start)) : undefined,
+      end: end ? endOfDay(new Date(end)) : undefined,
+    });
 
-        if (columns.includes("tags")) {
-          result.set(
-            "tags",
-            link.tags.map((tag) => (tag as any).tag.name).join(", "),
-          );
-        }
+    const linksCount = (await getLinksCount({
+      ...filters,
+      workspaceId: workspace.id,
+      folderIds,
+    })) as number;
 
-        return Object.fromEntries(result.entries());
+    // Process the export in the background if the number of links is greater than MAX_LINKS_TO_EXPORT
+    if (linksCount > MAX_LINKS_TO_EXPORT) {
+      await qstash.publishJSON({
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/export/links`,
+        body: {
+          ...searchParams,
+          workspaceId: workspace.id,
+          userId: session.user.id,
+        },
+      });
+
+      return NextResponse.json({}, { status: 202 });
+    }
+
+    const links = await getLinksForWorkspace({
+      ...filters,
+      ...(interval !== "all" && {
+        startDate,
+        endDate,
       }),
-    );
+      searchMode:
+        workspace.totalLinks > MEGA_WORKSPACE_LINKS_LIMIT ? "exact" : "fuzzy",
+      includeDashboard: false,
+      includeUser: false,
+      includeWebhooks: false,
+      page: 1,
+      pageSize: MAX_LINKS_TO_EXPORT,
+      workspaceId: workspace.id,
+      folderIds,
+    });
+
+    const formattedLinks = formatLinksForExport(links, columns);
+    const csvData = convertToCSV(formattedLinks);
 
     return new Response(csvData, {
       headers: {
         "Content-Type": "application/csv",
-        "Content-Disposition": `attachment; filename=links_export.csv`,
+        "Content-Disposition": "attachment",
       },
     });
   },

@@ -1,14 +1,15 @@
+import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
 import { OAUTH_CONFIG } from "@/lib/api/oauth/constants";
 import { createToken } from "@/lib/api/oauth/utils";
-import { createId, parseRequestBody } from "@/lib/api/utils";
+import { parseRequestBody } from "@/lib/api/utils";
 import { hashToken, withWorkspace } from "@/lib/auth";
 import { storage } from "@/lib/storage";
-import z from "@/lib/zod";
 import { createOAuthAppSchema, oAuthAppSchema } from "@/lib/zod/schemas/oauth";
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { NextResponse } from "next/server";
+import * as z from "zod/v4";
 
 // GET /api/oauth/apps - get all OAuth apps created by a workspace
 export const GET = withWorkspace(
@@ -55,7 +56,7 @@ export const POST = withWorkspace(
       logo,
       pkce,
       screenshots,
-    } = createOAuthAppSchema.parse(await parseRequestBody(req));
+    } = await createOAuthAppSchema.parseAsync(await parseRequestBody(req));
 
     const integration = await prisma.integration.findUnique({
       where: {
@@ -111,29 +112,16 @@ export const POST = withWorkspace(
             },
           },
         },
-        select: {
-          id: true,
-          createdAt: true,
-          updatedAt: true,
-          name: true,
-          slug: true,
-          description: true,
-          developer: true,
-          logo: true,
-          website: true,
-          installUrl: true,
-          readme: true,
-          screenshots: true,
-          verified: true,
+        include: {
           oAuthApp: true,
         },
       });
 
       if (logo) {
-        const { url } = await storage.upload(
-          `integrations/${integration.id}_${nanoid(7)}`,
-          logo,
-        );
+        const { url } = await storage.upload({
+          key: `integrations/${integration.id}_${nanoid(7)}`,
+          body: logo,
+        });
 
         await prisma.integration.update({
           where: {

@@ -1,15 +1,16 @@
+import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
+import { detectAndRecordFraudEvent } from "@/lib/api/fraud/detect-record-fraud-event";
 import { includeTags } from "@/lib/api/links/include-tags";
-import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
-import { calculateSaleEarnings } from "@/lib/api/sales/calculate-earnings";
-import { createId } from "@/lib/api/utils";
+import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
+import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
+import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import { recordSale } from "@/lib/tinybird";
+import { LeadEventTB } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformSaleEventData } from "@/lib/webhook/transform";
-import z from "@/lib/zod";
-import { leadEventSchemaTB } from "@/lib/zod/schemas/leads";
 import { prisma } from "@dub/prisma";
-import { nanoid } from "@dub/utils";
+import { nanoid, pick } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { orderSchema } from "./schema";
 
@@ -22,7 +23,7 @@ export async function createShopifySale({
   event: any;
   customerId: string;
   workspaceId: string;
-  leadData: z.infer<typeof leadEventSchemaTB>;
+  leadData: LeadEventTB;
 }) {
   const order = orderSchema.parse(event);
 
@@ -32,7 +33,7 @@ export async function createShopifySale({
     current_subtotal_price_set: { shop_money: shopMoney },
   } = order;
 
-  const amount = Number(shopMoney.amount) * 100;
+  const amount = Math.round(Number(shopMoney.amount) * 100); // round to nearest cent
   const { link_id: linkId } = leadData;
   const currency = shopMoney.currency_code.toLowerCase();
 
@@ -54,6 +55,7 @@ export async function createShopifySale({
 
   const saleData = {
     ...leadData,
+    workspace_id: leadData.workspace_id || workspaceId, // in case for some reason the lead event doesn't have workspace_id
     event_id: nanoid(16),
     event_name: "Purchase",
     payment_processor: "shopify",
@@ -62,6 +64,17 @@ export async function createShopifySale({
     invoice_id: invoiceId,
     metadata: JSON.stringify(order),
   };
+
+  const existingCustomer = await prisma.customer.findUniqueOrThrow({
+    where: {
+      id: customerId,
+    },
+  });
+
+  const firstConversionFlag = isFirstConversion({
+    customer: existingCustomer,
+    linkId,
+  });
 
   const [_sale, link, workspace, customer] = await Promise.all([
     // record sale
@@ -73,6 +86,12 @@ export async function createShopifySale({
         id: linkId,
       },
       data: {
+        ...(firstConversionFlag && {
+          conversions: {
+            increment: 1,
+          },
+          lastConversionAt: new Date(),
+        }),
         sales: {
           increment: 1,
         },
@@ -92,20 +111,91 @@ export async function createShopifySale({
         usage: {
           increment: 1,
         },
-        salesUsage: {
+      },
+    }),
+    prisma.customer.update({
+      where: {
+        id: existingCustomer.id,
+      },
+      data: {
+        sales: {
+          increment: 1,
+        },
+        saleAmount: {
           increment: amount,
         },
+        firstSaleAt: existingCustomer.firstSaleAt ? undefined : new Date(),
       },
     }),
-
-    prisma.customer.findUniqueOrThrow({
-      where: {
-        id: customerId,
-      },
-    }),
-
     redis.del(`shopify:checkout:${checkoutToken}`),
   ]);
+
+  // for program links
+  let createdCommission:
+    | Awaited<ReturnType<typeof createPartnerCommission>>
+    | undefined = undefined;
+
+  if (link.programId && link.partnerId) {
+    createdCommission = await createPartnerCommission({
+      event: "sale",
+      programId: link.programId,
+      partnerId: link.partnerId,
+      linkId: link.id,
+      eventId: saleData.event_id,
+      customerId: customer.id,
+      amount: saleData.amount,
+      quantity: 1,
+      invoiceId: saleData.invoice_id,
+      currency: saleData.currency,
+      context: {
+        customer: {
+          country: customer.country,
+        },
+        sale: {
+          amount: saleData.amount,
+        },
+      },
+    });
+
+    const { webhookPartner, programEnrollment } = createdCommission;
+
+    waitUntil(
+      Promise.allSettled([
+        executeWorkflows({
+          trigger: "partnerMetricsUpdated",
+          reason: "sale",
+          identity: {
+            workspaceId: workspaceId,
+            programId: link.programId,
+            partnerId: link.partnerId,
+          },
+          metrics: {
+            current: {
+              saleAmount: saleData.amount,
+              conversions: firstConversionFlag ? 1 : 0,
+            },
+          },
+        }),
+
+        syncPartnerLinksStats({
+          partnerId: link.partnerId,
+          programId: link.programId,
+          eventType: "sale",
+        }),
+
+        webhookPartner &&
+          detectAndRecordFraudEvent({
+            program: { id: link.programId },
+            partner: pick(webhookPartner, ["id", "email", "name"]),
+            programEnrollment: pick(programEnrollment, ["status"]),
+            customer: pick(customer, ["id", "email", "name"]),
+            link: pick(link, ["id"]),
+            click: pick(saleData, ["url", "referer"]),
+            event: { id: saleData.event_id },
+          }),
+      ]),
+    );
+  }
 
   waitUntil(
     sendWorkspaceWebhook({
@@ -116,65 +206,9 @@ export async function createShopifySale({
         link,
         clickedAt: customer.clickedAt || customer.createdAt,
         customer,
+        partner: createdCommission?.webhookPartner,
+        metadata: null,
       }),
     }),
   );
-
-  // for program links
-  // TODO: check if link.partnerId as well, so we can just do findUnique partnerId_programId
-  if (link.programId) {
-    const { program, ...partner } =
-      await prisma.programEnrollment.findFirstOrThrow({
-        where: {
-          links: {
-            some: {
-              id: linkId,
-            },
-          },
-        },
-        select: {
-          program: true,
-          partnerId: true,
-          commissionAmount: true,
-        },
-      });
-
-    const saleEarnings = calculateSaleEarnings({
-      program,
-      partner,
-      sales: 1,
-      saleAmount: amount,
-    });
-
-    await prisma.commission.create({
-      data: {
-        id: createId({ prefix: "cm_" }),
-        programId: program.id,
-        linkId: link.id,
-        partnerId: partner.partnerId,
-        eventId: saleData.event_id,
-        customerId: customer.id,
-        quantity: 1,
-        type: "sale",
-        amount,
-        earnings: saleEarnings,
-        invoiceId,
-        currency,
-      },
-    });
-
-    waitUntil(
-      notifyPartnerSale({
-        partner: {
-          id: partner.partnerId,
-          referralLink: link.shortLink,
-        },
-        program,
-        sale: {
-          amount,
-          earnings: saleEarnings,
-        },
-      }),
-    );
-  }
 }

@@ -15,26 +15,35 @@ interface WithAdminHandler {
   }): Promise<Response>;
 }
 
+export const isDubAdmin = async (userId: string) => {
+  const response = await prisma.projectUsers.findUnique({
+    where: {
+      userId_projectId: {
+        userId,
+        projectId: DUB_WORKSPACE_ID,
+      },
+    },
+  });
+  if (!response) {
+    return false;
+  }
+  return true;
+};
+
 export const withAdmin =
   (handler: WithAdminHandler) =>
   async (
     req: Request,
-    { params = {} }: { params: Record<string, string> | undefined },
+    { params: initialParams }: { params: Promise<Record<string, string>> },
   ) => {
+    const params = (await initialParams) || {};
     const session = await getSession();
     if (!session?.user) {
       return new Response("Unauthorized: Login required.", { status: 401 });
     }
 
-    const response = await prisma.projectUsers.findUnique({
-      where: {
-        userId_projectId: {
-          userId: session.user.id,
-          projectId: DUB_WORKSPACE_ID,
-        },
-      },
-    });
-    if (!response) {
+    const isAdminUser = await isDubAdmin(session.user.id);
+    if (!isAdminUser) {
       return new Response("Unauthorized: Not an admin.", { status: 401 });
     }
 

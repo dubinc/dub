@@ -1,4 +1,4 @@
-import { DubApiError, exceededLimitError } from "@/lib/api/errors";
+import { DubApiError } from "@/lib/api/errors";
 import {
   bulkCreateLinks,
   checkIfLinksHaveTags,
@@ -7,14 +7,17 @@ import {
 } from "@/lib/api/links";
 import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
 import { bulkUpdateLinks } from "@/lib/api/links/bulk-update-links";
+import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
+import { includeTags } from "@/lib/api/links/include-tags";
 import { throwIfLinksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { checkIfLinksHaveFolders } from "@/lib/api/links/utils/check-if-links-have-folders";
 import { combineTagIds } from "@/lib/api/tags/combine-tag-ids";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import {
-  checkFolderPermissions,
   verifyFolderAccess,
+  verifyFolderAccessBulk,
 } from "@/lib/folder/permissions";
 import { storage } from "@/lib/storage";
 import { NewLinkProps, ProcessedLinkProps } from "@/lib/types";
@@ -43,7 +46,7 @@ export const POST = withWorkspace(
     const links = bulkCreateLinksBodySchema.parse(await parseRequestBody(req));
     if (
       workspace.linksUsage + links.length > workspace.linksLimit &&
-      (workspace.plan === "free" || workspace.plan === "pro")
+      workspace.plan !== "enterprise" //  don't throw an error for enterprise plans
     ) {
       throw new DubApiError({
         code: "exceeded_limit",
@@ -63,6 +66,7 @@ export const POST = withWorkspace(
           .slice(index + 1)
           .some((l) => l.domain === link.domain && l.key === link.key),
     );
+
     if (duplicates.length > 0) {
       throw new DubApiError({
         code: "bad_request",
@@ -120,17 +124,23 @@ export const POST = withWorkspace(
           name: true,
         },
       });
+
       const workspaceTagIds = workspaceTags.map(({ id }) => id);
-      const workspaceTagNames = workspaceTags.map(({ name }) => name);
+      const workspaceTagNames = workspaceTags.map(({ name }) =>
+        name.toLowerCase(),
+      );
+
       validLinks.forEach((link, index) => {
         const combinedTagIds =
           combineTagIds({
             tagId: link.tagId,
             tagIds: link.tagIds,
           }) ?? [];
+
         const invalidTagIds = combinedTagIds.filter(
           (id) => !workspaceTagIds.includes(id),
         );
+
         if (invalidTagIds.length > 0) {
           // remove link from validLinks and add error to errorLinks
           validLinks = validLinks.filter((_, i) => i !== index);
@@ -142,8 +152,9 @@ export const POST = withWorkspace(
         }
 
         const invalidTagNames = link.tagNames?.filter(
-          (name) => !workspaceTagNames.includes(name),
+          (name) => !workspaceTagNames.includes(name.toLowerCase()),
         );
+
         if (invalidTagNames?.length) {
           validLinks = validLinks.filter((_, i) => i !== index);
           errorLinks.push({
@@ -162,8 +173,8 @@ export const POST = withWorkspace(
         ),
       ];
 
-      const folderPermissions = await checkFolderPermissions({
-        workspaceId: workspace.id,
+      const folderPermissions = await verifyFolderAccessBulk({
+        workspace,
         userId: session.user.id,
         folderIds,
         requiredPermission: "folders.links.write",
@@ -335,14 +346,12 @@ export const PATCH = withWorkspace(
     }
 
     if (checkIfLinksHaveFolders(links)) {
-      const folderIds = [
-        ...new Set(
-          links.map((link) => link.folderId).filter(Boolean) as string[],
-        ),
-      ];
+      const folderIds = Array.from(
+        new Set(links.map((link) => link.folderId).filter(Boolean) as string[]),
+      );
 
-      const folderPermissions = await checkFolderPermissions({
-        workspaceId: workspace.id,
+      const folderPermissions = await verifyFolderAccessBulk({
+        workspace,
         userId: session.user.id,
         folderIds,
         requiredPermission: "folders.links.write",
@@ -359,7 +368,7 @@ export const PATCH = withWorkspace(
 
         if (!validFolder?.hasPermission) {
           errorLinks.push({
-            error: `You don't have permission to move this link to the folder: ${link.folderId}`,
+            error: `You don't have permission to update links in this folder: ${link.folderId}`,
             code: "forbidden",
             link,
           });
@@ -381,6 +390,15 @@ export const PATCH = withWorkspace(
                 ? link.expiresAt.toISOString()
                 : link.expiresAt,
             geo: link.geo as NewLinkProps["geo"],
+            testVariants: link.testVariants as NewLinkProps["testVariants"],
+            testCompletedAt:
+              link.testCompletedAt instanceof Date
+                ? link.testCompletedAt.toISOString()
+                : link.testCompletedAt,
+            testStartedAt:
+              link.testStartedAt instanceof Date
+                ? link.testStartedAt.toISOString()
+                : link.testStartedAt,
             ...data,
           },
           workspace,
@@ -430,7 +448,7 @@ export const PATCH = withWorkspace(
                 link.image.startsWith(`${R2_URL}/images/${link.id}`) &&
                 link.image !== data.image
               ) {
-                storage.delete(link.image.replace(`${R2_URL}/`, ""));
+                storage.delete({ key: link.image.replace(`${R2_URL}/`, "") });
               }
             }),
           );
@@ -484,7 +502,6 @@ export const DELETE = withWorkspace(
     let links = await prisma.link.findMany({
       where: {
         projectId: workspace.id,
-        programId: null,
         OR: [
           ...(linkIds.size > 0 ? [{ id: { in: Array.from(linkIds) } }] : []),
           ...(externalIds.size > 0
@@ -493,11 +510,8 @@ export const DELETE = withWorkspace(
         ],
       },
       include: {
-        tags: {
-          select: {
-            tag: true,
-          },
-        },
+        ...includeTags,
+        ...includeProgramEnrollment,
       },
     });
 
@@ -508,8 +522,8 @@ export const DELETE = withWorkspace(
         ),
       ];
 
-      const folderPermissions = await checkFolderPermissions({
-        workspaceId: workspace.id,
+      const folderPermissions = await verifyFolderAccessBulk({
+        workspace,
         userId: session.user.id,
         folderIds,
         requiredPermission: "folders.links.write",

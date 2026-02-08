@@ -12,10 +12,11 @@ import {
   Tailwind,
   Text,
 } from "@react-email/components";
+import { addBusinessDays } from "date-fns";
 import { Footer } from "../components/footer";
 
 // Send this email when the payout is confirmed when payment is send using ACH
-export function PartnerPayoutConfirmed({
+export default function PartnerPayoutConfirmed({
   email = "panic@thedis.co",
   program = {
     id: "prog_CYCu7IMAapjkRpTnr8F1azjN",
@@ -25,8 +26,12 @@ export function PartnerPayoutConfirmed({
   payout = {
     id: "po_8VuCr2i7WnG65d4TNgZO19fT",
     amount: 490,
+    initiatedAt: new Date("2024-11-22"),
     startDate: new Date("2024-11-01"),
     endDate: new Date("2024-11-30"),
+    mode: "internal",
+    paymentMethod: "ach",
+    payoutMethod: "stripe",
   },
 }: {
   email: string;
@@ -38,35 +43,50 @@ export function PartnerPayoutConfirmed({
   payout: {
     id: string;
     amount: number;
-    startDate: Date;
-    endDate: Date;
+    initiatedAt: Date | null;
+    startDate?: Date | null;
+    endDate?: Date | null;
+    mode: "internal" | "external" | null;
+    paymentMethod: string;
+    payoutMethod: "stripe" | "paypal";
   };
 }) {
-  const saleAmountInDollars = currencyFormatter(payout.amount / 100, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+  const payoutAmountInDollars = currencyFormatter(payout.amount);
 
-  const startDate = formatDate(payout.startDate, {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
+  const startDate = payout.startDate
+    ? formatDate(payout.startDate, {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        timeZone: "UTC",
+      })
+    : null;
 
-  const endDate = formatDate(payout.endDate, {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
+  const endDate = payout.endDate
+    ? formatDate(payout.endDate, {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        timeZone: "UTC",
+      })
+    : null;
+
+  const etaDays = payout.paymentMethod === "ach_fast" ? 2 : 5;
 
   return (
     <Html>
       <Head />
-      <Preview>Your payout is being processed</Preview>
+      <Preview>
+        {program.name} has initiated a payout of {payoutAmountInDollars}
+        {startDate && endDate
+          ? ` for affiliate commissions made from ${startDate} to ${endDate}`
+          : ""}
+        .
+      </Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
-          <Container className="mx-auto my-10 max-w-[500px] rounded border border-solid border-neutral-200 px-10 py-5">
-            <Section className="my-8">
+          <Container className="mx-auto my-10 max-w-[600px] rounded border border-solid border-neutral-200 px-10 py-5">
+            <Section className="mt-8">
               <Img
                 src={program.logo || "https://assets.dub.co/logo.png"}
                 height="32"
@@ -74,27 +94,58 @@ export function PartnerPayoutConfirmed({
               />
             </Section>
 
-            <Heading className="mx-0 p-0 text-lg font-medium text-black">
-              Your payout is being processed!
+            <Heading className="mx-0 my-7 p-0 text-lg font-medium text-black">
+              Your payout is on the way!
             </Heading>
 
             <Text className="text-sm leading-6 text-neutral-600">
               <strong className="text-black">{program.name}</strong> has
               initiated a payout of{" "}
-              <strong className="text-black">{saleAmountInDollars}</strong> for
-              affiliate sales made from{" "}
-              <strong className="text-black">{startDate}</strong> to{" "}
-              <strong className="text-black">{endDate}</strong>.
+              <strong className="text-black">{payoutAmountInDollars}</strong>
+              {startDate && endDate ? (
+                <>
+                  {" "}
+                  for affiliate commissions made from{" "}
+                  <strong className="text-black">{startDate}</strong> to{" "}
+                  <strong className="text-black">{endDate}</strong>
+                </>
+              ) : (
+                ""
+              )}
+              .
             </Text>
+
             <Text className="text-sm leading-6 text-neutral-600">
               The payout is currently being processed and is expected to be
-              credited to your account within 5 business days.
+              transferred to your{" "}
+              <strong className="text-black">
+                {payout.mode === "external"
+                  ? program.name
+                  : payout.payoutMethod === "paypal"
+                    ? "PayPal"
+                    : "Stripe Express"}
+              </strong>{" "}
+              account in{" "}
+              <strong className="text-black">{etaDays} business days</strong>{" "}
+              (excluding weekends and public holidays).
             </Text>
+
+            {payout.initiatedAt && (
+              <Text className="text-sm leading-6 text-neutral-600">
+                <span className="text-sm text-neutral-500">
+                  Estimated arrival date:{" "}
+                  <strong className="text-black">
+                    {formatDate(addBusinessDays(payout.initiatedAt, etaDays))}
+                  </strong>
+                  .
+                </span>
+              </Text>
+            )}
 
             <Section className="mb-12 mt-8">
               <Link
-                className="rounded-md bg-neutral-900 px-4 py-3 text-[12px] font-medium text-white no-underline"
-                href={`https://partners.dub.co/settings/payouts?payoutId=${payout.id}`}
+                className="rounded-lg bg-neutral-900 px-4 py-3 text-[12px] font-semibold text-white no-underline"
+                href={`https://partners.dub.co/payouts?payoutId=${payout.id}`}
               >
                 View payout
               </Link>

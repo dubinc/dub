@@ -1,8 +1,17 @@
-import z from "@/lib/zod";
 import { getLinksQuerySchemaExtended } from "@/lib/zod/schemas/links";
 import { prisma } from "@dub/prisma";
+import * as z from "zod/v4";
 import { combineTagIds } from "../tags/combine-tag-ids";
+import { encodeKeyIfCaseSensitive } from "./case-sensitivity";
 import { transformLink } from "./utils";
+
+export interface GetLinksForWorkspaceProps
+  extends z.infer<typeof getLinksQuerySchemaExtended> {
+  workspaceId: string;
+  folderIds?: string[];
+  startDate?: Date;
+  endDate?: Date;
+}
 
 export async function getLinksForWorkspace({
   workspaceId,
@@ -11,6 +20,7 @@ export async function getLinksForWorkspace({
   tagIds,
   tagNames,
   search,
+  searchMode,
   sort, // Deprecated
   sortBy,
   sortOrder,
@@ -27,10 +37,9 @@ export async function getLinksForWorkspace({
   includeDashboard,
   tenantId,
   partnerId,
-}: z.infer<typeof getLinksQuerySchemaExtended> & {
-  workspaceId: string;
-  folderIds?: string[];
-}) {
+  startDate,
+  endDate,
+}: GetLinksForWorkspaceProps) {
   const combinedTagIds = combineTagIds({ tagId, tagIds });
 
   // support legacy sort param
@@ -38,37 +47,71 @@ export async function getLinksForWorkspace({
     sortBy = sort;
   }
 
+  if (searchMode === "exact" && search) {
+    try {
+      const url = new URL(search);
+      const domain = url.hostname;
+      const key = url.pathname.slice(1);
+
+      if (key) {
+        const encodedKey = encodeKeyIfCaseSensitive({
+          domain,
+          key,
+        });
+
+        search = search.replace(key, encodedKey);
+      }
+    } catch (e) {}
+  }
+
   const links = await prisma.link.findMany({
     where: {
+      ...(linkIds && { id: { in: linkIds } }),
       projectId: workspaceId,
+      ...(tenantId && { tenantId }),
+      AND: [
+        ...(folderIds
+          ? [
+              {
+                OR: [
+                  {
+                    folderId: {
+                      in: folderIds,
+                    },
+                  },
+                  {
+                    folderId: null,
+                  },
+                ],
+              },
+            ]
+          : [
+              {
+                folderId: folderId || null,
+              },
+            ]),
+        ...(search
+          ? [
+              {
+                ...(searchMode === "fuzzy" && {
+                  OR: [
+                    {
+                      shortLink: { contains: search },
+                    },
+                    {
+                      url: { contains: search },
+                    },
+                  ],
+                }),
+                ...(searchMode === "exact" && {
+                  shortLink: { startsWith: search },
+                }),
+              },
+            ]
+          : []),
+      ],
       archived: showArchived ? undefined : false,
-      ...(folderIds
-        ? {
-            OR: [
-              {
-                folderId: {
-                  in: folderIds.filter((id) => id !== ""),
-                },
-              },
-              {
-                folderId: null,
-              },
-            ],
-          }
-        : {
-            folderId: folderId || null,
-          }),
       ...(domain && { domain }),
-      ...(search && {
-        OR: [
-          {
-            shortLink: { contains: search },
-          },
-          {
-            url: { contains: search },
-          },
-        ],
-      }),
       ...(withTags && {
         tags: {
           some: {},
@@ -91,10 +134,15 @@ export async function getLinksForWorkspace({
               },
             }
           : {}),
-      ...(tenantId && { tenantId }),
       ...(partnerId && { partnerId }),
       ...(userId && { userId }),
-      ...(linkIds && { id: { in: linkIds } }),
+      ...(startDate &&
+        endDate && {
+          createdAt: {
+            gte: startDate,
+            lte: endDate,
+          },
+        }),
     },
     include: {
       tags: {

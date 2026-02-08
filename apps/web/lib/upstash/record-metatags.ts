@@ -2,7 +2,7 @@ import { getDomainWithoutWWW } from "@dub/utils";
 import { redis } from "./redis";
 
 /**
- * Recording metatags that were generated via `/api/metatags`
+ * Recording metatags that were generated via "/api/links/metatags"
  * If there's an error, it will be logged to a separate redis list for debugging
  **/
 export async function recordMetatags(url: string, error: boolean) {

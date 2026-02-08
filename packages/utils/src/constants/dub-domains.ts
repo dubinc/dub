@@ -70,12 +70,19 @@ export const DUB_DOMAINS = [
           archived: false,
           placeholder: "https://cal.com/steven",
           allowedHostnames: [
+            "app.acuityscheduling.com",
             "cal.com",
             "calendly.com",
             "calendar.app.google",
-            "chillipiper.com",
+            "calendar.google.com",
+            "calendar.notion.so",
+            "chilipiper.com",
+            "fantastical.app",
+            "fillout.com",
             "hubspot.com",
+            "mentordeck.com",
             "savvycal.com",
+            "scheduler.default.com",
             "tidycal.com",
             "you.ashbyhq.com",
             "zcal.co",
@@ -139,17 +146,6 @@ export const DUB_DOMAINS = [
           allowedHostnames: ["figma.com"],
           description:
             "Branded domain for Figma links (portfolios, prototypes, presentations, etc.).",
-          projectId: DUB_WORKSPACE_ID,
-        },
-        {
-          id: "clugy7euh000a11h6ignmj42o",
-          slug: "loooooooo.ng",
-          verified: true,
-          primary: false,
-          archived: true,
-          placeholder: "https://d.to/long",
-          description:
-            "Branded domain for lengthening links instead of shortening them (April Fool's Prank).",
           projectId: DUB_WORKSPACE_ID,
         },
       ]

@@ -1,15 +1,14 @@
-import { getFolderIdsToFilter } from "@/lib/analytics/get-folder-ids-to-filter";
-import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import { createLink, getLinksForWorkspace, processLink } from "@/lib/api/links";
 import { throwIfLinksUsageExceeded } from "@/lib/api/links/usage-checks";
+import { validateLinksQueryFilters } from "@/lib/api/links/validate-links-query-filters";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { verifyFolderAccess } from "@/lib/folder/permissions";
+import { MEGA_WORKSPACE_LINKS_LIMIT } from "@/lib/constants/misc";
 import { ratelimit } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {
-  createLinkBodySchema,
+  createLinkBodySchemaAsync,
   getLinksQuerySchemaExtended,
   linkEventSchema,
 } from "@/lib/zod/schemas/links";
@@ -20,38 +19,20 @@ import { NextResponse } from "next/server";
 // GET /api/links – get all links for a workspace
 export const GET = withWorkspace(
   async ({ headers, searchParams, workspace, session }) => {
-    const params = getLinksQuerySchemaExtended.parse(searchParams);
-    const { domain, folderId, search, tagId, tagIds, tagNames } = params;
+    const filters = getLinksQuerySchemaExtended.parse(searchParams);
 
-    if (domain) {
-      await getDomainOrThrow({ workspace, domain });
-    }
-
-    if (folderId) {
-      await verifyFolderAccess({
-        workspace,
-        userId: session.user.id,
-        folderId,
-        requiredPermission: "folders.read",
-      });
-    }
-
-    /* we only need to get the folder ids if we are:
-      - not filtering by folder
-      - filtering by search, domain, or tags
-    */
-    const folderIds =
-      !folderId && (search || domain || tagId || tagIds || tagNames)
-        ? await getFolderIdsToFilter({
-            workspace,
-            userId: session.user.id,
-          })
-        : undefined;
+    const { folderIds } = await validateLinksQueryFilters({
+      ...filters,
+      workspace,
+      userId: session.user.id,
+    });
 
     const response = await getLinksForWorkspace({
-      ...params,
+      ...filters,
       workspaceId: workspace.id,
       folderIds,
+      searchMode:
+        workspace.totalLinks > MEGA_WORKSPACE_LINKS_LIMIT ? "exact" : "fuzzy",
     });
 
     return NextResponse.json(response, {
@@ -70,7 +51,9 @@ export const POST = withWorkspace(
       throwIfLinksUsageExceeded(workspace);
     }
 
-    const body = createLinkBodySchema.parse(await parseRequestBody(req));
+    const body = await createLinkBodySchemaAsync.parseAsync(
+      await parseRequestBody(req),
+    );
 
     if (!session) {
       const ip = req.headers.get("x-forwarded-for") || LOCALHOST_IP;

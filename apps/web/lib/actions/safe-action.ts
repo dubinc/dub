@@ -1,10 +1,18 @@
 import { prisma } from "@dub/prisma";
 import { createSafeActionClient } from "next-safe-action";
+import { after } from "next/server";
+import { normalizeWorkspaceId } from "../api/workspaces/workspace-id";
 import { getSession } from "../auth";
+import { logger } from "../axiom/server";
+import { PlanProps } from "../types";
 
 export const actionClient = createSafeActionClient({
-  handleServerError: (e) => {
+  handleServerError: async (e) => {
     console.error("Server action error:", e);
+
+    // Send error to Axiom
+    logger.error(e.message, e);
+    after(logger.flush());
 
     if (e instanceof Error) {
       return e.message;
@@ -28,6 +36,7 @@ export const authUserActionClient = actionClient.use(async ({ next }) => {
   });
 });
 
+// Workspace users
 export const authActionClient = actionClient.use(
   async ({ next, clientInput }) => {
     const session = await getSession();
@@ -43,7 +52,7 @@ export const authActionClient = actionClient.use(
       throw new Error("WorkspaceId is required.");
     }
 
-    workspaceId = workspaceId.replace("ws_", "");
+    workspaceId = normalizeWorkspaceId(workspaceId);
 
     const workspace = await prisma.project.findUnique({
       where: {
@@ -56,24 +65,30 @@ export const authActionClient = actionClient.use(
           },
           select: {
             role: true,
+            workspacePreferences: true,
           },
         },
       },
     });
 
-    if (!workspace || !workspace.users) {
+    if (!workspace || !workspace.users || workspace.users.length === 0) {
       throw new Error("Workspace not found.");
     }
 
     return next({
       ctx: {
         user: session.user,
-        workspace,
+        workspace: {
+          ...workspace,
+          role: workspace.users[0].role,
+          plan: workspace.plan as PlanProps,
+        },
       },
     });
   },
 );
 
+// Partner users
 export const authPartnerActionClient = actionClient.use(async ({ next }) => {
   const session = await getSession();
 
@@ -90,6 +105,17 @@ export const authPartnerActionClient = actionClient.use(async ({ next }) => {
         some: { userId: session.user.id },
       },
     },
+    include: {
+      users: {
+        where: {
+          userId: session.user.id,
+        },
+        select: {
+          role: true,
+          userId: true,
+        },
+      },
+    },
   });
 
   if (!partner) {
@@ -100,6 +126,7 @@ export const authPartnerActionClient = actionClient.use(async ({ next }) => {
     ctx: {
       user: session.user,
       partner,
+      partnerUser: partner.users[0],
     },
   });
 });

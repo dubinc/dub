@@ -1,4 +1,11 @@
+import {
+  DiscountProps,
+  PartnerProps,
+  ProgramEnrollmentProps,
+} from "@/lib/types";
 import { Dashboard, Link, Tag } from "@dub/prisma/client";
+import { prefixWorkspaceId } from "../../workspaces/workspace-id";
+import { decodeLinkIfCaseSensitive } from "../case-sensitivity";
 
 // used in API (e.g. transformLink)
 // TODO: standardize this with ExpandedLinkProps
@@ -6,15 +13,42 @@ export type ExpandedLink = Link & {
   tags?: { tag: Pick<Tag, "id" | "name" | "color"> }[];
   webhooks?: { webhookId: string }[];
   dashboard?: Dashboard | null;
+  partner?:
+    | (Pick<PartnerProps, "id" | "name" | "image"> & {
+        groupId?: string | null;
+        tenantId?: string | null;
+      })
+    | null;
+  discount?: Pick<
+    DiscountProps,
+    "id" | "amount" | "type" | "maxDuration" | "couponId" | "couponTestId"
+  > | null;
+  programEnrollment?: Pick<ProgramEnrollmentProps, "groupId"> | null;
 };
 
 // Transform link with additional properties
-export const transformLink = (link: ExpandedLink) => {
+export const transformLink = (
+  link: ExpandedLink,
+  { skipDecodeKey = false }: { skipDecodeKey?: boolean } = {},
+) => {
   const tags = (link.tags || []).map(({ tag }) => tag);
   const webhookIds = link.webhooks?.map(({ webhookId }) => webhookId) ?? [];
 
-  // remove webhooks array, dashboard from link
-  const { webhooks, dashboard, ...rest } = link;
+  if (!skipDecodeKey) {
+    link = decodeLinkIfCaseSensitive(link);
+  }
+
+  const {
+    // remove webhooks array, dashboard, partnerGroupDefaultLinkId
+    webhooks,
+    dashboard,
+    partnerGroupDefaultLinkId,
+    // hide undocumented fields from the API response for now
+    lastLeadAt,
+    lastConversionAt,
+    programEnrollment,
+    ...rest
+  } = link;
 
   return {
     ...rest,
@@ -23,7 +57,7 @@ export const transformLink = (link: ExpandedLink) => {
     tags,
     webhookIds,
     qrCode: `https://api.dub.co/qr?url=${link.shortLink}?qr=1`,
-    workspaceId: link.projectId ? `ws_${link.projectId}` : null,
+    workspaceId: link.projectId ? prefixWorkspaceId(link.projectId) : null,
     ...(dashboard && { dashboardId: dashboard.id || null }),
   };
 };

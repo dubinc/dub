@@ -2,7 +2,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 export const useCopyToClipboard = (
   timeout: number = 3000,
-): [boolean, (value: string | ClipboardItem) => Promise<void>] => {
+): [
+  boolean,
+  (
+    value: string | ClipboardItem,
+    options?: { onSuccess?: () => void; throwOnError?: boolean },
+  ) => Promise<void>,
+] => {
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [copied, setCopied] = useState(false);
 
@@ -14,7 +20,13 @@ export const useCopyToClipboard = (
   };
 
   const copyToClipboard = useCallback(
-    async (value: string | ClipboardItem) => {
+    async (
+      value: string | ClipboardItem,
+      {
+        onSuccess,
+        throwOnError,
+      }: { onSuccess?: () => void; throwOnError?: boolean } = {},
+    ) => {
       clearTimer();
       try {
         if (typeof value === "string") {
@@ -23,6 +35,7 @@ export const useCopyToClipboard = (
           await navigator.clipboard.write([value]);
         }
         setCopied(true);
+        onSuccess?.();
 
         // Ensure timeout is a non-negative finite number
         if (Number.isFinite(timeout) && timeout >= 0) {
@@ -30,6 +43,7 @@ export const useCopyToClipboard = (
         }
       } catch (error) {
         console.error("Failed to copy: ", error);
+        if (throwOnError) throw error;
       }
     },
     [timeout],

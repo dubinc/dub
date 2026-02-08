@@ -1,14 +1,26 @@
+import { useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import useSWR from "swr";
 import useWorkspace from "./use-workspace";
 
-export default function useFoldersCount() {
-  const { id, plan, flags } = useWorkspace();
+export default function useFoldersCount({
+  includeParams = [],
+  query,
+}: {
+  includeParams?: string[];
+  query?: Record<string, any>;
+} = {}) {
+  const { id: workspaceId, plan } = useWorkspace();
+
+  const { getQueryString } = useRouterStuff();
+
+  const qs = getQueryString(
+    { workspaceId, ...query },
+    { include: includeParams },
+  );
 
   const { data, error } = useSWR<number>(
-    id && flags?.linkFolders && plan !== "free"
-      ? `/api/folders/count?${new URLSearchParams({ workspaceId: id }).toString()}`
-      : null,
+    workspaceId && plan !== "free" ? `/api/folders/count${qs}` : null,
     fetcher,
     {
       dedupingInterval: 60000,

@@ -9,7 +9,7 @@ export const metadata = constructMetadata({
 
 export default function RegisterPage() {
   return (
-    <AuthLayout>
+    <AuthLayout showTerms="app">
       <RegisterPageClient />
     </AuthLayout>
   );

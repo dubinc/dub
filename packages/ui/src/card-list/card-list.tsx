@@ -23,8 +23,14 @@ type CardListProps = PropsWithChildren<{
 }> &
   VariantProps<typeof cardListVariants>;
 
-export const CardListContext = createContext<Pick<CardListProps, "variant">>({
+type CardListContextType = {
+  variant: VariantProps<typeof cardListVariants>["variant"];
+  loading: boolean;
+};
+
+export const CardListContext = createContext<CardListContextType>({
   variant: "loose",
+  loading: false,
 });
 
 export function CardList({
@@ -38,7 +44,7 @@ export function CardList({
       className={cn(cardListVariants({ variant, loading }), className)}
       data-variant={variant}
     >
-      <CardListContext.Provider value={{ variant }}>
+      <CardListContext.Provider value={{ variant, loading }}>
         {children}
       </CardListContext.Provider>
     </ul>

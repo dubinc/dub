@@ -18,6 +18,9 @@ export async function updateLinksUsage({
       linksUsage: {
         increment,
       },
+      totalLinks: {
+        increment,
+      },
     },
     select: {
       id: true,

@@ -1,11 +1,13 @@
 export const ONBOARDING_STEPS = [
   "workspace",
-  "link",
+  "products",
   "domain",
   "domain/custom",
   "domain/register",
-  "invite",
+  "program",
+  "program/reward",
   "plan",
+  "success",
   "completed",
 ] as const;
 

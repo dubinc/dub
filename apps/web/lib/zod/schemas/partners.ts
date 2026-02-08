@@ -1,44 +1,202 @@
-import { intervals } from "@/lib/analytics/constants";
 import {
-  CommissionStatus,
-  PartnerStatus,
+  IndustryInterest,
+  MonthlyTraffic,
+  PartnerBannedReason,
+  PartnerProfileType,
+  PlatformType,
+  PreferredEarningStructure,
   ProgramEnrollmentStatus,
+  SalesChannel,
 } from "@dub/prisma/client";
 import { COUNTRY_CODES } from "@dub/utils";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { analyticsQuerySchema } from "./analytics";
 import { analyticsResponse } from "./analytics-response";
-import { CustomerSchema } from "./customers";
-import { createLinkBodySchema, LinkSchema } from "./links";
-import { getPaginationQuerySchema } from "./misc";
+import { createLinkBodySchema } from "./links";
+import {
+  base64ImageSchema,
+  booleanQuerySchema,
+  getPaginationQuerySchema,
+  googleFaviconUrlSchema,
+  publicHostedImageSchema,
+  storedR2ImageUrlSchema,
+} from "./misc";
 import { ProgramEnrollmentSchema } from "./programs";
-import { parseDateSchema, parseUrlSchema } from "./utils";
+import { parseUrlSchema } from "./utils";
 
 export const PARTNERS_MAX_PAGE_SIZE = 100;
-export const PAYOUTS_MAX_PAGE_SIZE = 100;
 
-export const partnersQuerySchema = z
+export const ACTIVE_ENROLLMENT_STATUSES: ProgramEnrollmentStatus[] = [
+  ProgramEnrollmentStatus.approved,
+  ProgramEnrollmentStatus.archived,
+];
+
+export const INACTIVE_ENROLLMENT_STATUSES: ProgramEnrollmentStatus[] = [
+  ProgramEnrollmentStatus.banned,
+  ProgramEnrollmentStatus.deactivated,
+  ProgramEnrollmentStatus.rejected,
+];
+
+export const exportPartnerColumns = [
+  { id: "id", label: "ID", default: true },
+  { id: "name", label: "Name", default: true },
+  { id: "email", label: "Email", default: true },
+  { id: "country", label: "Country", default: true },
+  { id: "status", label: "Status", default: true },
+  { id: "createdAt", label: "Enrolled at", default: true },
+  {
+    id: "payoutsEnabledAt",
+    label: "Payouts enabled at",
+    default: true,
+    expanded: false,
+  },
+  { id: "description", label: "Description", default: false },
+  { id: "totalClicks", label: "Clicks", default: false, numeric: true },
+  { id: "totalLeads", label: "Leads", default: false, numeric: true },
+  {
+    id: "totalConversions",
+    label: "Conversions",
+    default: false,
+    numeric: true,
+  },
+  { id: "totalSales", label: "Sales", default: false, numeric: true },
+  { id: "totalSaleAmount", label: "Revenue", default: false, numeric: true },
+  {
+    id: "totalCommissions",
+    label: "Commissions",
+    default: false,
+    expanded: true,
+    numeric: true,
+  },
+  { id: "netRevenue", label: "Net Revenue", default: false, numeric: true },
+  { id: "website", label: "Website", default: false },
+  { id: "youtube", label: "YouTube", default: false },
+  { id: "twitter", label: "Twitter", default: false },
+  { id: "linkedin", label: "LinkedIn", default: false },
+  { id: "instagram", label: "Instagram", default: false },
+  { id: "tiktok", label: "TikTok", default: false },
+];
+
+export const BAN_PARTNER_REASONS = {
+  tos_violation: "Terms of Service Violation",
+  inappropriate_content: "Inappropriate or Offensive Content",
+  fake_traffic: "Artificial Traffic Generation",
+  fraud: "Fraudulent Activity",
+  spam: "Spam or Misleading Content",
+  brand_abuse: "Brand Abuse or Trademark Violations",
+} as const;
+
+export const exportPartnersColumnsDefault = exportPartnerColumns
+  .filter((column) => column.default)
+  .map((column) => column.id);
+
+export const exportApplicationColumns = [
+  { id: "id", label: "ID" },
+  { id: "name", label: "Name" },
+  { id: "email", label: "Email" },
+  { id: "country", label: "Country" },
+  { id: "createdAt", label: "Applied at" },
+  { id: "description", label: "Description" },
+  { id: "website", label: "Website" },
+  { id: "youtube", label: "YouTube" },
+  { id: "twitter", label: "Twitter" },
+  { id: "linkedin", label: "LinkedIn" },
+  { id: "instagram", label: "Instagram" },
+  { id: "tiktok", label: "TikTok" },
+];
+
+export const exportApplicationsColumnsDefault = [
+  "id",
+  "name",
+  "email",
+  "country",
+  "createdAt",
+  "website",
+  "youtube",
+  "linkedin",
+];
+
+export const getPartnersQuerySchema = z
   .object({
-    status: z.nativeEnum(ProgramEnrollmentStatus).optional(),
-    country: z.string().optional(),
-    search: z.string().optional(),
+    status: z
+      .enum(ProgramEnrollmentStatus)
+      .optional()
+      .describe("A filter on the list based on the partner's `status` field.")
+      .meta({ example: "approved" }),
+    country: z
+      .string()
+      .optional()
+      .describe("A filter on the list based on the partner's `country` field.")
+      .meta({ example: "US" }),
     sortBy: z
-      .enum(["createdAt", "clicks", "leads", "sales", "saleAmount", "earnings"])
-      .default("createdAt"),
-    sortOrder: z.enum(["asc", "desc"]).default("desc"),
+      .enum([
+        "createdAt",
+        "totalClicks",
+        "totalLeads",
+        "totalConversions",
+        "totalSaleAmount",
+        "totalCommissions",
+        "netRevenue",
+        "earningsPerClick",
+        "averageLifetimeValue",
+        "clickToLeadRate",
+        "clickToConversionRate",
+        "leadToConversionRate",
+        "returnOnAdSpend",
+      ])
+      .default("totalSaleAmount")
+      .describe(
+        "The field to sort the partners by. The default is `totalSaleAmount`.",
+      )
+      .meta({ example: "totalSaleAmount" }),
+    sortOrder: z
+      .enum(["asc", "desc"])
+      .default("desc")
+      .describe("The sort order. The default is `desc`.")
+      .meta({ example: "desc" }),
+    email: z
+      .string()
+      .optional()
+      .describe(
+        "Filter the partner list based on the partner's `email`. The value must be a string. Takes precedence over `search`.",
+      )
+      .meta({ example: "panic@thedis.co" }),
     tenantId: z
       .string()
       .optional()
-      .describe("The ID of the partner within your system."),
-    ids: z
-      .union([z.string(), z.array(z.string())])
-      .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+      .describe(
+        "Filter the partner list based on the partner's `tenantId`. The value must be a string. Takes precedence over `email` and `search`.",
+      )
+      .meta({ example: "1K0NM7HCN944PEMZ3CQPH43H8" }),
+    search: z
+      .string()
       .optional()
-      .describe("IDs of partners to filter by."),
+      .describe(
+        "A search query to filter partners by ID, name, email, or link.",
+      )
+      .meta({ example: "john" }),
   })
-  .merge(getPaginationQuerySchema({ pageSize: PARTNERS_MAX_PAGE_SIZE }));
+  .extend(getPaginationQuerySchema({ pageSize: PARTNERS_MAX_PAGE_SIZE }));
 
-export const partnersCountQuerySchema = partnersQuerySchema
+export const getPartnersQuerySchemaExtended = getPartnersQuerySchema.extend({
+  partnerIds: z
+    .union([z.string(), z.array(z.string())])
+    .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+    .optional(),
+  groupId: z.string().optional(),
+  includePartnerPlatforms: booleanQuerySchema.optional(),
+});
+
+export const partnersExportQuerySchema = getPartnersQuerySchemaExtended
+  .omit({ page: true, pageSize: true })
+  .extend({
+    columns: z
+      .string()
+      .default(exportPartnersColumnsDefault.join(","))
+      .transform((v) => v.split(",")),
+  });
+
+export const partnersCountQuerySchema = getPartnersQuerySchemaExtended
   .omit({
     sortBy: true,
     sortOrder: true,
@@ -46,199 +204,393 @@ export const partnersCountQuerySchema = partnersQuerySchema
     pageSize: true,
   })
   .extend({
-    groupBy: z.enum(["status", "country"]).optional(),
+    groupBy: z.enum(["status", "country", "groupId"]).optional(),
   });
 
-export const partnerInvitesQuerySchema = getPaginationQuerySchema({
-  pageSize: 100,
+export const partnerPlatformSchema = z.object({
+  type: z.enum(PlatformType),
+  identifier: z.string(),
+  verifiedAt: z.date().nullable(),
+  platformId: z.string().nullable(),
+  subscribers: z.bigint().default(BigInt(0)),
+  posts: z.bigint().default(BigInt(0)),
+  views: z.bigint().default(BigInt(0)),
 });
 
-export const PartnerSchema = z.object({
+export const PartnerPartnerPlatformsSchema = z.object({
+  website: z
+    .string()
+    .nullish()
+    .describe("The partner's website URL (including the https protocol)."),
+  youtube: z
+    .string()
+    .nullish()
+    .describe("The partner's YouTube channel username (e.g. `johndoe`)."),
+  twitter: z
+    .string()
+    .nullish()
+    .describe("The partner's Twitter username (e.g. `johndoe`)."),
+  linkedin: z
+    .string()
+    .nullish()
+    .describe("The partner's LinkedIn username (e.g. `johndoe`)."),
+  instagram: z
+    .string()
+    .nullish()
+    .describe("The partner's Instagram username (e.g. `johndoe`)."),
+  tiktok: z
+    .string()
+    .nullish()
+    .describe("The partner's TikTok username (e.g. `johndoe`)."),
+});
+
+export const MAX_PARTNER_INDUSTRY_INTERESTS = 8;
+
+export const PartnerProfileSchema = z.object({
+  monthlyTraffic: z
+    .enum(MonthlyTraffic)
+    .nullable()
+    .describe("The partner's monthly traffic."),
+  industryInterests: z
+    .array(z.enum(IndustryInterest))
+    .max(MAX_PARTNER_INDUSTRY_INTERESTS)
+    .refine((arr) => new Set(arr).size === arr.length, {
+      message: "Duplicate industry interests are not allowed.",
+    })
+    .describe("The partner's industry interests."),
+  preferredEarningStructures: z
+    .array(z.enum(PreferredEarningStructure))
+    .refine((arr) => new Set(arr).size === arr.length, {
+      message: "Duplicate preferred earning structures are not allowed.",
+    })
+    .describe("The partner's preferred earning structures."),
+  salesChannels: z
+    .array(z.enum(SalesChannel))
+    .refine((arr) => new Set(arr).size === arr.length, {
+      message: "Duplicate sales channels are not allowed.",
+    })
+    .describe("The partner's sales channels."),
+});
+
+export const MAX_PARTNER_DESCRIPTION_LENGTH = 500;
+
+export const PartnerSchema = z
+  .object({
+    id: z.string().describe("The partner's unique ID on Dub."),
+    name: z.string().max(190).describe("The partner's full legal name."),
+    companyName: z
+      .string()
+      .max(190)
+      .nullable()
+      .describe(
+        "If the partner profile type is a company, this is the partner's legal company name.",
+      ),
+    profileType: z
+      .enum(PartnerProfileType)
+      .describe("The partner's profile type on Dub."),
+    email: z
+      .string()
+      .max(190)
+      .nullable()
+      .describe(
+        "The partner's email address. Should be a unique value across Dub.",
+      ),
+    image: z.string().nullable().describe("The partner's avatar image."),
+    description: z
+      .string()
+      .max(5000) // Left at 5000 instead of MAX_PARTNER_DESCRIPTION_LENGTH to avoid breaking changes
+      .nullish()
+      .describe("A brief description of the partner and their background."),
+    country: z
+      .string()
+      .nullable()
+      .describe("The partner's country (required for tax purposes)."),
+    stripeConnectId: z
+      .string()
+      .nullable()
+      .describe(
+        "The partner's Stripe Connect ID (for receiving payouts via Stripe).",
+      ),
+    paypalEmail: z
+      .string()
+      .nullable()
+      .describe(
+        "The partner's PayPal email (for receiving payouts via PayPal).",
+      ),
+    payoutsEnabledAt: z
+      .date()
+      .nullable()
+      .describe("The date when the partner enabled payouts."),
+    invoiceSettings: z
+      .object({
+        address: z.string().nullish(),
+        taxId: z.string().nullish(),
+      })
+      .nullable()
+      .describe("The partner's invoice settings."),
+    createdAt: z
+      .date()
+      .describe("The date when the partner was created on Dub."),
+    discoverableAt: z
+      .date()
+      .nullable()
+      .describe("The date when the partner was added to the partner network."),
+    trustedAt: z
+      .date()
+      .nullable()
+      .describe(
+        "The date when the partner received the trusted badge in the partner network.",
+      ),
+  })
+  .extend(PartnerPartnerPlatformsSchema.shape)
+  .extend(PartnerProfileSchema.partial().shape);
+
+export const PartnerWithProfileSchema = PartnerSchema.extend(
+  PartnerProfileSchema.shape,
+);
+
+export const PartnerRewindSchema = z.object({
   id: z.string(),
-  name: z.string(),
-  email: z.string().nullable(),
-  image: z.string().nullable(),
-  description: z.string().nullish(),
-  country: z.string(),
-  status: z.nativeEnum(PartnerStatus),
-  stripeConnectId: z.string().nullable(),
-  payoutsEnabled: z.boolean(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
+  partnerId: z.string(),
+  year: z.number(),
+  totalClicks: z.number().default(0),
+  totalLeads: z.number().default(0),
+  totalRevenue: z.number().default(0),
+  totalEarnings: z.number().default(0),
+  clicksPercentile: z.number().default(0),
+  leadsPercentile: z.number().default(0),
+  revenuePercentile: z.number().default(0),
+  earningsPercentile: z.number().default(0),
 });
 
-// Used by GET+POST /api/partners and partner.created webhook
+// Used externally by GET+POST /api/partners and partner.enrolled webhook
 export const EnrolledPartnerSchema = PartnerSchema.pick({
   id: true,
   name: true,
+  companyName: true,
   email: true,
   image: true,
   description: true,
   country: true,
-  payoutsEnabled: true,
-  createdAt: true,
+  paypalEmail: true,
+  stripeConnectId: true,
+  payoutsEnabledAt: true,
+  trustedAt: true,
 })
-  .merge(
-    ProgramEnrollmentSchema.pick({
-      status: true,
-      programId: true,
-      tenantId: true,
-      links: true,
-    }),
+  .extend(
+    ProgramEnrollmentSchema.omit({
+      program: true,
+      rewards: true,
+      discount: true,
+      group: true,
+      customerDataSharingEnabledAt: true,
+    }).shape,
   )
   .extend({
-    clicks: z.number().default(0),
-    leads: z.number().default(0),
-    sales: z.number().default(0),
-    saleAmount: z.number().default(0),
-    earnings: z.number().default(0),
-  });
+    totalClicks: z
+      .number()
+      .default(0)
+      .describe("The total number of clicks on the partner's links"),
+    totalLeads: z
+      .number()
+      .default(0)
+      .describe("The total number of leads generated by the partner's links"),
+    totalConversions: z
+      .number()
+      .default(0)
+      .describe("The total number of leads that converted to paying customers"),
+    totalSales: z
+      .number()
+      .default(0)
+      .describe(
+        "The total number of sales generated by the partner's links (includes recurring sales)",
+      ),
+    totalSaleAmount: z
+      .number()
+      .default(0)
+      .describe("Total revenue generated by the partner's links"),
+    totalCommissions: z
+      .number()
+      .default(0)
+      .describe(
+        "The total commissions paid to the partner for their referrals",
+      ),
+    netRevenue: z
+      .number()
+      .default(0)
+      .describe(
+        "Net revenue after commissions (`Total Revenue - Total Commissions`)",
+      ),
+    earningsPerClick: z
+      .number()
+      .nullish()
+      .describe("Earnings Per Click (EPC) (`Total Revenue ÷ Total Clicks`)"),
+    averageLifetimeValue: z
+      .number()
+      .nullish()
+      .describe(
+        "Average lifetime value for each paying customer (`Total Revenue ÷ Total Conversions`)",
+      ),
+    clickToLeadRate: z
+      .number()
+      .nullish()
+      .describe(
+        "Percentage of clicks that become leads (`Total Leads ÷ Total Clicks`)",
+      ),
+    clickToConversionRate: z
+      .number()
+      .nullish()
+      .describe(
+        "Percentage of clicks that convert to paying customers (`Total Conversions ÷ Total Clicks`)",
+      ),
+    leadToConversionRate: z
+      .number()
+      .nullish()
+      .describe(
+        "Percentage of leads that convert to paying customers (`Total Conversions ÷ Total Leads`)",
+      ),
+    returnOnAdSpend: z
+      .number()
+      .nullish()
+      .describe(
+        "Return On Ad Spend (ROAS) (`Total Revenue ÷ Total Commissions`)",
+      ),
+  })
+  .extend(
+    PartnerPartnerPlatformsSchema.pick({
+      website: true,
+      youtube: true,
+      twitter: true,
+      linkedin: true,
+      instagram: true,
+      tiktok: true,
+    }).shape,
+  );
+
+export const EnrolledPartnerSchemaExtended = EnrolledPartnerSchema.extend({
+  lastLeadAt: z.date().nullish(),
+  lastConversionAt: z.date().nullish(),
+  customerDataSharingEnabledAt: z.date().nullish(),
+  platforms: z.array(partnerPlatformSchema).nullable(),
+})
+  .extend(
+    PartnerSchema.pick({
+      monthlyTraffic: true,
+      industryInterests: true,
+      preferredEarningStructures: true,
+      salesChannels: true,
+    }).shape,
+  )
+  .extend(PartnerPartnerPlatformsSchema.shape);
+
+export const WebhookPartnerSchema = PartnerSchema.pick({
+  id: true,
+  name: true,
+  email: true,
+  image: true,
+  payoutsEnabledAt: true,
+  country: true,
+}).extend({
+  groupId: z.string().nullish(),
+  totalClicks: z.number(),
+  totalLeads: z.number(),
+  totalConversions: z.number(),
+  totalSales: z.number(),
+  totalSaleAmount: z.number(),
+  totalCommissions: z.number(),
+});
 
 export const LeaderboardPartnerSchema = z.object({
   id: z.string(),
-  name: z.string().transform((name) => {
-    const parts = name.trim().split(/\s+/);
-    if (parts.length < 2) return name; // Return original if single word
-    const firstName = parts[0];
-    const lastInitial = parts[parts.length - 1][0];
-    return `${firstName} ${lastInitial}.`;
-  }),
-  clicks: z.number().default(0),
-  leads: z.number().default(0),
-  sales: z.number().default(0),
-  saleAmount: z.number().default(0),
+  name: z.string(),
+  image: z.string(),
+  totalCommissions: z.number().default(0),
 });
 
-export const SaleSchema = z.object({
-  id: z.string(),
-  amount: z.number(),
-  earnings: z.number(),
-  currency: z.string(),
-  status: z.nativeEnum(CommissionStatus),
-  createdAt: z.date(),
-  updatedAt: z.date(),
-});
-
-export const getSalesQuerySchema = z
+export const getPartnerCustomersQuerySchema = z
   .object({
-    status: z.nativeEnum(CommissionStatus).optional(),
-    sortBy: z.enum(["createdAt", "amount"]).default("createdAt"),
-    sortOrder: z.enum(["asc", "desc"]).default("desc"),
-    interval: z.enum(intervals).default("1y"),
-    start: parseDateSchema.optional(),
-    end: parseDateSchema.optional(),
-    customerId: z.string().optional(),
-    payoutId: z.string().optional(),
-    partnerId: z.string().optional(),
+    search: z.string().optional(),
   })
-  .merge(getPaginationQuerySchema({ pageSize: 100 }));
-
-export const SaleResponseSchema = SaleSchema.merge(
-  z.object({
-    customer: CustomerSchema,
-    partner: PartnerSchema,
-  }),
-);
-
-export const getSalesCountQuerySchema = getSalesQuerySchema.omit({
-  page: true,
-  pageSize: true,
-  sortOrder: true,
-  sortBy: true,
-});
-
-export const getSaleAmountQuerySchema = getSalesQuerySchema.pick({
-  start: true,
-  end: true,
-  partnerId: true,
-});
-
-export const getPartnerSalesQuerySchema = getSalesQuerySchema.omit({
-  partnerId: true,
-});
-
-export const PartnerEarningsSchema = SaleResponseSchema.omit({
-  partner: true,
-  customer: true,
-}).merge(
-  z.object({
-    type: z.string(),
-    customer: z
-      .object({
-        email: z
-          .string()
-          .transform((email) => email.replace(/(?<=^.).+(?=.@)/, "********")),
-        avatar: z.string().nullable(),
-      })
-      .nullable(),
-    link: LinkSchema.pick({
-      shortLink: true,
-      url: true,
-    }),
-  }),
-);
-
-export const getPartnerSalesCountQuerySchema = getSalesCountQuerySchema.omit({
-  partnerId: true,
-});
+  .extend(getPaginationQuerySchema({ pageSize: 100 }));
 
 export const createPartnerSchema = z.object({
-  programId: z
-    .string()
-    .describe("The ID of the program to create a partner for."),
   name: z
     .string()
     .trim()
-    .min(1)
     .max(100)
-    .describe("Full legal name of the partner."),
-  email: z
-    .string()
-    .trim()
-    .min(1)
-    .max(190)
-    .email()
+    .nullish()
     .describe(
-      "Email for the partner in your system. Partners will be able to claim their profile by signing up to Dub Partners with this email.",
+      "The partner's full name. If undefined, the partner's email will be used in lieu of their name (e.g. `john@acme.com`)",
+    ),
+  email: z
+    .email()
+    .trim()
+    .max(190)
+    .describe(
+      "The partner's email address. Partners will be able to claim their profile by signing up at `partners.dub.co` with this email.",
     ),
   username: z
     .string()
-    .min(1)
     .max(100)
+    .nullish()
     .describe(
-      "A unique username for the partner in your system. This will be used to create a short link for the partner using your program's default domain.",
+      "The partner's unique username in your system (max 100 characters). This will be used to create a short link for the partner using your program's default domain. If not provided, Dub will try to generate a username from the partner's name or email.",
     ),
   image: z
     .string()
     .nullish()
     .describe(
-      "Avatar image for the partner – if not provided, a default avatar will be used.",
+      "The partner's avatar image. If not provided, a default avatar will be used.",
+    ),
+  tenantId: z
+    .string()
+    .optional()
+    .describe(
+      "The partner's unique ID in your system. Useful for retrieving the partner's links and stats later on. If not provided, the partner will be created as a standalone partner.",
+    ),
+  groupId: z
+    .string()
+    .optional()
+    .describe(
+      "The group ID to add the partner to. If not provided, the partner will be added to the default group.",
     ),
   country: z
-    .enum(COUNTRY_CODES)
+    .string()
     .nullish()
-    .describe("Country where the partner is based."),
+    .describe(
+      "The partner's country of residence. Must be passed as a 2-letter ISO 3166-1 country code. See https://d.to/geo for more information.",
+    ),
   description: z
     .string()
     .max(5000)
     .nullish()
-    .describe("A brief description of the partner and their background."),
-  tenantId: z
-    .string()
-    .optional()
-    .describe("The ID of the partner in your system."),
+    .describe(
+      "A brief description of the partner and their background. Max 5,000 characters.",
+    ),
   linkProps: createLinkBodySchema
     .omit({
       url: true,
       domain: true,
       key: true,
+      // default programId / partnerId fields
+      programId: true,
+      partnerId: true,
+      // partner links always track conversions
+      trackConversion: true,
+      // folderId is set to the program's defaultFolderId
+      folderId: true,
+      // UTM params are derived from the partner's group settings
+      utm_source: true,
+      utm_medium: true,
+      utm_campaign: true,
+      utm_term: true,
+      utm_content: true,
+      ref: true,
+      // additional unsupported fields
       publicStats: true,
       tagId: true,
       geo: true,
-      projectId: true,
-      programId: true,
       webhookIds: true,
-      trackConversion: true,
     })
     .partial()
     .optional()
@@ -247,36 +599,68 @@ export const createPartnerSchema = z.object({
     ),
 });
 
+// This is a temporary fix to allow arbitrary image URL
+// TODO: Fix this by using file-type
+const partnerImageSchema = z
+  .union([
+    base64ImageSchema,
+    storedR2ImageUrlSchema,
+    publicHostedImageSchema,
+    googleFaviconUrlSchema,
+  ])
+  .transform((v) => v || "")
+  .refine((v) => v !== "", {
+    message: "Image is required",
+  });
+
 export const onboardPartnerSchema = createPartnerSchema
   .omit({
-    programId: true,
     username: true,
+    email: true,
     linkProps: true,
   })
-  .merge(
-    z.object({
-      image: z.string(),
-      country: z.enum(COUNTRY_CODES),
-    }),
-  );
+  .extend({
+    name: z.string().min(1, "Name is required"),
+    image: partnerImageSchema,
+    country: z.enum(COUNTRY_CODES),
+    profileType: z.enum(PartnerProfileType).default("individual"),
+    companyName: z.string().nullish(),
+  })
+  .refine(
+    (data) => {
+      if (data.profileType === "company") {
+        return !!data.companyName;
+      }
 
-export const createPartnerLinkSchema = z
-  .object({
-    programId: z
-      .string()
-      .describe("The ID of the program that the partner is enrolled in."),
-    partnerId: z
-      .string()
-      .nullish()
-      .describe(
-        "The ID of the partner to create a link for. Will take precedence over `tenantId` if provided.",
-      ),
-    tenantId: z
-      .string()
-      .nullish()
-      .describe(
-        "The ID of the partner in your system. If both `partnerId` and `tenantId` are not provided, an error will be thrown.",
-      ),
+      return true;
+    },
+    {
+      message: "Legal company name is required.",
+      path: ["companyName"],
+    },
+  )
+  .transform((data) => ({
+    ...data,
+    companyName: data.profileType === "individual" ? null : data.companyName,
+  }));
+
+export const partnerIdTenantIdSchema = z.object({
+  partnerId: z
+    .string()
+    .nullish()
+    .describe(
+      "The ID of the partner to create a link for. Will take precedence over `tenantId` if provided.",
+    ),
+  tenantId: z
+    .string()
+    .nullish()
+    .describe(
+      "The ID of the partner in your system. If both `partnerId` and `tenantId` are not provided, an error will be thrown.",
+    ),
+});
+
+export const createPartnerLinkSchema = partnerIdTenantIdSchema
+  .extend({
     url: parseUrlSchema
       .describe(
         "The URL to shorten (if not provided, the program's default URL will be used). Will throw an error if the domain doesn't match the program's default URL domain.",
@@ -289,20 +673,19 @@ export const createPartnerLinkSchema = z
       .describe(
         "The short link slug. If not provided, a random 7-character slug will be generated.",
       ),
+    comments: z.string().nullish().describe("The comments for the short link."),
   })
-  .merge(
+  .extend(
     createPartnerSchema.pick({
       linkProps: true,
-    }),
+    }).shape,
   );
 
-export const upsertPartnerLinkSchema = createPartnerLinkSchema.merge(
-  z.object({
-    url: parseUrlSchema.describe(
-      "The URL to upsert for. Will throw an error if the domain doesn't match the program's default URL domain.",
-    ),
-  }),
-);
+export const upsertPartnerLinkSchema = createPartnerLinkSchema.extend({
+  url: parseUrlSchema.describe(
+    "The URL to upsert for. Will throw an error if the domain doesn't match the program's default URL domain.",
+  ),
+});
 
 // For /api/partners/analytics
 export const partnerAnalyticsQuerySchema = analyticsQuerySchema
@@ -313,40 +696,164 @@ export const partnerAnalyticsQuerySchema = analyticsQuerySchema
     start: true,
     end: true,
     timezone: true,
+    query: true,
   })
-  .merge(
-    z.object({
-      groupBy: z
-        .enum(["top_links", "timeseries", "count"])
-        .default("count")
-        .describe(
-          "The parameter to group the analytics data points by. Defaults to `count` if undefined.",
-        ),
-      programId: z
-        .string()
-        .describe("The ID of the program to retrieve analytics for."),
-    }),
-  );
+  .extend(partnerIdTenantIdSchema.shape)
+  .extend({
+    groupBy: z
+      .enum(["top_links", "timeseries", "count"])
+      .default("count")
+      .describe(
+        "The parameter to group the analytics data points by. Defaults to `count` if undefined.",
+      ),
+  });
 
 const earningsSchema = z.object({
   earnings: z.number().default(0),
 });
 
-export const partnersTopLinksSchema =
-  analyticsResponse["top_links"].merge(earningsSchema);
+export const partnersTopLinksSchema = analyticsResponse["top_links"].extend(
+  earningsSchema.shape,
+);
 
 export const partnerAnalyticsResponseSchema = {
-  count: analyticsResponse["count"]
-    .merge(earningsSchema)
-    .openapi({ ref: "PartnerAnalyticsCount", title: "PartnerAnalyticsCount" }),
-
-  timeseries: analyticsResponse["timeseries"].merge(earningsSchema).openapi({
-    ref: "PartnerAnalyticsTimeseries",
-    title: "PartnerAnalyticsTimeseries",
+  count: analyticsResponse["count"].extend(earningsSchema.shape).meta({
+    title: "PartnerAnalyticsCount",
   }),
 
-  top_links: partnersTopLinksSchema.openapi({
-    ref: "PartnerAnalyticsTopLinks",
+  timeseries: analyticsResponse["timeseries"]
+    .extend(earningsSchema.shape)
+    .meta({
+      title: "PartnerAnalyticsTimeseries",
+    }),
+
+  top_links: partnersTopLinksSchema.meta({
     title: "PartnerAnalyticsTopLinks",
   }),
 } as const;
+
+export const invitePartnerSchema = z.object({
+  workspaceId: z.string(),
+  name: z.string().max(100).optional(),
+  email: z.email().trim().min(1).max(100),
+  username: z.string().max(100).optional(),
+  groupId: z.string().nullish().default(null),
+});
+
+export const approvePartnerSchema = z.object({
+  workspaceId: z.string(),
+  partnerId: z.string(),
+  groupId: z.string().nullish(),
+});
+
+export const bulkApprovePartnersSchema = z.object({
+  workspaceId: z.string(),
+  groupId: z.string().nullish().default(null),
+  partnerIds: z
+    .array(z.string())
+    .max(100)
+    .min(1)
+    .transform((v) => [...new Set(v)]),
+});
+
+export const rejectPartnerSchema = z.object({
+  workspaceId: z.string(),
+  partnerId: z.string(),
+  reportFraud: z
+    .boolean()
+    .optional()
+    .default(false)
+    .describe(
+      "Whether to report this partner for suspected fraud to help keep the network safe.",
+    ),
+});
+
+export const bulkRejectPartnersSchema = z.object({
+  workspaceId: z.string(),
+  partnerIds: z
+    .array(z.string())
+    .max(100)
+    .min(1)
+    .transform((v) => [...new Set(v)]),
+  reportFraud: z
+    .boolean()
+    .optional()
+    .default(false)
+    .describe(
+      "Whether to report these partners for suspected fraud to help keep the network safe.",
+    ),
+});
+
+export const retrievePartnerLinksSchema = partnerIdTenantIdSchema;
+
+export const banPartnerSchema = z.object({
+  workspaceId: z.string(),
+  partnerId: z.string(),
+  reason: z.enum(
+    Object.keys(BAN_PARTNER_REASONS) as [
+      PartnerBannedReason,
+      ...PartnerBannedReason[],
+    ],
+  ),
+});
+
+export const banPartnerApiSchema = partnerIdTenantIdSchema.extend(
+  banPartnerSchema.pick({ reason: true }).shape,
+);
+
+export const bulkBanPartnersSchema = z.object({
+  workspaceId: z.string(),
+  partnerIds: z
+    .array(z.string())
+    .max(100)
+    .min(1)
+    .transform((v) => [...new Set(v)]),
+  reason: z.enum(
+    Object.keys(BAN_PARTNER_REASONS) as [
+      PartnerBannedReason,
+      ...PartnerBannedReason[],
+    ],
+  ),
+});
+
+export const deactivatePartnerSchema = z.object({
+  workspaceId: z.string(),
+  partnerId: z.string(),
+});
+
+export const deactivatePartnerApiSchema = partnerIdTenantIdSchema;
+
+export const archivePartnerSchema = z.object({
+  workspaceId: z.string(),
+  partnerId: z.string(),
+});
+
+export const bulkArchivePartnersSchema = z.object({
+  workspaceId: z.string(),
+  partnerIds: z
+    .array(z.string())
+    .max(100)
+    .min(1)
+    .transform((v) => [...new Set(v)]),
+});
+
+export const bulkDeactivatePartnersSchema = z.object({
+  workspaceId: z.string(),
+  partnerIds: z
+    .array(z.string())
+    .max(100)
+    .min(1)
+    .transform((v) => [...new Set(v)]),
+});
+
+export const partnerPayoutSettingsSchema = z.object({
+  companyName: z.string().max(190).trim().nullish(),
+  address: z.string().max(500).trim().nullish(),
+  taxId: z.string().max(100).trim().nullish(),
+});
+
+export const partnerCrossProgramSummarySchema = z.object({
+  totalPrograms: z.number(),
+  activePrograms: z.number(),
+  bannedPrograms: z.number(),
+});

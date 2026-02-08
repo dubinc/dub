@@ -31,9 +31,9 @@ export const GET = withWorkspace(
       "business plus",
       "business extra",
       "business max",
+      "advanced",
       "enterprise",
     ],
-    featureFlag: "linkFolders",
   },
 );
 
@@ -42,18 +42,23 @@ export const PATCH = withWorkspace(
   async ({ req, params, workspace, session }) => {
     const { folderId } = params;
 
-    const { name, accessLevel } = updateFolderSchema.parse(
+    const { name, description, accessLevel } = updateFolderSchema.parse(
       await parseRequestBody(req),
     );
 
-    const { canManageFolderPermissions } = getPlanCapabilities(workspace.plan);
+    if (accessLevel) {
+      const { canManageFolderPermissions } = getPlanCapabilities(
+        workspace.plan,
+      );
 
-    if (!canManageFolderPermissions && accessLevel !== "write") {
-      throw new DubApiError({
-        code: "forbidden",
-        message:
-          "You can only set access levels for folders on Business plans and above. Upgrade to Business to continue.",
-      });
+      // accessLevel is only allowed to be set on Business plans and above otherwise it should be always "write"
+      if (!canManageFolderPermissions && accessLevel !== "write") {
+        throw new DubApiError({
+          code: "forbidden",
+          message:
+            "You can only set access levels for folders on Business plans and above. Upgrade to Business to continue.",
+        });
+      }
     }
 
     await verifyFolderAccess({
@@ -71,6 +76,7 @@ export const PATCH = withWorkspace(
         },
         data: {
           name,
+          description,
           accessLevel,
         },
       });
@@ -95,9 +101,9 @@ export const PATCH = withWorkspace(
       "business plus",
       "business extra",
       "business max",
+      "advanced",
       "enterprise",
     ],
-    featureFlag: "linkFolders",
   },
 );
 
@@ -118,6 +124,7 @@ export const DELETE = withWorkspace(
         folderId,
       },
     });
+
     // if there are no links associated with the folder, we can just delete it
     if (linksCount === 0) {
       await prisma.folder.delete({
@@ -135,11 +142,22 @@ export const DELETE = withWorkspace(
             projectId: "",
           },
         }),
+
         queueFolderDeletion({
           folderId,
         }),
       ]);
     }
+
+    // Remove the default folder assignment for all users whose defaultFolderId matches the given folderId
+    await prisma.projectUsers.updateMany({
+      where: {
+        defaultFolderId: folderId,
+      },
+      data: {
+        defaultFolderId: null,
+      },
+    });
 
     waitUntil(
       prisma.project.update({
@@ -164,8 +182,8 @@ export const DELETE = withWorkspace(
       "business plus",
       "business extra",
       "business max",
+      "advanced",
       "enterprise",
     ],
-    featureFlag: "linkFolders",
   },
 );

@@ -19,8 +19,6 @@ export const OAUTH_CONFIG = {
 // Keep it separate from the actual scopes to avoid confusion
 // We don't want all the scopes to be requested by an app
 export const OAUTH_SCOPES = [
-  "workspaces.read",
-  "workspaces.write",
   "links.read",
   "links.write",
   "tags.read",
@@ -30,13 +28,13 @@ export const OAUTH_SCOPES = [
   "domains.write",
   "webhooks.read",
   "webhooks.write",
+  "folders.read",
+  "folders.write",
   "user.read", // default scope, no need to request it
 ];
 
 // Scope descriptions
 export const OAUTH_SCOPE_DESCRIPTIONS = {
-  "workspaces.read": "Read access to workspace",
-  "workspaces.write": "Read and Write access to workspace",
   "links.read": "Read access to links",
   "links.write": "Read and Write access to links",
   "tags.read": "Read access to tags",
@@ -47,4 +45,6 @@ export const OAUTH_SCOPE_DESCRIPTIONS = {
   "user.read": "Read your name, email and profile image",
   "webhooks.read": "Read access to webhooks",
   "webhooks.write": "Read and Write access to webhooks",
+  "folders.read": "Read access to folders",
+  "folders.write": "Read and Write access to folders",
 };

@@ -2,22 +2,18 @@ import { getSession, hashToken } from "@/lib/auth";
 import { redis } from "@/lib/upstash";
 import EmptyState from "@/ui/shared/empty-state";
 import { sendEmail } from "@dub/email";
-import { subscribe } from "@dub/email/resend/subscribe";
-import { unsubscribe } from "@dub/email/resend/unsubscribe";
-import { EmailUpdated } from "@dub/email/templates/email-updated";
+import EmailUpdated from "@dub/email/templates/email-updated";
 import { prisma } from "@dub/prisma";
+import { VerificationToken } from "@dub/prisma/client";
 import { InputPassword, LoadingSpinner } from "@dub/ui";
-import { VerificationToken } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import ConfirmEmailChangePageClient from "./page-client";
 
-export const runtime = "nodejs";
-
 interface PageProps {
-  params: { token: string };
-  searchParams: { cancel?: string };
+  params: Promise<{ token: string }>;
+  searchParams: Promise<{ cancel?: string }>;
 }
 
 export default async function ConfirmEmailChangePage(props: PageProps) {
@@ -38,10 +34,9 @@ export default async function ConfirmEmailChangePage(props: PageProps) {
   );
 }
 
-const VerifyEmailChange = async ({
-  params: { token },
-  searchParams,
-}: PageProps) => {
+const VerifyEmailChange = async ({ params, searchParams }: PageProps) => {
+  const { token } = await params;
+
   const tokenFound = await prisma.verificationToken.findUnique({
     where: {
       token: await hashToken(token, { secret: true }),
@@ -59,7 +54,7 @@ const VerifyEmailChange = async ({
   }
 
   // Cancel the email change request (?cancel=true)
-  const { cancel } = searchParams;
+  const { cancel } = await searchParams;
 
   if (cancel && cancel === "true") {
     await deleteRequest(tokenFound);
@@ -67,8 +62,8 @@ const VerifyEmailChange = async ({
     return (
       <EmptyState
         icon={InputPassword}
-        title="Email Change Request Cancelled"
-        description="Your email change request has been cancelled. No changes have been made to your account. You can close this page."
+        title="Email Change Request Canceled"
+        description="Your email change request has been canceled. No changes have been made to your account. You can close this page."
       />
     );
   }
@@ -80,12 +75,17 @@ const VerifyEmailChange = async ({
     redirect(`/login?next=/auth/confirm-email-change/${token}`);
   }
 
-  const currentUserId = session.user.id;
+  const { id: userId, defaultPartnerId: partnerId } = session.user;
+
+  const identifier = tokenFound.identifier.startsWith("pn_")
+    ? partnerId
+    : userId;
 
   const data = await redis.get<{
     email: string;
     newEmail: string;
-  }>(`email-change-request:user:${currentUserId}`);
+    isPartnerProfile?: boolean;
+  }>(`email-change-request:user:${identifier}`);
 
   if (!data) {
     return (
@@ -97,45 +97,63 @@ const VerifyEmailChange = async ({
     );
   }
 
-  const user = await prisma.user.update({
-    where: {
-      id: currentUserId,
-    },
-    data: {
-      email: data.newEmail,
-    },
-    select: {
-      subscribed: true,
-    },
-  });
+  // Update the partner profile email
+  if (data.isPartnerProfile) {
+    if (!partnerId) {
+      return (
+        <EmptyState
+          icon={InputPassword}
+          title="No Partner Profile Found"
+          description="We couldn’t find a partner profile for your account. Please make sure you’re logged in with the correct account at https://partners.dub.co"
+        />
+      );
+    }
+
+    await prisma.partner.update({
+      where: {
+        id: partnerId,
+      },
+      data: {
+        email: data.newEmail,
+      },
+    });
+  }
+
+  // Update the user email
+  else {
+    await prisma.user.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        email: data.newEmail,
+      },
+    });
+  }
 
   waitUntil(
-    Promise.all([
+    Promise.allSettled([
       deleteRequest(tokenFound),
-
-      ...(user.subscribed
-        ? [
-            unsubscribe({ email: data.email }),
-            subscribe({ email: data.newEmail }),
-          ]
-        : []),
 
       sendEmail({
         subject: "Your email address has been changed",
-        email: data.email,
+        to: data.email,
         react: EmailUpdated({
           oldEmail: data.email,
           newEmail: data.newEmail,
+          isPartnerProfile: !!data.isPartnerProfile,
         }),
       }),
     ]),
   );
 
-  return <ConfirmEmailChangePageClient />;
+  return (
+    <ConfirmEmailChangePageClient isPartnerProfile={!!data.isPartnerProfile} />
+  );
 };
 
 const deleteRequest = async (tokenFound: VerificationToken) => {
-  await Promise.all([
+  await Promise.allSettled([
     prisma.verificationToken.delete({
       where: {
         token: tokenFound.token,

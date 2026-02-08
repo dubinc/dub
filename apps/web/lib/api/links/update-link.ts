@@ -1,4 +1,5 @@
-import { isStored, storage } from "@/lib/storage";
+import { getPartnerEnrollmentInfo } from "@/lib/planetscale/get-partner-enrollment-info";
+import { isNotHostedImage, storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import { LinkProps, ProcessedLinkProps } from "@/lib/types";
 import { propagateWebhookTriggerChanges } from "@/lib/webhook/update-webhook";
@@ -12,9 +13,11 @@ import {
   truncate,
 } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
+import { createId } from "../create-id";
 import { combineTagIds } from "../tags/combine-tag-ids";
-import { createId } from "../utils";
+import { scheduleABTestCompletion } from "./ab-test-scheduler";
 import { linkCache } from "./cache";
+import { encodeKeyIfCaseSensitive } from "./case-sensitivity";
 import { includeTags } from "./include-tags";
 import { transformLink } from "./utils";
 
@@ -22,7 +25,12 @@ export async function updateLink({
   oldLink,
   updatedLink,
 }: {
-  oldLink: { domain: string; key: string; image?: string | null };
+  oldLink: {
+    domain: string;
+    key: string;
+    image?: string | null;
+    testCompletedAt?: Date | null;
+  };
   updatedLink: ProcessedLinkProps &
     Pick<LinkProps, "id" | "clicks" | "lastClicked" | "updatedAt">;
 }) {
@@ -55,12 +63,21 @@ export async function updateLink({
     tagIds,
     tagNames,
     webhookIds,
+    testVariants,
+    testStartedAt,
+    testCompletedAt,
     ...rest
   } = updatedLink;
+  const changedTestCompletedAt = testCompletedAt !== oldLink.testCompletedAt;
 
   const combinedTagIds = combineTagIds({ tagId, tagIds });
 
   const imageUrlNonce = nanoid(7);
+
+  key = encodeKeyIfCaseSensitive({
+    domain: updatedLink.domain,
+    key: updatedLink.key,
+  });
 
   const response = await prisma.link.update({
     where: {
@@ -71,12 +88,12 @@ export async function updateLink({
       key,
       shortLink: linkConstructorSimple({
         domain: updatedLink.domain,
-        key: updatedLink.key,
+        key,
       }),
       title: truncate(title, 120),
       description: truncate(description, 240),
       image:
-        proxy && image && !isStored(image)
+        proxy && image && isNotHostedImage(image)
           ? `${R2_URL}/images/${id}_${imageUrlNonce}`
           : image,
       utm_source: utm_source || null,
@@ -85,7 +102,11 @@ export async function updateLink({
       utm_term: utm_term || null,
       utm_content: utm_content || null,
       expiresAt: expiresAt ? new Date(expiresAt) : null,
-      geo: geo || Prisma.JsonNull,
+      geo: geo || Prisma.DbNull,
+
+      testVariants: testVariants || Prisma.DbNull,
+      testCompletedAt: testCompletedAt ? new Date(testCompletedAt) : null,
+      testStartedAt: testStartedAt ? new Date(testStartedAt) : null,
 
       // Associate tags by tagNames
       ...(tagNames &&
@@ -142,40 +163,69 @@ export async function updateLink({
     },
     include: {
       ...includeTags,
+      // no need to includeProgramEnrollment because we're doing getPartnerEnrollmentInfo below
       webhooks: webhookIds ? true : false,
     },
   });
 
   waitUntil(
-    Promise.allSettled([
-      // record link in Redis
-      linkCache.set(response),
+    (async () => {
+      const { partner, discount } = await getPartnerEnrollmentInfo({
+        programId: response.programId,
+        partnerId: response.partnerId,
+      });
 
-      // record link in Tinybird
-      recordLink(response),
-
-      // if key is changed: delete the old key in Redis
-      (changedDomain || changedKey) && linkCache.delete(oldLink),
-
-      // if proxy is true and image is not stored in R2, upload image to R2
-      proxy &&
-        image &&
-        !isStored(image) &&
-        storage.upload(`images/${id}_${imageUrlNonce}`, image, {
-          width: 1200,
-          height: 630,
+      await Promise.allSettled([
+        // Record link in Redis
+        linkCache.set({
+          ...response,
+          ...(partner && { partner }),
+          ...(discount && { discount }),
         }),
-      // if there's a valid old image and it starts with the same link ID but is different from the new image, delete it
-      oldLink.image &&
-        oldLink.image.startsWith(`${R2_URL}/images/${id}`) &&
-        oldLink.image !== image &&
-        storage.delete(oldLink.image.replace(`${R2_URL}/`, "")),
 
-      webhookIds != undefined &&
-        propagateWebhookTriggerChanges({
-          webhookIds,
+        // Record link in Tinybird
+        recordLink({
+          ...response,
+          ...(partner?.groupId && {
+            programEnrollment: { groupId: partner.groupId },
+          }),
         }),
-    ]),
+
+        // If key is changed: delete the old key in Redis
+        (changedDomain || changedKey) && linkCache.delete(oldLink),
+
+        // If proxy is true and image is not stored in R2, upload image to R2
+        proxy &&
+          image &&
+          isNotHostedImage(image) &&
+          storage.upload({
+            key: `images/${id}_${imageUrlNonce}`,
+            body: image,
+            opts: {
+              width: 1200,
+              height: 630,
+            },
+          }),
+
+        // If there's a valid old image and it starts with the same link ID but is different from the new image, delete it
+        oldLink.image &&
+          oldLink.image.startsWith(`${R2_URL}/images/${id}`) &&
+          oldLink.image !== image &&
+          storage.delete({ key: oldLink.image.replace(`${R2_URL}/`, "") }),
+
+        // Propagate webhook trigger changes
+        webhookIds != undefined &&
+          propagateWebhookTriggerChanges({
+            webhookIds,
+          }),
+
+        // Schedule AB test completion
+        changedTestCompletedAt &&
+          testVariants &&
+          testCompletedAt &&
+          scheduleABTestCompletion(response),
+      ]);
+    })(),
   );
 
   return transformLink(response);

@@ -1,8 +1,8 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
-import z from "@/lib/zod";
 import { ZodOpenApiOperationObject } from "zod-openapi";
+import * as z from "zod/v4";
 import {
-  CustomerSchema,
+  CustomerEnrichedSchema,
   getCustomersQuerySchema,
 } from "../../zod/schemas/customers";
 
@@ -19,7 +19,7 @@ export const getCustomers: ZodOpenApiOperationObject = {
       description: "The list of customers.",
       content: {
         "application/json": {
-          schema: z.array(CustomerSchema),
+          schema: z.array(CustomerEnrichedSchema),
         },
       },
     },

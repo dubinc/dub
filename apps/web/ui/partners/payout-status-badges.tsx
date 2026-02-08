@@ -1,7 +1,10 @@
 import {
   CircleCheck,
+  CircleHalfDottedCheck,
   CircleHalfDottedClock,
   CircleWarning,
+  CircleXmark,
+  PaperPlane,
 } from "@dub/ui/icons";
 
 export const PayoutStatusBadges = {
@@ -17,6 +20,18 @@ export const PayoutStatusBadges = {
     icon: CircleHalfDottedClock,
     className: "text-blue-600 bg-blue-100",
   },
+  processed: {
+    label: "Processed",
+    variant: "new",
+    icon: CircleHalfDottedCheck,
+    className: "text-indigo-600 bg-indigo-100",
+  },
+  sent: {
+    label: "Sent",
+    variant: "new",
+    icon: PaperPlane,
+    className: "text-blue-600 bg-blue-100",
+  },
   completed: {
     label: "Completed",
     variant: "success",
@@ -27,6 +42,19 @@ export const PayoutStatusBadges = {
     label: "Failed",
     variant: "error",
     icon: CircleWarning,
+    className: "text-red-600 bg-red-100",
+  },
+  canceled: {
+    label: "Canceled",
+    variant: "neutral",
+    icon: CircleXmark,
+    className: "text-gray-600 bg-gray-100",
+  },
+  // extra status for hold (not in OpenAPI spec)
+  hold: {
+    label: "On Hold",
+    variant: "error",
+    icon: CircleXmark,
     className: "text-red-600 bg-red-100",
   },
 };

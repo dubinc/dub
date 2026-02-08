@@ -1,17 +1,15 @@
-import { Globe } from "@dub/ui/icons";
 import { StepPage } from "../../step-page";
 import { Form } from "./form";
 
 export default function Custom() {
   return (
     <StepPage
-      icon={Globe}
       title="Connect a custom domain"
       description={
         <a
           href="https://dub.co/help/article/choosing-a-custom-domain"
           target="_blank"
-          className="underline transition-colors hover:text-neutral-700"
+          className="cursor-alias underline decoration-dotted underline-offset-2 transition-colors hover:text-neutral-700"
         >
           Read our guide for best practices
         </a>

@@ -1,6 +1,6 @@
 # `@dub/utils`
 
-`@dub/utils` is a library of utility functions that are used across Dub.co's web applications.
+`@dub/utils` is a library of utility functions that are used across Dub's web applications.
 
 ## Installation
 

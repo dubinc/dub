@@ -2,21 +2,24 @@ import {
   LOCALHOST_GEO_DATA,
   LOCALHOST_IP,
   capitalize,
+  fetchWithRetry,
   getDomainWithoutWWW,
 } from "@dub/utils";
 import { EU_COUNTRY_CODES } from "@dub/utils/src/constants/countries";
-import { geolocation, ipAddress } from "@vercel/functions";
+import { geolocation, ipAddress, waitUntil } from "@vercel/functions";
 import { userAgent } from "next/server";
+import { recordClickCache } from "../api/links/record-click-cache";
 import { ExpandedLink, transformLink } from "../api/links/utils/transform-link";
-import {
-  detectBot,
-  detectQr,
-  getFinalUrlForRecordClick,
-  getIdentityHash,
-} from "../middleware/utils";
+import { detectBot } from "../middleware/utils/detect-bot";
+import { detectQr } from "../middleware/utils/detect-qr";
+import { getIdentityHash } from "../middleware/utils/get-identity-hash";
 import { conn } from "../planetscale";
 import { WorkspaceProps } from "../types";
 import { redis } from "../upstash";
+import {
+  publishClickEvent,
+  publishPartnerActivityEvent,
+} from "../upstash/redis-streams";
 import { webhookCache } from "../webhook/cache";
 import { sendWebhooks } from "../webhook/qstash";
 import { transformClickEventData } from "../webhook/transform";
@@ -26,23 +29,41 @@ import { transformClickEventData } from "../webhook/transform";
  **/
 export async function recordClick({
   req,
-  linkId,
   clickId,
+  workspaceId,
+  linkId,
+  domain,
+  key,
   url,
+  programId,
+  partnerId,
   webhookIds,
   skipRatelimit,
-  workspaceId,
   timestamp,
+  referrer,
+  trigger = "link",
+  shouldCacheClickId,
 }: {
   req: Request;
+  clickId?: string;
   linkId: string;
-  clickId: string;
+  workspaceId?: string;
+  domain: string;
+  key: string;
   url?: string;
+  programId?: string;
+  partnerId?: string;
   webhookIds?: string[];
   skipRatelimit?: boolean;
-  workspaceId: string | undefined;
   timestamp?: string;
+  referrer?: string;
+  trigger?: string;
+  shouldCacheClickId?: boolean;
 }) {
+  if (!clickId) {
+    return null;
+  }
+
   const searchParams = new URL(req.url).searchParams;
 
   // only track the click when there is no `dub-no-track` header or query param
@@ -50,27 +71,43 @@ export async function recordClick({
     return null;
   }
 
+  // don't track HEAD requests to avoid non-user traffic from inflating click count
+  if (req.method === "HEAD") {
+    return null;
+  }
+
+  const ua = userAgent(req);
   const isBot = detectBot(req);
 
   // don't record clicks from bots
   if (isBot) {
+    console.log(`Click not recorded ❌ – Bot detected.`, {
+      ua,
+      isBot,
+    });
     return null;
   }
 
-  const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
+  const identityHash = await getIdentityHash(req);
 
-  const cacheKey = `recordClick:${linkId}:${ip}`;
-
+  // by default, we deduplicate clicks for a domain + key pair from the same IP address – only record 1 click per hour
+  // we only need to do these if skipRatelimit is not true (we skip it in /api/track/:path endpoints)
   if (!skipRatelimit) {
-    // by default, we deduplicate clicks from the same IP address + link ID – only record 1 click per hour
     // here, we check if the clickId is cached in Redis within the last hour
-    const cachedClickId = await redis.get<string>(cacheKey);
+    const cachedClickId = await recordClickCache.get({
+      domain,
+      key,
+      identityHash,
+    });
     if (cachedClickId) {
       return null;
     }
   }
 
   const isQr = detectQr(req);
+  if (isQr) {
+    trigger = "qr";
+  }
 
   // get continent, region & geolocation data
   // interesting, geolocation().region is Vercel's edge region – NOT the actual region
@@ -86,22 +123,20 @@ export async function recordClick({
   const geo =
     process.env.VERCEL === "1" ? geolocation(req) : LOCALHOST_GEO_DATA;
 
+  const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
   const isEuCountry = geo.country && EU_COUNTRY_CODES.includes(geo.country);
 
-  const ua = userAgent(req);
-  const referer = req.headers.get("referer");
-
-  const identity_hash = await getIdentityHash(req);
-
-  const finalUrl = url ? getFinalUrlForRecordClick({ req, url }) : "";
+  const referer = referrer || req.headers.get("referer");
 
   const clickData = {
     timestamp: timestamp || new Date(Date.now()).toISOString(),
-    identity_hash,
+    identity_hash: identityHash,
     click_id: clickId,
+    workspace_id: workspaceId || "",
     link_id: linkId,
-    alias_link_id: "",
-    url: finalUrl,
+    domain,
+    key,
+    url: url || "",
     ip:
       // only record IP if it's a valid IP and not from a EU country
       typeof ip === "string" && ip.trim().length > 0 && !isEuCountry ? ip : "",
@@ -127,62 +162,128 @@ export async function recordClick({
     qr: isQr,
     referer: referer ? getDomainWithoutWWW(referer) || "(direct)" : "(direct)",
     referer_url: referer || "(direct)",
+    trigger,
   };
 
-  const hasWebhooks = webhookIds && webhookIds.length > 0;
+  if (shouldCacheClickId) {
+    // cache the click ID and its corresponding click data in Redis for 5 minutes
+    // we're doing this because ingested click events are not available immediately in Tinybird
+    await redis.set(`clickIdCache:${clickId}`, clickData, { ex: 60 * 5 });
+  }
 
-  const [, , , , workspaceRows] = await Promise.all([
-    fetch(
-      `${process.env.TINYBIRD_API_URL}/v0/events?name=dub_click_events&wait=true`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
-        },
-        body: JSON.stringify(clickData),
-      },
-    ).then((res) => res.json()),
+  waitUntil(
+    (async () => {
+      const response = await Promise.allSettled([
+        fetchWithRetry(
+          `${process.env.TINYBIRD_API_URL}/v0/events?name=dub_click_events&wait=true`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
+            },
+            body: JSON.stringify(clickData),
+          },
+        ).then((res) => res.json()),
 
-    // cache the click ID in Redis for 1 hour
-    redis.set(cacheKey, clickId, {
-      ex: 60 * 60,
-    }),
+        // cache the recorded click for the corresponding IP address in Redis for 1 hour
+        recordClickCache.set({ domain, key, identityHash, clickId }),
 
-    // increment the click count for the link (based on their ID)
-    // we have to use planetscale connection directly (not prismaEdge) because of connection pooling
-    conn.execute(
-      "UPDATE Link SET clicks = clicks + 1, lastClicked = NOW() WHERE id = ?",
-      [linkId],
-    ),
-    // if the link has a destination URL, increment the usage count for the workspace
-    // and then we have a cron that will reset it at the start of new billing cycle
-    url &&
-      conn.execute(
-        "UPDATE Project p JOIN Link l ON p.id = l.projectId SET p.usage = p.usage + 1 WHERE l.id = ?",
-        [linkId],
-      ),
+        // increment the click count for the link (based on their ID)
+        // we have to use planetscale connection directly (not prismaEdge) because of connection pooling
+        conn.execute(
+          "UPDATE Link SET clicks = clicks + 1, lastClicked = NOW() WHERE id = ?",
+          [linkId],
+        ),
+        // if the link is associated with a workspace + has a destination URL
+        // increment the usage count for the workspace
+        workspaceId &&
+          url &&
+          publishClickEvent({
+            linkId,
+            workspaceId,
+            timestamp: clickData.timestamp,
+          }).catch(() => {
+            // Fallback on writing directly to the database
+            return conn.execute(
+              "UPDATE Project p JOIN Link l ON p.id = l.projectId SET p.usage = p.usage + 1, p.totalClicks = p.totalClicks + 1 WHERE l.id = ?",
+              [linkId],
+            );
+          }),
 
-    // fetch the workspace usage for the workspace
-    workspaceId && hasWebhooks
-      ? conn.execute(
+        programId &&
+          partnerId &&
+          publishPartnerActivityEvent({
+            programId,
+            partnerId,
+            eventType: "click",
+            timestamp: new Date().toISOString(),
+          }).catch(() => {
+            // Fallback on writing directly to the database
+            return conn.execute(
+              "UPDATE ProgramEnrollment SET totalClicks = totalClicks + 1 WHERE programId = ? AND partnerId = ?",
+              [programId, partnerId],
+            );
+          }),
+      ]);
+
+      // Find the rejected promises and log them
+      if (response.some((result) => result.status === "rejected")) {
+        const errors = response
+          .map((result, index) => {
+            if (result.status === "rejected") {
+              const operations = [
+                "Tinybird click event ingestion",
+                "recordClickCache set",
+                "Link clicks increment",
+                "Workspace usage increment",
+                "Program enrollment totalClicks increment",
+              ];
+              return {
+                operation: operations[index] || `Operation ${index}`,
+                error: result.reason,
+                errorString: JSON.stringify(result.reason, null, 2),
+              };
+            }
+            return null;
+          })
+          .filter((err): err is NonNullable<typeof err> => err !== null);
+
+        console.error("[Record click] - Rejected promises:", {
+          totalErrors: errors.length,
+          errors: errors.map((err) => ({
+            operation: err.operation,
+            error: err.error,
+            errorString: err.errorString,
+          })),
+        });
+      }
+
+      // if the link has webhooks enabled, we need to check if the workspace usage has exceeded the limit
+      const hasWebhooks = webhookIds && webhookIds.length > 0;
+      if (workspaceId && hasWebhooks) {
+        const workspaceRows = await conn.execute(
           "SELECT usage, usageLimit FROM Project WHERE id = ? LIMIT 1",
           [workspaceId],
-        )
-      : null,
-  ]);
+        );
 
-  const workspace =
-    workspaceRows && workspaceRows.rows.length > 0
-      ? (workspaceRows.rows[0] as Pick<WorkspaceProps, "usage" | "usageLimit">)
-      : null;
+        const workspaceData =
+          workspaceRows.rows.length > 0
+            ? (workspaceRows.rows[0] as Pick<
+                WorkspaceProps,
+                "usage" | "usageLimit"
+              >)
+            : null;
 
-  const hasExceededUsageLimit =
-    workspace && workspace.usage >= workspace.usageLimit;
+        const hasExceededUsageLimit =
+          workspaceData && workspaceData.usage >= workspaceData.usageLimit;
 
-  // Send webhook events if link has webhooks enabled and the workspace usage has not exceeded the limit
-  if (hasWebhooks && !hasExceededUsageLimit) {
-    await sendLinkClickWebhooks({ webhookIds, linkId, clickData });
-  }
+        // Send webhook events if link has webhooks enabled and the workspace usage has not exceeded the limit
+        if (!hasExceededUsageLimit) {
+          await sendLinkClickWebhooks({ webhookIds, linkId, clickData });
+        }
+      }
+    })(),
+  );
 
   return clickData;
 }

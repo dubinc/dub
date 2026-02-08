@@ -1,10 +1,10 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
-import z from "@/lib/zod";
 import { getDefaultDomainsQuerySchema } from "@/lib/zod/schemas/domains";
 import { prisma } from "@dub/prisma";
 import { DUB_DOMAINS_ARRAY } from "@dub/utils";
 import { NextResponse } from "next/server";
+import * as z from "zod/v4";
 
 // GET /api/domains/default - get default domains
 export const GET = withWorkspace(

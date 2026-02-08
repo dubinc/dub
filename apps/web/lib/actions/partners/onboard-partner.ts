@@ -1,23 +1,23 @@
 "use server";
 
-import { createId } from "@/lib/api/utils";
+import { createId } from "@/lib/api/create-id";
 import { completeProgramApplications } from "@/lib/partners/complete-program-applications";
 import { storage } from "@/lib/storage";
-import { createConnectedAccount } from "@/lib/stripe/create-connected-account";
 import { onboardPartnerSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
-import { CONNECT_SUPPORTED_COUNTRIES, nanoid } from "@dub/utils";
+import { Prisma } from "@dub/prisma/client";
+import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { authUserActionClient } from "../safe-action";
 
 // Onboard a new partner:
-// - If the Partner already exists and matches the user's email, update the Partner (ghost partner)
+// - If the Partner already exists and matches the user's email, update the Partner
 // - If the Partner doesn't exist, create it
 export const onboardPartnerAction = authUserActionClient
-  .schema(onboardPartnerSchema)
+  .inputSchema(onboardPartnerSchema)
   .action(async ({ ctx, parsedInput }) => {
     const { user } = ctx;
-    const { name, image, country, description } = parsedInput;
+    const { name, image, country, description, profileType } = parsedInput;
 
     const existingPartner = await prisma.partner.findUnique({
       where: {
@@ -25,37 +25,41 @@ export const onboardPartnerAction = authUserActionClient
       },
     });
 
-    // only create a connected account if the partner doesn't already have one
-    // and the country is supported
-    const connectedAccount =
-      !existingPartner?.stripeConnectId &&
-      CONNECT_SUPPORTED_COUNTRIES.includes(country)
-        ? await createConnectedAccount({
-            name,
-            email: user.email,
-            country,
-          })
-        : null;
-
     const partnerId = existingPartner
       ? existingPartner.id
       : createId({ prefix: "pn_" });
 
     const imageUrl = await storage
-      .upload(`partners/${partnerId}/image_${nanoid(7)}`, image)
+      .upload({
+        key: `partners/${partnerId}/image_${nanoid(7)}`,
+        body: image,
+      })
       .then(({ url }) => url);
 
-    const payload = {
-      name,
+    // country, profileType, and companyName cannot be changed once set
+    const payload: Prisma.PartnerCreateInput = {
+      name: name || user.email,
       email: user.email,
-      country,
+      // can only update these fields if it's not already set (else you need to update under profile settings)
+      ...(existingPartner?.country ? {} : { country }),
+      ...(existingPartner?.profileType ? {} : { profileType }),
       ...(description && { description }),
       image: imageUrl,
-      ...(connectedAccount && { stripeConnectId: connectedAccount.id }),
       users: {
-        create: {
-          userId: user.id,
-          role: "owner" as const,
+        connectOrCreate: {
+          where: {
+            userId_partnerId: {
+              userId: user.id,
+              partnerId: partnerId,
+            },
+          },
+          create: {
+            userId: user.id,
+            role: "owner",
+            notificationPreferences: {
+              create: {},
+            },
+          },
         },
       },
     };
@@ -87,6 +91,6 @@ export const onboardPartnerAction = authUserActionClient
         }),
     ]);
 
-    // Complete any outstanding program applications
-    waitUntil(completeProgramApplications(user.id));
+    // Complete any outstanding program application
+    waitUntil(completeProgramApplications(user.email));
   });

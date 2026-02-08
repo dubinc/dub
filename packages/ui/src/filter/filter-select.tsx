@@ -57,7 +57,7 @@ export function FilterSelect({
   const listDimensions = useRef<{
     width: number;
     height: number;
-  }>();
+  }>(undefined);
 
   const [isOpen, setIsOpen] = useState(false);
 
@@ -189,7 +189,7 @@ export function FilterSelect({
                     selectedFilterKey ? reset() : setIsOpen(false);
                   }
                 }}
-                emptySubmit={(e) => {
+                onEmptySubmit={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
                   if (askAI) {
@@ -219,17 +219,19 @@ export function FilterSelect({
               >
                 {!selectedFilter
                   ? // Top-level filters
-                    filters.map((filter) => (
-                      <Fragment key={filter.key}>
-                        <FilterButton
-                          filter={filter}
-                          onSelect={() => openFilter(filter.key)}
-                        />
-                        {filter.separatorAfter && (
-                          <Command.Separator className="-mx-1 my-1 border-b border-neutral-200" />
-                        )}
-                      </Fragment>
-                    ))
+                    filters
+                      .filter((filter) => !filter.hideInFilterDropdown)
+                      .map((filter) => (
+                        <Fragment key={filter.key}>
+                          <FilterButton
+                            filter={filter}
+                            onSelect={() => openFilter(filter.key)}
+                          />
+                          {filter.separatorAfter && (
+                            <Command.Separator className="-mx-1 my-1 border-b border-neutral-200" />
+                          )}
+                        </Fragment>
+                      ))
                   : // Filter options
                     selectedFilter.options
                       ?.filter((option) => !search || !option.hideDuringSearch)
@@ -265,13 +267,18 @@ export function FilterSelect({
 
                 {/* Only render CommandEmpty if not loading */}
                 {(!selectedFilter || selectedFilter.options) && (
-                  <CommandEmpty search={search} askAI={askAI}>
+                  <CommandEmpty
+                    search={search}
+                    selectedFilter={selectedFilter}
+                    onSelect={() => selectOption(search)}
+                    askAI={askAI}
+                  >
                     {emptyState
                       ? isEmptyStateObject(emptyState)
                         ? emptyState?.[selectedFilterKey ?? "default"] ??
-                          "No matches"
+                          "No matching options"
                         : emptyState
-                      : "No matches"}
+                      : "No matching options"}
                   </CommandEmpty>
                 )}
               </Command.List>
@@ -319,20 +326,21 @@ function isEmptyStateObject(
 
 const CommandInput = (
   props: React.ComponentProps<typeof Command.Input> & {
-    emptySubmit?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+    onEmptySubmit?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   },
 ) => {
+  const { onEmptySubmit, ...restProps } = props;
   const isEmpty = useCommandState((state) => state.filtered.count === 0);
   return (
     <Command.Input
-      {...props}
+      {...restProps}
       size={1}
       className="grow border-0 py-3 pl-4 pr-2 outline-none placeholder:text-neutral-400 focus:ring-0 sm:text-sm"
       onKeyDown={(e) => {
         props.onKeyDown?.(e);
 
         if (e.key === "Enter" && isEmpty) {
-          props.emptySubmit?.(e);
+          onEmptySubmit?.(e);
         }
       }}
       autoCapitalize="none"
@@ -421,13 +429,46 @@ function FilterButton({
 
 const CommandEmpty = ({
   search,
+  selectedFilter,
+  onSelect,
   askAI,
   children,
 }: PropsWithChildren<{
   search: string;
+  selectedFilter?: Filter | null;
+  onSelect: () => void;
   askAI?: boolean;
 }>) => {
-  if (askAI && search) {
+  // If the selected filter has no options (and shouldFilter is true,
+  // meaning it's leveraging Command.List's native filtering and not external/async filtering),
+  // show the search input as an option
+  if (
+    selectedFilter &&
+    selectedFilter.options &&
+    selectedFilter.options.length === 0 &&
+    selectedFilter.shouldFilter !== false
+  ) {
+    if (!search)
+      return (
+        <Command.Empty className="p-2 text-center text-sm text-neutral-400">
+          Start typing to search...
+        </Command.Empty>
+      );
+
+    return (
+      <FilterButton
+        filter={selectedFilter}
+        option={{
+          value: search,
+          label: search,
+        }}
+        onSelect={onSelect}
+      />
+    );
+  }
+
+  // Ask AI option should only be shown if no filter is selected and the user has typed something in the search input
+  if (!selectedFilter && askAI && search) {
     return (
       <Command.Empty className="flex min-w-[180px] items-center space-x-2 rounded-md bg-neutral-100 px-3 py-2">
         <Magic className="h-4 w-4" />
@@ -436,13 +477,13 @@ const CommandEmpty = ({
         </p>
       </Command.Empty>
     );
-  } else {
-    return (
-      <Command.Empty className="p-2 text-center text-sm text-neutral-400">
-        {children}
-      </Command.Empty>
-    );
   }
+
+  return (
+    <Command.Empty className="p-2 text-center text-sm text-neutral-400">
+      {children}
+    </Command.Empty>
+  );
 };
 
 const isReactNode = (element: any): element is ReactNode =>

@@ -1,8 +1,9 @@
-import z from "@/lib/zod";
+import * as z from "zod/v4";
 
 export const passwordSchema = z
   .string()
   .min(8, "Password must be at least 8 characters")
+  .max(1000, "Password must be less than 1000 characters")
   .regex(
     /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$/,
     "Password must contain at least one number, one uppercase, and one lowercase letter",

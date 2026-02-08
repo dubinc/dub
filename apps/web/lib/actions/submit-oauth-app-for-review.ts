@@ -1,11 +1,12 @@
 "use server";
 
-import { plain, upsertPlainCustomer } from "@/lib/plain";
 import { prisma } from "@dub/prisma";
 import { ComponentDividerSpacingSize } from "@team-plain/typescript-sdk";
+import * as z from "zod/v4";
+import { createPlainThread } from "../plain/create-plain-thread";
 import { ratelimit } from "../upstash";
-import z from "../zod";
 import { authActionClient } from "./safe-action";
+import { throwIfNoPermission } from "./throw-if-no-permission";
 
 const schema = z.object({
   message: z.string().max(1000),
@@ -15,10 +16,15 @@ const schema = z.object({
 
 // Submit an OAuth app for review
 export const submitOAuthAppForReview = authActionClient
-  .schema(schema)
+  .inputSchema(schema)
   .action(async ({ ctx, parsedInput }) => {
     const { user, workspace } = ctx;
     const { message, integrationId } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredPermissions: ["oauth_apps.write"],
+    });
 
     const integration = await prisma.integration.findFirstOrThrow({
       where: {
@@ -37,25 +43,8 @@ export const submitOAuthAppForReview = authActionClient
       );
     }
 
-    let plainCustomerId: string | null = null;
-
-    const plainCustomer = await plain.getCustomerByEmail({
-      email: user.email,
-    });
-
-    if (plainCustomer.data) {
-      plainCustomerId = plainCustomer.data.id;
-    } else {
-      const { data } = await upsertPlainCustomer(user);
-      if (data) {
-        plainCustomerId = data.customer.id;
-      }
-    }
-
-    await plain.createThread({
-      customerIdentifier: {
-        customerId: plainCustomerId,
-      },
+    await createPlainThread({
+      user,
       title: `Integration Submission: ${integration.name}`,
       components: [
         {

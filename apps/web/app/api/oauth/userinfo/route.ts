@@ -1,15 +1,16 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { prefixWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { getAuthTokenOrThrow, hashToken } from "@/lib/auth";
 import { prisma } from "@dub/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
-const CORS_HEADERS = {
+const CORS_HEADERS = new Headers({
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
-};
+});
 
 // GET /api/oauth/userinfo - get user info by access token
 export async function GET(req: NextRequest) {
@@ -59,7 +60,7 @@ export async function GET(req: NextRequest) {
       name: user.name,
       image: user.image,
       workspace: {
-        id: `ws_${tokenRecord.project.id}`,
+        id: prefixWorkspaceId(tokenRecord.project.id),
         slug: tokenRecord.project.slug,
         name: tokenRecord.project.name,
         logo: tokenRecord.project.logo,

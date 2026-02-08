@@ -1,11 +1,12 @@
 "use server";
 
 import { prisma } from "@dub/prisma";
+import * as z from "zod/v4";
 import { OAUTH_CONFIG } from "../api/oauth/constants";
 import { createToken } from "../api/oauth/utils";
 import { hashToken } from "../auth";
-import z from "../zod";
 import { authActionClient } from "./safe-action";
+import { throwIfNoPermission } from "./throw-if-no-permission";
 
 const schema = z.object({
   workspaceId: z.string(),
@@ -14,10 +15,15 @@ const schema = z.object({
 
 // Generate a new client secret for an integration
 export const generateClientSecret = authActionClient
-  .schema(schema)
+  .inputSchema(schema)
   .action(async ({ ctx, parsedInput }) => {
     const { workspace } = ctx;
     const { appId } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredPermissions: ["oauth_apps.write"],
+    });
 
     await prisma.integration.findFirstOrThrow({
       where: {

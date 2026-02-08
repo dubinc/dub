@@ -1,4 +1,4 @@
-import { DUB_CONTAINER_ID, EMBED_URL } from "./constants";
+import { DUB_CONTAINER_ID } from "./constants";
 import { EmbedError } from "./error";
 import { DubEmbedOptions, DubInitResult, IframeMessage } from "./types";
 
@@ -27,7 +27,7 @@ class DubEmbed {
   renderEmbed() {
     console.debug("[Dub] Rendering embed.");
 
-    const { token, root, containerStyles, onError } = this.options;
+    const { token, root, containerStyles, onError, data } = this.options;
 
     const existingContainer = document.getElementById(DUB_CONTAINER_ID);
 
@@ -45,7 +45,24 @@ class DubEmbed {
       ...containerStyles,
     });
 
-    const iframe = createIframe(EMBED_URL, token);
+    const host = window.location.hostname;
+    const port = window.location.port;
+    const embedUrlHost =
+      host === "localhost" && port === "8888"
+        ? "http://localhost:8888"
+        : host === "preview.dub.co"
+          ? "https://preview.dub.co"
+          : "https://app.dub.co";
+
+    const iframeUrl =
+      data === "referrals" ? `${embedUrlHost}/embed/referrals` : "";
+
+    if (!iframeUrl) {
+      console.error("[Dub] Invalid embed data type.");
+      return null;
+    }
+
+    const iframe = createIframe(iframeUrl, token, this.options);
     container.appendChild(iframe);
 
     // Listen the message from the iframe
@@ -54,13 +71,21 @@ class DubEmbed {
 
       console.debug("[Dub] Iframe message", data);
 
-      if (event === "ERROR") {
-        onError?.(
-          new EmbedError({
-            code: data?.code ?? "",
-            message: data?.message ?? "",
-          }),
-        );
+      switch (event) {
+        case "ERROR":
+          onError?.(
+            new EmbedError({
+              code: data?.code ?? "",
+              message: data?.message ?? "",
+            }),
+          );
+          break;
+        case "PAGE_HEIGHT": {
+          const container = document.getElementById(DUB_CONTAINER_ID);
+          if (container) container.style.height = `${data.height}px`;
+
+          break;
+        }
       }
     });
 
@@ -77,10 +102,25 @@ class DubEmbed {
   }
 }
 
-const createIframe = (iframeUrl: string, token: string): HTMLIFrameElement => {
+const createIframe = (
+  iframeUrl: string,
+  token: string,
+  options: Pick<DubEmbedOptions, "theme" | "themeOptions">,
+): HTMLIFrameElement => {
   const iframe = document.createElement("iframe");
 
-  iframe.src = `${iframeUrl}?token=${token}`;
+  const params = new URLSearchParams({
+    token,
+    ...(options.theme ? { theme: options.theme } : {}),
+    ...(options.themeOptions
+      ? { themeOptions: JSON.stringify(options.themeOptions) }
+      : {}),
+
+    // Allows the iframe content to set overflow values and send height messages without affecting older embed scripts
+    dynamicHeight: "true",
+  });
+
+  iframe.src = `${iframeUrl}?${params.toString()}`;
   iframe.style.width = "100%";
   iframe.style.height = "100%";
   iframe.style.border = "none";

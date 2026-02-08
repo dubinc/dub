@@ -1,8 +1,9 @@
-import z from "@/lib/zod";
+import { normalizeWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { FolderSchema } from "@/lib/zod/schemas/folders";
 import { Link, Tag } from "@dub/prisma/client";
 import { IntegrationHarnessOld } from "tests/utils/integration-old";
 import { describe, expect, onTestFinished, test } from "vitest";
+import * as z from "zod/v4";
 import { randomId, randomTagName } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 import { E2E_LINK, E2E_WEBHOOK_ID } from "../utils/resource";
@@ -16,7 +17,7 @@ describe.sequential("POST /links", async () => {
   const h = new IntegrationHarness();
   const { workspace, user, http } = await h.init();
   const workspaceId = workspace.id;
-  const projectId = workspaceId.replace("ws_", "");
+  const projectId = normalizeWorkspaceId(workspaceId);
 
   test("public link", async () => {
     const { status, data: link } = await http.post<Link>({
@@ -133,6 +134,72 @@ describe.sequential("POST /links", async () => {
     expect(link).toStrictEqual({
       ...expectedLink,
       domain,
+      url,
+      userId: user.id,
+      projectId,
+      workspaceId,
+      shortLink: `https://${domain}/${link.key}`,
+      qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
+    });
+    expect(LinkSchema.strict().parse(link)).toBeTruthy();
+  });
+
+  test("custom keyLength", async () => {
+    const keyLength = 12;
+
+    onTestFinished(async () => {
+      await h.deleteLink(link.id);
+    });
+
+    const { status, data: link } = await http.post<Link>({
+      path: "/links",
+      body: {
+        url,
+        domain,
+        keyLength,
+      },
+    });
+
+    expect(status).toEqual(200);
+    // The key should be exactly keyLength characters long
+    expect(link.key).toHaveLength(keyLength);
+    expect(link).toStrictEqual({
+      ...expectedLink,
+      url,
+      userId: user.id,
+      projectId,
+      workspaceId,
+      shortLink: `https://${domain}/${link.key}`,
+      qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
+    });
+    expect(LinkSchema.strict().parse(link)).toBeTruthy();
+  });
+
+  test("custom keyLength with prefix", async () => {
+    const keyLength = 10;
+    const prefix = "test";
+
+    onTestFinished(async () => {
+      await h.deleteLink(link.id);
+    });
+
+    const { status, data: link } = await http.post<Link>({
+      path: "/links",
+      body: {
+        url,
+        domain,
+        keyLength,
+        prefix,
+      },
+    });
+
+    expect(status).toEqual(200);
+    // The key should start with the prefix and have the specified length
+    expect(link.key.startsWith(prefix)).toBeTruthy();
+    // The total length should be prefix.length + "/" + keyLength
+    expect(link.key).toHaveLength(prefix.length + 1 + keyLength);
+    expect(link).toStrictEqual({
+      ...expectedLink,
       url,
       userId: user.id,
       projectId,
@@ -404,7 +471,7 @@ describe.sequential("POST /links", async () => {
     });
   });
 
-  test("custom social media cards", async () => {
+  test("custom link previews", async () => {
     const title = "custom title";
     const description = "custom description";
 
@@ -464,13 +531,51 @@ describe.sequential("POST /links", async () => {
     });
     expect(LinkSchema.strict().parse(link)).toBeTruthy();
   });
+
+  test("ab testing", async () => {
+    const testVariants = [
+      { url: "https://example.com/variant-1", percentage: 30 },
+      { url: "https://example.com/variant-2", percentage: 30 },
+      { url: "https://example.com/variant-3", percentage: 40 },
+    ];
+
+    const testStartedAt = new Date();
+    const testCompletedAt = new Date(Date.now() + 1000 * 60 * 60 * 24); // 1 day
+
+    const { status, data: link } = await http.post<Link>({
+      path: "/links",
+      body: {
+        url,
+        domain,
+        trackConversion: true,
+        testVariants,
+        testStartedAt,
+        testCompletedAt,
+      },
+    });
+
+    expect(status).toEqual(200);
+    expect(link).toStrictEqual({
+      ...expectedLink,
+      url,
+      projectId,
+      workspaceId,
+      userId: user.id,
+      testVariants,
+      testStartedAt: testStartedAt.toISOString(),
+      testCompletedAt: testCompletedAt.toISOString(),
+      trackConversion: true,
+      shortLink: `https://${domain}/${link.key}`,
+      qrCode: `https://api.dub.co/qr?url=https://${domain}/${link.key}?qr=1`,
+    });
+  });
 });
 
 describe.sequential("POST /links?workspaceId=xxx", async () => {
   const h = new IntegrationHarnessOld();
   const { workspace, user, http } = await h.init();
   const workspaceId = workspace.id;
-  const projectId = workspaceId.replace("ws_", "");
+  const projectId = normalizeWorkspaceId(workspaceId);
 
   test("create link with old personal API keys approach", async () => {
     onTestFinished(async () => {

@@ -1,106 +1,92 @@
 "use server";
 
-import { getFolderOrThrow } from "@/lib/folder/get-folder-or-throw";
-import { isStored, storage } from "@/lib/storage";
+import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { referralFormSchema } from "@/lib/zod/schemas/referral-form";
 import { prisma } from "@dub/prisma";
-import { nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import { z } from "zod";
+import { revalidatePath } from "next/cache";
+import * as z from "zod/v4";
 import { getProgramOrThrow } from "../../api/programs/get-program-or-throw";
-import { createProgramSchema } from "../../zod/schemas/programs";
+import { ProgramSchema, updateProgramSchema } from "../../zod/schemas/programs";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
-const schema = createProgramSchema.partial().extend({
+const schema = updateProgramSchema.partial().extend({
   workspaceId: z.string(),
-  programId: z.string(),
-  logo: z.string().nullish(),
-  wordmark: z.string().nullish(),
-  brandColor: z.string().nullish(),
+  applyHoldingPeriodDaysToAllGroups: z.boolean().optional(),
+  referralFormData: referralFormSchema.optional(),
 });
 
 export const updateProgramAction = authActionClient
-  .schema(schema)
+  .inputSchema(schema)
   .action(async ({ parsedInput, ctx }) => {
-    const { workspace } = ctx;
+    const { workspace, user } = ctx;
     const {
-      programId,
-      defaultFolderId,
-      name,
-      commissionType,
-      commissionAmount,
-      commissionDuration,
-      commissionInterval,
-      holdingPeriodDays,
-      cookieLength,
-      domain,
-      url,
-      logo,
-      wordmark,
-      brandColor,
+      supportEmail,
+      helpUrl,
+      termsUrl,
+      minPayoutAmount,
+      messagingEnabledAt,
+      referralFormData,
     } = parsedInput;
 
-    try {
-      const program = await getProgramOrThrow({
-        workspaceId: workspace.id,
-        programId,
-      });
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredRoles: ["owner", "member"],
+    });
 
-      if (defaultFolderId) {
-        await getFolderOrThrow({
+    const programId = getDefaultProgramIdOrThrow(workspace);
+
+    const program = await getProgramOrThrow({
+      workspaceId: workspace.id,
+      programId,
+    });
+
+    const updatedProgram = await prisma.program.update({
+      where: {
+        id: programId,
+      },
+      data: {
+        supportEmail,
+        helpUrl,
+        termsUrl,
+        minPayoutAmount,
+        ...(messagingEnabledAt !== undefined &&
+          (getPlanCapabilities(workspace.plan).canMessagePartners ||
+            messagingEnabledAt === null) && { messagingEnabledAt }),
+        ...(referralFormData !== undefined && {
+          referralFormData: referralFormData ?? null,
+        }),
+      },
+    });
+
+    waitUntil(
+      (async () => {
+        await recordAuditLog({
           workspaceId: workspace.id,
-          userId: ctx.user.id,
-          folderId: defaultFolderId,
+          programId: program.id,
+          action: "program.updated",
+          description: `Program ${program.name} updated`,
+          actor: user,
+          targets: [
+            {
+              type: "program",
+              id: program.id,
+              metadata: updatedProgram,
+            },
+          ],
         });
-      }
 
-      const [logoUrl, wordmarkUrl] = await Promise.all([
-        logo && !isStored(logo)
-          ? storage
-              .upload(`programs/${programId}/logo_${nanoid(7)}`, logo)
-              .then(({ url }) => url)
-          : null,
-        wordmark && !isStored(wordmark)
-          ? storage
-              .upload(`programs/${programId}/wordmark_${nanoid(7)}`, wordmark)
-              .then(({ url }) => url)
-          : null,
-      ]);
+        if (updatedProgram.termsUrl !== program.termsUrl) {
+          revalidatePath(`/partners.dub.co/${program.slug}/apply`);
+        }
+      })(),
+    );
 
-      await prisma.program.update({
-        where: {
-          id: programId,
-        },
-        data: {
-          name,
-          commissionType,
-          commissionAmount,
-          commissionDuration,
-          commissionInterval,
-          cookieLength,
-          holdingPeriodDays,
-          domain,
-          url,
-          brandColor,
-          logo: logoUrl ?? undefined,
-          wordmark: wordmarkUrl ?? undefined,
-        },
-      });
-
-      // Delete old logo/wordmark if they were updated
-      waitUntil(
-        Promise.all([
-          ...(logoUrl && program.logo
-            ? [storage.delete(program.logo.replace(`${R2_URL}/`, ""))]
-            : []),
-          ...(wordmarkUrl && program.wordmark
-            ? [storage.delete(program.wordmark.replace(`${R2_URL}/`, ""))]
-            : []),
-        ]),
-      );
-
-      return { ok: true, program };
-    } catch (e) {
-      console.error("Failed to update program", e);
-      return { ok: false };
-    }
+    return {
+      success: true,
+      program: ProgramSchema.parse(updatedProgram),
+    };
   });

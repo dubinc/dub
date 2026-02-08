@@ -1,11 +1,10 @@
 "use client";
 
+import { RAINBOW_CONIC_GRADIENT } from "@/ui/colors";
 import { Popover, Tooltip } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { CSSProperties, useState } from "react";
-
-const RAINBOW_CONIC_GRADIENT =
-  "conic-gradient(in hsl, #ee535d 0deg, #e9d988 90deg, #9fe0b8 180deg, #bf87e4 270deg, #ee535d 360deg)";
+import { HexColorInput } from "react-colorful";
 
 const COLORS = [
   { color: "#737373", name: "Gray" },
@@ -54,12 +53,32 @@ export function ProgramColorPicker({
           <div className="sr-only" tabIndex={0}>
             Select a color
           </div>
-          <div className="col-span-6">
+          <div className="col-span-6 flex items-center justify-between gap-4">
             <Swatch
               color={null}
               name="Rainbow"
               onSelect={() => onSelect(null)}
             />
+            <div className="relative shrink">
+              <div
+                className="absolute left-2 top-1/2 size-4 -translate-y-1/2 overflow-hidden rounded-full transition-colors"
+                style={{
+                  backgroundColor: color ?? undefined,
+                }}
+              >
+                {!color && <Rainbow />}
+              </div>
+              <HexColorInput
+                name="color"
+                color={color ?? undefined}
+                onChange={(color) => onChange(color)}
+                prefixed={!!color}
+                placeholder="# Default"
+                style={{}}
+                size={1}
+                className="block min-w-32 shrink rounded-md border border-neutral-300 py-1.5 pl-[30px] text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+              />
+            </div>
           </div>
           {COLORS.map(({ color, name }) => (
             <Swatch
@@ -72,7 +91,7 @@ export function ProgramColorPicker({
         </div>
       }
       side="right"
-      align="start"
+      align="end"
     >
       <button
         id={id}

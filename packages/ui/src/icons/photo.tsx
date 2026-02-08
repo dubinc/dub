@@ -1,4 +1,4 @@
-export default function Photo({ className }: { className?: string }) {
+export function Photo({ className }: { className?: string }) {
   return (
     <svg
       fill="none"

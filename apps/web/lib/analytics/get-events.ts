@@ -1,10 +1,11 @@
 import { tb } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
 import { Link } from "@dub/prisma/client";
-import { transformLink } from "../api/links";
+import { OG_AVATAR_URL } from "@dub/utils";
+import * as z from "zod/v4";
+import { decodeLinkIfCaseSensitive } from "../api/links/case-sensitivity";
+import { transformLink } from "../api/links/utils/transform-link";
 import { generateRandomName } from "../names";
-import { tbDemo } from "../tinybird/demo-client";
-import z from "../zod";
 import { eventsFilterTB } from "../zod/schemas/analytics";
 import {
   clickEventResponseSchema,
@@ -20,7 +21,9 @@ import {
   saleEventResponseSchema,
   saleEventSchemaTBEndpoint,
 } from "../zod/schemas/sales";
+import { queryParser } from "./query-parser";
 import { EventsFilters } from "./types";
+import { formatUTCDateTimeClickhouse } from "./utils/format-utc-datetime-clickhouse";
 import { getStartEndDates } from "./utils/get-start-end-dates";
 
 // Fetch data for /api/events
@@ -31,14 +34,15 @@ export const getEvents = async (params: EventsFilters) => {
     interval,
     start,
     end,
+    timezone = "UTC",
     qr,
     trigger,
     region,
     country,
-    isDemo,
     order,
     sortOrder,
     dataAvailableFrom,
+    query,
   } = params;
 
   const { startDate, endDate } = getStartEndDates({
@@ -46,14 +50,11 @@ export const getEvents = async (params: EventsFilters) => {
     start,
     end,
     dataAvailableFrom,
+    timezone,
   });
 
-  if (trigger) {
-    if (trigger === "qr") {
-      qr = true;
-    } else if (trigger === "link") {
-      qr = false;
-    }
+  if (qr) {
+    trigger = "qr";
   }
 
   if (region) {
@@ -67,8 +68,8 @@ export const getEvents = async (params: EventsFilters) => {
     sortOrder = order;
   }
 
-  const pipe = (isDemo ? tbDemo : tb).buildPipe({
-    pipe: "v2_events",
+  const pipe = tb.buildPipe({
+    pipe: "v3_events",
     parameters: eventsFilterTB,
     data:
       {
@@ -78,17 +79,20 @@ export const getEvents = async (params: EventsFilters) => {
       }[eventType] ?? clickEventSchemaTBEndpoint,
   });
 
+  const filters = queryParser(query);
+
   const response = await pipe({
     ...params,
     eventType,
     workspaceId,
-    qr,
+    trigger,
     country,
     region,
     order: sortOrder,
     offset: (params.page - 1) * params.limit,
-    start: startDate.toISOString().replace("T", " ").replace("Z", ""),
-    end: endDate.toISOString().replace("T", " ").replace("Z", ""),
+    start: formatUTCDateTimeClickhouse(startDate),
+    end: formatUTCDateTimeClickhouse(endDate),
+    filters: filters ? JSON.stringify(filters) : undefined,
   });
 
   const [linksMap, customersMap] = await Promise.all([
@@ -107,10 +111,12 @@ export const getEvents = async (params: EventsFilters) => {
 
   const events = response.data
     .map((evt) => {
-      const link = linksMap[evt.link_id];
+      let link = linksMap[evt.link_id];
       if (!link) {
         return null;
       }
+
+      link = decodeLinkIfCaseSensitive(link);
 
       const eventData = {
         ...evt,
@@ -127,16 +133,17 @@ export const getEvents = async (params: EventsFilters) => {
           refererUrl: evt.referer_url_processed ?? "",
         }),
         // transformLink -> add shortLink, qrCode, workspaceId, etc.
-        link: transformLink(link),
+        link: transformLink(link, { skipDecodeKey: true }),
         ...(evt.event === "lead" || evt.event === "sale"
           ? {
               eventId: evt.event_id,
               eventName: evt.event_name,
+              metadata: evt.metadata ? JSON.parse(evt.metadata) : undefined,
               customer: customersMap[evt.customer_id] ?? {
                 id: evt.customer_id,
                 name: "Deleted Customer",
                 email: "deleted@customer.com",
-                avatar: `https://api.dicebear.com/9.x/micah/svg?seed=${evt.customer_id}`,
+                avatar: `${OG_AVATAR_URL}${evt.customer_id}`,
                 externalId: evt.customer_id,
                 createdAt: new Date("1970-01-01"),
               },
@@ -206,9 +213,7 @@ const getCustomersMap = async (customerIds: string[]) => {
         externalId: customer.externalId || "",
         name: customer.name || customer.email || generateRandomName(),
         email: customer.email || "",
-        avatar:
-          customer.avatar ||
-          `https://api.dicebear.com/9.x/notionists/svg?seed=${customer.id}`,
+        avatar: customer.avatar || `${OG_AVATAR_URL}${customer.id}`,
         country: customer.country || "",
         createdAt: customer.createdAt,
       });

@@ -1,0 +1,267 @@
+import { prisma } from "@dub/prisma";
+import { Program, Project } from "@dub/prisma/client";
+import { nanoid } from "@dub/utils";
+import { createId } from "../api/create-id";
+import { updateLinkStatsForImporter } from "../api/links/update-link-stats-for-importer";
+import { syncPartnerLinksStats } from "../api/partners/sync-partner-links-stats";
+import { logImportError } from "../tinybird/log-import-error";
+import { recordClick } from "../tinybird/record-click";
+import { recordLeadWithTimestamp } from "../tinybird/record-lead";
+import { clickEventSchemaTB } from "../zod/schemas/clicks";
+import { RewardfulApi } from "./api";
+import { MAX_BATCHES, rewardfulImporter } from "./importer";
+import { RewardfulImportPayload, RewardfulReferral } from "./types";
+
+export async function importCustomers(payload: RewardfulImportPayload) {
+  const { importId, programId, campaignIds, page = 1 } = payload;
+
+  const { workspace, ...program } = await prisma.program.findUniqueOrThrow({
+    where: {
+      id: programId,
+    },
+    include: {
+      workspace: true,
+    },
+  });
+
+  const { token } = await rewardfulImporter.getCredentials(workspace.id);
+
+  const rewardfulApi = new RewardfulApi({ token });
+
+  let currentPage = page;
+  let hasMore = true;
+  let processedBatches = 0;
+
+  while (hasMore && processedBatches < MAX_BATCHES) {
+    const referrals = await rewardfulApi.listCustomers({
+      page: currentPage,
+    });
+
+    if (referrals.length === 0) {
+      hasMore = false;
+      break;
+    }
+
+    await Promise.allSettled(
+      referrals.map((referral) =>
+        createCustomer({
+          referral,
+          workspace,
+          program,
+          campaignIds,
+          importId,
+        }),
+      ),
+    );
+
+    currentPage++;
+    processedBatches++;
+  }
+
+  await rewardfulImporter.queue({
+    ...payload,
+    page: hasMore ? currentPage : undefined,
+    action: hasMore ? "import-customers" : "import-commissions",
+  });
+}
+
+// Create individual referral entries
+async function createCustomer({
+  referral,
+  workspace,
+  program,
+  campaignIds,
+  importId,
+}: {
+  referral: RewardfulReferral;
+  workspace: Project;
+  program: Program;
+  campaignIds: string[];
+  importId: string;
+}) {
+  const referralId = referral.customer ? referral.customer.email : referral.id;
+  if (
+    referral.affiliate?.campaign?.id &&
+    !campaignIds.includes(referral.affiliate.campaign.id)
+  ) {
+    console.log(
+      `Referral ${referralId} not in campaignIds (${campaignIds.join(", ")}) (they're in ${referral.affiliate.campaign.id}). Skipping...`,
+    );
+
+    return;
+  }
+
+  const commonImportLogInputs = {
+    workspace_id: workspace.id,
+    import_id: importId,
+    source: "rewardful",
+    entity: "customer",
+    entity_id: referralId,
+  } as const;
+
+  if (!referral.link && !referral.coupon) {
+    await logImportError({
+      ...commonImportLogInputs,
+      code: "LINK_NOT_FOUND",
+      message: `Link or coupon not found for referral ${referralId}.`,
+    });
+
+    return;
+  }
+
+  const shortLinkToken = referral.link?.token || referral.coupon?.token;
+
+  if (!shortLinkToken) {
+    console.error(`Short link token not found for referral ${referralId}.`);
+    return;
+  }
+
+  // here we're using findFirst because for some reason findUnique uses a weird collation
+  // that causes a bunch of LINK_NOT_FOUND errors (for links/coupons that actually exist)
+  const link = await prisma.link.findFirst({
+    where: {
+      domain: program.domain!,
+      key: shortLinkToken,
+    },
+  });
+
+  if (!link) {
+    await logImportError({
+      ...commonImportLogInputs,
+      code: "LINK_NOT_FOUND",
+      message: `Link not found for referral ${referralId} (token: ${shortLinkToken}).`,
+    });
+
+    return;
+  }
+
+  if (
+    !referral.stripe_customer_id ||
+    !referral.stripe_customer_id.startsWith("cus_")
+  ) {
+    await logImportError({
+      ...commonImportLogInputs,
+      code: "STRIPE_CUSTOMER_NOT_FOUND",
+      message: `No Stripe customer ID provided for referral ${referralId}.`,
+    });
+
+    return;
+  }
+
+  const customerFoundStripeId = await prisma.customer.findUnique({
+    where: {
+      stripeCustomerId: referral.stripe_customer_id,
+    },
+  });
+
+  if (customerFoundStripeId) {
+    console.log(
+      `A customer already exists with Stripe customer ID ${referral.stripe_customer_id}`,
+    );
+    return;
+  }
+
+  const customerFoundExternalId = await prisma.customer.findUnique({
+    where: {
+      projectId_externalId: {
+        projectId: workspace.id,
+        externalId: referral.customer.id,
+      },
+    },
+  });
+
+  if (customerFoundExternalId) {
+    console.log(
+      `A customer already exists with external ID ${referral.customer.id}`,
+    );
+    return;
+  }
+
+  const dummyRequest = new Request(link.url, {
+    headers: new Headers({
+      "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
+      "x-forwarded-for": "127.0.0.1",
+      "x-vercel-ip-country": "US",
+      "x-vercel-ip-country-region": "CA",
+      "x-vercel-ip-continent": "NA",
+    }),
+  });
+
+  const clickData = await recordClick({
+    req: dummyRequest,
+    clickId: nanoid(16),
+    workspaceId: workspace.id,
+    linkId: link.id,
+    domain: link.domain,
+    key: link.key,
+    url: link.url,
+    skipRatelimit: true,
+    timestamp: new Date(referral.created_at).toISOString(),
+  });
+
+  const clickEvent = clickEventSchemaTB.parse({
+    ...clickData,
+    bot: 0,
+    qr: 0,
+  });
+
+  const customerId = createId({ prefix: "cus_" });
+
+  const customer = await prisma.customer.create({
+    data: {
+      id: customerId,
+      name:
+        // if name is null/undefined or starts with cus_, use email as name
+        !referral.customer.name || referral.customer.name.startsWith("cus_")
+          ? referral.customer.email
+          : referral.customer.name,
+      email: referral.customer.email,
+      projectId: workspace.id,
+      projectConnectId: workspace.stripeConnectId,
+      clickId: clickEvent.click_id,
+      linkId: link.id,
+      programId: link.programId,
+      partnerId: link.partnerId,
+      country: clickEvent.country,
+      clickedAt: new Date(referral.created_at),
+      createdAt: new Date(referral.became_lead_at),
+      externalId: referral.customer.id,
+      stripeCustomerId: referral.stripe_customer_id,
+    },
+  });
+
+  console.log(
+    `Created customer ${customer.email} for referral ${link.shortLink}`,
+  );
+
+  await Promise.allSettled([
+    recordLeadWithTimestamp({
+      ...clickEvent,
+      event_id: nanoid(16),
+      event_name: "Sign up",
+      customer_id: customerId,
+      timestamp: new Date(referral.became_lead_at).toISOString(),
+    }),
+
+    prisma.link.update({
+      where: { id: link.id },
+      data: {
+        leads: { increment: 1 },
+        lastLeadAt: updateLinkStatsForImporter({
+          currentTimestamp: link.lastLeadAt,
+          newTimestamp: new Date(referral.became_lead_at),
+        }),
+      },
+    }),
+    // partner links should always have a partnerId and programId, but we're doing this to make TS happy
+    ...(link.partnerId && link.programId
+      ? [
+          syncPartnerLinksStats({
+            partnerId: link.partnerId,
+            programId: link.programId,
+            eventType: "lead",
+          }),
+        ]
+      : []),
+  ]);
+}

@@ -1,5 +1,6 @@
+import { normalizeWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { Link } from "@dub/prisma/client";
-import { afterAll, describe, expect, test } from "vitest";
+import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import { randomId } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 import { E2E_LINK } from "../utils/resource";
@@ -11,7 +12,7 @@ describe.sequential("PATCH /links/{linkId}", async () => {
   const h = new IntegrationHarness();
   const { workspace, http, user } = await h.init();
   const workspaceId = workspace.id;
-  const projectId = workspaceId.replace("ws_", "");
+  const projectId = normalizeWorkspaceId(workspaceId);
   const externalId = randomId();
 
   const { data: link } = await http.post<Link>({
@@ -180,13 +181,117 @@ describe.sequential("PATCH /links/{linkId}", async () => {
   });
 });
 
+describe.sequential("PATCH /links/{linkId} - UTM parameters", async () => {
+  const h = new IntegrationHarness();
+  const { http } = await h.init();
+
+  let link: Link;
+
+  beforeAll(async () => {
+    const { data } = await http.post<Link>({
+      path: "/links",
+      body: {
+        url,
+        domain,
+      },
+    });
+    link = data;
+  });
+
+  afterAll(async () => {
+    await h.deleteLink(link.id);
+  });
+
+  test("update link with URL and UTM params", async () => {
+    const { data: updated } = await http.patch<Link>({
+      path: `/links/${link.id}`,
+      body: {
+        url: "https://example.com",
+        utm_source: "test_source",
+        utm_medium: "email",
+      },
+    });
+
+    expect(updated.url).toBe(
+      "https://example.com/?utm_source=test_source&utm_medium=email",
+    );
+    expect(updated.utm_source).toBe("test_source");
+    expect(updated.utm_medium).toBe("email");
+  });
+
+  test("update UTM params only (no URL change)", async () => {
+    const { data: updated } = await http.patch<Link>({
+      path: `/links/${link.id}`,
+      body: {
+        utm_source: "new_source",
+        utm_campaign: "spring_sale",
+      },
+    });
+
+    expect(updated.url).toBe(
+      "https://example.com/?utm_source=new_source&utm_medium=email&utm_campaign=spring_sale",
+    );
+    expect(updated.utm_source).toBe("new_source");
+    expect(updated.utm_medium).toBe("email");
+    expect(updated.utm_campaign).toBe("spring_sale");
+  });
+
+  test("update with same UTM value", async () => {
+    const { data: updated } = await http.patch<Link>({
+      path: `/links/${link.id}`,
+      body: {
+        utm_source: "new_source",
+      },
+    });
+
+    expect(updated.url).toBe(
+      "https://example.com/?utm_source=new_source&utm_medium=email&utm_campaign=spring_sale",
+    );
+    expect(updated.utm_source).toBe("new_source");
+    expect(updated.utm_medium).toBe("email");
+    expect(updated.utm_campaign).toBe("spring_sale");
+  });
+
+  test("update URL only - preserves existing UTM params", async () => {
+    const { data: updated } = await http.patch<Link>({
+      path: `/links/${link.id}`,
+      body: {
+        url: "https://newdomain.com/path",
+      },
+    });
+
+    expect(updated.url).toBe(
+      "https://newdomain.com/path?utm_source=new_source&utm_medium=email&utm_campaign=spring_sale",
+    );
+    expect(updated.utm_source).toBe("new_source");
+    expect(updated.utm_medium).toBe("email");
+    expect(updated.utm_campaign).toBe("spring_sale");
+  });
+
+  test("clear single UTM param with empty string", async () => {
+    const { data: updated } = await http.patch<Link>({
+      path: `/links/${link.id}`,
+      body: {
+        utm_campaign: "",
+      },
+    });
+
+    expect(updated.url).toBe(
+      "https://newdomain.com/path?utm_source=new_source&utm_medium=email",
+    );
+    expect(updated.utm_source).toBe("new_source");
+    expect(updated.utm_medium).toBe("email");
+    expect(updated.utm_campaign).toBe(null);
+  });
+});
+
 describe.sequential(
   "PUT /links/{linkId} (backwards compatibility)",
   async () => {
     const h = new IntegrationHarness();
     const { workspace, http, user } = await h.init();
     const workspaceId = workspace.id;
-    const projectId = workspaceId.replace("ws_", "");
+    const projectId = normalizeWorkspaceId(workspaceId);
     const externalId = randomId();
 
     const { data: link } = await http.post<Link>({

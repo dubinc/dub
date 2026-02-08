@@ -26,7 +26,9 @@ export const GET = async (req: NextRequest) => {
     }
     key = processedKey;
 
-    const workspace = await getWorkspaceViaEdge(workspaceId);
+    const workspace = await getWorkspaceViaEdge({
+      workspaceId,
+    });
 
     if (!workspace) {
       throw new DubApiError({

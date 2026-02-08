@@ -3,16 +3,15 @@ import {
   constructMetadata,
   getApexDomain,
 } from "@dub/utils";
-import { getMetaTags } from "app/api/metatags/utils";
+import { getMetaTags } from "app/api/links/metatags/utils";
 
 export const runtime = "edge";
 export const fetchCache = "force-no-store";
 
-export async function generateMetadata({
-  params,
-}: {
-  params: { url: string };
+export async function generateMetadata(props: {
+  params: Promise<{ url: string }>;
 }) {
+  const params = await props.params;
   const url = decodeURIComponent(params.url); // key can potentially be encoded
 
   const metatags = await getMetaTags(url);
@@ -28,7 +27,10 @@ export async function generateMetadata({
   });
 }
 
-export default function CloakedPage({ params }: { params: { url: string } }) {
+export default async function CloakedPage(props: {
+  params: Promise<{ url: string }>;
+}) {
+  const params = await props.params;
   const url = decodeURIComponent(params.url);
 
   return <iframe src={url} className="min-h-screen w-full border-none" />;

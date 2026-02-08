@@ -39,14 +39,17 @@ function AddWorkspaceModalHelper({
     >
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-neutral-200 px-4 py-4 pt-8 sm:px-16">
         <Logo />
-        <h3 className="text-lg font-medium">Create a new workspace</h3>
-        <a
-          href="https://dub.co/help/article/what-is-a-workspace"
-          target="_blank"
-          className="-translate-y-2 text-center text-xs text-neutral-500 underline underline-offset-4 hover:text-neutral-800"
-        >
-          What is a workspace?
-        </a>
+        <h3 className="text-lg font-medium">Create a workspace</h3>
+        <p className="-translate-y-2 text-balance text-center text-xs text-neutral-500">
+          Set up a common space to manage your links with your team.{" "}
+          <a
+            href="https://dub.co/help/article/what-is-a-workspace"
+            target="_blank"
+            className="cursor-help font-medium underline decoration-dotted underline-offset-2 transition-colors hover:text-neutral-700"
+          >
+            Learn more.
+          </a>
+        </p>
       </div>
 
       <CreateWorkspaceForm
@@ -54,12 +57,11 @@ function AddWorkspaceModalHelper({
         onSuccess={({ slug }) => {
           if (oauthFlow) {
             router.refresh();
-            setShowAddWorkspaceModal(false);
           } else {
             router.push(`/${slug}`);
             toast.success("Successfully created workspace!");
-            setShowAddWorkspaceModal(false);
           }
+          setShowAddWorkspaceModal(false);
         }}
       />
     </Modal>

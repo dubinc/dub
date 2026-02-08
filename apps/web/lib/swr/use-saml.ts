@@ -5,10 +5,10 @@ import useSWR from "swr";
 import useWorkspace from "./use-workspace";
 
 export default function useSAML() {
-  const { id } = useWorkspace();
+  const { id: workspaceId } = useWorkspace();
 
   const { data, isLoading, mutate } = useSWR<{ connections: SAMLSSORecord[] }>(
-    id && `/api/workspaces/${id}/saml`,
+    workspaceId && `/api/workspaces/${workspaceId}/saml`,
     fetcher,
     {
       keepPreviousData: true,

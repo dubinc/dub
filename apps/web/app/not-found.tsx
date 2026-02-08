@@ -1,6 +1,7 @@
 import { NewBackground } from "@/ui/shared/new-background";
 import { Wordmark } from "@dub/ui";
 import Link from "next/link";
+import { NotFoundHint } from "./not-found-hint";
 
 export default function NotFound() {
   return (
@@ -12,12 +13,7 @@ export default function NotFound() {
         <h1 className="font-display bg-gradient-to-r from-black to-neutral-600 bg-clip-text text-5xl font-semibold text-transparent">
           404
         </h1>
-        <Link
-          href="/"
-          className="flex h-9 w-fit items-center justify-center rounded-md border border-black bg-black px-4 text-sm text-white hover:bg-neutral-800 hover:ring-4 hover:ring-neutral-200"
-        >
-          Go back home
-        </Link>
+        <NotFoundHint />
       </div>
       <NewBackground showAnimation />
     </>

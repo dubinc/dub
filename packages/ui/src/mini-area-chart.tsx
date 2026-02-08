@@ -4,13 +4,16 @@ import { Group } from "@visx/group";
 import { ParentSize } from "@visx/responsive";
 import { scaleLinear, scaleUtc } from "@visx/scale";
 import { Area, AreaClosed } from "@visx/shape";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { useId, useMemo } from "react";
+
+const defaultPadding = { top: 8, right: 2, bottom: 2, left: 2 };
 
 export type MiniAreaChartProps = {
   data: { date: Date; value: number }[];
   curve?: boolean;
   color?: string;
+  padding?: Partial<typeof defaultPadding>;
 };
 
 export function MiniAreaChart(props: MiniAreaChartProps) {
@@ -26,15 +29,16 @@ export function MiniAreaChart(props: MiniAreaChartProps) {
   );
 }
 
-const padding = { top: 8, right: 2, bottom: 2, left: 2 };
-
 function MiniAreaChartInner({
   width,
   height,
   data,
   curve = true,
   color,
+  padding: paddingProp,
 }: MiniAreaChartProps & { width: number; height: number }) {
+  const padding = { ...defaultPadding, ...paddingProp };
+
   const id = useId();
 
   const zeroedData = useMemo(

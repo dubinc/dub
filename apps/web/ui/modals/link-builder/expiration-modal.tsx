@@ -1,20 +1,16 @@
+import { LinkFormData } from "@/ui/links/link-builder/link-builder-provider";
+import { useLinkBuilderKeyboardShortcut } from "@/ui/links/link-builder/use-link-builder-keyboard-shortcut";
 import { ProBadgeTooltip } from "@/ui/shared/pro-badge-tooltip";
 import {
   Button,
   InfoTooltip,
   Modal,
-  SimpleTooltipContent,
+  SmartDateTimePicker,
   Tooltip,
-  useKeyboardShortcut,
   useMediaQuery,
 } from "@dub/ui";
 import { CircleHalfDottedClock } from "@dub/ui/icons";
-import {
-  cn,
-  formatDateTime,
-  getDateTimeLocal,
-  parseDateTime,
-} from "@dub/utils";
+import { cn, formatDateTime } from "@dub/utils";
 import {
   Dispatch,
   SetStateAction,
@@ -25,8 +21,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { useForm, useFormContext } from "react-hook-form";
-import { LinkFormData } from ".";
+import { useForm, useFormContext, useWatch } from "react-hook-form";
 
 function ExpirationModal({
   showExpirationModal,
@@ -96,15 +91,7 @@ function ExpirationModal({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <h3 className="text-lg font-medium">Link Expiration</h3>
-            <ProBadgeTooltip
-              content={
-                <SimpleTooltipContent
-                  title="Set an expiration date for your links – after which it won't be accessible."
-                  cta="Learn more."
-                  href="https://dub.co/help/article/link-expiration"
-                />
-              }
-            />
+            <ProBadgeTooltip content="Set an expiration date for your links – after which it won't be accessible. [Learn more.](https://dub.co/help/article/link-expiration)" />
           </div>
           <div className="max-md:hidden">
             <Tooltip
@@ -126,61 +113,14 @@ function ExpirationModal({
 
         {/* Expiration Date */}
         <div className="mt-6">
-          <div className="flex items-center gap-2">
-            <label
-              htmlFor={`${id}-expiresAt`}
-              className="block text-sm font-medium text-neutral-700"
-            >
-              Date and Time
-            </label>
-          </div>
-          <div className="mt-2 flex w-full items-center justify-between rounded-md border border-neutral-300 bg-white shadow-sm transition-all focus-within:border-neutral-800 focus-within:outline-none focus-within:ring-1 focus-within:ring-neutral-500">
-            <input
-              ref={inputRef}
-              id={`${id}-expiresAt`}
-              type="text"
-              placeholder='E.g. "tomorrow at 5pm" or "in 2 hours"'
-              defaultValue={expiresAt ? formatDateTime(expiresAt) : ""}
-              onBlur={(e) => {
-                if (e.target.value.length > 0) {
-                  const parsedDateTime = parseDateTime(e.target.value);
-                  if (parsedDateTime) {
-                    setValue("expiresAt", parsedDateTime, {
-                      shouldDirty: true,
-                    });
-                    e.target.value = formatDateTime(parsedDateTime);
-                  }
-                }
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && inputRef.current) {
-                  e.preventDefault();
-                  const parsedDateTime = parseDateTime(inputRef.current.value);
-                  if (parsedDateTime) {
-                    setValue("expiresAt", parsedDateTime, {
-                      shouldDirty: true,
-                    });
-                    inputRef.current.value = formatDateTime(parsedDateTime);
-                  }
-                }
-              }}
-              className="flex-1 border-none bg-transparent text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-0 sm:text-sm"
-            />
-            <input
-              type="datetime-local"
-              id="expiresAt"
-              name="expiresAt"
-              value={expiresAt ? getDateTimeLocal(expiresAt) : ""}
-              onChange={(e) => {
-                const expiryDate = new Date(e.target.value);
-                setValue("expiresAt", expiryDate, { shouldDirty: true });
-                if (inputRef.current) {
-                  inputRef.current.value = formatDateTime(expiryDate);
-                }
-              }}
-              className="w-[40px] border-none bg-transparent text-neutral-500 focus:outline-none focus:ring-0 sm:text-sm"
-            />
-          </div>
+          <SmartDateTimePicker
+            value={expiresAt}
+            onChange={(date) => {
+              setValue("expiresAt", date, { shouldDirty: true });
+            }}
+            label="Date and Time"
+            autoFocus={!isMobile}
+          />
         </div>
 
         {/* Expiration URL */}
@@ -192,15 +132,7 @@ function ExpirationModal({
             >
               Expiration URL
             </label>
-            <InfoTooltip
-              content={
-                <SimpleTooltipContent
-                  title="Redirect users to a specific URL when the link has expired."
-                  cta="Learn more."
-                  href="https://dub.co/help/article/link-expiration#setting-a-custom-expiration-url"
-                />
-              }
-            />
+            <InfoTooltip content="Redirect users to a specific URL when the link has expired. [Learn more.](https://dub.co/help/article/link-expiration#setting-a-custom-expiration-url)" />
           </div>
           <div className="mt-2 rounded-md shadow-sm">
             <input
@@ -280,12 +212,10 @@ function ExpirationButton({
 }: {
   setShowExpirationModal: Dispatch<SetStateAction<boolean>>;
 }) {
-  const { watch } = useFormContext<LinkFormData>();
-  const expiresAt = watch("expiresAt");
+  const { control } = useFormContext<LinkFormData>();
+  const expiresAt = useWatch({ control, name: "expiresAt" });
 
-  useKeyboardShortcut("e", () => setShowExpirationModal(true), {
-    modal: true,
-  });
+  useLinkBuilderKeyboardShortcut("e", () => setShowExpirationModal(true));
 
   return (
     <Button
@@ -296,7 +226,7 @@ function ExpirationButton({
           className={cn("size-4", expiresAt && "text-blue-500")}
         />
       }
-      className="h-9 w-fit px-2.5 font-medium text-neutral-700"
+      className="h-8 w-fit gap-1.5 px-2.5 text-xs font-medium text-neutral-700"
       onClick={() => setShowExpirationModal(true)}
     />
   );

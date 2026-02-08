@@ -1,40 +1,27 @@
 "use client";
 
+import { partnerCanViewMarketplace } from "@/lib/network/get-discoverability-requirements";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
-import { PartnerProps, ProgramProps } from "@/lib/types";
-import { BlurImage, Popover, useScrollProgress } from "@dub/ui";
-import { Check2, Gear } from "@dub/ui/icons";
-import { cn, DICEBEAR_AVATAR_URL } from "@dub/utils";
+import { ProgramProps } from "@/lib/types";
+import {
+  AnimatedSizeContainer,
+  BlurImage,
+  Popover,
+  ScrollContainer,
+} from "@dub/ui";
+import { Check2, GridIcon, Magnifier, Shop } from "@dub/ui/icons";
+import { cn, OG_AVATAR_URL } from "@dub/utils";
+import { Command } from "cmdk";
 import { ChevronsUpDown } from "lucide-react";
 import Link from "next/link";
-import { useParams, usePathname } from "next/navigation";
 import {
-  PropsWithChildren,
-  useCallback,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
-
-const LINKS = [
-  {
-    name: "Settings",
-    icon: Gear,
-    href: "/settings",
-  },
-  // {
-  //   name: "Help center",
-  //   icon: HelpCircle,
-  //   href: "https://dub.co/help",
-  //   target: "_blank",
-  // },
-  // {
-  //   name: "Switch to Business Hub",
-  //   icon: Connections3,
-  //   href: APP_DOMAIN,
-  // },
-];
+  useParams,
+  usePathname,
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
+import { useCallback, useMemo, useState } from "react";
 
 export function PartnerProgramDropdown() {
   const { programSlug } = useParams() as { programSlug?: string };
@@ -51,11 +38,15 @@ export function PartnerProgramDropdown() {
       ? {
           ...program.program,
           logo:
-            program.program.logo ||
-            `${DICEBEAR_AVATAR_URL}${program.program.name}`,
+            program.program.logo || `${OG_AVATAR_URL}${program.program.name}`,
+          status: program.status,
         }
       : undefined;
   }, [programSlug, programEnrollments]);
+
+  const canViewMarketplace =
+    programEnrollments &&
+    partnerCanViewMarketplace({ partner, programEnrollments });
 
   const [openPopover, setOpenPopover] = useState(false);
 
@@ -67,73 +58,57 @@ export function PartnerProgramDropdown() {
     <div>
       <Popover
         content={
-          <ScrollContainer>
-            {programEnrollments && programEnrollments.length > 0 && (
-              <div className="border-b border-neutral-200 p-2">
-                <ProgramList
-                  partner={partner}
-                  selectedProgram={selectedProgram}
-                  programs={programEnrollments
-                    .filter(
-                      (programEnrollment) =>
-                        programEnrollment.status === "approved",
-                    )
-                    .map((programEnrollment) => programEnrollment.program)}
-                  setOpenPopover={setOpenPopover}
-                />
-              </div>
-            )}
-            <div className="p-2">
-              <Link
-                className={cn(
-                  "relative flex w-full items-center gap-x-2 rounded-md px-2 py-1.5 transition-all duration-75",
-                  "hover:bg-neutral-200/50 active:bg-neutral-200/80",
-                  "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
-                )}
-                href="/programs"
-                shallow={false}
-                onClick={() => setOpenPopover(false)}
-              >
-                <BlurImage
-                  src={partner.image || `${DICEBEAR_AVATAR_URL}${partner.id}`}
-                  width={28}
-                  height={28}
-                  alt={partner.name}
-                  className="size-7 shrink-0 overflow-hidden rounded-full"
-                />
-                <div>
-                  <span className="block truncate text-sm leading-5 text-neutral-900 sm:max-w-[140px]">
-                    {partner.name}
-                  </span>
-                  <div
-                    className={cn(
-                      "truncate text-xs capitalize leading-tight text-neutral-600",
-                    )}
-                  >
-                    Partner
-                  </div>
+          <div className="w-full sm:w-64">
+            {programEnrollments &&
+              programEnrollments.filter(
+                (programEnrollment) => programEnrollment.status === "approved",
+              ).length > 0 && (
+                <div className="border-b border-neutral-200">
+                  <ProgramList
+                    selectedProgram={selectedProgram}
+                    programs={programEnrollments
+                      .filter(
+                        (programEnrollment) =>
+                          programEnrollment.status === "approved",
+                      )
+                      .map((programEnrollment) => programEnrollment.program)}
+                    setOpenPopover={setOpenPopover}
+                  />
                 </div>
-              </Link>
+              )}
+            <div className="p-2">
               <div className="mt-0.5 flex flex-col gap-0.5">
-                {LINKS.map(({ name, icon: Icon, href }) => (
+                <Link
+                  href="/programs"
+                  className={cn(
+                    "flex items-center gap-x-2.5 rounded-md px-2.5 py-2 text-base transition-all duration-75 hover:bg-neutral-200/50 active:bg-neutral-200/80 sm:text-sm",
+                    "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
+                  )}
+                  onClick={() => setOpenPopover(false)}
+                >
+                  <GridIcon className="size-5 text-neutral-500 sm:size-4" />
+                  <span className="text-content-default block truncate">
+                    All programs
+                  </span>
+                </Link>
+                {canViewMarketplace && (
                   <Link
-                    key={name}
-                    href={href}
+                    href="/programs/marketplace"
                     className={cn(
-                      "flex items-center gap-x-4 rounded-md px-2.5 py-2 transition-all duration-75 hover:bg-neutral-200/50 active:bg-neutral-200/80",
+                      "flex items-center gap-x-2.5 rounded-md px-2.5 py-2 text-base transition-all duration-75 hover:bg-neutral-200/50 active:bg-neutral-200/80 sm:text-sm",
                       "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
                     )}
                     onClick={() => setOpenPopover(false)}
                   >
-                    <Icon className="size-4 text-neutral-500" />
-                    <span className="block truncate text-neutral-600">
-                      {name}
+                    <Shop className="size-5 text-neutral-500 sm:size-4" />
+                    <span className="text-content-default block truncate">
+                      Marketplace
                     </span>
                   </Link>
-                ))}
+                )}
               </div>
             </div>
-          </ScrollContainer>
+          </div>
         }
         align="start"
         openPopover={openPopover}
@@ -142,34 +117,23 @@ export function PartnerProgramDropdown() {
         <button
           onClick={() => setOpenPopover(!openPopover)}
           className={cn(
-            "flex w-full items-center justify-between rounded-lg p-1.5 text-left text-sm transition-all duration-75 hover:bg-neutral-200/50 active:bg-neutral-200/80 data-[state=open]:bg-neutral-200/80",
+            "flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-left text-sm transition-all duration-75 hover:bg-neutral-200/50 active:bg-neutral-200/80 data-[state=open]:bg-neutral-200/80",
             "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
           )}
         >
           <div className="flex min-w-0 items-center gap-x-2.5 pr-2">
-            <BlurImage
-              src={
-                selectedProgram?.logo ||
-                partner.image ||
-                `${DICEBEAR_AVATAR_URL}${partner.id}`
-              }
-              referrerPolicy="no-referrer"
-              width={28}
-              height={28}
-              alt={selectedProgram?.name || partner.name}
-              className="h-7 w-7 flex-none shrink-0 overflow-hidden rounded-full"
-            />
-            <div className="min-w-0">
-              <div className="truncate text-sm font-medium leading-5 text-neutral-900">
-                {selectedProgram?.name || partner.name}
-              </div>
-              <div
-                className={cn(
-                  "truncate text-xs capitalize leading-tight text-neutral-600",
-                )}
-              >
-                {selectedProgram ? "Enrolled" : "Partner"}
-              </div>
+            {selectedProgram?.logo && (
+              <BlurImage
+                src={selectedProgram.logo}
+                referrerPolicy="no-referrer"
+                width={40}
+                height={40}
+                alt={selectedProgram.name}
+                className="size-5 flex-none shrink-0 overflow-hidden rounded-full"
+              />
+            )}
+            <div className="text-content-emphasis min-w-0 truncate text-lg font-semibold">
+              {selectedProgram?.name || "All programs"}
             </div>
           </div>
           <ChevronsUpDown
@@ -184,106 +148,111 @@ export function PartnerProgramDropdown() {
 
 function PartnerDropdownPlaceholder() {
   return (
-    <div className="flex w-full animate-pulse items-center gap-x-1.5 rounded-lg p-1.5">
-      <div className="size-7 animate-pulse rounded-full bg-neutral-200" />
-      <div className="mb-px mt-0.5 h-8 w-28 grow animate-pulse rounded-md bg-neutral-200" />
+    <div className="flex w-full animate-pulse items-center gap-x-2.5 rounded-lg px-2 py-1.5">
+      <div className="size-6 animate-pulse rounded-full bg-neutral-200" />
+      <div className="h-7 w-28 grow animate-pulse rounded-md bg-neutral-200" />
       <ChevronsUpDown className="h-4 w-4 text-neutral-400" aria-hidden="true" />
     </div>
   );
 }
 
-function ScrollContainer({ children }: PropsWithChildren) {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const { scrollProgress, updateScrollProgress } = useScrollProgress(scrollRef);
-
-  return (
-    <div className="relative w-full">
-      <div
-        ref={scrollRef}
-        onScroll={updateScrollProgress}
-        className="relative max-h-80 w-full space-y-0.5 overflow-auto rounded-lg bg-white text-base sm:w-64 sm:text-sm"
-      >
-        {children}
-      </div>
-      {/* Bottom scroll fade */}
-      <div
-        className="pointer-events-none absolute -bottom-px left-0 h-16 w-full rounded-b-lg bg-gradient-to-t from-white sm:bottom-0"
-        style={{ opacity: 1 - Math.pow(scrollProgress, 2) }}
-      />
-    </div>
-  );
-}
-
 function ProgramList({
-  partner,
   programs,
   selectedProgram,
   setOpenPopover,
 }: {
-  partner: PartnerProps;
   programs: ProgramProps[];
   selectedProgram?: ProgramProps;
   setOpenPopover: (open: boolean) => void;
 }) {
+  const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const searchParamsString = searchParams.toString();
 
   const href = useCallback(
     (slug: string) =>
       selectedProgram
-        ? pathname?.replace(selectedProgram.slug, slug).split("?")[0] || "/"
+        ? `${pathname.replace(selectedProgram.slug, slug)}${searchParamsString.length > 0 ? `?${searchParamsString}` : ""}`
         : `/programs/${slug}`,
     [pathname, selectedProgram],
   );
 
   return (
-    <div>
-      <div className="flex items-center justify-between pb-1">
-        <p className="px-1 text-xs font-medium text-neutral-500">Programs</p>
-      </div>
-      <div className="flex flex-col gap-0.5">
-        {programs.map(({ slug, name, logo }) => {
-          const isActive = selectedProgram?.slug === slug;
-          return (
-            <Link
-              key={slug}
-              className={cn(
-                "relative flex w-full items-center gap-x-2 rounded-md px-2 py-1.5 transition-all duration-75",
-                "hover:bg-neutral-200/50 active:bg-neutral-200/80",
-                "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
-                isActive && "bg-neutral-200/50",
-              )}
-              href={href(slug)}
-              shallow={false}
-              onClick={() => setOpenPopover(false)}
+    <Command defaultValue={selectedProgram?.name} loop>
+      <div>
+        <label className="flex w-full items-center border-b border-neutral-200 pl-3.5">
+          <span className="sr-only">Search</span>
+          <Magnifier className="size-[1.125rem] text-neutral-500" />
+          <Command.Input
+            className="placeholder:text-content-subtle h-12 w-full border-0 bg-transparent px-2.5 text-base focus:outline-none focus:ring-0 sm:text-sm"
+            placeholder="Find program..."
+          />
+        </label>
+        <ScrollContainer className="max-h-[min(260px,calc(100vh-300px))]">
+          <div className="p-2">
+            <div className="flex items-center justify-between py-2">
+              <p className="px-1 text-sm font-medium text-neutral-500 sm:text-xs">
+                Programs
+              </p>
+            </div>
+            <AnimatedSizeContainer
+              height
+              className="rounded-[inherit]"
+              style={{ transform: "translateZ(0)" }} // Fixes overflow on some browsers
             >
-              <BlurImage
-                src={logo || `${DICEBEAR_AVATAR_URL}${name}`}
-                width={28}
-                height={28}
-                alt={name}
-                className="size-7 shrink-0 overflow-hidden rounded-full"
-              />
-              <div>
-                <span className="block truncate text-sm leading-5 text-neutral-900 sm:max-w-[140px]">
-                  {name}
-                </span>
-                <div
-                  className={cn(
-                    "truncate text-xs capitalize leading-tight text-neutral-600",
-                  )}
-                >
-                  Program
-                </div>
+              <div className="flex flex-col gap-0.5">
+                <Command.List>
+                  {programs.map(({ id, slug, name, logo }) => (
+                    <Command.Item
+                      key={slug}
+                      asChild
+                      value={name}
+                      onSelect={() => {
+                        router.push(href(slug));
+                        setOpenPopover(false);
+                      }}
+                    >
+                      <Link
+                        key={slug}
+                        className={cn(
+                          "relative flex w-full items-center gap-x-2.5 rounded-md py-2.5 pl-2 pr-3 transition-all duration-75",
+                          "active:bg-neutral-200/80 data-[selected=true]:bg-neutral-200/50",
+                          "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
+                        )}
+                        href={href(slug)}
+                        shallow={false}
+                        onClick={() => setOpenPopover(false)}
+                        tabIndex={-1}
+                      >
+                        <BlurImage
+                          src={logo || `https://avatar.vercel.sh/${id}`}
+                          width={40}
+                          height={40}
+                          alt={name}
+                          className="size-5 shrink-0 overflow-hidden rounded-full border border-black/10"
+                        />
+                        <span className="block min-w-0 grow truncate text-base leading-5 text-neutral-800 sm:text-sm">
+                          {name}
+                        </span>
+                        {selectedProgram?.slug === slug ? (
+                          <Check2
+                            className="size-4 shrink-0 text-neutral-600"
+                            aria-hidden="true"
+                          />
+                        ) : null}
+                      </Link>
+                    </Command.Item>
+                  ))}
+                  <Command.Empty className="p-1 text-sm text-neutral-400">
+                    No programs found
+                  </Command.Empty>
+                </Command.List>
               </div>
-              {selectedProgram?.slug === slug ? (
-                <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-black">
-                  <Check2 className="size-4" aria-hidden="true" />
-                </span>
-              ) : null}
-            </Link>
-          );
-        })}
+            </AnimatedSizeContainer>
+          </div>
+        </ScrollContainer>
       </div>
-    </div>
+    </Command>
   );
 }

@@ -3,7 +3,7 @@ import { useContext, useMemo } from "react";
 import { AnalyticsLoadingSpinner } from "./analytics-loading-spinner";
 import { AnalyticsContext } from "./analytics-provider";
 
-export function AnalyticsFunnelChart({ demo }: { demo?: boolean }) {
+export function AnalyticsFunnelChart({ demo = false }: { demo?: boolean }) {
   const { totalEvents } = useContext(AnalyticsContext);
 
   const steps = useMemo(
@@ -32,7 +32,7 @@ export function AnalyticsFunnelChart({ demo }: { demo?: boolean }) {
   );
 
   return (
-    <div className="h-[444px] w-full sm:h-[464px]">
+    <>
       {totalEvents || demo ? (
         <FunnelChart
           steps={steps}
@@ -43,6 +43,6 @@ export function AnalyticsFunnelChart({ demo }: { demo?: boolean }) {
           <AnalyticsLoadingSpinner />
         </div>
       )}
-    </div>
+    </>
   );
 }

@@ -1,8 +1,8 @@
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkProps } from "@/lib/types";
-import { Button, LinkLogo, Modal, useToastWithUndo } from "@dub/ui";
-import { getApexDomain, linkConstructor } from "@dub/utils";
+import { Button, Modal, useToastWithUndo } from "@dub/ui";
+import { capitalize, pluralize } from "@dub/utils";
 import {
   Dispatch,
   MouseEvent,
@@ -12,19 +12,20 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
+import { SimpleLinkCard } from "../links/simple-link-card";
 
 const sendArchiveRequest = ({
-  linkId,
+  linkIds,
   archive,
   workspaceId,
 }: {
-  linkId: string;
+  linkIds: string[];
   archive: boolean;
   workspaceId?: string;
 }) => {
-  return fetch(`/api/links/${linkId}?workspaceId=${workspaceId}`, {
+  return fetch(`/api/links/bulk?workspaceId=${workspaceId}`, {
     method: "PATCH",
-    body: JSON.stringify({ archived: archive }),
+    body: JSON.stringify({ linkIds, data: { archived: archive } }),
     headers: {
       "Content-Type": "application/json",
     },
@@ -34,7 +35,7 @@ const sendArchiveRequest = ({
 type ArchiveLinkModalProps = {
   showArchiveLinkModal: boolean;
   setShowArchiveLinkModal: Dispatch<SetStateAction<boolean>>;
-  props: LinkProps;
+  links: LinkProps[];
 };
 
 function ArchiveLinkModal(props: ArchiveLinkModalProps) {
@@ -50,31 +51,23 @@ function ArchiveLinkModal(props: ArchiveLinkModalProps) {
 
 function ArchiveLinkModalInner({
   setShowArchiveLinkModal,
-  props,
+  links,
 }: ArchiveLinkModalProps) {
   const toastWithUndo = useToastWithUndo();
 
+  const archived = links.every((link) => link.archived);
+  const actionText = archived ? "unarchive" : "archive";
+
   const { id: workspaceId } = useWorkspace();
   const [archiving, setArchiving] = useState(false);
-  const apexDomain = getApexDomain(props.url);
-
-  const { key, domain } = props;
-
-  const shortlink = useMemo(() => {
-    return linkConstructor({
-      key,
-      domain,
-      pretty: true,
-    });
-  }, [key, domain]);
 
   const handleArchiveRequest = async (event: MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
 
     setArchiving(true);
     const res = await sendArchiveRequest({
-      linkId: props.id,
-      archive: !props.archived,
+      linkIds: links.map(({ id }) => id),
+      archive: !archived,
       workspaceId,
     });
     setArchiving(false);
@@ -89,7 +82,7 @@ function ArchiveLinkModalInner({
     setShowArchiveLinkModal(false);
     toastWithUndo({
       id: "link-archive-undo-toast",
-      message: `Successfully ${props.archived ? "unarchived" : "archived"} link!`,
+      message: `Successfully ${actionText}d ${pluralize("link", links.length)}!`,
       undo: undoAction,
       duration: 5000,
     });
@@ -98,8 +91,8 @@ function ArchiveLinkModalInner({
   const undoAction = () => {
     toast.promise(
       sendArchiveRequest({
-        linkId: props.id,
-        archive: props.archived,
+        linkIds: links.map(({ id }) => id),
+        archive: archived,
         workspaceId,
       }),
       {
@@ -115,31 +108,52 @@ function ArchiveLinkModalInner({
 
   return (
     <>
-      <div className="flex flex-col items-center justify-center space-y-3 border-b border-neutral-200 px-4 py-4 pt-8 text-center sm:px-16">
-        <LinkLogo apexDomain={apexDomain} />
-        <h3 className="text-lg font-medium">
-          {props.archived ? "Unarchive" : "Archive"} {shortlink}
+      <div className="space-y-2 border-b border-neutral-200 p-4 sm:p-6">
+        <h3 className="text-lg font-medium leading-none">
+          {capitalize(actionText)}{" "}
+          {links.length > 1 ? `${links.length} links` : "link"}
         </h3>
-        <p className="text-sm text-neutral-500">
-          {props.archived
-            ? "By unarchiving this link, it will show up on your main dashboard again."
-            : "Archived links will still work - they just won't show up on your main dashboard."}
-        </p>
       </div>
 
-      <div className="flex flex-col space-y-6 bg-neutral-50 px-4 py-8 text-left sm:px-16">
+      <div className="bg-neutral-50 p-4 sm:p-6">
+        <p className="text-sm text-neutral-800">
+          Are you sure you want to {actionText} the following{" "}
+          {pluralize("link", links.length)}?
+        </p>
+
+        <div className="scrollbar-hide mt-4 flex max-h-[190px] flex-col gap-2 overflow-y-auto rounded-2xl border border-neutral-200 p-2">
+          {links.map((link) => (
+            <SimpleLinkCard key={link.id} link={link} />
+          ))}
+        </div>
+      </div>
+
+      {/* <LinkLogo apexDomain={getApexDomain(links[0].url)} /> */}
+
+      <div className="flex items-center justify-end gap-2 border-t border-neutral-200 bg-neutral-50 px-4 py-5 sm:px-6">
+        <Button
+          onClick={() => setShowArchiveLinkModal(false)}
+          variant="secondary"
+          text="Cancel"
+          className="h-8 w-fit px-3"
+        />
         <Button
           onClick={handleArchiveRequest}
           autoFocus
           loading={archiving}
-          text={`Confirm ${props.archived ? "unarchive" : "archive"}`}
+          text={`${capitalize(actionText)} ${pluralize("link", links.length)}`}
+          className="h-8 w-fit px-3"
         />
       </div>
     </>
   );
 }
 
-export function useArchiveLinkModal({ props }: { props: LinkProps }) {
+export function useArchiveLinkModal({
+  props,
+}: {
+  props: LinkProps | LinkProps[];
+}) {
   const [showArchiveLinkModal, setShowArchiveLinkModal] = useState(false);
 
   const ArchiveLinkModalCallback = useCallback(() => {
@@ -147,7 +161,7 @@ export function useArchiveLinkModal({ props }: { props: LinkProps }) {
       <ArchiveLinkModal
         showArchiveLinkModal={showArchiveLinkModal}
         setShowArchiveLinkModal={setShowArchiveLinkModal}
-        props={props}
+        links={Array.isArray(props) ? props : [props]}
       />
     ) : null;
   }, [showArchiveLinkModal, setShowArchiveLinkModal]);

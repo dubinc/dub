@@ -42,13 +42,18 @@ export default function UploadLogo() {
           setUploading(false);
         });
       }}
-      className="rounded-lg border border-neutral-200 bg-white"
+      className="rounded-xl border border-neutral-200 bg-white"
     >
-      <div className="flex flex-col space-y-3 p-5 sm:p-10">
-        <h2 className="text-xl font-medium">Workspace Logo</h2>
-        <p className="text-sm text-neutral-500">
-          This is your workspace's logo on {process.env.NEXT_PUBLIC_APP_NAME}.
-        </p>
+      <div className="flex flex-col items-start justify-between gap-4 p-6 sm:flex-row sm:justify-between">
+        <div className="flex flex-col space-y-1">
+          <h2 className="text-base font-semibold">Workspace Logo</h2>
+          <p className="text-sm text-neutral-500">
+            This is your workspace's logo on {process.env.NEXT_PUBLIC_APP_NAME}.
+          </p>
+          <p className="text-sm text-neutral-500">
+            Click the logo to upload a new image.
+          </p>
+        </div>
         <div className="mt-1">
           <FileUpload
             accept="images"
@@ -65,7 +70,7 @@ export default function UploadLogo() {
         </div>
       </div>
 
-      <div className="flex items-center justify-between space-x-4 rounded-b-lg border-t border-neutral-200 bg-neutral-50 p-3 sm:px-10">
+      <div className="flex flex-col items-start justify-between gap-4 rounded-b-xl border-t border-neutral-200 bg-neutral-50 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0 sm:py-3">
         <p className="text-sm text-neutral-500">
           Square image recommended. Accepted file types: .png, .jpg. Max file
           size: 2MB.

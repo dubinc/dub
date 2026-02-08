@@ -12,7 +12,7 @@ export const SAML_PROVIDERS = [
     wip: false,
   },
   {
-    name: "Azure AD",
+    name: "Entra ID (formerly Azure AD)",
     logo: "https://assets.dub.co/misc/icons/azure.svg",
     saml: "azure",
     samlModalCopy: "App Federation Metadata URL",

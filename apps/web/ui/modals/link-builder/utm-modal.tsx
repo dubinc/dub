@@ -1,11 +1,11 @@
+import { LinkFormData } from "@/ui/links/link-builder/link-builder-provider";
+import { useLinkBuilderKeyboardShortcut } from "@/ui/links/link-builder/use-link-builder-keyboard-shortcut";
 import {
   Button,
   DiamondTurnRight,
   InfoTooltip,
   Modal,
-  SimpleTooltipContent,
   Tooltip,
-  useKeyboardShortcut,
   UTM_PARAMETERS,
   UTMBuilder,
 } from "@dub/ui";
@@ -23,7 +23,6 @@ import {
   useState,
 } from "react";
 import { FormProvider, useForm, useFormContext } from "react-hook-form";
-import { LinkFormData } from ".";
 import { UTMTemplatesCombo } from "./utm-templates-combo";
 
 type UTMModalProps = {
@@ -172,11 +171,7 @@ function UTMModalInner({ setShowUTMModal }: UTMModalProps) {
           <h3 className="text-lg font-medium">UTM Builder</h3>
           <InfoTooltip
             content={
-              <SimpleTooltipContent
-                title="Add UTM parameters to your short links for conversion tracking."
-                cta="Learn more."
-                href="https://dub.co/help/article/utm-builder"
-              />
+              "Add UTM parameters to your short links for conversion tracking. [Learn more.](https://dub.co/help/article/utm-builder)"
             }
           />
         </div>
@@ -289,9 +284,7 @@ function UTMButton({
     [url],
   );
 
-  useKeyboardShortcut("u", () => setShowUTMModal(true), {
-    modal: true,
-  });
+  useLinkBuilderKeyboardShortcut("u", () => setShowUTMModal(true));
 
   return (
     <Button
@@ -302,7 +295,7 @@ function UTMButton({
           className={cn("size-4", enabled && "text-blue-500")}
         />
       }
-      className="h-9 w-fit px-2.5 font-medium text-neutral-700"
+      className="h-8 w-fit gap-1.5 px-2.5 text-xs font-medium text-neutral-700"
       onClick={() => setShowUTMModal(true)}
     />
   );

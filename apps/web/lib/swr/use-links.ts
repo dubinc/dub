@@ -1,8 +1,7 @@
-import { useRouterStuff } from "@dub/ui";
+import { useCurrentSubdomain, useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
-import { useEffect, useState } from "react";
 import useSWR, { SWRConfiguration } from "swr";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { ExpandedLinkProps, UserProps } from "../types";
 import { getLinksQuerySchemaExtended } from "../zod/schemas/links";
 import useWorkspace from "./use-workspace";
@@ -13,15 +12,10 @@ export default function useLinks(
   opts: z.infer<typeof partialQuerySchema> = {},
   swrOpts: SWRConfiguration = {},
 ) {
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, isMegaWorkspace } = useWorkspace();
   const { getQueryString } = useRouterStuff();
 
-  const [admin, setAdmin] = useState(false);
-  useEffect(() => {
-    if (window.location.host.startsWith("admin.")) {
-      setAdmin(true);
-    }
-  }, []);
+  const { subdomain } = useCurrentSubdomain();
 
   const {
     data: links,
@@ -37,15 +31,30 @@ export default function useLinks(
           {
             workspaceId,
             includeUser: "true",
-            includeWebhooks: "true",
             includeDashboard: "true",
             ...opts,
+            // don't show archived on mega workspaces
+            ...(isMegaWorkspace
+              ? {
+                  showArchived: "false",
+                }
+              : {}),
           },
           {
-            exclude: ["import", "upgrade", "newLink"],
+            include: [
+              "folderId",
+              "tagIds",
+              "domain",
+              "userId",
+              "search",
+              "page",
+              "sortBy",
+              "sortOrder",
+              "showArchived",
+            ],
           },
         )}`
-      : admin
+      : subdomain === "admin"
         ? `/api/admin/links${getQueryString(opts)}`
         : null,
     fetcher,

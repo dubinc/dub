@@ -4,7 +4,7 @@ import Image from "next/image";
 
 export function ModalHero() {
   return (
-    <div className="relative h-48 w-full overflow-hidden bg-white">
+    <div className="relative h-48 w-full overflow-hidden rounded-t-2xl bg-white">
       <BackgroundGradient className="opacity-15" />
       <Image
         src="https://assets.dub.co/misc/welcome-modal-background.svg"
@@ -27,14 +27,13 @@ function BackgroundGradient({ className }: { className?: string }) {
     <div
       className={cn(
         "absolute left-0 top-0 aspect-square w-full overflow-hidden sm:aspect-[2/1]",
-        "[mask-image:radial-gradient(70%_100%_at_50%_30%,_black_70%,_#0009)]",
         className,
       )}
     >
       <div
         className="absolute inset-0 saturate-150"
         style={{
-          backgroundImage: `conic-gradient(from -25deg at 65% -10%, #3A8BFD 0deg, #FF0000 172.98deg, #855AFC 215.14deg, #FF7B00 257.32deg, #3A8BFD 360deg)`,
+          backgroundImage: `conic-gradient(from -66deg, #855AFC -32deg, #FF0000 63deg, #EAB308 158deg, #5CFF80 240deg, #855AFC 328deg, #FF0000 423deg)`,
         }}
       />
       <div className="absolute inset-0 backdrop-blur-[50px]" />

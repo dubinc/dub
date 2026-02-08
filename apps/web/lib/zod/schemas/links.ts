@@ -1,14 +1,15 @@
-import { ErrorCode } from "@/lib/api/errors";
-import z from "@/lib/zod";
+import { ErrorCode } from "@/lib/api/error-codes";
+import { DUB_FOUNDING_DATE, formatDate, validDomainRegex } from "@dub/utils";
+import * as z from "zod/v4";
 import {
-  COUNTRY_CODES,
-  DUB_FOUNDING_DATE,
-  formatDate,
-  validDomainRegex,
-} from "@dub/utils";
-import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
-import { TagSchema } from "./tags";
+  base64ImageSchema,
+  booleanQuerySchema,
+  getPaginationQuerySchema,
+  publicHostedImageSchema,
+} from "./misc";
+import { LinkTagSchema } from "./tags";
 import {
+  DESTINATION_URL_MAX_LENGTH,
   parseDateSchema,
   parseUrlSchema,
   parseUrlSchemaAllowEmpty,
@@ -25,6 +26,37 @@ export const getDomainQuerySchema = z.object({
     .refine((v) => validDomainRegex.test(v), { message: "Invalid domain" }),
 });
 
+export const MIN_TEST_PERCENTAGE = 10;
+export const MAX_TEST_COUNT = 4;
+
+export const ABTestVariantsSchema = z
+  .array(
+    z.object({
+      url: z.string(),
+      percentage: z
+        .number()
+        .min(MIN_TEST_PERCENTAGE)
+        .max(100 - MIN_TEST_PERCENTAGE),
+    }),
+  )
+  .min(2)
+  .max(MAX_TEST_COUNT)
+  .describe(
+    "An array of A/B test URLs and the percentage of traffic to send to each URL.",
+  )
+  .meta({
+    example: [
+      {
+        url: "https://example.com/variant-1",
+        percentage: 50,
+      },
+      {
+        url: "https://example.com/variant-2",
+        percentage: 50,
+      },
+    ],
+  });
+
 const LinksQuerySchema = z.object({
   domain: z
     .string()
@@ -36,24 +68,59 @@ const LinksQuerySchema = z.object({
     .string()
     .optional()
     .describe(
-      "Deprecated. Use `tagIds` instead. The tag ID to filter the links by.",
+      "Deprecated: Use `tagIds` instead. The tag ID to filter the links by.",
     )
-    .openapi({ deprecated: true }),
+    .meta({ deprecated: true }),
   tagIds: z
     .union([z.string(), z.array(z.string())])
     .transform((v) => (Array.isArray(v) ? v : v.split(",")))
     .optional()
-    .describe("The tag IDs to filter the links by."),
+    .describe("The tag IDs to filter the links by.")
+    .meta({
+      param: {
+        style: "form",
+        explode: false,
+      },
+      anyOf: [
+        {
+          type: "string",
+        },
+        {
+          type: "array",
+          items: {
+            type: "string",
+          },
+        },
+      ],
+    }),
   tagNames: z
     .union([z.string(), z.array(z.string())])
     .transform((v) => (Array.isArray(v) ? v : v.split(",")))
     .optional()
     .describe(
       "The unique name of the tags assigned to the short link (case insensitive).",
-    ),
+    )
+    .meta({
+      param: {
+        style: "form",
+        explode: false,
+      },
+      anyOf: [
+        {
+          type: "string",
+        },
+        {
+          type: "array",
+          items: {
+            type: "string",
+          },
+        },
+      ],
+    }),
   folderId: z
     .string()
     .optional()
+    .transform((v) => (v === "unsorted" ? null : v))
     .describe("The folder ID to filter the links by."),
   search: z
     .string()
@@ -70,17 +137,17 @@ const LinksQuerySchema = z.object({
     ),
   showArchived: booleanQuerySchema
     .optional()
-    .default("false")
+    .default(false)
     .describe(
       "Whether to include archived links in the response. Defaults to `false` if not provided.",
     ),
   withTags: booleanQuerySchema
     .optional()
-    .default("false")
+    .default(false)
     .describe(
       "DEPRECATED. Filter for links that have at least one tag assigned to them.",
     )
-    .openapi({ deprecated: true }),
+    .meta({ deprecated: true }),
 });
 
 const sortBy = z
@@ -89,54 +156,127 @@ const sortBy = z
   .default("createdAt")
   .describe("The field to sort the links by. The default is `createdAt`.");
 
-export const getLinksQuerySchemaBase = LinksQuerySchema.merge(
-  z.object({
-    sortBy,
-    sortOrder: z
-      .enum(["asc", "desc"])
-      .optional()
-      .default("desc")
-      .describe("The sort order. The default is `desc`."),
-    sort: sortBy
-      .openapi({ deprecated: true })
-      .describe("DEPRECATED. Use `sortBy` instead."),
-  }),
-).merge(getPaginationQuerySchema({ pageSize: 100 }));
+export const getLinksQuerySchemaBase = LinksQuerySchema.extend({
+  sortBy,
+  sortOrder: z
+    .enum(["asc", "desc"])
+    .optional()
+    .default("desc")
+    .describe("The sort order. The default is `desc`."),
+  sort: sortBy
+    .meta({ deprecated: true })
+    .describe("DEPRECATED. Use `sortBy` instead."),
+}).extend(getPaginationQuerySchema({ pageSize: 100 }));
 
-export const getLinksCountQuerySchema = LinksQuerySchema.merge(
-  z.object({
-    groupBy: z
-      .union([
-        z.literal("domain"),
-        z.literal("tagId"),
-        z.literal("userId"),
-        z.literal("folderId"),
-      ])
-      .optional()
-      .describe("The field to group the links by."),
-  }),
-);
+export const getLinksCountQuerySchema = LinksQuerySchema.extend({
+  groupBy: z
+    .union([
+      z.literal("domain"),
+      z.literal("tagId"),
+      z.literal("userId"),
+      z.literal("folderId"),
+    ])
+    .optional()
+    .describe("The field to group the links by."),
+});
+
+export const exportLinksColumns = [
+  {
+    id: "link",
+    label: "Short link",
+    default: true,
+    transform: (value: unknown) => String(value ?? ""),
+  },
+  {
+    id: "url",
+    label: "Destination URL",
+    default: true,
+    transform: (value: unknown) => String(value ?? ""),
+  },
+  {
+    id: "clicks",
+    label: "Clicks",
+    default: true,
+    transform: (value: unknown) => Number(value ?? 0),
+  },
+  {
+    id: "leads",
+    label: "Leads",
+    default: false,
+    transform: (value: unknown) => Number(value ?? 0),
+  },
+  {
+    id: "conversions",
+    label: "Conversions",
+    default: false,
+    transform: (value: unknown) => Number(value ?? 0),
+  },
+  {
+    id: "saleAmount",
+    label: "Revenue",
+    default: false,
+    transform: (value: unknown) => Number(value ?? 0),
+  },
+  {
+    id: "createdAt",
+    label: "Created at",
+    default: true,
+    transform: (value: unknown) =>
+      value instanceof Date ? value.toISOString() : "",
+  },
+  {
+    id: "id",
+    label: "Link ID",
+    default: false,
+    transform: (value: unknown) => String(value ?? ""),
+  },
+  {
+    id: "updatedAt",
+    label: "Updated at",
+    default: false,
+    transform: (value: unknown) =>
+      value instanceof Date ? value.toISOString() : "",
+  },
+  {
+    id: "tags",
+    label: "Tags",
+    default: false,
+    transform: (value: unknown) =>
+      Array.isArray(value) ? value.join(", ") : String(value ?? ""),
+  },
+  {
+    id: "archived",
+    label: "Archived",
+    default: false,
+    transform: (value: unknown) => (value === 1 ? "Yes" : "No"),
+  },
+] as const;
+
+export type ExportLinksColumn = (typeof exportLinksColumns)[number];
+
+export const exportLinksColumnsDefault = exportLinksColumns
+  .filter((column) => column.default)
+  .map((column) => column.id);
 
 export const linksExportQuerySchema = getLinksQuerySchemaBase
   .omit({ page: true, pageSize: true })
-  .merge(
-    z.object({
-      columns: z
-        .string()
-        .transform((v) => v.split(","))
-        .describe("The columns to export."),
-      start: parseDateSchema
-        .refine((value: Date) => value >= DUB_FOUNDING_DATE, {
-          message: `The start date cannot be earlier than ${formatDate(DUB_FOUNDING_DATE)}.`,
-        })
-        .optional()
-        .describe("The start date of creation to retrieve links from."),
-      end: parseDateSchema
-        .describe("The end date of creation to retrieve links from.")
-        .optional(),
-      interval: z.string().optional().describe("The interval for the export."),
-    }),
-  );
+  .extend({
+    columns: z
+      .string()
+      .default(exportLinksColumnsDefault.join(","))
+      .transform((v) => v.split(","))
+      .describe("The columns to export."),
+    start: parseDateSchema
+      .refine((value: Date) => value >= DUB_FOUNDING_DATE, {
+        message: `The start date cannot be earlier than ${formatDate(DUB_FOUNDING_DATE)}.`,
+      })
+      .optional()
+      .describe("The start date of creation to retrieve links from."),
+    end: parseDateSchema
+      .describe("The end date of creation to retrieve links from.")
+      .optional(),
+    interval: z.string().optional().describe("The interval for the export."),
+  });
 
 export const domainKeySchema = z.object({
   domain: z
@@ -159,15 +299,16 @@ export const domainKeySchema = z.object({
 export const createLinkBodySchema = z.object({
   url: parseUrlSchemaAllowEmpty()
     .describe("The destination URL of the short link.")
-    .openapi({
+    .meta({
       example: "https://google.com",
+      maxLength: DESTINATION_URL_MAX_LENGTH,
     }),
   domain: z
     .string()
     .max(190)
     .optional()
     .describe(
-      "The domain of the short link. If not provided, the primary domain for the workspace will be used (or `dub.sh` if the workspace has no domains).",
+      "The domain of the short link (without protocol). If not provided, the primary domain for the workspace will be used (or `dub.sh` if the workspace has no domains).",
     ),
   key: z
     .string()
@@ -175,6 +316,14 @@ export const createLinkBodySchema = z.object({
     .optional()
     .describe(
       "The short link slug. If not provided, a random 7-character slug will be generated.",
+    ),
+  keyLength: z
+    .number()
+    .min(3)
+    .max(190)
+    .optional()
+    .describe(
+      "The length of the short link slug. Defaults to 7 if not provided. When used with `prefix`, the total length of the key will be `prefix.length + keyLength`.",
     ),
   externalId: z
     .string()
@@ -186,7 +335,7 @@ export const createLinkBodySchema = z.object({
     .describe(
       "The ID of the link in your database. If set, it can be used to identify the link in future API requests (must be prefixed with 'ext_' when passed as a query parameter). This key is unique across your workspace.",
     )
-    .openapi({ example: "123456" }),
+    .meta({ example: "123456" }),
   tenantId: z
     .string()
     .max(255)
@@ -220,26 +369,12 @@ export const createLinkBodySchema = z.object({
     .describe(
       "Whether the short link is archived. Defaults to `false` if not provided.",
     ),
-  publicStats: z
-    .boolean()
-    .optional()
-    .describe(
-      "Deprecated: Use `dashboard` instead. Whether the short link's stats are publicly accessible. Defaults to `false` if not provided.",
-    )
-    .openapi({ deprecated: true }),
-  tagId: z
-    .string()
-    .nullish()
-    .describe(
-      "The unique ID of the tag assigned to the short link. This field is deprecated – use `tagIds` instead.",
-    )
-    .openapi({ deprecated: true }),
   tagIds: z
     .union([z.string(), z.array(z.string())])
     .transform((v) => (Array.isArray(v) ? v : v.split(",")))
     .optional()
     .describe("The unique IDs of the tags assigned to the short link.")
-    .openapi({ example: ["clux0rgak00011..."] }),
+    .meta({ example: ["clux0rgak00011..."] }),
   tagNames: z
     .union([z.string(), z.array(z.string())])
     .transform((v) => (Array.isArray(v) ? v : v.split(",")))
@@ -249,6 +384,7 @@ export const createLinkBodySchema = z.object({
     ),
   folderId: z
     .string()
+    .transform((v) => (v === "" ? null : v))
     .nullish()
     .describe("The unique ID existing folder to assign the short link to."),
   comments: z.string().nullish().describe("The comments for the short link."),
@@ -258,7 +394,10 @@ export const createLinkBodySchema = z.object({
     .describe("The date and time when the short link will expire at."),
   expiredUrl: parseUrlSchema
     .nullish()
-    .describe("The URL to redirect to when the short link has expired."),
+    .describe("The URL to redirect to when the short link has expired.")
+    .meta({
+      maxLength: DESTINATION_URL_MAX_LENGTH,
+    }),
   password: z
     .string()
     .nullish()
@@ -269,31 +408,31 @@ export const createLinkBodySchema = z.object({
     .boolean()
     .optional()
     .describe(
-      "Whether the short link uses Custom Social Media Cards feature. Defaults to `false` if not provided.",
+      "Whether the short link uses Custom Link Previews feature. Defaults to `false` if not provided.",
     ),
   title: z
     .string()
     .nullish()
     .describe(
-      "The custom link preview title (og:title). Will be used for Custom Social Media Cards if `proxy` is true. Learn more: https://d.to/og",
+      "The custom link preview title (og:title). Will be used for Custom Link Previews if `proxy` is true. Learn more: https://d.to/og",
     ),
   description: z
     .string()
     .nullish()
     .describe(
-      "The custom link preview description (og:description). Will be used for Custom Social Media Cards if `proxy` is true. Learn more: https://d.to/og",
+      "The custom link preview description (og:description). Will be used for Custom Link Previews if `proxy` is true. Learn more: https://d.to/og",
     ),
   image: z
     .string()
     .nullish()
     .describe(
-      "The custom link preview image (og:image). Will be used for Custom Social Media Cards if `proxy` is true. Learn more: https://d.to/og",
+      "The custom link preview image (og:image). Will be used for Custom Link Previews if `proxy` is true. Learn more: https://d.to/og",
     ),
   video: z
     .string()
     .nullish()
     .describe(
-      "The custom link preview video (og:video). Will be used for Custom Social Media Cards if `proxy` is true. Learn more: https://d.to/og",
+      "The custom link preview video (og:video). Will be used for Custom Link Previews if `proxy` is true. Learn more: https://d.to/og",
     ),
   rewrite: z
     .boolean()
@@ -312,12 +451,12 @@ export const createLinkBodySchema = z.object({
       "The Android destination URL for the short link for Android device targeting.",
     ),
   geo: z
-    .record(z.enum(COUNTRY_CODES), parseUrlSchema)
+    .record(z.string(), parseUrlSchema)
     .nullish()
     .describe(
-      "Geo targeting information for the short link in JSON format `{[COUNTRY]: https://example.com }`.",
+      "Geo targeting information for the short link in JSON format `{[COUNTRY]: https://example.com }`. See https://d.to/geo for more information.",
     )
-    .openapi({ ref: "linkGeoTargeting" }),
+    .meta({ id: "linkGeoTargeting" }),
   doIndex: z
     .boolean()
     .optional()
@@ -326,36 +465,42 @@ export const createLinkBodySchema = z.object({
     ),
   utm_source: z
     .string()
+    .transform((v) => (v === "" ? null : v))
     .nullish()
     .describe(
       "The UTM source of the short link. If set, this will populate or override the UTM source in the destination URL.",
     ),
   utm_medium: z
     .string()
+    .transform((v) => (v === "" ? null : v))
     .nullish()
     .describe(
       "The UTM medium of the short link. If set, this will populate or override the UTM medium in the destination URL.",
     ),
   utm_campaign: z
     .string()
+    .transform((v) => (v === "" ? null : v))
     .nullish()
     .describe(
       "The UTM campaign of the short link. If set, this will populate or override the UTM campaign in the destination URL.",
     ),
   utm_term: z
     .string()
+    .transform((v) => (v === "" ? null : v))
     .nullish()
     .describe(
       "The UTM term of the short link. If set, this will populate or override the UTM term in the destination URL.",
     ),
   utm_content: z
     .string()
+    .transform((v) => (v === "" ? null : v))
     .nullish()
     .describe(
       "The UTM content of the short link. If set, this will populate or override the UTM content in the destination URL.",
     ),
   ref: z
     .string()
+    .transform((v) => (v === "" ? null : v))
     .nullish()
     .describe(
       "The referral tag of the short link. If set, this will populate or override the `ref` query parameter in the destination URL.",
@@ -366,9 +511,44 @@ export const createLinkBodySchema = z.object({
     .describe(
       "An array of webhook IDs to trigger when the link is clicked. These webhooks will receive click event data.",
     ),
+  testVariants: ABTestVariantsSchema.nullish(),
+  testStartedAt: z
+    .string()
+    .nullish()
+    .describe("The date and time when the tests started."),
+  testCompletedAt: z
+    .string()
+    .nullish()
+    .describe("The date and time when the tests were or will be completed."),
+
+  // deprecated fields
+  publicStats: z
+    .boolean()
+    .optional()
+    .describe(
+      "Deprecated: Use `dashboard` instead. Whether the short link's stats are publicly accessible. Defaults to `false` if not provided.",
+    )
+    .meta({ deprecated: true }),
+  tagId: z
+    .string()
+    .nullish()
+    .describe(
+      "Deprecated: Use `tagIds` instead. The unique ID of the tag assigned to the short link.",
+    )
+    .meta({ deprecated: true }),
 });
 
-export const updateLinkBodySchema = createLinkBodySchema.partial();
+export const createLinkBodySchemaAsync = createLinkBodySchema.extend({
+  image: z.union([base64ImageSchema, publicHostedImageSchema]).nullish(),
+});
+
+export const updateLinkBodySchema = createLinkBodySchemaAsync
+  .omit({ keyLength: true, prefix: true })
+  .partial();
+
+export const updateLinkBodySchemaExtended = updateLinkBodySchema.extend({
+  linkRetentionCleanupDisabledAt: z.string().nullish(),
+});
 
 export const bulkCreateLinksBodySchema = z
   .array(createLinkBodySchema)
@@ -393,22 +573,20 @@ export const bulkUpdateLinksBodySchema = z.object({
     .default([]),
   data: createLinkBodySchema
     .omit({
-      id: true,
       domain: true,
       key: true,
       externalId: true,
+      keyLength: true,
       prefix: true,
     })
-    .merge(
-      z.object({
-        url: parseUrlSchema
-          .describe("The destination URL of the short link.")
-          .openapi({
-            example: "https://google.com",
-          })
-          .optional(),
-      }),
-    ),
+    .extend({
+      url: parseUrlSchema
+        .describe("The destination URL of the short link.")
+        .meta({
+          example: "https://google.com",
+        })
+        .optional(),
+    }),
 });
 
 export const LinkSchema = z
@@ -424,7 +602,7 @@ export const LinkSchema = z
       .describe(
         "The short link slug. If not provided, a random 7-character slug will be generated.",
       ),
-    url: z.string().url().describe("The destination URL of the short link."),
+    url: z.url().describe("The destination URL of the short link."),
     trackConversion: z
       .boolean()
       .default(false)
@@ -460,10 +638,15 @@ export const LinkSchema = z
         "The date and time when the short link will expire in ISO-8601 format.",
       ),
     expiredUrl: z
-      .string()
       .url()
       .nullable()
       .describe("The URL to redirect to when the short link has expired."),
+    disabledAt: z
+      .string()
+      .nullable()
+      .describe(
+        "The date and time when the short link was disabled. When a short link is disabled, it will redirect to its domain's not found URL, and its stats will be excluded from your overall stats.",
+      ),
     password: z
       .string()
       .nullable()
@@ -473,32 +656,30 @@ export const LinkSchema = z
     proxy: z
       .boolean()
       .default(false)
-      .describe(
-        "Whether the short link uses Custom Social Media Cards feature.",
-      ),
+      .describe("Whether the short link uses Custom Link Previews feature."),
     title: z
       .string()
       .nullable()
       .describe(
-        "The title of the short link generated via `api.dub.co/metatags`. Will be used for Custom Social Media Cards if `proxy` is true.",
+        "The title of the short link. Will be used for Custom Link Previews if `proxy` is true.",
       ),
     description: z
       .string()
       .nullable()
       .describe(
-        "The description of the short link generated via `api.dub.co/metatags`. Will be used for Custom Social Media Cards if `proxy` is true.",
+        "The description of the short link. Will be used for Custom Link Previews if `proxy` is true.",
       ),
     image: z
       .string()
       .nullable()
       .describe(
-        "The image of the short link generated via `api.dub.co/metatags`. Will be used for Custom Social Media Cards if `proxy` is true.",
+        "The image of the short link. Will be used for Custom Link Previews if `proxy` is true.",
       ),
     video: z
       .string()
       .nullable()
       .describe(
-        "The custom link preview video (og:video). Will be used for Custom Social Media Cards if `proxy` is true. Learn more: https://d.to/og",
+        "The custom link preview video (og:video). Will be used for Custom Link Previews if `proxy` is true. Learn more: https://d.to/og",
       ),
     rewrite: z
       .boolean()
@@ -521,23 +702,16 @@ export const LinkSchema = z
         "The Android destination URL for the short link for Android device targeting.",
       ),
     geo: z
-      .record(z.enum(COUNTRY_CODES), z.string().url())
+      .record(z.string(), z.url())
       .nullable()
       .describe(
-        "Geo targeting information for the short link in JSON format `{[COUNTRY]: https://example.com }`. Learn more: https://d.to/geo",
+        "Geo targeting information for the short link in JSON format `{[COUNTRY]: https://example.com }`. See https://d.to/geo for more information.",
       ),
     publicStats: z
       .boolean()
       .default(false)
       .describe("Whether the short link's stats are publicly accessible."),
-    tagId: z
-      .string()
-      .nullable()
-      .describe(
-        "The unique ID of the tag assigned to the short link. This field is deprecated – use `tags` instead.",
-      )
-      .openapi({ deprecated: true }),
-    tags: TagSchema.array()
+    tags: LinkTagSchema.array()
       .nullable()
       .describe("The tags assigned to the short link."),
     folderId: z
@@ -554,13 +728,11 @@ export const LinkSchema = z
       .nullable()
       .describe("The comments for the short link."),
     shortLink: z
-      .string()
       .url()
       .describe(
         "The full URL of the short link, including the https protocol (e.g. `https://dub.sh/try`).",
       ),
     qrCode: z
-      .string()
       .url()
       .describe(
         "The full URL of the QR code for the short link (e.g. `https://api.dub.co/qr?url=https://dub.sh/try`).",
@@ -582,6 +754,15 @@ export const LinkSchema = z
       .string()
       .nullable()
       .describe("The UTM content of the short link."),
+    testVariants: ABTestVariantsSchema.nullish(),
+    testStartedAt: z
+      .string()
+      .nullish()
+      .describe("The date and time when the tests started."),
+    testCompletedAt: z
+      .string()
+      .nullish()
+      .describe("The date and time when the tests were or will be completed."),
     userId: z
       .string()
       .nullable()
@@ -591,38 +772,53 @@ export const LinkSchema = z
       .number()
       .default(0)
       .describe("The number of clicks on the short link."),
-    lastClicked: z
-      .string()
-      .nullable()
-      .describe("The date and time when the short link was last clicked."),
     leads: z
       .number()
       .default(0)
-      .describe("The number of leads the short links has generated."),
+      .describe("The number of leads the short link has generated."),
+    conversions: z
+      .number()
+      .default(0)
+      .describe("The number of leads that converted to paying customers."),
     sales: z
       .number()
       .default(0)
-      .describe("The number of sales the short links has generated."),
+      .describe(
+        "The total number of sales (includes recurring sales) generated by the short link.",
+      ),
     saleAmount: z
       .number()
       .default(0)
       .describe(
-        "The total dollar amount of sales the short links has generated (in cents).",
+        "The total dollar value of sales (in cents) generated by the short link.",
       ),
+    lastClicked: z
+      .string()
+      .nullable()
+      .describe("The date and time when the short link was last clicked."),
     createdAt: z
       .string()
       .describe("The date and time when the short link was created."),
     updatedAt: z
       .string()
       .describe("The date and time when the short link was last updated."),
+
+    // deprecated fields
+    tagId: z
+      .string()
+      .nullable()
+      .describe(
+        "Deprecated: Use `tags` instead. The unique ID of the tag assigned to the short link.",
+      )
+      .meta({ deprecated: true }),
     projectId: z
       .string()
       .describe(
-        "The project ID of the short link. This field is deprecated – use `workspaceId` instead.",
+        "Deprecated: Use `workspaceId` instead. The project ID of the short link.",
       )
-      .openapi({ deprecated: true }),
+      .meta({ deprecated: true }),
   })
-  .openapi({ title: "Link" });
+  .meta({ title: "Link" });
 
 export const LinkErrorSchema = z
   .object({
@@ -630,36 +826,42 @@ export const LinkErrorSchema = z
     error: z.string().describe("The error message."),
     code: ErrorCode.describe("The error code."),
   })
-  .openapi({ title: "LinkError" });
+  .meta({ title: "LinkError" });
 
-export const getLinkInfoQuerySchema = domainKeySchema.partial().merge(
-  z.object({
-    linkId: z
-      .string()
-      .optional()
-      .describe("The unique ID of the short link.")
-      .openapi({ example: "clux0rgak00011..." }),
-    externalId: z
-      .string()
-      .optional()
-      .describe("This is the ID of the link in the your database.")
-      .openapi({ example: "123456" }),
-  }),
-);
-export const getLinksQuerySchemaExtended = getLinksQuerySchemaBase.merge(
-  z.object({
-    // Only Dub UI uses the following query parameters
-    includeUser: booleanQuerySchema.default("false"),
-    includeWebhooks: booleanQuerySchema.default("false"),
-    includeDashboard: booleanQuerySchema.default("false"),
-    linkIds: z
-      .union([z.string(), z.array(z.string())])
-      .transform((v) => (Array.isArray(v) ? v : v.split(",")))
-      .optional()
-      .describe("Link IDs to filter by."),
-    partnerId: z.string().optional().describe("Partner ID to filter by."),
-  }),
-);
+export const getLinkInfoQuerySchema = domainKeySchema.partial().extend({
+  linkId: z
+    .string()
+    .optional()
+    .describe("The unique ID of the short link.")
+    .meta({ example: "clux0rgak00011..." }),
+  externalId: z
+    .string()
+    .optional()
+    .describe("This is the ID of the link in the your database.")
+    .meta({ example: "123456" }),
+});
+
+export const getLinksQuerySchemaExtended = getLinksQuerySchemaBase.extend({
+  // Only Dub UI uses the following query parameters
+  includeUser: booleanQuerySchema.default(false),
+  includeWebhooks: booleanQuerySchema.default(false),
+  includeDashboard: booleanQuerySchema.default(false),
+  linkIds: z
+    .union([z.string(), z.array(z.string())])
+    .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+    .optional()
+    .describe("Link IDs to filter by."),
+  partnerId: z.string().optional().describe("Partner ID to filter by."),
+  searchMode: z
+    .enum(["fuzzy", "exact"])
+    .default("fuzzy")
+    .describe("Search mode to filter by."),
+});
+
+export const getLinkInfoQuerySchemaExtended = getLinkInfoQuerySchema.extend({
+  includeUser: booleanQuerySchema.default(false),
+  includeWebhooks: booleanQuerySchema.default(false),
+});
 
 export const linkEventSchema = LinkSchema.extend({
   // here we use string because url can be empty
@@ -677,6 +879,9 @@ export const linkEventSchema = LinkSchema.extend({
   updatedAt: z.coerce.date(),
   lastClicked: z.coerce.date(),
   expiresAt: z.coerce.date(),
+  disabledAt: z.coerce.date(),
+  testCompletedAt: z.coerce.date(),
+  testStartedAt: z.coerce.date(),
   // userId can be null
   userId: z.string().nullable(),
 });

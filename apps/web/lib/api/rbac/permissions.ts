@@ -1,4 +1,4 @@
-import { Role } from "@dub/prisma/client";
+import { WorkspaceRole } from "@dub/prisma/client";
 
 export const PERMISSION_ACTIONS = [
   "workspaces.read",
@@ -20,6 +20,12 @@ export const PERMISSION_ACTIONS = [
   "webhooks.write",
   "folders.read",
   "folders.write",
+  "groups.write",
+  "groups.read",
+  "messages.read",
+  "messages.write",
+  "payouts.write",
+  "billing.write",
 ] as const;
 
 export type PermissionAction = (typeof PERMISSION_ACTIONS)[number];
@@ -27,107 +33,137 @@ export type PermissionAction = (typeof PERMISSION_ACTIONS)[number];
 export const ROLE_PERMISSIONS: {
   action: PermissionAction;
   description: string;
-  roles: Role[];
+  roles: WorkspaceRole[];
 }[] = [
   {
     action: "links.read",
     description: "access links",
-    roles: ["owner", "member"],
+    roles: ["owner", "member", "viewer", "billing"],
   },
   {
     action: "links.write",
-    description: "create, update, or delete links",
+    description: "manage links",
     roles: ["owner", "member"],
   },
   {
     action: "analytics.read",
     description: "access analytics",
-    roles: ["owner", "member"],
+    roles: ["owner", "member", "viewer", "billing"],
   },
   {
     action: "workspaces.read",
     description: "access workspaces",
-    roles: ["owner", "member"],
+    roles: ["owner", "member", "viewer", "billing"],
   },
   {
     action: "workspaces.write",
-    description: "update or delete the current workspace",
+    description: "manage workspace settings",
     roles: ["owner"],
   },
   {
     action: "domains.read",
     description: "access domains",
-    roles: ["owner", "member"],
+    roles: ["owner", "member", "viewer", "billing"],
   },
   {
     action: "domains.write",
-    description: "create, update, or delete domains",
+    description: "manage domains",
     roles: ["owner"],
   },
   {
     action: "tags.read",
     description: "access tags",
-    roles: ["owner", "member"],
+    roles: ["owner", "member", "viewer", "billing"],
   },
   {
     action: "tags.write",
-    description: "create, update, or delete tags",
+    description: "manage tags",
     roles: ["owner", "member"],
   },
   {
     action: "tokens.read",
     description: "access API keys",
-    roles: ["owner", "member"],
+    roles: ["owner", "member", "viewer", "billing"],
   },
   {
     action: "tokens.write",
-    description: "create, update, or delete API keys",
+    description: "manage API keys",
     roles: ["owner"],
   },
   {
     action: "oauth_apps.read",
-    description: "read OAuth apps",
-    roles: ["owner", "member"],
+    description: "access OAuth apps",
+    roles: ["owner", "member", "viewer", "billing"],
   },
   {
     action: "oauth_apps.write",
-    description: "create, update, or delete OAuth apps",
+    description: "manage OAuth apps",
     roles: ["owner"],
   },
   {
     action: "integrations.read",
-    description: "read authorized OAuth apps",
-    roles: ["owner", "member"],
+    description: "access integrations",
+    roles: ["owner", "member", "viewer", "billing"],
   },
   {
     action: "integrations.write",
-    description: "disconnect authorized OAuth apps",
+    description: "manage integrations",
     roles: ["owner", "member"],
   },
   {
     action: "webhooks.read",
-    description: "read webhooks",
-    roles: ["owner", "member"],
+    description: "access webhooks",
+    roles: ["owner", "member", "viewer", "billing"],
   },
   {
     action: "webhooks.write",
-    description: "create, update, or delete webhooks",
+    description: "manage webhooks",
     roles: ["owner"],
   },
   {
     action: "folders.read",
     description: "access folders",
-    roles: ["owner", "member"],
+    roles: ["owner", "member", "viewer", "billing"],
   },
   {
     action: "folders.write",
-    description: "create, update, or delete folders",
+    description: "manage folders",
+    roles: ["owner", "member"],
+  },
+  {
+    action: "payouts.write",
+    description: "confirm payouts",
+    roles: ["owner", "billing"],
+  },
+  {
+    action: "billing.write",
+    description: "manage billing details",
+    roles: ["owner", "billing"],
+  },
+  {
+    action: "groups.read",
+    description: "access groups",
+    roles: ["owner", "member", "viewer", "billing"],
+  },
+  {
+    action: "groups.write",
+    description: "manage groups",
+    roles: ["owner", "member"],
+  },
+  {
+    action: "messages.read",
+    description: "access messages",
+    roles: ["owner", "member", "viewer", "billing"],
+  },
+  {
+    action: "messages.write",
+    description: "manage messages",
     roles: ["owner", "member"],
   },
 ];
 
 // Get permissions for a role
-export const getPermissionsByRole = (role: Role) => {
+export const getPermissionsByRole = (role: WorkspaceRole) => {
   return ROLE_PERMISSIONS.filter(({ roles }) => roles.includes(role)).map(
     ({ action }) => action,
   );

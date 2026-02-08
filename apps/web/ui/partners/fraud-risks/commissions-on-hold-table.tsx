@@ -1,0 +1,179 @@
+import useWorkspace from "@/lib/swr/use-workspace";
+import { CommissionResponse, FraudGroupProps } from "@/lib/types";
+import { CustomerRowItem } from "@/ui/customers/customer-row-item";
+import {
+  LoadingSpinner,
+  Table,
+  TimestampTooltip,
+  useTable,
+  useTablePagination,
+} from "@dub/ui";
+import {
+  cn,
+  currencyFormatter,
+  fetcher,
+  formatDateTimeSmart,
+  nFormatter,
+} from "@dub/utils";
+import { useState } from "react";
+import useSWR from "swr";
+import { CommissionRowMenu } from "../commission-row-menu";
+import { CommissionTypeBadge } from "../commission-type-badge";
+
+const COMMISSIONS_ON_HOLD_PAGE_SIZE = 10;
+
+export function CommissionsOnHoldTable({
+  fraudGroup,
+}: {
+  fraudGroup: FraudGroupProps;
+}) {
+  const { id: workspaceId, slug } = useWorkspace();
+  const [page, setPage] = useState(1);
+
+  const { pagination, setPagination } = useTablePagination({
+    pageSize: COMMISSIONS_ON_HOLD_PAGE_SIZE,
+    page,
+    onPageChange: setPage,
+  });
+
+  const query = {
+    workspaceId: workspaceId!,
+    status: "pending",
+    partnerId: fraudGroup.partner.id,
+  };
+
+  const {
+    data: commissions,
+    error,
+    isLoading,
+  } = useSWR<CommissionResponse[]>(
+    `/api/commissions?${new URLSearchParams({
+      ...query,
+      page: page.toString(),
+      pageSize: COMMISSIONS_ON_HOLD_PAGE_SIZE.toString(),
+    }).toString()}`,
+    fetcher,
+    {
+      keepPreviousData: true,
+    },
+  );
+
+  const { data: commissionsCount } = useSWR<{ all: { count: number } }>(
+    `/api/commissions/count?${new URLSearchParams(query).toString()}`,
+    fetcher,
+    {
+      keepPreviousData: true,
+    },
+  );
+
+  const table = useTable<CommissionResponse>({
+    data: commissions || [],
+    columns: [
+      {
+        id: "createdAt",
+        header: "Date",
+        cell: ({ row }) => (
+          <TimestampTooltip
+            timestamp={row.original.createdAt}
+            side="right"
+            rows={["local", "utc", "unix"]}
+            delayDuration={150}
+          >
+            <p>{formatDateTimeSmart(row.original.createdAt)}</p>
+          </TimestampTooltip>
+        ),
+      },
+      {
+        id: "customer",
+        header: "Customer",
+        cell: ({ row }) =>
+          row.original.customer ? (
+            <CustomerRowItem
+              customer={row.original.customer}
+              href={`/${slug}/program/customers/${row.original.customer.id}`}
+            />
+          ) : (
+            "-"
+          ),
+      },
+      {
+        id: "type",
+        header: "Type",
+        accessorKey: "type",
+        cell: ({ row }) => (
+          <CommissionTypeBadge type={row.original.type ?? "sale"} />
+        ),
+        meta: {
+          filterParams: ({ row }) => ({
+            type: row.original.type,
+          }),
+        },
+      },
+      {
+        id: "amount",
+        header: "Amount",
+        accessorFn: (d) =>
+          d.type === "sale"
+            ? currencyFormatter(d.amount)
+            : nFormatter(d.quantity),
+      },
+      {
+        id: "commission",
+        header: "Commission",
+        cell: ({ row }) => (
+          <span
+            className={cn(
+              row.original.earnings < 0 && "text-red-600",
+              "truncate",
+            )}
+          >
+            {currencyFormatter(row.original.earnings)}
+          </span>
+        ),
+      },
+      // Menu
+      {
+        id: "menu",
+        enableHiding: false,
+        minSize: 43,
+        size: 43,
+        maxSize: 43,
+        cell: ({ row }) => <CommissionRowMenu row={row} />,
+      },
+    ],
+    ...((commissionsCount?.all.count || 0) > COMMISSIONS_ON_HOLD_PAGE_SIZE
+      ? {
+          pagination,
+          onPaginationChange: setPagination,
+        }
+      : {
+          className: "[&_tr:last-child>td]:border-b-transparent",
+        }),
+    columnPinning: { right: ["menu"] },
+    thClassName: "border-l-0",
+    tdClassName: "border-l-0",
+    scrollWrapperClassName: "min-h-0",
+    resourceName: (p) => `commission${p ? "s" : ""}`,
+    rowCount: commissionsCount?.all.count || 0,
+    loading: isLoading,
+    error: error ? "Failed to load commissions" : undefined,
+  });
+
+  return (
+    <div className="flex flex-col gap-3">
+      {commissions?.length ? (
+        <Table {...table} />
+      ) : (
+        <div className="border-border-subtle flex h-24 flex-col items-center justify-center gap-2 rounded-lg border">
+          {isLoading ? (
+            <LoadingSpinner />
+          ) : (
+            <p className="text-content-subtle text-sm">
+              No commissions are on hold yet
+            </p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}

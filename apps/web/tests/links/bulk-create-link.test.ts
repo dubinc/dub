@@ -1,6 +1,7 @@
-import z from "@/lib/zod";
+import { normalizeWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { Link } from "@dub/prisma/client";
 import { expect, onTestFinished, test } from "vitest";
+import * as z from "zod/v4";
 import { randomId } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 import { E2E_LINK, E2E_TAG, E2E_TAG_2 } from "../utils/resource";
@@ -12,7 +13,7 @@ const setupBulkTest = async (ctx: any) => {
   const h = new IntegrationHarness(ctx);
   const { workspace, http, user } = await h.init();
   const workspaceId = workspace.id;
-  const projectId = workspaceId.replace("ws_", "");
+  const projectId = normalizeWorkspaceId(workspaceId);
   return { h, http, user, workspaceId, projectId };
 };
 

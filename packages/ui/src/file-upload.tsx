@@ -4,7 +4,23 @@ import { DragEvent, ReactNode, useState } from "react";
 import { toast } from "sonner";
 import { CloudUpload, Icon, LoadingCircle } from "./icons";
 
-type AcceptedFileFormats = "any" | "images" | "csv";
+type AcceptedFileFormats =
+  | "any"
+  | "images"
+  | "csv"
+  | "documents"
+  | "programResourceImages"
+  | "programResourceFiles";
+
+const documentTypes = [
+  "application/pdf", // .pdf
+  "text/plain", // .txt
+  "application/msword", // .doc
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // .docx
+  "application/vnd.ms-excel", // .xls
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // .xlsx
+  "text/csv", // .csv
+];
 
 const acceptFileTypes: Record<
   AcceptedFileFormats,
@@ -18,6 +34,19 @@ const acceptFileTypes: Record<
   csv: {
     types: ["text/csv"],
     errorMessage: "File type not supported (.csv only)",
+  },
+  documents: {
+    types: documentTypes,
+    errorMessage: "File type not supported (document files only)",
+  },
+  // TODO: allow custom `accept` prop so we don't need specific options here
+  programResourceImages: {
+    types: ["image/svg+xml", "image/png", "image/jpeg", "image/webp"],
+    errorMessage: "File type not supported (.svg, .png, .jpg, or .webp only)",
+  },
+  programResourceFiles: {
+    types: [...documentTypes, "application/zip"],
+    errorMessage: "File type not supported (document or zip files only)",
   },
 };
 
@@ -96,7 +125,7 @@ export type FileUploadProps = FileUploadReadFileProps & {
   targetResolution?: { width: number; height: number };
 
   /**
-   * A maximum file size (in megabytes) to check upon file selection
+   * A maximum file size (in megabytes) to check upon file selection. Default is 5MB.
    */
   maxFileSizeMB?: number;
 
@@ -124,7 +153,7 @@ export function FileUpload({
   clickToUpload = true,
   showHoverOverlay = true,
   content,
-  maxFileSizeMB = 0,
+  maxFileSizeMB = 5,
   targetResolution,
   accessibilityLabel = "File upload",
   disabled = false,

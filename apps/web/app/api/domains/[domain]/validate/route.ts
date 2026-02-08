@@ -1,9 +1,10 @@
-import { domainExists, isValidDomain } from "@/lib/api/domains";
+import { isValidDomain } from "@/lib/api/domains/is-valid-domain";
+import { domainExists } from "@/lib/api/domains/utils";
 import { withSession } from "@/lib/auth";
 import dns from "dns/promises";
 import { NextResponse } from "next/server";
 
-// GET /api/domains/[domain]/valdiate – check if a domain is valid
+// GET /api/domains/[domain]/validate – check if a domain is valid
 export const GET = withSession(async ({ params }) => {
   const { domain } = params;
   const validDomain = isValidDomain(domain);

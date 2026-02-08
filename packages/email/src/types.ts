@@ -5,4 +5,5 @@ export type WorkspaceProps = {
   usage: number;
   usageLimit: number;
   plan: string;
+  defaultProgramId: string | null;
 };

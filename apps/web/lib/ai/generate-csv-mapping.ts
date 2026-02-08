@@ -1,9 +1,9 @@
 "use server";
 
 import { anthropic } from "@ai-sdk/anthropic";
+import { createStreamableValue } from "@ai-sdk/rsc";
 import { streamObject } from "ai";
-import { createStreamableValue } from "ai/rsc";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 export async function generateCsvMapping(
   fieldColumns: string[],
@@ -13,7 +13,7 @@ export async function generateCsvMapping(
 
   (async () => {
     const { partialObjectStream } = streamObject({
-      model: anthropic("claude-3-5-sonnet-latest"),
+      model: anthropic("claude-sonnet-4-20250514"),
       schema: z.object({
         link: z
           .string()

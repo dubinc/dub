@@ -1,11 +1,11 @@
 "use server";
 
 import { sendEmail } from "@dub/email";
-import { FolderEditAccessRequested } from "@dub/email/templates/folder-edit-access-requested";
+import FolderEditAccessRequested from "@dub/email/templates/folder-edit-access-requested";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { verifyFolderAccess } from "../../folder/permissions";
 import { authActionClient } from "../safe-action";
 
@@ -16,7 +16,7 @@ const schema = z.object({
 
 // Request edit access to a folder
 export const requestFolderEditAccessAction = authActionClient
-  .schema(schema)
+  .inputSchema(schema)
   .action(async ({ ctx, parsedInput }) => {
     const { workspace, user } = ctx;
     const { folderId } = parsedInput;
@@ -71,7 +71,7 @@ export const requestFolderEditAccessAction = authActionClient
 
         await sendEmail({
           subject: `Request to edit folder ${folder.name} on ${workspace.name}`,
-          email: folderOwnerEmail,
+          to: folderOwnerEmail,
           react: FolderEditAccessRequested({
             email: folderOwnerEmail,
             folderUrl: `${APP_DOMAIN_WITH_NGROK}/${workspace.slug}/settings/library/folders/${folder.id}/members`,

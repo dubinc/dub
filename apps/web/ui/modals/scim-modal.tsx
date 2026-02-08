@@ -2,17 +2,18 @@ import useSCIM from "@/lib/swr/use-scim";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { SAMLProviderProps } from "@/lib/types";
 import {
+  BlurImage,
   Button,
   Copy,
   InfoTooltip,
   Logo,
   Modal,
-  SimpleTooltipContent,
+  Refresh2,
   Tick,
   useCopyToClipboard,
 } from "@dub/ui";
 import { SAML_PROVIDERS } from "@dub/utils";
-import { Eye, EyeOff, FolderSync, RefreshCcw } from "lucide-react";
+import { Eye, EyeOff, FolderSync } from "lucide-react";
 import {
   Dispatch,
   SetStateAction,
@@ -29,7 +30,7 @@ function SCIMModal({
   showSCIMModal: boolean;
   setShowSCIMModal: Dispatch<SetStateAction<boolean>>;
 }) {
-  const { id } = useWorkspace();
+  const { id, logo } = useWorkspace();
   const [submitting, setSubmitting] = useState(false);
   const { scim, provider, configured, mutate } = useSCIM();
   const [selectedProvider, setSelectedProvider] = useState<
@@ -52,10 +53,20 @@ function SCIMModal({
             <img
               src={currentProvider.logo}
               alt={`${provider} logo`}
-              className="h-10 w-10"
+              className="size-10"
             />
-            <RefreshCcw className="h-5 w-5 text-neutral-600" />
-            <Logo />
+            <Refresh2 className="h-5 w-5 text-neutral-600" />
+            {logo ? (
+              <BlurImage
+                src={logo}
+                alt="Workspace logo"
+                className="size-10 rounded-full"
+                width={20}
+                height={20}
+              />
+            ) : (
+              <Logo className="size-10 text-neutral-500" />
+            )}
           </div>
         ) : (
           <div className="rounded-full border border-neutral-200 p-3">
@@ -110,17 +121,11 @@ function SCIMModal({
                 Directory Provider
               </h2>
               <InfoTooltip
-                content={
-                  <SimpleTooltipContent
-                    title="Your directory provider is the IDP you use to manage your users."
-                    cta={selectedProvider ? "Read the guide." : "Learn more."}
-                    href={`https://dub.co/help/${
-                      currentProvider
-                        ? `article/${currentProvider.saml}-scim`
-                        : "category/saml-sso"
-                    }`}
-                  />
-                }
+                content={`Your directory provider is the IDP you use to manage your users. [${selectedProvider ? "Read the guide." : "Learn more."}](https://dub.co/help/${
+                  currentProvider
+                    ? `article/${currentProvider.saml}-scim`
+                    : "category/saml-sso"
+                })`}
               />
             </div>
             <select
@@ -166,13 +171,7 @@ function SCIMModal({
                     {currentProvider.scimModalCopy.url}
                   </h2>
                   <InfoTooltip
-                    content={
-                      <SimpleTooltipContent
-                        title="Your directory provider is the IDP you use to manage your users."
-                        cta="Read the guide."
-                        href={`https://dub.co/help/article/${currentProvider.saml}-scim`}
-                      />
-                    }
+                    content={`Your directory provider is the IDP you use to manage your users. [Read the guide.](https://dub.co/help/article/${currentProvider.saml}-scim)`}
                   />
                 </div>
                 <div className="mt-1 flex w-full items-center justify-between rounded-md border border-neutral-300 bg-white px-3 py-2 shadow-sm">
@@ -206,13 +205,7 @@ function SCIMModal({
                     {currentProvider.scimModalCopy.token}
                   </h2>
                   <InfoTooltip
-                    content={
-                      <SimpleTooltipContent
-                        title="Your directory provider is the IDP you use to manage your users."
-                        cta="Read the guide."
-                        href={`https://dub.co/help/article/${currentProvider.saml}-scim`}
-                      />
-                    }
+                    content={`Your directory provider is the IDP you use to manage your users. [Read the guide.](https://dub.co/help/article/${currentProvider.saml}-scim)`}
                   />
                 </div>
                 <div className="mt-1 flex w-full items-center justify-between rounded-md border border-neutral-300 bg-white px-3 py-2 shadow-sm">
@@ -254,10 +247,19 @@ function SCIMModal({
               </div>
             </div>
           )}
+
           <Button
-            text="Save changes"
+            text={
+              selectedProvider === provider ? "Complete setup" : "Save changes"
+            }
+            type={selectedProvider === provider ? "button" : "submit"}
+            {...(selectedProvider === provider && {
+              onClick: () => {
+                setShowSCIMModal(false);
+              },
+            })}
             loading={submitting}
-            disabled={!currentProvider || currentProvider.scim === provider}
+            disabled={!currentProvider}
           />
         </form>
       </div>

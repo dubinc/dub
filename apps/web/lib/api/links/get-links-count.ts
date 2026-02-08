@@ -1,36 +1,55 @@
 import { combineTagIds } from "@/lib/api/tags/combine-tag-ids";
-import z from "@/lib/zod";
 import { getLinksCountQuerySchema } from "@/lib/zod/schemas/links";
 import { prisma } from "@dub/prisma";
+import * as z from "zod/v4";
 
-export async function getLinksCount({
-  searchParams,
-  workspaceId,
-  folderIds,
-}: {
-  searchParams: z.infer<typeof getLinksCountQuerySchema>;
+interface GetLinksCountParams extends z.infer<typeof getLinksCountQuerySchema> {
   workspaceId: string;
   folderIds?: string[];
-}) {
-  const {
-    groupBy,
-    search,
-    domain,
-    tagId,
-    tagIds,
-    tagNames,
-    userId,
-    showArchived,
-    withTags,
-    folderId,
-  } = searchParams;
+}
 
+export async function getLinksCount({
+  groupBy,
+  search,
+  domain,
+  tagId,
+  tagIds,
+  tagNames,
+  userId,
+  showArchived,
+  withTags,
+  folderId,
+  tenantId,
+  workspaceId,
+  folderIds,
+}: GetLinksCountParams) {
   const combinedTagIds = combineTagIds({ tagId, tagIds });
 
   const linksWhere = {
     projectId: workspaceId,
-    archived: showArchived ? undefined : false,
     AND: [
+      ...(folderIds
+        ? [
+            {
+              OR: [
+                {
+                  folderId: {
+                    in: folderIds,
+                  },
+                },
+                {
+                  folderId: null,
+                },
+              ],
+            },
+          ]
+        : groupBy !== "folderId"
+          ? [
+              {
+                folderId: folderId || null,
+              },
+            ]
+          : []),
       ...(search
         ? [
             {
@@ -41,27 +60,8 @@ export async function getLinksCount({
             },
           ]
         : []),
-      ...(folderIds
-        ? [
-            {
-              OR: [
-                {
-                  folderId: {
-                    in: folderIds.filter((id) => id !== ""),
-                  },
-                },
-                {
-                  folderId: null,
-                },
-              ],
-            },
-          ]
-        : [
-            {
-              folderId: folderId || null,
-            },
-          ]),
     ],
+    archived: showArchived ? undefined : false,
     ...(domain &&
       groupBy !== "domain" && {
         domain,
@@ -70,6 +70,7 @@ export async function getLinksCount({
       groupBy !== "userId" && {
         userId,
       }),
+    ...(tenantId && { tenantId }),
   };
 
   if (groupBy === "tagId") {

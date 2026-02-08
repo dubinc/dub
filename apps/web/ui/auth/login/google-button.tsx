@@ -5,9 +5,9 @@ import { useSearchParams } from "next/navigation";
 import { useContext } from "react";
 import { LoginFormContext } from "./login-form";
 
-export function GoogleButton() {
+export function GoogleButton({ next }: { next?: string }) {
   const searchParams = useSearchParams();
-  const next = searchParams?.get("next");
+  const finalNext = next ?? searchParams?.get("next");
 
   const { setClickedMethod, clickedMethod, setLastUsedAuthMethod } =
     useContext(LoginFormContext);
@@ -20,7 +20,9 @@ export function GoogleButton() {
         setClickedMethod("google");
         setLastUsedAuthMethod("google");
         signIn("google", {
-          ...(next && next.length > 0 ? { callbackUrl: next } : {}),
+          ...(finalNext && finalNext.length > 0
+            ? { callbackUrl: finalNext }
+            : {}),
         });
       }}
       loading={clickedMethod === "google"}

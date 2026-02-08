@@ -5,7 +5,7 @@
     "externalId": "cus_jTrfVKYN3Buc3F80JoqBiY0g",
     "name": "Rural Red Goldfish",
     "email": "rural.red.goldfish@example.com",
-    "avatar": "https://api.dicebear.com/9.x/notionists/svg?seed=cus_jTrfVKYN3Buc3F80JoqBiY0g",
+    "avatar": "https://api.dub.co/og/avatar/cus_jTrfVKYN3Buc3F80JoqBiY0g",
     "createdAt": "2024-10-12T04:55:36.007Z"
   },
   "click": {
@@ -37,6 +37,7 @@
     "archived": false,
     "expiresAt": "1970-01-01T00:00:00.000Z",
     "expiredUrl": null,
+    "disabledAt": null,
     "password": null,
     "proxy": false,
     "title": "GitHub - dubinc/dub: Open-source link management infrastructure. Loved by modern marketing teams like Vercel, Raycast...",
@@ -70,12 +71,16 @@
     "saleAmount": 290400,
     "createdAt": "2024-09-02T18:49:56.136Z",
     "updatedAt": "2025-01-14T04:49:30.459Z",
-    "projectId": "clrei1gld0002vs9mzn93p8ik"
+    "projectId": "clrei1gld0002vs9mzn93p8ik",
+    "testVariants": null,
+    "testCompletedAt": null,
+    "testStartedAt": null
   },
   "sale": {
     "amount": 100,
     "currency": "usd",
     "paymentProcessor": "stripe",
     "invoiceId": "INV_AUTi534JCiBUVdYmevCSYQ9G"
-  }
+  },
+  "metadata": null
 }

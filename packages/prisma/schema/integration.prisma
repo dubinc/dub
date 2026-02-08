@@ -11,8 +11,8 @@ model Integration {
   logo        String?
   screenshots Json?
   verified    Boolean  @default(false)
-  installUrl  String?  @db.LongText
-  guideUrl    String?  @db.LongText
+  installUrl  String?  @db.Text
+  guideUrl    String?  @db.Text
   category    String?
   comingSoon  Boolean  @default(false)
   createdAt   DateTime @default(now())
@@ -23,8 +23,8 @@ model Integration {
   oAuthApp      OAuthApp?
   installations InstalledIntegration[]
 
-  @@index([projectId])
-  @@index([userId])
+  @@index(projectId)
+  @@index(userId)
 }
 
 model InstalledIntegration {
@@ -35,15 +35,16 @@ model InstalledIntegration {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   credentials   Json?
+  settings      Json?
 
   user          User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   integration   Integration         @relation(fields: [integrationId], references: [id], onDelete: Cascade)
   project       Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
   refreshTokens OAuthRefreshToken[]
   accessTokens  RestrictedToken[]
-  webhook       Webhook?
+  webhooks      Webhook[]
 
   @@unique([userId, integrationId, projectId])
-  @@index([projectId])
-  @@index([integrationId])
+  @@index(projectId)
+  @@index(integrationId)
 }

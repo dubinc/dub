@@ -17,6 +17,16 @@ export const getUrlFromString = (str: string) => {
   return str;
 };
 
+export const getUrlObjFromString = (str: string) => {
+  if (isValidUrl(str)) return new URL(str);
+  try {
+    if (str.includes(".") && !str.includes(" ")) {
+      return new URL(`https://${str}`);
+    }
+  } catch (_) {}
+  return null;
+};
+
 export const getUrlFromStringIfValid = (str: string) => {
   if (isValidUrl(str)) return str;
   try {
@@ -80,13 +90,13 @@ export const UTMTags = [
 
 export const constructURLFromUTMParams = (
   url: string,
-  utmParams: Record<string, string>,
+  utmParams: Record<string, string | null>,
 ) => {
   if (!url) return "";
   try {
     const newURL = new URL(url);
     for (const [key, value] of Object.entries(utmParams)) {
-      if (value === "") {
+      if (!value) {
         newURL.searchParams.delete(key);
       } else {
         newURL.searchParams.set(key, value.replace("+", " "));
@@ -106,6 +116,14 @@ export const paramsMetadata = [
   { display: "UTM Content", key: "utm_content", examples: "logo link" },
   { display: "Referral (ref)", key: "ref", examples: "google, twitter" },
 ];
+
+export const getUTMParamsFromURL = (url: string) => {
+  return Object.fromEntries(
+    Object.entries(getParamsFromURL(url)).filter(([key]) =>
+      UTMTags.includes(key as (typeof UTMTags)[number]),
+    ),
+  );
+};
 
 export const getUrlWithoutUTMParams = (url: string) => {
   try {
@@ -141,4 +159,62 @@ export const createHref = (
     });
   }
   return url.toString();
+};
+
+export const getPathnameFromUrl = (url: string) => {
+  try {
+    const u = new URL(url, "https://dummy-base.local");
+
+    // Keep ?query intact
+    let pathname = u.pathname + u.search;
+
+    // Remove leading slash for relative-style URLs
+    pathname = pathname.startsWith("/") ? pathname.slice(1) : pathname;
+
+    return pathname;
+  } catch (e) {
+    return url;
+  }
+};
+
+// Helper function to normalize URL by removing query params
+export const normalizeUrl = (url: string): string => {
+  try {
+    const urlObj = new URL(url);
+    return `https://${urlObj.hostname}${urlObj.pathname}`;
+  } catch {
+    return url;
+  }
+};
+
+export function buildUrl(
+  baseUrl: string,
+  params?: Record<string, string | number | boolean | null | undefined>,
+) {
+  const url = new URL(
+    baseUrl,
+    typeof window !== "undefined" ? window.location.origin : "http://localhost",
+  );
+
+  if (params) {
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== null && value !== undefined && value !== "") {
+        url.searchParams.append(key, String(value));
+      }
+    });
+  }
+
+  return url.toString();
+}
+
+export const getFileExtension = (url: string): string | null => {
+  try {
+    const pathname = new URL(url).pathname;
+    const extension = pathname.split(".").pop();
+    return extension ? extension.toUpperCase() : null;
+  } catch {
+    // If URL parsing fails, try to extract from the string directly
+    const extension = url.split(".").pop()?.split("?")[0];
+    return extension ? extension.toUpperCase() : null;
+  }
 };

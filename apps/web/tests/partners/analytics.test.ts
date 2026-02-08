@@ -1,12 +1,11 @@
-import z from "@/lib/zod";
 import { partnerAnalyticsResponseSchema } from "@/lib/zod/schemas/partners";
-import { env } from "tests/utils/env";
 import { describe, expect, test } from "vitest";
+import * as z from "zod/v4";
+import { env } from "../utils/env";
 import { IntegrationHarness } from "../utils/integration";
+import { E2E_PARTNER } from "../utils/resource";
 
 const allowedGroupBy = ["count", "timeseries", "top_links"];
-const programId = "prog_CYCu7IMAapjkRpTnr8F1azjN";
-const partnerId = "pn_H4TB2V5hDIjpqB7PwrxESoY3";
 
 describe.runIf(env.CI).sequential("GET /partners/analytics", async () => {
   const h = new IntegrationHarness();
@@ -15,13 +14,12 @@ describe.runIf(env.CI).sequential("GET /partners/analytics", async () => {
   allowedGroupBy.map((groupBy) => {
     test(`by ${groupBy}`, async () => {
       const { status, data } = await http.get<any[]>({
-        path: `/partners/analytics`,
+        path: "/partners/analytics",
         query: {
           groupBy,
           event: "composite",
           interval: "30d",
-          programId,
-          partnerId,
+          partnerId: E2E_PARTNER.id,
         },
       });
 

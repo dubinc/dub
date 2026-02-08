@@ -73,7 +73,7 @@ type CalendarProps =
 
 function Calendar({
   mode = "single",
-  weekStartsOn = 1,
+  weekStartsOn = 0,
   numberOfMonths = 1,
   showYearNavigation = false,
   disableNavigation,
@@ -219,7 +219,7 @@ function Calendar({
           );
         },
         Day: ({ date, displayMonth }: DayProps) => {
-          const buttonRef = useRef<HTMLButtonElement>(null);
+          const buttonRef = useRef<HTMLButtonElement>(null!);
           const { activeModifiers, buttonProps, divProps, isButton, isHidden } =
             useDayRender(date, displayMonth, buttonRef);
 

@@ -1,10 +1,22 @@
+import { isZeroDecimalCurrency } from "./currency-zero-decimal";
+
+interface CurrencyFormatterOptions extends Intl.NumberFormatOptions {
+  trailingZeroDisplay?: "auto" | "stripIfInteger";
+}
+
 export const currencyFormatter = (
-  value: number,
-  options?: Intl.NumberFormatOptions,
-) =>
-  Intl.NumberFormat("en-US", {
+  valueInCents: number,
+  options?: CurrencyFormatterOptions,
+) => {
+  const currency = options?.currency || "USD";
+  return Intl.NumberFormat("en-US", {
     style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
+    currency,
+    trailingZeroDisplay: isZeroDecimalCurrency(currency)
+      ? "stripIfInteger"
+      : "auto",
     ...options,
-  }).format(value);
+  } as CurrencyFormatterOptions).format(
+    isZeroDecimalCurrency(currency) ? valueInCents : valueInCents / 100,
+  );
+};

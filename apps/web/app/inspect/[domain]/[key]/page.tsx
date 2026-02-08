@@ -19,15 +19,14 @@ import LinkInspectorCard from "./card";
 
 export const runtime = "edge";
 
-export async function generateMetadata({
-  params,
-}: {
-  params: { domain: string; key: string };
+export async function generateMetadata(props: {
+  params: Promise<{ domain: string; key: string }>;
 }) {
+  const params = await props.params;
   const domain = params.domain;
   const key = decodeURIComponent(params.key).slice(0, -1);
 
-  const data = await getLinkViaEdge(domain, key);
+  const data = await getLinkViaEdge({ domain, key });
 
   if (!data) {
     return;
@@ -44,15 +43,14 @@ export async function generateMetadata({
   });
 }
 
-export default async function InspectPage({
-  params,
-}: {
-  params: { domain: string; key: string };
+export default async function InspectPage(props: {
+  params: Promise<{ domain: string; key: string }>;
 }) {
+  const params = await props.params;
   const domain = params.domain;
   const key = decodeURIComponent(params.key).slice(0, -1);
 
-  const data = await getLinkViaEdge(domain, key);
+  const data = await getLinkViaEdge({ domain, key });
 
   // if the link doesn't exist
   if (!data) {

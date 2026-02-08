@@ -8,17 +8,16 @@ import {
 import { unescape } from "html-escaper";
 import { notFound, redirect } from "next/navigation";
 
-export const runtime = "edge";
+export const revalidate = false; // cache indefinitely
 
-export async function generateMetadata({
-  params,
-}: {
-  params: { domain: string; key: string };
+export async function generateMetadata(props: {
+  params: Promise<{ domain: string; key: string }>;
 }) {
+  const params = await props.params;
   const domain = params.domain;
   const key = decodeURIComponent(params.key); // key can potentially be encoded
 
-  const data = await getLinkViaEdge(domain, key);
+  const data = await getLinkViaEdge({ domain, key });
 
   if (!data?.proxy) {
     return;
@@ -36,15 +35,14 @@ export async function generateMetadata({
   });
 }
 
-export default async function ProxyPage({
-  params,
-}: {
-  params: { domain: string; key: string };
+export default async function ProxyPage(props: {
+  params: Promise<{ domain: string; key: string }>;
 }) {
+  const params = await props.params;
   const domain = params.domain;
   const key = decodeURIComponent(params.key);
 
-  const data = await getLinkViaEdge(domain, key);
+  const data = await getLinkViaEdge({ domain, key });
 
   // if the link doesn't exist
   if (!data) {

@@ -4,7 +4,7 @@ import {
   DEFAULT_MARGIN,
   QR_LEVELS,
 } from "@/lib/qr/constants";
-import z from "@/lib/zod";
+import * as z from "zod/v4";
 import { booleanQuerySchema } from "./misc";
 import { parseUrlSchema } from "./utils";
 
@@ -14,7 +14,7 @@ export const getQRCodeQuerySchema = z.object({
     .string()
     .optional()
     .describe(
-      "The logo to include in the QR code. Can only be used with a paid plan on Dub.co.",
+      "The logo to include in the QR code. Can only be used with a paid plan on Dub.",
     ),
   size: z.coerce
     .number()
@@ -46,9 +46,9 @@ export const getQRCodeQuerySchema = z.object({
     ),
   hideLogo: booleanQuerySchema
     .optional()
-    .default("false")
+    .default(false)
     .describe(
-      "Whether to hide the logo in the QR code. Can only be used with a paid plan on Dub.co.",
+      "Whether to hide the logo in the QR code. Can only be used with a paid plan on Dub.",
     ),
   margin: z.coerce
     .number()
@@ -59,9 +59,9 @@ export const getQRCodeQuerySchema = z.object({
     ),
   includeMargin: booleanQuerySchema
     .optional()
-    .default("true")
+    .default(true)
     .describe(
       "DEPRECATED: Margin is included by default. Use the `margin` prop to customize the margin size.",
     )
-    .openapi({ deprecated: true }),
+    .meta({ deprecated: true }),
 });

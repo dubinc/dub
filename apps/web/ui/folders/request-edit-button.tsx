@@ -24,21 +24,18 @@ export const RequestFolderEditAccessButton = ({
   const [requestSent, setRequestSent] = useState(false);
   const { accessRequests, isLoading } = useFolderAccessRequests();
 
-  const { executeAsync, isExecuting } = useAction(
-    requestFolderEditAccessAction,
-    {
-      onSuccess: async () => {
-        toast.success("Request sent to folder owner.");
-        setRequestSent(true);
-        await mutate(
-          (key) => typeof key === "string" && key.startsWith(`/api/folders`),
-        );
-      },
-      onError: ({ error }) => {
-        toast.error(error.serverError);
-      },
+  const { executeAsync, isPending } = useAction(requestFolderEditAccessAction, {
+    onSuccess: async () => {
+      toast.success("Request sent to folder owner.");
+      setRequestSent(true);
+      await mutate(
+        (key) => typeof key === "string" && key.startsWith(`/api/folders`),
+      );
     },
-  );
+    onError: ({ error }) => {
+      toast.error(error.serverError);
+    },
+  });
 
   const isRequested = accessRequests?.some(
     (accessRequest) => accessRequest.folderId === folderId,
@@ -53,7 +50,7 @@ export const RequestFolderEditAccessButton = ({
   return (
     <Button
       text={
-        isExecuting
+        isPending
           ? "Sending..."
           : requestSent || isRequested
             ? "Request sent"
@@ -65,7 +62,7 @@ export const RequestFolderEditAccessButton = ({
           "h-8 w-fit rounded-md border border-neutral-200 text-neutral-900",
       )}
       disabled={isRequested || requestSent}
-      loading={isExecuting}
+      loading={isPending}
       onClick={async () =>
         await executeAsync({
           workspaceId,

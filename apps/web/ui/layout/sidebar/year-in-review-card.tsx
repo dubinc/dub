@@ -8,9 +8,10 @@ import { usePathname } from "next/navigation";
 
 export function YearInReviewCard() {
   const pathname = usePathname();
-  const { slug, yearInReview } = useWorkspace();
+  const { slug } = useWorkspace();
 
-  if (!yearInReview) return null;
+  // for next year's year in review, we can replace true with yearInReview
+  if (true) return null;
 
   return (
     <Link

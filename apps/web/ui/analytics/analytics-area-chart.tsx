@@ -1,6 +1,7 @@
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { EventType } from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
+import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Areas, TimeSeriesChart, XAxis, YAxis } from "@dub/ui/charts";
 import { cn, currencyFormatter, fetcher, nFormatter } from "@dub/utils";
@@ -26,14 +27,28 @@ const DEMO_DATA = [
   }))
   .reverse();
 
-export default function AnalyticsAreaChart({
+export function AnalyticsAreaChart({
   resource,
   demo,
 }: {
   resource: EventType;
   demo?: boolean;
 }) {
-  const { createdAt } = useWorkspace();
+  const { createdAt: workspaceCreatedAt } = useWorkspace();
+  const { programEnrollment } = useProgramEnrollment();
+  const dataAvailableFrom = [
+    workspaceCreatedAt,
+    programEnrollment?.program.startedAt,
+    programEnrollment?.program.createdAt,
+  ]
+    .filter(Boolean)
+    .reduce(
+      (earliest, current) =>
+        !earliest || (current && new Date(current) < new Date(earliest))
+          ? current
+          : earliest,
+      null,
+    ) as Date;
 
   const {
     baseApiPath,
@@ -74,7 +89,7 @@ export default function AnalyticsAreaChart({
               clicks,
               leads,
               sales,
-              saleAmount: (saleAmount ?? 0) / 100,
+              saleAmount,
             },
           })) ?? null,
     [data, demo],
@@ -120,7 +135,7 @@ export default function AnalyticsAreaChart({
                     interval: demo ? "day" : interval,
                     start,
                     end,
-                    dataAvailableFrom: createdAt,
+                    dataAvailableFrom,
                   })}
                 </p>
                 <div className="grid grid-cols-2 gap-x-6 gap-y-2 px-4 py-3 text-sm">
@@ -154,7 +169,7 @@ export default function AnalyticsAreaChart({
                 interval,
                 start,
                 end,
-                dataAvailableFrom: createdAt,
+                dataAvailableFrom,
               })
             }
           />
@@ -162,7 +177,10 @@ export default function AnalyticsAreaChart({
             showGridLines
             tickFormat={
               resource === "sales" && saleUnit === "saleAmount"
-                ? (v) => `$${nFormatter(v)}`
+                ? (v) =>
+                    currencyFormatter(v, {
+                      trailingZeroDisplay: "stripIfInteger",
+                    })
                 : nFormatter
             }
           />

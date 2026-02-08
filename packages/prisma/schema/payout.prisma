@@ -1,41 +1,56 @@
 enum PayoutStatus {
   pending
   processing
+  processed
+  sent
   completed
   failed
+  canceled
 }
 
-enum PayoutType {
-  clicks
-  leads
-  sales
-  custom
+enum PayoutMode {
+  internal
+  external
 }
 
 model Payout {
-  id               String       @id @default(cuid())
-  programId        String
-  partnerId        String
-  invoiceId        String?
-  amount           Int          @default(0)
-  currency         String       @default("USD")
-  status           PayoutStatus @default(pending)
-  type             PayoutType   @default(sales)
-  description      String?
-  periodStart      DateTime?
-  periodEnd        DateTime?
-  quantity         Int? // Number of clicks/leads/sales in this payout
-  stripeTransferId String?      @unique
-  createdAt        DateTime     @default(now())
-  updatedAt        DateTime     @updatedAt
-  paidAt           DateTime?
+  id                  String       @id @default(cuid())
+  programId           String
+  partnerId           String
+  invoiceId           String?
+  amount              Int          @default(0)
+  currency            String       @default("USD")
+  status              PayoutStatus @default(pending)
+  mode                PayoutMode?
+  description         String?
+  periodStart         DateTime?
+  periodEnd           DateTime?
+  paypalTransferId    String?      @unique
+  stripeTransferId    String?
+  stripePayoutId      String?
+  stripePayoutTraceId String?      @db.Text
+  failureReason       String?      @db.Text
+  webhookEventId      String?      @unique // only for external payouts
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
 
-  program Program  @relation(fields: [programId], references: [id])
-  partner Partner  @relation(fields: [partnerId], references: [id])
-  invoice Invoice? @relation(fields: [invoiceId], references: [id])
-  commissions  Commission[]
+  userId      String? // user who made the payout
+  initiatedAt DateTime?
+  paidAt      DateTime?
 
-  @@index([programId])
-  @@index([partnerId])
-  @@index([invoiceId])
+  program           Program           @relation(fields: [programId], references: [id])
+  partner           Partner           @relation(fields: [partnerId], references: [id])
+  programEnrollment ProgramEnrollment @relation(fields: [programId, partnerId], references: [programId, partnerId])
+  invoice           Invoice?          @relation(fields: [invoiceId], references: [id])
+  user              User?             @relation(fields: [userId], references: [id])
+  commissions       Commission[]
+
+  @@index([programId, status])
+  @@index([programId, partnerId]) // for programEnrollment relation
+  @@index(partnerId)
+  @@index(invoiceId)
+  @@index(status)
+  @@index(userId)
+  @@index(stripePayoutId)
+  @@index(stripeTransferId)
 }

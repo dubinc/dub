@@ -1,18 +1,16 @@
-import { vaidateAuthorizeRequest } from "@/lib/api/oauth/actions";
+import { validateAuthorizeRequest } from "@/lib/api/oauth/actions";
 import { getSession } from "@/lib/auth";
-import z from "@/lib/zod";
 import { authorizeRequestSchema } from "@/lib/zod/schemas/oauth";
 import EmptyState from "@/ui/shared/empty-state";
 import { BlurImage, Logo } from "@dub/ui";
 import { CircleWarning, CubeSettings } from "@dub/ui/icons";
-import { HOME_DOMAIN, constructMetadata } from "@dub/utils";
+import { constructMetadata } from "@dub/utils";
 import { ArrowLeftRight } from "lucide-react";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
+import * as z from "zod/v4";
 import { AuthorizeForm } from "./authorize-form";
 import { ScopesRequested } from "./scopes-requested";
-
-export const runtime = "nodejs";
 
 export const metadata = constructMetadata({
   title: "Authorize API access | Dub",
@@ -20,11 +18,10 @@ export const metadata = constructMetadata({
 });
 
 // OAuth app consent page
-export default async function Authorize({
-  searchParams,
-}: {
-  searchParams?: z.infer<typeof authorizeRequestSchema>;
+export default async function Authorize(props: {
+  searchParams?: Promise<z.infer<typeof authorizeRequestSchema>>;
 }) {
+  const searchParams = await props.searchParams;
   const session = await getSession();
 
   if (!session) {
@@ -32,7 +29,7 @@ export default async function Authorize({
   }
 
   const { error, integration, requestParams } =
-    await vaidateAuthorizeRequest(searchParams);
+    await validateAuthorizeRequest(searchParams);
 
   if (error || !integration) {
     return (
@@ -62,7 +59,7 @@ export default async function Authorize({
             )}
           </a>
           <ArrowLeftRight className="size-5 text-neutral-500" />
-          <a href={HOME_DOMAIN} target="_blank" rel="noreferrer">
+          <a href="https://dub.co" target="_blank" rel="noreferrer">
             <Logo className="size-12" />
           </a>
         </div>

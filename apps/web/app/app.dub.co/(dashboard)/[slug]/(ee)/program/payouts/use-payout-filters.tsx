@@ -1,0 +1,172 @@
+import usePartners from "@/lib/swr/use-partners";
+import usePayoutsCount from "@/lib/swr/use-payouts-count";
+import { EnrolledPartnerProps, PayoutsCount } from "@/lib/types";
+import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
+import { useRouterStuff } from "@dub/ui";
+import { CircleDotted, InvoiceDollar, Users } from "@dub/ui/icons";
+import { cn, nFormatter, OG_AVATAR_URL } from "@dub/utils";
+import { useCallback, useMemo, useState } from "react";
+import { useDebounce } from "use-debounce";
+
+export function usePayoutFilters() {
+  const { searchParamsObj, queryParams } = useRouterStuff();
+
+  const { payoutsCount } = usePayoutsCount<PayoutsCount[]>({
+    groupBy: "status",
+  });
+
+  const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [debouncedSearch] = useDebounce(search, 500);
+
+  const { partners } = usePartnerFilterOptions(
+    selectedFilter === "partnerId" ? debouncedSearch : "",
+  );
+
+  const filters = useMemo(
+    () => [
+      {
+        key: "partnerId",
+        icon: Users,
+        label: "Partner",
+        shouldFilter: false,
+        options:
+          partners?.map(({ id, name, image }) => {
+            return {
+              value: id,
+              label: name,
+              icon: (
+                <img
+                  src={image || `${OG_AVATAR_URL}${id}`}
+                  alt={`${name} image`}
+                  className="size-4 rounded-full"
+                />
+              ),
+            };
+          }) ?? null,
+      },
+      {
+        key: "status",
+        icon: CircleDotted,
+        label: "Status",
+        options: Object.entries(PayoutStatusBadges).map(
+          ([value, { label }]) => {
+            const Icon = PayoutStatusBadges[value].icon;
+            const count = payoutsCount?.find((p) => p.status === value)?.count;
+
+            return {
+              value,
+              label,
+              icon: (
+                <Icon
+                  className={cn(
+                    PayoutStatusBadges[value].className,
+                    "size-4 bg-transparent",
+                  )}
+                />
+              ),
+              ...(value !== "hold" && {
+                right: nFormatter(count || 0, { full: true }),
+              }),
+            };
+          },
+        ),
+      },
+      {
+        key: "invoiceId",
+        icon: InvoiceDollar,
+        label: "Invoice",
+        options: [],
+      },
+    ],
+    [payoutsCount, partners],
+  );
+
+  const activeFilters = useMemo(() => {
+    const { status, partnerId, invoiceId } = searchParamsObj;
+    return [
+      ...(status ? [{ key: "status", value: status }] : []),
+      ...(partnerId ? [{ key: "partnerId", value: partnerId }] : []),
+      ...(invoiceId ? [{ key: "invoiceId", value: invoiceId }] : []),
+    ];
+  }, [
+    searchParamsObj.status,
+    searchParamsObj.partnerId,
+    searchParamsObj.invoiceId,
+  ]);
+
+  const onSelect = useCallback(
+    (key: string, value: any) =>
+      queryParams({
+        set: {
+          [key]: value,
+        },
+        del: "page",
+      }),
+    [queryParams],
+  );
+
+  const onRemove = useCallback(
+    (key: string) =>
+      queryParams({
+        del: [key, "page"],
+      }),
+    [queryParams],
+  );
+
+  const onRemoveAll = useCallback(
+    () =>
+      queryParams({
+        del: ["status", "search", "partnerId", "invoiceId"],
+      }),
+    [queryParams],
+  );
+
+  const isFiltered = useMemo(() => activeFilters.length > 0, [activeFilters]);
+
+  return {
+    filters,
+    activeFilters,
+    onSelect,
+    onRemove,
+    onRemoveAll,
+    isFiltered,
+    setSearch,
+    setSelectedFilter,
+  };
+}
+
+function usePartnerFilterOptions(search: string) {
+  const { searchParamsObj } = useRouterStuff();
+
+  const { partners, loading: partnersLoading } = usePartners({
+    query: { search },
+  });
+
+  const { partners: selectedPartners } = usePartners({
+    query: {
+      partnerIds: searchParamsObj.partnerId
+        ? [searchParamsObj.partnerId]
+        : undefined,
+    },
+  });
+
+  const result = useMemo(() => {
+    return partnersLoading ||
+      // Consider partners loading if we can't find the currently filtered partner
+      (searchParamsObj.partnerId &&
+        ![...(selectedPartners ?? []), ...(partners ?? [])].some(
+          (p) => p.id === searchParamsObj.partnerId,
+        ))
+      ? null
+      : ([
+          ...(partners ?? []),
+          // Add selected partner to list if not already in partners
+          ...(selectedPartners
+            ?.filter((st) => !partners?.some((t) => t.id === st.id))
+            ?.map((st) => ({ ...st, hideDuringSearch: true })) ?? []),
+        ] as (EnrolledPartnerProps & { hideDuringSearch?: boolean })[]);
+  }, [partnersLoading, partners, selectedPartners, searchParamsObj.partnerId]);
+
+  return { partners: result };
+}

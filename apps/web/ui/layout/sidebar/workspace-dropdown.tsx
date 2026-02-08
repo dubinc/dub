@@ -1,5 +1,6 @@
 "use client";
 
+import useWorkspaceUsers from "@/lib/swr/use-workspace-users";
 import useWorkspaces from "@/lib/swr/use-workspaces";
 import { PlanProps, WorkspaceProps } from "@/lib/types";
 import { ModalContext } from "@/ui/modals/modal-provider";
@@ -9,9 +10,8 @@ import {
   Popover,
   useScrollProgress,
 } from "@dub/ui";
-import { Book2, Check2, Plus } from "@dub/ui/icons";
-import { cn, DICEBEAR_AVATAR_URL } from "@dub/utils";
-import { ChevronsUpDown, HelpCircle } from "lucide-react";
+import { Check2, Gear, Plus, UserPlus } from "@dub/ui/icons";
+import { cn, isLegacyBusinessPlan, pluralize } from "@dub/utils";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
@@ -46,16 +46,21 @@ export function WorkspaceDropdown() {
     if (slug && workspaces && selectedWorkspace) {
       return {
         ...selectedWorkspace,
+        plan: isLegacyBusinessPlan({
+          plan: selectedWorkspace.plan,
+          payoutsLimit: selectedWorkspace.payoutsLimit,
+        })
+          ? "business (legacy)"
+          : selectedWorkspace.plan,
         image:
           selectedWorkspace.logo ||
-          `${DICEBEAR_AVATAR_URL}${selectedWorkspace.name}`,
+          `https://avatar.vercel.sh/${selectedWorkspace.id}`,
       };
 
       // return personal account selector if there's no workspace or error (user doesn't have access to workspace)
     } else {
       return {
         name: session?.user?.name || session?.user?.email,
-        slug: "/",
         image: getUserAvatarUrl(session?.user),
         plan: "free",
       };
@@ -84,6 +89,7 @@ export function WorkspaceDropdown() {
             setOpenPopover={setOpenPopover}
           />
         }
+        side="right"
         align="start"
         openPopover={openPopover}
         setOpenPopover={setOpenPopover}
@@ -91,38 +97,19 @@ export function WorkspaceDropdown() {
         <button
           onClick={() => setOpenPopover(!openPopover)}
           className={cn(
-            "flex w-full items-center justify-between rounded-lg p-1.5 text-left text-sm transition-all duration-75 hover:bg-neutral-200/50 active:bg-neutral-200/80 data-[state=open]:bg-neutral-200/80",
+            "flex size-11 items-center justify-center rounded-lg p-1.5 text-left text-sm transition-all duration-75",
+            "hover:bg-bg-inverted/5 active:bg-bg-inverted/10 data-[state=open]:bg-bg-inverted/10",
             "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
           )}
         >
-          <div className="flex min-w-0 items-center gap-x-2.5 pr-2">
-            <BlurImage
-              src={selected.image}
-              referrerPolicy="no-referrer"
-              width={28}
-              height={28}
-              alt={selected.id || selected.name}
-              className="h-7 w-7 flex-none shrink-0 overflow-hidden rounded-full"
-            />
-            <div className={cn(key ? "hidden" : "block", "min-w-0 sm:block")}>
-              <div className="truncate text-sm font-medium leading-5 text-neutral-900">
-                {selected.name}
-              </div>
-              {selected.slug !== "/" && (
-                <div
-                  className={cn(
-                    "truncate text-xs capitalize leading-tight",
-                    getPlanColor(selected.plan),
-                  )}
-                >
-                  {selected.plan}
-                </div>
-              )}
-            </div>
-          </div>
-          <ChevronsUpDown
-            className="size-4 shrink-0 text-neutral-400"
-            aria-hidden="true"
+          <BlurImage
+            src={selected.image}
+            referrerPolicy="no-referrer"
+            width={28}
+            height={28}
+            alt={selected.id || selected.name}
+            className="size-7 flex-none shrink-0 overflow-hidden rounded-full"
+            draggable={false}
           />
         </button>
       </Popover>
@@ -132,28 +119,9 @@ export function WorkspaceDropdown() {
 
 function WorkspaceDropdownPlaceholder() {
   return (
-    <div className="flex w-full animate-pulse items-center gap-x-1.5 rounded-lg p-1.5">
-      <div className="size-7 animate-pulse rounded-full bg-neutral-200" />
-      <div className="mb-px mt-0.5 h-8 w-28 grow animate-pulse rounded-md bg-neutral-200" />
-      <ChevronsUpDown className="h-4 w-4 text-neutral-400" aria-hidden="true" />
-    </div>
+    <div className="flex size-11 animate-pulse items-center gap-x-1.5 rounded-lg bg-neutral-300" />
   );
 }
-
-const LINKS = [
-  {
-    name: "Help Center",
-    icon: HelpCircle,
-    href: "https://dub.co/help",
-    target: "_blank",
-  },
-  {
-    name: "Documentation",
-    icon: Book2,
-    href: "https://dub.co/docs",
-    target: "_blank",
-  },
-];
 
 function WorkspaceList({
   selected,
@@ -162,7 +130,7 @@ function WorkspaceList({
 }: {
   selected: {
     name: string;
-    slug: string;
+    slug?: string; // undefined if the user is on the personal account
     image: string;
     plan: PlanProps;
   };
@@ -170,9 +138,8 @@ function WorkspaceList({
   setOpenPopover: (open: boolean) => void;
 }) {
   const { setShowAddWorkspaceModal } = useContext(ModalContext);
-  const { domain, key, programId } = useParams() as {
-    domain?: string;
-    key?: string;
+  const { link, programId } = useParams() as {
+    link: string | string[];
     programId?: string;
   };
   const pathname = usePathname();
@@ -180,17 +147,22 @@ function WorkspaceList({
   const scrollRef = useRef<HTMLDivElement>(null);
   const { scrollProgress, updateScrollProgress } = useScrollProgress(scrollRef);
 
+  const { users } = useWorkspaceUsers();
+  const membersCount = users?.filter((user) => !user.isMachine).length ?? 0;
+
   const href = useCallback(
     (slug: string) => {
-      if (domain || key || programId || selected.slug === "/") {
-        // if we're on a link or program page, navigate back to the workspace root
-        return `/${slug}`;
-      } else {
+      if (link) {
+        // if we're on a link page, navigate back to the workspace root
+        return `/${slug}/links`;
+      } else if (selected.slug) {
         // else, we keep the path but remove all query params
-        return pathname?.replace(selected.slug, slug).split("?")[0] || "/";
+        return pathname.replace(selected.slug, slug).split("?")[0] || "/";
+      } else {
+        return "/";
       }
     },
-    [domain, key, programId, pathname, selected.slug],
+    [link, programId, pathname, selected.slug],
   );
 
   return (
@@ -198,39 +170,75 @@ function WorkspaceList({
       <div
         ref={scrollRef}
         onScroll={updateScrollProgress}
-        className="relative max-h-80 w-full space-y-0.5 overflow-auto rounded-lg bg-white text-base sm:w-64 sm:text-sm"
+        className="w-xs max-h-84 relative w-full overflow-auto rounded-xl bg-white text-base sm:w-72 sm:text-sm"
       >
-        <div className="flex flex-col gap-0.5 border-b border-neutral-200 p-2">
-          {LINKS.map(({ name, icon: Icon, href, target }) => (
-            <Link
-              key={name}
-              href={href}
-              target={target}
-              className={cn(
-                "flex items-center gap-x-4 rounded-md px-2.5 py-2 transition-all duration-75 hover:bg-neutral-200/50 active:bg-neutral-200/80",
-                "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
+        {/* Current workspace section */}
+        <div className="flex flex-col gap-2.5 border-b border-neutral-200 px-3 pb-3 sm:p-3">
+          <div className="flex items-center gap-x-2.5">
+            <BlurImage
+              src={selected.image}
+              width={28}
+              height={28}
+              alt={selected.name}
+              className="size-9 shrink-0 overflow-hidden rounded-full sm:size-8"
+              draggable={false}
+            />
+            <div className="min-w-0">
+              <div className="truncate text-base font-medium leading-5 text-neutral-900 sm:text-sm">
+                {selected.name}
+              </div>
+              {selected.slug && (
+                <div
+                  className={cn(
+                    "truncate text-sm capitalize leading-tight sm:text-xs",
+                    getPlanColor(selected.plan),
+                  )}
+                >
+                  {selected.plan}
+                  {membersCount > 0
+                    ? ` · ${membersCount} ${pluralize("member", membersCount)}`
+                    : ""}
+                </div>
               )}
+            </div>
+          </div>
+
+          {/* Settings and Invite members options */}
+          <div className="flex flex-row gap-1">
+            <Link
+              href={`/${selected.slug ? selected.slug : "account"}/settings`}
+              className="flex items-center justify-start gap-x-2 rounded-lg border border-neutral-200 px-2 py-1 text-neutral-700 outline-none transition-all duration-75 hover:bg-neutral-100/50 focus-visible:ring-2 focus-visible:ring-black/50 active:bg-neutral-200/80"
               onClick={() => setOpenPopover(false)}
             >
-              <Icon className="size-4 text-neutral-500" />
-              <span className="block truncate text-neutral-600">{name}</span>
+              <Gear className="size-4 text-neutral-800" />
+              <span className="block truncate text-sm">Settings</span>
             </Link>
-          ))}
-        </div>
-        <div className="p-2">
-          <div className="flex items-center justify-between pb-1">
-            <p className="px-1 text-xs font-medium text-neutral-500">
-              Workspaces
-            </p>
+            {selected.slug && (
+              <Link
+                href={`/${selected.slug}/settings/people`}
+                className="flex items-center justify-start gap-x-2 rounded-lg border border-neutral-200 px-2 py-1 text-neutral-700 outline-none transition-all duration-75 hover:bg-neutral-100/50 focus-visible:ring-2 focus-visible:ring-black/50 active:bg-neutral-200/80"
+                onClick={() => setOpenPopover(false)}
+              >
+                <UserPlus className="size-4 text-neutral-800" />
+                <span className="block truncate text-sm">Invite members</span>
+              </Link>
+            )}
           </div>
+        </div>
+
+        {/* Workspaces section */}
+        <div className="p-1">
+          <p className="px-2 py-2 text-xs font-medium text-neutral-500">
+            Workspaces
+          </p>
           <div className="flex flex-col gap-0.5">
-            {workspaces.map(({ id, name, slug, logo, plan }) => {
+            {workspaces.map(({ id, name, slug, logo }) => {
               const isActive = selected.slug === slug;
               return (
                 <Link
                   key={slug}
                   className={cn(
-                    "relative flex w-full items-center gap-x-2 rounded-md px-2 py-1.5 transition-all duration-75",
+                    "relative flex w-full items-center gap-x-2 rounded-md px-2 py-2 transition-all duration-75",
                     "hover:bg-neutral-200/50 active:bg-neutral-200/80",
                     "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
                     isActive && "bg-neutral-200/50",
@@ -240,27 +248,16 @@ function WorkspaceList({
                   onClick={() => setOpenPopover(false)}
                 >
                   <BlurImage
-                    src={logo || `${DICEBEAR_AVATAR_URL}${name}`}
+                    src={logo || `https://avatar.vercel.sh/${id}`}
                     width={28}
                     height={28}
                     alt={id}
-                    className="size-7 shrink-0 overflow-hidden rounded-full"
+                    className="size-5 shrink-0 overflow-hidden rounded-full"
+                    draggable={false}
                   />
-                  <div>
-                    <span className="block truncate text-sm leading-5 text-neutral-900 sm:max-w-[140px]">
-                      {name}
-                    </span>
-                    {slug !== "/" && (
-                      <div
-                        className={cn(
-                          "truncate text-xs capitalize leading-tight",
-                          getPlanColor(plan),
-                        )}
-                      >
-                        {plan}
-                      </div>
-                    )}
-                  </div>
+                  <span className="block truncate text-base leading-5 text-neutral-900 sm:max-w-[140px] sm:text-sm">
+                    {name}
+                  </span>
                   {selected.slug === slug ? (
                     <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-black">
                       <Check2 className="size-4" aria-hidden="true" />
@@ -275,10 +272,10 @@ function WorkspaceList({
                 setOpenPopover(false);
                 setShowAddWorkspaceModal(true);
               }}
-              className="group flex w-full cursor-pointer items-center gap-x-2 rounded-md p-2 text-neutral-700 transition-all duration-75 hover:bg-neutral-200/50 active:bg-neutral-200/80"
+              className="group flex w-full cursor-pointer items-center gap-x-2.5 rounded-md p-2 text-neutral-700 transition-all duration-75 hover:bg-neutral-200/50 active:bg-neutral-200/80"
             >
-              <Plus className="mx-1.5 size-4 text-neutral-500" />
-              <span className="block truncate">Create new workspace</span>
+              <Plus className="ml-0.5 size-4 text-neutral-500" />
+              <span className="block truncate">Create workspace</span>
             </button>
           </div>
         </div>
@@ -295,8 +292,10 @@ function WorkspaceList({
 const getPlanColor = (plan: string) =>
   plan === "enterprise"
     ? "text-purple-700"
-    : plan.startsWith("business")
-      ? "text-blue-900"
-      : plan === "pro"
-        ? "text-cyan-900"
-        : "text-neutral-500";
+    : plan === "advanced"
+      ? "text-amber-800"
+      : plan.startsWith("business")
+        ? "text-blue-900"
+        : plan === "pro"
+          ? "text-cyan-900"
+          : "text-neutral-500";

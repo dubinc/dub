@@ -1,5 +1,5 @@
 import { WEBHOOK_TRIGGERS } from "@/lib/webhook/constants";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { parseUrlSchema } from "./utils";
 
 export const WebhookSchema = z.object({
@@ -38,7 +38,10 @@ export const webhookEventSchemaTB = z.object({
   event_id: z.string(),
   webhook_id: z.string(),
   message_id: z.string(), // QStash message ID
-  event: z.enum(WEBHOOK_TRIGGERS),
+  event: z.enum([
+    "partner.created", // keeping this for backwards compatibility
+    ...WEBHOOK_TRIGGERS,
+  ]),
   url: z.string(),
   http_status: z.number(),
   request_body: z.string(),

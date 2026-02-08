@@ -2,6 +2,8 @@ import { DubApiError } from "@/lib/api/errors";
 import {
   RewardfulAffiliate,
   RewardfulCampaign,
+  RewardfulCommission,
+  RewardfulCoupon,
   RewardfulReferral,
 } from "./types";
 
@@ -39,15 +41,7 @@ export class RewardfulApi {
 
     const data = await response.json();
 
-    console.debug("Rewardful API Response:", { url, data });
-
     return data as T;
-  }
-
-  async retrieveCampaign(campaignId: string) {
-    return this.fetch<RewardfulCampaign>(
-      `${this.baseUrl}/campaigns/${campaignId}`,
-    );
   }
 
   async listCampaigns() {
@@ -58,21 +52,21 @@ export class RewardfulApi {
     return data;
   }
 
-  async listAffiliates({
-    campaignId,
-    page = 1,
-  }: {
-    campaignId: string;
-    page?: number;
-  }) {
+  async listPartners({ page = 1 }: { page?: number }) {
+    const searchParams = new URLSearchParams();
+    searchParams.append("expand[]", "campaign");
+    searchParams.append("expand[]", "links");
+    searchParams.append("page", page.toString());
+    searchParams.append("limit", PAGE_LIMIT.toString());
+
     const { data } = await this.fetch<{ data: RewardfulAffiliate[] }>(
-      `${this.baseUrl}/affiliates?expand[]=links&page=${page}&limit=${PAGE_LIMIT}&campaign_id=${campaignId}`,
+      `${this.baseUrl}/affiliates?${searchParams.toString()}`,
     );
 
     return data;
   }
 
-  async listReferrals({ page = 1 }: { page?: number }) {
+  async listCustomers({ page = 1 }: { page?: number }) {
     const searchParams = new URLSearchParams();
     searchParams.append("expand[]", "affiliate");
     searchParams.append("conversion_state[]", "lead");
@@ -82,6 +76,32 @@ export class RewardfulApi {
 
     const { data } = await this.fetch<{ data: RewardfulReferral[] }>(
       `${this.baseUrl}/referrals?${searchParams.toString()}`,
+    );
+
+    return data;
+  }
+
+  async listCommissions({ page = 1 }: { page?: number }) {
+    const searchParams = new URLSearchParams();
+    searchParams.append("expand[]", "sale");
+    searchParams.append("expand[]", "campaign");
+    searchParams.append("page", page.toString());
+    searchParams.append("limit", PAGE_LIMIT.toString());
+
+    const { data } = await this.fetch<{ data: RewardfulCommission[] }>(
+      `${this.baseUrl}/commissions?${searchParams.toString()}`,
+    );
+
+    return data;
+  }
+
+  async listAffiliateCoupons({ page = 1 }: { page?: number }) {
+    const searchParams = new URLSearchParams();
+    searchParams.append("page", page.toString());
+    searchParams.append("limit", PAGE_LIMIT.toString());
+
+    const { data } = await this.fetch<{ data: RewardfulCoupon[] }>(
+      `${this.baseUrl}/affiliate_coupons?${searchParams.toString()}`,
     );
 
     return data;

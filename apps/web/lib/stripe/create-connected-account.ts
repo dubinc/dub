@@ -1,28 +1,29 @@
-import { z } from "zod";
+import * as z from "zod/v4";
 import { stripe } from ".";
 import { onboardPartnerSchema } from "../zod/schemas/partners";
 
 export const createConnectedAccount = async ({
-  name,
-  email,
   country,
+  profileType,
+  companyName,
 }: Pick<
   z.infer<typeof onboardPartnerSchema>,
-  "name" | "email" | "country"
+  "country" | "profileType" | "companyName"
 >) => {
-  const [firstName, lastName] = name.split(" ");
-
   try {
     return await stripe.accounts.create({
       type: "express",
-      business_type: "individual",
-      email,
+      business_type: profileType,
       country,
-      individual: {
-        first_name: firstName,
-        last_name: lastName,
-        email,
-      },
+      ...(profileType === "company"
+        ? {
+            business_profile: {
+              name: companyName!,
+            },
+          }
+        : {
+            individual: {},
+          }),
       capabilities: {
         transfers: {
           requested: true,
@@ -36,6 +37,13 @@ export const createConnectedAccount = async ({
       ...(country !== "US" && {
         tos_acceptance: { service_agreement: "recipient" },
       }),
+      settings: {
+        payouts: {
+          schedule: {
+            interval: "manual",
+          },
+        },
+      },
     });
   } catch (error) {
     throw new Error(error.message);

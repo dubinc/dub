@@ -1,0 +1,218 @@
+import { capitalize, currencyFormatter, DUB_WORDMARK } from "@dub/utils";
+import {
+  Body,
+  Column,
+  Container,
+  Head,
+  Heading,
+  Html,
+  Img,
+  Link,
+  Preview,
+  Row,
+  Section,
+  Tailwind,
+  Text,
+} from "@react-email/components";
+import { Footer } from "../components/footer";
+
+export default function NewSaleAlertProgramOwner({
+  user = {
+    name: "Brendan Urie",
+    email: "panic@thedis.co",
+  },
+  workspace = {
+    name: "Acme",
+    slug: "acme",
+  },
+  program = {
+    name: "Acme",
+    logo: DUB_WORDMARK,
+  },
+  group = {
+    holdingPeriodDays: 30,
+  },
+  partner = {
+    id: "pn_OfewI1Faaf5pV8QH3mha8L7S",
+    name: "Steven",
+    email: "steven@dub.co",
+  },
+  commission = {
+    amount: 1330,
+    earnings: 399,
+  },
+}: {
+  user: {
+    name?: string | null;
+    email: string;
+  };
+  workspace: {
+    name: string;
+    slug: string;
+  };
+  program: {
+    name: string;
+    logo: string | null;
+  };
+  group: {
+    holdingPeriodDays: number;
+  };
+  partner: {
+    id: string;
+    name: string | null;
+    email: string | null;
+  };
+  commission: {
+    amount: number;
+    earnings: number;
+  };
+}) {
+  const salesLink = `https://app.dub.co/${workspace.slug}/program/commissions?partnerId=${partner.id}`;
+  const notificationPreferencesLink = `https://app.dub.co/${workspace.slug}/settings/notifications`;
+
+  const saleAmountInDollars = currencyFormatter(commission.amount);
+
+  const earningsInDollars = currencyFormatter(commission.earnings);
+
+  const profitInDollars = currencyFormatter(
+    commission.amount - commission.earnings,
+  );
+
+  let formattedDueDate = "";
+
+  if (group.holdingPeriodDays > 0) {
+    const dueDate = new Date();
+    dueDate.setDate(dueDate.getDate() + group.holdingPeriodDays);
+
+    formattedDueDate = dueDate.toLocaleDateString("en-US", {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    });
+  }
+
+  const finalName = user.name
+    ? user.name.split(" ")[0]
+    : capitalize(user.email.split("@")[0]);
+
+  return (
+    <Html>
+      <Head />
+      <Preview>
+        You received a {saleAmountInDollars} sale from a new customer! 💰
+      </Preview>
+      <Tailwind>
+        <Body className="mx-auto my-auto bg-white font-sans">
+          <Container className="mx-auto my-10 max-w-[600px] rounded border border-solid border-neutral-200 px-10 py-5">
+            <Section className="mt-8">
+              <Img
+                src={program.logo || "https://assets.dub.co/logo.png"}
+                height="32"
+                alt={program.name}
+              />
+            </Section>
+
+            <Heading className="mx-0 my-7 p-0 text-lg font-medium text-black">
+              New customer referred by {partner.name}
+            </Heading>
+
+            <Text className="text-sm leading-6 text-neutral-600">
+              <strong>{program.name}</strong> earned a sale from a new customer
+              referred by{" "}
+              <strong>
+                {partner.name
+                  ? `${partner.name} (${partner.email})`
+                  : partner.email}
+              </strong>
+              .
+            </Text>
+
+            <Section className="my-8 w-full">
+              <div className="rounded-lg">
+                <Row>
+                  <Column>
+                    <Text className="m-0 text-sm leading-6 text-neutral-600">
+                      Sale amount
+                    </Text>
+                  </Column>
+                  <Column align="right">
+                    <Text className="m-0 text-sm font-medium leading-6 text-neutral-600">
+                      {saleAmountInDollars} USD
+                    </Text>
+                  </Column>
+                </Row>
+
+                <Row>
+                  <Column>
+                    <Text className="m-0 text-sm leading-6 text-neutral-600">
+                      Partner commission
+                    </Text>
+                  </Column>
+                  <Column align="right">
+                    <Text className="m-0 text-sm font-medium leading-6 text-neutral-600">
+                      -{earningsInDollars} USD
+                    </Text>
+                  </Column>
+                </Row>
+
+                <div className="my-4 h-px w-full bg-neutral-200" />
+
+                <Row>
+                  <Column>
+                    <Text className="m-0 text-sm font-medium leading-6 text-black">
+                      Your profit
+                    </Text>
+                  </Column>
+                  <Column align="right">
+                    <Text className="m-0 text-sm font-medium leading-6 text-black">
+                      {profitInDollars} USD
+                    </Text>
+                  </Column>
+                </Row>
+              </div>
+            </Section>
+
+            {formattedDueDate && (
+              <Text className="text-sm leading-6 text-neutral-600">
+                Payment for this commission will be due on{" "}
+                <strong>{formattedDueDate}</strong>, as per this partner group's{" "}
+                <Link
+                  href="https://dub.co/help/article/partner-payouts#payout-holding-period"
+                  className="font-semibold text-black underline"
+                >
+                  holding period
+                </Link>
+                .
+              </Text>
+            )}
+
+            <Text className="text-sm leading-6 text-neutral-600">
+              You can view sales and commissions in the{" "}
+              <Link
+                href={salesLink}
+                className="font-semibold text-black underline"
+              >
+                program dashboard
+              </Link>
+              .
+            </Text>
+
+            <Text className="text-sm leading-6 text-neutral-600">
+              <Link
+                href={notificationPreferencesLink}
+                className="text-neutral-500 underline"
+              >
+                Change your notification preferences
+              </Link>
+            </Text>
+
+            <Footer
+              email={user.email}
+              notificationSettingsUrl={notificationPreferencesLink}
+            />
+          </Container>
+        </Body>
+      </Tailwind>
+    </Html>
+  );
+}

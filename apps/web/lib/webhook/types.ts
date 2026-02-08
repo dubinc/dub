@@ -1,37 +1,45 @@
-import z from "../zod";
+import * as z from "zod/v4";
+import { BountySchema } from "../zod/schemas/bounties";
+import { CommissionWebhookSchema } from "../zod/schemas/commissions";
 import { linkEventSchema } from "../zod/schemas/links";
 import { EnrolledPartnerSchema } from "../zod/schemas/partners";
-import { WEBHOOK_TRIGGERS } from "./constants";
+import { payoutWebhookEventSchema } from "../zod/schemas/payouts";
+import { partnerApplicationWebhookSchema } from "../zod/schemas/program-application";
 import {
   clickWebhookEventSchema,
   leadWebhookEventSchema,
   saleWebhookEventSchema,
 } from "./schemas";
 
-// TODO:
-// Remove the duplicate types
+export type ClickEventWebhookPayload = z.infer<typeof clickWebhookEventSchema>;
 
-export type LinkEventDataProps = z.infer<typeof linkEventSchema>;
+export type LeadEventWebhookPayload = z.infer<typeof leadWebhookEventSchema>;
 
-export type ClickEventDataProps = z.infer<typeof clickWebhookEventSchema>;
+export type SaleEventWebhookPayload = z.infer<typeof saleWebhookEventSchema>;
 
-export type LeadEventDataProps = z.infer<typeof leadWebhookEventSchema>;
+export type PartnerEventWebhookPayload = z.infer<typeof EnrolledPartnerSchema>;
 
-export type SaleEventDataProps = z.infer<typeof saleWebhookEventSchema>;
+export type PartnerApplicationWebhookPayload = z.infer<
+  typeof partnerApplicationWebhookSchema
+>;
 
-export type PartnerEventDataProps = z.infer<typeof EnrolledPartnerSchema>;
+export type CommissionEventWebhookPayload = z.infer<
+  typeof CommissionWebhookSchema
+>;
 
-export type EventDataProps =
-  | LinkEventDataProps
-  | ClickEventDataProps
-  | LeadEventDataProps
-  | SaleEventDataProps
-  | PartnerEventDataProps;
+export type BountyEventWebhookPayload = z.infer<typeof BountySchema>;
 
-export type WebhookTrigger = (typeof WEBHOOK_TRIGGERS)[number];
+export type PayoutEventWebhookPayload = z.infer<
+  typeof payoutWebhookEventSchema
+>;
 
-export type ClickEventWebhookData = z.infer<typeof clickWebhookEventSchema>;
-
-export type LeadEventWebhookData = z.infer<typeof leadWebhookEventSchema>;
-
-export type SaleEventWebhookData = z.infer<typeof saleWebhookEventSchema>;
+export type WebhookEventPayload =
+  | z.infer<typeof linkEventSchema>
+  | ClickEventWebhookPayload
+  | LeadEventWebhookPayload
+  | SaleEventWebhookPayload
+  | PartnerEventWebhookPayload
+  | PartnerApplicationWebhookPayload
+  | CommissionEventWebhookPayload
+  | BountyEventWebhookPayload
+  | PayoutEventWebhookPayload;

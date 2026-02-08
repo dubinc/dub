@@ -1,3 +1,4 @@
+import useCurrentFolderId from "@/lib/swr/use-current-folder-id";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ImportedDomainCountProps } from "@/lib/types";
 import {
@@ -6,7 +7,6 @@ import {
   LoadingSpinner,
   Logo,
   Modal,
-  SimpleTooltipContent,
   Switch,
   buttonVariants,
   useMediaQuery,
@@ -36,6 +36,8 @@ function ImportShortModal({
   const router = useRouter();
   const { id: workspaceId, slug } = useWorkspace();
   const searchParams = useSearchParams();
+
+  const { folderId } = useCurrentFolderId();
 
   const {
     data: domains,
@@ -129,11 +131,14 @@ function ImportShortModal({
                     body: JSON.stringify({
                       selectedDomains,
                       importTags,
+                      ...(folderId && { folderId }),
                     }),
                   }).then(async (res) => {
                     if (res.ok) {
                       await mutate();
-                      router.push(`/${slug}`);
+                      router.push(
+                        `/${slug}/links${folderId ? `?folderId=${folderId}` : ""}`,
+                      );
                     } else {
                       setImporting(false);
                       throw new Error();
@@ -201,11 +206,12 @@ function ImportShortModal({
             <div className="flex flex-col items-center justify-center gap-2">
               <ServerOff className="h-6 w-6 text-neutral-500" />
               <p className="max-w-md text-center text-sm text-neutral-500">
-                We weren't able to retrieve any links from your Short.io
-                account.
+                Unfortunately, Short.io has been blocking our servers in
+                production. Please reach out to support and we'll help you
+                import your links.
               </p>
               <a
-                href="mailto:support@dub.co?subject=I%20need%20help%20with%20importing%20my%20Short.io%20links"
+                href="https://dub.co/support"
                 className={cn(
                   buttonVariants({ variant: "secondary" }),
                   "flex h-8 items-center justify-center rounded-md border px-4 text-sm",
@@ -247,13 +253,7 @@ function ImportShortModal({
                   Short.io API Key
                 </h2>
                 <InfoTooltip
-                  content={
-                    <SimpleTooltipContent
-                      title={`Your Short.io API Key can be found in your Short.io account under "Integrations & API".`}
-                      cta="Read the guide."
-                      href="https://dub.co/help/article/migrating-from-short"
-                    />
-                  }
+                  content={`Your Short.io API Key can be found in your Short.io account under "Integrations & API". [Read the guide.](https://dub.co/help/article/migrating-from-short)`}
                 />
               </div>
               <input

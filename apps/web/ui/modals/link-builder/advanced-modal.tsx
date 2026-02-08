@@ -1,11 +1,6 @@
-import {
-  Button,
-  InfoTooltip,
-  Modal,
-  SimpleTooltipContent,
-  Tooltip,
-  useKeyboardShortcut,
-} from "@dub/ui";
+import { LinkFormData } from "@/ui/links/link-builder/link-builder-provider";
+import { useLinkBuilderKeyboardShortcut } from "@/ui/links/link-builder/use-link-builder-keyboard-shortcut";
+import { Button, InfoTooltip, Modal, Tooltip } from "@dub/ui";
 import {
   Dispatch,
   SetStateAction,
@@ -15,13 +10,12 @@ import {
   useState,
 } from "react";
 import { useForm, useFormContext } from "react-hook-form";
-import { LinkFormData } from ".";
 
 function AdvancedModal({
-  showAdvancedModal,
+  showPartnersUpgradeModal,
   setShowAdvancedModal,
 }: {
-  showAdvancedModal: boolean;
+  showPartnersUpgradeModal: boolean;
   setShowAdvancedModal: Dispatch<SetStateAction<boolean>>;
 }) {
   const id = useId();
@@ -48,15 +42,13 @@ function AdvancedModal({
     "tenantId",
   ]);
 
-  useKeyboardShortcut("a", () => setShowAdvancedModal(true), {
-    modal: true,
-  });
-
   const parentEnabled = Boolean(externalIdParent || tenantIdParent);
+
+  useLinkBuilderKeyboardShortcut("v", () => setShowAdvancedModal(true));
 
   return (
     <Modal
-      showModal={showAdvancedModal}
+      showModal={showPartnersUpgradeModal}
       setShowModal={setShowAdvancedModal}
       className="sm:max-w-[500px]"
     >
@@ -82,14 +74,14 @@ function AdvancedModal({
               content={
                 <div className="px-2 py-1 text-xs text-neutral-700">
                   Press{" "}
-                  <strong className="font-medium text-neutral-950">A</strong> to
+                  <strong className="font-medium text-neutral-950">V</strong> to
                   open this quickly
                 </div>
               }
               side="right"
             >
               <kbd className="flex size-6 cursor-default items-center justify-center gap-1 rounded-md border border-neutral-200 font-sans text-xs text-neutral-950">
-                A
+                V
               </kbd>
             </Tooltip>
           </div>
@@ -104,25 +96,9 @@ function AdvancedModal({
                 className="flex items-center gap-2 text-sm font-medium text-neutral-700"
               >
                 External ID{" "}
-                <InfoTooltip
-                  content={
-                    <SimpleTooltipContent
-                      title="A unique identifier for this link in your database."
-                      cta="Learn more about external IDs."
-                      href="https://d.to/externalId"
-                    />
-                  }
-                />
+                <InfoTooltip content="A unique identifier for this link in your database. [Learn more about external IDs.](https://d.to/externalId)" />
               </label>
-              <Tooltip
-                content={
-                  <SimpleTooltipContent
-                    title="A unique identifier for this link in your system."
-                    cta="Learn more about external IDs."
-                    href="https://d.to/externalId"
-                  />
-                }
-              />
+              <Tooltip content="A unique identifier for this link in your system. [Learn more about external IDs.](https://d.to/externalId)" />
             </div>
             <div className="mt-2 rounded-md shadow-sm">
               <input
@@ -197,16 +173,16 @@ function AdvancedModal({
 }
 
 export function useAdvancedModal() {
-  const [showAdvancedModal, setShowAdvancedModal] = useState(false);
+  const [showPartnersUpgradeModal, setShowAdvancedModal] = useState(false);
 
   const AdvancedModalCallback = useCallback(() => {
     return (
       <AdvancedModal
-        showAdvancedModal={showAdvancedModal}
+        showPartnersUpgradeModal={showPartnersUpgradeModal}
         setShowAdvancedModal={setShowAdvancedModal}
       />
     );
-  }, [showAdvancedModal, setShowAdvancedModal]);
+  }, [showPartnersUpgradeModal, setShowAdvancedModal]);
 
   return useMemo(
     () => ({

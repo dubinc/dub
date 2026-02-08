@@ -1,24 +1,34 @@
 "use server";
 
 import { prisma } from "@dub/prisma";
-import z from "../zod";
+import * as z from "zod/v4";
+import { workspaceStoreKeys } from "../zod/schemas/workspaces";
 import { authActionClient } from "./safe-action";
+import { throwIfNoPermission } from "./throw-if-no-permission";
 
-const schema = z.object({
+const updateWorkspaceStoreSchema = z.object({
   workspaceId: z.string(),
-  key: z.string(),
-  value: z.any(),
+  key: workspaceStoreKeys,
+  value: z.any().refine((val) => {
+    const valueStr = JSON.stringify(val);
+    const sizeInBytes = new TextEncoder().encode(valueStr).length;
+    return sizeInBytes <= 1_097_152; // 1 MB in bytes
+  }, "Value size must not exceed 1 MB"),
 });
 
 // Update a workspace store item
 export const updateWorkspaceStore = authActionClient
-  .schema(schema)
+  .inputSchema(updateWorkspaceStoreSchema)
   .action(async ({ ctx, parsedInput }) => {
     const { workspace } = ctx;
     const { key, value } = parsedInput;
 
-    const store =
-      (workspace.store as Record<string, any> | undefined | null) ?? {};
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredPermissions: ["workspaces.write"],
+    });
+
+    const store = workspace.store;
 
     await prisma.project.update({
       where: {
@@ -26,11 +36,9 @@ export const updateWorkspaceStore = authActionClient
       },
       data: {
         store: {
-          ...store,
+          ...(store as Record<string, any>),
           [key]: value,
         },
       },
     });
-
-    return { ok: true };
   });

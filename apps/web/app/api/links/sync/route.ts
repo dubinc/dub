@@ -1,7 +1,7 @@
-import { exceededLimitError } from "@/lib/api/errors";
 import { propagateBulkLinkChanges } from "@/lib/api/links/propagate-bulk-link-changes";
 import { updateLinksUsage } from "@/lib/api/links/update-links-usage";
 import { withWorkspace } from "@/lib/auth";
+import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import { SimpleLinkProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
@@ -67,15 +67,15 @@ export const POST = withWorkspace(
           linkId: { in: unclaimedLinks.map((link) => link!.id) },
         },
       }),
-      propagateBulkLinkChanges(
-        unclaimedLinks.map((link) => ({
+      propagateBulkLinkChanges({
+        links: unclaimedLinks.map((link) => ({
           ...link!,
           userId: session.user.id,
           projectId: workspace.id,
           publicStats: false,
           tags: [],
         })),
-      ),
+      }),
       updateLinksUsage({
         workspaceId: workspace.id,
         increment: unclaimedLinks.length,

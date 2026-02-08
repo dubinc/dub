@@ -15,6 +15,11 @@ export const verifyQstashSignature = async ({
   req: Request;
   rawBody: string; // Make sure to pass the raw body not the parsed JSON
 }) => {
+  // skip verification in local development
+  if (process.env.VERCEL !== "1") {
+    return;
+  }
+
   const signature = req.headers.get("Upstash-Signature");
 
   if (!signature) {

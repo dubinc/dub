@@ -1,8 +1,9 @@
 import { Session, hashToken } from "@/lib/auth";
-import { Role, WorkspaceWithUsers } from "@/lib/types";
+import { WorkspaceWithUsers } from "@/lib/types";
 import { sendEmail } from "@dub/email";
-import { WorkspaceInvite } from "@dub/email/templates/workspace-invite";
+import WorkspaceInvite from "@dub/email/templates/workspace-invite";
 import { prisma } from "@dub/prisma";
+import { WorkspaceRole } from "@dub/prisma/client";
 import { TWO_WEEKS_IN_SECONDS } from "@dub/utils";
 import { randomBytes } from "crypto";
 import { DubApiError } from "./errors";
@@ -14,7 +15,7 @@ export async function inviteUser({
   session,
 }: {
   email: string;
-  role?: Role;
+  role?: WorkspaceRole;
   workspace: WorkspaceWithUsers;
   session?: Session;
 }) {
@@ -38,7 +39,7 @@ export async function inviteUser({
     if (error.code === "P2002") {
       throw new DubApiError({
         code: "conflict",
-        message: "User has already been invited to this workspace.",
+        message: `User ${email} has already been invited to this workspace.`,
       });
     }
   }
@@ -52,7 +53,7 @@ export async function inviteUser({
   });
 
   const params = new URLSearchParams({
-    callbackUrl: `${process.env.NEXTAUTH_URL}/${workspace.slug}?invite=1`,
+    callbackUrl: `${process.env.NEXTAUTH_URL}/${workspace.slug}/invite`,
     email,
     token,
   });
@@ -61,10 +62,9 @@ export async function inviteUser({
 
   return await sendEmail({
     subject: `You've been invited to join a workspace on ${process.env.NEXT_PUBLIC_APP_NAME}`,
-    email,
+    to: email,
     react: WorkspaceInvite({
       email,
-      appName: process.env.NEXT_PUBLIC_APP_NAME as string,
       url,
       workspaceName: workspace.name,
       workspaceUser: session?.user.name || null,

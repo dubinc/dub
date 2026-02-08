@@ -10,10 +10,10 @@ import { NextRequest } from "next/server";
 
 export const runtime = "edge";
 
-const CORS_HEADERS = {
+const CORS_HEADERS = new Headers({
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, OPTIONS",
-};
+});
 
 export async function GET(req: NextRequest) {
   try {
@@ -73,7 +73,9 @@ const getQRCodeLogo = async ({
     return DUB_QR_LOGO;
   }
 
-  const workspace = await getWorkspaceViaEdge(shortLink.projectId);
+  const workspace = await getWorkspaceViaEdge({
+    workspaceId: shortLink.projectId,
+  });
 
   if (workspace?.plan === "free") {
     return DUB_QR_LOGO;

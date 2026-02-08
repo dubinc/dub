@@ -1,4 +1,4 @@
-import { cn, GOOGLE_FAVICON_URL } from "@dub/utils";
+import { cn } from "@dub/utils";
 import { SVGProps, useId } from "react";
 
 export function LinksGraphic(props: SVGProps<SVGSVGElement>) {
@@ -7,656 +7,438 @@ export function LinksGraphic(props: SVGProps<SVGSVGElement>) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      width="336"
-      height="336"
+      xmlnsXlink="http://www.w3.org/1999/xlink"
+      width="300"
+      height="180"
       fill="none"
-      viewBox="0 0 336 336"
+      viewBox="0 0 300 180"
       {...props}
       className={cn(
-        "pointer-events-none text-[var(--fg)] [--bg:white] [--fg:#222] [--grid:#e5e5e5] dark:[--bg:black] dark:[--fg:#fffa] dark:[--grid:#fff2]",
+        "pointer-events-none text-[var(--fg)] [--bg:white] [--border:#e5e5e5] [--fg:#171717] [--muted:#404040] dark:[--bg:black] dark:[--border:#fff3] dark:[--fg:#fffa] dark:[--muted:#fff7]",
         props.className,
       )}
     >
-      <g clipPath={`url(#${id}-a)`}>
-        <path
-          className="text-[var(--grid)]"
-          stroke="currentColor"
-          strokeWidth="0.5"
-          d="M0 0h48v48H0zM48 0h48v48H48zM96 0h48v48H96zM144 0h48v48h-48zM192 0h48v48h-48zM240 0h48v48h-48zM288 0h48v48h-48zM0 48h48v48H0zM48 48h48v48H48zM96 48h48v48H96zM144 48h48v48h-48zM192 48h48v48h-48zM240 48h48v48h-48zM288 48h48v48h-48zM0 96h48v48H0zM48 96h48v48H48zM96 96h48v48H96zM144 96h48v48h-48zM192 96h48v48h-48zM240 96h48v48h-48zM288 96h48v48h-48zM0 144h48v48H0zM48 144h48v48H48zM96 144h48v48H96zM144 144h48v48h-48zM192 144h48v48h-48zM240 144h48v48h-48zM288 144h48v48h-48zM0 192h48v48H0zM48 192h48v48H48zM96 192h48v48H96zM144 192h48v48h-48zM192 192h48v48h-48zM240 192h48v48h-48zM288 192h48v48h-48zM0 240h48v48H0zM48 240h48v48H48zM96 240h48v48H96zM144 240h48v48h-48zM192 240h48v48h-48zM240 240h48v48h-48zM288 240h48v48h-48zM0 288h48v48H0zM48 288h48v48H48zM96 288h48v48H96zM144 288h48v48h-48zM192 288h48v48h-48zM240 288h48v48h-48zM288 288h48v48h-48z"
-        />
-        <circle cx="192" cy="144" r="4" fill="#EA580C" opacity="0.1" />
-        <circle cx="192" cy="108" r="4" fill="#EA580C" opacity="0.1" />
-        <circle cx="192" cy="108" r="2" fill="#EA580C" />
-        <circle cx="192" cy="144" r="2" fill="#EA580C" />
-        <path stroke={`url(#${id}-b)`} d="M192 144v-35" />
-        <circle cx="192" cy="228" r="4" fill="#EA580C" opacity="0.1" />
-        <circle cx="192" cy="192" r="4" fill="#EA580C" opacity="0.1" />
-        <circle cx="192" cy="192" r="2" fill="#EA580C" />
-        <circle cx="192" cy="228" r="2" fill="#EA580C" />
-        <path stroke={`url(#${id}-c)`} d="M192 228v-35" />
-        <circle cx="144" cy="144" r="4" fill="#EA580C" opacity="0.1" />
-        <circle cx="144" cy="108" r="4" fill="#EA580C" opacity="0.1" />
-        <circle cx="144" cy="108" r="2" fill="#EA580C" />
-        <circle cx="144" cy="144" r="2" fill="#EA580C" />
-        <path stroke={`url(#${id}-d)`} d="M144 144v-35" />
-        <circle cx="144" cy="228" r="4" fill="#EA580C" opacity="0.1" />
-        <circle cx="144" cy="192" r="4" fill="#EA580C" opacity="0.1" />
-        <circle cx="144" cy="192" r="2" fill="#EA580C" />
-        <circle cx="144" cy="228" r="2" fill="#EA580C" />
-        <path stroke={`url(#${id}-e)`} d="M144 228v-35" />
-        <circle cx="96" cy="144" r="4" fill="#EA580C" opacity="0.1" />
-        <circle cx="96" cy="108" r="4" fill="#EA580C" opacity="0.1" />
-        <circle cx="96" cy="108" r="2" fill="#EA580C" />
-        <circle cx="96" cy="144" r="2" fill="#EA580C" />
-        <path stroke={`url(#${id}-f)`} d="M96 144v-35" />
-        <circle cx="96" cy="228" r="4" fill="#EA580C" opacity="0.1" />
-        <circle cx="96" cy="192" r="4" fill="#EA580C" opacity="0.1" />
-        <circle cx="96" cy="192" r="2" fill="#EA580C" />
-        <circle cx="96" cy="228" r="2" fill="#EA580C" />
-        <path stroke={`url(#${id}-g)`} d="M96 228v-35" />
-        <circle cx="240" cy="144" r="4" fill="#EA580C" opacity="0.1" />
-        <circle cx="240" cy="108" r="4" fill="#EA580C" opacity="0.1" />
-        <circle cx="240" cy="108" r="2" fill="#EA580C" />
-        <circle cx="240" cy="144" r="2" fill="#EA580C" />
-        <path stroke={`url(#${id}-h)`} d="M240 144v-35" />
-        <circle cx="240" cy="228" r="4" fill="#EA580C" opacity="0.1" />
-        <circle cx="240" cy="192" r="4" fill="#EA580C" opacity="0.1" />
-        <circle cx="240" cy="192" r="2" fill="#EA580C" />
-        <circle cx="240" cy="228" r="2" fill="#EA580C" />
-        <path stroke={`url(#${id}-i)`} d="M240 228v-35" />
-        <circle cx="48" cy="168" r="4" fill="#EAB308" opacity="0.1" />
-        <circle cx="48" cy="168" r="2" fill="#EAB308" />
-        <path stroke={`url(#${id}-j)`} d="M13 168h34" />
-        <circle
-          cx="4"
-          cy="4"
-          r="4"
-          fill="#EAB308"
-          opacity="0.1"
-          transform="matrix(-1 0 0 1 292 164)"
-        />
-        <circle
-          cx="2"
-          cy="2"
-          r="2"
-          fill="#EAB308"
-          transform="matrix(-1 0 0 1 290 166)"
-        />
-        <path stroke={`url(#${id}-k)`} d="M323 168h-34" />
-        <g>
-          <rect
-            width="24"
-            height="24"
-            x="228"
-            y="84"
-            fill="currentColor"
-            className="text-[var(--bg)]"
-            rx="8"
-          />
-          <rect
-            width="23"
-            height="23"
-            x="228.5"
-            y="84.5"
-            stroke="currentColor"
-            className="text-[var(--grid)]"
-            rx="7.5"
-          />
-          <path
-            stroke="currentColor"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M240 92.222V96l2.889 2"
-          />
-          <path
-            stroke="currentColor"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M240 89.555a6.444 6.444 0 0 1 0 12.889"
-          />
-          <path
-            fill="currentColor"
-            fillOpacity="0.5"
-            d="M235.276 100.891a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1M233.389 96.333a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1M235.276 91.776a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1M237.367 102.288a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1M233.879 98.8a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1M233.879 93.868a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1M237.368 90.38a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1"
-          />
-        </g>
-        <g>
-          <rect
-            width="24"
-            height="24"
-            x="228"
-            y="228"
-            fill="currentColor"
-            className="text-[var(--bg)]"
-            rx="8"
-          />
-          <rect
-            width="23"
-            height="23"
-            x="228.5"
-            y="228.5"
-            stroke="currentColor"
-            className="text-[var(--grid)]"
-            rx="7.5"
-          />
-          <path
-            stroke="currentColor"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M238.889 243.778h-3.556a1.777 1.777 0 0 1-1.777-1.778v-4c0-.982.795-1.778 1.777-1.778h9.334c.982 0 1.777.796 1.777 1.778v.222"
-          />
-          <path
-            fill="currentColor"
-            fillOpacity="0.5"
-            d="M236.889 240.889a.889.889 0 1 0 0-1.778.889.889 0 0 0 0 1.778M240 240.889a.889.889 0 1 0 0-1.778.889.889 0 0 0 0 1.778"
-          />
-          <path
-            fill="currentColor"
-            fillOpacity="0.5"
-            stroke="currentColor"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M246 242.889h-3.556a.89.89 0 0 0-.888.889v1.777c0 .491.398.889.888.889H246a.89.89 0 0 0 .889-.889v-1.777a.89.89 0 0 0-.889-.889"
-          />
-          <path
-            stroke="currentColor"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M242.889 242.889v-1.778a1.333 1.333 0 0 1 2.667 0v1.778"
-          />
-        </g>
-        <g>
-          <rect
-            width="24"
-            height="24"
-            x="180"
-            y="84"
-            fill="currentColor"
-            className="text-[var(--bg)]"
-            rx="8"
-          />
-          <rect
-            width="23"
-            height="23"
-            x="180.5"
-            y="84.5"
-            stroke="currentColor"
-            className="text-[var(--grid)]"
-            rx="7.5"
-          />
-          <path
-            stroke="currentColor"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M188.667 90h-2a.666.666 0 0 0-.667.667v2c0 .368.298.666.667.666h2a.666.666 0 0 0 .666-.666v-2a.666.666 0 0 0-.666-.667M197.333 90h-2a.666.666 0 0 0-.666.667v2c0 .368.298.666.666.666h2a.667.667 0 0 0 .667-.666v-2a.667.667 0 0 0-.667-.667M188.667 98.667h-2a.666.666 0 0 0-.667.666v2c0 .368.298.667.667.667h2a.667.667 0 0 0 .666-.667v-2a.666.666 0 0 0-.666-.666M198 98.667h-2a1.333 1.333 0 0 0-1.333 1.333v2M198 102v.01M192 92.667v2A1.334 1.334 0 0 1 190.667 96h-2M186 96h.01M192 90h.01M192 98.667v.01M194.667 96h.666M198 96v.01M192 102v-.667"
-          />
-        </g>
-        <g>
-          <rect
-            width="24"
-            height="24"
-            x="180"
-            y="228"
-            fill="currentColor"
-            className="text-[var(--bg)]"
-            rx="8"
-          />
-          <rect
-            width="23"
-            height="23"
-            x="180.5"
-            y="228.5"
-            stroke="currentColor"
-            className="text-[var(--grid)]"
-            rx="7.5"
-          />
-          <path
-            stroke="currentColor"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M192 246.445a6.445 6.445 0 1 0-.002-12.89 6.445 6.445 0 0 0 .002 12.89M192 238.222v-2M193.778 240h2M192 241.778v2M190.222 240h-2"
-          />
-        </g>
-        <g>
-          <rect
-            width="24"
-            height="24"
-            x="132"
-            y="84"
-            fill="currentColor"
-            className="text-[var(--bg)]"
-            rx="8"
-          />
-          <rect
-            width="23"
-            height="23"
-            x="132.5"
-            y="84.5"
-            stroke="currentColor"
-            className="text-[var(--grid)]"
-            rx="7.5"
-          />
-          <path
-            stroke="currentColor"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M148.667 90h-9.334c-.736 0-1.333.597-1.333 1.333v9.334c0 .736.597 1.333 1.333 1.333h9.334c.736 0 1.333-.597 1.333-1.333v-9.334c0-.736-.597-1.333-1.333-1.333"
-          />
-          <path
-            stroke="currentColor"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M142 95.333a1.333 1.333 0 1 0 0-2.666 1.333 1.333 0 0 0 0 2.666M150 98l-2.057-2.057a1.334 1.334 0 0 0-1.886 0L140 102"
-          />
-        </g>
-        <g>
-          <rect
-            width="24"
-            height="24"
-            x="132"
-            y="228"
-            fill="currentColor"
-            className="text-[var(--bg)]"
-            rx="8"
-          />
-          <rect
-            width="23"
-            height="23"
-            x="132.5"
-            y="228.5"
-            stroke="currentColor"
-            className="text-[var(--grid)]"
-            rx="7.5"
-          />
-          <path
-            stroke="currentColor"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M138.889 234h4.375c.471 0 .924.188 1.257.521l5.111 5.111c.694.694.694 1.82 0 2.514l-3.486 3.486a1.78 1.78 0 0 1-2.514 0l-5.111-5.111a1.78 1.78 0 0 1-.521-1.257v-4.375c0-.491.398-.889.889-.889"
-          />
-          <path
-            fill="currentColor"
-            fillOpacity="0.5"
-            d="M141.556 238.667a1.112 1.112 0 1 0-.002-2.224 1.112 1.112 0 0 0 .002 2.224"
-          />
-        </g>
-        <g>
-          <rect
-            width="24"
-            height="24"
-            x="84"
-            y="84"
-            fill="currentColor"
-            className="text-[var(--bg)]"
-            rx="8"
-          />
-          <rect
-            width="23"
-            height="23"
-            x="84.5"
-            y="84.5"
-            stroke="currentColor"
-            className="text-[var(--grid)]"
-            rx="7.5"
-          />
-          <path
-            stroke="currentColor"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="m96.889 93.778 2 2-2 2"
-          />
-          <path
-            stroke="currentColor"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M98.889 95.778h-3.111c-.982 0-1.778.795-1.778 1.778V98"
-          />
-          <path
-            stroke="currentColor"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="m97.258 101.854 4.596-4.597a1.777 1.777 0 0 0 0-2.514l-4.596-4.597a1.78 1.78 0 0 0-2.514 0l-4.597 4.597a1.78 1.78 0 0 0 0 2.514l4.597 4.597c.694.694 1.82.694 2.514 0"
-          />
-        </g>
-        <g>
-          <rect
-            width="24"
-            height="24"
-            x="84"
-            y="228"
-            fill="currentColor"
-            className="text-[var(--bg)]"
-            rx="8"
-          />
-          <rect
-            width="23"
-            height="23"
-            x="84.5"
-            y="228.5"
-            stroke="currentColor"
-            className="text-[var(--grid)]"
-            rx="7.5"
-          />
-          <path
-            stroke="currentColor"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M92.667 246.444a2.222 2.222 0 1 0 .001-4.443 2.222 2.222 0 0 0-.001 4.443M99.333 246.444a2.222 2.222 0 1 0 .002-4.443 2.222 2.222 0 0 0-.002 4.443M98.563 233.556h-5.126a.89.89 0 0 0-.88.763l-.335 2.348-2.666 2.666h12.888l-2.666-2.666-.335-2.348a.89.89 0 0 0-.88-.763M92.222 236.667h7.556"
-          />
-          <path
-            stroke="currentColor"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M94.738 243.415a1.775 1.775 0 0 1 2.524 0"
-          />
-        </g>
-        <g filter={`url(#${id}-t)`} opacity="0.16">
-          <ellipse cx="62" cy="168" fill="#EAB308" rx="33" ry="8" />
-        </g>
-        <g filter={`url(#${id}-u)`} opacity="0.16">
-          <ellipse cx="276" cy="168" fill="#EAB308" rx="33" ry="8" />
-        </g>
-        <rect
-          width="240"
-          height="48"
-          x="48"
-          y="144"
-          fill="currentColor"
-          className="text-[var(--bg)]"
-          rx="8"
-        />
-        <rect
-          width="240"
-          height="48"
-          x="48"
-          y="144"
-          stroke="currentColor"
-          className="text-[var(--grid)]"
-          strokeOpacity="0.5"
-          strokeWidth="0.5"
-          rx="8"
-        />
-        <g>
-          <rect
-            width="24"
-            height="24"
-            x="61"
-            y="156"
-            fill={`url(#${id}-w)`}
-            rx="12"
-          />
-          <rect
-            width="25"
-            height="25"
-            x="60.5"
-            y="155.5"
-            stroke="#030712"
-            strokeOpacity="0.1"
-            rx="12.5"
-          />
-          <circle cx="73" cy="168" r="6" fill={`url(#${id}-x)`} />
-        </g>
-        <text
-          xmlSpace="preserve"
-          fill="currentColor"
-          className="text-[var(--fg)]"
-          fontSize="12"
-          fontWeight="500"
-          letterSpacing="0em"
-          style={{ whiteSpace: "pre" }}
-        >
-          <tspan x="97" y="165.364">
-            d.to/try
-          </tspan>
-        </text>
-        <path
-          stroke="#A3A3A3"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M104.931 176.792h-4.084a.78.78 0 0 1-.778-.778v-1.556"
-        />
-        <path
-          stroke="#A3A3A3"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="m103.278 175.139 1.653 1.653-1.653 1.653"
-        />
-        <text
-          xmlSpace="preserve"
-          fill="#A3A3A3"
-          fontSize="9"
-          letterSpacing="-.02em"
-          style={{ whiteSpace: "pre" }}
-        >
-          <tspan x="110" y="179.773">
-            app.dub.co/register
-          </tspan>
-        </text>
-        <path
-          className="text-[var(--fg)]"
-          fill="currentColor"
-          fillOpacity="0.04"
-          d="M229.25 164.6c0-1.684 0-2.932.081-3.92.08-.985.24-1.69.546-2.29a5.75 5.75 0 0 1 2.513-2.513c.6-.306 1.305-.466 2.29-.546.988-.081 2.236-.081 3.92-.081h26.8c1.684 0 2.932 0 3.92.081.985.08 1.69.24 2.29.546a5.75 5.75 0 0 1 2.513 2.513c.306.6.466 1.305.546 2.29.081.988.081 2.236.081 3.92v6.8c0 1.684 0 2.932-.081 3.92-.08.985-.24 1.69-.546 2.29a5.75 5.75 0 0 1-2.513 2.513c-.6.306-1.305.466-2.29.546-.988.081-2.236.081-3.92.081h-26.8c-1.684 0-2.932 0-3.92-.081-.985-.08-1.69-.24-2.29-.546a5.75 5.75 0 0 1-2.513-2.513c-.306-.6-.466-1.305-.546-2.29-.081-.988-.081-2.236-.081-3.92z"
-        />
-        <path
-          className="text-[var(--grid)]"
-          stroke="currentColor"
-          strokeWidth="0.5"
-          d="M229.25 164.6c0-1.684 0-2.932.081-3.92.08-.985.24-1.69.546-2.29a5.75 5.75 0 0 1 2.513-2.513c.6-.306 1.305-.466 2.29-.546.988-.081 2.236-.081 3.92-.081h26.8c1.684 0 2.932 0 3.92.081.985.08 1.69.24 2.29.546a5.75 5.75 0 0 1 2.513 2.513c.306.6.466 1.305.546 2.29.081.988.081 2.236.081 3.92v6.8c0 1.684 0 2.932-.081 3.92-.08.985-.24 1.69-.546 2.29a5.75 5.75 0 0 1-2.513 2.513c-.6.306-1.305.466-2.29.546-.988.081-2.236.081-3.92.081h-26.8c-1.684 0-2.932 0-3.92-.081-.985-.08-1.69-.24-2.29-.546a5.75 5.75 0 0 1-2.513-2.513c-.306-.6-.466-1.305-.546-2.29-.081-.988-.081-2.236-.081-3.92z"
-        />
-        <g
-          stroke="currentColor"
-          strokeOpacity="0.7"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          clipPath={`url(#${id}-y)`}
-        >
-          <path d="m240.395 167.185 4.876 1.673c.148.051.15.259.004.313l-2.186.822a.17.17 0 0 0-.097.098l-.822 2.186a.166.166 0 0 1-.313-.005l-1.674-4.876a.167.167 0 0 1 .212-.212zM243.019 170.021l2.808 2.808M240.165 163.167v1.333M242.995 164.338l-.943.943M237.338 169.995l.943-.943M236.166 167.166h1.333M237.338 164.338l.943.943" />
-        </g>
-        <text
-          xmlSpace="preserve"
-          fill="currentColor"
-          className="text-[var(--fg)]"
-          fontSize="10"
-          fontWeight="500"
-          letterSpacing="0em"
-          style={{ whiteSpace: "pre" }}
-        >
-          <tspan x="251" y="171.636">
-            51K
-          </tspan>
-        </text>
-      </g>
       <defs>
+        <path
+          id={`${id}-m`}
+          className="fill-[var(--bg)]"
+          d="M0 0h10.24v10.24H0z"
+        ></path>
+        <path
+          id={`${id}-n`}
+          className="fill-[var(--bg)]"
+          d="M0 0h8.05v8.05H0z"
+        ></path>
+        <path
+          id={`${id}-o`}
+          className="fill-[var(--bg)]"
+          d="M0 0h11.71v11.71H0z"
+        ></path>
+      </defs>
+      <rect
+        width="292"
+        height="52"
+        x="4"
+        y="4"
+        rx="8.78"
+        className="fill-[var(--bg)]"
+      ></rect>
+      <rect
+        width="292"
+        height="52"
+        x="4"
+        y="4"
+        className="stroke-[var(--border)]"
+        strokeWidth="0.73"
+        rx="8.78"
+      ></rect>
+      <rect
+        width="24.88"
+        height="24.88"
+        x="17.17"
+        y="17.56"
+        fill={`url(#${id}-a)`}
+        rx="12.44"
+      ></rect>
+      <rect
+        width="25.61"
+        height="25.61"
+        x="16.8"
+        y="17.2"
+        className="stroke-[var(--border)]"
+        strokeWidth="0.73"
+        rx="12.8"
+      ></rect>
+      <path
+        className="fill-[var(--fg)]"
+        d="M29.61 23c.6 0 1.19.08 1.75.22v3.75a3.5 3.5 0 1 0 0 6.06v.47h1.75v-9.56a7 7 0 1 1-3.5-.94m2.29.39"
+      ></path>
+      <text
+        xmlSpace="preserve"
+        className="fill-[var(--fg)]"
+        fontSize="10.24"
+        fontWeight="600"
+        style={{ whiteSpace: "pre" }}
+      >
+        <tspan x="50.83" y="25.49">
+          d.to
+        </tspan>
+      </text>
+      <g
+        className="stroke-[var(--fg)]"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.1"
+        clipPath={`url(#${id}-b)`}
+      >
+        <path d="M84.47 26.08h3.98c.63 0 1.14-.51 1.14-1.14v-3.98c0-.63-.51-1.14-1.14-1.14h-3.98c-.63 0-1.14.5-1.14 1.14v3.98c0 .63.5 1.14 1.14 1.14"></path>
+        <path d="M82.05 24a1.14 1.14 0 0 1-.71-1.05v-3.99c0-.63.5-1.13 1.14-1.13h3.98c.48 0 .89.29 1.05.7"></path>
+      </g>
+      <path
+        className="stroke-[var(--fg)]"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.1"
+        d="M106.87 23.66h-1.29a.85.85 0 0 0-.85.85v1.28m-1.71-5.97v1.28a.85.85 0 0 1-.85.85h-1.28m3.84.01h.43m-2.14 3.83v-.42m-3.41-7.26h1.28c.24 0 .43.2.43.43v1.28c0 .23-.2.42-.43.42h-1.28a.43.43 0 0 1-.43-.42v-1.28c0-.24.2-.43.43-.43m5.55 0h1.28c.23 0 .43.2.43.43v1.28c0 .23-.2.42-.43.42h-1.28a.43.43 0 0 1-.43-.42v-1.28c0-.24.2-.43.43-.43m-5.55 5.55h1.28c.24 0 .43.19.43.43v1.28c0 .23-.2.42-.43.42h-1.28a.43.43 0 0 1-.43-.42v-1.28c0-.24.2-.43.43-.43"
+      ></path>
+      <g
+        stroke="#A1A1A1"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.1"
+        clipPath={`url(#${id}-c)`}
+      >
+        <path d="M59.11 38.38h-4.7a.9.9 0 0 1-.89-.89V35.7"></path>
+        <path d="m57.21 36.48 1.9 1.9-1.9 1.9"></path>
+      </g>
+      <text
+        xmlSpace="preserve"
+        fill="#737373"
+        fontSize="10.24"
+        fontWeight="500"
+        style={{ whiteSpace: "pre" }}
+      >
+        <tspan x="63.27" y="41.59">
+          dub.co
+        </tspan>
+      </text>
+      <path
+        className="fill-[var(--bg)]"
+        d="M205.12 19.4h69.22c1.24 0 2.14 0 2.86.05.62.05 1.07.14 1.44.3l.16.08c.66.34 1.22.85 1.6 1.48l.16.28c.21.4.32.9.38 1.6.06.72.06 1.62.06 2.86v7.9c0 1.24 0 2.14-.06 2.85a4.6 4.6 0 0 1-.3 1.45l-.08.16a4 4 0 0 1-1.48 1.6l-.28.16c-.4.2-.9.32-1.6.38-.72.06-1.62.06-2.86.06h-69.22c-1.23 0-2.14 0-2.85-.06a4.6 4.6 0 0 1-1.45-.3l-.16-.08a4 4 0 0 1-1.6-1.48l-.16-.28c-.2-.4-.32-.9-.38-1.6-.06-.72-.06-1.62-.06-2.86v-7.9c0-1.24 0-2.14.06-2.85s.17-1.2.38-1.61c.39-.76 1-1.38 1.76-1.76.41-.2.9-.32 1.6-.38.72-.06 1.63-.06 2.86-.06Z"
+      ></path>
+      <path
+        className="stroke-[var(--border)]"
+        strokeWidth="0.73"
+        d="M205.12 19.4h69.22c1.24 0 2.14 0 2.86.05.62.05 1.07.14 1.44.3l.16.08c.66.34 1.22.85 1.6 1.48l.16.28c.21.4.32.9.38 1.6.06.72.06 1.62.06 2.86v7.9c0 1.24 0 2.14-.06 2.85a4.6 4.6 0 0 1-.3 1.45l-.08.16a4 4 0 0 1-1.48 1.6l-.28.16c-.4.2-.9.32-1.6.38-.72.06-1.62.06-2.86.06h-69.22c-1.23 0-2.14 0-2.85-.06a4.6 4.6 0 0 1-1.45-.3l-.16-.08a4 4 0 0 1-1.6-1.48l-.16-.28c-.2-.4-.32-.9-.38-1.6-.06-.72-.06-1.62-.06-2.86v-7.9c0-1.24 0-2.14.06-2.85s.17-1.2.38-1.61c.39-.76 1-1.38 1.76-1.76.41-.2.9-.32 1.6-.38.72-.06 1.63-.06 2.86-.06Z"
+      ></path>
+      <g
+        className="stroke-[var(--muted)]"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.1"
+        clipPath={`url(#${id}-d)`}
+      >
+        <path d="m209.95 29.2 4.75 1.64c.15.05.15.25 0 .3l-2.13.8a.16.16 0 0 0-.09.1l-.8 2.13a.16.16 0 0 1-.3 0l-1.64-4.76a.16.16 0 0 1 .2-.2h0Zm2.55 2.77 2.75 2.74m-5.53-9.43v1.3m2.76-.15-.92.92m-4.6 4.6.92-.92m-2.06-1.84h1.3m-.16-2.76.92.92"></path>
+      </g>
+      <text
+        xmlSpace="preserve"
+        className="fill-[var(--muted)]"
+        fontSize="8.78"
+        fontWeight="500"
+        style={{ whiteSpace: "pre" }}
+      >
+        <tspan x="220.78" y="33.19">
+          151.8K clicks
+        </tspan>
+      </text>
+      <rect
+        width="292"
+        height="52"
+        x="4"
+        y="64"
+        rx="8.78"
+        className="fill-[var(--bg)]"
+      ></rect>
+      <rect
+        width="292"
+        height="52"
+        x="4"
+        y="64"
+        className="stroke-[var(--border)]"
+        strokeWidth="0.73"
+        rx="8.78"
+      ></rect>
+      <rect
+        width="24.88"
+        height="24.88"
+        x="17.17"
+        y="77.56"
+        fill={`url(#${id}-e)`}
+        rx="12.44"
+      ></rect>
+      <rect
+        width="25.61"
+        height="25.61"
+        x="16.8"
+        y="77.19"
+        className="stroke-[var(--border)]"
+        strokeWidth="0.73"
+        rx="12.8"
+      ></rect>
+      <path
+        className="fill-[var(--fg)]"
+        d="M29.61 83c.6 0 1.19.08 1.75.22v3.75a3.5 3.5 0 1 0 0 6.06v.47h1.75v-9.56a7 7 0 1 1-3.5-.94m2.29.39"
+      ></path>
+      <text
+        xmlSpace="preserve"
+        className="fill-[var(--fg)]"
+        fontSize="10.24"
+        fontWeight="600"
+        style={{ whiteSpace: "pre" }}
+      >
+        <tspan x="50.83" y="85.49">
+          d.to/register
+        </tspan>
+      </text>
+      <g
+        className="stroke-[var(--fg)]"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.1"
+        clipPath={`url(#${id}-f)`}
+      >
+        <path d="M126.47 86.08h3.98c.63 0 1.14-.51 1.14-1.14v-3.98c0-.63-.51-1.14-1.14-1.14h-3.98c-.63 0-1.14.5-1.14 1.14v3.98c0 .63.5 1.14 1.14 1.14"></path>
+        <path d="M124.05 84a1.14 1.14 0 0 1-.71-1.05v-3.99c0-.63.5-1.13 1.13-1.13h3.99c.48 0 .89.29 1.05.7"></path>
+      </g>
+      <path
+        className="stroke-[var(--fg)]"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.1"
+        d="M148.87 83.66h-1.28a.85.85 0 0 0-.86.85v1.28m-1.71-5.97v1.28a.85.85 0 0 1-.85.85h-1.28m3.84.01h.43m-2.14 3.83v-.42m-3.41-7.26h1.28c.24 0 .43.2.43.43v1.28c0 .23-.2.42-.43.42h-1.28a.43.43 0 0 1-.43-.42v-1.28c0-.24.2-.43.43-.43m5.55 0h1.28c.24 0 .43.2.43.43v1.28c0 .23-.2.42-.43.42h-1.28a.43.43 0 0 1-.43-.42v-1.28c0-.24.2-.43.43-.43m-5.55 5.55h1.28c.24 0 .43.19.43.43v1.28c0 .23-.2.42-.43.42h-1.28a.43.43 0 0 1-.43-.42v-1.28c0-.24.2-.43.43-.43"
+      ></path>
+      <g
+        stroke="#A1A1A1"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.1"
+        clipPath={`url(#${id}-g)`}
+      >
+        <path d="M59.11 98.38h-4.7a.9.9 0 0 1-.89-.89V95.7"></path>
+        <path d="m57.21 96.48 1.9 1.9-1.9 1.9"></path>
+      </g>
+      <text
+        xmlSpace="preserve"
+        fill="#737373"
+        fontSize="10.24"
+        fontWeight="500"
+        style={{ whiteSpace: "pre" }}
+      >
+        <tspan x="63.27" y="101.59">
+          app.dub.co/register
+        </tspan>
+      </text>
+      <path
+        className="fill-[var(--bg)]"
+        d="M211.12 79.4h63.22c1.24 0 2.14 0 2.86.05.62.05 1.07.14 1.44.3l.16.08c.66.34 1.22.85 1.6 1.48l.16.28c.21.4.32.9.38 1.6.06.72.06 1.62.06 2.86v7.9c0 1.24 0 2.14-.06 2.85a4.6 4.6 0 0 1-.3 1.45l-.08.16a4.03 4.03 0 0 1-1.48 1.6l-.28.16c-.4.2-.9.32-1.6.38-.72.06-1.62.06-2.86.06h-63.22c-1.23 0-2.14 0-2.85-.06a4.6 4.6 0 0 1-1.45-.3l-.16-.08a4 4 0 0 1-1.6-1.48l-.16-.28c-.2-.4-.32-.9-.38-1.6-.06-.72-.06-1.62-.06-2.86v-7.9c0-1.24 0-2.14.06-2.85s.17-1.2.38-1.61c.39-.76 1-1.38 1.76-1.76.41-.2.9-.32 1.6-.38.72-.06 1.63-.06 2.86-.06Z"
+      ></path>
+      <path
+        className="stroke-[var(--border)]"
+        strokeWidth="0.73"
+        d="M211.12 79.4h63.22c1.24 0 2.14 0 2.86.05.62.05 1.07.14 1.44.3l.16.08c.66.34 1.22.85 1.6 1.48l.16.28c.21.4.32.9.38 1.6.06.72.06 1.62.06 2.86v7.9c0 1.24 0 2.14-.06 2.85a4.6 4.6 0 0 1-.3 1.45l-.08.16a4.03 4.03 0 0 1-1.48 1.6l-.28.16c-.4.2-.9.32-1.6.38-.72.06-1.62.06-2.86.06h-63.22c-1.23 0-2.14 0-2.85-.06a4.6 4.6 0 0 1-1.45-.3l-.16-.08a4 4 0 0 1-1.6-1.48l-.16-.28c-.2-.4-.32-.9-.38-1.6-.06-.72-.06-1.62-.06-2.86v-7.9c0-1.24 0-2.14.06-2.85s.17-1.2.38-1.61c.39-.76 1-1.38 1.76-1.76.41-.2.9-.32 1.6-.38.72-.06 1.63-.06 2.86-.06Z"
+      ></path>
+      <g
+        className="stroke-[var(--muted)]"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.1"
+        clipPath={`url(#${id}-h)`}
+      >
+        <path d="m215.95 89.2 4.75 1.64c.15.05.15.25 0 .3l-2.13.8a.16.16 0 0 0-.09.1l-.8 2.13a.16.16 0 0 1-.3 0l-1.64-4.76a.16.16 0 0 1 .2-.2h0Zm2.55 2.77 2.75 2.74m-5.53-9.43v1.3m2.76-.15-.92.92m-4.6 4.6.92-.92m-2.06-1.84h1.3m-.16-2.76.92.92"></path>
+      </g>
+      <text
+        xmlSpace="preserve"
+        className="fill-[var(--muted)]"
+        fontSize="8.78"
+        fontWeight="500"
+        style={{ whiteSpace: "pre" }}
+      >
+        <tspan x="226.78" y="93.19">
+          100K clicks
+        </tspan>
+      </text>
+      <path
+        className="fill-[var(--bg)]"
+        d="M4 138.05c0-4.92 0-7.38.96-9.26a8.7 8.7 0 0 1 3.83-3.83c1.88-.96 4.34-.96 9.26-.96h263.9c4.92 0 7.38 0 9.26.96a8.7 8.7 0 0 1 3.83 3.83c.96 1.88.96 4.34.96 9.26v23.9c0 4.92 0 7.38-.96 9.26a8.78 8.78 0 0 1-3.83 3.83c-1.88.96-4.34.96-9.26.96H18.05c-4.92 0-7.38 0-9.26-.96a8.78 8.78 0 0 1-3.83-3.83C4 169.33 4 166.87 4 161.95z"
+      ></path>
+      <path
+        className="stroke-[var(--border)]"
+        strokeWidth="0.73"
+        d="M4 138.05c0-4.92 0-7.38.96-9.26a8.7 8.7 0 0 1 3.83-3.83c1.88-.96 4.34-.96 9.26-.96h263.9c4.92 0 7.38 0 9.26.96a8.7 8.7 0 0 1 3.83 3.83c.96 1.88.96 4.34.96 9.26v23.9c0 4.92 0 7.38-.96 9.26a8.78 8.78 0 0 1-3.83 3.83c-1.88.96-4.34.96-9.26.96H18.05c-4.92 0-7.38 0-9.26-.96a8.78 8.78 0 0 1-3.83-3.83C4 169.33 4 166.87 4 161.95z"
+      ></path>
+      <rect
+        width="24.88"
+        height="24.88"
+        x="17.17"
+        y="137.56"
+        fill={`url(#${id}-i)`}
+        rx="12.44"
+      ></rect>
+      <rect
+        width="25.61"
+        height="25.61"
+        x="16.8"
+        y="137.19"
+        className="stroke-[var(--border)]"
+        strokeWidth="0.73"
+        rx="12.8"
+      ></rect>
+      <path
+        className="fill-[var(--fg)]"
+        d="M29.61 143c.6 0 1.19.08 1.75.22v3.75a3.5 3.5 0 1 0 0 6.06v.47h1.75v-9.56a7 7 0 1 1-3.5-.94m2.29.39"
+      ></path>
+      <text
+        xmlSpace="preserve"
+        className="fill-[var(--fg)]"
+        fontSize="10.24"
+        fontWeight="600"
+        style={{ whiteSpace: "pre" }}
+      >
+        <tspan x="50.83" y="145.49">
+          d.to/try
+        </tspan>
+      </text>
+      <g
+        className="stroke-[var(--fg)]"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.1"
+        clipPath={`url(#${id}-j)`}
+      >
+        <path d="M102.47 146.08h3.98c.63 0 1.14-.51 1.14-1.14v-3.98c0-.63-.51-1.14-1.14-1.14h-3.98c-.63 0-1.14.5-1.14 1.14v3.98c0 .63.5 1.14 1.14 1.14"></path>
+        <path d="M100.05 144a1.14 1.14 0 0 1-.71-1.05v-3.99c0-.63.5-1.14 1.13-1.14h3.99c.48 0 .89.3 1.06.72"></path>
+      </g>
+      <path
+        className="stroke-[var(--fg)]"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.1"
+        d="M124.87 143.66h-1.29a.85.85 0 0 0-.85.85v1.28m-1.71-5.97v1.28a.85.85 0 0 1-.85.85h-1.28m3.84.01h.43m-2.14 3.83v-.42m-3.41-7.26h1.28c.24 0 .43.2.43.43v1.28c0 .23-.2.42-.43.42h-1.28a.43.43 0 0 1-.43-.42v-1.28c0-.24.2-.43.43-.43m5.55 0h1.28c.23 0 .43.2.43.43v1.28c0 .23-.2.42-.43.42h-1.28a.43.43 0 0 1-.43-.42v-1.28c0-.24.2-.43.43-.43m-5.55 5.55h1.28c.24 0 .43.19.43.43v1.28c0 .23-.2.42-.43.42h-1.28a.43.43 0 0 1-.43-.42v-1.28c0-.24.2-.43.43-.43"
+      ></path>
+      <g
+        stroke="#A1A1A1"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.1"
+        clipPath={`url(#${id}-k)`}
+      >
+        <path d="M59.11 158.38h-4.7a.9.9 0 0 1-.89-.89v-1.79"></path>
+        <path d="m57.21 156.48 1.9 1.9-1.9 1.9"></path>
+      </g>
+      <text
+        xmlSpace="preserve"
+        fill="#737373"
+        fontSize="10.24"
+        fontWeight="500"
+        style={{ whiteSpace: "pre" }}
+      >
+        <tspan x="63.27" y="161.59">
+          app.dub.co/register
+        </tspan>
+      </text>
+      <path
+        className="fill-[var(--bg)]"
+        d="M208.12 139.4h66.22c1.24 0 2.14 0 2.86.05.62.05 1.07.14 1.44.3l.16.08c.66.34 1.22.85 1.6 1.48l.16.28c.21.4.32.9.38 1.6.06.72.06 1.62.06 2.86v7.9c0 1.24 0 2.14-.06 2.86a4.6 4.6 0 0 1-.3 1.44l-.08.16a4 4 0 0 1-1.48 1.6l-.28.16c-.4.2-.9.32-1.6.38-.72.06-1.62.06-2.86.06h-66.22c-1.23 0-2.14 0-2.85-.06a4.6 4.6 0 0 1-1.45-.3l-.16-.08a4 4 0 0 1-1.6-1.48l-.16-.28c-.2-.4-.32-.9-.38-1.6-.06-.72-.06-1.62-.06-2.86v-7.9c0-1.24 0-2.14.06-2.86.06-.7.17-1.2.38-1.6.39-.76 1-1.38 1.76-1.76.41-.2.9-.32 1.6-.38.72-.06 1.63-.06 2.86-.06Z"
+      ></path>
+      <path
+        className="stroke-[var(--border)]"
+        strokeWidth="0.73"
+        d="M208.12 139.4h66.22c1.24 0 2.14 0 2.86.05.62.05 1.07.14 1.44.3l.16.08c.66.34 1.22.85 1.6 1.48l.16.28c.21.4.32.9.38 1.6.06.72.06 1.62.06 2.86v7.9c0 1.24 0 2.14-.06 2.86a4.6 4.6 0 0 1-.3 1.44l-.08.16a4 4 0 0 1-1.48 1.6l-.28.16c-.4.2-.9.32-1.6.38-.72.06-1.62.06-2.86.06h-66.22c-1.23 0-2.14 0-2.85-.06a4.6 4.6 0 0 1-1.45-.3l-.16-.08a4 4 0 0 1-1.6-1.48l-.16-.28c-.2-.4-.32-.9-.38-1.6-.06-.72-.06-1.62-.06-2.86v-7.9c0-1.24 0-2.14.06-2.86.06-.7.17-1.2.38-1.6.39-.76 1-1.38 1.76-1.76.41-.2.9-.32 1.6-.38.72-.06 1.63-.06 2.86-.06Z"
+      ></path>
+      <g
+        className="stroke-[var(--muted)]"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.1"
+        clipPath={`url(#${id}-l)`}
+      >
+        <path d="m212.95 149.2 4.75 1.64c.15.05.15.25 0 .3l-2.13.8a.17.17 0 0 0-.09.1l-.8 2.13a.16.16 0 0 1-.3 0l-1.64-4.76a.16.16 0 0 1 .2-.2h0Zm2.55 2.77 2.75 2.74m-5.53-9.43v1.3m2.76-.15-.92.92m-4.6 4.6.92-.92m-2.06-1.84h1.3m-.16-2.76.92.92"></path>
+      </g>
+      <text
+        xmlSpace="preserve"
+        className="fill-[var(--muted)]"
+        fontSize="8.78"
+        fontWeight="500"
+        style={{ whiteSpace: "pre" }}
+      >
+        <tspan x="223.78" y="153.19">
+          65.8K clicks
+        </tspan>
+      </text>
+      <defs>
+        <clipPath id={`${id}-b`}>
+          <use xlinkHref={`#${id}-m`} transform="translate(80.34 16.83)"></use>
+        </clipPath>
+        <clipPath id={`${id}-c`}>
+          <use xlinkHref={`#${id}-n`} transform="translate(52.3 34.02)"></use>
+        </clipPath>
+        <clipPath id={`${id}-d`}>
+          <use xlinkHref={`#${id}-o`} transform="translate(204.68 24.15)"></use>
+        </clipPath>
+        <clipPath id={`${id}-f`}>
+          <use xlinkHref={`#${id}-m`} transform="translate(122.34 76.83)"></use>
+        </clipPath>
+        <clipPath id={`${id}-g`}>
+          <use xlinkHref={`#${id}-n`} transform="translate(52.3 94.02)"></use>
+        </clipPath>
+        <clipPath id={`${id}-h`}>
+          <use xlinkHref={`#${id}-o`} transform="translate(210.68 84.15)"></use>
+        </clipPath>
+        <clipPath id={`${id}-j`}>
+          <use xlinkHref={`#${id}-m`} transform="translate(98.34 136.83)"></use>
+        </clipPath>
+        <clipPath id={`${id}-k`}>
+          <use xlinkHref={`#${id}-n`} transform="translate(52.3 154.02)"></use>
+        </clipPath>
+        <clipPath id={`${id}-l`}>
+          <use
+            xlinkHref={`#${id}-o`}
+            transform="translate(207.68 144.15)"
+          ></use>
+        </clipPath>
         <linearGradient
-          id={`${id}-b`}
-          x1="192.5"
-          x2="192.5"
-          y1="109"
-          y2="144"
+          id={`${id}-a`}
+          x1="29.61"
+          x2="29.61"
+          y1="17.56"
+          y2="42.44"
           gradientUnits="userSpaceOnUse"
         >
-          <stop stopColor="#EA580C" />
-          <stop offset="0.625" stopColor="#EA580C" stopOpacity="0.5" />
-          <stop offset="1" stopColor="#EA580C" />
-        </linearGradient>
-        <linearGradient
-          id={`${id}-c`}
-          x1="192.5"
-          x2="192.5"
-          y1="193"
-          y2="228"
-          gradientUnits="userSpaceOnUse"
-        >
-          <stop stopColor="#EA580C" />
-          <stop offset="0.625" stopColor="#EA580C" stopOpacity="0.5" />
-          <stop offset="1" stopColor="#EA580C" />
-        </linearGradient>
-        <linearGradient
-          id={`${id}-d`}
-          x1="144.5"
-          x2="144.5"
-          y1="109"
-          y2="144"
-          gradientUnits="userSpaceOnUse"
-        >
-          <stop stopColor="#EA580C" />
-          <stop offset="0.625" stopColor="#EA580C" stopOpacity="0.5" />
-          <stop offset="1" stopColor="#EA580C" />
+          <stop stopColor="#030712" stopOpacity="0"></stop>
+          <stop offset="1" stopColor="#030712" stopOpacity="0.05"></stop>
         </linearGradient>
         <linearGradient
           id={`${id}-e`}
-          x1="144.5"
-          x2="144.5"
-          y1="193"
-          y2="228"
+          x1="29.61"
+          x2="29.61"
+          y1="77.56"
+          y2="102.44"
           gradientUnits="userSpaceOnUse"
         >
-          <stop stopColor="#EA580C" />
-          <stop offset="0.625" stopColor="#EA580C" stopOpacity="0.5" />
-          <stop offset="1" stopColor="#EA580C" />
-        </linearGradient>
-        <linearGradient
-          id={`${id}-f`}
-          x1="96.5"
-          x2="96.5"
-          y1="109"
-          y2="144"
-          gradientUnits="userSpaceOnUse"
-        >
-          <stop stopColor="#EA580C" />
-          <stop offset="0.625" stopColor="#EA580C" stopOpacity="0.5" />
-          <stop offset="1" stopColor="#EA580C" />
-        </linearGradient>
-        <linearGradient
-          id={`${id}-g`}
-          x1="96.5"
-          x2="96.5"
-          y1="193"
-          y2="228"
-          gradientUnits="userSpaceOnUse"
-        >
-          <stop stopColor="#EA580C" />
-          <stop offset="0.625" stopColor="#EA580C" stopOpacity="0.5" />
-          <stop offset="1" stopColor="#EA580C" />
-        </linearGradient>
-        <linearGradient
-          id={`${id}-h`}
-          x1="240.5"
-          x2="240.5"
-          y1="109"
-          y2="144"
-          gradientUnits="userSpaceOnUse"
-        >
-          <stop stopColor="#EA580C" />
-          <stop offset="0.625" stopColor="#EA580C" stopOpacity="0.5" />
-          <stop offset="1" stopColor="#EA580C" />
+          <stop stopColor="#030712" stopOpacity="0"></stop>
+          <stop offset="1" stopColor="#030712" stopOpacity="0.05"></stop>
         </linearGradient>
         <linearGradient
           id={`${id}-i`}
-          x1="240.5"
-          x2="240.5"
-          y1="193"
-          y2="228"
+          x1="29.61"
+          x2="29.61"
+          y1="137.56"
+          y2="162.44"
           gradientUnits="userSpaceOnUse"
         >
-          <stop stopColor="#EA580C" />
-          <stop offset="0.625" stopColor="#EA580C" stopOpacity="0.5" />
-          <stop offset="1" stopColor="#EA580C" />
+          <stop stopColor="#030712" stopOpacity="0"></stop>
+          <stop offset="1" stopColor="#030712" stopOpacity="0.05"></stop>
         </linearGradient>
-        <linearGradient
-          id={`${id}-j`}
-          x1="13"
-          x2="47"
-          y1="168.5"
-          y2="168.5"
-          gradientUnits="userSpaceOnUse"
-        >
-          <stop stopColor="#EAB308" stopOpacity="0" />
-          <stop offset="1" stopColor="#EAB308" />
-        </linearGradient>
-        <linearGradient
-          id={`${id}-k`}
-          x1="323"
-          x2="289"
-          y1="168.5"
-          y2="168.5"
-          gradientUnits="userSpaceOnUse"
-        >
-          <stop stopColor="#EAB308" stopOpacity="0" />
-          <stop offset="1" stopColor="#EAB308" />
-        </linearGradient>
-        <linearGradient
-          id={`${id}-w`}
-          x1="73"
-          x2="73"
-          y1="156"
-          y2="180"
-          gradientUnits="userSpaceOnUse"
-        >
-          <stop stopColor="#030712" stopOpacity="0" />
-          <stop offset="1" stopColor="#030712" stopOpacity="0.05" />
-        </linearGradient>
-        <filter
-          id={`${id}-t`}
-          width="96"
-          height="46"
-          x="14"
-          y="145"
-          colorInterpolationFilters="sRGB"
-          filterUnits="userSpaceOnUse"
-        >
-          <feFlood floodOpacity="0" result="BackgroundImageFix" />
-          <feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape" />
-          <feGaussianBlur
-            result="effect1_foregroundBlur_5_744"
-            stdDeviation="7.5"
-          />
-        </filter>
-        <filter
-          id={`${id}-u`}
-          width="96"
-          height="46"
-          x="228"
-          y="145"
-          colorInterpolationFilters="sRGB"
-          filterUnits="userSpaceOnUse"
-        >
-          <feFlood floodOpacity="0" result="BackgroundImageFix" />
-          <feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape" />
-          <feGaussianBlur
-            result="effect1_foregroundBlur_5_744"
-            stdDeviation="7.5"
-          />
-        </filter>
-        <clipPath id={`${id}-a`}>
-          <path
-            fill="currentColor"
-            className="text-[var(--bg)]"
-            d="M0 0h336v336H0z"
-          />
-        </clipPath>
-        <clipPath id={`${id}-y`}>
-          <path
-            fill="currentColor"
-            className="text-[var(--bg)]"
-            d="M235 162h12v12h-12z"
-          />
-        </clipPath>
-        <pattern
-          id={`${id}-x`}
-          width="1"
-          height="1"
-          patternContentUnits="objectBoundingBox"
-        >
-          <use xlinkHref={`#${id}-z`} transform="scale(.01563)" />
-        </pattern>
-        <image
-          href={`${GOOGLE_FAVICON_URL}dub.co`}
-          id={`${id}-z`}
-          width="64"
-          height="64"
-        />
       </defs>
     </svg>
   );

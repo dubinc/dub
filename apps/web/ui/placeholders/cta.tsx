@@ -100,7 +100,7 @@ export function CTA({
       </div>
 
       <div className="relative mx-auto mt-10 flex max-w-fit space-x-4">
-        <ButtonLink variant="primary" href="https://d.to/register">
+        <ButtonLink variant="primary" href="https://app.dub.co/register">
           Start for free
         </ButtonLink>
         <ButtonLink

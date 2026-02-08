@@ -1,21 +1,42 @@
 model Discount {
-  id String     @id @default(cuid())
+  id           String          @id @default(cuid())
+  programId    String
+  amount       Int             @default(0)
+  type         RewardStructure @default(percentage)
+  maxDuration  Int? // in months (0 -> one-time purchase, 1, 3, 6, 12, 18, 24, 36, 48 -> months, null -> lifetime)
+  description  String?
+  couponId     String?
+  couponTestId String?
+  autoProvisionEnabledAt DateTime? // Auto create discount codes for partners when they join the group
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
 
-  amount        Int             @default(0)
-  type          CommissionType  @default(percentage)
-  duration      Int?
-  interval      CommissionInterval?
-  couponId      String?
-  couponTestId  String?
-
-  workspaceId   String
-  programId     String
-
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  program    Program            @relation(fields: [programId], references: [id])
   programEnrollments ProgramEnrollment[]
+  program            Program             @relation("ProgramDiscounts", fields: [programId], references: [id])
+  partnerGroup       PartnerGroup?
+  discountCodes      DiscountCode[]
 
-  @@index([programId])
+  @@index(programId)
+}
+
+model DiscountCode {
+  id         String   @id @default(cuid())
+  code       String
+  programId  String
+  discountId String?
+  partnerId  String
+  linkId     String   @unique
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  program           Program            @relation(fields: [programId], references: [id], onDelete: Cascade)
+  discount          Discount?          @relation(fields: [discountId], references: [id], onDelete: SetNull)
+  partner           Partner            @relation(fields: [partnerId], references: [id])
+  link              Link               @relation(fields: [linkId], references: [id])
+  programEnrollment ProgramEnrollment? @relation(fields: [programId, partnerId], references: [programId, partnerId])
+
+  @@unique([programId, code])
+  @@index([programId, partnerId])
+  @@index(discountId)
+  @@index(partnerId)
 }

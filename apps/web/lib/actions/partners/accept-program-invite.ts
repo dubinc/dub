@@ -1,52 +1,63 @@
 "use server";
 
-import { createId } from "@/lib/api/utils";
+import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
+import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { authPartnerActionClient } from "../safe-action";
-import { backfillLinkData } from "./backfill-link-data";
 
 const acceptProgramInviteSchema = z.object({
-  programInviteId: z.string(),
+  programId: z.string(),
 });
 
 export const acceptProgramInviteAction = authPartnerActionClient
-  .schema(acceptProgramInviteSchema)
+  .inputSchema(acceptProgramInviteSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { partner } = ctx;
-    const { programInviteId } = parsedInput;
+    const { programId } = parsedInput;
 
-    const programInvite = await prisma.programInvite.findUniqueOrThrow({
-      where: { id: programInviteId },
+    const enrollment = await prisma.programEnrollment.update({
+      where: {
+        partnerId_programId: {
+          partnerId: partner.id,
+          programId,
+        },
+        status: "invited",
+      },
+      data: {
+        status: "approved",
+        createdAt: new Date(),
+      },
+      include: {
+        links: true,
+      },
     });
 
-    // enroll partner in program and delete the invite
-    const [programEnrollment, _] = await Promise.all([
-      prisma.programEnrollment.create({
-        data: {
-          id: createId({ prefix: "pge_" }),
-          programId: programInvite.programId,
-          linkId: programInvite.linkId,
-          partnerId: partner.id,
-          status: "approved",
-        },
-      }),
-      prisma.programInvite.delete({
-        where: { id: programInvite.id },
-      }),
-    ]);
-
-    // TODO: send partner.created webhook
     waitUntil(
-      backfillLinkData({
-        programId: programInvite.programId,
-        partnerId: partner.id,
-        linkId: programInvite.linkId,
-      }),
-    );
+      (async () => {
+        const workspace = await prisma.project.findUnique({
+          where: {
+            defaultProgramId: programId,
+          },
+        });
 
-    return {
-      id: programEnrollment.id,
-    };
+        if (!workspace) {
+          console.log("No workspace found for program", programId);
+          return;
+        }
+
+        const enrolledPartner = EnrolledPartnerSchema.parse({
+          ...partner,
+          ...enrollment,
+          id: partner.id,
+        });
+
+        await sendWorkspaceWebhook({
+          workspace,
+          trigger: "partner.enrolled",
+          data: enrolledPartner,
+        });
+      })(),
+    );
   });
