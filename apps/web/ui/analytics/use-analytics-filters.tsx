@@ -928,17 +928,22 @@ export function useAnalyticsFilters({
         if (!currentParam) return;
 
         const parsed = parseFilterParam(currentParam);
-        const newValues = parsed?.values?.filter((v) => v !== value);
+        if (!parsed) {
+          queryParams({ del: key, scroll: false });
+          return;
+        }
 
-        if (newValues?.length === 0) {
+        const newValues = parsed.values.filter((v) => v !== value);
+
+        if (newValues.length === 0) {
           queryParams({ del: key, scroll: false });
         } else {
-          const newParam = parsed?.operator?.includes("NOT")
-            ? `-${newValues?.join(",")}`
-            : newValues?.join(",");
+          const newParam = parsed.operator.includes("NOT")
+            ? `-${newValues.join(",")}`
+            : newValues.join(",");
 
           queryParams({
-            set: { [key]: newParam as string },
+            set: { [key]: newParam },
             scroll: false,
           });
         }
