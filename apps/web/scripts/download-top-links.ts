@@ -11,7 +11,7 @@ async function main() {
     groupBy: "top_links",
     workspaceId: "xxx",
     interval: "30d",
-    root: false,
+    root: { values: ["false"], operator: "IS", sqlOperator: "IN" },
   }).then(async (data) => {
     return await Promise.all(
       data.map(

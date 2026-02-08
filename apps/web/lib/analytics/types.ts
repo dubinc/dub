@@ -37,23 +37,15 @@ export type AnalyticsSaleUnit = (typeof ANALYTICS_SALE_UNIT)[number];
 
 export type DeviceTabs = "devices" | "browsers" | "os" | "triggers";
 
-export type AnalyticsFilters = Override<
-  z.infer<typeof analyticsQuerySchema>,
-  {
-    workspaceId?: string;
-    dataAvailableFrom?: Date;
-    isDeprecatedClicksEndpoint?: boolean;
-    linkIds?: string[];
-    folderIds?: string[]; // TODO: remove this once it's been added to the public API
-    start?: Date | null;
-    end?: Date | null;
-
-    // TODO: Fix the schema so that we can avoid the override here
-    device?: string | undefined;
-    browser?: string | undefined;
-    os?: string | undefined;
-  }
->;
+export type AnalyticsFilters = Partial<Omit<z.infer<typeof analyticsQuerySchema>, 'start' | 'end'>> & {
+  workspaceId?: string;
+  dataAvailableFrom?: Date;
+  isDeprecatedClicksEndpoint?: boolean;
+  linkIds?: string[];
+  folderIds?: string[]; // TODO: remove this once it's been added to the public API
+  start?: Date | null;
+  end?: Date | null;
+};
 
 export type EventsFilters = z.infer<typeof eventsQuerySchema> & {
   workspaceId?: string;

@@ -1,10 +1,11 @@
+import { getFirstFilterValue } from "@/lib/analytics/filter-helpers";
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { assertValidDateRangeForPlan } from "@/lib/api/utils/assert-valid-date-range-for-plan";
 import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import { PlanProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
-import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
+import { parseAnalyticsQuery } from "@/lib/zod/schemas/analytics";
 import { prisma } from "@dub/prisma";
 import { DUB_DEMO_LINKS, DUB_WORKSPACE_ID, getSearchParams } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -16,9 +17,13 @@ export const dynamic = "force-dynamic";
 export const GET = async (req: Request) => {
   try {
     const searchParams = getSearchParams(req.url);
-    const parsedParams = analyticsQuerySchema.parse(searchParams);
+    const parsedParams = parseAnalyticsQuery(searchParams);
 
-    const { domain, key, folderId, interval, start, end } = parsedParams;
+    const { domain: domainFilter, key, folderId: folderIdFilter, interval, start, end } = parsedParams;
+
+    // Extract string values for specific link/folder lookup
+    const domain = getFirstFilterValue(domainFilter);
+    const folderId = getFirstFilterValue(folderIdFilter);
 
     if ((!domain || !key) && !folderId) {
       throw new DubApiError({
