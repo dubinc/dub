@@ -11,7 +11,7 @@ import { FraudEventStatus, PayoutStatus } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
-// GET /api/programs/[programId]/payouts - get all payouts for a program
+// GET /api/payouts - get all payouts for a program
 export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   const programId = getDefaultProgramIdOrThrow(workspace);
 
