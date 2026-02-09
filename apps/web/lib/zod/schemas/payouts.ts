@@ -26,26 +26,46 @@ export const PAYOUTS_MAX_PAGE_SIZE = 100;
 
 export const payoutsQuerySchema = z
   .object({
-    status: z.enum(PayoutStatus).optional(),
-    partnerId: z.string().optional(),
-    programId: z.string().optional(),
-    invoiceId: z.string().optional(),
-    eligibility: z.enum(["eligible", "ineligible"]).optional(),
-    sortBy: z.enum(["amount", "initiatedAt", "paidAt"]).default("amount"),
-    sortOrder: z.enum(["asc", "desc"]).default("desc"),
+    status: z
+      .enum(PayoutStatus)
+      .optional()
+      .describe("Filter the list of payouts by status."),
+    partnerId: z
+      .string()
+      .optional()
+      .describe("Filter the list of payouts by partner ID."),
+    invoiceId: z
+      .string()
+      .optional()
+      .describe("Filter the list of payouts by invoice ID."),
+    sortBy: z
+      .enum(["amount", "initiatedAt", "paidAt"])
+      .default("amount")
+      .describe("The field to sort the list of payouts by."),
+    sortOrder: z
+      .enum(["asc", "desc"])
+      .default("desc")
+      .describe("The sort order for the list of payouts."),
   })
   .extend(getPaginationQuerySchema({ pageSize: PAYOUTS_MAX_PAGE_SIZE }));
 
 export const payoutsCountQuerySchema = payoutsQuerySchema
   .pick({
     status: true,
-    programId: true,
     partnerId: true,
-    eligibility: true,
     invoiceId: true,
   })
   .extend({
-    groupBy: z.enum(["status"]).optional(),
+    groupBy: z
+      .enum(["status"])
+      .optional()
+      .describe(
+        "When set to 'status', returns an array of counts and amounts per payout status instead of a single total count.",
+      ),
+    eligibility: z
+      .enum(["eligible", "ineligible"])
+      .optional()
+      .describe("Eligibility (e.g. minimum amount, partner settings)."),
   });
 
 export const PayoutSchema = z.object({
