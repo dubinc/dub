@@ -2,7 +2,6 @@ import { ActivityLog, ActivityLogAction } from "@/lib/types";
 import {
   CircleInfo,
   FileSend,
-  Minus,
   MoneyBill2,
   Pen2,
   UserArrowRight,
@@ -38,7 +37,7 @@ const ACTIVITY_LOG_ICONS: Partial<
 
   "reward.created": MoneyBill2,
   "reward.updated": Pen2,
-  "reward.deleted": Minus,
+  "reward.deleted": CircleMinus,
   "reward.conditionAdded": CirclePlusIcon,
   "reward.conditionRemoved": CircleMinus,
   "reward.conditionUpdated": Pen2,

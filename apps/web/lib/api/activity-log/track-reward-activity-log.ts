@@ -1,5 +1,6 @@
 import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import type { RewardConditions, RewardProps } from "@/lib/types";
+import { REWARD_EVENT_TO_RESOURCE_TYPE } from "@/lib/zod/schemas/activity-log";
 import { rewardConditionsSchema } from "@/lib/zod/schemas/rewards";
 import type { Reward } from "@dub/prisma/client";
 import type { z } from "zod/v4";
@@ -133,6 +134,16 @@ export function trackRewardActivityLog({
   new: newReward,
   ...baseInput
 }: TrackRewardActivityLogParams) {
+  const reward = oldReward || newReward;
+  const resourceType = reward
+    ? REWARD_EVENT_TO_RESOURCE_TYPE[reward.event]
+    : null;
+
+  // This should never happen
+  if (!resourceType) {
+    return;
+  }
+
   if (oldReward === null && newReward !== null) {
     const newSnapshot = toRewardActivitySnapshot(
       serializeReward(newReward as Reward),
@@ -140,7 +151,7 @@ export function trackRewardActivityLog({
 
     return trackActivityLog({
       ...baseInput,
-      resourceType: "reward",
+      resourceType,
       action: "reward.created",
       changeSet: {
         reward: {
@@ -215,7 +226,7 @@ export function trackRewardActivityLog({
     (log) => ({
       ...baseInput,
       ...log,
-      resourceType: "reward",
+      resourceType,
       ...(batchId && { batchId }),
     }),
   );

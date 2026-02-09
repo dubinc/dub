@@ -1,18 +1,29 @@
 "use client";
 
 import { useActivityLogs } from "@/lib/swr/use-activity-logs";
+import useGroup from "@/lib/swr/use-group";
+import { RewardProps } from "@/lib/types";
+import { REWARD_EVENT_TO_RESOURCE_TYPE } from "@/lib/zod/schemas/activity-log";
 import {
   ActivityFeed,
   ActivityFeedSkeleton,
 } from "@/ui/activity-logs/activity-feed";
 
-export function RewardActivitySection({ rewardId }: { rewardId: string }) {
+export function RewardActivitySection({
+  reward,
+}: {
+  reward: Pick<RewardProps, "id" | "event">;
+}) {
+  const { group } = useGroup();
+
+  const resourceType = REWARD_EVENT_TO_RESOURCE_TYPE[reward.event];
+
   const { activityLogs, loading, error } = useActivityLogs({
     query: {
-      resourceType: "reward",
-      resourceId: rewardId,
+      resourceType,
+      parentResourceId: group?.id,
     },
-    enabled: !!rewardId,
+    enabled: !!reward.id,
   });
 
   if (loading) {
@@ -37,5 +48,5 @@ export function RewardActivitySection({ rewardId }: { rewardId: string }) {
     );
   }
 
-  return <ActivityFeed logs={activityLogs} resourceType="reward" />;
+  return <ActivityFeed logs={activityLogs} resourceType={resourceType} />;
 }

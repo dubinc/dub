@@ -1,7 +1,9 @@
 "use client";
 
 import { useActivityLogs } from "@/lib/swr/use-activity-logs";
+import useGroup from "@/lib/swr/use-group";
 import { RewardProps } from "@/lib/types";
+import { REWARD_EVENT_TO_RESOURCE_TYPE } from "@/lib/zod/schemas/activity-log";
 import { X } from "@/ui/shared/icons";
 import { Button, Sheet } from "@dub/ui";
 import { Dispatch, SetStateAction, useState } from "react";
@@ -42,7 +44,7 @@ function RewardHistorySheetContent({
       </div>
 
       <div className="scrollbar-hide flex min-h-0 flex-1 flex-col overflow-y-auto p-4 sm:p-6">
-        <RewardActivitySection rewardId={reward.id} />
+        <RewardActivitySection reward={reward} />
       </div>
     </div>
   );
@@ -64,13 +66,15 @@ export function useRewardHistorySheet({
 }: {
   reward: Pick<RewardProps, "id" | "event"> | null;
 }) {
+  const { group } = useGroup();
+
   const [isOpen, setIsOpen] = useState(false);
 
   const { activityLogs } = useActivityLogs({
     query: reward
       ? {
-          resourceType: "reward",
-          resourceId: reward.id,
+          resourceType: REWARD_EVENT_TO_RESOURCE_TYPE[reward.event],
+          parentResourceId: group?.id,
         }
       : undefined,
     enabled: !!reward?.id,

@@ -4,7 +4,9 @@ import { UserSchema } from "./users";
 export const activityLogResourceTypeSchema = z.enum([
   "referral",
   "partner",
-  "reward",
+  "clickReward",
+  "saleReward",
+  "leadReward",
 ]);
 
 export const activityLogActionSchema = z.enum([
@@ -29,7 +31,8 @@ export const activityLogActionSchema = z.enum([
 
 export const getActivityLogsQuerySchema = z.object({
   resourceType: activityLogResourceTypeSchema,
-  resourceId: z.string(),
+  resourceId: z.string().optional(),
+  parentResourceId: z.string().optional(),
   action: activityLogActionSchema.optional(),
 });
 
@@ -46,3 +49,9 @@ export const activityLogSchema = z.object({
   createdAt: z.date(),
   user: UserSchema.nullable().default(null),
 });
+
+export const REWARD_EVENT_TO_RESOURCE_TYPE = {
+  click: "clickReward",
+  sale: "saleReward",
+  lead: "leadReward",
+} as const;

@@ -10,7 +10,9 @@ const ACTIVITY_ITEM_MAP: Record<
 > = {
   partner: PartnerGroupActivityItem,
   referral: ReferralActivityItem,
-  reward: RewardActivityItem,
+  clickReward: RewardActivityItem,
+  leadReward: RewardActivityItem,
+  saleReward: RewardActivityItem,
 };
 
 interface ActivityFeedProps {
