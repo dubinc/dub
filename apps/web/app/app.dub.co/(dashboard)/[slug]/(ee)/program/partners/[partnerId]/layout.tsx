@@ -32,6 +32,7 @@ import {
   BoxArchive,
   ChevronRight,
   CircleXmark,
+  Copy,
   EnvelopeArrowRight,
   InvoiceDollar,
   LoadingSpinner,
@@ -290,126 +291,143 @@ function PageControls({ partner }: { partner: EnrolledPartnerProps }) {
         openPopover={isOpen}
         setOpenPopover={setIsOpen}
         content={
-          <div className="grid w-full grid-cols-1 gap-px p-2 md:w-48">
+          <div className="w-full md:w-48">
             {partner.status === "invited" ? (
-              <MenuItem
-                icon={isDeletingInvite ? LoadingSpinner : Trash}
-                onClick={async () => {
-                  if (partner.status !== "invited" || !workspaceId) {
-                    return;
-                  }
-                  if (
-                    !window.confirm(
-                      "Are you sure you want to delete this invite? This action cannot be undone.",
-                    )
-                  ) {
-                    return;
-                  }
+              <div className="grid gap-px p-2">
+                <MenuItem
+                  icon={isDeletingInvite ? LoadingSpinner : Trash}
+                  onClick={async () => {
+                    if (partner.status !== "invited" || !workspaceId) {
+                      return;
+                    }
+                    if (
+                      !window.confirm(
+                        "Are you sure you want to delete this invite? This action cannot be undone.",
+                      )
+                    ) {
+                      return;
+                    }
 
-                  await deleteInvite({
-                    workspaceId,
-                    partnerId: partner.id,
-                  });
-                }}
-                variant="danger"
-              >
-                Delete invite
-              </MenuItem>
+                    await deleteInvite({
+                      workspaceId,
+                      partnerId: partner.id,
+                    });
+                  }}
+                  variant="danger"
+                >
+                  Delete invite
+                </MenuItem>
+              </div>
             ) : (
               <>
-                <MenuItem
-                  as={Link}
-                  href={`/${workspaceSlug}/program/messages/${partner.id}`}
-                  target="_blank"
-                  icon={Msgs}
-                  onClick={() => setIsOpen(false)}
-                  className="md:hidden"
-                >
-                  Message
-                </MenuItem>
-                <MenuItem
-                  icon={InvoiceDollar}
-                  onClick={() => {
-                    setCreateCommissionSheetOpen(true);
-                    setIsOpen(false);
-                  }}
-                  className="md:hidden"
-                >
-                  Create commission
-                </MenuItem>
-                <MenuItem
-                  icon={Refresh2}
-                  onClick={() => {
-                    setClawbackSheetOpen(true);
-                    setIsOpen(false);
-                  }}
-                >
-                  Create clawback
-                </MenuItem>
-                <MenuItem
-                  icon={PenWriting}
-                  onClick={() => {
-                    setShowPartnerAdvancedSettingsModal(true);
-                    setIsOpen(false);
-                  }}
-                >
-                  Advanced settings
-                </MenuItem>
-                {!["banned", "deactivated"].includes(partner.status) && (
+                <div className="grid gap-px p-2">
                   <MenuItem
-                    icon={BoxArchive}
+                    as={Link}
+                    href={`/${workspaceSlug}/program/messages/${partner.id}`}
+                    target="_blank"
+                    icon={Msgs}
+                    onClick={() => setIsOpen(false)}
+                    className="md:hidden"
+                  >
+                    Message
+                  </MenuItem>
+                  <MenuItem
+                    icon={InvoiceDollar}
                     onClick={() => {
-                      setShowArchivePartnerModal(true);
+                      setCreateCommissionSheetOpen(true);
+                      setIsOpen(false);
+                    }}
+                    className="md:hidden"
+                  >
+                    Create commission
+                  </MenuItem>
+                  <MenuItem
+                    icon={Refresh2}
+                    onClick={() => {
+                      setClawbackSheetOpen(true);
                       setIsOpen(false);
                     }}
                   >
-                    {partner.status === "archived" ? "Unarchive" : "Archive"}{" "}
-                    partner
+                    Create clawback
                   </MenuItem>
-                )}
-                {partner.status === "deactivated" ? (
                   <MenuItem
-                    icon={LockOpen}
+                    icon={PenWriting}
                     onClick={() => {
-                      setShowReactivatePartnerModal(true);
+                      setShowPartnerAdvancedSettingsModal(true);
                       setIsOpen(false);
                     }}
                   >
-                    Reactivate partner
+                    Advanced settings
                   </MenuItem>
-                ) : partner.status !== "banned" ? (
                   <MenuItem
-                    icon={CircleXmark}
+                    icon={Copy}
                     onClick={() => {
-                      setShowDeactivatePartnerModal(true);
+                      navigator.clipboard.writeText(partner.id);
+                      toast.success("Partner ID copied!");
                       setIsOpen(false);
                     }}
                   >
-                    Deactivate partner
+                    Copy Partner ID
                   </MenuItem>
-                ) : null}
-                {partner.status === "banned" ? (
-                  <MenuItem
-                    icon={UserCheck}
-                    onClick={() => {
-                      setShowUnbanPartnerModal(true);
-                      setIsOpen(false);
-                    }}
-                  >
-                    Unban partner
-                  </MenuItem>
-                ) : (
-                  <MenuItem
-                    icon={UserDelete}
-                    variant="danger"
-                    onClick={() => {
-                      setShowBanPartnerModal(true);
-                      setIsOpen(false);
-                    }}
-                  >
-                    Ban partner
-                  </MenuItem>
-                )}
+                </div>
+                <div className="border-t border-neutral-200" />
+                <div className="grid gap-px p-2">
+                  {!["banned", "deactivated"].includes(partner.status) && (
+                    <MenuItem
+                      icon={BoxArchive}
+                      onClick={() => {
+                        setShowArchivePartnerModal(true);
+                        setIsOpen(false);
+                      }}
+                    >
+                      {partner.status === "archived" ? "Unarchive" : "Archive"}{" "}
+                      partner
+                    </MenuItem>
+                  )}
+                  {partner.status === "deactivated" ? (
+                    <MenuItem
+                      icon={LockOpen}
+                      onClick={() => {
+                        setShowReactivatePartnerModal(true);
+                        setIsOpen(false);
+                      }}
+                    >
+                      Reactivate partner
+                    </MenuItem>
+                  ) : partner.status !== "banned" ? (
+                    <MenuItem
+                      icon={CircleXmark}
+                      onClick={() => {
+                        setShowDeactivatePartnerModal(true);
+                        setIsOpen(false);
+                      }}
+                    >
+                      Deactivate partner
+                    </MenuItem>
+                  ) : null}
+                  {partner.status === "banned" ? (
+                    <MenuItem
+                      icon={UserCheck}
+                      onClick={() => {
+                        setShowUnbanPartnerModal(true);
+                        setIsOpen(false);
+                      }}
+                    >
+                      Unban partner
+                    </MenuItem>
+                  ) : (
+                    <MenuItem
+                      icon={UserDelete}
+                      variant="danger"
+                      onClick={() => {
+                        setShowBanPartnerModal(true);
+                        setIsOpen(false);
+                      }}
+                    >
+                      Ban partner
+                    </MenuItem>
+                  )}
+                </div>
               </>
             )}
           </div>

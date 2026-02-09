@@ -7,7 +7,6 @@ import {
   useMediaQuery,
   UTMBuilder,
 } from "@dub/ui";
-import posthog from "posthog-js";
 import {
   Dispatch,
   SetStateAction,
@@ -95,13 +94,6 @@ function AddEditUtmTemplateModal({
               return;
             }
 
-            posthog.capture(
-              props ? "utm-template_edited" : "utm-template_created",
-              {
-                utmTemplateId: id,
-                utmTemplateName: data.name,
-              },
-            );
             await mutate(`/api/utm?workspaceId=${workspaceId}`);
             toast.success(endpoint.successMessage);
             setShowAddEditUtmTemplateModal(false);

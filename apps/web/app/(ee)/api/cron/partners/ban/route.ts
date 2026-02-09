@@ -131,14 +131,7 @@ export const POST = withCron(async ({ rawBody }) => {
     recordLink(links, { deleted: true }),
 
     // Queue discount code deletions
-    deleteDiscountCodes(
-      links
-        .map((link) => link.discountCode)
-        .filter(
-          (discountCode): discountCode is NonNullable<typeof discountCode> =>
-            discountCode !== null,
-        ),
-    ),
+    deleteDiscountCodes(links.map((link) => link.discountCode)),
   ]);
 
   const affectedProgramEnrollments = await prisma.programEnrollment.findMany({
