@@ -7,12 +7,13 @@ import { prisma } from "@dub/prisma";
 import { FraudEventStatus, PayoutStatus, Prisma } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 
-// GET /api/programs/[programId]/payouts/count
+// GET /api/payouts/count
 export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   const programId = getDefaultProgramIdOrThrow(workspace);
 
   const isHoldStatus = searchParams.status === "hold";
   const { status: _status, ...restSearchParams } = searchParams;
+
   let { status, partnerId, groupBy, eligibility, invoiceId } =
     payoutsCountQuerySchema.parse(
       isHoldStatus ? restSearchParams : searchParams,

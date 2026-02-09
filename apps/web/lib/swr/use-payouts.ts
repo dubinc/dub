@@ -15,7 +15,7 @@ export default function usePayouts({
   const { data: payouts, error } = useSWR<PayoutResponse[]>(
     workspaceId &&
       defaultProgramId &&
-      `/api/programs/${defaultProgramId}/payouts?${new URLSearchParams({
+      `/api/payouts?${new URLSearchParams({
         workspaceId,
         ...query,
       } as Record<string, any>).toString()}`,
