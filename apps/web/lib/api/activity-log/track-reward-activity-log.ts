@@ -10,7 +10,10 @@ import { trackActivityLog } from "./track-activity-log";
 type RewardConditionModifier = z.infer<typeof rewardConditionsSchema>;
 
 interface TrackRewardActivityLogParams
-  extends Omit<TrackActivityLogInput, "action" | "changeSet" | "resourceType"> {
+  extends Omit<
+    TrackActivityLogInput,
+    "action" | "changeSet" | "resourceType" | "batchId"
+  > {
   old: Reward | RewardProps | null;
   new: Reward | RewardProps | null;
 }
@@ -206,11 +209,14 @@ export function trackRewardActivityLog({
     });
   }
 
+  const batchId = activityLogs.length > 0 ? crypto.randomUUID() : undefined;
+
   const finalActivityLogs: TrackActivityLogInput[] = activityLogs.map(
     (log) => ({
       ...baseInput,
       ...log,
       resourceType: "reward",
+      ...(batchId && { batchId }),
     }),
   );
 
