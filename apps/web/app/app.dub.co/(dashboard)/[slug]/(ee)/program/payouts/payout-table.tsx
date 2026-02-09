@@ -64,7 +64,7 @@ const PayoutTableInner = memo(
       isLoading,
     } = useSWR<PayoutResponse[]>(
       defaultProgramId
-        ? `/api/programs/${defaultProgramId}/payouts${getQueryString(
+        ? `/api/payouts${getQueryString(
             { workspaceId },
             {
               exclude: ["payoutId", "selectedPayoutId", "excludedPayoutIds"],
