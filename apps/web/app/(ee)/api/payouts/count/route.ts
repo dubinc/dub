@@ -1,5 +1,4 @@
 import { getPayoutEligibilityFilter } from "@/lib/api/payouts/payout-eligibility-filter";
-import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { withWorkspace } from "@/lib/auth";
@@ -15,34 +14,13 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   const isHoldStatus = searchParams.status === "hold";
   const { status: _status, ...restSearchParams } = searchParams;
 
-  let { status, partnerId, tenantId, groupBy, eligibility, invoiceId } =
+  let { status, partnerId, groupBy, eligibility, invoiceId } =
     payoutsCountQuerySchema.parse(
       isHoldStatus ? restSearchParams : searchParams,
     );
 
   if (isHoldStatus) {
     status = PayoutStatus.pending;
-  }
-
-  if (tenantId && !partnerId) {
-    const enrollment = await prisma.programEnrollment.findUnique({
-      where: {
-        tenantId_programId: {
-          tenantId,
-          programId,
-        },
-      },
-      select: { partnerId: true },
-    });
-
-    if (!enrollment) {
-      throw new DubApiError({
-        code: "not_found",
-        message: `Partner with specified tenantId ${tenantId} not found.`,
-      });
-    }
-
-    partnerId = enrollment.partnerId;
   }
 
   const program = await getProgramOrThrow({
