@@ -46,7 +46,7 @@ export function PayoutMethodsDropdown() {
           toast.error("Unable to create account link. Please contact support.");
           return;
         }
-        router.push(data.url);
+        window.open(data.url, "_blank", "noopener,noreferrer");
       },
       onError: ({ error }) => {
         toast.error(error.serverError);
