@@ -1,3 +1,4 @@
+import { buildUpgradeUrl } from "@/lib/billing/upgrade-intent";
 import { clientAccessCheck } from "@/lib/client-access-check";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useTags from "@/lib/swr/use-tags";
@@ -231,7 +232,10 @@ function AddTagButton({
             <TooltipContent
               title={`You can only add up to ${tagsLimit} ${pluralize("tag", tagsLimit || 0)} on the ${capitalize(plan)} plan. Upgrade to add more tags`}
               cta="Upgrade"
-              href={`/${slug}/upgrade`}
+              href={buildUpgradeUrl({
+                slug,
+                upgradeSource: "tags_limit",
+              })}
             />
           ) : (
             permissionsError || undefined

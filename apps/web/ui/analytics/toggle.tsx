@@ -4,6 +4,7 @@ import {
 } from "@/lib/analytics/constants";
 import { validDateRangeForPlan } from "@/lib/analytics/utils";
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
+import { buildUpgradeUrl, parseUpgradePlan } from "@/lib/billing/upgrade-intent";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   BlurImage,
@@ -316,7 +317,17 @@ function UpgradeTooltip({
     <TooltipContent
       title={`${rangeLabel} can only be viewed on a ${isAllTime ? "Business" : getNextPlan(plan).name} plan or higher. Upgrade now to view more stats.`}
       cta={`Upgrade to ${isAllTime ? "Business" : getNextPlan(plan).name}`}
-      href={slug ? `/${slug}/upgrade` : APP_DOMAIN}
+      href={
+        slug
+          ? buildUpgradeUrl({
+              slug,
+              upgradePlan: isAllTime
+                ? "business"
+                : parseUpgradePlan(getNextPlan(plan).name.toLowerCase()),
+              upgradeSource: "analytics_toggle_date_range",
+            })
+          : APP_DOMAIN
+      }
     />
   );
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { buildUpgradeUrl } from "@/lib/billing/upgrade-intent";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { useEmailDomains } from "@/lib/swr/use-email-domains";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -41,7 +42,11 @@ export function EmailDomains() {
             }
             addButton={
               <Link
-                href={`/${slug}/upgrade`}
+                href={buildUpgradeUrl({
+                  slug,
+                  upgradePlan: "advanced",
+                  upgradeSource: "settings_email_domains",
+                })}
                 className={cn(
                   buttonVariants({ variant: "primary" }),
                   "flex h-9 items-center justify-center whitespace-nowrap rounded-lg border px-4 text-sm",

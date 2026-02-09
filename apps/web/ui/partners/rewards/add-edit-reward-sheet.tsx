@@ -1,5 +1,6 @@
 "use client";
 
+import { buildUpgradeUrl } from "@/lib/billing/upgrade-intent";
 import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { createRewardAction } from "@/lib/actions/partners/create-reward";
 import { deleteRewardAction } from "@/lib/actions/partners/delete-reward";
@@ -601,7 +602,12 @@ function RewardSheetContent({
                   <TooltipContent
                     title="Advanced reward structures are only available on the Advanced plan and above."
                     cta="Upgrade to Advanced"
-                    href={`/${workspaceSlug}/upgrade?showPartnersUpgradeModal=true`}
+                    href={buildUpgradeUrl({
+                      slug: workspaceSlug,
+                      upgradePlan: "advanced",
+                      upgradeSource: "partners_rewards_advanced",
+                      showPartnersUpgradeModal: true,
+                    })}
                     target="_blank"
                   />
                 ) : undefined

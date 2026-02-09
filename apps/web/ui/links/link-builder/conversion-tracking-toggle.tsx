@@ -1,3 +1,4 @@
+import { buildUpgradeUrl } from "@/lib/billing/upgrade-intent";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkFormData } from "@/ui/links/link-builder/link-builder-provider";
 import {
@@ -63,7 +64,11 @@ export const ConversionTrackingToggle = memo(() => {
             <TooltipContent
               title="Conversion tracking is only available on Business plans and above."
               cta="Upgrade to Business"
-              href={slug ? `/${slug}/upgrade` : "https://dub.co/pricing"}
+              href={buildUpgradeUrl({
+                slug,
+                upgradePlan: "business",
+                upgradeSource: "link_builder_conversion_toggle",
+              })}
               target="_blank"
             />
           )

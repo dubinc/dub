@@ -1,5 +1,6 @@
 "use client";
 
+import { buildUpgradeUrl } from "@/lib/billing/upgrade-intent";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useWorkspace from "@/lib/swr/use-workspace";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
@@ -120,7 +121,11 @@ export function AuditLogs() {
             className="h-8 w-auto px-5"
             onClick={() =>
               window.open(
-                slug ? `/${slug}/upgrade` : "https://dub.co/enterprise",
+                buildUpgradeUrl({
+                  slug,
+                  upgradePlan: "enterprise",
+                  upgradeSource: "settings_audit_logs",
+                }),
                 "_blank",
               )
             }

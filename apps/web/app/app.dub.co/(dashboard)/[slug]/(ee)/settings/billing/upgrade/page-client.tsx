@@ -1,5 +1,6 @@
 "use client";
 
+import { parseUpgradeIntent } from "@/lib/billing/upgrade-intent";
 import { clientAccessCheck } from "@/lib/client-access-check";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { usePartnersUpgradeModal } from "@/ui/partners/partners-upgrade-modal";
@@ -29,6 +30,7 @@ import NumberFlow from "@number-flow/react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { motion } from "motion/react";
 import Link from "next/link";
+import { usePlausible } from "next-plausible";
 import { useSearchParams } from "next/navigation";
 import { CSSProperties, useEffect, useMemo, useState } from "react";
 import { AdjustUsageRow } from "./adjust-usage-row";
@@ -68,16 +70,29 @@ export function WorkspaceBillingUpgradePageClient() {
     usePartnersUpgradeModal();
 
   const searchParams = useSearchParams();
+  const plausible = usePlausible();
+  const { upgradePlan: explicitUpgradePlan, upgradeSource } =
+    parseUpgradeIntent(searchParams);
+
   useEffect(() => {
     if (searchParams.get("showPartnersUpgradeModal")) {
       setShowPartnersUpgradeModal(true);
     }
-  }, [searchParams]);
+  }, [searchParams, setShowPartnersUpgradeModal]);
+
+  useEffect(() => {
+    plausible("Viewed Billing Upgrade Page", {
+      props: {
+        upgrade_source: upgradeSource ?? "unknown",
+        upgrade_plan: explicitUpgradePlan ?? "none",
+      },
+    });
+  }, [plausible, explicitUpgradePlan, upgradeSource]);
 
   const [eventsUsage, setEventsUsage] = useState<number | null>(null);
   const [linksUsage, setLinksUsage] = useState<number | null>(null);
 
-  const recommendedPlan = useMemo(() => {
+  const usageRecommendedPlan = useMemo(() => {
     if (!eventsUsage || !linksUsage) return null;
 
     return getSuggestedPlan({
@@ -85,6 +100,17 @@ export function WorkspaceBillingUpgradePageClient() {
       links: linksUsage,
     });
   }, [linksUsage, eventsUsage]);
+
+  const explicitRecommendedPlan = useMemo(() => {
+    if (!explicitUpgradePlan) return null;
+    const explicitPlan = PLANS.find(
+      ({ name }) => name.toLowerCase() === explicitUpgradePlan,
+    );
+    if (!explicitPlan) return null;
+    return { plan: explicitPlan, planTier: 1 };
+  }, [explicitUpgradePlan]);
+
+  const recommendedPlan = explicitRecommendedPlan ?? usageRecommendedPlan;
 
   const plans: { plan: PlanDetails; planTier: number }[] = useMemo(
     () =>

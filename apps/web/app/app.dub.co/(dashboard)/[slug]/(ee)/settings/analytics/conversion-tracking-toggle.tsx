@@ -1,5 +1,6 @@
 "use client";
 
+import { buildUpgradeUrl } from "@/lib/billing/upgrade-intent";
 import { clientAccessCheck } from "@/lib/client-access-check";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -81,12 +82,16 @@ export function ConversionTrackingToggle() {
     <Tooltip
       content={
         !canTrackConversions ? (
-          <TooltipContent
-            title="You can only enable conversion tracking on Business plans and above."
-            cta="Upgrade to Business"
-            href={`/${workspaceSlug}/upgrade`}
-          />
-        ) : (
+            <TooltipContent
+              title="You can only enable conversion tracking on Business plans and above."
+              cta="Upgrade to Business"
+              href={buildUpgradeUrl({
+                slug: workspaceSlug,
+                upgradePlan: "business",
+                upgradeSource: "settings_conversion_tracking",
+              })}
+            />
+          ) : (
           permissionsError || (
             <p className="text-content-default max-w-xs p-3 text-xs">
               <strong className="font-semibold">

@@ -1,5 +1,6 @@
 "use client";
 
+import { buildUpgradeUrl } from "@/lib/billing/upgrade-intent";
 import useWorkspaces from "@/lib/swr/use-workspaces";
 import { ModalContext } from "@/ui/modals/modal-provider";
 import { Button, TooltipContent } from "@dub/ui";
@@ -21,7 +22,11 @@ export default function CreateWorkspaceButton() {
               cta="Upgrade to Pro"
               href={
                 freeWorkspaces
-                  ? `/${freeWorkspaces[0].slug}/upgrade`
+                  ? buildUpgradeUrl({
+                      slug: freeWorkspaces[0].slug,
+                      upgradePlan: "pro",
+                      upgradeSource: "create_workspace_limit",
+                    })
                   : "https://dub.co/pricing"
               }
             />

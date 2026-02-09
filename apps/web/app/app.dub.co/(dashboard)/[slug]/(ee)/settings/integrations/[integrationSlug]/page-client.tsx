@@ -1,6 +1,7 @@
 "use client";
 
 import { getIntegrationInstallUrl } from "@/lib/actions/get-integration-install-url";
+import { buildUpgradeUrl } from "@/lib/billing/upgrade-intent";
 import { clientAccessCheck } from "@/lib/client-access-check";
 import { HubSpotSettings } from "@/lib/integrations/hubspot/ui/settings";
 import { SegmentSettings } from "@/lib/integrations/segment/ui/settings";
@@ -288,7 +289,11 @@ export default function IntegrationPageClient({
                     <TooltipContent
                       title="Hubspot integration is only available on Business plans and above. Upgrade to get started."
                       cta="Upgrade to Business"
-                      href={`/${slug}/settings/billing/upgrade`}
+                      href={buildUpgradeUrl({
+                        slug,
+                        upgradePlan: "business",
+                        upgradeSource: "integration_hubspot_gate",
+                      })}
                     />
                   ) : null
                 }

@@ -1,3 +1,4 @@
+import { buildUpgradeUrl } from "@/lib/billing/upgrade-intent";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Button, Download, TooltipContent } from "@dub/ui";
 import { useSession } from "next-auth/react";
@@ -65,7 +66,11 @@ export function EventsExportButton({
           <TooltipContent
             title="Upgrade to our Business Plan to enable CSV downloads for events in your workspace."
             cta="Upgrade to Business"
-            href={`/${slug}/upgrade`}
+            href={buildUpgradeUrl({
+              slug,
+              upgradePlan: "business",
+              upgradeSource: "analytics_events_export",
+            })}
           />
         )
       }

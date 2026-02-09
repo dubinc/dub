@@ -1,5 +1,6 @@
 "use client";
 
+import { buildUpgradeUrl } from "@/lib/billing/upgrade-intent";
 import { clientAccessCheck } from "@/lib/client-access-check";
 import useDefaultDomains from "@/lib/swr/use-default-domains";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -97,7 +98,11 @@ export function DefaultDomains() {
                     <TooltipContent
                       title="You can only use dub.link on a Pro plan and above. Upgrade to Pro to use this domain."
                       cta="Upgrade to Pro"
-                      href={`/${slug}/upgrade`}
+                      href={buildUpgradeUrl({
+                        slug,
+                        upgradePlan: "pro",
+                        upgradeSource: "settings_default_domain_dub_link",
+                      })}
                     />
                   ) : undefined)
                 }

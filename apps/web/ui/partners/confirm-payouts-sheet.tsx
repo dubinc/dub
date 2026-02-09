@@ -1,3 +1,4 @@
+import { buildUpgradeUrl } from "@/lib/billing/upgrade-intent";
 import { confirmPayoutsAction } from "@/lib/actions/partners/confirm-payouts";
 import { clientAccessCheck } from "@/lib/client-access-check";
 import {
@@ -777,7 +778,11 @@ function ConfirmPayoutsSheetContent() {
                   type: "payouts",
                 })}
                 cta="Upgrade"
-                href={`/${slug}/settings/billing/upgrade`}
+                href={buildUpgradeUrl({
+                  slug,
+                  upgradePlan: "advanced",
+                  upgradeSource: "partners_confirm_payouts_limit",
+                })}
               />
             ) : amount && amount < INVOICE_MIN_PAYOUT_AMOUNT_CENTS ? (
               "Your payout total is less than the minimum invoice amount of $10."

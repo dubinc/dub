@@ -1,5 +1,6 @@
 "use client";
 
+import { buildUpgradeUrl } from "@/lib/billing/upgrade-intent";
 import { MEGA_WORKSPACE_LINKS_LIMIT } from "@/lib/constants/misc";
 import useGroupsCount from "@/lib/swr/use-groups-count";
 import usePartnersCount from "@/lib/swr/use-partners-count";
@@ -174,7 +175,12 @@ export default function PlanUsage() {
         </div>
         <div className="flex items-center gap-2">
           {plan !== "enterprise" && (
-            <Link href={`/${slug}/settings/billing/upgrade`}>
+            <Link
+              href={buildUpgradeUrl({
+                slug,
+                upgradeSource: "settings_billing_plan_usage",
+              })}
+            >
               <Button
                 text={plan === "free" ? "Upgrade" : "Manage plan"}
                 variant="primary"
@@ -362,7 +368,11 @@ function UsageTabCard({
                 <div className="max-w-xs px-4 py-2 text-center text-sm text-neutral-600">
                   Upgrade to Business to unlock conversion tracking.{" "}
                   <Link
-                    href={`/${slug}/upgrade`}
+                    href={buildUpgradeUrl({
+                      slug,
+                      upgradePlan: "business",
+                      upgradeSource: "settings_billing_conversion_tooltip",
+                    })}
                     className="underline underline-offset-2 hover:text-neutral-800"
                   >
                     View pricing plans

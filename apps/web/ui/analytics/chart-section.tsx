@@ -1,4 +1,5 @@
 import { EventType } from "@/lib/analytics/types";
+import { buildUpgradeUrl } from "@/lib/billing/upgrade-intent";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   BlurImage,
@@ -182,7 +183,11 @@ function ConversionTrackingPaywall() {
           </Link>
         </p>
         <Link
-          href={`/${slug}/upgrade`}
+          href={buildUpgradeUrl({
+            slug,
+            upgradePlan: "business",
+            upgradeSource: "analytics_chart_conversion_tracking",
+          })}
           className={cn(
             buttonVariants({ variant: "primary" }),
             "mt-4 flex h-8 items-center justify-center whitespace-nowrap rounded-lg border px-3 text-sm",

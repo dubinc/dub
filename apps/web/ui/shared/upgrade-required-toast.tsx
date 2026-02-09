@@ -1,5 +1,10 @@
 "use client";
 
+import {
+  buildUpgradeUrl,
+  parseUpgradePlan,
+  UpgradePlan,
+} from "@/lib/billing/upgrade-intent";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { capitalize } from "@dub/utils";
 import { Crown } from "lucide-react";
@@ -11,12 +16,16 @@ export const UpgradeRequiredToast = ({
   message,
   ctaLabel,
   ctaUrl,
+  upgradePlan,
+  upgradeSource,
 }: {
   title?: string;
   planToUpgradeTo?: string;
   message: string;
   ctaLabel?: string;
   ctaUrl?: string;
+  upgradePlan?: UpgradePlan;
+  upgradeSource?: string;
 }) => {
   const { slug, nextPlan } = useWorkspace();
   planToUpgradeTo = planToUpgradeTo || nextPlan?.name;
@@ -26,7 +35,11 @@ export const UpgradeRequiredToast = ({
     ? `Upgrade to ${capitalize(planToUpgradeTo)}`
     : "Contact support";
 
-  const defaultCtaUrl = slug ? `/${slug}/upgrade` : "https://dub.co/pricing";
+  const defaultCtaUrl = buildUpgradeUrl({
+    slug,
+    upgradePlan: upgradePlan ?? parseUpgradePlan(planToUpgradeTo?.toLowerCase()),
+    upgradeSource,
+  });
 
   return (
     <div className="flex flex-col space-y-3 rounded-lg bg-white p-6 shadow-lg">

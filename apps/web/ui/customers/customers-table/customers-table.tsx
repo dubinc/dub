@@ -1,5 +1,6 @@
 "use client";
 
+import { buildUpgradeUrl } from "@/lib/billing/upgrade-intent";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useCustomersCount from "@/lib/swr/use-customers-count";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -485,7 +486,11 @@ export function CustomersTable({
                   </p>
                   <div className="mt-4">
                     <Link
-                      href={`/${workspaceSlug}/upgrade`}
+                      href={buildUpgradeUrl({
+                        slug: workspaceSlug,
+                        upgradePlan: "business",
+                        upgradeSource: "customers_insights_gate",
+                      })}
                       className={cn(
                         buttonVariants({ variant: "secondary" }),
                         "flex h-8 items-center justify-center gap-2 rounded-md border px-4 text-sm",

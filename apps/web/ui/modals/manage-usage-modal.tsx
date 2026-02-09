@@ -1,3 +1,7 @@
+import {
+  buildUpgradeUrl,
+  parseUpgradePlan,
+} from "@/lib/billing/upgrade-intent";
 import { clientAccessCheck } from "@/lib/client-access-check";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CursorRays, Hyperlink, Modal, Slider, ToggleGroup } from "@dub/ui";
@@ -242,7 +246,11 @@ function ManageUsageModalContent({ type }: ManageUsageModalProps) {
 
           <div className="mt-4 flex justify-center">
             <Link
-              href={`/${slug}/settings/billing/upgrade`}
+              href={buildUpgradeUrl({
+                slug,
+                upgradePlan: parseUpgradePlan(suggestedPlan.name.toLowerCase()),
+                upgradeSource: `manage_usage_modal_${type}`,
+              })}
               className="text-content-subtle hover:text-content-default block text-xs font-medium underline underline-offset-2"
             >
               View all plans

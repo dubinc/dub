@@ -1,5 +1,6 @@
 "use client";
 
+import { parseUpgradePlan } from "@/lib/billing/upgrade-intent";
 import { wouldLosePartnerAccess } from "@/lib/plans/has-partner-access";
 import { getStripe } from "@/lib/stripe/client";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -40,6 +41,10 @@ export function UpgradePlanButton({
   const [clicked, setClicked] = useState(false);
 
   const queryString = searchParams.toString();
+  const upgradeSource = searchParams.get("upgrade_source") ?? "unknown";
+  const recommendedUpgradePlan = parseUpgradePlan(
+    searchParams.get("upgrade_plan"),
+  );
 
   const isCurrentPlan = currentPlan === selectedPlan.name.toLowerCase();
 
@@ -68,7 +73,13 @@ export function UpgradePlanButton({
       }),
     })
       .then(async (res) => {
-        plausible("Opened Checkout");
+        plausible("Opened Checkout", {
+          props: {
+            upgrade_source: upgradeSource,
+            recommended_upgrade_plan: recommendedUpgradePlan ?? "none",
+            selected_upgrade_plan: selectedPlan.name.toLowerCase(),
+          },
+        });
         if (!stripeId || currentPlan === "free") {
           const data = await res.json();
           const { id: sessionId } = data;

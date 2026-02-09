@@ -1,3 +1,7 @@
+import {
+  buildUpgradeUrl,
+  parseUpgradePlan,
+} from "@/lib/billing/upgrade-intent";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { LoadingSpinner } from "@dub/ui";
 import { Lock } from "lucide-react";
@@ -18,7 +22,11 @@ export function AnalyticsLoadingSpinner() {
         {nextPlan.name} plan required to view more analytics
       </p>
       <Link
-        href={slug ? `/${slug}/upgrade` : "https://dub.co/pricing"}
+        href={buildUpgradeUrl({
+          slug,
+          upgradePlan: parseUpgradePlan(nextPlan?.name.toLowerCase()),
+          upgradeSource: "analytics_loading_spinner",
+        })}
         {...(slug ? {} : { target: "_blank" })}
         className="w-full rounded-md border border-black bg-black px-3 py-1.5 text-center text-sm text-white transition-all hover:bg-neutral-800 hover:ring-4 hover:ring-neutral-200"
       >
