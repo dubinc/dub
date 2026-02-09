@@ -29,23 +29,25 @@ export const payoutsQuerySchema = z
     status: z
       .enum(PayoutStatus)
       .optional()
-      .describe("Filter the list of payouts by status."),
+      .describe("Filter the list of payouts by their corresponding status."),
     partnerId: z
       .string()
       .optional()
       .describe(
-        "Associated partner ID. When specified, takes precedence over tenantId.",
+        "Filter the list of payouts by the associated partner. When specified, takes precedence over `tenantId`.",
       ),
     tenantId: z
       .string()
       .optional()
       .describe(
-        "Associated partner's tenantId (their unique ID within your database).",
+        "Filter the list of payouts by the associated partner's `tenantId` (their unique ID within your database).",
       ),
     invoiceId: z
       .string()
       .optional()
-      .describe("Filter the list of payouts by invoice ID."),
+      .describe(
+        "Filter the list of payouts by invoice ID (the unique ID of the invoice you receive for each batch payout you process on Dub). Pending payouts will not have an invoice ID.",
+      ),
     sortBy: z
       .enum(["amount", "initiatedAt", "paidAt"])
       .default("amount")

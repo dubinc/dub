@@ -9,8 +9,8 @@ import * as z from "zod/v4";
 export const listPayouts: ZodOpenApiOperationObject = {
   operationId: "listPayouts",
   "x-speakeasy-name-override": "list",
-  summary: "Get payouts for a program.",
-  description: "Retrieve a list of payouts for the workspace default program.",
+  summary: "List all payouts",
+  description: "Retrieve a list of payouts for your partner program.",
   requestParams: {
     query: payoutsQuerySchema,
   },
