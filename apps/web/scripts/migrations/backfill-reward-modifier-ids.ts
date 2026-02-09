@@ -2,7 +2,7 @@ import { RewardConditions } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import "dotenv-flow/config";
-import { randomUUID } from "node:crypto";
+import { v4 as uuid } from "uuid";
 
 async function main() {
   const rewards = await prisma.reward.findMany({
@@ -29,13 +29,16 @@ async function main() {
     );
 
     if (!hasMissingId) {
+      console.log(
+        `Reward ${reward.id} has no missing modifier IDs, skipping...`,
+      );
       continue;
     }
 
     const updatedModifiers = modifiers.map((m: RewardConditions) => {
       return {
         ...m,
-        id: m.id ?? randomUUID(),
+        id: m.id ?? uuid(),
       };
     });
 
@@ -43,6 +46,10 @@ async function main() {
       where: { id: reward.id },
       data: { modifiers: updatedModifiers },
     });
+
+    console.log(
+      `Updated reward ${reward.id} with ${updatedModifiers.length} modifiers`,
+    );
   }
 }
 
