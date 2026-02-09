@@ -113,6 +113,7 @@ export function RewardsLogic({
           const type = getValues("type");
 
           appendModifier({
+            id: crypto.randomUUID(),
             operator: "AND",
             conditions: [{}],
             amountInCents:

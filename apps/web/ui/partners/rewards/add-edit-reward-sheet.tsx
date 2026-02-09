@@ -99,6 +99,7 @@ export const getRewardPayload = ({ data }: { data: FormData }) => {
 
         return {
           ...m,
+          id: m.id ?? crypto.randomUUID(),
           conditions: m.conditions.map((c) => ({
             ...c,
             value:
