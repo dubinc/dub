@@ -33,7 +33,15 @@ export const payoutsQuerySchema = z
     partnerId: z
       .string()
       .optional()
-      .describe("Filter the list of payouts by partner ID."),
+      .describe(
+        "Associated partner ID. When specified, takes precedence over tenantId.",
+      ),
+    tenantId: z
+      .string()
+      .optional()
+      .describe(
+        "Associated partner's tenantId (their unique ID within your database).",
+      ),
     invoiceId: z
       .string()
       .optional()
