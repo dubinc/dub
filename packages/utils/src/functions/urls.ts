@@ -218,3 +218,62 @@ export const getFileExtension = (url: string): string | null => {
     return extension ? extension.toUpperCase() : null;
   }
 };
+
+const YOUTUBE_HOSTS = [
+  "youtube.com",
+  "www.youtube.com",
+  "m.youtube.com",
+  "youtu.be",
+];
+
+// Returns true if the URL is a YouTube video URL
+export const isYouTubeUrl = (url: string): boolean => {
+  if (!url) return false;
+  try {
+    const u = new URL(url.startsWith("http") ? url : `https://${url}`);
+    return YOUTUBE_HOSTS.some(
+      (h) => u.hostname === h || u.hostname.endsWith(`.${h}`),
+    );
+  } catch {
+    return false;
+  }
+};
+
+/// Parses YouTube `t` param from a URL
+export const getYouTubeTimestampFromUrl = (url: string): number | null => {
+  if (!url) return null;
+  try {
+    const t = new URL(url).searchParams.get("t");
+    if (!t) return null;
+    const trimmed = t.trim();
+    if (/^\d+$/.test(trimmed)) return parseInt(trimmed, 10);
+    // e.g. 1m30s, 1m, 30s
+    let total = 0;
+    const m = trimmed.match(/(\d+)m/);
+    const s = trimmed.match(/(\d+)s/);
+    if (m) total += parseInt(m[1], 10) * 60;
+    if (s) total += parseInt(s[1], 10);
+    return total > 0 ? total : null;
+  } catch {
+    return null;
+  }
+};
+
+///Sets or removes the YouTube `t` (timestamp) param in a URL
+export const setYouTubeTimestampInUrl = (
+  url: string,
+  seconds: number | null,
+): string => {
+  if (!url) return url;
+  try {
+    const u = new URL(url);
+    if (seconds == null || seconds < 0) {
+      u.searchParams.delete("t");
+    } else {
+      u.searchParams.set("t", String(seconds));
+    }
+    return u.toString();
+  } catch {
+    return url;
+  }
+};
