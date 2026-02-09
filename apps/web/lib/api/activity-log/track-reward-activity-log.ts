@@ -17,6 +17,7 @@ interface TrackRewardActivityLogParams
 
 function toRewardActivitySnapshot(reward: RewardProps) {
   return {
+    event: reward.event,
     type: reward.type,
     amountInCents: reward.amountInCents ?? null,
     amountInPercentage: reward.amountInPercentage ?? null,
@@ -27,16 +28,6 @@ function toRewardActivitySnapshot(reward: RewardProps) {
   };
 }
 
-function normalizeModifiers(modifiers: unknown): RewardConditionModifier[] {
-  if (!Array.isArray(modifiers)) return [];
-  return modifiers.filter(
-    (m): m is RewardConditionModifier =>
-      m != null &&
-      typeof m === "object" &&
-      Array.isArray((m as RewardConditionModifier).conditions),
-  ) as RewardConditionModifier[];
-}
-
 function modifierEquals(
   a: RewardConditionModifier,
   b: RewardConditionModifier,
@@ -45,9 +36,16 @@ function modifierEquals(
 }
 
 function buildModifierChangeSetEntries(
-  oldModifiers: RewardConditions[],
-  newModifiers: RewardConditions[],
+  oldReward: Omit<RewardProps, "id" | "updatedAt">,
+  newReward: Omit<RewardProps, "id" | "updatedAt">,
 ) {
+  const oldModifiers = Array.isArray(oldReward.modifiers)
+    ? oldReward.modifiers
+    : [];
+  const newModifiers = Array.isArray(newReward.modifiers)
+    ? newReward.modifiers
+    : [];
+
   const logs: Pick<TrackActivityLogInput, "action" | "changeSet">[] = [];
 
   const oldById = new Map<string, RewardConditions>();
@@ -73,8 +71,11 @@ function buildModifierChangeSetEntries(
       logs.push({
         action: "reward.conditionRemoved",
         changeSet: {
-          condition: {
-            old: oldMod,
+          reward: {
+            old: {
+              ...oldReward,
+              modifiers: [oldMod],
+            },
             new: null,
           },
         },
@@ -86,9 +87,15 @@ function buildModifierChangeSetEntries(
       logs.push({
         action: "reward.conditionUpdated",
         changeSet: {
-          condition: {
-            old: oldMod,
-            new: newMod,
+          reward: {
+            old: {
+              ...oldReward,
+              modifiers: [oldMod],
+            },
+            new: {
+              ...newReward,
+              modifiers: [newMod],
+            },
           },
         },
       });
@@ -103,9 +110,12 @@ function buildModifierChangeSetEntries(
       logs.push({
         action: "reward.conditionAdded",
         changeSet: {
-          condition: {
+          reward: {
             old: null,
-            new: newMod,
+            new: {
+              ...newReward,
+              modifiers: [newMod],
+            },
           },
         },
       });
@@ -165,20 +175,17 @@ export function trackRewardActivityLog({
       activityLogs.push({
         ...baseInput,
         action: "reward.updated",
-        changeSet: diff,
+        changeSet: {
+          reward: {
+            old: oldSnapshot,
+            new: newSnapshot,
+          },
+        },
       });
     }
 
-    // Find the reward modifiers diff
-    const oldModifiers = Array.isArray(oldReward.modifiers)
-      ? oldReward.modifiers
-      : [];
-    const newModifiers = Array.isArray(newReward.modifiers)
-      ? newReward.modifiers
-      : [];
-
     activityLogs.push(
-      ...buildModifierChangeSetEntries(oldModifiers, newModifiers),
+      ...buildModifierChangeSetEntries(oldSnapshot, newSnapshot),
     );
   }
 

@@ -288,6 +288,7 @@ export const RewardSchema = z.object({
   amountInPercentage: decimalToNumber,
   maxDuration: z.number().nullish(),
   modifiers: z.any().nullish(), // TODO: Fix this
+  updatedAt: z.coerce.date(),
 });
 
 export const REWARD_DESCRIPTION_MAX_LENGTH = 100;

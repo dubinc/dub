@@ -2,7 +2,7 @@ import { ActivityLog, GroupProps, ProgramProps } from "@/lib/types";
 import { getResourceColorData, RAINBOW_CONIC_GRADIENT } from "@/ui/colors";
 import { ReferralStatusBadges } from "@/ui/referrals/referral-status-badges";
 import { ReferralStatus } from "@dub/prisma/client";
-import { Bolt } from "@dub/ui";
+import { Bolt, Tooltip } from "@dub/ui";
 import { cn, OG_AVATAR_URL } from "@dub/utils";
 import { ReactNode } from "react";
 import { useActivityLogContext } from "./activity-log-context";
@@ -131,4 +131,39 @@ export function ReferralStatusPill({ status }: { status: ReferralStatus }) {
   if (!badge) return null;
 
   return <ActivityChip className={badge.className}>{badge.label}</ActivityChip>;
+}
+
+export function UserAvatar({ user }: { user: ActivityLog["user"] }) {
+  if (!user) return null;
+
+  const image = user.image || `${OG_AVATAR_URL}${user.id}`;
+  const name = user.name || user.email || "User";
+
+  return (
+    <Tooltip
+      content={
+        <div className="flex flex-col gap-1 p-2.5">
+          <img
+            src={image}
+            alt={name}
+            className="size-6 shrink-0 rounded-full"
+          />
+          <p className="text-sm font-medium text-neutral-900">
+            {user.name || user.email}
+          </p>
+          {user.email && user.name && (
+            <p className="text-xs text-neutral-500">{user.email}</p>
+          )}
+        </div>
+      }
+    >
+      <div>
+        <img
+          src={image}
+          alt={name}
+          className="size-4 shrink-0 rounded-full transition-transform duration-100 hover:scale-110 hover:cursor-pointer"
+        />
+      </div>
+    </Tooltip>
+  );
 }
