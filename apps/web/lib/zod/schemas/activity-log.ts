@@ -16,10 +16,15 @@ export const activityLogActionSchema = z.enum([
   "referral.unqualified",
   "referral.closedWon",
   "referral.closedLost",
+
   "partner.groupChanged",
+
   "reward.created",
   "reward.updated",
   "reward.deleted",
+  "reward.conditionAdded",
+  "reward.conditionRemoved",
+  "reward.conditionUpdated",
 ]);
 
 export const getActivityLogsQuerySchema = z.object({
