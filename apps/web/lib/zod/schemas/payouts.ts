@@ -56,16 +56,8 @@ export const payoutsCountQuerySchema = payoutsQuerySchema
     invoiceId: true,
   })
   .extend({
-    groupBy: z
-      .enum(["status"])
-      .optional()
-      .describe(
-        "When set to 'status', returns an array of counts and amounts per payout status instead of a single total count.",
-      ),
-    eligibility: z
-      .enum(["eligible", "ineligible"])
-      .optional()
-      .describe("Eligibility (e.g. minimum amount, partner settings)."),
+    groupBy: z.enum(["status"]).optional(),
+    eligibility: z.enum(["eligible", "ineligible"]).optional(),
   });
 
 export const PayoutSchema = z.object({
