@@ -64,6 +64,7 @@ export const payoutsCountQuerySchema = payoutsQuerySchema
     invoiceId: true,
   })
   .extend({
+    programId: z.string().optional(),
     groupBy: z.enum(["status"]).optional(),
     eligibility: z.enum(["eligible", "ineligible"]).optional(),
   });
