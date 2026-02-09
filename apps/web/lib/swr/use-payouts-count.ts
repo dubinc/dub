@@ -17,7 +17,7 @@ export default function usePayoutsCount<T>({
     workspaceId &&
       defaultProgramId &&
       enabled &&
-      `/api/programs/${defaultProgramId}/payouts/count${getQueryString(
+      `/api/payouts/count${getQueryString(
         {
           ...query,
           workspaceId,

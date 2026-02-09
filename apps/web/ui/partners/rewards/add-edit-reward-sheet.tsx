@@ -52,6 +52,7 @@ import {
 import { FormProvider, useForm, useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
+import { v4 as uuid } from "uuid";
 import * as z from "zod/v4";
 import {
   InlineBadgePopover,
@@ -99,7 +100,7 @@ export const getRewardPayload = ({ data }: { data: FormData }) => {
 
         return {
           ...m,
-          id: m.id ?? crypto.randomUUID(),
+          id: m.id ?? uuid(),
           conditions: m.conditions.map((c) => ({
             ...c,
             value:

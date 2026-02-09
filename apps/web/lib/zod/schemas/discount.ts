@@ -14,13 +14,17 @@ export const DiscountSchema = z.object({
   autoProvisionEnabledAt: z.coerce.date().nullish(),
 });
 
-export const DiscountSchemaWithDeprecatedFields = DiscountSchema.extend({
-  duration: z
-    .number()
-    .nullish()
-    .describe("Deprecated: Use `maxDuration` instead"),
-  interval: z.string().nullish().describe("Deprecated: Defaults to `month`"),
-}).nullish();
+export const DiscountSchemaWithDeprecatedFields = DiscountSchema.omit({
+  autoProvisionEnabledAt: true,
+})
+  .extend({
+    duration: z
+      .number()
+      .nullish()
+      .describe("Deprecated: Use `maxDuration` instead"),
+    interval: z.string().nullish().describe("Deprecated: Defaults to `month`"),
+  })
+  .nullish();
 
 export const createDiscountSchema = z.object({
   workspaceId: z.string(),

@@ -38,6 +38,7 @@ import { Package } from "lucide-react";
 import { motion } from "motion/react";
 import { Fragment, useEffect, useState } from "react";
 import { useFieldArray, useWatch } from "react-hook-form";
+import { v4 as uuid } from "uuid";
 import {
   InlineBadgePopover,
   InlineBadgePopoverAmountInput,
@@ -113,7 +114,7 @@ export function RewardsLogic({
           const type = getValues("type");
 
           appendModifier({
-            id: crypto.randomUUID(),
+            id: uuid(),
             operator: "AND",
             conditions: [{}],
             amountInCents:

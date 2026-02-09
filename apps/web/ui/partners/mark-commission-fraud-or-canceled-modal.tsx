@@ -41,17 +41,14 @@ function ModalInner({
   commission,
   status,
 }: Omit<ModalProps, "showModal">) {
-  const { id: workspaceId, defaultProgramId } = useWorkspace();
+  const { id: workspaceId } = useWorkspace();
 
   const { executeAsync, isExecuting, hasSucceeded } = useAction(
     markCommissionFraudOrCanceledAction,
     {
       onSuccess: async () => {
         toast.success(`Commission marked as ${status} successfully!`);
-        await mutatePrefix([
-          "/api/commissions",
-          `/api/programs/${defaultProgramId}/payouts`,
-        ]);
+        await mutatePrefix(["/api/commissions", "/api/payouts"]);
         setShowModal(false);
       },
       onError: () => {
