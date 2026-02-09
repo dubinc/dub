@@ -1,14 +1,14 @@
 import { ActivityLog, ActivityLogAction } from "@/lib/types";
 import {
   CircleInfo,
-  FilePen,
   FileSend,
   Minus,
-  Plus,
-  SquareCheck,
+  MoneyBill2,
+  Pen2,
   UserArrowRight,
   UserClock,
 } from "@dub/ui";
+import { CircleMinus, CirclePlusIcon } from "lucide-react";
 import { ComponentType, ReactNode } from "react";
 import { PartnerGroupChangedRenderer } from "./action-renderers/partner-group-changed-renderer";
 import { ReferralCreatedRenderer } from "./action-renderers/referral-created-renderer";
@@ -27,6 +27,7 @@ const ACTIVITY_LOG_ICONS: Partial<
   Record<ActivityLogAction, ComponentType<{ className?: string }>>
 > = {
   "partner.groupChanged": UserArrowRight,
+
   "referral.created": FileSend,
   "referral.qualified": UserClock,
   "referral.meeting": UserClock,
@@ -34,12 +35,13 @@ const ACTIVITY_LOG_ICONS: Partial<
   "referral.unqualified": UserClock,
   "referral.closedWon": UserClock,
   "referral.closedLost": UserClock,
-  "reward.created": SquareCheck,
-  "reward.updated": FilePen,
+
+  "reward.created": MoneyBill2,
+  "reward.updated": Pen2,
   "reward.deleted": Minus,
-  "reward.conditionAdded": Plus,
-  "reward.conditionRemoved": Minus,
-  "reward.conditionUpdated": FilePen,
+  "reward.conditionAdded": CirclePlusIcon,
+  "reward.conditionRemoved": CircleMinus,
+  "reward.conditionUpdated": Pen2,
 };
 
 const ACTIVITY_LOG_REGISTRY: Array<{
