@@ -90,6 +90,7 @@ const REWARD_TYPES = [
 const ACCORDION_ITEMS = [
   "bounty-type",
   "bounty-details",
+  "bounty-criteria",
   "submission-requirements",
   "groups",
 ];
@@ -634,7 +635,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
               {!bounty && ( // cannot change type for existing bounties
                 <ProgramSheetAccordionItem value="bounty-type">
                   <ProgramSheetAccordionTrigger>
-                    Bounty type
+                    Type
                   </ProgramSheetAccordionTrigger>
                   <ProgramSheetAccordionContent>
                     <div className="space-y-4">
@@ -656,12 +657,12 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
 
               <ProgramSheetAccordionItem value="bounty-details">
                 <ProgramSheetAccordionTrigger>
-                  Bounty details
+                  Details
                 </ProgramSheetAccordionTrigger>
                 <ProgramSheetAccordionContent>
                   <div className="space-y-6">
                     <p className="text-content-default text-sm">
-                      Set the schedule, reward, and additional details.
+                      Set the schedule and additional details.
                     </p>
 
                     <AnimatedSizeContainer
@@ -825,15 +826,83 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                           </div>
                         </div>
 
-                        <ToggleGroup
-                          className="mt-2 flex w-full items-center gap-1 rounded-md border border-neutral-200 bg-neutral-100 p-1"
-                          optionClassName="h-8 flex items-center justify-center rounded-md flex-1 text-sm"
-                          indicatorClassName="bg-white border-none rounded-md"
-                          options={REWARD_TYPES}
-                          selected={rewardType}
-                          selectAction={(id: RewardType) => setRewardType(id)}
-                        />
                       </>
+                    )}
+
+                    <div>
+                      <label className="text-sm font-medium text-neutral-800">
+                        Description
+                        <span className="ml-1 font-normal text-neutral-500">
+                          (optional)
+                        </span>
+                      </label>
+                      <div className="mt-2">
+                        <Controller
+                          control={control}
+                          name="description"
+                          render={({ field }) => (
+                            <RichTextProvider
+                              features={["bold", "italic", "links"]}
+                              markdown
+                              placeholder="Provide any bounty requirements to the partner"
+                              editorClassName="block max-h-48 overflow-auto scrollbar-hide w-full resize-none border-none p-3 text-base sm:text-sm"
+                              initialValue={field.value}
+                              onChange={(editor) =>
+                                field.onChange(
+                                  (editor as any).getMarkdown() || null,
+                                )
+                              }
+                            >
+                              <div
+                                className={cn(
+                                  "overflow-hidden rounded-md border border-neutral-300 focus-within:border-neutral-500 focus-within:ring-1 focus-within:ring-neutral-500",
+                                  errors.description &&
+                                    "border-red-600 focus-within:border-red-500 focus-within:ring-red-600",
+                                )}
+                              >
+                                <div className="flex flex-col">
+                                  <RichTextArea />
+                                  <RichTextToolbar className="px-1 pb-1" />
+                                </div>
+                              </div>
+                            </RichTextProvider>
+                          )}
+                        />
+
+                        <div className="mt-1 text-left">
+                          <MaxCharactersCounter
+                            name="description"
+                            control={control}
+                            maxLength={BOUNTY_DESCRIPTION_MAX_LENGTH}
+                            spaced
+                            className="text-content-muted"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </ProgramSheetAccordionContent>
+              </ProgramSheetAccordionItem>
+
+              <ProgramSheetAccordionItem value="bounty-criteria">
+                <ProgramSheetAccordionTrigger>
+                  Criteria
+                </ProgramSheetAccordionTrigger>
+                <ProgramSheetAccordionContent>
+                  <div className="space-y-6">
+                    <p className="text-content-default text-sm">
+                      Set the reward and completion criteria.
+                    </p>
+
+                    {type === "submission" && (
+                      <ToggleGroup
+                        className="flex w-full items-center gap-1 rounded-md border border-neutral-200 bg-neutral-100 p-1"
+                        optionClassName="h-8 flex items-center justify-center rounded-md flex-1 text-sm"
+                        indicatorClassName="bg-white border-none rounded-md"
+                        options={REWARD_TYPES}
+                        selected={rewardType}
+                        selectAction={(id: RewardType) => setRewardType(id)}
+                      />
                     )}
 
                     {(rewardType === "flat" || type === "performance") && (
@@ -920,59 +989,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                       </div>
                     )}
 
-                    <div>
-                      <label className="text-sm font-medium text-neutral-800">
-                        Details
-                        <span className="ml-1 font-normal text-neutral-500">
-                          (optional)
-                        </span>
-                      </label>
-                      <div className="mt-2">
-                        <Controller
-                          control={control}
-                          name="description"
-                          render={({ field }) => (
-                            <RichTextProvider
-                              features={["bold", "italic", "links"]}
-                              markdown
-                              placeholder="Provide any bounty requirements to the partner"
-                              editorClassName="block max-h-48 overflow-auto scrollbar-hide w-full resize-none border-none p-3 text-base sm:text-sm"
-                              initialValue={field.value}
-                              onChange={(editor) =>
-                                field.onChange(
-                                  (editor as any).getMarkdown() || null,
-                                )
-                              }
-                            >
-                              <div
-                                className={cn(
-                                  "overflow-hidden rounded-md border border-neutral-300 focus-within:border-neutral-500 focus-within:ring-1 focus-within:ring-neutral-500",
-                                  errors.description &&
-                                    "border-red-600 focus-within:border-red-500 focus-within:ring-red-600",
-                                )}
-                              >
-                                <div className="flex flex-col">
-                                  <RichTextArea />
-                                  <RichTextToolbar className="px-1 pb-1" />
-                                </div>
-                              </div>
-                            </RichTextProvider>
-                          )}
-                        />
-
-                        <div className="mt-1 text-left">
-                          <MaxCharactersCounter
-                            name="description"
-                            control={control}
-                            maxLength={BOUNTY_DESCRIPTION_MAX_LENGTH}
-                            spaced
-                            className="text-content-muted"
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    {rewardType === "custom" && (
+                    {rewardType === "custom" && type === "submission" && (
                       <div className="gap-4 rounded-lg bg-orange-50 px-4 py-2.5 text-center">
                         <span className="text-sm font-medium text-orange-800">
                           When reviewing these submissions, a custom reward
