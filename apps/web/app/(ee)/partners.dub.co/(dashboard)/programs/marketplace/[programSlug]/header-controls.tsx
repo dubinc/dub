@@ -1,7 +1,7 @@
 "use client";
 
 import { acceptProgramInviteAction } from "@/lib/actions/partners/accept-program-invite";
-import { getPartnerProfileChecklistProgress } from "@/lib/network/get-discoverability-requirements";
+import { getPartnerProfileChecklistProgress } from "@/lib/network/get-partner-profile-checklist-progress";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollments from "@/lib/swr/use-program-enrollments";

@@ -1,4 +1,4 @@
-import { getPartnerProfileChecklistProgress } from "@/lib/network/get-discoverability-requirements";
+import { getPartnerProfileChecklistProgress } from "@/lib/network/get-partner-profile-checklist-progress";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
 import { useMemo } from "react";

@@ -6,7 +6,7 @@ import { notifyPartnerApplication } from "@/lib/api/partners/notify-partner-appl
 import { getIP } from "@/lib/api/utils/get-ip";
 import { getSession } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
-import { getPartnerProfileChecklistProgress } from "@/lib/network/get-discoverability-requirements";
+import { getPartnerProfileChecklistProgress } from "@/lib/network/get-partner-profile-checklist-progress";
 import {
   formatApplicationFormData,
   formatWebsiteAndSocialsFields,

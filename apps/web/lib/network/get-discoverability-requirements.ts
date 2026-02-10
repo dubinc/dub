@@ -28,46 +28,6 @@ export const partnerIsNotBanned = (
   return programEnrollments.every((pe) => pe.status !== "banned");
 };
 
-export type DiscoverabilityRequirement = {
-  label: string;
-  href?: string;
-  completed: boolean;
-};
-
-export function getPartnerProfileChecklistProgress({
-  partner,
-  programEnrollments,
-}: {
-  partner: Pick<
-    PartnerProps,
-    | "image"
-    | "description"
-    | "monthlyTraffic"
-    | "preferredEarningStructures"
-    | "salesChannels"
-    | "platforms"
-  >;
-  programEnrollments: Pick<
-    EnrolledPartnerProps,
-    "programId" | "status" | "totalCommissions"
-  >[];
-}) {
-  const tasks = getDiscoverabilityRequirements({
-    partner,
-    programEnrollments,
-  });
-
-  const completedCount = tasks.filter(({ completed }) => completed).length;
-  const totalCount = tasks.length;
-
-  return {
-    tasks,
-    completedCount,
-    totalCount,
-    isComplete: completedCount === totalCount,
-  };
-}
-
 export function getDiscoverabilityRequirements({
   partner,
   programEnrollments,
@@ -85,7 +45,11 @@ export function getDiscoverabilityRequirements({
     EnrolledPartnerProps,
     "programId" | "status" | "totalCommissions"
   >[];
-}): DiscoverabilityRequirement[] {
+}): {
+  label: string;
+  href?: string;
+  completed: boolean;
+}[] {
   return [
     {
       label: "Upload your logo",
@@ -94,7 +58,7 @@ export function getDiscoverabilityRequirements({
     },
     {
       label: "Verify at least 2 social accounts/website",
-      href: "#sites",
+      href: "#platforms",
       completed:
         PARTNER_PLATFORM_FIELDS.filter(
           (field) => field.data(partner.platforms).verified,
