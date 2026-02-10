@@ -186,10 +186,7 @@ function UnverifiedTooltip({
   });
 
   const isConfirmedUnverified =
-    !isDubDomain(domain) &&
-    !loading &&
-    !error &&
-    verified === false;
+    !isDubDomain(domain) && !loading && !error && verified === false;
 
   return (
     <div ref={ref} className="min-w-0 truncate">

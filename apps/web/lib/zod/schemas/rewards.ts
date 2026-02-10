@@ -259,6 +259,7 @@ export const FLAT_REWARD_AMOUNT_SCHEMA = z
   });
 
 export const rewardConditionsSchema = z.object({
+  id: z.string().optional(),
   operator: z.enum(["AND", "OR"]).default("AND"),
   conditions: z.array(rewardConditionSchema).min(1),
   amountInCents: FLAT_REWARD_AMOUNT_SCHEMA.optional(),
@@ -287,6 +288,7 @@ export const RewardSchema = z.object({
   amountInPercentage: decimalToNumber,
   maxDuration: z.number().nullish(),
   modifiers: z.any().nullish(), // TODO: Fix this
+  updatedAt: z.coerce.date(),
 });
 
 export const REWARD_DESCRIPTION_MAX_LENGTH = 100;

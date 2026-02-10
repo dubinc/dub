@@ -1,11 +1,13 @@
-import { ActivityLog, GroupProps } from "@/lib/types";
+import { ActivityLog, GroupProps, ProgramProps } from "@/lib/types";
 import { getResourceColorData, RAINBOW_CONIC_GRADIENT } from "@/ui/colors";
 import { ReferralStatusBadges } from "@/ui/referrals/referral-status-badges";
 import { ReferralStatus } from "@dub/prisma/client";
-import { Bolt } from "@dub/ui";
+import { Bolt, Tooltip } from "@dub/ui";
 import { cn, OG_AVATAR_URL } from "@dub/utils";
 import { ReactNode } from "react";
+import { useActivityLogContext } from "./activity-log-context";
 import { getActorType } from "./activity-log-registry";
+
 interface ActivityChipProps {
   children: ReactNode;
   className?: string;
@@ -20,6 +22,10 @@ interface SourcePillProps {
 
 interface UserChipProps {
   user: NonNullable<ActivityLog["user"]>;
+}
+
+interface ProgramChipProps {
+  program: Pick<ProgramProps, "id" | "name" | "logo">;
 }
 
 interface ActorChipProps {
@@ -73,10 +79,23 @@ export function UserChip({ user }: UserChipProps) {
     <ActivityChip>
       <img
         src={user.image || `${OG_AVATAR_URL}${user.id}`}
-        alt={`${user.name || user.email || "User"}`}
+        alt={`${user.name || user.email || "Deleted user"}`}
         className="size-4 shrink-0 rounded-full"
       />
-      {user.name || user.email || "Unknown user"}
+      {user.name || user.email || "Deleted user"}
+    </ActivityChip>
+  );
+}
+
+export function ProgramChip({ program }: ProgramChipProps) {
+  return (
+    <ActivityChip>
+      <img
+        src={program.logo || `${OG_AVATAR_URL}${program.id}`}
+        alt={program.name}
+        className="size-4 shrink-0 rounded-full"
+      />
+      {program.name}
     </ActivityChip>
   );
 }
@@ -91,6 +110,12 @@ export function SystemChip() {
 }
 
 export function ActorChip({ log }: ActorChipProps) {
+  const { program } = useActivityLogContext();
+
+  if (program) {
+    return <ProgramChip program={program} />;
+  }
+
   const actorType = getActorType(log);
 
   if (actorType === "USER" && log.user) {
@@ -106,4 +131,37 @@ export function ReferralStatusPill({ status }: { status: ReferralStatus }) {
   if (!badge) return null;
 
   return <ActivityChip className={badge.className}>{badge.label}</ActivityChip>;
+}
+
+export function UserAvatar({ user }: { user: ActivityLog["user"] }) {
+  if (!user) return null;
+
+  const image = user.image || `${OG_AVATAR_URL}${user.id}`;
+  const name = user.name || user.email || "User";
+
+  return (
+    <Tooltip
+      content={
+        <div className="flex flex-col gap-1 p-2.5">
+          <img
+            src={image}
+            alt={name}
+            className="size-6 shrink-0 rounded-full"
+          />
+          <p className="text-sm font-medium text-neutral-900">{name}</p>
+          {user.email && user.name && (
+            <p className="text-xs text-neutral-500">{user.email}</p>
+          )}
+        </div>
+      }
+    >
+      <div>
+        <img
+          src={image}
+          alt={name}
+          className="size-4 shrink-0 rounded-full transition-transform duration-100 hover:scale-110 hover:cursor-pointer"
+        />
+      </div>
+    </Tooltip>
+  );
 }

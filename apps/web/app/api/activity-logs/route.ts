@@ -10,7 +10,7 @@ import * as z from "zod/v4";
 
 // GET /api/activity-logs – get activity logs for a resource
 export const GET = withWorkspace(async ({ workspace, searchParams }) => {
-  const { resourceType, resourceId, action } =
+  const { resourceType, resourceId, parentResourceId, action } =
     getActivityLogsQuerySchema.parse(searchParams);
 
   const programId = getDefaultProgramIdOrThrow(workspace);
@@ -20,6 +20,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
       programId,
       resourceType,
       resourceId,
+      parentResourceId,
       action,
     },
     orderBy: {

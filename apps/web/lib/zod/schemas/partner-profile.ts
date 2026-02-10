@@ -198,6 +198,7 @@ export const partnerProfileChangeHistoryLogSchema = z.array(
 );
 
 export const partnerProfilePayoutsQuerySchema = payoutsQuerySchema.extend({
+  programId: z.string().optional(),
   sortBy: payoutsQuerySchema.shape.sortBy.default("initiatedAt"),
 });
 

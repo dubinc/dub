@@ -3,7 +3,7 @@ import { CUTOFF_PERIOD_ENUM } from "@/lib/partners/cutoff-period";
 import { PayoutMode, PayoutStatus } from "@dub/prisma/client";
 import * as z from "zod/v4";
 import { getPaginationQuerySchema } from "./misc";
-import { EnrolledPartnerSchema, PartnerSchema } from "./partners";
+import { EnrolledPartnerSchema } from "./partners";
 import { ProgramSchema } from "./programs";
 import { UserSchema } from "./users";
 
@@ -26,26 +26,49 @@ export const PAYOUTS_MAX_PAGE_SIZE = 100;
 
 export const payoutsQuerySchema = z
   .object({
-    status: z.enum(PayoutStatus).optional(),
-    partnerId: z.string().optional(),
-    programId: z.string().optional(),
-    invoiceId: z.string().optional(),
-    eligibility: z.enum(["eligible", "ineligible"]).optional(),
-    sortBy: z.enum(["amount", "initiatedAt", "paidAt"]).default("amount"),
-    sortOrder: z.enum(["asc", "desc"]).default("desc"),
+    status: z
+      .enum(PayoutStatus)
+      .optional()
+      .describe("Filter the list of payouts by their corresponding status."),
+    partnerId: z
+      .string()
+      .optional()
+      .describe(
+        "Filter the list of payouts by the associated partner. When specified, takes precedence over `tenantId`.",
+      ),
+    tenantId: z
+      .string()
+      .optional()
+      .describe(
+        "Filter the list of payouts by the associated partner's `tenantId` (their unique ID within your database).",
+      ),
+    invoiceId: z
+      .string()
+      .optional()
+      .describe(
+        "Filter the list of payouts by invoice ID (the unique ID of the invoice you receive for each batch payout you process on Dub). Pending payouts will not have an invoice ID.",
+      ),
+    sortBy: z
+      .enum(["amount", "initiatedAt", "paidAt"])
+      .default("amount")
+      .describe("The field to sort the list of payouts by."),
+    sortOrder: z
+      .enum(["asc", "desc"])
+      .default("desc")
+      .describe("The sort order for the list of payouts."),
   })
   .extend(getPaginationQuerySchema({ pageSize: PAYOUTS_MAX_PAGE_SIZE }));
 
 export const payoutsCountQuerySchema = payoutsQuerySchema
   .pick({
     status: true,
-    programId: true,
     partnerId: true,
-    eligibility: true,
     invoiceId: true,
   })
   .extend({
+    programId: z.string().optional(),
     groupBy: z.enum(["status"]).optional(),
+    eligibility: z.enum(["eligible", "ineligible"]).optional(),
   });
 
 export const PayoutSchema = z.object({
@@ -65,8 +88,15 @@ export const PayoutSchema = z.object({
 });
 
 export const PayoutResponseSchema = PayoutSchema.extend({
-  partner: PartnerSchema.extend({
-    tenantId: z.string().nullable(),
+  partner: EnrolledPartnerSchema.pick({
+    id: true,
+    name: true,
+    email: true,
+    image: true,
+    payoutsEnabledAt: true,
+    country: true,
+    groupId: true,
+    tenantId: true,
   }),
   user: UserSchema.nullish(),
 });
