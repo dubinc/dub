@@ -825,8 +825,3 @@ export type FieldDiff = z.infer<typeof fieldDiffSchema>;
 export type ChangeSet = Record<string, FieldDiff>;
 
 export type ActivityLog = z.infer<typeof activityLogSchema>;
-
-export type ActivityLogResourceTypeWithFeed = Extract<
-  ActivityLogResourceType,
-  "partner" | "referral"
->;

@@ -4,7 +4,7 @@ import { prisma } from "@dub/prisma";
 import { PartnerGroup, WorkspaceRole } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import { buildProgramEnrollmentChangeSet } from "../activity-log/build-change-set";
+import { buildProgramEnrollmentChangeSet } from "../activity-log/build-program-enrollment-change-set";
 import {
   trackActivityLog,
   TrackActivityLogInput,

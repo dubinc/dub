@@ -1,4 +1,5 @@
 import { ActivityLog } from "@/lib/types";
+import { TimestampTooltip } from "@dub/ui";
 import { formatDate } from "@dub/utils";
 import { ActivityLogDescription } from "./activity-log-description";
 import {
@@ -43,14 +44,20 @@ export function ReferralActivityItem({
           <span className="flex min-w-0 flex-1 flex-wrap items-center gap-2 overflow-hidden">
             <Renderer log={log} />
           </span>
-          <time className="hidden shrink-0 text-xs text-neutral-500 sm:block">
-            {formatDate(log.createdAt, {
-              month: "short",
-              year: "numeric",
-              hour: "numeric",
-              minute: "2-digit",
-            })}
-          </time>
+          <TimestampTooltip
+            timestamp={log.createdAt}
+            side="right"
+            rows={["local", "utc", "unix"]}
+          >
+            <time className="hidden shrink-0 text-xs text-neutral-500 sm:block">
+              {formatDate(log.createdAt, {
+                month: "short",
+                year: "numeric",
+                hour: "numeric",
+                minute: "2-digit",
+              })}
+            </time>
+          </TimestampTooltip>
         </div>
         {log.description && <ActivityLogDescription log={log} />}
       </div>

@@ -351,7 +351,7 @@ export const PRICING_PLAN_COMPARE_FEATURES: {
                 ? "Unlimited"
                 : nFormatter(plan.limits.clicks)}
             </strong>{" "}
-            tracked clicks
+            tracked events
             {plan.name === "Enterprise" ? "" : "/mo"}
           </>
         ),

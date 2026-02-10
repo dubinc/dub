@@ -1,9 +1,18 @@
 import { ActivityLog, ActivityLogAction } from "@/lib/types";
-import { CircleInfo, FileSend, UserArrowRight, UserClock } from "@dub/ui";
+import {
+  CircleInfo,
+  FileSend,
+  MoneyBill2,
+  Pen2,
+  UserArrowRight,
+  UserClock,
+} from "@dub/ui";
+import { CircleMinus, CirclePlusIcon } from "lucide-react";
 import { ComponentType, ReactNode } from "react";
 import { PartnerGroupChangedRenderer } from "./action-renderers/partner-group-changed-renderer";
 import { ReferralCreatedRenderer } from "./action-renderers/referral-created-renderer";
 import { ReferralStatusChangedRenderer } from "./action-renderers/referral-status-changed-renderer";
+import { RewardActivityRenderer } from "./action-renderers/reward-activity-renderer";
 
 export type ActorType = "USER" | "SYSTEM";
 
@@ -17,6 +26,7 @@ const ACTIVITY_LOG_ICONS: Partial<
   Record<ActivityLogAction, ComponentType<{ className?: string }>>
 > = {
   "partner.groupChanged": UserArrowRight,
+
   "referral.created": FileSend,
   "referral.qualified": UserClock,
   "referral.meeting": UserClock,
@@ -24,6 +34,13 @@ const ACTIVITY_LOG_ICONS: Partial<
   "referral.unqualified": UserClock,
   "referral.closedWon": UserClock,
   "referral.closedLost": UserClock,
+
+  "reward.created": MoneyBill2,
+  "reward.updated": Pen2,
+  "reward.deleted": CircleMinus,
+  "reward.conditionAdded": CirclePlusIcon,
+  "reward.conditionRemoved": CircleMinus,
+  "reward.conditionUpdated": Pen2,
 };
 
 const ACTIVITY_LOG_REGISTRY: Array<{
@@ -50,6 +67,19 @@ const ACTIVITY_LOG_REGISTRY: Array<{
   ).map((action) => ({
     action,
     renderer: ReferralStatusChangedRenderer,
+  })),
+  ...(
+    [
+      "reward.created",
+      "reward.updated",
+      "reward.deleted",
+      "reward.conditionAdded",
+      "reward.conditionRemoved",
+      "reward.conditionUpdated",
+    ] as const
+  ).map((action) => ({
+    action,
+    renderer: RewardActivityRenderer,
   })),
 ];
 

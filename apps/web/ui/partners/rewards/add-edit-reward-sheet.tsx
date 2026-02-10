@@ -572,6 +572,7 @@ function RewardSheetContent({
                 type="button"
                 variant="outline"
                 text="Remove reward"
+                className="h-9 w-fit"
                 onClick={onDelete}
                 loading={isDeleting}
                 disabled={isCreating || isUpdating}
@@ -585,7 +586,7 @@ function RewardSheetContent({
               variant="secondary"
               onClick={() => setIsOpen(false)}
               text="Cancel"
-              className="w-fit"
+              className="h-9 w-fit"
               disabled={isCreating || isUpdating || isDeleting}
             />
 
@@ -593,7 +594,7 @@ function RewardSheetContent({
               type="submit"
               variant="primary"
               text={reward ? "Update reward" : "Create reward"}
-              className="w-fit"
+              className="h-9 w-fit"
               loading={isCreating || isUpdating}
               disabled={
                 amount == null || isDeleting || isCreating || isUpdating

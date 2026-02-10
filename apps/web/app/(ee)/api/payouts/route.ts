@@ -81,6 +81,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     include: {
       programEnrollment: true,
       partner: true,
+      user: true,
     },
     skip: (page - 1) * pageSize,
     take: pageSize,
