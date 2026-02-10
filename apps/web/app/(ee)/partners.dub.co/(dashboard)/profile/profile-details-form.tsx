@@ -87,6 +87,7 @@ export function ProfileDetailsForm({ partner }: { partner?: PartnerProps }) {
       </div>
 
       <SettingsRow
+        id="info"
         heading="Basic information"
         description="Your core details, and information that's required to set up your Dub Partner account."
       >

@@ -8,11 +8,41 @@ import { describe, expect, it } from "vitest";
 type ChecklistInput = Parameters<typeof getPartnerProfileChecklistProgress>[0];
 
 const basePartner: ChecklistInput["partner"] = {
+  image: null,
   description: null,
   monthlyTraffic: null,
   preferredEarningStructures: [],
   salesChannels: [],
   platforms: [],
+};
+
+const completedPartner: ChecklistInput["partner"] = {
+  ...basePartner,
+  image: "https://example.com/logo.png",
+  description: "Creator profile",
+  monthlyTraffic: "OneHundredThousandPlus",
+  preferredEarningStructures: ["Per_Sale"],
+  salesChannels: ["Blogs"],
+  platforms: [
+    {
+      type: "website",
+      identifier: "https://example.com",
+      verifiedAt: new Date(),
+      platformId: null,
+      subscribers: BigInt(0),
+      posts: BigInt(0),
+      views: BigInt(0),
+    },
+    {
+      type: "youtube",
+      identifier: "UC1234567890",
+      verifiedAt: new Date(),
+      platformId: null,
+      subscribers: BigInt(0),
+      posts: BigInt(0),
+      views: BigInt(0),
+    },
+  ],
 };
 
 describe("getPartnerProfileChecklistProgress", () => {
@@ -22,32 +52,13 @@ describe("getPartnerProfileChecklistProgress", () => {
       programEnrollments: [],
     });
 
-    expect(result.isApplicable).toBe(true);
     expect(result.isComplete).toBe(false);
     expect(result.completedCount).toBeLessThan(result.totalCount);
-    expect(result.totalCount).toBe(8);
   });
 
   it("returns complete progress when all checklist tasks are complete", () => {
     const result = getPartnerProfileChecklistProgress({
-      partner: {
-        ...basePartner,
-        description: "Creator profile",
-        monthlyTraffic: "OneHundredThousandPlus",
-        preferredEarningStructures: ["Per_Sale"],
-        salesChannels: ["Blogs"],
-        platforms: [
-          {
-            type: "website",
-            identifier: "https://example.com",
-            verifiedAt: null,
-            platformId: null,
-            subscribers: BigInt(0),
-            posts: BigInt(0),
-            views: BigInt(0),
-          },
-        ],
-      },
+      partner: completedPartner,
       programEnrollments: [
         {
           programId: "prog_non_excluded",
@@ -57,28 +68,26 @@ describe("getPartnerProfileChecklistProgress", () => {
       ],
     });
 
-    expect(result.isApplicable).toBe(true);
     expect(result.isComplete).toBe(true);
     expect(result.completedCount).toBe(result.totalCount);
-    expect(result.totalCount).toBe(8);
+    expect(result.completedCount).toBe(8);
   });
 
   it("handles the excluded-program edge case consistently", () => {
     expect(EXCLUDED_PROGRAM_IDS.length).toBeGreaterThan(0);
 
     const result = getPartnerProfileChecklistProgress({
-      partner: basePartner,
+      partner: completedPartner,
       programEnrollments: [
         {
           programId: EXCLUDED_PROGRAM_IDS[0],
           status: "approved",
-          totalCommissions: 0,
+          totalCommissions: PARTNER_NETWORK_MIN_COMMISSIONS_CENTS,
         },
       ],
     });
 
-    expect(result.isApplicable).toBe(false);
-    expect(result.isComplete).toBe(true);
-    expect(result.totalCount).toBe(8);
+    expect(result.isComplete).toBe(false);
+    expect(result.completedCount).toBe(7);
   });
 });

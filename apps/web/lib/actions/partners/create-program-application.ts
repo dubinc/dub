@@ -170,18 +170,6 @@ export const createProgramApplicationAction = actionClient
         })
       : null;
 
-    const checklistProgress = existingPartner
-      ? getPartnerProfileChecklistProgress({
-          partner: existingPartner,
-          programEnrollments: existingPartner.programs,
-        })
-      : null;
-
-    // if an existing partner has an incomplete profile, prompt them to complete it
-    if (existingPartner && !checklistProgress?.isComplete) {
-      throw new Error("Complete your partner profile to apply");
-    }
-
     // if the application form is not published and
     // the partner is not logged in, throw an error
     if (!group.applicationFormPublishedAt && !existingPartner) {
@@ -189,6 +177,16 @@ export const createProgramApplicationAction = actionClient
     }
 
     if (existingPartner) {
+      // if an existing partner has an incomplete profile, prompt them to complete it
+      const { isComplete } = getPartnerProfileChecklistProgress({
+        partner: existingPartner,
+        programEnrollments: existingPartner.programs,
+      });
+
+      if (!isComplete) {
+        throw new Error("Complete your partner profile to apply.");
+      }
+
       return createApplicationAndEnrollment({
         workspace: program.workspace,
         program,

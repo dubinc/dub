@@ -1,6 +1,4 @@
-import {
-  getPartnerProfileChecklistProgress,
-} from "@/lib/network/get-discoverability-requirements";
+import { getPartnerProfileChecklistProgress } from "@/lib/network/get-discoverability-requirements";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
 import { useMemo } from "react";
@@ -16,10 +14,6 @@ export function usePartnerDiscoveryRequirements() {
       partner,
       programEnrollments,
     });
-
-    if (!checklistProgress.isApplicable) {
-      return undefined;
-    }
 
     return checklistProgress.tasks;
   }, [partner, programEnrollments]);

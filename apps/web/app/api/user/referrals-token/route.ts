@@ -1,6 +1,9 @@
 import { withSession } from "@/lib/auth";
 import { dub } from "@/lib/dub";
-import { partnerCanViewMarketplace } from "@/lib/network/get-discoverability-requirements";
+import {
+  partnerHasEarnedCommissions,
+  partnerIsNotBanned,
+} from "@/lib/network/get-discoverability-requirements";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
@@ -31,16 +34,19 @@ export const GET = withSession(async ({ session }) => {
     },
   });
   const paidWorkspaces = user.projects.map((project) => project);
+
   // for free users, need to do some extra checks
-  if (!paidWorkspaces || paidWorkspaces.length === 0) {
-    // if the free user has a partner account, they are only eligible if they can view the program marketplace
-    const programEnrollments = user.partners[0]?.partner.programs;
+  if (paidWorkspaces.length === 0) {
+    // for partners with free workspaces, they are only eligible if they have a good reputation
+    const programEnrollments = user.partners[0]
+      ? user.partners[0].partner.programs
+      : [];
     if (
-      programEnrollments &&
-      !partnerCanViewMarketplace({
-        partner: user.partners[0]?.partner,
-        programEnrollments,
-      })
+      programEnrollments.length > 0 &&
+      !(
+        partnerHasEarnedCommissions(programEnrollments) &&
+        partnerIsNotBanned(programEnrollments)
+      )
     ) {
       return NextResponse.json({ publicToken: null });
     }
