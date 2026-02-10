@@ -1,21 +1,23 @@
-import type { Partner } from "@dub/prisma/client";
-import { stripeV2Fetch } from "./stripe-v2-client";
+import { STRIPE_API_VERSION, stripeV2Fetch } from "./stripe-v2-client";
 
-export async function getStripePayoutMethods(
-  partner: Pick<Partner, "stripeRecipientId">,
-) {
-  if (!partner.stripeRecipientId) {
-    throw new Error("Partner does not have a Stripe recipient account.");
-  }
+interface GetStripePayoutMethodsParams {
+  stripeRecipientId: string;
+}
 
+export async function getStripePayoutMethods({
+  stripeRecipientId,
+}: GetStripePayoutMethodsParams) {
   const { data, error } = await stripeV2Fetch(
     "/v2/money_management/payout_methods",
     {
-      query: { limit: 1 },
+      query: {
+        limit: 1,
+        "usage_status[payments]": "eligible",
+      },
       headers: {
-        "Stripe-Context": JSON.stringify({
-          account: partner.stripeRecipientId,
-        }),
+        "Stripe-Context": stripeRecipientId,
+        Authorization: `Bearer ${process.env.STRIPE_SECRET_KEY}`,
+        "Stripe-Version": STRIPE_API_VERSION,
       },
     },
   );

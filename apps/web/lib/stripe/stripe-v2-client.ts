@@ -1,4 +1,5 @@
 import { createFetch, createSchema } from "@better-fetch/fetch";
+import { prettyPrint } from "@dub/utils";
 import {
   createAccountLinkInputSchema,
   createAccountLinkOutputSchema,
@@ -10,9 +11,7 @@ import {
   listPayoutMethodsQuerySchema,
 } from "./stripe-v2-schemas";
 
-const STRIPE_API_VERSION = "2025-09-30.preview";
-
-export { createAccountLinkInputSchema } from "./stripe-v2-schemas";
+export const STRIPE_API_VERSION = "2025-09-30.preview";
 
 export const stripeV2Fetch = createFetch({
   baseURL: "https://api.stripe.com",
@@ -48,6 +47,6 @@ export const stripeV2Fetch = createFetch({
     },
   ),
   onError: ({ error }) => {
-    console.error("[Stripe V2] Error", error);
+    console.error("[Stripe V2] Error", prettyPrint(error));
   },
 });

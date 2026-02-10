@@ -1,6 +1,6 @@
 import "dotenv-flow/config";
 
-import { createStripeRecipientAccountLink } from "@/lib/stripe/create-stripe-recipient-account-link";
+import { createStripeOutboundPayment } from "@/lib/stripe/create-stripe-outbound-payment";
 
 async function main() {
   // await createStripeRecipientAccount({
@@ -10,15 +10,25 @@ async function main() {
   //   profileType: "individual",
   // });
 
-  const accountLink = await createStripeRecipientAccountLink({
+  // const accountLink = await createStripeRecipientAccountLink({
+  //   partner: {
+  //     id: "pn_xxx",
+  //     stripeRecipientId: "acct_1SzB92AionB5Y24O",
+  //   },
+  //   useCase: "account_onboarding",
+  // });
+
+  // console.log(accountLink);
+
+  const outboundPayment = await createStripeOutboundPayment({
     partner: {
-      id: "pn_xxx",
       stripeRecipientId: "acct_1SzB92AionB5Y24O",
     },
-    useCase: "account_onboarding",
+    amount: 100, // $1
+    description: "Test payout",
   });
 
-  console.log(accountLink);
+  console.log(outboundPayment);
 }
 
 main();

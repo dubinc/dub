@@ -10,15 +10,6 @@ import { prisma } from "@dub/prisma";
 import { Payout, Prisma } from "@dub/prisma/client";
 import { currencyFormatter, pluralize } from "@dub/utils";
 
-export type PayoutWithProgramName = Pick<
-  Payout,
-  "id" | "amount" | "invoiceId"
-> & {
-  program: {
-    name: string;
-  };
-};
-
 export const createStripeTransfer = async ({
   partnerId,
   invoiceId,

@@ -113,11 +113,15 @@ export const createOutboundPaymentOutputSchema = z.object({
 });
 
 export const listPayoutMethodsQuerySchema = z.object({
-  limit: z.number().optional(),
+  limit: z.number(),
+  "usage_status[payments]": z.enum(["eligible", "invalid", "requires_action"]),
 });
 
 export const listPayoutMethodsOutputSchema = z.object({
-  data: z.array(z.object({ id: z.string() })),
-  next_page_url: z.string().nullable().optional(),
-  previous_page_url: z.string().nullable().optional(),
+  data: z.array(
+    z.object({
+      id: z.string(),
+      type: z.enum(["bank_account", "card", "crypto_wallet"]),
+    }),
+  ),
 });

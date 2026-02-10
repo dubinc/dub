@@ -2,22 +2,17 @@ import type { Partner } from "@dub/prisma/client";
 import { getStripePayoutMethods } from "./get-stripe-payout-methods";
 import { stripeV2Fetch } from "./stripe-v2-client";
 
-export interface CreateOutboundPaymentParams {
+export interface CreateStripeOutboundPaymentParams {
   partner: Pick<Partner, "stripeRecipientId">;
-  amount: {
-    value: number;
-    currency: string;
-  };
-  description?: string;
-  metadata?: Record<string, string>;
+  amount: number;
+  description: string;
 }
 
 export async function createStripeOutboundPayment({
   partner,
   amount,
   description,
-  metadata,
-}: CreateOutboundPaymentParams) {
+}: CreateStripeOutboundPaymentParams) {
   const financialAccountId = process.env.STRIPE_FINANCIAL_ACCOUNT_ID;
 
   if (!financialAccountId) {
@@ -28,33 +23,42 @@ export async function createStripeOutboundPayment({
     throw new Error("Partner does not have a Stripe recipient account.");
   }
 
-  const payoutMethods = await getStripePayoutMethods(partner);
+  const payoutMethods = await getStripePayoutMethods({
+    stripeRecipientId: partner.stripeRecipientId,
+  });
 
   if (payoutMethods.length === 0) {
     throw new Error("Partner has no payout methods configured.");
   }
 
-  const payoutMethodId = payoutMethods[0].id;
+  const cryptoPayoutMethod = payoutMethods.find(
+    (method) => method.type === "crypto_wallet",
+  );
+
+  if (!cryptoPayoutMethod) {
+    throw new Error(
+      "Partner has no eligible crypto payout methods configured.",
+    );
+  }
 
   const { data, error } = await stripeV2Fetch(
     "/v2/money_management/outbound_payments",
     {
       body: {
-        amount: {
-          currency: amount.currency.toLowerCase(),
-          value: amount.value,
-        },
         from: {
           financial_account: financialAccountId,
-          currency: amount.currency.toLowerCase(),
+          currency: "usd",
         },
         to: {
           recipient: partner.stripeRecipientId,
-          payout_method: payoutMethodId,
-          currency: amount.currency.toLowerCase(),
+          payout_method: cryptoPayoutMethod.id,
+          currency: "usdc",
         },
-        ...(description && { description }),
-        ...(metadata && { metadata }),
+        amount: {
+          value: amount,
+          currency: "usd",
+        },
+        description,
       },
     },
   );
