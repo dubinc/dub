@@ -3,6 +3,7 @@
 import useGroup from "@/lib/swr/use-group";
 import type { GroupProps, RewardProps } from "@/lib/types";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
+import { useRewardHistorySheet } from "@/ui/activity-logs/reward-history-sheet";
 import { REWARD_EVENTS } from "@/ui/partners/constants";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
 import {
@@ -11,7 +12,7 @@ import {
 } from "@/ui/partners/rewards/add-edit-reward-sheet";
 import { EventType } from "@dub/prisma/client";
 import { Button, useRouterStuff } from "@dub/ui";
-import { cn } from "@dub/utils";
+import { cn, formatDate } from "@dub/utils";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -139,12 +140,21 @@ const RewardItem = ({
     reward: reward || undefined,
   });
 
+  const {
+    hasActivityLogs,
+    rewardHistorySheet,
+    setIsOpen: setHistoryOpen,
+  } = useRewardHistorySheet({
+    reward: reward ?? null,
+  });
+
   const Icon = REWARD_EVENTS[event].icon;
   const As = reward ? Link : "div";
 
   return (
     <>
       {RewardSheet}
+      {rewardHistorySheet}
       <As
         href={
           reward
@@ -163,14 +173,45 @@ const RewardItem = ({
           <Icon className="size-4 text-neutral-600" />
         </div>
         <div className="flex flex-1 flex-col justify-between gap-y-4 md:flex-row md:items-center">
-          <div className="flex items-center gap-2">
+          <div className="flex w-full items-center gap-2">
             {reward ? (
-              <span className="text-sm font-normal">
-                <ProgramRewardDescription
-                  reward={reward}
-                  amountClassName="text-blue-600"
-                />
-              </span>
+              <div className="flex min-w-0 flex-1 flex-col gap-1">
+                <div className="text-sm font-normal">
+                  <ProgramRewardDescription
+                    reward={reward}
+                    amountClassName="text-blue-600"
+                  />
+                </div>
+
+                <div className="flex items-center gap-1 text-xs font-medium text-neutral-500">
+                  <span>
+                    {`Updated ${formatDate(reward.updatedAt, {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })}`}
+                  </span>
+
+                  {hasActivityLogs && (
+                    <>
+                      <span
+                        className="ml-1 size-1 shrink-0 rounded-full bg-neutral-400"
+                        aria-hidden
+                      />
+                      <Button
+                        variant="outline"
+                        text="View history"
+                        className="h-4 w-fit px-1 py-0.5 text-xs font-medium text-neutral-500"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setHistoryOpen(true);
+                        }}
+                      />
+                    </>
+                  )}
+                </div>
+              </div>
             ) : (
               <div className="flex flex-col">
                 <span className="text-sm font-medium text-neutral-900">

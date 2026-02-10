@@ -1,5 +1,6 @@
 "use server";
 
+import { trackRewardActivityLog } from "@/lib/api/activity-log/track-reward-activity-log";
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getRewardOrThrow } from "@/lib/api/partners/get-reward-or-throw";
 import { serializeReward } from "@/lib/api/partners/serialize-reward";
@@ -96,6 +97,10 @@ export const updateRewardAction = authActionClient
       salePartnerGroup,
     ].some((group) => group?.slug === "default");
 
+    // Determine the groupId from the partner group relation
+    const partnerGroup =
+      clickPartnerGroup || leadPartnerGroup || salePartnerGroup;
+
     waitUntil(
       Promise.allSettled([
         recordAuditLog({
@@ -111,6 +116,17 @@ export const updateRewardAction = authActionClient
               metadata: serializeReward(rewardMetadata),
             },
           ],
+        }),
+
+        trackRewardActivityLog({
+          workspaceId: workspace.id,
+          programId,
+          userId: user.id,
+          resourceId: rewardMetadata.id,
+          parentResourceType: "group",
+          parentResourceId: partnerGroup?.id,
+          old: reward,
+          new: updatedReward,
         }),
 
         // we only cache default group pages for now so we need to invalidate them

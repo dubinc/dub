@@ -1,4 +1,5 @@
 import { ActivityLog } from "@/lib/types";
+import { TimestampTooltip } from "@dub/ui";
 import { formatDate } from "@dub/utils";
 import {
   getActivityLogIcon,
@@ -41,14 +42,20 @@ export function PartnerGroupActivityItem({
         <div className="flex min-w-0 flex-wrap items-center gap-1.5 text-sm text-neutral-700">
           <Renderer log={log} />
         </div>
-        <time className="text-xs text-neutral-500">
-          {formatDate(log.createdAt, {
-            month: "short",
-            year: "numeric",
-            hour: "numeric",
-            minute: "2-digit",
-          })}
-        </time>
+        <TimestampTooltip
+          timestamp={log.createdAt}
+          side="left"
+          rows={["local", "utc", "unix"]}
+        >
+          <time className="text-xs text-neutral-500">
+            {formatDate(log.createdAt, {
+              month: "short",
+              year: "numeric",
+              hour: "numeric",
+              minute: "2-digit",
+            })}
+          </time>
+        </TimestampTooltip>
       </div>
     </li>
   );

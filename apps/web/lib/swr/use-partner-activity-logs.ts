@@ -14,9 +14,7 @@ export function usePartnerActivityLogs({
 
   const searchParams = query
     ? new URLSearchParams({
-        resourceType: query.resourceType,
-        resourceId: query.resourceId,
-        ...(query.action && { action: query.action }),
+        ...query,
       }).toString()
     : "";
 

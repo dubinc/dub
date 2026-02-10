@@ -156,7 +156,6 @@ export const E2E_DISCOUNT = {
   couponId: "XZuejd0Q",
   couponTestId: "2NMXz81x",
   description: null,
-  autoProvisionEnabledAt: null,
 };
 
 // Program

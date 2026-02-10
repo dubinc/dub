@@ -8,10 +8,23 @@ import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { prettyPrint } from "@dub/utils";
 
+const ACTIONS_WITHOUT_CHANGE_SET: ActivityLogAction[] = [
+  "referral.created",
+  "reward.created",
+  "reward.deleted",
+];
+
 export interface TrackActivityLogInput
   extends Pick<
     Prisma.ActivityLogUncheckedCreateInput,
-    "workspaceId" | "programId" | "resourceId" | "userId" | "description"
+    | "workspaceId"
+    | "programId"
+    | "resourceId"
+    | "userId"
+    | "description"
+    | "parentResourceType"
+    | "parentResourceId"
+    | "batchId"
   > {
   resourceType: ActivityLogResourceType;
   action: ActivityLogAction;
@@ -25,7 +38,7 @@ export const trackActivityLog = async (
 
   inputs = inputs.filter(
     (i) =>
-      i.action === "referral.created" ||
+      ACTIONS_WITHOUT_CHANGE_SET.includes(i.action) ||
       (i.changeSet && Object.keys(i.changeSet).length > 0),
   );
 
