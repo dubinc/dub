@@ -32,10 +32,9 @@ describe("GET /payouts", async () => {
     expect(status).toEqual(200);
     expect(Array.isArray(data)).toBe(true);
     expect(data.length).toBeGreaterThan(0);
-
-    data.forEach((payout) => {
-      PayoutResponseTestSchema.parse(payout);
-    });
+    expect(z.array(PayoutResponseTestSchema).safeParse(data).success).toBe(
+      true,
+    );
   });
 
   test("filters by status", async () => {
@@ -43,6 +42,7 @@ describe("GET /payouts", async () => {
       path: "/payouts",
       query: {
         status: "processed",
+        limit: "5",
       },
     });
 
@@ -56,6 +56,7 @@ describe("GET /payouts", async () => {
       path: "/payouts",
       query: {
         partnerId: E2E_PARTNER.id,
+        limit: "5",
       },
     });
 
@@ -71,6 +72,7 @@ describe("GET /payouts", async () => {
       path: "/payouts",
       query: {
         tenantId: E2E_PARTNER.tenantId,
+        limit: "5",
       },
     });
 
