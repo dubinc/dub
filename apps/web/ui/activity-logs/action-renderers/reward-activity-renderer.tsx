@@ -3,6 +3,7 @@
 import { ActivityLog, ActivityLogAction, RewardProps } from "@/lib/types";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
 import { ProgramRewardModifiersTooltipContent } from "@/ui/partners/program-reward-modifiers-tooltip";
+import { TimestampTooltip } from "@dub/ui";
 import { formatDate } from "@dub/utils";
 import { UserAvatar } from "../activity-entry-chips";
 
@@ -88,14 +89,20 @@ export function RewardActivityRenderer({ log }: RewardActivityRendererProps) {
           </span>
         </div>
 
-        <time className="shrink-0 text-sm font-normal text-neutral-500">
-          {formatDate(log.createdAt, {
-            month: "short",
-            year: "numeric",
-            hour: "numeric",
-            minute: "2-digit",
-          })}
-        </time>
+        <TimestampTooltip
+          timestamp={log.createdAt}
+          side="left"
+          rows={["local", "utc", "unix"]}
+        >
+          <time className="shrink-0 text-xs font-normal text-neutral-500">
+            {formatDate(log.createdAt, {
+              month: "short",
+              year: "numeric",
+              hour: "numeric",
+              minute: "2-digit",
+            })}
+          </time>
+        </TimestampTooltip>
       </div>
 
       <div className="rounded-lg border border-neutral-200 bg-white px-3 py-2.5 text-xs font-medium leading-4 text-neutral-800">

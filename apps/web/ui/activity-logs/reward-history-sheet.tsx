@@ -6,14 +6,9 @@ import { RewardProps } from "@/lib/types";
 import { REWARD_EVENT_TO_RESOURCE_TYPE } from "@/lib/zod/schemas/activity-log";
 import { X } from "@/ui/shared/icons";
 import { Button, Sheet } from "@dub/ui";
+import { capitalize } from "@dub/utils";
 import { Dispatch, SetStateAction, useState } from "react";
 import { RewardActivitySection } from "./reward-activity-section";
-
-const REWARD_EVENT_TITLES: Record<RewardProps["event"], string> = {
-  sale: "Sale reward history",
-  lead: "Lead reward history",
-  click: "Click reward history",
-};
 
 interface RewardHistorySheetProps {
   reward: Pick<RewardProps, "id" | "event"> | null;
@@ -32,7 +27,7 @@ function RewardHistorySheetContent({
     <div className="flex size-full flex-col">
       <div className="flex h-16 shrink-0 items-center justify-between border-b border-neutral-200 px-6 py-4">
         <Sheet.Title className="text-lg font-semibold">
-          {REWARD_EVENT_TITLES[reward.event]}
+          {capitalize(reward.event)} reward history
         </Sheet.Title>
         <Sheet.Close asChild>
           <Button
