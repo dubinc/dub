@@ -47,6 +47,7 @@ import {
   fetcher,
   formatDate,
   nFormatter,
+  pluralize,
   truncate,
 } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
@@ -817,15 +818,17 @@ function ConfirmPayoutsSheetContent() {
         {holdPayoutsCount > 0 && holdPayoutsAmount && (
           <div className="flex items-center justify-center gap-2 text-sm text-neutral-600">
             <span>
+              Excluding{" "}
               <span className="font-medium text-neutral-800">
                 {nFormatter(holdPayoutsCount, { full: true })}
-              </span>{" "}
-              {holdPayoutsCount === 1 ? "payout is" : "payouts are"} also on
-              hold, totaling{" "}
+              </span>
+              {` on hold ${pluralize("payout", holdPayoutsCount)} `}
               <span className="font-medium text-neutral-800">
+                (
                 {currencyFormatter(holdPayoutsAmount, {
                   trailingZeroDisplay: "stripIfInteger",
                 })}
+                )
               </span>
             </span>
             <Button
