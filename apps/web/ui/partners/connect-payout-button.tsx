@@ -5,14 +5,23 @@ import { generateStripeAccountLink } from "@/lib/actions/partners/generate-strip
 import { hasPermission } from "@/lib/auth/partner-users/partner-user-permissions";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { useBankAccountRequirementsModal } from "@/ui/partners/bank-account-requirements-modal";
+import { useChoosePayoutMethodModal } from "@/ui/partners/choose-payout-method-modal";
 import { Button, ButtonProps, TooltipContent } from "@dub/ui";
 import { COUNTRIES } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo } from "react";
 import { toast } from "sonner";
+import type { StripePayoutMethodType } from "./payout-method-options";
 
-export function ConnectPayoutButton(props: ButtonProps) {
+type ConnectPayoutButtonProps = ButtonProps & {
+  payoutMethodType?: StripePayoutMethodType;
+};
+
+export function ConnectPayoutButton({
+  payoutMethodType,
+  ...props
+}: ConnectPayoutButtonProps) {
   const router = useRouter();
   const { partner, payoutMethod } = usePartnerProfile();
 
@@ -74,6 +83,9 @@ export function ConnectPayoutButton(props: ButtonProps) {
       onContinue: connectPayout,
     });
 
+  const { setShowChoosePayoutMethodModal, ChoosePayoutMethodModal } =
+    useChoosePayoutMethodModal();
+
   const errorMessage = useMemo(
     () =>
       !partner?.country
@@ -84,6 +96,34 @@ export function ConnectPayoutButton(props: ButtonProps) {
     [partner, payoutMethod],
   );
 
+  const handleClick = useCallback(() => {
+    if (payoutMethod === "paypal") {
+      connectPayout();
+      return;
+    }
+
+    if (payoutMethod === "stripe") {
+      if (payoutMethodType === "stablecoin") {
+        connectPayout();
+      } else if (payoutMethodType === "bank_account") {
+        setShowBankAccountRequirementsModal(true);
+      } else {
+        setShowChoosePayoutMethodModal(true);
+      }
+      return;
+    }
+
+    toast.error(
+      "Your country is not supported for payout. Please go to partners.dub.co/settings to update your country, or contact support.",
+    );
+  }, [
+    connectPayout,
+    payoutMethod,
+    payoutMethodType,
+    setShowBankAccountRequirementsModal,
+    setShowChoosePayoutMethodModal,
+  ]);
+
   if (partner && !hasPermission(partner.role, "payout_settings.update")) {
     return null;
   }
@@ -91,14 +131,11 @@ export function ConnectPayoutButton(props: ButtonProps) {
   return (
     <>
       {BankAccountRequirementsModal}
+      {payoutMethod === "stripe" &&
+        !payoutMethodType &&
+        ChoosePayoutMethodModal}
       <Button
-        onClick={() => {
-          if (payoutMethod === "stripe") {
-            setShowBankAccountRequirementsModal(true);
-          } else {
-            connectPayout();
-          }
-        }}
+        onClick={handleClick}
         loading={isStripePending || isPaypalPending}
         text={payoutMethod === "paypal" ? "Connect PayPal" : "Connect payout"}
         disabledTooltip={

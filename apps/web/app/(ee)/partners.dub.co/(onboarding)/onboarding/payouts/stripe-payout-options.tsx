@@ -1,13 +1,6 @@
 "use client";
 
-import { ConnectPayoutButton } from "@/ui/partners/connect-payout-button";
-import {
-  Badge,
-  CircleDollar,
-  GreekTemple,
-  StripeStablecoinIcon,
-} from "@dub/ui";
-import { Calendar, Globe, MapPin, Zap } from "lucide-react";
+import { StripePayoutMethodOptions } from "@/ui/partners/payout-method-options";
 import Link from "next/link";
 
 export function StripePayoutOptions() {
@@ -32,36 +25,7 @@ export function StripePayoutOptions() {
             </p>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-2">
-            <PayoutMethodCard
-              title="Stablecoin"
-              recommended
-              icon={
-                <div className="flex size-10 items-center justify-center rounded-lg border border-[#1717170D] bg-[#EDE9FE]">
-                  <StripeStablecoinIcon className="size-5" />
-                </div>
-              }
-              features={[
-                { icon: <CircleDollar />, text: "Paid in USDC" },
-                { icon: <Globe />, text: "Accepted worldwide" },
-                { icon: <Zap />, text: "Payouts deposited instantly" },
-              ]}
-            />
-
-            <PayoutMethodCard
-              title="Bank Account"
-              icon={
-                <div className="flex size-10 items-center justify-center rounded-lg border border-[#1717171A] bg-white">
-                  <GreekTemple className="text-content-emphasis size-5" />
-                </div>
-              }
-              features={[
-                { icon: <MapPin />, text: "Paid in local currency" },
-                { icon: <GreekTemple />, text: "Local bank required" },
-                { icon: <Calendar />, text: "Payouts deposited in days" },
-              ]}
-            />
-          </div>
+          <StripePayoutMethodOptions />
         </div>
       </div>
 
@@ -72,50 +36,5 @@ export function StripePayoutOptions() {
         I'll complete this later
       </Link>
     </>
-  );
-}
-
-function PayoutMethodCard({
-  icon,
-  title,
-  features,
-  recommended,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  features: { icon: React.ReactNode; text: string }[];
-  recommended?: boolean;
-}) {
-  return (
-    <div className="relative flex flex-col rounded-xl border border-neutral-200 bg-neutral-100 p-4">
-      {recommended && (
-        <Badge
-          variant="green"
-          className="absolute right-3 top-3 rounded-md font-semibold text-green-700"
-        >
-          Recommended
-        </Badge>
-      )}
-
-      <div className="flex flex-col gap-2 text-left">
-        <div>{icon}</div>
-        <h3 className="text-sm font-semibold text-neutral-900">{title}</h3>
-        <ul className="flex-1 space-y-2.5 text-xs font-medium text-neutral-600">
-          {features.map(({ icon: featureIcon, text }) => (
-            <li key={text} className="flex items-center gap-2">
-              <span className="flex size-4 shrink-0 items-center justify-center text-neutral-500 [&>svg]:size-4">
-                {featureIcon}
-              </span>
-              {text}
-            </li>
-          ))}
-        </ul>
-
-        <ConnectPayoutButton
-          text="Connect"
-          className="mt-4 h-9 w-full rounded-lg"
-        />
-      </div>
-    </div>
   );
 }
