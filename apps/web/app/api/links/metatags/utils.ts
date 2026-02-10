@@ -98,8 +98,38 @@ const generateFallbackMetadata = (url: string) => {
   }
 };
 
+// TikTok-only: short links (vm/vt) and video pages (www/m + /video/)
+function isTikTokShortLink(url: string): boolean {
+  try {
+    const host = new URL(url).hostname;
+    return host === "vm.tiktok.com" || host === "vt.tiktok.com";
+  } catch {
+    return false;
+  }
+}
+
+function isTikTokVideoPage(url: string): boolean {
+  try {
+    const u = new URL(url);
+    return (
+      (u.hostname === "www.tiktok.com" || u.hostname === "m.tiktok.com") &&
+      u.pathname.includes("/video/")
+    );
+  } catch {
+    return false;
+  }
+}
+
 export const getMetaTags = async (url: string) => {
-  const html = await getHtml(url);
+  let fetchUrl = url;
+  if (isTikTokShortLink(url)) {
+    try {
+      const res = await fetchWithTimeout(url, { redirect: "follow" });
+      if (res.url) fetchUrl = res.url;
+    } catch {}
+  }
+
+  const html = await getHtml(fetchUrl);
   if (!html) {
     // If we couldn't fetch the HTML (e.g., due to Cloudflare protection),
     // generate fallback metadata from the URL
@@ -140,11 +170,30 @@ export const getMetaTags = async (url: string) => {
     object["icon"] ||
     object["shortcut icon"];
 
-  waitUntil(recordMetatags(url, title && description && image ? false : true));
+  let imageUrl = getRelativeUrl(fetchUrl, image);
+
+  // TikTok only: reject favicon as preview, fallback to oEmbed thumbnail
+  if (isTikTokShortLink(url) || isTikTokVideoPage(fetchUrl)) {
+    if (imageUrl && (imageUrl.includes("favicon") || imageUrl.endsWith(".ico"))) imageUrl = null;
+    if (!imageUrl) {
+      try {
+        const res = await fetchWithTimeout(
+          `https://www.tiktok.com/oembed?url=${encodeURIComponent(fetchUrl)}`,
+          { headers: { Accept: "application/json" } },
+        );
+        if (res.ok) {
+          const data = (await res.json()) as { thumbnail_url?: string };
+          if (data.thumbnail_url) imageUrl = data.thumbnail_url;
+        }
+      } catch {}
+    }
+  }
+
+  waitUntil(recordMetatags(url, title && description && imageUrl ? false : true));
 
   return {
     title: title || url,
     description: description || "No description",
-    image: getRelativeUrl(url, image),
+    image: imageUrl,
   };
 };
