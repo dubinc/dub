@@ -1,12 +1,10 @@
 import type { Partner } from "@dub/prisma/client";
 import { stripeV2Fetch } from "./stripe-v2-client";
 
-type CreateStripeRecipientAccountParams = Pick<
-  Partner,
-  "name" | "country" | "profileType"
-> & {
+interface CreateStripeRecipientAccountParams
+  extends Pick<Partner, "name" | "country" | "profileType"> {
   email: NonNullable<Partner["email"]>;
-};
+}
 
 export async function createStripeRecipientAccount({
   name,

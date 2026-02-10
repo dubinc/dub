@@ -27,6 +27,33 @@ const createRecipientAccountOutputSchema = z.object({
   livemode: z.boolean(),
 });
 
+export const createAccountLinkInputSchema = z.object({
+  account: z.string(),
+  use_case: z.object({
+    type: z.enum(["account_onboarding", "account_update"]),
+    account_onboarding: z
+      .object({
+        configurations: z.array(z.literal("recipient")),
+        refresh_url: z.url(),
+        return_url: z.url().optional(),
+      })
+      .optional(),
+    account_update: z
+      .object({
+        configurations: z.array(z.literal("recipient")),
+        refresh_url: z.url(),
+        return_url: z.url().optional(),
+      })
+      .optional(),
+  }),
+});
+
+const createAccountLinkOutputSchema = z.object({
+  url: z.string(),
+  expires_at: z.union([z.number(), z.string()]),
+  livemode: z.boolean(),
+});
+
 export const stripeV2Fetch = createFetch({
   baseURL: "https://api.stripe.com",
   headers: {
@@ -39,6 +66,11 @@ export const stripeV2Fetch = createFetch({
         method: "post",
         input: createRecipientAccountInputSchema,
         output: createRecipientAccountOutputSchema,
+      },
+      "/v2/core/account_links": {
+        method: "post",
+        input: createAccountLinkInputSchema,
+        output: createAccountLinkOutputSchema,
       },
     },
     {
