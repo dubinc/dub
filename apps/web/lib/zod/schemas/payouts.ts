@@ -3,7 +3,7 @@ import { CUTOFF_PERIOD_ENUM } from "@/lib/partners/cutoff-period";
 import { PayoutMode, PayoutStatus } from "@dub/prisma/client";
 import * as z from "zod/v4";
 import { getPaginationQuerySchema } from "./misc";
-import { EnrolledPartnerSchema, PartnerSchema } from "./partners";
+import { EnrolledPartnerSchema } from "./partners";
 import { ProgramSchema } from "./programs";
 import { UserSchema } from "./users";
 
@@ -88,8 +88,15 @@ export const PayoutSchema = z.object({
 });
 
 export const PayoutResponseSchema = PayoutSchema.extend({
-  partner: PartnerSchema.extend({
-    tenantId: z.string().nullable(),
+  partner: EnrolledPartnerSchema.pick({
+    id: true,
+    name: true,
+    email: true,
+    image: true,
+    payoutsEnabledAt: true,
+    country: true,
+    groupId: true,
+    tenantId: true,
   }),
   user: UserSchema.nullish(),
 });
