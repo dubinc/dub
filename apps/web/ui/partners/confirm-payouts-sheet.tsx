@@ -142,13 +142,13 @@ function ConfirmPayoutsSheetContent() {
   );
 
   const { holdCount, holdAmount } = useMemo(() => {
-    const pendingHoldPayouts = holdPayoutsCount?.find(
-      (payout) => payout.status === "pending",
+    const holdPayouts = holdPayoutsCount?.find(
+      (payout) => payout.status === "hold" || payout.status === "pending",
     );
 
     return {
-      holdCount: pendingHoldPayouts?.count ?? 0,
-      holdAmount: pendingHoldPayouts?.amount ?? 0,
+      holdCount: holdPayouts?.count ?? 0,
+      holdAmount: holdPayouts?.amount ?? 0,
     };
   }, [holdPayoutsCount]);
 
