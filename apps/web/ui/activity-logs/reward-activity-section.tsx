@@ -21,7 +21,7 @@ export function RewardActivitySection({
   const { activityLogs, loading, error } = useActivityLogs({
     query: {
       resourceType,
-      parentResourceId: group?.id,
+      ...(group ? { parentResourceId: group.id } : {}),
     },
     enabled: !!reward.id,
   });

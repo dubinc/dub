@@ -45,7 +45,7 @@ async function main() {
       workspaceId: reward.program.workspaceId,
       programId: reward.program.id,
       resourceId: reward.id,
-      parentResourceType: "reward",
+      parentResourceType: "group",
       parentResourceId:
         reward.clickPartnerGroup?.id ??
         reward.leadPartnerGroup?.id ??

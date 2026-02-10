@@ -69,7 +69,7 @@ export function useRewardHistorySheet({
     query: reward
       ? {
           resourceType: REWARD_EVENT_TO_RESOURCE_TYPE[reward.event],
-          parentResourceId: group?.id,
+          ...(group ? { parentResourceId: group.id } : {}),
         }
       : undefined,
     enabled: !!reward?.id,

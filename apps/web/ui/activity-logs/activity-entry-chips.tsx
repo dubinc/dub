@@ -79,10 +79,10 @@ export function UserChip({ user }: UserChipProps) {
     <ActivityChip>
       <img
         src={user.image || `${OG_AVATAR_URL}${user.id}`}
-        alt={`${user.name || user.email || "User"}`}
+        alt={`${user.name || user.email || "Deleted user"}`}
         className="size-4 shrink-0 rounded-full"
       />
-      {user.name || user.email || "Unknown user"}
+      {user.name || user.email || "Deleted user"}
     </ActivityChip>
   );
 }
@@ -148,9 +148,7 @@ export function UserAvatar({ user }: { user: ActivityLog["user"] }) {
             alt={name}
             className="size-6 shrink-0 rounded-full"
           />
-          <p className="text-sm font-medium text-neutral-900">
-            {user.name || user.email}
-          </p>
+          <p className="text-sm font-medium text-neutral-900">{name}</p>
           {user.email && user.name && (
             <p className="text-xs text-neutral-500">{user.email}</p>
           )}
