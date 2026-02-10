@@ -47,7 +47,13 @@ export const partnerCanViewMarketplace = ({
   );
 };
 
-export function getDiscoverabilityRequirements({
+export type DiscoverabilityRequirement = {
+  label: string;
+  href?: string;
+  completed: boolean;
+};
+
+export function getPartnerProfileChecklistProgress({
   partner,
   programEnrollments,
 }: {
@@ -64,6 +70,51 @@ export function getDiscoverabilityRequirements({
     "programId" | "status" | "totalCommissions"
   >[];
 }) {
+  const tasks = getDiscoverabilityRequirements({
+    partner,
+    programEnrollments,
+  });
+
+  const completedCount = tasks.filter(({ completed }) => completed).length;
+  const totalCount = tasks.length;
+
+  const enrollmentProgramIds = new Set(
+    programEnrollments.map((enrollment) => enrollment.programId),
+  );
+  const hasExcludedProgram = EXCLUDED_PROGRAM_IDS.some((id) =>
+    enrollmentProgramIds.has(id),
+  );
+
+  const isApplicable = !(
+    hasExcludedProgram && !partnerHasEarnedCommissions(programEnrollments)
+  );
+
+  return {
+    tasks,
+    completedCount,
+    totalCount,
+    isApplicable,
+    isComplete: !isApplicable || completedCount === totalCount,
+  };
+}
+
+export function getDiscoverabilityRequirements({
+  partner,
+  programEnrollments,
+}: {
+  partner: Pick<
+    PartnerProps,
+    | "description"
+    | "monthlyTraffic"
+    | "preferredEarningStructures"
+    | "salesChannels"
+    | "platforms"
+  >;
+  programEnrollments: Pick<
+    EnrolledPartnerProps,
+    "programId" | "status" | "totalCommissions"
+  >[];
+}): DiscoverabilityRequirement[] {
   return [
     {
       label: "Add basic profile info",

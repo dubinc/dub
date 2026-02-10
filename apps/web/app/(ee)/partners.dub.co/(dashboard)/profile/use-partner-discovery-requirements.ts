@@ -1,7 +1,5 @@
-import { EXCLUDED_PROGRAM_IDS } from "@/lib/constants/partner-profile";
 import {
-  getDiscoverabilityRequirements,
-  partnerHasEarnedCommissions,
+  getPartnerProfileChecklistProgress,
 } from "@/lib/network/get-discoverability-requirements";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
@@ -14,23 +12,15 @@ export function usePartnerDiscoveryRequirements() {
   return useMemo(() => {
     if (!partner || !programEnrollments) return undefined;
 
-    const enrollmentProgramIds = new Set(
-      programEnrollments.map((e) => e.programId),
-    );
-    const hasExcludedProgram = EXCLUDED_PROGRAM_IDS.some((id) =>
-      enrollmentProgramIds.has(id),
-    );
-
-    if (
-      hasExcludedProgram &&
-      !partnerHasEarnedCommissions(programEnrollments)
-    ) {
-      return undefined;
-    }
-
-    return getDiscoverabilityRequirements({
+    const checklistProgress = getPartnerProfileChecklistProgress({
       partner,
       programEnrollments,
     });
+
+    if (!checklistProgress.isApplicable) {
+      return undefined;
+    }
+
+    return checklistProgress.tasks;
   }, [partner, programEnrollments]);
 }

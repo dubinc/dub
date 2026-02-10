@@ -1,6 +1,5 @@
 "use client";
 
-import { partnerCanViewMarketplace } from "@/lib/network/get-discoverability-requirements";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
 import { ProgramProps } from "@/lib/types";
@@ -43,10 +42,6 @@ export function PartnerProgramDropdown() {
         }
       : undefined;
   }, [programSlug, programEnrollments]);
-
-  const canViewMarketplace =
-    programEnrollments &&
-    partnerCanViewMarketplace({ partner, programEnrollments });
 
   const [openPopover, setOpenPopover] = useState(false);
 
@@ -91,21 +86,19 @@ export function PartnerProgramDropdown() {
                     All programs
                   </span>
                 </Link>
-                {canViewMarketplace && (
-                  <Link
-                    href="/programs/marketplace"
-                    className={cn(
-                      "flex items-center gap-x-2.5 rounded-md px-2.5 py-2 text-base transition-all duration-75 hover:bg-neutral-200/50 active:bg-neutral-200/80 sm:text-sm",
-                      "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
-                    )}
-                    onClick={() => setOpenPopover(false)}
-                  >
-                    <Shop className="size-5 text-neutral-500 sm:size-4" />
-                    <span className="text-content-default block truncate">
-                      Marketplace
-                    </span>
-                  </Link>
-                )}
+                <Link
+                  href="/programs/marketplace"
+                  className={cn(
+                    "flex items-center gap-x-2.5 rounded-md px-2.5 py-2 text-base transition-all duration-75 hover:bg-neutral-200/50 active:bg-neutral-200/80 sm:text-sm",
+                    "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
+                  )}
+                  onClick={() => setOpenPopover(false)}
+                >
+                  <Shop className="size-5 text-neutral-500 sm:size-4" />
+                  <span className="text-content-default block truncate">
+                    Marketplace
+                  </span>
+                </Link>
               </div>
             </div>
           </div>

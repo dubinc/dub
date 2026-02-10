@@ -1,15 +1,18 @@
 "use client";
 
 import { acceptProgramInviteAction } from "@/lib/actions/partners/accept-program-invite";
+import { getPartnerProfileChecklistProgress } from "@/lib/network/get-discoverability-requirements";
 import { mutatePrefix } from "@/lib/swr/mutate";
+import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
 import { NetworkProgramProps } from "@/lib/types";
 import { useProgramApplicationSheet } from "@/ui/partners/program-application-sheet";
-import { Button, useKeyboardShortcut } from "@dub/ui";
+import { Button, ProgressCircle, useKeyboardShortcut } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
+import { ReactNode } from "react";
 import { toast } from "sonner";
 
 export function MarketplaceProgramHeaderControls({
@@ -47,15 +50,53 @@ function ApplyButton({ program }: { program: NetworkProgramProps }) {
       onSuccess: () => mutatePrefix("/api/network/programs"),
     });
 
+  const { partner } = usePartnerProfile();
+  const { programEnrollments } = useProgramEnrollments();
   const { programEnrollment } = useProgramEnrollment();
 
-  const disabledTooltip =
+  const checklistProgress =
+    partner && programEnrollments
+      ? getPartnerProfileChecklistProgress({
+          partner,
+          programEnrollments,
+        })
+      : undefined;
+
+  const disabledTooltip: ReactNode =
     programEnrollment?.status === "banned"
       ? "You are banned from this program"
       : programEnrollment?.status === "pending"
         ? "Your application is under review"
         : programEnrollment?.status === "rejected"
           ? "Your application was rejected"
+          : checklistProgress && !checklistProgress.isComplete
+            ? (
+                <div className="max-w-xs p-4">
+                  <div className="text-content-default text-sm leading-5">
+                    Complete your{" "}
+                    <Link
+                      href="/profile"
+                      className="underline underline-offset-2"
+                    >
+                      partner profile
+                    </Link>{" "}
+                    to apply
+                  </div>
+                  <div className="bg-bg-subtle mt-3 flex items-center justify-center gap-2 rounded-lg px-2.5 py-1.5">
+                    <ProgressCircle
+                      progress={
+                        checklistProgress.completedCount /
+                        checklistProgress.totalCount
+                      }
+                      className="text-green-500"
+                    />
+                    <span className="text-content-default text-sm font-medium">
+                      {checklistProgress.completedCount} of{" "}
+                      {checklistProgress.totalCount} tasks completed
+                    </span>
+                  </div>
+                </div>
+              )
           : undefined;
 
   useKeyboardShortcut("a", () => setIsApplicationSheetOpen(true), {
