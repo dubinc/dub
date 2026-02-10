@@ -14,7 +14,10 @@ export async function deactivateProgram(programId: string) {
       },
       data: {
         deactivatedAt: new Date(),
+        // additional fields to reset
         messagingEnabledAt: null,
+        addedToMarketplaceAt: null,
+        featuredOnMarketplaceAt: null,
       },
     }),
 
