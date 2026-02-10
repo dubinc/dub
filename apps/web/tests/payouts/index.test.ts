@@ -48,7 +48,8 @@ describe("GET /payouts", async () => {
 
     expect(status).toEqual(200);
     expect(Array.isArray(data)).toBe(true);
-    expect(data.some((payout) => payout.status === "processed")).toBe(true);
+    expect(data.length).toBeGreaterThan(0);
+    expect(data.every((payout) => payout.status === "processed")).toBe(true);
   });
 
   test("filters by partnerId", async () => {
