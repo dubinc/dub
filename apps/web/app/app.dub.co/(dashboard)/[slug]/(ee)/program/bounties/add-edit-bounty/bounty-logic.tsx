@@ -1,3 +1,5 @@
+"use client";
+
 import { PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES } from "@/lib/api/bounties/performance-bounty-scope-attributes";
 import { isCurrencyAttribute } from "@/lib/api/workflows/utils";
 import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
@@ -9,9 +11,9 @@ import {
 } from "@/ui/shared/inline-badge-popover";
 import { Trophy } from "@dub/ui/icons";
 import { cn, currencyFormatter } from "@dub/utils";
-import { useAddEditBountyForm } from "app/app.dub.co/(dashboard)/[slug]/(ee)/program/bounties/add-edit-bounty-sheet";
 import { useContext } from "react";
 import { Controller } from "react-hook-form";
+import { useAddEditBountyForm } from "./bounty-form-context";
 
 export function BountyLogic({ className }: { className?: string }) {
   const { control, watch } = useAddEditBountyForm();
@@ -88,8 +90,7 @@ export function BountyLogic({ className }: { className?: string }) {
               text={
                 value
                   ? isCurrencyAttribute(attribute)
-                    ? // value is in dollars, so we need to convert to cents
-                      currencyFormatter(value * 100, {
+                    ? currencyFormatter(value * 100, {
                         trailingZeroDisplay: "stripIfInteger",
                       })
                     : value

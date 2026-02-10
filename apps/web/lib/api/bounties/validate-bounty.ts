@@ -1,5 +1,4 @@
-import { createBountySchema } from "@/lib/zod/schemas/bounties";
-import * as z from "zod/v4";
+import { BountyFormData } from "@/lib/types";
 import { DubApiError } from "../errors";
 
 export function validateBounty({
@@ -10,7 +9,7 @@ export function validateBounty({
   rewardAmount,
   rewardDescription,
   performanceScope,
-}: Partial<z.infer<typeof createBountySchema>>) {
+}: Partial<BountyFormData>) {
   startsAt = startsAt || new Date();
 
   if (endsAt && endsAt < startsAt) {

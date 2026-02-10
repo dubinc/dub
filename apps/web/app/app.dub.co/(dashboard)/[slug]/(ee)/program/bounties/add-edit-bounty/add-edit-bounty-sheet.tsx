@@ -10,12 +10,8 @@ import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { BountyProps } from "@/lib/types";
-import {
-  bountyPerformanceConditionSchema,
-  createBountySchema,
-} from "@/lib/zod/schemas/bounties";
-import { BountyLogic } from "@/ui/partners/bounties/bounty-logic";
+import { BountyFormData, BountyProps } from "@/lib/types";
+import { bountyPerformanceConditionSchema } from "@/lib/zod/schemas/bounties";
 import { GroupsMultiSelect } from "@/ui/partners/groups/groups-multi-select";
 import {
   ProgramSheetAccordion,
@@ -23,7 +19,6 @@ import {
   ProgramSheetAccordionItem,
   ProgramSheetAccordionTrigger,
 } from "@/ui/partners/program-sheet-accordion";
-import { AmountInput } from "@/ui/shared/amount-input";
 import { X } from "@/ui/shared/icons";
 import { MaxCharactersCounter } from "@/ui/shared/max-characters-counter";
 import {
@@ -38,29 +33,19 @@ import {
   Sheet,
   SmartDateTimePicker,
   Switch,
-  ToggleGroup,
   useRouterStuff,
 } from "@dub/ui";
 import { cn, formatDate } from "@dub/utils";
 import { Dispatch, SetStateAction, useMemo, useState } from "react";
-import {
-  Controller,
-  FormProvider,
-  useForm,
-  useFormContext,
-} from "react-hook-form";
+import { Controller, FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
-import * as z from "zod/v4";
+import { BountyCriteriaSection } from "./bounty-criteria-section";
 import { useConfirmCreateBountyModal } from "./confirm-create-bounty-modal";
 
-type BountySheetProps = {
+interface BountySheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
   bounty?: BountyProps;
-};
-
-type FormData = z.infer<typeof createBountySchema>;
-
-export const useAddEditBountyForm = () => useFormContext<FormData>();
+}
 
 const BOUNTY_TYPES: CardSelectorOption[] = [
   {
@@ -72,18 +57,6 @@ const BOUNTY_TYPES: CardSelectorOption[] = [
     key: "submission",
     label: "Submission",
     description: "Reward for task completion",
-  },
-];
-
-// Only valid for submission bounties
-const REWARD_TYPES = [
-  {
-    value: "flat",
-    label: "Flat rate",
-  },
-  {
-    value: "custom",
-    label: "Custom",
   },
 ];
 
@@ -146,7 +119,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     bounty ? (bounty.rewardAmount ? "flat" : "custom") : "flat",
   );
 
-  const form = useForm<FormData>({
+  const form = useForm<BountyFormData>({
     defaultValues: {
       name: bounty?.name || undefined,
       description: bounty?.description || undefined,
@@ -645,7 +618,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                       <CardSelector
                         options={BOUNTY_TYPES}
                         value={watch("type")}
-                        onChange={(value: FormData["type"]) =>
+                        onChange={(value: BountyFormData["type"]) =>
                           setValue("type", value)
                         }
                         name="bounty-type"
@@ -825,7 +798,6 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                             </div>
                           </div>
                         </div>
-
                       </>
                     )}
 
@@ -884,122 +856,10 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                 </ProgramSheetAccordionContent>
               </ProgramSheetAccordionItem>
 
-              <ProgramSheetAccordionItem value="bounty-criteria">
-                <ProgramSheetAccordionTrigger>
-                  Criteria
-                </ProgramSheetAccordionTrigger>
-                <ProgramSheetAccordionContent>
-                  <div className="space-y-6">
-                    <p className="text-content-default text-sm">
-                      Set the reward and completion criteria.
-                    </p>
-
-                    {type === "submission" && (
-                      <ToggleGroup
-                        className="flex w-full items-center gap-1 rounded-md border border-neutral-200 bg-neutral-100 p-1"
-                        optionClassName="h-8 flex items-center justify-center rounded-md flex-1 text-sm"
-                        indicatorClassName="bg-white border-none rounded-md"
-                        options={REWARD_TYPES}
-                        selected={rewardType}
-                        selectAction={(id: RewardType) => setRewardType(id)}
-                      />
-                    )}
-
-                    {(rewardType === "flat" || type === "performance") && (
-                      <div>
-                        <label
-                          htmlFor="rewardAmount"
-                          className="text-sm font-medium text-neutral-800"
-                        >
-                          Reward
-                        </label>
-                        <div className="mt-2">
-                          <Controller
-                            name="rewardAmount"
-                            control={control}
-                            rules={{
-                              required: true,
-                              min: 0,
-                            }}
-                            render={({ field }) => (
-                              <AmountInput
-                                {...field}
-                                id="rewardAmount"
-                                amountType="flat"
-                                placeholder="200"
-                                error={errors.rewardAmount?.message}
-                                value={
-                                  field.value == null || isNaN(field.value)
-                                    ? ""
-                                    : field.value
-                                }
-                                onChange={(e) => {
-                                  const val = e.target.value;
-
-                                  field.onChange(
-                                    val === "" ? null : parseFloat(val),
-                                  );
-                                }}
-                              />
-                            )}
-                          />
-                        </div>
-                      </div>
-                    )}
-
-                    {rewardType === "custom" && type === "submission" && (
-                      <div>
-                        <label
-                          htmlFor="rewardDescription"
-                          className="text-sm font-medium text-neutral-800"
-                        >
-                          Reward
-                        </label>
-                        <div className="mt-2">
-                          <input
-                            id="rewardDescription"
-                            type="text"
-                            maxLength={100}
-                            className={cn(
-                              "block w-full rounded-md border-neutral-300 px-3 py-2 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-                              errors.rewardDescription &&
-                                "border-red-600 focus:border-red-500 focus:ring-red-600",
-                            )}
-                            placeholder="Earn an additional 10% if you hit your revenue goal"
-                            {...register("rewardDescription", {
-                              setValueAs: (value) =>
-                                value === "" ? null : value,
-                            })}
-                          />
-                          <div className="mt-1 text-left">
-                            <span className="text-xs text-neutral-400">
-                              {rewardDescription?.length || 0}/100
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {type === "performance" && (
-                      <div>
-                        <span className="text-sm font-medium text-neutral-800">
-                          Logic
-                        </span>
-                        <BountyLogic className="mt-2" />
-                      </div>
-                    )}
-
-                    {rewardType === "custom" && type === "submission" && (
-                      <div className="gap-4 rounded-lg bg-orange-50 px-4 py-2.5 text-center">
-                        <span className="text-sm font-medium text-orange-800">
-                          When reviewing these submissions, a custom reward
-                          amount will be required to approve.
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </ProgramSheetAccordionContent>
-              </ProgramSheetAccordionItem>
+              <BountyCriteriaSection
+                rewardType={rewardType}
+                setRewardType={setRewardType}
+              />
 
               {type === "submission" && (
                 <ProgramSheetAccordionItem value="submission-requirements">
