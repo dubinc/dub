@@ -6,7 +6,7 @@ import { notifyPartnerApplication } from "@/lib/api/partners/notify-partner-appl
 import { getIP } from "@/lib/api/utils/get-ip";
 import { getSession } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
-import { partnerCanViewMarketplace } from "@/lib/network/get-discoverability-requirements";
+import { getPartnerProfileChecklistProgress } from "@/lib/network/get-partner-profile-checklist-progress";
 import {
   formatApplicationFormData,
   formatWebsiteAndSocialsFields,
@@ -165,24 +165,28 @@ export const createProgramApplicationAction = actionClient
           },
           include: {
             programs: true,
+            platforms: true,
           },
         })
       : null;
 
     // if the application form is not published and
-    // the partner is not logged in OR is logged in but cannot view the marketplace, throw an error
-    if (
-      !group.applicationFormPublishedAt &&
-      (!existingPartner ||
-        !partnerCanViewMarketplace({
-          partner: existingPartner,
-          programEnrollments: existingPartner.programs,
-        }))
-    ) {
+    // the partner is not logged in, throw an error
+    if (!group.applicationFormPublishedAt && !existingPartner) {
       throw new Error("This program is no longer accepting applications.");
     }
 
     if (existingPartner) {
+      // if an existing partner has an incomplete profile, prompt them to complete it
+      const { isComplete } = getPartnerProfileChecklistProgress({
+        partner: existingPartner,
+        programEnrollments: existingPartner.programs,
+      });
+
+      if (!isComplete) {
+        throw new Error("Complete your partner profile to apply.");
+      }
+
       return createApplicationAndEnrollment({
         workspace: program.workspace,
         program,

@@ -188,7 +188,7 @@ export const PLANS: PlanDetails[] = [
     },
     featureTitle: "Everything in Free, plus:",
     features: [
-      { id: "clicks", text: "50K tracked clicks/mo" },
+      { id: "clicks", text: "50K tracked events/mo" },
       { id: "links", text: "1K new links/mo" },
       { id: "retention", text: "1-year analytics retention" },
       { id: "domains", text: "10 domains" },
@@ -279,7 +279,7 @@ export const PLANS: PlanDetails[] = [
     features: [
       {
         id: "clicks",
-        text: "250K tracked clicks/mo",
+        text: "250K tracked events/mo",
       },
       {
         id: "links",
@@ -398,7 +398,7 @@ export const PLANS: PlanDetails[] = [
     features: [
       {
         id: "clicks",
-        text: "1M tracked clicks/mo",
+        text: "1M tracked events/mo",
       },
       {
         id: "links",
@@ -526,7 +526,7 @@ const enrichPlanWithTierData = (
       ...feature,
       text:
         feature.id === "clicks"
-          ? `${nFormatter(tierLimits.clicks)} tracked clicks/mo`
+          ? `${nFormatter(tierLimits.clicks)} tracked events/mo`
           : feature.id === "links"
             ? `${nFormatter(tierLimits.links)} new links/mo`
             : feature.text,
