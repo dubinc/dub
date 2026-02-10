@@ -100,9 +100,7 @@ export function ConnectPayoutButton(props: ButtonProps) {
           }
         }}
         loading={isStripePending || isPaypalPending}
-        text={
-          payoutMethod === "paypal" ? "Connect PayPal" : "Connect bank account"
-        }
+        text={payoutMethod === "paypal" ? "Connect PayPal" : "Connect payout"}
         disabledTooltip={
           errorMessage && (
             <TooltipContent

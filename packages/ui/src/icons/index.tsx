@@ -57,6 +57,7 @@ export * from "./payment-platforms/card-visa";
 export * from "./payment-platforms/paypal";
 export * from "./payment-platforms/stripe-icon";
 export * from "./payment-platforms/stripe-link";
+export * from "./payment-platforms/stripe-stablecoin-icon";
 
 // SDKs
 export * from "./go";

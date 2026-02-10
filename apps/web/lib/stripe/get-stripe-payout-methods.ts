@@ -15,9 +15,9 @@ export async function getStripePayoutMethods({
         "usage_status[payments]": "eligible",
       },
       headers: {
-        "Stripe-Context": stripeRecipientId,
         Authorization: `Bearer ${process.env.STRIPE_SECRET_KEY}`,
         "Stripe-Version": STRIPE_API_VERSION,
+        "Stripe-Context": stripeRecipientId,
       },
     },
   );
