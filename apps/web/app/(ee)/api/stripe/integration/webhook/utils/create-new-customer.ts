@@ -1,24 +1,22 @@
 import { createId } from "@/lib/api/create-id";
-import { detectAndRecordFraudEvent } from "@/lib/api/fraud/detect-record-fraud-event";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { generateRandomName } from "@/lib/names";
-import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import { getClickEvent, recordLead } from "@/lib/tinybird";
-import { WebhookPartner } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformLeadEventData } from "@/lib/webhook/transform";
 import { prisma } from "@dub/prisma";
-import { Commission, WorkflowTrigger } from "@dub/prisma/client";
-import { nanoid, pick } from "@dub/utils";
+import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
 
 export async function createNewCustomer(event: Stripe.Event) {
   const stripeCustomer = event.data.object as Stripe.Customer;
   const stripeAccountId = event.account as string;
-  const dubCustomerExternalId = stripeCustomer.metadata?.dubCustomerId;
+  const dubCustomerExternalId =
+    stripeCustomer.metadata?.dubCustomerExternalId ||
+    stripeCustomer.metadata?.dubCustomerId;
   const clickId = stripeCustomer.metadata?.dubClickId;
 
   // The client app should always send dubClickId (dub_id) via metadata
@@ -54,6 +52,8 @@ export async function createNewCustomer(event: Stripe.Event) {
       projectConnectId: stripeAccountId,
       externalId: dubCustomerExternalId,
       projectId: link.projectId,
+      programId: link.programId,
+      partnerId: link.partnerId,
       linkId,
       clickId,
       clickedAt: new Date(clickData.timestamp + "Z"),
@@ -102,76 +102,46 @@ export async function createNewCustomer(event: Stripe.Event) {
     }),
   ]);
 
-  let webhookPartner: WebhookPartner | undefined;
-  let commission: Commission | undefined;
-
   if (link.programId && link.partnerId) {
-    const createdCommission = await createPartnerCommission({
-      event: "lead",
-      programId: link.programId,
-      partnerId: link.partnerId,
-      linkId: link.id,
-      eventId: leadData.event_id,
-      customerId: customer.id,
-      quantity: 1,
-      context: {
-        customer: {
-          country: customer.country,
-        },
-      },
-    });
+    waitUntil(
+      Promise.allSettled([
+        executeWorkflows({
+          trigger: "partnerMetricsUpdated",
+          reason: "lead",
+          identity: {
+            workspaceId: workspace.id,
+            programId: link.programId,
+            partnerId: link.partnerId,
+          },
+          metrics: {
+            current: {
+              leads: 1,
+            },
+          },
+        }),
 
-    webhookPartner = createdCommission?.webhookPartner;
-    commission = createdCommission?.commission ?? undefined;
+        syncPartnerLinksStats({
+          partnerId: link.partnerId,
+          programId: link.programId,
+          eventType: "lead",
+        }),
+      ]),
+    );
   }
 
+  // send workspace webhook
   waitUntil(
-    Promise.allSettled([
-      sendWorkspaceWebhook({
-        trigger: "lead.created",
-        workspace,
-        data: transformLeadEventData({
-          ...clickData,
-          eventName,
-          link: linkUpdated,
-          customer,
-          partner: webhookPartner,
-          metadata: null,
-        }),
+    sendWorkspaceWebhook({
+      trigger: "lead.created",
+      workspace,
+      data: transformLeadEventData({
+        ...clickData,
+        eventName,
+        link: linkUpdated,
+        customer,
+        metadata: null,
       }),
-
-      ...(link.programId && link.partnerId
-        ? [
-            executeWorkflows({
-              trigger: WorkflowTrigger.leadRecorded,
-              context: {
-                programId: link.programId,
-                partnerId: link.partnerId,
-                current: {
-                  leads: 1,
-                },
-              },
-            }),
-
-            syncPartnerLinksStats({
-              partnerId: link.partnerId,
-              programId: link.programId,
-              eventType: "lead",
-            }),
-
-            webhookPartner &&
-              detectAndRecordFraudEvent({
-                program: { id: link.programId },
-                partner: pick(webhookPartner, ["id", "email", "name"]),
-                customer: pick(customer, ["id", "email", "name"]),
-                commission: { id: commission?.id },
-                link: pick(link, ["id"]),
-                click: pick(leadData, ["url", "referer"]),
-                event: { id: leadData.event_id },
-              }),
-          ]
-        : []),
-    ]),
+    }),
   );
 
   return `New Dub customer created: ${customer.id}. Lead event recorded: ${leadData.event_id}`;

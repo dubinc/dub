@@ -3,17 +3,24 @@
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { storage } from "@/lib/storage";
 import { nanoid, R2_URL } from "@dub/utils";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 const schema = z.object({
   workspaceId: z.string(),
 });
 
 export const uploadLanderImageAction = authActionClient
-  .schema(schema)
+  .inputSchema(schema)
   .action(async ({ ctx }) => {
     const { workspace } = ctx;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredRoles: ["owner", "member"],
+    });
+
     const programId = getDefaultProgramIdOrThrow(workspace);
 
     try {

@@ -1,67 +1,188 @@
 import { EventType, RewardStructure } from "@dub/prisma/client";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { getPaginationQuerySchema, maxDurationSchema } from "./misc";
 
 export const COMMISSION_TYPES = [
   {
-    value: "one-off",
-    label: "One-off",
-    description: "Pay a one-time payout",
-  },
-  {
     value: "recurring",
     label: "Recurring",
     description: "Pay an ongoing payout",
+    shortDescription: "Ongoing payouts",
+  },
+  {
+    value: "one-off",
+    label: "One-off",
+    description: "Pay a one-time payout",
+    shortDescription: "Single payouts",
   },
 ] as const;
 
-export const CONDITION_ENTITIES = ["customer", "sale", "partner"] as const;
+export type RewardConditionEntityAttribute = {
+  id: string;
+  label: string;
+  type: "string" | "number" | "currency";
+  options?: {
+    id: string;
+    label: string;
+  }[];
+};
 
-export const CONDITION_CUSTOMER_ATTRIBUTES = ["country"] as const;
+export type RewardConditionEntity = {
+  id: "partner" | "customer" | "sale";
+  label: string;
+  attributes: RewardConditionEntityAttribute[];
+};
 
-export const CONDITION_SALE_ATTRIBUTES = ["productId", "amount"] as const;
+const PARTNER_ENTITY: RewardConditionEntity = {
+  id: "partner",
+  label: "Partner",
+  attributes: [
+    {
+      id: "country",
+      label: "Country",
+      type: "string",
+    },
+    {
+      id: "totalClicks",
+      label: "Total clicks",
+      type: "number",
+    },
+    {
+      id: "totalLeads",
+      label: "Total leads",
+      type: "number",
+    },
+    {
+      id: "totalConversions",
+      label: "Total conversions",
+      type: "number",
+    },
+    {
+      id: "totalSaleAmount",
+      label: "Total revenue",
+      type: "currency",
+    },
+    {
+      id: "totalCommissions",
+      label: "Total commissions",
+      type: "currency",
+    },
+  ],
+};
 
-export const CONDITION_PARTNER_ATTRIBUTES = [
-  "country",
-  "totalClicks",
-  "totalLeads",
-  "totalConversions",
-  "totalSaleAmount",
-  "totalCommissions",
-] as const;
+const CUSTOMER_ENTITY: RewardConditionEntity = {
+  id: "customer",
+  label: "Customer",
+  attributes: [
+    {
+      id: "country",
+      label: "Country",
+      type: "string",
+    },
+  ],
+};
 
-export const CONDITION_ATTRIBUTES = [
-  ...CONDITION_CUSTOMER_ATTRIBUTES,
-  ...CONDITION_SALE_ATTRIBUTES,
-  ...CONDITION_PARTNER_ATTRIBUTES,
-] as const;
-
-export const ENTITY_ATTRIBUTE_TYPES: Partial<
-  Record<
-    (typeof CONDITION_ENTITIES)[number],
-    Partial<
-      Record<
-        (typeof CONDITION_ATTRIBUTES)[number],
-        "string" | "number" | "currency"
-      >
-    >
-  >
+export const REWARD_CONDITIONS: Record<
+  EventType,
+  {
+    entities: RewardConditionEntity[];
+  }
 > = {
-  customer: {
-    country: "string",
+  // Click reward
+  click: {
+    entities: [CUSTOMER_ENTITY],
   },
-  partner: {
-    country: "string",
-    totalClicks: "number",
-    totalLeads: "number",
-    totalConversions: "number",
-    totalSaleAmount: "currency",
-    totalCommissions: "currency",
+
+  // Lead reward
+  lead: {
+    entities: [
+      {
+        ...CUSTOMER_ENTITY,
+        attributes: [
+          ...CUSTOMER_ENTITY.attributes,
+          {
+            id: "source",
+            label: "Source",
+            type: "string",
+            options: [
+              {
+                id: "tracked",
+                label: "tracked lead",
+              },
+              {
+                id: "submitted",
+                label: "qualified lead",
+              },
+              {
+                id: "trial",
+                label: "free trial",
+              },
+            ],
+          },
+        ],
+      },
+      PARTNER_ENTITY,
+    ],
   },
+
+  // Sale reward
   sale: {
-    amount: "currency",
+    entities: [
+      {
+        ...CUSTOMER_ENTITY,
+        attributes: [
+          ...CUSTOMER_ENTITY.attributes,
+          {
+            id: "source",
+            label: "Source",
+            type: "string",
+            options: [
+              {
+                id: "tracked",
+                label: "tracked sale",
+              },
+              {
+                id: "submitted",
+                label: "closed won deal",
+              },
+            ],
+          },
+        ],
+      },
+      PARTNER_ENTITY,
+      {
+        id: "sale",
+        label: "Sale",
+        attributes: [
+          {
+            id: "productId",
+            label: "Product ID",
+            type: "string",
+          },
+          {
+            id: "amount",
+            label: "Amount",
+            type: "currency",
+          },
+        ],
+      },
+    ],
   },
 };
+
+export const REWARD_CONDITION_ENTITIES = [
+  ...new Set(
+    Object.values(REWARD_CONDITIONS).flatMap(({ entities }) => entities),
+  ),
+];
+
+export const REWARD_CONDITION_ATTRIBUTES = [
+  ...new Set(
+    Object.values(REWARD_CONDITIONS).flatMap(({ entities }) =>
+      entities.flatMap(({ attributes }) => attributes),
+    ),
+  ),
+];
 
 export const CONDITION_OPERATORS = [
   "equals_to",
@@ -89,17 +210,6 @@ export const NUMBER_CONDITION_OPERATORS: (typeof CONDITION_OPERATORS)[number][] 
     "less_than_or_equal",
   ];
 
-export const ATTRIBUTE_LABELS = {
-  country: "Country",
-  productId: "Product ID",
-  amount: "Amount",
-  totalClicks: "Total clicks",
-  totalLeads: "Total leads",
-  totalConversions: "Total conversions",
-  totalSaleAmount: "Total revenue",
-  totalCommissions: "Total commissions",
-} as const;
-
 export const CONDITION_OPERATOR_LABELS = {
   equals_to: "is",
   not_equals: "is not",
@@ -114,8 +224,12 @@ export const CONDITION_OPERATOR_LABELS = {
 } as const;
 
 export const rewardConditionSchema = z.object({
-  entity: z.enum(CONDITION_ENTITIES),
-  attribute: z.enum(CONDITION_ATTRIBUTES),
+  entity: z.enum(
+    REWARD_CONDITION_ENTITIES.map(({ id }) => id) as [string, ...string[]],
+  ),
+  attribute: z.enum(
+    REWARD_CONDITION_ATTRIBUTES.map(({ id }) => id) as [string, ...string[]],
+  ),
   operator: z.enum(CONDITION_OPERATORS),
   value: z.union([
     z.string(),
@@ -145,11 +259,12 @@ export const FLAT_REWARD_AMOUNT_SCHEMA = z
   });
 
 export const rewardConditionsSchema = z.object({
+  id: z.string().optional(),
   operator: z.enum(["AND", "OR"]).default("AND"),
   conditions: z.array(rewardConditionSchema).min(1),
   amountInCents: FLAT_REWARD_AMOUNT_SCHEMA.optional(),
   amountInPercentage: PERCENTAGE_REWARD_AMOUNT_SCHEMA.optional(),
-  type: z.nativeEnum(RewardStructure).optional(),
+  type: z.enum(RewardStructure).optional(),
   maxDuration: maxDurationSchema,
 });
 
@@ -165,14 +280,15 @@ const decimalToNumber = z
 
 export const RewardSchema = z.object({
   id: z.string(),
-  event: z.nativeEnum(EventType),
+  event: z.enum(EventType),
   description: z.string().nullish(),
   tooltipDescription: z.string().nullish(),
-  type: z.nativeEnum(RewardStructure),
+  type: z.enum(RewardStructure),
   amountInCents: z.number().int().nullable().optional(),
   amountInPercentage: decimalToNumber,
   maxDuration: z.number().nullish(),
   modifiers: z.any().nullish(), // TODO: Fix this
+  updatedAt: z.coerce.date(),
 });
 
 export const REWARD_DESCRIPTION_MAX_LENGTH = 100;
@@ -180,8 +296,8 @@ export const REWARD_TOOLTIP_DESCRIPTION_MAX_LENGTH = 2000;
 
 export const createOrUpdateRewardSchema = z.object({
   workspaceId: z.string(),
-  event: z.nativeEnum(EventType),
-  type: z.nativeEnum(RewardStructure).default(RewardStructure.flat),
+  event: z.enum(EventType),
+  type: z.enum(RewardStructure).default(RewardStructure.flat),
   amountInCents: FLAT_REWARD_AMOUNT_SCHEMA.optional(),
   amountInPercentage: PERCENTAGE_REWARD_AMOUNT_SCHEMA.optional(),
   maxDuration: maxDurationSchema,
@@ -208,21 +324,15 @@ export const updateRewardSchema = createOrUpdateRewardSchema
     event: true,
     groupId: true,
   })
-  .merge(
-    z.object({
-      rewardId: z.string(),
-    }),
-  );
+  .extend({
+    rewardId: z.string(),
+  });
 
 export const rewardPartnersQuerySchema = z
   .object({
     rewardId: z.string(),
   })
-  .merge(
-    getPaginationQuerySchema({
-      pageSize: 25,
-    }),
-  );
+  .extend(getPaginationQuerySchema({ pageSize: 25 }));
 
 export const REWARD_EVENT_COLUMN_MAPPING = Object.freeze({
   click: "clickRewardId",
@@ -230,10 +340,13 @@ export const REWARD_EVENT_COLUMN_MAPPING = Object.freeze({
   sale: "saleRewardId",
 });
 
+export const CUSTOMER_SOURCES = ["tracked", "submitted", "trial"] as const;
+
 export const rewardContextSchema = z.object({
   customer: z
     .object({
       country: z.string().nullish(),
+      source: z.enum(CUSTOMER_SOURCES).default("tracked").nullish(),
     })
     .optional(),
 

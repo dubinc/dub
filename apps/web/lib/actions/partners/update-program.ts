@@ -3,20 +3,24 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { referralFormSchema } from "@/lib/zod/schemas/referral-form";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
-import { z } from "zod";
+import { revalidatePath } from "next/cache";
+import * as z from "zod/v4";
 import { getProgramOrThrow } from "../../api/programs/get-program-or-throw";
 import { ProgramSchema, updateProgramSchema } from "../../zod/schemas/programs";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 const schema = updateProgramSchema.partial().extend({
   workspaceId: z.string(),
   applyHoldingPeriodDaysToAllGroups: z.boolean().optional(),
+  referralFormData: referralFormSchema.optional(),
 });
 
 export const updateProgramAction = authActionClient
-  .schema(schema)
+  .inputSchema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const {
@@ -25,7 +29,13 @@ export const updateProgramAction = authActionClient
       termsUrl,
       minPayoutAmount,
       messagingEnabledAt,
+      referralFormData,
     } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredRoles: ["owner", "member"],
+    });
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -46,24 +56,33 @@ export const updateProgramAction = authActionClient
         ...(messagingEnabledAt !== undefined &&
           (getPlanCapabilities(workspace.plan).canMessagePartners ||
             messagingEnabledAt === null) && { messagingEnabledAt }),
+        ...(referralFormData !== undefined && {
+          referralFormData: referralFormData ?? null,
+        }),
       },
     });
 
     waitUntil(
-      recordAuditLog({
-        workspaceId: workspace.id,
-        programId: program.id,
-        action: "program.updated",
-        description: `Program ${program.name} updated`,
-        actor: user,
-        targets: [
-          {
-            type: "program",
-            id: program.id,
-            metadata: updatedProgram,
-          },
-        ],
-      }),
+      (async () => {
+        await recordAuditLog({
+          workspaceId: workspace.id,
+          programId: program.id,
+          action: "program.updated",
+          description: `Program ${program.name} updated`,
+          actor: user,
+          targets: [
+            {
+              type: "program",
+              id: program.id,
+              metadata: updatedProgram,
+            },
+          ],
+        });
+
+        if (updatedProgram.termsUrl !== program.termsUrl) {
+          revalidatePath(`/partners.dub.co/${program.slug}/apply`);
+        }
+      })(),
     );
 
     return {

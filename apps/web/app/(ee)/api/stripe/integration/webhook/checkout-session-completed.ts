@@ -14,12 +14,7 @@ import {
   recordSale,
 } from "@/lib/tinybird";
 import { recordFakeClick } from "@/lib/tinybird/record-fake-click";
-import {
-  ClickEventTB,
-  LeadEventTB,
-  StripeMode,
-  WebhookPartner,
-} from "@/lib/types";
+import { ClickEventTB, LeadEventTB, StripeMode } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {
@@ -27,7 +22,7 @@ import {
   transformSaleEventData,
 } from "@/lib/webhook/transform";
 import { prisma } from "@dub/prisma";
-import { Customer, Project, WorkflowTrigger } from "@dub/prisma/client";
+import { Customer, Project } from "@dub/prisma/client";
 import { COUNTRIES_TO_CONTINENTS, nanoid, pick } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
@@ -42,7 +37,8 @@ export async function checkoutSessionCompleted(
   mode: StripeMode,
 ) {
   let charge = event.data.object as Stripe.Checkout.Session;
-  let dubCustomerExternalId = charge.metadata?.dubCustomerId; // TODO: need to update to dubCustomerExternalId in the future for consistency
+  let dubCustomerExternalId =
+    charge.metadata?.dubCustomerExternalId || charge.metadata?.dubCustomerId;
   const clientReferenceId = charge.client_reference_id;
   const stripeAccountId = event.account as string;
   const stripeCustomerId = charge.customer as string;
@@ -238,8 +234,12 @@ export async function checkoutSessionCompleted(
           mode,
         });
 
-        if (connectedCustomer?.metadata.dubCustomerId) {
-          dubCustomerExternalId = connectedCustomer.metadata.dubCustomerId; // TODO: need to update to dubCustomerExternalId in the future for consistency
+        const connectedCustomerDubCustomerExternalId =
+          connectedCustomer?.metadata.dubCustomerExternalId ||
+          connectedCustomer?.metadata.dubCustomerId;
+
+        if (connectedCustomerDubCustomerExternalId) {
+          dubCustomerExternalId = connectedCustomerDubCustomerExternalId;
           customer = await updateCustomerWithStripeCustomerId({
             stripeAccountId,
             dubCustomerExternalId,
@@ -287,11 +287,15 @@ export async function checkoutSessionCompleted(
 
   // should never be below 0, but just in case
   if (chargeAmountTotal <= 0) {
-    return `Checkout session completed for Stripe customer ${stripeCustomerId} with invoice ID ${invoiceId} but amount is 0, skipping...`;
+    return `Checkout session completed for Stripe customer ${stripeCustomerId} but amount is 0, skipping...`;
   }
 
   if (charge.mode === "setup") {
-    return `Checkout session completed for Stripe customer ${stripeCustomerId} but mode is setup, skipping...`;
+    return `Checkout session completed for Stripe customer ${stripeCustomerId} but mode is "setup", skipping...`;
+  }
+
+  if (charge.payment_status !== "paid") {
+    return `Checkout session completed for Stripe customer ${stripeCustomerId} but payment_status is not "paid", skipping...`;
   }
 
   if (invoiceId) {
@@ -409,24 +413,35 @@ export async function checkoutSessionCompleted(
       },
     }),
 
-    // update customer stats
+    // update customer stats + program/partner associations
     prisma.customer.update({
       where: {
         id: customer.id,
       },
       data: {
+        ...(link?.programId && {
+          programId: link.programId,
+        }),
+        ...(link?.partnerId && {
+          partnerId: link.partnerId,
+        }),
         sales: {
           increment: 1,
         },
         saleAmount: {
           increment: chargeAmountTotal,
         },
+        firstSaleAt: customer.firstSaleAt ? undefined : new Date(),
+        subscriptionCanceledAt: null,
       },
     }),
   ]);
 
   // for program links
-  let webhookPartner: WebhookPartner | undefined;
+  let createdCommission:
+    | Awaited<ReturnType<typeof createPartnerCommission>>
+    | undefined = undefined;
+
   if (link && link.programId && link.partnerId) {
     const productId = await getSubscriptionProductId({
       stripeSubscriptionId: charge.subscription as string,
@@ -434,7 +449,7 @@ export async function checkoutSessionCompleted(
       mode,
     });
 
-    const createdCommission = await createPartnerCommission({
+    createdCommission = await createPartnerCommission({
       event: "sale",
       programId: link.programId,
       partnerId: link.partnerId,
@@ -456,15 +471,19 @@ export async function checkoutSessionCompleted(
       },
     });
 
-    webhookPartner = createdCommission?.webhookPartner;
+    const { webhookPartner, programEnrollment } = createdCommission;
 
     waitUntil(
       Promise.allSettled([
         executeWorkflows({
-          trigger: WorkflowTrigger.saleRecorded,
-          context: {
+          trigger: "partnerMetricsUpdated",
+          reason: "sale",
+          identity: {
+            workspaceId: workspace.id,
             programId: link.programId,
             partnerId: link.partnerId,
+          },
+          metrics: {
             current: {
               saleAmount: saleData.amount,
               conversions: firstConversionFlag ? 1 : 0,
@@ -482,8 +501,8 @@ export async function checkoutSessionCompleted(
           detectAndRecordFraudEvent({
             program: { id: link.programId },
             partner: pick(webhookPartner, ["id", "email", "name"]),
+            programEnrollment: pick(programEnrollment, ["status"]),
             customer: pick(customer, ["id", "email", "name"]),
-            commission: { id: createdCommission.commission?.id },
             link: pick(link, ["id"]),
             click: pick(saleData, ["url", "referer"]),
             event: { id: saleData.event_id },
@@ -492,22 +511,20 @@ export async function checkoutSessionCompleted(
     );
   }
 
+  // send workspace webhook
   waitUntil(
-    (async () => {
-      // send workspace webhook
-      await sendWorkspaceWebhook({
-        trigger: "sale.created",
-        workspace,
-        data: transformSaleEventData({
-          ...saleData,
-          clickedAt: customer.clickedAt || customer.createdAt,
-          link: linkUpdated,
-          customer,
-          partner: webhookPartner,
-          metadata: null,
-        }),
-      });
-    })(),
+    sendWorkspaceWebhook({
+      trigger: "sale.created",
+      workspace,
+      data: transformSaleEventData({
+        ...saleData,
+        clickedAt: customer.clickedAt || customer.createdAt,
+        link: linkUpdated,
+        customer,
+        partner: createdCommission?.webhookPartner,
+        metadata: null,
+      }),
+    }),
   );
 
   return `Checkout session completed for customer with external ID ${dubCustomerExternalId} and invoice ID ${invoiceId}`;
@@ -611,7 +628,7 @@ async function attributeViaPromoCode({
     ...rest,
     workspace_id: clickEvent.workspace_id || customer.projectId, // in case for some reason the click event doesn't have workspace_id
     event_id: nanoid(16),
-    event_name: "Sign up",
+    event_name: "Checkout with discount code",
     customer_id: customer.id,
     metadata: "",
   };
@@ -623,36 +640,42 @@ async function attributeViaPromoCode({
     (async () => {
       const linkUpdated = await incrementLinkLeads(link.id);
 
-      let webhookPartner: WebhookPartner | undefined;
-      if (link.programId && link.partnerId) {
-        await Promise.allSettled([
-          createPartnerCommission({
-            event: "lead",
-            programId: link.programId,
-            partnerId: link.partnerId,
-            linkId: link.id,
-            eventId: leadEvent.event_id,
-            customerId: customer.id,
-            quantity: 1,
-            context: {
-              customer: {
-                country: customer.country,
-              },
-            },
-          }).then((res) => {
-            webhookPartner = res.webhookPartner;
-          }),
+      let createdCommission:
+        | Awaited<ReturnType<typeof createPartnerCommission>>
+        | undefined = undefined;
 
+      if (link.programId && link.partnerId) {
+        createdCommission = await createPartnerCommission({
+          event: "lead",
+          programId: link.programId,
+          partnerId: link.partnerId,
+          linkId: link.id,
+          eventId: leadEvent.event_id,
+          customerId: customer.id,
+          quantity: 1,
+          context: {
+            customer: {
+              country: customer.country,
+            },
+          },
+        });
+
+        await Promise.allSettled([
           executeWorkflows({
-            trigger: WorkflowTrigger.leadRecorded,
-            context: {
+            trigger: "partnerMetricsUpdated",
+            reason: "lead",
+            identity: {
+              workspaceId: workspace.id,
               programId: link.programId,
               partnerId: link.partnerId,
+            },
+            metrics: {
               current: {
                 leads: 1,
               },
             },
           }),
+
           syncPartnerLinksStats({
             partnerId: link.partnerId,
             programId: link.programId,
@@ -660,6 +683,7 @@ async function attributeViaPromoCode({
           }),
         ]);
       }
+
       await sendWorkspaceWebhook({
         trigger: "lead.created",
         workspace,
@@ -668,7 +692,7 @@ async function attributeViaPromoCode({
           eventName: "Checkout session completed",
           link: linkUpdated,
           customer,
-          partner: webhookPartner,
+          partner: createdCommission?.webhookPartner,
           metadata: null,
         }),
       });

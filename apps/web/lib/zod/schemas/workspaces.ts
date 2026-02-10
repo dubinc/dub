@@ -1,9 +1,14 @@
-import z from "@/lib/zod";
 import { WorkspaceRole } from "@dub/prisma/client";
 import { DEFAULT_REDIRECTS, RESERVED_SLUGS, validSlugRegex } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
+import * as z from "zod/v4";
 import { DomainSchema } from "./domains";
-import { planSchema, roleSchema, uploadedImageSchema } from "./misc";
+import {
+  googleUserContentUrlSchema,
+  planSchema,
+  roleSchema,
+  uploadedImageSchema,
+} from "./misc";
 
 export const workspaceIdSchema = z.object({
   workspaceId: z
@@ -26,7 +31,6 @@ export const WorkspaceSchema = z
       .string()
       .nullable()
       .describe("The invite code of the workspace."),
-
     plan: planSchema,
     planTier: z
       .number()
@@ -68,6 +72,16 @@ export const WorkspaceSchema = z
       .describe(
         "The processing fee (in decimals) for partner payouts. For card payments, an additional 0.03 is added to the fee. Learn more: https://d.to/payouts",
       ),
+    payoutFeeWaiverLimit: z
+      .number()
+      .describe(
+        "The amount in cents for which the payout fee will be waived. Applicable only to custom enterprise plans.",
+      ),
+    payoutFeeWaiverUsage: z
+      .number()
+      .describe(
+        "How much of `payoutFeeWaiverLimit` has been used. Applicable only to custom enterprise plans.",
+      ),
     domainsLimit: z.number().describe("The domains limit of the workspace."),
     tagsLimit: z.number().describe("The tags limit of the workspace."),
     foldersUsage: z.number().describe("The folders usage of the workspace."),
@@ -79,7 +93,6 @@ export const WorkspaceSchema = z
     usersLimit: z.number().describe("The users limit of the workspace."),
     aiUsage: z.number().describe("The AI usage of the workspace."),
     aiLimit: z.number().describe("The AI limit of the workspace."),
-
     conversionEnabled: z
       .boolean()
       .describe(
@@ -116,24 +129,24 @@ export const WorkspaceSchema = z
       )
       .describe("The domains of the workspace."),
     flags: z
-      .record(z.boolean())
+      .record(z.string(), z.boolean())
       .optional()
       .describe(
         "The feature flags of the workspace, indicating which features are enabled.",
       ),
     store: z
-      .record(z.any())
+      .record(z.string(), z.any())
       .nullable()
       .describe("The miscellaneous key-value store of the workspace."),
     allowedHostnames: z
       .array(z.string())
       .nullable()
       .describe("Specifies hostnames permitted for client-side click tracking.")
-      .openapi({ example: ["dub.sh"] }),
+      .meta({ example: ["dub.sh"] }),
     ssoEmailDomain: z.string().nullable(),
     ssoEnforcedAt: z.date().nullable(),
   })
-  .openapi({
+  .meta({
     title: "Workspace",
   });
 
@@ -151,7 +164,10 @@ export const createWorkspaceSchema = z.object({
         message: "Cannot use reserved slugs",
       },
     ),
-  logo: uploadedImageSchema.nullish(),
+  logo: z
+    .union([uploadedImageSchema, googleUserContentUrlSchema])
+    .transform((v) => v || null)
+    .nullish(),
   conversionEnabled: z.boolean().optional(),
 });
 
@@ -160,6 +176,7 @@ export const notificationTypes = z.enum([
   "domainConfigurationUpdates",
   "newPartnerSale",
   "newPartnerApplication",
+  "pendingApplicationsSummary",
   "newBountySubmitted",
   "newMessageFromPartner",
   "fraudEventsSummary",
@@ -174,7 +191,7 @@ export const WorkspaceSchemaExtended = WorkspaceSchema.extend({
   defaultProgramId: z.string().nullable(),
   users: z.array(
     WorkspaceSchema.shape.users.element.extend({
-      workspacePreferences: z.record(z.any()).nullish(),
+      workspacePreferences: z.record(z.string(), z.any()).nullish(),
     }),
   ),
   publishableKey: z.string().nullable(),
@@ -204,7 +221,7 @@ export const workspaceStoreKeys = z.enum([
 
 export const getWorkspaceUsersQuerySchema = z.object({
   search: z.string().optional(),
-  role: z.nativeEnum(WorkspaceRole).optional(),
+  role: z.enum(WorkspaceRole).optional(),
 });
 
 export const workspaceUserSchema = z.object({
@@ -212,7 +229,7 @@ export const workspaceUserSchema = z.object({
   name: z.string(),
   email: z.string().nullish(),
   image: z.string().nullish(),
-  role: z.nativeEnum(WorkspaceRole),
+  role: z.enum(WorkspaceRole),
   isMachine: z.boolean().default(false),
   createdAt: z.date(),
 });

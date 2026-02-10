@@ -7,10 +7,7 @@ import { encodeKeyIfCaseSensitive } from "../lib/api/links/case-sensitivity";
 // script to convert existing links for a domain to case sensitive (encoded) setup
 async function main() {
   const where: Prisma.LinkWhereInput = {
-    domain: "domain.com",
-    createdAt: {
-      lt: new Date("2025-06-30T23:59:59.999Z"),
-    },
+    domain: "xxx",
     NOT: {
       key: {
         endsWith: "=",
@@ -18,51 +15,54 @@ async function main() {
     },
   };
 
-  const links = await prisma.link.findMany({
-    where,
-    orderBy: {
-      createdAt: "desc",
-    },
-    take: 100,
-  });
+  while (true) {
+    const links = await prisma.link.findMany({
+      where,
+      orderBy: {
+        createdAt: "desc",
+      },
+      take: 100,
+    });
+    if (!links.length) {
+      console.log("No more links to convert.");
+      break;
+    }
 
-  const remainingLinks = await prisma.link.count({
-    where,
-    skip: 100,
-  });
+    await Promise.all(
+      links.map(async (link) => {
+        const newKey = encodeKeyIfCaseSensitive({
+          domain: link.domain,
+          key: link.key,
+        });
 
-  console.log(`Remaining links: ${remainingLinks}`);
+        try {
+          const newLink = await prisma.link.update({
+            where: { id: link.id },
+            data: {
+              key: newKey,
+              shortLink: linkConstructorSimple({
+                domain: link.domain,
+                key: newKey,
+              }),
+            },
+          });
 
-  await Promise.all(
-    links.map(async (link) => {
-      if (link.key.length > 7) {
-        console.log(
-          `Skipping link ${link.id} because key length is greater than 7 (already encoded)`,
-        );
-        return;
-      }
+          console.log(
+            `Updated link ${link.id} from key ${link.key} to ${newLink.key} (shortLink: ${newLink.shortLink})`,
+          );
+        } catch (error) {
+          console.error(`Error updating link ${link.id}: ${error}`);
+        }
+      }),
+    );
 
-      const newKey = encodeKeyIfCaseSensitive({
-        domain: link.domain,
-        key: link.key,
-      });
+    const remainingLinks = await prisma.link.count({
+      where,
+      skip: 100,
+    });
 
-      const newLink = await prisma.link.update({
-        where: { id: link.id },
-        data: {
-          key: newKey,
-          shortLink: linkConstructorSimple({
-            domain: link.domain,
-            key: newKey,
-          }),
-        },
-      });
-
-      console.log(
-        `Updated link ${link.id} from key ${link.key} to ${newLink.key} (shortLink: ${newLink.shortLink})`,
-      );
-    }),
-  );
+    console.log(`Remaining links: ${remainingLinks}`);
+  }
 }
 
 main();

@@ -6,18 +6,24 @@ import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { PartnerStackApi } from "@/lib/partnerstack/api";
 import { partnerStackImporter } from "@/lib/partnerstack/importer";
 import { partnerStackCredentialsSchema } from "@/lib/partnerstack/schemas";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 const schema = partnerStackCredentialsSchema.extend({
   workspaceId: z.string(),
 });
 
 export const startPartnerStackImportAction = authActionClient
-  .schema(schema)
+  .inputSchema(schema)
   .action(async ({ ctx, parsedInput }) => {
     const { workspace, user } = ctx;
     const { publicKey, secretKey } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredRoles: ["owner", "member"],
+    });
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 

@@ -30,12 +30,11 @@ import {
   TextCursorInput,
 } from "lucide-react";
 import { motion } from "motion/react";
-import posthog from "posthog-js";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useDebouncedCallback } from "use-debounce";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { QRCode } from "../shared/qr-code";
 
 const sanitizeJson = (string: string | null) => {
@@ -249,7 +248,6 @@ export function AddEditDomainForm({
           mutatePrefix("/api/links"),
         ]);
         const data = await res.json();
-        posthog.capture(props ? "domain_updated" : "domain_created", data);
         toast.success(endpoint.successMessage);
         onSuccess?.(data);
       } else {

@@ -8,7 +8,7 @@ import { hubSpotAuthTokenSchema } from "./schema";
 class HubSpotOAuthProvider extends OAuthProvider<
   typeof hubSpotAuthTokenSchema
 > {
-  constructor(provider: OAuthProviderConfig) {
+  constructor(provider: OAuthProviderConfig<typeof hubSpotAuthTokenSchema>) {
     super(provider);
   }
 

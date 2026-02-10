@@ -1,6 +1,7 @@
 import { getPayoutEligibilityFilter } from "@/lib/api/payouts/payout-eligibility-filter";
 import { FAST_ACH_FEE_CENTS, FOREX_MARKUP_RATE } from "@/lib/constants/payouts";
 import { qstash } from "@/lib/cron";
+import { calculatePayoutFeeWithWaiver } from "@/lib/partners/calculate-payout-fee-with-waiver";
 import {
   CUTOFF_PERIOD,
   CUTOFF_PERIOD_TYPES,
@@ -11,7 +12,12 @@ import { calculatePayoutFeeForMethod } from "@/lib/stripe/payment-methods";
 import { sendEmail } from "@dub/email";
 import ProgramPayoutThankYou from "@dub/email/templates/program-payout-thank-you";
 import { prisma } from "@dub/prisma";
-import { Program, ProgramPayoutMode, Project } from "@dub/prisma/client";
+import {
+  Invoice,
+  Program,
+  ProgramPayoutMode,
+  Project,
+} from "@dub/prisma/client";
 import {
   APP_DOMAIN_WITH_NGROK,
   currencyFormatter,
@@ -36,6 +42,8 @@ interface ProcessPayoutsProps {
     | "payoutsUsage"
     | "payoutsLimit"
     | "payoutFee"
+    | "payoutFeeWaiverLimit"
+    | "payoutFeeWaiverUsage"
     | "webhookEnabled"
   >;
   program: Pick<
@@ -44,8 +52,8 @@ interface ProcessPayoutsProps {
   > & {
     payoutMode: ProgramPayoutMode;
   };
+  invoice: Pick<Invoice, "id" | "paymentMethod">;
   userId: string;
-  invoiceId: string;
   paymentMethodId: string;
   cutoffPeriod?: CUTOFF_PERIOD_TYPES;
   selectedPayoutId?: string;
@@ -55,8 +63,8 @@ interface ProcessPayoutsProps {
 export async function processPayouts({
   workspace,
   program,
+  invoice,
   userId,
-  invoiceId,
   paymentMethodId,
   cutoffPeriod,
   selectedPayoutId,
@@ -66,12 +74,6 @@ export async function processPayouts({
     (c) => c.id === cutoffPeriod,
   )?.value;
 
-  const invoice = await prisma.invoice.findUniqueOrThrow({
-    where: {
-      id: invoiceId,
-    },
-  });
-
   const res = await prisma.payout.updateMany({
     where: {
       ...(selectedPayoutId
@@ -79,7 +81,7 @@ export async function processPayouts({
         : excludedPayoutIds && excludedPayoutIds.length > 0
           ? { id: { notIn: excludedPayoutIds } }
           : {}),
-      ...getPayoutEligibilityFilter(program),
+      ...getPayoutEligibilityFilter({ program, workspace }),
       ...(cutoffPeriodValue && {
         periodEnd: {
           lte: cutoffPeriodValue,
@@ -156,9 +158,19 @@ export async function processPayouts({
     `Using payout fee of ${payoutFee} for payment method ${paymentMethod.type}`,
   );
 
-  const fastAchFee =
-    invoice.paymentMethod === "ach_fast" ? FAST_ACH_FEE_CENTS : 0;
-  const invoiceFee = Math.round(totalPayoutAmount * payoutFee) + fastAchFee;
+  const {
+    fee: invoiceFee,
+    feeFreeAmount,
+    feeChargedAmount,
+    feeWaiverRemaining,
+  } = calculatePayoutFeeWithWaiver({
+    payoutAmount: totalPayoutAmount,
+    payoutFee,
+    payoutFeeWaiverLimit: workspace.payoutFeeWaiverLimit,
+    payoutFeeWaiverUsage: workspace.payoutFeeWaiverUsage,
+    fastAchFee: invoice.paymentMethod === "ach_fast" ? FAST_ACH_FEE_CENTS : 0,
+  });
+
   const invoiceTotal = totalPayoutAmount + invoiceFee;
 
   console.log({
@@ -167,6 +179,9 @@ export async function processPayouts({
     totalPayoutAmount,
     invoiceFee,
     invoiceTotal,
+    feeFreeAmount,
+    feeChargedAmount,
+    feeWaiverRemaining,
   });
 
   await prisma.invoice.update({
@@ -244,6 +259,9 @@ export async function processPayouts({
     data: {
       payoutsUsage: {
         increment: totalPayoutAmount,
+      },
+      payoutFeeWaiverUsage: {
+        increment: feeFreeAmount,
       },
     },
     include: {

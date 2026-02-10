@@ -126,7 +126,7 @@ export default function NewCommissionAlertPartner({
               ) : (
                 ` for this ${commission.type}`
               )}
-              {group.holdingPeriodDays > 0 ? (
+              {commission.type !== "custom" && group.holdingPeriodDays > 0 ? (
                 <>
                   {" "}
                   and it will be eligible for payout after the program's{" "}

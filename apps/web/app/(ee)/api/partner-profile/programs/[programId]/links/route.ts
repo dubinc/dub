@@ -11,8 +11,9 @@ import {
   INACTIVE_ENROLLMENT_STATUSES,
 } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
+import { getUTMParamsFromURL } from "@dub/utils";
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 // GET /api/partner-profile/programs/[programId]/links - get a partner's links in a program
 export const GET = withPartnerProfile(async ({ partner, params }) => {
@@ -106,18 +107,25 @@ export const POST = withPartnerProfile(
         })
       : null;
 
+    const linkUrl = url || program.url;
+
     const { link, error, code } = await processLink({
       payload: {
         domain: program.domain,
         key: key || undefined,
-        url: url || program.url,
+        url: linkUrl,
+        ...(groupUtmTemplate
+          ? {
+              ...extractUtmParams(groupUtmTemplate),
+              ...getUTMParamsFromURL(linkUrl),
+            }
+          : {}),
         programId: program.id,
         tenantId,
         partnerId: partner.id,
         folderId: program.defaultFolderId,
         comments,
         trackConversion: true,
-        ...(groupUtmTemplate ? extractUtmParams(groupUtmTemplate) : {}),
       },
       workspace: {
         id: program.workspaceId,

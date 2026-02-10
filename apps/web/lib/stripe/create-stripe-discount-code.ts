@@ -64,10 +64,7 @@ export async function createStripeDiscountCode({
         throw error;
       }
 
-      const newCode = constructDiscountCode({
-        code: currentCode,
-        discount,
-      });
+      const newCode = `${currentCode}${nanoid(2)}`;
 
       console.warn(
         `Discount code "${currentCode}" already exists. Retrying with "${newCode}" (attempt ${attempt}/${MAX_ATTEMPTS}).`,
@@ -76,21 +73,6 @@ export async function createStripeDiscountCode({
       currentCode = newCode;
     }
   }
-}
 
-export function constructDiscountCode({
-  code,
-  discount,
-}: {
-  code: string;
-  discount: Pick<DiscountProps, "amount" | "type">;
-}) {
-  const amount =
-    discount.type === "percentage" ? discount.amount : discount.amount / 100;
-
-  if (!code.endsWith(amount.toString())) {
-    return `${code}${amount}`;
-  }
-
-  return `${code}${nanoid(4)}`;
+  throw new Error("Failed to create Stripe discount code.");
 }

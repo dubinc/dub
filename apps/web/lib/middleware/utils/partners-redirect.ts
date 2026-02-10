@@ -5,17 +5,20 @@ const PARTNERS_REDIRECTS = {
   "/account/settings/notifications": "/profile/notifications",
   "/profile/sites": "/profile",
   "/marketplace": "/programs/marketplace",
+  "/rewind": "/rewind/2025",
+  "/onboarding/online-presence": "/onboarding/platforms",
+  "/onboarding/verify": "/onboarding/payouts",
 };
 
 export const partnersRedirect = (path: string) => {
-  if (PARTNERS_REDIRECTS[path]) return PARTNERS_REDIRECTS[path];
-
-  return null;
+  return PARTNERS_REDIRECTS[path] || null;
 };
 
 const PARTNERS_PROGRAM_REDIRECTS = {
+  florafauna: "flora",
   "ship-30": "dwp",
   supercutai: "supercut",
+  "teller-perps": "teller",
 };
 
 export const partnersProgramRedirects = (path: string) => {

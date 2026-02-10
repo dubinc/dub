@@ -4,7 +4,7 @@ import { ProgramEnrollmentSchema } from "@/lib/zod/schemas/programs";
 import { prisma } from "@dub/prisma";
 import { Reward } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 // GET /api/partner-profile/programs - get all program enrollments for a given partnerId
 export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
@@ -15,6 +15,9 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
     where: {
       partnerId: partner.id,
       ...(status && { status }),
+      program: {
+        deactivatedAt: null,
+      },
     },
     include: {
       links: {

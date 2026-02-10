@@ -7,6 +7,7 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import {
   CUTOFF_PERIOD_MAX_PAYOUTS,
+  DIRECT_DEBIT_PAYMENT_METHOD_TYPES,
   INVOICE_MIN_PAYOUT_AMOUNT_CENTS,
   PAYMENT_METHOD_TYPES,
   STRIPE_PAYMENT_METHOD_NORMALIZATION,
@@ -15,11 +16,13 @@ import { qstash } from "@/lib/cron";
 import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import { CUTOFF_PERIOD_ENUM } from "@/lib/partners/cutoff-period";
 import { stripe } from "@/lib/stripe";
+import { checkPaymentMethodMandate } from "@/lib/stripe/check-payment-method-mandate";
 import { getWebhooks } from "@/lib/webhook/get-webhooks";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 const confirmPayoutsSchema = z.object({
   workspaceId: z.string(),
@@ -35,7 +38,7 @@ const confirmPayoutsSchema = z.object({
 
 // Confirm payouts
 export const confirmPayoutsAction = authActionClient
-  .schema(confirmPayoutsSchema)
+  .inputSchema(confirmPayoutsSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const {
@@ -56,9 +59,10 @@ export const confirmPayoutsAction = authActionClient
       programId,
     });
 
-    if (workspace.role !== "owner") {
-      throw new Error("Only workspace owners can confirm payouts.");
-    }
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredPermissions: ["payouts.write"],
+    });
 
     if (!workspace.stripeId) {
       throw new Error("Workspace does not have a valid Stripe ID.");
@@ -97,7 +101,7 @@ export const confirmPayoutsAction = authActionClient
             : excludedPayoutIds && excludedPayoutIds.length > 0
               ? { id: { notIn: excludedPayoutIds } }
               : {}),
-          ...getPayoutEligibilityFilter(program),
+          ...getPayoutEligibilityFilter({ program, workspace }),
         },
         _count: true,
       });
@@ -113,6 +117,7 @@ export const confirmPayoutsAction = authActionClient
       const [eligiblePayouts, payoutWebhooks] = await Promise.all([
         getEligiblePayouts({
           program,
+          workspace,
           cutoffPeriod,
           selectedPayoutId,
           excludedPayoutIds,
@@ -156,6 +161,21 @@ export const confirmPayoutsAction = authActionClient
 
     if (fastSettlement && paymentMethod.type !== "us_bank_account") {
       throw new Error("Fast settlement is only supported for ACH payment.");
+    }
+
+    // if it's a direct debit payment method, we need to check to make sure mandate is valid
+    if (DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(paymentMethod.type)) {
+      const mandate = await checkPaymentMethodMandate({
+        paymentMethodId,
+      });
+
+      if (!mandate) {
+        // if mandate is not valid, remove the payment method
+        await stripe.paymentMethods.detach(paymentMethodId);
+        throw new Error(
+          "No active mandate found for this bank account. Please set up a new bank account for payouts under your billing settings page.",
+        );
+      }
     }
 
     const invoice = await prisma.$transaction(async (tx) => {

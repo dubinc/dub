@@ -16,6 +16,7 @@ import {
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 const queue = qstash.queue({
   queueName: "ban-partner",
@@ -23,10 +24,15 @@ const queue = qstash.queue({
 
 // Ban a partner
 export const banPartnerAction = authActionClient
-  .schema(banPartnerSchema)
+  .inputSchema(banPartnerSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { partnerId, reason } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredRoles: ["owner", "member"],
+    });
 
     await banPartner({
       workspace,
@@ -116,7 +122,7 @@ export const banPartner = async ({
       }),
 
       queue.enqueueJSON({
-        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/ban/process`,
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/ban`,
         deduplicationId: `ban-${programId}-${partnerId}`,
         method: "POST",
         body: {

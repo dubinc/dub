@@ -1,0 +1,20 @@
+model ActivityLog {
+  id                 String   @id @default(cuid())
+  workspaceId        String
+  programId          String
+  parentResourceType String?
+  parentResourceId   String?
+  resourceType       String
+  resourceId         String
+  userId             String?
+  action             String
+  description        String?  @db.Text
+  batchId            String?
+  changeSet          Json?
+  createdAt          DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([resourceType, resourceId])
+  @@index(userId)
+}

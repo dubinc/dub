@@ -1,7 +1,7 @@
 import { useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import useSWR from "swr";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { PayoutsCount } from "../types";
 import { payoutsCountQuerySchema } from "../zod/schemas/payouts";
 import useWorkspace from "./use-workspace";
@@ -17,7 +17,7 @@ export default function usePayoutsCount<T>({
     workspaceId &&
       defaultProgramId &&
       enabled &&
-      `/api/programs/${defaultProgramId}/payouts/count${getQueryString(
+      `/api/payouts/count${getQueryString(
         {
           ...query,
           workspaceId,

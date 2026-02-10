@@ -15,10 +15,10 @@ import {
 } from "@/lib/zod/schemas/partners";
 import { ProgramPartnerLinkSchema } from "@/lib/zod/schemas/programs";
 import { prisma } from "@dub/prisma";
-import { constructURLFromUTMParams } from "@dub/utils";
+import { getUTMParamsFromURL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 // GET /api/partners/links - get the partner links
 export const GET = withWorkspace(
@@ -62,6 +62,7 @@ export const GET = withWorkspace(
   },
   {
     requiredPlan: ["advanced", "enterprise"],
+    requiredRoles: ["owner", "member"],
   },
 );
 
@@ -121,16 +122,20 @@ export const POST = withWorkspace(
 
     validatePartnerLinkUrl({ group: partnerGroup, url });
 
+    const linkUrl = url || partnerGroup.partnerGroupDefaultLinks[0].url;
+
     const { link, error, code } = await processLink({
       payload: {
         ...linkProps,
         domain: program.domain,
         key: key || undefined,
-        url: constructURLFromUTMParams(
-          url || partnerGroup.partnerGroupDefaultLinks[0].url,
-          extractUtmParams(partnerGroup.utmTemplate),
-        ),
-        ...extractUtmParams(partnerGroup.utmTemplate, { excludeRef: true }),
+        url: linkUrl,
+        ...(partnerGroup.utmTemplate
+          ? {
+              ...extractUtmParams(partnerGroup.utmTemplate),
+              ...getUTMParamsFromURL(linkUrl),
+            }
+          : {}),
         programId: program.id,
         tenantId: partner.tenantId,
         partnerId: partner.partnerId,
@@ -163,5 +168,6 @@ export const POST = withWorkspace(
   },
   {
     requiredPlan: ["advanced", "enterprise"],
+    requiredRoles: ["owner", "member"],
   },
 );

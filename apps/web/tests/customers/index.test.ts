@@ -7,12 +7,15 @@ const expectedCustomer = {
   id: "cus_n5LF7wS3Z1vfwjZCyy5QDC7Q",
   externalId: "cus_OmLauTvvWCtJsFN1yJb0oevj",
   email: "abundant.coral.platypus@example.com",
+  stripeCustomerId: null,
   country: "US",
   name: expect.any(String),
   avatar: expect.any(String),
   saleAmount: 0,
   sales: 0,
   createdAt: expect.any(String),
+  firstSaleAt: null,
+  subscriptionCanceledAt: null,
 };
 
 describe.sequential("/customers/**", async () => {

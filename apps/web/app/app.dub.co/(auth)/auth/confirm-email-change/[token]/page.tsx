@@ -2,11 +2,9 @@ import { getSession, hashToken } from "@/lib/auth";
 import { redis } from "@/lib/upstash";
 import EmptyState from "@/ui/shared/empty-state";
 import { sendEmail } from "@dub/email";
-import { subscribe } from "@dub/email/resend/subscribe";
-import { unsubscribe } from "@dub/email/resend/unsubscribe";
 import EmailUpdated from "@dub/email/templates/email-updated";
 import { prisma } from "@dub/prisma";
-import { User, VerificationToken } from "@dub/prisma/client";
+import { VerificationToken } from "@dub/prisma/client";
 import { InputPassword, LoadingSpinner } from "@dub/ui";
 import { waitUntil } from "@vercel/functions";
 import { redirect } from "next/navigation";
@@ -99,8 +97,6 @@ const VerifyEmailChange = async ({ params, searchParams }: PageProps) => {
     );
   }
 
-  let user: Pick<User, "subscribed"> | null = null;
-
   // Update the partner profile email
   if (data.isPartnerProfile) {
     if (!partnerId) {
@@ -125,15 +121,12 @@ const VerifyEmailChange = async ({ params, searchParams }: PageProps) => {
 
   // Update the user email
   else {
-    user = await prisma.user.update({
+    await prisma.user.update({
       where: {
         id: userId,
       },
       data: {
         email: data.newEmail,
-      },
-      select: {
-        subscribed: true,
       },
     });
   }
@@ -141,13 +134,6 @@ const VerifyEmailChange = async ({ params, searchParams }: PageProps) => {
   waitUntil(
     Promise.allSettled([
       deleteRequest(tokenFound),
-
-      ...(user?.subscribed
-        ? [
-            unsubscribe({ email: data.email }),
-            subscribe({ email: data.newEmail }),
-          ]
-        : []),
 
       sendEmail({
         subject: "Your email address has been changed",

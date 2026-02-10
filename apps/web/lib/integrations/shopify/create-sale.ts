@@ -5,12 +5,11 @@ import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-sta
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import { recordSale } from "@/lib/tinybird";
-import { LeadEventTB, WebhookPartner } from "@/lib/types";
+import { LeadEventTB } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformSaleEventData } from "@/lib/webhook/transform";
 import { prisma } from "@dub/prisma";
-import { WorkflowTrigger } from "@dub/prisma/client";
 import { nanoid, pick } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { orderSchema } from "./schema";
@@ -116,7 +115,7 @@ export async function createShopifySale({
     }),
     prisma.customer.update({
       where: {
-        id: customerId,
+        id: existingCustomer.id,
       },
       data: {
         sales: {
@@ -125,15 +124,19 @@ export async function createShopifySale({
         saleAmount: {
           increment: amount,
         },
+        firstSaleAt: existingCustomer.firstSaleAt ? undefined : new Date(),
       },
     }),
     redis.del(`shopify:checkout:${checkoutToken}`),
   ]);
 
   // for program links
-  let webhookPartner: WebhookPartner | undefined;
+  let createdCommission:
+    | Awaited<ReturnType<typeof createPartnerCommission>>
+    | undefined = undefined;
+
   if (link.programId && link.partnerId) {
-    const createdCommission = await createPartnerCommission({
+    createdCommission = await createPartnerCommission({
       event: "sale",
       programId: link.programId,
       partnerId: link.partnerId,
@@ -154,15 +157,19 @@ export async function createShopifySale({
       },
     });
 
-    webhookPartner = createdCommission?.webhookPartner;
+    const { webhookPartner, programEnrollment } = createdCommission;
 
     waitUntil(
       Promise.allSettled([
         executeWorkflows({
-          trigger: WorkflowTrigger.saleRecorded,
-          context: {
+          trigger: "partnerMetricsUpdated",
+          reason: "sale",
+          identity: {
+            workspaceId: workspaceId,
             programId: link.programId,
             partnerId: link.partnerId,
+          },
+          metrics: {
             current: {
               saleAmount: saleData.amount,
               conversions: firstConversionFlag ? 1 : 0,
@@ -180,8 +187,8 @@ export async function createShopifySale({
           detectAndRecordFraudEvent({
             program: { id: link.programId },
             partner: pick(webhookPartner, ["id", "email", "name"]),
+            programEnrollment: pick(programEnrollment, ["status"]),
             customer: pick(customer, ["id", "email", "name"]),
-            commission: { id: createdCommission.commission?.id },
             link: pick(link, ["id"]),
             click: pick(saleData, ["url", "referer"]),
             event: { id: saleData.event_id },
@@ -199,7 +206,7 @@ export async function createShopifySale({
         link,
         clickedAt: customer.clickedAt || customer.createdAt,
         customer,
-        partner: webhookPartner,
+        partner: createdCommission?.webhookPartner,
         metadata: null,
       }),
     }),

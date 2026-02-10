@@ -72,14 +72,28 @@ export function BountySubmissionsTable() {
     ? PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES[performanceCondition.attribute]
     : "Progress";
 
-  const sortBy = searchParams.get("sortBy") || "completedAt";
-  const sortOrder = searchParams.get("sortOrder") === "desc" ? "desc" : "asc";
+  const sortBy = useMemo(() => {
+    if (searchParams.get("sortBy")) return searchParams.get("sortBy") as string;
+
+    if (bounty?.type === "performance") return "performanceCount";
+
+    return "completedAt";
+  }, [searchParams, bounty]);
+
+  const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
   const { submissionsCount } =
     useBountySubmissionsCount<SubmissionsCountByStatus[]>();
 
-  const { filters, activeFilters, onSelect, onRemove, onRemoveAll } =
-    useBountySubmissionFilters({ bounty });
+  const {
+    filters,
+    activeFilters,
+    onSelect,
+    onRemove,
+    onRemoveAll,
+    setSearch,
+    setSelectedFilter,
+  } = useBountySubmissionFilters({ bounty });
 
   const {
     error,
@@ -133,7 +147,7 @@ export function BountySubmissionsTable() {
 
     // if the current submission is not found, return the current details sheet submission id
     // and the first submission id as the previous and next submission ids
-    if (currentIndex === -1) return [null, submissions[0].id];
+    if (currentIndex === -1) return [null, submissions[0]?.id ?? null];
 
     return [
       currentIndex > 0 ? submissions[currentIndex - 1].id : null,
@@ -381,6 +395,8 @@ export function BountySubmissionsTable() {
             activeFilters={activeFilters}
             onSelect={onSelect}
             onRemove={onRemove}
+            onSearchChange={setSearch}
+            onSelectedFilterChange={setSelectedFilter}
           />
           <AnimatedSizeContainer height>
             <div>

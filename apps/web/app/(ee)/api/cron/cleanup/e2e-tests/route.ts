@@ -39,6 +39,7 @@ export async function POST(req: Request) {
         include: {
           ...includeTags,
           ...includeProgramEnrollment,
+          discountCode: true,
         },
         take: 100,
       }),
@@ -98,10 +99,20 @@ export async function POST(req: Request) {
 
     // Delete the links
     if (links.length > 0) {
+      const linkIds = links.map((link) => link.id);
+
+      await prisma.discountCode.deleteMany({
+        where: {
+          linkId: {
+            in: linkIds,
+          },
+        },
+      });
+
       await prisma.link.deleteMany({
         where: {
           id: {
-            in: links.map((link) => link.id),
+            in: linkIds,
           },
         },
       });
@@ -136,6 +147,7 @@ export async function POST(req: Request) {
     if (partners.length > 0) {
       await bulkDeletePartners({
         partnerIds: partners.map((partner) => partner.id),
+        deletePartners: true,
       });
     }
 
@@ -160,7 +172,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ status: "OK" });
   } catch (error) {
     await log({
-      message: `Links and domain cleanup failed - ${error.message}`,
+      message: `/api/cron/cleanup/e2e-tests failed - ${error.message}`,
       type: "errors",
     });
 

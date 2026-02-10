@@ -1,8 +1,9 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { deleteDiscountCodes } from "@/lib/api/discounts/delete-discount-code";
 import { isDiscountEquivalent } from "@/lib/api/discounts/is-discount-equivalent";
-import { queueDiscountCodeDeletion } from "@/lib/api/discounts/queue-discount-code-deletion";
 import { DubApiError } from "@/lib/api/errors";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
+import { upsertGroupMoveRules } from "@/lib/api/groups/upsert-group-move-rules";
 import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
@@ -73,6 +74,7 @@ export const PATCH = withWorkspace(
       autoApprovePartners,
       updateAutoApprovePartnersForAllGroups,
       updateHoldingPeriodDaysForAllGroups,
+      moveRules,
     } = updateGroupSchema.parse(await parseRequestBody(req));
 
     // Only check slug uniqueness if slug is being updated
@@ -127,6 +129,12 @@ export const PATCH = withWorkspace(
         })
       : null;
 
+    const { workflowId } = await upsertGroupMoveRules({
+      workspace,
+      group,
+      moveRules,
+    });
+
     const [updatedGroup] = await Promise.all([
       prisma.partnerGroup.update({
         where: {
@@ -142,6 +150,7 @@ export const PATCH = withWorkspace(
           utmTemplateId,
           applicationFormData,
           landerData,
+          workflowId,
           ...(holdingPeriodDays !== undefined &&
             !updateHoldingPeriodDaysForAllGroups && {
               holdingPeriodDays,
@@ -373,7 +382,16 @@ export const DELETE = withWorkspace(
         });
       }
 
-      // 5. Delete the group
+      // 5. Delete the group move workflow
+      if (group.workflowId) {
+        await tx.workflow.delete({
+          where: {
+            id: group.workflowId,
+          },
+        });
+      }
+
+      // 6. Delete the group
       await tx.partnerGroup.delete({
         where: {
           id: group.id,
@@ -418,7 +436,7 @@ export const DELETE = withWorkspace(
               }),
 
             ...discountCodesToDelete.map((discountCode) =>
-              queueDiscountCodeDeletion(discountCode.id),
+              deleteDiscountCodes(discountCode),
             ),
 
             recordAuditLog({

@@ -9,8 +9,10 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { recordLink } from "@/lib/tinybird";
 import { banPartnerSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
+import { FraudRuleType } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 const unbanPartnerSchema = banPartnerSchema.omit({
   reason: true,
@@ -18,10 +20,15 @@ const unbanPartnerSchema = banPartnerSchema.omit({
 
 // Unban a partner
 export const unbanPartnerAction = authActionClient
-  .schema(unbanPartnerSchema)
+  .inputSchema(unbanPartnerSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { partnerId } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredRoles: ["owner", "member"],
+    });
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -135,6 +142,31 @@ export const unbanPartnerAction = authActionClient
                 metadata: programEnrollment.partner,
               },
             ],
+          }),
+        ]);
+
+        await prisma.$transaction([
+          // Since we're unbanning the partner, we need to
+          // clean up any pending cross-program ban alerts that originated from this program.
+          prisma.fraudEvent.deleteMany({
+            where: {
+              partnerId,
+              sourceProgramId: programId,
+              fraudEventGroup: {
+                type: FraudRuleType.partnerCrossProgramBan,
+              },
+            },
+          }),
+
+          // Delete the fraud group if it has no more fraud events
+          prisma.fraudEventGroup.deleteMany({
+            where: {
+              partnerId,
+              type: FraudRuleType.partnerCrossProgramBan,
+              fraudEvents: {
+                none: {},
+              },
+            },
           }),
         ]);
 

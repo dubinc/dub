@@ -42,16 +42,19 @@ export const POST = withWorkspace(
       partnerId = programEnrollment.partnerId;
     }
 
-    const response = await banPartner({
+    await banPartner({
       workspace,
       partnerId: partnerId!, // coerce here because we're already throwing if no partnerId or tenantId
       reason,
       user: session.user,
     });
 
-    return NextResponse.json(response);
+    return NextResponse.json({
+      partnerId,
+    });
   },
   {
     requiredPlan: ["advanced", "enterprise"],
+    requiredRoles: ["owner", "member"],
   },
 );

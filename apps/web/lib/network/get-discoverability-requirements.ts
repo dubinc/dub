@@ -3,10 +3,7 @@ import {
   EXCLUDED_PROGRAM_IDS,
   PARTNER_NETWORK_MIN_COMMISSIONS_CENTS,
 } from "../constants/partner-profile";
-import {
-  ONLINE_PRESENCE_FIELDS,
-  PartnerOnlinePresenceFields,
-} from "../partners/online-presence";
+import { PARTNER_PLATFORM_FIELDS } from "../partners/partner-platforms";
 import { EnrolledPartnerProps, PartnerProps } from "../types";
 
 export const partnerHasEarnedCommissions = (
@@ -25,29 +22,10 @@ export const partnerHasEarnedCommissions = (
   );
 };
 
-const partnerIsNotBanned = (
+export const partnerIsNotBanned = (
   programEnrollments: Pick<EnrolledPartnerProps, "programId" | "status">[],
 ) => {
   return programEnrollments.every((pe) => pe.status !== "banned");
-};
-
-export const partnerCanViewMarketplace = ({
-  partner,
-  programEnrollments,
-}: {
-  partner?: Pick<PartnerProps, "email">;
-  programEnrollments: Pick<
-    EnrolledPartnerProps,
-    "programId" | "status" | "totalCommissions"
-  >[];
-}) => {
-  if (partner?.email?.endsWith("@dub.co")) {
-    return true;
-  }
-  return (
-    partnerHasEarnedCommissions(programEnrollments) &&
-    partnerIsNotBanned(programEnrollments)
-  );
 };
 
 export function getDiscoverabilityRequirements({
@@ -56,31 +34,38 @@ export function getDiscoverabilityRequirements({
 }: {
   partner: Pick<
     PartnerProps,
-    | PartnerOnlinePresenceFields
+    | "image"
     | "description"
     | "monthlyTraffic"
     | "preferredEarningStructures"
     | "salesChannels"
+    | "platforms"
   >;
   programEnrollments: Pick<
     EnrolledPartnerProps,
     "programId" | "status" | "totalCommissions"
   >[];
-}) {
+}): {
+  label: string;
+  href?: string;
+  completed: boolean;
+}[] {
   return [
     {
-      label: "Add basic profile info",
-      completed: true,
+      label: "Upload your logo",
+      href: "#info",
+      completed: !!partner.image,
     },
     {
-      label: "Connect your website or social account",
-      href: "#sites",
-      completed: ONLINE_PRESENCE_FIELDS.some(
-        (field) => field.data(partner).value, // TODO: update this to also check for "verified" in the future
-      ),
+      label: "Verify at least 2 social accounts/website",
+      href: "#platforms",
+      completed:
+        PARTNER_PLATFORM_FIELDS.filter(
+          (field) => field.data(partner.platforms).verified,
+        ).length >= 2,
     },
     {
-      label: "Update your profile description",
+      label: "Fill out your profile description",
       href: "#about",
       completed: !!partner.description,
     },
@@ -100,12 +85,12 @@ export function getDiscoverabilityRequirements({
       completed: Boolean(partner.salesChannels?.length),
     },
     {
-      label: "Maintain a healthy partner profile",
-      completed: partnerIsNotBanned(programEnrollments),
-    },
-    {
       label: `Earn ${currencyFormatter(PARTNER_NETWORK_MIN_COMMISSIONS_CENTS, { trailingZeroDisplay: "stripIfInteger" })} in commissions`,
       completed: partnerHasEarnedCommissions(programEnrollments),
+    },
+    {
+      label: "Maintain a healthy partner profile",
+      completed: partnerIsNotBanned(programEnrollments),
     },
   ];
 }

@@ -4,36 +4,39 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { polyfillSocialMediaFields } from "@/lib/social-utils";
 import {
   createPartnerSchema,
   EnrolledPartnerSchema,
   getPartnersQuerySchemaExtended,
+  partnerPlatformSchema,
 } from "@/lib/zod/schemas/partners";
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 // GET /api/partners - get all partners for a program
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
-    const { sortBy: sortByWithOldFields, ...parsedParams } =
-      getPartnersQuerySchemaExtended
-        .merge(
-          z.object({
-            // add old fields for backward compatibility
-            sortBy: getPartnersQuerySchemaExtended.shape.sortBy.or(
-              z.enum([
-                "clicks",
-                "leads",
-                "conversions",
-                "sales",
-                "saleAmount",
-                "totalSales",
-              ]),
-            ),
-          }),
-        )
-        .parse(searchParams);
+    const {
+      sortBy: sortByWithOldFields,
+      includePartnerPlatforms,
+      ...parsedParams
+    } = getPartnersQuerySchemaExtended
+      .extend({
+        // add old fields for backward compatibility
+        sortBy: getPartnersQuerySchemaExtended.shape.sortBy.or(
+          z.enum([
+            "clicks",
+            "leads",
+            "conversions",
+            "sales",
+            "saleAmount",
+            "totalSales",
+          ]),
+        ),
+      })
+      .parse(searchParams);
 
     // get the final sortBy field (replace old fields with new fields)
     const sortBy =
@@ -55,27 +58,32 @@ export const GET = withWorkspace(
     console.timeEnd("getPartners");
 
     // polyfill deprecated fields for backward compatibility
+    const baseSchema = EnrolledPartnerSchema.extend({
+      clicks: z.number().default(0),
+      leads: z.number().default(0),
+      conversions: z.number().default(0),
+      sales: z.number().default(0),
+      saleAmount: z.number().default(0),
+    });
+
+    const responseSchema = includePartnerPlatforms
+      ? baseSchema.extend({
+          platforms: z.array(partnerPlatformSchema),
+        })
+      : baseSchema;
+
     return NextResponse.json(
-      z
-        .array(
-          EnrolledPartnerSchema.extend({
-            clicks: z.number().default(0),
-            leads: z.number().default(0),
-            conversions: z.number().default(0),
-            sales: z.number().default(0),
-            saleAmount: z.number().default(0),
-          }),
-        )
-        .parse(
-          partners.map((partner) => ({
-            ...partner,
-            clicks: partner.totalClicks,
-            leads: partner.totalLeads,
-            conversions: partner.totalConversions,
-            sales: partner.totalSales,
-            saleAmount: partner.totalSaleAmount,
-          })),
-        ),
+      z.array(responseSchema).parse(
+        partners.map((partner) => ({
+          ...partner,
+          clicks: partner.totalClicks,
+          leads: partner.totalLeads,
+          conversions: partner.totalConversions,
+          sales: partner.totalSales,
+          saleAmount: partner.totalSaleAmount,
+          ...polyfillSocialMediaFields(partner.platforms),
+        })),
+      ),
     );
   },
   {
@@ -118,5 +126,6 @@ export const POST = withWorkspace(
   },
   {
     requiredPlan: ["advanced", "enterprise"],
+    requiredRoles: ["owner", "member"],
   },
 );

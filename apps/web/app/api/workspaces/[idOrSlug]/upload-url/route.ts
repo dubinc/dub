@@ -2,24 +2,29 @@ import { withWorkspace } from "@/lib/auth";
 import { storage } from "@/lib/storage";
 import { nanoid, R2_URL } from "@dub/utils";
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 const schema = z.object({
   folder: z.enum(["integration-screenshots", "program-logos"]),
 });
 
 // POST /api/workspaces/[idOrSlug]/upload-url – get a signed URL to upload a file to a workspace
-export const POST = withWorkspace(async ({ req }) => {
-  const { folder } = schema.parse(await req.json());
+export const POST = withWorkspace(
+  async ({ req }) => {
+    const { folder } = schema.parse(await req.json());
 
-  const key = `${folder}/${nanoid(16)}`;
-  const signedUrl = await storage.getSignedUploadUrl({
-    key,
-  });
+    const key = `${folder}/${nanoid(16)}`;
+    const signedUrl = await storage.getSignedUploadUrl({
+      key,
+    });
 
-  return NextResponse.json({
-    key,
-    signedUrl,
-    destinationUrl: `${R2_URL}/${key}`,
-  });
-});
+    return NextResponse.json({
+      key,
+      signedUrl,
+      destinationUrl: `${R2_URL}/${key}`,
+    });
+  },
+  {
+    requiredRoles: ["owner", "member"],
+  },
+);

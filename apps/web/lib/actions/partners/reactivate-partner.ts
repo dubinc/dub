@@ -8,13 +8,19 @@ import { deactivatePartnerSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 // Reactivate a partner
 export const reactivatePartnerAction = authActionClient
-  .schema(deactivatePartnerSchema)
+  .inputSchema(deactivatePartnerSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { partnerId } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredRoles: ["owner", "member"],
+    });
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -37,7 +43,7 @@ export const reactivatePartnerAction = authActionClient
       throw new Error("This partner is not deactivated.");
     }
 
-    const defaultGroup = await getGroupOrThrow({
+    const partnerGroup = await getGroupOrThrow({
       programId,
       groupId:
         programEnrollment.groupId || programEnrollment.program.defaultGroupId,
@@ -57,11 +63,11 @@ export const reactivatePartnerAction = authActionClient
         },
         data: {
           status: "approved",
-          groupId: defaultGroup.id,
-          clickRewardId: defaultGroup.clickRewardId,
-          leadRewardId: defaultGroup.leadRewardId,
-          saleRewardId: defaultGroup.saleRewardId,
-          discountId: defaultGroup.discountId,
+          groupId: partnerGroup.id,
+          clickRewardId: partnerGroup.clickRewardId,
+          leadRewardId: partnerGroup.leadRewardId,
+          saleRewardId: partnerGroup.saleRewardId,
+          discountId: partnerGroup.discountId,
         },
       }),
     ]);

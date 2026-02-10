@@ -42,7 +42,7 @@ export async function importCustomers(payload: RewardfulImportPayload) {
       break;
     }
 
-    await Promise.all(
+    await Promise.allSettled(
       referrals.map((referral) =>
         createCustomer({
           referral,
@@ -116,12 +116,12 @@ async function createCustomer({
     return;
   }
 
-  const link = await prisma.link.findUnique({
+  // here we're using findFirst because for some reason findUnique uses a weird collation
+  // that causes a bunch of LINK_NOT_FOUND errors (for links/coupons that actually exist)
+  const link = await prisma.link.findFirst({
     where: {
-      domain_key: {
-        domain: program.domain!,
-        key: shortLinkToken,
-      },
+      domain: program.domain!,
+      key: shortLinkToken,
     },
   });
 
@@ -207,7 +207,7 @@ async function createCustomer({
 
   const customerId = createId({ prefix: "cus_" });
 
-  await prisma.customer.create({
+  const customer = await prisma.customer.create({
     data: {
       id: customerId,
       name:
@@ -220,6 +220,8 @@ async function createCustomer({
       projectConnectId: workspace.stripeConnectId,
       clickId: clickEvent.click_id,
       linkId: link.id,
+      programId: link.programId,
+      partnerId: link.partnerId,
       country: clickEvent.country,
       clickedAt: new Date(referral.created_at),
       createdAt: new Date(referral.became_lead_at),
@@ -227,6 +229,10 @@ async function createCustomer({
       stripeCustomerId: referral.stripe_customer_id,
     },
   });
+
+  console.log(
+    `Created customer ${customer.email} for referral ${link.shortLink}`,
+  );
 
   await Promise.allSettled([
     recordLeadWithTimestamp({

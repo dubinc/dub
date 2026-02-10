@@ -1,50 +1,60 @@
-import {
-  EXCLUDED_PROGRAM_IDS,
-  PARTNER_NETWORK_MIN_COMMISSIONS_CENTS,
-} from "@/lib/constants/partner-profile";
-import ProgramMarketplaceAnnouncement from "@dub/email/templates/program-marketplace-announcement";
+import ConnectPlatformsReminder from "@dub/email/templates/connect-platforms-reminder";
 import { prisma } from "@dub/prisma";
+import { chunk } from "@dub/utils";
 import "dotenv-flow/config";
 import { queueBatchEmail } from "../lib/email/queue-batch-email";
+import { generateUnsubscribeToken } from "../lib/email/unsubscribe-token";
 
 async function main() {
-  const partners = await prisma.partner.findMany({
-    where: {
-      email: "steven@dub.co",
-      users: {
-        some: {},
-      },
-      programs: {
-        some: {
-          programId: {
-            notIn: EXCLUDED_PROGRAM_IDS,
-          },
-          status: "approved",
-          totalCommissions: {
-            gte: PARTNER_NETWORK_MIN_COMMISSIONS_CENTS,
-          },
+  while (true) {
+    const usersToNotify = await prisma.user.findMany({
+      where: {
+        sentMail: false,
+        notificationPreferences: {
+          partnerAccount: true,
         },
-        none: {
-          status: "banned",
+        partners: {
+          some: {},
         },
       },
-    },
-  });
+      take: 10000,
+    });
+    if (usersToNotify.length === 0) {
+      console.log("No more users to notify");
+      break;
+    }
+    console.log(`Found ${usersToNotify.length} users to notify`);
 
-  const res = await queueBatchEmail<typeof ProgramMarketplaceAnnouncement>(
-    partners.map((partner) => ({
-      to: partner.email!,
-      subject: "Introducing the Dub Program Marketplace",
-      variant: "marketing",
-      replyTo: "noreply",
-      templateName: "ProgramMarketplaceAnnouncement",
-      templateProps: {
-        email: partner.email!,
-      },
-    })),
-  );
+    const res = await queueBatchEmail<typeof ConnectPlatformsReminder>(
+      usersToNotify.map((user) => ({
+        to: user.email!,
+        subject: "Verify your social platforms on Dub Partners",
+        variant: "marketing",
+        templateName: "ConnectPlatformsReminder",
+        templateProps: {
+          email: user.email!,
+          unsubscribeUrl: `https://partners.dub.co/unsubscribe/${generateUnsubscribeToken(user.email!)}`,
+        },
+      })),
+    );
 
-  console.log({ res });
+    console.log(res);
+
+    const chunkedUsers = chunk(usersToNotify, 1000);
+    for (const cu of chunkedUsers) {
+      const res = await prisma.user.updateMany({
+        where: {
+          id: {
+            in: cu.map((u) => u.id),
+          },
+        },
+        data: {
+          sentMail: true,
+        },
+      });
+      console.log(`Updated ${res.count} users to sentMail: true`);
+    }
+  }
 }
 
 main();

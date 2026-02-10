@@ -7,8 +7,8 @@ import {
   salesChannelsMap,
 } from "@/lib/partners/partner-profile";
 import { EnrolledPartnerExtendedProps } from "@/lib/types";
-import { OnlinePresenceSummary } from "@/ui/partners/online-presence-summary";
-import { Icon } from "@dub/ui";
+import { PartnerPlatformSummary } from "@/ui/partners/partner-platform-summary";
+import { Icon, InfoTooltip } from "@dub/ui";
 
 export function PartnerAbout({
   partner,
@@ -21,20 +21,7 @@ export function PartnerAbout({
     | "salesChannels"
     | "preferredEarningStructures"
     | "monthlyTraffic"
-    | "website"
-    | "websiteVerifiedAt"
-    | "youtube"
-    | "youtubeSubscriberCount"
-    | "youtubeVerifiedAt"
-    | "youtubeViewCount"
-    | "twitter"
-    | "twitterVerifiedAt"
-    | "linkedin"
-    | "linkedinVerifiedAt"
-    | "instagram"
-    | "instagramVerifiedAt"
-    | "tiktok"
-    | "tiktokVerifiedAt"
+    | "platforms"
   >;
   error?: any;
 }) {
@@ -57,8 +44,8 @@ export function PartnerAbout({
         <h3 className="text-content-emphasis text-sm font-semibold">
           Website and socials
         </h3>
-        <OnlinePresenceSummary
-          partner={partner}
+        <PartnerPlatformSummary
+          platforms={partner.platforms}
           showLabels={false}
           className="gap-y-2"
         />
@@ -111,9 +98,12 @@ export function PartnerAbout({
 
       {Boolean(partner.monthlyTraffic) && (
         <div className="flex flex-col gap-2">
-          <h3 className="text-content-emphasis text-xs font-semibold">
-            Monthly traffic
-          </h3>
+          <div className="flex items-center gap-1">
+            <h3 className="text-content-emphasis text-xs font-semibold">
+              Monthly traffic
+            </h3>
+            <InfoTooltip content="Shared by the partner, not verified by Dub." />
+          </div>
           <span className="text-content-default text-xs">
             {monthlyTrafficAmountsMap[partner.monthlyTraffic!]?.label ?? "-"}
           </span>

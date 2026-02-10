@@ -1,3 +1,4 @@
+import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import { PartnerGroupProps } from "@/lib/types";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { Program } from "@dub/prisma/client";
@@ -25,7 +26,10 @@ import { ReferralsEmbedLink } from "./types";
 interface Props {
   program: Pick<Program, "name">;
   links: ReferralsEmbedLink[];
-  group: Pick<PartnerGroupProps, "id" | "additionalLinks" | "maxPartnerLinks">;
+  group: Pick<
+    PartnerGroupProps,
+    "id" | "additionalLinks" | "maxPartnerLinks" | "linkStructure"
+  >;
   onCreateLink: () => void;
   onEditLink: (link: ReferralsEmbedLink) => void;
 }
@@ -71,11 +75,15 @@ export function ReferralsEmbedLinksList({
         header: "Link",
         minSize: 200,
         cell: ({ row }) => {
+          const partnerLink = constructPartnerLink({
+            group,
+            link: row.original,
+          });
           return (
             <div className="flex items-center gap-2">
-              <CopyButton value={row.original.shortLink} />
-              <span className="text-sm">
-                {getPrettyUrl(row.original.shortLink)}
+              <CopyButton value={partnerLink} />
+              <span className="text-sm" title={partnerLink}>
+                {getPrettyUrl(partnerLink)}
               </span>
             </div>
           );

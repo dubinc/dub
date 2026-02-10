@@ -1,9 +1,4 @@
-import {
-  currencyFormatter,
-  DUB_WORDMARK,
-  formatDate,
-  formatDateTimeSmart,
-} from "@dub/utils";
+import { currencyFormatter, DUB_WORDMARK, formatDate } from "@dub/utils";
 import {
   Body,
   Container,
@@ -34,8 +29,9 @@ export default function PartnerPayoutConfirmed({
     initiatedAt: new Date("2024-11-22"),
     startDate: new Date("2024-11-01"),
     endDate: new Date("2024-11-30"),
-    paymentMethod: "ach",
     mode: "internal",
+    paymentMethod: "ach",
+    payoutMethod: "stripe",
   },
 }: {
   email: string;
@@ -50,8 +46,9 @@ export default function PartnerPayoutConfirmed({
     initiatedAt: Date | null;
     startDate?: Date | null;
     endDate?: Date | null;
-    paymentMethod: string;
     mode: "internal" | "external" | null;
+    paymentMethod: string;
+    payoutMethod: "stripe" | "paypal";
   };
 }) {
   const payoutAmountInDollars = currencyFormatter(payout.amount);
@@ -122,7 +119,11 @@ export default function PartnerPayoutConfirmed({
               The payout is currently being processed and is expected to be
               transferred to your{" "}
               <strong className="text-black">
-                {payout.mode === "external" ? program.name : "Stripe Express"}
+                {payout.mode === "external"
+                  ? program.name
+                  : payout.payoutMethod === "paypal"
+                    ? "PayPal"
+                    : "Stripe Express"}
               </strong>{" "}
               account in{" "}
               <strong className="text-black">{etaDays} business days</strong>{" "}
@@ -134,9 +135,7 @@ export default function PartnerPayoutConfirmed({
                 <span className="text-sm text-neutral-500">
                   Estimated arrival date:{" "}
                   <strong className="text-black">
-                    {formatDateTimeSmart(
-                      addBusinessDays(payout.initiatedAt, etaDays),
-                    )}
+                    {formatDate(addBusinessDays(payout.initiatedAt, etaDays))}
                   </strong>
                   .
                 </span>

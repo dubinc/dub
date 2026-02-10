@@ -4,7 +4,6 @@ import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import useWorkspaces from "@/lib/swr/use-workspaces";
 import { SimpleLinkProps } from "@/lib/types";
-import { useAcceptInviteModal } from "@/ui/modals/accept-invite-modal";
 import { useAddEditDomainModal } from "@/ui/modals/add-edit-domain-modal";
 import { useAddWorkspaceModal } from "@/ui/modals/add-workspace-modal";
 import { useImportBitlyModal } from "@/ui/modals/import-bitly-modal";
@@ -32,7 +31,6 @@ import { useImportToltModal } from "./import-tolt-modal";
 import { useLinkBuilder } from "./link-builder";
 import { useProgramWelcomeModal } from "./program-welcome-modal";
 import { useUpgradedModal } from "./upgraded-modal";
-import { useWelcomeModal } from "./welcome-modal";
 
 export const ModalContext = createContext<{
   setShowAddWorkspaceModal: Dispatch<SetStateAction<boolean>>;
@@ -84,8 +82,6 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
 
   const { AddWorkspaceModal, setShowAddWorkspaceModal } =
     useAddWorkspaceModal();
-  const { AcceptInviteModal, setShowAcceptInviteModal } =
-    useAcceptInviteModal();
   const { setShowAddEditDomainModal, AddEditDomainModal } =
     useAddEditDomainModal();
   const { setShowLinkBuilder, LinkBuilder } = useLinkBuilder(
@@ -105,7 +101,6 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
   const { setShowImportRebrandlyModal, ImportRebrandlyModal } =
     useImportRebrandlyModal();
   const { setShowImportCsvModal, ImportCsvModal } = useImportCsvModal();
-  const { setShowWelcomeModal, WelcomeModal } = useWelcomeModal();
   const { setShowUpgradedModal, UpgradedModal } = useUpgradedModal();
   const { setShowProgramWelcomeModal, ProgramWelcomeModal } =
     useProgramWelcomeModal();
@@ -117,7 +112,6 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     setShowProgramWelcomeModal(searchParams.has("onboarded-program"));
-    setShowWelcomeModal(searchParams.has("onboarded"));
 
     if (searchParams.has("upgraded")) {
       setShowUpgradedModal(true);
@@ -152,13 +146,6 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
       );
     }
   }, [hashes, workspaceId]);
-
-  // handle invite and oauth modals
-  useEffect(() => {
-    if (error && (error.status === 409 || error.status === 410)) {
-      setShowAcceptInviteModal(true);
-    }
-  }, [error]);
 
   // handle ?newWorkspace and ?newLink query params
   useEffect(() => {
@@ -210,7 +197,6 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
       }}
     >
       <AddWorkspaceModal />
-      <AcceptInviteModal />
       <AddEditDomainModal />
       <LinkBuilder />
       <AddEditTagModal />
@@ -221,7 +207,6 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
       <ImportPartnerStackModal />
       <ImportRewardfulModal />
       <ImportToltModal />
-      <WelcomeModal />
       <UpgradedModal />
       <ProgramWelcomeModal />
       {children}

@@ -1,4 +1,5 @@
 import { retryFailedPaypalPayoutsAction } from "@/lib/actions/partners/retry-failed-paypal-payouts";
+import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PartnerPayoutResponse } from "@/lib/types";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { Button, Icon, Popover } from "@dub/ui";
@@ -11,6 +12,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 export function PayoutRowMenu({ row }: { row: Row<PartnerPayoutResponse> }) {
+  const { payoutMethod } = usePartnerProfile();
   const [isOpen, setIsOpen] = useState(false);
 
   const { executeAsync: executeRetryPayout, isPending: isRetryPayoutPending } =
@@ -39,7 +41,8 @@ export function PayoutRowMenu({ row }: { row: Row<PartnerPayoutResponse> }) {
     confirmText: "Retry payout",
   });
 
-  const canRetry = row.original.status === "failed";
+  const canRetry =
+    row.original.status === "failed" && payoutMethod === "paypal";
 
   if (!canRetry) {
     return null;

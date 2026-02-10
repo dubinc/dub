@@ -6,12 +6,11 @@ import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-sta
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
-import { StripeMode, WebhookPartner } from "@/lib/types";
+import { StripeMode } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformSaleEventData } from "@/lib/webhook/transform";
 import { prisma } from "@dub/prisma";
-import { WorkflowTrigger } from "@dub/prisma/client";
 import { nanoid, pick } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
@@ -39,7 +38,9 @@ export async function invoicePaid(event: Stripe.Event, mode: StripeMode) {
       mode,
     });
 
-    const dubCustomerExternalId = connectedCustomer?.metadata.dubCustomerId; // TODO: need to update to dubCustomerExternalId in the future for consistency
+    const dubCustomerExternalId =
+      connectedCustomer?.metadata.dubCustomerExternalId ||
+      connectedCustomer?.metadata.dubCustomerId;
 
     if (dubCustomerExternalId) {
       try {
@@ -206,14 +207,18 @@ export async function invoicePaid(event: Stripe.Event, mode: StripeMode) {
         saleAmount: {
           increment: invoiceSaleAmount,
         },
+        firstSaleAt: customer.firstSaleAt ? undefined : new Date(),
       },
     }),
   ]);
 
   // for program links
-  let webhookPartner: WebhookPartner | undefined;
+  let createdCommission:
+    | Awaited<ReturnType<typeof createPartnerCommission>>
+    | undefined = undefined;
+
   if (link.programId && link.partnerId) {
-    const createdCommission = await createPartnerCommission({
+    createdCommission = await createPartnerCommission({
       event: "sale",
       programId: link.programId,
       partnerId: link.partnerId,
@@ -234,15 +239,20 @@ export async function invoicePaid(event: Stripe.Event, mode: StripeMode) {
         },
       },
     });
-    webhookPartner = createdCommission?.webhookPartner;
+
+    const { webhookPartner, programEnrollment } = createdCommission;
 
     waitUntil(
       Promise.allSettled([
         executeWorkflows({
-          trigger: WorkflowTrigger.saleRecorded,
-          context: {
+          trigger: "partnerMetricsUpdated",
+          reason: "sale",
+          identity: {
+            workspaceId: workspace.id,
             programId: link.programId,
             partnerId: link.partnerId,
+          },
+          metrics: {
             current: {
               saleAmount: saleData.amount,
               conversions: firstConversionFlag ? 1 : 0,
@@ -260,8 +270,8 @@ export async function invoicePaid(event: Stripe.Event, mode: StripeMode) {
           detectAndRecordFraudEvent({
             program: { id: link.programId },
             partner: pick(webhookPartner, ["id", "email", "name"]),
+            programEnrollment: pick(programEnrollment, ["status"]),
             customer: pick(customer, ["id", "email", "name"]),
-            commission: { id: createdCommission.commission?.id },
             link: pick(link, ["id"]),
             click: pick(saleData, ["url", "referer"]),
             event: { id: saleData.event_id },
@@ -280,7 +290,7 @@ export async function invoicePaid(event: Stripe.Event, mode: StripeMode) {
         clickedAt: customer.clickedAt || customer.createdAt,
         link: linkUpdated,
         customer,
-        partner: webhookPartner,
+        partner: createdCommission?.webhookPartner,
         metadata: null,
       }),
     }),

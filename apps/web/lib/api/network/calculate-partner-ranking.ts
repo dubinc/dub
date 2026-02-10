@@ -1,18 +1,13 @@
+import { getNetworkPartnersQuerySchema } from "@/lib/zod/schemas/partner-network";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { ACME_PROGRAM_ID } from "@dub/utils";
+import * as z from "zod/v4";
 
-export interface PartnerRankingFilters {
-  partnerIds?: string[];
-  status?: "discover" | "invited" | "recruited";
-  country?: string;
-  starred?: boolean;
-}
+type PartnerRankingFilters = z.infer<typeof getNetworkPartnersQuerySchema>;
 
 export interface PartnerRankingParams extends PartnerRankingFilters {
   programId: string;
-  page: number;
-  pageSize: number;
   similarPrograms?: Array<{ programId: string; similarityScore: number }>;
 }
 
@@ -50,6 +45,8 @@ export async function calculatePartnerRanking({
   partnerIds,
   country,
   starred,
+  platform,
+  subscribers,
   page,
   pageSize,
   status = "discover",
@@ -67,6 +64,48 @@ export async function calculatePartnerRanking({
 
   if (country) {
     conditions.push(Prisma.sql`p.country = ${country}`);
+  }
+
+  // Filter by platform type and/or subscriber count (must have verified platform)
+  // Combine both filters into a single EXISTS clause so they apply to the same platform
+  if (platform || subscribers) {
+    const platformConditions: Prisma.Sql[] = [
+      Prisma.sql`pp_filter.partnerId = p.id`,
+      Prisma.sql`pp_filter.verifiedAt IS NOT NULL`,
+    ];
+
+    if (platform) {
+      platformConditions.push(Prisma.sql`pp_filter.type = ${platform}`);
+    }
+
+    if (subscribers) {
+      switch (subscribers) {
+        case "<5000":
+          platformConditions.push(Prisma.sql`pp_filter.subscribers < 5000`);
+          break;
+        case "5000-25000":
+          platformConditions.push(
+            Prisma.sql`pp_filter.subscribers >= 5000 AND pp_filter.subscribers < 25000`,
+          );
+          break;
+        case "25000-100000":
+          platformConditions.push(
+            Prisma.sql`pp_filter.subscribers >= 25000 AND pp_filter.subscribers < 100000`,
+          );
+          break;
+        case "100000+":
+          platformConditions.push(Prisma.sql`pp_filter.subscribers >= 100000`);
+          break;
+      }
+    }
+
+    conditions.push(
+      Prisma.sql`EXISTS (
+        SELECT 1 
+        FROM PartnerPlatform pp_filter 
+        WHERE ${Prisma.join(platformConditions, " AND ")}
+      )`,
+    );
   }
 
   if (status === "discover") {
@@ -89,14 +128,11 @@ export async function calculatePartnerRanking({
 
   const whereClause = Prisma.join(conditions, " AND ");
 
-  // Rank partners with no online presence lower
-  const hasProfileCheck = Prisma.sql`(
-    p.website IS NOT NULL OR
-    p.youtube IS NOT NULL OR
-    p.twitter IS NOT NULL OR
-    p.linkedin IS NOT NULL OR
-    p.instagram IS NOT NULL OR
-    p.tiktok IS NOT NULL
+  // Rank partners with no platforms lower
+  const hasProfileCheck = Prisma.sql`EXISTS (
+    SELECT 1 
+    FROM PartnerPlatform pp 
+    WHERE pp.partnerId = p.id
   )`;
 
   const orderByClause =
@@ -216,6 +252,7 @@ export async function calculatePartnerRanking({
       CASE WHEN enrolled.status = 'approved' THEN enrolled.createdAt ELSE NULL END as recruitedAt,
       preferredEarningStructuresData.preferredEarningStructures as preferredEarningStructures,
       salesChannelsData.salesChannels as salesChannels,
+      partnerPlatformsData.platforms as platforms,
       
       -- Pre-compute hasProfileCheck for faster sorting
       ${hasProfileCheck} as hasProfile,
@@ -224,7 +261,7 @@ export async function calculatePartnerRanking({
       -- Trusted partners (trustedAt IS NOT NULL) get 200 bonus points to rank at the top
       -- Partners with profiles get 500 bonus points to ensure they rank above those without profiles
       (
-        -- Profile bonus: 500 points for partners with online presence (ensures they rank above those without)
+        -- Profile bonus: 500 points for partners with platforms (ensures they rank above those without)
         CASE WHEN ${hasProfileCheck} THEN 500 ELSE 0 END +
         -- Trusted partner bonus: 200 points for partners with trustedAt set
         CASE WHEN p.trustedAt IS NOT NULL THEN 200 ELSE 0 END +
@@ -296,10 +333,68 @@ export async function calculatePartnerRanking({
       GROUP BY psc.partnerId
     ) salesChannelsData ON salesChannelsData.partnerId = p.id
 
+    -- OPTIMIZATION: Only get platforms for discoverable partners
+    LEFT JOIN (
+      SELECT 
+        pp.partnerId,
+        JSON_ARRAYAGG(
+          JSON_OBJECT(
+            'partnerId', pp.partnerId,
+            'type', pp.type,
+            'identifier', pp.identifier,
+            'verifiedAt', pp.verifiedAt,
+            'platformId', pp.platformId,
+            'subscribers', pp.subscribers,
+            'posts', pp.posts,
+            'views', pp.views
+          )
+        ) as platforms
+      FROM PartnerPlatform pp
+      WHERE pp.partnerId IN (
+        SELECT p_filter.id
+        FROM Partner p_filter
+        WHERE ${buildDiscoverablePartnersFilter("p_filter")}
+      )
+      GROUP BY pp.partnerId
+    ) partnerPlatformsData ON partnerPlatformsData.partnerId = p.id
+
     WHERE ${whereClause}
     ORDER BY ${orderByClause}
     LIMIT ${pageSize} OFFSET ${offset}
   `;
 
-  return partners;
+  return partners.map((partner: any) => {
+    let platforms: any[] = [];
+    if (partner.platforms) {
+      try {
+        // Handle both string and already-parsed JSON
+        const parsedPlatforms =
+          typeof partner.platforms === "string"
+            ? JSON.parse(partner.platforms)
+            : partner.platforms;
+
+        // Transform platforms to match Prisma types
+        // MySQL JSON returns BigInt as numbers and DateTime as strings
+        platforms = (Array.isArray(parsedPlatforms) ? parsedPlatforms : []).map(
+          (platform: any) => ({
+            ...platform,
+            subscribers: platform.subscribers
+              ? BigInt(platform.subscribers)
+              : BigInt(0),
+            posts: platform.posts ? BigInt(platform.posts) : BigInt(0),
+            views: platform.views ? BigInt(platform.views) : BigInt(0),
+            verifiedAt: platform.verifiedAt
+              ? new Date(platform.verifiedAt)
+              : null,
+          }),
+        );
+      } catch {
+        platforms = [];
+      }
+    }
+    return {
+      ...partner,
+      platforms,
+    };
+  });
 }

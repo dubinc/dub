@@ -11,3 +11,8 @@ export const isValidDomain = (domain: string) => {
 export const isValidDomainFormat = (domain: string) => {
   return validDomainRegex.test(domain);
 };
+
+export const isValidDomainFormatWithLocalhost = (domain: string) => {
+  const d = domain.trim().toLowerCase();
+  return validDomainRegex.test(d) || /^localhost(?::\d{1,5})?$/.test(d);
+};

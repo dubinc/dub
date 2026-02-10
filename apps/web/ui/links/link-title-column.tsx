@@ -180,11 +180,17 @@ function UnverifiedTooltip({
   const ref = useRef<HTMLDivElement>(null);
   const isVisible = useInViewport(ref);
 
-  const { verified } = useDomain({ slug: domain, enabled: isVisible });
+  const { verified, loading, error } = useDomain({
+    slug: domain,
+    enabled: isVisible,
+  });
+
+  const isConfirmedUnverified =
+    !isDubDomain(domain) && !loading && !error && verified === false;
 
   return (
     <div ref={ref} className="min-w-0 truncate">
-      {!isDubDomain(domain) && verified === false ? (
+      {isConfirmedUnverified ? (
         <Tooltip
           content={
             <TooltipContent
@@ -354,7 +360,7 @@ const Details = memo(
                 target="_blank"
                 rel="noopener noreferrer"
                 title={url}
-                className="truncate text-neutral-500 transition-colors hover:text-neutral-700 hover:underline hover:underline-offset-2"
+                className="cursor-alias truncate text-neutral-500 decoration-dotted transition-colors hover:text-neutral-700 hover:underline hover:underline-offset-2"
               >
                 {getPrettyUrl(url)}
               </a>

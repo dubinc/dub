@@ -10,7 +10,6 @@ import {
 import { LoadingSpinner } from "@dub/ui/icons";
 import { cn, truncate } from "@dub/utils";
 import { CircleCheck, Star } from "lucide-react";
-import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useDebounce } from "use-debounce";
@@ -162,7 +161,7 @@ export function RegisterDomainForm({
                 "-m-1 rounded-[0.625rem] p-1",
                 searchedDomain
                   ? searchedDomain.available
-                    ? "bg-[#def5c6]"
+                    ? "bg-green-100"
                     : "bg-orange-100"
                   : "bg-neutral-100",
               )}
@@ -178,7 +177,7 @@ export function RegisterDomainForm({
                   aria-invalid="true"
                   autoFocus={!isMobile}
                   placeholder={workspace.slug}
-                  value={slug}
+                  value={slug || ""}
                   onChange={(e) => {
                     setSlug(e.target.value);
                   }}
@@ -290,12 +289,13 @@ export function RegisterDomainForm({
             </div>
           )}
 
-        {searchedDomain && showTerms && (
+        {searchedDomain && showTerms && variant === "modal" && (
           <p className="-my-2 text-pretty text-center text-xs text-neutral-500">
             By claiming your .link domain, you agree to our{" "}
             <a
               href="https://dub.co/help/article/free-dot-link-domain#terms-and-conditions"
               target="_blank"
+              rel="noopener noreferrer"
               className="underline transition-colors hover:text-neutral-700"
             >
               terms
@@ -307,7 +307,7 @@ export function RegisterDomainForm({
       </div>
       <div
         className={cn(
-          "mt-4 flex justify-end gap-2",
+          "mt-6 flex justify-end gap-2",
           variant === "modal" && "border-t border-neutral-200 p-4 sm:px-6",
         )}
       >
@@ -321,9 +321,10 @@ export function RegisterDomainForm({
           />
         )}
         {searchedDomain && searchedDomain.premium ? (
-          <Link
+          <a
             href={`https://www.dynadot.com/domain/search?domain=${searchedDomain.domain}`}
             target="_blank"
+            rel="noopener noreferrer"
             className={cn(
               buttonVariants(),
               "flex h-9 w-full items-center justify-center rounded-md border px-4 text-sm",
@@ -331,7 +332,7 @@ export function RegisterDomainForm({
             )}
           >
             Register on Dynadot
-          </Link>
+          </a>
         ) : (
           <Button
             type="submit"
@@ -347,6 +348,21 @@ export function RegisterDomainForm({
           />
         )}
       </div>
+      {searchedDomain && showTerms && variant !== "modal" && (
+        <p className="mt-4 text-pretty text-center text-xs text-neutral-500">
+          By claiming your .link domain, you agree to our{" "}
+          <a
+            href="https://dub.co/help/article/free-dot-link-domain#terms-and-conditions"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline transition-colors hover:text-neutral-700"
+          >
+            terms
+          </a>
+          .<br />
+          After the first year, your renewal is $12/year.
+        </p>
+      )}
     </form>
   );
 }
@@ -367,10 +383,11 @@ function DomainSavedToast() {
     <div className="flex items-center gap-1.5 rounded-lg bg-white p-4 text-sm shadow-[0_4px_12px_#0000001a]">
       <CheckCircleFill className="size-5 shrink-0 text-black" />
       <p className="text-[13px] font-medium text-neutral-900">
-        Domain saved. You'll need a pro plan to complete the registration.{" "}
+        Domain saved. You'll need a paid plan to complete the registration.{" "}
         <a
           href="https://dub.co/help/article/free-dot-link-domain"
           target="_blank"
+          rel="noopener noreferrer"
           className="text-neutral-500 underline transition-colors hover:text-neutral-800"
         >
           Learn more

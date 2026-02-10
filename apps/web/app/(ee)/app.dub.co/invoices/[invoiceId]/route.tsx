@@ -25,6 +25,14 @@ export const GET = withSession(async ({ session, params }) => {
     },
   });
 
+  if (invoice.status === "failed") {
+    throw new DubApiError({
+      code: "bad_request",
+      message:
+        "This invoice is not available for download since the payment failed.",
+    });
+  }
+
   const userInWorkspace = await prisma.projectUsers.findUnique({
     where: {
       userId_projectId: {

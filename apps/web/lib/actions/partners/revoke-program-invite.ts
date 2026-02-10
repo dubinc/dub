@@ -7,8 +7,9 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { recordLink } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
-import z from "../../zod";
+import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 const revokeProgramInviteSchema = z.object({
   workspaceId: z.string(),
@@ -16,10 +17,15 @@ const revokeProgramInviteSchema = z.object({
 });
 
 export const revokeProgramInviteAction = authActionClient
-  .schema(revokeProgramInviteSchema)
+  .inputSchema(revokeProgramInviteSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { partnerId } = parsedInput;
     const { workspace } = ctx;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredRoles: ["owner", "member"],
+    });
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 

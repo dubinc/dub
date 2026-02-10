@@ -1,24 +1,20 @@
 import { CreateFraudEventInput } from "@/lib/types";
-import { FraudEventGroup, FraudRuleType, Prisma } from "@dub/prisma/client";
 import { createHash } from "crypto";
 
-interface CreateGroupKeyInput {
-  type: FraudRuleType;
-  programId: string;
-  groupingKey: string;
-}
+type CreateEventHashInput = Pick<
+  CreateFraudEventInput,
+  | "type"
+  | "programId"
+  | "partnerId"
+  | "customerId"
+  | "sourceProgramId"
+  | "metadata"
+>;
 
-interface CreateEventHashInput
-  extends Pick<
-    CreateFraudEventInput,
-    "type" | "programId" | "partnerId" | "customerId" | "metadata"
-  > {}
-
-interface GetIdentityFieldsForFraudEventInput
-  extends Pick<FraudEventGroup, "partnerId" | "type"> {
-  customerId?: string | null | undefined;
-  metadata?: Prisma.JsonValue | undefined;
-}
+type GetIdentityFieldsForFraudEventInput = Pick<
+  CreateFraudEventInput,
+  "type" | "partnerId" | "customerId" | "sourceProgramId" | "metadata"
+>;
 
 // Normalize email for comparison
 export function normalizeEmail(email: string): string {
@@ -76,6 +72,7 @@ function getIdentityFieldsForFraudEvent({
   type,
   customerId,
   metadata,
+  sourceProgramId,
 }: GetIdentityFieldsForFraudEventInput): Record<string, string> {
   const eventMetadata = metadata as Record<string, string>;
 
@@ -98,6 +95,14 @@ function getIdentityFieldsForFraudEvent({
       };
 
     case "partnerCrossProgramBan":
+      if (!sourceProgramId) {
+        throw new Error(`sourceProgramId is required for ${type} fraud rule.`);
+      }
+
+      return {
+        sourceProgramId,
+      };
+
     case "partnerFraudReport":
       return {};
   }
@@ -105,7 +110,7 @@ function getIdentityFieldsForFraudEvent({
 
 // Sanitize metadata by removing fields that are stored separately or shouldn't be persisted
 export function sanitizeFraudEventMetadata(
-  metadata: Prisma.JsonValue | undefined,
+  metadata: Record<string, unknown> | undefined,
 ) {
   if (!metadata) {
     return undefined;

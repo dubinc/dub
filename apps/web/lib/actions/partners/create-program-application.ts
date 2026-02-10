@@ -6,6 +6,7 @@ import { notifyPartnerApplication } from "@/lib/api/partners/notify-partner-appl
 import { getIP } from "@/lib/api/utils/get-ip";
 import { getSession } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
+import { getPartnerProfileChecklistProgress } from "@/lib/network/get-partner-profile-checklist-progress";
 import {
   formatApplicationFormData,
   formatWebsiteAndSocialsFields,
@@ -31,7 +32,7 @@ import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { addDays } from "date-fns";
 import { cookies } from "next/headers";
-import z from "../../zod";
+import * as z from "zod/v4";
 import { actionClient } from "../safe-action";
 
 export type PartnerData = { name: string; country: string };
@@ -111,7 +112,7 @@ function sanitizeData(rawData: ProgramApplicationData, group: PartnerGroup) {
 
 // Create a program application (or enrollment if a partner is already logged in)
 export const createProgramApplicationAction = actionClient
-  .schema(createProgramApplicationSchema)
+  .inputSchema(createProgramApplicationSchema)
   .action(async ({ parsedInput }): Promise<Response> => {
     const { programId, groupId } = parsedInput;
 
@@ -164,11 +165,28 @@ export const createProgramApplicationAction = actionClient
           },
           include: {
             programs: true,
+            platforms: true,
           },
         })
       : null;
 
+    // if the application form is not published and
+    // the partner is not logged in, throw an error
+    if (!group.applicationFormPublishedAt && !existingPartner) {
+      throw new Error("This program is no longer accepting applications.");
+    }
+
     if (existingPartner) {
+      // if an existing partner has an incomplete profile, prompt them to complete it
+      const { isComplete } = getPartnerProfileChecklistProgress({
+        partner: existingPartner,
+        programEnrollments: existingPartner.programs,
+      });
+
+      if (!isComplete) {
+        throw new Error("Complete your partner profile to apply.");
+      }
+
       return createApplicationAndEnrollment({
         workspace: program.workspace,
         program,
@@ -262,7 +280,7 @@ async function createApplicationAndEnrollment({
         // Auto-approve the partner if the group has auto-approval enabled
         group.autoApprovePartnersEnabledAt
           ? qstash.publishJSON({
-              url: `${APP_DOMAIN_WITH_NGROK}/api/cron/auto-approve-partner`,
+              url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/auto-approve`,
               delay: 5 * 60,
               body: {
                 programId: program.id,

@@ -1,16 +1,18 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { generateUnsubscribeToken } from "@/lib/email/unsubscribe-token";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { sendEmail } from "@dub/email";
-import { subscribe } from "@dub/email/resend/subscribe";
 import WelcomeEmail from "@dub/email/templates/welcome-email";
 import WelcomeEmailPartner from "@dub/email/templates/welcome-email-partner";
 import { prisma } from "@dub/prisma";
+import { APP_DOMAIN, PARTNERS_DOMAIN } from "@dub/utils";
 
 export const dynamic = "force-dynamic";
 
 /*
     This route is used to send a welcome email to new users + subscribe them to the corresponding Resend audience
-    It is called by QStash 15 minutes after a user is created.
+    It is called by QStash 45 minutes after a user is created.
 */
 export async function POST(req: Request) {
   try {
@@ -27,6 +29,34 @@ export async function POST(req: Request) {
         name: true,
         email: true,
         partners: true,
+
+        projects: {
+          select: {
+            project: {
+              select: {
+                slug: true,
+                name: true,
+                logo: true,
+                plan: true,
+                programs: {
+                  select: {
+                    slug: true,
+                    name: true,
+                    logo: true,
+                  },
+                  orderBy: {
+                    createdAt: "desc",
+                  },
+                  take: 1,
+                },
+              },
+            },
+          },
+          orderBy: {
+            createdAt: "asc",
+          },
+          take: 1,
+        },
       },
     });
 
@@ -41,6 +71,8 @@ export async function POST(req: Request) {
 
     const isPartner = user.partners.length > 0;
 
+    const unsubscribeUrl = `${isPartner ? PARTNERS_DOMAIN : APP_DOMAIN}/unsubscribe/${generateUnsubscribeToken(user.email)}`;
+
     await Promise.allSettled([
       sendEmail({
         to: user.email,
@@ -50,20 +82,19 @@ export async function POST(req: Request) {
           ? WelcomeEmailPartner({
               email: user.email,
               name: user.name,
+              unsubscribeUrl,
             })
           : WelcomeEmail({
               email: user.email,
-              name: user.name,
+              workspace: user.projects?.[0]?.project,
+              hasDubPartners: getPlanCapabilities(
+                user.projects?.[0]?.project?.plan || "free",
+              ).canManageProgram,
+              program: user.projects?.[0]?.project?.programs?.[0],
+              unsubscribeUrl,
             }),
         variant: "marketing",
       }),
-      // only subscribe non-partner users to the mailing list
-      !isPartner
-        ? subscribe({
-            email: user.email,
-            name: user.name || undefined,
-          })
-        : Promise.resolve(),
     ]);
 
     return new Response("Welcome email sent and user subscribed.", {

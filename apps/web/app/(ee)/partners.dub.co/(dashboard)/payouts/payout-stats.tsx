@@ -3,6 +3,7 @@
 import { forceWithdrawalAction } from "@/lib/actions/partners/force-withdrawal";
 import {
   BELOW_MIN_WITHDRAWAL_FEE_CENTS,
+  MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS,
   MIN_WITHDRAWAL_AMOUNT_CENTS,
 } from "@/lib/constants/payouts";
 import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
@@ -14,12 +15,7 @@ import { PAYOUT_STATUS_DESCRIPTIONS } from "@/ui/partners/payout-status-descript
 import { AlertCircleFill } from "@/ui/shared/icons";
 import { PayoutStatus } from "@dub/prisma/client";
 import { Button, Tooltip } from "@dub/ui";
-import {
-  cn,
-  CONNECT_SUPPORTED_COUNTRIES,
-  currencyFormatter,
-  PAYPAL_SUPPORTED_COUNTRIES,
-} from "@dub/utils";
+import { cn, currencyFormatter } from "@dub/utils";
 import { HelpCircle } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { toast } from "sonner";
@@ -98,6 +94,11 @@ function PayoutStatsCard({
                   text="Pay out now"
                   className="ml-2 h-7 px-2 py-1"
                   onClick={() => setShowForceWithdrawalModal(true)}
+                  disabledTooltip={
+                    amount < MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS
+                      ? `Your current processed payouts balance is less than the minimum amount required for withdrawal (${currencyFormatter(MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS)}).`
+                      : undefined
+                  }
                 />
               )}
             </div>
@@ -111,7 +112,7 @@ function PayoutStatsCard({
 }
 
 export function PayoutStats() {
-  const { partner } = usePartnerProfile();
+  const { payoutMethod } = usePartnerProfile();
 
   const { payoutsCount, error } = usePartnerPayoutsCount<PayoutsCount[]>({
     groupBy: "status",
@@ -120,16 +121,6 @@ export function PayoutStats() {
   const payoutStatusMap = Object.fromEntries(
     payoutsCount?.map((p) => [p.status, p]) || [],
   ) as Record<PayoutStatus, PayoutsCount>;
-
-  let payoutMethod: "stripe" | "paypal" | undefined = undefined;
-
-  if (partner?.country) {
-    if (PAYPAL_SUPPORTED_COUNTRIES.includes(partner.country)) {
-      payoutMethod = "paypal";
-    } else if (CONNECT_SUPPORTED_COUNTRIES.includes(partner.country)) {
-      payoutMethod = "stripe";
-    }
-  }
 
   const tooltip = payoutMethod
     ? PAYOUT_STATUS_DESCRIPTIONS[payoutMethod]
@@ -231,8 +222,7 @@ export function PayoutStats() {
         for this payout, which means you will receive{" "}
         <strong className="text-black">
           {currencyFormatter(
-            (payoutStatusMap?.processed?.amount -
-              BELOW_MIN_WITHDRAWAL_FEE_CENTS),
+            payoutStatusMap?.processed?.amount - BELOW_MIN_WITHDRAWAL_FEE_CENTS,
             { trailingZeroDisplay: "stripIfInteger" },
           )}
         </strong>

@@ -1,6 +1,7 @@
 "use server";
 
 import { createId } from "@/lib/api/create-id";
+import { polyfillSocialMediaFields } from "@/lib/social-utils";
 import { isStored, storage } from "@/lib/storage";
 import { CreatePartnerProps, ProgramProps, WorkspaceProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
@@ -12,6 +13,7 @@ import { waitUntil } from "@vercel/functions";
 import { DubApiError } from "../errors";
 import { getGroupOrThrow } from "../groups/get-group-or-throw";
 import { createPartnerDefaultLinks } from "./create-partner-default-links";
+import { throwIfExistingTenantEnrollmentExists } from "./throw-if-existing-tenant-id-exists";
 
 interface CreateAndEnrollPartnerInput {
   workspace: Pick<WorkspaceProps, "id" | "webhookEnabled" | "plan">;
@@ -35,16 +37,31 @@ export const createAndEnrollPartner = async ({
   userId,
 }: CreateAndEnrollPartnerInput) => {
   if (!skipEnrollmentCheck) {
-    // Check if the partner is already enrolled in the program by email
+    // Check if the partner is already enrolled in the program by tenantId or email
     const programEnrollment = await prisma.programEnrollment.findFirst({
       where: {
         programId: program.id,
-        partner: {
-          email: partner.email,
-        },
+        OR: [
+          ...(partner.tenantId
+            ? [
+                {
+                  tenantId: partner.tenantId,
+                },
+              ]
+            : []),
+          {
+            partner: {
+              email: partner.email,
+            },
+          },
+        ],
       },
       include: {
-        partner: true,
+        partner: {
+          include: {
+            platforms: true,
+          },
+        },
         links: true,
       },
     });
@@ -62,27 +79,14 @@ export const createAndEnrollPartner = async ({
           ...programEnrollment,
           id: programEnrollment.partner.id,
           links: programEnrollment.links,
+          ...polyfillSocialMediaFields(programEnrollment.partner.platforms),
         });
         // else, if the passed tenantId is different from the existing enrollment...
       } else if (partner.tenantId) {
-        const existingTenantEnrollment =
-          await prisma.programEnrollment.findUnique({
-            where: {
-              tenantId_programId: {
-                tenantId: partner.tenantId,
-                programId: program.id,
-              },
-            },
-          });
-
-        // check if the tenantId already exists for a different enrolled partner
-        // if so, throw an error
-        if (existingTenantEnrollment) {
-          throw new DubApiError({
-            message: `Partner with tenantId '${partner.tenantId}' already enrolled in this program.`,
-            code: "conflict",
-          });
-        }
+        await throwIfExistingTenantEnrollmentExists({
+          tenantId: partner.tenantId,
+          programId: program.id,
+        });
 
         // else, update the existing enrollment with the new tenantId
         const updatedProgramEnrollment = await prisma.programEnrollment.update({
@@ -93,7 +97,11 @@ export const createAndEnrollPartner = async ({
             tenantId: partner.tenantId,
           },
           include: {
-            partner: true,
+            partner: {
+              include: {
+                platforms: true,
+              },
+            },
             links: true,
           },
         });
@@ -103,8 +111,16 @@ export const createAndEnrollPartner = async ({
           ...updatedProgramEnrollment,
           id: updatedProgramEnrollment.partner.id,
           links: updatedProgramEnrollment.links,
+          ...polyfillSocialMediaFields(
+            updatedProgramEnrollment.partner.platforms,
+          ),
         });
       }
+    } else if (partner.tenantId) {
+      await throwIfExistingTenantEnrollmentExists({
+        tenantId: partner.tenantId,
+        programId: program.id,
+      });
     }
   }
 
@@ -146,7 +162,7 @@ export const createAndEnrollPartner = async ({
 
   const upsertedPartner = await prisma.partner.upsert({
     where: {
-      email: partner.email ?? "",
+      email: partner.email,
     },
     update: payload,
     create: {
@@ -159,6 +175,7 @@ export const createAndEnrollPartner = async ({
       description: partner.description,
     },
     include: {
+      platforms: true,
       programs: {
         where: {
           programId: program.id,
@@ -197,6 +214,7 @@ export const createAndEnrollPartner = async ({
     ...upsertedPartner.programs[0],
     id: upsertedPartner.id,
     links,
+    ...polyfillSocialMediaFields(upsertedPartner.platforms),
   });
 
   waitUntil(

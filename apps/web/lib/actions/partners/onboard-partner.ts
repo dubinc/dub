@@ -14,7 +14,7 @@ import { authUserActionClient } from "../safe-action";
 // - If the Partner already exists and matches the user's email, update the Partner
 // - If the Partner doesn't exist, create it
 export const onboardPartnerAction = authUserActionClient
-  .schema(onboardPartnerSchema)
+  .inputSchema(onboardPartnerSchema)
   .action(async ({ ctx, parsedInput }) => {
     const { user } = ctx;
     const { name, image, country, description, profileType } = parsedInput;

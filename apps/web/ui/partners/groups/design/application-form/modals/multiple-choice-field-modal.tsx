@@ -13,7 +13,7 @@ import { cn } from "@dub/utils";
 import { Dispatch, SetStateAction, useId, useRef } from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { v4 as uuid } from "uuid";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 type MultipleChoiceFieldData = z.infer<
   typeof programApplicationFormMultipleChoiceFieldSchema
@@ -307,8 +307,6 @@ export function MultipleChoiceFieldThumbnail() {
       xmlns="http://www.w3.org/2000/svg"
       className="h-auto w-full"
     >
-      <rect x="0.5" y="0.5" width="167" height="99" rx="5.5" fill="white" />
-      <rect x="0.5" y="0.5" width="167" height="99" rx="5.5" stroke="#E5E5E5" />
       <rect
         x="25.3125"
         y="27.5625"

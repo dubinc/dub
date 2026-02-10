@@ -4,12 +4,9 @@ import { generatePaypalOAuthUrl } from "@/lib/actions/partners/generate-paypal-o
 import { generateStripeAccountLink } from "@/lib/actions/partners/generate-stripe-account-link";
 import { hasPermission } from "@/lib/auth/partner-users/partner-user-permissions";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
+import { useBankAccountRequirementsModal } from "@/ui/partners/bank-account-requirements-modal";
 import { Button, ButtonProps, TooltipContent } from "@dub/ui";
-import {
-  CONNECT_SUPPORTED_COUNTRIES,
-  COUNTRIES,
-  PAYPAL_SUPPORTED_COUNTRIES,
-} from "@dub/utils";
+import { COUNTRIES } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo } from "react";
@@ -17,7 +14,7 @@ import { toast } from "sonner";
 
 export function ConnectPayoutButton(props: ButtonProps) {
   const router = useRouter();
-  const { partner } = usePartnerProfile();
+  const { partner, payoutMethod } = usePartnerProfile();
 
   const { executeAsync: executeStripeAsync, isPending: isStripePending } =
     useAction(generateStripeAccountLink, {
@@ -47,7 +44,7 @@ export function ConnectPayoutButton(props: ButtonProps) {
       },
     });
 
-  const onClick = useCallback(async () => {
+  const connectPayout = useCallback(async () => {
     if (!partner) {
       toast.error("Invalid partner profile. Please log out and log back in.");
       return;
@@ -60,9 +57,9 @@ export function ConnectPayoutButton(props: ButtonProps) {
       return;
     }
 
-    if (PAYPAL_SUPPORTED_COUNTRIES.includes(partner.country)) {
+    if (payoutMethod === "paypal") {
       await executePaypalAsync();
-    } else if (CONNECT_SUPPORTED_COUNTRIES.includes(partner.country)) {
+    } else if (payoutMethod === "stripe") {
       await executeStripeAsync();
     } else {
       toast.error(
@@ -70,19 +67,21 @@ export function ConnectPayoutButton(props: ButtonProps) {
       );
       return;
     }
-  }, [executeStripeAsync, executePaypalAsync, partner]);
+  }, [executeStripeAsync, executePaypalAsync, partner, payoutMethod]);
+
+  const { setShowBankAccountRequirementsModal, BankAccountRequirementsModal } =
+    useBankAccountRequirementsModal({
+      onContinue: connectPayout,
+    });
 
   const errorMessage = useMemo(
     () =>
       !partner?.country
         ? "You haven't set your country yet. Please update your country or contact support."
-        : ![
-              ...CONNECT_SUPPORTED_COUNTRIES,
-              ...PAYPAL_SUPPORTED_COUNTRIES,
-            ].includes(partner.country)
+        : !payoutMethod
           ? `Your current country (${COUNTRIES[partner.country]}) is not supported for payout. Please update your country or contact support.`
           : undefined,
-    [partner?.country],
+    [partner, payoutMethod],
   );
 
   if (partner && !hasPermission(partner.role, "payout_settings.update")) {
@@ -90,24 +89,31 @@ export function ConnectPayoutButton(props: ButtonProps) {
   }
 
   return (
-    <Button
-      onClick={onClick}
-      loading={isStripePending || isPaypalPending}
-      text={
-        partner?.country && PAYPAL_SUPPORTED_COUNTRIES.includes(partner.country)
-          ? "Connect PayPal"
-          : "Connect bank account"
-      }
-      disabledTooltip={
-        errorMessage && (
-          <TooltipContent
-            title={errorMessage}
-            cta="Update profile settings"
-            href="/settings"
-          />
-        )
-      }
-      {...props}
-    />
+    <>
+      {BankAccountRequirementsModal}
+      <Button
+        onClick={() => {
+          if (payoutMethod === "stripe") {
+            setShowBankAccountRequirementsModal(true);
+          } else {
+            connectPayout();
+          }
+        }}
+        loading={isStripePending || isPaypalPending}
+        text={
+          payoutMethod === "paypal" ? "Connect PayPal" : "Connect bank account"
+        }
+        disabledTooltip={
+          errorMessage && (
+            <TooltipContent
+              title={errorMessage}
+              cta="Update profile settings"
+              href="/profile"
+            />
+          )
+        }
+        {...props}
+      />
+    </>
   );
 }

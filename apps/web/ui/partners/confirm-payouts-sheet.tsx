@@ -8,6 +8,7 @@ import {
   INVOICE_MIN_PAYOUT_AMOUNT_CENTS,
 } from "@/lib/constants/payouts";
 import { exceededLimitError } from "@/lib/exceeded-limit-error";
+import { calculatePayoutFeeWithWaiver } from "@/lib/partners/calculate-payout-fee-with-waiver";
 import {
   CUTOFF_PERIOD,
   CUTOFF_PERIOD_TYPES,
@@ -30,6 +31,7 @@ import {
   DynamicTooltipWrapper,
   Gear,
   PaperPlane,
+  Popover,
   Sheet,
   ShimmerDots,
   Table,
@@ -45,13 +47,20 @@ import {
   fetcher,
   formatDate,
   nFormatter,
+  pluralize,
   truncate,
 } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
-import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import {
+  Fragment,
+  ReactNode,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { toast } from "sonner";
-import Stripe from "stripe";
 import useSWR from "swr";
 import { UpgradeRequiredToast } from "../shared/upgrade-required-toast";
 import { ExternalPayoutsIndicator } from "./external-payouts-indicator";
@@ -76,6 +85,8 @@ function ConfirmPayoutsSheetContent() {
     payoutsUsage,
     payoutsLimit,
     payoutFee,
+    payoutFeeWaiverLimit,
+    payoutFeeWaiverUsage,
     fastDirectDebitPayouts,
   } = useWorkspace();
 
@@ -113,6 +124,34 @@ function ConfirmPayoutsSheetContent() {
       keepPreviousData: true,
     },
   );
+
+  const { data: payoutsCount } = useSWR<
+    {
+      status: string;
+      count: number;
+      amount: number | null;
+    }[]
+  >(
+    workspaceId
+      ? `/api/payouts/count?${new URLSearchParams({
+          workspaceId,
+          groupBy: "status",
+          status: "hold",
+        }).toString()}`
+      : null,
+    fetcher,
+  );
+
+  const { holdPayoutsCount, holdPayoutsAmount } = useMemo(() => {
+    if (!payoutsCount || payoutsCount.length === 0) {
+      return { holdPayoutsCount: 0, holdPayoutsAmount: 0 };
+    }
+
+    return {
+      holdPayoutsCount: payoutsCount[0].count,
+      holdPayoutsAmount: payoutsCount[0].amount ?? 0,
+    };
+  }, [payoutsCount]);
 
   const [page, setPage] = useState(1);
   const { pagination, setPagination } = useTablePagination({
@@ -327,7 +366,14 @@ function ConfirmPayoutsSheetContent() {
       ? FAST_ACH_FEE_CENTS
       : 0;
 
-    const fee = Math.round(amount * selectedPaymentMethod.fee + fastAchFee);
+    const { fee } = calculatePayoutFeeWithWaiver({
+      payoutAmount: amount,
+      payoutFeeWaiverLimit: payoutFeeWaiverLimit ?? 0,
+      payoutFeeWaiverUsage: payoutFeeWaiverUsage ?? 0,
+      payoutFee: selectedPaymentMethod.fee,
+      fastAchFee,
+    });
+
     const total = amount + fee;
 
     return {
@@ -337,7 +383,14 @@ function ConfirmPayoutsSheetContent() {
       total,
       fastAchFee,
     };
-  }, [finalEligiblePayouts, selectedPaymentMethod, program?.payoutMode]);
+  }, [
+    eligiblePayoutsCount,
+    finalEligiblePayouts,
+    selectedPaymentMethod,
+    program?.payoutMode,
+    payoutFeeWaiverLimit,
+    payoutFeeWaiverUsage,
+  ]);
 
   const invoiceData = useMemo(() => {
     return [
@@ -484,7 +537,12 @@ function ConfirmPayoutsSheetContent() {
             <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
           ),
         tooltipContent: selectedPaymentMethod
-          ? `${selectedPaymentMethod.fee * 100}% processing fee${(fastAchFee ?? 0) > 0 ? ` + ${currencyFormatter(fastAchFee ?? 0)} Fast ACH fee` : ""}. ${!DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(selectedPaymentMethod.type as Stripe.PaymentMethod.Type) ? " Switch to Direct Debit for a reduced fee." : ""} [Learn more](https://d.to/payouts)`
+          ? buildPayoutFeeTooltip({
+              selectedPaymentMethod,
+              fastAchFee: fastAchFee ?? 0,
+              payoutFeeWaiverLimit: payoutFeeWaiverLimit ?? 0,
+              payoutFeeWaiverUsage: payoutFeeWaiverUsage ?? 0,
+            })
           : undefined,
       },
       {
@@ -513,6 +571,9 @@ function ConfirmPayoutsSheetContent() {
     cutoffPeriod,
     cutoffPeriodOptions,
     selectedCutoffPeriodOption,
+    fastAchFee,
+    payoutFeeWaiverLimit,
+    payoutFeeWaiverUsage,
   ]);
 
   const partnerColumn = useMemo(
@@ -632,6 +693,12 @@ function ConfirmPayoutsSheetContent() {
     customPermissionDescription: "confirm payouts",
   });
 
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
+
+  useEffect(() => {
+    setIsTouchDevice(window.matchMedia("(pointer: coarse)").matches);
+  }, []);
+
   return (
     <div className="flex h-full flex-col">
       <div className="flex h-16 items-center justify-between border-b border-neutral-200 px-6 py-4">
@@ -687,7 +754,7 @@ function ConfirmPayoutsSheetContent() {
         </div>
       </div>
 
-      <div className="flex items-center justify-end gap-2 border-t border-neutral-200 p-5">
+      <div className="flex flex-col gap-3 border-t border-neutral-200 px-5 py-4">
         <ConfirmPayoutsButton
           onClick={async () => {
             if (!workspaceId || !selectedPaymentMethod) {
@@ -721,8 +788,8 @@ function ConfirmPayoutsSheetContent() {
           }}
           text={
             amount && amount > 0
-              ? `Hold to confirm ${currencyFormatter(amount)} payout`
-              : "Hold to confirm payout"
+              ? `${isTouchDevice ? "Press" : "Click"} and hold to confirm ${currencyFormatter(amount)} payout`
+              : `${isTouchDevice ? "Press" : "Click"} and hold to confirm payout`
           }
           disabled={
             eligiblePayoutsLoading || !selectedPaymentMethod || amount === 0
@@ -748,6 +815,43 @@ function ConfirmPayoutsSheetContent() {
             )
           }
         />
+        {holdPayoutsCount > 0 && (
+          <div className="flex items-center justify-center gap-2 text-sm text-neutral-600">
+            <span>
+              Excluding{" "}
+              <span className="font-medium text-neutral-800">
+                {nFormatter(holdPayoutsCount, { full: true })}
+              </span>
+              {` on hold ${pluralize("payout", holdPayoutsCount)} `}
+              <span className="font-medium text-neutral-800">
+                (
+                {currencyFormatter(holdPayoutsAmount, {
+                  trailingZeroDisplay: "stripIfInteger",
+                })}
+                )
+              </span>
+            </span>
+            <Button
+              variant="secondary"
+              text="Review"
+              className="h-7 w-fit rounded-md border border-neutral-200 px-2 text-sm"
+              onClick={() =>
+                queryParams({
+                  set: {
+                    status: "hold",
+                  },
+                  del: [
+                    "confirmPayouts",
+                    "selectedPayoutId",
+                    "excludedPayoutIds",
+                    "payoutId",
+                    "page",
+                  ],
+                })
+              }
+            />
+          </div>
+        )}
       </div>
     </div>
   );
@@ -790,7 +894,7 @@ function ConfirmPayoutsButton({
   disabledTooltip,
 }: {
   onClick: () => Promise<boolean>;
-  text: string;
+  text: ReactNode;
   disabled: boolean;
   disabledTooltip: React.ReactNode;
 }) {
@@ -831,6 +935,8 @@ function ConfirmPayoutsButton({
     requestRef.current = requestAnimationFrame(animate);
   };
 
+  const [cancelCounter, setCancelCounter] = useState(0);
+
   const submitting = useRef(false);
 
   // Submit when the progress is >= 1 and not already submitting
@@ -838,6 +944,8 @@ function ConfirmPayoutsButton({
     if (roundedProgress < 1 || submitting.current) return;
 
     submitting.current = true;
+    setCancelCounter(0);
+
     onClick()
       .then((result) => {
         if (result) {
@@ -860,83 +968,145 @@ function ConfirmPayoutsButton({
     return () => cancelAnimationFrame(requestRef.current!);
   }, []);
 
+  const handleCancel = () => {
+    if (!holding.current) return;
+    holding.current = false;
+
+    if (isSuccess) return;
+    setCancelCounter((c) => c + 1);
+  };
+
   return (
-    <Button
-      type="button"
-      variant="primary"
-      className={cn(
-        "relative overflow-hidden",
-        isSuccess && "border-green-500 bg-green-500",
-      )}
-      textWrapperClassName="!overflow-visible select-none"
-      {...(!disabled &&
-        !disabledTooltip && {
-          // TODO: Handle keyboard control
-          onPointerDown: () => (holding.current = true),
-          onPointerUp: () => (holding.current = false),
-          onPointerLeave: () => (holding.current = false),
-          onPointerCancel: () => (holding.current = false),
-        })}
-      text={
-        <>
-          <div
-            ref={loadingBar}
-            className={cn(
-              "pointer-events-none absolute inset-y-0 left-0 overflow-hidden",
-              !isSuccess && "bg-[linear-gradient(90deg,#fff1,#fff4)]",
-            )}
-          >
-            <ShimmerDots
-              className="inset-[unset] inset-y-0 left-0 w-[600px] opacity-30"
-              color={[1, 1, 1]}
-            />
-          </div>
-          <div className="relative text-center">
-            <div
-              className={cn(
-                "transition-[transform,opacity] duration-300",
-                roundedProgress >= 0.5 && "-translate-y-4 opacity-0",
-              )}
-            >
-              {text}
-            </div>
-            <div
-              className={cn(
-                "pointer-events-none absolute inset-0 transition-[transform,opacity] duration-300",
-                roundedProgress < 0.5 && "translate-y-4 opacity-0",
-                roundedProgress >= 1 && "-translate-y-4 opacity-0",
-              )}
-              aria-hidden
-            >
-              Preparing payout...
-            </div>
-            <div
-              className={cn(
-                "pointer-events-none absolute inset-0 flex items-center justify-center transition-[transform,opacity] duration-300",
-                roundedProgress < 1 && "-translate-x-1 translate-y-4 opacity-0",
-                roundedProgress >= 1 &&
-                  isSuccess &&
-                  "-translate-y-4 translate-x-3 opacity-0",
-              )}
-              aria-hidden
-            >
-              <PaperPlane className="size-4" />
-            </div>
-            <div
-              className={cn(
-                "pointer-events-none absolute inset-0 flex items-center justify-center transition-[transform,opacity] duration-300",
-                (roundedProgress < 1 || !isSuccess) &&
-                  "translate-y-4 opacity-0",
-              )}
-              aria-hidden
-            >
-              Payout sent
-            </div>
-          </div>
-        </>
+    <Popover
+      openPopover={cancelCounter >= 2}
+      setOpenPopover={() => {}}
+      content={
+        <div
+          className="text-content-subtle select-none px-2 py-0.5 text-xs"
+          onClick={() => setCancelCounter(0)}
+        >
+          Keep holding the button to confirm
+        </div>
       }
-      disabled={disabled}
-      disabledTooltip={disabledTooltip}
-    />
+      side="top"
+    >
+      <div className="w-full">
+        <Button
+          type="button"
+          variant="primary"
+          className={cn(
+            "relative overflow-hidden",
+            isSuccess && "border-green-500 bg-green-500",
+            "active:scale-[0.98]",
+          )}
+          textWrapperClassName="!overflow-visible select-none"
+          {...(!disabled &&
+            !disabledTooltip && {
+              // TODO: Handle keyboard control
+              onPointerDown: () => (holding.current = true),
+              onPointerUp: handleCancel,
+              onPointerLeave: handleCancel,
+              onPointerCancel: handleCancel,
+            })}
+          text={
+            <>
+              <div
+                ref={loadingBar}
+                className={cn(
+                  "pointer-events-none absolute inset-y-0 left-0 overflow-hidden",
+                  !isSuccess && "bg-[linear-gradient(90deg,#fff1,#fff4)]",
+                )}
+              >
+                <ShimmerDots
+                  className="inset-[unset] inset-y-0 left-0 w-[600px] opacity-30"
+                  color={[1, 1, 1]}
+                />
+              </div>
+              <div className="relative text-center">
+                <div
+                  className={cn(
+                    "truncate transition-[transform,opacity] duration-300",
+                    roundedProgress >= 0.5 && "-translate-y-4 opacity-0",
+                  )}
+                >
+                  {text}
+                </div>
+                <div
+                  className={cn(
+                    "pointer-events-none absolute inset-0 transition-[transform,opacity] duration-300",
+                    roundedProgress < 0.5 && "translate-y-4 opacity-0",
+                    roundedProgress >= 1 && "-translate-y-4 opacity-0",
+                  )}
+                  aria-hidden
+                >
+                  Preparing payout...
+                </div>
+                <div
+                  className={cn(
+                    "pointer-events-none absolute inset-0 flex items-center justify-center transition-[transform,opacity] duration-300",
+                    roundedProgress < 1 &&
+                      "-translate-x-1 translate-y-4 opacity-0",
+                    roundedProgress >= 1 &&
+                      isSuccess &&
+                      "-translate-y-4 translate-x-3 opacity-0",
+                  )}
+                  aria-hidden
+                >
+                  <PaperPlane className="size-4" />
+                </div>
+                <div
+                  className={cn(
+                    "pointer-events-none absolute inset-0 flex items-center justify-center transition-[transform,opacity] duration-300",
+                    (roundedProgress < 1 || !isSuccess) &&
+                      "translate-y-4 opacity-0",
+                  )}
+                  aria-hidden
+                >
+                  Payout sent
+                </div>
+              </div>
+            </>
+          }
+          disabled={disabled}
+          disabledTooltip={disabledTooltip}
+        />
+      </div>
+    </Popover>
   );
+}
+
+function buildPayoutFeeTooltip({
+  selectedPaymentMethod,
+  fastAchFee,
+  payoutFeeWaiverLimit,
+  payoutFeeWaiverUsage,
+}: {
+  selectedPaymentMethod: Pick<SelectPaymentMethod, "fee" | "type">;
+  fastAchFee: number;
+  payoutFeeWaiverLimit: number;
+  payoutFeeWaiverUsage: number;
+}): string {
+  const feePercentage = selectedPaymentMethod.fee * 100;
+
+  const isWithinWaiver =
+    payoutFeeWaiverLimit > 0 && payoutFeeWaiverUsage < payoutFeeWaiverLimit;
+
+  const fastAchFeeText =
+    fastAchFee > 0 ? ` + ${currencyFormatter(fastAchFee)} Fast ACH fee` : "";
+
+  if (isWithinWaiver) {
+    const waiverLimitFormatted = nFormatter(payoutFeeWaiverLimit / 100);
+
+    return `0% processing fee for the first $${waiverLimitFormatted} payouts, then ${feePercentage}%${fastAchFeeText}. [Learn more](https://d.to/payouts)`;
+  }
+
+  const isDirectDebit = DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(
+    selectedPaymentMethod.type as any,
+  );
+
+  const directDebitSuggestion = isDirectDebit
+    ? ""
+    : " Switch to Direct Debit for a reduced fee.";
+
+  return `${feePercentage}% processing fee${fastAchFeeText}. ${directDebitSuggestion} [Learn more](https://d.to/payouts)`;
 }

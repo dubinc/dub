@@ -3,6 +3,10 @@
 import { clientAccessCheck } from "@/lib/client-access-check";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { WorkspaceUserProps } from "@/lib/types";
+import {
+  getAvailableRolesForPlan,
+  WORKSPACE_ROLES,
+} from "@/lib/workspace-roles";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { useInviteCodeModal } from "@/ui/modals/invite-code-modal";
@@ -10,7 +14,7 @@ import { useInviteWorkspaceUserModal } from "@/ui/modals/invite-workspace-user-m
 import { useRemoveWorkspaceUserModal } from "@/ui/modals/remove-workspace-user-modal";
 import { useWorkspaceUserRoleModal } from "@/ui/modals/update-workspace-user-role";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
-import { PartnerRole } from "@dub/prisma/client";
+import { WorkspaceRole } from "@dub/prisma/client";
 import {
   Avatar,
   Button,
@@ -29,9 +33,7 @@ import {
   EnvelopeArrowRight,
   Icon,
   Link4 as LinkIcon,
-  User,
   UserCheck,
-  UserCrown,
 } from "@dub/ui/icons";
 import { cn, fetcher, timeAgo } from "@dub/utils";
 import { ColumnDef, Row } from "@tanstack/react-table";
@@ -42,13 +44,13 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 
-export default function WorkspacePeopleClient() {
+export function WorkspaceMembersClient() {
   const { setShowInviteWorkspaceUserModal, InviteWorkspaceUserModal } =
     useInviteWorkspaceUserModal({ showSavedInvites: true });
 
   const { setShowInviteCodeModal, InviteCodeModal } = useInviteCodeModal();
 
-  const { role } = useWorkspace();
+  const { role, plan } = useWorkspace();
   const { data: session } = useSession();
   const { id: workspaceId } = useWorkspace();
 
@@ -56,7 +58,7 @@ export default function WorkspacePeopleClient() {
   const { pagination, setPagination } = usePagination();
 
   const status = searchParams.get("status") as "active" | "invited" | null;
-  const roleFilter = searchParams.get("role") as PartnerRole | null;
+  const roleFilter = searchParams.get("role") as WorkspaceRole | null;
   const search = searchParams.get("search");
 
   const {
@@ -77,19 +79,31 @@ export default function WorkspacePeopleClient() {
     },
   );
 
+  const { data: invitesForCount } = useSWR<WorkspaceUserProps[]>(
+    workspaceId ? `/api/workspaces/${workspaceId}/invites` : null,
+    fetcher,
+  );
+  const inviteCount = invitesForCount?.length ?? 0;
+
+  const availableRolesForPlan = useMemo(() => {
+    return getAvailableRolesForPlan(plan);
+  }, [plan]);
+
   const isCurrentUserOwner = role === "owner";
 
-  // Combined filter configuration
   const filters = useMemo(
     () => [
       {
         key: "role",
         icon: UserCheck,
         label: "Role",
-        options: [
-          { value: "owner", label: "Owner", icon: UserCrown },
-          { value: "member", label: "Member", icon: User },
-        ],
+        options: WORKSPACE_ROLES.filter(({ value }) =>
+          availableRolesForPlan.includes(value),
+        ).map(({ value, label, icon }) => ({
+          value,
+          label,
+          icon,
+        })),
       },
       {
         key: "status",
@@ -113,7 +127,7 @@ export default function WorkspacePeopleClient() {
         ],
       },
     ],
-    [],
+    [availableRolesForPlan],
   );
 
   // Active filters state
@@ -141,6 +155,7 @@ export default function WorkspacePeopleClient() {
         maxSize: 900,
         cell: ({ row }) => {
           const user = row.original;
+          const isCurrentUser = session?.user?.email === user.email;
 
           return (
             <div className="flex items-center space-x-3">
@@ -148,6 +163,9 @@ export default function WorkspacePeopleClient() {
               <div className="flex flex-col">
                 <h3 className="text-sm font-medium">
                   {user.name || user.email}
+                  {isCurrentUser && (
+                    <span className="ml-1 text-neutral-500">(You)</span>
+                  )}
                 </h3>
                 <p className="text-xs text-neutral-500">
                   {status === "invited"
@@ -232,47 +250,68 @@ export default function WorkspacePeopleClient() {
       <InviteCodeModal />
       <PageContent
         title="Members"
+        titleInfo={{
+          title:
+            "Learn how to [invite teammates](https://dub.co/help/article/how-to-invite-teammates) to your workspace and [assign them different roles and permissions](https://dub.co/help/article/workspace-roles).",
+        }}
         controls={
-          isCurrentUserOwner && (
-            <div className="flex space-x-2">
-              <Button
-                text="Invite member"
-                onClick={() => setShowInviteWorkspaceUserModal(true)}
-                className="h-9 w-fit"
-                shortcut="M"
-                disabledTooltip={
-                  clientAccessCheck({
-                    action: "workspaces.write",
-                    role,
-                    customPermissionDescription: "invite new teammates",
-                  }).error || undefined
-                }
-              />
-              <Button
-                icon={<LinkIcon className="h-4 w-4 text-neutral-800" />}
-                variant="secondary"
-                onClick={() => setShowInviteCodeModal(true)}
-                className="h-9 space-x-0"
-                disabledTooltip={
-                  clientAccessCheck({
-                    action: "workspaces.write",
-                    role,
-                    customPermissionDescription: "generate invite links",
-                  }).error || undefined
-                }
-              />
-            </div>
-          )
+          <div className="flex space-x-2">
+            <Button
+              text="Invite member"
+              onClick={() => setShowInviteWorkspaceUserModal(true)}
+              className="h-9 w-fit"
+              shortcut="M"
+              disabledTooltip={
+                clientAccessCheck({
+                  action: "workspaces.write",
+                  role,
+                  customPermissionDescription: "invite new teammates",
+                }).error || undefined
+              }
+            />
+            <Button
+              icon={<LinkIcon className="h-4 w-4 text-neutral-800" />}
+              variant="secondary"
+              onClick={() => setShowInviteCodeModal(true)}
+              className="h-9 space-x-0"
+              disabledTooltip={
+                clientAccessCheck({
+                  action: "workspaces.write",
+                  role,
+                  customPermissionDescription: "generate invite links",
+                }).error || undefined
+              }
+            />
+          </div>
         }
       >
-        <PageWidthWrapper className="mb-20 flex flex-col gap-4">
+        <PageWidthWrapper className="mb-20 flex flex-col gap-2">
           <div className="flex justify-between gap-3">
-            <Filter.Select
-              filters={filters}
-              activeFilters={activeFilters}
-              onSelect={onSelect}
-              onRemove={onRemove}
-            />
+            <div className="flex items-center gap-2">
+              <Filter.Select
+                filters={filters}
+                activeFilters={activeFilters}
+                onSelect={onSelect}
+                onRemove={onRemove}
+              />
+              {inviteCount > 0 && status !== "invited" && (
+                <Button
+                  text="View pending invites"
+                  variant="secondary"
+                  className="w-fit"
+                  right={
+                    inviteCount > 0 ? (
+                      <span className="rounded-full bg-neutral-200 px-1.5 py-0.5 text-xs font-medium text-neutral-700">
+                        {inviteCount}
+                      </span>
+                    ) : undefined
+                  }
+                  onClick={() =>
+                    queryParams({ set: { status: "invited" }, del: "page" })
+                  }
+                />
+              )}
+            </div>
             <SearchBoxPersisted
               placeholder="Search by name or email"
               inputClassName="w-full md:w-[20rem]"
@@ -301,11 +340,17 @@ function RoleCell({
   isCurrentUser: boolean;
   isCurrentUserOwner: boolean;
 }) {
-  const [role, setRole] = useState<PartnerRole>(user.role);
+  const { plan } = useWorkspace();
+  const [role, setRole] = useState<WorkspaceRole>(user.role);
 
   useEffect(() => {
     setRole(user.role);
   }, [user.role]);
+
+  // Get available roles for plan to determine which to disable
+  const availableRolesForPlan = useMemo(() => {
+    return getAvailableRolesForPlan(plan);
+  }, [plan]);
 
   const { WorkspaceUserRoleModal, setShowWorkspaceUserRoleModal } =
     useWorkspaceUserRoleModal({
@@ -320,7 +365,7 @@ function RoleCell({
         hasPassword: false,
         provider: null,
       },
-      role: role as "owner" | "member",
+      role,
     });
 
   const isDisabled =
@@ -340,7 +385,7 @@ function RoleCell({
         value={role}
         disabled={isDisabled}
         onChange={(e) => {
-          const newRole = e.target.value as PartnerRole;
+          const newRole = e.target.value as WorkspaceRole;
           setRole(newRole);
           setShowWorkspaceUserRoleModal(true);
         }}
@@ -352,8 +397,17 @@ function RoleCell({
               : undefined
         }
       >
-        <option value="owner">Owner</option>
-        <option value="member">Member</option>
+        {WORKSPACE_ROLES.map(({ value, label }) => {
+          return (
+            <option
+              key={value}
+              value={value}
+              disabled={!availableRolesForPlan.includes(value)}
+            >
+              {label}
+            </option>
+          );
+        })}
       </select>
     </>
   );

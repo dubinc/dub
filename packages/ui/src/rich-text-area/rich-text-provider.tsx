@@ -1,6 +1,7 @@
 import { cn } from "@dub/utils";
 import FileHandler from "@tiptap/extension-file-handler";
 import Image from "@tiptap/extension-image";
+import Link from "@tiptap/extension-link";
 import Mention from "@tiptap/extension-mention";
 import { Placeholder } from "@tiptap/extensions";
 import { Markdown } from "@tiptap/markdown";
@@ -30,6 +31,7 @@ const FEATURES = [
   "headings",
   "bold",
   "italic",
+  "strike",
 ] as const;
 
 type RichTextProviderProps = PropsWithChildren<{
@@ -132,8 +134,18 @@ export const RichTextProvider = forwardRef<
             : false,
           bold: features.includes("bold") ? undefined : false,
           italic: features.includes("italic") ? undefined : false,
-          link: features.includes("links") ? undefined : false,
+          strike: features.includes("strike") ? undefined : false,
+          link: false,
         }),
+
+        ...(features.includes("links")
+          ? [
+              Link.extend({
+                inclusive: false,
+              }),
+            ]
+          : []),
+
         Placeholder.configure({
           placeholder,
           emptyEditorClass:

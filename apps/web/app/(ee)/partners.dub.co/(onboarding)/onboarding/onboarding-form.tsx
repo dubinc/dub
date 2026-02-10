@@ -23,7 +23,7 @@ import { useEffect, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import ReactTextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 type FormData = z.infer<typeof onboardPartnerSchema>;
 
@@ -92,7 +92,7 @@ export function OnboardingForm({
   const { executeAsync, isPending } = useAction(onboardPartnerAction, {
     onSuccess: () => {
       setAccountCreated(true);
-      router.push("/onboarding/online-presence");
+      router.push("/onboarding/platforms");
     },
     onError: ({ error, input }) => {
       toast.error(error.serverError);

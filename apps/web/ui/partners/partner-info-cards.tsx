@@ -8,7 +8,9 @@ import {
 } from "@/lib/types";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { INACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
+import { usePartnerGroupHistorySheet } from "@/ui/activity-logs/partner-group-history-sheet";
 import {
+  Button,
   CalendarIcon,
   ChartActivity2,
   CopyButton,
@@ -26,6 +28,7 @@ import {
   timeAgo,
 } from "@dub/utils";
 import Link from "next/link";
+import { ReactNode } from "react";
 import useSWR from "swr";
 import { ConversionScoreIcon } from "./conversion-score-icon";
 import { PartnerApplicationRiskSummary } from "./fraud-risks/partner-application-risk-summary";
@@ -44,6 +47,7 @@ import { TrustedPartnerBadge } from "./trusted-partner-badge";
 type PartnerInfoCardsProps = {
   showFraudIndicator?: boolean;
   showApplicationRiskAnalysis?: boolean;
+  controls?: ReactNode;
 
   /** Partner statuses to hide badges for */
   hideStatuses?: EnrolledPartnerExtendedProps["status"][];
@@ -66,6 +70,7 @@ type BasicField = {
 export function PartnerInfoCards({
   type,
   partner,
+  controls,
   hideStatuses = [],
   selectedGroupId,
   setSelectedGroupId,
@@ -76,6 +81,12 @@ export function PartnerInfoCards({
 
   const isEnrolled = type === "enrolled" || type === undefined;
   const isNetwork = type === "network";
+
+  const {
+    partnerGroupHistorySheet,
+    setIsOpen: setGroupHistoryOpen,
+    hasActivityLogs,
+  } = usePartnerGroupHistorySheet({ partner: partner || null });
 
   const { group } = useGroup(
     {
@@ -198,8 +209,8 @@ export function PartnerInfoCards({
 
         <div className="border-border-subtle flex flex-col divide-y divide-neutral-200 rounded-xl border bg-white">
           <div className="p-4">
-            <div className="flex justify-between gap-2">
-              <div className="relative w-fit">
+            <div className="flex items-start justify-between gap-2">
+              <div className="relative w-fit shrink-0">
                 {partner ? (
                   <img
                     src={partner.image || `${OG_AVATAR_URL}${partner.id}`}
@@ -212,15 +223,19 @@ export function PartnerInfoCards({
                 {partner?.trustedAt && <TrustedPartnerBadge />}
               </div>
 
-              {isEnrolled &&
-                partner &&
-                !hideStatuses.includes(partner.status) && (
-                  <PartnerStatusBadgeWithTooltip partner={partner} />
+              <div className="flex items-center gap-2">
+                {isEnrolled &&
+                  partner &&
+                  !hideStatuses.includes(partner.status) && (
+                    <PartnerStatusBadgeWithTooltip partner={partner} />
+                  )}
+
+                {isNetwork && partner && (
+                  <PartnerStarButton partner={partner} className="size-9" />
                 )}
 
-              {isNetwork && partner && (
-                <PartnerStarButton partner={partner} className="size-9" />
-              )}
+                {controls}
+              </div>
             </div>
 
             <div className="mt-4">
@@ -288,10 +303,23 @@ export function PartnerInfoCards({
         {/* Group */}
         <div className="flex flex-col gap-2">
           {isEnrolled && (
-            <h3 className="text-content-emphasis text-sm font-semibold">
-              Group
-            </h3>
+            <div className="flex min-h-7 items-center justify-between">
+              <h3 className="text-content-emphasis text-sm font-semibold">
+                Group
+              </h3>
+
+              {hasActivityLogs && (
+                <Button
+                  variant="outline"
+                  text="View history"
+                  className="h-7 w-fit rounded-lg px-1.5 text-xs font-medium text-neutral-400"
+                  onClick={() => setGroupHistoryOpen(true)}
+                />
+              )}
+            </div>
           )}
+
+          {partnerGroupHistorySheet}
           {partner ? (
             <PartnerInfoGroup
               partner={partner}

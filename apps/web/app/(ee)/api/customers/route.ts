@@ -1,6 +1,7 @@
 import { createId } from "@/lib/api/create-id";
 import { transformCustomer } from "@/lib/api/customers/transform-customer";
 import { DubApiError } from "@/lib/api/errors";
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
@@ -13,38 +14,21 @@ import {
 } from "@/lib/zod/schemas/customers";
 import { DiscountSchemaWithDeprecatedFields } from "@/lib/zod/schemas/discount";
 import { prisma, sanitizeFullTextSearch } from "@dub/prisma";
-import {
-  Customer,
-  Discount,
-  Link,
-  Partner,
-  Program,
-  ProgramEnrollment,
-} from "@dub/prisma/client";
 import { nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
-import { z } from "zod";
-
-interface CustomerResponse extends Customer {
-  link: Link & {
-    programEnrollment: ProgramEnrollment & {
-      program: Program;
-      partner: Partner;
-      discount: Discount | null;
-    };
-  };
-}
 
 // GET /api/customers – Get all customers
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
-    const {
+    let {
       email,
       externalId,
       search,
       country,
       linkId,
+      programId,
+      partnerId,
       includeExpandedFields,
       page,
       pageSize,
@@ -53,13 +37,23 @@ export const GET = withWorkspace(
       sortOrder,
     } = getCustomersQuerySchemaExtended.parse(searchParams);
 
-    const customers = (await prisma.customer.findMany({
+    if (programId || partnerId) {
+      programId = getDefaultProgramIdOrThrow(workspace);
+    }
+
+    const customers = await prisma.customer.findMany({
       where: {
         ...(customerIds
           ? {
               id: { in: customerIds },
             }
           : {}),
+        ...(programId && {
+          programId,
+        }),
+        ...(partnerId && {
+          partnerId,
+        }),
         projectId: workspace.id,
         ...(email
           ? { email }
@@ -89,33 +83,37 @@ export const GET = withWorkspace(
         ? {
             include: {
               link: {
+                select: {
+                  id: true,
+                  domain: true,
+                  key: true,
+                  shortLink: true,
+                  url: true,
+                  programId: true,
+                },
+              },
+              programEnrollment: {
                 include: {
-                  programEnrollment: {
-                    include: {
-                      partner: {
-                        select: {
-                          id: true,
-                          name: true,
-                          email: true,
-                          image: true,
-                        },
-                      },
-                      discount: true,
+                  partner: {
+                    select: {
+                      id: true,
+                      name: true,
+                      email: true,
+                      image: true,
                     },
                   },
+                  discount: true,
                 },
               },
             },
           }
         : {}),
-    })) as CustomerResponse[];
+    });
 
     const responseSchema = includeExpandedFields
-      ? CustomerEnrichedSchema.merge(
-          z.object({
-            discount: DiscountSchemaWithDeprecatedFields,
-          }),
-        )
+      ? CustomerEnrichedSchema.extend({
+          discount: DiscountSchemaWithDeprecatedFields,
+        })
       : CustomerSchema;
 
     const response = responseSchema
@@ -219,5 +217,6 @@ export const POST = withWorkspace(
       "advanced",
       "enterprise",
     ],
+    requiredRoles: ["owner", "member"],
   },
 );

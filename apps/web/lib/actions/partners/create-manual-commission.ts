@@ -7,6 +7,7 @@ import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-sta
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
+import { qstash } from "@/lib/cron";
 import {
   createPartnerCommission,
   CreatePartnerCommissionProps,
@@ -22,12 +23,12 @@ import { createCommissionSchema } from "@/lib/zod/schemas/commissions";
 import { leadEventSchemaTB } from "@/lib/zod/schemas/leads";
 import { saleEventSchemaTB } from "@/lib/zod/schemas/sales";
 import { prisma } from "@dub/prisma";
-import { WorkflowTrigger } from "@dub/prisma/client";
-import { nanoid } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, nanoid, prettyPrint } from "@dub/utils";
 import { COUNTRIES_TO_CONTINENTS } from "@dub/utils/src";
 import { waitUntil } from "@vercel/functions";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 const leadEventSchemaTBWithTimestamp = leadEventSchemaTB.extend({
   timestamp: z.string(),
@@ -38,9 +39,14 @@ const saleEventSchemaTBWithTimestamp = saleEventSchemaTB.extend({
 });
 
 export const createManualCommissionAction = authActionClient
-  .schema(createCommissionSchema)
+  .inputSchema(createCommissionSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredRoles: ["owner", "member"],
+    });
 
     const {
       partnerId,
@@ -99,6 +105,8 @@ export const createManualCommissionAction = authActionClient
         user,
         description,
       });
+
+      waitUntil(triggerAggregateDueCommissionsCronJob(programId));
 
       return;
     }
@@ -314,6 +322,8 @@ export const createManualCommissionAction = authActionClient
             externalId: `dummy_${nanoid(32)}`, // generate random externalId
             stripeCustomerId: null,
             linkId: null,
+            programId: null,
+            partnerId: null,
             clickId: null,
           },
         });
@@ -323,6 +333,8 @@ export const createManualCommissionAction = authActionClient
             ...customer,
             id: duplicateCustomerId,
             linkId: link.id,
+            programId: link.programId,
+            partnerId: link.partnerId,
             clickId: clickEventData.click_id,
             clickedAt: new Date(clickEventData.timestamp),
             country:
@@ -445,6 +457,8 @@ export const createManualCommissionAction = authActionClient
           },
           data: {
             linkId: link.id,
+            programId: link.programId,
+            partnerId: link.partnerId,
             clickId: clickId,
             clickedAt: new Date(clickTimestamp),
             ...(saleAmount && {
@@ -454,6 +468,7 @@ export const createManualCommissionAction = authActionClient
               saleAmount: {
                 increment: saleAmount,
               },
+              firstSaleAt: customer.firstSaleAt ? undefined : new Date(),
             }),
           },
         });
@@ -557,13 +572,14 @@ export const createManualCommissionAction = authActionClient
         if (["lead", "sale"].includes(commissionType)) {
           await Promise.allSettled([
             executeWorkflows({
-              trigger:
-                commissionType === "lead"
-                  ? WorkflowTrigger.leadRecorded
-                  : WorkflowTrigger.saleRecorded,
-              context: {
+              trigger: "partnerMetricsUpdated",
+              reason: "commission",
+              identity: {
+                workspaceId: workspace.id,
                 programId,
                 partnerId,
+              },
+              metrics: {
                 current: {
                   leads: commissionType === "lead" ? 1 : 0,
                   saleAmount: saleAmount ?? totalSaleAmount,
@@ -571,6 +587,7 @@ export const createManualCommissionAction = authActionClient
                 },
               },
             }),
+
             syncPartnerLinksStats({
               partnerId,
               programId,
@@ -578,6 +595,20 @@ export const createManualCommissionAction = authActionClient
             }),
           ]);
         }
+
+        await triggerAggregateDueCommissionsCronJob(programId);
       })(),
     );
   });
+
+async function triggerAggregateDueCommissionsCronJob(programId: string) {
+  const qstashResponse = await qstash.publishJSON({
+    url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/aggregate-due-commissions`,
+    body: {
+      programId,
+    },
+  });
+  console.log(
+    `Triggered aggregate due commissions cron job for program ${programId}: ${prettyPrint(qstashResponse)}`,
+  );
+}

@@ -36,23 +36,11 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { Download, Globe, TableIcon, Tag } from "@dub/ui/icons";
-import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import posthog from "posthog-js";
 import { ReactNode, useEffect, useState } from "react";
 
 export default function WorkspaceLinksClient() {
-  const { data: session } = useSession();
   const { folderId } = useCurrentFolderId();
-
-  useEffect(() => {
-    if (session?.user) {
-      posthog.identify(session.user["id"], {
-        email: session.user.email,
-        name: session.user.name,
-      });
-    }
-  }, [session?.user]);
 
   return (
     <PageContentWithSidePanel
@@ -423,7 +411,7 @@ function ImportOption({
     <Tooltip
       content={
         <TooltipContent
-          title="Your workspace has exceeded its monthly links limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
+          title="Your workspace has exceeded its monthly links limit. We're still collecting data on your existing links, but you need to upgrade to create more links."
           cta={nextPlan ? `Upgrade to ${nextPlan.name}` : "Contact support"}
           href={`/${slug}/upgrade`}
         />

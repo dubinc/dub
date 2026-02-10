@@ -22,7 +22,7 @@ import {
 } from "@dub/ui";
 import { capitalize, formatDateTimeSmart, getPrettyUrl } from "@dub/utils";
 import Link from "next/link";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 type EventDataProps = z.infer<
   (typeof fraudEventSchemas)["paidTrafficDetected"]
@@ -84,7 +84,7 @@ export function FraudPaidTrafficDetectedTable() {
           row.original.customer ? (
             <CustomerRowItem
               customer={row.original.customer}
-              href={`/${workspaceSlug}/customers/${row.original.customer.id}`}
+              href={`/${workspaceSlug}/program/customers/${row.original.customer.id}`}
               chartActivityIconMode="hidden"
             />
           ) : (

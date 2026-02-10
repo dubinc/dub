@@ -1,6 +1,6 @@
 import { ErrorCode } from "@/lib/api/error-codes";
-import z from "@/lib/zod";
 import { DUB_FOUNDING_DATE, formatDate, validDomainRegex } from "@dub/utils";
+import * as z from "zod/v4";
 import {
   base64ImageSchema,
   booleanQuerySchema,
@@ -44,7 +44,7 @@ export const ABTestVariantsSchema = z
   .describe(
     "An array of A/B test URLs and the percentage of traffic to send to each URL.",
   )
-  .openapi({
+  .meta({
     example: [
       {
         url: "https://example.com/variant-1",
@@ -70,13 +70,13 @@ const LinksQuerySchema = z.object({
     .describe(
       "Deprecated: Use `tagIds` instead. The tag ID to filter the links by.",
     )
-    .openapi({ deprecated: true }),
+    .meta({ deprecated: true }),
   tagIds: z
     .union([z.string(), z.array(z.string())])
     .transform((v) => (Array.isArray(v) ? v : v.split(",")))
     .optional()
     .describe("The tag IDs to filter the links by.")
-    .openapi({
+    .meta({
       param: {
         style: "form",
         explode: false,
@@ -100,7 +100,7 @@ const LinksQuerySchema = z.object({
     .describe(
       "The unique name of the tags assigned to the short link (case insensitive).",
     )
-    .openapi({
+    .meta({
       param: {
         style: "form",
         explode: false,
@@ -137,17 +137,17 @@ const LinksQuerySchema = z.object({
     ),
   showArchived: booleanQuerySchema
     .optional()
-    .default("false")
+    .default(false)
     .describe(
       "Whether to include archived links in the response. Defaults to `false` if not provided.",
     ),
   withTags: booleanQuerySchema
     .optional()
-    .default("false")
+    .default(false)
     .describe(
       "DEPRECATED. Filter for links that have at least one tag assigned to them.",
     )
-    .openapi({ deprecated: true }),
+    .meta({ deprecated: true }),
 });
 
 const sortBy = z
@@ -156,33 +156,29 @@ const sortBy = z
   .default("createdAt")
   .describe("The field to sort the links by. The default is `createdAt`.");
 
-export const getLinksQuerySchemaBase = LinksQuerySchema.merge(
-  z.object({
-    sortBy,
-    sortOrder: z
-      .enum(["asc", "desc"])
-      .optional()
-      .default("desc")
-      .describe("The sort order. The default is `desc`."),
-    sort: sortBy
-      .openapi({ deprecated: true })
-      .describe("DEPRECATED. Use `sortBy` instead."),
-  }),
-).merge(getPaginationQuerySchema({ pageSize: 100 }));
+export const getLinksQuerySchemaBase = LinksQuerySchema.extend({
+  sortBy,
+  sortOrder: z
+    .enum(["asc", "desc"])
+    .optional()
+    .default("desc")
+    .describe("The sort order. The default is `desc`."),
+  sort: sortBy
+    .meta({ deprecated: true })
+    .describe("DEPRECATED. Use `sortBy` instead."),
+}).extend(getPaginationQuerySchema({ pageSize: 100 }));
 
-export const getLinksCountQuerySchema = LinksQuerySchema.merge(
-  z.object({
-    groupBy: z
-      .union([
-        z.literal("domain"),
-        z.literal("tagId"),
-        z.literal("userId"),
-        z.literal("folderId"),
-      ])
-      .optional()
-      .describe("The field to group the links by."),
-  }),
-);
+export const getLinksCountQuerySchema = LinksQuerySchema.extend({
+  groupBy: z
+    .union([
+      z.literal("domain"),
+      z.literal("tagId"),
+      z.literal("userId"),
+      z.literal("folderId"),
+    ])
+    .optional()
+    .describe("The field to group the links by."),
+});
 
 export const exportLinksColumns = [
   {
@@ -264,25 +260,23 @@ export const exportLinksColumnsDefault = exportLinksColumns
 
 export const linksExportQuerySchema = getLinksQuerySchemaBase
   .omit({ page: true, pageSize: true })
-  .merge(
-    z.object({
-      columns: z
-        .string()
-        .default(exportLinksColumnsDefault.join(","))
-        .transform((v) => v.split(","))
-        .describe("The columns to export."),
-      start: parseDateSchema
-        .refine((value: Date) => value >= DUB_FOUNDING_DATE, {
-          message: `The start date cannot be earlier than ${formatDate(DUB_FOUNDING_DATE)}.`,
-        })
-        .optional()
-        .describe("The start date of creation to retrieve links from."),
-      end: parseDateSchema
-        .describe("The end date of creation to retrieve links from.")
-        .optional(),
-      interval: z.string().optional().describe("The interval for the export."),
-    }),
-  );
+  .extend({
+    columns: z
+      .string()
+      .default(exportLinksColumnsDefault.join(","))
+      .transform((v) => v.split(","))
+      .describe("The columns to export."),
+    start: parseDateSchema
+      .refine((value: Date) => value >= DUB_FOUNDING_DATE, {
+        message: `The start date cannot be earlier than ${formatDate(DUB_FOUNDING_DATE)}.`,
+      })
+      .optional()
+      .describe("The start date of creation to retrieve links from."),
+    end: parseDateSchema
+      .describe("The end date of creation to retrieve links from.")
+      .optional(),
+    interval: z.string().optional().describe("The interval for the export."),
+  });
 
 export const domainKeySchema = z.object({
   domain: z
@@ -305,7 +299,7 @@ export const domainKeySchema = z.object({
 export const createLinkBodySchema = z.object({
   url: parseUrlSchemaAllowEmpty()
     .describe("The destination URL of the short link.")
-    .openapi({
+    .meta({
       example: "https://google.com",
       maxLength: DESTINATION_URL_MAX_LENGTH,
     }),
@@ -341,7 +335,7 @@ export const createLinkBodySchema = z.object({
     .describe(
       "The ID of the link in your database. If set, it can be used to identify the link in future API requests (must be prefixed with 'ext_' when passed as a query parameter). This key is unique across your workspace.",
     )
-    .openapi({ example: "123456" }),
+    .meta({ example: "123456" }),
   tenantId: z
     .string()
     .max(255)
@@ -380,7 +374,7 @@ export const createLinkBodySchema = z.object({
     .transform((v) => (Array.isArray(v) ? v : v.split(",")))
     .optional()
     .describe("The unique IDs of the tags assigned to the short link.")
-    .openapi({ example: ["clux0rgak00011..."] }),
+    .meta({ example: ["clux0rgak00011..."] }),
   tagNames: z
     .union([z.string(), z.array(z.string())])
     .transform((v) => (Array.isArray(v) ? v : v.split(",")))
@@ -401,7 +395,7 @@ export const createLinkBodySchema = z.object({
   expiredUrl: parseUrlSchema
     .nullish()
     .describe("The URL to redirect to when the short link has expired.")
-    .openapi({
+    .meta({
       maxLength: DESTINATION_URL_MAX_LENGTH,
     }),
   password: z
@@ -462,7 +456,7 @@ export const createLinkBodySchema = z.object({
     .describe(
       "Geo targeting information for the short link in JSON format `{[COUNTRY]: https://example.com }`. See https://d.to/geo for more information.",
     )
-    .openapi({ ref: "linkGeoTargeting" }),
+    .meta({ id: "linkGeoTargeting" }),
   doIndex: z
     .boolean()
     .optional()
@@ -534,14 +528,14 @@ export const createLinkBodySchema = z.object({
     .describe(
       "Deprecated: Use `dashboard` instead. Whether the short link's stats are publicly accessible. Defaults to `false` if not provided.",
     )
-    .openapi({ deprecated: true }),
+    .meta({ deprecated: true }),
   tagId: z
     .string()
     .nullish()
     .describe(
       "Deprecated: Use `tagIds` instead. The unique ID of the tag assigned to the short link.",
     )
-    .openapi({ deprecated: true }),
+    .meta({ deprecated: true }),
 });
 
 export const createLinkBodySchemaAsync = createLinkBodySchema.extend({
@@ -585,16 +579,14 @@ export const bulkUpdateLinksBodySchema = z.object({
       keyLength: true,
       prefix: true,
     })
-    .merge(
-      z.object({
-        url: parseUrlSchema
-          .describe("The destination URL of the short link.")
-          .openapi({
-            example: "https://google.com",
-          })
-          .optional(),
-      }),
-    ),
+    .extend({
+      url: parseUrlSchema
+        .describe("The destination URL of the short link.")
+        .meta({
+          example: "https://google.com",
+        })
+        .optional(),
+    }),
 });
 
 export const LinkSchema = z
@@ -610,7 +602,7 @@ export const LinkSchema = z
       .describe(
         "The short link slug. If not provided, a random 7-character slug will be generated.",
       ),
-    url: z.string().url().describe("The destination URL of the short link."),
+    url: z.url().describe("The destination URL of the short link."),
     trackConversion: z
       .boolean()
       .default(false)
@@ -646,7 +638,6 @@ export const LinkSchema = z
         "The date and time when the short link will expire in ISO-8601 format.",
       ),
     expiredUrl: z
-      .string()
       .url()
       .nullable()
       .describe("The URL to redirect to when the short link has expired."),
@@ -711,7 +702,7 @@ export const LinkSchema = z
         "The Android destination URL for the short link for Android device targeting.",
       ),
     geo: z
-      .record(z.string(), z.string().url())
+      .record(z.string(), z.url())
       .nullable()
       .describe(
         "Geo targeting information for the short link in JSON format `{[COUNTRY]: https://example.com }`. See https://d.to/geo for more information.",
@@ -737,13 +728,11 @@ export const LinkSchema = z
       .nullable()
       .describe("The comments for the short link."),
     shortLink: z
-      .string()
       .url()
       .describe(
         "The full URL of the short link, including the https protocol (e.g. `https://dub.sh/try`).",
       ),
     qrCode: z
-      .string()
       .url()
       .describe(
         "The full URL of the QR code for the short link (e.g. `https://api.dub.co/qr?url=https://dub.sh/try`).",
@@ -821,15 +810,15 @@ export const LinkSchema = z
       .describe(
         "Deprecated: Use `tags` instead. The unique ID of the tag assigned to the short link.",
       )
-      .openapi({ deprecated: true }),
+      .meta({ deprecated: true }),
     projectId: z
       .string()
       .describe(
         "Deprecated: Use `workspaceId` instead. The project ID of the short link.",
       )
-      .openapi({ deprecated: true }),
+      .meta({ deprecated: true }),
   })
-  .openapi({ title: "Link" });
+  .meta({ title: "Link" });
 
 export const LinkErrorSchema = z
   .object({
@@ -837,48 +826,42 @@ export const LinkErrorSchema = z
     error: z.string().describe("The error message."),
     code: ErrorCode.describe("The error code."),
   })
-  .openapi({ title: "LinkError" });
+  .meta({ title: "LinkError" });
 
-export const getLinkInfoQuerySchema = domainKeySchema.partial().merge(
-  z.object({
-    linkId: z
-      .string()
-      .optional()
-      .describe("The unique ID of the short link.")
-      .openapi({ example: "clux0rgak00011..." }),
-    externalId: z
-      .string()
-      .optional()
-      .describe("This is the ID of the link in the your database.")
-      .openapi({ example: "123456" }),
-  }),
-);
+export const getLinkInfoQuerySchema = domainKeySchema.partial().extend({
+  linkId: z
+    .string()
+    .optional()
+    .describe("The unique ID of the short link.")
+    .meta({ example: "clux0rgak00011..." }),
+  externalId: z
+    .string()
+    .optional()
+    .describe("This is the ID of the link in the your database.")
+    .meta({ example: "123456" }),
+});
 
-export const getLinksQuerySchemaExtended = getLinksQuerySchemaBase.merge(
-  z.object({
-    // Only Dub UI uses the following query parameters
-    includeUser: booleanQuerySchema.default("false"),
-    includeWebhooks: booleanQuerySchema.default("false"),
-    includeDashboard: booleanQuerySchema.default("false"),
-    linkIds: z
-      .union([z.string(), z.array(z.string())])
-      .transform((v) => (Array.isArray(v) ? v : v.split(",")))
-      .optional()
-      .describe("Link IDs to filter by."),
-    partnerId: z.string().optional().describe("Partner ID to filter by."),
-    searchMode: z
-      .enum(["fuzzy", "exact"])
-      .default("fuzzy")
-      .describe("Search mode to filter by."),
-  }),
-);
+export const getLinksQuerySchemaExtended = getLinksQuerySchemaBase.extend({
+  // Only Dub UI uses the following query parameters
+  includeUser: booleanQuerySchema.default(false),
+  includeWebhooks: booleanQuerySchema.default(false),
+  includeDashboard: booleanQuerySchema.default(false),
+  linkIds: z
+    .union([z.string(), z.array(z.string())])
+    .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+    .optional()
+    .describe("Link IDs to filter by."),
+  partnerId: z.string().optional().describe("Partner ID to filter by."),
+  searchMode: z
+    .enum(["fuzzy", "exact"])
+    .default("fuzzy")
+    .describe("Search mode to filter by."),
+});
 
-export const getLinkInfoQuerySchemaExtended = getLinkInfoQuerySchema.merge(
-  z.object({
-    includeUser: booleanQuerySchema.default("false"),
-    includeWebhooks: booleanQuerySchema.default("false"),
-  }),
-);
+export const getLinkInfoQuerySchemaExtended = getLinkInfoQuerySchema.extend({
+  includeUser: booleanQuerySchema.default(false),
+  includeWebhooks: booleanQuerySchema.default(false),
+});
 
 export const linkEventSchema = LinkSchema.extend({
   // here we use string because url can be empty

@@ -15,8 +15,9 @@ import { prisma } from "@dub/prisma";
 import { isFulfilled, isRejected, nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { revalidatePath } from "next/cache";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 const schema = z.object({
   workspaceId: z.string(),
@@ -26,10 +27,11 @@ const schema = z.object({
   brandColor: z.string().nullish(),
   applicationFormData: programApplicationFormSchema.nullish(),
   landerData: programLanderSchema.nullish(),
+  unpublish: z.boolean().optional(),
 });
 
 export const updateGroupBrandingAction = authActionClient
-  .schema(schema)
+  .inputSchema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const {
@@ -39,7 +41,13 @@ export const updateGroupBrandingAction = authActionClient
       brandColor,
       applicationFormData: applicationFormDataInput,
       landerData: landerDataInputRaw,
+      unpublish,
     } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredRoles: ["owner", "member"],
+    });
 
     const programId = getDefaultProgramIdOrThrow(workspace);
     const group = await getGroupOrThrow({
@@ -90,11 +98,17 @@ export const updateGroupBrandingAction = authActionClient
         applicationFormData: applicationFormDataInput
           ? applicationFormDataInput
           : undefined,
-        applicationFormPublishedAt: applicationFormDataInput
-          ? new Date()
-          : undefined,
+        applicationFormPublishedAt: unpublish
+          ? null
+          : applicationFormDataInput
+            ? new Date()
+            : undefined,
         landerData: landerDataInput ? landerDataInput : undefined,
-        landerPublishedAt: landerDataInput ? new Date() : undefined,
+        landerPublishedAt: unpublish
+          ? null
+          : landerDataInput
+            ? new Date()
+            : undefined,
       },
     });
 
@@ -106,7 +120,7 @@ export const updateGroupBrandingAction = authActionClient
          - lander data
          - application form data
         */
-          ...(landerDataInput || applicationFormDataInput
+          ...(landerDataInput || applicationFormDataInput || unpublish
             ? [
                 revalidatePath(`/partners.dub.co/${program.slug}`),
                 revalidatePath(`/partners.dub.co/${program.slug}/apply`),

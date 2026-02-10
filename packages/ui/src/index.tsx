@@ -3,6 +3,7 @@ import "./styles.css";
 
 // components
 export * from "./accordion";
+export * from "./activity-ring";
 export * from "./alert";
 export * from "./avatar";
 export * from "./badge";
@@ -29,6 +30,7 @@ export * from "./number-stepper";
 export * from "./pagination-controls";
 export * from "./popover";
 export * from "./progress-circle";
+export * from "./progressive-blur";
 export * from "./radio-group";
 export * from "./rich-text-area";
 export * from "./scroll-container";

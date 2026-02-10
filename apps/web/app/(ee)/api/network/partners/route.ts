@@ -11,7 +11,7 @@ import {
 import { prisma } from "@dub/prisma";
 import { PreferredEarningStructure, SalesChannel } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 // GET /api/network/partners - get all available partners in the network
 export const GET = withWorkspace(
@@ -44,8 +44,16 @@ export const GET = withWorkspace(
       });
     }
 
-    const { partnerIds, status, page, pageSize, country, starred } =
-      getNetworkPartnersQuerySchema.parse(searchParams);
+    const {
+      partnerIds,
+      status,
+      page,
+      pageSize,
+      country,
+      starred,
+      platform,
+      subscribers,
+    } = getNetworkPartnersQuerySchema.parse(searchParams);
 
     const similarPrograms = program.similarPrograms.map((sp) => ({
       programId: sp.similarProgramId,
@@ -61,6 +69,8 @@ export const GET = withWorkspace(
       page,
       pageSize,
       starred: starred ?? undefined,
+      platform: platform ?? undefined,
+      subscribers: subscribers ?? undefined,
       similarPrograms,
     });
     console.timeEnd("calculatePartnerRanking");

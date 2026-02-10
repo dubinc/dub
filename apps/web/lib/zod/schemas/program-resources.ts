@@ -1,4 +1,4 @@
-import { z } from "zod";
+import * as z from "zod/v4";
 
 export const PROGRAM_RESOURCE_TYPES = [
   "logo",
@@ -13,7 +13,7 @@ export const programResourceFileSchema = z.object({
   id: z.string(),
   name: z.string(),
   size: z.number(),
-  url: z.string().url(),
+  url: z.url(),
 });
 
 export const programResourceColorSchema = z.object({
@@ -25,7 +25,7 @@ export const programResourceColorSchema = z.object({
 export const programResourceLinkSchema = z.object({
   id: z.string(),
   name: z.string(),
-  url: z.string().url(),
+  url: z.url(),
 });
 
 export const programResourcesSchema = z.object({
@@ -34,3 +34,8 @@ export const programResourcesSchema = z.object({
   files: z.array(programResourceFileSchema),
   links: z.array(programResourceLinkSchema).default([]),
 });
+
+export type ProgramResourceFile = z.infer<typeof programResourceFileSchema>;
+export type ProgramResourceColor = z.infer<typeof programResourceColorSchema>;
+export type ProgramResourceLink = z.infer<typeof programResourceLinkSchema>;
+export type ProgramResources = z.infer<typeof programResourcesSchema>;

@@ -1,7 +1,7 @@
 "use client";
 
 import { updateDiscoveredPartnerAction } from "@/lib/actions/partners/update-discovered-partner";
-import { ONLINE_PRESENCE_FIELDS } from "@/lib/partners/online-presence";
+import { PARTNER_PLATFORM_FIELDS } from "@/lib/partners/partner-platforms";
 import useNetworkPartnersCount from "@/lib/swr/use-network-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { NetworkPartnerProps } from "@/lib/types";
@@ -380,13 +380,13 @@ function PartnerCard({
     [partner],
   );
 
-  const onlinePresenceData = useMemo(
+  const partnerPlatformsData = useMemo(
     () =>
       partner
-        ? ONLINE_PRESENCE_FIELDS.map((field) => ({
+        ? PARTNER_PLATFORM_FIELDS.map((field) => ({
             label: field.label,
             icon: field.icon,
-            ...field.data(partner),
+            ...field.data(partner.platforms),
           })).filter((field) => field.value && field.href)
         : null,
     [partner],
@@ -491,15 +491,15 @@ function PartnerCard({
               ))}
           </div>
 
-          {/* Online presence */}
+          {/* Platforms */}
           <div
             className={cn(
               "flex flex-wrap items-center gap-1.5",
               !partner && "animate-pulse",
             )}
           >
-            {onlinePresenceData?.length
-              ? onlinePresenceData.map(
+            {partnerPlatformsData?.length
+              ? partnerPlatformsData.map(
                   ({ label, icon: Icon, verified, value, href }) => (
                     <Tooltip
                       key={label}

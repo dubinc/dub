@@ -17,17 +17,30 @@ import { APP_DOMAIN_WITH_NGROK, truncate } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { Stripe } from "stripe";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 const stripe = stripeAppClient({
   ...(process.env.VERCEL_ENV && { mode: "live" }),
 });
 
 export const createDiscountAction = authActionClient
-  .schema(createDiscountSchema)
+  .inputSchema(createDiscountSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    let { amount, type, maxDuration, couponId, couponTestId, groupId } =
-      parsedInput;
+    let {
+      amount,
+      type,
+      maxDuration,
+      couponId,
+      couponTestId,
+      groupId,
+      autoProvision,
+    } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredRoles: ["owner", "member"],
+    });
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -103,6 +116,7 @@ export const createDiscountAction = authActionClient
           maxDuration,
           couponId: stripeCoupon?.id || couponId,
           ...(couponTestId && { couponTestId }),
+          ...(autoProvision && { autoProvisionEnabledAt: new Date() }),
         },
       });
 
@@ -118,6 +132,17 @@ export const createDiscountAction = authActionClient
       await tx.programEnrollment.updateMany({
         where: {
           groupId,
+        },
+        data: {
+          discountId: discount.id,
+        },
+      });
+
+      await tx.discountCode.updateMany({
+        where: {
+          programEnrollment: {
+            groupId,
+          },
         },
         data: {
           discountId: discount.id,

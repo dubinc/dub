@@ -4,7 +4,7 @@ import { InvoiceSchema } from "@/lib/zod/schemas/invoices";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN } from "@dub/utils";
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 const querySchema = z.object({
   type: z
@@ -14,23 +14,28 @@ const querySchema = z.object({
 });
 
 // TODO: move to GET /invoices
-export const GET = withWorkspace(async ({ workspace, searchParams }) => {
-  if (!workspace.stripeId) {
-    return NextResponse.json([]);
-  }
+export const GET = withWorkspace(
+  async ({ workspace, searchParams }) => {
+    if (!workspace.stripeId) {
+      return NextResponse.json([]);
+    }
 
-  const { type } = querySchema.parse(searchParams);
+    const { type } = querySchema.parse(searchParams);
 
-  const invoices =
-    type === "subscription"
-      ? await subscriptionInvoices(workspace.stripeId)
-      : await otherInvoices({
-          workspaceId: workspace.id,
-          type,
-        });
+    const invoices =
+      type === "subscription"
+        ? await subscriptionInvoices(workspace.stripeId)
+        : await otherInvoices({
+            workspaceId: workspace.id,
+            type,
+          });
 
-  return NextResponse.json(z.array(InvoiceSchema).parse(invoices));
-});
+    return NextResponse.json(z.array(InvoiceSchema).parse(invoices));
+  },
+  {
+    requiredPermissions: ["workspaces.read"],
+  },
+);
 
 const subscriptionInvoices = async (stripeId: string) => {
   try {

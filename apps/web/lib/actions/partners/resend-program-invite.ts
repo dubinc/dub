@@ -6,8 +6,9 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { sendEmail } from "@dub/email";
 import ProgramInvite from "@dub/email/templates/program-invite";
 import { prisma } from "@dub/prisma";
-import z from "../../zod";
+import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 const resendProgramInviteSchema = z.object({
   workspaceId: z.string(),
@@ -15,10 +16,15 @@ const resendProgramInviteSchema = z.object({
 });
 
 export const resendProgramInviteAction = authActionClient
-  .schema(resendProgramInviteSchema)
+  .inputSchema(resendProgramInviteSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { partnerId } = parsedInput;
     const { workspace, user } = ctx;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredRoles: ["owner", "member"],
+    });
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 

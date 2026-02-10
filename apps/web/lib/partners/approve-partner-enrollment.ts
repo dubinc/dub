@@ -3,7 +3,6 @@ import { waitUntil } from "@vercel/functions";
 import { recordAuditLog } from "../api/audit-logs/record-audit-log";
 import { getGroupOrThrow } from "../api/groups/get-group-or-throw";
 import { triggerWorkflows } from "../cron/qstash-workflow";
-import { WorkspaceProps } from "../types";
 
 export async function approvePartnerEnrollment({
   programId,
@@ -59,9 +58,6 @@ export async function approvePartnerEnrollment({
 
   waitUntil(
     (async () => {
-      const { partner } = programEnrollment;
-      const workspace = program.workspace as WorkspaceProps;
-
       const user = await prisma.user.findUniqueOrThrow({
         where: {
           id: userId,
@@ -72,9 +68,11 @@ export async function approvePartnerEnrollment({
         },
       });
 
+      const { partner } = programEnrollment;
+
       await Promise.allSettled([
         recordAuditLog({
-          workspaceId: workspace.id,
+          workspaceId: program.workspace.id,
           programId,
           action: "partner_application.approved",
           description: `Partner application approved for ${partner.id}`,

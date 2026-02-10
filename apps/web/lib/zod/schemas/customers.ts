@@ -1,4 +1,4 @@
-import z from "@/lib/zod";
+import * as z from "zod/v4";
 import { DiscountSchema } from "./discount";
 import { LinkSchema } from "./links";
 import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
@@ -38,13 +38,20 @@ export const getCustomersQuerySchema = z
       .describe(
         "A filter on the list based on the customer's `linkId` field (the referral link ID).",
       ),
+    programId: z.string().optional().describe("Program ID to filter by."),
+    partnerId: z.string().optional().describe("Partner ID to filter by."),
     includeExpandedFields: booleanQuerySchema
       .optional()
       .describe(
         "Whether to include expanded fields on the customer (`link`, `partner`, `discount`).",
       ),
     sortBy: z
-      .enum(["createdAt", "saleAmount"])
+      .enum([
+        "createdAt",
+        "saleAmount",
+        "firstSaleAt",
+        "subscriptionCanceledAt",
+      ])
       .optional()
       .default("createdAt")
       .describe(
@@ -56,17 +63,15 @@ export const getCustomersQuerySchema = z
       .default("desc")
       .describe("The sort order. The default is `desc`."),
   })
-  .merge(getPaginationQuerySchema({ pageSize: CUSTOMERS_MAX_PAGE_SIZE }));
+  .extend(getPaginationQuerySchema({ pageSize: CUSTOMERS_MAX_PAGE_SIZE }));
 
-export const getCustomersQuerySchemaExtended = getCustomersQuerySchema.merge(
-  z.object({
-    customerIds: z
-      .union([z.string(), z.array(z.string())])
-      .transform((v) => (Array.isArray(v) ? v : v.split(",")))
-      .nullish()
-      .describe("Customer IDs to filter by."),
-  }),
-);
+export const getCustomersQuerySchemaExtended = getCustomersQuerySchema.extend({
+  customerIds: z
+    .union([z.string(), z.array(z.string())])
+    .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+    .nullish()
+    .describe("Customer IDs to filter by."),
+});
 
 export const getCustomersCountQuerySchema = getCustomersQuerySchema
   .omit({
@@ -76,10 +81,10 @@ export const getCustomersCountQuerySchema = getCustomersQuerySchema
     sortBy: true,
     sortOrder: true,
   })
-  .extend({ groupBy: z.enum(["country", "linkId"]).optional() });
+  .extend({ groupBy: z.enum(["country", "linkId", "partnerId"]).optional() });
 
 export const createCustomerBodySchema = z.object({
-  email: z.string().email().nullish().describe("The customer's email address."),
+  email: z.email().nullish().describe("The customer's email address."),
   name: z
     .string()
     .nullish()
@@ -87,14 +92,13 @@ export const createCustomerBodySchema = z.object({
       "The customer's name. If not provided, the email address will be used, and if email is not provided, a random name will be generated.",
     ),
   avatar: z
-    .string()
     .url()
     .nullish()
     .describe(
       "The customer's avatar URL. If not provided, a random avatar will be generated.",
     ),
   externalId: z
-    .string()
+    .string("External ID is required")
     .describe(
       "The customer's unique identifier your database. This is useful for associating subsequent conversion events from Dub's API to your internal systems.",
     ),
@@ -120,12 +124,18 @@ export const CustomerSchema = z.object({
     .describe(
       "The unique ID of the customer. You may use either the customer's `id` on Dub (obtained via `/customers` endpoint) or their `externalId` (unique ID within your system, prefixed with `ext_`, e.g. `ext_123`).",
     ),
-  externalId: z
-    .string()
-    .describe("Unique identifier for the customer in the client's app."),
   name: z.string().describe("Name of the customer."),
   email: z.string().nullish().describe("Email of the customer."),
   avatar: z.string().nullish().describe("Avatar URL of the customer."),
+  externalId: z
+    .string()
+    .describe("Unique identifier for the customer in the client's app."),
+  stripeCustomerId: z
+    .string()
+    .nullish()
+    .describe(
+      "The customer's Stripe customer ID. This is useful for attributing recurring sale events to the partner who referred the customer.",
+    ),
   country: z.string().nullish().describe("Country of the customer."),
   sales: z
     .number()
@@ -135,7 +145,23 @@ export const CustomerSchema = z.object({
     .number()
     .nullish()
     .describe("Total amount of sales for the customer."),
-  createdAt: z.date().describe("The date the customer was created."),
+  createdAt: z
+    .date()
+    .describe(
+      "The date the customer was created (usually the signup date or trial start date).",
+    ),
+  firstSaleAt: z
+    .date()
+    .nullish()
+    .describe(
+      "The date the customer made their first sale. Useful for calculating the time to first sale and LTV.",
+    ),
+  subscriptionCanceledAt: z
+    .date()
+    .nullish()
+    .describe(
+      "The date the customer canceled their subscription. Useful for calculating LTV and churn rate.",
+    ),
 });
 
 // An extended schema that includes the customer's link, partner, and discount.
@@ -155,5 +181,7 @@ export const CustomerEnrichedSchema = CustomerSchema.extend({
     email: true,
     image: true,
   }).nullish(),
-  discount: DiscountSchema.nullish(),
+  discount: DiscountSchema.omit({
+    autoProvisionEnabledAt: true,
+  }).nullish(),
 });

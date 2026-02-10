@@ -39,6 +39,9 @@ const CustomPrismaAdapter = (p: PrismaClient) => {
         data: {
           ...data,
           id: createId({ prefix: "user_" }),
+          notificationPreferences: {
+            create: {},
+          },
         },
       });
     },
@@ -104,6 +107,9 @@ export const authOptions: NextAuthOptions = {
               name: `${profile.firstName || ""} ${
                 profile.lastName || ""
               }`.trim(),
+              notificationPreferences: {
+                create: {},
+              },
             },
           });
         }
@@ -175,6 +181,9 @@ export const authOptions: NextAuthOptions = {
               name: `${userInfo.firstName || ""} ${
                 userInfo.lastName || ""
               }`.trim(),
+              notificationPreferences: {
+                create: {},
+              },
             },
           });
         }
@@ -578,10 +587,10 @@ export const authOptions: NextAuthOptions = {
           Promise.allSettled([
             // track lead if dub_id cookie is present
             trackDubLead(user),
-            // trigger welcome workflow 15 minutes after the user signed up
+            // trigger welcome workflow 45 minutes after the user signed up
             qstash.publishJSON({
               url: `${APP_DOMAIN_WITH_NGROK}/api/cron/welcome-user`,
-              delay: 15 * 60,
+              delay: 45 * 60,
               body: { userId: user.id },
             }),
           ]),

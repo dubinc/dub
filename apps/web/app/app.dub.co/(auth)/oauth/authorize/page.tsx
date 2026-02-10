@@ -1,4 +1,4 @@
-import { vaidateAuthorizeRequest } from "@/lib/api/oauth/actions";
+import { validateAuthorizeRequest } from "@/lib/api/oauth/actions";
 import { getSession } from "@/lib/auth";
 import { authorizeRequestSchema } from "@/lib/zod/schemas/oauth";
 import EmptyState from "@/ui/shared/empty-state";
@@ -8,7 +8,7 @@ import { constructMetadata } from "@dub/utils";
 import { ArrowLeftRight } from "lucide-react";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { AuthorizeForm } from "./authorize-form";
 import { ScopesRequested } from "./scopes-requested";
 
@@ -29,7 +29,7 @@ export default async function Authorize(props: {
   }
 
   const { error, integration, requestParams } =
-    await vaidateAuthorizeRequest(searchParams);
+    await validateAuthorizeRequest(searchParams);
 
   if (error || !integration) {
     return (

@@ -1,3 +1,4 @@
+import { clientAccessCheck } from "@/lib/client-access-check";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CursorRays, Hyperlink, Modal, Slider, ToggleGroup } from "@dub/ui";
 import {
@@ -26,7 +27,12 @@ type ManageUsageModalProps = {
 
 function ManageUsageModalContent({ type }: ManageUsageModalProps) {
   const workspace = useWorkspace();
-  const { slug, plan, planTier, usageLimit, linksLimit } = workspace;
+  const { slug, role, plan, planTier, usageLimit, linksLimit } = workspace;
+
+  const { error: permissionsError } = clientAccessCheck({
+    action: "billing.write",
+    role,
+  });
 
   const usageSteps = useMemo(() => {
     const limitKey = { events: "clicks" }[type] ?? type;
@@ -113,7 +119,7 @@ function ManageUsageModalContent({ type }: ManageUsageModalProps) {
               { value: "monthly", label: "Monthly" },
               {
                 value: "yearly",
-                label: "Yearly (2 months free)",
+                label: "Yearly (Save 17%)",
               },
             ]}
             className="flex overflow-hidden rounded-lg bg-transparent p-0.5"
@@ -171,6 +177,7 @@ function ManageUsageModalContent({ type }: ManageUsageModalProps) {
                 tier={suggestedPlanTier}
                 period={period}
                 disabled={isCurrentPlanSuggested}
+                disabledTooltip={permissionsError || undefined}
                 text={
                   isCurrentPlanSuggested
                     ? "Current plan"

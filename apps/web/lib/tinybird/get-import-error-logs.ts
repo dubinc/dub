@@ -1,4 +1,4 @@
-import z from "../zod";
+import * as z from "zod/v4";
 import { importErrorLogSchema } from "../zod/schemas/import-error-log";
 import { tb } from "./client";
 

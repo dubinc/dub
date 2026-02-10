@@ -3,6 +3,7 @@ import {
   PartnerEarningsSchema,
   PartnerProfileCustomerSchema,
   PartnerProfileLinkSchema,
+  partnerReferralsCountByStatusSchema,
   partnerUserSchema,
 } from "@/lib/zod/schemas/partner-profile";
 import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
@@ -14,6 +15,7 @@ import {
   FraudRuleType,
   Link,
   PartnerGroup,
+  PartnerReferral,
   PartnerRole,
   PayoutStatus,
   Prisma,
@@ -22,9 +24,10 @@ import {
   User,
   UtmTemplate,
   Webhook,
+  WorkflowTrigger,
   WorkspaceRole,
 } from "@dub/prisma/client";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { RESOURCE_COLORS } from "../ui/colors";
 import { PAID_TRAFFIC_PLATFORMS } from "./api/fraud/constants";
 import { BOUNTY_SUBMISSION_REQUIREMENTS } from "./constants/bounties";
@@ -34,7 +37,15 @@ import {
 } from "./folder/constants";
 import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "./webhook/constants";
 import {
+  activityLogActionSchema,
+  activityLogResourceTypeSchema,
+  activityLogSchema,
+  fieldDiffSchema,
+  getActivityLogsQuerySchema,
+} from "./zod/schemas/activity-log";
+import {
   BountyListSchema,
+  bountyPerformanceConditionSchema,
   BountySchema,
   BountySubmissionExtendedSchema,
   getBountySubmissionsQuerySchema,
@@ -43,6 +54,7 @@ import {
   CampaignListSchema,
   CampaignSchema,
   campaignSummarySchema,
+  campaignTriggerConditionSchema,
   EMAIL_TEMPLATE_VARIABLES,
   updateCampaignSchema,
 } from "./zod/schemas/campaigns";
@@ -94,6 +106,8 @@ import {
   createPartnerSchema,
   EnrolledPartnerSchema,
   EnrolledPartnerSchemaExtended,
+  partnerPlatformSchema,
+  PartnerRewindSchema,
   PartnerSchema,
   WebhookPartnerSchema,
 } from "./zod/schemas/partners";
@@ -118,7 +132,13 @@ import {
   ProgramEnrollmentSchema,
   ProgramSchema,
 } from "./zod/schemas/programs";
+import { referralFormDataSchema } from "./zod/schemas/referral-form";
 import {
+  referralSchema,
+  updateReferralStatusSchema,
+} from "./zod/schemas/referrals";
+import {
+  CUSTOMER_SOURCES,
   rewardConditionsArraySchema,
   rewardConditionSchema,
   rewardConditionsSchema,
@@ -187,7 +207,10 @@ export interface RedisLinkProps {
   webhookIds?: string[];
   programId?: string;
   partnerId?: string;
-  partner?: Pick<PartnerProps, "id" | "name" | "image">;
+  partner?: Pick<PartnerProps, "id" | "name" | "image"> & {
+    groupId?: string | null;
+    tenantId?: string | null;
+  };
   discount?: Pick<
     DiscountProps,
     "id" | "amount" | "type" | "maxDuration" | "couponId" | "couponTestId"
@@ -275,6 +298,7 @@ export interface DomainProps {
   verified: boolean;
   primary: boolean;
   archived: boolean;
+  createdAt: Date;
   placeholder?: string;
   expiredUrl?: string;
   notFoundUrl?: string;
@@ -436,7 +460,7 @@ export type UsageResponse = z.infer<typeof usageResponse>;
 export type PartnersCount = Record<ProgramEnrollmentStatus | "all", number>;
 
 export type CommissionsCount = Record<
-  CommissionStatus | "all",
+  CommissionStatus | "all" | "hold",
   {
     count: number;
     amount: number;
@@ -450,10 +474,15 @@ export type PartnerEarningsResponse = z.infer<typeof PartnerEarningsSchema>;
 
 export type CustomerProps = z.infer<typeof CustomerSchema>;
 
+export type PartnerPlatformProps = z.infer<typeof partnerPlatformSchema>;
+
 export type PartnerProps = z.infer<typeof PartnerSchema> & {
   role: PartnerRole;
   userId: string;
+  platforms: PartnerPlatformProps[];
 };
+
+export type PartnerRewindProps = z.infer<typeof PartnerRewindSchema>;
 
 export type PartnerUserProps = z.infer<typeof partnerUserSchema>;
 export type PartnerProfileCustomerProps = z.infer<
@@ -462,7 +491,13 @@ export type PartnerProfileCustomerProps = z.infer<
 
 export type PartnerProfileLinkProps = z.infer<typeof PartnerProfileLinkSchema>;
 
-export type EnrolledPartnerProps = z.infer<typeof EnrolledPartnerSchema>;
+export type PartnerProfileReferralsCountByStatus = z.infer<
+  typeof partnerReferralsCountByStatusSchema
+>;
+
+export type EnrolledPartnerProps = z.infer<typeof EnrolledPartnerSchema> & {
+  platforms: PartnerPlatformProps[];
+};
 
 export type NetworkPartnerProps = z.infer<typeof NetworkPartnerSchema>;
 
@@ -478,13 +513,20 @@ export type NetworkProgramExtendedProps = z.infer<
 
 export type EnrolledPartnerExtendedProps = z.infer<
   typeof EnrolledPartnerSchemaExtended
->;
+> & {
+  platforms: PartnerPlatformProps[];
+};
 
 export type DiscountProps = z.infer<typeof DiscountSchema>;
 
 export type DiscountCodeProps = z.infer<typeof DiscountCodeSchema>;
 
-export type ProgramProps = z.infer<typeof ProgramSchema>;
+export type ProgramProps = Omit<
+  z.infer<typeof ProgramSchema>,
+  "referralFormData"
+> & {
+  referralFormData?: Prisma.JsonValue | null;
+};
 
 export type ProgramInviteEmailData = z.infer<
   typeof programInviteEmailDataSchema
@@ -618,6 +660,14 @@ export type BountySubmissionRequirement =
 
 export type WorkflowCondition = z.infer<typeof workflowConditionSchema>;
 
+export type BountyPerformanceCondition = z.infer<
+  typeof bountyPerformanceConditionSchema
+>;
+
+export type CampaignTriggerCondition = z.infer<
+  typeof campaignTriggerConditionSchema
+>;
+
 export type WorkflowConditionAttribute = (typeof WORKFLOW_ATTRIBUTES)[number];
 
 export type WorkflowComparisonOperator =
@@ -625,26 +675,10 @@ export type WorkflowComparisonOperator =
 
 export type WorkflowAction = z.infer<typeof workflowActionSchema>;
 
-export type OperatorFn = (a: number, b: number) => boolean;
-
-export interface WorkflowContext {
-  programId: string;
-  partnerId: string;
-  groupId?: string;
-  current?: {
-    leads?: number;
-    conversions?: number;
-    saleAmount?: number;
-    commissions?: number;
-  };
-  // Not using at the moment
-  historical?: {
-    leads?: number;
-    conversions?: number;
-    saleAmount?: number;
-    commissions?: number;
-  };
-}
+export type OperatorFn = (
+  aV: number,
+  cV: number | { min: number; max?: number },
+) => boolean;
 
 export type BountySubmissionsQueryFilters = z.infer<
   typeof getBountySubmissionsQuerySchema
@@ -734,4 +768,60 @@ export type CreateFraudEventInput = Pick<
   FraudEventGroup,
   "programId" | "partnerId" | "type"
 > &
-  Partial<Pick<FraudEvent, "linkId" | "eventId" | "customerId" | "metadata">>;
+  Partial<
+    Pick<FraudEvent, "linkId" | "eventId" | "customerId" | "sourceProgramId">
+  > & {
+    metadata?: Record<string, unknown> | null;
+  };
+
+interface WorkflowIdentity {
+  workspaceId: string;
+  programId: string;
+  partnerId: string;
+  groupId?: string;
+}
+
+interface PartnerMetrics {
+  leads?: number;
+  conversions?: number;
+  saleAmount?: number;
+  commissions?: number;
+}
+
+export interface WorkflowContext {
+  trigger: WorkflowTrigger;
+  reason?: "lead" | "sale" | "commission";
+  identity: WorkflowIdentity;
+  metrics?: {
+    current?: PartnerMetrics;
+    aggregated?: PartnerMetrics;
+  };
+}
+
+export type ReferralProps = z.infer<typeof referralSchema>;
+
+export type ReferralFormDataField = z.infer<typeof referralFormDataSchema>;
+
+export type UpdateReferralStatusPayload = z.infer<
+  typeof updateReferralStatusSchema
+>;
+
+export type CustomerSource = (typeof CUSTOMER_SOURCES)[number];
+
+export type ReferralWithCustomer = PartnerReferral & {
+  customer: Customer | null;
+};
+
+export type GetActivityLogsQuery = z.infer<typeof getActivityLogsQuerySchema>;
+
+export type ActivityLogResourceType = z.infer<
+  typeof activityLogResourceTypeSchema
+>;
+
+export type ActivityLogAction = z.infer<typeof activityLogActionSchema>;
+
+export type FieldDiff = z.infer<typeof fieldDiffSchema>;
+
+export type ChangeSet = Record<string, FieldDiff>;
+
+export type ActivityLog = z.infer<typeof activityLogSchema>;

@@ -1,5 +1,4 @@
 import { withPartnerProfile } from "@/lib/auth/partner";
-import { throwIfPartnerCannotViewMarketplace } from "@/lib/network/throw-if-partner-cannot-view-marketplace";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import {
   NetworkProgramSchema,
@@ -7,12 +6,10 @@ import {
 } from "@/lib/zod/schemas/program-network";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 // GET /api/network/programs - get all available programs in the network
 export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
-  await throwIfPartnerCannotViewMarketplace({ partner });
-
   const {
     search,
     featured,
@@ -99,38 +96,20 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
     },
     orderBy:
       sortBy === "popularity"
-        ? {
-            applications: {
-              _count: "desc",
+        ? [
+            {
+              marketplaceRanking: "asc",
             },
-          }
+            {
+              applications: {
+                _count: "desc",
+              },
+            },
+          ]
         : { [sortBy]: sortOrder },
     skip: (page - 1) * pageSize,
     take: pageSize,
   });
-
-  // If sorting by popularity, put promoted programs first
-  if (sortBy === "popularity") {
-    const PROMOTED_PROGRAM_IDS = [
-      "prog_1K0QHV7MP3PR05CJSCF5VN93X",
-      "prog_1JPKFV1EFCJACKR4QZBZGRMZ9",
-      "prog_1K7J9JV5P2NBPH4A4X4YGHV68",
-      "prog_MqN7G1vSbuSELpYJwioHyDE8",
-      "prog_qGGSH0jXFZLeogOnq1sLkriY",
-      "prog_1K0A6SX71Q3ZRC1HYFMXQGWJ8",
-    ];
-
-    const promoted = programs.filter((p) =>
-      PROMOTED_PROGRAM_IDS.includes(p.id),
-    );
-    const others = programs.filter((p) => !PROMOTED_PROGRAM_IDS.includes(p.id));
-    // Sort promoted by their order in PROMOTED_PROGRAM_IDS
-    promoted.sort(
-      (a, b) =>
-        PROMOTED_PROGRAM_IDS.indexOf(a.id) - PROMOTED_PROGRAM_IDS.indexOf(b.id),
-    );
-    programs.splice(0, programs.length, ...promoted, ...others);
-  }
 
   return NextResponse.json(
     z.array(NetworkProgramSchema).parse(

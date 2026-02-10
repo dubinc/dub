@@ -14,7 +14,6 @@ SCHEMA >
     `payment_processor` LowCardinality(String),
     `invoice_id` String,
     `amount` UInt32,
-    `sale_type` String,
     `metadata` String,
     `continent` LowCardinality(String),
     `country` LowCardinality(String),
