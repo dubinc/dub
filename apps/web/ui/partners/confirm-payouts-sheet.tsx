@@ -124,7 +124,7 @@ function ConfirmPayoutsSheetContent() {
     },
   );
 
-  const { data: holdPayoutsCount } = useSWR<
+  const { data: payoutsCount } = useSWR<
     {
       status: string;
       count: number;
@@ -141,23 +141,16 @@ function ConfirmPayoutsSheetContent() {
     fetcher,
   );
 
-  const { holdCount, holdAmount } = useMemo(() => {
-    const holdPayouts = holdPayoutsCount?.find(
-      (payout) => payout.status === "hold" || payout.status === "pending",
-    );
+  const { holdPayoutsCount, holdPayoutsAmount } = useMemo(() => {
+    if (!payoutsCount || payoutsCount.length === 0) {
+      return { holdPayoutsCount: 0, holdPayoutsAmount: 0 };
+    }
 
     return {
-      holdCount: holdPayouts?.count ?? 0,
-      holdAmount: holdPayouts?.amount ?? 0,
+      holdPayoutsCount: payoutsCount[0].count,
+      holdPayoutsAmount: payoutsCount[0].amount,
     };
-  }, [holdPayoutsCount]);
-
-  const holdAmountDisplay = useMemo(() => {
-    const holdAmountInDollars = holdAmount / 100;
-    return holdAmountInDollars >= 10000
-      ? `$${nFormatter(holdAmountInDollars, { digits: 0 })}`
-      : currencyFormatter(holdAmount);
-  }, [holdAmount]);
+  }, [payoutsCount]);
 
   const [page, setPage] = useState(1);
   const { pagination, setPagination } = useTablePagination({
@@ -821,16 +814,18 @@ function ConfirmPayoutsSheetContent() {
             )
           }
         />
-        {holdCount > 0 && slug && (
+        {holdPayoutsCount > 0 && holdPayoutsAmount && (
           <div className="flex items-center justify-center gap-2 text-sm text-neutral-600">
             <span>
               <span className="font-medium text-neutral-800">
-                {nFormatter(holdCount, { full: true })}
+                {nFormatter(holdPayoutsCount, { full: true })}
               </span>{" "}
-              {holdCount === 1 ? "payout is" : "payouts are"} also on hold,
-              totaling{" "}
+              {holdPayoutsCount === 1 ? "payout is" : "payouts are"} also on
+              hold, totaling{" "}
               <span className="font-medium text-neutral-800">
-                {holdAmountDisplay}
+                {currencyFormatter(holdPayoutsAmount, {
+                  trailingZeroDisplay: "stripIfInteger",
+                })}
               </span>
             </span>
             <Button
