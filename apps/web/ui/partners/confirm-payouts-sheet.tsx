@@ -149,7 +149,7 @@ function ConfirmPayoutsSheetContent() {
 
     return {
       holdPayoutsCount: payoutsCount[0].count,
-      holdPayoutsAmount: payoutsCount[0].amount,
+      holdPayoutsAmount: payoutsCount[0].amount ?? 0,
     };
   }, [payoutsCount]);
 
@@ -815,7 +815,7 @@ function ConfirmPayoutsSheetContent() {
             )
           }
         />
-        {holdPayoutsCount > 0 && holdPayoutsAmount && (
+        {holdPayoutsCount > 0 && (
           <div className="flex items-center justify-center gap-2 text-sm text-neutral-600">
             <span>
               Excluding{" "}
