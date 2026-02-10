@@ -124,6 +124,41 @@ function ConfirmPayoutsSheetContent() {
     },
   );
 
+  const { data: holdPayoutsCount } = useSWR<
+    {
+      status: string;
+      count: number;
+      amount: number | null;
+    }[]
+  >(
+    workspaceId
+      ? `/api/payouts/count?${new URLSearchParams({
+          workspaceId,
+          groupBy: "status",
+          status: "hold",
+        }).toString()}`
+      : null,
+    fetcher,
+  );
+
+  const { holdCount, holdAmount } = useMemo(() => {
+    const pendingHoldPayouts = holdPayoutsCount?.find(
+      (payout) => payout.status === "pending",
+    );
+
+    return {
+      holdCount: pendingHoldPayouts?.count ?? 0,
+      holdAmount: pendingHoldPayouts?.amount ?? 0,
+    };
+  }, [holdPayoutsCount]);
+
+  const holdAmountDisplay = useMemo(() => {
+    const holdAmountInDollars = holdAmount / 100;
+    return holdAmountInDollars >= 10000
+      ? `$${nFormatter(holdAmountInDollars, { digits: 0 })}`
+      : currencyFormatter(holdAmount);
+  }, [holdAmount]);
+
   const [page, setPage] = useState(1);
   const { pagination, setPagination } = useTablePagination({
     pageSize: ELIGIBLE_PAYOUTS_MAX_PAGE_SIZE,
@@ -725,7 +760,7 @@ function ConfirmPayoutsSheetContent() {
         </div>
       </div>
 
-      <div className="flex items-center justify-end gap-2 border-t border-neutral-200 p-5">
+      <div className="flex flex-col gap-3 border-t border-neutral-200 px-5 py-4">
         <ConfirmPayoutsButton
           onClick={async () => {
             if (!workspaceId || !selectedPaymentMethod) {
@@ -786,6 +821,39 @@ function ConfirmPayoutsSheetContent() {
             )
           }
         />
+        {holdCount > 0 && slug && (
+          <div className="flex items-center justify-center gap-2 text-sm text-neutral-600">
+            <span>
+              <span className="font-medium text-neutral-800">
+                {nFormatter(holdCount, { full: true })}
+              </span>{" "}
+              {holdCount === 1 ? "payout is" : "payouts are"} also on hold,
+              totaling{" "}
+              <span className="font-medium text-neutral-800">
+                {holdAmountDisplay}
+              </span>
+            </span>
+            <Button
+              variant="secondary"
+              text="Review"
+              className="h-7 w-fit rounded-md border border-neutral-200 px-2 text-sm"
+              onClick={() =>
+                queryParams({
+                  set: {
+                    status: "hold",
+                  },
+                  del: [
+                    "confirmPayouts",
+                    "selectedPayoutId",
+                    "excludedPayoutIds",
+                    "payoutId",
+                    "page",
+                  ],
+                })
+              }
+            />
+          </div>
+        )}
       </div>
     </div>
   );
