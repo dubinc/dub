@@ -5,10 +5,11 @@ import {
   ProgramSheetAccordionItem,
   ProgramSheetAccordionTrigger,
 } from "@/ui/partners/program-sheet-accordion";
-import { AmountInput } from "@/ui/shared/amount-input";
-import { ToggleGroup } from "@dub/ui";
-import { cn } from "@dub/utils";
-import { Controller } from "react-hook-form";
+import { RewardIconSquare } from "@/ui/partners/rewards/reward-icon-square";
+import { InlineBadgePopover } from "@/ui/shared/inline-badge-popover";
+import { CircleCheckFill, MoneyBills2, ToggleGroup } from "@dub/ui";
+import { cn, currencyFormatter } from "@dub/utils";
+import { BountyAmountInput } from "./bounty-amount-input";
 import { useAddEditBountyForm } from "./bounty-form-context";
 import { BountyLogic } from "./bounty-logic";
 
@@ -29,23 +30,27 @@ export function BountyCriteriaSection({
   setRewardType,
 }: BountyCriteriaSectionProps) {
   const {
-    control,
     register,
     watch,
     formState: { errors },
   } = useAddEditBountyForm();
 
-  const [type, rewardDescription] = watch(["type", "rewardDescription"]);
+  const [type, rewardDescription, rewardAmount] = watch([
+    "type",
+    "rewardDescription",
+    "rewardAmount",
+  ]);
+
+  const showWhenThenCards =
+    (rewardType === "flat" || type === "performance") &&
+    (type === "performance" ||
+      (type === "submission" && rewardType === "flat"));
 
   return (
     <ProgramSheetAccordionItem value="bounty-criteria">
       <ProgramSheetAccordionTrigger>Criteria</ProgramSheetAccordionTrigger>
       <ProgramSheetAccordionContent>
         <div className="space-y-6">
-          <p className="text-content-default text-sm">
-            Set the reward and completion criteria.
-          </p>
-
           {type === "submission" && (
             <ToggleGroup
               className="flex w-full items-center gap-1 rounded-md border border-neutral-200 bg-neutral-100 p-1"
@@ -57,42 +62,48 @@ export function BountyCriteriaSection({
             />
           )}
 
-          {(rewardType === "flat" || type === "performance") && (
-            <div>
-              <label
-                htmlFor="rewardAmount"
-                className="text-sm font-medium text-neutral-800"
-              >
-                Reward
-              </label>
-              <div className="mt-2">
-                <Controller
-                  name="rewardAmount"
-                  control={control}
-                  rules={{
-                    required: true,
-                    min: 0,
-                  }}
-                  render={({ field }) => (
-                    <AmountInput
-                      {...field}
-                      id="rewardAmount"
-                      amountType="flat"
-                      placeholder="200"
-                      error={errors.rewardAmount?.message}
-                      value={
-                        field.value == null || isNaN(field.value)
-                          ? ""
-                          : field.value
-                      }
-                      onChange={(e) => {
-                        const val = e.target.value;
-
-                        field.onChange(val === "" ? null : parseFloat(val));
-                      }}
-                    />
+          {showWhenThenCards && (
+            <div className="flex flex-col gap-0">
+              <div className="border-border-subtle rounded-xl border bg-white shadow-sm">
+                <div className="flex items-center gap-2.5 p-2.5">
+                  {type === "performance" ? (
+                    <BountyLogic />
+                  ) : (
+                    <>
+                      <RewardIconSquare icon={CircleCheckFill} />
+                      <span className="text-content-emphasis text-sm font-medium leading-relaxed">
+                        When partner submits
+                      </span>
+                    </>
                   )}
-                />
+                </div>
+              </div>
+
+              <div className="bg-border-subtle ml-6 h-4 w-px shrink-0" />
+
+              <div className="border-border-subtle rounded-xl border bg-white shadow-sm">
+                <div className="flex items-center gap-2.5 p-2.5">
+                  <RewardIconSquare icon={MoneyBills2} />
+                  <span className="text-content-emphasis text-sm font-medium leading-relaxed">
+                    Then pay{" "}
+                    <InlineBadgePopover
+                      text={
+                        rewardAmount != null && !isNaN(rewardAmount)
+                          ? currencyFormatter(rewardAmount * 100, {
+                              trailingZeroDisplay: "stripIfInteger",
+                            })
+                          : "$0"
+                      }
+                      invalid={
+                        rewardAmount == null ||
+                        isNaN(rewardAmount) ||
+                        rewardAmount < 0
+                      }
+                    >
+                      <BountyAmountInput name="rewardAmount" />
+                    </InlineBadgePopover>
+                  </span>
+                </div>
               </div>
             </div>
           )}
@@ -126,15 +137,6 @@ export function BountyCriteriaSection({
                   </span>
                 </div>
               </div>
-            </div>
-          )}
-
-          {type === "performance" && (
-            <div>
-              <span className="text-sm font-medium text-neutral-800">
-                Logic
-              </span>
-              <BountyLogic className="mt-2" />
             </div>
           )}
 
