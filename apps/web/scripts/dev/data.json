@@ -1,6 +1,6 @@
 {
   "workspace": {
-    "id": "ws_1KETZ919F83ZJH6A80HWEHW6E",
+    "id": "ws_clrei1gld0002vs9mzn93p8ik",
     "name": "Acme, Inc.",
     "slug": "acme",
     "logo": "https://assets.dub.co/logo.png",
@@ -15,7 +15,7 @@
     "usersLimit": 100,
     "aiLimit": 100,
     "groupsLimit": 100,
-    "defaultProgramId": "prog_1K2J9DRWPPJ2F1RX53N92TSGA",
+    "defaultProgramId": "prog_CYCu7IMAapjkRpTnr8F1azjN",
     "invoicePrefix": "ACME",
     "conversionEnabled": true,
     "webhookEnabled": true,
@@ -24,7 +24,7 @@
   },
   "users": [
     {
-      "id": "user_cludszk1h0000wmd2e0ea2b0p",
+      "id": "clxz1q7c7000hbqx5ckv4r82h",
       "name": "Owner",
       "email": "owner@dub-internal-test.com",
       "emailVerified": "2026-01-21T00:00:00.000Z",
@@ -89,7 +89,7 @@
   ],
   "groups": [
     {
-      "id": "grp_1K2J9DRWPPJ2F1RX53N92TSGC",
+      "id": "grp_1K2E25381GVMG7HHM057TB92F",
       "name": "Default Group",
       "slug": "default",
       "color": null,
@@ -103,22 +103,19 @@
       ],
       "defaultLinks": [
         {
-          "url": "https://acme.com"
-        },
-        {
-          "url": "https://example.com"
+          "url": "https://github.com/dubinc"
         }
       ]
     }
   ],
   "program": {
-    "id": "prog_1K2J9DRWPPJ2F1RX53N92TSGA",
+    "id": "prog_CYCu7IMAapjkRpTnr8F1azjN",
     "name": "Acme",
     "slug": "acme",
     "defaultFolderId": "fold_1K2J9DRWPPJ2F1RX53N92TSGB",
-    "defaultGroupId": "grp_1K2J9DRWPPJ2F1RX53N92TSGC",
+    "defaultGroupId": "grp_1K2E25381GVMG7HHM057TB92F",
     "domain": "dub.sh",
-    "url": "https://acme.com",
+    "url": "https://acme.dub.sh/",
     "termsUrl": "https://acme.com/terms",
     "helpUrl": "https://acme.com/help",
     "supportEmail": "support@acme.com",
@@ -126,72 +123,44 @@
   },
   "partners": [
     {
-      "id": "pn_1K2J9DRWPPJ2F1RX53N92TSGD",
-      "name": "Partner 1",
-      "email": "partner1@dub-internal-test.com",
-      "description": "Partner 1 description",
+      "id": "pn_H4TB2V5hDIjpqB7PwrxESoY3",
+      "name": "Steven",
+      "email": "steven@dub.co",
+      "description": "E2E Test Partner",
       "country": "US",
       "createdAt": "2026-01-21T00:00:00.000Z",
       "user": {
         "id": "user_cl8dea8g1073109m7wkwlldqj",
-        "name": "Partner 1",
-        "email": "partner1@dub-internal-test.com",
+        "name": "Steven",
+        "email": "steven@dub.co",
         "emailVerified": "2026-01-21T00:00:00.000Z"
       }
     },
     {
-      "id": "pn_1K2J9DRWPPJ2F1RX53N92TSGE",
-      "name": "Partner 2",
-      "email": "partner2@dub-internal-test.com",
-      "description": "Partner 2 description",
+      "id": "pn_NNG3YjwhLhA7nCZSaXeLIsWu",
+      "name": "Marvin",
+      "email": "marvin@dub-internal-test.com",
+      "description": "E2E Test Partner - US",
       "country": "US",
       "createdAt": "2026-01-21T00:00:00.000Z",
       "user": {
         "id": "user_cludszk1h0000wmd2e0ea2b0t",
-        "name": "Partner 2",
-        "email": "partner2@dub-internal-test.com",
+        "name": "Marvin",
+        "email": "marvin@dub-internal-test.com",
         "emailVerified": "2026-01-21T00:00:00.000Z"
       }
     },
     {
-      "id": "pn_1K2J9DRWPPJ2F1RX53N92TSGF",
-      "name": "Partner 3",
-      "email": "partner3@dub-internal-test.com",
-      "description": "Partner 3 description",
-      "country": "US",
+      "id": "pn_1K8ND11BZ4XPEX39QX3YMBGY0",
+      "name": "Kiran E2E",
+      "email": "kiran+e2e+1@dub.co",
+      "description": "E2E Test Partner - SG",
+      "country": "SG",
       "createdAt": "2026-01-21T00:00:00.000Z",
       "user": {
         "id": "user_cludszk1h0000wmd2e0ea2b0u",
-        "name": "Partner 3",
-        "email": "partner3@dub-internal-test.com",
-        "emailVerified": "2026-01-21T00:00:00.000Z"
-      }
-    },
-    {
-      "id": "pn_1K2J9DRWPPJ2F1RX53N92TSGG",
-      "name": "Partner 4",
-      "email": "partner4@dub-internal-test.com",
-      "description": "Partner 4 description",
-      "country": "US",
-      "createdAt": "2026-01-21T00:00:00.000Z",
-      "user": {
-        "id": "user_cludszk1h0000wmd2e0ea2b0v",
-        "name": "Partner 4",
-        "email": "partner4@dub-internal-test.com",
-        "emailVerified": "2026-01-21T00:00:00.000Z"
-      }
-    },
-    {
-      "id": "pn_1K2J9DRWPPJ2F1RX53N92TSGH",
-      "name": "Partner 5",
-      "email": "partner5@dub-internal-test.com",
-      "description": "Partner 5 description",
-      "country": "US",
-      "createdAt": "2026-01-21T00:00:00.000Z",
-      "user": {
-        "id": "user_cludszk1h0000wmd2e0ea2b0w",
-        "name": "Partner 5",
-        "email": "partner5@dub-internal-test.com",
+        "name": "Kiran E2E",
+        "email": "kiran+e2e+1@dub.co",
         "emailVerified": "2026-01-21T00:00:00.000Z"
       }
     }

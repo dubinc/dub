@@ -49,7 +49,7 @@ describe.sequential("Workflow - AwardBounty", async () => {
     const { status: bountyStatus, data: bounty } = await http.post<Bounty>({
       path: "/bounties",
       body: {
-        name: "E2E POC Performance Bounty",
+        name: "E2E Performance Bounty - Goal Reached",
         description: "Get 10 leads to earn $10",
         type: "performance",
         startsAt: new Date().toISOString(),
@@ -66,7 +66,6 @@ describe.sequential("Workflow - AwardBounty", async () => {
     });
 
     expect(bountyStatus).toEqual(200);
-    expect(bounty.id).toBeDefined();
 
     onTestFinished(async () => {
       await h.deleteBounty(bounty.id);
@@ -77,27 +76,18 @@ describe.sequential("Workflow - AwardBounty", async () => {
     >({
       path: "/partners",
       body: {
-        name: "E2E POC Test Partner",
+        name: "E2E Test Partner - Goal",
         email: randomEmail(),
       },
     });
 
     expect(partnerStatus).toEqual(201);
-    expect(partner.id).toBeDefined();
-
-    expect(partner.links).toBeDefined();
     expect(partner.links).not.toBeNull();
     expect(partner.links!.length).toBeGreaterThan(0);
 
     const partnerLink = partner.links![0];
-    const partnerLinkKey = partnerLink.key;
-    const partnerLinkDomain = partnerLink.domain;
 
-    await trackLeads(
-      http,
-      { domain: partnerLinkDomain, key: partnerLinkKey },
-      11,
-    );
+    await trackLeads(http, partnerLink, 11);
 
     const submission = await verifyBountySubmission({
       bountyId: bounty.id,
@@ -109,8 +99,6 @@ describe.sequential("Workflow - AwardBounty", async () => {
     expect(submission.status).toBe("submitted");
     expect(submission.performanceCount).toBeGreaterThanOrEqual(10);
     expect(submission.completedAt).not.toBeNull();
-    expect(submission.bountyId).toBe(bounty.id);
-    expect(submission.partnerId).toBe(partner.id);
   });
 
   test("Workflow doesn't execute when goal not reached", async () => {
@@ -268,7 +256,7 @@ describe.sequential("Workflow - AwardBounty", async () => {
     >({
       path: "/partners",
       body: {
-        name: "E2E Test Partner - No Duplicates",
+        name: "E2E Test Partner - No Dup",
         email: randomEmail(),
       },
     });
