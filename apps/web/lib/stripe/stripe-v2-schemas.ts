@@ -53,6 +53,26 @@ export const createAccountLinkOutputSchema = z.object({
   expires_at: z.union([z.number(), z.string()]),
 });
 
+export const createInboundTransferInputSchema = z.object({
+  amount: z.object({
+    currency: z.string(),
+    value: z.number(),
+  }),
+  from: z.object({
+    payment_method: z.string(),
+    currency: z.string().optional(),
+  }),
+  to: z.object({
+    currency: z.string(),
+    financial_account: z.string(),
+  }),
+  description: z.string().optional(),
+});
+
+export const inboundTransferSchema = z.object({
+  id: z.string(),
+});
+
 export const createOutboundPaymentInputSchema = z.object({
   amount: z.object({
     currency: z.string(),

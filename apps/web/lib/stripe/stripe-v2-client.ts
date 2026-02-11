@@ -3,9 +3,11 @@ import { prettyPrint } from "@dub/utils";
 import {
   createAccountLinkInputSchema,
   createAccountLinkOutputSchema,
+  createInboundTransferInputSchema,
   createOutboundPaymentInputSchema,
   createRecipientAccountInputSchema,
   createRecipientAccountOutputSchema,
+  inboundTransferSchema,
   listPayoutMethodsOutputSchema,
   listPayoutMethodsQuerySchema,
   outboundPaymentSchema,
@@ -37,6 +39,11 @@ export const stripeV2Fetch = createFetch({
         method: "post",
         input: createAccountLinkInputSchema,
         output: createAccountLinkOutputSchema,
+      },
+      "/v2/money_management/inbound_transfers": {
+        method: "post",
+        input: createInboundTransferInputSchema,
+        output: inboundTransferSchema,
       },
       "/v2/money_management/outbound_payments": {
         method: "post",
