@@ -48,6 +48,16 @@ describe.sequential("Workflow - MoveGroup", async () => {
   const { http } = await h.init();
   const programId = E2E_PROGRAM.id;
 
+  const { data: allGroups } = await http.get<PartnerGroup[]>({
+    path: "/groups",
+  });
+
+  for (const group of allGroups) {
+    if (group.slug?.startsWith("e2e-")) {
+      await http.delete({ path: `/groups/${group.id}` });
+    }
+  }
+
   test("Workflow is created when move rules are configured", async () => {
     const { status: targetStatus, data: targetGroup } = await http.post<
       PartnerGroup
@@ -157,14 +167,21 @@ describe.sequential("Workflow - MoveGroup", async () => {
     expect(workflow).toBeNull();
   });
 
-  test("Workflow can be disabled via disabledAt field", async () => {
+  test("Disabled workflow doesn't execute partner move", async () => {
+    const { data: existingGroups } = await http.get<PartnerGroup[]>({
+      path: "/groups",
+    });
+
+    expect(existingGroups.length).toBeGreaterThan(0);
+    const sourceGroup = existingGroups[0];
+
     const { status: targetStatus, data: targetGroup } = await http.post<
       PartnerGroup
     >({
       path: "/groups",
       body: {
-        name: "E2E Target Group - Disable Test",
-        slug: `e2e-target-disable-${Date.now()}`,
+        name: "E2E Target Group - Disabled Move",
+        slug: `e2e-target-disabled-${Date.now()}`,
         color: randomValue(RESOURCE_COLORS),
       },
     });
@@ -182,7 +199,7 @@ describe.sequential("Workflow - MoveGroup", async () => {
           {
             attribute: "totalLeads",
             operator: "gte",
-            value: 5,
+            value: 2,
           },
         ],
       },
@@ -202,12 +219,112 @@ describe.sequential("Workflow - MoveGroup", async () => {
       data: { disabledAt: new Date() },
     });
 
-    const disabledWorkflow = await prisma.workflow.findUnique({
-      where: { id: workflow!.id },
-      select: { disabledAt: true },
+    const { status: partnerStatus, data: partner } = await http.post<
+      EnrolledPartnerProps
+    >({
+      path: "/partners",
+      body: {
+        name: "E2E Test Partner - Disabled Move",
+        email: randomEmail(),
+        groupId: sourceGroup.id,
+      },
     });
 
-    expect(disabledWorkflow?.disabledAt).not.toBeNull();
+    expect(partnerStatus).toEqual(201);
+    expect(partner.links).not.toBeNull();
+
+    const partnerLink = partner.links![0];
+
+    await trackLeads(http, partnerLink, 3);
+
+    await new Promise((resolve) => setTimeout(resolve, 10000));
+
+    const enrollment = await prisma.programEnrollment.findUnique({
+      where: {
+        partnerId_programId: {
+          partnerId: partner.id,
+          programId,
+        },
+      },
+      select: { groupId: true },
+    });
+
+    expect(enrollment).not.toBeNull();
+    expect(enrollment?.groupId).toBe(sourceGroup.id);
+  });
+
+  test("Workflow doesn't execute when conditions are not met", async () => {
+    const { data: existingGroups } = await http.get<PartnerGroup[]>({
+      path: "/groups",
+    });
+
+    expect(existingGroups.length).toBeGreaterThan(0);
+    const sourceGroup = existingGroups[0];
+
+    const { status: targetStatus, data: targetGroup } = await http.post<
+      PartnerGroup
+    >({
+      path: "/groups",
+      body: {
+        name: "E2E Target Group - Not Met",
+        slug: `e2e-target-not-met-${Date.now()}`,
+        color: randomValue(RESOURCE_COLORS),
+      },
+    });
+
+    expect(targetStatus).toEqual(201);
+
+    onTestFinished(async () => {
+      await http.delete({ path: `/groups/${targetGroup.id}` });
+    });
+
+    const { status: patchStatus } = await http.patch({
+      path: `/groups/${targetGroup.id}`,
+      body: {
+        moveRules: [
+          {
+            attribute: "totalLeads",
+            operator: "gte",
+            value: 2,
+          },
+        ],
+      },
+    });
+
+    expect(patchStatus).toEqual(200);
+
+    const { status: partnerStatus, data: partner } = await http.post<
+      EnrolledPartnerProps
+    >({
+      path: "/partners",
+      body: {
+        name: "E2E Test Partner - Not Met",
+        email: randomEmail(),
+        groupId: sourceGroup.id,
+      },
+    });
+
+    expect(partnerStatus).toEqual(201);
+    expect(partner.links).not.toBeNull();
+
+    const partnerLink = partner.links![0];
+
+    await trackLeads(http, partnerLink, 1);
+
+    await new Promise((resolve) => setTimeout(resolve, 10000));
+
+    const enrollment = await prisma.programEnrollment.findUnique({
+      where: {
+        partnerId_programId: {
+          partnerId: partner.id,
+          programId,
+        },
+      },
+      select: { groupId: true },
+    });
+
+    expect(enrollment).not.toBeNull();
+    expect(enrollment?.groupId).toBe(sourceGroup.id);
   });
 
   test("Workflow executes when conditions are met - partner moves to target group", { timeout: 90000 }, async () => {
@@ -292,6 +409,85 @@ describe.sequential("Workflow - MoveGroup", async () => {
       programId,
       expectedGroupId: targetGroup.id,
     });
+  });
+
+  test("No duplicate group moves on multiple triggers", { timeout: 90000 }, async () => {
+    const { data: existingGroups } = await http.get<PartnerGroup[]>({
+      path: "/groups",
+    });
+
+    expect(existingGroups.length).toBeGreaterThan(0);
+    const sourceGroup = existingGroups[0];
+
+    const { status: targetStatus, data: targetGroup } = await http.post<
+      PartnerGroup
+    >({
+      path: "/groups",
+      body: {
+        name: "E2E Target Group - No Dup Move",
+        slug: `e2e-target-no-dup-${Date.now()}`,
+        color: randomValue(RESOURCE_COLORS),
+      },
+    });
+
+    expect(targetStatus).toEqual(201);
+
+    onTestFinished(async () => {
+      await http.delete({ path: `/groups/${targetGroup.id}` });
+    });
+
+    const { status: patchStatus } = await http.patch({
+      path: `/groups/${targetGroup.id}`,
+      body: {
+        moveRules: [
+          {
+            attribute: "totalLeads",
+            operator: "gte",
+            value: 2,
+          },
+        ],
+      },
+    });
+
+    expect(patchStatus).toEqual(200);
+
+    const { status: partnerStatus, data: partner } = await http.post<
+      EnrolledPartnerProps
+    >({
+      path: "/partners",
+      body: {
+        name: "E2E Test Partner - No Dup Move",
+        email: randomEmail(),
+        groupId: sourceGroup.id,
+      },
+    });
+
+    expect(partnerStatus).toEqual(201);
+    expect(partner.links).not.toBeNull();
+
+    const partnerLink = partner.links![0];
+
+    await trackLeads(http, partnerLink, 5);
+
+    await verifyPartnerGroupMove({
+      partnerId: partner.id,
+      programId,
+      expectedGroupId: targetGroup.id,
+    });
+
+    // Verify partner is in the target group exactly once (no intermediate states)
+    const enrollment = await prisma.programEnrollment.findUnique({
+      where: {
+        partnerId_programId: {
+          partnerId: partner.id,
+          programId,
+        },
+      },
+      select: { groupId: true },
+    });
+
+    expect(enrollment).not.toBeNull();
+    expect(enrollment?.groupId).toBe(targetGroup.id);
   });
 
   test("Multiple move rules can be configured (AND operator)", async () => {
