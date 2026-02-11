@@ -57,14 +57,29 @@ export async function importCommissions(payload: FirstPromoterImportPayload) {
       break;
     }
 
+    const commissionCustomers = commissions
+      .map(({ referral }) => referral)
+      .filter((c): c is NonNullable<typeof c> => c !== null && c !== undefined);
+
     const customersData = await prisma.customer.findMany({
       where: {
         projectId: program.workspaceId,
-        email: {
-          in: commissions
-            .map(({ referral }) => referral?.email)
-            .filter((email): email is string => email !== null),
-        },
+        OR: [
+          {
+            email: {
+              in: commissionCustomers.map(
+                ({ email }) => email.replace(" (moved)", ""), // remove the (moved) suffix
+              ),
+            },
+          },
+          {
+            externalId: {
+              in: commissionCustomers
+                .map(({ uid }) => uid)
+                .filter((c): c is NonNullable<typeof c> => c !== null),
+            },
+          },
+        ],
       },
       include: {
         link: true,

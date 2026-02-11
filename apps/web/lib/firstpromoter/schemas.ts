@@ -141,5 +141,5 @@ export const firstPromoterCommissionSchema = z.object({
       email: true,
       uid: true,
     })
-    .nullable(),
+    .nullish(),
 });
