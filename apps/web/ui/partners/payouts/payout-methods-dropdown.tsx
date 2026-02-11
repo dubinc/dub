@@ -115,14 +115,17 @@ export function PayoutMethodsDropdown() {
   const handleManage = useCallback(
     async (type: PartnerPayoutMethod) => {
       setOpenPopover(false);
+
       if (type === "connect") {
         await executeStripeAsync();
         return;
       }
+
       if (type === "stablecoin") {
         await executeStablecoinAsync();
         return;
       }
+
       if (type === "paypal") {
         await executePaypalAsync();
       }
@@ -137,14 +140,17 @@ export function PayoutMethodsDropdown() {
         setShowBankAccountRequirementsModal(true);
         return;
       }
+
       if (type === "stablecoin") {
         setOpenPopover(false);
         setShowStablecoinPayoutModal(true);
         return;
       }
+
       if (type === "paypal") {
         await executePaypalAsync();
       }
+
       setOpenPopover(false);
     },
     [
@@ -156,13 +162,21 @@ export function PayoutMethodsDropdown() {
 
   const handleSetDefault = useCallback(
     (type: PartnerPayoutMethod) => {
-      executeUpdateSettings({ defaultPayoutMethod: type });
+      executeUpdateSettings({
+        defaultPayoutMethod: type,
+      });
     },
     [executeUpdateSettings],
   );
 
   const isActionPending =
     isStripePending || isStablecoinPending || isPaypalPending;
+
+  const selectedMethod =
+    payoutMethods?.find((m) => m.default) ??
+    payoutMethods?.find((m) => m.connected);
+
+  const isLoading = isPartnerLoading || isSettingsLoading;
 
   if (!partner) {
     return null;
@@ -171,11 +185,6 @@ export function PayoutMethodsDropdown() {
   if (!hasConnected) {
     return null;
   }
-
-  const selectedMethod =
-    payoutMethods?.find((m) => m.default) ??
-    payoutMethods?.find((m) => m.connected);
-  const isLoading = isPartnerLoading || isSettingsLoading;
 
   return (
     <>
@@ -248,7 +257,7 @@ function PayoutMethodItem({
       <div className="flex min-w-0 flex-1 items-center gap-x-2">
         <div
           className={cn(
-            "flex size-8 shrink-0 items-center justify-center rounded-lg border",
+            "flex size-9 shrink-0 items-center justify-center rounded-lg border",
             wrapperClass,
           )}
         >
@@ -259,23 +268,25 @@ function PayoutMethodItem({
             <span className="text-xs font-medium text-neutral-900">
               {method.label}
             </span>
+
             {method.default && (
-              <span className="rounded bg-green-100 px-1.5 py-0.5 text-xs font-medium text-green-700">
+              <span className="rounded-md bg-green-100 px-1.5 py-0.5 text-xs font-semibold text-green-700">
                 Default
               </span>
             )}
+
             {method.connected && !method.default && (
               <button
                 type="button"
                 onClick={() => onSetDefault(method.type)}
                 disabled={isUpdatePending}
-                className="cursor-pointer rounded bg-neutral-100 px-1.5 py-0.5 text-xs font-medium text-neutral-600 transition-colors hover:bg-neutral-200 hover:text-neutral-800 disabled:cursor-not-allowed disabled:opacity-50"
+                className="border-border-subtle cursor-pointer rounded-md border bg-white px-1.5 py-0.5 text-xs font-semibold text-neutral-600 transition-colors hover:bg-neutral-200 hover:text-neutral-800 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Set as default
               </button>
             )}
           </div>
-          <span className="block truncate text-xs text-neutral-500">
+          <span className="mt-0.5 block truncate text-xs text-neutral-500">
             {method.identifier ?? "Not connected"}
           </span>
         </div>
