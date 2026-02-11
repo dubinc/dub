@@ -50,9 +50,18 @@ export const profileResponseSchema = z.preprocess(
       platform: z.literal("youtube"),
       description: z.string(),
       channelId: z.string(),
-      videoCount: z.number().nullish().default(0),
-      subscriberCount: z.number().nullish().default(0),
-      viewCount: z.number().nullish().default(0),
+      videoCount: z
+        .number()
+        .nullish()
+        .transform((val) => val ?? 0),
+      subscriberCount: z
+        .number()
+        .nullish()
+        .transform((val) => val ?? 0),
+      viewCount: z
+        .number()
+        .nullish()
+        .transform((val) => val ?? 0),
     }),
 
     z.object({
@@ -61,10 +70,16 @@ export const profileResponseSchema = z.preprocess(
         user: z.object({
           biography: z.string(),
           edge_followed_by: z.object({
-            count: z.number().nullish().default(0),
+            count: z
+              .number()
+              .nullish()
+              .transform((val) => val ?? 0),
           }),
           edge_owner_to_timeline_media: z.object({
-            count: z.number().nullish().default(0),
+            count: z
+              .number()
+              .nullish()
+              .transform((val) => val ?? 0),
           }),
         }),
       }),
@@ -78,9 +93,18 @@ export const profileResponseSchema = z.preprocess(
         uniqueId: z.string(),
       }),
       stats: z.object({
-        followerCount: z.number().nullish().default(0),
-        videoCount: z.number().nullish().default(0),
-        heartCount: z.number().nullish().default(0),
+        followerCount: z
+          .number()
+          .nullish()
+          .transform((val) => val ?? 0),
+        videoCount: z
+          .number()
+          .nullish()
+          .transform((val) => val ?? 0),
+        heartCount: z
+          .number()
+          .nullish()
+          .transform((val) => val ?? 0),
       }),
     }),
 
@@ -89,8 +113,14 @@ export const profileResponseSchema = z.preprocess(
       rest_id: z.string(),
       legacy: z.object({
         description: z.string(),
-        followers_count: z.number().nullish().default(0),
-        statuses_count: z.number().nullish().default(0),
+        followers_count: z
+          .number()
+          .nullish()
+          .transform((val) => val ?? 0),
+        statuses_count: z
+          .number()
+          .nullish()
+          .transform((val) => val ?? 0),
       }),
     }),
   ]),
