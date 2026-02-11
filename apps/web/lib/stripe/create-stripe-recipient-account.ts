@@ -2,8 +2,9 @@ import type { Partner } from "@dub/prisma/client";
 import { stripeV2Fetch } from "./stripe-v2-client";
 
 interface CreateStripeRecipientAccountParams
-  extends Pick<Partner, "name" | "country" | "profileType"> {
+  extends Pick<Partner, "name" | "profileType"> {
   email: NonNullable<Partner["email"]>;
+  country: NonNullable<Partner["country"]>;
 }
 
 export async function createStripeRecipientAccount({
@@ -17,7 +18,7 @@ export async function createStripeRecipientAccount({
       contact_email: email,
       display_name: name,
       identity: {
-        country: (country ?? "us").toLowerCase(),
+        country: country.toLowerCase(),
         entity_type: profileType,
       },
       configuration: {

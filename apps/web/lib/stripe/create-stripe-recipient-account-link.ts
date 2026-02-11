@@ -10,32 +10,20 @@ export async function createStripeRecipientAccountLink({
   stripeRecipientId,
   useCase,
 }: CreateStripeRecipientAccountLinkParams) {
-  const returnUrl = `${PARTNERS_DOMAIN}/payouts`;
-  const refreshUrl = `${PARTNERS_DOMAIN}/payouts`;
-
-  const useCaseConfig =
-    useCase === "account_onboarding"
-      ? {
-          type: "account_onboarding" as const,
-          account_onboarding: {
-            configurations: ["recipient" as const],
-            return_url: returnUrl,
-            refresh_url: refreshUrl,
-          },
-        }
-      : {
-          type: "account_update" as const,
-          account_update: {
-            configurations: ["recipient" as const],
-            return_url: returnUrl,
-            refresh_url: refreshUrl,
-          },
-        };
-
   const { data, error } = await stripeV2Fetch("/v2/core/account_links", {
     body: {
       account: stripeRecipientId,
-      use_case: useCaseConfig,
+      use_case: {
+        type: useCase,
+        [useCase]: {
+          configurations: ["recipient"],
+          return_url: `${PARTNERS_DOMAIN}/payouts`,
+          refresh_url: `${PARTNERS_DOMAIN}/payouts`,
+          collection_options: {
+            fields: "eventually_due",
+          },
+        },
+      },
     },
   });
 

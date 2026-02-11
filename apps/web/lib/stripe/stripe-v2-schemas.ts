@@ -33,6 +33,9 @@ export const createAccountLinkInputSchema = z.object({
         configurations: z.array(z.literal("recipient")),
         refresh_url: z.url(),
         return_url: z.url().optional(),
+        collection_options: z.object({
+          fields: z.enum(["currently_due", "eventually_due"]),
+        }),
       })
       .optional(),
     account_update: z

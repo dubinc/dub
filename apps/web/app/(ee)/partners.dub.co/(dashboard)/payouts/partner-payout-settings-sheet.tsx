@@ -207,13 +207,26 @@ function PayoutMethodsSection() {
     return null;
   }
 
+  // Show stablecoin as a recommended option when available but not yet connected, to encourage partners to add it
+  const showStablecoinRecommended =
+    availablePayoutMethods.includes("stablecoin") &&
+    !payoutMethodsData?.some((m) => m.type === "stablecoin" && m.connected);
+
   return (
     <div>
       <h4 className="text-content-emphasis mb-3 text-base font-semibold leading-6">
         Payout account
       </h4>
       {hasConnectedAccount ? (
-        <PayoutMethodsDropdown />
+        <div className="space-y-3">
+          <PayoutMethodsDropdown />
+          {showStablecoinRecommended && (
+            <PayoutMethodSelector
+              payoutMethods={["stablecoin"]}
+              variant="compact"
+            />
+          )}
+        </div>
       ) : (
         <PayoutMethodSelector
           payoutMethods={currentMethod ? [currentMethod.id] : []}

@@ -18,6 +18,8 @@ export const generateStripeRecipientAccountLink =
       permission: "payout_settings.update",
     });
 
+    let useCase: "account_onboarding" | "account_update" = "account_update";
+
     if (!partner.stripeRecipientId) {
       if (!partner.email) {
         throw new Error(
@@ -58,11 +60,13 @@ export const generateStripeRecipientAccountLink =
           stripeRecipientId: recipientAccount.id,
         },
       });
+
+      useCase = "account_onboarding";
     }
 
     const accountLink = await createStripeRecipientAccountLink({
-      stripeRecipientId: partner.stripeRecipientId,
-      useCase: "account_update",
+      stripeRecipientId: partner.stripeRecipientId!,
+      useCase,
     });
 
     return {
