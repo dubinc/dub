@@ -1,5 +1,6 @@
 "use client";
 
+import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { PartnerData } from "@/lib/actions/partners/create-program-application";
 import { onboardPartnerAction } from "@/lib/actions/partners/onboard-partner";
 import { onboardPartnerSchema } from "@/lib/zod/schemas/partners";
@@ -95,7 +96,7 @@ export function OnboardingForm({
       router.push("/onboarding/platforms");
     },
     onError: ({ error, input }) => {
-      toast.error(error.serverError);
+      toast.error(parseActionError(error, "An unknown error occurred."));
       reset(input);
     },
   });
@@ -129,7 +130,6 @@ export function OnboardingForm({
       <label>
         <span className="text-sm font-medium text-neutral-800">
           Profile image
-          <span className="font-normal text-neutral-500"> (optional)</span>
         </span>
         <div className="flex items-center gap-5">
           <Controller
@@ -156,7 +156,7 @@ export function OnboardingForm({
               Square image recommended, up to 2 MB.
             </p>
             <p className="mt-0.5 text-xs font-medium text-neutral-500">
-              Adding can improve your program approvals.
+              Adding an image can improve your approval rates.
             </p>
           </div>
         </div>
