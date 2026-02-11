@@ -17,7 +17,7 @@ import { ToggleSidePanelButton } from "@/ui/messages/toggle-side-panel-button";
 import { ProgramHelpLinks } from "@/ui/partners/program-help-links";
 import { ProgramRewardsPanel } from "@/ui/partners/program-rewards-panel";
 import { X } from "@/ui/shared/icons";
-import { Button, Grid, useCopyToClipboard } from "@dub/ui";
+import { Button, Grid, useCopyToClipboard, useMediaQuery } from "@dub/ui";
 import {
   Check,
   ChevronLeft,
@@ -36,13 +36,21 @@ import {
 } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
-import { redirect, useParams } from "next/navigation";
-import { useState } from "react";
+import {
+  redirect,
+  useParams,
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { v4 as uuid } from "uuid";
 
 export function PartnerMessagesProgramPageClient() {
   const { programSlug } = useParams() as { programSlug: string };
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { width } = useMediaQuery();
 
   const { user } = useUser();
   const { partner } = usePartnerProfile();
@@ -96,7 +104,20 @@ export function PartnerMessagesProgramPageClient() {
   });
 
   const { setCurrentPanel } = useMessagesContext();
-  const [isRightPanelOpen, setIsRightPanelOpen] = useState(true);
+  const [isRightPanelOpen, setIsRightPanelOpen] = useState(
+    () => (typeof window === "undefined" ? true : window.innerWidth >= 1082),
+  );
+  const shouldAutoFocusComposer = searchParams.get("new") === "1";
+
+  useEffect(() => {
+    if (typeof width !== "number") return;
+    setIsRightPanelOpen(width >= 1082);
+  }, [programSlug, width]);
+
+  useEffect(() => {
+    if (!shouldAutoFocusComposer) return;
+    router.replace(`/messages/${programSlug}`);
+  }, [programSlug, router, shouldAutoFocusComposer]);
 
   // Redirect if no messages and not enrolled, or messages error
   if (
@@ -194,6 +215,7 @@ export function PartnerMessagesProgramPageClient() {
               currentUserType="partner"
               currentUserId={partner?.id || ""}
               program={program}
+              autoFocusComposer={shouldAutoFocusComposer}
               onSendMessage={async (message) => {
                 const createdAt = new Date();
 

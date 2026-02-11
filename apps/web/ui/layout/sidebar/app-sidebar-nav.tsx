@@ -12,7 +12,7 @@ import useProgram from "@/lib/swr/use-program";
 import { useProgramReferralsCount } from "@/lib/swr/use-program-referrals-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import useWorkspaces from "@/lib/swr/use-workspaces";
-import { useRouterStuff } from "@dub/ui";
+import { useMediaQuery, useRouterStuff } from "@dub/ui";
 import {
   Bell,
   Brush,
@@ -497,6 +497,7 @@ export function AppSidebarNav({
 }) {
   const { slug: paramsSlug } = useParams() as { slug?: string };
   const pathname = usePathname();
+  const { width, isMobile } = useMediaQuery();
   const { getQueryString } = useRouterStuff();
   const { data: session, status } = useSession();
   const { plan, defaultProgramId } = useWorkspace();
@@ -546,18 +547,25 @@ export function AppSidebarNav({
     session?.user?.["defaultWorkspace"];
 
   const currentArea = useMemo(() => {
+    const focusedProgramPath =
+      pathname.includes("/program/campaigns/") ||
+      pathname.includes("/program/messages/") ||
+      pathname.endsWith("/program/payouts/success");
+    const isMobileDrawerViewport =
+      typeof width === "number" ? width < 768 : isMobile;
+
     return pathname.startsWith("/account/settings")
       ? "userSettings"
       : pathname.startsWith(`/${slug}/settings`)
         ? "workspaceSettings"
-        : pathname.includes("/program/campaigns/") ||
-            pathname.includes("/program/messages/") ||
-            pathname.endsWith("/program/payouts/success")
-          ? null
+        : focusedProgramPath
+          ? isMobileDrawerViewport
+            ? "program"
+            : null
           : pathname.startsWith(`/${slug}/program`)
             ? "program"
             : "default";
-  }, [slug, pathname]);
+  }, [isMobile, pathname, slug, width]);
 
   const { program } = useProgram({
     enabled: Boolean(currentArea === "program" && defaultProgramId),

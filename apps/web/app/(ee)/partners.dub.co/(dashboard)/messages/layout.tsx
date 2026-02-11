@@ -5,7 +5,7 @@ import { NavButton } from "@/ui/layout/page-content/nav-button";
 import { MessagesContext, MessagesPanel } from "@/ui/messages/messages-context";
 import { MessagesList } from "@/ui/messages/messages-list";
 import { ProgramSelector } from "@/ui/partners/program-selector";
-import { Button, InfoTooltip, useRouterStuff } from "@dub/ui";
+import { Button, InfoTooltip } from "@dub/ui";
 import { Msgs, Pen2 } from "@dub/ui/icons";
 import { useParams, useRouter } from "next/navigation";
 import { CSSProperties, ReactNode, useEffect, useState } from "react";
@@ -14,7 +14,6 @@ export default function MessagesLayout({ children }: { children: ReactNode }) {
   const { programSlug } = useParams() as { programSlug?: string };
 
   const router = useRouter();
-  const { searchParams } = useRouterStuff();
 
   const { programMessages, isLoading, error } = useProgramMessages({
     query: { messagesLimit: 1 },
@@ -25,8 +24,8 @@ export default function MessagesLayout({ children }: { children: ReactNode }) {
   );
 
   useEffect(() => {
-    searchParams.get("new") && setCurrentPanel("main");
-  }, [searchParams.get("new")]);
+    setCurrentPanel(programSlug ? "main" : "index");
+  }, [programSlug]);
 
   return (
     <MessagesContext.Provider value={{ currentPanel, setCurrentPanel }}>
@@ -57,9 +56,10 @@ export default function MessagesLayout({ children }: { children: ReactNode }) {
               </div>
               <ProgramSelector
                 selectedProgramSlug={programSlug ?? null}
-                setSelectedProgramSlug={(slug) =>
-                  router.push(`/messages/${slug}`)
-                }
+                setSelectedProgramSlug={(slug) => {
+                  setCurrentPanel("main");
+                  router.push(`/messages/${slug}?new=1`);
+                }}
                 trigger={
                   <Button
                     type="button"

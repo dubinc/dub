@@ -16,18 +16,28 @@ import { PartnerInfoGroup } from "@/ui/partners/partner-info-group";
 import { PartnerInfoSection } from "@/ui/partners/partner-info-section";
 import { PartnerInfoStats } from "@/ui/partners/partner-info-stats";
 import { X } from "@/ui/shared/icons";
-import { Button } from "@dub/ui";
+import { Button, useMediaQuery } from "@dub/ui";
 import { ChevronLeft } from "@dub/ui/icons";
 import { OG_AVATAR_URL, cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
-import { redirect, useParams } from "next/navigation";
-import { useState } from "react";
+import {
+  usePathname,
+  redirect,
+  useParams,
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { v4 as uuid } from "uuid";
 
 export function ProgramMessagesPartnerPageClient() {
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const { width } = useMediaQuery();
 
   const { partnerId } = useParams() as { partnerId: string };
   const { user } = useUser();
@@ -82,6 +92,22 @@ export function ProgramMessagesPartnerPageClient() {
 
   const { setCurrentPanel } = useMessagesContext();
   const [isRightPanelOpen, setIsRightPanelOpen] = useState(true);
+  const shouldAutoFocusComposer = searchParams.get("new") === "1";
+
+  useEffect(() => {
+    if (typeof width !== "number") return;
+    setIsRightPanelOpen(width >= 960);
+  }, [partnerId, width]);
+
+  useEffect(() => {
+    if (!shouldAutoFocusComposer) return;
+
+    const nextSearchParams = new URLSearchParams(searchParams.toString());
+    nextSearchParams.delete("new");
+    const nextSearch = nextSearchParams.toString();
+
+    router.replace(nextSearch ? `${pathname}?${nextSearch}` : pathname);
+  }, [pathname, router, searchParams, shouldAutoFocusComposer]);
 
   if (errorMessages) redirect(`/${workspaceSlug}/program/messages`);
 
@@ -144,6 +170,7 @@ export function ProgramMessagesPartnerPageClient() {
             currentUserId={user?.id || ""}
             program={program}
             partner={partner}
+            autoFocusComposer={shouldAutoFocusComposer}
             onSendMessage={async (message) => {
               const createdAt = new Date();
 

@@ -31,6 +31,7 @@ export function MessagesPanel({
   partner,
   onSendMessage,
   placeholder,
+  autoFocusComposer,
   error,
 }: {
   messages?: (Message & { delivered?: boolean })[];
@@ -40,6 +41,7 @@ export function MessagesPanel({
   partner?: Pick<PartnerProps, "name">;
   onSendMessage: (message: string) => void;
   placeholder?: string;
+  autoFocusComposer?: boolean;
   error?: any;
 }) {
   const { isMobile } = useMediaQuery();
@@ -286,7 +288,7 @@ export function MessagesPanel({
         <MessageInput
           placeholder={personalizedPlaceholder}
           onSendMessage={sendMessage}
-          autoFocus={!isMobile}
+          autoFocus={!isMobile || autoFocusComposer}
         />
       </div>
     </div>

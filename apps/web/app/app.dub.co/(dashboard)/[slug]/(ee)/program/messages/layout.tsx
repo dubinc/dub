@@ -12,7 +12,7 @@ import { PartnerSelector } from "@/ui/partners/partner-selector";
 import { Button, InfoTooltip } from "@dub/ui";
 import { Msgs, Pen2 } from "@dub/ui/icons";
 import { useParams, useRouter } from "next/navigation";
-import { CSSProperties, ReactNode, useState } from "react";
+import { CSSProperties, ReactNode, useEffect, useState } from "react";
 import { MessagesUpsell } from "./messages-upsell";
 
 export default function MessagesLayout({ children }: { children: ReactNode }) {
@@ -30,7 +30,6 @@ export default function MessagesLayout({ children }: { children: ReactNode }) {
 function CapableLayout({ children }: { children: ReactNode }) {
   const { slug: workspaceSlug } = useWorkspace();
   const { partnerId } = useParams() as { partnerId?: string };
-  const { program } = useProgram();
 
   const router = useRouter();
 
@@ -41,6 +40,10 @@ function CapableLayout({ children }: { children: ReactNode }) {
   const [currentPanel, setCurrentPanel] = useState<MessagesPanel>(
     partnerId ? "main" : "index",
   );
+
+  useEffect(() => {
+    setCurrentPanel(partnerId ? "main" : "index");
+  }, [partnerId]);
 
   return (
     <MessagesContext.Provider value={{ currentPanel, setCurrentPanel }}>
@@ -71,9 +74,10 @@ function CapableLayout({ children }: { children: ReactNode }) {
               </div>
               <PartnerSelector
                 selectedPartnerId={partnerId ?? null}
-                setSelectedPartnerId={(id) =>
-                  router.push(`/${workspaceSlug}/program/messages/${id}`)
-                }
+                setSelectedPartnerId={(id) => {
+                  setCurrentPanel("main");
+                  router.push(`/${workspaceSlug}/program/messages/${id}?new=1`);
+                }}
                 trigger={
                   <Button
                     type="button"
