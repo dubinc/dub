@@ -7,8 +7,8 @@ import {
   createOutboundPaymentOutputSchema,
   createRecipientAccountInputSchema,
   createRecipientAccountOutputSchema,
-  listOutboundSetupIntentsOutputSchema,
-  listOutboundSetupIntentsQuerySchema,
+  listPayoutMethodsOutputSchema,
+  listPayoutMethodsQuerySchema,
 } from "./stripe-v2-schemas";
 
 export const STRIPE_API_VERSION = "2025-09-30.preview";
@@ -36,10 +36,10 @@ export const stripeV2Fetch = createFetch({
         input: createOutboundPaymentInputSchema,
         output: createOutboundPaymentOutputSchema,
       },
-      "/v2/money_management/outbound_setup_intents": {
+      "/v2/money_management/payout_methods": {
         method: "get",
-        query: listOutboundSetupIntentsQuerySchema,
-        output: listOutboundSetupIntentsOutputSchema,
+        query: listPayoutMethodsQuerySchema,
+        output: listPayoutMethodsOutputSchema,
       },
     },
     {

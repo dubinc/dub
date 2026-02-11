@@ -112,31 +112,23 @@ export const createOutboundPaymentOutputSchema = z.object({
   livemode: z.boolean(),
 });
 
-export const listOutboundSetupIntentsQuerySchema = z.object({
-  limit: z.number().optional(),
-  page: z.string().optional(),
+export const listPayoutMethodsQuerySchema = z.object({
+  limit: z.number(),
 });
 
-export const listOutboundSetupIntentsOutputSchema = z.object({
+export const listPayoutMethodsOutputSchema = z.object({
   data: z.array(
     z.object({
       id: z.string(),
-      status: z.enum([
-        "canceled",
-        "requires_action",
-        "requires_payout_method",
-        "succeeded",
-      ]),
-      payout_method: z.object({
-        id: z.string(),
-        type: z.enum(["bank_account", "card", "crypto_wallet"]),
-        crypto_wallet: z
-          .object({
-            address: z.string(),
-            network: z.string(),
-          })
-          .nullable(),
-      }),
+      object: z.string(),
+      type: z.enum(["crypto_wallet"]),
+      crypto_wallet: z
+        .object({
+          address: z.string(),
+          archived: z.boolean(),
+          network: z.string(),
+        })
+        .nullable(),
     }),
   ),
 });

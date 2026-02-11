@@ -1,13 +1,15 @@
-import { stripeV2Fetch } from "./stripe-v2-client";
+import { STRIPE_API_VERSION, stripeV2Fetch } from "./stripe-v2-client";
 
 export async function getStripePayoutMethods(stripeRecipientId: string) {
   const { data, error } = await stripeV2Fetch(
-    "/v2/money_management/outbound_setup_intents",
+    "/v2/money_management/payout_methods",
     {
       query: {
         limit: 1,
       },
       headers: {
+        Authorization: `Bearer ${process.env.STRIPE_SECRET_KEY}`,
+        "Stripe-Version": STRIPE_API_VERSION,
         "Stripe-Context": stripeRecipientId,
       },
     },

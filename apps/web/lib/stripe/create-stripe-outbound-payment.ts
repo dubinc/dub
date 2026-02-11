@@ -32,7 +32,10 @@ export async function createStripeOutboundPayment({
   }
 
   const cryptoPayoutMethod = payoutMethods.find(
-    (method) => method.payout_method.type === "crypto_wallet",
+    (method) =>
+      method.type === "crypto_wallet" &&
+      method.crypto_wallet &&
+      !method.crypto_wallet.archived,
   );
 
   if (!cryptoPayoutMethod) {
