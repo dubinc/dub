@@ -81,20 +81,37 @@ export const onboardPartnerAction = authUserActionClient
             },
           }),
 
-      (!user.defaultPartnerId || !user.image) &&
+      // if the user doesn't have a default partner id, set the new partner id as the user's default partner id
+      user.defaultPartnerId &&
         prisma.user.update({
           where: {
             id: user.id,
           },
           data: {
-            // if the user doesn't have a default partner id, set the new partner id
-            ...(!user.defaultPartnerId && { defaultPartnerId: partnerId }),
-            // if the user doesn't have an image, set the partner image
-            ...(!user.image && { image: imageUrl }),
+            defaultPartnerId: partnerId,
           },
         }),
     ]);
 
     // Complete any outstanding program application
     waitUntil(completeProgramApplications(user.email));
+
+    // if the user doesn't have an image, set the uploaded image as the user's image
+    if (!user.image && image) {
+      waitUntil(
+        storage
+          .upload({
+            key: `avatars/${user.id}`,
+            body: image,
+          })
+          .then(({ url }) => {
+            prisma.user.update({
+              where: {
+                id: user.id,
+              },
+              data: { image: url },
+            });
+          }),
+      );
+    }
   });
