@@ -475,7 +475,6 @@ describe.sequential("Workflow - MoveGroup", async () => {
       expectedGroupId: targetGroup.id,
     });
 
-    // Verify partner is in the target group exactly once (no intermediate states)
     const enrollment = await prisma.programEnrollment.findUnique({
       where: {
         partnerId_programId: {
