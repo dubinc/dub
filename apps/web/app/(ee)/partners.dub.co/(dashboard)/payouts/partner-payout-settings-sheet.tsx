@@ -7,7 +7,10 @@ import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
 import type { PartnerPayoutMethodSetting } from "@/lib/types";
 import { partnerPayoutSettingsSchema } from "@/lib/zod/schemas/partners";
-import { PayoutMethodSelector } from "@/ui/partners/payouts/payout-method-selector";
+import {
+  PAYOUT_METHODS,
+  PayoutMethodSelector,
+} from "@/ui/partners/payouts/payout-method-selector";
 import { PayoutMethodsDropdown } from "@/ui/partners/payouts/payout-methods-dropdown";
 import {
   BlurImage,
@@ -177,6 +180,7 @@ function PartnerPayoutSettingsSheetInner() {
 
 function PayoutMethodsSection() {
   const { partner, availablePayoutMethods } = usePartnerProfile();
+  const [selectedMethodId, setSelectedMethodId] = useState<string | null>(null);
 
   const { data: payoutMethodsData } = useSWR<PartnerPayoutMethodSetting[]>(
     partner ? "/api/partner-profile/payouts/settings" : null,
@@ -185,6 +189,19 @@ function PayoutMethodsSection() {
 
   const hasConnectedAccount =
     payoutMethodsData?.some((m) => m.connected) ?? false;
+
+  const filteredMethods = PAYOUT_METHODS.filter((m) =>
+    availablePayoutMethods.includes(m.id),
+  );
+
+  const currentMethod = selectedMethodId
+    ? filteredMethods.find((m) => m.id === selectedMethodId) ||
+      filteredMethods[0]
+    : filteredMethods[0];
+
+  const otherMethods = filteredMethods.filter(
+    (m) => m.id !== currentMethod?.id,
+  );
 
   if (availablePayoutMethods.length === 0) {
     return null;
@@ -199,8 +216,25 @@ function PayoutMethodsSection() {
         <PayoutMethodsDropdown />
       ) : (
         <PayoutMethodSelector
-          payoutMethods={availablePayoutMethods}
+          payoutMethods={currentMethod ? [currentMethod.id] : []}
           variant="compact"
+          actionFooter={() =>
+            otherMethods.length > 0 ? (
+              <div className="mt-1 flex justify-center">
+                {otherMethods.map((method) => (
+                  <button
+                    key={method.id}
+                    type="button"
+                    onClick={() => setSelectedMethodId(method.id)}
+                    className="text-xs font-medium text-neutral-400 transition-colors hover:text-neutral-600"
+                  >
+                    Connect {method.title}
+                    {method.recommended ? " (recommended)" : ""}
+                  </button>
+                ))}
+              </div>
+            ) : null
+          }
         />
       )}
     </div>

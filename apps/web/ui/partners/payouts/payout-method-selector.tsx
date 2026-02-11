@@ -82,9 +82,11 @@ const CARD_VARIANTS = {
 export function PayoutMethodSelector({
   payoutMethods,
   variant: variantProp,
+  actionFooter,
 }: {
   payoutMethods: string[];
   variant?: "default" | "compact";
+  actionFooter?: (methodId: string) => ReactNode;
 }) {
   const filteredMethods = PAYOUT_METHODS.filter((m) =>
     payoutMethods.includes(m.id),
@@ -125,6 +127,7 @@ export function PayoutMethodSelector({
               className="h-9 w-full rounded-lg"
             />
           }
+          actionFooter={actionFooter?.(method.id)}
           variant={cardVariant}
         />
       ))}
@@ -165,6 +168,7 @@ function PayoutMethodCard({
   features,
   recommended,
   action,
+  actionFooter,
   variant = "default",
 }: {
   icon: ReactNode;
@@ -172,6 +176,7 @@ function PayoutMethodCard({
   features: readonly { icon: ReactNode; text: string }[];
   recommended?: boolean;
   action: ReactNode;
+  actionFooter?: ReactNode;
   variant?: "default" | "compact" | "spotlight";
 }) {
   const styles = CARD_VARIANTS[variant];
@@ -213,6 +218,7 @@ function PayoutMethodCard({
         </ul>
 
         <div className={styles.action}>{action}</div>
+        {actionFooter}
       </div>
     </div>
   );
