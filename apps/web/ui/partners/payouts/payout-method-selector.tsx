@@ -1,17 +1,19 @@
 "use client";
 
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
-import { PartnerPayoutMethod } from "@dub/prisma/client";
 import {
   Badge,
   CircleDollar,
   GreekTemple,
   Paypal,
-  StripeStablecoinIcon,
+  StablecoinIcon,
 } from "@dub/ui";
 import { Calendar, Globe, MapPin, Zap } from "lucide-react";
 import { ReactNode } from "react";
 import { ConnectPayoutButton } from "./connect-payout-button";
+
+// TODO:
+// Combine icon and iconSingle
 
 const PAYOUT_METHODS = [
   {
@@ -20,12 +22,12 @@ const PAYOUT_METHODS = [
     recommended: true,
     icon: (
       <div className="flex size-10 items-center justify-center rounded-lg border border-[#1717170D] bg-[#EDE9FE]">
-        <StripeStablecoinIcon className="size-5" />
+        <StablecoinIcon className="size-5" />
       </div>
     ),
     iconSingle: (
       <div className="flex size-14 items-center justify-center rounded-lg border border-[#1717170D] bg-[#EDE9FE]">
-        <StripeStablecoinIcon className="size-8" />
+        <StablecoinIcon className="size-8" />
       </div>
     ),
     features: [
@@ -163,43 +165,9 @@ export function PayoutMethodSelector() {
           recommended={method.recommended}
           action={
             <ConnectPayoutButton
+              payoutMethod={method.id}
               text="Connect"
               className="h-9 w-full rounded-lg"
-              payoutMethodType={method.id}
-            />
-          }
-          isSingle={isSingleOption}
-        />
-      ))}
-    </div>
-  );
-}
-
-export function StripePayoutMethodOptions({
-  availableMethods,
-}: {
-  availableMethods: PartnerPayoutMethod[];
-}) {
-  const filteredMethods = PAYOUT_METHODS.filter((m) =>
-    availableMethods.includes(m.id),
-  );
-
-  const isSingleOption = filteredMethods.length === 1;
-
-  return (
-    <div className={isSingleOption ? "w-full" : "grid gap-3 sm:grid-cols-2"}>
-      {filteredMethods.map((method) => (
-        <PayoutMethodCard
-          key={method.id}
-          icon={isSingleOption ? method.iconSingle : method.icon}
-          title={method.title}
-          features={method.features}
-          recommended={method.recommended}
-          action={
-            <ConnectPayoutButton
-              text="Connect"
-              className="h-9 w-full rounded-lg"
-              payoutMethodType={method.id}
             />
           }
           isSingle={isSingleOption}

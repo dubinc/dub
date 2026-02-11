@@ -5,7 +5,7 @@ import { Button, Modal } from "@dub/ui";
 import { TriangleWarning } from "@dub/ui/icons";
 import { COUNTRIES, COUNTRY_CURRENCY_CODES } from "@dub/utils";
 import { Dispatch, SetStateAction, useMemo, useState } from "react";
-import { Markdown } from "../shared/markdown";
+import { Markdown } from "../../shared/markdown";
 
 function BankAccountRequirementsModal({
   showModal,

@@ -1,122 +1,123 @@
 "use client";
 
+import { generatePaypalOAuthUrl } from "@/lib/actions/partners/generate-paypal-oauth-url";
+import { generateStripeAccountLink } from "@/lib/actions/partners/generate-stripe-account-link";
+import { generateStripeRecipientAccountLink } from "@/lib/actions/partners/generate-stripe-recipient-account-link";
 import { hasPermission } from "@/lib/auth/partner-users/partner-user-permissions";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
+import { useBankAccountRequirementsModal } from "@/ui/partners/payouts/bank-account-requirements-modal";
 import { useSelectPayoutMethodModal } from "@/ui/partners/payouts/select-payout-method-modal";
+import { useStablecoinPayoutModal } from "@/ui/partners/payouts/stablecoin-payout-modal";
 import { PartnerPayoutMethod } from "@dub/prisma/client";
 import { Button, ButtonProps, TooltipContent } from "@dub/ui";
 import { COUNTRIES } from "@dub/utils";
-import { useMemo } from "react";
+import { useAction } from "next-safe-action/hooks";
+import { useRouter } from "next/navigation";
+import { useCallback, useMemo } from "react";
+import { toast } from "sonner";
+
+interface ConnectPayoutButtonProps extends ButtonProps {
+  payoutMethod?: PartnerPayoutMethod;
+}
 
 export function ConnectPayoutButton({
-  payoutMethodType,
+  payoutMethod,
   ...props
-}: ButtonProps & { payoutMethodType?: PartnerPayoutMethod }) {
+}: ConnectPayoutButtonProps) {
+  const router = useRouter();
   const { partner, availablePayoutMethods } = usePartnerProfile();
+
+  const {
+    executeAsync: executeStripeConnect,
+    isPending: isStripeConnectPending,
+  } = useAction(generateStripeAccountLink, {
+    onSuccess: ({ data }) => {
+      router.push(data.url);
+    },
+    onError: ({ error }) => {
+      toast.error(error.serverError);
+    },
+  });
+
+  const {
+    executeAsync: executeStablecoinConnect,
+    isPending: isStablecoinConnectPending,
+  } = useAction(generateStripeRecipientAccountLink, {
+    onSuccess: ({ data }) => {
+      router.push(data.url);
+    },
+    onError: ({ error }) => {
+      toast.error(error.serverError);
+    },
+  });
+
+  const {
+    executeAsync: executePaypalConnect,
+    isPending: isPaypalConnectPending,
+  } = useAction(generatePaypalOAuthUrl, {
+    onSuccess: ({ data }) => {
+      router.push(data.url);
+    },
+    onError: ({ error }) => {
+      toast.error(error.serverError);
+    },
+  });
 
   const { setShowSelectPayoutMethodModal, SelectPayoutMethodModal } =
     useSelectPayoutMethodModal();
 
-  // const { executeAsync: executeStripeAsync, isPending: isStripePending } =
-  //   useAction(generateStripeAccountLink, {
-  //     onSuccess: ({ data }) => {
-  //       if (!data?.url) {
-  //         toast.error("Unable to create account link. Please contact support.");
-  //         return;
-  //       }
-  //       router.push(data.url);
-  //     },
-  //     onError: ({ error }) => {
-  //       toast.error(error.serverError);
-  //     },
-  //   });
+  const { setShowBankAccountRequirementsModal, BankAccountRequirementsModal } =
+    useBankAccountRequirementsModal({
+      onContinue: async () => {
+        await executeStripeConnect();
+      },
+    });
 
-  // const { executeAsync: executePaypalAsync, isPending: isPaypalPending } =
-  //   useAction(generatePaypalOAuthUrl, {
-  //     onSuccess: ({ data }) => {
-  //       if (!data?.url) {
-  //         toast.error("Unable to redirect to Paypal. Please contact support.");
-  //         return;
-  //       }
-  //       router.push(data.url);
-  //     },
-  //     onError: ({ error }) => {
-  //       toast.error(error.serverError);
-  //     },
-  //   });
+  const { setShowStablecoinPayoutModal, StablecoinPayoutModal } =
+    useStablecoinPayoutModal({
+      onContinue: async () => {
+        await executeStablecoinConnect();
+      },
+    });
 
-  // const connectPayout = useCallback(async () => {
-  //   if (!partner) {
-  //     toast.error("Invalid partner profile. Please log out and log back in.");
-  //     return;
-  //   }
+  const handleClick = useCallback(() => {
+    if (payoutMethod === "connect") {
+      setShowSelectPayoutMethodModal(false);
+      setShowBankAccountRequirementsModal(true);
+      return;
+    }
 
-  //   if (!partner.country) {
-  //     toast.error(
-  //       "You haven't set your country yet. Please go to partners.dub.co/settings to set your country.",
-  //     );
-  //   }
+    if (payoutMethod === "stablecoin") {
+      setShowSelectPayoutMethodModal(false);
+      setShowStablecoinPayoutModal(true);
+      return;
+    }
 
-  //   if (payoutMethod === "paypal") {
-  //     await executePaypalAsync();
-  //   } else if (payoutMethod === "stripe") {
-  //     await executeStripeAsync();
-  //   } else {
-  //     toast.error(
-  //       "Your country is not supported for payout. Please go to partners.dub.co/settings to update your country, or contact support.",
-  //     );
-  //     return;
-  //   }
-  // }, [executeStripeAsync, executePaypalAsync, partner]);
+    if (payoutMethod === "paypal") {
+      executePaypalConnect();
+      return;
+    }
 
-  // const { setShowBankAccountRequirementsModal, BankAccountRequirementsModal } =
-  //   useBankAccountRequirementsModal({
-  //     onContinue: connectPayout,
-  //   });
+    setShowSelectPayoutMethodModal(true);
+  }, [
+    payoutMethod,
+    setShowSelectPayoutMethodModal,
+    setShowBankAccountRequirementsModal,
+    setShowStablecoinPayoutModal,
+    executePaypalConnect,
+  ]);
 
-  // const { setShowSelectPayoutMethodModal, SelectPayoutMethodModal } =
-  //   useSelectPayoutMethodModal();
-
-  // const handleClick = useCallback(() => {
-  //   if (payoutMethodType === "paypal") {
-  //     executePaypalAsync();
-  //     return;
-  //   }
-
-  //   if (payoutMethod === "paypal" && !payoutMethodType) {
-  //     connectPayout();
-  //     return;
-  //   }
-
-  //   if (
-  //     payoutMethod === "stripe" ||
-  //     availablePayoutMethods?.includes("crypto") ||
-  //     availablePayoutMethods?.includes("bankAccount")
-  //   ) {
-  //     if (payoutMethodType === "crypto") {
-  //       connectPayout();
-  //     } else if (payoutMethodType === "bankAccount") {
-  //       setShowBankAccountRequirementsModal(true);
-  //     } else if (!payoutMethodType) {
-  //       setShowSelectPayoutMethodModal(true);
-  //     } else {
-  //       connectPayout();
-  //     }
-  //     return;
-  //   }
-
-  //   toast.error(
-  //     "Your country is not supported for payout. Please go to partners.dub.co/settings to update your country, or contact support.",
-  //   );
-  // }, [
-  //   connectPayout,
-  //   executePaypalAsync,
-  //   // payoutMethod,
-  //   // payoutMethodType,
-  //   availablePayoutMethods,
-  //   setShowBankAccountRequirementsModal,
-  //   setShowSelectPayoutMethodModal,
-  // ]);
+  const isPending = useMemo(
+    () =>
+      isStripeConnectPending ||
+      isStablecoinConnectPending ||
+      isPaypalConnectPending,
+    [
+      isStripeConnectPending,
+      isStablecoinConnectPending,
+      isPaypalConnectPending,
+    ],
+  );
 
   const errorMessage = useMemo(
     () =>
@@ -135,9 +136,12 @@ export function ConnectPayoutButton({
   return (
     <>
       {SelectPayoutMethodModal}
+      {BankAccountRequirementsModal}
+      {StablecoinPayoutModal}
       <Button
-        onClick={() => setShowSelectPayoutMethodModal(true)}
-        text="Connect payout"
+        onClick={handleClick}
+        text={payoutMethod ? "Connect" : "Connect payout"}
+        loading={isPending}
         disabledTooltip={
           errorMessage && (
             <TooltipContent
