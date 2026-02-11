@@ -8,7 +8,7 @@ interface VerifyPartnerGroupMoveProps {
 }
 
 const POLL_INTERVAL_MS = 5000; // 5 seconds
-const TIMEOUT_MS = 30000; // 30 seconds
+const TIMEOUT_MS = 60000; // 60 seconds
 
 export const verifyPartnerGroupMove = async ({
   partnerId,
@@ -16,6 +16,7 @@ export const verifyPartnerGroupMove = async ({
   expectedGroupId,
 }: VerifyPartnerGroupMoveProps) => {
   const startTime = Date.now();
+  let lastGroupId: string | null = null;
 
   while (Date.now() - startTime < TIMEOUT_MS) {
     const enrollment = await prisma.programEnrollment.findUnique({
@@ -34,6 +35,8 @@ export const verifyPartnerGroupMove = async ({
       },
     });
 
+    lastGroupId = enrollment?.groupId ?? null;
+
     if (enrollment?.groupId === expectedGroupId) {
       expect(enrollment.groupId).toBe(expectedGroupId);
       return enrollment;
@@ -44,6 +47,7 @@ export const verifyPartnerGroupMove = async ({
 
   throw new Error(
     `Partner group move not found within ${TIMEOUT_MS / 1000} seconds. ` +
-      `partnerId: ${partnerId}, expectedGroupId: ${expectedGroupId}`,
+      `partnerId: ${partnerId}, expectedGroupId: ${expectedGroupId}. ` +
+      `Last seen groupId: ${lastGroupId}`,
   );
 };

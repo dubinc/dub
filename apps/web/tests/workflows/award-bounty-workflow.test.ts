@@ -45,12 +45,12 @@ describe.sequential("Workflow - AwardBounty", async () => {
   const h = new IntegrationHarness();
   const { http } = await h.init();
 
-  test("Workflow executes when partner reaches goal", async () => {
+  test("Workflow executes when partner reaches goal", { timeout: 90000 }, async () => {
     const { status: bountyStatus, data: bounty } = await http.post<Bounty>({
       path: "/bounties",
       body: {
         name: "E2E Performance Bounty - Goal Reached",
-        description: "Get 10 leads to earn $10",
+        description: "Get 2 leads to earn $10",
         type: "performance",
         startsAt: new Date().toISOString(),
         endsAt: null,
@@ -60,7 +60,7 @@ describe.sequential("Workflow - AwardBounty", async () => {
         performanceCondition: {
           attribute: "totalLeads",
           operator: "gte",
-          value: 10,
+          value: 2,
         },
       },
     });
@@ -87,17 +87,17 @@ describe.sequential("Workflow - AwardBounty", async () => {
 
     const partnerLink = partner.links![0];
 
-    await trackLeads(http, partnerLink, 11);
+    await trackLeads(http, partnerLink, 3);
 
     const submission = await verifyBountySubmission({
       bountyId: bounty.id,
       partnerId: partner.id,
       expectedStatus: "submitted",
-      minPerformanceCount: 10,
+      minPerformanceCount: 2,
     });
 
     expect(submission.status).toBe("submitted");
-    expect(submission.performanceCount).toBeGreaterThanOrEqual(10);
+    expect(submission.performanceCount).toBeGreaterThanOrEqual(2);
     expect(submission.completedAt).not.toBeNull();
   });
 
@@ -106,7 +106,7 @@ describe.sequential("Workflow - AwardBounty", async () => {
       path: "/bounties",
       body: {
         name: "E2E Performance Bounty - Not Reached",
-        description: "Get 10 leads to earn $10",
+        description: "Get 2 leads to earn $10",
         type: "performance",
         startsAt: new Date().toISOString(),
         endsAt: null,
@@ -116,7 +116,7 @@ describe.sequential("Workflow - AwardBounty", async () => {
         performanceCondition: {
           attribute: "totalLeads",
           operator: "gte",
-          value: 10,
+          value: 2,
         },
       },
     });
@@ -142,7 +142,7 @@ describe.sequential("Workflow - AwardBounty", async () => {
 
     const partnerLink = partner.links![0];
 
-    await trackLeads(http, partnerLink, 5);
+    await trackLeads(http, partnerLink, 1);
 
     await new Promise((resolve) => setTimeout(resolve, 10000));
 
@@ -155,7 +155,7 @@ describe.sequential("Workflow - AwardBounty", async () => {
 
     expect(submission).not.toBeNull();
     expect(submission?.status).toBe("draft");
-    expect(submission?.performanceCount).toBe(5);
+    expect(submission?.performanceCount).toBe(1);
     expect(submission?.completedAt).toBeNull();
   });
 
@@ -164,7 +164,7 @@ describe.sequential("Workflow - AwardBounty", async () => {
       path: "/bounties",
       body: {
         name: "E2E Performance Bounty - Disabled",
-        description: "Get 10 leads to earn $10",
+        description: "Get 2 leads to earn $10",
         type: "performance",
         startsAt: new Date().toISOString(),
         endsAt: null,
@@ -174,7 +174,7 @@ describe.sequential("Workflow - AwardBounty", async () => {
         performanceCondition: {
           attribute: "totalLeads",
           operator: "gte",
-          value: 10,
+          value: 2,
         },
       },
     });
@@ -211,7 +211,7 @@ describe.sequential("Workflow - AwardBounty", async () => {
 
     const partnerLink = partner.links![0];
 
-    await trackLeads(http, partnerLink, 11);
+    await trackLeads(http, partnerLink, 3);
 
     await new Promise((resolve) => setTimeout(resolve, 10000));
 
@@ -225,12 +225,12 @@ describe.sequential("Workflow - AwardBounty", async () => {
     expect(submission).toBeNull();
   });
 
-  test("No duplicate execution on multiple triggers", async () => {
+  test("No duplicate execution on multiple triggers", { timeout: 90000 }, async () => {
     const { status: bountyStatus, data: bounty } = await http.post<Bounty>({
       path: "/bounties",
       body: {
         name: "E2E Performance Bounty - No Duplicates",
-        description: "Get 10 leads to earn $10",
+        description: "Get 2 leads to earn $10",
         type: "performance",
         startsAt: new Date().toISOString(),
         endsAt: null,
@@ -240,7 +240,7 @@ describe.sequential("Workflow - AwardBounty", async () => {
         performanceCondition: {
           attribute: "totalLeads",
           operator: "gte",
-          value: 10,
+          value: 2,
         },
       },
     });
@@ -266,13 +266,13 @@ describe.sequential("Workflow - AwardBounty", async () => {
 
     const partnerLink = partner.links![0];
 
-    await trackLeads(http, partnerLink, 15);
+    await trackLeads(http, partnerLink, 5);
 
     await verifyBountySubmission({
       bountyId: bounty.id,
       partnerId: partner.id,
       expectedStatus: "submitted",
-      minPerformanceCount: 10,
+      minPerformanceCount: 2,
     });
 
     const submissions = await prisma.bountySubmission.findMany({

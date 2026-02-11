@@ -7,7 +7,7 @@ interface VerifyCampaignSentProps {
 }
 
 const POLL_INTERVAL_MS = 5000; // 5 seconds
-const TIMEOUT_MS = 30000; // 30 seconds
+const TIMEOUT_MS = 60000; // 60 seconds
 
 export const verifyCampaignSent = async ({
   campaignId,

@@ -242,7 +242,7 @@ describe.sequential("Workflow - MoveGroup", async () => {
           {
             attribute: "totalLeads",
             operator: "gte",
-            value: 10,
+            value: 2,
           },
         ],
       },
@@ -285,7 +285,7 @@ describe.sequential("Workflow - MoveGroup", async () => {
 
     const partnerLink = partner.links![0];
 
-    await trackLeads(http, partnerLink, 11);
+    await trackLeads(http, partnerLink, 3);
 
     await verifyPartnerGroupMove({
       partnerId: partner.id,
