@@ -38,6 +38,7 @@ export const bulkResolveFraudGroupsAction = authActionClient
         id: true,
         programId: true,
         partnerId: true,
+        type: true,
       },
     });
 
@@ -66,18 +67,19 @@ export const bulkResolveFraudGroupsAction = authActionClient
       ...(resolutionReason && { resolutionReason }),
     });
 
-    // Add the resolution reason as a comment to each unique partner
+    // Add the resolution reason as a comment for each resolved fraud group
     if (resolutionReason && count > 0) {
-      const uniquePartnerIds = Array.from(
-        new Set(fraudGroups.map((group) => group.partnerId)),
-      );
-
       await prisma.partnerComment.createMany({
-        data: uniquePartnerIds.map((partnerId) => ({
+        data: fraudGroups.map((group) => ({
           programId,
-          partnerId,
+          partnerId: group.partnerId,
           userId: user.id,
           text: resolutionReason,
+          metadata: {
+            source: "fraudResolution",
+            groupId: group.id,
+            type: group.type,
+          },
         })),
       });
     }

@@ -35,6 +35,7 @@ export const resolveFraudGroupAction = authActionClient
         id: true,
         programId: true,
         partnerId: true,
+        type: true,
       },
     });
 
@@ -60,6 +61,11 @@ export const resolveFraudGroupAction = authActionClient
           partnerId: fraudGroup.partnerId,
           userId: user.id,
           text: resolutionReason,
+          metadata: {
+            source: "fraudResolution",
+            groupId: fraudGroup.id,
+            type: fraudGroup.type,
+          },
         },
       });
     }
